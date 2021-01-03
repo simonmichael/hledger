@@ -30,7 +30,7 @@ where
 import Control.Applicative ((<|>))
 import Data.Foldable (asum)
 import Data.Function ((&), on)
-import Data.List (intercalate,  (\\), sortBy )
+import Data.List (intercalate, sortBy)
 import Data.List.Extra (nubSortBy)
 import qualified Data.Map as M
 import qualified Data.Set as S
@@ -219,10 +219,10 @@ priceLookup makepricegraph d from mto =
         let msg = "seeking " ++ pshowedge' "" from to ++ " price"
         in case 
           (traceAt 2 (msg++" using forward prices") $ 
-            pricesShortestPath forwardprices from to)
+            pricesShortestPath from to forwardprices)
           <|> 
           (traceAt 2 (msg++" using forward and reverse prices") $ 
-            pricesShortestPath allprices from to)
+            pricesShortestPath from to allprices)
         of
           Nothing -> Nothing
           Just [] -> Nothing
@@ -278,52 +278,49 @@ data PriceGraph = PriceGraph {
 -- form the edges of a directed graph. There should be at most one edge
 -- between each directed pair of commodities, eg there can be one
 -- USD->EUR price and one EUR->USD price.
-pricesShortestPath :: [Edge] -> CommoditySymbol -> CommoditySymbol -> Maybe Path
-pricesShortestPath edges start end =
+pricesShortestPath :: CommoditySymbol -> CommoditySymbol -> [Edge] -> Maybe Path
+pricesShortestPath start end edges =
   -- dbg0With ((("shortest "++pshowedge' "" start end++" price path: ")++) . pshow . fmap (pshowpath "")) $
   dbg2 ("shortest "++pshowedge' "" start end++" price path") $
-  case quicksolution of
-    (path:_) -> Just path
-    []  -> asum $ map (findPath end edgesremaining) initialpaths
-  where
-    initialpaths = 
-      dbg2With (prefix "initial paths" . intercalate ", " . map (pshowpath "")) $ 
-      [[p] | p <- dbgedges "known prices" edges, mpfrom p == start]
-    quicksolution = [path | path@(MarketPrice{..}:_) <- initialpaths, mpfrom==start && mpto==end]
-    edgesremaining = dbgedges "initial prices remaining" $ 
-      [e | e <- edges, mpto e /= start] \\ concat initialpaths
+  findPath start end edges 0 []
 
--- Helper: breadth-first search for a continuation of the given path
--- using zero or more of the given edges, to the specified end commodity.
--- Returns the first & shortest complete path found, or Nothing.
-findPath :: CommoditySymbol -> [Edge] -> Path -> Maybe Path
-findPath end _ path | mpathend == Just end = Just path  -- path is complete
+-- Helper: breadth-first search for a path from the given start commodity
+-- to the given end commodity using one or more of the given edges.
+-- Returns the first (and shortest) complete path found, if there is one.
+findPath :: CommoditySymbol -> CommoditySymbol -> [Edge] -> Int -> Path -> Maybe Path
+-- path is complete, return it
+findPath _ end _ _ path | (mpto <$> lastMay path) == Just end = Just path
+-- no more edges available, give up
+findPath _ _ [] _ _ = Nothing
+-- searching too much perhaps due to a bug, give up
+-- XXX I think this is equivalent to a max path length, and still not
+-- much good; we need to count iterations across all branches
+findPath _ _ _ recursions _ | recursions > maxrecursions = error' err
   where 
-    mpathend = mpto <$> lastMay path
-findPath _ [] _ = Nothing   -- no more edges are available
--- Guard against infinite loops as in #1439: 
--- give up if path grows to an unlikely length.
--- XXX we need to limit the number of findPath iterations also.
-findPath _ _ path | length path >= maxlength = error' err
-  where 
-    maxlength = 1000
+    maxrecursions = 1000
     err = intercalate "\n" [
-       "giving up after searching price chains up to "++show maxlength++" long;"
+       "giving up searching for a price chain after recursing to depth "++show maxrecursions++";"
       ,"please report this as a bug."
       ]
-findPath end edgesremaining path =   -- try continuing with all the remaining edges
-  asum [ 
-      findPath end edgesremaining' path'
-    | e <- nextedges
-    , not $ mpto e `elem` map mpto path  -- avoid loops
-    , let path' = dbgpath "findPath trying" $ path++[e]
-    , let edgesremaining' = filter (/= e) edgesremaining
-    ]
+-- try continuing with all next edges, prioritising those reaching the goal, 
+-- returning the first complete path found
+findPath start end edgesremaining recursions path
+  | otherwise =
+    asum [ findPath start end edgesremaining' (recursions+1) path'
+          | e <- finalornextedges
+          , let path' = dbgpath "findPath trying" $ path++[e]
+          , let edgesremaining' = filter (/= e) edgesremaining  -- XXX better: edgesremaining \\ finalornextedges ?
+          ]
   where
-    nextedges =
-      [ e | e <- edgesremaining, Just (mpfrom e) == mpathend ]
-      where
-        mpathend = mpto <$> lastMay path
+    -- all edges continuing from path's end, or from start if there is no path yet
+    nextedges = dbgedges "nextedges" $
+      [ e | e <- edgesremaining
+      , mpfrom e == maybe start mpto (lastMay path)  -- continue from path end or start
+      , not $ mpto e `elem` (start : map mpto path)  -- avoid loops
+      ]
+    -- if any next edges reach the goal, keep only those
+    finalornextedges = if null finaledges then nextedges else finaledges
+      where finaledges = filter ((==end).mpto) nextedges 
 
 dbgpath  label = dbg2With (pshowpath label)
 dbgedges label = dbg2With (pshowedges label)
