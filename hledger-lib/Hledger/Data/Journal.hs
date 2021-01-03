@@ -92,6 +92,7 @@ module Hledger.Data.Journal (
 )
 where
 
+import Control.Applicative ((<|>))
 import Control.Monad.Except (ExceptT(..), runExceptT, throwError)
 import "extra" Control.Monad.Extra (whenM)
 import Control.Monad.Reader as R
@@ -102,9 +103,9 @@ import Data.Default (Default(..))
 import Data.Function ((&))
 import qualified Data.HashTable.Class as H (toList)
 import qualified Data.HashTable.ST.Cuckoo as H
-import Data.List (find, sortOn)
-import Data.List.Extra (groupSort, nubSort)
-import qualified Data.Map as M
+import Data.List (find, foldl', sortOn)
+import Data.List.Extra (nubSort)
+import qualified Data.Map.Strict as M
 import Data.Maybe (catMaybes, fromJust, fromMaybe, isJust, mapMaybe)
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Semigroup (Semigroup(..))
@@ -1109,42 +1110,40 @@ journalInferCommodityStyles j =
 -- and this function never reports an error.
 --
 commodityStylesFromAmounts :: [Amount] -> Either String (M.Map CommoditySymbol AmountStyle)
-commodityStylesFromAmounts amts =
-  Right $ M.fromList commstyles
-  where
-    commamts = groupSort [(acommodity as, as) | as <- amts]
-    commstyles = [(c, canonicalStyleFrom $ map astyle as) | (c,as) <- commamts]
+commodityStylesFromAmounts =
+    Right . foldr (\a -> M.insertWith canonicalStyle (acommodity a) (astyle a)) mempty
+
+-- | Given a list of amount styles (assumed to be from parsed amounts
+-- in a single commodity), in parse order, choose a canonical style.
+canonicalStyleFrom :: [AmountStyle] -> AmountStyle
+-- canonicalStyleFrom [] = amountstyle
+canonicalStyleFrom ss = foldl' canonicalStyle amountstyle ss
 
 -- TODO: should probably detect and report inconsistencies here.
 -- Though, we don't have the info for a good error message, so maybe elsewhere.
--- | Given a list of amount styles (assumed to be from parsed amounts
--- in a single commodity), in parse order, choose a canonical style.
+-- | Given a pair of AmountStyles, choose a canonical style.
 -- This is:
--- the general style of the first amount, 
+-- the general style of the first amount,
 -- with the first digit group style seen,
 -- with the maximum precision of all.
---
-canonicalStyleFrom :: [AmountStyle] -> AmountStyle
-canonicalStyleFrom [] = amountstyle
-canonicalStyleFrom ss@(s:_) =
-  s{asprecision=prec, asdecimalpoint=Just decmark, asdigitgroups=mgrps}
+canonicalStyle :: AmountStyle -> AmountStyle -> AmountStyle
+canonicalStyle a b = a{asprecision=prec, asdecimalpoint=decmark, asdigitgroups=mgrps}
   where
     -- precision is maximum of all precisions
-    prec = maximumStrict $ map asprecision ss
+    prec = max (asprecision a) (asprecision b)
     -- identify the digit group mark (& group sizes)
-    mgrps = headMay $ mapMaybe asdigitgroups ss
+    mgrps = asdigitgroups a <|> asdigitgroups b
     -- if a digit group mark was identified above, we can rely on that;
     -- make sure the decimal mark is different. If not, default to period.
-    defdecmark =
-      case mgrps of
+    defdecmark = case mgrps of
         Just (DigitGroups '.' _) -> ','
         _                        -> '.'
     -- identify the decimal mark: the first one used, or the above default,
     -- but never the same character as the digit group mark.
     -- urgh.. refactor..
     decmark = case mgrps of
-                Just _ -> defdecmark
-                _      -> headDef defdecmark $ mapMaybe asdecimalpoint ss
+        Just _  -> Just defdecmark
+        Nothing -> asdecimalpoint a <|> asdecimalpoint b <|> Just defdecmark
 
 -- -- | Apply this journal's historical price records to unpriced amounts where possible.
 -- journalApplyPriceDirectives :: Journal -> Journal
