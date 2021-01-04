@@ -491,17 +491,22 @@ unittest: $(call def-help,unittest, run the unit tests in hledger-lib )
 builtintest: $(call def-help,builtintest, run hledgers built in test command)
 	@($(STACK) exec hledger test && echo $@ PASSED) || (echo $@ FAILED; false)
 
+# hledger executable to functional test: by default the development build
+# in this directory, can be overridden by env var.
+# eg: FUNCTESTEXE=hledger-1.20 make functest
+FUNCTESTEXE ?= `$(STACK) exec -- which hledger`
+
 #functest: addons hledger/test/addons/hledger-addon 
 functest: hledger/test/addons/hledger-addon \
 	$(call def-help,functest, build hledger quickly and run the functional tests (and some unit tests) )
 	@$(STACK) build --fast hledger
-	@($(SHELLTESTSTK) -w `$(STACK) exec -- which hledger` hledger/test/ bin/ \
+	@($(SHELLTESTSTK) -w $(FUNCTESTEXE) hledger/test/ bin/ \
 		&& echo $@ PASSED) || (echo $@ FAILED; false)
 
 functest-%: hledger/test/addons/hledger-addon \
 	$(call def-help,functest-PAT, build hledger quickly and run just the functional tests matching PAT )
 	@stack build --fast hledger
-	@($(SHELLTESTSTK) -w `stack exec -- which hledger` hledger/test/ -i "$*" \
+	@($(SHELLTESTSTK) -w $(FUNCTESTEXE) hledger/test/ -i "$*" \
 		&& echo $@ PASSED) || (echo $@ FAILED; false)
 
 ADDONEXTS=pl py rb sh hs lhs rkt exe com bat
