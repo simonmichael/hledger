@@ -93,7 +93,7 @@ STACK ?= stack
 
 # --threads=16 sometimes gives "commitAndReleaseBuffer: resource vanished (Broken pipe)" but seems harmless
 # More threads and/or testing unoptimised builds requires a larger timeout.
-SHELLTESTOPTS=--execdir --threads=16 --timeout=10 --exclude=/_  --hide-successes 
+SHELLTESTOPTS=--execdir --threads=16 --timeout=10 --exclude=/_
 
 # make sure shelltest is a released version of shelltestrunner
 # run shell tests using the executable specified in tests
@@ -498,9 +498,9 @@ FUNCTESTEXE ?= `$(STACK) exec -- which hledger`
 
 #functest: addons hledger/test/addons/hledger-addon 
 functest: hledger/test/addons/hledger-addon \
-	$(call def-help,functest, build hledger quickly and run the functional tests (and some unit tests) )
+	$(call def-help,functest, build hledger quickly and quietly run the functional tests (and some unit tests) )
 	@$(STACK) build --fast hledger
-	@($(SHELLTESTSTK) -w $(FUNCTESTEXE) hledger/test/ bin/ \
+	@($(SHELLTESTSTK) --hide-successes -w $(FUNCTESTEXE) hledger/test/ bin/ \
 		&& echo $@ PASSED) || (echo $@ FAILED; false)
 
 functest-%: hledger/test/addons/hledger-addon \
