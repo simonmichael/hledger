@@ -783,7 +783,12 @@ in this order of preference
    a chain of any market prices, including both forward and
    reverse prices (1 and 2 above), leading from A to B.
 
-Amounts for which no applicable market price can be found, are not converted.
+There is a limit to the length of these price chains; if hledger
+reaches that length without finding a complete chain or exhausting 
+all possibilities, it will give up (with a "gave up" message 
+visible in `--debug=2` output). That limit is currently 1000.
+
+Amounts for which no suitable market price can be found, are not converted.
 
 ## --infer-value: market prices from transactions
 
