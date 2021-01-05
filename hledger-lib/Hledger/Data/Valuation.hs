@@ -5,6 +5,7 @@ looking up historical market prices (exchange rates) between commodities.
 
 -}
 
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -28,9 +29,8 @@ module Hledger.Data.Valuation (
 where
 
 import Control.Applicative ((<|>))
-import Data.Foldable (asum)
 import Data.Function ((&), on)
-import Data.List (intercalate, sortBy)
+import Data.List (partition, intercalate, sortBy)
 import Data.List.Extra (nubSortBy)
 import qualified Data.Map as M
 import qualified Data.Set as S
@@ -38,13 +38,14 @@ import qualified Data.Text as T
 import Data.Time.Calendar (Day, fromGregorian)
 import Data.MemoUgly (memo)
 import GHC.Generics (Generic)
-import Safe (lastMay)
+import Safe (headMay, lastMay)
 
 import Hledger.Utils
 import Hledger.Data.Types
 import Hledger.Data.Amount
 import Hledger.Data.Dates (nulldate)
 import Hledger.Data.Commodity (showCommoditySymbol)
+import Data.Maybe (fromMaybe)
 
 
 ------------------------------------------------------------------------------
@@ -247,6 +248,7 @@ tests_priceLookup =
 
 ------------------------------------------------------------------------------
 -- Market price graph
+-- built directly with MarketPrices for now, probably space-inefficient
 
 type Edge = MarketPrice
 type Path = [Edge]
@@ -280,56 +282,52 @@ data PriceGraph = PriceGraph {
 -- USD->EUR price and one EUR->USD price.
 pricesShortestPath :: CommoditySymbol -> CommoditySymbol -> [Edge] -> Maybe Path
 pricesShortestPath start end edges =
-  -- dbg0With ((("shortest "++pshowedge' "" start end++" price path: ")++) . pshow . fmap (pshowpath "")) $
   dbg2 ("shortest "++pshowedge' "" start end++" price path") $
-  findPath start end edges 0 []
-
--- Helper: breadth-first search for a path from the given start commodity
--- to the given end commodity using one or more of the given edges.
--- Returns the first (and shortest) complete path found, if there is one.
-findPath :: CommoditySymbol -> CommoditySymbol -> [Edge] -> Int -> Path -> Maybe Path
--- path is complete, return it
-findPath _ end _ _ path | (mpto <$> lastMay path) == Just end = Just path
--- no more edges available, give up
-findPath _ _ [] _ _ = Nothing
--- searching too much perhaps due to a bug, give up
--- XXX I think this is equivalent to a max path length, and still not
--- much good; we need to count iterations across all branches
-findPath _ _ _ recursions _ | recursions > maxrecursions = error' err
-  where 
-    maxrecursions = 1000
-    err = intercalate "\n" [
-       "giving up searching for a price chain after recursing to depth "++show maxrecursions++";"
-      ,"please report this as a bug."
-      ]
--- try continuing with all next edges, prioritising those reaching the goal, 
--- returning the first complete path found
-findPath start end edgesremaining recursions path
-  | otherwise =
-    asum [ findPath start end edgesremaining' (recursions+1) path'
-          | e <- finalornextedges
-          , let path' = dbgpath "findPath trying" $ path++[e]
-          , let edgesremaining' = filter (/= e) edgesremaining  -- XXX better: edgesremaining \\ finalornextedges ?
-          ]
+  find [([],edges)]
   where
-    -- all edges continuing from path's end, or from start if there is no path yet
-    nextedges = dbgedges "nextedges" $
-      [ e | e <- edgesremaining
-      , mpfrom e == maybe start mpto (lastMay path)  -- continue from path end or start
-      , not $ mpto e `elem` (start : map mpto path)  -- avoid loops
-      ]
-    -- if any next edges reach the goal, keep only those
-    finalornextedges = if null finaledges then nextedges else finaledges
-      where finaledges = filter ((==end).mpto) nextedges 
+    -- Find the first and shortest complete path using a breadth-first search.
+    find :: [(Path,[Edge])] -> Maybe Path
+    find paths =
+      case concatMap extend paths of
+        [] -> Nothing 
+        _ | iteration > maxiterations -> 
+          trace ("gave up searching for a price chain after "++show maxiterations++" iterations, please report a bug")
+          Nothing
+          where 
+            iteration = 1 + maybe 0 (length . fst) (headMay paths)
+            maxiterations = 1000
+        paths' -> 
+          case completepaths of
+                p:_ -> Just p  -- the left-most complete path at this length
+                []  -> find paths'
+          where completepaths = [p | (p,_) <- paths', (mpto <$> lastMay p) == Just end]
 
+    -- Use all applicable edges from those provided to extend this path by one step,
+    -- returning zero or more new (path, remaining edges) pairs.
+    extend :: (Path,[Edge]) -> [(Path,[Edge])]
+    extend (path,unusededges) =
+      let
+        pathnodes = start : map mpto path
+        pathend = fromMaybe start $ mpto <$> lastMay path
+        (nextedges,remainingedges) = partition ((==pathend).mpfrom) unusededges
+      in
+        [ (path', remainingedges')
+        | e <- nextedges
+        , let path' = dbgpath "trying" $ path ++ [e]  -- PERF prepend ?
+        , let pathnodes' = mpto e : pathnodes
+        , let remainingedges' = [r | r <- remainingedges, not $ mpto r `elem` pathnodes' ]
+        ]
+
+-- debug helpers
 dbgpath  label = dbg2With (pshowpath label)
-dbgedges label = dbg2With (pshowedges label)
-_dbgedge  label = dbg2With (pshowedge label)
-
-pshowpath label = prefix label . unwords . map (pshowedge "")
-pshowedges label = prefix label . intercalate ", " . map (pshowedge "")
-pshowedge label MarketPrice{..} = pshowedge' label mpfrom mpto
-pshowedge' label from to = prefix label $ showCommoditySymbol (T.unpack from) ++ ">" ++ showCommoditySymbol (T.unpack to)
+-- dbgedges label = dbg2With (pshowedges label)
+pshowpath label = \case
+  []      -> prefix label ""
+  p@(e:_) -> prefix label $ pshownode (mpfrom e) ++ ">" ++ intercalate ">" (map (pshownode . mpto) p)
+-- pshowedges label = prefix label . intercalate ", " . map (pshowedge "")
+-- pshowedge label MarketPrice{..} = pshowedge' label mpfrom mpto
+pshowedge' label from to = prefix label $ pshownode from ++ ">" ++ pshownode to
+pshownode = T.unpack . showCommoditySymbol
 prefix l = if null l then (""++) else ((l++": ")++)
 
 -- | A snapshot of the known exchange rates between commodity pairs at a given date.
