@@ -324,3 +324,19 @@ P 2020-01-01 M 140Y
 
 $ hledger -f- bal -N -X Z
                   Z1  a
+
+# 31. #1443 It should always pick the shortest price path, A>P>Z here.
+#<
+#2020-01-01
+#  (a)  1A
+#
+#P 2020-01-01 A 1B
+#P 2020-01-01 B 1C
+#P 2020-01-01 C 1D
+#P 2020-01-01 D 1Z
+#
+#P 2020-01-01 A 1P
+#P 2020-01-01 P 100Z
+#
+#$ hledger -f- bal -N -X Z
+#                100Z  a
