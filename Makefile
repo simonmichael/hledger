@@ -91,8 +91,10 @@ STACK ?= stack
 # it will give warnings. To silence these, put the old hpack-X.Y in $PATH and uncomment:
 #STACK=stack --with-hpack=hpack-0.20
 
-# -j16 sometimes gives "commitAndReleaseBuffer: resource vanished (Broken pipe)" but seems harmless
-SHELLTESTOPTS=--execdir -j16 --exclude=/_  #--hide-successes 
+# --threads=16 sometimes gives "commitAndReleaseBuffer: resource vanished (Broken pipe)" but seems harmless
+# --timeout is sometimes strangely too short with multiple threads, so only used coarsely here to prevent a total hang
+# More threads and/or testing unoptimised builds requires a larger timeout.
+SHELLTESTOPTS=--execdir --threads=16 --timeout=30 --exclude=/_
 
 # make sure shelltest is a released version of shelltestrunner
 # run shell tests using the executable specified in tests
