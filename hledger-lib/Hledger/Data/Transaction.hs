@@ -553,8 +553,9 @@ priceInferrerFor t pt = inferprice
         = p{pamount=Mixed [a{aprice=Just conversionprice}], poriginal=Just $ originalPosting p}
       where
         fromcommodity = head $ filter (`elem` sumcommodities) pcommodities -- these heads are ugly but should be safe
+        totalpricesign = if aquantity a < 0 then negate else id
         conversionprice
-          | fromcount==1 = TotalPrice $ abs toamount `withPrecision` NaturalPrecision
+          | fromcount==1 = TotalPrice $ totalpricesign (abs toamount) `withPrecision` NaturalPrecision
           | otherwise    = UnitPrice $ abs unitprice `withPrecision` unitprecision
           where
             fromcount     = length $ filter ((==fromcommodity).acommodity) pamounts
@@ -923,7 +924,7 @@ tests_Transaction =
                ""
                []
                [ posting {paccount = "a", pamount = Mixed [usd 1 @@ eur 1]}
-               , posting {paccount = "a", pamount = Mixed [usd (-2) @@ eur 1]}
+               , posting {paccount = "a", pamount = Mixed [usd (-2) @@ eur (-1)]}
                ])
         ]
     , tests "isTransactionBalanced" [

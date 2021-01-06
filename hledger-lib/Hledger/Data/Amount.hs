@@ -209,7 +209,7 @@ instance Num Amount where
     abs a@Amount{aquantity=q}    = a{aquantity=abs q}
     signum a@Amount{aquantity=q} = a{aquantity=signum q}
     fromInteger i                = nullamt{aquantity=fromInteger i}
-    negate a@Amount{aquantity=q} = a{aquantity= -q}
+    negate a                     = transformAmountAndPrice negate a
     (+)                          = similarAmountsOp (+)
     (-)                          = similarAmountsOp (-)
     (*)                          = similarAmountsOp (*)
@@ -260,14 +260,14 @@ amountWithCommodity c a = a{acommodity=c, aprice=Nothing}
 -- - price amounts must be MixedAmounts with exactly one component Amount
 --   (or there will be a runtime error XXX)
 --
--- - price amounts should be positive
+-- - price amounts should be positive in the Journal
 --   (though this is currently not enforced)
 amountCost :: Amount -> Amount
 amountCost a@Amount{aquantity=q, aprice=mp} =
     case mp of
       Nothing                                  -> a
       Just (UnitPrice  p@Amount{aquantity=pq}) -> p{aquantity=pq * q}
-      Just (TotalPrice p@Amount{aquantity=pq}) -> p{aquantity=pq * signum q}
+      Just (TotalPrice p@Amount{aquantity=pq}) -> p{aquantity=pq}
 
 -- | Replace an amount's TotalPrice, if it has one, with an equivalent UnitPrice.
 -- Has no effect on amounts without one.
@@ -293,21 +293,20 @@ divideAmount n a@Amount{aquantity=q} = a{aquantity=q/n}
 multiplyAmount :: Quantity -> Amount -> Amount
 multiplyAmount n a@Amount{aquantity=q} = a{aquantity=q*n}
 
--- | Divide an amount's quantity (and its total price, if it has one) by a constant.
--- The total price will be kept positive regardless of the multiplier's sign.
-divideAmountAndPrice :: Quantity -> Amount -> Amount
-divideAmountAndPrice n a@Amount{aquantity=q,aprice=p} = a{aquantity=q/n, aprice=f <$> p}
+-- | Apply a function to an amount's quantity (and its total price, if it has one).
+transformAmountAndPrice :: (Quantity -> Quantity) -> Amount -> Amount
+transformAmountAndPrice f a@Amount{aquantity=q,aprice=p} = a{aquantity=f q, aprice=f' <$> p}
   where
-    f (TotalPrice a) = TotalPrice $ abs $ n `divideAmount` a
-    f p = p
+    f' (TotalPrice a@Amount{aquantity=pq}) = TotalPrice a{aquantity = f pq}
+    f' p = p
+
+-- | Divide an amount's quantity (and its total price, if it has one) by a constant.
+divideAmountAndPrice :: Quantity -> Amount -> Amount
+divideAmountAndPrice n = transformAmountAndPrice (/n)
 
 -- | Multiply an amount's quantity (and its total price, if it has one) by a constant.
--- The total price will be kept positive regardless of the multiplier's sign.
 multiplyAmountAndPrice :: Quantity -> Amount -> Amount
-multiplyAmountAndPrice n a@Amount{aquantity=q,aprice=p} = a{aquantity=q*n, aprice=f <$> p}
-  where
-    f (TotalPrice a) = TotalPrice $ abs $ n `multiplyAmount` a
-    f p = p
+multiplyAmountAndPrice n = transformAmountAndPrice (*n)
 
 -- | Is this amount negative ? The price is ignored.
 isNegativeAmount :: Amount -> Bool
@@ -372,10 +371,12 @@ setAmountDecimalPoint mc a@Amount{ astyle=s } = a{ astyle=s{asdecimalpoint=mc} }
 withDecimalPoint :: Amount -> Maybe Char -> Amount
 withDecimalPoint = flip setAmountDecimalPoint
 
-showAmountPrice :: Maybe AmountPrice -> WideBuilder
-showAmountPrice Nothing      = mempty
-showAmountPrice (Just (UnitPrice  pa)) = WideBuilder (TB.fromString " @ ")  3 <> showAmountB noColour pa
-showAmountPrice (Just (TotalPrice pa)) = WideBuilder (TB.fromString " @@ ") 4 <> showAmountB noColour pa
+showAmountPrice :: Amount -> WideBuilder
+showAmountPrice amt = case aprice amt of
+    Nothing              -> mempty
+    Just (UnitPrice  pa) -> WideBuilder (TB.fromString " @ ")  3 <> showAmountB noColour pa
+    Just (TotalPrice pa) -> WideBuilder (TB.fromString " @@ ") 4 <> showAmountB noColour (sign pa)
+  where sign = if aquantity amt < 0 then negate else id
 
 showAmountPriceDebug :: Maybe AmountPrice -> String
 showAmountPriceDebug Nothing                = ""
@@ -428,7 +429,7 @@ showAmountB opts a@Amount{astyle=style} =
                   | otherwise = (quantity, quoteCommoditySymbolIfNeeded $ acommodity a)
     space = if not (T.null c) && ascommodityspaced style then WideBuilder (TB.singleton ' ') 1 else mempty
     c' = WideBuilder (TB.fromText c) (textWidth c)
-    price = if displayPrice opts then showAmountPrice (aprice a) else mempty
+    price = if displayPrice opts then showAmountPrice a else mempty
     color = if displayColour opts && isNegativeAmount a then colorB Dull Red else id
 
 -- | Colour version. For a negative amount, adds ANSI codes to change the colour,
@@ -874,7 +875,7 @@ tests_Amount = tests "Amount" [
        amountCost (eur 1) @?= eur 1
        amountCost (eur 2){aprice=Just $ UnitPrice $ usd 2} @?= usd 4
        amountCost (eur 1){aprice=Just $ TotalPrice $ usd 2} @?= usd 2
-       amountCost (eur (-1)){aprice=Just $ TotalPrice $ usd 2} @?= usd (-2)
+       amountCost (eur (-1)){aprice=Just $ TotalPrice $ usd (-2)} @?= usd (-2)
 
     ,test "amountLooksZero" $ do
        assertBool "" $ amountLooksZero amount

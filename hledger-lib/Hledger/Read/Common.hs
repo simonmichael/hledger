@@ -757,7 +757,7 @@ amountp = label "amount" $ do
     spaces = lift $ skipNonNewlineSpaces
   amount <- amountwithoutpricep <* spaces
   (mprice, _elotprice, _elotdate) <- runPermutation $
-    (,,) <$> toPermutationWithDefault Nothing (Just <$> priceamountp <* spaces)
+    (,,) <$> toPermutationWithDefault Nothing (Just <$> priceamountp amount <* spaces)
          <*> toPermutationWithDefault Nothing (Just <$> lotpricep <* spaces)
          <*> toPermutationWithDefault Nothing (Just <$> lotdatep <* spaces)
   pure $ amount { aprice = mprice }
@@ -767,7 +767,7 @@ amountpnolotpricesp = label "amount" $ do
   let spaces = lift $ skipNonNewlineSpaces
   amount <- amountwithoutpricep
   spaces
-  mprice <- optional $ priceamountp <* spaces
+  mprice <- optional $ priceamountp amount <* spaces
   pure $ amount { aprice = mprice }
 
 amountwithoutpricep :: JournalParser m Amount
@@ -877,18 +877,24 @@ quotedcommoditysymbolp =
 simplecommoditysymbolp :: TextParser m CommoditySymbol
 simplecommoditysymbolp = takeWhile1P Nothing (not . isNonsimpleCommodityChar)
 
-priceamountp :: JournalParser m AmountPrice
-priceamountp = label "transaction price" $ do
+priceamountp :: Amount -> JournalParser m AmountPrice
+priceamountp baseAmt = label "transaction price" $ do
   -- https://www.ledger-cli.org/3.0/doc/ledger3.html#Virtual-posting-costs
   parenthesised <- option False $ char '(' >> pure True
   char '@'
-  priceConstructor <- char '@' *> pure TotalPrice <|> pure UnitPrice
+  totalPrice <- char '@' *> pure True <|> pure False
   when parenthesised $ void $ char ')'
 
   lift skipNonNewlineSpaces
   priceAmount <- amountwithoutpricep -- <?> "unpriced amount (specifying a price)"
 
-  pure $ priceConstructor priceAmount
+  let amtsign' = signum $ aquantity baseAmt
+      amtsign  = if amtsign' == 0 then 1 else amtsign'
+
+  pure $ if totalPrice
+            then TotalPrice priceAmount{aquantity=amtsign * aquantity priceAmount}
+            else UnitPrice  priceAmount
+
 
 balanceassertionp :: JournalParser m BalanceAssertion
 balanceassertionp = do
