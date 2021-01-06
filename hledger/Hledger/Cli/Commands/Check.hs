@@ -52,11 +52,19 @@ cliOptsUpdateReportSpecWith roptsupdate copts@CliOpts{reportspec_} =
     Right rs -> copts{reportspec_=rs}
 
 -- | A type of error check that we can perform on the data.
--- (Currently, just the optional checks that only the check command
--- can do; not the checks done by default or with --strict.)
+-- Some of these imply other checks that are done first,
+-- eg currently Parseable and Autobalanced are always done,
+-- and Assertions are always done unless -I is in effect.
 data Check =
-    Accounts
+  -- done always
+    Parseable
+  | Autobalanced
+  -- done always unless -I is used
+  | Assertions
+  -- done when -s is used, or on demand by check
+  | Accounts
   | Commodities
+  -- done on demand by check
   | Ordereddates
   | Payees
   | Uniqueleafnames
@@ -105,6 +113,8 @@ runCheck copts@CliOpts{rawopts_} j (check,args) = do
       Ordereddates    -> journalCheckOrdereddates copts' j
       Payees          -> journalCheckPayeesDeclared j
       Uniqueleafnames -> journalCheckUniqueleafnames j
+      -- the other checks have been done earlier during withJournalDo
+      _               -> Right ()
 
   case results of
     Right () -> return ()
