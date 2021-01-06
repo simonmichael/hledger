@@ -3922,25 +3922,48 @@ data. See:
 
 ### Setting amounts
 
-A posting amount can be set in one of these ways:
+Here's a review of the [amount-setting rules](#amount) discussed above.
+A posting's amount can be set in one of these ways:
 
-- by assigning (with a fields list or field assignment) to
-  `amountN` (posting N's amount) or `amount` (posting 1's amount)
+1. **If the CSV has a single amount field:**\
+   by assigning (via a [fields list](#fields) or a [field assignment](#field-assignment)) 
+   to `amountN`, which sets posting N's amount. N is usually 1 or 2 but can go up to 99.
 
-- by assigning to `amountN-in` and `amountN-out` (or `amount-in` and `amount-out`).
-  For each CSV record, whichever of these has a non-zero value will be used, with appropriate sign.
-  If both contain a non-zero value, this may not work.
+2. **If the CSV has separate Debit and Credit amount fields:**\
+   by assigning to `amountN-in` and `amountN-out`,
+   which sets posting N's amount to whichever of these has a non-zero value, guessing the appropriate sign.
+  
+   - **If both fields contain a non-zero value:**\
+     you'll need to use some custom conditional rules, as hledger requires one of these fields to be empty or at least zero.
 
-- by assigning to `balanceN` (or `balance`) instead of the above,
-  setting the amount indirectly via a
-  [balance assignment](hledger.html#balance-assignments).
-  If you do this the default account name may be wrong, so you should set that explicitly.
+   - **If hledger guesses the wrong sign:**\
+     you can prepend a minus sign to flip it.
+     Due to the above restriction, this should be done conditionally, eg:
+      ```rules
+      # If amount-out is non-empty, flip its sign:
+      if %amount-out .
+       amount-out -%amount-out
+      ```
 
-There is some special handling for an amount's sign:
+3. **Using old numberless syntax:**\
+   by assigning to `amount` (or to `amount-in` and `amount-out`), which sets posting 1's and posting 2's amounts.
+   It also converts posting 2's amount to cost (see the [amount](#amount) discussion above).
+   This is supported for backwards compatibility (and occasional convenience).
 
-- If an amount value is parenthesised, it will be de-parenthesised and sign-flipped.
-- If an amount value begins with a double minus sign, those cancel out and are removed.
-- If an amount value begins with a plus sign, that will be removed
+4. **If the CSV has the new balance instead of the posted amount:**\
+   by assigning to `balanceN`, which sets posting N's amount indirectly via a
+   [balance assignment](hledger.html#balance-assignments).
+   (Old syntax: `balance`, equivalent to `balance1`.)
+   
+   - **If hledger guesses the wrong default account name:**\
+     When setting the amount via balance assertion, hledger may guess the wrong default account name,
+     so you should set the account name explicitly.
+
+There is some automatic special handling for an amount's sign, for convenience:
+
+- **If an amount value begins with a plus sign,** it will be removed: `+AMT` becomes `AMT`
+- **If an amount value is parenthesised,** it will be de-parenthesised and sign-flipped: `(AMT)` becomes `-AMT`
+- **If an amount value begins with two minus signs,** they cancel out and will be removed: `--AMT` becomes `AMT`
 
 ### Setting currency/commodity
 
