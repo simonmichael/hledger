@@ -8,6 +8,8 @@ prevent problems in your data.
 Some of these are run automatically; or,
 you can use this `check` command to run them on demand,
 with no output and a zero exit code if all is well.
+Specify their names (or a prefix) as argument(s).
+
 Some examples:
 
 ```shell

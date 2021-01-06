@@ -15,8 +15,8 @@ import Hledger.Cli.Commands.Check.Ordereddates (journalCheckOrdereddates)
 import Hledger.Cli.Commands.Check.Uniqueleafnames (journalCheckUniqueleafnames)
 import System.Console.CmdArgs.Explicit
 import Data.Either (partitionEithers)
-import Data.Char (toUpper)
-import Safe (readMay)
+import Data.Char (toLower,toUpper)
+import Data.List (isPrefixOf, find)
 import Control.Monad (forM_)
 import System.IO (stderr, hPutStrLn)
 import System.Exit (exitFailure)
@@ -60,19 +60,24 @@ data Check =
   | Ordereddates
   | Payees
   | Uniqueleafnames
-  deriving (Read,Show,Eq)
+  deriving (Read,Show,Eq,Enum,Bounded)
 
--- | Parse the name of an error check, or return the name unparsed.
--- Names are conventionally all lower case, but this parses case insensitively.
+-- | Parse the name (or a name prefix) of an error check, or return the name unparsed.
+-- Check names are conventionally all lower case, but this parses case insensitively.
 parseCheck :: String -> Either String Check
-parseCheck s = maybe (Left s) Right $ readMay $ capitalise s
+parseCheck s = 
+  maybe (Left s) (Right . read) $  -- PARTIAL: read should not fail here
+  find (s' `isPrefixOf`) $ checknames
+  where
+    s' = capitalise $ map toLower s
+    checknames = map show [minBound..maxBound::Check]
 
 capitalise :: String -> String
 capitalise (c:cs) = toUpper c : cs
 capitalise s = s
 
 -- | Parse a check argument: a string which is the lower-case name of an error check,
--- followed by zero or more space-separated arguments for that check.
+-- or a prefix thereof, followed by zero or more space-separated arguments for that check.
 parseCheckArgument :: String -> Either String (Check,[String])
 parseCheckArgument s =
   dbg3 "check argument" $
