@@ -3961,9 +3961,14 @@ A posting's amount can be set in one of these ways:
 
 There is some automatic special handling for an amount's sign, for convenience:
 
-- **If an amount value begins with a plus sign,** it will be removed: `+AMT` becomes `AMT`
-- **If an amount value is parenthesised,** it will be de-parenthesised and sign-flipped: `(AMT)` becomes `-AMT`
-- **If an amount value begins with two minus signs,** they cancel out and will be removed: `--AMT` becomes `AMT`
+- **If an amount value begins with a plus sign:**\
+  it will be removed: `+AMT` becomes `AMT`
+
+- **If an amount value is parenthesised:**\
+  it will be de-parenthesised and sign-flipped: `(AMT)` becomes `-AMT`
+
+- **If an amount value begins with two minus signs:**\
+  they cancel out and will be removed: `--AMT` becomes `AMT`
 
 ### Setting currency/commodity
 
