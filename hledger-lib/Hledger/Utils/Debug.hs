@@ -168,9 +168,11 @@ traceAt level
     | level > 0 && debugLevel < level = flip const
     | otherwise = trace
 
--- | Trace (print to stderr) a showable value using a custom show function.
-traceAtWith :: (a -> String) -> a -> a
-traceAtWith f a = trace (f a) a
+-- | Trace (print to stderr) a showable value using a custom show function,
+-- if the global debug level is at or above the specified level.
+-- At level 0, always prints. Otherwise, uses unsafePerformIO.
+traceAtWith :: Int -> (a -> String) -> a -> a
+traceAtWith level f a = traceAt level (f a) a
 
 -- | Pretty-print a label and a showable value to the console
 -- if the global debug level is at or above the specified level.
