@@ -29,6 +29,7 @@ module Hledger.Reports.MultiBalanceReport (
   getPostings,
   startingBalances,
   generateMultiBalanceReport,
+  changingValuation,
 
   -- -- * Tests
   tests_MultiBalanceReport
@@ -318,10 +319,10 @@ calculateReportMatrix rspec@ReportSpec{rsOpts=ropts} j priceoracle startbals col
         HistoricalBalance -> historical
       where
         historical                           = cumulativeSum avalue startingBalance changes
-        cumulative | changingValuation ropts = fmap (`subtractAcct` valuedStart) historical
+        cumulative | changingValuation ropts && False = fmap (`subtractAcct` valuedStart) historical  -- XXX Remove && False in hledger-1.21?
                    | otherwise               = cumulativeSum avalue nullacct changes
-        changeamts | changingValuation ropts = periodChanges valuedStart historical
-                   | otherwise               = changes
+        changeamts | changingValuation ropts && False = periodChanges valuedStart historical          -- XXX Remove && False in hledger-1.21?
+                   | otherwise               = M.mapWithKey avalue changes
 
         startingBalance = HM.lookupDefault nullacct name startbals
         valuedStart = avalue (DateSpan Nothing historicalDate) startingBalance

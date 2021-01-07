@@ -386,25 +386,45 @@ Balance changes in 2000-01-01..2000-04-30, valued at posting date:
 ---++--------------------
    || 1 B  2 B  3 B    0 
 
-# 36. multicolumn balance report showing changes in period-end values
+# 36. multicolumn balance report valuation of change in period
 $ hledger -f- bal -M --value=end
-Period-end value changes in 2000-01-01..2000-04-30:
+Balance changes in 2000-01-01..2000-04-30, valued at period ends:
 
-   || Jan   Feb  Mar  Apr 
-===++=====================
- a || 5 B  -1 B  5 B  3 B 
----++---------------------
-   || 5 B  -1 B  5 B  3 B 
+   || Jan  Feb  Mar  Apr 
+===++====================
+ a || 5 B  2 B  3 B    0 
+---++--------------------
+   || 5 B  2 B  3 B    0 
+
+# # 36. multicolumn balance report showing changes in period-end values
+# $ hledger -f- bal -M --value=end
+# Period-end value changes in 2000-01-01..2000-04-30:
+#
+#    || Jan   Feb  Mar  Apr 
+# ===++=====================
+#  a || 5 B  -1 B  5 B  3 B 
+# ---++---------------------
+#    || 5 B  -1 B  5 B  3 B 
 
 # 37. multicolumn balance report showing changes in period-end values with -T or -A
 $ hledger -f- bal -MTA --value=end
-Period-end value changes in 2000-01-01..2000-04-30:
+Balance changes in 2000-01-01..2000-04-30, valued at period ends:
 
-   || Jan   Feb  Mar  Apr    Total  Average 
-===++=======================================
- a || 5 B  -1 B  5 B  3 B     12 B      3 B 
----++---------------------------------------
-   || 5 B  -1 B  5 B  3 B     12 B      3 B 
+   || Jan  Feb  Mar  Apr    Total  Average 
+===++======================================
+ a || 5 B  2 B  3 B    0     10 B      2 B 
+---++--------------------------------------
+   || 5 B  2 B  3 B    0     10 B      2 B 
+
+# # 37. multicolumn balance report showing changes in period-end values with -T or -A
+# $ hledger -f- bal -MTA --value=end
+# Period-end value changes in 2000-01-01..2000-04-30:
+#
+#    || Jan   Feb  Mar  Apr    Total  Average 
+# ===++=======================================
+#  a || 5 B  -1 B  5 B  3 B     12 B      3 B 
+# ---++---------------------------------------
+#    || 5 B  -1 B  5 B  3 B     12 B      3 B 
 
 # 38. multicolumn balance report valued at other date
 $ hledger -f- bal -MTA --value=2000-01-15
@@ -428,13 +448,13 @@ Balance changes in 2000-01-01..2000-04-30, current value:
 
 # 40. multicolumn balance report showing changes in period-end values (same as --value=end)
 $ hledger -f- bal -M -V
-Period-end value changes in 2000-01-01..2000-04-30:
+Balance changes in 2000-01-01..2000-04-30, valued at period ends:
 
-   || Jan   Feb  Mar  Apr 
-===++=====================
- a || 5 B  -1 B  5 B  3 B 
----++---------------------
-   || 5 B  -1 B  5 B  3 B 
+   || Jan  Feb  Mar  Apr 
+===++====================
+ a || 5 B  2 B  3 B    0 
+---++--------------------
+   || 5 B  2 B  3 B    0 
 
 # balance, periodic, with -H (starting balance and accumulating across periods)
 
@@ -559,15 +579,25 @@ Budget performance in 2000-01-01..2000-04-30, valued at cost:
 ---++---------------------------------------------------------------------------------------------------------------
    || 6 B [300% of 2 B]  7 B [350% of 2 B]  8 B [400% of 2 B]  0 [0% of 2 B]  21 B [262% of 8 B]  5 B [262% of 2 B] 
 
-# 49. budget report, showing changes in period-end values.
+# # 48. budget report, showing changes in period-end values.
+# $ hledger -f- bal -MTA --budget --value=e --change-of-value
+# Budget performance in 2000-01-01..2000-04-30, valued at period ends:
+#
+#    ||               Jan                 Feb                Mar                Apr               Total           Average 
+# ===++===================================================================================================================
+#  a || 5 B [50% of 10 B]  -1 B [50% of -2 B]  5 B [50% of 10 B]  3 B [21% of 14 B]  12 B [38% of 32 B]  3 B [38% of 8 B] 
+# ---++-------------------------------------------------------------------------------------------------------------------
+#    || 5 B [50% of 10 B]  -1 B [50% of -2 B]  5 B [50% of 10 B]  3 B [21% of 14 B]  12 B [38% of 32 B]  3 B [38% of 8 B] 
+
+# 48. budget report, showing changes in period-end values.
 $ hledger -f- bal -MTA --budget --value=e
 Budget performance in 2000-01-01..2000-04-30, valued at period ends:
 
-   ||               Jan                 Feb                Mar                Apr               Total           Average 
-===++===================================================================================================================
- a || 5 B [50% of 10 B]  -1 B [50% of -2 B]  5 B [50% of 10 B]  3 B [21% of 14 B]  12 B [38% of 32 B]  3 B [38% of 8 B] 
----++-------------------------------------------------------------------------------------------------------------------
-   || 5 B [50% of 10 B]  -1 B [50% of -2 B]  5 B [50% of 10 B]  3 B [21% of 14 B]  12 B [38% of 32 B]  3 B [38% of 8 B] 
+   ||               Jan               Feb               Mar            Apr               Total           Average 
+===++============================================================================================================
+ a || 5 B [50% of 10 B]  2 B [50% of 4 B]  3 B [50% of 6 B]  0 [0% of 8 B]  10 B [36% of 28 B]  2 B [36% of 7 B] 
+---++------------------------------------------------------------------------------------------------------------
+   || 5 B [50% of 10 B]  2 B [50% of 4 B]  3 B [50% of 6 B]  0 [0% of 8 B]  10 B [36% of 28 B]  2 B [36% of 7 B] 
 
 # 50. budget report, valued at other date.
 $ hledger -f- bal -MTA --budget --value=2000-01-15

@@ -571,22 +571,17 @@ multiBalanceReportAsText ropts@ReportOpts{..} r = TB.toLazyText $
     title = mtitle <> " in " <> showDateSpan (periodicReportSpan r) <> valuationdesc <> ":"
 
     mtitle = case balancetype_ of
-        PeriodChange | changingValuation -> "Period-end value changes"
-        PeriodChange                     -> "Balance changes"
-        CumulativeChange                 -> "Ending balances (cumulative)"
-        HistoricalBalance                -> "Ending balances (historical)"
+        PeriodChange | False && changingValuation ropts -> "Period-end value changes"  -- XXX Change in hledger-1.21 to remove && False?
+        PeriodChange                           -> "Balance changes"
+        CumulativeChange                       -> "Ending balances (cumulative)"
+        HistoricalBalance                      -> "Ending balances (historical)"
     valuationdesc = case value_ of
         Just (AtCost _mc)    -> ", valued at cost"
         Just (AtThen _mc)    -> ", valued at posting date"
-        Just (AtEnd _mc) | changingValuation -> ""
-        Just (AtEnd _mc)     -> ", valued at period ends"
+        Just (AtEnd _mc)     -> if True || balancetype_ /= PeriodChange then ", valued at period ends" else ""  -- XXX Change in hledger-1.21 to remove || True
         Just (AtNow _mc)     -> ", current value"
         Just (AtDate d _mc)  -> ", valued at " <> showDate d
         Nothing              -> ""
-
-    changingValuation = case (balancetype_, value_) of
-        (PeriodChange, Just (AtEnd _)) -> interval_ /= NoInterval
-        _                              -> False
 
 -- | Build a 'Table' from a multi-column balance report.
 balanceReportAsTable :: ReportOpts -> MultiBalanceReport -> Table T.Text T.Text MixedAmount

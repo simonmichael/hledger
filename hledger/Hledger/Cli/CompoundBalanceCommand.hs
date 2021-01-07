@@ -134,23 +134,18 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
 
         -- when user overrides, add an indication to the report title
         mtitleclarification = flip fmap mBalanceTypeOverride $ \case
-            PeriodChange | changingValuation -> "(Period-End Value Changes)"
-            PeriodChange                     -> "(Balance Changes)"
-            CumulativeChange                 -> "(Cumulative Ending Balances)"
-            HistoricalBalance                -> "(Historical Ending Balances)"
+            PeriodChange | False && changingValuation ropts -> "(Period-End Value Changes)"  -- XXX Change in hledger-1.21 to remove False?
+            PeriodChange                           -> "(Balance Changes)"
+            CumulativeChange                       -> "(Cumulative Ending Balances)"
+            HistoricalBalance                      -> "(Historical Ending Balances)"
 
         valuationdesc = case value_ of
           Just (AtCost _mc)       -> ", valued at cost"
           Just (AtThen _mc)       -> ", valued at posting date"
-          Just (AtEnd _mc) | changingValuation -> ""
-          Just (AtEnd _mc)        -> ", valued at period ends"
+          Just (AtEnd _mc)         -> if True || balancetype_ /= PeriodChange then ", valued at period ends" else ""  -- XXX Change in hledger-1.21 to remove True?
           Just (AtNow _mc)        -> ", current value"
           Just (AtDate today _mc) -> ", valued at " <> showDate today
           Nothing                 -> ""
-
-        changingValuation = case (balancetype_, value_) of
-            (PeriodChange, Just (AtEnd _)) -> interval_ /= NoInterval
-            _                              -> False
 
     -- make a CompoundBalanceReport.
     cbr' = compoundBalanceReport rspec{rsOpts=ropts'} j cbcqueries
