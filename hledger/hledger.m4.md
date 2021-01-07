@@ -3953,8 +3953,8 @@ Here are the ways to set a posting's amount:
       "1", "none"
       ```
 
-     If you have CSV like this, use [conditional rules](#if-block) instead.
-     For example, if you want hledger to choose the value containing non-zero digits:
+     If your CSV has amount values like this, use [conditional rules](#if-block) instead.
+     For example, to make hledger to choose the value containing non-zero digits:
 
       ```rules
       fields date, description, in, out
