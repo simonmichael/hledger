@@ -1149,10 +1149,17 @@ unknownIncomeAccount  = "income:unknown"
 type CsvAmountString = Text
 
 -- | Canonicalise the sign in a CSV amount string.
--- Such strings can have a minus sign, negating parentheses,
--- or any two of these (which cancels out).
+-- Such strings can have a minus sign, parentheses (equivalent to minus),
+-- or any two of these (which cancel out),
+-- or a plus sign (which is removed),
+-- or any sign by itself with no following number (which is removed).
+-- See hledger > CSV FORMAT > Tips > Setting amounts.
+--
+-- These are supported (note, not every possibile combination):
 --
 -- >>> simplifySign "1"
+-- "1"
+-- >>> simplifySign "+1"
 -- "1"
 -- >>> simplifySign "-1"
 -- "-1"
@@ -1162,15 +1169,26 @@ type CsvAmountString = Text
 -- "1"
 -- >>> simplifySign "-(1)"
 -- "1"
+-- >>> simplifySign "-+1"
+-- "-1"
 -- >>> simplifySign "(-1)"
 -- "1"
 -- >>> simplifySign "((1))"
 -- "1"
+-- >>> simplifySign "-"
+-- ""
+-- >>> simplifySign "()"
+-- ""
+-- >>> simplifySign "+"
+-- ""
 simplifySign :: CsvAmountString -> CsvAmountString
 simplifySign amtstr
   | Just ('(',t) <- T.uncons amtstr, Just (amt,')') <- T.unsnoc t = simplifySign $ negateStr amt
   | Just ('-',b) <- T.uncons amtstr, Just ('(',t) <- T.uncons b, Just (amt,')') <- T.unsnoc t = simplifySign amt
   | Just ('-',m) <- T.uncons amtstr, Just ('-',amt) <- T.uncons m = amt
+  | Just ('-',m) <- T.uncons amtstr, Just ('+',amt) <- T.uncons m = negateStr amt
+  | amtstr `elem` ["-","+","()"] = ""
+  | Just ('+',amt) <- T.uncons amtstr = simplifySign amt
   | otherwise = amtstr
 
 negateStr :: Text -> Text

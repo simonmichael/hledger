@@ -3936,12 +3936,11 @@ Here are the ways to set a posting's amount:
    guessing an appropriate sign.
 
    - **If hledger guesses the wrong sign:**\
-     You can prepend a minus sign to flip it. But, do this only for non-empty values (see below). Eg:
+     You can prepend a minus sign to flip it. Eg:
 
       ```rules
-      # flip amount-out's sign, if it is non-empty:
-      if %amount-out .
-       amount-out -%amount-out
+      fields date, description, amount-in, amount-out
+      amount-out -%amount-out
       ```
 
    - **If both fields contain a non-zero value:**\
@@ -3984,7 +3983,7 @@ Here are the ways to set a posting's amount:
       account1 assets:checking
       ```
 
-There is some automatic special handling for an amount's sign, for convenience:
+There is some special handling for an amount's sign, to simplify parsing and sign-flipping:
 
 - **If an amount value begins with a plus sign:**\
   that will be removed: `+AMT` becomes `AMT`
@@ -3992,8 +3991,11 @@ There is some automatic special handling for an amount's sign, for convenience:
 - **If an amount value is parenthesised:**\
   it will be de-parenthesised and sign-flipped: `(AMT)` becomes `-AMT`
 
-- **If an amount value begins with two minus signs:**\
-  they cancel out and will be removed: `--AMT` becomes `AMT`
+- **If an amount value has two minus signs (or two sets of parentheses, or a minus sign and parentheses):**\
+  they cancel out and will be removed: `--AMT` or `-(AMT)` becomes `AMT`
+
+- **If an amount value contains just a sign (or just a set of parentheses):**\
+  that is removed, making it an empty value. `"+"` or `"-"` or `"()"` becomes `""`.
 
 ### Setting currency/commodity
 
