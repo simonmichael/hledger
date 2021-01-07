@@ -3936,7 +3936,7 @@ Here are the ways to set a posting's amount:
    guessing an appropriate sign.
 
    - **If hledger guesses the wrong sign:**\
-     You can prepend a minus sign to flip it. Eg:
+     Prepend a minus sign to flip it. Eg:
 
       ```rules
       fields date, description, amount-in, amount-out
@@ -3950,11 +3950,11 @@ Here are the ways to set a posting's amount:
       ```csv
       "",  ""
       "0", "0"
-      "1", "1"
+      "1", "none"
       ```
 
-     If you have CSV like this, use [conditional rules](#if-block) instead of `amountN-in`/`amountN-out`.
-     For example, if you want hledger to use the value containing non-zero digits:
+     If you have CSV like this, use [conditional rules](#if-block) instead.
+     For example, if you want hledger to choose the value containing non-zero digits:
 
       ```rules
       fields date, description, in, out
@@ -3969,21 +3969,23 @@ Here are the ways to set a posting's amount:
    This sets posting 1's and posting 2's amounts (and converts posting 2's amount to cost).
    This is supported for backwards compatibility (and occasional convenience).
 
-4. **If the CSV has the balance instead of the posted amount:**\
+4. **If the CSV has the balance instead of the transaction amount:**\
    Assign to `balanceN`, which sets posting N's amount indirectly via a
    [balance assignment](hledger.html#balance-assignments).
    (Old syntax: `balance`, equivalent to `balance1`.)
    
    - **If hledger guesses the wrong default account name:**\
      When setting the amount via balance assertion, hledger may guess the wrong default account name.
-     So, set the account name explicitly. Eg:
+     So, set the account name explicitly, eg:
 
       ```rules
       fields date, description, balance1
       account1 assets:checking
       ```
 
-There is some special handling for an amount's sign, to simplify parsing and sign-flipping:
+### Amount signs
+
+There is some special handling for amount signs, to simplify parsing and sign-flipping:
 
 - **If an amount value begins with a plus sign:**\
   that will be removed: `+AMT` becomes `AMT`
