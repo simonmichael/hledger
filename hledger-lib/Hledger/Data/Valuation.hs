@@ -45,6 +45,7 @@ import Hledger.Data.Amount
 import Hledger.Data.Dates (nulldate)
 import Hledger.Data.Commodity (showCommoditySymbol)
 import Data.Maybe (fromMaybe)
+import Text.Printf (printf)
 
 
 ------------------------------------------------------------------------------
@@ -208,7 +209,7 @@ priceLookup makepricegraph d from mto =
       Just to            ->
         -- We have a commodity to convert to. Find the most direct price available,
         -- according to the rules described in makePriceGraph.
-        let msg = "seeking " ++ pshowedge' "" from to ++ " price"
+        let msg = printf "seeking %s to %s price" (showCommoditySymbol from) (showCommoditySymbol to)
         in case 
           (traceAt 2 (msg++" using forward prices") $ 
             pricesShortestPath from to forwardprices)
@@ -273,20 +274,25 @@ data PriceGraph = PriceGraph {
 -- USD->EUR price and one EUR->USD price.
 pricesShortestPath :: CommoditySymbol -> CommoditySymbol -> [Edge] -> Maybe Path
 pricesShortestPath start end edges =
-  dbg2 ("shortest "++pshowedge' "" start end++" price path") $
+  -- at --debug=2 +, print the pretty path and also the detailed prices
+  let label = printf "shortest path from %s to %s: " (showCommoditySymbol start) (showCommoditySymbol end) in
+  fmap (dbg2With (("price chain:\n"++).pshow)) $ 
+  dbg2With ((label++).(maybe "none found" (pshowpath ""))) $
+
   find [([],edges)]
+
   where
     -- Find the first and shortest complete path using a breadth-first search.
     find :: [(Path,[Edge])] -> Maybe Path
     find paths =
       case concatMap extend paths of
         [] -> Nothing 
-        _ | iteration > maxiterations -> 
-          trace ("gave up searching for a price chain after "++show maxiterations++" iterations, please report a bug")
+        _ | pathlength > maxpathlength -> 
+          trace ("gave up searching for a price chain at length "++show maxpathlength++", please report a bug")
           Nothing
           where 
-            iteration = 1 + maybe 0 (length . fst) (headMay paths)
-            maxiterations = 1000
+            pathlength = 2 + maybe 0 (length . fst) (headMay paths)
+            maxpathlength = 1000
         paths' -> 
           case completepaths of
                 p:_ -> Just p  -- the left-most complete path at this length
@@ -317,7 +323,7 @@ pshowpath label = \case
   p@(e:_) -> prefix label $ pshownode (mpfrom e) ++ ">" ++ intercalate ">" (map (pshownode . mpto) p)
 -- pshowedges label = prefix label . intercalate ", " . map (pshowedge "")
 -- pshowedge label MarketPrice{..} = pshowedge' label mpfrom mpto
-pshowedge' label from to = prefix label $ pshownode from ++ ">" ++ pshownode to
+-- pshowedge' label from to = prefix label $ pshownode from ++ ">" ++ pshownode to
 pshownode = T.unpack . showCommoditySymbol
 prefix l = if null l then (""++) else ((l++": ")++)
 
