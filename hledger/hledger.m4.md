@@ -3922,47 +3922,72 @@ data. See:
 
 ### Setting amounts
 
-Here's a review of the [amount-setting rules](#amount) discussed above.
-A posting's amount can be set in one of these ways:
+Some tips on using the [amount-setting rules](#amount) discussed above.
+
+Here are the ways to set a posting's amount:
 
 1. **If the CSV has a single amount field:**\
-   by assigning (via a [fields list](#fields) or a [field assignment](#field-assignment)) 
-   to `amountN`, which sets posting N's amount. N is usually 1 or 2 but can go up to 99.
+   Assign (via a [fields list](#fields) or a [field assignment](#field-assignment)) to `amountN`.
+   This sets the Nth posting's amount. N is usually 1 or 2 but can go up to 99.
 
 2. **If the CSV has separate Debit and Credit amount fields:**\
-   by assigning to `amountN-in` and `amountN-out`,
-   which sets posting N's amount to whichever of these has a non-zero value, guessing the appropriate sign.
-  
-   - **If both fields contain a non-zero value:**\
-     you'll need to use some custom conditional rules, as hledger requires one of these fields to be empty or at least zero.
+   Assign to `amountN-in` and `amountN-out`.
+   This sets posting N's amount to whichever of these has a non-zero value, 
+   guessing an appropriate sign.
 
    - **If hledger guesses the wrong sign:**\
-     you can prepend a minus sign to flip it.
-     Due to the above restriction, this should be done conditionally, eg:
+     You can prepend a minus sign to flip it. But, do this only for non-empty values (see below). Eg:
+
       ```rules
-      # If amount-out is non-empty, flip its sign:
+      # flip amount-out's sign, if it is non-empty:
       if %amount-out .
        amount-out -%amount-out
       ```
 
-3. **Using old numberless syntax:**\
-   by assigning to `amount` (or to `amount-in` and `amount-out`), which sets posting 1's and posting 2's amounts.
-   It also converts posting 2's amount to cost (see the [amount](#amount) discussion above).
+   - **If both fields contain a non-zero value:**\
+     The `amountN-in`/`amountN-out` rules require that each CSV record has a non-zero value in exactly one of the two fields,
+     so that hledger knows which to choose. So these would all be rejected:
+  
+      ```csv
+      "",  ""
+      "0", "0"
+      "1", "1"
+      ```
+
+     If you have CSV like this, use [conditional rules](#if-block) instead of `amountN-in`/`amountN-out`.
+     For example, if you want hledger to use the value containing non-zero digits:
+
+      ```rules
+      fields date, description, in, out
+      if %in [1-9]
+       amount1 %in
+      if %out [1-9]
+       amount1 %out
+      ```
+
+3. **Using the old numberless syntax:**\
+   Assign to `amount` (or to `amount-in` and `amount-out`). 
+   This sets posting 1's and posting 2's amounts (and converts posting 2's amount to cost).
    This is supported for backwards compatibility (and occasional convenience).
 
-4. **If the CSV has the new balance instead of the posted amount:**\
-   by assigning to `balanceN`, which sets posting N's amount indirectly via a
+4. **If the CSV has the balance instead of the posted amount:**\
+   Assign to `balanceN`, which sets posting N's amount indirectly via a
    [balance assignment](hledger.html#balance-assignments).
    (Old syntax: `balance`, equivalent to `balance1`.)
    
    - **If hledger guesses the wrong default account name:**\
-     When setting the amount via balance assertion, hledger may guess the wrong default account name,
-     so you should set the account name explicitly.
+     When setting the amount via balance assertion, hledger may guess the wrong default account name.
+     So, set the account name explicitly. Eg:
+
+      ```rules
+      fields date, description, balance1
+      account1 assets:checking
+      ```
 
 There is some automatic special handling for an amount's sign, for convenience:
 
 - **If an amount value begins with a plus sign:**\
-  it will be removed: `+AMT` becomes `AMT`
+  that will be removed: `+AMT` becomes `AMT`
 
 - **If an amount value is parenthesised:**\
   it will be de-parenthesised and sign-flipped: `(AMT)` becomes `-AMT`
