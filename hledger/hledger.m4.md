@@ -1751,7 +1751,7 @@ flag or `real:1` query.
 Account names typically have several parts separated by a full colon, from
 which hledger derives a hierarchical chart of accounts. They can be
 anything you like, but in finance there are traditionally five top-level
-accounts: `assets`, `liabilities`, `income`, `expenses`, and `equity`.
+accounts: `assets`, `liabilities`, `revenue`, `expenses`, and `equity`.
 
 Account names may contain single spaces, eg: `assets:accounts receivable`.
 Because of this, they must always be followed by **two or more spaces** (or newline).
