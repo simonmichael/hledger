@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP               #-}
+{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Hledger.Cli.Commands.Check.Uniqueleafnames (
@@ -15,30 +16,43 @@ import Data.Semigroup ((<>))
 #endif
 import qualified Data.Text as T
 import Hledger
+import Text.Printf (printf)
 
+-- | Check that all the journal's postings are to accounts with a unique leaf name.
+-- Otherwise, return an error message for the first offending posting.
 journalCheckUniqueleafnames :: Journal -> Either String ()
 journalCheckUniqueleafnames j = do
-  let dupes = checkdupes' $ accountsNames j
-  if null dupes
-  then Right ()
-  else Left . T.unpack $
-    -- XXX make output more like Checkdates.hs, Check.hs etc.
-    foldMap render dupes
-    where
-      render (leafName, accountNameL) =
-        leafName <> " as " <> T.intercalate ", " accountNameL
+  -- find all duplicate leafnames, and the full account names they appear in
+  let dupes = finddupes $ journalLeafAndFullAccountNames j
+  -- report the first posting that references one of them (and its position), for now
+  sequence_ $ map (checkposting dupes) $ journalPostings j
 
-checkdupes' :: (Ord k, Eq k) => [(k, v)] -> [(k, [v])]
-checkdupes' l = zip dupLeafs dupAccountNames
+finddupes :: (Ord leaf, Eq full) => [(leaf, full)] -> [(leaf, [full])]
+finddupes leafandfullnames = zip dupLeafs dupAccountNames
   where dupLeafs = map (fst . head) d
         dupAccountNames = map (map snd) d
-        d = dupes' l
+        d = dupes' leafandfullnames
         dupes' = filter ((> 1) . length)
           . groupBy ((==) `on` fst)
           . sortBy (compare `on` fst)
 
-accountsNames :: Journal -> [(Text, AccountName)]
-accountsNames j = map leafAndAccountName as
+journalLeafAndFullAccountNames :: Journal -> [(Text, AccountName)]
+journalLeafAndFullAccountNames j = map leafAndAccountName as
   where leafAndAccountName a = (accountLeafName a, a)
         ps = journalPostings j
         as = nubSort $ map paccount ps
+
+checkposting :: [(Text,[AccountName])] -> Posting -> Either String ()
+checkposting leafandfullnames Posting{paccount,ptransaction} =
+  case [lf | lf@(_,fs) <- leafandfullnames, paccount `elem` fs] of
+    []             -> Right ()
+    (leaf,fulls):_ -> Left $ printf
+      "account leaf names are not unique\nleaf name \"%s\" appears in account names: %s%s"
+      leaf
+      (T.intercalate ", " $ map (("\""<>).(<>"\"")) fulls)
+      (case ptransaction of
+        Nothing -> ""
+        Just t  -> printf "\nseen in \"%s\" in transaction at: %s\n\n%s"
+                    paccount
+                    (showGenericSourcePos $ tsourcepos t)
+                    (linesPrepend "> " . (<>"\n") . textChomp $ showTransaction t) :: String)
