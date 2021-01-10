@@ -563,9 +563,13 @@ recognised file extension, so as to either read successfully or to show
 relevant error messages.
 
    You can also force a specific reader/format by prefixing the file
-path with the format and a colon.  Eg to read a .dat file as csv:
+path with the format and a colon.  Eg, to read a .dat file as csv
+format:
 
 $ hledger -f csv:/some/csv-file.dat stats
+
+   Or to read stdin ('-') as timeclock format:
+
 $ echo 'i 2009/13/1 08:00:00' | hledger print -ftimeclock:-
 
 
@@ -1068,7 +1072,12 @@ this order of preference :
      including both forward and reverse prices (1 and 2 above), leading
      from A to B.
 
-   Amounts for which no applicable market price can be found, are not
+   There is a limit to the length of these price chains; if hledger
+reaches that length without finding a complete chain or exhausting all
+possibilities, it will give up (with a "gave up" message visible in
+'--debug=2' output).  That limit is currently 1000.
+
+   Amounts for which no suitable market price can be found, are not
 converted.
 
 
@@ -1203,8 +1212,7 @@ option:
 '--value=then'
 
      Convert amounts to their value in the default valuation commodity,
-     using market prices on each posting's date.  This is currently
-     supported only by the print and register commands.
+     using market prices on each posting's date.
 '--value=end'
 
      Convert amounts to their value in the default valuation commodity,
@@ -1351,93 +1359,101 @@ sideways.)  It may be useful when troubleshooting.  If you find
 problems, please report them, ideally with a reproducible example.
 Related: #329, #1083.
 
-Report      '-B',          '-V', '-X'     '--value=then''--value=end' '--value=DATE',
-type        '--value=cost'                                            '--value=now'
---------------------------------------------------------------------------------
+Report     '-B',        '-V', '-X'   '--value=then'     '--value=end''--value=DATE',
+type       '--value=cost'                                            '--value=now'
+------------------------------------------------------------------------------
 *print*
-posting     cost           value at       value at     value at       value
-amounts                    report end     posting      report or      at
-                           or today       date         journal end    DATE/today
-balance     unchanged      unchanged      unchanged    unchanged      unchanged
+posting    cost         value at     value at posting   value at     value
+amounts                 report end   date               report or    at
+                        or today                        journal      DATE/today
+                                                        end
+balance    unchanged    unchanged    unchanged          unchanged    unchanged
 assertions/assignments
 *register*
-starting    cost           value at day   not          value at day   value
-balance                    before         supported    before         at
-(-H)                       report or                   report or      DATE/today
-                           journal                     journal
-                           start                       start
-posting     cost           value at       value at     value at       value
-amounts                    report end     posting      report or      at
-                           or today       date         journal end    DATE/today
-summary     summarised     value at       sum of       value at       value
-posting     cost           period ends    postings     period ends    at
-amounts                                   in                          DATE/today
-with                                      interval,
-report                                    valued at
-interval                                  interval
-                                          start
-running     sum/average    sum/average    sum/average  sum/average    sum/average
-total/averageof displayed  of displayed   of           of displayed   of
-            values         values         displayed    values         displayed
-                                          values                      values
+starting   cost         value at     valued at day      value at     value
+balance                 day before   each historical    day before   at
+(-H)                    report or    posting was made   report or    DATE/today
+                        journal                         journal
+                        start                           start
+posting    cost         value at     value at posting   value at     value
+amounts                 report end   date               report or    at
+                        or today                        journal      DATE/today
+                                                        end
+summary    summarised   value at     sum of postings    value at     value
+posting    cost         period       in interval,       period       at
+amounts                 ends         valued at          ends         DATE/today
+with                                 interval start
+report
+interval
+running    sum/average  sum/average  sum/average of     sum/average  sum/average
+total/averageof         of           displayed values   of           of
+           displayed    displayed                       displayed    displayed
+           values       values                          values       values
 *balance
-(bs, bse,
-cf, is)*
-balance     sums of        value at       not          value at       value
-changes     costs          report end     supported    report or      at
-                           or today of                 journal end    DATE/today
-                           sums of                     of sums of     of sums
-                           postings                    postings       of
-                                                                      postings
-budget      like balance   like balance   not          like           like
-amounts     changes        changes        supported    balances       balance
-(-budget)                                                             changes
-grand       sum of         sum of         not          sum of         sum of
-total       displayed      displayed      supported    displayed      displayed
-            values         values                      values         values
+(bs,
+bse, cf,
+is)*
+balance    sums of      value at     value at posting   value at     value
+changes    costs        report end   date               report or    at
+                        or today                        journal      DATE/today
+                        of sums of                      end of       of
+                        postings                        sums of      sums
+                                                        postings     of
+                                                                     postings
+budget     like         like         like balance       like         like
+amounts    balance      balance      changes            balances     balance
+(-budget)  changes      changes                                      changes
+grand      sum of       sum of       sum of displayed   sum of       sum of
+total      displayed    displayed    valued             displayed    displayed
+           values       values                          values       values
 *balance
-(bs, bse,
-cf, is)
-with
+(bs,
+bse, cf,
+is) with
 report
 interval*
-starting    sums of        value at       not          value at       sums of
-balances    costs of       report start   supported    report start   postings
-(-H)        postings       of sums of                  of sums of     before
-            before         all postings                all postings   report
-            report start   before                      before         start
-                           report start                report start
-balance     sums of        same as        not          balance        value
-changes     costs of       -value=end     supported    change in      at
-(bal, is,   postings in                                each period,   DATE/today
-bs          period                                     valued at      of sums
--change,                                               period ends    of
-cf                                                                    postings
--change)
-end         sums of        same as        not          period end     value
-balances    costs of       -value=end     supported    balances,      at
-(bal -H,    postings                                   valued at      DATE/today
-is -H,      from before                                period ends    of sums
-bs, cf)     report start                                              of
-            to period                                                 postings
-            end
-budget      like balance   like balance   not          like           like
-amounts     changes/end    changes/end    supported    balances       balance
-(-budget)   balances       balances                                   changes/end
-                                                                      balances
-row         sums,          sums,          not          sums,          sums,
-totals,     averages of    averages of    supported    averages of    averages
-row         displayed      displayed                   displayed      of
-averages    values         values                      values         displayed
-(-T, -A)                                                              values
-column      sums of        sums of        not          sums of        sums of
-totals      displayed      displayed      supported    displayed      displayed
-            values         values                      values         values
-grand       sum, average   sum, average   not          sum, average   sum,
-total,      of column      of column      supported    of column      average
-grand       totals         totals                      totals         of
-average                                                               column
-                                                                      totals
+starting   sums of      value at     sums of values     value at     sums
+balances   costs of     report       of postings        report       of
+(-H)       postings     start of     before report      start of     postings
+           before       sums of      start at           sums of      before
+           report       all          respective         all          report
+           start        postings     posting dates      postings     start
+                        before                          before
+                        report                          report
+                        start                           start
+balance    sums of      same as      sums of values     balance      value
+changes    costs of     -value=end   of postings in     change in    at
+(bal,      postings                  period at          each         DATE/today
+is, bs     in period                 respective         period,      of
+-change,                             posting dates      valued at    sums
+cf                                                      period       of
+-change)                                                ends         postings
+end        sums of      same as      sums of values     period end   value
+balances   costs of     -value=end   of postings from   balances,    at
+(bal -H,   postings                  before period      valued at    DATE/today
+is -H,     from                      start to period    period       of
+bs, cf)    before                    end at             ends         sums
+           report                    respective                      of
+           start to                  posting dates                   postings
+           period end
+budget     like         like         like balance       like         like
+amounts    balance      balance      changes/end        balances     balance
+(-budget)  changes/end  changes/end  balances                        changes/end
+           balances     balances                                     balances
+row        sums,        sums,        sums, averages     sums,        sums,
+totals,    averages     averages     of displayed       averages     averages
+row        of           of           values             of           of
+averages   displayed    displayed                       displayed    displayed
+(-T, -A)   values       values                          values       values
+column     sums of      sums of      sums of            sums of      sums
+totals     displayed    displayed    displayed values   displayed    of
+           values       values                          values       displayed
+                                                                     values
+grand      sum,         sum,         sum, average of    sum,         sum,
+total,     average of   average of   column totals      average of   average
+grand      column       column                          column       of
+average    totals       totals                          totals       column
+                                                                     totals
 
    '--cumulative' is omitted to save space, it works like '-H' but with
 a zero starting balance.
@@ -1961,24 +1977,49 @@ options The output formats supported are (in most modes): 'txt', 'csv',
 
 * Menu:
 
-* Classic balance report::
-* Customising the classic balance report::
+* Single-period flat balance report::
+* Single-period tree-mode balance report::
+* Customising single-period balance reports::
+* Depth limiting::
 * Colour support::
-* Flat mode::
-* Depth limited balance reports::
-* Percentages::
 * Sorting by amount::
-* Multicolumn balance report::
+* Percentages::
+* Multi-period balance report::
 * Budget report::
 
 
-File: hledger.info,  Node: Classic balance report,  Next: Customising the classic balance report,  Up: balance
+File: hledger.info,  Node: Single-period flat balance report,  Next: Single-period tree-mode balance report,  Up: balance
 
-10.5.1 Classic balance report
------------------------------
+10.5.1 Single-period flat balance report
+----------------------------------------
 
-This is the original balance report, as found in Ledger.  It usually
-looks like this:
+This is the default for hledger's balance command: a flat list of all
+(or with a query, matched) accounts, showing full account names.
+Accounts are sorted by declaration order if any, and then by account
+name.  Accounts which have zero balance are not shown unless
+'-E/--empty' is used.  The reported balances' total is shown as the last
+line, unless disabled by '-N'/'--no-total'.
+
+$ hledger bal
+                  $1  assets:bank:saving
+                 $-2  assets:cash
+                  $1  expenses:food
+                  $1  expenses:supplies
+                 $-1  income:gifts
+                 $-1  income:salary
+                  $1  liabilities:debts
+--------------------
+                   0  
+
+
+File: hledger.info,  Node: Single-period tree-mode balance report,  Next: Customising single-period balance reports,  Prev: Single-period flat balance report,  Up: balance
+
+10.5.2 Single-period tree-mode balance report
+---------------------------------------------
+
+With the '-t/--tree' flag, accounts are displayed hierarchically,
+showing subaccounts as short names indented below their parent.  (This
+is the default style in Ledger and in older hledger versions.)
 
 $ hledger balance
                  $-1  assets
@@ -1994,37 +2035,31 @@ $ hledger balance
 --------------------
                    0
 
-   By default, accounts are displayed hierarchically, with subaccounts
-indented below their parent, with accounts at each level of the tree
-sorted by declaration order if declared, then by account name.
+   For more compact output, "boring" accounts containing a single
+interesting subaccount and no balance of their own ('assets:bank' and
+'liabilities' here) are elided into the following line, unless
+'--no-elide' is used.  And accounts which have zero balance and no
+non-zero subaccounts are omitted, unless '-E/--empty' is used.
 
-   "Boring" accounts, which contain a single interesting subaccount and
-no balance of their own, are elided into the following line for more
-compact output.  (Eg above, the "liabilities" account.)  Use
-'--no-elide' to prevent this.
+   Account balances in tree mode are "inclusive" - they include the
+balances of any subaccounts.  Eg, the 'assets' '$-1' balance here
+includes the '$1' from 'assets:bank:saving' and the '$-2' from
+'assets:cash'.  (And it would include balance posted to the 'assets'
+account itself, if there was any).  Note this causes some repetition,
+and the final total ('0') is the sum of the top-level balances, not of
+all the balances shown.
 
-   Account balances are "inclusive" - they include the balances of any
-subaccounts.
-
-   Accounts which have zero balance (and no non-zero subaccounts) are
-omitted.  Use '-E/--empty' to show them.
-
-   A final total is displayed by default; use '-N/--no-total' to
-suppress it, eg:
-
-$ hledger balance -p 2008/6 expenses --no-total
-                  $2  expenses
-                  $1    food
-                  $1    supplies
+   Each group of sibling accounts is sorted separately, by declaration
+order and then by account name.
 
 
-File: hledger.info,  Node: Customising the classic balance report,  Next: Colour support,  Prev: Classic balance report,  Up: balance
+File: hledger.info,  Node: Customising single-period balance reports,  Next: Depth limiting,  Prev: Single-period tree-mode balance report,  Up: balance
 
-10.5.2 Customising the classic balance report
----------------------------------------------
+10.5.3 Customising single-period balance reports
+------------------------------------------------
 
-You can customise the layout of classic balance reports with '--format
-FMT':
+You can customise the layout of single-period balance reports with
+'--format FMT', which sets the format of each line.  Eg:
 
 $ hledger balance --format "%20(account) %12(total)"
               assets          $-1
@@ -2080,39 +2115,15 @@ may be needed to get pleasing results.
      the single-column balance report
 
 
-File: hledger.info,  Node: Colour support,  Next: Flat mode,  Prev: Customising the classic balance report,  Up: balance
+File: hledger.info,  Node: Depth limiting,  Next: Colour support,  Prev: Customising single-period balance reports,  Up: balance
 
-10.5.3 Colour support
+10.5.4 Depth limiting
 ---------------------
 
-In terminal output, when colour is enabled, the balance command shows
-negative amounts in red.
-
-
-File: hledger.info,  Node: Flat mode,  Next: Depth limited balance reports,  Prev: Colour support,  Up: balance
-
-10.5.4 Flat mode
-----------------
-
-To see a flat list instead of the default hierarchical display, use
-'--flat'.  In this mode, accounts (unless depth-clipped) show their full
-names and "exclusive" balance, excluding any subaccount balances.  In
-this mode, you can also use '--drop N' to omit the first few account
-name components.
-
-$ hledger balance -p 2008/6 expenses -N --flat --drop 1
-                  $1  food
-                  $1  supplies
-
-
-File: hledger.info,  Node: Depth limited balance reports,  Next: Percentages,  Prev: Flat mode,  Up: balance
-
-10.5.5 Depth limited balance reports
-------------------------------------
-
-With '--depth N' or 'depth:N' or just '-N', balance reports show
-accounts only to the specified numeric depth.  This is very useful to
-summarise a complex set of accounts and get an overview.
+With a 'depth:N' query, or '--depth N' option, or just '-N', balance
+reports will show accounts only to the specified depth.  This is very
+useful to hide low-level accounts and get an overview.  Eg, limiting to
+depth 1 shows the top-level accounts:
 
 $ hledger balance -N -1
                  $-1  assets
@@ -2120,13 +2131,43 @@ $ hledger balance -N -1
                  $-2  income
                   $1  liabilities
 
-   Flat-mode balance reports, which normally show exclusive balances,
-show inclusive balances at the depth limit.
+   Accounts at the depth limit will include the balances of any hidden
+subaccounts (even in flat mode, which normally shows exclusive
+balances).
+
+   You can also drop account name components from the start of account
+names, using '--drop N'.  This can be useful to hide unwanted top-level
+detail.
 
 
-File: hledger.info,  Node: Percentages,  Next: Sorting by amount,  Prev: Depth limited balance reports,  Up: balance
+File: hledger.info,  Node: Colour support,  Next: Sorting by amount,  Prev: Depth limiting,  Up: balance
 
-10.5.6 Percentages
+10.5.5 Colour support
+---------------------
+
+In terminal output, when colour is enabled, the balance command shows
+negative amounts in red.
+
+
+File: hledger.info,  Node: Sorting by amount,  Next: Percentages,  Prev: Colour support,  Up: balance
+
+10.5.6 Sorting by amount
+------------------------
+
+With '-S'/'--sort-amount', accounts with the largest (most positive)
+balances are shown first.  For example, 'hledger bal expenses -MAS'
+shows your biggest averaged monthly expenses first.
+
+   Revenues and liability balances are typically negative, however, so
+'-S' shows these in reverse order.  To work around this, you can add
+'--invert' to flip the signs.  Or, use one of the sign-flipping reports
+like 'balancesheet' or 'incomestatement', which also support '-S'.  Eg:
+'hledger is -MAS'.
+
+
+File: hledger.info,  Node: Percentages,  Next: Multi-period balance report,  Prev: Sorting by amount,  Up: balance
+
+10.5.7 Percentages
 ------------------
 
 With '-%' or '--percent', balance reports show each account's value
@@ -2156,54 +2197,40 @@ accounts.  If there are mixed commodity accounts in the report be sure
 to use '-V' or '-B' to coerce the report into using a single commodity.
 
 
-File: hledger.info,  Node: Sorting by amount,  Next: Multicolumn balance report,  Prev: Percentages,  Up: balance
+File: hledger.info,  Node: Multi-period balance report,  Next: Budget report,  Prev: Percentages,  Up: balance
 
-10.5.7 Sorting by amount
-------------------------
+10.5.8 Multi-period balance report
+----------------------------------
 
-With '-S'/'--sort-amount', accounts with the largest (most positive)
-balances are shown first.  For example, 'hledger bal expenses -MAS'
-shows your biggest averaged monthly expenses first.
+Multi-period balance reports are a very useful hledger feature,
+activated if you provide one of the reporting interval flags, such as
+'-M'/'--monthly'.  They are similar to single-period balance reports,
+but they show the report as a table, with columns representing one or
+more successive time periods.  This is the usually the preferred style
+of balance report in hledger (even for a single period).
 
-   Revenues and liability balances are typically negative, however, so
-'-S' shows these in reverse order.  To work around this, you can add
-'--invert' to flip the signs.  Or, use one of the sign-flipping reports
-like 'balancesheet' or 'incomestatement', which also support '-S'.  Eg:
-'hledger is -MAS'.
+   Multi-period balance reports come in several types, showing different
+information:
 
-
-File: hledger.info,  Node: Multicolumn balance report,  Next: Budget report,  Prev: Sorting by amount,  Up: balance
+  1. A balance change report: by default, each column shows the sum of
+     postings in that period, ie the account's change of balance in that
+     period.  This is useful eg for a monthly income statement:
 
-10.5.8 Multicolumn balance report
----------------------------------
+$ hledger balance --quarterly income expenses -E
+Balance changes in 2008:
 
-Multicolumn or tabular balance reports are a very useful hledger
-feature, and usually the preferred style.  They share many of the above
-features, but they show the report as a table, with columns representing
-time periods.  This mode is activated by providing a reporting interval.
+                   ||  2008q1  2008q2  2008q3  2008q4 
+===================++=================================
+ expenses:food     ||       0      $1       0       0 
+ expenses:supplies ||       0      $1       0       0 
+ income:gifts      ||       0     $-1       0       0 
+ income:salary     ||     $-1       0       0       0 
+-------------------++---------------------------------
+                   ||     $-1      $1       0       0 
 
-   There are three types of multicolumn balance report, showing
-different information:
-
-  1. By default: each column shows the sum of postings in that period,
-     ie the account's change of balance in that period.  This is useful
-     eg for a monthly income statement:
-
-     $ hledger balance --quarterly income expenses -E
-     Balance changes in 2008:
-     
-                        ||  2008q1  2008q2  2008q3  2008q4 
-     ===================++=================================
-      expenses:food     ||       0      $1       0       0 
-      expenses:supplies ||       0      $1       0       0 
-      income:gifts      ||       0     $-1       0       0 
-      income:salary     ||     $-1       0       0       0 
-     -------------------++---------------------------------
-                        ||     $-1      $1       0       0 
-
-  2. With '--cumulative': each column shows the ending balance for that
-     period, accumulating the changes across periods, starting from 0 at
-     the report start date:
+  2. A cumulative end balance report: with '--cumulative', each column
+     shows the end balance for that period, accumulating the changes
+     across periods, starting from 0 at the report start date:
 
      $ hledger balance --quarterly income expenses -E --cumulative
      Ending balances (cumulative) in 2008:
@@ -2217,11 +2244,12 @@ different information:
      -------------------++-------------------------------------------------
                         ||         $-1           0           0           0 
 
-  3. With '--historical/-H': each column shows the actual historical
-     ending balance for that period, accumulating the changes across
-     periods, starting from the actual balance at the report start date.
-     This is useful eg for a multi-period balance sheet, and when you
-     are showing only the data after a certain start date:
+  3. A historical end balance report: with '--historical/-H', each
+     column shows the actual historical end balance for that period,
+     accumulating the changes across periods, and including the balance
+     from any postings before the report start date.  This is useful eg
+     for a multi-period balance sheet, and when you want to see balances
+     only after a certain date:
 
      $ hledger balance ^assets ^liabilities --quarterly --historical --begin 2008/4/1
      Ending balances (historical) in 2008/04/01-2008/12/31:
@@ -2238,9 +2266,6 @@ different information:
    Note that '--cumulative' or '--historical/-H' disable
 '--row-total/-T', since summing end balances generally does not make
 sense.
-
-   Multicolumn balance reports display accounts in flat mode by default;
-to see the hierarchy, use '--tree'.
 
    With a reporting interval (like '--quarterly' above), the report
 start/end dates will be adjusted if necessary so that they encompass the
@@ -2293,7 +2318,7 @@ into 'less -RS' (-R for colour, -S to chop long lines).  Eg: 'hledger
 bal -D --color=yes | less -RS'.
 
 
-File: hledger.info,  Node: Budget report,  Prev: Multicolumn balance report,  Up: balance
+File: hledger.info,  Node: Budget report,  Prev: Multi-period balance report,  Up: balance
 
 10.5.9 Budget report
 --------------------
@@ -2703,16 +2728,19 @@ File: hledger.info,  Node: check,  Next: close,  Prev: cashflow,  Up: COMMANDS
 ==========
 
 check
-Check for various kinds of errors in your data.  _experimental_
+Check for various kinds of errors in your data.
 
    hledger provides a number of built-in error checks to help prevent
 problems in your data.  Some of these are run automatically; or, you can
 use this 'check' command to run them on demand, with no output and a
-zero exit code if all is well.  Some examples:
+zero exit code if all is well.  Specify their names (or a prefix) as
+argument(s).
+
+   Some examples:
 
 hledger check      # basic checks
 hledger check -s   # basic + strict checks
-hledger check ordereddates uniqueleafnames  # basic + specified checks
+hledger check ordereddates payees  # basic + two other checks
 
    Here are the checks currently available:
 
@@ -2721,7 +2749,7 @@ hledger check ordereddates uniqueleafnames  # basic + specified checks
 * Basic checks::
 * Strict checks::
 * Other checks::
-* Add-on checks::
+* Custom checks::
 
 
 File: hledger.info,  Node: Basic checks,  Next: Strict checks,  Up: check
@@ -2729,7 +2757,8 @@ File: hledger.info,  Node: Basic checks,  Next: Strict checks,  Up: check
 10.9.1 Basic checks
 -------------------
 
-These are always run by this command and other commands:
+These checks are always run automatically, by (almost) all hledger
+commands, including 'check':
 
    * *parseable* - data files are well-formed and can be successfully
      parsed
@@ -2747,8 +2776,9 @@ File: hledger.info,  Node: Strict checks,  Next: Other checks,  Prev: Basic chec
 10.9.2 Strict checks
 --------------------
 
-These are always run by this and other commands when '-s'/'--strict' is
-used (strict mode):
+These additional checks are run when the '-s'/'--strict' (strict mode)
+flag is used.  Or, they can be run by giving their names as arguments to
+'check':
 
    * *accounts* - all account names used by transactions have been
      declared
@@ -2756,28 +2786,30 @@ used (strict mode):
    * *commodities* - all commodity symbols used have been declared
 
 
-File: hledger.info,  Node: Other checks,  Next: Add-on checks,  Prev: Strict checks,  Up: check
+File: hledger.info,  Node: Other checks,  Next: Custom checks,  Prev: Strict checks,  Up: check
 
 10.9.3 Other checks
 -------------------
 
-These checks can be run by specifying their names as arguments to the
-check command:
+These checks can be run only by giving their names as arguments to
+'check'.  They are more specialised and not desirable for everyone,
+therefore optional:
 
    * *ordereddates* - transactions are ordered by date (similar to the
      old 'check-dates' command)
 
+   * *payees* - all payees used by transactions have been declared
+
    * *uniqueleafnames* - all account leaf names are unique (similar to
-     the old 'check-dupes' command)
+     the old 'check-dupes' command).
 
 
-File: hledger.info,  Node: Add-on checks,  Prev: Other checks,  Up: check
+File: hledger.info,  Node: Custom checks,  Prev: Other checks,  Up: check
 
-10.9.4 Add-on checks
+10.9.4 Custom checks
 --------------------
 
-Some checks are not yet integrated with this command, but are available
-as add-on commands in
+A few more checks are are available as separate add-on commands, in
 https://github.com/simonmichael/hledger/tree/master/bin:
 
    * *hledger-check-tagfiles* - all tag values containing / (a forward
@@ -2786,8 +2818,8 @@ https://github.com/simonmichael/hledger/tree/master/bin:
    * *hledger-check-fancyassertions* - more complex balance assertions
      are passing
 
-   You could make your own similar scripts to perform custom checks;
-Cookbook -> Scripting may be helpful.
+   You could make similar scripts to perform your own custom checks.
+See: Cookbook -> Scripting.
 
 
 File: hledger.info,  Node: close,  Next: codes,  Prev: check,  Up: COMMANDS
@@ -4079,6 +4111,7 @@ that looks unnecessary right now.
 * Comment blocks::
 * Including other files::
 * Default year::
+* Declaring payees::
 * Declaring commodities::
 * Default commodity::
 * Declaring market prices::
@@ -4453,7 +4486,7 @@ File: hledger.info,  Node: Account names,  Next: Amounts,  Prev: Postings,  Up: 
 Account names typically have several parts separated by a full colon,
 from which hledger derives a hierarchical chart of accounts.  They can
 be anything you like, but in finance there are traditionally five
-top-level accounts: 'assets', 'liabilities', 'income', 'expenses', and
+top-level accounts: 'assets', 'liabilities', 'revenue', 'expenses', and
 'equity'.
 
    Account names may contain single spaces, eg: 'assets:accounts
@@ -4990,6 +5023,9 @@ account' apply             account names                 until end of
                                                          reports
 'include'                  include entries/directives    what the included
                            from another file             directives affect
+['payee']                  declare a payee name          following entries
+                                                         until end of
+                                                         current file
 'P'                        declare a market price for    amounts of that
                            a commodity                   commodity in
                                                          reports, when -V
@@ -5081,7 +5117,7 @@ overriding the file extension (as described in hledger.1 -> Input
 files): 'include timedot:~/notes/2020*.md'.
 
 
-File: hledger.info,  Node: Default year,  Next: Declaring commodities,  Prev: Including other files,  Up: JOURNAL FORMAT
+File: hledger.info,  Node: Default year,  Next: Declaring payees,  Prev: Including other files,  Up: JOURNAL FORMAT
 
 11.18 Default year
 ==================
@@ -5107,9 +5143,22 @@ Y2010  ; change default year to 2010
   assets
 
 
-File: hledger.info,  Node: Declaring commodities,  Next: Default commodity,  Prev: Default year,  Up: JOURNAL FORMAT
+File: hledger.info,  Node: Declaring payees,  Next: Declaring commodities,  Prev: Default year,  Up: JOURNAL FORMAT
 
-11.19 Declaring commodities
+11.19 Declaring payees
+======================
+
+The 'payee' directive can be used to declare a limited set of payees
+which may appear in transaction descriptions.  The "payees" check will
+report an error if any transaction refers to a payee that has not been
+declared.  Eg:
+
+payee Whole Foods
+
+
+File: hledger.info,  Node: Declaring commodities,  Next: Default commodity,  Prev: Declaring payees,  Up: JOURNAL FORMAT
+
+11.20 Declaring commodities
 ===========================
 
 The 'commodity' directive has several functions:
@@ -5166,7 +5215,7 @@ zero decimal digits is "0".  (More at Commodity display style.)
 
 File: hledger.info,  Node: Commodity error checking,  Up: Declaring commodities
 
-11.19.1 Commodity error checking
+11.20.1 Commodity error checking
 --------------------------------
 
 In strict mode, enabled with the '-s'/'--strict' flag, hledger will
@@ -5177,7 +5226,7 @@ checking, see the notes there for more details.
 
 File: hledger.info,  Node: Default commodity,  Next: Declaring market prices,  Prev: Declaring commodities,  Up: JOURNAL FORMAT
 
-11.20 Default commodity
+11.21 Default commodity
 =======================
 
 The 'D' directive sets a default commodity, to be used for amounts
@@ -5204,7 +5253,7 @@ D $1,000.00
 
 File: hledger.info,  Node: Declaring market prices,  Next: Declaring accounts,  Prev: Default commodity,  Up: JOURNAL FORMAT
 
-11.21 Declaring market prices
+11.22 Declaring market prices
 =============================
 
 The 'P' directive declares a market price, which is an exchange rate
@@ -5234,7 +5283,7 @@ amount values in another commodity.  See Valuation.
 
 File: hledger.info,  Node: Declaring accounts,  Next: Rewriting accounts,  Prev: Declaring market prices,  Up: JOURNAL FORMAT
 
-11.22 Declaring accounts
+11.23 Declaring accounts
 ========================
 
 'account' directives can be used to declare accounts (ie, the places
@@ -5272,7 +5321,7 @@ account assets:bank:checking
 
 File: hledger.info,  Node: Account error checking,  Next: Account comments,  Up: Declaring accounts
 
-11.22.1 Account error checking
+11.23.1 Account error checking
 ------------------------------
 
 By default, accounts come into existence when a transaction references
@@ -5300,7 +5349,7 @@ been declared by an account directive.  Some notes:
 
 File: hledger.info,  Node: Account comments,  Next: Account subdirectives,  Prev: Account error checking,  Up: Declaring accounts
 
-11.22.2 Account comments
+11.23.2 Account comments
 ------------------------
 
 Comments, beginning with a semicolon, can be added:
@@ -5320,7 +5369,7 @@ account assets:bank:checking  ; same-line comment, note 2+ spaces before ;
 
 File: hledger.info,  Node: Account subdirectives,  Next: Account types,  Prev: Account comments,  Up: Declaring accounts
 
-11.22.3 Account subdirectives
+11.23.3 Account subdirectives
 -----------------------------
 
 We also allow (and ignore) Ledger-style indented subdirectives, just for
@@ -5338,7 +5387,7 @@ account ACCTNAME  [ACCTTYPE] [;COMMENT]
 
 File: hledger.info,  Node: Account types,  Next: Account display order,  Prev: Account subdirectives,  Up: Declaring accounts
 
-11.22.4 Account types
+11.23.4 Account types
 ---------------------
 
 hledger recognises five main types of account, corresponding to the
@@ -5365,7 +5414,7 @@ or receivables.)
 
 File: hledger.info,  Node: Declaring account types,  Next: Auto-detected account types,  Up: Account types
 
-11.22.4.1 Declaring account types
+11.23.4.1 Declaring account types
 .................................
 
 Generally, to make these reports work you should declare your top-level
@@ -5387,7 +5436,7 @@ account expenses     ; type: Expense
 
 File: hledger.info,  Node: Auto-detected account types,  Next: Interference from auto-detected account types,  Prev: Declaring account types,  Up: Account types
 
-11.22.4.2 Auto-detected account types
+11.23.4.2 Auto-detected account types
 .....................................
 
 If you happen to use common english top-level account names, you may not
@@ -5414,7 +5463,7 @@ predictability.
 
 File: hledger.info,  Node: Interference from auto-detected account types,  Next: Old account type syntax,  Prev: Auto-detected account types,  Up: Account types
 
-11.22.4.3 Interference from auto-detected account types
+11.23.4.3 Interference from auto-detected account types
 .......................................................
 
 If you assign any account type, it's a good idea to assign all of them,
@@ -5434,7 +5483,7 @@ account liabilities  ; type:Equity
 
 File: hledger.info,  Node: Old account type syntax,  Prev: Interference from auto-detected account types,  Up: Account types
 
-11.22.4.4 Old account type syntax
+11.23.4.4 Old account type syntax
 .................................
 
 In some hledger journals you might instead see this old syntax (the
@@ -5450,7 +5499,7 @@ account expenses     X
 
 File: hledger.info,  Node: Account display order,  Prev: Account types,  Up: Declaring accounts
 
-11.22.5 Account display order
+11.23.5 Account display order
 -----------------------------
 
 Account directives also set the order in which accounts are displayed,
@@ -5496,7 +5545,7 @@ means:
 
 File: hledger.info,  Node: Rewriting accounts,  Next: Default parent account,  Prev: Declaring accounts,  Up: JOURNAL FORMAT
 
-11.23 Rewriting accounts
+11.24 Rewriting accounts
 ========================
 
 You can define account alias rules which rewrite your account names, or
@@ -5526,7 +5575,7 @@ hledger-web.
 
 File: hledger.info,  Node: Basic aliases,  Next: Regex aliases,  Up: Rewriting accounts
 
-11.23.1 Basic aliases
+11.24.1 Basic aliases
 ---------------------
 
 To set an account alias, use the 'alias' directive in your journal file.
@@ -5549,7 +5598,7 @@ alias checking = assets:bank:wells fargo:checking
 
 File: hledger.info,  Node: Regex aliases,  Next: Combining aliases,  Prev: Basic aliases,  Up: Rewriting accounts
 
-11.23.2 Regex aliases
+11.24.2 Regex aliases
 ---------------------
 
 There is also a more powerful variant that uses a regular expression,
@@ -5574,7 +5623,7 @@ whitespace.
 
 File: hledger.info,  Node: Combining aliases,  Next: Aliases and multiple files,  Prev: Regex aliases,  Up: Rewriting accounts
 
-11.23.3 Combining aliases
+11.24.3 Combining aliases
 -------------------------
 
 You can define as many aliases as you like, using journal directives
@@ -5611,7 +5660,7 @@ which aliases are being applied when.
 
 File: hledger.info,  Node: Aliases and multiple files,  Next: end aliases,  Prev: Combining aliases,  Up: Rewriting accounts
 
-11.23.4 Aliases and multiple files
+11.24.4 Aliases and multiple files
 ----------------------------------
 
 As explained at Directives and multiple files, 'alias' directives do not
@@ -5643,7 +5692,7 @@ include c.journal  ; also affected
 
 File: hledger.info,  Node: end aliases,  Prev: Aliases and multiple files,  Up: Rewriting accounts
 
-11.23.5 'end aliases'
+11.24.5 'end aliases'
 ---------------------
 
 You can clear (forget) all currently defined aliases with the 'end
@@ -5654,7 +5703,7 @@ end aliases
 
 File: hledger.info,  Node: Default parent account,  Next: Periodic transactions,  Prev: Rewriting accounts,  Up: JOURNAL FORMAT
 
-11.24 Default parent account
+11.25 Default parent account
 ============================
 
 You can specify a parent account which will be prepended to all accounts
@@ -5695,7 +5744,7 @@ parent account.
 
 File: hledger.info,  Node: Periodic transactions,  Next: Auto postings,  Prev: Default parent account,  Up: JOURNAL FORMAT
 
-11.25 Periodic transactions
+11.26 Periodic transactions
 ===========================
 
 Periodic transaction rules describe transactions that recur.  They allow
@@ -5742,7 +5791,7 @@ to define budget goals, shown in budget reports.
 
 File: hledger.info,  Node: Periodic rule syntax,  Next: Two spaces between period expression and description!,  Up: Periodic transactions
 
-11.25.1 Periodic rule syntax
+11.26.1 Periodic rule syntax
 ----------------------------
 
 A periodic transaction rule looks like a normal journal entry, with the
@@ -5765,7 +5814,7 @@ will be relative to Y/1/1.
 
 File: hledger.info,  Node: Two spaces between period expression and description!,  Next: Forecasting with periodic transactions,  Prev: Periodic rule syntax,  Up: Periodic transactions
 
-11.25.2 Two spaces between period expression and description!
+11.26.2 Two spaces between period expression and description!
 -------------------------------------------------------------
 
 If the period expression is followed by a transaction description, these
@@ -5790,7 +5839,7 @@ accidentally alter their meaning, as in this example:
 
 File: hledger.info,  Node: Forecasting with periodic transactions,  Next: Budgeting with periodic transactions,  Prev: Two spaces between period expression and description!,  Up: Periodic transactions
 
-11.25.3 Forecasting with periodic transactions
+11.26.3 Forecasting with periodic transactions
 ----------------------------------------------
 
 The '--forecast' flag activates any periodic transaction rules in the
@@ -5836,7 +5885,7 @@ examples: '--forecast=202001-202004', '--forecast=jan-',
 
 File: hledger.info,  Node: Budgeting with periodic transactions,  Prev: Forecasting with periodic transactions,  Up: Periodic transactions
 
-11.25.4 Budgeting with periodic transactions
+11.26.4 Budgeting with periodic transactions
 --------------------------------------------
 
 With the '--budget' flag, currently supported by the balance command,
@@ -5851,7 +5900,7 @@ compared in budget reports.
 
 File: hledger.info,  Node: Auto postings,  Prev: Periodic transactions,  Up: JOURNAL FORMAT
 
-11.26 Auto postings
+11.27 Auto postings
 ===================
 
 "Automated postings" or "auto postings" are extra postings which get
@@ -5929,7 +5978,7 @@ $ hledger print --auto
 
 File: hledger.info,  Node: Auto postings and multiple files,  Next: Auto postings and dates,  Up: Auto postings
 
-11.26.1 Auto postings and multiple files
+11.27.1 Auto postings and multiple files
 ----------------------------------------
 
 An auto posting rule can affect any transaction in the current file, or
@@ -5939,7 +5988,7 @@ sibling files (when multiple '-f'/'--file' are used - see #1212).
 
 File: hledger.info,  Node: Auto postings and dates,  Next: Auto postings and transaction balancing / inferred amounts / balance assertions,  Prev: Auto postings and multiple files,  Up: Auto postings
 
-11.26.2 Auto postings and dates
+11.27.2 Auto postings and dates
 -------------------------------
 
 A posting date (or secondary date) in the matched posting, or (taking
@@ -5949,7 +5998,7 @@ used in the generated posting.
 
 File: hledger.info,  Node: Auto postings and transaction balancing / inferred amounts / balance assertions,  Next: Auto posting tags,  Prev: Auto postings and dates,  Up: Auto postings
 
-11.26.3 Auto postings and transaction balancing / inferred amounts /
+11.27.3 Auto postings and transaction balancing / inferred amounts /
 --------------------------------------------------------------------
 
 balance assertions Currently, auto postings are added:
@@ -5965,7 +6014,7 @@ for background.
 
 File: hledger.info,  Node: Auto posting tags,  Prev: Auto postings and transaction balancing / inferred amounts / balance assertions,  Up: Auto postings
 
-11.26.4 Auto posting tags
+11.27.4 Auto posting tags
 -------------------------
 
 Automated postings will have some extra tags:
@@ -6861,6 +6910,7 @@ File: hledger.info,  Node: Tips,  Prev: CSV rules,  Up: CSV FORMAT
 * Valid transactions::
 * Deduplicating importing::
 * Setting amounts::
+* Amount signs::
 * Setting currency/commodity::
 * Referencing other fields::
 * How CSV rules are evaluated::
@@ -6975,38 +7025,100 @@ CSV data.  See:
    * https://plaintextaccounting.org -> data import/conversion
 
 
-File: hledger.info,  Node: Setting amounts,  Next: Setting currency/commodity,  Prev: Deduplicating importing,  Up: Tips
+File: hledger.info,  Node: Setting amounts,  Next: Amount signs,  Prev: Deduplicating importing,  Up: Tips
 
 12.3.7 Setting amounts
 ----------------------
 
-A posting amount can be set in one of these ways:
+Some tips on using the amount-setting rules discussed above.
 
-   * by assigning (with a fields list or field assignment) to 'amountN'
-     (posting N's amount) or 'amount' (posting 1's amount)
+   Here are the ways to set a posting's amount:
 
-   * by assigning to 'amountN-in' and 'amountN-out' (or 'amount-in' and
-     'amount-out').  For each CSV record, whichever of these has a
-     non-zero value will be used, with appropriate sign.  If both
-     contain a non-zero value, this may not work.
+  1. *If the CSV has a single amount field:*
+     Assign (via a fields list or a field assignment) to 'amountN'.
+     This sets the Nth posting's amount.  N is usually 1 or 2 but can go
+     up to 99.
 
-   * by assigning to 'balanceN' (or 'balance') instead of the above,
-     setting the amount indirectly via a balance assignment.  If you do
-     this the default account name may be wrong, so you should set that
-     explicitly.
+  2. *If the CSV has separate Debit and Credit amount fields:*
+     Assign to 'amountN-in' and 'amountN-out'.  This sets posting N's
+     amount to whichever of these has a non-zero value, guessing an
+     appropriate sign.
 
-   There is some special handling for an amount's sign:
+        * *If hledger guesses the wrong sign:*
+          Prepend a minus sign to flip it.  Eg:
 
-   * If an amount value is parenthesised, it will be de-parenthesised
-     and sign-flipped.
-   * If an amount value begins with a double minus sign, those cancel
-     out and are removed.
-   * If an amount value begins with a plus sign, that will be removed
+          fields date, description, amount-in, amount-out
+          amount-out -%amount-out
+
+        * *If both fields contain a non-zero value:*
+          The 'amountN-in'/'amountN-out' rules require that each CSV
+          record has a non-zero value in exactly one of the two fields,
+          so that hledger knows which to choose.  So these would all be
+          rejected:
+
+          "",  ""
+          "0", "0"
+          "1", "none"
+
+          If your CSV has amount values like this, use conditional rules
+          instead.  For example, to make hledger to choose the value
+          containing non-zero digits:
+
+          fields date, description, in, out
+          if %in [1-9]
+           amount1 %in
+          if %out [1-9]
+           amount1 %out
+
+  3. *Using the old numberless syntax:*
+     Assign to 'amount' (or to 'amount-in' and 'amount-out').  This sets
+     posting 1's and posting 2's amounts (and converts posting 2's
+     amount to cost).  This is supported for backwards compatibility
+     (and occasional convenience).
+
+  4. *If the CSV has the balance instead of the transaction amount:*
+     Assign to 'balanceN', which sets posting N's amount indirectly via
+     a balance assignment.  (Old syntax: 'balance', equivalent to
+     'balance1'.)
+
+        * *If hledger guesses the wrong default account name:*
+          When setting the amount via balance assertion, hledger may
+          guess the wrong default account name.  So, set the account
+          name explicitly, eg:
+
+          fields date, description, balance1
+          account1 assets:checking
 
 
-File: hledger.info,  Node: Setting currency/commodity,  Next: Referencing other fields,  Prev: Setting amounts,  Up: Tips
+File: hledger.info,  Node: Amount signs,  Next: Setting currency/commodity,  Prev: Setting amounts,  Up: Tips
 
-12.3.8 Setting currency/commodity
+12.3.8 Amount signs
+-------------------
+
+There is some special handling for amount signs, to simplify parsing and
+sign-flipping:
+
+   * *If an amount value begins with a plus sign:*
+     that will be removed: '+AMT' becomes 'AMT'
+
+   * *If an amount value is parenthesised:*
+     it will be de-parenthesised and sign-flipped: '(AMT)' becomes
+     '-AMT'
+
+   * *If an amount value has two minus signs (or two sets of
+     parentheses, or a minus sign and parentheses):*
+     they cancel out and will be removed: '--AMT' or '-(AMT)' becomes
+     'AMT'
+
+   * *If an amount value contains just a sign (or just a set of
+     parentheses):*
+     that is removed, making it an empty value.  '"+"' or '"-"' or
+     '"()"' becomes '""'.
+
+
+File: hledger.info,  Node: Setting currency/commodity,  Next: Referencing other fields,  Prev: Amount signs,  Up: Tips
+
+12.3.9 Setting currency/commodity
 ---------------------------------
 
 If the currency/commodity symbol is included in the CSV's amount
@@ -7054,8 +7166,8 @@ that would trigger the prepending effect, which we don't want here.
 
 File: hledger.info,  Node: Referencing other fields,  Next: How CSV rules are evaluated,  Prev: Setting currency/commodity,  Up: Tips
 
-12.3.9 Referencing other fields
--------------------------------
+12.3.10 Referencing other fields
+--------------------------------
 
 In field assignments, you can interpolate only CSV fields, not hledger
 fields.  In the example below, there's both a CSV field and a hledger
@@ -7091,7 +7203,7 @@ if something
 
 File: hledger.info,  Node: How CSV rules are evaluated,  Prev: Referencing other fields,  Up: Tips
 
-12.3.10 How CSV rules are evaluated
+12.3.11 How CSV rules are evaluated
 -----------------------------------
 
 Here's how to think of CSV rules being evaluated (if you really need
@@ -7875,397 +7987,401 @@ Node: DATA FILES15724
 Ref: #data-files15843
 Node: Data formats16382
 Ref: #data-formats16500
-Node: Multiple files17837
-Ref: #multiple-files17979
-Node: Strict mode18448
-Ref: #strict-mode18563
-Node: TIME PERIODS19211
-Ref: #time-periods19328
-Node: Smart dates19426
-Ref: #smart-dates19552
-Node: Report start & end date20878
-Ref: #report-start-end-date21053
-Node: Report intervals22586
-Ref: #report-intervals22754
-Node: Period expressions23144
-Ref: #period-expressions23284
-Node: DEPTH27727
-Ref: #depth27827
-Node: QUERIES28159
-Ref: #queries28260
-Node: VALUATION32222
-Ref: #valuation32330
-Node: -B Cost33019
-Ref: #b-cost33117
-Node: -V Value33250
-Ref: #v-value33390
-Node: -X Value in specified commodity33585
-Ref: #x-value-in-specified-commodity33778
-Node: Valuation date33927
-Ref: #valuation-date34089
-Node: Market prices34526
-Ref: #market-prices34700
-Node: --infer-value market prices from transactions35621
-Ref: #infer-value-market-prices-from-transactions35864
-Node: Valuation commodity37125
-Ref: #valuation-commodity37328
-Node: Simple valuation examples38533
-Ref: #simple-valuation-examples38729
-Node: --value Flexible valuation39388
-Ref: #value-flexible-valuation39590
-Node: More valuation examples41537
-Ref: #more-valuation-examples41740
-Node: Effect of valuation on reports43745
-Ref: #effect-of-valuation-on-reports43927
-Node: PIVOTING50946
-Ref: #pivoting51051
-Node: OUTPUT52727
-Ref: #output52827
-Node: Output destination52878
-Ref: #output-destination53009
-Node: Output format53434
-Ref: #output-format53555
-Node: COMMANDS55722
-Ref: #commands55834
-Node: accounts59199
-Ref: #accounts59299
-Node: activity59995
-Ref: #activity60107
-Node: add60490
-Ref: #add60593
-Node: aregister63386
-Ref: #aregister63500
-Node: aregister and custom posting dates64994
-Ref: #aregister-and-custom-posting-dates65160
-Node: balance65981
-Ref: #balance66100
-Node: Classic balance report67723
-Ref: #classic-balance-report67898
-Node: Customising the classic balance report69222
-Ref: #customising-the-classic-balance-report69452
-Node: Colour support71528
-Ref: #colour-support71697
-Node: Flat mode71793
-Ref: #flat-mode71943
-Node: Depth limited balance reports72356
-Ref: #depth-limited-balance-reports72543
-Node: Percentages72999
-Ref: #percentages73158
-Node: Sorting by amount74295
-Ref: #sorting-by-amount74463
-Node: Multicolumn balance report74957
-Ref: #multicolumn-balance-report75145
-Node: Budget report80742
-Ref: #budget-report80878
-Node: Budget report start date86167
-Ref: #budget-report-start-date86334
-Node: Nested budgets87666
-Ref: #nested-budgets87813
-Node: balancesheet91253
-Ref: #balancesheet91391
-Node: balancesheetequity93028
-Ref: #balancesheetequity93179
-Node: cashflow94398
-Ref: #cashflow94522
-Node: check95856
-Ref: #check95961
-Node: Basic checks96566
-Ref: #basic-checks96684
-Node: Strict checks97177
-Ref: #strict-checks97318
-Node: Other checks97561
-Ref: #other-checks97701
-Node: Add-on checks97999
-Ref: #add-on-checks98119
-Node: close98572
-Ref: #close98676
-Node: close usage100198
-Ref: #close-usage100293
-Node: codes103106
-Ref: #codes103216
-Node: commodities103928
-Ref: #commodities104057
-Node: descriptions104139
-Ref: #descriptions104269
-Node: diff104573
-Ref: #diff104681
-Node: files105728
-Ref: #files105830
-Node: help105977
-Ref: #help106079
-Node: import106806
-Ref: #import106922
-Node: Importing balance assignments107844
-Ref: #importing-balance-assignments108027
-Node: Commodity display styles108676
-Ref: #commodity-display-styles108849
-Node: incomestatement108978
-Ref: #incomestatement109113
-Node: notes110575
-Ref: #notes110690
-Node: payees111058
-Ref: #payees111166
-Node: prices111586
-Ref: #prices111694
-Node: print112035
-Ref: #print112147
-Node: print-unique117632
-Ref: #print-unique117760
-Node: register118045
-Ref: #register118174
-Node: Custom register output122620
-Ref: #custom-register-output122751
-Node: register-match124088
-Ref: #register-match124224
-Node: rewrite124575
-Ref: #rewrite124692
-Node: Re-write rules in a file126598
-Ref: #re-write-rules-in-a-file126761
-Node: Diff output format127910
-Ref: #diff-output-format128093
-Node: rewrite vs print --auto129185
-Ref: #rewrite-vs.-print---auto129345
-Node: roi129901
-Ref: #roi130001
-Node: stats142211
-Ref: #stats142312
-Node: tags143100
-Ref: #tags143200
-Node: test143719
-Ref: #test143835
-Node: About add-on commands144582
-Ref: #about-add-on-commands144719
-Node: JOURNAL FORMAT145850
-Ref: #journal-format145978
-Node: Transactions148144
-Ref: #transactions148259
-Node: Dates149273
-Ref: #dates149389
-Node: Simple dates149454
-Ref: #simple-dates149574
-Node: Secondary dates150083
-Ref: #secondary-dates150231
-Node: Posting dates151567
-Ref: #posting-dates151690
-Node: Status153062
-Ref: #status153179
-Node: Description154887
-Ref: #description155017
-Node: Payee and note155337
-Ref: #payee-and-note155445
-Node: Comments155780
-Ref: #comments155902
-Node: Tags157096
-Ref: #tags-1157207
-Node: Postings158600
-Ref: #postings158724
-Node: Virtual postings159750
-Ref: #virtual-postings159861
-Node: Account names161166
-Ref: #account-names161303
-Node: Amounts161790
-Ref: #amounts161925
-Node: Digit group marks163049
-Ref: #digit-group-marks163194
-Node: Commodity display style164132
-Ref: #commodity-display-style164306
-Node: Rounding166019
-Ref: #rounding166137
-Node: Transaction prices166549
-Ref: #transaction-prices166715
-Node: Lot prices lot dates169146
-Ref: #lot-prices-lot-dates169329
-Node: Balance assertions169817
-Ref: #balance-assertions169995
-Node: Assertions and ordering171028
-Ref: #assertions-and-ordering171210
-Node: Assertions and included files171910
-Ref: #assertions-and-included-files172147
-Node: Assertions and multiple -f options172480
-Ref: #assertions-and-multiple--f-options172730
-Node: Assertions and commodities172862
-Ref: #assertions-and-commodities173088
-Node: Assertions and prices174245
-Ref: #assertions-and-prices174453
-Node: Assertions and subaccounts174893
-Ref: #assertions-and-subaccounts175116
-Node: Assertions and virtual postings175440
-Ref: #assertions-and-virtual-postings175676
-Node: Assertions and precision175818
-Ref: #assertions-and-precision176005
-Node: Balance assignments176272
-Ref: #balance-assignments176442
-Node: Balance assignments and prices177606
-Ref: #balance-assignments-and-prices177772
-Node: Directives177996
-Ref: #directives178159
-Node: Directives and multiple files183402
-Ref: #directives-and-multiple-files183598
-Node: Comment blocks184262
-Ref: #comment-blocks184439
-Node: Including other files184615
-Ref: #including-other-files184789
-Node: Default year185713
-Ref: #default-year185876
-Node: Declaring commodities186283
-Ref: #declaring-commodities186460
-Node: Commodity error checking188304
-Ref: #commodity-error-checking188454
-Node: Default commodity188711
-Ref: #default-commodity188891
-Node: Declaring market prices189780
-Ref: #declaring-market-prices189969
-Node: Declaring accounts190826
-Ref: #declaring-accounts191006
-Node: Account error checking192208
-Ref: #account-error-checking192374
-Node: Account comments193553
-Ref: #account-comments193737
-Node: Account subdirectives194161
-Ref: #account-subdirectives194346
-Node: Account types194659
-Ref: #account-types194833
-Node: Declaring account types195569
-Ref: #declaring-account-types195748
-Node: Auto-detected account types196398
-Ref: #auto-detected-account-types196639
-Node: Interference from auto-detected account types197536
-Ref: #interference-from-auto-detected-account-types197813
-Node: Old account type syntax198296
-Ref: #old-account-type-syntax198493
-Node: Account display order198793
-Ref: #account-display-order198953
-Node: Rewriting accounts200104
-Ref: #rewriting-accounts200283
-Node: Basic aliases201040
-Ref: #basic-aliases201176
-Node: Regex aliases201880
-Ref: #regex-aliases202042
-Node: Combining aliases202761
-Ref: #combining-aliases202944
-Node: Aliases and multiple files204220
-Ref: #aliases-and-multiple-files204419
-Node: end aliases204998
-Ref: #end-aliases205145
-Node: Default parent account205246
-Ref: #default-parent-account205436
-Node: Periodic transactions206320
-Ref: #periodic-transactions206503
-Node: Periodic rule syntax208420
-Ref: #periodic-rule-syntax208620
-Node: Two spaces between period expression and description!209324
-Ref: #two-spaces-between-period-expression-and-description209637
-Node: Forecasting with periodic transactions210321
-Ref: #forecasting-with-periodic-transactions210620
-Node: Budgeting with periodic transactions212675
-Ref: #budgeting-with-periodic-transactions212908
-Node: Auto postings213317
-Ref: #auto-postings213453
-Node: Auto postings and multiple files215632
-Ref: #auto-postings-and-multiple-files215830
-Node: Auto postings and dates216039
-Ref: #auto-postings-and-dates216307
-Node: Auto postings and transaction balancing / inferred amounts / balance assertions216482
-Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions216827
-Node: Auto posting tags217169
-Ref: #auto-posting-tags217378
-Node: CSV FORMAT218014
-Ref: #csv-format218142
-Node: Examples220728
-Ref: #examples220831
-Node: Basic221039
-Ref: #basic221141
-Node: Bank of Ireland221683
-Ref: #bank-of-ireland221820
-Node: Amazon223282
-Ref: #amazon223402
-Node: Paypal225121
-Ref: #paypal225217
-Node: CSV rules232861
-Ref: #csv-rules232979
-Node: skip233291
-Ref: #skip233386
-Node: fields233761
-Ref: #fields233885
-Node: Transaction field names235050
-Ref: #transaction-field-names235212
-Node: Posting field names235323
-Ref: #posting-field-names235477
-Node: field assignment237847
-Ref: #field-assignment237992
-Node: separator238810
-Ref: #separator238947
-Node: if block239487
-Ref: #if-block239614
-Node: Matching the whole record240015
-Ref: #matching-the-whole-record240192
-Node: Matching individual fields240996
-Ref: #matching-individual-fields241202
-Node: Combining matchers241426
-Ref: #combining-matchers241624
-Node: Rules applied on successful match241937
-Ref: #rules-applied-on-successful-match242130
-Node: if table242784
-Ref: #if-table242905
-Node: end244643
-Ref: #end244757
-Node: date-format244981
-Ref: #date-format245115
-Node: decimal-mark245864
-Ref: #decimal-mark246009
-Node: newest-first246348
-Ref: #newest-first246491
-Node: include247174
-Ref: #include247307
-Node: balance-type247751
-Ref: #balance-type247873
-Node: Tips248573
-Ref: #tips248664
-Node: Rapid feedback248920
-Ref: #rapid-feedback249039
-Node: Valid CSV249499
-Ref: #valid-csv249631
-Node: File Extension249823
-Ref: #file-extension249977
-Node: Reading multiple CSV files250406
-Ref: #reading-multiple-csv-files250593
-Node: Valid transactions250834
-Ref: #valid-transactions251014
-Node: Deduplicating importing251642
-Ref: #deduplicating-importing251823
-Node: Setting amounts252856
-Ref: #setting-amounts253027
-Node: Setting currency/commodity254014
-Ref: #setting-currencycommodity254208
-Node: Referencing other fields255382
-Ref: #referencing-other-fields255584
-Node: How CSV rules are evaluated256481
-Ref: #how-csv-rules-are-evaluated256656
-Node: TIMECLOCK FORMAT258107
-Ref: #timeclock-format258247
-Node: TIMEDOT FORMAT260308
-Ref: #timedot-format260446
-Node: COMMON TASKS264722
-Ref: #common-tasks264851
-Node: Getting help265258
-Ref: #getting-help265392
-Node: Constructing command lines265945
-Ref: #constructing-command-lines266139
-Node: Starting a journal file266836
-Ref: #starting-a-journal-file267036
-Node: Setting opening balances268224
-Ref: #setting-opening-balances268422
-Node: Recording transactions271563
-Ref: #recording-transactions271745
-Node: Reconciling272301
-Ref: #reconciling272446
-Node: Reporting274703
-Ref: #reporting274845
-Node: Migrating to a new file278844
-Ref: #migrating-to-a-new-file278994
-Node: LIMITATIONS279293
-Ref: #limitations279421
-Node: TROUBLESHOOTING280164
-Ref: #troubleshooting280279
+Node: Multiple files17894
+Ref: #multiple-files18036
+Node: Strict mode18505
+Ref: #strict-mode18620
+Node: TIME PERIODS19268
+Ref: #time-periods19385
+Node: Smart dates19483
+Ref: #smart-dates19609
+Node: Report start & end date20935
+Ref: #report-start-end-date21110
+Node: Report intervals22643
+Ref: #report-intervals22811
+Node: Period expressions23201
+Ref: #period-expressions23341
+Node: DEPTH27784
+Ref: #depth27884
+Node: QUERIES28216
+Ref: #queries28317
+Node: VALUATION32279
+Ref: #valuation32387
+Node: -B Cost33076
+Ref: #b-cost33174
+Node: -V Value33307
+Ref: #v-value33447
+Node: -X Value in specified commodity33642
+Ref: #x-value-in-specified-commodity33835
+Node: Valuation date33984
+Ref: #valuation-date34146
+Node: Market prices34583
+Ref: #market-prices34757
+Node: --infer-value market prices from transactions35936
+Ref: #infer-value-market-prices-from-transactions36179
+Node: Valuation commodity37440
+Ref: #valuation-commodity37643
+Node: Simple valuation examples38848
+Ref: #simple-valuation-examples39044
+Node: --value Flexible valuation39703
+Ref: #value-flexible-valuation39905
+Node: More valuation examples41777
+Ref: #more-valuation-examples41980
+Node: Effect of valuation on reports43985
+Ref: #effect-of-valuation-on-reports44167
+Node: PIVOTING51568
+Ref: #pivoting51673
+Node: OUTPUT53349
+Ref: #output53449
+Node: Output destination53500
+Ref: #output-destination53631
+Node: Output format54056
+Ref: #output-format54177
+Node: COMMANDS56344
+Ref: #commands56456
+Node: accounts59821
+Ref: #accounts59921
+Node: activity60617
+Ref: #activity60729
+Node: add61112
+Ref: #add61215
+Node: aregister64008
+Ref: #aregister64122
+Node: aregister and custom posting dates65616
+Ref: #aregister-and-custom-posting-dates65782
+Node: balance66603
+Ref: #balance66722
+Node: Single-period flat balance report68374
+Ref: #single-period-flat-balance-report68582
+Node: Single-period tree-mode balance report69286
+Ref: #single-period-tree-mode-balance-report69554
+Node: Customising single-period balance reports70999
+Ref: #customising-single-period-balance-reports71254
+Node: Depth limiting73377
+Ref: #depth-limiting73554
+Node: Colour support74250
+Ref: #colour-support74403
+Node: Sorting by amount74499
+Ref: #sorting-by-amount74655
+Node: Percentages75149
+Ref: #percentages75306
+Node: Multi-period balance report76443
+Ref: #multi-period-balance-report76628
+Node: Budget report82278
+Ref: #budget-report82415
+Node: Budget report start date87704
+Ref: #budget-report-start-date87871
+Node: Nested budgets89203
+Ref: #nested-budgets89350
+Node: balancesheet92790
+Ref: #balancesheet92928
+Node: balancesheetequity94565
+Ref: #balancesheetequity94716
+Node: cashflow95935
+Ref: #cashflow96059
+Node: check97393
+Ref: #check97498
+Node: Basic checks98132
+Ref: #basic-checks98250
+Node: Strict checks98782
+Ref: #strict-checks98923
+Node: Other checks99227
+Ref: #other-checks99367
+Node: Custom checks99804
+Ref: #custom-checks99924
+Node: close100341
+Ref: #close100445
+Node: close usage101967
+Ref: #close-usage102062
+Node: codes104875
+Ref: #codes104985
+Node: commodities105697
+Ref: #commodities105826
+Node: descriptions105908
+Ref: #descriptions106038
+Node: diff106342
+Ref: #diff106450
+Node: files107497
+Ref: #files107599
+Node: help107746
+Ref: #help107848
+Node: import108575
+Ref: #import108691
+Node: Importing balance assignments109613
+Ref: #importing-balance-assignments109796
+Node: Commodity display styles110445
+Ref: #commodity-display-styles110618
+Node: incomestatement110747
+Ref: #incomestatement110882
+Node: notes112344
+Ref: #notes112459
+Node: payees112827
+Ref: #payees112935
+Node: prices113355
+Ref: #prices113463
+Node: print113804
+Ref: #print113916
+Node: print-unique119401
+Ref: #print-unique119529
+Node: register119814
+Ref: #register119943
+Node: Custom register output124389
+Ref: #custom-register-output124520
+Node: register-match125857
+Ref: #register-match125993
+Node: rewrite126344
+Ref: #rewrite126461
+Node: Re-write rules in a file128367
+Ref: #re-write-rules-in-a-file128530
+Node: Diff output format129679
+Ref: #diff-output-format129862
+Node: rewrite vs print --auto130954
+Ref: #rewrite-vs.-print---auto131114
+Node: roi131670
+Ref: #roi131770
+Node: stats143980
+Ref: #stats144081
+Node: tags144869
+Ref: #tags144969
+Node: test145488
+Ref: #test145604
+Node: About add-on commands146351
+Ref: #about-add-on-commands146488
+Node: JOURNAL FORMAT147619
+Ref: #journal-format147747
+Node: Transactions149934
+Ref: #transactions150049
+Node: Dates151063
+Ref: #dates151179
+Node: Simple dates151244
+Ref: #simple-dates151364
+Node: Secondary dates151873
+Ref: #secondary-dates152021
+Node: Posting dates153357
+Ref: #posting-dates153480
+Node: Status154852
+Ref: #status154969
+Node: Description156677
+Ref: #description156807
+Node: Payee and note157127
+Ref: #payee-and-note157235
+Node: Comments157570
+Ref: #comments157692
+Node: Tags158886
+Ref: #tags-1158997
+Node: Postings160390
+Ref: #postings160514
+Node: Virtual postings161540
+Ref: #virtual-postings161651
+Node: Account names162956
+Ref: #account-names163093
+Node: Amounts163581
+Ref: #amounts163716
+Node: Digit group marks164840
+Ref: #digit-group-marks164985
+Node: Commodity display style165923
+Ref: #commodity-display-style166097
+Node: Rounding167810
+Ref: #rounding167928
+Node: Transaction prices168340
+Ref: #transaction-prices168506
+Node: Lot prices lot dates170937
+Ref: #lot-prices-lot-dates171120
+Node: Balance assertions171608
+Ref: #balance-assertions171786
+Node: Assertions and ordering172819
+Ref: #assertions-and-ordering173001
+Node: Assertions and included files173701
+Ref: #assertions-and-included-files173938
+Node: Assertions and multiple -f options174271
+Ref: #assertions-and-multiple--f-options174521
+Node: Assertions and commodities174653
+Ref: #assertions-and-commodities174879
+Node: Assertions and prices176036
+Ref: #assertions-and-prices176244
+Node: Assertions and subaccounts176684
+Ref: #assertions-and-subaccounts176907
+Node: Assertions and virtual postings177231
+Ref: #assertions-and-virtual-postings177467
+Node: Assertions and precision177609
+Ref: #assertions-and-precision177796
+Node: Balance assignments178063
+Ref: #balance-assignments178233
+Node: Balance assignments and prices179397
+Ref: #balance-assignments-and-prices179563
+Node: Directives179787
+Ref: #directives179950
+Node: Directives and multiple files185408
+Ref: #directives-and-multiple-files185604
+Node: Comment blocks186268
+Ref: #comment-blocks186445
+Node: Including other files186621
+Ref: #including-other-files186795
+Node: Default year187719
+Ref: #default-year187877
+Node: Declaring payees188284
+Ref: #declaring-payees188450
+Node: Declaring commodities188696
+Ref: #declaring-commodities188877
+Node: Commodity error checking190721
+Ref: #commodity-error-checking190871
+Node: Default commodity191128
+Ref: #default-commodity191308
+Node: Declaring market prices192197
+Ref: #declaring-market-prices192386
+Node: Declaring accounts193243
+Ref: #declaring-accounts193423
+Node: Account error checking194625
+Ref: #account-error-checking194791
+Node: Account comments195970
+Ref: #account-comments196154
+Node: Account subdirectives196578
+Ref: #account-subdirectives196763
+Node: Account types197076
+Ref: #account-types197250
+Node: Declaring account types197986
+Ref: #declaring-account-types198165
+Node: Auto-detected account types198815
+Ref: #auto-detected-account-types199056
+Node: Interference from auto-detected account types199953
+Ref: #interference-from-auto-detected-account-types200230
+Node: Old account type syntax200713
+Ref: #old-account-type-syntax200910
+Node: Account display order201210
+Ref: #account-display-order201370
+Node: Rewriting accounts202521
+Ref: #rewriting-accounts202700
+Node: Basic aliases203457
+Ref: #basic-aliases203593
+Node: Regex aliases204297
+Ref: #regex-aliases204459
+Node: Combining aliases205178
+Ref: #combining-aliases205361
+Node: Aliases and multiple files206637
+Ref: #aliases-and-multiple-files206836
+Node: end aliases207415
+Ref: #end-aliases207562
+Node: Default parent account207663
+Ref: #default-parent-account207853
+Node: Periodic transactions208737
+Ref: #periodic-transactions208920
+Node: Periodic rule syntax210837
+Ref: #periodic-rule-syntax211037
+Node: Two spaces between period expression and description!211741
+Ref: #two-spaces-between-period-expression-and-description212054
+Node: Forecasting with periodic transactions212738
+Ref: #forecasting-with-periodic-transactions213037
+Node: Budgeting with periodic transactions215092
+Ref: #budgeting-with-periodic-transactions215325
+Node: Auto postings215734
+Ref: #auto-postings215870
+Node: Auto postings and multiple files218049
+Ref: #auto-postings-and-multiple-files218247
+Node: Auto postings and dates218456
+Ref: #auto-postings-and-dates218724
+Node: Auto postings and transaction balancing / inferred amounts / balance assertions218899
+Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions219244
+Node: Auto posting tags219586
+Ref: #auto-posting-tags219795
+Node: CSV FORMAT220431
+Ref: #csv-format220559
+Node: Examples223145
+Ref: #examples223248
+Node: Basic223456
+Ref: #basic223558
+Node: Bank of Ireland224100
+Ref: #bank-of-ireland224237
+Node: Amazon225699
+Ref: #amazon225819
+Node: Paypal227538
+Ref: #paypal227634
+Node: CSV rules235278
+Ref: #csv-rules235396
+Node: skip235708
+Ref: #skip235803
+Node: fields236178
+Ref: #fields236302
+Node: Transaction field names237467
+Ref: #transaction-field-names237629
+Node: Posting field names237740
+Ref: #posting-field-names237894
+Node: field assignment240264
+Ref: #field-assignment240409
+Node: separator241227
+Ref: #separator241364
+Node: if block241904
+Ref: #if-block242031
+Node: Matching the whole record242432
+Ref: #matching-the-whole-record242609
+Node: Matching individual fields243413
+Ref: #matching-individual-fields243619
+Node: Combining matchers243843
+Ref: #combining-matchers244041
+Node: Rules applied on successful match244354
+Ref: #rules-applied-on-successful-match244547
+Node: if table245201
+Ref: #if-table245322
+Node: end247060
+Ref: #end247174
+Node: date-format247398
+Ref: #date-format247532
+Node: decimal-mark248281
+Ref: #decimal-mark248426
+Node: newest-first248765
+Ref: #newest-first248908
+Node: include249591
+Ref: #include249724
+Node: balance-type250168
+Ref: #balance-type250290
+Node: Tips250990
+Ref: #tips251081
+Node: Rapid feedback251354
+Ref: #rapid-feedback251473
+Node: Valid CSV251933
+Ref: #valid-csv252065
+Node: File Extension252257
+Ref: #file-extension252411
+Node: Reading multiple CSV files252840
+Ref: #reading-multiple-csv-files253027
+Node: Valid transactions253268
+Ref: #valid-transactions253448
+Node: Deduplicating importing254076
+Ref: #deduplicating-importing254257
+Node: Setting amounts255290
+Ref: #setting-amounts255447
+Node: Amount signs257666
+Ref: #amount-signs257820
+Node: Setting currency/commodity258507
+Ref: #setting-currencycommodity258698
+Node: Referencing other fields259872
+Ref: #referencing-other-fields260076
+Node: How CSV rules are evaluated260973
+Ref: #how-csv-rules-are-evaluated261148
+Node: TIMECLOCK FORMAT262599
+Ref: #timeclock-format262739
+Node: TIMEDOT FORMAT264800
+Ref: #timedot-format264938
+Node: COMMON TASKS269214
+Ref: #common-tasks269343
+Node: Getting help269750
+Ref: #getting-help269884
+Node: Constructing command lines270437
+Ref: #constructing-command-lines270631
+Node: Starting a journal file271328
+Ref: #starting-a-journal-file271528
+Node: Setting opening balances272716
+Ref: #setting-opening-balances272914
+Node: Recording transactions276055
+Ref: #recording-transactions276237
+Node: Reconciling276793
+Ref: #reconciling276938
+Node: Reporting279195
+Ref: #reporting279337
+Node: Migrating to a new file283336
+Ref: #migrating-to-a-new-file283486
+Node: LIMITATIONS283785
+Ref: #limitations283913
+Node: TROUBLESHOOTING284656
+Ref: #troubleshooting284771
 
 End Tag Table
