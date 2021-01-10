@@ -23,9 +23,11 @@ import Text.Printf (printf)
 journalCheckUniqueleafnames :: Journal -> Either String ()
 journalCheckUniqueleafnames j = do
   -- find all duplicate leafnames, and the full account names they appear in
-  let dupes = finddupes $ journalLeafAndFullAccountNames j
-  -- report the first posting that references one of them (and its position), for now
-  sequence_ $ map (checkposting dupes) $ journalPostings j
+  case finddupes $ journalLeafAndFullAccountNames j of
+    [] -> Right ()
+    dupes -> 
+      -- report the first posting that references one of them (and its position), for now
+      sequence_ $ map (checkposting dupes) $ journalPostings j
 
 finddupes :: (Ord leaf, Eq full) => [(leaf, full)] -> [(leaf, [full])]
 finddupes leafandfullnames = zip dupLeafs dupAccountNames
