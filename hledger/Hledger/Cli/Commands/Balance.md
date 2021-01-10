@@ -29,9 +29,38 @@ The output formats supported are (in most modes):
 
 The balance command can produce several styles of report:
 
-### Classic balance report
+<a name="classic-balance-report"></a>
 
-This is the original balance report, as found in Ledger. It usually looks like this:
+### Single-period flat balance report
+
+This is the default for hledger's balance command:
+a flat list of all (or with a query, matched) accounts, showing full account names.
+<!-- and their "exclusive" (subaccount-excluding) balances. -->
+Accounts are sorted by [declaration order](https://hledger.org/hledger.html#declaring-accounts)
+if any, and then by account name.
+Accounts which have zero balance are not shown unless `-E/--empty` is used.
+The reported balances' total is shown as the last line, unless disabled by `-N`/`--no-total`.
+
+```shell
+$ hledger bal
+                  $1  assets:bank:saving
+                 $-2  assets:cash
+                  $1  expenses:food
+                  $1  expenses:supplies
+                 $-1  income:gifts
+                 $-1  income:salary
+                  $1  liabilities:debts
+--------------------
+                   0  
+```
+
+<a name="tree-mode"></a>
+
+### Single-period tree-mode balance report
+
+With the `-t/--tree` flag, accounts are displayed hierarchically,
+showing subaccounts as short names indented below their parent.
+(This is the default style in Ledger and in older hledger versions.)
 
 ```shell
 $ hledger balance
@@ -49,31 +78,28 @@ $ hledger balance
                    0
 ```
 
-By default, accounts are displayed hierarchically, 
-with subaccounts indented below their parent,
-with accounts at each level of the tree sorted by [declaration order](https://hledger.org/hledger.html#declaring-accounts) if declared, then by account name.
+For more compact output, "boring" accounts containing a single
+interesting subaccount and no balance of their own (`assets:bank` and
+`liabilities` here) are elided into the following line, unless
+`--no-elide` is used. And accounts which have zero balance and no
+non-zero subaccounts are omitted, unless `-E/--empty` is used.
 
-"Boring" accounts, which contain a single interesting subaccount and 
-no balance of their own, are elided into the following line for more compact output.
-(Eg above, the "liabilities" account.) Use `--no-elide` to prevent this. 
+Account balances in tree mode are "inclusive" - they include the
+balances of any subaccounts. Eg, the `assets` `$-1` balance here
+includes the `$1` from `assets:bank:saving` and the `$-2` from
+`assets:cash`. (And it would include balance posted to the `assets`
+account itself, if there was any). Note this causes some repetition,
+and the final total (`0`) is the sum of the top-level balances, not of
+all the balances shown.
 
-Account balances are "inclusive" - they include the balances of any subaccounts.
+Each group of sibling accounts is sorted separately, 
+by [declaration order](https://hledger.org/hledger.html#declaring-accounts) 
+and then by account name.
 
-Accounts which have zero balance (and no non-zero subaccounts) are
-omitted. Use `-E/--empty` to show them.
+### Customising single-period balance reports
 
-A final total is displayed by default; use `-N/--no-total` to suppress it, eg:
-
-```shell
-$ hledger balance -p 2008/6 expenses --no-total
-                  $2  expenses
-                  $1    food
-                  $1    supplies
-```
-
-### Customising the classic balance report
-
-You can customise the layout of classic balance reports with `--format FMT`:
+You can customise the layout of single-period balance reports with `--format FMT`,
+which sets the format of each line. Eg:
 
 ```shell
 $ hledger balance --format "%20(account) %12(total)"
@@ -127,27 +153,12 @@ Some example formats:
 - `%,%-50(account)  %25(total)` - account name padded to 50 characters, total padded to 20 characters, with multiple commodities rendered on one line
 - `%20(total)  %2(depth_spacer)%-(account)` - the default format for the single-column balance report
 
-### Colour support
+### Depth limiting
 
-In terminal output, when colour is enabled, 
-the balance command shows negative amounts in red.
-
-### Flat mode
-
-To see a flat list instead of the default hierarchical display, use `--flat`.
-In this mode, accounts (unless depth-clipped) show their full names and "exclusive" balance, excluding any subaccount balances.
-In this mode, you can also use `--drop N` to omit the first few account name components.
-
-```shell
-$ hledger balance -p 2008/6 expenses -N --flat --drop 1
-                  $1  food
-                  $1  supplies
-```
-
-### Depth limited balance reports
-
-With `--depth N` or `depth:N` or just `-N`, balance reports show accounts only to the specified numeric depth.
-This is very useful to summarise a complex set of accounts and get an overview.
+With a `depth:N` query, or `--depth N` option, or just `-N`, 
+balance reports will show accounts only to the specified depth.
+This is very useful to hide low-level accounts and get an overview.
+Eg, limiting to depth 1 shows the top-level accounts:
 ```shell
 $ hledger balance -N -1
                  $-1  assets
@@ -156,9 +167,25 @@ $ hledger balance -N -1
                   $1  liabilities
 ```
 
-Flat-mode balance reports, which normally show exclusive balances, show inclusive balances at the depth limit.
+Accounts at the depth limit will include the balances of any hidden subaccounts
+(even in flat mode, which normally shows exclusive balances).
 
-<!-- $ for y in 2006 2007 2008 2009 2010; do echo; echo $y; hledger -f $y.journal balance ^expenses --depth 2; done -->
+You can also drop account name components from the start of account names,
+using `--drop N`. This can be useful to hide unwanted top-level detail.
+
+### Colour support
+
+In terminal output, when colour is enabled, the balance command shows negative amounts in red.
+
+### Sorting by amount
+
+With `-S`/`--sort-amount`, accounts with the largest (most positive) balances are shown first.
+For example, `hledger bal expenses -MAS` shows your biggest averaged monthly expenses first.
+
+Revenues and liability balances are typically negative, however, so `-S` shows these in reverse order.
+To work around this, you can add `--invert` to flip the signs.
+Or, use one of the sign-flipping reports like `balancesheet` or `incomestatement`, 
+which also support `-S`. Eg: `hledger is -MAS`.
 
 ### Percentages
 
@@ -190,56 +217,44 @@ This flag does not work if the report contains any mixed commodity accounts. If
 there are mixed commodity accounts in the report be sure to use `-V`
 or `-B` to coerce the report into using a single commodity.
 
-### Sorting by amount
 
-With `-S`/`--sort-amount`, accounts with the largest (most positive) balances are shown first.
-For example, `hledger bal expenses -MAS` shows your biggest averaged monthly expenses first.
+<a name="multicolumn-balance-report"></a>
 
-Revenues and liability balances are typically negative, however, so `-S` shows these in reverse order.
-To work around this, you can add `--invert` to flip the signs.
-Or, use one of the sign-flipping reports like `balancesheet` or `incomestatement`, 
-which also support `-S`. Eg: `hledger is -MAS`.
+### Multi-period balance report
 
-### Multicolumn balance report
+Multi-period balance reports are a very useful hledger feature, activated
+if you provide one of the
+[reporting interval](#reporting-interval) flags, such as `-M`/`--monthly`.
+They are similar to single-period balance reports, but they show the
+report as a table, with columns representing one or more successive
+time periods.
+This is the usually the preferred style of balance report in hledger
+(even for a single period).
 
-Multicolumn or tabular balance reports are a very useful hledger feature,
-and usually the preferred style. They share many of the above features, 
-but they show the report as a table, with columns representing time periods.
-This mode is activated by providing a [reporting interval](#reporting-interval).
+Multi-period balance reports come in several types, showing different information:
 
-There are three types of multicolumn balance report, showing different information:
+1. A balance change report: by default, each column shows the sum of
+postings in that period, ie the account's change of balance in that
+period. This is useful eg for a monthly income statement:
 
-1. By default: each column shows the sum of postings in that period,
-ie the account's change of balance in that period. This is useful eg
-for a monthly income statement:
-<!--
-multicolumn income statement: 
+```shell
+$ hledger balance --quarterly income expenses -E
+Balance changes in 2008:
 
-   $ hledger balance ^income ^expense -p 'monthly this year' --depth 3
+                   ||  2008q1  2008q2  2008q3  2008q4 
+===================++=================================
+ expenses:food     ||       0      $1       0       0 
+ expenses:supplies ||       0      $1       0       0 
+ income:gifts      ||       0     $-1       0       0 
+ income:salary     ||     $-1       0       0       0 
+-------------------++---------------------------------
+                   ||     $-1      $1       0       0 
 
-or cashflow statement:
+```
 
-   $ hledger balance ^assets ^liabilities 'not:(receivable|payable)' -p 'weekly this month'
--->
-
-    ```shell
-    $ hledger balance --quarterly income expenses -E
-    Balance changes in 2008:
-
-                       ||  2008q1  2008q2  2008q3  2008q4 
-    ===================++=================================
-     expenses:food     ||       0      $1       0       0 
-     expenses:supplies ||       0      $1       0       0 
-     income:gifts      ||       0     $-1       0       0 
-     income:salary     ||     $-1       0       0       0 
-    -------------------++---------------------------------
-                       ||     $-1      $1       0       0 
-
-    ```
-
-2. With `--cumulative`: each column shows the ending balance for that
-period, accumulating the changes across periods, starting from 0 at
-the report start date:
+2. A cumulative end balance report: with `--cumulative`, each column
+shows the end balance for that period, accumulating the changes across
+periods, starting from 0 at the report start date:
 
     ```shell
     $ hledger balance --quarterly income expenses -E --cumulative
@@ -256,11 +271,12 @@ the report start date:
 
     ```
 
-3. With `--historical/-H`: each column shows the actual historical
-ending balance for that period, accumulating the changes across
-periods, starting from the actual balance at the report start date.
-This is useful eg for a multi-period balance sheet, and when
-you are showing only the data after a certain start date:
+3. A historical end balance report: with `--historical/-H`, each
+column shows the actual historical end balance for that period,
+accumulating the changes across periods, and including the balance
+from any postings before the report start date. This is useful eg for
+a multi-period balance sheet, and when you want to see balances only
+after a certain date:
 
     ```shell
     $ hledger balance ^assets ^liabilities --quarterly --historical --begin 2008/4/1
@@ -279,9 +295,6 @@ you are showing only the data after a certain start date:
 
 Note that `--cumulative` or `--historical/-H` disable `--row-total/-T`, 
 since summing end balances generally does not make sense.
-
-Multicolumn balance reports display accounts in flat mode by default;
-to see the hierarchy, use `--tree`.
 
 With a reporting interval (like `--quarterly` above), the report
 start/end dates will be adjusted if necessary so that they encompass
