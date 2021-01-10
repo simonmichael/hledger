@@ -34,7 +34,7 @@ journalCheckOrdereddates CliOpts{reportspec_=rspec} j = do
         txn1str = T.unpack . linesPrepend  (T.pack "  ")               $ showTransaction previous
         txn2str = T.unpack . linesPrepend2 (T.pack "> ") (T.pack "  ") $ showTransaction error
       Left $
-        "Error: transaction date" <> datestr <> " is out of order"
+        "transaction date" <> datestr <> " is out of order"
         <> uniquestr <> "\nat " <> positionstr <> ":\n\n"
         <> txn1str <> txn2str
 
