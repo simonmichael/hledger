@@ -1,16 +1,19 @@
 check
-Check for various kinds of errors in your data. experimental
+Check for various kinds of errors in your data.
 
 _FLAGS
 
 hledger provides a number of built-in error checks to help prevent
 problems in your data. Some of these are run automatically; or, you can
 use this check command to run them on demand, with no output and a zero
-exit code if all is well. Some examples:
+exit code if all is well. Specify their names (or a prefix) as
+argument(s).
+
+Some examples:
 
 hledger check      # basic checks
 hledger check -s   # basic + strict checks
-hledger check ordereddates uniqueleafnames  # basic + specified checks
+hledger check ordereddates payees  # basic + two other checks
 
 Here are the checks currently available:
 
@@ -32,7 +35,7 @@ commands, including check:
 Strict checks
 
 These additional checks are run when the -s/--strict (strict mode) flag
-is used. They can also be run by specifying their names as arguments to
+is used. Or, they can be run by giving their names as arguments to
 check:
 
 -   accounts - all account names used by transactions have been declared
@@ -41,8 +44,9 @@ check:
 
 Other checks
 
-These checks can be run only by specifying their names as arguments to
-check:
+These checks can be run only by giving their names as arguments to
+check. They are more specialised and not desirable for everyone,
+therefore optional:
 
 -   ordereddates - transactions are ordered by date (similar to the old
     check-dates command)
@@ -50,12 +54,11 @@ check:
 -   payees - all payees used by transactions have been declared
 
 -   uniqueleafnames - all account leaf names are unique (similar to the
-    old check-dupes command)
+    old check-dupes command).
 
-Add-on checks
+Custom checks
 
-These checks are not yet integrated with check, but are available as
-add-on commands in
+A few more checks are are available as separate add-on commands, in
 https://github.com/simonmichael/hledger/tree/master/bin:
 
 -   hledger-check-tagfiles - all tag values containing / (a forward
@@ -64,5 +67,5 @@ https://github.com/simonmichael/hledger/tree/master/bin:
 -   hledger-check-fancyassertions - more complex balance assertions are
     passing
 
-You could make your own similar scripts to perform custom checks;
-Cookbook -> Scripting may be helpful.
+You could make similar scripts to perform your own custom checks. See:
+Cookbook -> Scripting.
