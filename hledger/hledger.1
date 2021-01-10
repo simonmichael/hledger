@@ -604,11 +604,18 @@ messages.
 .PP
 You can also force a specific reader/format by prefixing the file path
 with the format and a colon.
-Eg to read a .dat file as csv:
+Eg, to read a .dat file as csv format:
 .IP
 .nf
 \f[C]
 $ hledger -f csv:/some/csv-file.dat stats
+\f[R]
+.fi
+.PP
+Or to read stdin (\f[C]-\f[R]) as timeclock format:
+.IP
+.nf
+\f[C]
 $ echo \[aq]i 2009/13/1 08:00:00\[aq] | hledger print -ftimeclock:-
 \f[R]
 .fi
@@ -1277,7 +1284,13 @@ A \f[I]any chain of market prices\f[R]: a chain of any market prices,
 including both forward and reverse prices (1 and 2 above), leading from
 A to B.
 .PP
-Amounts for which no applicable market price can be found, are not
+There is a limit to the length of these price chains; if hledger reaches
+that length without finding a complete chain or exhausting all
+possibilities, it will give up (with a \[dq]gave up\[dq] message visible
+in \f[C]--debug=2\f[R] output).
+That limit is currently 1000.
+.PP
+Amounts for which no suitable market price can be found, are not
 converted.
 .SS --infer-value: market prices from transactions
 .PP
@@ -1421,7 +1434,6 @@ Convert amounts to cost, using the prices recorded in transactions.
 \f[B]\f[CB]--value=then\f[B]\f[R]
 Convert amounts to their value in the default valuation commodity, using
 market prices on each posting\[aq]s date.
-This is currently supported only by the print and register commands.
 .TP
 \f[B]\f[CB]--value=end\f[B]\f[R]
 Convert amounts to their value in the default valuation commodity, using
@@ -1604,7 +1616,7 @@ Related: #329, #1083.
 .PP
 .TS
 tab(@);
-lw(10.6n) lw(13.2n) lw(13.4n) lw(11.0n) lw(13.4n) lw(8.2n).
+lw(9.5n) lw(11.8n) lw(12.0n) lw(17.2n) lw(12.0n) lw(7.4n).
 T{
 Report type
 T}@T{
@@ -1675,7 +1687,7 @@ cost
 T}@T{
 value at day before report or journal start
 T}@T{
-not supported
+valued at day each historical posting was made
 T}@T{
 value at day before report or journal start
 T}@T{
@@ -1742,7 +1754,7 @@ sums of costs
 T}@T{
 value at report end or today of sums of postings
 T}@T{
-not supported
+value at posting date
 T}@T{
 value at report or journal end of sums of postings
 T}@T{
@@ -1755,7 +1767,7 @@ like balance changes
 T}@T{
 like balance changes
 T}@T{
-not supported
+like balance changes
 T}@T{
 like balances
 T}@T{
@@ -1768,7 +1780,7 @@ sum of displayed values
 T}@T{
 sum of displayed values
 T}@T{
-not supported
+sum of displayed valued
 T}@T{
 sum of displayed values
 T}@T{
@@ -1796,7 +1808,8 @@ sums of costs of postings before report start
 T}@T{
 value at report start of sums of all postings before report start
 T}@T{
-not supported
+sums of values of postings before report start at respective posting
+dates
 T}@T{
 value at report start of sums of all postings before report start
 T}@T{
@@ -1809,7 +1822,7 @@ sums of costs of postings in period
 T}@T{
 same as --value=end
 T}@T{
-not supported
+sums of values of postings in period at respective posting dates
 T}@T{
 balance change in each period, valued at period ends
 T}@T{
@@ -1822,7 +1835,8 @@ sums of costs of postings from before report start to period end
 T}@T{
 same as --value=end
 T}@T{
-not supported
+sums of values of postings from before period start to period end at
+respective posting dates
 T}@T{
 period end balances, valued at period ends
 T}@T{
@@ -1835,7 +1849,7 @@ like balance changes/end balances
 T}@T{
 like balance changes/end balances
 T}@T{
-not supported
+like balance changes/end balances
 T}@T{
 like balances
 T}@T{
@@ -1848,7 +1862,7 @@ sums, averages of displayed values
 T}@T{
 sums, averages of displayed values
 T}@T{
-not supported
+sums, averages of displayed values
 T}@T{
 sums, averages of displayed values
 T}@T{
@@ -1861,7 +1875,7 @@ sums of displayed values
 T}@T{
 sums of displayed values
 T}@T{
-not supported
+sums of displayed values
 T}@T{
 sums of displayed values
 T}@T{
@@ -1874,7 +1888,7 @@ sum, average of column totals
 T}@T{
 sum, average of column totals
 T}@T{
-not supported
+sum, average of column totals
 T}@T{
 sum, average of column totals
 T}@T{
@@ -2449,10 +2463,39 @@ options The output formats supported are (in most modes): \f[C]txt\f[R],
 \f[C]csv\f[R], \f[C]html\f[R], and \f[C]json\f[R].
 .PP
 The balance command can produce several styles of report:
-.SS Classic balance report
 .PP
-This is the original balance report, as found in Ledger.
-It usually looks like this:
+.SS Single-period flat balance report
+.PP
+This is the default for hledger\[aq]s balance command: a flat list of
+all (or with a query, matched) accounts, showing full account names.
+Accounts are sorted by declaration order if any, and then by account
+name.
+Accounts which have zero balance are not shown unless
+\f[C]-E/--empty\f[R] is used.
+The reported balances\[aq] total is shown as the last line, unless
+disabled by \f[C]-N\f[R]/\f[C]--no-total\f[R].
+.IP
+.nf
+\f[C]
+$ hledger bal
+                  $1  assets:bank:saving
+                 $-2  assets:cash
+                  $1  expenses:food
+                  $1  expenses:supplies
+                 $-1  income:gifts
+                 $-1  income:salary
+                  $1  liabilities:debts
+--------------------
+                   0  
+\f[R]
+.fi
+.PP
+.SS Single-period tree-mode balance report
+.PP
+With the \f[C]-t/--tree\f[R] flag, accounts are displayed
+hierarchically, showing subaccounts as short names indented below their
+parent.
+(This is the default style in Ledger and in older hledger versions.)
 .IP
 .nf
 \f[C]
@@ -2472,38 +2515,30 @@ $ hledger balance
 \f[R]
 .fi
 .PP
-By default, accounts are displayed hierarchically, with subaccounts
-indented below their parent, with accounts at each level of the tree
-sorted by declaration order if declared, then by account name.
+For more compact output, \[dq]boring\[dq] accounts containing a single
+interesting subaccount and no balance of their own
+(\f[C]assets:bank\f[R] and \f[C]liabilities\f[R] here) are elided into
+the following line, unless \f[C]--no-elide\f[R] is used.
+And accounts which have zero balance and no non-zero subaccounts are
+omitted, unless \f[C]-E/--empty\f[R] is used.
 .PP
-\[dq]Boring\[dq] accounts, which contain a single interesting subaccount
-and no balance of their own, are elided into the following line for more
-compact output.
-(Eg above, the \[dq]liabilities\[dq] account.) Use \f[C]--no-elide\f[R]
-to prevent this.
+Account balances in tree mode are \[dq]inclusive\[dq] - they include the
+balances of any subaccounts.
+Eg, the \f[C]assets\f[R] \f[C]$-1\f[R] balance here includes the
+\f[C]$1\f[R] from \f[C]assets:bank:saving\f[R] and the \f[C]$-2\f[R]
+from \f[C]assets:cash\f[R].
+(And it would include balance posted to the \f[C]assets\f[R] account
+itself, if there was any).
+Note this causes some repetition, and the final total (\f[C]0\f[R]) is
+the sum of the top-level balances, not of all the balances shown.
 .PP
-Account balances are \[dq]inclusive\[dq] - they include the balances of
-any subaccounts.
+Each group of sibling accounts is sorted separately, by declaration
+order and then by account name.
+.SS Customising single-period balance reports
 .PP
-Accounts which have zero balance (and no non-zero subaccounts) are
-omitted.
-Use \f[C]-E/--empty\f[R] to show them.
-.PP
-A final total is displayed by default; use \f[C]-N/--no-total\f[R] to
-suppress it, eg:
-.IP
-.nf
-\f[C]
-$ hledger balance -p 2008/6 expenses --no-total
-                  $2  expenses
-                  $1    food
-                  $1    supplies
-\f[R]
-.fi
-.SS Customising the classic balance report
-.PP
-You can customise the layout of classic balance reports with
-\f[C]--format FMT\f[R]:
+You can customise the layout of single-period balance reports with
+\f[C]--format FMT\f[R], which sets the format of each line.
+Eg:
 .IP
 .nf
 \f[C]
@@ -2572,32 +2607,13 @@ rendered on one line
 .IP \[bu] 2
 \f[C]%20(total)  %2(depth_spacer)%-(account)\f[R] - the default format
 for the single-column balance report
-.SS Colour support
+.SS Depth limiting
 .PP
-In terminal output, when colour is enabled, the balance command shows
-negative amounts in red.
-.SS Flat mode
-.PP
-To see a flat list instead of the default hierarchical display, use
-\f[C]--flat\f[R].
-In this mode, accounts (unless depth-clipped) show their full names and
-\[dq]exclusive\[dq] balance, excluding any subaccount balances.
-In this mode, you can also use \f[C]--drop N\f[R] to omit the first few
-account name components.
-.IP
-.nf
-\f[C]
-$ hledger balance -p 2008/6 expenses -N --flat --drop 1
-                  $1  food
-                  $1  supplies
-\f[R]
-.fi
-.SS Depth limited balance reports
-.PP
-With \f[C]--depth N\f[R] or \f[C]depth:N\f[R] or just \f[C]-N\f[R],
-balance reports show accounts only to the specified numeric depth.
-This is very useful to summarise a complex set of accounts and get an
-overview.
+With a \f[C]depth:N\f[R] query, or \f[C]--depth N\f[R] option, or just
+\f[C]-N\f[R], balance reports will show accounts only to the specified
+depth.
+This is very useful to hide low-level accounts and get an overview.
+Eg, limiting to depth 1 shows the top-level accounts:
 .IP
 .nf
 \f[C]
@@ -2609,8 +2625,30 @@ $ hledger balance -N -1
 \f[R]
 .fi
 .PP
-Flat-mode balance reports, which normally show exclusive balances, show
-inclusive balances at the depth limit.
+Accounts at the depth limit will include the balances of any hidden
+subaccounts (even in flat mode, which normally shows exclusive
+balances).
+.PP
+You can also drop account name components from the start of account
+names, using \f[C]--drop N\f[R].
+This can be useful to hide unwanted top-level detail.
+.SS Colour support
+.PP
+In terminal output, when colour is enabled, the balance command shows
+negative amounts in red.
+.SS Sorting by amount
+.PP
+With \f[C]-S\f[R]/\f[C]--sort-amount\f[R], accounts with the largest
+(most positive) balances are shown first.
+For example, \f[C]hledger bal expenses -MAS\f[R] shows your biggest
+averaged monthly expenses first.
+.PP
+Revenues and liability balances are typically negative, however, so
+\f[C]-S\f[R] shows these in reverse order.
+To work around this, you can add \f[C]--invert\f[R] to flip the signs.
+Or, use one of the sign-flipping reports like \f[C]balancesheet\f[R] or
+\f[C]incomestatement\f[R], which also support \f[C]-S\f[R].
+Eg: \f[C]hledger is -MAS\f[R].
 .SS Percentages
 .PP
 With \f[C]-%\f[R] or \f[C]--percent\f[R], balance reports show each
@@ -2646,34 +2684,25 @@ accounts.
 If there are mixed commodity accounts in the report be sure to use
 \f[C]-V\f[R] or \f[C]-B\f[R] to coerce the report into using a single
 commodity.
-.SS Sorting by amount
 .PP
-With \f[C]-S\f[R]/\f[C]--sort-amount\f[R], accounts with the largest
-(most positive) balances are shown first.
-For example, \f[C]hledger bal expenses -MAS\f[R] shows your biggest
-averaged monthly expenses first.
+.SS Multi-period balance report
 .PP
-Revenues and liability balances are typically negative, however, so
-\f[C]-S\f[R] shows these in reverse order.
-To work around this, you can add \f[C]--invert\f[R] to flip the signs.
-Or, use one of the sign-flipping reports like \f[C]balancesheet\f[R] or
-\f[C]incomestatement\f[R], which also support \f[C]-S\f[R].
-Eg: \f[C]hledger is -MAS\f[R].
-.SS Multicolumn balance report
+Multi-period balance reports are a very useful hledger feature,
+activated if you provide one of the reporting interval flags, such as
+\f[C]-M\f[R]/\f[C]--monthly\f[R].
+They are similar to single-period balance reports, but they show the
+report as a table, with columns representing one or more successive time
+periods.
+This is the usually the preferred style of balance report in hledger
+(even for a single period).
 .PP
-Multicolumn or tabular balance reports are a very useful hledger
-feature, and usually the preferred style.
-They share many of the above features, but they show the report as a
-table, with columns representing time periods.
-This mode is activated by providing a reporting interval.
-.PP
-There are three types of multicolumn balance report, showing different
+Multi-period balance reports come in several types, showing different
 information:
 .IP "1." 3
-By default: each column shows the sum of postings in that period, ie the
-account\[aq]s change of balance in that period.
+A balance change report: by default, each column shows the sum of
+postings in that period, ie the account\[aq]s change of balance in that
+period.
 This is useful eg for a monthly income statement:
-.RS 4
 .IP
 .nf
 \f[C]
@@ -2690,11 +2719,10 @@ Balance changes in 2008:
                    ||     $-1      $1       0       0 
 \f[R]
 .fi
-.RE
 .IP "2." 3
-With \f[C]--cumulative\f[R]: each column shows the ending balance for
-that period, accumulating the changes across periods, starting from 0 at
-the report start date:
+A cumulative end balance report: with \f[C]--cumulative\f[R], each
+column shows the end balance for that period, accumulating the changes
+across periods, starting from 0 at the report start date:
 .RS 4
 .IP
 .nf
@@ -2714,11 +2742,12 @@ Ending balances (cumulative) in 2008:
 .fi
 .RE
 .IP "3." 3
-With \f[C]--historical/-H\f[R]: each column shows the actual historical
-ending balance for that period, accumulating the changes across periods,
-starting from the actual balance at the report start date.
-This is useful eg for a multi-period balance sheet, and when you are
-showing only the data after a certain start date:
+A historical end balance report: with \f[C]--historical/-H\f[R], each
+column shows the actual historical end balance for that period,
+accumulating the changes across periods, and including the balance from
+any postings before the report start date.
+This is useful eg for a multi-period balance sheet, and when you want to
+see balances only after a certain date:
 .RS 4
 .IP
 .nf
@@ -2741,9 +2770,6 @@ Ending balances (historical) in 2008/04/01-2008/12/31:
 Note that \f[C]--cumulative\f[R] or \f[C]--historical/-H\f[R] disable
 \f[C]--row-total/-T\f[R], since summing end balances generally does not
 make sense.
-.PP
-Multicolumn balance reports display accounts in flat mode by default; to
-see the hierarchy, use \f[C]--tree\f[R].
 .PP
 With a reporting interval (like \f[C]--quarterly\f[R] above), the report
 start/end dates will be adjusted if necessary so that they encompass the
@@ -3263,27 +3289,29 @@ check
 .P
 .PD
 Check for various kinds of errors in your data.
-\f[I]experimental\f[R]
 .PP
 hledger provides a number of built-in error checks to help prevent
 problems in your data.
 Some of these are run automatically; or, you can use this
 \f[C]check\f[R] command to run them on demand, with no output and a zero
 exit code if all is well.
+Specify their names (or a prefix) as argument(s).
+.PP
 Some examples:
 .IP
 .nf
 \f[C]
 hledger check      # basic checks
 hledger check -s   # basic + strict checks
-hledger check ordereddates uniqueleafnames  # basic + specified checks
+hledger check ordereddates payees  # basic + two other checks
 \f[R]
 .fi
 .PP
 Here are the checks currently available:
 .SS Basic checks
 .PP
-These are always run by this command and other commands:
+These checks are always run automatically, by (almost) all hledger
+commands, including \f[C]check\f[R]:
 .IP \[bu] 2
 \f[B]parseable\f[R] - data files are well-formed and can be successfully
 parsed
@@ -3298,8 +3326,10 @@ passing.
 \f[C]-I\f[R]/\f[C]--ignore-assertions\f[R].)
 .SS Strict checks
 .PP
-These are always run by this and other commands when
-\f[C]-s\f[R]/\f[C]--strict\f[R] is used (strict mode):
+These additional checks are run when the \f[C]-s\f[R]/\f[C]--strict\f[R]
+(strict mode) flag is used.
+Or, they can be run by giving their names as arguments to
+\f[C]check\f[R]:
 .IP \[bu] 2
 \f[B]accounts\f[R] - all account names used by transactions have been
 declared
@@ -3307,18 +3337,21 @@ declared
 \f[B]commodities\f[R] - all commodity symbols used have been declared
 .SS Other checks
 .PP
-These checks can be run by specifying their names as arguments to the
-check command:
+These checks can be run only by giving their names as arguments to
+\f[C]check\f[R].
+They are more specialised and not desirable for everyone, therefore
+optional:
 .IP \[bu] 2
 \f[B]ordereddates\f[R] - transactions are ordered by date (similar to
 the old \f[C]check-dates\f[R] command)
 .IP \[bu] 2
+\f[B]payees\f[R] - all payees used by transactions have been declared
+.IP \[bu] 2
 \f[B]uniqueleafnames\f[R] - all account leaf names are unique (similar
-to the old \f[C]check-dupes\f[R] command)
-.SS Add-on checks
+to the old \f[C]check-dupes\f[R] command).
+.SS Custom checks
 .PP
-Some checks are not yet integrated with this command, but are available
-as add-on commands in
+A few more checks are are available as separate add-on commands, in
 https://github.com/simonmichael/hledger/tree/master/bin:
 .IP \[bu] 2
 \f[B]hledger-check-tagfiles\f[R] - all tag values containing / (a
@@ -3327,8 +3360,8 @@ forward slash) exist as file paths
 \f[B]hledger-check-fancyassertions\f[R] - more complex balance
 assertions are passing
 .PP
-You could make your own similar scripts to perform custom checks;
-Cookbook -> Scripting may be helpful.
+You could make similar scripts to perform your own custom checks.
+See: Cookbook -> Scripting.
 .SS close
 .PP
 close, equity
@@ -5198,7 +5231,7 @@ Account names typically have several parts separated by a full colon,
 from which hledger derives a hierarchical chart of accounts.
 They can be anything you like, but in finance there are traditionally
 five top-level accounts: \f[C]assets\f[R], \f[C]liabilities\f[R],
-\f[C]income\f[R], \f[C]expenses\f[R], and \f[C]equity\f[R].
+\f[C]revenue\f[R], \f[C]expenses\f[R], and \f[C]equity\f[R].
 .PP
 Account names may contain single spaces, eg:
 \f[C]assets:accounts receivable\f[R].
@@ -5808,6 +5841,15 @@ T}@T{
 what the included directives affect
 T}
 T{
+[\f[C]payee\f[R]]
+T}@T{
+T}@T{
+T}@T{
+declare a payee name
+T}@T{
+following entries until end of current file
+T}
+T{
 \f[C]P\f[R]
 T}@T{
 T}@T{
@@ -5950,6 +5992,19 @@ Y2010  ; change default year to 2010
 1/31   ; equivalent to 2010/1/31
   expenses  1
   assets
+\f[R]
+.fi
+.SS Declaring payees
+.PP
+The \f[C]payee\f[R] directive can be used to declare a limited set of
+payees which may appear in transaction descriptions.
+The \[dq]payees\[dq] check will report an error if any transaction
+refers to a payee that has not been declared.
+Eg:
+.IP
+.nf
+\f[C]
+payee Whole Foods
 \f[R]
 .fi
 .SS Declaring commodities
@@ -7961,32 +8016,148 @@ https://hledger.org -> sidebar -> real world setups
 https://plaintextaccounting.org -> data import/conversion
 .SS Setting amounts
 .PP
-A posting amount can be set in one of these ways:
-.IP \[bu] 2
-by assigning (with a fields list or field assignment) to
-\f[C]amountN\f[R] (posting N\[aq]s amount) or \f[C]amount\f[R] (posting
-1\[aq]s amount)
-.IP \[bu] 2
-by assigning to \f[C]amountN-in\f[R] and \f[C]amountN-out\f[R] (or
-\f[C]amount-in\f[R] and \f[C]amount-out\f[R]).
-For each CSV record, whichever of these has a non-zero value will be
-used, with appropriate sign.
-If both contain a non-zero value, this may not work.
-.IP \[bu] 2
-by assigning to \f[C]balanceN\f[R] (or \f[C]balance\f[R]) instead of the
-above, setting the amount indirectly via a balance assignment.
-If you do this the default account name may be wrong, so you should set
-that explicitly.
+Some tips on using the amount-setting rules discussed above.
 .PP
-There is some special handling for an amount\[aq]s sign:
+Here are the ways to set a posting\[aq]s amount:
+.IP "1." 3
+\f[B]If the CSV has a single amount field:\f[R]
+.PD 0
+.P
+.PD
+Assign (via a fields list or a field assignment) to \f[C]amountN\f[R].
+This sets the Nth posting\[aq]s amount.
+N is usually 1 or 2 but can go up to 99.
+.IP "2." 3
+\f[B]If the CSV has separate Debit and Credit amount fields:\f[R]
+.PD 0
+.P
+.PD
+Assign to \f[C]amountN-in\f[R] and \f[C]amountN-out\f[R].
+This sets posting N\[aq]s amount to whichever of these has a non-zero
+value, guessing an appropriate sign.
+.RS 4
 .IP \[bu] 2
-If an amount value is parenthesised, it will be de-parenthesised and
-sign-flipped.
+\f[B]If hledger guesses the wrong sign:\f[R]
+.PD 0
+.P
+.PD
+Prepend a minus sign to flip it.
+Eg:
+.RS 2
+.IP
+.nf
+\f[C]
+fields date, description, amount-in, amount-out
+amount-out -%amount-out
+\f[R]
+.fi
+.RE
 .IP \[bu] 2
-If an amount value begins with a double minus sign, those cancel out and
-are removed.
+\f[B]If both fields contain a non-zero value:\f[R]
+.PD 0
+.P
+.PD
+The \f[C]amountN-in\f[R]/\f[C]amountN-out\f[R] rules require that each
+CSV record has a non-zero value in exactly one of the two fields, so
+that hledger knows which to choose.
+So these would all be rejected:
+.RS 2
+.IP
+.nf
+\f[C]
+\[dq]\[dq],  \[dq]\[dq]
+\[dq]0\[dq], \[dq]0\[dq]
+\[dq]1\[dq], \[dq]none\[dq]
+\f[R]
+.fi
+.PP
+If your CSV has amount values like this, use conditional rules instead.
+For example, to make hledger to choose the value containing non-zero
+digits:
+.IP
+.nf
+\f[C]
+fields date, description, in, out
+if %in [1-9]
+ amount1 %in
+if %out [1-9]
+ amount1 %out
+\f[R]
+.fi
+.RE
+.RE
+.IP "3." 3
+\f[B]Using the old numberless syntax:\f[R]
+.PD 0
+.P
+.PD
+Assign to \f[C]amount\f[R] (or to \f[C]amount-in\f[R] and
+\f[C]amount-out\f[R]).
+This sets posting 1\[aq]s and posting 2\[aq]s amounts (and converts
+posting 2\[aq]s amount to cost).
+This is supported for backwards compatibility (and occasional
+convenience).
+.IP "4." 3
+\f[B]If the CSV has the balance instead of the transaction amount:\f[R]
+.PD 0
+.P
+.PD
+Assign to \f[C]balanceN\f[R], which sets posting N\[aq]s amount
+indirectly via a balance assignment.
+(Old syntax: \f[C]balance\f[R], equivalent to \f[C]balance1\f[R].)
+.RS 4
 .IP \[bu] 2
-If an amount value begins with a plus sign, that will be removed
+\f[B]If hledger guesses the wrong default account name:\f[R]
+.PD 0
+.P
+.PD
+When setting the amount via balance assertion, hledger may guess the
+wrong default account name.
+So, set the account name explicitly, eg:
+.RS 2
+.IP
+.nf
+\f[C]
+fields date, description, balance1
+account1 assets:checking
+\f[R]
+.fi
+.RE
+.RE
+.SS Amount signs
+.PP
+There is some special handling for amount signs, to simplify parsing and
+sign-flipping:
+.IP \[bu] 2
+\f[B]If an amount value begins with a plus sign:\f[R]
+.PD 0
+.P
+.PD
+that will be removed: \f[C]+AMT\f[R] becomes \f[C]AMT\f[R]
+.IP \[bu] 2
+\f[B]If an amount value is parenthesised:\f[R]
+.PD 0
+.P
+.PD
+it will be de-parenthesised and sign-flipped: \f[C](AMT)\f[R] becomes
+\f[C]-AMT\f[R]
+.IP \[bu] 2
+\f[B]If an amount value has two minus signs (or two sets of parentheses,
+or a minus sign and parentheses):\f[R]
+.PD 0
+.P
+.PD
+they cancel out and will be removed: \f[C]--AMT\f[R] or \f[C]-(AMT)\f[R]
+becomes \f[C]AMT\f[R]
+.IP \[bu] 2
+\f[B]If an amount value contains just a sign (or just a set of
+parentheses):\f[R]
+.PD 0
+.P
+.PD
+that is removed, making it an empty value.
+\f[C]\[dq]+\[dq]\f[R] or \f[C]\[dq]-\[dq]\f[R] or \f[C]\[dq]()\[dq]\f[R]
+becomes \f[C]\[dq]\[dq]\f[R].
 .SS Setting currency/commodity
 .PP
 If the currency/commodity symbol is included in the CSV\[aq]s amount
