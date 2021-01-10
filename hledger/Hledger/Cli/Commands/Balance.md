@@ -96,130 +96,6 @@ Each group of sibling accounts is sorted separately,
 by [declaration order](https://hledger.org/hledger.html#declaring-accounts) 
 and then by account name.
 
-### Customising single-period balance reports
-
-You can customise the layout of single-period balance reports with `--format FMT`,
-which sets the format of each line. Eg:
-
-```shell
-$ hledger balance --format "%20(account) %12(total)"
-              assets          $-1
-         bank:saving           $1
-                cash          $-2
-            expenses           $2
-                food           $1
-            supplies           $1
-              income          $-2
-               gifts          $-1
-              salary          $-1
-   liabilities:debts           $1
----------------------------------
-                                0
-```
-
-The FMT format string (plus a newline) specifies the formatting
-applied to each account/balance pair. It may contain any suitable
-text, with data fields interpolated like so:
-
-`%[MIN][.MAX](FIELDNAME)`
-
-- MIN pads with spaces to at least this width (optional)
-- MAX truncates at this width (optional)
-- FIELDNAME must be enclosed in parentheses, and can be one of:
-
-    - `depth_spacer` - a number of spaces equal to the account's depth, or if MIN is specified, MIN * depth spaces.
-    - `account`      - the account's name
-    - `total`        - the account's balance/posted total, right justified
-
-Also, FMT can begin with an optional prefix to control how
-multi-commodity amounts are rendered:
-
-- `%_` - render on multiple lines, bottom-aligned (the default)
-- `%^` - render on multiple lines, top-aligned
-- `%,` - render on one line, comma-separated
-
-There are some quirks. Eg in one-line mode, `%(depth_spacer)` has no
-effect, instead `%(account)` has indentation built in.
-<!-- XXX retest:
-Consistent column widths are not well enforced, causing ragged edges unless you set suitable widths.
-Beware of specifying a maximum width; it will clip account names and amounts that are too wide, with no visible indication.
--->
-Experimentation may be needed to get pleasing results.
-
-Some example formats:
-
-- `%(total)`         - the account's total
-- `%-20.20(account)` - the account's name, left justified, padded to 20 characters and clipped at 20 characters
-- `%,%-50(account)  %25(total)` - account name padded to 50 characters, total padded to 20 characters, with multiple commodities rendered on one line
-- `%20(total)  %2(depth_spacer)%-(account)` - the default format for the single-column balance report
-
-### Depth limiting
-
-With a `depth:N` query, or `--depth N` option, or just `-N`, 
-balance reports will show accounts only to the specified depth.
-This is very useful to hide low-level accounts and get an overview.
-Eg, limiting to depth 1 shows the top-level accounts:
-```shell
-$ hledger balance -N -1
-                 $-1  assets
-                  $2  expenses
-                 $-2  income
-                  $1  liabilities
-```
-
-Accounts at the depth limit will include the balances of any hidden subaccounts
-(even in flat mode, which normally shows exclusive balances).
-
-You can also drop account name components from the start of account names,
-using `--drop N`. This can be useful to hide unwanted top-level detail.
-
-### Colour support
-
-In terminal output, when colour is enabled, the balance command shows negative amounts in red.
-
-### Sorting by amount
-
-With `-S`/`--sort-amount`, accounts with the largest (most positive) balances are shown first.
-For example, `hledger bal expenses -MAS` shows your biggest averaged monthly expenses first.
-
-Revenues and liability balances are typically negative, however, so `-S` shows these in reverse order.
-To work around this, you can add `--invert` to flip the signs.
-Or, use one of the sign-flipping reports like `balancesheet` or `incomestatement`, 
-which also support `-S`. Eg: `hledger is -MAS`.
-
-### Percentages
-
-With `-%` or `--percent`, balance reports show each account's value expressed
-as a percentage of the column's total. This is useful to get an overview of
-the relative sizes of account balances. For example to obtain an overview of
-expenses:
-
-```shell
-$ hledger balance expenses -%
-             100.0 %  expenses
-              50.0 %    food
-              50.0 %    supplies
---------------------
-             100.0 %
-```
-
-Note that `--tree` does not have an effect on `-%`. The percentages are always
-relative to the total sum of each column, they are never relative to the parent
-account.
-
-Since the percentages are relative to the columns sum, it is usually not useful
-to calculate percentages if the signs of the amounts are mixed. Although the
-results are technically correct, they are most likely useless. Especially in
-a balance report that sums up to zero (eg `hledger balance -B`) all percentage
-values will be zero.
-
-This flag does not work if the report contains any mixed commodity accounts. If
-there are mixed commodity accounts in the report be sure to use `-V`
-or `-B` to coerce the report into using a single commodity.
-
-
-<a name="multicolumn-balance-report"></a>
-
 ### Multi-period balance report
 
 Multi-period balance reports are a very useful hledger feature, activated
@@ -348,13 +224,137 @@ When the report is still too wide, a good workaround is to pipe it
 into `less -RS` (-R for colour, -S to chop long lines). 
 Eg: `hledger bal -D --color=yes | less -RS`.
 
+### Depth limiting
+
+With a `depth:N` query, or `--depth N` option, or just `-N`, 
+balance reports will show accounts only to the specified depth.
+This is very useful to hide low-level accounts and get an overview.
+Eg, limiting to depth 1 shows the top-level accounts:
+```shell
+$ hledger balance -N -1
+                 $-1  assets
+                  $2  expenses
+                 $-2  income
+                  $1  liabilities
+```
+
+Accounts at the depth limit will include the balances of any hidden subaccounts
+(even in flat mode, which normally shows exclusive balances).
+
+You can also drop account name components from the start of account names,
+using `--drop N`. This can be useful to hide unwanted top-level detail.
+
+### Colour support
+
+In terminal output, when colour is enabled, the balance command shows negative amounts in red.
+
+### Sorting by amount
+
+With `-S`/`--sort-amount`, accounts with the largest (most positive) balances are shown first.
+For example, `hledger bal expenses -MAS` shows your biggest averaged monthly expenses first.
+
+Revenues and liability balances are typically negative, however, so `-S` shows these in reverse order.
+To work around this, you can add `--invert` to flip the signs.
+Or, use one of the sign-flipping reports like `balancesheet` or `incomestatement`, 
+which also support `-S`. Eg: `hledger is -MAS`.
+
+### Percentages
+
+With `-%` or `--percent`, balance reports show each account's value expressed
+as a percentage of the column's total. This is useful to get an overview of
+the relative sizes of account balances. For example to obtain an overview of
+expenses:
+
+```shell
+$ hledger balance expenses -%
+             100.0 %  expenses
+              50.0 %    food
+              50.0 %    supplies
+--------------------
+             100.0 %
+```
+
+Note that `--tree` does not have an effect on `-%`. The percentages are always
+relative to the total sum of each column, they are never relative to the parent
+account.
+
+Since the percentages are relative to the columns sum, it is usually not useful
+to calculate percentages if the signs of the amounts are mixed. Although the
+results are technically correct, they are most likely useless. Especially in
+a balance report that sums up to zero (eg `hledger balance -B`) all percentage
+values will be zero.
+
+This flag does not work if the report contains any mixed commodity accounts. If
+there are mixed commodity accounts in the report be sure to use `-V`
+or `-B` to coerce the report into using a single commodity.
+
+
+<a name="multicolumn-balance-report"></a>
+
+### Customising single-period balance reports
+
+You can customise the layout of single-period balance reports with `--format FMT`,
+which sets the format of each line. Eg:
+
+```shell
+$ hledger balance --format "%20(account) %12(total)"
+              assets          $-1
+         bank:saving           $1
+                cash          $-2
+            expenses           $2
+                food           $1
+            supplies           $1
+              income          $-2
+               gifts          $-1
+              salary          $-1
+   liabilities:debts           $1
+---------------------------------
+                                0
+```
+
+The FMT format string (plus a newline) specifies the formatting
+applied to each account/balance pair. It may contain any suitable
+text, with data fields interpolated like so:
+
+`%[MIN][.MAX](FIELDNAME)`
+
+- MIN pads with spaces to at least this width (optional)
+- MAX truncates at this width (optional)
+- FIELDNAME must be enclosed in parentheses, and can be one of:
+
+    - `depth_spacer` - a number of spaces equal to the account's depth, or if MIN is specified, MIN * depth spaces.
+    - `account`      - the account's name
+    - `total`        - the account's balance/posted total, right justified
+
+Also, FMT can begin with an optional prefix to control how
+multi-commodity amounts are rendered:
+
+- `%_` - render on multiple lines, bottom-aligned (the default)
+- `%^` - render on multiple lines, top-aligned
+- `%,` - render on one line, comma-separated
+
+There are some quirks. Eg in one-line mode, `%(depth_spacer)` has no
+effect, instead `%(account)` has indentation built in.
+<!-- XXX retest:
+Consistent column widths are not well enforced, causing ragged edges unless you set suitable widths.
+Beware of specifying a maximum width; it will clip account names and amounts that are too wide, with no visible indication.
+-->
+Experimentation may be needed to get pleasing results.
+
+Some example formats:
+
+- `%(total)`         - the account's total
+- `%-20.20(account)` - the account's name, left justified, padded to 20 characters and clipped at 20 characters
+- `%,%-50(account)  %25(total)` - account name padded to 50 characters, total padded to 20 characters, with multiple commodities rendered on one line
+- `%20(total)  %2(depth_spacer)%-(account)` - the default format for the single-column balance report
+
 
 ### Budget report
 
-With `--budget`, extra columns are displayed showing budget goals for each account and period, if any.
-Budget goals are defined by [periodic transactions](hledger.html#periodic-transactions).
+There is also a special balance report mode for showing budget performance.
+The `--budget` flag activates extra columns showing the budget goals for each account and period, if any.
+For this report, budget goals are defined by [periodic transactions](journal.html#periodic-transactions).
 This is very useful for comparing planned and actual income, expenses, time usage, etc.
---budget is most often combined with a [report interval](hledger.html#report-intervals).
 
 For example, you can take average monthly expenses in the common expense categories to construct a minimal monthly budget:
 ```journal
