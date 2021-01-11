@@ -23,6 +23,7 @@ module Hledger.Reports.ReportOptions (
   rawOptsToReportSpec,
   flat_,
   tree_,
+  changingValuation,
   reportOptsToggleStatus,
   simplifyStatuses,
   whichDateFromOpts,
@@ -484,6 +485,15 @@ queryFromFlags ReportOpts{..} = simplifyQuery $ And flagsq
                ]
     consIf f b = if b then (f True:) else id
     consJust f = maybe id ((:) . f)
+
+-- | Whether the market price for postings might change when reported in
+-- different report periods.
+changingValuation :: ReportOpts -> Bool
+changingValuation ropts = case value_ ropts of
+    Just (AtCost (Just _)) -> True
+    Just (AtEnd  _)        -> True
+    Just (AtDefault _)     -> interval_ ropts /= NoInterval
+    _                      -> False
 
 -- Report dates.
 

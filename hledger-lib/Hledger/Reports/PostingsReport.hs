@@ -81,15 +81,15 @@ postingsReport rspec@ReportSpec{rsOpts=ropts@ReportOpts{..}} j =
 
       -- Postings, or summary postings with their subperiod's end date, to be displayed.
       displayps :: [(Posting, Maybe Day)]
-        | multiperiod =
-            let summaryps = summarisePostingsByInterval interval_ whichdate mdepth showempty reportspan reportps
-            in [(pvalue p lastday, Just periodend) | (p, periodend) <- summaryps, let lastday = addDays (-1) periodend]
-        | otherwise =
-            [(pvalue p reportorjournallast, Nothing) | p <- reportps]
+        | multiperiod && changingValuation ropts = [(pvalue lastday p, Just periodend) | (p, periodend) <- summariseps reportps, let lastday = addDays (-1) periodend]
+        | multiperiod                            = [(p, Just periodend) | (p, periodend) <- summariseps valuedps]
+        | otherwise                              = [(p, Nothing)        | p <- valuedps]
         where
+          summariseps = summarisePostingsByInterval interval_ whichdate mdepth showempty reportspan
+          valuedps = map (pvalue reportorjournallast) reportps
           showempty = empty_ || average_
           -- We may be converting posting amounts to value, per hledger_options.m4.md "Effect of --value on reports".
-          pvalue p periodlast = maybe p (postingApplyValuation priceoracle styles periodlast mreportlast (rsToday rspec) multiperiod p) value_
+          pvalue periodlast p = maybe p (postingApplyValuation priceoracle styles periodlast mreportlast (rsToday rspec) multiperiod p) value_
             where
               mreportlast = reportPeriodLastDay rspec
           reportorjournallast =
