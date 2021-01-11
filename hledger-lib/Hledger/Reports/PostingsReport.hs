@@ -80,12 +80,12 @@ postingsReport rspec@ReportSpec{rsOpts=ropts@ReportOpts{..}} j = items
 
       -- Postings, or summary postings with their subperiod's end date, to be displayed.
       displayps :: [(Posting, Maybe Day)]
-        | multiperiod =
-            let summaryps = summarisePostingsByInterval interval_ whichdate mdepth showempty reportspan reportps
-            in [(pvalue lastday p, Just periodend) | (p, periodend) <- summaryps, let lastday = addDays (-1) periodend]
-        | otherwise =
-            [(pvalue reportorjournallast p, Nothing) | p <- reportps]
+        | multiperiod && changingValuation ropts = [(pvalue lastday p, Just periodend) | (p, periodend) <- summariseps reportps, let lastday = addDays (-1) periodend]
+        | multiperiod                            = [(p, Just periodend) | (p, periodend) <- summariseps valuedps]
+        | otherwise                              = [(p, Nothing)        | p <- valuedps]
         where
+          summariseps = summarisePostingsByInterval interval_ whichdate mdepth showempty reportspan
+          valuedps = map (pvalue reportorjournallast) reportps
           showempty = empty_ || average_
           reportorjournallast =
             fromMaybe (error' "postingsReport: expected a non-empty journal") $  -- PARTIAL: shouldn't happen

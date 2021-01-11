@@ -603,8 +603,8 @@ $ hledger -f- reg --value=then -b 2020-03 -H
 2020-04-01                      (a)                            4 B          10 B
 >=0
 
-# 52. --value=then with a report interval. How are the summary amounts valued ?
-# Currently each interval's unvalued sum is valued on its first day.
+# 52. --value=then with a report interval. Summary amounts are the sums of the
+# values of each posting at their posting date.
 <
 P 2020-01-01 A 1 B
 P 2020-02-01 A 2 B
@@ -624,8 +624,8 @@ P 2020-04-01 A 4 B
    (a)  1 A
 
 $ hledger -f- reg --value=then -Q
-2020Q1                  a                                      3 B           3 B
-2020Q2                  a                                      4 B           7 B
+2020Q1                  a                                      6 B           6 B
+2020Q2                  a                                      4 B          10 B
 >=0
 
 # 53. print --value should affect all postings, including when there's an implicit transaction price
