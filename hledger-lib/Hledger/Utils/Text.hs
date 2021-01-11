@@ -47,6 +47,7 @@ module Hledger.Utils.Text
   fitText,
   linesPrepend,
   linesPrepend2,
+  unlinesB,
  -- -- * wide-character-aware layout
   WideBuilder(..),
   wbToText,
@@ -71,6 +72,7 @@ import Data.Monoid
 #endif
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.Lazy.Builder as TB
 -- import Text.Parsec
 -- import Text.Printf (printf)
 
@@ -371,6 +373,11 @@ linesPrepend2 prefix1 prefix2 s = T.unlines $ case T.lines s of
     []   -> []
     l:ls -> (prefix1<>l) : map (prefix2<>) ls
 
+-- | Concatenate a list of Text Builders with a newline between each item, and
+-- another at the end. If the list is empty, return the identity builder.
+unlinesB :: [TB.Builder] -> TB.Builder
+unlinesB [] = mempty
+unlinesB xs = mconcat (intersperse (TB.singleton '\n') xs) <> TB.singleton '\n'
 
 -- | Read a decimal number from a Text. Assumes the input consists only of digit
 -- characters.

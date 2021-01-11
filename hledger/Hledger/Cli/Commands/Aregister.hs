@@ -137,7 +137,7 @@ accountTransactionsReportItemAsCsvRecord
 -- | Render a register report as plain text suitable for console output.
 accountTransactionsReportAsText :: CliOpts -> Query -> Query -> AccountTransactionsReport -> TL.Text
 accountTransactionsReportAsText copts reportq thisacctq items
-  = TB.toLazyText . mconcat . intersperse (TB.fromText "\n") $
+  = TB.toLazyText . unlinesB $
     title :
     map (accountTransactionsReportItemAsText copts reportq thisacctq amtwidth balwidth) items
   where
