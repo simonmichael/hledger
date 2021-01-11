@@ -103,8 +103,6 @@ postingsReportAsText opts items =
     balwidth = maximumStrict $ map (wbWidth . showAmt . itembal) items
     itemamt (_,_,_,Posting{pamount=a},_) = a
     itembal (_,_,_,_,a) = a
-    unlinesB [] = mempty
-    unlinesB xs = mconcat (intersperse (TB.fromText "\n") xs) <> TB.fromText "\n"
     showAmt = showMixedAmountB noColour{displayMinWidth=Just 12}
 
 -- | Render one register report line item as plain text. Layout is like so:

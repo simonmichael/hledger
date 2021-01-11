@@ -812,10 +812,9 @@ parseResultToCsv = toListList . unpackFields
         unpackFields  = (fmap . fmap) T.decodeUtf8
 
 printCSV :: CSV -> TL.Text
-printCSV = TB.toLazyText . unlined . map printRecord
+printCSV = TB.toLazyText . unlinesB . map printRecord
     where printRecord = mconcat . map TB.fromText . intersperse "," . map printField
           printField = wrap "\"" "\"" . T.replace "\"" "\\\"\\\""
-          unlined = (<> TB.fromText "\n") . mconcat . intersperse "\n"
 
 -- | Return the cleaned up and validated CSV data (can be empty), or an error.
 validateCsv :: CsvRules -> Int -> Either String CSV -> Either String [CsvRecord]

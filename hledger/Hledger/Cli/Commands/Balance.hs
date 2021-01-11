@@ -369,9 +369,6 @@ balanceReportAsText opts ((items, total)) =
     unlinesB lines
     <> unlinesB (if no_total_ opts then [] else [overline, totalLines])
   where
-    unlinesB [] = mempty
-    unlinesB xs = mconcat (intersperse (TB.singleton '\n') xs) <> TB.singleton '\n'
-
     (lines, sizes) = unzip $ map (balanceReportItemAsText opts) items
     -- abuse renderBalanceReportItem to render the total with similar format
     (totalLines, _) = renderBalanceReportItem opts ("",0,total)
