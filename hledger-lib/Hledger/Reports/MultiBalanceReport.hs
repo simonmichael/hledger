@@ -358,26 +358,13 @@ accumValueAmounts ropts valuation colspans startbals acctchanges =  -- PARTIAL:
         HistoricalBalance -> historical
       where
         historical = cumulativeSum startingBalance
-        cumulative | fixedValuationDate = cumulativeSum nullacct
-                   | otherwise          = fmap (`subtractAcct` valuedStart) historical
-        changeamts | fixedValuationDate = M.mapWithKey valueAcct changes
-                   | otherwise          = M.fromDistinctAscList . zip dates $
-                                            zipWith subtractAcct histamts (valuedStart:histamts)
+        cumulative = cumulativeSum nullacct
+        changeamts = M.mapWithKey valueAcct changes
           where (dates, histamts) = unzip $ M.toAscList historical
 
         cumulativeSum start = snd $ M.mapAccumWithKey accumValued start changes
           where accumValued startAmt date newAmt = (s, valueAcct date s)
                   where s = sumAcct startAmt newAmt
-
-        -- Whether the market price is measured at the same date for all report
-        -- periods, and we can therefore use the simpler calculations for
-        -- cumulative and change reports.
-        fixedValuationDate = case value_ ropts of
-            Just (AtCost (Just _)) -> singleperiod
-            Just (AtEnd  _)        -> singleperiod
-            Just (AtDefault _)     -> singleperiod
-            _                      -> True
-          where singleperiod = interval_ ropts == NoInterval
 
         startingBalance = HM.lookupDefault nullacct name startbals
         valuedStart = valueAcct (DateSpan Nothing historicalDate) startingBalance
