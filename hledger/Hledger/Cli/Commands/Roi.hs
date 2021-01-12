@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ParallelListComp  #-}
 {-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE RecordWildCards   #-}
 {-|
 
 The @roi@ command prints internal rate of return and time-weighted rate of return for and investment.
@@ -18,6 +19,7 @@ import Data.Time.Calendar
 import Text.Printf
 import Data.Function (on)
 import Data.List
+import Data.Maybe (fromMaybe)
 import Numeric.RootFinding
 import Data.Decimal
 import qualified Data.Text as T
@@ -55,12 +57,21 @@ data OneSpan = OneSpan
 
 
 roi ::  CliOpts -> Journal -> IO ()
-roi CliOpts{rawopts_=rawopts, reportspec_=rspec} j = do
+roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{rsOpts=ReportOpts{..}}} j = do
   d <- getCurrentDay
+  -- We may be converting posting amounts to value, per hledger_options.m4.md "Effect of --value on reports".
+  let
+    tvalue t@Transaction{..} = t{tpostings=map pvalue tpostings}
+      where
+        pvalue = maybe id
+          (postingApplyValuation (journalPriceOracle infer_value_ j) (journalCommodityStyles j) periodlast (rsToday rspec))
+          value_
+          where
+            periodlast  = fromMaybe (rsToday rspec) $ reportPeriodOrJournalLastDay rspec j
   let
     ropts = rsOpts rspec
     showCashFlow = boolopt "cashflow" rawopts
-    prettyTables = pretty_tables_ ropts
+    prettyTables = pretty_tables_
     makeQuery flag = do
         q <- either usageError (return . fst) . parseQuery d . T.pack $ stringopt flag rawopts
         return . simplifyQuery $ And [queryFromFlags ropts{period_=PeriodAll}, q]
@@ -69,14 +80,14 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec} j = do
   pnlQuery         <- makeQuery "pnl"
 
   let
-    trans = dbg3 "investments" $ jtxns $ filterJournalTransactions investmentsQuery j
+    trans = dbg3 "investments" $ map tvalue $ jtxns $ filterJournalTransactions investmentsQuery j
 
     journalSpan =
         let dates = map transactionDate2 trans in
         DateSpan (Just $ minimum dates) (Just $ addDays 1 $ maximum dates)
 
-    requestedSpan = periodAsDateSpan $ period_ ropts
-    requestedInterval = interval_ ropts
+    requestedSpan = periodAsDateSpan period_
+    requestedInterval = interval_
 
     wholeSpan = spanDefaultsFrom requestedSpan journalSpan
 
@@ -265,4 +276,6 @@ unMix :: MixedAmount -> Quantity
 unMix a =
   case (unifyMixedAmount $ mixedAmountCost a) of
     Just a -> aquantity a
-    Nothing -> error' $ "Amounts could not be converted to a single cost basis: " ++ show (map showAmount $ amounts a)
+    Nothing -> error' $ "Amounts could not be converted to a single cost basis: " ++ show (map showAmount $ amounts a) ++
+               "\nConsider using --value to force all costs to be in a single commodity." ++
+               "\nFor example, \"--value cost,<commodity> --infer-value\", where commodity is the one that was used to pay for the investment."
