@@ -216,8 +216,8 @@ jobs:
         stack: ${{ matrix.plan.stack }}
       run: |
         export PATH=~/.local/bin:$PATH
-        COLUMNS=80 $stack exec -- shelltest --execdir -j16 hledger/test bin -x /_ -x /addons
-        # XXX func tests in bin are run only with GHC 8.2 for now
+        COLUMNS=80 $stack exec -- shelltest --execdir -j16 hledger/test bin/_scripts8.2.test -x /_ -x /addons
+        # XXX run only the bin/ func tests corresponding to the GHC version enabled above, for now
 
     - name: Test haddock generation
       env:
