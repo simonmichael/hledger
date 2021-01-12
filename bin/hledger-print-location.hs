@@ -1,8 +1,7 @@
 #!/usr/bin/env stack
--- stack runghc --verbosity info --package hledger
+-- stack runghc --verbosity info --package hledger,string-qq
 -- Run from inside the hledger source tree, or compile with compile.sh.
 -- See hledger-check-fancyassertions.hs.
---package string-qq ?
 
 {-
 Quick script that adds file/line number tags to print output.
