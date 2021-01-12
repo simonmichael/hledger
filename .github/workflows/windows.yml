@@ -18,6 +18,7 @@ on:
       - 'hledger/**'
       - 'hledger-ui/**'
       - 'hledger-web/**'
+      # - 'bin/*.hs'
       # ignore changes to example files, though currently some func tests depend on them
       - 'examples/**'
       - '!**.journal'
