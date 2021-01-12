@@ -1,5 +1,24 @@
-#!/usr/bin/env stack
--- stack script --compile --resolver lts-16.25
+#!/usr/bin/env -S stack ghc --verbosity info --package hledger-lib -- -O0
+-- Run this script once from inside the hledger source tree; it will
+-- compile itself using the corresponding source version of hledger,
+-- which is the version it is tested with. You can run the compiled
+-- version from anywhere. It is compiled unoptimised, which takes less
+-- time and probably won't be noticeable otherwise; if you care, you
+-- can remove the "-O0" above.
+--
+-- To run it interpreted, eg while tweaking it: replace "ghc" above
+-- with "runghc", and run from inside the hledger source tree.
+--
+-- To make it a standalone script that runs from anywhere and
+-- recompiles itself when changed: replace "ghc" above with
+-- "script --compile --resolver lts-16" (eg).
+-- However this uses the hledger version from that stackage resolver,
+-- so in this case you should check out the corresponding release-tagged
+-- version of this script for compatibility (eg: git checkout 1.18.1).
+--
+-- env -S and a multi-argument shebang line is used, rather than a stack
+-- options line, because current stack won't run the ghc command that way.
+-- Hopefully your env supports -S.
 
 {-
 ```
