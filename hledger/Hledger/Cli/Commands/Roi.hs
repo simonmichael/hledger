@@ -263,6 +263,6 @@ total trans query = unMix $ sumPostings $  filter (matchesPosting query) $ conca
 
 unMix :: MixedAmount -> Quantity
 unMix a =
-  case (normaliseMixedAmount $ mixedAmountCost a) of
-    (Mixed [a]) -> aquantity a
-    _ -> error' "MixedAmount failed to normalize"  -- PARTIAL:
+  case (unifyMixedAmount $ mixedAmountCost a) of
+    Just a -> aquantity a
+    Nothing -> error' $ "Amounts could not be converted to a single cost basis: " ++ show (map showAmount $ amounts a)

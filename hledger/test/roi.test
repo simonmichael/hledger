@@ -225,3 +225,18 @@ hledger -f- roi -p 2019-11
 +---++------------+------------++---------------+----------+-------------+-----++-------+-------+
 
 >>>=0
+
+# 9. Fail with a nice error message when commodity can't be valued
+hledger -f- roi -p 2019-11 --inv Investment --pnl PnL
+<<<
+2019/11/01 Example
+  Assets:Checking  -1 A
+  Investment       10 B
+
+2019/11/02 Example
+  Investment        -10 B @@ 1 A
+  Assets:Checking    12 A
+  Unrealized PnL
+>>>2
+hledger: Amounts could not be converted to a single cost basis: ["10 B","-10 B @@ 1 A"]
+>>>=1
