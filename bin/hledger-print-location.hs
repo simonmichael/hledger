@@ -1,6 +1,8 @@
-#!/usr/bin/env stack
-{- stack script --compile --resolver lts-16.25
--}
+#!/usr/bin/env -S stack ghc --verbosity info --package hledger -- -O0
+-- See hledger-check-fancyassertions.hs
+
+--package string-qq
+
 {-
 Quick script that adds file/line number tags to print output.
 cf https://www.reddit.com/r/plaintextaccounting/comments/ddzn8o/finding_corresponding_journal_files_from_hledger/

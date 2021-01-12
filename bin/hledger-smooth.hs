@@ -1,5 +1,7 @@
-#!/usr/bin/env stack
--- stack script --compile --resolver lts-16.25
+#!/usr/bin/env -S stack ghc --verbosity info --package hledger -- -O0
+-- See hledger-check-fancyassertions.hs
+
+--package string-qq
 
 -- This is an unfinished prototype, see https://github.com/simonmichael/hledger/issues/1171
 -- Requires a contemporaneous version of the hledger package.
