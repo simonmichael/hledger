@@ -18,9 +18,9 @@
 --
 -- This setup is adapted for some current limitations of stack's
 -- ghc/runghc/script commands. Unfortunately it requires repeating
--- package dependencies, to the extent they are required, in three
+-- package dependencies, to the extent they are required, in multiple
 -- places.
--- Keep synced: compile.sh, scripts.test, hledger-check-fancyassertions.hs.
+-- Keep synced: compile.sh, scripts*.test, hledger-*.hs ...
 
 {-
 ```

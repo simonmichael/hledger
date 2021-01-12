@@ -1,6 +1,6 @@
 #!/bin/sh
 # Compile all add-on scripts in this directory.
-# Keep synced: compile.sh, scripts.test, hledger-check-fancyassertions.hs.
+# Keep synced: compile.sh, scripts*.test, hledger-*.hs ...
 
 cd "$(dirname "$0")" || exit
 
