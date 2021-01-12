@@ -13,6 +13,6 @@ $  stack ghc hledger-balance-as-budget.hs     >/dev/null || true
 $  stack ghc hledger-check-fancyassertions.hs >/dev/null || true
 $  stack ghc hledger-check-tagfiles.hs        >/dev/null || true
 $  stack ghc hledger-combine-balances.hs      >/dev/null || true
-$  stack ghc hledger-print-location.hs        >/dev/null || true
-$  stack ghc hledger-smooth.hs                >/dev/null || true
-$  stack ghc hledger-swap-dates.hs            >/dev/null || true
+$  stack ghc --package string-qq hledger-print-location.hs        >/dev/null || true
+$  stack ghc --package string-qq hledger-smooth.hs                >/dev/null || true
+$  stack ghc --package string-qq hledger-swap-dates.hs            >/dev/null || true
