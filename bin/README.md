@@ -32,18 +32,12 @@ How to:
 ### Install all scripts as add-on commands
 
     $ git clone https://github.com/simonmichael/hledger
-    # add hledger/bin/ to your $PATH
-    $ hledger  # scripts now appear in commands list
-    $ hledger-print-location.hs --help  # run script directly
-    $ hledger print-location -- --help  # or run it via hledger, -- is needed before script options
+    $ hledger/bin/compile.sh
+    $ export PATH=$PATH:$PWD/hledger/bin
 
-### Install a single script without getting hledger source
-
-    $ cd ~/bin  # somewhere in your $PATH
-    $ curl -sO https://raw.githubusercontent.com/simonmichael/hledger/master/bin/hledger-check.hs
-    $ chmod +x hledger-check.hs
-    $ hledger-check.hs --help
-    $ hledger check -- --help
+    $ hledger                           # scripts now appear in commands list
+    $ hledger-print-location --help     # run a script directly
+    $ hledger print-location -- --help  # or run it via hledger. -- is needed before script options
 
 ### Create a new script
 
@@ -53,35 +47,32 @@ as your starting point. The hledger- naming is not required, but it
 causes scripts to show up in the hledger commands list. On unix,
 your new script should be marked executable. This should do it:
 
-    # While in the hledger source directory:
-    $ cp bin/hledger-swap-dates.hs bin/hledger-foo.hs
-    # Customise hledger-foo.hs, at least the command name and help in cmdmode
-    $ bin/hledger-foo.hs --help
+    $ cd hledger
+    $ cp bin/hledger-swap-dates.hs bin/hledger-foo.hs  # and edit, at least the command name and help
+    $ stack install string-qq     # ensure any extra script deps are installed
+    $ bin/hledger-cmd.hs --help
     foo [OPTIONS]
       My new foo command.
       ...
+    $ stack ghc bin/hledger-cmd.hs
     $ hledger foo -- --help
     foo [OPTIONS]
       My new foo command.
       ...
 
 ### Run ghcid on a script
-
-    # Ensure any extra packages the script imports from are installed in the current package db
-    # (running the script auto-installs them, but only in your user package db):
-    $ stack install string-qq
+  
+    $ stack install string-qq     # ensure any extra script deps are installed
     $ stack exec -- ghcid bin/hledger-foo.hs 
     ...
     Ok, one module loaded.
     All good (1 module, at 10:50:48)
 
-
 ### Run ghci on a script
 
-    # Install any extra packages in the current package db, as above:
-    $ stack install string-qq
+    $ stack install string-qq     # ensure any extra script deps are installed
     $ stack ghci bin/hledger-foo.hs 
     ...
     Ok, one module loaded.
-    Loaded GHCi configuration from /private/var/folders/r7/f9j9c2zd1k97v47cr84j_qvc0000gn/T/haskell-stack-ghci/d0bde1be/ghci-script
+    ...
     ghci> 
