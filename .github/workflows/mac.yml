@@ -47,6 +47,7 @@ jobs:
         # - { ghc: "86"    , stack: "stack --stack-yaml=stack8.6.yaml" }
         # - { ghc: "88"  , stack: "stack --stack-yaml=stack.yaml" }
         - { ghc: "810" , stack: "stack --stack-yaml=stack8.10.yaml" }
+        # XXX func tests in bin should be run only with GHC 8.10 for now (see shelltest below)
 
     steps:
 
@@ -159,7 +160,8 @@ jobs:
         stack: ${{ matrix.plan.stack }}
       run: |
         export PATH=~/.local/bin:$PATH
-        COLUMNS=80 $stack exec -- shelltest --execdir -j16 hledger/test bin -x /_ -x /addons
+        COLUMNS=80 $stack exec -- shelltest --execdir -j16 hledger/test -x /_ -x /addons # bin
+        # XXX func tests in bin are run only with GHC 8.2 for now
 
     # artifacts:
 
