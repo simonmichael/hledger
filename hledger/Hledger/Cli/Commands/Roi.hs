@@ -131,10 +131,10 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{rsOpts=ReportOpts{..}
     let smallIsZero x = if abs x < 0.01 then 0.0 else x
     return [ showDate spanBegin
            , showDate (addDays (-1) spanEnd)
-           , T.pack $ show valueBefore
-           , T.pack $ show cashFlowAmt
-           , T.pack $ show valueAfter
-           , T.pack $ show (valueAfter - (valueBefore + cashFlowAmt))
+           , T.pack $ showDecimal valueBefore
+           , T.pack $ showDecimal cashFlowAmt
+           , T.pack $ showDecimal valueAfter
+           , T.pack $ showDecimal (valueAfter - (valueBefore + cashFlowAmt))
            , T.pack $ printf "%0.2f%%" $ smallIsZero irr
            , T.pack $ printf "%0.2f%%" $ smallIsZero twr ]
 
@@ -193,7 +193,6 @@ timeWeightedReturn showCashFlow prettyTables investmentsQuery trans (OneSpan spa
       years = fromIntegral (diffDays spanEnd spanBegin) / 365 :: Double
       annualizedTWR = 100*((1+(realToFrac totalTWR/100))**(1/years)-1) :: Double
 
-  let s d = show $ roundTo 2 d
   when showCashFlow $ do
     printf "\nTWR cash flow for %s - %s\n" (showDate spanBegin) (showDate (addDays (-1) spanEnd))
     let (dates', amounts) = unzip changes
@@ -216,18 +215,18 @@ timeWeightedReturn showCashFlow prettyTables investmentsQuery trans (OneSpan spa
                          , Tbl.Group SingleLine [Header "Pnl", Header "Cashflow", Header "Unit price", Header "Units"]
                          , Tbl.Group SingleLine [Header "New Unit Balance"]])
        [ [value, oldBalance, pnl, cashflow, prc, udelta, balance]
-       | value <- map s valuesOnDate
-       | oldBalance <- map s (0:unitBalances)
-       | balance <- map s unitBalances
-       | pnl <- map s pnls
-       | cashflow <- map s cashflows
-       | prc <- map s unitPrices
-       | udelta <- map s unitsBoughtOrSold ])
+       | value <- map showDecimal valuesOnDate
+       | oldBalance <- map showDecimal (0:unitBalances)
+       | balance <- map showDecimal unitBalances
+       | pnl <- map showDecimal pnls
+       | cashflow <- map showDecimal cashflows
+       | prc <- map showDecimal unitPrices
+       | udelta <- map showDecimal unitsBoughtOrSold ])
 
-    printf "Final unit price: %s/%s units = %s\nTotal TWR: %s%%.\nPeriod: %.2f years.\nAnnualized TWR: %.2f%%\n\n" (s valueAfter) (s finalUnitBalance) (s finalUnitPrice) (s totalTWR) years annualizedTWR
+    printf "Final unit price: %s/%s units = %s\nTotal TWR: %s%%.\nPeriod: %.2f years.\nAnnualized TWR: %.2f%%\n\n"
+      (showDecimal valueAfter) (showDecimal finalUnitBalance) (showDecimal finalUnitPrice) (showDecimal totalTWR) years annualizedTWR
 
   return annualizedTWR
-
 
 internalRateOfReturn showCashFlow prettyTables (OneSpan spanBegin spanEnd valueBefore valueAfter cashFlow _pnl) = do
   let prefix = (spanBegin, negate valueBefore)
@@ -243,7 +242,7 @@ internalRateOfReturn showCashFlow prettyTables (OneSpan spanBegin spanEnd valueB
       (Table
        (Tbl.Group NoLine (map (Header . showDate) dates))
        (Tbl.Group SingleLine [Header "Amount"])
-       (map ((:[]) . T.pack . show) amounts))
+       (map ((:[]) . T.pack . showDecimal) amounts))
 
   -- 0% is always a solution, so require at least something here
   case totalCF of
@@ -279,3 +278,11 @@ unMix a =
     Nothing -> error' $ "Amounts could not be converted to a single cost basis: " ++ show (map showAmount $ amounts a) ++
                "\nConsider using --value to force all costs to be in a single commodity." ++
                "\nFor example, \"--value cost,<commodity> --infer-value\", where commodity is the one that was used to pay for the investment."
+
+-- Show Decimal rounded to two decimal places, unless it has less places already. This ensures that "2" won't be shown as "2.00"
+showDecimal :: Decimal -> String
+showDecimal d = if d == rounded then show d else show rounded
+  where
+    rounded = roundTo 2 d
+
+
