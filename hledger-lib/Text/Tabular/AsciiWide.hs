@@ -103,7 +103,7 @@ renderTableB topts@TableOpts{prettyTable=pretty, tableBorders=borders} fr fc f (
   -- borders and bars
   addBorders xs = if borders then bar VT SingleLine : xs ++ [bar VB SingleLine] else xs
   bar vpos prop = mconcat $ renderHLine vpos borders pretty sizes ch2 prop
-  unlinesB = (<>singleton '\n') . mconcat . intersperse "\n"
+  unlinesB = foldMap (<> singleton '\n')
 
 -- | Render a single row according to cell specifications.
 renderRow :: TableOpts -> Header Cell -> TL.Text
