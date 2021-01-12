@@ -73,6 +73,7 @@ jobs:
       matrix:
         plan:
         # GHC 8.0 is still supported but we don't have a build plan for hledger-web, let it go
+        # XXX func tests in bin (see shelltest below) are run only with GHC 8.2 for now
         # - { ghc: "80"  , stack: "stack --stack-yaml=stack8.0.yaml" }
         - { ghc: "82"    , stack: "stack --stack-yaml=stack8.2.yaml" }
         # - { ghc: "84"  , stack: "stack --stack-yaml=stack8.4.yaml" }
@@ -216,6 +217,7 @@ jobs:
       run: |
         export PATH=~/.local/bin:$PATH
         COLUMNS=80 $stack exec -- shelltest --execdir -j16 hledger/test bin -x /_ -x /addons
+        # XXX func tests in bin are run only with GHC 8.2 for now
 
     - name: Test haddock generation
       env:

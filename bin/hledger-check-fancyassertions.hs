@@ -15,6 +15,12 @@
 -- hledger version from that stackage resolver, so in this case you
 -- should check out the corresponding release-tagged version of this
 -- script for compatibility (eg: git checkout 1.18.1).
+--
+-- This setup is adapted for some current limitations of stack's
+-- ghc/runghc/script commands. Unfortunately it requires repeating
+-- package dependencies, to the extent they are required, in three
+-- places.
+-- Keep synced: compile.sh, scripts.test, hledger-check-fancyassertions.hs.
 
 {-
 ```

@@ -1,12 +1,20 @@
 # Functional tests for the add-on scripts in this directory.
+# Keep synced: compile.sh, scripts.test, hledger-check-fancyassertions.hs.
 
-# Check that they all (or at least these ones) still compile with this version of hledger.
+# Check that these ones still compile with this version of hledger.
 # stdout and exit code are ignored for cleaner failure output.
+# 
+# Our CI workflows run with multiple GHC versions, but the tests below
+# are hard coded to one version. We don't want them to cause a whole
+# extra GHC version to be installed and built for.
+# XXX For now, we hard code GHC 8.2 here, same as the linux/pull request CI,
+# and run these tests only there.
+#
 # $ ./compile.sh >/dev/null
-$  ./hledger-balance-as-budget.hs     >/dev/null || true
-$  ./hledger-check-fancyassertions.hs >/dev/null || true
-$  ./hledger-check-tagfiles.hs        >/dev/null || true
-$  ./hledger-combine-balances.hs      >/dev/null || true
-$  ./hledger-print-location.hs        >/dev/null || true
-$  ./hledger-smooth.hs                >/dev/null || true
-$  ./hledger-swap-dates.hs            >/dev/null || true
+$  stack --stack-yaml ../stack8.2.yaml ghc hledger-balance-as-budget.hs     >/dev/null || true
+$  stack --stack-yaml ../stack8.2.yaml ghc hledger-check-fancyassertions.hs >/dev/null || true
+$  stack --stack-yaml ../stack8.2.yaml ghc hledger-check-tagfiles.hs        >/dev/null || true
+$  stack --stack-yaml ../stack8.2.yaml ghc hledger-combine-balances.hs      >/dev/null || true
+$  stack --stack-yaml ../stack8.2.yaml ghc hledger-print-location.hs        >/dev/null || true
+$  stack --stack-yaml ../stack8.2.yaml ghc hledger-smooth.hs                >/dev/null || true
+$  stack --stack-yaml ../stack8.2.yaml ghc hledger-swap-dates.hs            >/dev/null || true

@@ -152,4 +152,5 @@ jobs:
         stack: ${{ matrix.plan.stack }}
       run: |
         export PATH=~/.local/bin:$PATH
-        COLUMNS=80 $stack exec -- shelltest --execdir -j16 hledger/test bin -x /_ -x /addons
+        COLUMNS=80 $stack exec -- shelltest --execdir -j16 hledger/test -x /_ -x /addons  #  bin
+        # XXX func tests in bin are run only with GHC 8.2 for now
