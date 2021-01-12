@@ -1,6 +1,6 @@
-#!/usr/bin/env -S stack ghc --verbosity info --package hledger -- -O0
+#!/usr/bin/env stack
+-- stack runghc --verbosity info --package hledger
 -- See hledger-check-fancyassertions.hs
-
 --package string-qq
 
 {-
