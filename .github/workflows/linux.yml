@@ -217,8 +217,9 @@ jobs:
       run: |
         export PATH=~/.local/bin:$PATH
         COLUMNS=80 $stack exec -- shelltest --execdir -j16 hledger/test -x /_ -x /addons
-        # XXX run the bin/ func tests corresponding to the GHC version enabled above, only, for now
-        COLUMNS=80 $stack exec -- shelltest --execdir -j16 bin/_scripts8.2.test
+        # XXX run the bin/ func tests corresponding to the GHC version enabled above, only
+        # XXX it's actually too hard to make this reliable for CI right now
+        # COLUMNS=80 $stack exec -- shelltest --execdir -j16 bin/_scripts8.2.test
 
     - name: Test haddock generation
       env:
