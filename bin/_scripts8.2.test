@@ -1,14 +1,5 @@
 # Functional tests for the add-on scripts in this directory.
-# Keep synced: compile.sh, scripts*.test, hledger-*.hs ...
-
-# Check that these ones still compile with this version of hledger.
-# stdout and exit code are ignored for cleaner failure output.
-# 
-# The tests below are hard coded to one GHC version.
-# See also scriptsX.Y.test, used by our CI workflows which run other GHC versions
-# (so they don't install and build for a whole extra GHC version).
-#
-# $ ./compile.sh >/dev/null
+# See scripts.test.
 $  stack --stack-yaml ../stack8.2.yaml ghc hledger-balance-as-budget.hs     >/dev/null || true
 $  stack --stack-yaml ../stack8.2.yaml ghc hledger-check-fancyassertions.hs >/dev/null || true
 $  stack --stack-yaml ../stack8.2.yaml ghc hledger-check-tagfiles.hs        >/dev/null || true
