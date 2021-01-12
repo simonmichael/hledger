@@ -1,6 +1,7 @@
 #!/usr/bin/env stack
 -- stack runghc --verbosity info --package hledger
--- See hledger-check-fancyassertions.hs
+-- Run from inside the hledger source tree, or compile with compile.sh.
+-- See hledger-check-fancyassertions.hs.
 
 {-
 hledger-check-tagfiles stack script.
