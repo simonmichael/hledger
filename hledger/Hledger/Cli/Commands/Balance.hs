@@ -357,7 +357,7 @@ balance opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
 balanceReportAsCsv :: ReportOpts -> BalanceReport -> CSV
 balanceReportAsCsv opts (items, total) =
   ["account","balance"] :
-  [[a, wbToText $ showMixedAmountB oneLine b] | (a, _, _, b) <- items]
+  [[accountNameDrop (drop_ opts) a, wbToText $ showMixedAmountB oneLine b] | (a, _, _, b) <- items]
   ++
   if no_total_ opts
   then []
@@ -450,7 +450,7 @@ multiBalanceReportAsCsv opts@ReportOpts{average_, row_total_}
    ++ ["Total"   | row_total_]
    ++ ["Average" | average_]
   ) :
-  [displayFull a :
+  [displayName a :
    map (wbToText . showMixedAmountB oneLine)
    (amts
     ++ [rowtot | row_total_]
