@@ -6,10 +6,10 @@ Things in this directory can be unfinished or out of date.
 The hledger-*.hs scripts here are example/experimental hledger [add-on commands].
 See <https://hledger.org/scripting.html> for more about this.
 
-They are mostly implemented as [stack] scripts; if you have stack in your $PATH,
-they should just work, automatically installing their dependencies if needed.
-(You can also run them with [cabal], or runghc, or compile them with
-ghc, if you take care of the dependencies yourself.)
+They are mostly implemented as [stack] runghc scripts. See the comments in
+hledger-check-fancyassertions.hs for more about how to run or compile them.
+Short version: run bin/compile.sh to compile all scripts, and add this directory
+to your $PATH so they show up in hledger's command list.
 
 Scripts overview, simplest first:
 
