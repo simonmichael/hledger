@@ -50,7 +50,7 @@ import Data.Semigroup ((<>))
 #endif
 import Data.Semigroup (sconcat)
 import Data.Time.Calendar (Day, addDays, fromGregorian)
-import Safe (headMay, lastDef, lastMay, minimumMay)
+import Safe (headMay, lastDef, lastMay)
 
 import Hledger.Data
 import Hledger.Query
@@ -317,14 +317,13 @@ calculateReportMatrix rspec@ReportSpec{rsOpts=ropts} j priceoracle startbals col
         CumulativeChange  -> cumulative
         HistoricalBalance -> historical
       where
-        historical                           = cumulativeSum avalue startingBalance changes
-        cumulative | changingValuation ropts = fmap (`subtractAcct` valuedStart) historical
-                   | otherwise               = cumulativeSum avalue nullacct changes
-        changeamts | changingValuation ropts = periodChanges valuedStart historical
-                   | otherwise               = changes
+        historical = cumulativeSum avalue startingBalance changes
+        cumulative = cumulativeSum avalue nullacct changes
+        changeamts = if changingValuation ropts
+                        then periodChanges nullacct cumulative
+                        else changes
 
         startingBalance = HM.lookupDefault nullacct name startbals
-        valuedStart = avalue (DateSpan Nothing historicalDate) startingBalance
 
     -- Transpose to get each account's balance changes across all columns, then
     -- pad with zeros
@@ -335,7 +334,6 @@ calculateReportMatrix rspec@ReportSpec{rsOpts=ropts} j priceoracle startbals col
 
     (pvalue, avalue) = postingAndAccountValuations rspec j priceoracle
     addElided = if queryDepth (rsQuery rspec) == Just 0 then HM.insert "..." zeros else id
-    historicalDate = minimumMay $ mapMaybe spanStart colspans
     zeros = M.fromList [(span, nullacct) | span <- colspans]
     colspans = M.keys colps
 
