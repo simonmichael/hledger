@@ -195,15 +195,9 @@ textUnbracket s
 -- | Join several multi-line strings as side-by-side rectangular strings of the same height, top-padded.
 -- Treats wide characters as double width.
 textConcatTopPadded :: [Text] -> Text
-textConcatTopPadded ts = T.intercalate "\n" $ map T.concat $ transpose padded
-    where
-      lss = map T.lines ts :: [[Text]]
-      h = maximum $ map length lss
-      ypad ls = replicate (difforzero h (length ls)) "" ++ ls
-      xpad ls = map (textPadLeftWide w) ls
-        where w | null ls = 0
-                | otherwise = maximum $ map textWidth ls
-      padded = map (xpad . ypad) lss :: [[Text]]
+textConcatTopPadded = TL.toStrict . renderRow def{tableBorders=False, borderSpaces=False}
+                    . Group NoLine . map (Header . cell)
+  where cell = alignCell BottomLeft
 
 -- -- | Join several multi-line strings as side-by-side rectangular strings of the same height, bottom-padded.
 -- -- Treats wide characters as double width.
