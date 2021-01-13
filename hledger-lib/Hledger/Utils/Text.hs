@@ -34,7 +34,7 @@ module Hledger.Utils.Text
   formatText,
  -- -- * multi-line layout
   textConcatTopPadded,
- -- concatBottomPadded,
+  textConcatBottomPadded,
  -- concatOneLine,
  -- vConcatLeftAligned,
  -- vConcatRightAligned,
@@ -201,18 +201,11 @@ textConcatTopPadded :: [Text] -> Text
 textConcatTopPadded = TL.toStrict . renderRow def{tableBorders=False, borderSpaces=False}
                     . Group NoLine . map (Header . textCell BottomLeft)
 
--- -- | Join several multi-line strings as side-by-side rectangular strings of the same height, bottom-padded.
--- -- Treats wide characters as double width.
--- concatBottomPadded :: [String] -> String
--- concatBottomPadded strs = intercalate "\n" $ map concat $ transpose padded
---     where
---       lss = map lines strs
---       h = maximum $ map length lss
---       ypad ls = ls ++ replicate (difforzero h (length ls)) ""
---       xpad ls = map (padRightWide w) ls where w | null ls = 0
---                                                 | otherwise = maximum $ map strWidth ls
---       padded = map (xpad . ypad) lss
-
+-- | Join several multi-line strings as side-by-side rectangular strings of the same height, bottom-padded.
+-- Treats wide characters as double width.
+textConcatBottomPadded :: [Text] -> Text
+textConcatBottomPadded = TL.toStrict . renderRow def{tableBorders=False, borderSpaces=False}
+                       . Group NoLine . map (Header . textCell TopLeft)
 
 -- -- | Join multi-line strings horizontally, after compressing each of
 -- -- them to a single line with a comma and space between each original line.
