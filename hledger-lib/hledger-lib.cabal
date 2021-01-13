@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.2.
+-- This file has been generated from package.yaml by hpack version 0.33.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c7f376a0b462db44f7093369e6ab091114858a0f25e0ea7440c0d9390583eb44
+-- hash: 02ce04c7a484333ff2c8fbcaccbc26164fc238840f86cb69976f4d73280c9e7f
 
 name:           hledger-lib
 version:        1.20.99
