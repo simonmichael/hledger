@@ -246,11 +246,11 @@ postingAsLines elideamount onelineamounts pstoalignwith p =
     -- could be removed and we could just keep everything as a Text Builder, but
     -- would require adding trailing spaces to 42 failing tests.
     postingblocks = [map T.stripEnd . T.lines . TL.toStrict $
-                       render [ alignCell BottomLeft statusandaccount
-                              , alignCell BottomLeft "  "
+                       render [ textCell BottomLeft statusandaccount
+                              , textCell BottomLeft "  "
                               , Cell BottomLeft [amt]
                               , Cell BottomLeft [assertion]
-                              , alignCell BottomLeft samelinecomment
+                              , textCell BottomLeft samelinecomment
                               ]
                     | amt <- shownAmounts]
     render = renderRow def{tableBorders=False, borderSpaces=False} . Group NoLine . map Header

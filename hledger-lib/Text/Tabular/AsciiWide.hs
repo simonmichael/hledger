@@ -46,8 +46,8 @@ emptyCell :: Cell
 emptyCell = Cell TopRight []
 
 -- | Create a single-line cell from the given contents with its natural width.
-alignCell :: Align -> Text -> Cell
-alignCell a x = Cell a . map (\x -> WideBuilder (fromText x) (textWidth x)) $ if T.null x then [""] else T.lines x
+textCell :: Align -> Text -> Cell
+textCell a x = Cell a . map (\x -> WideBuilder (fromText x) (textWidth x)) $ if T.null x then [""] else T.lines x
 
 -- | Return the width of a Cell.
 cellWidth :: Cell -> Int
@@ -57,7 +57,7 @@ cellWidth (Cell _ xs) = fromMaybe 0 . maximumMay $ map wbWidth xs
 -- | Render a table according to common options, for backwards compatibility
 render :: Bool -> (rh -> Text) -> (ch -> Text) -> (a -> Text) -> Table rh ch a -> TL.Text
 render pretty fr fc f = renderTable def{prettyTable=pretty} (cell . fr) (cell . fc) (cell . f)
-  where cell = alignCell TopRight
+  where cell = textCell TopRight
 
 -- | Render a table according to various cell specifications>
 renderTable :: TableOpts       -- ^ Options controlling Table rendering

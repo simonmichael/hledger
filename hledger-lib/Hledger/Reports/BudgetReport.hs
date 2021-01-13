@@ -223,7 +223,7 @@ budgetReportAsText :: ReportOpts -> BudgetReport -> TL.Text
 budgetReportAsText ropts@ReportOpts{..} budgetr = TB.toLazyText $
     TB.fromText title <> TB.fromText "\n\n" <>
       renderTableB def{tableBorders=False,prettyTable=pretty_tables_}
-        (alignCell TopLeft) (alignCell TopRight) (uncurry showcell) displayTableWithWidths
+        (textCell TopLeft) (textCell TopRight) (uncurry showcell) displayTableWithWidths
   where
     title = "Budget performance in " <> showDateSpan (periodicReportSpan budgetr)
            <> (case value_ of
