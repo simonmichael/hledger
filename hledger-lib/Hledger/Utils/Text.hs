@@ -66,15 +66,18 @@ module Hledger.Utils.Text
 where
 
 import Data.Char (digitToInt)
-import Data.List (transpose)
+import Data.Default (def)
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Semigroup ((<>))
 #endif
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 
 import Hledger.Utils.Test ((@?=), test, tests)
+import Text.Tabular (Header(..), Properties(..))
+import Text.Tabular.AsciiWide (Align(..), TableOpts(..), textCell, renderRow)
 import Text.WideString (WideBuilder(..), wbToText, wbUnpack, charWidth, textWidth)
 
 
@@ -196,8 +199,7 @@ textUnbracket s
 -- Treats wide characters as double width.
 textConcatTopPadded :: [Text] -> Text
 textConcatTopPadded = TL.toStrict . renderRow def{tableBorders=False, borderSpaces=False}
-                    . Group NoLine . map (Header . cell)
-  where cell = alignCell BottomLeft
+                    . Group NoLine . map (Header . textCell BottomLeft)
 
 -- -- | Join several multi-line strings as side-by-side rectangular strings of the same height, bottom-padded.
 -- -- Treats wide characters as double width.
@@ -252,9 +254,6 @@ textConcatTopPadded = TL.toStrict . renderRow def{tableBorders=False, borderSpac
 --          | otherwise = maximum $ map length ls
 --       ypadded = ls ++ replicate (difforzero h sh) ""
 --       xpadded = map (padleft sw) ypadded
-
-difforzero :: (Num a, Ord a) => a -> a -> a
-difforzero a b = maximum [(a - b), 0]
 
 -- -- | Convert a multi-line string to a rectangular string left-padded to the specified width.
 -- -- Treats wide characters as double width.

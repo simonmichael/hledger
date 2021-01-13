@@ -62,7 +62,7 @@ import Text.Printf (printf)
 import Hledger.Utils.Parse
 import Hledger.Utils.Regex (toRegex', regexReplace)
 import Text.Tabular (Header(..), Properties(..))
-import Text.Tabular.AsciiWide (Align(..), TableOpts(..), alignCell, renderRow)
+import Text.Tabular.AsciiWide (Align(..), TableOpts(..), textCell, renderRow)
 import Text.WideString (charWidth, strWidth)
 
 
@@ -185,16 +185,13 @@ unbracket s
 -- Treats wide characters as double width.
 concatTopPadded :: [String] -> String
 concatTopPadded = TL.unpack . renderRow def{tableBorders=False, borderSpaces=False}
-                . Group NoLine . map (Header . cell)
-  where cell = alignCell BottomLeft . T.pack
+                . Group NoLine . map (Header . textCell BottomLeft . T.pack)
 
 -- | Join several multi-line strings as side-by-side rectangular strings of the same height, bottom-padded.
 -- Treats wide characters as double width.
 concatBottomPadded :: [String] -> String
 concatBottomPadded = TL.unpack . renderRow def{tableBorders=False, borderSpaces=False}
-                   . Group NoLine . map (Header . cell)
-  where cell = alignCell TopLeft . T.pack
-
+                   . Group NoLine . map (Header . textCell TopLeft . T.pack)
 
 -- | Join multi-line strings horizontally, after compressing each of
 -- them to a single line with a comma and space between each original line.

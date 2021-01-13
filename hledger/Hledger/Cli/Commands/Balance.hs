@@ -425,11 +425,11 @@ renderBalanceReportItem opts (acctname, depth, total) =
 
 -- | Render one StringFormat component for a balance report item.
 renderComponent :: Bool -> ReportOpts -> (AccountName, Int, MixedAmount) -> StringFormatComponent -> Cell
-renderComponent _ _ _ (FormatLiteral s) = alignCell TopLeft s
+renderComponent _ _ _ (FormatLiteral s) = textCell TopLeft s
 renderComponent topaligned opts (acctname, depth, total) (FormatField ljust mmin mmax field) = case field of
     DepthSpacerField -> Cell align [WideBuilder (TB.fromText $ T.replicate d " ") d]
                         where d = maybe id min mmax $ depth * fromMaybe 1 mmin
-    AccountField     -> alignCell align $ formatText ljust mmin mmax acctname
+    AccountField     -> textCell align $ formatText ljust mmin mmax acctname
     TotalField       -> Cell align . pure $ showamt total
     _                -> Cell align [mempty]
   where
@@ -622,7 +622,7 @@ balanceReportAsTable opts@ReportOpts{average_, row_total_, balancetype_}
 balanceReportTableAsText :: ReportOpts -> Table T.Text T.Text MixedAmount -> TB.Builder
 balanceReportTableAsText ReportOpts{..} =
     Tab.renderTableB def{tableBorders=False, prettyTable=pretty_tables_}
-        (Tab.alignCell TopLeft) (Tab.alignCell TopRight) showamt
+        (Tab.textCell TopLeft) (Tab.textCell TopRight) showamt
   where
     showamt = Cell TopRight . pure . showMixedAmountB oneLine{displayColour=color_, displayMaxWidth=mmax}
     mmax = if no_elide_ then Nothing else Just 32
