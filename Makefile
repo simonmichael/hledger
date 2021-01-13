@@ -1033,10 +1033,6 @@ watch-%: $(call def-help,watch-RULE, run make RULE repeatedly when any committed
 Shake: Shake.hs $(call def-help,Shake, ensure the Shake script is compiled )
 	./Shake.hs
 
-cabal%: \
-	$(call def-help,cabalCMD, run cabal CMD inside each hledger package directory )
-	for p in $(PACKAGES); do (cd $$p; cabal $*); done
-
 usage: cabalusage stackusage \
 	$(call def-help,usage, show size of various dirs )
 	du -sh .git bin data doc extra
