@@ -46,7 +46,6 @@ import Hledger.Data.Types
 import Hledger.Data.Amount
 import Hledger.Data.Dates (nulldate)
 import Hledger.Data.Commodity (showCommoditySymbol)
-import Data.Maybe (fromMaybe)
 
 
 ------------------------------------------------------------------------------

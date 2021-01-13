@@ -51,7 +51,7 @@ import Data.Semigroup ((<>))
 #endif
 import Data.Semigroup (sconcat)
 import Data.Time.Calendar (Day, addDays, fromGregorian)
-import Safe (headMay, lastDef, lastMay, minimumMay)
+import Safe (headMay, lastDef, lastMay)
 
 import Hledger.Data
 import Hledger.Query
@@ -360,23 +360,17 @@ accumValueAmounts ropts valuation colspans startbals acctchanges =  -- PARTIAL:
         historical = cumulativeSum startingBalance
         cumulative = cumulativeSum nullacct
         changeamts = M.mapWithKey valueAcct changes
-          where (dates, histamts) = unzip $ M.toAscList historical
 
         cumulativeSum start = snd $ M.mapAccumWithKey accumValued start changes
           where accumValued startAmt date newAmt = (s, valueAcct date s)
                   where s = sumAcct startAmt newAmt
 
         startingBalance = HM.lookupDefault nullacct name startbals
-        valuedStart = valueAcct (DateSpan Nothing historicalDate) startingBalance
 
     -- Add the values of two accounts. Should be right-biased, since it's used
     -- in scanl, so other properties (such as anumpostings) stay in the right place
     sumAcct Account{aibalance=i1,aebalance=e1} a@Account{aibalance=i2,aebalance=e2} =
         a{aibalance = i1 + i2, aebalance = e1 + e2}
-
-    -- Subtract the values in one account from another. Should be left-biased.
-    subtractAcct a@Account{aibalance=i1,aebalance=e1} Account{aibalance=i2,aebalance=e2} =
-        a{aibalance = i1 - i2, aebalance = e1 - e2}
 
     -- We may be converting amounts to value, per hledger_options.m4.md "Effect of --value on reports".
     valueAcct (DateSpan _ (Just end)) acct =
@@ -385,8 +379,6 @@ accumValueAmounts ropts valuation colspans startbals acctchanges =  -- PARTIAL:
     valueAcct _ _ = error "multiBalanceReport: expected all spans to have an end date"  -- XXX should not happen
 
     zeros = M.fromList [(span, nullacct) | span <- colspans]
-    historicalDate = minimumMay $ mapMaybe spanStart colspans
-
 
 -- | Lay out a set of postings grouped by date span into a regular matrix with rows
 -- given by AccountName and columns by DateSpan, then generate a MultiBalanceReport
