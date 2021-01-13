@@ -813,9 +813,12 @@ amountwithoutpricep = do
         return $ nullamt{acommodity=c, aquantity=sign q, aismultiplier=mult, astyle=s, aprice=Nothing}
       -- no symbol amount
       Nothing -> do
-        mdecmarkStyle <- getDecimalMarkStyle
-        mcommodityStyle <- getDefaultAmountStyle
-        let msuggestedStyle = mdecmarkStyle <|> mcommodityStyle
+        -- look for a number style to use when parsing, based on
+        -- these things we've already parsed, in this order of preference:
+        mdecmarkStyle   <- getDecimalMarkStyle   -- a decimal-mark CSV rule
+        mcommodityStyle <- getAmountStyle ""     -- a commodity directive for the no-symbol commodity
+        mdefaultStyle   <- getDefaultAmountStyle -- a D default commodity directive
+        let msuggestedStyle = mdecmarkStyle <|> mcommodityStyle <|> mdefaultStyle
         (q,prec,mdec,mgrps) <- lift $ interpretNumber numRegion msuggestedStyle ambiguousRawNum mExponent
         -- if a default commodity has been set, apply it and its style to this amount
         -- (unless it's a multiplier in an automated posting)
