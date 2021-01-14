@@ -1,8 +1,25 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 1.20.2 2020-12-28
+# 1.20.3 2021-01-14
+- lib: Calculate value at posting date for register --value=then -M. (Stephen Morgan)
 
+- lib: better message when roi fails to value commodity, fixes #1446 (Dmitry Astapov)
+  (cherry picked from commit 9869624c5c42751dac5b431827b2fb368da43070)
+
+- cli,csv: Fix --drop option in csv output format (aragaer)
+  (cherry picked from commit 7bde3345b89422c21ffee6f61712c8c225bc9577)
+
+- lib,cli: Revert --value=end PeriodChange behaviour to hledger-1.19, i.e. calculating the value of the change, rather than the change of the value. (Stephen Morgan)
+
+- test: Update for tests failing now that it's 2021. (Stephen Morgan)
+
+- new price search that really finds the shortest path (#1443)
+  This one should also reliably prevent runaway searches in the event of more bugs, giving up after 1000 iterations.
+
+  (cherry picked from commit 3d7d5c0db7509299acf3d33530728f834345959a)
+
+# 1.20.2 2020-12-28
 - help: Fix loss of capitalisation in part of the hledger-ui manual. 
 
 - Fix the info manuals' node structure.
