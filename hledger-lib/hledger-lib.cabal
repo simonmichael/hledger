@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f99ed8ff188d98ffb43ea739b382591b37b4e66b2adbabc5345e75d4e8e69a56
+-- hash: 84b9a4a7bf3049275178ede9a44418e46548ddce8bdbd182d32caccb5cb51f3f
 
 name:           hledger-lib
-version:        1.20.2
+version:        1.20.3
 synopsis:       A reusable library providing the core functionality of hledger
 description:    A reusable library containing hledger's core functionality.
                 This is used by most hledger* packages so that they support the same
