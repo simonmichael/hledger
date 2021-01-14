@@ -1796,12 +1796,12 @@ Scientific E notation is allowed:
     1E-6
     EUR 1E3
 
+### Decimal marks, digit group marks
+
 A decimal mark can be written as a period or a comma:
 
     1.23
     1,23456780000009
-
-### Digit group marks
 
 In the integer part of the quantity (left of the decimal mark), groups
 of digits can optionally be separated by a "digit group mark" - a
@@ -1812,48 +1812,52 @@ space, comma, or period (different from the decimal mark):
     INR 9,99,99,999.00
           1 000 000.9455
 
-Note, a number containing a single group mark and no decimal mark is ambiguous.
-Are these group marks or decimal marks ?
+Note, a number containing a single digit group mark and no decimal mark is ambiguous.
+Are these digit group marks or decimal marks ?
 
     1,000
     1.000
 
-hledger will treat them both as decimal marks by default (cf
-[#793](https://github.com/simonmichael/hledger/issues/793)).
-If you use digit group marks,
-to prevent confusion and undetected typos
-we recommend you write [commodity directives](#declaring-commodities)
-at the top of the file to explicitly declare the decimal mark (and
-optionally a digit group mark).
-Note, these formats ("amount styles") are specific to each commodity,
-so if your data uses multiple formats, hledger can handle it:
+If you don't tell it otherwise, hledger will assume both of the above are decimal marks,
+parsing both numbers as 1.
+To prevent confusion and undetected typos, 
+especially if your data contains digit group marks,
+we recommend you explicitly declare the decimal mark (and optionally a digit group mark),
+for each commodity, using `commodity` directives (described below):
 
 ```journal
+# number formats for $, EUR, INR and the no-symbol commodity:
 commodity $1,000.00
 commodity EUR 1.000,00
 commodity INR 9,99,99,999.00
-commodity       1 000 000.9455
+commodity 1 000 000.9455
 ```
+
+(`commodity` directives declare both the number format for parsing input,
+and the display style for showing output; this is discussed more on
+[#793](https://github.com/simonmichael/hledger/issues/793).)
 
 <a name="amount-display-style"></a>
 
 ### Commodity display style
 
 For the amounts in each commodity, hledger chooses a consistent display style.
-(Excluding [price amounts](#prices), which are always
-displayed as written). The display style is chosen as follows:
+(Except for [price amounts](#prices), which are always displayed as written). <!-- ? -->
+The display style is inferred as follows. 
 
-- If there is a [commodity directive](#declaring-commodities) (or
-  [default commodity directive](#default-commodity)) for the
-  commodity, its style is used (see examples above).
+First, if a [default commodity](#default-commodity) is declared with `D`, 
+this commodity and its style is applied to any no-symbol amounts in the journal. 
 
-- Otherwise the style is inferred from the amounts in that commodity
-  seen in the journal.
+Then each commodity's style is inferred from one of the following, in order of preference:
 
-- Or if there are no such amounts in the journal, a default style is
-  used (like `$1000.00`).
+- The [commodity directive](#declaring-commodities) for that commodity
+  (including the no-symbol commodity), if any.
+- The amounts in that commodity seen in the journal's transactions.
+  (Posting amounts only; prices and periodic or auto rules are ignored, currently.)
+- The built-in fallback style, which looks like this: `$1000.00`.
+  (Symbol on the left, period decimal mark, two decimal places.)
 
-A style is inferred from the journal amounts in a commodity as follows:
+A style is inferred from journal amounts as follows:
 
 - Use the general style (decimal mark, symbol placement) of the first amount
 - Use the first-seen digit group style (digit group mark, digit group sizes), if any
@@ -1864,21 +1868,20 @@ but occasionally they can do so indirectly (eg when a posting's amount is
 inferred using a transaction price). If you find this causing
 problems, use a commodity directive to fix the display style.
 
-In summary, each commodity's amounts will be normalised to 
-
-- the style declared by a `commodity` directive
-- or, the style of the first posting amount in the journal,
-  with the first-seen digit group style and the maximum-seen number of decimal places.
-
+To summarise: each commodity's amounts will be normalised to (a) 
+the style declared by a `commodity` directive, or (b)
+the style of the first posting amount in the journal,
+with the first-seen digit group style and the maximum-seen number of decimal places.
 So if your reports are showing amounts in a way you don't like, eg 
-with too many decimal places,
-use a [commodity directive](#declaring-commodities) to set the commodity's display style.
-For example:
+with too many decimal places, use a commodity directive. Some examples:
+
 ```journal
-# declare euro, dollar and bitcoin commodities and set their display styles:
+# declare euro, dollar, bitcoin and no-symbol commodities and set their 
+# input number formats and output display styles:
 commodity EUR 1.000,
 commodity $1000.00
 commodity 1000.00000000 BTC
+commodity 1 000.
 ```
 
 ### Rounding
