@@ -1833,9 +1833,10 @@ commodity INR 9,99,99,999.00
 commodity 1 000 000.9455
 ```
 
-(`commodity` directives declare both the number format for parsing input,
-and the display style for showing output; this is discussed more on
-[#793](https://github.com/simonmichael/hledger/issues/793).)
+Note, `commodity` directives declare both the number format for parsing input,
+and the display style for showing output. For the former, they are position-sensitive,
+affecting only following amounts, so commodity directives should be at the top of your journal file.
+This is discussed more on [#793](https://github.com/simonmichael/hledger/issues/793).
 
 <a name="amount-display-style"></a>
 
