@@ -2,24 +2,41 @@ User-visible changes in the hledger command line tool and library.
 
 
 # 1.20.3 2021-01-14
-- lib: Calculate value at posting date for register --value=then -M. (Stephen Morgan)
 
-- lib: better message when roi fails to value commodity, fixes #1446 (Dmitry Astapov)
-  (cherry picked from commit 9869624c5c42751dac5b431827b2fb368da43070)
+- When searching for price chains during valuation/currency conversion:
 
-- cli,csv: Fix --drop option in csv output format (aragaer)
-  (cherry picked from commit 7bde3345b89422c21ffee6f61712c8c225bc9577)
+  - It no longer hangs when there are price loops. (And in case of
+    future bugs, it will give up rather than search forever.) (#1439)
+  - It now really finds the shortest path. (#1443)
+  - Useful progress info is displayed with `--debug=1` or `--debug=2`.
 
-- lib,cli: Revert --value=end PeriodChange behaviour to hledger-1.19, i.e. calculating the value of the change, rather than the change of the value. (Stephen Morgan)
+- balance, incomestatement: End-valued multi-period balance change
+  reports (eg: `bal -MV`) have been reverted to show value-of-change,
+  as in previous hledger versions, rather than change-of-value, for
+  now. (#1353, #1428) (Stephen Morgan)
 
-- test: Update for tests failing now that it's 2021. (Stephen Morgan)
+- balance: End-valued balance change reports now choose the same final
+  valuation date and show consistent results whether single-period or
+  multi-period. (#1424) (Stephen Morgan)
 
-- new price search that really finds the shortest path (#1443)
-  This one should also reliably prevent runaway searches in the event of more bugs, giving up after 1000 iterations.
+- balance: the `--drop` option now works with `csv` and `html` output.
+  (#1456) (Ilya Konovalov)
 
-  (cherry picked from commit 3d7d5c0db7509299acf3d33530728f834345959a)
+- check: the `commodities` check, and `-s`/`--strict` mode, now ignore
+  the "AUTO" internal pseudo-commodity. (#1419) (Ilya Konovalov)
+
+- register: Then-valued multi-period register reports
+  (eg: `register -M --value=then`) now calculate the correct values.
+  (#1449) (Stephen Morgan)
+
+- roi: now shows a better error message when required prices are
+  missing. (#1446) (Dmitry Astapov)
+
+- The no-symbol commodity's input number format can now be set by a
+  `commodity` directive, like other commodities. (#1461)
 
 # 1.20.2 2020-12-28
+
 - help: Fix loss of capitalisation in part of the hledger-ui manual. 
 
 - Fix the info manuals' node structure.

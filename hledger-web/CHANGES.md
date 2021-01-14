@@ -2,7 +2,11 @@ User-visible changes in hledger-web.
 See also the hledger changelog.
 
 # 1.20.3 2021-01-14
+
+- Use hledger 1.20.3.
+
 # 1.20.2 2020-12-28
+
 - Fix the info manual's node structure.
 
 - Use hledger 1.20.2.
