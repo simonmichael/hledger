@@ -1,15 +1,13 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# a5f9f8ce0
+# 1.20.4 2021-01-29
 
-- Removed: 
-  valuationTypeIsCost
-  valuationTypeIsDefaultValue
-  ValuationType's AtDefault constructor
-  
-- Changed:
-  *ApplyValuation functions take two less arguments
+- See hledger.
+
+# 1.20.3 2021-01-14
+
+- See hledger.
 
 # 1.20.2 2020-12-28
 

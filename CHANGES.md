@@ -1,12 +1,14 @@
 General project-related changes and major/notable all-package releases.
 For package-specific changes and minor releases, see the package changelogs.
 
-# a5f9f8ce0
+# 1.20.4 2021-01-29
 
-- doc: merge file format manuals into the hledger manual
-  Also flatten the journal manual topics a bit.
+# 1.20.3 2021-01-14
 
-- doc: rewrite commands intro
+- The run/compile instructions for add-on scripts in bin/ have been
+  updated. The scripts now use `stack runghc` and are tested (manually
+  with `make functest` for now) with the corresponding hledger source,
+  not the hledger on stackage.
 
 # 1.20 2020-12-05
 

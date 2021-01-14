@@ -1,46 +1,47 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# a5f9f8ce0
+# 1.20.4 2021-01-29
 
-- The --help/-h and --version flags are no longer position-sensitive;
-  if there is a command argument, they now always refer to the command
-  (where applicable).
+- aregister: ignore a depth limit, as in 1.19 (#1468).
+  In 1.20-1.20.3, aregister had stopped showing transactions in subaccounts 
+  below a depth limit. Now it properly shows all subaccount transactions, 
+  ensuring that the register's final total matches a balance report with 
+  similar arguments.
 
-- The new --info flag opens the hledger info manual, if "info" is in $PATH.
-  "hledger COMMAND --info" will open COMMAND's info node.
+# 1.20.3 2021-01-14
 
-- The new --man flag opens the hledger man page, if "man" is in $PATH.
-  "hledger COMMAND --man" will scroll the page to CMD's section, if "less"
-  is in $PATH. (We force the use of "less" in this case, overriding any
-  $PAGER or $MAN_PAGER setting.)
+- When searching for price chains during valuation/currency conversion:
 
-- help: show only the hledger manual
+  - It no longer hangs when there are price loops. (And in case of
+    future bugs, it will give up rather than search forever.) (#1439)
+  - It now really finds the shortest path. (#1443)
+  - Useful progress info is displayed with `--debug=1` or `--debug=2`.
 
-- help: replace --info/--man/--pager flags with -i/-m/-p; drop --cat
+- balance, incomestatement: End-valued multi-period balance change
+  reports (eg: `bal -MV`) have been reverted to show value-of-change,
+  as in previous hledger versions, rather than change-of-value, for
+  now. (#1353, #1428) (Stephen Morgan)
 
-- help: with a TOPIC argument, it will open the manual at TOPIC
-  (any heading or heading prefix, case insensitive) if possible
-  (cf --man/--info).
+- balance: End-valued balance change reports now choose the same final
+  valuation date and show consistent results whether single-period or
+  multi-period. (#1424) (Stephen Morgan)
 
-- drop deprecated command aliases: a, b, p, r, txns
+- balance: the `--drop` option now works with `csv` and `html` output.
+  (#1456) (Ilya Konovalov)
 
-- hide deprecated command alias: equity
+- check: the `commodities` check, and `-s`/`--strict` mode, now ignore
+  the "AUTO" internal pseudo-commodity. (#1419) (Ilya Konovalov)
 
-- doc: merge file format manuals into the hledger manual
-  Also flatten the journal manual topics a bit.
+- register: Then-valued multi-period register reports
+  (eg: `register -M --value=then`) now calculate the correct values.
+  (#1449) (Stephen Morgan)
 
-- doc: sync/update manual & cli command lists
+- roi: now shows a better error message when required prices are
+  missing. (#1446) (Dmitry Astapov)
 
-- doc: reorganise/flatten hledger manual, rewrite commands section
-
-- Valuation has changed: -V is now always equivalent to --value=end. (Stephen Morgan)
-
-- Include empty columns in MultiBalanceReports. (Stephen Morgan)
-  This was previously done for CompoundBalanceReport and when --empty was
-  called; this makes the behaviour consistent.
-
-- Include market price directives when calculating journal end date. (Stephen Morgan)
+- The no-symbol commodity's input number format can now be set by a
+  `commodity` directive, like other commodities. (#1461)
 
 # 1.20.2 2020-12-28
 

@@ -1,7 +1,13 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# a5f9f8ce0
+# 1.20.4 2021-01-29
+
+- Use hledger 1.20.4.
+
+# 1.20.3 2021-01-14
+
+- Use hledger 1.20.3.
 
 # 1.20.2 2020-12-28
 

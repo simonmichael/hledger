@@ -1,9 +1,17 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# a5f9f8ce0
+# 1.20.4 2021-01-29
 
-- Do valuation for all valuation types, not just AtCost and AtDefault. (Stephen Morgan)
+- ui: register: show all txns in/under an account at the depth limit (#1468).
+  In 1.20-1.20.3, the register screen had stopped showing transactions 
+  in accounts below a depth limit. Now it properly shows all subaccount transactions,
+  even when there is a depth limit, ensuring that the register's final total 
+  matches the balance shown on the account screen.
+
+# 1.20.3 2021-01-14
+
+- Use hledger 1.20.3.
 
 # 1.20.2 2020-12-28
 
