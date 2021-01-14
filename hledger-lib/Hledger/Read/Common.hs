@@ -782,6 +782,7 @@ amountwithoutpricep = do
     c <- lift commoditysymbolp
     mdecmarkStyle <- getDecimalMarkStyle
     mcommodityStyle <- getAmountStyle c
+    -- XXX amounts of this commodity in periodic transaction rules and auto posting rules ? #1461
     let suggestedStyle = mdecmarkStyle <|> mcommodityStyle
     commodityspaced <- lift skipNonNewlineSpaces'
     sign2 <- lift $ signp
@@ -807,6 +808,7 @@ amountwithoutpricep = do
       Just (commodityspaced, c) -> do
         mdecmarkStyle <- getDecimalMarkStyle
         mcommodityStyle <- getAmountStyle c
+        -- XXX amounts of this commodity in periodic transaction rules and auto posting rules ? #1461
         let msuggestedStyle = mdecmarkStyle <|> mcommodityStyle
         (q,prec,mdec,mgrps) <- lift $ interpretNumber numRegion msuggestedStyle ambiguousRawNum mExponent
         let s = amountstyle{ascommodityside=R, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
@@ -818,6 +820,7 @@ amountwithoutpricep = do
         mdecmarkStyle   <- getDecimalMarkStyle   -- a decimal-mark CSV rule
         mcommodityStyle <- getAmountStyle ""     -- a commodity directive for the no-symbol commodity
         mdefaultStyle   <- getDefaultAmountStyle -- a D default commodity directive
+        -- XXX no-symbol amounts in periodic transaction rules and auto posting rules ? #1461
         let msuggestedStyle = mdecmarkStyle <|> mcommodityStyle <|> mdefaultStyle
         (q,prec,mdec,mgrps) <- lift $ interpretNumber numRegion msuggestedStyle ambiguousRawNum mExponent
         -- if a default commodity has been set, apply it and its style to this amount
