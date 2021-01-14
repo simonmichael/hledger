@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "December 2020" "hledger-1.20.1 " "hledger User Manuals"
+.TH "HLEDGER" "1" "December 2020" "hledger-1.20.3 " "hledger User Manuals"
 
 
 
@@ -2798,10 +2798,39 @@ options The output formats supported are (in most modes): \f[C]txt\f[R],
 \f[C]csv\f[R], \f[C]html\f[R], and \f[C]json\f[R].
 .PP
 The balance command can produce several styles of report:
-.SS Classic balance report
 .PP
-This is the original balance report, as found in Ledger.
-It usually looks like this:
+.SS Single-period flat balance report
+.PP
+This is the default for hledger\[aq]s balance command: a flat list of
+all (or with a query, matched) accounts, showing full account names.
+Accounts are sorted by declaration order if any, and then by account
+name.
+Accounts which have zero balance are not shown unless
+\f[C]-E/--empty\f[R] is used.
+The reported balances\[aq] total is shown as the last line, unless
+disabled by \f[C]-N\f[R]/\f[C]--no-total\f[R].
+.IP
+.nf
+\f[C]
+$ hledger bal
+                  $1  assets:bank:saving
+                 $-2  assets:cash
+                  $1  expenses:food
+                  $1  expenses:supplies
+                 $-1  income:gifts
+                 $-1  income:salary
+                  $1  liabilities:debts
+--------------------
+                   0  
+\f[R]
+.fi
+.PP
+.SS Single-period tree-mode balance report
+.PP
+With the \f[C]-t/--tree\f[R] flag, accounts are displayed
+hierarchically, showing subaccounts as short names indented below their
+parent.
+(This is the default style in Ledger and in older hledger versions.)
 .IP
 .nf
 \f[C]
@@ -2821,38 +2850,250 @@ $ hledger balance
 \f[R]
 .fi
 .PP
-By default, accounts are displayed hierarchically, with subaccounts
-indented below their parent, with accounts at each level of the tree
-sorted by declaration order if declared, then by account name.
+For more compact output, \[dq]boring\[dq] accounts containing a single
+interesting subaccount and no balance of their own
+(\f[C]assets:bank\f[R] and \f[C]liabilities\f[R] here) are elided into
+the following line, unless \f[C]--no-elide\f[R] is used.
+And accounts which have zero balance and no non-zero subaccounts are
+omitted, unless \f[C]-E/--empty\f[R] is used.
 .PP
-\[dq]Boring\[dq] accounts, which contain a single interesting subaccount
-and no balance of their own, are elided into the following line for more
-compact output.
-(Eg above, the \[dq]liabilities\[dq] account.) Use \f[C]--no-elide\f[R]
-to prevent this.
+Account balances in tree mode are \[dq]inclusive\[dq] - they include the
+balances of any subaccounts.
+Eg, the \f[C]assets\f[R] \f[C]$-1\f[R] balance here includes the
+\f[C]$1\f[R] from \f[C]assets:bank:saving\f[R] and the \f[C]$-2\f[R]
+from \f[C]assets:cash\f[R].
+(And it would include balance posted to the \f[C]assets\f[R] account
+itself, if there was any).
+Note this causes some repetition, and the final total (\f[C]0\f[R]) is
+the sum of the top-level balances, not of all the balances shown.
 .PP
-Account balances are \[dq]inclusive\[dq] - they include the balances of
-any subaccounts.
+Each group of sibling accounts is sorted separately, by declaration
+order and then by account name.
+.SS Multi-period balance report
 .PP
-Accounts which have zero balance (and no non-zero subaccounts) are
-omitted.
-Use \f[C]-E/--empty\f[R] to show them.
+Multi-period balance reports are a very useful hledger feature,
+activated if you provide one of the reporting interval flags, such as
+\f[C]-M\f[R]/\f[C]--monthly\f[R].
+They are similar to single-period balance reports, but they show the
+report as a table, with columns representing one or more successive time
+periods.
+This is the usually the preferred style of balance report in hledger
+(even for a single period).
 .PP
-A final total is displayed by default; use \f[C]-N/--no-total\f[R] to
-suppress it, eg:
+Multi-period balance reports come in several types, showing different
+information:
+.IP "1." 3
+A balance change report: by default, each column shows the sum of
+postings in that period, ie the account\[aq]s change of balance in that
+period.
+This is useful eg for a monthly income statement:
 .IP
 .nf
 \f[C]
-$ hledger balance -p 2008/6 expenses --no-total
-                  $2  expenses
-                  $1    food
-                  $1    supplies
+$ hledger balance --quarterly income expenses -E
+Balance changes in 2008:
+
+                   ||  2008q1  2008q2  2008q3  2008q4 
+===================++=================================
+ expenses:food     ||       0      $1       0       0 
+ expenses:supplies ||       0      $1       0       0 
+ income:gifts      ||       0     $-1       0       0 
+ income:salary     ||     $-1       0       0       0 
+-------------------++---------------------------------
+                   ||     $-1      $1       0       0 
 \f[R]
 .fi
-.SS Customising the classic balance report
+.IP "2." 3
+A cumulative end balance report: with \f[C]--cumulative\f[R], each
+column shows the end balance for that period, accumulating the changes
+across periods, starting from 0 at the report start date:
+.RS 4
+.IP
+.nf
+\f[C]
+$ hledger balance --quarterly income expenses -E --cumulative
+Ending balances (cumulative) in 2008:
+
+                   ||  2008/03/31  2008/06/30  2008/09/30  2008/12/31 
+===================++=================================================
+ expenses:food     ||           0          $1          $1          $1 
+ expenses:supplies ||           0          $1          $1          $1 
+ income:gifts      ||           0         $-1         $-1         $-1 
+ income:salary     ||         $-1         $-1         $-1         $-1 
+-------------------++-------------------------------------------------
+                   ||         $-1           0           0           0 
+\f[R]
+.fi
+.RE
+.IP "3." 3
+A historical end balance report: with \f[C]--historical/-H\f[R], each
+column shows the actual historical end balance for that period,
+accumulating the changes across periods, and including the balance from
+any postings before the report start date.
+This is useful eg for a multi-period balance sheet, and when you want to
+see balances only after a certain date:
+.RS 4
+.IP
+.nf
+\f[C]
+$ hledger balance \[ha]assets \[ha]liabilities --quarterly --historical --begin 2008/4/1
+Ending balances (historical) in 2008/04/01-2008/12/31:
+
+                      ||  2008/06/30  2008/09/30  2008/12/31 
+======================++=====================================
+ assets:bank:checking ||          $1          $1           0 
+ assets:bank:saving   ||          $1          $1          $1 
+ assets:cash          ||         $-2         $-2         $-2 
+ liabilities:debts    ||           0           0          $1 
+----------------------++-------------------------------------
+                      ||           0           0           0 
+\f[R]
+.fi
+.RE
 .PP
-You can customise the layout of classic balance reports with
-\f[C]--format FMT\f[R]:
+Note that \f[C]--cumulative\f[R] or \f[C]--historical/-H\f[R] disable
+\f[C]--row-total/-T\f[R], since summing end balances generally does not
+make sense.
+.PP
+With a reporting interval (like \f[C]--quarterly\f[R] above), the report
+start/end dates will be adjusted if necessary so that they encompass the
+displayed report periods.
+This is so that the first and last periods will be \[dq]full\[dq] and
+comparable to the others.
+.PP
+The \f[C]-E/--empty\f[R] flag does two things in multicolumn balance
+reports: first, the report will show all columns within the specified
+report period (without -E, leading and trailing columns with all zeroes
+are not shown).
+Second, all accounts which existed at the report start date will be
+considered, not just the ones with activity during the report period
+(use -E to include low-activity accounts which would otherwise would be
+omitted).
+.PP
+The \f[C]-T/--row-total\f[R] flag adds an additional column showing the
+total for each row.
+.PP
+The \f[C]-A/--average\f[R] flag adds a column showing the average value
+in each row.
+.PP
+Here\[aq]s an example of all three:
+.IP
+.nf
+\f[C]
+$ hledger balance -Q income expenses --tree -ETA
+Balance changes in 2008:
+
+            ||  2008q1  2008q2  2008q3  2008q4    Total  Average 
+============++===================================================
+ expenses   ||       0      $2       0       0       $2       $1 
+   food     ||       0      $1       0       0       $1        0 
+   supplies ||       0      $1       0       0       $1        0 
+ income     ||     $-1     $-1       0       0      $-2      $-1 
+   gifts    ||       0     $-1       0       0      $-1        0 
+   salary   ||     $-1       0       0       0      $-1        0 
+------------++---------------------------------------------------
+            ||     $-1      $1       0       0        0        0 
+
+(Average is rounded to the dollar here since all journal amounts are)
+\f[R]
+.fi
+.PP
+The \f[C]--transpose\f[R] flag can be used to exchange the rows and
+columns of a multicolumn report.
+.PP
+When showing multicommodity amounts, multicolumn balance reports will
+elide any amounts which have more than two commodities, since otherwise
+columns could get very wide.
+The \f[C]--no-elide\f[R] flag disables this.
+Hiding totals with the \f[C]-N/--no-total\f[R] flag can also help reduce
+the width of multicommodity reports.
+.PP
+When the report is still too wide, a good workaround is to pipe it into
+\f[C]less -RS\f[R] (-R for colour, -S to chop long lines).
+Eg: \f[C]hledger bal -D --color=yes | less -RS\f[R].
+.SS Depth limiting
+.PP
+With a \f[C]depth:N\f[R] query, or \f[C]--depth N\f[R] option, or just
+\f[C]-N\f[R], balance reports will show accounts only to the specified
+depth.
+This is very useful to hide low-level accounts and get an overview.
+Eg, limiting to depth 1 shows the top-level accounts:
+.IP
+.nf
+\f[C]
+$ hledger balance -N -1
+                 $-1  assets
+                  $2  expenses
+                 $-2  income
+                  $1  liabilities
+\f[R]
+.fi
+.PP
+Accounts at the depth limit will include the balances of any hidden
+subaccounts (even in flat mode, which normally shows exclusive
+balances).
+.PP
+You can also drop account name components from the start of account
+names, using \f[C]--drop N\f[R].
+This can be useful to hide unwanted top-level detail.
+.SS Colour support
+.PP
+In terminal output, when colour is enabled, the balance command shows
+negative amounts in red.
+.SS Sorting by amount
+.PP
+With \f[C]-S\f[R]/\f[C]--sort-amount\f[R], accounts with the largest
+(most positive) balances are shown first.
+For example, \f[C]hledger bal expenses -MAS\f[R] shows your biggest
+averaged monthly expenses first.
+.PP
+Revenues and liability balances are typically negative, however, so
+\f[C]-S\f[R] shows these in reverse order.
+To work around this, you can add \f[C]--invert\f[R] to flip the signs.
+Or, use one of the sign-flipping reports like \f[C]balancesheet\f[R] or
+\f[C]incomestatement\f[R], which also support \f[C]-S\f[R].
+Eg: \f[C]hledger is -MAS\f[R].
+.SS Percentages
+.PP
+With \f[C]-%\f[R] or \f[C]--percent\f[R], balance reports show each
+account\[aq]s value expressed as a percentage of the column\[aq]s total.
+This is useful to get an overview of the relative sizes of account
+balances.
+For example to obtain an overview of expenses:
+.IP
+.nf
+\f[C]
+$ hledger balance expenses -%
+             100.0 %  expenses
+              50.0 %    food
+              50.0 %    supplies
+--------------------
+             100.0 %
+\f[R]
+.fi
+.PP
+Note that \f[C]--tree\f[R] does not have an effect on \f[C]-%\f[R].
+The percentages are always relative to the total sum of each column,
+they are never relative to the parent account.
+.PP
+Since the percentages are relative to the columns sum, it is usually not
+useful to calculate percentages if the signs of the amounts are mixed.
+Although the results are technically correct, they are most likely
+useless.
+Especially in a balance report that sums up to zero (eg
+\f[C]hledger balance -B\f[R]) all percentage values will be zero.
+.PP
+This flag does not work if the report contains any mixed commodity
+accounts.
+If there are mixed commodity accounts in the report be sure to use
+\f[C]-V\f[R] or \f[C]-B\f[R] to coerce the report into using a single
+commodity.
+.PP
+.SS Customising single-period balance reports
+.PP
+You can customise the layout of single-period balance reports with
+\f[C]--format FMT\f[R], which sets the format of each line.
+Eg:
 .IP
 .nf
 \f[C]
@@ -2921,243 +3162,15 @@ rendered on one line
 .IP \[bu] 2
 \f[C]%20(total)  %2(depth_spacer)%-(account)\f[R] - the default format
 for the single-column balance report
-.SS Colour support
-.PP
-In terminal output, when colour is enabled, the balance command shows
-negative amounts in red.
-.SS Flat mode
-.PP
-To see a flat list instead of the default hierarchical display, use
-\f[C]--flat\f[R].
-In this mode, accounts (unless depth-clipped) show their full names and
-\[dq]exclusive\[dq] balance, excluding any subaccount balances.
-In this mode, you can also use \f[C]--drop N\f[R] to omit the first few
-account name components.
-.IP
-.nf
-\f[C]
-$ hledger balance -p 2008/6 expenses -N --flat --drop 1
-                  $1  food
-                  $1  supplies
-\f[R]
-.fi
-.SS Depth limited balance reports
-.PP
-With \f[C]--depth N\f[R] or \f[C]depth:N\f[R] or just \f[C]-N\f[R],
-balance reports show accounts only to the specified numeric depth.
-This is very useful to summarise a complex set of accounts and get an
-overview.
-.IP
-.nf
-\f[C]
-$ hledger balance -N -1
-                 $-1  assets
-                  $2  expenses
-                 $-2  income
-                  $1  liabilities
-\f[R]
-.fi
-.PP
-Flat-mode balance reports, which normally show exclusive balances, show
-inclusive balances at the depth limit.
-.SS Percentages
-.PP
-With \f[C]-%\f[R] or \f[C]--percent\f[R], balance reports show each
-account\[aq]s value expressed as a percentage of the column\[aq]s total.
-This is useful to get an overview of the relative sizes of account
-balances.
-For example to obtain an overview of expenses:
-.IP
-.nf
-\f[C]
-$ hledger balance expenses -%
-             100.0 %  expenses
-              50.0 %    food
-              50.0 %    supplies
---------------------
-             100.0 %
-\f[R]
-.fi
-.PP
-Note that \f[C]--tree\f[R] does not have an effect on \f[C]-%\f[R].
-The percentages are always relative to the total sum of each column,
-they are never relative to the parent account.
-.PP
-Since the percentages are relative to the columns sum, it is usually not
-useful to calculate percentages if the signs of the amounts are mixed.
-Although the results are technically correct, they are most likely
-useless.
-Especially in a balance report that sums up to zero (eg
-\f[C]hledger balance -B\f[R]) all percentage values will be zero.
-.PP
-This flag does not work if the report contains any mixed commodity
-accounts.
-If there are mixed commodity accounts in the report be sure to use
-\f[C]-V\f[R] or \f[C]-B\f[R] to coerce the report into using a single
-commodity.
-.SS Sorting by amount
-.PP
-With \f[C]-S\f[R]/\f[C]--sort-amount\f[R], accounts with the largest
-(most positive) balances are shown first.
-For example, \f[C]hledger bal expenses -MAS\f[R] shows your biggest
-averaged monthly expenses first.
-.PP
-Revenues and liability balances are typically negative, however, so
-\f[C]-S\f[R] shows these in reverse order.
-To work around this, you can add \f[C]--invert\f[R] to flip the signs.
-Or, use one of the sign-flipping reports like \f[C]balancesheet\f[R] or
-\f[C]incomestatement\f[R], which also support \f[C]-S\f[R].
-Eg: \f[C]hledger is -MAS\f[R].
-.SS Multicolumn balance report
-.PP
-Multicolumn or tabular balance reports are a very useful hledger
-feature, and usually the preferred style.
-They share many of the above features, but they show the report as a
-table, with columns representing time periods.
-This mode is activated by providing a reporting interval.
-.PP
-There are three types of multicolumn balance report, showing different
-information:
-.IP "1." 3
-By default: each column shows the sum of postings in that period, ie the
-account\[aq]s change of balance in that period.
-This is useful eg for a monthly income statement:
-.RS 4
-.IP
-.nf
-\f[C]
-$ hledger balance --quarterly income expenses -E
-Balance changes in 2008:
-
-                   ||  2008q1  2008q2  2008q3  2008q4 
-===================++=================================
- expenses:food     ||       0      $1       0       0 
- expenses:supplies ||       0      $1       0       0 
- income:gifts      ||       0     $-1       0       0 
- income:salary     ||     $-1       0       0       0 
--------------------++---------------------------------
-                   ||     $-1      $1       0       0 
-\f[R]
-.fi
-.RE
-.IP "2." 3
-With \f[C]--cumulative\f[R]: each column shows the ending balance for
-that period, accumulating the changes across periods, starting from 0 at
-the report start date:
-.RS 4
-.IP
-.nf
-\f[C]
-$ hledger balance --quarterly income expenses -E --cumulative
-Ending balances (cumulative) in 2008:
-
-                   ||  2008/03/31  2008/06/30  2008/09/30  2008/12/31 
-===================++=================================================
- expenses:food     ||           0          $1          $1          $1 
- expenses:supplies ||           0          $1          $1          $1 
- income:gifts      ||           0         $-1         $-1         $-1 
- income:salary     ||         $-1         $-1         $-1         $-1 
--------------------++-------------------------------------------------
-                   ||         $-1           0           0           0 
-\f[R]
-.fi
-.RE
-.IP "3." 3
-With \f[C]--historical/-H\f[R]: each column shows the actual historical
-ending balance for that period, accumulating the changes across periods,
-starting from the actual balance at the report start date.
-This is useful eg for a multi-period balance sheet, and when you are
-showing only the data after a certain start date:
-.RS 4
-.IP
-.nf
-\f[C]
-$ hledger balance \[ha]assets \[ha]liabilities --quarterly --historical --begin 2008/4/1
-Ending balances (historical) in 2008/04/01-2008/12/31:
-
-                      ||  2008/06/30  2008/09/30  2008/12/31 
-======================++=====================================
- assets:bank:checking ||          $1          $1           0 
- assets:bank:saving   ||          $1          $1          $1 
- assets:cash          ||         $-2         $-2         $-2 
- liabilities:debts    ||           0           0          $1 
-----------------------++-------------------------------------
-                      ||           0           0           0 
-\f[R]
-.fi
-.RE
-.PP
-Note that \f[C]--cumulative\f[R] or \f[C]--historical/-H\f[R] disable
-\f[C]--row-total/-T\f[R], since summing end balances generally does not
-make sense.
-.PP
-Multicolumn balance reports display accounts in flat mode by default; to
-see the hierarchy, use \f[C]--tree\f[R].
-.PP
-With a reporting interval (like \f[C]--quarterly\f[R] above), the report
-start/end dates will be adjusted if necessary so that they encompass the
-displayed report periods.
-This is so that the first and last periods will be \[dq]full\[dq] and
-comparable to the others.
-.PP
-The \f[C]-E/--empty\f[R] flag does two things in multicolumn balance
-reports: first, the report will show all columns within the specified
-report period (without -E, leading and trailing columns with all zeroes
-are not shown).
-Second, all accounts which existed at the report start date will be
-considered, not just the ones with activity during the report period
-(use -E to include low-activity accounts which would otherwise would be
-omitted).
-.PP
-The \f[C]-T/--row-total\f[R] flag adds an additional column showing the
-total for each row.
-.PP
-The \f[C]-A/--average\f[R] flag adds a column showing the average value
-in each row.
-.PP
-Here\[aq]s an example of all three:
-.IP
-.nf
-\f[C]
-$ hledger balance -Q income expenses --tree -ETA
-Balance changes in 2008:
-
-            ||  2008q1  2008q2  2008q3  2008q4    Total  Average 
-============++===================================================
- expenses   ||       0      $2       0       0       $2       $1 
-   food     ||       0      $1       0       0       $1        0 
-   supplies ||       0      $1       0       0       $1        0 
- income     ||     $-1     $-1       0       0      $-2      $-1 
-   gifts    ||       0     $-1       0       0      $-1        0 
-   salary   ||     $-1       0       0       0      $-1        0 
-------------++---------------------------------------------------
-            ||     $-1      $1       0       0        0        0 
-
-(Average is rounded to the dollar here since all journal amounts are)
-\f[R]
-.fi
-.PP
-The \f[C]--transpose\f[R] flag can be used to exchange the rows and
-columns of a multicolumn report.
-.PP
-When showing multicommodity amounts, multicolumn balance reports will
-elide any amounts which have more than two commodities, since otherwise
-columns could get very wide.
-The \f[C]--no-elide\f[R] flag disables this.
-Hiding totals with the \f[C]-N/--no-total\f[R] flag can also help reduce
-the width of multicommodity reports.
-.PP
-When the report is still too wide, a good workaround is to pipe it into
-\f[C]less -RS\f[R] (-R for colour, -S to chop long lines).
-Eg: \f[C]hledger bal -D --color=yes | less -RS\f[R].
 .SS Budget report
 .PP
-With \f[C]--budget\f[R], extra columns are displayed showing budget
+There is also a special balance report mode for showing budget
+performance.
+The \f[C]--budget\f[R] flag activates extra columns showing the budget
 goals for each account and period, if any.
-Budget goals are defined by periodic transactions.
+For this report, budget goals are defined by periodic transactions.
 This is very useful for comparing planned and actual income, expenses,
 time usage, etc.
---budget is most often combined with a report interval.
 .PP
 For example, you can take average monthly expenses in the common expense
 categories to construct a minimal monthly budget:

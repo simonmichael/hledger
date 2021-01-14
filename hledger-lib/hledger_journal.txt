@@ -1575,4 +1575,4 @@ SEE ALSO
 
 
 
-hledger-lib-1.20.1               December 2020              HLEDGER_JOURNAL(5)
+hledger-lib-1.20.3               December 2020              HLEDGER_JOURNAL(5)
