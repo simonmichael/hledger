@@ -1,5 +1,6 @@
 #!/bin/sh
 #
+# sh version, ported from bash so freebsd users can run these tests.
 # This scripts expects stdin formatted like this:
 # <multi-line csv file>
 # RULES
