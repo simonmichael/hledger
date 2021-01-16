@@ -40,6 +40,7 @@ exchange rates.
 
 -}
 
+{-# LANGUAGE BangPatterns       #-}
 {-# LANGUAGE CPP                #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE RecordWildCards    #-}
@@ -144,12 +145,10 @@ module Hledger.Data.Amount (
 import Control.Monad (foldM)
 import Data.Decimal (DecimalRaw(..), decimalPlaces, normalizeDecimal, roundTo)
 import Data.Default (Default(..))
-import Data.Function (on)
-import Data.List (groupBy, intercalate, intersperse, mapAccumL, partition,
-                  sortBy)
+import Data.Foldable (toList)
+import Data.List (intercalate, intersperse, mapAccumL, partition)
 import Data.List.NonEmpty (NonEmpty(..), nonEmpty)
-import qualified Data.Map as M
-import Data.Map (findWithDefault)
+import qualified Data.Map.Strict as M
 import Data.Maybe (fromMaybe)
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Semigroup ((<>))
@@ -246,8 +245,8 @@ amt @@ priceamt = amt{aprice=Just $ TotalPrice priceamt}
 -- Prices are ignored and discarded.
 -- Remember: the caller is responsible for ensuring both amounts have the same commodity.
 similarAmountsOp :: (Quantity -> Quantity -> Quantity) -> Amount -> Amount -> Amount
-similarAmountsOp op Amount{acommodity=_,  aquantity=q1, astyle=AmountStyle{asprecision=p1}}
-                    Amount{acommodity=c2, aquantity=q2, astyle=s2@AmountStyle{asprecision=p2}} =
+similarAmountsOp op !Amount{acommodity=_,  aquantity=q1, astyle=AmountStyle{asprecision=p1}}
+                    !Amount{acommodity=c2, aquantity=q2, astyle=s2@AmountStyle{asprecision=p2}} =
    -- trace ("a1:"++showAmountDebug a1) $ trace ("a2:"++showAmountDebug a2) $ traceWith (("= :"++).showAmountDebug)
    amount{acommodity=c2, aquantity=q1 `op` q2, astyle=s2{asprecision=max p1 p2}}
   --  c1==c2 || q1==0 || q2==0 =
@@ -559,24 +558,18 @@ normaliseMixedAmount = normaliseHelper False
 
 normaliseHelper :: Bool -> MixedAmount -> MixedAmount
 normaliseHelper squashprices (Mixed as)
-  | missingamt `elem` as = missingmixedamt -- missingamt should always be alone, but detect it even if not
-  | null nonzeros        = Mixed [newzero]
-  | otherwise            = Mixed nonzeros
+  | missingkey `M.member` amtMap = missingmixedamt -- missingamt should always be alone, but detect it even if not
+  | M.null nonzeros= Mixed [newzero]
+  | otherwise      = Mixed $ toList nonzeros
   where
-    newzero = lastDef nullamt $ filter (not . T.null . acommodity) zeros
-    (zeros, nonzeros) = partition amountIsZero $
-                        map sumSimilarAmountsUsingFirstPrice $
-                        groupBy groupfn $
-                        sortBy sortfn
-                        as
-    sortfn  | squashprices = compare `on` acommodity
-            | otherwise    = compare `on` \a -> (acommodity a, aprice a)
-    groupfn | squashprices = (==) `on` acommodity
-            | otherwise    = \a1 a2 -> acommodity a1 == acommodity a2 && combinableprices a1 a2
-
-    combinableprices Amount{aprice=Nothing} Amount{aprice=Nothing} = True
-    combinableprices Amount{aprice=Just (UnitPrice p1)} Amount{aprice=Just (UnitPrice p2)} = p1 == p2
-    combinableprices _ _ = False
+    newzero = maybe nullamt snd . M.lookupMin $ M.filter (not . T.null . acommodity) zeros
+    (zeros, nonzeros) = M.partition amountAndPriceIsZero amtMap
+    amtMap = foldr (\a -> M.insertWith sumSimilarAmountsUsingFirstPrice (key a) a) mempty as
+    key Amount{acommodity=c,aprice=p} = (c, if squashprices then Nothing else priceKey <$> p)
+      where
+        priceKey (UnitPrice  x) = (acommodity x, Just $ aquantity x)
+        priceKey (TotalPrice x) = (acommodity x, Nothing)
+    missingkey = key missingamt
 
 -- | Like normaliseMixedAmount, but combine each commodity's amounts
 -- into just one by throwing away all prices except the first. This is
@@ -600,9 +593,13 @@ unifyMixedAmount = foldM combine 0 . amounts
 -- | Sum same-commodity amounts in a lossy way, applying the first
 -- price to the result and discarding any other prices. Only used as a
 -- rendering helper.
-sumSimilarAmountsUsingFirstPrice :: [Amount] -> Amount
-sumSimilarAmountsUsingFirstPrice [] = nullamt
-sumSimilarAmountsUsingFirstPrice as = (sumStrict as){aprice=aprice $ head as}
+sumSimilarAmountsUsingFirstPrice :: Amount -> Amount -> Amount
+sumSimilarAmountsUsingFirstPrice a b = (a + b){aprice=p}
+  where
+    p = case (aprice a, aprice b) of
+        (Just (TotalPrice ap), Just (TotalPrice bp))
+          -> Just . TotalPrice $ ap{aquantity = aquantity ap + aquantity bp }
+        _ -> aprice a
 
 -- -- | Sum same-commodity amounts. If there were different prices, set
 -- -- the price to a special marker indicating "various". Only used as a
@@ -945,9 +942,7 @@ tests_Amount = tests "Amount" [
        [usd 1 @@ eur 1
        ,usd (-2) @@ eur 1
        ])
-        @?= Mixed [usd 1 @@ eur 1
-                   ,usd (-2) @@ eur 1
-                   ]
+        @?= Mixed [usd (-1) @@ eur 2 ]
 
     ,test "showMixedAmount" $ do
        showMixedAmount (Mixed [usd 1]) @?= "$1.00"
@@ -970,8 +965,8 @@ tests_Amount = tests "Amount" [
         normaliseMixedAmount (Mixed [usd 1 `at` eur 1, usd 1 `at` eur 1]) @?= Mixed [usd 2 `at` eur 1]
       ,test "amounts with different unit prices are not combined" $
         normaliseMixedAmount (Mixed [usd 1 `at` eur 1, usd 1 `at` eur 2]) @?= Mixed [usd 1 `at` eur 1, usd 1 `at` eur 2]
-      ,test "amounts with total prices are not combined" $
-        normaliseMixedAmount (Mixed  [usd 1 @@ eur 1, usd 1 @@ eur 1]) @?= Mixed [usd 1 @@ eur 1, usd 1 @@ eur 1]
+      ,test "amounts with total prices are combined" $
+        normaliseMixedAmount (Mixed  [usd 1 @@ eur 1, usd 1 @@ eur 1]) @?= Mixed [usd 2 @@ eur 2]
     ]
 
     ,test "normaliseMixedAmountSquashPricesForDisplay" $ do
