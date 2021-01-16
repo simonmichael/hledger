@@ -63,6 +63,8 @@ module Hledger.Data.Amount (
   amountCost,
   amountIsZero,
   amountLooksZero,
+  amountAndPriceIsZero,
+  amountAndPriceLooksZero,
   divideAmount,
   multiplyAmount,
   divideAmountAndPrice,
@@ -114,6 +116,8 @@ module Hledger.Data.Amount (
   isNegativeMixedAmount,
   mixedAmountIsZero,
   mixedAmountLooksZero,
+  mixedAmountAndPriceIsZero,
+  mixedAmountAndPriceLooksZero,
   mixedAmountTotalPriceToUnitPrice,
   -- ** rendering
   styleMixedAmount,
@@ -324,9 +328,26 @@ amountRoundedQuantity Amount{aquantity=q, astyle=AmountStyle{asprecision=p}} = c
 amountLooksZero :: Amount -> Bool
 amountLooksZero = (0==) . amountRoundedQuantity
 
+-- | Does mixed amount and its price appear to be zero when rendered with its
+-- display precision ?
+amountAndPriceLooksZero :: Amount -> Bool
+amountAndPriceLooksZero amt = amountLooksZero amt && priceLooksZero
+  where
+    priceLooksZero = case aprice amt of
+      Just (TotalPrice p) -> amountLooksZero p
+      _                   -> True
+
 -- | Is this amount exactly zero, ignoring its display precision ?
 amountIsZero :: Amount -> Bool
 amountIsZero Amount{aquantity=q} = q == 0
+
+-- | Are this amount and its price exactly zero, ignoring its display precision ?
+amountAndPriceIsZero :: Amount -> Bool
+amountAndPriceIsZero amt@Amount{aquantity=q} = q == 0 && priceIsZero
+  where
+    priceIsZero = case aprice amt of
+      Just (TotalPrice p) -> amountIsZero p
+      _                   -> True
 
 -- | Set an amount's display precision, flipped.
 withPrecision :: Amount -> AmountPrecision -> Amount
@@ -496,8 +517,7 @@ applyDigitGroupStyle (Just (DigitGroups c (g:gs))) l s = addseps (g:|gs) (toInte
 -- | Canonicalise an amount's display style using the provided commodity style map.
 canonicaliseAmount :: M.Map CommoditySymbol AmountStyle -> Amount -> Amount
 canonicaliseAmount styles a@Amount{acommodity=c, astyle=s} = a{astyle=s'}
-    where
-      s' = findWithDefault s c styles
+  where s' = M.findWithDefault s c styles
 
 -------------------------------------------------------------------------------
 -- MixedAmount
@@ -658,9 +678,18 @@ isNegativeMixedAmount m =
 mixedAmountLooksZero :: MixedAmount -> Bool
 mixedAmountLooksZero = all amountLooksZero . amounts . normaliseMixedAmountSquashPricesForDisplay
 
+-- | Does this mixed amount and its price appear to be zero when rendered with its
+-- display precision ?
+mixedAmountAndPriceLooksZero :: MixedAmount -> Bool
+mixedAmountAndPriceLooksZero = all amountAndPriceLooksZero . amounts . normaliseMixedAmountSquashPricesForDisplay
+
 -- | Is this mixed amount exactly zero, ignoring display precisions ?
 mixedAmountIsZero :: MixedAmount -> Bool
 mixedAmountIsZero = all amountIsZero . amounts . normaliseMixedAmountSquashPricesForDisplay
+
+-- | Is this mixed amount exactly zero, ignoring display precisions ?
+mixedAmountAndPriceIsZero :: MixedAmount -> Bool
+mixedAmountAndPriceIsZero = all amountAndPriceIsZero . amounts . normaliseMixedAmountSquashPricesForDisplay
 
 -- -- | MixedAmount derived Eq instance in Types.hs doesn't know that we
 -- -- want $0 = EUR0 = 0. Yet we don't want to drag all this code over there.
