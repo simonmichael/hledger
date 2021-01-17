@@ -1,3 +1,4 @@
+{-# LANGUAGE PackageImports #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NamedFieldPuns #-}
@@ -89,7 +90,7 @@ module Hledger.Data.Journal (
 where
 
 import Control.Monad.Except (ExceptT(..), runExceptT, throwError)
-import Control.Monad.Extra (whenM)
+import "extra" Control.Monad.Extra (whenM)
 import Control.Monad.Reader as R
 import Control.Monad.ST (ST, runST)
 import Data.Array.ST (STArray, getElems, newListArray, writeArray)
