@@ -54,6 +54,8 @@ module Hledger.Data.Journal (
   -- traverseJournalAmounts,
   -- journalCanonicalCommodities,
   journalPayeesDeclared,
+  journalPayeesUsed,
+  journalPayeesDeclaredOrUsed,
   journalCommoditiesDeclared,
   journalDateSpan,
   journalStartDate,
@@ -265,10 +267,6 @@ journalNextTransaction j t = journalTransactionAt j (tindex t + 1)
 journalPrevTransaction :: Journal -> Transaction -> Maybe Transaction
 journalPrevTransaction j t = journalTransactionAt j (tindex t - 1)
 
--- | Unique transaction descriptions used in this journal.
-journalDescriptions :: Journal -> [Text]
-journalDescriptions = nubSort . map tdescription . jtxns
-
 -- | All postings from this journal's transactions, in order.
 journalPostings :: Journal -> [Posting]
 journalPostings = concatMap tpostings . jtxns
@@ -277,9 +275,21 @@ journalPostings = concatMap tpostings . jtxns
 journalCommoditiesDeclared :: Journal -> [AccountName]
 journalCommoditiesDeclared = nubSort . M.keys . jcommodities
 
+-- | Unique transaction descriptions used in this journal.
+journalDescriptions :: Journal -> [Text]
+journalDescriptions = nubSort . map tdescription . jtxns
+
 -- | Sorted unique payees declared by payee directives in this journal.
 journalPayeesDeclared :: Journal -> [Payee]
 journalPayeesDeclared = nubSort . map fst . jdeclaredpayees
+
+-- | Sorted unique payees used by transactions in this journal.
+journalPayeesUsed :: Journal -> [Payee]
+journalPayeesUsed = nubSort . map transactionPayee . jtxns
+
+-- | Sorted unique payees used in transactions or declared by payee directives in this journal.
+journalPayeesDeclaredOrUsed :: Journal -> [Payee]
+journalPayeesDeclaredOrUsed j = nubSort $ journalPayeesDeclared j ++ journalPayeesUsed j
 
 -- | Sorted unique account names posted to by this journal's transactions.
 journalAccountNamesUsed :: Journal -> [AccountName]
