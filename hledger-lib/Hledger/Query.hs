@@ -44,6 +44,8 @@ module Hledger.Query (
   inAccountQuery,
   -- * matching
   matchesTransaction,
+  matchesDescription,
+  matchesPayeeWIP,
   matchesPosting,
   matchesAccount,
   matchesMixedAmount,
@@ -640,6 +642,33 @@ matchesTransaction (Tag n v) t = case (reString n, v) of
   ("payee", Just v) -> regexMatchText v $ transactionPayee t
   ("note", Just v) -> regexMatchText v $ transactionNote t
   (_, v) -> matchesTags n v $ transactionAllTags t
+
+-- | Does the query match this transaction description ?
+-- Tests desc: terms, any other terms are ignored.
+matchesDescription :: Query -> Text -> Bool
+matchesDescription (Not q) d      = not $ q `matchesDescription` d
+matchesDescription (Any) _        = True
+matchesDescription (None) _       = False
+matchesDescription (Or qs) d      = any (`matchesDescription` d) $ filter queryIsDesc qs
+matchesDescription (And qs) d     = all (`matchesDescription` d) $ filter queryIsDesc qs
+matchesDescription (Code _) _     = False
+matchesDescription (Desc r) d     = regexMatchText r d
+matchesDescription (Acct _) _     = False
+matchesDescription (Date _) _     = False
+matchesDescription (Date2 _) _    = False
+matchesDescription (StatusQ _) _  = False
+matchesDescription (Real _) _     = False
+matchesDescription (Amt _ _) _    = False
+matchesDescription (Depth _) _    = False
+matchesDescription (Sym _) _      = False
+matchesDescription (Tag _ _) _    = False
+
+-- | Does the query match this transaction payee ?
+-- Tests desc: (and payee: ?) terms, any other terms are ignored.
+-- XXX Currently an alias for matchDescription. I'm not sure if more is needed,
+-- There's some shenanigan with payee: and "payeeTag" to figure out.
+matchesPayeeWIP :: Query -> Payee -> Bool
+matchesPayeeWIP q p = matchesDescription q p
 
 -- | Does the query match the name and optionally the value of any of these tags ?
 matchesTags :: Regexp -> Maybe Regexp -> [Tag] -> Bool
