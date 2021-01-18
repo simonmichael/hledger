@@ -2,18 +2,32 @@
 
 # basic payees report
 <
-2018/1/1 foo  ; foo:
+payee qux
+
+2018/1/1 foo
   a
 
-2018/1/1 bar | baz
+2018/1/2 bar | baz
   a
 
+2018/1/3 foo
+  a
+
+# declared and used payees, the default
 $ hledger -f - payees
 bar
 foo
->=
+qux
 
-# filtering transactions by tag
-$ hledger -f - payees tag:foo
+# used payees
+$ hledger -f - payees --used
+bar
 foo
->=
+
+# declared payees
+$ hledger -f - payees --declared
+qux
+
+# payees used in transactions matched by a query
+$ hledger -f - payees date:2018-01-03
+foo
