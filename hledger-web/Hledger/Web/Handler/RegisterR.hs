@@ -9,7 +9,7 @@
 
 module Hledger.Web.Handler.RegisterR where
 
-import Data.List (intersperse, nub, partition)
+import Data.List (intersperse, nub, partition, sortOn)
 import qualified Data.Text as T
 import Text.Hamlet (hamletFile)
 
@@ -51,6 +51,12 @@ getRegisterR = do
         | isJust (inAccount qopts) = "Period Total"
         | otherwise                = "Total"
       transactionFrag = transactionFragment j
+      (chartQuery, depth) =
+          case (,) <$> inAccount qopts <*> inAccountQuery qopts of
+              Nothing -> (Any, 0)
+              Just ((an, _), aq) -> (aq, accountNameLevel an)
+      rspecWithQuery = rspec { rsQuery = (And [chartQuery, Depth $ depth + 1, m]) }
+      balancereport = balanceReport rspecWithQuery j
   defaultLayout $ do
     setTitle "register - hledger-web"
     $(widgetFile "register")
@@ -112,10 +118,15 @@ registerChartHtml q title percommoditytxnreports = $(hamletFile "templates/chart
    nodatelink = (RegisterR, [("q", T.unwords $ removeDates q)])
 
 -- | Generate javascript/html for a mockup pie chart
-registerPieChartHtml :: HtmlUrl AppRoute
-registerPieChartHtml title = $(hamletFile "templates/piechart.hamlet")
- where
-   charttitle = "Pie Chart" :: String
+registerPieChartHtml :: BalanceReport -> HtmlUrl AppRoute
+registerPieChartHtml (items, _) = $(hamletFile "templates/piechart.hamlet")
+  where
+    charttitle = "Pie Chart" :: String
+    labelDataTuples =
+      reverse $
+      sortOn snd $
+      flip concatMap items $ \(accname, _, _, Mixed as) ->
+        flip map as $ \a -> (accname, aquantity a)
 
 dayToJsTimestamp :: Day -> Integer
 dayToJsTimestamp d =

@@ -1,5 +1,6 @@
 <label #register-pie-chart-label style=""><br>
 <div #register-pie-chart style="height:150px; margin-bottom:1em; display:block;">
+<div #piehover>
 <script type=text/javascript>
  \$(document).ready(function() {
    var $chartdiv = $('#register-pie-chart');
@@ -7,17 +8,33 @@
      \$('#register-pie-chart-label').text('#{charttitle}');
      var data =
        [
-         { label: "Food", data: 5 },
-         { label: "Rent", data: 10 },
-         { label: "Internet", data: 85 }
+         $forall (label, dat) <- labelDataTuples
+           { label: "#{label}", data: #{dat} },
        ];
+     function legendFormatter(label, series) {
+       return Math.round(series.percent).toFixed(2) + '% ' + label;
+     };
      var options = {
        series: {
          pie: {
            show: true
          }
+       },
+       grid: {
+         hoverable: true
+       },
+       legend: {
+         show: true,
+         labelFormatter: legendFormatter
        }
      };
      \$.plot($chartdiv, data, options);
+     \$chartdiv.bind("plothover", function(event, pos, obj) {
+       if (!obj) {
+         return;
+       }
+       var percent = parseFloat(obj.series.percent).toFixed(2);
+       \$("#piehover").html("<span style='font-weight:bold; color:" + obj.series.color + "'>" + obj.series.label + " (" + percent + "%)</span>");
+     });
    }
  });
