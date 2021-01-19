@@ -1,0 +1,23 @@
+<label #register-pie-chart-label style=""><br>
+<div #register-pie-chart style="height:150px; margin-bottom:1em; display:block;">
+<script type=text/javascript>
+ \$(document).ready(function() {
+   var $chartdiv = $('#register-pie-chart');
+   if ($chartdiv.is(':visible')) {
+     \$('#register-pie-chart-label').text('#{charttitle}');
+     var data =
+       [
+         { label: "Food", data: 5 },
+         { label: "Rent", data: 10 },
+         { label: "Internet", data: 85 }
+       ];
+     var options = {
+       series: {
+         pie: {
+           show: true
+         }
+       }
+     };
+     \$.plot($chartdiv, data, options);
+   }
+ });

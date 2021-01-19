@@ -111,6 +111,12 @@ registerChartHtml q title percommoditytxnreports = $(hamletFile "templates/chart
    shownull c = if null c then " " else c
    nodatelink = (RegisterR, [("q", T.unwords $ removeDates q)])
 
+-- | Generate javascript/html for a mockup pie chart
+registerPieChartHtml :: HtmlUrl AppRoute
+registerPieChartHtml title = $(hamletFile "templates/piechart.hamlet")
+ where
+   charttitle = "Pie Chart" :: String
+
 dayToJsTimestamp :: Day -> Integer
 dayToJsTimestamp d =
   read (formatTime defaultTimeLocale "%s" t) * 1000 -- XXX read
