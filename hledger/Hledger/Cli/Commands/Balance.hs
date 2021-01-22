@@ -343,10 +343,36 @@ balance opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
             render = case fmt of
               "txt"  -> \ropts -> TB.toLazyText . balanceReportAsText ropts
               "csv"  -> \ropts -> printCSV . balanceReportAsCsv ropts
+              -- "html" -> \ropts -> (<>"\n") . L.renderText . multiBalanceReportAsHtml ropts . balanceReportAsMultiBalanceReport ropts
               "json" -> const $ (<>"\n") . toJsonText
               _      -> error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
         writeOutputLazyText opts $ render ropts report
 
+-- XXX this allows rough HTML rendering of a flat BalanceReport, but it can't handle tree mode etc.
+-- -- | Convert a BalanceReport to a MultiBalanceReport.
+-- balanceReportAsMultiBalanceReport :: ReportOpts -> BalanceReport -> MultiBalanceReport 
+-- balanceReportAsMultiBalanceReport _ropts (britems, brtotal) = 
+--   let
+--     mbrrows = 
+--       [PeriodicReportRow{
+--           prrName    = flatDisplayName brfullname
+--         , prrAmounts = [bramt]
+--         , prrTotal   = bramt
+--         , prrAverage = bramt
+--         }
+--       | (brfullname, _, _, bramt) <- britems
+--       ]
+--   in
+--     PeriodicReport{
+--         prDates  = [nulldatespan]
+--       , prRows   = mbrrows
+--       , prTotals = PeriodicReportRow{
+--            prrName=()
+--           ,prrAmounts=[brtotal]
+--           ,prrTotal=brtotal
+--           ,prrAverage=brtotal
+--           }
+--       }
 
 -- XXX should all the per-report, per-format rendering code live in the command module,
 -- like the below, or in the report module, like budgetReportAsText/budgetReportAsCsv ?
