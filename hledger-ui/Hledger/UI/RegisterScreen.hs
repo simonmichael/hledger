@@ -65,10 +65,19 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec
     -- XXX temp
     inclusive = tree_ ropts || rsForceInclusive
     thisacctq = Acct $ (if inclusive then accountNameToAccountRegex else accountNameToAccountOnlyRegex) rsAccount
-
-    rspec' = rspec{rsOpts=ropts{depth_=Nothing}}
+    ropts' = ropts {
+        -- ignore any depth limit, as in postingsReport; allows register's total to match accounts screen
+        depth_=Nothing
+      -- XXX aregister also has this, needed ?
+        -- always show historical balance
+      -- , balancetype_= HistoricalBalance
+      }
+    -- regenerate the ReportSpec, making sure to use the above
+    rspec' = rspec{ rsQuery=simplifyQuery $ queryFromFlags ropts'
+                  , rsOpts=ropts'
+                  }
     -- Further restrict the query based on the current period and future/forecast mode.
-    q = simplifyQuery $ And [rsQuery rspec, periodq, excludeforecastq (forecast_ ropts)]
+    q = simplifyQuery $ And [rsQuery rspec', periodq, excludeforecastq (forecast_ ropts)]
       where
         periodq = Date $ periodAsDateSpan $ period_ ropts
         -- Except in forecast mode, exclude future/forecast transactions.
