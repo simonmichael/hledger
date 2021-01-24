@@ -1,16 +1,16 @@
 # aregister always includes transactions in subaccounts, ignoring a depth limit #1448
-#<
-#2021-01-01
-#  (a)  1
-#
-#2021-01-02
-#  (a:aa)  10
-#
-#2021-01-03
-#  (a:aa:aaa)  100
-#
-#$ hledger -f- areg a -1 -w80
-#Transactions in a and subaccounts:
-#2021-01-01                      a                                1             1
-#2021-01-02                      a:aa                            10            11
-#2021-01-03                      a:aa:aaa                       100           111
+<
+2021-01-01
+  (a)  1
+
+2021-01-02
+  (a:aa)  10
+
+2021-01-03
+  (a:aa:aaa)  100
+
+$ hledger -f- areg a -1 -w80
+Transactions in a and subaccounts:
+2021-01-01                      a                                1             1
+2021-01-02                      a:aa                            10            11
+2021-01-03                      a:aa:aaa                       100           111
