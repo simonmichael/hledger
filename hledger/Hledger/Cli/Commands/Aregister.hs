@@ -83,16 +83,16 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
     -- gather report options
     inclusive = True  -- tree_ ropts
     thisacctq = Acct $ (if inclusive then accountNameToAccountRegex else accountNameToAccountOnlyRegex) acct
-    rspec' = rspec{ rsQuery=simplifyQuery $ And [queryFromFlags ropts, argsquery]
-                  , rsOpts=ropts'
-                  }
-    ropts' = ropts
-      { -- remove a depth limit for reportq, as in RegisterScreen, I forget why XXX
+    ropts' = (rsOpts rspec) {
+        -- ignore any depth limit, as in postingsReport; allows register's total to match balance reports (cf #1468)
         depth_=Nothing
         -- always show historical balance
       , balancetype_= HistoricalBalance
       }
-    ropts = rsOpts rspec
+    -- and regenerate the ReportSpec, making sure to use the above
+    rspec' = rspec{ rsQuery=simplifyQuery $ And [queryFromFlags ropts', argsquery]
+                  , rsOpts=ropts'
+                  }
     reportq = And [rsQuery rspec', excludeforecastq (isJust $ forecast_ ropts')]
       where
         -- As in RegisterScreen, why ? XXX
@@ -106,7 +106,7 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
     -- run the report
     -- TODO: need to also pass the queries so we can choose which date to render - move them into the report ?
     items = accountTransactionsReport rspec' j reportq thisacctq
-    items' = (if empty_ ropts then id else filter (not . mixedAmountLooksZero . fifth6)) $
+    items' = (if empty_ ropts' then id else filter (not . mixedAmountLooksZero . fifth6)) $
              reverse items
     -- select renderer
     render | fmt=="txt"  = accountTransactionsReportAsText opts reportq thisacctq
