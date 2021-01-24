@@ -24,7 +24,9 @@ revenues/expenses.
 An account must be specified as the first argument, which should be
 the full account name or an account pattern (regular expression).
 aregister will show transactions in this account (the first one
-matched) and any of its subaccounts.
+matched) and any of its subaccounts. (`aregister` ignores any
+depth limit, so its final total will always match a balance report
+with similar arguments.)
 
 Any additional arguments form a query which will filter the
 transactions shown.
