@@ -127,6 +127,7 @@ registerPieChartHtml (items, _) = $(hamletFile "templates/piechart.hamlet")
       sortOn snd $
       flip concatMap items $ \(accname, _, _, Mixed as) ->
         flip map as $ \a -> (accname, aquantity a)
+    showChart = if ((length labelDataTuples) > 1) then "true" else "false" :: String
 
 dayToJsTimestamp :: Day -> Integer
 dayToJsTimestamp d =
