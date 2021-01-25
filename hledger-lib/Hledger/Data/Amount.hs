@@ -615,7 +615,7 @@ mapMixedAmount f (Mixed as) = Mixed $ map f as
 -- | Convert all component amounts to cost/selling price where
 -- possible (see amountCost).
 mixedAmountCost :: MixedAmount -> MixedAmount
-mixedAmountCost (Mixed as) = Mixed $ map amountCost as
+mixedAmountCost = mapMixedAmount amountCost
 
 -- | Divide a mixed amount's quantities by a constant.
 divideMixedAmount :: Quantity -> MixedAmount -> MixedAmount
@@ -671,7 +671,7 @@ mixedAmountIsZero = all amountIsZero . amounts . normaliseMixedAmountSquashPrice
 -- | Given a map of standard commodity display styles, apply the
 -- appropriate one to each individual amount.
 styleMixedAmount :: M.Map CommoditySymbol AmountStyle -> MixedAmount -> MixedAmount
-styleMixedAmount styles (Mixed as) = Mixed $ map (styleAmount styles) as
+styleMixedAmount styles = mapMixedAmount (styleAmount styles)
 
 -- | Reset each individual amount's display style to the default.
 mixedAmountUnstyled :: MixedAmount -> MixedAmount
@@ -842,20 +842,20 @@ ltraceamount s = traceWith (((s ++ ": ") ++).showMixedAmount)
 
 -- | Set the display precision in the amount's commodities.
 setMixedAmountPrecision :: AmountPrecision -> MixedAmount -> MixedAmount
-setMixedAmountPrecision p (Mixed as) = Mixed $ map (setAmountPrecision p) as
+setMixedAmountPrecision p = mapMixedAmount (setAmountPrecision p)
 
 mixedAmountStripPrices :: MixedAmount -> MixedAmount
-mixedAmountStripPrices (Mixed as) = Mixed $ map (\a -> a{aprice=Nothing}) as
+mixedAmountStripPrices = mapMixedAmount (\a -> a{aprice=Nothing})
 
 -- | Canonicalise a mixed amount's display styles using the provided commodity style map.
 canonicaliseMixedAmount :: M.Map CommoditySymbol AmountStyle -> MixedAmount -> MixedAmount
-canonicaliseMixedAmount styles (Mixed as) = Mixed $ map (canonicaliseAmount styles) as
+canonicaliseMixedAmount styles = mapMixedAmount (canonicaliseAmount styles)
 
 -- | Replace each component amount's TotalPrice, if it has one, with an equivalent UnitPrice.
 -- Has no effect on amounts without one.
 -- Does Decimal division, might be some rounding/irrational number issues.
 mixedAmountTotalPriceToUnitPrice :: MixedAmount -> MixedAmount
-mixedAmountTotalPriceToUnitPrice (Mixed as) = Mixed $ map amountTotalPriceToUnitPrice as
+mixedAmountTotalPriceToUnitPrice = mapMixedAmount amountTotalPriceToUnitPrice
 
 
 -------------------------------------------------------------------------------
