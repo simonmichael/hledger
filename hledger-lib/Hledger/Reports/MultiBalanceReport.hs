@@ -574,17 +574,17 @@ cumulativeSum value start = snd . M.mapAccumWithKey accumValued start
 -- MultiBalanceReport.
 postingAndAccountValuations :: ReportSpec -> Journal -> PriceOracle
                             -> (DateSpan -> Posting -> Posting, DateSpan -> Account -> Account)
-postingAndAccountValuations rspec@ReportSpec{rsOpts=ropts} j priceoracle =
-  case value_ ropts of
-    Nothing -> (const id, const id)
-    Just v  -> if changingValuation ropts then (const id, avalue' v) else (pvalue' v, const id)
+postingAndAccountValuations rspec@ReportSpec{rsOpts=ropts} j priceoracle
+    | changingValuation ropts = (const id, avalue' NoCost mv)
+    | otherwise               = (pvalue' NoCost mv, const id)
   where
-    avalue' v span a = a{aibalance = value (aibalance a), aebalance = value (aebalance a)}
-      where value = mixedAmountApplyValuation priceoracle styles (end span) (rsToday rspec) (error "multiBalanceReport: did not expect amount valuation to be called ") v  -- PARTIAL: should not happen
-    pvalue' v span = postingApplyValuation priceoracle styles (end span) (rsToday rspec) v
+    avalue' c v span a = a{aibalance = value (aibalance a), aebalance = value (aebalance a)}
+      where value = mixedAmountApplyCostValuation priceoracle styles (end span) (rsToday rspec) (error "multiBalanceReport: did not expect amount valuation to be called ") c v  -- PARTIAL: should not happen
+    pvalue' c v span = postingApplyCostValuation priceoracle styles (end span) (rsToday rspec) c v
     end = fromMaybe (error "multiBalanceReport: expected all spans to have an end date")  -- XXX should not happen
         . fmap (addDays (-1)) . spanEnd
     styles = journalCommodityStyles j
+    mv = value_ ropts
 
 -- tests
 

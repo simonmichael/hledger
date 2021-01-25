@@ -40,11 +40,8 @@ entriesReport rspec@ReportSpec{rsOpts=ropts@ReportOpts{..}} j@Journal{..} =
     -- We may be converting posting amounts to value, per hledger_options.m4.md "Effect of --value on reports".
     tvalue t@Transaction{..} = t{tpostings=map pvalue tpostings}
       where
-        pvalue = maybe id
-          (postingApplyValuation (journalPriceOracle infer_value_ j) (journalCommodityStyles j) periodlast (rsToday rspec))
-          value_
-          where
-            periodlast  = fromMaybe (rsToday rspec) $ reportPeriodOrJournalLastDay rspec j
+        pvalue = postingApplyCostValuation (journalPriceOracle infer_value_ j) (journalCommodityStyles j) periodlast (rsToday rspec) NoCost value_
+          where periodlast  = fromMaybe (rsToday rspec) $ reportPeriodOrJournalLastDay rspec j
 
 tests_EntriesReport = tests "EntriesReport" [
   tests "entriesReport" [
