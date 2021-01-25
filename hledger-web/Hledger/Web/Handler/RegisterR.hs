@@ -118,8 +118,8 @@ registerChartHtml q title percommoditytxnreports = $(hamletFile "templates/chart
    nodatelink = (RegisterR, [("q", T.unwords $ removeDates q)])
 
 -- | Generate javascript/html for a mockup pie chart
-registerPieChartHtml :: BalanceReport -> HtmlUrl AppRoute
-registerPieChartHtml (items, _) = $(hamletFile "templates/piechart.hamlet")
+registerPieChartHtml :: Text -> BalanceReport -> HtmlUrl AppRoute
+registerPieChartHtml q (items, _) = $(hamletFile "templates/piechart.hamlet")
   where
     charttitle = "Pie Chart" :: String
     labelDataTuples =
@@ -128,6 +128,7 @@ registerPieChartHtml (items, _) = $(hamletFile "templates/piechart.hamlet")
       flip concatMap items $ \(accname, _, _, Mixed as) ->
         flip map as $ \a -> (accname, aquantity a)
     showChart = if ((length labelDataTuples) > 1) then "true" else "false" :: String
+    noacctlink = (RegisterR, [("q", T.unwords $ removeInacct q)])
 
 dayToJsTimestamp :: Day -> Integer
 dayToJsTimestamp d =

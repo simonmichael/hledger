@@ -22,7 +22,8 @@
          }
        },
        grid: {
-         hoverable: true
+         hoverable: true,
+         clickable: true
        },
        legend: {
          show: true,
@@ -36,6 +37,17 @@
        }
        var percent = parseFloat(obj.series.percent).toFixed(2);
        \$("#piehover").html("<span style='font-weight:bold; color:" + obj.series.color + "'>" + obj.series.label + " (" + percent + "%)</span>");
+     });
+     \$chartdiv.bind("plotclick", function(event, pos, obj) {
+       if (!obj) {
+         return;
+       }
+       var baselink = "@?{noacctlink}";
+       if (baselink.endsWith("?q")) {
+         document.location = baselink + "=inacct:%22" + obj.series.label + "%22";
+       } else {
+         document.location = baselink + "%20inacct:%22" + obj.series.label + "%22";
+       }
      });
    }
  });
