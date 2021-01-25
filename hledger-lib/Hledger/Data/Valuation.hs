@@ -13,11 +13,13 @@ looking up historical market prices (exchange rates) between commodities.
 {-# LANGUAGE DeriveGeneric #-}
 
 module Hledger.Data.Valuation (
-   ValuationType(..)
+   Costing(..)
+  ,ValuationType(..)
   ,PriceOracle
   ,journalPriceOracle
   -- ,amountApplyValuation
   -- ,amountValueAtDate
+  ,mixedAmountApplyCostValuation
   ,mixedAmountApplyValuation
   ,mixedAmountValueAtDate
   ,marketPriceReverse
@@ -50,6 +52,10 @@ import Text.Printf (printf)
 
 ------------------------------------------------------------------------------
 -- Types
+
+-- | Whether to convert amounts to cost.
+data Costing = Cost | NoCost
+  deriving (Show,Eq)
 
 -- | What kind of value conversion should be done on amounts ?
 -- CLI: --value=cost|then|end|now|DATE[,COMM]
@@ -94,9 +100,21 @@ priceDirectiveToMarketPrice PriceDirective{..} =
 ------------------------------------------------------------------------------
 -- Converting things to value
 
+-- | Apply a specified costing and valuation to this mixed amount,
+-- using the provided price oracle, commodity styles, and reference dates.
+-- Costing is done first if requested, and after that any valuation.
+-- See amountApplyValuation and amountCost.
+mixedAmountApplyCostValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Day -> Costing -> Maybe ValuationType -> MixedAmount -> MixedAmount
+mixedAmountApplyCostValuation priceoracle styles periodlast today postingdate cost v =
+    valuation  -- . costing
+  where
+    valuation = maybe id (mixedAmountApplyValuation priceoracle styles periodlast today postingdate) v
+    costing = case cost of
+        Cost   -> styleMixedAmount styles . mixedAmountCost
+        NoCost -> id
+
 -- | Apply a specified valuation to this mixed amount, using the
--- provided price oracle, commodity styles, reference dates, and
--- whether this is for a multiperiod report or not.
+-- provided price oracle, commodity styles, and reference dates.
 -- See amountApplyValuation.
 mixedAmountApplyValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Day -> ValuationType -> MixedAmount -> MixedAmount
 mixedAmountApplyValuation priceoracle styles periodlast today postingdate v =
@@ -114,7 +132,7 @@ mixedAmountApplyValuation priceoracle styles periodlast today postingdate v =
 --
 -- - a fixed date specified by the ValuationType itself
 --   (--value=DATE).
--- 
+--
 -- - the provided "period end" date - this is typically the last day
 --   of a subperiod (--value=end with a multi-period report), or of
 --   the specified report period or the journal (--value=end with a
