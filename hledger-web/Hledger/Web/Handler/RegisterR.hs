@@ -19,7 +19,7 @@ import Hledger.Web.WebOptions
 import Hledger.Web.Widget.AddForm (addModal)
 import Hledger.Web.Widget.Common
              (accountQuery, mixedAmountAsHtml,
-              transactionFragment, removeInacct, replaceInacct)
+              transactionFragment, removeDates, removeInacct, replaceInacct)
 
 -- | The main journal/account register view, with accounts sidebar.
 getRegisterR :: Handler Html
@@ -99,8 +99,8 @@ decorateLinks =
 
 -- | Generate javascript/html for a register balance line chart based on
 -- the provided "TransactionsReportItem"s.
-registerChartHtml :: String -> [(CommoditySymbol, [TransactionsReportItem])] -> HtmlUrl AppRoute
-registerChartHtml title percommoditytxnreports = $(hamletFile "templates/chart.hamlet")
+registerChartHtml :: Text -> String -> [(CommoditySymbol, [TransactionsReportItem])] -> HtmlUrl AppRoute
+registerChartHtml q title percommoditytxnreports = $(hamletFile "templates/chart.hamlet")
  -- have to make sure plot is not called when our container (maincontent)
  -- is hidden, eg with add form toggled
  where
@@ -109,6 +109,7 @@ registerChartHtml title percommoditytxnreports = $(hamletFile "templates/chart.h
    commoditiesIndex = zip (map fst percommoditytxnreports) [0..] :: [(CommoditySymbol,Int)]
    simpleMixedAmountQuantity = maybe 0 aquantity . listToMaybe . amounts
    shownull c = if null c then " " else c
+   nodatelink = (RegisterR, [("q", T.unwords $ removeDates q)])
 
 dayToJsTimestamp :: Day -> Integer
 dayToJsTimestamp d =

@@ -15,6 +15,7 @@ module Hledger.Web.Widget.Common
   , writeJournalTextIfValidAndChanged
   , journalFile404
   , transactionFragment
+  , removeDates
   , removeInacct
   , replaceInacct
   ) where
@@ -119,6 +120,13 @@ transactionFragment j Transaction{tindex, tsourcepos} =
     -- the numeric index of this txn's file within all the journal files,
     -- or 0 if this txn has no known file (eg a forecasted txn)
     tfileindex = maybe 0 (+1) $ elemIndex (sourceFilePath tsourcepos) (journalFilePaths j)
+
+removeDates :: Text -> [Text]
+removeDates =
+    map quoteIfSpaced .
+    filter (\term ->
+        not $ T.isPrefixOf "date:" term || T.isPrefixOf "date2:" term) .
+    Query.words'' Query.prefixes
 
 removeInacct :: Text -> [Text]
 removeInacct =

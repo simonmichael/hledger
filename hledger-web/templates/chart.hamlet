@@ -55,5 +55,20 @@
      ]
      var plot = registerChart($chartdiv, seriesData);
      \$chartdiv.bind("plotclick", registerChartClick);
+     plot.setSelection({ xaxis: { from: 500, to: 700 } });
+     \$chartdiv.bind("plotselected", function(event, ranges) {
+       console.log("selected", ranges.xaxis.from, ranges.xaxis.to);
+       var from = new Date(ranges.xaxis.from);
+       var to = new Date(ranges.xaxis.to);
+       var range =
+         from.getFullYear() + "/" + (from.getMonth() + 1) + "/" + from.getDate() + "-" +
+         to.getFullYear() + "/" + (to.getMonth() + 1) + "/" + to.getDate();
+       var baselink = "@?{nodatelink}";
+       if (baselink.endsWith("?q")) {
+         document.location = baselink + "=date:" + range;
+       } else {
+         document.location = baselink + "%20date:" + range;
+       }
+     });
    };
  });
