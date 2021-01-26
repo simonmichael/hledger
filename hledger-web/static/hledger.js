@@ -58,7 +58,10 @@ function registerChart($container, series) {
     { /* general chart options */
       xaxis: {
         mode: "time",
-        timeformat: "%Y/%m/%d"
+        timeformat: "%Y/%m/%d",
+      },
+      selection: {
+        mode: "x"
       },
       legend: {
         position: 'sw'
