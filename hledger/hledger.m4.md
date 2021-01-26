@@ -885,21 +885,17 @@ $ hledger -f t.j bal -N euros -V
 
 ## --value: Flexible valuation
 
-`-B`, `-V` and `-X` are special cases of the more general `--value` option:
+`-V` and `-X` are special cases of the more general `--value` option:
 
-     --value=TYPE[,COMM]  TYPE is cost, then, end, now or YYYY-MM-DD.
+     --value=TYPE[,COMM]  TYPE is then, end, now or YYYY-MM-DD.
                           COMM is an optional commodity symbol.
                           Shows amounts converted to:
-                          - cost commodity using transaction prices (then optionally to COMM using market prices at period end(s))
                           - default valuation commodity (or COMM) using market prices at posting dates
                           - default valuation commodity (or COMM) using market prices at period end(s)
                           - default valuation commodity (or COMM) using current market prices
                           - default valuation commodity (or COMM) using market prices at some date
 
 The TYPE part selects cost or value and valuation date:
-
-`--value=cost`
-: Convert amounts to cost, using the prices recorded in transactions.
 
 `--value=then`
 : Convert amounts to their value in the [default valuation commodity](#valuation-commodity),
@@ -945,7 +941,7 @@ P 2000-04-01 A  4 B
 
 Show the cost of each posting:
 ```shell
-$ hledger -f- print --value=cost
+$ hledger -f- print --cost
 2000-01-01
     (a)             5 B
 
@@ -1056,7 +1052,7 @@ Related:
 [#329](https://github.com/simonmichael/hledger/issues/329),
 [#1083](https://github.com/simonmichael/hledger/issues/1083).
 
-| Report type                                         | `-B`, `--value=cost`                                             | `-V`, `-X`                                                        | `--value=then`                                                                                 | `--value=end`                                                     | `--value=DATE`, `--value=now`           |
+| Report type                                         | `-B`, `--cost`                                                   | `-V`, `-X`                                                        | `--value=then`                                                                                 | `--value=end`                                                     | `--value=DATE`, `--value=now`           |
 |-----------------------------------------------------|------------------------------------------------------------------|-------------------------------------------------------------------|------------------------------------------------------------------------------------------------|-------------------------------------------------------------------|-----------------------------------------|
 | **print**                                           |                                                                  |                                                                   |                                                                                                |                                                                   |                                         |
 | posting amounts                                     | cost                                                             | value at report end or today                                      | value at posting date                                                                          | value at report or journal end                                    | value at DATE/today                     |

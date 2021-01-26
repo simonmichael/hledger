@@ -458,7 +458,7 @@ flat_ = not . tree_
 -- depthFromOpts opts = min (fromMaybe 99999 $ depth_ opts) (queryDepth $ queryFromOpts nulldate opts)
 
 -- | Convert this journal's postings' amounts to cost using their
--- transaction prices, if specified by options (-B/--value=cost).
+-- transaction prices, if specified by options (-B/--cost).
 -- Maybe soon superseded by newer valuation code.
 journalSelectingAmountFromOpts :: ReportOpts -> Journal -> Journal
 journalSelectingAmountFromOpts opts = case cost_ opts of
