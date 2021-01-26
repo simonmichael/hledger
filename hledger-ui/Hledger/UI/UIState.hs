@@ -113,18 +113,16 @@ clearCostValue ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=
 -- | Toggle between showing the primary amounts or costs.
 toggleCost :: UIState -> UIState
 toggleCost ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts}}}} =
-  ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{rsOpts=ropts{value_ = valuationToggleCost $ value_ ropts}}}}}
+    ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{rsOpts=ropts{cost_ = toggle $ cost_ ropts}}}}}
+  where
+    toggle Cost   = NoCost
+    toggle NoCost = Cost
 
 -- | Toggle between showing primary amounts or default valuation.
 toggleValue :: UIState -> UIState
 toggleValue ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts}}}} =
   ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{rsOpts=ropts{
     value_ = plog "toggling value mode to" $ valuationToggleValue $ value_ ropts}}}}}
-
--- | Basic toggling of -B/cost, for hledger-ui.
-valuationToggleCost :: Maybe ValuationType -> Maybe ValuationType
-valuationToggleCost (Just (AtCost _)) = Nothing
-valuationToggleCost _                 = Just $ AtCost Nothing
 
 -- | Basic toggling of -V, for hledger-ui.
 valuationToggleValue :: Maybe ValuationType -> Maybe ValuationType

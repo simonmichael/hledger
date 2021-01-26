@@ -58,10 +58,9 @@ data Costing = Cost | NoCost
   deriving (Show,Eq)
 
 -- | What kind of value conversion should be done on amounts ?
--- CLI: --value=cost|then|end|now|DATE[,COMM]
+-- CLI: --value=then|end|now|DATE[,COMM]
 data ValuationType =
-    AtCost     (Maybe CommoditySymbol)  -- ^ convert to cost commodity using transaction prices, then optionally to given commodity using market prices at posting date
-  | AtThen     (Maybe CommoditySymbol)  -- ^ convert to default or given valuation commodity, using market prices at each posting's date
+    AtThen     (Maybe CommoditySymbol)  -- ^ convert to default or given valuation commodity, using market prices at each posting's date
   | AtEnd      (Maybe CommoditySymbol)  -- ^ convert to default or given valuation commodity, using market prices at period end(s)
   | AtNow      (Maybe CommoditySymbol)  -- ^ convert to default or given valuation commodity, using current market prices
   | AtDate Day (Maybe CommoditySymbol)  -- ^ convert to default or given valuation commodity, using market prices on some date
@@ -106,7 +105,7 @@ priceDirectiveToMarketPrice PriceDirective{..} =
 -- See amountApplyValuation and amountCost.
 mixedAmountApplyCostValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Day -> Costing -> Maybe ValuationType -> MixedAmount -> MixedAmount
 mixedAmountApplyCostValuation priceoracle styles periodlast today postingdate cost v =
-    valuation  -- . costing
+    valuation . costing
   where
     valuation = maybe id (mixedAmountApplyValuation priceoracle styles periodlast today postingdate) v
     costing = case cost of
@@ -151,8 +150,6 @@ mixedAmountApplyValuation priceoracle styles periodlast today postingdate v =
 amountApplyValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Day -> ValuationType -> Amount -> Amount
 amountApplyValuation priceoracle styles periodlast today postingdate v a =
   case v of
-    AtCost    Nothing -> styleAmount styles $ amountCost a
-    AtCost    mc      -> amountValueAtDate priceoracle styles mc periodlast . styleAmount styles $ amountCost a
     AtThen    mc      -> amountValueAtDate priceoracle styles mc postingdate a
     AtEnd     mc      -> amountValueAtDate priceoracle styles mc periodlast a
     AtNow     mc      -> amountValueAtDate priceoracle styles mc today a

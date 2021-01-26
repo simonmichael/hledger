@@ -61,7 +61,7 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{rsOpts=ReportOpts{..}
   d <- getCurrentDay
   -- We may be converting posting amounts to value, per hledger_options.m4.md "Effect of --value on reports".
   let
-    tvalue = transactionApplyCostValuation (journalPriceOracle infer_value_ j) (journalCommodityStyles j) periodlast (rsToday rspec) NoCost value_
+    tvalue = transactionApplyCostValuation (journalPriceOracle infer_value_ j) (journalCommodityStyles j) periodlast (rsToday rspec) cost_ value_
       where periodlast = fromMaybe (rsToday rspec) $ reportPeriodOrJournalLastDay rspec j
   let
     ropts = rsOpts rspec

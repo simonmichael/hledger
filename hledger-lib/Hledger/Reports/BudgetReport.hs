@@ -226,8 +226,10 @@ budgetReportAsText ropts@ReportOpts{..} budgetr = TB.toLazyText $
         (textCell TopLeft) (textCell TopRight) (uncurry showcell) displayTableWithWidths
   where
     title = "Budget performance in " <> showDateSpan (periodicReportSpan budgetr)
+           <> (case cost_ of
+                 Cost   -> ", converted to cost"
+                 NoCost -> "")
            <> (case value_ of
-                 Just (AtCost _mc)   -> ", valued at cost"
                  Just (AtThen _mc)   -> ", valued at posting date"
                  Just (AtEnd _mc)    -> ", valued at period ends"
                  Just (AtNow _mc)    -> ", current value"
@@ -284,9 +286,9 @@ budgetReportAsText ropts@ReportOpts{..} budgetr = TB.toLazyText $
         _   -> -- trace (pshow $ (maybecost actual, maybecost budget))  -- debug missing percentage
                Nothing
       where
-        maybecost = case value_ of
-            Just (AtCost _) -> mixedAmountCost
-            _               -> id
+        maybecost = case cost_ of
+            Cost   -> mixedAmountCost
+            NoCost -> id
 
     maybetranspose | transpose_ = \(Table rh ch vals) -> Table ch rh (transpose vals)
                    | otherwise  = id
