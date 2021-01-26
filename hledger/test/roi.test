@@ -244,7 +244,7 @@ For example, "--value cost,<commodity> --infer-value", where commodity is the on
 >>>=1
 
 # 10. Forcing valuation via --value
-hledger -f- roi -p 2019-11 --inv Investment --pnl PnL --value cost,A --infer-value
+hledger -f- roi -p 2019-11 --inv Investment --pnl PnL --cost --value=then,A --infer-value
 <<<
 2019/11/01 Example
   Assets:Checking  -100 A

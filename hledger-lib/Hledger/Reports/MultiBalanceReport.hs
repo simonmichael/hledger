@@ -575,8 +575,8 @@ cumulativeSum value start = snd . M.mapAccumWithKey accumValued start
 postingAndAccountValuations :: ReportSpec -> Journal -> PriceOracle
                             -> (DateSpan -> Posting -> Posting, DateSpan -> Account -> Account)
 postingAndAccountValuations rspec@ReportSpec{rsOpts=ropts} j priceoracle
-    | changingValuation ropts = (const id, avalue' NoCost mv)
-    | otherwise               = (pvalue' NoCost mv, const id)
+    | changingValuation ropts = (const id, avalue' (cost_ ropts) (value_ ropts))
+    | otherwise               = (pvalue' (cost_ ropts) (value_ ropts), const id)
   where
     avalue' c v span a = a{aibalance = value (aibalance a), aebalance = value (aebalance a)}
       where value = mixedAmountApplyCostValuation priceoracle styles (end span) (rsToday rspec) (error "multiBalanceReport: did not expect amount valuation to be called ") c v  -- PARTIAL: should not happen
@@ -584,7 +584,6 @@ postingAndAccountValuations rspec@ReportSpec{rsOpts=ropts} j priceoracle
     end = fromMaybe (error "multiBalanceReport: expected all spans to have an end date")  -- XXX should not happen
         . fmap (addDays (-1)) . spanEnd
     styles = journalCommodityStyles j
-    mv = value_ ropts
 
 -- tests
 
