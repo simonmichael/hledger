@@ -1,12 +1,12 @@
 <label #register-pie-chart-label style=""><br>
-<div #register-pie-chart style="height:150px; margin-bottom:1em; display:none;">
+<div id="register-pie-chart-#{chartId}" style="height:150px; margin-bottom:1em; display:none;">
 <div #piehover>
 <script type=text/javascript>
  \$(document).ready(function() {
-   var $chartdiv = $('#register-pie-chart');
+   var $chartdiv = $('#register-pie-chart-#{chartId}');
    if (#{showChart}) {
      \$('#register-pie-chart-label').text('#{charttitle}');
-     \$('#register-pie-chart').show();
+     \$chartdiv.show();
      var data =
        [
          $forall (label, dat) <- labelDataTuples

@@ -3,7 +3,8 @@
 
 <div .hidden-xs>
   ^{registerChartHtml qparam balancelabel $ accountTransactionsReportByCommodity items}
-  ^{registerPieChartHtml q balancereport }
+  ^{registerPieChartHtml Positive q balancereport }
+  ^{registerPieChartHtml Negative q balancereport }
 
 <div.table-responsive>
   <table .table.table-striped.table-condensed>
