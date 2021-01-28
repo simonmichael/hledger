@@ -22,8 +22,12 @@ As a quick rule of thumb,
 use `aregister` for reconciling real-world asset/liability accounts
 and `register` for reviewing detailed revenues/expenses.
 
-An account must be specified as the first argument. This can be
-a full account name or an account pattern (regular expression).
+`aregister` shows the register for just one account (and its subaccounts).
+This account must be specified as the first argument. You can write either
+the full account name, or a case-insensitive regular expression which will 
+select the alphabetically first matched account.
+(Eg if you have `assets:aaa:checking` and `assets:bbb:checking` accounts,
+`hledger areg checking` would select `assets:aaa:checking`.)
 
 Any additional arguments form a query which will filter the
 transactions shown.
