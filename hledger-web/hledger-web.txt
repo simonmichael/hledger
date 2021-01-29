@@ -19,9 +19,9 @@ DESCRIPTION
        hledger-web is hledger's web interface.  It starts a simple web  appli-
        cation for browsing and adding transactions, and optionally opens it in
        a web browser window if possible.  It provides a more user-friendly  UI
-       than the hledger CLI or hledger-ui interface, showing more at once (ac-
-       counts, the current account register, balance charts) and allowing his-
-       tory-aware data entry, interactive searching, and bookmarking.
+       than  the  hledger  CLI  or  hledger-ui interface, showing more at once
+       (accounts, the current account register, balance charts)  and  allowing
+       history-aware data entry, interactive searching, and bookmarking.
 
        hledger-web  also  lets you share a ledger with multiple users, or even
        the public web.  There is no access control, so if you  need  that  you
@@ -58,8 +58,8 @@ OPTIONS
 
        --socket=SOCKETFILE
               use  a unix domain socket file to listen for requests instead of
-              a TCP socket.  Implies --serve.  It can only be used if the  op-
-              erating system can provide this type of socket.
+              a TCP socket.  Implies --serve.  It can  only  be  used  if  the
+              operating system can provide this type of socket.
 
        --base-url=URL
               set  the  base  url  (default:  http://IPADDR:PORT).   You would
@@ -109,8 +109,8 @@ OPTIONS
               assignments)
 
        -s --strict
-              do extra error checking (check that all posted accounts are  de-
-              clared)
+              do extra error checking (check  that  all  posted  accounts  are
+              declared)
 
        hledger reporting options:
 
@@ -140,8 +140,8 @@ OPTIONS
               using period expressions syntax
 
        --date2
-              match the secondary date instead (see command help for other ef-
-              fects)
+              match the secondary date instead (see  command  help  for  other
+              effects)
 
        -U --unmarked
               include only unmarked postings/txns (can combine with -P or -C)
@@ -166,14 +166,14 @@ OPTIONS
               convert amounts to their cost/selling amount at transaction time
 
        -V --market
-              convert amounts to their market value in default valuation  com-
+              convert  amounts to their market value in default valuation com-
               modities
 
        -X --exchange=COMM
               convert amounts to their market value in commodity COMM
 
        --value
-              convert  amounts  to  cost  or  market value, more flexibly than
+              convert amounts to cost or  market  value,  more  flexibly  than
               -B/-V/-X
 
        --infer-value
@@ -182,15 +182,15 @@ OPTIONS
        --auto apply automated posting rules to modify transactions.
 
        --forecast
-              generate future transactions from  periodic  transaction  rules,
-              for  the  next 6 months or till report end date.  In hledger-ui,
+              generate  future  transactions  from periodic transaction rules,
+              for the next 6 months or till report end date.   In  hledger-ui,
               also make ordinary future transactions visible.
 
        --color=WHEN (or --colour=WHEN)
-              Should color-supporting commands use ANSI color  codes  in  text
-              output.   'auto' (default): whenever stdout seems to be a color-
-              supporting terminal.  'always' or 'yes': always, useful eg  when
-              piping  output  into  'less  -R'.   'never'  or  'no': never.  A
+              Should  color-supporting  commands  use ANSI color codes in text
+              output.  'auto' (default): whenever stdout seems to be a  color-
+              supporting  terminal.  'always' or 'yes': always, useful eg when
+              piping output into  'less  -R'.   'never'  or  'no':  never.   A
               NO_COLOR environment variable overrides this.
 
        When a reporting option appears more than once in the command line, the
@@ -210,44 +210,44 @@ OPTIONS
               show debug output (levels 1-9, default: 1)
 
        A @FILE argument will be expanded to the contents of FILE, which should
-       contain one command line option/argument per line.  (To  prevent  this,
+       contain  one  command line option/argument per line.  (To prevent this,
        insert a -- argument before.)
 
        By default, hledger-web starts the web app in "transient mode" and also
        opens it in your default web browser if possible.  In this mode the web
        app will keep running for as long as you have it open in a browser win-
-       dow, and will exit after two minutes of inactivity (no requests and  no
-       browser  windows  viewing  it).  With --serve, it just runs the web app
-       without exiting, and logs requests to the console.   With  --serve-api,
-       only  the  JSON  web  api  (see  below)  is served, with the usual HTML
+       dow,  and will exit after two minutes of inactivity (no requests and no
+       browser windows viewing it).  With --serve, it just runs  the  web  app
+       without  exiting,  and logs requests to the console.  With --serve-api,
+       only the JSON web api (see  below)  is  served,  with  the  usual  HTML
        server-side web UI disabled.
 
-       By default the server listens on IP address 127.0.0.1, accessible  only
-       to  local  requests.   You  can  use  --host  to change this, eg --host
+       By  default the server listens on IP address 127.0.0.1, accessible only
+       to local requests.  You can  use  --host  to  change  this,  eg  --host
        0.0.0.0 to listen on all configured addresses.
 
-       Similarly, use --port to set a TCP port other than 5000, eg if you  are
+       Similarly,  use --port to set a TCP port other than 5000, eg if you are
        running multiple hledger-web instances.
 
        Both of these options are ignored when --socket is used.  In this case,
-       it creates an AF_UNIX socket file at the supplied path  and  uses  that
-       for  communication.   This  is  an  alternative way of running multiple
-       hledger-web instances behind a reverse proxy that  handles  authentica-
-       tion  for  different  users.   The path can be derived in a predictable
+       it  creates  an  AF_UNIX socket file at the supplied path and uses that
+       for communication.  This is an  alternative  way  of  running  multiple
+       hledger-web  instances  behind a reverse proxy that handles authentica-
+       tion for different users.  The path can be  derived  in  a  predictable
        way, eg by using the username within the path.  As an example, nginx as
-       reverse  proxy  can use the variable $remote_user to derive a path from
-       the username used  in  a  HTTP  basic  authentication.   The  following
-       proxy_pass  directive  allows  access to all hledger-web instances that
+       reverse proxy can use the variable $remote_user to derive a  path  from
+       the  username  used  in  a  HTTP  basic  authentication.  The following
+       proxy_pass directive allows access to all  hledger-web  instances  that
        created a socket in /tmp/hledger/:
 
                 proxy_pass http://unix:/tmp/hledger/${remote_user}.socket;
 
-       You can use --base-url to change the protocol, hostname, port and  path
+       You  can use --base-url to change the protocol, hostname, port and path
        that appear in hyperlinks, useful eg for integrating hledger-web within
-       a larger website.  The default is http://HOST:PORT/ using the  server's
+       a  larger website.  The default is http://HOST:PORT/ using the server's
        configured host address and TCP port (or http://HOST if PORT is 80).
 
-       With  --file-url  you can set a different base url for static files, eg
+       With --file-url you can set a different base url for static  files,  eg
        for better caching or cookie-less serving on high performance websites.
 
 PERMISSIONS
@@ -257,8 +257,8 @@ PERMISSIONS
        You can restrict who can reach it by
 
        o setting  the IP address it listens on (see --host above).  By default
-         it listens on 127.0.0.1, accessible to all users  on  the  local  ma-
-         chine.
+         it listens on  127.0.0.1,  accessible  to  all  users  on  the  local
+         machine.
 
        o putting it behind an authenticating proxy, using eg apache or nginx
 
@@ -274,8 +274,8 @@ PERMISSIONS
 
          o add - allows adding new transactions to the main journal file
 
-         o manage  -  allows editing, uploading or downloading the main or in-
-           cluded files
+         o manage  -  allows  editing,  uploading  or  downloading the main or
+           included files
 
        o using the --capabilities-header=HTTPHEADER flag  to  specify  a  HTTP
          header  from  which it will read capabilities to enable.  hledger-web
@@ -285,8 +285,8 @@ PERMISSIONS
 EDITING, UPLOADING, DOWNLOADING
        If  you  enable the manage capability mentioned above, you'll see a new
        "spanner" button to the right of the search form.  Clicking  this  will
-       let  you edit, upload, or download the journal file or any files it in-
-       cludes.
+       let  you  edit,  upload,  or  download the journal file or any files it
+       includes.
 
        Note, unlike any other hledger command, in this mode you (or any  visi-
        tor) can alter or wipe the data files.
@@ -305,8 +305,8 @@ RELOADING
        hledger-web detects changes made to the files by other means (eg if you
        edit it directly, outside of hledger-web), and it  will  show  the  new
        data  when  you reload the page or navigate to a new page.  If a change
-       makes a file unparseable, hledger-web will display an error message un-
-       til the file has been fixed.
+       makes a file unparseable, hledger-web will  display  an  error  message
+       until the file has been fixed.
 
        (Note: if you are viewing files mounted from another machine, make sure
        that both machine clocks are roughly in step.)
@@ -373,15 +373,15 @@ JSON API
 
        Most of the JSON corresponds to hledger's data types;  for  details  of
        what  the fields mean, see the Hledger.Data.Json haddock docs and click
-       on the various data types, eg Transaction.  And for a higher level  un-
-       derstanding, see the journal manual.
+       on the various data types, eg Transaction.   And  for  a  higher  level
+       understanding, see the journal manual.
 
        In some cases there is outer JSON corresponding to a "Report" type.  To
        understand that, go to the Hledger.Web.Handler.MiscR haddock  and  look
        at  the  source for the appropriate handler to see what it returns.  Eg
-       for /accounttransactions it's getAccounttransactionsR, returning a "ac-
-       countTransactionsReport  ...".   Looking up the haddock for that we can
-       see that  /accounttransactions  returns  an  AccountTransactionsReport,
+       for  /accounttransactions  it's  getAccounttransactionsR,  returning  a
+       "accountTransactionsReport  ...".   Looking  up the haddock for that we
+       can see that /accounttransactions returns an AccountTransactionsReport,
        which  consists  of a report title and a list of AccountTransactionsRe-
        portItem (etc).
 
@@ -485,8 +485,8 @@ JSON API
                   "tstatus": "Unmarked"
               }
 
-       And here's how to test adding it with curl.  This should add a new  en-
-       try to your journal:
+       And here's how to test adding it with curl.   This  should  add  a  new
+       entry to your journal:
 
               $ curl http://127.0.0.1:5000/add -X PUT -H 'Content-Type: application/json' --data-binary @txn.json
 
@@ -500,9 +500,9 @@ ENVIRONMENT
        rent.journal, where current.journal is a symbolic link to YYYY.journal.
 
        On Mac computers, you can set this and other environment variables in a
-       more thorough way that also affects applications started from  the  GUI
-       (say, an Emacs dock icon).  Eg on MacOS Catalina I have a ~/.MacOSX/en-
-       vironment.plist file containing
+       more  thorough  way that also affects applications started from the GUI
+       (say,  an  Emacs  dock  icon).   Eg  on  MacOS  Catalina   I   have   a
+       ~/.MacOSX/environment.plist file containing
 
               {
                 "LEDGER_FILE" : "~/finance/current.journal"
@@ -511,13 +511,13 @@ ENVIRONMENT
        To see the effect you may need to killall Dock, or reboot.
 
 FILES
-       Reads data from one or more files in hledger journal, timeclock,  time-
-       dot,   or   CSV   format   specified   with  -f,  or  $LEDGER_FILE,  or
-       $HOME/.hledger.journal          (on          windows,           perhaps
+       Reads  data from one or more files in hledger journal, timeclock, time-
+       dot,  or  CSV  format  specified   with   -f,   or   $LEDGER_FILE,   or
+       $HOME/.hledger.journal           (on          windows,          perhaps
        C:/Users/USER/.hledger.journal).
 
 BUGS
-       The  need  to precede options with -- when invoked from hledger is awk-
+       The need to precede options with -- when invoked from hledger  is  awk-
        ward.
 
        -f- doesn't work (hledger-web can't read from stdin).
@@ -531,7 +531,7 @@ BUGS
 
 
 REPORTING BUGS
-       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
+       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
        or hledger mail list)
 
 
@@ -552,4 +552,4 @@ SEE ALSO
 
 
 
-hledger-web-1.20.3               December 2020                  HLEDGER-WEB(1)
+hledger-web-1.20.4               December 2020                  HLEDGER-WEB(1)

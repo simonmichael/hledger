@@ -21,8 +21,8 @@ DESCRIPTION
        compatible with ledger(1).
 
        This  is  hledger's command-line interface (there are also terminal and
-       web interfaces).  Its basic function is to read a plain text  file  de-
-       scribing  financial  transactions (in accounting terms, a general jour-
+       web interfaces).  Its basic function is  to  read  a  plain  text  file
+       describing financial transactions (in accounting terms, a general jour-
        nal) and print useful reports on standard output,  or  export  them  as
        CSV.   hledger can also read some other file formats such as CSV files,
        translating them to journal format.  Additionally, hledger lists  other
@@ -132,9 +132,9 @@ COMMON TASKS
        cards..).
 
        To avoid a lot of data entry, you may want to start with  just  one  or
-       two accounts, like your checking account or cash wallet; and pick a re-
-       cent starting date, like today or the start of the week.  You  can  al-
-       ways  come  back later and add more accounts and older transactions, eg
+       two  accounts,  like  your  checking account or cash wallet; and pick a
+       recent starting date, like today or the start of  the  week.   You  can
+       always come back later and add more accounts and older transactions, eg
        going back to january 1st.
 
        Add an opening balances transaction to the journal, declaring the  bal-
@@ -239,8 +239,8 @@ COMMON TASKS
 
        1. Reconcile  cash.   Count  what's  in your wallet.  Compare with what
           hledger reports (hledger bal cash).  If they are different,  try  to
-          remember  the  missing transaction, or look for the error in the al-
-          ready-recorded transactions.   A  register  report  can  be  helpful
+          remember  the  missing  transaction,  or  look  for the error in the
+          already-recorded transactions.  A register  report  can  be  helpful
           (hledger  reg cash).  If you can't find the error, add an adjustment
           transaction.  Eg if you have $105 after the above, and can't explain
           the missing $2, it could be:
@@ -254,16 +254,16 @@ COMMON TASKS
           ing  -C).  If they are different, track down the error or record the
           missing transaction(s) or add an adjustment transaction, similar  to
           the above.  Unlike the cash case, you can usually compare the trans-
-          action history and running balance from your bank with the  one  re-
-          ported  by hledger reg checking -C.  This will be easier if you gen-
-          erally record transaction dates quite similar to your bank's  clear-
-          ing dates.
+          action history and running balance  from  your  bank  with  the  one
+          reported  by  hledger  reg  checking -C.  This will be easier if you
+          generally record transaction dates  quite  similar  to  your  bank's
+          clearing dates.
 
        3. Repeat for other asset/liability accounts.
 
-       Tip:  instead of the register command, use hledger-ui to see a live-up-
-       dating register while you edit the journal: hledger-ui --watch --regis-
-       ter checking -C
+       Tip:  instead  of  the  register command, use hledger-ui to see a live-
+       updating register while you edit the journal: hledger-ui --watch --reg-
+       ister checking -C
 
        After  reconciling,  it  could  be  a  good time to mark the reconciled
        transactions' status as "cleared and confirmed", if you want  to  track
@@ -468,8 +468,8 @@ OPTIONS
               assignments)
 
        -s --strict
-              do  extra error checking (check that all posted accounts are de-
-              clared)
+              do  extra  error  checking  (check  that all posted accounts are
+              declared)
 
        General reporting options:
 
@@ -499,8 +499,8 @@ OPTIONS
               using period expressions syntax
 
        --date2
-              match the secondary date instead (see command help for other ef-
-              fects)
+              match  the  secondary  date  instead (see command help for other
+              effects)
 
        -U --unmarked
               include only unmarked postings/txns (can combine with -P or -C)
@@ -525,14 +525,14 @@ OPTIONS
               convert amounts to their cost/selling amount at transaction time
 
        -V --market
-              convert  amounts to their market value in default valuation com-
+              convert amounts to their market value in default valuation  com-
               modities
 
        -X --exchange=COMM
               convert amounts to their market value in commodity COMM
 
        --value
-              convert amounts to cost or  market  value,  more  flexibly  than
+              convert  amounts  to  cost  or  market value, more flexibly than
               -B/-V/-X
 
        --infer-value
@@ -541,15 +541,15 @@ OPTIONS
        --auto apply automated posting rules to modify transactions.
 
        --forecast
-              generate  future  transactions  from periodic transaction rules,
-              for the next 6 months or till report end date.   In  hledger-ui,
+              generate future transactions from  periodic  transaction  rules,
+              for  the  next 6 months or till report end date.  In hledger-ui,
               also make ordinary future transactions visible.
 
        --color=WHEN (or --colour=WHEN)
-              Should  color-supporting  commands  use ANSI color codes in text
-              output.  'auto' (default): whenever stdout seems to be a  color-
-              supporting  terminal.  'always' or 'yes': always, useful eg when
-              piping output into  'less  -R'.   'never'  or  'no':  never.   A
+              Should color-supporting commands use ANSI color  codes  in  text
+              output.   'auto' (default): whenever stdout seems to be a color-
+              supporting terminal.  'always' or 'yes': always, useful eg  when
+              piping  output  into  'less  -R'.   'never'  or  'no': never.  A
               NO_COLOR environment variable overrides this.
 
        When a reporting option appears more than once in the command line, the
@@ -558,29 +558,29 @@ OPTIONS
        Some reporting options can also be written as query arguments.
 
    Command options
-       To see options for a particular command, including command-specific op-
-       tions, run: hledger COMMAND -h.
+       To  see  options  for  a particular command, including command-specific
+       options, run: hledger COMMAND -h.
 
-       Command-specific  options  must  be written after the command name, eg:
+       Command-specific options must be written after the  command  name,  eg:
        hledger print -x.
 
-       Additionally, if the command is an add-on, you may need to put its  op-
-       tions  after  a  double-hyphen, eg: hledger ui -- --watch.  Or, you can
+       Additionally,  if  the  command  is  an add-on, you may need to put its
+       options after a double-hyphen, eg: hledger ui -- --watch.  Or, you  can
        run the add-on executable directly: hledger-ui --watch.
 
    Command arguments
-       Most hledger commands accept arguments after the  command  name,  which
+       Most  hledger  commands  accept arguments after the command name, which
        are often a query, filtering the data in some way.
 
-       You  can  save  a  set of command line options/arguments in a file, and
-       then reuse them by writing @FILENAME as a command line  argument.   Eg:
-       hledger  bal  @foo.args.   (To prevent this, eg if you have an argument
-       that begins with a literal @, precede it with --, eg:  hledger  bal  --
+       You can save a set of command line options/arguments  in  a  file,  and
+       then  reuse  them by writing @FILENAME as a command line argument.  Eg:
+       hledger bal @foo.args.  (To prevent this, eg if you  have  an  argument
+       that  begins  with  a literal @, precede it with --, eg: hledger bal --
        @ARG).
 
-       Inside  the  argument file, each line should contain just one option or
+       Inside the argument file, each line should contain just one  option  or
        argument.  Avoid the use of spaces, except inside quotes (or you'll see
-       a  confusing  error).  Between a flag and its argument, use = (or noth-
+       a confusing error).  Between a flag and its argument, use =  (or  noth-
        ing).  Bad:
 
               assets depth:2
@@ -592,7 +592,7 @@ OPTIONS
               depth:2
               -X=USD
 
-       For special characters (see below), use one less level of quoting  than
+       For  special characters (see below), use one less level of quoting than
        you would at the command prompt.  Bad:
 
               -X"$"
@@ -604,16 +604,16 @@ OPTIONS
        See also: Save frequently used options.
 
    Queries
-       One  of  hledger's strengths is being able to quickly report on precise
-       subsets of your data.  Most commands accept an optional  query  expres-
-       sion,  written  as arguments after the command name, to filter the data
-       by date, account name or other criteria.  The syntax is  similar  to  a
+       One of hledger's strengths is being able to quickly report  on  precise
+       subsets  of  your data.  Most commands accept an optional query expres-
+       sion, written as arguments after the command name, to filter  the  data
+       by  date,  account  name or other criteria.  The syntax is similar to a
        web search: one or more space-separated search terms, quotes to enclose
-       whitespace, prefixes to match specific fields, a not: prefix to  negate
+       whitespace,  prefixes to match specific fields, a not: prefix to negate
        the match.
 
-       We  do  not yet support arbitrary boolean combinations of search terms;
-       instead most commands show transactions/postings/accounts  which  match
+       We do not yet support arbitrary boolean combinations of  search  terms;
+       instead  most  commands show transactions/postings/accounts which match
        (or negatively match):
 
        o any of the description terms AND
@@ -634,31 +634,31 @@ OPTIONS
 
        o match all the other terms.
 
-       The  following  kinds  of search terms can be used.  Remember these can
+       The following kinds of search terms can be used.   Remember  these  can
        also be prefixed with not:, eg to exclude a particular subaccount.
 
        REGEX, acct:REGEX
-              match account names by this regular expression.  (With  no  pre-
+              match  account  names by this regular expression.  (With no pre-
               fix, acct: is assumed.)  same as above
 
        amt:N, amt:<N, amt:<=N, amt:>N, amt:>=N
-              match  postings with a single-commodity amount that is equal to,
-              less than, or greater than N.  (Multi-commodity amounts are  not
+              match postings with a single-commodity amount that is equal  to,
+              less  than, or greater than N.  (Multi-commodity amounts are not
               tested, and will always match.) The comparison has two modes: if
               N is preceded by a + or - sign (or is 0), the two signed numbers
-              are  compared.  Otherwise, the absolute magnitudes are compared,
+              are compared.  Otherwise, the absolute magnitudes are  compared,
               ignoring sign.
 
        code:REGEX
               match by transaction code (eg check number)
 
        cur:REGEX
-              match postings or transactions including any amounts whose  cur-
-              rency/commodity  symbol  is fully matched by REGEX.  (For a par-
+              match  postings or transactions including any amounts whose cur-
+              rency/commodity symbol is fully matched by REGEX.  (For  a  par-
               tial match, use .*REGEX.*).  Note, to match characters which are
               regex-significant, like the dollar sign ($), you need to prepend
-              \.  And when using the command line you need  to  add  one  more
-              level  of  quoting  to hide it from the shell, so eg do: hledger
+              \.   And  when  using  the command line you need to add one more
+              level of quoting to hide it from the shell, so  eg  do:  hledger
               print cur:'\$' or hledger print cur:\\$.
 
        desc:REGEX
@@ -666,20 +666,20 @@ OPTIONS
 
        date:PERIODEXPR
               match dates within the specified period.  PERIODEXPR is a period
-              expression  (with  no  report  interval).   Examples: date:2016,
-              date:thismonth,  date:2000/2/1-2/15,  date:lastweek-.   If   the
-              --date2  command  line  flag  is present, this matches secondary
+              expression (with  no  report  interval).   Examples:  date:2016,
+              date:thismonth,   date:2000/2/1-2/15,  date:lastweek-.   If  the
+              --date2 command line flag is  present,  this  matches  secondary
               dates instead.
 
        date2:PERIODEXPR
               match secondary dates within the specified period.
 
        depth:N
-              match (or display, depending on command) accounts  at  or  above
+              match  (or  display,  depending on command) accounts at or above
               this depth
 
        note:REGEX
-              match  transaction  notes  (part  of  description right of |, or
+              match transaction notes (part of  description  right  of  |,  or
               whole description when there's no |)
 
        payee:REGEX
@@ -693,35 +693,35 @@ OPTIONS
               match unmarked, pending, or cleared transactions respectively
 
        tag:REGEX[=REGEX]
-              match  by  tag  name,  and optionally also by tag value.  Note a
-              tag: query is considered to match a transaction  if  it  matches
-              any  of  the  postings.  Also remember that postings inherit the
+              match by tag name, and optionally also by  tag  value.   Note  a
+              tag:  query  is  considered to match a transaction if it matches
+              any of the postings.  Also remember that  postings  inherit  the
               tags of their parent transaction.
 
        The following special search term is used automatically in hledger-web,
        only:
 
        inacct:ACCTNAME
-              tells  hledger-web to show the transaction register for this ac-
-              count.  Can be filtered further with acct etc.
+              tells hledger-web to show  the  transaction  register  for  this
+              account.  Can be filtered further with acct etc.
 
        Some of these can also be expressed as command-line options (eg depth:2
-       is  equivalent  to --depth 2).  Generally you can mix options and query
-       arguments, and the resulting query will be their intersection  (perhaps
+       is equivalent to --depth 2).  Generally you can mix options  and  query
+       arguments,  and the resulting query will be their intersection (perhaps
        excluding the -p/--period option).
 
    Special characters in arguments and queries
        In shell command lines, option and argument values which contain "prob-
        lematic" characters, ie spaces, and also characters significant to your
-       shell  such as <, >, (, ), | and $, should be escaped by enclosing them
+       shell such as <, >, (, ), | and $, should be escaped by enclosing  them
        in quotes or by writing backslashes before the characters.  Eg:
 
-       hledger  register  -p  'last  year'   "accounts   receivable   (receiv-
+       hledger   register   -p   'last  year'  "accounts  receivable  (receiv-
        able|payable)" amt:\>100.
 
    More escaping
        Characters significant both to the shell and in regular expressions may
-       need one extra level of escaping.  These include parentheses, the  pipe
+       need  one extra level of escaping.  These include parentheses, the pipe
        symbol and the dollar sign.  Eg, to match the dollar symbol, bash users
        should do:
 
@@ -733,8 +733,8 @@ OPTIONS
 
    Even more escaping
        When hledger runs an add-on executable (eg you type hledger ui, hledger
-       runs  hledger-ui),  it  de-escapes  command-line  options and arguments
-       once, so you might need to triple-escape.  Eg in bash, running  the  ui
+       runs hledger-ui), it  de-escapes  command-line  options  and  arguments
+       once,  so  you might need to triple-escape.  Eg in bash, running the ui
        command and matching the dollar sign, it's:
 
        hledger ui cur:'\\$'
@@ -744,6 +744,7 @@ OPTIONS
        hledger ui cur:\\\\$
 
        If you asked why four slashes above, this may help:
+
 
        unescaped:        $
        escaped:          \$
@@ -759,8 +760,8 @@ OPTIONS
        hledger-ui cur:\\$
 
    Less escaping
-       Inside  an  argument  file,  or  in  the  search field of hledger-ui or
-       hledger-web, or at a GHCI prompt, you need one less level  of  escaping
+       Inside an argument file, or  in  the  search  field  of  hledger-ui  or
+       hledger-web,  or  at a GHCI prompt, you need one less level of escaping
        than at the command line.  And backslashes may work better than quotes.
        Eg:
 
@@ -769,41 +770,41 @@ OPTIONS
    Unicode characters
        hledger is expected to handle non-ascii characters correctly:
 
-       o they should be parsed correctly in input files  and  on  the  command
-         line,  by all hledger tools (add, iadd, hledger-web's search/add/edit
+       o they  should  be  parsed  correctly in input files and on the command
+         line, by all hledger tools (add, iadd, hledger-web's  search/add/edit
          forms, etc.)
 
-       o they should be displayed correctly by  all  hledger  tools,  and  on-
+       o they  should  be  displayed  correctly  by all hledger tools, and on-
          screen alignment should be preserved.
 
        This requires a well-configured environment.  Here are some tips:
 
-       o A  system  locale must be configured, and it must be one that can de-
-         code the characters being used.  In bash, you can set a  locale  like
-         this:  export LANG=en_US.UTF-8.  There are some more details in Trou-
-         bleshooting.  This step is essential - without it, hledger will  quit
-         on  encountering a non-ascii character (as with all GHC-compiled pro-
+       o A system locale must be configured, and  it  must  be  one  that  can
+         decode the characters being used.  In bash, you can set a locale like
+         this: export LANG=en_US.UTF-8.  There are some more details in  Trou-
+         bleshooting.   This step is essential - without it, hledger will quit
+         on encountering a non-ascii character (as with all GHC-compiled  pro-
          grams).
 
-       o your terminal software (eg  Terminal.app,  iTerm,  CMD.exe,  xterm..)
+       o your  terminal  software  (eg  Terminal.app, iTerm, CMD.exe, xterm..)
          must support unicode
 
        o the terminal must be using a font which includes the required unicode
          glyphs
 
-       o the terminal should be configured to display wide characters as  dou-
+       o the  terminal should be configured to display wide characters as dou-
          ble width (for report alignment)
 
-       o on  Windows, for best results you should run hledger in the same kind
-         of environment in which it was built.  Eg hledger built in the  stan-
-         dard  CMD.EXE  environment  (like  the binaries on our download page)
-         might show display problems when run in a cygwin  or  msys  terminal,
+       o on Windows, for best results you should run hledger in the same  kind
+         of  environment in which it was built.  Eg hledger built in the stan-
+         dard CMD.EXE environment (like the binaries  on  our  download  page)
+         might  show  display  problems when run in a cygwin or msys terminal,
          and vice versa.  (See eg #961).
 
    Input files
        hledger reads transactions from a data file (and the add command writes
        to it).  By default this file is $HOME/.hledger.journal (or on Windows,
-       something  like C:/Users/USER/.hledger.journal).  You can override this
+       something like C:/Users/USER/.hledger.journal).  You can override  this
        with the $LEDGER_FILE environment variable:
 
               $ setenv LEDGER_FILE ~/finance/2016.journal
@@ -817,52 +818,53 @@ OPTIONS
 
               $ cat some.journal | hledger -f-
 
-       Usually the data file is in hledger's journal format, but it can be  in
+       Usually  the data file is in hledger's journal format, but it can be in
        any of the supported file formats, which currently are:
+
 
        Reader:    Reads:                                    Used  for  file  exten-
                                                             sions:
        -----------------------------------------------------------------------------
-       journal    hledger journal files and  some  Ledger   .journal   .j  .hledger
+       journal    hledger  journal  files and some Ledger   .journal  .j   .hledger
                   journals, for transactions                .ledger
-       time-      timeclock  files, for precise time log-   .timeclock
+       time-      timeclock files, for precise time  log-   .timeclock
        clock      ging
        timedot    timedot  files,  for  approximate  time   .timedot
                   logging
        csv        comma/semicolon/tab/other-separated       .csv .ssv .tsv
                   values, for data import
 
-       hledger detects the format automatically based on the  file  extensions
-       shown  above.   If  it  can't  recognise the file extension, it assumes
-       journal format.  So for non-journal files,  it's  important  to  use  a
+       hledger  detects  the format automatically based on the file extensions
+       shown above.  If it can't recognise  the  file  extension,  it  assumes
+       journal  format.   So  for  non-journal  files, it's important to use a
        recognised file extension, so as to either read successfully or to show
        relevant error messages.
 
-       When you can't ensure the right file extension, not to worry:  you  can
+       When  you  can't ensure the right file extension, not to worry: you can
        force a specific reader/format by prefixing the file path with the for-
        mat and a colon.  Eg to read a .dat file as csv:
 
               $ hledger -f csv:/some/csv-file.dat stats
               $ echo 'i 2009/13/1 08:00:00' | hledger print -ftimeclock:-
 
-       You can specify multiple -f options, to read multiple files as one  big
+       You  can specify multiple -f options, to read multiple files as one big
        journal.  There are some limitations with this:
 
        o directives in one file will not affect the other files
 
-       o balance  assertions  will  not see any account balances from previous
+       o balance assertions will not see any account  balances  from  previous
          files
 
        If you need either of those things, you can
 
        o use a single parent file which includes the others
 
-       o or concatenate the files into one before reading, eg:  cat  a.journal
+       o or  concatenate  the files into one before reading, eg: cat a.journal
          b.journal | hledger -f- CMD.
 
    Strict mode
        hledger checks input files for valid data.  By default, the most impor-
-       tant errors are detected, while  still  accepting  easy  journal  files
+       tant  errors  are  detected,  while  still accepting easy journal files
        without a lot of declarations:
 
        o Are the input files parseable, with valid syntax ?
@@ -873,7 +875,7 @@ OPTIONS
 
        With the -s/--strict flag, additional checks are performed:
 
-       o Are  all  accounts  posted  to,  declared with an account directive ?
+       o Are all accounts posted to, declared  with  an  account  directive  ?
          (Account error checking)
 
        o Are all commodities declared with a commodity directive ?  (Commodity
@@ -889,8 +891,8 @@ OPTIONS
 
               $ hledger print > foo.txt
 
-       Some commands (print, register, stats, the balance commands) also  pro-
-       vide  the  -o/--output-file  option,  which does the same thing without
+       Some  commands (print, register, stats, the balance commands) also pro-
+       vide the -o/--output-file option, which does  the  same  thing  without
        needing the shell.  Eg:
 
               $ hledger print -o foo.txt
@@ -899,7 +901,7 @@ OPTIONS
    Output format
        Some commands (print, register, the balance commands) offer a choice of
        output format.  In addition to the usual plain text format (txt), there
-       are CSV (csv), HTML (html), JSON (json) and SQL (sql).   This  is  con-
+       are  CSV  (csv),  HTML (html), JSON (json) and SQL (sql).  This is con-
        trolled by the -O/--output-format option:
 
               $ hledger print -O csv
@@ -914,92 +916,93 @@ OPTIONS
 
        Some notes about JSON output:
 
-       o This  feature  is  marked  experimental,  and  not yet much used; you
+       o This feature is marked experimental,  and  not  yet  much  used;  you
          should expect our JSON to evolve.  Real-world feedback is welcome.
 
-       o Our JSON is rather large and verbose, as it is quite a faithful  rep-
-         resentation  of  hledger's  internal  data  types.  To understand the
+       o Our  JSON is rather large and verbose, as it is quite a faithful rep-
+         resentation of hledger's internal  data  types.   To  understand  the
          JSON,  read  the  Haskell  type  definitions,  which  are  mostly  in
          https://github.com/simonmichael/hledger/blob/master/hledger-
          lib/Hledger/Data/Types.hs.
 
-       o hledger represents quantities as Decimal values  storing  up  to  255
-         significant  digits,  eg  for  repeating  decimals.  Such numbers can
+       o hledger  represents  quantities  as  Decimal values storing up to 255
+         significant digits, eg for  repeating  decimals.   Such  numbers  can
          arise in practice (from automatically-calculated transaction prices),
-         and  would break most JSON consumers.  So in JSON, we show quantities
+         and would break most JSON consumers.  So in JSON, we show  quantities
          as simple Numbers with at most 10 decimal places.  We don't limit the
-         number  of  integer  digits, but that part is under your control.  We
-         hope this approach will not cause problems in practice; if  you  find
+         number of integer digits, but that part is under  your  control.   We
+         hope  this  approach will not cause problems in practice; if you find
          otherwise, please let us know.  (Cf #1195)
 
        Notes about SQL output:
 
-       o SQL  output is also marked experimental, and much like JSON could use
+       o SQL output is also marked experimental, and much like JSON could  use
          real-world feedback.
 
        o SQL output is expected to work with sqlite, MySQL and PostgreSQL
 
-       o SQL output is structured with the expectations that  statements  will
-         be  executed  in the empty database.  If you already have tables cre-
-         ated via SQL output of hledger, you would  probably  want  to  either
+       o SQL  output  is structured with the expectations that statements will
+         be executed in the empty database.  If you already have  tables  cre-
+         ated  via  SQL  output  of hledger, you would probably want to either
          clear tables of existing data (via delete or truncate SQL statements)
          or drop tables completely as otherwise your postings will be duped.
 
    Regular expressions
        hledger uses regular expressions in a number of places:
 
-       o query terms, on the command line and in the hledger-web search  form:
+       o query  terms, on the command line and in the hledger-web search form:
          REGEX, desc:REGEX, cur:REGEX, tag:...=REGEX
 
        o CSV rules conditional blocks: if REGEX ...
 
-       o account  alias  directives  and options: alias /REGEX/ = REPLACEMENT,
+       o account alias directives and options: alias  /REGEX/  =  REPLACEMENT,
          --alias /REGEX/=REPLACEMENT
 
-       hledger's regular expressions come from  the  regex-tdfa  library.   If
-       they're  not doing what you expect, it's important to know exactly what
+       hledger's  regular  expressions  come  from the regex-tdfa library.  If
+       they're not doing what you expect, it's important to know exactly  what
        they support:
 
        1. they are case insensitive
 
-       2. they are infix matching (they do not need to match the entire  thing
+       2. they  are infix matching (they do not need to match the entire thing
           being matched)
 
        3. they are POSIX ERE (extended regular expressions)
 
        4. they also support GNU word boundaries (\b, \B, \<, \>)
 
-       5. they  do  not support backreferences; if you write \1, it will match
-          the digit 1.  Except when doing  text  replacement,  eg  in  account
-          aliases,  where backreferences can be used in the replacement string
+       5. they do not support backreferences; if you write \1, it  will  match
+          the  digit  1.   Except  when  doing text replacement, eg in account
+          aliases, where backreferences can be used in the replacement  string
           to reference capturing groups in the search regexp.
 
-       6. they do not support mode modifiers ((?s)),  character  classes  (\w,
+       6. they  do  not  support mode modifiers ((?s)), character classes (\w,
           \d), or anything else not mentioned above.
 
        Some things to note:
 
-       o In  the  alias directive and --alias option, regular expressions must
-         be enclosed in forward  slashes  (/REGEX/).   Elsewhere  in  hledger,
+       o In the alias directive and --alias option, regular  expressions  must
+         be  enclosed  in  forward  slashes  (/REGEX/).  Elsewhere in hledger,
          these are not required.
 
-       o In  queries,  to match a regular expression metacharacter like $ as a
-         literal character, prepend a backslash.  Eg  to  search  for  amounts
+       o In queries, to match a regular expression metacharacter like $  as  a
+         literal  character,  prepend  a  backslash.  Eg to search for amounts
          with the dollar sign in hledger-web, write cur:\$.
 
-       o On  the command line, some metacharacters like $ have a special mean-
+       o On the command line, some metacharacters like $ have a special  mean-
          ing to the shell and so must be escaped at least once more.  See Spe-
          cial characters.
 
    Smart dates
        hledger's user interfaces accept a flexible "smart date" syntax (unlike
-       dates in the journal file).  Smart dates allow some english words,  can
-       be  relative  to today's date, and can have less-significant date parts
+       dates  in the journal file).  Smart dates allow some english words, can
+       be relative to today's date, and can have less-significant  date  parts
        omitted (defaulting to 1).
 
        Examples:
 
-       2004/10/1,   2004-01-01,   exact  date, several separators allowed.  Year
+
+       2004/10/1,   2004-01-01,   exact date, several separators allowed.   Year
        2004.9.1                   is 4+ digits, month is 1-12, day is 1-31
        2004                       start of year
        2004/10                    start of month
@@ -1014,8 +1017,9 @@ OPTIONS
        20181201                   8 digit YYYYMMDD with valid year month and day
        201812                     6 digit YYYYMM with valid year and month
 
-       Counterexamples  -  malformed digit sequences might give surprising re-
-       sults:
+       Counterexamples  -  malformed  digit  sequences  might  give surprising
+       results:
+
 
        201813        6 digits with an  invalid  month  is  parsed  as  start  of
                      6-digit year
@@ -1050,13 +1054,15 @@ OPTIONS
 
        Examples:
 
+
        -b 2016/3/17       begin on St. Patrick's day 2016
-       -e 12/1            end  at  the  start  of  december  1st of the current year
+       -e 12/1            end at the start of  december  1st  of  the  current  year
                           (11/30 will be the last date included)
        -b thismonth       all transactions on or after the 1st of the current month
        -p thismonth       all transactions in the current month
-       date:2016/3/17..   the  above  written as queries instead (.. can also be re-
-                          placed with -)
+       date:2016/3/17..   the above written as  queries  instead  (..  can  also  be
+                          replaced with -)
+
        date:..12/1
        date:thismonth..
        date:thismonth
@@ -1066,29 +1072,31 @@ OPTIONS
        ance  and  activity will divide their reports into multiple subperiods.
        The  basic  intervals  can  be  selected  with   one   of   -D/--daily,
        -W/--weekly,  -M/--monthly,  -Q/--quarterly, or -Y/--yearly.  More com-
-       plex intervals may be specified with a period expression.   Report  in-
-       tervals can not be specified with a query.
+       plex intervals may be  specified  with  a  period  expression.   Report
+       intervals can not be specified with a query.
 
    Period expressions
        The  -p/--period  option accepts period expressions, a shorthand way of
-       expressing a start date, end date, and/or report interval all at once.
+       expressing a start date, end date, and/or report interval all at  once.
 
-       Here's a basic period expression specifying the first quarter of  2009.
-       Note,  hledger  always treats start dates as inclusive and end dates as
+       Here's  a basic period expression specifying the first quarter of 2009.
+       Note, hledger always treats start dates as inclusive and end  dates  as
        exclusive:
 
        -p "from 2009/1/1 to 2009/4/1"
 
-       Keywords like "from" and "to" are optional, and so are the  spaces,  as
-       long  as you don't run two dates together.  "to" can also be written as
+       Keywords  like  "from" and "to" are optional, and so are the spaces, as
+       long as you don't run two dates together.  "to" can also be written  as
        ".." or "-".  These are equivalent to the above:
+
 
        -p "2009/1/1 2009/4/1"
        -p2009/1/1to2009/4/1
        -p2009/1/1..2009/4/1
 
-       Dates are smart dates, so if the current year is 2009,  the  above  can
+       Dates  are  smart  dates, so if the current year is 2009, the above can
        also be written as:
+
 
        -p "1/1 4/1"
        -p "january-apr"
@@ -1097,66 +1105,74 @@ OPTIONS
        If you specify only one date, the missing start or end date will be the
        earliest or latest transaction in your journal:
 
+
        -p "from 2009/1/1"   everything  after  january
                             1, 2009
        -p "from 2009/1"     the same
        -p "from 2009"       the same
-       -p "to 2009"         everything  before january
+       -p "to 2009"         everything before  january
                             1, 2009
 
-       A single date with no "from" or "to" defines both  the  start  and  end
+       A  single  date  with  no "from" or "to" defines both the start and end
        date like so:
 
-       -p "2009"       the  year 2009; equivalent
+
+       -p "2009"       the year 2009;  equivalent
                        to "2009/1/1 to 2010/1/1"
-       -p "2009/1"     the month of jan;  equiva-
+       -p "2009/1"     the  month of jan; equiva-
                        lent   to   "2009/1/1   to
                        2009/2/1"
-       -p "2009/1/1"   just that day;  equivalent
+       -p "2009/1/1"   just  that day; equivalent
                        to "2009/1/1 to 2009/1/2"
 
        Or you can specify a single quarter like so:
 
-       -p "2009Q1"   first   quarter  of  2009,
+
+
+
+       -p "2009Q1"   first  quarter  of   2009,
                      equivalent to "2009/1/1 to
                      2009/4/1"
        -p "q4"       fourth quarter of the cur-
                      rent year
 
-       The argument of -p can also begin with, or be, a  report  interval  ex-
-       pression.  The basic report intervals are daily, weekly, monthly, quar-
-       terly, or yearly, which have the same effect as the -D,-W,-M,-Q, or  -Y
-       flags.   Between report interval and start/end dates (if any), the word
-       in is optional.  Examples:
+       The  argument  of  -p  can  also  begin  with, or be, a report interval
+       expression.  The basic report intervals  are  daily,  weekly,  monthly,
+       quarterly, or yearly, which have the same effect as the -D,-W,-M,-Q, or
+       -Y flags.  Between report interval and start/end dates  (if  any),  the
+       word in is optional.  Examples:
+
 
        -p "weekly from 2009/1/1 to 2009/4/1"
        -p "monthly in 2008"
        -p "quarterly"
 
-       Note that weekly, monthly, quarterly and yearly intervals  will  always
+       Note  that  weekly, monthly, quarterly and yearly intervals will always
        start on the first day on week, month, quarter or year accordingly, and
-       will end on the last day of same period, even if associated period  ex-
-       pression specifies different explicit start and end date.
+       will  end  on  the  last  day of same period, even if associated period
+       expression specifies different explicit start and end date.
 
        For example:
 
-       -p  "weekly from 2009/1/1   starts on 2008/12/29, closest preceding Mon-
+
+       -p "weekly from  2009/1/1   starts on 2008/12/29, closest preceding Mon-
        to 2009/4/1"                day
-       -p       "monthly      in   starts on 2018/11/01
+       -p      "monthly       in   starts on 2018/11/01
        2008/11/25"
-       -p    "quarterly     from   starts  on  2009/04/01,  ends on 2009/06/30,
+       -p     "quarterly    from   starts  on  2009/04/01,  ends on 2009/06/30,
        2009-05-05 to 2009-06-01"   which are first and last days of Q2 2009
        -p      "yearly      from   starts on 2009/01/01, first day of 2009
        2009-12-29"
 
-       The  following  more  complex  report intervals are also supported: bi-
-       weekly, fortnightly, bimonthly, every day|week|month|quarter|year,  ev-
-       ery N days|weeks|months|quarters|years.
+       The  following  more  complex  report  intervals  are  also  supported:
+       biweekly, fortnightly,  bimonthly,  every  day|week|month|quarter|year,
+       every N days|weeks|months|quarters|years.
 
        All  of  these  will start on the first day of the requested period and
        end on the last one, as described above.
 
        Examples:
+
 
        -p "bimonthly from 2008"    periods will have boundaries on  2008/01/01,
                                    2008/03/01, ...
@@ -1169,16 +1185,18 @@ OPTIONS
 
        every    Nth     day     of     week,     every     WEEKDAYNAME     (eg
        mon|tue|wed|thu|fri|sat|sun), every Nth day [of month], every Nth WEEK-
-       DAYNAME [of month], every MM/DD [of year], every Nth MMM [of year], ev-
-       ery MMM Nth [of year].
+       DAYNAME [of month], every MM/DD [of year], every  Nth  MMM  [of  year],
+       every MMM Nth [of year].
 
        Examples:
+
 
        -p  "every  2nd  day  of   periods will go from Tue to Tue
        week"
        -p "every Tue"             same
        -p "every 15th day"        period boundaries will  be  on  15th  of  each
                                   month
+
        -p "every 2nd Monday"      period  boundaries will be on second Monday of
                                   each month
        -p "every 11/05"           yearly periods with boundaries on 5th of Nov
@@ -1198,9 +1216,9 @@ OPTIONS
    Depth limiting
        With the --depth N option (short form: -N), commands like account, bal-
        ance  and register will show only the uppermost accounts in the account
-       tree, down to level N.  Use this when you want a summary with less  de-
-       tail.  This flag has the same effect as a depth: query argument (so -2,
-       --depth=2 or depth:2 are equivalent).
+       tree, down to level N.  Use this when you  want  a  summary  with  less
+       detail.   This  flag has the same effect as a depth: query argument (so
+       -2, --depth=2 or depth:2 are equivalent).
 
    Pivoting
        Normally hledger sums amounts, and organizes them in a hierarchy, based
@@ -1238,8 +1256,8 @@ OPTIONS
               --------------------
                                  0
 
-       One  way  to show only amounts with a member: value (using a query, de-
-       scribed below):
+       One  way  to  show  only  amounts  with a member: value (using a query,
+       described below):
 
               $ hledger balance --pivot member tag:member=.
                             -2 EUR  John Doe
@@ -1527,8 +1545,8 @@ OPTIONS
               2000-03-01
                   (a)             1 B
 
-       You may need to explicitly set a commodity's display  style,  when  re-
-       verse prices are used.  Eg this output might be surprising:
+       You  may  need  to  explicitly  set  a  commodity's display style, when
+       reverse prices are used.  Eg this output might be surprising:
 
               P 2000-01-01 A 2B
 
@@ -1541,10 +1559,10 @@ OPTIONS
                   a               0
                   b               0
 
-       Explanation:  because there's no amount or commodity directive specify-
-       ing a display style for A, 0.5A gets the default style, which shows  no
+       Explanation: because there's no amount or commodity directive  specify-
+       ing  a display style for A, 0.5A gets the default style, which shows no
        decimal digits.  Because the displayed amount looks like zero, the com-
-       modity symbol and minus sign are not displayed either.  Adding  a  com-
+       modity  symbol  and minus sign are not displayed either.  Adding a com-
        modity directive sets a more useful display style for A:
 
               P 2000-01-01 A 2B
@@ -1560,93 +1578,88 @@ OPTIONS
                   b          -0.50A
 
    Effect of valuation on reports
-       Here  is  a reference for how valuation is supposed to affect each part
-       of hledger's reports (and a glossary).   (It's  wide,  you'll  have  to
-       scroll  sideways.)  It may be useful when troubleshooting.  If you find
-       problems, please report them, ideally with a reproducible example.  Re-
-       lated: #329, #1083.
+       Here is a reference for how valuation is supposed to affect  each  part
+       of  hledger's  reports  (and  a  glossary).  (It's wide, you'll have to
+       scroll sideways.) It may be useful when troubleshooting.  If  you  find
+       problems,  please  report  them,  ideally  with a reproducible example.
+       Related: #329, #1083.
 
-       Report type   -B,             -V, -X           --value=then   --value=end     --value=DATE,
-                     --value=cost                                                    --value=now
-       --------------------------------------------------------------------------------------------
+
+       Report type     -B,             -V, -X           --value=then   --value=end     --value=DATE,
+                       --value=cost                                                    --value=now
+       ----------------------------------------------------------------------------------------------
        print
-       posting       cost            value at  re-    value     at   value  at re-   value      at
-       amounts                       port  end  or    posting date   port or jour-   DATE/today
-                                     today                           nal end
-       balance as-   unchanged       unchanged        unchanged      unchanged       unchanged
-       ser-
-       tions/as-
-       signments
+       posting         cost            value      at    value     at   value      at   value      at
+       amounts                         report end or    posting date   report     or   DATE/today
+                                       today                           journal end
+       balance         unchanged       unchanged        unchanged      unchanged       unchanged
+       asser-
+       tions/assign-
+       ments
 
        register
-       starting      cost            value  at day    not     sup-   value  at day   value      at
-       balance                       before report    ported         before report   DATE/today
-       (-H)                          or    journal                   or    journal
-                                     start                           start
-       posting       cost            value at  re-    value     at   value  at re-   value      at
-       amounts                       port  end  or    posting date   port or jour-   DATE/today
-                                     today                           nal end
-       summary       summarised      value  at pe-    sum of post-   value at  pe-   value      at
-       posting       cost            riod ends        ings  in in-   riod ends       DATE/today
-       amounts                                        terval, val-
-       with report                                    ued  at  in-
-       interval                                       terval start
-       running to-   sum/average     sum/average      sum/average    sum/average     sum/average
-       tal/average   of  displayed   of  displayed    of displayed   of  displayed   of  displayed
-                     values          values           values         values          values
+       starting bal-   cost            value  at day    not     sup-   value  at day   value      at
+       ance (-H)                       before report    ported         before report   DATE/today
+                                       or    journal                   or    journal
+                                       start                           start
 
-       balance
-       (bs,   bse,
-       cf, is)
-       balance       sums of costs   value at  re-    not     sup-   value at  re-   value      at
-       changes                       port  end  or    ported         port or jour-   DATE/today of
-                                     today of sums                   nal  end   of   sums of post-
-                                     of postings                     sums of post-   ings
-                                                                     ings
-       budget        like  balance   like  balance    not     sup-   like balances   like  balance
-       amounts       changes         changes          ported                         changes
+       posting         cost            value      at    value     at   value      at   value      at
+       amounts                         report end or    posting date   report     or   DATE/today
+                                       today                           journal end
+       summary post-   summarised      value      at    sum of post-   value      at   value      at
+       ing   amounts   cost            period ends      ings      in   period ends     DATE/today
+       with   report                                    interval,
+       interval                                         valued    at
+                                                        interval
+                                                        start
+       running         sum/average     sum/average      sum/average    sum/average     sum/average
+       total/average   of  displayed   of  displayed    of displayed   of  displayed   of  displayed
+                       values          values           values         values          values
+
+       balance  (bs,
+       bse, cf, is)
+       balance         sums of costs   value      at    not     sup-   value      at   value      at
+       changes                         report end or    ported         report     or   DATE/today of
+                                       today of sums                   journal   end   sums of post-
+                                       of postings                     of   sums  of   ings
+                                                                       postings
+       budget          like  balance   like  balance    not     sup-   like balances   like  balance
+       amounts         changes         changes          ported                         changes
        (--budget)
-       grand total   sum  of  dis-   sum  of  dis-    not     sup-   sum  of  dis-   sum  of  dis-
-                     played values   played values    ported         played values   played values
+       grand total     sum  of  dis-   sum  of  dis-    not     sup-   sum  of  dis-   sum  of  dis-
+                       played values   played values    ported         played values   played values
 
-       balance
-       (bs,   bse,
-       cf,     is)
-       with report
+       balance  (bs,
+       bse, cf,  is)
+       with   report
        interval
-       starting      sums of costs   value  at re-    not     sup-   value  at re-   sums of post-
-       balances      of   postings   port start of    ported         port start of   ings   before
-       (-H)          before report   sums  of  all                   sums  of  all   report start
-                     start           postings  be-                   postings  be-
-                                     fore   report                   fore   report
-                                     start                           start
-
-
-
-       balance       sums of costs   same       as    not     sup-   balance         value      at
-       changes       of   postings   --value=end      ported         change     in   DATE/today of
-       (bal,   is,   in period                                       each  period,   sums of post-
-       bs                                                            valued at pe-   ings
-       --change,                                                     riod ends
-       cf
-       --change)
-       end    bal-   sums of costs   same       as    not     sup-   period    end   value      at
-       ances  (bal   of   postings   --value=end      ported         balances,       DATE/today of
-       -H, is --H,   from   before                                   valued at pe-   sums of post-
-       bs, cf)       report  start                                   riod ends       ings
-                     to period end
-       budget        like  balance   like  balance    not     sup-   like balances   like  balance
-       amounts       changes/end     changes/end      ported                         changes/end
-       (--budget)    balances        balances                                        balances
-       row totals,   sums,   aver-   sums,   aver-    not     sup-   sums,   aver-   sums,   aver-
-       row   aver-   ages  of dis-   ages  of dis-    ported         ages of  dis-   ages of  dis-
-       ages   (-T,   played values   played values                   played values   played values
-       -A)
-       column  to-   sums of  dis-   sums  of dis-    not     sup-   sums  of dis-   sums of  dis-
-       tals          played values   played values    ported         played values   played values
-       grand   to-   sum,  average   sum,  average    not     sup-   sum,  average   sum,  average
-       tal,  grand   of column to-   of column to-    ported         of column to-   of column to-
-       average       tals            tals                            tals            tals
+       starting bal-   sums of costs   value      at    not     sup-   value      at   sums of post-
+       ances (-H)      of   postings   report  start    ported         report  start   ings   before
+                       before report   of  sums   of                   of  sums   of   report start
+                       start           all  postings                   all  postings
+                                       before report                   before report
+                                       start                           start
+       balance         sums of costs   same       as    not     sup-   balance         value      at
+       changes (bal,   of   postings   --value=end      ported         change     in   DATE/today of
+       is,        bs   in period                                       each  period,   sums of post-
+       --change,  cf                                                   valued     at   ings
+       --change)                                                       period ends
+       end  balances   sums of costs   same       as    not     sup-   period    end   value      at
+       (bal  -H,  is   of   postings   --value=end      ported         balances,       DATE/today of
+       --H, bs, cf)    from   before                                   valued     at   sums of post-
+                       report  start                                   period ends     ings
+                       to period end
+       budget          like  balance   like  balance    not     sup-   like balances   like  balance
+       amounts         changes/end     changes/end      ported                         changes/end
+       (--budget)      balances        balances                                        balances
+       row   totals,   sums,   aver-   sums,   aver-    not     sup-   sums,   aver-   sums,   aver-
+       row  averages   ages of  dis-   ages  of dis-    ported         ages  of dis-   ages of  dis-
+       (-T, -A)        played values   played values                   played values   played values
+       column totals   sums  of dis-   sums  of dis-    not     sup-   sums of  dis-   sums of  dis-
+                       played values   played values    ported         played values   played values
+       grand  total,   sum,  average   sum,  average    not     sup-   sum,  average   sum,  average
+       grand average   of     column   of     column    ported         of     column   of     column
+                       totals          totals                          totals          totals
 
 
        --cumulative is omitted to save space, it works like -H but with a zero
@@ -1656,39 +1669,39 @@ OPTIONS
 
        cost   calculated using price(s) recorded in the transaction(s).
 
-       value  market  value  using available market price declarations, or the
+       value  market value using available market price declarations,  or  the
               unchanged amount if no conversion rate can be found.
 
        report start
-              the first day of the report period specified with -b  or  -p  or
+              the  first  day  of the report period specified with -b or -p or
               date:, otherwise today.
 
        report or journal start
-              the  first  day  of the report period specified with -b or -p or
-              date:, otherwise the earliest transaction date in  the  journal,
+              the first day of the report period specified with -b  or  -p  or
+              date:,  otherwise  the earliest transaction date in the journal,
               otherwise today.
 
        report end
-              the  last  day  of  the report period specified with -e or -p or
+              the last day of the report period specified with  -e  or  -p  or
               date:, otherwise today.
 
        report or journal end
-              the last day of the report period specified with  -e  or  -p  or
-              date:,  otherwise  the  latest  transaction date in the journal,
+              the  last  day  of  the report period specified with -e or -p or
+              date:, otherwise the latest transaction  date  in  the  journal,
               otherwise today.
 
        report interval
-              a flag (-D/-W/-M/-Q/-Y) or period expression that activates  the
+              a  flag (-D/-W/-M/-Q/-Y) or period expression that activates the
               report's multi-period mode (whether showing one or many subperi-
               ods).
 
 COMMANDS
-       hledger provides a number of commands for producing reports and  manag-
-       ing  your  data.   Run  hledger  with no arguments to list the commands
+       hledger  provides a number of commands for producing reports and manag-
+       ing your data.  Run hledger with no  arguments  to  list  the  commands
        available.
 
        To run a command, write its name (or its abbreviation shown in the com-
-       mands  list,  or any unambiguous prefix of the name) as hledger's first
+       mands list, or any unambiguous prefix of the name) as  hledger's  first
        argument.  Eg: hledger balance or hledger bal.
 
        Here are the built-in commands:
@@ -1729,8 +1742,8 @@ COMMANDS
 
        o activity - show postings-per-interval bar charts
 
-       o balance (b, bal) - show balance changes/end balances/budgets  in  ac-
-         counts
+       o balance  (b,  bal)  -  show  balance  changes/end balances/budgets in
+         accounts
 
        o codes - show transaction codes
 
@@ -1750,10 +1763,10 @@ COMMANDS
 
        o print-unique - show only transactions with unique descriptions
 
-       o register  (r,  reg) - show postings in one or more accounts & running
+       o register (r, reg) - show postings in one or more accounts  &  running
          total
 
-       o register-match - show a recent posting that best matches  a  descrip-
+       o register-match  -  show a recent posting that best matches a descrip-
          tion
 
        o stats - show journal statistics
@@ -1768,13 +1781,13 @@ COMMANDS
        accounts, a
        Show account names.
 
-       This  command  lists account names, either declared with account direc-
-       tives (--declared), posted to (--used), or both  (the  default).   With
-       query  arguments,  only  matched account names and account names refer-
-       enced by matched postings are shown.  It shows a flat list by  default.
-       With  --tree,  it  uses  indentation to show the account hierarchy.  In
-       flat mode you can add --drop N to omit the first few account name  com-
-       ponents.   Account names can be depth-clipped with depth:N or --depth N
+       This command lists account names, either declared with  account  direc-
+       tives  (--declared),  posted  to (--used), or both (the default).  With
+       query arguments, only matched account names and  account  names  refer-
+       enced  by matched postings are shown.  It shows a flat list by default.
+       With --tree, it uses indentation to show  the  account  hierarchy.   In
+       flat  mode you can add --drop N to omit the first few account name com-
+       ponents.  Account names can be depth-clipped with depth:N or --depth  N
        or -N.
 
        Examples:
@@ -1793,8 +1806,8 @@ COMMANDS
        activity
        Show an ascii barchart of posting counts per interval.
 
-       The activity command displays an ascii  histogram  showing  transaction
-       counts  by  day, week, month or other reporting interval (by day is the
+       The  activity  command  displays an ascii histogram showing transaction
+       counts by day, week, month or other reporting interval (by day  is  the
        default).  With query arguments, it counts only matched transactions.
 
        Examples:
@@ -1807,25 +1820,25 @@ COMMANDS
 
    add
        add
-       Prompt for transactions and add them to  the  journal.   Any  arguments
+       Prompt  for  transactions  and  add them to the journal.  Any arguments
        will be used as default inputs for the first N prompts.
 
-       Many  hledger users edit their journals directly with a text editor, or
-       generate them from CSV.  For more interactive data entry, there is  the
-       add  command, which prompts interactively on the console for new trans-
+       Many hledger users edit their journals directly with a text editor,  or
+       generate  them from CSV.  For more interactive data entry, there is the
+       add command, which prompts interactively on the console for new  trans-
        actions, and appends them to the journal file (if there are multiple -f
-       FILE  options,  the  first file is used.) Existing transactions are not
-       changed.  This is the only hledger command that writes to  the  journal
+       FILE options, the first file is used.) Existing  transactions  are  not
+       changed.   This  is the only hledger command that writes to the journal
        file.
 
        To use it, just run hledger add and follow the prompts.  You can add as
-       many transactions as you like; when you are finished, enter . or  press
+       many  transactions as you like; when you are finished, enter . or press
        control-d or control-c to exit.
 
        Features:
 
-       o add  tries to provide useful defaults, using the most similar (by de-
-         scription) recent transaction (filtered by the query, if  any)  as  a
+       o add tries to provide useful defaults,  using  the  most  similar  (by
+         description)  recent transaction (filtered by the query, if any) as a
          template.
 
        o You can also set the initial defaults with command line arguments.
@@ -1833,10 +1846,10 @@ COMMANDS
        o Readline-style edit keys can be used during data entry.
 
        o The tab key will auto-complete whenever possible - accounts, descrip-
-         tions, dates (yesterday, today, tomorrow).   If  the  input  area  is
+         tions,  dates  (yesterday,  today,  tomorrow).   If the input area is
          empty, it will insert the default value.
 
-       o If  the  journal defines a default commodity, it will be added to any
+       o If the journal defines a default commodity, it will be added  to  any
          bare numbers entered.
 
        o A parenthesised transaction code may be entered following a date.
@@ -1880,41 +1893,56 @@ COMMANDS
 
    aregister
        aregister, areg
-       Show transactions affecting a particular  account,  and  the  account's
-       running balance.
 
-       aregister  shows  the  transactions affecting a particular account (and
-       its subaccounts), from the point of view of that  account.   Each  line
-       shows:
+       Show the transactions and running historical  balance  in  an  account,
+       with each line item representing one transaction.
 
-       o the transaction's (or posting's, see below) date
+       aregister shows the transactions affecting a particular account and its
+       subaccounts, with each line item representing a whole transaction -  as
+       in  bank statements, hledger-ui, hledger-web and other accounting apps.
 
-       o the names of the other account(s) involved
+       Note this is unlike the register command, which shows individual  post-
+       ings and does not always show a single account or a historical balance.
 
-       o the net change to this account's balance
+       A reminder, "historical" balances include any balance from transactions
+       before the report start date, so (if opening balances are recorded cor-
+       rectly) aregister will show the real-world balances of an  account,  as
+       you would see in a bank statement.
 
-       o the  account's  historical  running  balance  (including balance from
-         transactions before the report start date).
+       As  a  quick  rule  of  thumb, use aregister for reconciling real-world
+       asset/liability accounts  and  register  for  reviewing  detailed  rev-
+       enues/expenses.
 
-       With aregister, each line  represents  a  whole  transaction  -  as  in
-       hledger-ui,  hledger-web,  and  your  bank statement.  By contrast, the
-       register command shows individual postings, across all  accounts.   You
-       might  prefer aregister for reconciling with real-world asset/liability
-       accounts, and register for reviewing detailed revenues/expenses.
+       aregister  shows  the  register  for  just  one account (and its subac-
+       counts).  This account must be specified as the  first  argument.   You
+       can  write  either the full account name, or a case-insensitive regular
+       expression which will select the alphabetically first matched  account.
+       (Eg  if  you have assets:aaa:checking and assets:bbb:checking accounts,
+       hledger areg checking would select assets:aaa:checking.)
 
-       An account must be specified as the first argument, which should be the
-       full  account name or an account pattern (regular expression).  aregis-
-       ter will show transactions in this account (the first one matched)  and
-       any of its subaccounts.
-
-       Any  additional  arguments  form a query which will filter the transac-
+       Any additional arguments form a query which will  filter  the  transac-
        tions shown.
 
-       Transactions making a net change of zero are not shown by default;  add
+       Each aregister line item shows:
+
+       o the  transaction's date (or the relevant posting's date if different,
+         see below)
+
+       o the names of all the other account(s) involved  in  this  transaction
+         (probably abbreviated)
+
+       o the total change to this account's balance from this transaction
+
+       o the account's historical running balance after this transaction.
+
+       Transactions  making a net change of zero are not shown by default; add
        the -E/--empty flag to show them.
 
-       This command also supports the output destination and output format op-
-       tions The output formats supported are txt, csv, and json.
+       aregister ignores a depth limit, so its final total will always match a
+       balance report with similar arguments.
+
+       This  command  also  supports  the output destination and output format
+       options The output formats supported are txt, csv, and json.
 
    aregister and custom posting dates
        Transactions whose date is outside  the  report  period  can  still  be
@@ -1929,8 +1957,8 @@ COMMANDS
 
        Examples:
 
-       Show all transactions and historical running balance in the  first  ac-
-       count whose name contains "checking":
+       Show all transactions and  historical  running  balance  in  the  first
+       account whose name contains "checking":
 
               $ hledger areg checking
 
@@ -1963,19 +1991,20 @@ COMMANDS
        real-world account balances.  In some cases the -H/--historical flag is
        used to ensure this (more below).
 
-       This command also supports the output destination and output format op-
-       tions The output formats supported are (in most modes): txt, csv, html,
-       and json.
+       This command also supports the output  destination  and  output  format
+       options  The  output  formats  supported are (in most modes): txt, csv,
+       html, and json.
 
        The balance command can produce several styles of report:
 
+
    Single-period flat balance report
        This is the default for hledger's balance command: a flat list  of  all
-       (or  with  a query, matched) accounts, showing full account names.  Ac-
-       counts are sorted by declaration order if  any,  and  then  by  account
+       (or  with  a  query,  matched)  accounts,  showing  full account names.
+       Accounts are sorted by declaration order if any, and  then  by  account
        name.  Accounts which have zero balance are not shown unless -E/--empty
-       is used.  The reported balances' total is shown as the last  line,  un-
-       less disabled by -N/--no-total.
+       is used.  The reported balances' total  is  shown  as  the  last  line,
+       unless disabled by -N/--no-total.
 
               $ hledger bal
                                 $1  assets:bank:saving
@@ -1987,6 +2016,7 @@ COMMANDS
                                 $1  liabilities:debts
               --------------------
                                  0
+
 
    Single-period tree-mode balance report
        With the -t/--tree flag, accounts are displayed hierarchically, showing
@@ -2020,8 +2050,8 @@ COMMANDS
        Note this causes some repetition, and the final total (0) is the sum of
        the top-level balances, not of all the balances shown.
 
-       Each group of sibling accounts is sorted separately, by declaration or-
-       der and then by account name.
+       Each group of sibling accounts is  sorted  separately,  by  declaration
+       order and then by account name.
 
    Multi-period balance report
        Multi-period  balance  reports are a very useful hledger feature, acti-
@@ -2094,12 +2124,12 @@ COMMANDS
        ods will be "full" and comparable to the others.
 
        The -E/--empty flag does two things  in  multicolumn  balance  reports:
-       first, the report will show all columns within the specified report pe-
-       riod (without -E, leading and trailing columns with all zeroes are  not
-       shown).   Second,  all  accounts which existed at the report start date
-       will be considered, not just the ones with activity during  the  report
-       period  (use  -E to include low-activity accounts which would otherwise
-       would be omitted).
+       first,  the  report  will  show all columns within the specified report
+       period (without -E, leading and trailing columns with  all  zeroes  are
+       not  shown).   Second,  all  accounts which existed at the report start
+       date will be considered, not just the ones  with  activity  during  the
+       report period (use -E to include low-activity accounts which would oth-
+       erwise would be omitted).
 
        The -T/--row-total flag adds an additional column showing the total for
        each row.
@@ -2168,14 +2198,14 @@ COMMANDS
        your biggest averaged monthly expenses first.
 
        Revenues  and liability balances are typically negative, however, so -S
-       shows these in reverse order.  To work around this, you can  add  --in-
-       vert  to flip the signs.  Or, use one of the sign-flipping reports like
-       balancesheet or incomestatement, which also support -S.  Eg: hledger is
-       -MAS.
+       shows these in reverse  order.   To  work  around  this,  you  can  add
+       --invert  to  flip the signs.  Or, use one of the sign-flipping reports
+       like balancesheet or  incomestatement,  which  also  support  -S.   Eg:
+       hledger is -MAS.
 
    Percentages
-       With  -%  or  --percent,  balance reports show each account's value ex-
-       pressed as a percentage of the column's total.  This is useful  to  get
+       With  -%  or  --percent,  balance  reports  show  each  account's value
+       expressed as a percentage of the column's total.  This is useful to get
        an  overview of the relative sizes of account balances.  For example to
        obtain an overview of expenses:
 
@@ -2196,9 +2226,10 @@ COMMANDS
        likely  useless.   Especially  in a balance report that sums up to zero
        (eg hledger balance -B) all percentage values will be zero.
 
-       This flag does not work if the report contains any mixed commodity  ac-
-       counts.  If there are mixed commodity accounts in the report be sure to
-       use -V or -B to coerce the report into using a single commodity.
+       This flag does not work if the  report  contains  any  mixed  commodity
+       accounts.   If there are mixed commodity accounts in the report be sure
+       to use -V or -B to coerce the report into using a single commodity.
+
 
    Customising single-period balance reports
        You can customise the layout  of  single-period  balance  reports  with
@@ -2246,9 +2277,9 @@ COMMANDS
 
        o %, - render on one line, comma-separated
 
-       There are some quirks.  Eg in one-line mode, %(depth_spacer) has no ef-
-       fect, instead %(account) has indentation built in.  Experimentation may
-       be needed to get pleasing results.
+       There  are  some  quirks.   Eg in one-line mode, %(depth_spacer) has no
+       effect, instead %(account) has indentation built  in.   Experimentation
+       may be needed to get pleasing results.
 
        Some example formats:
 
@@ -2271,8 +2302,8 @@ COMMANDS
        goals are defined by periodic transactions.  This is  very  useful  for
        comparing planned and actual income, expenses, time usage, etc.
 
-       For  example,  you  can take average monthly expenses in the common ex-
-       pense categories to construct a minimal monthly budget:
+       For  example,  you  can  take  average  monthly  expenses in the common
+       expense categories to construct a minimal monthly budget:
 
               ;; Budget
               ~ monthly
@@ -2437,10 +2468,10 @@ COMMANDS
        budget for personal expenses is an additional $1000,  which  implicitly
        means that budget for both expenses:personal and expenses is $1100.
 
-       Transactions  in expenses:personal:electronics will be counted both to-
-       wards its $100 budget and $1100 of expenses:personal , and transactions
-       in  any  other subaccount of expenses:personal would be counted towards
-       only towards the budget of expenses:personal.
+       Transactions  in  expenses:personal:electronics  will  be  counted both
+       towards its $100 budget and $1100 of expenses:personal ,  and  transac-
+       tions  in  any  other  subaccount of expenses:personal would be counted
+       towards only towards the budget of expenses:personal.
 
        For example, let's consider these transactions:
 
@@ -2509,8 +2540,8 @@ COMMANDS
 
        The asset and liability accounts shown are those accounts declared with
        the  Asset or Cash or Liability type, or otherwise all accounts under a
-       top-level asset or liability account  (case  insensitive,  plurals  al-
-       lowed).
+       top-level  asset  or  liability  account  (case  insensitive,   plurals
+       allowed).
 
        Example:
 
@@ -2542,9 +2573,9 @@ COMMANDS
        sense).   Instead  of absolute values percentages can be displayed with
        -%.
 
-       This command also supports the output destination and output format op-
-       tions  The output formats supported are txt, csv, html, and (experimen-
-       tal) json.
+       This command also supports the output  destination  and  output  format
+       options  The  output formats supported are txt, csv, html, and (experi-
+       mental) json.
 
    balancesheetequity
        balancesheetequity, bse
@@ -2552,10 +2583,10 @@ COMMANDS
        ances  of asset, liability and equity accounts.  Amounts are shown with
        normal positive sign, as in conventional financial statements.
 
-       The asset, liability and equity accounts shown are those  accounts  de-
-       clared with the Asset, Cash, Liability or Equity type, or otherwise all
-       accounts under a top-level asset, liability or equity account (case in-
-       sensitive, plurals allowed).
+       The asset, liability and  equity  accounts  shown  are  those  accounts
+       declared  with  the Asset, Cash, Liability or Equity type, or otherwise
+       all accounts under a top-level asset, liability or equity account (case
+       insensitive, plurals allowed).
 
        Example:
 
@@ -2583,9 +2614,9 @@ COMMANDS
               --------------------
                                  0
 
-       This command also supports the output destination and output format op-
-       tions The output formats supported are txt, csv, html, and  (experimen-
-       tal) json.
+       This  command  also  supports  the output destination and output format
+       options The output formats supported are txt, csv, html,  and  (experi-
+       mental) json.
 
    cashflow
        cashflow, cf
@@ -2595,8 +2626,8 @@ COMMANDS
 
        The  "cash"  accounts  shown  are those accounts declared with the Cash
        type, or otherwise all accounts under a top-level asset  account  (case
-       insensitive,  plural  allowed) which do not have fixed, investment, re-
-       ceivable or A/R in their name.
+       insensitive,  plural  allowed)  which  do  not  have fixed, investment,
+       receivable or A/R in their name.
 
        Example:
 
@@ -2620,9 +2651,9 @@ COMMANDS
        mode with --change/--cumulative/--historical.  Instead of absolute val-
        ues percentages can be displayed with -%.
 
-       This command also supports the output destination and output format op-
-       tions  The output formats supported are txt, csv, html, and (experimen-
-       tal) json.
+       This command also supports the output  destination  and  output  format
+       options  The  output formats supported are txt, csv, html, and (experi-
+       mental) json.
 
    check
        check
@@ -2644,15 +2675,15 @@ COMMANDS
 
        o parseable - data files are well-formed and can be successfully parsed
 
-       o autobalanced  -  all  transactions  are  balanced,  inferring missing
-         amounts where necessary, and possibly  converting  commodities  using
+       o autobalanced -  all  transactions  are  balanced,  inferring  missing
+         amounts  where  necessary,  and possibly converting commodities using
          transaction prices or automatically-inferred transaction prices
 
-       o assertions  -  all  balance  assertions  in  the journal are passing.
+       o assertions - all balance  assertions  in  the  journal  are  passing.
          (This check can be disabled with -I/--ignore-assertions.)
 
    Strict checks
-       These are always run by this and other  commands  when  -s/--strict  is
+       These  are  always  run  by this and other commands when -s/--strict is
        used (strict mode):
 
        o accounts - all account names used by transactions have been declared
@@ -2660,13 +2691,13 @@ COMMANDS
        o commodities - all commodity symbols used have been declared
 
    Other checks
-       These  checks  can be run by specifying their names as arguments to the
+       These checks can be run by specifying their names as arguments  to  the
        check command:
 
-       o ordereddates - transactions are ordered by date (similar to  the  old
+       o ordereddates  -  transactions are ordered by date (similar to the old
          check-dates command)
 
-       o uniqueleafnames  -  all account leaf names are unique (similar to the
+       o uniqueleafnames - all account leaf names are unique (similar  to  the
          old check-dupes command)
 
    Add-on checks
@@ -2674,10 +2705,10 @@ COMMANDS
        as add-on commands in https://github.com/simonmichael/hledger/tree/mas-
        ter/bin:
 
-       o hledger-check-tagfiles - all  tag  values  containing  /  (a  forward
+       o hledger-check-tagfiles  -  all  tag  values  containing  / (a forward
          slash) exist as file paths
 
-       o hledger-check-fancyassertions  -  more complex balance assertions are
+       o hledger-check-fancyassertions - more complex balance  assertions  are
          passing
 
        You could make your own similar scripts to perform custom checks; Cook-
@@ -2685,65 +2716,65 @@ COMMANDS
 
    close
        close, equity
-       Prints  a  "closing  balances"  transaction  and  an "opening balances"
+       Prints a "closing  balances"  transaction  and  an  "opening  balances"
        transaction that bring account balances to and from zero, respectively.
        These can be added to your journal file(s), eg to bring asset/liability
-       balances forward into a new journal file, or to close out  revenues/ex-
-       penses to retained earnings at the end of a period.
+       balances  forward  into  a  new  journal  file,  or  to  close out rev-
+       enues/expenses to retained earnings at the end of a period.
 
-       You  can  print  just one of these transactions by using the --close or
-       --open flag.  You can customise their descriptions  with  the  --close-
+       You can print just one of these transactions by using  the  --close  or
+       --open  flag.   You  can customise their descriptions with the --close-
        desc and --open-desc options.
 
        One amountless posting to "equity:opening/closing balances" is added to
-       balance the transactions, by default.  You can customise  this  account
-       name  with  --close-acct  and  --open-acct;  if you specify only one of
+       balance  the  transactions, by default.  You can customise this account
+       name with --close-acct and --open-acct; if  you  specify  only  one  of
        these, it will be used for both.
 
        With --x/--explicit, the equity posting's amount will be shown.  And if
-       it  involves multiple commodities, a posting for each commodity will be
+       it involves multiple commodities, a posting for each commodity will  be
        shown, as with the print command.
 
-       With --interleaved, the equity postings are shown next to the  postings
+       With  --interleaved, the equity postings are shown next to the postings
        they balance, which makes troubleshooting easier.
 
        By default, transaction prices in the journal are ignored when generat-
-       ing the closing/opening transactions.  With --show-costs, this cost in-
-       formation  is preserved (balance -B reports will be unchanged after the
-       transition).  Separate postings are generated for  each  cost  in  each
-       commodity.   Note  this can generate very large journal entries, if you
+       ing  the  closing/opening  transactions.   With --show-costs, this cost
+       information is preserved (balance -B reports will  be  unchanged  after
+       the transition).  Separate postings are generated for each cost in each
+       commodity.  Note this can generate very large journal entries,  if  you
        have many foreign currency or investment transactions.
 
    close usage
        If you split your journal files by time (eg yearly), you will typically
-       run  this command at the end of the year, and save the closing transac-
-       tion as last entry of the old file, and the opening transaction as  the
-       first  entry  of the new file.  This makes the files self contained, so
-       that correct balances are reported no matter which of them are  loaded.
-       Ie,  if you load just one file, the balances are initialised correctly;
-       or if you load several files, the  redundant  closing/opening  transac-
-       tions  cancel  each other out.  (They will show up in print or register
-       reports; you can  exclude  them  with  a  query  like  not:desc:'(open-
+       run this command at the end of the year, and save the closing  transac-
+       tion  as last entry of the old file, and the opening transaction as the
+       first entry of the new file.  This makes the files self  contained,  so
+       that  correct balances are reported no matter which of them are loaded.
+       Ie, if you load just one file, the balances are initialised  correctly;
+       or  if  you  load several files, the redundant closing/opening transac-
+       tions cancel each other out.  (They will show up in print  or  register
+       reports;  you  can  exclude  them  with  a  query like not:desc:'(open-
        ing|closing) balances'.)
 
        If you're running a business, you might also use this command to "close
-       the books" at the end of  an  accounting  period,  transferring  income
-       statement  account  balances  to  retained  earnings.  (You may want to
+       the  books"  at  the  end  of an accounting period, transferring income
+       statement account balances to retained  earnings.   (You  may  want  to
        change the equity account name to something like "equity:retained earn-
        ings".)
 
-       By  default,  the  closing transaction is dated yesterday, the balances
-       are calculated as of end of yesterday, and the opening  transaction  is
-       dated  today.  To close on some other date, use: hledger close -e OPEN-
-       INGDATE.  Eg, to close/open on the 2018/2019  boundary,  use  -e  2019.
+       By default, the closing transaction is dated  yesterday,  the  balances
+       are  calculated  as of end of yesterday, and the opening transaction is
+       dated today.  To close on some other date, use: hledger close -e  OPEN-
+       INGDATE.   Eg,  to  close/open  on the 2018/2019 boundary, use -e 2019.
        You can also use -p or date:PERIOD (any starting date is ignored).
 
-       Both  transactions  will  include balance assertions for the closed/re-
-       opened accounts.  You probably shouldn't use status or realness filters
-       (like  -C or -R or status:) with this command, or the generated balance
-       assertions will depend on these flags.  Likewise, if you run this  com-
-       mand  with  --auto, the balance assertions will probably always require
-       --auto.
+       Both   transactions   will   include   balance   assertions   for   the
+       closed/reopened  accounts.   You probably shouldn't use status or real-
+       ness filters (like -C or -R or status:) with this command, or the  gen-
+       erated balance assertions will depend on these flags.  Likewise, if you
+       run this command with --auto,  the  balance  assertions  will  probably
+       always require --auto.
 
        Examples:
 
@@ -2783,13 +2814,13 @@ COMMANDS
        codes
        List the codes seen in transactions, in the order parsed.
 
-       This  command prints the value of each transaction's code field, in the
-       order transactions were parsed.  The transaction code  is  an  optional
-       value  written  in  parentheses between the date and description, often
+       This command prints the value of each transaction's code field, in  the
+       order  transactions  were  parsed.  The transaction code is an optional
+       value written in parentheses between the date  and  description,  often
        used to store a cheque number, order number or similar.
 
        Transactions aren't required to have a code, and missing or empty codes
-       will  not  be shown by default.  With the -E/--empty flag, they will be
+       will not be shown by default.  With the -E/--empty flag, they  will  be
        printed as blank lines.
 
        You can add a query to select a subset of transactions.
@@ -2829,7 +2860,7 @@ COMMANDS
        List the unique descriptions that appear in transactions.
 
        This command lists the unique descriptions that appear in transactions,
-       in  alphabetic order.  You can add a query to select a subset of trans-
+       in alphabetic order.  You can add a query to select a subset of  trans-
        actions.
 
        Example:
@@ -2841,13 +2872,13 @@ COMMANDS
 
    diff
        diff
-       Compares a particular account's transactions in two  input  files.   It
+       Compares  a  particular  account's transactions in two input files.  It
        shows any transactions to this account which are in one file but not in
        the other.
 
        More precisely, for each posting affecting this account in either file,
-       it  looks for a corresponding posting in the other file which posts the
-       same amount to the same  account  (ignoring  date,  description,  etc.)
+       it looks for a corresponding posting in the other file which posts  the
+       same  amount  to  the  same  account (ignoring date, description, etc.)
        Since postings not transactions are compared, this also works when mul-
        tiple bank transactions have been combined into a single journal entry.
 
@@ -2871,19 +2902,19 @@ COMMANDS
    files
        files
        List  all  files  included in the journal.  With a REGEX argument, only
-       file names matching the regular expression (case sensitive) are shown.
+       file names matching the regular expression (case sensitive) are  shown.
 
    help
        help
        Show any of the hledger manuals.
 
-       The help command displays any of the main hledger manuals,  in  one  of
-       several  ways.  Run it with no argument to list the manuals, or provide
+       The  help  command  displays any of the main hledger manuals, in one of
+       several ways.  Run it with no argument to list the manuals, or  provide
        a full or partial manual name to select one.
 
-       hledger manuals are available in several formats.   hledger  help  will
-       use  the  first  of  these  display  methods  that it finds: info, man,
-       $PAGER, less, stdout (or when non-interactive, just stdout).   You  can
+       hledger  manuals  are  available in several formats.  hledger help will
+       use the first of these  display  methods  that  it  finds:  info,  man,
+       $PAGER,  less,  stdout (or when non-interactive, just stdout).  You can
        force a particular viewer with the --info, --man, --pager, --cat flags.
 
        Examples:
@@ -2948,9 +2979,10 @@ COMMANDS
 
    incomestatement
        incomestatement, is
-       This  command  displays  an  income statement, showing revenues and ex-
-       penses during one or more periods.  Amounts are shown with normal posi-
-       tive sign, as in conventional financial statements.
+
+       This  command  displays  an  income  statement,  showing  revenues  and
+       expenses during one or more periods.  Amounts  are  shown  with  normal
+       positive sign, as in conventional financial statements.
 
        The revenue and expense accounts shown are those accounts declared with
        the Revenue or Expense type, or otherwise all  accounts  under  a  top-
@@ -2986,16 +3018,16 @@ COMMANDS
        report  mode with --change/--cumulative/--historical.  Instead of abso-
        lute values percentages can be displayed with -%.
 
-       This command also supports the output destination and output format op-
-       tions  The output formats supported are txt, csv, html, and (experimen-
-       tal) json.
+       This command also supports the output  destination  and  output  format
+       options  The  output formats supported are txt, csv, html, and (experi-
+       mental) json.
 
    notes
        notes
        List the unique notes that appear in transactions.
 
-       This command lists the unique notes that appear in transactions, in al-
-       phabetic  order.   You  can  add a query to select a subset of transac-
+       This command lists the unique notes that  appear  in  transactions,  in
+       alphabetic  order.   You can add a query to select a subset of transac-
        tions.  The note is the part of the transaction description after  a  |
        character (or if there is no |, the whole description).
 
@@ -3043,10 +3075,10 @@ COMMANDS
        Argument for --add-posting option is a  usual  posting  of  transaction
        with  an  exception  for amount specification.  More precisely, you can
        use '*' (star symbol) before the amount to indicate that that this is a
-       factor  for  an  amount of original matched posting.  If the amount in-
-       cludes a commodity name, the new posting amount will be in the new com-
-       modity;  otherwise,  it will be in the matched posting amount's commod-
-       ity.
+       factor  for  an  amount  of  original  matched  posting.  If the amount
+       includes a commodity name, the new posting amount will be  in  the  new
+       commodity;  otherwise,  it will be in the matched posting amount's com-
+       modity.
 
    Re-write rules in a file
        During the run this tool will execute  so  called  "Automated  Transac-
@@ -3127,39 +3159,39 @@ COMMANDS
        o rewrite's query limits which transactions can be rewritten;  all  are
          printed.  print --auto's query limits which transactions are printed.
 
-       o rewrite  applies  rules  specified on command line or in the journal.
+       o rewrite applies rules specified on command line or  in  the  journal.
          print --auto applies rules specified in the journal.
 
    roi
        roi
-       Shows the time-weighted (TWR) and money-weighted (IRR) rate  of  return
+       Shows  the  time-weighted (TWR) and money-weighted (IRR) rate of return
        on your investments.
 
-       This  command  assumes  that  you have account(s) that hold nothing but
+       This command assumes that you have account(s)  that  hold  nothing  but
        your investments and whenever you record current appraisal/valuation of
        these investments you offset unrealized profit and loss into account(s)
        that, again, hold nothing but unrealized profit and loss.
 
-       Any transactions affecting balance of  investment  account(s)  and  not
-       originating  from  unrealized profit and loss account(s) are assumed to
+       Any  transactions  affecting  balance  of investment account(s) and not
+       originating from unrealized profit and loss account(s) are  assumed  to
        be your investments or withdrawals.
 
-       At a minimum, you need to supply a query (which could be  just  an  ac-
-       count name) to select your investments with --inv, and another query to
-       identify your profit and loss transactions with --pnl.
+       At  a  minimum,  you  need  to  supply  a query (which could be just an
+       account name) to select your investments with --inv, and another  query
+       to identify your profit and loss transactions with --pnl.
 
-       This command will compute and display the internalized rate  of  return
-       (IRR)  and  time-weighted rate of return (TWR) for your investments for
-       the time period requested.  Both rates of return are annualized  before
+       This  command  will compute and display the internalized rate of return
+       (IRR) and time-weighted rate of return (TWR) for your  investments  for
+       the  time period requested.  Both rates of return are annualized before
        display, regardless of the length of reporting interval.
 
        Note, in some cases this report can fail, for these reasons:
 
-       o Error  (NotBracketed): No solution for Internal Rate of Return (IRR).
-         Possible causes: IRR is huge (>1000000%), balance of  investment  be-
-         comes negative at some point in time.
+       o Error (NotBracketed): No solution for Internal Rate of Return  (IRR).
+         Possible  causes:  IRR  is  huge  (>1000000%),  balance of investment
+         becomes negative at some point in time.
 
-       o Error  (SearchFailed):  Failed  to find solution for Internal Rate of
+       o Error (SearchFailed): Failed to find solution for  Internal  Rate  of
          Return (IRR).  Either search does not converge to a solution, or con-
          verges too slowly.
 
@@ -3170,45 +3202,45 @@ COMMANDS
 
        More background:
 
-       "ROI" stands for "return on investment".  Traditionally this  was  com-
-       puted  as a difference between current value of investment and its ini-
+       "ROI"  stands  for "return on investment".  Traditionally this was com-
+       puted as a difference between current value of investment and its  ini-
        tial value, expressed in percentage of the initial value.
 
        However, this approach is only practical in simple cases, where invest-
-       ments  receives  no  in-flows  or out-flows of money, and where rate of
+       ments receives no in-flows or out-flows of money,  and  where  rate  of
        growth is fixed over time.  For more complex scenarios you need differ-
-       ent  ways to compute rate of return, and this command implements two of
+       ent ways to compute rate of return, and this command implements two  of
        them: IRR and TWR.
 
-       Internal rate of return, or "IRR" (also called "money-weighted rate  of
-       return")   takes  into  account  effects  of  in-flows  and  out-flows.
+       Internal  rate of return, or "IRR" (also called "money-weighted rate of
+       return")  takes  into  account  effects  of  in-flows  and   out-flows.
        Naively, if you are withdrawing from your investment, your future gains
-       would  be smaller (in absolute numbers), and will be a smaller percent-
-       age of your initial investment, and if you are adding to  your  invest-
-       ment,  you will receive bigger absolute gains (but probably at the same
-       rate of return).  IRR is a way to compute rate of return for  each  pe-
-       riod  between  in-flow or out-flow of money, and then combine them in a
+       would be smaller (in absolute numbers), and will be a smaller  percent-
+       age  of  your initial investment, and if you are adding to your invest-
+       ment, you will receive bigger absolute gains (but probably at the  same
+       rate  of  return).   IRR  is  a  way to compute rate of return for each
+       period between in-flow or out-flow of money, and then combine them in a
        way that gives you an annual rate of return that investment is expected
        to generate.
 
-       As  mentioned before, in-flows and out-flows would be any cash that you
-       personally put in or withdraw, and for the  "roi"  command,  these  are
-       transactions  that  involve  account(s) matching --inv argument and NOT
+       As mentioned before, in-flows and out-flows would be any cash that  you
+       personally  put  in  or  withdraw, and for the "roi" command, these are
+       transactions that involve account(s) matching --inv  argument  and  NOT
        involve account(s) matching --pnl argument.
 
-       Presumably, you will also record changes in the value of  your  invest-
-       ment,  and  balance  them  against  "profit  and  loss" (or "unrealized
-       gains") account.  Note that in order for IRR to compute the precise ef-
-       fect  of  your  in-flows  and out-flows on the rate of return, you will
-       need to record the value of your investement on or close  to  the  days
+       Presumably,  you  will also record changes in the value of your invest-
+       ment, and balance  them  against  "profit  and  loss"  (or  "unrealized
+       gains")  account.   Note  that  in order for IRR to compute the precise
+       effect of your in-flows and out-flows on the rate of return,  you  will
+       need  to  record  the value of your investement on or close to the days
        when in- or out-flows occur.
 
-       Implementation  of  IRR in hledger should match the XIRR formula in Ex-
-       cel.
+       Implementation of IRR in hledger  should  match  the  XIRR  formula  in
+       Excel.
 
-       Second way to compute rate of return that  roi  command  implements  is
+       Second  way  to  compute  rate of return that roi command implements is
        called "time-weighted rate of return" or "TWR".  Like IRR, it will also
-       break the history of your investment into periods between in-flows  and
+       break  the history of your investment into periods between in-flows and
        out-flows to compute rate of return per each period and then a compound
        rate of return.  However, internal workings of TWR are quite different.
 
@@ -3224,9 +3256,9 @@ COMMANDS
        in  "unit  price" over the reporting period gives you rate of return of
        your investment.
 
-       References: * Explanation of rate of return * Explanation of IRR *  Ex-
-       planation  of TWR * Examples of computing IRR and TWR and discussion of
-       the limitations of both metrics
+       References: * Explanation of rate of return  *  Explanation  of  IRR  *
+       Explanation  of  TWR * Examples of computing IRR and TWR and discussion
+       of the limitations of both metrics
 
        More examples:
 
@@ -3463,10 +3495,10 @@ COMMANDS
 
        o interest generates interest transactions according to various schemes
 
-       o stockquotes  downloads market prices for your commodities from Alpha-
+       o stockquotes downloads market prices for your commodities from  Alpha-
          Vantage (experimental)
 
-       Additional experimental add-ons, which may not be in a  working  state,
+       Additional  experimental  add-ons, which may not be in a working state,
        can be found in the bin/ directory in the hledger repo.
 
    Add-on command flags
@@ -3481,8 +3513,8 @@ COMMANDS
 
        (because the --serve flag belongs to hledger-web, not hledger).
 
-       The -h/--help and --version flags work without --, with their  position
-       deciding  which  program  they  refer  to.   Eg  hledger  -h  web shows
+       The  -h/--help and --version flags work without --, with their position
+       deciding which  program  they  refer  to.   Eg  hledger  -h  web  shows
        hledger's help, hledger web -h shows hledger-web's help.
 
        If you have any trouble with this, remember you can always run the add-
@@ -3495,30 +3527,30 @@ COMMANDS
 
        o whose name starts with hledger-
 
-       o whose  name  ends  with  a recognised file extension: .bat,.com,.exe,
+       o whose name ends with a  recognised  file  extension:  .bat,.com,.exe,
          .hs,.lhs,.pl,.py,.rb,.rkt,.sh or none
 
        o and (on unix, mac) which are executable by the current user.
 
-       Add-ons are a relatively easy way to add local features  or  experiment
-       with  new  ideas.   They  can  be  written in any language, but haskell
-       scripts have a big advantage: they can use  the  same  hledger  library
-       functions  that built-in commands use for command-line options, parsing
+       Add-ons  are  a relatively easy way to add local features or experiment
+       with new ideas.  They can be  written  in  any  language,  but  haskell
+       scripts  have  a  big  advantage: they can use the same hledger library
+       functions that built-in commands use for command-line options,  parsing
        and reporting.
 
 ENVIRONMENT
        LEDGER_FILE The journal file path when not specified with -f.  Default:
-       ~/.hledger.journal  (on  windows,  perhaps C:/Users/USER/.hledger.jour-
+       ~/.hledger.journal (on  windows,  perhaps  C:/Users/USER/.hledger.jour-
        nal).
 
-       A typical value is ~/DIR/YYYY.journal,  where  DIR  is  a  version-con-
-       trolled  finance directory and YYYY is the current year.  Or ~/DIR/cur-
+       A  typical  value  is  ~/DIR/YYYY.journal,  where DIR is a version-con-
+       trolled finance directory and YYYY is the current year.  Or  ~/DIR/cur-
        rent.journal, where current.journal is a symbolic link to YYYY.journal.
 
        On Mac computers, you can set this and other environment variables in a
        more  thorough  way that also affects applications started from the GUI
-       (say, an Emacs dock icon).  Eg on MacOS Catalina I have a ~/.MacOSX/en-
-       vironment.plist file containing
+       (say,  an  Emacs  dock  icon).   Eg  on  MacOS  Catalina   I   have   a
+       ~/.MacOSX/environment.plist file containing
 
               {
                 "LEDGER_FILE" : "~/finance/current.journal"
@@ -3563,8 +3595,8 @@ LIMITATIONS
        Ledger.
 
 TROUBLESHOOTING
-       Here  are some issues you might encounter when you run hledger (and re-
-       member you can also seek help from the IRC channel, mail  list  or  bug
+       Here  are  some  issues  you  might encounter when you run hledger (and
+       remember you can also seek help from the IRC channel, mail list or  bug
        tracker):
 
        Successfully installed, but "No command 'hledger' found"
@@ -3573,19 +3605,19 @@ TROUBLESHOOTING
        that is ~/.local/bin and ~/.cabal/bin respectively.
 
        I set a custom LEDGER_FILE, but hledger is still using the default file
-       LEDGER_FILE  should  be  a  real environment variable, not just a shell
-       variable.  The command env | grep LEDGER_FILE should show it.  You  may
+       LEDGER_FILE should be a real environment variable,  not  just  a  shell
+       variable.   The command env | grep LEDGER_FILE should show it.  You may
        need to use export.  Here's an explanation.
 
-       Getting  errors  like "Illegal byte sequence" or "Invalid or incomplete
-       multibyte or wide character" or "commitAndReleaseBuffer: invalid  argu-
+       Getting errors like "Illegal byte sequence" or "Invalid  or  incomplete
+       multibyte  or wide character" or "commitAndReleaseBuffer: invalid argu-
        ment (invalid character)"
        Programs compiled with GHC (hledger, haskell build tools, etc.) need to
        have a UTF-8-aware locale configured in the environment, otherwise they
-       will  fail  with  these  kinds  of errors when they encounter non-ascii
+       will fail with these kinds of  errors  when  they  encounter  non-ascii
        characters.
 
-       To fix it, set the LANG environment variable to some locale which  sup-
+       To  fix it, set the LANG environment variable to some locale which sup-
        ports UTF-8.  The locale you choose must be installed on your system.
 
        Here's an example of setting LANG temporarily, on Ubuntu GNU/Linux:
@@ -3600,9 +3632,9 @@ TROUBLESHOOTING
               POSIX
               $ LANG=en_US.utf8 hledger -f my.journal print   # ensure it is used for this command
 
-       If  available,  C.UTF-8 will also work.  If your preferred locale isn't
-       listed by locale -a, you might need to install it.   Eg  on  Ubuntu/De-
-       bian:
+       If available, C.UTF-8 will also work.  If your preferred  locale  isn't
+       listed   by   locale   -a,  you  might  need  to  install  it.   Eg  on
+       Ubuntu/Debian:
 
               $ apt-get install language-pack-fr
               $ locale -a
@@ -3621,8 +3653,8 @@ TROUBLESHOOTING
               $ echo "export LANG=en_US.utf8" >>~/.bash_profile
               $ bash --login
 
-       Exact  spelling  and capitalisation may be important.  Note the differ-
-       ence on MacOS (UTF-8, not utf8).   Some  platforms  (eg  ubuntu)  allow
+       Exact spelling and capitalisation may be important.  Note  the  differ-
+       ence  on  MacOS  (UTF-8,  not  utf8).  Some platforms (eg ubuntu) allow
        variant spellings, but others (eg macos) require it to be exact:
 
               $ locale -a | grep -iE en_us.*utf
@@ -3632,7 +3664,7 @@ TROUBLESHOOTING
 
 
 REPORTING BUGS
-       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
+       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
        or hledger mail list)
 
 
@@ -3653,4 +3685,4 @@ SEE ALSO
 
 
 
-hledger-1.20.3                   December 2020                      HLEDGER(1)
+hledger-1.20.4                   December 2020                      HLEDGER(1)

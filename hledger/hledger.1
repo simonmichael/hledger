@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "December 2020" "hledger-1.20.3 " "hledger User Manuals"
+.TH "HLEDGER" "1" "December 2020" "hledger-1.20.4 " "hledger User Manuals"
 
 
 
@@ -2690,40 +2690,58 @@ aregister, areg
 .PD 0
 .P
 .PD
-Show transactions affecting a particular account, and the account\[aq]s
-running balance.
+.PP
+Show the transactions and running historical balance in an account, with
+each line item representing one transaction.
 .PP
 \f[C]aregister\f[R] shows the transactions affecting a particular
-account (and its subaccounts), from the point of view of that account.
-Each line shows:
-.IP \[bu] 2
-the transaction\[aq]s (or posting\[aq]s, see below) date
-.IP \[bu] 2
-the names of the other account(s) involved
-.IP \[bu] 2
-the net change to this account\[aq]s balance
-.IP \[bu] 2
-the account\[aq]s historical running balance (including balance from
-transactions before the report start date).
+account and its subaccounts, with each line item representing a whole
+transaction - as in bank statements, hledger-ui, hledger-web and other
+accounting apps.
 .PP
-With \f[C]aregister\f[R], each line represents a whole transaction - as
-in hledger-ui, hledger-web, and your bank statement.
-By contrast, the \f[C]register\f[R] command shows individual postings,
-across all accounts.
-You might prefer \f[C]aregister\f[R] for reconciling with real-world
-asset/liability accounts, and \f[C]register\f[R] for reviewing detailed
-revenues/expenses.
+Note this is unlike the \f[C]register\f[R] command, which shows
+individual postings and does not always show a single account or a
+historical balance.
 .PP
-An account must be specified as the first argument, which should be the
-full account name or an account pattern (regular expression).
-aregister will show transactions in this account (the first one matched)
-and any of its subaccounts.
+A reminder, \[dq]historical\[dq] balances include any balance from
+transactions before the report start date, so (if opening balances are
+recorded correctly) \f[C]aregister\f[R] will show the real-world
+balances of an account, as you would see in a bank statement.
+.PP
+As a quick rule of thumb, use \f[C]aregister\f[R] for reconciling
+real-world asset/liability accounts and \f[C]register\f[R] for reviewing
+detailed revenues/expenses.
+.PP
+\f[C]aregister\f[R] shows the register for just one account (and its
+subaccounts).
+This account must be specified as the first argument.
+You can write either the full account name, or a case-insensitive
+regular expression which will select the alphabetically first matched
+account.
+(Eg if you have \f[C]assets:aaa:checking\f[R] and
+\f[C]assets:bbb:checking\f[R] accounts, \f[C]hledger areg checking\f[R]
+would select \f[C]assets:aaa:checking\f[R].)
 .PP
 Any additional arguments form a query which will filter the transactions
 shown.
 .PP
+Each \f[C]aregister\f[R] line item shows:
+.IP \[bu] 2
+the transaction\[aq]s date (or the relevant posting\[aq]s date if
+different, see below)
+.IP \[bu] 2
+the names of all the other account(s) involved in this transaction
+(probably abbreviated)
+.IP \[bu] 2
+the total change to this account\[aq]s balance from this transaction
+.IP \[bu] 2
+the account\[aq]s historical running balance after this transaction.
+.PP
 Transactions making a net change of zero are not shown by default; add
 the \f[C]-E/--empty\f[R] flag to show them.
+.PP
+\f[C]aregister\f[R] ignores a depth limit, so its final total will
+always match a balance report with similar arguments.
 .PP
 This command also supports the output destination and output format
 options The output formats supported are \f[C]txt\f[R], \f[C]csv\f[R],

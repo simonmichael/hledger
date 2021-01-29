@@ -24,10 +24,10 @@ DESCRIPTION
        tion for this day.
 
        This is followed by optionally-indented timelog items for that day, one
-       per line.  Each timelog item is a  note,  usually  a  hledger:style:ac-
-       count:name  representing  a time category, followed by two or more spa-
-       ces, and a quantity.  Each timelog item generates  a  hledger  transac-
-       tion.
+       per   line.    Each   timelog   item   is    a    note,    usually    a
+       hledger:style:account:name  representing  a  time category, followed by
+       two or more spaces, and a quantity.   Each  timelog  item  generates  a
+       hledger transaction.
 
        Quantities can be written as:
 
@@ -52,11 +52,11 @@ DESCRIPTION
          (Add -E to see them.)
 
        o Org  mode headlines (lines beginning with one or more * followed by a
-         space) can be used as date lines or timelog items (the stars are  ig-
-         nored).   Also  all  org headlines before the first date line are ig-
-         nored.  This means org users can manage their timelog as an org  out-
-         line  (eg  using org-mode/orgstruct-mode in Emacs), for organisation,
-         faster navigation, controlling visibility etc.
+         space) can be used as date lines or  timelog  items  (the  stars  are
+         ignored).   Also  all  org  headlines  before the first date line are
+         ignored.  This means org users can manage their  timelog  as  an  org
+         outline  (eg  using  org-mode/orgstruct-mode in Emacs), for organisa-
+         tion, faster navigation, controlling visibility etc.
 
        Examples:
 
@@ -160,4 +160,4 @@ SEE ALSO
 
 
 
-hledger-lib-1.20.3               December 2020              HLEDGER_TIMEDOT(5)
+hledger-lib-1.20.4               December 2020              HLEDGER_TIMEDOT(5)
