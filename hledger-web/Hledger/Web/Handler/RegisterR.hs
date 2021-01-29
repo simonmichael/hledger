@@ -119,19 +119,28 @@ registerChartHtml q title percommoditytxnreports = $(hamletFile "templates/chart
 
 data PieHalf = Positive | Negative
 
+moreThanOne :: Eq a => [a] -> Bool
+moreThanOne [] = False
+moreThanOne (x : xs) = rec xs
+  where
+    rec [] = False
+    rec (y : ys) = x /= y || (rec ys)
+
 -- | Generate javascript/html for a mockup pie chart
 registerPieChartHtml :: PieHalf -> Text -> BalanceReport -> HtmlUrl AppRoute
 registerPieChartHtml half q (items, _) = $(hamletFile "templates/piechart.hamlet")
   where
     charttitle = "Pie Chart" :: String
-    labelDataTuples =
+    labelData =
       reverse $
-      sortOn snd $
-      filter (\(_, quant) -> case half of Positive -> quant >= 0
-                                          Negative -> quant < 0) $
+      sortOn (\(_, quant, _) -> quant) $
+      filter (\(_, quant, _) -> case half of Positive -> quant >= 0
+                                             Negative -> quant < 0) $
       flip concatMap items $ \(accname, _, _, Mixed as) ->
-        flip map as $ \a -> (accname, aquantity a)
-    showChart = if ((length labelDataTuples) > 1) then "true" else "false" :: String
+        flip map as $ \a -> (accname, aquantity a, acommodity a)
+    moreThanOneAcct = moreThanOne $ map (\(acct, _, _) -> acct) labelData
+    moreThanOneCommodity = moreThanOne $ map (\(_, _, com) -> com) labelData
+    showChart = if (moreThanOneAcct && not moreThanOneCommodity) then "true" else "false" :: String
     noacctlink = (RegisterR, [("q", T.unwords $ removeInacct q)])
     chartId = case half of Positive -> "postive" :: String
                            Negative -> "negative" :: String

@@ -9,7 +9,7 @@
      \$chartdiv.show();
      var data =
        [
-         $forall (label, dat) <- labelDataTuples
+         $forall (label, dat, _) <- labelData
            { label: "#{label}", data: #{dat} },
        ];
      function legendFormatter(label, series) {
