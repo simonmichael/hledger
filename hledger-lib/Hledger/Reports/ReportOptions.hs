@@ -45,7 +45,7 @@ where
 
 import Control.Applicative ((<|>))
 import Data.List.Extra (nubSort)
-import Data.Maybe (fromMaybe, isJust)
+import Data.Maybe (fromMaybe, isJust, mapMaybe)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day, addDays)
 import Data.Default (Default(..))
@@ -85,6 +85,7 @@ data ReportOpts = ReportOpts {
      period_         :: Period
     ,interval_       :: Interval
     ,statuses_       :: [Status]  -- ^ Zero, one, or two statuses to be matched
+    ,cost_           :: Costing  -- ^ Should we convert amounts to cost, when present?
     ,value_          :: Maybe ValuationType  -- ^ What value should amounts be converted to ?
     ,infer_value_    :: Bool      -- ^ Infer market prices from transactions ?
     ,depth_          :: Maybe Int
@@ -134,6 +135,7 @@ defreportopts = ReportOpts
     { period_          = PeriodAll
     , interval_        = NoInterval
     , statuses_        = []
+    , cost_            = NoCost
     , value_           = Nothing
     , infer_value_     = False
     , depth_           = Nothing
@@ -170,6 +172,7 @@ rawOptsToReportOpts rawopts = do
     let colorflag    = stringopt "color" rawopts
         formatstring = T.pack <$> maybestringopt "format" rawopts
         querystring  = map T.pack $ listofstringopt "args" rawopts  -- doesn't handle an arg like "" right
+        (costing, valuation) = valuationTypeFromRawOpts rawopts
 
     format <- case parseStringFormat <$> formatstring of
         Nothing         -> return defaultBalanceLineFormat
@@ -180,7 +183,8 @@ rawOptsToReportOpts rawopts = do
           {period_      = periodFromRawOpts d rawopts
           ,interval_    = intervalFromRawOpts rawopts
           ,statuses_    = statusesFromRawOpts rawopts
-          ,value_       = valuationTypeFromRawOpts rawopts
+          ,cost_        = costing
+          ,value_       = valuation
           ,infer_value_ = boolopt "infer-value" rawopts
           ,depth_       = maybeposintopt "depth" rawopts
           ,date2_       = boolopt "date2" rawopts
@@ -400,27 +404,29 @@ reportOptsToggleStatus s ropts@ReportOpts{statuses_=ss}
   | s `elem` ss = ropts{statuses_=filter (/= s) ss}
   | otherwise   = ropts{statuses_=simplifyStatuses (s:ss)}
 
--- | Parse the type of valuation to be performed, if any, specified by
--- -B/--cost, -V, -X/--exchange, or --value flags. If there's more
--- than one of these, the rightmost flag wins.
-valuationTypeFromRawOpts :: RawOpts -> Maybe ValuationType
-valuationTypeFromRawOpts = lastMay . collectopts valuationfromrawopt
+-- | Parse the type of valuation and costing to be performed, if any,
+-- specified by -B/--cost, -V, -X/--exchange, or --value flags. It is
+-- allowed to combine -B/--cost with any other valuation type. If
+-- there's more than one valuation type, the rightmost flag wins.
+valuationTypeFromRawOpts :: RawOpts -> (Costing, Maybe ValuationType)
+valuationTypeFromRawOpts rawopts = (costing, lastMay $ mapMaybe snd valuationopts)
   where
+    costing = if (any ((Cost==) . fst) valuationopts) then Cost else NoCost
+    valuationopts = collectopts valuationfromrawopt rawopts
     valuationfromrawopt (n,v)  -- option name, value
-      | n == "B"     = Just $ AtCost Nothing
-      | n == "V"     = Just $ AtEnd Nothing
-      | n == "X"     = Just $ AtEnd (Just $ T.pack v)
+      | n == "B"     = Just (Cost,   Nothing)
+      | n == "V"     = Just (NoCost, Just $ AtEnd Nothing)
+      | n == "X"     = Just (NoCost, Just $ AtEnd (Just $ T.pack v))
       | n == "value" = Just $ valuation v
       | otherwise    = Nothing
     valuation v
-      | t `elem` ["cost","c"]  = AtCost mc
-      | t `elem` ["then" ,"t"] = AtThen  mc
-      | t `elem` ["end" ,"e"]  = AtEnd  mc
-      | t `elem` ["now" ,"n"]  = AtNow  mc
-      | otherwise =
-          case parsedateM t of
-            Just d  -> AtDate d mc
-            Nothing -> usageError $ "could not parse \""++t++"\" as valuation type, should be: cost|then|end|now|c|t|e|n|YYYY-MM-DD"
+      | t `elem` ["cost","c"]  = (Cost, usageError "--value=cost,COMM is no longer supported, please specify valuation explicitly, e.g. --cost --value=then,COMM" <$ mc)
+      | t `elem` ["then" ,"t"] = (NoCost, Just $ AtThen mc)
+      | t `elem` ["end" ,"e"]  = (NoCost, Just $ AtEnd  mc)
+      | t `elem` ["now" ,"n"]  = (NoCost, Just $ AtNow  mc)
+      | otherwise = case parsedateM t of
+            Just d  -> (NoCost, Just $ AtDate d mc)
+            Nothing -> usageError $ "could not parse \""++t++"\" as valuation type, should be: then|end|now|t|e|n|YYYY-MM-DD"
       where
         -- parse --value's value: TYPE[,COMM]
         (t,c') = break (==',') v
@@ -452,13 +458,12 @@ flat_ = not . tree_
 -- depthFromOpts opts = min (fromMaybe 99999 $ depth_ opts) (queryDepth $ queryFromOpts nulldate opts)
 
 -- | Convert this journal's postings' amounts to cost using their
--- transaction prices, if specified by options (-B/--value=cost).
+-- transaction prices, if specified by options (-B/--cost).
 -- Maybe soon superseded by newer valuation code.
 journalSelectingAmountFromOpts :: ReportOpts -> Journal -> Journal
-journalSelectingAmountFromOpts opts =
-  case value_ opts of
-    Just (AtCost _) -> journalToCost
-    _               -> id
+journalSelectingAmountFromOpts opts = case cost_ opts of
+    Cost   -> journalToCost
+    NoCost -> id
 
 -- | Convert report options to a query, ignoring any non-flag command line arguments.
 queryFromFlags :: ReportOpts -> Query
@@ -476,7 +481,6 @@ queryFromFlags ReportOpts{..} = simplifyQuery $ And flagsq
 -- different report periods.
 changingValuation :: ReportOpts -> Bool
 changingValuation ropts = case value_ ropts of
-    Just (AtCost (Just _)) -> True
     Just (AtEnd  _)        -> True
     _                      -> False
 

@@ -32,6 +32,7 @@ module Hledger.Data.Transaction (
   balanceTransaction,
   balanceTransactionHelper,
   transactionTransformPostings,
+  transactionApplyCostValuation,
   transactionApplyValuation,
   transactionToCost,
   transactionApplyAliases,
@@ -590,10 +591,16 @@ postingSetTransaction t p = p{ptransaction=Just t}
 transactionTransformPostings :: (Posting -> Posting) -> Transaction -> Transaction
 transactionTransformPostings f t@Transaction{tpostings=ps} = t{tpostings=map f ps}
 
+-- | Apply a specified costing and valuation to this transaction's amounts,
+-- using the provided price oracle, commodity styles, and reference dates.
+-- See amountApplyValuation and amountCost.
+transactionApplyCostValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Costing -> Maybe ValuationType -> Transaction -> Transaction
+transactionApplyCostValuation priceoracle styles periodlast today cost v =
+  transactionTransformPostings (postingApplyCostValuation priceoracle styles periodlast today cost v)
+
 -- | Apply a specified valuation to this transaction's amounts, using
--- the provided price oracle, commodity styles, reference dates, and
--- whether this is for a multiperiod report or not. See
--- amountApplyValuation.
+-- the provided price oracle, commodity styles, and reference dates.
+-- See amountApplyValuation.
 transactionApplyValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> ValuationType -> Transaction -> Transaction
 transactionApplyValuation priceoracle styles periodlast today v =
   transactionTransformPostings (postingApplyValuation priceoracle styles periodlast today v)

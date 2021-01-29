@@ -598,14 +598,17 @@ multiBalanceReportAsText ropts@ReportOpts{..} r = TB.toLazyText $
         PeriodChange                     -> "Balance changes"
         CumulativeChange                 -> "Ending balances (cumulative)"
         HistoricalBalance                -> "Ending balances (historical)"
-    valuationdesc = case value_ of
-        Just (AtCost _mc)    -> ", valued at cost"
-        Just (AtThen _mc)    -> ", valued at posting date"
-        Just (AtEnd _mc) | changingValuation -> ""
-        Just (AtEnd _mc)     -> ", valued at period ends"
-        Just (AtNow _mc)     -> ", current value"
-        Just (AtDate d _mc)  -> ", valued at " <> showDate d
-        Nothing              -> ""
+    valuationdesc =
+        (case cost_ of
+            Cost   -> ", converted to cost"
+            NoCost -> "")
+        <> (case value_ of
+            Just (AtThen _mc)    -> ", valued at posting date"
+            Just (AtEnd _mc) | changingValuation -> ""
+            Just (AtEnd _mc)     -> ", valued at period ends"
+            Just (AtNow _mc)     -> ", current value"
+            Just (AtDate d _mc)  -> ", valued at " <> showDate d
+            Nothing              -> "")
 
     changingValuation = case (balancetype_, value_) of
         (PeriodChange, Just (AtEnd _)) -> interval_ /= NoInterval

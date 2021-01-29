@@ -76,7 +76,7 @@ postingsReport rspec@ReportSpec{rsOpts=ropts@ReportOpts{..}} j = items
       (precedingps, reportps) = matchedPostingsBeforeAndDuring rspec j reportspan
 
       -- We may be converting posting amounts to value, per hledger_options.m4.md "Effect of --value on reports".
-      pvalue periodlast = maybe id (postingApplyValuation priceoracle styles periodlast (rsToday rspec)) value_
+      pvalue periodlast = postingApplyCostValuation priceoracle styles periodlast (rsToday rspec) cost_ value_
 
       -- Postings, or summary postings with their subperiod's end date, to be displayed.
       displayps :: [(Posting, Maybe Day)]

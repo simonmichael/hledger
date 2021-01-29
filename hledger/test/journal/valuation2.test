@@ -134,11 +134,11 @@ $ hledger -f- print -B
 
 >=0
 
-# 12. Note the -XZ nullifies the -B here, because both are forms of --value
-# (-B -XZ is equivalent to --value=cost --value=end,Z), and the rightmost wins.
+# 12. Note the -XZ does not nullify the -B here.
+# (-B -XZ is equivalent to --cost --value=end,Z).
 $ hledger -f- print -B -XZ
 2000-01-01
-    a        -1A @ 1B
+    a             -1B
     b              1B
 
 >=0
@@ -176,10 +176,10 @@ $ hledger -f- print -B
 >=0
 
 # 16. 
-$ hledger -f- print -B -XZ
+$ hledger -f- print -B -XA
 2000-01-01
-    a        -1A @ 1B
-    b              1B
+    a             -1A
+    b              1A
 
 >=0
 

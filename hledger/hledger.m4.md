@@ -716,26 +716,28 @@ Some of these can also be expressed as command-line options (eg `depth:2` is equ
 Generally you can mix options and query arguments, and the resulting query will be their intersection
 (perhaps excluding the `-p/--period` option).
 
+# COSTING
+
+The `-B/--cost` flag converts amounts to their cost or sale amount at transaction time,
+if they have a [transaction price](hledger.html#transaction-prices) specified.
+If this flag is supplied, hledger will perform cost conversion first, and will apply
+any market price valuations (if requested) afterwards.
+
 # VALUATION
 
 Instead of reporting amounts in their original commodity,
 hledger can convert them to
 cost/sale amount (using the conversion rate recorded in the transaction),
-or to market value (using some market price on a certain date).
-This is controlled by the `--value=TYPE[,COMMODITY]` option,
-but we also provide the simpler `-B`/`-V`/`-X` flags,
+and/or to market value (using some market price on a certain date).
+This is controlled by the `--cost` and `--value=TYPE[,COMMODITY]` options,
+but we also provide the simpler `-V`/`-X` flags,
 and usually one of those is all you need.
-
-## -B: Cost
-
-The `-B/--cost` flag converts amounts to their cost or sale amount at transaction time,
-if they have a [transaction price](hledger.html#transaction-prices) specified.
 
 ## -V: Value
 
 The `-V/--market` flag converts amounts to market value in their
 default *valuation commodity*, using the
-[market prices](#market-prices) in effect on the *valuation date(s)*, if any. 
+[market prices](#market-prices) in effect on the *valuation date(s)*, if any.
 More on these in a minute.
 
 ## -X: Value in specified commodity
@@ -885,21 +887,17 @@ $ hledger -f t.j bal -N euros -V
 
 ## --value: Flexible valuation
 
-`-B`, `-V` and `-X` are special cases of the more general `--value` option:
+`-V` and `-X` are special cases of the more general `--value` option:
 
-     --value=TYPE[,COMM]  TYPE is cost, then, end, now or YYYY-MM-DD.
+     --value=TYPE[,COMM]  TYPE is then, end, now or YYYY-MM-DD.
                           COMM is an optional commodity symbol.
                           Shows amounts converted to:
-                          - cost commodity using transaction prices (then optionally to COMM using market prices at period end(s))
                           - default valuation commodity (or COMM) using market prices at posting dates
                           - default valuation commodity (or COMM) using market prices at period end(s)
                           - default valuation commodity (or COMM) using current market prices
                           - default valuation commodity (or COMM) using market prices at some date
 
 The TYPE part selects cost or value and valuation date:
-
-`--value=cost`
-: Convert amounts to cost, using the prices recorded in transactions.
 
 `--value=then`
 : Convert amounts to their value in the [default valuation commodity](#valuation-commodity),
@@ -945,7 +943,7 @@ P 2000-04-01 A  4 B
 
 Show the cost of each posting:
 ```shell
-$ hledger -f- print --value=cost
+$ hledger -f- print --cost
 2000-01-01
     (a)             5 B
 
@@ -1056,7 +1054,7 @@ Related:
 [#329](https://github.com/simonmichael/hledger/issues/329),
 [#1083](https://github.com/simonmichael/hledger/issues/1083).
 
-| Report type                                         | `-B`, `--value=cost`                                             | `-V`, `-X`                                                        | `--value=then`                                                                                 | `--value=end`                                                     | `--value=DATE`, `--value=now`           |
+| Report type                                         | `-B`, `--cost`                                                   | `-V`, `-X`                                                        | `--value=then`                                                                                 | `--value=end`                                                     | `--value=DATE`, `--value=now`           |
 |-----------------------------------------------------|------------------------------------------------------------------|-------------------------------------------------------------------|------------------------------------------------------------------------------------------------|-------------------------------------------------------------------|-----------------------------------------|
 | **print**                                           |                                                                  |                                                                   |                                                                                                |                                                                   |                                         |
 | posting amounts                                     | cost                                                             | value at report end or today                                      | value at posting date                                                                          | value at report or journal end                                    | value at DATE/today                     |
