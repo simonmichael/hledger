@@ -47,7 +47,7 @@ import Hledger.Data.StringFormat
 import Hledger.Data.Timeclock
 import Hledger.Data.Transaction
 import Hledger.Data.TransactionModifier
-import Hledger.Data.Types
+import Hledger.Data.Types hiding (MixedAmountKey, Mixed)
 import Hledger.Data.Valuation
 import Hledger.Utils.Test
 

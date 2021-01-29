@@ -407,7 +407,7 @@ journalCheckAccountsDeclared j = sequence_ $ map checkacct $ journalPostings j
 -- | Check that all the commodities used in this journal's postings have been declared
 -- by commodity directives, returning an error message otherwise.
 journalCheckCommoditiesDeclared :: Journal -> Either String ()
-journalCheckCommoditiesDeclared j = 
+journalCheckCommoditiesDeclared j =
   sequence_ $ map checkcommodities $ journalPostings j
   where
     checkcommodities Posting{..} =
@@ -423,7 +423,7 @@ journalCheckCommoditiesDeclared j =
       where
         mfirstundeclaredcomm =
           find (`M.notMember` jcommodities j) . map acommodity $
-          (maybe id ((:) . baamount) pbalanceassertion) (filter (/= missingamt) $ amounts pamount)
+          (maybe id ((:) . baamount) pbalanceassertion) . filter (/= missingamt) $ amountsRaw pamount
 
 
 setYear :: Year -> JournalParser m ()

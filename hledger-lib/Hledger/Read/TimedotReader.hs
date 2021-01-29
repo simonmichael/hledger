@@ -182,7 +182,7 @@ entryp = do
         tstatus    = Cleared,
         tpostings  = [
           nullposting{paccount=a
-                     ,pamount=Mixed [amountSetPrecision (Precision 2) $ num hours]  -- don't assume hours; do set precision to 2
+                     ,pamount=mixedAmount . amountSetPrecision (Precision 2) $ num hours  -- don't assume hours; do set precision to 2
                      ,ptype=VirtualPosting
                      ,ptransaction=Just t
                      }

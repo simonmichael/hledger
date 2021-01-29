@@ -233,7 +233,7 @@ confirmedTransactionWizard prevInput es@EntryState{..} stack@(currentStage : _) 
   EnterAmountAndComment txnParams account -> amountAndCommentWizard prevInput es >>= \case
     Just (amount, comment) -> do
       let posting = nullposting{paccount=T.pack $ stripbrackets account
-                               ,pamount=Mixed [amount]
+                               ,pamount=mixedAmount amount
                                ,pcomment=comment
                                ,ptype=accountNamePostingType $ T.pack account
                                }

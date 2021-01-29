@@ -78,7 +78,7 @@ import Text.Megaparsec.Char (char, string)
 import Hledger.Utils hiding (words')
 import Hledger.Data.Types
 import Hledger.Data.AccountName
-import Hledger.Data.Amount (nullamt, usd)
+import Hledger.Data.Amount (amountsRaw, mixedAmount, nullamt, usd)
 import Hledger.Data.Dates
 import Hledger.Data.Posting
 import Hledger.Data.Transaction
@@ -562,8 +562,9 @@ matchesAccount (Tag _ _) _ = False
 matchesAccount _ _ = True
 
 matchesMixedAmount :: Query -> MixedAmount -> Bool
-matchesMixedAmount q (Mixed []) = q `matchesAmount` nullamt
-matchesMixedAmount q (Mixed as) = any (q `matchesAmount`) as
+matchesMixedAmount q ma = case amountsRaw ma of
+    [] -> q `matchesAmount` nullamt
+    as -> any (q `matchesAmount`) as
 
 matchesCommodity :: Query -> CommoditySymbol -> Bool
 matchesCommodity (Sym r) = regexMatchText r
@@ -614,8 +615,8 @@ matchesPosting (Date2 span) p = span `spanContainsDate` postingDate2 p
 matchesPosting (StatusQ s) p = postingStatus p == s
 matchesPosting (Real v) p = v == isReal p
 matchesPosting q@(Depth _) Posting{paccount=a} = q `matchesAccount` a
-matchesPosting q@(Amt _ _) Posting{pamount=amt} = q `matchesMixedAmount` amt
-matchesPosting (Sym r) Posting{pamount=Mixed as} = any (matchesCommodity (Sym r)) $ map acommodity as
+matchesPosting q@(Amt _ _) Posting{pamount=as} = q `matchesMixedAmount` as
+matchesPosting (Sym r) Posting{pamount=as} = any (matchesCommodity (Sym r)) . map acommodity $ amountsRaw as
 matchesPosting (Tag n v) p = case (reString n, v) of
   ("payee", Just v) -> maybe False (regexMatchText v . transactionPayee) $ ptransaction p
   ("note", Just v) -> maybe False (regexMatchText v . transactionNote) $ ptransaction p
@@ -811,10 +812,10 @@ tests_Query = tests "Query" [
     ,test "a tag match on a posting also sees inherited tags" $ assertBool "" $ (Tag (toRegex' "txntag") Nothing) `matchesPosting` nullposting{ptransaction=Just nulltransaction{ttags=[("txntag","")]}}
     ,test "cur:" $ do
       let toSym = either id (const $ error' "No query opts") . either error' id . parseQueryTerm (fromGregorian 2000 01 01) . ("cur:"<>)
-      assertBool "" $ not $ toSym "$" `matchesPosting` nullposting{pamount=Mixed [usd 1]} -- becomes "^$$", ie testing for null symbol
-      assertBool "" $ (toSym "\\$") `matchesPosting` nullposting{pamount=Mixed [usd 1]} -- have to quote $ for regexpr
-      assertBool "" $ (toSym "shekels") `matchesPosting` nullposting{pamount=Mixed [nullamt{acommodity="shekels"}]}
-      assertBool "" $ not $ (toSym "shek") `matchesPosting` nullposting{pamount=Mixed [nullamt{acommodity="shekels"}]}
+      assertBool "" $ not $ toSym "$" `matchesPosting` nullposting{pamount=mixedAmount $ usd 1} -- becomes "^$$", ie testing for null symbol
+      assertBool "" $ (toSym "\\$") `matchesPosting` nullposting{pamount=mixedAmount $ usd 1} -- have to quote $ for regexpr
+      assertBool "" $ (toSym "shekels") `matchesPosting` nullposting{pamount=mixedAmount nullamt{acommodity="shekels"}}
+      assertBool "" $ not $ (toSym "shek") `matchesPosting` nullposting{pamount=mixedAmount nullamt{acommodity="shekels"}}
   ]
 
   ,test "matchesTransaction" $ do

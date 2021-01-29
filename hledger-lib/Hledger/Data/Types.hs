@@ -16,12 +16,13 @@ For more detailed documentation on each type, see the corresponding modules.
 
 -}
 
+{-# LANGUAGE CPP                  #-}
 -- {-# LANGUAGE DeriveAnyClass #-}  -- https://hackage.haskell.org/package/deepseq-1.4.4.0/docs/Control-DeepSeq.html#v:rnf
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE DeriveGeneric        #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE RecordWildCards      #-}
+{-# LANGUAGE StandaloneDeriving   #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
 module Hledger.Data.Types
@@ -38,6 +39,10 @@ import Text.Blaze (ToMarkup(..))
 --You will eventually need all the values stored.
 --The stored values don't represent large virtual data structures to be lazily computed.
 import qualified Data.Map as M
+import Data.Ord (comparing)
+#if !(MIN_VERSION_base(4,11,0))
+import Data.Semigroup ((<>))
+#endif
 import Data.Text (Text)
 -- import qualified Data.Text as T
 import Data.Time.Calendar
@@ -230,7 +235,38 @@ data Amount = Amount {
       aprice      :: !(Maybe AmountPrice)  -- ^ the (fixed, transaction-specific) price for this amount, if any
     } deriving (Eq,Ord,Generic,Show)
 
-newtype MixedAmount = Mixed [Amount] deriving (Eq,Ord,Generic,Show)
+newtype MixedAmount = Mixed (M.Map MixedAmountKey Amount) deriving (Eq,Ord,Generic,Show)
+
+-- | Stores the CommoditySymbol of the Amount, along with the CommoditySymbol of
+-- the price, and its unit price if being used.
+data MixedAmountKey
+  = MixedAmountKeyNoPrice    !CommoditySymbol
+  | MixedAmountKeyTotalPrice !CommoditySymbol !CommoditySymbol
+  | MixedAmountKeyUnitPrice  !CommoditySymbol !CommoditySymbol !Quantity
+  deriving (Eq,Generic,Show)
+
+-- | We don't auto-derive the Ord instance because it would give an undesired ordering.
+-- We want the keys to be sorted lexicographically:
+-- (1) By the primary commodity of the amount.
+-- (2) By the commodity of the price, with no price being first.
+-- (3) By the unit price, from most negative to most positive, with total prices
+-- before unit prices.
+-- For example, we would like the ordering to give
+-- MixedAmountKeyNoPrice "X" < MixedAmountKeyTotalPrice "X" "Z" < MixedAmountKeyNoPrice "Y"
+instance Ord MixedAmountKey where
+  compare = comparing commodity <> comparing pCommodity <> comparing pPrice
+    where
+      commodity (MixedAmountKeyNoPrice    c)     = c
+      commodity (MixedAmountKeyTotalPrice c _)   = c
+      commodity (MixedAmountKeyUnitPrice  c _ _) = c
+
+      pCommodity (MixedAmountKeyNoPrice    _)      = Nothing
+      pCommodity (MixedAmountKeyTotalPrice _ pc)   = Just pc
+      pCommodity (MixedAmountKeyUnitPrice  _ pc _) = Just pc
+
+      pPrice (MixedAmountKeyNoPrice    _)     = Nothing
+      pPrice (MixedAmountKeyTotalPrice _ _)   = Nothing
+      pPrice (MixedAmountKeyUnitPrice  _ _ q) = Just q
 
 data PostingType = RegularPosting | VirtualPosting | BalancedVirtualPosting
                    deriving (Eq,Show,Generic)

@@ -711,7 +711,7 @@ postingp mTransactionYear = do
     return (status, account)
   let (ptype, account') = (accountNamePostingType account, textUnbracket account)
   lift skipNonNewlineSpaces
-  amount <- option missingmixedamt $ mixedAmount <$> amountp
+  amount <- optional amountp
   lift skipNonNewlineSpaces
   massertion <- optional balanceassertionp
   lift skipNonNewlineSpaces
@@ -721,7 +721,7 @@ postingp mTransactionYear = do
    , pdate2=mdate2
    , pstatus=status
    , paccount=account'
-   , pamount=amount
+   , pamount=maybe missingmixedamt mixedAmount amount
    , pcomment=comment
    , ptype=ptype
    , ptags=tags
@@ -823,7 +823,7 @@ tests_JournalReader = tests "JournalReader" [
       "  expenses:food:dining  $10.00   ; a: a a \n   ; b: b b \n"
       posting{
         paccount="expenses:food:dining",
-        pamount=Mixed [usd 10],
+        pamount=mixedAmount (usd 10),
         pcomment="a: a a\nb: b b\n",
         ptags=[("a","a a"), ("b","b b")]
         }
@@ -832,7 +832,7 @@ tests_JournalReader = tests "JournalReader" [
       " a  1. ; date:2012/11/28, date2=2012/11/29,b:b\n"
       nullposting{
          paccount="a"
-        ,pamount=Mixed [num 1]
+        ,pamount=mixedAmount (num 1)
         ,pcomment="date:2012/11/28, date2=2012/11/29,b:b\n"
         ,ptags=[("date", "2012/11/28"), ("date2=2012/11/29,b", "b")] -- TODO tag name parsed too greedily
         ,pdate=Just $ fromGregorian 2012 11 28
@@ -843,7 +843,7 @@ tests_JournalReader = tests "JournalReader" [
       " a  1. ; [2012/11/28=2012/11/29]\n"
       nullposting{
          paccount="a"
-        ,pamount=Mixed [num 1]
+        ,pamount=mixedAmount (num 1)
         ,pcomment="[2012/11/28=2012/11/29]\n"
         ,ptags=[]
         ,pdate= Just $ fromGregorian 2012 11 28
@@ -872,7 +872,7 @@ tests_JournalReader = tests "JournalReader" [
       "= (some value expr)\n some:postings  1.\n"
       nulltransactionmodifier {
         tmquerytxt = "(some value expr)"
-       ,tmpostingrules = [nullposting{paccount="some:postings", pamount=Mixed[num 1]}]
+       ,tmpostingrules = [nullposting{paccount="some:postings", pamount=mixedAmount (num 1)}]
       }
     ]
 
@@ -905,7 +905,7 @@ tests_JournalReader = tests "JournalReader" [
             pdate=Nothing,
             pstatus=Cleared,
             paccount="a",
-            pamount=Mixed [usd 1],
+            pamount=mixedAmount (usd 1),
             pcomment="pcomment1\npcomment2\nptag1: val1\nptag2: val2\n",
             ptype=RegularPosting,
             ptags=[("ptag1","val1"),("ptag2","val2")],

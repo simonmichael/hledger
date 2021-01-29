@@ -33,7 +33,7 @@ prices opts j = do
     ps         = filter (matchesPosting q) $ allPostings j
     mprices    = jpricedirectives j
     cprices    = map (stylePriceDirectiveExceptPrecision styles) $ concatMap postingsPriceDirectivesFromCosts ps
-    icprices   = map (stylePriceDirectiveExceptPrecision styles) $ concatMap postingsPriceDirectivesFromCosts $ mapAmount invertPrice ps
+    icprices   = map (stylePriceDirectiveExceptPrecision styles) $ concatMap postingsPriceDirectivesFromCosts $ map (postingTransformAmount $ mapMixedAmount invertPrice) ps
     allprices  = mprices ++ ifBoolOpt "costs" cprices ++ ifBoolOpt "inverted-costs" icprices
   mapM_ (T.putStrLn . showPriceDirective) $
     sortOn pddate $
@@ -71,8 +71,8 @@ invertPrice a =
                 pa' = pa { aquantity = abs $ aquantity a, acommodity = acommodity a, aprice = Nothing, astyle = astyle a }
 
 postingsPriceDirectivesFromCosts :: Posting -> [PriceDirective]
-postingsPriceDirectivesFromCosts p = mapMaybe (amountPriceDirectiveFromCost date) . amounts $ pamount p  where
-   date = fromMaybe (tdate . fromJust $ ptransaction p) $ pdate p
+postingsPriceDirectivesFromCosts p = mapMaybe (amountPriceDirectiveFromCost date) . amountsRaw $ pamount p
+  where date = fromMaybe (tdate . fromJust $ ptransaction p) $ pdate p
 
 amountPriceDirectiveFromCost :: Day -> Amount -> Maybe PriceDirective
 amountPriceDirectiveFromCost d a =
@@ -92,8 +92,3 @@ stylePriceDirectiveExceptPrecision styles pd@PriceDirective{pdamount=a} =
 
 allPostings :: Journal -> [Posting]
 allPostings = concatMap tpostings . jtxns
-
-mapAmount :: (Amount -> Amount) -> [Posting] -> [Posting]
-mapAmount f = map pf where
-    pf p = p { pamount = mf (pamount p) }
-    mf = mixed . map f . amounts
