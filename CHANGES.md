@@ -1,6 +1,8 @@
 General project-related changes and major/notable all-package releases.
 For package-specific changes and minor releases, see the package changelogs.
 
+# 1.20.4 2021-01-29
+
 # 1.20.3 2021-01-14
 
 - The run/compile instructions for add-on scripts in bin/ have been

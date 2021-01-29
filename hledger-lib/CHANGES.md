@@ -1,6 +1,10 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
+# 1.20.4 2021-01-29
+
+- See hledger.
+
 # 1.20.3 2021-01-14
 
 - See hledger.

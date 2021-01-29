@@ -1,6 +1,14 @@
 User-visible changes in the hledger command line tool and library.
 
 
+# 1.20.4 2021-01-29
+
+- aregister: ignore a depth limit, as in 1.19 (#1468).
+  In 1.20-1.20.3, aregister had stopped showing transactions in subaccounts 
+  below a depth limit. Now it properly shows all subaccount transactions, 
+  ensuring that the register's final total matches a balance report with 
+  similar arguments.
+
 # 1.20.3 2021-01-14
 
 - When searching for price chains during valuation/currency conversion:
