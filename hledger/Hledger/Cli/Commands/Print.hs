@@ -59,7 +59,7 @@ print' opts j = do
   -- that. For now we try to reverse it by increasing all amounts' decimal places 
   -- sufficiently to show the amount exactly. The displayed amounts may have minor
   -- differences from the originals, such as trailing zeroes added.
-  let j' = journalMapPostingAmounts amountSetFullPrecision j
+  let j' = journalMapPostingAmounts mixedAmountSetFullPrecision j
   case maybestringopt "match" $ rawopts_ opts of
     Nothing   -> printEntries opts j'
     Just desc -> printMatch opts j' $ T.pack $ dbg1 "finding best match for description" desc
@@ -181,7 +181,7 @@ postingToCSV p =
     let credit = if q < 0 then showamt $ negate a_ else "" in
     let debit  = if q >= 0 then showamt a_ else "" in
     [account, amount, c, credit, debit, status, comment])
-   . amounts $ pamount p
+    . amounts $ pamount p
   where
     status = T.pack . show $ pstatus p
     account = showAccountName Nothing (ptype p) (paccount p)

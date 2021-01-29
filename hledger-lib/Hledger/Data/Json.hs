@@ -50,6 +50,7 @@ import           GHC.Generics (Generic)
 import           System.Time (ClockTime)
 
 import           Hledger.Data.Types
+import           Hledger.Data.Amount (amountsRaw, mixed)
 
 -- To JSON
 
@@ -105,7 +106,11 @@ instance ToJSON AmountPrecision where
 
 instance ToJSON Side
 instance ToJSON DigitGroupStyle
-instance ToJSON MixedAmount
+
+instance ToJSON MixedAmount where
+  toJSON = toJSON . amountsRaw
+  toEncoding = toEncoding . amountsRaw
+
 instance ToJSON BalanceAssertion
 instance ToJSON AmountPrice
 instance ToJSON MarketPrice
@@ -188,7 +193,10 @@ instance FromJSON AmountPrecision where
 
 instance FromJSON Side
 instance FromJSON DigitGroupStyle
-instance FromJSON MixedAmount
+
+instance FromJSON MixedAmount where
+  parseJSON = fmap (mixed :: [Amount] -> MixedAmount) . parseJSON
+
 instance FromJSON BalanceAssertion
 instance FromJSON AmountPrice
 instance FromJSON MarketPrice

@@ -158,7 +158,7 @@ validatePostings acctRes amtRes = let
   zipRow (Left e) (Left e') = Left (Just e, Just e')
   zipRow (Left e) (Right _) = Left (Just e, Nothing)
   zipRow (Right _) (Left e) = Left (Nothing, Just e)
-  zipRow (Right acct) (Right amt) = Right (nullposting {paccount = acct, pamount = Mixed [amt]})
+  zipRow (Right acct) (Right amt) = Right (nullposting {paccount = acct, pamount = mixedAmount amt})
 
   errorToFormMsg = first (("Invalid value: " <>) . T.pack .
                           foldl (\s a -> s <> parseErrorTextPretty a) "" .

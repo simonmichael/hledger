@@ -17,8 +17,9 @@ module Hledger.Data.Valuation (
   ,ValuationType(..)
   ,PriceOracle
   ,journalPriceOracle
-  -- ,amountApplyValuation
-  -- ,amountValueAtDate
+  ,amountApplyCostValuation
+  ,amountApplyValuation
+  ,amountValueAtDate
   ,mixedAmountApplyCostValuation
   ,mixedAmountApplyValuation
   ,mixedAmountValueAtDate
@@ -105,12 +106,7 @@ priceDirectiveToMarketPrice PriceDirective{..} =
 -- See amountApplyValuation and amountCost.
 mixedAmountApplyCostValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Day -> Costing -> Maybe ValuationType -> MixedAmount -> MixedAmount
 mixedAmountApplyCostValuation priceoracle styles periodlast today postingdate cost v =
-    valuation . costing
-  where
-    valuation = maybe id (mixedAmountApplyValuation priceoracle styles periodlast today postingdate) v
-    costing = case cost of
-        Cost   -> styleMixedAmount styles . mixedAmountCost
-        NoCost -> id
+    mapMixedAmount (amountApplyCostValuation priceoracle styles periodlast today postingdate cost v)
 
 -- | Apply a specified valuation to this mixed amount, using the
 -- provided price oracle, commodity styles, and reference dates.
@@ -118,6 +114,19 @@ mixedAmountApplyCostValuation priceoracle styles periodlast today postingdate co
 mixedAmountApplyValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Day -> ValuationType -> MixedAmount -> MixedAmount
 mixedAmountApplyValuation priceoracle styles periodlast today postingdate v =
   mapMixedAmount (amountApplyValuation priceoracle styles periodlast today postingdate v)
+
+-- | Apply a specified costing and valuation to this Amount,
+-- using the provided price oracle, commodity styles, and reference dates.
+-- Costing is done first if requested, and after that any valuation.
+-- See amountApplyValuation and amountCost.
+amountApplyCostValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Day -> Costing -> Maybe ValuationType -> Amount -> Amount
+amountApplyCostValuation priceoracle styles periodlast today postingdate cost v =
+    valuation . costing
+  where
+    valuation = maybe id (amountApplyValuation priceoracle styles periodlast today postingdate) v
+    costing = case cost of
+        Cost   -> styleAmount styles . amountCost
+        NoCost -> id
 
 -- | Apply a specified valuation to this amount, using the provided
 -- price oracle, reference dates, and whether this is for a

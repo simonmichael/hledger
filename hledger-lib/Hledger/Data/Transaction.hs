@@ -65,7 +65,7 @@ where
 import Data.Default (def)
 import Data.List (intercalate, partition)
 import Data.List.Extra (nubSort)
-import Data.Maybe (fromMaybe, mapMaybe)
+import Data.Maybe (fromMaybe, isJust, mapMaybe)
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Semigroup ((<>))
 #endif
@@ -283,9 +283,8 @@ postingAsLines elideamount onelineamounts acctwidth amtwidth p =
     -- amtwidth and thisamtwidth, make sure thisamtwidth does not depend on
     -- amtwidth at all.
     shownAmounts
-      | elideamount || null (amounts $ pamount p) = [mempty]
-      | otherwise = showAmountsLinesB displayopts . amounts $ pamount p
-      where displayopts = noColour{displayOneLine=onelineamounts}
+      | elideamount = [mempty]
+      | otherwise   = showAmountsLinesB noColour{displayOneLine=onelineamounts} . amounts $ pamount p
     thisamtwidth = maximumDef 0 $ map wbWidth shownAmounts
 
     (samelinecomment, newlinecomments) =
@@ -554,35 +553,35 @@ priceInferrerFor :: Transaction -> PostingType -> (Posting -> Posting)
 priceInferrerFor t pt = inferprice
   where
     postings       = filter ((==pt).ptype) $ tpostings t
-    pamounts       = concatMap (amounts . pamount) postings
-    pcommodities   = map acommodity pamounts
-    sumamounts     = amounts $ sumPostings postings  -- sum normalises to one amount per commodity & price
+    pmixedamounts  = map pamount postings
+    pcommodities   = map acommodity $ concatMap amountsRaw pmixedamounts
+    sumamounts     = amounts $ maSum pmixedamounts  -- sum normalises to one amount per commodity & price
     sumcommodities = map acommodity sumamounts
-    sumprices      = filter (/=Nothing) $ map aprice sumamounts
+    sumprices      = filter isJust $ map aprice sumamounts
     caninferprices = length sumcommodities == 2 && null sumprices
 
-    inferprice p@Posting{pamount=Mixed [a]}
-      | caninferprices && ptype p == pt && acommodity a == fromcommodity
-        = p{pamount=mixedAmount $ a{aprice=Just conversionprice}, poriginal=Just $ originalPosting p}
-      where
-        fromcommodity = head $ filter (`elem` sumcommodities) pcommodities -- these heads are ugly but should be safe
-        totalpricesign = if aquantity a < 0 then negate else id
-        conversionprice
-          | fromcount==1 = TotalPrice $ totalpricesign (abs toamount) `withPrecision` NaturalPrecision
-          | otherwise    = UnitPrice $ abs unitprice `withPrecision` unitprecision
-          where
-            fromcount     = length $ filter ((==fromcommodity).acommodity) pamounts
-            fromamount    = head $ filter ((==fromcommodity).acommodity) sumamounts
-            fromprecision = asprecision $ astyle fromamount
-            tocommodity   = head $ filter (/=fromcommodity) sumcommodities
-            toamount      = head $ filter ((==tocommodity).acommodity) sumamounts
-            toprecision   = asprecision $ astyle toamount
-            unitprice     = (aquantity fromamount) `divideAmount` toamount
-            -- Sum two display precisions, capping the result at the maximum bound
-            unitprecision = case (fromprecision, toprecision) of
-                (Precision a, Precision b) -> Precision $ if maxBound - a < b then maxBound else max 2 (a + b)
-                _                          -> NaturalPrecision
-    inferprice p = p
+    inferprice p@Posting{pamount=amt} = case amountsRaw amt of
+      [a] | caninferprices && ptype p == pt && acommodity a == fromcommodity
+            -> p{ pamount=mixedAmount a{aprice=Just conversionprice}
+                , poriginal=Just $ originalPosting p}
+        where
+          fromcommodity = head $ filter (`elem` sumcommodities) pcommodities -- these heads are ugly but should be safe
+          totalpricesign = if aquantity a < 0 then negate else id
+          conversionprice = case filter (==fromcommodity) pcommodities of
+              [_] -> TotalPrice $ totalpricesign (abs toamount) `withPrecision` NaturalPrecision
+              _   -> UnitPrice $ abs unitprice `withPrecision` unitprecision
+            where
+              fromamount    = head $ filter ((==fromcommodity).acommodity) sumamounts
+              fromprecision = asprecision $ astyle fromamount
+              tocommodity   = head $ filter (/=fromcommodity) sumcommodities
+              toamount      = head $ filter ((==tocommodity).acommodity) sumamounts
+              toprecision   = asprecision $ astyle toamount
+              unitprice     = aquantity fromamount `divideAmount` toamount
+              -- Sum two display precisions, capping the result at the maximum bound
+              unitprecision = case (fromprecision, toprecision) of
+                  (Precision a, Precision b) -> Precision $ if maxBound - a < b then maxBound else max 2 (a + b)
+                  _                          -> NaturalPrecision
+      _ -> p
 
 -- Get a transaction's secondary date, defaulting to the primary date.
 transactionDate2 :: Transaction -> Day
@@ -638,8 +637,8 @@ transactionMapPostings :: (Posting -> Posting) -> Transaction -> Transaction
 transactionMapPostings f t@Transaction{tpostings=ps} = t{tpostings=map f ps}
 
 -- | Apply a transformation to a transaction's posting amounts.
-transactionMapPostingAmounts :: (Amount -> Amount) -> Transaction -> Transaction
-transactionMapPostingAmounts f  = transactionMapPostings (postingTransformAmount (mapMixedAmount f))
+transactionMapPostingAmounts :: (MixedAmount -> MixedAmount) -> Transaction -> Transaction
+transactionMapPostingAmounts f  = transactionMapPostings (postingTransformAmount f)
 
 -- | The file path from which this transaction was parsed.
 transactionFile :: Transaction -> FilePath
@@ -655,13 +654,13 @@ tests_Transaction =
   tests "Transaction" [
 
       tests "showPostingLines" [
-          test "null posting" $ showPostingLines posting @?= [""]
+          test "null posting" $ showPostingLines nullposting @?= ["                   0"]
         , test "non-null posting" $
            let p =
                 posting
                   { pstatus = Cleared
                   , paccount = "a"
-                  , pamount = Mixed [usd 1, hrs 2]
+                  , pamount = mixed [usd 1, hrs 2]
                   , pcomment = "pcomment1\npcomment2\n  tag3: val3  \n"
                   , ptype = RegularPosting
                   , ptags = [("ptag1", "val1"), ("ptag2", "val2")]
@@ -742,7 +741,7 @@ tests_Transaction =
                   [ nullposting
                       { pstatus = Cleared
                       , paccount = "a"
-                      , pamount = Mixed [usd 1, hrs 2]
+                      , pamount = mixed [usd 1, hrs 2]
                       , pcomment = "\npcomment2\n"
                       , ptype = RegularPosting
                       , ptags = [("ptag1", "val1"), ("ptag2", "val2")]
@@ -771,8 +770,8 @@ tests_Transaction =
                    "coopportunity"
                    ""
                    []
-                   [ posting {paccount = "expenses:food:groceries", pamount = Mixed [usd 47.18], ptransaction = Just t}
-                   , posting {paccount = "assets:checking", pamount = Mixed [usd (-47.18)], ptransaction = Just t}
+                   [ posting {paccount = "expenses:food:groceries", pamount = mixedAmount (usd 47.18), ptransaction = Just t}
+                   , posting {paccount = "assets:checking", pamount = mixedAmount (usd (-47.18)), ptransaction = Just t}
                    ]
             in showTransaction t) @?=
           (T.unlines
@@ -795,8 +794,8 @@ tests_Transaction =
                 "coopportunity"
                 ""
                 []
-                [ posting {paccount = "expenses:food:groceries", pamount = Mixed [usd 47.18]}
-                , posting {paccount = "assets:checking", pamount = Mixed [usd (-47.19)]}
+                [ posting {paccount = "expenses:food:groceries", pamount = mixedAmount (usd 47.18)}
+                , posting {paccount = "assets:checking", pamount = mixedAmount (usd (-47.19))}
                 ])) @?=
           (T.unlines
              [ "2007-01-28 coopportunity"
@@ -834,7 +833,7 @@ tests_Transaction =
                 "x"
                 ""
                 []
-                [ posting {paccount = "a", pamount = Mixed [num 1 `at` (usd 2 `withPrecision` Precision 0)]}
+                [ posting {paccount = "a", pamount = mixedAmount $ num 1 `at` (usd 2 `withPrecision` Precision 0)}
                 , posting {paccount = "b", pamount = missingmixedamt}
                 ])) @?=
           (T.unlines ["2010-01-01 x", "    a          1 @ $2", "    b", ""])
@@ -855,7 +854,7 @@ tests_Transaction =
                   "test"
                   ""
                   []
-                  [posting {paccount = "a", pamount = Mixed [usd 1]}, posting {paccount = "b", pamount = Mixed [usd 1]}]))
+                  [posting {paccount = "a", pamount = mixedAmount (usd 1)}, posting {paccount = "b", pamount = mixedAmount (usd 1)}]))
         ,test "detect unbalanced entry, multiple missing amounts" $
           assertLeft $
              balanceTransaction
@@ -889,8 +888,8 @@ tests_Transaction =
                 ""
                 ""
                 []
-                [posting {paccount = "a", pamount = Mixed [usd 1]}, posting {paccount = "b", pamount = missingmixedamt}])) @?=
-          Right (Mixed [usd (-1)])
+                [posting {paccount = "a", pamount = mixedAmount (usd 1)}, posting {paccount = "b", pamount = missingmixedamt}])) @?=
+          Right (mixedAmount $ usd (-1))
         ,test "conversion price is inferred" $
           (pamount . head . tpostings <$>
            balanceTransaction
@@ -906,10 +905,10 @@ tests_Transaction =
                 ""
                 ""
                 []
-                [ posting {paccount = "a", pamount = Mixed [usd 1.35]}
-                , posting {paccount = "b", pamount = Mixed [eur (-1)]}
+                [ posting {paccount = "a", pamount = mixedAmount (usd 1.35)}
+                , posting {paccount = "b", pamount = mixedAmount (eur (-1))}
                 ])) @?=
-          Right (Mixed [usd 1.35 @@ (eur 1 `withPrecision` NaturalPrecision)])
+          Right (mixedAmount $ usd 1.35 @@ (eur 1 `withPrecision` NaturalPrecision))
         ,test "balanceTransaction balances based on cost if there are unit prices" $
           assertRight $
           balanceTransaction
@@ -925,8 +924,8 @@ tests_Transaction =
                ""
                ""
                []
-               [ posting {paccount = "a", pamount = Mixed [usd 1 `at` eur 2]}
-               , posting {paccount = "a", pamount = Mixed [usd (-2) `at` eur 1]}
+               [ posting {paccount = "a", pamount = mixedAmount $ usd 1 `at` eur 2}
+               , posting {paccount = "a", pamount = mixedAmount $ usd (-2) `at` eur 1}
                ])
         ,test "balanceTransaction balances based on cost if there are total prices" $
           assertRight $
@@ -943,8 +942,8 @@ tests_Transaction =
                ""
                ""
                []
-               [ posting {paccount = "a", pamount = Mixed [usd 1 @@ eur 1]}
-               , posting {paccount = "a", pamount = Mixed [usd (-2) @@ eur (-1)]}
+               [ posting {paccount = "a", pamount = mixedAmount $ usd 1 @@ eur 1}
+               , posting {paccount = "a", pamount = mixedAmount $ usd (-2) @@ eur (-1)}
                ])
         ]
     , tests "isTransactionBalanced" [
@@ -962,8 +961,8 @@ tests_Transaction =
             "a"
             ""
             []
-            [ posting {paccount = "b", pamount = Mixed [usd 1.00]}
-            , posting {paccount = "c", pamount = Mixed [usd (-1.00)]}
+            [ posting {paccount = "b", pamount = mixedAmount (usd 1.00)}
+            , posting {paccount = "c", pamount = mixedAmount (usd (-1.00))}
             ]
         ,test "detect unbalanced" $
           assertBool "" $
@@ -980,8 +979,8 @@ tests_Transaction =
             "a"
             ""
             []
-            [ posting {paccount = "b", pamount = Mixed [usd 1.00]}
-            , posting {paccount = "c", pamount = Mixed [usd (-1.01)]}
+            [ posting {paccount = "b", pamount = mixedAmount (usd 1.00)}
+            , posting {paccount = "c", pamount = mixedAmount (usd (-1.01))}
             ]
         ,test "detect unbalanced, one posting" $
           assertBool "" $
@@ -998,7 +997,7 @@ tests_Transaction =
             "a"
             ""
             []
-            [posting {paccount = "b", pamount = Mixed [usd 1.00]}]
+            [posting {paccount = "b", pamount = mixedAmount (usd 1.00)}]
         ,test "one zero posting is considered balanced for now" $
           assertBool "" $
           isTransactionBalanced Nothing $
@@ -1013,7 +1012,7 @@ tests_Transaction =
             "a"
             ""
             []
-            [posting {paccount = "b", pamount = Mixed [usd 0]}]
+            [posting {paccount = "b", pamount = mixedAmount (usd 0)}]
         ,test "virtual postings don't need to balance" $
           assertBool "" $
           isTransactionBalanced Nothing $
@@ -1028,9 +1027,9 @@ tests_Transaction =
             "a"
             ""
             []
-            [ posting {paccount = "b", pamount = Mixed [usd 1.00]}
-            , posting {paccount = "c", pamount = Mixed [usd (-1.00)]}
-            , posting {paccount = "d", pamount = Mixed [usd 100], ptype = VirtualPosting}
+            [ posting {paccount = "b", pamount = mixedAmount (usd 1.00)}
+            , posting {paccount = "c", pamount = mixedAmount (usd (-1.00))}
+            , posting {paccount = "d", pamount = mixedAmount (usd 100), ptype = VirtualPosting}
             ]
         ,test "balanced virtual postings need to balance among themselves" $
           assertBool "" $
@@ -1047,9 +1046,9 @@ tests_Transaction =
             "a"
             ""
             []
-            [ posting {paccount = "b", pamount = Mixed [usd 1.00]}
-            , posting {paccount = "c", pamount = Mixed [usd (-1.00)]}
-            , posting {paccount = "d", pamount = Mixed [usd 100], ptype = BalancedVirtualPosting}
+            [ posting {paccount = "b", pamount = mixedAmount (usd 1.00)}
+            , posting {paccount = "c", pamount = mixedAmount (usd (-1.00))}
+            , posting {paccount = "d", pamount = mixedAmount (usd 100), ptype = BalancedVirtualPosting}
             ]
         ,test "balanced virtual postings need to balance among themselves (2)" $
           assertBool "" $
@@ -1065,10 +1064,10 @@ tests_Transaction =
             "a"
             ""
             []
-            [ posting {paccount = "b", pamount = Mixed [usd 1.00]}
-            , posting {paccount = "c", pamount = Mixed [usd (-1.00)]}
-            , posting {paccount = "d", pamount = Mixed [usd 100], ptype = BalancedVirtualPosting}
-            , posting {paccount = "3", pamount = Mixed [usd (-100)], ptype = BalancedVirtualPosting}
+            [ posting {paccount = "b", pamount = mixedAmount (usd 1.00)}
+            , posting {paccount = "c", pamount = mixedAmount (usd (-1.00))}
+            , posting {paccount = "d", pamount = mixedAmount (usd 100), ptype = BalancedVirtualPosting}
+            , posting {paccount = "3", pamount = mixedAmount (usd (-100)), ptype = BalancedVirtualPosting}
             ]
         ]
     ]

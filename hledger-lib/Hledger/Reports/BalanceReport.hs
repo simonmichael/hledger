@@ -90,7 +90,7 @@ Right samplejournal2 =
           tcomment="",
           ttags=[],
           tpostings=
-            [posting {paccount="assets:bank:checking", pamount=Mixed [usd 1]}
+            [posting {paccount="assets:bank:checking", pamount=mixedAmount (usd 1)}
             ,posting {paccount="income:salary", pamount=missingmixedamt}
             ],
           tprecedingcomment=""

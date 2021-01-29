@@ -110,11 +110,11 @@ splitPosting acct dates p@Posting{paccount,pamount}
         [d]        -> (d, [])
         []         -> error' "splitPosting ran out of dates, should not happen (maybe sort your transactions by date)"
     days = initSafe [start..end]
-    amt  = (genericLength days) `divideMixedAmount` pamount
+    amt  = (fromIntegral $ length days) `divideMixedAmount` pamount
     -- give one of the postings an exact balancing amount to ensure the transaction is balanced
     -- lastamt = pamount - ptrace (amt `multiplyMixedAmount` (fromIntegral $ length days))
     lastamt = missingmixedamt
-    daysamts = zip days (take (length days - 1) (repeat amt) ++ [lastamt])
+    daysamts = zip days (replicate (length days - 1) amt ++ [lastamt])
     ps'  = [postingSetDate (Just d) p{pamount=a} | (d,a) <- daysamts ]
 
 -- | Set a posting's (primary) date, as if it had been parsed from the journal entry:

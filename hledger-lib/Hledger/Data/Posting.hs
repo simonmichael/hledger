@@ -115,7 +115,7 @@ posting = nullposting
 
 -- | Make a posting to an account.
 post :: AccountName -> Amount -> Posting
-post acc amt = posting {paccount=acc, pamount=Mixed [amt]}
+post acc amt = posting {paccount=acc, pamount=mixedAmount amt}
 
 -- | Make a virtual (unbalanced) posting to an account.
 vpost :: AccountName -> Amount -> Posting
@@ -123,7 +123,7 @@ vpost acc amt = (post acc amt){ptype=VirtualPosting}
 
 -- | Make a posting to an account, maybe with a balance assertion.
 post' :: AccountName -> Amount -> Maybe BalanceAssertion -> Posting
-post' acc amt ass = posting {paccount=acc, pamount=Mixed [amt], pbalanceassertion=ass}
+post' acc amt ass = posting {paccount=acc, pamount=mixedAmount amt, pbalanceassertion=ass}
 
 -- | Make a virtual (unbalanced) posting to an account, maybe with a balance assertion.
 vpost' :: AccountName -> Amount -> Maybe BalanceAssertion -> Posting
@@ -197,10 +197,11 @@ hasBalanceAssignment p = not (hasAmount p) && isJust (pbalanceassertion p)
 accountNamesFromPostings :: [Posting] -> [AccountName]
 accountNamesFromPostings = nubSort . map paccount
 
+-- | Sum all amounts from a list of postings.
 sumPostings :: [Posting] -> MixedAmount
 sumPostings = foldl' (\amt p -> maPlus amt $ pamount p) nullmixedamt
 
--- | Remove all prices of a posting
+-- | Strip all prices from a Posting.
 postingStripPrices :: Posting -> Posting
 postingStripPrices = postingTransformAmount mixedAmountStripPrices
 

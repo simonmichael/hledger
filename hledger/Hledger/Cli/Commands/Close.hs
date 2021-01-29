@@ -98,7 +98,7 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec} j = do
     closingps =
       concat [
         [posting{paccount          = a
-                ,pamount           = mixed [precise $ negate b]
+                ,pamount           = mixedAmount . precise $ negate b
                 -- after each commodity's last posting, assert 0 balance (#1035)
                 -- balance assertion amounts are unpriced (#824)
                 ,pbalanceassertion =
@@ -108,11 +108,11 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec} j = do
                 }
         ]
         -- maybe an interleaved posting transferring this balance to equity
-        ++ [posting{paccount=closingacct, pamount=Mixed [precise b]} | interleaved]
+        ++ [posting{paccount=closingacct, pamount=mixedAmount $ precise b} | interleaved]
 
         | -- get the balances for each commodity and transaction price
           (a,_,_,mb) <- acctbals
-        , let bs = amounts $ normaliseMixedAmount mb
+        , let bs = amounts mb
           -- mark the last balance in each commodity with True
         , let bs' = concat [reverse $ zip (reverse bs) (True : repeat False)
                            | bs <- groupBy ((==) `on` acommodity) bs]
@@ -121,21 +121,21 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec} j = do
 
       -- or a final multicommodity posting transferring all balances to equity
       -- (print will show this as multiple single-commodity postings)
-      ++ [posting{paccount=closingacct, pamount=if explicit then mapMixedAmount precise totalamt else missingmixedamt} | not interleaved]
+      ++ [posting{paccount=closingacct, pamount=if explicit then mixedAmountSetFullPrecision totalamt else missingmixedamt} | not interleaved]
 
     -- the opening transaction
     openingtxn = nulltransaction{tdate=openingdate, tdescription=openingdesc, tpostings=openingps}
     openingps =
       concat [
         [posting{paccount          = a
-                ,pamount           = mixed [precise b]
+                ,pamount           = mixedAmount $ precise b
                 ,pbalanceassertion =
                     case mcommoditysum of
                       Just s  -> Just nullassertion{baamount=precise s{aprice=Nothing}}
                       Nothing -> Nothing
                 }
         ]
-        ++ [posting{paccount=openingacct, pamount=Mixed [precise $ negate b]} | interleaved]
+        ++ [posting{paccount=openingacct, pamount=mixedAmount . precise $ negate b} | interleaved]
 
         | (a,_,_,mb) <- acctbals
         , let bs = amounts $ normaliseMixedAmount mb
@@ -145,7 +145,7 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec} j = do
                            , let commoditysum = (sum bs)]
         , (b, mcommoditysum) <- bs'
         ]
-      ++ [posting{paccount=openingacct, pamount=if explicit then mapMixedAmount precise (maNegate totalamt) else missingmixedamt} | not interleaved]
+      ++ [posting{paccount=openingacct, pamount=if explicit then mixedAmountSetFullPrecision (maNegate totalamt) else missingmixedamt} | not interleaved]
 
   -- print them
   when closing . T.putStr $ showTransaction closingtxn

@@ -170,7 +170,7 @@ postingsReportItems ((p,menddate):ps) (pprev,menddateprev) wd d b runningcalcfn 
     isdifferentdate = case wd of PrimaryDate   -> postingDate p  /= postingDate pprev
                                  SecondaryDate -> postingDate2 p /= postingDate2 pprev
     p' = p{paccount= clipOrEllipsifyAccountName d $ paccount p}
-    b' = runningcalcfn itemnum b (pamount p)
+    b' = runningcalcfn itemnum b $ pamount p
 
 -- | Generate one postings report line item, containing the posting,
 -- the current running balance, and optionally the posting date and/or
@@ -231,7 +231,7 @@ summarisePostingsInDateSpan (DateSpan b e) wd mdepth showempty ps
         isclipped a = maybe True (accountNameLevel a >=) mdepth
 
 negatePostingAmount :: Posting -> Posting
-negatePostingAmount p = p { pamount = maNegate $ pamount p }
+negatePostingAmount = postingTransformAmount negate
 
 
 -- tests

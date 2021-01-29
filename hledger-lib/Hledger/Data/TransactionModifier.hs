@@ -114,13 +114,13 @@ tmPostingRuleToFunction querytxt pr =
         Just n  -> \p ->
           -- Multiply the old posting's amount by the posting rule's multiplier.
           let
-            pramount = dbg6 "pramount" $ head $ amounts $ pamount pr
+            pramount = dbg6 "pramount" . head . amountsRaw $ pamount pr
             matchedamount = dbg6 "matchedamount" $ pamount p
             -- Handle a matched amount with a total price carefully so as to keep the transaction balanced (#928).
             -- Approach 1: convert to a unit price and increase the display precision slightly
             -- Mixed as = dbg6 "multipliedamount" $ n `multiplyMixedAmount` mixedAmountTotalPriceToUnitPrice matchedamount
             -- Approach 2: multiply the total price (keeping it positive) as well as the quantity
-            as = dbg6 "multipliedamount" $ n `multiplyMixedAmount` matchedamount
+            as = dbg6 "multipliedamount" $ multiplyMixedAmount n matchedamount
           in
             case acommodity pramount of
               "" -> as
@@ -130,10 +130,9 @@ tmPostingRuleToFunction querytxt pr =
               c  -> mapMixedAmount (\a -> a{acommodity = c, astyle = astyle pramount, aprice = aprice pramount}) as
 
 postingRuleMultiplier :: TMPostingRule -> Maybe Quantity
-postingRuleMultiplier p =
-    case amounts $ pamount p of
-        [a] | aismultiplier a -> Just $ aquantity a
-        _                   -> Nothing
+postingRuleMultiplier p = case amountsRaw $ pamount p of
+    [a] | aismultiplier a -> Just $ aquantity a
+    _                     -> Nothing
 
 renderPostingCommentDates :: Posting -> Posting
 renderPostingCommentDates p = p { pcomment = comment' }

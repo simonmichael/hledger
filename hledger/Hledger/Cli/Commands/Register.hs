@@ -190,7 +190,7 @@ postingsReportItemAsText opts preferredamtwidth preferredbalwidth (mdate, mendda
             BalancedVirtualPosting -> (wrap "[" "]", acctwidth-2)
             VirtualPosting         -> (wrap "(" ")", acctwidth-2)
             _                      -> (id,acctwidth)
-    amt = showAmountsLinesB dopts . (\x -> if null x then [nullamt] else x) . amounts $ pamount p
+    amt = showAmountsLinesB dopts . (\x -> if null x then [nullamt] else x) . amountsRaw $ pamount p
     bal = showAmountsLinesB dopts $ amounts b
     -- Since postingsReport strips prices from all Amounts when not used, we can display prices.
     dopts = oneLine{displayColour=color_, displayPrice=True}
