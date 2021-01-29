@@ -94,7 +94,7 @@ STACK ?= stack
 # --threads=16 sometimes gives "commitAndReleaseBuffer: resource vanished (Broken pipe)" but seems harmless
 # --timeout=N is not much use here - can be defeated by multiple threads, unoptimised builds, 
 # slow hackage index or compiler setup on first build, etc.
-SHELLTESTOPTS=--execdir --threads=16 --exclude=/_
+SHELLTESTOPTS=--execdir --threads=64 --exclude=/_
 
 # make sure shelltest is a released version of shelltestrunner
 # run shell tests using the executable specified in tests
