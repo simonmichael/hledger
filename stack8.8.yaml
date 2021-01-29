@@ -1,10 +1,10 @@
-# stack build plan using GHC 8.10.3
+# stack build plan using GHC 8.8.4
 
 nix:
   pure: false
   packages: [perl gmp ncurses zlib]
 
-resolver: lts-17.0
+resolver: lts-16.31
 
 packages:
 - hledger-lib
@@ -12,8 +12,10 @@ packages:
 - hledger-ui
 - hledger-web
 
-# extra-deps:
+extra-deps:
 # for hledger-lib:
+- pretty-simple-4.0.0.0
+- prettyprinter-1.7.0
 # for hledger:
 # for hledger-ui:
 # for hledger-web:
