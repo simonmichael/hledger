@@ -34,14 +34,14 @@ balancesheetequitySpec = CompoundBalanceCommandSpec {
       cbcsubreporttitle="Liabilities"
      ,cbcsubreportquery=journalLiabilityAccountQuery
      ,cbcsubreportoptions=(\ropts -> ropts{normalbalance_=Just NormallyNegative})
-     ,cbcsubreporttransform=fmap negate
+     ,cbcsubreporttransform=fmap maNegate
      ,cbcsubreportincreasestotal=False
      }
     ,CBCSubreportSpec{
       cbcsubreporttitle="Equity"
      ,cbcsubreportquery=journalEquityAccountQuery
      ,cbcsubreportoptions=(\ropts -> ropts{normalbalance_=Just NormallyNegative})
-     ,cbcsubreporttransform=fmap negate
+     ,cbcsubreporttransform=fmap maNegate
      ,cbcsubreportincreasestotal=False
      }
     ],

@@ -33,7 +33,7 @@ balancesheetSpec = CompoundBalanceCommandSpec {
       cbcsubreporttitle="Liabilities"
      ,cbcsubreportquery=journalLiabilityAccountQuery
      ,cbcsubreportoptions=(\ropts -> ropts{normalbalance_=Just NormallyNegative})
-     ,cbcsubreporttransform=fmap negate
+     ,cbcsubreporttransform=fmap maNegate
      ,cbcsubreportincreasestotal=False
      }
     ],
@@ -45,4 +45,3 @@ balancesheetmode = compoundBalanceCommandMode balancesheetSpec
 
 balancesheet :: CliOpts -> Journal -> IO ()
 balancesheet = compoundBalanceCommand balancesheetSpec
-

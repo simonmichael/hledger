@@ -34,7 +34,7 @@ registermatch opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j =
                                  ,Nothing
                                  ,tdescription <$> ptransaction p
                                  ,p
-                                 ,0)
+                                 ,nullmixedamt)
     _ -> putStrLn "please provide one description argument."
 
 -- Identify the closest recent match for this description in the given date-sorted postings.

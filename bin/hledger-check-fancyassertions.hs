@@ -218,7 +218,7 @@ checkAssertion accounts = checkAssertion'
     evaluate (Account account) =
       fromMaybe H.nullmixedamt $ lookup account accounts
     evaluate (AccountNested account) =
-      sum [m | (a,m) <- accounts, account == a || (a <> pack ":") `isPrefixOf` account]
+      maSum [m | (a,m) <- accounts, account == a || (a <> pack ":") `isPrefixOf` account]
     evaluate (Amount amount) = H.mixed [amount]
 
     -- Add missing amounts (with 0 value), normalise, throw away style
@@ -279,7 +279,7 @@ closingBalances' postings =
 
 -- | Add balances in matching accounts.
 addAccounts :: [(H.AccountName, H.MixedAmount)] -> [(H.AccountName, H.MixedAmount)] -> [(H.AccountName, H.MixedAmount)]
-addAccounts as1 as2 = [ (a, a1 + a2)
+addAccounts as1 as2 = [ (a, a1 `maPlus` a2)
                       | a <- nub (map fst as1 ++ map fst as2)
                       , let a1 = fromMaybe H.nullmixedamt $ lookup a as1
                       , let a2 = fromMaybe H.nullmixedamt $ lookup a as2

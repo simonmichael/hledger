@@ -765,14 +765,14 @@ withRunningBalance f = ask >>= lift . lift . f
 -- | Get this account's current exclusive running balance.
 getRunningBalanceB :: AccountName -> Balancing s MixedAmount
 getRunningBalanceB acc = withRunningBalance $ \BalancingState{bsBalances} -> do
-  fromMaybe 0 <$> H.lookup bsBalances acc
+  fromMaybe nullmixedamt <$> H.lookup bsBalances acc
 
 -- | Add this amount to this account's exclusive running balance.
 -- Returns the new running balance.
 addToRunningBalanceB :: AccountName -> MixedAmount -> Balancing s MixedAmount
 addToRunningBalanceB acc amt = withRunningBalance $ \BalancingState{bsBalances} -> do
-  old <- fromMaybe 0 <$> H.lookup bsBalances acc
-  let new = old + amt
+  old <- fromMaybe nullmixedamt <$> H.lookup bsBalances acc
+  let new = maPlus old amt
   H.insert bsBalances acc new
   return new
 
@@ -780,9 +780,9 @@ addToRunningBalanceB acc amt = withRunningBalance $ \BalancingState{bsBalances} 
 -- Returns the change in exclusive running balance.
 setRunningBalanceB :: AccountName -> MixedAmount -> Balancing s MixedAmount
 setRunningBalanceB acc amt = withRunningBalance $ \BalancingState{bsBalances} -> do
-  old <- fromMaybe 0 <$> H.lookup bsBalances acc
+  old <- fromMaybe nullmixedamt <$> H.lookup bsBalances acc
   H.insert bsBalances acc amt
-  return $ amt - old
+  return $ maMinus amt old
 
 -- | Set this account's exclusive running balance to whatever amount
 -- makes its *inclusive* running balance (the sum of exclusive running
@@ -790,13 +790,13 @@ setRunningBalanceB acc amt = withRunningBalance $ \BalancingState{bsBalances} ->
 -- Returns the change in exclusive running balance.
 setInclusiveRunningBalanceB :: AccountName -> MixedAmount -> Balancing s MixedAmount
 setInclusiveRunningBalanceB acc newibal = withRunningBalance $ \BalancingState{bsBalances} -> do
-  oldebal  <- fromMaybe 0 <$> H.lookup bsBalances acc
+  oldebal  <- fromMaybe nullmixedamt <$> H.lookup bsBalances acc
   allebals <- H.toList bsBalances
   let subsibal =  -- sum of any subaccounts' running balances
-        sum $ map snd $ filter ((acc `isAccountNamePrefixOf`).fst) allebals
-  let newebal = newibal - subsibal
+        maSum . map snd $ filter ((acc `isAccountNamePrefixOf`).fst) allebals
+  let newebal = maMinus newibal subsibal
   H.insert bsBalances acc newebal
-  return $ newebal - oldebal
+  return $ maMinus newebal oldebal
 
 -- | Update (overwrite) this transaction in the balancing state.
 updateTransactionB :: Transaction -> Balancing s ()
@@ -909,7 +909,7 @@ addOrAssignAmountAndCheckAssertionB p@Posting{paccount=acc, pamount=amt, pbalanc
         False -> do
           oldbalothercommodities <- filterMixedAmount ((acommodity baamount /=) . acommodity) <$> getRunningBalanceB acc
           let assignedbalthiscommodity = Mixed [baamount]
-              newbal = oldbalothercommodities + assignedbalthiscommodity
+              newbal = maPlus oldbalothercommodities assignedbalthiscommodity
           diff <- (if bainclusive then setInclusiveRunningBalanceB else setRunningBalanceB) acc newbal
           return (diff,newbal)
       let p' = p{pamount=diff, poriginal=Just $ originalPosting p}
@@ -961,9 +961,9 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedamt 
       -- sum the running balances of this account and any of its subaccounts seen so far
       withRunningBalance $ \BalancingState{bsBalances} ->
         H.foldM
-          (\ibal (acc, amt) -> return $ ibal +
-            if assertedacct==acc || assertedacct `isAccountNamePrefixOf` acc then amt else 0)
-          0
+          (\ibal (acc, amt) -> return $
+            if assertedacct==acc || assertedacct `isAccountNamePrefixOf` acc then maPlus ibal amt else ibal)
+          nullmixedamt
           bsBalances
     else return actualbal
   let

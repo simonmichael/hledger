@@ -1,4 +1,6 @@
-{-# LANGUAGE OverloadedStrings, RecordWildCards, FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 {-|
 
 An account-centric transactions report.
@@ -15,12 +17,12 @@ module Hledger.Reports.AccountTransactionsReport (
 )
 where
 
-import Data.List
-import Data.Ord
-import Data.Maybe
+import Data.List (mapAccumL, nub, partition, sortBy)
+import Data.Ord (comparing)
+import Data.Maybe (catMaybes, fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Data.Time.Calendar
+import Data.Time.Calendar (Day)
 
 import Hledger.Data
 import Hledger.Query
@@ -145,7 +147,7 @@ accountTransactionsReport rspec@ReportSpec{rsOpts=ropts} j reportq thisacctq = i
     filtertxns = txn_dates_ ropts
 
     items = reverse $
-            accountTransactionsReportItems reportq' thisacctq startbal negate $
+            accountTransactionsReportItems reportq' thisacctq startbal maNegate $
             (if filtertxns then filter (reportq' `matchesTransaction`) else id) $
             ts5
 
@@ -179,8 +181,8 @@ accountTransactionsReportItem reportq thisacctq signfn bal torig = balItem
                   otheracctstr | thisacctq == None  = summarisePostingAccounts reportps     -- no current account ? summarise all matched postings
                                | numotheraccts == 0 = summarisePostingAccounts thisacctps   -- only postings to current account ? summarise those
                                | otherwise          = summarisePostingAccounts otheracctps  -- summarise matched postings to other account(s)
-                  a = signfn $ negate $ sum $ map pamount thisacctps
-                  b = bal + a
+                  a = signfn . maNegate $ sumPostings thisacctps
+                  b = bal `maPlus` a
 
 -- | What is the transaction's date in the context of a particular account
 -- (specified with a query) and report query, as in an account register ?

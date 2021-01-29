@@ -360,8 +360,8 @@ amountAndCommentWizard PrevInput{..} EntryState{..} = do
         c <- T.pack <$> fromMaybe "" `fmap` optional (char ';' >> many anySingle)
         -- eof
         return (a,c)
-      balancingamt = negate $ sum $ map pamount realps where realps = filter isReal esPostings
-      balancingamtfirstcommodity = Mixed $ take 1 $ amounts balancingamt
+      balancingamt = maNegate . sumPostings $ filter isReal esPostings
+      balancingamtfirstcommodity = Mixed . take 1 $ amounts balancingamt
       showamt =
         showMixedAmount . mixedAmountSetPrecision
                   -- what should this be ?

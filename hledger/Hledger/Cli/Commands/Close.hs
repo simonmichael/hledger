@@ -89,7 +89,7 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec} j = do
 
     -- the balances to close
     (acctbals,_) = balanceReport rspec_ j
-    totalamt = sum $ map (\(_,_,_,b) -> normalise b) acctbals
+    totalamt = maSum $ map (\(_,_,_,b) -> normalise b) acctbals
 
     -- since balance assertion amounts are required to be exact, the
     -- amounts in opening/closing transactions should be too (#941, #1137)
@@ -150,7 +150,7 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec} j = do
                            , let commoditysum = (sum bs)]
         , (b, mcommoditysum) <- bs'
         ]
-      ++ [posting{paccount=openingacct, pamount=if explicit then mapMixedAmount precise (negate totalamt) else missingmixedamt} | not interleaved]
+      ++ [posting{paccount=openingacct, pamount=if explicit then mapMixedAmount precise (maNegate totalamt) else missingmixedamt} | not interleaved]
 
   -- print them
   when closing . T.putStr $ showTransaction closingtxn

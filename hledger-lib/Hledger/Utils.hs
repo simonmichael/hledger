@@ -4,7 +4,9 @@ Standard imports and utilities which are useful everywhere, or needed low
 in the module hierarchy. This is the bottom of hledger's module graph.
 
 -}
-{-# LANGUAGE OverloadedStrings, LambdaCase #-}
+{-# LANGUAGE CPP               #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Hledger.Utils (---- provide these frequently used modules - or not, for clearer api:
                           -- module Control.Monad,
@@ -35,25 +37,21 @@ module Hledger.Utils (---- provide these frequently used modules - or not, for c
 where
 
 import Control.Monad (liftM, when)
--- import Data.Char
 import Data.FileEmbed (makeRelativeToProject, embedStringFile)
-import Data.List
--- import Data.Maybe
--- import Data.PPrint
+import Data.List (foldl', foldl1')
 -- import Data.String.Here (hereFile)
 import Data.Text (Text)
 import qualified Data.Text.IO as T
-import Data.Time.Clock
-import Data.Time.LocalTime
--- import Data.Text (Text)
--- import qualified Data.Text as T
+import Data.Time.Clock (getCurrentTime)
+import Data.Time.LocalTime (LocalTime, ZonedTime, getCurrentTimeZone,
+                            utcToLocalTime, utcToZonedTime)
 -- import Language.Haskell.TH.Quote (QuasiQuoter(..))
 import Language.Haskell.TH.Syntax (Q, Exp)
 import System.Directory (getHomeDirectory)
-import System.FilePath((</>), isRelative)
+import System.FilePath (isRelative, (</>))
 import System.IO
--- import Text.Printf
--- import qualified Data.Map as Map
+  (Handle, IOMode (..), hGetEncoding, hSetEncoding, hSetNewlineMode,
+   openFile, stdin, universalNewlineMode, utf8_bom)
 
 import Hledger.Utils.Debug
 import Hledger.Utils.Parse
@@ -160,7 +158,7 @@ expandPath :: FilePath -> FilePath -> IO FilePath -- general type sig for use in
 expandPath _ "-" = return "-"
 expandPath curdir p = (if isRelative p then (curdir </>) else id) `liftM` expandHomePath p
 -- PARTIAL:
-  
+
 -- | Expand user home path indicated by tilde prefix
 expandHomePath :: FilePath -> IO FilePath
 expandHomePath = \case

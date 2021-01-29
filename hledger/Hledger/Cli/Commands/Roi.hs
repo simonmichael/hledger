@@ -102,7 +102,7 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{rsOpts=ReportOpts{..}
     -- Spans are [spanBegin,spanEnd), and spanEnd is 1 day after then actual end date we are interested in
     let
       cashFlowApplyCostValue = map (\(d,amt) -> (d,mixedAmountValue spanEnd d amt))
-      
+
       valueBefore =
         mixedAmountValue spanEnd spanBegin $ 
         total trans (And [ investmentsQuery
@@ -115,7 +115,7 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{rsOpts=ReportOpts{..}
 
       priceDates = dbg3 "priceDates" $ nub $ filter (spanContainsDate span) priceDirectiveDates
       cashFlow =
-        ((map (\d -> (d,0)) priceDates)++) $
+        ((map (\d -> (d,nullmixedamt)) priceDates)++) $
         cashFlowApplyCostValue $
         calculateCashFlow trans (And [ Not investmentsQuery
                                      , Not pnlQuery
@@ -133,14 +133,14 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{rsOpts=ReportOpts{..}
 
     irr <- internalRateOfReturn showCashFlow prettyTables thisSpan
     twr <- timeWeightedReturn showCashFlow prettyTables investmentsQuery trans mixedAmountValue thisSpan
-    let cashFlowAmt = negate $ sum $ map snd cashFlow
+    let cashFlowAmt = maNegate . maSum $ map snd cashFlow
     let smallIsZero x = if abs x < 0.01 then 0.0 else x
     return [ showDate spanBegin
            , showDate (addDays (-1) spanEnd)
            , T.pack $ showMixedAmount valueBefore
            , T.pack $ showMixedAmount cashFlowAmt
            , T.pack $ showMixedAmount valueAfter
-           , T.pack $ showMixedAmount (valueAfter - (valueBefore + cashFlowAmt))
+           , T.pack $ showMixedAmount (valueAfter `maMinus` (valueBefore `maPlus` cashFlowAmt))
            , T.pack $ printf "%0.2f%%" $ smallIsZero irr
            , T.pack $ printf "%0.2f%%" $ smallIsZero twr ]
 
@@ -165,12 +165,12 @@ timeWeightedReturn showCashFlow prettyTables investmentsQuery trans mixedAmountV
         -- first for processing cash flow. This is why pnl changes are Left
         -- and cashflows are Right
         sort
-        $ (++) (map (\(date,amt) -> (date,Left (-amt))) pnl )
+        $ (++) (map (\(date,amt) -> (date,Left $ maNegate amt)) pnl )
         -- Aggregate all entries for a single day, assuming that intraday interest is negligible
-        $ map (\date_cash -> let (dates, cash) = unzip date_cash in (head dates, Right (sum cash)))
+        $ map (\date_cash -> let (dates, cash) = unzip date_cash in (head dates, Right (maSum cash)))
         $ groupBy ((==) `on` fst)
         $ sortOn fst
-        $ map (\(d,a) -> (d, negate a))
+        $ map (\(d,a) -> (d, maNegate a))
         $ cashFlow
 
   let units =
@@ -203,17 +203,15 @@ timeWeightedReturn showCashFlow prettyTables investmentsQuery trans mixedAmountV
   when showCashFlow $ do
     printf "\nTWR cash flow for %s - %s\n" (showDate spanBegin) (showDate (addDays (-1) spanEnd))
     let (dates', amounts) = unzip changes
-        cashflows' = map (either (\_ -> 0) id) amounts
-        pnls' = map (either id (\_ -> 0)) amounts
-        (valuesOnDate',unitsBoughtOrSold', unitPrices', unitBalances') = unzip4 units
+        cashflows' = map (either (const nullmixedamt) id) amounts
+        pnls = map (either id (const nullmixedamt)) amounts
+        (valuesOnDate,unitsBoughtOrSold', unitPrices', unitBalances') = unzip4 units
         add x lst = if valueBefore/=0 then x:lst else lst
         dates = add spanBegin dates'
         cashflows = add valueBeforeAmt cashflows'
-        pnls = add 0 pnls'
         unitsBoughtOrSold = add initialUnits unitsBoughtOrSold'
         unitPrices = add initialUnitPrice unitPrices'
         unitBalances = add initialUnits unitBalances'
-        valuesOnDate = add 0 valuesOnDate'
 
     TL.putStr $ Ascii.render prettyTables id id T.pack
       (Table
@@ -236,11 +234,11 @@ timeWeightedReturn showCashFlow prettyTables investmentsQuery trans mixedAmountV
   return annualizedTWR
 
 internalRateOfReturn showCashFlow prettyTables (OneSpan spanBegin spanEnd valueBefore valueAfter cashFlow _pnl) = do
-  let prefix = (spanBegin, negate valueBefore)
+  let prefix = (spanBegin, maNegate valueBefore)
 
       postfix = (spanEnd, valueAfter)
 
-      totalCF = filter ((/=0) . snd) $ prefix : (sortOn fst cashFlow) ++ [postfix]
+      totalCF = filter (maIsNonZero . snd) $ prefix : (sortOn fst cashFlow) ++ [postfix]
 
   when showCashFlow $ do
     printf "\nIRR cash flow for %s - %s\n" (showDate spanBegin) (showDate (addDays (-1) spanEnd))
@@ -267,16 +265,15 @@ type CashFlow = [(Day, MixedAmount)]
 
 interestSum :: Day -> CashFlow -> Double -> Double
 interestSum referenceDay cf rate = sum $ map go cf
-    where go (t,m) = fromRational (toRational (unMix m)) * (rate ** (fromIntegral (referenceDay `diffDays` t) / 365))
+  where go (t,m) = realToFrac (unMix m) * rate ** (fromIntegral (referenceDay `diffDays` t) / 365)
 
 
 calculateCashFlow :: [Transaction] -> Query -> CashFlow
-calculateCashFlow trans query = filter ((/=0).snd) $ map go trans
-    where
-    go t = (transactionDate2 t, total [t] query)
+calculateCashFlow trans query = filter (maIsNonZero . snd) $ map go trans
+  where go t = (transactionDate2 t, total [t] query)
 
 total :: [Transaction] -> Query -> MixedAmount
-total trans query = sumPostings $  filter (matchesPosting query) $ concatMap realPostings trans
+total trans query = sumPostings . filter (matchesPosting query) $ concatMap realPostings trans
 
 unMix :: MixedAmount -> Quantity
 unMix a =

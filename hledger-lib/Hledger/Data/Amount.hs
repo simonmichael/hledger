@@ -94,6 +94,9 @@ module Hledger.Data.Amount (
   nullmixedamt,
   missingmixedamt,
   mixed,
+  mixedAmount,
+  maAddAmount,
+  maAddAmounts,
   amounts,
   filterMixedAmount,
   filterMixedAmountByCommodity,
@@ -104,12 +107,18 @@ module Hledger.Data.Amount (
   mixedAmountStripPrices,
   -- ** arithmetic
   mixedAmountCost,
+  maNegate,
+  maPlus,
+  maMinus,
+  maSum,
   divideMixedAmount,
   multiplyMixedAmount,
   averageMixedAmounts,
   isNegativeAmount,
   isNegativeMixedAmount,
   mixedAmountIsZero,
+  maIsZero,
+  maIsNonZero,
   mixedAmountLooksZero,
   mixedAmountTotalPriceToUnitPrice,
   -- ** rendering
@@ -138,12 +147,12 @@ import Control.Monad (foldM)
 import Data.Decimal (DecimalRaw(..), decimalPlaces, normalizeDecimal, roundTo)
 import Data.Default (Default(..))
 import Data.Foldable (toList)
-import Data.List (intercalate, intersperse, mapAccumL, partition)
+import Data.List (foldl', intercalate, intersperse, mapAccumL, partition)
 import Data.List.NonEmpty (NonEmpty(..), nonEmpty)
 import qualified Data.Map.Strict as M
 import Data.Maybe (fromMaybe)
 #if !(MIN_VERSION_base(4,11,0))
-import Data.Semigroup ((<>))
+import Data.Semigroup (Semigroup(..))
 #endif
 import qualified Data.Text as T
 import qualified Data.Text.Lazy.Builder as TB
@@ -494,13 +503,26 @@ canonicaliseAmount styles a@Amount{acommodity=c, astyle=s} = a{astyle=s'}
 -------------------------------------------------------------------------------
 -- MixedAmount
 
+instance Semigroup MixedAmount where
+  (<>) = maPlus
+
+instance Monoid MixedAmount where
+  mempty = nullmixedamt
+#if !(MIN_VERSION_base(4,11,0))
+  mappend = (<>)
+#endif
+
 instance Num MixedAmount where
-    fromInteger i = Mixed [fromInteger i]
-    negate (Mixed as) = Mixed $ map negate as
-    (+) (Mixed as) (Mixed bs) = normaliseMixedAmount $ Mixed $ as ++ bs
-    (*)    = error' "error, mixed amounts do not support multiplication" -- PARTIAL:
-    abs    = error' "error, mixed amounts do not support abs"
-    signum = error' "error, mixed amounts do not support signum"
+  fromInteger i = Mixed [fromInteger i]
+  negate = maNegate
+  (+)    = maPlus
+  (*)    = error' "error, mixed amounts do not support multiplication" -- PARTIAL:
+  abs    = error' "error, mixed amounts do not support abs"
+  signum = error' "error, mixed amounts do not support signum"
+
+-- | Get a mixed amount's component amounts.
+amounts :: MixedAmount -> [Amount]
+amounts (Mixed as) = as
 
 -- | The empty mixed amount.
 nullmixedamt :: MixedAmount
@@ -513,6 +535,85 @@ missingmixedamt = Mixed [missingamt]
 -- | Convert amounts in various commodities into a normalised MixedAmount.
 mixed :: [Amount] -> MixedAmount
 mixed = normaliseMixedAmount . Mixed
+
+-- | Create a MixedAmount from a single Amount.
+mixedAmount :: Amount -> MixedAmount
+mixedAmount = Mixed . pure
+
+-- | Add an Amount to a MixedAmount, normalising the result.
+maAddAmount :: MixedAmount -> Amount -> MixedAmount
+maAddAmount (Mixed as) a = normaliseMixedAmount . Mixed $ a : as
+
+-- | Add a collection of Amounts to a MixedAmount, normalising the result.
+maAddAmounts :: MixedAmount -> [Amount] -> MixedAmount
+maAddAmounts (Mixed as) bs = bs `seq` normaliseMixedAmount . Mixed $ bs ++ as
+
+-- | Negate mixed amount's quantities (and total prices, if any).
+maNegate :: MixedAmount -> MixedAmount
+maNegate = transformMixedAmount negate
+
+-- | Sum two MixedAmount.
+maPlus :: MixedAmount -> MixedAmount -> MixedAmount
+maPlus (Mixed as) (Mixed bs) = normaliseMixedAmount . Mixed $ as ++ bs
+
+-- | Subtract a MixedAmount from another.
+maMinus :: MixedAmount -> MixedAmount -> MixedAmount
+maMinus a = maPlus a . maNegate
+
+-- | Sum a collection of MixedAmounts.
+maSum :: Foldable t => t MixedAmount -> MixedAmount
+maSum = foldl' maPlus nullmixedamt
+
+-- | Divide a mixed amount's quantities (and total prices, if any) by a constant.
+divideMixedAmount :: Quantity -> MixedAmount -> MixedAmount
+divideMixedAmount n = transformMixedAmount (/n)
+
+-- | Multiply a mixed amount's quantities (and total prices, if any) by a constant.
+multiplyMixedAmount :: Quantity -> MixedAmount -> MixedAmount
+multiplyMixedAmount n = transformMixedAmount (*n)
+
+-- | Apply a function to a mixed amount's quantities (and its total prices, if it has any).
+transformMixedAmount :: (Quantity -> Quantity) -> MixedAmount -> MixedAmount
+transformMixedAmount f = mapMixedAmount (transformAmount f)
+
+-- | Calculate the average of some mixed amounts.
+averageMixedAmounts :: [MixedAmount] -> MixedAmount
+averageMixedAmounts as = fromIntegral (length as) `divideMixedAmount` maSum as
+
+-- | Is this mixed amount negative, if we can tell that unambiguously?
+-- Ie when normalised, are all individual commodity amounts negative ?
+isNegativeMixedAmount :: MixedAmount -> Maybe Bool
+isNegativeMixedAmount m =
+  case amounts $ normaliseMixedAmountSquashPricesForDisplay m of
+    []  -> Just False
+    [a] -> Just $ isNegativeAmount a
+    as | all isNegativeAmount as -> Just True
+    as | not (any isNegativeAmount as) -> Just False
+    _ -> Nothing  -- multiple amounts with different signs
+
+-- | Does this mixed amount appear to be zero when rendered with its display precision?
+-- i.e. does it have zero quantity with no price, zero quantity with a total price (which is also zero),
+-- and zero quantity for each unit price?
+mixedAmountLooksZero :: MixedAmount -> Bool
+mixedAmountLooksZero = all amountLooksZero . amounts . normaliseMixedAmount
+
+-- | Is this mixed amount exactly zero, ignoring its display precision?
+-- i.e. does it have zero quantity with no price, zero quantity with a total price (which is also zero),
+-- and zero quantity for each unit price?
+mixedAmountIsZero :: MixedAmount -> Bool
+mixedAmountIsZero = all amountIsZero . amounts . normaliseMixedAmount
+
+-- | Is this mixed amount exactly zero, ignoring its display precision?
+--
+-- A convenient alias for mixedAmountIsZero.
+maIsZero :: MixedAmount -> Bool
+maIsZero = mixedAmountIsZero
+
+-- | Is this mixed amount non-zero, ignoring its display precision?
+--
+-- A convenient alias for not . mixedAmountIsZero.
+maIsNonZero :: MixedAmount -> Bool
+maIsNonZero = not . mixedAmountIsZero
 
 -- | Simplify a mixed amount's component amounts:
 --
@@ -581,10 +682,6 @@ sumSimilarAmountsUsingFirstPrice a b = (a + b){aprice=p}
 -- sumSimilarAmountsNotingPriceDifference [] = nullamt
 -- sumSimilarAmountsNotingPriceDifference as = undefined
 
--- | Get a mixed amount's component amounts.
-amounts :: MixedAmount -> [Amount]
-amounts (Mixed as) = as
-
 -- | Filter a mixed amount's component amounts by a predicate.
 filterMixedAmount :: (Amount -> Bool) -> MixedAmount -> MixedAmount
 filterMixedAmount p (Mixed as) = Mixed $ filter p as
@@ -608,42 +705,6 @@ mapMixedAmount f (Mixed as) = Mixed $ map f as
 -- possible (see amountCost).
 mixedAmountCost :: MixedAmount -> MixedAmount
 mixedAmountCost = mapMixedAmount amountCost
-
--- | Divide a mixed amount's quantities (and total prices, if any) by a constant.
-divideMixedAmount :: Quantity -> MixedAmount -> MixedAmount
-divideMixedAmount n = mapMixedAmount (divideAmount n)
-
--- | Multiply a mixed amount's quantities (and total prices, if any) by a constant.
-multiplyMixedAmount :: Quantity -> MixedAmount -> MixedAmount
-multiplyMixedAmount n = mapMixedAmount (multiplyAmount n)
-
--- | Calculate the average of some mixed amounts.
-averageMixedAmounts :: [MixedAmount] -> MixedAmount
-averageMixedAmounts [] = 0
-averageMixedAmounts as = fromIntegral (length as) `divideMixedAmount` sum as
-
--- | Is this mixed amount negative, if we can tell that unambiguously?
--- Ie when normalised, are all individual commodity amounts negative ?
-isNegativeMixedAmount :: MixedAmount -> Maybe Bool
-isNegativeMixedAmount m =
-  case amounts $ normaliseMixedAmountSquashPricesForDisplay m of
-    []  -> Just False
-    [a] -> Just $ isNegativeAmount a
-    as | all isNegativeAmount as -> Just True
-    as | not (any isNegativeAmount as) -> Just False
-    _ -> Nothing  -- multiple amounts with different signs
-
--- | Does this mixed amount appear to be zero when rendered with its display precision?
--- i.e. does it have zero quantity with no price, zero quantity with a total price (which is also zero),
--- and zero quantity for each unit price?
-mixedAmountLooksZero :: MixedAmount -> Bool
-mixedAmountLooksZero = all amountLooksZero . amounts . normaliseMixedAmountSquashPricesForDisplay
-
--- | Is this mixed amount exactly to be zero, ignoring its display precision?
--- i.e. does it have zero quantity with no price, zero quantity with a total price (which is also zero),
--- and zero quantity for each unit price?
-mixedAmountIsZero :: MixedAmount -> Bool
-mixedAmountIsZero = all amountIsZero . amounts . normaliseMixedAmountSquashPricesForDisplay
 
 -- -- | MixedAmount derived Eq instance in Types.hs doesn't know that we
 -- -- want $0 = EUR0 = 0. Yet we don't want to drag all this code over there.
@@ -888,18 +949,18 @@ tests_Amount = tests "Amount" [
   ,tests "MixedAmount" [
 
      test "adding mixed amounts to zero, the commodity and amount style are preserved" $
-      sum (map (Mixed . (:[]))
-               [usd 1.25
-               ,usd (-1) `withPrecision` Precision 3
-               ,usd (-0.25)
-               ])
+      maSum (map mixedAmount
+        [usd 1.25
+        ,usd (-1) `withPrecision` Precision 3
+        ,usd (-0.25)
+        ])
         @?= Mixed [usd 0 `withPrecision` Precision 3]
 
     ,test "adding mixed amounts with total prices" $ do
-      sum (map (Mixed . (:[]))
-       [usd 1 @@ eur 1
-       ,usd (-2) @@ eur 1
-       ])
+      maSum (map mixedAmount
+        [usd 1 @@ eur 1
+        ,usd (-2) @@ eur 1
+        ])
         @?= Mixed [usd (-1) @@ eur 2 ]
 
     ,test "showMixedAmount" $ do

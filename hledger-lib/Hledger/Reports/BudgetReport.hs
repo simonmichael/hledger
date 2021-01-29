@@ -206,7 +206,7 @@ combineBudgetAndActual ropts j
     sortedrows :: [BudgetReportRow] = sortRowsLike (mbrsorted unbudgetedrows ++ mbrsorted rows') rows
       where
         (unbudgetedrows, rows') = partition ((==unbudgetedAccountName) . prrFullName) rows
-        mbrsorted = map prrFullName . sortRows ropts j . map (fmap $ fromMaybe 0 . fst)
+        mbrsorted = map prrFullName . sortRows ropts j . map (fmap $ fromMaybe nullmixedamt . fst)
         rows = rows1 ++ rows2
 
     -- TODO: grand total & average shows 0% when there are no actual amounts, inconsistent with other cells
@@ -244,7 +244,7 @@ budgetReportAsText ropts@ReportOpts{..} budgetr = TB.toLazyText $
 
     displayCell (actual, budget) = (showamt actual', budgetAndPerc <$> budget)
       where
-        actual' = fromMaybe 0 actual
+        actual' = fromMaybe nullmixedamt actual
         budgetAndPerc b = (showamt b, showper <$> percentage actual' b)
         showamt = (\(WideBuilder b w) -> (TL.toStrict $ TB.toLazyText b, w)) . showMixedAmountB oneLine{displayColour=color_, displayMaxWidth=Just 32}
         showper p = let str = T.pack (show $ roundTo 0 p) in (str, T.length str)

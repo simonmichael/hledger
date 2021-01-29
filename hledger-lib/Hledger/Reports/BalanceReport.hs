@@ -112,7 +112,7 @@ tests_BalanceReport = tests "BalanceReport" [
     tests "balanceReport" [
 
      test "no args, null journal" $
-     (defreportspec, nulljournal) `gives` ([], 0)
+     (defreportspec, nulljournal) `gives` ([], nullmixedamt)
 
     ,test "no args, sample journal" $
      (defreportspec, samplejournal) `gives`
@@ -162,7 +162,7 @@ tests_BalanceReport = tests "BalanceReport" [
 
     ,test "with date:" $
      (defreportspec{rsQuery=Date $ DateSpan (Just $ fromGregorian 2009 01 01) (Just $ fromGregorian 2010 01 01)}, samplejournal2) `gives`
-      ([], 0)
+      ([], nullmixedamt)
 
     ,test "with date2:" $
      (defreportspec{rsQuery=Date2 $ DateSpan (Just $ fromGregorian 2009 01 01) (Just $ fromGregorian 2010 01 01)}, samplejournal2) `gives`
@@ -202,7 +202,7 @@ tests_BalanceReport = tests "BalanceReport" [
 
      ,test "with period on an unpopulated period" $
       (defreportspec{rsOpts=defreportopts{period_= PeriodBetween (fromGregorian 2008 1 2) (fromGregorian 2008 1 3)}}, samplejournal) `gives`
-       ([], 0)
+       ([], nullmixedamt)
 
 
 

@@ -98,11 +98,11 @@ data PeriodicReportRow a b =
   , prrAverage :: b    -- The average of this row's values.
   } deriving (Show, Functor, Generic, ToJSON)
 
-instance Num b => Semigroup (PeriodicReportRow a b) where
+instance Semigroup b => Semigroup (PeriodicReportRow a b) where
   (PeriodicReportRow _ amts1 t1 a1) <> (PeriodicReportRow n2 amts2 t2 a2) =
-      PeriodicReportRow n2 (sumPadded amts1 amts2) (t1 + t2) (a1 + a2)
+      PeriodicReportRow n2 (sumPadded amts1 amts2) (t1 <> t2) (a1 <> a2)
     where
-      sumPadded (a:as) (b:bs) = (a + b) : sumPadded as bs
+      sumPadded (a:as) (b:bs) = (a <> b) : sumPadded as bs
       sumPadded as     []     = as
       sumPadded []     bs     = bs
 

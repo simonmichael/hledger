@@ -995,7 +995,7 @@ getAmount rules record currency p1IsVirtual n =
                           , let a = parseAmount rules record currency v
                           -- With amount/amount-in/amount-out, in posting 2,
                           -- flip the sign and convert to cost, as they did before 1.17
-                          , let a' = if f `elem` unnumberedfieldnames && n==2 then mixedAmountCost (-a) else a
+                          , let a' = if f `elem` unnumberedfieldnames && n==2 then mixedAmountCost (maNegate a) else a
                           ]
 
     -- if any of the numbered field names are present, discard all the unnumbered ones
@@ -1013,7 +1013,7 @@ getAmount rules record currency p1IsVirtual n =
   in case -- dbg0 ("amounts for posting "++show n)
           assignments'' of
       [] -> Nothing
-      [(f,a)] | "-out" `T.isSuffixOf` f -> Just (-a)  -- for -out fields, flip the sign
+      [(f,a)] | "-out" `T.isSuffixOf` f -> Just (maNegate a)  -- for -out fields, flip the sign
       [(_,a)] -> Just a
       fs      -> error' . T.unpack . T.unlines $ [  -- PARTIAL:
          "multiple non-zero amounts or multiple zero amounts assigned,"
