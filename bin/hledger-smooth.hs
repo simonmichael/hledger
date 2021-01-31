@@ -10,6 +10,8 @@
 -- Run it inside an up to date hledger source tree, eg: bin/hledger-smooth.hs ACCT
 -- Or add bin/ to $PATH and [stack ghc bin/hledger-smooth;] hledger smooth ACCT
 
+-- see also: https://github.com/Akuukis/beancount_interpolate
+
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NamedFieldPuns #-}
