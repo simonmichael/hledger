@@ -777,11 +777,11 @@ in this order of preference
 2. A *reverse market price*:
    the inverse of a declared or inferred market price from B to A.
 
-3. A *a forward chain of market prices*:
+3. A *forward chain of market prices*:
    a synthetic price formed by combining the shortest chain of
    "forward" (only 1 above) market prices, leading from A to B.
 
-4. A *any chain of market prices*:
+4. *Any chain of market prices*:
    a chain of any market prices, including both forward and
    reverse prices (1 and 2 above), leading from A to B.
 
