@@ -280,15 +280,15 @@ budgetReportAsText ropts@ReportOpts{..} budgetr = TB.toLazyText $
     -- - the goal is zero
     percentage :: Change -> BudgetGoal -> Maybe Percentage
     percentage actual budget =
-      case (maybecost $ normaliseMixedAmount actual, maybecost $ normaliseMixedAmount budget) of
-        (Mixed [a], Mixed [b]) | (acommodity a == acommodity b || amountLooksZero a) && not (amountLooksZero b)
+      case (costedAmounts actual, costedAmounts budget) of
+        ([a], [b]) | (acommodity a == acommodity b || amountLooksZero a) && not (amountLooksZero b)
             -> Just $ 100 * aquantity a / aquantity b
         _   -> -- trace (pshow $ (maybecost actual, maybecost budget))  -- debug missing percentage
                Nothing
       where
-        maybecost = case cost_ of
-            Cost   -> mixedAmountCost
-            NoCost -> id
+        costedAmounts = case cost_ of
+            Cost   -> amounts . mixedAmountCost . normaliseMixedAmount
+            NoCost -> amounts . normaliseMixedAmount
 
     maybetranspose | transpose_ = \(Table rh ch vals) -> Table ch rh (transpose vals)
                    | otherwise  = id

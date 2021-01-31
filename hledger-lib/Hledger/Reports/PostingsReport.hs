@@ -406,10 +406,10 @@ tests_PostingsReport = tests "PostingsReport" [
     --           (summarisePostingsInDateSpan (DateSpan b e) depth showempty ps `is`)
     --   let ps =
     --           [
-    --            nullposting{lpdescription="desc",lpaccount="expenses:food:groceries",lpamount=Mixed [usd 1]}
-    --           ,nullposting{lpdescription="desc",lpaccount="expenses:food:dining",   lpamount=Mixed [usd 2]}
-    --           ,nullposting{lpdescription="desc",lpaccount="expenses:food",          lpamount=Mixed [usd 4]}
-    --           ,nullposting{lpdescription="desc",lpaccount="expenses:food:dining",   lpamount=Mixed [usd 8]}
+    --            nullposting{lpdescription="desc",lpaccount="expenses:food:groceries",lpamount=mixedAmount (usd 1)}
+    --           ,nullposting{lpdescription="desc",lpaccount="expenses:food:dining",   lpamount=mixedAmount (usd 2)}
+    --           ,nullposting{lpdescription="desc",lpaccount="expenses:food",          lpamount=mixedAmount (usd 4)}
+    --           ,nullposting{lpdescription="desc",lpaccount="expenses:food:dining",   lpamount=mixedAmount (usd 8)}
     --           ]
     --   ("2008/01/01","2009/01/01",0,9999,False,[]) `gives`
     --    []
@@ -419,21 +419,21 @@ tests_PostingsReport = tests "PostingsReport" [
     --    ]
     --   ("2008/01/01","2009/01/01",0,9999,False,ts) `gives`
     --    [
-    --     nullposting{lpdate=fromGregorian 2008 01 01,lpdescription="- 2008/12/31",lpaccount="expenses:food",          lpamount=Mixed [usd 4]}
-    --    ,nullposting{lpdate=fromGregorian 2008 01 01,lpdescription="- 2008/12/31",lpaccount="expenses:food:dining",   lpamount=Mixed [usd 10]}
-    --    ,nullposting{lpdate=fromGregorian 2008 01 01,lpdescription="- 2008/12/31",lpaccount="expenses:food:groceries",lpamount=Mixed [usd 1]}
+    --     nullposting{lpdate=fromGregorian 2008 01 01,lpdescription="- 2008/12/31",lpaccount="expenses:food",          lpamount=mixedAmount (usd 4)}
+    --    ,nullposting{lpdate=fromGregorian 2008 01 01,lpdescription="- 2008/12/31",lpaccount="expenses:food:dining",   lpamount=mixedAmount (usd 10)}
+    --    ,nullposting{lpdate=fromGregorian 2008 01 01,lpdescription="- 2008/12/31",lpaccount="expenses:food:groceries",lpamount=mixedAmount (usd 1)}
     --    ]
     --   ("2008/01/01","2009/01/01",0,2,False,ts) `gives`
     --    [
-    --     nullposting{lpdate=fromGregorian 2008 01 01,lpdescription="- 2008/12/31",lpaccount="expenses:food",lpamount=Mixed [usd 15]}
+    --     nullposting{lpdate=fromGregorian 2008 01 01,lpdescription="- 2008/12/31",lpaccount="expenses:food",lpamount=mixedAmount (usd 15)}
     --    ]
     --   ("2008/01/01","2009/01/01",0,1,False,ts) `gives`
     --    [
-    --     nullposting{lpdate=fromGregorian 2008 01 01,lpdescription="- 2008/12/31",lpaccount="expenses",lpamount=Mixed [usd 15]}
+    --     nullposting{lpdate=fromGregorian 2008 01 01,lpdescription="- 2008/12/31",lpaccount="expenses",lpamount=mixedAmount (usd 15)}
     --    ]
     --   ("2008/01/01","2009/01/01",0,0,False,ts) `gives`
     --    [
-    --     nullposting{lpdate=fromGregorian 2008 01 01,lpdescription="- 2008/12/31",lpaccount="",lpamount=Mixed [usd 15]}
+    --     nullposting{lpdate=fromGregorian 2008 01 01,lpdescription="- 2008/12/31",lpaccount="",lpamount=mixedAmount (usd 15)}
     --    ]
 
  ]

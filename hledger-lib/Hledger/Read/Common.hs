@@ -729,7 +729,7 @@ spaceandamountormissingp :: JournalParser m MixedAmount
 spaceandamountormissingp =
   option missingmixedamt $ try $ do
     lift $ skipNonNewlineSpaces1
-    Mixed . (:[]) <$> amountp
+    mixedAmount <$> amountp
 
 -- | Parse a single-commodity amount, with optional symbol on the left
 -- or right, followed by, in any order: an optional transaction price,
@@ -855,7 +855,7 @@ amountp' s =
 
 -- | Parse a mixed amount from a string, or get an error.
 mamountp' :: String -> MixedAmount
-mamountp' = Mixed . (:[]) . amountp'
+mamountp' = mixedAmount . amountp'
 
 -- | Parse a minus or plus sign followed by zero or more spaces,
 -- or nothing, returning a function that negates or does nothing.
@@ -1560,7 +1560,7 @@ tests_Common = tests "Common" [
      assertParseError p "1.5555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555" ""
 
   ,tests "spaceandamountormissingp" [
-     test "space and amount" $ assertParseEq spaceandamountormissingp " $47.18" (Mixed [usd 47.18])
+     test "space and amount" $ assertParseEq spaceandamountormissingp " $47.18" (mixedAmount $ usd 47.18)
     ,test "empty string" $ assertParseEq spaceandamountormissingp "" missingmixedamt
     -- ,test "just space" $ assertParseEq spaceandamountormissingp " " missingmixedamt  -- XXX should it ?
     -- ,test "just amount" $ assertParseError spaceandamountormissingp "$47.18" ""  -- succeeds, consuming nothing

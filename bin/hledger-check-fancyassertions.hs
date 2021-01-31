@@ -223,10 +223,10 @@ checkAssertion accounts = checkAssertion'
 
     -- Add missing amounts (with 0 value), normalise, throw away style
     -- information, and sort by commodity name.
-    fixup (H.Mixed m1) (H.Mixed m2) = H.Mixed $
-      let m = H.Mixed (m1 ++ [m_ { H.aquantity = 0 } | m_ <- m2])
-          (H.Mixed as) = H.normaliseMixedAmount m
-      in sortOn H.acommodity . map (\a -> a { H.astyle = H.amountstyle }) $ as
+    fixup m1 m2 =
+      let m = H.mixed $ amounts m1 ++ [m_ { H.aquantity = 0 } | m_ <- amounts m2]
+          as = amounts $ H.normaliseMixedAmount m
+      in H.mixed $ sortOn H.acommodity . map (\a -> a { H.astyle = H.amountstyle }) $ as
 
 -- | Check if an account name is mentioned in an assertion.
 inAssertion :: H.AccountName -> Predicate -> Bool

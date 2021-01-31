@@ -551,7 +551,7 @@ priceInferrerFor t pt = inferprice
 
     inferprice p@Posting{pamount=Mixed [a]}
       | caninferprices && ptype p == pt && acommodity a == fromcommodity
-        = p{pamount=Mixed [a{aprice=Just conversionprice}], poriginal=Just $ originalPosting p}
+        = p{pamount=mixedAmount $ a{aprice=Just conversionprice}, poriginal=Just $ originalPosting p}
       where
         fromcommodity = head $ filter (`elem` sumcommodities) pcommodities -- these heads are ugly but should be safe
         totalpricesign = if aquantity a < 0 then negate else id

@@ -711,7 +711,7 @@ postingp mTransactionYear = do
     return (status, account)
   let (ptype, account') = (accountNamePostingType account, textUnbracket account)
   lift skipNonNewlineSpaces
-  amount <- option missingmixedamt $ Mixed . (:[]) <$> amountp
+  amount <- option missingmixedamt $ mixedAmount <$> amountp
   lift skipNonNewlineSpaces
   massertion <- optional balanceassertionp
   lift skipNonNewlineSpaces

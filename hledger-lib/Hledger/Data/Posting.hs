@@ -202,8 +202,7 @@ sumPostings = foldl' (\amt p -> maPlus amt $ pamount p) nullmixedamt
 
 -- | Remove all prices of a posting
 removePrices :: Posting -> Posting
-removePrices p = p{ pamount = Mixed $ remove <$> amounts (pamount p) }
-  where remove a = a { aprice = Nothing }
+removePrices = postingTransformAmount (mapMixedAmount $ \a -> a{aprice=Nothing})
 
 -- | Get a posting's (primary) date - it's own primary date if specified,
 -- otherwise the parent transaction's primary date, or the null date if

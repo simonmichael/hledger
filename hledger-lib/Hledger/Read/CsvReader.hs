@@ -1048,7 +1048,7 @@ getBalance rules record currency n = do
 -- The whole CSV record is provided for the error message.
 parseAmount :: CsvRules -> CsvRecord -> Text -> Text -> MixedAmount
 parseAmount rules record currency s =
-    either mkerror (Mixed . (:[])) $  -- PARTIAL:
+    either mkerror mixedAmount $  -- PARTIAL:
     runParser (evalStateT (amountp <* eof) journalparsestate) "" $
     currency <> simplifySign s
   where

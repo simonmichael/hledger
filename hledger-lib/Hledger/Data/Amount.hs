@@ -530,7 +530,7 @@ nullmixedamt = Mixed []
 
 -- | A temporary value for parsed transactions which had no amount specified.
 missingmixedamt :: MixedAmount
-missingmixedamt = Mixed [missingamt]
+missingmixedamt = mixedAmount missingamt
 
 -- | Convert amounts in various commodities into a normalised MixedAmount.
 mixed :: [Amount] -> MixedAmount
@@ -964,37 +964,37 @@ tests_Amount = tests "Amount" [
         @?= Mixed [usd (-1) @@ eur 2 ]
 
     ,test "showMixedAmount" $ do
-       showMixedAmount (Mixed [usd 1]) @?= "$1.00"
-       showMixedAmount (Mixed [usd 1 `at` eur 2]) @?= "$1.00 @ €2.00"
-       showMixedAmount (Mixed [usd 0]) @?= "0"
-       showMixedAmount (Mixed []) @?= "0"
+       showMixedAmount (mixedAmount (usd 1)) @?= "$1.00"
+       showMixedAmount (mixedAmount (usd 1 `at` eur 2)) @?= "$1.00 @ €2.00"
+       showMixedAmount (mixedAmount (usd 0)) @?= "0"
+       showMixedAmount nullmixedamt @?= "0"
        showMixedAmount missingmixedamt @?= ""
 
     ,test "showMixedAmountWithoutPrice" $ do
       let a = usd 1 `at` eur 2
-      showMixedAmountWithoutPrice False (Mixed [a]) @?= "$1.00"
-      showMixedAmountWithoutPrice False (Mixed [a, -a]) @?= "0"
+      showMixedAmountWithoutPrice False (mixedAmount (a)) @?= "$1.00"
+      showMixedAmountWithoutPrice False (mixed [a, -a]) @?= "0"
 
     ,tests "normaliseMixedAmount" [
        test "a missing amount overrides any other amounts" $
-        normaliseMixedAmount (Mixed [usd 1, missingamt]) @?= missingmixedamt
+        amounts (normaliseMixedAmount $ mixed [usd 1, missingamt]) @?= [missingamt]
       ,test "unpriced same-commodity amounts are combined" $
-        normaliseMixedAmount (Mixed [usd 0, usd 2]) @?= Mixed [usd 2]
+        amounts (normaliseMixedAmount $ mixed [usd 0, usd 2]) @?= [usd 2]
       ,test "amounts with same unit price are combined" $
-        normaliseMixedAmount (Mixed [usd 1 `at` eur 1, usd 1 `at` eur 1]) @?= Mixed [usd 2 `at` eur 1]
+        amounts (normaliseMixedAmount $ mixed [usd 1 `at` eur 1, usd 1 `at` eur 1]) @?= [usd 2 `at` eur 1]
       ,test "amounts with different unit prices are not combined" $
-        normaliseMixedAmount (Mixed [usd 1 `at` eur 1, usd 1 `at` eur 2]) @?= Mixed [usd 1 `at` eur 1, usd 1 `at` eur 2]
+        amounts (normaliseMixedAmount $ mixed [usd 1 `at` eur 1, usd 1 `at` eur 2]) @?= [usd 1 `at` eur 1, usd 1 `at` eur 2]
       ,test "amounts with total prices are combined" $
-        normaliseMixedAmount (Mixed  [usd 1 @@ eur 1, usd 1 @@ eur 1]) @?= Mixed [usd 2 @@ eur 2]
+        amounts (normaliseMixedAmount $ mixed [usd 1 @@ eur 1, usd 1 @@ eur 1]) @?= [usd 2 @@ eur 2]
     ]
 
     ,test "normaliseMixedAmountSquashPricesForDisplay" $ do
-       normaliseMixedAmountSquashPricesForDisplay (Mixed []) @?= Mixed [nullamt]
+       amounts (normaliseMixedAmountSquashPricesForDisplay nullmixedamt) @?= [nullamt]
        assertBool "" $ mixedAmountLooksZero $ normaliseMixedAmountSquashPricesForDisplay
-        (Mixed [usd 10
+        (mixed [usd 10
                ,usd 10 @@ eur 7
                ,usd (-10)
-               ,usd (-10) @@ eur 7
+               ,usd (-10) @@ eur (-7)
                ])
 
   ]
