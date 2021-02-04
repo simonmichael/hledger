@@ -27,7 +27,7 @@ hledger -f - print --explicit
 2010-01-01
     a               0
     a    1C @ $1.0049
-    a          $-1.00
+    a        $-1.0049
 
 >>>=0
 

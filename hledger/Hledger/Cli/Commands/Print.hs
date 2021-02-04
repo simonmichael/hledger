@@ -54,9 +54,16 @@ printmode = hledgerCommandMode
 -- | Print journal transactions in standard format.
 print' :: CliOpts -> Journal -> IO ()
 print' opts j = do
+  -- The print command should show all amounts with their original decimal places,
+  -- but as part of journal reading the posting amounts have already been normalised
+  -- according to commodity display styles, and currently it's not easy to avoid
+  -- that. For now we try to reverse it by increasing all amounts' decimal places 
+  -- sufficiently to show the amount exactly. The displayed amounts may have minor
+  -- differences from the originals, such as trailing zeroes added.
+  let j' = journalMapPostingAmounts setFullPrecision j
   case maybestringopt "match" $ rawopts_ opts of
-    Nothing   -> printEntries opts j
-    Just desc -> printMatch opts j $ T.pack desc
+    Nothing   -> printEntries opts j'
+    Just desc -> printMatch opts j' $ T.pack desc
 
 printEntries :: CliOpts -> Journal -> IO ()
 printEntries opts@CliOpts{reportspec_=rspec} j =
