@@ -196,7 +196,7 @@ $ hledger -f - print
 
 >=
 
-# Balance assertion amounts are always displayed at their full precision,
+# 14. Balance assertion amounts are always displayed at their full precision,
 # overriding commodity styles. (#1465)
 <
 commodity A 1.
@@ -206,7 +206,7 @@ commodity A 1.
   (a)   1.122A = 1.123A
 $ hledger -f - print
 2021-01-01
-    (a)               0
-    (a)             A 1 = A 1.123
+    (a)         A 0.001
+    (a)         A 1.122 = A 1.123
 
 >=

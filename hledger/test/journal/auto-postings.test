@@ -17,7 +17,7 @@ $ hledger print -f- --auto
     income:remuneration           $-100
     (liabilities:tax)              $-33  ; income tax, generated-posting: = ^income
     income:donations               $-15
-    (liabilities:tax)               $-5  ; income tax, generated-posting: = ^income
+    (liabilities:tax)            $-4.95  ; income tax, generated-posting: = ^income
     assets:bank
 
 2016-01-01 withdraw
@@ -266,7 +266,7 @@ $ hledger print -f- --auto --forecast -b 2016-01 -e 2016-03
     income:remuneration           $-100
     (liabilities:tax)              $-33  ; income tax, generated-posting: = ^income
     income:donations               $-15
-    (liabilities:tax)               $-5  ; income tax, generated-posting: = ^income
+    (liabilities:tax)            $-4.95  ; income tax, generated-posting: = ^income
     assets:bank
 
 >=
@@ -339,6 +339,6 @@ commodity 0. B
 $ hledger -f- print --auto
 2020-01-20  ; modified:
     (a)             1 A
-    (b)             2 B  ; generated-posting: =
+    (b)           1.5 B  ; generated-posting: =
 
 >=0

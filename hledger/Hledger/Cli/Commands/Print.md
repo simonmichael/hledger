@@ -6,8 +6,20 @@ _FLAGS
 The print command displays full journal entries (transactions) from
 the journal file, sorted by date
 (or with `--date2`, by [secondary date](#secondary-dates)).
+
+Amounts are shown mostly normalised to 
+[commodity display style](#commodity-display-styles), 
+eg the placement of commodity symbols will be consistent.
+All of their decimal places are shown, as in the original journal entry
+(with one alteration: in some cases trailing zeroes are added.)
+
 Amounts are shown right-aligned within each transaction (but not across all transactions). 
-Directives and inter-transaction comments are not shown.
+
+Directives and inter-transaction comments are not shown, currently.
+This means the print command is somewhat lossy, and if you are using it to
+reformat your journal you should take care to also copy over the directives
+and file-level comments.
+
 Eg:
 
 ```shell
@@ -44,7 +56,6 @@ $ hledger print assets:cash | hledger -f- -I reg expenses:food
 
 There are some situations where print's output can become unparseable:
 
-- [Rounding](#rounding) amounts according to [commodity display styles](#commodity-display-style) can cause transactions to appear [unbalanced](https://github.com/simonmichael/hledger/issues/931).
 - [Valuation](#valuation) affects posting amounts but not [balance assertion](#balance-assertions) or [balance assignment](#balance-assignments) amounts, potentially causing those to [fail](https://github.com/simonmichael/hledger/issues/1429).
 - [Auto postings](#auto-postings) can generate postings with [too many missing amounts](https://github.com/simonmichael/hledger/issues/1276).
 

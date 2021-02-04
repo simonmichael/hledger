@@ -1,3 +1,4 @@
+
 # 1. Add proportional income tax (from documentation)
 hledger rewrite -f- ^income --add-posting '(liabilities:tax)  *.33  ; income tax'
 <<<
@@ -14,7 +15,7 @@ hledger rewrite -f- ^income --add-posting '(liabilities:tax)  *.33  ; income tax
     income:remuneration           $-100
     (liabilities:tax)              $-33  ; income tax, generated-posting: = ^income
     income:donations               $-15
-    (liabilities:tax)               $-5  ; income tax, generated-posting: = ^income
+    (liabilities:tax)            $-4.95  ; income tax, generated-posting: = ^income
     assets:bank
 
 2016-01-01 withdraw

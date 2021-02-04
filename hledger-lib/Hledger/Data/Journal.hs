@@ -41,6 +41,7 @@ module Hledger.Data.Journal (
   mapJournalTransactions,
   mapJournalPostings,
   mapTransactionPostings,
+  journalMapPostingAmounts,
   -- * Querying
   journalAccountNamesUsed,
   journalAccountNamesImplied,
@@ -454,6 +455,10 @@ mapJournalPostings f j@Journal{jtxns=ts} = j{jtxns=map (mapTransactionPostings f
 -- | Apply a transformation to a transaction's postings.
 mapTransactionPostings :: (Posting -> Posting) -> Transaction -> Transaction
 mapTransactionPostings f t@Transaction{tpostings=ps} = t{tpostings=map f ps}
+
+-- | Apply a transformation to a journal's posting amounts.
+journalMapPostingAmounts :: (Amount -> Amount) -> Journal -> Journal
+journalMapPostingAmounts f = mapJournalPostings (postingTransformAmount (mapMixedAmount f))
 
 {-
 -------------------------------------------------------------------------------
