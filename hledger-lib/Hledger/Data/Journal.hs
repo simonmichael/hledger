@@ -38,9 +38,8 @@ module Hledger.Data.Journal (
   filterTransactionPostings,
   filterPostingAmount,
   -- * Mapping
-  mapJournalTransactions,
-  mapJournalPostings,
-  mapTransactionPostings,
+  journalMapTransactions,
+  journalMapPostings,
   journalMapPostingAmounts,
   -- * Querying
   journalAccountNamesUsed,
@@ -445,20 +444,16 @@ filterTransactionPostings :: Query -> Transaction -> Transaction
 filterTransactionPostings q t@Transaction{tpostings=ps} = t{tpostings=filter (q `matchesPosting`) ps}
 
 -- | Apply a transformation to a journal's transactions.
-mapJournalTransactions :: (Transaction -> Transaction) -> Journal -> Journal
-mapJournalTransactions f j@Journal{jtxns=ts} = j{jtxns=map f ts}
+journalMapTransactions :: (Transaction -> Transaction) -> Journal -> Journal
+journalMapTransactions f j@Journal{jtxns=ts} = j{jtxns=map f ts}
 
 -- | Apply a transformation to a journal's postings.
-mapJournalPostings :: (Posting -> Posting) -> Journal -> Journal
-mapJournalPostings f j@Journal{jtxns=ts} = j{jtxns=map (mapTransactionPostings f) ts}
-
--- | Apply a transformation to a transaction's postings.
-mapTransactionPostings :: (Posting -> Posting) -> Transaction -> Transaction
-mapTransactionPostings f t@Transaction{tpostings=ps} = t{tpostings=map f ps}
+journalMapPostings :: (Posting -> Posting) -> Journal -> Journal
+journalMapPostings f j@Journal{jtxns=ts} = j{jtxns=map (transactionMapPostings f) ts}
 
 -- | Apply a transformation to a journal's posting amounts.
 journalMapPostingAmounts :: (Amount -> Amount) -> Journal -> Journal
-journalMapPostingAmounts f = mapJournalPostings (postingTransformAmount (mapMixedAmount f))
+journalMapPostingAmounts f = journalMapPostings (postingTransformAmount (mapMixedAmount f))
 
 {-
 -------------------------------------------------------------------------------
