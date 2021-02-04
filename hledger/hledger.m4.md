@@ -1840,7 +1840,7 @@ This is discussed more on [#793](https://github.com/simonmichael/hledger/issues/
 
 ### Commodity display style
 
-For the amounts in each commodity, hledger chooses a consistent display style.
+For the amounts in each commodity, hledger chooses a consistent display style to use in most reports.
 (Except for [price amounts](#prices), which are always displayed as written). <!-- ? -->
 The display style is inferred as follows. 
 
