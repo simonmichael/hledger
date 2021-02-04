@@ -981,8 +981,8 @@ journalApplyCommodityStyles j@Journal{jtxns=ts, jpricedirectives=pds} =
         fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
         fixposting p = p{pamount=styleMixedAmount styles $ pamount p
                         ,pbalanceassertion=fixbalanceassertion <$> pbalanceassertion p}
-        -- balance assertion amounts are always displayed, eg by print, at full precision, per docs
-        fixbalanceassertion ba = ba{baamount=setFullPrecision $ styleAmount styles $ baamount ba}
+        -- balance assertion amounts are always displayed (by print) at full precision, per docs
+        fixbalanceassertion ba = ba{baamount=styleAmountExceptPrecision styles $ baamount ba}
         fixpricedirective pd@PriceDirective{pdamount=a} = pd{pdamount=styleAmountExceptPrecision styles a}
 
 -- | Get the canonical amount styles for this journal, whether (in order of precedence):

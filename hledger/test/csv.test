@@ -219,8 +219,8 @@ account4 the:remainder
 
 $  ./csvtest.sh
 2009-09-10 Flubber Co
-    assets:myacct          $50.000 = $321.000
-    income:unknown        $-50.000 = $123.000
+    assets:myacct          $50.000 = $321
+    income:unknown        $-50.000 = $123
     expenses:tax            $0.234  ; VAT
     the:remainder
 
