@@ -36,6 +36,7 @@ module Hledger.Data.Transaction (
   transactionApplyValuation,
   transactionToCost,
   transactionApplyAliases,
+  transactionMapPostings,
   -- nonzerobalanceerror,
   -- * date operations
   transactionDate2,
@@ -617,6 +618,11 @@ transactionApplyAliases aliases t =
     Right ps -> Right $ txnTieKnot $ t{tpostings=ps}
     Left err -> Left err
 
+-- | Apply a transformation to a transaction's postings.
+transactionMapPostings :: (Posting -> Posting) -> Transaction -> Transaction
+transactionMapPostings f t@Transaction{tpostings=ps} = t{tpostings=map f ps}
+
+-- | Apply a transformation to a transaction's posting amounts.
 -- tests
 
 tests_Transaction :: TestTree
