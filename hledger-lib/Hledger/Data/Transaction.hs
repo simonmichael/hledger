@@ -37,6 +37,7 @@ module Hledger.Data.Transaction (
   transactionToCost,
   transactionApplyAliases,
   transactionMapPostings,
+  transactionMapPostingAmounts,
   -- nonzerobalanceerror,
   -- * date operations
   transactionDate2,
@@ -623,6 +624,9 @@ transactionMapPostings :: (Posting -> Posting) -> Transaction -> Transaction
 transactionMapPostings f t@Transaction{tpostings=ps} = t{tpostings=map f ps}
 
 -- | Apply a transformation to a transaction's posting amounts.
+transactionMapPostingAmounts :: (Amount -> Amount) -> Transaction -> Transaction
+transactionMapPostingAmounts f  = transactionMapPostings (postingTransformAmount (mapMixedAmount f))
+
 -- tests
 
 tests_Transaction :: TestTree
