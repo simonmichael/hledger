@@ -60,7 +60,7 @@ tsInit _ _ _ = error "init function called with wrong screen type, should not ha
 tsDraw :: UIState -> [Widget Name]
 tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts}}}
               ,ajournal=j
-              ,aScreen=TransactionScreen{tsTransaction=(i,t)
+              ,aScreen=TransactionScreen{tsTransaction=(i,t')
                                         ,tsTransactions=nts
                                         ,tsAccount=acct
                                         }
@@ -71,6 +71,8 @@ tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{
     -- Minibuffer e -> [minibuffer e, maincontent]
     _          -> [maincontent]
   where
+    -- as with print, show amounts with all of their decimal places
+    t = transactionMapPostingAmounts setFullPrecision t'
     maincontent = Widget Greedy Greedy $ do
       let
         prices = journalPriceOracle (infer_value_ ropts) j
