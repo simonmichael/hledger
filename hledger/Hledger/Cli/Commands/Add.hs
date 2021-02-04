@@ -373,7 +373,7 @@ amountAndCommentWizard PrevInput{..} EntryState{..} = do
       balancingamt = negate $ sum $ map pamount realps where realps = filter isReal esPostings
       balancingamtfirstcommodity = Mixed $ take 1 $ amounts balancingamt
       showamt =
-        showMixedAmount . setMixedAmountPrecision
+        showMixedAmount . mixedAmountSetPrecision
                   -- what should this be ?
                   -- 1 maxprecision (show all decimal places or none) ?
                   -- 2 maxprecisionwithpoint (show all decimal places or .0 - avoids some but not all confusion with thousands separators) ?

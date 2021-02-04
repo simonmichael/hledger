@@ -93,7 +93,7 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec} j = do
 
     -- since balance assertion amounts are required to be exact, the
     -- amounts in opening/closing transactions should be too (#941, #1137)
-    precise = setFullPrecision
+    precise = amountSetFullPrecision
 
     -- interleave equity postings next to the corresponding closing posting, or put them all at the end ?
     interleaved = boolopt "interleaved" rawopts

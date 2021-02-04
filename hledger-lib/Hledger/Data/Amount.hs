@@ -83,9 +83,9 @@ module Hledger.Data.Amount (
   showAmountWithZeroCommodity,
   showAmountDebug,
   showAmountWithoutPrice,
-  setAmountPrecision,
+  amountSetPrecision,
   withPrecision,
-  setFullPrecision,
+  amountSetFullPrecision,
   setAmountInternalPrecision,
   withInternalPrecision,
   setAmountDecimalPoint,
@@ -129,7 +129,8 @@ module Hledger.Data.Amount (
   showMixedAmountLinesB,
   wbToText,
   wbUnpack,
-  setMixedAmountPrecision,
+  mixedAmountSetPrecision,
+  mixedAmountSetFullPrecision,
   canonicaliseMixedAmount,
   -- * misc.
   ltraceamount,
@@ -330,17 +331,17 @@ amountIsZero Amount{aquantity=q} = q == 0
 
 -- | Set an amount's display precision, flipped.
 withPrecision :: Amount -> AmountPrecision -> Amount
-withPrecision = flip setAmountPrecision
+withPrecision = flip amountSetPrecision
 
 -- | Set an amount's display precision.
-setAmountPrecision :: AmountPrecision -> Amount -> Amount
-setAmountPrecision p a@Amount{astyle=s} = a{astyle=s{asprecision=p}}
+amountSetPrecision :: AmountPrecision -> Amount -> Amount
+amountSetPrecision p a@Amount{astyle=s} = a{astyle=s{asprecision=p}}
 
 -- | Increase an amount's display precision, if needed, to enough decimal places
 -- to show it exactly (showing all significant decimal digits, excluding trailing
 -- zeros).
-setFullPrecision :: Amount -> Amount
-setFullPrecision a = setAmountPrecision p a
+amountSetFullPrecision :: Amount -> Amount
+amountSetFullPrecision a = amountSetPrecision p a
   where
     p                = max displayprecision naturalprecision
     displayprecision = asprecision $ astyle a
@@ -841,8 +842,13 @@ ltraceamount :: String -> MixedAmount -> MixedAmount
 ltraceamount s = traceWith (((s ++ ": ") ++).showMixedAmount)
 
 -- | Set the display precision in the amount's commodities.
-setMixedAmountPrecision :: AmountPrecision -> MixedAmount -> MixedAmount
-setMixedAmountPrecision p = mapMixedAmount (setAmountPrecision p)
+mixedAmountSetPrecision :: AmountPrecision -> MixedAmount -> MixedAmount
+mixedAmountSetPrecision p = mapMixedAmount (amountSetPrecision p)
+
+-- | In each component amount, increase the display precision sufficiently
+-- to render it exactly (showing all significant decimal digits).
+mixedAmountSetFullPrecision :: MixedAmount -> MixedAmount
+mixedAmountSetFullPrecision = mapMixedAmount amountSetFullPrecision
 
 mixedAmountStripPrices :: MixedAmount -> MixedAmount
 mixedAmountStripPrices = mapMixedAmount (\a -> a{aprice=Nothing})

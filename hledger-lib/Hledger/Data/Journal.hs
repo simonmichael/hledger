@@ -1278,7 +1278,7 @@ journalApplyAliases aliases j =
 --     [ "P"
 --     , showDate (pddate pd)
 --     , T.unpack (pdcommodity pd)
---     , (showAmount . setAmountPrecision maxprecision) (pdamount pd
+--     , (showAmount . amountSetPrecision maxprecision) (pdamount pd
 --     )
 --     ]
 

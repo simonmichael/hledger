@@ -72,7 +72,7 @@ tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{
     _          -> [maincontent]
   where
     -- as with print, show amounts with all of their decimal places
-    t = transactionMapPostingAmounts setFullPrecision t'
+    t = transactionMapPostingAmounts amountSetFullPrecision t'
     maincontent = Widget Greedy Greedy $ do
       let
         prices = journalPriceOracle (infer_value_ ropts) j

@@ -60,7 +60,7 @@ print' opts j = do
   -- that. For now we try to reverse it by increasing all amounts' decimal places 
   -- sufficiently to show the amount exactly. The displayed amounts may have minor
   -- differences from the originals, such as trailing zeroes added.
-  let j' = journalMapPostingAmounts setFullPrecision j
+  let j' = journalMapPostingAmounts amountSetFullPrecision j
   case maybestringopt "match" $ rawopts_ opts of
     Nothing   -> printEntries opts j'
     Just desc -> printMatch opts j' $ T.pack desc
