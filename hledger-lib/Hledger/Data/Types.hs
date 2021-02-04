@@ -199,6 +199,10 @@ instance Show AmountStyle where
     (show asdecimalpoint)
     (show asdigitgroups)
 
+-- | The "display precision" for a hledger amount, by which we mean
+-- the number of decimal digits to display to the right of the decimal mark.
+-- This can be from 0 to 255 digits (the maximum supported by the Decimal library),
+-- or NaturalPrecision meaning "show all significant decimal digits".
 data AmountPrecision = Precision !Word8 | NaturalPrecision deriving (Eq,Ord,Read,Show,Generic)
 
 -- | A style for displaying digit groups in the integer part of a
