@@ -122,11 +122,12 @@ and subaccounts. Eg, adding the pattern @o@ to the first example gives:
 hledger's balance command will show multiple columns when a reporting
 interval is specified (eg with @--monthly@), one column for each sub-period.
 
-There are three kinds of multi-column balance report, indicated by the heading:
+There are three accumulation strategies for multi-column balance report, indicated by
+the heading:
 
-* A \"period balance\" (or \"flow\") report (the default) shows the change of account
-  balance in each period, which is equivalent to the sum of postings in each
-  period. Here, checking's balance increased by 10 in Feb:
+* A \"period balance\" (or \"flow\") report (with @--periodic@, the default) shows the
+  change of account balance in each period, which is equivalent to the sum of postings
+  in each period. Here, checking's balance increased by 10 in Feb:
 
   > Change of balance (flow):
   >
@@ -279,12 +280,12 @@ import Hledger.Read.CsvReader (CSV, printCSV)
 -- | Command line options for this command.
 balancemode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Balance.txt")
-  ([flagNone ["change"] (setboolopt "change")
-      "show balance change in each period (default)"
+  ([flagNone ["periodic"] (setboolopt "periodic")
+      "accumulate amounts from column start to column end (in multicolumn reports, default)"
    ,flagNone ["cumulative"] (setboolopt "cumulative")
-      "show balance change accumulated across periods (in multicolumn reports)"
+      "accumulate amounts from report start (specified by e.g. -b/--begin) to column end"
    ,flagNone ["historical","H"] (setboolopt "historical")
-      "show historical ending balance in each period (includes postings before report start date)\n "
+      "accumulate amounts from journal start to column end (includes postings before report start date)\n "
    ]
    ++ flattreeflags True ++
    [flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "omit N leading account name parts (in flat mode)"

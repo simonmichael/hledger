@@ -36,7 +36,7 @@ import Hledger.Cli.Utils
 
 registermode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Register.txt")
-  ([flagNone ["cumulative"] (setboolopt "change")
+  ([flagNone ["cumulative"] (setboolopt "periodic")
      "show running total from report start date (default)"
   ,flagNone ["historical","H"] (setboolopt "historical")
      "show historical running total/balance (includes postings before report start date)\n "
