@@ -176,7 +176,9 @@ reportflags = [
      ,"'now':  convert to current market value, in default valuation commodity or COMM"
      ,"YYYY-MM-DD: convert to market value on the given date, in default valuation commodity or COMM"
      ])
- ,flagNone ["infer-value"]   (setboolopt "infer-value") "with -V/-X/--value, also infer market prices from transactions"
+  -- XXX infer-value renamed to infer-market-price and deprecated 2021-02
+ ,flagNone ["infer-market-price","infer-value"]   (setboolopt "infer-market-price") 
+    "use transaction prices (recorded with @ or @@) as additional market prices, as if they were P directives"
 
   -- generated postings/transactions
  ,flagNone ["auto"]          (setboolopt "auto") "apply automated posting rules to modify transactions"

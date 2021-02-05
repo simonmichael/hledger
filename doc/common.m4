@@ -158,8 +158,8 @@ m4_define({{_reportingoptions_}}, {{
 `--value`
 : convert amounts to cost or market value, more flexibly than -B/-V/-X
 
-`--infer-value`
-: with -V/-X/--value, also infer market prices from transactions
+`--infer-market-prices`
+: use transaction prices (recorded with @ or @@) as additional market prices, as if they were P directives
 
 `--auto`
 : apply [automated posting rules](hledger.html#auto-postings) to modify transactions.

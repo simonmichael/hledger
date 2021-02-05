@@ -199,7 +199,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/generic-options.txt"
 --forecast
 --help
 --ignore-assertions
---infer-value
+--infer-market-price
 --market
 --monthly
 --pending
@@ -276,7 +276,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-import.txt"
 --forecast
 --help
 --ignore-assertions
---infer-value
+--infer-market-price
 --market
 --monthly
 --new
@@ -334,7 +334,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-check-dates.txt"
 --forecast
 --help
 --ignore-assertions
---infer-value
+--infer-market-price
 --market
 --monthly
 --pending
@@ -391,7 +391,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-check-dupes.txt"
 --forecast
 --help
 --ignore-assertions
---infer-value
+--infer-market-price
 --market
 --monthly
 --pending
@@ -451,7 +451,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-close.txt"
 --forecast
 --help
 --ignore-assertions
---infer-value
+--infer-market-price
 --interleaved
 --market
 --monthly
@@ -532,7 +532,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-rewrite.txt"
 --forecast
 --help
 --ignore-assertions
---infer-value
+--infer-market-price
 --market
 --monthly
 --pending
@@ -590,7 +590,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-aregister.txt"
 --forecast
 --help
 --ignore-assertions
---infer-value
+--infer-market-price
 --market
 --monthly
 --no-elide
@@ -662,7 +662,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-balancesheet.txt"
 --help
 --historical
 --ignore-assertions
---infer-value
+--infer-market-price
 --market
 --monthly
 --no-elide
@@ -742,7 +742,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-balancesheetequity.txt"
 --help
 --historical
 --ignore-assertions
---infer-value
+--infer-market-price
 --market
 --monthly
 --no-elide
@@ -822,7 +822,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-cashflow.txt"
 --help
 --historical
 --ignore-assertions
---infer-value
+--infer-market-price
 --market
 --monthly
 --no-elide
@@ -902,7 +902,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-incomestatement.txt"
 --help
 --historical
 --ignore-assertions
---infer-value
+--infer-market-price
 --market
 --monthly
 --no-elide
@@ -976,7 +976,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-roi.txt"
 --forecast
 --help
 --ignore-assertions
---infer-value
+--infer-market-price
 --inv
 --investment
 --market
@@ -1038,7 +1038,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-accounts.txt"
 --forecast
 --help
 --ignore-assertions
---infer-value
+--infer-market-price
 --market
 --monthly
 --pending
@@ -1098,7 +1098,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-activity.txt"
 --forecast
 --help
 --ignore-assertions
---infer-value
+--infer-market-price
 --market
 --monthly
 --pending
@@ -1163,7 +1163,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-balance.txt"
 --help
 --historical
 --ignore-assertions
---infer-value
+--infer-market-price
 --invert
 --market
 --monthly
@@ -1239,7 +1239,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-codes.txt"
 --forecast
 --help
 --ignore-assertions
---infer-value
+--infer-market-price
 --market
 --monthly
 --pending
@@ -1310,7 +1310,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-descriptions.txt"
 --forecast
 --help
 --ignore-assertions
---infer-value
+--infer-market-price
 --market
 --monthly
 --pending
@@ -1381,7 +1381,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-notes.txt"
 --forecast
 --help
 --ignore-assertions
---infer-value
+--infer-market-price
 --market
 --monthly
 --pending
@@ -1437,7 +1437,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-payees.txt"
 --forecast
 --help
 --ignore-assertions
---infer-value
+--infer-market-price
 --market
 --monthly
 --pending
@@ -1494,7 +1494,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-prices.txt"
 --forecast
 --help
 --ignore-assertions
---infer-value
+--infer-market-price
 --inverted-costs
 --market
 --monthly
@@ -1552,7 +1552,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-print.txt"
 --forecast
 --help
 --ignore-assertions
---infer-value
+--infer-market-price
 --market
 --match
 --monthly
@@ -1616,7 +1616,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-print-unique.txt"
 --forecast
 --help
 --ignore-assertions
---infer-value
+--infer-market-price
 --market
 --monthly
 --pending
@@ -1675,7 +1675,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-register.txt"
 --help
 --historical
 --ignore-assertions
---infer-value
+--infer-market-price
 --invert
 --market
 --monthly
@@ -1742,7 +1742,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-register-match.txt"
 --forecast
 --help
 --ignore-assertions
---infer-value
+--infer-market-price
 --market
 --monthly
 --pending
@@ -1798,7 +1798,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-stats.txt"
 --forecast
 --help
 --ignore-assertions
---infer-value
+--infer-market-price
 --market
 --monthly
 --output-file
@@ -1856,7 +1856,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-tags.txt"
 --forecast
 --help
 --ignore-assertions
---infer-value
+--infer-market-price
 --market
 --monthly
 --parsed
@@ -1936,7 +1936,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-equity.txt"
 --forecast
 --help
 --ignore-assertions
---infer-value
+--infer-market-price
 --interleaved
 --market
 --monthly
@@ -2000,7 +2000,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-areg.txt"
 --forecast
 --help
 --ignore-assertions
---infer-value
+--infer-market-price
 --market
 --monthly
 --no-elide
@@ -2072,7 +2072,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-bs.txt"
 --help
 --historical
 --ignore-assertions
---infer-value
+--infer-market-price
 --market
 --monthly
 --no-elide
@@ -2152,7 +2152,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-bse.txt"
 --help
 --historical
 --ignore-assertions
---infer-value
+--infer-market-price
 --market
 --monthly
 --no-elide
@@ -2232,7 +2232,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-cf.txt"
 --help
 --historical
 --ignore-assertions
---infer-value
+--infer-market-price
 --market
 --monthly
 --no-elide
@@ -2312,7 +2312,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-is.txt"
 --help
 --historical
 --ignore-assertions
---infer-value
+--infer-market-price
 --market
 --monthly
 --no-elide
@@ -2387,7 +2387,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-ui.txt"
 --forecast
 --help
 --ignore-assertions
---infer-value
+--infer-market-price
 --market
 --monthly
 --pending
@@ -2455,7 +2455,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-web.txt"
 --help
 --host
 --ignore-assertions
---infer-value
+--infer-market-price
 --market
 --monthly
 --pending
