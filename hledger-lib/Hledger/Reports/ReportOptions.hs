@@ -281,6 +281,7 @@ balancetypeopt =
     parse = \case
       "historical" -> Just HistoricalBalance
       "cumulative" -> Just CumulativeChange
+      "periodic"   -> Just PeriodChange
       _            -> Nothing
 
 -- Get the period specified by any -b/--begin, -e/--end and/or -p/--period

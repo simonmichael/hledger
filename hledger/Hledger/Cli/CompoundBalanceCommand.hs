@@ -61,16 +61,15 @@ compoundBalanceCommandMode :: CompoundBalanceCommandSpec -> Mode RawOpts
 compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
   hledgerCommandMode
    cbcdoc
-   ([flagNone ["change"] (setboolopt "change")
-       ("show balance change in each period" ++ defType PeriodChange)
+   ([flagNone ["periodic"] (setboolopt "periodic")
+       ("accumulate amounts from column start to column end (in multicolumn reports)"
+           ++ defType PeriodChange)
     ,flagNone ["cumulative"] (setboolopt "cumulative")
-       ("show balance change accumulated across periods (in multicolumn reports)"
-           ++ defType CumulativeChange
-       )
+       ("accumulate amounts from report start (specified by e.g. -b/--begin) to column end"
+           ++ defType CumulativeChange)
     ,flagNone ["historical","H"] (setboolopt "historical")
-       ("show historical ending balance in each period (includes postings before report start date)"
-           ++ defType HistoricalBalance
-       )
+       ("accumulate amounts from journal start to column end (includes postings before report start date)"
+           ++ defType HistoricalBalance ++ "\n ")
     ]
     ++ flattreeflags True ++
     [flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
