@@ -130,7 +130,6 @@ moreThanOne (x : xs) = rec xs
 registerPieChartHtml :: PieHalf -> Text -> BalanceReport -> HtmlUrl AppRoute
 registerPieChartHtml half q (items, _) = $(hamletFile "templates/piechart.hamlet")
   where
-    charttitle = "Pie Chart" :: String
     labelData =
       reverse $
       sortOn (\(_, quant, _) -> quant) $
@@ -138,12 +137,13 @@ registerPieChartHtml half q (items, _) = $(hamletFile "templates/piechart.hamlet
                                              Negative -> quant < 0) $
       flip concatMap items $ \(accname, _, _, Mixed as) ->
         flip map as $ \a -> (accname, aquantity a, acommodity a)
-    moreThanOneAcct = moreThanOne $ map (\(acct, _, _) -> acct) labelData
     moreThanOneCommodity = moreThanOne $ map (\(_, _, com) -> com) labelData
-    showChart = if (moreThanOneAcct && not moreThanOneCommodity) then "true" else "false" :: String
+    showChart = if (moreThanOneCommodity) then "false" else "true" :: String
     noacctlink = (RegisterR, [("q", T.unwords $ removeInacct q)])
     chartId = case half of Positive -> "postive" :: String
                            Negative -> "negative" :: String
+    legendPosition = case half of Positive -> "nw" :: String
+                                  Negative -> "ne" :: String
 
 dayToJsTimestamp :: Day -> Integer
 dayToJsTimestamp d =

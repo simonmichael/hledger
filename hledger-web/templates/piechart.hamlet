@@ -1,11 +1,10 @@
-<label #register-pie-chart-label style=""><br>
-<div id="register-pie-chart-#{chartId}" style="height:150px; margin-bottom:1em; display:none;">
-<div #piehover>
+<div style="width: 45%; margin-bottom:1em; float: left">
+  <div id="register-pie-chart-#{chartId}" style="height: 150px; display: none">
+  <div id="register-pie-hover-#{chartId}">
 <script type=text/javascript>
  \$(document).ready(function() {
    var $chartdiv = $('#register-pie-chart-#{chartId}');
    if (#{showChart}) {
-     \$('#register-pie-chart-label').text('#{charttitle}');
      \$chartdiv.show();
      var data =
        [
@@ -27,7 +26,8 @@
        },
        legend: {
          show: true,
-         labelFormatter: legendFormatter
+         labelFormatter: legendFormatter,
+         position: "#{legendPosition}"
        }
      };
      \$.plot($chartdiv, data, options);
@@ -36,7 +36,7 @@
          return;
        }
        var percent = parseFloat(obj.series.percent).toFixed(2);
-       \$("#piehover").html("<span style='font-weight:bold; color:" + obj.series.color + "'>" + obj.series.label + " (" + percent + "%)</span>");
+       \$("#register-pie-hover-#{chartId}").html("<span style='font-weight:bold; color:" + obj.series.color + "'>" + obj.series.label + " (" + percent + "%)</span>");
      });
      \$chartdiv.bind("plotclick", function(event, pos, obj) {
        if (!obj) {
