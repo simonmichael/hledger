@@ -1,0 +1,14 @@
+skip 1
+# ID,Type,Amount,Date & time,Status,Addresses from,Addresses to,Withdrawals
+fields id,type,amount,date,status_,addressesfrom,addressesto,withdrawals
+date-format %Y-%m-%dT%s%Q%Z
+newest-first
+status *
+code %id
+description | from %addressesfrom
+comment cc-ada-acquire:, datetime:%date, status: %status_, TODO: fix lot, add cost basis
+
+if %type Sent
+ amount -%amount
+ description | to %addressesto
+ comment cc-ada-dispose:, datetime:%date, status: %status_, TODO: select lot, add cost basis & disposal price & gain

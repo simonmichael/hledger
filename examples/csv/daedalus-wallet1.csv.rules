@@ -1,0 +1,2 @@
+include daedalus-transactions.csv.rules
+account1 assets:cc:daedalus:ada:wallet1:YYYYMMDD
