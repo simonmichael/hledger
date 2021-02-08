@@ -61,7 +61,14 @@ compoundBalanceCommandMode :: CompoundBalanceCommandSpec -> Mode RawOpts
 compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
   hledgerCommandMode
    cbcdoc
-   ([flagNone ["periodic"] (setboolopt "periodic")
+   ([flagNone ["change"] (setboolopt "change")
+      "show sum of posting amounts (default)"
+   ,flagNone ["valuechange"] (setboolopt "valuechange")
+      "show change of value of period-end historical balances"
+   ,flagNone ["budget"] (setboolopt "budget")
+      "show sum of posting amounts compared to budget goals defined by periodic transactions\n "
+
+   ,flagNone ["periodic"] (setboolopt "periodic")
        ("accumulate amounts from column start to column end (in multicolumn reports)"
            ++ defType PeriodChange)
     ,flagNone ["cumulative"] (setboolopt "cumulative")
@@ -132,6 +139,7 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
                                 `spanDefaultsFrom` journalDateSpan date2_ j
 
         -- when user overrides, add an indication to the report title
+        -- Do we need to deal with overridden ReportType?
         mtitleclarification = flip fmap mBalanceTypeOverride $ \case
             PeriodChange | changingValuation -> "(Period-End Value Changes)"
             PeriodChange                     -> "(Balance Changes)"
@@ -150,9 +158,10 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
                Just (AtDate today _mc) -> ", valued at " <> showDate today
                Nothing                 -> "")
 
-        changingValuation = case (balancetype_, value_) of
-            (PeriodChange, Just (AtEnd _)) -> interval_ /= NoInterval
-            _                              -> False
+        changingValuation = case (reporttype_, balancetype_) of
+            (ValueChangeReport, PeriodChange)     -> True
+            (ValueChangeReport, CumulativeChange) -> True
+            _                                     -> False
 
     -- make a CompoundBalanceReport.
     cbr' = compoundBalanceReport rspec{rsOpts=ropts'} j cbcqueries
