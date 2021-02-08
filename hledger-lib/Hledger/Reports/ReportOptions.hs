@@ -11,6 +11,7 @@ Options common to most hledger reports.
 module Hledger.Reports.ReportOptions (
   ReportOpts(..),
   ReportSpec(..),
+  ReportType(..),
   BalanceType(..),
   AccountListMode(..),
   ValuationType(..),
@@ -23,7 +24,6 @@ module Hledger.Reports.ReportOptions (
   rawOptsToReportSpec,
   flat_,
   tree_,
-  changingValuation,
   reportOptsToggleStatus,
   simplifyStatuses,
   whichDateFromOpts,
@@ -61,8 +61,16 @@ import Hledger.Query
 import Hledger.Utils
 
 
--- | Which "balance" is being shown in a balance report.
-data BalanceType = PeriodChange      -- ^ The change of balance in each period.
+-- | What is calculated and shown in each cell in a balance report.
+data ReportType = ChangeReport       -- ^ The sum of posting amounts.
+                | BudgetReport       -- ^ The sum of posting amounts and the goal.
+                | ValueChangeReport  -- ^ The change of value of period-end historical values.
+  deriving (Eq, Show)
+
+instance Default ReportType where def = ChangeReport
+
+-- | Which "accumulation method" is being shown in a balance report.
+data BalanceType = PeriodChange      -- ^ The accumulate change over a single period.
                  | CumulativeChange  -- ^ The accumulated change across multiple periods.
                  | HistoricalBalance -- ^ The historical ending balance, including the effect of
                                      --   all postings before the report period. Unless altered by,
@@ -102,6 +110,7 @@ data ReportOpts = ReportOpts {
     -- for account transactions reports (aregister)
     ,txn_dates_      :: Bool
     -- for balance reports (bal, bs, cf, is)
+    ,reporttype_     :: ReportType
     ,balancetype_    :: BalanceType
     ,accountlistmode_ :: AccountListMode
     ,drop_           :: Int
@@ -148,6 +157,7 @@ defreportopts = ReportOpts
     , average_         = False
     , related_         = False
     , txn_dates_       = False
+    , reporttype_      = def
     , balancetype_     = def
     , accountlistmode_ = ALFlat
     , drop_            = 0
@@ -196,6 +206,7 @@ rawOptsToReportOpts rawopts = do
           ,average_     = boolopt "average" rawopts
           ,related_     = boolopt "related" rawopts
           ,txn_dates_   = boolopt "txn-dates" rawopts
+          ,reporttype_  = reporttypeopt rawopts
           ,balancetype_ = balancetypeopt rawopts
           ,accountlistmode_ = accountlistmodeopt rawopts
           ,drop_        = posintopt "drop" rawopts
@@ -212,7 +223,16 @@ rawOptsToReportOpts rawopts = do
           ,forecast_    = forecastPeriodFromRawOpts d rawopts
           ,transpose_   = boolopt "transpose" rawopts
           }
-    return reportopts
+
+    adjustReportDefaults reportopts
+
+-- | Warn users about option combinations which produce uninteresting results.
+adjustReportDefaults :: ReportOpts -> IO ReportOpts
+adjustReportDefaults ropts = case reporttype_ ropts of
+    ValueChangeReport -> case fromMaybe (AtEnd Nothing) $ value_ ropts of
+        v@(AtEnd _)   -> return ropts{value_=Just v}  -- Set value_ to AtEnd by default, unless overridden
+        _             -> fail "--valuechange only produces sensible results with --value=end"
+    _                 -> return ropts
 
 -- | The result of successfully parsing a ReportOpts on a particular
 -- Day. Any ambiguous dates are completed and Queries are parsed,
@@ -274,6 +294,15 @@ accountlistmodeopt =
       "tree" -> Just ALTree
       "flat" -> Just ALFlat
       _      -> Nothing
+
+reporttypeopt :: RawOpts -> ReportType
+reporttypeopt =
+  fromMaybe ChangeReport . choiceopt parse where
+    parse = \case
+      "change"      -> Just ChangeReport
+      "valuechange" -> Just ValueChangeReport
+      "budget"      -> Just BudgetReport
+      _             -> Nothing
 
 balancetypeopt :: RawOpts -> BalanceType
 balancetypeopt =
@@ -477,13 +506,6 @@ queryFromFlags ReportOpts{..} = simplifyQuery $ And flagsq
                ]
     consIf f b = if b then (f True:) else id
     consJust f = maybe id ((:) . f)
-
--- | Whether the market price for postings might change when reported in
--- different report periods.
-changingValuation :: ReportOpts -> Bool
-changingValuation ropts = case value_ ropts of
-    Just (AtEnd  _)        -> True
-    _                      -> False
 
 -- Report dates.
 

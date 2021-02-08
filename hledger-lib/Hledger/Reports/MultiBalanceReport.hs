@@ -50,7 +50,7 @@ import Data.Semigroup ((<>))
 #endif
 import Data.Semigroup (sconcat)
 import Data.Time.Calendar (Day, addDays, fromGregorian)
-import Safe (headMay, lastDef, lastMay)
+import Safe (headMay, lastDef, lastMay, minimumMay)
 
 import Hledger.Data
 import Hledger.Query
@@ -197,7 +197,9 @@ startingBalances rspec@ReportSpec{rsQuery=query,rsOpts=ropts} j priceoracle repo
     rspec' = rspec{rsQuery=startbalq,rsOpts=ropts'}
     -- If we're re-valuing every period, we need to have the unvalued start
     -- balance, so we can do it ourselves later.
-    ropts' = if changingValuation ropts then ropts''{value_=Nothing} else ropts''
+    ropts' = case value_ ropts of
+        Just (AtEnd _) -> ropts''{value_=Nothing}
+        _              -> ropts''
       where ropts'' = ropts{period_=precedingperiod, no_elide_=accountlistmode_ ropts == ALTree}
 
     -- q projected back before the report start date.
@@ -314,16 +316,18 @@ calculateReportMatrix rspec@ReportSpec{rsOpts=ropts} j priceoracle startbals col
     -- starting-balance-based historical balances.
     rowbals name changes = dbg5 "rowbals" $ case balancetype_ ropts of
         PeriodChange      -> changeamts
-        CumulativeChange  -> cumulative
+        CumulativeChange  -> cumulativeSum avalue nullacct changeamts
         HistoricalBalance -> historical
       where
+        -- changes to report on: usually just the changes itself, but use the
+        -- differences in the historical amount for ValueChangeReports.
+        changeamts = case reporttype_ ropts of
+            ChangeReport      -> M.mapWithKey avalue changes
+            BudgetReport      -> M.mapWithKey avalue changes
+            ValueChangeReport -> periodChanges valuedStart historical
         historical = cumulativeSum avalue startingBalance changes
-        cumulative = cumulativeSum avalue nullacct changes
-        changeamts = if changingValuation ropts
-                        then periodChanges nullacct cumulative
-                        else changes
-
         startingBalance = HM.lookupDefault nullacct name startbals
+        valuedStart = avalue (DateSpan Nothing historicalDate) startingBalance
 
     -- Transpose to get each account's balance changes across all columns, then
     -- pad with zeros
@@ -334,6 +338,7 @@ calculateReportMatrix rspec@ReportSpec{rsOpts=ropts} j priceoracle startbals col
 
     (pvalue, avalue) = postingAndAccountValuations rspec j priceoracle
     addElided = if queryDepth (rsQuery rspec) == Just 0 then HM.insert "..." zeros else id
+    historicalDate = minimumMay $ mapMaybe spanStart colspans
     zeros = M.fromList [(span, nullacct) | span <- colspans]
     colspans = M.keys colps
 
@@ -574,13 +579,13 @@ cumulativeSum value start = snd . M.mapAccumWithKey accumValued start
 -- MultiBalanceReport.
 postingAndAccountValuations :: ReportSpec -> Journal -> PriceOracle
                             -> (DateSpan -> Posting -> Posting, DateSpan -> Account -> Account)
-postingAndAccountValuations rspec@ReportSpec{rsOpts=ropts} j priceoracle
-    | changingValuation ropts = (const id, avalue' (cost_ ropts) (value_ ropts))
-    | otherwise               = (pvalue' (cost_ ropts) (value_ ropts), const id)
+postingAndAccountValuations ReportSpec{rsToday=today, rsOpts=ropts} j priceoracle = case value_ ropts of
+    Just (AtEnd _) -> (const id, avalue' (cost_ ropts) (value_ ropts))
+    _              -> (pvalue' (cost_ ropts) (value_ ropts), const id)
   where
     avalue' c v span a = a{aibalance = value (aibalance a), aebalance = value (aebalance a)}
-      where value = mixedAmountApplyCostValuation priceoracle styles (end span) (rsToday rspec) (error "multiBalanceReport: did not expect amount valuation to be called ") c v  -- PARTIAL: should not happen
-    pvalue' c v span = postingApplyCostValuation priceoracle styles (end span) (rsToday rspec) c v
+      where value = mixedAmountApplyCostValuation priceoracle styles (end span) today (error "multiBalanceReport: did not expect amount valuation to be called ") c v  -- PARTIAL: should not happen
+    pvalue' c v span = postingApplyCostValuation priceoracle styles (end span) today c v
     end = fromMaybe (error "multiBalanceReport: expected all spans to have an end date")  -- XXX should not happen
         . fmap (addDays (-1)) . spanEnd
     styles = journalCommodityStyles j

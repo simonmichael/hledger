@@ -280,7 +280,14 @@ import Hledger.Read.CsvReader (CSV, printCSV)
 -- | Command line options for this command.
 balancemode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Balance.txt")
-  ([flagNone ["periodic"] (setboolopt "periodic")
+  ([flagNone ["change"] (setboolopt "change")
+      "show sum of posting amounts (default)"
+   ,flagNone ["valuechange"] (setboolopt "valuechange")
+      "show change of value of period-end historical balances"
+   ,flagNone ["budget"] (setboolopt "budget")
+      "show sum of posting amounts compared to budget goals defined by periodic transactions\n "
+
+   ,flagNone ["periodic"] (setboolopt "periodic")
       "accumulate amounts from column start to column end (in multicolumn reports, default)"
    ,flagNone ["cumulative"] (setboolopt "cumulative")
       "accumulate amounts from report start (specified by e.g. -b/--begin) to column end"
@@ -299,7 +306,6 @@ balancemode = hledgerCommandMode
    ,flagNone ["percent", "%"] (setboolopt "percent") "express values in percentage of each column's total"
    ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
    ,flagNone ["transpose"] (setboolopt "transpose") "transpose rows and columns"
-   ,flagNone ["budget"] (setboolopt "budget") "show performance compared to budget goals defined by periodic transactions"
    ,outputFormatFlag ["txt","html","csv","json"]
    ,outputFileFlag
    ]
@@ -310,13 +316,8 @@ balancemode = hledgerCommandMode
 
 -- | The balance command, prints a balance report.
 balance :: CliOpts -> Journal -> IO ()
-balance opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
-    let ropts@ReportOpts{..} = rsOpts rspec
-        budget      = boolopt "budget" rawopts
-        multiperiod = interval_ /= NoInterval
-        fmt         = outputFormatFromOpts opts
-
-    if budget then do  -- single or multi period budget report
+balance opts@CliOpts{reportspec_=rspec} j = case reporttype_ of
+    BudgetReport -> do  -- single or multi period budget report
       let reportspan = reportSpan j rspec
           budgetreport = budgetReport rspec assrt reportspan j
             where
@@ -328,8 +329,7 @@ balance opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
             _      -> error' $ unsupportedOutputFormatError fmt
       writeOutputLazyText opts $ render budgetreport
 
-    else
-      if multiperiod then do  -- multi period balance report
+    _ | multiperiod -> do  -- multi period balance report
         let report = multiBalanceReport rspec j
             render = case fmt of
               "txt"  -> multiBalanceReportAsText ropts
@@ -339,7 +339,7 @@ balance opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
               _      -> const $ error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
         writeOutputLazyText opts $ render report
 
-      else do  -- single period simple balance report
+    _ -> do  -- single period simple balance report
         let report = balanceReport rspec j -- simple Ledger-style balance report
             render = case fmt of
               "txt"  -> \ropts -> TB.toLazyText . balanceReportAsText ropts
@@ -348,6 +348,10 @@ balance opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
               "json" -> const $ (<>"\n") . toJsonText
               _      -> error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
         writeOutputLazyText opts $ render ropts report
+  where
+    ropts@ReportOpts{..} = rsOpts rspec
+    multiperiod = interval_ /= NoInterval
+    fmt         = outputFormatFromOpts opts
 
 -- XXX this allows rough HTML rendering of a flat BalanceReport, but it can't handle tree mode etc.
 -- -- | Convert a BalanceReport to a MultiBalanceReport.
@@ -594,11 +598,12 @@ multiBalanceReportAsText ropts@ReportOpts{..} r = TB.toLazyText $
   where
     title = mtitle <> " in " <> showDateSpan (periodicReportSpan r) <> valuationdesc <> ":"
 
-    mtitle = case balancetype_ of
-        PeriodChange | changingValuation -> "Period-end value changes"
-        PeriodChange                     -> "Balance changes"
-        CumulativeChange                 -> "Ending balances (cumulative)"
-        HistoricalBalance                -> "Ending balances (historical)"
+    mtitle = case (reporttype_, balancetype_) of
+        (ValueChangeReport, PeriodChange     ) -> "Period-end value changes"
+        (ValueChangeReport, CumulativeChange ) -> "Cumulative period-end value changes"
+        (_,                 PeriodChange     ) -> "Balance changes"
+        (_,                 CumulativeChange ) -> "Ending balances (cumulative)"
+        (_,                 HistoricalBalance) -> "Ending balances (historical)"
     valuationdesc =
         (case cost_ of
             Cost   -> ", converted to cost"
@@ -611,9 +616,10 @@ multiBalanceReportAsText ropts@ReportOpts{..} r = TB.toLazyText $
             Just (AtDate d _mc)  -> ", valued at " <> showDate d
             Nothing              -> "")
 
-    changingValuation = case (balancetype_, value_) of
-        (PeriodChange, Just (AtEnd _)) -> interval_ /= NoInterval
-        _                              -> False
+    changingValuation = case (reporttype_, balancetype_) of
+        (ValueChangeReport, PeriodChange)     -> True
+        (ValueChangeReport, CumulativeChange) -> True
+        _                                     -> False
 
 -- | Build a 'Table' from a multi-column balance report.
 balanceReportAsTable :: ReportOpts -> MultiBalanceReport -> Table T.Text T.Text MixedAmount

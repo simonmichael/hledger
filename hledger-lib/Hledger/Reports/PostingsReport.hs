@@ -80,9 +80,9 @@ postingsReport rspec@ReportSpec{rsOpts=ropts@ReportOpts{..}} j = items
 
       -- Postings, or summary postings with their subperiod's end date, to be displayed.
       displayps :: [(Posting, Maybe Day)]
-        | multiperiod && changingValuation ropts = [(pvalue lastday p, Just periodend) | (p, periodend) <- summariseps reportps, let lastday = addDays (-1) periodend]
-        | multiperiod                            = [(p, Just periodend) | (p, periodend) <- summariseps valuedps]
-        | otherwise                              = [(p, Nothing)        | p <- valuedps]
+        | multiperiod, Just (AtEnd _) <- value_ = [(pvalue lastday p, Just periodend) | (p, periodend) <- summariseps reportps, let lastday = addDays (-1) periodend]
+        | multiperiod = [(p, Just periodend) | (p, periodend) <- summariseps valuedps]
+        | otherwise   = [(p, Nothing) | p <- valuedps]
         where
           summariseps = summarisePostingsByInterval interval_ whichdate mdepth showempty reportspan
           valuedps = map (pvalue reportorjournallast) reportps
