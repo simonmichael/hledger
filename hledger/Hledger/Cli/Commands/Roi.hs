@@ -60,8 +60,8 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{rsOpts=ReportOpts{..}
   d <- getCurrentDay
   -- We may be converting posting amounts to value, per hledger_options.m4.md "Effect of --value on reports".
   let
-    priceOracle = (journalPriceOracle infer_value_ j)
-    styles = (journalCommodityStyles j)
+    priceOracle = journalPriceOracle infer_value_ j
+    styles = journalCommodityStyles j
     today = rsToday rspec
     mixedAmountValue periodlast date = mixedAmountApplyCostValuation priceOracle styles periodlast today date cost_ value_
   let
@@ -85,7 +85,7 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{rsOpts=ReportOpts{..}
     requestedSpan = periodAsDateSpan period_
     requestedInterval = interval_
 
-    wholeSpan = spanDefaultsFrom requestedSpan journalSpan
+    wholeSpan = dbg3 "wholeSpan" $ spanDefaultsFrom requestedSpan journalSpan
 
   when (null trans) $ do
     putStrLn "No relevant transactions found. Check your investments query"
@@ -96,7 +96,9 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{rsOpts=ReportOpts{..}
         interval ->
             splitSpan interval wholeSpan
 
-  tableBody <- forM spans $ \(DateSpan (Just spanBegin) (Just spanEnd)) -> do
+  let priceDirectiveDates = dbg3 "priceDirectiveDates" $ map pddate $ jpricedirectives j
+
+  tableBody <- forM spans $ \span@(DateSpan (Just spanBegin) (Just spanEnd)) -> do
     -- Spans are [spanBegin,spanEnd), and spanEnd is 1 day after then actual end date we are interested in
     let
       cashFlowApplyCostValue = map (\(d,amt) -> (d,mixedAmountValue spanEnd d amt))
@@ -111,17 +113,20 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{rsOpts=ReportOpts{..}
         total trans (And [investmentsQuery
                          , Date (DateSpan Nothing (Just spanEnd))])
 
+      priceDates = dbg3 "priceDates" $ nub $ filter (spanContainsDate span) priceDirectiveDates
       cashFlow =
+        ((map (\d -> (d,0)) priceDates)++) $
         cashFlowApplyCostValue $
         calculateCashFlow trans (And [ Not investmentsQuery
                                      , Not pnlQuery
-                                     , Date (DateSpan (Just spanBegin) (Just spanEnd)) ] )
+                                     , Date span ] )
+
 
       pnl =
         cashFlowApplyCostValue $
         calculateCashFlow trans (And [ Not investmentsQuery
                                      , pnlQuery
-                                     , Date (DateSpan (Just spanBegin) (Just spanEnd)) ] )
+                                     , Date span ] )
 
       thisSpan = dbg3 "processing span" $
                  OneSpan spanBegin spanEnd valueBefore valueAfter cashFlow pnl
