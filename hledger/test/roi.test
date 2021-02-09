@@ -263,8 +263,30 @@ hledger -f- roi -p 2019-11 --inv Investment --pnl PnL --cost --value=then,A --in
 
 >>>=0
 
-# 11. Dont use crazy amount of decimal places
-hledger -f - roi --inv assets:investment --pnl income:investment -X '$'
+# 11. Use "then" prices. 10000/76.20 = 131.23, 11000/73.88=148.89
+hledger -f - roi --inv assets:investment --pnl income:investment --value=then,'$'
+<<<
+P 2020-12-01 $ 76.20
+P 2021-01-01 $ 73.88
+
+2020-12-02 invest
+ assets:investment  10000
+ assets
+
+2021-01-02 get profit
+ assets:investment  =11000
+ income:investment
+>>>
++---++------------+------------++---------------+----------+-------------+-----++---------+---------+
+|   ||      Begin |        End || Value (begin) | Cashflow | Value (end) | PnL ||     IRR |     TWR |
++===++============+============++===============+==========+=============+=====++=========+=========+
+| 1 || 2020-12-02 | 2021-01-02 ||             0 |     $131 |        $149 | $18 || 321.99% | 321.81% |
++---++------------+------------++---------------+----------+-------------+-----++---------+---------+
+
+>>>=0
+
+# 12. Use "end" prices. 10000/73.88=135.35
+hledger -f - roi --inv assets:investment --pnl income:investment --value=end,'$'
 <<<
 P 2020-12-01 $ 76.20
 P 2021-01-01 $ 73.88

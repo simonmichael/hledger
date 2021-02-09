@@ -19,7 +19,6 @@ import Data.Time.Calendar
 import Text.Printf
 import Data.Function (on)
 import Data.List
-import Data.Maybe (fromMaybe)
 import Numeric.RootFinding
 import Data.Decimal
 import qualified Data.Text as T
@@ -61,8 +60,10 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{rsOpts=ReportOpts{..}
   d <- getCurrentDay
   -- We may be converting posting amounts to value, per hledger_options.m4.md "Effect of --value on reports".
   let
-    tvalue = transactionApplyCostValuation (journalPriceOracle infer_value_ j) (journalCommodityStyles j) periodlast (rsToday rspec) cost_ value_
-      where periodlast = fromMaybe (rsToday rspec) $ reportPeriodOrJournalLastDay rspec j
+    priceOracle = (journalPriceOracle infer_value_ j)
+    styles = (journalCommodityStyles j)
+    today = rsToday rspec
+    mixedAmountValue periodlast date = mixedAmountApplyCostValuation priceOracle styles periodlast today date cost_ value_
   let
     ropts = rsOpts rspec
     showCashFlow = boolopt "cashflow" rawopts
@@ -75,7 +76,7 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{rsOpts=ReportOpts{..}
   pnlQuery         <- makeQuery "pnl"
 
   let
-    trans = dbg3 "investments" $ map tvalue $ jtxns $ filterJournalTransactions investmentsQuery j
+    trans = dbg3 "investments" $ jtxns $ filterJournalTransactions investmentsQuery j
 
     journalSpan =
         let dates = map transactionDate2 trans in
@@ -93,26 +94,31 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{rsOpts=ReportOpts{..}
   let spans = case requestedInterval of
         NoInterval -> [wholeSpan]
         interval ->
-            splitSpan interval $
-            spanIntersect journalSpan wholeSpan
+            splitSpan interval wholeSpan
 
   tableBody <- forM spans $ \(DateSpan (Just spanBegin) (Just spanEnd)) -> do
     -- Spans are [spanBegin,spanEnd), and spanEnd is 1 day after then actual end date we are interested in
     let
+      cashFlowApplyCostValue = map (\(d,amt) -> (d,mixedAmountValue spanEnd d amt))
+      
       valueBefore =
+        mixedAmountValue spanEnd spanBegin $ 
         total trans (And [ investmentsQuery
                          , Date (DateSpan Nothing (Just spanBegin))])
 
       valueAfter  =
+        mixedAmountValue spanEnd spanEnd $ 
         total trans (And [investmentsQuery
                          , Date (DateSpan Nothing (Just spanEnd))])
 
       cashFlow =
+        cashFlowApplyCostValue $
         calculateCashFlow trans (And [ Not investmentsQuery
                                      , Not pnlQuery
                                      , Date (DateSpan (Just spanBegin) (Just spanEnd)) ] )
 
       pnl =
+        cashFlowApplyCostValue $
         calculateCashFlow trans (And [ Not investmentsQuery
                                      , pnlQuery
                                      , Date (DateSpan (Just spanBegin) (Just spanEnd)) ] )
@@ -121,7 +127,7 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{rsOpts=ReportOpts{..}
                  OneSpan spanBegin spanEnd valueBefore valueAfter cashFlow pnl
 
     irr <- internalRateOfReturn showCashFlow prettyTables thisSpan
-    twr <- timeWeightedReturn showCashFlow prettyTables investmentsQuery trans thisSpan
+    twr <- timeWeightedReturn showCashFlow prettyTables investmentsQuery trans mixedAmountValue thisSpan
     let cashFlowAmt = negate $ sum $ map snd cashFlow
     let smallIsZero x = if abs x < 0.01 then 0.0 else x
     return [ showDate spanBegin
@@ -143,7 +149,7 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{rsOpts=ReportOpts{..}
 
   TL.putStrLn $ Ascii.render prettyTables id id id table
 
-timeWeightedReturn showCashFlow prettyTables investmentsQuery trans (OneSpan spanBegin spanEnd valueBeforeAmt valueAfter cashFlow pnl) = do
+timeWeightedReturn showCashFlow prettyTables investmentsQuery trans mixedAmountValue (OneSpan spanBegin spanEnd valueBeforeAmt valueAfter cashFlow pnl) = do
   let valueBefore = unMix valueBeforeAmt
   let initialUnitPrice = 100 :: Decimal
   let initialUnits = valueBefore / initialUnitPrice
@@ -166,7 +172,7 @@ timeWeightedReturn showCashFlow prettyTables investmentsQuery trans (OneSpan spa
         tail $
         scanl
           (\(_, _, unitPrice, unitBalance) (date, amt) ->
-             let valueOnDate = unMix $ total trans (And [investmentsQuery, Date (DateSpan Nothing (Just date))])
+             let valueOnDate = unMix $ mixedAmountValue spanEnd date $ total trans (And [investmentsQuery, Date (DateSpan Nothing (Just date))])
              in
              case amt of
                Right amt ->
