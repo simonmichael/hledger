@@ -121,7 +121,7 @@ journalAddForecast :: CliOpts -> Journal -> Journal
 journalAddForecast CliOpts{inputopts_=iopts, reportspec_=rspec} j =
     case forecast_ ropts of
         Nothing -> j
-        Just _  -> either (error') id . journalApplyCommodityStyles $  -- PARTIAL:
+        Just _  -> either (error') id . journalInferAndApplyCommodityStyles $  -- PARTIAL:
                      journalBalanceTransactions' iopts j{ jtxns = concat [jtxns j, forecasttxns'] }
   where
     today = rsToday rspec
@@ -151,9 +151,11 @@ journalAddForecast CliOpts{inputopts_=iopts, reportspec_=rspec} j =
       forecasttxns
 
     journalBalanceTransactions' iopts j =
-      let assrt = not . ignore_assertions_ $ iopts
+      let 
+        assrt = not . ignore_assertions_ $ iopts
+        styledbalancing = balancingtype_ iopts == StyledBalancing
       in
-       either error' id $ journalBalanceTransactions assrt j  -- PARTIAL:
+       either error' id $ journalBalanceTransactions styledbalancing assrt j  -- PARTIAL:
 
 -- | Write some output to stdout or to a file selected by --output-file.
 -- If the file exists it will be overwritten.

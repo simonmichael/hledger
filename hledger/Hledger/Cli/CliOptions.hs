@@ -127,6 +127,7 @@ inputflags = [
  ,flagReq  ["alias"]         (\s opts -> Right $ setopt "alias" s opts)  "OLD=NEW" "rename accounts named OLD to NEW"
  ,flagNone ["anon"]          (setboolopt "anon") "anonymize accounts and payees"
  ,flagReq  ["pivot"]         (\s opts -> Right $ setopt "pivot" s opts)  "TAGNAME" "use some other field/tag for account names"
+ ,flagReq  ["balancing"]     (\s opts -> Right $ setopt "balancing" s opts)  "exact|styled" "balance transactions using transaction's exact precisions (default, recommended) or commodity display styles' precisions (like hledger <=1.20)"
  ,flagNone ["ignore-assertions","I"] (setboolopt "ignore-assertions") "ignore any balance assertions"
  ,flagNone ["strict","s"]    (setboolopt "strict") "do extra error checking (check that all posted accounts are declared)"
  ]

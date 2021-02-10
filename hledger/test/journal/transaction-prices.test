@@ -51,12 +51,12 @@ hledger -f - print --explicit
     misc                             $-2.1
 >>>
 2011-01-01
-    expenses:foreign currency    €100 @ $1.35
-    misc                                $2.10
-    assets                           $-135.00
-    misc                           €1 @ $1.35
-    misc                          €-1 @ $1.35
-    misc                               $-2.10
+    expenses:foreign currency    €100 @ $1.3500
+    misc                                  $2.10
+    assets                             $-135.00
+    misc                           €1 @ $1.3500
+    misc                          €-1 @ $1.3500
+    misc                                 $-2.10
 
 >>>=0
 

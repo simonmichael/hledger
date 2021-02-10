@@ -110,7 +110,8 @@ budgetReport rspec assrt reportspan j = dbg4 "sortedbudgetreport" budgetreport
 -- for BudgetReport.
 journalAddBudgetGoalTransactions :: Bool -> ReportOpts -> DateSpan -> Journal -> Journal
 journalAddBudgetGoalTransactions assrt _ropts reportspan j =
-  either error' id $ journalBalanceTransactions assrt j{ jtxns = budgetts }  -- PARTIAL:
+  -- TODO: always using exact balancing, do we need to support styled balancing for BC ?
+  either error' id $ journalBalanceTransactions False assrt j{ jtxns = budgetts }  -- PARTIAL:
   where
     budgetspan = dbg3 "budget span" $ reportspan
     budgetts =

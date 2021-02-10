@@ -1,0 +1,19 @@
+# test some specific transaction balanced checking issues
+
+# Old journal entries dependent on commodity directives for balancing (#1479)
+<
+commodity $0.00
+
+2021-01-01 move a lot elsewhere, adjusting cost basis due to fees
+    assets:investments1            AAAA -11.0 @ $0.093735
+    expenses:fees                  AAAA   0.6
+    equity:basis adjustment        AAAA  -0.6
+    assets:investments2            AAAA  10.4 @ $0.099143
+
+# 1. fail with default "exact" balanced checking
+$ hledger -f- check
+>2 /real postings' sum should be 0 but is: \$0.0000022/
+>=1
+
+# 2. succeed with "styled" balanced checking
+$ hledger -f- check --balancing=styled

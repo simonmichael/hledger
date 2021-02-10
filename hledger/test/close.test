@@ -271,20 +271,20 @@ commodity AAA 0.00000000
 
 $ hledger -f- close -p 2019 assets --show-costs -x
 2019-12-31 closing balances
-    assets:aaa                                       AAA -510.00000000 = AAA 0.00000000
-    assets:usd                                                 $-49.50
-    assets:usd                          $49.390001 @ AAA 10.3528242505 = $0.00
-    equity:opening/closing balances                             $49.50
-    equity:opening/closing balances    $-49.390001 @ AAA 10.3528242505
-    equity:opening/closing balances                   AAA 510.00000000
+    assets:aaa                                           AAA -510.00000000 = AAA 0.00000000
+    assets:usd                                                     $-49.50
+    assets:usd                          $49.390001 @ AAA 10.35282425045552 = $0.00
+    equity:opening/closing balances                                 $49.50
+    equity:opening/closing balances    $-49.390001 @ AAA 10.35282425045552
+    equity:opening/closing balances                       AAA 510.00000000
 
 2020-01-01 opening balances
-    assets:aaa                                        AAA 510.00000000 = AAA 510.00000000
-    assets:usd                                                  $49.50
-    assets:usd                         $-49.390001 @ AAA 10.3528242505 = $0.109999
-    equity:opening/closing balances                            $-49.50
-    equity:opening/closing balances     $49.390001 @ AAA 10.3528242505
-    equity:opening/closing balances                  AAA -510.00000000
+    assets:aaa                                            AAA 510.00000000 = AAA 510.00000000
+    assets:usd                                                      $49.50
+    assets:usd                         $-49.390001 @ AAA 10.35282425045552 = $0.109999
+    equity:opening/closing balances                                $-49.50
+    equity:opening/closing balances     $49.390001 @ AAA 10.35282425045552
+    equity:opening/closing balances                      AAA -510.00000000
 
 >=0
 

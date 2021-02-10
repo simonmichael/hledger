@@ -30,6 +30,7 @@ Some of these might belong in Hledger.Read.JournalReader or Hledger.Read.
 module Hledger.Read.Common (
   Reader (..),
   InputOpts (..),
+  BalancingType (..),
   definputopts,
   rawOptsToInputOpts,
 
@@ -151,7 +152,7 @@ import Text.Megaparsec.Custom
 
 import Hledger.Data
 import Hledger.Utils
-import Safe (headMay)
+import Safe (headMay, lastMay)
 import Text.Printf (printf)
 
 --- ** doctest setup
@@ -204,6 +205,7 @@ data InputOpts = InputOpts {
     ,auto_              :: Bool                 -- ^ generate automatic postings when journal is parsed
     ,commoditystyles_   :: Maybe (M.Map CommoditySymbol AmountStyle) -- ^ optional commodity display styles affecting all files
     ,strict_            :: Bool                 -- ^ do extra error checking (eg, all posted accounts are declared)
+    ,balancingtype_     :: BalancingType        -- ^ which transaction balancing strategy to use
  } deriving (Show)
 
 instance Default InputOpts where def = definputopts
@@ -221,6 +223,7 @@ definputopts = InputOpts
     , auto_              = False
     , commoditystyles_   = Nothing
     , strict_            = False
+    , balancingtype_     = StyledBalancing
     }
 
 rawOptsToInputOpts :: RawOpts -> InputOpts
@@ -237,7 +240,27 @@ rawOptsToInputOpts rawopts = InputOpts{
   ,auto_              = boolopt "auto" rawopts
   ,commoditystyles_   = Nothing
   ,strict_            = boolopt "strict" rawopts
+  ,balancingtype_     = fromMaybe ExactBalancing $ balancingTypeFromRawOpts rawopts
   }
+
+-- | How should transactions be checked for balancedness ?
+-- Ie, to how many decimal places should we check each commodity's zero balance ?
+data BalancingType = 
+    ExactBalancing   -- ^ render the sum with the max precision used in the transaction
+  | StyledBalancing  -- ^ render the sum with the precision from the journal's display styles, eg from commodity directives
+  deriving (Eq,Show)
+
+-- | Parse the transaction balancing strategy, specified by --balancing.
+balancingTypeFromRawOpts :: RawOpts -> Maybe BalancingType
+balancingTypeFromRawOpts rawopts = lastMay $ collectopts balancingfromrawopt rawopts
+  where
+    balancingfromrawopt (name,value)
+      | name == "balancing" = Just $ balancing value
+      | otherwise           = Nothing
+    balancing value
+      | not (null value) && value `isPrefixOf` "exact"  = ExactBalancing
+      | not (null value) && value `isPrefixOf` "styled" = StyledBalancing
+      | otherwise = usageError $ "could not parse \""++value++"\" as balancing type, should be: exact|styled"
 
 --- ** parsing utilities
 
@@ -325,7 +348,7 @@ parseAndFinaliseJournal' parser iopts f txt = do
 -- - infer transaction-implied market prices from transaction prices
 --
 journalFinalise :: InputOpts -> FilePath -> Text -> ParsedJournal -> ExceptT String IO Journal
-journalFinalise InputOpts{auto_,ignore_assertions_,commoditystyles_,strict_} f txt pj = do
+journalFinalise InputOpts{auto_,ignore_assertions_,commoditystyles_,strict_,balancingtype_} f txt pj = do
   t <- liftIO getClockTime
   d <- liftIO getCurrentDay
   let pj' =
@@ -342,35 +365,43 @@ journalFinalise InputOpts{auto_,ignore_assertions_,commoditystyles_,strict_} f t
       -- and using declared commodities
       case if strict_ then journalCheckCommoditiesDeclared pj' else Right () of
         Left e   -> throwError e
-        Right () ->
-
-          -- Infer and apply canonical styles for each commodity (or throw an error).
-          -- This affects transaction balancing/assertions/assignments, so needs to be done early.
-          case journalApplyCommodityStyles pj' of
-            Left e     -> throwError e
-            Right pj'' -> either throwError return $
-              pj''
-              & (if not auto_ || null (jtxnmodifiers pj'')
-                then
-                  -- Auto postings are not active.
-                  -- Balance all transactions and maybe check balance assertions.
-                  journalBalanceTransactions (not ignore_assertions_)
-                else \j -> do  -- Either monad
-                  -- Auto postings are active.
-                  -- Balance all transactions without checking balance assertions,
-                  j' <- journalBalanceTransactions False j
-                  -- then add the auto postings
-                  -- (Note adding auto postings after balancing means #893b fails;
-                  -- adding them before balancing probably means #893a, #928, #938 fail.)
-                  case journalModifyTransactions d j' of
-                    Left e -> throwError e
-                    Right j'' -> do
-                      -- then apply commodity styles once more, to style the auto posting amounts. (XXX inefficient ?)
-                      j''' <- journalApplyCommodityStyles j''
-                      -- then check balance assertions.
-                      journalBalanceTransactions (not ignore_assertions_) j'''
-                )
-            & fmap journalInferMarketPricesFromTransactions  -- infer market prices from commodity-exchanging transactions
+        Right () -> do
+          -- Infer and save canonical commodity display styles here, before transaction balancing.
+          case journalInferCommodityStyles pj' of
+            Left e -> throwError e
+            Right pj'' -> do
+              let 
+                  allstyles = journalCommodityStyles pj''
+                  useglobalstyles = balancingtype_ == StyledBalancing
+              -- Balance transactions, and possibly add auto postings and check balance assertions.
+              case (pj''
+                    & (if not auto_ || null (jtxnmodifiers pj'')
+                      then
+                        -- Auto postings are not active.
+                        -- Balance all transactions and maybe check balance assertions.
+                        journalBalanceTransactions useglobalstyles (not ignore_assertions_)
+                      else \j -> do  -- Either monad
+                        -- Auto postings are active.
+                        -- Balance all transactions without checking balance assertions,
+                        j' <- journalBalanceTransactions useglobalstyles False j
+                        -- then add the auto postings
+                        -- (Note adding auto postings after balancing means #893b fails;
+                        -- adding them before balancing probably means #893a, #928, #938 fail.)
+                        case journalModifyTransactions d j' of
+                          Left e -> throwError e
+                          Right j'' -> do
+                            -- then check balance assertions.
+                            journalBalanceTransactions useglobalstyles (not ignore_assertions_) j''
+                      )) of
+                Left e -> throwError e
+                Right pj''' -> do
+                  let
+                    pj'''' = pj'''
+                      -- Apply the (pre-transaction-balancing) commodity styles to all amounts.
+                      & journalApplyCommodityStyles allstyles
+                      -- Infer market prices from commodity-exchanging transactions.
+                      & journalInferMarketPricesFromTransactions
+                  return pj''''
 
 -- | Check that all the journal's transactions have payees declared with
 -- payee directives, returning an error message otherwise.
