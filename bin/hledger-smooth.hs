@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack runghc --verbosity info --package hledger,string-qq
+-- stack runghc --verbosity info --package hledger --package string-qq
 -- Run from inside the hledger source tree, or compile with compile.sh.
 -- See hledger-check-fancyassertions.hs.
 
