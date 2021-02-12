@@ -377,7 +377,7 @@ commentAddTag c (t,v)
 -- A space is inserted following the colon, before the value.
 commentAddTagNextLine :: Text -> Tag -> Text
 commentAddTagNextLine cmt (t,v) =
-  cmt <> if "\n" `T.isSuffixOf` cmt then "" else "\n" <> t <> ": " <> v 
+  cmt <> (if "\n" `T.isSuffixOf` cmt then "" else "\n") <> t <> ": " <> v 
 
 
 -- tests
