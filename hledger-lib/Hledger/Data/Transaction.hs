@@ -1,3 +1,4 @@
+{-# LANGUAGE NamedFieldPuns #-}
 {-|
 
 A 'Transaction' represents a movement of some commodity(ies) between two
@@ -83,6 +84,7 @@ import Hledger.Data.Valuation
 import Text.Tabular
 import Text.Tabular.AsciiWide
 import Control.Applicative ((<|>))
+import Text.Printf (printf)
 
 sourceFilePath :: GenericSourcePos -> FilePath
 sourceFilePath = \case
@@ -378,10 +380,41 @@ transactionCheckBalanced mglobalstyles t = errs
     -- of decimal places specified by its display style, from either the 
     -- provided global display styles, or local styles inferred from just 
     -- this transaction.
+
+    -- Which local styles (& thence, precisions) exactly should we
+    -- infer from this transaction ? Since amounts are going to be
+    -- converted to cost, we may end up with the commodity of
+    -- transaction prices, so we'll need to pick a style for those too.
+    --
+    -- Option 1: also infer styles from the price amounts, which normally isn't done.
+    -- canonicalise = maybe id canonicaliseMixedAmount (mglobalstyles <|> mtxnstyles)
+    --   where
+    --     mtxnstyles = dbg0 "transactionCheckBalanced mtxnstyles" $
+    --       either (const Nothing) Just $ -- shouldn't get any error here, but if so just.. carry on, comparing uncanonicalised amounts XXX
+    --         commodityStylesFromAmounts $ concatMap postingAllAmounts $ rps ++ bvps
+    --           where
+    --             -- | Get all the individual Amounts from a posting's MixedAmount,
+    --             -- and all their price Amounts as well.
+    --             postingAllAmounts :: Posting -> [Amount]
+    --             postingAllAmounts p = catMaybes $ concat [[Just a, priceamount a] | a <- amounts $ pamount p]
+    --               where 
+    --                 priceamount Amount{aprice} = 
+    --                   case aprice of
+    --                     Just (UnitPrice a) -> Just a
+    --                     Just (TotalPrice a) -> Just a
+    --                     Nothing -> Nothing
+    --
+    -- Option 2, for amounts converted to cost, where the new commodity appears only in prices,
+    -- use the precision of their original commodity (by using mixedAmountCostPreservingPrecision).
+    (tocost,costlabel) = case mglobalstyles of
+      Just _  -> (mixedAmountCost,"")  -- --balancing=styled
+      Nothing -> (mixedAmountCostPreservingPrecision,"withorigprecision")  -- --balancing=exact
     canonicalise = maybe id canonicaliseMixedAmount (mglobalstyles <|> mtxnstyles)
       where
-        mtxnstyles = either (const Nothing) Just $ -- shouldn't get any error here, but if so just.. carry on, comparing uncanonicalised amounts XXX
-          commodityStylesFromAmounts $ concatMap (amounts.pamount) $ rps ++ bvps
+        mtxnstyles = dbg9 "transactionCheckBalanced mtxnstyles" $
+          either (const Nothing) Just $ -- shouldn't get an error here, but if so just don't canonicalise
+            commodityStylesFromAmounts $ concatMap (amounts.pamount) $ rps ++ bvps
+
 
     -- check for mixed signs, detecting nonzeros at display precision
     signsOk ps = 
@@ -392,22 +425,28 @@ transactionCheckBalanced mglobalstyles t = errs
     (rsignsok, bvsignsok)       = (signsOk rps, signsOk bvps)
 
     -- check for zero sum, at display precision
-    (rsum, bvsum)               = (sumPostings rps, sumPostings bvps)
-    (rsumcost, bvsumcost)       = (mixedAmountCost rsum, mixedAmountCost bvsum)
-    (rsumdisplay, bvsumdisplay) = (canonicalise rsumcost, canonicalise bvsumcost)
-    (rsumok, bvsumok)           = (mixedAmountLooksZero rsumdisplay, mixedAmountLooksZero bvsumdisplay)
+    (rsum, bvsum)             = (dbg9 "transactionCheckBalanced rsum" $ sumPostings rps, sumPostings bvps)
+    (rsumcost, bvsumcost)     = (dbg9 ("transactionCheckBalanced rsumcost"++costlabel) $ tocost rsum, tocost bvsum)
+    (rsumstyled, bvsumstyled) = (dbg9 "transactionCheckBalanced rsumstyled" $ canonicalise rsumcost, canonicalise bvsumcost)
+    (rsumok, bvsumok)         = (mixedAmountLooksZero rsumstyled, mixedAmountLooksZero bvsumstyled)
 
-    -- generate error messages, showing amounts with their original precision
+    -- generate error messages
     errs = filter (not.null) [rmsg, bvmsg]
       where
         rmsg
           | not rsignsok  = "real postings all have the same sign"
-          | not rsumok    = "real postings' sum should be 0 but is: " ++ showMixedAmount (mixedAmountSetFullPrecision rsumcost)
+          | not rsumok    = printf "real postings' sum should be %s but is %s (rounded from %s)" rsumexpected rsumactual rsumfull
           | otherwise     = ""
         bvmsg
           | not bvsignsok = "balanced virtual postings all have the same sign"
-          | not bvsumok   = "balanced virtual postings' sum should be 0 but is: " ++ showMixedAmount (mixedAmountSetFullPrecision bvsumcost)
+          | not bvsumok   = printf "balanced virtual postings' sum should be %s but is %s (rounded from %s)" bvsumexpected bvsumactual bvsumfull
           | otherwise     = ""
+        rsumexpected = showMixedAmountWithZeroCommodity $ mapMixedAmount (\a -> a{aquantity=0}) rsumstyled
+        rsumactual = showMixedAmount rsumstyled
+        rsumfull = showMixedAmount (mixedAmountSetFullPrecision rsumcost)
+        bvsumexpected = showMixedAmountWithZeroCommodity $ mapMixedAmount (\a -> a{aquantity=0}) rsumstyled
+        bvsumactual = showMixedAmount bvsumstyled
+        bvsumfull = showMixedAmount (mixedAmountSetFullPrecision bvsumcost)
 
 -- | Legacy form of transactionCheckBalanced.
 isTransactionBalanced :: Maybe (M.Map CommoditySymbol AmountStyle) -> Transaction -> Bool

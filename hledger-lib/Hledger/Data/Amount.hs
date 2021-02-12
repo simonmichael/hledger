@@ -1,3 +1,4 @@
+{-# LANGUAGE NamedFieldPuns #-}
 {-|
 A simple 'Amount' is some quantity of money, shares, or anything else.
 It has a (possibly null) 'CommoditySymbol' and a numeric quantity:
@@ -106,6 +107,7 @@ module Hledger.Data.Amount (
   mixedAmountStripPrices,
   -- ** arithmetic
   mixedAmountCost,
+  mixedAmountCostPreservingPrecision,
   divideMixedAmount,
   multiplyMixedAmount,
   divideMixedAmountAndPrice,
@@ -318,6 +320,13 @@ amountCost a@Amount{aquantity=q, aprice=mp} =
       Nothing                                  -> a
       Just (UnitPrice  p@Amount{aquantity=pq}) -> p{aquantity=pq * q}
       Just (TotalPrice p@Amount{aquantity=pq}) -> p{aquantity=pq * signum q}
+
+-- | Like amountCost, but then re-apply the display precision of the
+-- original commodity.
+amountCostPreservingPrecision :: Amount -> Amount
+amountCostPreservingPrecision a@Amount{astyle=AmountStyle{asprecision}} =
+  a'{astyle=astyle'{asprecision=asprecision}}
+  where a'@Amount{astyle=astyle'} = amountCost a
 
 -- | Replace an amount's TotalPrice, if it has one, with an equivalent UnitPrice.
 -- Has no effect on amounts without one.
@@ -667,6 +676,11 @@ mapMixedAmount f (Mixed as) = Mixed $ map f as
 -- possible (see amountCost).
 mixedAmountCost :: MixedAmount -> MixedAmount
 mixedAmountCost = mapMixedAmount amountCost
+
+-- | Like mixedAmountCost, but then re-apply the display precision of the
+-- original commodity.
+mixedAmountCostPreservingPrecision :: MixedAmount -> MixedAmount
+mixedAmountCostPreservingPrecision = mapMixedAmount amountCostPreservingPrecision
 
 -- | Divide a mixed amount's quantities by a constant.
 divideMixedAmount :: Quantity -> MixedAmount -> MixedAmount
