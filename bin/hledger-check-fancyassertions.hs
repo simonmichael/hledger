@@ -225,7 +225,7 @@ checkAssertion accounts = checkAssertion'
     -- information, and sort by commodity name.
     fixup m1 m2 =
       let m = H.mixed $ amounts m1 ++ [m_ { H.aquantity = 0 } | m_ <- amounts m2]
-          as = amounts $ H.normaliseMixedAmount m
+          as = amounts m
       in H.mixed $ sortOn H.acommodity . map (\a -> a { H.astyle = H.amountstyle }) $ as
 
 -- | Check if an account name is mentioned in an assertion.

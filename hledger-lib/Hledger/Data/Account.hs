@@ -208,7 +208,7 @@ sortAccountTreeByAmount normalsign = mapAccounts $ \a -> a{asubs=sortSubs $ asub
     sortSubs = case normalsign of
         NormallyPositive -> sortOn (\a -> (Down $ amt a, aname a))
         NormallyNegative -> sortOn (\a -> (amt a, aname a))
-    amt = normaliseMixedAmountSquashPricesForDisplay . aibalance
+    amt = mixedAmountStripPrices . aibalance
 
 -- | Add extra info for this account derived from the Journal's
 -- account directives, if any (comment, tags, declaration order..).

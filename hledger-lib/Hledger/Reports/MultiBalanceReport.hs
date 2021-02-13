@@ -449,7 +449,7 @@ sortRows ropts j
     sortFlatMBRByAmount = case fromMaybe NormallyPositive $ normalbalance_ ropts of
         NormallyPositive -> sortOn (\r -> (Down $ amt r, prrFullName r))
         NormallyNegative -> sortOn (\r -> (amt r, prrFullName r))
-      where amt = normaliseMixedAmountSquashPricesForDisplay . prrTotal
+      where amt = mixedAmountStripPrices . prrTotal
 
     -- Sort the report rows by account declaration order then account name.
     sortMBRByAccountDeclaration :: [MultiBalanceReportRow] -> [MultiBalanceReportRow]
