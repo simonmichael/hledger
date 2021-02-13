@@ -323,6 +323,34 @@ journalAccountNameTree = accountNameTreeFrom . journalAccountNames
 
 -- queries for standard account types
 
+-- | Get a query for accounts of the specified types in this journal. 
+-- Account types include Asset, Liability, Equity, Revenue, Expense, Cash.
+-- For each type, if no accounts were declared with this type, the query 
+-- will instead match accounts with names matched by the case-insensitive 
+-- regular expression provided as a fallback.
+-- The query will match all accounts which were declared as one of
+-- these types (by account directives with the type: tag), plus all their 
+-- subaccounts which have not been declared as some other type.
+journalAccountTypeQuery :: [AccountType] -> Regexp -> Journal -> Query
+journalAccountTypeQuery atypes fallbackregex Journal{jdeclaredaccounttypes} =
+  let
+    declaredacctsoftype :: [AccountName] =
+      concat $ mapMaybe (`M.lookup` jdeclaredaccounttypes) atypes
+  in case declaredacctsoftype of
+    [] -> Acct fallbackregex
+    as -> And [ Or acctnameRegexes , Not $ Or differentlyTypedRegexes ]
+      where
+        -- XXX Query isn't able to match account type since that requires extra info from the journal.
+        -- So we do a hacky search by name instead.
+        acctnameRegexes = map (Acct . accountNameToAccountRegex) as
+        differentlyTypedRegexes = map (Acct . accountNameToAccountRegex) differentlytypedsubs
+
+        differentlytypedsubs = concat
+          [subs | (t,bs) <- M.toList jdeclaredaccounttypes
+              , not $ t `elem` atypes
+              , let subs = [b | b <- bs, any (`isAccountNamePrefixOf` b) as]
+          ]
+
 -- | A query for accounts in this journal which have been
 -- declared as Asset (or Cash, a subtype of Asset) by account directives, 
 -- or otherwise for accounts with names matched by the case-insensitive 
@@ -331,19 +359,39 @@ journalAssetAccountQuery :: Journal -> Query
 journalAssetAccountQuery j = 
   Or [
      journalAccountTypeQuery [Asset] (toRegexCI' "^assets?(:|$)") j
-    ,journalCashAccountQuery j
+    ,journalCashAccountOnlyQuery j
   ]
 
--- | A query for "Cash" (liquid asset) accounts in this journal, ie accounts
--- declared as Cash by account directives, or otherwise with names matched by the 
--- case-insensitive regular expression @^assets?(:|$)@. and not including
--- the case-insensitive regular expression @(investment|receivable|:A/R|:fixed)@.
+-- | A query for accounts in this journal which have been
+-- declared as Asset (and not Cash) by account directives, 
+-- or otherwise for accounts with names matched by the case-insensitive 
+-- regular expression @^assets?(:|$)@.
+journalAssetNonCashAccountQuery :: Journal -> Query
+journalAssetNonCashAccountQuery j = 
+  journalAccountTypeQuery [Asset] (toRegexCI' "^assets?(:|$)") j
+
+-- | A query for Cash (liquid asset) accounts in this journal, ie accounts
+-- declared as Cash by account directives, or otherwise Asset accounts whose 
+-- names do not include the case-insensitive regular expression 
+-- @(investment|receivable|:A/R|:fixed)@.
 journalCashAccountQuery  :: Journal -> Query
 journalCashAccountQuery j =
   case M.lookup Cash (jdeclaredaccounttypes j) of
-    Nothing -> And [ journalAssetAccountQuery j, Not . Acct $ toRegexCI' "(investment|receivable|:A/R|:fixed)" ]
-    Just _  -> journalAccountTypeQuery [Cash] notused j
-      where notused = error' "journalCashAccountQuery: this should not have happened!"  -- PARTIAL:
+    Just _  -> journalCashAccountOnlyQuery j
+    Nothing ->
+      -- no Cash accounts are declared; query for Asset accounts and exclude some of them
+      And [ journalAssetNonCashAccountQuery j, Not . Acct $ toRegexCI' "(investment|receivable|:A/R|:fixed)" ]
+
+-- | A query for accounts in this journal specifically declared as Cash by 
+-- account directives, or otherwise the None query.
+journalCashAccountOnlyQuery  :: Journal -> Query
+journalCashAccountOnlyQuery j = 
+  case M.lookup Cash (jdeclaredaccounttypes j) of
+    Just _  -> 
+      -- Cash accounts are declared; get a query for them (the fallback regex won't be used)
+      journalAccountTypeQuery [Cash] notused j
+        where notused = error' "journalCashAccountOnlyQuery: this should not have happened!"  -- PARTIAL:
+    Nothing -> None
 
 -- | A query for accounts in this journal which have been
 -- declared as Liability by account directives, or otherwise for
@@ -387,34 +435,6 @@ journalProfitAndLossAccountQuery  :: Journal -> Query
 journalProfitAndLossAccountQuery j = Or [journalRevenueAccountQuery j
                                         ,journalExpenseAccountQuery j
                                         ]
-
--- | Get a query for accounts of the specified types in this journal. 
--- Account types include Asset, Liability, Equity, Revenue, Expense, Cash.
--- The query will match all accounts which were declared as one of
--- these types by account directives, plus all their subaccounts which
--- have not been declared as some other type.
--- For each type, if no accounts were declared with this type, the query 
--- will instead match accounts with names matched by the case-insensitive 
--- regular expression provided as a fallback.
-journalAccountTypeQuery :: [AccountType] -> Regexp -> Journal -> Query
-journalAccountTypeQuery atypes fallbackregex Journal{jdeclaredaccounttypes} =
-  let
-    declaredacctsoftype :: [AccountName] =
-      concat $ mapMaybe (`M.lookup` jdeclaredaccounttypes) atypes
-  in case declaredacctsoftype of
-    [] -> Acct fallbackregex
-    as -> And [ Or acctnameRegexes, Not $ Or differentlyTypedRegexes ]
-      where
-        -- XXX Query isn't able to match account type since that requires extra info from the journal.
-        -- So we do a hacky search by name instead.
-        acctnameRegexes = map (Acct . accountNameToAccountRegex) as
-        differentlyTypedRegexes = map (Acct . accountNameToAccountRegex) differentlytypedsubs
-
-        differentlytypedsubs = concat
-          [subs | (t,bs) <- M.toList jdeclaredaccounttypes
-              , not $ t `elem` atypes
-              , let subs = [b | b <- bs, any (`isAccountNamePrefixOf` b) as]
-          ]
 
 -- Various kinds of filtering on journals. We do it differently depending
 -- on the command.
