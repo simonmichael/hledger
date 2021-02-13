@@ -429,11 +429,7 @@ This implementation turned out to be a bit convoluted but implements the followi
 -- The output will be one or more lines depending on the format and number of commodities.
 balanceReportItemAsText :: ReportOpts -> BalanceReportItem -> (TB.Builder, [Int])
 balanceReportItemAsText opts (_, accountName, depth, amt) =
-  renderBalanceReportItem opts (
-    accountName,
-    depth,
-    normaliseMixedAmountSquashPricesForDisplay amt
-    )
+  renderBalanceReportItem opts (accountName, depth, amt)
 
 -- | Render a balance report item using the given StringFormat, generating one or more lines of text.
 renderBalanceReportItem :: ReportOpts -> (AccountName, Int, MixedAmount) -> (TB.Builder, [Int])

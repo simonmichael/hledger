@@ -501,7 +501,7 @@ inferBalancingAmount styles t@Transaction{tpostings=ps}
               -- Inferred amounts are converted to cost.
               -- Also ensure the new amount has the standard style for its commodity
               -- (since the main amount styling pass happened before this balancing pass);
-              a' = styleMixedAmount styles . normaliseMixedAmount . mixedAmountCost $ maNegate a
+              a' = styleMixedAmount styles . mixedAmountCost $ maNegate a
 
 -- | Infer prices for this transaction's posting amounts, if needed to make
 -- the postings balance, and if possible. This is done once for the real
