@@ -72,3 +72,26 @@ Income Statement 2020-01-01
           ||          1 
 ==========++============
  Net:     ||          0 
+
+# 4. Just declaring a Cash account should not disable the fallback
+# regexp for Asset accounts.
+<
+account assets        ; 
+account assets:cash   ; type:Cash
+
+2021-01-01
+  (assets)       1
+  (assets:cash)  1
+
+$ hledger -f- bs -N
+Balance Sheet 2021-01-01
+
+             || 2021-01-01 
+=============++============
+ Assets      ||            
+-------------++------------
+ assets      ||          1 
+ assets:cash ||          1 
+=============++============
+ Liabilities ||            
+-------------++------------

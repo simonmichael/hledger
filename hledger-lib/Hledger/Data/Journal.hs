@@ -328,7 +328,11 @@ journalAccountNameTree = accountNameTreeFrom . journalAccountNames
 -- or otherwise for accounts with names matched by the case-insensitive 
 -- regular expression @^assets?(:|$)@.
 journalAssetAccountQuery :: Journal -> Query
-journalAssetAccountQuery = journalAccountTypeQuery [Asset,Cash] (toRegexCI' "^assets?(:|$)")
+journalAssetAccountQuery j = 
+  Or [
+     journalAccountTypeQuery [Asset] (toRegexCI' "^assets?(:|$)") j
+    ,journalCashAccountQuery j
+  ]
 
 -- | A query for "Cash" (liquid asset) accounts in this journal, ie accounts
 -- declared as Cash by account directives, or otherwise with names matched by the 
@@ -384,13 +388,14 @@ journalProfitAndLossAccountQuery j = Or [journalRevenueAccountQuery j
                                         ,journalExpenseAccountQuery j
                                         ]
 
--- | Get a query for accounts of the specified types (Asset, Liability..) in this journal.
+-- | Get a query for accounts of the specified types in this journal. 
+-- Account types include Asset, Liability, Equity, Revenue, Expense, Cash.
 -- The query will match all accounts which were declared as one of
 -- these types by account directives, plus all their subaccounts which
 -- have not been declared as some other type.
--- Or if no accounts were declared with these types, the query will
--- instead match accounts with names matched by the provided
--- case-insensitive regular expression.
+-- For each type, if no accounts were declared with this type, the query 
+-- will instead match accounts with names matched by the case-insensitive 
+-- regular expression provided as a fallback.
 journalAccountTypeQuery :: [AccountType] -> Regexp -> Journal -> Query
 journalAccountTypeQuery atypes fallbackregex Journal{jdeclaredaccounttypes} =
   let
