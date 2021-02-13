@@ -805,6 +805,7 @@ We could produce value reports without needing P directives at all.
 Adding the `--infer-market-price` flag to `-V`, `-X` or `--value` enables
 this. So for example, `hledger bs -V --infer-market-price` will get market
 prices both from P directives and from transactions.
+(And if both occur on the same day, the P directive takes precedence).
 
 There is a downside: value reports can sometimes  be affected in
 confusing/undesired ways by your journal entries. If this happens to
