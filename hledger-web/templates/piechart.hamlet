@@ -1,0 +1,53 @@
+<div style="width: 45%; margin-bottom:1em; float: left">
+  <div id="register-pie-chart-#{chartId}" style="height: 150px; display: none">
+  <div id="register-pie-hover-#{chartId}">
+<script type=text/javascript>
+ \$(document).ready(function() {
+   var $chartdiv = $('#register-pie-chart-#{chartId}');
+   if (#{showChart}) {
+     \$chartdiv.show();
+     var data =
+       [
+         $forall (label, dat, _) <- labelData
+           { label: "#{label}", data: #{dat} },
+       ];
+     function legendFormatter(label, series) {
+       return Math.round(series.percent).toFixed(2) + '% ' + label;
+     };
+     var options = {
+       series: {
+         pie: {
+           show: true
+         }
+       },
+       grid: {
+         hoverable: true,
+         clickable: true
+       },
+       legend: {
+         show: true,
+         labelFormatter: legendFormatter,
+         position: "#{legendPosition}"
+       }
+     };
+     \$.plot($chartdiv, data, options);
+     \$chartdiv.bind("plothover", function(event, pos, obj) {
+       if (!obj) {
+         return;
+       }
+       var percent = parseFloat(obj.series.percent).toFixed(2);
+       \$("#register-pie-hover-#{chartId}").html("<span style='font-weight:bold; color:" + obj.series.color + "'>" + obj.series.label + " (" + percent + "%)</span>");
+     });
+     \$chartdiv.bind("plotclick", function(event, pos, obj) {
+       if (!obj) {
+         return;
+       }
+       var baselink = "@?{noacctlink}";
+       if (baselink.endsWith("?q")) {
+         document.location = baselink + "=inacct:%22" + obj.series.label + "%22";
+       } else {
+         document.location = baselink + "%20inacct:%22" + obj.series.label + "%22";
+       }
+     });
+   }
+ });

@@ -8,7 +8,7 @@
 
 module Hledger.Web.Handler.RegisterR where
 
-import Data.List (intersperse, nub, partition)
+import Data.List (intersperse, nub, partition, sortOn)
 import qualified Data.Text as T
 import Text.Hamlet (hamletFile)
 
@@ -50,6 +50,12 @@ getRegisterR = do
         | isJust (inAccount qopts) = "Period Total"
         | otherwise                = "Total"
       transactionFrag = transactionFragment j
+      (chartQuery, depth) =
+          case (,) <$> inAccount qopts <*> inAccountQuery qopts of
+              Nothing -> (Any, 0)
+              Just ((an, _), aq) -> (aq, accountNameLevel an)
+      rspecWithQuery = rspec { rsQuery = (And [chartQuery, Depth $ depth + 1, m]) }
+      balancereport = balanceReport rspecWithQuery j
   defaultLayout $ do
     setTitle "register - hledger-web"
     $(widgetFile "register")
@@ -109,6 +115,34 @@ registerChartHtml title percommoditytxnreports = $(hamletFile "templates/chart.h
    commoditiesIndex = zip (map fst percommoditytxnreports) [0..] :: [(CommoditySymbol,Int)]
    simpleMixedAmountQuantity = maybe 0 aquantity . listToMaybe . amounts
    shownull c = if null c then " " else c
+
+data PieHalf = Positive | Negative
+
+moreThanOne :: Eq a => [a] -> Bool
+moreThanOne [] = False
+moreThanOne (x : xs) = rec xs
+  where
+    rec [] = False
+    rec (y : ys) = x /= y || (rec ys)
+
+-- | Generate javascript/html for a mockup pie chart
+registerPieChartHtml :: PieHalf -> Text -> BalanceReport -> HtmlUrl AppRoute
+registerPieChartHtml half q (items, _) = $(hamletFile "templates/piechart.hamlet")
+  where
+    labelData =
+      reverse $
+      sortOn (\(_, quant, _) -> quant) $
+      filter (\(_, quant, _) -> case half of Positive -> quant >= 0
+                                             Negative -> quant < 0) $
+      flip concatMap items $ \(accname, _, _, Mixed as) ->
+        flip map as $ \a -> (accname, aquantity a, acommodity a)
+    moreThanOneCommodity = moreThanOne $ map (\(_, _, com) -> com) labelData
+    showChart = if (moreThanOneCommodity) then "false" else "true" :: String
+    noacctlink = (RegisterR, [("q", T.unwords $ removeInacct q)])
+    chartId = case half of Positive -> "postive" :: String
+                           Negative -> "negative" :: String
+    legendPosition = case half of Positive -> "nw" :: String
+                                  Negative -> "ne" :: String
 
 dayToJsTimestamp :: Day -> Integer
 dayToJsTimestamp d =

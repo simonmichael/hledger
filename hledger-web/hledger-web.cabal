@@ -103,6 +103,7 @@ extra-source-files:
     templates/edit-form.hamlet
     templates/journal.hamlet
     templates/manage.hamlet
+    templates/piechart.hamlet
     templates/register.hamlet
     templates/upload-form.hamlet
     hledger-web.1
