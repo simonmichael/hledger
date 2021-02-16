@@ -58,8 +58,10 @@
      plot.setSelection({ xaxis: { from: 500, to: 700 } });
      \$chartdiv.bind("plotselected", function(event, ranges) {
        console.log("selected", ranges.xaxis.from, ranges.xaxis.to);
+       /* Round down for the 'from' day: */
        var from = new Date(ranges.xaxis.from);
-       var to = new Date(ranges.xaxis.to);
+       /* Round up for the 'to' day: */
+       var to = new Date(ranges.xaxis.to + (24 * 60 * 60 * 1000) - 1);
        var range =
          from.getFullYear() + "/" + (from.getMonth() + 1) + "/" + from.getDate() + "-" +
          to.getFullYear() + "/" + (to.getMonth() + 1) + "/" + to.getDate();
