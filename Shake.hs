@@ -117,7 +117,8 @@ fromsrcmd = "-f markdown-smart-tex_math_dollars"
 --  recommonmark (Commonmark syntax, https://spec.commonmark.org)
 --  sphinx-markdown-tables (PHP Markdown Extra table syntax, https://michelf.ca/projects/php-markdown/extra/#table)
 -- XXX trying to force the use of pipe_tables here, but sometimes it uses html instead
-towebmd = "-t markdown-smart-fenced_divs-fenced_code_attributes-simple_tables-multiline_tables-grid_tables-raw_attribute --atx-headers"
+-- --markdown-headings=atx requires pandoc 2.11.2+, with older pandoc use --atx-headers instead
+towebmd = "-t markdown-smart-fenced_divs-fenced_code_attributes-simple_tables-multiline_tables-grid_tables-raw_attribute --markdown-headings=atx"
 
 
 main = do
