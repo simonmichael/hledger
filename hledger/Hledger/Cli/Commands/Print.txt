@@ -5,9 +5,21 @@ _FLAGS
 
 The print command displays full journal entries (transactions) from the
 journal file, sorted by date (or with --date2, by secondary date).
+
+Amounts are shown mostly normalised to commodity display style, eg the
+placement of commodity symbols will be consistent. All of their decimal
+places are shown, as in the original journal entry (with one alteration:
+in some cases trailing zeroes are added.)
+
 Amounts are shown right-aligned within each transaction (but not across
-all transactions). Directives and inter-transaction comments are not
-shown. Eg:
+all transactions).
+
+Directives and inter-transaction comments are not shown, currently. This
+means the print command is somewhat lossy, and if you are using it to
+reformat your journal you should take care to also copy over the
+directives and file-level comments.
+
+Eg:
 
 $ hledger print
 2008/01/01 income
@@ -41,8 +53,6 @@ $ hledger print assets:cash | hledger -f- -I reg expenses:food
 
 There are some situations where print's output can become unparseable:
 
--   Rounding amounts according to commodity display styles can cause
-    transactions to appear unbalanced.
 -   Valuation affects posting amounts but not balance assertion or
     balance assignment amounts, potentially causing those to fail.
 -   Auto postings can generate postings with too many missing amounts.
