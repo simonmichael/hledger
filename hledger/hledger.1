@@ -179,8 +179,9 @@ convert amounts to their market value in commodity COMM
 \f[B]\f[CB]--value\f[B]\f[R]
 convert amounts to cost or market value, more flexibly than -B/-V/-X
 .TP
-\f[B]\f[CB]--infer-value\f[B]\f[R]
-with -V/-X/--value, also infer market prices from transactions
+\f[B]\f[CB]--infer-market-prices\f[B]\f[R]
+use transaction prices (recorded with \[at] or \[at]\[at]) as additional
+market prices, as if they were P directives
 .TP
 \f[B]\f[CB]--auto\f[B]\f[R]
 apply automated posting rules to modify transactions.
@@ -1226,19 +1227,22 @@ Some of these can also be expressed as command-line options (eg
 Generally you can mix options and query arguments, and the resulting
 query will be their intersection (perhaps excluding the
 \f[C]-p/--period\f[R] option).
+.SH COSTING
+.PP
+The \f[C]-B/--cost\f[R] flag converts amounts to their cost or sale
+amount at transaction time, if they have a transaction price specified.
+If this flag is supplied, hledger will perform cost conversion first,
+and will apply any market price valuations (if requested) afterwards.
 .SH VALUATION
 .PP
 Instead of reporting amounts in their original commodity, hledger can
 convert them to cost/sale amount (using the conversion rate recorded in
-the transaction), or to market value (using some market price on a
+the transaction), and/or to market value (using some market price on a
 certain date).
-This is controlled by the \f[C]--value=TYPE[,COMMODITY]\f[R] option, but
-we also provide the simpler \f[C]-B\f[R]/\f[C]-V\f[R]/\f[C]-X\f[R]
-flags, and usually one of those is all you need.
-.SS -B: Cost
-.PP
-The \f[C]-B/--cost\f[R] flag converts amounts to their cost or sale
-amount at transaction time, if they have a transaction price specified.
+This is controlled by the \f[C]--cost\f[R] and
+\f[C]--value=TYPE[,COMMODITY]\f[R] options, but we also provide the
+simpler \f[C]-V\f[R]/\f[C]-X\f[R] flags, and usually one of those is all
+you need.
 .SS -V: Value
 .PP
 The \f[C]-V/--market\f[R] flag converts amounts to market value in their
@@ -1270,17 +1274,17 @@ this order of preference :
 .IP "1." 3
 A \f[I]declared market price\f[R] or \f[I]inferred market price\f[R]:
 A\[aq]s latest market price in B on or before the valuation date as
-declared by a P directive, or (with the \f[C]--infer-value\f[R] flag)
-inferred from transaction prices.
+declared by a P directive, or (with the \f[C]--infer-market-price\f[R]
+flag) inferred from transaction prices.
 .IP "2." 3
 A \f[I]reverse market price\f[R]: the inverse of a declared or inferred
 market price from B to A.
 .IP "3." 3
-A \f[I]a forward chain of market prices\f[R]: a synthetic price formed
-by combining the shortest chain of \[dq]forward\[dq] (only 1 above)
-market prices, leading from A to B.
+A \f[I]forward chain of market prices\f[R]: a synthetic price formed by
+combining the shortest chain of \[dq]forward\[dq] (only 1 above) market
+prices, leading from A to B.
 .IP "4." 3
-A \f[I]any chain of market prices\f[R]: a chain of any market prices,
+\f[I]Any chain of market prices\f[R]: a chain of any market prices,
 including both forward and reverse prices (1 and 2 above), leading from
 A to B.
 .PP
@@ -1292,7 +1296,7 @@ That limit is currently 1000.
 .PP
 Amounts for which no suitable market price can be found, are not
 converted.
-.SS --infer-value: market prices from transactions
+.SS --infer-market-price: market prices from transactions
 .PP
 Normally, market value in hledger is fully controlled by, and requires,
 P directives in your journal.
@@ -1301,17 +1305,18 @@ usually take place at close to market value, why not use the recorded
 transaction prices as additional market prices (as Ledger does) ?
 We could produce value reports without needing P directives at all.
 .PP
-Adding the \f[C]--infer-value\f[R] flag to \f[C]-V\f[R], \f[C]-X\f[R] or
-\f[C]--value\f[R] enables this.
-So for example, \f[C]hledger bs -V --infer-value\f[R] will get market
-prices both from P directives and from transactions.
+Adding the \f[C]--infer-market-price\f[R] flag to \f[C]-V\f[R],
+\f[C]-X\f[R] or \f[C]--value\f[R] enables this.
+So for example, \f[C]hledger bs -V --infer-market-price\f[R] will get
+market prices both from P directives and from transactions.
+(And if both occur on the same day, the P directive takes precedence).
 .PP
 There is a downside: value reports can sometimes be affected in
 confusing/undesired ways by your journal entries.
 If this happens to you, read all of this Valuation section carefully,
 and try adding \f[C]--debug\f[R] or \f[C]--debug=2\f[R] to troubleshoot.
 .PP
-\f[C]--infer-value\f[R] can infer market prices from:
+\f[C]--infer-market-price\f[R] can infer market prices from:
 .IP \[bu] 2
 multicommodity transactions with explicit prices
 (\f[C]\[at]\f[R]/\f[C]\[at]\[at]\f[R])
@@ -1350,16 +1355,16 @@ date.
 valuation date.)
 .IP "3." 3
 If there are no P directives at all (any commodity or date) and the
-\f[C]--infer-value\f[R] flag is used: the price commodity from the
-latest transaction-inferred price for A on or before valuation date.
+\f[C]--infer-market-price\f[R] flag is used: the price commodity from
+the latest transaction-inferred price for A on or before valuation date.
 .PP
 This means:
 .IP \[bu] 2
 If you have P directives, they determine which commodities \f[C]-V\f[R]
 will convert, and to what.
 .IP \[bu] 2
-If you have no P directives, and use the \f[C]--infer-value\f[R] flag,
-transaction prices determine it.
+If you have no P directives, and use the \f[C]--infer-market-price\f[R]
+flag, transaction prices determine it.
 .PP
 Amounts for which no valuation commodity can be found are not converted.
 .SS Simple valuation examples
@@ -1410,15 +1415,14 @@ $ hledger -f t.j bal -N euros -V
 .fi
 .SS --value: Flexible valuation
 .PP
-\f[C]-B\f[R], \f[C]-V\f[R] and \f[C]-X\f[R] are special cases of the
-more general \f[C]--value\f[R] option:
+\f[C]-V\f[R] and \f[C]-X\f[R] are special cases of the more general
+\f[C]--value\f[R] option:
 .IP
 .nf
 \f[C]
- --value=TYPE[,COMM]  TYPE is cost, then, end, now or YYYY-MM-DD.
+ --value=TYPE[,COMM]  TYPE is then, end, now or YYYY-MM-DD.
                       COMM is an optional commodity symbol.
                       Shows amounts converted to:
-                      - cost commodity using transaction prices (then optionally to COMM using market prices at period end(s))
                       - default valuation commodity (or COMM) using market prices at posting dates
                       - default valuation commodity (or COMM) using market prices at period end(s)
                       - default valuation commodity (or COMM) using current market prices
@@ -1427,9 +1431,6 @@ more general \f[C]--value\f[R] option:
 .fi
 .PP
 The TYPE part selects cost or value and valuation date:
-.TP
-\f[B]\f[CB]--value=cost\f[B]\f[R]
-Convert amounts to cost, using the prices recorded in transactions.
 .TP
 \f[B]\f[CB]--value=then\f[B]\f[R]
 Convert amounts to their value in the default valuation commodity, using
@@ -1481,7 +1482,7 @@ Show the cost of each posting:
 .IP
 .nf
 \f[C]
-$ hledger -f- print --value=cost
+$ hledger -f- print --cost
 2000-01-01
     (a)             5 B
 
@@ -1620,7 +1621,7 @@ lw(9.5n) lw(11.8n) lw(12.0n) lw(17.2n) lw(12.0n) lw(7.4n).
 T{
 Report type
 T}@T{
-\f[C]-B\f[R], \f[C]--value=cost\f[R]
+\f[C]-B\f[R], \f[C]--cost\f[R]
 T}@T{
 \f[C]-V\f[R], \f[C]-X\f[R]
 T}@T{
@@ -2355,40 +2356,58 @@ aregister, areg
 .PD 0
 .P
 .PD
-Show transactions affecting a particular account, and the account\[aq]s
-running balance.
+.PP
+Show the transactions and running historical balance in an account, with
+each line item representing one transaction.
 .PP
 \f[C]aregister\f[R] shows the transactions affecting a particular
-account (and its subaccounts), from the point of view of that account.
-Each line shows:
-.IP \[bu] 2
-the transaction\[aq]s (or posting\[aq]s, see below) date
-.IP \[bu] 2
-the names of the other account(s) involved
-.IP \[bu] 2
-the net change to this account\[aq]s balance
-.IP \[bu] 2
-the account\[aq]s historical running balance (including balance from
-transactions before the report start date).
+account and its subaccounts, with each line item representing a whole
+transaction - as in bank statements, hledger-ui, hledger-web and other
+accounting apps.
 .PP
-With \f[C]aregister\f[R], each line represents a whole transaction - as
-in hledger-ui, hledger-web, and your bank statement.
-By contrast, the \f[C]register\f[R] command shows individual postings,
-across all accounts.
-You might prefer \f[C]aregister\f[R] for reconciling with real-world
-asset/liability accounts, and \f[C]register\f[R] for reviewing detailed
-revenues/expenses.
+Note this is unlike the \f[C]register\f[R] command, which shows
+individual postings and does not always show a single account or a
+historical balance.
 .PP
-An account must be specified as the first argument, which should be the
-full account name or an account pattern (regular expression).
-aregister will show transactions in this account (the first one matched)
-and any of its subaccounts.
+A reminder, \[dq]historical\[dq] balances include any balance from
+transactions before the report start date, so (if opening balances are
+recorded correctly) \f[C]aregister\f[R] will show the real-world
+balances of an account, as you would see in a bank statement.
+.PP
+As a quick rule of thumb, use \f[C]aregister\f[R] for reconciling
+real-world asset/liability accounts and \f[C]register\f[R] for reviewing
+detailed revenues/expenses.
+.PP
+\f[C]aregister\f[R] shows the register for just one account (and its
+subaccounts).
+This account must be specified as the first argument.
+You can write either the full account name, or a case-insensitive
+regular expression which will select the alphabetically first matched
+account.
+(Eg if you have \f[C]assets:aaa:checking\f[R] and
+\f[C]assets:bbb:checking\f[R] accounts, \f[C]hledger areg checking\f[R]
+would select \f[C]assets:aaa:checking\f[R].)
 .PP
 Any additional arguments form a query which will filter the transactions
 shown.
 .PP
+Each \f[C]aregister\f[R] line item shows:
+.IP \[bu] 2
+the transaction\[aq]s date (or the relevant posting\[aq]s date if
+different, see below)
+.IP \[bu] 2
+the names of all the other account(s) involved in this transaction
+(probably abbreviated)
+.IP \[bu] 2
+the total change to this account\[aq]s balance from this transaction
+.IP \[bu] 2
+the account\[aq]s historical running balance after this transaction.
+.PP
 Transactions making a net change of zero are not shown by default; add
 the \f[C]-E/--empty\f[R] flag to show them.
+.PP
+\f[C]aregister\f[R] ignores a depth limit, so its final total will
+always match a balance report with similar arguments.
 .PP
 This command also supports the output destination and output format
 options The output formats supported are \f[C]txt\f[R], \f[C]csv\f[R],
@@ -2534,157 +2553,6 @@ the sum of the top-level balances, not of all the balances shown.
 .PP
 Each group of sibling accounts is sorted separately, by declaration
 order and then by account name.
-.SS Customising single-period balance reports
-.PP
-You can customise the layout of single-period balance reports with
-\f[C]--format FMT\f[R], which sets the format of each line.
-Eg:
-.IP
-.nf
-\f[C]
-$ hledger balance --format \[dq]%20(account) %12(total)\[dq]
-              assets          $-1
-         bank:saving           $1
-                cash          $-2
-            expenses           $2
-                food           $1
-            supplies           $1
-              income          $-2
-               gifts          $-1
-              salary          $-1
-   liabilities:debts           $1
----------------------------------
-                                0
-\f[R]
-.fi
-.PP
-The FMT format string (plus a newline) specifies the formatting applied
-to each account/balance pair.
-It may contain any suitable text, with data fields interpolated like so:
-.PP
-\f[C]%[MIN][.MAX](FIELDNAME)\f[R]
-.IP \[bu] 2
-MIN pads with spaces to at least this width (optional)
-.IP \[bu] 2
-MAX truncates at this width (optional)
-.IP \[bu] 2
-FIELDNAME must be enclosed in parentheses, and can be one of:
-.RS 2
-.IP \[bu] 2
-\f[C]depth_spacer\f[R] - a number of spaces equal to the account\[aq]s
-depth, or if MIN is specified, MIN * depth spaces.
-.IP \[bu] 2
-\f[C]account\f[R] - the account\[aq]s name
-.IP \[bu] 2
-\f[C]total\f[R] - the account\[aq]s balance/posted total, right
-justified
-.RE
-.PP
-Also, FMT can begin with an optional prefix to control how
-multi-commodity amounts are rendered:
-.IP \[bu] 2
-\f[C]%_\f[R] - render on multiple lines, bottom-aligned (the default)
-.IP \[bu] 2
-\f[C]%\[ha]\f[R] - render on multiple lines, top-aligned
-.IP \[bu] 2
-\f[C]%,\f[R] - render on one line, comma-separated
-.PP
-There are some quirks.
-Eg in one-line mode, \f[C]%(depth_spacer)\f[R] has no effect, instead
-\f[C]%(account)\f[R] has indentation built in.
-Experimentation may be needed to get pleasing results.
-.PP
-Some example formats:
-.IP \[bu] 2
-\f[C]%(total)\f[R] - the account\[aq]s total
-.IP \[bu] 2
-\f[C]%-20.20(account)\f[R] - the account\[aq]s name, left justified,
-padded to 20 characters and clipped at 20 characters
-.IP \[bu] 2
-\f[C]%,%-50(account)  %25(total)\f[R] - account name padded to 50
-characters, total padded to 20 characters, with multiple commodities
-rendered on one line
-.IP \[bu] 2
-\f[C]%20(total)  %2(depth_spacer)%-(account)\f[R] - the default format
-for the single-column balance report
-.SS Depth limiting
-.PP
-With a \f[C]depth:N\f[R] query, or \f[C]--depth N\f[R] option, or just
-\f[C]-N\f[R], balance reports will show accounts only to the specified
-depth.
-This is very useful to hide low-level accounts and get an overview.
-Eg, limiting to depth 1 shows the top-level accounts:
-.IP
-.nf
-\f[C]
-$ hledger balance -N -1
-                 $-1  assets
-                  $2  expenses
-                 $-2  income
-                  $1  liabilities
-\f[R]
-.fi
-.PP
-Accounts at the depth limit will include the balances of any hidden
-subaccounts (even in flat mode, which normally shows exclusive
-balances).
-.PP
-You can also drop account name components from the start of account
-names, using \f[C]--drop N\f[R].
-This can be useful to hide unwanted top-level detail.
-.SS Colour support
-.PP
-In terminal output, when colour is enabled, the balance command shows
-negative amounts in red.
-.SS Sorting by amount
-.PP
-With \f[C]-S\f[R]/\f[C]--sort-amount\f[R], accounts with the largest
-(most positive) balances are shown first.
-For example, \f[C]hledger bal expenses -MAS\f[R] shows your biggest
-averaged monthly expenses first.
-.PP
-Revenues and liability balances are typically negative, however, so
-\f[C]-S\f[R] shows these in reverse order.
-To work around this, you can add \f[C]--invert\f[R] to flip the signs.
-Or, use one of the sign-flipping reports like \f[C]balancesheet\f[R] or
-\f[C]incomestatement\f[R], which also support \f[C]-S\f[R].
-Eg: \f[C]hledger is -MAS\f[R].
-.SS Percentages
-.PP
-With \f[C]-%\f[R] or \f[C]--percent\f[R], balance reports show each
-account\[aq]s value expressed as a percentage of the column\[aq]s total.
-This is useful to get an overview of the relative sizes of account
-balances.
-For example to obtain an overview of expenses:
-.IP
-.nf
-\f[C]
-$ hledger balance expenses -%
-             100.0 %  expenses
-              50.0 %    food
-              50.0 %    supplies
---------------------
-             100.0 %
-\f[R]
-.fi
-.PP
-Note that \f[C]--tree\f[R] does not have an effect on \f[C]-%\f[R].
-The percentages are always relative to the total sum of each column,
-they are never relative to the parent account.
-.PP
-Since the percentages are relative to the columns sum, it is usually not
-useful to calculate percentages if the signs of the amounts are mixed.
-Although the results are technically correct, they are most likely
-useless.
-Especially in a balance report that sums up to zero (eg
-\f[C]hledger balance -B\f[R]) all percentage values will be zero.
-.PP
-This flag does not work if the report contains any mixed commodity
-accounts.
-If there are mixed commodity accounts in the report be sure to use
-\f[C]-V\f[R] or \f[C]-B\f[R] to coerce the report into using a single
-commodity.
-.PP
 .SS Multi-period balance report
 .PP
 Multi-period balance reports are a very useful hledger feature,
@@ -2827,14 +2695,166 @@ the width of multicommodity reports.
 When the report is still too wide, a good workaround is to pipe it into
 \f[C]less -RS\f[R] (-R for colour, -S to chop long lines).
 Eg: \f[C]hledger bal -D --color=yes | less -RS\f[R].
+.SS Depth limiting
+.PP
+With a \f[C]depth:N\f[R] query, or \f[C]--depth N\f[R] option, or just
+\f[C]-N\f[R], balance reports will show accounts only to the specified
+depth.
+This is very useful to hide low-level accounts and get an overview.
+Eg, limiting to depth 1 shows the top-level accounts:
+.IP
+.nf
+\f[C]
+$ hledger balance -N -1
+                 $-1  assets
+                  $2  expenses
+                 $-2  income
+                  $1  liabilities
+\f[R]
+.fi
+.PP
+Accounts at the depth limit will include the balances of any hidden
+subaccounts (even in flat mode, which normally shows exclusive
+balances).
+.PP
+You can also drop account name components from the start of account
+names, using \f[C]--drop N\f[R].
+This can be useful to hide unwanted top-level detail.
+.SS Colour support
+.PP
+In terminal output, when colour is enabled, the balance command shows
+negative amounts in red.
+.SS Sorting by amount
+.PP
+With \f[C]-S\f[R]/\f[C]--sort-amount\f[R], accounts with the largest
+(most positive) balances are shown first.
+For example, \f[C]hledger bal expenses -MAS\f[R] shows your biggest
+averaged monthly expenses first.
+.PP
+Revenues and liability balances are typically negative, however, so
+\f[C]-S\f[R] shows these in reverse order.
+To work around this, you can add \f[C]--invert\f[R] to flip the signs.
+Or, use one of the sign-flipping reports like \f[C]balancesheet\f[R] or
+\f[C]incomestatement\f[R], which also support \f[C]-S\f[R].
+Eg: \f[C]hledger is -MAS\f[R].
+.SS Percentages
+.PP
+With \f[C]-%\f[R] or \f[C]--percent\f[R], balance reports show each
+account\[aq]s value expressed as a percentage of the column\[aq]s total.
+This is useful to get an overview of the relative sizes of account
+balances.
+For example to obtain an overview of expenses:
+.IP
+.nf
+\f[C]
+$ hledger balance expenses -%
+             100.0 %  expenses
+              50.0 %    food
+              50.0 %    supplies
+--------------------
+             100.0 %
+\f[R]
+.fi
+.PP
+Note that \f[C]--tree\f[R] does not have an effect on \f[C]-%\f[R].
+The percentages are always relative to the total sum of each column,
+they are never relative to the parent account.
+.PP
+Since the percentages are relative to the columns sum, it is usually not
+useful to calculate percentages if the signs of the amounts are mixed.
+Although the results are technically correct, they are most likely
+useless.
+Especially in a balance report that sums up to zero (eg
+\f[C]hledger balance -B\f[R]) all percentage values will be zero.
+.PP
+This flag does not work if the report contains any mixed commodity
+accounts.
+If there are mixed commodity accounts in the report be sure to use
+\f[C]-V\f[R] or \f[C]-B\f[R] to coerce the report into using a single
+commodity.
+.PP
+.SS Customising single-period balance reports
+.PP
+You can customise the layout of single-period balance reports with
+\f[C]--format FMT\f[R], which sets the format of each line.
+Eg:
+.IP
+.nf
+\f[C]
+$ hledger balance --format \[dq]%20(account) %12(total)\[dq]
+              assets          $-1
+         bank:saving           $1
+                cash          $-2
+            expenses           $2
+                food           $1
+            supplies           $1
+              income          $-2
+               gifts          $-1
+              salary          $-1
+   liabilities:debts           $1
+---------------------------------
+                                0
+\f[R]
+.fi
+.PP
+The FMT format string (plus a newline) specifies the formatting applied
+to each account/balance pair.
+It may contain any suitable text, with data fields interpolated like so:
+.PP
+\f[C]%[MIN][.MAX](FIELDNAME)\f[R]
+.IP \[bu] 2
+MIN pads with spaces to at least this width (optional)
+.IP \[bu] 2
+MAX truncates at this width (optional)
+.IP \[bu] 2
+FIELDNAME must be enclosed in parentheses, and can be one of:
+.RS 2
+.IP \[bu] 2
+\f[C]depth_spacer\f[R] - a number of spaces equal to the account\[aq]s
+depth, or if MIN is specified, MIN * depth spaces.
+.IP \[bu] 2
+\f[C]account\f[R] - the account\[aq]s name
+.IP \[bu] 2
+\f[C]total\f[R] - the account\[aq]s balance/posted total, right
+justified
+.RE
+.PP
+Also, FMT can begin with an optional prefix to control how
+multi-commodity amounts are rendered:
+.IP \[bu] 2
+\f[C]%_\f[R] - render on multiple lines, bottom-aligned (the default)
+.IP \[bu] 2
+\f[C]%\[ha]\f[R] - render on multiple lines, top-aligned
+.IP \[bu] 2
+\f[C]%,\f[R] - render on one line, comma-separated
+.PP
+There are some quirks.
+Eg in one-line mode, \f[C]%(depth_spacer)\f[R] has no effect, instead
+\f[C]%(account)\f[R] has indentation built in.
+Experimentation may be needed to get pleasing results.
+.PP
+Some example formats:
+.IP \[bu] 2
+\f[C]%(total)\f[R] - the account\[aq]s total
+.IP \[bu] 2
+\f[C]%-20.20(account)\f[R] - the account\[aq]s name, left justified,
+padded to 20 characters and clipped at 20 characters
+.IP \[bu] 2
+\f[C]%,%-50(account)  %25(total)\f[R] - account name padded to 50
+characters, total padded to 20 characters, with multiple commodities
+rendered on one line
+.IP \[bu] 2
+\f[C]%20(total)  %2(depth_spacer)%-(account)\f[R] - the default format
+for the single-column balance report
 .SS Budget report
 .PP
-With \f[C]--budget\f[R], extra columns are displayed showing budget
+There is also a special balance report mode for showing budget
+performance.
+The \f[C]--budget\f[R] flag activates extra columns showing the budget
 goals for each account and period, if any.
-Budget goals are defined by periodic transactions.
+For this report, budget goals are defined by periodic transactions.
 This is very useful for comparing planned and actual income, expenses,
 time usage, etc.
---budget is most often combined with a report interval.
 .PP
 For example, you can take average monthly expenses in the common expense
 categories to construct a minimal monthly budget:
@@ -3783,11 +3803,15 @@ payees
 .PD
 List the unique payee/payer names that appear in transactions.
 .PP
-This command lists the unique payee/payer names that appear in
-transactions, in alphabetic order.
-You can add a query to select a subset of transactions.
+This command lists unique payee/payer names which have been declared
+with payee directives (--declared), used in transaction descriptions
+(--used), or both (the default).
+.PP
 The payee/payer is the part of the transaction description before a |
 character (or if there is no |, the whole description).
+.PP
+You can add query arguments to select a subset of transactions.
+This implies --used.
 .PP
 Example:
 .IP
@@ -3823,9 +3847,20 @@ Show transaction journal entries, sorted by date.
 The print command displays full journal entries (transactions) from the
 journal file, sorted by date (or with \f[C]--date2\f[R], by secondary
 date).
+.PP
+Amounts are shown mostly normalised to commodity display style, eg the
+placement of commodity symbols will be consistent.
+All of their decimal places are shown, as in the original journal entry
+(with one alteration: in some cases trailing zeroes are added.)
+.PP
 Amounts are shown right-aligned within each transaction (but not across
 all transactions).
-Directives and inter-transaction comments are not shown.
+.PP
+Directives and inter-transaction comments are not shown, currently.
+This means the print command is somewhat lossy, and if you are using it
+to reformat your journal you should take care to also copy over the
+directives and file-level comments.
+.PP
 Eg:
 .IP
 .nf
@@ -3868,9 +3903,6 @@ $ hledger print assets:cash | hledger -f- -I reg expenses:food
 .PP
 There are some situations where print\[aq]s output can become
 unparseable:
-.IP \[bu] 2
-Rounding amounts according to commodity display styles can cause
-transactions to appear unbalanced.
 .IP \[bu] 2
 Valuation affects posting amounts but not balance assertion or balance
 assignment amounts, potentially causing those to fail.
@@ -5305,6 +5337,7 @@ Scientific E notation is allowed:
 EUR 1E3
 \f[R]
 .fi
+.SS Decimal marks, digit group marks
 .PP
 A decimal mark can be written as a period or a comma:
 .IP
@@ -5314,7 +5347,6 @@ A decimal mark can be written as a period or a comma:
 1,23456780000009
 \f[R]
 .fi
-.SS Digit group marks
 .PP
 In the integer part of the quantity (left of the decimal mark), groups
 of digits can optionally be separated by a \[dq]digit group mark\[dq] -
@@ -5329,9 +5361,9 @@ INR 9,99,99,999.00
 \f[R]
 .fi
 .PP
-Note, a number containing a single group mark and no decimal mark is
-ambiguous.
-Are these group marks or decimal marks ?
+Note, a number containing a single digit group mark and no decimal mark
+is ambiguous.
+Are these digit group marks or decimal marks ?
 .IP
 .nf
 \f[C]
@@ -5340,39 +5372,55 @@ Are these group marks or decimal marks ?
 \f[R]
 .fi
 .PP
-hledger will treat them both as decimal marks by default (cf #793).
-If you use digit group marks, to prevent confusion and undetected typos
-we recommend you write commodity directives at the top of the file to
-explicitly declare the decimal mark (and optionally a digit group mark).
-Note, these formats (\[dq]amount styles\[dq]) are specific to each
-commodity, so if your data uses multiple formats, hledger can handle it:
+If you don\[aq]t tell it otherwise, hledger will assume both of the
+above are decimal marks, parsing both numbers as 1.
+To prevent confusion and undetected typos, especially if your data
+contains digit group marks, we recommend you explicitly declare the
+decimal mark (and optionally a digit group mark), for each commodity,
+using \f[C]commodity\f[R] directives (described below):
 .IP
 .nf
 \f[C]
+# number formats for $, EUR, INR and the no-symbol commodity:
 commodity $1,000.00
 commodity EUR 1.000,00
 commodity INR 9,99,99,999.00
-commodity       1 000 000.9455
+commodity 1 000 000.9455
 \f[R]
 .fi
+.PP
+Note, \f[C]commodity\f[R] directives declare both the number format for
+parsing input, and the display style for showing output.
+For the former, they are position-sensitive, affecting only following
+amounts, so commodity directives should be at the top of your journal
+file.
+This is discussed more on #793.
 .PP
 .SS Commodity display style
 .PP
 For the amounts in each commodity, hledger chooses a consistent display
-style.
-(Excluding price amounts, which are always displayed as written).
-The display style is chosen as follows:
-.IP \[bu] 2
-If there is a commodity directive (or default commodity directive) for
-the commodity, its style is used (see examples above).
-.IP \[bu] 2
-Otherwise the style is inferred from the amounts in that commodity seen
-in the journal.
-.IP \[bu] 2
-Or if there are no such amounts in the journal, a default style is used
-(like \f[C]$1000.00\f[R]).
+style to use in most reports.
+(Except for price amounts, which are always displayed as written).
+The display style is inferred as follows.
 .PP
-A style is inferred from the journal amounts in a commodity as follows:
+First, if a default commodity is declared with \f[C]D\f[R], this
+commodity and its style is applied to any no-symbol amounts in the
+journal.
+.PP
+Then each commodity\[aq]s style is inferred from one of the following,
+in order of preference:
+.IP \[bu] 2
+The commodity directive for that commodity (including the no-symbol
+commodity), if any.
+.IP \[bu] 2
+The amounts in that commodity seen in the journal\[aq]s transactions.
+(Posting amounts only; prices and periodic or auto rules are ignored,
+currently.)
+.IP \[bu] 2
+The built-in fallback style, which looks like this: \f[C]$1000.00\f[R].
+(Symbol on the left, period decimal mark, two decimal places.)
+.PP
+A style is inferred from journal amounts as follows:
 .IP \[bu] 2
 Use the general style (decimal mark, symbol placement) of the first
 amount
@@ -5388,25 +5436,22 @@ posting\[aq]s amount is inferred using a transaction price).
 If you find this causing problems, use a commodity directive to fix the
 display style.
 .PP
-In summary, each commodity\[aq]s amounts will be normalised to
-.IP \[bu] 2
-the style declared by a \f[C]commodity\f[R] directive
-.IP \[bu] 2
-or, the style of the first posting amount in the journal, with the
-first-seen digit group style and the maximum-seen number of decimal
-places.
-.PP
+To summarise: each commodity\[aq]s amounts will be normalised to (a) the
+style declared by a \f[C]commodity\f[R] directive, or (b) the style of
+the first posting amount in the journal, with the first-seen digit group
+style and the maximum-seen number of decimal places.
 So if your reports are showing amounts in a way you don\[aq]t like, eg
-with too many decimal places, use a commodity directive to set the
-commodity\[aq]s display style.
-For example:
+with too many decimal places, use a commodity directive.
+Some examples:
 .IP
 .nf
 \f[C]
-# declare euro, dollar and bitcoin commodities and set their display styles:
+# declare euro, dollar, bitcoin and no-symbol commodities and set their 
+# input number formats and output display styles:
 commodity EUR 1.000,
 commodity $1000.00
 commodity 1000.00000000 BTC
+commodity 1 000.
 \f[R]
 .fi
 .SS Rounding
@@ -8235,6 +8280,14 @@ amount %amt %cur
 Note we used a temporary field name (\f[C]cur\f[R]) that is not
 \f[C]currency\f[R] - that would trigger the prepending effect, which we
 don\[aq]t want here.
+.SS Amount decimal places
+.PP
+Like amounts in a journal file, the amounts generated by CSV rules like
+\f[C]amount1\f[R] influence commodity display styles, such as the number
+of decimal places displayed in reports.
+.PP
+The original amounts as written in the CSV file do not affect display
+style (because we don\[aq]t yet reliably know their commodity).
 .SS Referencing other fields
 .PP
 In field assignments, you can interpolate only CSV fields, not hledger

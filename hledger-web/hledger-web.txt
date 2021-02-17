@@ -20,9 +20,9 @@ DESCRIPTION
        hledger-web  is hledger's web interface.  It starts a simple web appli-
        cation for browsing and adding transactions, and optionally opens it in
        a  web browser window if possible.  It provides a more user-friendly UI
-       than the hledger CLI or hledger-ui interface, showing more at once (ac-
-       counts, the current account register, balance charts) and allowing his-
-       tory-aware data entry, interactive searching, and bookmarking.
+       than the hledger CLI or hledger-ui  interface,  showing  more  at  once
+       (accounts,  the  current account register, balance charts) and allowing
+       history-aware data entry, interactive searching, and bookmarking.
 
        hledger-web also lets you share a ledger with multiple users,  or  even
        the  public  web.   There is no access control, so if you need that you
@@ -59,8 +59,8 @@ OPTIONS
 
        --socket=SOCKETFILE
               use a unix domain socket file to listen for requests instead  of
-              a  TCP socket.  Implies --serve.  It can only be used if the op-
-              erating system can provide this type of socket.
+              a  TCP  socket.   Implies  --serve.   It can only be used if the
+              operating system can provide this type of socket.
 
        --base-url=URL
               set the  base  url  (default:  http://IPADDR:PORT).   You  would
@@ -110,8 +110,8 @@ OPTIONS
               assignments)
 
        -s --strict
-              do  extra error checking (check that all posted accounts are de-
-              clared)
+              do  extra  error  checking  (check  that all posted accounts are
+              declared)
 
        hledger reporting options:
 
@@ -141,8 +141,8 @@ OPTIONS
               using period expressions syntax
 
        --date2
-              match the secondary date instead (see command help for other ef-
-              fects)
+              match  the  secondary  date  instead (see command help for other
+              effects)
 
        -U --unmarked
               include only unmarked postings/txns (can combine with -P or -C)
@@ -167,18 +167,19 @@ OPTIONS
               convert amounts to their cost/selling amount at transaction time
 
        -V --market
-              convert  amounts to their market value in default valuation com-
+              convert amounts to their market value in default valuation  com-
               modities
 
        -X --exchange=COMM
               convert amounts to their market value in commodity COMM
 
        --value
-              convert amounts to cost or  market  value,  more  flexibly  than
+              convert  amounts  to  cost  or  market value, more flexibly than
               -B/-V/-X
 
-       --infer-value
-              with -V/-X/--value, also infer market prices from transactions
+       --infer-market-prices
+              use transaction prices (recorded with @  or  @@)  as  additional
+              market prices, as if they were P directives
 
        --auto apply automated posting rules to modify transactions.
 
@@ -256,14 +257,14 @@ OPTIONS
        for better caching or cookie-less serving on high performance websites.
 
 PERMISSIONS
-       By  default,  hledger-web  allows  anyone  who can reach it to view the
+       By default, hledger-web allows anyone who can  reach  it  to  view  the
        journal and to add new transactions, but not to change existing data.
 
        You can restrict who can reach it by
 
-       o setting the IP address it listens on (see --host above).  By  default
-         it  listens  on  127.0.0.1,  accessible to all users on the local ma-
-         chine.
+       o setting  the IP address it listens on (see --host above).  By default
+         it listens on  127.0.0.1,  accessible  to  all  users  on  the  local
+         machine.
 
        o putting it behind an authenticating proxy, using eg apache or nginx
 
@@ -272,53 +273,53 @@ PERMISSIONS
        You can restrict what the users who reach it can do, by
 
        o using the --capabilities=CAP[,CAP..] flag when you start it, enabling
-         one  or  more  of  the  following capabilities.  The default value is
+         one or more of the following  capabilities.   The  default  value  is
          view,add:
 
          o view - allows viewing the journal file and all included files
 
          o add - allows adding new transactions to the main journal file
 
-         o manage - allows editing, uploading or downloading the main  or  in-
-           cluded files
+         o manage  -  allows  editing,  uploading  or  downloading the main or
+           included files
 
-       o using  the  --capabilities-header=HTTPHEADER  flag  to specify a HTTP
-         header from which it will read capabilities to  enable.   hledger-web
-         on  Sandstorm  uses  the  X-Sandstorm-Permissions header to integrate
+       o using the --capabilities-header=HTTPHEADER flag  to  specify  a  HTTP
+         header  from  which it will read capabilities to enable.  hledger-web
+         on Sandstorm uses the  X-Sandstorm-Permissions  header  to  integrate
          with Sandstorm's permissions.  This is disabled by default.
 
 EDITING, UPLOADING, DOWNLOADING
-       If you enable the manage capability mentioned above, you'll see  a  new
-       "spanner"  button  to the right of the search form.  Clicking this will
-       let you edit, upload, or download the journal file or any files it  in-
-       cludes.
+       If  you  enable the manage capability mentioned above, you'll see a new
+       "spanner" button to the right of the search form.  Clicking  this  will
+       let  you  edit,  upload,  or  download the journal file or any files it
+       includes.
 
-       Note,  unlike any other hledger command, in this mode you (or any visi-
+       Note, unlike any other hledger command, in this mode you (or any  visi-
        tor) can alter or wipe the data files.
 
-       Normally whenever a file is changed in this way,  hledger-web  saves  a
-       numbered  backup  (assuming  file permissions allow it, the disk is not
-       full, etc.) hledger-web is not aware of version control  systems,  cur-
-       rently;  if  you  use one, you'll have to arrange to commit the changes
+       Normally  whenever  a  file is changed in this way, hledger-web saves a
+       numbered backup (assuming file permissions allow it, the  disk  is  not
+       full,  etc.)  hledger-web is not aware of version control systems, cur-
+       rently; if you use one, you'll have to arrange to  commit  the  changes
        yourself (eg with a cron job or a file watcher like entr).
 
-       Changes which would leave the journal file(s) unparseable or  non-valid
-       (eg  with  failing balance assertions) are prevented.  (Probably.  This
+       Changes  which would leave the journal file(s) unparseable or non-valid
+       (eg with failing balance assertions) are prevented.   (Probably.   This
        needs re-testing.)
 
 RELOADING
        hledger-web detects changes made to the files by other means (eg if you
-       edit  it  directly,  outside  of hledger-web), and it will show the new
-       data when you reload the page or navigate to a new page.  If  a  change
-       makes a file unparseable, hledger-web will display an error message un-
-       til the file has been fixed.
+       edit it directly, outside of hledger-web), and it  will  show  the  new
+       data  when  you reload the page or navigate to a new page.  If a change
+       makes a file unparseable, hledger-web will  display  an  error  message
+       until the file has been fixed.
 
        (Note: if you are viewing files mounted from another machine, make sure
        that both machine clocks are roughly in step.)
 
 JSON API
-       In  addition to the web UI, hledger-web also serves a JSON API that can
-       be used to get data or add new transactions.  If you want the JSON  API
+       In addition to the web UI, hledger-web also serves a JSON API that  can
+       be  used to get data or add new transactions.  If you want the JSON API
        only, you can use the --serve-api flag.  Eg:
 
               $ hledger-web -f examples/sample.journal --serve-api
@@ -335,7 +336,7 @@ JSON API
               /accounttransactions/ACCOUNTNAME
 
        Eg, all account names in the journal (similar to the accounts command).
-       (hledger-web's JSON does not include newlines, here we  use  python  to
+       (hledger-web's  JSON  does  not include newlines, here we use python to
        prettify it):
 
               $ curl -s http://127.0.0.1:5000/accountnames | python -m json.tool
@@ -376,25 +377,25 @@ JSON API
                                       "aprice": null,
               ...
 
-       Most  of  the  JSON corresponds to hledger's data types; for details of
-       what the fields mean, see the Hledger.Data.Json haddock docs and  click
-       on  the various data types, eg Transaction.  And for a higher level un-
-       derstanding, see the journal manual.
+       Most of the JSON corresponds to hledger's data types;  for  details  of
+       what  the fields mean, see the Hledger.Data.Json haddock docs and click
+       on the various data types, eg Transaction.   And  for  a  higher  level
+       understanding, see the journal manual.
 
        In some cases there is outer JSON corresponding to a "Report" type.  To
-       understand  that,  go to the Hledger.Web.Handler.MiscR haddock and look
-       at the source for the appropriate handler to see what it  returns.   Eg
-       for /accounttransactions it's getAccounttransactionsR, returning a "ac-
-       countTransactionsReport ...".  Looking up the haddock for that  we  can
-       see  that  /accounttransactions  returns  an AccountTransactionsReport,
-       which consists of a report title and a list  of  AccountTransactionsRe-
+       understand that, go to the Hledger.Web.Handler.MiscR haddock  and  look
+       at  the  source for the appropriate handler to see what it returns.  Eg
+       for  /accounttransactions  it's  getAccounttransactionsR,  returning  a
+       "accountTransactionsReport  ...".   Looking  up the haddock for that we
+       can see that /accounttransactions returns an AccountTransactionsReport,
+       which  consists  of a report title and a list of AccountTransactionsRe-
        portItem (etc).
 
-       You  can  add  a  new  transaction to the journal with a PUT request to
-       /add, if hledger-web was started with the add  capability  (enabled  by
+       You can add a new transaction to the journal  with  a  PUT  request  to
+       /add,  if  hledger-web  was started with the add capability (enabled by
        default).  The payload must be the full, exact JSON representation of a
-       hledger transaction (partial data won't do).  You can get  sample  JSON
-       from  hledger-web's  /transactions  or /accounttransactions, or you can
+       hledger  transaction  (partial data won't do).  You can get sample JSON
+       from hledger-web's /transactions or /accounttransactions,  or  you  can
        export it with hledger-lib, eg like so:
 
               .../hledger$ stack ghci hledger-lib
@@ -490,24 +491,24 @@ JSON API
                   "tstatus": "Unmarked"
               }
 
-       And  here's how to test adding it with curl.  This should add a new en-
-       try to your journal:
+       And here's how to test adding it with curl.   This  should  add  a  new
+       entry to your journal:
 
               $ curl http://127.0.0.1:5000/add -X PUT -H 'Content-Type: application/json' --data-binary @txn.json
 
 ENVIRONMENT
        LEDGER_FILE The journal file path when not specified with -f.  Default:
-       ~/.hledger.journal  (on  windows,  perhaps C:/Users/USER/.hledger.jour-
+       ~/.hledger.journal (on  windows,  perhaps  C:/Users/USER/.hledger.jour-
        nal).
 
-       A typical value is ~/DIR/YYYY.journal,  where  DIR  is  a  version-con-
-       trolled  finance directory and YYYY is the current year.  Or ~/DIR/cur-
+       A  typical  value  is  ~/DIR/YYYY.journal,  where DIR is a version-con-
+       trolled finance directory and YYYY is the current year.  Or  ~/DIR/cur-
        rent.journal, where current.journal is a symbolic link to YYYY.journal.
 
        On Mac computers, you can set this and other environment variables in a
        more  thorough  way that also affects applications started from the GUI
-       (say, an Emacs dock icon).  Eg on MacOS Catalina I have a ~/.MacOSX/en-
-       vironment.plist file containing
+       (say,  an  Emacs  dock  icon).   Eg  on  MacOS  Catalina   I   have   a
+       ~/.MacOSX/environment.plist file containing
 
               {
                 "LEDGER_FILE" : "~/finance/current.journal"
