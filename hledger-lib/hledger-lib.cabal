@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.3.
+-- This file has been generated from package.yaml by hpack version 0.33.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: aa9217e7e1959660c6302d2761ceae1c141739e5e6524850c2b631ad00b41061
+-- hash: 02ce04c7a484333ff2c8fbcaccbc26164fc238840f86cb69976f4d73280c9e7f
 
 name:           hledger-lib
 version:        1.20.99
@@ -27,8 +27,7 @@ author:         Simon Michael <simon@joyful.com>
 maintainer:     Simon Michael <simon@joyful.com>
 license:        GPL-3
 license-file:   LICENSE
-tested-with:
-    GHC==8.0.2, GHC==8.2.2, GHC==8.4.4, GHC==8.6.5, GHC==8.8.3, GHC==8.10.0.20200123
+tested-with:    GHC==8.0.2, GHC==8.2.2, GHC==8.4.4, GHC==8.6.5, GHC==8.8.3, GHC==8.10.0.20200123
 build-type:     Simple
 extra-source-files:
     CHANGES.md
@@ -95,7 +94,7 @@ library
       Text.WideString
       Paths_hledger_lib
   hs-source-dirs:
-      ./
+      ./.
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   build-depends:
       Decimal >=0.5.1
@@ -143,7 +142,7 @@ test-suite doctest
   type: exitcode-stdio-1.0
   main-is: doctests.hs
   hs-source-dirs:
-      ./
+      ./.
       test
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   build-depends:
@@ -195,7 +194,7 @@ test-suite unittest
   type: exitcode-stdio-1.0
   main-is: unittest.hs
   hs-source-dirs:
-      ./
+      ./.
       test
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   build-depends:
