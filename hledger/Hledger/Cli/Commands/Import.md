@@ -6,19 +6,64 @@ transactions as imported, without actually importing any.
 
 _FLAGS
 
-The input files are specified as arguments - no need to write -f before each one.
-So eg to add new transactions from all CSV files to the main journal, it's just: 
-`hledger import *.csv`
+Unlike other hledger commands, with `import` the journal file is an output file,
+and will be modified, though only by appending (existing data will not be changed).
+The input files are specified as arguments, so to import one or more
+CSV files to your main journal, you will run `hledger import bank.csv`
+or perhaps `hledger import *.csv`.
 
-New transactions are detected in the same way as print --new: 
-by assuming transactions are always added to the input files in increasing date order,
-and by saving `.latest.FILE` state files.
+Note you can import from any file format, though CSV files are the
+most common import source, and these docs focus on that case.
 
-The --dry-run output is in journal format, so you can filter it, eg 
-to see only uncategorised transactions: 
+### Deduplication
+
+As a convenience `import` does *deduplication* while reading transactions.
+This does not mean "ignore transactions that look the same",
+but rather "ignore transactions that have been seen before".
+This is intended for when you are periodically importing foreign data
+which may contain already-imported transactions.
+So eg, if every day you download bank CSV files containing redundant data,
+you can safely run `hledger import bank.csv` and only new transactions will be imported.
+(`import` is idempotent.)
+
+Since the items being read (CSV records, eg) often do not come with
+unique identifiers, hledger detects new transactions by date, assuming
+that:
+
+1. new items always have the newest dates
+2. item dates do not change across reads
+3. and items with the same date remain in the same relative order across reads.
+
+These are often true of CSV files representing transactions, or true
+enough so that it works pretty well in practice. 1 is important, but
+violations of 2 and 3 amongst the old transactions won't matter (and
+if you import often, the new transactions will be few, so less likely
+to be the ones affected).
+
+hledger remembers the latest date processed in each input file by
+saving a hidden ".latest" state file in the same directory. Eg when
+reading `finance/bank.csv`, it will look for and update the
+`finance/.latest.bank.csv` state file. 
+The format is simple: one or more lines containing the
+same ISO-format date (YYYY-MM-DD), meaning "I have processed
+transactions up to this date, and this many of them on that date."
+Normally you won't see or manipulate these state files yourself.
+But if needed, you can delete them to reset the state (making all
+transactions "new"), or you can construct them to "catch up" to a
+certain date. 
+
+Note deduplication (and updating of state files) can also be done by
+[`print --new`](#print), but this is less often used.
+
+### Import testing
+
+With `--dry-run`, the transactions that will be imported are printed
+to the terminal, without affecting your journal.
+The output is in journal format, so you can re-parse it.
+Eg, to see any importable transactions which CSV rules have not categorised:
 
 ```shell
-$ hledger import --dry ... | hledger -f- print unknown --ignore-assertions
+$ hledger import --dry bank.csv | hledger -f- -I print unknown
 ```
 
 ### Importing balance assignments
