@@ -66,6 +66,12 @@ Eg, to see any importable transactions which CSV rules have not categorised:
 $ hledger import --dry bank.csv | hledger -f- -I print unknown
 ```
 
+or (live updating):
+
+```shell
+$ ls bank.csv* | entr bash -c 'echo ====; hledger import --dry bank.csv | hledger -f- -I print unknown'
+```
+
 ### Importing balance assignments
 
 Entries added by import will have their posting amounts made explicit (like `hledger print -x`).
