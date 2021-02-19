@@ -58,8 +58,8 @@ Note deduplication (and updating of state files) can also be done by
 ### Import testing
 
 With `--dry-run`, the transactions that will be imported are printed
-to the terminal, without affecting your journal.
-The output is in journal format, so you can re-parse it.
+to the terminal, without updating your journal or state files.
+The output is valid journal format, like the print command, so you can re-parse it.
 Eg, to see any importable transactions which CSV rules have not categorised:
 
 ```shell
