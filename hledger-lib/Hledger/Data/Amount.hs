@@ -64,12 +64,8 @@ module Hledger.Data.Amount (
   amountCost,
   amountIsZero,
   amountLooksZero,
-  amountAndPriceIsZero,
-  amountAndPriceLooksZero,
   divideAmount,
   multiplyAmount,
-  divideAmountAndPrice,
-  multiplyAmountAndPrice,
   amountTotalPriceToUnitPrice,
   -- ** rendering
   AmountDisplayOpts(..),
@@ -110,15 +106,11 @@ module Hledger.Data.Amount (
   mixedAmountCost,
   divideMixedAmount,
   multiplyMixedAmount,
-  divideMixedAmountAndPrice,
-  multiplyMixedAmountAndPrice,
   averageMixedAmounts,
   isNegativeAmount,
   isNegativeMixedAmount,
   mixedAmountIsZero,
   mixedAmountLooksZero,
-  mixedAmountAndPriceIsZero,
-  mixedAmountAndPriceLooksZero,
   mixedAmountTotalPriceToUnitPrice,
   -- ** rendering
   styleMixedAmount,
@@ -212,7 +204,7 @@ instance Num Amount where
     abs a@Amount{aquantity=q}    = a{aquantity=abs q}
     signum a@Amount{aquantity=q} = a{aquantity=signum q}
     fromInteger i                = nullamt{aquantity=fromInteger i}
-    negate a                     = transformAmountAndPrice negate a
+    negate a                     = transformAmount negate a
     (+)                          = similarAmountsOp (+)
     (-)                          = similarAmountsOp (-)
     (*)                          = similarAmountsOp (*)
@@ -288,28 +280,20 @@ amountTotalPriceToUnitPrice
                 Precision p      -> Precision $ if p == maxBound then maxBound else p + 1
 amountTotalPriceToUnitPrice a = a
 
--- | Divide an amount's quantity by a constant.
-divideAmount :: Quantity -> Amount -> Amount
-divideAmount n a@Amount{aquantity=q} = a{aquantity=q/n}
-
--- | Multiply an amount's quantity by a constant.
-multiplyAmount :: Quantity -> Amount -> Amount
-multiplyAmount n a@Amount{aquantity=q} = a{aquantity=q*n}
-
 -- | Apply a function to an amount's quantity (and its total price, if it has one).
-transformAmountAndPrice :: (Quantity -> Quantity) -> Amount -> Amount
-transformAmountAndPrice f a@Amount{aquantity=q,aprice=p} = a{aquantity=f q, aprice=f' <$> p}
+transformAmount :: (Quantity -> Quantity) -> Amount -> Amount
+transformAmount f a@Amount{aquantity=q,aprice=p} = a{aquantity=f q, aprice=f' <$> p}
   where
     f' (TotalPrice a@Amount{aquantity=pq}) = TotalPrice a{aquantity = f pq}
     f' p = p
 
 -- | Divide an amount's quantity (and its total price, if it has one) by a constant.
-divideAmountAndPrice :: Quantity -> Amount -> Amount
-divideAmountAndPrice n = transformAmountAndPrice (/n)
+divideAmount :: Quantity -> Amount -> Amount
+divideAmount n = transformAmount (/n)
 
 -- | Multiply an amount's quantity (and its total price, if it has one) by a constant.
-multiplyAmountAndPrice :: Quantity -> Amount -> Amount
-multiplyAmountAndPrice n = transformAmountAndPrice (*n)
+multiplyAmount :: Quantity -> Amount -> Amount
+multiplyAmount n = transformAmount (*n)
 
 -- | Is this amount negative ? The price is ignored.
 isNegativeAmount :: Amount -> Bool
@@ -322,31 +306,20 @@ amountRoundedQuantity Amount{aquantity=q, astyle=AmountStyle{asprecision=p}} = c
     NaturalPrecision -> q
     Precision p'     -> roundTo p' q
 
--- | Does mixed amount appear to be zero when rendered with its
+-- | Apply a test to both an Amount and its total price, if it has one.
+testAmountAndTotalPrice :: (Amount -> Bool) -> Amount -> Bool
+testAmountAndTotalPrice f amt = case aprice amt of
+    Just (TotalPrice price) -> f amt && f price
+    _                       -> f amt
+
+-- | Do this Amount and (and its total price, if it has one) appear to be zero when rendered with its
 -- display precision ?
 amountLooksZero :: Amount -> Bool
-amountLooksZero = (0==) . amountRoundedQuantity
+amountLooksZero = testAmountAndTotalPrice ((0==) . amountRoundedQuantity)
 
--- | Does mixed amount and its price appear to be zero when rendered with its
--- display precision ?
-amountAndPriceLooksZero :: Amount -> Bool
-amountAndPriceLooksZero amt = amountLooksZero amt && priceLooksZero
-  where
-    priceLooksZero = case aprice amt of
-      Just (TotalPrice p) -> amountLooksZero p
-      _                   -> True
-
--- | Is this amount exactly zero, ignoring its display precision ?
+-- | Is this Amount (and its total price, if it has one) exactly zero, ignoring its display precision ?
 amountIsZero :: Amount -> Bool
-amountIsZero Amount{aquantity=q} = q == 0
-
--- | Are this amount and its price exactly zero, ignoring its display precision ?
-amountAndPriceIsZero :: Amount -> Bool
-amountAndPriceIsZero amt@Amount{aquantity=q} = q == 0 && priceIsZero
-  where
-    priceIsZero = case aprice amt of
-      Just (TotalPrice p) -> amountIsZero p
-      _                   -> True
+amountIsZero = testAmountAndTotalPrice ((0==) . aquantity)
 
 -- | Set an amount's display precision, flipped.
 withPrecision :: Amount -> AmountPrecision -> Amount
@@ -563,7 +536,7 @@ normaliseHelper squashprices (Mixed as)
   | otherwise      = Mixed $ toList nonzeros
   where
     newzero = maybe nullamt snd . M.lookupMin $ M.filter (not . T.null . acommodity) zeros
-    (zeros, nonzeros) = M.partition amountAndPriceIsZero amtMap
+    (zeros, nonzeros) = M.partition amountIsZero amtMap
     amtMap = foldr (\a -> M.insertWith sumSimilarAmountsUsingFirstPrice (key a) a) mempty as
     key Amount{acommodity=c,aprice=p} = (c, if squashprices then Nothing else priceKey <$> p)
       where
@@ -636,23 +609,13 @@ mapMixedAmount f (Mixed as) = Mixed $ map f as
 mixedAmountCost :: MixedAmount -> MixedAmount
 mixedAmountCost = mapMixedAmount amountCost
 
--- | Divide a mixed amount's quantities by a constant.
+-- | Divide a mixed amount's quantities (and total prices, if any) by a constant.
 divideMixedAmount :: Quantity -> MixedAmount -> MixedAmount
 divideMixedAmount n = mapMixedAmount (divideAmount n)
 
--- | Multiply a mixed amount's quantities by a constant.
+-- | Multiply a mixed amount's quantities (and total prices, if any) by a constant.
 multiplyMixedAmount :: Quantity -> MixedAmount -> MixedAmount
 multiplyMixedAmount n = mapMixedAmount (multiplyAmount n)
-
--- | Divide a mixed amount's quantities (and total prices, if any) by a constant.
--- The total prices will be kept positive regardless of the multiplier's sign.
-divideMixedAmountAndPrice :: Quantity -> MixedAmount -> MixedAmount
-divideMixedAmountAndPrice n = mapMixedAmount (divideAmountAndPrice n)
-
--- | Multiply a mixed amount's quantities (and total prices, if any) by a constant.
--- The total prices will be kept positive regardless of the multiplier's sign.
-multiplyMixedAmountAndPrice :: Quantity -> MixedAmount -> MixedAmount
-multiplyMixedAmountAndPrice n = mapMixedAmount (multiplyAmountAndPrice n)
 
 -- | Calculate the average of some mixed amounts.
 averageMixedAmounts :: [MixedAmount] -> MixedAmount
@@ -670,23 +633,17 @@ isNegativeMixedAmount m =
     as | not (any isNegativeAmount as) -> Just False
     _ -> Nothing  -- multiple amounts with different signs
 
--- | Does this mixed amount appear to be zero when rendered with its
--- display precision ?
+-- | Does this mixed amount appear to be zero when rendered with its display precision?
+-- i.e. does it have zero quantity with no price, zero quantity with a total price (which is also zero),
+-- and zero quantity for each unit price?
 mixedAmountLooksZero :: MixedAmount -> Bool
 mixedAmountLooksZero = all amountLooksZero . amounts . normaliseMixedAmountSquashPricesForDisplay
 
--- | Does this mixed amount and its price appear to be zero when rendered with its
--- display precision ?
-mixedAmountAndPriceLooksZero :: MixedAmount -> Bool
-mixedAmountAndPriceLooksZero = all amountAndPriceLooksZero . amounts . normaliseMixedAmountSquashPricesForDisplay
-
--- | Is this mixed amount exactly zero, ignoring display precisions ?
+-- | Is this mixed amount exactly to be zero, ignoring its display precision?
+-- i.e. does it have zero quantity with no price, zero quantity with a total price (which is also zero),
+-- and zero quantity for each unit price?
 mixedAmountIsZero :: MixedAmount -> Bool
 mixedAmountIsZero = all amountIsZero . amounts . normaliseMixedAmountSquashPricesForDisplay
-
--- | Is this mixed amount exactly zero, ignoring display precisions ?
-mixedAmountAndPriceIsZero :: MixedAmount -> Bool
-mixedAmountAndPriceIsZero = all amountAndPriceIsZero . amounts . normaliseMixedAmountSquashPricesForDisplay
 
 -- -- | MixedAmount derived Eq instance in Types.hs doesn't know that we
 -- -- want $0 = EUR0 = 0. Yet we don't want to drag all this code over there.
@@ -767,10 +724,11 @@ showMixedAmountDebug m | m == missingmixedamt = "(missing)"
 --   maximum width will be elided.
 showMixedAmountB :: AmountDisplayOpts -> MixedAmount -> WideBuilder
 showMixedAmountB opts ma
-    | displayOneLine opts = showMixedAmountOneLineB opts ma
+    | displayOneLine opts = showMixedAmountOneLineB opts ma'
     | otherwise           = WideBuilder (wbBuilder . mconcat $ intersperse sep lines) width
   where
-    lines = showMixedAmountLinesB opts ma
+    ma' = if displayPrice opts then ma else mixedAmountStripPrices ma
+    lines = showMixedAmountLinesB opts ma'
     width = headDef 0 $ map wbWidth lines
     sep = WideBuilder (TB.singleton '\n') 0
 

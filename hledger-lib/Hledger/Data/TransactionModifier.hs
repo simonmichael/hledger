@@ -120,7 +120,7 @@ tmPostingRuleToFunction querytxt pr =
             -- Approach 1: convert to a unit price and increase the display precision slightly
             -- Mixed as = dbg6 "multipliedamount" $ n `multiplyMixedAmount` mixedAmountTotalPriceToUnitPrice matchedamount
             -- Approach 2: multiply the total price (keeping it positive) as well as the quantity
-            Mixed as = dbg6 "multipliedamount" $ n `multiplyMixedAmountAndPrice` matchedamount
+            Mixed as = dbg6 "multipliedamount" $ n `multiplyMixedAmount` matchedamount
           in
             case acommodity pramount of
               "" -> Mixed as

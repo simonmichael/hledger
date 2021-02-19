@@ -257,7 +257,7 @@ isPostingInDateSpan' PrimaryDate   s = spanContainsDate s . postingDate
 isPostingInDateSpan' SecondaryDate s = spanContainsDate s . postingDate2
 
 isEmptyPosting :: Posting -> Bool
-isEmptyPosting = mixedAmountAndPriceLooksZero . pamount
+isEmptyPosting = mixedAmountLooksZero . pamount
 
 -- AccountName stuff that depends on PostingType
 
