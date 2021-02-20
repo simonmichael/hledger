@@ -62,7 +62,7 @@ print' opts j = do
   let j' = journalMapPostingAmounts amountSetFullPrecision j
   case maybestringopt "match" $ rawopts_ opts of
     Nothing   -> printEntries opts j'
-    Just desc -> printMatch opts j' $ T.pack desc
+    Just desc -> printMatch opts j' $ T.pack $ dbg1 "finding best match for description" desc
 
 printEntries :: CliOpts -> Journal -> IO ()
 printEntries opts@CliOpts{reportspec_=rspec} j =
