@@ -67,6 +67,7 @@ module Hledger.Data.Journal (
   journalNextTransaction,
   journalPrevTransaction,
   journalPostings,
+  journalTransactionsSimilarTo,
   -- journalPrices,
   -- * Standard account types
   journalBalanceSheetAccountQuery,
@@ -96,6 +97,7 @@ import "extra" Control.Monad.Extra (whenM)
 import Control.Monad.Reader as R
 import Control.Monad.ST (ST, runST)
 import Data.Array.ST (STArray, getElems, newListArray, writeArray)
+import Data.Char (toUpper)
 import Data.Default (Default(..))
 import Data.Function ((&))
 import qualified Data.HashTable.Class as H (toList)
@@ -125,6 +127,7 @@ import Hledger.Data.Transaction
 import Hledger.Data.TransactionModifier
 import Hledger.Data.Posting
 import Hledger.Query
+import Data.List (sortBy)
 
 
 -- try to make Journal ppShow-compatible
@@ -320,6 +323,55 @@ journalAccountNames = journalAccountNamesDeclaredOrImplied
 
 journalAccountNameTree :: Journal -> Tree AccountName
 journalAccountNameTree = accountNameTreeFrom . journalAccountNames
+
+-- | Find up to N most similar and most recent transactions matching
+-- the given transaction description and query. Transactions are
+-- listed with their description's similarity score (see
+-- compareDescriptions), sorted by highest score and then by date.
+-- Only transactions with a similarity score greater than the minimum
+-- threshold (currently 0) are returned.
+journalTransactionsSimilarTo :: Journal -> Query -> Text -> Int -> [(Double,Transaction)]
+journalTransactionsSimilarTo j q desc n =
+  take n $
+  sortBy (\(s1,t1) (s2,t2) -> compare (s2,tdate t2) (s1,tdate t1)) $
+  filter ((> threshold).fst)
+  [(compareDescriptions desc $ tdescription t, t) | t <- ts]
+  where
+    ts = filter (q `matchesTransaction`) $ jtxns j
+    threshold = 0
+
+-- | Return a similarity measure, from 0 to 1, for two transaction
+-- descriptions.  This is like compareStrings, but first strips out
+-- any numbers, to improve accuracy eg when there are bank transaction
+-- ids from imported data.
+compareDescriptions :: Text -> Text -> Double
+compareDescriptions s t = compareStrings s' t'
+    where s' = simplify $ T.unpack s
+          t' = simplify $ T.unpack t
+          simplify = filter (not . (`elem` ("0123456789" :: String)))
+
+-- | Return a similarity measure, from 0 to 1, for two strings.  This
+-- was based on Simon White's string similarity algorithm
+-- (http://www.catalysoft.com/articles/StrikeAMatch.html), later found
+-- to be https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient,
+-- modified to handle short strings better.
+-- Todo: check out http://nlp.fi.muni.cz/raslan/2008/raslan08.pdf#page=14 .
+compareStrings :: String -> String -> Double
+compareStrings "" "" = 1
+compareStrings [_] "" = 0
+compareStrings "" [_] = 0
+compareStrings [a] [b] = if toUpper a == toUpper b then 1 else 0
+compareStrings s1 s2 = 2 * commonpairs / totalpairs
+    where
+      pairs1      = S.fromList $ wordLetterPairs $ uppercase s1
+      pairs2      = S.fromList $ wordLetterPairs $ uppercase s2
+      commonpairs = fromIntegral $ S.size $ S.intersection pairs1 pairs2
+      totalpairs  = fromIntegral $ S.size pairs1 + S.size pairs2
+
+wordLetterPairs = concatMap letterPairs . words
+
+letterPairs (a:b:rest) = [a,b] : letterPairs (b:rest)
+letterPairs _ = []
 
 -- queries for standard account types
 

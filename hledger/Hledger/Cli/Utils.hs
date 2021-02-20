@@ -26,6 +26,7 @@ module Hledger.Cli.Utils
      pivotByOpts,
      anonymiseByOpts,
      utcTimeToClockTime,
+     journalSimilarTransaction,
      tests_Cli_Utils,
     )
 where
@@ -38,7 +39,7 @@ import qualified Data.Text.IO as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.IO as TL
 import Data.Time (UTCTime, Day, addDays)
-import Safe (readMay)
+import Safe (readMay, headMay)
 import System.Console.CmdArgs
 import System.Directory (getModificationTime, getDirectoryContents, copyFile, doesFileExist)
 import System.Exit
@@ -301,6 +302,17 @@ backupNumber :: FilePath -> FilePath -> Maybe Int
 backupNumber f g = case g =~ ("^" ++ f ++ "\\.([0-9]+)$") of
                         (_::FilePath, _::FilePath, _::FilePath, [ext::FilePath]) -> readMay ext
                         _ -> Nothing
+
+-- Identify the closest recent match for this description in past transactions.
+-- If the options specify a query, only matched transactions are considered.
+journalSimilarTransaction :: CliOpts -> Journal -> T.Text -> Maybe Transaction
+journalSimilarTransaction cliopts j desc = mbestmatch
+  where
+    mbestmatch = snd <$> headMay bestmatches
+    bestmatches =
+      dbg1With (unlines . ("similar transactions:":) . map (\(score,Transaction{..}) -> printf "%0.3f %s %s" score (show tdate) tdescription)) $
+      journalTransactionsSimilarTo j q desc 10
+    q = queryFromFlags $ rsOpts $ reportspec_ cliopts
 
 tests_Cli_Utils = tests "Utils" [
 

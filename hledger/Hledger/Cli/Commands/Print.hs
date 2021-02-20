@@ -32,7 +32,6 @@ import Hledger.Read.CsvReader (CSV, printCSV)
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
-import Hledger.Cli.Commands.Add ( transactionsSimilarTo )
 
 
 printmode = hledgerCommandMode
@@ -194,16 +193,7 @@ postingToCSV p =
 -- | Print the transaction most closely and recently matching a description
 -- (and the query, if any).
 printMatch :: CliOpts -> Journal -> Text -> IO ()
-printMatch CliOpts{reportspec_=rspec} j desc = do
-  case similarTransaction' j (rsQuery rspec) desc of
-      Nothing -> putStrLn "no matches found."
-      Just t  -> T.putStr $ showTransaction t
-
-  where
-    -- Identify the closest recent match for this description in past transactions.
-    similarTransaction' :: Journal -> Query -> Text -> Maybe Transaction
-    similarTransaction' j q desc
-      | null historymatches = Nothing
-      | otherwise           = Just $ snd $ head historymatches
-      where
-        historymatches = transactionsSimilarTo j q desc
+printMatch opts j desc = do
+  case journalSimilarTransaction opts j desc of
+    Nothing -> putStrLn "no matches found."
+    Just t  -> T.putStr $ showTransaction t

@@ -11,7 +11,6 @@ module Hledger.Cli.Commands.Add (
   ,add
   ,appendToJournalFileOrStdout
   ,journalAddTransaction
-  ,transactionsSimilarTo
 )
 where
 
@@ -26,7 +25,6 @@ import Data.Char (toUpper, toLower)
 import Data.Either (isRight)
 import Data.Functor.Identity (Identity(..))
 import "base-compat-batteries" Data.List.Compat
-import qualified Data.Set as S
 import Data.Maybe (fromJust, fromMaybe, isJust)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -49,6 +47,7 @@ import Text.Printf
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Commands.Register (postingsReportAsText)
+import Hledger.Cli.Utils (journalSimilarTransaction)
 
 
 addmode = hledgerCommandMode
@@ -176,7 +175,7 @@ confirmedTransactionWizard prevInput es@EntryState{..} stack@(currentStage : _) 
 
   EnterDescAndComment (date, code) -> descriptionAndCommentWizard prevInput es >>= \case
     Just (desc, comment) -> do
-      let mbaset = similarTransaction es desc
+      let mbaset = journalSimilarTransaction esOpts esJournal desc
           es' = es
             { esArgs = drop 1 esArgs
             , esPostings = []
@@ -257,15 +256,6 @@ confirmedTransactionWizard prevInput es@EntryState{..} stack@(currentStage : _) 
       Nothing  -> confirmedTransactionWizard prevInput es (drop 2 stack)
   where
     replaceNthOrAppend n newElem xs = take n xs ++ [newElem] ++ drop (n + 1) xs
-
--- Identify the closest recent match for this description in past transactions.
-similarTransaction :: EntryState -> Text -> Maybe Transaction
-similarTransaction EntryState{..} desc =
-  let q = queryFromFlags . rsOpts $ reportspec_ esOpts
-      historymatches = transactionsSimilarTo esJournal q desc
-      bestmatch | null historymatches = Nothing
-                | otherwise           = Just $ snd $ head historymatches
-  in bestmatch
 
 dateAndCodeWizard PrevInput{..} EntryState{..} = do
   let def = headDef (T.unpack $ showDate esDefDate) esArgs
@@ -482,49 +472,3 @@ registerFromString s = do
 capitalize :: String -> String
 capitalize "" = ""
 capitalize (c:cs) = toUpper c : cs
-
--- | Find the most similar and recent transactions matching the given
--- transaction description and report query.  Transactions are listed
--- with their "relevancy" score, most relevant first.
-transactionsSimilarTo :: Journal -> Query -> Text -> [(Double,Transaction)]
-transactionsSimilarTo j q desc =
-    sortBy compareRelevanceAndRecency
-               $ filter ((> threshold).fst)
-               [(compareDescriptions desc $ tdescription t, t) | t <- ts]
-    where
-      compareRelevanceAndRecency (n1,t1) (n2,t2) = compare (n2,tdate t2) (n1,tdate t1)
-      ts = filter (q `matchesTransaction`) $ jtxns j
-      threshold = 0
-
--- | Return a similarity measure, from 0 to 1, for two transaction
--- descriptions.  This is like compareStrings, but first strips out
--- any numbers, to improve accuracy eg when there are bank transaction
--- ids from imported data.
-compareDescriptions :: Text -> Text -> Double
-compareDescriptions s t = compareStrings s' t'
-    where s' = simplify $ T.unpack s
-          t' = simplify $ T.unpack t
-          simplify = filter (not . (`elem` ("0123456789" :: String)))
-
--- | Return a similarity measure, from 0 to 1, for two strings.  This
--- was based on Simon White's string similarity algorithm
--- (http://www.catalysoft.com/articles/StrikeAMatch.html), later found
--- to be https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient,
--- modified to handle short strings better.
--- Todo: check out http://nlp.fi.muni.cz/raslan/2008/raslan08.pdf#page=14 .
-compareStrings :: String -> String -> Double
-compareStrings "" "" = 1
-compareStrings [_] "" = 0
-compareStrings "" [_] = 0
-compareStrings [a] [b] = if toUpper a == toUpper b then 1 else 0
-compareStrings s1 s2 = 2 * commonpairs / totalpairs
-    where
-      pairs1      = S.fromList $ wordLetterPairs $ uppercase s1
-      pairs2      = S.fromList $ wordLetterPairs $ uppercase s2
-      commonpairs = fromIntegral $ S.size $ S.intersection pairs1 pairs2
-      totalpairs  = fromIntegral $ S.size pairs1 + S.size pairs2
-
-wordLetterPairs = concatMap letterPairs . words
-
-letterPairs (a:b:rest) = [a,b] : letterPairs (b:rest)
-letterPairs _ = []
