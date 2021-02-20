@@ -97,7 +97,7 @@ import "extra" Control.Monad.Extra (whenM)
 import Control.Monad.Reader as R
 import Control.Monad.ST (ST, runST)
 import Data.Array.ST (STArray, getElems, newListArray, writeArray)
-import Data.Char (toUpper)
+import Data.Char (toUpper, isDigit)
 import Data.Default (Default(..))
 import Data.Function ((&))
 import qualified Data.HashTable.Class as H (toList)
@@ -328,33 +328,37 @@ journalAccountNameTree = accountNameTreeFrom . journalAccountNames
 -- the given transaction description and query. Transactions are
 -- listed with their description's similarity score (see
 -- compareDescriptions), sorted by highest score and then by date.
--- Only transactions with a similarity score greater than the minimum
+-- Only transactions with a similarity score greater than a minimum
 -- threshold (currently 0) are returned.
 journalTransactionsSimilarTo :: Journal -> Query -> Text -> Int -> [(Double,Transaction)]
-journalTransactionsSimilarTo j q desc n =
+journalTransactionsSimilarTo Journal{jtxns} q desc n =
   take n $
   sortBy (\(s1,t1) (s2,t2) -> compare (s2,tdate t2) (s1,tdate t1)) $
   filter ((> threshold).fst)
-  [(compareDescriptions desc $ tdescription t, t) | t <- ts]
+  [(compareDescriptions desc $ tdescription t, t) | t <- jtxns, q `matchesTransaction` t]
   where
-    ts = filter (q `matchesTransaction`) $ jtxns j
     threshold = 0
 
--- | Return a similarity measure, from 0 to 1, for two transaction
--- descriptions.  This is like compareStrings, but first strips out
--- any numbers, to improve accuracy eg when there are bank transaction
--- ids from imported data.
+-- | Return a similarity score from 0 to 1.5 for two transaction descriptions. 
+-- This is based on compareStrings, with the following modifications:
+--
+-- - numbers are stripped out before measuring similarity
+--
+-- - if the (unstripped) first description appears in its entirety within the second,
+--   the score is boosted by 0.5.
+--
 compareDescriptions :: Text -> Text -> Double
-compareDescriptions s t = compareStrings s' t'
-    where s' = simplify $ T.unpack s
-          t' = simplify $ T.unpack t
-          simplify = filter (not . (`elem` ("0123456789" :: String)))
+compareDescriptions a b =
+  (if a `T.isInfixOf` b then (0.5+) else id) $
+  compareStrings (simplify a) (simplify b)
+  where
+    simplify = T.unpack . T.filter (not.isDigit)
 
--- | Return a similarity measure, from 0 to 1, for two strings.  This
+-- | Return a similarity score from 0 to 1 for two strings.  This
 -- was based on Simon White's string similarity algorithm
 -- (http://www.catalysoft.com/articles/StrikeAMatch.html), later found
 -- to be https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient,
--- modified to handle short strings better.
+-- and modified to handle short strings better.
 -- Todo: check out http://nlp.fi.muni.cz/raslan/2008/raslan08.pdf#page=14 .
 compareStrings :: String -> String -> Double
 compareStrings "" "" = 1
@@ -362,14 +366,16 @@ compareStrings [_] "" = 0
 compareStrings "" [_] = 0
 compareStrings [a] [b] = if toUpper a == toUpper b then 1 else 0
 compareStrings s1 s2 = 2 * commonpairs / totalpairs
-    where
-      pairs1      = S.fromList $ wordLetterPairs $ uppercase s1
-      pairs2      = S.fromList $ wordLetterPairs $ uppercase s2
-      commonpairs = fromIntegral $ S.size $ S.intersection pairs1 pairs2
-      totalpairs  = fromIntegral $ S.size pairs1 + S.size pairs2
+  where
+    pairs1      = S.fromList $ wordLetterPairs $ uppercase s1
+    pairs2      = S.fromList $ wordLetterPairs $ uppercase s2
+    commonpairs = fromIntegral $ S.size $ S.intersection pairs1 pairs2
+    totalpairs  = fromIntegral $ S.size pairs1 + S.size pairs2
 
+wordLetterPairs :: String -> [String]
 wordLetterPairs = concatMap letterPairs . words
 
+letterPairs :: String -> [String]
 letterPairs (a:b:rest) = [a,b] : letterPairs (b:rest)
 letterPairs _ = []
 
