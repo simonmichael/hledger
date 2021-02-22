@@ -1,4 +1,6 @@
-{-# LANGUAGE RecordWildCards, OverloadedStrings #-}
+{-# LANGUAGE CPP               #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 {-|
 
 
@@ -9,12 +11,13 @@ account, and subaccounting-excluding and -including balances.
 
 module Hledger.Data.Account
 where
+import qualified Data.HashSet as HS
+import qualified Data.HashMap.Strict as HM
 import Data.List (find, sortOn)
-import Data.List.Extra (groupSort, groupOn)
-import Data.Maybe (fromMaybe)
-import Data.Ord (Down(..))
+import Data.List.Extra (groupOn)
 import qualified Data.Map as M
-import Safe (headMay, lookupJustDef)
+import Data.Ord (Down(..))
+import Safe (headMay)
 import Text.Printf
 
 import Hledger.Data.AccountName
@@ -63,12 +66,12 @@ nullacct = Account
 accountsFromPostings :: [Posting] -> [Account]
 accountsFromPostings ps =
   let
-    grouped = groupSort [(paccount p,pamount p) | p <- ps]
-    counted = [(aname, length amts) | (aname, amts) <- grouped]
-    summed =  [(aname, maSum amts) | (aname, amts) <- grouped]  -- always non-empty
-    acctstree      = accountTree "root" $ map fst summed
-    acctswithnumps = mapAccounts setnumps    acctstree      where setnumps    a = a{anumpostings=fromMaybe 0 $ lookup (aname a) counted}
-    acctswithebals = mapAccounts setebalance acctswithnumps where setebalance a = a{aebalance=lookupJustDef nullmixedamt (aname a) summed}
+    summed = foldr (\p -> HM.insertWith addAndIncrement (paccount p) (1, pamount p)) mempty ps
+      where addAndIncrement (n, a) (m, b) = (n + m, a `maPlus` b)
+    acctstree      = accountTree "root" $ HM.keys summed
+    acctswithebals = mapAccounts setnumpsebalance acctstree
+      where setnumpsebalance a = a{anumpostings=numps, aebalance=total}
+              where (numps, total) = HM.lookupDefault (0, nullmixedamt) (aname a) summed
     acctswithibals = sumAccounts acctswithebals
     acctswithparents = tieAccountParents acctswithibals
     acctsflattened = flattenAccounts acctswithparents
@@ -224,14 +227,14 @@ accountSetDeclarationInfo j a@Account{..} =
 --
 sortAccountNamesByDeclaration :: Journal -> Bool -> [AccountName] -> [AccountName]
 sortAccountNamesByDeclaration j keepparents as =
-  (if keepparents then id else filter (`elem` as)) $  -- maybe discard missing parents that were added
-  map aname $                                         -- keep just the names
-  drop 1 $                                            -- drop the root node that was added
-  flattenAccounts $                                   -- convert to an account list
-  sortAccountTreeByDeclaration $                      -- sort by declaration order (and name)
-  mapAccounts (accountSetDeclarationInfo j) $         -- add declaration order info
-  accountTree "root"                                  -- convert to an account tree
-  as
+    (if keepparents then id else filter (`HS.member` HS.fromList as)) $  -- maybe discard missing parents that were added
+    map aname $                                         -- keep just the names
+    drop 1 $                                            -- drop the root node that was added
+    flattenAccounts $                                   -- convert to an account list
+    sortAccountTreeByDeclaration $                      -- sort by declaration order (and name)
+    mapAccounts (accountSetDeclarationInfo j) $         -- add declaration order info
+    accountTree "root"                                  -- convert to an account tree
+    as
 
 -- | Sort each group of siblings in an account tree by declaration order, then account name.
 -- So each group will contain first the declared accounts,
