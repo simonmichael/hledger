@@ -1,3 +1,4 @@
+{-# LANGUAGE NamedFieldPuns #-}
 {-|
 
 A 'Transaction' represents a movement of some commodity(ies) between two
@@ -82,6 +83,8 @@ import Hledger.Data.Amount
 import Hledger.Data.Valuation
 import Text.Tabular
 import Text.Tabular.AsciiWide
+import Control.Applicative ((<|>))
+import Text.Printf (printf)
 
 sourceFilePath :: GenericSourcePos -> FilePath
 sourceFilePath = \case
@@ -358,15 +361,62 @@ transactionsPostings = concatMap tpostings
 --    (Best effort; could be confused by postings with multicommodity amounts.)
 --
 -- 3. Does the amounts' sum appear non-zero when displayed ?
---    (using the given display styles if provided)
+--    We have two ways of checking this: 
+--
+--    Old way, supported for compatibility: if global display styles are provided,
+--    in each commodity, render the sum using the precision from the 
+--    global display styles, and see if it looks like exactly zero.
+--
+--    New way, preferred: in each commodity, render the sum using the max precision
+--    that was used in this transaction's journal entry, and see if it looks
+--    like exactly zero.
 --
 transactionCheckBalanced :: Maybe (M.Map CommoditySymbol AmountStyle) -> Transaction -> [String]
-transactionCheckBalanced mstyles t = errs
+transactionCheckBalanced mglobalstyles t = errs
   where
     (rps, bvps) = (realPostings t, balancedVirtualPostings t)
 
+    -- For testing each commodity's zero sum, we'll render it with the number
+    -- of decimal places specified by its display style, from either the 
+    -- provided global display styles, or local styles inferred from just 
+    -- this transaction.
+
+    -- Which local styles (& thence, precisions) exactly should we
+    -- infer from this transaction ? Since amounts are going to be
+    -- converted to cost, we may end up with the commodity of
+    -- transaction prices, so we'll need to pick a style for those too.
+    --
+    -- Option 1: also infer styles from the price amounts, which normally isn't done.
+    -- canonicalise = maybe id canonicaliseMixedAmount (mglobalstyles <|> mtxnstyles)
+    --   where
+    --     mtxnstyles = dbg0 "transactionCheckBalanced mtxnstyles" $
+    --       either (const Nothing) Just $ -- shouldn't get any error here, but if so just.. carry on, comparing uncanonicalised amounts XXX
+    --         commodityStylesFromAmounts $ concatMap postingAllAmounts $ rps ++ bvps
+    --           where
+    --             -- | Get all the individual Amounts from a posting's MixedAmount,
+    --             -- and all their price Amounts as well.
+    --             postingAllAmounts :: Posting -> [Amount]
+    --             postingAllAmounts p = catMaybes $ concat [[Just a, priceamount a] | a <- amounts $ pamount p]
+    --               where 
+    --                 priceamount Amount{aprice} = 
+    --                   case aprice of
+    --                     Just (UnitPrice a) -> Just a
+    --                     Just (TotalPrice a) -> Just a
+    --                     Nothing -> Nothing
+    --
+    -- Option 2, for amounts converted to cost, where the new commodity appears only in prices,
+    -- use the precision of their original commodity (by using mixedAmountCostPreservingPrecision).
+    (tocost,costlabel) = case mglobalstyles of
+      Just _  -> (mixedAmountCost,"")  -- --balancing=styled
+      Nothing -> (mixedAmountCostPreservingPrecision,"withorigprecision")  -- --balancing=exact
+    canonicalise = maybe id canonicaliseMixedAmount (mglobalstyles <|> mtxnstyles)
+      where
+        mtxnstyles = dbg9 "transactionCheckBalanced mtxnstyles" $
+          either (const Nothing) Just $ -- shouldn't get an error here, but if so just don't canonicalise
+            commodityStylesFromAmounts $ concatMap (amounts.pamount) $ rps ++ bvps
+
+
     -- check for mixed signs, detecting nonzeros at display precision
-    canonicalise = maybe id canonicaliseMixedAmount mstyles
     signsOk ps = 
       case filter (not.mixedAmountLooksZero) $ map (canonicalise.mixedAmountCost.pamount) ps of
         nonzeros | length nonzeros >= 2
@@ -375,22 +425,28 @@ transactionCheckBalanced mstyles t = errs
     (rsignsok, bvsignsok)       = (signsOk rps, signsOk bvps)
 
     -- check for zero sum, at display precision
-    (rsum, bvsum)               = (sumPostings rps, sumPostings bvps)
-    (rsumcost, bvsumcost)       = (mixedAmountCost rsum, mixedAmountCost bvsum)
-    (rsumdisplay, bvsumdisplay) = (canonicalise rsumcost, canonicalise bvsumcost)
-    (rsumok, bvsumok)           = (mixedAmountLooksZero rsumdisplay, mixedAmountLooksZero bvsumdisplay)
+    (rsum, bvsum)             = (dbg9 "transactionCheckBalanced rsum" $ sumPostings rps, sumPostings bvps)
+    (rsumcost, bvsumcost)     = (dbg9 ("transactionCheckBalanced rsumcost"++costlabel) $ tocost rsum, tocost bvsum)
+    (rsumstyled, bvsumstyled) = (dbg9 "transactionCheckBalanced rsumstyled" $ canonicalise rsumcost, canonicalise bvsumcost)
+    (rsumok, bvsumok)         = (mixedAmountLooksZero rsumstyled, mixedAmountLooksZero bvsumstyled)
 
-    -- generate error messages, showing amounts with their original precision
+    -- generate error messages
     errs = filter (not.null) [rmsg, bvmsg]
       where
         rmsg
           | not rsignsok  = "real postings all have the same sign"
-          | not rsumok    = "real postings' sum should be 0 but is: " ++ showMixedAmount rsumcost
+          | not rsumok    = printf "real postings' sum should be %s but is %s (rounded from %s)" rsumexpected rsumactual rsumfull
           | otherwise     = ""
         bvmsg
           | not bvsignsok = "balanced virtual postings all have the same sign"
-          | not bvsumok   = "balanced virtual postings' sum should be 0 but is: " ++ showMixedAmount bvsumcost
+          | not bvsumok   = printf "balanced virtual postings' sum should be %s but is %s (rounded from %s)" bvsumexpected bvsumactual bvsumfull
           | otherwise     = ""
+        rsumexpected = showMixedAmountWithZeroCommodity $ mapMixedAmount (\a -> a{aquantity=0}) rsumstyled
+        rsumactual = showMixedAmount rsumstyled
+        rsumfull = showMixedAmount (mixedAmountSetFullPrecision rsumcost)
+        bvsumexpected = showMixedAmountWithZeroCommodity $ mapMixedAmount (\a -> a{aquantity=0}) rsumstyled
+        bvsumactual = showMixedAmount bvsumstyled
+        bvsumfull = showMixedAmount (mixedAmountSetFullPrecision bvsumcost)
 
 -- | Legacy form of transactionCheckBalanced.
 isTransactionBalanced :: Maybe (M.Map CommoditySymbol AmountStyle) -> Transaction -> Bool
@@ -454,7 +510,7 @@ inferBalancingAmount ::
      M.Map CommoditySymbol AmountStyle -- ^ commodity display styles
   -> Transaction
   -> Either String (Transaction, [(AccountName, MixedAmount)])
-inferBalancingAmount styles t@Transaction{tpostings=ps}
+inferBalancingAmount _globalstyles t@Transaction{tpostings=ps}
   | length amountlessrealps > 1
       = Left $ transactionBalanceError t
         ["can't have more than one real posting with no amount"
@@ -486,9 +542,7 @@ inferBalancingAmount styles t@Transaction{tpostings=ps}
           Just a  -> (p{pamount=a', poriginal=Just $ originalPosting p}, Just a')
             where
               -- Inferred amounts are converted to cost.
-              -- Also ensure the new amount has the standard style for its commodity
-              -- (since the main amount styling pass happened before this balancing pass);
-              a' = styleMixedAmount styles $ normaliseMixedAmount $ mixedAmountCost (-a)
+              a' = normaliseMixedAmount $ mixedAmountCost (-a)
 
 -- | Infer prices for this transaction's posting amounts, if needed to make
 -- the postings balance, and if possible. This is done once for the real
@@ -554,7 +608,11 @@ priceInferrerFor t pt = inferprice
       where
         fromcommodity = head $ filter (`elem` sumcommodities) pcommodities -- these heads are ugly but should be safe
         conversionprice
+          -- Use a total price when we can, as it's more exact.
           | fromcount==1 = TotalPrice $ abs toamount `withPrecision` NaturalPrecision
+          -- When there are multiple posting amounts to be converted, 
+          -- it's easiest to have them all use the same unit price.
+          -- Floating-point error and rounding becomes an issue though.
           | otherwise    = UnitPrice $ abs unitprice `withPrecision` unitprecision
           where
             fromcount     = length $ filter ((==fromcommodity).acommodity) pamounts
@@ -564,9 +622,20 @@ priceInferrerFor t pt = inferprice
             toamount      = head $ filter ((==tocommodity).acommodity) sumamounts
             toprecision   = asprecision $ astyle toamount
             unitprice     = (aquantity fromamount) `divideAmount` toamount
-            -- Sum two display precisions, capping the result at the maximum bound
+            -- The number of decimal places that will be shown for an
+            -- inferred unit price. Often, the underlying Decimal will
+            -- have the maximum number of decimal places (255). We
+            -- don't want to show that many to the user; we'd prefer
+            -- to show the minimum number of digits that makes the
+            -- print-ed transaction appear balanced if you did the
+            -- arithmetic by hand, and also makes the print-ed transaction
+            -- parseable by hledger. How many decimal places is that ? I'm not sure. 
+            -- Currently we heuristically use 2 * the total number of decimal places 
+            -- from the amounts to be converted to and from (and at least 2, at most 255), 
+            -- which experimentally seems to be sufficient so far.
             unitprecision = case (fromprecision, toprecision) of
-                (Precision a, Precision b) -> Precision $ if maxBound - a < b then maxBound else max 2 (a + b)
+                (Precision a, Precision b) -> Precision $ if maxBound - a < b then maxBound else 
+                  max 2 (2 * (a+b))
                 _                          -> NaturalPrecision
     inferprice p = p
 

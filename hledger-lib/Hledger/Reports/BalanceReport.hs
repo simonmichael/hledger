@@ -76,7 +76,7 @@ balanceReport rspec j = (rows, total)
 -- tests
 
 Right samplejournal2 =
-  journalBalanceTransactions False
+  journalBalanceTransactions False False
     nulljournal{
       jtxns = [
         txnTieKnot Transaction{

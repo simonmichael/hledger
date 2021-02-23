@@ -1,3 +1,4 @@
+{-# LANGUAGE NamedFieldPuns #-}
 {-|
 A simple 'Amount' is some quantity of money, shares, or anything else.
 It has a (possibly null) 'CommoditySymbol' and a numeric quantity:
@@ -74,6 +75,7 @@ module Hledger.Data.Amount (
   noPrice,
   oneLine,
   amountstyle,
+  commodityStylesFromAmounts,
   styleAmount,
   styleAmountExceptPrecision,
   amountUnstyled,
@@ -105,6 +107,7 @@ module Hledger.Data.Amount (
   mixedAmountStripPrices,
   -- ** arithmetic
   mixedAmountCost,
+  mixedAmountCostPreservingPrecision,
   divideMixedAmount,
   multiplyMixedAmount,
   divideMixedAmountAndPrice,
@@ -153,12 +156,14 @@ import Data.Semigroup ((<>))
 import qualified Data.Text as T
 import qualified Data.Text.Lazy.Builder as TB
 import Data.Word (Word8)
-import Safe (headDef, lastDef, lastMay)
+import Safe (headDef, lastDef, lastMay, headMay)
 import Text.Printf (printf)
 
 import Hledger.Data.Types
 import Hledger.Data.Commodity
 import Hledger.Utils
+import Data.List.Extra (groupSort)
+import Data.Maybe (mapMaybe)
 
 deriving instance Show MarketPrice
 
@@ -201,6 +206,53 @@ oneLine = def{displayOneLine=True, displayPrice=False}
 
 -- | Default amount style
 amountstyle = AmountStyle L False (Precision 0) (Just '.') Nothing
+
+-- | Given an ordered list of amounts (typically in parse order),
+-- build a map from their commodity names to standard commodity
+-- display styles, inferring styles as per docs, eg:
+-- "the format of the first amount, adjusted to the highest precision of all amounts".
+-- Can return an error message eg if inconsistent number formats are found.
+-- (Though, these amounts may have come from multiple files, so we
+-- shouldn't assume they use consistent number formats.
+-- Currently we don't enforce that even within a single file,
+-- and this function never reports an error.)
+commodityStylesFromAmounts :: [Amount] -> Either String (M.Map CommoditySymbol AmountStyle)
+commodityStylesFromAmounts amts =
+  Right $ M.fromList commstyles
+  where
+    commamts = groupSort [(acommodity as, as) | as <- amts]
+    commstyles = [(c, canonicalStyleFrom $ map astyle as) | (c,as) <- commamts]
+
+-- TODO: should probably detect and report inconsistencies here.
+-- Though, we don't have the info for a good error message, so maybe elsewhere.
+-- | Given a list of amount styles (assumed to be from parsed amounts
+-- in a single commodity), in parse order, choose a canonical style.
+-- This is:
+-- the general style of the first amount, 
+-- with the first digit group style seen,
+-- with the maximum precision of all.
+--
+canonicalStyleFrom :: [AmountStyle] -> AmountStyle
+canonicalStyleFrom [] = amountstyle
+canonicalStyleFrom ss@(s:_) =
+  s{asprecision=prec, asdecimalpoint=Just decmark, asdigitgroups=mgrps}
+  where
+    -- precision is maximum of all precisions
+    prec = maximumStrict $ map asprecision ss
+    -- identify the digit group mark (& group sizes)
+    mgrps = headMay $ mapMaybe asdigitgroups ss
+    -- if a digit group mark was identified above, we can rely on that;
+    -- make sure the decimal mark is different. If not, default to period.
+    defdecmark =
+      case mgrps of
+        Just (DigitGroups '.' _) -> ','
+        _                        -> '.'
+    -- identify the decimal mark: the first one used, or the above default,
+    -- but never the same character as the digit group mark.
+    -- urgh.. refactor..
+    decmark = case mgrps of
+                Just _ -> defdecmark
+                _      -> headDef defdecmark $ mapMaybe asdecimalpoint ss
 
 -------------------------------------------------------------------------------
 -- Amount
@@ -268,6 +320,13 @@ amountCost a@Amount{aquantity=q, aprice=mp} =
       Nothing                                  -> a
       Just (UnitPrice  p@Amount{aquantity=pq}) -> p{aquantity=pq * q}
       Just (TotalPrice p@Amount{aquantity=pq}) -> p{aquantity=pq * signum q}
+
+-- | Like amountCost, but then re-apply the display precision of the
+-- original commodity.
+amountCostPreservingPrecision :: Amount -> Amount
+amountCostPreservingPrecision a@Amount{astyle=AmountStyle{asprecision}} =
+  a'{astyle=astyle'{asprecision=asprecision}}
+  where a'@Amount{astyle=astyle'} = amountCost a
 
 -- | Replace an amount's TotalPrice, if it has one, with an equivalent UnitPrice.
 -- Has no effect on amounts without one.
@@ -618,6 +677,11 @@ mapMixedAmount f (Mixed as) = Mixed $ map f as
 mixedAmountCost :: MixedAmount -> MixedAmount
 mixedAmountCost = mapMixedAmount amountCost
 
+-- | Like mixedAmountCost, but then re-apply the display precision of the
+-- original commodity.
+mixedAmountCostPreservingPrecision :: MixedAmount -> MixedAmount
+mixedAmountCostPreservingPrecision = mapMixedAmount amountCostPreservingPrecision
+
 -- | Divide a mixed amount's quantities by a constant.
 divideMixedAmount :: Quantity -> MixedAmount -> MixedAmount
 divideMixedAmount n = mapMixedAmount (divideAmount n)
@@ -952,6 +1016,41 @@ tests_Amount = tests "Amount" [
                ,usd (-10)
                ,usd (-10) @@ eur 7
                ])
+
+    ,tests "commodityStylesFromAmounts" $ [
+
+      -- Journal similar to the one on #1091:
+      -- 2019/09/24
+      --     (a)            1,000.00
+      -- 
+      -- 2019/09/26
+      --     (a)             1000,000
+      --
+      test "1091a" $ do
+        commodityStylesFromAmounts [
+           nullamt{aquantity=1000, astyle=AmountStyle L False (Precision 3) (Just ',') Nothing}
+          ,nullamt{aquantity=1000, astyle=AmountStyle L False (Precision 2) (Just '.') (Just (DigitGroups ',' [3]))}
+          ]
+         @?=
+          -- The commodity style should have period as decimal mark
+          -- and comma as digit group mark.
+          Right (M.fromList [
+            ("", AmountStyle L False (Precision 3) (Just '.') (Just (DigitGroups ',' [3])))
+          ])
+        -- same journal, entries in reverse order
+      ,test "1091b" $ do
+        commodityStylesFromAmounts [
+           nullamt{aquantity=1000, astyle=AmountStyle L False (Precision 2) (Just '.') (Just (DigitGroups ',' [3]))}
+          ,nullamt{aquantity=1000, astyle=AmountStyle L False (Precision 3) (Just ',') Nothing}
+          ]
+         @?=
+          -- The commodity style should have period as decimal mark
+          -- and comma as digit group mark.
+          Right (M.fromList [
+            ("", AmountStyle L False (Precision 3) (Just '.') (Just (DigitGroups ',' [3])))
+          ])
+
+     ]
 
   ]
 

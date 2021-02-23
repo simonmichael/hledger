@@ -1465,6 +1465,10 @@ Here's a simple journal file containing one transaction:
   income:salary         $-1
 ```
 
+Note a transaction's postings have an important property: their
+amounts are required to add up to zero, showing that money has not
+been created or destroyed, only moved. 
+This is discussed in more detail below.
 
 ## Dates
 
@@ -1725,6 +1729,8 @@ without using a balancing equity account:
   (assets:savings)    $2000
 ```
 
+### Balanced virtual postings
+
 A posting with a bracketed account name is called a *balanced virtual
 posting*. The balanced virtual postings in a transaction must add up
 to zero (separately from other postings). Eg:
@@ -1976,6 +1982,54 @@ These are normally used to select a lot when selling investments.
 hledger will parse these, for compatibility with Ledger journals, but currently ignores them.
 A [transaction price](#transaction-prices), lot price and/or lot date may appear in any order,
 after the posting amount and before the balance assertion if any.
+
+## Balanced transactions
+
+As mentioned above, the amounts of a transaction's posting are required to add up to zero.
+This shows that "money was conserved" during the transaction, ie no
+funds were created or destroyed.
+We call this a balanced transaction.
+
+If you want the full detail of how exactly this works in hledger, read on...
+
+Transactions can contain [ordinary (real) postings](#postings),
+[balanced virtual postings](#balanced-virtual-postings), and/or
+[unbalanced virtual postings](#virtual-postings).
+hledger checks that the real postings sum to zero, 
+the balanced virtual postings (separately) sum to zero,
+and does not check unbalanced virtual postings.
+
+Because computers generally don't represent decimal (real) numbers
+exactly, "sum to zero" is a little more complicated.
+hledger aims to always agree with a human who is looking at the
+[`print`](#print)-ed transaction and doing the arithmetic by hand.
+Specifically, it does this: 
+
+- for each commodity referenced in the transaction,
+- sum the amounts of that commodity,
+- render that sum with a certain precision (number of decimal places),
+- and check that the rendered number is all zeros.
+
+What is that precision (for each commodity) ?
+Since hledger 1.21, by default it is the maximum precision used
+in the transaction's journal entry (which is also what the `print`
+command shows).
+
+However in hledger 1.20 and before, it was the precision specified by 
+the journal's [declared](#declaring-commodities) or inferred 
+[commodity display styles](#commodity-display-style)
+(because that's what the `print` command showed).
+
+You may have some existing journals which are dependent on this older behaviour.
+Ie, hledger <=1.20 accepts them but hledger >=1.21 reports "unbalanced transaction".
+So we provide the `--balancing=styled` option, which restores the old balanced transaction checking
+(but not the old `print` behaviour, so balanced checking might not always agree with what `print` shows.)
+Note this is just a convenience to ease migration, and may be dropped in future,
+so we recommend that you update your journal entries to satisfy the new balanced checking
+(`--balancing=exact`, which is the default).
+(Advantages of the new way: it agrees with `print` output; 
+it is simpler, depending only on the transaction's journal entry;
+and it is more robust when `print`-ing transactions to be re-parsed by hledger.)
 
 ## Balance assertions
 

@@ -23,8 +23,9 @@ module Hledger.Data.Journal (
   addTransaction,
   journalBalanceTransactions,
   journalInferMarketPricesFromTransactions,
+  journalInferCommodityStyles,
   journalApplyCommodityStyles,
-  commodityStylesFromAmounts,
+  journalInferAndApplyCommodityStyles,
   journalCommodityStyles,
   journalToCost,
   journalReverse,
@@ -79,7 +80,6 @@ module Hledger.Data.Journal (
   journalEquityAccountQuery,
   journalCashAccountQuery,
   -- * Misc
-  canonicalStyleFrom,
   nulljournal,
   journalCheckBalanceAssertions,
   journalNumberAndTieTransactions,
@@ -88,7 +88,7 @@ module Hledger.Data.Journal (
   journalApplyAliases,
   -- * Tests
   samplejournal,
-  tests_Journal,
+  tests_Journal
 )
 where
 
@@ -103,7 +103,7 @@ import Data.Function ((&))
 import qualified Data.HashTable.Class as H (toList)
 import qualified Data.HashTable.ST.Cuckoo as H
 import Data.List (find, sortOn)
-import Data.List.Extra (groupSort, nubSort)
+import Data.List.Extra (nubSort)
 import qualified Data.Map as M
 import Data.Maybe (catMaybes, fromJust, fromMaybe, isJust, mapMaybe)
 #if !(MIN_VERSION_base(4,11,0))
@@ -711,7 +711,8 @@ journalModifyTransactions d j =
 -- | Check any balance assertions in the journal and return an error message
 -- if any of them fail (or if the transaction balancing they require fails).
 journalCheckBalanceAssertions :: Journal -> Maybe String
-journalCheckBalanceAssertions = either Just (const Nothing) . journalBalanceTransactions True
+journalCheckBalanceAssertions = either Just (const Nothing) . journalBalanceTransactions False True
+  -- TODO: not using global display styles here, do we need to for BC ?
 
 -- "Transaction balancing", including: inferring missing amounts,
 -- applying balance assignments, checking transaction balancedness,
@@ -806,18 +807,20 @@ updateTransactionB t = withRunningBalance $ \BalancingState{bsTransactions}  ->
 -- and (optional) all balance assertions pass. Or return an error message
 -- (just the first error encountered).
 --
--- Assumes journalInferCommodityStyles has been called, since those
--- affect transaction balancing.
+-- Assumes the journal amounts' display styles still have the original number
+-- of decimal places that was parsed (ie, display styles have not yet been normalised),
+-- since this affects transaction balancing.
 --
 -- This does multiple things at once because amount inferring, balance
 -- assignments, balance assertions and posting dates are interdependent.
-journalBalanceTransactions :: Bool -> Journal -> Either String Journal
-journalBalanceTransactions assrt j' =
+--
+journalBalanceTransactions :: Bool -> Bool -> Journal -> Either String Journal
+journalBalanceTransactions usedisplaystyles assrt j' =
   let
     -- ensure transactions are numbered, so we can store them by number
     j@Journal{jtxns=ts} = journalNumberTransactions j'
     -- display precisions used in balanced checking
-    styles = Just $ journalCommodityStyles j
+    styles = if usedisplaystyles then Just $ journalCommodityStyles j else Nothing
     -- balance assignments will not be allowed on these
     txnmodifieraccts = S.fromList $ map paccount $ concatMap tmpostingrules $ jtxnmodifiers j
   in
@@ -1049,25 +1052,66 @@ checkBalanceAssignmentUnassignableAccountB p = do
 
 --
 
+-- | Get an ordered list of amounts in this journal which can
+-- influence canonical amount display styles. Those are, in
+-- the following order:
+--
+-- * amounts in market price (P) directives (in parse order)
+-- * posting amounts in transactions (in parse order)
+-- * the amount in the final default commodity (D) directive
+--
+-- Transaction price amounts (posting amounts' aprice field) are not included.
+--
+journalStyleInfluencingAmounts :: Journal -> [Amount]
+journalStyleInfluencingAmounts j = 
+  dbg7 "journalStyleInfluencingAmounts" $
+  catMaybes $ concat [
+   [mdefaultcommodityamt]
+  ,map (Just . pdamount) $ jpricedirectives j
+  ,map Just $ concatMap amounts $ map pamount $ journalPostings j
+  ]
+  where
+    -- D's amount style isn't actually stored as an amount, make it into one
+    mdefaultcommodityamt =
+      case jparsedefaultcommodity j of
+        Just (symbol,style) -> Just nullamt{acommodity=symbol,astyle=style}
+        Nothing -> Nothing
+
+-- | Infer commodity display styles for each commodity (see commodityStylesFromAmounts) 
+-- based on the amounts in this journal (see journalStyleInfluencingAmounts), 
+-- and save those inferred styles in the journal.
+-- Can return an error message eg if inconsistent number formats are found.
+journalInferCommodityStyles :: Journal -> Either String Journal
+journalInferCommodityStyles j = 
+  case commodityStylesFromAmounts $ journalStyleInfluencingAmounts j of
+    Left e   -> Left e
+    Right cs -> Right j{jinferredcommodities = dbg7 "journalInferCommodityStyles" cs}
+
+-- | Apply the given commodity display styles to the posting amounts in this journal.
+journalApplyCommodityStyles :: M.Map CommoditySymbol AmountStyle -> Journal -> Journal
+journalApplyCommodityStyles styles j@Journal{jtxns=ts, jpricedirectives=pds} =
+  j {jtxns=map fixtransaction ts
+    ,jpricedirectives=map fixpricedirective pds
+    }
+  where
+    fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
+    fixposting p = p{pamount=styleMixedAmount styles $ pamount p
+                    ,pbalanceassertion=fixbalanceassertion <$> pbalanceassertion p}
+    -- balance assertion/assignment amounts, and price amounts, are always displayed
+    -- (eg by print) at full precision
+    fixbalanceassertion ba = ba{baamount=styleAmountExceptPrecision styles $ baamount ba}
+    fixpricedirective pd@PriceDirective{pdamount=a} = pd{pdamount=styleAmountExceptPrecision styles a}
+
 -- | Choose and apply a consistent display style to the posting
 -- amounts in each commodity (see journalCommodityStyles).
 -- Can return an error message eg if inconsistent number formats are found.
-journalApplyCommodityStyles :: Journal -> Either String Journal
-journalApplyCommodityStyles j@Journal{jtxns=ts, jpricedirectives=pds} =
+journalInferAndApplyCommodityStyles :: Journal -> Either String Journal
+journalInferAndApplyCommodityStyles j =
   case journalInferCommodityStyles j of
     Left e   -> Left e
-    Right j' -> Right j''
+    Right j' -> Right $ journalApplyCommodityStyles allstyles j'
       where
-        styles = journalCommodityStyles j'
-        j'' = j'{jtxns=map fixtransaction ts
-                ,jpricedirectives=map fixpricedirective pds
-                }
-        fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
-        fixposting p = p{pamount=styleMixedAmount styles $ pamount p
-                        ,pbalanceassertion=fixbalanceassertion <$> pbalanceassertion p}
-        -- balance assertion amounts are always displayed (by print) at full precision, per docs
-        fixbalanceassertion ba = ba{baamount=styleAmountExceptPrecision styles $ baamount ba}
-        fixpricedirective pd@PriceDirective{pdamount=a} = pd{pdamount=styleAmountExceptPrecision styles a}
+        allstyles = journalCommodityStyles j'
 
 -- | Get the canonical amount styles for this journal, whether (in order of precedence):
 -- set globally in InputOpts,
@@ -1085,66 +1129,6 @@ journalCommodityStyles j =
     declaredstyles        = M.mapMaybe cformat $ jcommodities j
     defaultcommoditystyle = M.fromList $ catMaybes [jparsedefaultcommodity j]
     inferredstyles        = jinferredcommodities j
-
--- | Collect and save inferred amount styles for each commodity based on
--- the posting amounts in that commodity (excluding price amounts), ie:
--- "the format of the first amount, adjusted to the highest precision of all amounts".
--- Can return an error message eg if inconsistent number formats are found.
-journalInferCommodityStyles :: Journal -> Either String Journal
-journalInferCommodityStyles j = 
-  case
-    commodityStylesFromAmounts $ journalStyleInfluencingAmounts j
-  of
-    Left e   -> Left e
-    Right cs -> Right j{jinferredcommodities = dbg7 "journalInferCommodityStyles" cs}
-
--- | Given a list of amounts, in parse order (roughly speaking; see journalStyleInfluencingAmounts),
--- build a map from their commodity names to standard commodity
--- display formats. Can return an error message eg if inconsistent
--- number formats are found.
---
--- Though, these amounts may have come from multiple files, so we
--- shouldn't assume they use consistent number formats.
--- Currently we don't enforce that even within a single file,
--- and this function never reports an error.
---
-commodityStylesFromAmounts :: [Amount] -> Either String (M.Map CommoditySymbol AmountStyle)
-commodityStylesFromAmounts amts =
-  Right $ M.fromList commstyles
-  where
-    commamts = groupSort [(acommodity as, as) | as <- amts]
-    commstyles = [(c, canonicalStyleFrom $ map astyle as) | (c,as) <- commamts]
-
--- TODO: should probably detect and report inconsistencies here.
--- Though, we don't have the info for a good error message, so maybe elsewhere.
--- | Given a list of amount styles (assumed to be from parsed amounts
--- in a single commodity), in parse order, choose a canonical style.
--- This is:
--- the general style of the first amount, 
--- with the first digit group style seen,
--- with the maximum precision of all.
---
-canonicalStyleFrom :: [AmountStyle] -> AmountStyle
-canonicalStyleFrom [] = amountstyle
-canonicalStyleFrom ss@(s:_) =
-  s{asprecision=prec, asdecimalpoint=Just decmark, asdigitgroups=mgrps}
-  where
-    -- precision is maximum of all precisions
-    prec = maximumStrict $ map asprecision ss
-    -- identify the digit group mark (& group sizes)
-    mgrps = headMay $ mapMaybe asdigitgroups ss
-    -- if a digit group mark was identified above, we can rely on that;
-    -- make sure the decimal mark is different. If not, default to period.
-    defdecmark =
-      case mgrps of
-        Just (DigitGroups '.' _) -> ','
-        _                        -> '.'
-    -- identify the decimal mark: the first one used, or the above default,
-    -- but never the same character as the digit group mark.
-    -- urgh.. refactor..
-    decmark = case mgrps of
-                Just _ -> defdecmark
-                _      -> headDef defdecmark $ mapMaybe asdecimalpoint ss
 
 -- -- | Apply this journal's historical price records to unpriced amounts where possible.
 -- journalApplyPriceDirectives :: Journal -> Journal
@@ -1217,31 +1201,6 @@ journalToCost j@Journal{jtxns=ts} = j{jtxns=map (transactionToCost styles) ts}
 --     case p of Nothing -> [c]
 --               Just (UnitPrice ma)  -> c:(concatMap amountCommodities $ amounts ma)
 --               Just (TotalPrice ma) -> c:(concatMap amountCommodities $ amounts ma)
-
--- | Get an ordered list of amounts in this journal which can
--- influence canonical amount display styles. Those amounts are, in
--- the following order:
---
--- * amounts in market price (P) directives (in parse order)
--- * posting amounts in transactions (in parse order)
--- * the amount in the final default commodity (D) directive
---
--- Transaction price amounts (posting amounts' aprice field) are not included.
---
-journalStyleInfluencingAmounts :: Journal -> [Amount]
-journalStyleInfluencingAmounts j = 
-  dbg7 "journalStyleInfluencingAmounts" $
-  catMaybes $ concat [
-   [mdefaultcommodityamt]
-  ,map (Just . pdamount) $ jpricedirectives j
-  ,map Just $ concatMap amounts $ map pamount $ journalPostings j
-  ]
-  where
-    -- D's amount style isn't actually stored as an amount, make it into one
-    mdefaultcommodityamt =
-      case jparsedefaultcommodity j of
-        Just (symbol,style) -> Just nullamt{acommodity=symbol,astyle=style}
-        Nothing -> Nothing
 
 -- overcomplicated/unused amount traversal stuff
 --
@@ -1399,7 +1358,7 @@ journalApplyAliases aliases j =
 --     liabilities:debts  $1
 --     assets:bank:checking
 --
-Right samplejournal = journalBalanceTransactions False $
+Right samplejournal = journalBalanceTransactions False False $
          nulljournal
          {jtxns = [
            txnTieKnot $ Transaction {
@@ -1542,7 +1501,7 @@ tests_Journal = tests "Journal" [
   ,tests "journalBalanceTransactions" [
 
      test "balance-assignment" $ do
-      let ej = journalBalanceTransactions True $
+      let ej = journalBalanceTransactions False True $
             --2019/01/01
             --  (a)            = 1
             nulljournal{ jtxns = [
@@ -1553,7 +1512,7 @@ tests_Journal = tests "Journal" [
       (jtxns j & head & tpostings & head & pamount) @?= Mixed [num 1]
 
     ,test "same-day-1" $ do
-      assertRight $ journalBalanceTransactions True $
+      assertRight $ journalBalanceTransactions False True $
             --2019/01/01
             --  (a)            = 1
             --2019/01/01
@@ -1564,7 +1523,7 @@ tests_Journal = tests "Journal" [
             ]}
 
     ,test "same-day-2" $ do
-      assertRight $ journalBalanceTransactions True $
+      assertRight $ journalBalanceTransactions False True $
             --2019/01/01
             --    (a)                  2 = 2
             --2019/01/01
@@ -1582,7 +1541,7 @@ tests_Journal = tests "Journal" [
             ]}
 
     ,test "out-of-order" $ do
-      assertRight $ journalBalanceTransactions True $
+      assertRight $ journalBalanceTransactions False True $
             --2019/1/2
             --  (a)    1 = 2
             --2019/1/1
@@ -1593,40 +1552,5 @@ tests_Journal = tests "Journal" [
             ]}
 
     ]
-
-    ,tests "commodityStylesFromAmounts" $ [
-
-      -- Journal similar to the one on #1091:
-      -- 2019/09/24
-      --     (a)            1,000.00
-      -- 
-      -- 2019/09/26
-      --     (a)             1000,000
-      --
-      test "1091a" $ do
-        commodityStylesFromAmounts [
-           nullamt{aquantity=1000, astyle=AmountStyle L False (Precision 3) (Just ',') Nothing}
-          ,nullamt{aquantity=1000, astyle=AmountStyle L False (Precision 2) (Just '.') (Just (DigitGroups ',' [3]))}
-          ]
-         @?=
-          -- The commodity style should have period as decimal mark
-          -- and comma as digit group mark.
-          Right (M.fromList [
-            ("", AmountStyle L False (Precision 3) (Just '.') (Just (DigitGroups ',' [3])))
-          ])
-        -- same journal, entries in reverse order
-      ,test "1091b" $ do
-        commodityStylesFromAmounts [
-           nullamt{aquantity=1000, astyle=AmountStyle L False (Precision 2) (Just '.') (Just (DigitGroups ',' [3]))}
-          ,nullamt{aquantity=1000, astyle=AmountStyle L False (Precision 3) (Just ',') Nothing}
-          ]
-         @?=
-          -- The commodity style should have period as decimal mark
-          -- and comma as digit group mark.
-          Right (M.fromList [
-            ("", AmountStyle L False (Precision 3) (Just '.') (Just (DigitGroups ',' [3])))
-          ])
-
-     ]
 
   ]
