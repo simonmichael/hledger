@@ -178,16 +178,16 @@ instance ToMarkup Quantity
 -- | An amount's per-unit or total cost/selling price in another
 -- commodity, as recorded in the journal entry eg with @ or @@.
 -- Docs call this "transaction price". The amount is always positive.
-data AmountPrice = UnitPrice Amount | TotalPrice Amount
+data AmountPrice = UnitPrice !Amount | TotalPrice !Amount
   deriving (Eq,Ord,Generic,Show)
 
 -- | Display style for an amount.
 data AmountStyle = AmountStyle {
-      ascommodityside   :: Side,                 -- ^ does the symbol appear on the left or the right ?
-      ascommodityspaced :: Bool,                 -- ^ space between symbol and quantity ?
-      asprecision       :: !AmountPrecision,     -- ^ number of digits displayed after the decimal point
-      asdecimalpoint    :: Maybe Char,           -- ^ character used as decimal point: period or comma. Nothing means "unspecified, use default"
-      asdigitgroups     :: Maybe DigitGroupStyle -- ^ style for displaying digit groups, if any
+      ascommodityside   :: !Side,                   -- ^ does the symbol appear on the left or the right ?
+      ascommodityspaced :: !Bool,                   -- ^ space between symbol and quantity ?
+      asprecision       :: !AmountPrecision,        -- ^ number of digits displayed after the decimal point
+      asdecimalpoint    :: !(Maybe Char),           -- ^ character used as decimal point: period or comma. Nothing means "unspecified, use default"
+      asdigitgroups     :: !(Maybe DigitGroupStyle) -- ^ style for displaying digit groups, if any
 } deriving (Eq,Ord,Read,Generic)
 
 instance Show AmountStyle where
@@ -211,7 +211,7 @@ data AmountPrecision = Precision !Word8 | NaturalPrecision deriving (Eq,Ord,Read
 -- point), and the size of each group, starting with the one nearest
 -- the decimal point. The last group size is assumed to repeat. Eg,
 -- comma between thousands is DigitGroups ',' [3].
-data DigitGroupStyle = DigitGroups Char [Word8]
+data DigitGroupStyle = DigitGroups !Char ![Word8]
   deriving (Eq,Ord,Read,Show,Generic)
 
 type CommoditySymbol = Text
@@ -222,12 +222,12 @@ data Commodity = Commodity {
   } deriving (Show,Eq,Generic) --,Ord)
 
 data Amount = Amount {
-      acommodity  :: CommoditySymbol,   -- commodity symbol, or special value "AUTO"
-      aquantity   :: Quantity,          -- numeric quantity, or zero in case of "AUTO"
-      aismultiplier :: Bool,            -- ^ kludge: a flag marking this amount and posting as a multiplier
-                                        --   in a TMPostingRule. In a regular Posting, should always be false.
-      astyle      :: AmountStyle,
-      aprice      :: Maybe AmountPrice  -- ^ the (fixed, transaction-specific) price for this amount, if any
+      acommodity  :: !CommoditySymbol,     -- commodity symbol, or special value "AUTO"
+      aquantity   :: !Quantity,            -- numeric quantity, or zero in case of "AUTO"
+      aismultiplier :: !Bool,              -- ^ kludge: a flag marking this amount and posting as a multiplier
+                                           --   in a TMPostingRule. In a regular Posting, should always be false.
+      astyle      :: !AmountStyle,
+      aprice      :: !(Maybe AmountPrice)  -- ^ the (fixed, transaction-specific) price for this amount, if any
     } deriving (Eq,Ord,Generic,Show)
 
 newtype MixedAmount = Mixed [Amount] deriving (Eq,Ord,Generic,Show)
