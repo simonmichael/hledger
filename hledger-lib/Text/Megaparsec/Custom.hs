@@ -52,8 +52,8 @@ import "base-compat-batteries" Prelude.Compat hiding (readFile)
 
 import Control.Monad.Except
 import Control.Monad.State.Strict (StateT, evalStateT)
-import Data.Foldable (asum, toList)
 import qualified Data.List.NonEmpty as NE
+import Data.Monoid (Alt(..))
 import qualified Data.Set as S
 import Data.Text (Text)
 import Text.Megaparsec
@@ -244,7 +244,7 @@ customErrorBundlePretty errBundle =
       _ -> Nothing
 
     finds :: (Foldable t) => (a -> Maybe b) -> t a -> Maybe b
-    finds f = asum . map f . toList
+    finds f = getAlt . foldMap (Alt . f)
 
 
 --- * "Final" parse errors
