@@ -102,15 +102,8 @@ _hledger_completion() {
 
     # Subcommand specific
     case $subcommand in
-        help)
-            compopt -o nosort +o filenames
-            _hledger_compreply "$(
-                compgen -W "$(hledger help | tail -n 1)" -- "$cur"
-            )"
-            return 0
-            ;;
         # These do not expect or support any query arguments
-        commodities|check-dupes|files|import|print-unique|test)
+        commodities|check|files|help|import|print-unique|test)
             return 0
             ;;
     esac
