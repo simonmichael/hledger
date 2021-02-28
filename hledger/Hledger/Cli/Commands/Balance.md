@@ -315,7 +315,7 @@ The general thing that is calculated/shown in each cell. It is one of:
 
 - `--change` : show a sum of posting amounts (**default**)
 - `--budget` : like --change but also show a budget goal amount
-<!-- - `--valuechange` : show change of value of period-end historical balances -->
+- `--valuechange` : show change of value of period-end historical balances
 <!-- - `--gain` : show change of value of period-end historical balances caused by market price fluctuations -->
 
 More report types are on the way.
