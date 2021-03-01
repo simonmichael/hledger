@@ -10,23 +10,17 @@ Released under GPL version 3 or later.
 
 module Hledger.UI.Main where
 
--- import Control.Applicative
--- import Lens.Micro.Platform ((^.))
 import Control.Concurrent (threadDelay)
-import Control.Concurrent.Async
-import Control.Monad
--- import Control.Monad.IO.Class (liftIO)
--- import Data.Monoid              --
+import Control.Concurrent.Async (withAsync)
+import Control.Monad (forM_, void, when)
+import Data.List (find)
 import Data.List.Extra (nubSort)
-import Data.Maybe
--- import Data.Text (Text)
+import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
--- import Data.Time.Calendar
 import Graphics.Vty (mkVty)
-import Safe
-import System.Directory
-import System.FilePath
-import System.FSNotify
+import System.Directory (canonicalizePath)
+import System.FilePath (takeDirectory)
+import System.FSNotify (Event(Modified), isPollingManager, watchDir, withManager)
 import Brick
 
 import qualified Brick.BChan as BC
@@ -141,11 +135,11 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportspec_=rsp
       -- to that as usual.
       Just apat -> (rsSetAccount acct False registerScreen, [ascr'])
         where
-          acct = headDef (error' $ "--register "++apat++" did not match any account")  -- PARTIAL:
-                 . filterAccts $ journalAccountNames j
-          filterAccts = case toRegexCI $ T.pack apat of
-              Right re -> filter (regexMatchText re)
-              Left  _  -> const []
+          acct = fromMaybe (error' $ "--register "++apat++" did not match any account")  -- PARTIAL:
+                 . firstMatch $ journalAccountNamesDeclaredOrImplied j
+          firstMatch = case toRegexCI $ T.pack apat of
+              Right re -> find (regexMatchText re)
+              Left  _  -> const Nothing
           -- Initialising the accounts screen is awkward, requiring
           -- another temporary UIState value..
           ascr' = aScreen $

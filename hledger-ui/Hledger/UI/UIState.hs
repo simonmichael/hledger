@@ -10,6 +10,7 @@ where
 import Brick.Widgets.Edit
 import Data.List ((\\), foldl', sort)
 import Data.Maybe (fromMaybe)
+import Data.Semigroup (Max(..))
 import qualified Data.Text as T
 import Data.Text.Zipper (gotoEOL)
 import Data.Time.Calendar (Day)
@@ -264,7 +265,7 @@ resetDepth = updateReportDepth (const Nothing)
 
 -- | Get the maximum account depth in the current journal.
 maxDepth :: UIState -> Int
-maxDepth UIState{ajournal=j} = maximum $ map accountNameLevel $ journalAccountNames j
+maxDepth UIState{ajournal=j} = getMax . foldMap (Max . accountNameLevel) $ journalAccountNamesDeclaredOrImplied j
 
 -- | Decrement the current depth limit towards 0. If there was no depth limit,
 -- set it to one less than the maximum account depth.

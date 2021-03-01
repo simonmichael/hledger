@@ -57,6 +57,7 @@ module Hledger.Data.Journal (
   journalPayeesUsed,
   journalPayeesDeclaredOrUsed,
   journalCommoditiesDeclared,
+  journalCommodities,
   journalDateSpan,
   journalDateSpanBothDates,
   journalStartDate,
@@ -101,6 +102,7 @@ import Control.Monad.ST (ST, runST)
 import Data.Array.ST (STArray, getElems, newListArray, writeArray)
 import Data.Char (toUpper, isDigit)
 import Data.Default (Default(..))
+import Data.Foldable (toList)
 import Data.Function ((&))
 import qualified Data.HashTable.Class as H (toList)
 import qualified Data.HashTable.ST.Cuckoo as H
@@ -277,8 +279,12 @@ journalPostings :: Journal -> [Posting]
 journalPostings = concatMap tpostings . jtxns
 
 -- | Sorted unique commodity symbols declared by commodity directives in this journal.
-journalCommoditiesDeclared :: Journal -> [AccountName]
-journalCommoditiesDeclared = nubSort . M.keys . jcommodities
+journalCommoditiesDeclared :: Journal -> [CommoditySymbol]
+journalCommoditiesDeclared = M.keys . jcommodities
+
+-- | Sorted unique commodity symbols declared or inferred from this journal.
+journalCommodities :: Journal -> S.Set CommoditySymbol
+journalCommodities j = M.keysSet (jcommodities j) <> M.keysSet (jinferredcommodities j)
 
 -- | Unique transaction descriptions used in this journal.
 journalDescriptions :: Journal -> [Text]
@@ -294,7 +300,8 @@ journalPayeesUsed = nubSort . map transactionPayee . jtxns
 
 -- | Sorted unique payees used in transactions or declared by payee directives in this journal.
 journalPayeesDeclaredOrUsed :: Journal -> [Payee]
-journalPayeesDeclaredOrUsed j = nubSort $ journalPayeesDeclared j ++ journalPayeesUsed j
+journalPayeesDeclaredOrUsed j = toList $ foldMap S.fromList
+    [journalPayeesDeclared j, journalPayeesUsed j]
 
 -- | Sorted unique account names posted to by this journal's transactions.
 journalAccountNamesUsed :: Journal -> [AccountName]
@@ -312,19 +319,21 @@ journalAccountNamesDeclared = nubSort . map fst . jdeclaredaccounts
 -- | Sorted unique account names declared by account directives or posted to
 -- by transactions in this journal.
 journalAccountNamesDeclaredOrUsed :: Journal -> [AccountName]
-journalAccountNamesDeclaredOrUsed j = nubSort $ journalAccountNamesDeclared j ++ journalAccountNamesUsed j
+journalAccountNamesDeclaredOrUsed j = toList $ foldMap S.fromList
+    [journalAccountNamesDeclared j, journalAccountNamesUsed j]
 
 -- | Sorted unique account names declared by account directives, or posted to
 -- or implied as parents by transactions in this journal.
 journalAccountNamesDeclaredOrImplied :: Journal -> [AccountName]
-journalAccountNamesDeclaredOrImplied j = nubSort $ journalAccountNamesDeclared j ++ journalAccountNamesImplied j
+journalAccountNamesDeclaredOrImplied j = toList $ foldMap S.fromList
+    [journalAccountNamesDeclared j, expandAccountNames $ journalAccountNamesUsed j]
 
 -- | Convenience/compatibility alias for journalAccountNamesDeclaredOrImplied.
 journalAccountNames :: Journal -> [AccountName]
 journalAccountNames = journalAccountNamesDeclaredOrImplied
 
 journalAccountNameTree :: Journal -> Tree AccountName
-journalAccountNameTree = accountNameTreeFrom . journalAccountNames
+journalAccountNameTree = accountNameTreeFrom . journalAccountNamesDeclaredOrImplied
 
 -- | Find up to N most similar and most recent transactions matching
 -- the given transaction description and query. Transactions are
@@ -1087,10 +1096,8 @@ journalCommodityStyles j =
 -- "the format of the first amount, adjusted to the highest precision of all amounts".
 -- Can return an error message eg if inconsistent number formats are found.
 journalInferCommodityStyles :: Journal -> Either String Journal
-journalInferCommodityStyles j = 
-  case
-    commodityStylesFromAmounts $ journalStyleInfluencingAmounts j
-  of
+journalInferCommodityStyles j =
+  case commodityStylesFromAmounts $ journalStyleInfluencingAmounts j of
     Left e   -> Left e
     Right cs -> Right j{jinferredcommodities = dbg7 "journalInferCommodityStyles" cs}
 
@@ -1111,7 +1118,6 @@ commodityStylesFromAmounts =
 -- | Given a list of amount styles (assumed to be from parsed amounts
 -- in a single commodity), in parse order, choose a canonical style.
 canonicalStyleFrom :: [AmountStyle] -> AmountStyle
--- canonicalStyleFrom [] = amountstyle
 canonicalStyleFrom ss = foldl' canonicalStyle amountstyle ss
 
 -- TODO: should probably detect and report inconsistencies here.

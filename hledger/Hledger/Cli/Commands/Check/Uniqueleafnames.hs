@@ -9,7 +9,6 @@ where
 
 import Data.Function (on)
 import Data.List (groupBy, sortBy)
-import Data.List.Extra (nubSort)
 import Data.Text (Text)
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Semigroup ((<>))
@@ -25,9 +24,9 @@ journalCheckUniqueleafnames j = do
   -- find all duplicate leafnames, and the full account names they appear in
   case finddupes $ journalLeafAndFullAccountNames j of
     [] -> Right ()
-    dupes -> 
+    dupes ->
       -- report the first posting that references one of them (and its position), for now
-      sequence_ $ map (checkposting dupes) $ journalPostings j
+      mapM_ (checkposting dupes) $ journalPostings j
 
 finddupes :: (Ord leaf, Eq full) => [(leaf, full)] -> [(leaf, [full])]
 finddupes leafandfullnames = zip dupLeafs dupAccountNames
@@ -39,10 +38,8 @@ finddupes leafandfullnames = zip dupLeafs dupAccountNames
           . sortBy (compare `on` fst)
 
 journalLeafAndFullAccountNames :: Journal -> [(Text, AccountName)]
-journalLeafAndFullAccountNames j = map leafAndAccountName as
+journalLeafAndFullAccountNames = map leafAndAccountName . journalAccountNamesUsed
   where leafAndAccountName a = (accountLeafName a, a)
-        ps = journalPostings j
-        as = nubSort $ map paccount ps
 
 checkposting :: [(Text,[AccountName])] -> Posting -> Either String ()
 checkposting leafandfullnames Posting{paccount,ptransaction} =

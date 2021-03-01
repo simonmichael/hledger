@@ -515,8 +515,7 @@ sortRowsLike sortedas rows = mapMaybe (`HM.lookup` rowMap) sortedas
 -- those which fork between different branches
 subaccountTallies :: [AccountName] -> HashMap AccountName Int
 subaccountTallies = foldr incrementParent mempty . expandAccountNames
-  where
-    incrementParent a = HM.insertWith (+) (parentAccountName a) 1
+  where incrementParent a = HM.insertWith (+) (parentAccountName a) 1
 
 -- | A helper: what percentage is the second mixed amount of the first ?
 -- Keeps the sign of the first amount.

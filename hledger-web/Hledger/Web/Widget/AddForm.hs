@@ -13,11 +13,13 @@ module Hledger.Web.Widget.AddForm
 
 import Control.Monad.State.Strict (evalStateT)
 import Data.Bifunctor (first)
+import Data.Foldable (toList)
 import Data.List (dropWhileEnd, intercalate, unfoldr)
 import Data.Maybe (isJust)
 #if !(MIN_VERSION_base(4,13,0))
 import Data.Semigroup ((<>))
 #endif
+import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time (Day)
@@ -27,7 +29,6 @@ import Yesod
 
 import Hledger
 import Hledger.Web.Settings (widgetFile)
-import Data.List.Extra (nubSort)
 
 addModal ::
      ( MonadWidget m
@@ -72,7 +73,7 @@ addForm j today = identifyForm "add" $ \extra -> do
   let (postRes, displayRows) = validatePostings acctRes amtRes
 
   -- bindings used in add-form.hamlet
-  let descriptions = nubSort $ journalPayeesDeclaredOrUsed j ++ journalDescriptions j
+  let descriptions = foldMap S.fromList [journalPayeesDeclaredOrUsed j, journalDescriptions j]
       journals = fst <$> jfiles j
 
   pure (validateTransaction dateRes descRes postRes, $(widgetFile "add-form"))
