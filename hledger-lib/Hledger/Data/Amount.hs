@@ -148,7 +148,7 @@ import Control.Monad (foldM)
 import Data.Decimal (DecimalRaw(..), decimalPlaces, normalizeDecimal, roundTo)
 import Data.Default (Default(..))
 import Data.Foldable (toList)
-import Data.List (foldl', intercalate, intersperse, mapAccumL, partition)
+import Data.List (find, foldl', intercalate, intersperse, mapAccumL, partition)
 import Data.List.NonEmpty (NonEmpty(..), nonEmpty)
 import qualified Data.Map.Strict as M
 import Data.Maybe (fromMaybe)
@@ -708,10 +708,10 @@ normaliseMixedAmount = normaliseHelper False
 normaliseHelper :: Bool -> MixedAmount -> MixedAmount
 normaliseHelper squashprices (Mixed as)
   | missingkey `M.member` amtMap = missingmixedamt -- missingamt should always be alone, but detect it even if not
-  | M.null nonzeros= Mixed [newzero]
-  | otherwise      = Mixed $ toList nonzeros
+  | M.null nonzeros = Mixed [newzero]
+  | otherwise       = Mixed $ toList nonzeros
   where
-    newzero = maybe nullamt snd . M.lookupMin $ M.filter (not . T.null . acommodity) zeros
+    newzero = fromMaybe nullamt $ find (not . T.null . acommodity) zeros
     (zeros, nonzeros) = M.partition amountIsZero amtMap
     amtMap = foldr (\a -> M.insertWith sumSimilarAmountsUsingFirstPrice (key a) a) mempty as
     key Amount{acommodity=c,aprice=p} = (c, if squashprices then Nothing else priceKey <$> p)

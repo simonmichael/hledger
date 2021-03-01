@@ -27,21 +27,20 @@ module Hledger.Reports.BudgetReport (
 )
 where
 
+import Control.Applicative ((<|>))
 import Data.Decimal (roundTo)
 import Data.Default (def)
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
-import Data.List (nub, partition, transpose)
+import Data.List (find, partition, transpose)
 import Data.List.Extra (nubSort)
 import Data.Maybe (fromMaybe)
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid ((<>))
 #endif
-import Safe (headDef)
---import Data.List
---import Data.Maybe
-import qualified Data.Map as Map
 import Data.Map (Map)
+import qualified Data.Map as Map
+import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
@@ -83,8 +82,8 @@ budgetReport rspec assrt reportspan j = dbg4 "sortedbudgetreport" budgetreport
     showunbudgeted = empty_ ropts
     budgetedaccts =
       dbg3 "budgetedacctsinperiod" $
-      nub $
-      concatMap expandAccountName $
+      S.fromList $
+      expandAccountNames $
       accountNamesFromPostings $
       concatMap tpostings $
       concatMap (`runPeriodicTransaction` reportspan) $
@@ -130,25 +129,20 @@ journalAddBudgetGoalTransactions assrt _ropts reportspan j =
 --    with a budget goal, so that only budgeted accounts are shown.
 --    This can be disabled by -E/--empty.
 --
-journalWithBudgetAccountNames :: [AccountName] -> Bool -> Journal -> Journal
-journalWithBudgetAccountNames budgetedaccts showunbudgeted j = 
-  dbg5With (("budget account names: "++).pshow.journalAccountNamesUsed) $ 
+journalWithBudgetAccountNames :: S.Set AccountName -> Bool -> Journal -> Journal
+journalWithBudgetAccountNames budgetedaccts showunbudgeted j =
+  dbg5With (("budget account names: "++).pshow.journalAccountNamesUsed) $
   j { jtxns = remapTxn <$> jtxns j }
   where
-    remapTxn = mapPostings (map remapPosting)
+    remapTxn = txnTieKnot . transactionTransformPostings remapPosting
+    remapPosting p = p { paccount = remapAccount $ paccount p, poriginal = poriginal p <|> Just p }
+    remapAccount a
+      | a `S.member` budgetedaccts = a
+      | Just p <- budgetedparent   = if showunbudgeted then a else p
+      | otherwise                  = if showunbudgeted then u <> acctsep <> a else u
       where
-        mapPostings f t = txnTieKnot $ t { tpostings = f $ tpostings t }
-        remapPosting p = p { paccount = remapAccount $ paccount p, poriginal = Just . fromMaybe p $ poriginal p }
-          where
-            remapAccount a
-              | hasbudget         = a
-              | hasbudgetedparent = if showunbudgeted then a else budgetedparent
-              | otherwise         = if showunbudgeted then u <> acctsep <> a else u
-              where
-                hasbudget = a `elem` budgetedaccts
-                hasbudgetedparent = not $ T.null budgetedparent
-                budgetedparent = headDef "" $ filter (`elem` budgetedaccts) $ parentAccountNames a
-                u = unbudgetedAccountName
+        budgetedparent = find (`S.member` budgetedaccts) $ parentAccountNames a
+        u = unbudgetedAccountName
 
 -- | Combine a per-account-and-subperiod report of budget goals, and one
 -- of actual change amounts, into a budget performance report.

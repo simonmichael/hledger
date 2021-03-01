@@ -19,13 +19,12 @@ module Hledger.Cli.Commands.Aregister (
  ,tests_Aregister
 ) where
 
-import Data.List (intersperse)
+import Data.List (find, intersperse)
 import Data.Maybe (fromMaybe, isJust)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import Data.Time (addDays)
-import Safe (headDef)
 import System.Console.CmdArgs.Explicit (flagNone, flagReq)
 import Hledger.Read.CsvReader (CSV, CsvRecord, printCSV)
 
@@ -75,11 +74,11 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
       (a:as) -> return (a, map T.pack as)
   argsquery <- either fail (return . fst) $ parseQueryList d querystring
   let
-    acct = headDef (error' $ show apat++" did not match any account")   -- PARTIAL:
-           . filterAccts $ journalAccountNames j
-    filterAccts = case toRegexCI $ T.pack apat of
-        Right re -> filter (regexMatchText re)
-        Left  _  -> const []
+    acct = fromMaybe (error' $ show apat++" did not match any account")   -- PARTIAL:
+           . firstMatch $ journalAccountNamesDeclaredOrImplied j
+    firstMatch = case toRegexCI $ T.pack apat of
+        Right re -> find (regexMatchText re)
+        Left  _  -> const Nothing
     -- gather report options
     inclusive = True  -- tree_ ropts
     thisacctq = Acct $ (if inclusive then accountNameToAccountRegex else accountNameToAccountOnlyRegex) acct

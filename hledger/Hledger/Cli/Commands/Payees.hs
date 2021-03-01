@@ -4,18 +4,21 @@ The @payees@ command lists all unique payees (description part before a |) seen 
 
 -}
 
-{-# LANGUAGE MultiWayIf #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE CPP                 #-}
+{-# LANGUAGE MultiWayIf          #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE TemplateHaskell     #-}
 
 module Hledger.Cli.Commands.Payees (
   payeesmode
  ,payees
 ) where
 
-import Data.List.Extra (nubSort)
+#if !(MIN_VERSION_base(4,11,0))
+import Data.Semigroup ((<>))
+#endif
+import qualified Data.Set as S
 import qualified Data.Text.IO as T
 import System.Console.CmdArgs.Explicit as C
 
@@ -36,14 +39,14 @@ payeesmode = hledgerCommandMode
 -- | The payees command.
 payees :: CliOpts -> Journal -> IO ()
 payees CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{rsQuery=query}} j = do
-  let 
+  let
     declared = boolopt "declared" rawopts
     used     = boolopt "used"     rawopts
     -- XXX matchesPayee is currently an alias for matchesDescription, not sure if it matters
-    matcheddeclaredpayees = filter (matchesPayeeWIP query) $ journalPayeesDeclared j
-    matchedusedpayees     = map transactionPayee $ filter (matchesTransaction query) $ jtxns j
-    payees = nubSort $
+    matcheddeclaredpayees = S.fromList . filter (matchesPayeeWIP query) $ journalPayeesDeclared j
+    matchedusedpayees     = S.fromList . map transactionPayee $ filter (matchesTransaction query) $ jtxns j
+    payees =
       if | declared     && not used -> matcheddeclaredpayees
          | not declared && used     -> matchedusedpayees
-         | otherwise                -> matcheddeclaredpayees ++ matchedusedpayees
+         | otherwise                -> matcheddeclaredpayees <> matchedusedpayees
   mapM_ T.putStrLn payees

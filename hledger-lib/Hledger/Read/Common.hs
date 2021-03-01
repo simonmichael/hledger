@@ -151,7 +151,6 @@ import Text.Megaparsec.Custom
 
 import Hledger.Data
 import Hledger.Utils
-import Safe (headMay)
 import Text.Printf (printf)
 
 --- ** doctest setup
@@ -423,10 +422,8 @@ journalCheckCommoditiesDeclared j =
                           (linesPrepend "  " . (<>"\n") . textChomp $ showTransaction t)
       where
         mfirstundeclaredcomm =
-          headMay $ filter (not . (`elem` cs)) $ catMaybes $
-          (acommodity . baamount <$> pbalanceassertion) :
-          (map (Just . acommodity) . filter (/= missingamt) $ amounts pamount)
-        cs = journalCommoditiesDeclared j
+          find (`M.notMember` jcommodities j) . map acommodity $
+          (maybe id ((:) . baamount) pbalanceassertion) (filter (/= missingamt) $ amounts pamount)
 
 
 setYear :: Year -> JournalParser m ()
