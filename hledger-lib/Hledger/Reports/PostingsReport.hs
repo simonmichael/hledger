@@ -65,7 +65,7 @@ type SummaryPosting = (Posting, Day)
 postingsReport :: ReportSpec -> Journal -> PostingsReport
 postingsReport rspec@ReportSpec{rsOpts=ropts@ReportOpts{..}} j = items
     where
-      reportspan  = adjustReportDates rspec j
+      reportspan  = reportSpanBothDates j rspec
       whichdate   = whichDateFromOpts ropts
       mdepth      = queryDepth $ rsQuery rspec
       styles      = journalCommodityStyles j
@@ -123,26 +123,6 @@ registerRunningCalculationFn :: ReportOpts -> (Int -> MixedAmount -> MixedAmount
 registerRunningCalculationFn ropts
   | average_ ropts = \i avg amt -> avg + divideMixedAmount (fromIntegral i) (amt - avg)
   | otherwise      = \_ bal amt -> bal + amt
-
--- | Adjust report start/end dates to more useful ones based on
--- journal data and report intervals. Ie:
--- 1. If the start date is unspecified, use the earliest date in the journal (if any)
--- 2. If the end date is unspecified, use the latest date in the journal (if any)
--- 3. If a report interval is specified, enlarge the dates to enclose whole intervals
-adjustReportDates :: ReportSpec -> Journal -> DateSpan
-adjustReportDates rspec@ReportSpec{rsOpts=ropts} j = reportspan
-  where
-    -- see also multiBalanceReport
-    requestedspan       = dbg3 "requestedspan"       $ queryDateSpan' $ rsQuery rspec                         -- span specified by -b/-e/-p options and query args
-    journalspan         = dbg3 "journalspan"         $ dates `spanUnion` date2s                               -- earliest and latest dates (or date2s) in the journal
-      where
-        dates  = journalDateSpan False j
-        date2s = journalDateSpan True  j
-    requestedspanclosed = dbg3 "requestedspanclosed" $ requestedspan `spanDefaultsFrom` journalspan           -- if open-ended, close it using the journal's dates (if any)
-    intervalspans       = dbg3 "intervalspans"       $ splitSpan (interval_ ropts) requestedspanclosed  -- get the whole intervals enclosing that
-    mreportstart        = dbg3 "reportstart"         $ maybe Nothing spanStart $ headMay intervalspans        -- start of the first interval, or open ended
-    mreportend          = dbg3 "reportend"           $ maybe Nothing spanEnd   $ lastMay intervalspans        -- end of the last interval, or open ended
-    reportspan          = dbg3 "reportspan"          $ DateSpan mreportstart mreportend                       -- the requested span enlarged to whole intervals if possible
 
 -- | Find postings matching a given query, within a given date span,
 -- and also any similarly-matched postings before that date span.

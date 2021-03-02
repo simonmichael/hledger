@@ -23,7 +23,6 @@ module Hledger.Reports.MultiBalanceReport (
   sortRowsLike,
 
   -- * Helper functions
-  calculateReportSpan,
   makeReportQuery,
   getPostingsByColumn,
   getPostings,
@@ -50,7 +49,7 @@ import Data.Semigroup ((<>))
 #endif
 import Data.Semigroup (sconcat)
 import Data.Time.Calendar (Day, addDays, fromGregorian)
-import Safe (headMay, lastDef, lastMay, minimumMay)
+import Safe (lastDef, minimumMay)
 
 import Hledger.Data
 import Hledger.Query
@@ -112,7 +111,7 @@ multiBalanceReportWith :: ReportSpec -> Journal -> PriceOracle -> MultiBalanceRe
 multiBalanceReportWith rspec' j priceoracle = report
   where
     -- Queries, report/column dates.
-    reportspan = dbg3 "reportspan" $ calculateReportSpan rspec' j
+    reportspan = dbg3 "reportspan" $ reportSpan j rspec'
     rspec      = dbg3 "reportopts" $ makeReportQuery rspec' reportspan
 
     -- Group postings into their columns.
@@ -140,7 +139,7 @@ compoundBalanceReportWith :: ReportSpec -> Journal -> PriceOracle
 compoundBalanceReportWith rspec' j priceoracle subreportspecs = cbr
   where
     -- Queries, report/column dates.
-    reportspan = dbg3 "reportspan" $ calculateReportSpan rspec' j
+    reportspan = dbg3 "reportspan" $ reportSpan j rspec'
     rspec      = dbg3 "reportopts" $ makeReportQuery rspec' reportspan
 
     -- Group postings into their columns.
@@ -214,26 +213,6 @@ startingBalances rspec@ReportSpec{rsQuery=query,rsOpts=ropts} j priceoracle repo
     precedingspanq = (if date2_ ropts then Date2 else Date) $ case precedingspan of
         DateSpan Nothing Nothing -> emptydatespan
         a -> a
-
--- | Calculate the span of the report to be generated.
-calculateReportSpan :: ReportSpec -> Journal -> DateSpan
-calculateReportSpan ReportSpec{rsQuery=query,rsOpts=ropts} j = reportspan
-  where
-    -- The date span specified by -b/-e/-p options and query args if any.
-    requestedspan  = dbg3 "requestedspan" $ queryDateSpan (date2_ ropts) query
-    -- If the requested span is open-ended, close it using the journal's start and end dates.
-    -- This can still be the null (open) span if the journal is empty.
-    requestedspan' = dbg3 "requestedspan'" $
-        requestedspan `spanDefaultsFrom` journalDateSpan (date2_ ropts) j
-    -- The list of interval spans enclosing the requested span.
-    -- This list can be empty if the journal was empty,
-    -- or if hledger-ui has added its special date:-tomorrow to the query
-    -- and all txns are in the future.
-    intervalspans  = dbg3 "intervalspans" $ splitSpan (interval_ ropts) requestedspan'
-    -- The requested span enlarged to enclose a whole number of intervals.
-    -- This can be the null span if there were no intervals.
-    reportspan = DateSpan (spanStart =<< headMay intervalspans)
-                          (spanEnd =<< lastMay intervalspans)
 
 -- | Remove any date queries and insert queries from the report span.
 -- The user's query expanded to the report span

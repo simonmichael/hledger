@@ -58,6 +58,7 @@ module Hledger.Data.Journal (
   journalPayeesDeclaredOrUsed,
   journalCommoditiesDeclared,
   journalDateSpan,
+  journalDateSpanBothDates,
   journalStartDate,
   journalEndDate,
   journalDescriptions,
@@ -106,14 +107,14 @@ import qualified Data.HashTable.ST.Cuckoo as H
 import Data.List (find, foldl', sortOn)
 import Data.List.Extra (nubSort)
 import qualified Data.Map.Strict as M
-import Data.Maybe (catMaybes, fromJust, fromMaybe, isJust, mapMaybe)
+import Data.Maybe (catMaybes, fromJust, fromMaybe, isJust, mapMaybe, maybeToList)
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Semigroup (Semigroup(..))
 #endif
 import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
-import Safe (headMay, headDef)
+import Safe (headMay, headDef, maximumMay, minimumMay)
 import Data.Time.Calendar (Day, addDays, fromGregorian)
 import Data.Tree (Tree, flatten)
 import System.Time (ClockTime(TOD))
@@ -1286,23 +1287,34 @@ journalStyleInfluencingAmounts j =
 -- | The fully specified date span enclosing the dates (primary or secondary)
 -- of all this journal's transactions and postings, or DateSpan Nothing Nothing
 -- if there are none.
---
--- This will include the dates of any price directives that come after the last
--- posting/transaction, but not those that come before the first.
 journalDateSpan :: Bool -> Journal -> DateSpan
-journalDateSpan secondary j
-    | null ts   = DateSpan Nothing Nothing
-    | otherwise = DateSpan (Just earliest) (Just $ addDays 1 latest)
-    where
-      earliest = minimumStrict dates
-      latest   = case ddates of
-                      [] -> maximumStrict dates
-                      _  -> max (maximumStrict ddates) (maximumStrict dates)  -- Include commodity price directives in journal end
-      dates    = pdates ++ tdates
-      tdates   = map (if secondary then transactionDate2 else tdate) ts
-      pdates   = concatMap (mapMaybe (if secondary then (Just . postingDate2) else pdate) . tpostings) ts
-      ddates   = map pddate $ jpricedirectives j
-      ts       = jtxns j
+journalDateSpan False = journalDateSpanHelper $ Just PrimaryDate
+journalDateSpan True  = journalDateSpanHelper $ Just SecondaryDate
+
+-- | The fully specified date span enclosing the dates (primary and secondary)
+-- of all this journal's transactions and postings, or DateSpan Nothing Nothing
+-- if there are none.
+journalDateSpanBothDates :: Journal -> DateSpan
+journalDateSpanBothDates = journalDateSpanHelper Nothing
+
+-- | A helper for journalDateSpan which takes Maybe WhichDate directly. Nothing
+-- uses both primary and secondary dates.
+journalDateSpanHelper :: Maybe WhichDate -> Journal -> DateSpan
+journalDateSpanHelper whichdate j =
+    DateSpan (minimumMay dates) (addDays 1 <$> maximumMay dates)
+  where
+    dates    = pdates ++ tdates
+    tdates   = concatMap gettdate ts
+    pdates   = concatMap getpdate $ concatMap tpostings ts
+    ts       = jtxns j
+    gettdate t = case whichdate of
+        Just PrimaryDate   -> [tdate t]
+        Just SecondaryDate -> [fromMaybe (tdate t) $ tdate2 t]
+        Nothing            -> tdate t : maybeToList (tdate2 t)
+    getpdate p = case whichdate of
+        Just PrimaryDate   -> maybeToList $ pdate p
+        Just SecondaryDate -> maybeToList $ pdate2 p <|> pdate p
+        Nothing            -> catMaybes [pdate p, pdate2 p]
 
 -- | The earliest of this journal's transaction and posting dates, or
 -- Nothing if there are none.
@@ -1349,7 +1361,7 @@ journalApplyAliases aliases j =
   case mapM (transactionApplyAliases aliases) $ jtxns j of
     Right ts -> Right j{jtxns = ts}
     Left err -> Left err
-  
+
 -- -- | Build a database of market prices in effect on the given date,
 -- -- from the journal's price directives.
 -- journalPrices :: Day -> Journal -> Prices
