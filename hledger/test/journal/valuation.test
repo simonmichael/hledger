@@ -368,23 +368,23 @@ $ hledger -f- bal -N -V -b 2000
 
 # 34. multicolumn balance report valued at cost
 $ hledger -f- bal -MTA --value=cost -b 2000
-Balance changes in 2000-01-01..2000-04-30, converted to cost:
+Balance changes in 2000Q1, converted to cost:
 
-   || Jan  Feb  Mar  Apr    Total  Average 
-===++======================================
- a || 6 B  7 B  8 B    0     21 B      5 B 
----++--------------------------------------
-   || 6 B  7 B  8 B    0     21 B      5 B 
+   || Jan  Feb  Mar    Total  Average 
+===++=================================
+ a || 6 B  7 B  8 B     21 B      7 B 
+---++---------------------------------
+   || 6 B  7 B  8 B     21 B      7 B 
 
 # 35. multicolumn balance report valued at posting date
 $ hledger -f- bal -M --value=then -b 2000
-Balance changes in 2000-01-01..2000-04-30, valued at posting date:
+Balance changes in 2000Q1, valued at posting date:
 
-   || Jan  Feb  Mar  Apr 
-===++====================
- a || 1 B  2 B  3 B    0 
----++--------------------
-   || 1 B  2 B  3 B    0 
+   || Jan  Feb  Mar 
+===++===============
+ a || 1 B  2 B  3 B 
+---++---------------
+   || 1 B  2 B  3 B 
 
 # 36. multicolumn balance report showing changes in period-end values with -T or -A
 $ hledger -f- bal -MTA --value=end -b 2000
@@ -398,23 +398,23 @@ Balance changes in 2000-01-01..2000-04-30, valued at period ends:
 
 # 37. multicolumn balance report valued at other date
 $ hledger -f- bal -MTA --value=2000-01-15 -b 2000
-Balance changes in 2000-01-01..2000-04-30, valued at 2000-01-15:
+Balance changes in 2000Q1, valued at 2000-01-15:
 
-   || Jan  Feb  Mar  Apr    Total  Average 
-===++======================================
- a || 5 B  5 B  5 B    0     15 B      4 B 
----++--------------------------------------
-   || 5 B  5 B  5 B    0     15 B      4 B 
+   || Jan  Feb  Mar    Total  Average 
+===++=================================
+ a || 5 B  5 B  5 B     15 B      5 B 
+---++---------------------------------
+   || 5 B  5 B  5 B     15 B      5 B 
 
 # 38. multicolumn balance report valued today (with today >= 2000-04-01)
 $ hledger -f- bal -M --value=now -b 2000
-Balance changes in 2000-01-01..2000-04-30, current value:
+Balance changes in 2000Q1, current value:
 
-   || Jan  Feb  Mar  Apr 
-===++====================
- a || 4 B  4 B  4 B    0 
----++--------------------
-   || 4 B  4 B  4 B    0 
+   || Jan  Feb  Mar 
+===++===============
+ a || 4 B  4 B  4 B 
+---++---------------
+   || 4 B  4 B  4 B 
 
 # 39. multicolumn balance report showing changes in period-end values (same as --value=end)
 $ hledger -f- bal -M -V -b 2000
@@ -432,14 +432,14 @@ Balance changes in 2000-01-01..2000-04-30, valued at period ends:
 # The starting balance on 2000/01/01 is 14 B (cost of the first 8A).
 # February adds 1 A costing 7 B, making 21 B.
 # March adds 1 A costing 8 B, making 29 B.
-$ hledger -f- bal -M -H -b 200002 --value=cost
-Ending balances (historical) in 2000-02-01..2000-04-30, converted to cost:
+$ hledger -f- bal -M -H -b 200002 --cost
+Ending balances (historical) in 2000-02-01..2000-03-31, converted to cost:
 
-   || 2000-02-29  2000-03-31  2000-04-30 
-===++====================================
- a ||       13 B        21 B        21 B 
----++------------------------------------
-   ||       13 B        21 B        21 B 
+   || 2000-02-29  2000-03-31 
+===++========================
+ a ||       13 B        21 B 
+---++------------------------
+   ||       13 B        21 B 
 
 # 41. multicolumn balance report with -H valued at period end.
 # The starting balance is 1 A.
@@ -458,13 +458,13 @@ Ending balances (historical) in 2000-02-01..2000-04-30, valued at period ends:
 # 42. multicolumn balance report with -H valued at other date.
 # The starting balance is 15 B (3 A valued at 2000/1/15).
 $ hledger -f- bal -M -H -b 200002 --value=2000-01-15
-Ending balances (historical) in 2000-02-01..2000-04-30, valued at 2000-01-15:
+Ending balances (historical) in 2000-02-01..2000-03-31, valued at 2000-01-15:
 
-   || 2000-02-29  2000-03-31  2000-04-30 
-===++====================================
- a ||       10 B        15 B        15 B 
----++------------------------------------
-   ||       10 B        15 B        15 B 
+   || 2000-02-29  2000-03-31 
+===++========================
+ a ||       10 B        15 B 
+---++------------------------
+   ||       10 B        15 B 
 
 # 43. multicolumn balance report with -H, valuing each period's carried-over balances at cost.
 <
@@ -531,23 +531,23 @@ P 2000/04/01 A  4 B
 
 # 46. budget report, unvalued (for reference).
 $ hledger -f- bal -M --budget
-Budget performance in 2000-01-01..2000-04-30:
+Budget performance in 2000Q1:
 
-   ||              Jan               Feb               Mar            Apr 
-===++=====================================================================
- a || 1 A [50% of 2 A]  1 A [50% of 2 A]  1 A [50% of 2 A]  0 [0% of 2 A] 
----++---------------------------------------------------------------------
-   || 1 A [50% of 2 A]  1 A [50% of 2 A]  1 A [50% of 2 A]  0 [0% of 2 A] 
+   ||              Jan               Feb               Mar 
+===++======================================================
+ a || 1 A [50% of 2 A]  1 A [50% of 2 A]  1 A [50% of 2 A] 
+---++------------------------------------------------------
+   || 1 A [50% of 2 A]  1 A [50% of 2 A]  1 A [50% of 2 A] 
 
 # 47. budget report, valued at cost.
 $ hledger -f- bal -MTA --budget --value=c
-Budget performance in 2000-01-01..2000-04-30, converted to cost:
+Budget performance in 2000Q1, converted to cost:
 
-   ||               Jan                Feb                Mar            Apr               Total            Average 
-===++===============================================================================================================
- a || 6 B [300% of 2 B]  7 B [350% of 2 B]  8 B [400% of 2 B]  0 [0% of 2 B]  21 B [262% of 8 B]  5 B [262% of 2 B] 
----++---------------------------------------------------------------------------------------------------------------
-   || 6 B [300% of 2 B]  7 B [350% of 2 B]  8 B [400% of 2 B]  0 [0% of 2 B]  21 B [262% of 8 B]  5 B [262% of 2 B] 
+   ||               Jan                Feb                Mar               Total            Average 
+===++================================================================================================
+ a || 6 B [300% of 2 B]  7 B [350% of 2 B]  8 B [400% of 2 B]  21 B [350% of 6 B]  7 B [350% of 2 B] 
+---++------------------------------------------------------------------------------------------------
+   || 6 B [300% of 2 B]  7 B [350% of 2 B]  8 B [400% of 2 B]  21 B [350% of 6 B]  7 B [350% of 2 B] 
 
 # 48. budget report, showing changes in period-end values.
 $ hledger -f- bal -MTA --budget --value=e
@@ -561,13 +561,13 @@ Budget performance in 2000-01-01..2000-04-30, valued at period ends:
 
 # 49. budget report, valued at other date.
 $ hledger -f- bal -MTA --budget --value=2000-01-15
-Budget performance in 2000-01-01..2000-04-30, valued at 2000-01-15:
+Budget performance in 2000Q1, valued at 2000-01-15:
 
-   ||               Jan                Feb                Mar             Apr               Total            Average 
-===++================================================================================================================
- a || 5 B [50% of 10 B]  5 B [50% of 10 B]  5 B [50% of 10 B]  0 [0% of 10 B]  15 B [38% of 40 B]  4 B [38% of 10 B] 
----++----------------------------------------------------------------------------------------------------------------
-   || 5 B [50% of 10 B]  5 B [50% of 10 B]  5 B [50% of 10 B]  0 [0% of 10 B]  15 B [38% of 40 B]  4 B [38% of 10 B] 
+   ||               Jan                Feb                Mar               Total            Average 
+===++================================================================================================
+ a || 5 B [50% of 10 B]  5 B [50% of 10 B]  5 B [50% of 10 B]  15 B [50% of 30 B]  5 B [50% of 10 B] 
+---++------------------------------------------------------------------------------------------------
+   || 5 B [50% of 10 B]  5 B [50% of 10 B]  5 B [50% of 10 B]  15 B [50% of 30 B]  5 B [50% of 10 B] 
 
 # 50. --value=then with --historical. The starting total is valued individually for each posting at its posting time.
 <

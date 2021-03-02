@@ -158,11 +158,11 @@ Budget performance in 2018-01-01W01:
 
    ||  2018-01-01W01 
 ===++================
- a || 2 [7% of   30] 
+ a || 2 [3% of   70] 
  b || 2 [2% of  100] 
  c || 2 [0% of 1000] 
 ---++----------------
-   || 6 [1% of 1130] 
+   || 6 [1% of 1170] 
 
 # 7. A bounded two day budget. The end date is exclusive as usual.
 <
@@ -557,11 +557,12 @@ $ hledger bal -f- --budget -TA not:income -O csv
 "expenses:bills:f","$10","0","$10","0","$10","0"
 "Total:","$80","$370","$80","$370","$80","$370"
 
-# 28. You might expect this to show a budget goal in jan, feb, mar.
+# 28. You would expect this to show a budget goal in jan, feb, mar.
 # But by the usual report date logic, which picks the oldest and newest 
 # transaction date (1/15 and 3/15) as start and end date by default, 
 # and since "monthly" generates transactions on the 1st,
-# the january budget goal transaction is excluded.
+# the january budget goal transaction is excluded. Make sure we entend so
+# they're included.
 <
 ~ monthly in 2020
   (expenses:food)  $500
@@ -577,12 +578,12 @@ $ hledger bal -f- --budget -TA not:income -O csv
 $ hledger -f- bal --budget -M
 Budget performance in 2020Q1:
 
-               ||   Jan             Feb                   Mar 
-===============++=============================================
- <unbudgeted>  || $-400  0               $-600                
- expenses:food ||  $400  0 [0% of $500]   $600 [120% of $500] 
----------------++---------------------------------------------
-               ||     0  0 [0% of $500]      0 [  0% of $500] 
+               ||                 Jan             Feb                   Mar 
+===============++===========================================================
+ <unbudgeted>  || $-400                0               $-600                
+ expenses:food ||  $400 [80% of $500]  0 [0% of $500]   $600 [120% of $500] 
+---------------++-----------------------------------------------------------
+               ||     0 [ 0% of $500]  0 [0% of $500]      0 [  0% of $500] 
 
 # 29. Specifying the report period works around it.
 $ hledger -f- bal --budget -M date:2020q1

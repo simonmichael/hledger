@@ -34,6 +34,7 @@ module Hledger.Reports.ReportOptions (
   transactionDateFn,
   postingDateFn,
   reportSpan,
+  reportSpanBothDates,
   reportStartDate,
   reportEndDate,
   reportPeriodStart,
@@ -49,7 +50,7 @@ import Data.Maybe (fromMaybe, isJust, mapMaybe)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day, addDays)
 import Data.Default (Default(..))
-import Safe (lastDef, lastMay)
+import Safe (headMay, lastDef, lastMay, maximumMay)
 
 import System.Console.ANSI (hSupportsANSIColor)
 import System.Environment (lookupEnv)
@@ -513,13 +514,41 @@ queryFromFlags ReportOpts{..} = simplifyQuery $ And flagsq
 -- options or queries, or otherwise the earliest and latest transaction or
 -- posting dates in the journal. If no dates are specified by options/queries
 -- and the journal is empty, returns the null date span.
+-- The boolean argument flags whether primary and secondary dates are considered
+-- equivalently.
 reportSpan :: Journal -> ReportSpec -> DateSpan
-reportSpan j ReportSpec{rsQuery=query} = dbg3 "reportspan" $ DateSpan mstartdate menddate
+reportSpan = reportSpanHelper False
+
+-- | Like reportSpan, but uses both primary and secondary dates when calculating
+-- the span.
+reportSpanBothDates :: Journal -> ReportSpec -> DateSpan
+reportSpanBothDates = reportSpanHelper True
+
+-- | A helper for reportSpan, which takes a Bool indicating whether to use both
+-- primary and secondary dates.
+reportSpanHelper :: Bool -> Journal -> ReportSpec -> DateSpan
+reportSpanHelper bothdates j ReportSpec{rsQuery=query, rsOpts=ropts} = reportspan
   where
-    DateSpan mjournalstartdate mjournalenddate =
-      dbg3 "journalspan" $ journalDateSpan False j  -- ignore secondary dates
-    mstartdate = queryStartDate False query <|> mjournalstartdate
-    menddate   = queryEndDate   False query <|> mjournalenddate
+    -- The date span specified by -b/-e/-p options and query args if any.
+    requestedspan  = dbg3 "requestedspan" $ if bothdates then queryDateSpan' query else queryDateSpan (date2_ ropts) query
+    -- If we are requesting period-end valuation, the journal date span should
+    -- include price directives after the last transaction
+    journalspan = dbg3 "journalspan" $ if bothdates then journalDateSpanBothDates j else journalDateSpan (date2_ ropts) j
+    pricespan = dbg3 "pricespan" . DateSpan Nothing $ case value_ ropts of
+        Just (AtEnd _) -> fmap (addDays 1) . maximumMay . map pddate $ jpricedirectives j
+        _              -> Nothing
+    -- If the requested span is open-ended, close it using the journal's start and end dates.
+    -- This can still be the null (open) span if the journal is empty.
+    requestedspan' = dbg3 "requestedspan'" $ requestedspan `spanDefaultsFrom` (journalspan `spanUnion` pricespan)
+    -- The list of interval spans enclosing the requested span.
+    -- This list can be empty if the journal was empty,
+    -- or if hledger-ui has added its special date:-tomorrow to the query
+    -- and all txns are in the future.
+    intervalspans  = dbg3 "intervalspans" $ splitSpan (interval_ ropts) requestedspan'
+    -- The requested span enlarged to enclose a whole number of intervals.
+    -- This can be the null span if there were no intervals.
+    reportspan = dbg3 "reportspan" $ DateSpan (spanStart =<< headMay intervalspans)
+                                              (spanEnd =<< lastMay intervalspans)
 
 reportStartDate :: Journal -> ReportSpec -> Maybe Day
 reportStartDate j = spanStart . reportSpan j
@@ -550,8 +579,13 @@ reportPeriodLastDay = fmap (addDays (-1)) . queryEndDate False . rsQuery
 
 -- Get the last day of the overall report period, or if no report
 -- period is specified, the last day of the journal (ie the latest
--- posting date). If there's no report period and nothing in the
+-- posting date). If we're doing period-end valuation, include price
+-- directive dates. If there's no report period and nothing in the
 -- journal, will be Nothing.
 reportPeriodOrJournalLastDay :: ReportSpec -> Journal -> Maybe Day
-reportPeriodOrJournalLastDay rspec j =
-  reportPeriodLastDay rspec <|> journalEndDate False j
+reportPeriodOrJournalLastDay rspec j = reportPeriodLastDay rspec <|> journalOrPriceEnd
+  where
+    journalOrPriceEnd = case value_ $ rsOpts rspec of
+        Just (AtEnd _) -> max (journalEndDate False j) lastPriceDirective
+        _              -> journalEndDate False j
+    lastPriceDirective = fmap (addDays 1) . maximumMay . map pddate $ jpricedirectives j
