@@ -54,6 +54,8 @@ hledgerWebMain = do
   when (debug_ > 0) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show wopts)
   if
     | "help"            `inRawOpts` rawopts_ -> putStr (showModeUsage webmode) >> exitSuccess
+    | "info"            `inRawOpts` rawopts_ -> runInfoForTopic "hledger-web" Nothing
+    | "man"             `inRawOpts` rawopts_ -> runManForTopic  "hledger-web" Nothing
     | "version"         `inRawOpts` rawopts_ -> putStrLn prognameandversion >> exitSuccess
     | "binary-filename" `inRawOpts` rawopts_ -> putStrLn (binaryfilename progname)
     | "test"            `inRawOpts` rawopts_ -> do

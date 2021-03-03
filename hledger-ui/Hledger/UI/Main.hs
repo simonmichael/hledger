@@ -59,6 +59,8 @@ main = do
 
   case True of
     _ | "help"            `inRawOpts` rawopts -> putStr (showModeUsage uimode)
+    _ | "info"            `inRawOpts` rawopts -> runInfoForTopic "hledger-ui" Nothing
+    _ | "man"             `inRawOpts` rawopts -> runManForTopic  "hledger-ui" Nothing
     _ | "version"         `inRawOpts` rawopts -> putStrLn prognameandversion
     _ | "binary-filename" `inRawOpts` rawopts -> putStrLn (binaryfilename progname)
     _                                         -> withJournalDo copts' (runBrickUi opts)
