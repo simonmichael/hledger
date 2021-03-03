@@ -51,11 +51,11 @@ Or, they can be run by giving their names as arguments to `check`:
 These checks can be run only by giving their names as arguments to `check`.
 They are more specialised and not desirable for everyone, therefore optional:
 
-- **ordereddates** - transactions are ordered by date (similar to the old `check-dates` command)
+- **ordereddates** - transactions are ordered by date in each file
 
 - **payees** - all payees used by transactions [have been declared](#declaring-payees)
 
-- **uniqueleafnames** - all account leaf names are unique (similar to the old `check-dupes` command).
+- **uniqueleafnames** - all account leaf names are unique
 
 ### Custom checks
 
