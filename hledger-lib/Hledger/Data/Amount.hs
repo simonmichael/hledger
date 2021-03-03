@@ -323,11 +323,15 @@ testAmountAndTotalPrice f amt = case aprice amt of
 -- | Do this Amount and (and its total price, if it has one) appear to be zero when rendered with its
 -- display precision ?
 amountLooksZero :: Amount -> Bool
-amountLooksZero = testAmountAndTotalPrice ((0==) . amountRoundedQuantity)
+amountLooksZero = testAmountAndTotalPrice looksZero
+  where
+    looksZero Amount{aquantity=Decimal e q, astyle=AmountStyle{asprecision=p}} = case p of
+        Precision d      -> if e > d then abs q <= 5*10^(e-d-1) else q == 0
+        NaturalPrecision -> q == 0
 
 -- | Is this Amount (and its total price, if it has one) exactly zero, ignoring its display precision ?
 amountIsZero :: Amount -> Bool
-amountIsZero = testAmountAndTotalPrice ((0==) . aquantity)
+amountIsZero = testAmountAndTotalPrice (\Amount{aquantity=Decimal _ q} -> q == 0)
 
 -- | Set an amount's display precision, flipped.
 withPrecision :: Amount -> AmountPrecision -> Amount
