@@ -519,8 +519,6 @@ queryFromFlags ReportOpts{..} = simplifyQuery $ And flagsq
 -- options or queries, or otherwise the earliest and latest transaction or
 -- posting dates in the journal. If no dates are specified by options/queries
 -- and the journal is empty, returns the null date span.
--- The boolean argument flags whether primary and secondary dates are considered
--- equivalently.
 reportSpan :: Journal -> ReportSpec -> DateSpan
 reportSpan = reportSpanHelper False
 
