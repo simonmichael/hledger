@@ -14,6 +14,7 @@ tags.
 {-# LANGUAGE Rank2Types        #-}
 {-# LANGUAGE RecordWildCards   #-}
 
+{-# LANGUAGE NamedFieldPuns #-}
 module Hledger.Data.Transaction (
   -- * Transaction
   nulltransaction,
@@ -55,6 +56,7 @@ module Hledger.Data.Transaction (
   sourceFirstLine,
   showGenericSourcePos,
   annotateErrorWithTransaction,
+  transactionFile,
   -- * tests
   tests_Transaction
 )
@@ -627,6 +629,13 @@ transactionMapPostings f t@Transaction{tpostings=ps} = t{tpostings=map f ps}
 -- | Apply a transformation to a transaction's posting amounts.
 transactionMapPostingAmounts :: (Amount -> Amount) -> Transaction -> Transaction
 transactionMapPostingAmounts f  = transactionMapPostings (postingTransformAmount (mapMixedAmount f))
+
+-- | The file path from which this transaction was parsed.
+transactionFile :: Transaction -> FilePath
+transactionFile Transaction{tsourcepos} =
+  case tsourcepos of
+    GenericSourcePos f _ _ -> f
+    JournalSourcePos f _   -> f
 
 -- tests
 
