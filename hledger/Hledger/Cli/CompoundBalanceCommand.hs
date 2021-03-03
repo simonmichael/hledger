@@ -111,7 +111,7 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
         parse = \case
           "historical" -> Just HistoricalBalance
           "cumulative" -> Just CumulativeChange
-          "change"     -> Just PeriodChange
+          "periodic"   -> Just PeriodChange
           _            -> Nothing
     balancetype = fromMaybe cbctype mBalanceTypeOverride
     -- Set balance type in the report options.
@@ -135,8 +135,7 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
             _                 -> showDateSpan requestedspan
           where
             enddates = map (addDays (-1)) . mapMaybe spanEnd $ cbrDates cbr  -- these spans will always have a definite end date
-            requestedspan = queryDateSpan date2_ (rsQuery rspec)
-                                `spanDefaultsFrom` journalDateSpan date2_ j
+            requestedspan = reportSpan j rspec
 
         -- when user overrides, add an indication to the report title
         -- Do we need to deal with overridden ReportType?
