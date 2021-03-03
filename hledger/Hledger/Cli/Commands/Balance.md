@@ -10,33 +10,57 @@ columns representing time periods.
 Compared to Ledger's balance command, hledger's `balance` adds the
 significant feature of multi-period reports.
 
-Note there are some easier variants of the `balance` command which 
-are more convenient for everyday financial reporting:
+Note there are some higher-level variants of the `balance` command
+with convenient defaults, which can be simpler to use:
 [`balancesheet`](#balancesheet),
 [`balancesheetequity`](#balancesheetequity),
 [`cashflow`](#cashflow) and
 [`incomestatement`](#incomestatement). 
-But when you want most control, you can use `balance`.
-It can show:
+When you need more control, then use `balance`. 
 
-- accounts as a flat list or a tree, optionally depth-limited (`-l`, `-t`, `-[1-9]`)
-- a single time period or multiple periods (`-D`, `-W`, `-M`, `-Q`, `-Y`, `-p INTERVAL`)
-- balance changes in each period (`--change`)
-- actual and planned balance changes, and their relative percentage, in each period (`--budget`)
-- accumulated totals at the end of each period (counting from report start) (`--cumulative`)
-- historical end balances at the end of each period (assuming a suitable opening balances transaction) (`--historical`)
-- totals, averages, percentages, inverted sign (`-T`, `-A`, `-%`, `--invert`)
-- custom-formatted line items (in single-period reports) (`--format`)
-- transposed data - swapping the rows and columns (in multi-period reports) (`--transpose`)
-- pivoted data - using a different field as the "account name" (`--pivot FIELD`) (see [PIVOTING](#pivoting)
+Here's a quick overview of `balance` features
+(many of these work with the higher-level commands as well),
+followed by more detailed descriptions and examples. 
+`balance` can show..
+
+- accounts as a [list (`-l`) or a tree (`-t`)](#list-or-tree-mode)
+- optionally depth-limited ([`-[1-9]`](#depth-limiting))
+- sorted [by declaration order and name](#simple-balance-report),
+  or [by amount](#sorting-by-amount)
+
+..and their..
+
+- balance changes ([`--change`](#simple-balance-report), the default report type)
+- or actual and planned balance changes ([`--budget`](#budget-report))
+- or value of balance changes ([`--change -V`](#valuation-type))
+- or change of balance value ([`--valuechange`](#report-type))
+
+..in..
+
+- one time period (the whole journal period by default)
+- or multiple periods ([`-D`, `-W`, `-M`, `-Q`, `-Y`, `-p INTERVAL`](#report-intervals))
+
+..either..
+
+- per period ([`--periodic`](#accumulation-type), the default accumulation type)
+- or accumulated since report start date ([`--cumulative`](#accumulation-type))
+- or accumulated since account creation ([`--historical/-H`](#accumulation-type))
+
+..with..
+
+- totals ([`-T`](#multi-period-balance-report)), 
+  averages ([`-A`](#multi-period-balance-report)), 
+  percentages ([`-%`](#percentages)), 
+  inverted sign ([`--invert`](#sorting-by-amount))
+- rows and columns swapped ([`--transpose`](#multi-period-balance-report))
+- another field used as account name ([`--pivot`](#multi-period-balance-report))
+- custom-formatted line items (single-period reports only) ([`--format`](#customising-single-period-balance-reports))
 
 This command supports the
 [output destination](#output-destination) and
 [output format](#output-format) options,
 with output formats `txt`, `csv`, `json`, and (multi-period reports only:) `html`. 
 In `txt` output in a colour-supporting terminal, negative amounts are shown in red.
-
-Here are some examples of `balance` reports and features.
 
 <a name="classic-balance-report"></a>
 
@@ -202,6 +226,8 @@ shown, unless `-E/--empty` is used.
 - Average and/or total columns can be added with the `-A/--average` and
 `-T/--row-total` flags.
 - The `--transpose` flag can be used to exchange rows and columns.
+- The `--pivot FIELD` option causes a different transaction field to be used as
+  "account name". See [PIVOTING](#pivoting).
      
 Multi-period reports with many periods can be too wide for easy viewing in the terminal.
 Here are some ways to handle that:
@@ -311,25 +337,35 @@ For more flexible reporting, there are three important option groups:
 `hledger balance [REPORTTYPE] [ACCUMULATIONTYPE] [VALUATIONTYPE] ...`
 
 #### Report type
-The general thing that is calculated/shown in each cell. It is one of:
+The general thing that is calculated/shown in each cell. 
+It is one of:
 
 - `--change` : show a sum of posting amounts (**default**)
 - `--budget` : like --change but also show a budget goal amount
 - `--valuechange` : show change of value of period-end historical balances
 <!-- - `--gain` : show change of value of period-end historical balances caused by market price fluctuations -->
 
-More report types are on the way.
-
 #### Accumulation type
 Which previous periods' postings should be included in calculations
 (especially in multiperiod reports).
 It is one of:
 
-- `--periodic` : postings from column start to column end. Ie, show changes in each period. Typically used when reviewing revenues/expenses. (**default for balance, incomestatement**)
+- `--periodic` : postings from column start to column end. Ie, show
+  [changes] in each period. Typically used when reviewing
+  revenues/expenses. (**default for balance, incomestatement**)
 
-- `--cumulative` : postings from report start (specified by -b/--begin, eg) to column end. Ie, show changes since start of report. Rarely used.
+- `--cumulative` : postings from report start (specified by
+  -b/--begin, eg) to column end. Ie, show [accumulated changes] since
+  start of report. Rarely used.
 
-- `--historical/-H` : postings from journal start to column end. Ie, show historical balance at end of each period. Typically used when reviewing assets/liabilities/equity. (**default for balancesheet, balancesheetequity, cashflow**)
+- `--historical/-H` : postings from journal start to column end. Ie,
+  show [historical balance] at end of each period. Typically used when
+  reviewing assets/liabilities/equity. (**default for balancesheet,
+  balancesheetequity, cashflow**)
+
+[changes]:             #balance-change-end-balance-historical-end-balance
+[accumulated changes]: #balance-change-end-balance-historical-end-balance
+[historical balance]:  #balance-change-end-balance-historical-end-balance
 
 #### Valuation type
 Which kind of [valuation], [valuation date(s)] and optionally a target [valuation commodity] to use.
