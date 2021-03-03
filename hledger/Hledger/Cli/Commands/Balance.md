@@ -46,6 +46,14 @@ followed by more detailed descriptions and examples.
 - or accumulated since report start date ([`--cumulative`](#accumulation-type))
 - or accumulated since account creation ([`--historical/-H`](#accumulation-type))
 
+..possibly converted to..
+
+- cost ([`--value=cost[,COMM]/--cost/-B`](#valuation-type))
+- or market value, as of transaction dates ([`--value=then[,COMM]`](#valuation-type))
+- or at period ends ([`--value=end[,COMM]`](#valuation-type))
+- or now ([`--value=now`](#valuation-type))
+- or at some other date ([`--value=YYYY-MM-DD`](#valuation-type))
+
 ..with..
 
 - totals ([`-T`](#multi-period-balance-report)), 
