@@ -14,15 +14,13 @@ import Hledger.Cli.CliOptions
 
 journalCheckOrdereddates :: CliOpts -> Journal -> Either String ()
 journalCheckOrdereddates CliOpts{reportspec_=rspec} j = do
-  let ropts = (rsOpts rspec){accountlistmode_=ALFlat}
-  let ts = filter (rsQuery rspec `matchesTransaction`) $
+  let 
+    ropts = (rsOpts rspec){accountlistmode_=ALFlat}
+    ts = filter (rsQuery rspec `matchesTransaction`) $
            jtxns $ journalSelectingAmountFromOpts ropts j
-  let checkunique = False -- boolopt "unique" rawopts  XXX was supported by checkdates command
-  let getdate = transactionDateFn ropts
-  let compare a b =
-        if checkunique
-        then getdate a <  getdate b
-        else getdate a <= getdate b
+    checkunique = False -- boolopt "unique" rawopts  XXX was supported by checkdates command
+    compare a b = if checkunique then getdate a < getdate b else getdate a <= getdate b
+      where getdate = transactionDateFn ropts
   case checkTransactions compare ts of
     FoldAcc{fa_previous=Nothing} -> return ()
     FoldAcc{fa_error=Nothing}    -> return ()
