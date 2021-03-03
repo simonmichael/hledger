@@ -11,9 +11,6 @@ type, or otherwise all accounts under a top-level `asset` account
 (case insensitive, plural allowed) which do not have `fixed`,
 `investment`, `receivable` or `A/R` in their name.
 
-(This report is essentially similar to 
-"hledger balance --change assets not:fixed not:investment not:receivable".)
-
 Example:
 ```shell
 $ hledger cashflow
@@ -31,13 +28,10 @@ Total:
                  $-1
 ```
 
-With a [reporting interval](#reporting-interval), multiple columns
-will be shown, one for each report period.
-Normally cashflow shows changes in assets per period, though
-as with [multicolumn balance reports](#multicolumn-balance-reports)
-you can alter the report mode with `--change`/`--cumulative`/`--historical`.
-Instead of absolute values [percentages](#percentages) can be displayed
-with `-%`.
+This command is a higher-level variant of the [`balance`](#balance) command,
+and supports many of that command's features, such as multi-period reports.
+It is similar to `hledger balance assets not:fixed not:investment not:receivable`,
+but with smarter account detection.
 
 This command also supports the
 [output destination](hledger.html#output-destination) and

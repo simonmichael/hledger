@@ -11,10 +11,6 @@ declared with the `Asset`, `Cash`, `Liability` or `Equity` type, or
 otherwise all accounts under a top-level `asset`, `liability` or
 `equity` account (case insensitive, plurals allowed).
 
-(This report is essentially similar to 
-"hledger balance --historical assets liabilities equity", 
-with liabilities and equity sign-flipped.)
-
 Example:
 ```shell
 $ hledger balancesheetequity
@@ -42,6 +38,11 @@ Total:
                    0
 ```
 
+This command is a higher-level variant of the [`balance`](#balance) command,
+and supports many of that command's features, such as multi-period reports.
+It is similar to `hledger balance -H assets liabilities equity`,
+but with smarter account detection, and liabilities/equity displayed with
+their sign flipped.
 
 This command also supports the
 [output destination](hledger.html#output-destination) and

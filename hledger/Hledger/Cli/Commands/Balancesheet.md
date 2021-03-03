@@ -12,10 +12,6 @@ with the `Asset` or `Cash` or `Liability` type, or otherwise all
 accounts under a top-level `asset` or `liability` account (case
 insensitive, plurals allowed).
 
-(This report is essentially similar to 
-"hledger balance --historical assets liabilities", 
-with liabilities sign-flipped.)
-
 Example:
 
 ```shell
@@ -39,15 +35,11 @@ Total:
                    0
 ```
 
-With a [reporting interval](#reporting-interval), multiple columns
-will be shown, one for each report period.
-As with [multicolumn balance reports](#multicolumn-balance-reports),
-you can alter the report mode with `--change`/`--cumulative`/`--historical`.
-Normally balancesheet shows historical ending balances, which is what
-you need for a balance sheet; note this means it ignores report begin
-dates (and `-T/--row-total`, since summing end balances generally does not make sense).
-Instead of absolute values [percentages](#percentages) can be displayed
-with `-%`.
+This command is a higher-level variant of the [`balance`](#balance) command,
+and supports many of that command's features, such as multi-period reports.
+It is similar to `hledger balance -H assets liabilities`,
+but with smarter account detection, and liabilities displayed with
+their sign flipped.
 
 This command also supports the
 [output destination](hledger.html#output-destination) and
