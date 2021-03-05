@@ -21,6 +21,7 @@ When you need more control, then use `balance`.
 Here's a quick overview of the `balance` command's features,
 followed by more detailed descriptions and examples.
 Many of these work with the higher-level commands as well.
+
 `balance` can show..
 
 - accounts as a [list (`-l`) or a tree (`-t`)](#list-or-tree-mode)
@@ -327,8 +328,9 @@ To see accurate historical end balances:
    unless the journal covers the account's full lifetime.
 
 2. Include all of of the account's prior postings in the report,
-   eg by leaving the [report start date](#report-start-end-date) unspecified,
+   by not specifying a [report start date](#report-start-end-date),
    or by using the `-H/--historical` flag.
+   (`-H` causes report start date to be ignored when summing postings.)
 
 ### Balance report types
 
@@ -356,7 +358,7 @@ Which postings should be included in each cell's calculation.
 It is one of:
 
 - `--change` : postings from column start to column end, ie within the cell's period.
-  Typically used with `--sum` to see revenues/expenses.
+  Typically used to see revenues/expenses.
   (**default for balance, incomestatement**)
   <!-- /--periodic -->
 
@@ -392,13 +394,14 @@ but if you find any that seem wrong or misleading, let us know.
 The following restrictions are applied:
 
 - `--valuechange` implies `--value=end`
+- `--valuechange` makes `--change` the default when used with the `balancesheet`/`balancesheetequity` commands
 - `--cumulative` or `--historical` disables `--row-total/-T`
 
 For reference, here is what the combinations of accumulation and valuation show:
 
 | Valuation: ><br>Accumulation: v | no valuation                                                     | `--value= then`                                                    | `--value= end`                                              | `--value= YYYY-MM-DD /now`                            |
 |---------------------------------|------------------------------------------------------------------|--------------------------------------------------------------------|-------------------------------------------------------------|-------------------------------------------------------|
-| `--periodic`                    | change in period                                                 | sum of posting-date market values in period                        | period-end value of change in period                        | DATE-value of change in period                        |
+| `--change`                      | change in period                                                 | sum of posting-date market values in period                        | period-end value of change in period                        | DATE-value of change in period                        |
 | `--cumulative`                  | change from report start to period end                           | sum of posting-date market values from report start to period end  | period-end value of change from report start to period end  | DATE-value of change from report start to period end  |
 | `--historical /-H`              | change from journal start to period end (historical end balance) | sum of posting-date market values from journal start to period end | period-end value of change from journal start to period end | DATE-value of change from journal start to period end |
 
@@ -409,22 +412,22 @@ Some frequently used `balance` options/reports are:
 - `bal -M revenues expenses`\
   Show revenues/expenses in each month.
   Also available as the [`incomestatement`](#incomestatement) command.
-  <!-- (= `bal --monthly --sum --change revenues expenses`)\ -->
+  <!-- `bal --monthly --sum --change revenues expenses` -->
   
 - `bal -M -H assets liabilities`\
   Show historical asset/liability balances at each month end.
   Also available as the [`balancesheet`](#balancesheet) command.
-  <!-- (= `bal --monthly --sum --historical assets liabilities`)\ -->
+  <!-- `bal --monthly --sum --historical assets liabilities` -->
 
 - `bal -M -H assets liabilities equity`\
   Show historical asset/liability/equity balances at each month end.
   Also available as the [`balancesheetequity`](#balancesheetequity) command.
-  <!-- (= `bal --monthly --sum --historical assets liabilities equity`)\ -->
+  <!-- `bal --monthly --sum --historical assets liabilities equity` -->
 
 - `bal -M assets not:receivable`\
   Show changes to liquid assets in each month.
   Also available as the [`cashflow`](#cashflow) command.
-  <!-- (= `bal --monthly --sum --change assets not:receivable`)\ -->
+  <!-- `bal --monthly --sum --change assets not:receivable` -->
 
 Also:
 
@@ -436,46 +439,6 @@ Also:
 
 - `bal -M --valuechange investments`\
   Show monthly change in market value of investment assets.
-
-| Valuation: ><br>Accumulation: v | no valuation                                                     | `--value= then`                                                    | `--value= end`                                              | `--value= YYYY-MM-DD /now`                            |
-|---------------------------------|------------------------------------------------------------------|--------------------------------------------------------------------|-------------------------------------------------------------|-------------------------------------------------------|
-| `--change`                      | change in period                                                 | sum of posting-date market values in period                        | period-end value of change in period                        | DATE-value of change in period                        |
-| `--cumulative`                  | change from report start to period end                           | sum of posting-date market values from report start to period end  | period-end value of change from report start to period end  | DATE-value of change from report start to period end  |
-| `--historical /-H`              | change from journal start to period end (historical end balance) | sum of posting-date market values from journal start to period end | period-end value of change from journal start to period end | DATE-value of change from journal start to period end |
-
-<!--
-
-### Balance report examples
-
-```shell
-$ hledger balance --quarterly income expenses -E --cumulative
-Ending balances (cumulative) in 2008:
-
-                   ||  2008/03/31  2008/06/30  2008/09/30  2008/12/31 
-===================++=================================================
- expenses:food     ||           0          $1          $1          $1 
- expenses:supplies ||           0          $1          $1          $1 
- income:gifts      ||           0         $-1         $-1         $-1 
- income:salary     ||         $-1         $-1         $-1         $-1 
--------------------++-------------------------------------------------
-                   ||         $-1           0           0           0 
-
-```
-```shell
-$ hledger balance ^assets ^liabilities --quarterly --historical --begin 2008/4/1
-Ending balances (historical) in 2008/04/01-2008/12/31:
-
-                      ||  2008/06/30  2008/09/30  2008/12/31 
-======================++=====================================
- assets:bank:checking ||          $1          $1           0 
- assets:bank:saving   ||          $1          $1          $1 
- assets:cash          ||         $-2         $-2         $-2 
- liabilities:debts    ||           0           0          $1 
-----------------------++-------------------------------------
-                      ||           0           0           0 
-
-```
--->
 
 ### Budget report
 
