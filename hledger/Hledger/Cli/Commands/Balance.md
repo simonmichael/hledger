@@ -42,7 +42,7 @@ followed by more detailed descriptions and examples.
 
 ..either..
 
-- per period ([`--periodic`](#accumulation-type), the default accumulation type)
+- per period ([`--change`](#accumulation-type), the default accumulation type)
 - or accumulated since report start date ([`--cumulative`](#accumulation-type))
 - or accumulated since account creation ([`--historical/-H`](#accumulation-type))
 
@@ -348,8 +348,8 @@ For more flexible reporting, there are three important option groups:
 The general thing that is calculated/shown in each cell. 
 It is one of:
 
-- `--change` : show a sum of posting amounts (**default**)
-- `--budget` : like --change but also show a budget goal amount
+- `--sum` : show a sum of posting amounts (**default**)
+- `--budget` : like --sum but also show a budget goal amount
 - `--valuechange` : show change of value of period-end historical balances
 <!-- - `--gain` : show change of value of period-end historical balances caused by market price fluctuations -->
 
@@ -358,7 +358,7 @@ Which previous periods' postings should be included in calculations
 (especially in multiperiod reports).
 It is one of:
 
-- `--periodic` : postings from column start to column end. Ie, show
+- `--change` : postings from column start to column end. Ie, show
   [changes] in each period. Typically used when reviewing
   revenues/expenses. (**default for balance, incomestatement**)
 
@@ -400,16 +400,16 @@ since summing already-summed end balances usually does not make sense.
 
 Some important reports are:
 
-- `bal revenues expenses` (`bal --periodic --change revenues expenses`)\
+- `bal revenues expenses` (`bal --change --sum revenues expenses`)\
   revenues/expenses in each period, an income statement / profit & loss report
   
-- `bal -H assets liabilities` (`bal --historical --change assets liabilities`)\
+- `bal -H assets liabilities` (`bal --historical --sum assets liabilities`)\
   historical asset/liability balances at end of each period, a simplified balance sheet
 
 - `bal -H assets liabilities equity` (`bal --historical --change assets liabilities equity`)\
   historical asset/liability/equity balances at end of each period, a full balance sheet
 
-- `bal assets not:receivable` (`bal --periodic --change assets not:receivable`)\
+- `bal assets not:receivable` (`bal --change --sum assets not:receivable`)\
   liquid asset changes in each period, a cashflow report
 
 Since these are so often used, they are also available as (enhanced) separate commands:\
@@ -428,7 +428,7 @@ Here is what the accumulation / valuation type combinations show:
 
 | Valuation: ><br>Accumulation: v | no valuation                                                     | `--value= then`                                                    | `--value= end`                                              | `--value= YYYY-MM-DD /now`                            |
 |---------------------------------|------------------------------------------------------------------|--------------------------------------------------------------------|-------------------------------------------------------------|-------------------------------------------------------|
-| `--periodic`                    | change in period                                                 | sum of posting-date market values in period                        | period-end value of change in period                        | DATE-value of change in period                        |
+| `--change`                      | change in period                                                 | sum of posting-date market values in period                        | period-end value of change in period                        | DATE-value of change in period                        |
 | `--cumulative`                  | change from report start to period end                           | sum of posting-date market values from report start to period end  | period-end value of change from report start to period end  | DATE-value of change from report start to period end  |
 | `--historical /-H`              | change from journal start to period end (historical end balance) | sum of posting-date market values from journal start to period end | period-end value of change from journal start to period end | DATE-value of change from journal start to period end |
 
