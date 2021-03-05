@@ -125,7 +125,7 @@ interval is specified (eg with @--monthly@), one column for each sub-period.
 There are three accumulation strategies for multi-column balance report, indicated by
 the heading:
 
-* A \"period balance\" (or \"flow\") report (with @--periodic@, the default) shows the
+* A \"period balance\" (or \"flow\") report (with @--change@, the default) shows the
   change of account balance in each period, which is equivalent to the sum of postings
   in each period. Here, checking's balance increased by 10 in Feb:
 
@@ -177,7 +177,7 @@ By default:
 * single-column: accounts with non-zero balance in report period.
                  (With @--flat@: accounts with non-zero balance and postings.)
 
-* periodic:      accounts with postings and non-zero period balance in any period
+* change:        accounts with postings and non-zero period balance in any period
 
 * cumulative:    accounts with non-zero cumulative balance in any period
 
@@ -187,7 +187,7 @@ With @-E/--empty@:
 
 * single-column: accounts with postings in report period
 
-* periodic:      accounts with postings in report period
+* change:        accounts with postings in report period
 
 * cumulative:    accounts with postings in report period
 
@@ -205,7 +205,7 @@ by default:
 
 * single-column: N/A
 
-* periodic:      all periods within the overall report period,
+* change:        all periods within the overall report period,
                  except for leading and trailing empty periods
 
 * cumulative:    all periods within the overall report period,
@@ -218,7 +218,7 @@ With @-E/--empty@:
 
 * single-column: N/A
 
-* periodic:      all periods within the overall report period
+* change:        all periods within the overall report period
 
 * cumulative:    all periods within the overall report period
 
@@ -280,14 +280,14 @@ import Hledger.Read.CsvReader (CSV, printCSV)
 -- | Command line options for this command.
 balancemode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Balance.txt")
-  ([flagNone ["change"] (setboolopt "change")
+  ([flagNone ["sum"] (setboolopt "sum")
       "show sum of posting amounts (default)"
    ,flagNone ["valuechange"] (setboolopt "valuechange")
       "show change of value of period-end historical balances"
    ,flagNone ["budget"] (setboolopt "budget")
       "show sum of posting amounts compared to budget goals defined by periodic transactions\n "
 
-   ,flagNone ["periodic"] (setboolopt "periodic")
+   ,flagNone ["change"] (setboolopt "change")
       "accumulate amounts from column start to column end (in multicolumn reports, default)"
    ,flagNone ["cumulative"] (setboolopt "cumulative")
       "accumulate amounts from report start (specified by e.g. -b/--begin) to column end"

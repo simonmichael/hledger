@@ -39,7 +39,7 @@ aregistermode = hledgerCommandMode
    flagNone ["txn-dates"] (setboolopt "txn-dates") 
      "filter strictly by transaction date, not posting date. Warning: this can show a wrong running balance."
    ,flagNone ["no-elide"] (setboolopt "no-elide") "don't show only 2 commodities per amount"
-  --  flagNone ["cumulative"] (setboolopt "change")
+  --  flagNone ["cumulative"] (setboolopt "cumulative")
   --    "show running total from report start date (default)"
   -- ,flagNone ["historical","H"] (setboolopt "historical")
   --    "show historical running total/balance (includes postings before report start date)\n "

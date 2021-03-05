@@ -300,7 +300,7 @@ reporttypeopt :: RawOpts -> ReportType
 reporttypeopt =
   fromMaybe ChangeReport . choiceopt parse where
     parse = \case
-      "change"      -> Just ChangeReport
+      "sum"         -> Just ChangeReport
       "valuechange" -> Just ValueChangeReport
       "budget"      -> Just BudgetReport
       _             -> Nothing
@@ -311,7 +311,7 @@ balancetypeopt =
     parse = \case
       "historical" -> Just HistoricalBalance
       "cumulative" -> Just CumulativeChange
-      "periodic"   -> Just PeriodChange
+      "change"     -> Just PeriodChange
       _            -> Nothing
 
 -- Get the period specified by any -b/--begin, -e/--end and/or -p/--period

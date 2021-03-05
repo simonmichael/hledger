@@ -61,14 +61,14 @@ compoundBalanceCommandMode :: CompoundBalanceCommandSpec -> Mode RawOpts
 compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
   hledgerCommandMode
    cbcdoc
-   ([flagNone ["change"] (setboolopt "change")
+   ([flagNone ["sum"] (setboolopt "sum")
       "show sum of posting amounts (default)"
    ,flagNone ["valuechange"] (setboolopt "valuechange")
       "show change of value of period-end historical balances"
    ,flagNone ["budget"] (setboolopt "budget")
       "show sum of posting amounts compared to budget goals defined by periodic transactions\n "
 
-   ,flagNone ["periodic"] (setboolopt "periodic")
+   ,flagNone ["change"] (setboolopt "change")
        ("accumulate amounts from column start to column end (in multicolumn reports)"
            ++ defType PeriodChange)
     ,flagNone ["cumulative"] (setboolopt "cumulative")
@@ -111,7 +111,7 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
         parse = \case
           "historical" -> Just HistoricalBalance
           "cumulative" -> Just CumulativeChange
-          "periodic"   -> Just PeriodChange
+          "change"     -> Just PeriodChange
           _            -> Nothing
     balancetype = fromMaybe cbctype mBalanceTypeOverride
     -- Set balance type in the report options.
