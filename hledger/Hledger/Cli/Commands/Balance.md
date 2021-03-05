@@ -405,7 +405,7 @@ For reference, here is what the combinations of accumulation and valuation show:
 | `--cumulative`                  | change from report start to period end                           | sum of posting-date market values from report start to period end  | period-end value of change from report start to period end  | DATE-value of change from report start to period end  |
 | `--historical /-H`              | change from journal start to period end (historical end balance) | sum of posting-date market values from journal start to period end | period-end value of change from journal start to period end | DATE-value of change from journal start to period end |
 
-### Frequently used balance reports
+### Useful balance reports
 
 Some frequently used `balance` options/reports are:
 
@@ -439,6 +439,9 @@ Also:
 
 - `bal -M --valuechange investments`\
   Show monthly change in market value of investment assets.
+
+- `bal investments --valuechange -D date:lastweek amt:'>1000' -STA [--invert]`\
+  Show top gainers [or losers] last week
 
 ### Budget report
 
