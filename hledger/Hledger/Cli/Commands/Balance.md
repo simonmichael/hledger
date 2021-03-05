@@ -3,12 +3,10 @@ Show accounts and their balances.
 
 _FLAGS
 
-`balance` is a flexible command for listing account balances, balance
-changes, values, value changes, and more. 
-Generally it shows a table, with rows representing accounts, and
-columns representing time periods. 
-Compared to Ledger's balance command, hledger's `balance` adds the
-significant feature of multi-period reports.
+`balance` is one of hledger's oldest and most versatile commands,
+for listing account balances, balance changes, values, value changes and more,
+during one time period or many.
+Generally it shows a table, with rows representing accounts, and columns representing periods. 
 
 Note there are some higher-level variants of the `balance` command
 with convenient defaults, which can be simpler to use:
@@ -18,9 +16,11 @@ with convenient defaults, which can be simpler to use:
 [`incomestatement`](#incomestatement). 
 When you need more control, then use `balance`. 
 
-Here's a quick overview of `balance` features
-(many of these work with the higher-level commands as well),
-followed by more detailed descriptions and examples. 
+### balance features
+
+Here's a quick overview of the `balance` command's features,
+followed by more detailed descriptions and examples.
+Many of these work with the higher-level commands as well.
 `balance` can show..
 
 - accounts as a [list (`-l`) or a tree (`-t`)](#list-or-tree-mode)
@@ -30,10 +30,10 @@ followed by more detailed descriptions and examples.
 
 ..and their..
 
-- balance changes ([`--change`](#simple-balance-report), the default report type)
+- balance changes (the default)
 - or actual and planned balance changes ([`--budget`](#budget-report))
-- or value of balance changes ([`--change -V`](#valuation-type))
-- or change of balance value ([`--valuechange`](#report-type))
+- or value of balance changes ([`-V`](#valuation-type))
+- or change of balance values ([`--valuechange`](#report-type))
 
 ..in..
 
@@ -42,13 +42,13 @@ followed by more detailed descriptions and examples.
 
 ..either..
 
-- per period ([`--change`](#accumulation-type), the default accumulation type)
+- per period (the default)
 - or accumulated since report start date ([`--cumulative`](#accumulation-type))
 - or accumulated since account creation ([`--historical/-H`](#accumulation-type))
 
 ..possibly converted to..
 
-- cost ([`--value=cost[,COMM]/--cost/-B`](#valuation-type))
+- cost ([`--value=cost[,COMM]`/`--cost`/`-B`](#valuation-type))
 - or market value, as of transaction dates ([`--value=then[,COMM]`](#valuation-type))
 - or at period ends ([`--value=end[,COMM]`](#valuation-type))
 - or now ([`--value=now`](#valuation-type))
@@ -69,8 +69,6 @@ This command supports the
 [output format](#output-format) options,
 with output formats `txt`, `csv`, `json`, and (multi-period reports only:) `html`. 
 In `txt` output in a colour-supporting terminal, negative amounts are shown in red.
-
-<a name="classic-balance-report"></a>
 
 ### Simple balance report
 
@@ -198,6 +196,8 @@ $ hledger bal expenses --drop 1
                   $2  
 ```
 
+<a name="multicolumn-balance-report"></a>
+
 ### Multi-period balance report
 
 With a [report interval](#report-intervals) (set by the `-D/--daily`,
@@ -300,9 +300,7 @@ $ hledger bal -% cur:\\$
 $ hledger bal -% cur:€
 ```
 
-<a name="multicolumn-balance-report"></a>
-
-### Balance change, end balance, historical end balance
+### Balance change, end balance
 
 It's important to be clear on the meaning of the numbers shown in
 balance reports. Here is some terminology we use:
@@ -310,7 +308,7 @@ balance reports. Here is some terminology we use:
 A ***balance change*** is the net amount added to, or removed from, an account during some period.
 
 An ***end balance*** is the amount accumulated in an account as of some date
-(and some time, but hledger doesn't model that; assume end of day in your timezone).
+(and some time, but hledger doesn't store that; assume end of day in your timezone).
 It is the sum of previous balance changes.
 
 We call it a ***historical end balance*** if it includes all balance changes since the account was created.
@@ -321,68 +319,63 @@ In general, balance changes are what you want to see when reviewing
 revenues and expenses, and historical end balances are what you want
 to see when reviewing or reconciling asset, liability and equity accounts.
 
-As mentioned above, the default `balance` report shows balance changes.
-To ensure that you see accurate historical end balances:
+`balance` shows balance changes by default.
+To see accurate historical end balances:
 
-1. If the account's full lifetime is not recorded in the journal,
-   there should be an "opening balances" transaction (a transfer from
-   equity to the account) that initialises its balance on some date
-   (often the first day of a year).
+1. Initialise account starting balances with an "opening balances"
+   transaction (a transfer from equity to the account),
+   unless the journal covers the account's full lifetime.
 
-2. The report should include all of the account's prior postings, eg
-   by leaving the [report start date](#report-start-end-date)
-   unspecified, or by using the `-H/--historical` flag, described
-   below.
+2. Include all of of the account's prior postings in the report,
+   eg by leaving the [report start date](#report-start-end-date) unspecified,
+   or by using the `-H/--historical` flag.
 
 ### Balance report types
 
-Fair warning: balance report modes can get confusing, so feel free to
-just mimic the examples below, or just use the higher-level
-bs/bse/cf/is commands.
-
 For more flexible reporting, there are three important option groups:
 
-`hledger balance [REPORTTYPE] [ACCUMULATIONTYPE] [VALUATIONTYPE] ...`
+`hledger balance [CALCULATIONTYPE] [ACCUMULATIONTYPE] [VALUATIONTYPE] ...`
 
-#### Report type
-The general thing that is calculated/shown in each cell. 
+The first two are the most important:
+calculation type selects the basic calculation to perform for each table cell, while
+accumulation type says which postings should be included in each cell's calculation.
+Typically one or both of these are selected by default, so you don't need to write them explicitly.
+A valuation type can be added if you want to convert the basic report to value or cost.
+
+**Calculation type:**\
+The basic calculation to perform for each table cell.
 It is one of:
 
-- `--sum` : show a sum of posting amounts (**default**)
-- `--budget` : like --sum but also show a budget goal amount
-- `--valuechange` : show change of value of period-end historical balances
-<!-- - `--gain` : show change of value of period-end historical balances caused by market price fluctuations -->
+- `--sum` : sum the posting amounts (**default**)
+- `--budget` : like --sum but also show a goal amount
+- `--valuechange` : show the change in period-end historical balance values
+<!-- - `--gain` : show the change in period-end historical balances values caused by market price fluctuations -->
 
-#### Accumulation type
-Which previous periods' postings should be included in calculations
-(especially in multiperiod reports).
+**Accumulation type:**\
+Which postings should be included in each cell's calculation.
 It is one of:
 
-- `--change` : postings from column start to column end. Ie, show
-  [changes] in each period. Typically used when reviewing
-  revenues/expenses. (**default for balance, incomestatement**)
+- `--change` : postings from column start to column end, ie within the cell's period.
+  Typically used with `--sum` to see revenues/expenses.
+  (**default for balance, incomestatement**)
+  <!-- /--periodic -->
 
-- `--cumulative` : postings from report start (specified by
-  -b/--begin, eg) to column end. Ie, show [accumulated changes] since
-  start of report. Rarely used.
+- `--cumulative` : postings from report start to column end, eg to show
+  changes accumulated since the report's start date. Rarely used.
 
-- `--historical/-H` : postings from journal start to column end. Ie,
-  show [historical balance] at end of each period. Typically used when
-  reviewing assets/liabilities/equity. (**default for balancesheet,
-  balancesheetequity, cashflow**)
+- `--historical/-H` : postings from journal start to column end, ie
+  all postings from account creation to the end of the cell's period.
+  Typically used to see historical end balances of assets/liabilities/equity.
+  (**default for balancesheet, balancesheetequity, cashflow**)
 
-[changes]:             #balance-change-end-balance-historical-end-balance
-[accumulated changes]: #balance-change-end-balance-historical-end-balance
-[historical balance]:  #balance-change-end-balance-historical-end-balance
-
-#### Valuation type
+**Valuation type:**\
 Which kind of [valuation], [valuation date(s)] and optionally a target [valuation commodity] to use.
 It is one of:
 
 - no valuation, show amounts in their original commodities (**default**)
 - `--value=cost[,COMM]`       : no valuation, show amounts converted to cost
 - `--value=then[,COMM]`       : show value at transaction dates
-- `--value=end[,COMM]`        : show value at period end date(s)
+- `--value=end[,COMM]`        : show value at period end date(s) (**default with `--valuechange`**)
 - `--value=now[,COMM]`        : show value at today's date
 - `--value=YYYY-MM-DD[,COMM]` : show value at another date
 
@@ -392,39 +385,57 @@ or one of their aliases: [`--cost/-B`], [`--market/-V`] or [`--exchange/-X`].
 [`--market/-V`]: #-v-value
 [`--exchange/-X`]: #-x-value-in-specified-commodity
 
-### Combining balance report options
+<!-- ### Combining balance report types -->
 
-Many but not all combinations of balance report options are useful.
-Eg, `--row-total/-T` is disabled by `--cumulative` or `--historical`,
-since summing already-summed end balances usually does not make sense.
+Most combinations of these options should produce reasonable reports,
+but if you find any that seem wrong or misleading, let us know.
+The following restrictions are applied:
 
-Some important reports are:
+- `--valuechange` implies `--value=end`
+- `--cumulative` or `--historical` disables `--row-total/-T`
 
-- `bal revenues expenses` (`bal --change --sum revenues expenses`)\
-  revenues/expenses in each period, an income statement / profit & loss report
+For reference, here is what the combinations of accumulation and valuation show:
+
+| Valuation: ><br>Accumulation: v | no valuation                                                     | `--value= then`                                                    | `--value= end`                                              | `--value= YYYY-MM-DD /now`                            |
+|---------------------------------|------------------------------------------------------------------|--------------------------------------------------------------------|-------------------------------------------------------------|-------------------------------------------------------|
+| `--periodic`                    | change in period                                                 | sum of posting-date market values in period                        | period-end value of change in period                        | DATE-value of change in period                        |
+| `--cumulative`                  | change from report start to period end                           | sum of posting-date market values from report start to period end  | period-end value of change from report start to period end  | DATE-value of change from report start to period end  |
+| `--historical /-H`              | change from journal start to period end (historical end balance) | sum of posting-date market values from journal start to period end | period-end value of change from journal start to period end | DATE-value of change from journal start to period end |
+
+### Frequently used balance reports
+
+Some frequently used `balance` options/reports are:
+
+- `bal -M revenues expenses`\
+  Show revenues/expenses in each month.
+  Also available as the [`incomestatement`](#incomestatement) command.
+  <!-- (= `bal --monthly --sum --change revenues expenses`)\ -->
   
-- `bal -H assets liabilities` (`bal --historical --sum assets liabilities`)\
-  historical asset/liability balances at end of each period, a simplified balance sheet
+- `bal -M -H assets liabilities`\
+  Show historical asset/liability balances at each month end.
+  Also available as the [`balancesheet`](#balancesheet) command.
+  <!-- (= `bal --monthly --sum --historical assets liabilities`)\ -->
 
-- `bal -H assets liabilities equity` (`bal --historical --change assets liabilities equity`)\
-  historical asset/liability/equity balances at end of each period, a full balance sheet
+- `bal -M -H assets liabilities equity`\
+  Show historical asset/liability/equity balances at each month end.
+  Also available as the [`balancesheetequity`](#balancesheetequity) command.
+  <!-- (= `bal --monthly --sum --historical assets liabilities equity`)\ -->
 
-- `bal assets not:receivable` (`bal --change --sum assets not:receivable`)\
-  liquid asset changes in each period, a cashflow report
+- `bal -M assets not:receivable`\
+  Show changes to liquid assets in each month.
+  Also available as the [`cashflow`](#cashflow) command.
+  <!-- (= `bal --monthly --sum --change assets not:receivable`)\ -->
 
-Since these are so often used, they are also available as (enhanced) separate commands:\
+Also:
 
-- [`is`]  (`incomestatement`)
-- [`bs`]  (`balancesheet`)
-- [`bse`] (`balancesheetequity`)
-- [`cf`]  (`cashflow`)
+- `bal -M expenses -2 -SA`\
+  Show monthly expenses summarised to depth 2 and sorted by average amount.
 
-[`is`]:  #incomestatement
-[`bs`]:  #balancesheet
-[`bse`]: #balancesheetequity
-[`cf`]:  #cashflow
+- `bal -M --budget expenses`\
+  Show monthly expenses and budget goals.
 
-Here is what the accumulation / valuation type combinations show:
+- `bal -M --valuechange investments`\
+  Show monthly change in market value of investment assets.
 
 | Valuation: ><br>Accumulation: v | no valuation                                                     | `--value= then`                                                    | `--value= end`                                              | `--value= YYYY-MM-DD /now`                            |
 |---------------------------------|------------------------------------------------------------------|--------------------------------------------------------------------|-------------------------------------------------------------|-------------------------------------------------------|
@@ -433,6 +444,7 @@ Here is what the accumulation / valuation type combinations show:
 | `--historical /-H`              | change from journal start to period end (historical end balance) | sum of posting-date market values from journal start to period end | period-end value of change from journal start to period end | DATE-value of change from journal start to period end |
 
 <!--
+
 ### Balance report examples
 
 ```shell
