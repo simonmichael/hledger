@@ -22,6 +22,7 @@ module Hledger.Reports.ReportOptions (
   updateReportSpec,
   updateReportSpecWith,
   rawOptsToReportSpec,
+  balanceTypeOverride,
   flat_,
   tree_,
   reportOptsToggleStatus,
@@ -190,7 +191,7 @@ rawOptsToReportOpts rawopts = do
         Just (Right x)  -> return x
         Just (Left err) -> fail $ "could not parse format option: " ++ err
 
-    let reportopts = defreportopts
+    return defreportopts
           {period_      = periodFromRawOpts d rawopts
           ,interval_    = intervalFromRawOpts rawopts
           ,statuses_    = statusesFromRawOpts rawopts
@@ -224,16 +225,6 @@ rawOptsToReportOpts rawopts = do
           ,forecast_    = forecastPeriodFromRawOpts d rawopts
           ,transpose_   = boolopt "transpose" rawopts
           }
-
-    adjustReportDefaults reportopts
-
--- | Warn users about option combinations which produce uninteresting results.
-adjustReportDefaults :: ReportOpts -> IO ReportOpts
-adjustReportDefaults ropts = case reporttype_ ropts of
-    ValueChangeReport -> case fromMaybe (AtEnd Nothing) $ value_ ropts of
-        v@(AtEnd _)   -> return ropts{value_=Just v}  -- Set value_ to AtEnd by default, unless overridden
-        _             -> fail "--valuechange only produces sensible results with --value=end"
-    _                 -> return ropts
 
 -- | The result of successfully parsing a ReportOpts on a particular
 -- Day. Any ambiguous dates are completed and Queries are parsed,
@@ -306,13 +297,19 @@ reporttypeopt =
       _             -> Nothing
 
 balancetypeopt :: RawOpts -> BalanceType
-balancetypeopt =
-  fromMaybe PeriodChange . choiceopt parse where
+balancetypeopt = fromMaybe PeriodChange . balanceTypeOverride
+
+balanceTypeOverride :: RawOpts -> Maybe BalanceType
+balanceTypeOverride rawopts = choiceopt parse rawopts <|> reportbal
+  where
     parse = \case
       "historical" -> Just HistoricalBalance
       "cumulative" -> Just CumulativeChange
       "change"     -> Just PeriodChange
       _            -> Nothing
+    reportbal = case reporttypeopt rawopts of
+      ValueChangeReport -> Just PeriodChange
+      _                 -> Nothing
 
 -- Get the period specified by any -b/--begin, -e/--end and/or -p/--period
 -- options appearing in the command line.
@@ -440,17 +437,25 @@ reportOptsToggleStatus s ropts@ReportOpts{statuses_=ss}
 -- allowed to combine -B/--cost with any other valuation type. If
 -- there's more than one valuation type, the rightmost flag wins.
 valuationTypeFromRawOpts :: RawOpts -> (Costing, Maybe ValuationType)
-valuationTypeFromRawOpts rawopts = (costing, lastMay $ mapMaybe snd valuationopts)
+valuationTypeFromRawOpts rawopts = (costing, valuation)
   where
-    costing = if (any ((Cost==) . fst) valuationopts) then Cost else NoCost
+    costing   = if (any ((Cost==) . fst) valuationopts) then Cost else NoCost
+    valuation = case reporttypeopt rawopts of
+        ValueChangeReport -> case directval of
+            Nothing        -> Just $ AtEnd Nothing  -- If no valuation requested for valuechange, use AtEnd
+            Just (AtEnd _) -> directval             -- If AtEnd valuation requested, use it
+            Just _         -> usageError "--valuechange only produces sensible results with --value=end"
+        _                  -> directval             -- Otherwise, use requested valuation
+      where directval = lastMay $ mapMaybe snd valuationopts
+
     valuationopts = collectopts valuationfromrawopt rawopts
     valuationfromrawopt (n,v)  -- option name, value
       | n == "B"     = Just (Cost,   Nothing)
       | n == "V"     = Just (NoCost, Just $ AtEnd Nothing)
       | n == "X"     = Just (NoCost, Just $ AtEnd (Just $ T.pack v))
-      | n == "value" = Just $ valuation v
+      | n == "value" = Just $ valueopt v
       | otherwise    = Nothing
-    valuation v
+    valueopt v
       | t `elem` ["cost","c"]  = (Cost, usageError "--value=cost,COMM is no longer supported, please specify valuation explicitly, e.g. --cost --value=then,COMM" <$ mc)
       | t `elem` ["then" ,"t"] = (NoCost, Just $ AtThen mc)
       | t `elem` ["end" ,"e"]  = (NoCost, Just $ AtEnd  mc)
