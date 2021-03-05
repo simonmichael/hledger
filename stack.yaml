@@ -1,10 +1,10 @@
-# stack build plan using GHC 8.10.3
+# stack build plan using GHC 8.10.4
 
 nix:
   pure: false
   packages: [perl gmp ncurses zlib]
 
-resolver: lts-17.0
+resolver: lts-17.4
 
 packages:
 - hledger-lib
