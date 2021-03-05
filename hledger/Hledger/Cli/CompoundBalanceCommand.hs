@@ -106,13 +106,7 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
   where
     ropts@ReportOpts{..} = rsOpts rspec
     -- use the default balance type for this report, unless the user overrides
-    mBalanceTypeOverride =
-      choiceopt parse rawopts where
-        parse = \case
-          "historical" -> Just HistoricalBalance
-          "cumulative" -> Just CumulativeChange
-          "change"     -> Just PeriodChange
-          _            -> Nothing
+    mBalanceTypeOverride = balanceTypeOverride rawopts
     balancetype = fromMaybe cbctype mBalanceTypeOverride
     -- Set balance type in the report options.
     ropts' = ropts{balancetype_=balancetype}
