@@ -15,8 +15,8 @@ The completions can handle hledger's CLI:
 
 - commands and generic options
 - command-specific options
-- filenames for options that take a filename as argument
-- account names from journal files (but not yet for files named by `--file`)
+- most option arguments
+- account names, tags, payees, etc. from journal files
 - query filter keywords like `status:`, `tag:`, or `amt:`
 
 Installation for end users
@@ -27,22 +27,45 @@ Completions are currently only implemented for the Bash shell.
 Please check first if the completions for hledger are already installed on your
 distribution. Refer to the last paragraph of this section for how to test that.
 
-To install the completions manually, follow this steps:
+To install from the repository, do:
 
-- Download or copy the file `shell-completion/hledger-completion.bash` and save
-  it as `~/.hledger-completion.bash`.
-
-- Add the command `source ~/.hledger-completion.bash` this to the end of your
-  `~/.bashrc` file.
-
-- Then, you have to start a new Bash, e.g. by typing `bash` on the current
-  shell.
-
-Example installation script:
-
+```sh
+cd /path-to-repo/shell-completion
+make install
 ```
-cp hledger-completion.bash ~/.hledger-completion.bash
-echo 'source ~/.hledger-completion.bash' >> ~/.bashrc
+
+Completions installed this way will be loaded dynamically after you use the hledger
+command. Upon the first invocation of a command that has no predefined completion
+bash looks for a file with the same name in a set of predefined locations in this order:
+
+- `$BASH_COMPLETION_USER_DIR/completions`
+- `$XDG_DATA_HOME/bash-completion/completions`
+- `$HOME/.local/share/bash-completion/completions`
+- etc.
+
+You can manually achieve the effects of `make install` by copying
+`shell-completion/hledger-completion.bash` to one of the above, and renaming it
+to `hledger`, `_hledger` or `hledger.bash`. For the gory details, type this in a
+bash shell:
+
+```sh
+type __load_completion
+```
+
+To install the completions manually, you can also just download and copy
+`shell-completion/hledger-completion.bash` to a directory of your choosing, and
+source it from your shell start up files. This way completions are loaded
+eagerly and that adds a delay to shell start up time.
+
+Example:
+
+```sh
+cp hledger-completion.bash ~/.bash_completion.d/hledger
+echo 'source ~/.bash_completion.d/hledger' >> ~/.bashrc
+# Restart shell
+exec bash
+# Confirm that completion is loaded
+complete -p hledger
 ```
 
 Now, try it by typing `hledger` (with a space after the command) and press the
@@ -63,21 +86,23 @@ Information for developers
 
 Generate the completion script for Bash:
 
-```
+```sh
 # change into this folder:
 cd shell-completion/
 make
 ```
 
-Hint: GNU make, GNU m4, and GNU parallel must be installed to call `make`.
-The first two usually are.
+Hint: GNU make and  GNU m4 must be installed to call `make`.
+These are present on most systems anyway.
+Additionally the build will run a lot faster with parallell jobs.
+Use `make -j$(nproc)` for best effect.
 
 The generated completion script must be installed. The package maintainer for
 your distribution should be responsible for this.
 
 For now, or to live-test the script, you can use these two commands:
 
-```
+```sh
 ln -s hledger-completion.bash ~/.hledger-completion.bash
 echo 'source ~/.hledger-completion.bash' >> ~/.bashrc
 ```

@@ -1,0 +1,4 @@
+.DONE:
+	@echo "GNU Make (gmake) required to build"
+.DEFAULT:
+	@echo "GNU Make (gmake) required to build"
