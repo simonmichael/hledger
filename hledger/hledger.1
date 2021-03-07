@@ -2453,46 +2453,96 @@ balance, bal
 .PD
 Show accounts and their balances.
 .PP
-The balance command is hledger\[aq]s most versatile command.
-Note, despite the name, it is not always used for showing real-world
-account balances; the more accounting-aware balancesheet and
-incomestatement may be more convenient for that.
+\f[C]balance\f[R] is one of hledger\[aq]s oldest and most versatile
+commands, for listing account balances, balance changes, values, value
+changes and more, during one time period or many.
+Generally it shows a table, with rows representing accounts, and columns
+representing periods.
 .PP
-By default, it displays all accounts, and each account\[aq]s change in
-balance during the entire period of the journal.
-Balance changes are calculated by adding up the postings in each
-account.
-You can limit the postings matched, by a query, to see fewer accounts,
-changes over a different time period, changes from only cleared
-transactions, etc.
+Note there are some higher-level variants of the \f[C]balance\f[R]
+command with convenient defaults, which can be simpler to use:
+\f[C]balancesheet\f[R], \f[C]balancesheetequity\f[R], \f[C]cashflow\f[R]
+and \f[C]incomestatement\f[R].
+When you need more control, then use \f[C]balance\f[R].
+.SS balance features
 .PP
-If you include an account\[aq]s complete history of postings in the
-report, the balance change is equivalent to the account\[aq]s current
-ending balance.
-For a real-world account, typically you won\[aq]t have all transactions
-in the journal; instead you\[aq]ll have all transactions after a certain
-date, and an \[dq]opening balances\[dq] transaction setting the correct
-starting balance on that date.
-Then the balance command will show real-world account balances.
-In some cases the -H/--historical flag is used to ensure this (more
-below).
+Here\[aq]s a quick overview of the \f[C]balance\f[R] command\[aq]s
+features, followed by more detailed descriptions and examples.
+Many of these work with the higher-level commands as well.
 .PP
-This command also supports the output destination and output format
-options The output formats supported are (in most modes): \f[C]txt\f[R],
-\f[C]csv\f[R], \f[C]html\f[R], and \f[C]json\f[R].
+\f[C]balance\f[R] can show..
+.IP \[bu] 2
+accounts as a list (\f[C]-l\f[R]) or a tree (\f[C]-t\f[R])
+.IP \[bu] 2
+optionally depth-limited (\f[C]-[1-9]\f[R])
+.IP \[bu] 2
+sorted by declaration order and name, or by amount
 .PP
-The balance command can produce several styles of report:
+\&..and their..
+.IP \[bu] 2
+balance changes (the default)
+.IP \[bu] 2
+or actual and planned balance changes (\f[C]--budget\f[R])
+.IP \[bu] 2
+or value of balance changes (\f[C]-V\f[R])
+.IP \[bu] 2
+or change of balance values (\f[C]--valuechange\f[R])
 .PP
-.SS Single-period flat balance report
+\&..in..
+.IP \[bu] 2
+one time period (the whole journal period by default)
+.IP \[bu] 2
+or multiple periods (\f[C]-D\f[R], \f[C]-W\f[R], \f[C]-M\f[R],
+\f[C]-Q\f[R], \f[C]-Y\f[R], \f[C]-p INTERVAL\f[R])
 .PP
-This is the default for hledger\[aq]s balance command: a flat list of
-all (or with a query, matched) accounts, showing full account names.
-Accounts are sorted by declaration order if any, and then by account
-name.
-Accounts which have zero balance are not shown unless
-\f[C]-E/--empty\f[R] is used.
-The reported balances\[aq] total is shown as the last line, unless
-disabled by \f[C]-N\f[R]/\f[C]--no-total\f[R].
+\&..either..
+.IP \[bu] 2
+per period (the default)
+.IP \[bu] 2
+or accumulated since report start date (\f[C]--cumulative\f[R])
+.IP \[bu] 2
+or accumulated since account creation (\f[C]--historical/-H\f[R])
+.PP
+\&..possibly converted to..
+.IP \[bu] 2
+cost (\f[C]--value=cost[,COMM]\f[R]/\f[C]--cost\f[R]/\f[C]-B\f[R])
+.IP \[bu] 2
+or market value, as of transaction dates (\f[C]--value=then[,COMM]\f[R])
+.IP \[bu] 2
+or at period ends (\f[C]--value=end[,COMM]\f[R])
+.IP \[bu] 2
+or now (\f[C]--value=now\f[R])
+.IP \[bu] 2
+or at some other date (\f[C]--value=YYYY-MM-DD\f[R])
+.PP
+\&..with..
+.IP \[bu] 2
+totals (\f[C]-T\f[R]), averages (\f[C]-A\f[R]), percentages
+(\f[C]-%\f[R]), inverted sign (\f[C]--invert\f[R])
+.IP \[bu] 2
+rows and columns swapped (\f[C]--transpose\f[R])
+.IP \[bu] 2
+another field used as account name (\f[C]--pivot\f[R])
+.IP \[bu] 2
+custom-formatted line items (single-period reports only)
+(\f[C]--format\f[R])
+.PP
+This command supports the output destination and output format options,
+with output formats \f[C]txt\f[R], \f[C]csv\f[R], \f[C]json\f[R], and
+(multi-period reports only:) \f[C]html\f[R].
+In \f[C]txt\f[R] output in a colour-supporting terminal, negative
+amounts are shown in red.
+.SS Simple balance report
+.PP
+With no arguments, \f[C]balance\f[R] shows a list of all accounts and
+their change of balance - ie, the sum of posting amounts, both inflows
+and outflows - during the entire period of the journal.
+For real-world accounts, this should also match their end balance at the
+end of the journal period (more on this below).
+.PP
+Accounts are sorted by declaration order if any, and then alphabetically
+by account name.
+For instance, using examples/sample.journal:
 .IP
 .nf
 \f[C]
@@ -2509,12 +2559,51 @@ $ hledger bal
 \f[R]
 .fi
 .PP
-.SS Single-period tree-mode balance report
+Accounts with a zero balance (and no non-zero subaccounts, in tree mode
+- see below) are hidden by default.
+Use \f[C]-E/--empty\f[R] to show them (revealing
+\f[C]assets:bank:checking\f[R] here):
+.IP
+.nf
+\f[C]
+$ hledger -f examples/sample.journal  bal  -E
+                   0  assets:bank:checking
+                  $1  assets:bank:saving
+                 $-2  assets:cash
+                  $1  expenses:food
+                  $1  expenses:supplies
+                 $-1  income:gifts
+                 $-1  income:salary
+                  $1  liabilities:debts
+--------------------
+                   0  
+\f[R]
+.fi
 .PP
-With the \f[C]-t/--tree\f[R] flag, accounts are displayed
-hierarchically, showing subaccounts as short names indented below their
-parent.
-(This is the default style in Ledger and in older hledger versions.)
+The total of the amounts displayed is shown as the last line, unless
+\f[C]-N\f[R]/\f[C]--no-total\f[R] is used.
+.SS Filtered balance report
+.PP
+You can show fewer accounts, a different time period, totals from
+cleared transactions only, etc.
+by using query arguments or options to limit the postings being matched.
+Eg:
+.IP
+.nf
+\f[C]
+$ hledger bal --cleared assets date:200806
+                 $-2  assets:cash
+--------------------
+                 $-2  
+\f[R]
+.fi
+.SS List or tree mode
+.PP
+By default, or with \f[C]-l/--flat\f[R], accounts are shown as a flat
+list with their full names visible, as in the examples above.
+.PP
+With \f[C]-t/--tree\f[R], the account hierarchy is shown, with
+subaccounts\[aq] \[dq]leaf\[dq] names indented below their parent:
 .IP
 .nf
 \f[C]
@@ -2534,43 +2623,63 @@ $ hledger balance
 \f[R]
 .fi
 .PP
-For more compact output, \[dq]boring\[dq] accounts containing a single
-interesting subaccount and no balance of their own
-(\f[C]assets:bank\f[R] and \f[C]liabilities\f[R] here) are elided into
-the following line, unless \f[C]--no-elide\f[R] is used.
-And accounts which have zero balance and no non-zero subaccounts are
-omitted, unless \f[C]-E/--empty\f[R] is used.
+Notes:
+.IP \[bu] 2
+\[dq]Boring\[dq] accounts are combined with their subaccount for more
+compact output, unless \f[C]--no-elide\f[R] is used.
+Boring accounts have no balance of their own and just one subaccount (eg
+\f[C]assets:bank\f[R] and \f[C]liabilities\f[R] above).
+.IP \[bu] 2
+All balances shown are \[dq]inclusive\[dq], ie including the balances
+from all subaccounts.
+Note this means some repetition in the output, which requires
+explanation when sharing reports with non-plaintextaccounting-users.
+A tree mode report\[aq]s final total is the sum of the top-level
+balances shown, not of all the balances shown.
+.IP \[bu] 2
+Each group of sibling accounts (ie, under a common parent) is sorted
+separately.
+.SS Depth limiting
 .PP
-Account balances in tree mode are \[dq]inclusive\[dq] - they include the
-balances of any subaccounts.
-Eg, the \f[C]assets\f[R] \f[C]$-1\f[R] balance here includes the
-\f[C]$1\f[R] from \f[C]assets:bank:saving\f[R] and the \f[C]$-2\f[R]
-from \f[C]assets:cash\f[R].
-(And it would include balance posted to the \f[C]assets\f[R] account
-itself, if there was any).
-Note this causes some repetition, and the final total (\f[C]0\f[R]) is
-the sum of the top-level balances, not of all the balances shown.
+With a \f[C]depth:N\f[R] query, or \f[C]--depth N\f[R] option, or just
+\f[C]-N\f[R], balance reports will show accounts only to the specified
+depth, hiding the deeper subaccounts.
+Account balances at the depth limit always include the balances from any
+hidden subaccounts (even in list mode).
+This can be useful for getting an overview.
+Eg, limiting to depth 1:
+.IP
+.nf
+\f[C]
+$ hledger balance -N -1
+                 $-1  assets
+                  $2  expenses
+                 $-2  income
+                  $1  liabilities
+\f[R]
+.fi
 .PP
-Each group of sibling accounts is sorted separately, by declaration
-order and then by account name.
+You can also hide top-level account name parts, using
+\f[C]--drop N\f[R].
+This can be useful for hiding repetitive top-level account names:
+.IP
+.nf
+\f[C]
+$ hledger bal expenses --drop 1
+                  $1  food
+                  $1  supplies
+--------------------
+                  $2  
+\f[R]
+.fi
+.PP
 .SS Multi-period balance report
 .PP
-Multi-period balance reports are a very useful hledger feature,
-activated if you provide one of the reporting interval flags, such as
-\f[C]-M\f[R]/\f[C]--monthly\f[R].
-They are similar to single-period balance reports, but they show the
-report as a table, with columns representing one or more successive time
-periods.
-This is the usually the preferred style of balance report in hledger
-(even for a single period).
-.PP
-Multi-period balance reports come in several types, showing different
-information:
-.IP "1." 3
-A balance change report: by default, each column shows the sum of
-postings in that period, ie the account\[aq]s change of balance in that
-period.
-This is useful eg for a monthly income statement:
+With a report interval (set by the \f[C]-D/--daily\f[R],
+\f[C]-W/--weekly\f[R], \f[C]-M/--monthly\f[R], \f[C]-Q/--quarterly\f[R],
+\f[C]-Y/--yearly\f[R], or \f[C]-p/--period\f[R] flag), \f[C]balance\f[R]
+shows a tabular report, with columns representing successive time
+periods (and a title):
 .IP
 .nf
 \f[C]
@@ -2587,272 +2696,349 @@ Balance changes in 2008:
                    ||     $-1      $1       0       0 
 \f[R]
 .fi
-.IP "2." 3
-A cumulative end balance report: with \f[C]--cumulative\f[R], each
-column shows the end balance for that period, accumulating the changes
-across periods, starting from 0 at the report start date:
-.RS 4
-.IP
-.nf
-\f[C]
-$ hledger balance --quarterly income expenses -E --cumulative
-Ending balances (cumulative) in 2008:
-
-                   ||  2008/03/31  2008/06/30  2008/09/30  2008/12/31 
-===================++=================================================
- expenses:food     ||           0          $1          $1          $1 
- expenses:supplies ||           0          $1          $1          $1 
- income:gifts      ||           0         $-1         $-1         $-1 
- income:salary     ||         $-1         $-1         $-1         $-1 
--------------------++-------------------------------------------------
-                   ||         $-1           0           0           0 
-\f[R]
-.fi
-.RE
-.IP "3." 3
-A historical end balance report: with \f[C]--historical/-H\f[R], each
-column shows the actual historical end balance for that period,
-accumulating the changes across periods, and including the balance from
-any postings before the report start date.
-This is useful eg for a multi-period balance sheet, and when you want to
-see balances only after a certain date:
-.RS 4
-.IP
-.nf
-\f[C]
-$ hledger balance \[ha]assets \[ha]liabilities --quarterly --historical --begin 2008/4/1
-Ending balances (historical) in 2008/04/01-2008/12/31:
-
-                      ||  2008/06/30  2008/09/30  2008/12/31 
-======================++=====================================
- assets:bank:checking ||          $1          $1           0 
- assets:bank:saving   ||          $1          $1          $1 
- assets:cash          ||         $-2         $-2         $-2 
- liabilities:debts    ||           0           0          $1 
-----------------------++-------------------------------------
-                      ||           0           0           0 
-\f[R]
-.fi
-.RE
 .PP
-Note that \f[C]--cumulative\f[R] or \f[C]--historical/-H\f[R] disable
-\f[C]--row-total/-T\f[R], since summing end balances generally does not
-make sense.
+Notes:
+.IP \[bu] 2
+The report\[aq]s start/end dates will be expanded, if necessary, to
+fully encompass the displayed subperiods (so that the first and last
+subperiods have the same duration as the others).
+.IP \[bu] 2
+Leading and trailing periods (columns) containing all zeroes are not
+shown, unless \f[C]-E/--empty\f[R] is used.
+.IP \[bu] 2
+Accounts (rows) containing all zeroes are not shown, unless
+\f[C]-E/--empty\f[R] is used.
+.IP \[bu] 2
+Amounts with many commodities are shown in abbreviated form, unless
+\f[C]--no-elide\f[R] is used.
+\f[I](experimental)\f[R]
+.IP \[bu] 2
+Average and/or total columns can be added with the
+\f[C]-A/--average\f[R] and \f[C]-T/--row-total\f[R] flags.
+.IP \[bu] 2
+The \f[C]--transpose\f[R] flag can be used to exchange rows and columns.
+.IP \[bu] 2
+The \f[C]--pivot FIELD\f[R] option causes a different transaction field
+to be used as \[dq]account name\[dq].
+See PIVOTING.
 .PP
-With a reporting interval (like \f[C]--quarterly\f[R] above), the report
-start/end dates will be adjusted if necessary so that they encompass the
-displayed report periods.
-This is so that the first and last periods will be \[dq]full\[dq] and
-comparable to the others.
-.PP
-The \f[C]-E/--empty\f[R] flag does two things in multicolumn balance
-reports: first, the report will show all columns within the specified
-report period (without -E, leading and trailing columns with all zeroes
-are not shown).
-Second, all accounts which existed at the report start date will be
-considered, not just the ones with activity during the report period
-(use -E to include low-activity accounts which would otherwise would be
-omitted).
-.PP
-The \f[C]-T/--row-total\f[R] flag adds an additional column showing the
-total for each row.
-.PP
-The \f[C]-A/--average\f[R] flag adds a column showing the average value
-in each row.
-.PP
-Here\[aq]s an example of all three:
-.IP
-.nf
-\f[C]
-$ hledger balance -Q income expenses --tree -ETA
-Balance changes in 2008:
-
-            ||  2008q1  2008q2  2008q3  2008q4    Total  Average 
-============++===================================================
- expenses   ||       0      $2       0       0       $2       $1 
-   food     ||       0      $1       0       0       $1        0 
-   supplies ||       0      $1       0       0       $1        0 
- income     ||     $-1     $-1       0       0      $-2      $-1 
-   gifts    ||       0     $-1       0       0      $-1        0 
-   salary   ||     $-1       0       0       0      $-1        0 
-------------++---------------------------------------------------
-            ||     $-1      $1       0       0        0        0 
-
-(Average is rounded to the dollar here since all journal amounts are)
-\f[R]
-.fi
-.PP
-The \f[C]--transpose\f[R] flag can be used to exchange the rows and
-columns of a multicolumn report.
-.PP
-When showing multicommodity amounts, multicolumn balance reports will
-elide any amounts which have more than two commodities, since otherwise
-columns could get very wide.
-The \f[C]--no-elide\f[R] flag disables this.
-Hiding totals with the \f[C]-N/--no-total\f[R] flag can also help reduce
-the width of multicommodity reports.
-.PP
-When the report is still too wide, a good workaround is to pipe it into
-\f[C]less -RS\f[R] (-R for colour, -S to chop long lines).
-Eg: \f[C]hledger bal -D --color=yes | less -RS\f[R].
-.SS Depth limiting
-.PP
-With a \f[C]depth:N\f[R] query, or \f[C]--depth N\f[R] option, or just
-\f[C]-N\f[R], balance reports will show accounts only to the specified
-depth.
-This is very useful to hide low-level accounts and get an overview.
-Eg, limiting to depth 1 shows the top-level accounts:
-.IP
-.nf
-\f[C]
-$ hledger balance -N -1
-                 $-1  assets
-                  $2  expenses
-                 $-2  income
-                  $1  liabilities
-\f[R]
-.fi
-.PP
-Accounts at the depth limit will include the balances of any hidden
-subaccounts (even in flat mode, which normally shows exclusive
-balances).
-.PP
-You can also drop account name components from the start of account
-names, using \f[C]--drop N\f[R].
-This can be useful to hide unwanted top-level detail.
-.SS Colour support
-.PP
-In terminal output, when colour is enabled, the balance command shows
-negative amounts in red.
+Multi-period reports with many periods can be too wide for easy viewing
+in the terminal.
+Here are some ways to handle that:
+.IP \[bu] 2
+Hide the totals row with \f[C]-N/--no-total\f[R]
+.IP \[bu] 2
+Convert to a single currency with \f[C]-V\f[R]
+.IP \[bu] 2
+Maximize the terminal window
+.IP \[bu] 2
+Reduce the terminal\[aq]s font size
+.IP \[bu] 2
+View with a pager like less, eg:
+\f[C]hledger bal -D --color=yes | less -RS\f[R]
+.IP \[bu] 2
+Output as CSV and use a CSV viewer like visidata
+(\f[C]hledger bal -D -O csv | vd -f csv\f[R]), Emacs\[aq] csv-mode
+(\f[C]M-x csv-mode, C-c C-a\f[R]), or a spreadsheet
+(\f[C]hledger bal -D -o a.csv && open a.csv\f[R])
+.IP \[bu] 2
+Output as HTML and view with a browser:
+\f[C]hledger bal -D -o a.html && open a.html\f[R]
 .SS Sorting by amount
 .PP
-With \f[C]-S\f[R]/\f[C]--sort-amount\f[R], accounts with the largest
-(most positive) balances are shown first.
-For example, \f[C]hledger bal expenses -MAS\f[R] shows your biggest
-averaged monthly expenses first.
+With \f[C]-S/--sort-amount\f[R], accounts with the largest (most
+positive) balances are shown first.
+Eg: \f[C]hledger bal expenses -MAS\f[R] shows your biggest averaged
+monthly expenses first.
 .PP
 Revenues and liability balances are typically negative, however, so
 \f[C]-S\f[R] shows these in reverse order.
 To work around this, you can add \f[C]--invert\f[R] to flip the signs.
-Or, use one of the sign-flipping reports like \f[C]balancesheet\f[R] or
-\f[C]incomestatement\f[R], which also support \f[C]-S\f[R].
-Eg: \f[C]hledger is -MAS\f[R].
+(Or, use one of the higher-level reports, which flip the sign
+automatically.
+Eg: \f[C]hledger incomestatement -MAS\f[R]).
+.PP
 .SS Percentages
 .PP
-With \f[C]-%\f[R] or \f[C]--percent\f[R], balance reports show each
-account\[aq]s value expressed as a percentage of the column\[aq]s total.
-This is useful to get an overview of the relative sizes of account
-balances.
-For example to obtain an overview of expenses:
+With \f[C]-%/--percent\f[R], balance reports show each account\[aq]s
+value expressed as a percentage of the (column) total:
 .IP
 .nf
 \f[C]
-$ hledger balance expenses -%
-             100.0 %  expenses
-              50.0 %    food
-              50.0 %    supplies
---------------------
-             100.0 %
+$ hledger bal expenses -Q -%
+Balance changes in 2008:
+
+                   || 2008Q1   2008Q2  2008Q3  2008Q4 
+===================++=================================
+ expenses:food     ||      0   50.0 %       0       0 
+ expenses:supplies ||      0   50.0 %       0       0 
+-------------------++---------------------------------
+                   ||      0  100.0 %       0       0 
 \f[R]
 .fi
 .PP
-Note that \f[C]--tree\f[R] does not have an effect on \f[C]-%\f[R].
-The percentages are always relative to the total sum of each column,
-they are never relative to the parent account.
-.PP
-Since the percentages are relative to the columns sum, it is usually not
-useful to calculate percentages if the signs of the amounts are mixed.
-Although the results are technically correct, they are most likely
-useless.
-Especially in a balance report that sums up to zero (eg
-\f[C]hledger balance -B\f[R]) all percentage values will be zero.
-.PP
-This flag does not work if the report contains any mixed commodity
-accounts.
-If there are mixed commodity accounts in the report be sure to use
-\f[C]-V\f[R] or \f[C]-B\f[R] to coerce the report into using a single
-commodity.
-.PP
-.SS Customising single-period balance reports
-.PP
-You can customise the layout of single-period balance reports with
-\f[C]--format FMT\f[R], which sets the format of each line.
-Eg:
+Note it is not useful to calculate percentages if the amounts in a
+column have mixed signs.
+In this case, make a separate report for each sign, eg:
 .IP
 .nf
 \f[C]
-$ hledger balance --format \[dq]%20(account) %12(total)\[dq]
-              assets          $-1
-         bank:saving           $1
-                cash          $-2
-            expenses           $2
-                food           $1
-            supplies           $1
-              income          $-2
-               gifts          $-1
-              salary          $-1
-   liabilities:debts           $1
----------------------------------
-                                0
+$ hledger bal -% amt:\[ga]>0\[ga]
+$ hledger bal -% amt:\[ga]<0\[ga]
 \f[R]
 .fi
 .PP
-The FMT format string (plus a newline) specifies the formatting applied
-to each account/balance pair.
-It may contain any suitable text, with data fields interpolated like so:
+Similarly, if the amounts in a column have mixed commodities, convert
+them to one commodity with \f[C]-B\f[R], \f[C]-V\f[R], \f[C]-X\f[R] or
+\f[C]--value\f[R], or make a separate report for each commodity:
+.IP
+.nf
+\f[C]
+$ hledger bal -% cur:\[rs]\[rs]$
+$ hledger bal -% cur:\[Eu]
+\f[R]
+.fi
+.SS Balance change, end balance
 .PP
-\f[C]%[MIN][.MAX](FIELDNAME)\f[R]
-.IP \[bu] 2
-MIN pads with spaces to at least this width (optional)
-.IP \[bu] 2
-MAX truncates at this width (optional)
-.IP \[bu] 2
-FIELDNAME must be enclosed in parentheses, and can be one of:
-.RS 2
-.IP \[bu] 2
-\f[C]depth_spacer\f[R] - a number of spaces equal to the account\[aq]s
-depth, or if MIN is specified, MIN * depth spaces.
-.IP \[bu] 2
-\f[C]account\f[R] - the account\[aq]s name
-.IP \[bu] 2
-\f[C]total\f[R] - the account\[aq]s balance/posted total, right
-justified
-.RE
+It\[aq]s important to be clear on the meaning of the numbers shown in
+balance reports.
+Here is some terminology we use:
 .PP
-Also, FMT can begin with an optional prefix to control how
-multi-commodity amounts are rendered:
-.IP \[bu] 2
-\f[C]%_\f[R] - render on multiple lines, bottom-aligned (the default)
-.IP \[bu] 2
-\f[C]%\[ha]\f[R] - render on multiple lines, top-aligned
-.IP \[bu] 2
-\f[C]%,\f[R] - render on one line, comma-separated
+A \f[B]\f[BI]balance change\f[B]\f[R] is the net amount added to, or
+removed from, an account during some period.
 .PP
-There are some quirks.
-Eg in one-line mode, \f[C]%(depth_spacer)\f[R] has no effect, instead
-\f[C]%(account)\f[R] has indentation built in.
-Experimentation may be needed to get pleasing results.
+An \f[B]\f[BI]end balance\f[B]\f[R] is the amount accumulated in an
+account as of some date (and some time, but hledger doesn\[aq]t store
+that; assume end of day in your timezone).
+It is the sum of previous balance changes.
 .PP
-Some example formats:
+We call it a \f[B]\f[BI]historical end balance\f[B]\f[R] if it includes
+all balance changes since the account was created.
+For a real world account, this means it will match the \[dq]historical
+record\[dq], eg the balances reported in your bank statements or bank
+web UI.
+(If they are correct!)
+.PP
+In general, balance changes are what you want to see when reviewing
+revenues and expenses, and historical end balances are what you want to
+see when reviewing or reconciling asset, liability and equity accounts.
+.PP
+\f[C]balance\f[R] shows balance changes by default.
+To see accurate historical end balances:
+.IP "1." 3
+Initialise account starting balances with an \[dq]opening balances\[dq]
+transaction (a transfer from equity to the account), unless the journal
+covers the account\[aq]s full lifetime.
+.IP "2." 3
+Include all of of the account\[aq]s prior postings in the report, by not
+specifying a report start date, or by using the
+\f[C]-H/--historical\f[R] flag.
+(\f[C]-H\f[R] causes report start date to be ignored when summing
+postings.)
+.SS Balance report types
+.PP
+For more flexible reporting, there are three important option groups:
+.PP
+\f[C]hledger balance [CALCULATIONTYPE] [ACCUMULATIONTYPE] [VALUATIONTYPE] ...\f[R]
+.PP
+The first two are the most important: calculation type selects the basic
+calculation to perform for each table cell, while accumulation type says
+which postings should be included in each cell\[aq]s calculation.
+Typically one or both of these are selected by default, so you don\[aq]t
+need to write them explicitly.
+A valuation type can be added if you want to convert the basic report to
+value or cost.
+.PP
+\f[B]Calculation type:\f[R]
+.PD 0
+.P
+.PD
+The basic calculation to perform for each table cell.
+It is one of:
 .IP \[bu] 2
-\f[C]%(total)\f[R] - the account\[aq]s total
+\f[C]--sum\f[R] : sum the posting amounts (\f[B]default\f[R])
 .IP \[bu] 2
-\f[C]%-20.20(account)\f[R] - the account\[aq]s name, left justified,
-padded to 20 characters and clipped at 20 characters
+\f[C]--budget\f[R] : like --sum but also show a goal amount
 .IP \[bu] 2
-\f[C]%,%-50(account)  %25(total)\f[R] - account name padded to 50
-characters, total padded to 20 characters, with multiple commodities
-rendered on one line
+\f[C]--valuechange\f[R] : show the change in period-end historical
+balance values
+.PP
+\f[B]Accumulation type:\f[R]
+.PD 0
+.P
+.PD
+Which postings should be included in each cell\[aq]s calculation.
+It is one of:
 .IP \[bu] 2
-\f[C]%20(total)  %2(depth_spacer)%-(account)\f[R] - the default format
-for the single-column balance report
+\f[C]--change\f[R] : postings from column start to column end, ie within
+the cell\[aq]s period.
+Typically used to see revenues/expenses.
+(\f[B]default for balance, incomestatement\f[R])
+.IP \[bu] 2
+\f[C]--cumulative\f[R] : postings from report start to column end, eg to
+show changes accumulated since the report\[aq]s start date.
+Rarely used.
+.IP \[bu] 2
+\f[C]--historical/-H\f[R] : postings from journal start to column end,
+ie all postings from account creation to the end of the cell\[aq]s
+period.
+Typically used to see historical end balances of
+assets/liabilities/equity.
+(\f[B]default for balancesheet, balancesheetequity, cashflow\f[R])
+.PP
+\f[B]Valuation type:\f[R]
+.PD 0
+.P
+.PD
+Which kind of valuation, valuation date(s) and optionally a target
+valuation commodity to use.
+It is one of:
+.IP \[bu] 2
+no valuation, show amounts in their original commodities
+(\f[B]default\f[R])
+.IP \[bu] 2
+\f[C]--value=cost[,COMM]\f[R] : no valuation, show amounts converted to
+cost
+.IP \[bu] 2
+\f[C]--value=then[,COMM]\f[R] : show value at transaction dates
+.IP \[bu] 2
+\f[C]--value=end[,COMM]\f[R] : show value at period end date(s)
+(\f[B]default with \f[CB]--valuechange\f[B]\f[R])
+.IP \[bu] 2
+\f[C]--value=now[,COMM]\f[R] : show value at today\[aq]s date
+.IP \[bu] 2
+\f[C]--value=YYYY-MM-DD[,COMM]\f[R] : show value at another date
+.PP
+or one of their aliases: \f[C]--cost/-B\f[R], \f[C]--market/-V\f[R] or
+\f[C]--exchange/-X\f[R].
+.PP
+Most combinations of these options should produce reasonable reports,
+but if you find any that seem wrong or misleading, let us know.
+The following restrictions are applied:
+.IP \[bu] 2
+\f[C]--valuechange\f[R] implies \f[C]--value=end\f[R]
+.IP \[bu] 2
+\f[C]--valuechange\f[R] makes \f[C]--change\f[R] the default when used
+with the \f[C]balancesheet\f[R]/\f[C]balancesheetequity\f[R] commands
+.IP \[bu] 2
+\f[C]--cumulative\f[R] or \f[C]--historical\f[R] disables
+\f[C]--row-total/-T\f[R]
+.PP
+For reference, here is what the combinations of accumulation and
+valuation show:
+.PP
+.TS
+tab(@);
+lw(8.2n) lw(16.3n) lw(16.8n) lw(15.1n) lw(13.6n).
+T{
+Valuation: >Accumulation: v
+T}@T{
+no valuation
+T}@T{
+\f[C]--value= then\f[R]
+T}@T{
+\f[C]--value= end\f[R]
+T}@T{
+\f[C]--value= YYYY-MM-DD /now\f[R]
+T}
+_
+T{
+\f[C]--change\f[R]
+T}@T{
+change in period
+T}@T{
+sum of posting-date market values in period
+T}@T{
+period-end value of change in period
+T}@T{
+DATE-value of change in period
+T}
+T{
+\f[C]--cumulative\f[R]
+T}@T{
+change from report start to period end
+T}@T{
+sum of posting-date market values from report start to period end
+T}@T{
+period-end value of change from report start to period end
+T}@T{
+DATE-value of change from report start to period end
+T}
+T{
+\f[C]--historical /-H\f[R]
+T}@T{
+change from journal start to period end (historical end balance)
+T}@T{
+sum of posting-date market values from journal start to period end
+T}@T{
+period-end value of change from journal start to period end
+T}@T{
+DATE-value of change from journal start to period end
+T}
+.TE
+.SS Useful balance reports
+.PP
+Some frequently used \f[C]balance\f[R] options/reports are:
+.IP \[bu] 2
+\f[C]bal -M revenues expenses\f[R]
+.PD 0
+.P
+.PD
+Show revenues/expenses in each month.
+Also available as the \f[C]incomestatement\f[R] command.
+.IP \[bu] 2
+\f[C]bal -M -H assets liabilities\f[R]
+.PD 0
+.P
+.PD
+Show historical asset/liability balances at each month end.
+Also available as the \f[C]balancesheet\f[R] command.
+.IP \[bu] 2
+\f[C]bal -M -H assets liabilities equity\f[R]
+.PD 0
+.P
+.PD
+Show historical asset/liability/equity balances at each month end.
+Also available as the \f[C]balancesheetequity\f[R] command.
+.IP \[bu] 2
+\f[C]bal -M assets not:receivable\f[R]
+.PD 0
+.P
+.PD
+Show changes to liquid assets in each month.
+Also available as the \f[C]cashflow\f[R] command.
+.PP
+Also:
+.IP \[bu] 2
+\f[C]bal -M expenses -2 -SA\f[R]
+.PD 0
+.P
+.PD
+Show monthly expenses summarised to depth 2 and sorted by average
+amount.
+.IP \[bu] 2
+\f[C]bal -M --budget expenses\f[R]
+.PD 0
+.P
+.PD
+Show monthly expenses and budget goals.
+.IP \[bu] 2
+\f[C]bal -M --valuechange investments\f[R]
+.PD 0
+.P
+.PD
+Show monthly change in market value of investment assets.
+.IP \[bu] 2
+\f[C]bal investments --valuechange -D date:lastweek amt:\[aq]>1000\[aq] -STA [--invert]\f[R]
+.PD 0
+.P
+.PD
+Show top gainers [or losers] last week
 .SS Budget report
 .PP
-There is also a special balance report mode for showing budget
-performance.
-The \f[C]--budget\f[R] flag activates extra columns showing the budget
-goals for each account and period, if any.
-For this report, budget goals are defined by periodic transactions.
+The \f[C]--budget\f[R] report type activates extra columns showing any
+budget goals for each account and period.
+The budget goals are defined by periodic transactions.
 This is very useful for comparing planned and actual income, expenses,
 time usage, etc.
 .PP
@@ -2919,11 +3105,11 @@ amounts are shown, and the actual/goal percentage.
 (Note: budget goals should be in the same commodity as the actual
 amount.)
 .IP \[bu] 2
-All parent accounts are always shown, even in flat mode.
+All parent accounts are always shown, even in list mode.
 Eg assets, assets:bank, and expenses above.
 .IP \[bu] 2
 Amounts always include all subaccounts, budgeted or unbudgeted, even in
-flat mode.
+list mode.
 .PP
 This means that the numbers displayed will not always add up! Eg above,
 the \f[C]expenses\f[R] actual amount includes the gifts and supplies
@@ -3138,6 +3324,80 @@ Budget performance in 2019/01:
                                         ||        0 [                 0] 
 \f[R]
 .fi
+.SS Customising single-period balance reports
+.PP
+For single-period balance reports displayed in the terminal (only), you
+can use \f[C]--format FMT\f[R] to customise the format and content of
+each line.
+Eg:
+.IP
+.nf
+\f[C]
+$ hledger balance --format \[dq]%20(account) %12(total)\[dq]
+              assets          $-1
+         bank:saving           $1
+                cash          $-2
+            expenses           $2
+                food           $1
+            supplies           $1
+              income          $-2
+               gifts          $-1
+              salary          $-1
+   liabilities:debts           $1
+---------------------------------
+                                0
+\f[R]
+.fi
+.PP
+The FMT format string (plus a newline) specifies the formatting applied
+to each account/balance pair.
+It may contain any suitable text, with data fields interpolated like so:
+.PP
+\f[C]%[MIN][.MAX](FIELDNAME)\f[R]
+.IP \[bu] 2
+MIN pads with spaces to at least this width (optional)
+.IP \[bu] 2
+MAX truncates at this width (optional)
+.IP \[bu] 2
+FIELDNAME must be enclosed in parentheses, and can be one of:
+.RS 2
+.IP \[bu] 2
+\f[C]depth_spacer\f[R] - a number of spaces equal to the account\[aq]s
+depth, or if MIN is specified, MIN * depth spaces.
+.IP \[bu] 2
+\f[C]account\f[R] - the account\[aq]s name
+.IP \[bu] 2
+\f[C]total\f[R] - the account\[aq]s balance/posted total, right
+justified
+.RE
+.PP
+Also, FMT can begin with an optional prefix to control how
+multi-commodity amounts are rendered:
+.IP \[bu] 2
+\f[C]%_\f[R] - render on multiple lines, bottom-aligned (the default)
+.IP \[bu] 2
+\f[C]%\[ha]\f[R] - render on multiple lines, top-aligned
+.IP \[bu] 2
+\f[C]%,\f[R] - render on one line, comma-separated
+.PP
+There are some quirks.
+Eg in one-line mode, \f[C]%(depth_spacer)\f[R] has no effect, instead
+\f[C]%(account)\f[R] has indentation built in.
+Experimentation may be needed to get pleasing results.
+.PP
+Some example formats:
+.IP \[bu] 2
+\f[C]%(total)\f[R] - the account\[aq]s total
+.IP \[bu] 2
+\f[C]%-20.20(account)\f[R] - the account\[aq]s name, left justified,
+padded to 20 characters and clipped at 20 characters
+.IP \[bu] 2
+\f[C]%,%-50(account)  %25(total)\f[R] - account name padded to 50
+characters, total padded to 20 characters, with multiple commodities
+rendered on one line
+.IP \[bu] 2
+\f[C]%20(total)  %2(depth_spacer)%-(account)\f[R] - the default format
+for the single-column balance report
 .SS balancesheet
 .PP
 balancesheet, bs
@@ -3154,9 +3414,6 @@ The asset and liability accounts shown are those accounts declared with
 the \f[C]Asset\f[R] or \f[C]Cash\f[R] or \f[C]Liability\f[R] type, or
 otherwise all accounts under a top-level \f[C]asset\f[R] or
 \f[C]liability\f[R] account (case insensitive, plurals allowed).
-.PP
-(This report is essentially similar to \[dq]hledger balance --historical
-assets liabilities\[dq], with liabilities sign-flipped.)
 .PP
 Example:
 .IP
@@ -3183,16 +3440,12 @@ Total:
 \f[R]
 .fi
 .PP
-With a reporting interval, multiple columns will be shown, one for each
-report period.
-As with multicolumn balance reports, you can alter the report mode with
-\f[C]--change\f[R]/\f[C]--cumulative\f[R]/\f[C]--historical\f[R].
-Normally balancesheet shows historical ending balances, which is what
-you need for a balance sheet; note this means it ignores report begin
-dates (and \f[C]-T/--row-total\f[R], since summing end balances
-generally does not make sense).
-Instead of absolute values percentages can be displayed with
-\f[C]-%\f[R].
+This command is a higher-level variant of the \f[C]balance\f[R] command,
+and supports many of that command\[aq]s features, such as multi-period
+reports.
+It is similar to \f[C]hledger balance -H assets liabilities\f[R], but
+with smarter account detection, and liabilities displayed with their
+sign flipped.
 .PP
 This command also supports the output destination and output format
 options The output formats supported are \f[C]txt\f[R], \f[C]csv\f[R],
@@ -3213,10 +3466,6 @@ declared with the \f[C]Asset\f[R], \f[C]Cash\f[R], \f[C]Liability\f[R]
 or \f[C]Equity\f[R] type, or otherwise all accounts under a top-level
 \f[C]asset\f[R], \f[C]liability\f[R] or \f[C]equity\f[R] account (case
 insensitive, plurals allowed).
-.PP
-(This report is essentially similar to \[dq]hledger balance --historical
-assets liabilities equity\[dq], with liabilities and equity
-sign-flipped.)
 .PP
 Example:
 .IP
@@ -3248,6 +3497,13 @@ Total:
 \f[R]
 .fi
 .PP
+This command is a higher-level variant of the \f[C]balance\f[R] command,
+and supports many of that command\[aq]s features, such as multi-period
+reports.
+It is similar to \f[C]hledger balance -H assets liabilities equity\f[R],
+but with smarter account detection, and liabilities/equity displayed
+with their sign flipped.
+.PP
 This command also supports the output destination and output format
 options The output formats supported are \f[C]txt\f[R], \f[C]csv\f[R],
 \f[C]html\f[R], and (experimental) \f[C]json\f[R].
@@ -3267,9 +3523,6 @@ The \[dq]cash\[dq] accounts shown are those accounts declared with the
 \f[C]asset\f[R] account (case insensitive, plural allowed) which do not
 have \f[C]fixed\f[R], \f[C]investment\f[R], \f[C]receivable\f[R] or
 \f[C]A/R\f[R] in their name.
-.PP
-(This report is essentially similar to \[dq]hledger balance --change
-assets not:fixed not:investment not:receivable\[dq].)
 .PP
 Example:
 .IP
@@ -3291,13 +3544,12 @@ Total:
 \f[R]
 .fi
 .PP
-With a reporting interval, multiple columns will be shown, one for each
-report period.
-Normally cashflow shows changes in assets per period, though as with
-multicolumn balance reports you can alter the report mode with
-\f[C]--change\f[R]/\f[C]--cumulative\f[R]/\f[C]--historical\f[R].
-Instead of absolute values percentages can be displayed with
-\f[C]-%\f[R].
+This command is a higher-level variant of the \f[C]balance\f[R] command,
+and supports many of that command\[aq]s features, such as multi-period
+reports.
+It is similar to
+\f[C]hledger balance assets not:fixed not:investment not:receivable\f[R],
+but with smarter account detection.
 .PP
 This command also supports the output destination and output format
 options The output formats supported are \f[C]txt\f[R], \f[C]csv\f[R],
@@ -3362,13 +3614,11 @@ These checks can be run only by giving their names as arguments to
 They are more specialised and not desirable for everyone, therefore
 optional:
 .IP \[bu] 2
-\f[B]ordereddates\f[R] - transactions are ordered by date (similar to
-the old \f[C]check-dates\f[R] command)
+\f[B]ordereddates\f[R] - transactions are ordered by date in each file
 .IP \[bu] 2
 \f[B]payees\f[R] - all payees used by transactions have been declared
 .IP \[bu] 2
-\f[B]uniqueleafnames\f[R] - all account leaf names are unique (similar
-to the old \f[C]check-dupes\f[R] command).
+\f[B]uniqueleafnames\f[R] - all account leaf names are unique
 .SS Custom checks
 .PP
 A few more checks are are available as separate add-on commands, in
@@ -3673,21 +3923,80 @@ Or with --dry-run, just print the transactions that would be added.
 Or with --catchup, just mark all of the FILEs\[aq] transactions as
 imported, without actually importing any.
 .PP
-The input files are specified as arguments - no need to write -f before
-each one.
-So eg to add new transactions from all CSV files to the main journal,
-it\[aq]s just: \f[C]hledger import *.csv\f[R]
+Unlike other hledger commands, with \f[C]import\f[R] the journal file is
+an output file, and will be modified, though only by appending (existing
+data will not be changed).
+The input files are specified as arguments, so to import one or more CSV
+files to your main journal, you will run
+\f[C]hledger import bank.csv\f[R] or perhaps
+\f[C]hledger import *.csv\f[R].
 .PP
-New transactions are detected in the same way as print --new: by
-assuming transactions are always added to the input files in increasing
-date order, and by saving \f[C].latest.FILE\f[R] state files.
+Note you can import from any file format, though CSV files are the most
+common import source, and these docs focus on that case.
+.SS Deduplication
 .PP
-The --dry-run output is in journal format, so you can filter it, eg to
-see only uncategorised transactions:
+As a convenience \f[C]import\f[R] does \f[I]deduplication\f[R] while
+reading transactions.
+This does not mean \[dq]ignore transactions that look the same\[dq], but
+rather \[dq]ignore transactions that have been seen before\[dq].
+This is intended for when you are periodically importing foreign data
+which may contain already-imported transactions.
+So eg, if every day you download bank CSV files containing redundant
+data, you can safely run \f[C]hledger import bank.csv\f[R] and only new
+transactions will be imported.
+(\f[C]import\f[R] is idempotent.)
+.PP
+Since the items being read (CSV records, eg) often do not come with
+unique identifiers, hledger detects new transactions by date, assuming
+that:
+.IP "1." 3
+new items always have the newest dates
+.IP "2." 3
+item dates do not change across reads
+.IP "3." 3
+and items with the same date remain in the same relative order across
+reads.
+.PP
+These are often true of CSV files representing transactions, or true
+enough so that it works pretty well in practice.
+1 is important, but violations of 2 and 3 amongst the old transactions
+won\[aq]t matter (and if you import often, the new transactions will be
+few, so less likely to be the ones affected).
+.PP
+hledger remembers the latest date processed in each input file by saving
+a hidden \[dq].latest\[dq] state file in the same directory.
+Eg when reading \f[C]finance/bank.csv\f[R], it will look for and update
+the \f[C]finance/.latest.bank.csv\f[R] state file.
+The format is simple: one or more lines containing the same ISO-format
+date (YYYY-MM-DD), meaning \[dq]I have processed transactions up to this
+date, and this many of them on that date.\[dq] Normally you won\[aq]t
+see or manipulate these state files yourself.
+But if needed, you can delete them to reset the state (making all
+transactions \[dq]new\[dq]), or you can construct them to \[dq]catch
+up\[dq] to a certain date.
+.PP
+Note deduplication (and updating of state files) can also be done by
+\f[C]print --new\f[R], but this is less often used.
+.SS Import testing
+.PP
+With \f[C]--dry-run\f[R], the transactions that will be imported are
+printed to the terminal, without updating your journal or state files.
+The output is valid journal format, like the print command, so you can
+re-parse it.
+Eg, to see any importable transactions which CSV rules have not
+categorised:
 .IP
 .nf
 \f[C]
-$ hledger import --dry ... | hledger -f- print unknown --ignore-assertions
+$ hledger import --dry bank.csv | hledger -f- -I print unknown
+\f[R]
+.fi
+.PP
+or (live updating):
+.IP
+.nf
+\f[C]
+$ ls bank.csv* | entr bash -c \[aq]echo ====; hledger import --dry bank.csv | hledger -f- -I print unknown\[aq]
 \f[R]
 .fi
 .SS Importing balance assignments
@@ -3731,9 +4040,6 @@ the \f[C]Revenue\f[R] or \f[C]Expense\f[R] type, or otherwise all
 accounts under a top-level \f[C]revenue\f[R] or \f[C]income\f[R] or
 \f[C]expense\f[R] account (case insensitive, plurals allowed).
 .PP
-(This report is essentially similar to \[dq]hledger balance --change
-revenues expenses\[dq], with revenues sign-flipped.)
-.PP
 Example:
 .IP
 .nf
@@ -3761,13 +4067,13 @@ Total:
 \f[R]
 .fi
 .PP
-With a reporting interval, multiple columns will be shown, one for each
-report period.
-Normally incomestatement shows revenues/expenses per period, though as
-with multicolumn balance reports you can alter the report mode with
-\f[C]--change\f[R]/\f[C]--cumulative\f[R]/\f[C]--historical\f[R].
-Instead of absolute values percentages can be displayed with
-\f[C]-%\f[R].
+This command is a higher-level variant of the \f[C]balance\f[R] command,
+and supports many of that command\[aq]s features, such as multi-period
+reports.
+It is similar to
+\f[C]hledger balance \[aq](revenues|income)\[aq] expenses\f[R], but with
+smarter account detection, and revenues/income displayed with their sign
+flipped.
 .PP
 This command also supports the output destination and output format
 options The output formats supported are \f[C]txt\f[R], \f[C]csv\f[R],
@@ -3937,27 +4243,10 @@ to STR, and is most recent.
 STR should contain at least two characters.
 If there is no similar-enough match, no transaction will be shown.
 .PP
-With \f[C]--new\f[R], for each FILE being read, hledger reads (and
-writes) a special state file (\f[C].latest.FILE\f[R] in the same
-directory), containing the latest transaction date(s) that were seen
-last time FILE was read.
-When this file is found, only transactions with newer dates (and new
-transactions on the latest date) are printed.
-This is useful for ignoring already-seen entries in import data, such as
-downloaded CSV files.
-Eg:
-.IP
-.nf
-\f[C]
-$ hledger -f bank1.csv print --new
-(shows transactions added since last print --new on this file)
-\f[R]
-.fi
-.PP
-This assumes that transactions added to FILE always have same or
-increasing dates, and that transactions on the same day do not get
-reordered.
-See also the import command.
+With \f[C]--new\f[R], hledger prints only transactions it has not seen
+on a previous run.
+This uses the same deduplication system as the \f[C]import\f[R] command.
+(See import\[aq]s docs for details.)
 .PP
 This command also supports the output destination and output format
 options The output formats supported are \f[C]txt\f[R], \f[C]csv\f[R],
@@ -4373,24 +4662,25 @@ roi
 Shows the time-weighted (TWR) and money-weighted (IRR) rate of return on
 your investments.
 .PP
-This command assumes that you have account(s) that hold nothing but your
-investments and whenever you record current appraisal/valuation of these
-investments you offset unrealized profit and loss into account(s) that,
-again, hold nothing but unrealized profit and loss.
-.PP
-Any transactions affecting balance of investment account(s) and not
-originating from unrealized profit and loss account(s) are assumed to be
-your investments or withdrawals.
-.PP
 At a minimum, you need to supply a query (which could be just an account
-name) to select your investments with \f[C]--inv\f[R], and another query
-to identify your profit and loss transactions with \f[C]--pnl\f[R].
+name) to select your investment(s) with \f[C]--inv\f[R], and another
+query to identify your profit and loss transactions with
+\f[C]--pnl\f[R].
+.PP
+If you do not record changes in the value of your investment manually,
+or do not require computation of time-weighted return (TWR),
+\f[C]--pnl\f[R] could be an empty query (\f[C]--pnl \[dq]\[dq]\f[R] or
+\f[C]--pnl STR\f[R] where \f[C]STR\f[R] does not match any of your
+accounts).
 .PP
 This command will compute and display the internalized rate of return
 (IRR) and time-weighted rate of return (TWR) for your investments for
 the time period requested.
 Both rates of return are annualized before display, regardless of the
 length of reporting interval.
+.PP
+Price directives will be taken into account if you supply appropriate
+\f[C]--cost\f[R] or \f[C]--value\f[R] flags (see VALUATION).
 .PP
 Note, in some cases this report can fail, for these reasons:
 .IP \[bu] 2
@@ -4404,10 +4694,79 @@ Either search does not converge to a solution, or converges too slowly.
 .PP
 Examples:
 .IP \[bu] 2
-Using roi to report unrealised gains:
+Using roi to compute total return of investment in stocks:
 https://github.com/simonmichael/hledger/blob/master/examples/roi-unrealised.ledger
+.IP \[bu] 2
+Cookbook -> Return on Investment
+.SS Semantics of \f[C]--inv\f[R] and \f[C]--pnl\f[R]
 .PP
-More background:
+Query supplied to \f[C]--inv\f[R] has to match all transactions that are
+related to your investment.
+Transactions not matching \f[C]--inv\f[R] will be ignored.
+.PP
+In these transactions, ROI will conside postings that match
+\f[C]--inv\f[R] to be \[dq]investment postings\[dq] and other postings
+(not matching \f[C]--inv\f[R]) will be sorted into two categories:
+\[dq]cash flow\[dq] and \[dq]profit and loss\[dq], as ROI needs to know
+which part of the investment value is your contributions and which is
+due to the return on investment.
+.IP \[bu] 2
+\[dq]Cash flow\[dq] is depositing or withdrawing money, buying or
+selling assets, or otherwise converting between your investment
+commodity and any other commodity.
+Example:
+.RS 2
+.IP
+.nf
+\f[C]
+2019-01-01 Investing in Snake Oil
+  assets:cash          -$100
+  investment:snake oil
+
+2020-01-01 Selling my Snake Oil
+  assets:cash           $10
+  investment:snake oil  = 0
+\f[R]
+.fi
+.RE
+.IP \[bu] 2
+\[dq]Profit and loss\[dq] is change in the value of your investment:
+.RS 2
+.IP
+.nf
+\f[C]
+2019-06-01 Snake Oil falls in value
+  investment:snake oil  = $57
+  equity:unrealized profit or loss
+\f[R]
+.fi
+.RE
+.PP
+All non-investment postings are assumed to be \[dq]cash flow\[dq],
+unless they match \f[C]--pnl\f[R] query.
+Changes in value of your investment due to \[dq]profit and loss\[dq]
+postings will be considered as part of your investment return.
+.PP
+Example: if you use \f[C]--inv snake --pnl equity:unrealized\f[R], then
+postings in the example below would be classifed as:
+.IP
+.nf
+\f[C]
+2019-01-01 Snake Oil #1
+  assets:cash          -$100   ; cash flow posting
+  investment:snake oil         ; investment posting
+
+2019-03-01 Snake Oil #2
+  equity:unrealized pnl  -$100 ; profit and loss posting
+  snake oil                    ; investment posting
+
+2019-07-01 Snake Oil #3
+  equity:unrealized pnl        ; profit and loss posting
+  cash          -$100          ; cash flow posting
+  snake oil     $50            ; investment posting
+\f[R]
+.fi
+.SS IRR and TWR explained
 .PP
 \[dq]ROI\[dq] stands for \[dq]return on investment\[dq].
 Traditionally this was computed as a difference between current value of
@@ -4429,38 +4788,36 @@ of your initial investment, and if you are adding to your investment,
 you will receive bigger absolute gains (but probably at the same rate of
 return).
 IRR is a way to compute rate of return for each period between in-flow
-or out-flow of money, and then combine them in a way that gives you an
-annual rate of return that investment is expected to generate.
+or out-flow of money, and then combine them in a way that gives you a
+compound annual rate of return that investment is expected to generate.
 .PP
 As mentioned before, in-flows and out-flows would be any cash that you
 personally put in or withdraw, and for the \[dq]roi\[dq] command, these
-are transactions that involve account(s) matching \f[C]--inv\f[R]
-argument and NOT involve account(s) matching \f[C]--pnl\f[R] argument.
+are the postings that match the query in the\f[C]--inv\f[R] argument and
+NOT match the query in the\f[C]--pnl\f[R] argument.
 .PP
-Presumably, you will also record changes in the value of your
-investment, and balance them against \[dq]profit and loss\[dq] (or
-\[dq]unrealized gains\[dq]) account.
-Note that in order for IRR to compute the precise effect of your
-in-flows and out-flows on the rate of return, you will need to record
-the value of your investement on or close to the days when in- or
-out-flows occur.
-.PP
-Implementation of IRR in hledger should match the \f[C]XIRR\f[R] formula
-in Excel.
-.PP
-Second way to compute rate of return that \f[C]roi\f[R] command
-implements is called \[dq]time-weighted rate of return\[dq] or
-\[dq]TWR\[dq].
-Like IRR, it will also break the history of your investment into periods
-between in-flows and out-flows to compute rate of return per each period
-and then a compound rate of return.
-However, internal workings of TWR are quite different.
+If you manually record changes in the value of your investment as
+transactions that balance them against \[dq]profit and loss\[dq] (or
+\[dq]unrealized gains\[dq]) account or use price directives, then in
+order for IRR to compute the precise effect of your in-flows and
+out-flows on the rate of return, you will need to record the value of
+your investement on or close to the days when in- or out-flows occur.
 .PP
 In technical terms, IRR uses the same approach as computation of net
 present value, and tries to find a discount rate that makes net present
 value of all the cash flows of your investment to add up to zero.
 This could be hard to wrap your head around, especially if you
 haven\[aq]t done discounted cash flow analysis before.
+Implementation of IRR in hledger should produce results that match the
+\f[C]XIRR\f[R] formula in Excel.
+.PP
+Second way to compute rate of return that \f[C]roi\f[R] command
+implements is called \[dq]time-weighted rate of return\[dq] or
+\[dq]TWR\[dq].
+Like IRR, it will also break the history of your investment into periods
+between in-flows, out-flows and value changes, to compute rate of return
+per each period and then a compound rate of return.
+However, internal workings of TWR are quite different.
 .PP
 TWR represents your investment as an imaginary \[dq]unit fund\[dq] where
 in-flows/ out-flows lead to buying or selling \[dq]units\[dq] of your
@@ -4472,209 +4829,6 @@ of return of your investment.
 References: * Explanation of rate of return * Explanation of IRR *
 Explanation of TWR * Examples of computing IRR and TWR and discussion of
 the limitations of both metrics
-.PP
-More examples:
-.PP
-Lets say that we found an investment in Snake Oil that is proising to
-give us 10% annually:
-.IP
-.nf
-\f[C]
-2019-01-01 Investing in Snake Oil
-  assets:cash  -$100
-  investment:snake oil
-
-2019-12-24 Recording the growth of Snake Oil
-  investment:snake oil   = $110
-  equity:unrealized gains
-\f[R]
-.fi
-.PP
-For now, basic computation of the rate of return, as well as IRR and
-TWR, gives us the expected 10%:
-.IP
-.nf
-\f[C]
-$ hledger roi -Y --inv investment --pnl \[dq]unrealized\[dq]
-+---++------------+------------++---------------+----------+-------------+-----++--------+--------+
-|   ||      Begin |        End || Value (begin) | Cashflow | Value (end) | PnL ||    IRR |    TWR |
-+===++============+============++===============+==========+=============+=====++========+========+
-| 1 || 2019-01-01 | 2019-12-31 ||             0 |      100 |         110 |  10 || 10.00% | 10.00% |
-+---++------------+------------++---------------+----------+-------------+-----++--------+--------+
-\f[R]
-.fi
-.PP
-However, lets say that shorty after investing in the Snake Oil we
-started to have second thoughs, so we prompty withdrew $90, leaving only
-$10 in.
-Before Christmas, though, we started to get the \[dq]fear of mission
-out\[dq], so we put the $90 back in.
-So for most of the year, our investment was just $10 dollars, and it
-gave us just $1 in growth:
-.IP
-.nf
-\f[C]
-2019-01-01 Investing in Snake Oil
-  assets:cash  -$100
-  investment:snake oil
-
-2019-01-02 Buyers remorse
-  assets:cash  $90
-  investment:snake oil
-       
-2019-12-30 Fear of missing out
-  assets:cash  -$90
-  investment:snake oil
-
-2019-12-31 Recording the growth of Snake Oil
-  investment:snake oil   = $101
-  equity:unrealized gains
-\f[R]
-.fi
-.PP
-Now IRR and TWR are drastically different:
-.IP
-.nf
-\f[C]
-$ hledger roi -Y --inv investment --pnl \[dq]unrealized\[dq]
-+---++------------+------------++---------------+----------+-------------+-----++-------+-------+
-|   ||      Begin |        End || Value (begin) | Cashflow | Value (end) | PnL ||   IRR |   TWR |
-+===++============+============++===============+==========+=============+=====++=======+=======+
-| 1 || 2019-01-01 | 2019-12-31 ||             0 |      100 |         101 |   1 || 9.32% | 1.00% |
-+---++------------+------------++---------------+----------+-------------+-----++-------+-------+
-\f[R]
-.fi
-.PP
-Here, IRR tells us that we made close to 10% on the $10 dollars that we
-had in the account most of the time.
-And TWR is ...
-just 1%?
-Why?
-.PP
-Based on the transactions in our journal, TWR \[dq]think\[dq] that we
-are buying back $90 worst of Snake Oil at the same price that it had at
-the beginning of they year, and then after that our $100 investment gets
-$1 increase in value, or 1% of $100.
-Let\[aq]s take a closer look at what is happening here by asking for
-quarterly reports instead of annual:
-.IP
-.nf
-\f[C]
-$ hledger roi -Q --inv investment --pnl \[dq]unrealized\[dq]
-+---++------------+------------++---------------+----------+-------------+-----++--------+-------+
-|   ||      Begin |        End || Value (begin) | Cashflow | Value (end) | PnL ||    IRR |   TWR |
-+===++============+============++===============+==========+=============+=====++========+=======+
-| 1 || 2019-01-01 | 2019-03-31 ||             0 |       10 |          10 |   0 ||  0.00% | 0.00% |
-| 2 || 2019-04-01 | 2019-06-30 ||            10 |        0 |          10 |   0 ||  0.00% | 0.00% |
-| 3 || 2019-07-01 | 2019-09-30 ||            10 |        0 |          10 |   0 ||  0.00% | 0.00% |
-| 4 || 2019-10-01 | 2019-12-31 ||            10 |       90 |         101 |   1 || 37.80% | 4.03% |
-+---++------------+------------++---------------+----------+-------------+-----++--------+-------+
-\f[R]
-.fi
-.PP
-Now both IRR and TWR are thrown off by the fact that all of the growth
-for our investment happens in Q4 2019.
-This happes because IRR computation is still yielding 9.32% and TWR is
-still 1%, but this time these are rates for three month period instead
-of twelve, so in order to get an annual rate they should be multiplied
-by four!
-.PP
-Let\[aq]s try to keep a better record of how Snake Oil grew in value:
-.IP
-.nf
-\f[C]
-2019-01-01 Investing in Snake Oil
-  assets:cash  -$100
-  investment:snake oil
-
-2019-01-02 Buyers remorse
-  assets:cash  $90
-  investment:snake oil
-
-2019-02-28 Recording the growth of Snake Oil
-  investment:snake oil  
-  equity:unrealized gains  -$0.25
-
-2019-06-30 Recording the growth of Snake Oil
-  investment:snake oil  
-  equity:unrealized gains  -$0.25
-
-2019-09-30 Recording the growth of Snake Oil
-  investment:snake oil  
-  equity:unrealized gains  -$0.25
-
-2019-12-30 Fear of missing out
-  assets:cash  -$90
-  investment:snake oil
-
-2019-12-31 Recording the growth of Snake Oil
-  investment:snake oil
-  equity:unrealized gains  -$0.25
-\f[R]
-.fi
-.PP
-Would our quartery report look better now?
-Almost:
-.IP
-.nf
-\f[C]
-$ hledger roi -Q --inv investment --pnl \[dq]unrealized\[dq]
-+---++------------+------------++---------------+----------+-------------+------++--------+--------+
-|   ||      Begin |        End || Value (begin) | Cashflow | Value (end) |  PnL ||    IRR |    TWR |
-+===++============+============++===============+==========+=============+======++========+========+
-| 1 || 2019-01-01 | 2019-03-31 ||             0 |       10 |       10.25 | 0.25 ||  9.53% | 10.53% |
-| 2 || 2019-04-01 | 2019-06-30 ||         10.25 |        0 |       10.50 | 0.25 || 10.15% | 10.15% |
-| 3 || 2019-07-01 | 2019-09-30 ||         10.50 |        0 |       10.75 | 0.25 ||  9.79% |  9.78% |
-| 4 || 2019-10-01 | 2019-12-31 ||         10.75 |       90 |      101.00 | 0.25 ||  8.05% |  1.00% |
-+---++------------+------------++---------------+----------+-------------+------++--------+--------+
-\f[R]
-.fi
-.PP
-Something is still wrong with TWR computation for Q4, and if you have
-been paying attention you know what it is already: big $90 buy-back is
-recorded prior to the only transaction that captures the change of value
-of Snake Oil that happened in this time period.
-Lets combine transactions from 30th and 31st of Dec into one:
-.IP
-.nf
-\f[C]
-2019-12-30 Fear of missing out and growth of Snake Oil
-  assets:cash  -$90
-  investment:snake oil
-  equity:unrealized gains  -$0.25
-\f[R]
-.fi
-.PP
-Now growth of investment properly affects its price at the time of
-buy-back:
-.IP
-.nf
-\f[C]
-$ hledger roi -Q --inv investment --pnl \[dq]unrealized\[dq]
-+---++------------+------------++---------------+----------+-------------+------++--------+--------+
-|   ||      Begin |        End || Value (begin) | Cashflow | Value (end) |  PnL ||    IRR |    TWR |
-+===++============+============++===============+==========+=============+======++========+========+
-| 1 || 2019-01-01 | 2019-03-31 ||             0 |       10 |       10.25 | 0.25 ||  9.53% | 10.53% |
-| 2 || 2019-04-01 | 2019-06-30 ||         10.25 |        0 |       10.50 | 0.25 || 10.15% | 10.15% |
-| 3 || 2019-07-01 | 2019-09-30 ||         10.50 |        0 |       10.75 | 0.25 ||  9.79% |  9.78% |
-| 4 || 2019-10-01 | 2019-12-31 ||         10.75 |       90 |      101.00 | 0.25 ||  8.05% |  9.57% |
-+---++------------+------------++---------------+----------+-------------+------++--------+--------+
-\f[R]
-.fi
-.PP
-And for annual report, TWR now reports the exact profitability of our
-investment:
-.IP
-.nf
-\f[C]
-$ hledger roi -Y --inv investment --pnl \[dq]unrealized\[dq]
-+---++------------+------------++---------------+----------+-------------+------++-------+--------+
-|   ||      Begin |        End || Value (begin) | Cashflow | Value (end) |  PnL ||   IRR |    TWR |
-+===++============+============++===============+==========+=============+======++=======+========+
-| 1 || 2019-01-01 | 2019-12-31 ||             0 |      100 |      101.00 | 1.00 || 9.32% | 10.00% |
-+---++------------+------------++---------------+----------+-------------+------++-------+--------+
-\f[R]
-.fi
 .SS stats
 .PP
 stats
