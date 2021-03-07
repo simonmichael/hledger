@@ -11,9 +11,6 @@ the Revenue or Expense type, or otherwise all accounts under a top-level
 revenue or income or expense account (case insensitive, plurals
 allowed).
 
-(This report is essentially similar to "hledger balance --change
-revenues expenses", with revenues sign-flipped.)
-
 Example:
 
 $ hledger incomestatement
@@ -37,11 +34,11 @@ Total:
 --------------------
                    0
 
-With a reporting interval, multiple columns will be shown, one for each
-report period. Normally incomestatement shows revenues/expenses per
-period, though as with multicolumn balance reports you can alter the
-report mode with --change/--cumulative/--historical. Instead of absolute
-values percentages can be displayed with -%.
+This command is a higher-level variant of the balance command, and
+supports many of that command's features, such as multi-period reports.
+It is similar to hledger balance '(revenues|income)' expenses, but with
+smarter account detection, and revenues/income displayed with their sign
+flipped.
 
 This command also supports the output destination and output format
 options The output formats supported are txt, csv, html, and
