@@ -1,7 +1,7 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# efb37c334
+# ec4d131d2
 - lib: Default to PeriodChange report when using ValueChangeReport. (Stephen Morgan)
 
 - lib,cli: Restore old --change option for per-period summation, use --sum for basic ValueChange balance report. (Stephen Morgan)

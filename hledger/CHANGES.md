@@ -1,7 +1,7 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 3a7c578f2
+# ec4d131d2
 - test: Test bal --valuechange throws an error for bad --value options. (Stephen Morgan)
 
 - lib: Default to PeriodChange report when using ValueChangeReport. (Stephen Morgan)

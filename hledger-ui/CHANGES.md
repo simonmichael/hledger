@@ -1,7 +1,7 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# ffb985f1a
+# ec4d131d2
 - ui, web: make --man and --info work, similar to hledger
   (cf #1410)
 

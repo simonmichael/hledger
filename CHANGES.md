@@ -1,7 +1,7 @@
 General project-related changes and major/notable all-package releases.
 For package-specific changes and minor releases, see the package changelogs.
 
-# fce0a690d
+# ec4d131d2
 - Merge branch 'bash-completion' (#1410)
   An extensive overhaul by @zhelezov of the bash programmable
   completions in shell-completions/.
