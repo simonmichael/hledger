@@ -335,11 +335,10 @@ amountAndCommentWizard PrevInput{..} EntryState{..} = do
               )
               where
                 sameamount (p1,p2) = mixedAmountUnstyled (pamount p1) == mixedAmountUnstyled (pamount p2)
-      def = case (esArgs, mhistoricalp, followedhistoricalsofar) of
-              (d:_,_,_)                                             -> d
-              (_,Just hp,True)                                      -> showamt $ pamount hp
-              _  | pnum > 1 && not (mixedAmountLooksZero balancingamt) -> showamt balancingamtfirstcommodity
-              _                                                     -> ""
+      def | (d:_) <- esArgs                                     = d
+          | Just hp <- mhistoricalp, followedhistoricalsofar    = showamt . amounts $ pamount hp
+          | pnum > 1 && not (mixedAmountLooksZero balancingamt) = showamt balancingamtfirstcommodity
+          | otherwise                                           = ""
   retryMsg "A valid hledger amount is required. Eg: 1, $2, 3 EUR, \"4 red apples\"." $
    parser parseAmountAndComment $
    withCompletion (amountCompleter def) $
@@ -361,9 +360,8 @@ amountAndCommentWizard PrevInput{..} EntryState{..} = do
         -- eof
         return (a,c)
       balancingamt = maNegate . sumPostings $ filter isReal esPostings
-      balancingamtfirstcommodity = mixed . take 1 $ amounts balancingamt
-      showamt =
-        showMixedAmount . mixedAmountSetPrecision
+      balancingamtfirstcommodity = take 1 $ amounts balancingamt
+      showamt = wbUnpack . showAmountsB noColour . map (amountSetPrecision
                   -- what should this be ?
                   -- 1 maxprecision (show all decimal places or none) ?
                   -- 2 maxprecisionwithpoint (show all decimal places or .0 - avoids some but not all confusion with thousands separators) ?
@@ -371,7 +369,7 @@ amountAndCommentWizard PrevInput{..} EntryState{..} = do
                   -- 4 maximum precision entered so far in this transaction ?
                   -- 5 3 or 4, whichever would show the most decimal places ?
                   -- I think 1 or 4, whichever would show the most decimal places
-                  NaturalPrecision
+                  NaturalPrecision)
   --
   -- let -- (amt,comment) = (strip a, strip $ dropWhile (==';') b) where (a,b) = break (==';') amtcmt
       -- a           = fromparse $ runParser (amountp <|> return missingamt) (jparsestate esJournal) "" amt
