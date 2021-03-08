@@ -1,6 +1,8 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
+# a5f9f8ce0
+
 # 1.20.4 2021-01-29
 
 - ui: register: show all txns in/under an account at the depth limit (#1468).

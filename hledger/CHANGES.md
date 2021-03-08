@@ -1,6 +1,64 @@
 User-visible changes in the hledger command line tool and library.
 
 
+# a5f9f8ce0
+
+- The --help/-h and --version flags are no longer position-sensitive;
+  if there is a command argument, they now always refer to the command
+  (where applicable).
+
+- The new --info flag opens the hledger info manual, if "info" is in $PATH.
+  "hledger COMMAND --info" will open COMMAND's info node.
+
+- The new --man flag opens the hledger man page, if "man" is in $PATH.
+  "hledger COMMAND --man" will scroll the page to CMD's section, if "less"
+  is in $PATH. (We force the use of "less" in this case, overriding any
+  $PAGER or $MAN_PAGER setting.)
+
+- help: show only the hledger manual
+
+- help: replace --info/--man/--pager flags with -i/-m/-p; drop --cat
+
+- help: with a TOPIC argument, it will open the manual at TOPIC
+  (any heading or heading prefix, case insensitive) if possible
+  (cf --man/--info).
+
+- drop deprecated command aliases: a, b, p, r, txns
+
+- hide deprecated command alias: equity
+
+- doc: merge file format manuals into the hledger manual
+  Also flatten the journal manual topics a bit.
+
+- doc: sync/update manual & cli command lists
+
+- doc: reorganise/flatten hledger manual, rewrite commands section
+
+- Valuation has changed: -V is now always equivalent to --value=end. (Stephen Morgan)
+
+- Include empty columns in MultiBalanceReports. (Stephen Morgan)
+  This was previously done for CompoundBalanceReport and when --empty was
+  called; this makes the behaviour consistent.
+
+- Include market price directives when calculating journal end date. (Stephen Morgan)
+
+- lib: Calculate value at posting date for register --value=then -M. (Stephen Morgan)
+
+- lib: better message when roi fails to value commodity, fixes #1446 (Dmitry Astapov)
+  (cherry picked from commit 9869624c5c42751dac5b431827b2fb368da43070)
+
+- cli,csv: Fix --drop option in csv output format (aragaer)
+  (cherry picked from commit 7bde3345b89422c21ffee6f61712c8c225bc9577)
+
+- lib,cli: Revert --value=end PeriodChange behaviour to hledger-1.19, i.e. calculating the value of the change, rather than the change of the value. (Stephen Morgan)
+
+- test: Update for tests failing now that it's 2021. (Stephen Morgan)
+
+- new price search that really finds the shortest path (#1443)
+  This one should also reliably prevent runaway searches in the event of more bugs, giving up after 1000 iterations.
+
+
+
 # 1.20.4 2021-01-29
 
 - aregister: ignore a depth limit, as in 1.19 (#1468).

@@ -1,6 +1,63 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
+# a5f9f8ce0
+
+- Removed: 
+  valuationTypeIsCost
+  valuationTypeIsDefaultValue
+  ValuationType's AtDefault constructor
+  
+- Changed:
+  *ApplyValuation functions take two less arguments
+
+- journal: allow commodity directive to set style of no-symbol commodity (#1461)
+  (cherry picked from commit c5571f6468ab11ffe3cd3f86a86f0b3253be10d1)
+  (cherry picked from commit 034c317496e99271ebabc53af112ad88e054b7ab)
+
+- lib: Calculate value at posting date for register --value=then -M. (Stephen Morgan)
+
+- bin: Update bin scripts for current hledger-lib. (Stephen Morgan)
+  (cherry picked from commit bc4aef17b7fa13ec0754b93325e1c5e5ee04f1e7)
+  (cherry picked from commit a64d1aa6d0bcaf643bbe2607238026b4d26a3637)
+
+- lib,cli: Revert --value=end PeriodChange behaviour to hledger-1.19, i.e. calculating the value of the change, rather than the change of the value. (Stephen Morgan)
+
+- new price search that really finds the shortest path (#1443)
+  This one should also reliably prevent runaway searches in the event of more bugs, giving up after 1000 iterations.
+
+  (cherry picked from commit 3d7d5c0db7509299acf3d33530728f834345959a)
+
+- lib: valuation: simplify price search code
+  This version tries counting recursions instead of path length, but I
+  think they are the same.
+
+  (cherry picked from commit 7c9303a15c64859f11aec8fa75546793827e3086)
+
+- lib: valuation: don't hang when finding prices (fixes #1439)
+  Searching for prices during valuation no longer now properly excludes
+  price loops, avoiding near infinite looping with certain
+  configurations of market prices. Also we now always use a direct price
+  when available, rather than searching unnecessarily.
+
+  Price searching progress info, useful for troubleshooting, is now
+  displayed with --debug=2.
+
+  There could still be some corner cases we don't handle correctly. We
+  now give up with an error message if the searched price chains get too
+  long (> 1000). More importantly, we should also give up if the search
+  iterates too many times, but this is not done yet.
+
+  (cherry picked from commit 73678393b1ec9ea414d798ade9da6e5666c079c2)
+
+- journal: Ignore AUTO commodity when strict checking (aragaer)
+  AUTO commodity is a placeholder for postings with missing amounts. It
+  should be ignored when doing a strict commodity check.
+
+  Fixes #1419
+
+  (cherry picked from commit 2084b845e09d2249a5d0e120805798730eeb4b6d)
+
 # 1.20.4 2021-01-29
 
 - See hledger.

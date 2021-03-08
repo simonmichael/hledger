@@ -1,6 +1,60 @@
 General project-related changes and major/notable all-package releases.
 For package-specific changes and minor releases, see the package changelogs.
 
+# a5f9f8ce0
+
+- doc: merge file format manuals into the hledger manual
+  Also flatten the journal manual topics a bit.
+
+- doc: rewrite commands intro
+
+- bin: switch to "runghc", drop "env -S" (#1453)
+  env -S isn't a thing on linux of course. Go back to using standard
+  env, which means using a stack options line, which means not using
+  "ghc". This new setup is probably simpler anyway. I've just had to
+  give up on the goal of having each script's required packages being
+  defined in one place; now (to they extent they are required) they
+  must be defined both in the script header and in compile.sh.
+
+  (cherry picked from commit 32ccbba8050a26d09eb0fa8fdbc2c4b7ffe4f44c)
+
+- bin: switch scripts to "stack ghc" and "env -S" (#1453)
+  Using stack's script command meant that the scripts needed to be
+  compatible, and regularly tested, with a hledger release in stackage,
+  rather than the latest hledger source. This created hassles for
+  maintainers, contributors and sometimes for users.
+
+  To simplify things overall, we now require script users to check out
+  the hledger source tree and run the scripts (or, bin/compile.sh) from
+  there once so they compile themselves. Some notes on alternative
+  setups are included (in one of the scripts, and referenced by the
+  others). This ensures that users and our CI tests are building scripts
+  the same way.
+
+  Current stack does not allow a stack options line to be used with the
+  "stack ghc" command, unfortunately, so instead we are using env's -S
+  flag, which hopefully has sufficiently wide support by now, and
+  putting all arguments in the shebang line.
+
+  This method will probably require complete explicit --package options,
+  unlike "stack script", so more testing and tweaking is expected.
+  Probably we're going to end up with some long shebang lines.
+
+  This isn't pretty but seems like a possible way to keep things
+  manageable.
+
+  (cherry picked from commit 2db87333d702d27ee45d8089ad4ad189bcb50cf2)
+
+- ci: really add addon-building tests to CI (#1453)
+  (cherry picked from commit 3ae6cf3200fad46cfbfa15c89e6d06dac309d76c)
+
+- ci: also test compilation of bin/ add-on scripts
+  (cherry picked from commit 06b466d847c46dc384cdef95658dade68111b173)
+
+- bin: Update bin scripts for current hledger-lib. (Stephen Morgan)
+  (cherry picked from commit bc4aef17b7fa13ec0754b93325e1c5e5ee04f1e7)
+  (cherry picked from commit a64d1aa6d0bcaf643bbe2607238026b4d26a3637)
+
 # 1.20.4 2021-01-29
 
 # 1.20.3 2021-01-14
