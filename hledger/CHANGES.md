@@ -1,7 +1,223 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# a5f9f8ce0
+# 3a7c578f2
+- test: Test bal --valuechange throws an error for bad --value options. (Stephen Morgan)
+
+- lib: Default to PeriodChange report when using ValueChangeReport. (Stephen Morgan)
+
+- lib,cli: Restore old --change option for per-period summation, use --sum for basic ValueChange balance report. (Stephen Morgan)
+
+- cli: Allow overriding with --periodic (rather than the old --change) and properly calculate requestedspan in CompoundBalanceReport. (Stephen Morgan)
+
+- check: ordereddates now checks each file separately (fix #1493)
+
+- lib: Do not include price directives in journalDateSpan. Only include price directives after the last transaction/posting date if using --value=end. (Stephen Morgan)
+  Also enlarges the reportspan to encompass full intervals for budget
+  goals.
+
+- bal: docs rewritten, and updated for new flags
+
+- lib,cli: Add --valuechange report type for calculating change of value of accounts, restore --value=end behaviour to that of hledger-1.19. (Stephen Morgan)
+
+- lib,cli: Add --periodic option to indicate PeriodChange accumulation (renamed from --change). (Stephen Morgan)
+
+- roi: cmdline help simplified (Dmitry Astapov)
+
+- roi: check valuation on dates we have price directives for (Dmitry Astapov)
+
+- roi: honor all kinds of --value switches (Dmitry Astapov)
+
+- print --match: show --match's argument in debug output
+  If you forget that the argument is required by the --match
+  option, and not the command as a whole - eg if instead of
+
+    hledger print --match somebank -x
+
+  you write:
+
+    hledger print --match -x somebank
+
+  that gets quietly parsed as:
+
+    hledger print --match="-x"
+
+  which is not great. Adding --debug now at least gives some insight:
+
+    hledger print --match -x somebank --debug
+    finding best match for description: "-x"
+    similar transactions:
+    ...
+
+- add, lib: debug output, refactor similar transactions lookup
+  add --debug=1 shows the top hits for similar past transactions.
+
+  added:
+  Hledger.Cli.Utils.journalSimilarTransaction
+   provides --debug=1 output
+
+  changed:
+  Hledger.Cli.Commands.Add.transactionsSimilarTo -> Hledger.Data.Journal.journalTransactionsSimilarTo
+   now takes an extra number-of-results argument
+
+- Make sure to round up for the 'to' date (Arnout Engelen)
+
+- bs: just declaring a Cash account no longer hides Asset accounts
+  Since Cash is also an Asset, declaring an account as Cash also disabled the fallback regexp for Asset accounts.
+
+- lib: refactor: more consistent amount precision helpers
+  Hledger.Data.Amount:
+  renamed:
+  setAmountPrecision -> amountSetPrecision
+  setFullPrecision -> amountSetFullPrecision
+  setMixedAmountPrecision -> mixedAmountSetPrecision
+  added:
+  mixedAmountSetFullPrecision
+
+- cli: rename --infer-value to --infer-market-price
+  For clarity; infer-value was too vague. The old spelling remains
+  supported for compatibility, but is now deprecated.
+  When typing, --infer-market or even --infer (for now) is sufficient.
+
+- print: always show all decimal places  (#931)
+  Ensures parseable and more sensible-looking output in more cases, and behaves more like Ledger's print.
+
+  There is still an issue with adding trailing zeroes, which would be nice to prevent.
+
+- print: don't add decimal places in assertion/assignment amounts either (#1465)
+
+- print: show all decimal places in assertion/assignment amounts (#1465)
+  Overriding the commodity style, per https://hledger.org/hledger.html#commodity-display-style.
+
+- doc: Document new independent costing and valuation features in manual. (Stephen Morgan)
+
+- doc: Remove references to --value=cost, replacing them with --cost. (Stephen Morgan)
+  Since this is option is now just an alias for -B/--cost, and since it
+  may be removed soon, we make it undocumented, though it will still
+  behave as before. --value=cost,COMM is unsupported as well.
+
+- lib,cli,ui: Separate costing from valuation; each can now be specified independently. (Stephen Morgan)
+  You can now combine costing and valuation, for example "--cost
+  --value=then" will first convert to costs, and then value according to
+  the "--value=then" strategy. Any valuation strategy can be used with or
+  without costing.
+
+  If multiple valuation and costing strategies are specified on the
+  command line, then if any of them include costing
+  (-B/--cost/--value=cost) then amounts will be converted to cost, and for
+  valuation strategy the rightmost will be used.
+
+  --value=cost is deprecated, but still supported and is equivalent to
+  --cost/-B. --value=cost,COMM is no longer supported, but this behaviour can be
+  achieved with "--cost --value=then,COMM".
+
+- lib,cli,ui: Introduce *ApplyCostValuation functions, which perform both costing and valuation. (Stephen Morgan)
+  This currently is given a dummy NoCost argument and is equivalent to
+  "maybe id (*ApplyValuation ...)", but provides a constant interface so
+  that internal behaviour can be changed freely.
+
+- test: Period change reports should not see historical postings when performing valuation. (Stephen Morgan)
+
+- lib: bal --value=end without --historical should not report on fluctuation in value of historical postings. (Stephen Morgan)
+
+- areg: ignore a depth limit, as in 1.19 (#1468)
+  aregister always shows transactions to subaccounts as well, ignoring any depth limit, so that the register's final total matches a corresponding balance report.
+  This was broken since 2020-09-02 c45663d41.
+
+- payees: add --used/--declared flags, like accounts
+
+- make testscript POSIX and shellchecked (Felix Van der Jeugt)
+
+- lib: Rename alignCell to textCell, minor cleanups. (Stephen Morgan)
+
+- journal: doc: clarify number formats, display styles (#1461)
+
+- lib: Calculate value at posting date for register --value=then -M. (Stephen Morgan)
+
+- roi: use MixedAmount more and keep styles when reporting commodities (Dmitry Astapov)
+
+- roi: fix insane precision bug, discovered in #1417 (Dmitry Astapov)
+
+- cli,csv: Fix --drop option in csv output format (aragaer)
+
+- lib: roi now supports --value/--infer-value (Dmitry Astapov)
+
+- lib: better message when roi fails to value commodity, fixes #1446 (Dmitry Astapov)
+
+- lib: Make sure to add a newline to the end of aregister report. (Stephen Morgan)
+
+- doc,tests: Document new --value=then functionality and add tests. (Stephen Morgan)
+
+- check: uniqueleafnames: fancy error message like the others
+
+- csv: handle more sign variations, eg a sign by itself
+  simplifySign now covers a few more sign combinations that might arise.
+  And in particular, it strips a standalone sign with no number,
+  which simplifies sign flipping with amount-in/amount-out.
+
+- check: accept case-insensitive prefixes as arguments
+  Might a bad idea, but avoiding wasteful typing..
+
+- lib,cli: Extend AtThen valuation to all report types. (Stephen Morgan)
+  Also adds a postingDate argument to amountApplyValuation, and re-orders
+  the ValuationType and (Transaction/Posting) arguments to
+  (transaction/posting)ApplyValuation, to be consistent with
+  amountApplyValuation.
+
+- new price search that really finds the shortest path (#1443)
+  This one should also reliably prevent runaway searches in the event of more bugs, giving up after 1000 iterations.
+
+- cli: Remove redundant import, add some CPP. (Stephen Morgan)
+
+- test: Update for tests failing now that it's 2021. (Stephen Morgan)
+
+- lib: Make consistent naming scheme for showMixedAmount* functions, add conversion between old API and new API in the documentation. (Stephen Morgan)
+
+- lib,cli: Assorted fixes for older GHC. (Stephen Morgan)
+
+- lib,cli,ui: Replace some uses of String with Text, get rid of some unpacks, clean up showMixed options. (Stephen Morgan)
+
+- lib: Use Text and Text builder only in postingAsLines. (Stephen Morgan)
+
+- lib,cli,ui: Use WideBuilder for Tabular.AsciiWide. (Stephen Morgan)
+  Move WideBuilder to Text.WideString.
+
+- lib,cli,ui: Implement all showMixed* functions in terms of DisplayAmountOpts and WideBuilder. (Stephen Morgan)
+
+- lib: Remove unused optional width argument for StringFormat. (Stephen Morgan)
+
+- lib,cli: Use Text Builder for Balance commands. (Stephen Morgan)
+
+- lib,cli: Use Text for CompoundPeriodicReport titles. (Stephen Morgan)
+
+- lib,cli: Use Text for CSV values. (Stephen Morgan)
+
+- lib,cli,ui: Use Text for showDate and related. (Stephen Morgan)
+
+- lib,cli: Make showTransaction return Text rather than String. (Stephen Morgan)
+
+- cli: Refactor compoundBalanceCommand. (Stephen Morgan)
+
+- lib: Remove unused label on TranspactionReport and AccountTransactionsReport. (Stephen Morgan)
+
+- lib,cli: Use Text Builder for Account Transaction Reports. (Stephen Morgan)
+
+- cli: Use Text Builder for Entries Reports. (Stephen Morgan)
+
+- lib: Add wrap convenience function. (Stephen Morgan)
+
+- cli: Using Text Builder for posting reports. (Stephen Morgan)
+
+- doc: journal: document payee directive
+
+- check: ordereddates: test --date2, clarify --unique and QUERY dropped
+
+- check: drop old checkdates/checkdupes commands, consolidate
+
+- check: also check "accounts"/"commodities" on demand
+  (cherry picked from commit 0c2bf54f2955e3a25fd0282acc42608f957abaea)
+
+- check: add "payees" check requiring payee declarations
 
 - The --help/-h and --version flags are no longer position-sensitive;
   if there is a command argument, they now always refer to the command

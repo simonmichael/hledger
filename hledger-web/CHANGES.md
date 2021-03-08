@@ -1,7 +1,20 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# a5f9f8ce0
+# ffb985f1a
+- ui, web: make --man and --info work, similar to hledger
+  (cf #1410)
+
+- Make sure to round up for the 'to' date (Arnout Engelen)
+
+- Allow selecting the date range from the chart (Arnout Engelen)
+  By dragging a region with the mouse
+
+- web: add form: in description field also offer declared/used payees
+
+- lib,cli: Make showTransaction return Text rather than String. (Stephen Morgan)
+
+- lib: Remove unused label on TranspactionReport and AccountTransactionsReport. (Stephen Morgan)
 
 # 1.20.4 2021-01-29
 
