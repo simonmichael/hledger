@@ -131,5 +131,5 @@ runInfoForTopic tool mtopic =
   withSystemTempFile ("hledger-"++tool++".info") $ \f h -> do
     BC.hPutStrLn h $ toolDocInfo tool
     hClose h
-    callCommand $ dbg1 "info command" $ 
-      "info " ++ f ++ maybe "" (printf " -n '%s'") mtopic
+    callCommand $ dbg1 "info command" $
+      "info -f " ++ f ++ maybe "" (printf " -n '%s'") mtopic
