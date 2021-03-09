@@ -2,70 +2,19 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 # ec4d131d2
-- ui, web: make --man and --info work, similar to hledger
-  (cf #1410)
 
-- Make sure to round up for the 'to' date (Arnout Engelen)
+- Register screen: also show transactions below the depth limit, as in
+  1.19, keeping the register balance in agreement with the balance
+  shown on the accounts screen. This regressed in 1.20. (#1468)
 
-- lib: refactor: more consistent amount precision helpers
-  Hledger.Data.Amount:
-  renamed:
-  setAmountPrecision -> amountSetPrecision
-  setFullPrecision -> amountSetFullPrecision
-  setMixedAmountPrecision -> mixedAmountSetPrecision
-  added:
-  mixedAmountSetFullPrecision
+- Transaction screen: all decimal places are now shown. On the
+  accounts screen and register screen we round amounts according to
+  commodity display styles, but when you drill down to a transaction
+  you probably want to see the unrounded amounts. (Like print, #cf
+  931.)
 
-- ui: transaction: show all decimal places (like print, cf #931)
-  On the accounts screen and register screen we round amounts according
-  to commodity styles, but when you drill down to a transaction you
-  probably want to see the unrounded amounts.
-
-- lib,cli,ui: Separate costing from valuation; each can now be specified independently. (Stephen Morgan)
-  You can now combine costing and valuation, for example "--cost
-  --value=then" will first convert to costs, and then value according to
-  the "--value=then" strategy. Any valuation strategy can be used with or
-  without costing.
-
-  If multiple valuation and costing strategies are specified on the
-  command line, then if any of them include costing
-  (-B/--cost/--value=cost) then amounts will be converted to cost, and for
-  valuation strategy the rightmost will be used.
-
-  --value=cost is deprecated, but still supported and is equivalent to
-  --cost/-B. --value=cost,COMM is no longer supported, but this behaviour can be
-  achieved with "--cost --value=then,COMM".
-
-- lib,cli,ui: Introduce *ApplyCostValuation functions, which perform both costing and valuation. (Stephen Morgan)
-  This currently is given a dummy NoCost argument and is equivalent to
-  "maybe id (*ApplyValuation ...)", but provides a constant interface so
-  that internal behaviour can be changed freely.
-
-- ui: register: show all txns in/under an account at depth limit (#1468)
-  As in 1.19. This was broken since 2020-09-02 c45663d41.
-
-- lib,cli: Extend AtThen valuation to all report types. (Stephen Morgan)
-  Also adds a postingDate argument to amountApplyValuation, and re-orders
-  the ValuationType and (Transaction/Posting) arguments to
-  (transaction/posting)ApplyValuation, to be consistent with
-  amountApplyValuation.
-
-- lib: Make consistent naming scheme for showMixedAmount* functions, add conversion between old API and new API in the documentation. (Stephen Morgan)
-
-- lib,cli,ui: Replace some uses of String with Text, get rid of some unpacks, clean up showMixed options. (Stephen Morgan)
-
-- lib,cli,ui: Use WideBuilder for Tabular.AsciiWide. (Stephen Morgan)
-  Move WideBuilder to Text.WideString.
-
-- lib,cli,ui: Implement all showMixed* functions in terms of DisplayAmountOpts and WideBuilder. (Stephen Morgan)
-
-- lib,cli,ui: Use Text for showDate and related. (Stephen Morgan)
-
-- lib,cli: Make showTransaction return Text rather than String. (Stephen Morgan)
-
-- lib: Remove unused label on TranspactionReport and AccountTransactionsReport. (Stephen Morgan)
-
-- lib,cli: Use Text Builder for Account Transaction Reports. (Stephen Morgan)
+- New flags `--man` and `--info` open the man page or info manual.
+  (See hledger changelog)
 
 # 1.20.4 2021-01-29
 

@@ -2,314 +2,96 @@ Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
 # ec4d131d2
-- lib: Default to PeriodChange report when using ValueChangeReport. (Stephen Morgan)
 
-- lib,cli: Restore old --change option for per-period summation, use --sum for basic ValueChange balance report. (Stephen Morgan)
+- Building Hledger.Data.Journal no longer fails if the monad-extras
+  package is installed.
 
-- lib: transactionFile
+- Many parts of the hledger-lib and hledger APIs have become more
+  Text-ified, expecting or returning Text instead of String, reducing
+  hledger's time and resident memory requirements by roughly 10%.
+  Some functions now use WideBuilder (a text "builder" which keeps track
+  of width), to concatenate text more efficiently. There are some
+  helpers for converting to and from WideBuilder (wbUnpack, wbToText..)
+  showAmountB/showMixedAmountB are new amount-displaying functions
+  taking an AmountDisplayOpts. These will probably replace the old
+  show(Mixed)Amount* functions. (#1427, Stephen Morgan)
 
-- lib: Do not include price directives in journalDateSpan. Only include price directives after the last transaction/posting date if using --value=end. (Stephen Morgan)
-  Also enlarges the reportspan to encompass full intervals for budget
-  goals.
+- AtThen valuation is now implemented for all report types.
+  amountApplyValuation now takes the posting date as an argument.
+  (transaction/posting)ApplyValuation's valuation type and
+  transaction/posting arguments have been reordered like
+  amountApplyValuation's. (Stephen Morgan)
 
-- lib,cli: Add --valuechange report type for calculating change of value of accounts, restore --value=end behaviour to that of hledger-1.19. (Stephen Morgan)
+- Amount, AmountPrice, AmountStyle, DigitGroupStyle fields are now
+  strict. (Stephen Morgan)
 
-- lib,cli: Add --periodic option to indicate PeriodChange accumulation (renamed from --change). (Stephen Morgan)
+- Amount prices are now stored with their sign, so negative prices can
+  be represented. (They seem to have always worked, but now the
+  internal representation is more accurate.) (Stephen Morgan)
+ 
+- normaliseMixedAmount now combines Amounts with TotalPrices in the
+  same commodity. (Stephen Morgan)
 
-- lib: (amount|mixedAmount)(Looks|Is)Zero functions now check whether both the quantity and the cost are zero. This is usually what you want, but if you do only want to check whether the quantity is zero, you can run mixedAmountStripPrices (or similar) before this. (Stephen Morgan)
-  (multiply|divide)(Mixed)?Amount now also multiply or divide the
+- normaliseMixedAmount now uses a strict Map for combining amounts
+  internally, closing a big space leak. (Stephen Morgan)
+
+- (multiply|divide)(Mixed)?Amount now also multiply or divide the
   TotalPrice if it is present, and the old
-  (multiply|divide)(Mixed)?AmountAndPrice functions are removed.
+  (multiply|divide)(Mixed)?AmountAndPrice functions are removed. (Stephen Morgan)
 
-- lib: normaliseHelper now uses a strict Map for combining amounts internally, closing a big space leak. (Stephen Morgan)
-  This also now combines Amounts with TotalPrices in the same commodity
-  when normalising; amounts with TotalPrices were previously never
-  combined.
+- (amount|mixedAmount)(Looks|Is)Zero functions now check whether both
+  the quantity and the cost are zero. This is usually what you want,
+  but if you do only want to check whether the quantity is zero, you
+  can run mixedAmountStripPrices (or similar) before this. (Stephen Morgan)
 
-- lib: Distinguish between an Amount having quantity (or rounded quantity 0), and having both quantity and totalprice 0 (or rounded to 0). (Stephen Morgan)
+- commodityStylesFromAmounts now consumes the list immediately,
+  reducing the maximum heap size per thread from ~850K to ~430K in a
+  real-world register report. (Stephen Morgan)
 
-- lib: Make fields of Amount, AmountPrice, AmountStyle, and DigitGroupStyle strict. (Stephen Morgan)
+- *ApplyValuation functions take two less arguments, and
+  *ApplyCostValuation functions have been added, performing both
+  costing and valuation. (Stephen Morgan)
 
-- lib: Include sign in TotalPrice in Amount, rather than relying on the sign of aquantity. (Stephen Morgan)
-  Journal entries still require a positive @@ price, but now the sign is
-  set after parsing, rather than when converting in amountToCost.
+- traceAtWith now has a level argument and works properly.
 
-  The reason for this change is that, if we're going to perform arithmetic
-  on Amount with TotalCost, then the presence of aquantity=0 means that
-  amountToCost would render the total cost as 0, because signum 0 == 0.
-  This makes journal entries like the following impossible to balance:
-  2000-01-01
-      a  0 @@ 10 A
-      b  -10 A
-
-- lib: Consume list immediately in commodityStylesFromAmounts. (Stephen Morgan)
-  This reduced the maximum heap size per thread from ~850K to ~430K in a
-  real-world register test.
-
-- add, print --match: prioritise infix matches
-  If the search description occurs in full within the other description,
-  that match gets a +0.5 score boost.
-
-- add, lib: debug output, refactor similar transactions lookup
-  add --debug=1 shows the top hits for similar past transactions.
-
-  added:
-  Hledger.Cli.Utils.journalSimilarTransaction
-   provides --debug=1 output
-
-  changed:
-  Hledger.Cli.Commands.Add.transactionsSimilarTo -> Hledger.Data.Journal.journalTransactionsSimilarTo
-   now takes an extra number-of-results argument
-
-- Make sure to round up for the 'to' date (Arnout Engelen)
-
-- lib: avoid shady Not (Or []) in account type queries
-
-- bs: don't let just a Cash declaration hide Asset accounts
-  Clarify the account type queries a bit, and don't let a
-  declaration of account as Cash cause the fallback regex
-  for Asset accounts to be ignored.
-
-- bs: just declaring a Cash account no longer hides Asset accounts
-  Since Cash is also an Asset, declaring an account as Cash also disabled the fallback regexp for Asset accounts.
-
-- lib: refactor: more consistent amount precision helpers
+- API changes include:
+  ```
   Hledger.Data.Amount:
-  renamed:
-  setAmountPrecision -> amountSetPrecision
-  setFullPrecision -> amountSetFullPrecision
-  setMixedAmountPrecision -> mixedAmountSetPrecision
-  added:
-  mixedAmountSetFullPrecision
+   setAmountPrecision -> amountSetPrecision
+   setFullPrecision -> amountSetFullPrecision
+   setMixedAmountPrecision -> mixedAmountSetPrecision
+   showMixed -> showMixedAmountB
+   showMixedLines -> showMixedAmountLinesB
+  -mixedAmountSetFullPrecision
 
-- cli: rename --infer-value to --infer-market-price
-  For clarity; infer-value was too vague. The old spelling remains
-  supported for compatibility, but is now deprecated.
-  When typing, --infer-market or even --infer (for now) is sufficient.
-
-- ui: transaction: show all decimal places (like print, cf #931)
-  On the accounts screen and register screen we round amounts according
-  to commodity styles, but when you drill down to a transaction you
-  probably want to see the unrounded amounts.
-
-- lib: refactor: rename journal/transaction mapping helpers
   Hledger.Data.Journal:
-  changed:
-  mapJournalTransactions -> journalMapTransactions
-  mapJournalPostings -> journalMapPostings
-  removed:
-  mapTransactionPostings
+   mapJournalTransactions -> journalMapTransactions
+   mapJournalPostings -> journalMapPostings
+  -mapTransactionPostings
+  +journalPayeesUsed
+  +journalPayeesDeclaredOrUsed
 
   Hledger.Data.Transaction:
-  added:
-  transactionMapPostings
-
-- print: always show all decimal places  (#931)
-  Ensures parseable and more sensible-looking output in more cases, and behaves more like Ledger's print.
-
-  There is still an issue with adding trailing zeroes, which would be nice to prevent.
-
-- print: don't add decimal places in assertion/assignment amounts either (#1465)
-
-- print: show all decimal places in assertion/assignment amounts (#1465)
-  Overriding the commodity style, per https://hledger.org/hledger.html#commodity-display-style.
-
-- doc: Remove references to --value=cost, replacing them with --cost. (Stephen Morgan)
-  Since this is option is now just an alias for -B/--cost, and since it
-  may be removed soon, we make it undocumented, though it will still
-  behave as before. --value=cost,COMM is unsupported as well.
-
-- lib,cli,ui: Separate costing from valuation; each can now be specified independently. (Stephen Morgan)
-  You can now combine costing and valuation, for example "--cost
-  --value=then" will first convert to costs, and then value according to
-  the "--value=then" strategy. Any valuation strategy can be used with or
-  without costing.
-
-  If multiple valuation and costing strategies are specified on the
-  command line, then if any of them include costing
-  (-B/--cost/--value=cost) then amounts will be converted to cost, and for
-  valuation strategy the rightmost will be used.
-
-  --value=cost is deprecated, but still supported and is equivalent to
-  --cost/-B. --value=cost,COMM is no longer supported, but this behaviour can be
-  achieved with "--cost --value=then,COMM".
-
-- lib,cli,ui: Introduce *ApplyCostValuation functions, which perform both costing and valuation. (Stephen Morgan)
-  This currently is given a dummy NoCost argument and is equivalent to
-  "maybe id (*ApplyValuation ...)", but provides a constant interface so
-  that internal behaviour can be changed freely.
-
-- lib: Use mapMixedAmount more, decreasing reliance on internal representation of Mixed. (Stephen Morgan)
-
-- lib: bal --value=end without --historical should not report on fluctuation in value of historical postings. (Stephen Morgan)
-
-- lib: matchesDescription, matchesPayeeWIP
-
-- lib: journalPayeesUsed, journalPayeesDeclaredOrUsed
-
-- lib: Journal: avoid a build failure if monad-extras is installed
-
-- lib: Expose textConcatBottomPadded. (Stephen Morgan)
-
-- lib: Rename alignCell to textCell, minor cleanups. (Stephen Morgan)
-
-- lib: Update textConcatTopPadded to use Tabular.AsciiWide, same as concatTopPadded. (Stephen Morgan)
-
-- lib: Refactor unlinesB to be cleaner and more efficient. (Stephen Morgan)
-
-- journal: allow commodity directive to set style of no-symbol commodity (#1461)
-  (cherry picked from commit c5571f6468ab11ffe3cd3f86a86f0b3253be10d1)
-
-- lib: Calculate value at posting date for register --value=then -M. (Stephen Morgan)
-
-- lib: Make sure to add a newline to the end of aregister report. (Stephen Morgan)
-
-- csv: handle more sign variations, eg a sign by itself
-  simplifySign now covers a few more sign combinations that might arise.
-  And in particular, it strips a standalone sign with no number,
-  which simplifies sign flipping with amount-in/amount-out.
-
-- lib: add level argument to fix traceAtWith
-
-- lib: Make sure AtEnd valuation behaviour is consistent between single- and multi-period reports (#1424). (Stephen Morgan)
-
-- lib,cli: Extend AtThen valuation to all report types. (Stephen Morgan)
-  Also adds a postingDate argument to amountApplyValuation, and re-orders
-  the ValuationType and (Transaction/Posting) arguments to
-  (transaction/posting)ApplyValuation, to be consistent with
-  amountApplyValuation.
-
-- new price search that really finds the shortest path (#1443)
-  This one should also reliably prevent runaway searches in the event of more bugs, giving up after 1000 iterations.
-
-- lib: valuation: simplify price search code
-  This version tries counting recursions instead of path length, but I
-  think they are the same.
-
-- lib: valuation: don't hang when finding prices (fixes #1439)
-  Searching for prices during valuation no longer now properly excludes
-  price loops, avoiding near infinite looping with certain
-  configurations of market prices. Also we now always use a direct price
-  when available, rather than searching unnecessarily.
-
-  Price searching progress info, useful for troubleshooting, is now
-  displayed with --debug=2.
-
-  There could still be some corner cases we don't handle correctly. We
-  now give up with an error message if the searched price chains get too
-  long (> 1000). More importantly, we should also give up if the search
-  iterates too many times, but this is not done yet.
-
-- lib: Make consistent naming scheme for showMixedAmount* functions, add conversion between old API and new API in the documentation. (Stephen Morgan)
-
-- doc: Fix some outdated documentation. (Stephen Morgan)
-
-- lib,cli: Assorted fixes for older GHC. (Stephen Morgan)
-
-- lib,cli,ui: Replace some uses of String with Text, get rid of some unpacks, clean up showMixed options. (Stephen Morgan)
-
-- lib: Use Text and Text builder only in postingAsLines. (Stephen Morgan)
-
-- lib,cli,ui: Use WideBuilder for Tabular.AsciiWide. (Stephen Morgan)
-  Move WideBuilder to Text.WideString.
-
-- lib,cli,ui: Implement all showMixed* functions in terms of DisplayAmountOpts and WideBuilder. (Stephen Morgan)
-
-- lib: Use AmountDisplayOpts for showAmount*, reducing need for many different named functions. (Stephen Morgan)
-
-- lib: Implement showAmountHelper using AmountBuilder. (Stephen Morgan)
-
-- lib: showamountquantity shows directly, rather than parsing string output of show instance for Quantity. (Stephen Morgan)
-
-- lib: Remove unused optional width argument for StringFormat. (Stephen Morgan)
-
-- lib,cli: Use Text Builder for Balance commands. (Stephen Morgan)
-
-- lib,cli: Use Text for CompoundPeriodicReport titles. (Stephen Morgan)
-
-- lib,cli: Use Text for CSV values. (Stephen Morgan)
-
-- lib,cli,ui: Use Text for showDate and related. (Stephen Morgan)
-
-- lib,cli: Make showTransaction return Text rather than String. (Stephen Morgan)
-
-- lib: Remove unused label on TranspactionReport and AccountTransactionsReport. (Stephen Morgan)
-
-- lib,cli: Use Text Builder for Account Transaction Reports. (Stephen Morgan)
-
-- lib: Add wrap convenience function. (Stephen Morgan)
-
-- cli: Using Text Builder for posting reports. (Stephen Morgan)
-
-- journal: Ignore AUTO commodity when strict checking (aragaer)
-  AUTO commodity is a placeholder for postings with missing amounts. It
-  should be ignored when doing a strict commodity check.
-
-  Fixes #1419
-
-- check: also check "accounts"/"commodities" on demand
-  (cherry picked from commit 0c2bf54f2955e3a25fd0282acc42608f957abaea)
-
-- check: add "payees" check requiring payee declarations
-
-- bin: Update bin scripts for current hledger-lib. (Stephen Morgan)
-  (cherry picked from commit bc4aef17b7fa13ec0754b93325e1c5e5ee04f1e7)
-
-- Removed: 
-  valuationTypeIsCost
-  valuationTypeIsDefaultValue
-  ValuationType's AtDefault constructor
-  
-- Changed:
-  *ApplyValuation functions take two less arguments
-
-- journal: allow commodity directive to set style of no-symbol commodity (#1461)
-  (cherry picked from commit c5571f6468ab11ffe3cd3f86a86f0b3253be10d1)
-  (cherry picked from commit 034c317496e99271ebabc53af112ad88e054b7ab)
-
-- lib: Calculate value at posting date for register --value=then -M. (Stephen Morgan)
-
-- bin: Update bin scripts for current hledger-lib. (Stephen Morgan)
-  (cherry picked from commit bc4aef17b7fa13ec0754b93325e1c5e5ee04f1e7)
-  (cherry picked from commit a64d1aa6d0bcaf643bbe2607238026b4d26a3637)
-
-- lib,cli: Revert --value=end PeriodChange behaviour to hledger-1.19, i.e. calculating the value of the change, rather than the change of the value. (Stephen Morgan)
-
-- new price search that really finds the shortest path (#1443)
-  This one should also reliably prevent runaway searches in the event of more bugs, giving up after 1000 iterations.
-
-  (cherry picked from commit 3d7d5c0db7509299acf3d33530728f834345959a)
-
-- lib: valuation: simplify price search code
-  This version tries counting recursions instead of path length, but I
-  think they are the same.
-
-  (cherry picked from commit 7c9303a15c64859f11aec8fa75546793827e3086)
-
-- lib: valuation: don't hang when finding prices (fixes #1439)
-  Searching for prices during valuation no longer now properly excludes
-  price loops, avoiding near infinite looping with certain
-  configurations of market prices. Also we now always use a direct price
-  when available, rather than searching unnecessarily.
-
-  Price searching progress info, useful for troubleshooting, is now
-  displayed with --debug=2.
-
-  There could still be some corner cases we don't handle correctly. We
-  now give up with an error message if the searched price chains get too
-  long (> 1000). More importantly, we should also give up if the search
-  iterates too many times, but this is not done yet.
-
-  (cherry picked from commit 73678393b1ec9ea414d798ade9da6e5666c079c2)
-
-- journal: Ignore AUTO commodity when strict checking (aragaer)
-  AUTO commodity is a placeholder for postings with missing amounts. It
-  should be ignored when doing a strict commodity check.
-
-  Fixes #1419
-
-  (cherry picked from commit 2084b845e09d2249a5d0e120805798730eeb4b6d)
-
+  +transactionFile
+  +transactionMapPostings
+
+  Hledger.Data.Valuation:
+  -valuationTypeIsCost
+  -valuationTypeIsDefaultValue
+  -ValuationType's AtDefault constructor
+
+  Hledger.Query:
+  +matchesDescription
+  +matchesPayeeWIP
+
+  Hledger.Utils.Text:
+  +textConcatBottomPadded
+  +wbToText
+  +wbUnpack
+
+  Text.Tabular.AsciiWide:
+   alignCell -> textCell
+  ```
 # 1.20.4 2021-01-29
 
 - See hledger.

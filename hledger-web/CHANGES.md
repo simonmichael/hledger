@@ -2,19 +2,15 @@ User-visible changes in hledger-web.
 See also the hledger changelog.
 
 # ec4d131d2
-- ui, web: make --man and --info work, similar to hledger
-  (cf #1410)
 
-- Make sure to round up for the 'to' date (Arnout Engelen)
+- Register: a date range can be selected by dragging over a region on
+  the chart. (Arnout Engelen, #1471)
 
-- Allow selecting the date range from the chart (Arnout Engelen)
-  By dragging a region with the mouse
+- Add form: the description field's autocompletions now also offer
+  declared and used payee names.
 
-- web: add form: in description field also offer declared/used payees
-
-- lib,cli: Make showTransaction return Text rather than String. (Stephen Morgan)
-
-- lib: Remove unused label on TranspactionReport and AccountTransactionsReport. (Stephen Morgan)
+- New flags `--man` and `--info` open the man page or info manual.
+  (See hledger changelog)
 
 # 1.20.4 2021-01-29
 
