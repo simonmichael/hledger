@@ -91,10 +91,13 @@ postingsReport rspec@ReportSpec{rsOpts=ropts@ReportOpts{..}} j = items
             fromMaybe (error' "postingsReport: expected a non-empty journal") $  -- PARTIAL: shouldn't happen
             reportPeriodOrJournalLastDay rspec j
 
+      -- Posting report does not use prices after valuation, so remove them.
+      displaypsnoprices = map (\(p,md) -> (removePrices p, md)) displayps
+
       -- Posting report items ready for display.
       items =
         dbg4 "postingsReport items" $
-        postingsReportItems displayps (nullposting,Nothing) whichdate mdepth startbal runningcalc startnum
+        postingsReportItems displaypsnoprices (nullposting,Nothing) whichdate mdepth startbal runningcalc startnum
         where
           -- In historical mode we'll need a starting balance, which we
           -- may be converting to value per hledger_options.m4.md "Effect
