@@ -450,13 +450,13 @@ valuationTypeFromRawOpts rawopts = (costing, valuation)
 
     valuationopts = collectopts valuationfromrawopt rawopts
     valuationfromrawopt (n,v)  -- option name, value
-      | n == "B"     = Just (Cost,   Nothing)
+      | n == "B"     = Just (Cost,   Nothing)  -- keep supporting --value=cost for now
       | n == "V"     = Just (NoCost, Just $ AtEnd Nothing)
       | n == "X"     = Just (NoCost, Just $ AtEnd (Just $ T.pack v))
       | n == "value" = Just $ valueopt v
       | otherwise    = Nothing
     valueopt v
-      | t `elem` ["cost","c"]  = (Cost, usageError "--value=cost,COMM is no longer supported, please specify valuation explicitly, e.g. --cost --value=then,COMM" <$ mc)
+      | t `elem` ["cost","c"]  = (Cost,   Just $ AtThen mc)  -- keep supporting --value=cost,COMM for now
       | t `elem` ["then" ,"t"] = (NoCost, Just $ AtThen mc)
       | t `elem` ["end" ,"e"]  = (NoCost, Just $ AtEnd  mc)
       | t `elem` ["now" ,"n"]  = (NoCost, Just $ AtNow  mc)
