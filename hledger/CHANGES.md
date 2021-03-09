@@ -21,9 +21,9 @@ User-visible changes in the hledger command line tool and library.
   is in $PATH. (We force the use of "less" in this case, overriding any
   $PAGER or $MAN_PAGER setting.)
 
-- Some command aliases, which were considered deprecated, have been
-  removed: `txns`, `equity`, and the single-letter command aliases
-  `a`, `b`, `p`, and `r`. This was discussed at
+- Some command aliases, considered deprecated, have been removed:
+  `txns`, `equity`, and the single-letter command aliases `a`, `b`,
+  `p`, and `r`. This was discussed at
   https://github.com/simonmichael/hledger/pull/1423 and on the hledger
   mail list. It might annoy some folks; please read the issue and do
   follow up there if needed.
@@ -52,7 +52,7 @@ User-visible changes in the hledger command line tool and library.
 - `--value=then` is now supported with all reports, not just register. (Stephen Morgan)
 
 - The too-vague `--infer-value` flag has been renamed to `--infer-market-price`.
-  Tip: typing `--infer-market` or even `--infer` (for now) is sufficient.
+  Tip: typing `--infer-market` or even `--infer` is sufficient.
   The old spelling still works, but is now deprecated.
 
 ## commands
@@ -100,22 +100,24 @@ User-visible changes in the hledger command line tool and library.
   its `--info/--man/--pager` flags have been renamed to `-i/-m/-p`,
   and `--cat` has been dropped.
 
-- help: with a TOPIC argument, it will open the manual at TOPIC
-  (any heading or heading prefix, case insensitive) if possible
-  (like the new `--man` and `--info` flags, described above).
+- help: With a TOPIC argument (any heading or heading prefix, case
+  insensitive), it will open the manual positioned at this topic if
+  possible. (Similar to the new `--man` and `--info` flags described above.)
+  <!-- `hledger help print` will show `print`'s doc with the best available viewer (usually info). -->
+  <!-- `hledger help print -m` is equivalent to `hledger print --man`.) -->
 
 - payees: Add `--used`/`--declared` flags, like the `accounts` command.
 
 - print: Now always shows amounts with all decimal places,
   unconstrained by commodity display style. This ensures more
   parseable and sensible-looking output in more cases, and behaves
-  more like Ledger's print. (There is an unfixed cosmetic issue with
-  adding trailing zeroes.) (#931, #1465)
+  more like Ledger's print. (There may be a cosmetic issue with
+  trailing zeroes.) (#931, #1465)
 
 - print: With `--match`, infix matches are now scored higher, as with
   the add command.
 
-- print: Now provides some debug output for troubleshooting `--match`.
+- print: `--match` now provides debug output useful for troubleshooting.
 
   If you forget to give `--match` an argument, it can confusingly
   consume a following flag. Eg if you write:
@@ -133,16 +135,9 @@ User-visible changes in the hledger command line tool and library.
       similar transactions:
       ...
 
-- roi: The manual has been simplified, with some content moved to the
-  hledger.org Cookbook. (Dmitry Astapov)
-
-- roi: Now supports the valuation options. (Dmitry Astapov)
-
-- roi: use MixedAmount more and keep styles when reporting commodities. (Dmitry Astapov)
-
-- roi: fix insane precision bug. (#1417, Dmitry Astapov)
-
-<!-- - roi: check valuation on dates we have price directives for (Dmitry Astapov) -->
+- roi: Now supports the valuation options (#1417), and uses commodity display styles.
+  Also the manual has been simplified, with some content moved to the Cookbook.
+  (Dmitry Astapov):
 
 ## journal format
 
