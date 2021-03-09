@@ -729,9 +729,9 @@ Instead of reporting amounts in their original commodity,
 hledger can convert them to
 cost/sale amount (using the conversion rate recorded in the transaction),
 and/or to market value (using some market price on a certain date).
-This is controlled by the `--cost` and `--value=TYPE[,COMMODITY]` options,
-but we also provide the simpler `-V`/`-X` flags,
-and usually one of those is all you need.
+This is controlled by the `--value=TYPE[,COMMODITY]` option, which will be described below.
+We also provide the simpler `-V` and `-X COMMODITY` options, and often
+one of these is all you need:
 
 ## -V: Value
 
