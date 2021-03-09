@@ -18,7 +18,7 @@ module Hledger.Cli.Commands.Register (
  ,tests_Register
 ) where
 
-import Data.List (intersperse)
+import Data.Default (def)
 import Data.Maybe (fromMaybe, isJust)
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Semigroup ((<>))
@@ -27,12 +27,14 @@ import Data.Semigroup ((<>))
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
-import System.Console.CmdArgs.Explicit
+import System.Console.CmdArgs.Explicit (flagNone, flagReq)
 import Hledger.Read.CsvReader (CSV, CsvRecord, printCSV)
 
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
+import Text.Tabular (Header(..), Properties(..))
+import Text.Tabular.AsciiWide
 
 registermode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Register.txt")
@@ -129,22 +131,21 @@ postingsReportAsText opts items =
 --
 postingsReportItemAsText :: CliOpts -> Int -> Int -> PostingsReportItem -> TB.Builder
 postingsReportItemAsText opts preferredamtwidth preferredbalwidth (mdate, menddate, mdesc, p, b) =
-  -- use elide*Width to be wide-char-aware
-  -- trace (show (totalwidth, datewidth, descwidth, acctwidth, amtwidth, balwidth)) $
-  foldMap TB.fromText . concat . intersperse (["\n"]) $
-    [ fitText (Just datewidth) (Just datewidth) True True date
-    , " "
-    , fitText (Just descwidth) (Just descwidth) True True desc
-    , "  "
-    , fitText (Just acctwidth) (Just acctwidth) True True acct
-    , "  "
-    , amtfirstline
-    , "  "
-    , balfirstline
-    ]
-    :
-    [ [ spacer, a, "  ", b ] | (a,b) <- zip amtrest balrest ]
+    render
+      [ textCell TopLeft $ fitText (Just datewidth) (Just datewidth) True True date
+      , spacerCell
+      , textCell TopLeft $ fitText (Just descwidth) (Just descwidth) True True desc
+      , spacerCell2
+      , textCell TopLeft $ fitText (Just acctwidth) (Just acctwidth) True True acct
+      , spacerCell2
+      , Cell TopRight amt
+      , spacerCell2
+      , Cell BottomRight bal
+      ]
     where
+      render = renderRowB def{tableBorders=False, borderSpaces=False} . Group NoLine . map Header
+      spacerCell  = Cell BottomLeft [WideBuilder (TB.singleton ' ') 1]
+      spacerCell2 = Cell BottomLeft [WideBuilder (TB.fromString "  ") 2]
       -- calculate widths
       (totalwidth,mdescwidth) = registerWidthsFromOpts opts
       (datewidth, date) = case (mdate,menddate) of
@@ -181,18 +182,9 @@ postingsReportItemAsText opts preferredamtwidth preferredbalwidth (mdate, mendda
               VirtualPosting         -> (\s -> wrap "(" ")" s, acctwidth-2)
               _                      -> (id,acctwidth)
           wrap a b x = a <> x <> b
-      amt = TL.toStrict . TB.toLazyText . wbBuilder . showamt amtwidth $ pamount p
-      bal = TL.toStrict . TB.toLazyText . wbBuilder $ showamt balwidth b
-      showamt w = showMixedAmountB noPrice{displayColour=color_ . rsOpts $ reportspec_ opts, displayMinWidth=Just w, displayMaxWidth=Just w}
-      -- alternate behaviour, show null amounts as 0 instead of blank
-      -- amt = if null amt' then "0" else amt'
-      -- bal = if null bal' then "0" else bal'
-      (amtlines, ballines) = (T.lines amt, T.lines bal)
-      (amtlen, ballen) = (length amtlines, length ballines)
-      numlines = max 1 (max amtlen ballen)
-      (amtfirstline:amtrest) = take numlines $ amtlines ++ repeat (T.replicate amtwidth " ") -- posting amount is top-aligned
-      (balfirstline:balrest) = take numlines $ replicate (numlines - ballen) (T.replicate balwidth " ") ++ ballines -- balance amount is bottom-aligned
-      spacer = T.replicate (totalwidth - (amtwidth + 2 + balwidth)) " "
+      amt = showAmountsLinesB (dopts amtwidth) . (\x -> if null x then [nullamt] else x) . amounts $ pamount p
+      bal = showAmountsLinesB (dopts balwidth) $ amounts b
+      dopts w = noPrice{displayColour=color_ . rsOpts $ reportspec_ opts, displayMinWidth=Just w, displayMaxWidth=Just w}
 
 -- tests
 
