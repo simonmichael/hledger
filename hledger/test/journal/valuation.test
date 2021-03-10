@@ -368,7 +368,7 @@ $ hledger -f- bal -N -V -b 2000
 
 # 34. multicolumn balance report valued at cost
 $ hledger -f- bal -MTA --value=cost -b 2000
-Balance changes in 2000Q1, converted to cost, valued at posting date:
+Balance changes in 2000Q1, converted to cost:
 
    || Jan  Feb  Mar    Total  Average 
 ===++=================================
@@ -478,7 +478,7 @@ P 2000/04/01 A  4 B
   (a)      1 A @ 6 B
 
 $ hledger -f- bal -ME -H -p200001-200004 --value=c
-Ending balances (historical) in 2000Q1, converted to cost, valued at posting date:
+Ending balances (historical) in 2000Q1, converted to cost:
 
    || 2000-01-31  2000-02-29  2000-03-31 
 ===++====================================
@@ -541,7 +541,7 @@ Budget performance in 2000Q1:
 
 # 47. budget report, valued at cost.
 $ hledger -f- bal -MTA --budget --value=c
-Budget performance in 2000Q1, converted to cost, valued at posting date:
+Budget performance in 2000Q1, converted to cost:
 
    ||               Jan                Feb                Mar               Total            Average 
 ===++================================================================================================
