@@ -1,7 +1,7 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 269b25bc8
+# 1.21 2021-03-10
 
 - Register: a date range can be selected by dragging over a region on
   the chart. (Arnout Engelen, #1471)

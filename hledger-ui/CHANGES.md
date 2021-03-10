@@ -1,7 +1,7 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 269b25bc8
+# 1.21 2021-03-10
 
 - Register screen: also show transactions below the depth limit, as in
   1.19, keeping the register balance in agreement with the balance
