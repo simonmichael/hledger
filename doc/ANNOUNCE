@@ -1,12 +1,16 @@
-I'm pleased to announce hledger 1.20 ! Changes include:
+I'm very pleased to announce hledger 1.21 !
+http://hledger.org/release-notes.html#hledger-1-21 
+describes the user-visible changes. Highlights include:
 
-- Strict mode
-- check command
-- rendering, speed, and valuation fixes.
+- About 10% faster/more space-efficient, and much more in some cases
+- Jump to any topic in the manuals from the command line
+- More polish for valuation and balance reports, and a new value change report
+- Improvements to check, print and other commands.
 
-https://hledger.org/release-notes has the full details.
-Thanks to release contributors Stephen Morgan, Dmitry Astapov,
-TANIGUCHI Kohei, and legrostdg.
+Thank you to the following release contributors this time around:
+Dmitry Astapov, Arnout Engelen, Damien Cassou, aragaer, Doug
+Goldstein, Caleb Maclennan, Felix Van der Jeugt, heavy first time
+contributor Vladimir Zhelezov, and especially Stephen Morgan.
 
 
 hledger (http://hledger.org) is a robust, cross-platform, plain text
@@ -15,7 +19,6 @@ actively maintained, largely compatible reimplementation of Ledger CLI
 with many improvements. You can use it to track money, time,
 investments, cryptocurrencies, inventory and more.
 See also the Plain Text Accounting site (http://plaintextaccounting.org).
-
 
 http://hledger.org/download shows all the ways to install hledger on
 mac, windows or unix (stack, cabal, brew, nix, CI binaries, your
@@ -26,7 +29,6 @@ $ curl -sO https://raw.githubusercontent.com/simonmichael/hledger/master/hledger
 $ less hledger-install.sh   # security review
 $ bash hledger-install.sh
 
-
 New users, check out https://hledger.org/quickstart.
 
 To get help, see http://hledger.org#help-feedback,
@@ -35,6 +37,6 @@ or Matrix (#freenode_#hledger:matrix.org, http://matrix.hledger.org).
 Beginners and experts, contributors, sponsors, and all feedback are most welcome!
 
 
-Be safe and well,
+Wishing you health and prosperity,
 
 -Simon
