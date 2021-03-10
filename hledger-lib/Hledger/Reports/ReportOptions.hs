@@ -456,7 +456,7 @@ valuationTypeFromRawOpts rawopts = (costing, valuation)
       | n == "value" = Just $ valueopt v
       | otherwise    = Nothing
     valueopt v
-      | t `elem` ["cost","c"]  = (Cost,   Just $ AtThen mc)  -- keep supporting --value=cost,COMM for now
+      | t `elem` ["cost","c"]  = (Cost,   AtEnd . Just <$> mc)  -- keep supporting --value=cost,COMM for now
       | t `elem` ["then" ,"t"] = (NoCost, Just $ AtThen mc)
       | t `elem` ["end" ,"e"]  = (NoCost, Just $ AtEnd  mc)
       | t `elem` ["now" ,"n"]  = (NoCost, Just $ AtNow  mc)
