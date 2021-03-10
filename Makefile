@@ -875,9 +875,9 @@ manuals: Shake $(call def-help,manuals, regenerate and commit CLI help and manua
 	./Shake manuals
 	git commit -m ";doc: regen manuals" -m "[ci skip]" hledger*/hledger*.{1,5,info,txt} hledger/Hledger/Cli/Commands/*.txt
 
-tag: $(call def-help,tag, make git release tags and for the project and all packages )
-	for p in $(PACKAGES); do make -s tag-$$p; done
-	@echo "Also consider make -s tag-project (needs babysitting)"
+tag: $(call def-help,tag, make git release tags for the project and all packages )
+	@for p in $(PACKAGES); do make tag-$$p; done
+	@make tag-project
 
 tag-%: $(call def-help,tag-PKG, make a git release tag for PKG )
 	git tag -fs $*-`cat $*/.version` -m "Release $*-`cat $*/.version`"
