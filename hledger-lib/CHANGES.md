@@ -1,7 +1,7 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# ec4d131d2
+# fb02d8688
 
 - Building Hledger.Data.Journal no longer fails if the monad-extras
   package is installed.

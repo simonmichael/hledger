@@ -1,7 +1,7 @@
 General project-related changes and major/notable all-package releases.
 For package-specific changes and minor releases, see the package changelogs.
 
-# ec4d131d2
+# be50572d9
 
 - roi has a new cookbook doc, and example files have been updated.
   (Dmitry Astapov)

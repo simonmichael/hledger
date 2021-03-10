@@ -1,7 +1,7 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# ec4d131d2
+# 40d1d7f7a
 
 ## general
 
