@@ -1239,10 +1239,10 @@ Instead of reporting amounts in their original commodity, hledger can
 convert them to cost/sale amount (using the conversion rate recorded in
 the transaction), and/or to market value (using some market price on a
 certain date).
-This is controlled by the \f[C]--cost\f[R] and
-\f[C]--value=TYPE[,COMMODITY]\f[R] options, but we also provide the
-simpler \f[C]-V\f[R]/\f[C]-X\f[R] flags, and usually one of those is all
-you need.
+This is controlled by the \f[C]--value=TYPE[,COMMODITY]\f[R] option,
+which will be described below.
+We also provide the simpler \f[C]-V\f[R] and \f[C]-X COMMODITY\f[R]
+options, and often one of these is all you need:
 .SS -V: Value
 .PP
 The \f[C]-V/--market\f[R] flag converts amounts to market value in their
