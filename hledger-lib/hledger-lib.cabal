@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 02adb18e3b7a386a8cabe65e11fdd97657bd5943ca6880e28efe9c3c8cf3db11
+-- hash: 590fb12059e320c653341422d51f2227cd74874a8fc879145a0c7c39c33dcff5
 
 name:           hledger-lib
 version:        1.21.99
@@ -103,7 +103,7 @@ library
     , aeson-pretty
     , ansi-terminal >=0.9
     , array
-    , base >=4.9 && <4.15
+    , base >=4.9 && <4.16
     , base-compat-batteries >=0.10.1 && <0.12
     , blaze-markup >=0.5.1
     , bytestring
@@ -152,7 +152,7 @@ test-suite doctest
     , aeson-pretty
     , ansi-terminal >=0.9
     , array
-    , base >=4.9 && <4.15
+    , base >=4.9 && <4.16
     , base-compat-batteries >=0.10.1 && <0.12
     , blaze-markup >=0.5.1
     , bytestring
@@ -204,7 +204,7 @@ test-suite unittest
     , aeson-pretty
     , ansi-terminal >=0.9
     , array
-    , base >=4.9 && <4.15
+    , base >=4.9 && <4.16
     , base-compat-batteries >=0.10.1 && <0.12
     , blaze-markup >=0.5.1
     , bytestring
