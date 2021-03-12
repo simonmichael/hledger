@@ -32,7 +32,7 @@ extra-source-files:
 #data-files:
 
 dependencies:
-- base >=4.9 && <4.15
+- base >=4.9 && <4.16
 - base-compat-batteries >=0.10.1 && <0.12
 - aeson >=1
 - aeson-pretty

@@ -104,7 +104,7 @@ library:
   - hledger-lib >=1.21.99 && <1.22
   - hledger >=1.21.99 && <1.22
   - aeson >=1
-  - base >=4.9 && <4.15
+  - base >=4.9 && <4.16
   - blaze-html
   - blaze-markup
   - bytestring
