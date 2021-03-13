@@ -59,8 +59,6 @@ _journal_({{
  assets:cash
 }})
 
-For more about this format, see hledger_journal(5).
-
 Most users use a text editor to edit the journal, usually with an editor
 mode such as ledger-mode for added convenience. hledger’s interactive
 add command is another way to record new transactions. hledger never

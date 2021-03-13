@@ -50,7 +50,7 @@ when running an unprotected instance, it writes a numbered backup of
 the main journal file (only ?) on every edit.
 
 Like hledger, it reads _files_
-For more about this see hledger(1), hledger_journal(5) etc.
+For more about this see hledger(1).
 
 # OPTIONS
 
