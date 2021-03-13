@@ -34,7 +34,7 @@ DESCRIPTION
        timeclock,  timedot,  or CSV format specified with -f, or $LEDGER_FILE,
        or       $HOME/.hledger.journal       (on       windows,        perhaps
        C:/Users/USER/.hledger.journal).   For  more about this see hledger(1),
-       hledger_journal(5) etc.
+       etc.
 
 OPTIONS
        Command-line options and arguments may be used to set an initial filter
