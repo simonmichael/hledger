@@ -46,7 +46,7 @@ HERE
 HLEDGER_INSTALL_TOOL=hledger-install.sh
 
 # this script's version
-HLEDGER_INSTALL_VERSION=20210312
+HLEDGER_INSTALL_VERSION=20210314
 
 # stackage snapshot to use when installing with stack.
 # You can try specifying a different stackage version here, or 
@@ -73,7 +73,7 @@ HLEDGER_VERSION=1.21
 HLEDGER_UI_VERSION=1.21
 HLEDGER_WEB_VERSION=1.21
 # addons:
-HLEDGER_IADD_VERSION=1.3.13
+HLEDGER_IADD_VERSION=1.3.14
 HLEDGER_INTEREST_VERSION=1.6.1
 
 # any required dependencies that aren't in the stackage resolver above:
