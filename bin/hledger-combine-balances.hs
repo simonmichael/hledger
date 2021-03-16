@@ -3,10 +3,10 @@
 -- Run from inside the hledger source tree, or compile with compile.sh.
 -- See hledger-check-fancyassertions.hs.
 
+{- Construct two balance reports for two different time periods and render them side by side -}
+
 {-# OPTIONS_GHC -Wno-missing-signatures -Wno-name-shadowing #-}
 
-{-| Construct two balance reports for two different time periods and render them side by side
--}
 import System.Environment (getArgs)
 import Hledger.Cli
 import qualified Data.Map as M
