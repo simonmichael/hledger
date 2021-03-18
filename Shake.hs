@@ -215,8 +215,8 @@ main = do
         -- manuals as info, ready for info (hledger/hledger.info)
         infomanuals = [manualDir m </> m <.> "info" | m <- manualNames]
 
-        -- manuals as sphinx-ready markdown, to be rendered as part of the website (hledger/hledger.webmanual.md)
-        webmanuals = [manualDir m </> m <.> "webmanual.md" | m <- manualNames]
+        -- manuals as sphinx-ready markdown, to be rendered as part of the website (hledger/hledger.md)
+        webmanuals = [manualDir m </> m <.> "md" | m <- manualNames]
 
         -- -- old versions of the manuals rendered to html (site/_site/doc/1.14/hledger.html)
         -- oldhtmlmanuals = map (normalise . ("site/_site/doc" </>) . (<.> "html")) $
@@ -464,7 +464,7 @@ main = do
       -- Generate the individual web manuals' markdown source, using m4
       -- and pandoc to tweak content.
       phony "webmanuals" $ need webmanuals
-      webmanuals |%> \out -> do -- hledger/hledger.webmanual.md, hledger-lib/journal.webmanual.md
+      webmanuals |%> \out -> do -- hledger/hledger.md, hledger/hledger-ui.md ..
         let 
             dir       = takeDirectory out -- hledger, hledger-lib
             manpage   = webManualNameToManpageName $ dropExtension $ dropExtension $ takeFileName out -- hledger, journal
