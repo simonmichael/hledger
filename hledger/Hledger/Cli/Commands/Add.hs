@@ -329,7 +329,7 @@ amountAndCommentWizard PrevInput{..} EntryState{..} = do
       (mhistoricalp,followedhistoricalsofar) =
           case esSimilarTransaction of
             Nothing                        -> (Nothing,False)
-            Just Transaction{tpostings=ps} -> 
+            Just Transaction{tpostings=ps} ->
               ( if length ps >= pnum then Just (ps !! (pnum-1)) else Nothing
               , all sameamount $ zip esPostings ps
               )
@@ -343,7 +343,7 @@ amountAndCommentWizard PrevInput{..} EntryState{..} = do
   retryMsg "A valid hledger amount is required. Eg: 1, $2, 3 EUR, \"4 red apples\"." $
    parser parseAmountAndComment $
    withCompletion (amountCompleter def) $
-   defaultTo' def $ 
+   defaultTo' def $
    nonEmpty $
    linePrewritten (green $ printf "Amount  %d%s: " pnum (showDefault def)) (fromMaybe "" $ prevAmountAndCmnt `atMay` length esPostings) ""
     where
@@ -360,8 +360,8 @@ amountAndCommentWizard PrevInput{..} EntryState{..} = do
         c <- T.pack <$> fromMaybe "" `fmap` optional (char ';' >> many anySingle)
         -- eof
         return (a,c)
-      balancingamt = negate $ sum $ map pamount realps where realps = filter isReal esPostings
-      balancingamtfirstcommodity = Mixed $ take 1 $ amounts balancingamt
+      balancingamt = maNegate . sumPostings $ filter isReal esPostings
+      balancingamtfirstcommodity = mixed . take 1 $ amounts balancingamt
       showamt =
         showMixedAmount . mixedAmountSetPrecision
                   -- what should this be ?

@@ -1,4 +1,6 @@
-{-# LANGUAGE OverloadedStrings, RecordWildCards, FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 {-|
 
 A transactions report. Like an EntriesReport, but with more
@@ -21,10 +23,10 @@ module Hledger.Reports.TransactionsReport (
 )
 where
 
-import Data.List
+import Data.List (sortBy)
 import Data.List.Extra (nubSort)
+import Data.Ord (comparing)
 import Data.Text (Text)
-import Data.Ord
 
 import Hledger.Data
 import Hledger.Query
@@ -99,7 +101,7 @@ filterTransactionsReportByCommodity c =
         startbal = filterMixedAmountByCommodity c $ triBalance i
         go _ [] = []
         go bal ((t,t2,s,o,amt,_):is) = (t,t2,s,o,amt,bal'):go bal' is
-          where bal' = bal + amt
+          where bal' = bal `maPlus` amt
 
 -- tests
 

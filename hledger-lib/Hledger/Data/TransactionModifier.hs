@@ -120,14 +120,14 @@ tmPostingRuleToFunction querytxt pr =
             -- Approach 1: convert to a unit price and increase the display precision slightly
             -- Mixed as = dbg6 "multipliedamount" $ n `multiplyMixedAmount` mixedAmountTotalPriceToUnitPrice matchedamount
             -- Approach 2: multiply the total price (keeping it positive) as well as the quantity
-            Mixed as = dbg6 "multipliedamount" $ n `multiplyMixedAmount` matchedamount
+            as = dbg6 "multipliedamount" $ n `multiplyMixedAmount` matchedamount
           in
             case acommodity pramount of
-              "" -> Mixed as
+              "" -> as
               -- TODO multipliers with commodity symbols are not yet a documented feature.
               -- For now: in addition to multiplying the quantity, it also replaces the
               -- matched amount's commodity, display style, and price with those of the posting rule.
-              c  -> Mixed [a{acommodity = c, astyle = astyle pramount, aprice = aprice pramount} | a <- as]
+              c  -> mapMixedAmount (\a -> a{acommodity = c, astyle = astyle pramount, aprice = aprice pramount}) as
 
 postingRuleMultiplier :: TMPostingRule -> Maybe Quantity
 postingRuleMultiplier p =

@@ -75,15 +75,16 @@ import Control.Monad (foldM)
 import Data.Foldable (asum)
 import Data.List.Extra (nubSort)
 import qualified Data.Map as M
-import Data.Maybe
+import Data.Maybe (fromMaybe, isJust)
 import Data.MemoUgly (memo)
+import Data.List (foldl')
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid
 #endif
 import Data.Text (Text)
 import qualified Data.Text as T
-import Data.Time.Calendar
-import Safe
+import Data.Time.Calendar (Day)
+import Safe (headDef)
 
 import Hledger.Utils
 import Hledger.Data.Types
@@ -197,12 +198,11 @@ accountNamesFromPostings :: [Posting] -> [AccountName]
 accountNamesFromPostings = nubSort . map paccount
 
 sumPostings :: [Posting] -> MixedAmount
-sumPostings = sumStrict . map pamount
+sumPostings = foldl' (\amt p -> maPlus amt $ pamount p) nullmixedamt
 
 -- | Remove all prices of a posting
 removePrices :: Posting -> Posting
-removePrices p = p{ pamount = Mixed $ remove <$> amounts (pamount p) }
-  where remove a = a { aprice = Nothing }
+removePrices = postingTransformAmount (mapMixedAmount $ \a -> a{aprice=Nothing})
 
 -- | Get a posting's (primary) date - it's own primary date if specified,
 -- otherwise the parent transaction's primary date, or the null date if

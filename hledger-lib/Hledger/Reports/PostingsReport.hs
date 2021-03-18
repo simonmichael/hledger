@@ -4,11 +4,11 @@ Postings report, used by the register command.
 
 -}
 
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TupleSections       #-}
 
 module Hledger.Reports.PostingsReport (
   PostingsReport,
@@ -21,11 +21,11 @@ module Hledger.Reports.PostingsReport (
 )
 where
 
-import Data.List
+import Data.List (nub, sortOn)
 import Data.List.Extra (nubSort)
-import Data.Maybe
+import Data.Maybe (fromMaybe, isJust, isNothing)
 import Data.Text (Text)
-import Data.Time.Calendar
+import Data.Time.Calendar (Day, addDays)
 import Safe (headMay, lastMay)
 
 import Hledger.Data
@@ -101,12 +101,11 @@ postingsReport rspec@ReportSpec{rsOpts=ropts@ReportOpts{..}} j = items
           -- of --value on reports".
           -- XXX balance report doesn't value starting balance.. should this ?
           historical = balancetype_ == HistoricalBalance
-          startbal | average_  = if historical then precedingavg else 0
-                   | otherwise = if historical then precedingsum else 0
+          startbal | average_  = if historical then precedingavg else nullmixedamt
+                   | otherwise = if historical then precedingsum else nullmixedamt
             where
               precedingsum = sumPostings $ map (pvalue daybeforereportstart) precedingps
-              precedingavg | null precedingps = 0
-                           | otherwise        = divideMixedAmount (fromIntegral $ length precedingps) precedingsum
+              precedingavg = divideMixedAmount (fromIntegral $ length precedingps) precedingsum
               daybeforereportstart =
                 maybe (error' "postingsReport: expected a non-empty journal")  -- PARTIAL: shouldn't happen
                 (addDays (-1))
@@ -121,8 +120,8 @@ postingsReport rspec@ReportSpec{rsOpts=ropts@ReportOpts{..}} j = items
 -- and return the new average/total.
 registerRunningCalculationFn :: ReportOpts -> (Int -> MixedAmount -> MixedAmount -> MixedAmount)
 registerRunningCalculationFn ropts
-  | average_ ropts = \i avg amt -> avg + divideMixedAmount (fromIntegral i) (amt - avg)
-  | otherwise      = \_ bal amt -> bal + amt
+  | average_ ropts = \i avg amt -> avg `maPlus` divideMixedAmount (fromIntegral i) (amt `maMinus` avg)
+  | otherwise      = \_ bal amt -> bal `maPlus` amt
 
 -- | Find postings matching a given query, within a given date span,
 -- and also any similarly-matched postings before that date span.
@@ -218,7 +217,7 @@ summarisePostingsInDateSpan (DateSpan b e) wd mdepth showempty ps
     e' = fromMaybe (maybe (addDays 1 nulldate) postingdate $ lastMay ps) e
     summaryp = nullposting{pdate=Just b'}
     clippedanames = nub $ map (clipAccountName mdepth) anames
-    summaryps | mdepth == Just 0 = [summaryp{paccount="...",pamount=sum $ map pamount ps}]
+    summaryps | mdepth == Just 0 = [summaryp{paccount="...",pamount=sumPostings ps}]
               | otherwise        = [summaryp{paccount=a,pamount=balance a} | a <- clippedanames]
     summarypes = map (, e') $ (if showempty then id else filter (not . mixedAmountLooksZero . pamount)) summaryps
     anames = nubSort $ map paccount ps
@@ -230,7 +229,7 @@ summarisePostingsInDateSpan (DateSpan b e) wd mdepth showempty ps
         isclipped a = maybe True (accountNameLevel a >=) mdepth
 
 negatePostingAmount :: Posting -> Posting
-negatePostingAmount p = p { pamount = negate $ pamount p }
+negatePostingAmount p = p { pamount = maNegate $ pamount p }
 
 
 -- tests
@@ -407,10 +406,10 @@ tests_PostingsReport = tests "PostingsReport" [
     --           (summarisePostingsInDateSpan (DateSpan b e) depth showempty ps `is`)
     --   let ps =
     --           [
-    --            nullposting{lpdescription="desc",lpaccount="expenses:food:groceries",lpamount=Mixed [usd 1]}
-    --           ,nullposting{lpdescription="desc",lpaccount="expenses:food:dining",   lpamount=Mixed [usd 2]}
-    --           ,nullposting{lpdescription="desc",lpaccount="expenses:food",          lpamount=Mixed [usd 4]}
-    --           ,nullposting{lpdescription="desc",lpaccount="expenses:food:dining",   lpamount=Mixed [usd 8]}
+    --            nullposting{lpdescription="desc",lpaccount="expenses:food:groceries",lpamount=mixedAmount (usd 1)}
+    --           ,nullposting{lpdescription="desc",lpaccount="expenses:food:dining",   lpamount=mixedAmount (usd 2)}
+    --           ,nullposting{lpdescription="desc",lpaccount="expenses:food",          lpamount=mixedAmount (usd 4)}
+    --           ,nullposting{lpdescription="desc",lpaccount="expenses:food:dining",   lpamount=mixedAmount (usd 8)}
     --           ]
     --   ("2008/01/01","2009/01/01",0,9999,False,[]) `gives`
     --    []
@@ -420,21 +419,21 @@ tests_PostingsReport = tests "PostingsReport" [
     --    ]
     --   ("2008/01/01","2009/01/01",0,9999,False,ts) `gives`
     --    [
-    --     nullposting{lpdate=fromGregorian 2008 01 01,lpdescription="- 2008/12/31",lpaccount="expenses:food",          lpamount=Mixed [usd 4]}
-    --    ,nullposting{lpdate=fromGregorian 2008 01 01,lpdescription="- 2008/12/31",lpaccount="expenses:food:dining",   lpamount=Mixed [usd 10]}
-    --    ,nullposting{lpdate=fromGregorian 2008 01 01,lpdescription="- 2008/12/31",lpaccount="expenses:food:groceries",lpamount=Mixed [usd 1]}
+    --     nullposting{lpdate=fromGregorian 2008 01 01,lpdescription="- 2008/12/31",lpaccount="expenses:food",          lpamount=mixedAmount (usd 4)}
+    --    ,nullposting{lpdate=fromGregorian 2008 01 01,lpdescription="- 2008/12/31",lpaccount="expenses:food:dining",   lpamount=mixedAmount (usd 10)}
+    --    ,nullposting{lpdate=fromGregorian 2008 01 01,lpdescription="- 2008/12/31",lpaccount="expenses:food:groceries",lpamount=mixedAmount (usd 1)}
     --    ]
     --   ("2008/01/01","2009/01/01",0,2,False,ts) `gives`
     --    [
-    --     nullposting{lpdate=fromGregorian 2008 01 01,lpdescription="- 2008/12/31",lpaccount="expenses:food",lpamount=Mixed [usd 15]}
+    --     nullposting{lpdate=fromGregorian 2008 01 01,lpdescription="- 2008/12/31",lpaccount="expenses:food",lpamount=mixedAmount (usd 15)}
     --    ]
     --   ("2008/01/01","2009/01/01",0,1,False,ts) `gives`
     --    [
-    --     nullposting{lpdate=fromGregorian 2008 01 01,lpdescription="- 2008/12/31",lpaccount="expenses",lpamount=Mixed [usd 15]}
+    --     nullposting{lpdate=fromGregorian 2008 01 01,lpdescription="- 2008/12/31",lpaccount="expenses",lpamount=mixedAmount (usd 15)}
     --    ]
     --   ("2008/01/01","2009/01/01",0,0,False,ts) `gives`
     --    [
-    --     nullposting{lpdate=fromGregorian 2008 01 01,lpdescription="- 2008/12/31",lpaccount="",lpamount=Mixed [usd 15]}
+    --     nullposting{lpdate=fromGregorian 2008 01 01,lpdescription="- 2008/12/31",lpaccount="",lpamount=mixedAmount (usd 15)}
     --    ]
 
  ]

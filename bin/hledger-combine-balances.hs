@@ -34,7 +34,7 @@ appendReports r1 r2 =
     mergeRows (PeriodicReportRow name amt1 tot1 avg1) (PeriodicReportRow _ amt2 tot2 avg2) =
       PeriodicReportRow { prrName = name
         , prrAmounts = amt1++amt2
-        , prrTotal = tot1+tot2
+        , prrTotal = tot1 `maPlus` tot2
         , prrAverage = averageMixedAmounts [avg1,avg2]
         }
 

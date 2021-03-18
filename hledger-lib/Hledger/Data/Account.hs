@@ -65,7 +65,7 @@ accountsFromPostings ps =
   let
     grouped = groupSort [(paccount p,pamount p) | p <- ps]
     counted = [(aname, length amts) | (aname, amts) <- grouped]
-    summed =  [(aname, sumStrict amts) | (aname, amts) <- grouped]  -- always non-empty
+    summed =  [(aname, maSum amts) | (aname, amts) <- grouped]  -- always non-empty
     acctstree      = accountTree "root" $ map fst summed
     acctswithnumps = mapAccounts setnumps    acctstree      where setnumps    a = a{anumpostings=fromMaybe 0 $ lookup (aname a) counted}
     acctswithebals = mapAccounts setebalance acctswithnumps where setebalance a = a{aebalance=lookupJustDef nullmixedamt (aname a) summed}
@@ -122,7 +122,7 @@ sumAccounts a
   | otherwise      = a{aibalance=ibal, asubs=subs}
   where
     subs = map sumAccounts $ asubs a
-    ibal = sum $ aebalance a : map aibalance subs
+    ibal = maSum $ aebalance a : map aibalance subs
 
 -- | Remove all subaccounts below a certain depth.
 clipAccounts :: Int -> Account -> Account
@@ -139,7 +139,7 @@ clipAccountsAndAggregate Nothing  as = as
 clipAccountsAndAggregate (Just d) as = combined
     where
       clipped  = [a{aname=clipOrEllipsifyAccountName (Just d) $ aname a} | a <- as]
-      combined = [a{aebalance=sum $ map aebalance same}
+      combined = [a{aebalance=maSum $ map aebalance same}
                  | same@(a:_) <- groupOn aname clipped]
 {-
 test cases, assuming d=1:

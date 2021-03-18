@@ -471,9 +471,9 @@ inferBalancingAmount styles t@Transaction{tpostings=ps}
         in Right (t{tpostings=map fst psandinferredamts}, inferredacctsandamts)
   where
     (amountfulrealps, amountlessrealps) = partition hasAmount (realPostings t)
-    realsum = sumStrict $ map pamount amountfulrealps
+    realsum = sumPostings amountfulrealps
     (amountfulbvps, amountlessbvps) = partition hasAmount (balancedVirtualPostings t)
-    bvsum = sumStrict $ map pamount amountfulbvps
+    bvsum = sumPostings amountfulbvps
 
     inferamount :: Posting -> (Posting, Maybe MixedAmount)
     inferamount p =
@@ -490,7 +490,7 @@ inferBalancingAmount styles t@Transaction{tpostings=ps}
               -- Inferred amounts are converted to cost.
               -- Also ensure the new amount has the standard style for its commodity
               -- (since the main amount styling pass happened before this balancing pass);
-              a' = styleMixedAmount styles $ normaliseMixedAmount $ mixedAmountCost (-a)
+              a' = styleMixedAmount styles . normaliseMixedAmount . mixedAmountCost $ maNegate a
 
 -- | Infer prices for this transaction's posting amounts, if needed to make
 -- the postings balance, and if possible. This is done once for the real
@@ -542,17 +542,16 @@ priceInferrerFor :: Transaction -> PostingType -> (Posting -> Posting)
 priceInferrerFor t pt = inferprice
   where
     postings       = filter ((==pt).ptype) $ tpostings t
-    pmixedamounts  = map pamount postings
-    pamounts       = concatMap amounts pmixedamounts
+    pamounts       = concatMap (amounts . pamount) postings
     pcommodities   = map acommodity pamounts
-    sumamounts     = amounts $ sumStrict pmixedamounts -- sum normalises to one amount per commodity & price
+    sumamounts     = amounts $ sumPostings postings  -- sum normalises to one amount per commodity & price
     sumcommodities = map acommodity sumamounts
     sumprices      = filter (/=Nothing) $ map aprice sumamounts
     caninferprices = length sumcommodities == 2 && null sumprices
 
     inferprice p@Posting{pamount=Mixed [a]}
       | caninferprices && ptype p == pt && acommodity a == fromcommodity
-        = p{pamount=Mixed [a{aprice=Just conversionprice}], poriginal=Just $ originalPosting p}
+        = p{pamount=mixedAmount $ a{aprice=Just conversionprice}, poriginal=Just $ originalPosting p}
       where
         fromcommodity = head $ filter (`elem` sumcommodities) pcommodities -- these heads are ugly but should be safe
         totalpricesign = if aquantity a < 0 then negate else id

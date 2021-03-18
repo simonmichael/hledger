@@ -162,7 +162,7 @@ sameSignNonZero is
  | otherwise = (map pos $ filter (test.fourth4) nzs, sign)
  where
    nzs = filter ((/=0).fourth4) is
-   pos (acct,_,_,Mixed as) = (acct, abs $ read $ show $ maybe 0 aquantity $ headMay as)
+   pos (acct,_,_,as) = (acct, abs $ read $ show $ maybe 0 aquantity $ headMay $ amounts as)
    sign = if fourth4 (head nzs) >= 0 then 1 else (-1)
    test = if sign > 0 then (>0) else (<0)
 

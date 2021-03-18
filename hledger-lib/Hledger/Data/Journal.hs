@@ -524,7 +524,7 @@ filterTransactionAmounts q t@Transaction{tpostings=ps} = t{tpostings=map (filter
 
 -- | Filter out all parts of this posting's amount which do not match the query.
 filterPostingAmount :: Query -> Posting -> Posting
-filterPostingAmount q p@Posting{pamount=Mixed as} = p{pamount=Mixed $ filter (q `matchesAmount`) as}
+filterPostingAmount q p@Posting{pamount=as} = p{pamount=filterMixedAmount (q `matchesAmount`) as}
 
 filterTransactionPostings :: Query -> Transaction -> Transaction
 filterTransactionPostings q t@Transaction{tpostings=ps} = t{tpostings=filter (q `matchesPosting`) ps}
@@ -765,14 +765,14 @@ withRunningBalance f = ask >>= lift . lift . f
 -- | Get this account's current exclusive running balance.
 getRunningBalanceB :: AccountName -> Balancing s MixedAmount
 getRunningBalanceB acc = withRunningBalance $ \BalancingState{bsBalances} -> do
-  fromMaybe 0 <$> H.lookup bsBalances acc
+  fromMaybe nullmixedamt <$> H.lookup bsBalances acc
 
 -- | Add this amount to this account's exclusive running balance.
 -- Returns the new running balance.
 addToRunningBalanceB :: AccountName -> MixedAmount -> Balancing s MixedAmount
 addToRunningBalanceB acc amt = withRunningBalance $ \BalancingState{bsBalances} -> do
-  old <- fromMaybe 0 <$> H.lookup bsBalances acc
-  let new = old + amt
+  old <- fromMaybe nullmixedamt <$> H.lookup bsBalances acc
+  let new = maPlus old amt
   H.insert bsBalances acc new
   return new
 
@@ -780,9 +780,9 @@ addToRunningBalanceB acc amt = withRunningBalance $ \BalancingState{bsBalances} 
 -- Returns the change in exclusive running balance.
 setRunningBalanceB :: AccountName -> MixedAmount -> Balancing s MixedAmount
 setRunningBalanceB acc amt = withRunningBalance $ \BalancingState{bsBalances} -> do
-  old <- fromMaybe 0 <$> H.lookup bsBalances acc
+  old <- fromMaybe nullmixedamt <$> H.lookup bsBalances acc
   H.insert bsBalances acc amt
-  return $ amt - old
+  return $ maMinus amt old
 
 -- | Set this account's exclusive running balance to whatever amount
 -- makes its *inclusive* running balance (the sum of exclusive running
@@ -790,13 +790,13 @@ setRunningBalanceB acc amt = withRunningBalance $ \BalancingState{bsBalances} ->
 -- Returns the change in exclusive running balance.
 setInclusiveRunningBalanceB :: AccountName -> MixedAmount -> Balancing s MixedAmount
 setInclusiveRunningBalanceB acc newibal = withRunningBalance $ \BalancingState{bsBalances} -> do
-  oldebal  <- fromMaybe 0 <$> H.lookup bsBalances acc
+  oldebal  <- fromMaybe nullmixedamt <$> H.lookup bsBalances acc
   allebals <- H.toList bsBalances
   let subsibal =  -- sum of any subaccounts' running balances
-        sum $ map snd $ filter ((acc `isAccountNamePrefixOf`).fst) allebals
-  let newebal = newibal - subsibal
+        maSum . map snd $ filter ((acc `isAccountNamePrefixOf`).fst) allebals
+  let newebal = maMinus newibal subsibal
   H.insert bsBalances acc newebal
-  return $ newebal - oldebal
+  return $ maMinus newebal oldebal
 
 -- | Update (overwrite) this transaction in the balancing state.
 updateTransactionB :: Transaction -> Balancing s ()
@@ -897,21 +897,15 @@ addOrAssignAmountAndCheckAssertionB p@Posting{paccount=acc, pamount=amt, pbalanc
       return p
 
   -- no explicit posting amount, but there is a balance assignment
-  -- TODO this doesn't yet handle inclusive assignments right, #1207
   | Just BalanceAssertion{baamount,batotal,bainclusive} <- mba = do
-      (diff,newbal) <- case batotal of
-        -- a total balance assignment (==, all commodities)
-        True  -> do
-          let newbal = Mixed [baamount]
-          diff <- (if bainclusive then setInclusiveRunningBalanceB else setRunningBalanceB) acc newbal
-          return (diff,newbal)
-        -- a partial balance assignment (=, one commodity)
-        False -> do
-          oldbalothercommodities <- filterMixedAmount ((acommodity baamount /=) . acommodity) <$> getRunningBalanceB acc
-          let assignedbalthiscommodity = Mixed [baamount]
-              newbal = oldbalothercommodities + assignedbalthiscommodity
-          diff <- (if bainclusive then setInclusiveRunningBalanceB else setRunningBalanceB) acc newbal
-          return (diff,newbal)
+      newbal <- if batotal
+                   -- a total balance assignment (==, all commodities)
+                   then return $ mixedAmount baamount
+                   -- a partial balance assignment (=, one commodity)
+                   else do
+                     oldbalothercommodities <- filterMixedAmount ((acommodity baamount /=) . acommodity) <$> getRunningBalanceB acc
+                     return $ maAddAmount oldbalothercommodities baamount
+      diff <- (if bainclusive then setInclusiveRunningBalanceB else setRunningBalanceB) acc newbal
       let p' = p{pamount=diff, poriginal=Just $ originalPosting p}
       whenM (R.reader bsAssrt) $ checkBalanceAssertionB p' newbal
       return p'
@@ -961,9 +955,9 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedamt 
       -- sum the running balances of this account and any of its subaccounts seen so far
       withRunningBalance $ \BalancingState{bsBalances} ->
         H.foldM
-          (\ibal (acc, amt) -> return $ ibal +
-            if assertedacct==acc || assertedacct `isAccountNamePrefixOf` acc then amt else 0)
-          0
+          (\ibal (acc, amt) -> return $
+            if assertedacct==acc || assertedacct `isAccountNamePrefixOf` acc then maPlus ibal amt else ibal)
+          nullmixedamt
           bsBalances
     else return actualbal
   let
@@ -1153,7 +1147,7 @@ canonicalStyle a b = a{asprecision=prec, asdecimalpoint=decmark, asdigitgroups=m
 --       fixtransaction t@Transaction{tdate=d, tpostings=ps} = t{tpostings=map fixposting ps}
 --        where
 --         fixposting p@Posting{pamount=a} = p{pamount=fixmixedamount a}
---         fixmixedamount (Mixed as) = Mixed $ map fixamount as
+--         fixmixedamount = mapMixedAmount fixamount
 --         fixamount = fixprice
 --         fixprice a@Amount{price=Just _} = a
 --         fixprice a@Amount{commodity=c} = a{price=maybe Nothing (Just . UnitPrice) $ journalPriceDirectiveFor j d c}
@@ -1182,8 +1176,8 @@ journalInferMarketPricesFromTransactions j =
 postingInferredmarketPrice :: Posting -> Maybe MarketPrice
 postingInferredmarketPrice p@Posting{pamount} =
   -- convert any total prices to unit prices
-  case mixedAmountTotalPriceToUnitPrice pamount of
-    Mixed ( Amount{acommodity=fromcomm, aprice = Just (UnitPrice Amount{acommodity=tocomm, aquantity=rate})} : _) ->
+  case amounts $ mixedAmountTotalPriceToUnitPrice pamount of
+    Amount{acommodity=fromcomm, aprice = Just (UnitPrice Amount{acommodity=tocomm, aquantity=rate})}:_ ->
       Just MarketPrice {
          mpdate = postingDate p
         ,mpfrom = fromcomm
@@ -1561,7 +1555,7 @@ tests_Journal = tests "Journal" [
             ]}
       assertRight ej
       let Right j = ej
-      (jtxns j & head & tpostings & head & pamount) @?= Mixed [num 1]
+      (jtxns j & head & tpostings & head & pamount) @?= mixedAmount (num 1)
 
     ,test "same-day-1" $ do
       assertRight $ journalBalanceTransactions True $

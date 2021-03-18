@@ -121,7 +121,7 @@ entryFromTimeclockInOut i o
       showtime = take 5 . show
       hours    = elapsedSeconds (toutc otime) (toutc itime) / 3600 where toutc = localTimeToUTC utc
       acctname = tlaccount i
-      amount   = Mixed [hrs hours]
+      amount   = mixedAmount $ hrs hours
       ps       = [posting{paccount=acctname, pamount=amount, ptype=VirtualPosting, ptransaction=Just t}]
 
 
