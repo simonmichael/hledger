@@ -6,7 +6,7 @@ HLEDGER(1)                   hledger User Manuals                   HLEDGER(1)
 NAME
        This  is  the  command-line  interface (CLI) for the hledger accounting
        tool.  Here we also describe hledger's concepts and file formats.  This
-       manual is for hledger 1.21.
+       manual is for hledger 1.21.99.
 
 SYNOPSIS
        hledger
@@ -606,6 +606,7 @@ TIME PERIODS
 
 
        -p "1/1 4/1"
+
        -p "january-apr"
        -p "this year to 4/1"
 
@@ -626,9 +627,6 @@ TIME PERIODS
 
        -p "2009"       the  year 2009; equivalent
                        to "2009/1/1 to 2010/1/1"
-
-
-
        -p "2009/1"     the month of jan;  equiva-
                        lent   to   "2009/1/1   to
                        2009/2/1"
@@ -697,7 +695,6 @@ TIME PERIODS
        every MMM Nth [of year].
 
        Examples:
-
 
 
        -p  "every  2nd  day  of   periods will go from Tue to Tue
@@ -1165,6 +1162,8 @@ VALUATION
        posting         cost           value     at   value at  posting   value     at   value      at
        amounts                        report   end   date                report    or   DATE/today
                                       or today                           journal end
+
+
        summary post-   summarised     value     at   sum  of  postings   value     at   value      at
        ing   amounts   cost           period ends    in interval, val-   period ends    DATE/today
        with   report                                 ued  at  interval
@@ -1202,13 +1201,6 @@ VALUATION
        is,        bs   postings  in                  period at respec-   each period,   sums of post-
        --change,  cf   period                        tive      posting   valued    at   ings
        --change)                                     dates               period ends
-
-
-
-
-
-
-
        end  balances   sums      of   same      as   sums of values of   period   end   value      at
        (bal  -H,  is   costs     of   --value=end    postings     from   balances,      DATE/today of
        --H, bs, cf)    postings                      before     period   valued    at   sums of post-
@@ -4350,6 +4342,9 @@ JOURNAL FORMAT
        tive       directive   rec-                                     2018/06)
                               tives
        ------------------------------------------------------------------------------------
+
+
+
        account                any       document    account   names,   all  entries in all
                               text      declare account types & dis-   files,  before   or
                                         play order                     after
@@ -4387,7 +4382,6 @@ JOURNAL FORMAT
                                                                        reports
        include                          include   entries/directives   what  the  included
                                         from another file              directives affect
-
        [payee]                          declare a payee name           following   entries
                                                                        until end  of  cur-
                                                                        rent file
@@ -4738,6 +4732,7 @@ JOURNAL FORMAT
        If account type is Asset and name does not contain  regu-   account  type
        lar expression:                                             is:
        --------------------------------------------------------------------------
+
        (investment|receivable|:A/R|:fixed)                         Cash
 
        Even so, explicit declarations may be a good idea, for clarity and pre-
@@ -6862,4 +6857,4 @@ SEE ALSO
 
 
 
-hledger-1.21                     December 2020                      HLEDGER(1)
+hledger-1.21.99                   March 2021                        HLEDGER(1)
