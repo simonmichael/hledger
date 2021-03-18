@@ -75,6 +75,7 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import Data.Time.Calendar (Day, fromGregorian)
 import qualified Data.Map as M
+import Safe (maximumDef)
 
 import Hledger.Utils
 import Hledger.Data.Types
@@ -218,9 +219,12 @@ renderCommentLines t =
 --
 -- Posting amounts will be aligned with each other, starting about 4 columns
 -- beyond the widest account name (see postingAsLines for details).
---
 postingsAsLines :: Bool -> [Posting] -> [Text]
-postingsAsLines onelineamounts ps = concatMap (postingAsLines False onelineamounts ps) ps
+postingsAsLines onelineamounts ps = concatMap first3 linesWithWidths
+  where
+    linesWithWidths = map (postingAsLines False onelineamounts maxacctwidth maxamtwidth) ps
+    maxacctwidth = maximumDef 0 $ map second3 linesWithWidths
+    maxamtwidth  = maximumDef 0 $ map third3 linesWithWidths
 
 -- | Render one posting, on one or more lines, suitable for `print` output.
 -- There will be an indented account name, plus one or more of status flag,
@@ -241,9 +245,10 @@ postingsAsLines onelineamounts ps = concatMap (postingAsLines False onelineamoun
 -- increased if needed to match the posting with the longest account name.
 -- This is used to align the amounts of a transaction's postings.
 --
-postingAsLines :: Bool -> Bool -> [Posting] -> Posting -> [Text]
-postingAsLines elideamount onelineamounts pstoalignwith p =
-    concatMap (++ newlinecomments) postingblocks
+-- Also returns the account width and amount width used.
+postingAsLines :: Bool -> Bool -> Int -> Int -> Posting -> ([Text], Int, Int)
+postingAsLines elideamount onelineamounts acctwidth amtwidth p =
+    (concatMap (++ newlinecomments) postingblocks, thisacctwidth, thisamtwidth)
   where
     -- This needs to be converted to strict Text in order to strip trailing
     -- spaces. This adds a small amount of inefficiency, and the only difference
@@ -253,30 +258,35 @@ postingAsLines elideamount onelineamounts pstoalignwith p =
     postingblocks = [map T.stripEnd . T.lines . TL.toStrict $
                        render [ textCell BottomLeft statusandaccount
                               , textCell BottomLeft "  "
-                              , Cell BottomLeft [amt]
+                              , Cell BottomLeft [pad amt]
                               , Cell BottomLeft [assertion]
                               , textCell BottomLeft samelinecomment
                               ]
                     | amt <- shownAmounts]
     render = renderRow def{tableBorders=False, borderSpaces=False} . Group NoLine . map Header
+    pad amt = WideBuilder (TB.fromText $ T.replicate w " ") w <> amt
+      where w = max 12 amtwidth - wbWidth amt  -- min. 12 for backwards compatibility
+
     assertion = maybe mempty ((WideBuilder (TB.singleton ' ') 1 <>).showBalanceAssertion) $ pbalanceassertion p
-    statusandaccount = lineIndent . fitText (Just $ minwidth) Nothing False True $ pstatusandacct p
-      where
-        -- pad to the maximum account name width, plus 2 to leave room for status flags, to keep amounts aligned
-        minwidth = maximum $ map ((2+) . textWidth . pacctstr) pstoalignwith
-        pstatusandacct p' = pstatusprefix p' <> pacctstr p'
-        pstatusprefix p' = case pstatus p' of
-            Unmarked -> ""
-            s        -> T.pack (show s) <> " "
-        pacctstr p' = showAccountName Nothing (ptype p') (paccount p')
+    -- pad to the maximum account name width, plus 2 to leave room for status flags, to keep amounts aligned
+    statusandaccount = lineIndent . fitText (Just $ 2 + acctwidth) Nothing False True $ pstatusandacct p
+    thisacctwidth = textWidth $ pacctstr p
+
+    pacctstr p' = showAccountName Nothing (ptype p') (paccount p')
+    pstatusandacct p' = pstatusprefix p' <> pacctstr p'
+    pstatusprefix p' = case pstatus p' of
+        Unmarked -> ""
+        s        -> T.pack (show s) <> " "
 
     -- currently prices are considered part of the amount string when right-aligning amounts
+    -- Since we will usually be calling this function with the knot tied between
+    -- amtwidth and thisamtwidth, make sure thisamtwidth does not depend on
+    -- amtwidth at all.
     shownAmounts
       | elideamount || null (amounts $ pamount p) = [mempty]
       | otherwise = showAmountsLinesB displayopts . amounts $ pamount p
-      where
-        displayopts = noColour{displayOneLine=onelineamounts, displayMinWidth = Just amtwidth}
-        amtwidth = maximum $ 12 : map (wbWidth . showAmountsB displayopts{displayMinWidth=Nothing} . amounts . pamount) pstoalignwith  -- min. 12 for backwards compatibility
+      where displayopts = noColour{displayOneLine=onelineamounts}
+    thisamtwidth = maximumDef 0 $ map wbWidth shownAmounts
 
     (samelinecomment, newlinecomments) =
       case renderCommentLines (pcomment p) of []   -> ("",[])
@@ -306,9 +316,11 @@ showBalanceAssertion BalanceAssertion{..} =
 -- | Render a posting, at the appropriate width for aligning with
 -- its siblings if any. Used by the rewrite command.
 showPostingLines :: Posting -> [Text]
-showPostingLines p = postingAsLines False False ps p where
-    ps | Just t <- ptransaction p = tpostings t
-       | otherwise = [p]
+showPostingLines p = first3 $ postingAsLines False False maxacctwidth maxamtwidth p
+  where
+    linesWithWidths = map (postingAsLines False False maxacctwidth maxamtwidth) . maybe [p] tpostings $ ptransaction p
+    maxacctwidth = maximumDef 0 $ map second3 linesWithWidths
+    maxamtwidth  = maximumDef 0 $ map third3 linesWithWidths
 
 -- | Prepend a suitable indent for a posting (or transaction/posting comment) line.
 lineIndent :: Text -> Text
@@ -642,8 +654,8 @@ tests_Transaction :: TestTree
 tests_Transaction =
   tests "Transaction" [
 
-      tests "postingAsLines" [
-          test "null posting" $ postingAsLines False False [posting] posting @?= [""]
+      tests "showPostingLines" [
+          test "null posting" $ showPostingLines posting @?= [""]
         , test "non-null posting" $
            let p =
                 posting
@@ -654,7 +666,7 @@ tests_Transaction =
                   , ptype = RegularPosting
                   , ptags = [("ptag1", "val1"), ("ptag2", "val2")]
                   }
-           in postingAsLines False False [p] p @?=
+           in showPostingLines p @?=
               [ "    * a         $1.00  ; pcomment1"
               , "    ; pcomment2"
               , "    ;   tag3: val3  "
