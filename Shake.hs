@@ -72,6 +72,7 @@ usage =
   ,"                         update versions in source files to */.version or VER"
   ,"                         and update */*.cabal files"
   ,"./Shake cmdhelp [-c]     update hledger CLI commands' help texts"
+  ,"./Shake mandates         update the date shown in some manual formats"
   ,"./Shake manuals [-c]     update all packages' txt/man/info/web manuals"
   -- ,"./Shake webmanuals       update just the web manuals"
   ,"./Shake changelogs [-c] [-n/--dry-run]"
@@ -389,6 +390,14 @@ main = do
         when commit $ do
           let msg = ";update manuals"
           cmd Shell gitcommit ("-m '"++msg++"' --") packagemandatem4s nroffmanuals infomanuals txtmanuals
+
+      -- Update the dates to show in man pages, to the current month and year.
+      -- Currently must be run manually when needed.
+      -- Dates are stored in PKG/.date.m4, and are committed along with manuals by Shake manuals -c.
+      phony "mandates" $ do
+        date <- chomp . fromStdout <$> (cmd Shell "date +'%B %Y'" :: Action (Stdout String))
+        forM_ packagemandatem4s $ \f -> do
+          cmd_ Shell ["perl","-pi","-e","'s/(.*)\\{\\{.*}}(.*)$/\\1\\{\\{"++date++"}}\\2/'",f]
 
       -- Generate nroff man pages suitable for man output, from the .m4.md source.
       -- Also updates the _monthyear_ macro to current month and year in hledger*/.date.m4.
@@ -777,3 +786,8 @@ isReleaseVersion s = isVersion s && not (isDevVersion s)
 -- | Does this string look like a git commit hash ?
 -- Ie a sequence of 7 or more numbers or letters.
 isCommitHash s = length s > 6 && all isAlphaNum s
+
+-- | Remove all trailing newlines/carriage returns.
+chomp :: String -> String
+chomp = reverse . dropWhile (`elem` "\r\n") . reverse
+
