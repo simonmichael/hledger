@@ -1,0 +1,115 @@
+<
+2019-1-1
+  (a)  1.0 AAA
+
+# 1. Test the json output for register reports
+$ hledger -f- reg --output-format=json
+[
+    [
+        "2019-01-01",
+        null,
+        "",
+        {
+            "pbalanceassertion": null,
+            "pstatus": "Unmarked",
+            "pamount": [
+                {
+                    "aprice": null,
+                    "acommodity": "AAA",
+                    "aquantity": {
+                        "floatingPoint": 1,
+                        "decimalPlaces": 10,
+                        "decimalMantissa": 10000000000
+                    },
+                    "aismultiplier": false,
+                    "astyle": {
+                        "ascommodityside": "R",
+                        "asdigitgroups": null,
+                        "ascommodityspaced": true,
+                        "asprecision": 1,
+                        "asdecimalpoint": "."
+                    }
+                }
+            ],
+            "ptransaction_": "1",
+            "paccount": "a",
+            "pdate": null,
+            "ptype": "VirtualPosting",
+            "pcomment": "",
+            "pdate2": null,
+            "ptags": [],
+            "poriginal": null
+        },
+        [
+            {
+                "aprice": null,
+                "acommodity": "AAA",
+                "aquantity": {
+                    "floatingPoint": 1,
+                    "decimalPlaces": 10,
+                    "decimalMantissa": 10000000000
+                },
+                "aismultiplier": false,
+                "astyle": {
+                    "ascommodityside": "R",
+                    "asdigitgroups": null,
+                    "ascommodityspaced": true,
+                    "asprecision": 1,
+                    "asdecimalpoint": "."
+                }
+            }
+        ]
+    ]
+]
+
+# 2. Test the json output for balance reports
+$ hledger -f- bal --output-format=json
+[
+    [
+        [
+            "a",
+            "a",
+            0,
+            [
+                {
+                    "aprice": null,
+                    "acommodity": "AAA",
+                    "aquantity": {
+                        "floatingPoint": 1,
+                        "decimalPlaces": 10,
+                        "decimalMantissa": 10000000000
+                    },
+                    "aismultiplier": false,
+                    "astyle": {
+                        "ascommodityside": "R",
+                        "asdigitgroups": null,
+                        "ascommodityspaced": true,
+                        "asprecision": 1,
+                        "asdecimalpoint": "."
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        {
+            "aprice": null,
+            "acommodity": "AAA",
+            "aquantity": {
+                "floatingPoint": 1,
+                "decimalPlaces": 10,
+                "decimalMantissa": 10000000000
+            },
+            "aismultiplier": false,
+            "astyle": {
+                "ascommodityside": "R",
+                "asdigitgroups": null,
+                "ascommodityspaced": true,
+                "asprecision": 1,
+                "asdecimalpoint": "."
+            }
+        }
+    ]
+]
+
+>=0

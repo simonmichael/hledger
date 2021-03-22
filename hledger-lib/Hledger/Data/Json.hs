@@ -10,6 +10,7 @@ JSON instances. Should they be in Types.hs ?
 {-# LANGUAGE DeriveGeneric       #-}
 --{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE LambdaCase          #-}
 --{-# LANGUAGE NamedFieldPuns #-}
 --{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -89,7 +90,13 @@ instance ToJSON Decimal where
 
 instance ToJSON Amount
 instance ToJSON AmountStyle
-instance ToJSON AmountPrecision
+
+-- Use the same JSON serialisation as Maybe Word8
+instance ToJSON AmountPrecision where
+  toJSON = toJSON . \case
+    Precision n      -> Just n
+    NaturalPrecision -> Nothing
+
 instance ToJSON Side
 instance ToJSON DigitGroupStyle
 instance ToJSON MixedAmount
@@ -160,7 +167,11 @@ instance FromJSON Status
 instance FromJSON GenericSourcePos
 instance FromJSON Amount
 instance FromJSON AmountStyle
-instance FromJSON AmountPrecision
+
+-- Use the same JSON serialisation as Maybe Word8
+instance FromJSON AmountPrecision where
+  parseJSON = fmap (maybe NaturalPrecision Precision) . parseJSON
+
 instance FromJSON Side
 instance FromJSON DigitGroupStyle
 instance FromJSON MixedAmount
