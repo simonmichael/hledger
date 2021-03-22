@@ -92,7 +92,7 @@ postingsReport rspec@ReportSpec{rsOpts=ropts@ReportOpts{..}} j = items
             reportPeriodOrJournalLastDay rspec j
 
       -- Posting report does not use prices after valuation, so remove them.
-      displaypsnoprices = map (\(p,md) -> (removePrices p, md)) displayps
+      displaypsnoprices = map (\(p,md) -> (postingStripPrices p, md)) displayps
 
       -- Posting report items ready for display.
       items =

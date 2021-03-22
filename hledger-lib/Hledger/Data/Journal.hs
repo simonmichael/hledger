@@ -875,13 +875,13 @@ journalBalanceTransactions assrt j' =
 balanceTransactionAndCheckAssertionsB :: Either Posting Transaction -> Balancing s ()
 balanceTransactionAndCheckAssertionsB (Left p@Posting{}) =
   -- update the account's running balance and check the balance assertion if any
-  void $ addAmountAndCheckAssertionB $ removePrices p
+  void . addAmountAndCheckAssertionB $ postingStripPrices p
 balanceTransactionAndCheckAssertionsB (Right t@Transaction{tpostings=ps}) = do
   -- make sure we can handle the balance assignments
   mapM_ checkIllegalBalanceAssignmentB ps
   -- for each posting, infer its amount from the balance assignment if applicable,
   -- update the account's running balance and check the balance assertion if any
-  ps' <- forM ps $ \p -> pure (removePrices p) >>= addOrAssignAmountAndCheckAssertionB
+  ps' <- mapM (addOrAssignAmountAndCheckAssertionB . postingStripPrices) ps
   -- infer any remaining missing amounts, and make sure the transaction is now fully balanced
   styles <- R.reader bsStyles
   case balanceTransactionHelper styles t{tpostings=ps'} of

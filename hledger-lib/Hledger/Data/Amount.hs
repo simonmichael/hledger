@@ -91,6 +91,7 @@ module Hledger.Data.Amount (
   withInternalPrecision,
   setAmountDecimalPoint,
   withDecimalPoint,
+  amountStripPrices,
   canonicaliseAmount,
   -- * MixedAmount
   nullmixedamt,
@@ -375,6 +376,10 @@ setAmountDecimalPoint mc a@Amount{ astyle=s } = a{ astyle=s{asdecimalpoint=mc} }
 -- | Set (or clear) an amount's display decimal point, flipped.
 withDecimalPoint :: Amount -> Maybe Char -> Amount
 withDecimalPoint = flip setAmountDecimalPoint
+
+-- | Strip all prices from an Amount
+amountStripPrices :: Amount -> Amount
+amountStripPrices a = a{aprice=Nothing}
 
 showAmountPrice :: Amount -> WideBuilder
 showAmountPrice amt = case aprice amt of
@@ -914,8 +919,9 @@ mixedAmountSetPrecision p = mapMixedAmount (amountSetPrecision p)
 mixedAmountSetFullPrecision :: MixedAmount -> MixedAmount
 mixedAmountSetFullPrecision = mapMixedAmount amountSetFullPrecision
 
+-- | Strip all prices from a MixedAmount.
 mixedAmountStripPrices :: MixedAmount -> MixedAmount
-mixedAmountStripPrices = mapMixedAmount (\a -> a{aprice=Nothing})
+mixedAmountStripPrices = mapMixedAmount amountStripPrices
 
 -- | Canonicalise a mixed amount's display styles using the provided commodity style map.
 canonicaliseMixedAmount :: M.Map CommoditySymbol AmountStyle -> MixedAmount -> MixedAmount
