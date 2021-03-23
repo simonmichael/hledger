@@ -813,8 +813,8 @@ parseResultToCsv = toListList . unpackFields
 
 printCSV :: CSV -> TL.Text
 printCSV = TB.toLazyText . unlinesB . map printRecord
-    where printRecord = mconcat . map TB.fromText . intersperse "," . map printField
-          printField = wrap "\"" "\"" . T.replace "\"" "\\\"\\\""
+    where printRecord = foldMap TB.fromText . intersperse "," . map printField
+          printField = wrap "\"" "\"" . T.replace "\"" "\"\""
 
 -- | Return the cleaned up and validated CSV data (can be empty), or an error.
 validateCsv :: CsvRules -> Int -> Either String CSV -> Either String [CsvRecord]
