@@ -1182,6 +1182,8 @@ type CsvAmountString = Text
 -- ""
 simplifySign :: CsvAmountString -> CsvAmountString
 simplifySign amtstr
+  | Just (' ',t) <- T.uncons amtstr = simplifySign t
+  | Just (t,' ') <- T.unsnoc amtstr = simplifySign t
   | Just ('(',t) <- T.uncons amtstr, Just (amt,')') <- T.unsnoc t = simplifySign $ negateStr amt
   | Just ('-',b) <- T.uncons amtstr, Just ('(',t) <- T.uncons b, Just (amt,')') <- T.unsnoc t = simplifySign amt
   | Just ('-',m) <- T.uncons amtstr, Just ('-',amt) <- T.uncons m = amt
