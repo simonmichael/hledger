@@ -960,6 +960,42 @@ $  ./csvtest.sh --alias expenses=FOO
 
 >=
 
+# 48. Allow for whitespace in csv amounts
+<
+2009-09-10,+ $20
+2009-09-10, $ +30
+2009-09-10, ( 40 ) 
+2009-09-10, $ - 50 
+2009-09-10,- $60 
+
+RULES
+fields date, amount
+date-format %Y-%m-%d
+account1 assets:myacct
+
+$  ./csvtest.sh
+2009-09-10
+    assets:myacct              $20
+    income:unknown            $-20
+
+2009-09-10
+    assets:myacct              $30
+    income:unknown            $-30
+
+2009-09-10
+    assets:myacct                -40
+    expenses:unknown              40
+
+2009-09-10
+    assets:myacct               $-50
+    expenses:unknown             $50
+
+2009-09-10
+    assets:myacct               $-60
+    expenses:unknown             $60
+
+>=0
+
 ## . 
 #<
 #$  ./csvtest.sh
