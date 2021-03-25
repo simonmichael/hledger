@@ -2320,7 +2320,7 @@ payee Whole Foods
 The `commodity` directive has several functions:
 
 1. It declares commodities which may be used in the journal.
-   This is currently not enforced, but can serve as documentation.
+   This is enforced in [strict mode](#strict-mode), providing more error-checking.
 
 2. It declares what decimal mark character (period or comma) to expect when parsing
    input - useful to disambiguate international number formats in your
@@ -2377,14 +2377,16 @@ commodity symbol is used that has not been declared by a [`commodity` directive]
 
 ## Default commodity
 
-The `D` directive sets a default commodity, to be used for amounts without a commodity symbol (ie, plain numbers).
-This commodity will be applied to all subsequent commodity-less amounts, or until the next `D` directive.
-(Note, this is different from Ledger's `D`.)
+The `D` directive sets a default commodity, to be used for any
+subsequent commodityless amounts (ie, plain numbers) seen while
+parsing the journal. This effect lasts until the next `D` directive,
+or the end of the journal.
 
-For compatibility/historical reasons, `D` also acts like a [`commodity` directive](#declaring-commodities),
-setting the commodity's [display style](#amount-display-format) (for output) and decimal mark (for parsing input).
-As with `commodity`, the amount must always be written with a decimal mark (period or comma).
-If both directives are used, `commodity`'s style takes precedence.
+For compatibility/historical reasons, `D` also acts like a [`commodity` directive](#declaring-commodities)
+(setting the commodity's decimal mark for parsing and [display style](#amount-display-format) for output).
+
+As with `commodity`, the amount must include a decimal mark (either period or comma).
+If both `commodity` and `D` directives are used for the same commodity, the `commodity` style takes precedence.
 
 The syntax is `D AMOUNT`. Eg:
 ```journal
