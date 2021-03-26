@@ -18,8 +18,8 @@ $ hledger -f- reg --output-format=json
                     "acommodity": "AAA",
                     "aquantity": {
                         "floatingPoint": 1,
-                        "decimalPlaces": 10,
-                        "decimalMantissa": 10000000000
+                        "decimalPlaces": 1,
+                        "decimalMantissa": 10
                     },
                     "aismultiplier": false,
                     "astyle": {
@@ -46,8 +46,8 @@ $ hledger -f- reg --output-format=json
                 "acommodity": "AAA",
                 "aquantity": {
                     "floatingPoint": 1,
-                    "decimalPlaces": 10,
-                    "decimalMantissa": 10000000000
+                    "decimalPlaces": 1,
+                    "decimalMantissa": 10
                 },
                 "aismultiplier": false,
                 "astyle": {
@@ -76,8 +76,8 @@ $ hledger -f- bal --output-format=json
                     "acommodity": "AAA",
                     "aquantity": {
                         "floatingPoint": 1,
-                        "decimalPlaces": 10,
-                        "decimalMantissa": 10000000000
+                        "decimalPlaces": 1,
+                        "decimalMantissa": 10
                     },
                     "aismultiplier": false,
                     "astyle": {
@@ -97,8 +97,8 @@ $ hledger -f- bal --output-format=json
             "acommodity": "AAA",
             "aquantity": {
                 "floatingPoint": 1,
-                "decimalPlaces": 10,
-                "decimalMantissa": 10000000000
+                "decimalPlaces": 1,
+                "decimalMantissa": 10
             },
             "aismultiplier": false,
             "astyle": {
