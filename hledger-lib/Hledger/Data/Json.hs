@@ -41,8 +41,8 @@ import           Data.Aeson
 import           Data.Aeson.Encode.Pretty (encodePrettyToTextBuilder)
 --import           Data.Aeson.TH
 import qualified Data.ByteString.Lazy as BL
-import           Data.Decimal
-import           Data.Maybe
+import           Data.Decimal (DecimalRaw(..), roundTo)
+import           Data.Maybe (fromMaybe)
 import qualified Data.Text.Lazy    as TL
 import qualified Data.Text.Lazy.IO as TL
 import qualified Data.Text.Lazy.Builder as TB
@@ -80,13 +80,13 @@ instance ToJSON GenericSourcePos
 -- and that the overall number of significant digits in the floating point
 -- remains manageable in practice. (I'm not sure how to limit the number
 -- of significant digits in a Decimal right now.)
-instance ToJSON Decimal where
+instance (Integral a, ToJSON a) => ToJSON (DecimalRaw a) where
   toJSON d = object
-    ["decimalPlaces"   .= toJSON decimalPlaces
-    ,"decimalMantissa" .= toJSON decimalMantissa
-    ,"floatingPoint"   .= toJSON (fromRational $ toRational d' :: Double)
-    ]
-    where d'@Decimal{..} = roundTo 10 d
+      [ "decimalPlaces"   .= toJSON (decimalPlaces d')
+      , "decimalMantissa" .= toJSON (decimalMantissa d')
+      , "floatingPoint"   .= toJSON (realToFrac d' :: Double)
+      ]
+    where d' = if decimalPlaces d <= 10 then d else roundTo 10 d
 
 instance ToJSON Amount
 instance ToJSON AmountStyle
