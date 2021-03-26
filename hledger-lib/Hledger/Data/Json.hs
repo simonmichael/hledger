@@ -81,12 +81,15 @@ instance ToJSON GenericSourcePos
 -- remains manageable in practice. (I'm not sure how to limit the number
 -- of significant digits in a Decimal right now.)
 instance (Integral a, ToJSON a) => ToJSON (DecimalRaw a) where
-  toJSON d = object
-      [ "decimalPlaces"   .= toJSON (decimalPlaces d')
-      , "decimalMantissa" .= toJSON (decimalMantissa d')
-      , "floatingPoint"   .= toJSON (realToFrac d' :: Double)
-      ]
-    where d' = if decimalPlaces d <= 10 then d else roundTo 10 d
+  toJSON = object . decimalKV
+  toEncoding = pairs . mconcat . decimalKV
+
+decimalKV :: (KeyValue kv, Integral a, ToJSON a) => DecimalRaw a -> [kv]
+decimalKV d = let d' = if decimalPlaces d <= 10 then d else roundTo 10 d in
+    [ "decimalPlaces"   .= decimalPlaces d'
+    , "decimalMantissa" .= decimalMantissa d'
+    , "floatingPoint"   .= (realToFrac d' :: Double)
+    ]
 
 instance ToJSON Amount
 instance ToJSON AmountStyle
@@ -94,6 +97,9 @@ instance ToJSON AmountStyle
 -- Use the same JSON serialisation as Maybe Word8
 instance ToJSON AmountPrecision where
   toJSON = toJSON . \case
+    Precision n      -> Just n
+    NaturalPrecision -> Nothing
+  toEncoding = toEncoding . \case
     Precision n      -> Just n
     NaturalPrecision -> Nothing
 
@@ -106,21 +112,25 @@ instance ToJSON MarketPrice
 instance ToJSON PostingType
 
 instance ToJSON Posting where
-  toJSON Posting{..} = object
-    ["pdate"             .= pdate
-    ,"pdate2"            .= pdate2
-    ,"pstatus"           .= pstatus
-    ,"paccount"          .= paccount
-    ,"pamount"           .= pamount
-    ,"pcomment"          .= pcomment
-    ,"ptype"             .= ptype
-    ,"ptags"             .= ptags
-    ,"pbalanceassertion" .= pbalanceassertion
+  toJSON = object . postingKV
+  toEncoding = pairs . mconcat . postingKV
+
+postingKV :: KeyValue kv => Posting -> [kv]
+postingKV Posting{..} =
+    [ "pdate"             .= pdate
+    , "pdate2"            .= pdate2
+    , "pstatus"           .= pstatus
+    , "paccount"          .= paccount
+    , "pamount"           .= pamount
+    , "pcomment"          .= pcomment
+    , "ptype"             .= ptype
+    , "ptags"             .= ptags
+    , "pbalanceassertion" .= pbalanceassertion
     -- To avoid a cycle, show just the parent transaction's index number
     -- in a dummy field. When re-parsed, there will be no parent.
-    ,"ptransaction_"     .= maybe "" (show.tindex) ptransaction
+    , "ptransaction_"     .= maybe "" (show.tindex) ptransaction
     -- This is probably not wanted in json, we discard it.
-    ,"poriginal"         .= (Nothing :: Maybe Posting)
+    , "poriginal"         .= (Nothing :: Maybe Posting)
     ]
 
 instance ToJSON Transaction
@@ -141,21 +151,25 @@ instance ToJSON ClockTime
 instance ToJSON Journal
 
 instance ToJSON Account where
-  toJSON a = object
-    ["aname"        .= aname a
-    ,"aebalance"    .= aebalance a
-    ,"aibalance"    .= aibalance a
-    ,"anumpostings" .= anumpostings a
-    ,"aboring"      .= aboring a
+  toJSON = object . accountKV
+  toEncoding = pairs . mconcat . accountKV
+
+accountKV :: KeyValue kv => Account -> [kv]
+accountKV a =
+    [ "aname"        .= aname a
+    , "aebalance"    .= aebalance a
+    , "aibalance"    .= aibalance a
+    , "anumpostings" .= anumpostings a
+    , "aboring"      .= aboring a
     -- To avoid a cycle, show just the parent account's name
     -- in a dummy field. When re-parsed, there will be no parent.
-    ,"aparent_"     .= maybe "" aname (aparent a)
+    , "aparent_"     .= maybe "" aname (aparent a)
     -- Just the names of subaccounts, as a dummy field, ignored when parsed.
-    ,"asubs_"       .= map aname (asubs a)
+    , "asubs_"       .= map aname (asubs a)
     -- The actual subaccounts (and their subs..), making a (probably highly redundant) tree
     -- ,"asubs"        .= asubs a
     -- Omit the actual subaccounts
-    ,"asubs"        .= ([]::[Account])
+    , "asubs"        .= ([]::[Account])
     ]
 
 deriving instance Generic (Ledger)
