@@ -477,9 +477,9 @@ multiBalanceReportAsCsv :: ReportOpts -> MultiBalanceReport -> CSV
 multiBalanceReportAsCsv opts@ReportOpts{average_, row_total_}
     (PeriodicReport colspans items (PeriodicReportRow _ coltotals tot avg)) =
   maybetranspose $
-  ("Account" : map showDateSpan colspans
-   ++ ["Total"   | row_total_]
-   ++ ["Average" | average_]
+  ("account" : map showDateSpan colspans
+   ++ ["total"   | row_total_]
+   ++ ["average" | average_]
   ) :
   [displayName a :
    map (wbToText . showMixedAmountB oneLine)
@@ -490,7 +490,7 @@ multiBalanceReportAsCsv opts@ReportOpts{average_, row_total_}
   ++
   if no_total_ opts
   then []
-  else ["Total:" :
+  else ["total" :
         map (wbToText . showMixedAmountB oneLine) (
           coltotals
           ++ [tot | row_total_]
