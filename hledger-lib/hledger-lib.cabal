@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 590fb12059e320c653341422d51f2227cd74874a8fc879145a0c7c39c33dcff5
+-- hash: 0669ce9e17070328f97a6114c236b42b8d422ca771b0164bee79dbc836586436
 
 name:           hledger-lib
 version:        1.21.99
@@ -111,7 +111,7 @@ library
     , cassava
     , cassava-megaparsec
     , cmdargs >=0.10
-    , containers
+    , containers >=0.5.9
     , data-default >=0.5
     , directory
     , extra >=1.6.3
@@ -160,7 +160,7 @@ test-suite doctest
     , cassava
     , cassava-megaparsec
     , cmdargs >=0.10
-    , containers
+    , containers >=0.5.9
     , data-default >=0.5
     , directory
     , doctest >=0.16.3
@@ -212,7 +212,7 @@ test-suite unittest
     , cassava
     , cassava-megaparsec
     , cmdargs >=0.10
-    , containers
+    , containers >=0.5.9
     , data-default >=0.5
     , directory
     , extra >=1.6.3
