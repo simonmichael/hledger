@@ -48,7 +48,7 @@ dependencies:
 - base >=4.9 && <4.16
 - base-compat-batteries >=0.10.1 && <0.12
 - cmdargs >=0.8
-- containers
+- containers >=0.5.9
 - data-default
 - directory
 - extra >=1.6.3

@@ -42,7 +42,7 @@ dependencies:
 - bytestring
 - call-stack
 - cmdargs >=0.10
-- containers
+- containers >=0.5.9
 - cassava
 - cassava-megaparsec
 - data-default >=0.5

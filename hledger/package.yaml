@@ -102,7 +102,7 @@ dependencies:
 - base-compat-batteries >=0.10.1 && <0.12
 - bytestring
 - cmdargs >=0.10
-- containers
+- containers >=0.5.9
 - data-default >=0.5
 - Decimal >=0.5.1
 - directory

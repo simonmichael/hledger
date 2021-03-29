@@ -113,7 +113,7 @@ library:
   - cmdargs >=0.10
   - conduit
   - conduit-extra >=1.1
-  - containers
+  - containers >=0.5.9
   - data-default
   - Decimal >=0.5.1
   - directory >=1.2.3.0
