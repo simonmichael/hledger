@@ -20,7 +20,6 @@ module Hledger.Reports.BudgetReport (
   budgetReportAsText,
   budgetReportAsCsv,
   -- * Helpers
-  reportPeriodName,
   combineBudgetAndActual,
   -- * Tests
   tests_BudgetReport
@@ -317,27 +316,6 @@ budgetReportAsTable
                        coltots ++ [grandtot | row_total_ ropts && not (null coltots)]
                                ++ [grandavg | average_ ropts && not (null coltots)]
                     ))
-
--- | Make a name for the given period in a multiperiod report, given
--- the type of balance being reported and the full set of report
--- periods. This will be used as a column heading (or row heading, in
--- a register summary report). We try to pick a useful name as follows:
---
--- - ending-balance reports: the period's end date
---
--- - balance change reports where the periods are months and all in the same year:
---   the short month name in the current locale
---
--- - all other balance change reports: a description of the datespan,
---   abbreviated to compact form if possible (see showDateSpan).
---
-reportPeriodName :: BalanceType -> [DateSpan] -> DateSpan -> T.Text
-reportPeriodName balancetype spans =
-  case balancetype of
-    PeriodChange -> if multiyear then showDateSpan else showDateSpanMonthAbbrev
-      where
-        multiyear = (>1) $ length $ nubSort $ map spanStartYear spans
-    _ -> maybe "" (showDate . prevday) . spanEnd
 
 -- XXX generalise this with multiBalanceReportAsCsv ?
 -- | Render a budget report as CSV. Like multiBalanceReportAsCsv,
