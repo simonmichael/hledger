@@ -46,7 +46,7 @@ stats opts@CliOpts{reportspec_=rspec} j = do
   d <- getCurrentDay
   let q = rsQuery rspec
       l = ledgerFromJournal q j
-      reportspan = (ledgerDateSpan l) `spanDefaultsFrom` (queryDateSpan False q)
+      reportspan = ledgerDateSpan l `spanDefaultsFrom` queryDateSpan False q
       intervalspans = splitSpan (interval_ $ rsOpts rspec) reportspan
       showstats = showLedgerStats l d
       s = intercalate "\n" $ map showstats intervalspans

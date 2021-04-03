@@ -31,9 +31,7 @@ import Text.Printf
 import Hledger.Utils.Test
 import Hledger.Data.Types
 import Hledger.Data.Account
-import Hledger.Data.Dates (daysSpan)
 import Hledger.Data.Journal
-import Hledger.Data.Posting (postingDate)
 import Hledger.Query
 
 
@@ -94,7 +92,7 @@ ledgerPostings = journalPostings . ljournal
 -- | The (fully specified) date span containing all the ledger's (filtered) transactions,
 -- or DateSpan Nothing Nothing if there are none.
 ledgerDateSpan :: Ledger -> DateSpan
-ledgerDateSpan = daysSpan . map postingDate . ledgerPostings
+ledgerDateSpan = journalDateSpanBothDates . ljournal
 
 -- | All commodities used in this ledger.
 ledgerCommodities :: Ledger -> [CommoditySymbol]
