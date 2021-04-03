@@ -42,6 +42,7 @@ module Hledger.Reports.ReportOptions (
   reportPeriodOrJournalStart,
   reportPeriodLastDay,
   reportPeriodOrJournalLastDay,
+  reportPeriodName
 )
 where
 
@@ -592,3 +593,23 @@ reportPeriodOrJournalLastDay rspec j = reportPeriodLastDay rspec <|> journalOrPr
         Just (AtEnd _) -> max (journalEndDate False j) lastPriceDirective
         _              -> journalEndDate False j
     lastPriceDirective = fmap (addDays 1) . maximumMay . map pddate $ jpricedirectives j
+
+-- | Make a name for the given period in a multiperiod report, given
+-- the type of balance being reported and the full set of report
+-- periods. This will be used as a column heading (or row heading, in
+-- a register summary report). We try to pick a useful name as follows:
+--
+-- - ending-balance reports: the period's end date
+--
+-- - balance change reports where the periods are months and all in the same year:
+--   the short month name in the current locale
+--
+-- - all other balance change reports: a description of the datespan,
+--   abbreviated to compact form if possible (see showDateSpan).
+reportPeriodName :: BalanceType -> [DateSpan] -> DateSpan -> T.Text
+reportPeriodName balancetype spans =
+  case balancetype of
+    PeriodChange -> if multiyear then showDateSpan else showDateSpanMonthAbbrev
+      where
+        multiyear = (>1) $ length $ nubSort $ map spanStartYear spans
+    _ -> maybe "" (showDate . prevday) . spanEnd

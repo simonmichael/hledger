@@ -243,7 +243,7 @@ compoundBalanceReportAsCsv ropts (CompoundPeriodicReport title colspans subrepor
     addtotals $
       padRow title
       : ( "Account"
-        : map showDateSpanMonthAbbrev colspans
+        : map (reportPeriodName (balancetype_ ropts) colspans) colspans
         ++ (if row_total_ ropts then ["Total"] else [])
         ++ (if average_ ropts then ["Average"] else [])
         )
@@ -288,7 +288,7 @@ compoundBalanceReportAsHtml ropts cbr =
          [tr_ $ th_ [colspanattr, leftattr] $ h2_ $ toHtml title]
       ++ [thRow $
           "" :
-          map showDateSpanMonthAbbrev colspans
+          map (reportPeriodName (balancetype_ ropts) colspans) colspans
           ++ (if row_total_ ropts then ["Total"] else [])
           ++ (if average_ ropts then ["Average"] else [])
           ]
