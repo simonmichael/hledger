@@ -21,7 +21,7 @@ github      : simonmichael/hledger
 homepage    : http://hledger.org
 bug-reports : http://bugs.hledger.org
 stability   : stable
-tested-with: GHC==8.0.2, GHC==8.2.2, GHC==8.4.4, GHC==8.6.5, GHC==8.8.3, GHC==8.10.0.20200123
+tested-with: GHC==8.2.2, GHC==8.4.4, GHC==8.6.5, GHC==8.8.4, GHC==8.10.4
 
 extra-source-files:
   - CHANGES.md
@@ -45,7 +45,7 @@ dependencies:
 - hledger >=1.21.99 && <1.22
 - ansi-terminal >=0.9
 - async
-- base >=4.9 && <4.16
+- base >=4.10.1.0 && <4.16
 - base-compat-batteries >=0.10.1 && <0.12
 - cmdargs >=0.8
 - containers >=0.5.9

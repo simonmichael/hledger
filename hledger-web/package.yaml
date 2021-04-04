@@ -22,9 +22,7 @@ github: simonmichael/hledger
 homepage: http://hledger.org
 bug-reports: http://bugs.hledger.org
 stability: stable
-tested-with: GHC==8.2.2, GHC==8.4.4, GHC==8.6.5, GHC==8.8.3, GHC==8.10.0.20200123
-# hledger-web is still GHC 8.0.2 compatible, but I haven't found an
-# install plan where all deps build
+tested-with: GHC==8.2.2, GHC==8.4.4, GHC==8.6.5, GHC==8.8.4, GHC==8.10.4
 
 extra-source-files:
 - CHANGES.md
@@ -104,7 +102,7 @@ library:
   - hledger-lib >=1.21.99 && <1.22
   - hledger >=1.21.99 && <1.22
   - aeson >=1
-  - base >=4.9 && <4.16
+  - base >=4.10.1.0 && <4.16
   - blaze-html
   - blaze-markup
   - bytestring
