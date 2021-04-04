@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a49afdcb093ef1403b64f7cc02fe1fc3b8be9c05b367355327403e68a8fbb754
+-- hash: aba98cf32b60adc9fb70cfbea5b4e02a9c91cf9abab526baab01f337d524e777
 
 name:           hledger-web
 version:        1.21.99
@@ -28,7 +28,7 @@ author:         Simon Michael <simon@joyful.com>
 maintainer:     Simon Michael <simon@joyful.com>
 license:        GPL-3
 license-file:   LICENSE
-tested-with:    GHC==8.2.2, GHC==8.4.4, GHC==8.6.5, GHC==8.8.3, GHC==8.10.0.20200123
+tested-with:    GHC==8.2.2, GHC==8.4.4, GHC==8.6.5, GHC==8.8.4, GHC==8.10.4
 build-type:     Simple
 extra-source-files:
     CHANGES.md
@@ -156,7 +156,7 @@ library
   build-depends:
       Decimal >=0.5.1
     , aeson >=1
-    , base >=4.9 && <4.16
+    , base >=4.10.1.0 && <4.16
     , blaze-html
     , blaze-markup
     , bytestring
