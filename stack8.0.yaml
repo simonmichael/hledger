@@ -23,12 +23,14 @@ extra-deps:
 - base-compat-0.10.1
 - base-compat-batteries-0.10.1
 - bifunctors-5.5.2
+- binary-0.8.8.0
 - brick-0.23
 - cabal-doctest-1.0.8
 - cassava-megaparsec-2.0.0
 - conduit-1.3.2
 - conduit-extra-1.3.0
 - config-ini-0.2.3.0
+- containers-0.5.11.0
 - criterion-1.4.1.0
 - Decimal-0.5.1
 - directory-1.3.2.2  # avoid hanging with windows symlinks https://github.com/simonmichael/hledger/issues/791
