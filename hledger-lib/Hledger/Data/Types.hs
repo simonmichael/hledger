@@ -17,6 +17,8 @@ For more detailed documentation on each type, see the corresponding modules.
 -}
 
 -- {-# LANGUAGE DeriveAnyClass #-}  -- https://hackage.haskell.org/package/deepseq-1.4.4.0/docs/Control-DeepSeq.html#v:rnf
+{-# LANGUAGE DeriveFoldable #-}
+{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -294,12 +296,12 @@ data BalanceAssertion = BalanceAssertion {
       baposition  :: GenericSourcePos    -- ^ the assertion's file position, for error reporting
     } deriving (Eq,Generic,Show)
 
-data Posting = Posting {
+data Posting' a = Posting {
       pdate             :: Maybe Day,         -- ^ this posting's date, if different from the transaction's
       pdate2            :: Maybe Day,         -- ^ this posting's secondary date, if different from the transaction's
       pstatus           :: Status,
       paccount          :: AccountName,
-      pamount           :: MixedAmount,
+      pamount           :: a,
       pcomment          :: Text,              -- ^ this posting's comment lines, as a single non-indented multi-line string
       ptype             :: PostingType,
       ptags             :: [Tag],                   -- ^ tag names and values, extracted from the comment
@@ -311,7 +313,9 @@ data Posting = Posting {
                                                     --   (eg its amount or price was inferred, or the account name was
                                                     --   changed by a pivot or budget report), this references the original
                                                     --   untransformed posting (which will have Nothing in this field).
-    } deriving (Generic)
+    } deriving (Functor, Foldable, Generic)
+
+type Posting = Posting' MixedAmount
 
 -- The equality test for postings ignores the parent transaction's
 -- identity, to avoid recurring ad infinitum.
@@ -345,7 +349,7 @@ data GenericSourcePos = GenericSourcePos FilePath Int Int    -- ^ file path, 1-b
 --    Ambiguous type variable ‘p0’ arising from an annotation
 --    prevents the constraint ‘(Data p0)’ from being solved.
 --    Probable fix: use a type annotation to specify what ‘p0’ should be.
-data Transaction = Transaction {
+data Transaction' a = Transaction {
       tindex                   :: Integer,   -- ^ this transaction's 1-based position in the transaction stream, or 0 when not available
       tprecedingcomment        :: Text,      -- ^ any comment lines immediately preceding this transaction
       tsourcepos               :: GenericSourcePos,  -- ^ the file position where the date starts
@@ -356,8 +360,10 @@ data Transaction = Transaction {
       tdescription             :: Text,
       tcomment                 :: Text,      -- ^ this transaction's comment lines, as a single non-indented multi-line string
       ttags                    :: [Tag],     -- ^ tag names and values, extracted from the comment
-      tpostings                :: [Posting]  -- ^ this transaction's postings
-    } deriving (Eq,Generic,Show)
+      tpostings                :: [a]  -- ^ this transaction's postings
+    } deriving (Eq, Functor, Foldable, Generic, Show)
+
+type Transaction = Transaction' Posting
 
 -- | A transaction modifier rule. This has a query which matches postings
 -- in the journal, and a list of transformations to apply to those
@@ -448,7 +454,7 @@ data MarketPrice = MarketPrice {
 -- Journal they represent the final state at end of parsing (used eg
 -- by the add command).
 --
-data Journal = Journal {
+data Journal' a = Journal {
   -- parsing-related data
    jparsedefaultyear      :: Maybe Year                            -- ^ the current default year, specified by the most recent Y directive (or current date)
   ,jparsedefaultcommodity :: Maybe (CommoditySymbol,AmountStyle)   -- ^ the current default commodity and its format, specified by the most recent D directive
@@ -469,7 +475,7 @@ data Journal = Journal {
   ,jinferredmarketprices  :: [MarketPrice]                          -- ^ Market prices implied by transactions, in parse order (after journal finalisation)
   ,jtxnmodifiers          :: [TransactionModifier]
   ,jperiodictxns          :: [PeriodicTransaction]
-  ,jtxns                  :: [Transaction]
+  ,jtxns                  :: [a]
   ,jfinalcommentlines     :: Text                                   -- ^ any final trailing comments in the (main) journal file
   ,jfiles                 :: [(FilePath, Text)]                     -- ^ the file path and raw text of the main and
                                                                     --   any included journal files. The main file is first,
@@ -477,7 +483,9 @@ data Journal = Journal {
                                                                     --   TODO: FilePath is a sloppy type here, don't assume it's a
                                                                     --   real file; values like "", "-", "(string)" can be seen
   ,jlastreadtime          :: ClockTime                              -- ^ when this journal was last read from its file(s)
-  } deriving (Eq, Generic)
+  } deriving (Eq, Functor, Foldable, Generic)
+
+type Journal = Journal' Transaction
 
 deriving instance Generic ClockTime
 

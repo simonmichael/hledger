@@ -1,11 +1,13 @@
 {-# LANGUAGE PackageImports #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 
 {-|
 
@@ -1640,4 +1642,10 @@ tests_Journal = tests "Journal" [
 
      ]
 
+    , tests "foldable" $ [
+      test "transactionsPostings" $ do
+        assertEqual "" (journalPostings samplejournal) ((toList <=< toList) samplejournal)
+      ,test "transactionsPostingsMixedAmount" $ do
+        assertEqual "" "0" (showMixedAmount $ sum $ (toList <=< toList <=< toList) samplejournal)
+      ]
   ]

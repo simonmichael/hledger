@@ -6,6 +6,9 @@ Note that there is no clear way to anonymize numbers.
 
 -}
 
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+
 module Hledger.Cli.Anon
     ( Anon(..)
     , anonAccount
