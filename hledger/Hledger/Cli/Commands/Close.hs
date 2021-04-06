@@ -82,14 +82,9 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec} j = do
     -- should we show the amount(s) on the equity posting(s) ?
     explicit = boolopt "explicit" rawopts
 
-    -- should we preserve cost information ?
-    normalise = case boolopt "show-costs" rawopts of
-                  True  -> normaliseMixedAmount
-                  False -> normaliseMixedAmount . mixedAmountStripPrices
-
     -- the balances to close
     (acctbals,_) = balanceReport rspec_ j
-    totalamt = maSum $ map (\(_,_,_,b) -> normalise b) acctbals
+    totalamt = maSum $ map (\(_,_,_,b) -> b) acctbals
 
     -- since balance assertion amounts are required to be exact, the
     -- amounts in opening/closing transactions should be too (#941, #1137)
@@ -117,13 +112,13 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec} j = do
 
         | -- get the balances for each commodity and transaction price
           (a,_,_,mb) <- acctbals
-        , let bs = amounts $ normalise mb
+        , let bs = amounts $ normaliseMixedAmount mb
           -- mark the last balance in each commodity with True
         , let bs' = concat [reverse $ zip (reverse bs) (True : repeat False)
                            | bs <- groupBy ((==) `on` acommodity) bs]
         , (b, islast) <- bs'
         ]
-      
+
       -- or a final multicommodity posting transferring all balances to equity
       -- (print will show this as multiple single-commodity postings)
       ++ [posting{paccount=closingacct, pamount=if explicit then mapMixedAmount precise totalamt else missingmixedamt} | not interleaved]
@@ -143,7 +138,7 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec} j = do
         ++ [posting{paccount=openingacct, pamount=Mixed [precise $ negate b]} | interleaved]
 
         | (a,_,_,mb) <- acctbals
-        , let bs = amounts $ normalise mb
+        , let bs = amounts $ normaliseMixedAmount mb
           -- mark the last balance in each commodity with the unpriced sum in that commodity (for a balance assertion)
         , let bs' = concat [reverse $ zip (reverse bs) (Just commoditysum : repeat Nothing)
                            | bs <- groupBy ((==) `on` acommodity) bs

@@ -119,6 +119,7 @@ data ReportOpts = ReportOpts {
     ,drop_           :: Int
     ,row_total_      :: Bool
     ,no_total_       :: Bool
+    ,show_costs_     :: Bool  -- ^ Whether to show costs for reports which normally don't show them
     ,pretty_tables_  :: Bool
     ,sort_amount_    :: Bool
     ,percent_        :: Bool
@@ -166,6 +167,7 @@ defreportopts = ReportOpts
     , drop_            = 0
     , row_total_       = False
     , no_total_        = False
+    , show_costs_      = False
     , pretty_tables_   = False
     , sort_amount_     = False
     , percent_         = False
@@ -215,6 +217,7 @@ rawOptsToReportOpts rawopts = do
           ,drop_        = posintopt "drop" rawopts
           ,row_total_   = boolopt "row-total" rawopts
           ,no_total_    = boolopt "no-total" rawopts
+          ,show_costs_  = boolopt "show-costs" rawopts
           ,sort_amount_ = boolopt "sort-amount" rawopts
           ,percent_     = boolopt "percent" rawopts
           ,invert_      = boolopt "invert" rawopts

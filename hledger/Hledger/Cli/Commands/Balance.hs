@@ -388,11 +388,11 @@ balance opts@CliOpts{reportspec_=rspec} j = case reporttype_ of
 balanceReportAsCsv :: ReportOpts -> BalanceReport -> CSV
 balanceReportAsCsv opts (items, total) =
   ["account","balance"] :
-  [[accountNameDrop (drop_ opts) a, wbToText $ showMixedAmountB oneLine b] | (a, _, _, b) <- items]
+  [[accountNameDrop (drop_ opts) a, wbToText $ showMixedAmountB (balanceOpts False opts) b] | (a, _, _, b) <- items]
   ++
   if no_total_ opts
   then []
-  else [["total", wbToText $ showMixedAmountB oneLine total]]
+  else [["total", wbToText $ showMixedAmountB (balanceOpts False opts) total]]
 
 -- | Render a single-column balance report as plain text.
 balanceReportAsText :: ReportOpts -> BalanceReport -> TB.Builder
@@ -461,12 +461,12 @@ renderComponent topaligned opts (acctname, depth, total) (FormatField ljust mmin
     DepthSpacerField -> Cell align [WideBuilder (TB.fromText $ T.replicate d " ") d]
                         where d = maybe id min mmax $ depth * fromMaybe 1 mmin
     AccountField     -> textCell align $ formatText ljust mmin mmax acctname
-    TotalField       -> Cell align . pure $ showamt total
+    TotalField       -> Cell align . pure $ showMixedAmountB dopts total
     _                -> Cell align [mempty]
   where
     align = if topaligned then (if ljust then TopLeft    else TopRight)
                           else (if ljust then BottomLeft else BottomRight)
-    showamt = showMixedAmountB noPrice{displayColour=color_ opts, displayMinWidth=mmin, displayMaxWidth=mmax}
+    dopts = (balanceOpts True opts){displayOneLine=False, displayMinWidth=mmin, displayMaxWidth=mmax}
 
 -- rendering multi-column balance reports
 
@@ -482,7 +482,7 @@ multiBalanceReportAsCsv opts@ReportOpts{average_, row_total_}
    ++ ["average" | average_]
   ) :
   [displayName a :
-   map (wbToText . showMixedAmountB oneLine)
+   map (wbToText . showMixedAmountB (balanceOpts False opts))
    (amts
     ++ [rowtot | row_total_]
     ++ [rowavg | average_])
@@ -491,7 +491,7 @@ multiBalanceReportAsCsv opts@ReportOpts{average_, row_total_}
   if no_total_ opts
   then []
   else ["total" :
-        map (wbToText . showMixedAmountB oneLine) (
+        map (wbToText . showMixedAmountB (balanceOpts False opts)) (
           coltotals
           ++ [tot | row_total_]
           ++ [avg | average_]
@@ -656,13 +656,19 @@ balanceReportAsTable opts@ReportOpts{average_, row_total_, balancetype_}
 -- console output. Amounts with more than two commodities will be elided
 -- unless --no-elide is used.
 balanceReportTableAsText :: ReportOpts -> Table T.Text T.Text MixedAmount -> TB.Builder
-balanceReportTableAsText ReportOpts{..} =
+balanceReportTableAsText ropts@ReportOpts{..} =
     Tab.renderTableB def{tableBorders=False, prettyTable=pretty_tables_}
-        (Tab.textCell TopLeft) (Tab.textCell TopRight) showamt
-  where
-    showamt = Cell TopRight . pure . showMixedAmountB oneLine{displayColour=color_, displayMaxWidth=mmax}
-    mmax = if no_elide_ then Nothing else Just 32
+        (Tab.textCell TopLeft) (Tab.textCell TopRight) $
+        Cell TopRight . pure . showMixedAmountB (balanceOpts True ropts)
 
+-- | Amount display options to use for balance reports
+balanceOpts :: Bool -> ReportOpts -> AmountDisplayOpts
+balanceOpts isTable ReportOpts{..} = oneLine
+    { displayColour   = isTable && color_
+    , displayMaxWidth = if isTable && not no_elide_ then Just 32 else Nothing
+    , displayPrice    = True  -- multiBalanceReport strips prices from Amounts if they are not being used,
+                              -- so we can display prices here without fear.
+    }
 
 tests_Balance = tests "Balance" [
 
