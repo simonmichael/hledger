@@ -558,14 +558,22 @@ cumulativeSum value start = snd . M.mapAccumWithKey accumValued start
 postingAndAccountValuations :: ReportSpec -> Journal -> PriceOracle
                             -> (DateSpan -> Posting -> Posting, DateSpan -> Account -> Account)
 postingAndAccountValuations ReportSpec{rsToday=today, rsOpts=ropts} j priceoracle = case value_ ropts of
-    Just (AtEnd _) -> (const id, avalue' (cost_ ropts) (value_ ropts))
-    _              -> (pvalue' (cost_ ropts) (value_ ropts), const id)
+    -- If we're doing AtEnd valuation, we may need to value the same posting at different dates
+    -- (for example, when preparing a ValueChange report). So we should only convert to cost and
+    -- maybe strip prices from the Posting, and should do valuation on the Accounts.
+    Just v@(AtEnd _) -> (pvalue Nothing, avalue v)
+    -- Otherwise, all costing and valuation should be done on the Postings.
+    _                -> (pvalue (value_ ropts), const id)
   where
-    avalue' c v span a = a{aibalance = value (aibalance a), aebalance = value (aebalance a)}
-      where value = mixedAmountApplyCostValuation priceoracle styles (end span) today (error "multiBalanceReport: did not expect amount valuation to be called ") c v  -- PARTIAL: should not happen
-    pvalue' c v span = postingApplyCostValuation priceoracle styles (end span) today c v
-    end = fromMaybe (error "multiBalanceReport: expected all spans to have an end date")  -- XXX should not happen
-        . fmap (addDays (-1)) . spanEnd
+    -- For a Posting: convert to cost, apply valuation, then strip prices if we don't need them (See issue #1507).
+    pvalue v span = maybeStripPrices . postingApplyCostValuation priceoracle styles (end span) today (cost_ ropts) v
+    -- For an Account: Apply valuation to both the inclusive and exclusive balances.
+    avalue v span a = a{aibalance = value (aibalance a), aebalance = value (aebalance a)}
+      where value = mixedAmountApplyValuation priceoracle styles (end span) today (error "multiBalanceReport: did not expect amount valuation to be called ") v  -- PARTIAL: should not happen
+
+    maybeStripPrices = if show_costs_ ropts then id else postingStripPrices
+    end = maybe (error "multiBalanceReport: expected all spans to have an end date")  -- PARTIAL: should not happen
+            (addDays (-1)) . spanEnd
     styles = journalCommodityStyles j
 
 -- tests

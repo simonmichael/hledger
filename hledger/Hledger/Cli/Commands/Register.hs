@@ -93,8 +93,9 @@ postingsReportItemAsCsvRecord (_, _, _, p, b) = [idx,date,code,desc,acct,amt,bal
                              BalancedVirtualPosting -> wrap "[" "]"
                              VirtualPosting -> wrap "(" ")"
                              _ -> id
-    amt = wbToText . showMixedAmountB oneLine $ pamount p
-    bal = wbToText $ showMixedAmountB oneLine b
+    -- Since postingsReport strips prices from all Amounts when not used, we can display prices.
+    amt = wbToText . showMixedAmountB oneLine{displayPrice=True} $ pamount p
+    bal = wbToText $ showMixedAmountB oneLine{displayPrice=True} b
 
 -- | Render a register report as plain text suitable for console output.
 postingsReportAsText :: CliOpts -> PostingsReport -> TL.Text
@@ -107,7 +108,8 @@ postingsReportAsText opts items = TB.toLazyText $ foldMap first3 linesWithWidths
     -- balwidth = maximum $ 12 : map third3 linesWithWidths
     amtwidth = maximumStrict $ 12 : widths (map itemamt items)
     balwidth = maximumStrict $ 12 : widths (map itembal items)
-    widths = map wbWidth . concatMap (showAmountsLinesB noPrice)
+    -- Since postingsReport strips prices from all Amounts when not used, we can display prices.
+    widths = map wbWidth . concatMap (showAmountsLinesB oneLine{displayPrice=True})
     itemamt (_,_,_,Posting{pamount=a},_) = amounts a
     itembal (_,_,_,_,a) = amounts a
 
@@ -190,7 +192,9 @@ postingsReportItemAsText opts preferredamtwidth preferredbalwidth (mdate, mendda
             _                      -> (id,acctwidth)
     amt = showAmountsLinesB dopts . (\x -> if null x then [nullamt] else x) . amounts $ pamount p
     bal = showAmountsLinesB dopts $ amounts b
-    dopts = noPrice{displayColour=color_ . rsOpts $ reportspec_ opts}
+    -- Since postingsReport strips prices from all Amounts when not used, we can display prices.
+    dopts = oneLine{displayColour=color_, displayPrice=True}
+      where ReportOpts{..} = rsOpts $ reportspec_ opts
     -- Since this will usually be called with the knot tied between this(amt|bal)width and
     -- preferred(amt|bal)width, make sure the former do not depend on the latter to avoid loops.
     thisamtwidth = maximumDef 0 $ map wbWidth amt

@@ -210,7 +210,19 @@ hledger -f - balance --no-total -E
                  -1Y  b
 >>>= 0
 
-# 18. the above with -B
+# 18. Without -E, a should be hidden because its balance is zero, even though it has a non-zero cost.
+hledger -f - balance --no-total
+<<<
+1/1
+    a   1X @@ 1Y
+    a   1X @@ 1Y
+    a  -2X @@ 1Y
+    b
+>>>
+                 -1Y  b
+>>>= 0
+
+# 19. the above with -B
 hledger -f - balance --no-total -E -B
 <<<
 1/1
