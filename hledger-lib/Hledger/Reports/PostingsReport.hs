@@ -76,7 +76,9 @@ postingsReport rspec@ReportSpec{rsOpts=ropts@ReportOpts{..}} j = items
       (precedingps, reportps) = matchedPostingsBeforeAndDuring rspec j reportspan
 
       -- We may be converting posting amounts to value, per hledger_options.m4.md "Effect of --value on reports".
-      pvalue periodlast = postingApplyCostValuation priceoracle styles periodlast (rsToday rspec) cost_ value_
+      -- Strip prices from postings if we won't need them.
+      pvalue periodlast = maybeStripPrices . postingApplyCostValuation priceoracle styles periodlast (rsToday rspec) cost_ value_
+        where maybeStripPrices = if show_costs_ then id else postingStripPrices
 
       -- Postings, or summary postings with their subperiod's end date, to be displayed.
       displayps :: [(Posting, Maybe Day)]
@@ -91,14 +93,10 @@ postingsReport rspec@ReportSpec{rsOpts=ropts@ReportOpts{..}} j = items
             fromMaybe (error' "postingsReport: expected a non-empty journal") $  -- PARTIAL: shouldn't happen
             reportPeriodOrJournalLastDay rspec j
 
-      -- Strip prices from postings if we won't need them.
-      displaypsnoprices = map (\(p,md) -> (maybeStripPrices p, md)) displayps
-        where maybeStripPrices = if show_costs_ then id else postingStripPrices
-
       -- Posting report items ready for display.
       items =
         dbg4 "postingsReport items" $
-        postingsReportItems displaypsnoprices (nullposting,Nothing) whichdate mdepth startbal runningcalc startnum
+        postingsReportItems displayps (nullposting,Nothing) whichdate mdepth startbal runningcalc startnum
         where
           -- In historical mode we'll need a starting balance, which we
           -- may be converting to value per hledger_options.m4.md "Effect
