@@ -61,15 +61,24 @@ which has nice screenshots, but might be less up to date.
  income:salary         $-1
  liabilities:debts      $1
 
+** / bank  # set a filter, showing only accounts with "bank" in the name
+────────────── sample.journal account balances matching bank (1/2) ─────────────
+ assets:bank:checking   0  # <- selected
+ assets:bank:saving    $1
+
 ** RIGHT  # shows assets:bank:checking & subaccounts' transactions
-──────────────────── assets:bank:checking transactions (4/4) ───────────────────
+───────────── assets:bank:checking transactions matching bank (4/4) ────────────
  2008-01-01   income                      in:salary                     $1   $1
  2008-06-01   gift                        in:gifts                      $1   $2
  2008-06-02   save                        as:ba:saving                 $-1   $1
  2008-12-31 * pay off                     li:debts                     $-1    0  # <- selected
 
+** / SPACE desc:pay  # add another filter term, showing only transactions with "pay" in the description
+──────── assets:bank:checking transactions matching bank desc:pay (1/1) ────────
+ 2008-12-31 * pay off                    as:ba:checking               $-1   $-1
+
 ** RIGHT  # shows transaction detail
-──────────────── Transaction #5 (4 of 4 in assets:bank:checking) ───────────────
+──── Transaction #5 (1 of 1 matching bank desc:pay in assets:bank:checking) ────
  2008-12-31 * pay off
      liabilities:debts                 $1
      assets:bank:checking             $-1
@@ -102,7 +111,7 @@ which has nice screenshots, but might be less up to date.
 ──── ?:help t:list/tree -+:depth H:end-bals/changes F:forecast a:add q:quit ────
 
 ** q  # q with help dialog open closes it
-──────────────── Transaction #5 (4 of 4 in assets:bank:checking) ───────────────
+──── Transaction #5 (1 of 1 matching bank desc:pay in assets:bank:checking) ────
  2008-12-31 * pay off
      liabilities:debts                 $1
      assets:bank:checking             $-1
