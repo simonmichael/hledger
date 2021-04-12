@@ -284,7 +284,7 @@ postingAsLines elideamount onelineamounts acctwidth amtwidth p =
     -- amtwidth at all.
     shownAmounts
       | elideamount = [mempty]
-      | otherwise   = showAmountsLinesB noColour{displayOneLine=onelineamounts} . amounts $ pamount p
+      | otherwise   = showMixedAmountLinesB noColour{displayOneLine=onelineamounts} $ pamount p
     thisamtwidth = maximumDef 0 $ map wbWidth shownAmounts
 
     (samelinecomment, newlinecomments) =

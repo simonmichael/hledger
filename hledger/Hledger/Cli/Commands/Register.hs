@@ -109,9 +109,9 @@ postingsReportAsText opts items = TB.toLazyText $ foldMap first3 linesWithWidths
     amtwidth = maximumStrict $ 12 : widths (map itemamt items)
     balwidth = maximumStrict $ 12 : widths (map itembal items)
     -- Since postingsReport strips prices from all Amounts when not used, we can display prices.
-    widths = map wbWidth . concatMap (showAmountsLinesB oneLine{displayPrice=True})
-    itemamt (_,_,_,Posting{pamount=a},_) = amounts a
-    itembal (_,_,_,_,a) = amounts a
+    widths = map wbWidth . concatMap (showMixedAmountLinesB oneLine{displayPrice=True})
+    itemamt (_,_,_,Posting{pamount=a},_) = a
+    itembal (_,_,_,_,a) = a
 
 -- | Render one register report line item as plain text. Layout is like so:
 -- @
@@ -190,10 +190,10 @@ postingsReportItemAsText opts preferredamtwidth preferredbalwidth (mdate, mendda
             BalancedVirtualPosting -> (wrap "[" "]", acctwidth-2)
             VirtualPosting         -> (wrap "(" ")", acctwidth-2)
             _                      -> (id,acctwidth)
-    amt = showAmountsLinesB dopts . (\x -> if null x then [nullamt] else x) . amountsRaw $ pamount p
-    bal = showAmountsLinesB dopts $ amounts b
+    amt = showamt $ pamount p
+    bal = showamt b
     -- Since postingsReport strips prices from all Amounts when not used, we can display prices.
-    dopts = oneLine{displayColour=color_, displayPrice=True}
+    showamt = showMixedAmountLinesB oneLine{displayColour=color_, displayPrice=True}
       where ReportOpts{..} = rsOpts $ reportspec_ opts
     -- Since this will usually be called with the knot tied between this(amt|bal)width and
     -- preferred(amt|bal)width, make sure the former do not depend on the latter to avoid loops.

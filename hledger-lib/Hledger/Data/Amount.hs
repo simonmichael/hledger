@@ -77,8 +77,6 @@ module Hledger.Data.Amount (
   styleAmountExceptPrecision,
   amountUnstyled,
   showAmountB,
-  showAmountsB,
-  showAmountsLinesB,
   showAmount,
   cshowAmount,
   showAmountWithZeroCommodity,
@@ -136,6 +134,7 @@ module Hledger.Data.Amount (
   showMixedAmountElided,
   showMixedAmountWithZeroCommodity,
   showMixedAmountB,
+  showMixedAmountLinesB,
   wbToText,
   wbUnpack,
   mixedAmountSetPrecision,
@@ -440,82 +439,6 @@ showAmountB opts a@Amount{astyle=style} =
     c' = WideBuilder (TB.fromText c) (textWidth c)
     price = if displayPrice opts then showAmountPrice a else mempty
     color = if displayColour opts && isNegativeAmount a then colorB Dull Red else id
-
--- | General function to generate a WideBuilder for a list of Amounts, according the
--- supplied AmountDisplayOpts. This is the main function to use for showing
--- a list of Amounts, constructing a builder; it can then be converted to a Text with
--- wbToText, or to a String with wbUnpack.
---
--- The list of Amounts is not normalised, and will be displayed as-is.
---
--- If a maximum width is given then:
--- - If displayed on one line, it will display as many Amounts as can
---   fit in the given width, and further Amounts will be elided. There
---   will always be at least one amount displayed, even if this will
---   exceed the requested maximum width.
--- - If displayed on multiple lines, any Amounts longer than the
---   maximum width will be elided.
-showAmountsB :: AmountDisplayOpts -> [Amount] -> WideBuilder
-showAmountsB opts amts'
-    | displayOneLine opts = showAmountsOneLineB opts amts
-    | otherwise           = WideBuilder (wbBuilder . mconcat $ intersperse sep lines) width
-  where
-    amts = if null amts' then [nullamt] else amts'
-    lines = showAmountsLinesB opts amts
-    width = headDef 0 $ map wbWidth lines
-    sep = WideBuilder (TB.singleton '\n') 0
-
--- | Helper for showAmountsB to show a list of Amounts on multiple lines. This returns
--- the list of WideBuilders: one for each Amount, and padded/elided to the appropriate
--- width. This does not honour displayOneLine: all amounts will be displayed as if
--- displayOneLine were False.
-showAmountsLinesB :: AmountDisplayOpts -> [Amount] -> [WideBuilder]
-showAmountsLinesB opts@AmountDisplayOpts{displayMaxWidth=mmax,displayMinWidth=mmin} amts =
-    map (adBuilder . pad) elided
-  where
-    astrs = amtDisplayList (wbWidth sep) (showAmountB opts) amts
-    sep   = WideBuilder (TB.singleton '\n') 0
-    width = maximum $ fromMaybe 0 mmin : map (wbWidth . adBuilder) elided
-
-    pad amt = amt{ adBuilder = WideBuilder (TB.fromText $ T.replicate w " ") w <> adBuilder amt }
-      where w = width - wbWidth (adBuilder amt)
-
-    elided = maybe id elideTo mmax astrs
-    elideTo m xs = maybeAppend elisionStr short
-      where
-        elisionStr = elisionDisplay (Just m) (wbWidth sep) (length long) $ lastDef nullAmountDisplay short
-        (short, long) = partition ((m>=) . wbWidth . adBuilder) xs
-
--- | Helper for showAmountsB to deal with single line displays. This does not
--- honour displayOneLine: all amounts will be displayed as if displayOneLine
--- were True.
-showAmountsOneLineB :: AmountDisplayOpts -> [Amount] -> WideBuilder
-showAmountsOneLineB opts@AmountDisplayOpts{displayMaxWidth=mmax,displayMinWidth=mmin} amts =
-    WideBuilder (wbBuilder . pad . mconcat . intersperse sep $ map adBuilder elided)
-    . max width $ fromMaybe 0 mmin
-  where
-    width  = maybe 0 adTotal $ lastMay elided
-    astrs  = amtDisplayList (wbWidth sep) (showAmountB opts) amts
-    sep    = WideBuilder (TB.fromString ", ") 2
-    n      = length amts
-
-    pad = (WideBuilder (TB.fromText $ T.replicate w " ") w <>)
-      where w = fromMaybe 0 mmin - width
-
-    elided = maybe id elideTo mmax astrs
-    elideTo m = addElide . takeFitting m . withElided
-    -- Add the last elision string to the end of the display list
-    addElide [] = []
-    addElide xs = maybeAppend (snd $ last xs) $ map fst xs
-    -- Return the elements of the display list which fit within the maximum width
-    -- (including their elision strings). Always display at least one amount,
-    -- regardless of width.
-    takeFitting _ []     = []
-    takeFitting m (x:xs) = x : dropWhileRev (\(a,e) -> m < adTotal (fromMaybe a e)) xs
-    dropWhileRev p = foldr (\x xs -> if null xs && p x then [] else x:xs) []
-
-    -- Add the elision strings (if any) to each amount
-    withElided = zipWith (\num amt -> (amt, elisionDisplay Nothing (wbWidth sep) num amt)) [n-1,n-2..0]
 
 -- | Colour version. For a negative amount, adds ANSI codes to change the colour,
 -- currently to hard-coded red.
@@ -873,17 +796,75 @@ showMixedAmountDebug m | m == missingmixedamt = "(missing)"
 -- MixedAmounts, constructing a builder; it can then be converted to a Text with
 -- wbToText, or to a String with wbUnpack.
 --
--- This normalises the MixedAmount before displaying: if you don't want this,
--- use showAmountsB.
---
 -- If a maximum width is given then:
 -- - If displayed on one line, it will display as many Amounts as can
---   fit in the given width, and further Amounts will be elided.
+--   fit in the given width, and further Amounts will be elided. There
+--   will always be at least one amount displayed, even if this will
+--   exceed the requested maximum width.
 -- - If displayed on multiple lines, any Amounts longer than the
 --   maximum width will be elided.
 showMixedAmountB :: AmountDisplayOpts -> MixedAmount -> WideBuilder
-showMixedAmountB opts =
-    showAmountsB opts . amounts . if displayPrice opts then id else mixedAmountStripPrices
+showMixedAmountB opts ma
+    | displayOneLine opts = showMixedAmountOneLineB opts ma
+    | otherwise           = WideBuilder (wbBuilder . mconcat $ intersperse sep lines) width
+  where
+    lines = showMixedAmountLinesB opts ma
+    width = headDef 0 $ map wbWidth lines
+    sep = WideBuilder (TB.singleton '\n') 0
+
+-- | Helper for showMixedAmountB to show a list of Amounts on multiple lines. This returns
+-- the list of WideBuilders: one for each Amount, and padded/elided to the appropriate
+-- width. This does not honour displayOneLine: all amounts will be displayed as if
+-- displayOneLine were False.
+showMixedAmountLinesB :: AmountDisplayOpts -> MixedAmount -> [WideBuilder]
+showMixedAmountLinesB opts@AmountDisplayOpts{displayMaxWidth=mmax,displayMinWidth=mmin} ma =
+    map (adBuilder . pad) elided
+  where
+    astrs = amtDisplayList (wbWidth sep) (showAmountB opts) . amounts $
+              if displayPrice opts then ma else mixedAmountStripPrices ma
+    sep   = WideBuilder (TB.singleton '\n') 0
+    width = maximum $ fromMaybe 0 mmin : map (wbWidth . adBuilder) elided
+
+    pad amt = amt{ adBuilder = WideBuilder (TB.fromText $ T.replicate w " ") w <> adBuilder amt }
+      where w = width - wbWidth (adBuilder amt)
+
+    elided = maybe id elideTo mmax astrs
+    elideTo m xs = maybeAppend elisionStr short
+      where
+        elisionStr = elisionDisplay (Just m) (wbWidth sep) (length long) $ lastDef nullAmountDisplay short
+        (short, long) = partition ((m>=) . wbWidth . adBuilder) xs
+
+-- | Helper for showMixedAmountB to deal with single line displays. This does not
+-- honour displayOneLine: all amounts will be displayed as if displayOneLine
+-- were True.
+showMixedAmountOneLineB :: AmountDisplayOpts -> MixedAmount -> WideBuilder
+showMixedAmountOneLineB opts@AmountDisplayOpts{displayMaxWidth=mmax,displayMinWidth=mmin} ma =
+    WideBuilder (wbBuilder . pad . mconcat . intersperse sep $ map adBuilder elided)
+    . max width $ fromMaybe 0 mmin
+  where
+    width  = maybe 0 adTotal $ lastMay elided
+    astrs  = amtDisplayList (wbWidth sep) (showAmountB opts) . amounts $
+               if displayPrice opts then ma else mixedAmountStripPrices ma
+    sep    = WideBuilder (TB.fromString ", ") 2
+    n      = length astrs
+
+    pad = (WideBuilder (TB.fromText $ T.replicate w " ") w <>)
+      where w = fromMaybe 0 mmin - width
+
+    elided = maybe id elideTo mmax astrs
+    elideTo m = addElide . takeFitting m . withElided
+    -- Add the last elision string to the end of the display list
+    addElide [] = []
+    addElide xs = maybeAppend (snd $ last xs) $ map fst xs
+    -- Return the elements of the display list which fit within the maximum width
+    -- (including their elision strings). Always display at least one amount,
+    -- regardless of width.
+    takeFitting _ []     = []
+    takeFitting m (x:xs) = x : dropWhileRev (\(a,e) -> m < adTotal (fromMaybe a e)) xs
+    dropWhileRev p = foldr (\x xs -> if null xs && p x then [] else x:xs) []
+
+    -- Add the elision strings (if any) to each amount
+    withElided = zipWith (\num amt -> (amt, elisionDisplay Nothing (wbWidth sep) num amt)) [n-1,n-2..0]
 
 data AmountDisplay = AmountDisplay
   { adBuilder :: !WideBuilder  -- ^ String representation of the Amount
