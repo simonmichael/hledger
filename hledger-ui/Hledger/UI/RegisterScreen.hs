@@ -65,6 +65,8 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec
     -- XXX temp
     inclusive = tree_ ropts || rsForceInclusive
     thisacctq = Acct $ (if inclusive then accountNameToAccountRegex else accountNameToAccountOnlyRegex) rsAccount
+
+    -- adjust the report options and regenerate the ReportSpec, carefully as usual to avoid screwups (#1523)
     ropts' = ropts {
         -- ignore any depth limit, as in postingsReport; allows register's total to match accounts screen
         depth_=Nothing
@@ -72,10 +74,10 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec
         -- always show historical balance
       -- , balancetype_= HistoricalBalance
       }
-    -- regenerate the ReportSpec, making sure to use the above
-    rspec' = rspec{ rsQuery=simplifyQuery $ queryFromFlags ropts'
-                  , rsOpts=ropts'
-                  }
+    rspec' = 
+      either (error "rsInit: adjusting the query for register, should not have failed") id $ -- PARTIAL:
+      updateReportSpec ropts' rspec
+
     -- Further restrict the query based on the current period and future/forecast mode.
     q = simplifyQuery $ And [rsQuery rspec', periodq, excludeforecastq (forecast_ ropts)]
       where
@@ -87,7 +89,6 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec
              Not (Date $ DateSpan (Just $ addDays 1 d) Nothing)
             ,Not generatedTransactionTag
           ]
-
     items = accountTransactionsReport rspec' j q thisacctq
     items' = (if empty_ ropts then id else filter (not . mixedAmountLooksZero . fifth6)) $  -- without --empty, exclude no-change txns
              reverse  -- most recent last
