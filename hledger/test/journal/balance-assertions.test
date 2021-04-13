@@ -190,6 +190,13 @@ $ hledger -f - stats
   a    $0 = $7
   b   $0   = $-7
 
+2013/1/5
+  (c)    100 A
+
+2013/1/5
+  c      = 50 B
+  c      = 50 A
+
 $ hledger -f - stats
 > /Transactions/
 >=0
