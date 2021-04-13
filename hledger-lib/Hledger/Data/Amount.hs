@@ -874,7 +874,7 @@ data AmountDisplay = AmountDisplay
   { adBuilder :: !WideBuilder  -- ^ String representation of the Amount
   , adTotal   :: !Int            -- ^ Cumulative length of MixedAmount this Amount is part of,
                                 --   including separators
-  }
+  } deriving (Show)
 
 nullAmountDisplay :: AmountDisplay
 nullAmountDisplay = AmountDisplay mempty 0
