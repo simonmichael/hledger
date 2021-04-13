@@ -26,7 +26,7 @@ import qualified Data.Text.Lazy.Builder as TB
 data WideBuilder = WideBuilder
   { wbBuilder :: !TB.Builder
   , wbWidth   :: !Int
-  }
+  } deriving (Show)
 
 instance Semigroup WideBuilder where
   WideBuilder x i <> WideBuilder y j = WideBuilder (x <> y) (i + j)
