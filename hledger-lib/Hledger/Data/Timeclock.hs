@@ -121,7 +121,11 @@ entryFromTimeclockInOut i o
       showtime = take 5 . show
       hours    = elapsedSeconds (toutc otime) (toutc itime) / 3600 where toutc = localTimeToUTC utc
       acctname = tlaccount i
-      amount   = mixedAmount $ hrs hours
+      -- Generate an hours amount. Unusually, we also round the internal Decimal value,
+      -- since otherwise it will often have large recurring decimal parts which (since 1.21)
+      -- print would display all 255 digits of. timeclock amounts have one second resolution,
+      -- so two decimal places is precise enough (#1527).
+      amount   = mixedAmount $ setAmountInternalPrecision 2 $ hrs hours
       ps       = [posting{paccount=acctname, pamount=amount, ptype=VirtualPosting, ptransaction=Just t}]
 
 

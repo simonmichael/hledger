@@ -357,7 +357,7 @@ amountSetFullPrecision a = amountSetPrecision p a
 -- Rounding is done with Data.Decimal's default roundTo function:
 -- "If the value ends in 5 then it is rounded to the nearest even value (Banker's Rounding)".
 -- Does not change the amount's display precision.
--- Intended only for internal use, eg when comparing amounts in tests.
+-- Intended mainly for internal use, eg when comparing amounts in tests.
 setAmountInternalPrecision :: Word8 -> Amount -> Amount
 setAmountInternalPrecision p a@Amount{ aquantity=q, astyle=s } = a{
    astyle=s{asprecision=Precision p}
@@ -365,7 +365,7 @@ setAmountInternalPrecision p a@Amount{ aquantity=q, astyle=s } = a{
   }
 
 -- | Set an amount's internal precision, flipped.
--- Intended only for internal use, eg when comparing amounts in tests.
+-- Intended mainly for internal use, eg when comparing amounts in tests.
 withInternalPrecision :: Amount -> Word8 -> Amount
 withInternalPrecision = flip setAmountInternalPrecision
 

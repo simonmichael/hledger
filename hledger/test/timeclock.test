@@ -65,6 +65,17 @@ $ hledger -f timeclock:- balance
 >2 /line 2: expected timeclock code o/
 >= !0
 
+# Timeclock amounts are always rounded to two decimal places, 
+# even when displayed by print (#1527).
+<
+i 2020-01-30 08:38:35 a
+o 2020-01-30 09:03:35
+$ hledger -f timeclock:- print
+2020-01-30 * 08:38-09:03
+    (a)           0.42h
+
+>=
+
 ## TODO
 ## multi-day sessions get a new transaction for each day
 #hledger -ftimeclock:- print
