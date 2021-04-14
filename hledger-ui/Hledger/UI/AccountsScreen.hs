@@ -100,10 +100,8 @@ asInit d reset ui@UIState{
       AccountsScreenItem{asItemIndentLevel        = indent
                         ,asItemAccountName        = fullacct
                         ,asItemDisplayAccountName = replaceHiddenAccountsNameWith "All" $ if tree_ ropts then shortacct else fullacct
-                        ,asItemRenderedAmounts    = map showAmountWithoutPrice amts
+                        ,asItemMixedAmount        = Just bal
                         }
-      where
-        amts = amounts . normaliseMixedAmountSquashPricesForDisplay $ mixedAmountStripPrices bal
     displayitems = map displayitem items
     -- blanks added for scrolling control, cf RegisterScreen.
     -- XXX Ugly. Changing to 0 helps when debugging.
@@ -111,7 +109,7 @@ asInit d reset ui@UIState{
       AccountsScreenItem{asItemIndentLevel        = 0
                         ,asItemAccountName        = ""
                         ,asItemDisplayAccountName = ""
-                        ,asItemRenderedAmounts    = []
+                        ,asItemMixedAmount        = Nothing
                         }
 
 
@@ -144,10 +142,10 @@ asDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}
           displayitems
         maxbalwidthseen =
           -- ltrace "maxbalwidthseen" $
-          V.maximum $ V.map (\AccountsScreenItem{..} -> sum (map strWidth asItemRenderedAmounts) + 2 * (length asItemRenderedAmounts - 1)) displayitems
+          V.maximum $ V.map (maybe 0 (wbWidth . showMixedAmountB oneLine) . asItemMixedAmount) displayitems
         maxbalwidth =
           -- ltrace "maxbalwidth" $
-          max 0 (availwidth - 2 - 4) -- leave 2 whitespace plus least 4 for accts
+          max 0 (availwidth - 2 - 15) -- leave 2 whitespace plus at least 15 for accts
         balwidth =
           -- ltrace "balwidth" $
           min maxbalwidth maxbalwidthseen
@@ -229,24 +227,17 @@ asDrawItem (acctwidth, balwidth) selected AccountsScreenItem{..} =
     -- c <- getContext
       -- let showitem = intercalate "\n" . balanceReportItemAsText defreportopts fmt
     render $
-      addamts asItemRenderedAmounts $
-      str (T.unpack $ fitText (Just acctwidth) (Just acctwidth) True True $ T.replicate (asItemIndentLevel) " " <> asItemDisplayAccountName) <+>
-      str "  " <+>
-      str (balspace asItemRenderedAmounts)
+      txt (fitText (Just acctwidth) (Just acctwidth) True True $ T.replicate (asItemIndentLevel) " " <> asItemDisplayAccountName) <+>
+      txt balspace <+>
+      splitAmounts balBuilder
       where
-        balspace as = replicate n ' '
-          where n = max 0 (balwidth - (sum (map strWidth as) + 2 * (length as - 1)))
-        addamts :: [String] -> Widget Name -> Widget Name
-        addamts [] w = w
-        addamts [a] w = (<+> renderamt a) w
-        -- foldl' :: (b -> a -> b) -> b -> t a -> b
-        -- foldl' (Widget -> String -> Widget) -> Widget -> [String] -> Widget
-        addamts (a:as) w = foldl' addamt (addamts [a] w) as
-        addamt :: Widget Name -> String -> Widget Name
-        addamt w a = ((<+> renderamt a) . (<+> str ", ")) w
-        renderamt :: String -> Widget Name
-        renderamt a | '-' `elem` a = withAttr (sel $ "list" <> "balance" <> "negative") $ str a
-                    | otherwise    = withAttr (sel $ "list" <> "balance" <> "positive") $ str a
+        balBuilder = maybe mempty showamt asItemMixedAmount
+        showamt = showMixedAmountB oneLine{displayMinWidth=Just balwidth, displayMaxWidth=Just balwidth}
+        balspace = T.replicate (2 + balwidth - wbWidth balBuilder) " "
+        splitAmounts = foldr1 (<+>) . intersperse (str ", ") . map renderamt . T.splitOn ", " . wbToText
+        renderamt :: T.Text -> Widget Name
+        renderamt a | T.any (=='-') a = withAttr (sel $ "list" <> "balance" <> "negative") $ txt a
+                    | otherwise       = withAttr (sel $ "list" <> "balance" <> "positive") $ txt a
         sel | selected  = (<> "selected")
             | otherwise = id
 

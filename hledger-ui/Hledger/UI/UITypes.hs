@@ -133,12 +133,11 @@ data Screen =
 
 -- | An item in the accounts screen's list of accounts and balances.
 data AccountsScreenItem = AccountsScreenItem {
-   asItemIndentLevel        :: Int          -- ^ indent level
-  ,asItemAccountName        :: AccountName  -- ^ full account name
-  ,asItemDisplayAccountName :: AccountName  -- ^ full or short account name to display
-  ,asItemRenderedAmounts    :: [String]     -- ^ rendered amounts
-  }
-  deriving (Show)
+   asItemIndentLevel        :: Int                -- ^ indent level
+  ,asItemAccountName        :: AccountName        -- ^ full account name
+  ,asItemDisplayAccountName :: AccountName        -- ^ full or short account name to display
+  ,asItemMixedAmount        :: Maybe MixedAmount  -- ^ mixed amount to display
+  } deriving (Show)
 
 -- | An item in the register screen's list of transactions in the current account.
 data RegisterScreenItem = RegisterScreenItem {
