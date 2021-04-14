@@ -48,15 +48,12 @@ where
 
 import Control.Applicative ((<|>))
 import Data.List.Extra (nubSort)
-import Data.Maybe (fromMaybe, isJust, mapMaybe)
+import Data.Maybe (fromMaybe, mapMaybe)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day, addDays)
 import Data.Default (Default(..))
 import Safe (headMay, lastDef, lastMay, maximumMay)
 
-import System.Console.ANSI (hSupportsANSIColor)
-import System.Environment (lookupEnv)
-import System.IO (stdout)
 import Text.Megaparsec.Custom
 
 import Hledger.Data
@@ -181,11 +178,8 @@ defreportopts = ReportOpts
 rawOptsToReportOpts :: RawOpts -> IO ReportOpts
 rawOptsToReportOpts rawopts = do
     d <- getCurrentDay
-    no_color <- isJust <$> lookupEnv "NO_COLOR"
-    supports_color <- hSupportsANSIColor stdout
 
-    let colorflag    = stringopt "color" rawopts
-        formatstring = T.pack <$> maybestringopt "format" rawopts
+    let formatstring = T.pack <$> maybestringopt "format" rawopts
         querystring  = map T.pack $ listofstringopt "args" rawopts  -- doesn't handle an arg like "" right
         (costing, valuation) = valuationTypeFromRawOpts rawopts
 
@@ -222,10 +216,7 @@ rawOptsToReportOpts rawopts = do
           ,percent_     = boolopt "percent" rawopts
           ,invert_      = boolopt "invert" rawopts
           ,pretty_tables_ = boolopt "pretty-tables" rawopts
-          ,color_       = and [not no_color
-                              ,not $ colorflag `elem` ["never","no"]
-                              ,colorflag `elem` ["always","yes"] || supports_color
-                              ]
+          ,color_       = useColor -- a lower-level helper
           ,forecast_    = forecastPeriodFromRawOpts d rawopts
           ,transpose_   = boolopt "transpose" rawopts
           }
