@@ -170,11 +170,14 @@ debugLevel = case snd $ break (=="--debug") args of
 -- | Check the IO environment to see if ANSI colour codes should be used on stdout.
 -- This is done using unsafePerformIO so it can be used anywhere, eg in 
 -- low-level debug utilities, which should be ok since we are just reading.
--- (When running code in GHCI, this module must be reloaded to see a change.)
 -- The logic is: use color if 
 -- a NO_COLOR environment variable is not defined
 -- and the program was not started with --color=no|never
 -- and stdout supports ANSI color, or the program was started with --color=yes|always.
+-- Caveats:
+-- Existence of the NO_COLOR variable, and whether the output handle supports ANSI color,
+-- might not be checked at program startup, but rather when this is (first?) evaluated.
+-- When running code in GHCI, this module must be reloaded to see a change.
 -- {-# OPTIONS_GHC -fno-cse #-}
 -- {-# NOINLINE useColorOnStdout #-}
 useColorOnStdout :: Bool
