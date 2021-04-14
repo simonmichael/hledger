@@ -121,10 +121,10 @@ asDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}
               ,aScreen=s@AccountsScreen{}
               ,aMode=mode
               } =
-  case mode of
-    Help       -> [helpDialog copts, maincontent]
-    -- Minibuffer e -> [minibuffer e, maincontent]
-    _          -> [maincontent]
+    case mode of
+      Help       -> [helpDialog copts, maincontent]
+      -- Minibuffer e -> [minibuffer e, maincontent]
+      _          -> [maincontent]
   where
     maincontent = Widget Greedy Greedy $ do
       c <- getContext
@@ -134,32 +134,24 @@ asDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}
           c^.availWidthL
           - 2 -- XXX due to margin ? shouldn't be necessary (cf UIUtils)
         displayitems = s ^. asList . listElementsL
-        maxacctwidthseen =
-          -- ltrace "maxacctwidthseen" $
-          V.maximum $
-          V.map (\AccountsScreenItem{..} -> asItemIndentLevel + Hledger.Cli.textWidth asItemDisplayAccountName) $
-          -- V.filter (\(indent,_,_,_) -> (indent-1) <= fromMaybe 99999 mdepth) $
-          displayitems
-        maxbalwidthseen =
-          -- ltrace "maxbalwidthseen" $
-          V.maximum $ V.map (maybe 0 (wbWidth . showMixedAmountB oneLine) . asItemMixedAmount) displayitems
-        maxbalwidth =
-          -- ltrace "maxbalwidth" $
-          max 0 (availwidth - 2 - 15) -- leave 2 whitespace plus at least 15 for accts
-        balwidth =
-          -- ltrace "balwidth" $
-          min maxbalwidth maxbalwidthseen
-        maxacctwidth =
-          -- ltrace "maxacctwidth" $
-          availwidth - 2 - balwidth
-        acctwidth =
-          -- ltrace "acctwidth" $
-          min maxacctwidth maxacctwidthseen
 
-        -- XXX how to minimise the balance column's jumping around
-        -- as you change the depth limit ?
+        acctwidths = V.map (\AccountsScreenItem{..} -> asItemIndentLevel + Hledger.Cli.textWidth asItemDisplayAccountName) displayitems
+        balwidths  = V.map (maybe 0 (wbWidth . showMixedAmountB oneLine) . asItemMixedAmount) displayitems
+        preferredacctwidth = V.maximum acctwidths
+        totalacctwidthseen = V.sum acctwidths
+        preferredbalwidth  = V.maximum balwidths
+        totalbalwidthseen  = V.sum balwidths
 
-        colwidths = (acctwidth, balwidth)
+        totalwidthseen = totalacctwidthseen + totalbalwidthseen
+        shortfall = preferredacctwidth + preferredbalwidth + 2 - availwidth
+        acctwidthproportion = fromIntegral totalacctwidthseen / fromIntegral totalwidthseen
+        adjustedacctwidth = min preferredacctwidth . max 15 . round $ acctwidthproportion * fromIntegral (availwidth - 2)  -- leave 2 whitespace for padding
+        adjustedbalwidth  = availwidth - 2 - adjustedacctwidth
+
+        -- XXX how to minimise the balance column's jumping around as you change the depth limit ?
+
+        colwidths | shortfall <= 0 = (preferredacctwidth, preferredbalwidth)
+                  | otherwise      = (adjustedacctwidth, adjustedbalwidth)
 
       render $ defaultLayout toplabel bottomlabel $ renderList (asDrawItem colwidths) True (_asList s)
 
