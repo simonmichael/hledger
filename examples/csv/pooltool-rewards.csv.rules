@@ -1,0 +1,52 @@
+# Common hledger CSV rules for pooltool.io's staking data CSV (generic format).
+# Include this from per-wallet rules files that set account1, eg:
+#
+#   # wallet1-rewards.csv.rules
+#   include pooltool-rewards.csv.rules
+#   account1 assets:cc:ada:wallet1:rewards
+#
+#   # wallet2-rewards.csv.rules
+#   include pooltool-rewards.csv.rules
+#   account1 assets:cc:ada:wallet2:rewards
+#   
+# To download the CSV: 
+# find your wallet's staking history on https://pooltool.io. One way: 
+# search for the pool it is currently staked with, eg LOVE
+# scroll left and click on its blue arrow for details
+# click the delegators tab, eg:
+#  https://pooltool.io/pool/65a6837264ea1d99e8af24e3a0f54cd4b3821919eb3e59b3a56b857e/delegators
+# set Rows per page to All
+# search for your wallet's entry, by matching the Total Value and Rewards Value
+# click the blue arrow for the wallet address's staking history, eg:
+#  https://pooltool.io/address/1e4fa22b18e205011949490821758ffe69de980da24ac5946187f1a1
+# scroll to the Export Tool at the bottom
+# set Format to Generic(CSV)
+# setting Period to each year needed, click download data and confirm
+# 
+# To convert the CSV:
+# move the downloaded file to the directory where you keep your hledger journals and csv rules files,
+# and rename it like the corresponding rules file. Eg:
+#  mv ~/Downloads/rewards_089acd070ac097070ad065464ad4c4764d6474f7648c44_usd_raw_2021.csv ~/finance/wallet1-rewards.csv
+#
+# Test the conversion:
+#  hledger -f wallet1-rewards.csv print
+#
+# Import new transactions to a journal file:
+#  hledger -f ada-rewards.journal import *-rewards.csv
+#
+# Report revenue totals:
+#  hledger -f ada-rewards.journal is
+
+# date,epoch,stake,pool,operator_rewards,stake_rewards,total_rewards,rate,currency,operator_rewards_value,stake_rewards_value,value
+# 2021-02-25T04:10:31.371847+00:00,248,2313.18004,EDEN,0,1.766901,1.766901,1.03,usd,0,1.8199080300000001,1.8199080300000001
+fields date,epoch,stake,pool,operator_rewards,stake_rewards,total_rewards,rate,currency_,operator_rewards_value,stake_rewards_value,value
+skip 1
+date-format %Y-%m-%dT%H:%M:%S%Q%Z
+status *
+description staking rewards for epoch %epoch from %pool
+comment cc-ada-acquire:
+account2 revenues:cc:ada:rewards:%pool
+# amount1 ADA  %stake_rewards @ %rate %currency
+# amount2 ADA -%stake_rewards @ %rate %currency
+amount1 ADA  %stake_rewards @ $%rate
+amount2 ADA -%stake_rewards @ $%rate
