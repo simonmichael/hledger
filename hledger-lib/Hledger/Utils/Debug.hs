@@ -116,12 +116,14 @@ import System.Console.ANSI (hSupportsANSIColor)
 import System.IO (stdout)
 
 prettyopts = 
-    defaultOutputOptionsDarkBg
-    -- defaultOutputOptionsLightBg
-    -- defaultOutputOptionsNoColor
+  baseopts
     { outputOptionsIndentAmount=2
     , outputOptionsCompact=True
     }
+  where
+    baseopts
+      | useColor  = defaultOutputOptionsDarkBg -- defaultOutputOptionsLightBg
+      | otherwise = defaultOutputOptionsNoColor
 
 -- | Pretty print. Generic alias for pretty-simple's pPrint.
 pprint :: Show a => a -> IO ()
