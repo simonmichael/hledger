@@ -216,7 +216,7 @@ rawOptsToReportOpts rawopts = do
           ,percent_     = boolopt "percent" rawopts
           ,invert_      = boolopt "invert" rawopts
           ,pretty_tables_ = boolopt "pretty-tables" rawopts
-          ,color_       = useColor -- a lower-level helper
+          ,color_       = useColorOnStdout -- a lower-level helper
           ,forecast_    = forecastPeriodFromRawOpts d rawopts
           ,transpose_   = boolopt "transpose" rawopts
           }
