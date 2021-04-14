@@ -94,7 +94,7 @@ module Hledger.Utils.Debug (
   ,traceParse
   ,dbgparse
   ,module Debug.Trace
-)
+,useColor)
 where
 
 import           Control.Monad (when)
@@ -105,12 +105,15 @@ import qualified Data.Text.Lazy as TL
 import           Debug.Trace
 import           Hledger.Utils.Parse
 import           Safe (readDef)
-import           System.Environment (getArgs)
+import           System.Environment (getArgs, lookupEnv)
 import           System.Exit
 import           System.IO.Unsafe (unsafePerformIO)
 import           Text.Megaparsec
 import           Text.Printf
 import           Text.Pretty.Simple  -- (defaultOutputOptionsDarkBg, OutputOptions(..), pShowOpt, pPrintOpt)
+import Data.Maybe (isJust)
+import System.Console.ANSI (hSupportsANSIColor)
+import System.IO (stdout)
 
 prettyopts = 
     defaultOutputOptionsDarkBg
@@ -138,6 +141,49 @@ ptrace = traceWith pshow
 -- traceShowIdWith was too much of a mouthful.
 traceWith :: Show a => (a -> String) -> a -> a
 traceWith f a = trace (f a) a
+
+-- | Check the IO environment to see if ANSI colour codes should be used in output.
+-- This is done using unsafePerformIO so it can be used anywhere, eg in 
+-- low-level debug utilities, which should be ok since we are just reading.
+-- (When running code in GHCI, this module must be reloaded to see a change.)
+-- The logic is: use color if 
+-- a NO_COLOR environment variable is not defined
+-- and the program was not started with --color=no|never
+-- and stdout supports ANSI color, or the program was started with --color=yes|always.
+-- {-# OPTIONS_GHC -fno-cse #-}
+-- {-# NOINLINE useColor #-}
+useColor :: Bool
+useColor = unsafePerformIO $ do
+  no_color       <- isJust <$> lookupEnv "NO_COLOR"
+  supports_color <- hSupportsANSIColor stdout
+  let coloroption = colorOption
+  return $ and [
+     not no_color
+    ,not $ coloroption `elem` ["never","no"]
+    ,coloroption `elem` ["always","yes"] || supports_color
+    ]
+
+-- | Read the value of the --color or --colour command line option provided at program startup
+-- using unsafePerformIO. If this option was not provided, returns the empty string.
+-- (When running code in GHCI, this module must be reloaded to see a change.)
+-- {-# OPTIONS_GHC -fno-cse #-}
+-- {-# NOINLINE colorOption #-}
+colorOption :: String
+colorOption = 
+  -- similar to debugLevel
+  let args = unsafePerformIO getArgs in
+  case snd $ break (=="--color") args of
+    "--color":v:_ -> v
+    _ ->
+      case take 1 $ filter ("--color=" `isPrefixOf`) args of
+        ['-':'-':'c':'o':'l':'o':'r':'=':v] -> v
+        _ ->
+          case snd $ break (=="--colour") args of
+            "--colour":v:_ -> v
+            _ ->
+              case take 1 $ filter ("--colour=" `isPrefixOf`) args of
+                ['-':'-':'c':'o':'l':'o':'u':'r':'=':v] -> v
+                _ -> ""
 
 -- | Global debug level, which controls the verbosity of debug output
 -- on the console. The default is 0 meaning no debug output. The
