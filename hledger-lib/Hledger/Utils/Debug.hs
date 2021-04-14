@@ -94,7 +94,9 @@ module Hledger.Utils.Debug (
   ,traceParse
   ,dbgparse
   ,module Debug.Trace
-,useColor)
+  ,useColorOnStdout
+  ,useColorOnStderr
+  )
 where
 
 import           Control.Monad (when)
@@ -113,7 +115,7 @@ import           Text.Printf
 import           Text.Pretty.Simple  -- (defaultOutputOptionsDarkBg, OutputOptions(..), pShowOpt, pPrintOpt)
 import Data.Maybe (isJust)
 import System.Console.ANSI (hSupportsANSIColor)
-import System.IO (stdout)
+import System.IO (stdout, Handle, stderr)
 
 prettyopts = 
   baseopts
@@ -122,8 +124,8 @@ prettyopts =
     }
   where
     baseopts
-      | useColor  = defaultOutputOptionsDarkBg -- defaultOutputOptionsLightBg
-      | otherwise = defaultOutputOptionsNoColor
+      | useColorOnStderr = defaultOutputOptionsDarkBg -- defaultOutputOptionsLightBg
+      | otherwise        = defaultOutputOptionsNoColor
 
 -- | Pretty print. Generic alias for pretty-simple's pPrint.
 pprint :: Show a => a -> IO ()
@@ -144,7 +146,28 @@ ptrace = traceWith pshow
 traceWith :: Show a => (a -> String) -> a -> a
 traceWith f a = trace (f a) a
 
--- | Check the IO environment to see if ANSI colour codes should be used in output.
+-- | Global debug level, which controls the verbosity of debug errput
+-- on the console. The default is 0 meaning no debug errput. The
+-- @--debug@ command line flag sets it to 1, or @--debug=N@ sets it to
+-- a higher value (note: not @--debug N@ for some reason).  This uses
+-- unsafePerformIO and can be accessed from anywhere and before normal
+-- command-line processing. When running with :main in GHCI, you must
+-- touch and reload this module to see the effect of a new --debug option.
+-- {-# OPTIONS_GHC -fno-cse #-}
+-- {-# NOINLINE debugLevel #-}
+debugLevel :: Int
+debugLevel = case snd $ break (=="--debug") args of
+               "--debug":[]  -> 1
+               "--debug":n:_ -> readDef 1 n
+               _             ->
+                 case take 1 $ filter ("--debug" `isPrefixOf`) args of
+                   ['-':'-':'d':'e':'b':'u':'g':'=':v] -> readDef 1 v
+                   _                                   -> 0
+
+    where
+      args = unsafePerformIO getArgs
+
+-- | Check the IO environment to see if ANSI colour codes should be used on stdout.
 -- This is done using unsafePerformIO so it can be used anywhere, eg in 
 -- low-level debug utilities, which should be ok since we are just reading.
 -- (When running code in GHCI, this module must be reloaded to see a change.)
@@ -153,11 +176,23 @@ traceWith f a = trace (f a) a
 -- and the program was not started with --color=no|never
 -- and stdout supports ANSI color, or the program was started with --color=yes|always.
 -- {-# OPTIONS_GHC -fno-cse #-}
--- {-# NOINLINE useColor #-}
-useColor :: Bool
-useColor = unsafePerformIO $ do
+-- {-# NOINLINE useColorOnStdout #-}
+useColorOnStdout :: Bool
+useColorOnStdout = useColorOnHandle stdout
+
+-- | Like useColorOnStdout, but checks for ANSI color support on stderr.
+-- {-# OPTIONS_GHC -fno-cse #-}
+-- {-# NOINLINE useColorOnStdout #-}
+useColorOnStderr :: Bool
+useColorOnStderr = useColorOnHandle stderr
+
+-- XXX sorry, I'm just cargo-culting these pragmas:
+-- {-# OPTIONS_GHC -fno-cse #-}
+-- {-# NOINLINE useColorOnHandle #-}
+useColorOnHandle :: Handle -> Bool
+useColorOnHandle h = unsafePerformIO $ do
   no_color       <- isJust <$> lookupEnv "NO_COLOR"
-  supports_color <- hSupportsANSIColor stdout
+  supports_color <- hSupportsANSIColor h
   let coloroption = colorOption
   return $ and [
      not no_color
@@ -186,27 +221,6 @@ colorOption =
               case take 1 $ filter ("--colour=" `isPrefixOf`) args of
                 ['-':'-':'c':'o':'l':'o':'u':'r':'=':v] -> v
                 _ -> ""
-
--- | Global debug level, which controls the verbosity of debug output
--- on the console. The default is 0 meaning no debug output. The
--- @--debug@ command line flag sets it to 1, or @--debug=N@ sets it to
--- a higher value (note: not @--debug N@ for some reason).  This uses
--- unsafePerformIO and can be accessed from anywhere and before normal
--- command-line processing. When running with :main in GHCI, you must
--- touch and reload this module to see the effect of a new --debug option.
--- {-# OPTIONS_GHC -fno-cse #-}
--- {-# NOINLINE debugLevel #-}
-debugLevel :: Int
-debugLevel = case snd $ break (=="--debug") args of
-               "--debug":[]  -> 1
-               "--debug":n:_ -> readDef 1 n
-               _             ->
-                 case take 1 $ filter ("--debug" `isPrefixOf`) args of
-                   ['-':'-':'d':'e':'b':'u':'g':'=':v] -> readDef 1 v
-                   _                                   -> 0
-
-    where
-      args = unsafePerformIO getArgs
 
 -- | Trace (print to stderr) a string if the global debug level is at
 -- or above the specified level. At level 0, always prints. Otherwise,
