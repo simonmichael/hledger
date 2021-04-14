@@ -451,7 +451,9 @@ showAmountB opts a@Amount{astyle=style} =
 --
 -- If a maximum width is given then:
 -- - If displayed on one line, it will display as many Amounts as can
---   fit in the given width, and further Amounts will be elided.
+--   fit in the given width, and further Amounts will be elided. There
+--   will always be at least one amount displayed, even if this will
+--   exceed the requested maximum width.
 -- - If displayed on multiple lines, any Amounts longer than the
 --   maximum width will be elided.
 showAmountsB :: AmountDisplayOpts -> [Amount] -> WideBuilder
@@ -507,8 +509,10 @@ showAmountsOneLineB opts@AmountDisplayOpts{displayMaxWidth=mmax,displayMinWidth=
     addElide [] = []
     addElide xs = maybeAppend (snd $ last xs) $ map fst xs
     -- Return the elements of the display list which fit within the maximum width
-    -- (including their elision strings)
-    takeFitting m = dropWhileRev (\(a,e) -> m < adTotal (fromMaybe a e))
+    -- (including their elision strings). Always display at least one amount,
+    -- regardless of width.
+    takeFitting _ []     = []
+    takeFitting m (x:xs) = x : dropWhileRev (\(a,e) -> m < adTotal (fromMaybe a e)) xs
     dropWhileRev p = foldr (\x xs -> if null xs && p x then [] else x:xs) []
 
     -- Add the elision strings (if any) to each amount

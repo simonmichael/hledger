@@ -221,3 +221,16 @@ hledger bal -f -
 	b  -,100.0 EUR
 >>>
 >>>=1
+
+# 20. long numbers in multi balance reports
+hledger bal -YN -f -
+<<<
+2021-01-01
+    (a)      -0.12345678901234567890123456 EUR
+>>>
+Balance changes in 2021:
+
+   ||                              2021 
+===++===================================
+ a || -0.12345678901234567890123456 EUR 
+>>>=0
