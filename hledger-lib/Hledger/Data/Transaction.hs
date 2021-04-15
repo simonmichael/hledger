@@ -552,41 +552,42 @@ inferBalancingPrices t@Transaction{tpostings=ps} = t{tpostings=ps'}
 -- posting type (real or balanced virtual). If we cannot or should not infer
 -- prices, just act as the identity on postings.
 priceInferrerFor :: Transaction -> PostingType -> (Posting -> Posting)
-priceInferrerFor t pt = maybe id inferprice $ inferFromAndTo sumamounts
+priceInferrerFor t pt = maybe id inferprice inferFromAndTo
   where
     postings     = filter ((==pt).ptype) $ tpostings t
     pcommodities = map acommodity $ concatMap (amounts . pamount) postings
     sumamounts   = amounts $ sumPostings postings  -- amounts normalises to one amount per commodity & price
-    noprices     = all (isNothing . aprice) sumamounts
 
-    -- We can infer prices if there are no prices given, and exactly two commodities in the
-    -- normalised sum of postings in this transaction. The amount we are converting from is
-    -- the first commodity to appear in the ordered list of postings, and the commodity we
-    -- are converting to is the other. If we cannot infer prices, return Nothing.
-    inferFromAndTo [a,b] | noprices = asum $ map orderIfMatches pcommodities
-      where orderIfMatches x | x == acommodity a = Just (a,b)
-                             | x == acommodity b = Just (b,a)
-                             | otherwise         = Nothing
-    inferFromAndTo _ = Nothing
+    -- We can infer prices if there are no prices given, exactly two commodities in the normalised
+    -- sum of postings in this transaction, and these two have opposite signs. The amount we are
+    -- converting from is the first commodity to appear in the ordered list of postings, and the
+    -- commodity we are converting to is the other. If we cannot infer prices, return Nothing.
+    inferFromAndTo = case sumamounts of
+      [a,b] | noprices, oppositesigns -> asum $ map orderIfMatches pcommodities
+        where
+          noprices      = all (isNothing . aprice) sumamounts
+          oppositesigns = signum (aquantity a) /= signum (aquantity b)
+          orderIfMatches x | x == acommodity a = Just (a,b)
+                           | x == acommodity b = Just (b,a)
+                           | otherwise         = Nothing
+      _ -> Nothing
 
     -- For each posting, if the posting type matches, there is only a single amount in the posting,
     -- and the commodity of the amount matches the amount we're converting from,
     -- then set its price based on the ratio between fromamount and toamount.
     inferprice (fromamount, toamount) posting
         | [a] <- amounts (pamount posting), ptype posting == pt, acommodity a == acommodity fromamount
-        , let totalpricesign = if aquantity a < 0 then negate else id
-            = posting{ pamount   = mixedAmount a{aprice=Just $ conversionprice totalpricesign}
+            = posting{ pamount   = mixedAmount a{aprice=Just conversionprice}
                      , poriginal = Just $ originalPosting posting }
         | otherwise = posting
       where
-        -- If only one Amount in the posting list matches fromamount we can use TotalPrice,
-        -- but we need to know the sign. Otherwise divide the conversion equally among the
-        -- Amounts by using a unit price.
-        conversionprice sign = case filter (== acommodity fromamount) pcommodities of
-            [_] -> TotalPrice $ sign (abs toamount) `withPrecision` NaturalPrecision
-            _   -> UnitPrice  $ abs unitprice       `withPrecision` unitprecision
+        -- If only one Amount in the posting list matches fromamount we can use TotalPrice.
+        -- Otherwise divide the conversion equally among the Amounts by using a unit price.
+        conversionprice = case filter (== acommodity fromamount) pcommodities of
+            [_] -> TotalPrice $ negate toamount  `withPrecision` NaturalPrecision
+            _   -> UnitPrice  $ negate unitprice `withPrecision` unitprecision
 
-        unitprice     = (aquantity fromamount) `divideAmount` toamount
+        unitprice     = aquantity fromamount `divideAmount` toamount
         unitprecision = case (asprecision $ astyle fromamount, asprecision $ astyle toamount) of
             (Precision a, Precision b) -> Precision . max 2 $ saturatedAdd a b
             _                          -> NaturalPrecision
