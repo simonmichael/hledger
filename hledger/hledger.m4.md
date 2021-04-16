@@ -2349,7 +2349,7 @@ In fact the `commodity` directive performs several functions at once:
 
 1. It declares commodities which may be used in the journal.
    This can optionally be enforced, providing useful error checking.
-   (Cf [strict mode](#strict-mode))
+   (Cf [Commodity error checking](#commodity-error-checking))
 
 2. It declares which decimal mark character (period or comma), to
    expect when parsing input - useful to disambiguate international
