@@ -1764,17 +1764,13 @@ Amounts have a number (the "quantity"):
 
     1
 
-..and usually a currency or commodity name (the "commodity"). This is
-a symbol, word, or phrase, to the left or right of the quantity, with
-or without a separating space:
+..and usually a currency symbol or commodity name (more on this
+below), to the left or right of the quantity, with or without a
+separating space:
 
     $1
     4000 AAPL
-
-If the commodity name contains spaces, numbers, or punctuation, it
-must be enclosed in double quotes:
-
-    3 "no. 42 green apples"
+    3 "green apples"
 
 Amounts can be preceded by a minus sign (or a plus sign, though plus is the default),
 The sign can be written before or after a left-side commodity symbol:
@@ -1818,33 +1814,63 @@ Are these digit group marks or decimal marks ?
 If you don't tell it otherwise, hledger will assume both of the above are decimal marks,
 parsing both numbers as 1.
 To prevent confusion and undetected typos, 
-especially if your data contains digit group marks,
-we recommend you explicitly declare the decimal mark (and optionally a digit group mark),
-for each commodity, using `commodity` directives (described below):
+<!-- especially if your data contains digit group marks, -->
+we recommend adding `commodity` directives at the top of your journal
+file to explicitly declare the decimal mark (and optionally a digit
+group mark) for each commodity. Read on for more about this.
+
+### Commodity
+
+Amounts in hledger have both a "quantity", which is a signed decimal
+number, and a "commodity", which is a currency symbol, stock ticker,
+or any word or phrase describing something you are tracking.
+
+If the commodity name contains non-letters (spaces, numbers, or
+punctuation), you must always write it inside double quotes (`"green
+apples"`, `"ABC123"`).
+
+If you write just a bare number, that too will have a commodity, with
+name `""`; we call that the "no-symbol commodity".
+
+Actually, hledger combines these single-commodity amounts into more
+powerful multi-commodity amounts, which are what it works with most of
+the time. A multi-commodity amount could be, eg: `1 USD, 2 EUR, 3.456 TSLA`. 
+In practice, you will only see multi-commodity amounts in hledger's
+output; you can't write them directly in the journal file. 
+<!-- (Though an omitted balancing amount can be multi-commodity.) -->
+
+(If you are writing scripts or working with hledger's internals, these
+are the `Amount` and `MixedAmount` types.)
+
+### Commodity directives
+
+You can add `commodity` directives to the journal, preferably at the
+top, to declare your commodities and help with number parsing (see
+above) and display (see below). These are optional, but recommended.
+They are described in more detail in JOURNAL FORMAT -> [Declaring
+commodities](#declaring-commodities). Here's a quick example:
 
 ```journal
-# number formats for $, EUR, INR and the no-symbol commodity:
+# number format and display style for $, EUR, INR and the no-symbol commodity:
 commodity $1,000.00
 commodity EUR 1.000,00
 commodity INR 9,99,99,999.00
 commodity 1 000 000.9455
 ```
 
-Note, `commodity` directives declare both the number format for parsing input,
-and the display style for showing output. For the former, they are position-sensitive,
-affecting only following amounts, so commodity directives should be at the top of your journal file.
-This is discussed more on [#793](https://github.com/simonmichael/hledger/issues/793).
-
 <a name="amount-display-style"></a>
 
 ### Commodity display style
 
 For the amounts in each commodity, hledger chooses a consistent display style to use in most reports.
-(Except for [price amounts](#prices), which are always displayed as written). <!-- ? -->
-The display style is inferred as follows. 
+(Except for [price amounts](#prices), which are always displayed as written, 
+and the [`print`](#print) command, which displays all amounts as written).
 
-First, if a [default commodity](#default-commodity) is declared with `D`, 
-this commodity and its style is applied to any no-symbol amounts in the journal. 
+A commodity's display style is inferred as follows. 
+
+First, if a [default commodity](#default-commodity) is declared with
+`D`, this commodity and its style is applied to any no-symbol amounts
+in the journal.
 
 Then each commodity's style is inferred from one of the following, in order of preference:
 
@@ -2317,43 +2343,49 @@ payee Whole Foods
 
 ## Declaring commodities
 
-The `commodity` directive has several functions:
+You can use `commodity` directives to declare your commodities.
+In fact the `commodity` directive performs several functions at once:
 
 1. It declares commodities which may be used in the journal.
-   This is enforced in [strict mode](#strict-mode), providing more error-checking.
+   This can optionally be enforced, providing useful error checking.
+   (Cf [strict mode](#strict-mode))
 
-2. It declares what decimal mark character (period or comma) to expect when parsing
-   input - useful to disambiguate international number formats in your
-   data. (Without this, hledger will parse both `1,000` and `1.000`
-   as 1).
+2. It declares which decimal mark character (period or comma), to
+   expect when parsing input - useful to disambiguate international
+   number formats in your data. Without this, hledger will parse both
+   `1,000` and `1.000` as 1. 
+   (Cf [Amounts](#amounts))
 
-3. It declares a commodity's [display style](#commodity-display-style)
-   in output - decimal and digit group marks, number of decimal places, 
-   symbol placement etc.
+3. It declares how to render the commodity's amounts when displaying
+   output - the decimal mark, any digit group marks, the number of
+   decimal places, symbol placement and so on.
+   (Cf [Commodity display style](#commodity-display-style))
 
-You are likely to run into one of the problems solved by commodity
-directives, sooner or later, so it's a good idea to just always use
-them to declare your commodities.
+You will run into one of the problems solved by commodity directives
+sooner or later, so we recommend using them, for robust and
+predictable parsing and display.
 
-A commodity directive is just the word `commodity`,
-followed by a sample [amount](#amounts) in some commodity.
-It may be written on a single line, like this:
+Generally you should put them at the top of your journal file
+(since for function 2, they affect only following amounts,
+cf [#793](https://github.com/simonmichael/hledger/issues/793)).
+
+A commodity directive is just the word `commodity` followed by a
+sample [amount](#amounts), like this:
 
 ```journal
-; commodity EXAMPLEAMOUNT
+;commodity SAMPLEAMOUNT
 
-; display AAAA amounts with the symbol on the right, space-separated,
-; using period as decimal point, with four decimal places, and
-; separating thousands with comma.
-commodity 1,000.0000 AAAA
+commodity $1000.00
+commodity 1,000.0000 AAAA  ; optional same-line comment
 ```
 
-or on multiple lines, using the "format" subdirective. (In this case
-the commodity symbol appears twice and should be the same in both places.):
+It may also be written on multiple lines, and use the `format`
+subdirective, as in Ledger. Note in this case the commodity symbol
+appears twice; it must be the same in both places:
 
 ```journal
-; commodity SYMBOL
-;   format EXAMPLEAMOUNT
+;commodity SYMBOL
+;  format SAMPLEAMOUNT
 
 ; display indian rupees with currency name on the left,
 ; thousands, lakhs and crores comma-separated,
@@ -2363,11 +2395,20 @@ commodity INR
 ```
 
 Remember that if the commodity symbol contains spaces, numbers, or
-punctuation, it must be enclosed in double quotes (cf [Amounts](#amounts)).
+punctuation, it must be enclosed in double quotes (cf [Commodity](#commodity)).
 
 The amount's quantity does not matter; only the format is significant.
 It must include a decimal mark - either a period or a comma - followed
 by 0 or more decimal digits.
+
+A few more examples:
+```journal
+# number formats for $, EUR, INR and the no-symbol commodity:
+commodity $1,000.00
+commodity EUR 1.000,00
+commodity INR 9,99,99,999.0
+commodity 1 000 000.
+```
 
 Note hledger normally uses 
 [banker's rounding](https://en.wikipedia.org/wiki/Bankers_rounding), 
