@@ -1863,8 +1863,8 @@ commodity 1 000 000.9455
 ### Commodity display style
 
 For the amounts in each commodity, hledger chooses a consistent display style to use in most reports.
-(Except for [price amounts](#prices), which are always displayed as written, 
-and the [`print`](#print) command, which displays all amounts as written).
+(Exceptions: [price amounts](#prices), and all amounts displayed by the [`print`](#print) command,
+are displayed with all of their decimal digits visible.)
 
 A commodity's display style is inferred as follows. 
 
