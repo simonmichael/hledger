@@ -2335,7 +2335,8 @@ You are likely to run into one of the problems solved by commodity
 directives, sooner or later, so it's a good idea to just always use
 them to declare your commodities.
 
-A commodity directive is just the word `commodity` followed by an [amount](#amounts).
+A commodity directive is just the word `commodity`,
+followed by a sample [amount](#amounts) in some commodity.
 It may be written on a single line, like this:
 
 ```journal
@@ -2361,9 +2362,12 @@ commodity INR
   format INR 1,00,00,000.00
 ```
 
-The quantity of the amount does not matter; only the format is
-significant. The number must include a decimal mark: either a period
-or a comma, followed by 0 or more decimal digits.
+Remember that if the commodity symbol contains spaces, numbers, or
+punctuation, it must be enclosed in double quotes (cf [Amounts](#amounts)).
+
+The amount's quantity does not matter; only the format is significant.
+It must include a decimal mark - either a period or a comma - followed
+by 0 or more decimal digits.
 
 Note hledger normally uses 
 [banker's rounding](https://en.wikipedia.org/wiki/Bankers_rounding), 
