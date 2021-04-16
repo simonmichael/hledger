@@ -584,7 +584,7 @@ priceInferrerFor t pt = maybe id inferprice inferFromAndTo
         -- If only one Amount in the posting list matches fromamount we can use TotalPrice.
         -- Otherwise divide the conversion equally among the Amounts by using a unit price.
         conversionprice = case filter (== acommodity fromamount) pcommodities of
-            [_] -> TotalPrice $ negate toamount  `withPrecision` NaturalPrecision
+            [_] -> TotalPrice $ negate toamount
             _   -> UnitPrice  $ negate unitprice `withPrecision` unitprecision
 
         unitprice     = aquantity fromamount `divideAmount` toamount
@@ -918,7 +918,7 @@ tests_Transaction =
                 [ posting {paccount = "a", pamount = mixedAmount (usd 1.35)}
                 , posting {paccount = "b", pamount = mixedAmount (eur (-1))}
                 ])) @?=
-          Right (mixedAmount $ usd 1.35 @@ (eur 1 `withPrecision` NaturalPrecision))
+          Right (mixedAmount $ usd 1.35 @@ eur 1)
         ,test "balanceTransaction balances based on cost if there are unit prices" $
           assertRight $
           balanceTransaction
