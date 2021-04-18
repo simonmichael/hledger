@@ -208,20 +208,25 @@ useColorOnHandle h = unsafePerformIO $ do
 -- (When running code in GHCI, this module must be reloaded to see a change.)
 -- {-# OPTIONS_GHC -fno-cse #-}
 -- {-# NOINLINE colorOption #-}
+-- Keep synced with color/colour flag definition in hledger:CliOptions
 colorOption :: String
 colorOption = 
   -- similar to debugLevel
   let args = unsafePerformIO getArgs in
   case snd $ break (=="--color") args of
+    -- --color ARG
     "--color":v:_ -> v
     _ ->
       case take 1 $ filter ("--color=" `isPrefixOf`) args of
+        -- --color=ARG
         ['-':'-':'c':'o':'l':'o':'r':'=':v] -> v
         _ ->
           case snd $ break (=="--colour") args of
+            -- --colour ARG
             "--colour":v:_ -> v
             _ ->
               case take 1 $ filter ("--colour=" `isPrefixOf`) args of
+                -- --colour=ARG
                 ['-':'-':'c':'o':'l':'o':'u':'r':'=':v] -> v
                 _ -> ""
 

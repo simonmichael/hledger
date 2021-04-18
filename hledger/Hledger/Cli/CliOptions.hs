@@ -190,7 +190,8 @@ reportflags = [
    ])
 
   -- general output-related
-
+  
+  -- This has special support in hledger-lib:colorOption, keep synced
  ,flagReq  ["color","colour"] (\s opts -> Right $ setopt "color" s opts) "WHEN"
    (unlines
      ["Should color-supporting commands use ANSI color codes in text output."
@@ -228,6 +229,7 @@ outputFormatFlag fmts = flagReq
   ["output-format","O"] (\s opts -> Right $ setopt "output-format" s opts) "FMT"
   ("select the output format. Supported formats:\n" ++ intercalate ", " fmts ++ ".")
 
+-- This has special support in hledger-lib:outputFileOption, keep synced
 outputFileFlag :: Flag RawOpts
 outputFileFlag = flagReq
   ["output-file","o"] (\s opts -> Right $ setopt "output-file" s opts) "FILE"
