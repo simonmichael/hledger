@@ -555,17 +555,19 @@ expandPathPreservingPrefix d prefixedf = do
     Just p  -> p ++ ":" ++ f'
     Nothing -> f'
 
--- | Get the expanded, absolute output file path from options,
--- or the default (-, meaning stdout).
-outputFileFromOpts :: CliOpts -> IO FilePath
+-- | Get the expanded, absolute output file path specified by an
+-- -o/--output-file options, or nothing, meaning stdout.
+outputFileFromOpts :: CliOpts -> IO (Maybe FilePath)
 outputFileFromOpts opts = do
   d <- getCurrentDirectory
   case output_file_ opts of
-    Just p  -> expandPath d p
-    Nothing -> return "-"
+    Nothing -> return Nothing
+    Just f  -> Just <$> expandPath d f
 
+defaultOutputFormat :: String
 defaultOutputFormat = "txt"
 
+outputFormats :: [String]
 outputFormats =
   [defaultOutputFormat] ++
   ["csv"

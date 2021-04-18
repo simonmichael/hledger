@@ -161,7 +161,7 @@ journalAddForecast CliOpts{inputopts_=iopts, reportspec_=rspec} j =
 writeOutput :: CliOpts -> String -> IO ()
 writeOutput opts s = do
   f <- outputFileFromOpts opts
-  (if f == "-" then putStr else writeFile f) s
+  (maybe putStr writeFile f) s
 
 -- | Write some output to stdout or to a file selected by --output-file.
 -- If the file exists it will be overwritten. This function operates on Lazy
@@ -169,7 +169,7 @@ writeOutput opts s = do
 writeOutputLazyText :: CliOpts -> TL.Text -> IO ()
 writeOutputLazyText opts s = do
   f <- outputFileFromOpts opts
-  (if f == "-" then TL.putStr else TL.writeFile f) s
+  (maybe TL.putStr TL.writeFile f) s
 
 -- -- | Get a journal from the given string and options, or throw an error.
 -- readJournal :: CliOpts -> String -> IO Journal
