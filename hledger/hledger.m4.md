@@ -1178,6 +1178,10 @@ $ hledger print -o foo.txt
 $ hledger print -o -        # write to stdout (the default)
 ```
 
+hledger can optionally produce debug output (if enabled with `--debug=N`); 
+this goes to stderr, and is not affected by `-o/--output-file`.
+If you need to capture it, use shell redirects, eg: `hledger bal --debug=3 >file 2>&1`.
+
 ## Output format
 
 Some commands (print, register, the balance commands) offer a choice of output format. 
