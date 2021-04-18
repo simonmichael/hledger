@@ -155,6 +155,7 @@ traceWith f a = trace (f a) a
 -- touch and reload this module to see the effect of a new --debug option.
 -- {-# OPTIONS_GHC -fno-cse #-}
 -- {-# NOINLINE debugLevel #-}
+-- Avoid using dbg* in this function (infinite loop).
 debugLevel :: Int
 debugLevel = case snd $ break (=="--debug") args of
                "--debug":[]  -> 1
@@ -167,28 +168,33 @@ debugLevel = case snd $ break (=="--debug") args of
     where
       args = unsafePerformIO getArgs
 
+-- Avoid using dbg*, pshow etc. in this function (infinite loop).
 -- | Check the IO environment to see if ANSI colour codes should be used on stdout.
 -- This is done using unsafePerformIO so it can be used anywhere, eg in 
 -- low-level debug utilities, which should be ok since we are just reading.
 -- The logic is: use color if 
 -- a NO_COLOR environment variable is not defined
 -- and the program was not started with --color=no|never
--- and stdout supports ANSI color, or the program was started with --color=yes|always.
+-- and (
+--   the program was started with --color=yes|always
+--   or stdout supports ANSI color and -o/--output-file was not used or is "-"
+-- ).
 -- Caveats:
--- Existence of the NO_COLOR variable, and whether the output handle supports ANSI color,
--- might not be checked at program startup, but rather when this is (first?) evaluated.
 -- When running code in GHCI, this module must be reloaded to see a change.
 -- {-# OPTIONS_GHC -fno-cse #-}
 -- {-# NOINLINE useColorOnStdout #-}
 useColorOnStdout :: Bool
-useColorOnStdout = useColorOnHandle stdout
+useColorOnStdout = not hasOutputFile && useColorOnHandle stdout
 
--- | Like useColorOnStdout, but checks for ANSI color support on stderr.
+-- Avoid using dbg*, pshow etc. in this function (infinite loop).
+-- | Like useColorOnStdout, but checks for ANSI color support on stderr,
+-- and is not affected by -o/--output-file.
 -- {-# OPTIONS_GHC -fno-cse #-}
 -- {-# NOINLINE useColorOnStdout #-}
 useColorOnStderr :: Bool
 useColorOnStderr = useColorOnHandle stderr
 
+-- Avoid using dbg*, pshow etc. in this function (infinite loop).
 -- XXX sorry, I'm just cargo-culting these pragmas:
 -- {-# OPTIONS_GHC -fno-cse #-}
 -- {-# NOINLINE useColorOnHandle #-}
@@ -203,12 +209,13 @@ useColorOnHandle h = unsafePerformIO $ do
     ,coloroption `elem` ["always","yes"] || supports_color
     ]
 
+-- Keep synced with color/colour flag definition in hledger:CliOptions.
+-- Avoid using dbg*, pshow etc. in this function (infinite loop).
 -- | Read the value of the --color or --colour command line option provided at program startup
 -- using unsafePerformIO. If this option was not provided, returns the empty string.
 -- (When running code in GHCI, this module must be reloaded to see a change.)
 -- {-# OPTIONS_GHC -fno-cse #-}
 -- {-# NOINLINE colorOption #-}
--- Keep synced with color/colour flag definition in hledger:CliOptions
 colorOption :: String
 colorOption = 
   -- similar to debugLevel
@@ -229,6 +236,39 @@ colorOption =
                 -- --colour=ARG
                 ['-':'-':'c':'o':'l':'o':'u':'r':'=':v] -> v
                 _ -> ""
+
+-- Avoid using dbg*, pshow etc. in this function (infinite loop).
+-- | Check whether the -o/--output-file option has been used at program startup
+-- with an argument other than "-", using unsafePerformIO.
+-- {-# OPTIONS_GHC -fno-cse #-}
+-- {-# NOINLINE hasOutputFile #-}
+hasOutputFile :: Bool
+hasOutputFile = not $ outputFileOption `elem` [Nothing, Just "-"]
+
+-- Keep synced with output-file flag definition in hledger:CliOptions.
+-- Avoid using dbg*, pshow etc. in this function (infinite loop).
+-- | Read the value of the -o/--output-file command line option provided at program startup,
+-- if any, using unsafePerformIO.
+-- (When running code in GHCI, this module must be reloaded to see a change.)
+-- {-# OPTIONS_GHC -fno-cse #-}
+-- {-# NOINLINE outputFileOption #-}
+outputFileOption :: Maybe String
+outputFileOption = 
+  let args = unsafePerformIO getArgs in
+  case snd $ break ("-o" `isPrefixOf`) args of
+    -- -oARG
+    ('-':'o':v@(_:_)):_ -> Just v
+    -- -o ARG
+    "-o":v:_ -> Just v
+    _ ->
+      case snd $ break (=="--output-file") args of
+        -- --output-file ARG
+        "--output-file":v:_ -> Just v
+        _ ->
+          case take 1 $ filter ("--output-file=" `isPrefixOf`) args of
+            -- --output=file=ARG
+            ['-':'-':'o':'u':'t':'p':'u':'t':'-':'f':'i':'l':'e':'=':v] -> Just v
+            _ -> Nothing
 
 -- | Trace (print to stderr) a string if the global debug level is at
 -- or above the specified level. At level 0, always prints. Otherwise,
