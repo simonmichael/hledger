@@ -34,7 +34,7 @@ Many of these work with the higher-level commands as well.
 - balance changes (the default)
 - or actual and planned balance changes ([`--budget`](#budget-report))
 - or value of balance changes ([`-V`](#valuation-type))
-- or change of balance values ([`--valuechange`](#report-type))
+- or change of balance values ([`--valuechange`](#balance-report-types))
 
 ..in..
 
