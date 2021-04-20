@@ -211,11 +211,30 @@ $ hledger -f - print
 
 >=
 
-# Error message when commodity symbols containing non-letters are not quoted. (#1532)
+# The current state of parse errors when commodity symbols containing non-letters 
+# are not quoted. (#1532)
 
-# 15. Commodity symbol on the left, ending with numbers, could parse successfully
-# (as "A 12" since space is a valid separator of digit groups).
+# 15. Unquoted commodity symbol on the left, gives this long error message.
 <
+2021-01-01
+  (a)   A1B 2
+
+$ hledger -f- print cur:A1B amt:2
+>2 /expecting ';', '=', digit, end of input, exponent, ledger-style lot date, ledger-style lot price, newline, space, or transaction price/
+>=1
+
+# 16. Unquoted commodity symbol on the right, gives this long error message.
+<
+2021-01-01
+  (a)   1 A2
+
+$ hledger -f- print cur:A1 amt:2
+>2 /expecting ';', '=', end of input, ledger-style lot date, ledger-style lot price, newline, or transaction price/
+>=1
+
+# 17. Unquoted commodity symbol on the left ending with numbers, could parse successfully.
+<
+; A 12
 2021-01-01
   (a)   A1 2
 
@@ -225,32 +244,43 @@ $ hledger -f- print cur:A amt:12
 
 >=
 
-# 16. Commodity symbol on the left, failing to parse - gives this long error message.
+# 18. Unquoted commodity symbol on the right beginning with numbers, could parse successfully.
 <
-2021-01-01
-  (a)   A1B 2
-
-$ hledger -f- print cur:A1B amt:2
->2 /expecting ';', '=', digit, end of input, exponent, ledger-style lot date, ledger-style lot price, newline, space, or transaction price/
->=1
-
-# 17. Commodity symbol on the right, failing to parse - gives this long error message.
-<
-2021-01-01
-  (a)   1 A2
-
-$ hledger -f- print cur:A1 amt:2
->2 /expecting ';', '=', end of input, ledger-style lot date, ledger-style lot price, newline, or transaction price/
->=1
-
-# 18. Commodity symbol on the right, beginning with numbers, could parse successfully.
-<
+; intended 1 "2A", parses as 12 A
 2021-01-01
   (a)   1 2A
 
 $ hledger -f- print cur:A amt:12
 2021-01-01
     (a)            1 2A
+
+>=
+
+# 19. Unquoted commodity symbol on the left ending with numbers and E/e (exponent), unspaced, 
+# could parse successfully.
+
+<
+; intended "A1E" 2, parses as A 1E2
+2021-01-01
+  (a)   A1E2
+
+$ hledger -f- print cur:A amt:100
+2021-01-01
+    (a)            A100
+
+>=
+
+# 20. Unquoted commodity symbol on the right beginning with E and numbers, unspaced, 
+# could parse successfully.
+
+<
+; intended 1 "e2e", parses as 1e2 e
+2021-01-01
+  (a)   1e2e
+
+$ hledger -f- print cur:e amt:100
+2021-01-01
+    (a)            100e
 
 >=
 
