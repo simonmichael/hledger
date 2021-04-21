@@ -284,3 +284,16 @@ $ hledger -f- print cur:e amt:100
 
 >=
 
+# 21. Unquoted commodity symbol on the left consisting of only numbers.
+# It could happen..
+<
+; intended "111" 2, parses as 1112.
+2021-01-01
+  (a)   111 2
+
+$ hledger -f- print cur: amt:1112
+2021-01-01
+    (a)           111 2
+
+>=
+
