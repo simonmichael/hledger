@@ -90,7 +90,7 @@ import Hledger.Utils
 import Hledger.Data.Types
 import Hledger.Data.Amount
 import Hledger.Data.AccountName
-import Hledger.Data.Dates (nulldate, spanContainsDate)
+import Hledger.Data.Dates (nulldate, showDate, spanContainsDate)
 import Hledger.Data.Valuation
 
 
@@ -163,16 +163,16 @@ originalPosting p = fromMaybe p $ poriginal p
 -- XXX once rendered user output, but just for debugging now; clean up
 showPosting :: Posting -> String
 showPosting p@Posting{paccount=a,pamount=amt,ptype=t} =
-    unlines $ [concatTopPadded [show (postingDate p) ++ " ", showaccountname a ++ " ", showamount amt, T.unpack . showComment $ pcomment p]]
-    where
-      ledger3ishlayout = False
-      acctnamewidth = if ledger3ishlayout then 25 else 22
-      showaccountname = T.unpack . fitText (Just acctnamewidth) Nothing False False . bracket . elideAccountName width
-      (bracket,width) = case t of
-                          BalancedVirtualPosting -> (wrap "[" "]", acctnamewidth-2)
-                          VirtualPosting         -> (wrap "(" ")", acctnamewidth-2)
-                          _                      -> (id,acctnamewidth)
-      showamount = wbUnpack . showMixedAmountB noColour{displayMinWidth=Just 12}
+    T.unpack $ textConcatTopPadded [showDate (postingDate p) <> " ", showaccountname a <> " ", showamt, showComment $ pcomment p]
+  where
+    ledger3ishlayout = False
+    acctnamewidth = if ledger3ishlayout then 25 else 22
+    showaccountname = fitText (Just acctnamewidth) Nothing False False . bracket . elideAccountName width
+    (bracket,width) = case t of
+                        BalancedVirtualPosting -> (wrap "[" "]", acctnamewidth-2)
+                        VirtualPosting         -> (wrap "(" ")", acctnamewidth-2)
+                        _                      -> (id,acctnamewidth)
+    showamt = wbToText $ showMixedAmountB noColour{displayMinWidth=Just 12} amt
 
 
 showComment :: Text -> Text
