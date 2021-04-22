@@ -38,6 +38,7 @@ Brick.defaultMain brickapp st
 
 module Hledger.UI.UITypes where
 
+import Data.Text (Text)
 import Data.Time.Calendar (Day)
 import Brick
 import Brick.Widgets.List (List)
@@ -141,13 +142,13 @@ data AccountsScreenItem = AccountsScreenItem {
 
 -- | An item in the register screen's list of transactions in the current account.
 data RegisterScreenItem = RegisterScreenItem {
-   rsItemDate           :: String           -- ^ date
-  ,rsItemStatus         :: Status           -- ^ transaction status
-  ,rsItemDescription    :: String           -- ^ description
-  ,rsItemOtherAccounts  :: String           -- ^ other accounts
-  ,rsItemChangeAmount   :: (String, Int)    -- ^ the change to the current account from this transaction
-  ,rsItemBalanceAmount  :: (String, Int)    -- ^ the balance or running total after this transaction
-  ,rsItemTransaction    :: Transaction      -- ^ the full transaction
+   rsItemDate           :: Text         -- ^ date
+  ,rsItemStatus         :: Status       -- ^ transaction status
+  ,rsItemDescription    :: Text         -- ^ description
+  ,rsItemOtherAccounts  :: Text         -- ^ other accounts
+  ,rsItemChangeAmount   :: WideBuilder  -- ^ the change to the current account from this transaction
+  ,rsItemBalanceAmount  :: WideBuilder  -- ^ the balance or running total after this transaction
+  ,rsItemTransaction    :: Transaction  -- ^ the full transaction
   }
   deriving (Show)
 

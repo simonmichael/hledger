@@ -98,17 +98,16 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec
     displayitems = map displayitem items'
       where
         displayitem (t, _, _issplit, otheracctsstr, change, bal) =
-          RegisterScreenItem{rsItemDate          = T.unpack . showDate $ transactionRegisterDate q thisacctq t
+          RegisterScreenItem{rsItemDate          = showDate $ transactionRegisterDate q thisacctq t
                             ,rsItemStatus        = tstatus t
-                            ,rsItemDescription   = T.unpack $ tdescription t
-                            ,rsItemOtherAccounts = T.unpack otheracctsstr
+                            ,rsItemDescription   = tdescription t
+                            ,rsItemOtherAccounts = otheracctsstr
                                                      -- _   -> "<split>"  -- should do this if accounts field width < 30
                             ,rsItemChangeAmount  = showamt change
                             ,rsItemBalanceAmount = showamt bal
                             ,rsItemTransaction   = t
                             }
-            where showamt = (\wb -> (wbUnpack wb, wbWidth wb))
-                          . showMixedAmountB oneLine{displayMaxWidth=Just 32}
+            where showamt = showMixedAmountB oneLine{displayMaxWidth=Just 32}
     -- blank items are added to allow more control of scroll position; we won't allow movement over these.
     -- XXX Ugly. Changing to 0 helps when debugging.
     blankitems = replicate 100  -- "100 ought to be enough for anyone"
@@ -116,8 +115,8 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec
                             ,rsItemStatus        = Unmarked
                             ,rsItemDescription   = ""
                             ,rsItemOtherAccounts = ""
-                            ,rsItemChangeAmount  = ("", 0)
-                            ,rsItemBalanceAmount = ("", 0)
+                            ,rsItemChangeAmount  = mempty
+                            ,rsItemBalanceAmount = mempty
                             ,rsItemTransaction   = nulltransaction
                             }
     -- build the List
@@ -175,8 +174,8 @@ rsDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}
         whitespacewidth = 10 -- inter-column whitespace, fixed width
         minnonamtcolswidth = datewidth + 1 + 2 + 2 -- date column plus at least 1 for status and 2 for desc and accts
         maxamtswidth = max 0 (totalwidth - minnonamtcolswidth - whitespacewidth)
-        maxchangewidthseen = maximum' $ map (snd . rsItemChangeAmount) displayitems
-        maxbalwidthseen = maximum' $ map (snd . rsItemBalanceAmount) displayitems
+        maxchangewidthseen = maximum' $ map (wbWidth . rsItemChangeAmount) displayitems
+        maxbalwidthseen = maximum' $ map (wbWidth . rsItemBalanceAmount) displayitems
         changewidthproportion = fromIntegral maxchangewidthseen / fromIntegral (maxchangewidthseen + maxbalwidthseen)
         maxchangewidth = round $ changewidthproportion * fromIntegral maxamtswidth
         maxbalwidth = maxamtswidth - maxchangewidth
@@ -235,7 +234,7 @@ rsDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}
                          Nothing -> "-"
                          Just i -> show (i + 1)
             total = str $ show $ length nonblanks
-            nonblanks = V.takeWhile (not . null . rsItemDate) $ rsList^.listElementsL
+            nonblanks = V.takeWhile (not . T.null . rsItemDate) $ rsList^.listElementsL
 
             -- query = query_ $ reportopts_ $ cliopts_ opts
 
@@ -266,22 +265,24 @@ rsDrawItem :: (Int,Int,Int,Int,Int) -> Bool -> RegisterScreenItem -> Widget Name
 rsDrawItem (datewidth,descwidth,acctswidth,changewidth,balwidth) selected RegisterScreenItem{..} =
   Widget Greedy Fixed $ do
     render $
-      str (fitString (Just datewidth) (Just datewidth) True True rsItemDate) <+>
-      str " " <+>
-      str (fitString (Just 1) (Just 1) True True (show rsItemStatus)) <+>
-      str " " <+>
-      str (fitString (Just descwidth) (Just descwidth) True True rsItemDescription) <+>
-      str "  " <+>
-      str (fitString (Just acctswidth) (Just acctswidth) True True rsItemOtherAccounts) <+>
-      str "   " <+>
-      withAttr changeattr (str (fitString (Just changewidth) (Just changewidth) True False $ fst rsItemChangeAmount)) <+>
-      str "   " <+>
-      withAttr balattr (str (fitString (Just balwidth) (Just balwidth) True False $ fst rsItemBalanceAmount))
+      txt (fitText (Just datewidth) (Just datewidth) True True rsItemDate) <+>
+      txt " " <+>
+      txt (fitText (Just 1) (Just 1) True True (T.pack $ show rsItemStatus)) <+>
+      txt " " <+>
+      txt (fitText (Just descwidth) (Just descwidth) True True rsItemDescription) <+>
+      txt "  " <+>
+      txt (fitText (Just acctswidth) (Just acctswidth) True True rsItemOtherAccounts) <+>
+      txt "   " <+>
+      withAttr changeattr (txt $ fitText (Just changewidth) (Just changewidth) True False changeAmt) <+>
+      txt "   " <+>
+      withAttr balattr (txt $ fitText (Just balwidth) (Just balwidth) True False balanceAmt)
   where
-    changeattr | '-' `elem` fst rsItemChangeAmount = sel $ "list" <> "amount" <> "decrease"
-               | otherwise                     = sel $ "list" <> "amount" <> "increase"
-    balattr    | '-' `elem` fst rsItemBalanceAmount = sel $ "list" <> "balance" <> "negative"
-               | otherwise                      = sel $ "list" <> "balance" <> "positive"
+    changeAmt  = wbToText rsItemChangeAmount
+    balanceAmt = wbToText rsItemBalanceAmount
+    changeattr | T.any (=='-') changeAmt  = sel $ "list" <> "amount" <> "decrease"
+               | otherwise                = sel $ "list" <> "amount" <> "increase"
+    balattr    | T.any (=='-') balanceAmt = sel $ "list" <> "balance" <> "negative"
+               | otherwise                = sel $ "list" <> "balance" <> "positive"
     sel | selected  = (<> "selected")
         | otherwise = id
 
@@ -295,7 +296,7 @@ rsHandle ui@UIState{
   d <- liftIO getCurrentDay
   let
     journalspan = journalDateSpan False j
-    nonblanks = V.takeWhile (not . null . rsItemDate) $ rsList^.listElementsL
+    nonblanks = V.takeWhile (not . T.null . rsItemDate) $ rsList^.listElementsL
     lastnonblankidx = max 0 (length nonblanks - 1)
 
   case mode of
