@@ -6,61 +6,48 @@
 
 module Hledger.Utils.Text
   (
- -- -- * misc
- -- lowercase,
- -- uppercase,
- -- underline,
- -- stripbrackets,
+  -- * misc
+  -- lowercase,
+  -- uppercase,
+  -- underline,
+  -- stripbrackets,
   textUnbracket,
   wrap,
   textChomp,
- -- -- quoting
+  -- quoting
   quoteIfSpaced,
   textQuoteIfNeeded,
- -- singleQuoteIfNeeded,
- -- -- quotechars,
- -- -- whitespacechars,
+  -- singleQuoteIfNeeded,
+  -- quotechars,
+  -- whitespacechars,
   escapeDoubleQuotes,
- -- escapeSingleQuotes,
- -- escapeQuotes,
- -- words',
- -- unwords',
+  -- escapeSingleQuotes,
+  -- escapeQuotes,
+  -- words',
+  -- unwords',
   stripquotes,
- -- isSingleQuoted,
- -- isDoubleQuoted,
- -- -- * single-line layout
- -- elideLeft,
+  -- isSingleQuoted,
+  -- isDoubleQuoted,
+  -- * single-line layout
+  -- elideLeft,
   textElideRight,
   formatText,
- -- -- * multi-line layout
+  -- * multi-line layout
   textConcatTopPadded,
   textConcatBottomPadded,
- -- concatOneLine,
- -- vConcatLeftAligned,
- -- vConcatRightAligned,
- -- padtop,
- -- padbottom,
- -- padleft,
- -- padright,
- -- cliptopleft,
- -- fitto,
   fitText,
   linesPrepend,
   linesPrepend2,
   unlinesB,
- -- -- * wide-character-aware layout
+  -- * wide-character-aware layout
   WideBuilder(..),
   wbToText,
   wbUnpack,
   textWidth,
   textTakeWidth,
- -- fitString,
- -- fitStringMulti,
-  textPadLeftWide,
-  textPadRightWide,
-  -- -- * Reading
+  -- * Reading
   readDecimal,
-  -- -- * tests
+  -- * tests
   tests_Text
   )
 where
@@ -207,71 +194,6 @@ textConcatBottomPadded :: [Text] -> Text
 textConcatBottomPadded = TL.toStrict . renderRow def{tableBorders=False, borderSpaces=False}
                        . Group NoLine . map (Header . textCell TopLeft)
 
--- -- | Join multi-line strings horizontally, after compressing each of
--- -- them to a single line with a comma and space between each original line.
--- concatOneLine :: [String] -> String
--- concatOneLine strs = concat $ map ((intercalate ", ").lines) strs
-
--- -- | Join strings vertically, left-aligned and right-padded.
--- vConcatLeftAligned :: [String] -> String
--- vConcatLeftAligned ss = intercalate "\n" $ map showfixedwidth ss
---     where
---       showfixedwidth = printf (printf "%%-%ds" width)
---       width = maximum $ map length ss
-
--- -- | Join strings vertically, right-aligned and left-padded.
--- vConcatRightAligned :: [String] -> String
--- vConcatRightAligned ss = intercalate "\n" $ map showfixedwidth ss
---     where
---       showfixedwidth = printf (printf "%%%ds" width)
---       width = maximum $ map length ss
-
--- -- | Convert a multi-line string to a rectangular string top-padded to the specified height.
--- padtop :: Int -> String -> String
--- padtop h s = intercalate "\n" xpadded
---     where
---       ls = lines s
---       sh = length ls
---       sw | null ls = 0
---          | otherwise = maximum $ map length ls
---       ypadded = replicate (difforzero h sh) "" ++ ls
---       xpadded = map (padleft sw) ypadded
-
--- -- | Convert a multi-line string to a rectangular string bottom-padded to the specified height.
--- padbottom :: Int -> String -> String
--- padbottom h s = intercalate "\n" xpadded
---     where
---       ls = lines s
---       sh = length ls
---       sw | null ls = 0
---          | otherwise = maximum $ map length ls
---       ypadded = ls ++ replicate (difforzero h sh) ""
---       xpadded = map (padleft sw) ypadded
-
--- -- | Convert a multi-line string to a rectangular string left-padded to the specified width.
--- -- Treats wide characters as double width.
--- padleft :: Int -> String -> String
--- padleft w "" = concat $ replicate w " "
--- padleft w s = intercalate "\n" $ map (printf (printf "%%%ds" w)) $ lines s
-
--- -- | Convert a multi-line string to a rectangular string right-padded to the specified width.
--- -- Treats wide characters as double width.
--- padright :: Int -> String -> String
--- padright w "" = concat $ replicate w " "
--- padright w s = intercalate "\n" $ map (printf (printf "%%-%ds" w)) $ lines s
-
--- -- | Clip a multi-line string to the specified width and height from the top left.
--- cliptopleft :: Int -> Int -> String -> String
--- cliptopleft w h = intercalate "\n" . take h . map (take w) . lines
-
--- -- | Clip and pad a multi-line string to fill the specified width and height.
--- fitto :: Int -> Int -> String -> String
--- fitto w h s = intercalate "\n" $ take h $ rows ++ repeat blankline
---     where
---       rows = map (fit w) $ lines s
---       fit w = take w . (++ repeat ' ')
---       blankline = replicate w ' '
-
 -- -- Functions below treat wide (eg CJK) characters as double-width.
 
 -- | General-purpose wide-char-aware single-line text layout function.
@@ -305,31 +227,6 @@ fitText mminwidth mmaxwidth ellipsify rightside = clip . pad
           | otherwise -> s
         Nothing -> s
       where sw = textWidth s
-
--- -- | A version of fitString that works on multi-line strings,
--- -- separate for now to avoid breakage.
--- -- This will rewrite any line endings to unix newlines.
--- fitStringMulti :: Maybe Int -> Maybe Int -> Bool -> Bool -> String -> String
--- fitStringMulti mminwidth mmaxwidth ellipsify rightside s =
---   (intercalate "\n" . map (fitString mminwidth mmaxwidth ellipsify rightside) . lines) s
-
--- | Left-pad a text to the specified width.
--- Treats wide characters as double width.
--- Works on multi-line texts too (but will rewrite non-unix line endings).
-textPadLeftWide :: Int -> Text -> Text
-textPadLeftWide w "" = T.replicate w " "
-textPadLeftWide w s  = T.intercalate "\n" $ map (fitText (Just w) Nothing False False) $ T.lines s
--- XXX not yet replaceable by
--- padLeftWide w = fitStringMulti (Just w) Nothing False False
-
--- | Right-pad a string to the specified width.
--- Treats wide characters as double width.
--- Works on multi-line strings too (but will rewrite non-unix line endings).
-textPadRightWide :: Int -> Text -> Text
-textPadRightWide w "" = T.replicate w " "
-textPadRightWide w s  = T.intercalate "\n" $ map (fitText (Just w) Nothing False True) $ T.lines s
--- XXX not yet replaceable by
--- padRightWide w = fitStringMulti (Just w) Nothing False True
 
 -- | Double-width-character-aware string truncation. Take as many
 -- characters as possible from a string without exceeding the
