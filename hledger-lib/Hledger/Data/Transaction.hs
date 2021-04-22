@@ -84,7 +84,6 @@ import Hledger.Data.Dates
 import Hledger.Data.Posting
 import Hledger.Data.Amount
 import Hledger.Data.Valuation
-import Text.Tabular
 import Text.Tabular.AsciiWide
 
 sourceFilePath :: GenericSourcePos -> FilePath

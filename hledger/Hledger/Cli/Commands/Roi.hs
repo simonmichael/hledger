@@ -25,8 +25,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy.IO as TL
 import System.Console.CmdArgs.Explicit as CmdArgs
 
-import Text.Tabular as Tbl
-import Text.Tabular.AsciiWide as Ascii
+import Text.Tabular.AsciiWide as Tab
 
 import Hledger
 import Hledger.Cli.CliOptions
@@ -145,14 +144,14 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{rsOpts=ReportOpts{..}
            , T.pack $ printf "%0.2f%%" $ smallIsZero twr ]
 
   let table = Table
-              (Tbl.Group NoLine (map (Header . T.pack . show) (take (length tableBody) [1..])))
-              (Tbl.Group DoubleLine
-               [ Tbl.Group SingleLine [Header "Begin", Header "End"]
-               , Tbl.Group SingleLine [Header "Value (begin)", Header "Cashflow", Header "Value (end)", Header "PnL"]
-               , Tbl.Group SingleLine [Header "IRR", Header "TWR"]])
+              (Tab.Group NoLine (map (Header . T.pack . show) (take (length tableBody) [1..])))
+              (Tab.Group DoubleLine
+               [ Tab.Group SingleLine [Header "Begin", Header "End"]
+               , Tab.Group SingleLine [Header "Value (begin)", Header "Cashflow", Header "Value (end)", Header "PnL"]
+               , Tab.Group SingleLine [Header "IRR", Header "TWR"]])
               tableBody
 
-  TL.putStrLn $ Ascii.render prettyTables id id id table
+  TL.putStrLn $ Tab.render prettyTables id id id table
 
 timeWeightedReturn showCashFlow prettyTables investmentsQuery trans mixedAmountValue (OneSpan spanBegin spanEnd valueBeforeAmt valueAfter cashFlow pnl) = do
   let valueBefore = unMix valueBeforeAmt
@@ -213,12 +212,12 @@ timeWeightedReturn showCashFlow prettyTables investmentsQuery trans mixedAmountV
         unitPrices = add initialUnitPrice unitPrices'
         unitBalances = add initialUnits unitBalances'
 
-    TL.putStr $ Ascii.render prettyTables id id T.pack
+    TL.putStr $ Tab.render prettyTables id id T.pack
       (Table
-       (Tbl.Group NoLine (map (Header . showDate) dates))
-       (Tbl.Group DoubleLine [ Tbl.Group SingleLine [Header "Portfolio value", Header "Unit balance"]
-                         , Tbl.Group SingleLine [Header "Pnl", Header "Cashflow", Header "Unit price", Header "Units"]
-                         , Tbl.Group SingleLine [Header "New Unit Balance"]])
+       (Tab.Group NoLine (map (Header . showDate) dates))
+       (Tab.Group DoubleLine [ Tab.Group SingleLine [Header "Portfolio value", Header "Unit balance"]
+                         , Tab.Group SingleLine [Header "Pnl", Header "Cashflow", Header "Unit price", Header "Units"]
+                         , Tab.Group SingleLine [Header "New Unit Balance"]])
        [ [value, oldBalance, pnl, cashflow, prc, udelta, balance]
        | value <- map showDecimal valuesOnDate
        | oldBalance <- map showDecimal (0:unitBalances)
@@ -243,10 +242,10 @@ internalRateOfReturn showCashFlow prettyTables (OneSpan spanBegin spanEnd valueB
   when showCashFlow $ do
     printf "\nIRR cash flow for %s - %s\n" (showDate spanBegin) (showDate (addDays (-1) spanEnd))
     let (dates, amounts) = unzip totalCF
-    TL.putStrLn $ Ascii.render prettyTables id id id
+    TL.putStrLn $ Tab.render prettyTables id id id
       (Table
-       (Tbl.Group NoLine (map (Header . showDate) dates))
-       (Tbl.Group SingleLine [Header "Amount"])
+       (Tab.Group NoLine (map (Header . showDate) dates))
+       (Tab.Group SingleLine [Header "Amount"])
        (map ((:[]) . T.pack . showMixedAmount) amounts))
 
   -- 0% is always a solution, so require at least something here

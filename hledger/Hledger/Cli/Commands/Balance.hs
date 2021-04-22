@@ -268,7 +268,6 @@ import qualified Data.Text.Lazy.Builder as TB
 import Data.Time (fromGregorian)
 import System.Console.CmdArgs.Explicit as C
 import Lucid as L
-import Text.Tabular as Tab
 import Text.Tabular.AsciiWide as Tab
 
 import Hledger
