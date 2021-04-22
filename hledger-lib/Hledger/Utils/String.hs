@@ -61,8 +61,8 @@ import Text.Printf (printf)
 
 import Hledger.Utils.Parse
 import Hledger.Utils.Regex (toRegex', regexReplace)
-import Text.Tabular (Header(..), Properties(..))
-import Text.Tabular.AsciiWide (Align(..), TableOpts(..), textCell, renderRow)
+import Text.Tabular.AsciiWide
+  (Align(..), Header(..), Properties(..), TableOpts(..), textCell, renderRow)
 import Text.WideString (charWidth, strWidth)
 
 

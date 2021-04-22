@@ -27,7 +27,7 @@ import Data.Time.Calendar (Day, addDays)
 import System.Console.CmdArgs.Explicit as C
 import Hledger.Read.CsvReader (CSV, printCSV)
 import Lucid as L hiding (value_)
-import Text.Tabular as Tab
+import Text.Tabular.AsciiWide as Tab
 
 import Hledger
 import Hledger.Cli.Commands.Balance

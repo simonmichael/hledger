@@ -34,7 +34,6 @@ import Hledger
 import Hledger.Read.CsvReader (CSV, CsvRecord, printCSV)
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
-import Text.Tabular (Header(..), Properties(..))
 import Text.Tabular.AsciiWide
 
 registermode = hledgerCommandMode

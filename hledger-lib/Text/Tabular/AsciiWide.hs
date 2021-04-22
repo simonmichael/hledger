@@ -4,7 +4,22 @@
 {-# LANGUAGE CPP               #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Text.Tabular.AsciiWide where
+module Text.Tabular.AsciiWide
+( module Text.Tabular
+
+, TableOpts(..)
+, render
+, renderTable
+, renderTableB
+, renderRow
+, renderRowB
+
+, Cell(..)
+, Align(..)
+, emptyCell
+, textCell
+, cellWidth
+) where
 
 import Data.Maybe (fromMaybe)
 import Data.Default (Default(..))

@@ -46,8 +46,7 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 --import System.Console.CmdArgs.Explicit as C
 --import Lucid as L
-import Text.Tabular as T
-import Text.Tabular.AsciiWide as T
+import Text.Tabular.AsciiWide as Tab
 
 import Hledger.Data
 import Hledger.Utils
@@ -293,8 +292,8 @@ budgetReportAsTable
   (PeriodicReport spans rows (PeriodicReportRow _ coltots grandtot grandavg)) =
     addtotalrow $
     Table
-      (T.Group NoLine $ map Header accts)
-      (T.Group NoLine $ map Header colheadings)
+      (Tab.Group NoLine $ map Header accts)
+      (Tab.Group NoLine $ map Header colheadings)
       (map rowvals rows)
   where
     colheadings = map (reportPeriodName balancetype_ spans) spans

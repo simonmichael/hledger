@@ -76,8 +76,8 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 
 import Hledger.Utils.Test ((@?=), test, tests)
-import Text.Tabular (Header(..), Properties(..))
-import Text.Tabular.AsciiWide (Align(..), TableOpts(..), textCell, renderRow)
+import Text.Tabular.AsciiWide
+  (Align(..), Header(..), Properties(..), TableOpts(..), renderRow, textCell)
 import Text.WideString (WideBuilder(..), wbToText, wbUnpack, charWidth, textWidth)
 
 
