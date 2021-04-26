@@ -138,7 +138,6 @@ main = do
     isExternalCommand    = not (null cmd) && cmd `elem` addons -- probably
     isBadCommand         = not (null rawcmd) && null cmd
     hasVersion           = ("--version" `elem`)
-    hasDetailedVersion   = ("--version+" `elem`)
     printUsage           = putStr $ showModeUsage $ mainmode addons
     badCommandError      = error' ("command "++rawcmd++" is not recognized, run with no command to see a list") >> exitFailure  -- PARTIAL:
     hasHelpFlag args     = any (`elem` args) ["-h","--help"]
@@ -170,9 +169,6 @@ main = do
       | not (isExternalCommand || hasHelpFlag args || hasInfoFlag args || hasManFlag args)
         && (hasVersion args) --  || (hasVersion argsaftercmd && isInternalCommand))
                                  = putStrLn prognameandversion
-      | not (isExternalCommand || hasHelpFlag args || hasInfoFlag args || hasManFlag args) 
-        && (hasDetailedVersion argsbeforecmd)  --  || (hasDetailedVersion argsaftercmd && isInternalCommand))
-                                 = putStrLn prognameanddetailedversion
       -- \| (null externalcmd) && "binary-filename" `inRawOpts` rawopts = putStrLn $ binaryfilename progname
       -- \| "--browse-args" `elem` args     = System.Console.CmdArgs.Helper.execute "cmdargs-browser" mainmode' args >>= (putStr . show)
       | isNullCommand            = dbgIO "" "no command, showing commands list" >> printCommandsList addons

@@ -13,15 +13,14 @@ import System.Environment
 import Hledger.Cli hiding (progname,version,prognameandversion)
 import Hledger.UI.Theme (themeNames)
 
-progname, version :: String
+progname, version, prognameandversion :: String
 progname = "hledger-ui"
 #ifdef VERSION
 version = VERSION
 #else
 version = ""
 #endif
-prognameandversion :: String
-prognameandversion = progname ++ " " ++ version :: String
+prognameandversion = versiondescription progname
 
 uiflags = [
   -- flagNone ["debug-ui"] (setboolopt "rules-file") "run with no terminal output, showing console"
