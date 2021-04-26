@@ -54,6 +54,8 @@ module Hledger.Cli.CliOptions (
   replaceNumericFlags,
   -- | For register:
   registerWidthsFromOpts,
+  -- | For balance:
+  balanceWidthFromOpts,
 
   -- * Other utils
   hledgerAddons,
@@ -638,6 +640,15 @@ registerWidthsFromOpts CliOpts{width_=Just s}  =
           descwidth <- optional (char ',' >> read `fmap` some digitChar)
           eof
           return (totalwidth, descwidth)
+
+-- for balance:
+
+-- | Get the width in characters to use for the balance command's amount widths.
+-- This comes from the --width option.
+-- Will raise a parse error for a malformed --width argument.
+balanceWidthFromOpts :: CliOpts -> Maybe Int
+balanceWidthFromOpts CliOpts{width_=Nothing} = Nothing
+balanceWidthFromOpts copts@CliOpts{width_=Just _} = Just $ widthFromOpts copts
 
 -- Other utils
 

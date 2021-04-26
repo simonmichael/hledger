@@ -255,6 +255,7 @@ module Hledger.Cli.Commands.Balance (
  ,tests_Balance
 ) where
 
+import Control.Applicative ((<|>))
 import Data.Default (def)
 import Data.List (intersperse, transpose)
 import Data.Maybe (fromMaybe, maybeToList)
@@ -306,6 +307,7 @@ balancemode = hledgerCommandMode
    ,flagNone ["percent", "%"] (setboolopt "percent") "express values in percentage of each column's total"
    ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
    ,flagNone ["transpose"] (setboolopt "transpose") "transpose rows and columns"
+   ,flagReq  ["width","w"] (\s opts -> Right $ setopt "width" s opts) "N" "set the maximum width to use for each amount in a balance report"
    ,outputFormatFlag ["txt","html","csv","json"]
    ,outputFileFlag
    ]
@@ -316,42 +318,42 @@ balancemode = hledgerCommandMode
 
 -- | The balance command, prints a balance report.
 balance :: CliOpts -> Journal -> IO ()
-balance opts@CliOpts{reportspec_=rspec} j = case reporttype_ of
+balance copts@CliOpts{reportspec_=rspec} j = case reporttype_ of
     BudgetReport -> do  -- single or multi period budget report
       let reportspan = reportSpan j rspec
           budgetreport = budgetReport rspec assrt reportspan j
             where
-              assrt = not $ ignore_assertions_ $ inputopts_ opts
+              assrt = not $ ignore_assertions_ $ inputopts_ copts
           render = case fmt of
             "txt"  -> budgetReportAsText ropts
             "json" -> (<>"\n") . toJsonText
             "csv"  -> printCSV . budgetReportAsCsv ropts
             _      -> error' $ unsupportedOutputFormatError fmt
-      writeOutputLazyText opts $ render budgetreport
+      writeOutputLazyText copts $ render budgetreport
 
     _ | multiperiod -> do  -- multi period balance report
         let report = multiBalanceReport rspec j
             render = case fmt of
-              "txt"  -> multiBalanceReportAsText ropts
+              "txt"  -> multiBalanceReportAsText copts
               "csv"  -> printCSV . multiBalanceReportAsCsv ropts
               "html" -> (<>"\n") . L.renderText . multiBalanceReportAsHtml ropts
               "json" -> (<>"\n") . toJsonText
               _      -> const $ error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
-        writeOutputLazyText opts $ render report
+        writeOutputLazyText copts $ render report
 
     _ -> do  -- single period simple balance report
         let report = balanceReport rspec j -- simple Ledger-style balance report
             render = case fmt of
-              "txt"  -> \ropts -> TB.toLazyText . balanceReportAsText ropts
-              "csv"  -> \ropts -> printCSV . balanceReportAsCsv ropts
+              "txt"  -> TB.toLazyText . balanceReportAsText copts
+              "csv"  -> printCSV . balanceReportAsCsv ropts
               -- "html" -> \ropts -> (<>"\n") . L.renderText . multiBalanceReportAsHtml ropts . balanceReportAsMultiBalanceReport ropts
-              "json" -> const $ (<>"\n") . toJsonText
+              "json" -> (<>"\n") . toJsonText
               _      -> error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
-        writeOutputLazyText opts $ render ropts report
+        writeOutputLazyText copts $ render report
   where
     ropts@ReportOpts{..} = rsOpts rspec
     multiperiod = interval_ /= NoInterval
-    fmt         = outputFormatFromOpts opts
+    fmt         = outputFormatFromOpts copts
 
 -- XXX this allows rough HTML rendering of a flat BalanceReport, but it can't handle tree mode etc.
 -- -- | Convert a BalanceReport to a MultiBalanceReport.
@@ -388,24 +390,24 @@ balance opts@CliOpts{reportspec_=rspec} j = case reporttype_ of
 balanceReportAsCsv :: ReportOpts -> BalanceReport -> CSV
 balanceReportAsCsv opts (items, total) =
   ["account","balance"] :
-  [[accountNameDrop (drop_ opts) a, wbToText $ showMixedAmountB (balanceOpts False opts) b] | (a, _, _, b) <- items]
+  [[accountNameDrop (drop_ opts) a, wbToText $ showMixedAmountB balanceOptsCsv b] | (a, _, _, b) <- items]
   ++
   if no_total_ opts
   then []
-  else [["total", wbToText $ showMixedAmountB (balanceOpts False opts) total]]
+  else [["total", wbToText $ showMixedAmountB balanceOptsCsv total]]
 
 -- | Render a single-column balance report as plain text.
-balanceReportAsText :: ReportOpts -> BalanceReport -> TB.Builder
-balanceReportAsText opts ((items, total)) =
+balanceReportAsText :: CliOpts -> BalanceReport -> TB.Builder
+balanceReportAsText copts@CliOpts{reportspec_=ReportSpec{rsOpts=ropts}} ((items, total)) =
     unlinesB lines
-    <> unlinesB (if no_total_ opts then [] else [overline, totalLines])
+    <> unlinesB (if no_total_ ropts then [] else [overline, totalLines])
   where
-    (lines, sizes) = unzip $ map (balanceReportItemAsText opts) items
+    (lines, sizes) = unzip $ map (balanceReportItemAsText copts) items
     -- abuse renderBalanceReportItem to render the total with similar format
-    (totalLines, _) = renderBalanceReportItem opts ("",0,total)
+    (totalLines, _) = renderBalanceReportItem copts ("",0,total)
     -- with a custom format, extend the line to the full report width;
     -- otherwise show the usual 20-char line for compatibility
-    overlinewidth = case format_ opts of
+    overlinewidth = case format_ ropts of
         OneLine       ((FormatField _ _ _ TotalField):_) -> 20
         TopAligned    ((FormatField _ _ _ TotalField):_) -> 20
         BottomAligned ((FormatField _ _ _ TotalField):_) -> 20
@@ -427,14 +429,14 @@ This implementation turned out to be a bit convoluted but implements the followi
 -- whatever string format is specified). Note, prices will not be rendered, and
 -- differently-priced quantities of the same commodity will appear merged.
 -- The output will be one or more lines depending on the format and number of commodities.
-balanceReportItemAsText :: ReportOpts -> BalanceReportItem -> (TB.Builder, [Int])
-balanceReportItemAsText opts (_, accountName, depth, amt) =
-  renderBalanceReportItem opts (accountName, depth, amt)
+balanceReportItemAsText :: CliOpts -> BalanceReportItem -> (TB.Builder, [Int])
+balanceReportItemAsText copts (_, accountName, depth, amt) =
+  renderBalanceReportItem copts (accountName, depth, amt)
 
 -- | Render a balance report item using the given StringFormat, generating one or more lines of text.
-renderBalanceReportItem :: ReportOpts -> (AccountName, Int, MixedAmount) -> (TB.Builder, [Int])
-renderBalanceReportItem opts (acctname, depth, total) =
-  case format_ opts of
+renderBalanceReportItem :: CliOpts -> (AccountName, Int, MixedAmount) -> (TB.Builder, [Int])
+renderBalanceReportItem copts@CliOpts{reportspec_=ReportSpec{rsOpts=ropts}} (acctname, depth, total) =
+  case format_ ropts of
       OneLine       comps -> renderRow' $ render True  True  comps
       TopAligned    comps -> renderRow' $ render True  False comps
       BottomAligned comps -> renderRow' $ render False False comps
@@ -443,7 +445,7 @@ renderBalanceReportItem opts (acctname, depth, total) =
                       . Tab.Group NoLine $ map Header is
                     , map cellWidth is )
 
-    render topaligned oneline = map (maybeConcat . renderComponent topaligned opts (acctname, depth, total))
+    render topaligned oneline = map (maybeConcat . renderComponent topaligned copts (acctname, depth, total))
       where maybeConcat (Cell a xs) =
                 if oneline then Cell a [WideBuilder (mconcat . intersperse (TB.fromText ", ") $ map wbBuilder xs) width]
                            else Cell a xs
@@ -451,9 +453,9 @@ renderBalanceReportItem opts (acctname, depth, total) =
 
 
 -- | Render one StringFormat component for a balance report item.
-renderComponent :: Bool -> ReportOpts -> (AccountName, Int, MixedAmount) -> StringFormatComponent -> Cell
+renderComponent :: Bool -> CliOpts -> (AccountName, Int, MixedAmount) -> StringFormatComponent -> Cell
 renderComponent _ _ _ (FormatLiteral s) = textCell TopLeft s
-renderComponent topaligned opts (acctname, depth, total) (FormatField ljust mmin mmax field) = case field of
+renderComponent topaligned copts (acctname, depth, total) (FormatField ljust mmin mmax field) = case field of
     DepthSpacerField -> Cell align [WideBuilder (TB.fromText $ T.replicate d " ") d]
                         where d = maybe id min mmax $ depth * fromMaybe 1 mmin
     AccountField     -> textCell align $ formatText ljust mmin mmax acctname
@@ -462,7 +464,8 @@ renderComponent topaligned opts (acctname, depth, total) (FormatField ljust mmin
   where
     align = if topaligned then (if ljust then TopLeft    else TopRight)
                           else (if ljust then BottomLeft else BottomRight)
-    dopts = (balanceOpts True opts){displayOneLine=False, displayMinWidth=mmin, displayMaxWidth=mmax}
+    dopts = (balanceOpts copts){ displayOneLine=False, displayMinWidth=mmin
+                               , displayMaxWidth=mmax <|> balanceWidthFromOpts copts}
 
 -- rendering multi-column balance reports
 
@@ -478,7 +481,7 @@ multiBalanceReportAsCsv opts@ReportOpts{average_, row_total_}
    ++ ["average" | average_]
   ) :
   [displayName a :
-   map (wbToText . showMixedAmountB (balanceOpts False opts))
+   map (wbToText . showMixedAmountB balanceOptsCsv)
    (amts
     ++ [rowtot | row_total_]
     ++ [rowavg | average_])
@@ -487,7 +490,7 @@ multiBalanceReportAsCsv opts@ReportOpts{average_, row_total_}
   if no_total_ opts
   then []
   else ["total" :
-        map (wbToText . showMixedAmountB (balanceOpts False opts)) (
+        map (wbToText . showMixedAmountB balanceOptsCsv) (
           coltotals
           ++ [tot | row_total_]
           ++ [avg | average_]
@@ -586,11 +589,12 @@ multiBalanceReportHtmlFootRow ropts (acct:rest) =
 --thRow = tr_ . mconcat . map (th_ . toHtml)
 
 -- | Render a multi-column balance report as plain text suitable for console output.
-multiBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> TL.Text
-multiBalanceReportAsText ropts@ReportOpts{..} r = TB.toLazyText $
-    TB.fromText title
-    <> TB.fromText "\n\n"
-    <> balanceReportTableAsText ropts (balanceReportAsTable ropts r)
+multiBalanceReportAsText :: CliOpts -> MultiBalanceReport -> TL.Text
+multiBalanceReportAsText copts@CliOpts{reportspec_=ReportSpec{rsOpts=ropts@ReportOpts{..}}} r =
+    TB.toLazyText $
+      TB.fromText title
+      <> TB.fromText "\n\n"
+      <> balanceReportTableAsText copts (balanceReportAsTable ropts r)
   where
     title = mtitle <> " in " <> showDateSpan (periodicReportSpan r) <> valuationdesc <> ":"
 
@@ -651,20 +655,24 @@ balanceReportAsTable opts@ReportOpts{average_, row_total_, balancetype_}
 -- made using 'balanceReportAsTable'), render it in a format suitable for
 -- console output. Amounts with more than two commodities will be elided
 -- unless --no-elide is used.
-balanceReportTableAsText :: ReportOpts -> Table T.Text T.Text MixedAmount -> TB.Builder
-balanceReportTableAsText ropts@ReportOpts{..} =
-    Tab.renderTableB def{tableBorders=False, prettyTable=pretty_tables_}
+balanceReportTableAsText :: CliOpts -> Table T.Text T.Text MixedAmount -> TB.Builder
+balanceReportTableAsText copts@CliOpts{reportspec_=ReportSpec{rsOpts=ropts}} =
+    Tab.renderTableB def{tableBorders=False, prettyTable=pretty_tables_ ropts}
         (Tab.textCell TopLeft) (Tab.textCell TopRight) $
-        Cell TopRight . pure . showMixedAmountB (balanceOpts True ropts)
+        Cell TopRight . pure . showMixedAmountB (balanceOpts copts)
 
 -- | Amount display options to use for balance reports
-balanceOpts :: Bool -> ReportOpts -> AmountDisplayOpts
-balanceOpts isTable ReportOpts{..} = oneLine
-    { displayColour   = isTable && color_
-    , displayMaxWidth = if isTable && not no_elide_ then Just 32 else Nothing
+balanceOpts :: CliOpts -> AmountDisplayOpts
+balanceOpts copts@CliOpts{reportspec_=ReportSpec{rsOpts=ropts}} = oneLine
+    { displayColour   = color_ ropts
+    , displayMaxWidth = if no_elide_ ropts then Nothing else balanceWidthFromOpts copts <|> Just 32
     , displayPrice    = True  -- multiBalanceReport strips prices from Amounts if they are not being used,
                               -- so we can display prices here without fear.
     }
+
+-- | Amount display options to use for balance reports with csv output
+balanceOptsCsv :: AmountDisplayOpts
+balanceOptsCsv = oneLine{displayPrice=True}
 
 tests_Balance = tests "Balance" [
 
@@ -672,7 +680,8 @@ tests_Balance = tests "Balance" [
     test "unicode in balance layout" $ do
       j <- readJournal' "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
       let rspec = defreportspec{rsOpts=defreportopts{no_total_=True}}
-      TB.toLazyText (balanceReportAsText (rsOpts rspec) (balanceReport rspec{rsToday=fromGregorian 2008 11 26} j))
+          copts = defcliopts{reportspec_=rspec}
+      TB.toLazyText (balanceReportAsText copts (balanceReport rspec{rsToday=fromGregorian 2008 11 26} j))
         @?=
         TL.unlines
         ["                -100  актив:наличные"

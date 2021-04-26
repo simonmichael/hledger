@@ -17,7 +17,17 @@ Balance changes in 2020:
 ---++-------------------------------
    || 1.00A, 1.00B, 1.00C, 3 more.. 
 
-# 2. Unless --no-elide is used.
+# 2. Can change the width used with the --width flag
+$ hledger -f- bal -Y -w 25
+Balance changes in 2020:
+
+   ||                   2020 
+===++========================
+ a || 1.00A, 1.00B, 4 more.. 
+---++------------------------
+   || 1.00A, 1.00B, 4 more.. 
+
+# 3. If --no-elide is used, display all.
 $ hledger -f- bal -Y --no-elide
 Balance changes in 2020:
 
@@ -48,7 +58,7 @@ Balance changes in 2020:
     ea50865f:3bfb86b7:bf72f75a:a7cad1ac       C$ -26.00
     ea50865f:325566ed:216fec7e:7b433efb         C$ 1.44
 
-# 3. Make sure all amounts up to the largest fit
+# 4. Make sure all amounts up to the largest fit
 $ hledger -f- bal -Y --color=yes
 Balance changes in 2020:
 

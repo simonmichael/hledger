@@ -88,6 +88,7 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
     ,flagNone ["pretty-tables"] (setboolopt "pretty-tables") "use unicode when displaying tables"
     ,flagNone ["sort-amount","S"] (setboolopt "sort-amount") "sort by amount instead of account code/name"
     ,flagNone ["percent", "%"] (setboolopt "percent") "express values in percentage of each column's total"
+    ,flagReq  ["width","w"] (\s opts -> Right $ setopt "width" s opts) "N" "set the maximum width to use for each amount in a balance report"
     ,outputFormatFlag ["txt","html","csv","json"]
     ,outputFileFlag
     ])
@@ -101,8 +102,8 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
 
 -- | Generate a runnable command from a compound balance command specification.
 compoundBalanceCommand :: CompoundBalanceCommandSpec -> (CliOpts -> Journal -> IO ())
-compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=rspec, rawopts_=rawopts} j = do
-    writeOutputLazyText opts $ render cbr
+compoundBalanceCommand CompoundBalanceCommandSpec{..} copts@CliOpts{reportspec_=rspec, rawopts_=rawopts} j = do
+    writeOutputLazyText copts $ render cbr
   where
     ropts@ReportOpts{..} = rsOpts rspec
     -- use the default balance type for this report, unless the user overrides
@@ -110,6 +111,7 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
     balancetype = fromMaybe cbctype mBalanceTypeOverride
     -- Set balance type in the report options.
     ropts' = ropts{balancetype_=balancetype}
+    copts' = copts{reportspec_=rspec{rsOpts=ropts'}}
 
     title =
       T.pack cbctitle
@@ -161,8 +163,8 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
     cbr  = cbr'{cbrTitle=title}
 
     -- render appropriately
-    render = case outputFormatFromOpts opts of
-        "txt"  -> compoundBalanceReportAsText ropts'
+    render = case outputFormatFromOpts copts' of
+        "txt"  -> compoundBalanceReportAsText copts'
         "csv"  -> printCSV . compoundBalanceReportAsCsv ropts'
         "html" -> L.renderText . compoundBalanceReportAsHtml ropts'
         "json" -> toJsonText
@@ -198,12 +200,12 @@ Balance Sheet
  Total       ||           1        1        1
 
 -}
-compoundBalanceReportAsText :: ReportOpts -> CompoundPeriodicReport DisplayName MixedAmount -> TL.Text
-compoundBalanceReportAsText ropts
+compoundBalanceReportAsText :: CliOpts -> CompoundPeriodicReport DisplayName MixedAmount -> TL.Text
+compoundBalanceReportAsText copts@CliOpts{reportspec_=ReportSpec{rsOpts=ropts}}
   (CompoundPeriodicReport title _colspans subreports (PeriodicReportRow _ coltotals grandtotal grandavg)) =
     TB.toLazyText $
       TB.fromText title <> TB.fromText "\n\n" <>
-      balanceReportTableAsText ropts bigtable'
+      balanceReportTableAsText copts bigtable'
   where
     bigtable =
       case map (subreportAsTable ropts) subreports of
