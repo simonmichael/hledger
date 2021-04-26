@@ -27,7 +27,7 @@ version = VERSION
 version = ""
 #endif
 prognameandversion :: String
-prognameandversion = progname ++ " " ++ version :: String
+prognameandversion = versiondescription progname
 
 webflags :: [Flag RawOpts]
 webflags =
