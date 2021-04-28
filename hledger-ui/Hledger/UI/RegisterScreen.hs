@@ -56,7 +56,7 @@ rsSetAccount a forceinclusive scr@RegisterScreen{} =
 rsSetAccount _ _ scr = scr
 
 rsInit :: Day -> Bool -> UIState -> UIState
-rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts}}}, ajournal=j, aScreen=s@RegisterScreen{..}} =
+rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec@ReportSpec{reportopts_=ropts}}}, ajournal=j, aScreen=s@RegisterScreen{..}} =
   ui{aScreen=s{rsList=newitems'}}
   where
     -- gather arguments and queries
@@ -77,7 +77,7 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec
       updateReportSpec ropts' rspec
 
     -- Further restrict the query based on the current period and future/forecast mode.
-    q = simplifyQuery $ And [rsQuery rspec', periodq, excludeforecastq (forecast_ ropts)]
+    q = simplifyQuery $ And [query_ rspec', periodq, excludeforecastq (forecast_ ropts)]
       where
         periodq = Date $ periodAsDateSpan $ period_ ropts
         -- Except in forecast mode, exclude future/forecast transactions.
@@ -200,7 +200,7 @@ rsDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}
       render $ defaultLayout toplabel bottomlabel $ renderList (rsDrawItem colwidths) True rsList
 
       where
-        ropts = rsOpts rspec
+        ropts = reportopts_ rspec
         ishistorical = balancetype_ ropts == HistoricalBalance
         -- inclusive = tree_ ropts || rsForceInclusive
 

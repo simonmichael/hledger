@@ -464,7 +464,7 @@ registerFromString s = do
   return . postingsReportAsText opts $ postingsReport rspec j
       where
         ropts = defreportopts{empty_=True}
-        rspec = defreportspec{rsOpts=ropts}
+        rspec = defreportspec{reportopts_=ropts}
         opts = defcliopts{reportspec_=rspec}
 
 capitalize :: String -> String

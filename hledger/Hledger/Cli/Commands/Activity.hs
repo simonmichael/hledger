@@ -33,7 +33,7 @@ activity :: CliOpts -> Journal -> IO ()
 activity CliOpts{reportspec_=rspec} j = putStr $ showHistogram rspec j
 
 showHistogram :: ReportSpec -> Journal -> String
-showHistogram ReportSpec{rsQuery=q,rsOpts=ReportOpts{interval_=i,date2_=date2}} j =
+showHistogram ReportSpec{query_=q,reportopts_=ReportOpts{interval_=i,date2_=date2}} j =
     concatMap (printDayWith countBar) spanps
   where
     interval | i == NoInterval = Days 1

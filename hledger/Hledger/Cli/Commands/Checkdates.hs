@@ -23,9 +23,9 @@ checkdatesmode = hledgerCommandMode
 
 checkdates :: CliOpts -> Journal -> IO ()
 checkdates CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
-  let ropts = (rsOpts rspec){accountlistmode_=ALFlat}
-  let ts = filter (rsQuery rspec `matchesTransaction`) $
-           jtxns $ journalApplyValuationFromOpts rspec{rsOpts=ropts} j
+  let ropts = (reportopts_ rspec){accountlistmode_=ALFlat}
+  let ts = filter (query_ rspec `matchesTransaction`) $
+           jtxns $ journalApplyValuationFromOpts rspec{reportopts_=ropts} j
   -- pprint rawopts
   let unique = boolopt "--unique" rawopts  -- TEMP: it's this for hledger check dates
             || boolopt "unique" rawopts    -- and this for hledger check-dates (for some reason)

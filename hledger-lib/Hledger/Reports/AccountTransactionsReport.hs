@@ -79,7 +79,7 @@ type AccountTransactionsReportItem =
   )
 
 accountTransactionsReport :: ReportSpec -> Journal -> Query -> Query -> AccountTransactionsReport
-accountTransactionsReport rspec@ReportSpec{rsOpts=ropts} j reportq thisacctq = items
+accountTransactionsReport rspec@ReportSpec{reportopts_=ropts} j reportq thisacctq = items
   where
     -- a depth limit should not affect the account transactions report
     -- seems unnecessary for some reason XXX

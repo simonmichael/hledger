@@ -67,7 +67,7 @@ transactionsReport rspec j q = items
      -- XXX items' first element should be the full transaction with all postings
      items = reverse $ accountTransactionsReportItems q None nullmixedamt id ts
      ts    = sortBy (comparing date) $ filter (q `matchesTransaction`) $ jtxns $ journalApplyValuationFromOpts rspec j
-     date = transactionDateFn $ rsOpts rspec
+     date = transactionDateFn $ reportopts_ rspec
 
 -- | Split a transactions report whose items may involve several commodities,
 -- into one or more single-commodity transactions reports.

@@ -34,7 +34,7 @@ payeesmode = hledgerCommandMode
 
 -- | The payees command.
 payees :: CliOpts -> Journal -> IO ()
-payees CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{rsQuery=query}} j = do
+payees CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{query_=query}} j = do
   let
     declared = boolopt "declared" rawopts
     used     = boolopt "used"     rawopts

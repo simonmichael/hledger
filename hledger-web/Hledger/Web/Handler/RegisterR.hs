@@ -46,7 +46,7 @@ getRegisterR = do
           tail $ (", "<$xs) ++ [""]
       items = accountTransactionsReport rspec j m acctQuery
       balancelabel
-        | isJust (inAccount qopts), balancetype_ (rsOpts rspec) == HistoricalBalance = "Historical Total"
+        | isJust (inAccount qopts), balancetype_ (reportopts_ rspec) == HistoricalBalance = "Historical Total"
         | isJust (inAccount qopts) = "Period Total"
         | otherwise                = "Total"
       transactionFrag = transactionFragment j

@@ -55,19 +55,18 @@ data OneSpan = OneSpan
 
 
 roi ::  CliOpts -> Journal -> IO ()
-roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{rsOpts=ReportOpts{..}}} j = do
+roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{reportopts_=ReportOpts{..}}} j = do
   d <- getCurrentDay
   -- We may be converting posting amounts to value, per hledger_options.m4.md "Effect of --value on reports".
   let
     priceOracle = journalPriceOracle infer_value_ j
     styles = journalCommodityStyles j
-    today = rsToday rspec
+    today = reportday_ rspec
     mixedAmountValue periodlast date =
         maybe id (mixedAmountApplyValuation priceOracle styles periodlast today date) value_
         . mixedAmountToCost cost_ styles
-
   let
-    ropts = rsOpts rspec
+    ropts = reportopts_ rspec
     showCashFlow = boolopt "cashflow" rawopts
     prettyTables = pretty_tables_
     makeQuery flag = do

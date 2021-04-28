@@ -100,7 +100,7 @@ compoundBalanceCommand :: CompoundBalanceCommandSpec -> (CliOpts -> Journal -> I
 compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=rspec, rawopts_=rawopts} j = do
     writeOutputLazyText opts $ render cbr
   where
-    ropts@ReportOpts{..} = rsOpts rspec
+    ropts@ReportOpts{..} = reportopts_ rspec
     -- use the default balance type for this report, unless the user overrides
     mBalanceTypeOverride = balanceTypeOverride rawopts
     balancetype = fromMaybe cbctype mBalanceTypeOverride
@@ -153,7 +153,7 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
             _                                     -> False
 
     -- make a CompoundBalanceReport.
-    cbr' = compoundBalanceReport rspec{rsOpts=ropts'} j cbcqueries
+    cbr' = compoundBalanceReport rspec{reportopts_=ropts'} j cbcqueries
     cbr  = cbr'{cbrTitle=title}
 
     -- render appropriately

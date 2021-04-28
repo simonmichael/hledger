@@ -527,7 +527,7 @@ getHledgerCliOpts' mode' args' = do
         putStrLn $ "running: " ++ progname'
         putStrLn $ "raw args: " ++ show args'
         putStrLn $ "processed opts:\n" ++ show opts
-        putStrLn $ "search query: " ++ show (rsQuery $ reportspec_ opts)
+        putStrLn $ "search query: " ++ show (query_ $ reportspec_ opts)
 
 getHledgerCliOpts :: Mode RawOpts -> IO CliOpts
 getHledgerCliOpts mode' = do

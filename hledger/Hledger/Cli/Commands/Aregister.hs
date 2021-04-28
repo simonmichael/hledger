@@ -82,17 +82,17 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
     -- gather report options
     inclusive = True  -- tree_ ropts
     thisacctq = Acct $ (if inclusive then accountNameToAccountRegex else accountNameToAccountOnlyRegex) acct
-    ropts' = (rsOpts rspec) {
+    ropts' = (reportopts_ rspec) {
         -- ignore any depth limit, as in postingsReport; allows register's total to match balance reports (cf #1468)
         depth_=Nothing
         -- always show historical balance
       , balancetype_= HistoricalBalance
       }
     -- and regenerate the ReportSpec, making sure to use the above
-    rspec' = rspec{ rsQuery=simplifyQuery $ And [queryFromFlags ropts', argsquery]
-                  , rsOpts=ropts'
+    rspec' = rspec{ query_=simplifyQuery $ And [queryFromFlags ropts', argsquery]
+                  , reportopts_=ropts'
                   }
-    reportq = And [rsQuery rspec', excludeforecastq (isJust $ forecast_ ropts')]
+    reportq = And [query_ rspec', excludeforecastq (isJust $ forecast_ ropts')]
       where
         -- As in RegisterScreen, why ? XXX
         -- Except in forecast mode, exclude future/forecast transactions.
@@ -143,7 +143,7 @@ accountTransactionsReportAsText copts reportq thisacctq items
     amtwidth = maximumStrict $ 12 : map (wbWidth . showamt . itemamt) items
     balwidth = maximumStrict $ 12 : map (wbWidth . showamt . itembal) items
     showamt = showMixedAmountB oneLine{displayMinWidth=Just 12, displayMaxWidth=mmax}  -- color_
-      where mmax = if no_elide_ . rsOpts . reportspec_ $ copts then Nothing else Just 32
+      where mmax = if no_elide_ . reportopts_ . reportspec_ $ copts then Nothing else Just 32
     itemamt (_,_,_,_,a,_) = a
     itembal (_,_,_,_,_,a) = a
     -- show a title indicating which account was picked, which can be confusing otherwise
@@ -168,7 +168,7 @@ accountTransactionsReportAsText copts reportq thisacctq items
 --
 accountTransactionsReportItemAsText :: CliOpts -> Query -> Query -> Int -> Int -> AccountTransactionsReportItem -> TB.Builder
 accountTransactionsReportItemAsText
-  copts@CliOpts{reportspec_=ReportSpec{rsOpts=ReportOpts{color_}}}
+  copts@CliOpts{reportspec_=ReportSpec{reportopts_=ReportOpts{color_}}}
   reportq thisacctq preferredamtwidth preferredbalwidth
   (t@Transaction{tdescription}, _, _issplit, otheracctsstr, change, balance) =
     -- Transaction -- the transaction, unmodified
