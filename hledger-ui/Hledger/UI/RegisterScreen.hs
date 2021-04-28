@@ -56,28 +56,23 @@ rsSetAccount a forceinclusive scr@RegisterScreen{} =
 rsSetAccount _ _ scr = scr
 
 rsInit :: Day -> Bool -> UIState -> UIState
-rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec@ReportSpec{reportopts_=ropts}}}, ajournal=j, aScreen=s@RegisterScreen{..}} =
-  ui{aScreen=s{rsList=newitems'}}
+rsInit d reset ui@UIState{aScreen=s@RegisterScreen{..}} =
+    ui{aScreen=s{rsList=newitems'}}
   where
     -- gather arguments and queries
     -- XXX temp
-    inclusive = tree_ ropts || rsForceInclusive
+    inclusive = ui ^. accountlistmode == ALTree || rsForceInclusive
     thisacctq = Acct $ (if inclusive then accountNameToAccountRegex else accountNameToAccountOnlyRegex) rsAccount
 
     -- adjust the report options and regenerate the ReportSpec, carefully as usual to avoid screwups (#1523)
-    ropts' = ropts {
-        -- ignore any depth limit, as in postingsReport; allows register's total to match accounts screen
-        depth_=Nothing
-      -- XXX aregister also has this, needed ?
-        -- always show historical balance
-      -- , balancetype_= HistoricalBalance
-      }
-    rspec' =
-      either (error "rsInit: adjusting the query for register, should not have failed") id $ -- PARTIAL:
-      updateReportSpec ropts' rspec
+    -- ignore any depth limit, as in postingsReport; allows register's total to match accounts screen
+    -- XXX aregister always shows historical balance; do we need to do this?
+    ropts = set depth Nothing $ ui ^. reportOpts
+    rspec = either (error "rsInit: adjusting the query for register, should not have failed") id $ -- PARTIAL:
+              updateReportSpec ropts $ ui ^. reportSpec
 
     -- Further restrict the query based on the current period and future/forecast mode.
-    q = simplifyQuery $ And [query_ rspec', periodq, excludeforecastq (forecast_ ropts)]
+    q = simplifyQuery $ And [query_ rspec, periodq, excludeforecastq $ forecast_ ropts]
       where
         periodq = Date $ periodAsDateSpan $ period_ ropts
         -- Except in forecast mode, exclude future/forecast transactions.
@@ -87,7 +82,7 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec
              Not (Date $ DateSpan (Just $ addDays 1 d) Nothing)
             ,Not generatedTransactionTag
           ]
-    items = accountTransactionsReport rspec' j q thisacctq
+    items = accountTransactionsReport rspec (ajournal ui) q thisacctq
     items' = (if showempty_ ropts then id else filter (not . mixedAmountLooksZero . fifth6)) $  -- without --empty, exclude no-change txns
              reverse  -- most recent last
              items
@@ -146,10 +141,7 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec
 rsInit _ _ _ = error "init function called with wrong screen type, should not happen"  -- PARTIAL:
 
 rsDraw :: UIState -> [Widget Name]
-rsDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}
-              ,aScreen=RegisterScreen{..}
-              ,aMode=mode
-              } =
+rsDraw UIState{_aopts=UIOpts{cliopts_=copts},aScreen=RegisterScreen{..},aMode=mode} =
   case mode of
     Help       -> [helpDialog copts, maincontent]
     -- Minibuffer e -> [minibuffer e, maincontent]
@@ -200,7 +192,7 @@ rsDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}
       render $ defaultLayout toplabel bottomlabel $ renderList (rsDrawItem colwidths) True rsList
 
       where
-        ropts = reportopts_ rspec
+        ropts = copts ^. reportOpts
         ishistorical = balancetype_ ropts == HistoricalBalance
         -- inclusive = tree_ ropts || rsForceInclusive
 
@@ -287,7 +279,7 @@ rsDrawItem (datewidth,descwidth,acctswidth,changewidth,balwidth) selected Regist
 rsHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
 rsHandle ui@UIState{
    aScreen=s@RegisterScreen{..}
-  ,aopts=UIOpts{cliopts_=copts}
+  ,_aopts=UIOpts{cliopts_=copts}
   ,ajournal=j
   ,aMode=mode
   } ev = do

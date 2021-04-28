@@ -24,6 +24,7 @@ module Hledger.Data.RawOptions (
   maybeintopt,
   maybeposintopt,
   maybecharopt,
+  defrawopts,
   overRawOpts
 )
 where
@@ -39,7 +40,11 @@ import Hledger.Utils
 newtype RawOpts = RawOpts { unRawOpts :: [(String,String)] }
   deriving (Show)
 
-instance Default RawOpts where def = RawOpts []
+instance Default RawOpts where def = defrawopts
+
+-- | Empty RawOpts.
+defrawopts :: RawOpts
+defrawopts = RawOpts []
 
 overRawOpts f = RawOpts . f . unRawOpts
 

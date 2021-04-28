@@ -19,6 +19,7 @@ import Control.Monad.IO.Class (liftIO)
 import Data.Time.Calendar (Day)
 import Data.Void (Void)
 import Graphics.Vty (Event(..),Key(..),Modifier(..))
+import Lens.Micro ((^.))
 import Text.Megaparsec
 import Text.Megaparsec.Char
 
@@ -43,7 +44,7 @@ esInit _ _ ui@UIState{aScreen=ErrorScreen{}} = ui
 esInit _ _ _ = error "init function called with wrong screen type, should not happen"  -- PARTIAL:
 
 esDraw :: UIState -> [Widget Name]
-esDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{}}
+esDraw UIState{_aopts=UIOpts{cliopts_=copts@CliOpts{}}
               ,aScreen=ErrorScreen{..}
               ,aMode=mode
               } =
@@ -75,7 +76,7 @@ esDraw _ = error "draw function called with wrong screen type, should not happen
 
 esHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
 esHandle ui@UIState{aScreen=ErrorScreen{..}
-                   ,aopts=UIOpts{cliopts_=copts}
+                   ,_aopts=UIOpts{cliopts_=copts}
                    ,ajournal=j
                    ,aMode=mode
                    }
@@ -195,12 +196,9 @@ enableForecastPreservingPeriod ui copts@CliOpts{reportspec_=rspec@ReportSpec{rep
 -- fail, enter (or update) the error screen. Or if balance assertions
 -- are disabled, do nothing.
 uiCheckBalanceAssertions :: Day -> UIState -> UIState
-uiCheckBalanceAssertions d ui@UIState{aopts=UIOpts{cliopts_=copts}, ajournal=j}
-  | ignore_assertions_ . balancingopts_ $ inputopts_ copts = ui
-  | otherwise =
-    case journalCheckBalanceAssertions j of
-      Nothing  -> ui
-      Just err ->
-        case ui of
+uiCheckBalanceAssertions d ui@UIState{ajournal=j}
+  | ui ^. ignore_assertions = ui
+  | Just err <- journalCheckBalanceAssertions j = case ui of
           UIState{aScreen=s@ErrorScreen{}} -> ui{aScreen=s{esError=err}}
           _                                -> screenEnter d errorScreen{esError=err} ui
+  | otherwise = ui

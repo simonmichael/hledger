@@ -142,23 +142,21 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportspec_=rsp
                   asInit d True
                     UIState{
                      astartupopts=uopts'
-                    ,aopts=uopts'
+                    ,_aopts=uopts'
                     ,ajournal=j
                     ,aScreen=asSetSelectedAccount acct accountsScreen
                     ,aPrevScreens=[]
                     ,aMode=Normal
                     }
 
-    ui =
-      (sInit scr) d True $
-          UIState{
-           astartupopts=uopts'
-          ,aopts=uopts'
-          ,ajournal=j
-          ,aScreen=scr
-          ,aPrevScreens=prevscrs
-          ,aMode=Normal
-          }
+    ui = (sInit scr) d True $ UIState
+           { astartupopts=uopts'
+           , _aopts=uopts'
+           , ajournal=j
+           , aScreen=scr
+           , aPrevScreens=prevscrs
+           , aMode=Normal
+           }
 
     brickapp :: App UIState AppEvent Name
     brickapp = App {

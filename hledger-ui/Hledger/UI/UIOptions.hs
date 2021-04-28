@@ -1,16 +1,25 @@
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE CPP             #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-|
 
 -}
 
 module Hledger.UI.UIOptions
-where
-import Data.Default
+( UIOpts(..)
+, HasUIOpts(uIOpts,watchfiles)
+, getHledgerUIOpts
+, uimode
+, progname
+, version
+, prognameandversion
+) where
+
 import Data.List (intercalate)
 import Data.Maybe (fromMaybe)
 import Lens.Micro (set)
-import System.Environment
+import System.Environment (getArgs)
 
+import Hledger.Utils.TH (makeClassyLensesTrailing)
 import Hledger.Cli hiding (progname,version,prognameandversion)
 import Hledger.UI.Theme (themeNames)
 
@@ -42,7 +51,7 @@ uiflags = [
   -- ,flagNone ["no-elide"] (setboolopt "no-elide") "don't compress empty parent accounts on one line"
 
 --uimode :: Mode RawOpts
-uimode =  (mode "hledger-ui" (setopt "command" "ui" def)
+uimode =  (mode "hledger-ui" (setopt "command" "ui" defrawopts)
             "browse accounts, postings and entries in a full-window curses interface"
             (argsFlag "[PATTERNS]") []){
               modeGroupFlags = Group {
@@ -62,19 +71,24 @@ data UIOpts = UIOpts {
     ,cliopts_    :: CliOpts
  } deriving (Show)
 
+makeClassyLensesTrailing ''UIOpts
+
+instance HasCliOpts       UIOpts where cliOpts       = cliopts
+instance HasInputOpts     UIOpts where inputOpts     = cliopts . inputOpts
+instance HasBalancingOpts UIOpts where balancingOpts = cliopts . balancingOpts
+instance HasReportSpec    UIOpts where reportSpec    = cliopts . reportSpec
+instance HasReportOpts    UIOpts where reportOpts    = cliopts . reportOpts
+
 defuiopts = UIOpts
   { watchfiles_ = False
-  , cliopts_    = def
+  , cliopts_    = defcliopts
   }
-
--- instance Default CliOpts where def = defcliopts
 
 rawOptsToUIOpts :: RawOpts -> IO UIOpts
 rawOptsToUIOpts rawopts = checkUIOpts <$> do
-  cliopts' <- rawOptsToCliOpts rawopts
   -- show historical balances by default (unlike hledger)
   let btype = fromMaybe HistoricalBalance $ balanceTypeOverride rawopts
-      cliopts = cliopts'{reportspec_=set balancetype btype $ reportspec_ cliopts'}
+  cliopts <- set balancetype btype <$> rawOptsToCliOpts rawopts
   return defuiopts {
               watchfiles_ = boolopt "watch" rawopts
              ,cliopts_    = cliopts

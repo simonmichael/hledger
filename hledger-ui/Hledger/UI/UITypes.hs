@@ -22,7 +22,7 @@ Brick.defaultMain brickapp st
     st :: UIState
     st = (sInit s) d
          UIState{
-            aopts=uopts'
+            _aopts=uopts'
            ,ajournal=j
            ,aScreen=s
            ,aPrevScreens=prevscrs
@@ -36,7 +36,19 @@ Brick.defaultMain brickapp st
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TemplateHaskell    #-}
 
-module Hledger.UI.UITypes where
+module Hledger.UI.UITypes
+( UIState(..)
+, AppEvent(..)
+, Mode(..)
+, Name(..)
+, Screen(..)
+, AccountsScreenItem(..)
+, RegisterScreenItem(..)
+-- * Lenses
+, aopts
+, asList
+, asSelectedAccount
+) where
 
 import Data.Text (Text)
 import Data.Time.Calendar (Day)
@@ -44,10 +56,10 @@ import Brick
 import Brick.Widgets.List (List)
 import Brick.Widgets.Edit (Editor)
 import Lens.Micro.Platform
-import Text.Show.Functions ()
-  -- import the Show instance for functions. Warning, this also re-exports it
+import Text.Show.Functions ()  -- import the Show instance for functions.
 
 import Hledger
+import Hledger.Cli.CliOptions (HasCliOpts(..))
 import Hledger.UI.UIOptions
 
 -- | hledger-ui's application state. This holds one or more stateful screens.
@@ -56,7 +68,7 @@ import Hledger.UI.UIOptions
 -- showing a help dialog, entering data in the minibuffer etc.
 data UIState = UIState {
    astartupopts :: UIOpts    -- ^ the command-line options and query arguments specified at startup
-  ,aopts        :: UIOpts    -- ^ the command-line options and query arguments currently in effect
+  ,_aopts       :: UIOpts    -- ^ the command-line options and query arguments currently in effect
   ,ajournal     :: Journal   -- ^ the journal being viewed
   ,aPrevScreens :: [Screen]  -- ^ previously visited screens, most recent first
   ,aScreen      :: Screen    -- ^ the currently active screen
@@ -160,7 +172,11 @@ type NumberedTransaction = (Integer, Transaction)
 --    mempty        = list "" V.empty 1  -- XXX problem in 0.7, every list requires a unique Name
 --    mappend l1 l2 = l1 & listElementsL .~ (l1^.listElementsL <> l2^.listElementsL)
 
-concat <$> mapM makeLenses [
-   ''Screen
-  ]
+concat <$> mapM makeLenses [ ''Screen, ''UIState ]
 
+instance HasUIOpts        UIState where uIOpts        = aopts
+instance HasCliOpts       UIState where cliOpts       = aopts . cliOpts
+instance HasInputOpts     UIState where inputOpts     = aopts . inputOpts
+instance HasBalancingOpts UIState where balancingOpts = aopts . balancingOpts
+instance HasReportSpec    UIState where reportSpec    = aopts . reportSpec
+instance HasReportOpts    UIState where reportOpts    = aopts . reportOpts
