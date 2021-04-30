@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <meta name="author" content="Simon Michael" />
+  <meta name="date" content="2021-04-29" />
+  <title>Inside hledger: an architectural tour and how-to</title>
+  <style type="text/css">
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" type="text/css" media="screen, projection, print"
+    href="https://www.w3.org/Talks/Tools/Slidy2/styles/slidy.css" />
+  <script src="https://www.w3.org/Talks/Tools/Slidy2/scripts/slidy.js"
+    charset="utf-8" type="text/javascript"></script>
+</head>
+<body>
+<div class="slide titlepage">
+  <h1 class="title">Inside hledger: an architectural tour and how-to</h1>
+  <p class="author">
+Simon Michael
+  </p>
+  <p class="date">April 29, 2021</p>
+</div>
+<div id="introductions" class="title-slide slide section level1">
+<h1>Introductions</h1>
+<p><code>0:00 (10m)</code></p>
+</div>
+<div id="who-am-i" class="slide section level2">
+<h1>Who am I ?</h1>
+<p>Simon Michael<br />
+Independent software consultant and developer.<br />
+<!-- Currently based in Hawaii. --> <a href="https://joyful.com" class="uri">https://joyful.com</a></p>
+<p>Started in the home computer era (Ireland, 80s). ZX-80, Pet, VIC, C64, Amiga, PC, Mac, VAX/VMS, unix..</p>
+<p>FOSS fan, contributor, project leader. Two big projects:</p>
+<ul>
+<li><p><strong>Zwiki</strong>, 1996-2006, wiki engine, Python/Zope</p></li>
+<li><p><strong>hledger</strong>, 2006-present, accounting tool, Haskell</p></li>
+</ul>
+</div>
+<div id="overview-of-talk" class="slide section level2">
+<h1>Overview of talk</h1>
+<ul>
+<li><p>A quick intro to plain text accounting and hledger. (10m)</p></li>
+<li><p>A tour of hledger’s architecture, codebase, evolutions, and design principles. (25m)</p></li>
+<li><p>How to script and develop hledger: custom commands, calling from other apps, troubleshooting, bug investigation, effective pull requests. (25m)</p></li>
+<li><p>Q&amp;A to go deeper on whatever you like. (30m)</p></li>
+</ul>
+</div>
+<div id="whats-plain-text-accounting" class="slide section level2">
+<h1>What’s Plain Text Accounting ?</h1>
+<p>A name I proposed (and a website I built) to help unify and grow the communities around Ledger, hledger, Beancount and similar accounting tools.</p>
+<p><a href="https://plaintextaccounting.org" class="uri">https://plaintextaccounting.org</a></p>
+</div>
+<div id="the-pta-ecosystem" class="slide section level2">
+<h1>The PTA ecosystem</h1>
+<p>The “big three” apps:</p>
+<ul>
+<li><p><strong>Ledger</strong> - John Wiegley’s pioneering command line accounting app, inspiration for all the rest.<br />
+C++, 2003-present</p></li>
+<li><p><strong>hledger</strong> - Simon Michael’s rewrite/remix.<br />
+Haskell, 2007-present</p></li>
+<li><p><strong>Beancount</strong> - Martin Blais’ variant.<br />
+Python, 2008-present</p></li>
+</ul>
+<p>Many more apps and add-on tools - <a href="https://plaintextaccounting.org/#software" class="uri">https://plaintextaccounting.org/#software</a></p>
+</div>
+<div id="whats-hledger" class="slide section level2">
+<h1>What’s hledger ?</h1>
+<p>A suite of tools, file formats, and documentation for doing “plain text accounting”.</p>
+<p><a href="https://hledger.org" class="uri">https://hledger.org</a></p>
+</div>
+<div id="hledger-project-goals" class="slide section level2">
+<h1>hledger project goals</h1>
+<p>I was a Ledger user and new Haskeller. I started hledger with many goals:</p>
+<ul>
+<li>acquire a more robust, usable, evolving incarnation of Ledger</li>
+<li>develop a consistent, effective accounting habit</li>
+<li>get better at Haskell</li>
+<li>find out if Haskell was good for end-user apps and maintainer productivity</li>
+<li>grow a useful, long-lasting, financially sustainable FOSS accounting project</li>
+</ul>
+</div>
+<div id="an-end-user-haskell-application" class="slide section level2">
+<h1>An end-user Haskell application</h1>
+<p>hledger is something that’s not yet common:</p>
+<p>An end user application (ie: not a programming tool), written in Haskell, that aims to be</p>
+<ul>
+<li>easy to install,</li>
+<li>dependable,</li>
+<li>and pleasing to use,</li>
+<li>on all major platforms,</li>
+<li>by non-techies as well as power users.</li>
+</ul>
+</div>
+<div id="a-successful-foss-project" class="slide section level2">
+<h1>A successful FOSS project</h1>
+<p>15 years, 134 contributors, 80-100 chatters, some number of happy users, useful to me every week.</p>
+<p>Reasonably successful.</p>
+<p>Not fulfilling my original goal of being financially self-sustaining and minimally time-consuming !</p>
+</div>
+<div id="tools" class="slide section level2">
+<h1>Tools</h1>
+<ul>
+<li>hledger</li>
+<li>hledger-ui</li>
+<li>hledger-web</li>
+<li>hledger-iadd</li>
+<li>hledger-interest</li>
+<li>etc.</li>
+</ul>
+</div>
+<div id="file-formats" class="slide section level2">
+<h1>File formats</h1>
+<ul>
+<li>journal</li>
+<li>csv</li>
+<li>timeclock</li>
+<li>timedot</li>
+</ul>
+</div>
+<div id="documentation" class="slide section level2">
+<h1>Documentation</h1>
+<ul>
+<li>introductory</li>
+<li>reference</li>
+<li>cookbook</li>
+<li>developer</li>
+</ul>
+</div>
+
+<div id="architecture" class="title-slide slide section level1">
+<h1>Architecture</h1>
+<p><code>0:10 (25m)</code></p>
+</div>
+<div id="a-fast-run-through-the-evolution" class="slide section level2">
+<h1>A fast run through the evolution</h1>
+<ul>
+<li>First commit</li>
+<li>First types</li>
+<li>First report</li>
+<li>Balance report</li>
+<li>Multi-column balance report</li>
+<li>Stateful parser</li>
+<li>Web interface</li>
+<li>Curses interface</li>
+<li>Package split</li>
+<li>Speed, features</li>
+<li>General currency conversion</li>
+<li>Valuation</li>
+<li>Always documentation</li>
+</ul>
+</div>
+<div id="a-tour-of-the-codebase-and-project-today-2021q2" class="slide section level2">
+<h1>A tour of the codebase and project today (2021Q2)</h1>
+</div>
+<div id="design-principles" class="slide section level2">
+<h1>Design principles</h1>
+</div>
+
+<div id="how-to.." class="title-slide slide section level1">
+<h1>How to..</h1>
+<p><code>0:35 (25m)</code></p>
+</div>
+<div id="script-hledger" class="slide section level2">
+<h1>Script hledger</h1>
+<ul>
+<li><a href="https://hledger.org/scripting.html" class="uri">https://hledger.org/scripting.html</a></li>
+</ul>
+</div>
+<div id="integrate-hledger-in-your-app" class="slide section level2">
+<h1>Integrate hledger in your app</h1>
+<ul>
+<li><p>Run cli, capture csv/json</p></li>
+<li><p>Run hledger-web, use http-json api</p></li>
+<li><p>Link with hledger-lib and/or other hledger packages, call public functions</p></li>
+</ul>
+</div>
+<div id="investigate-a-hledger-bug" class="slide section level2">
+<h1>Investigate a hledger bug</h1>
+<ul>
+<li><p>Basic troubleshooting - docs, comparison, minimisation, reproduction, support</p></li>
+<li><p>Code debugging</p></li>
+</ul>
+</div>
+<div id="how-to-submit-a-pull-request" class="slide section level2">
+<h1>How to submit a pull request</h1>
+<ul>
+<li><a href="https://hledger.org/CONTRIBUTING.html#pull-requests" class="uri">https://hledger.org/CONTRIBUTING.html#pull-requests</a></li>
+</ul>
+</div>
+
+<div id="q-a" class="title-slide slide section level1">
+<h1>Q &amp; A</h1>
+<p><code>1:00 (30m)</code></p>
+</div>
+
+<div id="end" class="title-slide slide section level1">
+<h1>End</h1>
+<p><code>1:30</code></p>
+<pre><code>$ git shortlog -s
+Aerex
+Aiken Cairncross
+Alejandro García Montoro
+Aleksandar Dimitrov
+Alex Chen
+Alvaro Fernando García
+Amarandus
+Amitai Burstein
+Andreas Pauley
+Andrew Jones
+Andriy Mykhaylyk
+Arnout Engelen
+Ben Boeckel
+Ben Creasy
+Boyd Kelly
+Brian Scott
+Brian Wignall
+Bryan Richter
+Caleb Maclennan
+Carel Fellinger
+Carl Richard Theodor Schneider
+Carlos Lopez-Camey
+Christian G. Warden
+Christoph Nicolai
+Clint Adams
+Colin Woodbury
+Damien Cassou
+David Reaver
+David Zhang
+Dmitry Astapov
+Dominik Süß
+Doug Goldstein
+Eli Flanagan
+Elijah Caine
+Eric Kow
+Eric Mertens
+Everett Hildenbrandt
+Evilham
+Felix Van der Jeugt
+Felix Yan
+Fun Ilrys (Nissar Chababy)
+Gabriel Ebner
+Gaith Hallak
+Gergely Risko
+Hans-Peter Deifel
+Henning Thielemann
+Imuli
+Jacek Generowicz
+Jacob Weisz
+Jakob Schöttl
+Jakub Zárybnický
+Jan Zerebecki
+Jeff Richards
+Jesse Rosenthal
+Joachim Breitner
+Joe Horsnell
+Johann Klähn
+Johannes Gerer
+John Wiegley
+Joseph Weston
+Joshua Chia
+Joshua Kehn
+Judah Jacobson
+Julien Moutinho
+Justin Le
+Kyle Marek-Spartz
+Luca Molteni
+Léo Gaspard
+M Parker
+Malte Brandy
+Mark Hansen
+Marko Kocić
+Martin Michlmayr
+Mateus Furquim
+Matthias Kauer
+Max Bolingbroke
+Michael Kainer
+Michael Sanders
+Michael Snoyman
+Michael Walker
+Mick Dekkers
+Mitchell Rosen
+Moritz Kiefer
+Mykola Orliuk
+Nadrieril
+Nicholas Niro
+Nick Ingolia
+Nicolas Wavrant
+Nikhil Jha
+Nissar Chababy
+Nolan Darilek
+Oliver Braun
+Omari Norman
+Pavan Rikhi
+Pavlo Kerestey
+Peter Simons
+Pia Mancini
+Rick Lupton
+Roman Cheplyaka
+Rui Chen
+Ryan Desfosses
+Sam Doshi
+Sam Jeeves
+Samuel May
+Sergei Trofimovich
+Sergey Astanin
+Shubham Lagwankar
+Simon Hengel
+Simon Michael
+SpicyCat
+Stefano Rodighiero
+Stephen Morgan
+Steven R. Baker
+TANIGUCHI Kohei
+Thomas R. Koll
+Tim Docker
+Timofey ZAKREVSKIY
+Trygve Laugstøl
+Vladimir Sorokin
+Vladimir Zhelezov
+Wad
+Xinruo Sun
+afarrow
+agander
+aragaer
+awjchen
+azure-pipelines[bot]
+flip111
+gwern
+jeevcat
+jungle-boogie
+legrostdg
+trevorriles
+zieone</code></pre>
+<!-- 
+https://pandoc.org/MANUAL.html#slide-shows
+
+By default, the slide level is the highest heading level in the
+hierarchy that is followed immediately by content, and not another
+heading, somewhere in the document. In the example above, level-1
+headings are always followed by level-2 headings, which are followed
+by content, so the slide level is 2. This default can be overridden
+using the --slide-level option.
+
+The document is carved up into slides according to the following rules:
+A horizontal rule always starts a new slide.
+A heading at the slide level always starts a new slide.
+Headings below the slide level in the hierarchy create headings within a slide.
+Headings above the slide level in the hierarchy create “title slides,” which just contain the section title and help to break the slide show into sections. Non-slide content under these headings will be included on the title slide (for HTML slide shows) or in a subsequent slide with the same title (for beamer).
+-->
+</div>
+</body>
+</html>
