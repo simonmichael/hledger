@@ -1,0 +1,50 @@
+* Haskellerz talk 2021-04-29
+
+** blurb
+Inside hledger: an architectural tour and how-to
+
+hledger is a suite of CLI, TUI and WUI tools, file formats, and
+documentation for doing accounting with plain text. It is something
+that's not yet common: an end-user application written in Haskell,
+that aims to be easy to install, robust and pleasing to use, on all
+major platforms, including by non-techies.
+
+I have been building and growing hledger and the hledger project for
+about 15 years. In this talk I will, after a quick intro to plain text
+accounting and hledger, give a tour of hledger's architecture,
+codebase, significant evolutions, and some design principles. Then
+I'll give some practical tips on how to: add your own custom hledger
+commands; use hledger from your own app; troubleshoot hledger
+behaviour; investigate bugs; and create effective pull requests. This
+will hopefully go smoothly, and the Q&A we can go deeper on whatever
+you like.
+
+Simon: https://joyful.com
+hledger: https://hledger.org
+Plain Text Accounting: https://plaintextaccounting.org
+
+** preliminary outline
+*** Inside hledger: an architectural tour and how-to
+**** quick intro to accounting, plain text accounting, hledger
+10m
+**** project goals
+**** a look at the essential functionality in its earliest/simplest form
+**** a fast run through the evolution since then
+**** a tour of the codebase and project today (2021Q2)
+**** design principles
+25m
+
+**** how to script hledger
+**** how to integrate hledger in your app
+***** run cli, capture csv/json
+***** run hledger-web, use http-json api
+***** link with hledger-lib and/or other hledger packages, call public functions
+**** how to investigate a hledger bug
+***** basic troubleshooting - docs, comparison, minimisation, reproduction, support
+***** code debugging
+**** how to submit a pull request
+25m
+
+**** Q & A
+30m
+
