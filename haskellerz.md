@@ -77,15 +77,15 @@ for doing "plain text accounting".
 
 <https://hledger.org>
 
-## A successful FOSS project
+## hledger project goals
 
-15 years, 134 contributors, 80-100 chatters, some number of happy
-users, useful to me every week.
+I was a Ledger user and new Haskeller. I started hledger with many goals:
 
-Reasonably successful.
-
-Not fulfilling my original goal of being financially
-self-sustaining and minimally time-consuming !
+- acquire a more robust, usable, evolving incarnation of Ledger
+- develop a consistent, effective accounting habit
+- get better at Haskell
+- find out if Haskell was good for end-user apps and maintainer productivity
+- grow a useful, long-lasting, financially sustainable FOSS accounting project
 
 ## An end-user Haskell application
 
@@ -99,6 +99,16 @@ written in Haskell, that aims to be
 - and pleasing to use, 
 - on all major platforms, 
 - by non-techies as well as power users.
+
+## A successful FOSS project
+
+15 years, 134 contributors, 80-100 chatters, some number of happy
+users, useful to me every week.
+
+Reasonably successful.
+
+Not fulfilling my original goal of being financially
+self-sustaining and minimally time-consuming !
 
 ## Tools
 
@@ -127,16 +137,6 @@ written in Haskell, that aims to be
 # Architecture
 
 `0:10 (25m)`
-
-## hledger project goals
-
-I was a Ledger user and new Haskeller. I started hledger with many goals:
-
-- acquire a more robust, usable, evolving incarnation of Ledger
-- develop a consistent, effective accounting habit
-- get better at Haskell
-- find out if Haskell was good for end-user apps and maintainer productivity
-- grow a useful, long-lasting, financially sustainable FOSS accounting project
 
 ## A fast run through the evolution
 
@@ -167,29 +167,26 @@ I was a Ledger user and new Haskeller. I started hledger with many goals:
 ## Script hledger
 
 
+
+  * <https://hledger.org/scripting.html>
+
 ## Integrate hledger in your app
 
+  *  Run cli, capture csv/json
 
-### Run cli, capture csv/json
+  *  Run hledger-web, use http-json api
 
-
-### Run hledger-web, use http-json api
-
-
-### Link with hledger-lib and/or other hledger packages, call public functions
-
+  *  Link with hledger-lib and/or other hledger packages, call public functions
 
 ## Investigate a hledger bug
 
+  *  Basic troubleshooting - docs, comparison, minimisation, reproduction, support
 
-### Basic troubleshooting - docs, comparison, minimisation, reproduction, support
-
-
-### Code debugging
-
+  *  Code debugging
 
 ## How to submit a pull request
 
+  * <https://hledger.org/CONTRIBUTING.html#pull-requests>
 
 # Q & A
 
