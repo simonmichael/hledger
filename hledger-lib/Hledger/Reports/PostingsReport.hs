@@ -77,7 +77,7 @@ postingsReport rspec@ReportSpec{rsOpts=ropts@ReportOpts{..}} j = items
 
       -- We may be converting posting amounts to value, per hledger_options.m4.md "Effect of --value on reports".
       -- Strip prices from postings if we won't need them.
-      pvalue periodlast = maybeStripPrices . postingApplyCostValuation priceoracle styles periodlast (rsToday rspec) cost_ value_
+      pvalue periodlast = maybeStripPrices . postingApplyCostValuation priceoracle styles periodlast (rsToday rspec) cost_ value_ gain_
         where maybeStripPrices = if show_costs_ then id else postingStripPrices
 
       -- Postings, or summary postings with their subperiod's end date, to be displayed.

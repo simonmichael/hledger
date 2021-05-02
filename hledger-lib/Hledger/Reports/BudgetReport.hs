@@ -228,6 +228,9 @@ budgetReportAsText ropts@ReportOpts{..} budgetr = TB.toLazyText $
                  Just (AtNow _mc)    -> ", current value"
                  Just (AtDate d _mc) -> ", valued at " <> showDate d
                  Nothing             -> "")
+           <> (case gain_ of
+                 Gain   -> " with cost subtracted"
+                 NoGain -> "" :: T.Text)
            <> ":"
 
     displayTableWithWidths :: Table Text Text ((Int, Int, Int), BudgetDisplayCell)

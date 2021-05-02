@@ -336,9 +336,9 @@ aliasReplace (RegexAlias re repl) a =
 -- using the provided price oracle, commodity styles, and reference dates.
 -- Costing is done first if requested, and after that any valuation.
 -- See amountApplyValuation and amountCost.
-postingApplyCostValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Costing -> Maybe ValuationType -> Posting -> Posting
-postingApplyCostValuation priceoracle styles periodlast today cost v p =
-    postingTransformAmount (mixedAmountApplyCostValuation priceoracle styles periodlast today (postingDate p) cost v) p
+postingApplyCostValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Costing -> Maybe ValuationType -> Gaining -> Posting -> Posting
+postingApplyCostValuation priceoracle styles periodlast today cost v gain p  =
+    postingTransformAmount (mixedAmountApplyCostValuation priceoracle styles periodlast today (postingDate p) cost v gain) p
 
 -- | Apply a specified valuation to this posting's amount, using the
 -- provided price oracle, commodity styles, and reference dates.

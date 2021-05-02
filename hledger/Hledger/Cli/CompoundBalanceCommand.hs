@@ -150,6 +150,9 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
                Just (AtNow _mc)        -> ", current value"
                Just (AtDate today _mc) -> ", valued at " <> showDate today
                Nothing                 -> "")
+          <> (case gain_ of
+               Gain   -> " with cost substraced"
+               NoGain -> "" :: T.Text)
 
         changingValuation = case (reporttype_, balancetype_) of
             (ValueChangeReport, PeriodChange)     -> True

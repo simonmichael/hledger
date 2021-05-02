@@ -63,7 +63,7 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{rsOpts=ReportOpts{..}
     priceOracle = journalPriceOracle infer_value_ j
     styles = journalCommodityStyles j
     today = rsToday rspec
-    mixedAmountValue periodlast date = mixedAmountApplyCostValuation priceOracle styles periodlast today date cost_ value_
+    mixedAmountValue periodlast date = mixedAmountApplyCostValuation priceOracle styles periodlast today date cost_ value_ gain_
   let
     ropts = rsOpts rspec
     showCashFlow = boolopt "cashflow" rawopts

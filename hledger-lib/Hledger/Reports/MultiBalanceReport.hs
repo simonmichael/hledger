@@ -566,12 +566,12 @@ postingAndAccountValuations ReportSpec{rsToday=today, rsOpts=ropts} j priceoracl
     _                -> (pvalue (value_ ropts), const id)
   where
     -- For a Posting: convert to cost, apply valuation, then strip prices if we don't need them (See issue #1507).
-    pvalue v span = maybeStripPrices . postingApplyCostValuation priceoracle styles (end span) today (cost_ ropts) v
+    pvalue v span = maybeStripPrices . postingApplyCostValuation priceoracle styles (end span) today (cost_ ropts) v (gain_ ropts)
     -- For an Account: Apply valuation to both the inclusive and exclusive balances.
     avalue v span a = a{aibalance = value (aibalance a), aebalance = value (aebalance a)}
-      where value = mixedAmountApplyValuation priceoracle styles (end span) today (error "multiBalanceReport: did not expect amount valuation to be called ") v  -- PARTIAL: should not happen
+      where value = mixedAmountApplyCostValuation priceoracle styles (end span) today (error "multiBalanceReport: did not expect amount valuation to be called ") (cost_ ropts) (Just v) (gain_ ropts)  -- PARTIAL: should not happen
 
-    maybeStripPrices = if show_costs_ ropts then id else postingStripPrices
+    maybeStripPrices = if show_costs_ ropts || gain_ ropts == Gain then id else postingStripPrices
     end = maybe (error "multiBalanceReport: expected all spans to have an end date")  -- PARTIAL: should not happen
             (addDays (-1)) . spanEnd
     styles = journalCommodityStyles j

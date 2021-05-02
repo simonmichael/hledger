@@ -14,6 +14,7 @@ looking up historical market prices (exchange rates) between commodities.
 
 module Hledger.Data.Valuation (
    Costing(..)
+  ,Gaining(..)
   ,ValuationType(..)
   ,PriceOracle
   ,journalPriceOracle
@@ -56,6 +57,10 @@ import Text.Printf (printf)
 
 -- | Whether to convert amounts to cost.
 data Costing = Cost | NoCost
+  deriving (Show,Eq)
+
+-- | Whether to convert amounts to gain.
+data Gaining = Gain | NoGain
   deriving (Show,Eq)
 
 -- | What kind of value conversion should be done on amounts ?
@@ -104,9 +109,9 @@ priceDirectiveToMarketPrice PriceDirective{..} =
 -- using the provided price oracle, commodity styles, and reference dates.
 -- Costing is done first if requested, and after that any valuation.
 -- See amountApplyValuation and amountCost.
-mixedAmountApplyCostValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Day -> Costing -> Maybe ValuationType -> MixedAmount -> MixedAmount
-mixedAmountApplyCostValuation priceoracle styles periodlast today postingdate cost v =
-    mapMixedAmount (amountApplyCostValuation priceoracle styles periodlast today postingdate cost v)
+mixedAmountApplyCostValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Day -> Costing -> Maybe ValuationType -> Gaining -> MixedAmount -> MixedAmount
+mixedAmountApplyCostValuation priceoracle styles periodlast today postingdate cost v gain =
+    mapMixedAmount (amountApplyCostValuation priceoracle styles periodlast today postingdate cost v gain)
 
 -- | Apply a specified valuation to this mixed amount, using the
 -- provided price oracle, commodity styles, and reference dates.
@@ -119,11 +124,13 @@ mixedAmountApplyValuation priceoracle styles periodlast today postingdate v =
 -- using the provided price oracle, commodity styles, and reference dates.
 -- Costing is done first if requested, and after that any valuation.
 -- See amountApplyValuation and amountCost.
-amountApplyCostValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Day -> Costing -> Maybe ValuationType -> Amount -> Amount
-amountApplyCostValuation priceoracle styles periodlast today postingdate cost v =
+amountApplyCostValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Day -> Costing -> Maybe ValuationType -> Gaining -> Amount -> Amount
+amountApplyCostValuation priceoracle styles periodlast today postingdate cost v gain =
     valuation . costing
   where
-    valuation = maybe id (amountApplyValuation priceoracle styles periodlast today postingdate) v
+    valuation = maybe id (case gain of
+      Gain   -> amountApplyGainValuation priceoracle styles periodlast today postingdate
+      NoGain -> amountApplyValuation priceoracle styles periodlast today postingdate) v
     costing = case cost of
         Cost   -> styleAmount styles . amountCost
         NoCost -> id
@@ -164,6 +171,14 @@ amountApplyValuation priceoracle styles periodlast today postingdate v a =
     AtNow     mc      -> amountValueAtDate priceoracle styles mc today a
     AtDate d  mc      -> amountValueAtDate priceoracle styles mc d a
 
+amountApplyGainValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Day -> ValuationType -> Amount -> Amount
+amountApplyGainValuation priceoracle styles periodlast today postingdate v a =
+  case v of
+    AtThen    mc      -> amountGainAtDate priceoracle styles mc postingdate a
+    AtEnd     mc      -> amountGainAtDate priceoracle styles mc periodlast a
+    AtNow     mc      -> amountGainAtDate priceoracle styles mc today a
+    AtDate d  mc      -> amountGainAtDate priceoracle styles mc d a
+
 -- | Find the market value of each component amount in the given
 -- commodity, or its default valuation commodity, at the given
 -- valuation date, using the given market price oracle.
@@ -194,6 +209,16 @@ amountValueAtDate priceoracle styles mto d a =
                                       -- Leave as is for now; mentioned in manual.
       styleAmount styles
       amount{acommodity=comm, aquantity=rate * aquantity a}
+
+amountGainAtDate :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Maybe CommoditySymbol -> Day -> Amount -> Amount
+amountGainAtDate priceoracle styles mto d a = fromMaybe nullamt $ do
+  (comm, rate) <- priceoracle (d, acommodity a, mto)
+  (_, costrate) <- if comm == acommodity ac then Just (comm, 1) else priceoracle (d, acommodity ac, mto)
+  return $ styleAmount styles amount
+    { acommodity=comm
+    , aquantity=(rate * aquantity a) - (costrate * aquantity ac)
+    }
+ where ac = amountCost a
 
 ------------------------------------------------------------------------------
 -- Market price lookup

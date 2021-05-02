@@ -95,6 +95,7 @@ data ReportOpts = ReportOpts {
     ,statuses_       :: [Status]  -- ^ Zero, one, or two statuses to be matched
     ,cost_           :: Costing  -- ^ Should we convert amounts to cost, when present?
     ,value_          :: Maybe ValuationType  -- ^ What value should amounts be converted to ?
+    ,gain_           :: Gaining  -- ^ Should we apply gain calculation when possible?
     ,infer_value_    :: Bool      -- ^ Infer market prices from transactions ?
     ,depth_          :: Maybe Int
     ,date2_          :: Bool
@@ -147,6 +148,7 @@ defreportopts = ReportOpts
     , statuses_        = []
     , cost_            = NoCost
     , value_           = Nothing
+    , gain_            = NoGain
     , infer_value_     = False
     , depth_           = Nothing
     , date2_           = False
@@ -194,6 +196,7 @@ rawOptsToReportOpts rawopts = do
           ,statuses_    = statusesFromRawOpts rawopts
           ,cost_        = costing
           ,value_       = valuation
+          ,gain_        = if boolopt "gain" rawopts then Gain else NoGain
           ,infer_value_ = boolopt "infer-market-price" rawopts
           ,depth_       = maybeposintopt "depth" rawopts
           ,date2_       = boolopt "date2" rawopts

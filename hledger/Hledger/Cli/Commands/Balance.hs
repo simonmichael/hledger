@@ -611,6 +611,9 @@ multiBalanceReportAsText ropts@ReportOpts{..} r = TB.toLazyText $
             Just (AtNow _mc)     -> ", current value"
             Just (AtDate d _mc)  -> ", valued at " <> showDate d
             Nothing              -> "")
+        <> (case gain_ of
+            Gain   -> " with cost substracted"
+            NoGain -> "" :: T.Text)
 
     changingValuation = case (reporttype_, balancetype_) of
         (ValueChangeReport, PeriodChange)     -> True

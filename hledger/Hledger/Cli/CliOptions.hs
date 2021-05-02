@@ -157,6 +157,7 @@ reportflags = [
   -- valuation
  ,flagNone ["B","cost"]      (setboolopt "B")
    "show amounts converted to their cost/selling amount, using the transaction price."
+ ,flagNone ["gain"]          (setboolopt "gain") "substract cost from valuation."
  ,flagNone ["V","market"]    (setboolopt "V")
    (unwords
      ["show amounts converted to period-end market value in their default valuation commodity."

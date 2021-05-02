@@ -618,9 +618,9 @@ transactionTransformPostings f t@Transaction{tpostings=ps} = t{tpostings=map f p
 -- | Apply a specified costing and valuation to this transaction's amounts,
 -- using the provided price oracle, commodity styles, and reference dates.
 -- See amountApplyValuation and amountCost.
-transactionApplyCostValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Costing -> Maybe ValuationType -> Transaction -> Transaction
-transactionApplyCostValuation priceoracle styles periodlast today cost v =
-  transactionTransformPostings (postingApplyCostValuation priceoracle styles periodlast today cost v)
+transactionApplyCostValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Costing -> Maybe ValuationType -> Gaining -> Transaction -> Transaction
+transactionApplyCostValuation priceoracle styles periodlast today cost v gain =
+  transactionTransformPostings (postingApplyCostValuation priceoracle styles periodlast today cost v gain)
 
 -- | Apply a specified valuation to this transaction's amounts, using
 -- the provided price oracle, commodity styles, and reference dates.
