@@ -23,6 +23,12 @@ $(document).ready(function() {
       dateEl.datepicker('hide');
     });
 
+  // ensure that the keypress listener on the final amount input is always active
+  $('#addform')
+    .on('focus', '.amount-input:last', function() {
+      addformLastAmountBindKey();
+    });
+
   // keyboard shortcuts
   // 'body' seems to hold focus better than document in FF
   $('body').bind('keydown', 'h',       function(){ $('#helpmodal').modal('toggle'); return false; });
