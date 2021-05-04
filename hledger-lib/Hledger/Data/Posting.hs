@@ -81,7 +81,7 @@ import Data.Foldable (asum)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust)
 import Data.MemoUgly (memo)
-import Data.List (foldl')
+import Data.List (foldl', sort)
 import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -480,9 +480,43 @@ postingApplyValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day
 postingApplyValuation priceoracle styles periodlast today v p =
     postingTransformAmount (mixedAmountApplyValuation priceoracle styles periodlast today (postingDate p) v) p
 
--- | Convert this posting's amount to cost, and apply the appropriate amount styles.
-postingToCost :: M.Map CommoditySymbol AmountStyle -> Posting -> Posting
-postingToCost styles = postingTransformAmount (styleMixedAmount styles . mixedAmountCost)
+-- | Maybe convert this 'Posting's amount to cost, and apply apply appropriate
+-- amount styles; or, in --infer-equity mode, remove its cost price and add an
+-- appropriate pair of equity postings.
+postingToCost :: Text -> M.Map CommoditySymbol AmountStyle -> ConversionOp -> Posting -> [Posting]
+postingToCost _          _      NoConversionOp p = [p]
+postingToCost _          styles ToCost         p = [postingTransformAmount (styleMixedAmount styles . mixedAmountCost) p]
+postingToCost equityAcct styles InferEquity    p = taggedPosting : concatMap conversionPostings priceAmounts
+  where
+    taggedPosting
+      | null priceAmounts = p
+      | otherwise         = p{ pcomment = pcomment p `commentAddTag` priceTag
+                             , ptags = priceTag : ptags p
+                             }
+    conversionPostings amt = case aprice amt of
+        Nothing -> []
+        Just _  -> [ cp{ paccount = accountPrefix <> amtCommodity
+                       , pamount = mixedAmount . negate $ amountStripPrices amt
+                       }
+                   , cp{ paccount = accountPrefix <> costCommodity
+                       , pamount = styleMixedAmount styles $ mixedAmount cost
+                       }
+                   ]
+      where
+        cost = amountCost amt
+        amtCommodity  = commodity amt
+        costCommodity = commodity cost
+        cp = p{ pcomment = pcomment p `commentAddTag` ("generated-posting","")
+              , ptags = [("generated-posting", ""), ("_generated-posting", "")]
+              , pbalanceassertion = Nothing
+              , poriginal = Nothing
+              }
+        accountPrefix = mconcat [ equityAcct, ":", T.intercalate "-" $ sort [amtCommodity, costCommodity], ":"]
+        -- Take the commodity of an amount and collapse consecutive spaces to a single space
+        commodity = T.unwords . filter (not . T.null) . T.words . acommodity
+
+    priceTag = ("cost", T.strip . wbToText $ foldMap showAmountPrice priceAmounts)
+    priceAmounts = filter (isJust . aprice) . amountsRaw $ pamount p
 
 -- | Apply a transform function to this posting's amount.
 postingTransformAmount :: (MixedAmount -> MixedAmount) -> Posting -> Posting

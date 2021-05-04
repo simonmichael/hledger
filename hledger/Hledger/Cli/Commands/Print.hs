@@ -21,7 +21,7 @@ import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
-import Lens.Micro (_Just, has)
+import Lens.Micro ((^.), _Just, has)
 import System.Console.CmdArgs.Explicit
 
 import Hledger
@@ -37,6 +37,8 @@ printmode = hledgerCommandMode
     ("show the transaction whose description is most similar to "++arg++", and is most recent")
   ,flagNone ["explicit","x"] (setboolopt "explicit")
     "show all amounts explicitly"
+  ,flagNone ["show-costs"] (setboolopt "show-costs")
+    "show transaction prices even with conversion postings"
   ,flagNone ["new"] (setboolopt "new")
     "show only newer-dated transactions added in each file since last run"
   ,outputFormatFlag ["txt","csv","json","sql"]
@@ -72,7 +74,8 @@ printEntries opts@CliOpts{reportspec_=rspec} j =
            | otherwise   = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
 
 entriesReportAsText :: CliOpts -> EntriesReport -> TL.Text
-entriesReportAsText opts = TB.toLazyText . foldMap (TB.fromText . showTransaction . whichtxn)
+entriesReportAsText opts =
+    TB.toLazyText . foldMap (TB.fromText . showTransaction . maybeStripPrices . whichtxn)
   where
     whichtxn
       -- With -x, use the fully-inferred txn with all amounts & txn prices explicit.
@@ -84,6 +87,11 @@ entriesReportAsText opts = TB.toLazyText . foldMap (TB.fromText . showTransactio
       | has (value . _Just) opts = id
       -- By default, use the original as-written-in-the-journal txn.
       | otherwise = originalTransaction
+    maybeStripPrices
+      -- Strip prices when inferring equity, unless the show-costs option is set
+      | opts ^. conversionop == Just InferEquity && not (boolopt "show-costs" $ rawopts_ opts) =
+          transactionTransformPostings postingStripPrices
+      | otherwise = id
 
 -- Replace this transaction's postings with the original postings if any, but keep the
 -- current possibly rewritten account names, and the inferred values of any auto postings

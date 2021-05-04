@@ -66,7 +66,7 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportO
     styles = journalCommodityStyles j
     mixedAmountValue periodlast date =
         maybe id (mixedAmountApplyValuation priceOracle styles periodlast today date) value_
-        . mixedAmountToCost cost_ styles
+      . maybe id (mixedAmountToCost styles) conversionop_
 
   let
     ropts = _rsReportOpts rspec

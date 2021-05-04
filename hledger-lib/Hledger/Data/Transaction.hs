@@ -202,9 +202,11 @@ transactionApplyValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle ->
 transactionApplyValuation priceoracle styles periodlast today v =
   transactionTransformPostings (postingApplyValuation priceoracle styles periodlast today v)
 
--- | Convert this transaction's amounts to cost, and apply the appropriate amount styles.
-transactionToCost :: M.Map CommoditySymbol AmountStyle -> Transaction -> Transaction
-transactionToCost styles = transactionTransformPostings (postingToCost styles)
+-- | Maybe convert this 'Transaction's amounts to cost and apply the
+-- appropriate amount styles; or in --infer-equity mode, replace any
+-- transaction prices by a pair of equity postings.
+transactionToCost :: Text -> M.Map CommoditySymbol AmountStyle -> ConversionOp -> Transaction -> Transaction
+transactionToCost equityAcct styles cost t = t{tpostings=concatMap (postingToCost equityAcct styles cost) $ tpostings t}
 
 -- | Apply some account aliases to all posting account names in the transaction, as described by accountNameApplyAliases.
 -- This can fail due to a bad replacement pattern in a regular expression alias.

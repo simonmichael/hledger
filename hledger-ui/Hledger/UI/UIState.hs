@@ -97,11 +97,13 @@ toggleEmpty :: UIState -> UIState
 toggleEmpty = over empty__ not
 
 -- | Toggle between showing the primary amounts or costs.
-toggleCost :: UIState -> UIState
-toggleCost = over cost toggleCostMode
+toggleConversionOp :: UIState -> UIState
+toggleConversionOp = over conversionop toggleCostMode
   where
-    toggleCostMode Cost   = NoCost
-    toggleCostMode NoCost = Cost
+    toggleCostMode Nothing               = Just ToCost
+    toggleCostMode (Just NoConversionOp) = Just ToCost
+    toggleCostMode (Just InferEquity)    = Just ToCost
+    toggleCostMode (Just ToCost)         = Just NoConversionOp
 
 -- | Toggle between showing primary amounts or default valuation.
 toggleValue :: UIState -> UIState

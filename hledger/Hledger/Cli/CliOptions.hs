@@ -181,6 +181,8 @@ reportflags = [
      ,"'now':  convert to current market value, in default valuation commodity or COMM"
      ,"YYYY-MM-DD: convert to market value on the given date, in default valuation commodity or COMM"
      ])
+  ,flagNone ["infer-equity"] (setboolopt "infer-equity")
+    "in conversion transactions, replace costs (transaction prices) with equity postings, to keep the transactions balanced"
   
   -- history of this flag so far, lest we be confused:
   --  originally --infer-value

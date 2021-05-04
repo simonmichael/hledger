@@ -218,9 +218,9 @@ budgetReportAsText ropts@ReportOpts{..} budgetr = TB.toLazyText $
       balanceReportTableAsText ropts (budgetReportAsTable ropts budgetr)
   where
     title = "Budget performance in " <> showDateSpan (periodicReportSpan budgetr)
-           <> (case cost_ of
-                 Cost   -> ", converted to cost"
-                 NoCost -> "")
+           <> (case conversionop_ of
+                 Just ToCost -> ", converted to cost"
+                 _           -> "")
            <> (case value_ of
                  Just (AtThen _mc)   -> ", valued at posting date"
                  Just (AtEnd _mc)    -> ", valued at period ends"
@@ -386,9 +386,9 @@ budgetReportAsTable
         _   -> -- trace (pshow $ (maybecost actual, maybecost budget))  -- debug missing percentage
                Nothing
       where
-        costedAmounts = case cost_ of
-            Cost   -> amounts . mixedAmountCost
-            NoCost -> amounts
+        costedAmounts = case conversionop_ of
+            Just ToCost -> amounts . mixedAmountCost
+            _           -> amounts
 
     -- | Calculate the percentage of actual change to budget goal for a particular commodity
     percentage' :: Change -> BudgetGoal -> CommoditySymbol -> Maybe Percentage

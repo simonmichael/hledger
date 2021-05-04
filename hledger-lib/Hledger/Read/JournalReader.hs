@@ -351,7 +351,7 @@ accountdirectivep = do
   -- XXX added in 1.11, deprecated in 1.13, remove in 1.14
   mtypecode :: Maybe Char <- lift $ optional $ try $ do
     skipNonNewlineSpaces1 -- at least one more space in addition to the one consumed by modifiedaccountp
-    choice $ map char "ALERX"
+    choice $ map char "ALERXV"
 
   -- maybe a comment, on this and/or following lines
   (cmt, tags) <- lift transactioncommentp
@@ -378,22 +378,24 @@ accountTypeTagName = "type"
 parseAccountTypeCode :: Text -> Either String AccountType
 parseAccountTypeCode s =
   case T.toLower s of
-    "asset"     -> Right Asset
-    "a"         -> Right Asset
-    "liability" -> Right Liability
-    "l"         -> Right Liability
-    "equity"    -> Right Equity
-    "e"         -> Right Equity
-    "revenue"   -> Right Revenue
-    "r"         -> Right Revenue
-    "expense"   -> Right Expense
-    "x"         -> Right Expense
-    "cash"      -> Right Cash
-    "c"         -> Right Cash
-    _           -> Left err
+    "asset"      -> Right Asset
+    "a"          -> Right Asset
+    "liability"  -> Right Liability
+    "l"          -> Right Liability
+    "equity"     -> Right Equity
+    "e"          -> Right Equity
+    "revenue"    -> Right Revenue
+    "r"          -> Right Revenue
+    "expense"    -> Right Expense
+    "x"          -> Right Expense
+    "cash"       -> Right Cash
+    "c"          -> Right Cash
+    "conversion" -> Right Conversion
+    "v"          -> Right Conversion
+    _            -> Left err
   where
     err = T.unpack $ "invalid account type code "<>s<>", should be one of " <>
-            T.intercalate ", " ["A","L","E","R","X","C","Asset","Liability","Equity","Revenue","Expense","Cash"]
+            T.intercalate ", " ["A","L","E","R","X","C","V","Asset","Liability","Equity","Revenue","Expense","Cash","Conversion"]
 
 -- Add an account declaration to the journal, auto-numbering it.
 addAccountDeclaration :: (AccountName,Text,[Tag]) -> JournalParser m ()

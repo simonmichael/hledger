@@ -80,6 +80,7 @@ module Hledger.Data.Amount (
   amountUnstyled,
   showAmountB,
   showAmount,
+  showAmountPrice,
   cshowAmount,
   showAmountWithZeroCommodity,
   showAmountDebug,

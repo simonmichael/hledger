@@ -80,6 +80,7 @@ module Hledger.Data.Journal (
   journalLiabilityAccountQuery,
   journalEquityAccountQuery,
   journalCashAccountQuery,
+  journalConversionAccount,
   -- * Misc
   canonicalStyleFrom,
   nulljournal,
@@ -120,9 +121,10 @@ import Hledger.Utils
 import Hledger.Data.Types
 import Hledger.Data.AccountName
 import Hledger.Data.Amount
+import Hledger.Data.Posting
 import Hledger.Data.Transaction
 import Hledger.Data.TransactionModifier
-import Hledger.Data.Posting
+import Hledger.Data.Valuation
 import Hledger.Query
 
 
@@ -395,7 +397,8 @@ letterPairs _ = []
 -- queries for standard account types
 
 -- | Get a query for accounts of the specified types in this journal. 
--- Account types include Asset, Liability, Equity, Revenue, Expense, Cash.
+-- Account types include:
+-- Asset, Liability, Equity, Revenue, Expense, Cash, Conversion.
 -- For each type, if no accounts were declared with this type, the query 
 -- will instead match accounts with names matched by the case-insensitive 
 -- regular expression provided as a fallback.
@@ -505,6 +508,13 @@ journalProfitAndLossAccountQuery  :: Journal -> Query
 journalProfitAndLossAccountQuery j = Or [journalRevenueAccountQuery j
                                         ,journalExpenseAccountQuery j
                                         ]
+
+-- | The 'AccountName' to use for automatically generated conversion postings.
+journalConversionAccount :: Journal -> AccountName
+journalConversionAccount =
+    headDef (T.pack "equity:conversion")
+    . M.findWithDefault [] Conversion
+    . jdeclaredaccounttypes
 
 -- Various kinds of filtering on journals. We do it differently depending
 -- on the command.
@@ -870,10 +880,11 @@ postingInferredmarketPrice p@Posting{pamount} =
 
 -- | Convert all this journal's amounts to cost using the transaction prices, if any.
 -- The journal's commodity styles are applied to the resulting amounts.
-journalToCost :: Journal -> Journal
-journalToCost j@Journal{jtxns=ts} = j{jtxns=map (transactionToCost styles) ts}
-    where
-      styles = journalCommodityStyles j
+journalToCost :: ConversionOp -> Journal -> Journal
+journalToCost cost j@Journal{jtxns=ts} =
+    j{jtxns=map (transactionToCost (journalConversionAccount j) styles cost) ts}
+  where
+    styles = journalCommodityStyles j
 
 -- -- | Get this journal's unique, display-preference-canonicalised commodities, by symbol.
 -- journalCanonicalCommodities :: Journal -> M.Map String CommoditySymbol

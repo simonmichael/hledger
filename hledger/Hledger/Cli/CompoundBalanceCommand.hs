@@ -152,9 +152,9 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
             _                                              -> Nothing
 
         valuationdesc =
-          (case cost_ of
-               Cost   -> ", converted to cost"
-               NoCost -> "")
+          (case conversionop_ of
+               Just ToCost -> ", converted to cost"
+               _           -> "")
           <> (case value_ of
                Just (AtThen _mc)       -> ", valued at posting date"
                Just (AtEnd _mc) | changingValuation -> ""

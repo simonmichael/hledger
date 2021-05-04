@@ -13,7 +13,7 @@ looking up historical market prices (exchange rates) between commodities.
 {-# LANGUAGE DeriveGeneric #-}
 
 module Hledger.Data.Valuation (
-   Costing(..)
+   ConversionOp(..)
   ,ValuationType(..)
   ,PriceOracle
   ,journalPriceOracle
@@ -51,8 +51,8 @@ import Text.Printf (printf)
 ------------------------------------------------------------------------------
 -- Types
 
--- | Whether to convert amounts to cost.
-data Costing = Cost | NoCost
+-- | Which operation to perform on conversion transactions.
+data ConversionOp = NoConversionOp | InferEquity | ToCost
   deriving (Show,Eq)
 
 -- | What kind of value conversion should be done on amounts ?
@@ -98,8 +98,8 @@ priceDirectiveToMarketPrice PriceDirective{..} =
 -- Converting things to value
 
 -- | Convert all component amounts to cost/selling price if requested, and style them.
-mixedAmountToCost :: Costing -> M.Map CommoditySymbol AmountStyle -> MixedAmount -> MixedAmount
-mixedAmountToCost cost styles = mapMixedAmount (amountToCost cost styles)
+mixedAmountToCost :: M.Map CommoditySymbol AmountStyle -> ConversionOp -> MixedAmount -> MixedAmount
+mixedAmountToCost styles cost = mapMixedAmount (amountToCost styles cost)
 
 -- | Apply a specified valuation to this mixed amount, using the
 -- provided price oracle, commodity styles, and reference dates.
@@ -109,9 +109,10 @@ mixedAmountApplyValuation priceoracle styles periodlast today postingdate v =
   mapMixedAmount (amountApplyValuation priceoracle styles periodlast today postingdate v)
 
 -- | Convert an Amount to its cost if requested, and style it appropriately.
-amountToCost :: Costing -> M.Map CommoditySymbol AmountStyle -> Amount -> Amount
-amountToCost NoCost _      = id
-amountToCost Cost   styles = styleAmount styles . amountCost
+amountToCost :: M.Map CommoditySymbol AmountStyle -> ConversionOp -> Amount -> Amount
+amountToCost styles ToCost         = styleAmount styles . amountCost
+amountToCost _      InferEquity    = amountStripPrices
+amountToCost _      NoConversionOp = id
 
 -- | Apply a specified valuation to this amount, using the provided
 -- price oracle, and reference dates. Also fix up its display style
