@@ -151,6 +151,7 @@ data AccountType =
   | Revenue
   | Expense
   | Cash  -- ^ a subtype of Asset - liquid assets to show in cashflow report
+  | Conversion -- ^ a subtype of Equity - account in which to generate conversion postings for transaction prices
   deriving (Show,Eq,Ord,Generic)
 
 -- not worth the trouble, letters defined in accountdirectivep for now

@@ -313,7 +313,7 @@ tests_BalanceReport = testGroup "BalanceReport" [
                 ,"  a:b          10h @ $50"
                 ,"  c:d                   "
                 ]) >>= either error' return
-         let j' = journalCanonicaliseAmounts $ journalToCost j -- enable cost basis adjustment
+         let j' = journalCanonicaliseAmounts $ journalToCost ToCost j -- enable cost basis adjustment
          balanceReportAsText defreportopts (balanceReport defreportopts Any j') `is`
            ["                $500  a:b"
            ,"               $-500  c:d"

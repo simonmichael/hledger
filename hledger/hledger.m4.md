@@ -917,15 +917,22 @@ see the discussion at [#1625](https://github.com/simonmichael/hledger/issues/162
 
 # COSTING
 
-The `-B/--cost` flag converts amounts to their cost or sale amount at transaction time,
-if they have a [transaction price](#transaction-prices) specified.
-If this flag is supplied, hledger will perform cost conversion first, and will apply
-any market price valuations (if requested) afterwards.
+The `-B/--cost` flag converts amounts to their cost or sale amount at
+transaction time, if they have a [transaction price](#transaction-prices)
+specified.
+
+The `--infer-equity` flag generates conversion postings within equity to
+balance any transaction prices.
+The account used is "equity:conversion" by default, but this can be customised
+with an account declaration: `account <conversion_account>  Conversion`.
+
+If either of these flags are supplied, hledger will perform cost conversion
+first, and will apply any market price valuations (if requested) afterwards.
+
 
 # VALUATION
 
-Instead of reporting amounts in their original commodity,
-hledger can convert them to
+Instead of reporting amounts in their original commodity, hledger can convert them to
 cost/sale amount (using the conversion rate recorded in the transaction),
 and/or to market value (using some market price on a certain date).
 This is controlled by the `--value=TYPE[,COMMODITY]` option, which will be described below.
@@ -2914,8 +2921,8 @@ account ACCTNAME  [ACCTTYPE] [;COMMENT]
 
 By adding a `type` tag to the [account directive],
 with value
-`A`, `L`, `E`, `R`, `X`, `C`
-(or if you prefer: `Asset`, `Liability`, `Equity`, `Revenue`, `Expense`, `Cash`),
+`A`, `L`, `E`, `R`, `X`, `C`, `V`
+(or if you prefer: `Asset`, `Liability`, `Equity`, `Revenue`, `Expense`, `Cash`, `Conversion`),
 you can declare hledger accounts to be of a certain type:
 
 - **asset**, 
@@ -2927,6 +2934,9 @@ you can declare hledger accounts to be of a certain type:
 
 - **cash**\
   a subtype of asset, used for [liquid assets][CCE].
+
+- **conversion**\
+  a subtype of equity, used for [conversion postings](#costing)
 
 Declaring account types is a good idea, since it helps enable the easy 
 [balancesheet], [balancesheetequity], [incomestatement] and [cashflow] reports, 

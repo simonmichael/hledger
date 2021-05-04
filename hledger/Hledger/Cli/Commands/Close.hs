@@ -48,9 +48,8 @@ closemode = hledgerCommandMode
 
 -- debugger, beware: close is incredibly devious. simple rules combine to make a horrid maze.
 -- tests are in hledger/test/close.test.
-close CliOpts{rawopts_=rawopts, reportspec_=rspec} j = do
+close CliOpts{rawopts_=rawopts, reportspec_=rspec'} j = do
   let
-    today = _rsDay rspec
     -- show opening entry, closing entry, or (default) both ?
     (opening, closing) =
       case (boolopt "open" rawopts, boolopt "close" rawopts) of
@@ -72,6 +71,9 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec} j = do
         (Nothing, Just o)  -> (o, o)
         (Nothing, Nothing) -> (T.pack defclosingacct, T.pack defopeningacct)
 
+    ropts = (_rsReportOpts rspec'){balanceaccum_=Historical, accountlistmode_=ALFlat}
+    rspec = setDefaultConversionOp (if show_costs then NoConversionOp else InferEquity) rspec'{_rsReportOpts=ropts}
+
     -- dates of the closing and opening transactions
     --
     -- Close.md:
@@ -90,7 +92,7 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec} j = do
     -- - `-e 2021`"
     --
     q = _rsQuery rspec
-    yesterday = addDays (-1) today
+    yesterday = addDays (-1) $ _rsDay rspec
     yesterdayorjournalend = case journalLastDay False j of
       Just journalend -> max yesterday journalend
       Nothing         -> yesterday
@@ -100,12 +102,11 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec} j = do
 
     -- should we show the amount(s) on the equity posting(s) ?
     explicit = boolopt "explicit" rawopts
+    show_costs = boolopt "show-costs" rawopts
 
     -- the balances to close
-    ropts = (_rsReportOpts rspec){balanceaccum_=Historical, accountlistmode_=ALFlat}
-    rspec_ = rspec{_rsReportOpts=ropts}
-    (acctbals',_) = balanceReport rspec_ j
-    acctbals = map (\(a,_,_,b) -> (a, if show_costs_ ropts then b else mixedAmountStripPrices b)) acctbals'
+    (acctbals',_) = balanceReport rspec j
+    acctbals = map (\(a,_,_,b) -> (a, if show_costs then b else mixedAmountStripPrices b)) acctbals'
     totalamt = maSum $ map snd acctbals
 
     -- since balance assertion amounts are required to be exact, the

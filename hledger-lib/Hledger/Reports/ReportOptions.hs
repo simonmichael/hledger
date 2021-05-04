@@ -30,6 +30,7 @@ module Hledger.Reports.ReportOptions (
   defreportopts,
   rawOptsToReportOpts,
   defreportspec,
+  setDefaultConversionOp,
   reportOptsToSpec,
   updateReportSpec,
   updateReportSpecWith,
@@ -69,7 +70,7 @@ import Data.Either (fromRight)
 import Data.Either.Extra (eitherToMaybe)
 import Data.Functor.Identity (Identity(..))
 import Data.List.Extra (find, isPrefixOf, nubSort)
-import Data.Maybe (fromMaybe, mapMaybe)
+import Data.Maybe (fromMaybe, isJust)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day, addDays)
 import Data.Default (Default(..))
@@ -124,7 +125,7 @@ data ReportOpts = ReportOpts {
      period_           :: Period
     ,interval_         :: Interval
     ,statuses_         :: [Status]  -- ^ Zero, one, or two statuses to be matched
-    ,cost_             :: Costing  -- ^ Should we convert amounts to cost, when present?
+    ,conversionop_     :: Maybe ConversionOp  -- ^ Which operation should we apply to conversion transactions?
     ,value_            :: Maybe ValuationType  -- ^ What value should amounts be converted to ?
     ,infer_prices_     :: Bool      -- ^ Infer market prices from transactions ?
     ,depth_            :: Maybe Int
@@ -180,7 +181,7 @@ defreportopts = ReportOpts
     { period_           = PeriodAll
     , interval_         = NoInterval
     , statuses_         = []
-    , cost_             = NoCost
+    , conversionop_     = Nothing
     , value_            = Nothing
     , infer_prices_     = False
     , depth_            = Nothing
@@ -223,7 +224,6 @@ rawOptsToReportOpts d rawopts =
 
     let formatstring = T.pack <$> maybestringopt "format" rawopts
         querystring  = map T.pack $ listofstringopt "args" rawopts  -- doesn't handle an arg like "" right
-        (costing, valuation) = valuationTypeFromRawOpts rawopts
         pretty = fromMaybe False $ alwaysneveropt "pretty" rawopts
 
         format = case parseStringFormat <$> formatstring of
@@ -235,8 +235,8 @@ rawOptsToReportOpts d rawopts =
           {period_           = periodFromRawOpts d rawopts
           ,interval_         = intervalFromRawOpts rawopts
           ,statuses_         = statusesFromRawOpts rawopts
-          ,cost_             = costing
-          ,value_            = valuation
+          ,conversionop_     = conversionOpFromRawOpts rawopts
+          ,value_            = valuationTypeFromRawOpts rawopts
           ,infer_prices_     = boolopt "infer-market-prices" rawopts
           ,depth_            = maybeposintopt "depth" rawopts
           ,date2_            = boolopt "date2" rawopts
@@ -289,6 +289,11 @@ defreportspec = ReportSpec
     , _rsQuery      = Any
     , _rsQueryOpts  = []
     }
+
+-- | Set the default ConversionOp.
+setDefaultConversionOp :: ConversionOp -> ReportSpec -> ReportSpec
+setDefaultConversionOp def rspec@ReportSpec{_rsReportOpts=ropts} =
+    rspec{_rsReportOpts=ropts{conversionop_=conversionop_ ropts <|> Just def}}
 
 accountlistmodeopt :: RawOpts -> AccountListMode
 accountlistmodeopt =
@@ -469,39 +474,32 @@ reportOptsToggleStatus s ropts@ReportOpts{statuses_=ss}
   | s `elem` ss = ropts{statuses_=filter (/= s) ss}
   | otherwise   = ropts{statuses_=simplifyStatuses (s:ss)}
 
--- | Parse the type of valuation and costing to be performed, if any,
--- specified by -B/--cost, -V, -X/--exchange, or --value flags. It is
--- allowed to combine -B/--cost with any other valuation type. If
--- there's more than one valuation type, the rightmost flag wins.
--- This will fail with a usage error if an invalid argument is passed
--- to --value, or if --valuechange is called with a valuation type
--- other than -V/--value=end.
-valuationTypeFromRawOpts :: RawOpts -> (Costing, Maybe ValuationType)
-valuationTypeFromRawOpts rawopts = case (balancecalcopt rawopts, directcost, directval) of
-    (CalcValueChange, _,      Nothing       ) -> (directcost, Just $ AtEnd Nothing)  -- If no valuation requested for valuechange, use AtEnd
-    (CalcValueChange, _,      Just (AtEnd _)) -> (directcost, directval)             -- If AtEnd valuation requested, use it
-    (CalcValueChange, _,      _             ) -> usageError "--valuechange only produces sensible results with --value=end"
-    (CalcGain,        Cost,   _             ) -> usageError "--gain cannot be combined with --cost"
-    (CalcGain,        NoCost, Nothing       ) -> (directcost, Just $ AtEnd Nothing)  -- If no valuation requested for gain, use AtEnd
-    (_,               _,      _             ) -> (directcost, directval)             -- Otherwise, use requested valuation
+-- | Parse the type of valuation to be performed, if any, specified by -V,
+-- -X/--exchange, or --value flags. If there's more than one valuation type,
+-- the rightmost flag wins. This will fail with a usage error if an invalid
+-- argument is passed to --value, or if --valuechange is called with a
+-- valuation type other than -V/--value=end.
+valuationTypeFromRawOpts :: RawOpts -> Maybe ValuationType
+valuationTypeFromRawOpts rawopts = case (balancecalcopt rawopts, directval) of
+    (CalcValueChange, Nothing       ) -> Just $ AtEnd Nothing  -- If no valuation requested for valuechange, use AtEnd
+    (CalcValueChange, Just (AtEnd _)) -> directval             -- If AtEnd valuation requested, use it
+    (CalcValueChange, _             ) -> usageError "--valuechange only produces sensible results with --value=end"
+    (CalcGain,        Nothing       ) -> Just $ AtEnd Nothing  -- If no valuation requested for gain, use AtEnd
+    (_,               _             ) -> directval             -- Otherwise, use requested valuation
   where
-    directcost = if Cost `elem` map fst valuationopts then Cost else NoCost
-    directval  = lastMay $ mapMaybe snd valuationopts
-
-    valuationopts = collectopts valuationfromrawopt rawopts
+    directval = lastMay $ collectopts valuationfromrawopt rawopts
     valuationfromrawopt (n,v)  -- option name, value
-      | n == "B"     = Just (Cost,   Nothing)  -- keep supporting --value=cost for now
-      | n == "V"     = Just (NoCost, Just $ AtEnd Nothing)
-      | n == "X"     = Just (NoCost, Just $ AtEnd (Just $ T.pack v))
-      | n == "value" = Just $ valueopt v
+      | n == "V"     = Just $ AtEnd Nothing
+      | n == "X"     = Just $ AtEnd (Just $ T.pack v)
+      | n == "value" = valueopt v
       | otherwise    = Nothing
     valueopt v
-      | t `elem` ["cost","c"]  = (Cost,   AtEnd . Just <$> mc)  -- keep supporting --value=cost,COMM for now
-      | t `elem` ["then" ,"t"] = (NoCost, Just $ AtThen mc)
-      | t `elem` ["end" ,"e"]  = (NoCost, Just $ AtEnd  mc)
-      | t `elem` ["now" ,"n"]  = (NoCost, Just $ AtNow  mc)
+      | t `elem` ["cost","c"]  = AtEnd . Just <$> mc  -- keep supporting --value=cost,COMM for now
+      | t `elem` ["then" ,"t"] = Just $ AtThen mc
+      | t `elem` ["end" ,"e"]  = Just $ AtEnd  mc
+      | t `elem` ["now" ,"n"]  = Just $ AtNow  mc
       | otherwise = case parsedateM t of
-            Just d  -> (NoCost, Just $ AtDate d mc)
+            Just d  -> Just $ AtDate d mc
             Nothing -> usageError $ "could not parse \""++t++"\" as valuation type, should be: then|end|now|t|e|n|YYYY-MM-DD"
       where
         -- parse --value's value: TYPE[,COMM]
@@ -509,6 +507,22 @@ valuationTypeFromRawOpts rawopts = case (balancecalcopt rawopts, directcost, dir
         mc     = case drop 1 c' of
                    "" -> Nothing
                    c  -> Just $ T.pack c
+
+-- | Parse the type of costing to be performed, if any, specified by -B/--cost
+-- or --value flags. If there's more than one costing type, the rightmost flag
+-- wins. This will fail with a usage error if an invalid argument is passed to
+-- --cost or if a costing type is requested with --gain.
+conversionOpFromRawOpts :: RawOpts -> Maybe ConversionOp
+conversionOpFromRawOpts rawopts
+    | isJust costFlag && balancecalcopt rawopts == CalcGain = usageError "--gain cannot be combined with --cost"
+    | boolopt "infer-equity" rawopts = costFlag <|> Just InferEquity
+    | otherwise = costFlag
+  where
+    costFlag = lastMay $ collectopts conversionopfromrawopt rawopts
+    conversionopfromrawopt (n,v)  -- option name, value
+      | n == "B"                                    = Just ToCost
+      | n == "value", takeWhile (/=',') v `elem` ["cost", "c"] = Just ToCost  -- keep supporting --value=cost for now
+      | otherwise                                   = Nothing
 
 -- | Select the Transaction date accessor based on --date2.
 transactionDateFn :: ReportOpts -> (Transaction -> Day)
@@ -578,9 +592,7 @@ journalApplyValuationFromOptsWith rspec@ReportSpec{_rsReportOpts=ropts} j priceo
   where
     valuation p = maybe id (mixedAmountApplyValuation priceoracle styles (periodEnd p) (_rsDay rspec) (postingDate p)) (value_ ropts)
     gain      p = maybe id (mixedAmountApplyGain      priceoracle styles (periodEnd p) (_rsDay rspec) (postingDate p)) (value_ ropts)
-    costing = case cost_ ropts of
-        Cost   -> journalToCost
-        NoCost -> id
+    costing     = journalToCost (fromMaybe NoConversionOp $ conversionop_ ropts)
 
     -- Find the end of the period containing this posting
     periodEnd  = addDays (-1) . fromMaybe err . mPeriodEnd . postingDate
@@ -605,9 +617,10 @@ mixedAmountApplyValuationAfterSumFromOptsWith ropts j priceoracle =
   where
     valuation mc span = mixedAmountValueAtDate priceoracle styles mc (maybe err (addDays (-1)) $ spanEnd span)
     gain mc span = mixedAmountGainAtDate priceoracle styles mc (maybe err (addDays (-1)) $ spanEnd span)
-    costing = case cost_ ropts of
-        Cost   -> styleMixedAmount styles . mixedAmountCost
-        NoCost -> id
+    costing = case fromMaybe NoConversionOp $ conversionop_ ropts of
+        NoConversionOp -> id
+        InferEquity    -> mixedAmountStripPrices
+        ToCost         -> styleMixedAmount styles . mixedAmountCost
     styles = journalCommodityStyles j
     err = error "mixedAmountApplyValuationAfterSumFromOptsWith: expected all spans to have an end date"
 

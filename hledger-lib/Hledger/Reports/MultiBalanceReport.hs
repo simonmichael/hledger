@@ -257,7 +257,7 @@ getPostings rspec@ReportSpec{_rsQuery=query, _rsReportOpts=ropts} j priceoracle 
   where
     rspec' = rspec{_rsQuery=depthless, _rsReportOpts = ropts'}
     ropts' = if isJust (valuationAfterSum ropts)
-        then ropts{value_=Nothing, cost_=NoCost}  -- If we're valuing after the sum, don't do it now
+        then ropts{value_=Nothing, conversionop_=Just NoConversionOp}  -- If we're valuing after the sum, don't do it now
         else ropts
 
     -- The user's query with no depth limit, and expanded to the report span
@@ -432,7 +432,7 @@ displayedAccounts ReportSpec{_rsQuery=query,_rsReportOpts=ropts} valuedaccts
         balance = maybeStripPrices . case accountlistmode_ ropts of
             ALTree | d == depth -> aibalance
             _                   -> aebalance
-          where maybeStripPrices = if show_costs_ ropts then id else mixedAmountStripPrices
+          where maybeStripPrices = if conversionop_ ropts == Just NoConversionOp then id else mixedAmountStripPrices
 
     -- Accounts interesting because they are a fork for interesting subaccounts
     interestingParents = dbg5 "interestingParents" $ case accountlistmode_ ropts of

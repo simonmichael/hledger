@@ -25,7 +25,50 @@ hledger -f- print --explicit --cost
 
 >>>=0
 
-# 3. print a transaction with a total price
+# 3. --infer-equity generates conversion postings
+hledger -f- print --infer-equity
+<<<
+2011/01/01
+    expenses:foreign currency       €100 @ $1.35
+    assets
+>>>
+2011-01-01
+    expenses:foreign currency            €100  ; cost: @ $1.35
+    equity:conversion:$-€:€             €-100  ; generated-posting:
+    equity:conversion:$-€:$           $135.00  ; generated-posting:
+    assets
+
+>>>=0
+
+# 4. With --infer-equity and --show-costs, the cost is still shown
+hledger -f- print --infer-equity --show-costs
+<<<
+2011/01/01
+    expenses:foreign currency       €100 @ $1.35
+    assets
+>>>
+2011-01-01
+    expenses:foreign currency    €100 @ $1.35  ; cost: @ $1.35
+    equity:conversion:$-€:€             €-100  ; generated-posting:
+    equity:conversion:$-€:$           $135.00  ; generated-posting:
+    assets
+
+>>>=0
+
+# 5. With --cost, --infer-equity is ignored
+hledger -f- print --explicit --cost --infer-equity
+<<<
+2011/01/01
+    expenses:foreign currency       €100 @ $1.35
+    assets
+>>>
+2011-01-01
+    expenses:foreign currency         $135.00
+    assets                           $-135.00
+
+>>>=0
+
+# 6. print a transaction with a total price
 hledger -f - print --explicit
 <<<
 2011/01/01
@@ -38,7 +81,7 @@ hledger -f - print --explicit
 
 >>>=0
 
-# 4. when the balance has exactly two commodities, both unpriced, infer an
+# 7. when the balance has exactly two commodities, both unpriced, infer an
 # implicit conversion price for the first one in terms of the second.
 hledger -f - print --explicit
 <<<
@@ -60,7 +103,7 @@ hledger -f - print --explicit
 
 >>>=0
 
-## 5. another, from ledger tests. Just one posting to price so uses @@.
+# 8. another, from ledger tests. Just one posting to price so uses @@.
 hledger -f - print --explicit
 <<<
 2002/09/30 * 1a1a6305d06ce4b284dba0d267c23f69d70c20be
@@ -73,7 +116,7 @@ hledger -f - print --explicit
 
 >>>=0
 
-# 6. when the balance has more than two commodities, don't bother
+# 9. when the balance has more than two commodities, don't bother
 hledger -f - print
 <<<
 2011/01/01
@@ -82,7 +125,7 @@ hledger -f - print
     expenses:other                    £200
 >>>= !0
 
-# 7. another
+# 10. another
 hledger -f - balance -B
 <<<
 2011/01/01
@@ -97,7 +140,7 @@ hledger -f - balance -B
                    0  
 >>>=0
 
-# 8. transaction in two commodities should balance out properly
+# 11. transaction in two commodities should balance out properly
 hledger -f - balance --cost
 <<<
 2011/01/01 x
@@ -110,10 +153,52 @@ hledger -f - balance --cost
                    0  
 >>>=0
 
-# 9. When commodity price is specified implicitly, transaction should
-#    be considered balanced out even when first amount is negative
-#    (that is, price for it should be determined properly, with proper sign)
+# 12. --value=cost,XXX is deprecated, but should still work (for now)
+hledger -f - balance --value=cost,XXX
+<<<
+2011/01/01 x
+  a  10£ @@ 16$
+  b
+>>>
+                 16$  a
+                -16$  b
+--------------------
+                   0  
+>>>=0
+
+# 13. conversion postings should be generated when called --infer-equity
+hledger -f - balance --infer-equity
+<<<
+2011/01/01 x
+  a  10£ @@ 16$
+  b
+>>>
+                 10£  a
+                -16$  b
+                 16$  equity:conversion:$-£:$
+                -10£  equity:conversion:$-£:£
+--------------------
+                   0  
+>>>=0
+
+# 14. transaction should be left unbalanced when called without --cost or --infer-equity
 hledger -f - balance
+<<<
+2011/01/01 x
+  a  10£ @@ 16$
+  b
+>>>
+                 10£  a
+                -16$  b
+--------------------
+                -16$
+                 10£  
+>>>=0
+
+# 15. When commodity price is specified implicitly, transaction should
+#     be considered balanced out even when first amount is negative
+#     (that is, price for it should be determined properly, with proper sign)
+hledger -f - balance -N
 <<<
 2011/01/01 x
   a  -10£
@@ -121,12 +206,9 @@ hledger -f - balance
 >>>
                 -10£  a
                  16$  b
---------------------
-                 16$
-                -10£  
 >>>=0
 
-# 10. Should not infer prices when --strict is specified
+# 16. Should not infer prices when --strict is specified
 hledger -f - balance --strict
 <<<
 2011/01/01 x
@@ -135,7 +217,7 @@ hledger -f - balance --strict
 >>>
 >>>=1
 
-# 11. When commodity price is specified implicitly, transaction should
+# 17. When commodity price is specified implicitly, transaction should
 #     NOT be considered balanced out when BOTH amounts are negative
 hledger -f - balance
 <<<
@@ -145,7 +227,7 @@ hledger -f - balance
 >>>
 >>>=1
 
-# 12. Differently-priced lots of a commodity should be merged in balance report
+# 18. Differently-priced lots of a commodity should be merged in balance report
 hledger -f - balance
 <<<
 2011/1/1
@@ -159,7 +241,7 @@ hledger -f - balance
                   £2  
 >>>=0
 
-# 13. this should balance
+# 19. this should balance
 hledger -f - balance
 <<<
 2011/1/1
@@ -168,7 +250,7 @@ hledger -f - balance
     c  $-30
 >>>= 0
 
-# 14. these balance because of the unit prices, and should parse successfully
+# 20. these balance because of the unit prices, and should parse successfully
 hledger -f - balance --no-total
 <<<
 1/1
@@ -178,7 +260,7 @@ hledger -f - balance --no-total
                  -1X  a
 >>>= 0
 
-# 15.
+# 21.
 hledger -f - balance --no-total -B
 <<<
 1/1
@@ -187,7 +269,7 @@ hledger -f - balance --no-total -B
 >>>
 >>>= 0
 
-# 16. likewise with total prices. Note how the primary amount's sign is used.
+# 22. likewise with total prices. Note how the primary amount's sign is used.
 hledger -f - balance --no-total
 <<<
 1/1
@@ -197,7 +279,7 @@ hledger -f - balance --no-total
                  -1X  a
 >>>= 0
 
-# 17.
+# 23.
 hledger -f - balance --no-total -B
 <<<
 1/1
@@ -206,7 +288,7 @@ hledger -f - balance --no-total -B
 >>>
 >>>= 0
 
-# 18. here, a's primary amount is 0, and its cost is 1Y; b is the assigned auto-balancing amount of -1Y (per issue 69)
+# 24. here, a's primary amount is 0, and its cost is 1Y; b is the assigned auto-balancing amount of -1Y (per issue 69)
 hledger -f - balance --no-total -E
 <<<
 1/1
@@ -219,7 +301,7 @@ hledger -f - balance --no-total -E
                  -1Y  b
 >>>= 0
 
-# 19. Without -E, a should be hidden because its balance is zero, even though it has a non-zero cost.
+# 25. Without -E, a should be hidden because its balance is zero, even though it has a non-zero cost.
 hledger -f - balance --no-total
 <<<
 1/1
@@ -231,7 +313,7 @@ hledger -f - balance --no-total
                  -1Y  b
 >>>= 0
 
-# 20. the above with -B
+# 26. the above with -B
 hledger -f - balance --no-total -E -B
 <<<
 1/1
@@ -243,6 +325,23 @@ hledger -f - balance --no-total -E -B
                   1Y  a
                  -1Y  b
 >>>= 0
+
+# 27. The equity account used by --infer-equity can be customised
+hledger -f- print --infer-equity
+<<<
+account  equity:trades   V
+
+2011/01/01
+    expenses:foreign currency       €100 @ $1.35
+    assets
+>>>
+2011-01-01
+    expenses:foreign currency            €100  ; cost: @ $1.35
+    equity:trades:$-€:€                 €-100  ; generated-posting:
+    equity:trades:$-€:$               $135.00  ; generated-posting:
+    assets
+
+>>>=0
 
 # # when the *cost-basis* balance has exactly two commodities, both
 # # unpriced, infer an implicit conversion price for the first one in terms

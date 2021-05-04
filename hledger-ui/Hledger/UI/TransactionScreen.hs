@@ -63,12 +63,10 @@ tsInit _ _ _ = error "init function called with wrong screen type, should not ha
 -- Render a transaction suitably for the transaction screen.
 showTxn :: ReportOpts -> ReportSpec -> Journal -> Transaction -> T.Text
 showTxn ropts rspec j t =
-    showTransactionOneLineAmounts
-  $ maybe id (transactionApplyValuation prices styles periodlast (_rsDay rspec)) (value_ ropts)
-  $ case cost_ ropts of
-        Cost   -> transactionToCost styles t
-        NoCost -> t
-  -- (if real_ ropts then filterTransactionPostings (Real True) else id) -- filter postings by --real
+      showTransactionOneLineAmounts
+    $ maybe id (transactionApplyValuation prices styles periodlast (_rsDay rspec)) (value_ ropts)
+    $ maybe id (transactionToCost (journalConversionAccount j) styles) (conversionop_ ropts) t
+    -- (if real_ ropts then filterTransactionPostings (Real True) else id) -- filter postings by --real
   where
     prices = journalPriceOracle (infer_prices_ ropts) j
     styles = journalCommodityStyles j
@@ -97,9 +95,9 @@ tsDraw UIState{aopts=UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec
 
         -- XXX would like to shrink the editor to the size of the entry,
         -- so handler can more easily detect clicks below it
-        txneditor = 
-          renderEditor (vBox . map txt) False $ 
-          editorText TransactionEditor Nothing $ 
+        txneditor =
+          renderEditor (vBox . map txt) False $
+          editorText TransactionEditor Nothing $
           showTxn ropts rspec j t
 
         toplabel =
@@ -187,7 +185,7 @@ tsHandle ui@UIState{aScreen=TransactionScreen{tsTransaction=(i,t), tsTransaction
         -- EvKey (KChar 'E') [] -> continue $ regenerateScreens j d $ stToggleEmpty ui
         -- EvKey (KChar 'C') [] -> continue $ regenerateScreens j d $ stToggleCleared ui
         -- EvKey (KChar 'R') [] -> continue $ regenerateScreens j d $ stToggleReal ui
-        VtyEvent (EvKey (KChar 'B') []) -> continue . regenerateScreens j d $ toggleCost ui
+        VtyEvent (EvKey (KChar 'B') []) -> continue . regenerateScreens j d $ toggleConversionOp ui
         VtyEvent (EvKey (KChar 'V') []) -> continue . regenerateScreens j d $ toggleValue ui
 
         VtyEvent e | e `elem` moveUpEvents   -> continue $ tsSelect iprev tprev ui

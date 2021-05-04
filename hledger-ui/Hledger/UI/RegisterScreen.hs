@@ -335,7 +335,7 @@ rsHandle ui@UIState{
                           rsItemTransaction=Transaction{tsourcepos=(SourcePos f l c,_)}}) -> (Just (unPos l, Just $ unPos c),f)
 
         -- display mode/query toggles
-        VtyEvent (EvKey (KChar 'B') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleCost ui
+        VtyEvent (EvKey (KChar 'B') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleConversionOp ui
         VtyEvent (EvKey (KChar 'V') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleValue ui
         VtyEvent (EvKey (KChar 'H') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleHistorical ui
         VtyEvent (EvKey (KChar 't') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleTree ui
