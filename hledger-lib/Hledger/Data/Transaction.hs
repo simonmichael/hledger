@@ -33,7 +33,6 @@ module Hledger.Data.Transaction (
   balanceTransaction,
   balanceTransactionHelper,
   transactionTransformPostings,
-  transactionApplyCostValuation,
   transactionApplyValuation,
   transactionToCost,
   transactionApplyAliases,
@@ -615,13 +614,6 @@ postingSetTransaction t p = p{ptransaction=Just t}
 transactionTransformPostings :: (Posting -> Posting) -> Transaction -> Transaction
 transactionTransformPostings f t@Transaction{tpostings=ps} = t{tpostings=map f ps}
 
--- | Apply a specified costing and valuation to this transaction's amounts,
--- using the provided price oracle, commodity styles, and reference dates.
--- See amountApplyValuation and amountCost.
-transactionApplyCostValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Costing -> Maybe ValuationType -> Transaction -> Transaction
-transactionApplyCostValuation priceoracle styles periodlast today cost v =
-  transactionTransformPostings (postingApplyCostValuation priceoracle styles periodlast today cost v)
-
 -- | Apply a specified valuation to this transaction's amounts, using
 -- the provided price oracle, commodity styles, and reference dates.
 -- See amountApplyValuation.
@@ -631,7 +623,7 @@ transactionApplyValuation priceoracle styles periodlast today v =
 
 -- | Convert this transaction's amounts to cost, and apply the appropriate amount styles.
 transactionToCost :: M.Map CommoditySymbol AmountStyle -> Transaction -> Transaction
-transactionToCost styles t@Transaction{tpostings=ps} = t{tpostings=map (postingToCost styles) ps}
+transactionToCost styles = transactionTransformPostings (postingToCost styles)
 
 -- | Apply some account aliases to all posting account names in the transaction, as described by accountNameApplyAliases.
 -- This can fail due to a bad replacement pattern in a regular expression alias.
