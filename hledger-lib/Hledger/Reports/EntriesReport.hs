@@ -33,15 +33,18 @@ type EntriesReportItem = Transaction
 
 -- | Select transactions for an entries report.
 entriesReport :: ReportSpec -> Journal -> EntriesReport
-entriesReport rspec@ReportSpec{rsOpts=ropts@ReportOpts{..}} j@Journal{..} =
-  sortBy (comparing getdate) $ filter (rsQuery rspec `matchesTransaction`) $ map tvalue jtxns
+entriesReport rspec@ReportSpec{rsOpts=ropts@ReportOpts{..}} j =
+  sortBy (comparing getdate) . jtxns . filterJournalTransactions (rsQuery rspec)
+    . journalMapPostings pvalue
+    $ journalSelectingAmountFromOpts ropts{show_costs_=True} j
   where
     getdate = transactionDateFn ropts
     -- We may be converting posting amounts to value, per hledger_options.m4.md "Effect of --value on reports".
-    tvalue t@Transaction{..} = t{tpostings=map pvalue tpostings}
+    pvalue = maybe id (postingApplyValuation priceoracle styles periodlast (rsToday rspec)) value_
       where
-        pvalue = postingApplyCostValuation (journalPriceOracle infer_value_ j) (journalCommodityStyles j) periodlast (rsToday rspec) cost_ value_
-          where periodlast  = fromMaybe (rsToday rspec) $ reportPeriodOrJournalLastDay rspec j
+        priceoracle = journalPriceOracle infer_value_ j
+        styles = journalCommodityStyles j
+        periodlast  = fromMaybe (rsToday rspec) $ reportPeriodOrJournalLastDay rspec j
 
 tests_EntriesReport = tests "EntriesReport" [
   tests "entriesReport" [

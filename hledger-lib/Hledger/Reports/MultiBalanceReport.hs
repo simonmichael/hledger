@@ -248,8 +248,9 @@ getPostings :: ReportSpec -> Journal -> [(Posting, Day)]
 getPostings ReportSpec{rsQuery=query,rsOpts=ropts} =
     map (\p -> (p, date p)) .
     journalPostings .
-    filterJournalAmounts symq .    -- remove amount parts excluded by cur:
-    filterJournalPostings reportq  -- remove postings not matched by (adjusted) query
+    filterJournalAmounts symq .      -- remove amount parts excluded by cur:
+    filterJournalPostings reportq .  -- remove postings not matched by (adjusted) query
+    journalSelectingAmountFromOpts ropts
   where
     symq = dbg3 "symq" . filterQuery queryIsSym $ dbg3 "requested q" query
     -- The user's query with no depth limit, and expanded to the report span
@@ -553,25 +554,24 @@ cumulativeSum :: (DateSpan -> Account -> Account) -> Account -> Map DateSpan Acc
 cumulativeSum value start = snd . M.mapAccumWithKey accumValued start
   where accumValued startAmt date newAmt = let s = sumAcct startAmt newAmt in (s, value date s)
 
--- | Calculate the Posting and Account valuation functions required by this
--- MultiBalanceReport.
+-- | Calculate the Posting and Account valuation functions required by this MultiBalanceReport.
 postingAndAccountValuations :: ReportSpec -> Journal -> PriceOracle
                             -> (DateSpan -> Posting -> Posting, DateSpan -> Account -> Account)
 postingAndAccountValuations ReportSpec{rsToday=today, rsOpts=ropts} j priceoracle = case value_ ropts of
+    -- If we're doing no valuation, just return the identity functions.
+    Nothing          -> (const id, const id)
     -- If we're doing AtEnd valuation, we may need to value the same posting at different dates
-    -- (for example, when preparing a ValueChange report). So we should only convert to cost and
-    -- maybe strip prices from the Posting, and should do valuation on the Accounts.
-    Just v@(AtEnd _) -> (pvalue Nothing, avalue v)
-    -- Otherwise, all costing and valuation should be done on the Postings.
-    _                -> (pvalue (value_ ropts), const id)
+    -- (for example, when preparing a ValueChange report). So we should do valuation on the Accounts.
+    Just v@(AtEnd _) -> (const id, avalue v)
+    -- Otherwise, all valuation should be done on the Postings.
+    Just v           -> (pvalue v, const id)
   where
     -- For a Posting: convert to cost, apply valuation, then strip prices if we don't need them (See issue #1507).
-    pvalue v span = maybeStripPrices . postingApplyCostValuation priceoracle styles (end span) today (cost_ ropts) v
+    pvalue v span = postingApplyValuation priceoracle styles (end span) today v
     -- For an Account: Apply valuation to both the inclusive and exclusive balances.
     avalue v span a = a{aibalance = value (aibalance a), aebalance = value (aebalance a)}
       where value = mixedAmountApplyValuation priceoracle styles (end span) today (error "multiBalanceReport: did not expect amount valuation to be called ") v  -- PARTIAL: should not happen
 
-    maybeStripPrices = if show_costs_ ropts then id else postingStripPrices
     end = maybe (error "multiBalanceReport: expected all spans to have an end date")  -- PARTIAL: should not happen
             (addDays (-1)) . spanEnd
     styles = journalCommodityStyles j

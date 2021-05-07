@@ -84,45 +84,35 @@ accountTransactionsReport rspec@ReportSpec{rsOpts=ropts} j reportq thisacctq = i
   where
     -- a depth limit should not affect the account transactions report
     -- seems unnecessary for some reason XXX
-    reportq' = -- filterQuery (not . queryIsDepth)
-               reportq
-
-    -- get all transactions
-    ts1 =
-      -- ptraceAtWith 5 (("ts1:\n"++).pshowTransactions) $
-      jtxns j
-
-    -- apply any cur:SYM filters in reportq'
-    symq  = filterQuery queryIsSym reportq'
-    ts2 =
-      ptraceAtWith 5 (("ts2:\n"++).pshowTransactions) $
-      (if queryIsNull symq then id else map (filterTransactionAmounts symq)) ts1
-
-    -- keep just the transactions affecting this account (via possibly realness or status-filtered postings)
-    realq = filterQuery queryIsReal reportq'
-    statusq = filterQuery queryIsStatus reportq'
-    ts3 =
-      traceAt 3 ("thisacctq: "++show thisacctq) $
-      ptraceAtWith 5 (("ts3:\n"++).pshowTransactions) $
-      filter (matchesTransaction thisacctq . filterTransactionPostings (And [realq, statusq])) ts2
-
-    -- maybe convert these transactions to cost or value
-    -- PARTIAL:
-    prices = journalPriceOracle (infer_value_ ropts) j
-    styles = journalCommodityStyles j
+    reportq'   = reportq -- filterQuery (not . queryIsDepth)
+    symq       = filterQuery queryIsSym reportq'
+    realq      = filterQuery queryIsReal reportq'
+    statusq    = filterQuery queryIsStatus reportq'
+    prices     = journalPriceOracle (infer_value_ ropts) j
+    styles     = journalCommodityStyles j
     periodlast =
       fromMaybe (error' "journalApplyValuation: expected a non-empty journal") $ -- XXX shouldn't happen
       reportPeriodOrJournalLastDay rspec j
-    tval = transactionApplyCostValuation prices styles periodlast (rsToday rspec) (cost_ ropts) $ value_ ropts
-    ts4 =
-      ptraceAtWith 5 (("ts4:\n"++).pshowTransactions) $
-      map tval ts3
+    pvalue = maybe id (postingApplyValuation prices styles periodlast (rsToday rspec)) $ value_ ropts
 
     -- sort by the transaction's register date, for accurate starting balance
     -- these are not yet filtered by tdate, we want to search them all for priorps
-    ts5 =
-      ptraceAtWith 5 (("ts5:\n"++).pshowTransactions) $
-      sortBy (comparing (transactionRegisterDate reportq' thisacctq)) ts4
+    transactions =
+        ptraceAtWith 5 (("ts5:\n"++).pshowTransactions)
+      . sortBy (comparing (transactionRegisterDate reportq' thisacctq))
+      . jtxns
+      -- maybe convert these transactions to cost or value
+      . ptraceAtWith 5 (("ts4:\n"++).pshowTransactions.jtxns)
+      . journalMapPostings pvalue
+      . journalSelectingAmountFromOpts ropts
+      -- keep just the transactions affecting this account (via possibly realness or status-filtered postings)
+      . traceAt 3 ("thisacctq: "++show thisacctq)
+      . ptraceAtWith 5 (("ts3:\n"++).pshowTransactions.jtxns)
+      . filterJournalTransactions thisacctq
+      . filterJournalPostings (And [realq, statusq])
+      -- apply any cur:SYM filters in reportq'
+      . ptraceAtWith 5 (("ts2:\n"++).pshowTransactions.jtxns)
+      $ (if queryIsNull symq then id else filterJournalAmounts symq) j
 
     startbal
       | balancetype_ ropts == HistoricalBalance = sumPostings priorps
@@ -132,7 +122,7 @@ accountTransactionsReport rspec@ReportSpec{rsOpts=ropts} j reportq thisacctq = i
                   filter (matchesPosting
                           (dbg5 "priorq" $
                            And [thisacctq, tostartdateq, datelessreportq]))
-                         $ transactionsPostings ts5
+                         $ transactionsPostings transactions
         tostartdateq =
           case mstartdate of
             Just _  -> Date (DateSpan Nothing mstartdate)
@@ -149,7 +139,7 @@ accountTransactionsReport rspec@ReportSpec{rsOpts=ropts} j reportq thisacctq = i
     items = reverse $
             accountTransactionsReportItems reportq' thisacctq startbal maNegate $
             (if filtertxns then filter (reportq' `matchesTransaction`) else id) $
-            ts5
+            transactions
 
 pshowTransactions :: [Transaction] -> String
 pshowTransactions = pshow . map (\t -> unwords [show $ tdate t, T.unpack $ tdescription t])

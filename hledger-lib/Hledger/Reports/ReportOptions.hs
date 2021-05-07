@@ -488,13 +488,14 @@ flat_ = not . tree_
 -- depthFromOpts :: ReportOpts -> Int
 -- depthFromOpts opts = min (fromMaybe 99999 $ depth_ opts) (queryDepth $ queryFromOpts nulldate opts)
 
--- | Convert this journal's postings' amounts to cost using their
--- transaction prices, if specified by options (-B/--cost).
--- Maybe soon superseded by newer valuation code.
+-- | Convert this journal's postings' amounts to cost using their transaction prices,
+-- if specified by options (-B/--cost). Strip prices if not needed.
 journalSelectingAmountFromOpts :: ReportOpts -> Journal -> Journal
-journalSelectingAmountFromOpts opts = case cost_ opts of
+journalSelectingAmountFromOpts ropts = maybeStripPrices . case cost_ ropts of
     Cost   -> journalToCost
     NoCost -> id
+  where
+    maybeStripPrices = if show_costs_ ropts then id else journalMapPostingAmounts mixedAmountStripPrices
 
 -- | Convert report options to a query, ignoring any non-flag command line arguments.
 queryFromFlags :: ReportOpts -> Query

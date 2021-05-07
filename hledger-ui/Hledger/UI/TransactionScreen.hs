@@ -83,7 +83,10 @@ tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{
 
       render . defaultLayout toplabel bottomlabel . str
         . T.unpack . showTransactionOneLineAmounts
-        $ transactionApplyCostValuation prices styles periodlast (rsToday rspec) (cost_ ropts) (value_ ropts) t
+        . maybe id (transactionApplyValuation prices styles periodlast (rsToday rspec)) (value_ ropts)
+        $ case cost_ ropts of
+               Cost   -> transactionToCost styles t
+               NoCost -> t
         -- (if real_ ropts then filterTransactionPostings (Real True) else id) -- filter postings by --real
       where
         toplabel =
