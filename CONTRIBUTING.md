@@ -1,3 +1,4 @@
+<!-- toc -->
 <style>
 /* table styles */
 tr.even { background-color:#eee;}
