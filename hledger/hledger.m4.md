@@ -393,7 +393,7 @@ With the `-s`/`--strict` flag, additional checks are performed:
 - Are all commodities declared with a `commodity` directive ?
   ([Commodity error checking](hledger.html#commodity-error-checking))
 
-You can also use the [check](#command) to run these and some additional checks.
+You can also use the [check](#check) command to run these and some additional checks.
 
 # TIME PERIODS
 ## Smart dates
