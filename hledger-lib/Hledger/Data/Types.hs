@@ -22,7 +22,6 @@ For more detailed documentation on each type, see the corresponding modules.
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE RecordWildCards      #-}
 {-# LANGUAGE StandaloneDeriving   #-}
-{-# LANGUAGE TypeSynonymInstances #-}
 
 module Hledger.Data.Types
 where

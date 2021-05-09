@@ -4,7 +4,9 @@ Balance report, used by the balance command.
 
 -}
 
-{-# LANGUAGE FlexibleInstances, RecordWildCards, ScopedTypeVariables, OverloadedStrings #-}
+{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Hledger.Reports.BalanceReport (
   BalanceReport,

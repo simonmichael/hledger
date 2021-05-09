@@ -7,8 +7,6 @@ adds some more which are easier to define here.
 
 -}
 
-{-# LANGUAGE OverloadedStrings #-}
-
 module Hledger.Cli (
                      module Hledger.Cli.CliOptions,
                      module Hledger.Cli.Commands,
