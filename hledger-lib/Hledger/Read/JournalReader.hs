@@ -26,7 +26,6 @@ Hledger.Read.Common, to avoid import cycles.
 
 --- ** language
 
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE NoMonoLocalBinds #-}
@@ -85,9 +84,6 @@ import Control.Monad.Trans.Class (lift)
 import Data.Char (toLower)
 import Data.Either (isRight)
 import qualified Data.Map.Strict as M
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Semigroup ((<>))
-#endif
 import Data.Text (Text)
 import Data.String
 import Data.List

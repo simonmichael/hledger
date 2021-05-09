@@ -1,7 +1,8 @@
 -- The error screen, showing a current error condition (such as a parse error after reloading the journal)
 
-{-# LANGUAGE OverloadedStrings, FlexibleContexts, RecordWildCards #-}
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 
 module Hledger.UI.ErrorScreen
  (errorScreen
@@ -15,9 +16,6 @@ import Brick
 -- import Brick.Widgets.Border ("border")
 import Control.Monad
 import Control.Monad.IO.Class (liftIO)
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Monoid
-#endif
 import Data.Time.Calendar (Day)
 import Data.Void (Void)
 import Graphics.Vty (Event(..),Key(..),Modifier(..))

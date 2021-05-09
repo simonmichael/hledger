@@ -14,16 +14,12 @@ The @accounts@ command lists account names:
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE CPP #-}
 
 module Hledger.Cli.Commands.Accounts (
   accountsmode
  ,accounts
 ) where
 
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Monoid
-#endif
 import Data.List
 import qualified Data.Text as T
 import qualified Data.Text.IO as T

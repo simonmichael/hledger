@@ -20,10 +20,6 @@ module Hledger.Cli.Commands.Register (
 
 import Data.Default (def)
 import Data.Maybe (fromMaybe, isJust)
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Semigroup ((<>))
-#endif
--- import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB

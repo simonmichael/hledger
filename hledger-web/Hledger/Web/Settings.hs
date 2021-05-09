@@ -1,4 +1,7 @@
-{-# LANGUAGE CPP, OverloadedStrings, QuasiQuotes #-}
+{-# LANGUAGE CPP               #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes       #-}
+
 -- | Settings are centralized, as much as possible, into this file. This
 -- includes database connection settings, static file locations, etc.
 -- In addition, you can configure a number of different aspects of Yesod
@@ -7,9 +10,6 @@
 module Hledger.Web.Settings where
 
 import Data.Default (def)
-#if !(MIN_VERSION_base(4,13,0))
-import Data.Semigroup ((<>))
-#endif
 import Data.Text (Text)
 import Data.Yaml
 import Language.Haskell.TH.Syntax (Q, Exp)

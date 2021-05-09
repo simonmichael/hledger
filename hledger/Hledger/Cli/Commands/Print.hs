@@ -4,7 +4,6 @@ A ledger-compatible @print@ command.
 
 -}
 
-{-# LANGUAGE CPP               #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
@@ -19,9 +18,6 @@ where
 import Data.Maybe (isJust)
 import Data.Text (Text)
 import Data.List (intersperse)
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Semigroup ((<>))
-#endif
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import qualified Data.Text.Lazy as TL

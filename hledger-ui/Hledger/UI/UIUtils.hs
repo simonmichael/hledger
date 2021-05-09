@@ -1,7 +1,7 @@
 {- | Rendering & misc. helpers. -}
 
+{-# LANGUAGE CPP               #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE CPP #-}
 
 module Hledger.UI.UIUtils (
    borderDepthStr
@@ -35,9 +35,6 @@ import Brick.Widgets.Edit
 import Brick.Widgets.List (List, listSelectedL, listNameL, listItemHeightL)
 import Control.Monad.IO.Class
 import Data.List
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Monoid
-#endif
 import qualified Data.Text as T
 import Graphics.Vty
   (Event(..),Key(..),Modifier(..),Vty(..),Color,Attr,currentAttr,refresh

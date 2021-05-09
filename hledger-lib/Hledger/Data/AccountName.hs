@@ -1,6 +1,5 @@
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE CPP #-}
 {-|
 
 'AccountName's are strings like @assets:cash:petty@, with multiple
@@ -43,9 +42,6 @@ where
 
 import Data.Foldable (toList)
 import qualified Data.List.NonEmpty as NE
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Semigroup ((<>))
-#endif
 import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T

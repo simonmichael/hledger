@@ -5,7 +5,6 @@ transactions..)  by various criteria, and a SimpleTextParser for query expressio
 
 -}
 
-{-# LANGUAGE CPP                #-}
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE ViewPatterns       #-}
@@ -65,9 +64,6 @@ import Data.Default (Default(..))
 import Data.Either (partitionEithers)
 import Data.List (partition)
 import Data.Maybe (fromMaybe, isJust, mapMaybe)
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Monoid ((<>))
-#endif
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day, fromGregorian )

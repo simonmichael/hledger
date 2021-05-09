@@ -11,7 +11,6 @@ to import modules below this one.
 -}
 
 --- ** language
-{-# LANGUAGE CPP                 #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE PackageImports      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -54,9 +53,6 @@ import Data.List (group, sort, sortBy)
 import Data.List.NonEmpty (nonEmpty)
 import Data.Maybe (fromMaybe)
 import Data.Ord (comparing)
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Semigroup ((<>))
-#endif
 import Data.Semigroup (sconcat)
 import Data.Text (Text)
 import qualified Data.Text as T

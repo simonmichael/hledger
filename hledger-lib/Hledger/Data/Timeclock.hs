@@ -6,7 +6,6 @@ converted to 'Transactions' and queried like a ledger.
 
 -}
 
-{-# LANGUAGE CPP               #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Hledger.Data.Timeclock (
@@ -16,10 +15,6 @@ module Hledger.Data.Timeclock (
 where
 
 import Data.Maybe (fromMaybe)
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Semigroup ((<>))
-#endif
--- import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar (addDays)
 import Data.Time.Clock (addUTCTime, getCurrentTime)

@@ -1,7 +1,6 @@
 {- |
 New common report types, used by the BudgetReport for now, perhaps all reports later.
 -}
-{-# LANGUAGE CPP            #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveFunctor  #-}
 {-# LANGUAGE DeriveGeneric  #-}
@@ -36,9 +35,6 @@ import Data.Aeson (ToJSON(..))
 import Data.Decimal (Decimal)
 import Data.Maybe (mapMaybe)
 import Data.Text (Text)
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Semigroup (Semigroup(..))
-#endif
 import GHC.Generics (Generic)
 
 import Hledger.Data

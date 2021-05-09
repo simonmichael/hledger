@@ -9,7 +9,6 @@ look up the date or description there.
 -}
 
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE CPP #-}
 
 module Hledger.Data.Posting (
   -- * Posting
@@ -78,9 +77,6 @@ import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust)
 import Data.MemoUgly (memo)
 import Data.List (foldl')
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Monoid
-#endif
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)
