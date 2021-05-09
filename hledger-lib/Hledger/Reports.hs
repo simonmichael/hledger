@@ -1,4 +1,6 @@
-{-# LANGUAGE OverloadedStrings, RecordWildCards, FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
+
 {-|
 
 Generate several common kinds of report from a journal, as \"*Report\" -

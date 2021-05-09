@@ -1,7 +1,5 @@
 -- | Basic color helpers for prettifying console output.
 
-{-# LANGUAGE OverloadedStrings #-}
-
 module Hledger.Utils.Color
 (
   color,

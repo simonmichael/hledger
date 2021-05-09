@@ -36,8 +36,6 @@ etc.
 
 -}
 
-{-# LANGUAGE QuasiQuotes #-}
-
 module Hledger.Cli.Main where
 
 import Data.Char (isDigit)
