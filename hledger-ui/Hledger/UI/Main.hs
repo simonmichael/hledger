@@ -3,7 +3,6 @@ hledger-ui - a hledger add-on providing a curses-style interface.
 Copyright (c) 2007-2015 Simon Michael <simon@joyful.com>
 Released under GPL version 3 or later.
 -}
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -220,12 +219,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportspec_=rsp
           d
           -- predicate: ignore changes not involving our files
           (\fev -> case fev of
-#if MIN_VERSION_fsnotify(0,3,0)
-            Modified f _ False
-#else
-            Modified f _
-#endif
-                               -> f `elem` files
+            Modified f _ False -> f `elem` files
             -- Added    f _ -> f `elem` files
             -- Removed  f _ -> f `elem` files
             -- we don't handle adding/removing journal files right now
@@ -242,9 +236,5 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportspec_=rsp
 
         -- and start the app. Must be inside the withManager block
         let mkvty = mkVty mempty
-#if MIN_VERSION_brick(0,47,0)
         vty0 <- mkvty
         void $ customMain vty0 mkvty (Just eventChan) brickapp ui
-#else
-        void $ customMain mkvty (Just eventChan) brickapp ui
-#endif
