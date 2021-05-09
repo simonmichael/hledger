@@ -4,7 +4,6 @@ The @payees@ command lists all unique payees (description part before a |) seen 
 
 -}
 
-{-# LANGUAGE CPP                 #-}
 {-# LANGUAGE MultiWayIf          #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -15,9 +14,6 @@ module Hledger.Cli.Commands.Payees (
  ,payees
 ) where
 
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Semigroup ((<>))
-#endif
 import qualified Data.Set as S
 import qualified Data.Text.IO as T
 import System.Console.CmdArgs.Explicit as C

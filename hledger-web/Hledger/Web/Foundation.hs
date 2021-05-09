@@ -1,15 +1,15 @@
-{-# OPTIONS_GHC -fno-warn-orphans #-}
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE LambdaCase #-}
+{-# OPTIONS_GHC -fno-warn-orphans  #-}
+{-# LANGUAGE CPP                   #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE TypeSynonymInstances #-}
-{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE NamedFieldPuns        #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE QuasiQuotes           #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeSynonymInstances  #-}
+{-# LANGUAGE ViewPatterns          #-}
 
 -- | Define the web application's foundation, in the usual Yesod style.
 --   See a default Yesod app's comments for more details of each part.
@@ -22,9 +22,6 @@ import qualified Data.ByteString.Char8 as BC
 import Data.Traversable (for)
 import Data.IORef (IORef, readIORef, writeIORef)
 import Data.Maybe (fromMaybe)
-#if !(MIN_VERSION_base(4,13,0))
-import Data.Monoid ((<>))
-#endif
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)
@@ -91,11 +88,7 @@ mkYesodData "App" $(parseRoutesFile "config/routes")
 -- | A convenience alias.
 type AppRoute = Route App
 
-#if MIN_VERSION_yesod(1,6,0)
 type Form x = Html -> MForm (HandlerFor App) (FormResult x, Widget)
-#else
-type Form x = Html -> MForm (HandlerT App IO) (FormResult x, Widget)
-#endif
 
 -- Please see the documentation for the Yesod typeclass. There are a number
 -- of settings which can be configured by overriding methods here.

@@ -5,7 +5,6 @@ New built-in commands should be added in four places below:
 the export list, the import list, builtinCommands, commandsList.
 -}
 
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -49,9 +48,6 @@ where
 import Data.Char (isSpace)
 import Data.Default
 import Data.List
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Monoid ((<>))
-#endif
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar

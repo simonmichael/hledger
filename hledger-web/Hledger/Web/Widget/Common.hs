@@ -1,9 +1,8 @@
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE QuasiQuotes       #-}
+{-# LANGUAGE TemplateHaskell   #-}
 
 module Hledger.Web.Widget.Common
   ( accountQuery
@@ -23,9 +22,6 @@ module Hledger.Web.Widget.Common
 import Data.Default (def)
 import Data.Foldable (find, for_)
 import Data.List (elemIndex)
-#if !(MIN_VERSION_base(4,13,0))
-import Data.Semigroup ((<>))
-#endif
 import Data.Text (Text)
 import qualified Data.Text as T
 import System.FilePath (takeFileName)
@@ -42,11 +38,7 @@ import Hledger.Cli.Utils (writeFileWithBackupIfChanged)
 import Hledger.Web.Settings (manualurl)
 import qualified Hledger.Query as Query
 
-#if MIN_VERSION_yesod(1,6,0)
 journalFile404 :: FilePath -> Journal -> HandlerFor m (FilePath, Text)
-#else
-journalFile404 :: FilePath -> Journal -> HandlerT m IO (FilePath, Text)
-#endif
 journalFile404 f j =
   case find ((== f) . fst) (jfiles j) of
     Just (_, txt) -> pure (takeFileName f, txt)

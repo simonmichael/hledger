@@ -1,5 +1,4 @@
 {-# LANGUAGE PackageImports #-}
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -110,9 +109,6 @@ import Data.List (find, foldl', sortOn)
 import Data.List.Extra (nubSort)
 import qualified Data.Map.Strict as M
 import Data.Maybe (catMaybes, fromJust, fromMaybe, isJust, mapMaybe, maybeToList)
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Semigroup (Semigroup(..))
-#endif
 import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T

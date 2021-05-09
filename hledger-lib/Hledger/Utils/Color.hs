@@ -1,6 +1,5 @@
 -- | Basic color helpers for prettifying console output.
 
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Hledger.Utils.Color
@@ -14,9 +13,6 @@ module Hledger.Utils.Color
 )
 where
 
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Semigroup ((<>))
-#endif
 import qualified Data.Text.Lazy.Builder as TB
 import System.Console.ANSI
 import Hledger.Utils.Text (WideBuilder(..))

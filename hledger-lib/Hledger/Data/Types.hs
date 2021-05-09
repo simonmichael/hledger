@@ -16,7 +16,6 @@ For more detailed documentation on each type, see the corresponding modules.
 
 -}
 
-{-# LANGUAGE CPP                  #-}
 -- {-# LANGUAGE DeriveAnyClass #-}  -- https://hackage.haskell.org/package/deepseq-1.4.4.0/docs/Control-DeepSeq.html#v:rnf
 {-# LANGUAGE DeriveGeneric        #-}
 {-# LANGUAGE FlexibleInstances    #-}
@@ -40,11 +39,7 @@ import Text.Blaze (ToMarkup(..))
 --The stored values don't represent large virtual data structures to be lazily computed.
 import qualified Data.Map as M
 import Data.Ord (comparing)
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Semigroup ((<>))
-#endif
 import Data.Text (Text)
--- import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Time.LocalTime
 import Data.Word (Word8)

@@ -7,7 +7,6 @@ tags.
 
 -}
 
-{-# LANGUAGE CPP               #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -67,9 +66,6 @@ import Data.Foldable (asum)
 import Data.List (intercalate, partition)
 import Data.List.Extra (nubSort)
 import Data.Maybe (fromMaybe, isNothing, mapMaybe)
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Semigroup ((<>))
-#endif
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL

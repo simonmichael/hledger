@@ -1,7 +1,8 @@
 -- The account register screen, showing transactions in an account, like hledger-web's register.
 
-{-# LANGUAGE OverloadedStrings, FlexibleContexts, RecordWildCards #-}
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 
 module Hledger.UI.RegisterScreen
  (registerScreen
@@ -14,9 +15,6 @@ where
 import Control.Monad
 import Control.Monad.IO.Class (liftIO)
 import Data.List
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Monoid ((<>))
-#endif
 import Data.Maybe
 import qualified Data.Text as T
 import Data.Time.Calendar

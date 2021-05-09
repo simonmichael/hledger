@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -16,9 +15,6 @@ import Data.Bifunctor (first)
 import Data.Foldable (toList)
 import Data.List (dropWhileEnd, intercalate, unfoldr)
 import Data.Maybe (isJust)
-#if !(MIN_VERSION_base(4,13,0))
-import Data.Semigroup ((<>))
-#endif
 import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -33,11 +29,7 @@ import Hledger.Web.Settings (widgetFile)
 addModal ::
      ( MonadWidget m
      , r ~ Route (HandlerSite m)
-#if MIN_VERSION_yesod(1,6,0)
      , m ~ WidgetFor (HandlerSite m)
-#else
-     , m ~ WidgetT (HandlerSite m) IO
-#endif
      , RenderMessage (HandlerSite m) FormMessage
      )
   => r -> Journal -> Day -> m ()
@@ -60,11 +52,7 @@ addForm ::
   => Journal
   -> Day
   -> Markup
-#if MIN_VERSION_yesod(1,6,0)
   -> MForm m (FormResult Transaction, WidgetFor site ())
-#else
-  -> MForm m (FormResult Transaction, WidgetT site IO ())
-#endif
 addForm j today = identifyForm "add" $ \extra -> do
   (dateRes, dateView) <- mreq dateField dateFS Nothing
   (descRes, descView) <- mreq textField descFS Nothing

@@ -1,7 +1,5 @@
 -- | Calculate the width of String and Text, being aware of wide characters.
 
-{-# LANGUAGE CPP #-}
-
 module Text.WideString (
   -- * wide-character-aware layout
   strWidth,
@@ -13,9 +11,6 @@ module Text.WideString (
   wbToText
   ) where
 
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Semigroup (Semigroup(..))
-#endif
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
@@ -33,9 +28,6 @@ instance Semigroup WideBuilder where
 
 instance Monoid WideBuilder where
   mempty = WideBuilder mempty 0
-#if !(MIN_VERSION_base(4,11,0))
-  mappend = (<>)
-#endif
 
 -- | Convert a WideBuilder to a strict Text.
 wbToText :: WideBuilder -> Text

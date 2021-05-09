@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP               #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 
@@ -10,9 +9,6 @@ where
 import Data.Function (on)
 import Data.List (groupBy, sortBy)
 import Data.Text (Text)
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Semigroup ((<>))
-#endif
 import qualified Data.Text as T
 import Hledger
 import Text.Printf (printf)

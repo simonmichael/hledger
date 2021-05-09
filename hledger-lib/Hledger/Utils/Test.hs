@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -26,10 +25,6 @@ where
 import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.State.Strict (StateT, evalStateT, execStateT)
 import Data.Default (Default(..))
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Semigroup ((<>))
-#endif
--- import Data.CallStack
 import Data.List (isInfixOf)
 import qualified Data.Text as T
 import Test.Tasty hiding (defaultMain)

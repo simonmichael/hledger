@@ -1,7 +1,6 @@
 -- | Text.Tabular.AsciiArt from tabular-0.2.2.7, modified to treat
 -- wide characters as double width.
 
-{-# LANGUAGE CPP               #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Text.Tabular.AsciiWide
@@ -24,9 +23,6 @@ module Text.Tabular.AsciiWide
 import Data.Maybe (fromMaybe)
 import Data.Default (Default(..))
 import Data.List (intersperse, transpose)
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Semigroup ((<>))
-#endif
 import Data.Semigroup (stimesMonoid)
 import Data.Text (Text)
 import qualified Data.Text as T

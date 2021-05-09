@@ -1,7 +1,6 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ViewPatterns #-}
-{-# LANGUAGE CPP #-}
 {-|
 
 A 'TransactionModifier' is a rule that modifies certain 'Transaction's,
@@ -15,9 +14,6 @@ where
 
 import Control.Applicative ((<|>))
 import Data.Maybe
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Monoid ((<>))
-#endif
 import qualified Data.Text as T
 import Data.Time.Calendar
 import Hledger.Data.Types

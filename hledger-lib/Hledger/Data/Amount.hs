@@ -41,7 +41,6 @@ exchange rates.
 -}
 
 {-# LANGUAGE BangPatterns       #-}
-{-# LANGUAGE CPP                #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE RecordWildCards    #-}
 {-# LANGUAGE StandaloneDeriving #-}
@@ -517,9 +516,6 @@ instance Semigroup MixedAmount where
 instance Monoid MixedAmount where
   mempty = nullmixedamt
   mconcat = maSum
-#if !(MIN_VERSION_base(4,11,0))
-  mappend = (<>)
-#endif
 
 instance Num MixedAmount where
     fromInteger = mixedAmount . fromInteger

@@ -1,7 +1,3 @@
-{- |
--}
-
-{-# LANGUAGE CPP                 #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards     #-}
@@ -34,9 +30,6 @@ import qualified Data.HashMap.Strict as HM
 import Data.List (find, partition, transpose)
 import Data.List.Extra (nubSort)
 import Data.Maybe (fromMaybe)
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Monoid ((<>))
-#endif
 import Data.Map (Map)
 import qualified Data.Map as Map
 import qualified Data.Set as S

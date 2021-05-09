@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP                 #-}
 {-# LANGUAGE NoOverloadedStrings #-} -- prevent trouble if turned on in ghci
 {-# LANGUAGE TemplateHaskell     #-}
 
@@ -7,9 +6,6 @@ module Hledger.Cli.Commands.Checkdates (
  ,checkdates
 ) where
 
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Semigroup ((<>))
-#endif
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import Hledger

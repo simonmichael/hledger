@@ -1,6 +1,8 @@
-{-# LANGUAGE OverloadedStrings, LambdaCase, DeriveTraversable, ViewPatterns #-}
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE ViewPatterns      #-}
 
 module Hledger.Cli.Commands.Rewrite (
   rewritemode
@@ -8,9 +10,6 @@ module Hledger.Cli.Commands.Rewrite (
 )
 where
 
-#if !(MIN_VERSION_base(4,11,0))
-import Control.Monad.Writer hiding (Any)
-#endif
 import Data.Functor.Identity
 import Data.List (sortOn, foldl')
 import Data.Text (Text)

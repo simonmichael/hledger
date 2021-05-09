@@ -7,7 +7,6 @@
 -- http://hackage.haskell.org/package/brick-0.1/docs/Brick-Widgets-Core.html#g:5
 -- http://hackage.haskell.org/package/brick-0.1/docs/Brick-Widgets-Border.html
 
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Hledger.UI.Theme (
@@ -20,9 +19,6 @@ where
 
 import qualified Data.Map as M
 import Data.Maybe
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Monoid
-#endif
 import Graphics.Vty
 import Brick
 
