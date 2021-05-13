@@ -22,7 +22,7 @@ journalCheckOrdereddates CliOpts{reportspec_=rspec} j = do
     filets = 
       groupBy (\t1 t2 -> transactionFile t1 == transactionFile t2) $
       filter (rsQuery rspec `matchesTransaction`) $
-      jtxns $ journalSelectingAmountFromOpts ropts j
+      jtxns $ journalApplyValuationFromOpts rspec j
     checkunique = False -- boolopt "unique" rawopts  XXX was supported by checkdates command
     compare a b = if checkunique then getdate a < getdate b else getdate a <= getdate b
       where getdate = transactionDateFn ropts

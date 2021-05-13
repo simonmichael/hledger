@@ -28,7 +28,6 @@ module Hledger.Reports.ReportOptions (
   reportOptsToggleStatus,
   simplifyStatuses,
   whichDateFromOpts,
-  journalSelectingAmountFromOpts,
   journalApplyValuationFromOpts,
   journalApplyValuationFromOptsWith,
   mixedAmountApplyValuationAfterSumFromOptsWith,
@@ -493,21 +492,12 @@ flat_ = not . tree_
 -- depthFromOpts :: ReportOpts -> Int
 -- depthFromOpts opts = min (fromMaybe 99999 $ depth_ opts) (queryDepth $ queryFromOpts nulldate opts)
 
--- | Convert this journal's postings' amounts to cost using their transaction prices,
--- if specified by options (-B/--cost). Strip prices if not needed.
-journalSelectingAmountFromOpts :: ReportOpts -> Journal -> Journal
-journalSelectingAmountFromOpts ropts = maybeStripPrices . case cost_ ropts of
-    Cost   -> journalToCost
-    NoCost -> id
-  where
-    maybeStripPrices = if show_costs_ ropts then id else journalMapPostingAmounts mixedAmountStripPrices
-
--- | Convert this journal's postings' amounts to cost using their transaction
--- prices and apply valuation, if specified by options (-B/--cost). Strip prices
--- if not needed. This should be the main stop for performing costing and valuation.
--- The exception is whenever you need to perform valuation _after_ summing up amounts,
--- as in a historical balance report with --value=end. valuationAfterSum will
--- check for this condition.
+-- | Convert this journal's postings' amounts to cost and/or to value, if specified
+-- by options (-B/--cost/-V/-X/--value etc.). Strip prices if not needed. This
+-- should be the main stop for performing costing and valuation. The exception is
+-- whenever you need to perform valuation _after_ summing up amounts, as in a
+-- historical balance report with --value=end. valuationAfterSum will check for this
+-- condition.
 journalApplyValuationFromOpts :: ReportSpec -> Journal -> Journal
 journalApplyValuationFromOpts rspec j =
     journalApplyValuationFromOptsWith rspec j priceoracle
@@ -532,12 +522,14 @@ journalApplyValuationFromOptsWith rspec@ReportSpec{rsOpts=ropts} j priceoracle =
     styles = journalCommodityStyles j
     err = error "journalApplyValuationFromOpts: expected all spans to have an end date"
 
--- | Calculate the Account valuation functions required for valuing after summing amounts.
--- Used in MultiBalanceReport to value historical reports and the like.
-mixedAmountApplyValuationAfterSumFromOptsWith :: ReportOpts -> Journal -> PriceOracle -> (DateSpan -> MixedAmount -> MixedAmount)
-mixedAmountApplyValuationAfterSumFromOptsWith ropts j priceoracle = case valuationAfterSum ropts of
-    Just mc -> \span -> valuation mc span . maybeStripPrices . costing
-    Nothing -> const id
+-- | Select the Account valuation functions required for performing valuation after summing
+-- amounts. Used in MultiBalanceReport to value historical and similar reports.
+mixedAmountApplyValuationAfterSumFromOptsWith :: ReportOpts -> Journal -> PriceOracle
+                                              -> (DateSpan -> MixedAmount -> MixedAmount)
+mixedAmountApplyValuationAfterSumFromOptsWith ropts j priceoracle =
+    case valuationAfterSum ropts of
+      Just mc -> \span -> valuation mc span . maybeStripPrices . costing
+      Nothing -> const id
   where
     valuation mc span = mixedAmountValueAtDate priceoracle styles mc (maybe err (addDays (-1)) $ spanEnd span)
       where err = error "mixedAmountApplyValuationAfterSumFromOptsWith: expected all spans to have an end date"
@@ -547,17 +539,15 @@ mixedAmountApplyValuationAfterSumFromOptsWith ropts j priceoracle = case valuati
         NoCost -> id
     styles = journalCommodityStyles j
 
--- | If we are performing valuation after summing amounts, return Just the
--- commodity symbols we're converting to, otherwise return Nothing.
+-- | If the ReportOpts specify that we are performing valuation after summing amounts,
+-- return Just the commodity symbol we're converting to, otherwise return Nothing.
 -- Used for example with historical reports with --value=end.
 valuationAfterSum :: ReportOpts -> Maybe (Maybe CommoditySymbol)
 valuationAfterSum ropts = case value_ ropts of
-    Just (AtEnd mc) -> case (reporttype_ ropts, balancetype_ ropts) of
-        (ValueChangeReport, _) -> Just mc
-        (_, HistoricalBalance) -> Just mc
-        (_, CumulativeChange)  -> Just mc
-        _                      -> Nothing
-    _ -> Nothing
+    Just (AtEnd mc) | valueAfterSum -> Just mc
+    _                               -> Nothing
+  where valueAfterSum = reporttype_  ropts == ValueChangeReport
+                     || balancetype_ ropts /= PeriodChange
 
 
 -- | Convert report options to a query, ignoring any non-flag command line arguments.

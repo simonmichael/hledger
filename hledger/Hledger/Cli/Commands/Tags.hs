@@ -39,7 +39,7 @@ tags CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
   argsquery <- either usageError (return . fst) $ parseQueryList d querystring
   let
     q = simplifyQuery $ And [queryFromFlags $ rsOpts rspec, argsquery]
-    txns = filter (q `matchesTransaction`) $ jtxns $ journalSelectingAmountFromOpts (rsOpts rspec) j
+    txns = filter (q `matchesTransaction`) $ jtxns $ journalApplyValuationFromOpts rspec j
     tagsorvalues =
       (if parsed then id else nubSort)
       [ r

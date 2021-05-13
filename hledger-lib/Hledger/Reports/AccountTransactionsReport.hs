@@ -95,9 +95,7 @@ accountTransactionsReport rspec@ReportSpec{rsOpts=ropts} j reportq thisacctq = i
         ptraceAtWith 5 (("ts5:\n"++).pshowTransactions)
       . sortBy (comparing (transactionRegisterDate reportq' thisacctq))
       . jtxns
-      -- maybe convert these transactions to cost or value
       . ptraceAtWith 5 (("ts4:\n"++).pshowTransactions.jtxns)
-      . journalSelectingAmountFromOpts ropts
       -- keep just the transactions affecting this account (via possibly realness or status-filtered postings)
       . traceAt 3 ("thisacctq: "++show thisacctq)
       . ptraceAtWith 5 (("ts3:\n"++).pshowTransactions.jtxns)
@@ -106,6 +104,7 @@ accountTransactionsReport rspec@ReportSpec{rsOpts=ropts} j reportq thisacctq = i
       -- apply any cur:SYM filters in reportq'
       . ptraceAtWith 5 (("ts2:\n"++).pshowTransactions.jtxns)
       . (if queryIsNull symq then id else filterJournalAmounts symq)
+      -- maybe convert these transactions to cost or value
       $ journalApplyValuationFromOpts rspec j
 
     startbal
