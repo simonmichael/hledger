@@ -29,6 +29,8 @@ module Hledger.Reports.ReportOptions (
   simplifyStatuses,
   whichDateFromOpts,
   journalSelectingAmountFromOpts,
+  journalApplyValuationFromOpts,
+  journalApplyValuationFromOptsWith,
   intervalFromRawOpts,
   forecastPeriodFromRawOpts,
   queryFromFlags,
@@ -47,6 +49,7 @@ module Hledger.Reports.ReportOptions (
 where
 
 import Control.Applicative ((<|>))
+import Control.Monad ((<=<))
 import Data.List.Extra (nubSort)
 import Data.Maybe (fromMaybe, mapMaybe)
 import qualified Data.Text as T
@@ -496,6 +499,48 @@ journalSelectingAmountFromOpts ropts = maybeStripPrices . case cost_ ropts of
     NoCost -> id
   where
     maybeStripPrices = if show_costs_ ropts then id else journalMapPostingAmounts mixedAmountStripPrices
+
+-- | Convert this journal's postings' amounts to cost using their transaction
+-- prices and apply valuation, if specified by options (-B/--cost). Strip prices
+-- if not needed. This should be the main stop for performing costing and valuation.
+-- The exception is whenever you need to perform valuation _after_ summing up amounts,
+-- as in a historical balance report with --value=end. valuationAfterSum will
+-- check for this condition.
+journalApplyValuationFromOpts :: ReportSpec -> Journal -> Journal
+journalApplyValuationFromOpts rspec j =
+    journalApplyValuationFromOptsWith rspec j priceoracle
+  where priceoracle = journalPriceOracle (infer_value_ $ rsOpts rspec) j
+
+-- | Like journalApplyValuationFromOpts, but takes PriceOracle as an argument.
+journalApplyValuationFromOptsWith :: ReportSpec -> Journal -> PriceOracle -> Journal
+journalApplyValuationFromOptsWith rspec@ReportSpec{rsOpts=ropts} j priceoracle =
+    journalMapPostings (valuation . maybeStripPrices) $ costing j
+  where
+    valuation p = maybe id (postingApplyValuation priceoracle styles (periodEnd p) (rsToday rspec)) (value_ ropts) p
+    maybeStripPrices = if show_costs_ ropts then id else postingStripPrices
+    costing = case cost_ ropts of
+        Cost   -> journalToCost
+        NoCost -> id
+
+    -- Find the end of the period containing this posting
+    periodEnd  = addDays (-1) . fromMaybe err . mPeriodEnd . postingDate
+    mPeriodEnd = spanEnd <=< latestSpanContaining (historical : spans)
+    historical = DateSpan Nothing $ spanStart =<< headMay spans
+    spans = splitSpan (interval_ ropts) $ reportSpanBothDates j rspec
+    styles = journalCommodityStyles j
+    err = error' "journalApplyValuationFromOpts: expected a non-empty journal"
+
+-- | Whether we need to perform valuation after summing amounts, as in a
+-- historical report with --value=end.
+valuationAfterSum :: ReportOpts -> Bool
+valuationAfterSum ropts = case value_ ropts of
+    Just (AtEnd _) -> case (reporttype_ ropts, balancetype_ ropts) of
+        (ValueChangeReport, _) -> True
+        (_, HistoricalBalance) -> True
+        (_, CumulativeChange)  -> True
+        _                      -> False
+    _ -> False
+
 
 -- | Convert report options to a query, ignoring any non-flag command line arguments.
 queryFromFlags :: ReportOpts -> Query

@@ -19,7 +19,7 @@ where
 
 import Data.List (mapAccumL, nub, partition, sortBy)
 import Data.Ord (comparing)
-import Data.Maybe (catMaybes, fromMaybe)
+import Data.Maybe (catMaybes)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)
@@ -88,12 +88,6 @@ accountTransactionsReport rspec@ReportSpec{rsOpts=ropts} j reportq thisacctq = i
     symq       = filterQuery queryIsSym reportq'
     realq      = filterQuery queryIsReal reportq'
     statusq    = filterQuery queryIsStatus reportq'
-    prices     = journalPriceOracle (infer_value_ ropts) j
-    styles     = journalCommodityStyles j
-    periodlast =
-      fromMaybe (error' "journalApplyValuation: expected a non-empty journal") $ -- XXX shouldn't happen
-      reportPeriodOrJournalLastDay rspec j
-    pvalue = maybe id (postingApplyValuation prices styles periodlast (rsToday rspec)) $ value_ ropts
 
     -- sort by the transaction's register date, for accurate starting balance
     -- these are not yet filtered by tdate, we want to search them all for priorps
@@ -103,7 +97,6 @@ accountTransactionsReport rspec@ReportSpec{rsOpts=ropts} j reportq thisacctq = i
       . jtxns
       -- maybe convert these transactions to cost or value
       . ptraceAtWith 5 (("ts4:\n"++).pshowTransactions.jtxns)
-      . journalMapPostings pvalue
       . journalSelectingAmountFromOpts ropts
       -- keep just the transactions affecting this account (via possibly realness or status-filtered postings)
       . traceAt 3 ("thisacctq: "++show thisacctq)
@@ -112,7 +105,8 @@ accountTransactionsReport rspec@ReportSpec{rsOpts=ropts} j reportq thisacctq = i
       . filterJournalPostings (And [realq, statusq])
       -- apply any cur:SYM filters in reportq'
       . ptraceAtWith 5 (("ts2:\n"++).pshowTransactions.jtxns)
-      $ (if queryIsNull symq then id else filterJournalAmounts symq) j
+      . (if queryIsNull symq then id else filterJournalAmounts symq)
+      $ journalApplyValuationFromOpts rspec j
 
     startbal
       | balancetype_ ropts == HistoricalBalance = sumPostings priorps

@@ -68,28 +68,18 @@ postingsReport rspec@ReportSpec{rsOpts=ropts@ReportOpts{..}} j = items
       reportspan  = reportSpanBothDates j rspec
       whichdate   = whichDateFromOpts ropts
       mdepth      = queryDepth $ rsQuery rspec
-      styles      = journalCommodityStyles j
-      priceoracle = journalPriceOracle infer_value_ j
       multiperiod = interval_ /= NoInterval
 
       -- postings to be included in the report, and similarly-matched postings before the report start date
       (precedingps, reportps) = matchedPostingsBeforeAndDuring rspec j reportspan
 
-      -- We may be converting posting amounts to value, per hledger_options.m4.md "Effect of --value on reports".
-      pvalue periodlast = maybe id (postingApplyValuation priceoracle styles periodlast (rsToday rspec)) value_
-
       -- Postings, or summary postings with their subperiod's end date, to be displayed.
       displayps :: [(Posting, Maybe Day)]
-        | multiperiod, Just (AtEnd _) <- value_ = [(pvalue lastday p, Just periodend) | (p, periodend) <- summariseps reportps, let lastday = addDays (-1) periodend]
-        | multiperiod = [(p, Just periodend) | (p, periodend) <- summariseps valuedps]
-        | otherwise   = [(p, Nothing) | p <- valuedps]
+        | multiperiod = [(p, Just periodend) | (p, periodend) <- summariseps reportps]
+        | otherwise   = [(p, Nothing) | p <- reportps]
         where
           summariseps = summarisePostingsByInterval interval_ whichdate mdepth showempty reportspan
-          valuedps = map (pvalue reportorjournallast) reportps
           showempty = empty_ || average_
-          reportorjournallast =
-            fromMaybe (error' "postingsReport: expected a non-empty journal") $  -- PARTIAL: shouldn't happen
-            reportPeriodOrJournalLastDay rspec j
 
       -- Posting report items ready for display.
       items =
@@ -104,12 +94,8 @@ postingsReport rspec@ReportSpec{rsOpts=ropts@ReportOpts{..}} j = items
           startbal | average_  = if historical then precedingavg else nullmixedamt
                    | otherwise = if historical then precedingsum else nullmixedamt
             where
-              precedingsum = sumPostings $ map (pvalue daybeforereportstart) precedingps
+              precedingsum = sumPostings precedingps
               precedingavg = divideMixedAmount (fromIntegral $ length precedingps) precedingsum
-              daybeforereportstart =
-                maybe (error' "postingsReport: expected a non-empty journal")  -- PARTIAL: shouldn't happen
-                (addDays (-1))
-                $ reportPeriodOrJournalStart rspec j
 
           runningcalc = registerRunningCalculationFn ropts
           startnum = if historical then length precedingps + 1 else 1
@@ -128,10 +114,10 @@ registerRunningCalculationFn ropts
 -- Date restrictions and depth restrictions in the query are ignored.
 -- A helper for the postings report.
 matchedPostingsBeforeAndDuring :: ReportSpec -> Journal -> DateSpan -> ([Posting],[Posting])
-matchedPostingsBeforeAndDuring ReportSpec{rsOpts=ropts,rsQuery=q} j (DateSpan mstart mend) =
+matchedPostingsBeforeAndDuring rspec@ReportSpec{rsOpts=ropts,rsQuery=q} j reportspan =
   dbg5 "beforeps, duringps" $ span (beforestartq `matchesPosting`) beforeandduringps
   where
-    beforestartq = dbg3 "beforestartq" $ dateqtype $ DateSpan Nothing mstart
+    beforestartq = dbg3 "beforestartq" $ dateqtype $ DateSpan Nothing $ spanStart reportspan
     beforeandduringps =
       dbg5 "ps5" $ sortOn sortdate $                                             -- sort postings by date or date2
       dbg5 "ps4" $ (if invert_ ropts then map negatePostingAmount else id) $     -- with --invert, invert amounts
@@ -139,13 +125,13 @@ matchedPostingsBeforeAndDuring ReportSpec{rsOpts=ropts,rsQuery=q} j (DateSpan ms
       dbg5 "ps2" $ (if related_ ropts then concatMap relatedPostings else id) $  -- with -r, replace each with its sibling postings
       dbg5 "ps1" $ filter (beforeandduringq `matchesPosting`) $                  -- filter postings by the query, with no start date or depth limit
                   journalPostings $
-                  journalSelectingAmountFromOpts ropts j    -- maybe convert to cost early, will be seen by amt:. XXX what about converting to value ?
+                  journalApplyValuationFromOpts rspec j                          -- convert to cost and apply valuation
       where
         beforeandduringq = dbg4 "beforeandduringq" $ And [depthless $ dateless q, beforeendq]
           where
             depthless  = filterQuery (not . queryIsDepth)
             dateless   = filterQuery (not . queryIsDateOrDate2)
-            beforeendq = dateqtype $ DateSpan Nothing mend
+            beforeendq = dateqtype $ DateSpan Nothing $ spanEnd reportspan
         sortdate = if date2_ ropts then postingDate2 else postingDate
         symq = dbg4 "symq" $ filterQuery queryIsSym q
     dateqtype
