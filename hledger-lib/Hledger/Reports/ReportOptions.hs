@@ -31,6 +31,8 @@ module Hledger.Reports.ReportOptions (
   journalSelectingAmountFromOpts,
   journalApplyValuationFromOpts,
   journalApplyValuationFromOptsWith,
+  mixedAmountApplyValuationAfterSumFromOptsWith,
+  valuationAfterSum,
   intervalFromRawOpts,
   forecastPeriodFromRawOpts,
   queryFromFlags,
@@ -528,18 +530,34 @@ journalApplyValuationFromOptsWith rspec@ReportSpec{rsOpts=ropts} j priceoracle =
     historical = DateSpan Nothing $ spanStart =<< headMay spans
     spans = splitSpan (interval_ ropts) $ reportSpanBothDates j rspec
     styles = journalCommodityStyles j
-    err = error' "journalApplyValuationFromOpts: expected a non-empty journal"
+    err = error "journalApplyValuationFromOpts: expected all spans to have an end date"
 
--- | Whether we need to perform valuation after summing amounts, as in a
--- historical report with --value=end.
-valuationAfterSum :: ReportOpts -> Bool
+-- | Calculate the Account valuation functions required for valuing after summing amounts.
+-- Used in MultiBalanceReport to value historical reports and the like.
+mixedAmountApplyValuationAfterSumFromOptsWith :: ReportOpts -> Journal -> PriceOracle -> (DateSpan -> MixedAmount -> MixedAmount)
+mixedAmountApplyValuationAfterSumFromOptsWith ropts j priceoracle = case valuationAfterSum ropts of
+    Just mc -> \span -> valuation mc span . maybeStripPrices . costing
+    Nothing -> const id
+  where
+    valuation mc span = mixedAmountValueAtDate priceoracle styles mc (maybe err (addDays (-1)) $ spanEnd span)
+      where err = error "mixedAmountApplyValuationAfterSumFromOptsWith: expected all spans to have an end date"
+    maybeStripPrices = if show_costs_ ropts then id else mixedAmountStripPrices
+    costing = case cost_ ropts of
+        Cost   -> styleMixedAmount styles . mixedAmountCost
+        NoCost -> id
+    styles = journalCommodityStyles j
+
+-- | If we are performing valuation after summing amounts, return Just the
+-- commodity symbols we're converting to, otherwise return Nothing.
+-- Used for example with historical reports with --value=end.
+valuationAfterSum :: ReportOpts -> Maybe (Maybe CommoditySymbol)
 valuationAfterSum ropts = case value_ ropts of
-    Just (AtEnd _) -> case (reporttype_ ropts, balancetype_ ropts) of
-        (ValueChangeReport, _) -> True
-        (_, HistoricalBalance) -> True
-        (_, CumulativeChange)  -> True
-        _                      -> False
-    _ -> False
+    Just (AtEnd mc) -> case (reporttype_ ropts, balancetype_ ropts) of
+        (ValueChangeReport, _) -> Just mc
+        (_, HistoricalBalance) -> Just mc
+        (_, CumulativeChange)  -> Just mc
+        _                      -> Nothing
+    _ -> Nothing
 
 
 -- | Convert report options to a query, ignoring any non-flag command line arguments.
