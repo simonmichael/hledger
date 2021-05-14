@@ -517,6 +517,9 @@ selected with one of `-D/--daily`, `-W/--weekly`, `-M/--monthly`,
 specified with a [period expression](#period-expressions).
 Report intervals can not be specified with a [query](#queries).
 
+Note that the requested start and end dates may be extended when specifying a report
+interval (see [period expression](#period-expressions)).
+
 ## Period expressions
 
 The `-p/--period` option accepts period expressions, a shorthand way
