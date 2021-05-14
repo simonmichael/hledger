@@ -123,7 +123,7 @@ toggleCost ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspe
 toggleValue :: UIState -> UIState
 toggleValue ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts}}}} =
   ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{rsOpts=ropts{
-    value_ = plog "toggling value mode to" $ valuationToggleValue $ value_ ropts}}}}}
+    value_ = valuationToggleValue $ value_ ropts}}}}}
 
 -- | Basic toggling of -V, for hledger-ui.
 valuationToggleValue :: Maybe ValuationType -> Maybe ValuationType
