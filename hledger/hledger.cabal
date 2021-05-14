@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 79df40fb38a55807c2cce9d07ac6383a0513bb839e4c54441463574323e77e0d
+-- hash: b580cd2bfbe35359927d025fded952d81bf70a65bc6bc0799201a5b36543d882
 
 name:           hledger
 version:        1.21.99
@@ -27,7 +27,8 @@ author:         Simon Michael <simon@joyful.com>
 maintainer:     Simon Michael <simon@joyful.com>
 license:        GPL-3
 license-file:   LICENSE
-tested-with:    GHC==8.2.2, GHC==8.4.4, GHC==8.6.5, GHC==8.8.4, GHC==8.10.4
+tested-with:
+    GHC==8.2.2, GHC==8.4.4, GHC==8.6.5, GHC==8.8.4, GHC==8.10.4
 build-type:     Simple
 extra-source-files:
     CHANGES.md

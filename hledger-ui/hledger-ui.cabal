@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a74a16d1e44d3a1ecac3438245fff30389c01571fddd83776025d15430d138b7
+-- hash: 8c1c8c5d931ec21a50109a073b555ae54130cb484dd2af435be43e1ce425a83d
 
 name:           hledger-ui
 version:        1.21.99
@@ -27,7 +27,8 @@ author:         Simon Michael <simon@joyful.com>
 maintainer:     Simon Michael <simon@joyful.com>
 license:        GPL-3
 license-file:   LICENSE
-tested-with:    GHC==8.2.2, GHC==8.4.4, GHC==8.6.5, GHC==8.8.4, GHC==8.10.4
+tested-with:
+    GHC==8.2.2, GHC==8.4.4, GHC==8.6.5, GHC==8.8.4, GHC==8.10.4
 build-type:     Simple
 extra-source-files:
     CHANGES.md
@@ -62,7 +63,7 @@ executable hledger-ui
       Hledger.UI.UIUtils
       Paths_hledger_ui
   hs-source-dirs:
-      ./.
+      ./
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   cpp-options: -DVERSION="1.21.99"
   build-depends:
