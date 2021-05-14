@@ -184,7 +184,7 @@ $ hledger register credit\ card
 
 ### Double escaping (regular expression metacharacters)
 
-Characters significant in [regular expressions][]
+Characters significant in [regular expressions]
 (described below) - such as `.`, `^`, `$`, `[`, `]`, `(`, `)`, `|`,
 and `\` - may need to be "regex-escaped" if you don't want them to be
 interpreted by hledger's regular expression engine. This is done by
@@ -293,12 +293,12 @@ If they're not doing what you expect, it's important to know exactly what they s
 
 #. they are case insensitive
 #. they are infix matching (they do not need to match the entire thing being matched)
-#. they are [POSIX ERE][] (extended regular expressions)
-#. they also support [GNU word boundaries][] (`\b`, `\B`, `\<`, `\>`)
-#. they do not support [backreferences][]; if you write `\1`, it will match the digit `1`.
-   where [backreferences][] can be used in the replacement string to reference [capturing groups][] in the search regexp.
-#. they do not support [mode modifiers][] (`(?s)`), character classes (`\w`, `\d`), or anything else not mentioned above.
+#. they are [POSIX ERE] (extended regular expressions)
+#. they also support [GNU word boundaries] (`\b`, `\B`, `\<`, `\>`)
+#. they do not support [backreferences]; if you write `\1`, it will match the digit `1`.
    Except when doing text replacement, eg in [account aliases](#regex-aliases),
+   where [backreferences] can be used in the replacement string to reference [capturing groups] in the search regexp.
+#. they do not support [mode modifiers] (`(?s)`), character classes (`\w`, `\d`), or anything else not mentioned above.
 
 [POSIX ERE]: http://www.regular-expressions.info/posix.html#ere
 [backreferences]: https://www.regular-expressions.info/backref.html
@@ -670,7 +670,7 @@ The following kinds of search terms can be used.
 Remember these can also be prefixed with **`not:`**, eg to exclude a particular subaccount.
 
 **`REGEX`, `acct:REGEX`**
-: match account names by this [regular expression][]. 
+: match account names by this [regular expression]. 
 (With no prefix, `acct:` is assumed.)
 
 : same as above
@@ -2580,16 +2580,16 @@ account ACCTNAME  [ACCTTYPE] [;COMMENT]
 ### Account types
 
 hledger recognises five main types of account,
-corresponding to the account classes in the [accounting equation][]:
+corresponding to the account classes in the [accounting equation]:
 
 `Asset`, `Liability`, `Equity`, `Revenue`, `Expense`.
 
 These account types are important for controlling which accounts
-appear in the [balancesheet][], [balancesheetequity][],
-[incomestatement][] reports (and probably for other things in future).
+appear in the [balancesheet], [balancesheetequity],
+[incomestatement] reports (and probably for other things in future).
 
 Additionally, we recognise the `Cash` type, which is also an `Asset`,
-and which causes accounts to appear in the [cashflow][] report.
+and which causes accounts to appear in the [cashflow] report.
 ("Cash" here means [liquid assets][CCE], eg bank balances
 but typically not investments or receivables.)
 
@@ -2625,7 +2625,7 @@ If you happen to use common english top-level account names, you may
 not need to declare account types, as they will be detected
 automatically using the following rules:
 
-| If name matches this [regular expression][]: | account type is:
+| If name matches this [regular expression]: | account type is:
 |----------------------------------------------|-----------------
 | `^assets?(:|$)`                              | `Asset`
 | `^(debts?|liabilit(y|ies))(:|$)`             | `Liability`
@@ -2750,7 +2750,7 @@ alias checking = assets:bank:wells fargo:checking
 
 ### Regex aliases
 
-There is also a more powerful variant that uses a [regular expression][],
+There is also a more powerful variant that uses a [regular expression],
 indicated by the forward slashes:
 
 ```journal
@@ -3663,7 +3663,7 @@ Each MATCHER can be a record matcher, which looks like this:
 REGEX
 ```
 
-REGEX is a case-insensitive [regular expression][] tries to match anywhere within the CSV record.
+REGEX is a case-insensitive [regular expression] that tries to match anywhere within the CSV record.
 It is a POSIX ERE (extended regular expression) 
 that also supports GNU word boundaries (`\b`, `\B`, `\<`, `\>`),
 and nothing else.
