@@ -157,7 +157,7 @@ $ hledger register credit\ card
 
 ### Double escaping (regular expression metacharacters)
 
-Characters significant in [regular expressions](#regular-expressions)
+Characters significant in [regular expressions][]
 (described below) - such as `.`, `^`, `$`, `[`, `]`, `(`, `)`, `|`,
 and `\` - may need to be "regex-escaped" if you don't want them to be
 interpreted by hledger's regular expression engine. This is done by
@@ -643,7 +643,8 @@ The following kinds of search terms can be used.
 Remember these can also be prefixed with **`not:`**, eg to exclude a particular subaccount.
 
 **`REGEX`, `acct:REGEX`**
-: match account names by this regular expression. (With no prefix, `acct:` is assumed.)
+: match account names by this [regular expression][]. 
+(With no prefix, `acct:` is assumed.)
 
 : same as above
 
@@ -2596,17 +2597,17 @@ If you happen to use common english top-level account names, you may
 not need to declare account types, as they will be detected
 automatically using the following rules:
 
-| If name matches [regular expression][]: | account type is:
-|-----------------------------------------|-----------------
-| `^assets?(:|$)`                         | `Asset`
-| `^(debts?|liabilit(y|ies))(:|$)`        | `Liability`
-| `^equity(:|$)`                          | `Equity`
-| `^(income|revenue)s?(:|$)`              | `Revenue`
-| `^expenses?(:|$)`                       | `Expense`
+| If name matches this [regular expression][]: | account type is:
+|----------------------------------------------|-----------------
+| `^assets?(:|$)`                              | `Asset`
+| `^(debts?|liabilit(y|ies))(:|$)`             | `Liability`
+| `^equity(:|$)`                               | `Equity`
+| `^(income|revenue)s?(:|$)`                   | `Revenue`
+| `^expenses?(:|$)`                            | `Expense`
 
-| If account type is `Asset` and name does not contain regular expression: | account type is:
-|--------------------------------------------------------------------------|-----------------
-| `(investment|receivable|:A/R|:fixed)`                                    | `Cash`
+| If account type is `Asset` and name does not contain this regular expression: | account type is:
+|-------------------------------------------------------------------------------|-----------------
+| `(investment|receivable|:A/R|:fixed)`                                         | `Cash`
 
 Even so, explicit declarations may be a good idea, for clarity and
 predictability. 
@@ -2644,12 +2645,13 @@ account expenses     X
 ```
 
 
-[balancesheet]: hledger.html#balancesheet
+[regular expression]: #regular-expressions
+[regular expressions]: #regular-expressions
+[balancesheet]: #balancesheet
 [balancesheetequity]: hledger.html#balancesheetequity
 [cashflow]: hledger.html#cashflow
 [incomestatement]: hledger.html#incomestatement
 [CCE]: https://en.wikipedia.org/wiki/Cash_and_cash_equivalents
-[regular expression]: hledger.html#regular-expressions
 [accounting equation]: https://en.wikipedia.org/wiki/Accounting_equation
 
 
@@ -2731,7 +2733,7 @@ alias checking = assets:bank:wells fargo:checking
 
 ### Regex aliases
 
-There is also a more powerful variant that uses a regular expression,
+There is also a more powerful variant that uses a [regular expression][],
 indicated by the forward slashes:
 
 ```journal
@@ -3646,7 +3648,7 @@ Each MATCHER can be a record matcher, which looks like this:
 REGEX
 ```
 
-REGEX is a case-insensitive regular expression which tries to match anywhere within the CSV record.
+REGEX is a case-insensitive [regular expression][] tries to match anywhere within the CSV record.
 It is a POSIX ERE (extended regular expression) 
 that also supports GNU word boundaries (`\b`, `\B`, `\<`, `\>`),
 and nothing else.
