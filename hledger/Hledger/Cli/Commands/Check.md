@@ -51,7 +51,7 @@ Or, they can be run by giving their names as arguments to `check`:
 These checks can be run only by giving their names as arguments to `check`.
 They are more specialised and not desirable for everyone, therefore optional:
 
-- **ordereddates** - transactions are ordered by date in each file
+- **ordereddates** - transactions are ordered by date within each file
 
 - **payees** - all payees used by transactions [have been declared](#declaring-payees)
 
