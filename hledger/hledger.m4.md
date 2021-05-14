@@ -39,6 +39,21 @@ m4_dnl Be wary of pandoc/mdbook handling [shortcut] link syntax differently ?
 [transaction prices]:  #transaction-prices
 [valuation]:           #valuation
 
+_web_({{
+*Quick links:
+[Commands],
+[Queries],
+[Regular expressions],
+[Period expressions],
+[Journal],
+[Directives],
+[CSV],
+[Timeclock],
+[Timedot],
+[Valuation],
+[Common tasks]*
+}})
+
 _man_({{
 # NAME
 }})
