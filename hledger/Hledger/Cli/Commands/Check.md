@@ -70,7 +70,7 @@ You could make similar scripts to perform your own custom checks.
 See: Cookbook -> [Scripting](scripting.html).
 
 
-[transaction prices]: hledger.html#transaction-prices
-[balance assertions]: hledger.html#balance-assertions
-[strict mode]: hledger.html#strict-mode
-[add-on commands]: hledger.html#add-on-commands
+[add-on commands]:    #add-on-commands
+[balance assertions]: #balance-assertions
+[strict mode]:        #strict-mode
+[transaction prices]: #transaction-prices
