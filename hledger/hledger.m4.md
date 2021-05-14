@@ -296,9 +296,9 @@ If they're not doing what you expect, it's important to know exactly what they s
 #. they are [POSIX ERE][] (extended regular expressions)
 #. they also support [GNU word boundaries][] (`\b`, `\B`, `\<`, `\>`)
 #. they do not support [backreferences][]; if you write `\1`, it will match the digit `1`.
-   Except when doing text replacement, eg in [account aliases](hledger.html#regex-aliases),
    where [backreferences][] can be used in the replacement string to reference [capturing groups][] in the search regexp.
 #. they do not support [mode modifiers][] (`(?s)`), character classes (`\w`, `\d`), or anything else not mentioned above.
+   Except when doing text replacement, eg in [account aliases](#regex-aliases),
 
 [POSIX ERE]: http://www.regular-expressions.info/posix.html#ere
 [backreferences]: https://www.regular-expressions.info/backref.html
@@ -396,11 +396,11 @@ You can specify multiple `-f` options, to read multiple files as one big journal
 There are some limitations with this:
 
 - most directives do not affect sibling files
-- [balance assertions](hledger.html#balance-assertions) will not see any account balances from previous files
+- [balance assertions](#balance-assertions) will not see any account balances from previous files
 
 If you need either of those things, you can 
 
-- use a single parent file which [includes](hledger.html#including-other-files) the others
+- use a single parent file which [includes](#including-other-files) the others
 - or concatenate the files into one before reading, eg: `cat a.journal b.journal | hledger -f- CMD`.
 
 ## Strict mode
@@ -416,9 +416,9 @@ easy journal files without a lot of declarations:
 With the `-s`/`--strict` flag, additional checks are performed:
 
 - Are all accounts posted to, declared with an `account` directive ?
-  ([Account error checking](hledger.html#account-error-checking))
+  ([Account error checking](#account-error-checking))
 - Are all commodities declared with a `commodity` directive ?
-  ([Commodity error checking](hledger.html#commodity-error-checking))
+  ([Commodity error checking](#commodity-error-checking))
 
 You can also use the [check](#check) command to run these and some additional checks.
 
@@ -659,7 +659,7 @@ instead most commands show transactions/postings/accounts which match (or negati
 - any of the status terms AND
 - all the other terms.
 
-The [print](hledger.html#print) command instead shows transactions which:
+The [print](#print) command instead shows transactions which:
 
 - match any of the description terms AND
 - have any postings matching any of the positive account terms AND
@@ -700,9 +700,9 @@ or `hledger print cur:\\$`.
 
 **`date:PERIODEXPR`**
 : match dates within the specified period.
-PERIODEXPR is a [period expression](hledger.html#period-expressions) (with no report interval).
+PERIODEXPR is a [period expression](#period-expressions) (with no report interval).
 Examples: `date:2016`, `date:thismonth`, `date:2000/2/1-2/15`, `date:lastweek-`.
-If the `--date2` command line flag is present, this matches [secondary dates](hledger.html#secondary-dates) instead.
+If the `--date2` command line flag is present, this matches [secondary dates](#secondary-dates) instead.
 
 **`date2:PERIODEXPR`**
 : match secondary dates within the specified period.
@@ -711,11 +711,11 @@ If the `--date2` command line flag is present, this matches [secondary dates](hl
 : match (or display, depending on command) accounts at or above this depth
 
 **`note:REGEX`**
-: match transaction [notes](hledger.html#payee-and-note)
+: match transaction [notes](#payee-and-note)
 (part of description right of `|`, or whole description when there's no `|`)
 
 **`payee:REGEX`**
-: match transaction [payee/payer names](hledger.html#payee-and-note)
+: match transaction [payee/payer names](#payee-and-note)
 (part of description left of `|`, or whole description when there's no `|`)
 
 **`real:, real:0`**
@@ -743,7 +743,7 @@ Generally you can mix options and query arguments, and the resulting query will 
 # COSTING
 
 The `-B/--cost` flag converts amounts to their cost or sale amount at transaction time,
-if they have a [transaction price](hledger.html#transaction-prices) specified.
+if they have a [transaction price](#transaction-prices) specified.
 If this flag is supplied, hledger will perform cost conversion first, and will apply
 any market price valuations (if requested) afterwards.
 
@@ -792,9 +792,9 @@ in this order of preference
 
 1. A *declared market price* or *inferred market price*:
    A's latest market price in B on or before the valuation date
-   as declared by a [P directive](hledger.html#declaring-market-prices), 
+   as declared by a [P directive](#declaring-market-prices), 
    or (with the `--infer-market-price` flag)
-   inferred from [transaction prices](hledger.html#transaction-prices).
+   inferred from [transaction prices](#transaction-prices).
    <!-- (Latest by date, then parse order.) -->
    <!-- (A declared price overrides an inferred price on the same date.) -->
   
@@ -819,10 +819,10 @@ Amounts for which no suitable market price can be found, are not converted.
 ## --infer-market-price: market prices from transactions
 
 Normally, market value in hledger is fully controlled by, and requires,
-[P directives](hledger.html#declaring-market-prices) in your journal.
+[P directives](#declaring-market-prices) in your journal.
 Since adding and updating those can be a chore,
 and since transactions usually take place at close to market value,
-why not use the recorded [transaction prices](hledger.html#transaction-prices)
+why not use the recorded [transaction prices](#transaction-prices)
 as additional market prices (as Ledger does) ?
 We could produce value reports without needing P directives at all.
 
@@ -870,11 +870,11 @@ follows, in this order of preference:
 
 This means:
 
-- If you have [P directives](hledger.html#declaring-market-prices), 
+- If you have [P directives](#declaring-market-prices), 
   they determine which commodities `-V` will convert, and to what.
 
 - If you have no P directives, and use the `--infer-market-price` flag, 
-  [transaction prices](hledger.html#transaction-prices) determine it.
+  [transaction prices](#transaction-prices) determine it.
 
 Amounts for which no valuation commodity can be found are not converted.
 
@@ -1140,7 +1140,7 @@ Normally hledger sums amounts, and organizes them in a hierarchy, based on accou
 The `--pivot FIELD` option causes it to sum and organize hierarchy based on the value of some other field instead.
 FIELD can be:
 `code`, `description`, `payee`, `note`,
-or the full name (case insensitive) of any [tag](hledger.html#tags).
+or the full name (case insensitive) of any [tag](#tags).
 As with account names, values containing `colon:separated:parts` will be displayed hierarchically in reports.
 
 `--pivot` is a general option affecting all reports; you can think of hledger transforming
@@ -1506,7 +1506,7 @@ or the current date when the command is run.
 Some examples: `2010-01-31`, `2010/01/31`, `2010.1.31`, `1/31`.
 
 (The UI also accepts simple dates, as well as the more flexible [smart
-dates](hledger.html#smart-dates) documented in the hledger manual.)
+dates](#smart-dates) documented in the hledger manual.)
 
 ### Secondary dates
 
@@ -1598,7 +1598,7 @@ separated from it by a space, indicating one of three statuses:
 
 When reporting, you can filter by status with
 the `-U/--unmarked`, `-P/--pending`, and `-C/--cleared` flags;
-or the `status:`, `status:!`, and `status:*` [queries](hledger.html#queries);
+or the `status:`, `status:!`, and `status:*` [queries](#queries);
 or the U, P, C keys in hledger-ui.
 
 Note, in Ledger and in older versions of hledger, the "unmarked" state is called
@@ -1635,7 +1635,7 @@ or left blank. Transaction descriptions can be queried, unlike [comments](#comme
 You can optionally include a `|` (pipe) character in descriptions to subdivide the description
 into separate fields for payee/payer name on the left (up to the first `|`) and an additional note
 field on the right (after the first `|`). This may be worthwhile if you need to do more precise
-[querying](hledger.html#queries) and [pivoting](hledger.html#pivoting) by payee or by note.
+[querying](#queries) and [pivoting](#pivoting) by payee or by note.
 
 ## Comments
 
@@ -1679,7 +1679,7 @@ You can also comment larger regions of a file using [`comment` and `end comment`
 ## Tags
 
 Tags are a way to add extra labels or labelled data to postings and transactions,
-which you can then [search](hledger.html#queries) or [pivot](hledger.html#pivoting) on.
+which you can then [search](#queries) or [pivot](#pivoting) on.
 
 A simple tag is a word (which may contain hyphens) followed by a full colon,
 written inside a transaction or posting [comment](#comments) line:
@@ -1991,7 +1991,7 @@ There are several ways to record a transaction price:
 5. Like 2, but as in 4 the `@@` is parenthesised, i.e. `(@@)`; in hledger,
    this is equivalent to 2.
 
-Use the [`-B/--cost`](hledger.html#reporting-options) flag to convert
+Use the [`-B/--cost`](#reporting-options) flag to convert
 amounts to their transaction price's commodity, if any.
 (mnemonic: "B" is from "cost Basis", as in Ledger).
 Eg here is how -B affects the balance report for the example above:
@@ -2086,7 +2086,7 @@ in the right file.
 ### Assertions and multiple -f options
 
 Balance assertions don't work well across files specified
-with multiple -f options. Use include or [concatenate the files](hledger.html#input-files)
+with multiple -f options. Use include or [concatenate the files](#input-files)
 instead.
 
 ### Assertions and commodities
@@ -2147,9 +2147,9 @@ and should normally be written without one:
   (a)     $1 @ €1 = $1
 ```
 
-We do allow prices to be written there, however, and [print](hledger.html#print) shows them,
+We do allow prices to be written there, however, and [print](#print) shows them,
 even though they don't affect whether the assertion passes or fails.
-This is for backward compatibility (hledger's [close](hledger.html#close) command used to generate balance assertions with prices),
+This is for backward compatibility (hledger's [close](#close) command used to generate balance assertions with prices),
 and because [balance *assignments*](#balance-assignments) do use them (see below).
 
 ### Assertions and subaccounts
@@ -2176,7 +2176,7 @@ flag or `real:` query.
 
 Balance assertions compare the exactly calculated amounts,
 which are not always what is shown by reports.
-Eg a [commodity directive](https://hledger.org/hledger.html#declaring-commodities)
+Eg a [commodity directive](#declaring-commodities)
 may limit the display precision, but this will not affect balance assertions.
 Balance assertion failure messages show exact amounts.
 
@@ -2334,7 +2334,7 @@ avoid include cycles and including directories, but this can be done, eg:
 
 The path may also be prefixed to force a specific file format,
 overriding the file extension (as described in
-[hledger.1 -> Input files](hledger.html#input-files)):
+[hledger.1 -> Input files](#input-files)):
 `include timedot:~/notes/2020*.md`.
 
 [glob patterns]: https://hackage.haskell.org/package/Glob-0.9.2/docs/System-FilePath-Glob.html#v:compile
@@ -2503,7 +2503,7 @@ P 2010/1/1 € $1.40
 ```
 
 The `-V`, `-X` and `--value` flags use these market prices to show amount values
-in another commodity. See [Valuation](hledger.html#valuation).
+in another commodity. See [Valuation](#valuation).
 
 ## Declaring accounts
 
@@ -2523,7 +2523,7 @@ Though not required, these declarations can provide several benefits:
   which helps detect typos.
 
 The simplest form is just the word `account` followed by a hledger-style
-[account name](hledger.html#account-names), eg this account directive declares the `assets:bank:checking` account: 
+[account name](#account-names), eg this account directive declares the `assets:bank:checking` account: 
 
 ```journal
 account assets:bank:checking
@@ -2560,7 +2560,7 @@ account assets:bank:checking  ; same-line comment, note 2+ spaces before ;
 
 Same-line comments are not supported by Ledger, or hledger <1.13.
 
-<!-- Account comments may include [tags](hledger.html#tags), though we don't yet use them for anything. -->
+<!-- Account comments may include [tags](#tags), though we don't yet use them for anything. -->
 
 ### Account subdirectives
 
@@ -2601,7 +2601,7 @@ but typically not investments or receivables.)
 Generally, to make these reports work you should declare your
 top-level accounts and their types, 
 using [account directives](#declaring-accounts) 
-with `type:` [tags](hledger.html#tags).
+with `type:` [tags](#tags).
 
 The tag's value should be one of:
 `Asset`, `Liability`, `Equity`, `Revenue`, `Expense`, `Cash`,
@@ -2891,7 +2891,7 @@ read this whole section - or at least these tips:
 2. For troubleshooting, show the generated transactions with `hledger print --forecast tag:generated` or `hledger register --forecast tag:generated`.
 3. Forecasted transactions will begin only after the last non-forecasted transaction's date.
 4. Forecasted transactions will end 6 months from today, by default. See below for the exact start/end rules.
-5. [period expressions](hledger.html#period-expressions) can be tricky. Their documentation needs improvement, but is worth studying.
+5. [period expressions](#period-expressions) can be tricky. Their documentation needs improvement, but is worth studying.
 6. Some period expressions with a repeating interval must begin on a natural boundary of that interval.
    Eg in `weekly from DATE`, DATE must be a monday. `~ weekly from 2019/10/1` (a tuesday) will give an error.
 7. Other period expressions with an interval are automatically expanded to cover a whole number of that interval.
@@ -2901,14 +2901,14 @@ read this whole section - or at least these tips:
    `~ every 10th day of month from 2020/01/01`, will be adjusted to start on 2019/12/10.
 
 Periodic transaction rules also have a second meaning:
-they are used to define budget goals, shown in [budget reports](hledger.html#budget-report).
+they are used to define budget goals, shown in [budget reports](#budget-report).
 
 
 ### Periodic rule syntax
 
 A periodic transaction rule looks like a normal journal entry,
 with the date replaced by a tilde (`~`) followed by a
-[period expression](hledger.html#period-expressions)
+[period expression](#period-expressions)
 (mnemonic: `~` looks like a recurring sine wave.):
 ```journal
 ~ monthly
@@ -2949,14 +2949,14 @@ So,
 The `--forecast` flag activates any periodic transaction rules in the journal.
 They will generate temporary recurring transactions,
 which are not saved in the journal, but will appear in all reports
-(eg [print](hledger.html#print)).
+(eg [print](#print)).
 This can be useful for estimating balances into the future,
 or experimenting with different scenarios.
 Or, it can be used as a data entry aid: describe recurring
 transactions, and every so often copy the output of `print --forecast`
 into the journal.
 
-These transactions will have an extra [tag](hledger.html#tags)
+These transactions will have an extra [tag](#tags)
 indicating which periodic rule generated them:
 `generated-transaction:~ PERIODICEXPR`.
 And a similar, hidden tag (beginning with an underscore) which,
@@ -2985,10 +2985,10 @@ Or, you can set your own arbitrary "forecast period", which can
 overlap recorded transactions, and need not be in the future, by
 providing an option argument, like `--forecast=PERIODEXPR`.
 Note the equals sign is required, a space won't work.
-PERIODEXPR is a [period expression](hledger.html#period-expressions),
+PERIODEXPR is a [period expression](#period-expressions),
 which can specify the start date, end date, or both,
-like in a [`date:` query](hledger.html#queries).
-(See also hledger.1 -> [Report start & end date](hledger.html#report-start-end-date)).
+like in a [`date:` query](#queries).
+(See also hledger.1 -> [Report start & end date](#report-start-end-date)).
 Some examples: `--forecast=202001-202004`, `--forecast=jan-`, `--forecast=2020`.
 
 ### Budgeting with periodic transactions
@@ -2997,7 +2997,7 @@ With the `--budget` flag, currently supported by the balance command,
 each periodic transaction rule declares recurring budget goals for the specified accounts.
 Eg the first example above declares a goal of spending $2000 on rent
 (and also, a goal of depositing $2000 into checking) every month.
-Goals and actual performance can then be compared in [budget reports](hledger.html#budget-report).
+Goals and actual performance can then be compared in [budget reports](#budget-report).
 
 See also: [Budgeting and Forecasting](budgeting-and-forecasting.html).
 
@@ -3019,7 +3019,7 @@ An auto posting rule looks a bit like a transaction:
     ACCOUNT  [AMOUNT]
 ```
 except the first line is an equals sign (mnemonic: `=` suggests matching),
-followed by a [query](hledger.html#queries) (which matches existing postings),
+followed by a [query](#queries) (which matches existing postings),
 and each "posting" line describes a posting to be generated, 
 and the posting amounts can be:
 
@@ -3118,12 +3118,11 @@ Also, any transaction that has been changed by auto posting rules will have thes
 
 How hledger reads CSV data, and the CSV rules file format.
 
-hledger can read [CSV] files (Character Separated Value - usually
-comma, semicolon, or tab) containing dated records as if they were
-journal files, automatically converting each CSV record into a
-transaction.
+hledger can read [CSV](http://en.wikipedia.org/wiki/Comma-separated_values) files
+(Character Separated Value - usually comma, semicolon, or tab) 
+containing dated records as if they were journal files, 
+automatically converting each CSV record into a transaction.
 
-(To learn about *writing* CSV, see [CSV output](hledger.html#csv-output).)
 (To learn about *writing* CSV, see [CSV output](#csv-output).)
 
 We describe each CSV file's format with a corresponding *rules file*.
@@ -3519,13 +3518,13 @@ For more about the transaction parts they refer to, see the manual for hledger's
 #### Transaction field names
 
 `date`, `date2`, `status`, `code`, `description`, `comment` can be used to form the
-[transaction's](hledger.html#transactions) first line.
+[transaction's](#transactions) first line.
 
 #### Posting field names
 
 ##### account
 
-`accountN`, where N is 1 to 99, causes a [posting](hledger.html#postings) to be generated, 
+`accountN`, where N is 1 to 99, causes a [posting](#postings) to be generated, 
 with that account name.
 
 Most often there are two postings, so you'll want to set `account1` and `account2`.
@@ -3550,7 +3549,7 @@ This is still supported
 because it keeps pre-hledger-1.17 csv rules files working, 
 and because it can be more succinct,
 and because it converts posting 2's amount to cost if there's a
-[transaction price](hledger.html#transaction-prices), which can be useful.
+[transaction price](#transaction-prices), which can be useful.
 
 If you have an existing rules file using the unnumbered form, you
 might want to use the numbered form in certain conditional blocks,
@@ -3569,8 +3568,8 @@ N's amount. Or, `currency` with no number affects all postings.
 
 ##### balance
 
-`balanceN` sets a [balance assertion](hledger.html#balance-assertions) amount
-(or if the posting amount is left empty, a [balance assignment](hledger.html#balance-assignments))
+`balanceN` sets a [balance assertion](#balance-assertions) amount
+(or if the posting amount is left empty, a [balance assignment](#balance-assignments))
 on posting N.
 
 Also, for compatibility with hledger <1.17:
@@ -3581,8 +3580,8 @@ You can adjust the type of assertion/assignment with the
 
 ##### comment
 
-Finally, `commentN` sets a [comment](hledger.html#comments) on the Nth posting.
-Comments can also contain [tags](hledger.html#tags), as usual.
+Finally, `commentN` sets a [comment](#comments) on the Nth posting.
+Comments can also contain [tags](#tags), as usual.
 
 See TIPS below for more about setting amounts and currency.
 
@@ -3668,7 +3667,7 @@ REGEX is a case-insensitive [regular expression][] tries to match anywhere withi
 It is a POSIX ERE (extended regular expression) 
 that also supports GNU word boundaries (`\b`, `\B`, `\<`, `\>`),
 and nothing else.
-If you have trouble, be sure to check our https://hledger.org/hledger.html#regular-expressions doc.
+If you have trouble, be sure to check our doc: https://hledger.org/hledger.html#regular-expressions
 
 Important note: the record that is matched is not the original record, but a synthetic one,
 with any enclosing double quotes (but not enclosing whitespace) removed, and always comma-separated
@@ -3833,7 +3832,7 @@ decimal-mark ,
 ```
 
 hledger automatically accepts either period or comma as a decimal mark when parsing numbers
-(cf [Amounts](hledger.html#amounts)).
+(cf [Amounts](#amounts)).
 However if any numbers in the CSV contain digit group marks, such as thousand-separating commas,
 you should declare the decimal mark explicitly with this rule, to avoid misparsed numbers.
 
@@ -3881,8 +3880,8 @@ include categorisation.rules
 
 Balance assertions generated by [assigning to balanceN](#posting-field-names)
 are of the simple `=` type by default,
-which is a [single-commodity](https://hledger.org/hledger.html#assertions-and-commodities),
-[subaccount-excluding](https://hledger.org/hledger.html#assertions-and-subaccounts) assertion.
+which is a [single-commodity](#assertions-and-commodities),
+[subaccount-excluding](#assertions-and-subaccounts) assertion.
 You may find the subaccount-including variants more useful,
 eg if you have created some virtual subaccounts of checking to help with budgeting.
 You can select a different type of assertion with the `balance-type` rule:
@@ -3935,7 +3934,7 @@ $ cat foo | hledger -f ssv:- foo
 ```
 
 You can override the file extension with a [separator](#separator) rule if needed.
-See also: [Input files](hledger.html#input-files) in the hledger manual.
+See also: [Input files](#input-files) in the hledger manual.
 
 ### Reading multiple CSV files
 
@@ -3966,7 +3965,7 @@ When you download a CSV file periodically, eg to get your latest bank
 transactions, the new file may overlap with the old one, containing
 some of the same records.
 
-The [import](hledger.html#import) command will (a) detect the new
+The [import](#import) command will (a) detect the new
 transactions, and (b) append just those transactions to your main
 journal. It is idempotent, so you don't have to remember how many
 times you ran it or with which version of the CSV.
@@ -4038,7 +4037,7 @@ Here are the ways to set a posting's amount:
 
 4. **If the CSV has the balance instead of the transaction amount:**\
    Assign to `balanceN`, which sets posting N's amount indirectly via a
-   [balance assignment](hledger.html#balance-assignments).
+   [balance assignment](#balance-assignments).
    (Old syntax: `balance`, equivalent to `balance1`.)
    
    - **If hledger guesses the wrong default account name:**\
@@ -4280,7 +4279,7 @@ In the docs below we'll assume it's time.
 
 A timedot file contains a series of day entries.
 A day entry begins with a non-indented hledger-style
-[simple date](hledger.html#simple-dates) (Y-M-D, Y/M/D, Y.M.D..)
+[simple date](#simple-dates) (Y-M-D, Y/M/D, Y.M.D..)
 Any additional text on the same line is used as a transaction description for this day.
 
 This is followed by optionally-indented timelog items for that day, one per line.
@@ -4396,7 +4395,7 @@ Balance changes in 2016-02-01-2016-02-03:
 ```
 
 I prefer to use period for separating account components.
-We can make this work with an [account alias](hledger.html#rewriting-accounts):
+We can make this work with an [account alias](#rewriting-accounts):
 
 ```timedot
 2016/2/4
