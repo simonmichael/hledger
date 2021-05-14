@@ -12,6 +12,33 @@ m4_dnl  In Emacs:
 m4_dnl   markdown-mode S-TAB cycles visibility, TAB toggles one section.
 m4_dnl   C-x n s on a heading narrows to that section (C-x n w to widen again).
 
+m4_dnl Some common markdown links.
+m4_dnl These are also usable in hledger/Hledger/Cli/Commands/*.md.
+m4_dnl Some are defined there also - don't remove, they are needed there for Shake cmdhelp eg.
+m4_dnl Duplicate definitions won't give warnings as long as the target is identical.
+m4_dnl Be wary of pandoc/mdbook handling [shortcut] link syntax differently ?
+
+[add-on commands]:     #add-on-commands
+[balance assertions]:  #balance-assertions
+[balancesheet]:        #balancesheet
+[balancesheetequity]:  #balancesheetequity
+[cashflow]:            #cashflow
+[commands]:            #commands
+[common tasks]:        #common-tasks
+[csv]:                 #csv-format
+[directives]:          #directives
+[incomestatement]:     #incomestatement
+[journal]:             #journal-format
+[period expressions]:  #period-expressions
+[queries]:             #queries
+[regular expression]:  #regular-expressions
+[regular expressions]: #regular-expressions
+[strict mode]:         #strict-mode
+[timeclock]:           #timeclock-format
+[timedot]:             #timedot-format
+[transaction prices]:  #transaction-prices
+[valuation]:           #valuation
+
 _man_({{
 # NAME
 }})
@@ -2495,8 +2522,6 @@ Though not required, these declarations can provide several benefits:
 - In [strict mode], they restrict which accounts may be posted to by transactions,
   which helps detect typos.
 
-[strict mode]: hledger.html#strict-mode
-
 The simplest form is just the word `account` followed by a hledger-style
 [account name](hledger.html#account-names), eg this account directive declares the `assets:bank:checking` account: 
 
@@ -2567,6 +2592,9 @@ Additionally, we recognise the `Cash` type, which is also an `Asset`,
 and which causes accounts to appear in the [cashflow][] report.
 ("Cash" here means [liquid assets][CCE], eg bank balances
 but typically not investments or receivables.)
+
+[accounting equation]: https://en.wikipedia.org/wiki/Accounting_equation
+[CCE]:                 https://en.wikipedia.org/wiki/Cash_and_cash_equivalents
 
 #### Declaring account types
 
@@ -2643,17 +2671,6 @@ account equity       E
 account revenues     R
 account expenses     X
 ```
-
-
-[regular expression]: #regular-expressions
-[regular expressions]: #regular-expressions
-[balancesheet]: #balancesheet
-[balancesheetequity]: hledger.html#balancesheetequity
-[cashflow]: hledger.html#cashflow
-[incomestatement]: hledger.html#incomestatement
-[CCE]: https://en.wikipedia.org/wiki/Cash_and_cash_equivalents
-[accounting equation]: https://en.wikipedia.org/wiki/Accounting_equation
-
 
 ### Account display order
 
@@ -3107,8 +3124,7 @@ journal files, automatically converting each CSV record into a
 transaction.
 
 (To learn about *writing* CSV, see [CSV output](hledger.html#csv-output).)
-
-[CSV]: http://en.wikipedia.org/wiki/Comma-separated_values
+(To learn about *writing* CSV, see [CSV output](#csv-output).)
 
 We describe each CSV file's format with a corresponding *rules file*.
 By default this is named like the CSV file with a `.rules` extension
