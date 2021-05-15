@@ -1,10 +1,8 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
---
--- hash: aba98cf32b60adc9fb70cfbea5b4e02a9c91cf9abab526baab01f337d524e777
 
 name:           hledger-web
 version:        1.21.99
@@ -28,8 +26,9 @@ author:         Simon Michael <simon@joyful.com>
 maintainer:     Simon Michael <simon@joyful.com>
 license:        GPL-3
 license-file:   LICENSE
-tested-with:    GHC==8.2.2, GHC==8.4.4, GHC==8.6.5, GHC==8.8.4, GHC==8.10.4
 build-type:     Simple
+tested-with:
+    GHC==8.2.2, GHC==8.4.4, GHC==8.6.5, GHC==8.8.4, GHC==8.10.4
 extra-source-files:
     CHANGES.md
     README.md
@@ -150,7 +149,7 @@ library
   other-modules:
       Paths_hledger_web
   hs-source-dirs:
-      ./.
+      ./
   ghc-options: -Wall -fwarn-tabs -Wcompat -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints
   cpp-options: -DVERSION="1.21.99"
   build-depends:
