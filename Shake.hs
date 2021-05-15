@@ -254,7 +254,10 @@ main = do
           -- stack can fail to update cabal files with zero exit status,
           -- so we need to to check stderr, and specifically for the error message 
           -- since all output goes there
-          err <- fromStderr <$> (cmd Shell "stack build --dry-run" :: Action (Stderr String))
+          err <- fromStderr <$>
+            -- stack 1.7 no longer updates cabal files with --dry-run, must do a full build
+            -- (or use hpack, of similar version)
+            (cmd Shell "stack build" :: Action (Stderr String))
           when ("was generated with a newer version of hpack" `isInfixOf` err) $
             liftIO $ putStr err >> exitFailure
           when commit $ do
