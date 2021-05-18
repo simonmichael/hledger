@@ -510,15 +510,37 @@ Examples:
 ## Report intervals
 
 A report interval can be specified so that commands like
-[register](#register), [balance](#balance) and [activity](#activity) will divide their
-reports into multiple subperiods.  The basic intervals can be
-selected with one of `-D/--daily`, `-W/--weekly`, `-M/--monthly`,
-`-Q/--quarterly`, or `-Y/--yearly`.  More complex intervals may be
-specified with a [period expression](#period-expressions).
-Report intervals can not be specified with a [query](#queries).
+[register](#register), [balance](#balance) and [activity](#activity)
+become multi-period, showing each subperiod as a separate row or
+column.
 
-Note that the requested start and end dates may be extended when specifying a report
-interval (see [period expression](#period-expressions)).
+The following "standard" report intervals can be enabled by using
+their corresponding flag:
+
+`-D/--daily`, 
+`-W/--weekly`, 
+`-M/--monthly`,
+`-Q/--quarterly`, 
+`-Y/--yearly`. 
+
+These standard intervals always start on natural interval boundaries:
+eg `--weekly` starts on mondays, `--monthly` starts on the first of
+the month, `--yearly` always starts on January 1st, etc.
+
+Certain more complex intervals, and more flexible boundary dates, can
+be specified by `-p/--period`. These are described in [period
+expressions](#period-expressions), below.
+
+Report intervals can only be specified by the flags above, and not by
+[query](#queries) arguments, currently.
+
+Report intervals have another effect: multi-period reports are always
+expanded to fill a whole number of subperiods. So if you use a report
+interval (other than `--daily`), and you have specified a start or end
+date, you may notice those dates being overridden (ie, the report
+starts earlier than your requested start date, or ends later than your
+requested end date). This is done to ensure "full" first and last
+subperiods, so that all subperiods' numbers are comparable.
 
 ## Period expressions
 
