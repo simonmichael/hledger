@@ -656,9 +656,8 @@ Are all accounts posted to, declared with an \f[C]account\f[R] directive
 Are all commodities declared with a \f[C]commodity\f[R] directive ?
 (Commodity error checking)
 .PP
-See also: https://hledger.org/checking-for-errors.html
-.PP
-\f[I]experimental.\f[R]
+You can also use the check command to run these and some additional
+checks.
 .SH TIME PERIODS
 .SS Smart dates
 .PP
@@ -830,12 +829,35 @@ T}
 .SS Report intervals
 .PP
 A report interval can be specified so that commands like register,
-balance and activity will divide their reports into multiple subperiods.
-The basic intervals can be selected with one of \f[C]-D/--daily\f[R],
-\f[C]-W/--weekly\f[R], \f[C]-M/--monthly\f[R], \f[C]-Q/--quarterly\f[R],
-or \f[C]-Y/--yearly\f[R].
-More complex intervals may be specified with a period expression.
-Report intervals can not be specified with a query.
+balance and activity become multi-period, showing each subperiod as a
+separate row or column.
+.PP
+The following \[dq]standard\[dq] report intervals can be enabled by
+using their corresponding flag:
+.PP
+\f[C]-D/--daily\f[R], \f[C]-W/--weekly\f[R], \f[C]-M/--monthly\f[R],
+\f[C]-Q/--quarterly\f[R], \f[C]-Y/--yearly\f[R].
+.PP
+These standard intervals always start on natural interval boundaries: eg
+\f[C]--weekly\f[R] starts on mondays, \f[C]--monthly\f[R] starts on the
+first of the month, \f[C]--yearly\f[R] always starts on January 1st,
+etc.
+.PP
+Certain more complex intervals, and more flexible boundary dates, can be
+specified by \f[C]-p/--period\f[R].
+These are described in period expressions, below.
+.PP
+Report intervals can only be specified by the flags above, and not by
+query arguments, currently.
+.PP
+Report intervals have another effect: multi-period reports are always
+expanded to fill a whole number of subperiods.
+So if you use a report interval (other than \f[C]--daily\f[R]), and you
+have specified a start or end date, you may notice those dates being
+overridden (ie, the report starts earlier than your requested start
+date, or ends later than your requested end date).
+This is done to ensure \[dq]full\[dq] first and last subperiods, so that
+all subperiods\[aq] numbers are comparable.
 .SS Period expressions
 .PP
 The \f[C]-p/--period\f[R] option accepts period expressions, a shorthand
@@ -2031,6 +2053,12 @@ $ hledger print -o foo.txt
 $ hledger print -o -        # write to stdout (the default)
 \f[R]
 .fi
+.PP
+hledger can optionally produce debug output (if enabled with
+\f[C]--debug=N\f[R]); this goes to stderr, and is not affected by
+\f[C]-o/--output-file\f[R].
+If you need to capture it, use shell redirects, eg:
+\f[C]hledger bal --debug=3 >file 2>&1\f[R].
 .SS Output format
 .PP
 Some commands (print, register, the balance commands) offer a choice of
@@ -3612,7 +3640,8 @@ These checks can be run only by giving their names as arguments to
 They are more specialised and not desirable for everyone, therefore
 optional:
 .IP \[bu] 2
-\f[B]ordereddates\f[R] - transactions are ordered by date in each file
+\f[B]ordereddates\f[R] - transactions are ordered by date within each
+file
 .IP \[bu] 2
 \f[B]payees\f[R] - all payees used by transactions have been declared
 .IP \[bu] 2
@@ -5440,23 +5469,15 @@ Amounts have a number (the \[dq]quantity\[dq]):
 \f[R]
 .fi
 .PP
-\&..and usually a currency or commodity name (the \[dq]commodity\[dq]).
-This is a symbol, word, or phrase, to the left or right of the quantity,
-with or without a separating space:
+\&..and usually a currency symbol or commodity name (more on this
+below), to the left or right of the quantity, with or without a
+separating space:
 .IP
 .nf
 \f[C]
 $1
 4000 AAPL
-\f[R]
-.fi
-.PP
-If the commodity name contains spaces, numbers, or punctuation, it must
-be enclosed in double quotes:
-.IP
-.nf
-\f[C]
-3 \[dq]no. 42 green apples\[dq]
+3 \[dq]green apples\[dq]
 \f[R]
 .fi
 .PP
@@ -5526,14 +5547,49 @@ Are these digit group marks or decimal marks ?
 .PP
 If you don\[aq]t tell it otherwise, hledger will assume both of the
 above are decimal marks, parsing both numbers as 1.
-To prevent confusion and undetected typos, especially if your data
-contains digit group marks, we recommend you explicitly declare the
-decimal mark (and optionally a digit group mark), for each commodity,
-using \f[C]commodity\f[R] directives (described below):
+To prevent confusion and undetected typos, we recommend adding
+\f[C]commodity\f[R] directives at the top of your journal file to
+explicitly declare the decimal mark (and optionally a digit group mark)
+for each commodity.
+Read on for more about this.
+.SS Commodity
+.PP
+Amounts in hledger have both a \[dq]quantity\[dq], which is a signed
+decimal number, and a \[dq]commodity\[dq], which is a currency symbol,
+stock ticker, or any word or phrase describing something you are
+tracking.
+.PP
+If the commodity name contains non-letters (spaces, numbers, or
+punctuation), you must always write it inside double quotes
+(\f[C]\[dq]green apples\[dq]\f[R], \f[C]\[dq]ABC123\[dq]\f[R]).
+.PP
+If you write just a bare number, that too will have a commodity, with
+name \f[C]\[dq]\[dq]\f[R]; we call that the \[dq]no-symbol
+commodity\[dq].
+.PP
+Actually, hledger combines these single-commodity amounts into more
+powerful multi-commodity amounts, which are what it works with most of
+the time.
+A multi-commodity amount could be, eg:
+\f[C]1 USD, 2 EUR, 3.456 TSLA\f[R].
+In practice, you will only see multi-commodity amounts in hledger\[aq]s
+output; you can\[aq]t write them directly in the journal file.
+.PP
+(If you are writing scripts or working with hledger\[aq]s internals,
+these are the \f[C]Amount\f[R] and \f[C]MixedAmount\f[R] types.)
+.SS Commodity directives
+.PP
+You can add \f[C]commodity\f[R] directives to the journal, preferably at
+the top, to declare your commodities and help with number parsing (see
+above) and display (see below).
+These are optional, but recommended.
+They are described in more detail in JOURNAL FORMAT -> Declaring
+commodities.
+Here\[aq]s a quick example:
 .IP
 .nf
 \f[C]
-# number formats for $, EUR, INR and the no-symbol commodity:
+# number format and display style for $, EUR, INR and the no-symbol commodity:
 commodity $1,000.00
 commodity EUR 1.000,00
 commodity INR 9,99,99,999.00
@@ -5541,19 +5597,15 @@ commodity 1 000 000.9455
 \f[R]
 .fi
 .PP
-Note, \f[C]commodity\f[R] directives declare both the number format for
-parsing input, and the display style for showing output.
-For the former, they are position-sensitive, affecting only following
-amounts, so commodity directives should be at the top of your journal
-file.
-This is discussed more on #793.
-.PP
 .SS Commodity display style
 .PP
 For the amounts in each commodity, hledger chooses a consistent display
 style to use in most reports.
-(Except for price amounts, which are always displayed as written).
-The display style is inferred as follows.
+(Exceptions: price amounts, and all amounts displayed by the
+\f[C]print\f[R] command, are displayed with all of their decimal digits
+visible.)
+.PP
+A commodity\[aq]s display style is inferred as follows.
 .PP
 First, if a default commodity is declared with \f[C]D\f[R], this
 commodity and its style is applied to any no-symbol amounts in the
@@ -6206,47 +6258,54 @@ payee Whole Foods
 .fi
 .SS Declaring commodities
 .PP
-The \f[C]commodity\f[R] directive has several functions:
+You can use \f[C]commodity\f[R] directives to declare your commodities.
+In fact the \f[C]commodity\f[R] directive performs several functions at
+once:
 .IP "1." 3
 It declares commodities which may be used in the journal.
-This is currently not enforced, but can serve as documentation.
+This can optionally be enforced, providing useful error checking.
+(Cf Commodity error checking)
 .IP "2." 3
-It declares what decimal mark character (period or comma) to expect when
-parsing input - useful to disambiguate international number formats in
-your data.
-(Without this, hledger will parse both \f[C]1,000\f[R] and
-\f[C]1.000\f[R] as 1).
+It declares which decimal mark character (period or comma), to expect
+when parsing input - useful to disambiguate international number formats
+in your data.
+Without this, hledger will parse both \f[C]1,000\f[R] and
+\f[C]1.000\f[R] as 1.
+(Cf Amounts)
 .IP "3." 3
-It declares a commodity\[aq]s display style in output - decimal and
-digit group marks, number of decimal places, symbol placement etc.
+It declares how to render the commodity\[aq]s amounts when displaying
+output - the decimal mark, any digit group marks, the number of decimal
+places, symbol placement and so on.
+(Cf Commodity display style)
 .PP
-You are likely to run into one of the problems solved by commodity
-directives, sooner or later, so it\[aq]s a good idea to just always use
-them to declare your commodities.
+You will run into one of the problems solved by commodity directives
+sooner or later, so we recommend using them, for robust and predictable
+parsing and display.
 .PP
-A commodity directive is just the word \f[C]commodity\f[R] followed by
-an amount.
-It may be written on a single line, like this:
+Generally you should put them at the top of your journal file (since for
+function 2, they affect only following amounts, cf #793).
+.PP
+A commodity directive is just the word \f[C]commodity\f[R] followed by a
+sample amount, like this:
 .IP
 .nf
 \f[C]
-; commodity EXAMPLEAMOUNT
+;commodity SAMPLEAMOUNT
 
-; display AAAA amounts with the symbol on the right, space-separated,
-; using period as decimal point, with four decimal places, and
-; separating thousands with comma.
-commodity 1,000.0000 AAAA
+commodity $1000.00
+commodity 1,000.0000 AAAA  ; optional same-line comment
 \f[R]
 .fi
 .PP
-or on multiple lines, using the \[dq]format\[dq] subdirective.
-(In this case the commodity symbol appears twice and should be the same
-in both places.):
+It may also be written on multiple lines, and use the \f[C]format\f[R]
+subdirective, as in Ledger.
+Note in this case the commodity symbol appears twice; it must be the
+same in both places:
 .IP
 .nf
 \f[C]
-; commodity SYMBOL
-;   format EXAMPLEAMOUNT
+;commodity SYMBOL
+;  format SAMPLEAMOUNT
 
 ; display indian rupees with currency name on the left,
 ; thousands, lakhs and crores comma-separated,
@@ -6256,10 +6315,25 @@ commodity INR
 \f[R]
 .fi
 .PP
-The quantity of the amount does not matter; only the format is
+Remember that if the commodity symbol contains spaces, numbers, or
+punctuation, it must be enclosed in double quotes (cf Commodity).
+.PP
+The amount\[aq]s quantity does not matter; only the format is
 significant.
-The number must include a decimal mark: either a period or a comma,
-followed by 0 or more decimal digits.
+It must include a decimal mark - either a period or a comma - followed
+by 0 or more decimal digits.
+.PP
+A few more examples:
+.IP
+.nf
+\f[C]
+# number formats for $, EUR, INR and the no-symbol commodity:
+commodity $1,000.00
+commodity EUR 1.000,00
+commodity INR 9,99,99,999.0
+commodity 1 000 000.
+\f[R]
+.fi
 .PP
 Note hledger normally uses banker\[aq]s rounding, so 0.5 displayed with
 zero decimal digits is \[dq]0\[dq].
@@ -6273,19 +6347,20 @@ This works similarly to account error checking, see the notes there for
 more details.
 .SS Default commodity
 .PP
-The \f[C]D\f[R] directive sets a default commodity, to be used for
-amounts without a commodity symbol (ie, plain numbers).
-This commodity will be applied to all subsequent commodity-less amounts,
-or until the next \f[C]D\f[R] directive.
-(Note, this is different from Ledger\[aq]s \f[C]D\f[R].)
+The \f[C]D\f[R] directive sets a default commodity, to be used for any
+subsequent commodityless amounts (ie, plain numbers) seen while parsing
+the journal.
+This effect lasts until the next \f[C]D\f[R] directive, or the end of
+the journal.
 .PP
 For compatibility/historical reasons, \f[C]D\f[R] also acts like a
-\f[C]commodity\f[R] directive, setting the commodity\[aq]s display style
-(for output) and decimal mark (for parsing input).
-As with \f[C]commodity\f[R], the amount must always be written with a
-decimal mark (period or comma).
-If both directives are used, \f[C]commodity\f[R]\[aq]s style takes
-precedence.
+\f[C]commodity\f[R] directive (setting the commodity\[aq]s decimal mark
+for parsing and display style for output).
+.PP
+As with \f[C]commodity\f[R], the amount must include a decimal mark
+(either period or comma).
+If both \f[C]commodity\f[R] and \f[C]D\f[R] directives are used for the
+same commodity, the \f[C]commodity\f[R] style takes precedence.
 .PP
 The syntax is \f[C]D AMOUNT\f[R].
 Eg:
@@ -6494,7 +6569,7 @@ using the following rules:
 tab(@);
 l l.
 T{
-If name matches regular expression:
+If name matches this regular expression:
 T}@T{
 account type is:
 T}
@@ -6528,10 +6603,10 @@ T}
 .PP
 .TS
 tab(@);
-lw(56.9n) lw(13.1n).
+lw(57.6n) lw(12.4n).
 T{
-If account type is \f[C]Asset\f[R] and name does not contain regular
-expression:
+If account type is \f[C]Asset\f[R] and name does not contain this
+regular expression:
 T}@T{
 account type is:
 T}
@@ -7789,13 +7864,13 @@ REGEX
 \f[R]
 .fi
 .PP
-REGEX is a case-insensitive regular expression which tries to match
+REGEX is a case-insensitive regular expression that tries to match
 anywhere within the CSV record.
 It is a POSIX ERE (extended regular expression) that also supports GNU
 word boundaries (\f[C]\[rs]b\f[R], \f[C]\[rs]B\f[R], \f[C]\[rs]<\f[R],
 \f[C]\[rs]>\f[R]), and nothing else.
-If you have trouble, be sure to check our
-https://hledger.org/hledger.html#regular-expressions doc.
+If you have trouble, be sure to check our doc:
+https://hledger.org/hledger.html#regular-expressions
 .PP
 Important note: the record that is matched is not the original record,
 but a synthetic one, with any enclosing double quotes (but not enclosing
