@@ -97,10 +97,12 @@ do extra error checking (check that all posted accounts are declared)
 hledger reporting options:
 .TP
 \f[B]\f[CB]-b --begin=DATE\f[B]\f[R]
-include postings/txns on or after this date
+include postings/txns on or after this date (will be adjusted to
+preceding subperiod start when using a report interval)
 .TP
 \f[B]\f[CB]-e --end=DATE\f[B]\f[R]
-include postings/txns before this date
+include postings/txns before this date (will be adjusted to following
+subperiod end when using a report interval)
 .TP
 \f[B]\f[CB]-D --daily\f[B]\f[R]
 multiperiod/multicolumn report by day

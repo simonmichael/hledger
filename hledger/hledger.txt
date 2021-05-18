@@ -105,10 +105,12 @@ OPTIONS
        General reporting options:
 
        -b --begin=DATE
-              include postings/txns on or after this date
+              include postings/txns on or after this date (will be adjusted to
+              preceding subperiod start when using a report interval)
 
        -e --end=DATE
-              include postings/txns before this date
+              include postings/txns before this date (will be adjusted to fol-
+              lowing subperiod end when using a report interval)
 
        -D --daily
               multiperiod/multicolumn report by day
@@ -559,15 +561,18 @@ TIME PERIODS
          date:2019-01 date:2019 -p'2000 to  2030'  yields  January  2019,  the
          smallest common time span.
 
+       o A  report  interval  (see  below)  will  adjust start/end dates, when
+         needed, so that they fall on subperiod boundaries.
+
        Examples:
 
 
        -b 2016/3/17       begin on St. Patrick's day 2016
-       -e 12/1            end at the start of  december  1st  of  the  current  year
+       -e 12/1            end  at  the  start  of  december  1st of the current year
                           (11/30 will be the last date included)
        -b thismonth       all transactions on or after the 1st of the current month
        -p thismonth       all transactions in the current month
-       date:2016/3/17..   the above written as  queries  instead  (..  can  also  be
+       date:2016/3/17..   the  above  written  as  queries  instead  (.. can also be
                           replaced with -)
        date:..12/1
        date:thismonth..
@@ -583,37 +588,37 @@ TIME PERIODS
 
        -D/--daily, -W/--weekly, -M/--monthly, -Q/--quarterly, -Y/--yearly.
 
-       These  standard  intervals always start on natural interval boundaries:
-       eg --weekly starts on mondays, --monthly starts on  the  first  of  the
+       These standard intervals always start on natural  interval  boundaries:
+       eg  --weekly  starts  on  mondays, --monthly starts on the first of the
        month, --yearly always starts on January 1st, etc.
 
-       Certain  more  complex intervals, and more flexible boundary dates, can
-       be specified by -p/--period.  These are  described  in  period  expres-
+       Certain more complex intervals, and more flexible boundary  dates,  can
+       be  specified  by  -p/--period.   These are described in period expres-
        sions, below.
 
-       Report  intervals  can only be specified by the flags above, and not by
+       Report intervals can only be specified by the flags above, and  not  by
        query arguments, currently.
 
-       Report intervals have another effect: multi-period reports  are  always
-       expanded  to fill a whole number of subperiods.  So if you use a report
-       interval (other than --daily), and you have specified a  start  or  end
-       date,  you  may  notice  those  dates  being overridden (ie, the report
-       starts earlier than your requested start date, or ends later than  your
+       Report  intervals  have another effect: multi-period reports are always
+       expanded to fill a whole number of subperiods.  So if you use a  report
+       interval  (other  than  --daily), and you have specified a start or end
+       date, you may notice those  dates  being  overridden  (ie,  the  report
+       starts  earlier than your requested start date, or ends later than your
        requested end date).  This is done to ensure "full" first and last sub-
        periods, so that all subperiods' numbers are comparable.
 
    Period expressions
-       The -p/--period option accepts period expressions, a shorthand  way  of
-       expressing  a start date, end date, and/or report interval all at once.
+       The  -p/--period  option accepts period expressions, a shorthand way of
+       expressing a start date, end date, and/or report interval all at  once.
 
-       Here's a basic period expression specifying the first quarter of  2009.
-       Note,  hledger  always treats start dates as inclusive and end dates as
+       Here's  a basic period expression specifying the first quarter of 2009.
+       Note, hledger always treats start dates as inclusive and end  dates  as
        exclusive:
 
        -p "from 2009/1/1 to 2009/4/1"
 
-       Keywords like "from" and "to" are optional, and so are the  spaces,  as
-       long  as you don't run two dates together.  "to" can also be written as
+       Keywords  like  "from" and "to" are optional, and so are the spaces, as
+       long as you don't run two dates together.  "to" can also be written  as
        ".." or "-".  These are equivalent to the above:
 
 
@@ -621,8 +626,9 @@ TIME PERIODS
        -p2009/1/1to2009/4/1
        -p2009/1/1..2009/4/1
 
-       Dates are smart dates, so if the current year is 2009,  the  above  can
+       Dates  are  smart  dates, so if the current year is 2009, the above can
        also be written as:
+
 
 
        -p "1/1 4/1"
@@ -637,34 +643,34 @@ TIME PERIODS
                             1, 2009
        -p "from 2009/1"     the same
        -p "from 2009"       the same
-       -p "to 2009"         everything  before january
+       -p "to 2009"         everything before  january
                             1, 2009
 
-       A single date with no "from" or "to" defines both  the  start  and  end
+       A  single  date  with  no "from" or "to" defines both the start and end
        date like so:
 
 
-       -p "2009"       the  year 2009; equivalent
+       -p "2009"       the year 2009;  equivalent
                        to "2009/1/1 to 2010/1/1"
-       -p "2009/1"     the month of jan;  equiva-
+       -p "2009/1"     the  month of jan; equiva-
                        lent   to   "2009/1/1   to
                        2009/2/1"
-       -p "2009/1/1"   just that day;  equivalent
+       -p "2009/1/1"   just  that day; equivalent
                        to "2009/1/1 to 2009/1/2"
 
        Or you can specify a single quarter like so:
 
 
-       -p "2009Q1"   first   quarter  of  2009,
+       -p "2009Q1"   first  quarter  of   2009,
                      equivalent to "2009/1/1 to
                      2009/4/1"
        -p "q4"       fourth quarter of the cur-
                      rent year
 
-       The argument of -p can also  begin  with,  or  be,  a  report  interval
-       expression.   The  basic  report  intervals are daily, weekly, monthly,
+       The  argument  of  -p  can  also  begin  with, or be, a report interval
+       expression.  The basic report intervals  are  daily,  weekly,  monthly,
        quarterly, or yearly, which have the same effect as the -D,-W,-M,-Q, or
-       -Y  flags.   Between  report interval and start/end dates (if any), the
+       -Y flags.  Between report interval and start/end dates  (if  any),  the
        word in is optional.  Examples:
 
 
@@ -672,45 +678,45 @@ TIME PERIODS
        -p "monthly in 2008"
        -p "quarterly"
 
-       Note that weekly, monthly, quarterly and yearly intervals  will  always
+       Note  that  weekly, monthly, quarterly and yearly intervals will always
        start on the first day on week, month, quarter or year accordingly, and
-       will end on the last day of same  period,  even  if  associated  period
+       will  end  on  the  last  day of same period, even if associated period
        expression specifies different explicit start and end date.
 
        For example:
 
 
-       -p  "weekly from 2009/1/1   starts on 2008/12/29, closest preceding Mon-
+       -p "weekly from  2009/1/1   starts on 2008/12/29, closest preceding Mon-
        to 2009/4/1"                day
-       -p       "monthly      in   starts on 2018/11/01
+       -p      "monthly       in   starts on 2018/11/01
        2008/11/25"
-       -p    "quarterly     from   starts on 2009/04/01,  ends  on  2009/06/30,
+       -p     "quarterly    from   starts  on  2009/04/01,  ends on 2009/06/30,
        2009-05-05 to 2009-06-01"   which are first and last days of Q2 2009
        -p      "yearly      from   starts on 2009/01/01, first day of 2009
        2009-12-29"
 
        The  following  more  complex  report  intervals  are  also  supported:
-       biweekly,  fortnightly,  bimonthly,  every day|week|month|quarter|year,
+       biweekly, fortnightly,  bimonthly,  every  day|week|month|quarter|year,
        every N days|weeks|months|quarters|years.
 
-       All of these will start on the first day of the  requested  period  and
+       All  of  these  will start on the first day of the requested period and
        end on the last one, as described above.
 
        Examples:
 
 
-       -p "bimonthly from 2008"    periods  will have boundaries on 2008/01/01,
+       -p "bimonthly from 2008"    periods will have boundaries on  2008/01/01,
                                    2008/03/01, ...
        -p "every 2 weeks"          starts on closest preceding Monday
-       -p "every  5  month  from   periods  will have boundaries on 2009/03/01,
+       -p  "every  5  month from   periods will have boundaries on  2009/03/01,
        2009/03"                    2009/08/01, ...
 
-       If you want intervals that start on arbitrary day of your choosing  and
+       If  you want intervals that start on arbitrary day of your choosing and
        span a week, month or year, you need to use any of the following:
 
-       every     Nth     day     of     week,     every     WEEKDAYNAME    (eg
+       every    Nth     day     of     week,     every     WEEKDAYNAME     (eg
        mon|tue|wed|thu|fri|sat|sun), every Nth day [of month], every Nth WEEK-
-       DAYNAME  [of  month],  every  MM/DD [of year], every Nth MMM [of year],
+       DAYNAME [of month], every MM/DD [of year], every  Nth  MMM  [of  year],
        every MMM Nth [of year].
 
        Examples:
@@ -719,42 +725,42 @@ TIME PERIODS
        -p  "every  2nd  day  of   periods will go from Tue to Tue
        week"
        -p "every Tue"             same
-       -p "every 15th day"        period  boundaries  will  be  on  15th of each
+       -p "every 15th day"        period boundaries will  be  on  15th  of  each
                                   month
-       -p "every 2nd Monday"      period boundaries will be on second Monday  of
+       -p "every 2nd Monday"      period  boundaries will be on second Monday of
                                   each month
        -p "every 11/05"           yearly periods with boundaries on 5th of Nov
        -p "every 5th Nov"         same
        -p "every Nov 5th"         same
 
-       Show  historical balances at end of 15th each month (N is exclusive end
+       Show historical balances at end of 15th each month (N is exclusive  end
        date):
 
        hledger balance -H -p "every 16th day"
 
-       Group postings from start of wednesday to end of  next  tuesday  (N  is
+       Group  postings  from  start  of wednesday to end of next tuesday (N is
        start date and exclusive end date):
 
        hledger register checking -p "every 3rd day of week"
 
 DEPTH
        With the --depth N option (short form: -N), commands like account, bal-
-       ance and register will show only the uppermost accounts in the  account
-       tree,  down  to  level  N.   Use this when you want a summary with less
-       detail.  This flag has the same effect as a depth: query  argument  (so
+       ance  and register will show only the uppermost accounts in the account
+       tree, down to level N.  Use this when you  want  a  summary  with  less
+       detail.   This  flag has the same effect as a depth: query argument (so
        -2, --depth=2 or depth:2 are equivalent).
 
 QUERIES
-       One  of  hledger's strengths is being able to quickly report on precise
-       subsets of your data.  Most commands accept an optional  query  expres-
-       sion,  written  as arguments after the command name, to filter the data
-       by date, account name or other criteria.  The syntax is  similar  to  a
+       One of hledger's strengths is being able to quickly report  on  precise
+       subsets  of  your data.  Most commands accept an optional query expres-
+       sion, written as arguments after the command name, to filter  the  data
+       by  date,  account  name or other criteria.  The syntax is similar to a
        web search: one or more space-separated search terms, quotes to enclose
-       whitespace, prefixes to match specific fields, a not: prefix to  negate
+       whitespace,  prefixes to match specific fields, a not: prefix to negate
        the match.
 
-       We  do  not yet support arbitrary boolean combinations of search terms;
-       instead most commands show transactions/postings/accounts  which  match
+       We do not yet support arbitrary boolean combinations of  search  terms;
+       instead  most  commands show transactions/postings/accounts which match
        (or negatively match):
 
        o any of the description terms AND
@@ -775,31 +781,31 @@ QUERIES
 
        o match all the other terms.
 
-       The  following  kinds  of search terms can be used.  Remember these can
+       The following kinds of search terms can be used.   Remember  these  can
        also be prefixed with not:, eg to exclude a particular subaccount.
 
        REGEX, acct:REGEX
-              match account names by this regular expression.  (With  no  pre-
+              match  account  names by this regular expression.  (With no pre-
               fix, acct: is assumed.)  same as above
 
        amt:N, amt:<N, amt:<=N, amt:>N, amt:>=N
-              match  postings with a single-commodity amount that is equal to,
-              less than, or greater than N.  (Multi-commodity amounts are  not
+              match postings with a single-commodity amount that is equal  to,
+              less  than, or greater than N.  (Multi-commodity amounts are not
               tested, and will always match.) The comparison has two modes: if
               N is preceded by a + or - sign (or is 0), the two signed numbers
-              are  compared.  Otherwise, the absolute magnitudes are compared,
+              are compared.  Otherwise, the absolute magnitudes are  compared,
               ignoring sign.
 
        code:REGEX
               match by transaction code (eg check number)
 
        cur:REGEX
-              match postings or transactions including any amounts whose  cur-
-              rency/commodity  symbol  is fully matched by REGEX.  (For a par-
+              match  postings or transactions including any amounts whose cur-
+              rency/commodity symbol is fully matched by REGEX.  (For  a  par-
               tial match, use .*REGEX.*).  Note, to match characters which are
               regex-significant, like the dollar sign ($), you need to prepend
-              \.  And when using the command line you need  to  add  one  more
-              level  of  quoting  to hide it from the shell, so eg do: hledger
+              \.   And  when  using  the command line you need to add one more
+              level of quoting to hide it from the shell, so  eg  do:  hledger
               print cur:'\$' or hledger print cur:\\$.
 
        desc:REGEX
@@ -807,10 +813,11 @@ QUERIES
 
        date:PERIODEXPR
               match dates within the specified period.  PERIODEXPR is a period
-              expression  (with  no  report  interval).   Examples: date:2016,
-              date:thismonth,  date:2000/2/1-2/15,  date:lastweek-.   If   the
-              --date2  command  line  flag  is present, this matches secondary
-              dates instead.
+              expression (with  no  report  interval).   Examples:  date:2016,
+              date:thismonth,   date:2000/2/1-2/15,  date:lastweek-.   If  the
+              --date2 command line flag is  present,  this  matches  secondary
+              dates instead.  (Report intervals will adjust start/end dates to
+              preceding/following subperiod boundaries.)
 
        date2:PERIODEXPR
               match secondary dates within the specified period.
@@ -1196,6 +1203,8 @@ VALUATION
                                       or today  of                       journal  end   sums of post-
                                       sums      of                       of  sums  of   ings
                                       postings                           postings
+
+
        budget          like balance   like balance   like      balance   like    bal-   like  balance
        amounts         changes        changes        changes             ances          changes
        (--budget)
@@ -1218,12 +1227,6 @@ VALUATION
        is,        bs   postings  in                  period at respec-   each period,   sums of post-
        --change,  cf   period                        tive      posting   valued    at   ings
        --change)                                     dates               period ends
-
-
-
-
-
-
        end  balances   sums      of   same      as   sums of values of   period   end   value      at
        (bal  -H,  is   costs     of   --value=end    postings     from   balances,      DATE/today of
        --H, bs, cf)    postings                      before     period   valued    at   sums of post-
@@ -4405,11 +4408,6 @@ JOURNAL FORMAT
                   ment                                                 until  end  of cur-
                                                                        rent  file  or  end
                                                                        directive
-
-
-
-
-
        commod-                format    declare a commodity and  its   number    notation:
        ity                              number  notation  &  display   following   entries
                                         style                          in  that  commodity

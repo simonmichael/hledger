@@ -119,10 +119,12 @@ do extra error checking (check that all posted accounts are declared)
 General reporting options:
 .TP
 \f[B]\f[CB]-b --begin=DATE\f[B]\f[R]
-include postings/txns on or after this date
+include postings/txns on or after this date (will be adjusted to
+preceding subperiod start when using a report interval)
 .TP
 \f[B]\f[CB]-e --end=DATE\f[B]\f[R]
-include postings/txns before this date
+include postings/txns before this date (will be adjusted to following
+subperiod end when using a report interval)
 .TP
 \f[B]\f[CB]-D --daily\f[B]\f[R]
 multiperiod/multicolumn report by day
@@ -780,6 +782,9 @@ The effective report start and end dates are the intersection of the
 start/end dates from options and that from \f[C]date:\f[R] queries.
 That is, \f[C]date:2019-01 date:2019 -p\[aq]2000 to 2030\[aq]\f[R]
 yields January 2019, the smallest common time span.
+.IP \[bu] 2
+A report interval (see below) will adjust start/end dates, when needed,
+so that they fall on subperiod boundaries.
 .PP
 Examples:
 .PP
@@ -1207,6 +1212,8 @@ Examples: \f[C]date:2016\f[R], \f[C]date:thismonth\f[R],
 \f[C]date:2000/2/1-2/15\f[R], \f[C]date:lastweek-\f[R].
 If the \f[C]--date2\f[R] command line flag is present, this matches
 secondary dates instead.
+(Report intervals will adjust start/end dates to preceding/following
+subperiod boundaries.)
 .TP
 \f[B]\f[R]\f[C]date2:PERIODEXPR\f[R]\f[B]\f[R]
 match secondary dates within the specified period.

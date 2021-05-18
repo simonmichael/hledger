@@ -133,10 +133,12 @@ before options, as shown in the synopsis above.
    hledger reporting options:
 
 `-b --begin=DATE'
-     include postings/txns on or after this date
+     include postings/txns on or after this date (will be adjusted to
+     preceding subperiod start when using a report interval)
 
 `-e --end=DATE'
-     include postings/txns before this date
+     include postings/txns before this date (will be adjusted to
+     following subperiod end when using a report interval)
 
 `-D --daily'
      multiperiod/multicolumn report by day
@@ -608,19 +610,19 @@ Tag Table:
 Node: Top84
 Node: OPTIONS1727
 Ref: #options1832
-Node: PERMISSIONS9083
-Ref: #permissions9222
-Node: EDITING UPLOADING DOWNLOADING10434
-Ref: #editing-uploading-downloading10615
-Node: RELOADING11446
-Ref: #reloading11580
-Node: JSON API12012
-Ref: #json-api12126
-Node: ENVIRONMENT17615
-Ref: #environment17731
-Node: FILES18463
-Ref: #files18563
-Node: BUGS18776
-Ref: #bugs18854
+Node: PERMISSIONS9245
+Ref: #permissions9384
+Node: EDITING UPLOADING DOWNLOADING10596
+Ref: #editing-uploading-downloading10777
+Node: RELOADING11608
+Ref: #reloading11742
+Node: JSON API12174
+Ref: #json-api12288
+Node: ENVIRONMENT17777
+Ref: #environment17893
+Node: FILES18625
+Ref: #files18725
+Node: BUGS18938
+Ref: #bugs19016
 
 End Tag Table

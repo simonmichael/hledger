@@ -107,10 +107,12 @@ the data.
    hledger reporting options:
 
 `-b --begin=DATE'
-     include postings/txns on or after this date
+     include postings/txns on or after this date (will be adjusted to
+     preceding subperiod start when using a report interval)
 
 `-e --end=DATE'
-     include postings/txns before this date
+     include postings/txns before this date (will be adjusted to
+     following subperiod end when using a report interval)
 
 `-D --daily'
      multiperiod/multicolumn report by day
@@ -529,23 +531,23 @@ Tag Table:
 Node: Top82
 Node: OPTIONS1478
 Ref: #options1575
-Node: KEYS5808
-Ref: #keys5903
-Node: SCREENS10199
-Ref: #screens10304
-Node: Accounts screen10394
-Ref: #accounts-screen10522
-Node: Register screen12726
-Ref: #register-screen12881
-Node: Transaction screen14876
-Ref: #transaction-screen15034
-Node: Error screen15901
-Ref: #error-screen16023
-Node: ENVIRONMENT16265
-Ref: #environment16379
-Node: FILES17184
-Ref: #files17283
-Node: BUGS17496
-Ref: #bugs17573
+Node: KEYS5970
+Ref: #keys6065
+Node: SCREENS10361
+Ref: #screens10466
+Node: Accounts screen10556
+Ref: #accounts-screen10684
+Node: Register screen12888
+Ref: #register-screen13043
+Node: Transaction screen15038
+Ref: #transaction-screen15196
+Node: Error screen16063
+Ref: #error-screen16185
+Node: ENVIRONMENT16427
+Ref: #environment16541
+Node: FILES17346
+Ref: #files17445
+Node: BUGS17658
+Ref: #bugs17735
 
 End Tag Table
