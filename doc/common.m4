@@ -103,9 +103,11 @@ m4_define({{_reportingoptions_}}, {{
 
 `-b --begin=DATE`
 : include postings/txns on or after this date
+  (will be adjusted to preceding subperiod start when using a report interval)
 
 `-e --end=DATE`
 : include postings/txns before this date
+  (will be adjusted to following subperiod end when using a report interval)
 
 `-D --daily`
 : multiperiod/multicolumn report by day

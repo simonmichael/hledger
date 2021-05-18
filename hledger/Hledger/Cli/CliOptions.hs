@@ -136,8 +136,8 @@ reportflags :: [Flag RawOpts]
 reportflags = [
 
   -- report period & interval
-  flagReq  ["begin","b"]     (\s opts -> Right $ setopt "begin" s opts) "DATE" "include postings/txns on or after this date"
- ,flagReq  ["end","e"]       (\s opts -> Right $ setopt "end" s opts) "DATE" "include postings/txns before this date"
+  flagReq  ["begin","b"]     (\s opts -> Right $ setopt "begin" s opts) "DATE" "include postings/txns on or after this date (will be adjusted to preceding subperiod start when using a report interval)"
+ ,flagReq  ["end","e"]       (\s opts -> Right $ setopt "end" s opts) "DATE" "include postings/txns before this date (will be adjusted to following subperiod end when using a report interval)"
  ,flagNone ["daily","D"]     (setboolopt "daily") "multiperiod/multicolumn report by day"
  ,flagNone ["weekly","W"]    (setboolopt "weekly") "multiperiod/multicolumn report by week"
  ,flagNone ["monthly","M"]   (setboolopt "monthly") "multiperiod/multicolumn report by month"

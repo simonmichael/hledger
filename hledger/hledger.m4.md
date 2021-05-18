@@ -493,6 +493,8 @@ Some notes:
   start/end dates from options and that from `date:` queries.
   That is, `date:2019-01 date:2019 -p'2000 to 2030'` yields January 2019, the
   smallest common time span.
+- A [report interval](#report-intervals) (see below) will adjust start/end dates,
+  when needed, so that they fall on subperiod boundaries.
 
 Examples:
 
@@ -743,6 +745,8 @@ or `hledger print cur:\\$`.
 PERIODEXPR is a [period expression](#period-expressions) (with no report interval).
 Examples: `date:2016`, `date:thismonth`, `date:2000/2/1-2/15`, `date:lastweek-`.
 If the `--date2` command line flag is present, this matches [secondary dates](#secondary-dates) instead.
+([Report intervals](#report-intervals) will adjust [start/end dates](report-start--end-date)
+to preceding/following subperiod boundaries.)
 
 **`date2:PERIODEXPR`**
 : match secondary dates within the specified period.
