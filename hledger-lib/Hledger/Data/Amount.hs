@@ -93,6 +93,7 @@ module Hledger.Data.Amount (
   -- * MixedAmount
   nullmixedamt,
   missingmixedamt,
+  isMissingMixedAmount,
   mixed,
   mixedAmount,
   maAddAmount,
@@ -540,6 +541,10 @@ nullmixedamt = Mixed mempty
 missingmixedamt :: MixedAmount
 missingmixedamt = mixedAmount missingamt
 
+-- | Whether a MixedAmount has a missing amount
+isMissingMixedAmount :: MixedAmount -> Bool
+isMissingMixedAmount (Mixed ma) = amountKey missingamt `M.member` ma
+
 -- | Convert amounts in various commodities into a mixed amount.
 mixed :: Foldable t => t Amount -> MixedAmount
 mixed = maAddAmounts nullmixedamt
@@ -637,13 +642,12 @@ maIsNonZero = not . mixedAmountIsZero
 --
 amounts :: MixedAmount -> [Amount]
 amounts (Mixed ma)
-  | missingkey `M.member` ma = [missingamt]  -- missingamt should always be alone, but detect it even if not
-  | M.null nonzeros          = [newzero]
-  | otherwise                = toList nonzeros
+  | isMissingMixedAmount (Mixed ma) = [missingamt]  -- missingamt should always be alone, but detect it even if not
+  | M.null nonzeros                 = [newzero]
+  | otherwise                       = toList nonzeros
   where
     newzero = fromMaybe nullamt $ find (not . T.null . acommodity) zeros
     (zeros, nonzeros) = M.partition amountIsZero ma
-    missingkey = amountKey missingamt
 
 -- | Get a mixed amount's component amounts without normalising zero and missing
 -- amounts. This is used for JSON serialisation, so the order is important. In
@@ -966,7 +970,14 @@ tests_Amount = tests "Amount" [
 
   ,tests "MixedAmount" [
 
-     test "adding mixed amounts to zero, the commodity and amount style are preserved" $
+     test "comparing mixed amounts compares based on quantities" $ do
+       let usdpos = mixed [usd 1]
+           usdneg = mixed [usd (-1)]
+           eurneg = mixed [eur (-12)]
+       compare usdneg usdpos @?= LT
+       compare eurneg usdpos @?= LT
+
+     ,test "adding mixed amounts to zero, the commodity and amount style are preserved" $
       maSum (map mixedAmount
         [usd 1.25
         ,usd (-1) `withPrecision` Precision 3

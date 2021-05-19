@@ -27,8 +27,8 @@ module Hledger.Data.Types
 where
 
 import GHC.Generics (Generic)
-import Data.Decimal
-import Data.Default
+import Data.Decimal (Decimal)
+import Data.Default (Default(..))
 import Data.Functor (($>))
 import Data.List (intercalate)
 import Text.Blaze (ToMarkup(..))
@@ -230,7 +230,27 @@ data Amount = Amount {
       aprice      :: !(Maybe AmountPrice)  -- ^ the (fixed, transaction-specific) price for this amount, if any
     } deriving (Eq,Ord,Generic,Show)
 
-newtype MixedAmount = Mixed (M.Map MixedAmountKey Amount) deriving (Eq,Ord,Generic,Show)
+newtype MixedAmount = Mixed (M.Map MixedAmountKey Amount) deriving (Generic,Show)
+
+instance Eq  MixedAmount where a == b  = maCompare a b == EQ
+instance Ord MixedAmount where compare = maCompare
+
+-- | Compare two MixedAmounts, substituting 0 for the quantity of any missing
+-- commodities in either.
+maCompare :: MixedAmount -> MixedAmount -> Ordering
+maCompare (Mixed a) (Mixed b) = go (M.toList a) (M.toList b)
+  where
+    go xss@((kx,x):xs) yss@((ky,y):ys) = case compare kx ky of
+                 EQ -> compareQuantities (Just x) (Just y) <> go xs ys
+                 LT -> compareQuantities (Just x) Nothing  <> go xs yss
+                 GT -> compareQuantities Nothing  (Just y) <> go xss ys
+    go ((_,x):xs) [] = compareQuantities (Just x) Nothing  <> go xs []
+    go [] ((_,y):ys) = compareQuantities Nothing  (Just y) <> go [] ys
+    go []         [] = EQ
+    compareQuantities = comparing (maybe 0 aquantity) <> comparing (maybe 0 totalprice)
+    totalprice x = case aprice x of
+                        Just (TotalPrice p) -> aquantity p
+                        _                   -> 0
 
 -- | Stores the CommoditySymbol of the Amount, along with the CommoditySymbol of
 -- the price, and its unit price if being used.
