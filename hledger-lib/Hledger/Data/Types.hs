@@ -49,7 +49,6 @@ import Data.Time.Calendar
 import Data.Time.LocalTime
 import Data.Word (Word8)
 import System.Time (ClockTime(..))
-import Text.Printf
 
 import Hledger.Utils.Regex
 
@@ -196,13 +195,15 @@ data AmountStyle = AmountStyle {
 } deriving (Eq,Ord,Read,Generic)
 
 instance Show AmountStyle where
-  show AmountStyle{..} =
-    printf "AmountStylePP \"%s %s %s %s %s..\""
-    (show ascommodityside)
-    (show ascommodityspaced)
-    (show asprecision)
-    (show asdecimalpoint)
-    (show asdigitgroups)
+  show AmountStyle{..} = concat
+    [ "AmountStylePP \""
+    , show ascommodityside
+    , show ascommodityspaced
+    , show asprecision
+    , show asdecimalpoint
+    , show asdigitgroups
+    , "..\""
+    ]
 
 -- | The "display precision" for a hledger amount, by which we mean
 -- the number of decimal digits to display to the right of the decimal mark.
