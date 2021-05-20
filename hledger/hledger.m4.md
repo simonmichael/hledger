@@ -2773,7 +2773,8 @@ See also [Rewrite account names](rewrite-account-names.html).
 
 To set an account alias, use the `alias` directive in your journal file.
 This affects all subsequent journal entries in the current file or its
-[included files](#including-other-files).
+[included files](#including-other-files)
+(but note: [not sibling or parent files](#aliases-and-multiple-files)).
 The spaces around the = are optional:
 
 ```journal
