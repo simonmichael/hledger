@@ -6,7 +6,7 @@
 
 | | |
 |-------------------------------|----------------------------------------------------------------------------
-| IRC                           | [#hledger](https://kiwiirc.com/nextclient/#ircs://irc.freenode.net/#hledger). Also: [#hledger-bots](https://kiwiirc.com/nextclient/#ircs://irc.freenode.net/hledger-bots), [#ledger](https://kiwiirc.com/nextclient/#ircs://irc.freenode.net/hledger), [#beancount](https://kiwiirc.com/nextclient/#ircs://irc.freenode.net/hledger) 
+| IRC                           | [#hledger](https://kiwiirc.com/nextclient/irc.libera.chat:+6697/#hledger). Also: [#hledger-bots](http://kiwiirc.com/nextclient/irc.libera.chat:+6697/#hledger-bots)
 | Mail list                     | [list.hledger.org](http://list.hledger.org) 
 | Twitter                       | [#hledger](https://twitter.com/search?q=%23hledger&src=typd&f=realtime). Also: [#plaintextaccounting](https://twitter.com/search?q=%23plaintextaccounting&src=typd&f=realtime), <a href="https://twitter.com/ledgertips">@LedgerTips</a>, [#ledgercli](https://twitter.com/search?q=%23ledgercli&src=typd&f=realtime) 
 | Reddit                        | [/r/plaintextaccounting](https://www.reddit.com/r/plaintextaccounting/) 
