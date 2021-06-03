@@ -230,11 +230,11 @@ $ hledger -f- print --auto
 # 12.
 $ hledger -f- print --auto
 2018-01-01  ; modified:
-    Expenses:Joint:Widgets            $100.00
-    Expenses:Joint            $-100.00 @@ £50  ; generated-posting: = ^Expenses:Joint
-    Liabilities:Joint:Bob       $50.00 @@ £25  ; generated-posting: = ^Expenses:Joint
-    Liabilities:Joint:Bill      $50.00 @@ £25  ; generated-posting: = ^Expenses:Joint
-    Assets:Joint:Bank                 £-50.00
+    Expenses:Joint:Widgets               $100.00
+    Expenses:Joint            $-100.00 @@ £50.00  ; generated-posting: = ^Expenses:Joint
+    Liabilities:Joint:Bob       $50.00 @@ £25.00  ; generated-posting: = ^Expenses:Joint
+    Liabilities:Joint:Bill      $50.00 @@ £25.00  ; generated-posting: = ^Expenses:Joint
+    Assets:Joint:Bank                    £-50.00
 
 >=0
 
