@@ -54,6 +54,8 @@ jobs:
       # have to fetch everything for git describe for --version
       with: 
         fetch-depth: 0        
+
+    - name: Check out tags
       run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
 
     # things to be cached/restored:
