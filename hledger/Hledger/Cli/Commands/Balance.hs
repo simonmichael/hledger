@@ -313,9 +313,7 @@ balance :: CliOpts -> Journal -> IO ()
 balance opts@CliOpts{reportspec_=rspec} j = case reporttype_ of
     BudgetReport -> do  -- single or multi period budget report
       let reportspan = reportSpan j rspec
-          budgetreport = budgetReport rspec assrt reportspan j
-            where
-              assrt = not $ ignore_assertions_ $ inputopts_ opts
+          budgetreport = budgetReport rspec (balancingopts_ $ inputopts_ opts) reportspan j
           render = case fmt of
             "txt"  -> budgetReportAsText ropts
             "json" -> (<>"\n") . toJsonText

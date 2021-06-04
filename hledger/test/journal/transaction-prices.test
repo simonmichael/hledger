@@ -126,7 +126,16 @@ hledger -f - balance
                 -10£  
 >>>=0
 
-# 10. When commodity price is specified implicitly, transaction should
+# 10. Should not infer prices when --strict is specified
+hledger -f - balance --strict
+<<<
+2011/01/01 x
+  a  -10£
+  b  16$
+>>>
+>>>=1
+
+# 11. When commodity price is specified implicitly, transaction should
 #     NOT be considered balanced out when BOTH amounts are negative
 hledger -f - balance
 <<<
@@ -136,7 +145,7 @@ hledger -f - balance
 >>>
 >>>=1
 
-# 11. Differently-priced lots of a commodity should be merged in balance report
+# 12. Differently-priced lots of a commodity should be merged in balance report
 hledger -f - balance
 <<<
 2011/1/1
@@ -150,7 +159,7 @@ hledger -f - balance
                   £2  
 >>>=0
 
-# 12. this should balance
+# 13. this should balance
 hledger -f - balance
 <<<
 2011/1/1
@@ -159,7 +168,7 @@ hledger -f - balance
     c  $-30
 >>>= 0
 
-# 13. these balance because of the unit prices, and should parse successfully
+# 14. these balance because of the unit prices, and should parse successfully
 hledger -f - balance --no-total
 <<<
 1/1
@@ -169,7 +178,7 @@ hledger -f - balance --no-total
                  -1X  a
 >>>= 0
 
-# 14.
+# 15.
 hledger -f - balance --no-total -B
 <<<
 1/1
@@ -178,7 +187,7 @@ hledger -f - balance --no-total -B
 >>>
 >>>= 0
 
-# 15. likewise with total prices. Note how the primary amount's sign is used.
+# 16. likewise with total prices. Note how the primary amount's sign is used.
 hledger -f - balance --no-total
 <<<
 1/1
@@ -188,7 +197,7 @@ hledger -f - balance --no-total
                  -1X  a
 >>>= 0
 
-# 16.
+# 17.
 hledger -f - balance --no-total -B
 <<<
 1/1
@@ -197,7 +206,7 @@ hledger -f - balance --no-total -B
 >>>
 >>>= 0
 
-# 17. here, a's primary amount is 0, and its cost is 1Y; b is the assigned auto-balancing amount of -1Y (per issue 69)
+# 18. here, a's primary amount is 0, and its cost is 1Y; b is the assigned auto-balancing amount of -1Y (per issue 69)
 hledger -f - balance --no-total -E
 <<<
 1/1
@@ -210,7 +219,7 @@ hledger -f - balance --no-total -E
                  -1Y  b
 >>>= 0
 
-# 18. Without -E, a should be hidden because its balance is zero, even though it has a non-zero cost.
+# 19. Without -E, a should be hidden because its balance is zero, even though it has a non-zero cost.
 hledger -f - balance --no-total
 <<<
 1/1
@@ -222,7 +231,7 @@ hledger -f - balance --no-total
                  -1Y  b
 >>>= 0
 
-# 19. the above with -B
+# 20. the above with -B
 hledger -f - balance --no-total -E -B
 <<<
 1/1

@@ -163,7 +163,7 @@ asDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}
           <+> borderQueryStr (T.unpack . T.unwords . map textQuoteIfNeeded $ querystring_ ropts)
           <+> borderDepthStr mdepth
           <+> str (" ("++curidx++"/"++totidx++")")
-          <+> (if ignore_assertions_ $ inputopts_ copts
+          <+> (if ignore_assertions_ . balancingopts_ $ inputopts_ copts
                then withAttr ("border" <> "query") (str " ignoring balance assertions")
                else str "")
           where

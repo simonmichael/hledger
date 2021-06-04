@@ -1,0 +1,8 @@
+# 1. Check that prices balance without auto-inferring prices
+<
+2011/01/01 x
+  a  -10£
+  b  16$
+$ hledger -f - check balancednoautoconversion
+>2 /real postings' sum should be 0 but is:  16\$/
+>=1

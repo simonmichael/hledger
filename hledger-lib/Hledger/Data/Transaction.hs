@@ -28,6 +28,8 @@ module Hledger.Data.Transaction (
   virtualPostings,
   balancedVirtualPostings,
   transactionsPostings,
+  BalancingOpts(..),
+  balancingOpts,
   isTransactionBalanced,
   balanceTransaction,
   balanceTransactionHelper,
@@ -61,7 +63,7 @@ module Hledger.Data.Transaction (
 )
 where
 
-import Data.Default (def)
+import Data.Default (Default(..))
 import Data.Foldable (asum)
 import Data.List (intercalate, partition)
 import Data.List.Extra (nubSort)
@@ -352,6 +354,21 @@ balancedVirtualPostings = filter isBalancedVirtual . tpostings
 transactionsPostings :: [Transaction] -> [Posting]
 transactionsPostings = concatMap tpostings
 
+data BalancingOpts = BalancingOpts
+  { ignore_assertions_ :: Bool  -- ^ Ignore balance assertions
+  , infer_prices_      :: Bool  -- ^ Infer prices in unbalanced multicommodity amounts
+  , commodity_styles_  :: Maybe (M.Map CommoditySymbol AmountStyle)  -- ^ commodity display styles
+  } deriving (Show)
+
+instance Default BalancingOpts where def = balancingOpts
+
+balancingOpts :: BalancingOpts
+balancingOpts = BalancingOpts
+  { ignore_assertions_ = False
+  , infer_prices_      = True
+  , commodity_styles_  = Nothing
+  }
+
 -- | Check that this transaction would appear balanced to a human when displayed.
 -- On success, returns the empty list, otherwise one or more error messages.
 --
@@ -369,13 +386,13 @@ transactionsPostings = concatMap tpostings
 -- 3. Does the amounts' sum appear non-zero when displayed ?
 --    (using the given display styles if provided)
 --
-transactionCheckBalanced :: Maybe (M.Map CommoditySymbol AmountStyle) -> Transaction -> [String]
-transactionCheckBalanced mstyles t = errs
+transactionCheckBalanced :: BalancingOpts -> Transaction -> [String]
+transactionCheckBalanced BalancingOpts{commodity_styles_} t = errs
   where
     (rps, bvps) = (realPostings t, balancedVirtualPostings t)
 
     -- check for mixed signs, detecting nonzeros at display precision
-    canonicalise = maybe id canonicaliseMixedAmount mstyles
+    canonicalise = maybe id canonicaliseMixedAmount commodity_styles_
     signsOk ps =
       case filter (not.mixedAmountLooksZero) $ map (canonicalise.mixedAmountCost.pamount) ps of
         nonzeros | length nonzeros >= 2
@@ -402,8 +419,8 @@ transactionCheckBalanced mstyles t = errs
           | otherwise     = ""
 
 -- | Legacy form of transactionCheckBalanced.
-isTransactionBalanced :: Maybe (M.Map CommoditySymbol AmountStyle) -> Transaction -> Bool
-isTransactionBalanced mstyles = null . transactionCheckBalanced mstyles
+isTransactionBalanced :: BalancingOpts -> Transaction -> Bool
+isTransactionBalanced bopts = null . transactionCheckBalanced bopts
 
 -- | Balance this transaction, ensuring that its postings
 -- (and its balanced virtual postings) sum to 0,
@@ -419,22 +436,22 @@ isTransactionBalanced mstyles = null . transactionCheckBalanced mstyles
 -- if provided, so that the result agrees with the numbers users can see.
 --
 balanceTransaction ::
-     Maybe (M.Map CommoditySymbol AmountStyle)  -- ^ commodity display styles
+     BalancingOpts
   -> Transaction
   -> Either String Transaction
-balanceTransaction mstyles = fmap fst . balanceTransactionHelper mstyles
+balanceTransaction bopts = fmap fst . balanceTransactionHelper bopts
 
 -- | Helper used by balanceTransaction and balanceTransactionWithBalanceAssignmentAndCheckAssertionsB;
 -- use one of those instead. It also returns a list of accounts
 -- and amounts that were inferred.
 balanceTransactionHelper ::
-     Maybe (M.Map CommoditySymbol AmountStyle)  -- ^ commodity display styles
+     BalancingOpts
   -> Transaction
   -> Either String (Transaction, [(AccountName, MixedAmount)])
-balanceTransactionHelper mstyles t = do
-  (t', inferredamtsandaccts) <-
-    inferBalancingAmount (fromMaybe M.empty mstyles) $ inferBalancingPrices t
-  case transactionCheckBalanced mstyles t' of
+balanceTransactionHelper bopts t = do
+  (t', inferredamtsandaccts) <- inferBalancingAmount (fromMaybe M.empty $ commodity_styles_ bopts) $
+    if infer_prices_ bopts then inferBalancingPrices t else t
+  case transactionCheckBalanced bopts t' of
     []   -> Right (txnTieKnot t', inferredamtsandaccts)
     errs -> Left $ transactionBalanceError t' errs
 
@@ -846,8 +863,7 @@ tests_Transaction =
     , tests "balanceTransaction" [
          test "detect unbalanced entry, sign error" $
           assertLeft
-            (balanceTransaction
-               Nothing
+            (balanceTransaction def
                (Transaction
                   0
                   ""
@@ -862,8 +878,7 @@ tests_Transaction =
                   [posting {paccount = "a", pamount = mixedAmount (usd 1)}, posting {paccount = "b", pamount = mixedAmount (usd 1)}]))
         ,test "detect unbalanced entry, multiple missing amounts" $
           assertLeft $
-             balanceTransaction
-               Nothing
+             balanceTransaction def
                (Transaction
                   0
                   ""
@@ -880,8 +895,7 @@ tests_Transaction =
                   ])
         ,test "one missing amount is inferred" $
           (pamount . last . tpostings <$>
-           balanceTransaction
-             Nothing
+           balanceTransaction def
              (Transaction
                 0
                 ""
@@ -897,8 +911,7 @@ tests_Transaction =
           Right (mixedAmount $ usd (-1))
         ,test "conversion price is inferred" $
           (pamount . head . tpostings <$>
-           balanceTransaction
-             Nothing
+           balanceTransaction def
              (Transaction
                 0
                 ""
@@ -916,8 +929,7 @@ tests_Transaction =
           Right (mixedAmount $ usd 1.35 @@ eur 1)
         ,test "balanceTransaction balances based on cost if there are unit prices" $
           assertRight $
-          balanceTransaction
-            Nothing
+          balanceTransaction def
             (Transaction
                0
                ""
@@ -934,8 +946,7 @@ tests_Transaction =
                ])
         ,test "balanceTransaction balances based on cost if there are total prices" $
           assertRight $
-          balanceTransaction
-            Nothing
+          balanceTransaction def
             (Transaction
                0
                ""
@@ -954,7 +965,7 @@ tests_Transaction =
     , tests "isTransactionBalanced" [
          test "detect balanced" $
           assertBool "" $
-          isTransactionBalanced Nothing $
+          isTransactionBalanced def $
           Transaction
             0
             ""
@@ -972,7 +983,7 @@ tests_Transaction =
         ,test "detect unbalanced" $
           assertBool "" $
           not $
-          isTransactionBalanced Nothing $
+          isTransactionBalanced def $
           Transaction
             0
             ""
@@ -990,7 +1001,7 @@ tests_Transaction =
         ,test "detect unbalanced, one posting" $
           assertBool "" $
           not $
-          isTransactionBalanced Nothing $
+          isTransactionBalanced def $
           Transaction
             0
             ""
@@ -1005,7 +1016,7 @@ tests_Transaction =
             [posting {paccount = "b", pamount = mixedAmount (usd 1.00)}]
         ,test "one zero posting is considered balanced for now" $
           assertBool "" $
-          isTransactionBalanced Nothing $
+          isTransactionBalanced def $
           Transaction
             0
             ""
@@ -1020,7 +1031,7 @@ tests_Transaction =
             [posting {paccount = "b", pamount = mixedAmount (usd 0)}]
         ,test "virtual postings don't need to balance" $
           assertBool "" $
-          isTransactionBalanced Nothing $
+          isTransactionBalanced def $
           Transaction
             0
             ""
@@ -1039,7 +1050,7 @@ tests_Transaction =
         ,test "balanced virtual postings need to balance among themselves" $
           assertBool "" $
           not $
-          isTransactionBalanced Nothing $
+          isTransactionBalanced def $
           Transaction
             0
             ""
@@ -1057,7 +1068,7 @@ tests_Transaction =
             ]
         ,test "balanced virtual postings need to balance among themselves (2)" $
           assertBool "" $
-          isTransactionBalanced Nothing $
+          isTransactionBalanced def $
           Transaction
             0
             ""

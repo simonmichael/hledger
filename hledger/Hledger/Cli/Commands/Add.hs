@@ -203,7 +203,7 @@ confirmedTransactionWizard prevInput es@EntryState{..} stack@(currentStage : _) 
                              ,tcomment=txnCmnt
                              ,tpostings=esPostings
                              }
-      case balanceTransaction Nothing t of -- imprecise balancing (?)
+      case balanceTransaction balancingOpts t of -- imprecise balancing (?)
         Right t' ->
           confirmedTransactionWizard prevInput es (EndStage t' : stack)
         Left err -> do
@@ -292,7 +292,7 @@ descriptionAndCommentWizard PrevInput{..} EntryState{..} = do
       return $ Just (desc, comment)
 
 postingsBalanced :: [Posting] -> Bool
-postingsBalanced ps = isRight $ balanceTransaction Nothing nulltransaction{tpostings=ps}
+postingsBalanced ps = isRight $ balanceTransaction balancingOpts nulltransaction{tpostings=ps}
 
 accountWizard PrevInput{..} EntryState{..} = do
   let pnum = length esPostings + 1

@@ -717,7 +717,7 @@ journalModifyTransactions d j =
 -- | Check any balance assertions in the journal and return an error message
 -- if any of them fail (or if the transaction balancing they require fails).
 journalCheckBalanceAssertions :: Journal -> Maybe String
-journalCheckBalanceAssertions = either Just (const Nothing) . journalBalanceTransactions True
+journalCheckBalanceAssertions = either Just (const Nothing) . journalBalanceTransactions def
 
 -- "Transaction balancing", including: inferring missing amounts,
 -- applying balance assignments, checking transaction balancedness,
@@ -817,13 +817,14 @@ updateTransactionB t = withRunningBalance $ \BalancingState{bsTransactions}  ->
 --
 -- This does multiple things at once because amount inferring, balance
 -- assignments, balance assertions and posting dates are interdependent.
-journalBalanceTransactions :: Bool -> Journal -> Either String Journal
-journalBalanceTransactions assrt j' =
+journalBalanceTransactions :: BalancingOpts -> Journal -> Either String Journal
+journalBalanceTransactions bopts' j' =
   let
     -- ensure transactions are numbered, so we can store them by number
     j@Journal{jtxns=ts} = journalNumberTransactions j'
     -- display precisions used in balanced checking
     styles = Just $ journalCommodityStyles j
+    bopts = bopts'{commodity_styles_=styles}
     -- balance assignments will not be allowed on these
     txnmodifieraccts = S.fromList $ map paccount $ concatMap tmpostingrules $ jtxnmodifiers j
   in
@@ -840,7 +841,7 @@ journalBalanceTransactions assrt j' =
         -- and leaving the others for later. The balanced ones are split into their postings.
         -- The postings and not-yet-balanced transactions remain in the same relative order.
         psandts :: [Either Posting Transaction] <- fmap concat $ forM ts $ \case
-          t | null $ assignmentPostings t -> case balanceTransaction styles t of
+          t | null $ assignmentPostings t -> case balanceTransaction bopts t of
               Left  e  -> throwError e
               Right t' -> do
                 lift $ writeArray balancedtxns (tindex t') t'
@@ -850,7 +851,7 @@ journalBalanceTransactions assrt j' =
         -- 2. Sort these items by date, preserving the order of same-day items,
         -- and step through them while keeping running account balances,
         runningbals <- lift $ H.newSized (length $ journalAccountNamesUsed j)
-        flip runReaderT (BalancingState styles txnmodifieraccts assrt runningbals balancedtxns) $ do
+        flip runReaderT (BalancingState styles txnmodifieraccts (not $ ignore_assertions_ bopts) runningbals balancedtxns) $ do
           -- performing balance assignments in, and balancing, the remaining transactions,
           -- and checking balance assertions as each posting is processed.
           void $ mapM' balanceTransactionAndCheckAssertionsB $ sortOn (either postingDate tdate) psandts
@@ -879,7 +880,7 @@ balanceTransactionAndCheckAssertionsB (Right t@Transaction{tpostings=ps}) = do
   ps' <- mapM (addOrAssignAmountAndCheckAssertionB . postingStripPrices) ps
   -- infer any remaining missing amounts, and make sure the transaction is now fully balanced
   styles <- R.reader bsStyles
-  case balanceTransactionHelper styles t{tpostings=ps'} of
+  case balanceTransactionHelper balancingOpts{commodity_styles_=styles} t{tpostings=ps'} of
     Left err -> throwError err
     Right (t', inferredacctsandamts) -> do
       -- for each amount just inferred, update the running balance
@@ -1404,7 +1405,7 @@ journalApplyAliases aliases j =
 --     liabilities:debts  $1
 --     assets:bank:checking
 --
-Right samplejournal = journalBalanceTransactions False $
+Right samplejournal = journalBalanceTransactions def $
          nulljournal
          {jtxns = [
            txnTieKnot $ Transaction {
@@ -1547,7 +1548,7 @@ tests_Journal = tests "Journal" [
   ,tests "journalBalanceTransactions" [
 
      test "balance-assignment" $ do
-      let ej = journalBalanceTransactions True $
+      let ej = journalBalanceTransactions def $
             --2019/01/01
             --  (a)            = 1
             nulljournal{ jtxns = [
@@ -1558,7 +1559,7 @@ tests_Journal = tests "Journal" [
       (jtxns j & head & tpostings & head & pamount & amountsRaw) @?= [num 1]
 
     ,test "same-day-1" $ do
-      assertRight $ journalBalanceTransactions True $
+      assertRight $ journalBalanceTransactions def $
             --2019/01/01
             --  (a)            = 1
             --2019/01/01
@@ -1569,7 +1570,7 @@ tests_Journal = tests "Journal" [
             ]}
 
     ,test "same-day-2" $ do
-      assertRight $ journalBalanceTransactions True $
+      assertRight $ journalBalanceTransactions def $
             --2019/01/01
             --    (a)                  2 = 2
             --2019/01/01
@@ -1587,7 +1588,7 @@ tests_Journal = tests "Journal" [
             ]}
 
     ,test "out-of-order" $ do
-      assertRight $ journalBalanceTransactions True $
+      assertRight $ journalBalanceTransactions def $
             --2019/1/2
             --  (a)    1 = 2
             --2019/1/1

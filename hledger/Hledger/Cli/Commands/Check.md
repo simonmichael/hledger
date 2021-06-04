@@ -28,7 +28,7 @@ including `check`:
 - **parseable** - data files are well-formed and can be 
   [successfully parsed](hledger.html#input-files)
 
-- **autobalanced** - all transactions are [balanced](hledger.html#postings), 
+- **balancedwithautoconversion** - all transactions are [balanced](hledger.html#postings),
   inferring missing amounts where necessary, and possibly converting commodities 
   using [transaction prices] or automatically-inferred transaction prices
 
@@ -45,6 +45,9 @@ Or, they can be run by giving their names as arguments to `check`:
 
 - **commodities** - all commodity symbols used 
   [have been declared](hledger.html#commodity-error-checking)
+
+- **balancednoautoconversion** - transactions are balanced, possibly using
+  explicit transaction prices but not [inferred ones](#transaction-prices)
 
 ### Other checks
 

@@ -63,8 +63,8 @@ type BudgetDisplayCell = ((Text, Int), Maybe ((Text, Int), Maybe (Text, Int)))
 -- from all periodic transactions, calculate actual balance changes 
 -- from the regular transactions, and compare these to get a 'BudgetReport'.
 -- Unbudgeted accounts may be hidden or renamed (see journalWithBudgetAccountNames).
-budgetReport :: ReportSpec -> Bool -> DateSpan -> Journal -> BudgetReport
-budgetReport rspec assrt reportspan j = dbg4 "sortedbudgetreport" budgetreport
+budgetReport :: ReportSpec -> BalancingOpts -> DateSpan -> Journal -> BudgetReport
+budgetReport rspec bopts reportspan j = dbg4 "sortedbudgetreport" budgetreport
   where
     -- Budget report demands ALTree mode to ensure subaccounts and subaccount budgets are properly handled
     -- and that reports with and without --empty make sense when compared side by side
@@ -79,7 +79,7 @@ budgetReport rspec assrt reportspan j = dbg4 "sortedbudgetreport" budgetreport
       concatMap (`runPeriodicTransaction` reportspan) $
       jperiodictxns j
     actualj = journalWithBudgetAccountNames budgetedaccts showunbudgeted j
-    budgetj = journalAddBudgetGoalTransactions assrt ropts reportspan j
+    budgetj = journalAddBudgetGoalTransactions bopts ropts reportspan j
     actualreport@(PeriodicReport actualspans _ _) =
         dbg5 "actualreport" $ multiBalanceReport rspec{rsOpts=ropts{empty_=True}} actualj
     budgetgoalreport@(PeriodicReport _ budgetgoalitems budgetgoaltotals) =
@@ -97,9 +97,9 @@ budgetReport rspec assrt reportspan j = dbg4 "sortedbudgetreport" budgetreport
 -- Budget goal transactions are similar to forecast transactions except
 -- their purpose and effect is to define balance change goals, per account and period,
 -- for BudgetReport.
-journalAddBudgetGoalTransactions :: Bool -> ReportOpts -> DateSpan -> Journal -> Journal
-journalAddBudgetGoalTransactions assrt _ropts reportspan j =
-  either error' id $ journalBalanceTransactions assrt j{ jtxns = budgetts }  -- PARTIAL:
+journalAddBudgetGoalTransactions :: BalancingOpts -> ReportOpts -> DateSpan -> Journal -> Journal
+journalAddBudgetGoalTransactions bopts _ropts reportspan j =
+  either error' id $ journalBalanceTransactions bopts j{ jtxns = budgetts }  -- PARTIAL:
   where
     budgetspan = dbg3 "budget span" $ reportspan
     budgetts =

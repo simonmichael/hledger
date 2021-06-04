@@ -33,7 +33,7 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
     inputstr = intercalate ", " $ map quoteIfNeeded inputfiles
     catchup = boolopt "catchup" rawopts
     dryrun = boolopt "dry-run" rawopts
-    iopts' = iopts{new_=True, new_save_=not dryrun, commoditystyles_=Just $ journalCommodityStyles j}
+    iopts' = iopts{new_=True, new_save_=not dryrun, balancingopts_=balancingOpts{commodity_styles_=Just $ journalCommodityStyles j}}
   case inputfiles of
     [] -> error' "please provide one or more input files as arguments"  -- PARTIAL:
     fs -> do

@@ -196,7 +196,7 @@ enableForecastPreservingPeriod ui copts@CliOpts{reportspec_=rspec@ReportSpec{rsO
 -- are disabled, do nothing.
 uiCheckBalanceAssertions :: Day -> UIState -> UIState
 uiCheckBalanceAssertions d ui@UIState{aopts=UIOpts{cliopts_=copts}, ajournal=j}
-  | ignore_assertions_ $ inputopts_ copts = ui
+  | ignore_assertions_ . balancingopts_ $ inputopts_ copts = ui
   | otherwise =
     case journalCheckBalanceAssertions j of
       Nothing  -> ui

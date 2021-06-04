@@ -116,7 +116,7 @@ parse iopts f t = do
               -- apply any command line account aliases. Can fail with a bad replacement pattern.
               in case journalApplyAliases (aliasesFromOpts iopts) pj' of
                   Left e -> throwError e
-                  Right pj'' -> journalFinalise iopts{ignore_assertions_=True} f t pj''
+                  Right pj'' -> journalFinalise iopts{balancingopts_=(balancingopts_ iopts){ignore_assertions_=True}} f t pj''
 
 --- ** reading rules files
 --- *** rules utilities

@@ -87,7 +87,7 @@ matching ppl ppr = do
 
 readJournalFile' :: FilePath -> IO Journal
 readJournalFile' fn =
-    readJournalFile definputopts {ignore_assertions_ = True} fn >>= either error' return  -- PARTIAL:
+    readJournalFile definputopts{balancingopts_=balancingOpts{ignore_assertions_=True}} fn >>= either error' return  -- PARTIAL:
 
 matchingPostings :: AccountName -> Journal -> [PostingWithPath]
 matchingPostings acct j = filter ((== acct) . paccount . ppposting) $ allPostingsWithPath j

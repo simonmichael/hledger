@@ -186,8 +186,8 @@ toggleReal ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspe
 
 -- | Toggle the ignoring of balance assertions.
 toggleIgnoreBalanceAssertions :: UIState -> UIState
-toggleIgnoreBalanceAssertions ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=iopts}}} =
-  ui{aopts=uopts{cliopts_=copts{inputopts_=iopts{ignore_assertions_=not $ ignore_assertions_ iopts}}}}
+toggleIgnoreBalanceAssertions ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=iopts@InputOpts{balancingopts_=bopts}}}} =
+  ui{aopts=uopts{cliopts_=copts{inputopts_=iopts{balancingopts_=bopts{ignore_assertions_=not $ ignore_assertions_ bopts}}}}}
 
 -- | Step through larger report periods, up to all.
 growReportPeriod :: Day -> UIState -> UIState
