@@ -42,7 +42,8 @@ jobs:
     - name: Check out
       uses: actions/checkout@v2
       # have to fetch everything for git describe for --version
-      with: fetch-depth: 0        
+      with: 
+        fetch-depth: 0        
       run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
 
     # things to be cached/restored:
