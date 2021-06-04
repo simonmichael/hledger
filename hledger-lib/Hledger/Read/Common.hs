@@ -196,13 +196,12 @@ data InputOpts = InputOpts {
     ,mrules_file_       :: Maybe FilePath       -- ^ a conversion rules file to use (when reading CSV)
     ,aliases_           :: [String]             -- ^ account name aliases to apply
     ,anon_              :: Bool                 -- ^ do light anonymisation/obfuscation of the data
-    ,ignore_assertions_ :: Bool                 -- ^ don't check balance assertions
     ,new_               :: Bool                 -- ^ read only new transactions since this file was last read
     ,new_save_          :: Bool                 -- ^ save latest new transactions state for next time
     ,pivot_             :: String               -- ^ use the given field's value as the account name
     ,auto_              :: Bool                 -- ^ generate automatic postings when journal is parsed
-    ,commoditystyles_   :: Maybe (M.Map CommoditySymbol AmountStyle) -- ^ optional commodity display styles affecting all files
-    ,strict_            :: Bool                 -- ^ do extra error checking (eg, all posted accounts are declared)
+    ,balancingopts_     :: BalancingOpts        -- ^ options for balancing transactions
+    ,strict_            :: Bool                 -- ^ do extra error checking (eg, all posted accounts are declared, no prices are inferred)
  } deriving (Show)
 
 instance Default InputOpts where def = definputopts
@@ -213,30 +212,31 @@ definputopts = InputOpts
     , mrules_file_       = Nothing
     , aliases_           = []
     , anon_              = False
-    , ignore_assertions_ = False
     , new_               = False
     , new_save_          = True
     , pivot_             = ""
     , auto_              = False
-    , commoditystyles_   = Nothing
+    , balancingopts_     = def
     , strict_            = False
     }
 
 rawOptsToInputOpts :: RawOpts -> InputOpts
 rawOptsToInputOpts rawopts = InputOpts{
-   -- files_             = listofstringopt "file" rawopts
-   mformat_           = Nothing
-  ,mrules_file_       = maybestringopt "rules-file" rawopts
-  ,aliases_           = listofstringopt "alias" rawopts
-  ,anon_              = boolopt "anon" rawopts
-  ,ignore_assertions_ = boolopt "ignore-assertions" rawopts
-  ,new_               = boolopt "new" rawopts
-  ,new_save_          = True
-  ,pivot_             = stringopt "pivot" rawopts
-  ,auto_              = boolopt "auto" rawopts
-  ,commoditystyles_   = Nothing
-  ,strict_            = boolopt "strict" rawopts
-  }
+     -- files_             = listofstringopt "file" rawopts
+     mformat_           = Nothing
+    ,mrules_file_       = maybestringopt "rules-file" rawopts
+    ,aliases_           = listofstringopt "alias" rawopts
+    ,anon_              = boolopt "anon" rawopts
+    ,new_               = boolopt "new" rawopts
+    ,new_save_          = True
+    ,pivot_             = stringopt "pivot" rawopts
+    ,auto_              = boolopt "auto" rawopts
+    ,balancingopts_     = def{ ignore_assertions_ = boolopt "ignore-assertions" rawopts
+                             , infer_prices_      = not noinferprice
+                             }
+    ,strict_            = boolopt "strict" rawopts
+    }
+  where noinferprice = boolopt "strict" rawopts || stringopt "args" rawopts == "balancednoautoconversion"
 
 --- ** parsing utilities
 
@@ -324,11 +324,11 @@ parseAndFinaliseJournal' parser iopts f txt = do
 -- - infer transaction-implied market prices from transaction prices
 --
 journalFinalise :: InputOpts -> FilePath -> Text -> ParsedJournal -> ExceptT String IO Journal
-journalFinalise InputOpts{auto_,ignore_assertions_,commoditystyles_,strict_} f txt pj = do
+journalFinalise InputOpts{auto_,balancingopts_,strict_} f txt pj = do
   t <- liftIO getClockTime
   d <- liftIO getCurrentDay
   let pj' =
-        pj{jglobalcommoditystyles=fromMaybe M.empty commoditystyles_}  -- save any global commodity styles
+        pj{jglobalcommoditystyles=fromMaybe M.empty $ commodity_styles_ balancingopts_}  -- save any global commodity styles
         & journalAddFile (f, txt)  -- save the main file's info
         & journalSetLastReadTime t -- save the last read time
         & journalReverse -- convert all lists to the order they were parsed
@@ -353,11 +353,11 @@ journalFinalise InputOpts{auto_,ignore_assertions_,commoditystyles_,strict_} f t
                 then
                   -- Auto postings are not active.
                   -- Balance all transactions and maybe check balance assertions.
-                  journalBalanceTransactions (not ignore_assertions_)
+                  journalBalanceTransactions balancingopts_
                 else \j -> do  -- Either monad
                   -- Auto postings are active.
                   -- Balance all transactions without checking balance assertions,
-                  j' <- journalBalanceTransactions False j
+                  j' <- journalBalanceTransactions balancingopts_{ignore_assertions_=True} j
                   -- then add the auto postings
                   -- (Note adding auto postings after balancing means #893b fails;
                   -- adding them before balancing probably means #893a, #928, #938 fail.)
@@ -367,7 +367,7 @@ journalFinalise InputOpts{auto_,ignore_assertions_,commoditystyles_,strict_} f t
                       -- then apply commodity styles once more, to style the auto posting amounts. (XXX inefficient ?)
                       j''' <- journalApplyCommodityStyles j''
                       -- then check balance assertions.
-                      journalBalanceTransactions (not ignore_assertions_) j'''
+                      journalBalanceTransactions balancingopts_ j'''
                 )
             & fmap journalInferMarketPricesFromTransactions  -- infer market prices from commodity-exchanging transactions
 

@@ -9,17 +9,18 @@ module Hledger.Cli.Commands.Check (
  ,check
 ) where
 
+import Data.Char (toLower,toUpper)
+import Data.Either (partitionEithers)
+import Data.List (isPrefixOf, find)
+import Control.Monad (forM_)
+import System.Console.CmdArgs.Explicit
+import System.Exit (exitFailure)
+import System.IO (stderr, hPutStrLn)
+
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Commands.Check.Ordereddates (journalCheckOrdereddates)
 import Hledger.Cli.Commands.Check.Uniqueleafnames (journalCheckUniqueleafnames)
-import System.Console.CmdArgs.Explicit
-import Data.Either (partitionEithers)
-import Data.Char (toLower,toUpper)
-import Data.List (isPrefixOf, find)
-import Control.Monad (forM_)
-import System.IO (stderr, hPutStrLn)
-import System.Exit (exitFailure)
 
 checkmode :: Mode RawOpts
 checkmode = hledgerCommandMode
@@ -53,17 +54,18 @@ cliOptsUpdateReportSpecWith roptsupdate copts@CliOpts{reportspec_} =
 
 -- | A type of error check that we can perform on the data.
 -- Some of these imply other checks that are done first,
--- eg currently Parseable and Autobalanced are always done,
+-- eg currently Parseable and Balancedwithautoconversion are always done,
 -- and Assertions are always done unless -I is in effect.
 data Check =
   -- done always
     Parseable
-  | Autobalanced
+  | Balancedwithautoconversion
   -- done always unless -I is used
   | Assertions
   -- done when -s is used, or on demand by check
   | Accounts
   | Commodities
+  | Balancednoautoconversion
   -- done on demand by check
   | Ordereddates
   | Payees

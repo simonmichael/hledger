@@ -152,9 +152,7 @@ journalAddForecast CliOpts{inputopts_=iopts, reportspec_=rspec} j =
       forecasttxns
 
     journalBalanceTransactions' iopts j =
-      let assrt = not . ignore_assertions_ $ iopts
-      in
-       either error' id $ journalBalanceTransactions assrt j  -- PARTIAL:
+       either error' id $ journalBalanceTransactions (balancingopts_ iopts) j  -- PARTIAL:
 
 -- | Write some output to stdout or to a file selected by --output-file.
 -- If the file exists it will be overwritten.
