@@ -305,3 +305,25 @@ Balance Sheet 2020-03-25
              ||            
 =============++============
  Net:        ||         $1 
+
+# 12. Check csv output (for tree mode) (#1566)
+$ hledger -f - balancesheet --tree --output-format=csv
+"Balance Sheet 2020-03-25",""
+"Account","2020-03-25"
+"Assets",""
+"assets:a","$1"
+"total","$1"
+"Liabilities",""
+"total"
+"Net:","$1"
+
+# 13. Check csv output (for tree mode) with dropping
+$ hledger -f - balancesheet --tree --output-format=csv --drop 1
+"Balance Sheet 2020-03-25",""
+"Account","2020-03-25"
+"Assets",""
+"a","$1"
+"total","$1"
+"Liabilities",""
+"total"
+"Net:","$1"

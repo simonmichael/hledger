@@ -41,3 +41,13 @@ $ hledger -f - balance --tree --no-total --drop 1
                    1    q
                    1  ...
 >=
+
+# 4. Drop works with csv output in tree mode
+$ hledger -f - balance --tree --no-total --output-format=csv --drop 1
+"account","balance"
+"k","1"
+"i:p","1"
+"j","2"
+"j:q","1"
+"...","1"
+>=
