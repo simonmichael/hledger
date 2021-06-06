@@ -476,7 +476,7 @@ multiBalanceReportAsCsv opts@ReportOpts{average_, row_total_}
    ++ ["total"   | row_total_]
    ++ ["average" | average_]
   ) :
-  [displayName a :
+  [accountNameDrop (drop_ opts) (displayFull a) :
    map (wbToText . showMixedAmountB (balanceOpts False opts))
    (amts
     ++ [rowtot | row_total_]
