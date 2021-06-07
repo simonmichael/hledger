@@ -143,7 +143,7 @@ hledger -f - balance -b 2016/10 -e 2016/11
 >>>2
 >>>= 0
 
-# 7. Test csv output
+# 7. Default CSV output. 
 hledger -f - balance -N --output-format=csv
 <<<
 2021-01-01 Test
@@ -154,3 +154,17 @@ hledger -f - balance -N --output-format=csv
 "Assets:ABC","""AB.C"" 1"
 "Assets:Cash","$-1"
 >>>= 0
+
+# 8. CSV output always shows full account names, even in tree mode (#1565).
+hledger -f - balance -N --output-format=csv --tree
+<<<
+2021-01-01 Test
+    Assets:ABC   "AB.C" 1
+    Assets:Cash       -$1
+>>>
+"account","balance"
+"Assets","$-1, ""AB.C"" 1"
+"Assets:ABC","""AB.C"" 1"
+"Assets:Cash","$-1"
+>>>= 0
+
