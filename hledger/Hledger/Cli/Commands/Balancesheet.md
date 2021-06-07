@@ -46,4 +46,3 @@ This command also supports the
 [output format](hledger.html#output-format) options
 The output formats supported are
 `txt`, `csv`, `html`, and (experimental) `json`.
-`csv` output is always in [list mode](#list-or-tree-mode).

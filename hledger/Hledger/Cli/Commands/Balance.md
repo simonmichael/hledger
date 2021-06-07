@@ -70,7 +70,6 @@ This command supports the
 [output format](#output-format) options,
 with output formats `txt`, `csv`, `json`, and (multi-period reports only:) `html`. 
 In `txt` output in a colour-supporting terminal, negative amounts are shown in red.
-`csv` output is always in [list mode](#list-or-tree-mode).
 
 ### Simple balance report
 
