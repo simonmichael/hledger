@@ -209,7 +209,7 @@ rsDraw UIState{_aopts=copts,aScreen=RegisterScreen{..},aMode=mode} =
           <+> str "/"
           <+> total
           <+> str ")"
-          <+> (if ignore_assertions_ . balancingopts_ $ inputopts_ copts then withAttr ("border" <> "query") (str " ignoring balance assertions") else str "")
+          <+> (if copts ^. ignore_assertions then withAttr ("border" <> "query") (str " ignoring balance assertions") else str "")
           where
             togglefilters =
               case concat [

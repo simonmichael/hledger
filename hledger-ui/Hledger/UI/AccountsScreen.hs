@@ -162,9 +162,7 @@ asDraw UIState{_aopts=copts@CliOpts{reportspec_=rspec}
           <+> borderQueryStr (T.unpack . T.unwords . map textQuoteIfNeeded $ querystring_ ropts)
           <+> borderDepthStr mdepth
           <+> str (" ("++curidx++"/"++totidx++")")
-          <+> (if ignore_assertions_ . balancingopts_ $ inputopts_ copts
-               then withAttr ("border" <> "query") (str " ignoring balance assertions")
-               else str "")
+          <+> (if copts ^. ignore_assertions then withAttr ("border" <> "query") (str " ignoring balance assertions") else str "")
           where
             files = case journalFilePaths j of
                            [] -> str ""

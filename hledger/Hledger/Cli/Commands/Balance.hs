@@ -261,8 +261,9 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import Data.Time (fromGregorian)
-import System.Console.CmdArgs.Explicit as C
+import Lens.Micro ((^.))
 import Lucid as L
+import System.Console.CmdArgs.Explicit as C
 import Text.Tabular.AsciiWide as Tab
 
 import Hledger
@@ -310,16 +311,16 @@ balancemode = hledgerCommandMode
 
 -- | The balance command, prints a balance report.
 balance :: CliOpts -> Journal -> IO ()
-balance opts@CliOpts{reportspec_=rspec} j = case reporttype_ of
+balance copts j = case reporttype_ ropts of
     BudgetReport -> do  -- single or multi period budget report
       let reportspan = reportSpan j rspec
-          budgetreport = budgetReport rspec (balancingopts_ $ inputopts_ opts) reportspan j
+          budgetreport = budgetReport rspec (copts ^. balancingOpts) reportspan j
           render = case fmt of
             "txt"  -> budgetReportAsText ropts
             "json" -> (<>"\n") . toJsonText
             "csv"  -> printCSV . budgetReportAsCsv ropts
             _      -> error' $ unsupportedOutputFormatError fmt
-      writeOutputLazyText opts $ render budgetreport
+      writeOutputLazyText copts $ render budgetreport
 
     _ | multiperiod -> do  -- multi period balance report
         let report = multiBalanceReport rspec j
@@ -329,7 +330,7 @@ balance opts@CliOpts{reportspec_=rspec} j = case reporttype_ of
               "html" -> (<>"\n") . L.renderText . multiBalanceReportAsHtml ropts
               "json" -> (<>"\n") . toJsonText
               _      -> const $ error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
-        writeOutputLazyText opts $ render report
+        writeOutputLazyText copts $ render report
 
     _ -> do  -- single period simple balance report
         let report = balanceReport rspec j -- simple Ledger-style balance report
@@ -339,11 +340,12 @@ balance opts@CliOpts{reportspec_=rspec} j = case reporttype_ of
               -- "html" -> \ropts -> (<>"\n") . L.renderText . multiBalanceReportAsHtml ropts . balanceReportAsMultiBalanceReport ropts
               "json" -> const $ (<>"\n") . toJsonText
               _      -> error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
-        writeOutputLazyText opts $ render ropts report
+        writeOutputLazyText copts $ render ropts report
   where
-    ropts@ReportOpts{..} = reportopts_ rspec
-    multiperiod = interval_ /= NoInterval
-    fmt         = outputFormatFromOpts opts
+    rspec       = copts ^. reportSpec
+    ropts       = reportopts_ rspec
+    multiperiod = interval_ ropts /= NoInterval
+    fmt         = outputFormatFromOpts copts
 
 -- XXX this allows rough HTML rendering of a flat BalanceReport, but it can't handle tree mode etc.
 -- -- | Convert a BalanceReport to a MultiBalanceReport.

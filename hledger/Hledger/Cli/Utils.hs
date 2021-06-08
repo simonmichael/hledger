@@ -149,8 +149,8 @@ journalAddForecast CliOpts{inputopts_=iopts, reportspec_=rspec} j =
       (if auto_ iopts then either error' id . modifyTransactions today (jtxnmodifiers j) else id)  -- PARTIAL:
       forecasttxns
 
-    journalBalanceTransactions' iopts j =
-       either error' id $ journalBalanceTransactions (balancingopts_ iopts) j  -- PARTIAL:
+    journalBalanceTransactions' iopts =
+       either error' id . journalBalanceTransactions (balancingopts_ iopts)  -- PARTIAL:
 
 -- | Write some output to stdout or to a file selected by --output-file.
 -- If the file exists it will be overwritten.

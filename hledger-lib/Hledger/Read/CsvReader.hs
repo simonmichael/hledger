@@ -74,6 +74,7 @@ import Text.Megaparsec hiding (match, parse)
 import Text.Megaparsec.Char (char, newline, string)
 import Text.Megaparsec.Custom (customErrorBundlePretty, parseErrorAt)
 import Text.Printf (printf)
+import Lens.Micro (set)
 
 import Hledger.Data
 import Hledger.Utils
@@ -116,7 +117,7 @@ parse iopts f t = do
               -- apply any command line account aliases. Can fail with a bad replacement pattern.
               in case journalApplyAliases (aliasesFromOpts iopts) pj' of
                   Left e -> throwError e
-                  Right pj'' -> journalFinalise iopts{balancingopts_=(balancingopts_ iopts){ignore_assertions_=True}} f t pj''
+                  Right pj'' -> journalFinalise (set ignore_assertions True iopts) f t pj''
 
 --- ** reading rules files
 --- *** rules utilities

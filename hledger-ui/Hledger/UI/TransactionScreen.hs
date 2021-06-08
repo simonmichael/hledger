@@ -103,7 +103,7 @@ tsDraw UIState{_aopts=copts@CliOpts{reportspec_=rspec@ReportSpec{reportopts_=rop
           <+> togglefilters
           <+> borderQueryStr (unwords . map (quoteIfNeeded . T.unpack) $ querystring_ ropts)
           <+> str (" in "++T.unpack (replaceHiddenAccountsNameWith "All" acct)++")")
-          <+> (if ignore_assertions_ . balancingopts_ $ inputopts_ copts then withAttr ("border" <> "query") (str " ignoring balance assertions") else str "")
+          <+> (if copts ^. ignore_assertions then withAttr ("border" <> "query") (str " ignoring balance assertions") else str "")
           where
             togglefilters =
               case concat [
