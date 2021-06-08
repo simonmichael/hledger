@@ -1,4 +1,6 @@
-{-# LANGUAGE OverloadedStrings, RecordWildCards, FlexibleInstances, ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-|
 
 Journal entries report, used by the print command.
@@ -15,12 +17,11 @@ module Hledger.Reports.EntriesReport (
 where
 
 import Data.List (sortBy)
-import Data.Maybe (fromMaybe)
 import Data.Ord (comparing)
 import Data.Time (fromGregorian)
 
 import Hledger.Data
-import Hledger.Query
+import Hledger.Query (Query(..))
 import Hledger.Reports.ReportOptions
 import Hledger.Utils
 
@@ -33,15 +34,9 @@ type EntriesReportItem = Transaction
 
 -- | Select transactions for an entries report.
 entriesReport :: ReportSpec -> Journal -> EntriesReport
-entriesReport rspec@ReportSpec{rsOpts=ropts@ReportOpts{..}} j@Journal{..} =
-  sortBy (comparing getdate) $ filter (rsQuery rspec `matchesTransaction`) $ map tvalue jtxns
-  where
-    getdate = transactionDateFn ropts
-    -- We may be converting posting amounts to value, per hledger_options.m4.md "Effect of --value on reports".
-    tvalue t@Transaction{..} = t{tpostings=map pvalue tpostings}
-      where
-        pvalue = postingApplyCostValuation (journalPriceOracle infer_value_ j) (journalCommodityStyles j) periodlast (rsToday rspec) cost_ value_
-          where periodlast  = fromMaybe (rsToday rspec) $ reportPeriodOrJournalLastDay rspec j
+entriesReport rspec@ReportSpec{rsOpts=ropts} =
+    sortBy (comparing $ transactionDateFn ropts) . jtxns . filterJournalTransactions (rsQuery rspec)
+    . journalApplyValuationFromOpts rspec{rsOpts=ropts{show_costs_=True}}
 
 tests_EntriesReport = tests "EntriesReport" [
   tests "entriesReport" [

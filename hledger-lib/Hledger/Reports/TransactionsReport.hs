@@ -61,13 +61,13 @@ triCommodityBalance c = filterMixedAmountByCommodity c  . triBalance
 -- "postingsReport" except with transaction-based report items which
 -- are ordered most recent first. XXX Or an EntriesReport - use that instead ?
 -- This is used by hledger-web's journal view.
-transactionsReport :: ReportOpts -> Journal -> Query -> TransactionsReport
-transactionsReport opts j q = items
+transactionsReport :: ReportSpec -> Journal -> Query -> TransactionsReport
+transactionsReport rspec j q = items
    where
      -- XXX items' first element should be the full transaction with all postings
      items = reverse $ accountTransactionsReportItems q None nullmixedamt id ts
-     ts    = sortBy (comparing date) $ filter (q `matchesTransaction`) $ jtxns $ journalSelectingAmountFromOpts opts j
-     date  = transactionDateFn opts
+     ts    = sortBy (comparing date) $ filter (q `matchesTransaction`) $ jtxns $ journalApplyValuationFromOpts rspec j
+     date = transactionDateFn $ rsOpts rspec
 
 -- | Split a transactions report whose items may involve several commodities,
 -- into one or more single-commodity transactions reports.

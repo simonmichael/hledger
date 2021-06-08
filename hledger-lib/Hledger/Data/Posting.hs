@@ -63,7 +63,6 @@ module Hledger.Data.Posting (
   -- * misc.
   showComment,
   postingTransformAmount,
-  postingApplyCostValuation,
   postingApplyValuation,
   postingToCost,
   tests_Posting
@@ -327,14 +326,6 @@ aliasReplace (BasicAlias old new) a
   | otherwise = Right a
 aliasReplace (RegexAlias re repl) a =
   fmap T.pack . regexReplace re repl $ T.unpack a -- XXX
-
--- | Apply a specified costing and valuation to this posting's amount,
--- using the provided price oracle, commodity styles, and reference dates.
--- Costing is done first if requested, and after that any valuation.
--- See amountApplyValuation and amountCost.
-postingApplyCostValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Costing -> Maybe ValuationType -> Posting -> Posting
-postingApplyCostValuation priceoracle styles periodlast today cost v p =
-    postingTransformAmount (mixedAmountApplyCostValuation priceoracle styles periodlast today (postingDate p) cost v) p
 
 -- | Apply a specified valuation to this posting's amount, using the
 -- provided price oracle, commodity styles, and reference dates.

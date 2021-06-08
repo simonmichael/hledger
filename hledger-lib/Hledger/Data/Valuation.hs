@@ -17,10 +17,7 @@ module Hledger.Data.Valuation (
   ,ValuationType(..)
   ,PriceOracle
   ,journalPriceOracle
-  ,amountApplyCostValuation
-  ,amountApplyValuation
-  ,amountValueAtDate
-  ,mixedAmountApplyCostValuation
+  ,mixedAmountToCost
   ,mixedAmountApplyValuation
   ,mixedAmountValueAtDate
   ,marketPriceReverse
@@ -100,13 +97,9 @@ priceDirectiveToMarketPrice PriceDirective{..} =
 ------------------------------------------------------------------------------
 -- Converting things to value
 
--- | Apply a specified costing and valuation to this mixed amount,
--- using the provided price oracle, commodity styles, and reference dates.
--- Costing is done first if requested, and after that any valuation.
--- See amountApplyValuation and amountCost.
-mixedAmountApplyCostValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Day -> Costing -> Maybe ValuationType -> MixedAmount -> MixedAmount
-mixedAmountApplyCostValuation priceoracle styles periodlast today postingdate cost v =
-    mapMixedAmount (amountApplyCostValuation priceoracle styles periodlast today postingdate cost v)
+-- | Convert all component amounts to cost/selling price if requested, and style them.
+mixedAmountToCost :: Costing -> M.Map CommoditySymbol AmountStyle -> MixedAmount -> MixedAmount
+mixedAmountToCost cost styles = mapMixedAmount (amountToCost cost styles)
 
 -- | Apply a specified valuation to this mixed amount, using the
 -- provided price oracle, commodity styles, and reference dates.
@@ -115,18 +108,10 @@ mixedAmountApplyValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle ->
 mixedAmountApplyValuation priceoracle styles periodlast today postingdate v =
   mapMixedAmount (amountApplyValuation priceoracle styles periodlast today postingdate v)
 
--- | Apply a specified costing and valuation to this Amount,
--- using the provided price oracle, commodity styles, and reference dates.
--- Costing is done first if requested, and after that any valuation.
--- See amountApplyValuation and amountCost.
-amountApplyCostValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Day -> Costing -> Maybe ValuationType -> Amount -> Amount
-amountApplyCostValuation priceoracle styles periodlast today postingdate cost v =
-    valuation . costing
-  where
-    valuation = maybe id (amountApplyValuation priceoracle styles periodlast today postingdate) v
-    costing = case cost of
-        Cost   -> styleAmount styles . amountCost
-        NoCost -> id
+-- | Convert an Amount to its cost if requested, and style it appropriately.
+amountToCost :: Costing -> M.Map CommoditySymbol AmountStyle -> Amount -> Amount
+amountToCost NoCost _      = id
+amountToCost Cost   styles = styleAmount styles . amountCost
 
 -- | Apply a specified valuation to this amount, using the provided
 -- price oracle, reference dates, and whether this is for a
@@ -151,7 +136,7 @@ amountApplyCostValuation priceoracle styles periodlast today postingdate cost v 
 --
 -- - the provided "today" date - (--value=now, or -V/X with no report
 --   end date).
--- 
+--
 -- This is all a bit complicated. See the reference doc at
 -- https://hledger.org/hledger.html#effect-of-valuation-on-reports
 -- (hledger_options.m4.md "Effect of valuation on reports"), and #1083.
