@@ -974,9 +974,10 @@ transactionFromCsvRecord sourcepos rules record = t
 -- If there's multiple non-zeros, or no non-zeros but multiple zeros, it throws an error.
 getAmount :: CsvRules -> CsvRecord -> Text -> Bool -> Int -> Maybe MixedAmount
 getAmount rules record currency p1IsVirtual n =
-  -- Warning, many tricky corner cases here.
-  -- docs: hledger_csv.m4.md #### amount
-  -- tests: hledger/test/csv.test ~ 13, 31-34
+  -- Warning! Many tricky corner cases here.
+  -- Keep synced with:
+  -- hledger_csv.m4.md -> CSV FORMAT -> "amount", "Setting amounts",
+  -- hledger/test/csv.test -> 13, 31-34
   let
     unnumberedfieldnames = ["amount","amount-in","amount-out"]
 
@@ -990,6 +991,7 @@ getAmount rules record currency p1IsVirtual n =
     assignments = [(f,a') | f <- fieldnames
                           , Just v <- [T.strip . renderTemplate rules record <$> hledgerField rules record f]
                           , not $ T.null v
+                          -- XXX maybe ignore rule-generated values like "", "-", "$", "-$", "$-" ? cf CSV FORMAT -> "amount", "Setting amounts",
                           , let a = parseAmount rules record currency v
                           -- With amount/amount-in/amount-out, in posting 2,
                           -- flip the sign and convert to cost, as they did before 1.17
@@ -1012,6 +1014,7 @@ getAmount rules record currency p1IsVirtual n =
           assignments'' of
       [] -> Nothing
       [(f,a)] | "-out" `T.isSuffixOf` f -> Just (maNegate a)  -- for -out fields, flip the sign
+                                                              -- XXX unless it's already negative ? back compat issues / too confusing ?
       [(_,a)] -> Just a
       fs      -> error' . T.unpack . T.unlines $ [  -- PARTIAL:
          "multiple non-zero amounts or multiple zero amounts assigned,"

@@ -3581,20 +3581,18 @@ a default account name will be chosen (like "expenses:unknown" or "income:unknow
 
 ##### amount
 
-`amountN` sets posting N's amount. 
-If the CSV uses separate fields for inflows and outflows, you can
-use `amountN-in` and `amountN-out` instead.
-By assigning to `amount1`, `amount2`, ... etc. you can generate anywhere
-from 0 to 99 postings.
+`amountN` sets the Nth posting's amount. 
+By assigning to `amount1`, `amount2`, ... etc. you can generate up to 99 postings.
 
-There is also an older, unnumbered form of these names, suitable for
-2-posting transactions, which sets both posting 1's and (negated) posting 2's amount:
-`amount`, or `amount-in` and `amount-out`.
-This is still supported 
-because it keeps pre-hledger-1.17 csv rules files working, 
-and because it can be more succinct,
-and because it converts posting 2's amount to cost if there's a
-[transaction price](#transaction-prices), which can be useful.
+If the CSV uses separate fields for debits and credits (inflows and outflows), you can
+use `amountN-in` and `amountN-out` instead.
+Note hledger assumes both of these fields are unsigned, and will automatically negate the "-out" value.
+If the fields are signed, see ["Setting amounts"](#setting-amounts) below.
+
+There is also an unnumbered form of these names: `amount`, or `amount-in` and `amount-out`.
+This is supported to keep pre-hledger-1.17 CSV rules files working (and for occasional convenience).
+It is suitable only for two-posting transactions; it sets both posting 1's and posting 2's amount.
+Posting 2's amount will be negated, and also converted to cost if there's a [transaction price](#transaction-prices).
 
 If you have an existing rules file using the unnumbered form, you
 might want to use the numbered form in certain conditional blocks,
@@ -4041,31 +4039,37 @@ Here are the ways to set a posting's amount:
    Assign (via a [fields list](#fields) or a [field assignment](#field-assignment)) to `amountN`.
    This sets the Nth posting's amount. N is usually 1 or 2 but can go up to 99.
 
-2. **If the CSV has separate Debit and Credit amount fields:**\
-   Assign to `amountN-in` and `amountN-out`.
-   This sets posting N's amount to whichever of these has a non-zero value, 
-   guessing an appropriate sign.
+2. **If the CSV has separate amount fields for debit & credit (in & out):**\
 
-   - **If hledger guesses the wrong sign:**\
-     Prepend a minus sign to flip it. Eg:
+   a. **If both fields are unsigned:**\
+     Assign to `amountN-in` and `amountN-out`.
+     This sets posting N's amount to whichever of these has a non-zero value,
+     and negates the "-out" value.
+   
+   b. **If either field is signed (can contain a minus sign):**\
+     Use a [conditional rule](#if-block) to flip the sign (of non-empty values).
+     Since hledger always negates amountN-out, if it was already negative, 
+     we must undo that by negating once more (but only if the field is non-empty):
 
       ```rules
-      fields date, description, amount-in, amount-out
-      amount-out -%amount-out
+      fields date, description, amount1-in, amount1-out
+      if %amount1-out [1-9]
+       amount1-out -%amount1-out
       ```
 
-   - **If both fields contain a non-zero value:**\
-     The `amountN-in`/`amountN-out` rules require that each CSV record has a non-zero value in exactly one of the two fields,
-     so that hledger knows which to choose. So these would all be rejected:
+   c. **If both fields, or neither field, can contain a non-zero value:**\
+     hledger normally expects exactly one of the fields to have a non-zero value.
+     Eg, the `amountN-in`/`amountN-out` rules would reject values like these:
   
       ```csv
-      "",  ""
-      "0", "0"
-      "1", "none"
+      ""          ,  ""
+      "0"         , "0"
+      "1"         , "none"
       ```
 
-     If your CSV has amount values like this, use [conditional rules](#if-block) instead.
-     For example, to make hledger to choose the value containing non-zero digits:
+     So, use [conditional rules](#if-block) to set the amount from the appropriate field.
+     Eg, these rules would make it use only the value containing non-zero digits,
+     handling the above:
 
       ```rules
       fields date, description, in, out
@@ -4075,10 +4079,9 @@ Here are the ways to set a posting's amount:
        amount1 %out
       ```
 
-3. **Using the old numberless syntax:**\
-   Assign to `amount` (or to `amount-in` and `amount-out`). 
-   This sets posting 1's and posting 2's amounts (and converts posting 2's amount to cost).
-   This is supported for backwards compatibility (and occasional convenience).
+3. **If you are stuck with hledger <1.17, or you want posting 2's amount converted to cost:**\
+   Use the old numberless syntax, which sets amount1 and amount2:
+   assign to `amount` (or to `amount-in` and `amount-out`).
 
 4. **If the CSV has the balance instead of the transaction amount:**\
    Assign to `balanceN`, which sets posting N's amount indirectly via a
