@@ -1,10 +1,12 @@
 # 1. monthly reporting interval, no end dates, shows just the intervals with data:
 <
 2011/2/1
-  (a)  1
+  (a)    1
+  (a:b)  1
 
 $ hledger -f- register --period 'monthly'
 2011-02                 a                                        1             1
+                        a:b                                      1             2
 
 # 2. or with a query pattern, just the intervals with matched data:
 <
