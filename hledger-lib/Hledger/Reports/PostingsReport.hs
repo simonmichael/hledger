@@ -212,7 +212,7 @@ summarisePostingsInDateSpan (DateSpan b e) wd mdepth showempty ps
     balance a = maybe nullmixedamt bal $ lookupAccount a accts
       where
         bal = if isclipped a then aibalance else aebalance
-        isclipped a = maybe True (accountNameLevel a >=) mdepth
+        isclipped a = maybe False (accountNameLevel a >=) mdepth
 
 negatePostingAmount :: Posting -> Posting
 negatePostingAmount = postingTransformAmount negate
