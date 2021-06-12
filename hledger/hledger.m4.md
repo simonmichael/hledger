@@ -4045,43 +4045,43 @@ Here are the ways to set a posting's amount:
      Assign to `amountN-in` and `amountN-out`.
      This sets posting N's amount to whichever of these has a non-zero value,
      and negates the "-out" value.
-   
+
    b. **If either field is signed (can contain a minus sign):**\
      Use a [conditional rule](#if-block) to flip the sign (of non-empty values).
      Since hledger always negates amountN-out, if it was already negative, 
      we must undo that by negating once more (but only if the field is non-empty):
 
-      ```rules
-      fields date, description, amount1-in, amount1-out
-      if %amount1-out [1-9]
-       amount1-out -%amount1-out
-      ```
-
+     ```rules
+     fields date, description, amount1-in, amount1-out
+     if %amount1-out [1-9]
+      amount1-out -%amount1-out
+     ```
+ 
    c. **If both fields, or neither field, can contain a non-zero value:**\
      hledger normally expects exactly one of the fields to have a non-zero value.
-     Eg, the `amountN-in`/`amountN-out` rules would reject values like these:
-  
-      ```csv
-      ""          ,  ""
-      "0"         , "0"
-      "1"         , "none"
-      ```
+     Eg, the `amountN-in`/`amountN-out` rules would reject value pairs like these:
 
-     So, use [conditional rules](#if-block) to set the amount from the appropriate field.
+     ```csv
+     "",  ""
+     "0", "0"
+     "1", "none"
+     ```
+
+     So, use smarter [conditional rules](#if-block) to set the amount from the appropriate field.
      Eg, these rules would make it use only the value containing non-zero digits,
      handling the above:
 
-      ```rules
-      fields date, description, in, out
-      if %in [1-9]
-       amount1 %in
-      if %out [1-9]
-       amount1 %out
-      ```
+     ```rules
+     fields date, description, in, out
+     if %in [1-9]
+      amount1 %in
+     if %out [1-9]
+      amount1 %out
+     ```
 
 3. **If you are stuck with hledger <1.17, or you want posting 2's amount converted to cost:**\
-   Use the old numberless syntax, which sets amount1 and amount2:
-   assign to `amount` (or to `amount-in` and `amount-out`).
+   Assign to `amount` (or to `amount-in` and `amount-out`).
+   (The old numberless syntax, which sets amount1 and amount2.)
 
 4. **If the CSV has the balance instead of the transaction amount:**\
    Assign to `balanceN`, which sets posting N's amount indirectly via a
