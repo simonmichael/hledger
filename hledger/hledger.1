@@ -3621,9 +3621,10 @@ commands, including \f[C]check\f[R]:
 \f[B]parseable\f[R] - data files are well-formed and can be successfully
 parsed
 .IP \[bu] 2
-\f[B]autobalanced\f[R] - all transactions are balanced, inferring
-missing amounts where necessary, and possibly converting commodities
-using transaction prices or automatically-inferred transaction prices
+\f[B]balancedwithautoconversion\f[R] - all transactions are balanced,
+inferring missing amounts where necessary, and possibly converting
+commodities using transaction prices or automatically-inferred
+transaction prices
 .IP \[bu] 2
 \f[B]assertions\f[R] - all balance assertions in the journal are
 passing.
@@ -3640,6 +3641,9 @@ Or, they can be run by giving their names as arguments to
 declared
 .IP \[bu] 2
 \f[B]commodities\f[R] - all commodity symbols used have been declared
+.IP \[bu] 2
+\f[B]balancednoautoconversion\f[R] - transactions are balanced, possibly
+using explicit transaction prices but not inferred ones
 .SS Other checks
 .PP
 These checks can be run only by giving their names as arguments to
@@ -6743,7 +6747,7 @@ See also Rewrite account names.
 To set an account alias, use the \f[C]alias\f[R] directive in your
 journal file.
 This affects all subsequent journal entries in the current file or its
-included files.
+included files (but note: not sibling or parent files).
 The spaces around the = are optional:
 .IP
 .nf
@@ -7730,21 +7734,26 @@ below), a default account name will be chosen (like
 \[dq]expenses:unknown\[dq] or \[dq]income:unknown\[dq]).
 .SS amount
 .PP
-\f[C]amountN\f[R] sets posting N\[aq]s amount.
-If the CSV uses separate fields for inflows and outflows, you can use
-\f[C]amountN-in\f[R] and \f[C]amountN-out\f[R] instead.
+\f[C]amountN\f[R] sets the Nth posting\[aq]s amount.
 By assigning to \f[C]amount1\f[R], \f[C]amount2\f[R], ...
 etc.
-you can generate anywhere from 0 to 99 postings.
+you can generate up to 99 postings.
 .PP
-There is also an older, unnumbered form of these names, suitable for
-2-posting transactions, which sets both posting 1\[aq]s and (negated)
-posting 2\[aq]s amount: \f[C]amount\f[R], or \f[C]amount-in\f[R] and
-\f[C]amount-out\f[R].
-This is still supported because it keeps pre-hledger-1.17 csv rules
-files working, and because it can be more succinct, and because it
-converts posting 2\[aq]s amount to cost if there\[aq]s a transaction
-price, which can be useful.
+If the CSV uses separate fields for debits and credits (inflows and
+outflows), you can use \f[C]amountN-in\f[R] and \f[C]amountN-out\f[R]
+instead.
+Note hledger assumes both of these fields are unsigned, and will
+automatically negate the \[dq]-out\[dq] value.
+If the fields are signed, see \[dq]Setting amounts\[dq] below.
+.PP
+There is also an unnumbered form of these names: \f[C]amount\f[R], or
+\f[C]amount-in\f[R] and \f[C]amount-out\f[R].
+This is supported to keep pre-hledger-1.17 CSV rules files working (and
+for occasional convenience).
+It is suitable only for two-posting transactions; it sets both posting
+1\[aq]s and posting 2\[aq]s amount.
+Posting 2\[aq]s amount will be negated, and also converted to cost if
+there\[aq]s a transaction price.
 .PP
 If you have an existing rules file using the unnumbered form, you might
 want to use the numbered form in certain conditional blocks, without
@@ -8307,40 +8316,47 @@ Assign (via a fields list or a field assignment) to \f[C]amountN\f[R].
 This sets the Nth posting\[aq]s amount.
 N is usually 1 or 2 but can go up to 99.
 .IP "2." 3
-\f[B]If the CSV has separate Debit and Credit amount fields:\f[R]
+\f[B]If the CSV has separate amount fields for debit & credit (in &
+out):\f[R]
+.PD 0
+.P
+.PD
+.RS 4
+.IP "a." 3
+\f[B]If both fields are unsigned:\f[R]
 .PD 0
 .P
 .PD
 Assign to \f[C]amountN-in\f[R] and \f[C]amountN-out\f[R].
 This sets posting N\[aq]s amount to whichever of these has a non-zero
-value, guessing an appropriate sign.
-.RS 4
-.IP \[bu] 2
-\f[B]If hledger guesses the wrong sign:\f[R]
+value, and negates the \[dq]-out\[dq] value.
+.IP "b." 3
+\f[B]If either field is signed (can contain a minus sign):\f[R]
 .PD 0
 .P
 .PD
-Prepend a minus sign to flip it.
-Eg:
-.RS 2
+Use a conditional rule to flip the sign (of non-empty values).
+Since hledger always negates amountN-out, if it was already negative, we
+must undo that by negating once more (but only if the field is
+non-empty):
 .IP
 .nf
 \f[C]
-fields date, description, amount-in, amount-out
-amount-out -%amount-out
+fields date, description, amount1-in, amount1-out
+if %amount1-out [1-9]
+ amount1-out -%amount1-out
 \f[R]
 .fi
-.RE
-.IP \[bu] 2
-\f[B]If both fields contain a non-zero value:\f[R]
+.IP "c." 3
+\f[B]If both fields, or neither field, can contain a non-zero
+value:\f[R]
 .PD 0
 .P
 .PD
-The \f[C]amountN-in\f[R]/\f[C]amountN-out\f[R] rules require that each
-CSV record has a non-zero value in exactly one of the two fields, so
-that hledger knows which to choose.
-So these would all be rejected:
-.RS 2
+hledger normally expects exactly one of the fields to have a non-zero
+value.
+Eg, the \f[C]amountN-in\f[R]/\f[C]amountN-out\f[R] rules would reject
+value pairs like these:
 .IP
 .nf
 \f[C]
@@ -8350,9 +8366,10 @@ So these would all be rejected:
 \f[R]
 .fi
 .PP
-If your CSV has amount values like this, use conditional rules instead.
-For example, to make hledger to choose the value containing non-zero
-digits:
+So, use smarter conditional rules to set the amount from the appropriate
+field.
+Eg, these rules would make it use only the value containing non-zero
+digits, handling the above:
 .IP
 .nf
 \f[C]
@@ -8364,18 +8381,15 @@ if %out [1-9]
 \f[R]
 .fi
 .RE
-.RE
 .IP "3." 3
-\f[B]Using the old numberless syntax:\f[R]
+\f[B]If you are stuck with hledger <1.17, or you want posting 2\[aq]s
+amount converted to cost:\f[R]
 .PD 0
 .P
 .PD
 Assign to \f[C]amount\f[R] (or to \f[C]amount-in\f[R] and
 \f[C]amount-out\f[R]).
-This sets posting 1\[aq]s and posting 2\[aq]s amounts (and converts
-posting 2\[aq]s amount to cost).
-This is supported for backwards compatibility (and occasional
-convenience).
+(The old numberless syntax, which sets amount1 and amount2.)
 .IP "4." 3
 \f[B]If the CSV has the balance instead of the transaction amount:\f[R]
 .PD 0
