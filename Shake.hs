@@ -133,9 +133,6 @@ main = do
     <$> S.getDirectoryContents commandsdir
   let commandtxts = map (-<.> "txt") commandmds
 
-  let sitedir = "site"
-  pages <- map takeBaseName . filter (".md" `isSuffixOf`) <$> S.getDirectoryContents sitedir
-
   -- Run the shake rule selected by the first command line argument.
   -- Other arguments and some custom flags are set aside for the rule
   -- to use if it wants.
