@@ -25,9 +25,10 @@ commands, including check:
 -   parseable - data files are well-formed and can be successfully
     parsed
 
--   autobalanced - all transactions are balanced, inferring missing
-    amounts where necessary, and possibly converting commodities using
-    transaction prices or automatically-inferred transaction prices
+-   balancedwithautoconversion - all transactions are balanced,
+    inferring missing amounts where necessary, and possibly converting
+    commodities using transaction prices or automatically-inferred
+    transaction prices
 
 -   assertions - all balance assertions in the journal are passing.
     (This check can be disabled with -I/--ignore-assertions.)
@@ -41,6 +42,9 @@ check:
 -   accounts - all account names used by transactions have been declared
 
 -   commodities - all commodity symbols used have been declared
+
+-   balancednoautoconversion - transactions are balanced, possibly using
+    explicit transaction prices but not inferred ones
 
 Other checks
 
