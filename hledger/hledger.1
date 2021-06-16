@@ -6575,59 +6575,20 @@ account expenses     ; type: Expense
 If you happen to use common english top-level account names, you may not
 need to declare account types, as they will be detected automatically
 using the following rules:
-.PP
-.TS
-tab(@);
-l l.
-T{
-If name matches this regular expression:
-T}@T{
-account type is:
-T}
-_
-T{
-\f[C]\[ha]assets?(:|$)\f[R]
-T}@T{
-\f[C]Asset\f[R]
-T}
-T{
-\f[C]\[ha](debts?|liabilit(y|ies))(:|$)\f[R]
-T}@T{
-\f[C]Liability\f[R]
-T}
-T{
-\f[C]\[ha]equity(:|$)\f[R]
-T}@T{
-\f[C]Equity\f[R]
-T}
-T{
-\f[C]\[ha](income|revenue)s?(:|$)\f[R]
-T}@T{
-\f[C]Revenue\f[R]
-T}
-T{
-\f[C]\[ha]expenses?(:|$)\f[R]
-T}@T{
-\f[C]Expense\f[R]
-T}
-.TE
-.PP
-.TS
-tab(@);
-lw(57.6n) lw(12.4n).
-T{
-If account type is \f[C]Asset\f[R] and name does not contain this
-regular expression:
-T}@T{
-account type is:
-T}
-_
-T{
-\f[C](investment|receivable|:A/R|:fixed)\f[R]
-T}@T{
-\f[C]Cash\f[R]
-T}
-.TE
+.IP
+.nf
+\f[C]
+ If account\[aq]s name matches this regular expression:                 | its type is:
+------------------------------------------------------------------- | ------------
+ \[ha]assets?(:|$)                                                      | 
+   and does not contain regexp (investment|receivable|:A/R|:fixed)  | Cash
+   otherwise                                                        | Asset
+ \[ha](debts?|liabilit(y|ies))(:|$)                                     | Liability
+ \[ha]equity(:|$)                                                       | Equity
+ \[ha](income|revenue)s?(:|$)                                           | Revenue
+ \[ha]expenses?(:|$)                                                    | Expense
+\f[R]
+.fi
 .PP
 Even so, explicit declarations may be a good idea, for clarity and
 predictability.

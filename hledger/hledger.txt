@@ -4786,22 +4786,15 @@ JOURNAL FORMAT
        not  need  to declare account types, as they will be detected automati-
        cally using the following rules:
 
-
-       If name matches this regu-   account type is:
-       lar expression:
-       ----------------------------------------------
-       ^assets?(:|$)                Asset
-       ^(debts?|lia-                Liability
-       bilit(y|ies))(:|$)
-       ^equity(:|$)                 Equity
-       ^(income|revenue)s?(:|$)     Revenue
-       ^expenses?(:|$)              Expense
-
-
-       If account type is Asset and name does  not  contain  this   account type
-       regular expression:                                          is:
-       --------------------------------------------------------------------------
-       (investment|receivable|:A/R|:fixed)                          Cash
+               If account's name matches this regular expression:                 | its type is:
+              ------------------------------------------------------------------- | ------------
+               ^assets?(:|$)                                                      |
+                 and does not contain regexp (investment|receivable|:A/R|:fixed)  | Cash
+                 otherwise                                                        | Asset
+               ^(debts?|liabilit(y|ies))(:|$)                                     | Liability
+               ^equity(:|$)                                                       | Equity
+               ^(income|revenue)s?(:|$)                                           | Revenue
+               ^expenses?(:|$)                                                    | Expense
 
        Even so, explicit declarations may be a good idea, for clarity and pre-
        dictability.
