@@ -11,6 +11,7 @@ where
 import Control.Applicative ((<|>))
 import Data.List (intercalate)
 import Data.Maybe (catMaybes)
+import Data.Bifunctor (bimap)
 import Safe
 import System.Environment
 import System.Exit
@@ -25,7 +26,7 @@ type TextPosition = (Int, Maybe Int)
 
 -- | The text position meaning "last line, first column".
 endPosition :: Maybe TextPosition
-endPosition = Just (-1,Nothing)
+endPosition = Just (-1, Nothing)
 
 -- | Run the hledger-iadd executable on the given file, blocking until it exits,
 -- and return the exit code; or raise an error.
@@ -43,65 +44,82 @@ runEditor mpos f = editFileAtPositionCommand mpos f >>= runCommand >>= waitForPr
 -- | Get a shell command line to open the user's preferred text editor
 -- (or a default editor) on the given file, and to focus it at the
 -- given text position if one is provided and if we know how.
--- We know how to focus on position for: emacs, vim, nano, VS code, kakoune.
--- We know how to focus on last line for: vi.
+--
+-- Just ('-' : _, _) is any text position with a negative line number.
+-- A text position with a negative line number means the last line.
 --
 -- Some tests:
 -- @
--- EDITOR program is:  LINE/COL specified ?  Command should be:                 
--- ------------------  --------------------  ----------------------------------- 
--- emacs,              LINE COL              EDITOR +LINE:COL FILE
--- emacsclient,        LINE                  EDITOR +LINE     FILE
--- kak                                       EDITOR           FILE
+-- EDITOR program:  Maybe TextPosition    Command should be:
+-- ---------------  --------------------- ------------------------------------
+-- emacs            Just (line, Just col) emacs +LINE:COL FILE
+--                  Just (line, Nothing)  emacs +LINE     FILE
+--                  Just ('-' : _, _)     emacs FILE -f end-of-buffer
+--                  Nothing               emacs           FILE
 --
--- nano                LINE COL              EDITOR +LINE,COL FILE
---                     LINE                  EDITOR +LINE     FILE
---                                           EDITOR           FILE
+-- emacsclient      Just (line, Just col) emacsclient +LINE:COL FILE
+--                  Just (line, Nothing)  emacsclient +LINE     FILE
+--                  Just ('-' : _, _)     emacsclient           FILE
+--                  Nothing               emacsclient           FILE
 --
--- code                LINE COL              EDITOR --goto FILE:LINE:COL
---                     LINE                  EDITOR --goto FILE:LINE
---                                           EDITOR        FILE
+-- nano             Just (line, Just col) nano +LINE:COL FILE
+--                  Just (line, Nothing)  nano +LINE     FILE
+--                  Just ('-' : _, _)     nano           FILE
+--                  Nothing               nano           FILE
 --
--- vi/vim variants     LINE [COL]            EDITOR +LINE FILE
---                     LINE (negative)       EDITOR +     FILE
---                                           EDITOR       FILE
+-- vscode           Just (line, Just col) vscode --goto FILE:LINE:COL
+--                  Just (line, Nothing)  vscode --goto FILE:LINE
+--                  Just ('-' : _, _)     vscode        FILE
+--                  Nothing               vscode        FILE
 --
--- other               [LINE [COL]]          EDITOR FILE
+-- kak              Just (line, Just col) kak +LINE:COL FILE
+--                  Just (line, Nothing)  kak +LINE     FILE
+--                  Just ('-' : _, _)     kak +:        FILE
+--                  Nothing               kak           FILE
 --
--- not set             LINE COL              emacsclient -a '' -nw +LINE:COL FILE
---                     LINE                  emacsclient -a '' -nw +LINE     FILE
---                                           emacsclient -a '' -nw           FILE
--- @
+-- vi & variants    Just (line, _)        vi +LINE FILE
+--                  Just ('-' : _, _)     vi +     FILE
+--                  Nothing               vi       FILE
 --
--- Notes on opening editors at the last line of a file:
--- @
--- emacs:       emacs FILE -f end-of-buffer  # (-f must appear after FILE, +LINE:COL must appear before)
--- emacsclient: can't
--- vi:          vi + FILE
--- kakoune:     kak +: FILE
+-- (other PROG)     _                     PROG FILE
+--
+-- (not set)        Just (line, Just col) emacsclient -a '' -nw +LINE:COL FILE
+--                  Just (line, Nothing)  emacsclient -a '' -nw +LINE     FILE
+--                  Just ('-' : _, _)     emacsclient -a '' -nw           FILE
+--                  Nothing               emacsclient -a '' -nw           FILE
 -- @
 --
 editFileAtPositionCommand :: Maybe TextPosition -> FilePath -> IO String
 editFileAtPositionCommand mpos f = do
   cmd <- getEditCommand
-  let
-    editor = lowercase $ takeBaseName $ headDef "" $ words' cmd
-    f' = singleQuoteIfNeeded f
-    ml = show.fst <$> mpos
-    mc = maybe Nothing (fmap show.snd) mpos
-    args = case editor of
-             e | e `elem` ["emacs", "emacsclient",
-                           "kak"]  -> ['+' : join ":" [ml,mc], f']
-             e | e `elem` ["nano"] -> ['+' : join "," [ml,mc], f']
-             e | e `elem` ["code"] -> ["--goto " ++ join ":" [Just f',ml,mc]]
-             e | e `elem` ["vi",  "vim", "view", "nvim", "evim", "eview",
-                           "gvim", "gview", "rvim", "rview", "rgvim", "rgview",
-                           "ex"]   -> [maybe "" plusMaybeLine ml, f']
-             _ -> [f']
-           where
-             join sep = intercalate sep . catMaybes
-             plusMaybeLine l = "+" ++ if take 1 l == "-" then "" else l
-
+  let editor = lowercase $ takeBaseName $ headDef "" $ words' cmd
+      f' = singleQuoteIfNeeded f
+      mpos' = Just . bimap show (fmap show) =<< mpos
+      join sep = intercalate sep . catMaybes
+      args = case editor of
+        "emacs" -> case mpos' of
+          Nothing -> [f']
+          Just ('-' : _, _) -> [f', "-f", "end-of-buffer"]
+          Just (l, mc) -> ['+' : join ":" [Just l, mc], f']
+        e | e `elem` ["emacsclient", "nano"] -> case mpos' of
+          Nothing -> [f']
+          Just ('-' : _, _) -> [f']
+          Just (l, mc) -> ['+' : join ":" [Just l, mc], f']
+        "vscode" -> case mpos' of
+          Nothing -> [f']
+          Just ('-' : _, _) -> [f']
+          Just (l, mc) -> ["--goto", join ":" [Just f', Just l, mc]]
+        "kak" -> case mpos' of
+          Nothing -> [f']
+          Just ('-' : _, _) -> ["+:", f']
+          Just (l, mc) -> ['+' : join ":" [Just l, mc], f']
+        e | e `elem` ["vi",  "vim", "view", "nvim", "evim", "eview",
+                      "gvim", "gview", "rvim", "rview",
+                      "rgvim", "rgview", "ex"] -> case mpos' of
+          Nothing -> [f']
+          Just ('-' : _, _) -> ["+", f']
+          Just (l, _) -> ['+' : l, f']
+        _ -> [f']
   return $ unwords $ cmd:args
 
 -- | Get the user's preferred edit command. This is the value of the
