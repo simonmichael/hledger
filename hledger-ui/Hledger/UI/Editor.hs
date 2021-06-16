@@ -50,9 +50,9 @@ runEditor mpos f = editFileAtPositionCommand mpos f >>= runCommand >>= waitForPr
 -- @
 -- EDITOR program is:  LINE/COL specified ?  Command should be:               
 -- ------------------  --------------------  ----------------------------------- 
--- emacs, emacsclient  LINE COL              emacs +LINE:COL FILE
---                     LINE                  emacs +LINE     FILE
---                                           emacs           FILE
+-- emacs               LINE COL              EDITOR +LINE:COL FILE
+-- emacsclient         LINE                  EDITOR +LINE     FILE
+-- kak                                       EDITOR           FILE
 --
 -- nano                LINE COL              nano +LINE,COL FILE
 --                     LINE                  nano +LINE     FILE
@@ -78,6 +78,7 @@ runEditor mpos f = editFileAtPositionCommand mpos f >>= runCommand >>= waitForPr
 -- emacs:       emacs FILE -f end-of-buffer  # (-f must appear after FILE, +LINE:COL must appear before)
 -- emacsclient: can't
 -- vi:          vi + FILE
+-- kakoune:     kak +: FILE
 -- @
 --
 editFileAtPositionCommand :: Maybe TextPosition -> FilePath -> IO String
@@ -89,11 +90,13 @@ editFileAtPositionCommand mpos f = do
     ml = show.fst <$> mpos
     mc = maybe Nothing (fmap show.snd) mpos
     args = case editor of
-             e | e `elem` ["emacs", "emacsclient"] -> ['+' : join ":" [ml,mc], f']
-             e | e `elem` ["nano"]                 -> ['+' : join "," [ml,mc], f']
-             e | e `elem` ["code"]                 -> ["--goto " ++ join ":" [Just f',ml,mc]]
-             e | e `elem` ["vi","vim","view","nvim","evim","eview","gvim","gview","rvim","rview",
-                           "rgvim","rgview","ex"]  -> [maybe "" plusMaybeLine ml, f']
+             e | e `elem` ["emacs", "emacsclient",
+                           "kak"]  -> ['+' : join ":" [ml,mc], f']
+             e | e `elem` ["nano"] -> ['+' : join "," [ml,mc], f']
+             e | e `elem` ["code"] -> ["--goto " ++ join ":" [Just f',ml,mc]]
+             e | e `elem` ["vi",  "vim", "view", "nvim", "evim", "eview",
+                           "gvim", "gview", "rvim", "rview", "rgvim", "rgview",
+                           "ex"]   -> [maybe "" plusMaybeLine ml, f']
              _ -> [f']
            where
              join sep = intercalate sep . catMaybes
