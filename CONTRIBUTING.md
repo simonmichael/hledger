@@ -1341,8 +1341,8 @@ Here are some useful optional tools:
 
 Eg:
 
-    stack install ghcid shelltestrunner quickbench hasktags
-    brew install entr
+    stack install ghcid shelltestrunner hasktags
+    git clone https://github.com/simonmichael/quickbench; cd quickbench; stack install  # must run in source dir
 
 ### Get the code
 
