@@ -43,32 +43,32 @@ runEditor mpos f = editFileAtPositionCommand mpos f >>= runCommand >>= waitForPr
 -- | Get a shell command line to open the user's preferred text editor
 -- (or a default editor) on the given file, and to focus it at the
 -- given text position if one is provided and if we know how.
--- We know how to focus on position for: emacs, vi, nano, VS code.
+-- We know how to focus on position for: emacs, vim, nano, VS code, kakoune.
 -- We know how to focus on last line for: vi.
 --
 -- Some tests:
 -- @
--- EDITOR program is:  LINE/COL specified ?  Command should be:               
+-- EDITOR program is:  LINE/COL specified ?  Command should be:                 
 -- ------------------  --------------------  ----------------------------------- 
--- emacs               LINE COL              EDITOR +LINE:COL FILE
--- emacsclient         LINE                  EDITOR +LINE     FILE
+-- emacs,              LINE COL              EDITOR +LINE:COL FILE
+-- emacsclient,        LINE                  EDITOR +LINE     FILE
 -- kak                                       EDITOR           FILE
 --
--- nano                LINE COL              nano +LINE,COL FILE
---                     LINE                  nano +LINE     FILE
---                                           nano           FILE
+-- nano                LINE COL              EDITOR +LINE,COL FILE
+--                     LINE                  EDITOR +LINE     FILE
+--                                           EDITOR           FILE
 --
--- code                LINE COL              code --goto FILE:LINE:COL
---                     LINE                  code --goto FILE:LINE
---                                           code        FILE
+-- code                LINE COL              EDITOR --goto FILE:LINE:COL
+--                     LINE                  EDITOR --goto FILE:LINE
+--                                           EDITOR        FILE
 --
--- vi, & variants      LINE [COL]            vi +LINE FILE
---                     LINE (negative)       vi +     FILE
---                                           vi       FILE
+-- vi/vim variants     LINE [COL]            EDITOR +LINE FILE
+--                     LINE (negative)       EDITOR +     FILE
+--                                           EDITOR       FILE
 --
--- (other PROG)        [LINE [COL]]          PROG FILE
+-- other               [LINE [COL]]          EDITOR FILE
 --
--- (not set)           LINE COL              emacsclient -a '' -nw +LINE:COL FILE
+-- not set             LINE COL              emacsclient -a '' -nw +LINE:COL FILE
 --                     LINE                  emacsclient -a '' -nw +LINE     FILE
 --                                           emacsclient -a '' -nw           FILE
 -- @
