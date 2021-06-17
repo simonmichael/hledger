@@ -418,7 +418,7 @@ main = do
         need $ [src, commonm4, commandsm4, packagemanversionm4, packagemandatem4, tmpl] ++ subfiles
         when (dir=="hledger") $ need commandmds
         cmd Shell
-          m4 "-DMAN -I" dir commonm4 commandsm4 packagemanversionm4 packagemandatem4 src "|"
+          m4 "-DMANFORMAT -I" dir commonm4 commandsm4 packagemanversionm4 packagemandatem4 src "|"
           pandoc fromsrcmd "-s" "--template" tmpl
           ("-V footer='"++pkg++"-"++pkgversion++"'")
           "--lua-filter tools/pandoc-drop-html-blocks.lua"
@@ -455,7 +455,7 @@ main = do
         need $ [src, commonm4, commandsm4, packagemanversionm4, packagemandatem4] ++ subfiles
         when (dir=="hledger") $ need commandmds
         cmd Shell
-          m4 "-DINFO -I" dir commonm4 commandsm4 packagemanversionm4 packagemandatem4 src "|"
+          m4 "-DINFOFORMAT -I" dir commonm4 commandsm4 packagemanversionm4 packagemandatem4 src "|"
           -- sed "-e 's/^#(#+)/\\1/'" "|"
           pandoc fromsrcmd
           "--lua-filter tools/pandoc-drop-html-blocks.lua"
@@ -507,7 +507,7 @@ main = do
           ,""
           ]
         cmd Shell
-          m4 "-DWEB -I" dir commonm4 commandsm4 packageversionm4 packagemandatem4 src "|"
+          m4 "-DWEBFORMAT -I" dir commonm4 commandsm4 packageversionm4 packagemandatem4 src "|"
           pandoc fromsrcmd towebmd
           "--lua-filter tools/pandoc-demote-headers.lua"
           ">>" out
