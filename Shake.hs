@@ -111,6 +111,12 @@ sed = "sed -E"
 grep = "grep -E"
 
 -- The kind of markdown used in our doc source files.
+-- Note: without +hard_line_breaks here, paragraphs get refilled,
+-- which is good for nice rendered info/man/text output, but so do
+-- multiline arguments to m4 macros, which is bad eg when using
+-- _info_ to add Info directives (cf #806). For such situations we
+-- work around by calling the macro for each line of text, it
+-- would be nice to find a way to avoid this.
 fromsrcmd = "-f markdown-smart-tex_math_dollars"
 
 -- The kind of markdown we like to generate for the website.
