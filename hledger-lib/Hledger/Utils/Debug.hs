@@ -87,9 +87,6 @@ module Hledger.Utils.Debug (
   ,dbg7IO
   ,dbg8IO
   ,dbg9IO
-  -- ** Trace to a file
-  ,plog
-  ,plogAt
   -- ** Trace the state of hledger parsers
   ,traceParse
   ,dbgparse
@@ -421,37 +418,6 @@ dbg8IO = ptraceAtIO 8
 
 dbg9IO :: (MonadIO m, Show a) => String -> a -> m ()
 dbg9IO = ptraceAtIO 9
-
--- | Log a label and a pretty-printed showable value to ./debug.log, then return it.
--- Can fail, see plogAt.
-plog :: Show a => String -> a -> a
-plog = plogAt 0
-
--- | Log a label and a pretty-printed showable value to ./debug.log,
--- if the global debug level is at or above the specified level.
--- At level 0, always logs. Otherwise, uses unsafePerformIO.
--- Tends to fail if called more than once too quickly, at least when built with -threaded
--- ("Exception: debug.log: openFile: resource busy (file is locked)").
-plogAt :: Show a => Int -> String -> a -> a
-plogAt lvl
-    | lvl > 0 && debugLevel < lvl = flip const
-    | otherwise = \s a ->
-        let p = pshow a
-            ls = lines p
-            nlorspace | length ls > 1 = "\n"
-                      | otherwise     = " " ++ take (10 - length s) (repeat ' ')
-            ls' | length ls > 1 = map (" "++) ls
-                | otherwise     = ls
-            output = s++":"++nlorspace++intercalate "\n" ls'++"\n"
-        in unsafePerformIO $ appendFile "debug.log" output >> return a
-
--- XXX redundant ? More/less robust than plogAt ?
--- -- | Like dbg, but writes the output to "debug.log" in the current directory.
--- dbglog :: Show a => String -> a -> a
--- dbglog label a =
---   (unsafePerformIO $
---     appendFile "debug.log" $ label ++ ": " ++ ppShow a ++ "\n")
---   `seq` a
 
 -- | Print the provided label (if non-null) and current parser state
 -- (position and next input) to the console. See also megaparsec's dbg.
