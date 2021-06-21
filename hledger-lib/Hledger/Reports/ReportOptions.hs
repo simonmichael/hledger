@@ -506,10 +506,9 @@ journalApplyValuationFromOpts rspec j =
 -- | Like journalApplyValuationFromOpts, but takes PriceOracle as an argument.
 journalApplyValuationFromOptsWith :: ReportSpec -> Journal -> PriceOracle -> Journal
 journalApplyValuationFromOptsWith rspec@ReportSpec{rsOpts=ropts} j priceoracle =
-    journalMapPostings (valuation . maybeStripPrices) $ costing j
+    journalMapPostings valuation $ costing j
   where
     valuation p = maybe id (postingApplyValuation priceoracle styles (periodEnd p) (rsToday rspec)) (value_ ropts) p
-    maybeStripPrices = if show_costs_ ropts then id else postingStripPrices
     costing = case cost_ ropts of
         Cost   -> journalToCost
         NoCost -> id
@@ -528,12 +527,11 @@ mixedAmountApplyValuationAfterSumFromOptsWith :: ReportOpts -> Journal -> PriceO
                                               -> (DateSpan -> MixedAmount -> MixedAmount)
 mixedAmountApplyValuationAfterSumFromOptsWith ropts j priceoracle =
     case valuationAfterSum ropts of
-      Just mc -> \span -> valuation mc span . maybeStripPrices . costing
+      Just mc -> \span -> valuation mc span . costing
       Nothing -> const id
   where
     valuation mc span = mixedAmountValueAtDate priceoracle styles mc (maybe err (addDays (-1)) $ spanEnd span)
       where err = error "mixedAmountApplyValuationAfterSumFromOptsWith: expected all spans to have an end date"
-    maybeStripPrices = if show_costs_ ropts then id else mixedAmountStripPrices
     costing = case cost_ ropts of
         Cost   -> styleMixedAmount styles . mixedAmountCost
         NoCost -> id

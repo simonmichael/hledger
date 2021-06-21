@@ -83,8 +83,9 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec} j = do
     explicit = boolopt "explicit" rawopts
 
     -- the balances to close
-    (acctbals,_) = balanceReport rspec_ j
-    totalamt = maSum $ map (\(_,_,_,b) -> b) acctbals
+    (acctbals',_) = balanceReport rspec_ j
+    acctbals = map (\(a,_,_,b) -> (a, if show_costs_ ropts then b else mixedAmountStripPrices b)) acctbals'
+    totalamt = maSum $ map snd acctbals
 
     -- since balance assertion amounts are required to be exact, the
     -- amounts in opening/closing transactions should be too (#941, #1137)
@@ -111,7 +112,7 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec} j = do
         ++ [posting{paccount=closingacct, pamount=mixedAmount $ precise b} | interleaved]
 
         | -- get the balances for each commodity and transaction price
-          (a,_,_,mb) <- acctbals
+          (a,mb) <- acctbals
         , let bs = amounts mb
           -- mark the last balance in each commodity with True
         , let bs' = concat [reverse $ zip (reverse bs) (True : repeat False)
@@ -137,7 +138,7 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec} j = do
         ]
         ++ [posting{paccount=openingacct, pamount=mixedAmount . precise $ negate b} | interleaved]
 
-        | (a,_,_,mb) <- acctbals
+        | (a,mb) <- acctbals
         , let bs = amounts $ normaliseMixedAmount mb
           -- mark the last balance in each commodity with the unpriced sum in that commodity (for a balance assertion)
         , let bs' = concat [reverse $ zip (reverse bs) (Just commoditysum : repeat Nothing)
