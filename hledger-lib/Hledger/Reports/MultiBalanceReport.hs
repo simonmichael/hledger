@@ -407,8 +407,9 @@ displayedAccounts ReportSpec{rsQuery=query,rsOpts=ropts} valuedaccts
            || not (isZeroRow balance amts))            -- Throw out anything with zero balance
       where
         d = accountNameLevel name
-        balance | ALTree <- accountlistmode_ ropts, d == depth = aibalance
-                | otherwise = aebalance
+        balance | ALTree <- accountlistmode_ ropts, d == depth = maybeStripPrices . aibalance
+                | otherwise = maybeStripPrices . aebalance
+          where maybeStripPrices = if show_costs_ ropts then id else mixedAmountStripPrices
 
     -- Accounts interesting because they are a fork for interesting subaccounts
     interestingParents = dbg5 "interestingParents" $ case accountlistmode_ ropts of

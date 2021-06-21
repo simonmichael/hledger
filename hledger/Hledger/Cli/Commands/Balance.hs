@@ -654,8 +654,6 @@ balanceOpts :: Bool -> ReportOpts -> AmountDisplayOpts
 balanceOpts isTable ReportOpts{..} = oneLine
     { displayColour   = isTable && color_
     , displayMaxWidth = if isTable && not no_elide_ then Just 32 else Nothing
-    , displayPrice    = True  -- multiBalanceReport strips prices from Amounts if they are not being used,
-                              -- so we can display prices here without fear.
     }
 
 tests_Balance = tests "Balance" [

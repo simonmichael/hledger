@@ -89,8 +89,8 @@ postingsReportItemAsCsvRecord (_, _, _, p, b) = [idx,date,code,desc,acct,amt,bal
                              VirtualPosting -> wrap "(" ")"
                              _ -> id
     -- Since postingsReport strips prices from all Amounts when not used, we can display prices.
-    amt = wbToText . showMixedAmountB oneLine{displayPrice=True} $ pamount p
-    bal = wbToText $ showMixedAmountB oneLine{displayPrice=True} b
+    amt = wbToText . showMixedAmountB oneLine $ pamount p
+    bal = wbToText $ showMixedAmountB oneLine b
 
 -- | Render a register report as plain text suitable for console output.
 postingsReportAsText :: CliOpts -> PostingsReport -> TL.Text
@@ -104,7 +104,7 @@ postingsReportAsText opts items = TB.toLazyText $ foldMap first3 linesWithWidths
     amtwidth = maximumStrict $ 12 : widths (map itemamt items)
     balwidth = maximumStrict $ 12 : widths (map itembal items)
     -- Since postingsReport strips prices from all Amounts when not used, we can display prices.
-    widths = map wbWidth . concatMap (showMixedAmountLinesB oneLine{displayPrice=True})
+    widths = map wbWidth . concatMap (showMixedAmountLinesB oneLine)
     itemamt (_,_,_,Posting{pamount=a},_) = a
     itembal (_,_,_,_,a) = a
 
@@ -187,9 +187,7 @@ postingsReportItemAsText opts preferredamtwidth preferredbalwidth (mdate, mendda
             _                      -> (id,acctwidth)
     amt = showamt $ pamount p
     bal = showamt b
-    -- Since postingsReport strips prices from all Amounts when not used, we can display prices.
-    showamt = showMixedAmountLinesB oneLine{displayColour=color_, displayPrice=True}
-      where ReportOpts{..} = rsOpts $ reportspec_ opts
+    showamt = showMixedAmountLinesB oneLine{displayColour=color_ . rsOpts $ reportspec_ opts}
     -- Since this will usually be called with the knot tied between this(amt|bal)width and
     -- preferred(amt|bal)width, make sure the former do not depend on the latter to avoid loops.
     thisamtwidth = maximumDef 0 $ map wbWidth amt
