@@ -1,0 +1,58 @@
+name: Static build x64 arch CI
+
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+'
+      - '[0-9]+.[0-9]+-*'
+      - '[0-9]+.[0-9]+.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+-*'
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      -
+        name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          file: ./docker-static-x64/Dockerfile
+          platforms: linux/amd64
+          tags: hledger-static-linux-x64:latest
+          load: true
+
+      - name: Extract binaries from docker
+        run: |
+          # Create temporary container from it
+          container_id=$(docker create hledger-static-linux-x64:latest)
+          # Copy stuff from temp container
+          docker cp $container_id:/tmp/hledger /tmp
+          # Delete temp container
+          docker rm -v $container_id
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: Static Binary
+          path: |
+            /tmp/hledger/hledger-static-linux-x64
+            /tmp/hledger/hledger-web-static-linux-x64
+            /tmp/hledger/hledger-ui-static-linux-x64
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            /tmp/hledger/hledger-static-linux-x64
+            /tmp/hledger/hledger-web-static-linux-x64
+            /tmp/hledger/hledger-ui-static-linux-x64
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
