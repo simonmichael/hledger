@@ -20,11 +20,10 @@ module Hledger.Cli.Commands.Aregister (
 ) where
 
 import Data.List (find, intersperse)
-import Data.Maybe (fromMaybe, isJust)
+import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
-import Data.Time (addDays)
 import System.Console.CmdArgs.Explicit (flagNone, flagReq)
 import Hledger.Read.CsvReader (CSV, CsvRecord, printCSV)
 
@@ -67,12 +66,10 @@ aregistermode = hledgerCommandMode
 -- | Print an account register report for a specified account.
 aregister :: CliOpts -> Journal -> IO ()
 aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
-  d <- getCurrentDay
   -- the first argument specifies the account, any remaining arguments are a filter query
   (apat,querystring) <- case listofstringopt "args" rawopts of
       []     -> fail "aregister needs an account, please provide an account name or pattern"
       (a:as) -> return (a, map T.pack as)
-  argsquery <- either fail (return . fst) $ parseQueryList d querystring
   let
     acct = fromMaybe (error' $ show apat++" did not match any account")   -- PARTIAL:
            . firstMatch $ journalAccountNamesDeclaredOrImplied j
@@ -87,29 +84,19 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
         depth_=Nothing
         -- always show historical balance
       , balanceaccum_= Historical
+      , querystring_ = querystring
       }
-    -- and regenerate the ReportSpec, making sure to use the above
-    rspec' = rspec{ rsQuery=simplifyQuery $ And [queryFromFlags ropts', argsquery]
-                  , rsOpts=ropts'
-                  }
-    reportq = And [rsQuery rspec', excludeforecastq (isJust $ forecast_ ropts')]
-      where
-        -- As in RegisterScreen, why ? XXX
-        -- Except in forecast mode, exclude future/forecast transactions.
-        excludeforecastq True = Any
-        excludeforecastq False =  -- not:date:tomorrow- not:tag:generated-transaction
-          And [
-             Not (Date $ DateSpan (Just $ addDays 1 d) Nothing)
-            ,Not generatedTransactionTag
-          ]
+  -- and regenerate the ReportSpec, making sure to use the above
+  rspec' <- either fail return $ updateReportSpec ropts' rspec
+  let
     -- run the report
     -- TODO: need to also pass the queries so we can choose which date to render - move them into the report ?
-    items = accountTransactionsReport rspec' j reportq thisacctq
+    items = accountTransactionsReport rspec' j thisacctq
     items' = (if empty_ ropts' then id else filter (not . mixedAmountLooksZero . fifth6)) $
              reverse items
     -- select renderer
-    render | fmt=="txt"  = accountTransactionsReportAsText opts reportq thisacctq
-           | fmt=="csv"  = printCSV . accountTransactionsReportAsCsv reportq thisacctq
+    render | fmt=="txt"  = accountTransactionsReportAsText opts (rsQuery rspec') thisacctq
+           | fmt=="csv"  = printCSV . accountTransactionsReportAsCsv (rsQuery rspec') thisacctq
            | fmt=="json" = toJsonText
            | otherwise   = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
       where
