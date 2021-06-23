@@ -27,7 +27,8 @@ getJournalR = do
         Just (a, inclsubs) -> "Transactions in " <> a <> if inclsubs then "" else " (excluding subaccounts)"
       title' = title <> if m /= Any then ", filtered" else ""
       acctlink a = (RegisterR, [("q", replaceInacct q $ accountQuery a)])
-      items = transactionsReport (reportspec_ $ cliopts_ opts) j m
+      rspec = (reportspec_ $ cliopts_ opts){rsQuery = m}
+      items = reverse $ entriesReport rspec j
       transactionFrag = transactionFragment j
 
   defaultLayout $ do
