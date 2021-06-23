@@ -60,6 +60,7 @@ import Data.Maybe (fromMaybe, mapMaybe)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day, addDays)
 import Data.Default (Default(..))
+import Lens.Micro (Lens')
 import Safe (headMay, lastDef, lastMay, maximumMay)
 import Text.Megaparsec.Custom
 
@@ -198,10 +199,6 @@ data ReportSpec = ReportSpec
   , query_      :: Query       -- ^ The generated Query for the given day
   , queryopts_  :: [QueryOpt]  -- ^ A list of QueryOpts for the given day
   } deriving (Show)
-
-makeClassyLensesTrailing ''ReportSpec
-
-instance HasReportOpts ReportSpec where reportOpts = reportopts
 
 instance Default ReportSpec where def = defreportspec
 
@@ -669,3 +666,37 @@ reportPeriodName balancetype spans =
       where
         multiyear = (>1) $ length $ nubSort $ map spanStartYear spans
     _ -> maybe "" (showDate . prevday) . spanEnd
+
+-- lenses
+
+class HasReportSpec a where
+    reportSpec :: Lens' a ReportSpec
+
+    reportopts :: Lens' a ReportOpts
+    reportopts = reportSpec.reportopts
+    {-# INLINE reportopts #-}
+
+    reportday :: Lens' a Day
+    reportday = reportSpec.reportday
+    {-# INLINE reportday #-}
+
+    query :: Lens' a Query
+    query = reportSpec.query
+    {-# INLINE query #-}
+
+    queryopts :: Lens' a [QueryOpt]
+    queryopts = reportSpec.queryopts
+    {-# INLINE queryopts #-}
+
+instance HasReportSpec ReportSpec where
+    reportSpec = id
+    reportopts f rspec = (\x -> rspec{reportopts_=x}) <$> f (reportopts_ rspec)
+    {-# INLINE reportopts #-}
+    reportday f rspec = (\x -> rspec{reportday_=x}) <$> f (reportday_ rspec)
+    {-# INLINE reportday #-}
+    query f rspec = (\x -> rspec{query_=x}) <$> f (query_ rspec)
+    {-# INLINE query #-}
+    queryopts f rspec = (\x -> rspec{queryopts_=x}) <$> f (queryopts_ rspec)
+    {-# INLINE queryopts #-}
+
+instance HasReportOpts ReportSpec where reportOpts = reportopts
