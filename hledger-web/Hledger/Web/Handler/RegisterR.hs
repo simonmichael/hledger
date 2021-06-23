@@ -98,8 +98,8 @@ decorateLinks =
             map ((,) (Just acct)) name ++ map ((,) Nothing) comma)
 
 -- | Generate javascript/html for a register balance line chart based on
--- the provided "TransactionsReportItem"s.
-registerChartHtml :: Text -> String -> [(CommoditySymbol, [TransactionsReportItem])] -> HtmlUrl AppRoute
+-- the provided "AccountTransactionsReportItem"s.
+registerChartHtml :: Text -> String -> [(CommoditySymbol, [AccountTransactionsReportItem])] -> HtmlUrl AppRoute
 registerChartHtml q title percommoditytxnreports = $(hamletFile "templates/chart.hamlet")
  -- have to make sure plot is not called when our container (maincontent)
  -- is hidden, eg with add form toggled

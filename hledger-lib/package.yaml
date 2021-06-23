@@ -127,7 +127,6 @@ library:
   - Hledger.Reports.EntriesReport
   - Hledger.Reports.MultiBalanceReport
   - Hledger.Reports.PostingsReport
-  - Hledger.Reports.TransactionsReport
   - Hledger.Utils
   - Hledger.Utils.Color
   - Hledger.Utils.Debug
