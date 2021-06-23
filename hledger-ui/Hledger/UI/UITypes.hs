@@ -59,16 +59,15 @@ import Lens.Micro.Platform
 import Text.Show.Functions ()  -- import the Show instance for functions.
 
 import Hledger
-import Hledger.Cli.CliOptions (HasCliOpts(..))
-import Hledger.UI.UIOptions
+import Hledger.Cli.CliOptions (CliOpts, HasCliOpts(..))
 
 -- | hledger-ui's application state. This holds one or more stateful screens.
 -- As you navigate through screens, the old ones are saved in a stack.
 -- The app can be in one of several modes: normal screen operation,
 -- showing a help dialog, entering data in the minibuffer etc.
 data UIState = UIState {
-   astartupopts :: UIOpts    -- ^ the command-line options and query arguments specified at startup
-  ,_aopts       :: UIOpts    -- ^ the command-line options and query arguments currently in effect
+   astartupopts :: CliOpts   -- ^ the command-line options and query arguments specified at startup
+  ,_aopts       :: CliOpts   -- ^ the command-line options and query arguments currently in effect
   ,ajournal     :: Journal   -- ^ the journal being viewed
   ,aPrevScreens :: [Screen]  -- ^ previously visited screens, most recent first
   ,aScreen      :: Screen    -- ^ the currently active screen
@@ -174,8 +173,7 @@ type NumberedTransaction = (Integer, Transaction)
 
 concat <$> mapM makeLenses [ ''Screen, ''UIState ]
 
-instance HasUIOpts        UIState where uIOpts        = aopts
-instance HasCliOpts       UIState where cliOpts       = aopts . cliOpts
+instance HasCliOpts       UIState where cliOpts       = aopts
 instance HasInputOpts     UIState where inputOpts     = aopts . inputOpts
 instance HasBalancingOpts UIState where balancingOpts = aopts . balancingOpts
 instance HasReportSpec    UIState where reportSpec    = aopts . reportSpec

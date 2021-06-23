@@ -24,7 +24,6 @@ import Text.Megaparsec
 import Text.Megaparsec.Char
 
 import Hledger.Cli hiding (progname,prognameandversion)
-import Hledger.UI.UIOptions
 import Hledger.UI.UITypes
 import Hledger.UI.UIState
 import Hledger.UI.UIUtils
@@ -44,7 +43,7 @@ esInit _ _ ui@UIState{aScreen=ErrorScreen{}} = ui
 esInit _ _ _ = error "init function called with wrong screen type, should not happen"  -- PARTIAL:
 
 esDraw :: UIState -> [Widget Name]
-esDraw UIState{_aopts=UIOpts{cliopts_=copts@CliOpts{}}
+esDraw UIState{_aopts=copts@CliOpts{}
               ,aScreen=ErrorScreen{..}
               ,aMode=mode
               } =
@@ -76,7 +75,7 @@ esDraw _ = error "draw function called with wrong screen type, should not happen
 
 esHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
 esHandle ui@UIState{aScreen=ErrorScreen{..}
-                   ,_aopts=UIOpts{cliopts_=copts}
+                   ,_aopts=copts
                    ,ajournal=j
                    ,aMode=mode
                    }
@@ -189,7 +188,7 @@ enableForecastPreservingPeriod ui copts@CliOpts{reportspec_=rspec@ReportSpec{rep
     mforecast = asum [mprovidedforecastperiod, mstartupforecastperiod, mdefaultforecastperiod]
       where
         mprovidedforecastperiod = forecast_ ropts
-        mstartupforecastperiod  = forecast_ $ reportopts_ $ reportspec_ $ cliopts_ $ astartupopts ui
+        mstartupforecastperiod  = forecast_ . reportopts_ . reportspec_ $ astartupopts ui
         mdefaultforecastperiod  = Just nulldatespan
 
 -- Re-check any balance assertions in the current journal, and if any

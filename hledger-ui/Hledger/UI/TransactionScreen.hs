@@ -24,7 +24,6 @@ import Brick.Widgets.List (listElementsL, listMoveTo, listSelectedElement)
 
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion)
-import Hledger.UI.UIOptions
 -- import Hledger.UI.Theme
 import Hledger.UI.UITypes
 import Hledger.UI.UIState
@@ -43,7 +42,7 @@ transactionScreen = TransactionScreen{
   }
 
 tsInit :: Day -> Bool -> UIState -> UIState
-tsInit _d _reset ui@UIState{_aopts=UIOpts{cliopts_=CliOpts{reportspec_=_rspec}}
+tsInit _d _reset ui@UIState{_aopts=CliOpts{reportspec_=_rspec}
                            ,ajournal=_j
                            ,aScreen=s@TransactionScreen{tsTransaction=(_,t),tsTransactions=nts}
                            ,aPrevScreens=prevscreens
@@ -62,7 +61,7 @@ tsInit _d _reset ui@UIState{_aopts=UIOpts{cliopts_=CliOpts{reportspec_=_rspec}}
 tsInit _ _ _ = error "init function called with wrong screen type, should not happen"  -- PARTIAL:
 
 tsDraw :: UIState -> [Widget Name]
-tsDraw UIState{_aopts=UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{reportopts_=ropts}}}
+tsDraw UIState{_aopts=copts@CliOpts{reportspec_=rspec@ReportSpec{reportopts_=ropts}}
               ,ajournal=j
               ,aScreen=TransactionScreen{tsTransaction=(i,t')
                                         ,tsTransactions=nts
@@ -136,7 +135,7 @@ tsHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
 tsHandle ui@UIState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
                                                ,tsTransactions=nts
                                                }
-                   ,_aopts=UIOpts{cliopts_=copts}
+                   ,_aopts=copts
                    ,ajournal=j
                    ,aMode=mode
                    }

@@ -29,7 +29,6 @@ import System.FilePath (takeFileName)
 
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion)
-import Hledger.UI.UIOptions
 import Hledger.UI.UITypes
 import Hledger.UI.UIState
 import Hledger.UI.UIUtils
@@ -49,7 +48,7 @@ accountsScreen = AccountsScreen{
 
 asInit :: Day -> Bool -> UIState -> UIState
 asInit d reset ui@UIState{
-  _aopts=UIOpts{cliopts_=CliOpts{reportspec_=rspec@ReportSpec{reportopts_=ropts}}},
+  _aopts=CliOpts{reportspec_=rspec@ReportSpec{reportopts_=ropts}},
   ajournal=j,
   aScreen=s@AccountsScreen{}
   } =
@@ -112,7 +111,7 @@ asInit d reset ui@UIState{
 asInit _ _ _ = error "init function called with wrong screen type, should not happen"  -- PARTIAL:
 
 asDraw :: UIState -> [Widget Name]
-asDraw UIState{_aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}
+asDraw UIState{_aopts=copts@CliOpts{reportspec_=rspec}
               ,ajournal=j
               ,aScreen=s@AccountsScreen{}
               ,aMode=mode
@@ -232,7 +231,7 @@ asDrawItem (acctwidth, balwidth) selected AccountsScreenItem{..} =
 asHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
 asHandle ui0@UIState{
    aScreen=scr@AccountsScreen{..}
-  ,_aopts=UIOpts{cliopts_=copts}
+  ,_aopts=copts
   ,ajournal=j
   ,aMode=mode
   } ev = do

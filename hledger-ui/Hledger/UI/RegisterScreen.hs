@@ -31,7 +31,6 @@ import System.Console.ANSI
 
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion)
-import Hledger.UI.UIOptions
 -- import Hledger.UI.Theme
 import Hledger.UI.UITypes
 import Hledger.UI.UIState
@@ -141,7 +140,7 @@ rsInit d reset ui@UIState{aScreen=s@RegisterScreen{..}} =
 rsInit _ _ _ = error "init function called with wrong screen type, should not happen"  -- PARTIAL:
 
 rsDraw :: UIState -> [Widget Name]
-rsDraw UIState{_aopts=UIOpts{cliopts_=copts},aScreen=RegisterScreen{..},aMode=mode} =
+rsDraw UIState{_aopts=copts,aScreen=RegisterScreen{..},aMode=mode} =
   case mode of
     Help       -> [helpDialog copts, maincontent]
     -- Minibuffer e -> [minibuffer e, maincontent]
@@ -279,7 +278,7 @@ rsDrawItem (datewidth,descwidth,acctswidth,changewidth,balwidth) selected Regist
 rsHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
 rsHandle ui@UIState{
    aScreen=s@RegisterScreen{..}
-  ,_aopts=UIOpts{cliopts_=copts}
+  ,_aopts=copts
   ,ajournal=j
   ,aMode=mode
   } ev = do

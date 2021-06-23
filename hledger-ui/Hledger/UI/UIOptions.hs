@@ -5,9 +5,7 @@
 -}
 
 module Hledger.UI.UIOptions
-( UIOpts(..)
-, HasUIOpts(uIOpts,watchfiles)
-, getHledgerUIOpts
+( getHledgerUIOpts
 , uimode
 , progname
 , version
@@ -19,7 +17,6 @@ import Data.Maybe (fromMaybe)
 import Lens.Micro (set)
 import System.Environment (getArgs)
 
-import Hledger.Utils.TH (makeClassyLensesTrailing)
 import Hledger.Cli hiding (progname,version,prognameandversion)
 import Hledger.UI.Theme (themeNames)
 
@@ -65,45 +62,21 @@ uimode =  (mode "hledger-ui" (setopt "command" "ui" defrawopts)
                  ]
            }
 
--- hledger-ui options, used in hledger-ui and above
-data UIOpts = UIOpts {
-     watchfiles_ :: Bool
-    ,cliopts_    :: CliOpts
- } deriving (Show)
-
-makeClassyLensesTrailing ''UIOpts
-
-instance HasCliOpts       UIOpts where cliOpts       = cliopts
-instance HasInputOpts     UIOpts where inputOpts     = cliopts . inputOpts
-instance HasBalancingOpts UIOpts where balancingOpts = cliopts . balancingOpts
-instance HasReportSpec    UIOpts where reportSpec    = cliopts . reportSpec
-instance HasReportOpts    UIOpts where reportOpts    = cliopts . reportOpts
-
-defuiopts = UIOpts
-  { watchfiles_ = False
-  , cliopts_    = defcliopts
-  }
-
-rawOptsToUIOpts :: RawOpts -> IO UIOpts
+rawOptsToUIOpts :: RawOpts -> IO CliOpts
 rawOptsToUIOpts rawopts = checkUIOpts <$> do
   -- show historical balances by default (unlike hledger)
   let btype = fromMaybe HistoricalBalance $ balanceTypeOverride rawopts
-  cliopts <- set balancetype btype <$> rawOptsToCliOpts rawopts
-  return defuiopts {
-              watchfiles_ = boolopt "watch" rawopts
-             ,cliopts_    = cliopts
-             }
+  set balancetype btype <$> rawOptsToCliOpts rawopts
 
-checkUIOpts :: UIOpts -> UIOpts
-checkUIOpts opts =
-  either usageError (const opts) $ do
-    case maybestringopt "theme" $ rawopts_ $ cliopts_ opts of
-      Just t | not $ elem t themeNames -> Left $ "invalid theme name: "++t
-      _                                -> Right ()
+checkUIOpts :: CliOpts -> CliOpts
+checkUIOpts copts =
+  either usageError (const copts) $ do
+    case maybestringopt "theme" $ rawopts_ copts of
+      Just t | t `notElem` themeNames -> Left $ "invalid theme name: "++t
+      _                               -> Right ()
 
 -- XXX some refactoring seems due
-getHledgerUIOpts :: IO UIOpts
---getHledgerUIOpts = processArgs uimode >>= return >>= rawOptsToUIOpts
+getHledgerUIOpts :: IO CliOpts
 getHledgerUIOpts = do
   args <- getArgs >>= expandArgsAt
   let args' = replaceNumericFlags args

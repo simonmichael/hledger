@@ -8,6 +8,7 @@ Released under GPL version 3 or later.
 
 module Hledger.UI.Main where
 
+import Control.Applicative ((<|>))
 import Control.Concurrent (threadDelay)
 import Control.Concurrent.Async (withAsync)
 import Control.Monad (forM_, void, when)
@@ -15,6 +16,7 @@ import Data.List (find)
 import Data.List.Extra (nubSort)
 import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
+import Lens.Micro (over)
 import Graphics.Vty (mkVty)
 import System.Directory (canonicalizePath)
 import System.FilePath (takeDirectory)
@@ -42,11 +44,10 @@ writeChan = BC.writeBChan
 
 main :: IO ()
 main = do
-  opts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportspec_=rspec@ReportSpec{reportopts_=ropts},rawopts_=rawopts}} <- getHledgerUIOpts
-  -- when (debug_ $ cliopts_ opts) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show opts)
-
   -- always generate forecasted periodic transactions; their visibility will be toggled by the UI.
-  let copts' = copts{reportspec_=rspec{reportopts_=ropts{forecast_=Just $ fromMaybe nulldatespan (forecast_ ropts)}}}
+  copts <- over forecast (<|> Just nulldatespan) <$> getHledgerUIOpts
+  let rawopts = rawopts_ copts
+  -- when (debug_ $ cliopts_ opts) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show opts)
 
   case True of
     _ | "help"            `inRawOpts` rawopts -> putStr (showModeUsage uimode)
@@ -54,10 +55,10 @@ main = do
     _ | "man"             `inRawOpts` rawopts -> runManForTopic  "hledger-ui" Nothing
     _ | "version"         `inRawOpts` rawopts -> putStrLn prognameandversion
     _ | "binary-filename" `inRawOpts` rawopts -> putStrLn (binaryfilename progname)
-    _                                         -> withJournalDo copts' (runBrickUi opts)
+    _                                         -> withJournalDo copts (runBrickUi copts)
 
-runBrickUi :: UIOpts -> Journal -> IO ()
-runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportspec_=rspec@ReportSpec{reportopts_=ropts}}} j = do
+runBrickUi :: CliOpts -> Journal -> IO ()
+runBrickUi copts@CliOpts{inputopts_=_iopts,reportspec_=rspec@ReportSpec{reportopts_=ropts}} j = do
   d <- getCurrentDay
 
   let
@@ -99,19 +100,17 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportspec_=rsp
     -- There is also a freeform text area for extra query terms (/ key).
     -- It's cleaner and less conflicting to keep the former out of the latter.
 
-    uopts' = uopts{
-      cliopts_=copts{
-         reportspec_=rspec{
-            query_=filteredQuery $ query_ rspec,  -- query with depth/date parts removed
-            reportopts_=ropts{
-               depth_ =queryDepth $ query_ rspec,  -- query's depth part
-               period_=periodfromoptsandargs,       -- query's date part
-               no_elide_=True,  -- avoid squashing boring account names, for a more regular tree (unlike hledger)
-               showempty_=not $ showempty_ ropts   -- show zero items by default, hide them with -E (unlike hledger)
-               }
-            }
-         }
-      }
+    copts'=copts{
+       reportspec_=rspec{
+          query_=filteredQuery $ query_ rspec,  -- query with depth/date parts removed
+          reportopts_=ropts{
+             depth_ =queryDepth $ query_ rspec,  -- query's depth part
+             period_=periodfromoptsandargs,       -- query's date part
+             no_elide_=True,  -- avoid squashing boring account names, for a more regular tree (unlike hledger)
+             showempty_=not $ showempty_ ropts   -- show zero items by default, hide them with -E (unlike hledger)
+             }
+          }
+       }
       where
         datespanfromargs = queryDateSpan (date2_ ropts) $ query_ rspec
         periodfromoptsandargs =
@@ -141,8 +140,8 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportspec_=rsp
           ascr' = aScreen $
                   asInit d True
                     UIState{
-                     astartupopts=uopts'
-                    ,_aopts=uopts'
+                     astartupopts=copts'
+                    ,_aopts=copts'
                     ,ajournal=j
                     ,aScreen=asSetSelectedAccount acct accountsScreen
                     ,aPrevScreens=[]
@@ -150,8 +149,8 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportspec_=rsp
                     }
 
     ui = (sInit scr) d True $ UIState
-           { astartupopts=uopts'
-           , _aopts=uopts'
+           { astartupopts=copts'
+           , _aopts=copts'
            , ajournal=j
            , aScreen=scr
            , aPrevScreens=prevscrs
@@ -169,7 +168,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportspec_=rsp
 
   -- print (length (show ui)) >> exitSuccess  -- show any debug output to this point & quit
 
-  if not (watchfiles_ uopts')
+  if not (boolopt "watch" $ rawopts_ copts)
   then
     void $ Brick.defaultMain brickapp ui
 
