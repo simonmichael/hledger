@@ -2529,21 +2529,22 @@ These are often obtained from a
 cryptocurrency exchange, or the
 [foreign exchange market](https://en.wikipedia.org/wiki/Foreign_exchange_market).
 
-Here is the format:
+The format is:
 
 ```journal
-P DATE COMMODITYA COMMODITYBAMOUNT
+P DATE COMMODITY1SYMBOL COMMODITY2AMOUNT
 ```
-- DATE is a [simple date](#simple-dates)
-- COMMODITYA is the symbol of the commodity being priced
-- COMMODITYBAMOUNT is an [amount](#amounts) (symbol and quantity) in a
-  second commodity, giving the price in commodity B of one unit of commodity A.
-
-These two market price directives say that one euro was worth 1.35 US dollars during 2009,
-and $1.40 from 2010 onward:
+DATE is a [simple date](#simple-dates),
+COMMODITY1SYMBOL is the symbol of the commodity being priced,
+and COMMODITY2AMOUNT is the [amount](#amounts) (symbol and quantity) of commodity 2
+that one unit of commodity 1 is worth on this date.
+Examples:
 ```journal
-P 2009/1/1 € $1.35
-P 2010/1/1 € $1.40
+# one euro was worth $1.35 from 2009-01-01 onward:
+P 2009-01-01 € $1.35
+
+# and $1.40 from 2010-01-01 onward:
+P 2010-01-01 € $1.40
 ```
 
 The `-V`, `-X` and `--value` flags use these market prices to show amount values
