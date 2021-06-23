@@ -74,20 +74,8 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec
       }
     rspec' =
       either (error "rsInit: adjusting the query for register, should not have failed") id $ -- PARTIAL:
-      updateReportSpec ropts' rspec
-
-    -- Further restrict the query based on the current period and future/forecast mode.
-    q = simplifyQuery $ And [rsQuery rspec', periodq, excludeforecastq (forecast_ ropts)]
-      where
-        periodq = Date $ periodAsDateSpan $ period_ ropts
-        -- Except in forecast mode, exclude future/forecast transactions.
-        excludeforecastq (Just _) = Any
-        excludeforecastq Nothing  =  -- not:date:tomorrow- not:tag:generated-transaction
-          And [
-             Not (Date $ DateSpan (Just $ addDays 1 d) Nothing)
-            ,Not generatedTransactionTag
-          ]
-    items = accountTransactionsReport rspec' j q thisacctq
+      updateReportSpec ropts' rspec{rsToday=d}
+    items = accountTransactionsReport rspec' j thisacctq
     items' = (if empty_ ropts then id else filter (not . mixedAmountLooksZero . fifth6)) $  -- without --empty, exclude no-change txns
              reverse  -- most recent last
              items
@@ -96,7 +84,7 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec
     displayitems = map displayitem items'
       where
         displayitem (t, _, _issplit, otheracctsstr, change, bal) =
-          RegisterScreenItem{rsItemDate          = showDate $ transactionRegisterDate q thisacctq t
+          RegisterScreenItem{rsItemDate          = showDate $ transactionRegisterDate (rsQuery rspec') thisacctq t
                             ,rsItemStatus        = tstatus t
                             ,rsItemDescription   = tdescription t
                             ,rsItemOtherAccounts = otheracctsstr

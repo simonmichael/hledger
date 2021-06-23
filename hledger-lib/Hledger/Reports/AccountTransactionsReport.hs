@@ -23,13 +23,12 @@ module Hledger.Reports.AccountTransactionsReport (
 )
 where
 
-import Data.List (mapAccumL, nub, partition, sortBy)
+import Data.List (mapAccumL, nub, partition, sortOn)
 import Data.List.Extra (nubSort)
-import Data.Ord (comparing)
 import Data.Maybe (catMaybes)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Data.Time.Calendar (Day)
+import Data.Time.Calendar (Day, addDays)
 
 import Hledger.Data
 import Hledger.Query
@@ -93,21 +92,29 @@ triBalance (_,_,_,_,_,a) = a
 triCommodityAmount c = filterMixedAmountByCommodity c  . triAmount
 triCommodityBalance c = filterMixedAmountByCommodity c  . triBalance
 
-accountTransactionsReport :: ReportSpec -> Journal -> Query -> Query -> AccountTransactionsReport
-accountTransactionsReport rspec@ReportSpec{rsOpts=ropts} j reportq thisacctq = items
+accountTransactionsReport :: ReportSpec -> Journal -> Query -> AccountTransactionsReport
+accountTransactionsReport rspec@ReportSpec{rsOpts=ropts} j thisacctq = items
   where
     -- a depth limit should not affect the account transactions report
     -- seems unnecessary for some reason XXX
-    reportq'   = reportq -- filterQuery (not . queryIsDepth)
-    symq       = filterQuery queryIsSym reportq'
-    realq      = filterQuery queryIsReal reportq'
-    statusq    = filterQuery queryIsStatus reportq'
+    reportq = simplifyQuery $ And [rsQuery rspec, periodq, excludeforecastq (forecast_ ropts)]
+      where
+        periodq = Date . periodAsDateSpan $ period_ ropts
+        -- Except in forecast mode, exclude future/forecast transactions.
+        excludeforecastq (Just _) = Any
+        excludeforecastq Nothing  =  -- not:date:tomorrow- not:tag:generated-transaction
+          And [ Not . Date $ DateSpan (Just . addDays 1 $ rsToday rspec) Nothing
+              , Not generatedTransactionTag
+              ]
+    symq    = filterQuery queryIsSym reportq
+    realq   = filterQuery queryIsReal reportq
+    statusq = filterQuery queryIsStatus reportq
 
     -- sort by the transaction's register date, for accurate starting balance
     -- these are not yet filtered by tdate, we want to search them all for priorps
     transactions =
         ptraceAtWith 5 (("ts5:\n"++).pshowTransactions)
-      . sortBy (comparing (transactionRegisterDate reportq' thisacctq))
+      . sortOn (transactionRegisterDate reportq thisacctq)
       . jtxns
       . ptraceAtWith 5 (("ts4:\n"++).pshowTransactions.jtxns)
       -- keep just the transactions affecting this account (via possibly realness or status-filtered postings)
@@ -115,7 +122,7 @@ accountTransactionsReport rspec@ReportSpec{rsOpts=ropts} j reportq thisacctq = i
       . ptraceAtWith 5 (("ts3:\n"++).pshowTransactions.jtxns)
       . filterJournalTransactions thisacctq
       . filterJournalPostings (And [realq, statusq])
-      -- apply any cur:SYM filters in reportq'
+      -- apply any cur:SYM filters in reportq
       . ptraceAtWith 5 (("ts2:\n"++).pshowTransactions.jtxns)
       . (if queryIsNull symq then id else filterJournalAmounts symq)
       -- maybe convert these transactions to cost or value
@@ -134,8 +141,8 @@ accountTransactionsReport rspec@ReportSpec{rsOpts=ropts} j reportq thisacctq = i
           case mstartdate of
             Just _  -> Date (DateSpan Nothing mstartdate)
             Nothing -> None  -- no start date specified, there are no prior postings
-        mstartdate = queryStartDate (date2_ ropts) reportq'
-        datelessreportq = filterQuery (not . queryIsDateOrDate2) reportq'
+        mstartdate = queryStartDate (date2_ ropts) reportq
+        datelessreportq = filterQuery (not . queryIsDateOrDate2) reportq
 
     -- accountTransactionsReportItem will keep transactions of any date which have any posting inside the report period.
     -- Should we also require that transaction date is inside the report period ?
@@ -144,8 +151,8 @@ accountTransactionsReport rspec@ReportSpec{rsOpts=ropts} j reportq thisacctq = i
     filtertxns = txn_dates_ ropts
 
     items = reverse $
-            accountTransactionsReportItems reportq' thisacctq startbal maNegate $
-            (if filtertxns then filter (reportq' `matchesTransaction`) else id) $
+            accountTransactionsReportItems reportq thisacctq startbal maNegate $
+            (if filtertxns then filter (reportq `matchesTransaction`) else id) $
             transactions
 
 pshowTransactions :: [Transaction] -> String
