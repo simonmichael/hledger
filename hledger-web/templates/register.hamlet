@@ -2,7 +2,7 @@
   #{header}
 
 <div .hidden-xs>
-  ^{registerChartHtml q balancelabel $ transactionsReportByCommodity items}
+  ^{registerChartHtml q balancelabel $ accountTransactionsReportByCommodity items}
 
 <div.table-responsive>
   <table .table.table-striped.table-condensed>

@@ -12,11 +12,19 @@ module Hledger.Reports.AccountTransactionsReport (
   accountTransactionsReport,
   accountTransactionsReportItems,
   transactionRegisterDate,
+  triOrigTransaction,
+  triDate,
+  triAmount,
+  triBalance,
+  triCommodityAmount,
+  triCommodityBalance,
+  accountTransactionsReportByCommodity,
   tests_AccountTransactionsReport
 )
 where
 
 import Data.List (mapAccumL, nub, partition, sortBy)
+import Data.List.Extra (nubSort)
 import Data.Ord (comparing)
 import Data.Maybe (catMaybes)
 import Data.Text (Text)
@@ -77,6 +85,13 @@ type AccountTransactionsReportItem =
   ,MixedAmount -- the amount posted to the current account(s) (or total amount posted)
   ,MixedAmount -- the register's running total or the current account(s)'s historical balance, after this transaction
   )
+
+triOrigTransaction (torig,_,_,_,_,_) = torig
+triDate (_,tacct,_,_,_,_) = tdate tacct
+triAmount (_,_,_,_,a,_) = a
+triBalance (_,_,_,_,_,a) = a
+triCommodityAmount c = filterMixedAmountByCommodity c  . triAmount
+triCommodityBalance c = filterMixedAmountByCommodity c  . triBalance
 
 accountTransactionsReport :: ReportSpec -> Journal -> Query -> Query -> AccountTransactionsReport
 accountTransactionsReport rspec@ReportSpec{rsOpts=ropts} j reportq thisacctq = items
@@ -139,8 +154,7 @@ pshowTransactions = pshow . map (\t -> unwords [show $ tdate t, T.unpack $ tdesc
 -- | Generate transactions report items from a list of transactions,
 -- using the provided user-specified report query, a query specifying
 -- which account to use as the focus, a starting balance, a sign-setting
--- function and a balance-summing function. Or with a None current account
--- query, this can also be used for the transactionsReport.
+-- function and a balance-summing function.
 accountTransactionsReportItems :: Query -> Query -> MixedAmount -> (MixedAmount -> MixedAmount) -> [Transaction] -> [AccountTransactionsReportItem]
 accountTransactionsReportItems reportq thisacctq bal signfn =
     catMaybes . snd .
@@ -148,7 +162,6 @@ accountTransactionsReportItems reportq thisacctq bal signfn =
 
 accountTransactionsReportItem :: Query -> Query -> (MixedAmount -> MixedAmount) -> MixedAmount -> Transaction -> (MixedAmount, Maybe AccountTransactionsReportItem)
 accountTransactionsReportItem reportq thisacctq signfn bal torig = balItem
-    -- 201403: This is used for both accountTransactionsReport and transactionsReport, which makes it a bit overcomplicated
     -- 201407: I've lost my grip on this, let's just hope for the best
     -- 201606: we now calculate change and balance from filtered postings, check this still works well for all callers XXX
     where
@@ -200,6 +213,39 @@ summarisePostingAccounts ps =
     realps = filter isReal ps
     displayps | null realps = ps
               | otherwise   = realps
+
+-- | Split an  account transactions report whose items may involve several commodities,
+-- into one or more single-commodity account transactions reports.
+accountTransactionsReportByCommodity :: AccountTransactionsReport -> [(CommoditySymbol, AccountTransactionsReport)]
+accountTransactionsReportByCommodity tr =
+  [(c, filterAccountTransactionsReportByCommodity c tr) | c <- commodities tr]
+  where
+    commodities = nubSort . map acommodity . concatMap (amounts . triAmount)
+
+-- | Remove account transaction report items and item amount (and running
+-- balance amount) components that don't involve the specified
+-- commodity. Other item fields such as the transaction are left unchanged.
+filterAccountTransactionsReportByCommodity :: CommoditySymbol -> AccountTransactionsReport -> AccountTransactionsReport
+filterAccountTransactionsReportByCommodity c =
+    fixTransactionsReportItemBalances . concatMap (filterTransactionsReportItemByCommodity c)
+  where
+    filterTransactionsReportItemByCommodity c (t,t2,s,o,a,bal)
+      | c `elem` cs = [item']
+      | otherwise   = []
+      where
+        cs = map acommodity $ amounts a
+        item' = (t,t2,s,o,a',bal)
+        a' = filterMixedAmountByCommodity c a
+
+    fixTransactionsReportItemBalances [] = []
+    fixTransactionsReportItemBalances [i] = [i]
+    fixTransactionsReportItemBalances items = reverse $ i:(go startbal is)
+      where
+        i:is = reverse items
+        startbal = filterMixedAmountByCommodity c $ triBalance i
+        go _ [] = []
+        go bal ((t,t2,s,o,amt,_):is) = (t,t2,s,o,amt,bal'):go bal' is
+          where bal' = bal `maPlus` amt
 
 -- tests
 
