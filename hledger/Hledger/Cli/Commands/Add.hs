@@ -33,6 +33,7 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.IO as TL
 import Data.Time.Calendar (Day)
 import Data.Time.Format (formatTime, defaultTimeLocale, iso8601DateFormat)
+import Lens.Micro (set)
 import Safe (headDef, headMay, atMay)
 import System.Console.CmdArgs.Explicit (flagNone)
 import System.Console.Haskeline (runInputT, defaultSettings, setComplete)
@@ -463,8 +464,7 @@ registerFromString s = do
   j <- readJournal' s
   return . postingsReportAsText opts $ postingsReport rspec j
       where
-        ropts = defreportopts{showempty_=True}
-        rspec = defreportspec{reportopts_=ropts}
+        rspec = set showempty True defreportspec
         opts = defcliopts{reportspec_=rspec}
 
 capitalize :: String -> String

@@ -177,6 +177,7 @@ library
     , http-conduit
     , http-types
     , megaparsec >=7.0.0 && <9.1
+    , microlens >=0.4
     , mtl >=2.2.1
     , network
     , shakespeare >=2.0.2.2

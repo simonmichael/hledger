@@ -45,6 +45,7 @@ import Data.Maybe (fromMaybe, isJust, mapMaybe)
 import Data.Ord (Down(..))
 import Data.Semigroup (sconcat)
 import Data.Time.Calendar (Day, fromGregorian)
+import Lens.Micro ((^.))
 import Safe (lastDef, minimumMay)
 
 import Hledger.Data
@@ -95,8 +96,7 @@ type ClippedAccountName = AccountName
 -- by the balance command (in multiperiod mode) and (via compoundBalanceReport)
 -- by the bs/cf/is commands.
 multiBalanceReport :: ReportSpec -> Journal -> MultiBalanceReport
-multiBalanceReport rspec j = multiBalanceReportWith rspec j (journalPriceOracle infer j)
-  where infer = infer_value_ $ reportopts_ rspec
+multiBalanceReport rspec j = multiBalanceReportWith rspec j $ journalPriceOracle (rspec ^. infer_value) j
 
 -- | A helper for multiBalanceReport. This one takes an extra argument,
 -- a PriceOracle to be used for looking up market prices. Commands which
@@ -125,8 +125,7 @@ multiBalanceReportWith rspec' j priceoracle = report
 -- shares postings between the subreports.
 compoundBalanceReport :: ReportSpec -> Journal -> [CBCSubreportSpec a]
                       -> CompoundPeriodicReport a MixedAmount
-compoundBalanceReport rspec j = compoundBalanceReportWith rspec j (journalPriceOracle infer j)
-  where infer = infer_value_ $ reportopts_ rspec
+compoundBalanceReport rspec j = compoundBalanceReportWith rspec j $ journalPriceOracle (rspec ^. infer_value) j
 
 -- | A helper for compoundBalanceReport, similar to multiBalanceReportWith.
 compoundBalanceReportWith :: ReportSpec -> Journal -> PriceOracle

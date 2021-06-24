@@ -24,6 +24,7 @@ import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)
+import Lens.Micro (over, set)
 import Network.HTTP.Conduit (Manager)
 import Network.HTTP.Types (status403)
 import Network.Wai (requestHeaders)
@@ -115,16 +116,11 @@ instance Yesod App where
     showSidebar <- shouldShowSidebar
     hideEmptyAccts <- (== Just "1") . lookup "hideemptyaccts" . reqCookies <$> getRequest
 
-    let rspec = reportspec_ (cliopts_ opts)
-        ropts = reportopts_ rspec
-        ropts' = (reportopts_ rspec)
-          {accountlistmode_ = ALTree  -- force tree mode for sidebar
-          ,showempty_       = not (showempty_ ropts)  -- show zero items by default
-          }
-        rspec' = rspec{query_=m,reportopts_=ropts'}
+    let -- force tree mode for sidebar, show zero items by default
+        rspec = set accountlistmode ALTree . over showempty not $ (reportspec_ $ cliopts_ opts){query_=m}
         accounts =
           balanceReportAsHtml (JournalR, RegisterR) here hideEmptyAccts j q qopts $
-          balanceReport rspec' j
+          balanceReport rspec j
 
         topShowmd = if showSidebar then "col-md-4" else "col-any-0" :: Text
         topShowsm = if showSidebar then "col-sm-4" else "" :: Text

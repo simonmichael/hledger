@@ -111,6 +111,7 @@ dependencies:
 - githash >=0.1.2
 - haskeline >=0.6
 - megaparsec >=7.0.0 && <9.1
+- microlens >=0.4
 - mtl >=2.2.1
 - old-time
 - process

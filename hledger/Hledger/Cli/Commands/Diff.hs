@@ -19,6 +19,7 @@ import Data.Maybe (fromJust)
 import Data.Time (diffDays)
 import Data.Either (partitionEithers)
 import qualified Data.Text.IO as T
+import Lens.Micro (set)
 import System.Exit (exitFailure)
 
 import Hledger
@@ -87,7 +88,7 @@ matching ppl ppr = do
 
 readJournalFile' :: FilePath -> IO Journal
 readJournalFile' fn =
-    readJournalFile definputopts{balancingopts_=defbalancingopts{ignore_assertions_=True}} fn >>= either error' return  -- PARTIAL:
+    readJournalFile (set ignore_assertions True definputopts) fn >>= either error' return  -- PARTIAL:
 
 matchingPostings :: AccountName -> Journal -> [PostingWithPath]
 matchingPostings acct j = filter ((== acct) . paccount . ppposting) $ allPostingsWithPath j

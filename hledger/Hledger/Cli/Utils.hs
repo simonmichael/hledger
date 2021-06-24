@@ -39,6 +39,7 @@ import qualified Data.Text.IO as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.IO as TL
 import Data.Time (UTCTime, Day, addDays)
+import Lens.Micro ((^.))
 import Safe (readMay, headMay)
 import System.Console.CmdArgs
 import System.Directory (getModificationTime, getDirectoryContents, copyFile, doesFileExist)
@@ -103,10 +104,7 @@ pivotByOpts opts =
 
 -- | Apply the anonymisation transformation on a journal, if option is present
 anonymiseByOpts :: CliOpts -> Journal -> Journal
-anonymiseByOpts opts =
-  if anonymise_ . inputopts_ $ opts
-      then anon
-      else id
+anonymiseByOpts copts = if copts ^. anonymise then anon else id
 
 -- | Generate periodic transactions from all periodic transaction rules in the journal.
 -- These transactions are added to the in-memory Journal (but not the on-disk file).
