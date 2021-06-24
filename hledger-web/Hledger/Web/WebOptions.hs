@@ -16,7 +16,7 @@ import System.Environment (getArgs)
 import Network.Wai as WAI
 import Network.Wai.Middleware.Cors
 
-import Hledger.Cli hiding (progname, version)
+import Hledger.Cli hiding (progname, rawopts, version)
 import Hledger.Web.Settings (defhost, defport, defbaseurl)
 
 progname, version :: String

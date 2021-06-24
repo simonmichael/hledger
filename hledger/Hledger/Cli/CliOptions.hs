@@ -5,7 +5,13 @@ related utilities used by hledger commands.
 
 -}
 
-{-# LANGUAGE CPP, ScopedTypeVariables, FlexibleContexts, TypeFamilies, OverloadedStrings, PackageImports #-}
+{-# LANGUAGE CPP                 #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE PackageImports      #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TypeFamilies        #-}
 
 module Hledger.Cli.CliOptions (
 
@@ -34,6 +40,8 @@ module Hledger.Cli.CliOptions (
 
   -- * CLI options
   CliOpts(..),
+  HasCliOpts(cliOpts, rawopts, command,file, output_file, output_format, debug,
+             no_new_accounts, width, available_width),
   defcliopts,
   getHledgerCliOpts,
   getHledgerCliOpts',
@@ -69,36 +77,37 @@ import Prelude ()
 import "base-compat-batteries" Prelude.Compat
 import qualified Control.Exception as C
 import Control.Monad (when)
-import Data.Char
-import Data.Default
+import Data.Char (isDigit, toLower)
+import Data.Default (Default(..))
 import Data.Either (isRight)
 import Data.Functor.Identity (Identity)
 import "base-compat-batteries" Data.List.Compat
 import Data.List.Extra (nubSort)
 import Data.List.Split (splitOneOf)
-import Data.Ord
-import Data.Maybe
+import Data.Ord (comparing)
+import Data.Maybe (catMaybes)
 --import Data.String.Here
 -- import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Void (Void)
-import Safe
+import Safe (headDef, readMay)
 import System.Console.CmdArgs hiding (Default,def)
 import System.Console.CmdArgs.Explicit
-import System.Console.CmdArgs.Text
+import System.Console.CmdArgs.Text (Text, defaultWrap, showText)
 #ifndef mingw32_HOST_OS
 import System.Console.Terminfo
 #endif
-import System.Directory
-import System.Environment
+import System.Directory (getCurrentDirectory, getDirectoryContents)
+import System.Environment (getArgs, getEnv, getProgName)
 import System.Exit (exitSuccess)
-import System.FilePath
+import System.FilePath (splitExtension, splitFileName, takeBaseName, takeExtension)
 import Text.Megaparsec
-import Text.Megaparsec.Char
+import Text.Megaparsec.Char (char, digitChar, string)
 
 import Hledger
 import Hledger.Cli.DocFiles
 import Hledger.Cli.Version
+import Hledger.Utils.TH (makeClassyLensesTrailing)
 
 
 -- common cmdargs flags
@@ -418,6 +427,13 @@ data CliOpts = CliOpts {
                                         -- 2. the width reported by the terminal, if supported
                                         -- 3. the default (80)
  } deriving (Show)
+
+makeClassyLensesTrailing ''CliOpts
+
+instance HasInputOpts     CliOpts where inputOpts     = inputopts
+instance HasBalancingOpts CliOpts where balancingOpts = inputopts . balancingOpts
+instance HasReportSpec    CliOpts where reportSpec    = reportspec
+instance HasReportOpts    CliOpts where reportOpts    = reportspec . reportOpts
 
 instance Default CliOpts where def = defcliopts
 

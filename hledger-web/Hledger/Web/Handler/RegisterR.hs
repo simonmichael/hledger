@@ -13,7 +13,7 @@ import qualified Data.Text as T
 import Text.Hamlet (hamletFile)
 
 import Hledger
-import Hledger.Cli.CliOptions
+import Hledger.Cli.CliOptions hiding (width)
 import Hledger.Web.Import
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.AddForm (addModal)
