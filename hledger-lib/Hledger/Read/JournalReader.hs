@@ -529,7 +529,7 @@ payeedirectivep :: JournalParser m ()
 payeedirectivep = do
   string "payee" <?> "payee directive"
   lift skipNonNewlineSpaces1
-  payee <- lift descriptionp  -- all text until ; or \n
+  payee <- lift $ T.strip <$> noncommenttext1p
   (comment, tags) <- lift transactioncommentp
   addPayeeDeclaration (payee, comment, tags)
   return ()
