@@ -95,9 +95,10 @@ module Hledger.Read.Common (
   rawnumberp,
 
   -- ** comments
+  isLineCommentStart,
+  isSameLineCommentStart,
   multilinecommentp,
   emptyorcommentlinep,
-
   followingcommentp,
   transactioncommentp,
   postingcommentp,
@@ -106,8 +107,11 @@ module Hledger.Read.Common (
   bracketeddatetagsp,
 
   -- ** misc
-  singlespacedtextp,
-  singlespacedtextsatisfyingp,
+  noncommenttextp,
+  noncommenttext1p,
+  singlespacedtext1p,
+  singlespacednoncommenttext1p,
+  singlespacedtextsatisfying1p,
   singlespacep,
   skipNonNewlineSpaces,
   skipNonNewlineSpaces1,
@@ -532,9 +536,11 @@ codep = option "" $ do
   char ')' <?> "closing bracket ')' for transaction code"
   pure code
 
+-- | Parse possibly empty text until a semicolon or newline.
+-- Whitespace is preserved (for now - perhaps helps preserve alignment 
+-- of same-line comments ?).
 descriptionp :: TextParser m Text
-descriptionp = takeWhileP Nothing (not . semicolonOrNewline)
-  where semicolonOrNewline c = c == ';' || c == '\n'
+descriptionp = noncommenttextp <?> "description"
 
 --- *** dates
 
@@ -694,19 +700,32 @@ modifiedaccountnamep = do
 -- It should have required parts to start with an alphanumeric;
 -- for now it remains as-is for backwards compatibility.
 accountnamep :: TextParser m AccountName
-accountnamep = singlespacedtextp
+accountnamep = singlespacedtext1p
 
+-- | Parse possibly empty text, including whitespace, 
+-- until a comment start (semicolon) or newline.
+noncommenttextp :: TextParser m T.Text
+noncommenttextp = takeWhileP Nothing (\c -> not $ isSameLineCommentStart c || isNewline c)
 
--- | Parse any text beginning with a non-whitespace character, until a
--- double space or the end of input.
--- TODO including characters which normally start a comment (;#) - exclude those ? 
-singlespacedtextp :: TextParser m T.Text
-singlespacedtextp = singlespacedtextsatisfyingp (const True)
+-- | Parse non-empty text, including whitespace, 
+-- until a comment start (semicolon) or newline.
+noncommenttext1p :: TextParser m T.Text
+noncommenttext1p = takeWhile1P Nothing (\c -> not $ isSameLineCommentStart c || isNewline c)
 
--- | Similar to 'singlespacedtextp', except that the text must only contain
--- characters satisfying the given predicate.
-singlespacedtextsatisfyingp :: (Char -> Bool) -> TextParser m T.Text
-singlespacedtextsatisfyingp pred = do
+-- | Parse non-empty, single-spaced text starting and ending with non-whitespace,
+-- until a double space or newline.
+singlespacedtext1p :: TextParser m T.Text
+singlespacedtext1p = singlespacedtextsatisfying1p (const True)
+
+-- | Parse non-empty, single-spaced text starting and ending with non-whitespace,
+-- until a comment start (semicolon), double space, or newline.
+singlespacednoncommenttext1p :: TextParser m T.Text
+singlespacednoncommenttext1p = singlespacedtextsatisfying1p (not . isSameLineCommentStart)
+
+-- | Parse non-empty, single-spaced text starting and ending with non-whitespace,
+-- where all characters satisfy the given predicate.
+singlespacedtextsatisfying1p :: (Char -> Bool) -> TextParser m T.Text
+singlespacedtextsatisfying1p pred = do
   firstPart <- partp
   otherParts <- many $ try $ singlespacep *> partp
   pure $! T.unwords $ firstPart : otherParts
@@ -1179,12 +1198,26 @@ emptyorcommentlinep = do
   where
     skiplinecommentp :: TextParser m ()
     skiplinecommentp = do
-      satisfy $ \c -> c == ';' || c == '#' || c == '*'
-      void $ takeWhileP Nothing (\c -> c /= '\n')
+      satisfy isLineCommentStart
+      void $ takeWhileP Nothing (/= '\n')
       optional newline
       pure ()
 
 {-# INLINABLE emptyorcommentlinep #-}
+
+-- | Is this a character that, as the first non-whitespace on a line,
+-- starts a comment line ?
+isLineCommentStart :: Char -> Bool
+isLineCommentStart '#' = True
+isLineCommentStart '*' = True
+isLineCommentStart ';' = True
+isLineCommentStart _   = False
+
+-- | Is this a character that, appearing anywhere within a line,
+-- starts a comment ?
+isSameLineCommentStart :: Char -> Bool
+isSameLineCommentStart ';' = True
+isSameLineCommentStart _   = False
 
 -- A parser combinator for parsing (possibly multiline) comments
 -- following journal items.

@@ -620,7 +620,7 @@ periodictransactionp = do
                   Nothing -> today
                   Just y  -> fromGregorian y 1 1
   periodExcerpt <- lift $ excerpt_ $
-                    singlespacedtextsatisfyingp (\c -> c /= ';' && c /= '\n')
+                    singlespacedtextsatisfying1p (\c -> c /= ';' && c /= '\n')
   let periodtxt = T.strip $ getExcerptText periodExcerpt
 
   -- first parsing with 'singlespacedtextp', then "re-parsing" with

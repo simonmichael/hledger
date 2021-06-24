@@ -19,6 +19,7 @@ module Hledger.Utils.Parse (
   parseerror,
   showDateParseError,
   nonspace,
+  isNewline,
   isNonNewlineSpace,
   restofline,
   eolof,
@@ -119,13 +120,15 @@ showDateParseError
   :: (Show t, Show (Token t), Show e) => ParseErrorBundle t e -> String
 showDateParseError e = printf "date parse error (%s)" (intercalate ", " $ tail $ lines $ show e)
 
+isNewline :: Char -> Bool 
+isNewline '\n' = True
+isNewline _    = False
+
 nonspace :: TextParser m Char
 nonspace = satisfy (not . isSpace)
 
 isNonNewlineSpace :: Char -> Bool
-isNonNewlineSpace c = c /= '\n' && isSpace c
--- XXX support \r\n ?
--- isNonNewlineSpace c = c /= '\n' && c /= '\r' && isSpace c
+isNonNewlineSpace c = not (isNewline c) && isSpace c
 
 spacenonewline :: (Stream s, Char ~ Token s) => ParsecT CustomErr s m Char
 spacenonewline = satisfy isNonNewlineSpace
