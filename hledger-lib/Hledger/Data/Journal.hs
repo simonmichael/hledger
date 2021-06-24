@@ -881,7 +881,7 @@ balanceTransactionAndCheckAssertionsB (Right t@Transaction{tpostings=ps}) = do
   ps' <- mapM (addOrAssignAmountAndCheckAssertionB . postingStripPrices) ps
   -- infer any remaining missing amounts, and make sure the transaction is now fully balanced
   styles <- R.reader bsStyles
-  case balanceTransactionHelper balancingOpts{commodity_styles_=styles} t{tpostings=ps'} of
+  case balanceTransactionHelper defbalancingopts{commodity_styles_=styles} t{tpostings=ps'} of
     Left err -> throwError err
     Right (t', inferredacctsandamts) -> do
       -- for each amount just inferred, update the running balance

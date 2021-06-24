@@ -85,6 +85,7 @@ library
       Hledger.Utils.String
       Hledger.Utils.Test
       Hledger.Utils.Text
+      Hledger.Utils.TH
       Hledger.Utils.Tree
       Hledger.Utils.UTF8IOCompat
       Text.Tabular.AsciiWide
@@ -118,6 +119,8 @@ library
     , filepath
     , hashtables >=1.2.3.1
     , megaparsec >=7.0.0 && <9.1
+    , microlens >=0.4
+    , microlens-th >=0.4
     , mtl >=2.2.1
     , old-time
     , parser-combinators >=0.4.0
@@ -168,6 +171,8 @@ test-suite doctest
     , filepath
     , hashtables >=1.2.3.1
     , megaparsec >=7.0.0 && <9.1
+    , microlens >=0.4
+    , microlens-th >=0.4
     , mtl >=2.2.1
     , old-time
     , parser-combinators >=0.4.0
@@ -220,6 +225,8 @@ test-suite unittest
     , hashtables >=1.2.3.1
     , hledger-lib
     , megaparsec >=7.0.0 && <9.1
+    , microlens >=0.4
+    , microlens-th >=0.4
     , mtl >=2.2.1
     , old-time
     , parser-combinators >=0.4.0

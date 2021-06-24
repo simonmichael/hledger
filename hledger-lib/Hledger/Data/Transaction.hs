@@ -9,11 +9,12 @@ tags.
 
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Rank2Types        #-}
 {-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE TemplateHaskell   #-}
 
-{-# LANGUAGE NamedFieldPuns #-}
 module Hledger.Data.Transaction (
   -- * Transaction
   nulltransaction,
@@ -30,7 +31,8 @@ module Hledger.Data.Transaction (
   balancedVirtualPostings,
   transactionsPostings,
   BalancingOpts(..),
-  balancingOpts,
+  HasBalancingOpts(..),
+  defbalancingopts,
   isTransactionBalanced,
   balanceTransaction,
   balanceTransactionHelper,
@@ -77,6 +79,7 @@ import qualified Data.Map as M
 import Safe (maximumDef)
 
 import Hledger.Utils
+import Hledger.Utils.TH (makeClassyLensesTrailing)
 import Hledger.Data.Types
 import Hledger.Data.Dates
 import Hledger.Data.Posting
@@ -360,10 +363,10 @@ data BalancingOpts = BalancingOpts
   , commodity_styles_  :: Maybe (M.Map CommoditySymbol AmountStyle)  -- ^ commodity display styles
   } deriving (Show)
 
-instance Default BalancingOpts where def = balancingOpts
+instance Default BalancingOpts where def = defbalancingopts
 
-balancingOpts :: BalancingOpts
-balancingOpts = BalancingOpts
+defbalancingopts :: BalancingOpts
+defbalancingopts = BalancingOpts
   { ignore_assertions_ = False
   , infer_prices_      = True
   , commodity_styles_  = Nothing
@@ -661,6 +664,10 @@ transactionFile Transaction{tsourcepos} =
   case tsourcepos of
     GenericSourcePos f _ _ -> f
     JournalSourcePos f _   -> f
+
+-- lenses
+
+makeClassyLensesTrailing ''BalancingOpts
 
 -- tests
 

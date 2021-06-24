@@ -78,7 +78,7 @@ balanceReport rspec j = (rows, total)
 -- tests
 
 Right samplejournal2 =
-  journalBalanceTransactions balancingOpts
+  journalBalanceTransactions defbalancingopts
     nulljournal{
       jtxns = [
         txnTieKnot Transaction{
