@@ -23,13 +23,16 @@ Some of these might belong in Hledger.Read.JournalReader or Hledger.Read.
 {-# LANGUAGE Rank2Types          #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE TypeFamilies        #-}
 
 --- ** exports
 module Hledger.Read.Common (
-  Reader (..),
-  InputOpts (..),
+  Reader(..),
+  InputOpts(..),
+  HasInputOpts(inputOpts, mformat, mrules_file, aliases, anonymise,
+               new, new_save, pivot, auto, strict),
   definputopts,
   rawOptsToInputOpts,
 
@@ -153,6 +156,8 @@ import Text.Megaparsec.Custom
   (FinalParseError, attachSource, customErrorBundlePretty,
   finalErrorBundlePretty, parseErrorAt, parseErrorAtRegion)
 
+import Hledger.Utils.TH (makeClassyLensesTrailing)
+
 import Hledger.Data
 import Hledger.Utils
 import Text.Printf (printf)
@@ -207,6 +212,10 @@ data InputOpts = InputOpts {
     ,balancingopts_     :: BalancingOpts        -- ^ options for balancing transactions
     ,strict_            :: Bool                 -- ^ do extra error checking (eg, all posted accounts are declared, no prices are inferred)
  } deriving (Show)
+
+makeClassyLensesTrailing ''InputOpts
+
+instance HasBalancingOpts InputOpts where balancingOpts = balancingopts
 
 instance Default InputOpts where def = definputopts
 
