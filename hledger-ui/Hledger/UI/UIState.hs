@@ -103,7 +103,7 @@ toggleEmpty :: UIState -> UIState
 toggleEmpty ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{reportopts_=ropts}}}} =
   ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{reportopts_=toggleEmpty ropts}}}}
   where
-    toggleEmpty ropts = ropts{empty_=not $ empty_ ropts}
+    toggleEmpty ropts = ropts{showempty_=not $ showempty_ ropts}
 
 -- | Toggle between showing the primary amounts or costs.
 toggleCost :: UIState -> UIState
@@ -242,7 +242,7 @@ resetFilter ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rsp
      query_=Any
     ,queryopts_=[]
     ,reportopts_=ropts{
-       empty_=True
+       showempty_=True
       ,statuses_=[]
       ,real_=False
       ,querystring_=[]

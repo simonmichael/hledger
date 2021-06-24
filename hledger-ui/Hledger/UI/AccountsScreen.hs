@@ -174,7 +174,7 @@ asDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}
                            -- f:fs  -> (withAttr ("border" <> "bold") $ str $ takeFileName f) <+> str (" (& " ++ show (length fs) ++ " included files)")
             toggles = withAttr ("border" <> "query") $ str $ unwords $ concat [
                [""]
-              ,if empty_ ropts then [] else ["nonzero"]
+              ,if showempty_ ropts then [] else ["nonzero"]
               ,uiShowStatus copts $ statuses_ ropts
               ,if real_ ropts then ["real"] else []
               ]

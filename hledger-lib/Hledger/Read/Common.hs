@@ -199,7 +199,7 @@ data InputOpts = InputOpts {
                                                 --   by a filename prefix. Nothing means try all.
     ,mrules_file_       :: Maybe FilePath       -- ^ a conversion rules file to use (when reading CSV)
     ,aliases_           :: [String]             -- ^ account name aliases to apply
-    ,anon_              :: Bool                 -- ^ do light anonymisation/obfuscation of the data
+    ,anonymise_         :: Bool                 -- ^ do light anonymisation/obfuscation of the data
     ,new_               :: Bool                 -- ^ read only new transactions since this file was last read
     ,new_save_          :: Bool                 -- ^ save latest new transactions state for next time
     ,pivot_             :: String               -- ^ use the given field's value as the account name
@@ -215,7 +215,7 @@ definputopts = InputOpts
     { mformat_           = Nothing
     , mrules_file_       = Nothing
     , aliases_           = []
-    , anon_              = False
+    , anonymise_         = False
     , new_               = False
     , new_save_          = True
     , pivot_             = ""
@@ -230,7 +230,7 @@ rawOptsToInputOpts rawopts = InputOpts{
      mformat_           = Nothing
     ,mrules_file_       = maybestringopt "rules-file" rawopts
     ,aliases_           = listofstringopt "alias" rawopts
-    ,anon_              = boolopt "anon" rawopts
+    ,anonymise_         = boolopt "anon" rawopts
     ,new_               = boolopt "new" rawopts
     ,new_save_          = True
     ,pivot_             = stringopt "pivot" rawopts

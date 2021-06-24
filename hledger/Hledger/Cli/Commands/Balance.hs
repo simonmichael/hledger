@@ -380,7 +380,7 @@ balance opts@CliOpts{reportspec_=rspec} j = case reporttype_ of
 balanceReportAsCsv :: ReportOpts -> BalanceReport -> CSV
 balanceReportAsCsv opts (items, total) =
   ["account","balance"] :
-  [[accountNameDrop (drop_ opts) a, wbToText $ showMixedAmountB (balanceOpts False opts) b] | (a, _, _, b) <- items]
+  [[accountNameDrop (droplevels_ opts) a, wbToText $ showMixedAmountB (balanceOpts False opts) b] | (a, _, _, b) <- items]
   ++
   if no_total_ opts
   then []
@@ -469,7 +469,7 @@ multiBalanceReportAsCsv opts@ReportOpts{average_, row_total_}
    ++ ["total"   | row_total_]
    ++ ["average" | average_]
   ) :
-  [accountNameDrop (drop_ opts) (displayFull a) :
+  [accountNameDrop (droplevels_ opts) (displayFull a) :
    map (wbToText . showMixedAmountB (balanceOpts False opts))
    (amts
     ++ [rowtot | row_total_]
@@ -485,8 +485,7 @@ multiBalanceReportAsCsv opts@ReportOpts{average_, row_total_}
           ++ [avg | average_]
           )]
   where
-    maybetranspose | transpose_ opts = transpose
-                   | otherwise = id
+    maybetranspose = if transposetable_ opts then transpose else id
 
 -- | Render a multi-column balance report as HTML.
 multiBalanceReportAsHtml :: ReportOpts -> MultiBalanceReport -> Html ()
@@ -504,7 +503,7 @@ multiBalanceReportAsHtml ropts mbr =
 multiBalanceReportHtmlRows :: ReportOpts -> MultiBalanceReport -> (Html (), [Html ()], Maybe (Html ()))
 multiBalanceReportHtmlRows ropts mbr =
   let
-    headingsrow:rest | transpose_ ropts = error' "Sorry, --transpose with HTML output is not yet supported"  -- PARTIAL:
+    headingsrow:rest | transposetable_ ropts = error' "Sorry, --transpose with HTML output is not yet supported"  -- PARTIAL:
                      | otherwise = multiBalanceReportAsCsv ropts mbr
     (bodyrows, mtotalsrow) | no_total_ ropts = (rest,      Nothing)
                            | otherwise       = (init rest, Just $ last rest)
@@ -636,8 +635,7 @@ balanceReportAsTable opts@ReportOpts{average_, row_total_, balancetype_}
                                     ++ [tot | totalscolumn && not (null coltotals)]
                                     ++ [avg | average_   && not (null coltotals)]
                                     ))
-    maybetranspose | transpose_ opts = \(Table rh ch vals) -> Table ch rh (transpose vals)
-                   | otherwise       = id
+    maybetranspose = if transposetable_ opts then \(Table rh ch vals) -> Table ch rh (transpose vals) else id
 
 -- | Given a table representing a multi-column balance report (for example,
 -- made using 'balanceReportAsTable'), render it in a format suitable for
@@ -652,7 +650,7 @@ balanceReportTableAsText ropts@ReportOpts{..} =
 -- | Amount display options to use for balance reports
 balanceOpts :: Bool -> ReportOpts -> AmountDisplayOpts
 balanceOpts isTable ReportOpts{..} = oneLine
-    { displayColour   = isTable && color_
+    { displayColour   = isTable && showcolor_
     , displayMaxWidth = if isTable && not no_elide_ then Just 32 else Nothing
     }
 

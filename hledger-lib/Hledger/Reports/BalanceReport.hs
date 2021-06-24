@@ -297,7 +297,7 @@ tests_BalanceReport = tests "BalanceReport" [
        ]
 
       ,test "accounts report with -E shows zero-balance accounts" ~:
-       defreportopts{patterns_=["assets"],empty_=True} `gives`
+       defreportopts{patterns_=["assets"],showempty_=True} `gives`
        ["                 $-1  assets"
        ,"                  $1    bank"
        ,"                   0      checking"

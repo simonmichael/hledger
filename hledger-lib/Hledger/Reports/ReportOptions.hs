@@ -102,7 +102,7 @@ data ReportOpts = ReportOpts {
     ,infer_value_    :: Bool      -- ^ Infer market prices from transactions ?
     ,depth_          :: Maybe Int
     ,date2_          :: Bool
-    ,empty_          :: Bool
+    ,showempty_      :: Bool
     ,no_elide_       :: Bool
     ,real_           :: Bool
     ,format_         :: StringFormat
@@ -117,7 +117,7 @@ data ReportOpts = ReportOpts {
     ,reporttype_     :: ReportType
     ,balancetype_    :: BalanceType
     ,accountlistmode_ :: AccountListMode
-    ,drop_           :: Int
+    ,droplevels_     :: Int
     ,row_total_      :: Bool
     ,no_total_       :: Bool
     ,show_costs_     :: Bool  -- ^ Whether to show costs for reports which normally don't show them
@@ -133,13 +133,13 @@ data ReportOpts = ReportOpts {
       -- - It helps compound balance report commands (is, bs etc.) do
       --   sign normalisation, converting normally negative subreports to
       --   normally positive for a more conventional display.
-    ,color_          :: Bool
+    ,showcolor_      :: Bool
       -- ^ Whether to use ANSI color codes in text output.
       --   Influenced by the --color/colour flag (cf CliOptions),
       --   whether stdout is an interactive terminal, and the value of
       --   TERM and existence of NO_COLOR environment variables.
     ,forecast_       :: Maybe DateSpan
-    ,transpose_      :: Bool
+    ,transposetable_ :: Bool
  } deriving (Show)
 
 instance Default ReportOpts where def = defreportopts
@@ -154,7 +154,7 @@ defreportopts = ReportOpts
     , infer_value_     = False
     , depth_           = Nothing
     , date2_           = False
-    , empty_           = False
+    , showempty_       = False
     , no_elide_        = False
     , real_            = False
     , format_          = def
@@ -165,7 +165,7 @@ defreportopts = ReportOpts
     , reporttype_      = def
     , balancetype_     = def
     , accountlistmode_ = ALFlat
-    , drop_            = 0
+    , droplevels_      = 0
     , row_total_       = False
     , no_total_        = False
     , show_costs_      = False
@@ -174,9 +174,9 @@ defreportopts = ReportOpts
     , percent_         = False
     , invert_          = False
     , normalbalance_   = Nothing
-    , color_           = False
+    , showcolor_       = False
     , forecast_        = Nothing
-    , transpose_       = False
+    , transposetable_  = False
     }
 
 rawOptsToReportOpts :: RawOpts -> IO ReportOpts
@@ -193,36 +193,36 @@ rawOptsToReportOpts rawopts = do
         Just (Left err) -> fail $ "could not parse format option: " ++ err
 
     return defreportopts
-          {period_      = periodFromRawOpts d rawopts
-          ,interval_    = intervalFromRawOpts rawopts
-          ,statuses_    = statusesFromRawOpts rawopts
-          ,cost_        = costing
-          ,value_       = valuation
-          ,infer_value_ = boolopt "infer-market-price" rawopts
-          ,depth_       = maybeposintopt "depth" rawopts
-          ,date2_       = boolopt "date2" rawopts
-          ,empty_       = boolopt "empty" rawopts
-          ,no_elide_    = boolopt "no-elide" rawopts
-          ,real_        = boolopt "real" rawopts
-          ,format_      = format
-          ,querystring_ = querystring
-          ,average_     = boolopt "average" rawopts
-          ,related_     = boolopt "related" rawopts
-          ,txn_dates_   = boolopt "txn-dates" rawopts
-          ,reporttype_  = reporttypeopt rawopts
-          ,balancetype_ = balancetypeopt rawopts
+          {period_          = periodFromRawOpts d rawopts
+          ,interval_        = intervalFromRawOpts rawopts
+          ,statuses_        = statusesFromRawOpts rawopts
+          ,cost_            = costing
+          ,value_           = valuation
+          ,infer_value_     = boolopt "infer-market-price" rawopts
+          ,depth_           = maybeposintopt "depth" rawopts
+          ,date2_           = boolopt "date2" rawopts
+          ,showempty_       = boolopt "empty" rawopts
+          ,no_elide_        = boolopt "no-elide" rawopts
+          ,real_            = boolopt "real" rawopts
+          ,format_          = format
+          ,querystring_     = querystring
+          ,average_         = boolopt "average" rawopts
+          ,related_         = boolopt "related" rawopts
+          ,txn_dates_       = boolopt "txn-dates" rawopts
+          ,reporttype_      = reporttypeopt rawopts
+          ,balancetype_     = balancetypeopt rawopts
           ,accountlistmode_ = accountlistmodeopt rawopts
-          ,drop_        = posintopt "drop" rawopts
-          ,row_total_   = boolopt "row-total" rawopts
-          ,no_total_    = boolopt "no-total" rawopts
-          ,show_costs_  = boolopt "show-costs" rawopts
-          ,sort_amount_ = boolopt "sort-amount" rawopts
-          ,percent_     = boolopt "percent" rawopts
-          ,invert_      = boolopt "invert" rawopts
-          ,pretty_tables_ = boolopt "pretty-tables" rawopts
-          ,color_       = useColorOnStdout -- a lower-level helper
-          ,forecast_    = forecastPeriodFromRawOpts d rawopts
-          ,transpose_   = boolopt "transpose" rawopts
+          ,droplevels_      = posintopt "drop" rawopts
+          ,row_total_       = boolopt "row-total" rawopts
+          ,no_total_        = boolopt "no-total" rawopts
+          ,show_costs_      = boolopt "show-costs" rawopts
+          ,sort_amount_     = boolopt "sort-amount" rawopts
+          ,percent_         = boolopt "percent" rawopts
+          ,invert_          = boolopt "invert" rawopts
+          ,pretty_tables_   = boolopt "pretty-tables" rawopts
+          ,showcolor_       = useColorOnStdout -- a lower-level helper
+          ,forecast_        = forecastPeriodFromRawOpts d rawopts
+          ,transposetable_  = boolopt "transpose" rawopts
           }
 
 -- | The result of successfully parsing a ReportOpts on a particular

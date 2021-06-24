@@ -81,5 +81,5 @@ accounts CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{query_=query,reportopt
           ALTree -> T.replicate indent " " <> accountLeafName droppedName
           ALFlat -> droppedName
         where
-          indent = 2 * (max 0 (accountNameLevel a - drop_ ropts) - 1)
-          droppedName = accountNameDrop (drop_ ropts) a
+          indent = 2 * (max 0 (accountNameLevel a - droplevels_ ropts) - 1)
+          droppedName = accountNameDrop (droplevels_ ropts) a

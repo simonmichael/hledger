@@ -78,8 +78,7 @@ postingsReport rspec@ReportSpec{reportopts_=ropts@ReportOpts{..}} j = items
         | multiperiod = [(p, Just periodend) | (p, periodend) <- summariseps reportps]
         | otherwise   = [(p, Nothing) | p <- reportps]
         where
-          summariseps = summarisePostingsByInterval interval_ whichdate mdepth showempty reportspan
-          showempty = empty_ || average_
+          summariseps = summarisePostingsByInterval interval_ whichdate mdepth (showempty_ || average_) reportspan
 
       -- Posting report items ready for display.
       items =
@@ -234,7 +233,7 @@ tests_PostingsReport = tests "PostingsReport" [
     -- with query and/or command-line options
     (length $ postingsReport defreportspec samplejournal) @?= 13
     (length $ postingsReport defreportspec{reportopts_=defreportopts{interval_=Months 1}} samplejournal) @?= 11
-    (length $ postingsReport defreportspec{reportopts_=defreportopts{interval_=Months 1, empty_=True}} samplejournal) @?= 20
+    (length $ postingsReport defreportspec{reportopts_=defreportopts{interval_=Months 1, showempty_=True}} samplejournal) @?= 20
     (length $ postingsReport defreportspec{query_=Acct $ toRegex' "assets:bank:checking"} samplejournal) @?= 5
 
      -- (defreportopts, And [Acct "a a", Acct "'b"], samplejournal2) `gives` 0
@@ -358,7 +357,7 @@ tests_PostingsReport = tests "PostingsReport" [
          ]
         let opts = defreportopts{period_=maybePeriod date1 "quarterly"}
         registerdates (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` ["2008/01/01","2008/04/01","2008/10/01"]
-        let opts = defreportopts{period_=maybePeriod date1 "quarterly",empty_=True}
+        let opts = defreportopts{period_=maybePeriod date1 "quarterly",showempty_=True}
         registerdates (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` ["2008/01/01","2008/04/01","2008/07/01","2008/10/01"]
 
       ]

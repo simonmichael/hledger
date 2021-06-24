@@ -391,20 +391,20 @@ displayedAccounts ReportSpec{query_=query,reportopts_=ropts} valuedaccts
         ALTree -> DisplayName name leaf . max 0 $ level - boringParents
         ALFlat -> DisplayName name droppedName 1
       where
-        droppedName = accountNameDrop (drop_ ropts) name
+        droppedName = accountNameDrop (droplevels_ ropts) name
         leaf = accountNameFromComponents . reverse . map accountLeafName $
             droppedName : takeWhile notDisplayed parents
 
-        level = max 0 $ accountNameLevel name - drop_ ropts
+        level = max 0 $ accountNameLevel name - droplevels_ ropts
         parents = take (level - 1) $ parentAccountNames name
         boringParents = if no_elide_ ropts then 0 else length $ filter notDisplayed parents
         notDisplayed = not . (`HM.member` displayedAccts)
 
     -- Accounts interesting for their own sake
     isInteresting name amts =
-        d <= depth                                     -- Throw out anything too deep
-        && ((empty_ ropts && all (null . asubs) amts)  -- Keep all leaves when using empty_
-           || not (isZeroRow balance amts))            -- Throw out anything with zero balance
+        d <= depth                                         -- Throw out anything too deep
+        && ((showempty_ ropts && all (null . asubs) amts)  -- Keep all leaves when using showempty_
+           || not (isZeroRow balance amts))                -- Throw out anything with zero balance
       where
         d = accountNameLevel name
         balance | ALTree <- accountlistmode_ ropts, d == depth = maybeStripPrices . aibalance
@@ -416,7 +416,7 @@ displayedAccounts ReportSpec{query_=query,reportopts_=ropts} valuedaccts
         ALTree -> HM.filterWithKey hasEnoughSubs numSubs
         ALFlat -> mempty
       where
-        hasEnoughSubs name nsubs = nsubs >= minSubs && accountNameLevel name > drop_ ropts
+        hasEnoughSubs name nsubs = nsubs >= minSubs && accountNameLevel name > droplevels_ ropts
         minSubs = if no_elide_ ropts then 1 else 2
 
     isZeroRow balance = all (mixedAmountLooksZero . balance)

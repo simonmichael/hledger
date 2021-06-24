@@ -34,7 +34,7 @@ tags CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
     querystring = map T.pack $ drop 1 args
     values      = boolopt "values" rawopts
     parsed      = boolopt "parsed" rawopts
-    empty       = empty_ $ reportopts_ rspec
+    empty       = showempty_ $ reportopts_ rspec
 
   argsquery <- either usageError (return . fst) $ parseQueryList d querystring
   let

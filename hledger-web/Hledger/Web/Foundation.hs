@@ -119,7 +119,7 @@ instance Yesod App where
         ropts = reportopts_ rspec
         ropts' = (reportopts_ rspec)
           {accountlistmode_ = ALTree  -- force tree mode for sidebar
-          ,empty_           = not (empty_ ropts)  -- show zero items by default
+          ,showempty_       = not (showempty_ ropts)  -- show zero items by default
           }
         rspec' = rspec{query_=m,reportopts_=ropts'}
         accounts =

@@ -463,7 +463,7 @@ registerFromString s = do
   j <- readJournal' s
   return . postingsReportAsText opts $ postingsReport rspec j
       where
-        ropts = defreportopts{empty_=True}
+        ropts = defreportopts{showempty_=True}
         rspec = defreportspec{reportopts_=ropts}
         opts = defcliopts{reportspec_=rspec}
 

@@ -88,7 +88,7 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec
             ,Not generatedTransactionTag
           ]
     items = accountTransactionsReport rspec' j q thisacctq
-    items' = (if empty_ ropts then id else filter (not . mixedAmountLooksZero . fifth6)) $  -- without --empty, exclude no-change txns
+    items' = (if showempty_ ropts then id else filter (not . mixedAmountLooksZero . fifth6)) $  -- without --empty, exclude no-change txns
              reverse  -- most recent last
              items
 
@@ -224,7 +224,7 @@ rsDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}
               case concat [
                    uiShowStatus copts $ statuses_ ropts
                   ,if real_ ropts then ["real"] else []
-                  ,if empty_ ropts then [] else ["nonzero"]
+                  ,if showempty_ ropts then [] else ["nonzero"]
                   ] of
                 [] -> str ""
                 fs -> withAttr ("border" <> "query") (str $ " " ++ intercalate ", " fs)

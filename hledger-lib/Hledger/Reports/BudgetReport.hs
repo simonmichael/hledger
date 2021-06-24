@@ -69,7 +69,7 @@ budgetReport rspec bopts reportspan j = dbg4 "sortedbudgetreport" budgetreport
     -- Budget report demands ALTree mode to ensure subaccounts and subaccount budgets are properly handled
     -- and that reports with and without --empty make sense when compared side by side
     ropts = (reportopts_ rspec){ accountlistmode_ = ALTree }
-    showunbudgeted = empty_ ropts
+    showunbudgeted = showempty_ ropts
     budgetedaccts =
       dbg3 "budgetedacctsinperiod" $
       S.fromList $
@@ -81,9 +81,9 @@ budgetReport rspec bopts reportspan j = dbg4 "sortedbudgetreport" budgetreport
     actualj = journalWithBudgetAccountNames budgetedaccts showunbudgeted j
     budgetj = journalAddBudgetGoalTransactions bopts ropts reportspan j
     actualreport@(PeriodicReport actualspans _ _) =
-        dbg5 "actualreport" $ multiBalanceReport rspec{reportopts_=ropts{empty_=True}} actualj
+        dbg5 "actualreport" $ multiBalanceReport rspec{reportopts_=ropts{showempty_=True}} actualj
     budgetgoalreport@(PeriodicReport _ budgetgoalitems budgetgoaltotals) =
-        dbg5 "budgetgoalreport" $ multiBalanceReport rspec{reportopts_=ropts{empty_=True}} budgetj
+        dbg5 "budgetgoalreport" $ multiBalanceReport rspec{reportopts_=ropts{showempty_=True}} budgetj
     budgetgoalreport'
       -- If no interval is specified:
       -- budgetgoalreport's span might be shorter actualreport's due to periodic txns;
@@ -230,7 +230,7 @@ budgetReportAsText ropts@ReportOpts{..} budgetr = TB.toLazyText $
       where
         actual' = fromMaybe nullmixedamt actual
         budgetAndPerc b = (showamt b, showper <$> percentage actual' b)
-        showamt = (\(WideBuilder b w) -> (TL.toStrict $ TB.toLazyText b, w)) . showMixedAmountB oneLine{displayColour=color_, displayMaxWidth=Just 32}
+        showamt = (\(WideBuilder b w) -> (TL.toStrict $ TB.toLazyText b, w)) . showMixedAmountB oneLine{displayColour=showcolor_, displayMaxWidth=Just 32}
         showper p = let str = T.pack (show $ roundTo 0 p) in (str, T.length str)
     cellWidth ((_,wa), Nothing)                    = (wa,  0,  0)
     cellWidth ((_,wa), Just ((_,wb), Nothing))     = (wa, wb,  0)
@@ -274,8 +274,7 @@ budgetReportAsText ropts@ReportOpts{..} budgetr = TB.toLazyText $
             Cost   -> amounts . mixedAmountCost
             NoCost -> amounts
 
-    maybetranspose | transpose_ = \(Table rh ch vals) -> Table ch rh (transpose vals)
-                   | otherwise  = id
+    maybetranspose = if transposetable_ then \(Table rh ch vals) -> Table ch rh (transpose vals) else id
 
 -- | Build a 'Table' from a multi-column balance report.
 budgetReportAsTable :: ReportOpts -> BudgetReport -> Table Text Text (Maybe MixedAmount, Maybe MixedAmount)
@@ -298,7 +297,7 @@ budgetReportAsTable
     -- this.
     renderacct row = case accountlistmode_ ropts of
         ALTree -> T.replicate ((prrDepth row - 1)*2) " " <> prrDisplayName row
-        ALFlat -> accountNameDrop (drop_ ropts) $ prrFullName row
+        ALFlat -> accountNameDrop (droplevels_ ropts) $ prrFullName row
     rowvals (PeriodicReportRow _ as rowtot rowavg) =
         as ++ [rowtot | row_total_ ropts] ++ [rowavg | average_ ropts]
     addtotalrow
@@ -313,9 +312,9 @@ budgetReportAsTable
 -- but includes alternating actual and budget amount columns.
 budgetReportAsCsv :: ReportOpts -> BudgetReport -> CSV
 budgetReportAsCsv
-  ReportOpts{average_, row_total_, no_total_, transpose_}
+  ReportOpts{average_, row_total_, no_total_, transposetable_}
   (PeriodicReport colspans items (PeriodicReportRow _ abtotals (magrandtot,mbgrandtot) (magrandavg,mbgrandavg)))
-  = (if transpose_ then transpose else id) $
+  = (if transposetable_ then transpose else id) $
 
   -- heading row
   ("Account" :

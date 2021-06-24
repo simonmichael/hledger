@@ -105,7 +105,7 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
     -- run the report
     -- TODO: need to also pass the queries so we can choose which date to render - move them into the report ?
     items = accountTransactionsReport rspec' j reportq thisacctq
-    items' = (if empty_ ropts' then id else filter (not . mixedAmountLooksZero . fifth6)) $
+    items' = (if showempty_ ropts' then id else filter (not . mixedAmountLooksZero . fifth6)) $
              reverse items
     -- select renderer
     render | fmt=="txt"  = accountTransactionsReportAsText opts reportq thisacctq
@@ -168,7 +168,7 @@ accountTransactionsReportAsText copts reportq thisacctq items
 --
 accountTransactionsReportItemAsText :: CliOpts -> Query -> Query -> Int -> Int -> AccountTransactionsReportItem -> TB.Builder
 accountTransactionsReportItemAsText
-  copts@CliOpts{reportspec_=ReportSpec{reportopts_=ReportOpts{color_}}}
+  copts@CliOpts{reportspec_=ReportSpec{reportopts_=ReportOpts{showcolor_}}}
   reportq thisacctq preferredamtwidth preferredbalwidth
   (t@Transaction{tdescription}, _, _issplit, otheracctsstr, change, balance) =
     -- Transaction -- the transaction, unmodified
@@ -214,7 +214,7 @@ accountTransactionsReportItemAsText
             otheracctsstr
     amt = TL.toStrict . TB.toLazyText . wbBuilder $ showamt amtwidth change
     bal = TL.toStrict . TB.toLazyText . wbBuilder $ showamt balwidth balance
-    showamt w = showMixedAmountB noPrice{displayColour=color_, displayMinWidth=Just w, displayMaxWidth=Just w}
+    showamt w = showMixedAmountB noPrice{displayColour=showcolor_, displayMinWidth=Just w, displayMaxWidth=Just w}
     -- alternate behaviour, show null amounts as 0 instead of blank
     -- amt = if null amt' then "0" else amt'
     -- bal = if null bal' then "0" else bal'

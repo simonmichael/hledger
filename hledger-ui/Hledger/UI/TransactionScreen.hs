@@ -110,7 +110,7 @@ tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{
               case concat [
                    uiShowStatus copts $ statuses_ ropts
                   ,if real_ ropts then ["real"] else []
-                  ,if empty_ ropts then [] else ["nonzero"]
+                  ,if showempty_ ropts then [] else ["nonzero"]
                   ] of
                 [] -> str ""
                 fs -> withAttr ("border" <> "query") (str $ " " ++ intercalate ", " fs)

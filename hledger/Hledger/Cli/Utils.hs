@@ -104,7 +104,7 @@ pivotByOpts opts =
 -- | Apply the anonymisation transformation on a journal, if option is present
 anonymiseByOpts :: CliOpts -> Journal -> Journal
 anonymiseByOpts opts =
-  if anon_ . inputopts_ $ opts
+  if anonymise_ . inputopts_ $ opts
       then anon
       else id
 
