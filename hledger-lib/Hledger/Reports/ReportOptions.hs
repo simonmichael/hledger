@@ -4,9 +4,10 @@ Options common to most hledger reports.
 
 -}
 
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE TemplateHaskell   #-}
 
 module Hledger.Reports.ReportOptions (
   ReportOpts(..),
@@ -45,7 +46,10 @@ module Hledger.Reports.ReportOptions (
   reportPeriodOrJournalStart,
   reportPeriodLastDay,
   reportPeriodOrJournalLastDay,
-  reportPeriodName
+  reportPeriodName,
+  -- Lenses
+  HasReportOpts(..),
+  HasReportSpec(reportSpec,reportday,query,queryopts)
 )
 where
 
@@ -57,12 +61,12 @@ import qualified Data.Text as T
 import Data.Time.Calendar (Day, addDays)
 import Data.Default (Default(..))
 import Safe (headMay, lastDef, lastMay, maximumMay)
-
 import Text.Megaparsec.Custom
 
 import Hledger.Data
 import Hledger.Query
 import Hledger.Utils
+import Hledger.Utils.TH (makeClassyLensesTrailing)
 
 
 -- | What is calculated and shown in each cell in a balance report.
@@ -142,6 +146,8 @@ data ReportOpts = ReportOpts {
     ,transposetable_ :: Bool
  } deriving (Show)
 
+makeClassyLensesTrailing ''ReportOpts
+
 instance Default ReportOpts where def = defreportopts
 
 defreportopts :: ReportOpts
@@ -177,6 +183,34 @@ defreportopts = ReportOpts
     , showcolor_       = False
     , forecast_        = Nothing
     , transposetable_  = False
+    }
+
+-- | The result of successfully parsing a ReportOpts on a particular
+-- Day. Any ambiguous dates are completed and Queries are parsed,
+-- ensuring that there are no regular expression errors. Values here
+-- should be used in preference to re-deriving them from ReportOpts.
+-- If you change the query_ in ReportOpts, you should call
+-- `reportOptsToSpec` to regenerate the ReportSpec with the new
+-- Query.
+data ReportSpec = ReportSpec
+  { reportopts_ :: ReportOpts  -- ^ The underlying ReportOpts used to generate this ReportSpec
+  , reportday_  :: Day         -- ^ The Day this ReportSpec is generated for
+  , query_      :: Query       -- ^ The generated Query for the given day
+  , queryopts_  :: [QueryOpt]  -- ^ A list of QueryOpts for the given day
+  } deriving (Show)
+
+makeClassyLensesTrailing ''ReportSpec
+
+instance HasReportOpts ReportSpec where reportOpts = reportopts
+
+instance Default ReportSpec where def = defreportspec
+
+defreportspec :: ReportSpec
+defreportspec = ReportSpec
+    { reportopts_ = defreportopts
+    , reportday_  = nulldate
+    , query_      = Any
+    , queryopts_  = []
     }
 
 rawOptsToReportOpts :: RawOpts -> IO ReportOpts
@@ -224,30 +258,6 @@ rawOptsToReportOpts rawopts = do
           ,forecast_        = forecastPeriodFromRawOpts d rawopts
           ,transposetable_  = boolopt "transpose" rawopts
           }
-
--- | The result of successfully parsing a ReportOpts on a particular
--- Day. Any ambiguous dates are completed and Queries are parsed,
--- ensuring that there are no regular expression errors. Values here
--- should be used in preference to re-deriving them from ReportOpts.
--- If you change the query_ in ReportOpts, you should call
--- `reportOptsToSpec` to regenerate the ReportSpec with the new
--- Query.
-data ReportSpec = ReportSpec
-  { reportopts_ :: ReportOpts  -- ^ The underlying ReportOpts used to generate this ReportSpec
-  , reportday_  :: Day         -- ^ The Day this ReportSpec is generated for
-  , query_      :: Query       -- ^ The generated Query for the given day
-  , queryopts_  :: [QueryOpt]  -- ^ A list of QueryOpts for the given day
-  } deriving (Show)
-
-instance Default ReportSpec where def = defreportspec
-
-defreportspec :: ReportSpec
-defreportspec = ReportSpec
-    { reportopts_ = defreportopts
-    , reportday_  = nulldate
-    , query_      = Any
-    , queryopts_  = []
-    }
 
 -- | Generate a ReportSpec from a set of ReportOpts on a given day.
 reportOptsToSpec :: Day -> ReportOpts -> Either String ReportSpec
