@@ -60,7 +60,7 @@ import qualified Data.Text.Encoding as T
 import qualified Data.Text.IO as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
-import Data.Time.Calendar (Day)
+import Data.Time (UTCTime, Day, localDay, utcToLocalTime, getCurrentTimeZone, LocalTime)
 import Data.Time.Format (parseTimeM, defaultTimeLocale)
 import Safe (atMay, headMay, lastMay, readDef, readMay)
 import System.Directory (doesFileExist)
@@ -78,6 +78,7 @@ import Text.Printf (printf)
 import Hledger.Data
 import Hledger.Utils
 import Hledger.Read.Common (aliasesFromOpts,  Reader(..),InputOpts(..), amountp, statusp, genericSourcePos, journalFinalise )
+import Data.Time.LocalTime (TimeZone)
 
 --- ** doctest setup
 -- $setup
@@ -741,6 +742,7 @@ readJournalFromCsv mrulesfile csvfile csvdata =
   -- let (headerlines, datalines) = identifyHeaderLines records
   --     mfieldnames = lastMay headerlines
 
+  tz <- getCurrentTimeZone
   let
     -- convert CSV records to transactions
     txns = dbg7 "csv txns" $ snd $ mapAccumL
@@ -750,7 +752,7 @@ readJournalFromCsv mrulesfile csvfile csvdata =
                         line' = (mkPos . (+1) . unPos) line
                         pos' = SourcePos name line' col
                       in
-                        (pos, transactionFromCsvRecord pos' rules r)
+                        (pos, transactionFromCsvRecord pos' rules tz r)
                    )
                    (initialPos parsecfilename) records
 
@@ -874,8 +876,8 @@ hledgerField = getEffectiveAssignment
 hledgerFieldValue :: CsvRules -> CsvRecord -> HledgerFieldName -> Maybe Text
 hledgerFieldValue rules record = fmap (renderTemplate rules record) . hledgerField rules record
 
-transactionFromCsvRecord :: SourcePos -> CsvRules -> CsvRecord -> Transaction
-transactionFromCsvRecord sourcepos rules record = t
+transactionFromCsvRecord :: SourcePos -> CsvRules -> TimeZone -> CsvRecord -> Transaction
+transactionFromCsvRecord sourcepos rules tz record = t
   where
     ----------------------------------------------------------------------
     -- 1. Define some helpers:
@@ -884,7 +886,7 @@ transactionFromCsvRecord sourcepos rules record = t
     -- ruleval  = csvRuleValue      rules record :: DirectiveName    -> Maybe String
     field    = hledgerField      rules record :: HledgerFieldName -> Maybe FieldTemplate
     fieldval = hledgerFieldValue rules record :: HledgerFieldName -> Maybe Text
-    parsedate = parseDateWithCustomOrDefaultFormats (rule "date-format")
+    parsedate = parseDateWithCustomOrDefaultFormats tz (rule "date-format")
     mkdateerror datefield datevalue mdateformat = T.unpack $ T.unlines
       ["error: could not parse \""<>datevalue<>"\" as a date using date format "
         <>maybe "\"YYYY/M/D\", \"YYYY-M-D\" or \"YYYY.M.D\"" (T.pack . show) mdateformat
@@ -1269,16 +1271,24 @@ csvFieldValue rules record fieldname = do
   fieldvalue <- T.strip <$> atMay record (fieldindex-1)
   return fieldvalue
 
--- | Parse the date string using the specified date-format, or if unspecified
--- the "simple date" formats (YYYY/MM/DD, YYYY-MM-DD, YYYY.MM.DD, leading
--- zeroes optional).
-parseDateWithCustomOrDefaultFormats :: Maybe DateFormat -> Text -> Maybe Day
-parseDateWithCustomOrDefaultFormats mformat s = asum $ map parsewith formats
+-- | Parse a date from a date/datetime string using the specified strptime format,
+-- or else try all the "simple date" formats (YYYY/MM/DD, YYYY-MM-DD, YYYY.MM.DD
+-- with optional leading zeroes). 
+-- 
+-- If the string includes time and time zone, the local date (in the provided 
+-- local time zone) will be returned. This could be a day earlier or later than 
+-- the one in the string.
+parseDateWithCustomOrDefaultFormats :: TimeZone -> Maybe DateFormat -> Text -> Maybe Day
+parseDateWithCustomOrDefaultFormats tz mformat s = do
+  ut <- asum $ map parsewith formats :: Maybe UTCTime
+  let lt = utcToLocalTime tz ut :: LocalTime
+  let ld = localDay lt :: Day
+  return ld
   where
     parsewith = flip (parseTimeM True defaultTimeLocale) (T.unpack s)
     formats = map T.unpack $ maybe
-               ["%Y/%-m/%-d"
-               ,"%Y-%-m-%-d"
+               ["%Y-%-m-%-d"
+               ,"%Y/%-m/%-d"
                ,"%Y.%-m.%-d"
                -- ,"%-m/%-d/%Y"
                 -- ,parseTime defaultTimeLocale "%Y/%m/%e" (take 5 s ++ "0" ++ drop 5 s)

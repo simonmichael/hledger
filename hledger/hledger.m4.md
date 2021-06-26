@@ -3865,11 +3865,9 @@ date-format %-m/%-d/%Y %l:%M %p some other junk
 For the supported strptime syntax, see:\
 <https://hackage.haskell.org/package/time/docs/Data-Time-Format.html#v:formatTime>
 
-Note that although you can parse date-times which include a time zone, 
-that time zone is ignored; it will not change the date that is parsed.
-This means when reading CSV data with times not in your local time zone,
-dates can be "off by one".
-
+Note: date-times which include a time zone, different from your own local time zone,
+will usually be parsed as the correct date in your time zone; but in certain situations 
+with daylight savings, it's possible for the parsed date to be "off by one".
 
 ### `decimal-mark`
 
