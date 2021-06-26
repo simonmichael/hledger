@@ -6,6 +6,11 @@ File: hledger.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
 hledger(1)
 **********
 
+INFO-DIR-SECTION User Applications
+START-INFO-DIR-ENTRY
+* HLedger: (hledger).  Command-Line Accounting
+END-INFO-DIR-ENTRY
+
 This is the command-line interface (CLI) for the hledger accounting
 tool.  Here we also describe hledger's concepts and file formats.  This
 manual is for hledger 1.21.99.

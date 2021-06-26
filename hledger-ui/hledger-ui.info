@@ -6,6 +6,11 @@ File: hledger-ui.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
 hledger-ui(1)
 *************
 
+INFO-DIR-SECTION User Applications
+START-INFO-DIR-ENTRY
+* HLedger-UI: (hledger-ui).  Command-Line Accounting (TUI)
+END-INFO-DIR-ENTRY
+
 hledger-ui is a terminal interface (TUI) for the hledger accounting
 tool.  This manual is for hledger-ui 1.21.99.
 
