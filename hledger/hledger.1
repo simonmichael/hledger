@@ -5263,6 +5263,12 @@ With this scheme, you would use \f[C]-PC\f[R] to see the current balance
 at your bank, \f[C]-U\f[R] to see things which will probably hit your
 bank soon (like uncashed checks), and no flags to see the most
 up-to-date state of your finances.
+.SS Code
+.PP
+After the status mark, but before the description, you can optionally
+write a transaction \[dq]code\[dq], enclosed in parentheses.
+This is a good place to record a check number, or some other important
+transaction id or reference number.
 .SS Description
 .PP
 A transaction\[aq]s description is the rest of the line following the
@@ -6395,28 +6401,26 @@ rate between two commodities on a certain date.
 often obtained from a stock exchange, cryptocurrency exchange, or the
 foreign exchange market.
 .PP
-Here is the format:
+The format is:
 .IP
 .nf
 \f[C]
-P DATE COMMODITYA COMMODITYBAMOUNT
+P DATE COMMODITY1SYMBOL COMMODITY2AMOUNT
 \f[R]
 .fi
-.IP \[bu] 2
-DATE is a simple date
-.IP \[bu] 2
-COMMODITYA is the symbol of the commodity being priced
-.IP \[bu] 2
-COMMODITYBAMOUNT is an amount (symbol and quantity) in a second
-commodity, giving the price in commodity B of one unit of commodity A.
 .PP
-These two market price directives say that one euro was worth 1.35 US
-dollars during 2009, and $1.40 from 2010 onward:
+DATE is a simple date, COMMODITY1SYMBOL is the symbol of the commodity
+being priced, and COMMODITY2AMOUNT is the amount (symbol and quantity)
+of commodity 2 that one unit of commodity 1 is worth on this date.
+Examples:
 .IP
 .nf
 \f[C]
-P 2009/1/1 \[Eu] $1.35
-P 2010/1/1 \[Eu] $1.40
+# one euro was worth $1.35 from 2009-01-01 onward:
+P 2009-01-01 \[Eu] $1.35
+
+# and $1.40 from 2010-01-01 onward:
+P 2010-01-01 \[Eu] $1.40
 \f[R]
 .fi
 .PP
@@ -7212,14 +7216,14 @@ below, after the examples:
 .PP
 .TS
 tab(@);
-lw(30.1n) lw(39.9n).
+lw(26.4n) lw(43.6n).
 T{
 \f[B]\f[CB]skip\f[B]\f[R]
 T}@T{
 skip one or more header lines or matched CSV records
 T}
 T{
-\f[B]\f[CB]fields\f[B]\f[R]
+\f[B]\f[CB]fields\f[B] list\f[R]
 T}@T{
 name CSV fields, assign them to hledger fields
 T}
@@ -7227,6 +7231,11 @@ T{
 \f[B]field assignment\f[R]
 T}@T{
 assign a value to one hledger field, with interpolation
+T}
+T{
+\f[B]Field names\f[R]
+T}@T{
+hledger field names, used in the fields list and field assignments
 T}
 T{
 \f[B]\f[CB]separator\f[B]\f[R]
@@ -7633,7 +7642,7 @@ whenever your CSV data contains header lines.
 .PP
 It also has a second purpose: it can be used inside if blocks to ignore
 certain CSV records (described below).
-.SS \f[C]fields\f[R]
+.SS \f[C]fields\f[R] list
 .IP
 .nf
 \f[C]
@@ -7644,13 +7653,14 @@ fields FIELDNAME1, FIELDNAME2, ...
 A fields list (the word \[dq]fields\[dq] followed by comma-separated
 field names) is the quick way to assign CSV field values to hledger
 fields.
-It does two things:
+(The other way is field assignments, see below.) A fields list does does
+two things:
 .IP "1." 3
-it names the CSV fields.
+It names the CSV fields.
 This is optional, but can be convenient later for interpolating them.
 .IP "2." 3
-when you use a standard hledger field name, it assigns the CSV value to
-that part of the hledger transaction.
+Whenever you use a standard hledger field name (defined below), the CSV
+value is assigned to that part of the hledger transaction.
 .PP
 Here\[aq]s an example that says \[dq]use the 1st, 2nd and 4th fields as
 the transaction\[aq]s date, description and amount; name the last two
@@ -7662,91 +7672,27 @@ fields date, description, , amount, , , somefield, anotherfield
 \f[R]
 .fi
 .PP
-Field names may not contain whitespace.
-Fields you don\[aq]t care about can be left unnamed.
-Currently there must be least two items (there must be at least one
-comma).
-.PP
-Note, always use comma in the fields list, even if your CSV uses another
+Tips:
+.IP \[bu] 2
+The fields list always use commas, even if your CSV data uses another
 separator character.
-.PP
-Here are the standard hledger field/pseudo-field names.
-For more about the transaction parts they refer to, see the manual for
-hledger\[aq]s journal format.
-.SS Transaction field names
-.PP
-\f[C]date\f[R], \f[C]date2\f[R], \f[C]status\f[R], \f[C]code\f[R],
-\f[C]description\f[R], \f[C]comment\f[R] can be used to form the
-transaction\[aq]s first line.
-.SS Posting field names
-.SS account
-.PP
-\f[C]accountN\f[R], where N is 1 to 99, causes a posting to be
-generated, with that account name.
-.PP
-Most often there are two postings, so you\[aq]ll want to set
-\f[C]account1\f[R] and \f[C]account2\f[R].
-Typically \f[C]account1\f[R] is associated with the CSV file, and is set
-once with a top-level assignment, while \f[C]account2\f[R] is set based
-on each transaction\[aq]s description, and in conditional blocks.
-.PP
-If a posting\[aq]s account name is left unset but its amount is set (see
-below), a default account name will be chosen (like
-\[dq]expenses:unknown\[dq] or \[dq]income:unknown\[dq]).
-.SS amount
-.PP
-\f[C]amountN\f[R] sets the Nth posting\[aq]s amount.
-By assigning to \f[C]amount1\f[R], \f[C]amount2\f[R], ...
-etc.
-you can generate up to 99 postings.
-.PP
-If the CSV uses separate fields for debits and credits (inflows and
-outflows), you can use \f[C]amountN-in\f[R] and \f[C]amountN-out\f[R]
-instead.
-Note hledger assumes both of these fields are unsigned, and will
-automatically negate the \[dq]-out\[dq] value.
-If the fields are signed, see \[dq]Setting amounts\[dq] below.
-.PP
-There is also an unnumbered form of these names: \f[C]amount\f[R], or
-\f[C]amount-in\f[R] and \f[C]amount-out\f[R].
-This is supported to keep pre-hledger-1.17 CSV rules files working (and
-for occasional convenience).
-It is suitable only for two-posting transactions; it sets both posting
-1\[aq]s and posting 2\[aq]s amount.
-Posting 2\[aq]s amount will be negated, and also converted to cost if
-there\[aq]s a transaction price.
-.PP
-If you have an existing rules file using the unnumbered form, you might
-want to use the numbered form in certain conditional blocks, without
-having to update and retest all the old rules.
-To facilitate this, posting 1 ignores
-\f[C]amount\f[R]/\f[C]amount-in\f[R]/\f[C]amount-out\f[R] if any of
-\f[C]amount1\f[R]/\f[C]amount1-in\f[R]/\f[C]amount1-out\f[R] are
-assigned, and posting 2 ignores them if any of
-\f[C]amount2\f[R]/\f[C]amount2-in\f[R]/\f[C]amount2-out\f[R] are
-assigned, avoiding conflicts.
-.SS currency
-.PP
-If the CSV has the currency symbol in a separate field (ie, not part of
-the amount field), you can use \f[C]currencyN\f[R] to prepend it to
-posting N\[aq]s amount.
-Or, \f[C]currency\f[R] with no number affects all postings.
-.SS balance
-.PP
-\f[C]balanceN\f[R] sets a balance assertion amount (or if the posting
-amount is left empty, a balance assignment) on posting N.
-.PP
-Also, for compatibility with hledger <1.17: \f[C]balance\f[R] with no
-number is equivalent to \f[C]balance1\f[R].
-.PP
-You can adjust the type of assertion/assignment with the
-\f[C]balance-type\f[R] rule (see below).
-.SS comment
-.PP
-Finally, \f[C]commentN\f[R] sets a comment on the Nth posting.
-Comments can also contain tags, as usual.
-.PP
-See TIPS below for more about setting amounts and currency.
+.IP \[bu] 2
+Currently there must be least two items in the list (at least one
+comma).
+.IP \[bu] 2
+Field names may not contain spaces.
+Spaces before/after field names are optional.
+.IP \[bu] 2
+If the CSV contains column headings, it\[aq]s a good idea to use these,
+suitably modified, as the basis for your field names (eg lower-cased,
+with underscores instead of spaces).
+.IP \[bu] 2
+If some heading names match standard hledger fields, but you don\[aq]t
+want to set the hledger fields directly, alter those names, eg by
+appending an underscore.
+.IP \[bu] 2
+Fields you don\[aq]t care about can be given a dummy name (eg:
+\f[C]_\f[R] ), or no name.
 .SS field assignment
 .IP
 .nf
@@ -7755,13 +7701,17 @@ HLEDGERFIELDNAME FIELDVALUE
 \f[R]
 .fi
 .PP
-Instead of or in addition to a fields list, you can use a \[dq]field
-assignment\[dq] rule to set the value of a single hledger field, by
-writing its name (any of the standard hledger field names above)
-followed by a text value.
-The value may contain interpolated CSV fields, referenced by their
-1-based position in the CSV record (\f[C]%N\f[R]), or by the name they
-were given in the fields list (\f[C]%CSVFIELDNAME\f[R]).
+Field assignments are the more flexible way to assign CSV values to
+hledger fields.
+They can be used instead of or in addition to a fields list (see above).
+.PP
+To assign a value to a hledger field, write the field name (any of the
+standard hledger field/pseudo-field names, defined below), a space,
+followed by a text value on the same line.
+This text value may interpolate CSV fields, referenced by their 1-based
+position in the CSV record (\f[C]%N\f[R]), or by the name they were
+given in the fields list (\f[C]%CSVFIELDNAME\f[R]).
+.PP
 Some examples:
 .IP
 .nf
@@ -7774,9 +7724,108 @@ comment note: %somefield - %anotherfield, date: %1
 \f[R]
 .fi
 .PP
+Tips:
+.IP \[bu] 2
 Interpolation strips outer whitespace (so a CSV value like
 \f[C]\[dq] 1 \[dq]\f[R] becomes \f[C]1\f[R] when interpolated) (#1051).
-See TIPS below for more about referencing other fields.
+.IP \[bu] 2
+See also Tips below.
+.SS Field names
+.PP
+Here are the standard hledger field (and pseudo-field) names, which you
+can use in a fields list and in field assignments.
+For more about the transaction parts they refer to, see Transactions.
+.SS date field
+.PP
+Assigning to \f[C]date\f[R] sets the transaction date.
+.SS date2 field
+.PP
+\f[C]date2\f[R] sets the transaction\[aq]s secondary date, if any.
+.SS status field
+.PP
+\f[C]status\f[R] sets the transaction\[aq]s status, if any.
+.SS code field
+.PP
+\f[C]code\f[R] sets the transaction\[aq]s code, if any.
+.SS description field
+.PP
+\f[C]description\f[R] sets the transaction\[aq]s description, if any.
+.SS comment field
+.PP
+\f[C]comment\f[R] sets the transaction\[aq]s comment, if any.
+.PP
+\f[C]commentN\f[R], where N is a number, sets the Nth posting\[aq]s
+comment.
+.PP
+Tips: - Only single-line comments can be assigned.
+- Comments can contain tags, as usual.
+.SS account field
+.PP
+Assigning to \f[C]accountN\f[R], where N is 1 to 99, sets the account
+name of the Nth posting, and causes that posting to be generated.
+.PP
+Most often there are two postings, so you\[aq]ll want to set
+\f[C]account1\f[R] and \f[C]account2\f[R].
+Typically \f[C]account1\f[R] is associated with the CSV file, and is set
+once with a top-level assignment, while \f[C]account2\f[R] is set based
+on each transaction\[aq]s description, and in conditional blocks.
+.PP
+If a posting\[aq]s account name is left unset but its amount is set (see
+below), a default account name will be chosen (like
+\[dq]expenses:unknown\[dq] or \[dq]income:unknown\[dq]).
+.SS amount field
+.PP
+\f[C]amountN\f[R] sets the amount of the Nth posting, and causes that
+posting to be generated.
+By assigning to \f[C]amount1\f[R], \f[C]amount2\f[R], ...
+etc.
+you can generate up to 99 postings.
+.PP
+\f[C]amountN-in\f[R] and \f[C]amountN-out\f[R] can be used instead, if
+the CSV uses separate fields for debits and credits (inflows and
+outflows).
+hledger assumes both of these CSV fields are unsigned, and will
+automatically negate the \[dq]-out\[dq] value.
+If they are signed, see \[dq]Setting amounts\[dq] below.
+.PP
+\f[C]amount\f[R], or \f[C]amount-in\f[R] and \f[C]amount-out\f[R] are a
+legacy mode, to keep pre-hledger-1.17 CSV rules files working (and for
+occasional convenience).
+They are suitable only for two-posting transactions; they set both
+posting 1\[aq]s and posting 2\[aq]s amount.
+Posting 2\[aq]s amount will be negated, and also converted to cost if
+there\[aq]s a transaction price.
+.PP
+If you have an existing rules file using the unnumbered form, you might
+want to use the numbered form in certain conditional blocks, without
+having to update and retest all the old rules.
+To facilitate this, posting 1 ignores
+\f[C]amount\f[R]/\f[C]amount-in\f[R]/\f[C]amount-out\f[R] if any of
+\f[C]amount1\f[R]/\f[C]amount1-in\f[R]/\f[C]amount1-out\f[R] are
+assigned, and posting 2 ignores them if any of
+\f[C]amount2\f[R]/\f[C]amount2-in\f[R]/\f[C]amount2-out\f[R] are
+assigned, avoiding conflicts.
+.SS currency field
+.PP
+\f[C]currency\f[R] sets a currency symbol, to be prepended to all
+postings\[aq] amounts.
+You can use this if the CSV amounts do not have a currency symbol, eg if
+it is in a separate column.
+.PP
+\f[C]currencyN\f[R] prepends a currency symbol to just the Nth
+posting\[aq]s amount.
+.SS balance field
+.PP
+\f[C]balanceN\f[R] sets a balance assertion amount (or if the posting
+amount is left empty, a balance assignment) on posting N.
+.PP
+\f[C]balance\f[R] is a compatibility spelling for hledger <1.17; it is
+equivalent to \f[C]balance1\f[R].
+.PP
+You can adjust the type of assertion/assignment with the
+\f[C]balance-type\f[R] rule (see below).
+.PP
+See Tips below for more about setting amounts and currency.
 .SS \f[C]separator\f[R]
 .PP
 You can use the \f[C]separator\f[R] rule to read other kinds of
@@ -8052,6 +8101,11 @@ For the supported strptime syntax, see:
 .P
 .PD
 https://hackage.haskell.org/package/time/docs/Data-Time-Format.html#v:formatTime
+.PP
+Note that although you can parse date-times which include a time zone,
+that time zone is ignored; it will not change the date that is parsed.
+This means when reading CSV data with times not in your local time zone,
+dates can be \[dq]off by one\[dq].
 .SS \f[C]decimal-mark\f[R]
 .IP
 .nf
