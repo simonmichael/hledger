@@ -1668,6 +1668,13 @@ With this scheme, you would use
 `-U` to see things which will probably hit your bank soon (like uncashed checks),
 and no flags to see the most up-to-date state of your finances.
 
+## Code
+
+After the status mark, but before the description, you can optionally
+write a transaction "code", enclosed in parentheses. This is a good
+place to record a check number, or some other important transaction id
+or reference number.
+
 ## Description
 
 A transaction's description is the rest of the line following the date and status mark (or until a comment begins).
@@ -3187,20 +3194,21 @@ conditional rules for categorising transactions based on their
 descriptions. Here's an overview of the CSV rules;
 these are described more fully below, after the examples:
 
-|                                           |                                                         |
-|-------------------------------------------|---------------------------------------------------------|
-| [**`skip`**](#skip)                       | skip one or more header lines or matched CSV records    |
-| [**`fields`**](#fields)                   | name CSV fields, assign them to hledger fields          |
-| [**field assignment**](#field-assignment) | assign a value to one hledger field, with interpolation |
-| [**`separator`**](#separator)             | a custom field separator                                |
-| [**`if` block**](#if-block)               | apply some rules to CSV records matched by patterns     |
+|                                           |                                                                       |
+|-------------------------------------------|-----------------------------------------------------------------------|
+| [**`skip`**](#skip)                       | skip one or more header lines or matched CSV records                  |
+| [**`fields` list**](#fields-list)         | name CSV fields, assign them to hledger fields                        |
+| [**field assignment**](#field-assignment) | assign a value to one hledger field, with interpolation               |
+| [**Field names**](#field-names)           | hledger field names, used in the fields list and field assignments    |
+| [**`separator`**](#separator)             | a custom field separator                                              |
+| [**`if` block**](#if-block)               | apply some rules to CSV records matched by patterns                   |
 | [**`if` table**](#if-table)               | apply some rules to CSV records matched by patterns, alternate syntax |
-| [**`end`**](#end)                         | skip the remaining CSV records                          |
-| [**`date-format`**](#date-format)         | how to parse dates in CSV records                       |
-| [**`decimal-mark`**](#decimal-mark)       | the decimal mark used in CSV amounts, if ambiguous      |
-| [**`newest-first`**](#newest-first)       | disambiguate record order when there's only one date    |
-| [**`include`**](#include)                 | inline another CSV rules file                           |
-| [**`balance-type`**](#balance-type)       | choose which type of balance assignments to use         |
+| [**`end`**](#end)                         | skip the remaining CSV records                                        |
+| [**`date-format`**](#date-format)         | how to parse dates in CSV records                                     |
+| [**`decimal-mark`**](#decimal-mark)       | the decimal mark used in CSV amounts, if ambiguous                    |
+| [**`newest-first`**](#newest-first)       | disambiguate record order when there's only one date                  |
+| [**`include`**](#include)                 | inline another CSV rules file                                         |
+| [**`balance-type`**](#balance-type)       | choose which type of balance assignments to use                       |
 
 Note, for best error messages when reading CSV files, use a `.csv`, `.tsv` or `.ssv`
 file extension or file prefix - see [File Extension](#file-extension) below.
@@ -3530,20 +3538,21 @@ It also has a second purpose: it can be used inside [if blocks](#if-block)
 to ignore certain CSV records (described below).
 
 
-### `fields`
+### `fields` list
 
 ```rules
 fields FIELDNAME1, FIELDNAME2, ...
 ```
 A fields list (the word "fields" followed by comma-separated field
 names) is the quick way to assign CSV field values to hledger fields.
-It does two things:
+(The other way is [field assignments](#field-assignment), see below.)
+A fields list does does two things:
 
-1. it names the CSV fields.
+1. It names the CSV fields.
    This is optional, but can be convenient later for interpolating them.
 
-2. when you use a standard hledger field name,
-   it assigns the CSV value to that part of the hledger transaction.
+2. Whenever you use a standard hledger field name (defined below),
+   the CSV value is assigned to that part of the hledger transaction.
 
 Here's an example that says
 "use the 1st, 2nd and 4th fields as the transaction's date, description and amount;
@@ -3552,27 +3561,89 @@ name the last two fields for later reference; and ignore the others":
 fields date, description, , amount, , , somefield, anotherfield
 ```
 
-Field names may not contain whitespace.
-Fields you don't care about can be left unnamed.
-Currently there must be least two items (there must be at least one comma).
+Tips:
 
-Note, always use comma in the fields list, even if your CSV uses
-[another separator character](#separator).
+- The fields list always use commas, even if your CSV data uses [another separator character](#separator).
+- Currently there must be least two items in the list (at least one comma).
+- Field names may not contain spaces. Spaces before/after field names are optional.
+- If the CSV contains column headings, it's a good idea to use these, suitably modified, as the basis for your field names (eg lower-cased, with underscores instead of spaces).
+- If some heading names match standard hledger fields, but you don't want to set the hledger fields directly, alter those names, eg by appending an underscore.
+- Fields you don't care about can be given a dummy name (eg: `_` ), or no name.
 
-Here are the standard hledger field/pseudo-field names.
-For more about the transaction parts they refer to, see the manual for hledger's journal format.
+### field assignment
 
-#### Transaction field names
+```rules
+HLEDGERFIELDNAME FIELDVALUE
+```
 
-`date`, `date2`, `status`, `code`, `description`, `comment` can be used to form the
-[transaction's](#transactions) first line.
+Field assignments are the more flexible way to assign CSV values to hledger fields.
+They can be used instead of or in addition to a [fields list](#fields-list) (see above).
 
-#### Posting field names
+To assign a value to a hledger field, write the field name
+(any of the standard hledger field/pseudo-field names, defined below),
+a space, followed by a text value on the same line.
+This text value may interpolate CSV fields,
+referenced by their 1-based position in the CSV record (`%N`),
+or by the name they were given in the [fields list](#fields-list) (`%CSVFIELDNAME`).
 
-##### account
+Some examples:
 
-`accountN`, where N is 1 to 99, causes a [posting](#postings) to be generated, 
-with that account name.
+```rules
+# set the amount to the 4th CSV field, with " USD" appended
+amount %4 USD
+
+# combine three fields to make a comment, containing note: and date: tags
+comment note: %somefield - %anotherfield, date: %1
+```
+
+Tips:
+
+- Interpolation strips outer whitespace (so a CSV value like `" 1 "`
+becomes `1` when interpolated)
+([#1051](https://github.com/simonmichael/hledger/issues/1051)).
+- See also [Tips](#tips) below.
+
+### Field names
+
+Here are the standard hledger field (and pseudo-field) names, which
+you can use in a [fields list](#fields-list) and in [field assignments](#field-assignment).
+For more about the transaction parts they refer to, see [Transactions](#transactions).
+
+#### date field
+
+Assigning to `date` sets the [transaction date](#simple-dates).
+
+#### date2 field
+
+`date2` sets the transaction's [secondary date](#secondary-dates), if any.
+
+#### status field
+
+`status` sets the transaction's [status](#status), if any.
+
+#### code field
+
+`code` sets the transaction's [code](#code), if any.
+
+#### description field
+
+`description` sets the transaction's [description](#description), if any.
+
+#### comment field
+
+`comment` sets the transaction's [comment](#comments), if any.
+
+`commentN`, where N is a number, sets the Nth posting's comment.
+
+Tips:
+- Only single-line comments can be assigned.
+- Comments can contain [tags](#tags), as usual.
+
+#### account field
+
+Assigning to `accountN`, where N is 1 to 99, 
+sets the account name of the Nth [posting](#postings),
+and causes that posting to be generated.
 
 Most often there are two postings, so you'll want to set `account1` and `account2`.
 Typically `account1` is associated with the CSV file, and is set once with a top-level assignment,
@@ -3581,20 +3652,23 @@ while `account2` is set based on each transaction's description, and in conditio
 If a posting's account name is left unset but its amount is set (see below),
 a default account name will be chosen (like "expenses:unknown" or "income:unknown").
 
-##### amount
+#### amount field
 
-`amountN` sets the Nth posting's amount. 
+`amountN` sets the amount of the Nth posting,
+and causes that posting to be generated.
 By assigning to `amount1`, `amount2`, ... etc. you can generate up to 99 postings.
 
-If the CSV uses separate fields for debits and credits (inflows and outflows), you can
-use `amountN-in` and `amountN-out` instead.
-Note hledger assumes both of these fields are unsigned, and will automatically negate the "-out" value.
-If the fields are signed, see ["Setting amounts"](#setting-amounts) below.
+`amountN-in` and `amountN-out` can be used instead,
+if the CSV uses separate fields for debits and credits (inflows and outflows).
+hledger assumes both of these CSV fields are unsigned, and will automatically negate the "-out" value.
+If they are signed, see ["Setting amounts"](#setting-amounts) below.
 
-There is also an unnumbered form of these names: `amount`, or `amount-in` and `amount-out`.
-This is supported to keep pre-hledger-1.17 CSV rules files working (and for occasional convenience).
-It is suitable only for two-posting transactions; it sets both posting 1's and posting 2's amount.
-Posting 2's amount will be negated, and also converted to cost if there's a [transaction price](#transaction-prices).
+`amount`, or `amount-in` and `amount-out` are a legacy mode,
+to keep pre-hledger-1.17 CSV rules files working (and for occasional convenience).
+They are suitable only for two-posting transactions; 
+they set both posting 1's and posting 2's amount.
+Posting 2's amount will be negated, and also converted to cost 
+if there's a [transaction price](#transaction-prices).
 
 If you have an existing rules file using the unnumbered form, you
 might want to use the numbered form in certain conditional blocks,
@@ -3604,58 +3678,27 @@ posting 1 ignores `amount`/`amount-in`/`amount-out` if any of `amount1`/`amount1
 and posting 2 ignores them if any of `amount2`/`amount2-in`/`amount2-out` are assigned,
 avoiding conflicts.
 
+#### currency field
 
-##### currency
+`currency` sets a currency symbol, to be prepended to all postings' amounts.
+You can use this if the CSV amounts do not have a currency symbol, eg if it is in a separate column.
 
-If the CSV has the currency symbol in a separate field (ie, not part
-of the amount field), you can use `currencyN` to prepend it to posting
-N's amount. Or, `currency` with no number affects all postings.
+`currencyN` prepends a currency symbol to just the Nth posting's amount.
 
-##### balance
+#### balance field
 
 `balanceN` sets a [balance assertion](#balance-assertions) amount
 (or if the posting amount is left empty, a [balance assignment](#balance-assignments))
 on posting N.
 
-Also, for compatibility with hledger <1.17:
-`balance` with no number is equivalent to `balance1`.
+`balance` is a compatibility spelling for hledger <1.17;
+it is equivalent to `balance1`.
 
 You can adjust the type of assertion/assignment with the
 [`balance-type` rule](#balance-type) (see below).
 
-##### comment
+See [Tips](#tips) below for more about setting amounts and currency.
 
-Finally, `commentN` sets a [comment](#comments) on the Nth posting.
-Comments can also contain [tags](#tags), as usual.
-
-See TIPS below for more about setting amounts and currency.
-
-
-### field assignment
-
-```rules
-HLEDGERFIELDNAME FIELDVALUE
-```
-
-Instead of or in addition to a [fields list](#fields), you can use a
-"field assignment" rule to set the value of a single hledger field, by
-writing its name (any of the standard hledger field names above)
-followed by a text value.
-The value may contain interpolated CSV fields,
-referenced by their 1-based position in the CSV record (`%N`),
-or by the name they were given in the fields list (`%CSVFIELDNAME`).
-Some examples:
-```rules
-# set the amount to the 4th CSV field, with " USD" appended
-amount %4 USD
-
-# combine three fields to make a comment, containing note: and date: tags
-comment note: %somefield - %anotherfield, date: %1
-```
-Interpolation strips outer whitespace (so a CSV value like `" 1 "`
-becomes `1` when interpolated)
-([#1051](https://github.com/simonmichael/hledger/issues/1051)).
-See TIPS below for more about referencing other fields.
 
 ### `separator`
 
