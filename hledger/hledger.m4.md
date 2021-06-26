@@ -54,6 +54,11 @@ _web_({{
 [Common tasks]*
 }})
 
+_info_({{INFO-DIR-SECTION User Applications}})
+_info_({{START-INFO-DIR-ENTRY}})
+_info_({{* HLedger: (hledger).           Command-Line Accounting}})
+_info_({{END-INFO-DIR-ENTRY}})
+
 _man_({{
 # NAME
 }})
