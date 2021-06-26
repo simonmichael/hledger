@@ -6,6 +6,11 @@ File: hledger-web.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
 hledger-web(1)
 **************
 
+INFO-DIR-SECTION User Applications
+START-INFO-DIR-ENTRY
+* HLedger-Web: (hledger-web).  Command-Line Accounting (Web UI)
+END-INFO-DIR-ENTRY
+
 hledger-web is a web interface (WUI) for the hledger accounting tool.
 This manual is for hledger-web 1.21.99.
 
