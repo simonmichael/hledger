@@ -1,0 +1,4 @@
+INFO-DIR-SECTION User Applications
+START-INFO-DIR-ENTRY
+* hledger: (hledger).  Command-line plain text accounting tool.
+END-INFO-DIR-ENTRY

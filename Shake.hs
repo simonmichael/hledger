@@ -25,6 +25,9 @@ Some of the commands below require additional command-line tools, including:
 - makeinfo
 - pandoc
 - sed
+- mv
+- cat
+- rm
 
 Some things that may be useful when working on this:
 - https://docs.haskellstack.org/en/stable/GUIDE/#script-interpreter
@@ -218,6 +221,11 @@ main = do
 
         -- manuals as info, ready for info (hledger/hledger.info)
         infomanuals = [manualDir m </> m <.> "info" | m <- manualNames]
+        -- an Info directory entry for each info manual (hledger/dir-entry.info)
+        infodirentries = [manualDir m </> "dir-entry.info" | m <- manualNames]
+        -- an Info directory for each hledger package with info manuals, so hledger manuals
+        -- will appear in Info's directory after adding the package directories to INFOPATH.
+        infodirs    = [manualDir m </> "dir" | m <- manualNames]
 
         -- manuals as sphinx-ready markdown, to be rendered as part of the website (hledger/hledger.md)
         webmanuals = [manualDir m </> m <.> "md" | m <- manualNames]
@@ -395,7 +403,7 @@ main = do
               ]
         when commit $ do
           let msg = ";update manuals"
-          cmd Shell gitcommit ("-m '"++msg++"' --") packagemandatem4s nroffmanuals infomanuals txtmanuals
+          cmd Shell gitcommit ("-m '"++msg++"' --") packagemandatem4s nroffmanuals infomanuals infodirentries txtmanuals
 
       -- Update the dates to show in man pages, to the current month and year.
       -- Currently must be run manually when needed.
@@ -448,7 +456,8 @@ main = do
         cmd Shell "tbl" src "| eqn -Tascii | troff -Wall -mandoc -Tascii | grotty -cbuo >" out
 
       -- Generate Info manuals suitable for viewing with info, from the .m4.md source.
-      phony "infomanuals" $ need infomanuals
+      phony "infomanuals" $ need $ infomanuals ++ infodirs
+
       infomanuals |%> \out -> do -- hledger/hledger.info
         let src       = out -<.> "m4.md"
             commonm4  = "doc/common.m4"
@@ -456,11 +465,13 @@ main = do
             dir       = takeDirectory out
             packagemanversionm4 = dir </> ".version.m4"
             packagemandatem4 = dir </> ".date.m4"
+            infodirentry = dir </> "dir-entry.info"
+            infodir = dir </> "dir"
         -- assume any other .m4.md files in dir are included by this one XXX not true in hledger-lib
         subfiles <- liftIO $ filter (/= src) . filter (".m4.md" `isSuffixOf`) . map (dir </>) <$> S.getDirectoryContents dir
-        need $ [src, commonm4, commandsm4, packagemanversionm4, packagemandatem4] ++ subfiles
+        need $ [src, commonm4, commandsm4, packagemanversionm4, packagemandatem4, infodirentry] ++ subfiles
         when (dir=="hledger") $ need commandmds
-        cmd Shell
+        cmd_ Shell
           m4 "-DINFOFORMAT -I" dir commonm4 commandsm4 packagemanversionm4 packagemandatem4 src "|"
           -- sed "-e 's/^#(#+)/\\1/'" "|"
           pandoc fromsrcmd
@@ -472,6 +483,23 @@ main = do
           -- "-s"
           "-t texinfo |"
           makeinfo "-o" out
+        -- The Info dir entry must appear before the first node;
+        -- not sure how better to accomplish this. Awkward. (#1585)
+        let tmp = out <.> "tmp"
+        cmd_ Shell "mv" out tmp
+        cmd_ Shell "cat" infodirentry tmp ">" out
+        cmd_ Shell "rm -f" tmp
+
+      -- Generate an Info dir file for each info manual, so that they will appear
+      -- in Info's directory (table of contents) if these (filesystem) directories
+      -- are added to INFOPATH.
+      infodirs |%> \out -> do -- hledger/dir
+        let dir        = takeDirectory out
+            infomanual = dir </> dir <.> "info"
+            infodir    = dir </> "dir"
+        need [infomanual]
+        cmd_ Shell "rm -f" out
+        cmd Shell "install-info" infomanual infodir
 
 
       -- WEBSITE MARKDOWN SOURCE

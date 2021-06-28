@@ -1,0 +1,4 @@
+INFO-DIR-SECTION User Applications
+START-INFO-DIR-ENTRY
+* hledger-ui: (hledger-ui).  Terminal UI for the hledger accounting tool.
+END-INFO-DIR-ENTRY
