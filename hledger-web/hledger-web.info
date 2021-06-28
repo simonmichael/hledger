@@ -10,12 +10,7 @@ File: hledger-web.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
 hledger-web(1)
 **************
 
-INFO-DIR-SECTION User Applications
-START-INFO-DIR-ENTRY
-* HLedger-Web: (hledger-web).  Command-Line Accounting (Web UI)
-END-INFO-DIR-ENTRY
-
-   hledger-web is a web interface (WUI) for the hledger accounting tool.
+hledger-web is a web interface (WUI) for the hledger accounting tool.
 This manual is for hledger-web 1.21.99.
 
    'hledger-web [OPTIONS]'
@@ -607,21 +602,21 @@ awkward.
 
 Tag Table:
 Node: Top72
-Node: OPTIONS1881
-Ref: #options1986
-Node: PERMISSIONS9419
-Ref: #permissions9558
-Node: EDITING UPLOADING DOWNLOADING10770
-Ref: #editing-uploading-downloading10951
-Node: RELOADING11785
-Ref: #reloading11919
-Node: JSON API12352
-Ref: #json-api12466
-Node: ENVIRONMENT17956
-Ref: #environment18072
-Node: FILES18805
-Ref: #files18905
-Node: BUGS19118
-Ref: #bugs19196
+Node: OPTIONS1738
+Ref: #options1843
+Node: PERMISSIONS9276
+Ref: #permissions9415
+Node: EDITING UPLOADING DOWNLOADING10627
+Ref: #editing-uploading-downloading10808
+Node: RELOADING11642
+Ref: #reloading11776
+Node: JSON API12209
+Ref: #json-api12323
+Node: ENVIRONMENT17813
+Ref: #environment17929
+Node: FILES18662
+Ref: #files18762
+Node: BUGS18975
+Ref: #bugs19053
 
 End Tag Table
