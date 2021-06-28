@@ -223,9 +223,8 @@ main = do
         infomanuals = [manualDir m </> m <.> "info" | m <- manualNames]
         -- an Info directory entry for each info manual (hledger/dir-entry.info)
         infodirentries = [manualDir m </> "dir-entry.info" | m <- manualNames]
-        -- an Info directory for each hledger package with info manuals, so hledger manuals
-        -- will appear in Info's directory after adding the package directories to INFOPATH.
-        infodirs    = [manualDir m </> "dir" | m <- manualNames]
+        -- an Info directory file which can be included with info -d or INFOPATH
+        infodir = "dir"
 
         -- manuals as sphinx-ready markdown, to be rendered as part of the website (hledger/hledger.md)
         webmanuals = [manualDir m </> m <.> "md" | m <- manualNames]
@@ -398,12 +397,13 @@ main = do
         need $ concat [
                nroffmanuals
               ,infomanuals
+              ,[infodir]
               ,txtmanuals
               ,webmanuals
               ]
         when commit $ do
           let msg = ";update manuals"
-          cmd Shell gitcommit ("-m '"++msg++"' --") packagemandatem4s nroffmanuals infomanuals infodirentries txtmanuals
+          cmd Shell gitcommit ("-m '"++msg++"' --") packagemandatem4s nroffmanuals infomanuals infodirentries infodir txtmanuals
 
       -- Update the dates to show in man pages, to the current month and year.
       -- Currently must be run manually when needed.
@@ -456,8 +456,6 @@ main = do
         cmd Shell "tbl" src "| eqn -Tascii | troff -Wall -mandoc -Tascii | grotty -cbuo >" out
 
       -- Generate Info manuals suitable for viewing with info, from the .m4.md source.
-      phony "infomanuals" $ need $ infomanuals ++ infodirs
-
       infomanuals |%> \out -> do -- hledger/hledger.info
         let src       = out -<.> "m4.md"
             commonm4  = "doc/common.m4"
@@ -489,17 +487,13 @@ main = do
         cmd_ Shell "cat" infodirentry tmp ">" out
         cmd_ Shell "rm -f" tmp
 
-      -- Generate an Info dir file for each info manual, so that they will appear
-      -- in Info's directory (table of contents) if these (filesystem) directories
-      -- are added to INFOPATH.
-      infodirs |%> \out -> do -- hledger/dir
-        let outdir     = takeDirectory out
-            infomanual = outdir </> outdir <.> "info"  -- XXX cutting corners
-            dirfile    = outdir </> "dir"
-        need [infomanual]
-        cmd_ Shell "rm -f" out
-        cmd Shell "install-info" infomanual dirfile
+      -- Generate an Info dir file which can be included with info -d
+      -- or INFOPATH to add hledger menu items in Info's Directory.
+      infodir %> \out -> do
+        need infomanuals
+        forM_ infomanuals $ \info -> cmd_ Shell "install-info" info out
 
+      phony "infomanuals" $ need $ infomanuals ++ [infodir]
 
       -- WEBSITE MARKDOWN SOURCE
 
