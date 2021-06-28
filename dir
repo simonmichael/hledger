@@ -5,7 +5,7 @@ The first time you invoke Info you start off looking at this node.
 File: dir,	Node: Top	This is the top of the INFO tree
 
   This (the Directory node) gives a menu of major topics.
-  Typing "q" exits, "H" lists all Info commands, "d" returns here,
+  Typing "q" exits, "?" lists all Info commands, "d" returns here,
   "h" gives a primer for first-timers,
   "mEmacs<Return>" visits the Emacs manual, etc.
 
@@ -15,6 +15,8 @@ File: dir,	Node: Top	This is the top of the INFO tree
 * Menu:
 
 User Applications
-* hledger: (hledger).           Command-line plain text accounting tool.
-* hledger-ui: (hledger-ui).     Terminal UI for the hledger accounting tool.
-* hledger-web: (hledger-web).   Web UI/API for the hledger accounting tool.
+* hledger: (hledger/hledger).   Command-line plain text accounting tool.
+* hledger-ui: (hledger-ui/hledger-ui).
+                                Terminal UI for the hledger accounting tool.
+* hledger-web: (hledger-web/hledger-web).
+                                Web UI/API for the hledger accounting tool.
