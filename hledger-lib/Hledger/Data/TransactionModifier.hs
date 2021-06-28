@@ -13,16 +13,17 @@ module Hledger.Data.TransactionModifier (
 where
 
 import Control.Applicative ((<|>))
-import Data.Maybe
+import Data.Maybe (catMaybes)
 import qualified Data.Text as T
-import Data.Time.Calendar
+import Data.Time.Calendar (Day)
 import Hledger.Data.Types
 import Hledger.Data.Dates
 import Hledger.Data.Amount
-import Hledger.Data.Transaction
-import Hledger.Query
+import Hledger.Data.Transaction (txnTieKnot)
+import Hledger.Query (Query, filterQuery, matchesAmount, matchesPosting,
+                      parseQuery, queryIsSym, simplifyQuery)
 import Hledger.Data.Posting (commentJoin, commentAddTag)
-import Hledger.Utils
+import Hledger.Utils (dbg6, wrap)
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -57,8 +58,8 @@ modifyTransactions d tmods ts = do
 -- Currently the only kind of modification possible is adding automated
 -- postings when certain other postings are present.
 --
--- >>> t = nulltransaction{tpostings=["ping" `post` usd 1]}
 -- >>> import qualified Data.Text.IO as T
+-- >>> t = nulltransaction{tpostings=["ping" `post` usd 1]}
 -- >>> test = either putStr (T.putStr.showTransaction) . fmap ($ t) . transactionModifierToFunction nulldate
 -- >>> test $ TransactionModifier "" ["pong" `post` usd 2]
 -- 0000-01-01
@@ -79,7 +80,7 @@ transactionModifierToFunction :: Day -> TransactionModifier -> Either String (Tr
 transactionModifierToFunction refdate TransactionModifier{tmquerytxt, tmpostingrules} = do
   q <- simplifyQuery . fst <$> parseQuery refdate tmquerytxt
   let
-    fs = map (tmPostingRuleToFunction tmquerytxt) tmpostingrules
+    fs = map (tmPostingRuleToFunction q tmquerytxt) tmpostingrules
     generatePostings ps = [p' | p <- ps
                               , p' <- if q `matchesPosting` p then p:[f p | f <- fs] else [p]]
   Right $ \t@(tpostings -> ps) -> txnTieKnot t{tpostings=generatePostings ps}
@@ -92,8 +93,8 @@ transactionModifierToFunction refdate TransactionModifier{tmquerytxt, tmpostingr
 -- and a hidden _generated-posting: tag which does not.
 -- The TransactionModifier's query text is also provided, and saved
 -- as the tags' value.
-tmPostingRuleToFunction :: T.Text -> TMPostingRule -> (Posting -> Posting)
-tmPostingRuleToFunction querytxt pr =
+tmPostingRuleToFunction :: Query -> T.Text -> TMPostingRule -> (Posting -> Posting)
+tmPostingRuleToFunction query querytxt pr =
   \p -> renderPostingCommentDates $ pr
       { pdate    = pdate  pr <|> pdate  p
       , pdate2   = pdate2 pr <|> pdate2 p
@@ -105,13 +106,14 @@ tmPostingRuleToFunction querytxt pr =
       }
   where
     qry = "= " <> querytxt
+    symq = filterQuery queryIsSym query
     amount' = case postingRuleMultiplier pr of
-        Nothing -> const $ pamount pr
+        Nothing -> const . filterMixedAmount (symq `matchesAmount`) $ pamount pr
         Just n  -> \p ->
           -- Multiply the old posting's amount by the posting rule's multiplier.
           let
             pramount = dbg6 "pramount" . head . amountsRaw $ pamount pr
-            matchedamount = dbg6 "matchedamount" $ pamount p
+            matchedamount = dbg6 "matchedamount" . filterMixedAmount (symq `matchesAmount`) $ pamount p
             -- Handle a matched amount with a total price carefully so as to keep the transaction balanced (#928).
             -- Approach 1: convert to a unit price and increase the display precision slightly
             -- Mixed as = dbg6 "multipliedamount" $ n `multiplyMixedAmount` mixedAmountTotalPriceToUnitPrice matchedamount

@@ -342,3 +342,22 @@ $ hledger -f- print --auto
     (b)           1.5 B  ; generated-posting: =
 
 >=0
+
+# 18. Auto-generated postings with currency matching only matches amounts with that currency in an auto posting (#1582)
+<
+= assets cur:USD
+  (b:USD)  *1
+
+2017-12-14
+  revenue:job  -10 EUR
+  revenue:job  -10 USD
+  assets
+
+$ hledger -f- print --auto
+2017-12-14  ; modified:
+    revenue:job         -10 EUR
+    revenue:job         -10 USD
+    assets
+    (b:USD)              10 USD  ; generated-posting: = assets cur:USD
+
+>=0
