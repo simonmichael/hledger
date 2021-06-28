@@ -221,9 +221,9 @@ main = do
 
         -- manuals as info, ready for info (hledger/hledger.info)
         infomanuals = [manualDir m </> m <.> "info" | m <- manualNames]
-        -- an Info directory entry for each info manual (hledger/dir-entry.info)
-        infodirentries = [manualDir m </> "dir-entry.info" | m <- manualNames]
-        -- an Info directory file which can be included with info -d or INFOPATH
+        -- an Info directory entry for each package's info manual (hledger/dir-entry.texi)
+        infodirentries = [manualDir m </> "dir-entry.texi" | m <- manualNames]
+        -- a generated Info directory file for easily accessing/linking the dev version of all the info manuals
         infodir = "dir"
 
         -- manuals as sphinx-ready markdown, to be rendered as part of the website (hledger/hledger.md)
@@ -463,12 +463,13 @@ main = do
             dir       = takeDirectory out
             packagemanversionm4 = dir </> ".version.m4"
             packagemandatem4 = dir </> ".date.m4"
-            infodirentry = dir </> "dir-entry.info"
+            direntry = dir </> "dir-entry.texi"
         -- assume any other .m4.md files in dir are included by this one XXX not true in hledger-lib
         subfiles <- liftIO $ filter (/= src) . filter (".m4.md" `isSuffixOf`) . map (dir </>) <$> S.getDirectoryContents dir
-        need $ [src, commonm4, commandsm4, packagemanversionm4, packagemandatem4, infodirentry] ++ subfiles
+        need $ [src, commonm4, commandsm4, packagemanversionm4, packagemandatem4, direntry] ++ subfiles
         when (dir=="hledger") $ need commandmds
         cmd_ Shell
+          "( cat" direntry ";"
           m4 "-DINFOFORMAT -I" dir commonm4 commandsm4 packagemanversionm4 packagemandatem4 src "|"
           -- sed "-e 's/^#(#+)/\\1/'" "|"
           pandoc fromsrcmd
@@ -478,14 +479,8 @@ main = do
           -- add "standalone" headers ? sounds good for setting text encoding,
           -- but messes up quotes ('a' becomes ^Xa^Y)
           -- "-s"
-          "-t texinfo |"
+          "-t texinfo ) |"
           makeinfo "-o" out
-        -- The Info dir entry must appear before the first node;
-        -- not sure how better to accomplish this. Awkward. (#1585)
-        let tmp = out <.> "tmp"
-        cmd_ Shell "mv" out tmp
-        cmd_ Shell "cat" infodirentry tmp ">" out
-        cmd_ Shell "rm -f" tmp
 
       -- Generate an Info dir file which can be included with info -d
       -- or INFOPATH to add hledger menu items in Info's Directory.

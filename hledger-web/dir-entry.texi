@@ -1,4 +1,4 @@
-INFO-DIR-SECTION User Applications
-START-INFO-DIR-ENTRY
+@dircategory User Applications
+@direntry
 * hledger-web: (hledger-web).  Web UI/API for the hledger accounting tool.
-END-INFO-DIR-ENTRY
+@end direntry
