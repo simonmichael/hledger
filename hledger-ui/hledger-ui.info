@@ -1,8 +1,9 @@
+This is hledger-ui.info, produced by makeinfo version 6.7 from stdin.
+
 INFO-DIR-SECTION User Applications
 START-INFO-DIR-ENTRY
-* hledger-ui: (hledger-ui).  Terminal UI for the hledger accounting tool.
+* hledger-ui: (hledger-ui/hledger-ui).  Terminal UI for the hledger accounting tool.
 END-INFO-DIR-ENTRY
-This is hledger-ui.info, produced by makeinfo version 6.7 from stdin.
 
 
 File: hledger-ui.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
@@ -532,26 +533,26 @@ program is restarted.
 
 
 Tag Table:
-Node: Top71
-Node: OPTIONS1488
-Ref: #options1585
-Node: KEYS5986
-Ref: #keys6081
-Node: SCREENS10400
-Ref: #screens10505
-Node: Accounts screen10595
-Ref: #accounts-screen10723
-Node: Register screen12938
-Ref: #register-screen13093
-Node: Transaction screen15090
-Ref: #transaction-screen15248
-Node: Error screen16118
-Ref: #error-screen16240
-Node: ENVIRONMENT16484
-Ref: #environment16598
-Node: FILES17405
-Ref: #files17504
-Node: BUGS17717
-Ref: #bugs17794
+Node: Top232
+Node: OPTIONS1649
+Ref: #options1746
+Node: KEYS6147
+Ref: #keys6242
+Node: SCREENS10561
+Ref: #screens10666
+Node: Accounts screen10756
+Ref: #accounts-screen10884
+Node: Register screen13099
+Ref: #register-screen13254
+Node: Transaction screen15251
+Ref: #transaction-screen15409
+Node: Error screen16279
+Ref: #error-screen16401
+Node: ENVIRONMENT16645
+Ref: #environment16759
+Node: FILES17566
+Ref: #files17665
+Node: BUGS17878
+Ref: #bugs17955
 
 End Tag Table

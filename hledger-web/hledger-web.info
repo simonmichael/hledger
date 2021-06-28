@@ -1,8 +1,9 @@
+This is hledger-web.info, produced by makeinfo version 6.7 from stdin.
+
 INFO-DIR-SECTION User Applications
 START-INFO-DIR-ENTRY
-* hledger-web: (hledger-web).  Web UI/API for the hledger accounting tool.
+* hledger-web: (hledger-web/hledger-web).  Web UI/API for the hledger accounting tool.
 END-INFO-DIR-ENTRY
-This is hledger-web.info, produced by makeinfo version 6.7 from stdin.
 
 
 File: hledger-web.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
@@ -601,22 +602,22 @@ awkward.
 
 
 Tag Table:
-Node: Top72
-Node: OPTIONS1738
-Ref: #options1843
-Node: PERMISSIONS9276
-Ref: #permissions9415
-Node: EDITING UPLOADING DOWNLOADING10627
-Ref: #editing-uploading-downloading10808
-Node: RELOADING11642
-Ref: #reloading11776
-Node: JSON API12209
-Ref: #json-api12323
-Node: ENVIRONMENT17813
-Ref: #environment17929
-Node: FILES18662
-Ref: #files18762
-Node: BUGS18975
-Ref: #bugs19053
+Node: Top235
+Node: OPTIONS1901
+Ref: #options2006
+Node: PERMISSIONS9439
+Ref: #permissions9578
+Node: EDITING UPLOADING DOWNLOADING10790
+Ref: #editing-uploading-downloading10971
+Node: RELOADING11805
+Ref: #reloading11939
+Node: JSON API12372
+Ref: #json-api12486
+Node: ENVIRONMENT17976
+Ref: #environment18092
+Node: FILES18825
+Ref: #files18925
+Node: BUGS19138
+Ref: #bugs19216
 
 End Tag Table
