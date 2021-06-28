@@ -2,11 +2,6 @@
 % _author_
 % _monthyear_
 
-_info_({{INFO-DIR-SECTION User Applications}})
-_info_({{START-INFO-DIR-ENTRY}})
-_info_({{* HLedger-Web: (hledger-web).           Command-Line Accounting (Web UI)}})
-_info_({{END-INFO-DIR-ENTRY}})
-
 _man_({{
 # NAME
 }})

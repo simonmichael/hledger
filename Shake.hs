@@ -466,7 +466,6 @@ main = do
             packagemanversionm4 = dir </> ".version.m4"
             packagemandatem4 = dir </> ".date.m4"
             infodirentry = dir </> "dir-entry.info"
-            infodir = dir </> "dir"
         -- assume any other .m4.md files in dir are included by this one XXX not true in hledger-lib
         subfiles <- liftIO $ filter (/= src) . filter (".m4.md" `isSuffixOf`) . map (dir </>) <$> S.getDirectoryContents dir
         need $ [src, commonm4, commandsm4, packagemanversionm4, packagemandatem4, infodirentry] ++ subfiles
@@ -494,12 +493,12 @@ main = do
       -- in Info's directory (table of contents) if these (filesystem) directories
       -- are added to INFOPATH.
       infodirs |%> \out -> do -- hledger/dir
-        let dir        = takeDirectory out
-            infomanual = dir </> dir <.> "info"
-            infodir    = dir </> "dir"
+        let outdir     = takeDirectory out
+            infomanual = outdir </> outdir <.> "info"  -- XXX cutting corners
+            dirfile    = outdir </> "dir"
         need [infomanual]
         cmd_ Shell "rm -f" out
-        cmd Shell "install-info" infomanual infodir
+        cmd Shell "install-info" infomanual dirfile
 
 
       -- WEBSITE MARKDOWN SOURCE
