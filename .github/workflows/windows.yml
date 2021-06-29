@@ -139,9 +139,6 @@ jobs:
         which ./stack
         ./stack --version
 
-    # must avoid GHC versions broken on windows such as 8.8.3 with https://gitlab.haskell.org/ghc/ghc/issues/17926
-    # current default stack.yaml uses GHC 8.8.4 which hopefully is ok
-
     - name: Install GHC
       # if: steps.stack-programs-dir.outputs.cache-hit != 'true'
       # set PATH=C:\Users\runneradmin\AppData\Local\Programs\stack\local\bin;%PATH%
@@ -156,6 +153,8 @@ jobs:
     - name: Install haskell deps
       run: |
         ./stack --no-terminal build --only-dependencies
+
+    # use whichever GHC is in default stack.yaml
 
     - name: Build all hledger modules warning free, optimised and minimised
       run: |
