@@ -1,5 +1,51 @@
-General project-related changes and major/notable all-package releases.
-For package-specific changes and minor releases, see the package changelogs.
+hledger
+                 _           _   
+ _ __  _ __ ___ (_) ___  ___| |_ 
+| '_ \| '__/ _ \| |/ _ \/ __| __|
+| |_) | | | (_) | |  __/ (__| |_ 
+| .__/|_|  \___// |\___|\___|\__|
+|_|           |__/               
+
+General changes in the hledger project (and notable all-package releases).
+For package-specific changes and minor releases, see the hledger package changelogs.
+
+# d1cd4dda0
+
+Docs:
+
+- The info manuals now have the proper metadata so you or your
+  packager can install them with `install-info` and they will appear
+  in info's Directory. We also provide a `dir` file making it easy
+  for developers to see the latest dev manuals in their info Directory.
+  (#1585) (Damien Cassou, Simon Michael)
+
+Chat:
+
+- The hledger IRC channels (in matrix syntax: #hledger:libera.chat,
+  #hledger-bots:libera.chat) have moved to Libera.chat, like the rest
+  of the FOSS universe.
+    
+- The hledger Matrix room (#hledger:matrix.org), is now on at least
+  equal "official" footing with the IRC channel, perhaps even a bit
+  more. I think Matrix is the future, with IRC sticking around as the
+  trusty backup technology.
+
+- I briefly bridged the two rooms, but stopped due to current
+  bridge/matrix issues. I hope to try again at some point, because
+  having two chats (four if we consider #plaintextaccounting) is a
+  pain.
+
+- I upgraded the matrix room to a newer version of the Matrix
+  protocol. This effectively splits it into an old (read only) room
+  and a new room. If you are joined to the old room, you might not
+  have noticed; in your matrix client, please follow the link to the
+  new room, ie #hledger:matrix.org.
+
+Software
+
+- I have dropped official support for GHC 8.0/8.2/8.4; building
+  hledger now requires GHC 8.6 or newer. GHC 9.0 support has been
+  added.
 
 # 1.21 2021-03-10
 

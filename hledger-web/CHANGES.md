@@ -1,5 +1,28 @@
+hledger
+              _     
+__      _____| |__  
+\ \ /\ / / _ \ '_ \ 
+ \ V  V /  __/ |_) |
+  \_/\_/ \___|_.__/ 
+                    
+
 User-visible changes in hledger-web.
 See also the hledger changelog.
+
+# d1cd4dda0
+
+- In the add form, fix a bug where extra posting rows were not added
+  when needed in certain web browsers. (charukiewicz)
+
+- The --version flag shows more detail (git tag/patchlevel/commit
+  hash, platform/architecture). (Stephen Morgan)
+
+- Allow yesod-form 1.7 (Felix Yan)
+
+- Add now-required lower bound on containers. (#1514)
+
+- Added support for GHC 9.0. Dropped support for GHC 8.0, 8.2, 8.4; 
+  we now require GHC 8.6 or greater.
 
 # 1.21 2021-03-10
 

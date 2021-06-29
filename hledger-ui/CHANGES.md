@@ -1,5 +1,33 @@
+hledger
+       _ 
+ _   _(_)
+| | | | |
+| |_| | |
+ \__,_|_|
+         
+
 User-visible changes in hledger-ui.
 See also the hledger changelog.
+
+# d1cd4dda0
+
+- Add support for kakoune editor; fix some issues with editor invocation. 
+  (crocket)
+
+- The accounts screen is a little smarter at allocating space to columns.
+  (Stephen Morgan)
+
+- The --version flag shows more detail (git tag/patchlevel/commit
+  hash, platform/architecture). (Stephen Morgan)
+
+- In the register screen, fix queries, which had broken in 1.21. (#1523)
+
+- Don't write a debug.log file when toggling V. (#1556)
+
+- Add now-required lower bound on containers. (#1514)
+
+- Added support for GHC 9.0. Dropped support for GHC 8.0, 8.2, 8.4; 
+  we now require GHC 8.6 or greater.
 
 # 1.21 2021-03-10
 

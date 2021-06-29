@@ -1,5 +1,218 @@
+hledger
+ _ _ _     
+| (_) |__  
+| | | '_ \ 
+| | | |_) |
+|_|_|_.__/ 
+           
+
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
+
+# d1cd4dda0
+
+- Added support for GHC 9.0. Dropped support for GHC 8.0, 8.2, 8.4; 
+  we now require GHC 8.6 or greater.
+
+- Add now-required lower bound on containers. (#1514)
+
+- Added useColor, colorOption helpers usable in pure code, eg for debug output.
+
+- Added a Show instance for AmountDisplayOpts and WideBuilder, for debug logging.
+
+Many internal refactorings/improvements/optimisations by Stephen Morgan,
+including:
+
+- Don't infer a txn price with same-sign amounts. (#1551)
+
+- Clean up valuation functions, and make clear which to use where. (#1560)
+
+- Replace journalSelectingAmountFromOpts with journalApplyValuationFromOpts.
+  This also has the effect of allowing valuation in more reports, for
+  example the transactionReport.
+
+- Refactor to eliminate use of printf.
+
+- Remove unused String, Text utility functions.
+
+- Replace concat(Top|Bottom)Padded with textConcat(Top|Bottom)Padded.
+
+- Export Text.Tabular from Text.Tabular.AsciiWide, clean up import lists.
+
+- When matching an account query against a posting, don't try to match
+  against the same posting twice, in cases when poriginal is Nothing.
+
+- Create mixedAmountApplyValuationAfterSumFromOptsWith for doing any
+  valuation needed after summing amounts.
+
+- Create journalApplyValuationFromOpts. This does costing and
+  valuation on a journal, and is meant to replace most direct calls of
+  costing and valuation. The exception is for reports which require
+  amounts to be summed before valuation is applied, for example a
+  historical balance report with --value=end.
+
+- Remove unused (amount|mixedAmount|posting|transaction)ApplyCostValuation functions.
+
+- Remove unnecessary normalisedMixedAmount; replace
+  normaliseMixedAmountSquashPricesForDisplay with
+  mixedAmountStripPrices.
+
+- Remove `showAmounts*B` functions, replacing them entirely with
+  `showMixedAmount*B` functions.
+
+- Strip prices in MultiBalanceReport and PostingsReport whenever we
+  know we won't need them. Knowing whether we need them is
+  accomplished by pulling the "show-costs" option used by the Close
+  command up into ReportOpts.
+
+- Use uniform naming for stripping prices. Creates a new function
+  amountStripPrices, and renames removePrices to postingStripPrices.
+
+- Add more efficient toEncoding for custom ToJSON declarations.
+
+- Fix ledgerDateSpan, so that it considers both transaction and
+  posting dates. (#772)
+
+- Move reportPeriodName to Hledger.Reports.ReportOptions, use it for
+  HTML and CSV output for compound balance reports.
+
+- Simplify the JSON representation of AmountPrecision. It now uses the
+  same JSON representation as Maybe Word8. This means that the JSON
+  serialisation is now broadly compatible with that used before the
+  commit f6fa76bba7530af3be825445a1097ae42498b1cd, differing only in
+  how it handles numbers outside Word8 and that it can now produce
+  null for NaturalPrecision.
+
+- A number of AccountName and Journal functions which are supposed to
+  produce unique sorted results now use Sets internally to be slightly
+  more efficient. There is also a new function journalCommodities.
+
+- More efficiently check whether Amounts are or appear to be zero.
+  Comparing two Quantity (either with == or compare) does a lot of
+  normalisation (calling roundMax) which is unnecessary if we're
+  comparing to zero. Do things more directly to save work.
+  For `reg -f examples/10000x10000x10.journal`, this results in
+
+  - A 12% reduction in heap allocations, from 70GB to 62GB
+  - A 14% reduction in (profiled) time, from 79s to 70s
+
+  Results for bal -f examples/10000x10000x10.journal are of the same
+  order of magnitude.
+
+- In sorting account names, perform lookups on HashSets and HashMaps,
+  rather than lists. This is probably not an enormous performance sink
+  in real situations, but it takes a huge amount of time and memory in
+  our benchmarks (specifically 10000x10000x10.journal). For 
+  `bal -f examples/10000x10000x10.journal`, this results in
+
+  - A 23% reduction in heap allocation, from 27GiB to 21GiB
+  - A 33% reduction in (profiled) time running, from 26.5s to 17.9s
+
+- Minor refactor, using foldMap instead of asum . map . toList.
+
+- Do not call showAmount twice for every posting. For print -f
+  examples/10000x10000x10.journal, this results in a 7.7% reduction in
+  heap allocations, from 7.6GB to 7.1GB.
+
+- Some efficiency improvements in register reports. Strip prices after
+  valuing postings in PostingsReport. Use renderRow interface for
+  Register report.
+
+  For `reg -f examples/10000x10000x10.journal`, this results in:
+
+  - Heap allocations decreasing by 55%, from 68.6GB to 31.2GB
+  - Resident memory decreasing by 75%, from 254GB to 65GB
+  - Total (profiled) time decreasing by 55%, from 37s to 20s
+
+- Split showMixedAmountB into showMixedAmountB and showAmountsB, the
+  former being a simple wrapper around the latter. This removes the
+  need for the showNormalised option, as showMixedAmountB will always
+  showNormalised and showAmountsB will never do so.
+
+  We also strip prices from MixedAmount before displaying, if not
+  displaying prices.
+
+- Change internal representation of MixedAmount to use a strict Map
+  instead of a list of Amounts. No longer export Mixed constructor, to
+  keep API clean. (If you really need it, you can import it directly
+  from Hledger.Data.Types). We also ensure the JSON representation of
+  MixedAmount doesn't change: it is stored as a normalised list of
+  Amounts.
+  
+  This commit improves performance. Here are some indicative results:
+
+      hledger reg -f examples/10000x1000x10.journal
+      - Maximum residency decreases from 65MB to 60MB (8% decrease)
+      - Total memory in use decreases from 178MiB to 157MiB (12% decrease)
+
+      hledger reg -f examples/10000x10000x10.journal
+      - Maximum residency decreases from 69MB to 60MB (13% decrease)
+      - Total memory in use decreases from 198MiB to 153MiB (23% decrease)
+
+      hledger bal -f examples/10000x1000x10.journal
+      - Total heap usage decreases from 6.4GB to 6.0GB (6% decrease)
+      - Total memory in use decreases from 178MiB to 153MiB (14% decrease)
+
+      hledger bal -f examples/10000x10000x10.journal
+      - Total heap usage decreases from 7.3GB to 6.9GB (5% decrease)
+      - Total memory in use decreases from 196MiB to 185MiB (5% decrease)
+
+      hledger bal -M -f examples/10000x1000x10.journal
+      - Total heap usage decreases from 16.8GB to 10.6GB (47% decrease)
+      - Total time decreases from 14.3s to 12.0s (16% decrease)
+
+      hledger bal -M -f examples/10000x10000x10.journal
+      - Total heap usage decreases from 108GB to 48GB (56% decrease)
+      - Total time decreases from 62s to 41s (33% decrease)
+
+  If you never directly use the constructor Mixed or pattern match against
+  it then you don't need to make any changes. If you do, then do the
+  following:
+
+  - If you really care about the individual Amounts and never normalise
+    your MixedAmount (for example, just storing `Mixed amts` and then
+    extracting `amts` as a pattern match, then use should switch to using
+    [Amount]. This should just involve removing the `Mixed` constructor.
+  - If you ever call `mixed`, `normaliseMixedAmount`, or do any sort of
+    amount arithmetic (+), (-), then you should replace the constructor
+    `Mixed` with the function `mixed`. To extract the list of Amounts, use
+    the function `amounts`.
+  - If you ever call `normaliseMixedAmountSquashPricesForDisplay`, you can
+    replace that with `mixedAmountStripPrices`. (N.B. this does something
+    slightly different from `normaliseMixedAmountSquashPricesForDisplay`,
+    but I don't think there's any use case for squashing prices and then
+    keeping the first of the squashed prices around. If you disagree let
+    me know.)
+  - Any remaining calls to `normaliseMixedAmount` can be removed, as that
+    is now the identity function.
+
+- Create a new API for MixedAmount arithmetic. This should supplant
+  the old interface, which relied on the Num typeclass. MixedAmount
+  did not have a very good Num instance. The only functions which were
+  defined were fromInteger, (+), and negate. Furthermore, it was not
+  law-abiding, as 0 + a /= a in general. Replacements for used
+  functions are:
+
+      0 -> nullmixedamt / mempty
+      (+) -> maPlus / (<>)
+      (-) -> maMinus
+      negate -> maNegate
+      sum -> maSum
+      sumStrict -> maSum
+
+  Also creates some new constructors for MixedAmount:
+
+      mixedAmount :: Amount -> MixedAmount
+      maAddAmount :: MixedAmount -> Amount -> MixedAmount
+      maAddAmounts :: MixedAmount -> [Amount] -> MixedAmount
+
+  Add Semigroup and Monoid instances for MixedAmount.
+  Ideally we would remove the Num instance entirely.
+
+  The only change needed have nullmixedamt/mempty substitute for 0
+  without problems was to not squash prices in
+  mixedAmount(Looks|Is)Zero. This is correct behaviour in any case.
+
 
 # 1.21 2021-03-10
 
