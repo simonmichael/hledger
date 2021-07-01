@@ -1,4 +1,4 @@
-name: Static build x64 arch CI
+name: build linux static x64
 
 on:
   push:
