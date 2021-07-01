@@ -12,7 +12,7 @@ module Hledger.Data.TransactionModifier (
 )
 where
 
-import Control.Applicative ((<|>))
+import Control.Applicative ((<|>), liftA2)
 import Data.Maybe (catMaybes)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)
@@ -21,7 +21,7 @@ import Hledger.Data.Dates
 import Hledger.Data.Amount
 import Hledger.Data.Transaction (txnTieKnot)
 import Hledger.Query (Query, filterQuery, matchesAmount, matchesPosting,
-                      parseQuery, queryIsSym, simplifyQuery)
+                      parseQuery, queryIsAmt, queryIsSym, simplifyQuery)
 import Hledger.Data.Posting (commentJoin, commentAddTag)
 import Hledger.Utils (dbg6, wrap)
 
@@ -81,8 +81,7 @@ transactionModifierToFunction refdate TransactionModifier{tmquerytxt, tmpostingr
   q <- simplifyQuery . fst <$> parseQuery refdate tmquerytxt
   let
     fs = map (tmPostingRuleToFunction q tmquerytxt) tmpostingrules
-    generatePostings ps = [p' | p <- ps
-                              , p' <- if q `matchesPosting` p then p:[f p | f <- fs] else [p]]
+    generatePostings ps = concatMap (\p -> p : map ($p) (if q `matchesPosting` p then fs else [])) ps
   Right $ \t@(tpostings -> ps) -> txnTieKnot t{tpostings=generatePostings ps}
 
 -- | Converts a 'TransactionModifier''s posting rule to a 'Posting'-generating function,
@@ -106,9 +105,9 @@ tmPostingRuleToFunction query querytxt pr =
       }
   where
     qry = "= " <> querytxt
-    symq = filterQuery queryIsSym query
+    symq = filterQuery (liftA2 (||) queryIsSym queryIsAmt) query
     amount' = case postingRuleMultiplier pr of
-        Nothing -> const . filterMixedAmount (symq `matchesAmount`) $ pamount pr
+        Nothing -> const $ pamount pr
         Just n  -> \p ->
           -- Multiply the old posting's amount by the posting rule's multiplier.
           let

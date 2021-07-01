@@ -348,6 +348,9 @@ $ hledger -f- print --auto
 = assets cur:USD
   (b:USD)  *1
 
+= assets cur:EUR
+  (b:USD)  5 USD
+
 2017-12-14
   revenue:job  -10 EUR
   revenue:job  -10 USD
@@ -358,6 +361,26 @@ $ hledger -f- print --auto
     revenue:job         -10 EUR
     revenue:job         -10 USD
     assets
+    (b:USD)               5 USD  ; generated-posting: = assets cur:EUR
     (b:USD)              10 USD  ; generated-posting: = assets cur:USD
+
+>=0
+
+# 19. Auto-generated postings match only the amounts which match amount query.
+<
+= assets amt:>50
+  (b)  *1
+
+2017-12-14
+  revenue:job   -10 USD
+  revenue:job  -100 EUR
+  assets
+
+$ hledger -f- print --auto
+2017-12-14  ; modified:
+    revenue:job         -10 USD
+    revenue:job        -100 EUR
+    assets
+    (b)                 100 EUR  ; generated-posting: = assets amt:>50
 
 >=0
