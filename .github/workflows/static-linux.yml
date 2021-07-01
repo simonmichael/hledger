@@ -1,0 +1,60 @@
+name: Static build x64 arch CI
+
+on:
+  push:
+    branches: [ ci-linux-static ]
+    #tags:
+    #  - '[0-9]+.[0-9]+'
+    #  - '[0-9]+.[0-9]+-*'
+    #  - '[0-9]+.[0-9]+.[0-9]+'
+    #  - '[0-9]+.[0-9]+.[0-9]+-*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: alpine:edge
+    steps:
+
+    - name: Setup environment
+      # Borrowed from fossas/haskell-static-alpine, copied here for transparency
+      run: |
+        apk --no-cache add binutils-gold curl gcc g++ git gmp-dev ncurses-dev ncurses-static libffi-dev make xz tar perl zlib-dev zlib-static
+        mkdir -p ~/.ghcup/bin && curl https://downloads.haskell.org/~ghcup/x86_64-linux-ghcup > ~/.ghcup/bin/ghcup && chmod +x ~/.ghcup/bin/ghcup
+        ~/.ghcup/bin/ghcup install ghc 8.10.4 && ~/.ghcup/bin/ghcup set ghc 8.10.4 && ~/.ghcup/bin/ghcup install cabal
+        echo "$HOME/.ghcup/bin/" >> $GITHUB_PATH
+
+    - name: Check out
+      uses: actions/checkout@v2
+
+    - name: Update cabal
+      run: cabal update
+
+    - name: Build on alpine
+      run: cabal build --enable-executable-static all
+
+    - name: Extract and strip binaries
+      run: |
+        mkdir /tmp/hledger
+        cp dist-newstyle/build/x86_64-linux/ghc-*/hledger-web-*/x/hledger-web/build/hledger-web/hledger-web /tmp/hledger/hledger-web-static-linux-x64
+        cp dist-newstyle/build/x86_64-linux/ghc-*/hledger-ui-*/x/hledger-ui/build/hledger-ui/hledger-ui /tmp/hledger/hledger-ui-static-linux-x64
+        cp dist-newstyle/build/x86_64-linux/ghc-*/hledger-*/x/hledger/build/hledger/hledger /tmp/hledger/hledger-static-linux-x64
+        strip /tmp/hledger/hledger-web-static-linux-x64
+        strip /tmp/hledger/hledger-ui-static-linux-x64
+        strip /tmp/hledger/hledger-static-linux-x64
+
+    - name: Upload binaries
+      uses: actions/upload-artifact@v2
+      with:
+        name: Static Binaries
+        path: /tmp/hledger
+
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: |
+          /tmp/hledger/hledger-static-linux-x64
+          /tmp/hledger/hledger-web-static-linux-x64
+          /tmp/hledger/hledger-ui-static-linux-x64
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
