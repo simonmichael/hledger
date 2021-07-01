@@ -105,11 +105,6 @@ toggleEmpty ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rsp
   where
     toggleEmpty ropts = ropts{empty_=not $ empty_ ropts}
 
--- | Show primary amounts, not cost or value.
-clearCostValue :: UIState -> UIState
-clearCostValue ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts}}}} =
-  ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{rsOpts=ropts{cost_ = NoCost, value_ = Nothing}}}}}
-
 -- | Toggle between showing the primary amounts or costs.
 toggleCost :: UIState -> UIState
 toggleCost ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts}}}} =

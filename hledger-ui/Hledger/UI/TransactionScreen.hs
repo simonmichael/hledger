@@ -171,8 +171,7 @@ tsHandle ui@UIState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
             Right j' -> do
               continue $
                 regenerateScreens j' d $
-                regenerateTransactions rspec j' s acct i $   -- added (inline) 201512 (why ?)
-                clearCostValue $
+                regenerateTransactions rspec j' s acct i  -- added (inline) 201512 (why ?)
                 ui
         VtyEvent (EvKey (KChar 'I') []) -> continue $ uiCheckBalanceAssertions d (toggleIgnoreBalanceAssertions ui)
 
