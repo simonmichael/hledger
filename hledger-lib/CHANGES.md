@@ -53,20 +53,12 @@ including:
 
 - Remove unused (amount|mixedAmount|posting|transaction)ApplyCostValuation functions.
 
-- Remove unnecessary normalisedMixedAmount; replace
-  normaliseMixedAmountSquashPricesForDisplay with
-  mixedAmountStripPrices.
+- Remove unnecessary normalisedMixedAmount.
 
 - Remove `showAmounts*B` functions, replacing them entirely with
   `showMixedAmount*B` functions.
 
-- Strip prices in MultiBalanceReport and PostingsReport whenever we
-  know we won't need them. Knowing whether we need them is
-  accomplished by pulling the "show-costs" option used by the Close
-  command up into ReportOpts.
-
-- Use uniform naming for stripping prices. Creates a new function
-  amountStripPrices, and renames removePrices to postingStripPrices.
+- Pull "show-costs" option used by the Close command up into ReporOpts.
 
 - Add more efficient toEncoding for custom ToJSON declarations.
 
@@ -114,9 +106,8 @@ including:
   examples/10000x10000x10.journal, this results in a 7.7% reduction in
   heap allocations, from 7.6GB to 7.1GB.
 
-- Some efficiency improvements in register reports. Strip prices after
-  valuing postings in PostingsReport. Use renderRow interface for
-  Register report.
+- Some efficiency improvements in register reports.
+  Use renderRow interface for Register report.
 
   For `reg -f examples/10000x10000x10.journal`, this results in:
 
@@ -128,9 +119,6 @@ including:
   former being a simple wrapper around the latter. This removes the
   need for the showNormalised option, as showMixedAmountB will always
   showNormalised and showAmountsB will never do so.
-
-  We also strip prices from MixedAmount before displaying, if not
-  displaying prices.
 
 - Change internal representation of MixedAmount to use a strict Map
   instead of a list of Amounts. No longer export Mixed constructor, to
@@ -177,12 +165,6 @@ including:
     amount arithmetic (+), (-), then you should replace the constructor
     `Mixed` with the function `mixed`. To extract the list of Amounts, use
     the function `amounts`.
-  - If you ever call `normaliseMixedAmountSquashPricesForDisplay`, you can
-    replace that with `mixedAmountStripPrices`. (N.B. this does something
-    slightly different from `normaliseMixedAmountSquashPricesForDisplay`,
-    but I don't think there's any use case for squashing prices and then
-    keeping the first of the squashed prices around. If you disagree let
-    me know.)
   - Any remaining calls to `normaliseMixedAmount` can be removed, as that
     is now the identity function.
 

@@ -145,24 +145,22 @@ User-visible changes in the hledger command line tool and library.
   to be the most common, so I have dropped the capitalisation. Also
   the trailing colon from --transpose's "total:".
 
-- Simplify the JSON representation of AmountPrecision. (Stephen Morgan)
+- Simplify the JSON representation of AmountPrecision.
   It now uses the same JSON representation as Maybe Word8. This means that
   the JSON serialisation is now broadly compatible with that used before the
   commit f6fa76bba7530af3be825445a1097ae42498b1cd, differing only in
   how it handles numbers outside Word8 and that it can now produce null
-  for NaturalPrecision.
+  for NaturalPrecision. (Stephen Morgan)
 
 - lib: Properly escape quotes in csv output. (Stephen Morgan)
 
 - Do not call showAmount twice for every posting. (Stephen Morgan)
-  For print -f examples/10000x10000x10.journal, this results in
-  - A 7.7% reduction in heap allocations, from 7.6GB to 7.1GB.
+  For `print -f examples/10000x10000x10.journal`, this results in
+  a 7.7% reduction in heap allocations, from 7.6GB to 7.1GB.
 
 - Some efficiency improvements in register reports. (Stephen Morgan)
-  Strip prices after valuing postings in PostingsReport.
-  Use renderRow interface for Register report.
+  For `reg -f examples/10000x10000x10.journal`, this results in:
 
-  For reg -f examples/10000x10000x10.journal, this results in:
   - Heap allocations decreasing by 55%, from 68.6GB to 31.2GB
   - Resident memory decreasing by 75%, from 254GB to 65GB
   - Total (profiled) time decreasing by 55%, from 37s to 20s
