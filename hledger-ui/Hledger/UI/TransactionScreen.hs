@@ -173,11 +173,7 @@ tsHandle ui@UIState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
           ej <- liftIO $ journalReload copts
           case ej of
             Left err -> continue $ screenEnter d errorScreen{esError=err} ui
-            Right j' -> do
-              continue $
-                regenerateScreens j' d $
-                clearCostValue $
-                ui
+            Right j' -> continue $ regenerateScreens j' d ui
         VtyEvent (EvKey (KChar 'I') []) -> continue $ uiCheckBalanceAssertions d (toggleIgnoreBalanceAssertions ui)
 
         -- for toggles that may change the current/prev/next transactions,
