@@ -224,8 +224,6 @@ data Commodity = Commodity {
 data Amount = Amount {
       acommodity  :: !CommoditySymbol,     -- commodity symbol, or special value "AUTO"
       aquantity   :: !Quantity,            -- numeric quantity, or zero in case of "AUTO"
-      aismultiplier :: !Bool,              -- ^ kludge: a flag marking this amount and posting as a multiplier
-                                           --   in a TMPostingRule. In a regular Posting, should always be false.
       astyle      :: !AmountStyle,
       aprice      :: !(Maybe AmountPrice)  -- ^ the (fixed, transaction-specific) price for this amount, if any
     } deriving (Eq,Ord,Generic,Show)
@@ -429,7 +427,10 @@ nulltransactionmodifier = TransactionModifier{
 -- to the matched posting's transaction.
 -- Can be like a regular posting, or the amount can have the aismultiplier flag set,
 -- indicating that it's a multiplier for the matched posting's amount.
-type TMPostingRule = Posting
+data TMPostingRule = TMPostingRule
+  { tmprPosting :: Posting
+  , tmprIsMultiplier :: Bool
+  } deriving (Eq,Generic,Show)
 
 -- | A periodic transaction rule, describing a transaction that recurs.
 data PeriodicTransaction = PeriodicTransaction {

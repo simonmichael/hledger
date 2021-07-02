@@ -86,6 +86,7 @@ module Hledger.Read.Common (
   amountp,
   amountp',
   mamountp',
+  amountpwithmultiplier,
   commoditysymbolp,
   priceamountp,
   balanceassertionp,
@@ -768,10 +769,12 @@ spaceandamountormissingp =
 -- files with any supported decimal mark, but it also allows different decimal marks
 -- in  different amounts, which is a bit too loose. There's an open issue.
 amountp :: JournalParser m Amount
-amountp = label "amount" $ do
-  let 
-    spaces = lift $ skipNonNewlineSpaces
-  amount <- amountwithoutpricep <* spaces
+amountp = amountpwithmultiplier False
+
+amountpwithmultiplier :: Bool -> JournalParser m Amount
+amountpwithmultiplier mult = label "amount" $ do
+  let spaces = lift $ skipNonNewlineSpaces
+  amount <- amountwithoutpricep mult <* spaces
   (mprice, _elotprice, _elotdate) <- runPermutation $
     (,,) <$> toPermutationWithDefault Nothing (Just <$> priceamountp amount <* spaces)
          <*> toPermutationWithDefault Nothing (Just <$> lotpricep <* spaces)
@@ -781,20 +784,20 @@ amountp = label "amount" $ do
 amountpnolotpricesp :: JournalParser m Amount
 amountpnolotpricesp = label "amount" $ do
   let spaces = lift $ skipNonNewlineSpaces
-  amount <- amountwithoutpricep
+  amount <- amountwithoutpricep False
   spaces
   mprice <- optional $ priceamountp amount <* spaces
   pure $ amount { aprice = mprice }
 
-amountwithoutpricep :: JournalParser m Amount
-amountwithoutpricep = do
-  (mult, sign) <- lift $ (,) <$> multiplierp <*> signp
-  leftsymbolamountp mult sign <|> rightornosymbolamountp mult sign
+amountwithoutpricep :: Bool -> JournalParser m Amount
+amountwithoutpricep mult = do
+  sign <- lift signp
+  leftsymbolamountp sign <|> rightornosymbolamountp sign
 
   where
 
-  leftsymbolamountp :: Bool -> (Decimal -> Decimal) -> JournalParser m Amount
-  leftsymbolamountp mult sign = label "amount" $ do
+  leftsymbolamountp :: (Decimal -> Decimal) -> JournalParser m Amount
+  leftsymbolamountp sign = label "amount" $ do
     c <- lift commoditysymbolp
     mdecmarkStyle <- getDecimalMarkStyle
     mcommodityStyle <- getAmountStyle c
@@ -809,10 +812,10 @@ amountwithoutpricep = do
     let numRegion = (offBeforeNum, offAfterNum)
     (q,prec,mdec,mgrps) <- lift $ interpretNumber numRegion suggestedStyle ambiguousRawNum mExponent
     let s = amountstyle{ascommodityside=L, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
-    return $ nullamt{acommodity=c, aquantity=sign (sign2 q), aismultiplier=mult, astyle=s, aprice=Nothing}
+    return nullamt{acommodity=c, aquantity=sign (sign2 q), astyle=s, aprice=Nothing}
 
-  rightornosymbolamountp :: Bool -> (Decimal -> Decimal) -> JournalParser m Amount
-  rightornosymbolamountp mult sign = label "amount" $ do
+  rightornosymbolamountp :: (Decimal -> Decimal) -> JournalParser m Amount
+  rightornosymbolamountp sign = label "amount" $ do
     offBeforeNum <- getOffset
     ambiguousRawNum <- lift rawnumberp
     mExponent <- lift $ optional $ try exponentp
@@ -828,7 +831,7 @@ amountwithoutpricep = do
         let msuggestedStyle = mdecmarkStyle <|> mcommodityStyle
         (q,prec,mdec,mgrps) <- lift $ interpretNumber numRegion msuggestedStyle ambiguousRawNum mExponent
         let s = amountstyle{ascommodityside=R, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
-        return $ nullamt{acommodity=c, aquantity=sign q, aismultiplier=mult, astyle=s, aprice=Nothing}
+        return nullamt{acommodity=c, aquantity=sign q, astyle=s, aprice=Nothing}
       -- no symbol amount
       Nothing -> do
         -- look for a number style to use when parsing, based on
@@ -845,7 +848,7 @@ amountwithoutpricep = do
         let (c,s) = case (mult, defcs) of
               (False, Just (defc,defs)) -> (defc, defs{asprecision=max (asprecision defs) prec})
               _ -> ("", amountstyle{asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps})
-        return $ nullamt{acommodity=c, aquantity=sign q, aismultiplier=mult, astyle=s, aprice=Nothing}
+        return nullamt{acommodity=c, aquantity=sign q, astyle=s, aprice=Nothing}
 
   -- For reducing code duplication. Doesn't parse anything. Has the type
   -- of a parser only in order to throw parse errors (for convenience).
@@ -878,9 +881,6 @@ mamountp' = mixedAmount . amountp'
 signp :: Num a => TextParser m (a -> a)
 signp = ((char '-' *> pure negate <|> char '+' *> pure id) <* skipNonNewlineSpaces) <|> pure id
 
-multiplierp :: TextParser m Bool
-multiplierp = option False $ char '*' *> pure True
-
 commoditysymbolp :: TextParser m CommoditySymbol
 commoditysymbolp =
   quotedcommoditysymbolp <|> simplecommoditysymbolp <?> "commodity symbol"
@@ -902,7 +902,7 @@ priceamountp baseAmt = label "transaction price" $ do
   when parenthesised $ void $ char ')'
 
   lift skipNonNewlineSpaces
-  priceAmount <- amountwithoutpricep -- <?> "unpriced amount (specifying a price)"
+  priceAmount <- amountwithoutpricep False -- <?> "unpriced amount (specifying a price)"
 
   let amtsign' = signum $ aquantity baseAmt
       amtsign  = if amtsign' == 0 then 1 else amtsign'
@@ -939,7 +939,7 @@ lotpricep = label "ledger-style lot price" $ do
   doublebrace <- option False $ char '{' >> pure True
   _fixed <- fmap isJust $ optional $ lift skipNonNewlineSpaces >> char '='
   lift skipNonNewlineSpaces
-  _a <- amountwithoutpricep
+  _a <- amountwithoutpricep False
   lift skipNonNewlineSpaces
   char '}'
   when (doublebrace) $ void $ char '}'

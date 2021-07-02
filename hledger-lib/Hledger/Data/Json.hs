@@ -136,6 +136,7 @@ postingKV Posting{..} =
 
 instance ToJSON Transaction
 instance ToJSON TransactionModifier
+instance ToJSON TMPostingRule
 instance ToJSON PeriodicTransaction
 instance ToJSON PriceDirective
 instance ToJSON DateSpan

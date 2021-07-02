@@ -14,7 +14,6 @@ $ hledger -f- reg --output-format=json
       "pamount": [
         {
           "acommodity": "AAA",
-          "aismultiplier": false,
           "aprice": null,
           "aquantity": {
             "decimalMantissa": 10,
@@ -43,7 +42,6 @@ $ hledger -f- reg --output-format=json
     [
       {
         "acommodity": "AAA",
-        "aismultiplier": false,
         "aprice": null,
         "aquantity": {
           "decimalMantissa": 10,
@@ -73,7 +71,6 @@ $ hledger -f- bal --output-format=json
       [
         {
           "acommodity": "AAA",
-          "aismultiplier": false,
           "aprice": null,
           "aquantity": {
             "decimalMantissa": 10,
@@ -94,7 +91,6 @@ $ hledger -f- bal --output-format=json
   [
     {
       "acommodity": "AAA",
-      "aismultiplier": false,
       "aprice": null,
       "aquantity": {
         "decimalMantissa": 10,

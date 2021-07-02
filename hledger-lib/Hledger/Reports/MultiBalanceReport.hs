@@ -559,7 +559,7 @@ cumulativeSum value start = snd . M.mapAccumWithKey accumValued start
 tests_MultiBalanceReport = tests "MultiBalanceReport" [
 
   let
-    amt0 = Amount {acommodity="$", aquantity=0, aprice=Nothing, astyle=AmountStyle {ascommodityside = L, ascommodityspaced = False, asprecision = Precision 2, asdecimalpoint = Just '.', asdigitgroups = Nothing}, aismultiplier=False}
+    amt0 = Amount {acommodity="$", aquantity=0, aprice=Nothing, astyle=AmountStyle {ascommodityside = L, ascommodityspaced = False, asprecision = Precision 2, asdecimalpoint = Just '.', asdigitgroups = Nothing}}
     (rspec,journal) `gives` r = do
       let rspec' = rspec{rsQuery=And [queryFromFlags $ rsOpts rspec, rsQuery rspec]}
           (eitems, etotal) = r

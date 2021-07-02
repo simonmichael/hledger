@@ -60,17 +60,18 @@ modifyTransactions d tmods ts = do
 --
 -- >>> import qualified Data.Text.IO as T
 -- >>> t = nulltransaction{tpostings=["ping" `post` usd 1]}
+-- >>> tmpost acc amt = TMPostingRule (acc `post` amt) False
 -- >>> test = either putStr (T.putStr.showTransaction) . fmap ($ t) . transactionModifierToFunction nulldate
--- >>> test $ TransactionModifier "" ["pong" `post` usd 2]
+-- >>> test $ TransactionModifier "" ["pong" `tmpost` usd 2]
 -- 0000-01-01
 --     ping           $1.00
 --     pong           $2.00  ; generated-posting: =
 -- <BLANKLINE>
--- >>> test $ TransactionModifier "miss" ["pong" `post` usd 2]
+-- >>> test $ TransactionModifier "miss" ["pong" `tmpost` usd 2]
 -- 0000-01-01
 --     ping           $1.00
 -- <BLANKLINE>
--- >>> test $ TransactionModifier "ping" ["pong" `post` amount{aismultiplier=True, aquantity=3}]
+-- >>> test $ TransactionModifier "ping" [("pong" `tmpost` amount{aquantity=3}){tmprIsMultiplier=True}]
 -- 0000-01-01
 --     ping           $1.00
 --     pong           $3.00  ; generated-posting: = ping
@@ -93,7 +94,7 @@ transactionModifierToFunction refdate TransactionModifier{tmquerytxt, tmpostingr
 -- The TransactionModifier's query text is also provided, and saved
 -- as the tags' value.
 tmPostingRuleToFunction :: Query -> T.Text -> TMPostingRule -> (Posting -> Posting)
-tmPostingRuleToFunction query querytxt pr =
+tmPostingRuleToFunction query querytxt tmpr =
   \p -> renderPostingCommentDates $ pr
       { pdate    = pdate  pr <|> pdate  p
       , pdate2   = pdate2 pr <|> pdate2 p
@@ -104,9 +105,10 @@ tmPostingRuleToFunction query querytxt pr =
                    ptags pr
       }
   where
+    pr = tmprPosting tmpr
     qry = "= " <> querytxt
     symq = filterQuery (liftA2 (||) queryIsSym queryIsAmt) query
-    amount' = case postingRuleMultiplier pr of
+    amount' = case postingRuleMultiplier tmpr of
         Nothing -> const $ pamount pr
         Just n  -> \p ->
           -- Multiply the old posting's amount by the posting rule's multiplier.
@@ -127,9 +129,9 @@ tmPostingRuleToFunction query querytxt pr =
               c  -> mapMixedAmount (\a -> a{acommodity = c, astyle = astyle pramount, aprice = aprice pramount}) as
 
 postingRuleMultiplier :: TMPostingRule -> Maybe Quantity
-postingRuleMultiplier p = case amountsRaw $ pamount p of
-    [a] | aismultiplier a -> Just $ aquantity a
-    _                     -> Nothing
+postingRuleMultiplier tmpr = case amountsRaw . pamount $ tmprPosting tmpr of
+    [a] | tmprIsMultiplier tmpr -> Just $ aquantity a
+    _                           -> Nothing
 
 renderPostingCommentDates :: Posting -> Posting
 renderPostingCommentDates p = p { pcomment = comment' }

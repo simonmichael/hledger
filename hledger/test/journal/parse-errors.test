@@ -155,3 +155,11 @@ $ hledger -f- print
     equity:opening/closing balances
 
 >=0
+
+# 13. Adding a multiplier in a normal posting gives a parse error.
+<
+2020-01-01
+  (a)  *1
+$ hledger -f- print
+>2 /unexpected '\*'/
+>=1

@@ -58,7 +58,7 @@ module Hledger.Read.JournalReader (
   datetimep,
   datep,
   modifiedaccountnamep,
-  postingp,
+  tmpostingrulep,
   statusp,
   emptyorcommentlinep,
   followingcommentp,
@@ -592,8 +592,8 @@ transactionmodifierp = do
   lift skipNonNewlineSpaces
   querytxt <- lift $ T.strip <$> descriptionp
   (_comment, _tags) <- lift transactioncommentp   -- TODO apply these to modified txns ?
-  postings <- postingsp Nothing
-  return $ TransactionModifier querytxt postings
+  postingrules <- tmpostingrulesp Nothing
+  return $ TransactionModifier querytxt postingrules
 
 -- | Parse a periodic transaction rule.
 --
@@ -695,32 +695,49 @@ postingsp mTransactionYear = many (postingp mTransactionYear) <?> "postings"
 --   return $ sp ++ (c:cs) ++ "\n"
 
 postingp :: Maybe Year -> JournalParser m Posting
-postingp mTransactionYear = do
-  -- lift $ dbgparse 0 "postingp"
-  (status, account) <- try $ do
-    lift skipNonNewlineSpaces1
-    status <- lift statusp
+postingp = fmap fst . postingphelper False
+
+-- Parse the following whitespace-beginning lines as transaction posting rules, posting
+-- tags, and/or comments (inferring year, if needed, from the given date).
+tmpostingrulesp :: Maybe Year -> JournalParser m [TMPostingRule]
+tmpostingrulesp mTransactionYear = many (tmpostingrulep mTransactionYear) <?> "posting rules"
+
+tmpostingrulep :: Maybe Year -> JournalParser m TMPostingRule
+tmpostingrulep = fmap (uncurry TMPostingRule) . postingphelper True
+
+-- Parse a Posting, and return a flag with whether a multiplier has been detected.
+-- The multiplier is used in TMPostingRules.
+postingphelper :: Bool -> Maybe Year -> JournalParser m (Posting, Bool)
+postingphelper isPostingRule mTransactionYear = do
+    -- lift $ dbgparse 0 "postingp"
+    (status, account) <- try $ do
+      lift skipNonNewlineSpaces1
+      status <- lift statusp
+      lift skipNonNewlineSpaces
+      account <- modifiedaccountnamep
+      return (status, account)
+    let (ptype, account') = (accountNamePostingType account, textUnbracket account)
     lift skipNonNewlineSpaces
-    account <- modifiedaccountnamep
-    return (status, account)
-  let (ptype, account') = (accountNamePostingType account, textUnbracket account)
-  lift skipNonNewlineSpaces
-  amount <- optional amountp
-  lift skipNonNewlineSpaces
-  massertion <- optional balanceassertionp
-  lift skipNonNewlineSpaces
-  (comment,tags,mdate,mdate2) <- lift $ postingcommentp mTransactionYear
-  return posting
-   { pdate=mdate
-   , pdate2=mdate2
-   , pstatus=status
-   , paccount=account'
-   , pamount=maybe missingmixedamt mixedAmount amount
-   , pcomment=comment
-   , ptype=ptype
-   , ptags=tags
-   , pbalanceassertion=massertion
-   }
+    mult <- if isPostingRule then multiplierp else pure False
+    amount <- optional $ amountpwithmultiplier mult
+    lift skipNonNewlineSpaces
+    massertion <- optional balanceassertionp
+    lift skipNonNewlineSpaces
+    (comment,tags,mdate,mdate2) <- lift $ postingcommentp mTransactionYear
+    let p = posting
+            { pdate=mdate
+            , pdate2=mdate2
+            , pstatus=status
+            , paccount=account'
+            , pamount=maybe missingmixedamt mixedAmount amount
+            , pcomment=comment
+            , ptype=ptype
+            , ptags=tags
+            , pbalanceassertion=massertion
+            }
+    return (p, mult)
+  where
+    multiplierp = option False $ True <$ char '*'
 
 --- ** tests
 
@@ -866,7 +883,7 @@ tests_JournalReader = tests "JournalReader" [
       "= (some value expr)\n some:postings  1.\n"
       nulltransactionmodifier {
         tmquerytxt = "(some value expr)"
-       ,tmpostingrules = [nullposting{paccount="some:postings", pamount=mixedAmount (num 1)}]
+       ,tmpostingrules = [TMPostingRule nullposting{paccount="some:postings", pamount=mixedAmount (num 1)} False]
       }
     ]
 
