@@ -827,7 +827,7 @@ journalBalanceTransactions bopts' j' =
     styles = Just $ journalCommodityStyles j
     bopts = bopts'{commodity_styles_=styles}
     -- balance assignments will not be allowed on these
-    txnmodifieraccts = S.fromList $ map paccount $ concatMap tmpostingrules $ jtxnmodifiers j
+    txnmodifieraccts = S.fromList . map (paccount . tmprPosting) . concatMap tmpostingrules $ jtxnmodifiers j
   in
     runST $ do
       -- We'll update a mutable array of transactions as we balance them,

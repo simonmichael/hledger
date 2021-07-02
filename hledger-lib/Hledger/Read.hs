@@ -32,7 +32,7 @@ module Hledger.Read (
   readJournal',
 
   -- * Re-exported
-  JournalReader.postingp,
+  JournalReader.tmpostingrulep,
   findReader,
   splitReaderPrefix,
   module Hledger.Read.Common,

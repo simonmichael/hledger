@@ -218,7 +218,7 @@ instance Num Amount where
 
 -- | The empty simple amount.
 amount, nullamt :: Amount
-amount = Amount{acommodity="", aquantity=0, aprice=Nothing, astyle=amountstyle, aismultiplier=False}
+amount = Amount{acommodity="", aquantity=0, aprice=Nothing, astyle=amountstyle}
 nullamt = amount
 
 -- | A temporary value for parsed transactions which had no amount specified.
