@@ -6982,4 +6982,4 @@ SEE ALSO
 
 
 
-hledger-1.22                      March 2021                        HLEDGER(1)
+hledger-1.22                       July 2021                        HLEDGER(1)

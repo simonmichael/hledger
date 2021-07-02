@@ -465,4 +465,4 @@ SEE ALSO
 
 
 
-hledger-ui-1.22                   March 2021                     HLEDGER-UI(1)
+hledger-ui-1.22                    July 2021                     HLEDGER-UI(1)
