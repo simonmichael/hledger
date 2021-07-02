@@ -72,7 +72,7 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec
         -- always show historical balance
       -- , balancetype_= HistoricalBalance
       }
-    rspec' = 
+    rspec' =
       either (error "rsInit: adjusting the query for register, should not have failed") id $ -- PARTIAL:
       updateReportSpec ropts' rspec
 
@@ -365,17 +365,9 @@ rsHandle ui@UIState{
         VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
 
         -- enter transaction screen for selected transaction
-        VtyEvent e | e `elem` moveRightEvents -> do
+        VtyEvent e | e `elem` moveRightEvents ->
           case listSelectedElement rsList of
-            Just (_, RegisterScreenItem{rsItemTransaction=t}) ->
-              let
-                ts = map rsItemTransaction $ V.toList $ nonblanks
-                numberedts = zip [1..] ts
-                i = maybe 0 (toInteger . (+1)) $ elemIndex t ts -- XXX
-              in
-                continue $ screenEnter d transactionScreen{tsTransaction=(i,t)
-                                                          ,tsTransactions=numberedts
-                                                          ,tsAccount=rsAccount} ui
+            Just _  -> continue $ screenEnter d transactionScreen{tsAccount=rsAccount} ui
             Nothing -> continue ui
 
         -- prevent moving down over blank padding items;
