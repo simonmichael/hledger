@@ -1,26 +1,30 @@
-I'm very pleased to announce hledger 1.21 !
-http://hledger.org/release-notes.html#hledger-1-21 
+I'm very pleased to announce hledger 1.22 !
+https://hledger.org/release-notes.html#hledger-1-22 
 describes the user-visible changes. Highlights include:
 
-- About 10% faster/more space-efficient, and much more in some cases
-- Jump to any topic in the manuals from the command line
-- More polish for valuation and balance reports, and a new value change report
-- Improvements to check, print and other commands.
+- Optimisations: about 20% faster overall, with register about 2x
+  faster and 4x more memory-efficient
+
+- Bugfixes, including fixes for several regressions.
 
 Thank you to the following release contributors this time around:
-Dmitry Astapov, Arnout Engelen, Damien Cassou, aragaer, Doug
-Goldstein, Caleb Maclennan, Felix Van der Jeugt, heavy first time
-contributor Vladimir Zhelezov, and especially Stephen Morgan.
+Felix Yan,
+crocket,
+Eric Mertens,
+Damien Cassou,
+charukiewicz,
+Garret McGraw,
+and especially Stephen Morgan.
 
 
-hledger (http://hledger.org) is a robust, cross-platform, plain text
-accounting tool, with command-line, terminal and web UIs. It is an
-actively maintained, largely compatible reimplementation of Ledger CLI
-with many improvements. You can use it to track money, time,
-investments, cryptocurrencies, inventory and more.
-See also the Plain Text Accounting site (http://plaintextaccounting.org).
+hledger (https://hledger.org) is a dependable, cross-platform "plain
+text accounting" tool, with command-line, terminal and web interfaces.
+It is an actively maintained, largely compatible reimplementation of
+Ledger CLI with many improvements. You can use it to track money,
+time, investments, cryptocurrencies, inventory and more. See also the
+Plain Text Accounting site (https://plaintextaccounting.org).
 
-http://hledger.org/download shows all the ways to install hledger on
+https://hledger.org/download shows all the ways to install hledger on
 mac, windows or unix (stack, cabal, brew, nix, CI binaries, your
 package manager..). Or, run this bash script to install or upgrade to
 the latest release:
@@ -33,9 +37,11 @@ New users, check out https://hledger.org/quickstart
 or the tutorials (with pictures!) at hledger.org -> FIRST STEPS
 or the https://hledger.org/videos.html.
 
-To get help, see http://hledger.org#help-feedback,
-and join our chat channel via Freenode (#hledger, http://irc.hledger.org)
-or Matrix (#freenode_#hledger:matrix.org, http://matrix.hledger.org).
+To get help, see https://hledger.org#help, and join one of our chat rooms:
+
+- #hledger:matrix.org  (http://matrix.hledger.org)
+- #hledger:libera.chat (http://irc.hledger.org)
+
 Beginners and experts, contributors, sponsors, and all feedback are most welcome!
 
 
