@@ -9,12 +9,23 @@ hledger
 User-visible changes in the hledger command line tool and library.
 
 
-# d1cd4dda0
+# d5d19f841
+# 1.22 2021-07-02
 
-- performance: many internal optimisations have been applied
-  (the hledger-lib changelog has more detail). (Stephen Morgan)
-  In general, you can expect most reports to be about 20% faster.
-  The register report is more than 2x quicker and 4x more memory efficient.
+Features
+
+- check: A new `balancednoautoconversion` check requires transactions
+  to balance without the use of inferred transaction prices. (Explicit
+  transaction prices are allowed.) This check is included in `--strict`
+  mode. The old `autobalanced` check has been renamed to
+  `balancedwithautoconversion`. (Stephen Morgan)
+
+Improvements
+
+- Many internal optimisations have been applied (cf hledger-lib
+  changelog). Overall, you can expect most reports to be about 20%
+  faster. The register report is more than 2x faster uses 4x less
+  memory. (Stephen Morgan)
 
       ~/src/hledger$ quickbench -w hledger-1.21,hledger
       Running 5 tests 1 times with 2 executables at 2021-06-29 13:13:26 HST:
@@ -30,147 +41,63 @@ User-visible changes in the hledger command line tool and library.
       | -f examples/10000x1000x10.journal balance --weekly ||        13.07 |   10.79 |
       +----------------------------------------------------++--------------+---------+
 
-- register: Fix the running total when there is a report interval (broken
-  since 1.19) (#1568). (Stephen Morgan)
+- ANSI color is now disabled automatically (on stdout) when the
+  `-o/--output-file` option is used (with a value other than `-`).
+  (#1533)
 
-- balance reports: Fix empty cells when amounts are too wide to fit
-  (broken since 1.20) (#1526). (Stephen Morgan)
+- ANSI color is now also available in debug output, determined in the
+  usual way by `--color`, `NO_COLOR`, and whether the output (stderr)
+  is interactive.
+  
+- The --version flag shows more details of the build, when known: git
+  tag, number of commits since the tag, commit hash, platform and
+  architecture. (Stephen Morgan)
 
-- csv: Fix the escaping of double quotes in CSV output (broken since
-  1.21). (Stephen Morgan)
+- balance: Capitalisation of "account" and "total" (and lack of a
+  colon in the latter) in CSV output is now consistent for single- and
+  multi-period reports.
 
-- check: Rename the `autobalanced` check to
-  `balancedwithautoconversion`. Add the `balancednoautoconversion`
-  check, which requires transactions to balance without the use of
-  inferred transaction prices. (Explicit transaction prices are
-  allowed.) This check is included in --strict mode. (Stephen Morgan)
-
-- csv: Tolerate spaces when parsing amounts from CSV. (Eric Mertens)
-
-- json: Avoid adding unnecessary decimal places in JSON output.
-  Previously, our decimal values would always have 10 decimal places.
+- balance reports' CSV output now includes full account names. (#1566)
   (Stephen Morgan)
+
+- csv: We now accept spaces when parsing amounts from CSV. (Eric
+  Mertens)
+
+- json: Avoid adding unnecessary decimal places in JSON output. (Don't
+  increase them all to 10 decimal places.) (Stephen Morgan)
   
 - json: Simplify amount precision (asprecision) in JSON output.
   It is now just the number of decimal places, rather than an object.
   (Stephen Morgan)
 
+- GHC 9.0 is now officially supported. GHC 8.0, 8.2, 8.4 are no longer
+  supported; we now require GHC 8.6 or greater.
+
+- Added a now-required lower bound on containers. (#1514)
+
+Fixes
+
+- Auto posting rules now match postings more precisely, respecting
+  `cur:` and `amt:` queries. (#1582) (Stephen Morgan)
+
+- balance reports: Fix empty cells when amounts are too wide to fit
+  (broken since 1.20) (#1526). (Stephen Morgan)
+
+- csv: Fix the escaping of double quotes in CSV output (broken in
+  1.21). (Stephen Morgan)
+
+- register: Fix the running total when there is a report interval
+  (broken since 1.19) (#1568). (Stephen Morgan)
+
 - stats: No longer gets confused by posting dates. (#772) (Stephen Morgan)
 
-- cli: ANSI color is now also disabled by -o/--output-file
-  ANSI color on stdout (not stderr) is now disabled if the
-  -o/--output-file option is detected (and its value is not "-").
-  (#1533)
+- timeclock: `hledger print` shows timeclock amounts with just 2
+  decimal places again (broken in 1.21). (#1527)
 
-- cli: debug output now respects --color/NO_COLOR/ANSI support
-  Debug output now selects color or monochrome in the same way as normal
-  output.
+- When all transaction amounts have the same sign, the error message
+  no longer adds an inferred price. (#1551) (Stephen Morgan)
 
-- cli: debug output checks for color support on stderr, not stdout
-  This is more accurate.
-  useColor is replaced by useColorOnStdout, useColorOnStderr.
-
-- Fix the error message when all transaction amounts have the same
-  sign (don't show an inferred price). (#1551) (Stephen Morgan)
-
-- fix: When performing a summary posting report without depth limiting, report exclusive balances rather than inclusive balances (#1568). (Stephen Morgan)
-
-- cli: Make sure full account name is used (possibly including dropping) for csv output. (#1566) (Stephen Morgan)
-
-- The --version flag shows more detail (git tag/patchlevel/commit
-  hash, platform/architecture). (Stephen Morgan)
-
-- Infer prices correctly even when there are only balance assignments. (Stephen Morgan)
-
-- perf: Change internal representation of MixedAmount to use a strict Map instead of a list of Amounts. No longer export Mixed constructor, to keep API clean (if you really need it, you can import it directly from Hledger.Data.Types). We also ensure the JSON representation of MixedAmount doesn't change: it is stored as a normalised list of Amounts. (Stephen Morgan)
-  This commit improves performance. Here are some indicative results.
-
-  hledger reg -f examples/10000x1000x10.journal
-  - Maximum residency decreases from 65MB to 60MB (8% decrease)
-  - Total memory in use decreases from 178MiB to 157MiB (12% decrease)
-
-  hledger reg -f examples/10000x10000x10.journal
-  - Maximum residency decreases from 69MB to 60MB (13% decrease)
-  - Total memory in use decreases from 198MiB to 153MiB (23% decrease)
-
-  hledger bal -f examples/10000x1000x10.journal
-  - Total heap usage decreases from 6.4GB to 6.0GB (6% decrease)
-  - Total memory in use decreases from 178MiB to 153MiB (14% decrease)
-
-  hledger bal -f examples/10000x10000x10.journal
-  - Total heap usage decreases from 7.3GB to 6.9GB (5% decrease)
-  - Total memory in use decreases from 196MiB to 185MiB (5% decrease)
-
-  hledger bal -M -f examples/10000x1000x10.journal
-  - Total heap usage decreases from 16.8GB to 10.6GB (47% decrease)
-  - Total time decreases from 14.3s to 12.0s (16% decrease)
-
-  hledger bal -M -f examples/10000x10000x10.journal
-  - Total heap usage decreases from 108GB to 48GB (56% decrease)
-  - Total time decreases from 62s to 41s (33% decrease)
-
-  If you never directly use the constructor Mixed or pattern match against
-  it then you don't need to make any changes. If you do, then do the
-  following:
-
-  - If you really care about the individual Amounts and never normalise
-    your MixedAmount (for example, just storing `Mixed amts` and then
-    extracting `amts` as a pattern match, then use should switch to using
-    [Amount]. This should just involve removing the `Mixed` constructor.
-  - If you ever call `mixed`, `normaliseMixedAmount`, or do any sort of
-    amount arithmetic (+), (-), then you should replace the constructor
-    `Mixed` with the function `mixed`. To extract the list of Amounts, use
-    the function `amounts`.
-  - If you ever call `normaliseMixedAmountSquashPricesForDisplay`, you can
-    replace that with `mixedAmountStripPrices`. (N.B. this does something
-    slightly different from `normaliseMixedAmountSquashPricesForDisplay`,
-    but I don't think there's any use case for squashing prices and then
-    keeping the first of the squashed prices around. If you disagree let
-    me know.)
-  - Any remaining calls to `normaliseMixedAmount` can be removed, as that
-    is now the identity function.
-
-- When displaying amounts on a single line, always display at least one amount, even if that would exceed the requested maximum width. Addresses #1526. (Stephen Morgan)
-
-- timeclock: print shows timeclock amounts with just 2 decimals, like pre-1.21 (#1527)
-
-- Do not round Decimal before applying JSON representation if existing representation is small enough. (Stephen Morgan)
-  Previously the JSON representation of Decimal was rounded to 10 points
-  of precision before serialising. This sometimes results in an
-  unnecessary increase of precision.
-
-- bal: keep csv column and row labels consistently lower case
-  It was reported on #hledger that bal -O csv capitalises "account"
-  differently for single and multi-period reports. All lower case seems
-  to be the most common, so I have dropped the capitalisation. Also
-  the trailing colon from --transpose's "total:".
-
-- Simplify the JSON representation of AmountPrecision.
-  It now uses the same JSON representation as Maybe Word8. This means that
-  the JSON serialisation is now broadly compatible with that used before the
-  commit f6fa76bba7530af3be825445a1097ae42498b1cd, differing only in
-  how it handles numbers outside Word8 and that it can now produce null
-  for NaturalPrecision. (Stephen Morgan)
-
-- lib: Properly escape quotes in csv output. (Stephen Morgan)
-
-- Do not call showAmount twice for every posting. (Stephen Morgan)
-  For `print -f examples/10000x10000x10.journal`, this results in
-  a 7.7% reduction in heap allocations, from 7.6GB to 7.1GB.
-
-- Some efficiency improvements in register reports. (Stephen Morgan)
-  For `reg -f examples/10000x10000x10.journal`, this results in:
-
-  - Heap allocations decreasing by 55%, from 68.6GB to 31.2GB
-  - Resident memory decreasing by 75%, from 254GB to 65GB
-  - Total (profiled) time decreasing by 55%, from 37s to 20s
-
-- Clean up some references to old man pages. (Felix Yan)
-
-- Add now-required lower bound on containers. (#1514)
-
-- Added support for GHC 9.0. Dropped support for GHC 8.0, 8.2, 8.4; 
-  we now require GHC 8.6 or greater.
+- Cleaned up some references to old man pages. (Felix Yan)
 
 # 1.21 2021-03-10
 

@@ -9,7 +9,27 @@ hledger
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# d1cd4dda0
+# d5d19f841
+# 1.22 2021-07-02
+
+- lib: Auto-postings with Amount queries should filter only those commodities which match the query. (Stephen Morgan)
+  Also corrects a regression introduced in
+  8ab29f84b32288a34ae7627a2204081fae31900f where transaction modifier
+  postings without multipliers would incorrectly be filtered by commodity.
+
+- lib: Make sure automatic postings generated from postings with more than one commodity match on commodity symbol (#1582). (Stephen Morgan)
+
+- lib,cli: No longer strip prices in journalApplyValuationFromOptsWith and mixedAmountApplyValuationAfterSumFromOptsWith (#1577). (Stephen Morgan)
+  These were theoretically an efficiency improvement, but have been
+  error-prone. We instead handle stripping prices at the point of
+  consumption.
+
+- ui: Do not log to debug.log when regenerating journal in Transaction screen (#1556). Also really clear cost setting when doing so. (Stephen Morgan)
+  Since plog is no longer used anywhere, and tends to create bugs when it
+  is, we remove it.
+
+- doc: changelogs draft
+  And add big headings, for fun and to help me tell them apart.
 
 - Added support for GHC 9.0. Dropped support for GHC 8.0, 8.2, 8.4; 
   we now require GHC 8.6 or greater.
