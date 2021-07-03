@@ -1,18 +1,16 @@
-hledger
+<!--
        _ 
  _   _(_)
 | | | | |
 | |_| | |
  \__,_|_|
          
-
+-->
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# d5d19f841
-# 1.22 2021-07-02
-
-Features
+# de4e7ae4c
+# 1.22 2021-07-03
 
 Improvements
 
@@ -28,19 +26,19 @@ Improvements
 - The `--version` flag shows more detail (git tag/patchlevel/commit
   hash, platform/architecture). (Stephen Morgan)
 
-Fixes
+- GHC 9.0 is now officially supported, and GHC 8.0, 8.2, 8.4 are not;
+  building hledger now requires GHC 8.6 or greater.
 
-- Don't write to `./debug.log` when toggling value with `V`, or when
-  reloading with `g` or `--watch` in the Transaction screen. (#1556)
-  (Simon Michael, Stephen Morgan)
+- Added a now-required lower bound on containers. (#1514)
+
+Fixes
 
 - Queries in the register screen work again (broken in 1.21). (#1523)
   (Stephen Morgan)
 
-- GHC 9.0 is now officially supported. GHC 8.0, 8.2, 8.4 are no longer
-  supported; we now require GHC 8.6 or greater.
-
-- Added a now-required lower bound on containers. (#1514)
+- Don't write to `./debug.log` when toggling value with `V`, or when
+  reloading with `g` or `--watch` in the Transaction screen. (#1556)
+  (Simon Michael, Stephen Morgan)
 
 # 1.21 2021-03-10
 

@@ -1,16 +1,16 @@
-hledger
+<!--
                  _           _   
  _ __  _ __ ___ (_) ___  ___| |_ 
 | '_ \| '__/ _ \| |/ _ \/ __| __|
 | |_) | | | (_) | |  __/ (__| |_ 
 | .__/|_|  \___// |\___|\___|\__|
 |_|           |__/               
-
+-->
 General changes in the hledger project (and notable all-package releases).
 For package-specific changes and minor releases, see the hledger package changelogs.
 
-# 9ffed51f5
-# 1.22 2021-07-02
+# 9303320f5
+# 1.22 2021-07-03
 
 Software:
 
@@ -19,8 +19,8 @@ Software:
   system than the dynamic Ubuntu executables we have been providing).
   (And, will be useful to Nextcloud.com users.) (#1571) (Garret McGraw)
 
-- GHC 9.0 is now officially supported. GHC 8.0, 8.2, 8.4 are no longer
-  supported; we now require GHC 8.6 or greater.
+- GHC 9.0 is now officially supported, and GHC 8.0, 8.2, 8.4 are not;
+  building hledger now requires GHC 8.6 or greater.
 
 Docs:
 

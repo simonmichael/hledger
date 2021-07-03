@@ -1,19 +1,18 @@
-hledger
+<!--
               _     
 __      _____| |__  
 \ \ /\ / / _ \ '_ \ 
  \ V  V /  __/ |_) |
   \_/\_/ \___|_.__/ 
                     
-
+-->
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# d5d19f841
-# 1.22 2021-07-02
+# de4e7ae4c
+# 1.22 2021-07-03
 
-- In the add form, fix a bug where extra posting rows were not added
-  when needed in certain web browsers. (charukiewicz)
+Improvements
 
 - The --version flag shows more detail (git tag/patchlevel/commit
   hash, platform/architecture). (Stephen Morgan)
@@ -22,8 +21,13 @@ See also the hledger changelog.
 
 - Add now-required lower bound on containers. (#1514)
 
-- GHC 9.0 is now officially supported. GHC 8.0, 8.2, 8.4 are no longer
-  supported; we now require GHC 8.6 or greater.
+- GHC 9.0 is now officially supported, and GHC 8.0, 8.2, 8.4 are not;
+  building hledger now requires GHC 8.6 or greater.
+
+Fixes
+
+- In the add form, fix a bug where extra posting rows were not added
+  when needed in certain web browsers. (charukiewicz)
 
 # 1.21 2021-03-10
 
