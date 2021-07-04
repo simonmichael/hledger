@@ -15,8 +15,8 @@ Software:
 
 - We now provide static executables for GNU/Linux on x64 (amd64) and arm32v7
   architectures. These are more portable and more likely to work on your linux
-  system than the dynamic Ubuntu executables we have been providing).
-  (And, will be useful to Nextcloud.com users.) (#1571) (Garret McGraw)
+  system than the dynamic Ubuntu executables we have been providing.
+  These will also be useful for Nextcloud.com users. (#1571) (Garret McGraw)
 
 - GHC 9.0 is now officially supported, and GHC 8.0, 8.2, 8.4 are not;
   building hledger now requires GHC 8.6 or greater.
