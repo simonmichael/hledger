@@ -65,6 +65,8 @@ on:
       - '!**.info'
       - '!**.txt'
 
+  workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
