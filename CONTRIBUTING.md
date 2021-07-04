@@ -510,12 +510,10 @@ Relevant tools include:
 ## Commit messages
 
 Starting with the 1.23 release cycle, I'm proposing some new
-conventions for commit messages (WIP, will evolve as needed),
-aiming to:
+conventions for commit messages (WIP, will evolve as needed), aiming to
 
-- reduce the cost of maintaining change docs (changelogs, release notes, announcements)
-- reduce the cost of releases
 - encourage considered, focussed, well documented changes
+- reduce the cost of code review, maintaining changelogs and release notes, and releasing
 - increase our throughput (rate of shipping useful, reliable, documented, maintainable features)
 
 **hledger commit conventions:**
@@ -570,13 +568,15 @@ aiming to:
    the end of the summary: `(#NNNN)`.
 
 7. The summary, and description if any, communicate this change's
-   purpose as clearly as possible to its target audience: end users,
-   builders/packagers/library users, developers/debuggers. The text
-   should be ready for use in changelogs/release notes when applicable.
+   purpose as clearly as possible to its intended audience: 
+   end users, builders/packagers/library users, or developers/debuggers.
+   The text (or its first sentence/first paragraphs) should be ready 
+   for use in changelogs/release notes when applicable.
 
-Crafting good commit messages (and thereby, good commits, and good
-change documentation) is an art and a habit; we'll check and satisfy 
-these conventions as part of CI and code review.
+Crafting good commit messages (and thereby good commits, good change
+documentation, easier code review, faster merging) is an art and a
+habit; we'll check and satisfy these conventions as part of CI and
+code review.
 
 Related:
 
