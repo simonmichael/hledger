@@ -31,7 +31,7 @@ Docs:
 
 Chat:
 
-- The hledger IRC channels (in matrix syntax: #hledger:libera.chat,
+- The hledger IRC channels (#hledger:libera.chat,
   #hledger-bots:libera.chat) moved to Libera.chat.
     
 - The hledger Matrix room (#hledger:matrix.org), is now on at least

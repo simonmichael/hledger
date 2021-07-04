@@ -23,7 +23,7 @@ Improvements
 
 - Many internal optimisations have been applied (cf hledger-lib
   changelog). Overall, you can expect most reports to be about 20%
-  faster. The register report is more than 2x faster uses 4x less
+  faster. The register report is more than 2x faster and uses 4x less
   memory. (Stephen Morgan)
 
       ~/src/hledger$ quickbench -w hledger-1.21,hledger
