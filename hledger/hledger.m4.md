@@ -1408,6 +1408,20 @@ real-world feedback.
   of existing data (via `delete` or `truncate` SQL statements) or drop
   tables completely as otherwise your postings will be duped.
 
+## Commodity styles
+
+The display style of a commodity/currence is inferred according to the rules
+described in [Commodity display style](#commodity-display-style). The
+inferred display style can be overriden by an optional `-c/--commodity-style` 
+option. For example, the following will override the display style for dollars.
+```shell
+$ hledger print -c '$1.000,0'
+```
+The format specification of the style is identical to the commodity display
+style specification for the [commodity directive](#declaring-commodities). 
+The command line option can be supplied repeatedly to override the display 
+style for multiple commodity/currency symbols.
+
 # COMMANDS
 
 hledger provides a number of commands for producing reports and managing your data. 
@@ -2084,6 +2098,8 @@ commodity 1000.00000000 BTC
 commodity 1 000.
 ```
 
+The inferred commodity style can be [overridden](#commodity-styles) by supplying a command line option.
+
 ### Rounding
 
 Amounts are stored internally as decimal numbers with up to 255 decimal places,
@@ -2590,6 +2606,9 @@ Note hledger normally uses
 [banker's rounding](https://en.wikipedia.org/wiki/Bankers_rounding), 
 so 0.5 displayed with zero decimal digits is "0". 
 (More at [Commodity display style](#commodity-display-style).)
+
+Even in the presence of commodity directives, the commodity display style 
+can still be [overridden](#commodity-styles) by supplying a command line option.
 
 ### Commodity error checking
 

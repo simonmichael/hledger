@@ -29,10 +29,11 @@ Some of these might belong in Hledger.Read.JournalReader or Hledger.Read.
 --- ** exports
 module Hledger.Read.Common (
   Reader (..),
-  InputOpts (..),
+  InputOpts(..),
   definputopts,
   rawOptsToInputOpts,
   forecastPeriodFromRawOpts,
+  rawOptsToCommodityStylesOpts,
 
   -- * parsing utilities
   runTextParser,
@@ -136,7 +137,6 @@ import Control.Monad.State.Strict hiding (fail)
 import Data.Bifunctor (bimap, second)
 import Data.Char (digitToInt, isDigit, isSpace)
 import Data.Decimal (DecimalRaw (Decimal), Decimal)
-import Data.Default (Default(..))
 import Data.Either (lefts, rights)
 import Data.Function ((&))
 import Data.Functor ((<&>))
@@ -164,6 +164,7 @@ import Hledger.Query (Query(..), filterQuery, parseQueryTerm, queryEndDate, quer
 import Hledger.Reports.ReportOptions (ReportOpts(..), queryFromFlags, rawOptsToReportOpts)
 import Hledger.Utils
 import Text.Printf (printf)
+import Hledger.Read.InputOptions
 
 --- ** doctest setup
 -- $setup
@@ -199,40 +200,33 @@ instance Show (Reader m) where show r = rFormat r ++ " reader"
 
 -- $setup
 
--- | Various options to use when reading journal files.
--- Similar to CliOptions.inputflags, simplifies the journal-reading functions.
-data InputOpts = InputOpts {
-     -- files_             :: [FilePath]
-     mformat_           :: Maybe StorageFormat  -- ^ a file/storage format to try, unless overridden
-                                                --   by a filename prefix. Nothing means try all.
-    ,mrules_file_       :: Maybe FilePath       -- ^ a conversion rules file to use (when reading CSV)
-    ,aliases_           :: [String]             -- ^ account name aliases to apply
-    ,anon_              :: Bool                 -- ^ do light anonymisation/obfuscation of the data
-    ,new_               :: Bool                 -- ^ read only new transactions since this file was last read
-    ,new_save_          :: Bool                 -- ^ save latest new transactions state for next time
-    ,pivot_             :: String               -- ^ use the given field's value as the account name
-    ,forecast_          :: Maybe DateSpan       -- ^ span in which to generate forecast transactions
-    ,auto_              :: Bool                 -- ^ generate automatic postings when journal is parsed
-    ,balancingopts_     :: BalancingOpts        -- ^ options for balancing transactions
-    ,strict_            :: Bool                 -- ^ do extra error checking (eg, all posted accounts are declared, no prices are inferred)
- } deriving (Show)
+rawOptsToCommodityStylesOpts :: RawOpts -> Maybe (M.Map CommoditySymbol AmountStyle)
+rawOptsToCommodityStylesOpts rawOpts = 
+    let 
+      optionStr = "commodity-style"
+      optResult = mapofcommodityStyleopt optionStr rawOpts
+    in case optResult of
+      Right cmap -> Just cmap
+      Left failedOpt -> error' ("could not parse " ++ 
+                                 optionStr ++ ": '" ++ failedOpt ++ "'.") -- PARTIAL:
 
-instance Default InputOpts where def = definputopts
+-- | Given the name of the option and the raw options, returns either
+-- | * a map of succesfully parsed commodity styles, if all options where succesfully parsed
+-- | * the list of options which failed to parse, if one or more options failed to parse
+mapofcommodityStyleopt :: String -> RawOpts -> Either String (M.Map CommoditySymbol AmountStyle)
+mapofcommodityStyleopt name rawOpts =
+    let optList = listofstringopt name rawOpts
+        addStyle (Right cmap) (Right (c,a)) = Right (M.insert c a cmap)
+        addStyle err@(Left _) _ = err
+        addStyle _ (Left v) = Left v
+    in 
+      foldl' (\r e -> addStyle r $ parseCommodity e) (Right M.empty) optList
 
-definputopts :: InputOpts
-definputopts = InputOpts
-    { mformat_           = Nothing
-    , mrules_file_       = Nothing
-    , aliases_           = []
-    , anon_              = False
-    , new_               = False
-    , new_save_          = True
-    , pivot_             = ""
-    , forecast_          = Nothing
-    , auto_              = False
-    , balancingopts_     = def
-    , strict_            = False
-    }
+parseCommodity :: String -> Either String (CommoditySymbol, AmountStyle)
+parseCommodity optStr =
+    case amountp'' optStr of
+      Left _ -> Left optStr 
+      Right (Amount acommodity _ astyle _) -> Right (acommodity, astyle)
 
 -- | Parse an InputOpts from a RawOpts and the current date.
 -- This will fail with a usage error if the forecast period expression cannot be parsed.
@@ -251,8 +245,10 @@ rawOptsToInputOpts rawopts = do
       ,pivot_             = stringopt "pivot" rawopts
       ,forecast_          = forecastPeriodFromRawOpts d rawopts
       ,auto_              = boolopt "auto" rawopts
-      ,balancingopts_     = def{ ignore_assertions_ = boolopt "ignore-assertions" rawopts
+      ,balancingopts_     = balancingOpts{ 
+                                 ignore_assertions_ = boolopt "ignore-assertions" rawopts
                                , infer_prices_      = not noinferprice
+                               , commodity_styles_  = rawOptsToCommodityStylesOpts rawopts
                                }
       ,strict_            = boolopt "strict" rawopts
       }
@@ -914,10 +910,14 @@ amountwithoutpricep mult = do
                            uncurry parseErrorAtRegion posRegion errMsg
           Right (q,p,d,g) -> pure (q, Precision p, d, g)
 
+-- | Try to parse an amount from a string
+amountp'' :: String -> Either (ParseErrorBundle Text CustomErr) Amount
+amountp'' s = runParser (evalStateT (amountp <* eof) nulljournal) "" (T.pack s)
+
 -- | Parse an amount from a string, or get an error.
 amountp' :: String -> Amount
 amountp' s =
-  case runParser (evalStateT (amountp <* eof) nulljournal) "" (T.pack s) of
+  case amountp'' s of
     Right amt -> amt
     Left err  -> error' $ show err  -- PARTIAL: XXX should throwError
 

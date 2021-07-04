@@ -56,6 +56,7 @@ aregistermode = hledgerCommandMode
      )
   ,outputFormatFlag ["txt","csv","json"]
   ,outputFileFlag
+  ,commodityStyleFlag
   ])
   [generalflagsgroup1]
   hiddenflags

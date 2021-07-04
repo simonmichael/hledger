@@ -77,7 +77,7 @@ import Text.Printf (printf)
 
 import Hledger.Data
 import Hledger.Utils
-import Hledger.Read.Common (aliasesFromOpts,  Reader(..),InputOpts(..), amountp, statusp, genericSourcePos, journalFinalise )
+import Hledger.Read.Common (aliasesFromOpts, Reader(..), InputOpts(..), amountp, statusp, genericSourcePos, journalFinalise )
 
 --- ** doctest setup
 -- $setup

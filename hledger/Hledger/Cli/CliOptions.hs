@@ -18,6 +18,7 @@ module Hledger.Cli.CliOptions (
   reportflags,
   -- outputflags,
   outputFormatFlag,
+  commodityStyleFlag,
   outputFileFlag,
   generalflagsgroup1,
   generalflagsgroup2,
@@ -235,6 +236,11 @@ outputFileFlag = flagReq
   ["output-file","o"] (\s opts -> Right $ setopt "output-file" s opts) "FILE"
   "write output to FILE. A file extension matching one of the above formats selects that format."
 
+commodityStyleFlag :: Flag RawOpts
+commodityStyleFlag = flagReq
+    ["commodity-style", "c"] (\s opts -> Right $ setopt "commodity-style" s opts) "COMM"
+    ("Override the commodity style in the output for the specified commodity. For example 'EUR1.000,00'.")
+
 argsFlag :: FlagHelp -> Arg RawOpts
 argsFlag desc = flagArg (\s opts -> Right $ setopt "args" s opts) desc
 
@@ -426,7 +432,7 @@ defcliopts = CliOpts
     { rawopts_         = def
     , command_         = ""
     , file_            = []
-    , inputopts_       = def
+    , inputopts_       = definputopts
     , reportspec_      = def
     , output_file_     = Nothing
     , output_format_   = Nothing

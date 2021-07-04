@@ -46,7 +46,6 @@ module Hledger.Cli.Commands (
 where
 
 import Data.Char (isSpace)
-import Data.Default
 import Data.List
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -293,8 +292,8 @@ tests_Commands = tests "Commands" [
         let
           ignoresourcepos j = j{jtxns=map (\t -> t{tsourcepos=nullsourcepos}) (jtxns j)}
           sameParse str1 str2 = do
-            j1 <- readJournal def Nothing str1 >>= either error' (return . ignoresourcepos)  -- PARTIAL:
-            j2 <- readJournal def Nothing str2 >>= either error' (return . ignoresourcepos)
+            j1 <- readJournal definputopts Nothing str1 >>= either error' (return . ignoresourcepos)  -- PARTIAL:
+            j2 <- readJournal definputopts Nothing str2 >>= either error' (return . ignoresourcepos)
             j1 @?= j2{jlastreadtime=jlastreadtime j1, jfiles=jfiles j1} --, jparsestate=jparsestate j1}
         sameParse
            ("2008/12/07 One\n  alpha  $-1\n  beta  $1\n" <>
@@ -311,19 +310,19 @@ tests_Commands = tests "Commands" [
            )
 
     ,test "preserves \"virtual\" posting type" $ do
-      j <- readJournal def Nothing "apply account test\n2008/12/07 One\n  (from)  $-1\n  (to)  $1\n" >>= either error' return  -- PARTIAL:
+      j <- readJournal definputopts Nothing "apply account test\n2008/12/07 One\n  (from)  $-1\n  (to)  $1\n" >>= either error' return  -- PARTIAL:
       let p = head $ tpostings $ head $ jtxns j
       paccount p @?= "test:from"
       ptype p @?= VirtualPosting
     ]
 
   ,test "alias directive" $ do
-    j <- readJournal def Nothing "!alias expenses = equity:draw:personal\n1/1\n (expenses:food)  1\n" >>= either error' return  -- PARTIAL:
+    j <- readJournal definputopts Nothing "!alias expenses = equity:draw:personal\n1/1\n (expenses:food)  1\n" >>= either error' return  -- PARTIAL:
     let p = head $ tpostings $ head $ jtxns j
     paccount p @?= "equity:draw:personal:food"
 
   ,test "Y default year directive" $ do
-    j <- readJournal def Nothing defaultyear_journal_txt >>= either error' return  -- PARTIAL:
+    j <- readJournal definputopts Nothing defaultyear_journal_txt >>= either error' return  -- PARTIAL:
     tdate (head $ jtxns j) @?= fromGregorian 2009 1 1
 
   ,test "ledgerAccountNames" $
