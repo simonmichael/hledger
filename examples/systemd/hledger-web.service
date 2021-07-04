@@ -1,0 +1,24 @@
+[Unit]
+Description=hledger-web -- plain text accounting, made easy
+Documentation=https://hledger.org/index.html
+After=network.target
+
+[Service]
+# Your account environment is not available if you are not logged
+# in--e.g., on system startup. This sets the variables you need.
+Environment="LANG=en_US.UTF-8"
+Environment="LEDGER_FILE=/fully/qualified/path/to/your/journal"
+
+Environment="BASE_URL=--base-url=https://your.domain"
+
+# The default of 'view,add' is a good starting point, but if you need
+# to, this is where you would set these capabilities.
+# Environment="CAPABILITIES=--capabilities=view,add,manage"
+
+Environment="PORT=--port=6001"
+
+ExecStart=/usr/bin/hledger-web --serve --strict $BASE_URL $PORT $CAPABILITIES
+Restart=always
+
+[Install]
+WantedBy=default.target
