@@ -738,10 +738,12 @@ read -r -d "" _hledger_complist_options_bal <<"__TEXT__"
 --rules-file=
 --sort-amount
 --strict
+--sum
 --transpose
 --tree
 --unmarked
 --value=
+--valuechange
 --version
 --weekly
 --yearly
@@ -795,10 +797,12 @@ read -r -d "" _hledger_complist_options_balance <<"__TEXT__"
 --rules-file=
 --sort-amount
 --strict
+--sum
 --transpose
 --tree
 --unmarked
 --value=
+--valuechange
 --version
 --weekly
 --yearly
@@ -810,6 +814,7 @@ read -r -d "" _hledger_complist_options_balancesheet <<"__TEXT__"
 --auto
 --average
 --begin=
+--budget
 --change
 --cleared
 --color=
@@ -850,9 +855,11 @@ read -r -d "" _hledger_complist_options_balancesheet <<"__TEXT__"
 --rules-file=
 --sort-amount
 --strict
+--sum
 --tree
 --unmarked
 --value=
+--valuechange
 --version
 --weekly
 --yearly
@@ -864,6 +871,7 @@ read -r -d "" _hledger_complist_options_balancesheetequity <<"__TEXT__"
 --auto
 --average
 --begin=
+--budget
 --change
 --cleared
 --color=
@@ -904,9 +912,11 @@ read -r -d "" _hledger_complist_options_balancesheetequity <<"__TEXT__"
 --rules-file=
 --sort-amount
 --strict
+--sum
 --tree
 --unmarked
 --value=
+--valuechange
 --version
 --weekly
 --yearly
@@ -918,6 +928,7 @@ read -r -d "" _hledger_complist_options_bs <<"__TEXT__"
 --auto
 --average
 --begin=
+--budget
 --change
 --cleared
 --color=
@@ -958,9 +969,11 @@ read -r -d "" _hledger_complist_options_bs <<"__TEXT__"
 --rules-file=
 --sort-amount
 --strict
+--sum
 --tree
 --unmarked
 --value=
+--valuechange
 --version
 --weekly
 --yearly
@@ -972,6 +985,7 @@ read -r -d "" _hledger_complist_options_bse <<"__TEXT__"
 --auto
 --average
 --begin=
+--budget
 --change
 --cleared
 --color=
@@ -1012,9 +1026,11 @@ read -r -d "" _hledger_complist_options_bse <<"__TEXT__"
 --rules-file=
 --sort-amount
 --strict
+--sum
 --tree
 --unmarked
 --value=
+--valuechange
 --version
 --weekly
 --yearly
@@ -1026,6 +1042,7 @@ read -r -d "" _hledger_complist_options_cashflow <<"__TEXT__"
 --auto
 --average
 --begin=
+--budget
 --change
 --cleared
 --color=
@@ -1066,9 +1083,11 @@ read -r -d "" _hledger_complist_options_cashflow <<"__TEXT__"
 --rules-file=
 --sort-amount
 --strict
+--sum
 --tree
 --unmarked
 --value=
+--valuechange
 --version
 --weekly
 --yearly
@@ -1080,6 +1099,7 @@ read -r -d "" _hledger_complist_options_cf <<"__TEXT__"
 --auto
 --average
 --begin=
+--budget
 --change
 --cleared
 --color=
@@ -1120,9 +1140,11 @@ read -r -d "" _hledger_complist_options_cf <<"__TEXT__"
 --rules-file=
 --sort-amount
 --strict
+--sum
 --tree
 --unmarked
 --value=
+--valuechange
 --version
 --weekly
 --yearly
@@ -1384,6 +1406,7 @@ read -r -d "" _hledger_complist_options_incomestatement <<"__TEXT__"
 --auto
 --average
 --begin=
+--budget
 --change
 --cleared
 --color=
@@ -1424,9 +1447,11 @@ read -r -d "" _hledger_complist_options_incomestatement <<"__TEXT__"
 --rules-file=
 --sort-amount
 --strict
+--sum
 --tree
 --unmarked
 --value=
+--valuechange
 --version
 --weekly
 --yearly
@@ -1438,6 +1463,7 @@ read -r -d "" _hledger_complist_options_is <<"__TEXT__"
 --auto
 --average
 --begin=
+--budget
 --change
 --cleared
 --color=
@@ -1478,9 +1504,11 @@ read -r -d "" _hledger_complist_options_is <<"__TEXT__"
 --rules-file=
 --sort-amount
 --strict
+--sum
 --tree
 --unmarked
 --value=
+--valuechange
 --version
 --weekly
 --yearly
@@ -2033,8 +2061,8 @@ read -r -d "" _hledger_complist_options_web <<"__TEXT__"
 --auto
 --base-url=
 --begin=
---capabilities=
 --capabilities-header=
+--capabilities=
 --cleared
 --color=
 --cors=
@@ -2046,8 +2074,8 @@ read -r -d "" _hledger_complist_options_web <<"__TEXT__"
 --empty
 --end=
 --exchange=
---file=
 --file-url=
+--file=
 --forecast
 --help
 --host=
