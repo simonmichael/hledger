@@ -507,6 +507,61 @@ Relevant tools include:
   [log](http://ircbrowse.net/day/hledger/2015/10/11) -->
 
 
+## Commit messages
+
+Starting with the 1.23 release cycle,
+I'm proposing some new [conventions](https://conventionalcommits.org) for commit messages.
+These are WIP and will evolve as we need. They are intended to:
+
+- reduce the cost of maintaining change docs (changelogs, release notes, announcements)
+- reduce the cost of releases
+- encourage considered, focussed, well documented changes
+- increase our throughput (the rate of shipping useful, reliable, documented, maintainable features)
+
+1. Commit messages in hledger's main repo will follow this pattern:
+```
+type: [optionaltopic:] summary
+
+[Optional description, more details here when needed.]
+```
+
+2. The type prefix is one of the following:
+
+- Changes visible to end users (including users of hledger-web's HTTP API) -
+  these will be mentioned in release notes as well as changelogs.
+
+  - `feat:` - a new feature
+  - `imp:`  - an improvement to existing features
+  - `fix:`  - a bugfix
+
+- Changes affecting packagers, builders (including users installing
+  from stackage or hackage), and library users (Haskell programmers
+  using our library APIs) - these will be mentioned in changelogs but
+  usually not release notes.
+
+  - `cha:`
+
+- Changes of interest only to developers/debuggers -
+  these will not be mentioned in changelogs or release notes.
+
+  - `;` - short spelling for convenience, think "commented out of changelogs".
+
+3. A topic prefix, and maybe even a subtopic prefix, can be added if
+   useful. These are standard prefixes similar to what I have been
+   using for some time (cf [labels](#labels),
+   [components](#components); I'll make an updated list in due
+   course). They help with readability in the commit history,
+   changelogs and release notes.
+
+4. The summary, and description if any, communicate this change's
+   purpose as clearly as possible to its target audience: end users,
+   builders/packagers/library users, developers/debuggers. The text
+   should be ready for use in changelogs/release notes when applicable.
+
+Crafting good commit messages (and thereby, good commits, and good
+change documentation) is an art and a habit; we'll try to check and
+apply these conventions as part of CI and code review.
+
 ## Pull requests
 
 Most contributed hledger code (and some of the project maintainer's code)
