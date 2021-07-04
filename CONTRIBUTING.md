@@ -509,58 +509,79 @@ Relevant tools include:
 
 ## Commit messages
 
-Starting with the 1.23 release cycle,
-I'm proposing some new [conventions](https://conventionalcommits.org) for commit messages.
-These are WIP and will evolve as we need. They are intended to:
+Starting with the 1.23 release cycle, I'm proposing some new
+conventions for commit messages (WIP, will evolve as needed),
+aiming to:
 
 - reduce the cost of maintaining change docs (changelogs, release notes, announcements)
 - reduce the cost of releases
 - encourage considered, focussed, well documented changes
-- increase our throughput (the rate of shipping useful, reliable, documented, maintainable features)
+- increase our throughput (rate of shipping useful, reliable, documented, maintainable features)
 
-1. Commit messages in hledger's main repo will follow this pattern:
-```
-type: [optionaltopic:] summary
+**hledger commit conventions:**
 
-[Optional description, more details here when needed.]
-```
+1. Commit messages in hledger's main repo follow this pattern:
+   ```
+   type: [optionaltopic:] summary
+   
+   [Optional description, more details here when needed.]
+   ```
 
-2. The type prefix is one of the following:
+2. Every top-level commit must have a type prefix. This indicates the
+   change's intended audience and the general type of change. 
+   Here are the current types:
 
-- Changes visible to end users (including users of hledger-web's HTTP API) -
-  these will be mentioned in release notes as well as changelogs.
+   - Changes visible to end users (including users of hledger-web's HTTP API).
+     These will appear in release notes and changelogs:
+ 
+     - `feat` - a new feature
+     - `imp`  - an improvement to existing features
+     - `fix`  - a bugfix
+ 
+   - Changes affecting packagers, builders (including users installing
+     from stackage or hackage), and library users (Haskell programmers
+     using our library APIs). These will appear in changelogs, but not in release notes:
+ 
+     - `cha` (or `pkg`, `lib` ?)
+ 
+   - Changes of interest only to hledger developers/documentors/debuggers;
+     these will be visible only in the commit history, not in changelogs or release notes:
+ 
+     - `dev` (or `doc`, `ref`, `cln`, ... ?)
+ 
+3. If this is a "breaking change", introducing a compatibility or
+   migration issue, the type is followed by `!`, and the issue
+   and advice to users are included in the description.
+   This will most often be seen with the end-user types, eg:
+   `feat!:`, `imp!:`, `fix!:`.
 
-  - `feat:` - a new feature
-  - `imp:`  - an improvement to existing features
-  - `fix:`  - a bugfix
+4. If the first character of the commit message is `;`, this commit
+   (more precisely, the push ending with this commit) will be excluded
+   from the usual CI checks. Our CI tends to do a lot of building, so 
+   you can use this to save energy and carbon emissions when pushing 
+   harmless changes.
 
-- Changes affecting packagers, builders (including users installing
-  from stackage or hackage), and library users (Haskell programmers
-  using our library APIs) - these will be mentioned in changelogs but
-  usually not release notes.
+5. A topic prefix, and maybe even a subtopic prefix, can be added
+   before the summary if useful. These are standard prefixes similar
+   to what I have been using for some time, see [components](#components). 
+   They help with readability in the commit history, changelogs and release notes.
 
-  - `cha:`
+6. Any relevant issues should be mentioned, often parenthesised at 
+   the end of the summary: `(#NNNN)`.
 
-- Changes of interest only to developers/debuggers -
-  these will not be mentioned in changelogs or release notes.
-
-  - `;` - short spelling for convenience, think "commented out of changelogs".
-
-3. A topic prefix, and maybe even a subtopic prefix, can be added if
-   useful. These are standard prefixes similar to what I have been
-   using for some time (cf [labels](#labels),
-   [components](#components); I'll make an updated list in due
-   course). They help with readability in the commit history,
-   changelogs and release notes.
-
-4. The summary, and description if any, communicate this change's
+7. The summary, and description if any, communicate this change's
    purpose as clearly as possible to its target audience: end users,
    builders/packagers/library users, developers/debuggers. The text
    should be ready for use in changelogs/release notes when applicable.
 
 Crafting good commit messages (and thereby, good commits, and good
-change documentation) is an art and a habit; we'll try to check and
-apply these conventions as part of CI and code review.
+change documentation) is an art and a habit; we'll check and satisfy 
+these conventions as part of CI and code review.
+
+Related:
+
+- <https://conventionalcommits.org>
+- <http://git.savannah.gnu.org/cgit/emacs.git/plain/CONTRIBUTE> -> Commit messages
 
 ## Pull requests
 
