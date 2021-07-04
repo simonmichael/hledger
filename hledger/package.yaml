@@ -40,6 +40,7 @@ extra-source-files:
 - embeddedfiles/hledger-web.1
 - embeddedfiles/hledger-web.txt
 - embeddedfiles/hledger-web.info
+- shell-completion/hledger-completion.bash
 - Hledger/Cli/Commands/Accounts.txt
 - Hledger/Cli/Commands/Activity.txt
 - Hledger/Cli/Commands/Add.txt
