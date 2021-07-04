@@ -10,7 +10,11 @@ name: release
 # also: "The action does not seem to work for tags created before the workflow."
 on:
   push:
-    tags: [ '[0-9]*', 'r[0-9]*' ]
+    tags:
+      - '[0-9]+.[0-9]+'
+      - '[0-9]+.[0-9]+-*'
+      - '[0-9]+.[0-9]+.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+-*'
 
 jobs:
   release:
