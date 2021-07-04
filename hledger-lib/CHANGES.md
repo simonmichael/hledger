@@ -9,7 +9,6 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# de4e7ae4c
 # 1.22 2021-07-03
 
 - GHC 9.0 is now officially supported, and GHC 8.0, 8.2, 8.4 are not;

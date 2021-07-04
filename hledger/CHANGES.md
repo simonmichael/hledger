@@ -9,7 +9,6 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# de4e7ae4c
 # 1.22 2021-07-03
 
 Features
