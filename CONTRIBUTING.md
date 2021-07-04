@@ -580,6 +580,7 @@ these conventions as part of CI and code review.
 
 Related:
 
+- <https://groups.google.com/g/hledger/c/t14xwHQMJqU/m/9frARXIdAAAJ>
 - <https://conventionalcommits.org>
 - <http://git.savannah.gnu.org/cgit/emacs.git/plain/CONTRIBUTE> -> Commit messages
 
