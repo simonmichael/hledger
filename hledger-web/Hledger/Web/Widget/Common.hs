@@ -19,7 +19,6 @@ module Hledger.Web.Widget.Common
   , replaceInacct
   ) where
 
-import Data.Default (def)
 import Data.Foldable (find, for_)
 import Data.List (elemIndex)
 import Data.Text (Text)
@@ -66,7 +65,7 @@ writeJournalTextIfValidAndChanged f t = do
   -- formatdirectivep, #1194) writeFileWithBackupIfChanged require them.
   -- XXX klunky. Any equivalent of "hSetNewlineMode h universalNewlineMode" for form posts ?
   let t' = T.replace "\r" "" t
-  liftIO (readJournal def (Just f) t') >>= \case
+  liftIO (readJournal definputopts (Just f) t') >>= \case
     Left e -> return (Left e)
     Right _ -> do
       _ <- liftIO (writeFileWithBackupIfChanged f t')

@@ -86,6 +86,7 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
     ,flagNone ["percent", "%"] (setboolopt "percent") "express values in percentage of each column's total"
     ,outputFormatFlag ["txt","html","csv","json"]
     ,outputFileFlag
+    ,commodityStyleFlag
     ])
     [generalflagsgroup1]
     hiddenflags

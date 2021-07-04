@@ -730,7 +730,7 @@ journalModifyTransactions d j =
 -- | Check any balance assertions in the journal and return an error message
 -- if any of them fail (or if the transaction balancing they require fails).
 journalCheckBalanceAssertions :: Journal -> Maybe String
-journalCheckBalanceAssertions = either Just (const Nothing) . journalBalanceTransactions def
+journalCheckBalanceAssertions = either Just (const Nothing) . journalBalanceTransactions balancingOpts
 
 -- "Transaction balancing", including: inferring missing amounts,
 -- applying balance assignments, checking transaction balancedness,
@@ -1415,7 +1415,7 @@ journalApplyAliases aliases j =
 --     liabilities:debts  $1
 --     assets:bank:checking
 --
-Right samplejournal = journalBalanceTransactions def $
+Right samplejournal = journalBalanceTransactions balancingOpts $
          nulljournal
          {jtxns = [
            txnTieKnot $ Transaction {
@@ -1558,7 +1558,7 @@ tests_Journal = tests "Journal" [
   ,tests "journalBalanceTransactions" [
 
      test "balance-assignment" $ do
-      let ej = journalBalanceTransactions def $
+      let ej = journalBalanceTransactions balancingOpts $
             --2019/01/01
             --  (a)            = 1
             nulljournal{ jtxns = [
@@ -1569,7 +1569,7 @@ tests_Journal = tests "Journal" [
       (jtxns j & head & tpostings & head & pamount & amountsRaw) @?= [num 1]
 
     ,test "same-day-1" $ do
-      assertRight $ journalBalanceTransactions def $
+      assertRight $ journalBalanceTransactions balancingOpts $
             --2019/01/01
             --  (a)            = 1
             --2019/01/01
@@ -1580,7 +1580,7 @@ tests_Journal = tests "Journal" [
             ]}
 
     ,test "same-day-2" $ do
-      assertRight $ journalBalanceTransactions def $
+      assertRight $ journalBalanceTransactions balancingOpts $
             --2019/01/01
             --    (a)                  2 = 2
             --2019/01/01
@@ -1598,7 +1598,7 @@ tests_Journal = tests "Journal" [
             ]}
 
     ,test "out-of-order" $ do
-      assertRight $ journalBalanceTransactions def $
+      assertRight $ journalBalanceTransactions balancingOpts $
             --2019/1/2
             --  (a)    1 = 2
             --2019/1/1

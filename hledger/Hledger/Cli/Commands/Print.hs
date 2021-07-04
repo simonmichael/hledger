@@ -41,6 +41,7 @@ printmode = hledgerCommandMode
     "show only newer-dated transactions added in each file since last run"
   ,outputFormatFlag ["txt","csv","json","sql"]
   ,outputFileFlag
+  ,commodityStyleFlag
   ])
   [generalflagsgroup1]
   hiddenflags
