@@ -525,28 +525,40 @@ conventions for commit messages (WIP, will evolve as needed), aiming to
    [Optional description, more details here when needed.]
    ```
 
-2. Every top-level commit must have a type prefix. This indicates the
-   change's intended audience and the general type of change. 
+2. Every top-level commit must have a type prefix, ending with a colon and optional space. 
+   This indicates the change's intended audience and the general type of change. 
    Here are the current types:
 
-   - Changes visible to end users (including users of hledger-web's HTTP API).
+   - **Changes visible to end users** (including users of hledger-web's HTTP API).
      These will appear in release notes and changelogs:
  
      - `feat` - a new feature
      - `imp`  - an improvement to existing features
      - `fix`  - a bugfix
  
-   - Changes affecting packagers, builders (including users installing
-     from stackage or hackage), and library users (Haskell programmers
-     using our library APIs). These will appear in changelogs, but not in release notes:
+   - **Changes affecting packagers, builders, and library users**. 
+    These will appear in changelogs:
  
-     - `cha` (or `pkg`, `lib` ?)
+     - `cha` - a generic package/lib change. Or, one of these specific types:
+     - `pkg` - something to do with the haskell packages, dependencies etc.
+     - `lib` - a change in the package's library API
+     - ...some other type that seems useful...
+
+   - **Changes interesting only to hledger developers/documentors/debuggers**.
+     These will usually appear only in the commit history, not in changelogs or release notes:
  
-   - Changes of interest only to hledger developers/documentors/debuggers;
-     these will be visible only in the commit history, not in changelogs or release notes:
+     - `dev` - a generic developer change. Or, one of these specific types:
+     - `ref` - refactoring
+     - `cln` - cleanup
+     - `doc` - documentation-related
+     - `test` - tests-related
+     - `ci`  - continuous integration-related
+     - ...some other type that seems useful...
  
-     - `dev` (or `doc`, `ref`, `cln`, ... ?)
- 
+    There's a bit of ambiguity/overlap between the cha/dev types and topics.
+    Eg the `doc` type indicates a boring doc change, but there's also a `doc` topic
+    which might be used for interesting doc changes, as in `feat:doc:...`. TBD.
+
 3. If this is a "breaking change", introducing a compatibility or
    migration issue, the type is followed by `!`, and the issue
    and advice to users are included in the description.
@@ -575,8 +587,8 @@ conventions for commit messages (WIP, will evolve as needed), aiming to
 
 Crafting good commit messages (and thereby good commits, good change
 documentation, easier code review, faster merging) is an art and a
-habit; we'll check and satisfy these conventions as part of CI and
-code review.
+habit. Just use your best judgement and we'll check and polish
+as part of CI and code review. Examples will be added here in due course.
 
 Related:
 
