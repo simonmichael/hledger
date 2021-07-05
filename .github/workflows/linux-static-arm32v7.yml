@@ -27,28 +27,28 @@ jobs:
         with:
           file: ./docker-static-arm32v7/Dockerfile
           platforms: linux/arm
-          tags: hledger-static-linux-arm32v7:latest
+          tags: hledger-linux-static-arm32v7:latest
           load: true
 
       - name: Extract binaries from docker
         run: |
           # Create temporary container from it
-          container_id=$(docker create hledger-static-linux-arm32v7:latest)
+          container_id=$(docker create hledger-linux-static-arm32v7:latest)
           # Copy stuff from temp container
-          docker cp $container_id:/root/hledger /tmp/hledger-static-linux-arm32v7
+          docker cp $container_id:/root/hledger /tmp/hledger-linux-static-arm32v7
           # Delete temp container
           docker rm -v $container_id
 
       - name: Upload binary
         uses: actions/upload-artifact@v2
         with:
-          name: Static Binary
-          path: /tmp/hledger-static-linux-arm32v7
+          name: hledger-linux-static-arm32v7
+          path: /tmp/hledger-linux-static-arm32v7
 
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: /tmp/hledger-static-linux-arm32v7
+          files: /tmp/hledger-linux-static-arm32v7
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
