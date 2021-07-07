@@ -20,6 +20,7 @@ module Hledger.Data.Transaction (
   transaction,
   txnTieKnot,
   txnUntieKnot,
+  transactionCheckBalanced,
   -- * operations
   showAccountName,
   hasRealPostings,
