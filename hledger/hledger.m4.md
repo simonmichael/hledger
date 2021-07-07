@@ -2311,6 +2311,7 @@ so here is a table summarising the directives and their effects, with links to m
 [`commodity`]:     #declaring-commodities
 [`D`]:             #default-commodity
 [`include`]:       #including-other-files
+[`payee`]:         #declaring-payees
 [`P`]:             #market-prices
 [`Y`]:             #default-year
 [`=`]:             #auto-postings
