@@ -107,7 +107,13 @@ Mention any related issues, usually parenthesised at end of summary: (#1234)
 
 These conventions are evolving. In practice, any type or topic will do.
 Use your best judgement and we'll polish during code review.
-More detail: https://hledger.org/CONTRIBUTING.html#commit-messages
+More context: https://hledger.org/CONTRIBUTING.html#commit-messages
+
+You can set up this script to check your commit messages locally:
+1. before committing:
+   a. safer but must redo:  cp bin/commitlint .git/hooks/commit-msg
+   b. more convenient:      ln -s ../../bin/commitlint .git/hooks/commit-msg
+2. before pushing:          bin/commitlint && git push
 ---------------------------------------------------------------------------
 EOF
 
