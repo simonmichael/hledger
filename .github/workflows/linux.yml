@@ -87,6 +87,23 @@ jobs:
       with: 
         fetch-depth: 0        
 
+    #- name: Print debug output
+    #   env:
+    #     GITHUB_CONTEXT: ${{ toJson(github) }}
+    #   run: |
+    #     echo "$GITHUB_SHA"
+    #     echo "$GITHUB_REF"
+    #     echo "$GITHUB_HEAD_REF"
+    #     echo "$GITHUB_BASE_REF"
+    #     git log "$GITHUB_BASE_REF"..
+    #     bin/commitlint "$GITHUB_BASE_REF"..
+
+    - name: Check commit messages
+      # for a PR this will be: origin/master..origin/$GITHUB_HEAD_REF
+      # for a push it will be: origin/master..
+      run: |
+        bin/commitlint origin/master..${GITHUB_HEAD_REF:+origin/$GITHUB_HEAD_REF}
+
     # things to be cached/restored:
 
     - name: Cache stack global package db

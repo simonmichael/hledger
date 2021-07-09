@@ -57,6 +57,12 @@ jobs:
       with: 
         fetch-depth: 0        
 
+    - name: Check commit messages
+      # for a PR this will be: master..origin/$GITHUB_HEAD_REF
+      # for a push it will be: master..
+      run: |
+        bin/commitlint origin/master..${GITHUB_HEAD_REF:+origin/$GITHUB_HEAD_REF}
+
     # things to be cached/restored:
 
     - name: Cache stack global package db
