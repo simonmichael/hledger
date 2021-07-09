@@ -36,8 +36,8 @@
            [
             #{dayToJsTimestamp $ triDate i},
             #{simpleMixedAmountQuantity $ triCommodityBalance c i},
-            '#{showMixedAmountWithZeroCommodity $ triCommodityAmount c i}',
-            '#{showMixedAmountWithZeroCommodity $ triCommodityBalance c i}',
+            '#{showZeroCommodity $ triCommodityAmount c i}',
+            '#{showZeroCommodity $ triCommodityBalance c i}',
             '#{concat $ intersperse "\\n" $ lines $ T.unpack $ showTransaction $ triOrigTransaction i}',
             #{tindex $ triOrigTransaction i}
            ],
