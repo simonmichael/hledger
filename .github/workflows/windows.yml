@@ -47,6 +47,15 @@ jobs:
       with: 
         fetch-depth: 0        
 
+    - name: Check commit messages
+      env:
+        BEFORE: ${{ github.event.before }}
+      # for a PR this will be: origin/master..origin/$GITHUB_HEAD_REF
+      # for a push it will be: $BEFORE..
+      # for a force push, BEFORE is the previous HEAD, and on github (not locally) this is an "invalid revision range"
+      run: |
+        bin/commitlint ${BEFORE:-origin/master}..${GITHUB_HEAD_REF:+origin/$GITHUB_HEAD_REF}
+
     # things to be cached/restored:
 
     - name: Cache stack global package db

@@ -1,4 +1,5 @@
-# Runs on notable pushes to master.
+# Runs on (after) notable pushes to master.
+# Failure does not block the push.
 
 # Builds incrementally and runs functional tests on linux,
 # using the latest supported GHC version.
@@ -49,6 +50,28 @@ jobs:
       # have to fetch everything for git describe for --version
       with: 
         fetch-depth: 0        
+
+    # - name: Print debug output
+    #   env:
+    #     GITHUB_CONTEXT: ${{ toJson(github) }}
+    #   run: |
+    #     echo
+
+    #     echo "$GITHUB_SHA"
+    #     echo "$GITHUB_REF"
+    #     echo "$GITHUB_HEAD_REF"
+    #     echo "$GITHUB_BASE_REF"
+    #     git log "$GITHUB_BASE_REF"..
+    #     bin/commitlint "$GITHUB_BASE_REF"..
+
+    - name: Check commit messages
+      env:
+        BEFORE: ${{ github.event.before }}
+      # for a PR this will be: master..origin/$GITHUB_HEAD_REF
+      # for a push it will be: $BEFORE..
+      # for a force push, BEFORE is the previous HEAD, and on github (not locally) this is an "invalid revision range"
+      run: |
+        bin/commitlint ${BEFORE:-origin/master}..${GITHUB_HEAD_REF:+origin/$GITHUB_HEAD_REF}
 
     # things to be cached/restored:
 
