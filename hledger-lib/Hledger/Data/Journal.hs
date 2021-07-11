@@ -60,6 +60,7 @@ module Hledger.Data.Journal (
   journalDateSpanBothDates,
   journalStartDate,
   journalEndDate,
+  journalLastDay,
   journalDescriptions,
   journalFilePath,
   journalFilePaths,
@@ -1316,10 +1317,15 @@ journalDateSpanHelper whichdate j =
 journalStartDate :: Bool -> Journal -> Maybe Day
 journalStartDate secondary j = b where DateSpan b _ = journalDateSpan secondary j
 
--- | The latest of this journal's transaction and posting dates, or
--- Nothing if there are none.
+-- | The "exclusive end date" of this journal: the day following its latest transaction 
+-- or posting date, or Nothing if there are none.
 journalEndDate :: Bool -> Journal -> Maybe Day
 journalEndDate secondary j = e where DateSpan _ e = journalDateSpan secondary j
+
+-- | The latest of this journal's transaction and posting dates, or
+-- Nothing if there are none.
+journalLastDay :: Bool -> Journal -> Maybe Day
+journalLastDay secondary j = addDays (-1) <$> journalEndDate secondary j
 
 -- | Apply the pivot transformation to all postings in a journal,
 -- replacing their account name by their value for the given field or tag.
