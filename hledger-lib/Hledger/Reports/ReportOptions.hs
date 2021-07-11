@@ -636,8 +636,8 @@ reportPeriodOrJournalLastDay :: ReportSpec -> Journal -> Maybe Day
 reportPeriodOrJournalLastDay rspec j = reportPeriodLastDay rspec <|> journalOrPriceEnd
   where
     journalOrPriceEnd = case value_ $ rsOpts rspec of
-        Just (AtEnd _) -> max (journalEndDate False j) lastPriceDirective
-        _              -> journalEndDate False j
+        Just (AtEnd _) -> max (journalLastDay False j) lastPriceDirective
+        _              -> journalLastDay False j
     lastPriceDirective = fmap (addDays 1) . maximumMay . map pddate $ jpricedirectives j
 
 -- | Make a name for the given period in a multiperiod report, given
