@@ -73,16 +73,37 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec} j = do
         (Nothing, Nothing) -> (T.pack defclosingacct, T.pack defopeningacct)
 
     -- dates of the closing and opening transactions
-    rspec_ = rspec{rsOpts=ropts}
-    ropts = (rsOpts rspec){balancetype_=HistoricalBalance, accountlistmode_=ALFlat}
+    --
+    -- Close.md:
+    -- "The default closing date is yesterday, or the journal's end date, whichever is later.
+    --
+    -- Unless you are running `close` on exactly the first day of the new period, 
+    -- you'll want to override the closing date. 
+    -- This is done by specifying a [report period](#report-start--end-date), 
+    -- where "last day of the report period" will be the closing date.
+    -- The opening date is always the following day.
+    -- So to close on 2020-12-31 and open on 2021-01-01, any of these work
+    --
+    -- - `-p 2020`
+    -- - `date:2020`
+    -- - `-e 2021-01-01`  (remember `-e` specifies an exclusive report end date)
+    -- - `-e 2021`"
+    --
     q = rsQuery rspec
-    openingdate = fromMaybe today $ queryEndDate False q
-    closingdate = addDays (-1) openingdate
+    yesterday = addDays (-1) today
+    yesterdayorjournalend = case journalLastDay False j of
+      Just journalend -> max yesterday journalend
+      Nothing         -> yesterday
+    mreportlastday = addDays (-1) <$> queryEndDate False q
+    closingdate = fromMaybe yesterdayorjournalend  mreportlastday
+    openingdate = addDays 1 closingdate
 
     -- should we show the amount(s) on the equity posting(s) ?
     explicit = boolopt "explicit" rawopts
 
     -- the balances to close
+    ropts = (rsOpts rspec){balancetype_=HistoricalBalance, accountlistmode_=ALFlat}
+    rspec_ = rspec{rsOpts=ropts}
     (acctbals',_) = balanceReport rspec_ j
     acctbals = map (\(a,_,_,b) -> (a, if show_costs_ ropts then b else mixedAmountStripPrices b)) acctbals'
     totalamt = maSum $ map snd acctbals

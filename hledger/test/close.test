@@ -303,3 +303,16 @@ $ hledger -f- close -p 2019 assets --interleaved -x
     equity:opening/closing balances           $-0.109999
 
 >=0
+
+# 14. "The default closing date is yesterday, or the journal's end date, whichever is later."
+<
+999999-12-31
+  (a)  1
+$ hledger -f- close
+> /999999-12-31 closing balances/
+>=
+
+# 15. "override the closing date ... by specifying a report period, where last day of the report period will be the closing date"
+$ hledger -f- close -e 100000-01-01
+> /99999-12-31 closing balances/
+>=
