@@ -271,7 +271,7 @@ main = do
           when ("was generated with a newer version of hpack" `isInfixOf` err) $
             liftIO $ putStr err >> exitFailure
           when commit $ do
-            let msg = ";update cabal files"
+            let msg = ";dev: cabal: update cabal files"
             cmd Shell gitcommit ("-m '"++msg++"' --") cabalfiles
 
       -- Update version strings in most "source" files to match what's in PKG/.version.
@@ -302,7 +302,7 @@ main = do
         -- and maybe commit them
         when commit $ do
           let msg = unwords [
-                 ";bump"
+                 ";pkg: bump"
                 ,case dirargs of
                    [] -> "version"
                    ds -> intercalate ", " ds ++ " version"
@@ -402,7 +402,7 @@ main = do
               ,webmanuals
               ]
         when commit $ do
-          let msg = ";update manuals"
+          let msg = ";dev: doc: update manuals"
           cmd Shell gitcommit ("-m '"++msg++"' --") packagemandatem4s nroffmanuals infomanuals infodirentries infodir txtmanuals
 
       -- Update the dates to show in man pages, to the current month and year.
@@ -579,7 +579,7 @@ main = do
       phony "cmdhelp" $ do
         need commandtxts
         when commit $ do
-          let msg = ";update CLI usage texts"
+          let msg = ";dev: doc: update CLI usage texts"
           cmd Shell gitcommit ("-m '"++msg++"' --") commandtxts
 
       commandtxts |%> \out -> do
@@ -625,7 +625,7 @@ main = do
       phony "changelogs" $ do
         need changelogs
         when commit $ do
-          let msg = ";update changelogs"
+          let msg = ";dev: doc: update changelogs"
           cmd Shell gitcommit ("-m '"++msg++"' --") changelogs
 
       -- [PKG/]CHANGES.md
