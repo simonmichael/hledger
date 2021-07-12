@@ -53,9 +53,15 @@ function checkmsg()
     SUMMARY=$(echo "$MSG" | head -1)
     FMT="%s%-60s  %b${NRM}\n"
 
-    # Does the summary have a type: prefix ?
-    # Can begin with ; and/or end with !, some spaces are tolerated.
-    if ! echo "$SUMMARY" | grep -qE '^(; *)?\w+:[ \w]+!?'
+    # Does the summary follow convention ?
+    # [;]type[!]: [topic: [subtopic: ...]] subject
+    #
+    # spaces after ; and ! and : are optional (also before, but that should be discouraged)
+    # the type prefix is required and must be all word characters
+    # there can be zero or more topic prefixes of increasing depth
+    # a topic prefix must begin with a word character, can contain spaces/slashes/commas
+    # (so potentially multiple topic labels, eg "imp: bs, cf, is: cli/doc: blah blah")
+    if ! echo "$SUMMARY" | grep -qE '^( *; *)?\w+( *!)? *: *(\w[\w,/ ]* *: *)*'
     then
         # shellcheck disable=SC2059
         printf "$FMT" "$HASH" "$SUMMARY" "${RED}[FAIL]"
@@ -97,11 +103,13 @@ Explanation:
 The subject line should have a type: prefix. Common types:
  feat imp fix            - end-user changes (->release notes & changelogs)
  cha pkg lib             - packager/builder/lib-user changes (->changelogs)
- dev doc test ci ref cln - developer changes
+ dev doc test ci ref cln - developer changes (->just commit log, mostly)
 
-It may additionally have a topic(s) prefix such as:
+It can additionally have a topic prefix (and optionally subtopics), such as:
  bin examples install cli ui web print reg bal bs balcmds journal csv ...
  (see https://hledger.org/CONTRIBUTING.html#open-issues -> COMPONENT)
+Space, comma and slash are also tolerated inside topics for now. Eg:
+ imp: bs, cf, is: cli/doc: blah blah blah
 
 Mention any related issues, usually parenthesised at end of summary: (#1234)
 ! indicates a breaking change.
