@@ -73,12 +73,25 @@ which has nice screenshots, but might be less up to date.
  2008-06-02   save                        as:ba:saving                 $-1   $1
  2008-12-31 * pay off                     li:debts                     $-1    0  # <- selected
 
-** / SPACE desc:pay  # add another filter term, showing only transactions with "pay" in the description
-──────── assets:bank:checking transactions matching bank desc:pay (1/1) ────────
- 2008-12-31 * pay off                    as:ba:checking               $-1   $-1
+** / SPACE desc:a  # add another filter term, showing only transactions with "a" in the description
+───────── assets:bank:checking transactions matching bank desc:a (2/2) ─────────
+ 2008-06-02   save                       as:ba:saving                 $-1   $-1
+ 2008-12-31 * pay off                    as:ba:checking               $-1   $-2  # <- selected
 
 ** RIGHT  # shows transaction detail
-──── Transaction #5 (1 of 1 matching bank desc:pay in assets:bank:checking) ────
+───── Transaction #5 (2 of 2 matching bank desc:a in assets:bank:checking) ─────
+ 2008-12-31 * pay off
+     liabilities:debts                 $1
+     assets:bank:checking             $-1
+
+** UP  # shows previous matched transaction
+───── Transaction #3 (1 of 2 matching bank desc:a in assets:bank:checking) ─────
+ 2008-06-02 save
+     assets:bank:saving                $1
+     assets:bank:checking             $-1
+
+** DOWN  # shows next matched transaction
+───── Transaction #5 (2 of 2 matching bank desc:a in assets:bank:checking) ─────
  2008-12-31 * pay off
      liabilities:debts                 $1
      assets:bank:checking             $-1
