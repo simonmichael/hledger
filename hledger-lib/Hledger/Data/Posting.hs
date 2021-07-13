@@ -183,7 +183,7 @@ isBalancedVirtual :: Posting -> Bool
 isBalancedVirtual p = ptype p == BalancedVirtualPosting
 
 hasAmount :: Posting -> Bool
-hasAmount = (/= missingmixedamt) . pamount
+hasAmount = not . isMissingMixedAmount . pamount
 
 hasBalanceAssignment :: Posting -> Bool
 hasBalanceAssignment p = not (hasAmount p) && isJust (pbalanceassertion p)

@@ -259,6 +259,9 @@ Here are some ways to handle that:
 
 With `-S/--sort-amount`, accounts with the largest (most positive) balances are shown first.
 Eg: `hledger bal expenses -MAS` shows your biggest averaged monthly expenses first.
+When more than one commodity is present, they will be sorted by the alphabetically earliest
+commodity first, and then by subsequent commodities (if an amount is missing a commodity, it
+is treated as 0).
 
 Revenues and liability balances are typically negative, however, so `-S` shows these in reverse order.
 To work around this, you can add `--invert` to flip the signs.
