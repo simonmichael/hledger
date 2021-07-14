@@ -274,35 +274,35 @@ import Hledger.Read.CsvReader (CSV, printCSV)
 -- | Command line options for this command.
 balancemode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Balance.txt")
-  ([flagNone ["sum"] (setboolopt "sum")
+  (
+    [flagNone ["sum"] (setboolopt "sum")
       "show sum of posting amounts (default)"
-   ,flagNone ["budget"] (setboolopt "budget")
+    ,flagNone ["budget"] (setboolopt "budget")
       "show sum of posting amounts compared to budget goals defined by periodic transactions\n "
-   ,flagNone ["valuechange"] (setboolopt "valuechange")
+    ,flagNone ["valuechange"] (setboolopt "valuechange")
       "show change of value of period-end historical balances"
-
-   ,flagNone ["change"] (setboolopt "change")
+    ,flagNone ["change"] (setboolopt "change")
       "accumulate amounts from column start to column end (in multicolumn reports, default)"
-   ,flagNone ["cumulative"] (setboolopt "cumulative")
+    ,flagNone ["cumulative"] (setboolopt "cumulative")
       "accumulate amounts from report start (specified by e.g. -b/--begin) to column end"
-   ,flagNone ["historical","H"] (setboolopt "historical")
+    ,flagNone ["historical","H"] (setboolopt "historical")
       "accumulate amounts from journal start to column end (includes postings before report start date)\n "
-   ]
-   ++ flattreeflags True ++
-   [flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "omit N leading account name parts (in flat mode)"
-   ,flagNone ["average","A"] (setboolopt "average") "show a row average column (in multicolumn reports)"
-   ,flagNone ["row-total","T"] (setboolopt "row-total") "show a row total column (in multicolumn reports)"
-   ,flagNone ["no-total","N"] (setboolopt "no-total") "omit the final total row"
-   ,flagNone ["no-elide"] (setboolopt "no-elide") "don't squash boring parent accounts (in tree mode); don't show only 2 commodities per amount"
-   ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format (in simple reports)"
-   ,flagNone ["pretty-tables"] (setboolopt "pretty-tables") "use unicode to display prettier tables"
-   ,flagNone ["sort-amount","S"] (setboolopt "sort-amount") "sort by amount instead of account code/name (in flat mode). With multiple columns, sorts by the row total, or by row average if that is displayed."
-   ,flagNone ["percent", "%"] (setboolopt "percent") "express values in percentage of each column's total"
-   ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
-   ,flagNone ["transpose"] (setboolopt "transpose") "transpose rows and columns"
-   ,outputFormatFlag ["txt","html","csv","json"]
-   ,outputFileFlag
-   ]
+    ]
+    ++ flattreeflags True ++
+    [flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "omit N leading account name parts (in flat mode)"
+    ,flagNone ["average","A"] (setboolopt "average") "show a row average column (in multicolumn reports)"
+    ,flagNone ["row-total","T"] (setboolopt "row-total") "show a row total column (in multicolumn reports)"
+    ,flagNone ["no-total","N"] (setboolopt "no-total") "omit the final total row"
+    ,flagNone ["no-elide"] (setboolopt "no-elide") "don't squash boring parent accounts (in tree mode); don't show only 2 commodities per amount"
+    ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format (in simple reports)"
+    ,flagNone ["pretty-tables"] (setboolopt "pretty-tables") "use unicode to display prettier tables"
+    ,flagNone ["sort-amount","S"] (setboolopt "sort-amount") "sort by amount instead of account code/name (in flat mode). With multiple columns, sorts by the row total, or by row average if that is displayed."
+    ,flagNone ["percent", "%"] (setboolopt "percent") "express values in percentage of each column's total"
+    ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
+    ,flagNone ["transpose"] (setboolopt "transpose") "transpose rows and columns"
+    ,outputFormatFlag ["txt","html","csv","json"]
+    ,outputFileFlag
+    ]
   )
   [generalflagsgroup1]
   hiddenflags
