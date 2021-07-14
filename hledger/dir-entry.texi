@@ -1,4 +1,4 @@
 @dircategory User Applications
 @direntry
-* hledger: (hledger/hledger).  Command-line plain text accounting tool.
+* hledger: (hledger).  Command-line plain text accounting tool.
 @end direntry
