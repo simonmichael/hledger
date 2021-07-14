@@ -64,7 +64,7 @@ type Average = MixedAmount  -- ^ The average of 'Change's or 'Balance's in a rep
 --
 --   * A list of amounts, one for each column. Depending on the value type,
 --     these can represent balance changes, ending balances, budget
---     performance, etc. (for example, see 'BalanceType' and
+--     performance, etc. (for example, see 'BalanceAccumulation' and
 --     "Hledger.Cli.Commands.Balance").
 --
 --   * the total of the row's amounts for a periodic report,

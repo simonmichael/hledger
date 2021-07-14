@@ -107,8 +107,8 @@ accountTransactionsReport rspec@ReportSpec{rsOpts=ropts} j reportq thisacctq = i
       $ journalApplyValuationFromOpts rspec j
 
     startbal
-      | balancetype_ ropts == HistoricalBalance = sumPostings priorps
-      | otherwise                               = nullmixedamt
+      | balanceaccum_ ropts == Historical = sumPostings priorps
+      | otherwise                                = nullmixedamt
       where
         priorps = dbg5 "priorps" $
                   filter (matchesPosting

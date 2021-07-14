@@ -153,7 +153,7 @@ asDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}
 
       where
         ropts = rsOpts rspec
-        ishistorical = balancetype_ ropts == HistoricalBalance
+        ishistorical = balanceaccum_ ropts == Historical
 
         toplabel =
               withAttr ("border" <> "filename") files

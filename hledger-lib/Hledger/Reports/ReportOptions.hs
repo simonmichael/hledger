@@ -11,8 +11,8 @@ Options common to most hledger reports.
 module Hledger.Reports.ReportOptions (
   ReportOpts(..),
   ReportSpec(..),
-  ReportType(..),
-  BalanceType(..),
+  BalanceCalculation(..),
+  BalanceAccumulation(..),
   AccountListMode(..),
   ValuationType(..),
   defreportopts,
@@ -22,7 +22,7 @@ module Hledger.Reports.ReportOptions (
   updateReportSpec,
   updateReportSpecWith,
   rawOptsToReportSpec,
-  balanceTypeOverride,
+  balanceAccumulationOverride,
   flat_,
   tree_,
   reportOptsToggleStatus,
@@ -65,23 +65,26 @@ import Hledger.Query
 import Hledger.Utils
 
 
--- | What is calculated and shown in each cell in a balance report.
-data ReportType = ChangeReport       -- ^ The sum of posting amounts.
-                | BudgetReport       -- ^ The sum of posting amounts and the goal.
-                | ValueChangeReport  -- ^ The change of value of period-end historical values.
+-- | What to calculate for each cell in a balance report.
+-- "Balance report types -> Calculation type" in the hledger manual.
+data BalanceCalculation = 
+    CalcChange      -- ^ Sum of posting amounts in the period.
+  | CalcBudget      -- ^ Sum of posting amounts and the goal for the period.
+  | CalcValueChange -- ^ Change from previous period's historical end value to this period's historical end value.
   deriving (Eq, Show)
 
-instance Default ReportType where def = ChangeReport
+instance Default BalanceCalculation where def = CalcChange
 
--- | Which "accumulation method" is being shown in a balance report.
-data BalanceType = PeriodChange      -- ^ The accumulate change over a single period.
-                 | CumulativeChange  -- ^ The accumulated change across multiple periods.
-                 | HistoricalBalance -- ^ The historical ending balance, including the effect of
-                                     --   all postings before the report period. Unless altered by,
-                                     --   a query, this is what you would see on a bank statement.
+-- | How to accumulate calculated values across periods (columns) in a balance report.
+-- "Balance report types -> Accumulation type" in the hledger manual.
+data BalanceAccumulation =
+    PerPeriod   -- ^ No accumulation. Eg, shows the change of balance in each period.
+  | Cumulative  -- ^ Accumulate changes across periods, starting from zero at report start.
+  | Historical  -- ^ Accumulate changes across periods, including any from before report start.
+                --   Eg, shows the historical end balance of each period.
   deriving (Eq,Show)
 
-instance Default BalanceType where def = PeriodChange
+instance Default BalanceAccumulation where def = PerPeriod
 
 -- | Should accounts be displayed: in the command's default style, hierarchically, or as a flat list ?
 data AccountListMode = ALFlat | ALTree deriving (Eq, Show)
@@ -114,8 +117,8 @@ data ReportOpts = ReportOpts {
     -- for account transactions reports (aregister)
     ,txn_dates_      :: Bool
     -- for balance reports (bal, bs, cf, is)
-    ,reporttype_     :: ReportType
-    ,balancetype_    :: BalanceType
+    ,balancecalc_    :: BalanceCalculation
+    ,balanceaccum_   :: BalanceAccumulation
     ,accountlistmode_ :: AccountListMode
     ,drop_           :: Int
     ,row_total_      :: Bool
@@ -162,8 +165,8 @@ defreportopts = ReportOpts
     , average_         = False
     , related_         = False
     , txn_dates_       = False
-    , reporttype_      = def
-    , balancetype_     = def
+    , balancecalc_     = def
+    , balanceaccum_    = def
     , accountlistmode_ = ALFlat
     , drop_            = 0
     , row_total_       = False
@@ -209,8 +212,8 @@ rawOptsToReportOpts rawopts = do
           ,average_     = boolopt "average" rawopts
           ,related_     = boolopt "related" rawopts
           ,txn_dates_   = boolopt "txn-dates" rawopts
-          ,reporttype_  = reporttypeopt rawopts
-          ,balancetype_ = balancetypeopt rawopts
+          ,balancecalc_  = balancecalcopt rawopts
+          ,balanceaccum_ = balanceaccumopt rawopts
           ,accountlistmode_ = accountlistmodeopt rawopts
           ,drop_        = posintopt "drop" rawopts
           ,row_total_   = boolopt "row-total" rawopts
@@ -286,29 +289,29 @@ accountlistmodeopt =
       "flat" -> Just ALFlat
       _      -> Nothing
 
-reporttypeopt :: RawOpts -> ReportType
-reporttypeopt =
-  fromMaybe ChangeReport . choiceopt parse where
+balancecalcopt :: RawOpts -> BalanceCalculation
+balancecalcopt =
+  fromMaybe CalcChange . choiceopt parse where
     parse = \case
-      "sum"         -> Just ChangeReport
-      "valuechange" -> Just ValueChangeReport
-      "budget"      -> Just BudgetReport
+      "sum"         -> Just CalcChange
+      "valuechange" -> Just CalcValueChange
+      "budget"      -> Just CalcBudget
       _             -> Nothing
 
-balancetypeopt :: RawOpts -> BalanceType
-balancetypeopt = fromMaybe PeriodChange . balanceTypeOverride
+balanceaccumopt :: RawOpts -> BalanceAccumulation
+balanceaccumopt = fromMaybe PerPeriod . balanceAccumulationOverride
 
-balanceTypeOverride :: RawOpts -> Maybe BalanceType
-balanceTypeOverride rawopts = choiceopt parse rawopts <|> reportbal
+balanceAccumulationOverride :: RawOpts -> Maybe BalanceAccumulation
+balanceAccumulationOverride rawopts = choiceopt parse rawopts <|> reportbal
   where
     parse = \case
-      "historical" -> Just HistoricalBalance
-      "cumulative" -> Just CumulativeChange
-      "change"     -> Just PeriodChange
+      "historical" -> Just Historical
+      "cumulative" -> Just Cumulative
+      "change"     -> Just PerPeriod
       _            -> Nothing
-    reportbal = case reporttypeopt rawopts of
-      ValueChangeReport -> Just PeriodChange
-      _                 -> Nothing
+    reportbal = case balancecalcopt rawopts of
+      CalcValueChange -> Just PerPeriod
+      _               -> Nothing
 
 -- Get the period specified by any -b/--begin, -e/--end and/or -p/--period
 -- options appearing in the command line.
@@ -321,8 +324,7 @@ periodFromRawOpts d rawopts =
     (Nothing, Nothing) -> PeriodAll
     (Just b, Nothing)  -> PeriodFrom b
     (Nothing, Just e)  -> PeriodTo e
-    (Just b, Just e)   -> simplifyPeriod $
-                          PeriodBetween b e
+    (Just b, Just e)   -> simplifyPeriod $ PeriodBetween b e
   where
     mlastb = case beginDatesFromRawOpts d rawopts of
                    [] -> Nothing
@@ -439,8 +441,8 @@ valuationTypeFromRawOpts :: RawOpts -> (Costing, Maybe ValuationType)
 valuationTypeFromRawOpts rawopts = (costing, valuation)
   where
     costing   = if (any ((Cost==) . fst) valuationopts) then Cost else NoCost
-    valuation = case reporttypeopt rawopts of
-        ValueChangeReport -> case directval of
+    valuation = case balancecalcopt rawopts of
+        CalcValueChange -> case directval of
             Nothing        -> Just $ AtEnd Nothing  -- If no valuation requested for valuechange, use AtEnd
             Just (AtEnd _) -> directval             -- If AtEnd valuation requested, use it
             Just _         -> usageError "--valuechange only produces sensible results with --value=end"
@@ -544,8 +546,8 @@ valuationAfterSum :: ReportOpts -> Maybe (Maybe CommoditySymbol)
 valuationAfterSum ropts = case value_ ropts of
     Just (AtEnd mc) | valueAfterSum -> Just mc
     _                               -> Nothing
-  where valueAfterSum = reporttype_  ropts == ValueChangeReport
-                     || balancetype_ ropts /= PeriodChange
+  where valueAfterSum = balancecalc_  ropts == CalcValueChange
+                     || balanceaccum_ ropts /= PerPeriod
 
 
 -- | Convert report options to a query, ignoring any non-flag command line arguments.
@@ -652,10 +654,10 @@ reportPeriodOrJournalLastDay rspec j = reportPeriodLastDay rspec <|> journalOrPr
 --
 -- - all other balance change reports: a description of the datespan,
 --   abbreviated to compact form if possible (see showDateSpan).
-reportPeriodName :: BalanceType -> [DateSpan] -> DateSpan -> T.Text
-reportPeriodName balancetype spans =
-  case balancetype of
-    PeriodChange -> if multiyear then showDateSpan else showDateSpanMonthAbbrev
+reportPeriodName :: BalanceAccumulation -> [DateSpan] -> DateSpan -> T.Text
+reportPeriodName balanceaccumulation spans =
+  case balanceaccumulation of
+    PerPeriod -> if multiyear then showDateSpan else showDateSpanMonthAbbrev
       where
         multiyear = (>1) $ length $ nubSort $ map spanStartYear spans
     _ -> maybe "" (showDate . prevday) . spanEnd

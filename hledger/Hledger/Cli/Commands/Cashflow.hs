@@ -34,7 +34,7 @@ cashflowSpec = CompoundBalanceCommandSpec {
      ,cbcsubreportincreasestotal=True
      }
     ],
-  cbctype     = PeriodChange
+  cbcaccum     = PerPeriod
 }
 
 cashflowmode :: Mode RawOpts

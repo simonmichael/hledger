@@ -86,7 +86,7 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
         -- ignore any depth limit, as in postingsReport; allows register's total to match balance reports (cf #1468)
         depth_=Nothing
         -- always show historical balance
-      , balancetype_= HistoricalBalance
+      , balanceaccum_= Historical
       }
     -- and regenerate the ReportSpec, making sure to use the above
     rspec' = rspec{ rsQuery=simplifyQuery $ And [queryFromFlags ropts', argsquery]

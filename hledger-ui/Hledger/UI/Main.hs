@@ -109,7 +109,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportspec_=rsp
                period_=periodfromoptsandargs,       -- query's date part
                no_elide_=True,  -- avoid squashing boring account names, for a more regular tree (unlike hledger)
                empty_=not $ empty_ ropts,  -- show zero items by default, hide them with -E (unlike hledger)
-               balancetype_=HistoricalBalance  -- show historical balances by default (unlike hledger)
+               balanceaccum_=Historical  -- show historical balances by default (unlike hledger)
                }
             }
          }

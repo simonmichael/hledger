@@ -47,8 +47,8 @@ data CompoundBalanceCommandSpec = CompoundBalanceCommandSpec {
   cbcdoc      :: CommandDoc,                      -- ^ the command's name(s) and documentation
   cbctitle    :: String,                          -- ^ overall report title
   cbcqueries  :: [CBCSubreportSpec DisplayName],  -- ^ subreport details
-  cbctype     :: BalanceType                      -- ^ the "balance" type (change, cumulative, historical)
-                                                  --   this report shows (overrides command line flags)
+  cbcaccum    :: BalanceAccumulation              -- ^ how to accumulate balances (per-period, cumulative, historical)
+                                                  --   (overrides command line flags)
 }
 
 -- | Generate a cmdargs option-parsing mode from a compound balance command
@@ -66,13 +66,13 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
 
    ,flagNone ["change"] (setboolopt "change")
        ("accumulate amounts from column start to column end (in multicolumn reports)"
-           ++ defType PeriodChange)
+           ++ defaultMarker PerPeriod)
     ,flagNone ["cumulative"] (setboolopt "cumulative")
        ("accumulate amounts from report start (specified by e.g. -b/--begin) to column end"
-           ++ defType CumulativeChange)
+           ++ defaultMarker Cumulative)
     ,flagNone ["historical","H"] (setboolopt "historical")
        ("accumulate amounts from journal start to column end (includes postings before report start date)"
-           ++ defType HistoricalBalance ++ "\n ")
+           ++ defaultMarker Historical ++ "\n ")
     ]
     ++ flattreeflags True ++
     [flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
@@ -91,9 +91,9 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
     hiddenflags
     ([], Just $ argsFlag "[QUERY]")
  where
-   defType :: BalanceType -> String
-   defType bt | bt == cbctype = " (default)"
-              | otherwise    = ""
+   defaultMarker :: BalanceAccumulation -> String
+   defaultMarker bacc | bacc == cbcaccum = " (default)"
+                      | otherwise        = ""
 
 -- | Generate a runnable command from a compound balance command specification.
 compoundBalanceCommand :: CompoundBalanceCommandSpec -> (CliOpts -> Journal -> IO ())
@@ -102,10 +102,10 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
   where
     ropts@ReportOpts{..} = rsOpts rspec
     -- use the default balance type for this report, unless the user overrides
-    mBalanceTypeOverride = balanceTypeOverride rawopts
-    balancetype = fromMaybe cbctype mBalanceTypeOverride
+    mbalanceAccumulationOverride = balanceAccumulationOverride rawopts
+    balanceaccumulation = fromMaybe cbcaccum mbalanceAccumulationOverride
     -- Set balance type in the report options.
-    ropts' = ropts{balancetype_=balancetype}
+    ropts' = ropts{balanceaccum_=balanceaccumulation}
 
     title =
       T.pack cbctitle
@@ -116,24 +116,24 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
       where
 
         -- XXX #1078 the title of ending balance reports
-        -- (HistoricalBalance) should mention the end date(s) shown as
+        -- (Historical) should mention the end date(s) shown as
         -- column heading(s) (not the date span of the transactions).
         -- Also the dates should not be simplified (it should show
         -- "2008/01/01-2008/12/31", not "2008").
-        titledatestr = case balancetype of
-            HistoricalBalance -> showEndDates enddates
+        titledatestr = case balanceaccumulation of
+            Historical -> showEndDates enddates
             _                 -> showDateSpan requestedspan
           where
             enddates = map (addDays (-1)) . mapMaybe spanEnd $ cbrDates cbr  -- these spans will always have a definite end date
             requestedspan = reportSpan j rspec
 
         -- when user overrides, add an indication to the report title
-        -- Do we need to deal with overridden ReportType?
-        mtitleclarification = flip fmap mBalanceTypeOverride $ \case
-            PeriodChange | changingValuation -> "(Period-End Value Changes)"
-            PeriodChange                     -> "(Balance Changes)"
-            CumulativeChange                 -> "(Cumulative Ending Balances)"
-            HistoricalBalance                -> "(Historical Ending Balances)"
+        -- Do we need to deal with overridden BalanceCalculation?
+        mtitleclarification = flip fmap mbalanceAccumulationOverride $ \case
+            PerPeriod | changingValuation -> "(Period-End Value Changes)"
+            PerPeriod                     -> "(Balance Changes)"
+            Cumulative                    -> "(Cumulative Ending Balances)"
+            Historical                    -> "(Historical Ending Balances)"
 
         valuationdesc =
           (case cost_ of
@@ -147,9 +147,9 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
                Just (AtDate today _mc) -> ", valued at " <> showDate today
                Nothing                 -> "")
 
-        changingValuation = case (reporttype_, balancetype_) of
-            (ValueChangeReport, PeriodChange)     -> True
-            (ValueChangeReport, CumulativeChange) -> True
+        changingValuation = case (balancecalc_, balanceaccum_) of
+            (CalcValueChange, PerPeriod)     -> True
+            (CalcValueChange, Cumulative) -> True
             _                                     -> False
 
     -- make a CompoundBalanceReport.
@@ -239,7 +239,7 @@ compoundBalanceReportAsCsv ropts (CompoundPeriodicReport title colspans subrepor
     addtotals $
       padRow title
       : ( "Account"
-        : map (reportPeriodName (balancetype_ ropts) colspans) colspans
+        : map (reportPeriodName (balanceaccum_ ropts) colspans) colspans
         ++ (if row_total_ ropts then ["Total"] else [])
         ++ (if average_ ropts then ["Average"] else [])
         )
@@ -284,7 +284,7 @@ compoundBalanceReportAsHtml ropts cbr =
          [tr_ $ th_ [colspanattr, leftattr] $ h2_ $ toHtml title]
       ++ [thRow $
           "" :
-          map (reportPeriodName (balancetype_ ropts) colspans) colspans
+          map (reportPeriodName (balanceaccum_ ropts) colspans) colspans
           ++ (if row_total_ ropts then ["Total"] else [])
           ++ (if average_ ropts then ["Average"] else [])
           ]
