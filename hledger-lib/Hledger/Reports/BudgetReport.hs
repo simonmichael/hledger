@@ -98,14 +98,21 @@ budgetReport rspec bopts reportspan j = dbg4 "sortedbudgetreport" budgetreport
 -- their purpose and effect is to define balance change goals, per account and period,
 -- for BudgetReport.
 journalAddBudgetGoalTransactions :: BalancingOpts -> ReportOpts -> DateSpan -> Journal -> Journal
-journalAddBudgetGoalTransactions bopts _ropts reportspan j =
+journalAddBudgetGoalTransactions bopts ropts reportspan j =
   either error' id $ journalBalanceTransactions bopts j{ jtxns = budgetts }  -- PARTIAL:
   where
     budgetspan = dbg3 "budget span" $ reportspan
+    pat = fromMaybe "" $ dbg3 "budget pattern" $ T.toLower <$> budgetpat_ ropts
+    -- select periodic transactions matching a pattern
+    -- (the argument of the (final) --budget option).
+    -- XXX two limitations/wishes, requiring more extensive type changes:
+    -- - give an error if pat is non-null and matches no periodic txns
+    -- - allow a regexp or a full hledger query, not just a substring
     budgetts =
       dbg5 "budget goal txns" $
       [makeBudgetTxn t
       | pt <- jperiodictxns j
+      , pat `T.isInfixOf` T.toLower (ptdescription pt)
       , t <- runPeriodicTransaction pt budgetspan
       ]
     makeBudgetTxn t = txnTieKnot $ t { tdescription = T.pack "Budget transaction" }

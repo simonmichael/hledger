@@ -606,7 +606,7 @@ Budget performance in 2020-01-01..2020-01-15:
                ||     $400 [80% of $500] 
 ```
 
-#### Nested budgets
+#### Budgets and subaccounts
 
 You can add budgets to any account in your account hierarchy. If you have budgets on both parent account and some of its children, then budget(s)
 of the child account(s) would be added to the budget of their parent, much like account balances behave.
@@ -684,6 +684,27 @@ Budget performance in 2019/01:
 ----------------------------------------++-------------------------------
                                         ||        0 [                 0] 
 ```
+
+#### Selecting budget goals
+
+The budget report evaluates periodic transaction rules to generate special "goal transactions",
+which generate the goal amounts for each account in each report subperiod.
+When troubleshooting, you can use the print command to show these as forecasted transactions:
+```shell
+$ hledger print --forecast=BUDGETREPORTPERIOD tag:generated
+```
+
+By default, the budget report uses all available periodic transaction rules to generate goals.
+This includes rules with a different report interval from your report. 
+Eg if you have daily, weekly and monthly periodic rules,
+all of these will contribute to the goals in a monthly budget report.
+
+You can select a subset of periodic rules by providing an argument to the `--budget` flag.
+`--budget=DESCPAT` will match all periodic rules whose description contains DESCPAT, 
+a case-insensitive substring (not a regular expression or query).
+This means you can give your periodic rules descriptions
+(remember that [two spaces are needed](#two-spaces-between-period-expression-and-description)),
+and then select from multiple budgets defined in your journal.
 
 ### Customising single-period balance reports
 
