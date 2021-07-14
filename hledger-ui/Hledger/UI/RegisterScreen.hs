@@ -70,7 +70,7 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec
         depth_=Nothing
       -- XXX aregister also has this, needed ?
         -- always show historical balance
-      -- , balancetype_= HistoricalBalance
+      -- , balanceaccum_= Historical
       }
     rspec' =
       either (error "rsInit: adjusting the query for register, should not have failed") id $ -- PARTIAL:
@@ -201,7 +201,7 @@ rsDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}
 
       where
         ropts = rsOpts rspec
-        ishistorical = balancetype_ ropts == HistoricalBalance
+        ishistorical = balanceaccum_ ropts == Historical
         -- inclusive = tree_ ropts || rsForceInclusive
 
         toplabel =

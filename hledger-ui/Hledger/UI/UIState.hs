@@ -146,10 +146,10 @@ toggleTree ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspe
 -- | Toggle between historical balances and period balances.
 toggleHistorical :: UIState -> UIState
 toggleHistorical ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts}}}} =
-  ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{rsOpts=ropts{balancetype_=b}}}}}
+  ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{rsOpts=ropts{balanceaccum_=b}}}}}
   where
-    b | balancetype_ ropts == HistoricalBalance = PeriodChange
-      | otherwise                               = HistoricalBalance
+    b | balanceaccum_ ropts == Historical = PerPeriod
+      | otherwise                         = Historical
 
 -- | Toggle hledger-ui's "forecast/future mode". When this mode is enabled,
 -- hledger-shows regular transactions which have future dates, and

@@ -35,7 +35,7 @@ incomestatementSpec = CompoundBalanceCommandSpec {
      ,cbcsubreportincreasestotal=False
      }
     ],
-  cbctype     = PeriodChange
+  cbcaccum     = PerPeriod
 }
 
 incomestatementmode :: Mode RawOpts

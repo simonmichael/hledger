@@ -292,17 +292,17 @@ calculateReportMatrix rspec@ReportSpec{rsOpts=ropts} j priceoracle startbals col
     -- The valued row amounts to be displayed: per-period changes,
     -- zero-based cumulative totals, or
     -- starting-balance-based historical balances.
-    rowbals name changes = dbg5 "rowbals" $ case balancetype_ ropts of
-        PeriodChange      -> changeamts
-        CumulativeChange  -> cumulative
-        HistoricalBalance -> historical
+    rowbals name changes = dbg5 "rowbals" $ case balanceaccum_ ropts of
+        PerPeriod  -> changeamts
+        Cumulative -> cumulative
+        Historical -> historical
       where
         -- changes to report on: usually just the changes itself, but use the
         -- differences in the historical amount for ValueChangeReports.
-        changeamts = case reporttype_ ropts of
-            ChangeReport      -> M.mapWithKey avalue changes
-            BudgetReport      -> M.mapWithKey avalue changes
-            ValueChangeReport -> periodChanges valuedStart historical
+        changeamts = case balancecalc_ ropts of
+            CalcChange      -> M.mapWithKey avalue changes
+            CalcBudget      -> M.mapWithKey avalue changes
+            CalcValueChange -> periodChanges valuedStart historical
         cumulative = cumulativeSum avalue nullacct changeamts
         historical = cumulativeSum avalue startingBalance changes
         startingBalance = HM.lookupDefault nullacct name startbals
@@ -368,9 +368,9 @@ buildReportRows ropts displaynames =
         -- The total and average for the row.
         -- These are always simply the sum/average of the displayed row amounts.
         -- Total for a cumulative/historical report is always the last column.
-        rowtot = case balancetype_ ropts of
-            PeriodChange -> maSum rowbals
-            _            -> lastDef nullmixedamt rowbals
+        rowtot = case balanceaccum_ ropts of
+            PerPeriod -> maSum rowbals
+            _         -> lastDef nullmixedamt rowbals
         rowavg = averageMixedAmounts rowbals
     balance = case accountlistmode_ ropts of ALTree -> aibalance; ALFlat -> aebalance
 
@@ -476,9 +476,9 @@ calculateTotalsRow ropts rows =
     -- Calculate the grand total and average. These are always the sum/average
     -- of the column totals.
     -- Total for a cumulative/historical report is always the last column.
-    grandtotal = case balancetype_ ropts of
-        PeriodChange -> maSum coltotals
-        _            -> lastDef nullmixedamt coltotals
+    grandtotal = case balanceaccum_ ropts of
+        PerPeriod -> maSum coltotals
+        _         -> lastDef nullmixedamt coltotals
     grandaverage = averageMixedAmounts coltotals
 
 -- | Map the report rows to percentages if needed
@@ -574,7 +574,7 @@ tests_MultiBalanceReport = tests "MultiBalanceReport" [
       (defreportspec, nulljournal) `gives` ([], nullmixedamt)
 
      ,test "with -H on a populated period"  $
-      (defreportspec{rsOpts=defreportopts{period_= PeriodBetween (fromGregorian 2008 1 1) (fromGregorian 2008 1 2), balancetype_=HistoricalBalance}}, samplejournal) `gives`
+      (defreportspec{rsOpts=defreportopts{period_= PeriodBetween (fromGregorian 2008 1 1) (fromGregorian 2008 1 2), balanceaccum_=Historical}}, samplejournal) `gives`
        (
         [ PeriodicReportRow (flatDisplayName "assets:bank:checking") [mamountp' "$1.00"]  (mamountp' "$1.00")  (mixedAmount amt0{aquantity=1})
         , PeriodicReportRow (flatDisplayName "income:salary")        [mamountp' "$-1.00"] (mamountp' "$-1.00") (mixedAmount amt0{aquantity=(-1)})
@@ -582,7 +582,7 @@ tests_MultiBalanceReport = tests "MultiBalanceReport" [
         mamountp' "$0.00")
 
      -- ,test "a valid history on an empty period"  $
-     --  (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 2) (fromGregorian 2008 1 3), balancetype_=HistoricalBalance}, samplejournal) `gives`
+     --  (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 2) (fromGregorian 2008 1 3), balanceaccum_=Historical}, samplejournal) `gives`
      --   (
      --    [
      --     ("assets:bank:checking","checking",3, [mamountp' "$1.00"], mamountp' "$1.00",mixedAmount amt0 {aquantity=1})
@@ -591,7 +591,7 @@ tests_MultiBalanceReport = tests "MultiBalanceReport" [
      --    mixedAmount usd0)
 
      -- ,test "a valid history on an empty period (more complex)"  $
-     --  (defreportopts{period_= PeriodBetween (fromGregorian 2009 1 1) (fromGregorian 2009 1 2), balancetype_=HistoricalBalance}, samplejournal) `gives`
+     --  (defreportopts{period_= PeriodBetween (fromGregorian 2009 1 1) (fromGregorian 2009 1 2), balanceaccum_=Historical}, samplejournal) `gives`
      --   (
      --    [
      --    ("assets:bank:checking","checking",3, [mamountp' "$1.00"], mamountp' "$1.00",mixedAmount amt0 {aquantity=1})

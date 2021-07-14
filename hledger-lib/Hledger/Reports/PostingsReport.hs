@@ -90,7 +90,7 @@ postingsReport rspec@ReportSpec{rsOpts=ropts@ReportOpts{..}} j = items
           -- may be converting to value per hledger_options.m4.md "Effect
           -- of --value on reports".
           -- XXX balance report doesn't value starting balance.. should this ?
-          historical = balancetype_ == HistoricalBalance
+          historical = balanceaccum_ == Historical
           startbal | average_  = if historical then precedingavg else nullmixedamt
                    | otherwise = if historical then precedingsum else nullmixedamt
             where

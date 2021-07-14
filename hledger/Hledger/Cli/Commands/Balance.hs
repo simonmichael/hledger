@@ -310,8 +310,8 @@ balancemode = hledgerCommandMode
 
 -- | The balance command, prints a balance report.
 balance :: CliOpts -> Journal -> IO ()
-balance opts@CliOpts{reportspec_=rspec} j = case reporttype_ of
-    BudgetReport -> do  -- single or multi period budget report
+balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ of
+    CalcBudget -> do  -- single or multi period budget report
       let reportspan = reportSpan j rspec
           budgetreport = budgetReport rspec (balancingopts_ $ inputopts_ opts) reportspan j
           render = case fmt of
@@ -586,12 +586,12 @@ multiBalanceReportAsText ropts@ReportOpts{..} r = TB.toLazyText $
   where
     title = mtitle <> " in " <> showDateSpan (periodicReportSpan r) <> valuationdesc <> ":"
 
-    mtitle = case (reporttype_, balancetype_) of
-        (ValueChangeReport, PeriodChange     ) -> "Period-end value changes"
-        (ValueChangeReport, CumulativeChange ) -> "Cumulative period-end value changes"
-        (_,                 PeriodChange     ) -> "Balance changes"
-        (_,                 CumulativeChange ) -> "Ending balances (cumulative)"
-        (_,                 HistoricalBalance) -> "Ending balances (historical)"
+    mtitle = case (balancecalc_, balanceaccum_) of
+        (CalcValueChange, PerPeriod  ) -> "Period-end value changes"
+        (CalcValueChange, Cumulative ) -> "Cumulative period-end value changes"
+        (_,               PerPeriod  ) -> "Balance changes"
+        (_,               Cumulative ) -> "Ending balances (cumulative)"
+        (_,               Historical)  -> "Ending balances (historical)"
     valuationdesc =
         (case cost_ of
             Cost   -> ", converted to cost"
@@ -604,14 +604,14 @@ multiBalanceReportAsText ropts@ReportOpts{..} r = TB.toLazyText $
             Just (AtDate d _mc)  -> ", valued at " <> showDate d
             Nothing              -> "")
 
-    changingValuation = case (reporttype_, balancetype_) of
-        (ValueChangeReport, PeriodChange)     -> True
-        (ValueChangeReport, CumulativeChange) -> True
+    changingValuation = case (balancecalc_, balanceaccum_) of
+        (CalcValueChange, PerPeriod)  -> True
+        (CalcValueChange, Cumulative) -> True
         _                                     -> False
 
 -- | Build a 'Table' from a multi-column balance report.
 balanceReportAsTable :: ReportOpts -> MultiBalanceReport -> Table T.Text T.Text MixedAmount
-balanceReportAsTable opts@ReportOpts{average_, row_total_, balancetype_}
+balanceReportAsTable opts@ReportOpts{average_, row_total_, balanceaccum_}
     (PeriodicReport spans items (PeriodicReportRow _ coltotals tot avg)) =
    maybetranspose $
    addtotalrow $
@@ -620,8 +620,8 @@ balanceReportAsTable opts@ReportOpts{average_, row_total_, balancetype_}
      (Tab.Group NoLine $ map Header colheadings)
      (map rowvals items)
   where
-    totalscolumn = row_total_ && balancetype_ `notElem` [CumulativeChange, HistoricalBalance]
-    colheadings = map (reportPeriodName balancetype_ spans) spans
+    totalscolumn = row_total_ && balanceaccum_ `notElem` [Cumulative, Historical]
+    colheadings = map (reportPeriodName balanceaccum_ spans) spans
                   ++ ["  Total" | totalscolumn]
                   ++ ["Average" | average_]
     accts = map renderacct items

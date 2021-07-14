@@ -102,7 +102,7 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec} j = do
     explicit = boolopt "explicit" rawopts
 
     -- the balances to close
-    ropts = (rsOpts rspec){balancetype_=HistoricalBalance, accountlistmode_=ALFlat}
+    ropts = (rsOpts rspec){balanceaccum_=Historical, accountlistmode_=ALFlat}
     rspec_ = rspec{rsOpts=ropts}
     (acctbals',_) = balanceReport rspec_ j
     acctbals = map (\(a,_,_,b) -> (a, if show_costs_ ropts then b else mixedAmountStripPrices b)) acctbals'

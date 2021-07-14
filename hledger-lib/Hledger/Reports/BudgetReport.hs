@@ -280,7 +280,7 @@ budgetReportAsText ropts@ReportOpts{..} budgetr = TB.toLazyText $
 -- | Build a 'Table' from a multi-column balance report.
 budgetReportAsTable :: ReportOpts -> BudgetReport -> Table Text Text (Maybe MixedAmount, Maybe MixedAmount)
 budgetReportAsTable
-  ropts@ReportOpts{balancetype_}
+  ropts@ReportOpts{balanceaccum_}
   (PeriodicReport spans rows (PeriodicReportRow _ coltots grandtot grandavg)) =
     addtotalrow $
     Table
@@ -288,7 +288,7 @@ budgetReportAsTable
       (Tab.Group NoLine $ map Header colheadings)
       (map rowvals rows)
   where
-    colheadings = map (reportPeriodName balancetype_ spans) spans
+    colheadings = map (reportPeriodName balanceaccum_ spans) spans
                   ++ ["  Total" | row_total_ ropts]
                   ++ ["Average" | average_ ropts]
 

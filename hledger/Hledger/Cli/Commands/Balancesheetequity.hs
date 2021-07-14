@@ -45,7 +45,7 @@ balancesheetequitySpec = CompoundBalanceCommandSpec {
      ,cbcsubreportincreasestotal=False
      }
     ],
-  cbctype     = HistoricalBalance
+  cbcaccum     = Historical
 }
 
 balancesheetequitymode :: Mode RawOpts
