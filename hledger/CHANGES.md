@@ -9,6 +9,24 @@
 User-visible changes in the hledger command line tool and library.
 
 
+# cf25d7d56
+
+- imp: cli: Don't show extra double quotes in missing journal file error. (#1601) (Stephen Morgan)
+
+- imp: bal: more predictable sort order with multiple commodities (#1563, #1564) (Stephen Morgan)
+  This change provides more predictable and intuitive behaviour when 
+  using -S/--sort-amount with multiple commodities. 
+  It implements a custom Ord (and Eq) instance for MixedAmount 
+  which substitutes zero for any missing commodities.
+  
+  As a consequence, all the ways of representing zero with a MixedAmount ([],
+  [A 0], [A 0, B 0, ...]) are now Eq-ual (==), whereas before they were
+  not. We have not been able to find anything broken by this change.
+  
+- imp: close: doc: rewrite manual (#1604)
+
+- imp: close: clarify date logic, use journal last day if later (#1604)
+
 # 1.22 2021-07-03
 
 Features

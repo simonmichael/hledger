@@ -9,6 +9,24 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
+# 2df8ad781
+
+- imp: bal: more predictable sort order with multiple commodities (#1563, #1564) (Stephen Morgan)
+  This change provides more predictable and intuitive behaviour when 
+  using -S/--sort-amount with multiple commodities. 
+  It implements a custom Ord (and Eq) instance for MixedAmount 
+  which substitutes zero for any missing commodities.
+  
+  As a consequence, all the ways of representing zero with a MixedAmount ([],
+  [A 0], [A 0, B 0, ...]) are now Eq-ual (==), whereas before they were
+  not. We have not been able to find anything broken by this change.  
+
+- imp: lib: Compare MixedAmounts by substituting zero for any missing commodities. (#1563)
+
+- lib: clarify journalEndDate, add journalLastDay
+
+- lib: export transactionCheckBalanced (#1596)
+
 # 1.22 2021-07-03
 
 - GHC 9.0 is now officially supported, and GHC 8.0, 8.2, 8.4 are not;

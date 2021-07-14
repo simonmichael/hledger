@@ -9,6 +9,38 @@
 General changes in the hledger project (and notable all-package releases).
 For package-specific changes and minor releases, see the hledger package changelogs.
 
+# 82b74ec41
+
+- ci: commitlint: when range is invalid (eg force push), check last 20
+  This is imperfect but better than nothing, and should avoid spurious
+  failures on force pushes to PRs.
+
+- ci: commitlint: ignore boring commits: github merge commit (#1606)
+
+- bin:commitlint:doc, policy: allow more spaces, slash/comma in topics
+
+- ci: run commitlint to check commits (#1602)
+  As first step in our main "check" workflows (push, linux, mac,
+  windows), check all the commit messages with commitlint.
+
+  These workflows can be triggered in various ways:
+  pull requests, pushes, manually, or scheduled.
+
+  For (each push to) a pull request, all commits currently in the PR
+  branch are checked.
+
+  For a regular push, all the pushed commits are checked, usually.
+  Subcases: push to master, push to other branch, force push;
+  I think at least the first two work, I don't care to spend more time
+  on it.
+
+  For a manual run, it seemed to check the same commits as a push (which
+  push ? Not sure how this works).
+
+  For a scheduled run - we'll see.
+
+- bin: commitlint: don't exit successfully if a command fails (#1602)
+
 # 1.22 2021-07-03
 
 Software:

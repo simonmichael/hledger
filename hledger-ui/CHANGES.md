@@ -9,6 +9,13 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
+# ce526305b
+
+- fix: ui: transaction: possibly off-by-one valuation date
+  I'm not sure if it arose in practice, but: ensure TransactionScreen
+  in V mode would correctly use the journal's last day as valuation date,
+  not the day after that.
+
 # 1.22 2021-07-03
 
 Improvements

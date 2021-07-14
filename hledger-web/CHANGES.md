@@ -9,6 +9,12 @@ __      _____| |__
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
+# 3380190d9
+
+- fix: web: register chart with multiple commodities/prices, broken in 1.22 (#1597) (Stephen Morgan)
+  Make sure to strip prices from amounts before generating JSON data for
+  the register chart.
+
 # 1.22 2021-07-03
 
 Improvements
