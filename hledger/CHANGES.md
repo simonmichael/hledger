@@ -27,6 +27,8 @@ User-visible changes in the hledger command line tool and library.
 
 - imp: close: clarify date logic, use journal last day if later (#1604)
 
+# 1.22.1 unreleased
+
 # 1.22 2021-07-03
 
 Features

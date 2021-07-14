@@ -27,6 +27,8 @@ For user-visible changes, see the hledger package changelog.
 
 - lib: export transactionCheckBalanced (#1596)
 
+# 1.22.1 unreleased
+
 # 1.22 2021-07-03
 
 - GHC 9.0 is now officially supported, and GHC 8.0, 8.2, 8.4 are not;

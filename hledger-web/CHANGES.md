@@ -15,6 +15,8 @@ See also the hledger changelog.
   Make sure to strip prices from amounts before generating JSON data for
   the register chart.
 
+# 1.22.1 unreleased
+
 # 1.22 2021-07-03
 
 Improvements

@@ -16,6 +16,8 @@ See also the hledger changelog.
   in V mode would correctly use the journal's last day as valuation date,
   not the day after that.
 
+# 1.22.1 unreleased
+
 # 1.22 2021-07-03
 
 Improvements
