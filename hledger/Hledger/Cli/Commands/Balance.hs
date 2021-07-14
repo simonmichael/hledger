@@ -277,8 +277,14 @@ balancemode = hledgerCommandMode
   (
     [flagNone ["sum"] (setboolopt "sum")
       "show sum of posting amounts (default)"
-    ,flagNone ["budget"] (setboolopt "budget")
-      "show sum of posting amounts compared to budget goals defined by periodic transactions\n "
+    -- XXX --budget[=DESCPAT], --forecast[=PERIODEXP], could be more consistent
+    ,flagOpt "" ["budget"] (\s opts -> Right $ setopt "budget" s opts) "DESCPAT"
+      (unlines
+      [ "show sum of posting amounts together with budget goals defined by periodic"
+      , "transactions. With a DESCPAT argument (must be separated by = not space),"
+      , "use only periodic transactions with matching description"
+      , "(case insensitive substring match)."
+      ])    
     ,flagNone ["valuechange"] (setboolopt "valuechange")
       "show change of value of period-end historical balances"
     ,flagNone ["change"] (setboolopt "change")

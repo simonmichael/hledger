@@ -595,3 +595,19 @@ Budget performance in 2020Q1:
  expenses:food ||  $400 [80% of $500]  0 [0% of $500]   $600 [120% of $500] 
 ---------------++-----------------------------------------------------------
                ||     0 [ 0% of $500]  0 [0% of $500]      0 [  0% of $500] 
+
+# 30. Select from multiple named budgets.
+<
+~ weekly   weekly budget
+  (aaa)   1
+
+~ monthly  monthly budget
+  (bbb)   10
+
+$ hledger -f- bal --budget=weekly -p 2021-01
+> /aaa/
+>=
+
+$ hledger -f- bal --budget=monthly -p 2021-01
+> !/aaa/
+>=
