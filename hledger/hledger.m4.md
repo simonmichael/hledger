@@ -468,6 +468,8 @@ Counterexamples - malformed digit sequences might give surprising results:
 | `20181232`  | 8 digits with an invalid day gives an error                       |
 | `201801012` | 9+ digits beginning with a valid YYYYMMDD gives an error          |
 
+<a name="report-period"></a>
+
 ## Report start & end date
 
 By default, most hledger reports will show the full span of time represented by the journal data.
