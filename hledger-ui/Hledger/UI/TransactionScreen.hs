@@ -5,10 +5,8 @@
 {-# LANGUAGE TupleSections     #-}
 
 module Hledger.UI.TransactionScreen
- (transactionScreen
- ,rsSelect
- )
-where
+( transactionScreen
+) where
 
 import Control.Monad
 import Control.Monad.IO.Class (liftIO)
@@ -133,9 +131,7 @@ tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{
 tsDraw _ = error "draw function called with wrong screen type, should not happen"  -- PARTIAL:
 
 tsHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
-tsHandle ui@UIState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
-                                               ,tsTransactions=nts
-                                               }
+tsHandle ui@UIState{aScreen=TransactionScreen{tsTransaction=(i,t), tsTransactions=nts}
                    ,aopts=UIOpts{cliopts_=copts}
                    ,ajournal=j
                    ,aMode=mode
@@ -181,28 +177,25 @@ tsHandle ui@UIState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
         -- EvKey (KChar 'E') [] -> continue $ regenerateScreens j d $ stToggleEmpty ui
         -- EvKey (KChar 'C') [] -> continue $ regenerateScreens j d $ stToggleCleared ui
         -- EvKey (KChar 'R') [] -> continue $ regenerateScreens j d $ stToggleReal ui
-        VtyEvent (EvKey (KChar 'B') []) ->
-          continue $
-          regenerateScreens j d $
-          toggleCost ui
-        VtyEvent (EvKey (KChar 'V') []) ->
-          continue $
-          regenerateScreens j d $
-          toggleValue ui
+        VtyEvent (EvKey (KChar 'B') []) -> continue . regenerateScreens j d $ toggleCost ui
+        VtyEvent (EvKey (KChar 'V') []) -> continue . regenerateScreens j d $ toggleValue ui
 
-        VtyEvent e | e `elem` moveUpEvents   -> continue $ regenerateScreens j d ui{aScreen=s{tsTransaction=(iprev,tprev)}}
-        VtyEvent e | e `elem` moveDownEvents -> continue $ regenerateScreens j d ui{aScreen=s{tsTransaction=(inext,tnext)}}
-        VtyEvent e | e `elem` moveLeftEvents -> continue ui''
-          where
-            ui'@UIState{aScreen=scr} = popScreen ui
-            ui'' = ui'{aScreen=rsSelect (fromIntegral i) scr}
+        VtyEvent e | e `elem` moveUpEvents   -> continue $ tsSelect iprev tprev ui
+        VtyEvent e | e `elem` moveDownEvents -> continue $ tsSelect inext tnext ui
+        VtyEvent e | e `elem` moveLeftEvents -> continue . popScreen $ tsSelect i t ui  -- Probably not necessary to tsSelect here, but it's safe.
         VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw ui
         VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
         _ -> continue ui
 
 tsHandle _ _ = error "event handler called with wrong screen type, should not happen"  -- PARTIAL:
 
+-- | Select a new transaction and update the previous register screen
+tsSelect i t ui@UIState{aScreen=s@TransactionScreen{}} = case aPrevScreens ui of
+    x:xs -> ui'{aPrevScreens=rsSelect i x : xs}
+    []   -> ui'
+  where ui' = ui{aScreen=s{tsTransaction=(i,t)}}
+tsSelect _ _ ui = ui
+
 -- | Select the nth item on the register screen.
-rsSelect i scr@RegisterScreen{..} = scr{rsList=l'}
-  where l' = listMoveTo (i-1) rsList
+rsSelect i scr@RegisterScreen{..} = scr{rsList=listMoveTo (fromInteger $ i-1) rsList}
 rsSelect _ scr = scr
