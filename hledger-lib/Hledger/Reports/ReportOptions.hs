@@ -213,7 +213,7 @@ rawOptsToReportOpts rawopts = do
           ,related_     = boolopt "related" rawopts
           ,txn_dates_   = boolopt "txn-dates" rawopts
           ,balancecalc_  = balancecalcopt rawopts
-          ,balanceaccum_ = balanceaccumulationopt rawopts
+          ,balanceaccum_ = balanceaccumopt rawopts
           ,accountlistmode_ = accountlistmodeopt rawopts
           ,drop_        = posintopt "drop" rawopts
           ,row_total_   = boolopt "row-total" rawopts
@@ -298,8 +298,8 @@ balancecalcopt =
       "budget"      -> Just CalcBudget
       _             -> Nothing
 
-balanceaccumulationopt :: RawOpts -> BalanceAccumulation
-balanceaccumulationopt = fromMaybe PerPeriod . balanceAccumulationOverride
+balanceaccumopt :: RawOpts -> BalanceAccumulation
+balanceaccumopt = fromMaybe PerPeriod . balanceAccumulationOverride
 
 balanceAccumulationOverride :: RawOpts -> Maybe BalanceAccumulation
 balanceAccumulationOverride rawopts = choiceopt parse rawopts <|> reportbal
@@ -311,7 +311,7 @@ balanceAccumulationOverride rawopts = choiceopt parse rawopts <|> reportbal
       _            -> Nothing
     reportbal = case balancecalcopt rawopts of
       CalcValueChange -> Just PerPeriod
-      _                 -> Nothing
+      _               -> Nothing
 
 -- Get the period specified by any -b/--begin, -e/--end and/or -p/--period
 -- options appearing in the command line.
@@ -324,8 +324,7 @@ periodFromRawOpts d rawopts =
     (Nothing, Nothing) -> PeriodAll
     (Just b, Nothing)  -> PeriodFrom b
     (Nothing, Just e)  -> PeriodTo e
-    (Just b, Just e)   -> simplifyPeriod $
-                          PeriodBetween b e
+    (Just b, Just e)   -> simplifyPeriod $ PeriodBetween b e
   where
     mlastb = case beginDatesFromRawOpts d rawopts of
                    [] -> Nothing

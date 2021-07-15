@@ -132,8 +132,8 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
         mtitleclarification = flip fmap mbalanceAccumulationOverride $ \case
             PerPeriod | changingValuation -> "(Period-End Value Changes)"
             PerPeriod                     -> "(Balance Changes)"
-            Cumulative                 -> "(Cumulative Ending Balances)"
-            Historical                -> "(Historical Ending Balances)"
+            Cumulative                    -> "(Cumulative Ending Balances)"
+            Historical                    -> "(Historical Ending Balances)"
 
         valuationdesc =
           (case cost_ of
