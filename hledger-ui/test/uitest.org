@@ -5,6 +5,11 @@ try some or all of these things. Additions welcome.
 Expected output, at least the first few lines of it, 
 as copied from an 80x25 terminal, is shown below each step.
 
+This is an org outline. When you're familiar with these tests, 
+you can view it in Emacs org mode with all body text hidden,
+showing just the test steps and brief expected result - makes
+it quicker to run through them.
+
 Another source of tests is the tutorial at https://hledger.org/ui.html,
 which has nice screenshots, but might be less up to date.
 
