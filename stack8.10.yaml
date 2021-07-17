@@ -12,8 +12,9 @@ packages:
 - hledger-ui
 - hledger-web
 
-# extra-deps:
+extra-deps:
 # for hledger-lib:
+- doctest-0.18.1
 # for hledger:
 # for hledger-ui:
 # for hledger-web:

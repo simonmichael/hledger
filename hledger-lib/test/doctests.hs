@@ -2,6 +2,8 @@
 Run doctests in Hledger source files under the current directory
 (./Hledger.hs, ./Hledger/**, ./Text/**) using the doctest runner.
 
+https://github.com/sol/doctest#readme
+
 Arguments are case-insensitive file path substrings, to limit the files searched.
 --verbose shows files being searched for doctests and progress while running.
 --slow reloads ghci between each test (https://github.com/sol/doctest#a-note-on-performance).
@@ -12,7 +14,7 @@ $ make ghci-doctest, :main [--verbose] [--slow] [CIFILEPATHSUBSTRINGS]
 
 or:
 
-$ stack test hledger-lib:test:doctests [--test-arguments '[--verbose] [--slow] [CIFILEPATHSUBSTRINGS]']
+$ stack test hledger-lib:test:doctest --test-arguments="--verbose --slow [CIFILEPATHSUBSTRINGS]"
 
 -}
 -- This file can't be called doctest.hs ("File name does not match module name")
