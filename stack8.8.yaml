@@ -16,6 +16,7 @@ extra-deps:
 # for hledger-lib:
 - pretty-simple-4.0.0.0
 - prettyprinter-1.7.0
+- doctest-0.18.1
 # for hledger:
 # for hledger-ui:
 # for hledger-web:
