@@ -1,43 +1,44 @@
-#!/usr/bin/env runhaskell
+#!/usr/bin/env stack
+{- stack script --resolver nightly-2021-07-16 --compile
+-}
+-- add this to see packages being installed instead of a long silence:
+--   --verbosity=info
+   --package base-prelude
+   --package directory
+   --package extra
+   --package process
+   --package regex
+   --package safe
+   --package shake
+   --package time
+
 {- |
 Extract (shell) tests from haddock comments in Haskell code, run them and
-verify expected output, like Python's doctest system.
+verify expected output. Like https://hackage.haskell.org/package/doctest, 
+but tests shell commands instead of GHCI commands.
 
-Here, a doctest is a haddock literal block whose first line begins with a
-$ (leading whitespace ignored). The rest of the line is a shell command
-and the remaining lines are the expected output.
+A docshelltest is a haddock literal block whose first line begins with a
+$ (leading whitespace ignored), the rest of the line is a shell command
+and the remaining lines are the expected output. The exit code is expected
+to be zero.
 
 Usage example: $ doctest.hs doctest.hs
 
-Doctest examples:
-
 @
-$ ls doctest.hs
-This doctest will fail.
+$ echo This test shall pass
+This test shall pass
 @
 
 @
-$ ls doctest.hs
-doctest.hs
+$ echo This test shall fail
+
 @
-
-Issues:
-
-After writing this I found the doctest on hackage; that one runs haskell
-expressions in comments, converting them to hunit tests. We might add this
-to that, and/or add this to hledger's built-in test runner.
-
-Error output seems to vary depending on whether things are compiled, eg:
-hledger: parse error at (line 1, column 4)
-vs:
-"-" (line 2, column 1)
-ledger-style functional tests may be more useful for this, see functest.hs.
 
 -}
 
 module Main where
 import Data.List (isPrefixOf)
-import System (getArgs)
+import System.Environment (getArgs)
 import System.Exit (exitFailure, exitWith, ExitCode(ExitSuccess)) -- base 3 compatible
 import System.IO (hGetContents, hPutStr, hPutStrLn, stderr)
 import System.Process (runInteractiveCommand, waitForProcess)
@@ -49,6 +50,7 @@ main = do
   let tests = doctests s
   putStrLn $ printf "Running %d doctests from %s" (length tests) f
   ok <-  mapM runShellDocTest $ doctests s
+  putStrLn ""
   if any not ok then exitFailure else exitWith ExitSuccess
 
 runShellDocTest :: String -> IO Bool
