@@ -197,6 +197,10 @@ or:
 $ hledger register credit\ card
 ```
 
+Windows users should keep in mind that `cmd` treats single quote as a
+regular character, so you should be using double quotes exclusively.
+PowerShell treats both single and double quotes as quotes.
+
 ### Double escaping (regular expression metacharacters)
 
 Characters significant in [regular expressions]
