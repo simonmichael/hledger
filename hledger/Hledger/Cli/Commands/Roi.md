@@ -35,6 +35,22 @@ https://github.com/simonmichael/hledger/blob/master/examples/roi-unrealised.ledg
 
 - Cookbook -> [Return on Investment](return-on-investment.html)
 
+### Spaces and special characters in `--inv` and `--pnl`
+
+Note that `--inv` and `--pnl`'s argument is a query, and queries could have several space-separated terms (see [QUERIES](https://hledger.org/hledger.html#queries)).
+
+To indicate that all search terms form single command-line argument, you will need to put them in quotes (see [Special characters](https://hledger.org/hledger.html#special-characters)):
+
+```shell
+$ hledger roi --inv 'term1 term2 term3 ...'
+```
+
+If any query terms contain spaces themselves, you will need an extra level of nested quoting, eg:
+
+```shell
+$ hledger roi --inv="'Assets:Test 1'" --pnl="'Equity:Unrealized Profit and Loss'"
+```
+
 ### Semantics of `--inv` and `--pnl`
 
 Query supplied to `--inv` has to match all transactions that are
