@@ -195,10 +195,11 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportspec_=rsp
           writeChan eventChan dc
         watchDate new
 
-    withAsync
-      (getCurrentDay >>= watchDate)
-      $ \_ ->
-
+    withAsync 
+      -- run this small task asynchronously:
+      (getCurrentDay >>= watchDate) 
+      -- until this main task terminates:
+      $ \_async ->
       -- start one or more background threads reporting changes in the directories of our files
       -- XXX many quick successive saves causes the problems listed in BUGS
       -- with Debounce increased to 1s it easily gets stuck on an error or blank screen
