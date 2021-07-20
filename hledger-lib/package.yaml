@@ -165,6 +165,11 @@ tests:
     - doctest >=0.18.1
     - Glob >=0.7
 
+    # disable doctest with GHC 9 for now, https://github.com/sol/doctest/issues/301
+    when:
+    - condition: impl(ghc >= 9.0)
+      buildable: false
+
     # ghc 8.4+ on mac needs this workaround. See
     # https://github.com/sol/doctest/issues/199
     # https://ghc.haskell.org/trac/ghc/ticket/15105#comment:10 :
