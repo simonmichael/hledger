@@ -11,6 +11,8 @@ For package-specific changes and minor releases, see the hledger package changel
 
 # fa3ce17fd
 
+- New examples: systemd and nginx configs for hledger-web (Alan Young)
+
 - hledger developers now use GHC 9.0/stackage nightly by default. (#1503)
 
 - bin/commitlint is a new tool for hledger developers which checks and

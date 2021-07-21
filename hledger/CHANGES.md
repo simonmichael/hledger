@@ -43,6 +43,14 @@ Improvements
 
 Fixes
 
+- Our info manuals now have more robust directory metadata (no
+  subdirectory path), making them more likely to be linked in your
+  top-level Info directory by system packages. (#1594) (Simon Michael,
+  Damien Cassou)
+
+- Journal format docs: The commodity directive's scope is now
+  correctly described (lasts until end of current file).
+
 # 1.22.1 unreleased
 
 # 1.22 2021-07-03
