@@ -80,7 +80,7 @@ jobs:
           && bin/commitlint  $RANGE \
           || ( echo "could not identify commits, checking last $NUM instead:"; bin/commitlint -$NUM )
 
-    - name: Skip remaining CI steps if last commit message begins with ; ?
+    - name: Skip remaining CI steps if latest commit message begins with ;
       run: |
         git log -1 --pretty='%s' ${GITHUB_HEAD_REF:+origin/$GITHUB_HEAD_REF} \
         | grep -qE '^ *;' || echo “::set-env name=CONTINUE::true”
