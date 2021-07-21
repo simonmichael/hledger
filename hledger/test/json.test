@@ -5,111 +5,111 @@
 # 1. Test the json output for register reports
 $ hledger -f- reg --output-format=json
 [
-    [
-        "2019-01-01",
-        null,
-        "",
+  [
+    "2019-01-01",
+    null,
+    "",
+    {
+      "paccount": "a",
+      "pamount": [
         {
-            "paccount": "a",
-            "pamount": [
-                {
-                    "acommodity": "AAA",
-                    "aismultiplier": false,
-                    "aprice": null,
-                    "aquantity": {
-                        "decimalMantissa": 10,
-                        "decimalPlaces": 1,
-                        "floatingPoint": 1
-                    },
-                    "astyle": {
-                        "ascommodityside": "R",
-                        "ascommodityspaced": true,
-                        "asdecimalpoint": ".",
-                        "asdigitgroups": null,
-                        "asprecision": 1
-                    }
-                }
-            ],
-            "pbalanceassertion": null,
-            "pcomment": "",
-            "pdate": null,
-            "pdate2": null,
-            "poriginal": null,
-            "pstatus": "Unmarked",
-            "ptags": [],
-            "ptransaction_": "1",
-            "ptype": "VirtualPosting"
+          "acommodity": "AAA",
+          "aismultiplier": false,
+          "aprice": null,
+          "aquantity": {
+            "decimalMantissa": 10,
+            "decimalPlaces": 1,
+            "floatingPoint": 1
+          },
+          "astyle": {
+            "ascommodityside": "R",
+            "ascommodityspaced": true,
+            "asdecimalpoint": ".",
+            "asdigitgroups": null,
+            "asprecision": 1
+          }
+        }
+      ],
+      "pbalanceassertion": null,
+      "pcomment": "",
+      "pdate": null,
+      "pdate2": null,
+      "poriginal": null,
+      "pstatus": "Unmarked",
+      "ptags": [],
+      "ptransaction_": "1",
+      "ptype": "VirtualPosting"
+    },
+    [
+      {
+        "acommodity": "AAA",
+        "aismultiplier": false,
+        "aprice": null,
+        "aquantity": {
+          "decimalMantissa": 10,
+          "decimalPlaces": 1,
+          "floatingPoint": 1
         },
-        [
-            {
-                "acommodity": "AAA",
-                "aismultiplier": false,
-                "aprice": null,
-                "aquantity": {
-                    "decimalMantissa": 10,
-                    "decimalPlaces": 1,
-                    "floatingPoint": 1
-                },
-                "astyle": {
-                    "ascommodityside": "R",
-                    "ascommodityspaced": true,
-                    "asdecimalpoint": ".",
-                    "asdigitgroups": null,
-                    "asprecision": 1
-                }
-            }
-        ]
+        "astyle": {
+          "ascommodityside": "R",
+          "ascommodityspaced": true,
+          "asdecimalpoint": ".",
+          "asdigitgroups": null,
+          "asprecision": 1
+        }
+      }
     ]
+  ]
 ]
 
 # 2. Test the json output for balance reports
 $ hledger -f- bal --output-format=json
 [
+  [
     [
-        [
-            "a",
-            "a",
-            0,
-            [
-                {
-                    "acommodity": "AAA",
-                    "aismultiplier": false,
-                    "aprice": null,
-                    "aquantity": {
-                        "decimalMantissa": 10,
-                        "decimalPlaces": 1,
-                        "floatingPoint": 1
-                    },
-                    "astyle": {
-                        "ascommodityside": "R",
-                        "ascommodityspaced": true,
-                        "asdecimalpoint": ".",
-                        "asdigitgroups": null,
-                        "asprecision": 1
-                    }
-                }
-            ]
-        ]
-    ],
-    [
+      "a",
+      "a",
+      0,
+      [
         {
-            "acommodity": "AAA",
-            "aismultiplier": false,
-            "aprice": null,
-            "aquantity": {
-                "decimalMantissa": 10,
-                "decimalPlaces": 1,
-                "floatingPoint": 1
-            },
-            "astyle": {
-                "ascommodityside": "R",
-                "ascommodityspaced": true,
-                "asdecimalpoint": ".",
-                "asdigitgroups": null,
-                "asprecision": 1
-            }
+          "acommodity": "AAA",
+          "aismultiplier": false,
+          "aprice": null,
+          "aquantity": {
+            "decimalMantissa": 10,
+            "decimalPlaces": 1,
+            "floatingPoint": 1
+          },
+          "astyle": {
+            "ascommodityside": "R",
+            "ascommodityspaced": true,
+            "asdecimalpoint": ".",
+            "asdigitgroups": null,
+            "asprecision": 1
+          }
         }
+      ]
     ]
+  ],
+  [
+    {
+      "acommodity": "AAA",
+      "aismultiplier": false,
+      "aprice": null,
+      "aquantity": {
+        "decimalMantissa": 10,
+        "decimalPlaces": 1,
+        "floatingPoint": 1
+      },
+      "astyle": {
+        "ascommodityside": "R",
+        "ascommodityspaced": true,
+        "asdecimalpoint": ".",
+        "asdigitgroups": null,
+        "asprecision": 1
+      }
+    }
+  ]
 ]
 
 >=0

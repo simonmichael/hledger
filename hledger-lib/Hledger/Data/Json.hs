@@ -261,7 +261,7 @@ instance FromJSON (DecimalRaw Integer)
 
 -- | Config for pretty printing JSON output.
 jsonConf :: Config
-jsonConf = Config{confIndent=Spaces 4,confCompare=compare, confNumFormat=Generic, confTrailingNewline=True}
+jsonConf = Config{confIndent=Spaces 2, confCompare=compare, confNumFormat=Generic, confTrailingNewline=True}
 
 -- | Show a JSON-convertible haskell value as pretty-printed JSON text.
 toJsonText :: ToJSON a => a -> TL.Text
