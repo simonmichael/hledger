@@ -683,7 +683,10 @@ main = do
           -- interesting commit messages between lastrev and HEAD, cleaned up
           let
             interestingpaths = fromMaybe projectChangelogExcludeDirs mpkg
-            interestingmessages = "--invert-grep --grep '^;'"  -- ignore commits beginning with ;
+            -- interestingmessages = "--invert-grep --grep '^;'"  -- ignore commits beginning with ;
+            -- TODO: update for new commit conventions. ; now means skip CI,
+            -- feat:/imp:/fix: means release notes, pkg:/lib: means changelogs, etc.
+            interestingmessages = ""
           newitems <- fromStdout <$>
                         (cmd Shell gitlog changelogGitFormat (lastrev++"..") interestingmessages "--" interestingpaths
                          "|" changelogCleanupCmd :: Action (Stdout String))
