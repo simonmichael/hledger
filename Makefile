@@ -257,33 +257,21 @@ build: \
 # 	@($(SHELLTEST) checks \
 # 		&& echo $@ PASSED) || echo $@ FAILED
 
-link-web-dirs: config messages static templates \
-	$(call def-help,link-web-dirs,\
+webdirs: config messages static templates \
+	$(call def-help,webdirs, sym-link some directories for hledger-web dev\
 	\
 	)
 
-config: \
-	$(call def-help,config,\
-	\
-	)
+config:
 	ln -sf hledger-web/$@
 
-messages: \
-	$(call def-help,messages,\
-	\
-	)
+messages:
 	ln -sf hledger-web/$@
 
-static: \
-	$(call def-help,static,\
-	\
-	)
+static:
 	ln -sf hledger-web/$@
 
-templates: \
-	$(call def-help,templates,\
-	\
-	)
+templates:
 	ln -sf hledger-web/$@
 
 save-hledger-unopt: \
