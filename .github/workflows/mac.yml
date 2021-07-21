@@ -73,6 +73,11 @@ jobs:
           && bin/commitlint  $RANGE \
           || ( echo "could not identify commits, checking last $NUM instead:"; bin/commitlint -$NUM )
 
+    - name: Skip remaining CI steps if latest commit message begins with ;
+      run: |
+        git log -1 --pretty='%s' ${GITHUB_HEAD_REF:+origin/$GITHUB_HEAD_REF} \
+        | grep -qE '^ *;' || echo “::set-env name=CONTINUE::true”
+
     # things to be cached/restored:
 
     - name: Cache stack global package db
@@ -83,6 +88,7 @@ jobs:
         key: ${{ runner.os }}-stack-global-after20210110-${{ hashFiles('**.yaml') }}
         restore-keys: |
              ${{ runner.os }}-stack-global-after202110110
+      if: env.CONTINUE
 
     - name: Cache stack-installed programs in ~/.local/bin
       id:   stack-programs
@@ -92,6 +98,7 @@ jobs:
         key: ${{ runner.os }}-stack-programs-${{ hashFiles('**.yaml') }}
         restore-keys: |
              ${{ runner.os }}-stack-programs
+      if: env.CONTINUE
 
     - name: Cache .stack-work
       uses: actions/cache@v2
@@ -100,6 +107,7 @@ jobs:
         key: ${{ runner.os }}-stack-work-${{ hashFiles('**.yaml') }}
         restore-keys: |
              ${{ runner.os }}-stack-work
+      if: env.CONTINUE
 
     - name: Cache hledger-lib/.stack-work
       uses: actions/cache@v2
@@ -108,6 +116,7 @@ jobs:
         key: ${{ runner.os }}-hledger-lib-stack-work-${{ hashFiles('hledger-lib/package.yaml') }}
         restore-keys: |
              ${{ runner.os }}-hledger-lib-stack-work
+      if: env.CONTINUE
 
     - name: Cache hledger/.stack-work
       uses: actions/cache@v2
@@ -116,6 +125,7 @@ jobs:
         key: ${{ runner.os }}-hledger-stack-work-${{ hashFiles('hledger/package.yaml') }}
         restore-keys: |
              ${{ runner.os }}-hledger-stack-work
+      if: env.CONTINUE
 
     - name: Cache hledger-ui/.stack-work
       uses: actions/cache@v2
@@ -124,6 +134,7 @@ jobs:
         key: ${{ runner.os }}-hledger-ui-stack-work-${{ hashFiles('hledger-ui/package.yaml') }}
         restore-keys: |
              ${{ runner.os }}-hledger-ui-stack-work
+      if: env.CONTINUE
 
     - name: Cache hledger-web/.stack-work
       uses: actions/cache@v2
@@ -132,6 +143,7 @@ jobs:
         key: ${{ runner.os }}-hledger-web-stack-work-${{ hashFiles('hledger-web/package.yaml') }}
         restore-keys: |
              ${{ runner.os }}-hledger-web-stack-work
+      if: env.CONTINUE
 
     # actions:
 
@@ -145,18 +157,21 @@ jobs:
         # brew install gnu-tar; curl -sL https://get.haskellstack.org/stable/osx-x86_64.tar.gz | gtar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack
         if [[ ! -x ~/.local/bin/stack ]]; then brew install gnu-tar; curl -sL https://get.haskellstack.org/stable/osx-x86_64.tar.gz | gtar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack; fi
         stack --version
+      if: env.CONTINUE
 
     - name: Install GHC
       env:
         stack: ${{ matrix.plan.stack }}
       run: |
         $stack setup --install-ghc
+      if: env.CONTINUE
 
     - name: Install haskell deps
       env:
         stack: ${{ matrix.plan.stack }}
       run: |
         $stack build --test --only-dependencies
+      if: env.CONTINUE
 
     - name: Build hledger and test unit tests, doc tests
       env:
@@ -165,6 +180,7 @@ jobs:
         $stack install --test --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror
         # --ghc-options=-split-sections doesn't work on mac
         #  --pedantic
+      if: env.CONTINUE
 
     - name: Install shelltestrunner
       env:
@@ -173,6 +189,7 @@ jobs:
         export PATH=~/.local/bin:$PATH
         if [[ ! -x ~/.local/bin/shelltest ]]; then $stack install shelltestrunner-1.9; fi
         shelltest --version
+      if: env.CONTINUE
 
     - name: Test functional tests (excluding addons)
       env:
@@ -180,6 +197,7 @@ jobs:
       run: |
         export PATH=~/.local/bin:$PATH
         COLUMNS=80 $stack exec -- shelltest --execdir -j16 hledger/test -x /_ -x /addons # bin
+      if: env.CONTINUE
 
     # artifacts:
 
@@ -192,6 +210,7 @@ jobs:
         cp ~/.local/bin/hledger .
         cp ~/.local/bin/hledger-ui .
         cp ~/.local/bin/hledger-web .
+      if: env.CONTINUE
 
     # XXX intermittent upload failures
     - name: Upload executables artifact
@@ -199,3 +218,4 @@ jobs:
       with:
         name: hledger-macos
         path: tmp/hledger
+      if: env.CONTINUE

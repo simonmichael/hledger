@@ -116,6 +116,11 @@ jobs:
           && bin/commitlint  $RANGE \
           || ( echo "could not identify commits, checking last $NUM instead:"; bin/commitlint -$NUM )
 
+    - name: Skip remaining CI steps if latest commit message begins with ;
+      run: |
+        git log -1 --pretty='%s' ${GITHUB_HEAD_REF:+origin/$GITHUB_HEAD_REF} \
+        | grep -qE '^ *;' || echo “::set-env name=CONTINUE::true”
+
     # things to be cached/restored:
 
     - name: Cache stack global package db
@@ -126,6 +131,7 @@ jobs:
         key: ${{ runner.os }}-stack-global-${{ matrix.plan.ghc }}-${{ hashFiles('**.yaml') }}
         restore-keys: |
              ${{ runner.os }}-stack-global-${{ matrix.plan.ghc }}
+      if: env.CONTINUE
 
     - name: Cache stack-installed programs in ~/.local/bin
       id:   stack-programs
@@ -135,6 +141,7 @@ jobs:
         key: ${{ runner.os }}-stack-programs-${{ matrix.plan.ghc }}-${{ hashFiles('**.yaml') }}
         restore-keys: |
              ${{ runner.os }}-stack-programs-${{ matrix.plan.ghc }}
+      if: env.CONTINUE
 
     - name: Cache .stack-work
       uses: actions/cache@v2
@@ -143,6 +150,7 @@ jobs:
         key: ${{ runner.os }}-stack-work-${{ matrix.plan.ghc }}-${{ hashFiles('**.yaml') }}
         restore-keys: |
              ${{ runner.os }}-stack-work-${{ matrix.plan.ghc }}
+      if: env.CONTINUE
 
     - name: Cache hledger-lib/.stack-work
       uses: actions/cache@v2
@@ -151,6 +159,7 @@ jobs:
         key: ${{ runner.os }}-hledger-lib-stack-work-${{ matrix.plan.ghc }}-${{ hashFiles('hledger-lib/package.yaml') }}
         restore-keys: |
              ${{ runner.os }}-hledger-lib-stack-work-${{ matrix.plan.ghc }}
+      if: env.CONTINUE
 
     - name: Cache hledger/.stack-work
       uses: actions/cache@v2
@@ -159,6 +168,7 @@ jobs:
         key: ${{ runner.os }}-hledger-stack-work-${{ matrix.plan.ghc }}-${{ hashFiles('hledger/package.yaml') }}
         restore-keys: |
              ${{ runner.os }}-hledger-stack-work-${{ matrix.plan.ghc }}
+      if: env.CONTINUE
 
     - name: Cache hledger-ui/.stack-work
       uses: actions/cache@v2
@@ -167,6 +177,7 @@ jobs:
         key: ${{ runner.os }}-hledger-ui-stack-work-${{ matrix.plan.ghc }}-${{ hashFiles('hledger-ui/package.yaml') }}
         restore-keys: |
              ${{ runner.os }}-hledger-ui-stack-work-${{ matrix.plan.ghc }}
+      if: env.CONTINUE
 
     - name: Cache hledger-web/.stack-work
       uses: actions/cache@v2
@@ -175,6 +186,7 @@ jobs:
         key: ${{ runner.os }}-hledger-web-stack-work-${{ matrix.plan.ghc }}-${{ hashFiles('hledger-web/package.yaml') }}
         restore-keys: |
              ${{ runner.os }}-hledger-web-stack-work-${{ matrix.plan.ghc }}
+      if: env.CONTINUE
 
     # no longer needed I think
     # For now due to
@@ -208,6 +220,7 @@ jobs:
         # curl -sL https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack
         if [[ ! -x ~/.local/bin/stack ]]; then curl -sL https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack; fi
         stack --version
+      if: env.CONTINUE
 
     - name: Install GHC
       env:
@@ -216,6 +229,7 @@ jobs:
         df -h
         $stack setup --install-ghc
         df -h
+      if: env.CONTINUE
 
     - name: Install haskell deps
       env:
@@ -223,6 +237,7 @@ jobs:
       run: |
         $stack build --test --bench --only-dependencies
         #  --no-terminal
+      if: env.CONTINUE
 
     - name: Build all hledger modules warning free, optimised and minimised, run unit/doc/bench tests
       env:
@@ -232,6 +247,7 @@ jobs:
         # build quicker when tweaking ci: $stack install --ghc-options=-Werror --ghc-options=-split-sections --no-terminal
         # -split-sections shrinks binaries by 30% on average here
         # --pedantic --no-run-benchmarks
+      if: env.CONTINUE
 
     - name: Install shelltestrunner
       env:
@@ -240,6 +256,7 @@ jobs:
         export PATH=~/.local/bin:$PATH
         if [[ ! -x ~/.local/bin/shelltest ]]; then $stack install shelltestrunner-1.9; fi
         shelltest --version
+      if: env.CONTINUE
 
     - name: Test functional tests (excluding addons)
       env:
@@ -248,6 +265,7 @@ jobs:
         export PATH=~/.local/bin:$PATH
         COLUMNS=80 $stack exec -- shelltest --execdir -j16 hledger/test -x /_ -x /addons
         # XXX run the bin/ func tests corresponding to the GHC version enabled above, only
+      if: env.CONTINUE
 
     - name: Test haddock generation
       env:
@@ -256,6 +274,7 @@ jobs:
         time $stack build --haddock --no-haddock-deps --no-haddock-hyperlink-source --haddock-arguments="--no-print-missing-docs"
         # --no-haddock-hyperlink-source is 25% faster
         # --no-print-missing-docs is 600% quieter
+      if: env.CONTINUE
 
     # artifacts:
     # XXX unreliable, and we don't need this for every PR; disable for now
@@ -273,6 +292,7 @@ jobs:
     # example of setting a context variable, and an attempt to make a nice artifact version suffix.
     # But a constant name is easier in some ways.
     #   echo "::set-output name=version::$(git branch --show-current | sed 's/-.*//')-$(git rev-parse --short HEAD)"
+      if: env.CONTINUE
 
     # XXX intermittent upload failures
     - name: Upload executables artifact
@@ -281,6 +301,7 @@ jobs:
     #    name: hledger-ubuntu-${{ steps.exes.outputs.version }}
         name: hledger-ubuntu
         path: tmp/hledger
+      if: env.CONTINUE
 
 
 

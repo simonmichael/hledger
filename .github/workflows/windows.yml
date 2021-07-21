@@ -63,6 +63,11 @@ jobs:
           && bin/commitlint  $RANGE \
           || ( echo "could not identify commits, checking last $NUM instead:"; bin/commitlint -$NUM )
 
+    - name: Skip remaining CI steps if latest commit message begins with ;
+      run: |
+        git log -1 --pretty='%s' ${GITHUB_HEAD_REF:+origin/$GITHUB_HEAD_REF} \
+        | grep -qE '^ *;' || echo “::set-env name=CONTINUE::true”
+
     # things to be cached/restored:
 
     - name: Cache stack global package db
@@ -73,6 +78,7 @@ jobs:
         key: ${{ runner.os }}-appdata-roaming-stack-${{ hashFiles('**.yaml') }}
         restore-keys: |
              ${{ runner.os }}-appdata-roaming-stack
+      if: env.CONTINUE
 
     - name: Cache stack programs dir   # ghc, ghc-included packages and their haddocks, mingw, msys2
       id:   stack-programs-dir
@@ -84,6 +90,7 @@ jobs:
         key: ${{ runner.os }}-appdata-local-programs-stack-${{ hashFiles('**.yaml') }}
         restore-keys: |
              ${{ runner.os }}-appdata-local-programs-stack
+      if: env.CONTINUE
 
     - name: Cache .stack-work
       uses: actions/cache@v2
@@ -92,6 +99,7 @@ jobs:
         key: ${{ runner.os }}-stack-work-${{ hashFiles('**.yaml') }}
         restore-keys: |
              ${{ runner.os }}-stack-work
+      if: env.CONTINUE
 
     - name: Cache hledger-lib/.stack-work
       uses: actions/cache@v2
@@ -100,6 +108,7 @@ jobs:
         key: ${{ runner.os }}-hledger-lib-stack-work-${{ hashFiles('hledger-lib/package.yaml') }}
         restore-keys: |
              ${{ runner.os }}-hledger-lib-stack-work
+      if: env.CONTINUE
 
     - name: Cache hledger/.stack-work
       uses: actions/cache@v2
@@ -108,6 +117,7 @@ jobs:
         key: ${{ runner.os }}-hledger-stack-work-${{ hashFiles('hledger/package.yaml') }}
         restore-keys: |
              ${{ runner.os }}-hledger-stack-work
+      if: env.CONTINUE
 
     - name: Cache hledger-ui/.stack-work
       uses: actions/cache@v2
@@ -116,6 +126,7 @@ jobs:
         key: ${{ runner.os }}-hledger-ui-stack-work-${{ hashFiles('hledger-ui/package.yaml') }}
         restore-keys: |
              ${{ runner.os }}-hledger-ui-stack-work
+      if: env.CONTINUE
 
     - name: Cache hledger-web/.stack-work
       uses: actions/cache@v2
@@ -124,6 +135,7 @@ jobs:
         key: ${{ runner.os }}-hledger-web-stack-work-${{ hashFiles('hledger-web/package.yaml') }}
         restore-keys: |
              ${{ runner.os }}-hledger-web-stack-work
+      if: env.CONTINUE
 
     # - name: showStuff
     #   shell: bash
@@ -156,12 +168,14 @@ jobs:
         stack --version
         which ./stack
         ./stack --version
+      if: env.CONTINUE
 
     - name: Install GHC
       # if: steps.stack-programs-dir.outputs.cache-hit != 'true'
       # set PATH=C:\Users\runneradmin\AppData\Local\Programs\stack\local\bin;%PATH%
       run: |
         ./stack --no-terminal setup --install-ghc
+      if: env.CONTINUE
 
     # - name: Install shelltestrunner
     ## - export PATH=~/.local/bin:$PATH
@@ -171,6 +185,7 @@ jobs:
     - name: Install haskell deps
       run: |
         ./stack --no-terminal build --only-dependencies
+      if: env.CONTINUE
 
     # use whichever GHC is in default stack.yaml
 
@@ -179,6 +194,7 @@ jobs:
         ./stack --no-terminal install --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror
       # --ghc-options=-split-sections doesn't work on windows, "too many sections"
       # --pedantic
+      if: env.CONTINUE
 
     # run hledger-lib/hledger functional tests, skipping the ones for addons
     ## - export PATH=~/.local/bin:$PATH
@@ -194,6 +210,7 @@ jobs:
         cd hledger
         copy C:\Users\runneradmin\AppData\Roaming\local\bin\hledger.exe .
         copy C:\Users\runneradmin\AppData\Roaming\local\bin\hledger-web.exe .
+      if: env.CONTINUE
              
     # XXX intermittent upload failures
     - name: Create executables artifact
@@ -201,4 +218,5 @@ jobs:
       with:
         name: hledger-windows
         path: tmp/hledger
+      if: env.CONTINUE
 
