@@ -39,6 +39,9 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    # defaults:
+    #   run:
+    #     shell: bash
     steps:
 
     - name: Check out
@@ -57,6 +60,7 @@ jobs:
       env:
         BEFORE: ${{ github.event.before }}
         NUM:    20
+      shell: bash
       run: |
         RANGE=${BEFORE:-origin/master}..${GITHUB_HEAD_REF:+origin/$GITHUB_HEAD_REF}
         git rev-list --quiet $RANGE \
@@ -64,6 +68,7 @@ jobs:
           || ( echo "could not identify commits, checking last $NUM instead:"; bin/commitlint -$NUM )
 
     - name: Skip remaining CI steps if latest commit message begins with ;
+      shell: bash
       run: |
         git log -1 --pretty='%s' ${GITHUB_HEAD_REF:+origin/$GITHUB_HEAD_REF} \
         | grep -qE '^ *;' || echo “::set-env name=CONTINUE::true”
