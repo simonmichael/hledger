@@ -71,7 +71,7 @@ jobs:
       shell: bash
       run: |
         git log -1 --pretty='%s' ${GITHUB_HEAD_REF:+origin/$GITHUB_HEAD_REF} \
-        | grep -qE '^ *;' || echo “::set-env name=CONTINUE::true”
+        | grep -qE '^ *;' || echo "CONTINUE=true" >> $GITHUB_ENV 
 
     # things to be cached/restored:
 
