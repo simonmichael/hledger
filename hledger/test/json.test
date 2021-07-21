@@ -10,52 +10,52 @@ $ hledger -f- reg --output-format=json
         null,
         "",
         {
-            "pbalanceassertion": null,
-            "pstatus": "Unmarked",
+            "paccount": "a",
             "pamount": [
                 {
-                    "aprice": null,
                     "acommodity": "AAA",
-                    "aquantity": {
-                        "floatingPoint": 1,
-                        "decimalPlaces": 1,
-                        "decimalMantissa": 10
-                    },
                     "aismultiplier": false,
+                    "aprice": null,
+                    "aquantity": {
+                        "decimalMantissa": 10,
+                        "decimalPlaces": 1,
+                        "floatingPoint": 1
+                    },
                     "astyle": {
                         "ascommodityside": "R",
-                        "asdigitgroups": null,
                         "ascommodityspaced": true,
-                        "asprecision": 1,
-                        "asdecimalpoint": "."
+                        "asdecimalpoint": ".",
+                        "asdigitgroups": null,
+                        "asprecision": 1
                     }
                 }
             ],
-            "ptransaction_": "1",
-            "paccount": "a",
-            "pdate": null,
-            "ptype": "VirtualPosting",
+            "pbalanceassertion": null,
             "pcomment": "",
+            "pdate": null,
             "pdate2": null,
+            "poriginal": null,
+            "pstatus": "Unmarked",
             "ptags": [],
-            "poriginal": null
+            "ptransaction_": "1",
+            "ptype": "VirtualPosting"
         },
         [
             {
-                "aprice": null,
                 "acommodity": "AAA",
-                "aquantity": {
-                    "floatingPoint": 1,
-                    "decimalPlaces": 1,
-                    "decimalMantissa": 10
-                },
                 "aismultiplier": false,
+                "aprice": null,
+                "aquantity": {
+                    "decimalMantissa": 10,
+                    "decimalPlaces": 1,
+                    "floatingPoint": 1
+                },
                 "astyle": {
                     "ascommodityside": "R",
-                    "asdigitgroups": null,
                     "ascommodityspaced": true,
-                    "asprecision": 1,
-                    "asdecimalpoint": "."
+                    "asdecimalpoint": ".",
+                    "asdigitgroups": null,
+                    "asprecision": 1
                 }
             }
         ]
@@ -72,20 +72,20 @@ $ hledger -f- bal --output-format=json
             0,
             [
                 {
-                    "aprice": null,
                     "acommodity": "AAA",
-                    "aquantity": {
-                        "floatingPoint": 1,
-                        "decimalPlaces": 1,
-                        "decimalMantissa": 10
-                    },
                     "aismultiplier": false,
+                    "aprice": null,
+                    "aquantity": {
+                        "decimalMantissa": 10,
+                        "decimalPlaces": 1,
+                        "floatingPoint": 1
+                    },
                     "astyle": {
                         "ascommodityside": "R",
-                        "asdigitgroups": null,
                         "ascommodityspaced": true,
-                        "asprecision": 1,
-                        "asdecimalpoint": "."
+                        "asdecimalpoint": ".",
+                        "asdigitgroups": null,
+                        "asprecision": 1
                     }
                 }
             ]
@@ -93,20 +93,20 @@ $ hledger -f- bal --output-format=json
     ],
     [
         {
-            "aprice": null,
             "acommodity": "AAA",
-            "aquantity": {
-                "floatingPoint": 1,
-                "decimalPlaces": 1,
-                "decimalMantissa": 10
-            },
             "aismultiplier": false,
+            "aprice": null,
+            "aquantity": {
+                "decimalMantissa": 10,
+                "decimalPlaces": 1,
+                "floatingPoint": 1
+            },
             "astyle": {
                 "ascommodityside": "R",
-                "asdigitgroups": null,
                 "ascommodityspaced": true,
-                "asprecision": 1,
-                "asdecimalpoint": "."
+                "asdecimalpoint": ".",
+                "asdigitgroups": null,
+                "asprecision": 1
             }
         }
     ]

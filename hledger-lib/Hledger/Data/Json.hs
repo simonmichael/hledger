@@ -34,13 +34,13 @@ module Hledger.Data.Json (
 ) where
 
 import           Data.Aeson
-import           Data.Aeson.Encode.Pretty (encodePrettyToTextBuilder)
+import           Data.Aeson.Encode.Pretty (Config(..), Indent(..), NumberFormat(..),
+                     encodePretty', encodePrettyToTextBuilder')
 --import           Data.Aeson.TH
 import qualified Data.ByteString.Lazy as BL
 import           Data.Decimal (DecimalRaw(..), roundTo)
 import           Data.Maybe (fromMaybe)
 import qualified Data.Text.Lazy    as TL
-import qualified Data.Text.Lazy.IO as TL
 import qualified Data.Text.Lazy.Builder as TB
 import           GHC.Generics (Generic)
 import           System.Time (ClockTime)
@@ -259,15 +259,18 @@ instance FromJSON (DecimalRaw Integer)
 
 -- Utilities
 
+-- | Config for pretty printing JSON output.
+jsonConf :: Config
+jsonConf = Config{confIndent=Spaces 4,confCompare=compare, confNumFormat=Generic, confTrailingNewline=True}
+
 -- | Show a JSON-convertible haskell value as pretty-printed JSON text.
 toJsonText :: ToJSON a => a -> TL.Text
-toJsonText = TB.toLazyText . (<> TB.fromText "\n") . encodePrettyToTextBuilder
+toJsonText = TB.toLazyText . encodePrettyToTextBuilder' jsonConf
 
 -- | Write a JSON-convertible haskell value to a pretty-printed JSON file.
 -- Eg: writeJsonFile "a.json" nulltransaction
 writeJsonFile :: ToJSON a => FilePath -> a -> IO ()
-writeJsonFile f = TL.writeFile f . toJsonText
--- we write with Text and read with ByteString, is that fine ?
+writeJsonFile f = BL.writeFile f . encodePretty' jsonConf
 
 -- | Read a JSON file and decode it to the target type, or raise an error if we can't.
 -- Eg: readJsonFile "a.json" :: IO Transaction
@@ -280,4 +283,3 @@ readJsonFile f = do
   case fromJSON v :: FromJSON a => Result a of
     Error e   -> error e
     Success t -> return t
-
