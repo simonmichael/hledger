@@ -9,12 +9,20 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# ce526305b
+# 9aac520ed
 
-- fix: ui: transaction: possibly off-by-one valuation date
-  I'm not sure if it arose in practice, but: ensure TransactionScreen
-  in V mode would correctly use the journal's last day as valuation date,
-  not the day after that.
+Improvements
+
+- Allow megaparsec 9.1.
+
+Fixes
+
+- Up/down keys work on the transaction screen again (broken since 1.22). 
+  (#1607, Stephen Morgan)
+
+- Fix a possible off-by-one bug with valuation date when using `V` key on
+  the transaction screen. (If it ever needs to use the journal's last day
+  as valuation date, use that day, not the day after.)
 
 # 1.22.1 unreleased
 

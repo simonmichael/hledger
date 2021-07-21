@@ -9,37 +9,19 @@
 General changes in the hledger project (and notable all-package releases).
 For package-specific changes and minor releases, see the hledger package changelogs.
 
-# 82b74ec41
+# fa3ce17fd
 
-- ci: commitlint: when range is invalid (eg force push), check last 20
-  This is imperfect but better than nothing, and should avoid spurious
-  failures on force pushes to PRs.
+- hledger developers now use GHC 9.0/stackage nightly by default. (#1503)
 
-- ci: commitlint: ignore boring commits: github merge commit (#1606)
-
-- bin:commitlint:doc, policy: allow more spaces, slash/comma in topics
-
-- ci: run commitlint to check commits (#1602)
-  As first step in our main "check" workflows (push, linux, mac,
-  windows), check all the commit messages with commitlint.
-
-  These workflows can be triggered in various ways:
-  pull requests, pushes, manually, or scheduled.
-
-  For (each push to) a pull request, all commits currently in the PR
-  branch are checked.
-
-  For a regular push, all the pushed commits are checked, usually.
-  Subcases: push to master, push to other branch, force push;
-  I think at least the first two work, I don't care to spend more time
-  on it.
-
-  For a manual run, it seemed to check the same commits as a push (which
-  push ? Not sure how this works).
-
-  For a scheduled run - we'll see.
-
-- bin: commitlint: don't exit successfully if a command fails (#1602)
+- bin/commitlint is a new tool for hledger developers which checks and
+  describes new commit conventions which simplify maintenance of
+  change docs and releasing. It can be run locally while developing,
+  manually or as a pre-commit hook
+  (`ln -sf ../../bin/commitling .git/hooks/commit-msg`), 
+  and is also run by our CI workflows to check pull requests.
+  <https://hledger.org/CONTRIBUTING.html#commit-messages>,
+  <https://github.com/simonmichael/hledger/blob/master/bin/commitlint>
+  (#1602)
 
 # 1.22 2021-07-03
 

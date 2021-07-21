@@ -9,23 +9,51 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 2df8ad781
+# 861c34484
 
-- imp: bal: more predictable sort order with multiple commodities (#1563, #1564) (Stephen Morgan)
-  This change provides more predictable and intuitive behaviour when 
-  using -S/--sort-amount with multiple commodities. 
-  It implements a custom Ord (and Eq) instance for MixedAmount 
-  which substitutes zero for any missing commodities.
+- Our doctests are disabled with GHC 9 for now to work around an
+  upstream bug. (#1503, #1615)
+
+- Allow megaparsec 9.1
+
+- Our pretty-printed JSON now orders object attributes alphabetically,
+  across all GHC and haskell lib versions.
+
+- Some balance report types have been renamed for clarity and to sync with docs:
+
+      ReportType -> BalanceCalculation
+       ChangeReport -> CalcChange
+       BudgetReport -> CalcBudget
+       ValueChangeReport -> CalcValueChange
+
+      BalanceType -> BalanceAccumulation
+       PeriodChange -> PerPeriod
+       CumulativeChange -> Cumulative
+       HistoricalBalance -> Historical
+
+      ReportOpts:
+       reporttype_ -> balancecalc_
+       balancetype_ -> balanceaccum_
+
+      CompoundBalanceCommandSpec:
+       cbctype -> cbcaccum
+
+      Hledger.Reports.ReportOptions:
+       balanceTypeOverride -> balanceAccumulationOverride
+
+- MixedAmounts now have a more predictable Ord instance / sort order.
+  They are compared in each commodity in turn, with
+  alphabetically-first commodity symbols being most significant.
+  Missing commodities are assumed to be zero. (#1563, #1564, Stephen Morgan)
   
   As a consequence, all the ways of representing zero with a MixedAmount ([],
   [A 0], [A 0, B 0, ...]) are now Eq-ual (==), whereas before they were
-  not. We have not been able to find anything broken by this change.  
+  not. We have not been able to find anything broken by this change.
 
-- imp: lib: Compare MixedAmounts by substituting zero for any missing commodities. (#1563)
+- journalEndDate's behaviour has been clarified, journalLastDay has
+  been added.
 
-- lib: clarify journalEndDate, add journalLastDay
-
-- lib: export transactionCheckBalanced (#1596)
+- transactionCheckBalanced is now exported. (#1596)
 
 # 1.22.1 unreleased
 

@@ -9,23 +9,39 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# cf25d7d56
+# 9701e1916
 
-- imp: cli: Don't show extra double quotes in missing journal file error. (#1601) (Stephen Morgan)
+Improvements
 
-- imp: bal: more predictable sort order with multiple commodities (#1563, #1564) (Stephen Morgan)
-  This change provides more predictable and intuitive behaviour when 
-  using -S/--sort-amount with multiple commodities. 
-  It implements a custom Ord (and Eq) instance for MixedAmount 
-  which substitutes zero for any missing commodities.
+- Bash shell completions (for hledger, hledger-ui, hledger-web) are
+  now included in the hledger package's release tarballs, making them
+  more likely to be installed by system packages. (Jakob Schöttl)
+
+- Allow megaparsec 9.1
+
+- In JSON output, object attributes are now ordered alphabetically,
+  consistently for all GHC and haskell lib versions. (#1618, Stephen
+  Morgan)
+
+- roi docs now discuss how to quote multi-word queries. (#1609, Dmitry
+  Astapov)
+
+- The error message for a non-existent input file no longer shows
+  excess double quotes. (#1601, Stephen Morgan)
+
+- The balance commands' `-S/--sort-amount` flag now behaves more
+  predictably and intuitively with multiple commodities.
+  Multi-commodity amounts are sorted by comparing their amounts in
+  each commodity, with alphabetically-first commodity symbols being
+  most significant, and assuming zero when a commodity is missing.
+  (#1563, #1564, Stephen Morgan)
   
-  As a consequence, all the ways of representing zero with a MixedAmount ([],
-  [A 0], [A 0, B 0, ...]) are now Eq-ual (==), whereas before they were
-  not. We have not been able to find anything broken by this change.
-  
-- imp: close: doc: rewrite manual (#1604)
+- The close command now uses the later of today or journal's last day
+  as default closing date, providing more intuitive behaviour when
+  closing a journal with future transactions. Docs have been improved.
+  (#1604)
 
-- imp: close: clarify date logic, use journal last day if later (#1604)
+Fixes
 
 # 1.22.1 unreleased
 
