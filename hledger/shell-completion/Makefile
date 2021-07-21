@@ -1,3 +1,6 @@
+# Generate shell completions.
+# Requires: GNU Make 4.3+, GNU m4
+
 # Setting the number of job runners like this in the makefile only works in
 # GNU Make 4.3 or later. Older versions will require that either an env
 # variable be set before running or command line flag be passed at runtime to
