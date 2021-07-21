@@ -429,6 +429,12 @@ ghci-shake: $(call def-help,ghci-shake, start ghci REPL on Shake.hs)
 copy-bins-to-%: $(call def-help,copy-bins-to-VER, save ~/.local/bin/hledger* as hledger*-VER)
 	V=$*; for B in $(BINARIES); do cp ~/.local/bin/$$B ~/.local/bin/$$B.$$V; done
 
+# make must be GNU Make 4.3+
+.PHONY: shellcompletions
+shellcompletions: $(call def-help,shellcompletions, update shell completions in hledger package)
+	make -C hledger/shell-completion/ clean-all all
+
+
 ###############################################################################
 $(call def-help-subheading,TESTING:)
 
