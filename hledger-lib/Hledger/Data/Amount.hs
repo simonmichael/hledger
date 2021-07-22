@@ -152,7 +152,7 @@ import Data.Foldable (toList)
 import Data.List (find, foldl', intercalate, intersperse, mapAccumL, partition)
 import Data.List.NonEmpty (NonEmpty(..), nonEmpty)
 import qualified Data.Map.Strict as M
-import Data.Maybe (fromMaybe, isNothing)
+import Data.Maybe (fromMaybe, isNothing, isJust)
 import Data.Semigroup (Semigroup(..))
 import qualified Data.Text as T
 import qualified Data.Text.Lazy.Builder as TB
@@ -175,6 +175,9 @@ data AmountDisplayOpts = AmountDisplayOpts
   , displayOneLine       :: Bool       -- ^ Whether to display on one line.
   , displayMinWidth      :: Maybe Int  -- ^ Minimum width to pad to
   , displayMaxWidth      :: Maybe Int  -- ^ Maximum width to clip to
+  -- | Display amounts in this order (without the commodity symbol) and display
+  -- a 0 in case a corresponding commodity does not exist
+  , displayOrder         :: Maybe [CommoditySymbol]
   } deriving (Show)
 
 -- | Display Amount and MixedAmount with no colour.
@@ -186,8 +189,9 @@ noColour = AmountDisplayOpts { displayPrice         = True
                              , displayColour        = False
                              , displayZeroCommodity = False
                              , displayOneLine       = False
-                             , displayMinWidth      = Nothing
+                             , displayMinWidth      = Just 0
                              , displayMaxWidth      = Nothing
+                             , displayOrder         = Nothing
                              }
 
 -- | Display Amount and MixedAmount with no prices.
@@ -429,14 +433,15 @@ showAmountB :: AmountDisplayOpts -> Amount -> WideBuilder
 showAmountB _ Amount{acommodity="AUTO"} = mempty
 showAmountB opts a@Amount{astyle=style} =
     color $ case ascommodityside style of
-      L -> c' <> space <> quantity' <> price
-      R -> quantity' <> space <> c' <> price
+      L -> showC c' space <> quantity' <> price
+      R -> quantity' <> showC space c' <> price
   where
     quantity = showamountquantity a
     (quantity',c) | amountLooksZero a && not (displayZeroCommodity opts) = (WideBuilder (TB.singleton '0') 1,"")
                   | otherwise = (quantity, quoteCommoditySymbolIfNeeded $ acommodity a)
     space = if not (T.null c) && ascommodityspaced style then WideBuilder (TB.singleton ' ') 1 else mempty
     c' = WideBuilder (TB.fromText c) (textWidth c)
+    showC l r = if isJust (displayOrder opts) then mempty else l <> r
     price = if displayPrice opts then showAmountPrice a else mempty
     color = if displayColour opts && isNegativeAmount a then colorB Dull Red else id
 
@@ -820,13 +825,16 @@ showMixedAmountLinesB :: AmountDisplayOpts -> MixedAmount -> [WideBuilder]
 showMixedAmountLinesB opts@AmountDisplayOpts{displayMaxWidth=mmax,displayMinWidth=mmin} ma =
     map (adBuilder . pad) elided
   where
-    astrs = amtDisplayList (wbWidth sep) (showAmountB opts) . amounts $
+    astrs = amtDisplayList (wbWidth sep) (showAmountB opts) . orderedAmounts opts $
               if displayPrice opts then ma else mixedAmountStripPrices ma
     sep   = WideBuilder (TB.singleton '\n') 0
-    width = maximum $ fromMaybe 0 mmin : map (wbWidth . adBuilder) elided
+    width = maximum $ map (wbWidth . adBuilder) elided
 
-    pad amt = amt{ adBuilder = WideBuilder (TB.fromText $ T.replicate w " ") w <> adBuilder amt }
-      where w = width - wbWidth (adBuilder amt)
+    pad amt
+      | Just mw <- mmin =
+          let w = (max width mw) - wbWidth (adBuilder amt)
+           in amt{ adBuilder = WideBuilder (TB.fromText $ T.replicate w " ") w <> adBuilder amt }
+      | otherwise = amt
 
     elided = maybe id elideTo mmax astrs
     elideTo m xs = maybeAppend elisionStr short
@@ -843,7 +851,7 @@ showMixedAmountOneLineB opts@AmountDisplayOpts{displayMaxWidth=mmax,displayMinWi
     . max width $ fromMaybe 0 mmin
   where
     width  = maybe 0 adTotal $ lastMay elided
-    astrs  = amtDisplayList (wbWidth sep) (showAmountB opts) . amounts $
+    astrs  = amtDisplayList (wbWidth sep) (showAmountB opts) . orderedAmounts opts $
                if displayPrice opts then ma else mixedAmountStripPrices ma
     sep    = WideBuilder (TB.fromString ", ") 2
     n      = length astrs
@@ -865,6 +873,15 @@ showMixedAmountOneLineB opts@AmountDisplayOpts{displayMaxWidth=mmax,displayMinWi
 
     -- Add the elision strings (if any) to each amount
     withElided = zipWith (\num amt -> (amt, elisionDisplay Nothing (wbWidth sep) num amt)) [n-1,n-2..0]
+
+orderedAmounts :: AmountDisplayOpts -> MixedAmount -> [Amount]
+orderedAmounts AmountDisplayOpts{displayOrder=ord} ma
+  | Just cs <- ord = fmap pad cs
+  | otherwise = as
+  where
+    as = amounts ma
+    pad c = fromMaybe (amountWithCommodity c nullamt) . find ((==) c . acommodity) $ as
+
 
 data AmountDisplay = AmountDisplay
   { adBuilder :: !WideBuilder  -- ^ String representation of the Amount

@@ -8,7 +8,8 @@ module Text.WideString (
   -- * Text Builders which keep track of length
   WideBuilder(..),
   wbUnpack,
-  wbToText
+  wbToText,
+  wbFromText
   ) where
 
 import Data.Text (Text)
@@ -32,6 +33,10 @@ instance Monoid WideBuilder where
 -- | Convert a WideBuilder to a strict Text.
 wbToText :: WideBuilder -> Text
 wbToText = TL.toStrict . TB.toLazyText . wbBuilder
+
+-- | Convert a WideBuilder to a strict Text.
+wbFromText :: Text -> WideBuilder
+wbFromText t = WideBuilder (TB.fromText t) (textWidth t)
 
 -- | Convert a WideBuilder to a String.
 wbUnpack :: WideBuilder -> String

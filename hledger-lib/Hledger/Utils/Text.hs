@@ -41,6 +41,7 @@ module Hledger.Utils.Text
   -- * wide-character-aware layout
   WideBuilder(..),
   wbToText,
+  wbFromText,
   wbUnpack,
   textWidth,
   textTakeWidth,
@@ -61,7 +62,7 @@ import qualified Data.Text.Lazy.Builder as TB
 import Hledger.Utils.Test ((@?=), test, tests)
 import Text.Tabular.AsciiWide
   (Align(..), Header(..), Properties(..), TableOpts(..), renderRow, textCell)
-import Text.WideString (WideBuilder(..), wbToText, wbUnpack, charWidth, textWidth)
+import Text.WideString (WideBuilder(..), wbToText, wbFromText, wbUnpack, charWidth, textWidth)
 
 
 -- lowercase, uppercase :: String -> String

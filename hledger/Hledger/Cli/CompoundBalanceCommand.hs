@@ -297,11 +297,11 @@ compoundBalanceReportAsHtml ropts cbr =
     subreportrows :: (T.Text, MultiBalanceReport, Bool) -> [Html ()]
     subreportrows (subreporttitle, mbr, _increasestotal) =
       let
-        (_,bodyrows,mtotalsrow) = multiBalanceReportHtmlRows ropts mbr
+        (_,bodyrows,mtotalsrows) = multiBalanceReportHtmlRows ropts mbr
       in
            [tr_ $ th_ [colspanattr, leftattr] $ toHtml subreporttitle]
         ++ bodyrows
-        ++ maybe [] (:[]) mtotalsrow
+        ++ mtotalsrows
         ++ [blankrow]
 
     totalrows | no_total_ ropts || length subreports == 1 = []
