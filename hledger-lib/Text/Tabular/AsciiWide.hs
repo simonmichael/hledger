@@ -10,13 +10,16 @@ module Text.Tabular.AsciiWide
 , render
 , renderTable
 , renderTableB
+, renderTableByRowsB
 , renderRow
 , renderRowB
+, renderColumns
 
 , Cell(..)
 , Align(..)
 , emptyCell
 , textCell
+, textsCell
 , cellWidth
 ) where
 
@@ -30,7 +33,7 @@ import qualified Data.Text.Lazy as TL
 import Data.Text.Lazy.Builder (Builder, fromString, fromText, singleton, toLazyText)
 import Safe (maximumMay)
 import Text.Tabular
-import Text.WideString (WideBuilder(..), textWidth)
+import Text.WideString (WideBuilder(..), wbFromText, textWidth)
 
 
 -- | The options to use for rendering a table.
@@ -60,6 +63,10 @@ emptyCell = Cell TopRight []
 textCell :: Align -> Text -> Cell
 textCell a x = Cell a . map (\x -> WideBuilder (fromText x) (textWidth x)) $ if T.null x then [""] else T.lines x
 
+-- | Create a multi-line cell from the given contents with its natural width.
+textsCell :: Align -> [Text] -> Cell
+textsCell a = Cell a . fmap wbFromText
+
 -- | Return the width of a Cell.
 cellWidth :: Cell -> Int
 cellWidth (Cell _ xs) = fromMaybe 0 . maximumMay $ map wbWidth xs
@@ -86,20 +93,31 @@ renderTableB :: TableOpts       -- ^ Options controlling Table rendering
              -> (a -> Cell)   -- ^ Function determining the string and width of a cell
              -> Table rh ch a
              -> Builder
-renderTableB topts@TableOpts{prettyTable=pretty, tableBorders=borders} fr fc f (Table rh ch cells) =
+renderTableB topts fr fc f = renderTableByRowsB topts (fmap fc) (\(rh, as) -> (fr rh, fmap f as))
+
+-- | A version of renderTable that operates on rows (including the 'row' of
+-- column headers) and returns the underlying Builder.
+renderTableByRowsB :: TableOpts      -- ^ Options controlling Table rendering
+             -> ([ch] -> [Cell])     -- ^ Rendering function for column headers
+             -> ((rh, [a]) -> (Cell, [Cell])) -- ^ Rendering function for row and row header
+             -> Table rh ch a
+             -> Builder
+renderTableByRowsB topts@TableOpts{prettyTable=pretty, tableBorders=borders} fc f (Table rh ch cells) =
    unlinesB . addBorders $
      renderColumns topts sizes ch2
      : bar VM DoubleLine   -- +======================================+
      : renderRs (fmap renderR $ zipHeader [] cellContents rowHeaders)
  where
+  renderR :: ([Cell], Cell) -> Builder
   renderR (cs,h) = renderColumns topts sizes $ Group DoubleLine
                      [ Header h
                      , fmap fst $ zipHeader emptyCell cs colHeaders
                      ]
 
-  rowHeaders   = fmap fr rh
-  colHeaders   = fmap fc ch
-  cellContents = map (map f) cells
+  rows         = unzip . fmap f $ zip (headerContents rh) cells
+  rowHeaders   = fmap fst $ zipHeader emptyCell (fst rows) rh
+  colHeaders   = fmap fst $ zipHeader emptyCell (fc $ headerContents ch) ch
+  cellContents = snd rows
 
   -- ch2 and cell2 include the row and column labels
   ch2 = Group DoubleLine [Header emptyCell, colHeaders]
@@ -161,6 +179,7 @@ renderColumns TableOpts{prettyTable=pretty, tableBorders=borders, borderSpaces=s
     padCell (w, Cell BottomLeft  ls) = map (\x -> wbBuilder x <> fromText (T.replicate (w - wbWidth x) " ")) ls
     padCell (w, Cell TopRight    ls) = map (\x -> fromText (T.replicate (w - wbWidth x) " ") <> wbBuilder x) ls
     padCell (w, Cell BottomRight ls) = map (\x -> fromText (T.replicate (w - wbWidth x) " ") <> wbBuilder x) ls
+
 
     -- Pad each cell to have the same number of lines
     padRow (Cell TopLeft     ls) = Cell TopLeft     $ ls ++ replicate (nLines - length ls) mempty

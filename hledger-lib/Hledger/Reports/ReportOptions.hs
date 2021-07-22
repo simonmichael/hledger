@@ -156,6 +156,7 @@ data ReportOpts = ReportOpts {
       --   whether stdout is an interactive terminal, and the value of
       --   TERM and existence of NO_COLOR environment variables.
     ,transpose_      :: Bool
+    ,commodity_column_:: Bool
  } deriving (Show)
 
 instance Default ReportOpts where def = defreportopts
@@ -193,6 +194,7 @@ defreportopts = ReportOpts
     , normalbalance_   = Nothing
     , color_           = False
     , transpose_       = False
+    , commodity_column_ = False
     }
 
 -- | Generate a ReportOpts from raw command-line input, given a day.
@@ -243,6 +245,7 @@ rawOptsToReportOpts d rawopts =
           ,pretty_tables_ = boolopt "pretty-tables" rawopts
           ,color_       = useColorOnStdout -- a lower-level helper
           ,transpose_   = boolopt "transpose" rawopts
+          ,commodity_column_= boolopt "commodity-column" rawopts
           }
 
 -- | The result of successfully parsing a ReportOpts on a particular

@@ -244,6 +244,7 @@ module Hledger.Cli.Commands.Balance (
   balancemode
  ,balance
  ,balanceReportAsText
+ ,balanceReportAsCsv
  ,balanceReportItemAsText
  ,multiBalanceReportAsText
  ,multiBalanceReportAsCsv
@@ -255,14 +256,17 @@ module Hledger.Cli.Commands.Balance (
 ) where
 
 import Data.Default (def)
-import Data.List (intersperse, transpose)
-import Data.Maybe (fromMaybe, maybeToList)
+import Data.List (intersperse, transpose, foldl', transpose)
+import qualified Data.Map as M
+import qualified Data.Set as S
+import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import Data.Time (fromGregorian)
 import System.Console.CmdArgs.Explicit as C
 import Lucid as L
+import Safe (headMay, maximumMay)
 import Text.Tabular.AsciiWide as Tab
 
 import Hledger
@@ -306,6 +310,8 @@ balancemode = hledgerCommandMode
     ,flagNone ["percent", "%"] (setboolopt "percent") "express values in percentage of each column's total"
     ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
     ,flagNone ["transpose"] (setboolopt "transpose") "transpose rows and columns"
+    ,flagNone ["commodity-column"] (setboolopt "commodity-column")
+      "shows each commodity in its own automatically-generated subaccount, for tidier reports"
     ,outputFormatFlag ["txt","html","csv","json"]
     ,outputFileFlag
     ]
@@ -385,30 +391,64 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ of
 -- | Render a single-column balance report as CSV.
 balanceReportAsCsv :: ReportOpts -> BalanceReport -> CSV
 balanceReportAsCsv opts (items, total) =
-  ["account","balance"] :
-  [[accountNameDrop (drop_ opts) a, wbToText $ showMixedAmountB (balanceOpts False opts) b] | (a, _, _, b) <- items]
-  ++
-  if no_total_ opts
-  then []
-  else [["total", wbToText $ showMixedAmountB (balanceOpts False opts) total]]
+  ("account" : ((if commodity_column_ opts then (:) "commodity" else id) $ "balance" : []))
+  :  (concatMap (\(a, _, _, b) -> rows a b) items)
+  ++ if no_total_ opts then [] else rows "total" total
+  where
+    rows :: AccountName -> MixedAmount -> [[T.Text]]
+    rows name ma
+      | commodity_column_ opts =
+          fmap (\(k, a) -> [showName name, k, renderAmount . mixedAmount . amountStripPrices $ a])
+          . M.toList . foldl' sumAmounts mempty . amounts $ ma
+      | otherwise = [[showName name, renderAmount ma]]
+
+    showName = accountNameDrop (drop_ opts)
+    renderAmount amt = wbToText $ showMixedAmountB bopts amt
+      where bopts = (balanceOpts False opts){displayOrder = order}
+            order = if commodity_column_ opts then Just (commodities [amt]) else Nothing
+    sumAmounts mp am = M.insertWith (+) (acommodity am) am mp
 
 -- | Render a single-column balance report as plain text.
 balanceReportAsText :: ReportOpts -> BalanceReport -> TB.Builder
-balanceReportAsText opts ((items, total)) =
-    unlinesB lines
-    <> unlinesB (if no_total_ opts then [] else [overline, totalLines])
+balanceReportAsText opts ((items, total))
+  | not (commodity_column_ opts) =
+      unlinesB lines
+      <> unlinesB (if no_total_ opts then [] else [overline, totalLines])
+  | iscustom = error' "Custom format not supported with --commodity-column"   -- PARTIAL:
+  | otherwise = balanceReportAsText' opts ((items, total))
   where
     (lines, sizes) = unzip $ map (balanceReportItemAsText opts) items
     -- abuse renderBalanceReportItem to render the total with similar format
     (totalLines, _) = renderBalanceReportItem opts ("",0,total)
     -- with a custom format, extend the line to the full report width;
     -- otherwise show the usual 20-char line for compatibility
-    overlinewidth = case format_ opts of
-        OneLine       ((FormatField _ _ _ TotalField):_) -> 20
-        TopAligned    ((FormatField _ _ _ TotalField):_) -> 20
-        BottomAligned ((FormatField _ _ _ TotalField):_) -> 20
-        _ -> sum (map maximum' $ transpose sizes)
+    iscustom = case format_ opts of
+        OneLine       ((FormatField _ _ _ TotalField):_) -> False
+        TopAligned    ((FormatField _ _ _ TotalField):_) -> False
+        BottomAligned ((FormatField _ _ _ TotalField):_) -> False
+        _ -> True
+    overlinewidth = if iscustom then sum (map maximum' $ transpose sizes) else 20
     overline   = TB.fromText $ T.replicate overlinewidth "-"
+
+-- | Render a single-column balance report as plain text in commodity-column mode
+balanceReportAsText' :: ReportOpts -> BalanceReport -> TB.Builder
+balanceReportAsText' opts ((items, total)) =
+  unlinesB . fmap (renderColumns def{tableBorders=False} sizes .  Tab.Group NoLine . fmap Header) $
+    lines ++ concat [[[overline], totalline] | not (no_total_ opts)]
+  where
+    render (_, acctname, depth, amt) =
+        [ Cell TopRight damts
+        , Cell TopLeft (fmap wbFromText cs)
+        , Cell TopLeft (replicate (length damts - 1) mempty ++ [wbFromText dispname]) ]
+      where dopts = (balanceOpts True opts){displayOrder=Just cs}
+            cs    = commodities [amt]
+            dispname = T.replicate ((depth - 1) * 2) " " <> acctname
+            damts = showMixedAmountLinesB dopts amt
+    lines = fmap render items
+    totalline = render ("", "", 0, total)
+    sizes = fmap (fromMaybe 0 . maximumMay . map cellWidth) $
+        transpose ([totalline | not (no_total_ opts)] ++ lines)
+    overline = Cell TopLeft . pure . wbFromText . flip T.replicate "-" . fromMaybe 0 $ headMay sizes
 
 {-
 :r
@@ -468,56 +508,64 @@ renderComponent topaligned opts (acctname, depth, total) (FormatField ljust mmin
 -- The CSV will always include the initial headings row,
 -- and will include the final totals row unless --no-total is set.
 multiBalanceReportAsCsv :: ReportOpts -> MultiBalanceReport -> CSV
-multiBalanceReportAsCsv opts@ReportOpts{average_, row_total_}
-    (PeriodicReport colspans items (PeriodicReportRow _ coltotals tot avg)) =
-  maybetranspose $
-  ("account" : map showDateSpan colspans
+multiBalanceReportAsCsv opts@ReportOpts{..} =
+  (if transpose_ then transpose else id) . uncurry (++) . multiBalanceReportAsCsv' opts
+
+multiBalanceReportAsCsv' :: ReportOpts -> MultiBalanceReport -> (CSV, CSV)
+multiBalanceReportAsCsv' opts@ReportOpts{..}
+    (PeriodicReport colspans items tr) =
+  flip (,) totalrows $
+  ("account" : ["commodity" | commodity_column_] ++ map showDateSpan colspans
    ++ ["total"   | row_total_]
    ++ ["average" | average_]
   ) :
-  [accountNameDrop (drop_ opts) (displayFull a) :
-   map (wbToText . showMixedAmountB (balanceOpts False opts))
-   (amts
-    ++ [rowtot | row_total_]
-    ++ [rowavg | average_])
-  | PeriodicReportRow a amts rowtot rowavg <- items]
-  ++
-  if no_total_ opts
-  then []
-  else ["total" :
-        map (wbToText . showMixedAmountB (balanceOpts False opts)) (
-          coltotals
-          ++ [tot | row_total_]
-          ++ [avg | average_]
-          )]
+  concatMap (rowAsTexts (accountNameDrop drop_ . prrFullName)) items
   where
-    maybetranspose | transpose_ opts = transpose
-                   | otherwise = id
+    rowAsTexts render row@(PeriodicReportRow _ as rowtot rowavg)
+      | not commodity_column_ = [render row : fmap (wbToText . showMixedAmountB bopts) all]
+      | otherwise =
+            joinNames . zipWith (:) cs  -- add symbols and names
+          . transpose                   -- each row becomes a list of Text quantities
+          . fmap (fmap wbToText . showMixedAmountLinesB bopts{displayOrder=Just cs, displayMinWidth=Nothing})
+          $ all
+      where
+        bopts = balanceOpts False opts
+        cs = commodities $ rowtot : rowavg : as
+        all = as
+            ++ [rowtot | row_total_]
+            ++ [rowavg | average_]
+
+        joinNames = fmap ((:) (render row))
+
+    totalrows :: [[T.Text]]
+    totalrows
+      | no_total_ = mempty
+      | otherwise = rowAsTexts (const "total") tr
 
 -- | Render a multi-column balance report as HTML.
 multiBalanceReportAsHtml :: ReportOpts -> MultiBalanceReport -> Html ()
 multiBalanceReportAsHtml ropts mbr =
   let
-    (headingsrow,bodyrows,mtotalsrow) = multiBalanceReportHtmlRows ropts mbr
+    (headingsrow,bodyrows,mtotalsrows) = multiBalanceReportHtmlRows ropts mbr
   in
     table_ $ mconcat $
          [headingsrow]
       ++ bodyrows
-      ++ maybeToList mtotalsrow
+      ++ mtotalsrows
 
 -- | Render the HTML table rows for a MultiBalanceReport.
 -- Returns the heading row, 0 or more body rows, and the totals row if enabled.
-multiBalanceReportHtmlRows :: ReportOpts -> MultiBalanceReport -> (Html (), [Html ()], Maybe (Html ()))
+multiBalanceReportHtmlRows :: ReportOpts -> MultiBalanceReport -> (Html (), [Html ()], [Html ()])
 multiBalanceReportHtmlRows ropts mbr =
   let
-    headingsrow:rest | transpose_ ropts = error' "Sorry, --transpose with HTML output is not yet supported"  -- PARTIAL:
-                     | otherwise = multiBalanceReportAsCsv ropts mbr
-    (bodyrows, mtotalsrow) | no_total_ ropts = (rest,      Nothing)
-                           | otherwise       = (init rest, Just $ last rest)
+    -- TODO: should the commodity_column be displayed as a subaccount in this case as well?
+    (headingsrow:bodyrows, mtotalsrows)
+      | transpose_ ropts = error' "Sorry, --transpose with HTML output is not yet supported"  -- PARTIAL:
+      | otherwise = multiBalanceReportAsCsv' ropts mbr
   in
     (multiBalanceReportHtmlHeadRow ropts headingsrow
     ,map (multiBalanceReportHtmlBodyRow ropts) bodyrows
-    ,multiBalanceReportHtmlFootRow ropts <$> mtotalsrow -- TODO pad totals row with zeros when there are
+    ,multiBalanceReportHtmlFootRow ropts <$> mtotalsrows -- TODO pad totals row with zeros when there are
     )
 
 -- | Render one MultiBalanceReport heading row as a HTML table row.
@@ -627,7 +675,8 @@ balanceReportAsTable opts@ReportOpts{average_, row_total_, balanceaccum_}
      (map rowvals items)
   where
     totalscolumn = row_total_ && balanceaccum_ `notElem` [Cumulative, Historical]
-    colheadings = map (reportPeriodName balanceaccum_ spans) spans
+    colheadings = ["Commodity" | commodity_column_ opts]
+                  ++ map (reportPeriodName balanceaccum_ spans) spans
                   ++ ["  Total" | totalscolumn]
                   ++ ["Average" | average_]
     accts = map renderacct items
@@ -651,9 +700,28 @@ balanceReportAsTable opts@ReportOpts{average_, row_total_, balanceaccum_}
 -- unless --no-elide is used.
 balanceReportTableAsText :: ReportOpts -> Table T.Text T.Text MixedAmount -> TB.Builder
 balanceReportTableAsText ropts@ReportOpts{..} =
-    Tab.renderTableB def{tableBorders=False, prettyTable=pretty_tables_}
-        (Tab.textCell TopLeft) (Tab.textCell TopRight) $
-        Cell TopRight . pure . showMixedAmountB (balanceOpts True ropts)
+    Tab.renderTableByRowsB def{tableBorders=False, prettyTable=pretty_tables_} renderCh renderRow
+  where
+    renderCh
+      | not commodity_column_ = fmap (Tab.textCell TopRight)
+      | otherwise = zipWith ($) (Tab.textCell TopLeft : repeat (Tab.textCell TopRight))
+
+    renderRow :: (T.Text, [MixedAmount]) -> (Cell, [Cell])
+    renderRow (rh, row)
+      | not commodity_column_ =
+          (Tab.textCell TopLeft rh, fmap (Cell TopRight . pure . showMixedAmountB bopts) row)
+      | otherwise =
+          ( Tab.textsCell TopLeft (replicate (length cs) rh)
+          , Tab.textsCell TopLeft cs
+            : fmap (Cell TopRight . showMixedAmountLinesB bopts{displayOrder = Just cs}) row)
+      where
+        bopts = balanceOpts True ropts
+        cs = commodities row
+
+commodities :: [MixedAmount] -> [CommoditySymbol]
+commodities = filter (not . T.null) . S.toList
+    . foldl' S.union mempty
+    . fmap (S.fromList . fmap acommodity . amounts)
 
 -- | Amount display options to use for balance reports
 balanceOpts :: Bool -> ReportOpts -> AmountDisplayOpts

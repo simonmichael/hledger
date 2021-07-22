@@ -136,7 +136,7 @@ formatfieldp = do
     char '('
     f <- fieldp
     char ')'
-    return $ FormatField (isJust leftJustified) (parseDec minWidth) (parseDec maxWidth) f
+    return $ FormatField (isJust leftJustified) (parseDec minWidth <|> Just 0) (parseDec maxWidth) f
     where
       parseDec s = case s of
         Just text -> Just m where ((m,_):_) = readDec text
@@ -175,20 +175,20 @@ tests_StringFormat = tests "StringFormat" [
    in tests "parseStringFormat" [
       ""                           `gives` (defaultStringFormatStyle [])
     , "D"                          `gives` (defaultStringFormatStyle [FormatLiteral "D"])
-    , "%(date)"                    `gives` (defaultStringFormatStyle [FormatField False Nothing Nothing DescriptionField])
-    , "%(total)"                   `gives` (defaultStringFormatStyle [FormatField False Nothing Nothing TotalField])
+    , "%(date)"                    `gives` (defaultStringFormatStyle [FormatField False (Just 0) Nothing DescriptionField])
+    , "%(total)"                   `gives` (defaultStringFormatStyle [FormatField False (Just 0) Nothing TotalField])
     -- TODO
     -- , "^%(total)"                  `gives` (TopAligned [FormatField False Nothing Nothing TotalField])
     -- , "_%(total)"                  `gives` (BottomAligned [FormatField False Nothing Nothing TotalField])
     -- , ",%(total)"                  `gives` (OneLine [FormatField False Nothing Nothing TotalField])
-    , "Hello %(date)!"             `gives` (defaultStringFormatStyle [FormatLiteral "Hello ", FormatField False Nothing Nothing DescriptionField, FormatLiteral "!"])
-    , "%-(date)"                   `gives` (defaultStringFormatStyle [FormatField True Nothing Nothing DescriptionField])
+    , "Hello %(date)!"             `gives` (defaultStringFormatStyle [FormatLiteral "Hello ", FormatField False (Just 0) Nothing DescriptionField, FormatLiteral "!"])
+    , "%-(date)"                   `gives` (defaultStringFormatStyle [FormatField True (Just 0) Nothing DescriptionField])
     , "%20(date)"                  `gives` (defaultStringFormatStyle [FormatField False (Just 20) Nothing DescriptionField])
-    , "%.10(date)"                 `gives` (defaultStringFormatStyle [FormatField False Nothing (Just 10) DescriptionField])
+    , "%.10(date)"                 `gives` (defaultStringFormatStyle [FormatField False (Just 0) (Just 10) DescriptionField])
     , "%20.10(date)"               `gives` (defaultStringFormatStyle [FormatField False (Just 20) (Just 10) DescriptionField])
     , "%20(account) %.10(total)"   `gives` (defaultStringFormatStyle [FormatField False (Just 20) Nothing AccountField
                                                                      ,FormatLiteral " "
-                                                                     ,FormatField False Nothing (Just 10) TotalField
+                                                                     ,FormatField False (Just 0) (Just 10) TotalField
                                                                      ])
     , test "newline not parsed" $ assertLeft $ parseStringFormat "\n"
     ]
