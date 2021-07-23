@@ -100,23 +100,23 @@ complement = ([minBound..maxBound] \\)
 
 -- | Toggle between showing all and showing only nonempty (more precisely, nonzero) items.
 toggleEmpty :: UIState -> UIState
-toggleEmpty ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts}}}} =
-  ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{rsOpts=toggleEmpty ropts}}}}
+toggleEmpty ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}} =
+  ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{_rsReportOpts=toggleEmpty ropts}}}}
   where
     toggleEmpty ropts = ropts{empty_=not $ empty_ ropts}
 
 -- | Toggle between showing the primary amounts or costs.
 toggleCost :: UIState -> UIState
-toggleCost ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts}}}} =
-    ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{rsOpts=ropts{cost_ = toggle $ cost_ ropts}}}}}
+toggleCost ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}} =
+    ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{_rsReportOpts=ropts{cost_ = toggle $ cost_ ropts}}}}}
   where
     toggle Cost   = NoCost
     toggle NoCost = Cost
 
 -- | Toggle between showing primary amounts or default valuation.
 toggleValue :: UIState -> UIState
-toggleValue ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts}}}} =
-  ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{rsOpts=ropts{
+toggleValue ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}} =
+  ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{_rsReportOpts=ropts{
     value_ = valuationToggleValue $ value_ ropts}}}}}
 
 -- | Basic toggling of -V, for hledger-ui.
@@ -126,18 +126,18 @@ valuationToggleValue _                = Just $ AtEnd Nothing
 
 -- | Set hierarchic account tree mode.
 setTree :: UIState -> UIState
-setTree ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts}}}} =
-  ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{rsOpts=ropts{accountlistmode_=ALTree}}}}}
+setTree ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}} =
+  ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{_rsReportOpts=ropts{accountlistmode_=ALTree}}}}}
 
 -- | Set flat account list mode.
 setList :: UIState -> UIState
-setList ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts}}}} =
-  ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{rsOpts=ropts{accountlistmode_=ALFlat}}}}}
+setList ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}} =
+  ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{_rsReportOpts=ropts{accountlistmode_=ALFlat}}}}}
 
 -- | Toggle between flat and tree mode. If current mode is unspecified/default, assume it's flat.
 toggleTree :: UIState -> UIState
-toggleTree ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts}}}} =
-  ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{rsOpts=toggleTreeMode ropts}}}}
+toggleTree ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}} =
+  ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{_rsReportOpts=toggleTreeMode ropts}}}}
   where
     toggleTreeMode ropts
       | accountlistmode_ ropts == ALTree = ropts{accountlistmode_=ALFlat}
@@ -145,8 +145,8 @@ toggleTree ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspe
 
 -- | Toggle between historical balances and period balances.
 toggleHistorical :: UIState -> UIState
-toggleHistorical ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts}}}} =
-  ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{rsOpts=ropts{balanceaccum_=b}}}}}
+toggleHistorical ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}} =
+  ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{_rsReportOpts=ropts{balanceaccum_=b}}}}}
   where
     b | balanceaccum_ ropts == Historical = PerPeriod
       | otherwise                         = Historical
@@ -157,7 +157,7 @@ toggleHistorical ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec
 -- (which are usually but not necessarily future-dated).
 -- In normal mode, both of these are hidden.
 toggleForecast :: Day -> UIState -> UIState
-toggleForecast d ui@UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportspec_=ReportSpec{rsOpts=ropts}}}} =
+toggleForecast d ui@UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportspec_=ReportSpec{_rsReportOpts=ropts}}}} =
   uiSetForecast ui $
     case forecast_ ropts of
       Just _  -> Nothing
@@ -166,10 +166,10 @@ toggleForecast d ui@UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportspec_=Repo
 -- | Helper: set forecast mode (with the given forecast period) on or off in the UI state.
 uiSetForecast :: UIState -> Maybe DateSpan -> UIState
 uiSetForecast
-  ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts}}}}
+  ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}}
   mforecast =
   -- we assume forecast mode has no effect on ReportSpec's derived fields
-  ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{rsOpts=ropts{forecast_=mforecast}}}}}
+  ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{_rsReportOpts=ropts{forecast_=mforecast}}}}}
 
 -- | Toggle between showing all and showing only real (non-virtual) items.
 toggleReal :: UIState -> UIState
@@ -209,7 +209,7 @@ moveReportPeriodToDate d = updateReportPeriod (periodMoveTo d)
 
 -- | Get the report period.
 reportPeriod :: UIState -> Period
-reportPeriod = period_ . rsOpts . reportspec_ . cliopts_ . aopts
+reportPeriod = period_ . _rsReportOpts . reportspec_ . cliopts_ . aopts
 
 -- | Set the report period.
 setReportPeriod :: Period -> UIState -> UIState
@@ -237,11 +237,11 @@ setFilter s ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rsp
 
 -- | Reset some filters & toggles.
 resetFilter :: UIState -> UIState
-resetFilter ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts}}}} =
+resetFilter ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}} =
   ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{
-     rsQuery=Any
-    ,rsQueryOpts=[]
-    ,rsOpts=ropts{
+     _rsQuery=Any
+    ,_rsQueryOpts=[]
+    ,_rsReportOpts=ropts{
        empty_=True
       ,statuses_=[]
       ,real_=False
@@ -282,7 +282,7 @@ setDepth :: Maybe Int -> UIState -> UIState
 setDepth mdepth = updateReportDepth (const mdepth)
 
 getDepth :: UIState -> Maybe Int
-getDepth = depth_ . rsOpts . reportspec_ . cliopts_ . aopts
+getDepth = depth_ . _rsReportOpts . reportspec_ . cliopts_ . aopts
 
 -- | Update report depth by a applying a function. If asked to set a depth less
 -- than zero, it will leave it unchanged.
@@ -302,7 +302,7 @@ showMinibuffer ui = setMode (Minibuffer e) ui
   where
     e = applyEdit gotoEOL $ editor MinibufferEditor (Just 1) oldq
     oldq = T.unpack . T.unwords . map textQuoteIfNeeded
-         . querystring_ . rsOpts . reportspec_ . cliopts_ $ aopts ui
+         . querystring_ . _rsReportOpts . reportspec_ . cliopts_ $ aopts ui
 
 -- | Close the minibuffer, discarding any edit in progress.
 closeMinibuffer :: UIState -> UIState

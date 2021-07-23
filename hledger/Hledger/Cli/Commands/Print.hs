@@ -81,7 +81,7 @@ entriesReportAsText opts = TB.toLazyText . foldMap (TB.fromText . showTransactio
         -- Because of #551, and because of print -V valuing only one
         -- posting when there's an implicit txn price.
         -- So -B/-V/-X/--value implies -x. Is this ok ?
-        || (isJust . value_ . rsOpts $ reportspec_ opts) = id
+        || (isJust . value_ . _rsReportOpts $ reportspec_ opts) = id
       -- By default, use the original as-written-in-the-journal txn.
       | otherwise = originalTransaction
 

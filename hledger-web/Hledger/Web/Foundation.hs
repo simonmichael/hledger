@@ -116,12 +116,12 @@ instance Yesod App where
     hideEmptyAccts <- (== Just "1") . lookup "hideemptyaccts" . reqCookies <$> getRequest
 
     let rspec = reportspec_ (cliopts_ opts)
-        ropts = rsOpts rspec
-        ropts' = (rsOpts rspec)
+        ropts = _rsReportOpts rspec
+        ropts' = (_rsReportOpts rspec)
           {accountlistmode_ = ALTree  -- force tree mode for sidebar
           ,empty_           = not (empty_ ropts)  -- show zero items by default
           }
-        rspec' = rspec{rsQuery=m,rsOpts=ropts'}
+        rspec' = rspec{_rsQuery=m,_rsReportOpts=ropts'}
         accounts =
           balanceReportAsHtml (JournalR, RegisterR) here hideEmptyAccts j q qopts $
           balanceReport rspec' j
@@ -198,14 +198,14 @@ instance Show Text.Blaze.Markup where show _ = "<blaze markup>"
 -- | Gather data used by handlers and templates in the current request.
 getViewData :: Handler ViewData
 getViewData = do
-  App{appOpts=opts@WebOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts}}}, appJournal} <- getYesod
+  App{appOpts=opts@WebOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts}}}, appJournal} <- getYesod
   today <- liftIO getCurrentDay
 
   -- try to read the latest journal content, keeping the old content
   -- if there's an error
   (j, mjerr) <- getCurrentJournal
                 appJournal
-                copts{reportspec_=rspec{rsOpts=rsOpts{no_elide_=True}}}
+                copts{reportspec_=rspec{_rsReportOpts=_rsReportOpts{no_elide_=True}}}
                 today
 
   -- try to parse the query param, assuming no query if there's an error
@@ -259,7 +259,7 @@ getCurrentJournal jref opts d = do
   j <- liftIO (readIORef jref)
   (ej, changed) <- liftIO $ journalReloadIfChanged opts d j
   -- re-apply any initial filter specified at startup
-  let initq = rsQuery $ reportspec_ opts
+  let initq = _rsQuery $ reportspec_ opts
   case (changed, filterJournalTransactions initq <$> ej) of
     (False, _) -> return (j, Nothing)
     (True, Right j') -> do

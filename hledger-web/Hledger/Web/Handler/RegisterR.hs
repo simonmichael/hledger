@@ -44,9 +44,9 @@ getRegisterR = do
           zip xs $
           zip (map (T.unpack . accountSummarisedName . paccount) xs) $
           tail $ (", "<$xs) ++ [""]
-      items = accountTransactionsReport rspec{rsQuery=m} j acctQuery
+      items = accountTransactionsReport rspec{_rsQuery=m} j acctQuery
       balancelabel
-        | isJust (inAccount qopts), balanceaccum_ (rsOpts rspec) == Historical = "Historical Total"
+        | isJust (inAccount qopts), balanceaccum_ (_rsReportOpts rspec) == Historical = "Historical Total"
         | isJust (inAccount qopts) = "Period Total"
         | otherwise                = "Total"
       transactionFrag = transactionFragment j

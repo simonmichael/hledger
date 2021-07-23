@@ -63,11 +63,11 @@ type SummaryPosting = (Posting, Day)
 -- | Select postings from the journal and add running balance and other
 -- information to make a postings report. Used by eg hledger's register command.
 postingsReport :: ReportSpec -> Journal -> PostingsReport
-postingsReport rspec@ReportSpec{rsOpts=ropts@ReportOpts{..}} j = items
+postingsReport rspec@ReportSpec{_rsReportOpts=ropts@ReportOpts{..}} j = items
     where
       reportspan  = reportSpanBothDates j rspec
       whichdate   = whichDateFromOpts ropts
-      mdepth      = queryDepth $ rsQuery rspec
+      mdepth      = queryDepth $ _rsQuery rspec
       multiperiod = interval_ /= NoInterval
 
       -- postings to be included in the report, and similarly-matched postings before the report start date
@@ -114,7 +114,7 @@ registerRunningCalculationFn ropts
 -- Date restrictions and depth restrictions in the query are ignored.
 -- A helper for the postings report.
 matchedPostingsBeforeAndDuring :: ReportSpec -> Journal -> DateSpan -> ([Posting],[Posting])
-matchedPostingsBeforeAndDuring rspec@ReportSpec{rsOpts=ropts,rsQuery=q} j reportspan =
+matchedPostingsBeforeAndDuring rspec@ReportSpec{_rsReportOpts=ropts,_rsQuery=q} j reportspan =
   dbg5 "beforeps, duringps" $ span (beforestartq `matchesPosting`) beforeandduringps
   where
     beforestartq = dbg3 "beforestartq" $ dateqtype $ DateSpan Nothing $ spanStart reportspan
@@ -223,7 +223,7 @@ negatePostingAmount = postingTransformAmount negate
 tests_PostingsReport = tests "PostingsReport" [
 
    test "postingsReport" $ do
-    let (query, journal) `gives` n = (length $ postingsReport defreportspec{rsQuery=query} journal) @?= n
+    let (query, journal) `gives` n = (length $ postingsReport defreportspec{_rsQuery=query} journal) @?= n
     -- with the query specified explicitly
     (Any, nulljournal) `gives` 0
     (Any, samplejournal) `gives` 13
@@ -233,9 +233,9 @@ tests_PostingsReport = tests "PostingsReport" [
     (And [And [Depth 1, StatusQ Cleared], Acct (toRegex' "expenses")], samplejournal) `gives` 2
     -- with query and/or command-line options
     (length $ postingsReport defreportspec samplejournal) @?= 13
-    (length $ postingsReport defreportspec{rsOpts=defreportopts{interval_=Months 1}} samplejournal) @?= 11
-    (length $ postingsReport defreportspec{rsOpts=defreportopts{interval_=Months 1, empty_=True}} samplejournal) @?= 20
-    (length $ postingsReport defreportspec{rsQuery=Acct $ toRegex' "assets:bank:checking"} samplejournal) @?= 5
+    (length $ postingsReport defreportspec{_rsReportOpts=defreportopts{interval_=Months 1}} samplejournal) @?= 11
+    (length $ postingsReport defreportspec{_rsReportOpts=defreportopts{interval_=Months 1, empty_=True}} samplejournal) @?= 20
+    (length $ postingsReport defreportspec{_rsQuery=Acct $ toRegex' "assets:bank:checking"} samplejournal) @?= 5
 
      -- (defreportopts, And [Acct "a a", Acct "'b"], samplejournal2) `gives` 0
      -- [(Just (fromGregorian 2008 01 01,"income"),assets:bank:checking             $1,$1)

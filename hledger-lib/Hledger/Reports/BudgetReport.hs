@@ -68,7 +68,7 @@ budgetReport rspec bopts reportspan j = dbg4 "sortedbudgetreport" budgetreport
   where
     -- Budget report demands ALTree mode to ensure subaccounts and subaccount budgets are properly handled
     -- and that reports with and without --empty make sense when compared side by side
-    ropts = (rsOpts rspec){ accountlistmode_ = ALTree }
+    ropts = (_rsReportOpts rspec){ accountlistmode_ = ALTree }
     showunbudgeted = empty_ ropts
     budgetedaccts =
       dbg3 "budgetedacctsinperiod" $
@@ -81,9 +81,9 @@ budgetReport rspec bopts reportspan j = dbg4 "sortedbudgetreport" budgetreport
     actualj = journalWithBudgetAccountNames budgetedaccts showunbudgeted j
     budgetj = journalAddBudgetGoalTransactions bopts ropts reportspan j
     actualreport@(PeriodicReport actualspans _ _) =
-        dbg5 "actualreport" $ multiBalanceReport rspec{rsOpts=ropts{empty_=True}} actualj
+        dbg5 "actualreport" $ multiBalanceReport rspec{_rsReportOpts=ropts{empty_=True}} actualj
     budgetgoalreport@(PeriodicReport _ budgetgoalitems budgetgoaltotals) =
-        dbg5 "budgetgoalreport" $ multiBalanceReport rspec{rsOpts=ropts{empty_=True}} budgetj
+        dbg5 "budgetgoalreport" $ multiBalanceReport rspec{_rsReportOpts=ropts{empty_=True}} budgetj
     budgetgoalreport'
       -- If no interval is specified:
       -- budgetgoalreport's span might be shorter actualreport's due to periodic txns;

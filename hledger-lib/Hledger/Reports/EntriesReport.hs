@@ -34,14 +34,14 @@ type EntriesReportItem = Transaction
 
 -- | Select transactions for an entries report.
 entriesReport :: ReportSpec -> Journal -> EntriesReport
-entriesReport rspec@ReportSpec{rsOpts=ropts} =
-    sortBy (comparing $ transactionDateFn ropts) . jtxns . filterJournalTransactions (rsQuery rspec)
-    . journalApplyValuationFromOpts rspec{rsOpts=ropts{show_costs_=True}}
+entriesReport rspec@ReportSpec{_rsReportOpts=ropts} =
+    sortBy (comparing $ transactionDateFn ropts) . jtxns . filterJournalTransactions (_rsQuery rspec)
+    . journalApplyValuationFromOpts rspec{_rsReportOpts=ropts{show_costs_=True}}
 
 tests_EntriesReport = tests "EntriesReport" [
   tests "entriesReport" [
-     test "not acct" $ (length $ entriesReport defreportspec{rsQuery=Not . Acct $ toRegex' "bank"} samplejournal) @?= 1
-    ,test "date" $ (length $ entriesReport defreportspec{rsQuery=Date $ DateSpan (Just $ fromGregorian 2008 06 01) (Just $ fromGregorian 2008 07 01)} samplejournal) @?= 3
+     test "not acct" $ (length $ entriesReport defreportspec{_rsQuery=Not . Acct $ toRegex' "bank"} samplejournal) @?= 1
+    ,test "date" $ (length $ entriesReport defreportspec{_rsQuery=Date $ DateSpan (Just $ fromGregorian 2008 06 01) (Just $ fromGregorian 2008 07 01)} samplejournal) @?= 3
   ]
  ]
 

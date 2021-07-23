@@ -341,7 +341,7 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ of
               _      -> error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
         writeOutputLazyText opts $ render ropts report
   where
-    ropts@ReportOpts{..} = rsOpts rspec
+    ropts@ReportOpts{..} = _rsReportOpts rspec
     multiperiod = interval_ /= NoInterval
     fmt         = outputFormatFromOpts opts
 
@@ -661,8 +661,8 @@ tests_Balance = tests "Balance" [
    tests "balanceReportAsText" [
     test "unicode in balance layout" $ do
       j <- readJournal' "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
-      let rspec = defreportspec{rsOpts=defreportopts{no_total_=True}}
-      TB.toLazyText (balanceReportAsText (rsOpts rspec) (balanceReport rspec{rsToday=fromGregorian 2008 11 26} j))
+      let rspec = defreportspec{_rsReportOpts=defreportopts{no_total_=True}}
+      TB.toLazyText (balanceReportAsText (_rsReportOpts rspec) (balanceReport rspec{_rsDay=fromGregorian 2008 11 26} j))
         @?=
         TL.unlines
         ["                -100  актив:наличные"

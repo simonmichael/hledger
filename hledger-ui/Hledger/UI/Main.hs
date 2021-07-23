@@ -43,11 +43,11 @@ writeChan = BC.writeBChan
 
 main :: IO ()
 main = do
-  opts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportspec_=rspec@ReportSpec{rsOpts=ropts},rawopts_=rawopts}} <- getHledgerUIOpts
+  opts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportspec_=rspec@ReportSpec{_rsReportOpts=ropts},rawopts_=rawopts}} <- getHledgerUIOpts
   -- when (debug_ $ cliopts_ opts) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show opts)
 
   -- always generate forecasted periodic transactions; their visibility will be toggled by the UI.
-  let copts' = copts{reportspec_=rspec{rsOpts=ropts{forecast_=Just $ fromMaybe nulldatespan (forecast_ ropts)}}}
+  let copts' = copts{reportspec_=rspec{_rsReportOpts=ropts{forecast_=Just $ fromMaybe nulldatespan (forecast_ ropts)}}}
 
   case True of
     _ | "help"            `inRawOpts` rawopts -> putStr (showModeUsage uimode)
@@ -58,7 +58,7 @@ main = do
     _                                         -> withJournalDo copts' (runBrickUi opts)
 
 runBrickUi :: UIOpts -> Journal -> IO ()
-runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportspec_=rspec@ReportSpec{rsOpts=ropts}}} j = do
+runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}} j = do
   d <- getCurrentDay
 
   let
@@ -103,9 +103,9 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportspec_=rsp
     uopts' = uopts{
       cliopts_=copts{
          reportspec_=rspec{
-            rsQuery=filteredQuery $ rsQuery rspec,  -- query with depth/date parts removed
-            rsOpts=ropts{
-               depth_ =queryDepth $ rsQuery rspec,  -- query's depth part
+            _rsQuery=filteredQuery $ _rsQuery rspec,  -- query with depth/date parts removed
+            _rsReportOpts=ropts{
+               depth_ =queryDepth $ _rsQuery rspec,  -- query's depth part
                period_=periodfromoptsandargs,       -- query's date part
                no_elide_=True,  -- avoid squashing boring account names, for a more regular tree (unlike hledger)
                empty_=not $ empty_ ropts,  -- show zero items by default, hide them with -E (unlike hledger)
@@ -115,7 +115,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportspec_=rsp
          }
       }
       where
-        datespanfromargs = queryDateSpan (date2_ ropts) $ rsQuery rspec
+        datespanfromargs = queryDateSpan (date2_ ropts) $ _rsQuery rspec
         periodfromoptsandargs =
           dateSpanAsPeriod $ spansIntersect [periodAsDateSpan $ period_ ropts, datespanfromargs]
         filteredQuery q = simplifyQuery $ And [queryFromFlags ropts, filtered q]

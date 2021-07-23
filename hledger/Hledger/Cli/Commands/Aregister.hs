@@ -79,7 +79,7 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
     -- gather report options
     inclusive = True  -- tree_ ropts
     thisacctq = Acct $ (if inclusive then accountNameToAccountRegex else accountNameToAccountOnlyRegex) acct
-    ropts' = (rsOpts rspec) {
+    ropts' = (_rsReportOpts rspec) {
         -- ignore any depth limit, as in postingsReport; allows register's total to match balance reports (cf #1468)
         depth_=Nothing
         -- always show historical balance
@@ -95,8 +95,8 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
     items' = (if empty_ ropts' then id else filter (not . mixedAmountLooksZero . fifth6)) $
              reverse items
     -- select renderer
-    render | fmt=="txt"  = accountTransactionsReportAsText opts (rsQuery rspec') thisacctq
-           | fmt=="csv"  = printCSV . accountTransactionsReportAsCsv (rsQuery rspec') thisacctq
+    render | fmt=="txt"  = accountTransactionsReportAsText opts (_rsQuery rspec') thisacctq
+           | fmt=="csv"  = printCSV . accountTransactionsReportAsCsv (_rsQuery rspec') thisacctq
            | fmt=="json" = toJsonText
            | otherwise   = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
       where
@@ -130,7 +130,7 @@ accountTransactionsReportAsText copts reportq thisacctq items
     amtwidth = maximumStrict $ 12 : map (wbWidth . showamt . itemamt) items
     balwidth = maximumStrict $ 12 : map (wbWidth . showamt . itembal) items
     showamt = showMixedAmountB oneLine{displayMinWidth=Just 12, displayMaxWidth=mmax}  -- color_
-      where mmax = if no_elide_ . rsOpts . reportspec_ $ copts then Nothing else Just 32
+      where mmax = if no_elide_ . _rsReportOpts . reportspec_ $ copts then Nothing else Just 32
     itemamt (_,_,_,_,a,_) = a
     itembal (_,_,_,_,_,a) = a
     -- show a title indicating which account was picked, which can be confusing otherwise
@@ -155,7 +155,7 @@ accountTransactionsReportAsText copts reportq thisacctq items
 --
 accountTransactionsReportItemAsText :: CliOpts -> Query -> Query -> Int -> Int -> AccountTransactionsReportItem -> TB.Builder
 accountTransactionsReportItemAsText
-  copts@CliOpts{reportspec_=ReportSpec{rsOpts=ReportOpts{color_}}}
+  copts@CliOpts{reportspec_=ReportSpec{_rsReportOpts=ReportOpts{color_}}}
   reportq thisacctq preferredamtwidth preferredbalwidth
   (t@Transaction{tdescription}, _, _issplit, otheracctsstr, change, balance) =
     -- Transaction -- the transaction, unmodified

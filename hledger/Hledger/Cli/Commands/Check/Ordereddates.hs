@@ -12,11 +12,11 @@ import Data.List (groupBy)
 journalCheckOrdereddates :: CliOpts -> Journal -> Either String ()
 journalCheckOrdereddates CliOpts{reportspec_=rspec} j = do
   let 
-    ropts = (rsOpts rspec){accountlistmode_=ALFlat}
+    ropts = (_rsReportOpts rspec){accountlistmode_=ALFlat}
     -- check date ordering within each file, not across files
     filets = 
       groupBy (\t1 t2 -> transactionFile t1 == transactionFile t2) $
-      filter (rsQuery rspec `matchesTransaction`) $
+      filter (_rsQuery rspec `matchesTransaction`) $
       jtxns $ journalApplyValuationFromOpts rspec j
     checkunique = False -- boolopt "unique" rawopts  XXX was supported by checkdates command
     compare a b = if checkunique then getdate a < getdate b else getdate a <= getdate b

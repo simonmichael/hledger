@@ -154,9 +154,9 @@ main = do
   dbgIO "isInternalCommand" isInternalCommand
   dbgIO "isExternalCommand" isExternalCommand
   dbgIO "isBadCommand" isBadCommand
-  dbgIO "period from opts" (period_ . rsOpts $ reportspec_ opts)
-  dbgIO "interval from opts" (interval_ . rsOpts $ reportspec_ opts)
-  dbgIO "query from opts & args" (rsQuery $ reportspec_ opts)
+  dbgIO "period from opts" (period_ . _rsReportOpts $ reportspec_ opts)
+  dbgIO "interval from opts" (interval_ . _rsReportOpts $ reportspec_ opts)
+  dbgIO "query from opts & args" (_rsQuery $ reportspec_ opts)
   let
     journallesserror = error $ cmd++" tried to read the journal but is not supposed to"
     runHledgerCommand
