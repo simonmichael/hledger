@@ -125,8 +125,8 @@ journalAddForecast CliOpts{inputopts_=iopts, reportspec_=rspec} j =
         Just _  -> either (error') id . journalApplyCommodityStyles $  -- PARTIAL:
                      journalBalanceTransactions' iopts j{ jtxns = concat [jtxns j, forecasttxns'] }
   where
-    today = rsToday rspec
-    ropts = rsOpts rspec
+    today = _rsDay rspec
+    ropts = _rsReportOpts rspec
 
     -- "They can start no earlier than: the day following the latest normal transaction in the journal (or today if there are none)."
     mjournalend   = dbg2 "journalEndDate" $ journalEndDate False j  -- ignore secondary dates
@@ -310,7 +310,7 @@ journalSimilarTransaction cliopts j desc = mbestmatch
     bestmatches =
       dbg1With (unlines . ("similar transactions:":) . map (\(score,Transaction{..}) -> printf "%0.3f %s %s" score (show tdate) tdescription)) $
       journalTransactionsSimilarTo j q desc 10
-    q = queryFromFlags $ rsOpts $ reportspec_ cliopts
+    q = queryFromFlags $ _rsReportOpts $ reportspec_ cliopts
 
 tests_Cli_Utils = tests "Utils" [
 

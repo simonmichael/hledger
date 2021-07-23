@@ -56,7 +56,7 @@ rsSetAccount a forceinclusive scr@RegisterScreen{} =
 rsSetAccount _ _ scr = scr
 
 rsInit :: Day -> Bool -> UIState -> UIState
-rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts}}}, ajournal=j, aScreen=s@RegisterScreen{..}} =
+rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}, ajournal=j, aScreen=s@RegisterScreen{..}} =
   ui{aScreen=s{rsList=newitems'}}
   where
     -- gather arguments and queries
@@ -74,7 +74,7 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec
       }
     rspec' =
       either (error "rsInit: adjusting the query for register, should not have failed") id $ -- PARTIAL:
-      updateReportSpec ropts' rspec{rsToday=d}
+      updateReportSpec ropts' rspec{_rsDay=d}
     items = accountTransactionsReport rspec' j thisacctq
     items' = (if empty_ ropts then id else filter (not . mixedAmountLooksZero . fifth6)) $  -- without --empty, exclude no-change txns
              reverse  -- most recent last
@@ -84,7 +84,7 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec
     displayitems = map displayitem items'
       where
         displayitem (t, _, _issplit, otheracctsstr, change, bal) =
-          RegisterScreenItem{rsItemDate          = showDate $ transactionRegisterDate (rsQuery rspec') thisacctq t
+          RegisterScreenItem{rsItemDate          = showDate $ transactionRegisterDate (_rsQuery rspec') thisacctq t
                             ,rsItemStatus        = tstatus t
                             ,rsItemDescription   = tdescription t
                             ,rsItemOtherAccounts = otheracctsstr
@@ -188,7 +188,7 @@ rsDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}
       render $ defaultLayout toplabel bottomlabel $ renderList (rsDrawItem colwidths) True rsList
 
       where
-        ropts = rsOpts rspec
+        ropts = _rsReportOpts rspec
         ishistorical = balanceaccum_ ropts == Historical
         -- inclusive = tree_ ropts || rsForceInclusive
 

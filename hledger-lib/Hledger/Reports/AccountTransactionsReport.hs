@@ -93,17 +93,17 @@ triCommodityAmount c = filterMixedAmountByCommodity c  . triAmount
 triCommodityBalance c = filterMixedAmountByCommodity c  . triBalance
 
 accountTransactionsReport :: ReportSpec -> Journal -> Query -> AccountTransactionsReport
-accountTransactionsReport rspec@ReportSpec{rsOpts=ropts} j thisacctq = items
+accountTransactionsReport rspec@ReportSpec{_rsReportOpts=ropts} j thisacctq = items
   where
     -- a depth limit should not affect the account transactions report
     -- seems unnecessary for some reason XXX
-    reportq = simplifyQuery $ And [rsQuery rspec, periodq, excludeforecastq (forecast_ ropts)]
+    reportq = simplifyQuery $ And [_rsQuery rspec, periodq, excludeforecastq (forecast_ ropts)]
       where
         periodq = Date . periodAsDateSpan $ period_ ropts
         -- Except in forecast mode, exclude future/forecast transactions.
         excludeforecastq (Just _) = Any
         excludeforecastq Nothing  =  -- not:date:tomorrow- not:tag:generated-transaction
-          And [ Not . Date $ DateSpan (Just . addDays 1 $ rsToday rspec) Nothing
+          And [ Not . Date $ DateSpan (Just . addDays 1 $ _rsDay rspec) Nothing
               , Not generatedTransactionTag
               ]
     symq    = filterQuery queryIsSym reportq

@@ -66,7 +66,7 @@ hledgerWebMain = do
 -- | The hledger web command.
 web :: WebOpts -> Journal -> IO ()
 web opts j = do
-  let initq = rsQuery . reportspec_ $ cliopts_ opts
+  let initq = _rsQuery . reportspec_ $ cliopts_ opts
       j' = filterJournalTransactions initq j
       h = host_ opts
       p = port_ opts

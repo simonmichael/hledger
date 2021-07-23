@@ -96,7 +96,7 @@ type ClippedAccountName = AccountName
 -- by the bs/cf/is commands.
 multiBalanceReport :: ReportSpec -> Journal -> MultiBalanceReport
 multiBalanceReport rspec j = multiBalanceReportWith rspec j (journalPriceOracle infer j)
-  where infer = infer_value_ $ rsOpts rspec
+  where infer = infer_value_ $ _rsReportOpts rspec
 
 -- | A helper for multiBalanceReport. This one takes an extra argument,
 -- a PriceOracle to be used for looking up market prices. Commands which
@@ -126,7 +126,7 @@ multiBalanceReportWith rspec' j priceoracle = report
 compoundBalanceReport :: ReportSpec -> Journal -> [CBCSubreportSpec a]
                       -> CompoundPeriodicReport a MixedAmount
 compoundBalanceReport rspec j = compoundBalanceReportWith rspec j (journalPriceOracle infer j)
-  where infer = infer_value_ $ rsOpts rspec
+  where infer = infer_value_ $ _rsReportOpts rspec
 
 -- | A helper for compoundBalanceReport, similar to multiBalanceReportWith.
 compoundBalanceReportWith :: ReportSpec -> Journal -> PriceOracle
@@ -151,14 +151,14 @@ compoundBalanceReportWith rspec' j priceoracle subreportspecs = cbr
             ( cbcsubreporttitle
             -- Postprocess the report, negating balances and taking percentages if needed
             , cbcsubreporttransform $
-                generateMultiBalanceReport rspec{rsOpts=ropts} j priceoracle colps' startbals'
+                generateMultiBalanceReport rspec{_rsReportOpts=ropts} j priceoracle colps' startbals'
             , cbcsubreportincreasestotal
             )
           where
             -- Filter the column postings according to each subreport
             colps'     = filter (matchesPosting q) <$> colps
             startbals' = HM.filterWithKey (\k _ -> matchesAccount q k) startbals
-            ropts      = cbcsubreportoptions $ rsOpts rspec
+            ropts      = cbcsubreportoptions $ _rsReportOpts rspec
             q          = cbcsubreportquery j
 
     -- Sum the subreport totals by column. Handle these cases:
@@ -183,13 +183,13 @@ compoundBalanceReportWith rspec' j priceoracle subreportspecs = cbr
 -- and startDate is not nothing, otherwise mempty? This currently gives a
 -- failure with some totals which are supposed to be 0 being blank.
 startingBalances :: ReportSpec -> Journal -> PriceOracle -> DateSpan -> HashMap AccountName Account
-startingBalances rspec@ReportSpec{rsQuery=query,rsOpts=ropts} j priceoracle reportspan =
+startingBalances rspec@ReportSpec{_rsQuery=query,_rsReportOpts=ropts} j priceoracle reportspan =
     fmap (M.findWithDefault nullacct precedingspan) acctmap
   where
     acctmap = calculateReportMatrix rspec' j priceoracle mempty
             . M.singleton precedingspan . map fst $ getPostings rspec' j priceoracle
 
-    rspec' = rspec{rsQuery=startbalq,rsOpts=ropts'}
+    rspec' = rspec{_rsQuery=startbalq,_rsReportOpts=ropts'}
     -- If we're re-valuing every period, we need to have the unvalued start
     -- balance, so we can do it ourselves later.
     ropts' = case value_ ropts of
@@ -217,12 +217,12 @@ startingBalances rspec@ReportSpec{rsQuery=query,rsOpts=ropts} j priceoracle repo
 makeReportQuery :: ReportSpec -> DateSpan -> ReportSpec
 makeReportQuery rspec reportspan
     | reportspan == nulldatespan = rspec
-    | otherwise = rspec{rsQuery=query}
+    | otherwise = rspec{_rsQuery=query}
   where
-    query            = simplifyQuery $ And [dateless $ rsQuery rspec, reportspandatesq]
+    query            = simplifyQuery $ And [dateless $ _rsQuery rspec, reportspandatesq]
     reportspandatesq = dbg3 "reportspandatesq" $ dateqcons reportspan
     dateless         = dbg3 "dateless" . filterQuery (not . queryIsDateOrDate2)
-    dateqcons        = if date2_ (rsOpts rspec) then Date2 else Date
+    dateqcons        = if date2_ (_rsReportOpts rspec) then Date2 else Date
 
 -- | Group postings, grouped by their column
 getPostingsByColumn :: ReportSpec -> Journal -> PriceOracle -> DateSpan -> Map DateSpan [Posting]
@@ -232,7 +232,7 @@ getPostingsByColumn rspec j priceoracle reportspan = columns
     ps :: [(Posting, Day)] = dbg5 "getPostingsByColumn" $ getPostings rspec j priceoracle
 
     -- The date spans to be included as report columns.
-    colspans = dbg3 "colspans" $ splitSpan (interval_ $ rsOpts rspec) reportspan
+    colspans = dbg3 "colspans" $ splitSpan (interval_ $ _rsReportOpts rspec) reportspan
     addPosting (p, d) = maybe id (M.adjust (p:)) $ latestSpanContaining colspans d
     emptyMap = M.fromList . zip colspans $ repeat []
 
@@ -241,7 +241,7 @@ getPostingsByColumn rspec j priceoracle reportspan = columns
 
 -- | Gather postings matching the query within the report period.
 getPostings :: ReportSpec -> Journal -> PriceOracle -> [(Posting, Day)]
-getPostings rspec@ReportSpec{rsQuery=query,rsOpts=ropts} j priceoracle =
+getPostings rspec@ReportSpec{_rsQuery=query,_rsReportOpts=ropts} j priceoracle =
     map (\p -> (p, date p)) .
     journalPostings .
     filterJournalAmounts symq .      -- remove amount parts excluded by cur:
@@ -267,7 +267,7 @@ getPostings rspec@ReportSpec{rsQuery=query,rsOpts=ropts} j priceoracle =
 -- each. Accounts and amounts will be depth-clipped appropriately if
 -- a depth limit is in effect.
 acctChangesFromPostings :: ReportSpec -> [Posting] -> HashMap ClippedAccountName Account
-acctChangesFromPostings ReportSpec{rsQuery=query,rsOpts=ropts} ps =
+acctChangesFromPostings ReportSpec{_rsQuery=query,_rsReportOpts=ropts} ps =
     HM.fromList [(aname a, a) | a <- as]
   where
     as = filterAccounts . drop 1 $ accountsFromPostings ps
@@ -285,7 +285,7 @@ calculateReportMatrix :: ReportSpec -> Journal -> PriceOracle
                       -> HashMap ClippedAccountName Account
                       -> Map DateSpan [Posting]
                       -> HashMap ClippedAccountName (Map DateSpan Account)
-calculateReportMatrix rspec@ReportSpec{rsOpts=ropts} j priceoracle startbals colps =  -- PARTIAL:
+calculateReportMatrix rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle startbals colps =  -- PARTIAL:
     -- Ensure all columns have entries, including those with starting balances
     HM.mapWithKey rowbals allchanges
   where
@@ -316,7 +316,7 @@ calculateReportMatrix rspec@ReportSpec{rsOpts=ropts} j priceoracle startbals col
 
     avalue = acctApplyBoth . mixedAmountApplyValuationAfterSumFromOptsWith ropts j priceoracle
     acctApplyBoth f a = a{aibalance = f $ aibalance a, aebalance = f $ aebalance a}
-    addElided = if queryDepth (rsQuery rspec) == Just 0 then HM.insert "..." zeros else id
+    addElided = if queryDepth (_rsQuery rspec) == Just 0 then HM.insert "..." zeros else id
     historicalDate = minimumMay $ mapMaybe spanStart colspans
     zeros = M.fromList [(span, nullacct) | span <- colspans]
     colspans = M.keys colps
@@ -328,7 +328,7 @@ calculateReportMatrix rspec@ReportSpec{rsOpts=ropts} j priceoracle startbals col
 generateMultiBalanceReport :: ReportSpec -> Journal -> PriceOracle
                            -> Map DateSpan [Posting] -> HashMap AccountName Account
                            -> MultiBalanceReport
-generateMultiBalanceReport rspec@ReportSpec{rsOpts=ropts} j priceoracle colps startbals =
+generateMultiBalanceReport rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle colps startbals =
     report
   where
     -- Process changes into normal, cumulative, or historical amounts, plus value them
@@ -378,7 +378,7 @@ buildReportRows ropts displaynames =
 -- their name and depth
 displayedAccounts :: ReportSpec -> HashMap AccountName (Map DateSpan Account)
                   -> HashMap AccountName DisplayName
-displayedAccounts ReportSpec{rsQuery=query,rsOpts=ropts} valuedaccts
+displayedAccounts ReportSpec{_rsQuery=query,_rsReportOpts=ropts} valuedaccts
     | depth == 0 = HM.singleton "..." $ DisplayName "..." "..." 1
     | otherwise  = HM.mapWithKey (\a _ -> displayedName a) displayedAccts
   where
@@ -561,7 +561,7 @@ tests_MultiBalanceReport = tests "MultiBalanceReport" [
   let
     amt0 = Amount {acommodity="$", aquantity=0, aprice=Nothing, astyle=AmountStyle {ascommodityside = L, ascommodityspaced = False, asprecision = Precision 2, asdecimalpoint = Just '.', asdigitgroups = Nothing}}
     (rspec,journal) `gives` r = do
-      let rspec' = rspec{rsQuery=And [queryFromFlags $ rsOpts rspec, rsQuery rspec]}
+      let rspec' = rspec{_rsQuery=And [queryFromFlags $ _rsReportOpts rspec, _rsQuery rspec]}
           (eitems, etotal) = r
           (PeriodicReport _ aitems atotal) = multiBalanceReport rspec' journal
           showw (PeriodicReportRow a lAmt amt amt')
@@ -574,7 +574,7 @@ tests_MultiBalanceReport = tests "MultiBalanceReport" [
       (defreportspec, nulljournal) `gives` ([], nullmixedamt)
 
      ,test "with -H on a populated period"  $
-      (defreportspec{rsOpts=defreportopts{period_= PeriodBetween (fromGregorian 2008 1 1) (fromGregorian 2008 1 2), balanceaccum_=Historical}}, samplejournal) `gives`
+      (defreportspec{_rsReportOpts=defreportopts{period_= PeriodBetween (fromGregorian 2008 1 1) (fromGregorian 2008 1 2), balanceaccum_=Historical}}, samplejournal) `gives`
        (
         [ PeriodicReportRow (flatDisplayName "assets:bank:checking") [mamountp' "$1.00"]  (mamountp' "$1.00")  (mixedAmount amt0{aquantity=1})
         , PeriodicReportRow (flatDisplayName "income:salary")        [mamountp' "$-1.00"] (mamountp' "$-1.00") (mixedAmount amt0{aquantity=(-1)})

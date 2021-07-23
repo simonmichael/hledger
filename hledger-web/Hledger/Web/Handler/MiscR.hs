@@ -105,5 +105,5 @@ getAccounttransactionsR a = do
     rspec = defreportspec
     thisacctq = Acct $ accountNameToAccountRegex a -- includes subs
   selectRep $ do
-    provideJson $ accountTransactionsReport rspec{rsQuery=Any} j thisacctq
+    provideJson $ accountTransactionsReport rspec{_rsQuery=Any} j thisacctq
 

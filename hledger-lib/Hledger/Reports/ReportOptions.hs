@@ -236,20 +236,20 @@ rawOptsToReportOpts rawopts = do
 -- `reportOptsToSpec` to regenerate the ReportSpec with the new
 -- Query.
 data ReportSpec = ReportSpec
-  { rsOpts      :: ReportOpts  -- ^ The underlying ReportOpts used to generate this ReportSpec
-  , rsToday     :: Day         -- ^ The Day this ReportSpec is generated for
-  , rsQuery     :: Query       -- ^ The generated Query for the given day
-  , rsQueryOpts :: [QueryOpt]  -- ^ A list of QueryOpts for the given day
+  { _rsReportOpts :: ReportOpts  -- ^ The underlying ReportOpts used to generate this ReportSpec
+  , _rsDay        :: Day         -- ^ The Day this ReportSpec is generated for
+  , _rsQuery      :: Query       -- ^ The generated Query for the given day
+  , _rsQueryOpts  :: [QueryOpt]  -- ^ A list of QueryOpts for the given day
   } deriving (Show)
 
 instance Default ReportSpec where def = defreportspec
 
 defreportspec :: ReportSpec
 defreportspec = ReportSpec
-    { rsOpts      = def
-    , rsToday     = nulldate
-    , rsQuery     = Any
-    , rsQueryOpts = []
+    { _rsReportOpts = def
+    , _rsDay        = nulldate
+    , _rsQuery      = Any
+    , _rsQueryOpts  = []
     }
 
 -- | Generate a ReportSpec from a set of ReportOpts on a given day.
@@ -257,22 +257,22 @@ reportOptsToSpec :: Day -> ReportOpts -> Either String ReportSpec
 reportOptsToSpec day ropts = do
     (argsquery, queryopts) <- parseQueryList day $ querystring_ ropts
     return ReportSpec
-      { rsOpts = ropts
-      , rsToday = day
-      , rsQuery = simplifyQuery $ And [queryFromFlags ropts, argsquery]
-      , rsQueryOpts = queryopts
+      { _rsReportOpts = ropts
+      , _rsDay        = day
+      , _rsQuery      = simplifyQuery $ And [queryFromFlags ropts, argsquery]
+      , _rsQueryOpts  = queryopts
       }
 
 -- | Update the ReportOpts and the fields derived from it in a ReportSpec,
--- or return an error message if there is a problem such as missing or 
--- unparseable options data. This is the safe way to change a ReportSpec, 
--- ensuring that all fields (rsQuery, rsOpts, querystring_, etc.) are in sync.
+-- or return an error message if there is a problem such as missing or
+-- unparseable options data. This is the safe way to change a ReportSpec,
+-- ensuring that all fields (_rsQuery, _rsReportOpts, querystring_, etc.) are in sync.
 updateReportSpec :: ReportOpts -> ReportSpec -> Either String ReportSpec
-updateReportSpec ropts rspec = reportOptsToSpec (rsToday rspec) ropts
+updateReportSpec ropts rspec = reportOptsToSpec (_rsDay rspec) ropts
 
 -- | Like updateReportSpec, but takes a ReportOpts-modifying function.
 updateReportSpecWith :: (ReportOpts -> ReportOpts) -> ReportSpec -> Either String ReportSpec
-updateReportSpecWith f rspec = reportOptsToSpec (rsToday rspec) . f $ rsOpts rspec
+updateReportSpecWith f rspec = reportOptsToSpec (_rsDay rspec) . f $ _rsReportOpts rspec
 
 -- | Generate a ReportSpec from RawOpts and the current date.
 rawOptsToReportSpec :: RawOpts -> IO ReportSpec
@@ -503,14 +503,14 @@ flat_ = not . tree_
 journalApplyValuationFromOpts :: ReportSpec -> Journal -> Journal
 journalApplyValuationFromOpts rspec j =
     journalApplyValuationFromOptsWith rspec j priceoracle
-  where priceoracle = journalPriceOracle (infer_value_ $ rsOpts rspec) j
+  where priceoracle = journalPriceOracle (infer_value_ $ _rsReportOpts rspec) j
 
 -- | Like journalApplyValuationFromOpts, but takes PriceOracle as an argument.
 journalApplyValuationFromOptsWith :: ReportSpec -> Journal -> PriceOracle -> Journal
-journalApplyValuationFromOptsWith rspec@ReportSpec{rsOpts=ropts} j priceoracle =
+journalApplyValuationFromOptsWith rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle =
     journalMapPostings valuation $ costing j
   where
-    valuation p = maybe id (postingApplyValuation priceoracle styles (periodEnd p) (rsToday rspec)) (value_ ropts) p
+    valuation p = maybe id (postingApplyValuation priceoracle styles (periodEnd p) (_rsDay rspec)) (value_ ropts) p
     costing = case cost_ ropts of
         Cost   -> journalToCost
         NoCost -> id
@@ -579,7 +579,7 @@ reportSpanBothDates = reportSpanHelper True
 -- | A helper for reportSpan, which takes a Bool indicating whether to use both
 -- primary and secondary dates.
 reportSpanHelper :: Bool -> Journal -> ReportSpec -> DateSpan
-reportSpanHelper bothdates j ReportSpec{rsQuery=query, rsOpts=ropts} = reportspan
+reportSpanHelper bothdates j ReportSpec{_rsQuery=query, _rsReportOpts=ropts} = reportspan
   where
     -- The date span specified by -b/-e/-p options and query args if any.
     requestedspan  = dbg3 "requestedspan" $ if bothdates then queryDateSpan' query else queryDateSpan (date2_ ropts) query
@@ -613,7 +613,7 @@ reportEndDate j = spanEnd . reportSpan j
 -- Get the report's start date.
 -- If no report period is specified, will be Nothing.
 reportPeriodStart :: ReportSpec -> Maybe Day
-reportPeriodStart = queryStartDate False . rsQuery
+reportPeriodStart = queryStartDate False . _rsQuery
 
 -- Get the report's start date, or if no report period is specified,
 -- the journal's start date (the earliest posting date). If there's no
@@ -627,7 +627,7 @@ reportPeriodOrJournalStart rspec j =
 -- more commonly used, exclusive, report end date).
 -- If no report period is specified, will be Nothing.
 reportPeriodLastDay :: ReportSpec -> Maybe Day
-reportPeriodLastDay = fmap (addDays (-1)) . queryEndDate False . rsQuery
+reportPeriodLastDay = fmap (addDays (-1)) . queryEndDate False . _rsQuery
 
 -- Get the last day of the overall report period, or if no report
 -- period is specified, the last day of the journal (ie the latest
@@ -637,7 +637,7 @@ reportPeriodLastDay = fmap (addDays (-1)) . queryEndDate False . rsQuery
 reportPeriodOrJournalLastDay :: ReportSpec -> Journal -> Maybe Day
 reportPeriodOrJournalLastDay rspec j = reportPeriodLastDay rspec <|> journalOrPriceEnd
   where
-    journalOrPriceEnd = case value_ $ rsOpts rspec of
+    journalOrPriceEnd = case value_ $ _rsReportOpts rspec of
         Just (AtEnd _) -> max (journalLastDay False j) lastPriceDirective
         _              -> journalLastDay False j
     lastPriceDirective = fmap (addDays 1) . maximumMay . map pddate $ jpricedirectives j

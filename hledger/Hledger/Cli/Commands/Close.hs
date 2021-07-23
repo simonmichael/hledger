@@ -89,7 +89,7 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec} j = do
     -- - `-e 2021-01-01`  (remember `-e` specifies an exclusive report end date)
     -- - `-e 2021`"
     --
-    q = rsQuery rspec
+    q = _rsQuery rspec
     yesterday = addDays (-1) today
     yesterdayorjournalend = case journalLastDay False j of
       Just journalend -> max yesterday journalend
@@ -102,8 +102,8 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec} j = do
     explicit = boolopt "explicit" rawopts
 
     -- the balances to close
-    ropts = (rsOpts rspec){balanceaccum_=Historical, accountlistmode_=ALFlat}
-    rspec_ = rspec{rsOpts=ropts}
+    ropts = (_rsReportOpts rspec){balanceaccum_=Historical, accountlistmode_=ALFlat}
+    rspec_ = rspec{_rsReportOpts=ropts}
     (acctbals',_) = balanceReport rspec_ j
     acctbals = map (\(a,_,_,b) -> (a, if show_costs_ ropts then b else mixedAmountStripPrices b)) acctbals'
     totalamt = maSum $ map snd acctbals

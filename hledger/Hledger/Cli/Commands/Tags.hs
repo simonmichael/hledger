@@ -34,11 +34,11 @@ tags CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
     querystring = map T.pack $ drop 1 args
     values      = boolopt "values" rawopts
     parsed      = boolopt "parsed" rawopts
-    empty       = empty_ $ rsOpts rspec
+    empty       = empty_ $ _rsReportOpts rspec
 
   argsquery <- either usageError (return . fst) $ parseQueryList d querystring
   let
-    q = simplifyQuery $ And [queryFromFlags $ rsOpts rspec, argsquery]
+    q = simplifyQuery $ And [queryFromFlags $ _rsReportOpts rspec, argsquery]
     txns = filter (q `matchesTransaction`) $ jtxns $ journalApplyValuationFromOpts rspec j
     tagsorvalues =
       (if parsed then id else nubSort)

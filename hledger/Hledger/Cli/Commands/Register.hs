@@ -187,7 +187,7 @@ postingsReportItemAsText opts preferredamtwidth preferredbalwidth (mdate, mendda
             _                      -> (id,acctwidth)
     amt = showamt $ pamount p
     bal = showamt b
-    showamt = showMixedAmountLinesB oneLine{displayColour=color_ . rsOpts $ reportspec_ opts}
+    showamt = showMixedAmountLinesB oneLine{displayColour=color_ . _rsReportOpts $ reportspec_ opts}
     -- Since this will usually be called with the knot tied between this(amt|bal)width and
     -- preferred(amt|bal)width, make sure the former do not depend on the latter to avoid loops.
     thisamtwidth = maximumDef 0 $ map wbWidth amt

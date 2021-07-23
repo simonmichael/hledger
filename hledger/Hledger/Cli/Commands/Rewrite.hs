@@ -43,7 +43,7 @@ rewrite opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j@Journal{jtxns=ts} = d
   let modifiers = transactionModifierFromOpts opts : jtxnmodifiers j
   let j' = j{jtxns=either error' id $ modifyTransactions d modifiers ts}  -- PARTIAL:
   -- run the print command, showing all transactions, or show diffs
-  printOrDiff rawopts opts{reportspec_=rspec{rsQuery=Any}} j j'
+  printOrDiff rawopts opts{reportspec_=rspec{_rsQuery=Any}} j j'
 
 -- | Build a 'TransactionModifier' from any query arguments and --add-posting flags
 -- provided on the command line, or throw a parse error.

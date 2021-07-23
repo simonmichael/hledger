@@ -44,7 +44,7 @@ accountsmode = hledgerCommandMode
 
 -- | The accounts command.
 accounts :: CliOpts -> Journal -> IO ()
-accounts CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{rsQuery=query,rsOpts=ropts}} j = do
+accounts CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_rsReportOpts=ropts}} j = do
 
   -- 1. identify the accounts we'll show
   let tree     = tree_ ropts

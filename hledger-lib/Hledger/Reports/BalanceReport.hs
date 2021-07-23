@@ -104,7 +104,7 @@ tests_BalanceReport = tests "BalanceReport" [
 
   let
     (rspec,journal) `gives` r = do
-      let opts' = rspec{rsQuery=And [queryFromFlags $ rsOpts rspec, rsQuery rspec]}
+      let opts' = rspec{_rsQuery=And [queryFromFlags $ _rsReportOpts rspec, _rsQuery rspec]}
           (eitems, etotal) = r
           (aitems, atotal) = balanceReport opts' journal
           showw (acct,acct',indent,amt) = (acct, acct', indent, showMixedAmountDebug amt)
@@ -130,7 +130,7 @@ tests_BalanceReport = tests "BalanceReport" [
        mixedAmount (usd 0))
 
     ,test "with --tree" $
-     (defreportspec{rsOpts=defreportopts{accountlistmode_=ALTree}}, samplejournal) `gives`
+     (defreportspec{_rsReportOpts=defreportopts{accountlistmode_=ALTree}}, samplejournal) `gives`
       ([
         ("assets","assets",0, mamountp' "$0.00")
        ,("assets:bank","bank",1, mamountp' "$2.00")
@@ -147,7 +147,7 @@ tests_BalanceReport = tests "BalanceReport" [
        mixedAmount (usd 0))
 
     ,test "with --depth=N" $
-     (defreportspec{rsOpts=defreportopts{depth_=Just 1}}, samplejournal) `gives`
+     (defreportspec{_rsReportOpts=defreportopts{depth_=Just 1}}, samplejournal) `gives`
       ([
        ("expenses",    "expenses",    0, mamountp'  "$2.00")
        ,("income",      "income",      0, mamountp' "$-2.00")
@@ -155,7 +155,7 @@ tests_BalanceReport = tests "BalanceReport" [
        mixedAmount (usd 0))
 
     ,test "with depth:N" $
-     (defreportspec{rsQuery=Depth 1}, samplejournal) `gives`
+     (defreportspec{_rsQuery=Depth 1}, samplejournal) `gives`
       ([
        ("expenses",    "expenses",    0, mamountp'  "$2.00")
        ,("income",      "income",      0, mamountp' "$-2.00")
@@ -163,11 +163,11 @@ tests_BalanceReport = tests "BalanceReport" [
        mixedAmount (usd 0))
 
     ,test "with date:" $
-     (defreportspec{rsQuery=Date $ DateSpan (Just $ fromGregorian 2009 01 01) (Just $ fromGregorian 2010 01 01)}, samplejournal2) `gives`
+     (defreportspec{_rsQuery=Date $ DateSpan (Just $ fromGregorian 2009 01 01) (Just $ fromGregorian 2010 01 01)}, samplejournal2) `gives`
       ([], nullmixedamt)
 
     ,test "with date2:" $
-     (defreportspec{rsQuery=Date2 $ DateSpan (Just $ fromGregorian 2009 01 01) (Just $ fromGregorian 2010 01 01)}, samplejournal2) `gives`
+     (defreportspec{_rsQuery=Date2 $ DateSpan (Just $ fromGregorian 2009 01 01) (Just $ fromGregorian 2010 01 01)}, samplejournal2) `gives`
       ([
         ("assets:bank:checking","assets:bank:checking",0,mamountp' "$1.00")
        ,("income:salary","income:salary",0,mamountp' "$-1.00")
@@ -175,7 +175,7 @@ tests_BalanceReport = tests "BalanceReport" [
        mixedAmount (usd 0))
 
     ,test "with desc:" $
-     (defreportspec{rsQuery=Desc $ toRegexCI' "income"}, samplejournal) `gives`
+     (defreportspec{_rsQuery=Desc $ toRegexCI' "income"}, samplejournal) `gives`
       ([
         ("assets:bank:checking","assets:bank:checking",0,mamountp' "$1.00")
        ,("income:salary","income:salary",0, mamountp' "$-1.00")
@@ -183,7 +183,7 @@ tests_BalanceReport = tests "BalanceReport" [
        mixedAmount (usd 0))
 
     ,test "with not:desc:" $
-     (defreportspec{rsQuery=Not . Desc $ toRegexCI' "income"}, samplejournal) `gives`
+     (defreportspec{_rsQuery=Not . Desc $ toRegexCI' "income"}, samplejournal) `gives`
       ([
         ("assets:bank:saving","assets:bank:saving",0, mamountp' "$1.00")
        ,("assets:cash","assets:cash",0, mamountp' "$-2.00")
@@ -194,7 +194,7 @@ tests_BalanceReport = tests "BalanceReport" [
        mixedAmount (usd 0))
 
     ,test "with period on a populated period" $
-      (defreportspec{rsOpts=defreportopts{period_= PeriodBetween (fromGregorian 2008 1 1) (fromGregorian 2008 1 2)}}, samplejournal) `gives`
+      (defreportspec{_rsReportOpts=defreportopts{period_= PeriodBetween (fromGregorian 2008 1 1) (fromGregorian 2008 1 2)}}, samplejournal) `gives`
        (
         [
          ("assets:bank:checking","assets:bank:checking",0, mamountp' "$1.00")
@@ -203,7 +203,7 @@ tests_BalanceReport = tests "BalanceReport" [
         mixedAmount (usd 0))
 
      ,test "with period on an unpopulated period" $
-      (defreportspec{rsOpts=defreportopts{period_= PeriodBetween (fromGregorian 2008 1 2) (fromGregorian 2008 1 3)}}, samplejournal) `gives`
+      (defreportspec{_rsReportOpts=defreportopts{period_= PeriodBetween (fromGregorian 2008 1 2) (fromGregorian 2008 1 3)}}, samplejournal) `gives`
        ([], nullmixedamt)
 
 

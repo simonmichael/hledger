@@ -60,7 +60,7 @@ tsInit _d _reset ui@UIState{aopts=UIOpts{cliopts_=CliOpts{reportspec_=_rspec}}
 tsInit _ _ _ = error "init function called with wrong screen type, should not happen"  -- PARTIAL:
 
 tsDraw :: UIState -> [Widget Name]
-tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts}}}
+tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}
               ,ajournal=j
               ,aScreen=TransactionScreen{tsTransaction=(i,t')
                                         ,tsTransactions=nts
@@ -85,7 +85,7 @@ tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{
 
       render . defaultLayout toplabel bottomlabel . str
         . T.unpack . showTransactionOneLineAmounts
-        . maybe id (transactionApplyValuation prices styles periodlast (rsToday rspec)) (value_ ropts)
+        . maybe id (transactionApplyValuation prices styles periodlast (_rsDay rspec)) (value_ ropts)
         $ case cost_ ropts of
                Cost   -> transactionToCost styles t
                NoCost -> t
