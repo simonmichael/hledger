@@ -34,7 +34,7 @@ instance Monoid WideBuilder where
 wbToText :: WideBuilder -> Text
 wbToText = TL.toStrict . TB.toLazyText . wbBuilder
 
--- | Convert a WideBuilder to a strict Text.
+-- | Convert a strict Text to a WideBuilder.
 wbFromText :: Text -> WideBuilder
 wbFromText t = WideBuilder (TB.fromText t) (textWidth t)
 
