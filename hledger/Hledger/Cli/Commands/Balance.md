@@ -64,6 +64,7 @@ Many of these work with the higher-level commands as well.
 - rows and columns swapped ([`--transpose`](#multi-period-balance-report))
 - another field used as account name ([`--pivot`](#multi-period-balance-report))
 - custom-formatted line items (single-period reports only) ([`--format`](#customising-single-period-balance-reports))
+- commodities shown in a separate column, one per row ([`--commodity-column`](#commodity-column))
 
 This command supports the
 [output destination](#output-destination) and
@@ -254,6 +255,63 @@ Here are some ways to handle that:
 
 [csv-mode]: https://elpa.gnu.org/packages/csv-mode.html
 [visidata]: https://www.visidata.org
+
+#### commodity column
+
+With `--commodity-column`, each commodity of an account is displayed as a
+separate row item row will only include the quantity. The commodity itself is
+shown as a separate column, one per row. This can be useful for a cleaner
+display of multi-period reports with many commodities
+
+```shell
+$ hledger bal -T -Y
+Balance changes in 2012-01-01..2014-12-31:
+
+                  ||                               2012                             2013                   2014                            Total
+==================++=============================================================================================================================
+ Assets:US:ETrade ||   10.00 ITOT, 337.18 USD, 2 more..  70.00 GLD, 18.00 ITOT, 3 more..  -11.00 ITOT, 3 more..  70.00 GLD, 17.00 ITOT, 3 more..
+------------------++-----------------------------------------------------------------------------------------------------------------------------
+ total            ||   10.00 ITOT, 337.18 USD, 2 more..  70.00 GLD, 18.00 ITOT, 3 more..  -11.00 ITOT, 3 more..  70.00 GLD, 17.00 ITOT, 3 more..
+
+$ hledger bal -T -Y --commodity-column
+Balance changes in 2012-01-01..2014-12-31:
+
+                   || Commodity    2012    2013     2014    Total
+==================++=============================================
+ Assets:US:ETrade || GLD             0   70.00        0    70.00
+ Assets:US:ETrade || ITOT        10.00   18.00   -11.00    17.00
+ Assets:US:ETrade || USD        337.18  -98.12  4881.44  5120.50
+ Assets:US:ETrade || VEA         12.00   10.00    14.00    36.00
+ Assets:US:ETrade || VHT        106.00   18.00   170.00   294.00
+------------------++---------------------------------------------
+                  || GLD             0   70.00        0    70.00
+                  || ITOT        10.00   18.00   -11.00    17.00
+                  || USD        337.18  -98.12  4881.44  5120.50
+                  || VEA         12.00   10.00    14.00    36.00
+                  || VHT        106.00   18.00   170.00   294.00
+```
+
+Single-period CSV balance reports also follow this new convention.
+
+```shell
+$ hledger bal -T -O csv
+"account","balance"
+"Assets:US:ETrade","70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT"
+"total","70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT"
+
+$ hledger bal -T -O csv --commodity-column
+"account","commodity","balance"
+"Assets:US:ETrade","GLD","70.00"
+"Assets:US:ETrade","ITOT","17.00"
+"Assets:US:ETrade","USD","5120.50"
+"Assets:US:ETrade","VEA","36.00"
+"Assets:US:ETrade","VHT","294.00"
+"total","GLD","70.00"
+"total","ITOT","17.00"
+"total","USD","5120.50"
+"total","VEA","36.00"
+"total","VHT","294.00"
+```
 
 ### Sorting by amount
 
