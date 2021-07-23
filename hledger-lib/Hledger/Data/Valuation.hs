@@ -20,6 +20,8 @@ module Hledger.Data.Valuation (
   ,mixedAmountToCost
   ,mixedAmountApplyValuation
   ,mixedAmountValueAtDate
+  ,mixedAmountApplyGain
+  ,mixedAmountGainAtDate
   ,marketPriceReverse
   ,priceDirectiveToMarketPrice
   -- ,priceLookup
@@ -114,28 +116,24 @@ amountToCost NoCost _      = id
 amountToCost Cost   styles = styleAmount styles . amountCost
 
 -- | Apply a specified valuation to this amount, using the provided
--- price oracle, reference dates, and whether this is for a
--- multiperiod report or not. Also fix up its display style using the
--- provided commodity styles.
+-- price oracle, and reference dates. Also fix up its display style
+-- using the provided commodity styles.
 --
 -- When the valuation requires converting to another commodity, a
--- valuation (conversion) date is chosen based on the valuation type,
--- the provided reference dates, and whether this is for a
--- single-period or multi-period report. It will be one of:
+-- valuation (conversion) date is chosen based on the valuation type
+-- and the provided reference dates. It will be one of:
 --
--- - a fixed date specified by the ValuationType itself
---   (--value=DATE).
+-- - the date of the posting itself (--value=then)
 --
 -- - the provided "period end" date - this is typically the last day
 --   of a subperiod (--value=end with a multi-period report), or of
 --   the specified report period or the journal (--value=end with a
 --   single-period report).
 --
--- - the provided "report end" date - the last day of the specified
---   report period, if any (-V/-X with a report end date).
+-- - the provided "today" date (--value=now).
 --
--- - the provided "today" date - (--value=now, or -V/X with no report
---   end date).
+-- - a fixed date specified by the ValuationType itself
+--   (--value=DATE).
 --
 -- This is all a bit complicated. See the reference doc at
 -- https://hledger.org/hledger.html#effect-of-valuation-on-reports
@@ -179,6 +177,29 @@ amountValueAtDate priceoracle styles mto d a =
                                       -- Leave as is for now; mentioned in manual.
       styleAmount styles
       amount{acommodity=comm, aquantity=rate * aquantity a}
+
+-- | Calculate the gain of each component amount, that is the difference
+-- between the valued amount and the value of the cost basis (see
+-- mixedAmountApplyValuation).
+--
+-- If the commodity we are valuing in is not the same as the commodity of the
+-- cost, this will value the cost at the same date as the primary amount. This
+-- may not be what you want; for example you may want the cost valued at the
+-- posting date. If so, let us know and we can change this behaviour.
+mixedAmountApplyGain :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Day -> ValuationType -> MixedAmount -> MixedAmount
+mixedAmountApplyGain priceoracle styles periodlast today postingdate v ma =
+  mixedAmountApplyValuation priceoracle styles periodlast today postingdate v $ ma `maMinus` mixedAmountCost ma
+
+-- | Calculate the gain of each component amount, that is the
+-- difference between the valued amount and the value of the cost basis.
+--
+-- If the commodity we are valuing in is not the same as the commodity of the
+-- cost, this will value the cost at the same date as the primary amount. This
+-- may not be what you want; for example you may want the cost valued at the
+-- posting date. If so, let us know and we can change this behaviour.
+mixedAmountGainAtDate :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Maybe CommoditySymbol -> Day -> MixedAmount -> MixedAmount
+mixedAmountGainAtDate priceoracle styles mto d ma =
+  mixedAmountValueAtDate priceoracle styles mto d $ ma `maMinus` mixedAmountCost ma
 
 ------------------------------------------------------------------------------
 -- Market price lookup

@@ -303,6 +303,7 @@ calculateReportMatrix rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle startb
             CalcChange      -> M.mapWithKey avalue changes
             CalcBudget      -> M.mapWithKey avalue changes
             CalcValueChange -> periodChanges valuedStart historical
+            CalcGain        -> periodChanges valuedStart historical
         cumulative = cumulativeSum avalue nullacct changeamts
         historical = cumulativeSum avalue startingBalance changes
         startingBalance = HM.lookupDefault nullacct name startbals
