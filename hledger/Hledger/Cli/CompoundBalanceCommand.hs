@@ -60,7 +60,9 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
    ([flagNone ["sum"] (setboolopt "sum")
       "show sum of posting amounts (default)"
    ,flagNone ["valuechange"] (setboolopt "valuechange")
-      "show change of value of period-end historical balances"
+      "show total change of period-end historical balance value (caused by deposits, withdrawals, market price fluctuations)"
+    ,flagNone ["gain"] (setboolopt "gain")
+      "show unrealised capital gain/loss (historical balance value minus cost basis)"
    ,flagNone ["budget"] (setboolopt "budget")
       "show sum of posting amounts compared to budget goals defined by periodic transactions\n "
 
@@ -123,18 +125,23 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
         -- "2008/01/01-2008/12/31", not "2008").
         titledatestr = case balanceaccumulation of
             Historical -> showEndDates enddates
-            _                 -> showDateSpan requestedspan
+            _          -> showDateSpan requestedspan
           where
             enddates = map (addDays (-1)) . mapMaybe spanEnd $ cbrDates cbr  -- these spans will always have a definite end date
             requestedspan = reportSpan j rspec
 
         -- when user overrides, add an indication to the report title
         -- Do we need to deal with overridden BalanceCalculation?
-        mtitleclarification = flip fmap mbalanceAccumulationOverride $ \case
-            PerPeriod | changingValuation -> "(Period-End Value Changes)"
-            PerPeriod                     -> "(Balance Changes)"
-            Cumulative                    -> "(Cumulative Ending Balances)"
-            Historical                    -> "(Historical Ending Balances)"
+        mtitleclarification = case (balancecalc_, balanceaccumulation, mbalanceAccumulationOverride) of
+            (CalcValueChange, PerPeriod,  _              ) -> Just "(Period-End Value Changes)"
+            (CalcValueChange, Cumulative, _              ) -> Just "(Cumulative Period-End Value Changes)"
+            (CalcGain,        PerPeriod,  _              ) -> Just "(Incremental Gain)"
+            (CalcGain,        Cumulative, _              ) -> Just "(Cumulative Gain)"
+            (CalcGain,        Historical, _              ) -> Just "(Historical Gain)"
+            (_,               _,          Just PerPeriod ) -> Just "(Balance Changes)"
+            (_,               _,          Just Cumulative) -> Just "(Cumulative Ending Balances)"
+            (_,               _,          Just Historical) -> Just "(Historical Ending Balances)"
+            _                                              -> Nothing
 
         valuationdesc =
           (case cost_ of
@@ -149,9 +156,9 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
                Nothing                 -> "")
 
         changingValuation = case (balancecalc_, balanceaccum_) of
-            (CalcValueChange, PerPeriod)     -> True
+            (CalcValueChange, PerPeriod)  -> True
             (CalcValueChange, Cumulative) -> True
-            _                                     -> False
+            _                             -> False
 
     -- make a CompoundBalanceReport.
     cbr' = compoundBalanceReport rspec{_rsReportOpts=ropts'} j cbcqueries

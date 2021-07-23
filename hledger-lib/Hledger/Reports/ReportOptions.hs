@@ -78,10 +78,11 @@ import Hledger.Utils
 
 -- | What to calculate for each cell in a balance report.
 -- "Balance report types -> Calculation type" in the hledger manual.
-data BalanceCalculation = 
+data BalanceCalculation =
     CalcChange      -- ^ Sum of posting amounts in the period.
   | CalcBudget      -- ^ Sum of posting amounts and the goal for the period.
   | CalcValueChange -- ^ Change from previous period's historical end value to this period's historical end value.
+  | CalcGain        -- ^ Change from previous period's gain, i.e. valuation minus cost basis.
   deriving (Eq, Show)
 
 instance Default BalanceCalculation where def = CalcChange
@@ -319,6 +320,7 @@ balancecalcopt =
     parse = \case
       "sum"         -> Just CalcChange
       "valuechange" -> Just CalcValueChange
+      "gain"        -> Just CalcGain
       "budget"      -> Just CalcBudget
       _             -> Nothing
 
@@ -454,16 +456,16 @@ reportOptsToggleStatus s ropts@ReportOpts{statuses_=ss}
 -- to --value, or if --valuechange is called with a valuation type
 -- other than -V/--value=end.
 valuationTypeFromRawOpts :: RawOpts -> (Costing, Maybe ValuationType)
-valuationTypeFromRawOpts rawopts = (costing, valuation)
+valuationTypeFromRawOpts rawopts = case (balancecalcopt rawopts, directcost, directval) of
+    (CalcValueChange, _,      Nothing       ) -> (directcost, Just $ AtEnd Nothing)  -- If no valuation requested for valuechange, use AtEnd
+    (CalcValueChange, _,      Just (AtEnd _)) -> (directcost, directval)             -- If AtEnd valuation requested, use it
+    (CalcValueChange, _,      _             ) -> usageError "--valuechange only produces sensible results with --value=end"
+    (CalcGain,        Cost,   _             ) -> usageError "--gain cannot be combined with --cost"
+    (CalcGain,        NoCost, Nothing       ) -> (directcost, Just $ AtEnd Nothing)  -- If no valuation requested for gain, use AtEnd
+    (_,               _,      _             ) -> (directcost, directval)             -- Otherwise, use requested valuation
   where
-    costing   = if (any ((Cost==) . fst) valuationopts) then Cost else NoCost
-    valuation = case balancecalcopt rawopts of
-        CalcValueChange -> case directval of
-            Nothing        -> Just $ AtEnd Nothing  -- If no valuation requested for valuechange, use AtEnd
-            Just (AtEnd _) -> directval             -- If AtEnd valuation requested, use it
-            Just _         -> usageError "--valuechange only produces sensible results with --value=end"
-        _                  -> directval             -- Otherwise, use requested valuation
-      where directval = lastMay $ mapMaybe snd valuationopts
+    directcost = if any (== Cost) (map fst valuationopts) then Cost else NoCost
+    directval  = lastMay $ mapMaybe snd valuationopts
 
     valuationopts = collectopts valuationfromrawopt rawopts
     valuationfromrawopt (n,v)  -- option name, value
@@ -524,9 +526,12 @@ journalApplyValuationFromOpts rspec j =
 -- | Like journalApplyValuationFromOpts, but takes PriceOracle as an argument.
 journalApplyValuationFromOptsWith :: ReportSpec -> Journal -> PriceOracle -> Journal
 journalApplyValuationFromOptsWith rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle =
-    journalMapPostings valuation $ costing j
+    case balancecalc_ ropts of
+      CalcGain -> journalMapPostings (\p -> postingTransformAmount (gain p) p) j
+      _        -> journalMapPostings (\p -> postingTransformAmount (valuation p) p) $ costing j
   where
-    valuation p = maybe id (postingApplyValuation priceoracle styles (periodEnd p) (_rsDay rspec)) (value_ ropts) p
+    valuation p = maybe id (mixedAmountApplyValuation priceoracle styles (periodEnd p) (_rsDay rspec) (postingDate p)) (value_ ropts)
+    gain      p = maybe id (mixedAmountApplyGain      priceoracle styles (periodEnd p) (_rsDay rspec) (postingDate p)) (value_ ropts)
     costing = case cost_ ropts of
         Cost   -> journalToCost
         NoCost -> id
@@ -545,24 +550,29 @@ mixedAmountApplyValuationAfterSumFromOptsWith :: ReportOpts -> Journal -> PriceO
                                               -> (DateSpan -> MixedAmount -> MixedAmount)
 mixedAmountApplyValuationAfterSumFromOptsWith ropts j priceoracle =
     case valuationAfterSum ropts of
-      Just mc -> \span -> valuation mc span . costing
-      Nothing -> const id
+        Just mc -> case balancecalc_ ropts of
+            CalcGain -> \span  -> gain mc span
+            _        -> \span  -> valuation mc span . costing
+        Nothing      -> \_span -> id
   where
     valuation mc span = mixedAmountValueAtDate priceoracle styles mc (maybe err (addDays (-1)) $ spanEnd span)
-      where err = error "mixedAmountApplyValuationAfterSumFromOptsWith: expected all spans to have an end date"
+    gain mc span = mixedAmountGainAtDate priceoracle styles mc (maybe err (addDays (-1)) $ spanEnd span)
     costing = case cost_ ropts of
         Cost   -> styleMixedAmount styles . mixedAmountCost
         NoCost -> id
     styles = journalCommodityStyles j
+    err = error "mixedAmountApplyValuationAfterSumFromOptsWith: expected all spans to have an end date"
 
 -- | If the ReportOpts specify that we are performing valuation after summing amounts,
--- return Just the commodity symbol we're converting to, otherwise return Nothing.
+-- return Just of the commodity symbol we're converting to, Just Nothing for the default,
+-- and otherwise return Nothing.
 -- Used for example with historical reports with --value=end.
 valuationAfterSum :: ReportOpts -> Maybe (Maybe CommoditySymbol)
 valuationAfterSum ropts = case value_ ropts of
     Just (AtEnd mc) | valueAfterSum -> Just mc
     _                               -> Nothing
   where valueAfterSum = balancecalc_  ropts == CalcValueChange
+                     || balancecalc_  ropts == CalcGain
                      || balanceaccum_ ropts /= PerPeriod
 
 

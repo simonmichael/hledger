@@ -288,9 +288,11 @@ balancemode = hledgerCommandMode
       , "transactions. With a DESCPAT argument (must be separated by = not space),"
       , "use only periodic transactions with matching description"
       , "(case insensitive substring match)."
-      ])    
+      ])
     ,flagNone ["valuechange"] (setboolopt "valuechange")
-      "show change of value of period-end historical balances"
+      "show total change of value of period-end historical balances (caused by deposits, withdrawals, market price fluctuations)"
+    ,flagNone ["gain"] (setboolopt "gain")
+      "show unrealised capital gain/loss (historical balance value minus cost basis)"
     ,flagNone ["change"] (setboolopt "change")
       "accumulate amounts from column start to column end (in multicolumn reports, default)"
     ,flagNone ["cumulative"] (setboolopt "cumulative")
@@ -639,6 +641,9 @@ multiBalanceReportAsText ropts@ReportOpts{..} r = TB.toLazyText $
     mtitle = case (balancecalc_, balanceaccum_) of
         (CalcValueChange, PerPeriod  ) -> "Period-end value changes"
         (CalcValueChange, Cumulative ) -> "Cumulative period-end value changes"
+        (CalcGain,        PerPeriod  ) -> "Incremental gain"
+        (CalcGain,        Cumulative ) -> "Cumulative gain"
+        (CalcGain,        Historical ) -> "Historical gain"
         (_,               PerPeriod  ) -> "Balance changes"
         (_,               Cumulative ) -> "Ending balances (cumulative)"
         (_,               Historical)  -> "Ending balances (historical)"

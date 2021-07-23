@@ -35,6 +35,7 @@ Many of these work with the higher-level commands as well.
 - or actual and planned balance changes ([`--budget`](#budget-report))
 - or value of balance changes ([`-V`](#valuation-type))
 - or change of balance values ([`--valuechange`](#balance-report-types))
+- or unrealised capital gain/loss ([`--gain`](#balance-report-types))
 
 ..in..
 
@@ -419,7 +420,9 @@ It is one of:
 - `--sum` : sum the posting amounts (**default**)
 - `--budget` : like --sum but also show a goal amount
 - `--valuechange` : show the change in period-end historical balance values
-<!-- - `--gain` : show the change in period-end historical balances values caused by market price fluctuations -->
+  (caused by deposits, withdrawals, and/or market price fluctuations)
+- `--gain` : show the unrealised capital gain/loss, (the current valued balance
+  minus each amount's original cost)
 
 **Accumulation type:**\
 Which postings should be included in each cell's calculation.
@@ -445,7 +448,7 @@ It is one of:
 - no valuation, show amounts in their original commodities (**default**)
 - `--value=cost[,COMM]`       : no valuation, show amounts converted to cost
 - `--value=then[,COMM]`       : show value at transaction dates
-- `--value=end[,COMM]`        : show value at period end date(s) (**default with `--valuechange`**)
+- `--value=end[,COMM]`        : show value at period end date(s) (**default with `--valuechange`, `--gain`**)
 - `--value=now[,COMM]`        : show value at today's date
 - `--value=YYYY-MM-DD[,COMM]` : show value at another date
 
