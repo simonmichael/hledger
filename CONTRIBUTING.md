@@ -1,6 +1,8 @@
 # Contributor Guide
 
+<div class=pagetoc>
 <!-- toc -->
+</div>
 
 ## Quick Links
 

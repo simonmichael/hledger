@@ -1,5 +1,9 @@
 # hledger ROADMAP
 
+<div class=pagetoc>
+<!-- toc -->
+</div>
+
 Current ideas about where the hledger project should be going next.
 
 ## Next Targets
