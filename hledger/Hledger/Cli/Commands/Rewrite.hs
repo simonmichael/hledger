@@ -41,7 +41,7 @@ rewrite opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j@Journal{jtxns=ts} = d
   -- rewrite matched transactions
   d <- getCurrentDay
   let modifiers = transactionModifierFromOpts opts : jtxnmodifiers j
-  let j' = j{jtxns=either error' id $ modifyTransactions d modifiers ts}  -- PARTIAL:
+  let j' = j{jtxns=either error' id $ modifyTransactions mempty d modifiers ts}  -- PARTIAL:
   -- run the print command, showing all transactions, or show diffs
   printOrDiff rawopts opts{reportspec_=rspec{_rsQuery=Any}} j j'
 

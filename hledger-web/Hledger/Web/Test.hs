@@ -88,7 +88,7 @@ hledgerWebTest = do
             Right rs -> rs
     copts = defcliopts{reportspec_=rspec, file_=[""]}  -- non-empty, see file_ note above
     wopts = defwebopts{cliopts_=copts}
-  j <- fmap (journalTransform copts) $ readJournal' (T.pack $ unlines  -- PARTIAL: readJournal' should not fail
+  j <- fmap (either error id . journalTransform copts) $ readJournal' (T.pack $ unlines  -- PARTIAL: readJournal' should not fail
     ["~ monthly"
     ,"    assets    10"
     ,"    income"
