@@ -122,8 +122,14 @@ journalAddForecast :: CliOpts -> Journal -> Journal
 journalAddForecast CliOpts{inputopts_=iopts, reportspec_=rspec} j =
     case forecast_ ropts of
         Nothing -> j
-        Just _  -> either (error') id . journalApplyCommodityStyles $  -- PARTIAL:
-                     journalBalanceTransactions' iopts j{ jtxns = concat [jtxns j, forecasttxns'] }
+        Just _  -> either error id $ do  -- PARTIAL:
+            forecasttxns <- addAutoTxns =<< mapM (balanceTransaction (balancingopts_ iopts))
+                [ txnTieKnot t | pt <- jperiodictxns j
+                               , t <- runPeriodicTransaction pt forecastspan
+                               , spanContainsDate forecastspan (tdate t)
+                               ]
+            journalBalanceTransactions (balancingopts_ iopts) j{ jtxns = concat [jtxns j, forecasttxns] }
+              >>= journalApplyCommodityStyles
   where
     today = _rsDay rspec
     ropts = _rsReportOpts rspec
@@ -141,18 +147,7 @@ journalAddForecast CliOpts{inputopts_=iopts, reportspec_=rspec} j =
         (fromMaybe nulldatespan $ dbg2 "forecastspan flag" $ forecast_ ropts)
         (DateSpan (Just forecastbeginDefault) (Just forecastendDefault))
 
-    forecasttxns =
-      [ txnTieKnot t | pt <- jperiodictxns j
-                     , t <- runPeriodicTransaction pt forecastspan
-                     , spanContainsDate forecastspan (tdate t)
-                     ]
-    -- With --auto enabled, transaction modifiers are also applied to forecast txns
-    forecasttxns' =
-      (if auto_ iopts then either error' id . modifyTransactions today (jtxnmodifiers j) else id)  -- PARTIAL:
-      forecasttxns
-
-    journalBalanceTransactions' iopts j =
-       either error' id $ journalBalanceTransactions (balancingopts_ iopts) j  -- PARTIAL:
+    addAutoTxns = if auto_ iopts then modifyTransactions today (jtxnmodifiers j) else return
 
 -- | Write some output to stdout or to a file selected by --output-file.
 -- If the file exists it will be overwritten.

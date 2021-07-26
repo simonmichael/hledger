@@ -384,3 +384,30 @@ $ hledger -f- print --auto
     (b)                 100 EUR  ; generated-posting: = assets amt:>50
 
 >=0
+
+# 20. Auto-generated postings apply on auto-balanced periodic postings.
+<
+2021-01-01   Fixed
+    Checking            -10
+    Costs
+
+~ 2021-01-02   Periodic
+    Checking            -10
+    Costs
+
+= acct:Costs
+    (Auto)     *1
+
+$ hledger -f- print --forecast --auto --explicit
+2021-01-01 Fixed  ; modified:
+    Checking             -10
+    Costs                 10
+    (Auto)                10  ; generated-posting: = acct:Costs
+
+2021-01-02 Periodic
+    ; generated-transaction: ~ 2021-01-02, modified: 
+    Checking             -10
+    Costs                 10
+    (Auto)                10  ; generated-posting: = acct:Costs
+
+>=0
