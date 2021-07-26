@@ -75,7 +75,7 @@ withJournalDo opts cmd = do
   -- to let the add command work.
   journalpaths <- journalFilePathFromOpts opts
   files <- readJournalFiles (inputopts_ opts) journalpaths
-  let transformed = journalTransform opts <$> files
+  let transformed = journalTransform opts =<< files
   either error' cmd transformed  -- PARTIAL:
 
 -- | Apply some extra post-parse transformations to the journal, if
@@ -86,12 +86,14 @@ withJournalDo opts cmd = do
 -- - pivoting account names (--pivot)
 -- - anonymising (--anonymise).
 --
-journalTransform :: CliOpts -> Journal -> Journal
+-- This will return an error message if the query in any auto posting rule fails
+-- to parse, or the generated transactions are not balanced.
+journalTransform :: CliOpts -> Journal -> Either String Journal
 journalTransform opts =
-    anonymiseByOpts opts
+    fmap (anonymiseByOpts opts)
   -- - converting amounts to market value (--value)
   -- . journalApplyValue ropts
-  . pivotByOpts opts
+  . fmap (pivotByOpts opts)
   . journalAddForecast opts
 
 -- | Apply the pivot transformation on a journal, if option is present.
@@ -113,26 +115,28 @@ anonymiseByOpts opts =
 --
 -- When --auto is active, auto posting rules will be applied to the
 -- generated transactions. If the query in any auto posting rule fails
--- to parse, this function will raise an error.
+-- to parse, or the generated transactions are not balanced, this function will
+-- return an error message.
 --
 -- The start & end date for generated periodic transactions are determined in
 -- a somewhat complicated way; see the hledger manual -> Periodic transactions.
 --
-journalAddForecast :: CliOpts -> Journal -> Journal
+journalAddForecast :: CliOpts -> Journal -> Either String Journal
 journalAddForecast CliOpts{inputopts_=iopts, reportspec_=rspec} j =
     case forecast_ ropts of
-        Nothing -> j
-        Just _  -> either error id $ do  -- PARTIAL:
+        Nothing -> return j
+        Just _  -> do
             forecasttxns <- addAutoTxns =<< mapM (balanceTransaction (balancingopts_ iopts))
-                [ txnTieKnot t | pt <- jperiodictxns j
-                               , t <- runPeriodicTransaction pt forecastspan
-                               , spanContainsDate forecastspan (tdate t)
-                               ]
+                [ txnTieKnot $ transactionTransformPostings (postingApplyCommodityStyles styles) t
+                | pt <- jperiodictxns j
+                , t <- runPeriodicTransaction pt forecastspan
+                , spanContainsDate forecastspan (tdate t)
+                ]
             journalBalanceTransactions (balancingopts_ iopts) j{ jtxns = concat [jtxns j, forecasttxns] }
-              >>= journalApplyCommodityStyles
   where
     today = _rsDay rspec
     ropts = _rsReportOpts rspec
+    styles = journalCommodityStyles j
 
     -- "They can start no earlier than: the day following the latest normal transaction in the journal (or today if there are none)."
     mjournalend   = dbg2 "journalEndDate" $ journalEndDate False j  -- ignore secondary dates
@@ -147,7 +151,7 @@ journalAddForecast CliOpts{inputopts_=iopts, reportspec_=rspec} j =
         (fromMaybe nulldatespan $ dbg2 "forecastspan flag" $ forecast_ ropts)
         (DateSpan (Just forecastbeginDefault) (Just forecastendDefault))
 
-    addAutoTxns = if auto_ iopts then modifyTransactions today (jtxnmodifiers j) else return
+    addAutoTxns = if auto_ iopts then modifyTransactions styles today (jtxnmodifiers j) else return
 
 -- | Write some output to stdout or to a file selected by --output-file.
 -- If the file exists it will be overwritten.
@@ -196,7 +200,7 @@ journalReload :: CliOpts -> IO (Either String Journal)
 journalReload opts = do
   journalpaths <- dbg6 "reloading files" <$> journalFilePathFromOpts opts
   files <- readJournalFiles (inputopts_ opts) journalpaths
-  return $ journalTransform opts <$> files
+  return $ journalTransform opts =<< files
 
 -- | Has the specified file changed since the journal was last read ?
 -- Typically this is one of the journal's journalFilePaths. These are

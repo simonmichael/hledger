@@ -38,6 +38,7 @@ module Hledger.Data.Posting (
   relatedPostings,
   postingStripPrices,
   postingApplyAliases,
+  postingApplyCommodityStyles,
   -- * date operations
   postingDate,
   postingDate2,
@@ -297,6 +298,14 @@ postingApplyAliases aliases p@Posting{paccount} =
       where
         err = "problem while applying account aliases:\n" ++ pshow aliases 
           ++ "\n to account name: "++T.unpack paccount++"\n "++e
+
+-- | Choose and apply a consistent display style to the posting
+-- amounts in each commodity (see journalCommodityStyles).
+postingApplyCommodityStyles :: M.Map CommoditySymbol AmountStyle -> Posting -> Posting
+postingApplyCommodityStyles styles p = p{pamount=styleMixedAmount styles $ pamount p
+                                        ,pbalanceassertion=fixbalanceassertion <$> pbalanceassertion p}
+  where
+    fixbalanceassertion ba = ba{baamount=styleAmountExceptPrecision styles $ baamount ba}
 
 -- | Rewrite an account name using all matching aliases from the given list, in sequence.
 -- Each alias sees the result of applying the previous aliases.

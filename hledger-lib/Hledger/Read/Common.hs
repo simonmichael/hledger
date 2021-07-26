@@ -362,8 +362,6 @@ journalFinalise InputOpts{auto_,balancingopts_,strict_} f txt pj' = do
           -- (Note adding auto postings after balancing means #893b fails;
           -- adding them before balancing probably means #893a, #928, #938 fail.)
           >>= journalModifyTransactions d
-          -- then apply commodity styles once more, to style the auto posting amounts. (XXX inefficient ?)
-          >>= journalApplyCommodityStyles
           -- then check balance assertions.
           >>= journalBalanceTransactions balancingopts_
 

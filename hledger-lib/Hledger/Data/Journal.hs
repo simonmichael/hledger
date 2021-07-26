@@ -723,9 +723,9 @@ journalUntieTransactions t@Transaction{tpostings=ps} = t{tpostings=map (\p -> p{
 -- relative dates in transaction modifier queries.
 journalModifyTransactions :: Day -> Journal -> Either String Journal
 journalModifyTransactions d j =
-  case modifyTransactions d (jtxnmodifiers j) (jtxns j) of
-    Right ts -> Right j{jtxns=ts}
-    Left err -> Left err
+    case modifyTransactions (journalCommodityStyles j) d (jtxnmodifiers j) (jtxns j) of
+      Right ts -> Right j{jtxns=ts}
+      Left err -> Left err
 
 -- | Check any balance assertions in the journal and return an error message
 -- if any of them fail (or if the transaction balancing they require fails).
@@ -1066,20 +1066,12 @@ checkBalanceAssignmentUnassignableAccountB p = do
 -- amounts in each commodity (see journalCommodityStyles).
 -- Can return an error message eg if inconsistent number formats are found.
 journalApplyCommodityStyles :: Journal -> Either String Journal
-journalApplyCommodityStyles j@Journal{jtxns=ts, jpricedirectives=pds} =
-  case journalInferCommodityStyles j of
-    Left e   -> Left e
-    Right j' -> Right j''
+journalApplyCommodityStyles = fmap fixjournal . journalInferCommodityStyles
+  where
+    fixjournal j@Journal{jpricedirectives=pds} =
+        journalMapPostings (postingApplyCommodityStyles styles) j{jpricedirectives=map fixpricedirective pds}
       where
-        styles = journalCommodityStyles j'
-        j'' = j'{jtxns=map fixtransaction ts
-                ,jpricedirectives=map fixpricedirective pds
-                }
-        fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
-        fixposting p = p{pamount=styleMixedAmount styles $ pamount p
-                        ,pbalanceassertion=fixbalanceassertion <$> pbalanceassertion p}
-        -- balance assertion amounts are always displayed (by print) at full precision, per docs
-        fixbalanceassertion ba = ba{baamount=styleAmountExceptPrecision styles $ baamount ba}
+        styles = journalCommodityStyles j
         fixpricedirective pd@PriceDirective{pdamount=a} = pd{pdamount=styleAmountExceptPrecision styles a}
 
 -- | Get the canonical amount styles for this journal, whether (in order of precedence):

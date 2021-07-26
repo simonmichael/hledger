@@ -13,6 +13,7 @@ module Hledger.Data.TransactionModifier (
 where
 
 import Control.Applicative ((<|>), liftA2)
+import qualified Data.Map as M
 import Data.Maybe (catMaybes)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)
@@ -22,7 +23,7 @@ import Hledger.Data.Amount
 import Hledger.Data.Transaction (txnTieKnot)
 import Hledger.Query (Query, filterQuery, matchesAmount, matchesPosting,
                       parseQuery, queryIsAmt, queryIsSym, simplifyQuery)
-import Hledger.Data.Posting (commentJoin, commentAddTag)
+import Hledger.Data.Posting (commentJoin, commentAddTag, postingApplyCommodityStyles)
 import Hledger.Utils (dbg6, wrap)
 
 -- $setup
@@ -35,9 +36,9 @@ import Hledger.Utils (dbg6, wrap)
 -- Or if any of them fails to be parsed, return the first error. A reference
 -- date is provided to help interpret relative dates in transaction modifier
 -- queries.
-modifyTransactions :: Day -> [TransactionModifier] -> [Transaction] -> Either String [Transaction]
-modifyTransactions d tmods ts = do
-  fs <- mapM (transactionModifierToFunction d) tmods  -- convert modifiers to functions, or return a parse error
+modifyTransactions :: M.Map CommoditySymbol AmountStyle -> Day -> [TransactionModifier] -> [Transaction] -> Either String [Transaction]
+modifyTransactions styles d tmods ts = do
+  fs <- mapM (transactionModifierToFunction styles d) tmods  -- convert modifiers to functions, or return a parse error
   let
     modifytxn t = t''
       where
@@ -61,7 +62,7 @@ modifyTransactions d tmods ts = do
 -- >>> import qualified Data.Text.IO as T
 -- >>> t = nulltransaction{tpostings=["ping" `post` usd 1]}
 -- >>> tmpost acc amt = TMPostingRule (acc `post` amt) False
--- >>> test = either putStr (T.putStr.showTransaction) . fmap ($ t) . transactionModifierToFunction nulldate
+-- >>> test = either putStr (T.putStr.showTransaction) . fmap ($ t) . transactionModifierToFunction mempty nulldate
 -- >>> test $ TransactionModifier "" ["pong" `tmpost` usd 2]
 -- 0000-01-01
 --     ping           $1.00
@@ -77,11 +78,11 @@ modifyTransactions d tmods ts = do
 --     pong           $3.00  ; generated-posting: = ping
 -- <BLANKLINE>
 --
-transactionModifierToFunction :: Day -> TransactionModifier -> Either String (Transaction -> Transaction)
-transactionModifierToFunction refdate TransactionModifier{tmquerytxt, tmpostingrules} = do
+transactionModifierToFunction :: M.Map CommoditySymbol AmountStyle -> Day -> TransactionModifier -> Either String (Transaction -> Transaction)
+transactionModifierToFunction styles refdate TransactionModifier{tmquerytxt, tmpostingrules} = do
   q <- simplifyQuery . fst <$> parseQuery refdate tmquerytxt
   let
-    fs = map (tmPostingRuleToFunction q tmquerytxt) tmpostingrules
+    fs = map (tmPostingRuleToFunction styles q tmquerytxt) tmpostingrules
     generatePostings ps = concatMap (\p -> p : map ($p) (if q `matchesPosting` p then fs else [])) ps
   Right $ \t@(tpostings -> ps) -> txnTieKnot t{tpostings=generatePostings ps}
 
@@ -93,9 +94,9 @@ transactionModifierToFunction refdate TransactionModifier{tmquerytxt, tmpostingr
 -- and a hidden _generated-posting: tag which does not.
 -- The TransactionModifier's query text is also provided, and saved
 -- as the tags' value.
-tmPostingRuleToFunction :: Query -> T.Text -> TMPostingRule -> (Posting -> Posting)
-tmPostingRuleToFunction query querytxt tmpr =
-  \p -> renderPostingCommentDates $ pr
+tmPostingRuleToFunction :: M.Map CommoditySymbol AmountStyle -> Query -> T.Text -> TMPostingRule -> (Posting -> Posting)
+tmPostingRuleToFunction styles query querytxt tmpr =
+  \p -> postingApplyCommodityStyles styles . renderPostingCommentDates $ pr
       { pdate    = pdate  pr <|> pdate  p
       , pdate2   = pdate2 pr <|> pdate2 p
       , pamount  = amount' p
