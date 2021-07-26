@@ -128,7 +128,7 @@ import Prelude ()
 import "base-compat-batteries" Prelude.Compat hiding (fail, readFile)
 import Control.Applicative.Permutations (runPermutation, toPermutationWithDefault)
 import qualified "base-compat-batteries" Control.Monad.Fail.Compat as Fail (fail)
-import Control.Monad.Except (ExceptT(..), runExceptT, throwError)
+import Control.Monad.Except (ExceptT(..), liftEither, runExceptT, throwError)
 import Control.Monad.State.Strict hiding (fail)
 import Data.Bifunctor (bimap, second)
 import Data.Char (digitToInt, isDigit, isSpace)
@@ -329,52 +329,43 @@ parseAndFinaliseJournal' parser iopts f txt = do
 -- - infer transaction-implied market prices from transaction prices
 --
 journalFinalise :: InputOpts -> FilePath -> Text -> ParsedJournal -> ExceptT String IO Journal
-journalFinalise InputOpts{auto_,balancingopts_,strict_} f txt pj = do
+journalFinalise InputOpts{auto_,balancingopts_,strict_} f txt pj' = do
   t <- liftIO getClockTime
   d <- liftIO getCurrentDay
-  let pj' =
-        pj{jglobalcommoditystyles=fromMaybe M.empty $ commodity_styles_ balancingopts_}  -- save any global commodity styles
-        & journalAddFile (f, txt)  -- save the main file's info
-        & journalSetLastReadTime t -- save the last read time
-        & journalReverse -- convert all lists to the order they were parsed
+  liftEither $ do
+    -- Infer and apply canonical styles for each commodity (or throw an error).
+    -- This affects transaction balancing/assertions/assignments, so needs to be done early.
+    pj <- journalApplyCommodityStyles $
+              pj'{jglobalcommoditystyles=fromMaybe M.empty $ commodity_styles_ balancingopts_}  -- save any global commodity styles
+              & journalAddFile (f, txt)  -- save the main file's info
+              & journalSetLastReadTime t -- save the last read time
+              & journalReverse -- convert all lists to the order they were parsed
 
-  -- If in strict mode, check all postings are to declared accounts
-  case if strict_ then journalCheckAccountsDeclared pj' else Right () of
-    Left e   -> throwError e
-    Right () ->
-
+    when strict_ $ do
+      -- If in strict mode, check all postings are to declared accounts
+      journalCheckAccountsDeclared pj
       -- and using declared commodities
-      case if strict_ then journalCheckCommoditiesDeclared pj' else Right () of
-        Left e   -> throwError e
-        Right () ->
+      journalCheckCommoditiesDeclared pj
 
-          -- Infer and apply canonical styles for each commodity (or throw an error).
-          -- This affects transaction balancing/assertions/assignments, so needs to be done early.
-          case journalApplyCommodityStyles pj' of
-            Left e     -> throwError e
-            Right pj'' -> either throwError return $
-              pj''
-              & (if not auto_ || null (jtxnmodifiers pj'')
-                then
-                  -- Auto postings are not active.
-                  -- Balance all transactions and maybe check balance assertions.
-                  journalBalanceTransactions balancingopts_
-                else \j -> do  -- Either monad
-                  -- Auto postings are active.
-                  -- Balance all transactions without checking balance assertions,
-                  j' <- journalBalanceTransactions balancingopts_{ignore_assertions_=True} j
-                  -- then add the auto postings
-                  -- (Note adding auto postings after balancing means #893b fails;
-                  -- adding them before balancing probably means #893a, #928, #938 fail.)
-                  case journalModifyTransactions d j' of
-                    Left e -> throwError e
-                    Right j'' -> do
-                      -- then apply commodity styles once more, to style the auto posting amounts. (XXX inefficient ?)
-                      j''' <- journalApplyCommodityStyles j''
-                      -- then check balance assertions.
-                      journalBalanceTransactions balancingopts_ j'''
-                )
-            & fmap journalInferMarketPricesFromTransactions  -- infer market prices from commodity-exchanging transactions
+    -- infer market prices from commodity-exchanging transactions
+    journalInferMarketPricesFromTransactions <$>
+      if not auto_ || null (jtxnmodifiers pj)
+        then
+          -- Auto postings are not active.
+          -- Balance all transactions and maybe check balance assertions.
+          journalBalanceTransactions balancingopts_ pj
+        else
+          -- Auto postings are active.
+          -- Balance all transactions without checking balance assertions,
+          journalBalanceTransactions balancingopts_{ignore_assertions_=True} pj
+          -- then add the auto postings
+          -- (Note adding auto postings after balancing means #893b fails;
+          -- adding them before balancing probably means #893a, #928, #938 fail.)
+          >>= journalModifyTransactions d
+          -- then apply commodity styles once more, to style the auto posting amounts. (XXX inefficient ?)
+          >>= journalApplyCommodityStyles
+          -- then check balance assertions.
+          >>= journalBalanceTransactions balancingopts_
 
 -- | Check that all the journal's transactions have payees declared with
 -- payee directives, returning an error message otherwise.
