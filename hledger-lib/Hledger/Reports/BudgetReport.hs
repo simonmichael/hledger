@@ -202,14 +202,14 @@ combineBudgetAndActual ropts j
         mbrsorted = map prrFullName . sortRows ropts j . map (fmap $ fromMaybe nullmixedamt . fst)
         rows = rows1 ++ rows2
 
-    -- TODO: grand total & average shows 0% when there are no actual amounts, inconsistent with other cells
     totalrow = PeriodicReportRow ()
         [ (Map.lookup p totActualByPeriod, Map.lookup p totBudgetByPeriod) | p <- periods ]
-        ( Just actualgrandtot, Just budgetgrandtot )
-        ( Just actualgrandavg, Just budgetgrandavg )
+        ( Just actualgrandtot, budget budgetgrandtot )
+        ( Just actualgrandavg, budget budgetgrandavg )
       where
         totBudgetByPeriod = Map.fromList $ zip budgetperiods budgettots :: Map DateSpan BudgetTotal
         totActualByPeriod = Map.fromList $ zip actualperiods actualtots :: Map DateSpan Change
+        budget b = if mixedAmountLooksZero b then Nothing else Just b
 
 -- | Render a budget report as plain text suitable for console output.
 budgetReportAsText :: ReportOpts -> BudgetReport -> TL.Text
