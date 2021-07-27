@@ -4,13 +4,22 @@ Options common to most hledger reports.
 
 -}
 
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE TypeFamilies          #-}
 
 module Hledger.Reports.ReportOptions (
   ReportOpts(..),
+  HasReportOpts(..),
   ReportSpec(..),
+  HasReportSpec(..),
+  overWithReport,
+  setWithReport,
   BalanceCalculation(..),
   BalanceAccumulation(..),
   AccountListMode(..),
@@ -49,13 +58,16 @@ module Hledger.Reports.ReportOptions (
 )
 where
 
-import Control.Applicative ((<|>))
-import Control.Monad ((<=<))
+import Control.Applicative (Const(..), (<|>))
+import Control.Monad ((<=<), join)
+import Data.Either.Extra (eitherToMaybe)
+import Data.Functor.Identity (Identity(..))
 import Data.List.Extra (nubSort)
 import Data.Maybe (fromMaybe, mapMaybe)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day, addDays)
 import Data.Default (Default(..))
+import Lens.Micro (Lens')
 import Safe (headMay, lastDef, lastMay, maximumMay)
 
 import Text.Megaparsec.Custom
@@ -670,3 +682,264 @@ reportPeriodName balanceaccumulation spans =
       where
         multiyear = (>1) $ length $ nubSort $ map spanStartYear spans
     _ -> maybe "" (showDate . prevday) . spanEnd
+
+-- lenses
+
+-- Reportable functors are so that we can create special lenses which can fail
+-- and report on their failure.
+class Functor f => Reportable f e where
+    report :: a -> f (Either e a) -> f a
+
+instance Reportable (Const r) e where
+    report _ (Const x) = Const x
+
+instance Reportable Identity e where
+    report a (Identity i) = Identity $ either (const a) id i
+
+instance Reportable Maybe e where
+    report _ = join . fmap eitherToMaybe
+
+instance (e ~ a) => Reportable (Either a) e where
+    report _ = join
+
+-- | Apply a function over a lens, but report on failure.
+overWithReport :: ((a -> Either e b) -> s -> Either e t) -> (a -> b) -> s -> Either e t
+overWithReport l f s = l (pure . f) s
+
+-- | Set a field using a lens, but report on failure.
+setWithReport :: ((a -> Either e b) -> s -> Either e t) -> b -> s -> Either e t
+setWithReport l = overWithReport l . const
+
+type ReportableLens' s a = forall f. Reportable f String => (a -> f a) -> s -> f s
+
+-- | Lenses for ReportOpts.
+-- Note that some of these are not true lenses, as they have a further restriction on
+-- the functor. This will work as a normal lens for all common uses, but since they
+-- don't obey the lens laws for some fancy cases, they may fail in some exotic circumstances.
+-- The special type is so that updating querystring_, real_, depth_, date2_, period_, or
+-- statuses_ can automatically update the Query and QueryOpts in ReportSpec.
+class HasReportOpts a where
+    reportOpts :: ReportableLens' a ReportOpts
+    reportOptsNoUpdate :: Lens' a ReportOpts
+
+    period :: ReportableLens' a Period
+    period = reportOpts.period
+    {-# INLINE period #-}
+
+    statuses :: ReportableLens' a [Status]
+    statuses = reportOpts.statuses
+    {-# INLINE statuses #-}
+
+    depth :: ReportableLens' a (Maybe Int)
+    depth = reportOpts.depth
+    {-# INLINE depth #-}
+
+    date2 :: ReportableLens' a Bool
+    date2 = reportOpts.date2
+    {-# INLINE date2 #-}
+
+    real :: ReportableLens' a Bool
+    real = reportOpts.real
+    {-# INLINE real #-}
+
+    querystring :: ReportableLens' a [T.Text]
+    querystring = reportOpts.querystring
+    {-# INLINE querystring #-}
+
+    interval :: Lens' a Interval
+    interval = reportOptsNoUpdate.interval
+    {-# INLINE interval #-}
+
+    cost :: Lens' a Costing
+    cost = reportOptsNoUpdate.cost
+    {-# INLINE cost #-}
+
+    value :: Lens' a (Maybe ValuationType)
+    value = reportOptsNoUpdate.value
+    {-# INLINE value #-}
+
+    infer_value :: Lens' a Bool
+    infer_value = reportOptsNoUpdate.infer_value
+    {-# INLINE infer_value #-}
+
+    empty__ :: Lens' a Bool
+    empty__ = reportOptsNoUpdate.empty__
+    {-# INLINE empty__ #-}
+
+    no_elide :: Lens' a Bool
+    no_elide = reportOptsNoUpdate.no_elide
+    {-# INLINE no_elide #-}
+
+    format :: Lens' a StringFormat
+    format = reportOptsNoUpdate.format
+    {-# INLINE format #-}
+
+    average :: Lens' a Bool
+    average = reportOptsNoUpdate.average
+    {-# INLINE average #-}
+
+    related :: Lens' a Bool
+    related = reportOptsNoUpdate.related
+    {-# INLINE related #-}
+
+    txn_dates :: Lens' a Bool
+    txn_dates = reportOptsNoUpdate.txn_dates
+    {-# INLINE txn_dates #-}
+
+    balancecalc :: Lens' a BalanceCalculation
+    balancecalc = reportOptsNoUpdate.balancecalc
+    {-# INLINE balancecalc #-}
+
+    balanceaccum :: Lens' a BalanceAccumulation
+    balanceaccum = reportOptsNoUpdate.balanceaccum
+    {-# INLINE balanceaccum #-}
+
+    accountlistmode :: Lens' a AccountListMode
+    accountlistmode = reportOptsNoUpdate.accountlistmode
+    {-# INLINE accountlistmode #-}
+
+    drop__ :: Lens' a Int
+    drop__ = reportOptsNoUpdate.drop__
+    {-# INLINE drop__ #-}
+
+    row_total :: Lens' a Bool
+    row_total = reportOptsNoUpdate.row_total
+    {-# INLINE row_total #-}
+
+    no_total :: Lens' a Bool
+    no_total = reportOptsNoUpdate.no_total
+    {-# INLINE no_total #-}
+
+    show_costs :: Lens' a Bool
+    show_costs = reportOptsNoUpdate.show_costs
+    {-# INLINE show_costs #-}
+
+    pretty_tables :: Lens' a Bool
+    pretty_tables = reportOptsNoUpdate.pretty_tables
+    {-# INLINE pretty_tables #-}
+
+    sort_amount :: Lens' a Bool
+    sort_amount = reportOptsNoUpdate.sort_amount
+    {-# INLINE sort_amount #-}
+
+    percent :: Lens' a Bool
+    percent = reportOptsNoUpdate.percent
+    {-# INLINE percent #-}
+
+    invert :: Lens' a Bool
+    invert = reportOptsNoUpdate.invert
+    {-# INLINE invert #-}
+
+    normalbalance :: Lens' a (Maybe NormalSign)
+    normalbalance = reportOptsNoUpdate.normalbalance
+    {-# INLINE normalbalance #-}
+
+    color__ :: Lens' a Bool
+    color__ = reportOptsNoUpdate.color__
+    {-# INLINE color__ #-}
+
+    forecast :: Lens' a (Maybe DateSpan)
+    forecast = reportOptsNoUpdate.forecast
+    {-# INLINE forecast #-}
+
+    transpose__ :: Lens' a Bool
+    transpose__ = reportOptsNoUpdate.transpose__
+    {-# INLINE transpose__ #-}
+
+instance HasReportOpts ReportOpts where
+    reportOpts = id
+    reportOptsNoUpdate = id
+    period f ropts = (\x -> ropts{period_=x}) <$> f (period_ ropts)
+    {-# INLINE period #-}
+    interval f ropts = (\x -> ropts{interval_=x}) <$> f (interval_ ropts)
+    {-# INLINE interval #-}
+    statuses f ropts = (\x -> ropts{statuses_=x}) <$> f (statuses_ ropts)
+    {-# INLINE statuses #-}
+    cost f ropts = (\x -> ropts{cost_=x}) <$> f (cost_ ropts)
+    {-# INLINE cost #-}
+    value f ropts = (\x -> ropts{value_=x}) <$> f (value_ ropts)
+    {-# INLINE value #-}
+    infer_value f ropts = (\x -> ropts{infer_value_=x}) <$> f (infer_value_ ropts)
+    {-# INLINE infer_value #-}
+    depth f ropts = (\x -> ropts{depth_=x}) <$> f (depth_ ropts)
+    {-# INLINE depth #-}
+    date2 f ropts = (\x -> ropts{date2_=x}) <$> f (date2_ ropts)
+    {-# INLINE date2 #-}
+    empty__ f ropts = (\x -> ropts{empty_=x}) <$> f (empty_ ropts)
+    {-# INLINE empty__ #-}
+    no_elide f ropts = (\x -> ropts{no_elide_=x}) <$> f (no_elide_ ropts)
+    {-# INLINE no_elide #-}
+    real f ropts = (\x -> ropts{real_=x}) <$> f (real_ ropts)
+    {-# INLINE real #-}
+    format f ropts = (\x -> ropts{format_=x}) <$> f (format_ ropts)
+    {-# INLINE format #-}
+    querystring f ropts = (\x -> ropts{querystring_=x}) <$> f (querystring_ ropts)
+    {-# INLINE querystring #-}
+    average f ropts = (\x -> ropts{average_=x}) <$> f (average_ ropts)
+    {-# INLINE average #-}
+    related f ropts = (\x -> ropts{related_=x}) <$> f (related_ ropts)
+    {-# INLINE related #-}
+    txn_dates f ropts = (\x -> ropts{txn_dates_=x}) <$> f (txn_dates_ ropts)
+    {-# INLINE txn_dates #-}
+    balancecalc f ropts = (\x -> ropts{balancecalc_=x}) <$> f (balancecalc_ ropts)
+    {-# INLINE balancecalc #-}
+    balanceaccum f ropts = (\x -> ropts{balanceaccum_=x}) <$> f (balanceaccum_ ropts)
+    {-# INLINE balanceaccum #-}
+    accountlistmode f ropts = (\x -> ropts{accountlistmode_=x}) <$> f (accountlistmode_ ropts)
+    {-# INLINE accountlistmode #-}
+    drop__ f ropts = (\x -> ropts{drop_=x}) <$> f (drop_ ropts)
+    {-# INLINE drop__ #-}
+    row_total f ropts = (\x -> ropts{row_total_=x}) <$> f (row_total_ ropts)
+    {-# INLINE row_total #-}
+    no_total f ropts = (\x -> ropts{no_total_=x}) <$> f (no_total_ ropts)
+    {-# INLINE no_total #-}
+    show_costs f ropts = (\x -> ropts{show_costs_=x}) <$> f (show_costs_ ropts)
+    {-# INLINE show_costs #-}
+    pretty_tables f ropts = (\x -> ropts{pretty_tables_=x}) <$> f (pretty_tables_ ropts)
+    {-# INLINE pretty_tables #-}
+    sort_amount f ropts = (\x -> ropts{sort_amount_=x}) <$> f (sort_amount_ ropts)
+    {-# INLINE sort_amount #-}
+    percent f ropts = (\x -> ropts{percent_=x}) <$> f (percent_ ropts)
+    {-# INLINE percent #-}
+    invert f ropts = (\x -> ropts{invert_=x}) <$> f (invert_ ropts)
+    {-# INLINE invert #-}
+    normalbalance f ropts = (\x -> ropts{normalbalance_=x}) <$> f (normalbalance_ ropts)
+    {-# INLINE normalbalance #-}
+    color__ f ropts = (\x -> ropts{color_=x}) <$> f (color_ ropts)
+    {-# INLINE color__ #-}
+    forecast f ropts = (\x -> ropts{forecast_=x}) <$> f (forecast_ ropts)
+    {-# INLINE forecast #-}
+    transpose__ f ropts = (\x -> ropts{transpose_=x}) <$> f (transpose_ ropts)
+    {-# INLINE transpose__ #-}
+
+class HasReportSpec a where
+    reportSpec :: Lens' a ReportSpec
+
+    rsDay :: Lens' a Day
+    rsDay = reportSpec.rsDay
+    {-# INLINE rsDay #-}
+
+    rsQuery :: Lens' a Query
+    rsQuery = reportSpec.rsQuery
+    {-# INLINE rsQuery #-}
+
+    rsQueryOpts :: Lens' a [QueryOpt]
+    rsQueryOpts = reportSpec.rsQueryOpts
+    {-# INLINE rsQueryOpts #-}
+
+instance HasReportSpec ReportSpec where
+    reportSpec = id
+    rsDay f rspec = (\d -> either (error "Updating _rsDay should never fail") id .  -- PARTIAL:
+      reportOptsToSpec d $ _rsReportOpts rspec) <$> f (_rsDay rspec)
+    {-# INLINE rsDay #-}
+    rsQuery f rspec = (\x -> rspec{_rsQuery=x}) <$> f (_rsQuery rspec)
+    {-# INLINE rsQuery #-}
+    rsQueryOpts f rspec = (\x -> rspec{_rsQueryOpts=x}) <$> f (_rsQueryOpts rspec)
+    {-# INLINE rsQueryOpts #-}
+
+instance HasReportOpts ReportSpec where
+    reportOpts f rspec = report (error "Updating ReportSpec failed: try using overWithReport instead of over") $  -- PARTIAL:
+      reportOptsToSpec (_rsDay rspec) <$> f (_rsReportOpts rspec)
+    {-# INLINE reportOpts #-}
+    reportOptsNoUpdate f rspec = (\x -> rspec{_rsReportOpts=x}) <$> f (_rsReportOpts rspec)
+    {-# INLINE reportOptsNoUpdate #-}
