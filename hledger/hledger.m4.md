@@ -791,6 +791,19 @@ Some of these can also be expressed as command-line options (eg `depth:2` is equ
 Generally you can mix options and query arguments, and the resulting query will be their intersection
 (perhaps excluding the `-p/--period` option).
 
+## Querying with account aliases
+
+When account names are [rewritten](rewriting-accounts) with `--alias` or `alias`,
+note that `acct:` will match either the old or the new account name.
+
+## Querying with cost or value
+
+When amounts are converted to other commodities in [cost](#costing) or [value](#valuation) reports,
+note that `cur:` matches the new commodity symbol, and not the old one,
+and `amt:` matches the new quantity, and not the old one.
+Note: this changed in hledger 1.22, previously it was the reverse, 
+see the discussion at [#1625](https://github.com/simonmichael/hledger/issues/1625).
+
 # COSTING
 
 The `-B/--cost` flag converts amounts to their cost or sale amount at transaction time,
