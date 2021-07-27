@@ -438,6 +438,7 @@ With the `-s`/`--strict` flag, additional checks are performed:
   ([Account error checking](#account-error-checking))
 - Are all commodities declared with a `commodity` directive ?
   ([Commodity error checking](#commodity-error-checking))
+- Are all commodity conversions declared explicitly ?
 
 You can also use the [check](#check) command to run these and some additional checks.
 
