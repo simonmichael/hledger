@@ -285,11 +285,11 @@ reportOptsToSpec day ropts = do
 -- unparseable options data. This is the safe way to change a ReportSpec,
 -- ensuring that all fields (_rsQuery, _rsReportOpts, querystring_, etc.) are in sync.
 updateReportSpec :: ReportOpts -> ReportSpec -> Either String ReportSpec
-updateReportSpec ropts rspec = reportOptsToSpec (_rsDay rspec) ropts
+updateReportSpec = setWithReport reportOpts
 
 -- | Like updateReportSpec, but takes a ReportOpts-modifying function.
 updateReportSpecWith :: (ReportOpts -> ReportOpts) -> ReportSpec -> Either String ReportSpec
-updateReportSpecWith f rspec = reportOptsToSpec (_rsDay rspec) . f $ _rsReportOpts rspec
+updateReportSpecWith = overWithReport reportOpts
 
 -- | Generate a ReportSpec from RawOpts and the current date.
 rawOptsToReportSpec :: RawOpts -> IO ReportSpec
