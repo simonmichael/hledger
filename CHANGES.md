@@ -9,7 +9,12 @@
 General changes in the hledger project (and notable all-package releases).
 For package-specific changes and minor releases, see the hledger package changelogs.
 
-# fa3ce17fd
+# 40c1f09b8
+
+- shake: changelogs: A leading semicolon now means 
+  "skip most CI steps", not "omit from changelog".
+
+- ci: most steps are skipped if commit message begins with ;.
 
 - New examples: systemd and nginx configs for hledger-web (Alan Young)
 

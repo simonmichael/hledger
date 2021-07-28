@@ -9,7 +9,52 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 861c34484
+# d2b799a71
+
+- lib!: Rename the fields of ReportSpec. (Stephen Morgan)
+  This is done to be more consistent with future field naming conventions,
+  and to make automatic generation of lenses simpler. See discussion in
+  #1545.
+
+  rsOpts -> _rsReportOpts
+  rsToday -> _rsDay
+  rsQuery -> _rsQuery
+  rsQueryOpts -> _rsQueryOpts
+
+- lib!: lib: Remove aismultiplier from Amount. (Stephen Morgan)
+  In Amount, aismultiplier is a boolean flag that will always be False,
+  except for in TMPostingRules, where it indicates whether the posting
+  rule is a multiplier. It is therefore unnecessary in the vast majority
+  of cases. This posting pulls this flag out of Amount and puts it into
+  TMPostingRule, so it is only kept around when necessary.
+
+  This changes the parsing of journals somewhat. Previously you could
+  include an * before an amount anywhere in a Journal, and it would
+  happily parse and set the aismultiplier flag true. This will now fail
+  with a parse error: * is now only acceptable before an amount within an
+  auto posting rule.
+
+  Any usage of the library in which the aismultiplier field is read or set
+  should be removed. If you truly need its functionality, you should
+  switch to using TMPostingRule.
+
+  This changes the JSON output of Amount, as it will no longer include
+  aismultiplier.
+
+- lib!: lib,cli,ui,web: For accountTransactionsReport, generate the overall reportq from the ReportSpec, rather than being supplied as a separate option. (Stephen Morgan)
+  This is the same approach used by the other reports, e.g. EntryReport,
+  PostingReport, MultiBalanceReport. This reduces code duplication, as
+  previously the reportq had to be separately tweaked in each of 5
+  different places.
+
+  If you call accountTransactionreport, there is no need to separately
+  derive the report query.
+
+- lib!: lib,web: Remove unused TransactionReport. Move the useful utility functions to AccountTransactionsReport. (Stephen Morgan)
+  If you use transactionsReport, you should either use entryReport if you
+  don't require a running total, or using accountTransactionsReport with
+  thisacctq as Any or None (depending on what you want included in the
+  running total).
 
 - Our doctests are disabled with GHC 9 for now to work around an
   upstream bug. (#1503, #1615)

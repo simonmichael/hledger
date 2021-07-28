@@ -9,7 +9,15 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 9701e1916
+# 8ae42873c
+
+Features
+
+- The balance command's --budget option can now take an argument,
+  a case insensitive description substring which selects a subset of
+  the journal's periodic transactions for settinig budget goals. 
+  This makes it possible to keep multiple named budgets in one journal, 
+  and select the one you want with --budget's argument. (#1612)
 
 Improvements
 
@@ -22,6 +30,8 @@ Improvements
 - In JSON output, object attributes are now ordered alphabetically,
   consistently for all GHC and haskell lib versions. (#1618, Stephen
   Morgan)
+
+- JSON output now indents with 2 spaces rather than 4. (Stephen Morgan)
 
 - roi docs now discuss how to quote multi-word queries. (#1609, Dmitry
   Astapov)
