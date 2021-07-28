@@ -1327,6 +1327,19 @@ as a prefix to commit messages, and to organise changelogs and release
 notes. The current components, and their open issues, can be seen in
 the [Open Issues](#open-issues) table above.
 
+AKA "topics". 
+
+Some ad hoc conventions we are using in 2021:
+
+- In issue titles, use topic prefixes where convenient, as in [commit messages](#commit-messages)
+
+- In bug titles, mention the hledger version in which the bug first appeared.
+  Avoid mentioning version numbers otherwise.
+  This allows searches like
+  [new issues in 1.22](https://github.com/simonmichael/hledger/issues?q=in%3Atitle+1.22+)
+  and
+  [regressions in 1.22](https://github.com/simonmichael/hledger/issues?q=in%3Atitle+1.22+label%3Aregression%21)
+
 ### Custodians
 
 If you are interested in helping with a particular component for a
