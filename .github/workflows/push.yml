@@ -17,8 +17,12 @@ on:
       - 'hledger-ui/**'
       - 'hledger-web/**'
       - 'bin/*.hs'
-      # ignore changes to example files, though currently some func tests depend on them
       - 'examples/**'
+
+      # ignore certain boring paths completely (even if the commit message didn't begin with ;).
+      # XXX it would still be nice to check the commit messages.
+      #
+      # ignore changes to (most?) example files, though some func tests depend on them
       - '!**.journal'
       - '!**.j'
       - '!**.ledger'
