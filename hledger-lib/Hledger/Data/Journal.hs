@@ -31,9 +31,11 @@ module Hledger.Data.Journal (
   -- * Filtering
   filterJournalTransactions,
   filterJournalPostings,
+  filterJournalRelatedPostings,
   filterJournalAmounts,
   filterTransactionAmounts,
   filterTransactionPostings,
+  filterTransactionRelatedPostings,
   filterPostingAmount,
   -- * Mapping
   journalMapTransactions,
@@ -105,7 +107,7 @@ import Data.Foldable (toList)
 import Data.Function ((&))
 import qualified Data.HashTable.Class as H (toList)
 import qualified Data.HashTable.ST.Cuckoo as H
-import Data.List (find, foldl', sortOn)
+import Data.List ((\\), find, foldl', sortOn)
 import Data.List.Extra (nubSort)
 import qualified Data.Map.Strict as M
 import Data.Maybe (catMaybes, fromJust, fromMaybe, isJust, mapMaybe, maybeToList)
@@ -517,6 +519,11 @@ filterJournalTransactions q j@Journal{jtxns=ts} = j{jtxns=filter (q `matchesTran
 filterJournalPostings :: Query -> Journal -> Journal
 filterJournalPostings q j@Journal{jtxns=ts} = j{jtxns=map (filterTransactionPostings q) ts}
 
+-- | Keep only postings which do not match the query expression, but for which a related posting does.
+-- This can leave unbalanced transactions.
+filterJournalRelatedPostings :: Query -> Journal -> Journal
+filterJournalRelatedPostings q j@Journal{jtxns=ts} = j{jtxns=map (filterTransactionRelatedPostings q) ts}
+
 -- | Within each posting's amount, keep only the parts matching the query.
 -- This can leave unbalanced transactions.
 filterJournalAmounts :: Query -> Journal -> Journal
@@ -533,6 +540,11 @@ filterPostingAmount q p@Posting{pamount=as} = p{pamount=filterMixedAmount (q `ma
 
 filterTransactionPostings :: Query -> Transaction -> Transaction
 filterTransactionPostings q t@Transaction{tpostings=ps} = t{tpostings=filter (q `matchesPosting`) ps}
+
+filterTransactionRelatedPostings :: Query -> Transaction -> Transaction
+filterTransactionRelatedPostings q t@Transaction{tpostings=ps} =
+    t{tpostings=if null matches then [] else ps \\ matches}
+  where matches = filter (matchesPosting q) ps
 
 -- | Apply a transformation to a journal's transactions.
 journalMapTransactions :: (Transaction -> Transaction) -> Journal -> Journal
