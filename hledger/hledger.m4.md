@@ -310,14 +310,14 @@ hledger's regular expressions come from the
 library. 
 If they're not doing what you expect, it's important to know exactly what they support:
 
-#. they are case insensitive
-#. they are infix matching (they do not need to match the entire thing being matched)
-#. they are [POSIX ERE] (extended regular expressions)
-#. they also support [GNU word boundaries] (`\b`, `\B`, `\<`, `\>`)
-#. they do not support [backreferences]; if you write `\1`, it will match the digit `1`.
+1. they are case insensitive
+2. they are infix matching (they do not need to match the entire thing being matched)
+3. they are [POSIX ERE] (extended regular expressions)
+4. they also support [GNU word boundaries] (`\b`, `\B`, `\<`, `\>`)
+5. they do not support [backreferences]; if you write `\1`, it will match the digit `1`.
    Except when doing text replacement, eg in [account aliases](#regex-aliases),
    where [backreferences] can be used in the replacement string to reference [capturing groups] in the search regexp.
-#. they do not support [mode modifiers] (`(?s)`), character classes (`\w`, `\d`), or anything else not mentioned above.
+6. they do not support [mode modifiers] (`(?s)`), character classes (`\w`, `\d`), or anything else not mentioned above.
 
 [POSIX ERE]: http://www.regular-expressions.info/posix.html#ere
 [backreferences]: https://www.regular-expressions.info/backref.html
