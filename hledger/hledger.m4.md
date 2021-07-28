@@ -691,105 +691,150 @@ This flag has the same effect as a `depth:` query argument
 
 # QUERIES
 
-One of hledger's strengths is being able to quickly report on precise subsets of your data.
-Most commands accept an optional query expression, written as arguments after the command name,
-to filter the data by date, account name or other criteria.
-The syntax is similar to a web search:
-one or more space-separated search terms,
-quotes to enclose whitespace,
-prefixes to match specific fields,
-a not: prefix to negate the match.
+One of hledger's strengths is being able to quickly report on a precise subset of your data. 
+Most hledger commands accept an optional query to restrict their scope.
+The syntax is as follows:
 
-We do not yet support arbitrary boolean combinations of search terms;
-instead most commands show transactions/postings/accounts which match (or negatively match):
+- Zero or more space-separated query terms. 
+These are most often [account name](#account-names) substrings:
+
+  `utilities food:groceries`
+
+- Terms with spaces or other [special characters](#special-characters) should be enclosed in quotes:
+
+  `"personal care"`
+
+- [Regular expressions](#regular-expressions) are also supported:
+
+  `"^expenses\b" "accounts (payable|receivable)"`
+
+- Add a query type prefix to match other parts of the data:
+
+  `date:202012- desc:amazon cur:USD amt:">100" status:`
+
+- Add a `not:` prefix to negate a term:
+
+  `not:cur:USD`
+
+## Query types
+
+Here are the types of query term available.
+Remember these can also be prefixed with **`not:`** to convert them into a negative match.
+
+**`acct:REGEX`, `REGEX`**\
+Match account names containing this (case insensitive) [regular expression]. 
+This is the default query type when there is no prefix,
+and regular expression syntax is typically not needed,
+so usually we just write an account name substring, like `expenses` or `food`.
+
+**`amt:N, amt:<N, amt:<=N, amt:>N, amt:>=N`**\
+Match postings with a single-commodity amount equal to, less than, or greater than N.
+(Postings with multi-commodity amounts are not tested and will always match.)
+The comparison has two modes: 
+if N is preceded by a + or - sign (or is 0), the two signed numbers are compared. 
+Otherwise, the absolute magnitudes are compared, ignoring sign.
+
+**`code:REGEX`**\
+Match by transaction code (eg check number).
+
+**`cur:REGEX`**\
+Match postings or transactions including any amounts whose
+currency/commodity symbol is fully matched by REGEX. (For a partial
+match, use `.*REGEX.*`). 
+Note, to match [special characters](#special-characters) which are regex-significant, you need to escape them with `\`.
+And for characters which are significant to your shell you may need one more level of escaping. 
+So eg to match the dollar sign:\
+`hledger print cur:\\$`.
+
+**`desc:REGEX`**\
+Match transaction descriptions.
+
+**`date:PERIODEXPR`**\
+Match dates (or with the `--date2` flag, [secondary dates](#secondary-dates))
+within the specified period.
+PERIODEXPR is a [period expression](#period-expressions) with no report interval.
+Examples:\
+`date:2016`, `date:thismonth`, `date:2/1-2/15`, `date:2021-07-27..nextquarter`.
+
+
+**`date2:PERIODEXPR`**\
+Match secondary dates within the specified period (independent of the `--date2` flag).
+
+**`depth:N`**\
+Match (or display, depending on command) accounts at or above this depth.
+
+**`note:REGEX`**\
+Match transaction [notes](#payee-and-note)
+(the part of the description right of `|`, or the whole description if there's no `|`).
+
+**`payee:REGEX`**\
+Match transaction [payee/payer names](#payee-and-note)
+(the part of the description left of `|`, or the whole description if there's no `|`).
+
+**`real:, real:0`**\
+Match real or virtual postings respectively.
+
+**`status:, status:!, status:*`**\
+Match unmarked, pending, or cleared transactions respectively.
+
+**`tag:REGEX[=REGEX]`**\
+Match by tag name, and optionally also by tag value.
+(To match only by value, use `tag:.=REGEX`.)
+Note that postings also inherit tags from their transaction,
+and transactions also acquire tags from their postings,
+when querying.
+
+(**`inacct:ACCTNAME`**\
+A special query term used automatically in hledger-web only:
+tells hledger-web to show the transaction register for an account.)
+
+## Combining query terms
+
+Most commands select things which match:
 
 - any of the description terms AND
 - any of the account terms AND
 - any of the status terms AND
 - all the other terms.
 
-The [print](#print) command instead shows transactions which:
+while the [print](#print) command shows transactions which:
 
 - match any of the description terms AND
 - have any postings matching any of the positive account terms AND
 - have no postings matching any of the negative account terms AND
 - match all the other terms.
 
-The following kinds of search terms can be used.
-Remember these can also be prefixed with **`not:`**, eg to exclude a particular subaccount.
+You can do more powerful queries (such as AND-ing two like terms)
+by running a first query with `print`,
+and piping the result into a second hledger command.
+Eg: how much of food expenses was paid with cash ?
 
-**`REGEX`, `acct:REGEX`**
-: match account names by this [regular expression]. 
-(With no prefix, `acct:` is assumed.)
+```shell
+$ hledger print assets:cash | hledger f- -I balance expenses:food
+```
 
-: same as above
+If you are interested in full boolean expressions for queries,
+see [#203](https://github.com/simonmichael/hledger/issues/203).
 
-**`amt:N, amt:<N, amt:<=N, amt:>N, amt:>=N`**
-: match postings with a single-commodity amount that is equal to, less
-than, or greater than N.  (Multi-commodity amounts are not tested, and
-will always match.)  The comparison has two modes: if N is preceded by
-a + or - sign (or is 0), the two signed numbers are
-compared. Otherwise, the absolute magnitudes are compared, ignoring
-sign.
+## Queries and command options
 
-**`code:REGEX`**
-: match by transaction code (eg check number)
+Some queries can also be expressed as command-line options:
+`depth:2` is equivalent to `--depth 2`, 
+`date:2020` is equivalent to `-p 2020`, etc.
+When you mix command options and query arguments, 
+generally the resulting query is their intersection.
 
-**`cur:REGEX`**
-: match postings or transactions including any amounts whose
-currency/commodity symbol is fully matched by REGEX. (For a partial
-match, use `.*REGEX.*`). Note, to match characters which are
-regex-significant, like the dollar sign (`$`), you need to prepend `\`.
-And when using the command line you need to add one more level of
-quoting to hide it from the shell, so eg do: `hledger print cur:'\$'`
-or `hledger print cur:\\$`.
+## Queries and account aliases
 
-**`desc:REGEX`**
-: match transaction descriptions.
+When account names are [rewritten](rewriting-accounts) with `--alias` or `alias`,
+`acct:` will match either the old or the new account name.
 
-**`date:PERIODEXPR`**
-: match dates within the specified period.
-PERIODEXPR is a [period expression](#period-expressions) (with no report interval).
-Examples: `date:2016`, `date:thismonth`, `date:2000/2/1-2/15`, `date:lastweek-`.
-If the `--date2` command line flag is present, this matches [secondary dates](#secondary-dates) instead.
-([Report intervals](#report-intervals) will adjust [start/end dates](report-start--end-date)
-to preceding/following subperiod boundaries.)
+## Queries and valuation
 
-**`date2:PERIODEXPR`**
-: match secondary dates within the specified period.
-
-**`depth:N`**
-: match (or display, depending on command) accounts at or above this depth
-
-**`note:REGEX`**
-: match transaction [notes](#payee-and-note)
-(part of description right of `|`, or whole description when there's no `|`)
-
-**`payee:REGEX`**
-: match transaction [payee/payer names](#payee-and-note)
-(part of description left of `|`, or whole description when there's no `|`)
-
-**`real:, real:0`**
-: match real or virtual postings respectively
-
-**`status:, status:!, status:*`**
-: match unmarked, pending, or cleared transactions respectively
-
-**`tag:REGEX[=REGEX]`**
-: match by tag name, and optionally also by tag value.  Note a
-tag: query is considered to match a transaction if it matches any of
-the postings.  Also remember that postings inherit the tags of their
-parent transaction.
-
-The following special search term is used automatically in hledger-web, only:
-
-**`inacct:ACCTNAME`**
-: tells hledger-web to show the transaction register for this account.
-Can be filtered further with `acct` etc.
-
-Some of these can also be expressed as command-line options (eg `depth:2` is equivalent to `--depth 2`).
-Generally you can mix options and query arguments, and the resulting query will be their intersection
-(perhaps excluding the `-p/--period` option).
+When amounts are converted to other commodities in [cost](#costing) or [value](#valuation) reports,
+`cur:` and `amt:` match the old commodity symbol and the old amount quantity, 
+not the new ones
+(except in hledger 1.22.0 where it's reversed, see [#1625](https://github.com/simonmichael/hledger/issues/1625)).
 
 ## Querying with account aliases
 
