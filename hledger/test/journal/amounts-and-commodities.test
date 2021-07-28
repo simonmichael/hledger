@@ -297,3 +297,44 @@ $ hledger -f- print cur: amt:1112
 
 >=
 
+<
+P 2021-01-01 A  1000 B
+2021-01-01
+  (a)    1 A
+
+2021-01-02
+  (a)   10 A
+
+2021-01-03
+  (a)   10 A @ 0.1 B
+
+2021-01-04
+  (a)    1 B @ 0.001 A
+
+2021-01-05
+  (a)    1 B
+
+# 22. balance report cur: and amt: query matches currency before valuation/cost
+$ hledger -f- balance -N -V -B cur:A "amt:<5"
+              1000 B  a
+>=
+
+# 23. register report cur: and amt: query matches currency before valuation/cost
+$ hledger -f- register -V -B cur:A "amt:<5"
+2021-01-01                      (a)                         1000 B        1000 B
+>=
+
+# 24. aregister report cur: and amt: query matches currency before
+# valuation/cost (note that aregister currently only tests queries other than
+# "cur:" and the account query when given the --txn-dates option. Who knows why.
+$ hledger -f- aregister a -V -B cur:A "amt:<5" --txn-dates
+Transactions in a and subaccounts:
+2021-01-01                      a                           1000 B        1000 B
+>=
+
+# 25. print report cur: and amt: query matches currency before valuation/cost
+$ hledger -f- print -V -B a cur:A "amt:<5"
+2021-01-01
+    (a)          1000 B
+
+>=

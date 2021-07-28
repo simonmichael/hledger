@@ -113,20 +113,21 @@ accountTransactionsReport rspec@ReportSpec{_rsReportOpts=ropts} j thisacctq = it
     -- sort by the transaction's register date, for accurate starting balance
     -- these are not yet filtered by tdate, we want to search them all for priorps
     transactions =
-        ptraceAtWith 5 (("ts5:\n"++).pshowTransactions)
+        ptraceAtWith 5 (("ts4:\n"++).pshowTransactions)
       . sortOn (transactionRegisterDate reportq thisacctq)
       . jtxns
-      . ptraceAtWith 5 (("ts4:\n"++).pshowTransactions.jtxns)
+      . ptraceAtWith 5 (("ts3:\n"++).pshowTransactions.jtxns)
+      -- maybe convert these transactions to cost or value
+      . journalApplyValuationFromOpts rspec
+      . (if filtertxns then filterJournalTransactions reportq else id)
       -- keep just the transactions affecting this account (via possibly realness or status-filtered postings)
       . traceAt 3 ("thisacctq: "++show thisacctq)
-      . ptraceAtWith 5 (("ts3:\n"++).pshowTransactions.jtxns)
+      . ptraceAtWith 5 (("ts2:\n"++).pshowTransactions.jtxns)
       . filterJournalTransactions thisacctq
       . filterJournalPostings (And [realq, statusq])
+      . ptraceAtWith 5 (("ts1:\n"++).pshowTransactions.jtxns)
       -- apply any cur:SYM filters in reportq
-      . ptraceAtWith 5 (("ts2:\n"++).pshowTransactions.jtxns)
-      . (if queryIsNull symq then id else filterJournalAmounts symq)
-      -- maybe convert these transactions to cost or value
-      $ journalApplyValuationFromOpts rspec j
+      $ if queryIsNull symq then j else filterJournalAmounts symq j
 
     startbal
       | balanceaccum_ ropts == Historical = sumPostings priorps
@@ -150,10 +151,7 @@ accountTransactionsReport rspec@ReportSpec{_rsReportOpts=ropts} j thisacctq = it
     -- Make it an option for now.
     filtertxns = txn_dates_ ropts
 
-    items = reverse $
-            accountTransactionsReportItems reportq thisacctq startbal maNegate $
-            (if filtertxns then filter (reportq `matchesTransaction`) else id) $
-            transactions
+    items = reverse $ accountTransactionsReportItems reportq thisacctq startbal maNegate transactions
 
 pshowTransactions :: [Transaction] -> String
 pshowTransactions = pshow . map (\t -> unwords [show $ tdate t, T.unpack $ tdescription t])
@@ -172,8 +170,7 @@ accountTransactionsReportItem reportq thisacctq signfn bal torig = balItem
     -- 201407: I've lost my grip on this, let's just hope for the best
     -- 201606: we now calculate change and balance from filtered postings, check this still works well for all callers XXX
     where
-      tfiltered@Transaction{tpostings=reportps} = filterTransactionPostings reportq torig
-      tacct = tfiltered{tdate=transactionRegisterDate reportq thisacctq tfiltered}
+      tacct@Transaction{tpostings=reportps} = torig{tdate=transactionRegisterDate reportq thisacctq torig}
       balItem = case reportps of
            [] -> (bal, Nothing)  -- no matched postings in this transaction, skip it
            _  -> (b, Just (torig, tacct, numotheraccts > 1, otheracctstr, a, b))
