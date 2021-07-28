@@ -4,8 +4,8 @@ Guidance for release managers and maintainers.
 
 Terminology:
 
-- "main" = the master branch, might get renamed in future.
-- "release" = a release branch, such as 1.22.
+- "main" = the `master` branch in the main hledger repo (might be renamed to main in future).
+- "release" = a release branch in the main hledger repo, such as `1.22`.
 
 ## Changelogs
 
@@ -21,28 +21,34 @@ Use `./Shake changelogs` to update them from recent commit messages.
 
 Checklist:
 
-- create release branch if none\
+1. create release branch if none\
   `git branch RELEASEBRANCH RELEASETAG`\
   `git branch 1.22-branch 1.22`
-- update main changelogs\
-  - `./Shake changelogs`
-  - do at least basic editing - drop things, move things
-  - `./Shake changelogs -c`
-- review changes so far, estimate which packages will be released
-- add "unreleased" minor release heading in main changelogs, immediately above previous release heading
-  ```
-  # LATESTHASH
 
-  ...CHANGES...
-  
-  # X.Y.1 unreleased  <- new heading
+1. update main changelogs
+    - `./Shake changelogs`
+    - do at least basic editing - drop things, move things
+    - `./Shake changelogs -c`
 
-  # X.Y YYYY-MM-DD
-  ```
-- cherry pick changes to release
-  1. always update main changelogs first
-  2. cherry pick commits
-  3. move corresponding change items under minor release heading in main changelogs
-- finalise release
-  - add date to minor release heading in main changelogs
-  - copy the minor release section from main changelogs to release changelogs
+1. review changes so far, estimate which packages will be released
+
+1. add "unreleased" minor release heading in main changelogs, immediately above previous release heading
+    ```
+    # LATESTHASH
+
+    ...
+    
+    # X.Y.1 unreleased  <- new heading
+
+    # X.Y YYYY-MM-DD
+    ```
+
+1. cherry pick changes to release
+    1. always update main changelogs first
+    2. cherry pick minor-release-worthy commits
+        - don't cherry pick changelog commits, "dev: doc: update ..."
+    3. in main changelogs, move corresponding change items under minor release heading
+
+1. finalise release
+    - add date to minor release heading in main changelogs
+    - copy the minor release section from main changelogs to release changelogs
