@@ -56,10 +56,9 @@ For user-visible changes, see the hledger package changelog.
   thisacctq as Any or None (depending on what you want included in the
   running total).
 
+
 - Our doctests are disabled with GHC 9 for now to work around an
   upstream bug. (#1503, #1615)
-
-- Allow megaparsec 9.1
 
 - Our pretty-printed JSON now orders object attributes alphabetically,
   across all GHC and haskell lib versions.
@@ -95,12 +94,14 @@ For user-visible changes, see the hledger package changelog.
   [A 0], [A 0, B 0, ...]) are now Eq-ual (==), whereas before they were
   not. We have not been able to find anything broken by this change.
 
+# 1.22.1 unreleased
+
+- Allow megaparsec 9.1
+
 - journalEndDate's behaviour has been clarified, journalLastDay has
   been added.
 
 - transactionCheckBalanced is now exported. (#1596)
-
-# 1.22.1 unreleased
 
 # 1.22 2021-07-03
 

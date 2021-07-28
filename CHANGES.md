@@ -18,7 +18,7 @@ For package-specific changes and minor releases, see the hledger package changel
   - New docs:
     Currency conversion.
     hledger and Beancount/GnuCash/Ledger/Quicken.
-    
+
 
 - shake: changelogs: A leading semicolon now means 
   "skip most CI steps", not "omit from changelog".
@@ -38,6 +38,8 @@ For package-specific changes and minor releases, see the hledger package changel
   <https://hledger.org/CONTRIBUTING.html#commit-messages>,
   <https://github.com/simonmichael/hledger/blob/master/bin/commitlint>
   (#1602)
+
+# 1.22.1 unreleased
 
 # 1.22 2021-07-03
 

@@ -11,6 +11,8 @@ See also the hledger changelog.
 
 # b0aa70b27
 
+# 1.22.1 unreleased
+
 Improvements
 
 - Allow megaparsec 9.1.
@@ -23,8 +25,6 @@ Fixes
 - Fix a possible off-by-one bug with valuation date when using `V` key on
   the transaction screen. (If it ever needs to use the journal's last day
   as valuation date, use that day, not the day after.)
-
-# 1.22.1 unreleased
 
 # 1.22 2021-07-03
 

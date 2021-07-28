@@ -11,6 +11,8 @@ See also the hledger changelog.
 
 # b0aa70b27
 
+# 1.22.1 unreleased
+
 Improvements
 
 - deps: Allow megaparsec 9.1.
@@ -19,8 +21,6 @@ Fixes
 
 - The register chart works again when there are multiple commodities and 
   transaction prices (broken since 1.22). (#1597, Stephen Morgan)
-
-# 1.22.1 unreleased
 
 # 1.22 2021-07-03
 

@@ -21,23 +21,11 @@ Features
 
 Improvements
 
-- Bash shell completions (for hledger, hledger-ui, hledger-web) are
-  now included in the hledger package's release tarballs, making them
-  more likely to be installed by system packages. (Jakob Schöttl)
-
-- Allow megaparsec 9.1
-
 - In JSON output, object attributes are now ordered alphabetically,
   consistently for all GHC and haskell lib versions. (#1618, Stephen
   Morgan)
 
 - JSON output now indents with 2 spaces rather than 4. (Stephen Morgan)
-
-- roi docs now discuss how to quote multi-word queries. (#1609, Dmitry
-  Astapov)
-
-- The error message for a non-existent input file no longer shows
-  excess double quotes. (#1601, Stephen Morgan)
 
 - The balance commands' `-S/--sort-amount` flag now behaves more
   predictably and intuitively with multiple commodities.
@@ -51,6 +39,19 @@ Improvements
   closing a journal with future transactions. Docs have been improved.
   (#1604)
 
+# 1.22.1 unreleased
+
+Improvements
+
+- Bash shell completions (for hledger, hledger-ui, hledger-web) are
+  now included in the hledger package's release tarballs, making them
+  more likely to be installed by system packages. (Jakob Schöttl)
+
+- roi docs now discuss how to quote multi-word queries. (#1609, Dmitry
+  Astapov)
+
+- Allow megaparsec 9.1
+
 Fixes
 
 - Our info manuals now have more robust directory metadata (no
@@ -58,10 +59,11 @@ Fixes
   top-level Info directory by system packages. (#1594) (Simon Michael,
   Damien Cassou)
 
+- The error message for a non-existent input file no longer shows
+  excess double quotes. (#1601, Stephen Morgan)
+
 - Journal format docs: The commodity directive's scope is now
   correctly described (lasts until end of current file).
-
-# 1.22.1 unreleased
 
 # 1.22 2021-07-03
 
