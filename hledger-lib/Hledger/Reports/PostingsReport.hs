@@ -119,12 +119,12 @@ matchedPostingsBeforeAndDuring rspec@ReportSpec{rsOpts=ropts,rsQuery=q} j report
   where
     beforestartq = dbg3 "beforestartq" $ dateqtype $ DateSpan Nothing $ spanStart reportspan
     beforeandduringps =
-      dbg5 "ps4" $ sortOn sortdate $                                          -- sort postings by date or date2
-      dbg5 "ps3" $ (if invert_ ropts then map negatePostingAmount else id) $  -- with --invert, invert amounts
+      dbg5 "ps5" $ sortOn sortdate $                                          -- sort postings by date or date2
+      dbg5 "ps4" $ (if invert_ ropts then map negatePostingAmount else id) $  -- with --invert, invert amounts
                    journalPostings $
+                   journalApplyValuationFromOpts rspec $                      -- convert to cost and apply valuation
       dbg5 "ps2" $ filterJournalAmounts symq $                                -- remove amount parts which the query's cur: terms would exclude
-      dbg5 "ps1" $ filterJournal beforeandduringq                             -- filter postings by the query, with no start date or depth limit
-                 $ journalApplyValuationFromOpts rspec j                      -- convert to cost and apply valuation
+      dbg5 "ps1" $ filterJournal beforeandduringq j                           -- filter postings by the query, with no start date or depth limit
 
     beforeandduringq = dbg4 "beforeandduringq" $ And [depthless $ dateless q, beforeendq]
       where
