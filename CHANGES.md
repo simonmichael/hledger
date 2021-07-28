@@ -11,6 +11,15 @@ For package-specific changes and minor releases, see the hledger package changel
 
 # 40c1f09b8
 
+- web content updates:
+  - Reorganised site content.
+  - Improved tables of contents.
+  - Content fixes.
+  - New docs:
+    Currency conversion.
+    hledger and Beancount/GnuCash/Ledger/Quicken.
+    
+
 - shake: changelogs: A leading semicolon now means 
   "skip most CI steps", not "omit from changelog".
 
