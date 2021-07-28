@@ -244,9 +244,9 @@ getPostings :: ReportSpec -> Journal -> PriceOracle -> [(Posting, Day)]
 getPostings rspec@ReportSpec{_rsQuery=query,_rsReportOpts=ropts} j priceoracle =
     map (\p -> (p, date p)) .
     journalPostings .
-    filterJournalAmounts symq .      -- remove amount parts excluded by cur:
-    filterJournalPostings reportq $  -- remove postings not matched by (adjusted) query
-    valuedJournal
+    valueJournal .
+    filterJournalAmounts symq $      -- remove amount parts excluded by cur:
+    filterJournalPostings reportq j  -- remove postings not matched by (adjusted) query
   where
     symq = dbg3 "symq" . filterQuery queryIsSym $ dbg3 "requested q" query
     -- The user's query with no depth limit, and expanded to the report span
@@ -254,8 +254,8 @@ getPostings rspec@ReportSpec{_rsQuery=query,_rsReportOpts=ropts} j priceoracle =
     -- handles the hledger-ui+future txns case above).
     reportq = dbg3 "reportq" $ depthless query
     depthless = dbg3 "depthless" . filterQuery (not . queryIsDepth)
-    valuedJournal | isJust (valuationAfterSum ropts) = j
-                  | otherwise = journalApplyValuationFromOptsWith rspec j priceoracle
+    valueJournal j' | isJust (valuationAfterSum ropts) = j'
+                    | otherwise = journalApplyValuationFromOptsWith rspec j' priceoracle
 
     date = case whichDateFromOpts ropts of
         PrimaryDate   -> postingDate
