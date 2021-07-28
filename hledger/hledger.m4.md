@@ -692,7 +692,7 @@ This flag has the same effect as a `depth:` query argument
 # QUERIES
 
 One of hledger's strengths is being able to quickly report on a precise subset of your data. 
-Most hledger commands accept an optional query to restrict their scope.
+Most hledger commands accept optional query arguments to restrict their scope.
 The syntax is as follows:
 
 - Zero or more space-separated query terms. 
