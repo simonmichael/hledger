@@ -1021,6 +1021,9 @@ make nix-view-commits: $(call def-help,nix-view-commits, show recent haskell com
 ###############################################################################
 $(call def-help-subheading,MISCELLANEOUS:)
 
+installcommithook: $(call def-help,installcommithook, symlink bin/commitlint as .git/hooks/commit-msg)
+	ln -s ../../bin/commitlint .git/hooks/commit-msg
+
 watch-%: $(call def-help,watch-RULE, run make RULE repeatedly when any committed file changes)
 	 @git ls-files | entr -r make $*
 
