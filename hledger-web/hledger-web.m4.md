@@ -23,11 +23,7 @@ _man_({{
 _hledgerdescription_
 
 _web_({{
-<style>
-.highslide img {max-width:200px; border:thin grey solid; margin:0 0 1em 1em; }
-.highslide-caption {color:white; background-color:black;}
-</style>
-<div style="float:right; max-width:200px; text-align:right;">
+<div class="screenshots-right">
 <a href="/images/hledger-web/normal/register.png" class="highslide" onclick="return hs.expand(this)"><img src="/images/hledger-web/normal/register.png" title="Account register view with accounts sidebar" /></a>
 <a href="/images/hledger-web/normal/journal.png" class="highslide" onclick="return hs.expand(this)"><img src="/images/hledger-web/normal/journal.png" title="Journal view" /></a>
 <a href="/images/hledger-web/normal/help.png" class="highslide" onclick="return hs.expand(this)"><img src="/images/hledger-web/normal/help.png" title="Help dialog" /></a>

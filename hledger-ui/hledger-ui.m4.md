@@ -23,11 +23,7 @@ _man_({{
 _hledgerdescription_
 
 _web_({{
-<style>
-.highslide img {max-width:200px; border:0;}
-.highslide-caption {color:white; background-color:black;}
-</style>
-<div style="float:right; max-width:200px; text-align:right;">
+<div class="screenshots-right">
 <a href="/images/hledger-ui/hledger-ui-sample-acc2.png" class="highslide" onclick="return hs.expand(this)"><img src="/images/hledger-ui/hledger-ui-sample-acc2.png" title="Accounts screen with query and depth limit" /></a>
 <a href="/images/hledger-ui/hledger-ui-sample-acc.png" class="highslide" onclick="return hs.expand(this)"><img src="/images/hledger-ui/hledger-ui-sample-acc.png" title="Accounts screen" /></a>
 <a href="/images/hledger-ui/hledger-ui-sample-acc-greenterm.png" class="highslide" onclick="return hs.expand(this)"><img src="/images/hledger-ui/hledger-ui-sample-acc-greenterm.png" title="Accounts screen with greenterm theme" /></a>
