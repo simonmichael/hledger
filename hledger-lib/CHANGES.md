@@ -11,17 +11,21 @@ For user-visible changes, see the hledger package changelog.
 
 # d2b799a71
 
-- lib!: Rename the fields of ReportSpec. (Stephen Morgan)
+API changes
+
+- Rename the fields of ReportSpec. (Stephen Morgan)
+
   This is done to be more consistent with future field naming conventions,
   and to make automatic generation of lenses simpler. See discussion in
   #1545.
 
-  rsOpts -> _rsReportOpts
-  rsToday -> _rsDay
-  rsQuery -> _rsQuery
-  rsQueryOpts -> _rsQueryOpts
+      rsOpts      -> _rsReportOpts
+      rsToday     -> _rsDay
+      rsQuery     -> _rsQuery
+      rsQueryOpts -> _rsQueryOpts
 
-- lib!: lib: Remove aismultiplier from Amount. (Stephen Morgan)
+- Remove aismultiplier from Amount. (Stephen Morgan)
+
   In Amount, aismultiplier is a boolean flag that will always be False,
   except for in TMPostingRules, where it indicates whether the posting
   rule is a multiplier. It is therefore unnecessary in the vast majority
@@ -41,7 +45,8 @@ For user-visible changes, see the hledger package changelog.
   This changes the JSON output of Amount, as it will no longer include
   aismultiplier.
 
-- lib!: lib,cli,ui,web: For accountTransactionsReport, generate the overall reportq from the ReportSpec, rather than being supplied as a separate option. (Stephen Morgan)
+- For accountTransactionsReport, generate the overall reportq from the ReportSpec, rather than being supplied as a separate option. (Stephen Morgan)
+
   This is the same approach used by the other reports, e.g. EntryReport,
   PostingReport, MultiBalanceReport. This reduces code duplication, as
   previously the reportq had to be separately tweaked in each of 5
@@ -50,18 +55,12 @@ For user-visible changes, see the hledger package changelog.
   If you call accountTransactionreport, there is no need to separately
   derive the report query.
 
-- lib!: lib,web: Remove unused TransactionReport. Move the useful utility functions to AccountTransactionsReport. (Stephen Morgan)
+- Remove unused TransactionReport. Move the useful utility functions to AccountTransactionsReport. (Stephen Morgan)
+
   If you use transactionsReport, you should either use entryReport if you
   don't require a running total, or using accountTransactionsReport with
   thisacctq as Any or None (depending on what you want included in the
   running total).
-
-
-- Our doctests are disabled with GHC 9 for now to work around an
-  upstream bug. (#1503, #1615)
-
-- Our pretty-printed JSON now orders object attributes alphabetically,
-  across all GHC and haskell lib versions.
 
 - Some balance report types have been renamed for clarity and to sync with docs:
 
@@ -85,6 +84,8 @@ For user-visible changes, see the hledger package changelog.
       Hledger.Reports.ReportOptions:
        balanceTypeOverride -> balanceAccumulationOverride
 
+Improvements
+
 - MixedAmounts now have a more predictable Ord instance / sort order.
   They are compared in each commodity in turn, with
   alphabetically-first commodity symbols being most significant.
@@ -93,6 +94,12 @@ For user-visible changes, see the hledger package changelog.
   As a consequence, all the ways of representing zero with a MixedAmount ([],
   [A 0], [A 0, B 0, ...]) are now Eq-ual (==), whereas before they were
   not. We have not been able to find anything broken by this change.
+
+- Our pretty-printed JSON now orders object attributes alphabetically,
+  across all GHC and haskell lib versions.
+
+- Our doctests are disabled with GHC 9 for now to work around an
+  upstream bug. (#1503, #1615)
 
 # 1.22.1 unreleased
 
