@@ -256,7 +256,7 @@ module Hledger.Cli.Commands.Balance (
 ) where
 
 import Data.Default (def)
-import Data.List (intersperse, transpose, foldl', transpose)
+import Data.List (transpose, foldl', transpose)
 import qualified Data.Map as M
 import qualified Data.Set as S
 import Data.Maybe (fromMaybe)
@@ -481,17 +481,12 @@ renderBalanceReportItem opts (acctname, depth, total) =
                       . Tab.Group NoLine $ map Header is
                     , map cellWidth is )
 
-    render topaligned oneline = map (maybeConcat . renderComponent topaligned opts (acctname, depth, total))
-      where maybeConcat (Cell a xs) =
-                if oneline then Cell a [WideBuilder (mconcat . intersperse (TB.fromText ", ") $ map wbBuilder xs) width]
-                           else Cell a xs
-              where width = sumStrict (map ((+2) . wbWidth) xs) -2
-
+    render topaligned oneline = map (renderComponent topaligned oneline opts (acctname, depth, total))
 
 -- | Render one StringFormat component for a balance report item.
-renderComponent :: Bool -> ReportOpts -> (AccountName, Int, MixedAmount) -> StringFormatComponent -> Cell
-renderComponent _ _ _ (FormatLiteral s) = textCell TopLeft s
-renderComponent topaligned opts (acctname, depth, total) (FormatField ljust mmin mmax field) = case field of
+renderComponent :: Bool -> Bool -> ReportOpts -> (AccountName, Int, MixedAmount) -> StringFormatComponent -> Cell
+renderComponent _ _ _ _ (FormatLiteral s) = textCell TopLeft s
+renderComponent topaligned oneline opts (acctname, depth, total) (FormatField ljust mmin mmax field) = case field of
     DepthSpacerField -> Cell align [WideBuilder (TB.fromText $ T.replicate d " ") d]
                         where d = maybe id min mmax $ depth * fromMaybe 1 mmin
     AccountField     -> textCell align $ formatText ljust mmin mmax acctname
@@ -500,7 +495,7 @@ renderComponent topaligned opts (acctname, depth, total) (FormatField ljust mmin
   where
     align = if topaligned then (if ljust then TopLeft    else TopRight)
                           else (if ljust then BottomLeft else BottomRight)
-    dopts = (balanceOpts True opts){displayOneLine=False, displayMinWidth=mmin, displayMaxWidth=mmax}
+    dopts = (balanceOpts True opts){displayOneLine=oneline, displayMinWidth=mmin, displayMaxWidth=mmax}
 
 -- rendering multi-column balance reports
 
