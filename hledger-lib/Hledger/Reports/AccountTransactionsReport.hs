@@ -48,10 +48,9 @@ import Hledger.Utils
 -- - the transaction as seen in the context of the current account and query,
 --   which means:
 --
---   - the transaction date is set to the "transaction context date",
---     which can be different from the transaction's general date:
---     if postings to the current account (and matched by the report query)
---     have their own dates, it's the earliest of these dates.
+--   - the transaction date is set to the "transaction context date":
+--     the earliest of the transaction date and any other posting dates
+--     of postings to the current account (matched by the report query).
 --
 --   - the transaction's postings are filtered, excluding any which are not
 --     matched by the report query
@@ -128,6 +127,12 @@ accountTransactionsReport rspec@ReportSpec{_rsReportOpts=ropts} j thisacctq = it
       . ptraceAtWith 5 (("ts1:\n"++).pshowTransactions.jtxns)
       -- apply any cur:SYM filters in reportq
       $ if queryIsNull symq then j else filterJournalAmounts symq j
+      where
+        -- accountTransactionsReportItem will keep transactions of any date which have any posting inside the report period.
+        -- Should we also require that transaction date is inside the report period ?
+        -- Should we be filtering by reportq here to apply other query terms (?)
+        -- Make it an option for now.
+        filtertxns = txn_dates_ ropts
 
     startbal
       | balanceaccum_ ropts == Historical = sumPostings priorps
@@ -144,12 +149,6 @@ accountTransactionsReport rspec@ReportSpec{_rsReportOpts=ropts} j thisacctq = it
             Nothing -> None  -- no start date specified, there are no prior postings
         mstartdate = queryStartDate (date2_ ropts) reportq
         datelessreportq = filterQuery (not . queryIsDateOrDate2) reportq
-
-    -- accountTransactionsReportItem will keep transactions of any date which have any posting inside the report period.
-    -- Should we also require that transaction date is inside the report period ?
-    -- Should we be filtering by reportq here to apply other query terms (?)
-    -- Make it an option for now.
-    filtertxns = txn_dates_ ropts
 
     items = reverse $ accountTransactionsReportItems reportq thisacctq startbal maNegate transactions
 
