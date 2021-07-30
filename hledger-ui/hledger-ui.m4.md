@@ -172,11 +172,6 @@ At most one of cost or value mode can be active at once.
 There's not yet any visual reminder when cost or value mode is active;
 for now pressing `b` `b` `v` should reliably reset to normal mode.
 
-With `--watch` active, if you save an edit to the journal file
-while viewing the transaction screen in cost or value mode,
-the `B`/`V` keys will stop working.
-To work around, press `g` to force a manual reload, or exit the transaction screen.
-
 `q` quits the application.
 
 Additional screen-specific keys are described below.
@@ -287,6 +282,56 @@ This screen will appear if there is a problem, such as a parse error,
 when you press g to reload. Once you have fixed the problem,
 press g again to reload and resume normal operation.
 (Or, you can press escape to cancel the reload attempt.)
+
+
+# TIPS
+
+## Watch mode
+
+One of hledger-ui's best features is the auto-reloading `--watch` mode.
+With this flag, it will update the display automatically whenever changes
+are saved to the data files. 
+
+This is very useful when reconciling. A good workflow is to have
+your bank's online register open in a browser window, for reference;
+the journal file open in an editor window;
+and hledger-ui in watch mode in a terminal window, eg:
+```shell
+$ hledger-ui --watch --register checking -C
+```
+As you mark things cleared in the editor,
+you can see the effect immediately without having to context switch.
+This leaves more mental bandwidth for your accounting.
+Of course you can still interact with hledger-ui when needed,
+eg to toggle cleared mode, or to explore the history.
+
+## Watch mode limitations
+
+There are situations in which it won't work, ie the display will not update when
+you save a change (because the underlying `inotify` library does not support it). 
+Here are some that we know of:
+
+- Certain editors: saving with `gedit`, and perhaps any Gnome application,
+  won't be detected ([#1617](https://github.com/simonmichael/hledger/issues/1617)).
+  Jetbrains IDEs, such as IDEA, also may not work ([#911](https://github.com/simonmichael/hledger/issues/911)).
+  
+- Certain unusual filesystems might not be supported.
+  (All the usual ones on unix, mac and windows are supported.)
+
+In such cases, the workaround is to switch to the hledger-ui window
+and press `g` each time you want it to reload. 
+(Actually, see #1617 for another workaround, and let us know if it works for you.)
+
+If you leave `hledger-ui --watch` running for days,
+on certain platforms (?), 
+perhaps with many transactions in your journal (?),
+perhaps with large numbers of other files present (?),
+you may see it gradually using more and more memory and CPU over time, 
+as seen in `top` or Activity Monitor or Task Manager.
+
+A workaround is to `q`uit and restart it,
+or to suspend it (`CTRL-z`) and restart it (`fg`) if your shell supports that.
+
 
 
 # ENVIRONMENT
