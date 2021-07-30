@@ -9,14 +9,14 @@ _FLAGS
 its subaccounts, with each line item representing a whole transaction -
 as in bank statements, hledger-ui, hledger-web and other accounting apps.
 
-Note this is unlike the [`register`](#register) command, 
-which shows individual postings
-and does not always show a single account or a historical balance.
+This is unlike the [`register`](#register) command, 
+which shows individual postings, and not necessarily from a single account.
 
-A reminder, "historical" balances include any balance from transactions 
-before the report start date, so (if opening balances are recorded correctly)
-`aregister` will show the real-world balances of an account, as you would see
-in a bank statement.
+Also, `aregister` always shows the historical running balance, which
+includes any balance from transactions before the report start date. 
+So `aregister` should always show the accurate real-world account balance
+on each day. (Assuming opening balances are recorded correctly, and
+allowing for date disagreements.)
 
 As a quick rule of thumb,
 use `aregister` for reconciling real-world asset/liability accounts
@@ -31,6 +31,13 @@ select the alphabetically first matched account.
 
 Any additional arguments form a query which will filter the
 transactions shown.
+
+An example: this shows the transactions and historical running balance
+during july in the first account whose name contains "checking":
+
+```shell
+$ hledger areg checking date:jul
+```
 
 Each `aregister` line item shows:
 
@@ -62,16 +69,3 @@ To filter strictly by transaction date instead, add the `--txn-dates`
 flag. If you use this flag and some of your postings have custom
 dates, it's probably best to assume the running balance is wrong.
 
-Examples:
-
-Show all transactions and historical running balance in the first
-account whose name contains "checking":
-```shell
-$ hledger areg checking
-```
-
-Show transactions and historical running balance in all asset accounts
-during july:
-```shell
-$ hledger areg assets date:jul
-```
