@@ -698,6 +698,26 @@ Examples:
 | `-p "every 5th November"`    | same                                                     |
 | `-p "every Nov 5th"`         | same                                                     |
 
+Intervals beginning on multiple days of the week can be specified by combining
+`WEEKDAYNAME`s with commas. For example, an expression that starts a new period
+on every standard weekday would be `mon,tue,wed,thu,fri`.  For convenience, the
+special period expressions `weekday` and `weekendday` are effectively
+`mon|tue|wed|thu|fri` and `sat|sun` respectively.
+
+Note that this will generate adjacent but uneven periods so the periods may not
+be as directly comparable. This is probably most useful as a periodic
+transaction (#periodic-transactions).
+
+Examples:
+
+|                              |                                                             |
+|------------------------------|-------------------------------------------------------------|
+| `-p "every mon,fri"`         | periods will be `[Mon, Fri), [Fri, Mon)...`                 |
+| `-p "every mon,wed,fri"`     | periods will be `[Mon, Wed), [Wed, Fri), [Fri, Mon)...`     |
+| `-p "every weekday"`         | periods will be `[Mon], [Tue], [Wed], [Thu], [Fri, Mon)...` |
+| `-p "every weekendday"`      | periods will be `[Sat], [Sun, Sat)...`                      |
+
+
 Show historical balances at end of the 15th day of each month (N is an end date, exclusive as always):
 
 ```shell

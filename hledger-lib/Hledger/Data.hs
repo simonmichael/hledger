@@ -54,6 +54,7 @@ import Hledger.Utils.Test
 tests_Data = tests "Data" [
    tests_AccountName
   ,tests_Amount
+  ,tests_Dates
   ,tests_Journal
   ,tests_Ledger
   ,tests_Posting
