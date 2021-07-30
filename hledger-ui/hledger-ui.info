@@ -3,7 +3,7 @@ from stdin.
 
 INFO-DIR-SECTION User Applications
 START-INFO-DIR-ENTRY
-* hledger-ui: (hledger-ui/hledger-ui).  Terminal UI for the hledger accounting tool.
+* hledger-ui: (hledger-ui).  Terminal UI for the hledger accounting tool.
 END-INFO-DIR-ENTRY
 
 
@@ -45,6 +45,7 @@ enable "forecast mode".
 * OPTIONS::
 * KEYS::
 * SCREENS::
+* TIPS::
 * ENVIRONMENT::
 * FILES::
 * BUGS::
@@ -308,17 +309,12 @@ screen, press `/', and add `date:-7/30' to the query.
 active; for now pressing `b' `b' `v' should reliably reset to normal
 mode.
 
-   With `--watch' active, if you save an edit to the journal file while
-viewing the transaction screen in cost or value mode, the `B'/`V' keys
-will stop working. To work around, press `g' to force a manual reload,
-or exit the transaction screen.
-
    `q' quits the application.
 
    Additional screen-specific keys are described below.
 
 
-File: hledger-ui.info,  Node: SCREENS,  Next: ENVIRONMENT,  Prev: KEYS,  Up: Top
+File: hledger-ui.info,  Node: SCREENS,  Next: TIPS,  Prev: KEYS,  Up: Top
 
 3 SCREENS
 *********
@@ -463,9 +459,75 @@ again to reload and resume normal operation. (Or, you can press escape
 to cancel the reload attempt.)
 
 
-File: hledger-ui.info,  Node: ENVIRONMENT,  Next: FILES,  Prev: SCREENS,  Up: Top
+File: hledger-ui.info,  Node: TIPS,  Next: ENVIRONMENT,  Prev: SCREENS,  Up: Top
 
-4 ENVIRONMENT
+4 TIPS
+******
+
+* Menu:
+
+* Watch mode::
+* Watch mode limitations::
+
+
+File: hledger-ui.info,  Node: Watch mode,  Next: Watch mode limitations,  Up: TIPS
+
+4.1 Watch mode
+==============
+
+One of hledger-ui's best features is the auto-reloading `--watch' mode.
+With this flag, it will update the display automatically whenever
+changes are saved to the data files.
+
+   This is very useful when reconciling. A good workflow is to have your
+bank's online register open in a browser window, for reference; the
+journal file open in an editor window; and hledger-ui in watch mode in a
+terminal window, eg:
+
+
+$ hledger-ui --watch --register checking -C
+
+   As you mark things cleared in the editor, you can see the effect
+immediately without having to context switch. This leaves more mental
+bandwidth for your accounting. Of course you can still interact with
+hledger-ui when needed, eg to toggle cleared mode, or to explore the
+history.
+
+
+File: hledger-ui.info,  Node: Watch mode limitations,  Prev: Watch mode,  Up: TIPS
+
+4.2 Watch mode limitations
+==========================
+
+There are situations in which it won't work, ie the display will not
+update when you save a change (because the underlying `inotify' library
+does not support it). Here are some that we know of:
+
+   * Certain editors: saving with `gedit', and perhaps any Gnome
+     application, won't be detected (#1617). Jetbrains IDEs, such as
+     IDEA, also may not work (#911).
+
+   * Certain unusual filesystems might not be supported. (All the usual
+     ones on unix, mac and windows are supported.)
+
+
+   In such cases, the workaround is to switch to the hledger-ui window
+and press `g' each time you want it to reload. (Actually, see #1617 for
+another workaround, and let us know if it works for you.)
+
+   If you leave `hledger-ui --watch' running for days, on certain
+platforms (?), perhaps with many transactions in your journal (?),
+perhaps with large numbers of other files present (?), you may see it
+gradually using more and more memory and CPU over time, as seen in
+`top' or Activity Monitor or Task Manager.
+
+   A workaround is to `q'uit and restart it, or to suspend it
+(`CTRL-z') and restart it (`fg') if your shell supports that.
+
+
+File: hledger-ui.info,  Node: ENVIRONMENT,  Next: FILES,  Prev: TIPS,  Up: Top
+
+5 ENVIRONMENT
 *************
 
 *COLUMNS* The screen width to use. Default: the full terminal width.
@@ -494,7 +556,7 @@ GUI (say, an Emacs dock icon). Eg on MacOS Catalina I have a
 
 File: hledger-ui.info,  Node: FILES,  Next: BUGS,  Prev: ENVIRONMENT,  Up: Top
 
-5 FILES
+6 FILES
 *******
 
 Reads data from one or more files in hledger journal, timeclock,
@@ -505,7 +567,7 @@ timedot, or CSV format specified with `-f', or `$LEDGER_FILE', or
 
 File: hledger-ui.info,  Node: BUGS,  Prev: FILES,  Up: Top
 
-6 BUGS
+7 BUGS
 ******
 
 The need to precede options with `--' when invoked from hledger is
@@ -533,26 +595,32 @@ program is restarted.
 
 
 Tag Table:
-Node: Top243
-Node: OPTIONS1636
-Ref: #options1733
-Node: KEYS6128
-Ref: #keys6223
-Node: SCREENS10519
-Ref: #screens10624
-Node: Accounts screen10714
-Ref: #accounts-screen10842
-Node: Register screen13046
-Ref: #register-screen13201
-Node: Transaction screen15196
-Ref: #transaction-screen15354
-Node: Error screen16221
-Ref: #error-screen16343
-Node: ENVIRONMENT16585
-Ref: #environment16699
-Node: FILES17504
-Ref: #files17603
-Node: BUGS17816
-Ref: #bugs17893
+Node: Top232
+Node: OPTIONS1634
+Ref: #options1731
+Node: KEYS6126
+Ref: #keys6221
+Node: SCREENS10270
+Ref: #screens10368
+Node: Accounts screen10458
+Ref: #accounts-screen10586
+Node: Register screen12790
+Ref: #register-screen12945
+Node: Transaction screen14940
+Ref: #transaction-screen15098
+Node: Error screen15965
+Ref: #error-screen16087
+Node: TIPS16329
+Ref: #tips16428
+Node: Watch mode16480
+Ref: #watch-mode16597
+Node: Watch mode limitations17341
+Ref: #watch-mode-limitations17482
+Node: ENVIRONMENT18615
+Ref: #environment18726
+Node: FILES19531
+Ref: #files19630
+Node: BUGS19843
+Ref: #bugs19920
 
 End Tag Table

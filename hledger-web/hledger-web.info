@@ -3,7 +3,7 @@ from stdin.
 
 INFO-DIR-SECTION User Applications
 START-INFO-DIR-ENTRY
-* hledger-web: (hledger-web/hledger-web).  Web UI/API for the hledger accounting tool.
+* hledger-web: (hledger-web).  Web UI/API for the hledger accounting tool.
 END-INFO-DIR-ENTRY
 
 
@@ -612,22 +612,22 @@ awkward.
 
 
 Tag Table:
-Node: Top247
-Node: OPTIONS1887
-Ref: #options1992
-Node: PERMISSIONS9405
-Ref: #permissions9544
-Node: EDITING UPLOADING DOWNLOADING10756
-Ref: #editing-uploading-downloading10937
-Node: RELOADING11768
-Ref: #reloading11902
-Node: JSON API12334
-Ref: #json-api12448
-Node: ENVIRONMENT17937
-Ref: #environment18053
-Node: FILES18785
-Ref: #files18885
-Node: BUGS19098
-Ref: #bugs19176
+Node: Top235
+Node: OPTIONS1875
+Ref: #options1980
+Node: PERMISSIONS9393
+Ref: #permissions9532
+Node: EDITING UPLOADING DOWNLOADING10744
+Ref: #editing-uploading-downloading10925
+Node: RELOADING11756
+Ref: #reloading11890
+Node: JSON API12322
+Ref: #json-api12436
+Node: ENVIRONMENT17925
+Ref: #environment18041
+Node: FILES18773
+Ref: #files18873
+Node: BUGS19086
+Ref: #bugs19164
 
 End Tag Table
