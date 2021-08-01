@@ -21,7 +21,7 @@ import Data.Ord (comparing)
 import Data.Maybe (catMaybes)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Data.Time.Calendar (Day)
+import Data.Time.Calendar (Day, addDays)
 
 import Hledger.Data
 import Hledger.Query
@@ -79,57 +79,69 @@ type AccountTransactionsReportItem =
   )
 
 accountTransactionsReport :: ReportSpec -> Journal -> Query -> Query -> AccountTransactionsReport
-accountTransactionsReport rspec@ReportSpec{rsOpts=ropts} j reportq thisacctq = items
+accountTransactionsReport rspec@ReportSpec{rsOpts=ropts} j reportq' thisacctq = items
   where
     -- a depth limit should not affect the account transactions report
     -- seems unnecessary for some reason XXX
-    reportq'   = reportq -- filterQuery (not . queryIsDepth)
-    symq       = filterQuery queryIsSym reportq'
-    realq      = filterQuery queryIsReal reportq'
-    statusq    = filterQuery queryIsStatus reportq'
+    reportq = simplifyQuery $ And [depthlessq, periodq, excludeforecastq (forecast_ ropts)]
+      where
+        depthlessq = filterQuery (not . queryIsDepth) reportq'
+        periodq = Date . periodAsDateSpan $ period_ ropts
+        -- Except in forecast mode, exclude future/forecast transactions.
+        excludeforecastq (Just _) = Any
+        excludeforecastq Nothing  =  -- not:date:tomorrow- not:tag:generated-transaction
+          And [ Not . Date $ DateSpan (Just . addDays 1 $ rsToday rspec) Nothing
+              , Not generatedTransactionTag
+              ]
+    symq    = filterQuery queryIsSym reportq
+    realq   = filterQuery queryIsReal reportq
+    statusq = filterQuery queryIsStatus reportq
+
+    journalValuation = \j' -> journalApplyValuationFromOptsWith rspec j' priceoracle
+      where priceoracle = journalPriceOracle (infer_value_ $ rsOpts rspec) j
 
     -- sort by the transaction's register date, for accurate starting balance
-    -- these are not yet filtered by tdate, we want to search them all for priorps
     transactions =
         ptraceAtWith 5 (("ts5:\n"++).pshowTransactions)
-      . sortBy (comparing (transactionRegisterDate reportq' thisacctq))
+      . sortBy (comparing (transactionRegisterDate reportq thisacctq))
       . jtxns
       . ptraceAtWith 5 (("ts3:\n"++).pshowTransactions.jtxns)
       -- maybe convert these transactions to cost or value
-      . journalApplyValuationFromOpts rspec
-      . (if filtertxns then filterJournalTransactions reportq else id)
+      . journalValuation
+      -- If we haven't yet filtered by reportq, do so now.
+      $ (if txn_dates_ ropts then id else filterJournalTransactions reportq) journalAcctTxns
+    -- these are not yet filtered by tdate, we want to search them all for priorps
+    journalAcctTxns =
+      -- accountTransactionsReportItem will keep transactions of any date which
+      -- have any posting inside the report period.
+      -- Should we also require that transaction date is inside the report period ?
+      -- Should we be filtering by reportq here to apply other query terms (?)
+      -- Make it an option for now.
+      (if txn_dates_ ropts then filterJournalTransactions reportq else id)
+      . ptraceAtWith 5 (("ts2:\n"++).pshowTransactions.jtxns)
+      -- apply any cur:SYM filters in reportq
+      . (if queryIsNull symq then id else filterJournalAmounts symq)
       -- keep just the transactions affecting this account (via possibly realness or status-filtered postings)
       . traceAt 3 ("thisacctq: "++show thisacctq)
-      . ptraceAtWith 5 (("ts2:\n"++).pshowTransactions.jtxns)
-      . filterJournalTransactions thisacctq
-      . filterJournalPostings (And [realq, statusq])
       . ptraceAtWith 5 (("ts1:\n"++).pshowTransactions.jtxns)
-      -- apply any cur:SYM filters in reportq
-      $ if queryIsNull symq then j else filterJournalAmounts symq j
+      . filterJournalTransactions thisacctq
+      $ filterJournalPostings (And [realq, statusq]) j
 
     startbal
       | balancetype_ ropts == HistoricalBalance = sumPostings priorps
       | otherwise                               = nullmixedamt
       where
-        priorps = dbg5 "priorps" $
-                  filter (matchesPosting
-                          (dbg5 "priorq" $
-                           And [thisacctq, tostartdateq, datelessreportq]))
-                         $ transactionsPostings transactions
+        priorps = dbg5 "priorps" . journalPostings . journalValuation $
+                    filterJournalPostings priorq journalAcctTxns
+        priorq = dbg5 "priorq" $ And [thisacctq, tostartdateq, datelessreportq]
         tostartdateq =
           case mstartdate of
             Just _  -> Date (DateSpan Nothing mstartdate)
             Nothing -> None  -- no start date specified, there are no prior postings
-        mstartdate = queryStartDate (date2_ ropts) reportq'
-        datelessreportq = filterQuery (not . queryIsDateOrDate2) reportq'
+        mstartdate = queryStartDate (date2_ ropts) reportq
+        datelessreportq = filterQuery (not . queryIsDateOrDate2) reportq
 
-    -- accountTransactionsReportItem will keep transactions of any date which have any posting inside the report period.
-    -- Should we also require that transaction date is inside the report period ?
-    -- Should we be filtering by reportq here to apply other query terms (?)
-    -- Make it an option for now.
-    filtertxns = txn_dates_ ropts
-
-    items = reverse $ accountTransactionsReportItems reportq' thisacctq startbal maNegate transactions
+    items = reverse $ accountTransactionsReportItems reportq thisacctq startbal maNegate transactions
 
 pshowTransactions :: [Transaction] -> String
 pshowTransactions = pshow . map (\t -> unwords [show $ tdate t, T.unpack $ tdescription t])
