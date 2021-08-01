@@ -9,9 +9,23 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# d2b799a71
+# fc8aa602c
 
 API changes
+
+- modifyTransactions now takes a Map of commodity styles, and will style amounts according to that argument. journalAddForecast and journalTransform now return an Either String Journal. (Stephen Morgan)
+  This improves efficiency, as we no longer have to restyle all amounts in
+  the journal after generating auto postings or periodic transactions.
+  Changing the return type of journalAddForecast and journalTransform
+  reduces partiality.
+  To get the previous behaviour for modifyTransaction, use modifyTransaction mempty.
+
+- Refactor journalFinalise to clarify flow. (Stephen Morgan)
+  The only semantic difference is that we now apply
+  journalApplyCommodityStyles before running journalCheckAccountsDeclared
+  and journalCheckCommoditiesDeclared.
+
+- Introduce lenses for ReportOpts and ReportSpec. (Stephen Morgan)
 
 - Rename the fields of ReportSpec. (Stephen Morgan)
 

@@ -9,7 +9,7 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 8ae42873c
+# d07d0de2d
 
 Features
 
@@ -38,6 +38,23 @@ Improvements
   as default closing date, providing more intuitive behaviour when
   closing a journal with future transactions. Docs have been improved.
   (#1604)
+
+Fixes
+
+- `cur:` and `amt:` queries now match the original amounts before
+  valuation and cost conversion, as they did before hledger 1.22. We
+  believe this is the more useful behaviour in practice. (#1625)
+  (Stephen Morgan)
+
+- Queries now work better with `register --related`, no longer showing
+  duplicate postings when more than one posting in a transaction is
+  matched. (#1629) (Stephen Morgan)
+
+- Valuation now works with `register --related`. (#1630) (Stephen
+  Morgan)
+
+- Auto posting rules now see inferred transaction-balancing amounts,
+  not just explicit amounts. (#1412) (Stephen Morgan)
 
 # 1.22.1 unreleased
 

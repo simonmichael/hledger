@@ -9,16 +9,15 @@
 General changes in the hledger project (and notable all-package releases).
 For package-specific changes and minor releases, see the hledger package changelogs.
 
-# 40c1f09b8
+# 8c890f845
 
-- web content updates:
+- website updates:
   - Reorganised site content.
-  - Improved tables of contents.
+  - Improved page tables of contents.
   - Content fixes.
   - New docs:
     Currency conversion.
     hledger and Beancount/GnuCash/Ledger/Quicken.
-
 
 - shake: changelogs: A leading semicolon now means 
   "skip most CI steps", not "omit from changelog".

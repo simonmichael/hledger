@@ -9,7 +9,9 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# b0aa70b27
+# 4451d68a6
+
+- ;imp: ui: doc: document watch mode and limitations (#1617, #911, #836..)
 
 # 1.22.1 unreleased
 
