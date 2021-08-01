@@ -1,5 +1,18 @@
 <
 2021-01-01
+  (b)  1
+
+2021-01-02
+  a   1
+  b  -1
+
+# 1. aregister only shows transactions matching the account query, and displays other accounts involved
+$ hledger -f- areg a
+Transactions in a and subaccounts:
+2021-01-02                      b                                1             1
+
+<
+2021-01-01
   (a)  1
 
 2021-01-02
@@ -8,8 +21,8 @@
 2021-01-03
   (a:aa:aaa)  100
 
-# aregister ignores a depth limit, always showing transactions in subaccounts. #1448
-$ hledger -f- areg -w80 a depth:1
+# 2. aregister ignores a depth limit, always showing transactions in subaccounts. #1448
+$ hledger -f- areg a depth:1
 Transactions in a and subaccounts:
 2021-01-01                      a                                1             1
 2021-01-02                      a:aa                            10            11
@@ -17,14 +30,14 @@ Transactions in a and subaccounts:
 
 #1634:
 
-# # aregister is always in historical mode, showing balance from prior transactions.
-# $ hledger -f- areg -w80 a -b 2021-01-02
-# Transactions in a and subaccounts:
-# 2021-01-02                      a:aa                            10            11
-# 2021-01-03                      a:aa:aaa                       100           111
+# 3. aregister is always in historical mode, showing balance from prior transactions.
+$ hledger -f- areg a -b 2021-01-02
+Transactions in a and subaccounts:
+2021-01-02                      a:aa                            10            11
+2021-01-03                      a:aa:aaa                       100           111
 
-# # Any additional arguments are a query, filtering the transactions. This may
-# # cause the running balance to diverge from the real-world running balance.
-# $ hledger -f- areg -w80 a aaa
-# Transactions in a and subaccounts:
-# 2021-01-03                      a:aa:aaa                       100           100
+# 4. Any additional arguments are a query, filtering the transactions. This may
+# cause the running balance to diverge from the real-world running balance.
+$ hledger -f- areg a aaa
+Transactions in a and subaccounts:
+2021-01-03                      a:aa:aaa                       100           100
