@@ -45,8 +45,12 @@ Checklist:
 
 1. cherry pick changes to release
     1. always update main changelogs first
-    2. cherry pick minor-release-worthy commits
-        - don't cherry pick changelog commits, "dev: doc: update ..."
+    2. cherry pick minor-release-worthy commits 
+        - from: magit, `l o X.Y..master`, `M-x magit-toggle-buffer-lock`, `C-x D`
+          (`M-x toggle-window-dedicated`)
+        - to: magit, `l o master..X.Y`, `M-x magit-toggle-buffer-lock`, `C-x D`
+        - ignore commits already seen in previous cherry picking sessions
+        - ignore changelog commits ("dev: doc: update ...")
     3. in main changelogs, move corresponding change items under minor release heading
 
 1. finalise release
