@@ -1,39 +1,38 @@
 aregister, areg\
 
-Show the transactions and running historical balance in an account,
-with each line item representing one transaction.
+Show the transactions and running historical balance of a single account,
+with each transaction displayed as one line.
 
 _FLAGS
 
-`aregister` shows the transactions affecting a particular account and
-its subaccounts, with each line item representing a whole transaction -
-as in bank statements, hledger-ui, hledger-web and other accounting apps.
+`aregister` shows the overall transactions affecting a particular account (and
+any subaccounts). Each report line represents one transaction in this account.
+Transactions before the report start date are always included in the running balance
+(`--historical` mode is always on).
 
-This is unlike the [`register`](#register) command, 
-which shows individual postings, and not necessarily from a single account.
+This is a more "real world", bank-like view than the [`register`](#register) 
+command (which shows individual postings, possibly from multiple accounts,
+not necessarily in historical mode). 
+As a quick rule of thumb:
+- use `aregister` for reviewing and reconciling real-world asset/liability accounts
+- use `register` for reviewing detailed revenues/expenses.
 
-Also, `aregister` always shows the historical running balance, which
-includes any balance from transactions before the report start date. 
-So `aregister` should always show the accurate real-world account balance
-on each day. (Assuming opening balances are recorded correctly, and
-allowing for date disagreements.)
-
-As a quick rule of thumb,
-use `aregister` for reconciling real-world asset/liability accounts
-and `register` for reviewing detailed revenues/expenses.
-
-`aregister` shows the register for just one account (and its subaccounts).
-This account must be specified as the first argument. You can write either
-the full account name, or a case-insensitive regular expression which will 
-select the alphabetically first matched account.
+`aregister` requires one argument: the account to report on.
+You can write either the full account name, or a case-insensitive regular expression 
+which will select the alphabetically first matched account.
 (Eg if you have `assets:aaa:checking` and `assets:bbb:checking` accounts,
 `hledger areg checking` would select `assets:aaa:checking`.)
 
-Any additional arguments form a query which will filter the
-transactions shown.
+Transactions involving subaccounts of this account will also be shown.
+`aregister` ignores depth limits, so its final total will always match 
+a balance report with similar arguments.
+
+Any additional arguments form a [query](#queries) which will filter the
+transactions shown. Note some queries will disturb the running balance,
+causing it to be different from the account's real-world running balance.
 
 An example: this shows the transactions and historical running balance
-during july in the first account whose name contains "checking":
+during july, in the first account whose name contains "checking":
 
 ```shell
 $ hledger areg checking date:jul
@@ -49,11 +48,9 @@ Each `aregister` line item shows:
 Transactions making a net change of zero are not shown by default;
 add the `-E/--empty` flag to show them.
 
-`aregister` ignores a depth limit, so its final total will always match a balance report with similar arguments.
-
 This command also supports the
 [output destination](hledger.html#output-destination) and
-[output format](hledger.html#output-format) options
+[output format](hledger.html#output-format) options.
 The output formats supported are `txt`, `csv`, and `json`.
 
 ### aregister and custom posting dates
