@@ -23,9 +23,10 @@ module Hledger.Reports.AccountTransactionsReport (
 )
 where
 
-import Data.List (mapAccumL, nub, partition, sortOn)
+import Data.List (mapAccumR, nub, partition, sortOn)
 import Data.List.Extra (nubSort)
 import Data.Maybe (catMaybes)
+import Data.Ord (Down(..))
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day, addDays)
@@ -116,7 +117,7 @@ accountTransactionsReport rspec@ReportSpec{_rsReportOpts=ropts} j thisacctq = it
     -- sort by the transaction's register date, for accurate starting balance
     transactions =
         ptraceAtWith 5 (("ts4:\n"++).pshowTransactions)
-      . sortOn (transactionRegisterDate reportq thisacctq)
+      . sortOn (Down . transactionRegisterDate reportq thisacctq)
       . jtxns
       . ptraceAtWith 5 (("ts3:\n"++).pshowTransactions.jtxns)
       -- maybe convert these transactions to cost or value
@@ -154,7 +155,7 @@ accountTransactionsReport rspec@ReportSpec{_rsReportOpts=ropts} j thisacctq = it
         mstartdate = queryStartDate (date2_ ropts) reportq
         datelessreportq = filterQuery (not . queryIsDateOrDate2) reportq
 
-    items = reverse $ accountTransactionsReportItems reportq thisacctq startbal maNegate transactions
+    items = accountTransactionsReportItems reportq thisacctq startbal maNegate transactions
 
 pshowTransactions :: [Transaction] -> String
 pshowTransactions = pshow . map (\t -> unwords [show $ tdate t, T.unpack $ tdescription t])
@@ -166,7 +167,7 @@ pshowTransactions = pshow . map (\t -> unwords [show $ tdate t, T.unpack $ tdesc
 accountTransactionsReportItems :: Query -> Query -> MixedAmount -> (MixedAmount -> MixedAmount) -> [Transaction] -> [AccountTransactionsReportItem]
 accountTransactionsReportItems reportq thisacctq bal signfn =
     catMaybes . snd .
-    mapAccumL (accountTransactionsReportItem reportq thisacctq signfn) bal
+    mapAccumR (accountTransactionsReportItem reportq thisacctq signfn) bal
 
 accountTransactionsReportItem :: Query -> Query -> (MixedAmount -> MixedAmount) -> MixedAmount -> Transaction -> (MixedAmount, Maybe AccountTransactionsReportItem)
 accountTransactionsReportItem reportq thisacctq signfn bal torig = balItem
