@@ -324,10 +324,8 @@ $ hledger -f- register -V -B cur:A "amt:<5"
 2021-01-01                      (a)                         1000 B        1000 B
 >=
 
-# 24. aregister report cur: and amt: query matches currency before
-# valuation/cost (note that aregister currently only tests queries other than
-# "cur:" and the account query when given the --txn-dates option. Who knows why.
-$ hledger -f- aregister a -V -B cur:A "amt:<5" --txn-dates
+# 24. aregister report cur: and amt: query matches currency before valuation/cost
+$ hledger -f- aregister a -V -B cur:A "amt:<5"
 Transactions in a and subaccounts:
 2021-01-01                      a                           1000 B        1000 B
 >=
