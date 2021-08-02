@@ -143,7 +143,7 @@ journalAddForecast CliOpts{inputopts_=iopts, reportspec_=rspec} j =
     forecastbeginDefault = dbg2 "forecastbeginDefault" $ fromMaybe today mjournalend
 
     -- "They end on or before the specified report end date, or 180 days from today if unspecified."
-    mspecifiedend = dbg2 "specifieddates" $ reportPeriodLastDay rspec
+    mspecifiedend = dbg2 "specifieddates" $ addDays 1 <$> reportPeriodLastDay rspec
     forecastendDefault = dbg2 "forecastendDefault" $ fromMaybe (addDays 180 today) mspecifiedend
 
     forecastspan = dbg2 "forecastspan" $

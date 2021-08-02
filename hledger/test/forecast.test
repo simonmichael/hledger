@@ -218,3 +218,20 @@ commodity 1,000.00 USD
 2020-01-28                      (a)                   1,000.00 USD  2,000.00 USD
 >>>2
 >>>=0
+
+# 11. Forecast transactions are generated up to the day before the requested end date
+hledger -f - reg -b 2021-01-01 -e 2021-01-05 --forecast
+<<<
+2021-01-01
+  (a)      1000
+
+~ daily
+  (a)       1
+
+>>>
+2021-01-01                      (a)                           1000          1000
+2021-01-02                      (a)                              1          1001
+2021-01-03                      (a)                              1          1002
+2021-01-04                      (a)                              1          1003
+>>>2
+>>>=0
