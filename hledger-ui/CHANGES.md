@@ -13,6 +13,9 @@ See also the hledger changelog.
 
 Improvements
 
+- Document watch mode and its limitations.
+  (#1617, #911, #836)
+
 - Allow megaparsec 9.1.
 
 Fixes
