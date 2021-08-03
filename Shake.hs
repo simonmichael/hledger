@@ -19,6 +19,7 @@ more platform independence. It requires stack and will auto-install
 the haskell packages above when needed.
 
 Some of the commands below require additional command-line tools, including:
+- hpack (same version that's in current stack release)
 - GNU date (on mac: brew install coreutils)
 - groff
 - m4
@@ -261,15 +262,20 @@ main = do
       -- Regenerate .cabal files from package.yaml files.
       -- (used by "cabalfiles" and "setversion")
       let gencabalfiles = do
+
+          -- Update cabal files with stack build.
           -- stack 1.7+ no longer updates cabal files with --dry-run, we must do a full build.
-          -- stack can fail to update cabal files while returning zero exit code,
+          -- stack can return zero exit code while failing to update cabal files so
           -- we need to check for the error message (specifically) on stderr.
-          err <- fromStdouterr <$>
-            (cmd (EchoStdout True) (EchoStderr True) Shell "stack build --fast" :: Action (Stdouterr String))
-          -- Or use hpack directly. It should be the same version that's in current stack.
-          -- (cmd Shell "hpack" :: Action (Stderr String))
-          when ("was generated with a newer version of hpack" `isInfixOf` err) $
-            liftIO $ putStr err >> exitFailure
+          -- out <- fromStdouterr <$>  -- (getting both stdout and stderr here just as an example)
+          --   (cmd (EchoStdout True) (EchoStderr True) Shell "stack build" :: Action (Stdouterr String))
+          -- when ("was generated with a newer version of hpack" `isInfixOf` out) $
+          --   liftIO $ putStr out >> exitFailure
+
+          -- Or update them with hpack directly.
+          -- It should be the same hpack version that's in current stack, to avoid commit conflicts.
+          forM_ pkgdirs $ \d -> cmd_ (Cwd d) Shell "hpack --no-hash"
+
           when commit $ do
             let msg = ";cabal: update cabal files"
             cmd Shell gitcommit ("-m '"++msg++"' --") cabalfiles
