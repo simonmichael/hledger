@@ -41,21 +41,6 @@ Improvements
 
 Fixes
 
-- `cur:` and `amt:` queries now match the original amounts before
-  valuation and cost conversion, as they did before hledger 1.22. We
-  believe this is the more useful behaviour in practice. (#1625)
-  (Stephen Morgan)
-
-- Queries now work better with `register --related`, no longer showing
-  duplicate postings when more than one posting in a transaction is
-  matched. (#1629) (Stephen Morgan)
-
-- Valuation now works with `register --related`. (#1630) (Stephen
-  Morgan)
-
-- Auto posting rules now see inferred transaction-balancing amounts,
-  not just explicit amounts. (#1412) (Stephen Morgan)
-
 # 1.22.1 2021-08-02
 
 Improvements
@@ -71,6 +56,21 @@ Improvements
 
 Fixes
 
+- `cur:` and `amt:` queries now match the original amounts before
+  valuation and cost conversion, as they did before hledger 1.22. We
+  believe this is the more useful behaviour in practice. (#1625)
+  (Stephen Morgan)
+
+- Queries now work better with `register --related`, no longer showing
+  duplicate postings when more than one posting in a transaction is
+  matched. (#1629) (Stephen Morgan)
+
+- Valuation now works with `register --related`. (#1630) (Stephen
+  Morgan)
+
+- Auto posting rules now also see inferred amounts,
+  not just explicit amounts. (#1412) (Stephen Morgan)
+
 - Our info manuals now have more robust directory metadata (no
   subdirectory path), making them more likely to be linked in your
   top-level Info directory by system packages. (#1594) (Simon Michael,
@@ -81,6 +81,10 @@ Fixes
 
 - Journal format docs: The commodity directive's scope is now
   correctly described (lasts until end of current file).
+
+- The aregister command now properly ignores a `depth:` argument. 
+  It might now also behave more correctly with valuation or `--txn-dates`.
+  (#1634, Stephen Morgan)
 
 # 1.22 2021-07-03
 
