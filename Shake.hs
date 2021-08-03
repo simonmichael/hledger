@@ -492,7 +492,7 @@ main = do
       --   need infomanuals
       --   forM_ infomanuals $ \info -> cmd_ Shell "install-info" info out
 
-      phony "infomanuals" $ need $ infomanuals ++ [infodir]
+      phony "infomanuals" $ need $ infomanuals  -- ++ [infodir]
 
       -- WEBSITE MARKDOWN SOURCE
 
