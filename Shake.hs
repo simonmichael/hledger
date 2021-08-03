@@ -811,7 +811,7 @@ replaceBy :: RE -> (Match String -> RELocation -> Capture String -> Maybe String
 replaceBy re f src = replaceAllCaptures TOP f $ src *=~ re
 
 -- | Does this string look like a valid cabal package version ?
-isVersion s = not (null s) && all (`elem` "0123456789.") s
+isVersion s = not (null s) && all (`elem` "0123456789.") s && '.' `elem` s
 
 -- | Does this string look like a hledger development version ?
 -- Ie a version where the first two digits of the last part are the
