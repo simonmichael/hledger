@@ -258,16 +258,16 @@ main = do
 
       -- VERSION NUMBERS
 
-      -- Regenerate .cabal files from package.yaml files, using stack build --dry-run.
+      -- Regenerate .cabal files from package.yaml files.
       -- (used by "cabalfiles" and "setversion")
-      let docabalfiles = do
-          -- stack can fail to update cabal files with zero exit status,
-          -- so we need to to check stderr, and specifically for the error message 
-          -- since all output goes there
-          err <- fromStderr <$>
-            -- stack 1.7 no longer updates cabal files with --dry-run, must do a full build
-            -- (or use hpack, of similar version)
-            (cmd Shell "stack build" :: Action (Stderr String))
+      let gencabalfiles = do
+          -- stack 1.7+ no longer updates cabal files with --dry-run, we must do a full build.
+          -- stack can fail to update cabal files while returning zero exit code,
+          -- we need to check for the error message (specifically) on stderr.
+          err <- fromStdouterr <$>
+            (cmd (EchoStdout True) (EchoStderr True) Shell "stack build --fast" :: Action (Stdouterr String))
+          -- Or use hpack directly. It should be the same version that's in current stack.
+          -- (cmd Shell "hpack" :: Action (Stderr String))
           when ("was generated with a newer version of hpack" `isInfixOf` err) $
             liftIO $ putStr err >> exitFailure
           when commit $ do
@@ -312,7 +312,7 @@ main = do
                 ]
           cmd Shell gitcommit ("-m '"++msg++"' --") specifiedversionfiles dependents
 
-        docabalfiles
+        gencabalfiles
 
       -- PKG/.version.m4 <- PKG/.version, just updates the _version_ macro
       "hledger*/.version.m4" %> \out -> do
@@ -388,7 +388,7 @@ main = do
           cmd_ Shell grep "'^ *- +hledger.*[<>=]'" out 
             " || [[ $? == 1 ]]"  -- ignore no matches, https://unix.stackexchange.com/a/427598
 
-      phony "cabalfiles" $ docabalfiles
+      phony "cabalfiles" $ gencabalfiles
 
       -- MANUALS
 
