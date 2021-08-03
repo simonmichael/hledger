@@ -9,7 +9,10 @@
 General changes in the hledger project (and notable all-package releases).
 For package-specific changes and minor releases, see the hledger package changelogs.
 
-# 8c890f845
+# 767377802
+
+- `Shake cabalfiles` now uses (and requires) hpack in $PATH, to avoid building.
+  It should be the version that's in the current stack release, to avoid commit conflicts.
 
 - website updates:
   - Reorganised site content.

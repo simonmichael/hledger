@@ -9,7 +9,7 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# d07d0de2d
+# 81dfbc9ac
 
 Features
 
@@ -17,15 +17,17 @@ Features
   a case insensitive description substring which selects a subset of
   the journal's periodic transactions for settinig budget goals. 
   This makes it possible to keep multiple named budgets in one journal, 
-  and select the one you want with --budget's argument. (#1612)
+  and select the one you want with --budget's argument. 
+  (#1612)
 
 Improvements
 
 - In JSON output, object attributes are now ordered alphabetically,
-  consistently for all GHC and haskell lib versions. (#1618, Stephen
-  Morgan)
+  consistently for all GHC and haskell lib versions. 
+  (#1618, Stephen Morgan)
 
-- JSON output now indents with 2 spaces rather than 4. (Stephen Morgan)
+- JSON output now indents with 2 spaces rather than 4. 
+  (Stephen Morgan)
 
 - The balance commands' `-S/--sort-amount` flag now behaves more
   predictably and intuitively with multiple commodities.
@@ -40,6 +42,9 @@ Improvements
   (#1604)
 
 Fixes
+
+- Make sure `--forecast` transactions are generated up to the day before the provided query end date. 
+  (#1633, Stephen Morgan)
 
 # 1.22.1 2021-08-02
 
