@@ -9,6 +9,17 @@ __      _____| |__
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
+# 1.22.1 2021-08-02
+
+Improvements
+
+- deps: Allow megaparsec 9.1.
+
+Fixes
+
+- The register chart works again when there are multiple commodities and 
+  transaction prices (broken since 1.22). (#1597, Stephen Morgan)
+
 # 1.22 2021-07-03
 
 Improvements

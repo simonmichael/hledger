@@ -9,6 +9,15 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
+# 1.22.1 2021-08-02
+
+- Allow megaparsec 9.1
+
+- journalEndDate's behaviour has been clarified, journalLastDay has
+  been added.
+
+- transactionCheckBalanced is now exported. (#1596)
+
 # 1.22 2021-07-03
 
 - GHC 9.0 is now officially supported, and GHC 8.0, 8.2, 8.4 are not;
