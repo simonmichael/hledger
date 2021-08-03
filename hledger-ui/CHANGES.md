@@ -13,7 +13,7 @@ See also the hledger changelog.
 
 - ;imp: ui: doc: document watch mode and limitations (#1617, #911, #836..)
 
-# 1.22.1 unreleased
+# 1.22.1 2021-08-02
 
 Improvements
 

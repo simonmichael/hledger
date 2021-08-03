@@ -38,7 +38,7 @@ For package-specific changes and minor releases, see the hledger package changel
   <https://github.com/simonmichael/hledger/blob/master/bin/commitlint>
   (#1602)
 
-# 1.22.1 unreleased
+# 1.22.1 2021-08-02
 
 # 1.22 2021-07-03
 

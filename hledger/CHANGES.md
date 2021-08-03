@@ -56,7 +56,7 @@ Fixes
 - Auto posting rules now see inferred transaction-balancing amounts,
   not just explicit amounts. (#1412) (Stephen Morgan)
 
-# 1.22.1 unreleased
+# 1.22.1 2021-08-02
 
 Improvements
 

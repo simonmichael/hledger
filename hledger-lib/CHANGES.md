@@ -115,7 +115,7 @@ Improvements
 - Our doctests are disabled with GHC 9 for now to work around an
   upstream bug. (#1503, #1615)
 
-# 1.22.1 unreleased
+# 1.22.1 2021-08-02
 
 - Allow megaparsec 9.1
 

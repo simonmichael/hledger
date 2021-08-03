@@ -11,7 +11,7 @@ See also the hledger changelog.
 
 # fc8aa602c
 
-# 1.22.1 unreleased
+# 1.22.1 2021-08-02
 
 Improvements
 
