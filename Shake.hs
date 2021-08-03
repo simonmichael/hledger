@@ -224,7 +224,7 @@ main = do
         -- an Info directory entry for each package's info manual (hledger/dir-entry.texi)
         infodirentries = [manualDir m </> "dir-entry.texi" | m <- manualNames]
         -- a generated Info directory file for easily accessing/linking the dev version of all the info manuals
-        infodir = "dir"
+        -- infodir = "dir"
 
         -- manuals as sphinx-ready markdown, to be rendered as part of the website (hledger/hledger.md)
         webmanuals = [manualDir m </> m <.> "md" | m <- manualNames]
@@ -397,13 +397,13 @@ main = do
         need $ concat [
                nroffmanuals
               ,infomanuals
-              ,[infodir]
+              -- ,[infodir]
               ,txtmanuals
               ,webmanuals
               ]
         when commit $ do
           let msg = ";doc: update manuals"
-          cmd Shell gitcommit ("-m '"++msg++"' --") packagemandatem4s nroffmanuals infomanuals infodirentries infodir txtmanuals
+          cmd Shell gitcommit ("-m '"++msg++"' --") packagemandatem4s nroffmanuals infomanuals infodirentries txtmanuals  -- infodir
 
       -- Update the dates to show in man pages, to the current month and year.
       -- Currently must be run manually when needed.
@@ -482,11 +482,15 @@ main = do
           "-t texinfo ) |"
           makeinfo "-o" out
 
+      -- XXX This generates ./dir, for previewing latest dev manuals in Info's directory.
+      -- For that we need subdirectory paths like "hledger: (hledger/hledger)",
+      -- but this generates "hledger: (hledger)". Don't regenerate dir for now.
+      --
       -- Generate an Info dir file which can be included with info -d
       -- or INFOPATH to add hledger menu items in Info's Directory.
-      infodir %> \out -> do
-        need infomanuals
-        forM_ infomanuals $ \info -> cmd_ Shell "install-info" info out
+      -- infodir %> \out -> do
+      --   need infomanuals
+      --   forM_ infomanuals $ \info -> cmd_ Shell "install-info" info out
 
       phony "infomanuals" $ need $ infomanuals ++ [infodir]
 
