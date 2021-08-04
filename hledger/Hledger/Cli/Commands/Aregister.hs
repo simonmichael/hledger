@@ -66,7 +66,7 @@ aregistermode = hledgerCommandMode
 
 -- | Print an account register report for a specified account.
 aregister :: CliOpts -> Journal -> IO ()
-aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
+aregister opts@CliOpts{rawopts_=rawopts,inputopts_=iopts,reportspec_=rspec} j = do
   d <- getCurrentDay
   -- the first argument specifies the account, any remaining arguments are a filter query
   (apat,querystring) <- case listofstringopt "args" rawopts of
@@ -92,7 +92,7 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
     rspec' = rspec{ rsQuery=simplifyQuery $ And [queryFromFlags ropts', argsquery]
                   , rsOpts=ropts'
                   }
-    reportq = And [rsQuery rspec', excludeforecastq (isJust $ forecast_ ropts')]
+    reportq = And [rsQuery rspec', excludeforecastq (isJust $ forecast_ iopts)]
       where
         -- As in RegisterScreen, why ? XXX
         -- Except in forecast mode, exclude future/forecast transactions.

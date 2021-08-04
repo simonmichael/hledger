@@ -33,7 +33,6 @@ module Hledger.Reports.ReportOptions (
   mixedAmountApplyValuationAfterSumFromOptsWith,
   valuationAfterSum,
   intervalFromRawOpts,
-  forecastPeriodFromRawOpts,
   queryFromFlags,
   transactionDateFn,
   postingDateFn,
@@ -138,7 +137,6 @@ data ReportOpts = ReportOpts {
       --   Influenced by the --color/colour flag (cf CliOptions),
       --   whether stdout is an interactive terminal, and the value of
       --   TERM and existence of NO_COLOR environment variables.
-    ,forecast_       :: Maybe DateSpan
     ,transpose_      :: Bool
  } deriving (Show)
 
@@ -175,7 +173,6 @@ defreportopts = ReportOpts
     , invert_          = False
     , normalbalance_   = Nothing
     , color_           = False
-    , forecast_        = Nothing
     , transpose_       = False
     }
 
@@ -221,7 +218,6 @@ rawOptsToReportOpts rawopts = do
           ,invert_      = boolopt "invert" rawopts
           ,pretty_tables_ = boolopt "pretty-tables" rawopts
           ,color_       = useColorOnStdout -- a lower-level helper
-          ,forecast_    = forecastPeriodFromRawOpts d rawopts
           ,transpose_   = boolopt "transpose" rawopts
           }
 
@@ -387,17 +383,6 @@ intervalFromRawOpts = lastDef NoInterval . collectopts intervalfromrawopt
       | n == "quarterly" = Just $ Quarters 1
       | n == "yearly"    = Just $ Years 1
       | otherwise = Nothing
-
--- | get period expression from --forecast option
-forecastPeriodFromRawOpts :: Day -> RawOpts -> Maybe DateSpan
-forecastPeriodFromRawOpts d opts =
-  case maybestringopt "forecast" opts
-  of
-    Nothing -> Nothing
-    Just "" -> Just nulldatespan
-    Just str ->
-      either (\e -> usageError $ "could not parse forecast period : "++customErrorBundlePretty e) (Just . snd) $ 
-      parsePeriodExpr d $ stripquotes $ T.pack str
 
 -- | Extract the interval from the parsed -p/--period expression.
 -- Return Nothing if an interval is not explicitly defined.

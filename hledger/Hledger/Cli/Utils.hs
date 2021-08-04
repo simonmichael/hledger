@@ -120,7 +120,7 @@ anonymiseByOpts opts =
 --
 journalAddForecast :: CliOpts -> Journal -> Journal
 journalAddForecast CliOpts{inputopts_=iopts, reportspec_=rspec} j =
-    case forecast_ ropts of
+    case forecast_ iopts of
         Nothing -> j
         Just _  -> either error id $ do  -- PARTIAL:
             forecasttxns <- addAutoTxns =<< mapM (balanceTransaction (balancingopts_ iopts))
@@ -132,7 +132,6 @@ journalAddForecast CliOpts{inputopts_=iopts, reportspec_=rspec} j =
               >>= journalApplyCommodityStyles
   where
     today = rsToday rspec
-    ropts = rsOpts rspec
 
     -- "They can start no earlier than: the day following the latest normal transaction in the journal (or today if there are none)."
     mjournalend   = dbg2 "journalEndDate" $ journalEndDate False j  -- ignore secondary dates
@@ -144,7 +143,7 @@ journalAddForecast CliOpts{inputopts_=iopts, reportspec_=rspec} j =
 
     forecastspan = dbg2 "forecastspan" $
       spanDefaultsFrom
-        (fromMaybe nulldatespan $ dbg2 "forecastspan flag" $ forecast_ ropts)
+        (fromMaybe nulldatespan $ dbg2 "forecastspan flag" $ forecast_ iopts)
         (DateSpan (Just forecastbeginDefault) (Just forecastendDefault))
 
     addAutoTxns = if auto_ iopts then modifyTransactions today (jtxnmodifiers j) else return

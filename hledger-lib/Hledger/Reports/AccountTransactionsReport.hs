@@ -87,7 +87,7 @@ accountTransactionsReport rspec@ReportSpec{rsOpts=ropts} j reportq' thisacctq = 
       where
         aregisterq = filterQuery (not . queryIsCurOrAmt) $ filterQuery (not . queryIsDepth) reportq'
         periodq = Date . periodAsDateSpan $ period_ ropts
-    amtq = filterQuery queryIsCurOrAmt $ _rsQuery rspec
+    amtq = filterQuery queryIsCurOrAmt $ rsQuery rspec
     queryIsCurOrAmt q = queryIsSym q || queryIsAmt q
 
     -- Note that within this functions, we are only allowed limited
