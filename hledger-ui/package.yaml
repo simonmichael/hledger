@@ -45,7 +45,7 @@ dependencies:
 - hledger >=1.22.99 && <1.23
 - ansi-terminal >=0.9
 - async
-- base >=4.10.1.0 && <4.16
+- base >=4.11 && <4.16
 - base-compat-batteries >=0.10.1 && <0.12
 - cmdargs >=0.8
 - containers >=0.5.9

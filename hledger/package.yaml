@@ -99,7 +99,7 @@ dependencies:
 - hledger-lib >=1.22.99 && <1.23
 - aeson >=1
 - ansi-terminal >=0.9
-- base >=4.10.1.0 && <4.16
+- base >=4.11 && <4.16
 - base-compat-batteries >=0.10.1 && <0.12
 - bytestring
 - cmdargs >=0.10
