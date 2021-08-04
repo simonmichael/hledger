@@ -29,7 +29,7 @@ import Data.Maybe (catMaybes)
 import Data.Ord (Down(..), comparing)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Data.Time.Calendar (Day, addDays)
+import Data.Time.Calendar (Day)
 
 import Hledger.Data
 import Hledger.Query
@@ -97,16 +97,10 @@ accountTransactionsReport rspec@ReportSpec{_rsReportOpts=ropts} j thisacctq = it
   where
     -- A depth limit should not affect the account transactions report; it should show all transactions in/below this account.
     -- Queries on currency or amount are also ignored at this stage; they are handled earlier, before valuation.
-    reportq = simplifyQuery $ And [aregisterq, periodq, excludeforecastq (forecast_ ropts)]
+    reportq = simplifyQuery $ And [aregisterq, periodq]
       where
         aregisterq = filterQuery (not . queryIsCurOrAmt) . filterQuery (not . queryIsDepth) $ _rsQuery rspec
         periodq = Date . periodAsDateSpan $ period_ ropts
-        -- Except in forecast mode, exclude future/forecast transactions.
-        excludeforecastq (Just _) = Any
-        excludeforecastq Nothing  =  -- not:date:tomorrow- not:tag:generated-transaction
-          And [ Not . Date $ DateSpan (Just . addDays 1 $ _rsDay rspec) Nothing
-              , Not generatedTransactionTag
-              ]
     amtq = filterQuery queryIsCurOrAmt $ _rsQuery rspec
     queryIsCurOrAmt q = queryIsSym q || queryIsAmt q
 
