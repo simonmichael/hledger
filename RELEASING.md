@@ -73,8 +73,8 @@ Always maintain changelogs in main branch (not in release branches).
 
 1. create release branch when needed:\
   `git branch MAJORVER-branch BRANCHPOINT`\
-   When convenient, the first major release can be tagged on master (`1.22`),
-   and the release branch (`1.22-branch`) gets created when there's a followup minor release:\
+   Sometimes, we make the major release tag (`1.22`) on master,
+   and create a release branch (`1.22-branch`) when there's a followup minor release:\
   `git branch 1.22-branch 1.22`
 
 1. update changelogs in main
@@ -82,7 +82,7 @@ Always maintain changelogs in main branch (not in release branches).
 1. review changes so far, estimate which packages will be released
 
 1. cherry pick changes to release
-    - cherry pick minor-release-worthy commits 
+    - cherry pick release-worthy commits 
         - from: magit, `l o X.Y..master`, `M-x magit-toggle-buffer-lock`, `C-x D`
             (`M-x toggle-window-dedicated`)
         - to: magit, `l o master..X.Y`, `M-x magit-toggle-buffer-lock`, `C-x D`
@@ -97,7 +97,7 @@ Always maintain changelogs in main branch (not in release branches).
 - finalise [changelogs](#changelogs) in main,
   copy to changelogs in release branch
 
-- `./Shake.hs` to update `Shake` and review release tasks
+- `./Shake.hs` to update `Shake` and review release tasksm
 
 - `./Shake setversion VER [-c]` (first without `-c` to review, then with `-c` to commit).
   Also `touch hledger/Hledger/Cli/Version.hs` ?
