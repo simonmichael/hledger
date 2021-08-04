@@ -27,7 +27,7 @@ Follow our [commit conventions](CONTRIBUTING.html#commit-messages):
   (users/installers/packagers/developers)
 
 **When committing/pushing/merging:**
-- run `tools/commitlint` before push, to check recent commits
+- run `bin/commitlint` before push, to check recent commits
 - or, run it automatically before each commit (`make installcommithook` to configure your local repo)
 - it also runs in CI on github for pull requests, etc.
 
