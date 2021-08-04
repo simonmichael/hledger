@@ -397,10 +397,10 @@ ghci-dev: $(call def-help,ghci-dev, start ghci REPL on hledger-lib + hledger + d
 ghci-ui: $(call def-help,ghci-ui, start ghci REPL on hledger-lib + hledger + hledger-ui)
 	$(STACKGHCI) exec -- $(GHCI) $(BUILDFLAGS) hledger-ui/Hledger/UI/Main.hs
 
-ghci-web: link-web-dirs $(call def-help,ghci-web, start ghci REPL on hledger-lib + hledger + hledger-web)
+ghci-web: webdirs $(call def-help,ghci-web, start ghci REPL on hledger-lib + hledger + hledger-web)
 	$(STACKGHCI) exec -- $(GHCI) $(BUILDFLAGS) hledger-web/app/main.hs
 
-ghci-web-test: link-web-dirs $(call def-help,ghci-web-test, start ghci REPL on hledger-lib + hledger + hledger-web + hledger-web test suite)
+ghci-web-test: webdirs $(call def-help,ghci-web-test, start ghci REPL on hledger-lib + hledger + hledger-web + hledger-web test suite)
 	$(STACKGHCI) exec -- $(GHCI) $(BUILDFLAGS) hledger-web/test/test.hs
 
 # ghci-all: $(call def-help,ghci-all, start ghci REPL on all the hledger)
