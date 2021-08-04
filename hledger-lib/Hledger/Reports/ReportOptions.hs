@@ -195,20 +195,24 @@ defreportopts = ReportOpts
     , transpose_       = False
     }
 
-rawOptsToReportOpts :: RawOpts -> IO ReportOpts
-rawOptsToReportOpts rawopts = do
-    d <- getCurrentDay
+-- | Generate a ReportOpts from raw command-line input, given a day.
+-- This will fail with a usage error if it is passed
+-- - an invalid --format argument,
+-- - an invalid --value argument,
+-- - if --valuechange is called with a valuation type other than -V/--value=end.
+rawOptsToReportOpts :: Day -> RawOpts -> ReportOpts
+rawOptsToReportOpts d rawopts =
 
     let formatstring = T.pack <$> maybestringopt "format" rawopts
         querystring  = map T.pack $ listofstringopt "args" rawopts  -- doesn't handle an arg like "" right
         (costing, valuation) = valuationTypeFromRawOpts rawopts
 
-    format <- case parseStringFormat <$> formatstring of
-        Nothing         -> return defaultBalanceLineFormat
-        Just (Right x)  -> return x
-        Just (Left err) -> fail $ "could not parse format option: " ++ err
+        format = case parseStringFormat <$> formatstring of
+            Nothing         -> defaultBalanceLineFormat
+            Just (Right x)  -> x
+            Just (Left err) -> usageError $ "could not parse format option: " ++ err
 
-    return defreportopts
+    in defreportopts
           {period_      = periodFromRawOpts d rawopts
           ,interval_    = intervalFromRawOpts rawopts
           ,statuses_    = statusesFromRawOpts rawopts
@@ -291,7 +295,7 @@ updateReportSpecWith = overWithReport reportOpts
 rawOptsToReportSpec :: RawOpts -> IO ReportSpec
 rawOptsToReportSpec rawopts = do
     d <- getCurrentDay
-    ropts <- rawOptsToReportOpts rawopts
+    let ropts = rawOptsToReportOpts d rawopts
     either fail return $ reportOptsToSpec d ropts
 
 accountlistmodeopt :: RawOpts -> AccountListMode
@@ -443,6 +447,9 @@ reportOptsToggleStatus s ropts@ReportOpts{statuses_=ss}
 -- specified by -B/--cost, -V, -X/--exchange, or --value flags. It is
 -- allowed to combine -B/--cost with any other valuation type. If
 -- there's more than one valuation type, the rightmost flag wins.
+-- This will fail with a usage error if an invalid argument is passed
+-- to --value, or if --valuechange is called with a valuation type
+-- other than -V/--value=end.
 valuationTypeFromRawOpts :: RawOpts -> (Costing, Maybe ValuationType)
 valuationTypeFromRawOpts rawopts = (costing, valuation)
   where

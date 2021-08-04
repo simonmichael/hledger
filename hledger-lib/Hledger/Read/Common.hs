@@ -49,6 +49,8 @@ module Hledger.Read.Common (
   journalCheckAccountsDeclared,
   journalCheckCommoditiesDeclared,
   journalCheckPayeesDeclared,
+  journalAddForecast,
+  journalAddAutoPostings,
   setYear,
   getYear,
   setDefaultCommodityAndStyle,
@@ -135,7 +137,9 @@ import Data.Bifunctor (bimap, second)
 import Data.Char (digitToInt, isDigit, isSpace)
 import Data.Decimal (DecimalRaw (Decimal), Decimal)
 import Data.Default (Default(..))
+import Data.Either (lefts, rights)
 import Data.Function ((&))
+import Data.Functor ((<&>))
 import Data.Functor.Identity (Identity)
 import "base-compat-batteries" Data.List.Compat
 import Data.List.NonEmpty (NonEmpty(..))
@@ -144,7 +148,7 @@ import qualified Data.Map as M
 import qualified Data.Semigroup as Sem
 import Data.Text (Text)
 import qualified Data.Text as T
-import Data.Time.Calendar (Day, fromGregorianValid, toGregorian)
+import Data.Time.Calendar (Day, addDays, fromGregorianValid, toGregorian)
 import Data.Time.LocalTime (LocalTime(..), TimeOfDay(..))
 import Data.Word (Word8)
 import System.Time (getClockTime)
@@ -156,6 +160,8 @@ import Text.Megaparsec.Custom
   finalErrorBundlePretty, parseErrorAt, parseErrorAtRegion)
 
 import Hledger.Data
+import Hledger.Query (Query(..), filterQuery, parseQueryTerm, queryEndDate, queryIsDate, simplifyQuery)
+import Hledger.Reports.ReportOptions (ReportOpts(..), queryFromFlags, rawOptsToReportOpts)
 import Hledger.Utils
 import Text.Printf (printf)
 
@@ -228,6 +234,8 @@ definputopts = InputOpts
     , strict_            = False
     }
 
+-- | Parse an InputOpts from a RawOpts and the current date.
+-- This will fail with a usage error if the forecast period expression cannot be parsed.
 rawOptsToInputOpts :: RawOpts -> IO InputOpts
 rawOptsToInputOpts rawopts = do
     d <- getCurrentDay
@@ -250,16 +258,25 @@ rawOptsToInputOpts rawopts = do
       }
   where noinferprice = boolopt "strict" rawopts || stringopt "args" rawopts == "balancednoautoconversion"
 
--- | get period expression from --forecast option
+-- | Get period expression from --forecast option.
+-- This will fail with a usage error if the forecast period expression cannot be parsed.
 forecastPeriodFromRawOpts :: Day -> RawOpts -> Maybe DateSpan
-forecastPeriodFromRawOpts d opts =
-  case maybestringopt "forecast" opts
-  of
+forecastPeriodFromRawOpts d rawopts = case maybestringopt "forecast" rawopts of
     Nothing -> Nothing
-    Just "" -> Just nulldatespan
-    Just str ->
-      either (\e -> usageError $ "could not parse forecast period : "++customErrorBundlePretty e) (Just . snd) $ 
-      parsePeriodExpr d $ stripquotes $ T.pack str
+    Just "" -> Just forecastspanDefault
+    Just str -> either (\e -> usageError $ "could not parse forecast period : "++customErrorBundlePretty e)
+                       (\(_,requestedspan) -> Just $ requestedspan `spanDefaultsFrom` forecastspanDefault) $
+                  parsePeriodExpr d $ stripquotes $ T.pack str
+  where
+    -- "They end on or before the specified report end date, or 180 days from today if unspecified."
+    mspecifiedend = dbg2 "specifieddates" $ queryEndDate False datequery
+    forecastendDefault = dbg2 "forecastendDefault" $ addDays 180 d
+    forecastspanDefault = DateSpan Nothing $ mspecifiedend <|> Just forecastendDefault
+    -- Do we really need to do all this work just to get the requested end date? This is duplicating
+    -- much of reportOptsToSpec.
+    ropts = rawOptsToReportOpts d rawopts
+    argsquery = lefts . rights . map (parseQueryTerm d) $ querystring_ ropts
+    datequery = simplifyQuery . filterQuery queryIsDate . And $ queryFromFlags ropts : argsquery
 
 --- ** parsing utilities
 
@@ -338,6 +355,8 @@ parseAndFinaliseJournal' parser iopts f txt = do
 --
 -- - save misc info and reverse transactions into their original parse order,
 --
+-- - add forecast transactions,
+--
 -- - evaluate balance assignments and balance each transaction,
 --
 -- - apply transaction modifiers (auto postings) if enabled,
@@ -347,41 +366,64 @@ parseAndFinaliseJournal' parser iopts f txt = do
 -- - infer transaction-implied market prices from transaction prices
 --
 journalFinalise :: InputOpts -> FilePath -> Text -> ParsedJournal -> ExceptT String IO Journal
-journalFinalise InputOpts{auto_,balancingopts_,strict_} f txt pj' = do
-  t <- liftIO getClockTime
-  d <- liftIO getCurrentDay
-  liftEither $ do
+journalFinalise InputOpts{forecast_,auto_,balancingopts_,strict_} f txt pj = do
+    t <- liftIO getClockTime
+    d <- liftIO getCurrentDay
     -- Infer and apply canonical styles for each commodity (or throw an error).
     -- This affects transaction balancing/assertions/assignments, so needs to be done early.
-    pj <- journalApplyCommodityStyles $
-              pj'{jglobalcommoditystyles=fromMaybe M.empty $ commodity_styles_ balancingopts_}  -- save any global commodity styles
-              & journalAddFile (f, txt)  -- save the main file's info
-              & journalSetLastReadTime t -- save the last read time
-              & journalReverse -- convert all lists to the order they were parsed
+    liftEither $ checkAddAndBalance d <=< journalApplyCommodityStyles $
+        pj{jglobalcommoditystyles=fromMaybe mempty $ commodity_styles_ balancingopts_}  -- save any global commodity styles
+        & journalAddFile (f, txt)           -- save the main file's info
+        & journalSetLastReadTime t          -- save the last read time
+        & journalReverse                    -- convert all lists to the order they were parsed
+  where
+    checkAddAndBalance d j = do
+        when strict_ $ do
+          -- If in strict mode, check all postings are to declared accounts
+          journalCheckAccountsDeclared j
+          -- and using declared commodities
+          journalCheckCommoditiesDeclared j
 
-    when strict_ $ do
-      -- If in strict mode, check all postings are to declared accounts
-      journalCheckAccountsDeclared pj
-      -- and using declared commodities
-      journalCheckCommoditiesDeclared pj
-
-    -- infer market prices from commodity-exchanging transactions
-    journalInferMarketPricesFromTransactions <$>
-      if not auto_ || null (jtxnmodifiers pj)
-        then
-          -- Auto postings are not active.
-          -- Balance all transactions and maybe check balance assertions.
-          journalBalanceTransactions balancingopts_ pj
-        else
-          -- Auto postings are active.
-          -- Balance all transactions without checking balance assertions,
-          journalBalanceTransactions balancingopts_{ignore_assertions_=True} pj
-          -- then add the auto postings
-          -- (Note adding auto postings after balancing means #893b fails;
-          -- adding them before balancing probably means #893a, #928, #938 fail.)
-          >>= journalModifyTransactions d
-          -- then check balance assertions.
+        -- Add forecast transactions if enabled
+        journalAddForecast d forecast_ j
+        -- Add auto postings if enabled
+          & (if auto_ && not (null $ jtxnmodifiers j) then journalAddAutoPostings d balancingopts_ else pure)
+        -- Balance all transactions and maybe check balance assertions.
           >>= journalBalanceTransactions balancingopts_
+        -- infer market prices from commodity-exchanging transactions
+          <&> journalInferMarketPricesFromTransactions
+
+journalAddAutoPostings :: Day -> BalancingOpts -> Journal -> Either String Journal
+journalAddAutoPostings d bopts =
+    -- Balance all transactions without checking balance assertions,
+    journalBalanceTransactions bopts{ignore_assertions_=True}
+    -- then add the auto postings
+    -- (Note adding auto postings after balancing means #893b fails;
+    -- adding them before balancing probably means #893a, #928, #938 fail.)
+    >=> journalModifyTransactions d
+
+-- | Generate periodic transactions from all periodic transaction rules in the journal.
+-- These transactions are added to the in-memory Journal (but not the on-disk file).
+--
+-- The start & end date for generated periodic transactions are determined in
+-- a somewhat complicated way; see the hledger manual -> Periodic transactions.
+journalAddForecast :: Day -> Maybe DateSpan -> Journal -> Journal
+journalAddForecast _ Nothing              j = j
+journalAddForecast d (Just requestedspan) j = j{jtxns = jtxns j ++ forecasttxns}
+  where
+    forecasttxns =
+        map (txnTieKnot . transactionTransformPostings (postingApplyCommodityStyles $ journalCommodityStyles j))
+      . filter (spanContainsDate forecastspan . tdate)
+      . concatMap (`runPeriodicTransaction` forecastspan)
+      $ jperiodictxns j
+
+    -- "They can start no earlier than: the day following the latest normal transaction in the journal (or today if there are none)."
+    mjournalend   = dbg2 "journalEndDate" $ journalEndDate False j  -- ignore secondary dates
+    forecastbeginDefault = dbg2 "forecastbeginDefault" $ mjournalend <|> Just d
+
+    -- "They end on or before the specified report end date, or 180 days from today if unspecified."
+    forecastspan = dbg2 "forecastspan" $ dbg2 "forecastspan flag" requestedspan
+        `spanDefaultsFrom` DateSpan forecastbeginDefault (Just $ addDays 180 d)
 
 -- | Check that all the journal's transactions have payees declared with
 -- payee directives, returning an error message otherwise.

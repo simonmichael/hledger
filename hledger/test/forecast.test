@@ -235,3 +235,36 @@ hledger -f - reg -b 2021-01-01 -e 2021-01-05 --forecast
 2021-01-04                      (a)                              1          1003
 >>>2
 >>>=0
+
+# 12. Forecast transactions work with balance assignments
+hledger -f - print -x --forecast -e 2021-11
+<<<
+2021-09-01  Normal Balance Assertion Works
+    Checking   = -60
+    Costs
+
+~ 2021-10-01  explicit forecasted assertion
+    Checking      = -100
+    Costs             40
+
+~ 2021-10-02  auto-deduced forecasted assertion
+    Checking      = -120
+    Costs
+
+>>>
+2021-09-01 Normal Balance Assertion Works
+    Checking             -60 = -60
+    Costs                 60
+
+2021-10-01 explicit forecasted assertion
+    ; generated-transaction: ~ 2021-10-01
+    Checking             -40 = -100
+    Costs                 40
+
+2021-10-02 auto-deduced forecasted assertion
+    ; generated-transaction: ~ 2021-10-02
+    Checking             -20 = -120
+    Costs                 20
+
+>>>2
+>>>=0
