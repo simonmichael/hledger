@@ -48,7 +48,7 @@ Always maintain changelogs in main branch (not in release branches).
 - commit: `./Shake changelogs -c`
 
 **After cherry-picking** changes to a release branch:
-- move the corresponding changelog items under a pending release heading,
+- in the main branch changelogs, move the corresponding changelog items under a pending release heading,
   creating that when necessary:
     ```
     # LATESTHASH
