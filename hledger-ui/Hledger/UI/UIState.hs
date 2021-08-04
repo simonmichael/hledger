@@ -7,8 +7,8 @@ module Hledger.UI.UIState
 where
 
 import Brick.Widgets.Edit
+import Control.Applicative ((<|>))
 import Data.List ((\\), foldl', sort)
-import Data.Maybe (fromMaybe)
 import Data.Semigroup (Max(..))
 import qualified Data.Text as T
 import Data.Text.Zipper (gotoEOL)
@@ -157,19 +157,19 @@ toggleHistorical ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec
 -- (which are usually but not necessarily future-dated).
 -- In normal mode, both of these are hidden.
 toggleForecast :: Day -> UIState -> UIState
-toggleForecast d ui@UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportspec_=ReportSpec{_rsReportOpts=ropts}}}} =
+toggleForecast d ui@UIState{aopts=UIOpts{cliopts_=copts@CliOpts{inputopts_=iopts}}} =
   uiSetForecast ui $
-    case forecast_ ropts of
+    case forecast_ iopts of
       Just _  -> Nothing
-      Nothing -> Just $ fromMaybe nulldatespan $ forecastPeriodFromRawOpts d $ rawopts_ copts
+      Nothing -> forecastPeriodFromRawOpts d (rawopts_ copts) <|> Just nulldatespan
 
 -- | Helper: set forecast mode (with the given forecast period) on or off in the UI state.
 uiSetForecast :: UIState -> Maybe DateSpan -> UIState
 uiSetForecast
-  ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}}
+  ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=iopts}}}
   mforecast =
   -- we assume forecast mode has no effect on ReportSpec's derived fields
-  ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{_rsReportOpts=ropts{forecast_=mforecast}}}}}
+  ui{aopts=uopts{cliopts_=copts{inputopts_=iopts{forecast_=mforecast}}}}
 
 -- | Toggle between showing all and showing only real (non-virtual) items.
 toggleReal :: UIState -> UIState

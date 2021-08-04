@@ -454,7 +454,7 @@ replaceNumericFlags = map replace
 -- Also records the terminal width, if supported.
 rawOptsToCliOpts :: RawOpts -> IO CliOpts
 rawOptsToCliOpts rawopts = do
-  let iopts = rawOptsToInputOpts rawopts
+  iopts <- rawOptsToInputOpts rawopts
   rspec <- rawOptsToReportSpec rawopts
   mcolumns <- readMay <$> getEnvSafe "COLUMNS"
   mtermwidth <-

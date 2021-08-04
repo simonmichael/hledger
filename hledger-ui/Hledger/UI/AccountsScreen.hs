@@ -49,7 +49,7 @@ accountsScreen = AccountsScreen{
 
 asInit :: Day -> Bool -> UIState -> UIState
 asInit d reset ui@UIState{
-  aopts=UIOpts{cliopts_=CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}},
+  aopts=UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}},
   ajournal=j,
   aScreen=s@AccountsScreen{}
   } =
@@ -77,7 +77,7 @@ asInit d reset ui@UIState{
                         as = map asItemAccountName displayitems
 
     -- Further restrict the query based on the current period and future/forecast mode.
-    rspec' = rspec{_rsQuery=simplifyQuery $ And [_rsQuery rspec, periodq, excludeforecastq (forecast_ ropts)]}
+    rspec' = rspec{_rsQuery=simplifyQuery $ And [_rsQuery rspec, periodq, excludeforecastq (forecast_ $ inputopts_ copts)]}
       where
         periodq = Date $ periodAsDateSpan $ period_ ropts
         -- Except in forecast mode, exclude future/forecast transactions.
@@ -198,7 +198,7 @@ asDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}
               -- ,("l", str "list")
               ,("-+", str "depth")
               ,("H", renderToggle (not ishistorical) "end-bals" "changes")
-              ,("F", renderToggle1 (isJust $ forecast_ ropts) "forecast")
+              ,("F", renderToggle1 (isJust . forecast_ $ inputopts_ copts) "forecast")
               --,("/", "filter")
               --,("DEL", "unfilter")
               --,("ESC", "cancel/top")

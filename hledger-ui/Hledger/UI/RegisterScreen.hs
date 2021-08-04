@@ -239,7 +239,7 @@ rsDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}
               -- ,("l", str "list(-subs)")
 
               ,("H", renderToggle (not ishistorical) "historical" "period")
-              ,("F", renderToggle1 (isJust $ forecast_ ropts) "forecast")
+              ,("F", renderToggle1 (isJust . forecast_ . inputopts_ $ copts) "forecast")
 --               ,("a", "add")
 --               ,("g", "reload")
 --               ,("q", "quit")

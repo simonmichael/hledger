@@ -8,6 +8,7 @@ Released under GPL version 3 or later.
 
 module Hledger.UI.Main where
 
+import Control.Applicative ((<|>))
 import Control.Concurrent (threadDelay)
 import Control.Concurrent.Async (withAsync)
 import Control.Monad (forM_, void, when)
@@ -43,11 +44,11 @@ writeChan = BC.writeBChan
 
 main :: IO ()
 main = do
-  opts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportspec_=rspec@ReportSpec{_rsReportOpts=ropts},rawopts_=rawopts}} <- getHledgerUIOpts
+  opts@UIOpts{cliopts_=copts@CliOpts{inputopts_=iopts,rawopts_=rawopts}} <- getHledgerUIOpts
   -- when (debug_ $ cliopts_ opts) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show opts)
 
   -- always generate forecasted periodic transactions; their visibility will be toggled by the UI.
-  let copts' = copts{reportspec_=rspec{_rsReportOpts=ropts{forecast_=Just $ fromMaybe nulldatespan (forecast_ ropts)}}}
+  let copts' = copts{inputopts_=iopts{forecast_=forecast_ iopts <|> Just nulldatespan}}
 
   case True of
     _ | "help"            `inRawOpts` rawopts -> putStr (showModeUsage uimode)
