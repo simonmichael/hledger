@@ -1,5 +1,9 @@
 # Releasing
 
+<div class=pagetoc>
+<!-- toc -->
+</div>
+
 Guidance for release managers and maintainers.
 Some of this might move elsewhere later.
 
