@@ -35,19 +35,6 @@ Follow our [commit conventions](CONTRIBUTING.html#commit-messages):
 
 Always maintain changelogs in main branch (not in release branches).
 
-**At start of release cycle:**
-- add the next release heading, with date "unreleased", above last release heading:
-
-    ```
-    # LATESTHASH
-
-    ...CHANGES...
-
-    # NEXTVER unreleased  <- ADD
-
-    # LASTVER YYYY-MM-DD
-    ```
-
 **Frequently**, especially after merging changes, and before cherry picking into release branch:
 
 - dry run: `./Shake changelogs -n`
@@ -59,6 +46,19 @@ Always maintain changelogs in main branch (not in release branches).
   - rewrite things
   - format ([#ISSUE](https://github.com/simonmichael/hledger/issues/), AUTHOR) on its own line
 - commit: `./Shake changelogs -c`
+
+**At some point in the release cycle:**
+- add the next release heading, with date "unreleased", above last release heading:
+
+    ```
+    # LATESTHASH
+
+    ...CHANGES...
+
+    # NEXTVER unreleased  <- ADD
+
+    # LASTVER YYYY-MM-DD
+    ```
 
 **After cherry-picking** changes to a release branch:
 - move the corresponding changelog items under the pending release heading.
