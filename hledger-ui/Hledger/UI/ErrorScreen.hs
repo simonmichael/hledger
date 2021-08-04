@@ -182,13 +182,13 @@ uiReloadJournalIfChanged copts d j ui = do
 -- or in the provided UIState's startup options,
 -- it is preserved.
 enableForecastPreservingPeriod :: UIState -> CliOpts -> CliOpts
-enableForecastPreservingPeriod ui copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}} =
-  copts{reportspec_=rspec{_rsReportOpts=ropts{forecast_=mforecast}}}
+enableForecastPreservingPeriod ui copts@CliOpts{inputopts_=iopts} =
+    copts{inputopts_=iopts{forecast_=mforecast}}
   where
     mforecast = asum [mprovidedforecastperiod, mstartupforecastperiod, mdefaultforecastperiod]
       where
-        mprovidedforecastperiod = forecast_ ropts
-        mstartupforecastperiod  = forecast_ $ _rsReportOpts $ reportspec_ $ cliopts_ $ astartupopts ui
+        mprovidedforecastperiod = forecast_ $ inputopts_ copts
+        mstartupforecastperiod  = forecast_ $ inputopts_ $ cliopts_ $ astartupopts ui
         mdefaultforecastperiod  = Just nulldatespan
 
 -- Re-check any balance assertions in the current journal, and if any

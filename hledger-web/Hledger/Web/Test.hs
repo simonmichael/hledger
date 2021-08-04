@@ -79,14 +79,8 @@ hledgerWebTest = do
 
       -- yit "can add transactions" $ do
 
-  -- test with forecasted transactions
-  d <- getCurrentDay
   let
-    ropts = defreportopts{forecast_=Just nulldatespan}
-    rspec = case reportOptsToSpec d ropts of
-            Left e   -> error $ "failed to set up report options for tests, shouldn't happen: " ++ show e
-            Right rs -> rs
-    copts = defcliopts{reportspec_=rspec, file_=[""]}  -- non-empty, see file_ note above
+    copts = defcliopts{reportspec_=defreportspec, file_=[""]}  -- non-empty, see file_ note above
     wopts = defwebopts{cliopts_=copts}
   j <- fmap (either error id . journalTransform copts) $ readJournal' (T.pack $ unlines  -- PARTIAL: readJournal' should not fail
     ["~ monthly"

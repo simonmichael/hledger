@@ -32,6 +32,7 @@ module Hledger.Read.Common (
   InputOpts (..),
   definputopts,
   rawOptsToInputOpts,
+  forecastPeriodFromRawOpts,
 
   -- * parsing utilities
   runTextParser,
@@ -204,6 +205,7 @@ data InputOpts = InputOpts {
     ,new_               :: Bool                 -- ^ read only new transactions since this file was last read
     ,new_save_          :: Bool                 -- ^ save latest new transactions state for next time
     ,pivot_             :: String               -- ^ use the given field's value as the account name
+    ,forecast_          :: Maybe DateSpan       -- ^ span in which to generate forecast transactions
     ,auto_              :: Bool                 -- ^ generate automatic postings when journal is parsed
     ,balancingopts_     :: BalancingOpts        -- ^ options for balancing transactions
     ,strict_            :: Bool                 -- ^ do extra error checking (eg, all posted accounts are declared, no prices are inferred)
@@ -220,28 +222,44 @@ definputopts = InputOpts
     , new_               = False
     , new_save_          = True
     , pivot_             = ""
+    , forecast_          = Nothing
     , auto_              = False
     , balancingopts_     = def
     , strict_            = False
     }
 
-rawOptsToInputOpts :: RawOpts -> InputOpts
-rawOptsToInputOpts rawopts = InputOpts{
-     -- files_             = listofstringopt "file" rawopts
-     mformat_           = Nothing
-    ,mrules_file_       = maybestringopt "rules-file" rawopts
-    ,aliases_           = listofstringopt "alias" rawopts
-    ,anon_              = boolopt "anon" rawopts
-    ,new_               = boolopt "new" rawopts
-    ,new_save_          = True
-    ,pivot_             = stringopt "pivot" rawopts
-    ,auto_              = boolopt "auto" rawopts
-    ,balancingopts_     = def{ ignore_assertions_ = boolopt "ignore-assertions" rawopts
-                             , infer_prices_      = not noinferprice
-                             }
-    ,strict_            = boolopt "strict" rawopts
-    }
+rawOptsToInputOpts :: RawOpts -> IO InputOpts
+rawOptsToInputOpts rawopts = do
+    d <- getCurrentDay
+
+    return InputOpts{
+       -- files_             = listofstringopt "file" rawopts
+       mformat_           = Nothing
+      ,mrules_file_       = maybestringopt "rules-file" rawopts
+      ,aliases_           = listofstringopt "alias" rawopts
+      ,anon_              = boolopt "anon" rawopts
+      ,new_               = boolopt "new" rawopts
+      ,new_save_          = True
+      ,pivot_             = stringopt "pivot" rawopts
+      ,forecast_          = forecastPeriodFromRawOpts d rawopts
+      ,auto_              = boolopt "auto" rawopts
+      ,balancingopts_     = def{ ignore_assertions_ = boolopt "ignore-assertions" rawopts
+                               , infer_prices_      = not noinferprice
+                               }
+      ,strict_            = boolopt "strict" rawopts
+      }
   where noinferprice = boolopt "strict" rawopts || stringopt "args" rawopts == "balancednoautoconversion"
+
+-- | get period expression from --forecast option
+forecastPeriodFromRawOpts :: Day -> RawOpts -> Maybe DateSpan
+forecastPeriodFromRawOpts d opts =
+  case maybestringopt "forecast" opts
+  of
+    Nothing -> Nothing
+    Just "" -> Just nulldatespan
+    Just str ->
+      either (\e -> usageError $ "could not parse forecast period : "++customErrorBundlePretty e) (Just . snd) $ 
+      parsePeriodExpr d $ stripquotes $ T.pack str
 
 --- ** parsing utilities
 
