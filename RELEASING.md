@@ -47,21 +47,20 @@ Always maintain changelogs in main branch (not in release branches).
   - format ([#ISSUE](https://github.com/simonmichael/hledger/issues/), AUTHOR) on its own line
 - commit: `./Shake changelogs -c`
 
-**At some point in the release cycle:**
-- add the next release heading, with date "unreleased", above last release heading:
-
+**After cherry-picking** changes to a release branch:
+- move the corresponding changelog items under a pending release heading,
+  creating that when necessary:
     ```
     # LATESTHASH
 
-    ...CHANGES...
+    ...CHANGES ONLY IN MASTER...
 
-    # NEXTVER unreleased  <- ADD
+    # NEXTVER unreleased
+
+    ...CHANGES CHERRYPICKED INTO RELEASE BRANCH...
 
     # LASTVER YYYY-MM-DD
     ```
-
-**After cherry-picking** changes to a release branch:
-- move the corresponding changelog items under the pending release heading.
 
 **At release:**
 
