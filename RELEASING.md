@@ -96,9 +96,9 @@ Always maintain changelogs in main branch (not in release branches).
 - finalise [changelogs](#changelogs) in main,
   copy to changelogs in release branch
 
-- `./Shake.hs` to update `Shake` and review release tasksm
+- `./Shake.hs` to update `Shake` and review release tasks
 
-- `./Shake setversion VER [-c]` (first without `-c` to review, then with `-c` to commit).
+- `./Shake setversion VER [-c]` (first without `-c` to review, then with `-c` to commit).\
   Also `touch hledger/Hledger/Cli/Version.hs` ?
 
 - `./Shake cmdhelp [-c]`
