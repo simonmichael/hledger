@@ -65,8 +65,8 @@ Always maintain changelogs in main branch (not in release branches).
 **At release:**
 
 - do final update/edits; check organisation, wording, formatting, issue links
-- replace "unreleased" with the date in the pending release heading
-- copy the new release sections from main changelogs to release branch changelogs
+- replace "unreleased" with the release date
+- copy the new sections from main changelogs to release branch changelogs
 
 ## Pre release
 
@@ -89,7 +89,7 @@ Always maintain changelogs in main branch (not in release branches).
         - ignore changelog commits / other boring commits 
           ("dev: doc: update changelogs")
 
-1. in changelogs in main, move corresponding change items under pending release heading
+    - update changelogs in main (move corresponding change items under pending release heading)
 
 ## Release
 
