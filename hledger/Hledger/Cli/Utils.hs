@@ -15,7 +15,6 @@ module Hledger.Cli.Utils
      writeOutput,
      writeOutputLazyText,
      journalTransform,
-     journalAddForecast,
      journalReload,
      journalReloadIfChanged,
      journalFileIsNewer,
@@ -38,7 +37,7 @@ import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.IO as TL
-import Data.Time (UTCTime, Day, addDays)
+import Data.Time (UTCTime, Day)
 import Safe (readMay, headMay)
 import System.Console.CmdArgs
 import System.Directory (getModificationTime, getDirectoryContents, copyFile, doesFileExist)
@@ -86,13 +85,14 @@ withJournalDo opts cmd = do
 -- - pivoting account names (--pivot)
 -- - anonymising (--anonymise).
 --
+-- This will return an error message if the query in any auto posting rule fails
+-- to parse, or the generated transactions are not balanced.
 journalTransform :: CliOpts -> Journal -> Journal
 journalTransform opts =
     anonymiseByOpts opts
   -- - converting amounts to market value (--value)
   -- . journalApplyValue ropts
   . pivotByOpts opts
-  . journalAddForecast opts
 
 -- | Apply the pivot transformation on a journal, if option is present.
 pivotByOpts :: CliOpts -> Journal -> Journal
@@ -107,46 +107,6 @@ anonymiseByOpts opts =
   if anon_ . inputopts_ $ opts
       then anon
       else id
-
--- | Generate periodic transactions from all periodic transaction rules in the journal.
--- These transactions are added to the in-memory Journal (but not the on-disk file).
---
--- When --auto is active, auto posting rules will be applied to the
--- generated transactions. If the query in any auto posting rule fails
--- to parse, this function will raise an error.
---
--- The start & end date for generated periodic transactions are determined in
--- a somewhat complicated way; see the hledger manual -> Periodic transactions.
---
-journalAddForecast :: CliOpts -> Journal -> Journal
-journalAddForecast CliOpts{inputopts_=iopts, reportspec_=rspec} j =
-    case forecast_ iopts of
-        Nothing -> j
-        Just _  -> either error id $ do  -- PARTIAL:
-            forecasttxns <- addAutoTxns =<< mapM (balanceTransaction (balancingopts_ iopts))
-                [ txnTieKnot t | pt <- jperiodictxns j
-                               , t <- runPeriodicTransaction pt forecastspan
-                               , spanContainsDate forecastspan (tdate t)
-                               ]
-            journalBalanceTransactions (balancingopts_ iopts) j{ jtxns = concat [jtxns j, forecasttxns] }
-              >>= journalApplyCommodityStyles
-  where
-    today = rsToday rspec
-
-    -- "They can start no earlier than: the day following the latest normal transaction in the journal (or today if there are none)."
-    mjournalend   = dbg2 "journalEndDate" $ journalEndDate False j  -- ignore secondary dates
-    forecastbeginDefault = dbg2 "forecastbeginDefault" $ fromMaybe today mjournalend
-
-    -- "They end on or before the specified report end date, or 180 days from today if unspecified."
-    mspecifiedend = dbg2 "specifieddates" $ reportPeriodLastDay rspec
-    forecastendDefault = dbg2 "forecastendDefault" $ fromMaybe (addDays 180 today) mspecifiedend
-
-    forecastspan = dbg2 "forecastspan" $
-      spanDefaultsFrom
-        (fromMaybe nulldatespan $ dbg2 "forecastspan flag" $ forecast_ iopts)
-        (DateSpan (Just forecastbeginDefault) (Just forecastendDefault))
-
-    addAutoTxns = if auto_ iopts then modifyTransactions today (jtxnmodifiers j) else return
 
 -- | Write some output to stdout or to a file selected by --output-file.
 -- If the file exists it will be overwritten.

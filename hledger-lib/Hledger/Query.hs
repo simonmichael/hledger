@@ -20,6 +20,7 @@ module Hledger.Query (
   -- * parsing
   parseQuery,
   parseQueryList,
+  parseQueryTerm,
   simplifyQuery,
   filterQuery,
   -- * accessors
