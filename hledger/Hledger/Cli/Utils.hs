@@ -15,7 +15,6 @@ module Hledger.Cli.Utils
      writeOutput,
      writeOutputLazyText,
      journalTransform,
-     journalAddForecast,
      journalReload,
      journalReloadIfChanged,
      journalFileIsNewer,
@@ -38,7 +37,7 @@ import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.IO as TL
-import Data.Time (UTCTime, Day, addDays)
+import Data.Time (UTCTime, Day)
 import Safe (readMay, headMay)
 import System.Console.CmdArgs
 import System.Directory (getModificationTime, getDirectoryContents, copyFile, doesFileExist)
@@ -75,7 +74,7 @@ withJournalDo opts cmd = do
   -- to let the add command work.
   journalpaths <- journalFilePathFromOpts opts
   files <- readJournalFiles (inputopts_ opts) journalpaths
-  let transformed = journalTransform opts =<< files
+  let transformed = journalTransform opts <$> files
   either error' cmd transformed  -- PARTIAL:
 
 -- | Apply some extra post-parse transformations to the journal, if
@@ -88,13 +87,12 @@ withJournalDo opts cmd = do
 --
 -- This will return an error message if the query in any auto posting rule fails
 -- to parse, or the generated transactions are not balanced.
-journalTransform :: CliOpts -> Journal -> Either String Journal
+journalTransform :: CliOpts -> Journal -> Journal
 journalTransform opts =
-    fmap (anonymiseByOpts opts)
+    anonymiseByOpts opts
   -- - converting amounts to market value (--value)
   -- . journalApplyValue ropts
-  . fmap (pivotByOpts opts)
-  . journalAddForecast opts
+  . pivotByOpts opts
 
 -- | Apply the pivot transformation on a journal, if option is present.
 pivotByOpts :: CliOpts -> Journal -> Journal
@@ -109,48 +107,6 @@ anonymiseByOpts opts =
   if anon_ . inputopts_ $ opts
       then anon
       else id
-
--- | Generate periodic transactions from all periodic transaction rules in the journal.
--- These transactions are added to the in-memory Journal (but not the on-disk file).
---
--- When --auto is active, auto posting rules will be applied to the
--- generated transactions. If the query in any auto posting rule fails
--- to parse, or the generated transactions are not balanced, this function will
--- return an error message.
---
--- The start & end date for generated periodic transactions are determined in
--- a somewhat complicated way; see the hledger manual -> Periodic transactions.
---
-journalAddForecast :: CliOpts -> Journal -> Either String Journal
-journalAddForecast CliOpts{inputopts_=iopts, reportspec_=rspec} j =
-    case forecast_ iopts of
-        Nothing -> return j
-        Just _  -> do
-            forecasttxns <- addAutoTxns =<< mapM (balanceTransaction (balancingopts_ iopts))
-                [ txnTieKnot $ transactionTransformPostings (postingApplyCommodityStyles styles) t
-                | pt <- jperiodictxns j
-                , t <- runPeriodicTransaction pt forecastspan
-                , spanContainsDate forecastspan (tdate t)
-                ]
-            journalBalanceTransactions (balancingopts_ iopts) j{ jtxns = concat [jtxns j, forecasttxns] }
-  where
-    today = _rsDay rspec
-    styles = journalCommodityStyles j
-
-    -- "They can start no earlier than: the day following the latest normal transaction in the journal (or today if there are none)."
-    mjournalend   = dbg2 "journalEndDate" $ journalEndDate False j  -- ignore secondary dates
-    forecastbeginDefault = dbg2 "forecastbeginDefault" $ fromMaybe today mjournalend
-
-    -- "They end on or before the specified report end date, or 180 days from today if unspecified."
-    mspecifiedend = dbg2 "specifieddates" $ addDays 1 <$> reportPeriodLastDay rspec
-    forecastendDefault = dbg2 "forecastendDefault" $ fromMaybe (addDays 180 today) mspecifiedend
-
-    forecastspan = dbg2 "forecastspan" $
-      spanDefaultsFrom
-        (fromMaybe nulldatespan $ dbg2 "forecastspan flag" $ forecast_ iopts)
-        (DateSpan (Just forecastbeginDefault) (Just forecastendDefault))
-
-    addAutoTxns = if auto_ iopts then modifyTransactions styles today (jtxnmodifiers j) else return
 
 -- | Write some output to stdout or to a file selected by --output-file.
 -- If the file exists it will be overwritten.
@@ -199,7 +155,7 @@ journalReload :: CliOpts -> IO (Either String Journal)
 journalReload opts = do
   journalpaths <- dbg6 "reloading files" <$> journalFilePathFromOpts opts
   files <- readJournalFiles (inputopts_ opts) journalpaths
-  return $ journalTransform opts =<< files
+  return $ journalTransform opts <$> files
 
 -- | Has the specified file changed since the journal was last read ?
 -- Typically this is one of the journal's journalFilePaths. These are

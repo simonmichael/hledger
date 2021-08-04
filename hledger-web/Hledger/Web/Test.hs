@@ -4,6 +4,7 @@ module Hledger.Web.Test (
   hledgerWebTest
 ) where
 
+import Control.Monad.Except (runExceptT)
 import qualified Data.Text as T
 import Test.Hspec (hspec)
 import Yesod.Default.Config
@@ -80,13 +81,17 @@ hledgerWebTest = do
       -- yit "can add transactions" $ do
 
   let
-    copts = defcliopts{reportspec_=defreportspec, file_=[""]}  -- non-empty, see file_ note above
+    -- Have forecasting on for testing
+    iopts = definputopts{forecast_=Just nulldatespan}
+    copts = defcliopts{inputopts_=iopts, file_=[""]}  -- non-empty, see file_ note above
     wopts = defwebopts{cliopts_=copts}
-  j <- fmap (either error id . journalTransform copts) $ readJournal' (T.pack $ unlines  -- PARTIAL: readJournal' should not fail
+  pj <- readJournal' (T.pack $ unlines  -- PARTIAL: readJournal' should not fail
     ["~ monthly"
     ,"    assets    10"
     ,"    income"
     ])
+  -- Have to give a non-null filename "fake" so forecast transactions get index 0
+  j <- fmap (either error id) . runExceptT $ journalFinalise iopts "fake" "" pj  -- PARTIAL: journalFinalise should not fail
   runHspecTestsWith conf wopts j $ do
     ydescribe "hledger-web --forecast" $ do
 
@@ -95,4 +100,3 @@ hledgerWebTest = do
         statusIs 200
         bodyContains "id=\"transaction-0-1\""  -- 0 indicates a fileless (forecasted) txn
         bodyContains "id=\"transaction-0-2\""  -- etc.
-
