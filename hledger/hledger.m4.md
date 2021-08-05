@@ -4429,61 +4429,94 @@ To generate time logs, ie to clock in and clock out, you could:
 
 # TIMEDOT FORMAT
 
-hledger's human-friendly time logging format.
-
-Timedot is a plain text format for logging dated, categorised quantities (of time, usually), supported by hledger.
-It is convenient for approximate and retroactive time logging,
-eg when the real-time clock-in/out required with a timeclock file is too precise or too interruptive.
-It can be formatted like a bar chart, making clear at a glance where time was spent.
-
-Though called "timedot", this format is read by hledger as commodityless quantities,
-so it could be used to represent dated quantities other than time.
-In the docs below we'll assume it's time.
-
-A timedot file contains a series of day entries.
-A day entry begins with a non-indented hledger-style
-[simple date](#simple-dates) (Y-M-D, Y/M/D, Y.M.D..)
-Any additional text on the same line is used as a transaction description for this day.
-
-This is followed by optionally-indented timelog items for that day, one per line.
-Each timelog item is a note, usually a hledger:style:account:name representing a time category,
-followed by two or more spaces, and a quantity.
-Each timelog item generates a hledger transaction.
-
-Quantities can be written as:
-
-- dots: a sequence of dots (.) representing quarter hours.
-  Spaces may optionally be used for grouping.
-  Eg: .... ..
-
-- an integral or decimal number, representing hours.
-  Eg: 1.5
-
-- an integral or decimal number immediately followed by a unit symbol
-  `s`, `m`, `h`, `d`, `w`, `mo`, or `y`, representing seconds, minutes, hours, days
-  weeks, months or years respectively.
-  Eg: 90m.
-  The following equivalencies are assumed, currently:
-  1m = 60s, 1h = 60m, 1d = 24h, 1w = 7d, 1mo = 30d, 1y=365d.
-
-There is some flexibility allowing notes and todo lists to be kept
-right in the time log, if needed:
-
-- Blank lines and lines beginning with `#` or `;` are ignored.
-
-- Lines not ending with a double-space and quantity are parsed as
-  items taking no time, which will not appear in balance reports by
-  default. (Add -E to see them.)
-
-- Org mode headlines (lines beginning with one or more `*` followed by
-  a space) can be used as date lines or timelog items (the stars are
-  ignored). Also all org headlines before the first date line are
-  ignored. This means org users can manage their timelog as an org
-  outline (eg using org-mode/orgstruct-mode in Emacs), for
-  organisation, faster navigation, controlling visibility etc.
 
 
-Examples:
+`timedot` format is hledger's human-friendly time logging format.
+Compared to [`timeclock` format](#timeclock-format), it is
+
+- convenient for quick, approximate, and retroactive time logging
+- readable: you can see at a glance where time was spent.
+
+A timedot file contains a series of day entries, which might look like this:
+
+```timedot
+2021-08-04
+hom:errands          .... ....
+fos:hledger:timedot  ..         ; docs
+per:admin:finance    
+```
+
+hledger reads this as three time transactions on this day,
+with each dot representing a quarter-hour spent:
+
+```shell
+$ hledger -f a.timedot print   # .timedot file extension activates the timedot reader
+2021-08-04 *
+    (hom:errands)            2.00
+
+2021-08-04 *
+    (fos:hledger:timedot)    0.50
+
+2021-08-04 *
+    (per:admin:finance)      0
+```
+
+A day entry begins with a date line:
+
+- a non-indented **[simple date](#simple-dates)** (Y-M-D, Y/M/D, or Y.M.D).
+
+Optionally this can be followed on the same line by
+
+- a common **transaction description** for this day
+- a common **transaction comment** for this day, after a semicolon (`;`).
+
+After the date line are zero or more optionally-indented 
+time transaction lines, consisting of:
+
+- an **account name** - any word or phrase, usually a 
+  hledger-style [account name](#account-names).
+- **two or more spaces** - a field separator, 
+  required if there is an amount (as in journal format).
+- a **timedot amount** - dots representing quarter hours, 
+  or a number representing hours.
+- an optional **comment** beginning with semicolon. This is ignored.
+
+In more detail, timedot amounts can be:
+
+- **dots**: zero or more period characters, each representing one quarter-hour.
+  Spaces are ignored and can be used for grouping.
+  Eg: `.... ..`
+
+- a **number**, representing hours. Eg: `1.5`
+
+- a **number immediately followed by a unit symbol**
+  `s`, `m`, `h`, `d`, `w`, `mo`, or `y`, 
+  representing seconds, minutes, hours, days weeks, months or years.
+  Eg `1.5h` or `90m`.
+  The following equivalencies are assumed:\
+  `60s` = `1m`,
+  `60m` = `1h`,
+  `24h` = `1d`,
+  `7d` = `1w`,
+  `30d` = `1mo`,
+  `365d` = `1y`.
+  (This unit will not be visible in the generated transaction amount, which is always in hours.)
+
+There is some added flexibility to help with keeping time log data
+in the same file as your notes, todo lists, etc.:
+
+- Lines beginning with `#` or `;`, and blank lines, are ignored.
+
+- Lines not ending with a double-space and amount are 
+  parsed as transactions with zero amount.
+  (Most hledger reports hide these by default; add -E to see them.)
+
+- One or more stars (`*`) followed by a space, at the start of a line, is ignored.
+  So date lines or time transaction lines can also be Org-mode headlines.
+  
+- All Org-mode headlines before the first date line are ignored. 
+
+More examples:
 
 ```timedot
 # on this day, 6h was spent on client work, 1.5h on haskell FOSS work, etc.
@@ -4533,7 +4566,7 @@ adm:planning: trip
 Reporting:
 
 ```shell
-$ hledger -f t.timedot print date:2016/2/2
+$ hledger -f a.timedot print date:2016/2/2
 2016-02-02 *
     (inc:client1)          2.00
 
@@ -4541,7 +4574,7 @@ $ hledger -f t.timedot print date:2016/2/2
     (biz:research)          0.25
 ```
 ```shell
-$ hledger -f t.timedot bal --daily --tree
+$ hledger -f a.timedot bal --daily --tree
 Balance changes in 2016-02-01-2016-02-03:
 
             ||  2016-02-01d  2016-02-02d  2016-02-03d 
@@ -4557,8 +4590,8 @@ Balance changes in 2016-02-01-2016-02-03:
             ||         7.75         2.25         8.00 
 ```
 
-I prefer to use period for separating account components.
-We can make this work with an [account alias](#rewriting-accounts):
+
+Using period instead of colon as account name separator:
 
 ```timedot
 2016/2/4
@@ -4566,7 +4599,7 @@ fos.hledger.timedot  4
 fos.ledger           ..
 ```
 ```shell
-$ hledger -f t.timedot --alias /\\./=: bal date:2016/2/4 --tree
+$ hledger -f a.timedot --alias /\\./=: bal --tree
                 4.50  fos
                 4.00    hledger:timedot
                 0.50    ledger
@@ -4574,8 +4607,9 @@ $ hledger -f t.timedot --alias /\\./=: bal date:2016/2/4 --tree
                 4.50
 ```
 
-Here is a
-[sample.timedot](https://raw.github.com/simonmichael/hledger/master/examples/sample.timedot).
+A
+[sample.timedot](https://raw.github.com/simonmichael/hledger/master/examples/sample.timedot)
+file.
 <!-- to download and some queries to try: -->
 
 <!-- ```shell -->
