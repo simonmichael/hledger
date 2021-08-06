@@ -23,8 +23,10 @@ import Hledger.Utils
 
 
 -- package name and version from the cabal file
-progname, version, prognameandversion :: String
+progname :: String
 progname = "hledger"
+
+version :: String
 #ifdef VERSION
 version = VERSION
 #else
