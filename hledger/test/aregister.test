@@ -41,3 +41,16 @@ Transactions in a and subaccounts:
 $ hledger -f- areg a aaa
 Transactions in a and subaccounts:
 2021-01-03                      a:aa:aaa                       100           100
+
+# 5. Same-day transactions are displayed in parse order, as usual. (#1642)
+# <
+# 2021-01-01 first
+#     (a)           1
+
+# 2021-01-01 second
+#     (a)           2
+
+# $ hledger -f- areg a -w80
+# Transactions in a and subaccounts:
+# 2021-07-31 first                a                                1             1
+# 2021-07-31 second               a                                2             3
