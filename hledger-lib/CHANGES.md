@@ -9,7 +9,7 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 95de5a878
+# 918c243fa
 
 API changes
 
@@ -98,7 +98,15 @@ API changes
       Hledger.Reports.ReportOptions:
        balanceTypeOverride -> balanceAccumulationOverride
 
+- forecast_ has moved from ReportOpts to InputOpts. (Stephen Morgan)
+
 Improvements
+
+- Generate forecast transactions at journal finalisation, rather than as a postprocessing step.
+  This allows us to have a uniform procedure for balancing transactions,
+  whether they are normal transactions or forecast transactions, including
+  dealing with balance assignments, balance assertions, and auto postings.
+  (#1638, Stephen Morgan)
 
 - MixedAmounts now have a more predictable Ord instance / sort order.
   They are compared in each commodity in turn, with
@@ -114,6 +122,10 @@ Improvements
 
 - Our doctests are disabled with GHC 9 for now to work around an
   upstream bug. (#1503, #1615)
+
+- Require base >=4.11, prevent red squares on Hackage's build matrix.
+
+# 1.22.2 unreleased
 
 # 1.22.1 2021-08-02
 

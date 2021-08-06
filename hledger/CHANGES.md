@@ -9,7 +9,17 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 81dfbc9ac
+# 49ff03931
+
+Breaking changes
+
+- aregister no longer hides future transactions by default.
+  This is a consequence of the fix for #1638. It makes aregister
+  consistent, so we think it's a reasonable change.
+  So if you have future-dated transactions in your journal
+  which you don't want reported, you now must exclude them with 
+  `-e tomorrow` or `date:-tomorrow` in the command, as with other reports.
+  (Stephen Morgan)
 
 Features
 
@@ -21,6 +31,21 @@ Features
   (#1612)
 
 Improvements
+
+- Clarify version string code:
+  ```
+  version -> packageversion
+  versiondescription -> versionStringFor
+  ```
+
+- Timedot format's doc has been rewritten.
+
+- Require githash >=0.1.4.0, simplify version code.
+
+- Require base >=4.11, prevent red squares on Hackage's build matrix.
+  (We officially support GHC 8.6+, which means base 4.12, 
+  but Hackage shows all packages building successfully with 
+  base 4.11/GHC 8.4+ somehow, so it's still allowed..)
 
 - In JSON output, object attributes are now ordered alphabetically,
   consistently for all GHC and haskell lib versions. 
@@ -43,8 +68,21 @@ Improvements
 
 Fixes
 
-- Make sure `--forecast` transactions are generated up to the day before the provided query end date. 
+- Make balance assignments in forecasted transactions work again
+  (broken in 1.22.1).
+  Forecast transactions are now generated early and processed
+  in the same way as other transactions.
+  (#1638, Stephen Morgan)
+
+- aregister preserves the order of same-day transactions again
+  (broken in 1.22.1).
+  (#1642, Stephen Morgan)
+
+- `--forecast` now generates transactions up to the day before the
+  specified report end date (instead of two days before).
   (#1633, Stephen Morgan)
+
+# 1.22.2 unreleased
 
 # 1.22.1 2021-08-02
 

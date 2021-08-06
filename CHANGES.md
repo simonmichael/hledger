@@ -9,7 +9,12 @@
 General changes in the hledger project (and notable all-package releases).
 For package-specific changes and minor releases, see the hledger package changelogs.
 
-# 767377802
+# 000ff30fd
+
+- shake: changelogs: don't get confused by an all-digit commit hash
+  Fixes spurious "can't list changes" warning.
+
+- ;doc: update changelogs
 
 - `Shake cabalfiles` now uses (and requires) hpack in $PATH, to avoid building.
   It should be the version that's in the current stack release, to avoid commit conflicts.
@@ -40,6 +45,8 @@ For package-specific changes and minor releases, see the hledger package changel
   <https://hledger.org/CONTRIBUTING.html#commit-messages>,
   <https://github.com/simonmichael/hledger/blob/master/bin/commitlint>
   (#1602)
+
+# 1.22.2 unreleased
 
 # 1.22.1 2021-08-02
 

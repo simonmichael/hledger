@@ -9,7 +9,21 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 81dfbc9ac
+# 49ff03931
+
+Improvements
+
+- Clarify version string code:
+  ```
+  version -> packageversion
+  versiondescription -> versionStringFor
+  ```
+
+- Require base >=4.11, prevent red squares on Hackage's build matrix.
+
+- Use hledger 1.22.1.
+
+# 1.22.2 unreleased
 
 # 1.22.1 2021-08-02
 

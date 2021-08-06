@@ -9,7 +9,23 @@ __      _____| |__
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 95de5a878
+# 49ff03931
+
+Improvements
+
+- Clarify version string code:
+  ```
+  version -> packageversion
+  versiondescription -> versionStringFor
+  ```
+
+- Drop the hidden `--binary-filename` flag, which is no longer used.
+
+- Require base >=4.11, prevent red squares on Hackage's build matrix.
+
+- Use hledger 1.22.1.
+
+# 1.22.2 unreleased
 
 # 1.22.1 2021-08-02
 
