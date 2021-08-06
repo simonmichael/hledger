@@ -47,13 +47,16 @@ Transactions in a and subaccounts:
 # Also, make sure to use the posting date of matching transactions, if it
 # differs from the transaction date.
 <
+~ 2021-01-03  sixth, because forecast transactions come after normal transactions
+    (a)           6
+
 2021-01-03 fifth
     (a)           5
 
 2021-01-02 third
     (a)           3
 
-2021-01-02 fourth
+2021-01-02 fourth, because same day is in parse order
     (a)           4
 
 2021-01-01 first
@@ -62,16 +65,17 @@ Transactions in a and subaccounts:
 2021-01-03 second, because of posting date
     (a)           2  ; date:2021-01-01
 
-2021-01-04 sixth, because posting date is not matching
-    (a)           6
+2021-01-04 seventh, because posting date is not matching
+    (a)           7
     (b)           0  ; date:2021-01-01
 
 
-$ hledger -f- areg a -w80
+$ hledger -f- areg a --forecast="2021-01..2021-02"
 Transactions in a and subaccounts:
 2021-01-01 first                a                                1             1
 2021-01-01 second, because o..  a                                2             3
 2021-01-02 third                a                                3             6
-2021-01-02 fourth               a                                4            10
+2021-01-02 fourth, because s..  a                                4            10
 2021-01-03 fifth                a                                5            15
-2021-01-04 sixth, because po..  b                                6            21
+2021-01-03 sixth, because fo..  a                                6            21
+2021-01-04 seventh, because ..  b                                7            28
