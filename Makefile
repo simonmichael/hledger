@@ -878,6 +878,7 @@ tag-%: $(call def-help,tag-PKG, make a git release tag for PKG )
 
 tag-project: $(call def-help,tag-project, make a git release tag for the project as a whole )
 	git tag -fs `cat .version` -m "Release `cat .version`, https://hledger.org/release-notes.html#hledger-`cat .version | sed -e 's/\./-/g'`"
+	@printf "please also adjust and run this command:\n git tag -fs `cat .version`.99 -m \"Start of next release cycle. This tag influences git describe and dev builds' version strings.\"\n"
 
 # hackageupload-dry: \
 # 	$(call def-help,hackageupload-dry,\
