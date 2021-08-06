@@ -9,17 +9,23 @@ import Data.Default
 import Data.List (intercalate)
 import System.Environment
 
-import Hledger.Cli hiding (progname,version,prognameandversion)
+import Hledger.Cli hiding (packageversion, progname, prognameandversion)
 import Hledger.UI.Theme (themeNames)
 
-progname, version, prognameandversion :: String
-progname = "hledger-ui"
+-- cf Hledger.Cli.Version
+
+packageversion :: String
 #ifdef VERSION
-version = VERSION
+packageversion = VERSION
 #else
-version = ""
+packageversion = ""
 #endif
-prognameandversion = versiondescription progname
+
+progname :: String
+progname = "hledger-ui"
+
+prognameandversion :: String
+prognameandversion = versionStringFor progname
 
 uiflags = [
   -- flagNone ["debug-ui"] (setboolopt "rules-file") "run with no terminal output, showing console"

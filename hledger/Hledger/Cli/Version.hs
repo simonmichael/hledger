@@ -5,11 +5,10 @@ Version number-related utilities. See also the Makefile.
 -}
 
 module Hledger.Cli.Version (
+  packageversion,
   progname,
-  version,
   prognameandversion,
-  versiondescription,
-  -- binaryfilename,
+  versionStringFor,
 )
 where
 
@@ -17,23 +16,17 @@ import GitHash (giDescribe, tGitInfoCwdTry)
 import System.Info (os, arch)
 import Hledger.Utils
 
-
--- package name and version from the cabal file
-progname :: String
-progname = "hledger"
-
-version :: String
+-- | This package's version, passed in as VERSION build variable, or a generic description.
+packageversion :: String
 #ifdef VERSION
-version = VERSION
+packageversion = VERSION
 #else
-version = "dev build"
+packageversion = "dev build"
 #endif
 
-prognameandversion :: String
-prognameandversion = versiondescription progname
-
--- developer build version strings include PATCHLEVEL (number of
--- patches since the last tag). If defined, it must be a number.
+-- | A period and the patch level (number of patches added since the package version), 
+-- passed in as PATCHLEVEL build variable, or the empty string. 
+-- If PATCHLEVEL is defined it must be a number, or this will fail.
 patchlevel :: String
 #ifdef PATCHLEVEL
 patchlevel = "." ++ show (PATCHLEVEL :: Int)
@@ -41,9 +34,12 @@ patchlevel = "." ++ show (PATCHLEVEL :: Int)
 patchlevel = ""
 #endif
 
--- the package version plus patchlevel if specified
+-- | The version and patchlevel passed in as build variables, combined and prettified.
+-- This will raise an error if VERSION is has <1 or >3 components,
+-- or if PATCHLEVEL is defined but not a number.
+-- Used as a fallback if git describe is unavailable.
 buildversion :: String
-buildversion = prettify . splitAtElement '.' $ version ++ patchlevel
+buildversion = prettify . splitAtElement '.' $ packageversion ++ patchlevel
   where
     prettify (major:minor:bugfix:patches:[]) =
         major ++ "." ++ minor ++ bugfix' ++ patches'
@@ -56,19 +52,35 @@ buildversion = prettify . splitAtElement '.' $ version ++ patchlevel
     prettify []                      = error' "VERSION is empty, please fix"  -- PARTIAL:
     prettify _                       = error' "VERSION has too many components, please fix"
 
--- | A string representing the version description of the current package
-versiondescription :: String -> String
-versiondescription progname = concat [
+-- | The name of this package's main executable.
+progname :: String
+progname = "hledger"
+
+-- | The program name and the best version information we can obtain 
+-- from git describe or build variables.
+prognameandversion :: String
+prognameandversion = versionStringFor progname
+
+-- | Given a program name, make a version string consisting of: 
+--
+-- * the program name
+-- * the output of "git describe" in the current repo at build time 
+--   (last tag, commit count since then, HEAD's git hash);
+--   or if that fails, buildversion
+-- * the platform (OS) name
+-- * the processor architecture name.
+--
+versionStringFor :: String -> String
+versionStringFor progname = concat [
     progname
   , " "
-  , either (const buildversion) giDescribe gi
+  , either (const buildversion) giDescribe $$tGitInfoCwdTry
   , ", "
   , os'
   , "-"
   , arch
   ]
   where
-    gi = $$tGitInfoCwdTry
     os' | os == "darwin"  = "mac"
         | os == "mingw32" = "windows"
         | otherwise       = os

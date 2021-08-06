@@ -27,7 +27,7 @@ import Yesod.Default.Handlers (getFaviconR, getRobotsR)
 
 import Hledger
 import Hledger.Web.Import
-import Hledger.Web.WebOptions (version)
+import Hledger.Web.WebOptions (packageversion)
 import Hledger.Web.Widget.Common (journalFile404)
 
 getRootR :: Handler Html
@@ -60,7 +60,7 @@ getVersionR = do
   VD{caps} <- getViewData
   when (CapView `notElem` caps) (permissionDenied "Missing the 'view' capability")
   selectRep $ do
-    provideJson $ version
+    provideJson $ packageversion
 
 getAccountnamesR :: Handler TypedContent
 getAccountnamesR = do

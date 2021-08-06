@@ -16,18 +16,24 @@ import System.Environment (getArgs)
 import Network.Wai as WAI
 import Network.Wai.Middleware.Cors
 
-import Hledger.Cli hiding (progname, version)
+import Hledger.Cli hiding (packageversion, progname, prognameandversion)
 import Hledger.Web.Settings (defhost, defport, defbaseurl)
 
-progname, version :: String
-progname = "hledger-web"
+-- cf Hledger.Cli.Version
+
+packageversion :: String
 #ifdef VERSION
-version = VERSION
+packageversion = VERSION
 #else
-version = ""
+packageversion = ""
 #endif
+
+progname :: String
+progname = "hledger-web"
+
 prognameandversion :: String
-prognameandversion = versiondescription progname
+prognameandversion = versionStringFor  progname
+
 
 webflags :: [Flag RawOpts]
 webflags =
