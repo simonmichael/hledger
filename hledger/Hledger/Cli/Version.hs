@@ -9,7 +9,7 @@ module Hledger.Cli.Version (
   version,
   prognameandversion,
   versiondescription,
-  binaryfilename,
+  -- binaryfilename,
 )
 where
 
@@ -32,6 +32,8 @@ version = VERSION
 #else
 version = "dev build"
 #endif
+
+prognameandversion :: String
 prognameandversion = versiondescription progname
 
 -- developer build version strings include PATCHLEVEL (number of
@@ -72,13 +74,13 @@ versiondescription progname = concat
         | os == "mingw32" = "windows"
         | otherwise       = os
 
--- | Given a program name, return a precise platform-specific executable
--- name suitable for naming downloadable binaries.  Can raise an error if
--- the version and patch level was not defined correctly at build time.
-binaryfilename :: String -> String
-binaryfilename progname = concat
-    [progname, "-", buildversion, "-", os', "-", arch, suffix]
-  where
-    (os',suffix) | os == "darwin"  = ("mac","" :: String)
-                 | os == "mingw32" = ("windows",".exe")
-                 | otherwise       = (os,"")
+-- -- | Given a program name, return a precise platform-specific executable
+-- -- name suitable for naming downloadable binaries.  Can raise an error if
+-- -- the version and patch level was not defined correctly at build time.
+-- binaryfilename :: String -> String
+-- binaryfilename progname = concat
+--     [progname, "-", buildversion, "-", os', "-", arch, suffix]
+--   where
+--     (os',suffix) | os == "darwin"  = ("mac","" :: String)
+--                  | os == "mingw32" = ("windows",".exe")
+--                  | otherwise       = (os,"")

@@ -97,12 +97,13 @@ webmode =
       Group
       { groupUnnamed = webflags
       , groupHidden =
-          hiddenflags ++
-          [ flagNone
-              ["binary-filename"]
-              (setboolopt "binary-filename")
-              "show the download filename for this executable, and exit"
-          ]
+          hiddenflags 
+          -- ++
+          -- [ flagNone
+          --     ["binary-filename"]
+          --     (setboolopt "binary-filename")
+          --     "show the download filename for this executable, and exit"
+          -- ]
       , groupNamed = [generalflagsgroup1]
       }
   , modeHelpSuffix = []
