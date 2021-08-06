@@ -109,7 +109,7 @@ dependencies:
 - directory
 - extra >=1.6.3
 - filepath
-- githash >=0.1.2
+- githash >=0.1.4
 - haskeline >=0.6
 - megaparsec >=7.0.0 && <9.2
 - mtl >=2.2.1

@@ -28,6 +28,7 @@ extra-deps:
 - prettyprinter-ansi-terminal-1.1.2
 - doctest-0.18.1
 # for hledger:
+- githash-0.1.4.0
 # for hledger-ui:
 # for hledger-web:
 

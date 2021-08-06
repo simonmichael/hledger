@@ -13,11 +13,7 @@ module Hledger.Cli.Version (
 )
 where
 
-#if MIN_VERSION_githash(0,1,4)
 import GitHash (giDescribe, tGitInfoCwdTry)
-#else
-import GitHash (giHash, tGitInfoCwdTry)
-#endif
 import System.Info (os, arch)
 import Hledger.Utils
 
@@ -62,12 +58,15 @@ buildversion = prettify . splitAtElement '.' $ version ++ patchlevel
 
 -- | A string representing the version description of the current package
 versiondescription :: String -> String
-versiondescription progname = concat
-#if MIN_VERSION_githash(0,1,4)
-    [progname, " ", either (const buildversion) giDescribe gi, ", ", os', "-", arch]
-#else
-    [progname, " ", buildversion, either (const "") (\x -> ", git revision " ++ giHash x) gi, ", ", os', "-", arch]
-#endif
+versiondescription progname = concat [
+    progname
+  , " "
+  , either (const buildversion) giDescribe gi
+  , ", "
+  , os'
+  , "-"
+  , arch
+  ]
   where
     gi = $$tGitInfoCwdTry
     os' | os == "darwin"  = "mac"
