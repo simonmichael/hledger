@@ -42,15 +42,36 @@ $ hledger -f- areg a aaa
 Transactions in a and subaccounts:
 2021-01-03                      a:aa:aaa                       100           100
 
-# 5. Same-day transactions are displayed in parse order, as usual. (#1642)
-# <
-# 2021-01-01 first
-#     (a)           1
+# 5. Sorts transactions first by transaction date (earliest date of the
+# matching postings) then by parse order. (#1642)
+# Also, make sure to use the posting date of matching transactions, if it
+# differs from the transaction date.
+<
+2021-01-03 fifth
+    (a)           5
 
-# 2021-01-01 second
-#     (a)           2
+2021-01-02 third
+    (a)           3
 
-# $ hledger -f- areg a -w80
-# Transactions in a and subaccounts:
-# 2021-07-31 first                a                                1             1
-# 2021-07-31 second               a                                2             3
+2021-01-02 fourth
+    (a)           4
+
+2021-01-01 first
+    (a)           1
+
+2021-01-03 second, because of posting date
+    (a)           2  ; date:2021-01-01
+
+2021-01-04 sixth, because posting date is not matching
+    (a)           6
+    (b)           0  ; date:2021-01-01
+
+
+$ hledger -f- areg a -w80
+Transactions in a and subaccounts:
+2021-01-01 first                a                                1             1
+2021-01-01 second, because o..  a                                2             3
+2021-01-02 third                a                                3             6
+2021-01-02 fourth               a                                4            10
+2021-01-03 fifth                a                                5            15
+2021-01-04 sixth, because po..  b                                6            21
