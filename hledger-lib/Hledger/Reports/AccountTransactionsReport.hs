@@ -138,9 +138,9 @@ accountTransactionsReport rspec@ReportSpec{rsOpts=ropts} j reportq' thisacctq = 
 
     items =
         accountTransactionsReportItems reportq thisacctq startbal maNegate
-      -- sort by the transaction's register date, for accurate starting balance
+      -- sort by the transaction's register date, then index, for accurate starting balance
       . ptraceAtWith 5 (("ts4:\n"++).pshowTransactions.map snd)
-      . sortBy (comparing $ Down . fst)
+      . sortBy (comparing (Down . fst) <> comparing (Down . tindex . snd))
       . map (\t -> (transactionRegisterDate reportq thisacctq t, t))
       $ jtxns acctJournal
 
