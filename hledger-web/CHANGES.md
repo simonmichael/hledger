@@ -23,9 +23,9 @@ Improvements
 
 - Require base >=4.11, prevent red squares on Hackage's build matrix.
 
-- Use hledger 1.22.1.
-
 # 1.22.2 unreleased
+
+- Use hledger 1.22.2.
 
 # 1.22.1 2021-08-02
 

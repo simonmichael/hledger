@@ -48,8 +48,6 @@ For package-specific changes and minor releases, see the hledger package changel
 
 # 1.22.2 unreleased
 
-# 1.22.1 2021-08-02
-
 # 1.22 2021-07-03
 
 Software:
