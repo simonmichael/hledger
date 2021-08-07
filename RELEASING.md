@@ -82,9 +82,8 @@ Always maintain changelogs in main branch (not in release branches).
 
 1. cherry pick changes to release
     - cherry pick release-worthy commits 
-        - from: magit, `l o X.Y..master`, `M-x magit-toggle-buffer-lock`, `C-x D`
-            (`M-x toggle-window-dedicated`)
-        - to: magit, `l o master..X.Y`, `M-x magit-toggle-buffer-lock`, `C-x D`
+        - from: magit, `l o MAJORVER-branch..master`, `M-x magit-toggle-buffer-lock`, `M-x toggle-window-dedicated` (`C-c D`)
+        - to:   magit, `l o master..MAJORVER-branch`, `M-x magit-toggle-buffer-lock`, `M-x toggle-window-dedicated`
         - ignore commits already seen in previous cherry picking sessions
         - ignore changelog commits / other boring commits 
           ("dev: doc: update changelogs")
