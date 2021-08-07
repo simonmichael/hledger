@@ -31,7 +31,7 @@ API changes
 
   This is done to be more consistent with future field naming conventions,
   and to make automatic generation of lenses simpler. See discussion in
-  #1545.
+  [#1545](https://github.com/simonmichael/hledger/issues/1545).
 
       rsOpts      -> _rsReportOpts
       rsToday     -> _rsDay
@@ -103,7 +103,10 @@ Improvements
 - MixedAmounts now have a more predictable Ord instance / sort order.
   They are compared in each commodity in turn, with
   alphabetically-first commodity symbols being most significant.
-  Missing commodities are assumed to be zero. (#1563, #1564, Stephen Morgan)
+  Missing commodities are assumed to be zero. 
+  ([#1563](https://github.com/simonmichael/hledger/issues/1563), 
+  [#1564](https://github.com/simonmichael/hledger/issues/1564), 
+  Stephen Morgan)
   
   As a consequence, all the ways of representing zero with a MixedAmount ([],
   [A 0], [A 0, B 0, ...]) are now Eq-ual (==), whereas before they were
@@ -113,11 +116,13 @@ Improvements
   across all GHC and haskell lib versions.
 
 - Our doctests are disabled with GHC 9 for now to work around an
-  upstream bug. (#1503, #1615)
+  upstream bug. 
+  ([#1503](https://github.com/simonmichael/hledger/issues/1503), 
+  [#1615](https://github.com/simonmichael/hledger/issues/1615))
 
 - Require base >=4.11, prevent red squares on Hackage's build matrix.
 
-# 1.22.2 unreleased
+# 1.22.2 2021-08-07
 
 - forecast_ has moved from ReportOpts to InputOpts. (Stephen Morgan)
 
@@ -125,7 +130,7 @@ Improvements
   This allows us to have a uniform procedure for balancing transactions,
   whether they are normal transactions or forecast transactions, including
   dealing with balance assignments, balance assertions, and auto postings.
-  (#1638, Stephen Morgan)
+  ([#1638](https://github.com/simonmichael/hledger/issues/1638), Stephen Morgan)
 
 # 1.22.1 2021-08-02
 

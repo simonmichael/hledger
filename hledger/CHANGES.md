@@ -18,7 +18,7 @@ Features
   the journal's periodic transactions for settinig budget goals. 
   This makes it possible to keep multiple named budgets in one journal, 
   and select the one you want with --budget's argument. 
-  (#1612)
+  ([#1612](https://github.com/simonmichael/hledger/issues/1612))
 
 Improvements
 
@@ -37,7 +37,7 @@ Improvements
 
 - In JSON output, object attributes are now ordered alphabetically,
   consistently for all GHC and haskell lib versions. 
-  (#1618, Stephen Morgan)
+  ([#1618](https://github.com/simonmichael/hledger/issues/1618), Stephen Morgan)
 
 - JSON output now indents with 2 spaces rather than 4. 
   (Stephen Morgan)
@@ -47,29 +47,31 @@ Improvements
   Multi-commodity amounts are sorted by comparing their amounts in
   each commodity, with alphabetically-first commodity symbols being
   most significant, and assuming zero when a commodity is missing.
-  (#1563, #1564, Stephen Morgan)
+  ([#1563](https://github.com/simonmichael/hledger/issues/1563), 
+  [#1564](https://github.com/simonmichael/hledger/issues/1564), Stephen Morgan)
   
 - The close command now uses the later of today or journal's last day
   as default closing date, providing more intuitive behaviour when
   closing a journal with future transactions. Docs have been improved.
-  (#1604)
+  ([#1604](https://github.com/simonmichael/hledger/issues/1604))
 
 Fixes
 
 - `--forecast` now generates transactions up to the day before the
   specified report end date (instead of two days before).
-  (#1633, Stephen Morgan)
+  ([#1633](https://github.com/simonmichael/hledger/issues/1633), Stephen Morgan)
 
-# 1.22.2 unreleased
+# 1.22.2 2021-08-07
 
 Breaking changes
 
 - aregister no longer hides future transactions by default.
-  This is a consequence of the fix for #1638. It makes aregister
-  consistent, so we think it's a reasonable change.
-  So if you have future-dated transactions in your journal
-  which you don't want reported, you now must exclude them with 
-  `-e tomorrow` or `date:-tomorrow` in the command, as with other reports.
+  This is a consequence of the fix for 
+  [#1638](https://github.com/simonmichael/hledger/issues/1638). 
+  It makes aregister consistent, so we think it's a reasonable change.
+  So if you have future-dated transactions in your journal which you
+  don't want reported, you now must exclude them with `-e tomorrow` or
+  `date:-tomorrow` in the command, as with other reports.
   (Stephen Morgan)
 
 Improvements
@@ -82,11 +84,11 @@ Fixes
   (broken in 1.22.1).
   Forecast transactions are now generated early and processed
   in the same way as other transactions.
-  (#1638, Stephen Morgan)
+  ([#1638](https://github.com/simonmichael/hledger/issues/1638), Stephen Morgan)
 
 - aregister preserves the order of same-day transactions again
   (broken in 1.22.1).
-  (#1642, Stephen Morgan)
+  ([#1642](https://github.com/simonmichael/hledger/issues/1642), Stephen Morgan)
 
 # 1.22.1 2021-08-02
 
