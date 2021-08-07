@@ -9,8 +9,12 @@ Some of this might move elsewhere later.
 
 ## Terminology
 
-- "main" / "main branch" = `master` branch in the main hledger repo (might get renamed in future)
-- "release" / "release branch" = a release branch in the main hledger repo (eg `1.22-branch`)
+- **OLD** - previous release version, eg `1.22` or `1.22.1`
+- **NEW** - new release version, eg `1.22.2` or `1.23`
+- **MAJORVER** - just the major version part, eg `1.22` or `1.23`
+- **master** / **master branch** - `master` branch in the main hledger repo
+- **release** / **release branch** - a release branch in the main hledger repo, named MAJORVER-branch, eg `1.22-branch`
+- **site** / **site repo** - master branch in the hledger_website repo, usually cloned under the main repo as `site`
 
 ## Commits
 
@@ -33,7 +37,7 @@ Follow our [commit conventions](CONTRIBUTING.html#commit-messages):
 
 ## Changelogs
 
-Always maintain changelogs in main branch (not in release branches).
+Always maintain changelogs in master branch (not in release branches).
 
 **Frequently**, especially after merging changes, and before cherry picking into release branch:
 
@@ -48,7 +52,7 @@ Always maintain changelogs in main branch (not in release branches).
 - commit: `./Shake changelogs -c`
 
 **After cherry-picking** changes to a release branch:
-- in the main branch changelogs, move the corresponding changelog items under a pending release heading,
+- in the master branch changelogs, move the corresponding changelog items under a pending release heading,
   creating that when necessary:
     ```
     # LATESTHASH
@@ -66,17 +70,17 @@ Always maintain changelogs in main branch (not in release branches).
 
 - do final update/edits; check organisation, wording, formatting, issue links
 - replace "unreleased" with the release date
-- copy the new sections from main changelogs to release branch changelogs
+- copy the new sections from master changelogs to release branch changelogs
 
-## Pre release
+## Release prep
 
 1. create release branch when needed:\
   `git branch MAJORVER-branch BRANCHPOINT`\
-   Sometimes, we make the major release tag (`1.22`) on master,
-   and create a release branch (`1.22-branch`) when there's a followup minor release:\
+   Sometimes when convenient we make major releases on master (adapt the steps below as needed).
+   And make the release branch later, when a minor release becomes necessary, eg:\
   `git branch 1.22-branch 1.22`
 
-1. update changelogs in main
+1. update changelogs in master
 
 1. review changes so far, estimate which packages will be released
 
@@ -88,62 +92,118 @@ Always maintain changelogs in main branch (not in release branches).
         - ignore changelog commits / other boring commits 
           ("dev: doc: update changelogs")
 
-    - update changelogs in main (move corresponding change items under pending release heading)
+    - update changelogs in master (move corresponding change items under pending release heading)
 
-## Release
+## Release day
 
-- finalise [changelogs](#changelogs) in main,
-  copy to changelogs in release branch
+In master:
 
-- `./Shake.hs` to update `Shake` and review release tasks
+- `./Shake.hs` to ensure `Shake` is current, review commands
 
-- `./Shake setversion VER [-c]` (first without `-c` to review, then with `-c` to commit).\
-  Also `touch hledger/Hledger/Cli/Version.hs` ?
+- finalise [changelogs](#changelogs), copy each new section (emacs `C-x r s a` ... `b` ... `c` ... `d`)
+
+In release branch:
+
+- paste new sections into changelogs
+
+- `./Shake setversion NEWVER [-c]` (first without `-c` to review, then with `-c` to commit).
+  <!-- Also `touch hledger/Hledger/Cli/Version.hs` ? -->
 
 - `./Shake cmdhelp [-c]`
 
 - `./Shake mandates`
 
-- `./Shake manuals [-c]`
+- `./Shake manuals -B [-c]`  (using up to date doctool versions)
 
-- `make tag`
+- `make tag`  (signed annotated tags for each package and the overall release)
 
-- `make hackageupload`
-
-- push tags: magit `P t`
+- `stack clean && stack install && hledger --version && hledger-ui --version && hledger-web --version`
+  to build locally and check version strings
 
 - push to CI branches to test & generate binaries
   - magit `P -f e origin/ci-windows`
-  - ... `origin/ci-mac`
-  - ... `origin/ci-linux-static`
-  - ... `origin/ci-linux-static-arm32`
+  - magit `P -f e origin/ci-mac`
+  - magit `P -f e origin/ci-linux-static`
+  - magit `P -f e origin/ci-linux-static-arm32` if needed
 
-- in site: update `download.md`
+In site repo:
 
-- in site: update `relnotes.md`
-  - copy template
-  - add new changelog sections, omitting hledger-lib
-  - add summary
-  - add contributors
+- update `download.md`
+  - outputs in --version examples (search: hledger --version)
+  - final output line from `hledger test` (run in terminal for normal speed)
+  - query-replace OLD -> NEW in 
+    - "current hledger release"
+    - CI binaries badges/links, including linux-static-arm32v7 if built
+    - "building from source"
+    - stack install command
+    - cabal install command
+  - query-replace OLD-brightgreen -> OLD-red
+  - commit: `download: NEW`
 
-- update `doc/ANNOUNCE`
-  - summary/contributors from release notes
+- update `relnotes.md`
+  - copy template, uncomment
+  - replace date
+  - replace XX with NEW
+  - add new changelog sections, excluding hledger-lib
+  - remove any empty sections
+  - add contributors, `git shortlog -sn OLD..NEW`
+  - add summary (major release) or remove it (minor release)
+  - check preview in vs code
+  - commit: `relnotes: NEW`
+
+In release branch:
+
+- update `doc/ANNOUNCE` (major release)
+  - summary, contributors from release notes
+  - any other edits
+  - commit: `;doc: ANNOUNCE`
+
+In master:
+
+- cherry pick useful release branch changes
+  - `;doc: ANNOUNCE`
+
+- wait for CI binaries, https://ci.hledger.org
+
+- pre-release pause: take a break away from keyboard
+
+## Release
+
+In release branch:
+
+- review status, reflect
+
+- `make hackageupload`
+
+- push tags: magit `P t origin`
 
 - create github release
-  - tag VER, title VER, body similar to previous release
-  - at https://ci.hledger.org download each CI branch artifact when ready, to ~/Downloads/hledger-VER/
-  - drag artifacts into github draft release
+  - https://github.com/simonmichael/hledger/releases, copy last release's body
+  - create new release from NEW tag if CI workflow has failed
+  - tag NEW, title NEW, body similar to previous release
+  - at https://ci.hledger.org download CI binary artifacts, check sizes look similar to previous
+  - select downloaded artifacts in Finder, drag into github release
   - publish release
 
 - announce
-  - send ANNOUNCE to hledger@googlegroups.com, haskell-cafe@googlegroups.com
-  - link release notes/summary in #hledger:matrix.org, #hledger:libera.chat
-  - tweet at https://twitter.com/simonkwmichael
-  - toot at https://fosstodon.org/web/accounts/106304084994827771
+  - push website download/relnotes updates
+  - share release notes link, summary in #hledger:libera.chat
+  - share release notes link, summary, release notes markdown in #hledger:matrix.org
+  - send ANNOUNCE to hledger@googlegroups.com, haskell-cafe@googlegroups.com (major release)
+    or brief announcement to hledger@googlegroups.com (minor release)
+    - ANN: hledger NEW
+    - release notes link, summary
+    - release notes html (copied from browser)
+  - tweet at https://twitter.com/simonkwmichael ?
+  - toot at https://fosstodon.org/web/accounts/106304084994827771 ?
 
 ## Post release
 
-- merge/check/update download page changes (docker, homebrew, nix, linux distros..)
+- merge/check/update download page changes
+  - docker - expect/merge PR
+  - homebrew - expect badge to update soon
+  - nix - expect `make nix-hledger-version` to update after a few days, find and update to that commit hash
+  - linux distros - once in a while, follow the links & search for newer versions, update
 
 - support
 
