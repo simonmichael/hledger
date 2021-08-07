@@ -57,7 +57,7 @@ hledgerWebMain = do
     | "info"            `inRawOpts` rawopts_ -> runInfoForTopic "hledger-web" Nothing
     | "man"             `inRawOpts` rawopts_ -> runManForTopic  "hledger-web" Nothing
     | "version"         `inRawOpts` rawopts_ -> putStrLn prognameandversion >> exitSuccess
-    -- | "binary-filename" `inRawOpts` rawopts_ -> putStrLn (binaryfilename progname)
+    --  "binary-filename" `inRawOpts` rawopts_ -> putStrLn (binaryfilename progname)
     | "test"            `inRawOpts` rawopts_ -> do
       -- remove --test and --, leaving other args for hspec
       filter (not . (`elem` ["--test","--"])) <$> getArgs >>= flip withArgs hledgerWebTest
