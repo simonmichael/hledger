@@ -9,7 +9,7 @@
 General changes in the hledger project (and notable all-package releases).
 For package-specific changes and minor releases, see the hledger package changelogs.
 
-# 000ff30fd
+# 31541bb98
 
 - shake: changelogs: don't get confused by an all-digit commit hash
   Fixes spurious "can't list changes" warning.
@@ -45,8 +45,6 @@ For package-specific changes and minor releases, see the hledger package changel
   <https://hledger.org/CONTRIBUTING.html#commit-messages>,
   <https://github.com/simonmichael/hledger/blob/master/bin/commitlint>
   (#1602)
-
-# 1.22.2 unreleased
 
 # 1.22 2021-07-03
 

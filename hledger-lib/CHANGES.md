@@ -9,7 +9,7 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 918c243fa
+# 9bc77f87f
 
 API changes
 
