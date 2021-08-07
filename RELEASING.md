@@ -131,6 +131,7 @@ In site repo:
 - update `download.md`
   - outputs in --version examples (search: hledger --version)
   - final output line from `hledger test` (run in terminal for normal speed)
+  - Total count from `make functest`
   - query-replace OLD -> NEW in 
     - "current hledger release"
     - CI binaries badges/links, including linux-static-arm32v7 if built
