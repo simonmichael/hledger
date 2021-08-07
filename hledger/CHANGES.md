@@ -9,6 +9,35 @@
 User-visible changes in the hledger command line tool and library.
 
 
+# 1.22.2 2021-08-07
+
+Breaking changes
+
+- aregister no longer hides future transactions by default.
+  This is a consequence of the fix for 
+  [#1638](https://github.com/simonmichael/hledger/issues/1638). 
+  It makes aregister consistent, so we think it's a reasonable change.
+  So if you have future-dated transactions in your journal which you
+  don't want reported, you now must exclude them with `-e tomorrow` or
+  `date:-tomorrow` in the command, as with other reports.
+  (Stephen Morgan)
+
+Improvements
+
+- Timedot format's doc has been rewritten.
+
+Fixes
+
+- Make balance assignments in forecasted transactions work again
+  (broken in 1.22.1).
+  Forecast transactions are now generated early and processed
+  in the same way as other transactions.
+  ([#1638](https://github.com/simonmichael/hledger/issues/1638), Stephen Morgan)
+
+- aregister preserves the order of same-day transactions again
+  (broken in 1.22.1).
+  ([#1642](https://github.com/simonmichael/hledger/issues/1642), Stephen Morgan)
+
 # 1.22.1 2021-08-02
 
 Improvements

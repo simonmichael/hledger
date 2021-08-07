@@ -9,6 +9,16 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
+# 1.22.2 2021-08-07
+
+- forecast_ has moved from ReportOpts to InputOpts. (Stephen Morgan)
+
+- Generate forecast transactions at journal finalisation, rather than as a postprocessing step.
+  This allows us to have a uniform procedure for balancing transactions,
+  whether they are normal transactions or forecast transactions, including
+  dealing with balance assignments, balance assertions, and auto postings.
+  ([#1638](https://github.com/simonmichael/hledger/issues/1638), Stephen Morgan)
+
 # 1.22.1 2021-08-02
 
 - Allow megaparsec 9.1
