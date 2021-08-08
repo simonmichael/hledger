@@ -290,7 +290,7 @@ Balance changes in 2012-01-01..2014-12-31:
                   || VHT        106.00   18.00   170.00   294.00 
 ```
 
-This flag also affects [CSV output](#output-formats),
+This flag also affects [CSV output](#output-format),
 which is useful for producing data that is easier to consume, eg when making charts:
 
 ```shell
