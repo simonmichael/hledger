@@ -30,6 +30,7 @@ Some of these might belong in Hledger.Read.JournalReader or Hledger.Read.
 module Hledger.Read.Common (
   Reader (..),
   InputOpts(..),
+  HasInputOpts(..),
   definputopts,
   rawOptsToInputOpts,
   rawOptsToCommodityStylesOpts,

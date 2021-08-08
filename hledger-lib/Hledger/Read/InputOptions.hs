@@ -4,10 +4,12 @@ Various options to use when reading journal files.
 Similar to CliOptions.inputflags, simplifies the journal-reading functions.
 
 -}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Hledger.Read.InputOptions (
 -- * Types and helpers for input options
   InputOpts(..)
+, HasInputOpts(..)
 , definputopts
 , forecastPeriod
 ) where
@@ -16,10 +18,10 @@ import Control.Applicative ((<|>))
 import Data.Time (Day, addDays)
 
 import Hledger.Data.Types
-import Hledger.Data.Transaction (BalancingOpts(..), defbalancingopts)
+import Hledger.Data.Transaction (BalancingOpts(..), HasBalancingOpts(..), defbalancingopts)
 import Hledger.Data.Journal (journalEndDate)
 import Hledger.Data.Dates (nulldatespan)
-import Hledger.Utils
+import Hledger.Utils (dbg2, makeHledgerClassyLenses)
 
 data InputOpts = InputOpts {
      -- files_             :: [FilePath]
@@ -73,3 +75,10 @@ forecastPeriod d iopts j = do
         mjournalend   = dbg2 "journalEndDate" $ journalEndDate False j  -- ignore secondary dates
         DateSpan reportStart reportEnd = reportspan_ iopts
     return . dbg2 "forecastspan" $ DateSpan forecastStart forecastEnd
+
+-- ** Lenses
+
+makeHledgerClassyLenses ''InputOpts
+
+instance HasBalancingOpts InputOpts where
+    balancingOpts = balancingopts
