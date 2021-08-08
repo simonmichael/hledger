@@ -164,6 +164,12 @@ In master:
 - cherry pick useful release branch changes
   - `;doc: ANNOUNCE`
 
+- update `hledger-install/hledger-install.sh`
+  - HLEDGER_INSTALL_VERSION
+  - RESOLVER
+  - HLEDGER_*_VERSION
+  - EXTRA_DEPS
+
 - wait for CI binaries, https://ci.hledger.org
 
 - pre-release pause: take a break away from keyboard
@@ -187,7 +193,8 @@ In release branch:
   - publish release
 
 - announce
-  - push website download/relnotes updates
+  - push site download/relnotes updates
+  - push master hledger-install update
   - share release notes link, summary in #hledger:libera.chat
   - share release notes link, summary, release notes markdown in #hledger:matrix.org
   - send ANNOUNCE to hledger@googlegroups.com, haskell-cafe@googlegroups.com (major release)
