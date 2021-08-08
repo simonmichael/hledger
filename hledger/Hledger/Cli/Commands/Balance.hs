@@ -311,7 +311,7 @@ balancemode = hledgerCommandMode
     ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
     ,flagNone ["transpose"] (setboolopt "transpose") "transpose rows and columns"
     ,flagNone ["commodity-column"] (setboolopt "commodity-column")
-      "shows one row per commodity and puts the commodity symbol in its own column, leaving amounts as bare numbers"
+      "show commodity symbols in a separate column, amounts as bare numbers, one row per commodity"
     ,outputFormatFlag ["txt","html","csv","json"]
     ,outputFileFlag
     ]

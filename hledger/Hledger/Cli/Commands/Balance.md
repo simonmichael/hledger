@@ -256,12 +256,11 @@ Here are some ways to handle that:
 [csv-mode]: https://elpa.gnu.org/packages/csv-mode.html
 [visidata]: https://www.visidata.org
 
-#### commodity column
+### Commodity column
 
-With `--commodity-column`, each commodity of an account is displayed as a
-separate row item row will only include the quantity. The commodity itself is
-shown as a separate column, one per row. This can be useful for a cleaner
-display of multi-period reports with many commodities
+With `--commodity-column`, commodity symbols are displayed in a separate column, and amounts are displayed as bare numbers. 
+In this mode, each report row will show amounts for a single commodity, using extra rows when necessary.
+It can be useful for a cleaner display of reports with many commodities:
 
 ```shell
 $ hledger bal -T -Y
@@ -291,7 +290,8 @@ Balance changes in 2012-01-01..2014-12-31:
                   || VHT        106.00   18.00   170.00   294.00
 ```
 
-Single-period CSV balance reports also follow this new convention.
+This flag also affects [CSV output](#output-formats),
+which is useful for producing data that is easier to consume, eg when making charts:
 
 ```shell
 $ hledger bal -T -O csv
