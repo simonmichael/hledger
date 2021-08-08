@@ -6,9 +6,11 @@
 module Hledger.UI.UIOptions
 where
 
-import Data.Default
+import Data.Default (def)
 import Data.List (intercalate)
-import System.Environment
+import Data.Maybe (fromMaybe)
+import Lens.Micro (set)
+import System.Environment (getArgs)
 
 import Hledger.Cli hiding (packageversion, progname, prognameandversion)
 import Hledger.UI.Theme (themeNames)
@@ -64,13 +66,11 @@ uimode =  (mode "hledger-ui" (setopt "command" "ui" def)
 -- hledger-ui options, used in hledger-ui and above
 data UIOpts = UIOpts {
      watch_       :: Bool
-    ,change_      :: Bool
     ,cliopts_     :: CliOpts
  } deriving (Show)
 
 defuiopts = UIOpts
   { watch_   = False
-  , change_  = False
   , cliopts_ = def
   }
 
@@ -78,10 +78,11 @@ defuiopts = UIOpts
 
 rawOptsToUIOpts :: RawOpts -> IO UIOpts
 rawOptsToUIOpts rawopts = checkUIOpts <$> do
-  cliopts <- rawOptsToCliOpts rawopts
+  -- show historical balance by default (unlike hledger)
+  let accum = fromMaybe Historical $ balanceAccumulationOverride rawopts
+  cliopts <- set balanceaccum accum <$> rawOptsToCliOpts rawopts
   return defuiopts {
               watch_       = boolopt "watch" rawopts
-             ,change_      = boolopt "change" rawopts
              ,cliopts_     = cliopts
              }
 
