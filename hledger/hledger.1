@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "July 2021" "hledger-1.22 " "hledger User Manuals"
+.TH "HLEDGER" "1" "August 2021" "hledger-1.22.99 " "hledger User Manuals"
 
 
 
@@ -9,7 +9,7 @@
 This is the command-line interface (CLI) for the hledger accounting
 tool.
 Here we also describe hledger\[aq]s concepts and file formats.
-This manual is for hledger 1.22.
+This manual is for hledger 1.22.99.
 .SH SYNOPSIS
 .PP
 \f[C]hledger\f[R]
@@ -2511,30 +2511,23 @@ aregister, areg
 .P
 .PD
 .PP
-Show the transactions and running historical balance in an account, with
-each line item representing one transaction.
+Show the transactions and running historical balance of a single
+account, with each transaction displayed as one line.
 .PP
-\f[C]aregister\f[R] shows the transactions affecting a particular
-account and its subaccounts, with each line item representing a whole
-transaction - as in bank statements, hledger-ui, hledger-web and other
-accounting apps.
+\f[C]aregister\f[R] shows the overall transactions affecting a
+particular account (and any subaccounts).
+Each report line represents one transaction in this account.
+Transactions before the report start date are always included in the
+running balance (\f[C]--historical\f[R] mode is always on).
 .PP
-Note this is unlike the \f[C]register\f[R] command, which shows
-individual postings and does not always show a single account or a
-historical balance.
+This is a more \[dq]real world\[dq], bank-like view than the
+\f[C]register\f[R] command (which shows individual postings, possibly
+from multiple accounts, not necessarily in historical mode).
+As a quick rule of thumb: - use \f[C]aregister\f[R] for reviewing and
+reconciling real-world asset/liability accounts - use \f[C]register\f[R]
+for reviewing detailed revenues/expenses.
 .PP
-A reminder, \[dq]historical\[dq] balances include any balance from
-transactions before the report start date, so (if opening balances are
-recorded correctly) \f[C]aregister\f[R] will show the real-world
-balances of an account, as you would see in a bank statement.
-.PP
-As a quick rule of thumb, use \f[C]aregister\f[R] for reconciling
-real-world asset/liability accounts and \f[C]register\f[R] for reviewing
-detailed revenues/expenses.
-.PP
-\f[C]aregister\f[R] shows the register for just one account (and its
-subaccounts).
-This account must be specified as the first argument.
+\f[C]aregister\f[R] requires one argument: the account to report on.
 You can write either the full account name, or a case-insensitive
 regular expression which will select the alphabetically first matched
 account.
@@ -2542,8 +2535,24 @@ account.
 \f[C]assets:bbb:checking\f[R] accounts, \f[C]hledger areg checking\f[R]
 would select \f[C]assets:aaa:checking\f[R].)
 .PP
+Transactions involving subaccounts of this account will also be shown.
+\f[C]aregister\f[R] ignores depth limits, so its final total will always
+match a balance report with similar arguments.
+.PP
 Any additional arguments form a query which will filter the transactions
 shown.
+Note some queries will disturb the running balance, causing it to be
+different from the account\[aq]s real-world running balance.
+.PP
+An example: this shows the transactions and historical running balance
+during july, in the first account whose name contains
+\[dq]checking\[dq]:
+.IP
+.nf
+\f[C]
+$ hledger areg checking date:jul
+\f[R]
+.fi
 .PP
 Each \f[C]aregister\f[R] line item shows:
 .IP \[bu] 2
@@ -2560,12 +2569,10 @@ the account\[aq]s historical running balance after this transaction.
 Transactions making a net change of zero are not shown by default; add
 the \f[C]-E/--empty\f[R] flag to show them.
 .PP
-\f[C]aregister\f[R] ignores a depth limit, so its final total will
-always match a balance report with similar arguments.
-.PP
 This command also supports the output destination and output format
-options The output formats supported are \f[C]txt\f[R], \f[C]csv\f[R],
-and \f[C]json\f[R].
+options.
+The output formats supported are \f[C]txt\f[R], \f[C]csv\f[R], and
+\f[C]json\f[R].
 .SS aregister and custom posting dates
 .PP
 Transactions whose date is outside the report period can still be shown,
@@ -2579,26 +2586,6 @@ To filter strictly by transaction date instead, add the
 \f[C]--txn-dates\f[R] flag.
 If you use this flag and some of your postings have custom dates,
 it\[aq]s probably best to assume the running balance is wrong.
-.PP
-Examples:
-.PP
-Show all transactions and historical running balance in the first
-account whose name contains \[dq]checking\[dq]:
-.IP
-.nf
-\f[C]
-$ hledger areg checking
-\f[R]
-.fi
-.PP
-Show transactions and historical running balance in all asset accounts
-during july:
-.IP
-.nf
-\f[C]
-$ hledger areg assets date:jul
-\f[R]
-.fi
 .SS balance
 .PP
 balance, bal
@@ -2680,6 +2667,9 @@ another field used as account name (\f[C]--pivot\f[R])
 .IP \[bu] 2
 custom-formatted line items (single-period reports only)
 (\f[C]--format\f[R])
+.IP \[bu] 2
+commodities shown in a separate column, one per row
+(\f[C]--commodity-column\f[R])
 .PP
 This command supports the output destination and output format options,
 with output formats \f[C]txt\f[R], \f[C]csv\f[R], \f[C]json\f[R], and
@@ -2898,6 +2888,68 @@ Output as CSV and use a CSV viewer like visidata
 .IP \[bu] 2
 Output as HTML and view with a browser:
 \f[C]hledger bal -D -o a.html && open a.html\f[R]
+.SS Commodity column
+.PP
+With \f[C]--commodity-column\f[R], commodity symbols are displayed in a
+separate column, and amounts are displayed as bare numbers.
+In this mode, each report row will show amounts for a single commodity,
+using extra rows when necessary.
+It can be useful for a cleaner display of reports with many commodities:
+.IP
+.nf
+\f[C]
+$ hledger bal -T -Y
+Balance changes in 2012-01-01..2014-12-31:
+
+                  ||                               2012                             2013                   2014                            Total
+==================++=============================================================================================================================
+ Assets:US:ETrade ||   10.00 ITOT, 337.18 USD, 2 more..  70.00 GLD, 18.00 ITOT, 3 more..  -11.00 ITOT, 3 more..  70.00 GLD, 17.00 ITOT, 3 more..
+------------------++-----------------------------------------------------------------------------------------------------------------------------
+ total            ||   10.00 ITOT, 337.18 USD, 2 more..  70.00 GLD, 18.00 ITOT, 3 more..  -11.00 ITOT, 3 more..  70.00 GLD, 17.00 ITOT, 3 more..
+
+$ hledger bal -T -Y --commodity-column
+Balance changes in 2012-01-01..2014-12-31:
+
+                   || Commodity    2012    2013     2014    Total
+==================++=============================================
+ Assets:US:ETrade || GLD             0   70.00        0    70.00
+ Assets:US:ETrade || ITOT        10.00   18.00   -11.00    17.00
+ Assets:US:ETrade || USD        337.18  -98.12  4881.44  5120.50
+ Assets:US:ETrade || VEA         12.00   10.00    14.00    36.00
+ Assets:US:ETrade || VHT        106.00   18.00   170.00   294.00
+------------------++---------------------------------------------
+                  || GLD             0   70.00        0    70.00
+                  || ITOT        10.00   18.00   -11.00    17.00
+                  || USD        337.18  -98.12  4881.44  5120.50
+                  || VEA         12.00   10.00    14.00    36.00
+                  || VHT        106.00   18.00   170.00   294.00
+\f[R]
+.fi
+.PP
+This flag also affects CSV output, which is useful for producing data
+that is easier to consume, eg when making charts:
+.IP
+.nf
+\f[C]
+$ hledger bal -T -O csv
+\[dq]account\[dq],\[dq]balance\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT\[dq]
+\[dq]total\[dq],\[dq]70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT\[dq]
+
+$ hledger bal -T -O csv --commodity-column
+\[dq]account\[dq],\[dq]commodity\[dq],\[dq]balance\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]GLD\[dq],\[dq]70.00\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]ITOT\[dq],\[dq]17.00\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]USD\[dq],\[dq]5120.50\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]VEA\[dq],\[dq]36.00\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]VHT\[dq],\[dq]294.00\[dq]
+\[dq]total\[dq],\[dq]GLD\[dq],\[dq]70.00\[dq]
+\[dq]total\[dq],\[dq]ITOT\[dq],\[dq]17.00\[dq]
+\[dq]total\[dq],\[dq]USD\[dq],\[dq]5120.50\[dq]
+\[dq]total\[dq],\[dq]VEA\[dq],\[dq]36.00\[dq]
+\[dq]total\[dq],\[dq]VHT\[dq],\[dq]294.00\[dq]
+\f[R]
+.fi
 .SS Sorting by amount
 .PP
 With \f[C]-S/--sort-amount\f[R], accounts with the largest (most
@@ -9017,70 +9069,111 @@ These rely on a \[dq]timeclock\[dq] executable which I think is just the
 ledger 2 executable renamed.
 .SH TIMEDOT FORMAT
 .PP
-hledger\[aq]s human-friendly time logging format.
-.PP
-Timedot is a plain text format for logging dated, categorised quantities
-(of time, usually), supported by hledger.
-It is convenient for approximate and retroactive time logging, eg when
-the real-time clock-in/out required with a timeclock file is too precise
-or too interruptive.
-It can be formatted like a bar chart, making clear at a glance where
-time was spent.
-.PP
-Though called \[dq]timedot\[dq], this format is read by hledger as
-commodityless quantities, so it could be used to represent dated
-quantities other than time.
-In the docs below we\[aq]ll assume it\[aq]s time.
-.PP
-A timedot file contains a series of day entries.
-A day entry begins with a non-indented hledger-style simple date (Y-M-D,
-Y/M/D, Y.M.D..) Any additional text on the same line is used as a
-transaction description for this day.
-.PP
-This is followed by optionally-indented timelog items for that day, one
-per line.
-Each timelog item is a note, usually a hledger:style:account:name
-representing a time category, followed by two or more spaces, and a
-quantity.
-Each timelog item generates a hledger transaction.
-.PP
-Quantities can be written as:
+\f[C]timedot\f[R] format is hledger\[aq]s human-friendly time logging
+format.
+Compared to \f[C]timeclock\f[R] format, it is
 .IP \[bu] 2
-dots: a sequence of dots (.) representing quarter hours.
-Spaces may optionally be used for grouping.
-Eg: ....
-\&..
+convenient for quick, approximate, and retroactive time logging
 .IP \[bu] 2
-an integral or decimal number, representing hours.
-Eg: 1.5
-.IP \[bu] 2
-an integral or decimal number immediately followed by a unit symbol
-\f[C]s\f[R], \f[C]m\f[R], \f[C]h\f[R], \f[C]d\f[R], \f[C]w\f[R],
-\f[C]mo\f[R], or \f[C]y\f[R], representing seconds, minutes, hours, days
-weeks, months or years respectively.
-Eg: 90m.
-The following equivalencies are assumed, currently: 1m = 60s, 1h = 60m,
-1d = 24h, 1w = 7d, 1mo = 30d, 1y=365d.
+readable: you can see at a glance where time was spent.
 .PP
-There is some flexibility allowing notes and todo lists to be kept right
-in the time log, if needed:
+A timedot file contains a series of day entries, which might look like
+this:
+.IP
+.nf
+\f[C]
+2021-08-04
+hom:errands          .... ....
+fos:hledger:timedot  ..         ; docs
+per:admin:finance    
+\f[R]
+.fi
+.PP
+hledger reads this as three time transactions on this day, with each dot
+representing a quarter-hour spent:
+.IP
+.nf
+\f[C]
+$ hledger -f a.timedot print   # .timedot file extension activates the timedot reader
+2021-08-04 *
+    (hom:errands)            2.00
+
+2021-08-04 *
+    (fos:hledger:timedot)    0.50
+
+2021-08-04 *
+    (per:admin:finance)      0
+\f[R]
+.fi
+.PP
+A day entry begins with a date line:
 .IP \[bu] 2
-Blank lines and lines beginning with \f[C]#\f[R] or \f[C];\f[R] are
+a non-indented \f[B]simple date\f[R] (Y-M-D, Y/M/D, or Y.M.D).
+.PP
+Optionally this can be followed on the same line by
+.IP \[bu] 2
+a common \f[B]transaction description\f[R] for this day
+.IP \[bu] 2
+a common \f[B]transaction comment\f[R] for this day, after a semicolon
+(\f[C];\f[R]).
+.PP
+After the date line are zero or more optionally-indented time
+transaction lines, consisting of:
+.IP \[bu] 2
+an \f[B]account name\f[R] - any word or phrase, usually a hledger-style
+account name.
+.IP \[bu] 2
+\f[B]two or more spaces\f[R] - a field separator, required if there is
+an amount (as in journal format).
+.IP \[bu] 2
+a \f[B]timedot amount\f[R] - dots representing quarter hours, or a
+number representing hours.
+.IP \[bu] 2
+an optional \f[B]comment\f[R] beginning with semicolon.
+This is ignored.
+.PP
+In more detail, timedot amounts can be:
+.IP \[bu] 2
+\f[B]dots\f[R]: zero or more period characters, each representing one
+quarter-hour.
+Spaces are ignored and can be used for grouping.
+Eg: \f[C].... ..\f[R]
+.IP \[bu] 2
+a \f[B]number\f[R], representing hours.
+Eg: \f[C]1.5\f[R]
+.IP \[bu] 2
+a \f[B]number immediately followed by a unit symbol\f[R] \f[C]s\f[R],
+\f[C]m\f[R], \f[C]h\f[R], \f[C]d\f[R], \f[C]w\f[R], \f[C]mo\f[R], or
+\f[C]y\f[R], representing seconds, minutes, hours, days weeks, months or
+years.
+Eg \f[C]1.5h\f[R] or \f[C]90m\f[R].
+The following equivalencies are assumed:
+.PD 0
+.P
+.PD
+\f[C]60s\f[R] = \f[C]1m\f[R], \f[C]60m\f[R] = \f[C]1h\f[R],
+\f[C]24h\f[R] = \f[C]1d\f[R], \f[C]7d\f[R] = \f[C]1w\f[R], \f[C]30d\f[R]
+= \f[C]1mo\f[R], \f[C]365d\f[R] = \f[C]1y\f[R].
+(This unit will not be visible in the generated transaction amount,
+which is always in hours.)
+.PP
+There is some added flexibility to help with keeping time log data in
+the same file as your notes, todo lists, etc.:
+.IP \[bu] 2
+Lines beginning with \f[C]#\f[R] or \f[C];\f[R], and blank lines, are
 ignored.
 .IP \[bu] 2
-Lines not ending with a double-space and quantity are parsed as items
-taking no time, which will not appear in balance reports by default.
-(Add -E to see them.)
+Lines not ending with a double-space and amount are parsed as
+transactions with zero amount.
+(Most hledger reports hide these by default; add -E to see them.)
 .IP \[bu] 2
-Org mode headlines (lines beginning with one or more \f[C]*\f[R]
-followed by a space) can be used as date lines or timelog items (the
-stars are ignored).
-Also all org headlines before the first date line are ignored.
-This means org users can manage their timelog as an org outline (eg
-using org-mode/orgstruct-mode in Emacs), for organisation, faster
-navigation, controlling visibility etc.
+One or more stars (\f[C]*\f[R]) followed by a space, at the start of a
+line, is ignored.
+So date lines or time transaction lines can also be Org-mode headlines.
+.IP \[bu] 2
+All Org-mode headlines before the first date line are ignored.
 .PP
-Examples:
+More examples:
 .IP
 .nf
 \f[C]
@@ -9138,7 +9231,7 @@ Reporting:
 .IP
 .nf
 \f[C]
-$ hledger -f t.timedot print date:2016/2/2
+$ hledger -f a.timedot print date:2016/2/2
 2016-02-02 *
     (inc:client1)          2.00
 
@@ -9149,7 +9242,7 @@ $ hledger -f t.timedot print date:2016/2/2
 .IP
 .nf
 \f[C]
-$ hledger -f t.timedot bal --daily --tree
+$ hledger -f a.timedot bal --daily --tree
 Balance changes in 2016-02-01-2016-02-03:
 
             ||  2016-02-01d  2016-02-02d  2016-02-03d 
@@ -9166,8 +9259,7 @@ Balance changes in 2016-02-01-2016-02-03:
 \f[R]
 .fi
 .PP
-I prefer to use period for separating account components.
-We can make this work with an account alias:
+Using period instead of colon as account name separator:
 .IP
 .nf
 \f[C]
@@ -9179,7 +9271,7 @@ fos.ledger           ..
 .IP
 .nf
 \f[C]
-$ hledger -f t.timedot --alias /\[rs]\[rs]./=: bal date:2016/2/4 --tree
+$ hledger -f a.timedot --alias /\[rs]\[rs]./=: bal --tree
                 4.50  fos
                 4.00    hledger:timedot
                 0.50    ledger
@@ -9188,7 +9280,7 @@ $ hledger -f t.timedot --alias /\[rs]\[rs]./=: bal date:2016/2/4 --tree
 \f[R]
 .fi
 .PP
-Here is a sample.timedot.
+A sample.timedot file.
 .SH COMMON TASKS
 .PP
 Here are some quick examples of how to do some basic tasks with hledger.
