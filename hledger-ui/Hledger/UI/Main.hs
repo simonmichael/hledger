@@ -29,7 +29,6 @@ import Hledger
 import Hledger.Cli hiding (progname,prognameandversion)
 import Hledger.UI.UIOptions
 import Hledger.UI.UITypes
-import Hledger.UI.UIState (toggleHistorical)
 import Hledger.UI.Theme
 import Hledger.UI.AccountsScreen
 import Hledger.UI.RegisterScreen
@@ -110,8 +109,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportspec_=rsp
                depth_ =queryDepth $ _rsQuery rspec,  -- query's depth part
                period_=periodfromoptsandargs,       -- query's date part
                no_elide_=True,  -- avoid squashing boring account names, for a more regular tree (unlike hledger)
-               empty_=not $ empty_ ropts,  -- show zero items by default, hide them with -E (unlike hledger)
-               balanceaccum_=Historical  -- show historical balances by default (unlike hledger)
+               empty_=not $ empty_ ropts  -- show zero items by default, hide them with -E (unlike hledger)
                }
             }
          }
@@ -155,7 +153,6 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportspec_=rsp
 
     ui =
       (sInit scr) d True $
-        (if change_ uopts' then toggleHistorical else id) -- XXX
           UIState{
            astartupopts=uopts'
           ,aopts=uopts'
