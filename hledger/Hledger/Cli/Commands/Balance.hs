@@ -409,24 +409,19 @@ balanceReportAsCsv opts (items, total) =
     sumAmounts mp am = M.insertWith (+) (acommodity am) am mp
 
 -- | Render a single-column balance report as plain text.
+-- This will fail with a usage error if asked to both use --commodity-column and --format
 balanceReportAsText :: ReportOpts -> BalanceReport -> TB.Builder
-balanceReportAsText opts ((items, total))
-  | not (commodity_column_ opts) =
-      unlinesB lines
-      <> unlinesB (if no_total_ opts then [] else [overline, totalLines])
-  | iscustom = error' "Custom format not supported with --commodity-column"   -- PARTIAL:
-  | otherwise = balanceReportAsText' opts ((items, total))
+balanceReportAsText ropts ((items, total))
+  | not (commodity_column_ ropts) = unlinesB $ concat [lines, if no_total_ ropts then [] else [overline, totalLines]]
+  | iscustom                      = usageError "Custom format not supported with --commodity-column"  -- PARTIAL:
+  | otherwise                     = balanceReportAsText' ropts ((items, total))
   where
-    (lines, sizes) = unzip $ map (balanceReportItemAsText opts) items
+    (lines, sizes) = unzip $ map (balanceReportItemAsText ropts) items
     -- abuse renderBalanceReportItem to render the total with similar format
-    (totalLines, _) = renderBalanceReportItem opts ("",0,total)
+    (totalLines, _) = renderBalanceReportItem ropts ("",0,total)
     -- with a custom format, extend the line to the full report width;
     -- otherwise show the usual 20-char line for compatibility
-    iscustom = case format_ opts of
-        OneLine       ((FormatField _ _ _ TotalField):_) -> False
-        TopAligned    ((FormatField _ _ _ TotalField):_) -> False
-        BottomAligned ((FormatField _ _ _ TotalField):_) -> False
-        _ -> True
+    iscustom = format_ ropts /= defaultBalanceLineFormat
     overlinewidth = if iscustom then sum (map maximum' $ transpose sizes) else 20
     overline   = TB.fromText $ T.replicate overlinewidth "-"
 
@@ -706,10 +701,12 @@ balanceReportTableAsText ropts@ReportOpts{..} =
       | not commodity_column_ =
           (Tab.textCell TopLeft rh, fmap (Cell TopRight . pure . showMixedAmountB bopts) row)
       | otherwise =
-          ( Tab.textsCell TopLeft (replicate (length cs) rh)
+          ( Tab.textsCell TopLeft (replicate rowHeaderCopies rh)
           , Tab.textsCell TopLeft cs
             : fmap (Cell TopRight . showMixedAmountLinesB bopts{displayOrder = Just cs}) row)
       where
+        -- Copy the row header once for each commodity (but not zero times), unless this is a Net: row.
+        rowHeaderCopies = if T.strip rh == "Net:" then 1 else max 1 (length cs)
         bopts = balanceOpts True ropts
         cs = commodities row
 

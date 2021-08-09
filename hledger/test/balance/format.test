@@ -32,3 +32,8 @@ $ hledger -f - balance -N --format="%8.8(total) %(account)" --color=yes
 [31m-500 AAA[m a
  500 AAA b
 >= 0
+
+# Check that a usage error is raised when calling with --commodity-column
+$ hledger -f - balance -N --format="%8.8(total) %(account)" --commodity-column
+>2 /not supported/
+>= 1

@@ -212,7 +212,7 @@ rawOptsToReportOpts d rawopts =
         format = case parseStringFormat <$> formatstring of
             Nothing         -> defaultBalanceLineFormat
             Just (Right x)  -> x
-            Just (Left err) -> usageError $ "could not parse format option: " ++ err
+            Just (Left err) -> usageError $ "could not parse format option: " ++ err  -- PARTIAL:
 
     in defreportopts
           {period_      = periodFromRawOpts d rawopts

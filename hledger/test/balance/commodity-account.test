@@ -1,6 +1,7 @@
 # Record a complicated real-life example. Layout is not perfect, but any
 # changes should be noted and evaluated whether they improve things.
 
+# 1. Balance report csv output with no commodity columns.
 $ hledger -f bcexample.hledger bal assets.*etrade -3 -O csv
 >
 "account","balance"
@@ -8,6 +9,15 @@ $ hledger -f bcexample.hledger bal assets.*etrade -3 -O csv
 "total","70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT"
 >=0
 
+# 2. Multicolumn balance report csv output with no commodity columns.
+$ hledger -f bcexample.hledger bal -T -Y assets.*etrade -3 -O csv
+>
+"account","2012","2013","2014","total"
+"Assets:US:ETrade","10.00 ITOT, 337.18 USD, 12.00 VEA, 106.00 VHT","70.00 GLD, 18.00 ITOT, -98.12 USD, 10.00 VEA, 18.00 VHT","-11.00 ITOT, 4881.44 USD, 14.00 VEA, 170.00 VHT","70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT"
+"total","10.00 ITOT, 337.18 USD, 12.00 VEA, 106.00 VHT","70.00 GLD, 18.00 ITOT, -98.12 USD, 10.00 VEA, 18.00 VHT","-11.00 ITOT, 4881.44 USD, 14.00 VEA, 170.00 VHT","70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT"
+>=0
+
+# 3. Balance report csv output with one line per commodity (--commodity-columns).
 $ hledger -f bcexample.hledger bal assets.*etrade -3 -O csv --commodity-column
 >
 "account","commodity","balance"
@@ -23,43 +33,7 @@ $ hledger -f bcexample.hledger bal assets.*etrade -3 -O csv --commodity-column
 "total","VHT","294.00"
 >=0
 
-$ hledger -f bcexample.hledger bal assets.*etrade -3
->
-           70.00 GLD
-          17.00 ITOT
-         5120.50 USD
-           36.00 VEA
-          294.00 VHT  Assets:US:ETrade
---------------------
-           70.00 GLD
-          17.00 ITOT
-         5120.50 USD
-           36.00 VEA
-          294.00 VHT  
->=0
-
-$ hledger -f bcexample.hledger bal assets.*etrade -3 --commodity-column
->
-   70.00  GLD                    
-   17.00  ITOT                   
- 5120.50  USD                    
-   36.00  VEA                    
-  294.00  VHT   Assets:US:ETrade 
- ------- 
-   70.00  GLD                    
-   17.00  ITOT                   
- 5120.50  USD                    
-   36.00  VEA                    
-  294.00  VHT                    
->=0
-
-$ hledger -f bcexample.hledger bal -T -Y assets.*etrade -3 -O csv
->
-"account","2012","2013","2014","total"
-"Assets:US:ETrade","10.00 ITOT, 337.18 USD, 12.00 VEA, 106.00 VHT","70.00 GLD, 18.00 ITOT, -98.12 USD, 10.00 VEA, 18.00 VHT","-11.00 ITOT, 4881.44 USD, 14.00 VEA, 170.00 VHT","70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT"
-"total","10.00 ITOT, 337.18 USD, 12.00 VEA, 106.00 VHT","70.00 GLD, 18.00 ITOT, -98.12 USD, 10.00 VEA, 18.00 VHT","-11.00 ITOT, 4881.44 USD, 14.00 VEA, 170.00 VHT","70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT"
->=0
-
+# 4. Multicolumn balance report csv output with --commodity-columns.
 $ hledger -f bcexample.hledger bal -T -Y assets.*etrade -3 -O csv --commodity-column
 >
 "account","commodity","2012","2013","2014","total"
@@ -75,19 +49,7 @@ $ hledger -f bcexample.hledger bal -T -Y assets.*etrade -3 -O csv --commodity-co
 "total","VHT","106.00","18.00","170.00","294.00"
 >=0
 
-$ hledger -f bcexample.hledger bal -Y assets.*etrade -3 --average --commodity-column --no-total
->
-Balance changes in 2012-01-01..2014-12-31:
-
-                  || Commodity    2012    2013     2014  Average 
-==================++=============================================
- Assets:US:ETrade || GLD             0   70.00        0    23.33 
- Assets:US:ETrade || ITOT        10.00   18.00   -11.00     5.67 
- Assets:US:ETrade || USD        337.18  -98.12  4881.44  1706.83 
- Assets:US:ETrade || VEA         12.00   10.00    14.00    12.00 
- Assets:US:ETrade || VHT        106.00   18.00   170.00    98.00 
->=0
-
+# 5. Multicolumn budget report csv output with --commodity-columns.
 $ hledger -f bcexample.hledger bal -Y assets.*etrade -3 -O csv --commodity-column --budget
 >
 "Account","Commodity","2012","budget","2013","budget","2014","budget"
@@ -101,4 +63,95 @@ $ hledger -f bcexample.hledger bal -Y assets.*etrade -3 -O csv --commodity-colum
 "Total:","USD","337.18","0","-98.12","0","4881.44","0"
 "Total:","VEA","12.00","0","10.00","0","14.00","0"
 "Total:","VHT","106.00","0","18.00","0","170.00","0"
+>=0
+
+# 6. Balance report output with no commodity column.
+$ hledger -f bcexample.hledger bal assets.*etrade -3
+>
+           70.00 GLD
+          17.00 ITOT
+         5120.50 USD
+           36.00 VEA
+          294.00 VHT  Assets:US:ETrade
+--------------------
+           70.00 GLD
+          17.00 ITOT
+         5120.50 USD
+           36.00 VEA
+          294.00 VHT  
+>=0
+
+# 7. Balance report with commodity column.
+$ hledger -f bcexample.hledger bal assets.*etrade -3 --commodity-column
+>
+   70.00  GLD                    
+   17.00  ITOT                   
+ 5120.50  USD                    
+   36.00  VEA                    
+  294.00  VHT   Assets:US:ETrade 
+ ------- 
+   70.00  GLD                    
+   17.00  ITOT                   
+ 5120.50  USD                    
+   36.00  VEA                    
+  294.00  VHT                    
+>=0
+
+# 9. Multicolumn balance report with --commodity-column.
+$ hledger -f bcexample.hledger bal -Y assets.*etrade -3 --average --commodity-column --no-total
+>
+Balance changes in 2012-01-01..2014-12-31:
+
+                  || Commodity    2012    2013     2014  Average 
+==================++=============================================
+ Assets:US:ETrade || GLD             0   70.00        0    23.33 
+ Assets:US:ETrade || ITOT        10.00   18.00   -11.00     5.67 
+ Assets:US:ETrade || USD        337.18  -98.12  4881.44  1706.83 
+ Assets:US:ETrade || VEA         12.00   10.00    14.00    12.00 
+ Assets:US:ETrade || VHT        106.00   18.00   170.00    98.00 
+>=0
+
+# 9. Compound balance report output with --commodity-column.
+$ hledger -f bcexample.hledger bs -3 --commodity-column
+>
+Balance Sheet 2014-10-11
+
+                      || Commodity        2014-10-11 
+======================++=============================
+ Assets               ||                             
+----------------------++-----------------------------
+ Assets:US:BofA       || USD                  596.05 
+ Assets:US:ETrade     || GLD                   70.00 
+ Assets:US:ETrade     || ITOT                  17.00 
+ Assets:US:ETrade     || USD                 5120.50 
+ Assets:US:ETrade     || VEA                   36.00 
+ Assets:US:ETrade     || VHT                  294.00 
+ Assets:US:Hoogle     || VACHR                337.26 
+ Assets:US:Vanguard   || RGAGX      489.957000000000 
+ Assets:US:Vanguard   || USD                   -0.02 
+ Assets:US:Vanguard   || VBMPX      309.950000000000 
+----------------------++-----------------------------
+                      || GLD                   70.00 
+                      || ITOT                  17.00 
+                      || RGAGX      489.957000000000 
+                      || USD                 5716.53 
+                      || VACHR                337.26 
+                      || VBMPX      309.950000000000 
+                      || VEA                   36.00 
+                      || VHT                  294.00 
+======================++=============================
+ Liabilities          ||                             
+----------------------++-----------------------------
+ Liabilities:US:Chase || USD                 2891.85 
+----------------------++-----------------------------
+                      || USD                 2891.85 
+======================++=============================
+ Net:                 || GLD                   70.00 
+                      || ITOT                  17.00 
+                      || RGAGX      489.957000000000 
+                      || USD                 2824.68 
+                      || VACHR                337.26 
+                      || VBMPX      309.950000000000 
+                      || VEA                   36.00 
+                      || VHT                  294.00 
 >=0
