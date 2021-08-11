@@ -149,9 +149,9 @@ import qualified Data.Semigroup as Sem
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day, addDays, fromGregorianValid, toGregorian)
+import Data.Time.Clock.POSIX (getPOSIXTime)
 import Data.Time.LocalTime (LocalTime(..), TimeOfDay(..))
 import Data.Word (Word8)
-import System.Time (getClockTime)
 import Text.Megaparsec
 import Text.Megaparsec.Char (char, char', digitChar, newline, string)
 import Text.Megaparsec.Char.Lexer (decimal)
@@ -363,7 +363,7 @@ parseAndFinaliseJournal' parser iopts f txt = do
 --
 journalFinalise :: InputOpts -> FilePath -> Text -> ParsedJournal -> ExceptT String IO Journal
 journalFinalise InputOpts{forecast_,auto_,balancingopts_,strict_} f txt pj = do
-    t <- liftIO getClockTime
+    t <- liftIO getPOSIXTime
     d <- liftIO getCurrentDay
     -- Infer and apply canonical styles for each commodity (or throw an error).
     -- This affects transaction balancing/assertions/assignments, so needs to be done early.

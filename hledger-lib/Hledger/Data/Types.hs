@@ -39,10 +39,10 @@ import Text.Blaze (ToMarkup(..))
 import qualified Data.Map as M
 import Data.Ord (comparing)
 import Data.Text (Text)
-import Data.Time.Calendar
-import Data.Time.LocalTime
+import Data.Time.Calendar (Day)
+import Data.Time.Clock.POSIX (POSIXTime)
+import Data.Time.LocalTime (LocalTime)
 import Data.Word (Word8)
-import System.Time (ClockTime(..))
 
 import Hledger.Utils.Regex
 
@@ -528,10 +528,8 @@ data Journal = Journal {
                                                                     --   followed by any included files in the order encountered.
                                                                     --   TODO: FilePath is a sloppy type here, don't assume it's a
                                                                     --   real file; values like "", "-", "(string)" can be seen
-  ,jlastreadtime          :: ClockTime                              -- ^ when this journal was last read from its file(s)
+  ,jlastreadtime          :: POSIXTime                              -- ^ when this journal was last read from its file(s)
   } deriving (Eq, Generic)
-
-deriving instance Generic ClockTime
 
 -- | A journal in the process of being parsed, not yet finalised.
 -- The data is partial, and list fields are in reverse order.
