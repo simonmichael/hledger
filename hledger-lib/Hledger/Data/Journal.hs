@@ -116,8 +116,8 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Safe (headMay, headDef, maximumMay, minimumMay)
 import Data.Time.Calendar (Day, addDays, fromGregorian)
+import Data.Time.Clock.POSIX (POSIXTime)
 import Data.Tree (Tree, flatten)
-import System.Time (ClockTime(TOD))
 import Text.Printf (printf)
 
 import Hledger.Utils
@@ -234,7 +234,7 @@ nulljournal = Journal {
   ,jtxns                      = []
   ,jfinalcommentlines         = ""
   ,jfiles                     = []
-  ,jlastreadtime              = TOD 0 0
+  ,jlastreadtime              = 0
   }
 
 journalFilePath :: Journal -> FilePath
@@ -697,7 +697,7 @@ journalReverse j =
     }
 
 -- | Set this journal's last read time, ie when its files were last read.
-journalSetLastReadTime :: ClockTime -> Journal -> Journal
+journalSetLastReadTime :: POSIXTime -> Journal -> Journal
 journalSetLastReadTime t j = j{ jlastreadtime = t }
 
 

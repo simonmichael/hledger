@@ -43,7 +43,6 @@ import           Data.Maybe (fromMaybe)
 import qualified Data.Text.Lazy    as TL
 import qualified Data.Text.Lazy.Builder as TB
 import           GHC.Generics (Generic)
-import           System.Time (ClockTime)
 
 import           Hledger.Data.Types
 import           Hledger.Data.Amount (amountsRaw, mixed)
@@ -149,7 +148,6 @@ instance ToJSON PayeeDeclarationInfo
 instance ToJSON Commodity
 instance ToJSON TimeclockCode
 instance ToJSON TimeclockEntry
-instance ToJSON ClockTime
 instance ToJSON Journal
 
 instance ToJSON Account where

@@ -24,7 +24,6 @@ module Hledger.Cli.Utils
      readFileStrictly,
      pivotByOpts,
      anonymiseByOpts,
-     utcTimeToClockTime,
      journalSimilarTransaction,
      tests_Cli_Utils,
     )
@@ -37,7 +36,8 @@ import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.IO as TL
-import Data.Time (UTCTime, Day)
+import Data.Time (Day)
+import Data.Time.Clock.POSIX (POSIXTime, utcTimeToPOSIXSeconds)
 import Safe (readMay, headMay)
 import System.Console.CmdArgs
 import System.Directory (getModificationTime, getDirectoryContents, copyFile, doesFileExist)
@@ -45,12 +45,8 @@ import System.Exit
 import System.FilePath ((</>), splitFileName, takeDirectory)
 import System.Info (os)
 import System.Process (readProcessWithExitCode)
-import System.Time (diffClockTimes, TimeDiff(TimeDiff))
 import Text.Printf
 import Text.Regex.TDFA ((=~))
-
-import System.Time (ClockTime(TOD))
-import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
 
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Anon
@@ -166,25 +162,19 @@ journalFileIsNewer Journal{jlastreadtime=tread} f = do
   mtmod <- maybeFileModificationTime f
   return $
     case mtmod of
-      Just tmod -> diffClockTimes tmod tread > (TimeDiff 0 0 0 0 0 0 0)
+      Just tmod -> tmod > tread
       Nothing   -> False
 
 -- | Get the last modified time of the specified file, if it exists.
-maybeFileModificationTime :: FilePath -> IO (Maybe ClockTime)
+maybeFileModificationTime :: FilePath -> IO (Maybe POSIXTime)
 maybeFileModificationTime f = do
   exists <- doesFileExist f
   if exists
   then do
     utc <- getModificationTime f
-    return $ Just $ utcTimeToClockTime utc
+    return . Just $ utcTimeToPOSIXSeconds utc
   else
     return Nothing
-
-utcTimeToClockTime :: UTCTime -> ClockTime
-utcTimeToClockTime utc = TOD posixsecs picosecs
-  where
-    (posixsecs, frac) = properFraction $ utcTimeToPOSIXSeconds utc
-    picosecs = round $ frac * 1e12
 
 -- | Attempt to open a web browser on the given url, all platforms.
 openBrowserOn :: String -> IO ExitCode

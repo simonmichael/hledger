@@ -113,7 +113,6 @@ dependencies:
 - haskeline >=0.6
 - megaparsec >=7.0.0 && <9.2
 - mtl >=2.2.1
-- old-time
 - process
 - regex-tdfa
 - safe >=0.2
