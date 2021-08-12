@@ -40,7 +40,6 @@ exchange rates.
 
 -}
 
-{-# LANGUAGE BangPatterns       #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE RecordWildCards    #-}
 
@@ -247,8 +246,8 @@ amt @@ priceamt = amt{aprice=Just $ TotalPrice priceamt}
 -- Prices are ignored and discarded.
 -- Remember: the caller is responsible for ensuring both amounts have the same commodity.
 similarAmountsOp :: (Quantity -> Quantity -> Quantity) -> Amount -> Amount -> Amount
-similarAmountsOp op !Amount{acommodity=_,  aquantity=q1, astyle=AmountStyle{asprecision=p1}}
-                    !Amount{acommodity=c2, aquantity=q2, astyle=s2@AmountStyle{asprecision=p2}} =
+similarAmountsOp op Amount{acommodity=_,  aquantity=q1, astyle=AmountStyle{asprecision=p1}}
+                    Amount{acommodity=c2, aquantity=q2, astyle=s2@AmountStyle{asprecision=p2}} =
    -- trace ("a1:"++showAmountDebug a1) $ trace ("a2:"++showAmountDebug a2) $ traceWith (("= :"++).showAmountDebug)
    amount{acommodity=c2, aquantity=q1 `op` q2, astyle=s2{asprecision=max p1 p2}}
   --  c1==c2 || q1==0 || q2==0 =
