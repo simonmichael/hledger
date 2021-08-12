@@ -1,5 +1,81 @@
 # HLint configuration file
 # https://github.com/ndmitchell/hlint
+##########################
+
+# This file contains a template configuration file, which is typically
+# placed as .hlint.yaml in the root of your project
+
+
+# Warnings currently triggered by your code
+- ignore: {name: "Use ++"}
+- ignore: {name: "Use list literal"}
+- ignore: {name: "Move brackets to avoid $"}
+- ignore: {name: "Redundant $"}
+- ignore: {name: "Redundant multi-way if"}
+- ignore: {name: "Use notElem"}
+- ignore: {name: "Use <$>"}
+- ignore: {name: "Unused LANGUAGE pragma"}
+- ignore: {name: "Redundant bracket"}
+- ignore: {name: "Redundant guard"}
+- ignore: {name: "Avoid reverse"}
+- ignore: {name: "Eta reduce"}
+- ignore: {name: "Use $>"}
+- ignore: {name: "Use unless"}
+- ignore: {name: "Use any"}
+- ignore: {name: "Use /="}
+- ignore: {name: "Use :"}
+- ignore: {name: "Use =<<"}
+- ignore: {name: "Use fmap"}
+- ignore: {name: "Use curry"}
+- ignore: {name: "Redundant uncurry"}
+- ignore: {name: "Use record patterns"}
+- ignore: {name: "Redundant fromIntegral"}
+- ignore: {name: "Use <&>"}
+- ignore: {name: "Use sortOn"}
+- ignore: {name: "Use camelCase"}
+- ignore: {name: "Use list comprehension"}
+- ignore: {name: "Use isNothing"}
+- ignore: {name: "Redundant <$>"}
+- ignore: {name: "Use list literal pattern"}
+- ignore: {name: "Use fewer imports"}
+- ignore: {name: "Use mapMaybe"}
+- ignore: {name: "Use intercalate"}
+- ignore: {name: "Use guards"}
+- ignore: {name: "Use tuple-section"}
+- ignore: {name: "Use section"}
+- ignore: {name: "Use maybe"}
+- ignore: {name: "Fuse concatMap/map"}
+- ignore: {name: "Redundant where"}
+- ignore: {name: "Use concatMap"}
+- ignore: {name: "Use second"}
+- ignore: {name: "Use fromRight"}
+- ignore: {name: "Use fromLeft"}
+- ignore: {name: "Parse error: on input `$*'"}
+- ignore: {name: "Parse error: on input `pattern'"}
+- ignore: {name: "Redundant bang pattern"}
+- ignore: {name: "Use zipWith"}
+- ignore: {name: "Replace case with maybe"}
+- ignore: {name: "Redundant return"}
+- ignore: {name: "Avoid lambda using `infix`"}
+- ignore: {name: "Use <|>"}
+- ignore: {name: "Use zip"}
+- ignore: {name: "Functor law"}
+- ignore: {name: "Missing NOINLINE pragma"}
+- ignore: {name: "Use dropWhile"}
+- ignore: {name: "Use &&"}
+- ignore: {name: "Redundant flip"}
+- ignore: {name: "Use replicate"}
+- ignore: {name: "Use void"}
+- ignore: {name: "Use if"}
+- ignore: {name: "Use bimap"}
+- ignore: {name: "Use newtype instead of data"}
+- ignore: {name: "Use elemIndex"}
+- ignore: {name: "Use =="}
+- ignore: {name: "Redundant case"}
+- ignore: {name: "Use lambda-case"}
+- ignore: {name: "Redundant lambda"}
+- ignore: {name: "Replace case with fromMaybe"}
+- ignore: {name: "Use exitSuccess"}
 
 
 # Specify additional command line arguments
@@ -30,6 +106,12 @@
 # Will suggest replacing "wibbleMany [myvar]" with "wibbleOne myvar"
 # - error: {lhs: "wibbleMany [x]", rhs: wibbleOne x}
 
+# The hints are named by the string they display in warning messages.
+# For example, if you see a warning starting like
+#
+# Main.hs:116:51: Warning: Redundant ==
+#
+# You can refer to that hint with `{name: Redundant ==}` (see below).
 
 # Turn on hints that are off by default
 #
@@ -47,12 +129,10 @@
 # - ignore: {name: Use let}
 # - ignore: {name: Use const, within: SpecialModule} # Only within certain modules
 
-- ignore: {name: Reduce duplication}
-- ignore: {name: Redundant $}
-- ignore: {name: Redundant bracket}
-- ignore: {name: Redundant do}
-- ignore: {name: Use camelCase}
-
 
 # Define some custom infix operators
 # - fixity: infixr 3 ~^#^~
+
+
+# To generate a suitable file for HLint do:
+# $ hlint --default > .hlint.yaml

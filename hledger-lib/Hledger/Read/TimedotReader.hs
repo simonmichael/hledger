@@ -7,12 +7,12 @@ A reader for the "timedot" file format.
 Example:
 
 @
-#DATE
-#ACCT  DOTS  # Each dot represents 15m, spaces are ignored
-#ACCT  8    # numbers with or without a following h represent hours
-#ACCT  5m   # numbers followed by m represent minutes
+;DATE
+;ACCT  DOTS  # Each dot represents 15m, spaces are ignored
+;ACCT  8    # numbers with or without a following h represent hours
+;ACCT  5m   # numbers followed by m represent minutes
 
-# on 2/1, 1h was spent on FOSS haskell work, 0.25h on research, etc.
+; on 2/1, 1h was spent on FOSS haskell work, 0.25h on research, etc.
 2/1
 fos.haskell   .... ..
 biz.research  .
