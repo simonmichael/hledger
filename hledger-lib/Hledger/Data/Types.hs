@@ -27,7 +27,7 @@ module Hledger.Data.Types
 where
 
 import GHC.Generics (Generic)
-import Data.Decimal (Decimal)
+import Data.Decimal (Decimal, DecimalRaw(..))
 import Data.Default (Default(..))
 import Data.Functor (($>))
 import Data.List (intercalate)
@@ -172,6 +172,7 @@ type Quantity = Decimal
 instance ToMarkup Quantity
  where
    toMarkup = toMarkup . show
+deriving instance Generic (DecimalRaw a)
 
 -- | An amount's per-unit or total cost/selling price in another
 -- commodity, as recorded in the journal entry eg with @ or @@.
@@ -390,10 +391,6 @@ data GenericSourcePos = GenericSourcePos FilePath Int Int    -- ^ file path, 1-b
                       | JournalSourcePos FilePath (Int, Int) -- ^ file path, inclusive range of 1-based line numbers (first, last).
   deriving (Eq, Read, Show, Ord, Generic)
 
---{-# ANN Transaction "HLint: ignore" #-}
---    Ambiguous type variable ‘p0’ arising from an annotation
---    prevents the constraint ‘(Data p0)’ from being solved.
---    Probable fix: use a type annotation to specify what ‘p0’ should be.
 data Transaction = Transaction {
       tindex                   :: Integer,   -- ^ this transaction's 1-based position in the transaction stream, or 0 when not available
       tprecedingcomment        :: Text,      -- ^ any comment lines immediately preceding this transaction
@@ -425,7 +422,7 @@ nulltransactionmodifier = TransactionModifier{
 
 -- | A transaction modifier transformation, which adds an extra posting
 -- to the matched posting's transaction.
--- Can be like a regular posting, or the amount can have the aismultiplier flag set,
+-- Can be like a regular posting, or can have the tmprIsMultiplier flag set,
 -- indicating that it's a multiplier for the matched posting's amount.
 data TMPostingRule = TMPostingRule
   { tmprPosting :: Posting
@@ -476,7 +473,6 @@ data PriceDirective = PriceDirective {
   ,pdcommodity :: CommoditySymbol
   ,pdamount    :: Amount
   } deriving (Eq,Ord,Generic,Show)
-        -- Show instance derived in Amount.hs (XXX why ?)
 
 -- | A historical market price (exchange rate) from one commodity to another.
 -- A more concise form of a PriceDirective, without the amount display info.
@@ -485,8 +481,7 @@ data MarketPrice = MarketPrice {
   ,mpfrom :: CommoditySymbol    -- ^ The commodity being converted from.
   ,mpto   :: CommoditySymbol    -- ^ The commodity being converted to.
   ,mprate :: Quantity           -- ^ One unit of the "from" commodity is worth this quantity of the "to" commodity.
-  } deriving (Eq,Ord,Generic)
-        -- Show instance derived in Amount.hs (XXX why ?)
+  } deriving (Eq,Ord,Generic, Show)
 
 -- additional valuation-related types in Valuation.hs
 
@@ -592,7 +587,6 @@ data NormalSign = NormallyPositive | NormallyNegative deriving (Show, Eq)
 -- tree-wise, since each one knows its parent and subs; the first
 -- account is the root of the tree and always exists.
 data Ledger = Ledger {
-  ljournal  :: Journal,
-  laccounts :: [Account]
-}
-
+   ljournal  :: Journal
+  ,laccounts :: [Account]
+  } deriving (Generic)

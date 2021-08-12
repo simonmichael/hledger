@@ -43,7 +43,6 @@ exchange rates.
 {-# LANGUAGE BangPatterns       #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE RecordWildCards    #-}
-{-# LANGUAGE StandaloneDeriving #-}
 
 module Hledger.Data.Amount (
   -- * Amount
@@ -165,8 +164,6 @@ import Text.Printf (printf)
 import Hledger.Data.Types
 import Hledger.Data.Commodity
 import Hledger.Utils
-
-deriving instance Show MarketPrice
 
 
 -- | Options for the display of Amount and MixedAmount.

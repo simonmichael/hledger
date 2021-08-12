@@ -2,28 +2,10 @@
 JSON instances. Should they be in Types.hs ?
 -}
 
-{-# OPTIONS_GHC -fno-warn-orphans #-}
-
---{-# LANGUAGE DataKinds           #-}
---{-# LANGUAGE DeriveAnyClass      #-}
-{-# LANGUAGE DeriveGeneric       #-}
---{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances   #-}
-{-# LANGUAGE LambdaCase          #-}
---{-# LANGUAGE NamedFieldPuns #-}
---{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
---{-# LANGUAGE PolyKinds           #-}
---{-# LANGUAGE QuasiQuotes         #-}
---{-# LANGUAGE QuasiQuotes #-}
---{-# LANGUAGE Rank2Types #-}
---{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE RecordWildCards #-}
---{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE StandaloneDeriving #-}
---{-# LANGUAGE TemplateHaskell       #-}
---{-# LANGUAGE TypeFamilies        #-}
---{-# LANGUAGE TypeOperators       #-}
+{-# LANGUAGE RecordWildCards   #-}
 
 module Hledger.Data.Json (
   -- * Instances
@@ -42,7 +24,6 @@ import           Data.Decimal (DecimalRaw(..), roundTo)
 import           Data.Maybe (fromMaybe)
 import qualified Data.Text.Lazy    as TL
 import qualified Data.Text.Lazy.Builder as TB
-import           GHC.Generics (Generic)
 
 import           Hledger.Data.Types
 import           Hledger.Data.Amount (amountsRaw, mixed)
@@ -172,7 +153,6 @@ accountKV a =
     , "asubs"        .= ([]::[Account])
     ]
 
-deriving instance Generic (Ledger)
 instance ToJSON Ledger
 
 -- From JSON
@@ -216,9 +196,6 @@ instance FromJSON Account
 -- $(deriveFromJSON defaultOptions ''DecimalRaw)  -- works; requires TH, but gives better parse error messages
 --
 -- https://github.com/PaulJohnson/Haskell-Decimal/issues/6
---deriving instance Generic Decimal
---instance FromJSON Decimal
-deriving instance Generic (DecimalRaw a)
 instance FromJSON (DecimalRaw Integer)
 --
 -- @simonmichael, I think the code in your first comment should work if it compiles—though “work” doesn’t mean you can parse a JSON number directly into a `Decimal` using the generic instance, as you’ve discovered.

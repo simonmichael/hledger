@@ -107,7 +107,7 @@ import Data.Foldable (toList)
 import Data.Function ((&))
 import qualified Data.HashTable.Class as H (toList)
 import qualified Data.HashTable.ST.Cuckoo as H
-import Data.List ((\\), find, foldl', sortOn)
+import Data.List ((\\), find, foldl', sortBy, sortOn)
 import Data.List.Extra (nubSort)
 import qualified Data.Map.Strict as M
 import Data.Maybe (catMaybes, fromJust, fromMaybe, isJust, mapMaybe, maybeToList)
@@ -129,14 +129,9 @@ import Hledger.Data.Transaction
 import Hledger.Data.TransactionModifier
 import Hledger.Data.Posting
 import Hledger.Query
-import Data.List (sortBy)
 
 
--- try to make Journal ppShow-compatible
--- instance Show ClockTime where
---   show t = "<ClockTime>"
 -- deriving instance Show Journal
-
 instance Show Journal where
   show j
     | debugLevel < 3 = printf "Journal %s with %d transactions, %d accounts"
