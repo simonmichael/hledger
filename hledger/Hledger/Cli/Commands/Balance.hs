@@ -397,7 +397,7 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ of
 -- | Render a single-column balance report as CSV.
 balanceReportAsCsv :: ReportOpts -> BalanceReport -> CSV
 balanceReportAsCsv opts (items, total) =
-  ("account" : ((if commodity_column_ opts then (:) "commodity" else id) $ "balance" : []))
+  ("account" : ((if commodity_column_ opts then (:) "commodity" else id) $ ["balance"]))
   :  (concatMap (\(a, _, _, b) -> rows a b) items)
   ++ if no_total_ opts then [] else rows "total" total
   where

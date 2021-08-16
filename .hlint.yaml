@@ -7,8 +7,6 @@
 
 
 # Warnings currently triggered by your code
-- ignore: {name: "Use ++"}
-- ignore: {name: "Use list literal"}
 - ignore: {name: "Move brackets to avoid $"}
 - ignore: {name: "Redundant $"}
 - ignore: {name: "Use <$>"}
@@ -24,17 +22,13 @@
 - ignore: {name: "Use camelCase"}
 - ignore: {name: "Use list comprehension"}
 - ignore: {name: "Redundant <$>"}
-- ignore: {name: "Use list literal pattern"}
 - ignore: {name: "Use fewer imports"}
 - ignore: {name: "Use tuple-section"}
 - ignore: {name: "Use section"}
 - ignore: {name: "Avoid lambda using `infix`"}
 - ignore: {name: "Functor law"}
 - ignore: {name: "Missing NOINLINE pragma"}
-- ignore: {name: "Use dropWhile"}
-- ignore: {name: "Use replicate"}
 - ignore: {name: "Use void"}
-- ignore: {name: "Use elemIndex"}
 - ignore: {name: "Use lambda-case"}
 
 

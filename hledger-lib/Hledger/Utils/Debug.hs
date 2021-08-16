@@ -154,8 +154,8 @@ traceWith f a = trace (f a) a
 -- {-# NOINLINE debugLevel #-}
 -- Avoid using dbg* in this function (infinite loop).
 debugLevel :: Int
-debugLevel = case snd $ break (=="--debug") args of
-               "--debug":[]  -> 1
+debugLevel = case dropWhile (/="--debug") args of
+               ["--debug"]   -> 1
                "--debug":n:_ -> readDef 1 n
                _             ->
                  case take 1 $ filter ("--debug" `isPrefixOf`) args of
@@ -215,7 +215,7 @@ colorOption :: String
 colorOption = 
   -- similar to debugLevel
   let args = unsafePerformIO getArgs in
-  case snd $ break (=="--color") args of
+  case dropWhile (/="--color") args of
     -- --color ARG
     "--color":v:_ -> v
     _ ->
@@ -223,7 +223,7 @@ colorOption =
         -- --color=ARG
         ['-':'-':'c':'o':'l':'o':'r':'=':v] -> v
         _ ->
-          case snd $ break (=="--colour") args of
+          case dropWhile (/="--colour") args of
             -- --colour ARG
             "--colour":v:_ -> v
             _ ->
@@ -250,13 +250,13 @@ hasOutputFile = outputFileOption `notElem` [Nothing, Just "-"]
 outputFileOption :: Maybe String
 outputFileOption = 
   let args = unsafePerformIO getArgs in
-  case snd $ break ("-o" `isPrefixOf`) args of
+  case dropWhile (not . ("-o" `isPrefixOf`)) args of
     -- -oARG
     ('-':'o':v@(_:_)):_ -> Just v
     -- -o ARG
     "-o":v:_ -> Just v
     _ ->
-      case snd $ break (=="--output-file") args of
+      case dropWhile (/="--output-file") args of
         -- --output-file ARG
         "--output-file":v:_ -> Just v
         _ ->
@@ -288,8 +288,8 @@ ptraceAt level
     | otherwise = \s a -> let p = pshow a
                               ls = lines p
                               nlorspace | length ls > 1 = "\n"
-                                        | otherwise     = " " ++ take (10 - length s) (repeat ' ')
-                              ls' | length ls > 1 = map (" "++) ls
+                                        | otherwise     = replicate (11 - length s) ' '
+                              ls' | length ls > 1 = map (' ':) ls
                                   | otherwise     = ls
                           in trace (s++":"++nlorspace++intercalate "\n" ls') a
 

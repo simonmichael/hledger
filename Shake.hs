@@ -299,10 +299,8 @@ main = do
           Nothing -> return ()
 
         -- update "source" files depending on .version in the specified packages
-        let dependents = concat [
-               map (</> ".version.m4")  specifiedpkgs
-              ,map (</> "package.yaml") specifiedpkgs
-              ]
+        let dependents = map (</> ".version.m4")  specifiedpkgs
+                      ++ map (</> "package.yaml") specifiedpkgs
         need dependents
 
         -- and maybe commit them
@@ -333,7 +331,7 @@ main = do
         need [versionfile]
         version <- ((head . words) <$>) $ liftIO $ readFile versionfile
         let ma:jor:_ = splitOn "." version
-            nextmajorversion = intercalate "." $ ma : (show $ read jor+1) : []
+            nextmajorversion = intercalate "." [ma, show $ read jor+1]
 
         -- One simple task: update some strings in a small text file.
         -- Several ugly solutions:
