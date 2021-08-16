@@ -199,7 +199,7 @@ words'' :: [T.Text] -> T.Text -> [T.Text]
 words'' prefixes = fromparse . parsewith maybeprefixedquotedphrases -- XXX
     where
       maybeprefixedquotedphrases :: SimpleTextParser [T.Text]
-      maybeprefixedquotedphrases = choice' [prefixedQuotedPattern, singleQuotedPattern, doubleQuotedPattern, pattern] `sepBy` skipNonNewlineSpaces1
+      maybeprefixedquotedphrases = choice' [prefixedQuotedPattern, singleQuotedPattern, doubleQuotedPattern, patterns] `sepBy` skipNonNewlineSpaces1
       prefixedQuotedPattern :: SimpleTextParser T.Text
       prefixedQuotedPattern = do
         not' <- fromMaybe "" `fmap` (optional $ string "not:")
@@ -214,8 +214,8 @@ words'' prefixes = fromparse . parsewith maybeprefixedquotedphrases -- XXX
       singleQuotedPattern = between (char '\'') (char '\'') (many $ noneOf ("'" :: [Char])) >>= return . stripquotes . T.pack
       doubleQuotedPattern :: SimpleTextParser T.Text
       doubleQuotedPattern = between (char '"') (char '"') (many $ noneOf ("\"" :: [Char])) >>= return . stripquotes . T.pack
-      pattern :: SimpleTextParser T.Text
-      pattern = fmap T.pack $ many (noneOf (" \n\r" :: [Char]))
+      patterns :: SimpleTextParser T.Text
+      patterns = fmap T.pack $ many (noneOf (" \n\r" :: [Char]))
 
 -- XXX
 -- keep synced with patterns below, excluding "not"

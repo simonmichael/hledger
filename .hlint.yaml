@@ -50,8 +50,6 @@
 - ignore: {name: "Use second"}
 - ignore: {name: "Use fromRight"}
 - ignore: {name: "Use fromLeft"}
-- ignore: {name: "Parse error: on input `$*'"}
-- ignore: {name: "Parse error: on input `pattern'"}
 - ignore: {name: "Redundant bang pattern"}
 - ignore: {name: "Use zipWith"}
 - ignore: {name: "Replace case with maybe"}
