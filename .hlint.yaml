@@ -50,7 +50,6 @@
 - ignore: {name: "Redundant bang pattern"}
 - ignore: {name: "Use zipWith"}
 - ignore: {name: "Replace case with maybe"}
-- ignore: {name: "Redundant return"}
 - ignore: {name: "Avoid lambda using `infix`"}
 - ignore: {name: "Use <|>"}
 - ignore: {name: "Use zip"}

@@ -986,7 +986,6 @@ lotpricep = label "ledger-style lot price" $ do
   lift skipNonNewlineSpaces
   char '}'
   when (doublebrace) $ void $ char '}'
-  return ()
 
 -- Parse a Ledger-style lot date [DATE], and ignore it.
 -- https://www.ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices .

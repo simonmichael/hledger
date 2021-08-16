@@ -35,7 +35,6 @@ main = do
   let rates = [0.70, 0.71 .. 1.3]
   mapM_ (\(n,d,(a,b),c,p) -> putStr $ showtxn n d a b c p) $ take numtxns $ zip5 [1..] dates accts comms (drop 1 comms)
   mapM_ (\(d,rate) -> putStr $ showmarketprice d rate) $ take numtxns $ zip dates (cycle $ rates ++ init (tail (reverse rates)))
-  return ()
 
 showtxn :: Int -> Day -> String -> String -> Char -> Char -> String
 showtxn txnno date acct1 acct2 comm pricecomm =
