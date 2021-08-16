@@ -58,8 +58,8 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec} j = do
         (o, c)         -> (o, c)
 
     -- descriptions to use for the closing/opening transactions
-    closingdesc = fromMaybe (T.pack defclosingdesc) $ T.pack <$> maybestringopt "close-desc" rawopts
-    openingdesc = fromMaybe (T.pack defopeningdesc) $ T.pack <$> maybestringopt "open-desc" rawopts
+    closingdesc = maybe (T.pack defclosingdesc) T.pack $ maybestringopt "close-desc" rawopts
+    openingdesc = maybe (T.pack defopeningdesc) T.pack $ maybestringopt "open-desc" rawopts
 
     -- accounts to close to and open from
     -- if only one is specified, it is used for both

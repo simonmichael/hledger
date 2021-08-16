@@ -24,6 +24,7 @@ import Prelude ()
 import "base-compat-batteries" Prelude.Compat
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as BC
+import Data.Maybe (fromMaybe, isNothing)
 import Data.String
 import System.IO
 import System.IO.Temp
@@ -31,7 +32,6 @@ import System.Process
 
 import Hledger.Utils (first3, second3, third3, embedFileRelative)
 import Text.Printf (printf)
-import Data.Maybe (fromMaybe)
 import System.Environment (lookupEnv)
 import Hledger.Utils.Debug
 
@@ -108,7 +108,7 @@ runPagerForTopic tool mtopic = do
     let defpager = "less -is"
     envpager <- fromMaybe defpager <$> lookupEnv "PAGER"
     -- force the use of less if a topic is provided, since we know how to scroll it
-    let pager = if mtopic==Nothing then envpager else defpager
+    let pager = if isNothing mtopic then envpager else defpager
     callCommand $ dbg1 "pager command" $ 
       pager ++ maybe "" (printf " +'/^(   )?%s'") mtopic ++ " " ++ f
 

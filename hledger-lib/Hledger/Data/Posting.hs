@@ -226,10 +226,9 @@ postingDate2 p = fromMaybe nulldate $ asum dates
 -- the ambiguity, unmarked can mean "posting and transaction are both
 -- unmarked" or "posting is unmarked and don't know about the transaction".
 postingStatus :: Posting -> Status
-postingStatus Posting{pstatus=s, ptransaction=mt}
-  | s == Unmarked = case mt of Just t  -> tstatus t
-                               Nothing -> Unmarked
-  | otherwise = s
+postingStatus Posting{pstatus=s, ptransaction=mt} = case s of
+    Unmarked -> maybe Unmarked tstatus mt
+    _ -> s
 
 -- | Tags for this posting including any inherited from its parent transaction.
 postingAllTags :: Posting -> [Tag]
