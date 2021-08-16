@@ -69,7 +69,6 @@
 - ignore: {name: "Use newtype instead of data"}
 - ignore: {name: "Use elemIndex"}
 - ignore: {name: "Use =="}
-- ignore: {name: "Redundant case"}
 - ignore: {name: "Use lambda-case"}
 - ignore: {name: "Redundant lambda"}
 - ignore: {name: "Replace case with fromMaybe"}

@@ -59,9 +59,10 @@ esDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{}}
               withAttr ("border" <> "bold") (str "Oops. Please fix this problem then press g to reload")
               -- <+> (if ignore_assertions_ copts then withAttr ("border" <> "query") (str " ignoring") else str " not ignoring")
 
-        bottomlabel = case mode of
+        bottomlabel = quickhelp
+                        -- case mode of
                         -- Minibuffer ed -> minibuffer ed
-                        _             -> quickhelp
+                        -- _             -> quickhelp
           where
             quickhelp = borderKeysStr [
                ("h", "help")
