@@ -1266,8 +1266,7 @@ csvFieldValue :: CsvRules -> CsvRecord -> CsvFieldName -> Maybe Text
 csvFieldValue rules record fieldname = do
   fieldindex <- if | T.all isDigit fieldname -> readMay $ T.unpack fieldname
                    | otherwise               -> lookup (T.toLower fieldname) $ rcsvfieldindexes rules
-  fieldvalue <- T.strip <$> atMay record (fieldindex-1)
-  return fieldvalue
+  T.strip <$> atMay record (fieldindex-1)
 
 -- | Parse the date string using the specified date-format, or if unspecified
 -- the "simple date" formats (YYYY/MM/DD, YYYY-MM-DD, YYYY.MM.DD, leading

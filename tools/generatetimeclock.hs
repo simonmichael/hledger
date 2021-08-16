@@ -20,7 +20,6 @@ main = do
   today <- getCurrentDay
   let startdate = addDays (-numentries) today
   mapM_ (putStr . showentry) [startdate..today]
-  return ()
 
 showentry d =
   printf "i %s 09:00:00 dummy\no %s 17:00:00\n" (show d) (show d)
