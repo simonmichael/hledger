@@ -24,15 +24,12 @@
 - ignore: {name: "Use sortOn"}
 - ignore: {name: "Use camelCase"}
 - ignore: {name: "Use list comprehension"}
-- ignore: {name: "Use isNothing"}
 - ignore: {name: "Redundant <$>"}
 - ignore: {name: "Use list literal pattern"}
 - ignore: {name: "Use fewer imports"}
 - ignore: {name: "Use intercalate"}
 - ignore: {name: "Use tuple-section"}
 - ignore: {name: "Use section"}
-- ignore: {name: "Use maybe"}
-- ignore: {name: "Replace case with maybe"}
 - ignore: {name: "Avoid lambda using `infix`"}
 - ignore: {name: "Functor law"}
 - ignore: {name: "Missing NOINLINE pragma"}
@@ -42,7 +39,6 @@
 - ignore: {name: "Use void"}
 - ignore: {name: "Use elemIndex"}
 - ignore: {name: "Use lambda-case"}
-- ignore: {name: "Replace case with fromMaybe"}
 
 
 # Specify additional command line arguments

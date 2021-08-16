@@ -46,7 +46,6 @@ import Hledger.Data.Types
 import Hledger.Data.Amount
 import Hledger.Data.Dates (nulldate)
 import Hledger.Data.Commodity (showCommoditySymbol)
-import Data.Maybe (fromMaybe)
 import Text.Printf (printf)
 
 
@@ -335,7 +334,7 @@ pricesShortestPath start end edges =
     extend (path,unusededges) =
       let
         pathnodes = start : map mpto path
-        pathend = fromMaybe start $ mpto <$> lastMay path
+        pathend = maybe start mpto $ lastMay path
         (nextedges,remainingedges) = partition ((==pathend).mpfrom) unusededges
       in
         [ (path', remainingedges')

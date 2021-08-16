@@ -426,7 +426,7 @@ commoditydirectiveonelinep = do
   lift skipNonNewlineSpaces
   _ <- lift followingcommentp
   let comm = Commodity{csymbol=acommodity, cformat=Just $ dbg6 "style from commodity directive" astyle}
-  if asdecimalpoint astyle == Nothing
+  if isNothing $ asdecimalpoint astyle
   then customFailure $ parseErrorAt off pleaseincludedecimalpoint
   else modify' (\j -> j{jcommodities=M.insert acommodity comm $ jcommodities j})
 
@@ -467,7 +467,7 @@ formatdirectivep expectedsym = do
   _ <- lift followingcommentp
   if acommodity==expectedsym
     then
-      if asdecimalpoint astyle == Nothing
+      if isNothing $ asdecimalpoint astyle
       then customFailure $ parseErrorAt off pleaseincludedecimalpoint
       else return $ dbg6 "style from format subdirective" astyle
     else customFailure $ parseErrorAt off $
@@ -544,7 +544,7 @@ defaultcommoditydirectivep = do
   off <- getOffset
   Amount{acommodity,astyle} <- amountp
   lift restofline
-  if asdecimalpoint astyle == Nothing
+  if isNothing $ asdecimalpoint astyle
   then customFailure $ parseErrorAt off pleaseincludedecimalpoint
   else setDefaultCommodityAndStyle (acommodity, astyle)
 

@@ -10,6 +10,7 @@
 module Hledger.Web.Settings where
 
 import Data.Default (def)
+import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import Data.Yaml
 import Language.Haskell.TH.Syntax (Q, Exp)
@@ -71,9 +72,7 @@ staticDir = "static"
 --
 -- To see how this value is used, see urlRenderOverride in Foundation.hs
 staticRoot :: AppConfig DefaultEnv Extra -> Text
-staticRoot conf = case extraStaticRoot $ appExtra conf of
-                    Just root -> root
-                    Nothing -> [st|#{appRoot conf}/static|]
+staticRoot conf = fromMaybe [st|#{appRoot conf}/static|] . extraStaticRoot $ appExtra conf
 
 -- | Settings for 'widgetFile', such as which template languages to support and
 -- default Hamlet settings.
