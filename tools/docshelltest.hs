@@ -51,7 +51,7 @@ main = do
   putStrLn $ printf "Running %d doctests from %s" (length tests) f
   ok <-  mapM runShellDocTest $ doctests s
   putStrLn ""
-  if any not ok then exitFailure else exitWith ExitSuccess
+  if all ok then exitSuccess else exitFailure
 
 runShellDocTest :: String -> IO Bool
 runShellDocTest s = do

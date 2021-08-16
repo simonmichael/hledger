@@ -71,7 +71,6 @@
 - ignore: {name: "Use lambda-case"}
 - ignore: {name: "Redundant lambda"}
 - ignore: {name: "Replace case with fromMaybe"}
-- ignore: {name: "Use exitSuccess"}
 
 
 # Specify additional command line arguments
