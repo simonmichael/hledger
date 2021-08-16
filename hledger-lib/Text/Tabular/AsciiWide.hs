@@ -27,7 +27,7 @@ module Text.Tabular.AsciiWide
 import Data.Bifunctor (bimap)
 import Data.Maybe (fromMaybe)
 import Data.Default (Default(..))
-import Data.List (intersperse, transpose)
+import Data.List (intercalate, intersperse, transpose)
 import Data.Semigroup (stimesMonoid)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -128,7 +128,7 @@ renderTableByRowsB topts@TableOpts{prettyTable=pretty, tableBorders=borders} fc 
   -- maximum width for each column
   sizes = map (fromMaybe 0 . maximumMay . map cellWidth) $ transpose cells2
   renderRs (Header s)   = [s]
-  renderRs (Group p hs) = concat . intersperse sep $ map renderRs hs
+  renderRs (Group p hs) = intercalate sep $ map renderRs hs
     where sep = renderHLine VM borders pretty sizes ch2 p
 
   -- borders and bars

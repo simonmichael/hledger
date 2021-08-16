@@ -200,11 +200,9 @@ useColorOnHandle h = unsafePerformIO $ do
   no_color       <- isJust <$> lookupEnv "NO_COLOR"
   supports_color <- hSupportsANSIColor h
   let coloroption = colorOption
-  return $ and [
-     not no_color
-    ,coloroption `notElem` ["never","no"]
-    ,coloroption `elem` ["always","yes"] || supports_color
-    ]
+  return $ not no_color
+        && coloroption `notElem` ["never","no"]
+        && (coloroption `elem` ["always","yes"] || supports_color)
 
 -- Keep synced with color/colour flag definition in hledger:CliOptions.
 -- Avoid using dbg*, pshow etc. in this function (infinite loop).

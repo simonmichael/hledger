@@ -216,11 +216,7 @@ ensureJournalFileExists f = do
 -- | Does any part of this path contain non-. characters and end with a . ?
 -- Such paths are not safe to use on Windows (cf #1056).
 isWindowsUnsafeDotPath :: FilePath -> Bool
-isWindowsUnsafeDotPath =
-  not . null .
-  filter (not . all (=='.')) .
-  filter ((=='.').last) .
-  splitDirectories
+isWindowsUnsafeDotPath = any (\x -> last x == '.' && any (/='.') x) . splitDirectories
 
 -- | Give the content for a new auto-created journal file.
 newJournalContent :: IO Text
