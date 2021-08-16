@@ -24,6 +24,7 @@ module Text.Tabular.AsciiWide
 , concatTables
 ) where
 
+import Data.Bifunctor (bimap)
 import Data.Maybe (fromMaybe)
 import Data.Default (Default(..))
 import Data.List (intersperse, transpose)
@@ -94,7 +95,7 @@ renderTableB :: TableOpts       -- ^ Options controlling Table rendering
              -> (a -> Cell)   -- ^ Function determining the string and width of a cell
              -> Table rh ch a
              -> Builder
-renderTableB topts fr fc f = renderTableByRowsB topts (fmap fc) (\(rh, as) -> (fr rh, fmap f as))
+renderTableB topts fr fc f = renderTableByRowsB topts (fmap fc) $ bimap fr (fmap f)
 
 -- | A version of renderTable that operates on rows (including the 'row' of
 -- column headers) and returns the underlying Builder.

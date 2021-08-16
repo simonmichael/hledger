@@ -341,10 +341,7 @@ accountdirectivep = do
   -- an account type may have been set by account type code or a tag;
   -- the latter takes precedence
   let
-    mtypecode' :: Maybe Text = maybe
-      (T.singleton <$> mtypecode)
-      Just
-      $ lookup accountTypeTagName tags
+    mtypecode' :: Maybe Text = lookup accountTypeTagName tags <|> (T.singleton <$> mtypecode)
     metype = parseAccountTypeCode <$> mtypecode'
 
   -- update the journal
