@@ -130,7 +130,7 @@ postingSetDate md p@Posting{ptags,pcomment} = p{pdate=md, ptags=ptags'', pcommen
                 Nothing -> ptags'
                 Just d  -> ptags'++[("date", T.pack $ show d)]
       where
-        ptags' = filter (not.(=="date").fst) ptags
+        ptags' = filter ((/="date").fst) ptags
 
     pcomment' = case md of
                   Nothing -> pcomment

@@ -245,10 +245,7 @@ shouldShowSidebar = do
   msidebarcookie <- lookup "showsidebar" . reqCookies <$> getRequest
   return $
     let disablevalues = ["","0"]
-    in maybe
-         (not $ msidebarcookie `elem` map Just disablevalues)
-         (not . (`elem` disablevalues))
-         msidebarparam
+    in maybe True (`notElem` disablevalues) $ msidebarparam <|> msidebarcookie
 
 -- | Update our copy of the journal if the file changed. If there is an
 -- error while reloading, keep the old one and return the error, and set a

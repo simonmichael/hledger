@@ -681,7 +681,7 @@ main = do
             maybePrependPackage s = maybe s (++("-"++s)) mpkg
             toTag = maybePrependPackage
             isOldRelease rev = isReleaseVersion rev && toTag rev `elem` tags
-            isNewRelease rev = isReleaseVersion rev && not (toTag rev `elem` tags)
+            isNewRelease rev = isReleaseVersion rev && toTag rev `notElem` tags
             -- git revision corresponding to the changelog version:
             -- a hash (a3f19c15), package release tag (hledger-ui-1.20), or project release tag (1.20)
             lastrev

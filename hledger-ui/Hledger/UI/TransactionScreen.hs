@@ -154,7 +154,7 @@ tsHandle ui@UIState{aScreen=TransactionScreen{tsTransaction=(i,t), tsTransaction
       case ev of
         VtyEvent (EvKey (KChar 'q') []) -> halt ui
         VtyEvent (EvKey KEsc        []) -> continue $ resetScreens d ui
-        VtyEvent (EvKey (KChar c)   []) | c `elem` ['?'] -> continue $ setMode Help ui
+        VtyEvent (EvKey (KChar c)   []) | c == '?' -> continue $ setMode Help ui
         VtyEvent (EvKey (KChar 'E') []) -> suspendAndResume $ void (runEditor pos f) >> uiReloadJournalIfChanged copts d j ui
           where
             (pos,f) = case tsourcepos t of

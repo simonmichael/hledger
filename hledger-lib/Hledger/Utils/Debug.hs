@@ -202,7 +202,7 @@ useColorOnHandle h = unsafePerformIO $ do
   let coloroption = colorOption
   return $ and [
      not no_color
-    ,not $ coloroption `elem` ["never","no"]
+    ,coloroption `notElem` ["never","no"]
     ,coloroption `elem` ["always","yes"] || supports_color
     ]
 
@@ -240,7 +240,7 @@ colorOption =
 -- {-# OPTIONS_GHC -fno-cse #-}
 -- {-# NOINLINE hasOutputFile #-}
 hasOutputFile :: Bool
-hasOutputFile = not $ outputFileOption `elem` [Nothing, Just "-"]
+hasOutputFile = outputFileOption `notElem` [Nothing, Just "-"]
 
 -- Keep synced with output-file flag definition in hledger:CliOptions.
 -- Avoid using dbg*, pshow etc. in this function (infinite loop).
