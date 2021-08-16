@@ -32,7 +32,7 @@ infixl 4 <$!>
 (<$!>) :: TokenParsing m => (a -> b) -> m a -> m b
 f <$!> ma = ($!) <$> pure f <*> ma
 
-data RawJournal = RawJournal [RawEntity]
+newtype RawJournal = RawJournal [RawEntity]
                 deriving (Show, Eq)
 
 data RawEntity = Whitespace String
