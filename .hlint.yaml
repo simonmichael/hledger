@@ -63,7 +63,6 @@
 - ignore: {name: "Redundant flip"}
 - ignore: {name: "Use replicate"}
 - ignore: {name: "Use void"}
-- ignore: {name: "Use if"}
 - ignore: {name: "Use bimap"}
 - ignore: {name: "Use newtype instead of data"}
 - ignore: {name: "Use elemIndex"}

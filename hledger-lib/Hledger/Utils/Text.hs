@@ -206,9 +206,9 @@ fitText mminwidth mmaxwidth ellipsify rightside = clip . pad
       case mmaxwidth of
         Just w
           | textWidth s > w ->
-            case rightside of
-              True  -> textTakeWidth (w - T.length ellipsis) s <> ellipsis
-              False -> ellipsis <> T.reverse (textTakeWidth (w - T.length ellipsis) $ T.reverse s)
+            if rightside
+              then textTakeWidth (w - T.length ellipsis) s <> ellipsis
+              else ellipsis <> T.reverse (textTakeWidth (w - T.length ellipsis) $ T.reverse s)
           | otherwise -> s
           where
             ellipsis = if ellipsify then ".." else ""
@@ -218,9 +218,9 @@ fitText mminwidth mmaxwidth ellipsify rightside = clip . pad
       case mminwidth of
         Just w
           | sw < w ->
-            case rightside of
-              True  -> s <> T.replicate (w - sw) " "
-              False -> T.replicate (w - sw) " " <> s
+            if rightside
+              then s <> T.replicate (w - sw) " "
+              else T.replicate (w - sw) " " <> s
           | otherwise -> s
         Nothing -> s
       where sw = textWidth s
