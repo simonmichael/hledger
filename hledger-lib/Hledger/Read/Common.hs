@@ -281,14 +281,14 @@ forecastPeriodFromRawOpts d rawopts = do
 -- | Run a text parser in the identity monad. See also: parseWithState.
 runTextParser, rtp
   :: TextParser Identity a -> Text -> Either (ParseErrorBundle Text CustomErr) a
-runTextParser p t =  runParser p "" t
+runTextParser p =  runParser p ""
 rtp = runTextParser
 
 -- | Run a journal parser in some monad. See also: parseWithState.
 runJournalParser, rjp
   :: Monad m
   => JournalParser m a -> Text -> m (Either (ParseErrorBundle Text CustomErr) a)
-runJournalParser p t = runParserT (evalStateT p nulljournal) "" t
+runJournalParser p = runParserT (evalStateT p nulljournal) ""
 rjp = runJournalParser
 
 -- | Run an erroring journal parser in some monad. See also: parseWithState.

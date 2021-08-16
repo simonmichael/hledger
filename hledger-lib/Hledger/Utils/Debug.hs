@@ -439,5 +439,5 @@ traceParseAt level msg = when (level <= debugLevel) $ traceParse msg
 
 -- | Convenience alias for traceParseAt
 dbgparse :: Int -> String -> TextParser m ()
-dbgparse level msg = traceParseAt level msg
+dbgparse = traceParseAt
 

@@ -170,7 +170,7 @@ addAssignment :: (HledgerFieldName, FieldTemplate) -> CsvRulesParsed -> CsvRules
 addAssignment a r = r{rassignments=a:rassignments r}
 
 setIndexesAndAssignmentsFromList :: [CsvFieldName] -> CsvRulesParsed -> CsvRulesParsed
-setIndexesAndAssignmentsFromList fs r = addAssignmentsFromList fs . setCsvFieldIndexesFromList fs $ r
+setIndexesAndAssignmentsFromList fs = addAssignmentsFromList fs . setCsvFieldIndexesFromList fs
 
 setCsvFieldIndexesFromList :: [CsvFieldName] -> CsvRulesParsed -> CsvRulesParsed
 setCsvFieldIndexesFromList fs r = r{rcsvfieldindexes=zip fs [1..]}
@@ -223,8 +223,7 @@ parseAndValidateCsvRules rulesfile s =
 -- | Parse this text as CSV conversion rules. The file path is for error messages.
 parseCsvRules :: FilePath -> T.Text -> Either (ParseErrorBundle T.Text CustomErr) CsvRules
 -- parseCsvRules rulesfile s = runParser csvrulesfile nullrules{baseAccount=takeBaseName rulesfile} rulesfile s
-parseCsvRules rulesfile s =
-  runParser (evalStateT rulesp defrules) rulesfile s
+parseCsvRules = runParser (evalStateT rulesp defrules)
 
 -- | Return the validated rules, or an error.
 validateRules :: CsvRules -> Either String CsvRules

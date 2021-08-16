@@ -103,7 +103,7 @@ instance ShowErrorComponent CustomErr where
 -- point).
 
 parseErrorAt :: Int -> String -> CustomErr
-parseErrorAt offset msg = ErrorFailAt offset (offset+1) msg
+parseErrorAt offset = ErrorFailAt offset (offset+1)
 
 -- | Fail at a specific source interval, given by the raw offsets of its
 -- endpoints from the start of the input stream (the numbers of tokens

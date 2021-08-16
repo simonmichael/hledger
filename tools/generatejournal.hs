@@ -49,7 +49,7 @@ showtxn txnno date acct1 acct2 comm pricecomm =
       rate = 0.70 + 0.01 * fromIntegral (txnno `rem` 60) :: Decimal
 
 showmarketprice :: Day -> Double -> String
-showmarketprice date rate = printf "P %s A  %.2f B\n" (show date) rate
+showmarketprice date = printf "P %s A  %.2f B\n" (show date)
 
 uniqueAccountNames :: [String] -> Int -> [String]
 uniqueAccountNames opts depth =
