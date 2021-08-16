@@ -62,7 +62,7 @@ where
 
 import Control.Applicative ((<|>), many, optional)
 import Data.Default (Default(..))
-import Data.Either (partitionEithers)
+import Data.Either (fromLeft, partitionEithers)
 import Data.List (partition)
 import Data.Maybe (fromMaybe, isJust, mapMaybe)
 import Data.Text (Text)
@@ -211,11 +211,11 @@ words'' prefixes = fromparse . parsewith maybeprefixedquotedphrases -- XXX
         p <- singleQuotedPattern <|> doubleQuotedPattern
         return $ prefix <> stripquotes p
       singleQuotedPattern :: SimpleTextParser T.Text
-      singleQuotedPattern = between (char '\'') (char '\'') (many $ noneOf ("'" :: [Char])) >>= return . stripquotes . T.pack
+      singleQuotedPattern = stripquotes . T.pack <$> between (char '\'') (char '\'') (many $ noneOf ("'" :: [Char]))
       doubleQuotedPattern :: SimpleTextParser T.Text
-      doubleQuotedPattern = between (char '"') (char '"') (many $ noneOf ("\"" :: [Char])) >>= return . stripquotes . T.pack
+      doubleQuotedPattern = stripquotes . T.pack <$> between (char '"') (char '"') (many $ noneOf ("\"" :: [Char]))
       patterns :: SimpleTextParser T.Text
-      patterns = fmap T.pack $ many (noneOf (" \n\r" :: [Char]))
+      patterns = T.pack <$> many (noneOf (" \n\r" :: [Char]))
 
 -- XXX
 -- keep synced with patterns below, excluding "not"
@@ -341,8 +341,8 @@ parseTag s = do
 -- | Parse the value part of a "status:" query, or return an error.
 parseStatus :: T.Text -> Either String Status
 parseStatus s | s `elem` ["*","1"] = Right Cleared
-              | s `elem` ["!"]     = Right Pending
               | s `elem` ["","0"]  = Right Unmarked
+              | s == "!"           = Right Pending
               | otherwise          = Left $ "could not parse "++show s++" as a status (should be *, ! or empty)"
 
 -- | Parse the boolean value part of a "status:" query. "1" means true,
@@ -363,7 +363,7 @@ simplifyQuery q =
     simplify (And qs) | same qs = simplify $ head qs
                       | None `elem` qs = None
                       | all queryIsDate qs = Date $ spansIntersect $ mapMaybe queryTermDateSpan qs
-                      | otherwise = And $ concat $ [map simplify dateqs, map simplify otherqs]
+                      | otherwise = And $ map simplify dateqs ++ map simplify otherqs
                       where (dateqs, otherqs) = partition queryIsDate $ filter (/=Any) qs
     simplify (Or []) = Any
     simplify (Or [q]) = simplifyQuery q
@@ -666,11 +666,11 @@ matchesDescription (Tag _ _) _    = False
 -- XXX Currently an alias for matchDescription. I'm not sure if more is needed,
 -- There's some shenanigan with payee: and "payeeTag" to figure out.
 matchesPayeeWIP :: Query -> Payee -> Bool
-matchesPayeeWIP q p = matchesDescription q p
+matchesPayeeWIP = matchesDescription
 
 -- | Does the query match the name and optionally the value of any of these tags ?
 matchesTags :: Regexp -> Maybe Regexp -> [Tag] -> Bool
-matchesTags namepat valuepat = not . null . filter (matches namepat valuepat)
+matchesTags namepat valuepat = any (matches namepat valuepat)
   where
     matches npat vpat (n,v) = regexMatchText npat n && maybe (const True) regexMatchText vpat v
 
@@ -808,7 +808,7 @@ tests_Query = tests "Query" [
       assertBool "" $ not $ (Tag (toRegex' "foo foo") (Just $ toRegex' " ar ba ")) `matchesPosting` nullposting{ptags=[("foo foo","bar bar")]}
     ,test "a tag match on a posting also sees inherited tags" $ assertBool "" $ (Tag (toRegex' "txntag") Nothing) `matchesPosting` nullposting{ptransaction=Just nulltransaction{ttags=[("txntag","")]}}
     ,test "cur:" $ do
-      let toSym = either id (const $ error' "No query opts") . either error' id . parseQueryTerm (fromGregorian 2000 01 01) . ("cur:"<>)
+      let toSym = fromLeft (error' "No query opts") . either error' id . parseQueryTerm (fromGregorian 2000 01 01) . ("cur:"<>)
       assertBool "" $ not $ toSym "$" `matchesPosting` nullposting{pamount=mixedAmount $ usd 1} -- becomes "^$$", ie testing for null symbol
       assertBool "" $ (toSym "\\$") `matchesPosting` nullposting{pamount=mixedAmount $ usd 1} -- have to quote $ for regexpr
       assertBool "" $ (toSym "shekels") `matchesPosting` nullposting{pamount=mixedAmount nullamt{acommodity="shekels"}}
