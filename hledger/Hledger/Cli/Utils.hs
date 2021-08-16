@@ -229,7 +229,7 @@ backUpFile :: FilePath -> IO ()
 backUpFile fp = do
   fs <- safeGetDirectoryContents $ takeDirectory $ fp
   let (d,f) = splitFileName fp
-      versions = catMaybes $ map (f `backupNumber`) fs
+      versions = mapMaybe (f `backupNumber`) fs
       next = maximum (0:versions) + 1
       f' = printf "%s.%d" f next
   copyFile fp (d </> f')

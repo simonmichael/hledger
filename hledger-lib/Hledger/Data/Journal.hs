@@ -699,7 +699,7 @@ journalNumberAndTieTransactions = journalTieTransactions . journalNumberTransact
 
 -- | Number (set the tindex field) this journal's transactions, counting upward from 1.
 journalNumberTransactions :: Journal -> Journal
-journalNumberTransactions j@Journal{jtxns=ts} = j{jtxns=map (\(i,t) -> t{tindex=i}) $ zip [1..] ts}
+journalNumberTransactions j@Journal{jtxns=ts} = j{jtxns=zipWith (\i t -> t{tindex=i}) [1..] ts}
 
 -- | Tie the knot in all of this journal's transactions, ensuring their postings
 -- refer to them. This should be done last, after any other transaction-modifying operations.
