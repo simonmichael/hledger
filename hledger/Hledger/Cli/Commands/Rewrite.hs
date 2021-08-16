@@ -103,7 +103,7 @@ renderPatch = go Nothing . sortOn fst where
     go (Just (fp, _)) cs@((sourceFilePath -> fp', _):_) | fp /= fp' = go Nothing cs
     go (Just (fp, offs)) ((sourceFirstLine -> lineno, diffs):cs) = chunkHeader <> chunk <> go (Just (fp, offs + adds - dels)) cs
         where
-            chunkHeader = T.pack $ printf "@@ -%d,%d +%d,%d @@\n" lineno dels (lineno+offs) adds where
+            chunkHeader = T.pack $ printf "@@ -%d,%d +%d,%d @@\n" lineno dels (lineno+offs) adds
             (dels, adds) = foldl' countDiff (0, 0) diffs
             chunk = foldMap renderLine diffs
     fileHeader fp = "--- " <> T.pack fp <> "\n+++ " <> T.pack fp <> "\n"

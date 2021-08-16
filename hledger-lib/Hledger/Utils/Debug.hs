@@ -272,7 +272,7 @@ outputFileOption =
 -- uses unsafePerformIO.
 traceAt :: Int -> String -> a -> a
 traceAt level
-    | level > 0 && debugLevel < level = flip const
+    | level > 0 && debugLevel < level = const id
     | otherwise = trace
 
 -- | Trace (print to stderr) a showable value using a custom show function,
@@ -286,7 +286,7 @@ traceAtWith level f a = traceAt level (f a) a
 -- At level 0, always prints. Otherwise, uses unsafePerformIO.
 ptraceAt :: Show a => Int -> String -> a -> a
 ptraceAt level
-    | level > 0 && debugLevel < level = flip const
+    | level > 0 && debugLevel < level = const id
     | otherwise = \s a -> let p = pshow a
                               ls = lines p
                               nlorspace | length ls > 1 = "\n"

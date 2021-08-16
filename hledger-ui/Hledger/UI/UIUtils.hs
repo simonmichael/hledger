@@ -283,8 +283,7 @@ topBottomBorderWithLabels toplabel bottomlabel body =
 -- XXX May disrupt border style of inner widgets.
 -- XXX Should reduce the available size visible to inner widget, but doesn't seem to (cf rsDraw2).
 margin :: Int -> Int -> Maybe Color -> Widget Name -> Widget Name
-margin h v mcolour = \w ->
-  Widget Greedy Greedy $ do
+margin h v mcolour w = Widget Greedy Greedy $ do
     c <- getContext
     let w' = vLimit (c^.availHeightL - v*2) $ hLimit (c^.availWidthL - h*2) w
         attr = maybe currentAttr (\c -> c `on` c) mcolour

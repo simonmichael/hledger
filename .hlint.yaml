@@ -40,7 +40,6 @@
 - ignore: {name: "Use section"}
 - ignore: {name: "Use maybe"}
 - ignore: {name: "Fuse concatMap/map"}
-- ignore: {name: "Redundant where"}
 - ignore: {name: "Use concatMap"}
 - ignore: {name: "Redundant bang pattern"}
 - ignore: {name: "Use zipWith"}
@@ -57,7 +56,6 @@
 - ignore: {name: "Use elemIndex"}
 - ignore: {name: "Use =="}
 - ignore: {name: "Use lambda-case"}
-- ignore: {name: "Redundant lambda"}
 - ignore: {name: "Replace case with fromMaybe"}
 
 

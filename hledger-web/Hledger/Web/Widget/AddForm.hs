@@ -106,7 +106,6 @@ addForm j today = identifyForm "add" $ \extra -> do
           ) ts,
         "]"
         ]
-      where
 b64wrap :: Text -> Text
 b64wrap = ("atob(\""<>) . (<>"\")") . encodeBase64
 
