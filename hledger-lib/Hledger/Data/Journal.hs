@@ -1013,7 +1013,7 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedamt 
       -- (showAmount assertedamt)
       (show $ aquantity assertedamt - aquantity actualbalincomm)
 
-  when (not pass) $ throwError errmsg
+  unless pass $ throwError errmsg
 
 -- | Throw an error if this posting is trying to do an illegal balance assignment.
 checkIllegalBalanceAssignmentB :: Posting -> Balancing s ()

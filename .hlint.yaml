@@ -13,8 +13,6 @@
 - ignore: {name: "Redundant bracket"}
 - ignore: {name: "Avoid reverse"}
 - ignore: {name: "Eta reduce"}
-- ignore: {name: "Use $>"}
-- ignore: {name: "Use unless"}
 - ignore: {name: "Use =<<"}
 - ignore: {name: "Use fmap"}
 - ignore: {name: "Use <&>"}

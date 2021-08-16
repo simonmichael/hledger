@@ -31,6 +31,6 @@ main = withJournalDo defcliopts $ \j -> do
                  ]
   forM_ filetags $ \(t,f) -> do
     exists <- doesFileExist f
-    when (not exists) $ do
+    unless exists $ do
       putStrLn $ "file not found in tag: " ++ t ++ ": " ++ f
       exitFailure
