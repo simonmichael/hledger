@@ -89,7 +89,7 @@ splitTransactionPostings :: Query -> AccountName -> [Day] -> Transaction -> ([Da
 splitTransactionPostings _q acct dates t
   -- | q `matchesTransaction` t = (dates', t')
   -- | otherwise                = (dates, t)
-  | otherwise                = (dates', t')
+                             = (dates', t')
   where
     (dates', pss') = mapAccumL (splitPosting acct) dates $ tpostings t
     t' = txnTieKnot t{tpostings=concat pss'}
