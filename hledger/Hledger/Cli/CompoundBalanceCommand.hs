@@ -302,7 +302,7 @@ compoundBalanceReportAsHtml ropts cbr =
         ++ [blankrow]
 
     totalrows | no_total_ ropts || length subreports == 1 = []
-      | otherwise = multiBalanceReportHtmlFootRow ropts <$> (fmap ("Net:" :) $ multiBalanceRowAsCsvText ropts netrow)
+      | otherwise = multiBalanceReportHtmlFootRow ropts <$> (("Net:" :) <$> multiBalanceRowAsCsvText ropts netrow)
   in do
     style_ (T.unlines [""
       ,"td { padding:0 0.5em; }"

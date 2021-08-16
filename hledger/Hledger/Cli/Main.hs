@@ -179,7 +179,7 @@ main = do
           _ | cmd `elem` ["test","help"] -> cmdaction opts journallesserror
           -- these commands should create the journal if missing
           _ | cmd `elem` ["add","import"] -> do
-            (ensureJournalFileExists =<< (head <$> journalFilePathFromOpts opts))
+            ensureJournalFileExists . head =<< journalFilePathFromOpts opts
             withJournalDo opts (cmdaction opts)
           -- other commands read the journal and should fail if it's missing
           _ -> withJournalDo opts (cmdaction opts)

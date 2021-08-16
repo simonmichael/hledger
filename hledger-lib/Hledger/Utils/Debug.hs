@@ -151,7 +151,7 @@ traceWith f a = trace (f a) a
 -- command-line processing. When running with :main in GHCI, you must
 -- touch and reload this module to see the effect of a new --debug option.
 -- {-# OPTIONS_GHC -fno-cse #-}
--- {-# NOINLINE debugLevel #-}
+{-# NOINLINE debugLevel #-}
 -- Avoid using dbg* in this function (infinite loop).
 debugLevel :: Int
 debugLevel = case dropWhile (/="--debug") args of

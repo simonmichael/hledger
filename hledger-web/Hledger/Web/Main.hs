@@ -60,7 +60,7 @@ hledgerWebMain = do
     --  "binary-filename" `inRawOpts` rawopts_ -> putStrLn (binaryfilename progname)
     | "test"            `inRawOpts` rawopts_ -> do
       -- remove --test and --, leaving other args for hspec
-      filter (not . (`elem` ["--test","--"])) <$> getArgs >>= flip withArgs hledgerWebTest
+      (`withArgs` hledgerWebTest) . filter (`notElem` ["--test","--"]) =<< getArgs
     | otherwise                              -> withJournalDo copts (web wopts)
 
 -- | The hledger web command.
