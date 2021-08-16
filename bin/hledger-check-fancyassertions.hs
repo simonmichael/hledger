@@ -450,7 +450,7 @@ predicatep = wrap predparensp <|> wrap predcomparep <|> wrap prednotp where
     wrap p = do
         a <- P.try p
         spaces
-        P.try (wrap $ do c <- lift connectp; spaces; a2 <- p; pure $ Connect a c a2) <|> pure a
+        P.try (wrap $ do c <- lift connectp; spaces; Connect a c <$> p) <|> pure a
 
 data Value = Account H.AccountName | AccountNested H.AccountName | Amount H.Amount
   deriving (Eq, Ord, Show)

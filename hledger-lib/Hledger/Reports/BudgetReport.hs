@@ -344,11 +344,11 @@ budgetReportAsTable
 
         budgetAndPerc b = uncurry zip
           ( showmixed b
-          , fmap (fmap (wbFromText . T.pack . show . roundTo 0)) $ percbudget actual' b
+          , fmap (wbFromText . T.pack . show . roundTo 0) <$> percbudget actual' b
           )
 
         full
-          | Just b <- mbudget = fmap Just $ budgetAndPerc b
+          | Just b <- mbudget = Just <$> budgetAndPerc b
           | otherwise         = repeat Nothing
 
     paddisplaycell :: (Int, Int, Int) -> BudgetDisplayCell -> WideBuilder
@@ -433,8 +433,8 @@ budgetReportAsCsv
       | otherwise =
             joinNames . zipWith (:) cs  -- add symbols and names
           . transpose                   -- each row becomes a list of Text quantities
-          . fmap (fmap wbToText . showMixedAmountLinesB oneLine{displayOrder=Just cs, displayMinWidth=Nothing})
-          . fmap (fromMaybe nullmixedamt)
+          . fmap (fmap wbToText . showMixedAmountLinesB oneLine{displayOrder=Just cs, displayMinWidth=Nothing}
+                 .fromMaybe nullmixedamt)
           $ all
       where
         cs = S.toList . foldl' S.union mempty . fmap maCommodities $ catMaybes all

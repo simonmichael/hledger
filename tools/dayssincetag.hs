@@ -18,6 +18,4 @@ main = do
   putStrLn $ show (diffDays today date) ++ " days since tag "++tag++":\n"
   putStr s
 
-getCurrentDay = do
-    t <- getZonedTime
-    return $ localDay (zonedTimeToLocalTime t)
+getCurrentDay = localDay . zonedTimeToLocalTime <$> getZonedTime

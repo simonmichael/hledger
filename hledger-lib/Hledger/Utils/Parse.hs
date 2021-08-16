@@ -37,6 +37,7 @@ where
 import Control.Monad.Except (ExceptT)
 import Control.Monad.State.Strict (StateT, evalStateT)
 import Data.Char
+import Data.Functor (void)
 import Data.Functor.Identity (Identity(..))
 import Data.List
 import Data.Text (Text)
@@ -154,4 +155,4 @@ skipNonNewlineSpaces' = True <$ skipNonNewlineSpaces1 <|> pure False
 
 
 eolof :: TextParser m ()
-eolof = (newline >> return ()) <|> eof
+eolof = void newline <|> eof

@@ -163,7 +163,7 @@ spanYears (DateSpan ma mb) = mapMaybe (fmap (first3 . toGregorian)) [ma,mb]
 
 -- | Get overall span enclosing multiple sequentially ordered spans.
 spansSpan :: [DateSpan] -> DateSpan
-spansSpan spans = DateSpan (maybe Nothing spanStart $ headMay spans) (maybe Nothing spanEnd $ lastMay spans)
+spansSpan spans = DateSpan (spanStart =<< headMay spans) (spanEnd =<< lastMay spans)
 
 -- | Split a DateSpan into consecutive whole spans of the specified interval
 -- which fully encompass the original span (and a little more when necessary).
@@ -747,7 +747,7 @@ smartdate = choice'
   -- XXX maybe obscures date errors ? see ledgerdate
     [ yyyymmdd, ymd
     , (\(m,d) -> SmartFromReference (Just m) d) <$> md
-    , (SmartFromReference Nothing <$> decimal) >>= failIfInvalidDate
+    , failIfInvalidDate . SmartFromReference Nothing =<< decimal
     , SmartMonth <$> (month <|> mon)
     , SmartRelative This Day <$ string' "today"
     , SmartRelative Last Day <$ string' "yesterday"

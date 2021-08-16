@@ -467,7 +467,7 @@ rawOptsToCliOpts rawopts = do
 #ifdef mingw32_HOST_OS
     return Nothing
 #else
-    setupTermFromEnv >>= return . flip getCapability termColumns
+    (`getCapability` termColumns) <$> setupTermFromEnv
     -- XXX Throws a SetupTermError if the terminfo database could not be read, should catch
 #endif
   let availablewidth = head $ catMaybes [mcolumns, mtermwidth, Just defaultWidth]

@@ -30,7 +30,7 @@ import           Text.Trifecta.Delta
 infixl 4 <$!>
 
 (<$!>) :: TokenParsing m => (a -> b) -> m a -> m b
-f <$!> ma = ($!) <$> pure f <*> ma
+f <$!> ma = (f $!) <$> ma
 
 newtype RawJournal = RawJournal [RawEntity]
                 deriving (Show, Eq)

@@ -24,7 +24,4 @@ main = do
 showentry d =
   printf "i %s 09:00:00 dummy\no %s 17:00:00\n" (show d) (show d)
 
-getCurrentDay = do
-  t <- getZonedTime
-  return $ localDay (zonedTimeToLocalTime t)
-
+getCurrentDay = localDay . zonedTimeToLocalTime <$> getZonedTime

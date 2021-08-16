@@ -703,7 +703,7 @@ instance Reportable Identity e where
     report a (Identity i) = Identity $ fromRight a i
 
 instance Reportable Maybe e where
-    report _ = join . fmap eitherToMaybe
+    report _ = (eitherToMaybe =<<)
 
 instance (e ~ a) => Reportable (Either a) e where
     report _ = join

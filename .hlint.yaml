@@ -9,24 +9,16 @@
 # Warnings currently triggered by your code
 - ignore: {name: "Move brackets to avoid $"}
 - ignore: {name: "Redundant $"}
-- ignore: {name: "Use <$>"}
 - ignore: {name: "Redundant bracket"}
 - ignore: {name: "Avoid reverse"}
 - ignore: {name: "Eta reduce"}
-- ignore: {name: "Use =<<"}
-- ignore: {name: "Use fmap"}
-- ignore: {name: "Use <&>"}
 - ignore: {name: "Use sortOn"}
 - ignore: {name: "Use camelCase"}
 - ignore: {name: "Use list comprehension"}
-- ignore: {name: "Redundant <$>"}
 - ignore: {name: "Use fewer imports"}
 - ignore: {name: "Use tuple-section"}
 - ignore: {name: "Use section"}
 - ignore: {name: "Avoid lambda using `infix`"}
-- ignore: {name: "Functor law"}
-- ignore: {name: "Missing NOINLINE pragma"}
-- ignore: {name: "Use void"}
 - ignore: {name: "Use lambda-case"}
 
 

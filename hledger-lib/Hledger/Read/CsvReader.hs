@@ -41,7 +41,7 @@ import Prelude ()
 import "base-compat-batteries" Prelude.Compat hiding (fail)
 import Control.Applicative        (liftA2)
 import Control.Exception          (IOException, handle, throw)
-import Control.Monad              (liftM, unless, when)
+import Control.Monad              (unless, when)
 import Control.Monad.Except       (ExceptT, throwError)
 import qualified Control.Monad.Fail as Fail
 import Control.Monad.IO.Class     (MonadIO, liftIO)
@@ -437,8 +437,7 @@ rulesp = do
     ,(conditionaltablep >>= modify' . addConditionalBlocks . reverse)   <?> "conditional table"
     ]
   eof
-  r <- get
-  return $ mkrules r
+  mkrules <$> get
 
 blankorcommentlinep :: CsvRulesParser ()
 blankorcommentlinep = lift (dbgparse 8 "trying blankorcommentlinep") >> choiceInState [blanklinep, commentlinep]
@@ -789,7 +788,7 @@ parseSeparator = specials . T.toLower
 parseCsv :: Char -> FilePath -> Text -> IO (Either String CSV)
 parseCsv separator filePath csvdata =
   case filePath of
-    "-" -> liftM (parseCassava separator "(stdin)") T.getContents
+    "-" -> parseCassava separator "(stdin)" <$> T.getContents
     _   -> return $ parseCassava separator filePath csvdata
 
 parseCassava :: Char -> FilePath -> Text -> Either String CSV

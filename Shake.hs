@@ -795,9 +795,7 @@ maybeWriteFile f new = do
 
 -- | Get the current local date.
 getCurrentDay :: IO Day
-getCurrentDay = do
-  t <- getZonedTime
-  return $ localDay (zonedTimeToLocalTime t)
+getCurrentDay = localDay . zonedTimeToLocalTime <$> getZonedTime
 
 -- | Replace each occurrence of a regular expression by this string.
 replaceRe :: RE -> String -> String -> String

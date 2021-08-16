@@ -108,17 +108,17 @@ renderTableByRowsB topts@TableOpts{prettyTable=pretty, tableBorders=borders} fc 
    unlinesB . addBorders $
      renderColumns topts sizes ch2
      : bar VM DoubleLine   -- +======================================+
-     : renderRs (fmap renderR $ zipHeader [] cellContents rowHeaders)
+     : renderRs (renderR <$> zipHeader [] cellContents rowHeaders)
  where
   renderR :: ([Cell], Cell) -> Builder
   renderR (cs,h) = renderColumns topts sizes $ Group DoubleLine
                      [ Header h
-                     , fmap fst $ zipHeader emptyCell cs colHeaders
+                     , fst <$> zipHeader emptyCell cs colHeaders
                      ]
 
   rows         = unzip . fmap f $ zip (headerContents rh) cells
-  rowHeaders   = fmap fst $ zipHeader emptyCell (fst rows) rh
-  colHeaders   = fmap fst $ zipHeader emptyCell (fc $ headerContents ch) ch
+  rowHeaders   = fst <$> zipHeader emptyCell (fst rows) rh
+  colHeaders   = fst <$> zipHeader emptyCell (fc $ headerContents ch) ch
   cellContents = snd rows
 
   -- ch2 and cell2 include the row and column labels

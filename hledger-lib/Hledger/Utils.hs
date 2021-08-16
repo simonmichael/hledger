@@ -36,7 +36,7 @@ module Hledger.Utils (---- provide these frequently used modules - or not, for c
                           )
 where
 
-import Control.Monad (liftM, when)
+import Control.Monad (when)
 import Data.FileEmbed (makeRelativeToProject, embedStringFile)
 import Data.List (foldl', foldl1')
 -- import Data.String.Here (hereFile)
@@ -156,7 +156,7 @@ applyN n f | n < 1     = id
 -- Can raise an error.
 expandPath :: FilePath -> FilePath -> IO FilePath -- general type sig for use in reader parsers
 expandPath _ "-" = return "-"
-expandPath curdir p = (if isRelative p then (curdir </>) else id) `liftM` expandHomePath p
+expandPath curdir p = (if isRelative p then (curdir </>) else id) <$> expandHomePath p
 -- PARTIAL:
 
 -- | Expand user home path indicated by tilde prefix

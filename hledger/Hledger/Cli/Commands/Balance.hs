@@ -452,7 +452,7 @@ balanceReportAsText' opts ((items, total)) =
             damts = showMixedAmountLinesB dopts amt
     lines = fmap render items
     totalline = render ("", "", 0, total)
-    sizes = fmap (fromMaybe 0 . maximumMay . map cellWidth) $
+    sizes = fromMaybe 0 . maximumMay . map cellWidth <$>
         transpose ([totalline | not (no_total_ opts)] ++ lines)
     overline = Cell TopLeft . pure . wbFromText . flip T.replicate "-" . fromMaybe 0 $ headMay sizes
 
@@ -524,7 +524,7 @@ multiBalanceReportAsCsv' opts@ReportOpts{..}
   ) :
   concatMap (fullRowAsTexts (accountNameDrop drop_ . prrFullName)) items
   where
-    fullRowAsTexts render row = fmap ((:) (render row)) $ multiBalanceRowAsCsvText opts row
+    fullRowAsTexts render row = (render row :) <$> multiBalanceRowAsCsvText opts row
     totalrows
       | no_total_ = mempty
       | otherwise = fullRowAsTexts (const "total") tr

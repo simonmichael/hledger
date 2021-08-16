@@ -7,7 +7,6 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as BC
 import Data.ByteString.UTF8 (fromString)
 import Data.CaseInsensitive (CI, mk)
-import Control.Monad (join)
 import Data.Default (Default(def))
 import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
@@ -156,7 +155,7 @@ rawOptsToWebOpts rawopts =
         b =
           maybe (defbaseurl h p) stripTrailingSlash $
           maybestringopt "base-url" rawopts
-        caps' = join $ T.splitOn "," . T.pack <$> listofstringopt "capabilities" rawopts
+        caps' = T.splitOn "," . T.pack =<< listofstringopt "capabilities" rawopts
         caps = case traverse capabilityFromText caps' of
           Left e -> error' ("Unknown capability: " ++ T.unpack e)  -- PARTIAL:
           Right [] -> [CapView, CapAdd]
