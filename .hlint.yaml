@@ -11,7 +11,6 @@
 - ignore: {name: "Redundant $"}
 - ignore: {name: "Redundant bracket"}
 - ignore: {name: "Avoid reverse"}
-- ignore: {name: "Eta reduce"}
 - ignore: {name: "Use sortOn"}
 - ignore: {name: "Use camelCase"}
 - ignore: {name: "Use list comprehension"}

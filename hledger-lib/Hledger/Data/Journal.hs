@@ -429,8 +429,7 @@ journalAssetAccountQuery j =
 -- or otherwise for accounts with names matched by the case-insensitive 
 -- regular expression @^assets?(:|$)@.
 journalAssetNonCashAccountQuery :: Journal -> Query
-journalAssetNonCashAccountQuery j = 
-  journalAccountTypeQuery [Asset] (toRegexCI' "^assets?(:|$)") j
+journalAssetNonCashAccountQuery = journalAccountTypeQuery [Asset] (toRegexCI' "^assets?(:|$)")
 
 -- | A query for Cash (liquid asset) accounts in this journal, ie accounts
 -- declared as Cash by account directives, or otherwise Asset accounts whose 
@@ -1112,7 +1111,7 @@ commodityStylesFromAmounts =
 -- | Given a list of amount styles (assumed to be from parsed amounts
 -- in a single commodity), in parse order, choose a canonical style.
 canonicalStyleFrom :: [AmountStyle] -> AmountStyle
-canonicalStyleFrom ss = foldl' canonicalStyle amountstyle ss
+canonicalStyleFrom = foldl' canonicalStyle amountstyle
 
 -- TODO: should probably detect and report inconsistencies here.
 -- Though, we don't have the info for a good error message, so maybe elsewhere.

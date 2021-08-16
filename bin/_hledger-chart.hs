@@ -183,7 +183,7 @@ sameSignNonZero is
 
 -- | Build a single pie chart item
 accountPieItem :: AccountName -> Double -> PieItem
-accountPieItem accname balance = PieItem (T.unpack accname) offset balance where offset = 0
+accountPieItem accname = PieItem (T.unpack accname) offset where offset = 0
 
 -- | Generate an infinite color list suitable for charts.
 mkColours :: Double -> [AlphaColour Double]

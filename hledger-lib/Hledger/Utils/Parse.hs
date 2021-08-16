@@ -95,7 +95,7 @@ parseWithState
   -> StateT st (ParsecT CustomErr Text m) a
   -> Text
   -> m (Either (ParseErrorBundle Text CustomErr) a)
-parseWithState ctx p s = runParserT (evalStateT p ctx) "" s
+parseWithState ctx p = runParserT (evalStateT p ctx) ""
 
 parseWithState'
   :: (Stream s)
@@ -103,7 +103,7 @@ parseWithState'
   -> StateT st (ParsecT e s Identity) a
   -> s
   -> (Either (ParseErrorBundle s e) a)
-parseWithState' ctx p s = runParser (evalStateT p ctx) "" s
+parseWithState' ctx p = runParser (evalStateT p ctx) ""
 
 fromparse
   :: (Show t, Show (Token t), Show e) => Either (ParseErrorBundle t e) a -> a

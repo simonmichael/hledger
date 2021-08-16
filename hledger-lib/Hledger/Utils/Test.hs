@@ -80,7 +80,7 @@ assertParse parser input = do
 -- | Assert a parser produces an expected value.
 assertParseEq :: (HasCallStack, Eq a, Show a, Default st) =>
   StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> a -> Assertion
-assertParseEq parser input expected = assertParseEqOn parser input id expected
+assertParseEq parser input = assertParseEqOn parser input id
 
 -- | Like assertParseEq, but transform the parse result with the given function
 -- before comparing it.
@@ -146,7 +146,7 @@ assertParseEqE
   -> T.Text
   -> a
   -> Assertion
-assertParseEqE parser input expected = assertParseEqOnE parser input id expected
+assertParseEqE parser input = assertParseEqOnE parser input id
 
 assertParseEqOnE
   :: (HasCallStack, Eq b, Show b, Default st)

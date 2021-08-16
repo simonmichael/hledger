@@ -710,7 +710,7 @@ instance (e ~ a) => Reportable (Either a) e where
 
 -- | Apply a function over a lens, but report on failure.
 overWithReport :: ((a -> Either e b) -> s -> Either e t) -> (a -> b) -> s -> Either e t
-overWithReport l f s = l (pure . f) s
+overWithReport l f = l (pure . f)
 
 -- | Set a field using a lens, but report on failure.
 setWithReport :: ((a -> Either e b) -> s -> Either e t) -> b -> s -> Either e t

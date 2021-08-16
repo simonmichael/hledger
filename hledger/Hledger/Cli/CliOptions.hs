@@ -242,7 +242,7 @@ commodityStyleFlag = flagReq
     ("Override the commodity style in the output for the specified commodity. For example 'EUR1.000,00'.")
 
 argsFlag :: FlagHelp -> Arg RawOpts
-argsFlag desc = flagArg (\s opts -> Right $ setopt "args" s opts) desc
+argsFlag = flagArg (\s opts -> Right $ setopt "args" s opts)
 
 generalflagstitle :: String
 generalflagstitle = "\nGeneral flags"
