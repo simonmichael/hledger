@@ -35,6 +35,7 @@ import Brick.Widgets.Dialog
 import Brick.Widgets.Edit
 import Brick.Widgets.List (List, listSelectedL, listNameL, listItemHeightL)
 import Control.Monad.IO.Class
+import Data.Bifunctor (second)
 import Data.List
 import qualified Data.Text as T
 import Data.Time (Day, addDays)
@@ -192,7 +193,7 @@ borderPeriodStr _           PeriodAll = str ""
 borderPeriodStr preposition p         = str (" "++preposition++" ") <+> withAttr ("border" <> "query") (str . T.unpack $ showPeriod p)
 
 borderKeysStr :: [(String,String)] -> Widget Name
-borderKeysStr = borderKeysStr' . map (\(a,b) -> (a, str b))
+borderKeysStr = borderKeysStr' . map (second str)
 
 borderKeysStr' :: [(String,Widget Name)] -> Widget Name
 borderKeysStr' keydescs =

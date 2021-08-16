@@ -59,6 +59,7 @@ where
 
 import Control.Applicative (Const(..), (<|>))
 import Control.Monad ((<=<), join)
+import Data.Either (fromRight)
 import Data.Either.Extra (eitherToMaybe)
 import Data.Functor.Identity (Identity(..))
 import Data.List.Extra (nubSort)
@@ -699,7 +700,7 @@ instance Reportable (Const r) e where
     report _ (Const x) = Const x
 
 instance Reportable Identity e where
-    report a (Identity i) = Identity $ either (const a) id i
+    report a (Identity i) = Identity $ fromRight a i
 
 instance Reportable Maybe e where
     report _ = join . fmap eitherToMaybe

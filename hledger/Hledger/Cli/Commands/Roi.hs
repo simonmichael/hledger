@@ -17,6 +17,8 @@ import Control.Monad
 import System.Exit
 import Data.Time.Calendar
 import Text.Printf
+import Data.Bifunctor (second)
+import Data.Either (fromLeft, fromRight)
 import Data.Function (on)
 import Data.List
 import Numeric.RootFinding
@@ -172,7 +174,7 @@ timeWeightedReturn showCashFlow prettyTables investmentsQuery trans mixedAmountV
         $ map (\date_cash -> let (dates, cash) = unzip date_cash in (head dates, Right (maSum cash)))
         $ groupBy ((==) `on` fst)
         $ sortOn fst
-        $ map (\(d,a) -> (d, maNegate a))
+        $ map (second maNegate)
         $ cashFlow
 
   let units =
@@ -205,8 +207,8 @@ timeWeightedReturn showCashFlow prettyTables investmentsQuery trans mixedAmountV
   when showCashFlow $ do
     printf "\nTWR cash flow for %s - %s\n" (showDate spanBegin) (showDate (addDays (-1) spanEnd))
     let (dates', amounts) = unzip changes
-        cashflows' = map (either (const nullmixedamt) id) amounts
-        pnls = map (either id (const nullmixedamt)) amounts
+        cashflows' = map (fromRight nullmixedamt) amounts
+        pnls = map (fromLeft nullmixedamt) amounts
         (valuesOnDate,unitsBoughtOrSold', unitPrices', unitBalances') = unzip4 units
         add x lst = if valueBefore/=0 then x:lst else lst
         dates = add spanBegin dates'

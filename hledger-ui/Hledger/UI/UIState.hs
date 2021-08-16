@@ -8,6 +8,7 @@ where
 
 import Brick.Widgets.Edit
 import Data.Foldable (asum)
+import Data.Either (fromRight)
 import Data.List ((\\), foldl', sort)
 import Data.Semigroup (Max(..))
 import qualified Data.Text as T
@@ -246,7 +247,7 @@ setFilter :: String -> UIState -> UIState
 setFilter s ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}} =
     ui{aopts=uopts{cliopts_=copts{reportspec_=update rspec}}}
   where
-    update = either (const rspec) id . updateReportSpecWith (\ropts -> ropts{querystring_=querystring})  -- XXX silently ignores an error
+    update = fromRight rspec . updateReportSpecWith (\ropts -> ropts{querystring_=querystring})  -- XXX silently ignores an error
     querystring = words'' prefixes $ T.pack s
 
 -- | Reset some filters & toggles.
