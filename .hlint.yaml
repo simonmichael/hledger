@@ -47,7 +47,6 @@
 - ignore: {name: "Use zipWith"}
 - ignore: {name: "Replace case with maybe"}
 - ignore: {name: "Avoid lambda using `infix`"}
-- ignore: {name: "Use <|>"}
 - ignore: {name: "Use zip"}
 - ignore: {name: "Functor law"}
 - ignore: {name: "Missing NOINLINE pragma"}
@@ -56,7 +55,6 @@
 - ignore: {name: "Redundant flip"}
 - ignore: {name: "Use replicate"}
 - ignore: {name: "Use void"}
-- ignore: {name: "Use bimap"}
 - ignore: {name: "Use elemIndex"}
 - ignore: {name: "Use =="}
 - ignore: {name: "Use lambda-case"}
