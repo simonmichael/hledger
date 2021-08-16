@@ -310,7 +310,7 @@ rsHandle ui@UIState{
       case ev of
         VtyEvent (EvKey (KChar 'q') []) -> halt ui
         VtyEvent (EvKey KEsc        []) -> continue $ resetScreens d ui
-        VtyEvent (EvKey (KChar c)   []) | c `elem` ['?'] -> continue $ setMode Help ui
+        VtyEvent (EvKey (KChar c)   []) | c == '?' -> continue $ setMode Help ui
         AppEvent (DateChange old _) | isStandardPeriod p && p `periodContainsDate` old ->
           continue $ regenerateScreens j d $ setReportPeriod (DayPeriod d) ui
           where

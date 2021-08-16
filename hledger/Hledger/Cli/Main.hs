@@ -188,7 +188,7 @@ main = do
 
       -- addon commands
       | isExternalCommand = do
-          let externalargs = argsbeforecmd ++ filter (not.(=="--")) argsaftercmd
+          let externalargs = argsbeforecmd ++ filter (/="--") argsaftercmd
           let shellcmd = printf "%s-%s %s" progname cmd (unwords' externalargs) :: String
           dbgIO "external command selected" cmd
           dbgIO "external command arguments" (map quoteIfNeeded externalargs)

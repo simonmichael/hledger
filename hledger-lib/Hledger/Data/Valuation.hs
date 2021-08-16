@@ -342,7 +342,7 @@ pricesShortestPath start end edges =
         | e <- nextedges
         , let path' = dbgpath "trying" $ path ++ [e]  -- PERF prepend ?
         , let pathnodes' = mpto e : pathnodes
-        , let remainingedges' = [r | r <- remainingedges, not $ mpto r `elem` pathnodes' ]
+        , let remainingedges' = [r | r <- remainingedges, mpto r `notElem` pathnodes' ]
         ]
 
 -- debug helpers

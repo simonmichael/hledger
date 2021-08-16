@@ -409,7 +409,7 @@ journalAccountTypeQuery atypes fallbackregex Journal{jdeclaredaccounttypes} =
 
         differentlytypedsubs = concat
           [subs | (t,bs) <- M.toList jdeclaredaccounttypes
-              , not $ t `elem` atypes
+              , t `notElem` atypes
               , let subs = [b | b <- bs, any (`isAccountNamePrefixOf` b) as]
           ]
 

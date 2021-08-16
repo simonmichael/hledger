@@ -88,8 +88,8 @@ checkUIOpts :: UIOpts -> UIOpts
 checkUIOpts opts =
   either usageError (const opts) $ do
     case maybestringopt "theme" $ rawopts_ $ cliopts_ opts of
-      Just t | not $ elem t themeNames -> Left $ "invalid theme name: "++t
-      _                                -> Right ()
+      Just t | t `notElem` themeNames -> Left $ "invalid theme name: "++t
+      _                               -> Right ()
 
 -- XXX some refactoring seems due
 getHledgerUIOpts :: IO UIOpts
