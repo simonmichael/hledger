@@ -1040,7 +1040,7 @@ fromRawNumber
   -> Maybe Integer
   -> Either String
             (Quantity, Word8, Maybe Char, Maybe DigitGroupStyle)
-fromRawNumber (WithSeparators _ _ _) (Just _) =
+fromRawNumber (WithSeparators{}) (Just _) =
     Left "invalid number: digit separators and exponents may not be used together"
 fromRawNumber raw mExp = do
     (quantity, precision) <- toQuantity (fromMaybe 0 mExp) (digitGroup raw) (decimalGroup raw)
