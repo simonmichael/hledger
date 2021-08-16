@@ -400,8 +400,7 @@ journalAccountTypeQuery atypes fallbackregex Journal{jdeclaredaccounttypes} =
       concat $ mapMaybe (`M.lookup` jdeclaredaccounttypes) atypes
   in case declaredacctsoftype of
     [] -> Acct fallbackregex
-    as -> And $ [ Or acctnameRegexes ]
-            ++ if null differentlyTypedRegexes then [] else [ Not $ Or differentlyTypedRegexes ]
+    as -> And $ Or acctnameRegexes : if null differentlyTypedRegexes then [] else [ Not $ Or differentlyTypedRegexes ]
       where
         -- XXX Query isn't able to match account type since that requires extra info from the journal.
         -- So we do a hacky search by name instead.

@@ -119,18 +119,18 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec} j = do
     closingtxn = nulltransaction{tdate=closingdate, tdescription=closingdesc, tpostings=closingps}
     closingps =
       concat [
-        [posting{paccount          = a
-                ,pamount           = mixedAmount . precise $ negate b
-                -- after each commodity's last posting, assert 0 balance (#1035)
-                -- balance assertion amounts are unpriced (#824)
-                ,pbalanceassertion =
-                    if islast
-                    then Just nullassertion{baamount=precise b{aquantity=0, aprice=Nothing}}
-                    else Nothing
-                }
-        ]
+        posting{paccount          = a
+               ,pamount           = mixedAmount . precise $ negate b
+               -- after each commodity's last posting, assert 0 balance (#1035)
+               -- balance assertion amounts are unpriced (#824)
+               ,pbalanceassertion =
+                   if islast
+                   then Just nullassertion{baamount=precise b{aquantity=0, aprice=Nothing}}
+                   else Nothing
+               }
+
         -- maybe an interleaved posting transferring this balance to equity
-        ++ [posting{paccount=closingacct, pamount=mixedAmount $ precise b} | interleaved]
+        : [posting{paccount=closingacct, pamount=mixedAmount $ precise b} | interleaved]
 
         | -- get the balances for each commodity and transaction price
           (a,mb) <- acctbals
@@ -149,15 +149,14 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec} j = do
     openingtxn = nulltransaction{tdate=openingdate, tdescription=openingdesc, tpostings=openingps}
     openingps =
       concat [
-        [posting{paccount          = a
-                ,pamount           = mixedAmount $ precise b
-                ,pbalanceassertion =
-                    case mcommoditysum of
-                      Just s  -> Just nullassertion{baamount=precise s{aprice=Nothing}}
-                      Nothing -> Nothing
-                }
-        ]
-        ++ [posting{paccount=openingacct, pamount=mixedAmount . precise $ negate b} | interleaved]
+        posting{paccount          = a
+               ,pamount           = mixedAmount $ precise b
+               ,pbalanceassertion =
+                   case mcommoditysum of
+                     Just s  -> Just nullassertion{baamount=precise s{aprice=Nothing}}
+                     Nothing -> Nothing
+               }
+        : [posting{paccount=openingacct, pamount=mixedAmount . precise $ negate b} | interleaved]
 
         | (a,mb) <- acctbals
         , let bs = amounts $ normaliseMixedAmount mb

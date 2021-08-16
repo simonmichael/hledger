@@ -278,13 +278,13 @@ compoundBalanceReportAsHtml ropts cbr =
     blankrow = tr_ $ td_ [colspanattr] $ toHtmlRaw ("&nbsp;"::String)
 
     titlerows =
-         [tr_ $ th_ [colspanattr, leftattr] $ h2_ $ toHtml title]
-      ++ [thRow $
-          "" : ["Commodity" | commodity_column_ ropts] ++
-          map (reportPeriodName (balanceaccum_ ropts) colspans) colspans
-          ++ (if row_total_ ropts then ["Total"] else [])
-          ++ (if average_ ropts then ["Average"] else [])
-          ]
+      (tr_ $ th_ [colspanattr, leftattr] $ h2_ $ toHtml title)
+      : [thRow $
+         "" : ["Commodity" | commodity_column_ ropts] ++
+         map (reportPeriodName (balanceaccum_ ropts) colspans) colspans
+         ++ (if row_total_ ropts then ["Total"] else [])
+         ++ (if average_ ropts then ["Average"] else [])
+        ]
 
     thRow :: [T.Text] -> Html ()
     thRow = tr_ . mconcat . map (th_ . toHtml)
