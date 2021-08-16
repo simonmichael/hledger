@@ -113,9 +113,10 @@ tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{
                 [] -> str ""
                 fs -> withAttr ("border" <> "query") (str $ " " ++ intercalate ", " fs)
 
-        bottomlabel = case mode of
+        bottomlabel = quickhelp
+                        -- case mode of
                         -- Minibuffer ed -> minibuffer ed
-                        _             -> quickhelp
+                        -- _             -> quickhelp
           where
             quickhelp = borderKeysStr [
                ("?", "help")
