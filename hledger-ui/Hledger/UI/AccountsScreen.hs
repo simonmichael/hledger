@@ -69,7 +69,7 @@ asInit d reset ui@UIState{
                    (_, Nothing)            -> 0
                    (_, Just (_,AccountsScreenItem{asItemAccountName=a})) ->
                      headDef 0 $ catMaybes [
-                       findIndex (a ==) as
+                       elemIndex a as
                       ,findIndex (a `isAccountNamePrefixOf`) as
                       ,Just $ max 0 (length (filter (< a) as) - 1)
                       ]

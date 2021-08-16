@@ -229,7 +229,7 @@ moveFlagsAfterCommand args = moveArgs $ ensureDebugHasArg args
     ensureDebugHasArg as =
       case break (=="--debug") as of
        (bs,"--debug":c:cs) | null c || not (all isDigit c) -> bs++"--debug=1":c:cs
-       (bs,"--debug":[])                                   -> bs++"--debug=1":[]
+       (bs,["--debug"])                                    -> bs++["--debug=1"]
        _                                                   -> as
 
     moveArgs args = insertFlagsAfterCommand $ moveArgs' (args, [])

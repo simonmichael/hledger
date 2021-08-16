@@ -50,7 +50,7 @@ setboolopt :: String -> RawOpts -> RawOpts
 setboolopt name = overRawOpts (++ [(name,"")])
 
 appendopts :: [(String,String)] -> RawOpts -> RawOpts
-appendopts new = overRawOpts $ \old -> concat [old,new]
+appendopts new = overRawOpts (++new)
 
 -- | Is the named option present ?
 inRawOpts :: String -> RawOpts -> Bool
