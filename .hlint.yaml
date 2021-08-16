@@ -26,7 +26,6 @@
 - ignore: {name: "Use fmap"}
 - ignore: {name: "Use curry"}
 - ignore: {name: "Redundant uncurry"}
-- ignore: {name: "Use record patterns"}
 - ignore: {name: "Redundant fromIntegral"}
 - ignore: {name: "Use <&>"}
 - ignore: {name: "Use sortOn"}

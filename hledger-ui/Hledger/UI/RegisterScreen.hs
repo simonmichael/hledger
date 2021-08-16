@@ -296,8 +296,8 @@ rsHandle ui@UIState{
         VtyEvent ev              -> do ed' <- handleEditorEvent ev ed
                                        continue $ ui{aMode=Minibuffer ed'}
         AppEvent _        -> continue ui
-        MouseDown _ _ _ _ -> continue ui
-        MouseUp _ _ _     -> continue ui
+        MouseDown{}       -> continue ui
+        MouseUp{}         -> continue ui
 
     Help ->
       case ev of
@@ -384,8 +384,8 @@ rsHandle ui@UIState{
           continue ui{aScreen=s{rsList=newitems}}
 
         AppEvent _        -> continue ui
-        MouseDown _ _ _ _ -> continue ui
-        MouseUp _ _ _     -> continue ui
+        MouseDown{}       -> continue ui
+        MouseUp{}         -> continue ui
 
 rsHandle _ _ = error "event handler called with wrong screen type, should not happen"  -- PARTIAL:
 

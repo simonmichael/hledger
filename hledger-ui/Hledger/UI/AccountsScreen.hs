@@ -250,8 +250,8 @@ asHandle ui0@UIState{
         VtyEvent ev        -> do ed' <- handleEditorEvent ev ed
                                  continue $ ui{aMode=Minibuffer ed'}
         AppEvent _        -> continue ui
-        MouseDown _ _ _ _ -> continue ui
-        MouseUp _ _ _     -> continue ui
+        MouseDown{}       -> continue ui
+        MouseUp{}         -> continue ui
 
     Help ->
       case ev of
@@ -356,8 +356,8 @@ asHandle ui0@UIState{
                                     }
 
         AppEvent _        -> continue ui
-        MouseDown _ _ _ _ -> continue ui
-        MouseUp _ _ _     -> continue ui
+        MouseDown{}       -> continue ui
+        MouseUp{}         -> continue ui
 
   where
     journalspan = journalDateSpan False j
