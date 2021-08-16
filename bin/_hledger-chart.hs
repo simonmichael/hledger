@@ -100,7 +100,7 @@ main = do
   let balreport = balanceReportFromMultiBalanceReport ropts (queryFromOpts d ropts) j
   let go -- | "--help" `elem` (rawopts_ $ cliopts_ chopts)    = putStr (showModeHelp chartmode) >> exitSuccess
          -- | "--version" `elem` (rawopts_ $ cliopts_ chopts) = putStrLn progversion >> exitSuccess
-         | otherwise                                       = withJournalAndChartOptsDo chopts (writeChart balreport)
+                                                           = withJournalAndChartOptsDo chopts (writeChart balreport)
   go
 
 -- copied from hledger-web

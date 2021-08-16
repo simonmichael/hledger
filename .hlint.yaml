@@ -16,7 +16,6 @@
 - ignore: {name: "Use <$>"}
 - ignore: {name: "Unused LANGUAGE pragma"}
 - ignore: {name: "Redundant bracket"}
-- ignore: {name: "Redundant guard"}
 - ignore: {name: "Avoid reverse"}
 - ignore: {name: "Eta reduce"}
 - ignore: {name: "Use $>"}

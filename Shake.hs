@@ -663,9 +663,9 @@ main = do
       -- With -n/--dry-run, print new content to stdout instead of
       -- updating the changelog.
       --
-      phonys (\out -> if
-        | not $ out `elem` changelogs -> Nothing
-        | otherwise -> Just $ do
+      phonys (\out -> if out `notElem` changelogs
+        then Nothing
+        else Just $ do
           tags <- lines . fromStdout <$> (cmd Shell "git tag" :: Action (Stdout String))
           oldlines <- liftIO $ lines <$> readFileStrictly out
           let
