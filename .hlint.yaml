@@ -43,9 +43,6 @@
 - ignore: {name: "Fuse concatMap/map"}
 - ignore: {name: "Redundant where"}
 - ignore: {name: "Use concatMap"}
-- ignore: {name: "Use second"}
-- ignore: {name: "Use fromRight"}
-- ignore: {name: "Use fromLeft"}
 - ignore: {name: "Redundant bang pattern"}
 - ignore: {name: "Use zipWith"}
 - ignore: {name: "Replace case with maybe"}
