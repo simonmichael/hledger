@@ -499,8 +499,10 @@ renderComponent topaligned oneline opts (acctname, depth, total) (FormatField lj
     TotalField       -> Cell align . pure $ showMixedAmountB dopts total
     _                -> Cell align [mempty]
   where
-    align = if topaligned then (if ljust then TopLeft    else TopRight)
-                          else (if ljust then BottomLeft else BottomRight)
+    align | topaligned && ljust = TopLeft
+          | topaligned          = TopRight
+          | ljust               = BottomLeft
+          | otherwise           = BottomRight
     dopts = (balanceOpts True opts){displayOneLine=oneline, displayMinWidth=mmin, displayMaxWidth=mmax}
 
 -- rendering multi-column balance reports

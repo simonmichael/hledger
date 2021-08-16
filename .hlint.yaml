@@ -40,7 +40,6 @@
 - ignore: {name: "Use fewer imports"}
 - ignore: {name: "Use mapMaybe"}
 - ignore: {name: "Use intercalate"}
-- ignore: {name: "Use guards"}
 - ignore: {name: "Use tuple-section"}
 - ignore: {name: "Use section"}
 - ignore: {name: "Use maybe"}
