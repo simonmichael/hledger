@@ -33,7 +33,7 @@ prices opts j = do
     ps         = filter (matchesPosting q) $ allPostings j
     mprices    = jpricedirectives j
     cprices    = map (stylePriceDirectiveExceptPrecision styles) $ concatMap postingsPriceDirectivesFromCosts ps
-    icprices   = map (stylePriceDirectiveExceptPrecision styles) $ concatMap postingsPriceDirectivesFromCosts $ map (postingTransformAmount $ mapMixedAmount invertPrice) ps
+    icprices   = map (stylePriceDirectiveExceptPrecision styles) $ concatMap (postingsPriceDirectivesFromCosts . postingTransformAmount (mapMixedAmount invertPrice)) ps
     allprices  = mprices ++ ifBoolOpt "costs" cprices ++ ifBoolOpt "inverted-costs" icprices
   mapM_ (T.putStrLn . showPriceDirective) $
     sortOn pddate $
