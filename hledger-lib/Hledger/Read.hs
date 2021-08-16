@@ -46,7 +46,7 @@ module Hledger.Read (
 --- ** imports
 import Control.Arrow (right)
 import qualified Control.Exception as C
-import Control.Monad (when)
+import Control.Monad (unless, when)
 import "mtl" Control.Monad.Except (runExceptT)
 import Data.Default (def)
 import Data.Foldable (asum)
@@ -192,7 +192,7 @@ requireJournalFileExists :: FilePath -> IO ()
 requireJournalFileExists "-" = return ()
 requireJournalFileExists f = do
   exists <- doesFileExist f
-  when (not exists) $ do  -- XXX might not be a journal file
+  unless exists $ do  -- XXX might not be a journal file
     hPutStr stderr $ "The hledger journal file \"" <> f <> "\" was not found.\n"
     hPutStr stderr "Please create it first, eg with \"hledger add\" or a text editor.\n"
     hPutStr stderr "Or, specify an existing journal file with -f or LEDGER_FILE.\n"
@@ -207,7 +207,7 @@ ensureJournalFileExists f = do
     hPutStr stderr $ "Part of file path \"" <> show f <> "\"\n ends with a dot, which is unsafe on Windows; please use a different path.\n"
     exitFailure
   exists <- doesFileExist f
-  when (not exists) $ do
+  unless exists $ do
     hPutStr stderr $ "Creating hledger journal file " <> show f <> ".\n"
     -- note Hledger.Utils.UTF8.* do no line ending conversion on windows,
     -- we currently require unix line endings on all platforms.

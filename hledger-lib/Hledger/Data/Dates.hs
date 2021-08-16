@@ -89,6 +89,7 @@ import Data.Char (digitToInt, isDigit, ord)
 import Data.Default
 import Data.Foldable (asum)
 import Data.Function (on)
+import Data.Functor (($>))
 import Data.Maybe
 import qualified Data.Set as Set
 import Data.Text (Text)
@@ -776,7 +777,7 @@ validMonth n = n >= 1 && n <= 12
 validDay n = n >= 1 && n <= 31
 
 failIfInvalidDate :: Fail.MonadFail m => SmartDate -> m SmartDate
-failIfInvalidDate s = unless isValid (Fail.fail $ "bad smart date: " ++ show s) *> return s
+failIfInvalidDate s = unless isValid (Fail.fail $ "bad smart date: " ++ show s) $> s
   where isValid = case s of
             SmartAssumeStart y (Just (m, md)) -> isJust $ fromGregorianValid y m (fromMaybe 1 md)
             SmartFromReference mm d           -> isJust $ fromGregorianValid 2004 (fromMaybe 1 mm) d
