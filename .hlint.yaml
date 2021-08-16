@@ -14,7 +14,6 @@
 - ignore: {name: "Redundant multi-way if"}
 - ignore: {name: "Use notElem"}
 - ignore: {name: "Use <$>"}
-- ignore: {name: "Unused LANGUAGE pragma"}
 - ignore: {name: "Redundant bracket"}
 - ignore: {name: "Avoid reverse"}
 - ignore: {name: "Eta reduce"}
