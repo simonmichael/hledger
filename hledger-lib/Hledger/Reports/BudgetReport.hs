@@ -22,8 +22,8 @@ module Hledger.Reports.BudgetReport (
 where
 
 import Control.Applicative ((<|>))
+import Control.Arrow ((***))
 import Data.Decimal (roundTo)
-import Data.Default (def)
 import Data.Function (on)
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
@@ -58,8 +58,10 @@ type BudgetCell = (Maybe Change, Maybe BudgetGoal)
 type BudgetReportRow = PeriodicReportRow DisplayName BudgetCell
 type BudgetReport    = PeriodicReport    DisplayName BudgetCell
 
-
-type BudgetDisplayCell = (BudgetCell, (Int, Int, Int))
+type BudgetDisplayCell = (WideBuilder, Maybe (WideBuilder, Maybe WideBuilder))
+type BudgetDisplayRow  = [BudgetDisplayCell]
+type BudgetShowMixed   = MixedAmount -> [WideBuilder]
+type BudgetPercBudget  = Change -> BudgetGoal -> [Maybe Percentage]
 
 -- | Calculate per-account, per-period budget (balance change) goals
 -- from all periodic transactions, calculate actual balance changes
@@ -215,8 +217,7 @@ combineBudgetAndActual ropts j
 budgetReportAsText :: ReportOpts -> BudgetReport -> TL.Text
 budgetReportAsText ropts@ReportOpts{..} budgetr = TB.toLazyText $
     TB.fromText title <> TB.fromText "\n\n" <>
-      renderTableByRowsB def{tableBorders=False,prettyTable=pretty_tables_}
-        renderCh renderRow displayTableWithWidths
+      balanceReportTableAsText ropts (budgetReportAsTable ropts budgetr)
   where
     title = "Budget performance in " <> showDateSpan (periodicReportSpan budgetr)
            <> (case cost_ of
@@ -230,114 +231,154 @@ budgetReportAsText ropts@ReportOpts{..} budgetr = TB.toLazyText $
                  Nothing             -> "")
            <> ":"
 
-    renderCh
-      | not commodity_column_ = fmap (textCell TopRight)
-      | otherwise = zipWith ($) (Tab.textCell TopLeft : repeat (Tab.textCell TopRight))
+-- | Add the second table below the first, discarding its column headings.
+concatTables (Table hLeft hTop dat) (Table hLeft' _ dat') =
+    Table (Tab.Group SingleLine [hLeft, hLeft']) hTop (dat ++ dat')
 
-    renderRow :: (Text, [((Int, Int, Int), BudgetDisplayCell)]) -> (Cell, [Cell])
-    renderRow (rh, cells)
-      | not commodity_column_ = (textCell TopLeft rh, fmap (uncurry showcell) cells)
-      | otherwise =
-          ( textCell TopLeft rh
-          , textsCell TopLeft cs : fmap (uncurry (showcell' cs)) cells)
+-- | Build a 'Table' from a multi-column balance report.
+budgetReportAsTable :: ReportOpts -> BudgetReport -> Table Text Text WideBuilder
+budgetReportAsTable
+  ReportOpts{..}
+  (PeriodicReport spans items tr) =
+    maybetransposetable $
+    addtotalrow $
+    Table
+      (Tab.Group NoLine $ map Header accts)
+      (Tab.Group NoLine $ map Header colheadings)
+      rows
+  where
+    colheadings = ["Commodity" | commodity_column_]
+                  ++ map (reportPeriodName balanceaccum_ spans) spans
+                  ++ ["  Total" | row_total_]
+                  ++ ["Average" | average_]
+
+    -- FIXME. Have to check explicitly for which to render here, since
+    -- budgetReport sets accountlistmode to ALTree. Find a principled way to do
+    -- this.
+    renderacct row = case accountlistmode_ of
+        ALTree -> T.replicate ((prrDepth row - 1)*2) " " <> prrDisplayName row
+        ALFlat -> accountNameDrop (drop_) $ prrFullName row
+
+    addtotalrow
+      | no_total_ = id
+      | otherwise = let rh = Tab.Group NoLine $ map Header (replicate (length totalrows) "")
+                        ch = Header [] -- ignored
+                     in (`concatTables` Table rh ch totalrows)
+
+    maybetranspose
+      | transpose_ = transpose
+      | otherwise  = id
+
+    maybetransposetable
+      | transpose_ = \(Table rh ch vals) -> Table ch rh (transpose vals)
+      | otherwise  = id
+
+    (accts, rows, totalrows) = (accts, prependcs itemscs (padcells texts), prependcs trcs (padtr trtexts))
       where
-        cs = S.toList . foldl' S.union mempty
-            . fmap (budgetCellCommodities . fst . snd) $ cells
+        shownitems :: [[(AccountName, WideBuilder, BudgetDisplayRow)]]
+        shownitems = (fmap (\i -> fmap (\(cs, cvals) -> (renderacct i, cs, cvals)) . showrow $ rowToBudgetCells i) items)
+        (accts, itemscs, texts) = unzip3 $ concat shownitems
 
+        showntr    :: [[(WideBuilder, BudgetDisplayRow)]]
+        showntr    = [showrow $ rowToBudgetCells tr]
+        (trcs, trtexts)         = unzip  $ concat showntr
+        trwidths
+          | transpose_ = snd $ splitAt (length texts) widths
+          | otherwise = widths
+
+        padcells = maybetranspose . fmap (fmap (uncurry paddisplaycell) . zip widths)   . maybetranspose
+        padtr    = maybetranspose . fmap (fmap (uncurry paddisplaycell) . zip trwidths) . maybetranspose
+
+        -- commodities are shown with the amounts without `commodity-column`
+        prependcs cs
+          | commodity_column_ = zipWith (:) cs
+          | otherwise = id
+
+    rowToBudgetCells (PeriodicReportRow _ as rowtot rowavg) = as
+        ++ [rowtot | row_total_ && not (null as)]
+        ++ [rowavg | average_   && not (null as)]
+
+    -- functions for displaying budget cells depending on `commodity-column` flag
+    rowfuncs :: [CommoditySymbol] -> (BudgetShowMixed, BudgetPercBudget)
+    rowfuncs cs
+      | not commodity_column_ =
+          ( pure . showMixedAmountB oneLine{displayColour=color_, displayMaxWidth=Just 32}
+          , \a -> pure . percentage a)
+      | otherwise =
+          ( showMixedAmountLinesB noPrice{displayOrder=Just cs, displayMinWidth=Nothing, displayColour=color_}
+          , \a b -> fmap (percentage' a b) cs)
+
+    showrow :: [BudgetCell] -> [(WideBuilder, BudgetDisplayRow)]
+    showrow row =
+      let cs = budgetCellsCommodities row
+          (showmixed, percbudget) = rowfuncs cs
+       in   zip (fmap wbFromText cs)
+          . transpose
+          . fmap (showcell showmixed percbudget)
+          $ row
+
+    budgetCellsCommodities = S.toList . foldl' S.union mempty . fmap budgetCellCommodities
     budgetCellCommodities :: BudgetCell -> S.Set CommoditySymbol
     budgetCellCommodities (am, bm) = f am `S.union` f bm
       where f = maybe mempty maCommodities
 
-    displayTableWithWidths :: Table Text Text ((Int, Int, Int), BudgetDisplayCell)
-    displayTableWithWidths = Table rh ch $ map (zipWith (,) widths) displaycells
-    Table rh ch displaycells = case budgetReportAsTable ropts budgetr of
-        Table rh' ch' vals -> maybetranspose . Table rh' ch' $ map (map cellWidth) vals
+    cellswidth :: [BudgetCell] -> [[(Int, Int, Int)]]
+    cellswidth row =
+      let cs = budgetCellsCommodities row
+          (showmixed, percbudget) = rowfuncs cs
+          disp = showcell showmixed percbudget
+          budgetpercwidth = wbWidth *** maybe 0 wbWidth
+          cellwidth (am, bm) = let (bw, pw) = maybe (0, 0) budgetpercwidth bm in (wbWidth am, bw, pw)
+       in fmap (fmap cellwidth . disp) row
 
-    showNorm = showMixedAmountB oneLine{displayColour=color_, displayMaxWidth=Just 32}
-
-    cellWidth :: BudgetCell -> BudgetDisplayCell
-    cellWidth cell@(actual, budget) =
-        let (showF, budgetF)
-              | not commodity_column_ = (showamt , budgetAndPerc)
-              | otherwise              = (showamt', budgetAndPerc')
-            (bam, bp) = fromMaybe (0, 0) $ budgetF <$> budget
-         in (cell, (showF actual', bam, bp))
-      where
-        actual' = fromMaybe nullmixedamt actual
-        budgetAndPerc b = (showamt b, fromMaybe 0 $ showper <$> percentage actual' b)
-        showamt = wbWidth . showNorm
-        showper = T.length . showperc
-
-        cs = S.toList $ budgetCellCommodities cell
-        showComm amt = showMixedAmountLinesB noPrice{displayOrder = Just cs} amt
-        showamt' = maximum' . fmap wbWidth . showComm
-        budgetAndPerc' b = (showamt' b, maximum' $ fmap (fromMaybe 0 . fmap showper . percentage' actual' b) cs)
-
+    -- build a list of widths for each column. In the case of transposed budget
+    -- reports, the total 'row' must be included in this list
     widths = zip3 actualwidths budgetwidths percentwidths
-    actualwidths  = map (maximum' . map (first3  . snd)) cols
-    budgetwidths  = map (maximum' . map (second3 . snd)) cols
-    percentwidths = map (maximum' . map (third3  . snd)) cols
-    cols = transpose displaycells
-
-    -- XXX lay out actual, percentage and/or goal in the single table cell for now, should probably use separate cells
-    showcell :: (Int, Int, Int) -> BudgetDisplayCell -> Cell
-    showcell abs@(actualwidth, _, _) ((actual, mbudget), dim@(wa, _, _)) =
-        Cell TopRight [WideBuilder ( TB.fromText (T.replicate (actualwidth - wa) " ")
-                                   <> TB.fromText (toText actual')
-                                   <> budgetstr abs dim (budgetAndPerc <$> mbudget)
-                                   ) (actualwidth + totalbudgetwidth)]
       where
-        toText = TL.toStrict . TB.toLazyText . wbBuilder . showNorm
-        actual' = fromMaybe nullmixedamt actual
-        budgetAndPerc b = (toText b, showperc <$> percentage actual' b)
+        actualwidths  = map (maximum' . map first3 ) $ cols
+        budgetwidths  = map (maximum' . map second3) $ cols
+        percentwidths = map (maximum' . map third3 ) $ cols
+        catcolumnwidths = foldl (\l a -> zipWith (++) l a) (repeat [])
+        cols = maybetranspose $ catcolumnwidths $ map (cellswidth . rowToBudgetCells) items ++ [cellswidth $ rowToBudgetCells tr]
 
-        (_, totalbudgetwidth) = budgetw abs
-
-    showcell' :: [CommoditySymbol] -> (Int, Int, Int) -> BudgetDisplayCell -> Cell
-    showcell' cs abs@(actualwidth, _, _) ((actual, mbudget), _) = Cell TopRight full
+    -- split a BudgetCell into BudgetDisplayCell's (one per commodity when applicable)
+    showcell :: BudgetShowMixed -> BudgetPercBudget -> BudgetCell -> BudgetDisplayRow
+    showcell showmixed percbudget (actual, mbudget) = zip (showmixed actual') full
       where
-        showComm = showMixedAmountLinesB noPrice{displayOrder = Just cs}
-
         actual' = fromMaybe nullmixedamt actual
 
-        toPadded (WideBuilder b w) =
-            (TB.fromText . flip T.replicate " " $ actualwidth - w) <> b
-        paddedActual = fmap toPadded $ showComm actual'
-
-        (_, totalbudgetwidth) = budgetw abs
-
-        budgetAndPerc :: MixedAmount -> [TB.Builder]
-        budgetAndPerc = fmap toBudgetStr . uncurry zip . toText
-          where
-            toBudgetStr t@(b, mp) =
-              let bt = if b == "0" then Nothing else Just t
-               in budgetstr abs (0, textWidth b, maybe 0 textWidth mp) bt
-            toText b =
-                ( fmap (TL.toStrict . TB.toLazyText . wbBuilder) $ showComm b
-                , fmap (fmap showperc . percentage' actual' b) cs
-                )
-
-        full :: [WideBuilder]
-        full = fmap (flip WideBuilder (actualwidth + totalbudgetwidth)) $
-            zipWith (<>) paddedActual (fromMaybe (repeat (TB.fromText $ T.replicate totalbudgetwidth " ")) $ fmap budgetAndPerc mbudget)
-
-    budgetw (_, budgetwidth, percentwidth) =
-      let totalpercentwidth = if percentwidth == 0 then 0 else percentwidth + 5
-       in ( totalpercentwidth
-          , if budgetwidth == 0 then 0 else budgetwidth + totalpercentwidth + 3
+        budgetAndPerc b = uncurry zip
+          ( showmixed b
+          , fmap (fmap (wbFromText . T.pack . show . roundTo 0)) $ percbudget actual' b
           )
 
-    -- | Display a padded budget string
-    budgetstr abs@(_, budgetwidth, percentwidth) (_, wb, wp) mbudget =
-        TB.fromText $ case mbudget of
-      Nothing                 -> T.replicate totalbudgetwidth " "
-      Just (budget, Nothing)  -> " [" <> T.replicate totalpercentwidth " " <> T.replicate (budgetwidth - wb) " " <> budget <> "]"
-      Just (budget, Just pct) -> " [" <> T.replicate (percentwidth - wp) " " <> pct <> "% of " <> T.replicate (budgetwidth - wb) " " <> budget <> "]"
+        full
+          | Just b <- mbudget = fmap Just $ budgetAndPerc b
+          | otherwise         = repeat Nothing
 
-      where (totalpercentwidth, totalbudgetwidth) = budgetw abs
+    paddisplaycell :: (Int, Int, Int) -> BudgetDisplayCell -> WideBuilder
+    paddisplaycell (actualwidth, budgetwidth, percentwidth) (actual, mbudget) = full
+      where
+        toPadded (WideBuilder b w) =
+            (TB.fromText . flip T.replicate " " $ actualwidth - w) <> b
 
-    showperc :: Percentage -> Text
-    showperc = T.pack . show . roundTo 0
+        (totalpercentwidth, totalbudgetwidth) =
+          let totalpercentwidth = if percentwidth == 0 then 0 else percentwidth + 5
+           in ( totalpercentwidth
+              , if budgetwidth == 0 then 0 else budgetwidth + totalpercentwidth + 3
+              )
+
+        -- | Display a padded budget string
+        budgetb (budget, perc) =
+          let perct = case perc of
+                Nothing  -> T.replicate totalpercentwidth " "
+                Just pct -> T.replicate (percentwidth - wbWidth pct) " " <> wbToText pct <> "% of "
+           in TB.fromText $ " [" <> perct <> T.replicate (budgetwidth - wbWidth budget) " " <> wbToText budget <> "]"
+
+        emptyBudget = TB.fromText $ T.replicate totalbudgetwidth " "
+
+        full = flip WideBuilder (actualwidth + totalbudgetwidth) $
+            toPadded actual <> maybe emptyBudget budgetb mbudget
 
     -- | Calculate the percentage of actual change to budget goal to show, if any.
     -- If valuing at cost, both amounts are converted to cost before comparing.
@@ -357,45 +398,10 @@ budgetReportAsText ropts@ReportOpts{..} budgetr = TB.toLazyText $
             NoCost -> amounts
 
     -- | Calculate the percentage of actual change to budget goal for a particular commodity
-    percentage' :: MixedAmount -> MixedAmount -> CommoditySymbol -> Maybe Percentage
+    percentage' :: Change -> BudgetGoal -> CommoditySymbol -> Maybe Percentage
     percentage' am bm c = case ((,) `on` find ((==) c . acommodity) . amounts) am bm of
         (Just a, Just b) -> percentage (mixedAmount a) (mixedAmount b)
         _                -> Nothing
-
-    maybetranspose | transpose_ = \(Table rh ch vals) -> Table ch rh (transpose vals)
-                   | otherwise  = id
-
--- | Build a 'Table' from a multi-column balance report.
-budgetReportAsTable :: ReportOpts -> BudgetReport -> Table Text Text (Maybe MixedAmount, Maybe MixedAmount)
-budgetReportAsTable
-  ropts@ReportOpts{balanceaccum_}
-  (PeriodicReport spans rows (PeriodicReportRow _ coltots grandtot grandavg)) =
-    addtotalrow $
-    Table
-      (Tab.Group NoLine $ map Header accts)
-      (Tab.Group NoLine $ map Header colheadings)
-      (map rowvals rows)
-  where
-    colheadings = ["Commodity" | commodity_column_ ropts]
-                  ++ map (reportPeriodName balanceaccum_ spans) spans
-                  ++ ["  Total" | row_total_ ropts]
-                  ++ ["Average" | average_ ropts]
-
-    accts = map renderacct rows
-    -- FIXME. Have to check explicitly for which to render here, since
-    -- budgetReport sets accountlistmode to ALTree. Find a principled way to do
-    -- this.
-    renderacct row = case accountlistmode_ ropts of
-        ALTree -> T.replicate ((prrDepth row - 1)*2) " " <> prrDisplayName row
-        ALFlat -> accountNameDrop (drop_ ropts) $ prrFullName row
-    rowvals (PeriodicReportRow _ as rowtot rowavg) =
-        as ++ [rowtot | row_total_ ropts] ++ [rowavg | average_ ropts]
-    addtotalrow
-      | no_total_ ropts = id
-      | otherwise = (+----+ (row "" $
-                       coltots ++ [grandtot | row_total_ ropts && not (null coltots)]
-                               ++ [grandavg | average_ ropts && not (null coltots)]
-                    ))
 
 -- XXX generalise this with multiBalanceReportAsCsv ?
 -- | Render a budget report as CSV. Like multiBalanceReportAsCsv,

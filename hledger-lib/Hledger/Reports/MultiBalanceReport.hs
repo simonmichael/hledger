@@ -27,6 +27,7 @@ module Hledger.Reports.MultiBalanceReport (
   getPostings,
   startingBalances,
   generateMultiBalanceReport,
+  balanceReportTableAsText,
 
   -- -- * Tests
   tests_MultiBalanceReport
@@ -46,6 +47,11 @@ import Data.Ord (Down(..))
 import Data.Semigroup (sconcat)
 import Data.Time.Calendar (Day, fromGregorian)
 import Safe (lastDef, minimumMay)
+
+import Data.Default (def)
+import qualified Data.Text as T
+import qualified Data.Text.Lazy.Builder as TB
+import qualified Text.Tabular.AsciiWide as Tab
 
 import Hledger.Data
 import Hledger.Query
@@ -554,6 +560,25 @@ periodChanges start amtmap =
 cumulativeSum :: (DateSpan -> Account -> Account) -> Account -> Map DateSpan Account -> Map DateSpan Account
 cumulativeSum value start = snd . M.mapAccumWithKey accumValued start
   where accumValued startAmt date newAmt = let s = sumAcct startAmt newAmt in (s, value date s)
+
+-- | Given a table representing a multi-column balance report (for example,
+-- made using 'balanceReportAsTable'), render it in a format suitable for
+-- console output. Amounts with more than two commodities will be elided
+-- unless --no-elide is used.
+balanceReportTableAsText :: ReportOpts -> Tab.Table T.Text T.Text WideBuilder -> TB.Builder
+balanceReportTableAsText ReportOpts{..} =
+    Tab.renderTableByRowsB def{Tab.tableBorders=False, Tab.prettyTable=pretty_tables_} renderCh renderRow
+  where
+    renderCh
+      | not commodity_column_ || transpose_ = fmap (Tab.textCell Tab.TopRight)
+      | otherwise = zipWith ($) (Tab.textCell Tab.TopLeft : repeat (Tab.textCell Tab.TopRight))
+
+    renderRow (rh, row)
+      | not commodity_column_ || transpose_ =
+          (Tab.textCell Tab.TopLeft rh, fmap (Tab.Cell Tab.TopRight . pure) row)
+      | otherwise =
+          (Tab.textCell Tab.TopLeft rh, zipWith ($) (Tab.Cell Tab.TopLeft : repeat (Tab.Cell Tab.TopRight)) (fmap pure row))
+
 
 -- tests
 
