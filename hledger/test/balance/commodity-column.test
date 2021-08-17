@@ -110,3 +110,128 @@ $ hledger -f bcexample.hledger bal -Y assets.*etrade -3 -O csv --commodity-colum
 "Total:","VEA","12.00","0","10.00","0","14.00","0"
 "Total:","VHT","106.00","0","18.00","0","170.00","0"
 >=0
+
+# 9. Multicolumn balance report with --commodity-column and null commodity
+<
+2018/1/1
+  (a)          1
+  (a:b:c)      1
+
+2018/1/2
+  (a)          1 EUR
+
+$ hledger -f- bal -Y --commodity-column
+Balance changes in 2018:
+
+       || Commodity  2018 
+=======++=================
+ a     ||               1 
+ a     || EUR           1 
+ a:b:c ||               1 
+-------++-----------------
+       ||               2 
+       || EUR           1 
+
+
+# 10. Multicolumn balance report with --commodity-column --transpose.
+$ hledger -f bcexample.hledger bal -Y assets.*etrade -1 --average --commodity-column --transpose
+>
+Balance changes in 2012-01-01..2014-12-31:
+
+           || Assets  Assets   Assets  Assets  Assets |                                       
+===========++=========================================+=======================================
+ Commodity ||    GLD    ITOT      USD     VEA     VHT |   GLD    ITOT      USD    VEA     VHT 
+ 2012      ||      0   10.00   337.18   12.00  106.00 |     0   10.00   337.18  12.00  106.00 
+ 2013      ||  70.00   18.00   -98.12   10.00   18.00 | 70.00   18.00   -98.12  10.00   18.00 
+ 2014      ||      0  -11.00  4881.44   14.00  170.00 |     0  -11.00  4881.44  14.00  170.00 
+ Average   ||  23.33    5.67  1706.83   12.00   98.00 | 23.33    5.67  1706.83  12.00   98.00 
+>=0
+
+# 11. Multicolumn balance report with --commodity-column --transpose.
+<
+~ daily from 2016/1/1
+    expenses:food     $10
+    expenses:leisure  $15
+    assets:cash
+
+2016/12/01
+    expenses:food  $10
+    assets:cash
+
+2016/12/02
+    expenses:food  $9
+    assets:cash
+
+2016/12/03
+    expenses:food  $11
+    assets:cash
+
+2016/12/02
+    expenses:leisure  $5
+    assets:cash
+
+2016/12/03
+    expenses:movies  $25
+    assets:cash
+
+2016/12/03
+    expenses:cab  $15
+    assets:cash
+
+$ hledger -f- bal --budget --commodity-column --transpose -DTN
+>
+Budget performance in 2016-12-01..2016-12-03:
+
+            ||       assets:cash         expenses    expenses:food  expenses:leisure 
+============++=======================================================================
+ Commodity  ||                 $                $                $                 $ 
+ 2016-12-01 || -10 [ 40% of -25]  10 [ 40% of 25]  10 [100% of 10]     0 [       15] 
+ 2016-12-02 || -14 [ 56% of -25]  14 [ 56% of 25]   9 [ 90% of 10]     5 [33% of 15] 
+ 2016-12-03 || -51 [204% of -25]  51 [204% of 25]  11 [110% of 10]     0 [       15] 
+   Total    || -75 [100% of -75]  75 [100% of 75]  30 [100% of 30]     5 [11% of 45] 
+>=0
+
+# 12. Compound balance report output with --commodity-column.
+$ hledger -f bcexample.hledger bs -3 --commodity-column
+>
+Balance Sheet 2014-10-11
+
+                      || Commodity        2014-10-11 
+======================++=============================
+ Assets               ||                             
+----------------------++-----------------------------
+ Assets:US:BofA       || USD                  596.05 
+ Assets:US:ETrade     || GLD                   70.00 
+ Assets:US:ETrade     || ITOT                  17.00 
+ Assets:US:ETrade     || USD                 5120.50 
+ Assets:US:ETrade     || VEA                   36.00 
+ Assets:US:ETrade     || VHT                  294.00 
+ Assets:US:Hoogle     || VACHR                337.26 
+ Assets:US:Vanguard   || RGAGX      489.957000000000 
+ Assets:US:Vanguard   || USD                   -0.02 
+ Assets:US:Vanguard   || VBMPX      309.950000000000 
+----------------------++-----------------------------
+                      || GLD                   70.00 
+                      || ITOT                  17.00 
+                      || RGAGX      489.957000000000 
+                      || USD                 5716.53 
+                      || VACHR                337.26 
+                      || VBMPX      309.950000000000 
+                      || VEA                   36.00 
+                      || VHT                  294.00 
+======================++=============================
+ Liabilities          ||                             
+----------------------++-----------------------------
+ Liabilities:US:Chase || USD                 2891.85 
+----------------------++-----------------------------
+                      || USD                 2891.85 
+======================++=============================
+ Net:                 || GLD                   70.00 
+                      || ITOT                  17.00 
+                      || RGAGX      489.957000000000 
+                      || USD                 2824.68 
+                      || VACHR                337.26 
+                      || VBMPX      309.950000000000 
+                      || VEA                   36.00 
+                      || VHT                  294.00 
+>=0
