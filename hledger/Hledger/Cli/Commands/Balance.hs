@@ -678,25 +678,6 @@ balanceReportAsTable opts@ReportOpts{average_, row_total_, balanceaccum_}
     maybetranspose | transpose_ opts = \(Table rh ch vals) -> Table ch rh (transpose vals)
                    | otherwise       = id
 
--- | Given a table representing a multi-column balance report (for example,
--- made using 'balanceReportAsTable'), render it in a format suitable for
--- console output. Amounts with more than two commodities will be elided
--- unless --no-elide is used.
-balanceReportTableAsText :: ReportOpts -> Table T.Text T.Text WideBuilder -> TB.Builder
-balanceReportTableAsText ReportOpts{..} =
-    Tab.renderTableByRowsB def{tableBorders=False, prettyTable=pretty_tables_} renderCh renderRow
-  where
-    renderCh
-      | not commodity_column_ || transpose_ = fmap (Tab.textCell TopRight)
-      | otherwise = zipWith ($) (Tab.textCell TopLeft : repeat (Tab.textCell TopRight))
-
-    renderRow :: (T.Text, [WideBuilder]) -> (Cell, [Cell])
-    renderRow (rh, row)
-      | not commodity_column_ || transpose_ =
-          (Tab.textCell TopLeft rh, fmap (Cell TopRight . pure) row)
-      | otherwise =
-          (Tab.textCell TopLeft rh, zipWith ($) (Cell TopLeft : repeat (Cell TopRight)) (fmap pure row))
-
 multiBalanceRowAsWbs :: AmountDisplayOpts -> ReportOpts -> PeriodicReportRow a MixedAmount -> [[WideBuilder]]
 multiBalanceRowAsWbs bopts ReportOpts{..} (PeriodicReportRow _ as rowtot rowavg)
   | not commodity_column_ = [fmap (showMixedAmountB bopts) all]
