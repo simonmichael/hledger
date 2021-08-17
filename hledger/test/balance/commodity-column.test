@@ -1,6 +1,7 @@
 # Record a complicated real-life example. Layout is not perfect, but any
 # changes should be noted and evaluated whether they improve things.
 
+# 1. Balance report csv output with no commodity columns.
 $ hledger -f bcexample.hledger bal assets.*etrade -3 -O csv
 >
 "account","balance"
@@ -8,6 +9,7 @@ $ hledger -f bcexample.hledger bal assets.*etrade -3 -O csv
 "total","70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT"
 >=0
 
+# 2. Balance report csv output with one line per commodity (--commodity-columns).
 $ hledger -f bcexample.hledger bal assets.*etrade -3 -O csv --commodity-column
 >
 "account","commodity","balance"
@@ -23,6 +25,7 @@ $ hledger -f bcexample.hledger bal assets.*etrade -3 -O csv --commodity-column
 "total","VHT","294.00"
 >=0
 
+# 3. Balance report output with no commodity column.
 $ hledger -f bcexample.hledger bal assets.*etrade -3
 >
            70.00 GLD
@@ -38,6 +41,7 @@ $ hledger -f bcexample.hledger bal assets.*etrade -3
           294.00 VHT  
 >=0
 
+# 4. Balance report with commodity column.
 $ hledger -f bcexample.hledger bal assets.*etrade -3 --commodity-column
 >
    70.00  GLD                    
@@ -53,6 +57,7 @@ $ hledger -f bcexample.hledger bal assets.*etrade -3 --commodity-column
   294.00  VHT                    
 >=0
 
+# 5. Multicolumn balance report csv output with no commodity columns.
 $ hledger -f bcexample.hledger bal -T -Y assets.*etrade -3 -O csv
 >
 "account","2012","2013","2014","total"
@@ -60,6 +65,7 @@ $ hledger -f bcexample.hledger bal -T -Y assets.*etrade -3 -O csv
 "total","10.00 ITOT, 337.18 USD, 12.00 VEA, 106.00 VHT","70.00 GLD, 18.00 ITOT, -98.12 USD, 10.00 VEA, 18.00 VHT","-11.00 ITOT, 4881.44 USD, 14.00 VEA, 170.00 VHT","70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT"
 >=0
 
+# 6. Multicolumn balance report csv output with --commodity-columns.
 $ hledger -f bcexample.hledger bal -T -Y assets.*etrade -3 -O csv --commodity-column
 >
 "account","commodity","2012","2013","2014","total"
@@ -75,6 +81,7 @@ $ hledger -f bcexample.hledger bal -T -Y assets.*etrade -3 -O csv --commodity-co
 "total","VHT","106.00","18.00","170.00","294.00"
 >=0
 
+# 7. Multicolumn balance report with --commodity-column.
 $ hledger -f bcexample.hledger bal -Y assets.*etrade -3 --average --commodity-column --no-total
 >
 Balance changes in 2012-01-01..2014-12-31:
@@ -88,6 +95,7 @@ Balance changes in 2012-01-01..2014-12-31:
  Assets:US:ETrade || VHT        106.00   18.00   170.00    98.00 
 >=0
 
+# 8. Multicolumn budget report csv output with --commodity-columns.
 $ hledger -f bcexample.hledger bal -Y assets.*etrade -3 -O csv --commodity-column --budget
 >
 "Account","Commodity","2012","budget","2013","budget","2014","budget"
