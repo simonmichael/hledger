@@ -231,10 +231,6 @@ budgetReportAsText ropts@ReportOpts{..} budgetr = TB.toLazyText $
                  Nothing             -> "")
            <> ":"
 
--- | Add the second table below the first, discarding its column headings.
-concatTables (Table hLeft hTop dat) (Table hLeft' _ dat') =
-    Table (Tab.Group SingleLine [hLeft, hLeft']) hTop (dat ++ dat')
-
 -- | Build a 'Table' from a multi-column balance report.
 budgetReportAsTable :: ReportOpts -> BudgetReport -> Table Text Text WideBuilder
 budgetReportAsTable
@@ -263,7 +259,7 @@ budgetReportAsTable
       | no_total_ = id
       | otherwise = let rh = Tab.Group NoLine $ map Header (replicate (length totalrows) "")
                         ch = Header [] -- ignored
-                     in (`concatTables` Table rh ch totalrows)
+                     in (flip (concatTables SingleLine) $ Table rh ch totalrows)
 
     maybetranspose
       | transpose_ = transpose

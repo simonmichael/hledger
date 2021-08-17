@@ -14,7 +14,6 @@ module Hledger.Cli.CompoundBalanceCommand (
  ,compoundBalanceCommand
 ) where
 
-import Data.Function ((&))
 import Data.List (foldl')
 import Data.Maybe (fromMaybe, mapMaybe)
 import qualified Data.Text as T
@@ -87,6 +86,8 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
     ,flagNone ["pretty-tables"] (setboolopt "pretty-tables") "use unicode when displaying tables"
     ,flagNone ["sort-amount","S"] (setboolopt "sort-amount") "sort by amount instead of account code/name"
     ,flagNone ["percent", "%"] (setboolopt "percent") "express values in percentage of each column's total"
+    ,flagNone ["commodity-column"] (setboolopt "commodity-column")
+      "show commodity symbols in a separate column, amounts as bare numbers, one row per commodity"
     ,outputFormatFlag ["txt","html","csv","json"]
     ,outputFileFlag
     ,commodityStyleFlag
@@ -213,13 +214,15 @@ compoundBalanceReportAsText ropts
     bigtable =
       case map (subreportAsTable ropts) subreports of
         []   -> Tab.empty
-        r:rs -> foldl' concatTables r rs
+        r:rs -> foldl' (concatTables DoubleLine) r rs
     bigtable'
       | no_total_ ropts || length subreports == 1 =
           bigtable
       | otherwise =
-          foldl (&) bigtable . zipWith ($) ((flip (+====+) . row "Net:") : repeat (flip (+.+) . row ""))
-            $ multiBalanceRowAsTableText ropts netrow
+        let totalrows = multiBalanceRowAsTableText ropts netrow
+            rh = Tab.Group NoLine $ map Header ("Net:" : replicate (length totalrows - 1) "")
+            ch = Header [] -- ignored
+         in ((concatTables DoubleLine) bigtable $ Table rh ch totalrows)
 
     -- | Convert a named multi balance report to a table suitable for
     -- concatenating with others to make a compound balance report table.
@@ -230,20 +233,17 @@ compoundBalanceReportAsText ropts
         -- tweak the layout
         t = Table (Tab.Group SingleLine [Header title, lefthdrs]) tophdrs ([]:cells)
 
--- | Add the second table below the first, discarding its column headings.
-concatTables (Table hLeft hTop dat) (Table hLeft' _ dat') =
-    Table (Tab.Group DoubleLine [hLeft, hLeft']) hTop (dat ++ dat')
-
 -- | Render a compound balance report as CSV.
 -- Subreports' CSV is concatenated, with the headings rows replaced by a
 -- subreport title row, and an overall title row, one headings row, and an
 -- optional overall totals row is added.
 compoundBalanceReportAsCsv :: ReportOpts -> CompoundPeriodicReport DisplayName MixedAmount -> CSV
-compoundBalanceReportAsCsv ropts (CompoundPeriodicReport title colspans subreports (PeriodicReportRow _ coltotals grandtotal grandavg)) =
+compoundBalanceReportAsCsv ropts (CompoundPeriodicReport title colspans subreports netrow) =
     addtotals $
       padRow title
       : ( "Account"
-        : map (reportPeriodName (balanceaccum_ ropts) colspans) colspans
+        : ["Commodity" | commodity_column_ ropts]
+        ++ map (reportPeriodName (balanceaccum_ ropts) colspans) colspans
         ++ (if row_total_ ropts then ["Total"] else [])
         ++ (if average_ ropts then ["Average"] else [])
         )
@@ -259,26 +259,20 @@ compoundBalanceReportAsCsv ropts (CompoundPeriodicReport title colspans subrepor
           | null subreports = 1
           | otherwise =
             (1 +) $ -- account name column
+            (if commodity_column_ ropts then (1+) else id) $
             (if row_total_ ropts then (1+) else id) $
             (if average_ ropts then (1+) else id) $
             maximum $ -- depends on non-null subreports
             map (length . prDates . second3) subreports
     addtotals
       | no_total_ ropts || length subreports == 1 = id
-      | otherwise = (++
-          ["Net:" :
-           map (wbToText . showMixedAmountB oneLine) (
-             coltotals
-             ++ (if row_total_ ropts then [grandtotal] else [])
-             ++ (if average_ ropts   then [grandavg]   else [])
-             )
-          ])
+      | otherwise = (++ fmap ("Net:" : ) (multiBalanceRowAsCsvText ropts netrow))
 
 -- | Render a compound balance report as HTML.
 compoundBalanceReportAsHtml :: ReportOpts -> CompoundPeriodicReport DisplayName MixedAmount -> Html ()
 compoundBalanceReportAsHtml ropts cbr =
   let
-    CompoundPeriodicReport title colspans subreports (PeriodicReportRow _ coltotals grandtotal grandavg) = cbr
+    CompoundPeriodicReport title colspans subreports netrow = cbr
     colspanattr = colspan_ $ T.pack $ show $
       1 + length colspans + (if row_total_ ropts then 1 else 0) + (if average_ ropts then 1 else 0)
     leftattr = style_ "text-align:left"
@@ -287,7 +281,7 @@ compoundBalanceReportAsHtml ropts cbr =
     titlerows =
          [tr_ $ th_ [colspanattr, leftattr] $ h2_ $ toHtml title]
       ++ [thRow $
-          "" :
+          "" : ["Commodity" | commodity_column_ ropts] ++
           map (reportPeriodName (balanceaccum_ ropts) colspans) colspans
           ++ (if row_total_ ropts then ["Total"] else [])
           ++ (if average_ ropts then ["Average"] else [])
@@ -309,14 +303,7 @@ compoundBalanceReportAsHtml ropts cbr =
         ++ [blankrow]
 
     totalrows | no_total_ ropts || length subreports == 1 = []
-              | otherwise =
-                  let defstyle = style_ "text-align:right"
-                      orEmpty b x = if b then x else mempty
-                  in [tr_ $ th_ [class_ "", style_ "text-align:left"] "Net:"
-                         <> foldMap (th_ [class_ "amount coltotal", defstyle] . toHtml . wbUnpack . showMixedAmountB oneLine) coltotals
-                         <> orEmpty (row_total_ ropts) (th_ [class_ "amount coltotal", defstyle] . toHtml . wbUnpack $ showMixedAmountB oneLine grandtotal)
-                         <> orEmpty (average_ ropts) (th_ [class_ "amount colaverage", defstyle] . toHtml . wbUnpack $ showMixedAmountB oneLine grandavg)
-                    ]
+      | otherwise = multiBalanceReportHtmlFootRow ropts <$> (fmap ("Net:" :) $ multiBalanceRowAsCsvText ropts netrow)
   in do
     style_ (T.unlines [""
       ,"td { padding:0 0.5em; }"
