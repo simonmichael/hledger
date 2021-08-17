@@ -408,7 +408,7 @@ balanceReportAsCsv opts (items, total) =
     showName = accountNameDrop (drop_ opts)
     renderAmount amt = wbToText $ showMixedAmountB bopts amt
       where bopts = (balanceOpts False opts){displayOrder = order}
-            order = if commodity_column_ opts then Just (commodities [amt]) else Nothing
+            order = if commodity_column_ opts then Just (S.toList $ maCommodities amt) else Nothing
     sumAmounts mp am = M.insertWith (+) (acommodity am) am mp
 
 -- | Render a single-column balance report as plain text.
@@ -444,7 +444,7 @@ balanceReportAsText' opts ((items, total)) =
         , Cell TopLeft (fmap wbFromText cs)
         , Cell TopLeft (replicate (length damts - 1) mempty ++ [wbFromText dispname]) ]
       where dopts = (balanceOpts True opts){displayOrder=Just cs}
-            cs    = commodities [amt]
+            cs    = S.toList $ maCommodities amt
             dispname = T.replicate ((depth - 1) * 2) " " <> acctname
             damts = showMixedAmountLinesB dopts amt
     lines = fmap render items
@@ -528,7 +528,7 @@ multiBalanceReportAsCsv' opts@ReportOpts{..}
           $ all
       where
         bopts = balanceOpts False opts
-        cs = commodities $ rowtot : rowavg : as
+        cs = S.toList . foldl' S.union mempty $ fmap maCommodities $ rowtot : rowavg : as
         all = as
             ++ [rowtot | row_total_]
             ++ [rowavg | average_]
@@ -717,12 +717,7 @@ balanceReportTableAsText ropts@ReportOpts{..} =
             : fmap (Cell TopRight . showMixedAmountLinesB bopts{displayOrder = Just cs}) row)
       where
         bopts = balanceOpts True ropts
-        cs = commodities row
-
-commodities :: [MixedAmount] -> [CommoditySymbol]
-commodities = filter (not . T.null) . S.toList
-    . foldl' S.union mempty
-    . fmap (S.fromList . fmap acommodity . amounts)
+        cs = S.toList . foldl' S.union mempty $ fmap maCommodities row
 
 -- | Amount display options to use for balance reports
 balanceOpts :: Bool -> ReportOpts -> AmountDisplayOpts
