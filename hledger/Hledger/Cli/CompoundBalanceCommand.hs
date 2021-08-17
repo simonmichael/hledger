@@ -14,6 +14,7 @@ module Hledger.Cli.CompoundBalanceCommand (
  ,compoundBalanceCommand
 ) where
 
+import Data.Function ((&))
 import Data.List (foldl')
 import Data.Maybe (fromMaybe, mapMaybe)
 import qualified Data.Text as T
@@ -204,7 +205,7 @@ Balance Sheet
 -}
 compoundBalanceReportAsText :: ReportOpts -> CompoundPeriodicReport DisplayName MixedAmount -> TL.Text
 compoundBalanceReportAsText ropts
-  (CompoundPeriodicReport title _colspans subreports (PeriodicReportRow _ coltotals grandtotal grandavg)) =
+  (CompoundPeriodicReport title _colspans subreports netrow) =
     TB.toLazyText $
       TB.fromText title <> TB.fromText "\n\n" <>
       balanceReportTableAsText ropts bigtable'
@@ -217,13 +218,8 @@ compoundBalanceReportAsText ropts
       | no_total_ ropts || length subreports == 1 =
           bigtable
       | otherwise =
-          bigtable
-          +====+
-          row "Net:" (
-            coltotals
-            ++ (if row_total_ ropts then [grandtotal] else [])
-            ++ (if average_ ropts   then [grandavg]   else [])
-            )
+          foldl (&) bigtable . zipWith ($) ((flip (+====+) . row "Net:") : repeat (flip (+.+) . row ""))
+            $ multiBalanceRowAsTableText ropts netrow
 
     -- | Convert a named multi balance report to a table suitable for
     -- concatenating with others to make a compound balance report table.
