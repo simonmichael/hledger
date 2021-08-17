@@ -491,8 +491,8 @@ All of these accept the [smart date](#smart-dates) syntax.
 
 Some notes:
 
-- As in Ledger, end dates are exclusive, so you need to write the date *after*
-  the last day you want to include.
+- End dates are exclusive, as in Ledger, so you should write the date *after*
+  the last day you want to see in the report.
 - As noted in [reporting options](#general-options):
   among start/end dates specified with *options*, the last (i.e. right-most)
   option takes precedence.
@@ -526,11 +526,11 @@ column.
 The following "standard" report intervals can be enabled by using
 their corresponding flag:
 
-`-D/--daily`, 
-`-W/--weekly`, 
-`-M/--monthly`,
-`-Q/--quarterly`, 
-`-Y/--yearly`. 
+- `-D/--daily`
+- `-W/--weekly`
+- `-M/--monthly`
+- `-Q/--quarterly`
+- `-Y/--yearly`
 
 These standard intervals always start on natural interval boundaries:
 eg `--weekly` starts on mondays, `--monthly` starts on the first of
@@ -550,6 +550,14 @@ date, you may notice those dates being overridden (ie, the report
 starts earlier than your requested start date, or ends later than your
 requested end date). This is done to ensure "full" first and last
 subperiods, so that all subperiods' numbers are comparable.
+
+To summarise:
+
+- In multiperiod reports, all subperiods are forced to be the same length, to simplify reporting.
+- Reports with the standard `--weekly`/`--monthly`/`--quarterly`/`--yearly`  intervals
+  are required to start on the first day of a week/month/quarter/year. 
+  We'd like more flexibility here but it isn't supported yet.
+- `--period` (below) can specify more complex intervals, starting on any date.
 
 ## Period expressions
 
@@ -607,11 +615,14 @@ Or you can specify a single quarter like so:
 | `-p "2009Q1"`   | first quarter of 2009, equivalent to “2009/1/1 to 2009/4/1” |
 | `-p "q4"`       | fourth quarter of the current year                          |
 
-The argument of `-p` can also begin with, or be, a [report interval](#report-intervals) expression.
-The basic report intervals are `daily`, `weekly`, `monthly`, `quarterly`, or `yearly`,
-which have the same effect as the `-D`,`-W`,`-M`,`-Q`, or `-Y` flags.
-Between report interval and start/end dates (if any), the word `in` is optional.
-Examples:
+### Period expressions with a report interval
+
+`-p/--period`'s argument can also begin with, or entirely consist of, 
+a [report interval](#report-intervals). 
+This should be separated from the start/end dates (if any) by a space, or the word `in`.
+The basic intervals (which can also be written as command line flags) 
+are `daily`, `weekly`, `monthly`, `quarterly`, and `yearly`.
+Some examples:
 
 |                                         |
 |-----------------------------------------|
@@ -619,10 +630,9 @@ Examples:
 | `-p "monthly in 2008"`                  |
 | `-p "quarterly"`                        |
 
-Note that `weekly`, `monthly`, `quarterly` and `yearly` intervals will
-always start on the first day on week, month, quarter or year
-accordingly, and will end on the last day of same period, even if
-associated period expression specifies different explicit start and end date.
+As mentioned above, the `weekly`, `monthly`, `quarterly` and `yearly` intervals 
+- require a report start date that is the first day of a week, month, quarter or year
+- and report start/end dates will be expanded if needed to span a whole number of these intervals.
 
 For example:
 
@@ -633,16 +643,18 @@ For example:
 | `-p "quarterly from 2009-05-05 to 2009-06-01"` | starts on 2009/04/01, ends on 2009/06/30, which are first and last days of Q2 2009 |
 | `-p "yearly from 2009-12-29"`                  | starts on 2009/01/01, first day of 2009                                            |
 
-The following more complex report intervals are also supported:
-`biweekly`,
-`fortnightly`,
-`bimonthly`,
-`every day|week|month|quarter|year`,
-`every N days|weeks|months|quarters|years`.
+### More complex report intervals
 
+Some more complex kinds of interval are also supported in period expressions:
 
-All of these will start on the first day of the requested period and end on the last one, as described above.
+- `biweekly`
+- `fortnightly`
+- `bimonthly`
+- `every day|week|month|quarter|year`
+- `every N days|weeks|months|quarters|years`
 
+These too will cause report start/end dates to be expanded, if needed,
+to span a whole number of intervals.
 Examples:
 
 |                                   |                                                             |
@@ -651,15 +663,18 @@ Examples:
 | `-p "every 2 weeks"`              | starts on closest preceding Monday                          |
 | `-p "every 5 month from 2009/03"` | periods will have boundaries on 2009/03/01, 2009/08/01, ... |
 
-If you want intervals that start on arbitrary day of your choosing and span a week, month or year, you need to use any of the following:
+### Intervals with custom start date
 
-`every Nth day of week`,
-`every WEEKDAYNAME` (eg `mon|tue|wed|thu|fri|sat|sun`),
-`every Nth day [of month]`,
-`every Nth WEEKDAYNAME [of month]`,
-`every MM/DD [of year]`,
-`every Nth MMM [of year]`,
-`every MMM Nth [of year]`.
+All intervals mentioned above are required to start on their natural calendar boundaries,
+but the following weekly, monthly and yearly intervals can start on any date:
+
+- `every Nth day of week` (`th`, `nd`, `rd`, or `st` are all accepted after the number)
+- `every WEEKDAYNAME` (full or three-letter english weekday name, case insensitive)
+- `every Nth day [of month]`
+- `every Nth WEEKDAYNAME [of month]`
+- `every MM/DD [of year]` (month number and day of month number)
+- `every Nth MONTHNAME [of year]` (full or three-letter english month name, case insensitive)
+- `every MONTHNAME Nth [of year]`
 
 Examples:
 
@@ -669,17 +684,21 @@ Examples:
 | `-p "every Tue"`             | same                                                     |
 | `-p "every 15th day"`        | period boundaries will be on 15th of each month          |
 | `-p "every 2nd Monday"`      | period boundaries will be on second Monday of each month |
-| `-p "every 11/05"`           | yearly periods with boundaries on 5th of Nov             |
-| `-p "every 5th Nov"`         | same                                                     |
+| `-p "every 11/05"`           | yearly periods with boundaries on 5th of November        |
+| `-p "every 5th November"`    | same                                                     |
 | `-p "every Nov 5th"`         | same                                                     |
 
-Show historical balances at end of 15th each month (N is exclusive end date):
+Show historical balances at end of the 15th day of each month (N is an end date, exclusive as always):
 
-`hledger balance -H -p "every 16th day"`
+```shell
+$ hledger balance -H -p "every 16th day"
+```
 
-Group postings from start of wednesday to end of next tuesday (N is start date and exclusive end date):
+Group postings from the start of wednesday to end of the following tuesday (N is both (inclusive) start date and (exclusive) end date):
 
-`hledger register checking -p "every 3rd day of week"`
+```shell
+$ hledger register checking -p "every 3rd day of week"
+```
 
 # DEPTH
 
