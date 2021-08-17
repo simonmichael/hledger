@@ -568,7 +568,9 @@ once.
 Here's a basic period expression specifying the first quarter of 2009. Note,
 hledger always treats start dates as inclusive and end dates as exclusive:
 
-`-p "from 2009/1/1 to 2009/4/1"`
+|                                  |
+|----------------------------------|
+| `-p "from 2009/1/1 to 2009/4/1"` |
 
 Keywords like "from" and "to" are optional, and so are the spaces, as long
 as you don't run two dates together. "to" can also be written as ".." or "-".
