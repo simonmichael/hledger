@@ -21,6 +21,7 @@ module Text.Tabular.AsciiWide
 , textCell
 , textsCell
 , cellWidth
+, concatTables
 ) where
 
 import Data.Maybe (fromMaybe)
@@ -295,3 +296,9 @@ lineart SingleLine SingleLine DoubleLine DoubleLine = pick "╪" "+"
 lineart DoubleLine DoubleLine SingleLine SingleLine = pick "╫" "++"
 
 lineart _          _          _          _          = const mempty
+
+
+-- | Add the second table below the first, discarding its column headings.
+concatTables :: Properties -> Table rh ch a -> Table rh ch2 a -> Table rh ch a
+concatTables prop (Table hLeft hTop dat) (Table hLeft' _ dat') =
+    Table (Group prop [hLeft, hLeft']) hTop (dat ++ dat')

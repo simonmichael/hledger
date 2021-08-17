@@ -246,18 +246,19 @@ module Hledger.Cli.Commands.Balance (
  ,balanceReportAsText
  ,balanceReportAsCsv
  ,balanceReportItemAsText
+ ,multiBalanceRowAsCsvText
  ,multiBalanceRowAsTableText
  ,multiBalanceReportAsText
  ,multiBalanceReportAsCsv
  ,multiBalanceReportAsHtml
  ,multiBalanceReportHtmlRows
+ ,multiBalanceReportHtmlFootRow
  ,balanceReportAsTable
  ,balanceReportTableAsText
  ,tests_Balance
 ) where
 
 import Data.Default (def)
-import Data.Function ((&))
 import Data.List (transpose, foldl', transpose)
 import qualified Data.Map as M
 import qualified Data.Set as S
@@ -672,9 +673,13 @@ balanceReportAsTable opts@ReportOpts{average_, row_total_, balanceaccum_}
     (accts, rows) = unzip $ fmap fullRowAsTexts items
     renderacct row =
         T.replicate ((prrDepth row - 1) * 2) " " <> prrDisplayName row
-    addtotalrow | no_total_ opts = id
-                | otherwise      = \tab -> foldl (&) tab . zipWith ($) (flip (+----+) : repeat (flip (+.+))) $ totalrows
-                where totalrows = fmap (row "") . multiBalanceRowAsTableText opts $ tr
+    addtotalrow
+      | no_total_ opts = id
+      | otherwise =
+        let totalrows = multiBalanceRowAsTableText opts tr
+            rh = Tab.Group NoLine $ map Header (replicate (length totalrows) "")
+            ch = Header [] -- ignored
+         in (flip (concatTables SingleLine) $ Table rh ch totalrows)
     maybetranspose | transpose_ opts = \(Table rh ch vals) -> Table ch rh (transpose vals)
                    | otherwise       = id
 
