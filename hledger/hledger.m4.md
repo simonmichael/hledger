@@ -668,15 +668,23 @@ Examples:
 ### Intervals with custom start date
 
 All intervals mentioned above are required to start on their natural calendar boundaries,
-but the following weekly, monthly and yearly intervals can start on any date:
+but the following intervals can start on any date:
+
+Weekly on custom day:
 
 - `every Nth day of week` (`th`, `nd`, `rd`, or `st` are all accepted after the number)
 - `every WEEKDAYNAME` (full or three-letter english weekday name, case insensitive)
+
+Monthly on custom day:
+
 - `every Nth day [of month]`
 - `every Nth WEEKDAYNAME [of month]`
+
+Yearly on custom day:
+
 - `every MM/DD [of year]` (month number and day of month number)
-- `every Nth MONTHNAME [of year]` (full or three-letter english month name, case insensitive)
-- `every MONTHNAME Nth [of year]`
+- `every MONTHNAME DDth [of year]` (full or three-letter english month name, case insensitive, and day of month number)
+- `every DDth MONTHNAME [of year]` (equivalent to the above)
 
 Examples:
 
