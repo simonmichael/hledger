@@ -633,8 +633,8 @@ Some examples:
 | `-p "quarterly"`                        |
 
 As mentioned above, the `weekly`, `monthly`, `quarterly` and `yearly` intervals 
-- require a report start date that is the first day of a week, month, quarter or year
-- and report start/end dates will be expanded if needed to span a whole number of these intervals.
+require a report start date that is the first day of a week, month, quarter or year.
+And, report start/end dates will be expanded if needed to span a whole number of intervals.
 
 For example:
 
