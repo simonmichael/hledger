@@ -241,12 +241,12 @@ budgetReportAsText ropts@ReportOpts{..} budgetr = TB.toLazyText $
           ( textCell TopLeft rh
           , textsCell TopLeft cs : fmap (uncurry (showcell' cs)) cells)
       where
-        cs = filter (not . T.null) . S.toList . foldl' S.union mempty
+        cs = S.toList . foldl' S.union mempty
             . fmap (budgetCellCommodities . fst . snd) $ cells
 
     budgetCellCommodities :: BudgetCell -> S.Set CommoditySymbol
     budgetCellCommodities (am, bm) = f am `S.union` f bm
-      where f = S.fromList . fmap acommodity . amounts . fromMaybe nullmixedamt
+      where f = maybe mempty maCommodities
 
     displayTableWithWidths :: Table Text Text ((Int, Int, Int), BudgetDisplayCell)
     displayTableWithWidths = Table rh ch $ map (zipWith (,) widths) displaycells
@@ -436,10 +436,7 @@ budgetReportAsCsv
           . fmap (fromMaybe nullmixedamt)
           $ all
       where
-        cs = commodities $ catMaybes all
-        commodities = filter (not . T.null) . S.toList
-            . foldl' S.union mempty
-            . fmap (S.fromList . fmap acommodity . amounts)
+        cs = S.toList . foldl' S.union mempty . fmap maCommodities $ catMaybes all
         all = flattentuples as
             ++ concat [[rowtot, budgettot] | row_total_]
             ++ concat [[rowavg, budgetavg] | average_]

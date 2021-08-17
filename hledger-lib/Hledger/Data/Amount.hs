@@ -100,6 +100,7 @@ module Hledger.Data.Amount (
   maAddAmounts,
   amounts,
   amountsRaw,
+  maCommodities,
   filterMixedAmount,
   filterMixedAmountByCommodity,
   mapMixedAmount,
@@ -152,6 +153,7 @@ import Data.Foldable (toList)
 import Data.List (find, foldl', intercalate, intersperse, mapAccumL, partition)
 import Data.List.NonEmpty (NonEmpty(..), nonEmpty)
 import qualified Data.Map.Strict as M
+import qualified Data.Set as S
 import Data.Maybe (fromMaybe, isNothing, isJust)
 import Data.Semigroup (Semigroup(..))
 import qualified Data.Text as T
@@ -661,6 +663,11 @@ amounts (Mixed ma)
 -- unit price from most negative to most positive.
 amountsRaw :: MixedAmount -> [Amount]
 amountsRaw (Mixed ma) = toList ma
+
+-- | Get the set of mixed amount commodities. Returns an empty set of no amounts
+maCommodities :: MixedAmount -> S.Set CommoditySymbol
+maCommodities = S.fromList . fmap acommodity . amounts'
+  where amounts' ma@(Mixed m) = if M.null m then [] else amounts ma
 
 normaliseMixedAmount :: MixedAmount -> MixedAmount
 normaliseMixedAmount = id  -- XXX Remove
