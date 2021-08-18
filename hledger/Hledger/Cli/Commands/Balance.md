@@ -82,10 +82,11 @@ at the end of the journal period (more on this below).
 
 Accounts are sorted by [declaration order](#declaring-accounts)
 if any, and then alphabetically by account name.
-For instance, using [examples/sample.journal](https://github.com/simonmichael/hledger/blob/master/examples/sample.journal):
+For instance 
+(using [examples/sample.journal](https://github.com/simonmichael/hledger/blob/master/examples/sample.journal)):
 
 ```shell
-$ hledger bal
+$ hledger -f examples/sample.journal bal
                   $1  assets:bank:saving
                  $-2  assets:cash
                   $1  expenses:food
@@ -102,7 +103,7 @@ mode - see below) are hidden by default. Use `-E/--empty` to show them
 (revealing `assets:bank:checking` here):
  
 ```shell
-$ hledger -f examples/sample.journal  bal  -E
+$ hledger -f examples/sample.journal bal  -E
                    0  assets:bank:checking
                   $1  assets:bank:saving
                  $-2  assets:cash
@@ -125,7 +126,7 @@ arguments or [options](#report-start--end-date) to limit
 the postings being matched. Eg:
 
 ```shell
-$ hledger bal --cleared assets date:200806
+$ hledger -f examples/sample.journal bal --cleared assets date:200806
                  $-2  assets:cash
 --------------------
                  $-2  
@@ -140,7 +141,7 @@ With `-t/--tree`, the account hierarchy is shown, with subaccounts'
 "leaf" names indented below their parent:
 
 ```shell
-$ hledger balance
+$ hledger -f examples/sample.journal balance
                  $-1  assets
                   $1    bank:saving
                  $-2    cash
@@ -172,26 +173,32 @@ sum of the top-level balances shown, not of all the balances shown.
 
 ### Depth limiting
 
-With a `depth:N` query, or `--depth N` option, or just `-N`, 
+With a `depth:NUM` query, or `--depth NUM` option, or just `-NUM` (eg: `-3`)
 balance reports will show accounts only to the specified depth,
 hiding the deeper subaccounts. 
+This can be useful for getting an overview without too much detail.
+
 Account balances at the depth limit always include the balances from
-any hidden subaccounts (even in list mode). 
-This can be useful for getting an overview. Eg, limiting to depth 1:
+any deeper subaccounts (even in list mode). 
+Eg, limiting to depth 1:
 
 ```shell
-$ hledger balance -N -1
+$ hledger -f examples/sample.journal balance -1
                  $-1  assets
                   $2  expenses
                  $-2  income
                   $1  liabilities
+--------------------
+                   0  
 ```
 
-You can also hide top-level account name parts, using `--drop N`.
+### Dropping top-level accounts
+
+You can also hide one or more top-level account name parts, using `--drop NUM`.
 This can be useful for hiding repetitive top-level account names:
 
 ```shell
-$ hledger bal expenses --drop 1
+$ hledger -f examples/sample.journal bal expenses --drop 1
                   $1  food
                   $1  supplies
 --------------------
@@ -208,7 +215,7 @@ With a [report interval](#report-intervals) (set by the `-D/--daily`,
 representing successive time periods (and a title):
 
 ```shell
-$ hledger balance --quarterly income expenses -E
+$ hledger -f examples/sample.journal bal --quarterly income expenses -E
 Balance changes in 2008:
 
                    ||  2008q1  2008q2  2008q3  2008q4 
@@ -333,7 +340,7 @@ With `-%/--percent`, balance reports show each account's value
 expressed as a percentage of the (column) total:
 
 ```shell
-$ hledger bal expenses -Q -%
+$ hledger -f examples/sample.journal bal expenses -Q -%
 Balance changes in 2008:
 
                    || 2008Q1   2008Q2  2008Q3  2008Q4 
@@ -771,7 +778,7 @@ you can use `--format FMT` to customise the format and content of each
 line. Eg:
 
 ```shell
-$ hledger balance --format "%20(account) %12(total)"
+$ hledger -f examples/sample.journal balance --format "%20(account) %12(total)"
               assets          $-1
          bank:saving           $1
                 cash          $-2
