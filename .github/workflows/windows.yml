@@ -70,8 +70,8 @@ jobs:
     - name: Skip remaining CI steps if latest commit message begins with ;
       shell: bash
       run: |
-        git log -1 --pretty='%s' ${GITHUB_HEAD_REF:+origin/$GITHUB_HEAD_REF} \
-        | grep -qE '^ *;' || echo "CONTINUE=true" >> $GITHUB_ENV 
+        git log -1 --pretty='%s' ${GITHUB_HEAD_REF:+origin/$GITHUB_HEAD_REF} >> $$.gitlog
+        grep -qE '^ *;' $$.gitlog || echo "CONTINUE=true" >> $GITHUB_ENV 
 
     # things to be cached/restored:
 
