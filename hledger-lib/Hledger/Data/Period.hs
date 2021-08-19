@@ -13,6 +13,7 @@ module Hledger.Data.Period (
   ,simplifyPeriod
   ,isLastDayOfMonth
   ,isStandardPeriod
+  ,periodTextWidth
   ,showPeriod
   ,showPeriodMonthAbbrev
   ,periodStart
@@ -154,6 +155,20 @@ isStandardPeriod = isStandardPeriod' . simplifyPeriod
     isStandardPeriod' (QuarterPeriod _ _) = True
     isStandardPeriod' (YearPeriod _) = True
     isStandardPeriod' _ = False
+
+-- | The width of a period of this type when displayed.
+periodTextWidth :: Period -> Int
+periodTextWidth = periodTextWidth' . simplifyPeriod
+  where
+    periodTextWidth' DayPeriod{}     = 10  -- 2021-01-01
+    periodTextWidth' WeekPeriod{}    = 13  -- 2021-01-01W52
+    periodTextWidth' MonthPeriod{}   = 7   -- 2021-01
+    periodTextWidth' QuarterPeriod{} = 6   -- 2021Q1
+    periodTextWidth' YearPeriod{}    = 4   -- 2021
+    periodTextWidth' PeriodBetween{} = 22  -- 2021-01-01..2021-01-07
+    periodTextWidth' PeriodFrom{}    = 12  -- 2021-01-01..
+    periodTextWidth' PeriodTo{}      = 12  -- ..2021-01-01
+    periodTextWidth' PeriodAll       = 2   -- ..
 
 -- | Render a period as a compact display string suitable for user output.
 --

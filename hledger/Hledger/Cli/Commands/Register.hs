@@ -134,7 +134,7 @@ postingsReportAsText opts items = TB.toLazyText $ foldMap first3 linesWithWidths
 -- Also returns the natural width (without padding) of the amount and balance
 -- fields.
 postingsReportItemAsText :: CliOpts -> Int -> Int -> PostingsReportItem -> (TB.Builder, Int, Int)
-postingsReportItemAsText opts preferredamtwidth preferredbalwidth (mdate, menddate, mdesc, p, b) =
+postingsReportItemAsText opts preferredamtwidth preferredbalwidth (mdate, mperiod, mdesc, p, b) =
     (table <> TB.singleton '\n', thisamtwidth, thisbalwidth)
   where
     table = renderRowB def{tableBorders=False, borderSpaces=False} . Group NoLine $ map Header
@@ -154,11 +154,10 @@ postingsReportItemAsText opts preferredamtwidth preferredbalwidth (mdate, mendda
       where w = fullwidth - wbWidth amt
     -- calculate widths
     (totalwidth,mdescwidth) = registerWidthsFromOpts opts
-    (datewidth, date) = case (mdate,menddate) of
-        (Just _, Just _)   -> (21, showDateSpan (DateSpan mdate menddate))
-        (Nothing, Just _)  -> (21, "")
-        (Just d, Nothing)  -> (10, showDate d)
-        _                  -> (10, "")
+    datewidth = maybe 10 periodTextWidth mperiod
+    date = case mperiod of
+             Just period -> if isJust mdate then showPeriod period else ""
+             Nothing     -> maybe "" showDate mdate
     (amtwidth, balwidth)
       | shortfall <= 0 = (preferredamtwidth, preferredbalwidth)
       | otherwise      = (adjustedamtwidth, adjustedbalwidth)
@@ -172,10 +171,9 @@ postingsReportItemAsText opts preferredamtwidth preferredbalwidth (mdate, mendda
 
     remaining = totalwidth - (datewidth + 1 + 2 + amtwidth + 2 + balwidth)
     (descwidth, acctwidth)
-      | hasinterval = (0, remaining - 2)
-      | otherwise   = (w, remaining - 2 - w)
+      | isJust mperiod = (0, remaining - 2)
+      | otherwise      = (w, remaining - 2 - w)
       where
-        hasinterval = isJust menddate
         w = fromMaybe ((remaining - 2) `div` 2) mdescwidth
 
     -- gather content

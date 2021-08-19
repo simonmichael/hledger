@@ -302,9 +302,9 @@ P 2000/04/01 A  4 B
   (a)      1 A @ 9 B
 
 $ hledger -f- reg --value=cost -M
-2000-01                 a                                     13 B          13 B
-2000-02                 a                                      8 B          21 B
-2000-03                 a                                      9 B          30 B
+2000-01   a                                                   13 B          13 B
+2000-02   a                                                    8 B          21 B
+2000-03   a                                                    9 B          30 B
 
 # back to the original test journal:
 <
@@ -326,27 +326,27 @@ P 2000/04/01 B  1 C
 
 # 26. periodic register report valued at period end
 $ hledger -f- reg --value=end -M -b 2000
-2000-01                 a                                      5 B           5 B
-2000-02                 a                                      2 B           7 B
-2000-03                 a                                      3 B          10 B
+2000-01   a                                                    5 B           5 B
+2000-02   a                                                    2 B           7 B
+2000-03   a                                                    3 B          10 B
 
 # 27. periodic register report valued at specified date
 $ hledger -f- reg --value=2000-01-15 -M -b 2000
-2000-01                 a                                      5 B           5 B
-2000-02                 a                                      5 B          10 B
-2000-03                 a                                      5 B          15 B
+2000-01   a                                                    5 B           5 B
+2000-02   a                                                    5 B          10 B
+2000-03   a                                                    5 B          15 B
 
 # 28. periodic register report valued today
 $ hledger -f- reg --value=now -M -b 2000
-2000-01                 a                                      4 B           4 B
-2000-02                 a                                      4 B           8 B
-2000-03                 a                                      4 B          12 B
+2000-01   a                                                    4 B           4 B
+2000-02   a                                                    4 B           8 B
+2000-03   a                                                    4 B          12 B
 
 # 29. periodic register report valued at default date (same as --value=end)
 $ hledger -f- reg -V -M -b 2000
-2000-01                 a                                      5 B           5 B
-2000-02                 a                                      2 B           7 B
-2000-03                 a                                      3 B          10 B
+2000-01   a                                                    5 B           5 B
+2000-02   a                                                    2 B           7 B
+2000-03   a                                                    3 B          10 B
 
 # balance
 
@@ -621,8 +621,8 @@ P 2020-04-01 A 4 B
    (a)  1 A
 
 $ hledger -f- reg --value=then -Q
-2020Q1                  a                                      6 B           6 B
-2020Q2                  a                                      4 B          10 B
+2020Q1   a                                                     6 B           6 B
+2020Q2   a                                                     4 B          10 B
 >=0
 
 # 53. print --value should affect all postings, including when there's an implicit transaction price
