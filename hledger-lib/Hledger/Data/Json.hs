@@ -121,6 +121,7 @@ instance ToJSON PeriodicTransaction
 instance ToJSON PriceDirective
 instance ToJSON DateSpan
 instance ToJSON Interval
+instance ToJSON Period
 instance ToJSON AccountAlias
 instance ToJSON AccountType
 instance ToJSONKey AccountType
@@ -225,6 +226,7 @@ instance FromJSON (DecimalRaw Integer)
 -- instance FromJSON Commodity
 -- instance FromJSON DateSpan
 -- instance FromJSON Interval
+-- instance FromJSON Period
 -- instance FromJSON PeriodicTransaction
 -- instance FromJSON PriceDirective
 -- instance FromJSON TimeclockCode

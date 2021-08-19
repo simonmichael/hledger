@@ -75,8 +75,8 @@ hledger -f- --pivot description reg -M
     assets:bank account                                   2 EUR  ; date:03/01
     income:donations                                  -2 EUR
 >>>
-2016-02                 Freifunk                            -2 EUR        -2 EUR
-2016-03                 Freifunk                             2 EUR             0
+2016-02   Freifunk                                          -2 EUR        -2 EUR
+2016-03   Freifunk                                           2 EUR             0
 >>>=0
 
 # pivot for implicit tag code (technical sample)
@@ -86,8 +86,8 @@ hledger -f- --pivot code reg -M
     assets:bank account                                   2 EUR  ; date:03/01
     income:donations                                  -2 EUR
 >>>
-2016-02                 Freifunk                            -2 EUR        -2 EUR
-2016-03                 Freifunk                             2 EUR             0
+2016-02   Freifunk                                          -2 EUR        -2 EUR
+2016-03   Freifunk                                           2 EUR             0
 >>>=0
 
 # use of pivot with code-based budgeting
@@ -132,7 +132,7 @@ hledger -f- --pivot payee reg -D ^expense
     assets:bank account
     expense:grocery                    30 EUR
 >>>
-2016-02-16              Auchan                              22 EUR        22 EUR
-                        StarBars                             5 EUR        27 EUR
-2016-02-17              Auchan                              30 EUR        57 EUR
+2016-02-16   Auchan                                         22 EUR        22 EUR
+             StarBars                                        5 EUR        27 EUR
+2016-02-17   Auchan                                         30 EUR        57 EUR
 >>>=0
