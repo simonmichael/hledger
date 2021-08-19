@@ -19,17 +19,19 @@ module Hledger.Cli.Commands.Aregister (
  ,tests_Aregister
 ) where
 
-import Data.List (find, intersperse)
+import Data.Default (def)
+import Data.List (find)
 import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import System.Console.CmdArgs.Explicit (flagNone, flagReq)
-import Hledger.Read.CsvReader (CSV, CsvRecord, printCSV)
 
 import Hledger
+import Hledger.Read.CsvReader (CSV, CsvRecord, printCSV)
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
+import Text.Tabular.AsciiWide
 
 aregistermode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Aregister.txt")
@@ -123,17 +125,16 @@ accountTransactionsReportItemAsCsvRecord
 
 -- | Render a register report as plain text suitable for console output.
 accountTransactionsReportAsText :: CliOpts -> Query -> Query -> AccountTransactionsReport -> TL.Text
-accountTransactionsReportAsText copts reportq thisacctq items
-  = TB.toLazyText . unlinesB $
-    title :
-    map (accountTransactionsReportItemAsText copts reportq thisacctq amtwidth balwidth) items
+accountTransactionsReportAsText copts reportq thisacctq items = TB.toLazyText $
+    title <> TB.singleton '\n' <> lines
   where
-    amtwidth = maximumStrict $ 12 : map (wbWidth . showamt . itemamt) items
-    balwidth = maximumStrict $ 12 : map (wbWidth . showamt . itembal) items
-    showamt = showMixedAmountB oneLine{displayMinWidth=Just 12, displayMaxWidth=mmax}  -- color_
-      where mmax = if no_elide_ . _rsReportOpts . reportspec_ $ copts then Nothing else Just 32
+    lines = foldMap (accountTransactionsReportItemAsText copts reportq thisacctq amtwidth balwidth) items
+    amtwidth = maximumStrict $ 12 : widths (map itemamt items)
+    balwidth = maximumStrict $ 12 : widths (map itembal items)
+    widths = map wbWidth . concatMap (showMixedAmountLinesB oneLine)
     itemamt (_,_,_,_,a,_) = a
     itembal (_,_,_,_,_,a) = a
+
     -- show a title indicating which account was picked, which can be confusing otherwise
     title = maybe mempty (\s -> foldMap TB.fromText ["Transactions in ", s, " and subaccounts:"]) macct
       where
@@ -165,20 +166,23 @@ accountTransactionsReportItemAsText
     -- String      -- a display string describing the other account(s), if any
     -- MixedAmount -- the amount posted to the current account(s) (or total amount posted)
     -- MixedAmount -- the register's running total or the current account(s)'s historical balance, after this transaction
-    foldMap TB.fromText . concat . intersperse (["\n"]) $
-      [ fitText (Just datewidth) (Just datewidth) True True date
-      , " "
-      , fitText (Just descwidth) (Just descwidth) True True tdescription
-      , "  "
-      , fitText (Just acctwidth) (Just acctwidth) True True accts
-      , "  "
-      , amtfirstline
-      , "  "
-      , balfirstline
-      ]
-      :
-      [ [ spacer, a, "  ", b ] | (a,b) <- zip amtrest balrest ]
+    table <> TB.singleton '\n'
   where
+    table = renderRowB def{tableBorders=False, borderSpaces=False} . Group NoLine $ map Header
+      [ textCell TopLeft $ fitText (Just datewidth) (Just datewidth) True True date
+      , spacerCell
+      , textCell TopLeft $ fitText (Just descwidth) (Just descwidth) True True tdescription
+      , spacerCell2
+      , textCell TopLeft $ fitText (Just acctwidth) (Just acctwidth) True True accts
+      , spacerCell2
+      , Cell TopRight $ map (pad amtwidth) amt
+      , spacerCell2
+      , Cell BottomRight $ map (pad balwidth) bal
+      ]
+    spacerCell  = Cell BottomLeft [WideBuilder (TB.singleton ' ') 1]
+    spacerCell2 = Cell BottomLeft [WideBuilder (TB.fromString "  ") 2]
+    pad fullwidth amt = WideBuilder (TB.fromText $ T.replicate w " ") w <> amt
+      where w = fullwidth - wbWidth amt
     -- calculate widths
     (totalwidth,mdescwidth) = registerWidthsFromOpts copts
     (datewidth, date) = (10, showDate $ transactionRegisterDate reportq thisacctq t)
@@ -200,18 +204,9 @@ accountTransactionsReportItemAsText
     -- gather content
     accts = -- T.unpack $ elideAccountName acctwidth $ T.pack
             otheracctsstr
-    amt = TL.toStrict . TB.toLazyText . wbBuilder $ showamt amtwidth change
-    bal = TL.toStrict . TB.toLazyText . wbBuilder $ showamt balwidth balance
-    showamt w = showMixedAmountB noPrice{displayColour=color_, displayMinWidth=Just w, displayMaxWidth=Just w}
-    -- alternate behaviour, show null amounts as 0 instead of blank
-    -- amt = if null amt' then "0" else amt'
-    -- bal = if null bal' then "0" else bal'
-    (amtlines, ballines) = (T.lines amt, T.lines bal)
-    (amtlen, ballen) = (length amtlines, length ballines)
-    numlines = max 1 (max amtlen ballen)
-    (amtfirstline:amtrest) = take numlines $ amtlines ++ repeat "" -- posting amount is top-aligned
-    (balfirstline:balrest) = take numlines $ replicate (numlines - ballen) "" ++ ballines -- balance amount is bottom-aligned
-    spacer = T.replicate (totalwidth - (amtwidth + 2 + balwidth)) " "
+    amt = showamt change
+    bal = showamt balance
+    showamt = showMixedAmountLinesB noPrice{displayColour=color_}
 
 -- tests
 
