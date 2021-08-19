@@ -87,8 +87,8 @@ jobs:
     - name: Skip remaining CI steps if latest commit message begins with ;
       run: |
         echo "git log -1 --pretty='%s' ${GITHUB_HEAD_REF:+origin/$GITHUB_HEAD_REF} >> $$.gitlog"
-        (git log -1 --pretty='%s' ${GITHUB_HEAD_REF:+origin/$GITHUB_HEAD_REF} >> $$.gitlog
-          && (grep -qE '^ *;' $$.gitlog || echo "CONTINUE=true" >> $GITHUB_ENV))
+        (git log -1 --pretty='%s' ${GITHUB_HEAD_REF:+origin/$GITHUB_HEAD_REF} >> $$.gitlog \
+          && (grep -qE '^ *;' $$.gitlog || echo "CONTINUE=true" >> $GITHUB_ENV)) \
           || ( echo "could not identify commit range, continuing CI steps")
 
     # things to be cached/restored:
