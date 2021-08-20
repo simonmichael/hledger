@@ -664,7 +664,8 @@ amounts (Mixed ma)
 amountsRaw :: MixedAmount -> [Amount]
 amountsRaw (Mixed ma) = toList ma
 
--- | Get the set of mixed amount commodities. Returns an empty set of no amounts
+-- | Get this mixed amount's commodities as a set.
+-- Returns an empty set if there are no amounts.
 maCommodities :: MixedAmount -> S.Set CommoditySymbol
 maCommodities = S.fromList . fmap acommodity . amounts'
   where amounts' ma@(Mixed m) = if M.null m then [] else amounts ma
