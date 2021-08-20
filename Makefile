@@ -931,6 +931,10 @@ describe: $(call def-help,describe, show a precise git-describe version string )
 # 	@echo Commit authors since last release:
 # 	@git shortlog -sn $(CHANGELOGSTART)..  # TODO undefined
 
+showauthors: $(call def-help,showauthors, show all commit author names)
+	@echo "Commit authors ($$(git shortlog -sn | wc -l | awk '{print $$1}'))":
+	@git shortlog -sn
+
 cloc: $(call def-help,cloc, count lines of source code )
 	@echo Lines of code including tests:
 	@cloc --exclude-lang=HTML --exclude-dir=.stack-work,.idea,dist,old,bin,doc,site,.tutorial-data,static,angular .
@@ -1017,8 +1021,11 @@ nix-hledger-version: $(call def-help,nix-hledger-version, show which version of 
 nix-hledger-versions: $(call def-help,nix-hledger-versions, show versions of all hledger packages in nixpkgs)
 	@curl -s https://raw.githubusercontent.com/NixOS/nixpkgs/master/pkgs/development/haskell-modules/hackage-packages.nix | grep -A1 'pname = "hledger'
 
-make nix-view-commits: $(call def-help,nix-view-commits, show recent haskell commits in nixpkgs)
+nix-view-commits: $(call def-help,nix-view-commits, show recent haskell commits in nixpkgs)
 	@open 'https://github.com/NixOS/nixpkgs/commits/master/pkgs/development/haskell-modules/hackage-packages.nix'
+
+list-commits: $(call def-help,list-commits, list all commits chronologically and numbered)
+	@git log --format='%ad %h %s (%an)' --date=short --reverse | cat -n
 
 ###############################################################################
 $(call def-help-subheading,MISCELLANEOUS:)
