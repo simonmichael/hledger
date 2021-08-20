@@ -9,7 +9,7 @@ __      _____| |__
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 9bc77f87f
+# 3426030a9
 
 Improvements
 

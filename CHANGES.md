@@ -9,7 +9,7 @@
 General changes in the hledger project (and notable all-package releases).
 For package-specific changes and minor releases, see the hledger package changelogs.
 
-# 31541bb98
+# 07eb3a908
 
 - shake: changelogs: don't get confused by an all-digit commit hash
   Fixes spurious "can't list changes" warning.

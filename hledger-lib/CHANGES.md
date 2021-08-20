@@ -9,9 +9,19 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 9bc77f87f
+# 4576f8eff
 
 API changes
+
+- Drop the deprecated old-time lib.
+  A small number type signatures have changed:
+  journalSetLastReadTime, maybeFileModificationTime and Journal
+  now use POSIXTime instead of ClockTime.
+  Hledger.Cli.Utils.utcTimeToClockTime has been removed, 
+  as it is now equivalent to utcTimeToPOSIXSeconds from Data.Time.Clock.POSIX.
+  To get the current system time, you should now use getPOSIXTime 
+  from Data.Time.Clock.POSIX instead of getClockTime.
+  (#1650, Stephen Morgan)
 
 - modifyTransactions now takes a Map of commodity styles, and will style amounts according to that argument. journalAddForecast and journalTransform now return an Either String Journal. (Stephen Morgan)
   This improves efficiency, as we no longer have to restyle all amounts in

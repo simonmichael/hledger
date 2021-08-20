@@ -9,9 +9,27 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 9bc77f87f
+# 4576f8eff
 
 Features
+
+- The balance command has a new `--gain` report type, showing
+  unrealised capital gains/losses. Essentially, this is the difference
+  between the amounts' costs and their total present value. More
+  precisely, between the value of the amounts' costs (so that you can
+  report gain in a different currency) and the value on the valuation
+  date(s) (period end(s) by default).
+  (#1623, #1432, Stephen Morgan, Charlotte Van Petegem)
+
+- The new `-c/--commodity-style` option makes it easy to override
+  commodity display styles at runtime, eg to adjust the number of
+  decimal places or change the position of the symbol.
+  (#1593, Arjen Langebaerd)
+
+- The balance commands have a new `--commodity-column` flag that
+  displays commodity symbols in a dedicated column, showing one line
+  per commodity and all amounts as bare numbers.
+  (#1559, #1626, Lawrence Wu, Simon Michael, Stephen Morgan)
 
 - The balance command's --budget option can now take an argument,
   a case insensitive description substring which selects a subset of
@@ -21,6 +39,11 @@ Features
   ([#1612](https://github.com/simonmichael/hledger/issues/1612))
 
 Improvements
+
+- imp: bal: handle commodity-column flag in compound balance reports 
+  (#1654, Lawrence Wu)
+
+- doc: clarify period expressions, report intervals
 
 - Clarify version string code:
   ```
@@ -56,6 +79,12 @@ Improvements
   ([#1604](https://github.com/simonmichael/hledger/issues/1604))
 
 Fixes
+
+- fix: bal --budget: handle --transpose flag with --commodity-column.
+  (#1654, Lawrence Wu)
+
+- fix: bal: correctly handle the no-symbol commodity with --commodity-column.
+  (#1654, Lawrence Wu)
 
 - `--forecast` now generates transactions up to the day before the
   specified report end date (instead of two days before).
