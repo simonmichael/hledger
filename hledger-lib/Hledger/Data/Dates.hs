@@ -73,6 +73,8 @@ module Hledger.Data.Dates (
   yearp,
   daysInSpan,
   maybePeriod,
+
+  tests_Dates
 )
 where
 
@@ -193,7 +195,7 @@ spansSpan spans = DateSpan (maybe Nothing spanStart $ headMay spans) (maybe Noth
 -- [DateSpan 2007-12-02..2008-01-01,DateSpan 2008-01-02..2008-02-01,DateSpan 2008-02-02..2008-03-01,DateSpan 2008-03-02..2008-04-01]
 -- >>> t (WeekdayOfMonth 2 4) 2011 01 01 2011 02 15
 -- [DateSpan 2010-12-09..2011-01-12,DateSpan 2011-01-13..2011-02-09,DateSpan 2011-02-10..2011-03-09]
--- >>> t (DayOfWeek 2) 2011 01 01 2011 01 15
+-- >>> t (DaysOfWeek [2]) 2011 01 01 2011 01 15
 -- [DateSpan 2010-12-28..2011-01-03,DateSpan 2011-01-04..2011-01-10,DateSpan 2011-01-11..2011-01-17]
 -- >>> t (DayOfYear 11 29) 2011 10 01 2011 10 15
 -- [DateSpan 2010-11-29..2011-11-28]
@@ -211,7 +213,19 @@ splitSpan (Quarters n)   s = splitspan startofquarter (applyN n nextquarter) s
 splitSpan (Years n)      s = splitspan startofyear    (applyN n nextyear)    s
 splitSpan (DayOfMonth n) s = splitspan (nthdayofmonthcontaining n) (nthdayofmonth n . nextmonth) s
 splitSpan (WeekdayOfMonth n wd) s = splitspan (nthweekdayofmonthcontaining n wd) (advancetonthweekday n wd . nextmonth) s
-splitSpan (DayOfWeek n)  s = splitspan (nthdayofweekcontaining n)  (applyN (n-1) nextday . nextweek)  s
+splitSpan (DaysOfWeek []) s = [s]  -- shouldn't happen in parser but for completeness
+splitSpan (DaysOfWeek days@(n:_)) ds
+  | DateSpan Nothing  (Just e)  <- ds = split (DateSpan (Just $ start e) (Just $ nextday $ start e))
+  | DateSpan (Just s) Nothing  <- ds = split (DateSpan (Just $ start s) (Just $ nextday $ start s))
+  | DateSpan (Just s) (Just e) <- ds =
+      if s == e then [ds] else split (DateSpan (Just $ start s) (Just e))
+  where
+    start = nthdayofweekcontaining n
+
+    wheel = (\x -> zipWith (-) (tail x) x) . concat . zipWith fmap (fmap (+) [0,7..]) . repeat $ days
+
+    split = splitspan' (repeat startofday) (fmap (flip applyN nextday) wheel)
+
 splitSpan (DayOfYear m n) s = splitspan (nthdayofyearcontaining m n) (applyN (n-1) nextday . applyN (m-1) nextmonth . nextyear) s
 -- splitSpan (WeekOfYear n)    s = splitspan startofweek    (applyN n nextweek)    s
 -- splitSpan (MonthOfYear n)   s = splitspan startofmonth   (applyN n nextmonth)   s
@@ -226,14 +240,15 @@ splitspan start next (DateSpan Nothing (Just e)) = splitspan start next (DateSpa
 splitspan start next (DateSpan (Just s) Nothing) = splitspan start next (DateSpan (Just $ start s) (Just $ next $ start s))
 splitspan start next span@(DateSpan (Just s) (Just e))
     | s == e = [span]
-    | otherwise = splitspan' start next span
-    where
-      splitspan' start next (DateSpan (Just s) (Just e))
-          | s >= e = []
-          | otherwise = DateSpan (Just subs) (Just sube) : splitspan' start next (DateSpan (Just sube) (Just e))
-          where subs = start s
-                sube = next subs
-      splitspan' _ _ _ = error' "won't happen, avoids warnings"  -- PARTIAL:
+    | otherwise = splitspan' (repeat start) (repeat next) span
+
+splitspan' :: [Day -> Day] -> [Day -> Day] -> DateSpan -> [DateSpan]
+splitspan' (start:ss) (next:ns) (DateSpan (Just s) (Just e))
+    | s >= e = []
+    | otherwise = DateSpan (Just subs) (Just sube) : splitspan' ss ns (DateSpan (Just sube) (Just e))
+    where subs = start s
+          sube = next subs
+splitspan' _ _ _ = error' "won't happen, avoids warnings"  -- PARTIAL:
 
 -- | Count the days in a DateSpan, or if it is open-ended return Nothing.
 daysInSpan :: DateSpan -> Maybe Integer
@@ -824,6 +839,9 @@ weekday = do
     []    -> Fail.fail $ "weekday: should not happen: attempted to find " <>
                          show wday <> " in " <> show (weekdays ++ weekdayabbrevs)
 
+weekdaysp :: TextParser m [Int]
+weekdaysp = fmap head . groupBy (==) . sort <$> sepBy1 weekday (string' ",")
+
 -- | Parse a period expression, specifying a date span and optionally
 -- a reporting interval. Requires a reference "today" date for
 -- resolving any relative start/end dates (only; it is not needed for
@@ -867,9 +885,9 @@ weekday = do
 -- >>> p "every 1st monday of month to 2009"
 -- Right (WeekdayOfMonth 1 1,DateSpan ..2008-12-31)
 -- >>> p "every tue"
--- Right (DayOfWeek 2,DateSpan ..)
+-- Right (DaysOfWeek [2],DateSpan ..)
 -- >>> p "every 2nd day of week"
--- Right (DayOfWeek 2,DateSpan ..)
+-- Right (DaysOfWeek [2],DateSpan ..)
 -- >>> p "every 2nd day of month"
 -- Right (DayOfMonth 2,DateSpan ..)
 -- >>> p "every 2nd day"
@@ -898,7 +916,6 @@ intervalanddateperiodexprp rdate = do
 reportingintervalp :: TextParser m Interval
 reportingintervalp = choice'
     [ tryinterval "day"     "daily"     Days
-    , tryinterval "week"    "weekly"    Weeks
     , tryinterval "month"   "monthly"   Months
     , tryinterval "quarter" "quarterly" Quarters
     , tryinterval "year"    "yearly"    Years
@@ -906,13 +923,20 @@ reportingintervalp = choice'
     , Weeks 2 <$ string' "fortnightly"
     , Months 2 <$ string' "bimonthly"
     , string' "every" *> skipNonNewlineSpaces *> choice'
-        [ DayOfWeek <$> (nth <* skipNonNewlineSpaces <* string' "day" <* of_ "week")
+        [ DaysOfWeek . pure <$> (nth <* skipNonNewlineSpaces <* string' "day" <* of_ "week")
         , DayOfMonth <$> (nth <* skipNonNewlineSpaces <* string' "day" <* optOf_ "month")
         , liftA2 WeekdayOfMonth nth $ skipNonNewlineSpaces *> weekday <* optOf_ "month"
         , uncurry DayOfYear <$> (md <* optOf_ "year")
-        , DayOfWeek <$> weekday
+        , DaysOfWeek <$> weekdaysp
+        , DaysOfWeek [1..5] <$ string' "weekday"
+        , DaysOfWeek [6..7] <$ string' "weekendday"
         , d_o_y <* optOf_ "year"
         ]
+    -- NB: the ordering is important here since the parse for `every weekday`
+    -- would match the `tryinterval` first and then error on `d`. Perhaps it
+    -- would be clearer to factor some of this into the `every` choice or other
+    -- left-factorings.
+    , tryinterval "week"    "weekly"    Weeks
     ]
   where
     of_ period =
@@ -1009,3 +1033,45 @@ emptydatespan = DateSpan (Just $ addDays 1 nulldate) (Just nulldate)
 
 nulldate :: Day
 nulldate = fromGregorian 0 1 1
+
+
+-- tests
+
+tests_Dates = tests "Dates"
+  [ test "weekday" $ do
+      splitSpan (DaysOfWeek [1..5]) (DateSpan (Just $ fromGregorian 2021 07 01) (Just $ fromGregorian 2021 07 08))
+        @?= [ (DateSpan (Just $ fromGregorian 2021 06 28) (Just $ fromGregorian 2021 06 29))
+            , (DateSpan (Just $ fromGregorian 2021 06 29) (Just $ fromGregorian 2021 06 30))
+            , (DateSpan (Just $ fromGregorian 2021 06 30) (Just $ fromGregorian 2021 07 01))
+            , (DateSpan (Just $ fromGregorian 2021 07 01) (Just $ fromGregorian 2021 07 02))
+            , (DateSpan (Just $ fromGregorian 2021 07 02) (Just $ fromGregorian 2021 07 05))
+            -- next week
+            , (DateSpan (Just $ fromGregorian 2021 07 05) (Just $ fromGregorian 2021 07 06))
+            , (DateSpan (Just $ fromGregorian 2021 07 06) (Just $ fromGregorian 2021 07 07))
+            , (DateSpan (Just $ fromGregorian 2021 07 07) (Just $ fromGregorian 2021 07 08))
+            ]
+
+      splitSpan (DaysOfWeek [1, 5]) (DateSpan (Just $ fromGregorian 2021 07 01) (Just $ fromGregorian 2021 07 08))
+        @?= [ (DateSpan (Just $ fromGregorian 2021 06 28) (Just $ fromGregorian 2021 07 02))
+            , (DateSpan (Just $ fromGregorian 2021 07 02) (Just $ fromGregorian 2021 07 05))
+            -- next week
+            , (DateSpan (Just $ fromGregorian 2021 07 05) (Just $ fromGregorian 2021 07 09))
+            ]
+
+  , test "match dayOfWeek" $ do
+      let dayofweek n s = splitspan (nthdayofweekcontaining n) (applyN (n-1) nextday . nextweek) s
+          match ds day = dayofweek day ds == splitSpan (DaysOfWeek [day]) ds @?= True
+          ys2021 = fromGregorian 2021 01 01
+          ye2021 = fromGregorian 2021 12 31
+          ys2022 = fromGregorian 2022 01 01
+      mapM_ (match (DateSpan (Just ys2021) (Just ye2021))) [1..7]
+      mapM_ (match (DateSpan (Just ys2021) (Just ys2022))) [1..7]
+      mapM_ (match (DateSpan (Just ye2021) (Just ys2022))) [1..7]
+
+      mapM_ (match (DateSpan (Just ye2021) Nothing)) [1..7]
+      mapM_ (match (DateSpan (Just ys2022) Nothing)) [1..7]
+
+      mapM_ (match (DateSpan Nothing (Just ye2021))) [1..7]
+      mapM_ (match (DateSpan Nothing (Just ys2022))) [1..7]
+
+  ]

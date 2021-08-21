@@ -710,6 +710,39 @@ Group postings from the start of wednesday to end of the following tuesday (N is
 $ hledger register checking -p "every 3rd day of week"
 ```
 
+### Periods or dates ?
+
+Report intervals like the above are most often used with `-p|--period`,
+to divide reports into multiple subperiods -
+each generated date marks a subperiod boundary.
+Here, the periods between the dates are what's important.
+
+But report intervals can also be used 
+with `--forecast` to generate future transactions,
+or with `balance --budget` to generate budget goal-setting transactions.
+For these, the dates themselves are what matters.
+
+### Events on multiple weekdays
+
+The `every WEEKDAYNAME` form has a special variant with multiple day names, comma-separated. 
+Eg: `every mon,thu,sat`.
+Also, `weekday` and `weekendday` are shorthand for `mon,tue,wed,thu,fri` and `sat,sun` 
+respectively.
+
+This form is mainly intended for use with `--forecast`, to generate 
+[periodic transactions](#periodic-transactions) on arbitrary days of the week.
+It may be less useful with `-p`, since it divides each week into subperiods 
+of unequal length. (Because gaps between periods are not allowed;
+if you'd like to change this, see [#1632](https://github.com/simonmichael/hledger/pull/1632).)
+
+Examples:
+
+|                              |                                                                                        |
+|------------------------------|----------------------------------------------------------------------------------------|
+| `-p "every mon,wed,fri"`     | dates will be Mon, Wed, Fri; <br>periods will be Mon-Tue, Wed-Thu, Fri-Sun             |
+| `-p "every weekday"`         | dates will be Mon, Tue, Wed, Thu, Fri; <br>periods will be Mon, Tue, Wed, Thu, Fri-Sun |
+| `-p "every weekendday"`      | dates will be Sat, Sun; <br>periods will be Sat, Sun-Fri                               |
+
 # DEPTH
 
 With the `--depth NUM` option (short form: `-NUM`), 

@@ -268,3 +268,57 @@ hledger -f - print -x --forecast -e 2021-11
 
 >>>2
 >>>=0
+
+# 13. Generated forecast for weekday transactions
+hledger -f - reg --forecast -b "2021-09-01" -e "2021-09-15" --forecast -w 100
+<<<
+2021-08-01
+  (a)      0
+
+~ every weekday
+  income:client1                    -10 USD
+  assets:receivables:contractor1
+>>>
+2021-09-01                                income:client1                       -10 USD       -10 USD
+                                          assets:receivables:contractor1        10 USD             0
+2021-09-02                                income:client1                       -10 USD       -10 USD
+                                          assets:receivables:contractor1        10 USD             0
+2021-09-03                                income:client1                       -10 USD       -10 USD
+                                          assets:receivables:contractor1        10 USD             0
+2021-09-06                                income:client1                       -10 USD       -10 USD
+                                          assets:receivables:contractor1        10 USD             0
+2021-09-07                                income:client1                       -10 USD       -10 USD
+                                          assets:receivables:contractor1        10 USD             0
+2021-09-08                                income:client1                       -10 USD       -10 USD
+                                          assets:receivables:contractor1        10 USD             0
+2021-09-09                                income:client1                       -10 USD       -10 USD
+                                          assets:receivables:contractor1        10 USD             0
+2021-09-10                                income:client1                       -10 USD       -10 USD
+                                          assets:receivables:contractor1        10 USD             0
+2021-09-13                                income:client1                       -10 USD       -10 USD
+                                          assets:receivables:contractor1        10 USD             0
+2021-09-14                                income:client1                       -10 USD       -10 USD
+                                          assets:receivables:contractor1        10 USD             0
+>>>2
+>>>=0
+
+# 14. Generated forecast for weekend transactions
+hledger -f - reg --forecast -b "2021-09-01" -e "2021-09-15" --forecast -w 100
+<<<
+2021-08-01
+  (a)      0
+
+~ every weekendday
+  income:client1                    -10 USD
+  assets:receivables:contractor1
+>>>
+2021-09-04                                income:client1                       -10 USD       -10 USD
+                                          assets:receivables:contractor1        10 USD             0
+2021-09-05                                income:client1                       -10 USD       -10 USD
+                                          assets:receivables:contractor1        10 USD             0
+2021-09-11                                income:client1                       -10 USD       -10 USD
+                                          assets:receivables:contractor1        10 USD             0
+2021-09-12                                income:client1                       -10 USD       -10 USD
+                                          assets:receivables:contractor1        10 USD             0
+>>>2
+>>>=0

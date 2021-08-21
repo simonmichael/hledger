@@ -121,7 +121,7 @@ data Interval =
   | Years Int
   | DayOfMonth Int
   | WeekdayOfMonth Int Int
-  | DayOfWeek Int
+  | DaysOfWeek [Int]
   | DayOfYear Int Int -- Month, Day
   -- WeekOfYear Int
   -- MonthOfYear Int
