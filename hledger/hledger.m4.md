@@ -3189,7 +3189,7 @@ Note:
 - the equals sign is required (a space won't work)
 - PERIODEXPR can specify the forecast period's start and/or end dates
   (similar to [Report start & end date](#report-start--end-date))
-- PERIODEXPR shouldn't specify a report interval; that would be ignored, as it is specified by the periodic rules in the journal.
+- PERIODEXPR shouldn't specify a report interval; each periodic transaction rule specifies its own.
 
 Some examples: `--forecast=202001-202004`, `--forecast=jan-`, `--forecast=2020`.
 

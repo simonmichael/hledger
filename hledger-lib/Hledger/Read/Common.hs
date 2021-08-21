@@ -165,6 +165,7 @@ import Hledger.Reports.ReportOptions (ReportOpts(..), queryFromFlags, rawOptsToR
 import Hledger.Utils
 import Text.Printf (printf)
 import Hledger.Read.InputOptions
+import Data.String.Compat (unlines)
 
 --- ** doctest setup
 -- $setup
@@ -254,15 +255,24 @@ rawOptsToInputOpts rawopts = do
       }
   where noinferprice = boolopt "strict" rawopts || stringopt "args" rawopts == "balancednoautoconversion"
 
--- | Get period expression from --forecast option.
--- This will fail with a usage error if the forecast period expression cannot be parsed.
+-- | Get the date span from --forecast's PERIODEXPR argument, if any.
+-- This will fail with a usage error if the period expression cannot be parsed,
+-- or if it contains a report interval.
 forecastPeriodFromRawOpts :: Day -> RawOpts -> Maybe DateSpan
 forecastPeriodFromRawOpts d rawopts = case maybestringopt "forecast" rawopts of
     Nothing -> Nothing
     Just "" -> Just forecastspanDefault
-    Just str -> either (\e -> usageError $ "could not parse forecast period : "++customErrorBundlePretty e)
-                       (\(_,requestedspan) -> Just $ requestedspan `spanDefaultsFrom` forecastspanDefault) $
-                  parsePeriodExpr d $ stripquotes $ T.pack str
+    Just arg -> 
+      either 
+        (\e -> usageError $ "could not parse forecast period : "++customErrorBundlePretty e)
+        (\(interval, requestedspan) -> 
+          case interval of
+            NoInterval -> Just $ requestedspan `spanDefaultsFrom` forecastspanDefault
+            _          -> usageError $ unlines
+              [ "--forecast's argument should not contain a report interval"
+              , "(" ++ show interval ++ " in \"" ++ arg ++ "\")"
+              ])
+        (parsePeriodExpr d $ stripquotes $ T.pack arg)
   where
     -- "They end on or before the specified report end date, or 180 days from today if unspecified."
     mspecifiedend = dbg2 "specifieddates" $ queryEndDate False datequery
