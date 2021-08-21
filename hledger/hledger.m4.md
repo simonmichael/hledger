@@ -3182,13 +3182,15 @@ prevent generation of periodic transactions.
 periodic rule instead - put tilde before the date, eg `~ YYYY-MM-DD ...`).
 
 Or, you can set your own arbitrary "forecast period", which can
-overlap recorded transactions, and need not be in the future, by
-providing an option argument, like `--forecast=PERIODEXPR`.
-Note the equals sign is required, a space won't work.
-PERIODEXPR is a [period expression](#period-expressions),
-which can specify the start date, end date, or both,
-like in a [`date:` query](#queries).
-(See also hledger.1 -> [Report start & end date](#report-start-end-date)).
+overlap recorded transactions, and need not be in the future.
+To do this, provide a [period expression](#period-expressions) argument, like `--forecast=PERIODEXPR`.
+Note:
+
+- the equals sign is required (a space won't work)
+- PERIODEXPR can specify the forecast period's start and/or end dates
+  (similar to [Report start & end date](#report-start--end-date))
+- PERIODEXPR shouldn't specify a report interval; that would be ignored, as it is specified by the periodic rules in the journal.
+
 Some examples: `--forecast=202001-202004`, `--forecast=jan-`, `--forecast=2020`.
 
 ### Budgeting with periodic transactions
