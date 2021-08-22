@@ -156,6 +156,7 @@ library
       Decimal >=0.5.1
     , aeson >=1
     , base >=4.11 && <4.16
+    , base64
     , blaze-html
     , blaze-markup
     , bytestring

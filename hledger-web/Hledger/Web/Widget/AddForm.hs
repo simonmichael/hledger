@@ -17,6 +17,7 @@ import Data.List (dropWhileEnd, intercalate, unfoldr)
 import Data.Maybe (isJust)
 import qualified Data.Set as S
 import Data.Text (Text)
+import Data.Text.Encoding.Base64 (encodeBase64)
 import qualified Data.Text as T
 import Data.Time (Day)
 import Text.Blaze.Internal (Markup, preEscapedString)
@@ -95,13 +96,19 @@ addForm j today = identifyForm "add" $ \extra -> do
         intercalate "," $ map (
           ("{\"value\":" ++).
           (++"}").
-          show .
-          -- avoid https://github.com/simonmichael/hledger/issues/236
-          T.replace "</script>" "<\\/script>"
+          -- This will convert a value such as ``hledger!`` into
+          -- ``atob("aGxlZGdlciE=")``. When this gets evaluated on the client,
+          -- the resulting string is ``hledger!`` again. The same data is
+          -- passed, but the user-controlled bit of that string can only use
+          -- characters [a-zA-Z0-9+=/], making it impossible to break out of
+          -- string context.
+          b64wrap
           ) ts,
         "]"
         ]
       where
+b64wrap :: Text -> String
+b64wrap = ("atob(\""++) . (++"\")") . T.unpack . encodeBase64
 
 validateTransaction ::
      FormResult Day
