@@ -165,7 +165,6 @@ import Hledger.Reports.ReportOptions (ReportOpts(..), queryFromFlags, rawOptsToR
 import Hledger.Utils
 import Text.Printf (printf)
 import Hledger.Read.InputOptions
-import Data.String.Compat (unlines)
 
 --- ** doctest setup
 -- $setup
