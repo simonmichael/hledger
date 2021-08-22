@@ -20,6 +20,7 @@ extra-deps:
 # for hledger:
 # for hledger-ui:
 # for hledger-web:
+- ghc-byteorder-4.11.0.0.10
 # for Shake.hs:
 
 # for precise profiling, per https://www.tweag.io/posts/2020-01-30-haskell-profiling.html:

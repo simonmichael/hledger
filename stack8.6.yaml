@@ -31,6 +31,8 @@ extra-deps:
 - githash-0.1.4.0
 # for hledger-ui:
 # for hledger-web:
+- ghc-byteorder-4.11.0.0.10
+- base64-0.4.2.3
 
 # Workaround for https://github.com/commercialhaskell/stack/issues/3922
 # Try dropping this.. after stack 2 has been out a while ? Or now ? How about now ?
