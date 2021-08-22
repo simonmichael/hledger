@@ -872,7 +872,7 @@ and piping the result into a second hledger command.
 Eg: how much of food expenses was paid with cash ?
 
 ```shell
-$ hledger print assets:cash | hledger f- -I balance expenses:food
+$ hledger print assets:cash | hledger -f- -I balance expenses:food
 ```
 
 If you are interested in full boolean expressions for queries,
