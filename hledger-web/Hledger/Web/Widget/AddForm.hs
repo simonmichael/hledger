@@ -116,7 +116,7 @@ validateTransaction ::
   -> FormResult Transaction
 validateTransaction dateRes descRes postingsRes =
   case makeTransaction <$> dateRes <*> descRes <*> postingsRes of
-    FormSuccess txn -> case balanceTransaction balancingOpts txn of
+    FormSuccess txn -> case balanceTransaction defbalancingopts txn of
       Left e -> FormFailure [T.pack e]
       Right txn' -> FormSuccess txn'
     x -> x

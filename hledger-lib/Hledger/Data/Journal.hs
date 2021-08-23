@@ -723,7 +723,7 @@ journalModifyTransactions d j =
 -- | Check any balance assertions in the journal and return an error message
 -- if any of them fail (or if the transaction balancing they require fails).
 journalCheckBalanceAssertions :: Journal -> Maybe String
-journalCheckBalanceAssertions = either Just (const Nothing) . journalBalanceTransactions balancingOpts
+journalCheckBalanceAssertions = either Just (const Nothing) . journalBalanceTransactions defbalancingopts
 
 -- "Transaction balancing", including: inferring missing amounts,
 -- applying balance assignments, checking transaction balancedness,
@@ -886,7 +886,7 @@ balanceTransactionAndCheckAssertionsB (Right t@Transaction{tpostings=ps}) = do
   ps' <- mapM (addOrAssignAmountAndCheckAssertionB . postingStripPrices) ps
   -- infer any remaining missing amounts, and make sure the transaction is now fully balanced
   styles <- R.reader bsStyles
-  case balanceTransactionHelper balancingOpts{commodity_styles_=styles} t{tpostings=ps'} of
+  case balanceTransactionHelper defbalancingopts{commodity_styles_=styles} t{tpostings=ps'} of
     Left err -> throwError err
     Right (t', inferredacctsandamts) -> do
       -- for each amount just inferred, update the running balance
@@ -1408,7 +1408,7 @@ journalApplyAliases aliases j =
 --     liabilities:debts  $1
 --     assets:bank:checking
 --
-Right samplejournal = journalBalanceTransactions balancingOpts $
+Right samplejournal = journalBalanceTransactions defbalancingopts $
          nulljournal
          {jtxns = [
            txnTieKnot $ Transaction {
@@ -1551,7 +1551,7 @@ tests_Journal = tests "Journal" [
   ,tests "journalBalanceTransactions" [
 
      test "balance-assignment" $ do
-      let ej = journalBalanceTransactions balancingOpts $
+      let ej = journalBalanceTransactions defbalancingopts $
             --2019/01/01
             --  (a)            = 1
             nulljournal{ jtxns = [
@@ -1562,7 +1562,7 @@ tests_Journal = tests "Journal" [
       (jtxns j & head & tpostings & head & pamount & amountsRaw) @?= [num 1]
 
     ,test "same-day-1" $ do
-      assertRight $ journalBalanceTransactions balancingOpts $
+      assertRight $ journalBalanceTransactions defbalancingopts $
             --2019/01/01
             --  (a)            = 1
             --2019/01/01
@@ -1573,7 +1573,7 @@ tests_Journal = tests "Journal" [
             ]}
 
     ,test "same-day-2" $ do
-      assertRight $ journalBalanceTransactions balancingOpts $
+      assertRight $ journalBalanceTransactions defbalancingopts $
             --2019/01/01
             --    (a)                  2 = 2
             --2019/01/01
@@ -1591,7 +1591,7 @@ tests_Journal = tests "Journal" [
             ]}
 
     ,test "out-of-order" $ do
-      assertRight $ journalBalanceTransactions balancingOpts $
+      assertRight $ journalBalanceTransactions defbalancingopts $
             --2019/1/2
             --  (a)    1 = 2
             --2019/1/1
