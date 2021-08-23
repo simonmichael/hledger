@@ -24,7 +24,6 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import System.Console.CmdArgs.Explicit (flagNone, flagReq)
-import Safe (maximumDef)
 
 import Hledger
 import Hledger.Read.CsvReader (CSV, CsvRecord, printCSV)
@@ -95,16 +94,11 @@ postingsReportItemAsCsvRecord (_, _, _, p, b) = [idx,date,code,desc,acct,amt,bal
 
 -- | Render a register report as plain text suitable for console output.
 postingsReportAsText :: CliOpts -> PostingsReport -> TL.Text
-postingsReportAsText opts items = TB.toLazyText $ foldMap first3 linesWithWidths
+postingsReportAsText opts items = TB.toLazyText lines
   where
-    linesWithWidths = map (postingsReportItemAsText opts amtwidth balwidth) items
-    -- Tying this knot seems like it will save work, but ends up creating a big
-    -- space leak. Can we fix that leak without recalculating everything?
-    -- amtwidth = maximum $ 12 : map second3 linesWithWidths
-    -- balwidth = maximum $ 12 : map third3 linesWithWidths
+    lines = foldMap (postingsReportItemAsText opts amtwidth balwidth) items
     amtwidth = maximumStrict $ 12 : widths (map itemamt items)
     balwidth = maximumStrict $ 12 : widths (map itembal items)
-    -- Since postingsReport strips prices from all Amounts when not used, we can display prices.
     widths = map wbWidth . concatMap (showMixedAmountLinesB oneLine)
     itemamt (_,_,_,Posting{pamount=a},_) = a
     itembal (_,_,_,_,a) = a
@@ -133,9 +127,9 @@ postingsReportAsText opts items = TB.toLazyText $ foldMap first3 linesWithWidths
 --
 -- Also returns the natural width (without padding) of the amount and balance
 -- fields.
-postingsReportItemAsText :: CliOpts -> Int -> Int -> PostingsReportItem -> (TB.Builder, Int, Int)
+postingsReportItemAsText :: CliOpts -> Int -> Int -> PostingsReportItem -> TB.Builder
 postingsReportItemAsText opts preferredamtwidth preferredbalwidth (mdate, mperiod, mdesc, p, b) =
-    (table <> TB.singleton '\n', thisamtwidth, thisbalwidth)
+    table <> TB.singleton '\n'
   where
     table = renderRowB def{tableBorders=False, borderSpaces=False} . Group NoLine $ map Header
       [ textCell TopLeft $ fitText (Just datewidth) (Just datewidth) True True date
@@ -187,10 +181,6 @@ postingsReportItemAsText opts preferredamtwidth preferredbalwidth (mdate, mperio
     amt = showamt $ pamount p
     bal = showamt b
     showamt = showMixedAmountLinesB oneLine{displayColour=color_ . _rsReportOpts $ reportspec_ opts}
-    -- Since this will usually be called with the knot tied between this(amt|bal)width and
-    -- preferred(amt|bal)width, make sure the former do not depend on the latter to avoid loops.
-    thisamtwidth = maximumDef 0 $ map wbWidth amt
-    thisbalwidth = maximumDef 0 $ map wbWidth bal
 
 -- tests
 
