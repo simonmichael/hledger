@@ -3165,15 +3165,16 @@ transactions generated "just now":
 `_generated-transaction:~ PERIODICEXPR`.
 
 Periodic transactions are generated within some forecast period.
-By default, this
-
-- begins on the later of
+This begins on:
+- the start date supplied to the `--forecast` argument, if present
+- otherwise, the later of
   - the report start date if specified with -b/-p/date:
-  - the day after the latest normal (non-periodic) transaction in the journal,
-    or today if there are no normal transactions.
-
-- ends on the report end date if specified with -e/-p/date:,
-  or 6 months (180 days) from today.
+  - the day after the latest normal (non-periodic) transaction in the journal, if any
+- otherwise today.
+It ends on:
+- the end date supplied to the `--forecast` argument, if present
+- otherwise the report end date if specified with -e/-p/date:
+- otherwise 180 days (6 months) from today.
 
 This means that periodic transactions will begin only after the latest
 recorded transaction. And a recorded transaction dated in the future can

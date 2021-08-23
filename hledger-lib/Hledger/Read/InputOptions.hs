@@ -6,30 +6,36 @@ Similar to CliOptions.inputflags, simplifies the journal-reading functions.
 -}
 
 module Hledger.Read.InputOptions (
-    -- * Types and helpers for input options
-    InputOpts(..)
-  , definputopts
-)
-where
+-- * Types and helpers for input options
+  InputOpts(..)
+, definputopts
+, forecastPeriod
+) where
+
+import Control.Applicative ((<|>))
+import Data.Time (Day, addDays)
 
 import Hledger.Data.Types
-import Hledger.Data.Transaction
-import Hledger.Data.Dates()
+import Hledger.Data.Transaction (BalancingOpts(..), balancingOpts)
+import Hledger.Data.Journal (journalEndDate)
+import Hledger.Data.Dates (nulldatespan)
+import Hledger.Utils
 
 data InputOpts = InputOpts {
      -- files_             :: [FilePath]
-     mformat_           :: Maybe StorageFormat                       -- ^ a file/storage format to try, unless overridden
-                                                                     --   by a filename prefix. Nothing means try all.
-    ,mrules_file_       :: Maybe FilePath                            -- ^ a conversion rules file to use (when reading CSV)
-    ,aliases_           :: [String]                                  -- ^ account name aliases to apply
-    ,anon_              :: Bool                                      -- ^ do light anonymisation/obfuscation of the data
-    ,new_               :: Bool                                      -- ^ read only new transactions since this file was last read
-    ,new_save_          :: Bool                                      -- ^ save latest new transactions state for next time
-    ,pivot_             :: String                                    -- ^ use the given field's value as the account name
-    ,forecast_          :: Maybe DateSpan                            -- ^ span in which to generate forecast transactions
-    ,auto_              :: Bool                                      -- ^ generate automatic postings when journal is parsed
-    ,balancingopts_     :: BalancingOpts                             -- ^ options for balancing transactions
-    ,strict_            :: Bool                                      -- ^ do extra error checking (eg, all posted accounts are declared, no prices are inferred)
+     mformat_           :: Maybe StorageFormat  -- ^ a file/storage format to try, unless overridden
+                                                --   by a filename prefix. Nothing means try all.
+    ,mrules_file_       :: Maybe FilePath       -- ^ a conversion rules file to use (when reading CSV)
+    ,aliases_           :: [String]             -- ^ account name aliases to apply
+    ,anon_              :: Bool                 -- ^ do light anonymisation/obfuscation of the data
+    ,new_               :: Bool                 -- ^ read only new transactions since this file was last read
+    ,new_save_          :: Bool                 -- ^ save latest new transactions state for next time
+    ,pivot_             :: String               -- ^ use the given field's value as the account name
+    ,forecast_          :: Maybe DateSpan       -- ^ span in which to generate forecast transactions
+    ,reportspan_        :: DateSpan             -- ^ a dirty hack keeping the query dates in InputOpts. This rightfully lives in ReportSpec, but is duplicated here.
+    ,auto_              :: Bool                 -- ^ generate automatic postings when journal is parsed
+    ,balancingopts_     :: BalancingOpts        -- ^ options for balancing transactions
+    ,strict_            :: Bool                 -- ^ do extra error checking (eg, all posted accounts are declared, no prices are inferred)
  } deriving (Show)
 
 definputopts :: InputOpts
@@ -42,7 +48,28 @@ definputopts = InputOpts
     , new_save_          = True
     , pivot_             = ""
     , forecast_          = Nothing
+    , reportspan_        = nulldatespan
     , auto_              = False
     , balancingopts_     = balancingOpts
     , strict_            = False
     }
+
+-- | Get the Maybe the DateSpan to generate forecast options from.
+-- This begins on:
+-- - the start date supplied to the `--forecast` argument, if present
+-- - otherwise, the later of
+--   - the report start date if specified with -b/-p/date:
+--   - the day after the latest normal (non-periodic) transaction in the journal, if any
+-- - otherwise today.
+-- It ends on:
+-- - the end date supplied to the `--forecast` argument, if present
+-- - otherwise the report end date if specified with -e/-p/date:
+-- - otherwise 180 days (6 months) from today.
+forecastPeriod :: Day -> InputOpts -> Journal -> Maybe DateSpan
+forecastPeriod d iopts j = do
+    DateSpan requestedStart requestedEnd <- forecast_ iopts
+    let forecastStart = requestedStart <|> max mjournalend reportStart <|> Just d
+        forecastEnd   = requestedEnd <|> reportEnd <|> Just (addDays 180 d)
+        mjournalend   = dbg2 "journalEndDate" $ journalEndDate False j  -- ignore secondary dates
+        DateSpan reportStart reportEnd = reportspan_ iopts
+    return . dbg2 "forecastspan" $ DateSpan forecastStart forecastEnd

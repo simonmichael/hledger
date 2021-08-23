@@ -32,7 +32,6 @@ module Hledger.Read.Common (
   InputOpts(..),
   definputopts,
   rawOptsToInputOpts,
-  forecastPeriodFromRawOpts,
   rawOptsToCommodityStylesOpts,
 
   -- * parsing utilities
@@ -148,7 +147,7 @@ import qualified Data.Map as M
 import qualified Data.Semigroup as Sem
 import Data.Text (Text)
 import qualified Data.Text as T
-import Data.Time.Calendar (Day, addDays, fromGregorianValid, toGregorian)
+import Data.Time.Calendar (Day, fromGregorianValid, toGregorian)
 import Data.Time.Clock.POSIX (getPOSIXTime)
 import Data.Time.LocalTime (LocalTime(..), TimeOfDay(..))
 import Data.Word (Word8)
@@ -160,7 +159,7 @@ import Text.Megaparsec.Custom
   finalErrorBundlePretty, parseErrorAt, parseErrorAtRegion)
 
 import Hledger.Data
-import Hledger.Query (Query(..), filterQuery, parseQueryTerm, queryEndDate, queryIsDate, simplifyQuery)
+import Hledger.Query (Query(..), filterQuery, parseQueryTerm, queryEndDate, queryStartDate, queryIsDate, simplifyQuery)
 import Hledger.Reports.ReportOptions (ReportOpts(..), queryFromFlags, rawOptsToReportOpts)
 import Hledger.Utils
 import Text.Printf (printf)
@@ -234,6 +233,14 @@ rawOptsToInputOpts :: RawOpts -> IO InputOpts
 rawOptsToInputOpts rawopts = do
     d <- getCurrentDay
 
+    let noinferprice = boolopt "strict" rawopts || stringopt "args" rawopts == "balancednoautoconversion"
+
+        -- Do we really need to do all this work just to get the requested end date? This is duplicating
+        -- much of reportOptsToSpec.
+        ropts = rawOptsToReportOpts d rawopts
+        argsquery = lefts . rights . map (parseQueryTerm d) $ querystring_ ropts
+        datequery = simplifyQuery . filterQuery queryIsDate . And $ queryFromFlags ropts : argsquery
+
     return InputOpts{
        -- files_             = listofstringopt "file" rawopts
        mformat_           = Nothing
@@ -244,6 +251,7 @@ rawOptsToInputOpts rawopts = do
       ,new_save_          = True
       ,pivot_             = stringopt "pivot" rawopts
       ,forecast_          = forecastPeriodFromRawOpts d rawopts
+      ,reportspan_        = DateSpan (queryStartDate False datequery) (queryEndDate False datequery)
       ,auto_              = boolopt "auto" rawopts
       ,balancingopts_     = balancingOpts{ 
                                  ignore_assertions_ = boolopt "ignore-assertions" rawopts
@@ -252,36 +260,21 @@ rawOptsToInputOpts rawopts = do
                                }
       ,strict_            = boolopt "strict" rawopts
       }
-  where noinferprice = boolopt "strict" rawopts || stringopt "args" rawopts == "balancednoautoconversion"
 
 -- | Get the date span from --forecast's PERIODEXPR argument, if any.
 -- This will fail with a usage error if the period expression cannot be parsed,
 -- or if it contains a report interval.
 forecastPeriodFromRawOpts :: Day -> RawOpts -> Maybe DateSpan
-forecastPeriodFromRawOpts d rawopts = case maybestringopt "forecast" rawopts of
-    Nothing -> Nothing
-    Just "" -> Just forecastspanDefault
-    Just arg -> 
-      either 
-        (\e -> usageError $ "could not parse forecast period : "++customErrorBundlePretty e)
-        (\(interval, requestedspan) -> 
-          case interval of
-            NoInterval -> Just $ requestedspan `spanDefaultsFrom` forecastspanDefault
-            _          -> usageError $ unlines
-              [ "--forecast's argument should not contain a report interval"
-              , "(" ++ show interval ++ " in \"" ++ arg ++ "\")"
-              ])
-        (parsePeriodExpr d $ stripquotes $ T.pack arg)
+forecastPeriodFromRawOpts d rawopts = do
+    arg <- maybestringopt "forecast" rawopts
+    let period = parsePeriodExpr d . stripquotes $ T.pack arg
+    return $ if null arg then nulldatespan else either badParse (getSpan arg) period
   where
-    -- "They end on or before the specified report end date, or 180 days from today if unspecified."
-    mspecifiedend = dbg2 "specifieddates" $ queryEndDate False datequery
-    forecastendDefault = dbg2 "forecastendDefault" $ addDays 180 d
-    forecastspanDefault = DateSpan Nothing $ mspecifiedend <|> Just forecastendDefault
-    -- Do we really need to do all this work just to get the requested end date? This is duplicating
-    -- much of reportOptsToSpec.
-    ropts = rawOptsToReportOpts d rawopts
-    argsquery = lefts . rights . map (parseQueryTerm d) $ querystring_ ropts
-    datequery = simplifyQuery . filterQuery queryIsDate . And $ queryFromFlags ropts : argsquery
+    badParse e = usageError $ "could not parse forecast period : "++customErrorBundlePretty e
+    getSpan arg (interval, requestedspan) = case interval of
+        NoInterval -> requestedspan
+        _          -> usageError $ "--forecast's argument should not contain a report interval ("
+                                 ++ show interval ++ " in \"" ++ arg ++ "\")"
 
 --- ** parsing utilities
 
@@ -371,7 +364,7 @@ parseAndFinaliseJournal' parser iopts f txt = do
 -- - infer transaction-implied market prices from transaction prices
 --
 journalFinalise :: InputOpts -> FilePath -> Text -> ParsedJournal -> ExceptT String IO Journal
-journalFinalise InputOpts{forecast_,auto_,balancingopts_,strict_} f txt pj = do
+journalFinalise iopts@InputOpts{auto_,balancingopts_,strict_} f txt pj = do
     t <- liftIO getPOSIXTime
     d <- liftIO getCurrentDay
     -- Infer and apply canonical styles for each commodity (or throw an error).
@@ -390,7 +383,7 @@ journalFinalise InputOpts{forecast_,auto_,balancingopts_,strict_} f txt pj = do
           journalCheckCommoditiesDeclared j
 
         -- Add forecast transactions if enabled
-        journalAddForecast d forecast_ j
+        journalAddForecast (forecastPeriod d iopts j) j
         -- Add auto postings if enabled
           & (if auto_ && not (null $ jtxnmodifiers j) then journalAddAutoPostings d balancingopts_ else pure)
         -- Balance all transactions and maybe check balance assertions.
@@ -412,23 +405,15 @@ journalAddAutoPostings d bopts =
 --
 -- The start & end date for generated periodic transactions are determined in
 -- a somewhat complicated way; see the hledger manual -> Periodic transactions.
-journalAddForecast :: Day -> Maybe DateSpan -> Journal -> Journal
-journalAddForecast _ Nothing              j = j
-journalAddForecast d (Just requestedspan) j = j{jtxns = jtxns j ++ forecasttxns}
+journalAddForecast :: Maybe DateSpan -> Journal -> Journal
+journalAddForecast Nothing             j = j
+journalAddForecast (Just forecastspan) j = j{jtxns = jtxns j ++ forecasttxns}
   where
     forecasttxns =
         map (txnTieKnot . transactionTransformPostings (postingApplyCommodityStyles $ journalCommodityStyles j))
       . filter (spanContainsDate forecastspan . tdate)
       . concatMap (`runPeriodicTransaction` forecastspan)
       $ jperiodictxns j
-
-    -- "They can start no earlier than: the day following the latest normal transaction in the journal (or today if there are none)."
-    mjournalend   = dbg2 "journalEndDate" $ journalEndDate False j  -- ignore secondary dates
-    forecastbeginDefault = dbg2 "forecastbeginDefault" $ mjournalend <|> Just d
-
-    -- "They end on or before the specified report end date, or 180 days from today if unspecified."
-    forecastspan = dbg2 "forecastspan" $ dbg2 "forecastspan flag" requestedspan
-        `spanDefaultsFrom` DateSpan forecastbeginDefault (Just $ addDays 180 d)
 
 -- | Check that all the journal's transactions have payees declared with
 -- payee directives, returning an error message otherwise.

@@ -7,7 +7,6 @@ module Hledger.UI.UIState
 where
 
 import Brick.Widgets.Edit
-import Control.Applicative ((<|>))
 import Data.List ((\\), foldl', sort)
 import Data.Semigroup (Max(..))
 import qualified Data.Text as T
@@ -157,11 +156,11 @@ toggleHistorical ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec
 -- (which are usually but not necessarily future-dated).
 -- In normal mode, both of these are hidden.
 toggleForecast :: Day -> UIState -> UIState
-toggleForecast d ui@UIState{aopts=UIOpts{cliopts_=copts@CliOpts{inputopts_=iopts}}} =
+toggleForecast d ui@UIState{aopts=UIOpts{cliopts_=CliOpts{inputopts_=iopts}}} =
   uiSetForecast ui $
     case forecast_ iopts of
       Just _  -> Nothing
-      Nothing -> forecastPeriodFromRawOpts d (rawopts_ copts) <|> Just nulldatespan
+      Nothing -> forecastPeriod d iopts{forecast_=Just nulldatespan} (ajournal ui)
 
 -- | Helper: set forecast mode (with the given forecast period) on or off in the UI state.
 uiSetForecast :: UIState -> Maybe DateSpan -> UIState
