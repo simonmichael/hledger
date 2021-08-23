@@ -840,7 +840,7 @@ weekday = do
                          show wday <> " in " <> show (weekdays ++ weekdayabbrevs)
 
 weekdaysp :: TextParser m [Int]
-weekdaysp = fmap head . groupBy (==) . sort <$> sepBy1 weekday (string' ",")
+weekdaysp = fmap head . group . sort <$> sepBy1 weekday (string' ",")
 
 -- | Parse a period expression, specifying a date span and optionally
 -- a reporting interval. Requires a reference "today" date for
