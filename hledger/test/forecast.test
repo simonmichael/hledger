@@ -2,9 +2,7 @@
 # Note periodic transaction tests should include a regular transaction
 # to pin the start date of forecasted transactions.
 
-# 1. A balance report with forecasted transactions.
-hledger bal -M -b 2016-11 -e 2017-02 -f - --forecast
-<<<
+<
 2016/12/31
     expenses:housing  $600
     assets:cash
@@ -15,7 +13,9 @@ hledger bal -M -b 2016-11 -e 2017-02 -f - --forecast
     expenses:leisure  $15
     expenses:grocery  $30
     assets:cash
->>>
+
+# 1. A balance report with forecasted transactions.
+$ hledger bal -M -b 2016-11 -e 2017-02 -f - --forecast
 Balance changes in 2016-11-01..2017-01-31:
 
                   || 2016-11  2016-12  2017-01 
@@ -28,24 +28,22 @@ Balance changes in 2016-11-01..2017-01-31:
  income           ||       0        0   $-1000 
 ------------------++---------------------------
                   ||       0        0        0 
->>>2
->>>=0
+>=0
 
-
-# 2. print forecasted transactions, with status and description.
-hledger print -b 2016-11 -e 2017-02 -f - --forecast
-<<<
+<
 2016/12/31
     expenses:housing  $600
     assets:cash
 
-~ monthly from 2016/1  * marked cleared, and with a description 
+~ monthly from 2016/1  * marked cleared, and with a description
     income  $-1000
     expenses:food     $20
     expenses:leisure  $15
     expenses:grocery  $30
     assets:cash
->>>
+
+# 2. print forecasted transactions, with status and description.
+$ hledger print -b 2016-11 -e 2017-02 -f - --forecast
 2016-12-31
     expenses:housing            $600
     assets:cash
@@ -58,13 +56,9 @@ hledger print -b 2016-11 -e 2017-02 -f - --forecast
     expenses:grocery             $30
     assets:cash
 
->>>2
->>>=0
+>=0
 
-
-# 3. A register with forecasted transactions, with a comment and tag.
-hledger register -b 2016-11 -e 2017-02 -f - --forecast  tag:a
-<<<
+<
 2016/12/31
     expenses:housing  $600
     assets:cash
@@ -75,18 +69,17 @@ hledger register -b 2016-11 -e 2017-02 -f - --forecast  tag:a
     expenses:leisure  $15
     expenses:grocery  $30
     assets:cash
->>>
+
+# 3. A register with forecasted transactions, with a comment and tag.
+$ hledger register -b 2016-11 -e 2017-02 -f - --forecast  tag:a
 2017-01-01                      income                      $-1000        $-1000
                                 expenses:food                  $20         $-980
                                 expenses:leisure               $15         $-965
                                 expenses:grocery               $30         $-935
                                 assets:cash                   $935             0
->>>2
->>>=0
+>=0
 
-# 4. Check that --forecast generates transactions only after last transaction date in journal.
-hledger register -b 2015-12 -e 2017-02 -f - assets:cash --forecast
-<<<
+<
 2016/01/01
     expenses:fun  $10 ; more fireworks
     assets:cash
@@ -98,17 +91,15 @@ hledger register -b 2015-12 -e 2017-02 -f - assets:cash --forecast
 ~ yearly from 2016
     income  $-10000 ; bonus
     assets:cash
->>>
+
+# 4. Check that --forecast generates transactions only after last transaction date in journal.
+$ hledger register -b 2015-12 -e 2017-02 -f - assets:cash --forecast
 2016-01-01                      assets:cash                   $-10          $-10
 2016-12-02                      assets:cash                  $-600         $-610
 2017-01-01                      assets:cash                 $10000         $9390
->>>2
->>>=0
+>=0
 
-# 5. Y affects M/D partial dates in periodic transactions.
-# The recur tag shows the original period expression and is not modified.
-hledger -f - print --forecast desc:forecast
-<<<
+<
 Y 2000
 
 ~ 2/1  forecast
@@ -116,16 +107,15 @@ Y 2000
 ; a real transaction to set the start of the forecast window
 2000/1/1 real
 
->>>
+# 5. Y affects M/D partial dates in periodic transactions.
+# The recur tag shows the original period expression and is not modified.
+$ hledger -f - print --forecast desc:forecast
 2000-02-01 forecast
     ; generated-transaction: ~ 2/1
 
->>>2
->>>=0
+>=0
 
-# 6. Y also sets the month to 1, affecting D dates:
-hledger -f - print --forecast desc:forecast
-<<<
+<
 Y 2000
 
 ~ 15  forecast
@@ -133,16 +123,14 @@ Y 2000
 ; a real transaction to set the start of the forecast window
 2000/1/1 real
 
->>>
+# 6. Y also sets the month to 1, affecting D dates:
+$ hledger -f - print --forecast desc:forecast
 2000-01-15 forecast
     ; generated-transaction: ~ 15
 
->>>2
->>>=0
+>=0
 
-# 7. Y also sets the day to 1, affecting relative dates:
-hledger -f - print --forecast desc:forecast
-<<<
+<
 Y 2000
 
 ~ next month  forecast
@@ -150,17 +138,15 @@ Y 2000
 ; a real transaction to set the start of the forecast window
 2000/1/1 real
 
->>>
+# 7. Y also sets the day to 1, affecting relative dates:
+$ hledger -f - print --forecast desc:forecast
 2000-02-01 forecast
     ; generated-transaction: ~ next month
 
->>>2
->>>=0
+>=0
 
 
-# 8. A balance report with forecast-begin enabling transaction before report end
-hledger bal -M -b 2016-10 -e 2017-02 -f - --forecast=20160801-
-<<<
+<
 2016/12/31
     expenses:housing  $600
     assets:cash
@@ -168,7 +154,9 @@ hledger bal -M -b 2016-10 -e 2017-02 -f - --forecast=20160801-
 ~ monthly from 2016/1  salary
     income  $-1000
     assets:cash
->>>
+
+# 8. A balance report with forecast-begin enabling transaction before report end
+$ hledger bal -M -b 2016-10 -e 2017-02 -f - --forecast=20160801-
 Balance changes in 2016-10-01..2017-01-31:
 
                   || 2016-10  2016-11  2016-12  2017-01 
@@ -178,21 +166,12 @@ Balance changes in 2016-10-01..2017-01-31:
  income           ||  $-1000   $-1000   $-1000   $-1000 
 ------------------++------------------------------------
                   ||       0        0        0        0 
->>>2
->>>=0
+>=0
 
 # 9. Parse error in malformed forecast period expression
-hledger bal -M -b 2016-10 -e 2017-02 -f - --forecast=20160801-foobar
-<<<
-2016/12/31
-    expenses:housing  $600
-    assets:cash
-
-~ monthly from 2016/1  salary
-    income  $-1000
-    assets:cash
->>>
->>>2
+$ hledger bal -M -b 2016-10 -e 2017-02 -f - --forecast=20160801-foobar
+>
+>2
 hledger: could not parse forecast period : 1:10:
   |
 1 | 20160801-foobar
@@ -200,11 +179,9 @@ hledger: could not parse forecast period : 1:10:
 unexpected 'f'
 expecting end of input
  (use -h to see usage)
->>>=1
+>=1
 
-# 10. Amount display style is applied to forecasted transactions.
-hledger -f - reg --forecast date:202001
-<<<
+<
 commodity 1,000.00 USD
 
 2020-01-01
@@ -213,32 +190,28 @@ commodity 1,000.00 USD
 ~ every 28th day
   (a)       1000.00 USD
 
->>>
+# 10. Amount display style is applied to forecasted transactions.
+$ hledger -f - reg --forecast date:202001
 2020-01-01                      (a)                   1,000.00 USD  1,000.00 USD
 2020-01-28                      (a)                   1,000.00 USD  2,000.00 USD
->>>2
->>>=0
+>=0
 
-# 11. Forecast transactions are generated up to the day before the requested end date
-hledger -f - reg -b 2021-01-01 -e 2021-01-05 --forecast
-<<<
+<
 2021-01-01
   (a)      1000
 
 ~ daily
   (a)       1
 
->>>
+# 11. Forecast transactions are generated up to the day before the requested end date
+$ hledger -f - reg -b 2021-01-01 -e 2021-01-05 --forecast
 2021-01-01                      (a)                           1000          1000
 2021-01-02                      (a)                              1          1001
 2021-01-03                      (a)                              1          1002
 2021-01-04                      (a)                              1          1003
->>>2
->>>=0
+>=0
 
-# 12. Forecast transactions work with balance assignments
-hledger -f - print -x --forecast -e 2021-11
-<<<
+<
 2021-09-01  Normal Balance Assertion Works
     Checking   = -60
     Costs
@@ -251,7 +224,8 @@ hledger -f - print -x --forecast -e 2021-11
     Checking      = -120
     Costs
 
->>>
+# 12. Forecast transactions work with balance assignments
+$ hledger -f - print -x --forecast -e 2021-11
 2021-09-01 Normal Balance Assertion Works
     Checking             -60 = -60
     Costs                 60
@@ -266,19 +240,18 @@ hledger -f - print -x --forecast -e 2021-11
     Checking             -20 = -120
     Costs                 20
 
->>>2
->>>=0
+>=0
 
-# 13. Generated forecast for weekday transactions
-hledger -f - reg --forecast -b "2021-09-01" -e "2021-09-15" --forecast -w 100
-<<<
+<
 2021-08-01
   (a)      0
 
 ~ every weekday
   income:client1                    -10 USD
   assets:receivables:contractor1
->>>
+
+# 13. Generated forecast for weekday transactions
+$ hledger -f - reg --forecast -b "2021-09-01" -e "2021-09-15" --forecast -w 100
 2021-09-01                                income:client1                       -10 USD       -10 USD
                                           assets:receivables:contractor1        10 USD             0
 2021-09-02                                income:client1                       -10 USD       -10 USD
@@ -299,19 +272,18 @@ hledger -f - reg --forecast -b "2021-09-01" -e "2021-09-15" --forecast -w 100
                                           assets:receivables:contractor1        10 USD             0
 2021-09-14                                income:client1                       -10 USD       -10 USD
                                           assets:receivables:contractor1        10 USD             0
->>>2
->>>=0
+>=0
 
-# 14. Generated forecast for weekend transactions
-hledger -f - reg --forecast -b "2021-09-01" -e "2021-09-15" --forecast -w 100
-<<<
+<
 2021-08-01
   (a)      0
 
 ~ every weekendday
   income:client1                    -10 USD
   assets:receivables:contractor1
->>>
+
+# 14. Generated forecast for weekend transactions
+$ hledger -f - reg --forecast -b "2021-09-01" -e "2021-09-15" --forecast -w 100
 2021-09-04                                income:client1                       -10 USD       -10 USD
                                           assets:receivables:contractor1        10 USD             0
 2021-09-05                                income:client1                       -10 USD       -10 USD
@@ -320,5 +292,4 @@ hledger -f - reg --forecast -b "2021-09-01" -e "2021-09-15" --forecast -w 100
                                           assets:receivables:contractor1        10 USD             0
 2021-09-12                                income:client1                       -10 USD       -10 USD
                                           assets:receivables:contractor1        10 USD             0
->>>2
->>>=0
+>=0
