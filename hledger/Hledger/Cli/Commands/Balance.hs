@@ -677,7 +677,7 @@ balanceReportAsTable opts@ReportOpts{average_, row_total_, balanceaccum_}
       | no_total_ opts = id
       | otherwise =
         let totalrows = multiBalanceRowAsTableText opts tr
-            rh = Tab.Group NoLine $ map Header (replicate (length totalrows) "")
+            rh = Tab.Group NoLine . replicate (length totalrows) $ Header ""
             ch = Header [] -- ignored
          in (flip (concatTables SingleLine) $ Table rh ch totalrows)
     maybetranspose | transpose_ opts = \(Table rh ch vals) -> Table ch rh (transpose vals)

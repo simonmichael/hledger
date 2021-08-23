@@ -257,7 +257,7 @@ budgetReportAsTable
 
     addtotalrow
       | no_total_ = id
-      | otherwise = let rh = Tab.Group NoLine $ map Header (replicate (length totalrows) "")
+      | otherwise = let rh = Tab.Group NoLine . replicate (length totalrows) $ Header ""
                         ch = Header [] -- ignored
                      in (flip (concatTables SingleLine) $ Table rh ch totalrows)
 
@@ -279,7 +279,7 @@ budgetReportAsTable
         showntr    = [showrow $ rowToBudgetCells tr]
         (trcs, trtexts)         = unzip  $ concat showntr
         trwidths
-          | transpose_ = snd $ splitAt (length texts) widths
+          | transpose_ = drop (length texts) widths
           | otherwise = widths
 
         padcells = maybetranspose . fmap (fmap (uncurry paddisplaycell) . zip widths)   . maybetranspose
@@ -334,7 +334,7 @@ budgetReportAsTable
         actualwidths  = map (maximum' . map first3 ) $ cols
         budgetwidths  = map (maximum' . map second3) $ cols
         percentwidths = map (maximum' . map third3 ) $ cols
-        catcolumnwidths = foldl (\l a -> zipWith (++) l a) (repeat [])
+        catcolumnwidths = foldl' (zipWith (++)) $ repeat []
         cols = maybetranspose $ catcolumnwidths $ map (cellswidth . rowToBudgetCells) items ++ [cellswidth $ rowToBudgetCells tr]
 
     -- split a BudgetCell into BudgetDisplayCell's (one per commodity when applicable)

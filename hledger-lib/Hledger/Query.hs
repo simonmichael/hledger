@@ -183,7 +183,7 @@ parseQuery d = parseQueryList d . words'' prefixes
 -- 4. then all terms are AND'd together
 parseQueryList :: Day -> [T.Text] -> Either String (Query, [QueryOpt])
 parseQueryList d termstrs = do
-  eterms <- sequence $ map (parseQueryTerm d) termstrs
+  eterms <- mapM (parseQueryTerm d) termstrs
   let (pats, opts) = partitionEithers eterms
       (descpats, pats') = partition queryIsDesc pats
       (acctpats, pats'') = partition queryIsAcct pats'
@@ -361,14 +361,14 @@ simplifyQuery q =
     simplify (And []) = Any
     simplify (And [q]) = simplify q
     simplify (And qs) | same qs = simplify $ head qs
-                      | any (==None) qs = None
+                      | None `elem` qs = None
                       | all queryIsDate qs = Date $ spansIntersect $ mapMaybe queryTermDateSpan qs
                       | otherwise = And $ concat $ [map simplify dateqs, map simplify otherqs]
                       where (dateqs, otherqs) = partition queryIsDate $ filter (/=Any) qs
     simplify (Or []) = Any
     simplify (Or [q]) = simplifyQuery q
     simplify (Or qs) | same qs = simplify $ head qs
-                     | any (==Any) qs = Any
+                     | Any `elem` qs = Any
                      -- all queryIsDate qs = Date $ spansUnion $ mapMaybe queryTermDateSpan qs  ?
                      | otherwise = Or $ map simplify $ filter (/=None) qs
     simplify (Date (DateSpan Nothing Nothing)) = Any
@@ -445,8 +445,8 @@ queryIsStatus _ = False
 queryIsStartDateOnly :: Bool -> Query -> Bool
 queryIsStartDateOnly _ Any = False
 queryIsStartDateOnly _ None = False
-queryIsStartDateOnly secondary (Or ms) = and $ map (queryIsStartDateOnly secondary) ms
-queryIsStartDateOnly secondary (And ms) = and $ map (queryIsStartDateOnly secondary) ms
+queryIsStartDateOnly secondary (Or ms) = all (queryIsStartDateOnly secondary) ms
+queryIsStartDateOnly secondary (And ms) = all (queryIsStartDateOnly secondary) ms
 queryIsStartDateOnly False (Date (DateSpan (Just _) _)) = True
 queryIsStartDateOnly True (Date2 (DateSpan (Just _) _)) = True
 queryIsStartDateOnly _ _ = False
@@ -613,7 +613,7 @@ matchesPosting (StatusQ s) p = postingStatus p == s
 matchesPosting (Real v) p = v == isReal p
 matchesPosting q@(Depth _) Posting{paccount=a} = q `matchesAccount` a
 matchesPosting q@(Amt _ _) Posting{pamount=as} = q `matchesMixedAmount` as
-matchesPosting (Sym r) Posting{pamount=as} = any (matchesCommodity (Sym r)) . map acommodity $ amountsRaw as
+matchesPosting (Sym r) Posting{pamount=as} = any (matchesCommodity (Sym r) . acommodity) $ amountsRaw as
 matchesPosting (Tag n v) p = case (reString n, v) of
   ("payee", Just v) -> maybe False (regexMatchText v . transactionPayee) $ ptransaction p
   ("note", Just v) -> maybe False (regexMatchText v . transactionNote) $ ptransaction p

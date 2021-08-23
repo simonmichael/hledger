@@ -464,7 +464,7 @@ valuationTypeFromRawOpts rawopts = case (balancecalcopt rawopts, directcost, dir
     (CalcGain,        NoCost, Nothing       ) -> (directcost, Just $ AtEnd Nothing)  -- If no valuation requested for gain, use AtEnd
     (_,               _,      _             ) -> (directcost, directval)             -- Otherwise, use requested valuation
   where
-    directcost = if any (== Cost) (map fst valuationopts) then Cost else NoCost
+    directcost = if Cost `elem` map fst valuationopts then Cost else NoCost
     directval  = lastMay $ mapMaybe snd valuationopts
 
     valuationopts = collectopts valuationfromrawopt rawopts
@@ -551,9 +551,9 @@ mixedAmountApplyValuationAfterSumFromOptsWith :: ReportOpts -> Journal -> PriceO
 mixedAmountApplyValuationAfterSumFromOptsWith ropts j priceoracle =
     case valuationAfterSum ropts of
         Just mc -> case balancecalc_ ropts of
-            CalcGain -> \span  -> gain mc span
-            _        -> \span  -> valuation mc span . costing
-        Nothing      -> \_span -> id
+            CalcGain -> gain mc
+            _        -> \span -> valuation mc span . costing
+        Nothing      -> const id
   where
     valuation mc span = mixedAmountValueAtDate priceoracle styles mc (maybe err (addDays (-1)) $ spanEnd span)
     gain mc span = mixedAmountGainAtDate priceoracle styles mc (maybe err (addDays (-1)) $ spanEnd span)
