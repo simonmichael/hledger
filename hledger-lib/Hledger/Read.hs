@@ -36,6 +36,7 @@ module Hledger.Read (
   findReader,
   splitReaderPrefix,
   module Hledger.Read.Common,
+  module Hledger.Read.InputOptions,
 
   -- * Tests
   tests_Read,
@@ -69,6 +70,7 @@ import System.IO (hPutStr, stderr)
 import Hledger.Data.Dates (getCurrentDay, parsedateM, showDate)
 import Hledger.Data.Types
 import Hledger.Read.Common
+import Hledger.Read.InputOptions
 import Hledger.Read.JournalReader as JournalReader
 import Hledger.Read.CsvReader (tests_CsvReader)
 -- import Hledger.Read.TimedotReader (tests_TimedotReader)
