@@ -42,7 +42,7 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
           Nothing -> Just inferredStyles
           Just inputStyles -> Just $ inputStyles <> inferredStyles
 
-    iopts' = iopts{new_=True, new_save_=not dryrun, balancingopts_=balancingOpts{commodity_styles_= combinedStyles}}
+    iopts' = iopts{new_=True, new_save_=not dryrun, balancingopts_=defbalancingopts{commodity_styles_= combinedStyles}}
   case inputfiles of
     [] -> error' "please provide one or more input files as arguments"  -- PARTIAL:
     fs -> do

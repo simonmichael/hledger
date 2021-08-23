@@ -30,7 +30,7 @@ module Hledger.Data.Transaction (
   balancedVirtualPostings,
   transactionsPostings,
   BalancingOpts(..),
-  balancingOpts,
+  defbalancingopts,
   isTransactionBalanced,
   balanceTransaction,
   balanceTransactionHelper,
@@ -360,8 +360,8 @@ data BalancingOpts = BalancingOpts
   , commodity_styles_  :: Maybe (M.Map CommoditySymbol AmountStyle)  -- ^ commodity display styles
   } deriving (Show)
 
-balancingOpts :: BalancingOpts
-balancingOpts = BalancingOpts
+defbalancingopts :: BalancingOpts
+defbalancingopts = BalancingOpts
   { ignore_assertions_ = False
   , infer_prices_      = True
   , commodity_styles_  = Nothing
@@ -854,7 +854,7 @@ tests_Transaction =
     , tests "balanceTransaction" [
          test "detect unbalanced entry, sign error" $
           assertLeft
-            (balanceTransaction balancingOpts
+            (balanceTransaction defbalancingopts
                (Transaction
                   0
                   ""
@@ -869,7 +869,7 @@ tests_Transaction =
                   [posting {paccount = "a", pamount = mixedAmount (usd 1)}, posting {paccount = "b", pamount = mixedAmount (usd 1)}]))
         ,test "detect unbalanced entry, multiple missing amounts" $
           assertLeft $
-             balanceTransaction balancingOpts
+             balanceTransaction defbalancingopts
                (Transaction
                   0
                   ""
@@ -886,7 +886,7 @@ tests_Transaction =
                   ])
         ,test "one missing amount is inferred" $
           (pamount . last . tpostings <$>
-           balanceTransaction balancingOpts
+           balanceTransaction defbalancingopts
              (Transaction
                 0
                 ""
@@ -902,7 +902,7 @@ tests_Transaction =
           Right (mixedAmount $ usd (-1))
         ,test "conversion price is inferred" $
           (pamount . head . tpostings <$>
-           balanceTransaction balancingOpts
+           balanceTransaction defbalancingopts
              (Transaction
                 0
                 ""
@@ -920,7 +920,7 @@ tests_Transaction =
           Right (mixedAmount $ usd 1.35 @@ eur 1)
         ,test "balanceTransaction balances based on cost if there are unit prices" $
           assertRight $
-          balanceTransaction balancingOpts
+          balanceTransaction defbalancingopts
             (Transaction
                0
                ""
@@ -937,7 +937,7 @@ tests_Transaction =
                ])
         ,test "balanceTransaction balances based on cost if there are total prices" $
           assertRight $
-          balanceTransaction balancingOpts
+          balanceTransaction defbalancingopts
             (Transaction
                0
                ""
@@ -956,7 +956,7 @@ tests_Transaction =
     , tests "isTransactionBalanced" [
          test "detect balanced" $
           assertBool "" $
-          isTransactionBalanced balancingOpts $
+          isTransactionBalanced defbalancingopts $
           Transaction
             0
             ""
@@ -974,7 +974,7 @@ tests_Transaction =
         ,test "detect unbalanced" $
           assertBool "" $
           not $
-          isTransactionBalanced balancingOpts $
+          isTransactionBalanced defbalancingopts $
           Transaction
             0
             ""
@@ -992,7 +992,7 @@ tests_Transaction =
         ,test "detect unbalanced, one posting" $
           assertBool "" $
           not $
-          isTransactionBalanced balancingOpts $
+          isTransactionBalanced defbalancingopts $
           Transaction
             0
             ""
@@ -1007,7 +1007,7 @@ tests_Transaction =
             [posting {paccount = "b", pamount = mixedAmount (usd 1.00)}]
         ,test "one zero posting is considered balanced for now" $
           assertBool "" $
-          isTransactionBalanced balancingOpts $
+          isTransactionBalanced defbalancingopts $
           Transaction
             0
             ""
@@ -1022,7 +1022,7 @@ tests_Transaction =
             [posting {paccount = "b", pamount = mixedAmount (usd 0)}]
         ,test "virtual postings don't need to balance" $
           assertBool "" $
-          isTransactionBalanced balancingOpts $
+          isTransactionBalanced defbalancingopts $
           Transaction
             0
             ""
@@ -1041,7 +1041,7 @@ tests_Transaction =
         ,test "balanced virtual postings need to balance among themselves" $
           assertBool "" $
           not $
-          isTransactionBalanced balancingOpts $
+          isTransactionBalanced defbalancingopts $
           Transaction
             0
             ""
@@ -1059,7 +1059,7 @@ tests_Transaction =
             ]
         ,test "balanced virtual postings need to balance among themselves (2)" $
           assertBool "" $
-          isTransactionBalanced balancingOpts $
+          isTransactionBalanced defbalancingopts $
           Transaction
             0
             ""

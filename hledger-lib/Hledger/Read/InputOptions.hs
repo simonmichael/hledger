@@ -16,7 +16,7 @@ import Control.Applicative ((<|>))
 import Data.Time (Day, addDays)
 
 import Hledger.Data.Types
-import Hledger.Data.Transaction (BalancingOpts(..), balancingOpts)
+import Hledger.Data.Transaction (BalancingOpts(..), defbalancingopts)
 import Hledger.Data.Journal (journalEndDate)
 import Hledger.Data.Dates (nulldatespan)
 import Hledger.Utils
@@ -50,7 +50,7 @@ definputopts = InputOpts
     , forecast_          = Nothing
     , reportspan_        = nulldatespan
     , auto_              = False
-    , balancingopts_     = balancingOpts
+    , balancingopts_     = defbalancingopts
     , strict_            = False
     }
 
