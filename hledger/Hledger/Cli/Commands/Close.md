@@ -176,28 +176,32 @@ To fix the assertions, you can add a temporary account to track such in-transit 
 
 ### Example: close revenue/expense accounts to retained earnings
 
-Here, the opening transaction is supressed with `--close`, as it's probably not needed.
-Also you'll want to use a different equity account name:
+For this, use `--close` to suppress the opening transaction, as it's not needed.
+Also you'll want to change the equity account name to your equivalent of 
+"equity:retained earnings".
+
+Closing 2021's first quarter revenues/expenses:
  
 ```shell
-$ hledger close -f 2021.journal -p 2021Q1 --close --close-acct='equity:retained earnings' revenues expenses >> 2021.journal
-    # close 2021 first quarter revenues/expenses
+$ hledger close -f 2021.journal --close revenues expenses -p 2021Q1 \
+    --close-acct='equity:retained earnings' >> 2021.journal
 ```
 
-Or, operating on the default journal:
+The same, using the default journal and current year:
 
 ```shell
-$ hledger close -p Q1 --close --close-acct='equity:retained earnings' revenues expenses >> $LEDGER_FILE
-    # close current year's first quarter revenues/expenses
+$ hledger close --close revenues expenses -p Q1 \
+    --close-acct='equity:retained earnings' >> $LEDGER_FILE
 ```
 
-
-Now, eg:
+Now, the first quarter's balance sheet should show a zero:
 
 ```shell
 $ hledger bse -p Q1
-    # Q1 full balance sheet, total should be zero
+```
 
-$ hledger is -p Q1 not:'retained earnings'
-    # Q1 income statement, must suppress the closing txn
+And we must suppress the closing transaction to see the first quarter's income statement
+(using the description; `not:'retained earnings'` won't work here):
+```shell
+$ hledger is -p Q1 not:desc:'closing balances'
 ```
