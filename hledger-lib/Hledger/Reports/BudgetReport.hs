@@ -42,7 +42,6 @@ import Text.Tabular.AsciiWide as Tab
 
 import Hledger.Data
 import Hledger.Utils
-import Hledger.Read.CsvReader (CSV)
 import Hledger.Reports.ReportOptions
 import Hledger.Reports.ReportTypes
 import Hledger.Reports.MultiBalanceReport
@@ -401,7 +400,7 @@ budgetReportAsTable
 -- XXX generalise this with multiBalanceReportAsCsv ?
 -- | Render a budget report as CSV. Like multiBalanceReportAsCsv,
 -- but includes alternating actual and budget amount columns.
-budgetReportAsCsv :: ReportOpts -> BudgetReport -> CSV
+budgetReportAsCsv :: ReportOpts -> BudgetReport -> [[Text]]
 budgetReportAsCsv
   ReportOpts{..}
   (PeriodicReport colspans items tr)
