@@ -194,7 +194,8 @@ $ hledger close --close revenues expenses -p Q1 \
     --close-acct='equity:retained earnings' >> $LEDGER_FILE
 ```
 
-Now, the first quarter's balance sheet should show a zero:
+Now, the first quarter's balance sheet should show a zero
+(unless you are using @/@@ notation without [equity postings](/investments.html#a-more-correct-entry)):
 
 ```shell
 $ hledger bse -p Q1
