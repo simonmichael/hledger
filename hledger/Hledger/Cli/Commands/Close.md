@@ -48,16 +48,16 @@ The default closing date is yesterday, or the journal's end date, whichever is l
 
 Unless you are running `close` on exactly the first day of the new period, 
 you'll want to override the closing date. 
-This is done by specifying a [report period](#report-start--end-date), 
+This is done by specifying a [report end date](#report-start--end-date),
 where "last day of the report period" will be the closing date.
 The opening date is always the following day.
 So to close on (end of) 2020-12-31 and open on (start of) 2021-01-01, any of these will work:
 
 | end date argument | explanation
-|-------------------|---------------------------------------------------------------------------------------------------
-| `-e 2021-01-01`   | [end dates](#report-start--end-date) are exclusive, so "last day of report period" is 2020-12-31 
+|-------------------|----------------------------------------------------------------------
+| `-e 2021-01-01`   | [end dates](#report-start--end-date) are exclusive
 | `-e 2021`         | equivalent, per [smart dates](#smart-dates) 
-| `-p 2020`         | equivalent, the [period expression's](#period-expressions) begin date is ignored 
+| `-p 2020`         | equivalent, the [period's](#period-expressions) begin date is ignored 
 | `date:2020`       | equivalent [query](#queries)
 
 ### Example: close asset/liability accounts for file transition
