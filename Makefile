@@ -811,24 +811,23 @@ shakehelp-watch: \
 		$(call def-help,shakehelp-watch, rerender Shake.hs's help when it changes)
 	ls Shake.hs | entr -c ./Shake.hs
 
-# This rule, for updating the live hledger.org site, gets called by:
+# This rule, for updating the website, gets called on hledger.org by:
 # 1. github-post-receive (github webhook handler), when something is pushed
 #    to the main or wiki repos on Github. Config:
 #     /etc/supervisord.conf -> [program:github-post-receive]
 #     /etc/github-post-receive.conf
 # 2. cron, nightly. Config: /etc/crontab
-# 3. manually (make site).
+# 3. manually: "make site" on hledger.org, or "make hledgerorg" elsewhere (cf Makefile.local).
 # This uses the existing Shake executable without rebuilding it, 
 # as we don't want to immediately execute new code from any collaborator.
 .PHONY: site
-site: \
-		$(call def-help,site, update the hledger.org website (run on prod) )
+site: $(call def-help,site, update the hledger.org website (run on hledger.org, or run "make hledgerorg" elsewhere) )
 	@[ ! -x Shake ] \
 		&& echo 'Please run "make Shake" first (manual compilation of Shake.hs is required)' \
 		|| ( \
 			echo; \
 			./Shake -V webmanuals; \
-			make -C site html; \
+			make -C site build; \
 		) 2>&1 | tee -a site.log
 
 ###############################################################################
