@@ -13,15 +13,9 @@ See also the hledger changelog.
 
 Improvements
 
-- Clarify version string code:
-  ```
-  version -> packageversion
-  versiondescription -> versionStringFor
-  ```
+- Drop the obsolete hidden `--binary-filename` flag.
 
-- Drop the hidden `--binary-filename` flag, which is no longer used.
-
-- Require base >=4.11, prevent red squares on Hackage's build matrix.
+- Require base >=4.11, preventing red squares on Hackage's build matrix.
 
 Fixes
 
@@ -31,6 +25,14 @@ Fixes
   by subsequent visitors viewing the journal.
   Thanks to Gaspard Baye and Hamidullah Muslih for reporting this vulnerability.
   (#1525, Arsen Arsenović)
+
+API changes
+
+- Renamed:
+  ```
+  version -> packageversion
+  versiondescription -> versionStringFor
+  ```
 
 # 1.22.2 2021-08-07
 

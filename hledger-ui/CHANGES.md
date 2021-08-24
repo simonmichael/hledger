@@ -13,13 +13,15 @@ See also the hledger changelog.
 
 Improvements
 
-- Clarify version string code:
+- Require base >=4.11, prevent red squares on Hackage's build matrix.
+
+API changes
+
+- Renamed:
   ```
   version -> packageversion
   versiondescription -> versionStringFor
   ```
-
-- Require base >=4.11, prevent red squares on Hackage's build matrix.
 
 # 1.22.2 2021-08-07
 
