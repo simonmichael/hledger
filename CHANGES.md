@@ -9,7 +9,7 @@
 General changes in the hledger project (and notable all-package releases).
 For package-specific changes and minor releases, see the hledger package changelogs.
 
-# 2c96e6f1f
+# 53d9455bd
 
 - `make list-commits` and `make showauthors` show those things.
 

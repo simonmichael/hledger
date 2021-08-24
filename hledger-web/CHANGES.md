@@ -9,7 +9,7 @@ __      _____| |__
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# ddeeee604
+# 53d9455bd
 
 Improvements
 
@@ -22,6 +22,15 @@ Improvements
 - Drop the hidden `--binary-filename` flag, which is no longer used.
 
 - Require base >=4.11, prevent red squares on Hackage's build matrix.
+
+Fixes
+
+- An XSS (cross-site scripting) vulnerability has been fixed.
+  Previously (since hledger-web 0.24), javascript code could be added 
+  to any autocompleteable field and could be executed automatically 
+  by subsequent visitors viewing the journal.
+  Thanks to Gaspard Baye and Hamidullah Muslih for reporting this vulnerability.
+  (#1525, Arsen Arsenović)
 
 # 1.22.2 2021-08-07
 

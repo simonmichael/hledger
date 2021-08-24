@@ -9,7 +9,7 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# a3cacca71
+# 53d9455bd
 
 Improvements
 
