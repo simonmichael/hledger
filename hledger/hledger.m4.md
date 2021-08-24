@@ -414,7 +414,7 @@ $ echo 'i 2009/13/1 08:00:00' | hledger print -ftimeclock:-
 You can specify multiple `-f` options, to read multiple files as one big journal.
 There are some limitations with this:
 
-- most directives do not affect sibling files
+- most [directives do not affect sibling files](#directives-and-multiple-files)
 - [balance assertions](#balance-assertions) will not see any account balances from previous files
 
 If you need either of those things, you can 
