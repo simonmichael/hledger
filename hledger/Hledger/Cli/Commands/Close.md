@@ -106,19 +106,19 @@ add more easily-matched tags to opening/closing transactions, like this:
 ; 2019.journal
 2019-01-01 opening balances  ; earliest opening txn, no tag here
 ...
-2019-12-31 closing balances  ; close:2019
+2019-12-31 closing balances  ; clopen:2020
 ...
 ```
 ```journal
 ; 2020.journal
-2020-01-01 opening balances  ; open:2020
+2020-01-01 opening balances  ; clopen:2020
 ...
-2020-12-31 closing balances  ; close:2020
+2020-12-31 closing balances  ; clopen:2021
 ...
 ```
 ```journal
 ; 2021.journal
-2021-01-01 opening balances  ; open:2021
+2021-01-01 opening balances  ; clopen:2021
 ...
 ```
 
@@ -131,14 +131,11 @@ include 2021.journal
 ```
 you could do eg:
 ```shell
-$ hledger -f all.journal reg -H checking not:tag:'open|close'
+$ hledger -f all.journal reg -H checking not:tag:clopen
     # all years checking register, hiding non-essential opening/closing txns
 
-$ hledger -f all.journal bs -p 2020 not:tag:close=2020
+$ hledger -f all.journal bs -p 2020 not:tag:clopen=2020
     # 2020 year end balances, suppressing 2020 closing txn
-
-$ hledger -f 2020.journal bs not:tag:close
-    # 2020 year end balances, easier case
 
 ```
 
