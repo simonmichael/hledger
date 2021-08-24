@@ -797,12 +797,6 @@ haddock-open: \
 # # 	cd site/api && \
 # # 	hoogle --convert=main.txt --output=default.hoo
 
-# flaky
-site-watch: Shake \
-		$(call def-help,site-watch, open a browser on the website (in ./site) and rerender/reload when manuals or site content changes  )
-	(ls $(DOCSOURCEFILES) | entr ./Shake -VV manuals) &
-	make -C site html-watch
-
 manuals-watch: Shake \
 		$(call def-help,manuals-watch, rerender manuals when their source files change  )
 	ls $(DOCSOURCEFILES) | entr ./Shake -VV manuals
@@ -829,6 +823,14 @@ site: $(call def-help,site, update the hledger.org website (run on hledger.org, 
 			./Shake -V webmanuals; \
 			make -C site build; \
 		) 2>&1 | tee -a site.log
+
+BROWSE=open
+BROWSEDELAY=5
+LOCALSITEURL=http://localhost:3000/dev/hledger.html
+site-watch: $(call def-help,site-watch, open a browser on the website (in ./site) and rerender when docs or web pages change )
+	@make -s Shake
+	@(printf "\nbrowser will open in $(BROWSEDELAY)s (adjust BROWSE in Makefile if needed)...\n\n"; sleep $(BROWSEDELAY); $(BROWSE) $(LOCALSITEURL)) &
+	@ls $(DOCSOURCEFILES) | entr -r bash -c './Shake webmanuals && make -sC site serve'
 
 ###############################################################################
 $(call def-help-subheading,RELEASING:)
