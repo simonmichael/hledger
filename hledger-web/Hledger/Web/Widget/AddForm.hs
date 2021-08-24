@@ -13,14 +13,14 @@ module Hledger.Web.Widget.AddForm
 import Control.Monad.State.Strict (evalStateT)
 import Data.Bifunctor (first)
 import Data.Foldable (toList)
-import Data.List (dropWhileEnd, intercalate, unfoldr)
+import Data.List (dropWhileEnd, unfoldr)
 import Data.Maybe (isJust)
 import qualified Data.Set as S
 import Data.Text (Text)
 import Data.Text.Encoding.Base64 (encodeBase64)
 import qualified Data.Text as T
 import Data.Time (Day)
-import Text.Blaze.Internal (Markup, preEscapedString)
+import Text.Blaze.Internal (Markup, preEscapedText)
 import Text.Megaparsec (bundleErrors, eof, parseErrorTextPretty, runParser)
 import Yesod
 
@@ -91,11 +91,11 @@ addForm j today = identifyForm "add" $ \extra -> do
       -- This used to work, but since 1.16, it seems like something changed.
       -- toJSON ("a"::Text) gives String "a" instead of "a", etc.
       -- preEscapedString . escapeJSSpecialChars . show . toJSON
-      preEscapedString $ concat [
+      preEscapedText $ T.concat [
         "[",
-        intercalate "," $ map (
-          ("{\"value\":" ++).
-          (++"}").
+        T.intercalate "," $ map (
+          ("{\"value\":" <>).
+          (<> "}").
           -- This will convert a value such as ``hledger!`` into
           -- ``atob("aGxlZGdlciE=")``. When this gets evaluated on the client,
           -- the resulting string is ``hledger!`` again. The same data is
@@ -107,8 +107,8 @@ addForm j today = identifyForm "add" $ \extra -> do
         "]"
         ]
       where
-b64wrap :: Text -> String
-b64wrap = ("atob(\""++) . (++"\")") . T.unpack . encodeBase64
+b64wrap :: Text -> Text
+b64wrap = ("atob(\""<>) . (<>"\")") . encodeBase64
 
 validateTransaction ::
      FormResult Day
