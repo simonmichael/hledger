@@ -51,12 +51,14 @@ you'll want to override the closing date.
 This is done by specifying a [report period](#report-start--end-date), 
 where "last day of the report period" will be the closing date.
 The opening date is always the following day.
-So to close on 2020-12-31 and open on 2021-01-01, any of these work
+So to close on (end of) 2020-12-31 and open on (start of) 2021-01-01, any of these will work:
 
-- `-p 2020`
-- `date:2020`
-- `-e 2021-01-01`  (remember `-e` specifies an exclusive end date)
-- `-e 2021`
+| end date argument | explanation
+|-------------------|---------------------------------------------------------------------------------------------------
+| `-e 2021-01-01`   | [end dates](#report-start--end-date) are exclusive, so "last day of report period" is 2020-12-31 
+| `-e 2021`         | equivalent, per [smart dates](#smart-dates) 
+| `-p 2020`         | equivalent, the [period expression's](#period-expressions) begin date is ignored 
+| `date:2020`       | equivalent [query](#queries)
 
 ### Example: close asset/liability accounts for file transition
 
