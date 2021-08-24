@@ -56,7 +56,7 @@ rsSetAccount a forceinclusive scr@RegisterScreen{} =
 rsSetAccount _ _ scr = scr
 
 rsInit :: Day -> Bool -> UIState -> UIState
-rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}, ajournal=j, aScreen=s@RegisterScreen{..}} =
+rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}, ajournal=j, aScreen=s@RegisterScreen{..}} =
   ui{aScreen=s{rsList=newitems'}}
   where
     -- gather arguments and queries
@@ -72,7 +72,7 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec
         -- always show historical balance
       -- , balanceaccum_= Historical
       }
-    rspec' =
+    rspec' = reportSpecSetFutureAndForecast d (forecast_ $ inputopts_ copts) .
       either (error "rsInit: adjusting the query for register, should not have failed") id $ -- PARTIAL:
       updateReportSpec ropts' rspec{_rsDay=d}
     items = accountTransactionsReport rspec' j thisacctq
