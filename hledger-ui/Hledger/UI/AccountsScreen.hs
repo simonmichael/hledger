@@ -19,7 +19,7 @@ import Control.Monad.IO.Class (liftIO)
 import Data.List
 import Data.Maybe
 import qualified Data.Text as T
-import Data.Time.Calendar (Day, addDays)
+import Data.Time.Calendar (Day)
 import qualified Data.Vector as V
 import Graphics.Vty (Event(..),Key(..),Modifier(..))
 import Lens.Micro.Platform
@@ -77,16 +77,7 @@ asInit d reset ui@UIState{
                         as = map asItemAccountName displayitems
 
     -- Further restrict the query based on the current period and future/forecast mode.
-    rspec' = rspec{_rsQuery=simplifyQuery $ And [_rsQuery rspec, periodq, excludeforecastq (forecast_ $ inputopts_ copts)]}
-      where
-        periodq = Date $ periodAsDateSpan $ period_ ropts
-        -- Except in forecast mode, exclude future/forecast transactions.
-        excludeforecastq (Just _) = Any
-        excludeforecastq Nothing  =  -- not:date:tomorrow- not:tag:generated-transaction
-          And [
-             Not (Date $ DateSpan (Just $ addDays 1 d) Nothing)
-            ,Not generatedTransactionTag
-          ]
+    rspec' = reportSpecSetFutureAndForecast d (forecast_ $ inputopts_ copts) rspec
 
     -- run the report
     (items,_total) = balanceReport rspec' j
