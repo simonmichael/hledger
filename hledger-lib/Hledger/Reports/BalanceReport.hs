@@ -22,7 +22,6 @@ where
 import Data.Time.Calendar
 
 import Hledger.Data
-import Hledger.Read (mamountp')
 import Hledger.Query
 import Hledger.Utils
 import Hledger.Reports.MultiBalanceReport (multiBalanceReport)
@@ -119,46 +118,46 @@ tests_BalanceReport = testGroup "BalanceReport" [
     ,testCase "no args, sample journal" $
      (defreportspec, samplejournal) `gives`
       ([
-        ("assets:bank:checking","assets:bank:checking",0, mamountp' "$1.00")
-       ,("assets:bank:saving","assets:bank:saving",0, mamountp' "$1.00")
-       ,("assets:cash","assets:cash",0, mamountp' "$-2.00")
-       ,("expenses:food","expenses:food",0, mamountp' "$1.00")
-       ,("expenses:supplies","expenses:supplies",0, mamountp' "$1.00")
-       ,("income:gifts","income:gifts",0, mamountp' "$-1.00")
-       ,("income:salary","income:salary",0, mamountp' "$-1.00")
+        ("assets:bank:checking","assets:bank:checking",0, mixedAmount (usd 1))
+       ,("assets:bank:saving","assets:bank:saving",0, mixedAmount (usd 1))
+       ,("assets:cash","assets:cash",0, mixedAmount (usd (-2)))
+       ,("expenses:food","expenses:food",0, mixedAmount (usd 1))
+       ,("expenses:supplies","expenses:supplies",0, mixedAmount (usd 1))
+       ,("income:gifts","income:gifts",0, mixedAmount (usd (-1)))
+       ,("income:salary","income:salary",0, mixedAmount (usd (-1)))
        ],
        mixedAmount (usd 0))
 
     ,testCase "with --tree" $
      (defreportspec{_rsReportOpts=defreportopts{accountlistmode_=ALTree}}, samplejournal) `gives`
       ([
-        ("assets","assets",0, mamountp' "$0.00")
-       ,("assets:bank","bank",1, mamountp' "$2.00")
-       ,("assets:bank:checking","checking",2, mamountp' "$1.00")
-       ,("assets:bank:saving","saving",2, mamountp' "$1.00")
-       ,("assets:cash","cash",1, mamountp' "$-2.00")
-       ,("expenses","expenses",0, mamountp' "$2.00")
-       ,("expenses:food","food",1, mamountp' "$1.00")
-       ,("expenses:supplies","supplies",1, mamountp' "$1.00")
-       ,("income","income",0, mamountp' "$-2.00")
-       ,("income:gifts","gifts",1, mamountp' "$-1.00")
-       ,("income:salary","salary",1, mamountp' "$-1.00")
+        ("assets","assets",0, mixedAmount (usd 0))
+       ,("assets:bank","bank",1, mixedAmount (usd 2))
+       ,("assets:bank:checking","checking",2, mixedAmount (usd 1))
+       ,("assets:bank:saving","saving",2, mixedAmount (usd 1))
+       ,("assets:cash","cash",1, mixedAmount (usd (-2)))
+       ,("expenses","expenses",0, mixedAmount (usd 2))
+       ,("expenses:food","food",1, mixedAmount (usd 1))
+       ,("expenses:supplies","supplies",1, mixedAmount (usd 1))
+       ,("income","income",0, mixedAmount (usd (-2)))
+       ,("income:gifts","gifts",1, mixedAmount (usd (-1)))
+       ,("income:salary","salary",1, mixedAmount (usd (-1)))
        ],
        mixedAmount (usd 0))
 
     ,testCase "with --depth=N" $
      (defreportspec{_rsReportOpts=defreportopts{depth_=Just 1}}, samplejournal) `gives`
       ([
-       ("expenses",    "expenses",    0, mamountp'  "$2.00")
-       ,("income",      "income",      0, mamountp' "$-2.00")
+       ("expenses",    "expenses",     0, mixedAmount (usd 2))
+       ,("income",      "income",      0, mixedAmount (usd (-2)))
        ],
        mixedAmount (usd 0))
 
     ,testCase "with depth:N" $
      (defreportspec{_rsQuery=Depth 1}, samplejournal) `gives`
       ([
-       ("expenses",    "expenses",    0, mamountp'  "$2.00")
-       ,("income",      "income",      0, mamountp' "$-2.00")
+       ("expenses",    "expenses",     0, mixedAmount (usd 2))
+       ,("income",      "income",      0, mixedAmount (usd (-2)))
        ],
        mixedAmount (usd 0))
 
@@ -169,27 +168,27 @@ tests_BalanceReport = testGroup "BalanceReport" [
     ,testCase "with date2:" $
      (defreportspec{_rsQuery=Date2 $ DateSpan (Just $ fromGregorian 2009 01 01) (Just $ fromGregorian 2010 01 01)}, samplejournal2) `gives`
       ([
-        ("assets:bank:checking","assets:bank:checking",0,mamountp' "$1.00")
-       ,("income:salary","income:salary",0,mamountp' "$-1.00")
+        ("assets:bank:checking","assets:bank:checking",0,mixedAmount (usd 1))
+       ,("income:salary","income:salary",0,mixedAmount (usd (-1)))
        ],
        mixedAmount (usd 0))
 
     ,testCase "with desc:" $
      (defreportspec{_rsQuery=Desc $ toRegexCI' "income"}, samplejournal) `gives`
       ([
-        ("assets:bank:checking","assets:bank:checking",0,mamountp' "$1.00")
-       ,("income:salary","income:salary",0, mamountp' "$-1.00")
+        ("assets:bank:checking","assets:bank:checking",0,mixedAmount (usd 1))
+       ,("income:salary","income:salary",0, mixedAmount (usd (-1)))
        ],
        mixedAmount (usd 0))
 
     ,testCase "with not:desc:" $
      (defreportspec{_rsQuery=Not . Desc $ toRegexCI' "income"}, samplejournal) `gives`
       ([
-        ("assets:bank:saving","assets:bank:saving",0, mamountp' "$1.00")
-       ,("assets:cash","assets:cash",0, mamountp' "$-2.00")
-       ,("expenses:food","expenses:food",0, mamountp' "$1.00")
-       ,("expenses:supplies","expenses:supplies",0, mamountp' "$1.00")
-       ,("income:gifts","income:gifts",0, mamountp' "$-1.00")
+        ("assets:bank:saving","assets:bank:saving",0, mixedAmount (usd 1))
+       ,("assets:cash","assets:cash",0, mixedAmount (usd (-2)))
+       ,("expenses:food","expenses:food",0, mixedAmount (usd 1))
+       ,("expenses:supplies","expenses:supplies",0, mixedAmount (usd 1))
+       ,("income:gifts","income:gifts",0, mixedAmount (usd (-1)))
        ],
        mixedAmount (usd 0))
 
@@ -197,8 +196,8 @@ tests_BalanceReport = testGroup "BalanceReport" [
       (defreportspec{_rsReportOpts=defreportopts{period_= PeriodBetween (fromGregorian 2008 1 1) (fromGregorian 2008 1 2)}}, samplejournal) `gives`
        (
         [
-         ("assets:bank:checking","assets:bank:checking",0, mamountp' "$1.00")
-        ,("income:salary","income:salary",0, mamountp' "$-1.00")
+         ("assets:bank:checking","assets:bank:checking",0, mixedAmount (usd 1))
+        ,("income:salary","income:salary",0, mixedAmount (usd (-1)))
         ],
         mixedAmount (usd 0))
 

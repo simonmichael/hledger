@@ -59,7 +59,6 @@ import Hledger.Data
 import Hledger.Query
 import Hledger.Utils hiding (dbg3,dbg4,dbg5)
 import qualified Hledger.Utils
-import Hledger.Read (mamountp')
 import Hledger.Reports.ReportOptions
 import Hledger.Reports.ReportTypes
 
@@ -606,10 +605,10 @@ tests_MultiBalanceReport = testGroup "MultiBalanceReport" [
      ,testCase "with -H on a populated period"  $
       (defreportspec{_rsReportOpts=defreportopts{period_= PeriodBetween (fromGregorian 2008 1 1) (fromGregorian 2008 1 2), balanceaccum_=Historical}}, samplejournal) `gives`
        (
-        [ PeriodicReportRow (flatDisplayName "assets:bank:checking") [mamountp' "$1.00"]  (mamountp' "$1.00")  (mixedAmount amt0{aquantity=1})
-        , PeriodicReportRow (flatDisplayName "income:salary")        [mamountp' "$-1.00"] (mamountp' "$-1.00") (mixedAmount amt0{aquantity=(-1)})
+        [ PeriodicReportRow (flatDisplayName "assets:bank:checking") [mixedAmount $ usd 1]    (mixedAmount $ usd 1)    (mixedAmount amt0{aquantity=1})
+        , PeriodicReportRow (flatDisplayName "income:salary")        [mixedAmount $ usd (-1)] (mixedAmount $ usd (-1)) (mixedAmount amt0{aquantity=(-1)})
         ],
-        mamountp' "$0.00")
+        mixedAmount $ usd 0)
 
      -- ,testCase "a valid history on an empty period"  $
      --  (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 2) (fromGregorian 2008 1 3), balanceaccum_=Historical}, samplejournal) `gives`
