@@ -9,7 +9,7 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 4576f8eff
+# 0ce518f12
 
 Features
 
@@ -29,7 +29,7 @@ Features
 - The balance commands have a new `--commodity-column` flag that
   displays commodity symbols in a dedicated column, showing one line
   per commodity and all amounts as bare numbers.
-  (#1559, #1626, Lawrence Wu, Simon Michael, Stephen Morgan)
+  (#1559, #1626, #1654, Lawrence Wu, Simon Michael, Stephen Morgan)
 
 - The balance command's --budget option can now take an argument,
   a case insensitive description substring which selects a subset of
@@ -38,10 +38,22 @@ Features
   and select the one you want with --budget's argument. 
   ([#1612](https://github.com/simonmichael/hledger/issues/1612))
 
+- Period expressions now support `every weekday`, `every weekendday` and
+  `every mon,wed,...` (multiple days of the week).
+  This is intended for periodic transaction rules used with
+  `--forecast` (or `bal --budget`).
+  (#1632, Lawrence Wu)
+
 Improvements
 
-- imp: bal: handle commodity-column flag in compound balance reports 
-  (#1654, Lawrence Wu)
+- register with a report interval starting on custom dates
+  (eg: `hledger reg -p "every 15th day of month") now makes the 
+  date column wide enough to show the start and end dates.
+  It also wastes less whitespace after the column.
+  (#1655, Stephen Morgan)
+
+- The --forecast option will now reject a report interval in its
+  argument, instead of silently ignoring it.
 
 - doc: clarify period expressions, report intervals
 
@@ -80,11 +92,8 @@ Improvements
 
 Fixes
 
-- fix: bal --budget: handle --transpose flag with --commodity-column.
-  (#1654, Lawrence Wu)
-
-- fix: bal: correctly handle the no-symbol commodity with --commodity-column.
-  (#1654, Lawrence Wu)
+- aregister now aligns multicommodity amounts properly (broken since 1.21).
+  (#1656, Stephen Morgan)
 
 - `--forecast` now generates transactions up to the day before the
   specified report end date (instead of two days before).

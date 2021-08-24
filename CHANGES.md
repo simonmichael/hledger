@@ -9,12 +9,9 @@
 General changes in the hledger project (and notable all-package releases).
 For package-specific changes and minor releases, see the hledger package changelogs.
 
-# 07eb3a908
+# 2c96e6f1f
 
-- shake: changelogs: don't get confused by an all-digit commit hash
-  Fixes spurious "can't list changes" warning.
-
-- ;doc: update changelogs
+- `make list-commits` and `make showauthors` show those things.
 
 - `Shake cabalfiles` now uses (and requires) hpack in $PATH, to avoid building.
   It should be the version that's in the current stack release, to avoid commit conflicts.
