@@ -12,6 +12,7 @@ module Hledger.Data (
                module Hledger.Data.Account,
                module Hledger.Data.AccountName,
                module Hledger.Data.Amount,
+               module Hledger.Data.Balancing,
                module Hledger.Data.Dates,
                module Hledger.Data.Journal,
                module Hledger.Data.Json,
@@ -34,6 +35,7 @@ import Test.Tasty (testGroup)
 import Hledger.Data.Account
 import Hledger.Data.AccountName
 import Hledger.Data.Amount
+import Hledger.Data.Balancing
 import Hledger.Data.Dates
 import Hledger.Data.Journal
 import Hledger.Data.Json
@@ -53,6 +55,7 @@ tests_Data = testGroup "Data" [
    tests_AccountName
   ,tests_Amount
   ,tests_Dates
+  ,tests_Balancing
   ,tests_Journal
   ,tests_Ledger
   ,tests_Posting

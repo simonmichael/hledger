@@ -18,9 +18,9 @@ import Control.Applicative ((<|>))
 import Data.Time (Day, addDays)
 
 import Hledger.Data.Types
-import Hledger.Data.Transaction (BalancingOpts(..), HasBalancingOpts(..), defbalancingopts)
 import Hledger.Data.Journal (journalEndDate)
 import Hledger.Data.Dates (nulldate, nulldatespan)
+import Hledger.Data.Balancing (BalancingOpts(..), HasBalancingOpts(..), defbalancingopts)
 import Hledger.Utils (dbg2, makeHledgerClassyLenses)
 
 data InputOpts = InputOpts {

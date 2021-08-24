@@ -45,6 +45,7 @@ library
       Hledger.Data.Account
       Hledger.Data.AccountName
       Hledger.Data.Amount
+      Hledger.Data.Balancing
       Hledger.Data.Dates
       Hledger.Read.InputOptions
       Hledger.Data.Journal
