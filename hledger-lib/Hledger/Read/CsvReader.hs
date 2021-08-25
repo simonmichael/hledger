@@ -77,7 +77,7 @@ import Text.Printf (printf)
 
 import Hledger.Data
 import Hledger.Utils
-import Hledger.Read.Common (aliasesFromOpts, Reader(..), InputOpts(..), amountp, statusp, genericSourcePos, journalFinalise )
+import Hledger.Read.Common (aliasesFromOpts, Reader(..), InputOpts(..), amountp, statusp, journalFinalise )
 
 --- ** doctest setup
 -- $setup
@@ -953,7 +953,7 @@ transactionFromCsvRecord sourcepos rules record = t
     -- 4. Build the transaction (and name it, so the postings can reference it).
 
     t = nulltransaction{
-           tsourcepos        = genericSourcePos sourcepos  -- the CSV line number
+           tsourcepos        = (sourcepos, sourcepos)  -- the CSV line number
           ,tdate             = date'
           ,tdate2            = mdate2'
           ,tstatus           = status
@@ -1028,7 +1028,7 @@ getAmount rules record currency p1IsVirtual n =
 
 -- | Figure out the expected balance (assertion or assignment) specified for posting N,
 -- if any (and its parse position).
-getBalance :: CsvRules -> CsvRecord -> Text -> Int -> Maybe (Amount, GenericSourcePos)
+getBalance :: CsvRules -> CsvRecord -> Text -> Int -> Maybe (Amount, SourcePos)
 getBalance rules record currency n = do
   v <- (fieldval ("balance"<> T.pack (show n))
         -- for posting 1, also recognise the old field name
@@ -1037,7 +1037,7 @@ getBalance rules record currency n = do
     "" -> Nothing
     s  -> Just (
             parseBalanceAmount rules record currency n s
-           ,nullsourcepos  -- parse position to show when assertion fails,
+           ,initialPos ""  -- parse position to show when assertion fails,
            )               -- XXX the csv record's line number would be good
   where
     fieldval = fmap T.strip . hledgerFieldValue rules record :: HledgerFieldName -> Maybe Text
@@ -1101,7 +1101,7 @@ parseDecimalMark rules = do
 -- possibly set by a balance-type rule.
 -- The CSV rules and current record are also provided, to be shown in case
 -- balance-type's argument is bad (XXX refactor).
-mkBalanceAssertion :: CsvRules -> CsvRecord -> (Amount, GenericSourcePos) -> BalanceAssertion
+mkBalanceAssertion :: CsvRules -> CsvRecord -> (Amount, SourcePos) -> BalanceAssertion
 mkBalanceAssertion rules record (amt, pos) = assrt{baamount=amt, baposition=pos}
   where
     assrt =
@@ -1120,7 +1120,7 @@ mkBalanceAssertion rules record (amt, pos) = assrt{baamount=amt, baposition=pos}
 -- | Figure out the account name specified for posting N, if any.
 -- And whether it is the default unknown account (which may be
 -- improved later) or an explicitly set account (which may not).
-getAccount :: CsvRules -> CsvRecord -> Maybe MixedAmount -> Maybe (Amount, GenericSourcePos) -> Int -> Maybe (AccountName, Bool)
+getAccount :: CsvRules -> CsvRecord -> Maybe MixedAmount -> Maybe (Amount, SourcePos) -> Int -> Maybe (AccountName, Bool)
 getAccount rules record mamount mbalance n =
   let
     fieldval = hledgerFieldValue rules record :: HledgerFieldName -> Maybe Text

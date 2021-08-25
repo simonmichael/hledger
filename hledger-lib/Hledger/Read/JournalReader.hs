@@ -44,7 +44,6 @@ module Hledger.Read.JournalReader (
   reader,
 
   -- * Parsing utils
-  genericSourcePos,
   parseAndFinaliseJournal,
   runJournalParser,
   rjp,
@@ -696,7 +695,7 @@ transactionp = do
   let year = first3 $ toGregorian date
   postings <- postingsp (Just year)
   endpos <- getSourcePos
-  let sourcepos = journalSourcePos startpos endpos
+  let sourcepos = (startpos, endpos)
   return $ txnTieKnot $ Transaction 0 "" sourcepos date edate status code description comment tags postings
 
 --- *** postings
@@ -921,7 +920,7 @@ tests_JournalReader = testGroup "JournalReader" [
         "    ; ptag2: val2"
         ])
       nulltransaction{
-        tsourcepos=JournalSourcePos "" (1,7),  -- XXX why 7 here ?
+        tsourcepos=(SourcePos "" (mkPos 1) (mkPos 1), SourcePos "" (mkPos 8) (mkPos 1)),  -- 8 because there are 7 lines
         tprecedingcomment="",
         tdate=fromGregorian 2012 5 14,
         tdate2=Just $ fromGregorian 2012 5 15,

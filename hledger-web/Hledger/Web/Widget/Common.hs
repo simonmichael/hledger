@@ -112,7 +112,7 @@ transactionFragment j Transaction{tindex, tsourcepos} =
   where
     -- the numeric index of this txn's file within all the journal files,
     -- or 0 if this txn has no known file (eg a forecasted txn)
-    tfileindex = maybe 0 (+1) $ elemIndex (sourceFilePath tsourcepos) (journalFilePaths j)
+    tfileindex = maybe 0 (+1) $ elemIndex (sourceName $ fst tsourcepos) (journalFilePaths j)
 
 removeDates :: Text -> [Text]
 removeDates =

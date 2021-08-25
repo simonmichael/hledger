@@ -169,7 +169,7 @@ transactionBalanceError t errs =
 
 annotateErrorWithTransaction :: Transaction -> String -> String
 annotateErrorWithTransaction t s =
-  unlines [ showGenericSourcePos $ tsourcepos t, s
+  unlines [ showSourcePosPair $ tsourcepos t, s
           , T.unpack . T.stripEnd $ showTransaction t
           ]
 
@@ -586,7 +586,7 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedamt 
       (case ptransaction p of
          Nothing -> "?" -- shouldn't happen
          Just t ->  printf "%s\ntransaction:\n%s"
-                      (showGenericSourcePos pos)
+                      (showSourcePos pos)
                       (textChomp $ showTransaction t)
                       :: String
                       where
