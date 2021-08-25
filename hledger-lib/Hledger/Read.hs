@@ -35,6 +35,7 @@ module Hledger.Read (
   JournalReader.tmpostingrulep,
   findReader,
   splitReaderPrefix,
+  runJournalParser,
   module Hledger.Read.Common,
   module Hledger.Read.InputOptions,
 

@@ -48,6 +48,8 @@ module Hledger.Read.JournalReader (
   parseAndFinaliseJournal,
   runJournalParser,
   rjp,
+  runErroringJournalParser,
+  rejp,
 
   -- * Parsers used elsewhere
   getParentAccount,
@@ -77,7 +79,7 @@ import qualified Control.Exception as C
 import Control.Monad (forM_, when, void)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Except (ExceptT(..), runExceptT)
-import Control.Monad.State.Strict (get,modify',put)
+import Control.Monad.State.Strict (evalStateT,get,modify',put)
 import Control.Monad.Trans.Class (lift)
 import Data.Char (toLower)
 import Data.Either (isRight)
@@ -108,6 +110,26 @@ import qualified Hledger.Read.CsvReader as CsvReader (reader)
 --- ** doctest setup
 -- $setup
 -- >>> :set -XOverloadedStrings
+--
+--- ** parsing utilities
+
+-- | Run a journal parser in some monad. See also: parseWithState.
+runJournalParser, rjp
+  :: Monad m
+  => JournalParser m a -> Text -> m (Either (ParseErrorBundle Text CustomErr) a)
+runJournalParser p = runParserT (evalStateT p nulljournal) ""
+rjp = runJournalParser
+
+-- | Run an erroring journal parser in some monad. See also: parseWithState.
+runErroringJournalParser, rejp
+  :: Monad m
+  => ErroringJournalParser m a
+  -> Text
+  -> m (Either FinalParseError (Either (ParseErrorBundle Text CustomErr) a))
+runErroringJournalParser p t =
+  runExceptT $ runParserT (evalStateT p nulljournal) "" t
+rejp = runErroringJournalParser
+
 
 --- ** reader finding utilities
 -- Defined here rather than Hledger.Read so that we can use them in includedirectivep below.

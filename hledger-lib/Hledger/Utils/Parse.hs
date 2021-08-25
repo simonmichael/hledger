@@ -10,6 +10,8 @@ module Hledger.Utils.Parse (
   choiceInState,
   surroundedBy,
   parsewith,
+  runTextParser,
+  rtp,
   parsewithString,
   parseWithState,
   parseWithState',
@@ -67,6 +69,12 @@ surroundedBy p = between p p
 
 parsewith :: Parsec e Text a -> Text -> Either (ParseErrorBundle Text e) a
 parsewith p = runParser p ""
+
+-- | Run a text parser in the identity monad. See also: parseWithState.
+runTextParser, rtp
+  :: TextParser Identity a -> Text -> Either (ParseErrorBundle Text CustomErr) a
+runTextParser = parsewith
+rtp = runTextParser
 
 parsewithString
   :: Parsec e String a -> String -> Either (ParseErrorBundle String e) a
