@@ -37,16 +37,20 @@ module Hledger.Utils (---- provide these frequently used modules - or not, for c
 where
 
 import Control.Monad (when)
+import Data.Char (toLower)
 import Data.FileEmbed (makeRelativeToProject, embedStringFile)
-import Data.List (foldl', foldl1')
--- import Data.String.Here (hereFile)
+import Data.List.Extra (foldl', foldl1', uncons, unsnoc)
+import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text.IO as T
 import Data.Time.Clock (getCurrentTime)
 import Data.Time.LocalTime (LocalTime, ZonedTime, getCurrentTimeZone,
                             utcToLocalTime, utcToZonedTime)
+import Language.Haskell.TH (DecsQ, Name, mkName, nameBase)
 -- import Language.Haskell.TH.Quote (QuasiQuoter(..))
 import Language.Haskell.TH.Syntax (Q, Exp)
+import Lens.Micro ((&), (.~))
+import Lens.Micro.TH (DefName(TopName), lensClass, lensField, makeLensesWith, classyRules)
 import System.Directory (getHomeDirectory)
 import System.FilePath (isRelative, (</>))
 import System.IO
@@ -242,6 +246,63 @@ embedFileRelative f = makeRelativeToProject f >>= embedStringFile
 -- hereFileRelative f = makeRelativeToProject f >>= hereFileExp
 --   where
 --     QuasiQuoter{quoteExp=hereFileExp} = hereFile
+
+
+-- | Make classy lenses for Hledger options fields.
+-- This is intended to be used with BalancingOpts, InputOpt, ReportOpts,
+-- ReportSpec, and CliOpts.
+-- When run on X, it will create a typeclass named HasX (except for ReportOpts,
+-- which will be named HasReportOptsNoUpdate) containing all the lenses for that type.
+-- If the field name starts with an underscore, the lens name will be created
+-- by stripping the underscore from the front on the name. If the field name ends with
+-- an underscore, the field name ends with an underscore, the lens name will be
+-- mostly created by stripping the underscore, but a few names for which this
+-- would create too many conflicts instead have a second underscore appended.
+-- ReportOpts fields for which updating them requires updating the query in
+-- ReportSpec are instead names by dropping the trailing underscore and
+-- appending NoUpdate to the name, e.g. querystring_ -> querystringNoUpdate.
+--
+-- There are a few reasons for the complicated rules.
+-- - We have some legacy field names ending in an underscore (e.g. value_)
+--   which we want to temporarily accommodate, before eventually switching to
+--   a more modern style (e.g. _rsReportOpts)
+-- - Certain fields in ReportOpts need to update the enclosing ReportSpec when
+--   they are updated, and it is a common programming error to forget to do
+--   this. We append NoUpdate to those lenses which will not update the
+--   enclosing field, and reserve the shorter name for manually define lenses
+--   (or at least something lens-like) which will update the ReportSpec.
+-- cf. the lengthy discussion here and in surrounding comments:
+-- https://github.com/simonmichael/hledger/pull/1545#issuecomment-881974554
+makeHledgerClassyLenses :: Name -> DecsQ
+makeHledgerClassyLenses x = flip makeLensesWith x $ classyRules
+    & lensField .~ (\_ _ n -> fieldName $ nameBase n)
+    & lensClass .~ (className . nameBase)
+  where
+    fieldName n | Just ('_', name) <- uncons n   = [TopName (mkName name)]
+                | Just (name, '_') <- unsnoc n,
+                  name `Set.member` queryFields  = [TopName (mkName $ name ++ "NoUpdate")]
+                | Just (name, '_') <- unsnoc n,
+                  name `Set.member` commonFields = [TopName (mkName $ name ++ "__")]
+                | Just (name, '_') <- unsnoc n   = [TopName (mkName name)]
+                | otherwise                      = []
+
+    -- Fields which would cause too many conflicts if we exposed lenses with these names.
+    commonFields = Set.fromList
+        [ "empty", "drop", "color", "transpose"  -- ReportOpts
+        , "anon", "new", "auto"                  -- InputOpts
+        , "rawopts", "file", "debug", "width"    -- CliOpts
+        ]
+
+    -- When updating some fields of ReportOpts within a ReportSpec, we need to
+    -- update the rsQuery term as well. To do this we implement a special
+    -- HasReportOpts class with some special behaviour. We therefore give the
+    -- basic lenses a special NoUpdate name to avoid conflicts.
+    className "ReportOpts" = Just (mkName "HasReportOptsNoUpdate", mkName "reportOptsNoUpdate")
+    className (x:xs)       = Just (mkName ("Has" ++ x:xs), mkName (toLower x : xs))
+    className []           = Nothing
+
+    -- Fields of ReportOpts which need to update the Query when they are updated.
+    queryFields = Set.fromList ["period", "statuses", "depth", "date2", "real", "querystring"]
 
 tests_Utils = tests "Utils" [
   tests_Text
