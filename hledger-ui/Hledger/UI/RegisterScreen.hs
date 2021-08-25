@@ -326,9 +326,7 @@ rsHandle ui@UIState{
             (pos,f) = case listSelectedElement rsList of
                         Nothing -> (endPosition, journalFilePath j)
                         Just (_, RegisterScreenItem{
-                          rsItemTransaction=Transaction{tsourcepos=GenericSourcePos f l c}}) -> (Just (l, Just c),f)
-                        Just (_, RegisterScreenItem{
-                          rsItemTransaction=Transaction{tsourcepos=JournalSourcePos f (l,_)}}) -> (Just (l, Nothing),f)
+                          rsItemTransaction=Transaction{tsourcepos=(SourcePos f l c,_)}}) -> (Just (unPos l, Just $ unPos c),f)
 
         -- display mode/query toggles
         VtyEvent (EvKey (KChar 'B') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleCost ui

@@ -35,8 +35,6 @@ module Hledger.Read.Common (
   rawOptsToInputOpts,
 
   -- * parsing utilities
-  genericSourcePos,
-  journalSourcePos,
   parseAndFinaliseJournal,
   parseAndFinaliseJournal',
   journalFinalise,
@@ -252,16 +250,6 @@ commodityStyleFromRawOpts rawOpts =
     parseCommodity optStr = case amountp'' optStr of
         Left _ -> Left optStr
         Right (Amount acommodity _ astyle _) -> Right (acommodity, astyle)
-
-genericSourcePos :: SourcePos -> GenericSourcePos
-genericSourcePos p = GenericSourcePos (sourceName p) (unPos $ sourceLine p) (unPos $ sourceColumn p)
-
--- | Construct a generic start & end line parse position from start and end megaparsec SourcePos's.
-journalSourcePos :: SourcePos -> SourcePos -> GenericSourcePos
-journalSourcePos p p' = JournalSourcePos (sourceName p) (unPos $ sourceLine p, line')
-    where line' | (unPos $ sourceColumn p') == 1 = unPos (sourceLine p') - 1
-                | otherwise = unPos $ sourceLine p' -- might be at end of file withat last new-line
-
 -- | Given a parser to ParsedJournal, input options, file path and
 -- content: run the parser on the content, and finalise the result to
 -- get a Journal; or throw an error.
@@ -376,7 +364,7 @@ journalCheckPayeesDeclared j = sequence_ $ map checkpayee $ jtxns j
       | otherwise = Left $
           printf "undeclared payee \"%s\"\nat: %s\n\n%s"
             (T.unpack p)
-            (showGenericSourcePos $ tsourcepos t)
+            (showSourcePosPair $ tsourcepos t)
             (linesPrepend2 "> " "  " . (<>"\n") . textChomp $ showTransaction t)
       where
         p  = transactionPayee t
@@ -394,7 +382,7 @@ journalCheckAccountsDeclared j = sequence_ $ map checkacct $ journalPostings j
           ++ case ptransaction of
               Nothing -> ""
               Just t  -> printf "in transaction at: %s\n\n%s"
-                          (showGenericSourcePos $ tsourcepos t)
+                          (showSourcePosPair $ tsourcepos t)
                           (linesPrepend "  " . (<>"\n") . textChomp $ showTransaction t)
       where
         as = journalAccountNamesDeclared j
@@ -413,7 +401,7 @@ journalCheckCommoditiesDeclared j =
           ++ case ptransaction of
               Nothing -> ""
               Just t  -> printf "in transaction at: %s\n\n%s"
-                          (showGenericSourcePos $ tsourcepos t)
+                          (showSourcePosPair $ tsourcepos t)
                           (linesPrepend "  " . (<>"\n") . textChomp $ showTransaction t)
       where
         mfirstundeclaredcomm =
@@ -908,7 +896,7 @@ priceamountp baseAmt = label "transaction price" $ do
 
 balanceassertionp :: JournalParser m BalanceAssertion
 balanceassertionp = do
-  sourcepos <- genericSourcePos <$> lift getSourcePos
+  sourcepos <- getSourcePos
   char '='
   istotal <- fmap isJust $ optional $ try $ char '='
   isinclusive <- fmap isJust $ optional $ try $ char '*'

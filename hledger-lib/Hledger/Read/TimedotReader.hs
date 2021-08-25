@@ -168,7 +168,7 @@ orgheadingprefixp = do
 entryp :: JournalParser m Transaction
 entryp = do
   lift $ traceparse "entryp"
-  pos <- genericSourcePos <$> getSourcePos
+  pos <- getSourcePos
   notFollowedBy datelinep
   lift $ optional $ choice [orgheadingprefixp, skipNonNewlineSpaces1]
   a <- modifiedaccountnamep
@@ -178,7 +178,7 @@ entryp = do
     <|> (durationp <*
          (try (lift followingcommentp) <|> (newline >> return "")))
   let t = nulltransaction{
-        tsourcepos = pos,
+        tsourcepos = (pos, pos),
         tstatus    = Cleared,
         tpostings  = [
           nullposting{paccount=a

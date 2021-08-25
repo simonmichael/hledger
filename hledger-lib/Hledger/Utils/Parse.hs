@@ -6,6 +6,15 @@ module Hledger.Utils.Parse (
   SimpleTextParser,
   TextParser,
 
+  SourcePos(..),
+  mkPos,
+  unPos,
+  initialPos,
+
+  -- * SourcePos
+  showSourcePosPair,
+  showSourcePos,
+
   choice',
   choiceInState,
   surroundedBy,
@@ -53,6 +62,17 @@ type SimpleTextParser = Parsec CustomErr Text  -- XXX an "a" argument breaks the
 
 -- | A parser of text that runs in some monad.
 type TextParser m a = ParsecT CustomErr Text m a
+
+-- | Render source position in human-readable form.
+showSourcePos :: SourcePos -> String
+showSourcePos (SourcePos fp l c) =
+    show fp ++ " (line " ++ show (unPos l) ++ ", column " ++ show (unPos c) ++ ")"
+
+-- | Render a pair of source position in human-readable form.
+showSourcePosPair :: (SourcePos, SourcePos) -> String
+showSourcePosPair (SourcePos fp l1 _, SourcePos _ l2 c2) =
+    show fp ++ " (lines " ++ show (unPos l1) ++ "-" ++ show l2' ++ ")"
+  where l2' = if unPos c2 == 1 then unPos l2 - 1 else unPos l2  -- might be at end of file withat last new-line
 
 -- | Backtracking choice, use this when alternatives share a prefix.
 -- Consumes no input if all choices fail.

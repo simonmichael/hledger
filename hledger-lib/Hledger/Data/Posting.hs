@@ -125,15 +125,15 @@ post' acc amt ass = posting {paccount=acc, pamount=mixedAmount amt, pbalanceasse
 vpost' :: AccountName -> Amount -> Maybe BalanceAssertion -> Posting
 vpost' acc amt ass = (post' acc amt ass){ptype=VirtualPosting, pbalanceassertion=ass}
 
-nullsourcepos :: GenericSourcePos
-nullsourcepos = JournalSourcePos "" (1,1)
+nullsourcepos :: (SourcePos, SourcePos)
+nullsourcepos = (SourcePos "" (mkPos 1) (mkPos 1), SourcePos "" (mkPos 2) (mkPos 1))
 
 nullassertion :: BalanceAssertion
 nullassertion = BalanceAssertion
                   {baamount=nullamt
                   ,batotal=False
                   ,bainclusive=False
-                  ,baposition=nullsourcepos
+                  ,baposition=initialPos ""
                   }
 
 -- | Make a partial, exclusive balance assertion.

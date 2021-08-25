@@ -119,7 +119,7 @@ timeclockfilep = do many timeclockitemp
 -- | Parse a timeclock entry.
 timeclockentryp :: JournalParser m TimeclockEntry
 timeclockentryp = do
-  sourcepos <- genericSourcePos <$> lift getSourcePos
+  sourcepos <- getSourcePos
   code <- oneOf ("bhioO" :: [Char])
   lift skipNonNewlineSpaces1
   datetime <- datetimep

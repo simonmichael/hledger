@@ -68,7 +68,7 @@ diffOutput j j' = do
     let changed = [(originalTransaction t, originalTransaction t') | (t, t') <- zip (jtxns j) (jtxns j'), t /= t']
     T.putStr $ renderPatch $ map (uncurry $ diffTxn j) changed
 
-type Chunk = (GenericSourcePos, [DiffLine Text])
+type Chunk = (SourcePos, [DiffLine Text])
 
 -- XXX doctests, update needed:
 -- >>> putStr $ renderPatch [(GenericSourcePos "a" 1 1, [D.First "x", D.Second "y"])]
@@ -99,11 +99,11 @@ type Chunk = (GenericSourcePos, [DiffLine Text])
 renderPatch :: [Chunk] -> Text
 renderPatch = go Nothing . sortOn fst where
     go _ [] = ""
-    go Nothing cs@((sourceFilePath -> fp, _):_) = fileHeader fp <> go (Just (fp, 0)) cs
-    go (Just (fp, _)) cs@((sourceFilePath -> fp', _):_) | fp /= fp' = go Nothing cs
-    go (Just (fp, offs)) ((sourceFirstLine -> lineno, diffs):cs) = chunkHeader <> chunk <> go (Just (fp, offs + adds - dels)) cs
+    go Nothing cs@((SourcePos fp _ _, _):_) = fileHeader fp <> go (Just (fp, 0)) cs
+    go (Just (fp, _)) cs@((SourcePos fp' _ _, _):_) | fp /= fp' = go Nothing cs
+    go (Just (fp, offs)) ((SourcePos _ lineno _, diffs):cs) = chunkHeader <> chunk <> go (Just (fp, offs + adds - dels)) cs
         where
-            chunkHeader = T.pack $ printf "@@ -%d,%d +%d,%d @@\n" lineno dels (lineno+offs) adds
+            chunkHeader = T.pack $ printf "@@ -%d,%d +%d,%d @@\n" (unPos lineno) dels (unPos lineno+offs) adds
             (dels, adds) = foldl' countDiff (0, 0) diffs
             chunk = foldMap renderLine diffs
     fileHeader fp = "--- " <> T.pack fp <> "\n+++ " <> T.pack fp <> "\n"
@@ -119,25 +119,24 @@ renderPatch = go Nothing . sortOn fst where
         Ctx s -> " " <> s <> "\n"
 
 diffTxn :: Journal -> Transaction -> Transaction -> Chunk
-diffTxn j t t' =
-        case tsourcepos t of
-            GenericSourcePos fp lineno _ -> (GenericSourcePos fp (lineno+1) 1, diffs) where
-                -- TODO: use range and produce two chunks: one removes part of
-                --       original file, other adds transaction to new file with
-                --       suffix .ledger (generated). I.e. move transaction from one file to another.
-                diffs :: [DiffLine Text]
-                diffs = concatMap (traverse showPostingLines . mapDiff) $ D.getDiff (tpostings t) (tpostings t')
-            pos@(JournalSourcePos fp (line, line')) -> (pos, diffs) where
-                -- We do diff for original lines vs generated ones. Often leads
-                -- to big diff because of re-format effect.
-                diffs :: [DiffLine Text]
-                diffs = map mapDiff $ D.getDiff source changed'
-                source | Just contents <- lookup fp $ jfiles j = drop (line-1) . take line' $ T.lines contents
-                       | otherwise = []
-                changed = T.lines $ showTransaction t'
-                changed' | null changed = changed
-                         | T.null $ last changed = init changed
-                         | otherwise = changed
+diffTxn j t t' = case tsourcepos t of
+    (pos1@(SourcePos fp line col), pos2) | pos1 == pos2 -> (SourcePos fp (line <> mkPos 1) col, diffs) where
+        -- TODO: use range and produce two chunks: one removes part of
+        --       original file, other adds transaction to new file with
+        --       suffix .ledger (generated). I.e. move transaction from one file to another.
+        diffs :: [DiffLine Text]
+        diffs = concatMap (traverse showPostingLines . mapDiff) $ D.getDiff (tpostings t) (tpostings t')
+    (pos1@(SourcePos fp line _), SourcePos _ line' _) -> (pos1, diffs) where
+        -- We do diff for original lines vs generated ones. Often leads
+        -- to big diff because of re-format effect.
+        diffs :: [DiffLine Text]
+        diffs = map mapDiff $ D.getDiff source changed'
+        source | Just contents <- lookup fp $ jfiles j = drop (unPos line-1) . take (unPos line' - 1) $ T.lines contents
+               | otherwise = []
+        changed = T.lines $ showTransaction t'
+        changed' | null changed = changed
+                 | T.null $ last changed = init changed
+                 | otherwise = changed
 
 data DiffLine a = Del a | Add a | Ctx a
     deriving (Show, Functor, Foldable, Traversable)

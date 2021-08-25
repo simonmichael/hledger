@@ -77,10 +77,7 @@ timeclockEntriesToTransactions now (i:o:rest)
 {- HLINT ignore timeclockEntriesToTransactions -}
 
 errorExpectedCodeButGot expected actual = errorWithSourceLine line $ "expected timeclock code " ++ (show expected) ++ " but got " ++ show (tlcode actual)
-    where
-        line = case tlsourcepos actual of
-                  GenericSourcePos _ l _ -> l
-                  JournalSourcePos _ (l, _) -> l
+    where line = unPos . sourceLine $ tlsourcepos actual
 
 errorWithSourceLine line msg = error $ "line " ++ show line ++ ": " ++ msg
 
@@ -95,7 +92,7 @@ entryFromTimeclockInOut i o
     where
       t = Transaction {
             tindex       = 0,
-            tsourcepos   = tlsourcepos i,
+            tsourcepos   = (tlsourcepos i, tlsourcepos i),
             tdate        = idate,
             tdate2       = Nothing,
             tstatus      = Cleared,
@@ -135,7 +132,7 @@ tests_Timeclock = testGroup "Timeclock" [
       let now = utcToLocalTime tz now'
           nowstr = showtime now
           yesterday = prevday today
-          clockin = TimeclockEntry nullsourcepos In
+          clockin = TimeclockEntry (initialPos "") In
           mktime d = LocalTime d . fromMaybe midnight .
                      parseTimeM True defaultTimeLocale "%H:%M:%S"
           showtime = formatTime defaultTimeLocale "%H:%M"

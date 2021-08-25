@@ -158,8 +158,7 @@ tsHandle ui@UIState{aScreen=TransactionScreen{tsTransaction=(i,t), tsTransaction
         VtyEvent (EvKey (KChar 'E') []) -> suspendAndResume $ void (runEditor pos f) >> uiReloadJournalIfChanged copts d j ui
           where
             (pos,f) = case tsourcepos t of
-                        GenericSourcePos f l c    -> (Just (l, Just c),f)
-                        JournalSourcePos f (l1,_) -> (Just (l1, Nothing),f)
+                        (SourcePos f l1 c1,_) -> (Just (unPos l1, Just $ unPos c1),f)
         AppEvent (DateChange old _) | isStandardPeriod p && p `periodContainsDate` old ->
           continue $ regenerateScreens j d $ setReportPeriod (DayPeriod d) ui
           where

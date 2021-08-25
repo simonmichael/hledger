@@ -7,7 +7,6 @@ tags.
 
 -}
 
-{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
@@ -44,10 +43,6 @@ module Hledger.Data.Transaction
 , showTransactionOneLineAmounts
   -- showPostingLine
 , showPostingLines
-  -- * GenericSourcePos
-, sourceFilePath
-, sourceFirstLine
-, showGenericSourcePos
 , transactionFile
   -- * tests
 , tests_Transaction
@@ -71,22 +66,6 @@ import Hledger.Data.Amount
 import Hledger.Data.Valuation
 import Text.Tabular.AsciiWide
 
-sourceFilePath :: GenericSourcePos -> FilePath
-sourceFilePath = \case
-    GenericSourcePos fp _ _ -> fp
-    JournalSourcePos fp _ -> fp
-
-sourceFirstLine :: GenericSourcePos -> Int
-sourceFirstLine = \case
-    GenericSourcePos _ line _ -> line
-    JournalSourcePos _ (line, _) -> line
-
--- | Render source position in human-readable form.
--- Keep in sync with Hledger.UI.ErrorScreen.hledgerparseerrorpositionp (temporary). XXX
-showGenericSourcePos :: GenericSourcePos -> String
-showGenericSourcePos = \case
-    GenericSourcePos fp line column -> show fp ++ " (line " ++ show line ++ ", column " ++ show column ++ ")"
-    JournalSourcePos fp (line, line') -> show fp ++ " (lines " ++ show line ++ "-" ++ show line' ++ ")"
 
 nulltransaction :: Transaction
 nulltransaction = Transaction {
@@ -393,10 +372,7 @@ transactionMapPostingAmounts f  = transactionMapPostings (postingTransformAmount
 
 -- | The file path from which this transaction was parsed.
 transactionFile :: Transaction -> FilePath
-transactionFile Transaction{tsourcepos} =
-  case tsourcepos of
-    GenericSourcePos f _ _ -> f
-    JournalSourcePos f _   -> f
+transactionFile Transaction{tsourcepos} = sourceName $ fst tsourcepos
 
 -- tests
 

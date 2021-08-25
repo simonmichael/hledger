@@ -31,7 +31,6 @@ import Data.Decimal (Decimal, DecimalRaw(..))
 import Data.Default (Default(..))
 import Data.Functor (($>))
 import Data.List (intercalate)
-import Text.Blaze (ToMarkup(..))
 --XXX https://hackage.haskell.org/package/containers/docs/Data-Map.html
 --Note: You should use Data.Map.Strict instead of this module if:
 --You will eventually need all the values stored.
@@ -43,6 +42,8 @@ import Data.Time.Calendar (Day)
 import Data.Time.Clock.POSIX (POSIXTime)
 import Data.Time.LocalTime (LocalTime)
 import Data.Word (Word8)
+import Text.Blaze (ToMarkup(..))
+import Text.Megaparsec (SourcePos)
 
 import Hledger.Utils.Regex
 
@@ -338,10 +339,10 @@ instance Show Status where -- custom show.. bad idea.. don't do it..
 --    at once. Not implemented, requires #934.
 --
 data BalanceAssertion = BalanceAssertion {
-      baamount    :: Amount,             -- ^ the expected balance in a particular commodity
-      batotal     :: Bool,               -- ^ disallow additional non-asserted commodities ?
-      bainclusive :: Bool,               -- ^ include subaccounts when calculating the actual balance ?
-      baposition  :: GenericSourcePos    -- ^ the assertion's file position, for error reporting
+      baamount    :: Amount,    -- ^ the expected balance in a particular commodity
+      batotal     :: Bool,      -- ^ disallow additional non-asserted commodities ?
+      bainclusive :: Bool,      -- ^ include subaccounts when calculating the actual balance ?
+      baposition  :: SourcePos  -- ^ the assertion's file position, for error reporting
     } deriving (Eq,Generic,Show)
 
 data Posting = Posting {
@@ -385,16 +386,10 @@ instance Show Posting where
     ,"poriginal="         ++ show poriginal
     ] ++ "}"
 
--- TODO: needs renaming, or removal if no longer needed. See also TextPosition in Hledger.UI.Editor
--- | The position of parse errors (eg), like parsec's SourcePos but generic.
-data GenericSourcePos = GenericSourcePos FilePath Int Int    -- ^ file path, 1-based line number and 1-based column number.
-                      | JournalSourcePos FilePath (Int, Int) -- ^ file path, inclusive range of 1-based line numbers (first, last).
-  deriving (Eq, Read, Show, Ord, Generic)
-
 data Transaction = Transaction {
       tindex                   :: Integer,   -- ^ this transaction's 1-based position in the transaction stream, or 0 when not available
       tprecedingcomment        :: Text,      -- ^ any comment lines immediately preceding this transaction
-      tsourcepos               :: GenericSourcePos,  -- ^ the file position where the date starts
+      tsourcepos               :: (SourcePos, SourcePos),  -- ^ the file position where the date starts, and where the last posting ends
       tdate                    :: Day,
       tdate2                   :: Maybe Day,
       tstatus                  :: Status,
@@ -458,7 +453,7 @@ nullperiodictransaction = PeriodicTransaction{
 data TimeclockCode = SetBalance | SetRequiredHours | In | Out | FinalOut deriving (Eq,Ord,Generic)
 
 data TimeclockEntry = TimeclockEntry {
-      tlsourcepos   :: GenericSourcePos,
+      tlsourcepos   :: SourcePos,
       tlcode        :: TimeclockCode,
       tldatetime    :: LocalTime,
       tlaccount     :: AccountName,

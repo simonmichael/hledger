@@ -24,6 +24,7 @@ import           Data.Decimal (DecimalRaw(..), roundTo)
 import           Data.Maybe (fromMaybe)
 import qualified Data.Text.Lazy    as TL
 import qualified Data.Text.Lazy.Builder as TB
+import           Text.Megaparsec (Pos, SourcePos, mkPos, unPos)
 
 import           Hledger.Data.Types
 import           Hledger.Data.Amount (amountsRaw, mixed)
@@ -31,7 +32,12 @@ import           Hledger.Data.Amount (amountsRaw, mixed)
 -- To JSON
 
 instance ToJSON Status
-instance ToJSON GenericSourcePos
+instance ToJSON SourcePos
+
+-- Use the same encoding as the underlying Int
+instance ToJSON Pos where
+  toJSON = toJSON . unPos
+  toEncoding = toEncoding . unPos
 
 -- https://github.com/simonmichael/hledger/issues/1195
 
@@ -159,7 +165,11 @@ instance ToJSON Ledger
 -- From JSON
 
 instance FromJSON Status
-instance FromJSON GenericSourcePos
+instance FromJSON SourcePos
+-- Use the same encoding as the underlying Int
+instance FromJSON Pos where
+  parseJSON = fmap mkPos . parseJSON
+
 instance FromJSON Amount
 instance FromJSON AmountStyle
 
