@@ -35,12 +35,6 @@ module Hledger.Read.Common (
   rawOptsToInputOpts,
 
   -- * parsing utilities
-  runTextParser,
-  rtp,
-  runJournalParser,
-  rjp,
-  runErroringJournalParser,
-  rejp,
   genericSourcePos,
   journalSourcePos,
   parseAndFinaliseJournal,
@@ -139,7 +133,6 @@ import Data.Decimal (DecimalRaw (Decimal), Decimal)
 import Data.Either (lefts, rights)
 import Data.Function ((&))
 import Data.Functor ((<&>))
-import Data.Functor.Identity (Identity)
 import "base-compat-batteries" Data.List.Compat
 import Data.List.NonEmpty (NonEmpty(..))
 import Data.Maybe (catMaybes, fromMaybe, isJust, listToMaybe)
@@ -155,8 +148,7 @@ import Text.Megaparsec
 import Text.Megaparsec.Char (char, char', digitChar, newline, string)
 import Text.Megaparsec.Char.Lexer (decimal)
 import Text.Megaparsec.Custom
-  (FinalParseError, attachSource, customErrorBundlePretty,
-  finalErrorBundlePretty, parseErrorAt, parseErrorAtRegion)
+  (attachSource, customErrorBundlePretty, finalErrorBundlePretty, parseErrorAt, parseErrorAtRegion)
 
 import Hledger.Data
 import Hledger.Query (Query(..), filterQuery, parseQueryTerm, queryEndDate, queryStartDate, queryIsDate, simplifyQuery)
@@ -260,31 +252,6 @@ commodityStyleFromRawOpts rawOpts =
     parseCommodity optStr = case amountp'' optStr of
         Left _ -> Left optStr
         Right (Amount acommodity _ astyle _) -> Right (acommodity, astyle)
-
---- ** parsing utilities
-
--- | Run a text parser in the identity monad. See also: parseWithState.
-runTextParser, rtp
-  :: TextParser Identity a -> Text -> Either (ParseErrorBundle Text CustomErr) a
-runTextParser p =  runParser p ""
-rtp = runTextParser
-
--- | Run a journal parser in some monad. See also: parseWithState.
-runJournalParser, rjp
-  :: Monad m
-  => JournalParser m a -> Text -> m (Either (ParseErrorBundle Text CustomErr) a)
-runJournalParser p = runParserT (evalStateT p nulljournal) ""
-rjp = runJournalParser
-
--- | Run an erroring journal parser in some monad. See also: parseWithState.
-runErroringJournalParser, rejp
-  :: Monad m
-  => ErroringJournalParser m a
-  -> Text
-  -> m (Either FinalParseError (Either (ParseErrorBundle Text CustomErr) a))
-runErroringJournalParser p t =
-  runExceptT $ runParserT (evalStateT p nulljournal) "" t
-rejp = runErroringJournalParser
 
 genericSourcePos :: SourcePos -> GenericSourcePos
 genericSourcePos p = GenericSourcePos (sourceName p) (unPos $ sourceLine p) (unPos $ sourceColumn p)
