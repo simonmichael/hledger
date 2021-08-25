@@ -747,4 +747,3 @@ getDirectoryContentsSafe d =
 --     putStrLn $ "processed opts:\n" ++ show opts
 --     d <- getCurrentDay
 --     putStrLn $ "search query: " ++ (show $ queryFromOpts d $ reportopts_ opts)
-
