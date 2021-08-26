@@ -14,26 +14,23 @@ import Data.Semigroup (Max(..))
 import qualified Data.Text as T
 import Data.Text.Zipper (gotoEOL)
 import Data.Time.Calendar (Day)
+import Lens.Micro ((^.), over, set)
 
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.UI.UITypes
-import Hledger.UI.UIOptions
 
 -- | Toggle between showing only unmarked items or all items.
 toggleUnmarked :: UIState -> UIState
-toggleUnmarked ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}} =
-  ui{aopts=uopts{cliopts_=copts{reportspec_=reportSpecToggleStatus Unmarked copts rspec}}}
+toggleUnmarked = over statuses (toggleStatus1 Unmarked)
 
 -- | Toggle between showing only pending items or all items.
 togglePending :: UIState -> UIState
-togglePending ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}} =
-  ui{aopts=uopts{cliopts_=copts{reportspec_=reportSpecToggleStatus Pending copts rspec}}}
+togglePending = over statuses (toggleStatus1 Pending)
 
 -- | Toggle between showing only cleared items or all items.
 toggleCleared :: UIState -> UIState
-toggleCleared ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}} =
-  ui{aopts=uopts{cliopts_=copts{reportspec_=reportSpecToggleStatus Cleared copts rspec}}}
+toggleCleared = over statuses (toggleStatus1 Cleared)
 
 -- TODO testing different status toggle styles
 
@@ -53,17 +50,11 @@ uiShowStatus copts ss =
     showstatus Pending  = "pending"
     showstatus Unmarked = "unmarked"
 
-reportSpecToggleStatus :: Status -> CliOpts -> ReportSpec -> ReportSpec
-reportSpecToggleStatus s _copts =
-    either (error "reportSpecToggleStatus: changing status should not have caused this error") id  -- PARTIAL:
-    . updateReportSpecWith (reportOptsToggleStatus1 s)
-
 -- various toggle behaviours:
 
 -- 1 UPC toggles only X/all
-reportOptsToggleStatus1 s ropts@ReportOpts{statuses_=ss}
-  | ss == [s]  = ropts{statuses_=[]}
-  | otherwise = ropts{statuses_=[s]}
+toggleStatus1 :: Status -> [Status] -> [Status]
+toggleStatus1 s ss = if ss == [s] then [] else [s]
 
 -- 2 UPC cycles X/not-X/all
 -- repeatedly pressing X cycles:
@@ -73,25 +64,25 @@ reportOptsToggleStatus1 s ropts@ReportOpts{statuses_=ss}
 -- pressing Y after first or second step starts new cycle:
 -- [u] P [p]
 -- [pc] P [p]
--- reportOptsToggleStatus2 s ropts@ReportOpts{statuses_=ss}
---   | ss == [s]            = ropts{statuses_=complement [s]}
---   | ss == complement [s] = ropts{statuses_=[]}
---   | otherwise            = ropts{statuses_=[s]}  -- XXX assume only three values
+-- toggleStatus2 s ss
+--   | ss == [s]            = complement [s]
+--   | ss == complement [s] = []
+--   | otherwise            = [s]  -- XXX assume only three values
 
 -- 3 UPC toggles each X
--- reportOptsToggleStatus3 s ropts@ReportOpts{statuses_=ss}
---   | s `elem` ss = ropts{statuses_=filter (/= s) ss}
---   | otherwise   = ropts{statuses_=simplifyStatuses (s:ss)}
+-- toggleStatus3 s ss
+--   | s `elem` ss = filter (/= s) ss
+--   | otherwise   = simplifyStatuses (s:ss)
 
 -- 4 upc sets X, UPC sets not-X
---reportOptsToggleStatus4 s ropts@ReportOpts{statuses_=ss}
---  | s `elem` ss = ropts{statuses_=filter (/= s) ss}
---  | otherwise   = ropts{statuses_=simplifyStatuses (s:ss)}
+-- toggleStatus4 s ss
+--  | s `elem` ss = filter (/= s) ss
+--  | otherwise   = simplifyStatuses (s:ss)
 
 -- 5 upc toggles X, UPC toggles not-X
---reportOptsToggleStatus5 s ropts@ReportOpts{statuses_=ss}
---  | s `elem` ss = ropts{statuses_=filter (/= s) ss}
---  | otherwise   = ropts{statuses_=simplifyStatuses (s:ss)}
+-- toggleStatus5 s ss
+--  | s `elem` ss = filter (/= s) ss
+--  | otherwise   = simplifyStatuses (s:ss)
 
 -- | Given a list of unique enum values, list the other possible values of that enum.
 complement :: (Bounded a, Enum a, Eq a) => [a] -> [a]
@@ -101,56 +92,44 @@ complement = ([minBound..maxBound] \\)
 
 -- | Toggle between showing all and showing only nonempty (more precisely, nonzero) items.
 toggleEmpty :: UIState -> UIState
-toggleEmpty ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}} =
-  ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{_rsReportOpts=toggleEmpty ropts}}}}
-  where
-    toggleEmpty ropts = ropts{empty_=not $ empty_ ropts}
+toggleEmpty = over empty__ not
 
 -- | Toggle between showing the primary amounts or costs.
 toggleCost :: UIState -> UIState
-toggleCost ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}} =
-    ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{_rsReportOpts=ropts{cost_ = toggle $ cost_ ropts}}}}}
+toggleCost = over cost toggleCostMode
   where
-    toggle Cost   = NoCost
-    toggle NoCost = Cost
+    toggleCostMode Cost   = NoCost
+    toggleCostMode NoCost = Cost
 
 -- | Toggle between showing primary amounts or default valuation.
 toggleValue :: UIState -> UIState
-toggleValue ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}} =
-  ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{_rsReportOpts=ropts{
-    value_ = valuationToggleValue $ value_ ropts}}}}}
-
--- | Basic toggling of -V, for hledger-ui.
-valuationToggleValue :: Maybe ValuationType -> Maybe ValuationType
-valuationToggleValue (Just (AtEnd _)) = Nothing
-valuationToggleValue _                = Just $ AtEnd Nothing
+toggleValue = over value valuationToggleValue
+  where
+    -- | Basic toggling of -V, for hledger-ui.
+    valuationToggleValue (Just (AtEnd _)) = Nothing
+    valuationToggleValue _                = Just $ AtEnd Nothing
 
 -- | Set hierarchic account tree mode.
 setTree :: UIState -> UIState
-setTree ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}} =
-  ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{_rsReportOpts=ropts{accountlistmode_=ALTree}}}}}
+setTree = set accountlistmode ALTree
 
 -- | Set flat account list mode.
 setList :: UIState -> UIState
-setList ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}} =
-  ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{_rsReportOpts=ropts{accountlistmode_=ALFlat}}}}}
+setList = set accountlistmode ALFlat
 
 -- | Toggle between flat and tree mode. If current mode is unspecified/default, assume it's flat.
 toggleTree :: UIState -> UIState
-toggleTree ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}} =
-  ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{_rsReportOpts=toggleTreeMode ropts}}}}
+toggleTree = over accountlistmode toggleTreeMode
   where
-    toggleTreeMode ropts
-      | accountlistmode_ ropts == ALTree = ropts{accountlistmode_=ALFlat}
-      | otherwise                        = ropts{accountlistmode_=ALTree}
+    toggleTreeMode ALTree = ALFlat
+    toggleTreeMode ALFlat = ALTree
 
 -- | Toggle between historical balances and period balances.
 toggleHistorical :: UIState -> UIState
-toggleHistorical ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}} =
-  ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{_rsReportOpts=ropts{balanceaccum_=b}}}}}
+toggleHistorical = over balanceaccum toggleBalanceAccum
   where
-    b | balanceaccum_ ropts == Historical = PerPeriod
-      | otherwise                         = Historical
+    toggleBalanceAccum Historical = PerPeriod
+    toggleBalanceAccum _          = Historical
 
 -- | Toggle hledger-ui's "forecast/future mode". When this mode is enabled,
 -- hledger-shows regular transactions which have future dates, and
@@ -158,46 +137,33 @@ toggleHistorical ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec
 -- (which are usually but not necessarily future-dated).
 -- In normal mode, both of these are hidden.
 toggleForecast :: Day -> UIState -> UIState
-toggleForecast _d ui@UIState{aopts=UIOpts{cliopts_=copts}} =
-  uiSetForecast ui $
-    case forecast_ $ inputopts_ copts of
+toggleForecast _d ui = set forecast newForecast ui
+  where
+    newForecast = case ui^.forecast of
       Just _  -> Nothing
-      Nothing -> forecast_ . inputopts_ $ enableForecastPreservingPeriod ui copts
+      Nothing -> enableForecastPreservingPeriod ui (ui^.cliOpts) ^. forecast
 
 -- | Ensure this CliOpts enables forecasted transactions.
 -- If a forecast period was specified in the old CliOpts,
 -- or in the provided UIState's startup options,
 -- it is preserved.
 enableForecastPreservingPeriod :: UIState -> CliOpts -> CliOpts
-enableForecastPreservingPeriod ui copts@CliOpts{inputopts_=iopts} =
-    copts{inputopts_=iopts{forecast_=mforecast}}
+enableForecastPreservingPeriod ui copts = set forecast mforecast copts
   where
     mforecast = asum [mprovidedforecastperiod, mstartupforecastperiod, mdefaultforecastperiod]
       where
-        mprovidedforecastperiod = forecast_ $ inputopts_ copts
-        mstartupforecastperiod  = forecast_ $ inputopts_ $ cliopts_ $ astartupopts ui
+        mprovidedforecastperiod = copts ^. forecast
+        mstartupforecastperiod  = astartupopts ui ^. forecast
         mdefaultforecastperiod  = Just nulldatespan
-
--- | Helper: set forecast mode (with the given forecast period) on or off in the UI state.
-uiSetForecast :: UIState -> Maybe DateSpan -> UIState
-uiSetForecast
-  ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=iopts}}}
-  mforecast =
-  -- we assume forecast mode has no effect on ReportSpec's derived fields
-  ui{aopts=uopts{cliopts_=copts{inputopts_=iopts{forecast_=mforecast}}}}
 
 -- | Toggle between showing all and showing only real (non-virtual) items.
 toggleReal :: UIState -> UIState
-toggleReal ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}} =
-    ui{aopts=uopts{cliopts_=copts{reportspec_=update rspec}}}
-  where
-    update = either (error "toggleReal: updating Real should not result in an error") id  -- PARTIAL:
-           . updateReportSpecWith (\ropts -> ropts{real_=not $ real_ ropts})
+toggleReal = fromRight err . overEither real not  -- PARTIAL:
+  where err = error "toggleReal: updating Real should not result in an error"
 
 -- | Toggle the ignoring of balance assertions.
 toggleIgnoreBalanceAssertions :: UIState -> UIState
-toggleIgnoreBalanceAssertions ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=iopts@InputOpts{balancingopts_=bopts}}}} =
-  ui{aopts=uopts{cliopts_=copts{inputopts_=iopts{balancingopts_=bopts{ignore_assertions_=not $ ignore_assertions_ bopts}}}}}
+toggleIgnoreBalanceAssertions = over ignore_assertions not
 
 -- | Step through larger report periods, up to all.
 growReportPeriod :: Day -> UIState -> UIState
@@ -222,47 +188,34 @@ previousReportPeriod enclosingspan = updateReportPeriod (periodPreviousIn enclos
 moveReportPeriodToDate :: Day -> UIState -> UIState
 moveReportPeriodToDate d = updateReportPeriod (periodMoveTo d)
 
+-- | Clear any report period limits.
+resetReportPeriod :: UIState -> UIState
+resetReportPeriod = setReportPeriod PeriodAll
+
 -- | Get the report period.
 reportPeriod :: UIState -> Period
-reportPeriod = period_ . _rsReportOpts . reportspec_ . cliopts_ . aopts
+reportPeriod = (^.period)
 
 -- | Set the report period.
 setReportPeriod :: Period -> UIState -> UIState
 setReportPeriod p = updateReportPeriod (const p)
 
--- | Clear any report period limits.
-resetReportPeriod :: UIState -> UIState
-resetReportPeriod = setReportPeriod PeriodAll
-
 -- | Update report period by a applying a function.
 updateReportPeriod :: (Period -> Period) -> UIState -> UIState
-updateReportPeriod updatePeriod ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}} =
-    ui{aopts=uopts{cliopts_=copts{reportspec_=update rspec}}}
-  where
-    update = either (error "updateReportPeriod: updating period should not result in an error") id  -- PARTIAL:
-           . updateReportSpecWith (\ropts -> ropts{period_=updatePeriod $ period_ ropts})
+updateReportPeriod updatePeriod = fromRight err . overEither period updatePeriod  -- PARTIAL:
+  where err = error "updateReportPeriod: updating period should not result in an error"
 
 -- | Apply a new filter query.
 setFilter :: String -> UIState -> UIState
-setFilter s ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}} =
-    ui{aopts=uopts{cliopts_=copts{reportspec_=update rspec}}}
+setFilter s = over reportSpec update
   where
-    update = fromRight rspec . updateReportSpecWith (\ropts -> ropts{querystring_=querystring})  -- XXX silently ignores an error
-    querystring = words'' prefixes $ T.pack s
+    update rspec = fromRight rspec $ setEither querystring (words'' prefixes $ T.pack s) rspec  -- XXX silently ignores an error
 
 -- | Reset some filters & toggles.
 resetFilter :: UIState -> UIState
-resetFilter ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}} =
-  ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{
-     _rsQuery=Any
-    ,_rsQueryOpts=[]
-    ,_rsReportOpts=ropts{
-       empty_=True
-      ,statuses_=[]
-      ,real_=False
-      ,querystring_=[]
-      --,period_=PeriodAll
-    }}}}}
+resetFilter = set querystringNoUpdate [] . set realNoUpdate False . set statusesNoUpdate []
+            . set empty__ True  -- set period PeriodAll
+            . set rsQuery Any . set rsQueryOpts []
 
 -- | Reset all options state to exactly what it was at startup
 -- (preserving any command-line options/arguments).
@@ -297,15 +250,14 @@ setDepth :: Maybe Int -> UIState -> UIState
 setDepth mdepth = updateReportDepth (const mdepth)
 
 getDepth :: UIState -> Maybe Int
-getDepth = depth_ . _rsReportOpts . reportspec_ . cliopts_ . aopts
+getDepth = (^.depth)
 
 -- | Update report depth by a applying a function. If asked to set a depth less
 -- than zero, it will leave it unchanged.
 updateReportDepth :: (Maybe Int -> Maybe Int) -> UIState -> UIState
-updateReportDepth updateDepth ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}} =
-    ui{aopts=uopts{cliopts_=copts{reportspec_=update rspec}}}
+updateReportDepth updateDepth ui = over reportSpec update ui
   where
-    update = either (error "updateReportDepth: updating depth should not result in an error") id  -- PARTIAL:
+    update = fromRight (error "updateReportDepth: updating depth should not result in an error")  -- PARTIAL:
            . updateReportSpecWith (\ropts -> ropts{depth_=updateDepth (depth_ ropts) >>= clipDepth ropts})
     clipDepth ropts d | d < 0            = depth_ ropts
                       | d >= maxDepth ui = Nothing
@@ -316,8 +268,7 @@ showMinibuffer :: UIState -> UIState
 showMinibuffer ui = setMode (Minibuffer e) ui
   where
     e = applyEdit gotoEOL $ editor MinibufferEditor (Just 1) oldq
-    oldq = T.unpack . T.unwords . map textQuoteIfNeeded
-         . querystring_ . _rsReportOpts . reportspec_ . cliopts_ $ aopts ui
+    oldq = T.unpack . T.unwords . map textQuoteIfNeeded $ ui^.querystring
 
 -- | Close the minibuffer, discarding any edit in progress.
 closeMinibuffer :: UIState -> UIState
@@ -366,4 +317,3 @@ screenEnter :: Day -> Screen -> UIState -> UIState
 screenEnter d scr ui = (sInit scr) d True $
                        pushScreen scr
                        ui
-
