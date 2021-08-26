@@ -66,17 +66,17 @@ uimode =  (mode "hledger-ui" (setopt "command" "ui" def)
 
 -- hledger-ui options, used in hledger-ui and above
 data UIOpts = UIOpts
-  { watch_     :: Bool
+  { uoWatch    :: Bool
   , uoTheme    :: Maybe String
   , uoRegister :: Maybe String
-  , cliopts_   :: CliOpts
+  , uoCliOpts  :: CliOpts
   } deriving (Show)
 
 defuiopts = UIOpts
-  { watch_     = False
+  { uoWatch    = False
   , uoTheme    = Nothing
   , uoRegister = Nothing
-  , cliopts_   = defcliopts
+  , uoCliOpts  = defcliopts
   }
 
 -- | Process a RawOpts into a UIOpts.
@@ -85,10 +85,10 @@ rawOptsToUIOpts :: RawOpts -> IO UIOpts
 rawOptsToUIOpts rawopts = do
     cliopts <- set balanceaccum accum <$> rawOptsToCliOpts rawopts
     return defuiopts {
-                watch_     = boolopt "watch" rawopts
+                uoWatch    = boolopt "watch" rawopts
                ,uoTheme    = checkTheme <$> maybestringopt "theme" rawopts
                ,uoRegister = maybestringopt "register" rawopts
-               ,cliopts_   = cliopts
+               ,uoCliOpts  = cliopts
                }
   where
     -- show historical balance by default (unlike hledger)
@@ -105,7 +105,7 @@ getHledgerUIOpts = do
   rawOptsToUIOpts cmdargopts
 
 instance HasCliOpts UIOpts where
-    cliOpts f uiopts = (\x -> uiopts{cliopts_=x}) <$> f (cliopts_ uiopts)
+    cliOpts f uiopts = (\x -> uiopts{uoCliOpts=x}) <$> f (uoCliOpts uiopts)
 
 instance HasInputOpts UIOpts where
     inputOpts = cliOpts.inputOpts

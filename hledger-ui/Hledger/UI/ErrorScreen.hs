@@ -21,6 +21,7 @@ import Data.Void (Void)
 import Graphics.Vty (Event(..),Key(..),Modifier(..))
 import Text.Megaparsec
 import Text.Megaparsec.Char
+import Lens.Micro ((^.))
 
 import Hledger.Cli hiding (progname,prognameandversion)
 import Hledger.UI.UIOptions
@@ -42,7 +43,7 @@ esInit _ _ ui@UIState{aScreen=ErrorScreen{}} = ui
 esInit _ _ _ = error "init function called with wrong screen type, should not happen"  -- PARTIAL:
 
 esDraw :: UIState -> [Widget Name]
-esDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{}}
+esDraw UIState{aopts=UIOpts{uoCliOpts=copts}
               ,aScreen=ErrorScreen{..}
               ,aMode=mode
               } =
@@ -75,7 +76,7 @@ esDraw _ = error "draw function called with wrong screen type, should not happen
 
 esHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
 esHandle ui@UIState{aScreen=ErrorScreen{..}
-                   ,aopts=UIOpts{cliopts_=copts}
+                   ,aopts=UIOpts{uoCliOpts=copts}
                    ,ajournal=j
                    ,aMode=mode
                    }
@@ -181,8 +182,8 @@ uiReloadJournalIfChanged copts d j ui = do
 -- fail, enter (or update) the error screen. Or if balance assertions
 -- are disabled, do nothing.
 uiCheckBalanceAssertions :: Day -> UIState -> UIState
-uiCheckBalanceAssertions d ui@UIState{aopts=UIOpts{cliopts_=copts}, ajournal=j}
-  | ignore_assertions_ . balancingopts_ $ inputopts_ copts = ui
+uiCheckBalanceAssertions d ui@UIState{ajournal=j}
+  | ui^.ignore_assertions = ui
   | otherwise =
     case journalCheckBalanceAssertions j of
       Nothing  -> ui

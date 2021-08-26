@@ -49,7 +49,7 @@ accountsScreen = AccountsScreen{
 
 asInit :: Day -> Bool -> UIState -> UIState
 asInit d reset ui@UIState{
-  aopts=UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}},
+  aopts=UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}},
   ajournal=j,
   aScreen=s@AccountsScreen{}
   } =
@@ -103,7 +103,7 @@ asInit d reset ui@UIState{
 asInit _ _ _ = error "init function called with wrong screen type, should not happen"  -- PARTIAL:
 
 asDraw :: UIState -> [Widget Name]
-asDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}
+asDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
               ,ajournal=j
               ,aScreen=s@AccountsScreen{}
               ,aMode=mode
@@ -223,7 +223,7 @@ asDrawItem (acctwidth, balwidth) selected AccountsScreenItem{..} =
 asHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
 asHandle ui0@UIState{
    aScreen=scr@AccountsScreen{..}
-  ,aopts=UIOpts{cliopts_=copts}
+  ,aopts=UIOpts{uoCliOpts=copts}
   ,ajournal=j
   ,aMode=mode
   } ev = do

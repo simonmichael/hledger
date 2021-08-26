@@ -41,7 +41,7 @@ transactionScreen = TransactionScreen{
   }
 
 tsInit :: Day -> Bool -> UIState -> UIState
-tsInit _d _reset ui@UIState{aopts=UIOpts{cliopts_=CliOpts{reportspec_=_rspec}}
+tsInit _d _reset ui@UIState{aopts=UIOpts{}
                            ,ajournal=_j
                            ,aScreen=s@TransactionScreen{tsTransaction=(_,t),tsTransactions=nts}
                            ,aPrevScreens=prevscreens
@@ -60,7 +60,7 @@ tsInit _d _reset ui@UIState{aopts=UIOpts{cliopts_=CliOpts{reportspec_=_rspec}}
 tsInit _ _ _ = error "init function called with wrong screen type, should not happen"  -- PARTIAL:
 
 tsDraw :: UIState -> [Widget Name]
-tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}
+tsDraw UIState{aopts=UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}
               ,ajournal=j
               ,aScreen=TransactionScreen{tsTransaction=(i,t')
                                         ,tsTransactions=nts
@@ -133,7 +133,7 @@ tsDraw _ = error "draw function called with wrong screen type, should not happen
 
 tsHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
 tsHandle ui@UIState{aScreen=TransactionScreen{tsTransaction=(i,t), tsTransactions=nts}
-                   ,aopts=UIOpts{cliopts_=copts}
+                   ,aopts=UIOpts{uoCliOpts=copts}
                    ,ajournal=j
                    ,aMode=mode
                    }
