@@ -8,12 +8,13 @@ where
 
 import Data.Default (def)
 import Data.List (intercalate)
+import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
 import Lens.Micro (set)
 import System.Environment (getArgs)
 
 import Hledger.Cli hiding (packageversion, progname, prognameandversion)
-import Hledger.UI.Theme (themeNames)
+import Hledger.UI.Theme (themes, themeNames)
 
 -- cf Hledger.Cli.Version
 
@@ -64,34 +65,35 @@ uimode =  (mode "hledger-ui" (setopt "command" "ui" def)
            }
 
 -- hledger-ui options, used in hledger-ui and above
-data UIOpts = UIOpts {
-     watch_       :: Bool
-    ,cliopts_     :: CliOpts
- } deriving (Show)
+data UIOpts = UIOpts
+  { watch_     :: Bool
+  , uoTheme    :: Maybe String
+  , uoRegister :: Maybe String
+  , cliopts_   :: CliOpts
+  } deriving (Show)
 
 defuiopts = UIOpts
-  { watch_   = False
-  , cliopts_ = def
+  { watch_     = False
+  , uoTheme    = Nothing
+  , uoRegister = Nothing
+  , cliopts_   = defcliopts
   }
 
--- instance Default CliOpts where def = defcliopts
-
+-- | Process a RawOpts into a UIOpts.
+-- This will return a usage error if provided an invalid theme.
 rawOptsToUIOpts :: RawOpts -> IO UIOpts
-rawOptsToUIOpts rawopts = checkUIOpts <$> do
-  -- show historical balance by default (unlike hledger)
-  let accum = fromMaybe Historical $ balanceAccumulationOverride rawopts
-  cliopts <- set balanceaccum accum <$> rawOptsToCliOpts rawopts
-  return defuiopts {
-              watch_       = boolopt "watch" rawopts
-             ,cliopts_     = cliopts
-             }
-
-checkUIOpts :: UIOpts -> UIOpts
-checkUIOpts opts =
-  either usageError (const opts) $ do
-    case maybestringopt "theme" $ rawopts_ $ cliopts_ opts of
-      Just t | t `notElem` themeNames -> Left $ "invalid theme name: "++t
-      _                               -> Right ()
+rawOptsToUIOpts rawopts = do
+    cliopts <- set balanceaccum accum <$> rawOptsToCliOpts rawopts
+    return defuiopts {
+                watch_     = boolopt "watch" rawopts
+               ,uoTheme    = checkTheme <$> maybestringopt "theme" rawopts
+               ,uoRegister = maybestringopt "register" rawopts
+               ,cliopts_   = cliopts
+               }
+  where
+    -- show historical balance by default (unlike hledger)
+    accum = fromMaybe Historical $ balanceAccumulationOverride rawopts
+    checkTheme t = if t `M.member` themes then t else usageError $ "invalid theme name: " ++ t
 
 -- XXX some refactoring seems due
 getHledgerUIOpts :: IO UIOpts

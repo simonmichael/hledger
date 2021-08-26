@@ -121,12 +121,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportspec_=rsp
         filteredQuery q = simplifyQuery $ And [queryFromFlags ropts, filtered q]
           where filtered = filterQuery (\x -> not $ queryIsDepth x || queryIsDate x)
 
-    -- XXX move this stuff into Options, UIOpts
-    theme = maybe defaultTheme (fromMaybe defaultTheme . getTheme) $
-            maybestringopt "theme" $ rawopts_ copts
-    mregister = maybestringopt "register" $ rawopts_ copts
-
-    (scr, prevscrs) = case mregister of
+    (scr, prevscrs) = case uoRegister uopts' of
       Nothing   -> (accountsScreen, [])
       -- with --register, start on the register screen, and also put
       -- the accounts screen on the prev screens stack so you can exit
@@ -165,7 +160,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportspec_=rsp
     brickapp :: App UIState AppEvent Name
     brickapp = App {
         appStartEvent   = return
-      , appAttrMap      = const theme
+      , appAttrMap      = const $ fromMaybe defaultTheme $ getTheme =<< uoTheme uopts'
       , appChooseCursor = showFirstCursor
       , appHandleEvent  = \ui ev -> sHandle (aScreen ui) ui ev
       , appDraw         = \ui    -> sDraw   (aScreen ui) ui
