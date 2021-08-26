@@ -103,3 +103,21 @@ getHledgerUIOpts = do
   let args' = replaceNumericFlags args
   let cmdargopts = either usageError id $ process uimode args'
   rawOptsToUIOpts cmdargopts
+
+instance HasCliOpts UIOpts where
+    cliOpts f uiopts = (\x -> uiopts{cliopts_=x}) <$> f (cliopts_ uiopts)
+
+instance HasInputOpts UIOpts where
+    inputOpts = cliOpts.inputOpts
+
+instance HasBalancingOpts UIOpts where
+    balancingOpts = cliOpts.balancingOpts
+
+instance HasReportSpec UIOpts where
+    reportSpec = cliOpts.reportSpec
+
+instance HasReportOptsNoUpdate UIOpts where
+    reportOptsNoUpdate = cliOpts.reportOptsNoUpdate
+
+instance HasReportOpts UIOpts where
+    reportOpts = cliOpts.reportOpts

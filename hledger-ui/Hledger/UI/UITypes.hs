@@ -48,6 +48,7 @@ import Text.Show.Functions ()
   -- import the Show instance for functions. Warning, this also re-exports it
 
 import Hledger
+import Hledger.Cli (HasCliOpts(..))
 import Hledger.UI.UIOptions
 
 -- | hledger-ui's application state. This holds one or more stateful screens.
@@ -160,7 +161,24 @@ type NumberedTransaction = (Integer, Transaction)
 --    mempty        = list "" V.empty 1  -- XXX problem in 0.7, every list requires a unique Name
 --    mappend l1 l2 = l1 & listElementsL .~ (l1^.listElementsL <> l2^.listElementsL)
 
-concat <$> mapM makeLenses [
-   ''Screen
-  ]
+makeLenses ''Screen
 
+uioptslens f ui = (\x -> ui{aopts=x}) <$> f (aopts ui)
+
+instance HasCliOpts UIState where
+    cliOpts = uioptslens.cliOpts
+
+instance HasInputOpts UIState where
+    inputOpts = uioptslens.inputOpts
+
+instance HasBalancingOpts UIState where
+    balancingOpts = uioptslens.balancingOpts
+
+instance HasReportSpec UIState where
+    reportSpec = uioptslens.reportSpec
+
+instance HasReportOptsNoUpdate UIState where
+    reportOptsNoUpdate = uioptslens.reportOptsNoUpdate
+
+instance HasReportOpts UIState where
+    reportOpts = uioptslens.reportOpts
