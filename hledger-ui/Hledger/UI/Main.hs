@@ -44,7 +44,7 @@ writeChan = BC.writeBChan
 
 main :: IO ()
 main = do
-  opts@UIOpts{cliopts_=copts@CliOpts{inputopts_=iopts,rawopts_=rawopts}} <- getHledgerUIOpts
+  opts@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=iopts,rawopts_=rawopts}} <- getHledgerUIOpts
   -- when (debug_ $ cliopts_ opts) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show opts)
 
   -- always generate forecasted periodic transactions; their visibility will be toggled by the UI.
@@ -59,7 +59,7 @@ main = do
     _                                         -> withJournalDo copts' (runBrickUi opts)
 
 runBrickUi :: UIOpts -> Journal -> IO ()
-runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}} j = do
+runBrickUi uopts@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}} j = do
   d <- getCurrentDay
 
   let
@@ -102,7 +102,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportspec_=rsp
     -- It's cleaner and less conflicting to keep the former out of the latter.
 
     uopts' = uopts{
-      cliopts_=copts{
+      uoCliOpts=copts{
          reportspec_=rspec{
             _rsQuery=filteredQuery $ _rsQuery rspec,  -- query with depth/date parts removed
             _rsReportOpts=ropts{
@@ -168,7 +168,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportspec_=rsp
 
   -- print (length (show ui)) >> exitSuccess  -- show any debug output to this point & quit
 
-  if not (watch_ uopts')
+  if not (uoWatch uopts')
   then
     void $ Brick.defaultMain brickapp ui
 

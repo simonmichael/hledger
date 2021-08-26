@@ -56,7 +56,7 @@ rsSetAccount a forceinclusive scr@RegisterScreen{} =
 rsSetAccount _ _ scr = scr
 
 rsInit :: Day -> Bool -> UIState -> UIState
-rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}, ajournal=j, aScreen=s@RegisterScreen{..}} =
+rsInit d reset ui@UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}, ajournal=j, aScreen=s@RegisterScreen{..}} =
   ui{aScreen=s{rsList=newitems'}}
   where
     -- gather arguments and queries
@@ -134,7 +134,7 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_
 rsInit _ _ _ = error "init function called with wrong screen type, should not happen"  -- PARTIAL:
 
 rsDraw :: UIState -> [Widget Name]
-rsDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}
+rsDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
               ,aScreen=RegisterScreen{..}
               ,aMode=mode
               } =
@@ -275,7 +275,7 @@ rsDrawItem (datewidth,descwidth,acctswidth,changewidth,balwidth) selected Regist
 rsHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
 rsHandle ui@UIState{
    aScreen=s@RegisterScreen{..}
-  ,aopts=UIOpts{cliopts_=copts}
+  ,aopts=UIOpts{uoCliOpts=copts}
   ,ajournal=j
   ,aMode=mode
   } ev = do
