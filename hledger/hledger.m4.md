@@ -3146,53 +3146,63 @@ So,
 
 ### Forecasting with periodic transactions
 
-The `--forecast` flag activates any periodic transaction rules in the journal.
-They will generate temporary recurring transactions,
-which are not saved in the journal, but will appear in all reports
-(eg [print](#print)).
+The `--forecast` flag activates any [periodic transaction rules](#periodic-transactions) 
+in the journal. These will generate temporary additional transactions, 
+usually recurring and in the future, which will appear in all reports.
+`hledger print --forecast` is a good way to see them.
+
 This can be useful for estimating balances into the future,
-or experimenting with different scenarios.
-Or, it can be used as a data entry aid: describe recurring
+perhaps experimenting with different scenarios.
+
+It could also be useful for scripted data entry: you could describe recurring
 transactions, and every so often copy the output of `print --forecast`
 into the journal.
 
-These transactions will have an extra [tag](#tags)
-indicating which periodic rule generated them:
-`generated-transaction:~ PERIODICEXPR`.
-And a similar, hidden tag (beginning with an underscore) which,
-because it's never displayed by print, can be used to match
-transactions generated "just now":
-`_generated-transaction:~ PERIODICEXPR`.
+The generated transactions will have an extra [tag](#tags), like
+`generated-transaction:~ PERIODICEXPR`, 
+indicating which periodic rule generated them.
+There is also a similar, hidden tag, named `_generated-transaction:`, 
+which you can use to reliably match transactions generated "just now"
+(rather than `print`ed in the past).
 
-Periodic transactions are generated within some forecast period.
-This begins on:
-- the start date supplied to the `--forecast` argument, if present
+The forecast transactions are generated within a *forecast period*,
+which is independent of the [report period](#report-start--end-date).
+(Forecast period sets the bounds for generated transactions,
+report period controls which transactions are reported.)
+The forecast period begins on:
+
+- the start date provided within `--forecast`'s argument, if any
 - otherwise, the later of
-  - the report start date if specified with -b/-p/date:
-  - the day after the latest normal (non-periodic) transaction in the journal, if any
+  - the report start date, if specified (with `-b`/`-p`/`date:`)
+  - the day after the latest ordinary transaction in the journal, if any
 - otherwise today.
+
 It ends on:
-- the end date supplied to the `--forecast` argument, if present
-- otherwise the report end date if specified with -e/-p/date:
+
+- the end date provided within `--forecast`'s argument, if any
+- otherwise, the report end date, if specified (with `-e`/`-p`/`date:`)
 - otherwise 180 days (6 months) from today.
 
-This means that periodic transactions will begin only after the latest
-recorded transaction. And a recorded transaction dated in the future can
-prevent generation of periodic transactions.
-(You can avoid that by writing the future transaction as a one-time
-periodic rule instead - put tilde before the date, eg `~ YYYY-MM-DD ...`).
+Note, this means that ordinary transactions will suppress periodic transactions,
+by default; the periodic transactions will not start until after the last ordinary transaction.
+This is usually convenient, but you can get around it in two ways:
 
-Or, you can set your own arbitrary "forecast period", which can
-overlap recorded transactions, and need not be in the future.
-To do this, provide a [period expression](#period-expressions) argument, like `--forecast=PERIODEXPR`.
-Note:
+- If you need to record some transactions in the future, make them 
+  periodic transactions (with a single occurrence) rather than ordinary transactions.
+  (Eg: `~ YYYY-MM-DD  description...`). That way they won't suppress other
+  periodic transactions.
 
-- the equals sign is required (a space won't work)
-- PERIODEXPR can specify the forecast period's start and/or end dates
-  (similar to [Report start & end date](#report-start--end-date))
-- PERIODEXPR shouldn't specify a report interval; each periodic transaction rule specifies its own.
+- Or give `--forecast` a [period expression](#period-expressions) argument.
+  A forecast period specified this way can overlap ordinary transactions, 
+  and need not be in the future. Some things to note:
 
-Some examples: `--forecast=202001-202004`, `--forecast=jan-`, `--forecast=2020`.
+  - You must use `=` between flag and argument; a space won't work.
+  - The period expression can specify the forecast period's start date, end date, or both.
+    See also [Report start & end date](#report-start--end-date).
+  - The period expression should not specify a [report interval](#report-interval).
+    (Each periodic transaction rule specifies its own interval.)
+
+Some examples: `--forecast=202001-202004`, `--forecast=jan-`, `--forecast=2021`.
 
 ### Budgeting with periodic transactions
 
