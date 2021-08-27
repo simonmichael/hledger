@@ -3198,7 +3198,7 @@ This is usually convenient, but you can get around it in two ways:
   - You must use `=` between flag and argument; a space won't work.
   - The period expression can specify the forecast period's start date, end date, or both.
     See also [Report start & end date](#report-start--end-date).
-  - The period expression should not specify a [report interval](#report-interval).
+  - The period expression should not specify a [report interval](#report-intervals).
     (Each periodic transaction rule specifies its own interval.)
 
 Some examples: `--forecast=202001-202004`, `--forecast=jan-`, `--forecast=2021`.
