@@ -442,7 +442,7 @@ budgetReportAsCsv
             ++ concat [[rowtot, budgettot] | row_total_]
             ++ concat [[rowavg, budgetavg] | average_]
 
-        joinNames = fmap ((:) (render row))
+        joinNames = fmap (render row :)
 
 -- tests
 

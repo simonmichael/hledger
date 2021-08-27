@@ -16,8 +16,6 @@
 - ignore: {name: "Use camelCase"}
 - ignore: {name: "Use list comprehension"}
 - ignore: {name: "Use fewer imports"}
-- ignore: {name: "Use tuple-section"}
-- ignore: {name: "Use section"}
 
 
 # Specify additional command line arguments
