@@ -28,7 +28,6 @@ import Hledger.UI.UITypes
 import Hledger.UI.UIState
 import Hledger.UI.UIUtils
 import Hledger.UI.Editor
-import Data.Foldable (asum)
 
 errorScreen :: Screen
 errorScreen = ErrorScreen{
@@ -177,20 +176,6 @@ uiReloadJournalIfChanged copts d j ui = do
       case ui of
         UIState{aScreen=s@ErrorScreen{}} -> ui{aScreen=s{esError=err}}
         _                                -> screenEnter d errorScreen{esError=err} ui
-
--- | Ensure this CliOpts enables forecasted transactions.
--- If a forecast period was specified in the old CliOpts,
--- or in the provided UIState's startup options,
--- it is preserved.
-enableForecastPreservingPeriod :: UIState -> CliOpts -> CliOpts
-enableForecastPreservingPeriod ui copts@CliOpts{inputopts_=iopts} =
-    copts{inputopts_=iopts{forecast_=mforecast}}
-  where
-    mforecast = asum [mprovidedforecastperiod, mstartupforecastperiod, mdefaultforecastperiod]
-      where
-        mprovidedforecastperiod = forecast_ $ inputopts_ copts
-        mstartupforecastperiod  = forecast_ $ inputopts_ $ cliopts_ $ astartupopts ui
-        mdefaultforecastperiod  = Just nulldatespan
 
 -- Re-check any balance assertions in the current journal, and if any
 -- fail, enter (or update) the error screen. Or if balance assertions

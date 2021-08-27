@@ -7,6 +7,7 @@ module Hledger.UI.UIState
 where
 
 import Brick.Widgets.Edit
+import Data.Foldable (asum)
 import Data.List ((\\), foldl', sort)
 import Data.Semigroup (Max(..))
 import qualified Data.Text as T
@@ -156,11 +157,25 @@ toggleHistorical ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec
 -- (which are usually but not necessarily future-dated).
 -- In normal mode, both of these are hidden.
 toggleForecast :: Day -> UIState -> UIState
-toggleForecast d ui@UIState{aopts=UIOpts{cliopts_=CliOpts{inputopts_=iopts}}} =
+toggleForecast _d ui@UIState{aopts=UIOpts{cliopts_=copts}} =
   uiSetForecast ui $
-    case forecast_ iopts of
+    case forecast_ $ inputopts_ copts of
       Just _  -> Nothing
-      Nothing -> forecastPeriod d iopts{forecast_=Just nulldatespan} (ajournal ui)
+      Nothing -> forecast_ . inputopts_ $ enableForecastPreservingPeriod ui copts
+
+-- | Ensure this CliOpts enables forecasted transactions.
+-- If a forecast period was specified in the old CliOpts,
+-- or in the provided UIState's startup options,
+-- it is preserved.
+enableForecastPreservingPeriod :: UIState -> CliOpts -> CliOpts
+enableForecastPreservingPeriod ui copts@CliOpts{inputopts_=iopts} =
+    copts{inputopts_=iopts{forecast_=mforecast}}
+  where
+    mforecast = asum [mprovidedforecastperiod, mstartupforecastperiod, mdefaultforecastperiod]
+      where
+        mprovidedforecastperiod = forecast_ $ inputopts_ copts
+        mstartupforecastperiod  = forecast_ $ inputopts_ $ cliopts_ $ astartupopts ui
+        mdefaultforecastperiod  = Just nulldatespan
 
 -- | Helper: set forecast mode (with the given forecast period) on or off in the UI state.
 uiSetForecast :: UIState -> Maybe DateSpan -> UIState
