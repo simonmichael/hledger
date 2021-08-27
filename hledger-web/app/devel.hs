@@ -1,10 +1,9 @@
 {-# LANGUAGE PackageImports #-}
 import "hledger-web" Hledger.Web.Main (hledgerWebDev)
 import Network.Wai.Handler.Warp (runSettings, defaultSettings, setPort)
-import Control.Concurrent (forkIO)
+import Control.Concurrent (forkIO, threadDelay)
 import System.Directory (doesFileExist, removeFile)
 import System.Exit (exitSuccess)
-import Control.Concurrent (threadDelay)
 
 main :: IO ()
 main = do
