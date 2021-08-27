@@ -1,14 +1,13 @@
 * Human-powered tests for hledger-ui
 
 When you want to check that hledger-ui is working correctly, 
-try some or all of these things. Additions welcome.
-Expected output, at least the first few lines of it, 
-as copied from an 80x25 terminal, is shown below each step.
+run through the following tests, by hand, in an 80x25 terminal. 
+Each test gives a command to run in this directory, and the first
+few lines of expected output (and any notes as a # comment).
 
-This is an org outline. When you're familiar with these tests, 
-you can view it in Emacs org mode with all body text hidden,
-showing just the test steps and brief expected result - makes
-it quicker to run through them.
+Once you're familiar with the tests, you can view this file in Emacs
+org mode (eg) with all body text folded, showing just the test steps
+and brief expected result.
 
 Another source of tests is the tutorial at https://hledger.org/ui.html,
 which has nice screenshots, but might be less up to date.
