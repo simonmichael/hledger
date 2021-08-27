@@ -75,9 +75,8 @@ import Data.Default
 import Data.Either (isRight)
 import Data.Functor.Identity (Identity)
 import "base-compat-batteries" Data.List.Compat
-import Data.List.Extra (nubSort)
+import Data.List.Extra (groupSortOn, nubSort)
 import Data.List.Split (splitOneOf)
-import Data.Ord
 import Data.Maybe
 --import Data.String.Here
 -- import Data.Text (Text)
@@ -662,12 +661,11 @@ registerWidthsFromOpts CliOpts{width_=Just s}  =
 hledgerAddons :: IO [String]
 hledgerAddons = do
   -- past bug generator
-  as1 <- hledgerExecutablesInPath                                  -- ["hledger-check","hledger-check-dates","hledger-check-dates.hs","hledger-check.hs","hledger-check.py"]
-  let as2 = map stripPrognamePrefix as1                            -- ["check","check-dates","check-dates.hs","check.hs","check.py"]
-  let as3 = sortBy (comparing takeBaseName) as2                    -- ["check","check.hs","check.py","check-dates","check-dates.hs"]
-  let as4 = groupBy (\a b -> takeBaseName a == takeBaseName b) as3 -- [["check","check.hs","check.py"],["check-dates","check-dates.hs"]]
-  let as5 = concatMap dropRedundantSourceVersion as4               -- ["check","check.hs","check.py","check-dates"]
-  return as5
+  as1 <- hledgerExecutablesInPath                     -- ["hledger-check","hledger-check-dates","hledger-check-dates.hs","hledger-check.hs","hledger-check.py"]
+  let as2 = map stripPrognamePrefix as1               -- ["check","check-dates","check-dates.hs","check.hs","check.py"]
+  let as3 = groupSortOn takeBaseName as2              -- [["check","check.hs","check.py"],["check-dates","check-dates.hs"]]
+  let as4 = concatMap dropRedundantSourceVersion as3  -- ["check","check.hs","check.py","check-dates"]
+  return as4
 
 stripPrognamePrefix = drop (length progname + 1)
 

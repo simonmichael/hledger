@@ -12,7 +12,7 @@ module Hledger.Cli.Commands.Diff (
  ,diff
 ) where
 
-import Data.List ((\\), groupBy, nubBy, sortBy)
+import Data.List.Extra ((\\), groupSortOn, nubBy, sortBy)
 import Data.Function (on)
 import Data.Ord (comparing)
 import Data.Maybe (fromJust)
@@ -56,14 +56,11 @@ allPostingsWithPath j = do
     (pidx, p) <- zip [0..] $ tpostings txn
     return PostingWithPath { ppposting = p, pptxnidx = txnidx, pppidx = pidx }
 
-binBy :: Ord b => (a -> b) -> [a] -> [[a]]
-binBy f = groupBy ((==) `on` f) . sortBy (comparing f)
-
 combine :: ([a], [b]) -> [Either a b]
 combine (ls, rs) = map Left ls ++ map Right rs
 
 combinedBinBy :: Ord b => (a -> b) -> ([a], [a]) -> [([a], [a])]
-combinedBinBy f = map partitionEithers . binBy (either f f) . combine
+combinedBinBy f = map partitionEithers . groupSortOn (either f f) . combine
 
 greedyMaxMatching :: (Eq a, Eq b) => [(a,b)] -> [(a,b)]
 greedyMaxMatching = greedyMaxMatching' []
