@@ -9,7 +9,7 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 53d9455bd
+# 405fdf7af
 
 Features
 
@@ -89,6 +89,30 @@ Improvements
   as default closing date, providing more intuitive behaviour when
   closing a journal with future transactions. Docs have been improved.
   ([#1604](https://github.com/simonmichael/hledger/issues/1604))
+
+- Rules for selecting the forecast period (within with --forecast
+  generates transactions) have been tweaked slightly, and
+  some variance between docs and implementation has been fixed.
+  Now, the forecast period begins on:
+  - the start date supplied to the `--forecast` argument, if any
+  - otherwise, the later of
+    - the report start date if specified with -b/-p/date:
+    - the day after the latest normal (non-periodic) transaction in the journal, if any
+  - otherwise today.
+
+  It ends on:
+  - the end date supplied to the `--forecast` argument, if any
+  - otherwise the report end date if specified with -e/-p/date:
+  - otherwise 180 days (6 months) from today.
+
+  This is more intuitive in some cases, eg
+  `hledger reg --forecast -b 2020-01-01` on a journal containing 
+  only periodic transaction rules will now show forecast transactions 
+  starting from 2020-01-01 (previously they would start from today).
+  ([#1648](https://github.com/simonmichael/hledger/issues/1648), 
+  [#1665](https://github.com/simonmichael/hledger/issues/1665),
+  [#1667](https://github.com/simonmichael/hledger/issues/1667), 
+  Stephen Morgan, Simon Michael)
 
 Fixes
 
