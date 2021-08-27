@@ -1,10 +1,11 @@
 -- | /register handlers.
 
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE NamedFieldPuns      #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE QuasiQuotes         #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TupleSections       #-}
 
 module Hledger.Web.Handler.RegisterR where
 
@@ -78,7 +79,7 @@ preferReal ps
 elideRightDecorated :: Int -> [(Maybe d, Char)] -> [(Maybe d, Char)]
 elideRightDecorated width s =
     if length s > width
-        then take (width - 2) s ++ map ((,) Nothing) ".."
+        then take (width - 2) s ++ map (Nothing,) ".."
         else s
 
 undecorateLinks :: [(Maybe acct, char)] -> [(acct, ([char], [char]))]
@@ -92,10 +93,8 @@ undecorateLinks xs0@(x:_) =
         _ -> error "link name not decorated with account"  -- PARTIAL:
 
 decorateLinks :: [(acct, ([char], [char]))] -> [(Maybe acct, char)]
-decorateLinks =
-    concatMap
-        (\(acct, (name, comma)) ->
-            map ((,) (Just acct)) name ++ map ((,) Nothing) comma)
+decorateLinks = concatMap $ \(acct, (name, comma)) ->
+    map (Just acct,) name ++ map (Nothing,) comma
 
 -- | Generate javascript/html for a register balance line chart based on
 -- the provided "AccountTransactionsReportItem"s.

@@ -1001,7 +1001,7 @@ getAmount rules record currency p1IsVirtual n =
     assignments' | any isnumbered assignments = filter isnumbered assignments
                  | otherwise                  = assignments
       where
-        isnumbered (f,_) = T.any (flip elem ['0'..'9']) f
+        isnumbered (f,_) = T.any isDigit f
 
     -- if there's more than one value and only some are zeros, discard the zeros
     assignments''

@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ParallelListComp  #-}
 {-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TupleSections     #-}
 {-# LANGUAGE RecordWildCards   #-}
 {-|
 
@@ -119,7 +120,7 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportO
 
       priceDates = dbg3 "priceDates" $ nub $ filter (spanContainsDate span) priceDirectiveDates
       cashFlow =
-        ((map (\d -> (d,nullmixedamt)) priceDates)++) $
+        ((map (,nullmixedamt) priceDates)++) $
         cashFlowApplyCostValue $
         calculateCashFlow trans (And [ Not investmentsQuery
                                      , Not pnlQuery

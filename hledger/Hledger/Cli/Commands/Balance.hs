@@ -515,14 +515,12 @@ multiBalanceReportAsCsv opts@ReportOpts{..} =
   (if transpose_ then transpose else id) . uncurry (++) . multiBalanceReportAsCsv' opts
 
 multiBalanceReportAsCsv' :: ReportOpts -> MultiBalanceReport -> (CSV, CSV)
-multiBalanceReportAsCsv' opts@ReportOpts{..}
-    (PeriodicReport colspans items tr) =
-  flip (,) totalrows $
-  ("account" : ["commodity" | commodity_column_] ++ map showDateSpan colspans
-   ++ ["total"   | row_total_]
-   ++ ["average" | average_]
-  ) :
-  concatMap (fullRowAsTexts (accountNameDrop drop_ . prrFullName)) items
+multiBalanceReportAsCsv' opts@ReportOpts{..} (PeriodicReport colspans items tr) =
+    ( ("account" : ["commodity" | commodity_column_] ++ map showDateSpan colspans
+       ++ ["total"   | row_total_]
+       ++ ["average" | average_]
+      ) : concatMap (fullRowAsTexts (accountNameDrop drop_ . prrFullName)) items
+    , totalrows)
   where
     fullRowAsTexts render row = (render row :) <$> multiBalanceRowAsCsvText opts row
     totalrows

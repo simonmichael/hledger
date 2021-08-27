@@ -225,7 +225,7 @@ splitSpan (DaysOfWeek days@(n:_)) ds
 
     wheel = (\x -> zipWith (-) (tail x) x) . concat . zipWith fmap (fmap (+) [0,7..]) . repeat $ days
 
-    split = splitspan' (repeat startofday) (fmap (flip applyN nextday) wheel)
+    split = splitspan' (repeat startofday) (fmap (`applyN` nextday) wheel)
 
 splitSpan (DayOfYear m n) s = splitspan (nthdayofyearcontaining m n) (applyN (n-1) nextday . applyN (m-1) nextmonth . nextyear) s
 -- splitSpan (WeekOfYear n)    s = splitspan startofweek    (applyN n nextweek)    s
