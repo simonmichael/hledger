@@ -3188,9 +3188,8 @@ by default; the periodic transactions will not start until after the last ordina
 This is usually convenient, but you can get around it in two ways:
 
 - If you need to record some transactions in the future, make them 
-  periodic transactions (with a single occurrence) rather than ordinary transactions.
-  (Eg: `~ YYYY-MM-DD  description...`). That way they won't suppress other
-  periodic transactions.
+  periodic transactions (with a single occurrence, eg: `~ YYYY-MM-DD`) rather than ordinary transactions.
+  That way they won't suppress other periodic transactions.
 
 - Or give `--forecast` a [period expression](#period-expressions) argument.
   A forecast period specified this way can overlap ordinary transactions, 
