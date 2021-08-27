@@ -10,7 +10,6 @@
 - ignore: {name: "Move brackets to avoid $"}
 - ignore: {name: "Redundant $"}
 - ignore: {name: "Redundant bracket"}
-- ignore: {name: "Avoid reverse"}
 - ignore: {name: "Use sortOn"}
 - ignore: {name: "Use camelCase"}
 - ignore: {name: "Use list comprehension"}

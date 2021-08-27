@@ -147,7 +147,7 @@ genPie opts (items, _total) = def { _pie_background = solidFillStyle $ opaque $ 
       (samesignitems, sign) = sameSignNonZero items
       top n t = topn ++ [other]
           where
-            (topn,rest) = splitAt n $ reverse $ sortBy (comparing snd) t
+            (topn,rest) = splitAt n $ sortBy (flip $ comparing snd) t
             other = ("other", sum $ map snd rest)
       num = chart_items_ opts
       hue = if sign > 0 then red else green where (red, green) = (0, 110)
