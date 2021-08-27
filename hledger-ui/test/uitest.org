@@ -1,4 +1,4 @@
-* Human-powered tests for hledger-ui
+* Tests for hledger-ui
 
 When you want to check that hledger-ui is working correctly, 
 run through the following tests, by hand, in an 80x25 terminal. 
@@ -146,48 +146,65 @@ which has nice screenshots, but might be less up to date.
  2008-12-31 * pay off                    li:debts                     $-1   $-1
 
 ** hledger-ui -f bcexample.journal --tree --register assets  # wide content is elided as shown
-──────────────────────── Assets transactions (518/518) ────────────────────────
- 2014-07-26 * ..  ..   16.00 GLD, -1515.83 USD   ..0 GLD, 17.00 ITOT, 6 more..
- 2014-07-31 * ..  ..   2550.60 USD, 4.62 VACHR   ..0 GLD, 17.00 ITOT, 6 more..
- 2014-08-03 * ..  ..              -2400.00 USD   ..0 GLD, 17.00 ITOT, 6 more..
- 2014-08-04 * ..  ..                 -4.00 USD   ..0 GLD, 17.00 ITOT, 6 more..
- 2014-08-08 * ..  ..                -65.00 USD   ..0 GLD, 17.00 ITOT, 6 more..
- 2014-08-09 * ..  ..               -560.82 USD   ..0 GLD, 17.00 ITOT, 6 more..
- 2014-08-14 * ..  ..   2550.60 USD, 4.62 VACHR   ..0 GLD, 17.00 ITOT, 6 more..
- 2014-08-15 * ..  ..   -16.00 GLD, 1481.29 USD   ..0 GLD, 17.00 ITOT, 6 more..
+───────────────────────── Assets transactions (518/518) ────────────────────────
+ 2014-07-26 * ..  ..      16.00 GLD, -1515.83 USD   ..GLD, 17.00 ITOT, 6 more..
+ 2014-07-31 * ..  ..      2550.60 USD, 4.62 VACHR   ..GLD, 17.00 ITOT, 6 more..
+ 2014-08-03 * ..  ..                 -2400.00 USD   ..GLD, 17.00 ITOT, 6 more..
 
 ** hledger-ui -f forecast.journal --register a   # future and forecasted txns are hidden by default
-───────────────────────── a transactions (1/1) ─────────────────────────
- 2020-01-01   past transaction        a                         $1   $1
+───────────────────────────── a transactions (1/1) ─────────────────────────────
+ 0000-01-01   a past transaction           a                              1   1
 
-** hledger-ui -f forecast.journal --register a --forecast  # future txn is shown, and sets the start of default forecast period
-───────────────────────── a transactions (1/2) ─────────────────────────
- 2020-01-01   past transaction  a                         $1         $1 
- 3000-01-01   future transac..  a                   $1000000   $1000001
+** hledger-ui -f forecast.journal --register a --forecast  # with --forecast, future ordinary txns, and forecasted txns within the default forecast period, are shown
+───────────────────────────── a transactions (1/4) ─────────────────────────────
+ 2020-01-01   a past transaction           a                              1   1
+ 2021-12-31   a near future transaction    a                              2   3
+ 2022-01-01   some near future periodic..  a                              3   6
+ 2022-02-01   some near future periodic..  a                              3   9
 
-** hledger-ui -f forecast.journal --register a --forecast=2020  # explicit forecast period shows forecasted txns also
-───────────────────────── a transactions (6/6) ─────────────────────────
- 2020-01-01   past transaction  a                         $1         $1
- 2020-01-01   forecasted tra..  a                         $1         $2 
- 2020-04-01   forecasted tra..  a                         $1         $3 
- 2020-07-01   forecasted tra..  a                         $1         $4 
- 2020-10-01   forecasted tra..  a                         $1         $5 
- 3000-01-01   future transac..  a                   $1000000   $1000005
+** hledger-ui -f forecast.journal --register a --forecast=2021  # with an explicit forecast period, forecasted txns can overlap ordinary transactions
+──────────────────────────── a transactions (14/14) ────────────────────────────
+ 2020-01-01   a past transaction           a                             1    1
+ 2021-01-01   some near future periodic..  a                             3    4
+ 2021-02-01   some near future periodic..  a                             3    7
+ 2021-03-01   some near future periodic..  a                             3   10
+ 2021-04-01   some near future periodic..  a                             3   13
+ 2021-05-01   some near future periodic..  a                             3   16
+ 2021-06-01   some near future periodic..  a                             3   19
+ 2021-07-01   some near future periodic..  a                             3   22
+ 2021-08-01   some near future periodic..  a                             3   25
+ 2021-09-01   some near future periodic..  a                             3   28
+ 2021-10-01   some near future periodic..  a                             3   31
+ 2021-11-01   some near future periodic..  a                             3   34
+ 2021-12-01   some near future periodic..  a                             3   37
+ 2021-12-31   a near future transaction    a                             2   39
 
-** press F at least three times  # future & forecasted txns are toggled every time (#1411)
+** press F at least three times  # the future & forecasted txns are toggled every time (#1411)
 
-** hledger-ui -f forecast.journal --register a --forecast=2020 --watch, press F once
-───────────────────────── a transactions (1/1) ─────────────────────────
- 2020-01-01   past transaction        a                         $1   $1
+** hledger-ui -f forecast.journal --register a --forecast 2021  # the = between --forecast and argument is mandatory
+───────────────────── a transactions matching 2021 (100/0) ─────────────────────
 
-** with the above still running, touch forecast.journal, press F again  # forecast txns can still be enabled if file modification time changed while disabled (#1204)
-───────────────────────── a transactions (6/6) ─────────────────────────
- 2020-01-01   past transaction  a                         $1         $1  # <- selected 
- 2020-01-01   forecasted tra..  a                         $1         $2 
- 2020-04-01   forecasted tra..  a                         $1         $3 
- 2020-07-01   forecasted tra..  a                         $1         $4 
- 2020-10-01   forecasted tra..  a                         $1         $5 
- 3000-01-01   future transac..  a                   $1000000   $1000005
+
+** hledger-ui -f forecast.journal --register a --forecast=2021 --watch, press F once  # future/forecasted txns are hidden
+───────────────────────────── a transactions (1/1) ─────────────────────────────
+ 2020-01-01   a past transaction           a                              1   1
+
+** with the above still running, touch forecast.journal, press F again  # forecast txns reappear, even with file modified while hidden (#1204)
+───────────────────────────── a transactions (1/14) ────────────────────────────
+ 2020-01-01   a past transaction           a                             1    1  # <- selected 
+ 2021-01-01   some near future periodic..  a                             3    4
+ 2021-02-01   some near future periodic..  a                             3    7
+ 2021-03-01   some near future periodic..  a                             3   10
+ 2021-04-01   some near future periodic..  a                             3   13
+ 2021-05-01   some near future periodic..  a                             3   16
+ 2021-06-01   some near future periodic..  a                             3   19
+ 2021-07-01   some near future periodic..  a                             3   22
+ 2021-08-01   some near future periodic..  a                             3   25
+ 2021-09-01   some near future periodic..  a                             3   28
+ 2021-10-01   some near future periodic..  a                             3   31
+ 2021-11-01   some near future periodic..  a                             3   34
+ 2021-12-01   some near future periodic..  a                             3   37
+ 2021-12-31   a near future transaction    a                             2   39
 
 ** hledger-ui -f 1468.j, 2, RIGHT  # in list mode, register of account above depth limit shows only its transactions
 ───────────────────────────── a transactions (1/1) ─────────────────────────────

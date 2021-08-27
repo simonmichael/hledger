@@ -1,13 +1,16 @@
-2020-01-01 past transaction
-   (a)   $1
+; Some near-future dates are needed to test forecast period properly.
+; So this test will break in a few months, unfortunately. Before then
+; we should add a --today=DATE option to help with testing.
 
-3000-01-01 future transaction
-   (a)   $1000000
+2020-01-01 a past transaction
+    (a)    1
 
-~ quarterly  forecasted transaction
-   (a)   $1
+2021-12-31 a near future transaction
+    (a)    2
 
-;~ every 15th day of month
-;   (b)   $10
+~ monthly from 2021 to 2023  some near future periodic transactions
+    (a)    3
 
+~ 9999-01-01  a far future periodic transaction (just one occurrence)
+    (a)    4
 
