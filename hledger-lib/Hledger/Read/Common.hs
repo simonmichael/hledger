@@ -1226,7 +1226,7 @@ multilinecommentp = startComment *> anyLine `skipManyTill` endComment
     endComment = eof <|> string "end comment" *> trailingSpaces
 
     trailingSpaces = skipNonNewlineSpaces <* newline
-    anyLine = void $ takeWhileP Nothing (\c -> c /= '\n') *> newline
+    anyLine = void $ takeWhileP Nothing (/='\n') *> newline
 
 {-# INLINABLE multilinecommentp #-}
 

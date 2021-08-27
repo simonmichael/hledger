@@ -18,8 +18,6 @@
 - ignore: {name: "Use fewer imports"}
 - ignore: {name: "Use tuple-section"}
 - ignore: {name: "Use section"}
-- ignore: {name: "Avoid lambda using `infix`"}
-- ignore: {name: "Use lambda-case"}
 
 
 # Specify additional command line arguments

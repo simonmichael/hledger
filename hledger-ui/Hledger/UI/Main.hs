@@ -3,6 +3,7 @@ hledger-ui - a hledger add-on providing a curses-style interface.
 Copyright (c) 2007-2015 Simon Michael <simon@joyful.com>
 Released under GPL version 3 or later.
 -}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 
@@ -219,7 +220,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportspec_=rsp
           mgr
           d
           -- predicate: ignore changes not involving our files
-          (\fev -> case fev of
+          (\case
             Modified f _ False -> f `elem` files
             -- Added    f _ -> f `elem` files
             -- Removed  f _ -> f `elem` files
