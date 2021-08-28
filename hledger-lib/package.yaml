@@ -137,7 +137,6 @@ library:
   - Hledger.Utils.String
   - Hledger.Utils.Test
   - Hledger.Utils.Text
-  - Hledger.Utils.Tree
   - Text.Tabular.AsciiWide
 #  other-modules:
 #  - Ledger.Parser.Text

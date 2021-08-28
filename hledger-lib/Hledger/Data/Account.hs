@@ -13,18 +13,16 @@ module Hledger.Data.Account
 where
 import qualified Data.HashSet as HS
 import qualified Data.HashMap.Strict as HM
-import Data.List (find, sortOn)
+import Data.List (find, foldl', sortOn)
 import Data.List.Extra (groupOn)
 import qualified Data.Map as M
 import Data.Ord (Down(..))
 import Safe (headMay)
-import Text.Printf
+import Text.Printf (printf)
 
-import Hledger.Data.AccountName
+import Hledger.Data.AccountName (expandAccountName, clipOrEllipsifyAccountName)
 import Hledger.Data.Amount
-import Hledger.Data.Posting ()
 import Hledger.Data.Types
-import Hledger.Utils
 
 
 -- deriving instance Show Account
@@ -90,6 +88,22 @@ accountTree rootname as = nullacct{aname=rootname, asubs=map (uncurry accountTre
         aname=a
        ,asubs=map (uncurry accountTree') $ M.assocs m
        }
+
+-- | An efficient-to-build tree suggested by Cale Gibbard, probably
+-- better than accountNameTreeFrom.
+newtype FastTree a = T (M.Map a (FastTree a))
+  deriving (Show, Eq, Ord)
+
+mergeTrees :: (Ord a) => FastTree a -> FastTree a -> FastTree a
+mergeTrees (T m) (T m') = T (M.unionWith mergeTrees m m')
+
+treeFromPath :: [a] -> FastTree a
+treeFromPath []     = T M.empty
+treeFromPath (x:xs) = T (M.singleton x (treeFromPath xs))
+
+treeFromPaths :: (Ord a) => [[a]] -> FastTree a
+treeFromPaths = foldl' mergeTrees (T M.empty) . map treeFromPath
+
 
 -- | Tie the knot so all subaccounts' parents are set correctly.
 tieAccountParents :: Account -> Account

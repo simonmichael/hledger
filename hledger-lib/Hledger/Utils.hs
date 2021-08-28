@@ -4,7 +4,7 @@ Standard imports and utilities which are useful everywhere, or needed low
 in the module hierarchy. This is the bottom of hledger's module graph.
 
 -}
-{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Hledger.Utils (---- provide these frequently used modules - or not, for clearer api:
                           -- module Control.Monad,
@@ -25,7 +25,6 @@ module Hledger.Utils (---- provide these frequently used modules - or not, for c
                           module Hledger.Utils.Text,
                           module Hledger.Utils.Test,
                           module Hledger.Utils.Color,
-                          module Hledger.Utils.Tree,
                           -- Debug.Trace.trace,
                           -- module Data.PPrint,
                           -- the rest need to be done in each module I think
@@ -60,7 +59,6 @@ import Hledger.Utils.String
 import Hledger.Utils.Text
 import Hledger.Utils.Test
 import Hledger.Utils.Color
-import Hledger.Utils.Tree
 
 
 -- tuples
