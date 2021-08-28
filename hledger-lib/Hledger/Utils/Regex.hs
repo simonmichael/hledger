@@ -75,8 +75,6 @@ import Text.Regex.TDFA (
   RegexLike(..), RegexMaker(..), RegexOptions(..), RegexContext(..)
   )
 
-import Hledger.Utils.UTF8IOCompat (error')
-
 
 -- | Regular expression. Extended regular expression-ish syntax ? But does not support eg (?i) syntax.
 data Regexp
@@ -140,11 +138,11 @@ mkRegexErr s = maybe (Left errmsg) Right
 
 -- Convert a Regexp string to a compiled Regex, throw an error
 toRegex' :: Text -> Regexp
-toRegex' = either error' id . toRegex
+toRegex' = either errorWithoutStackTrace id . toRegex
 
 -- Like toRegex', but make a case-insensitive Regex.
 toRegexCI' :: Text -> Regexp
-toRegexCI' = either error' id . toRegexCI
+toRegexCI' = either errorWithoutStackTrace id . toRegexCI
 
 -- | A replacement pattern. May include numeric backreferences (\N).
 type Replacement = String

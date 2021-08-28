@@ -20,8 +20,7 @@ import Hledger.Data.Dates
 import Hledger.Data.Amount
 import Hledger.Data.Posting (post, commentAddTagNextLine)
 import Hledger.Data.Transaction
-import Hledger.Utils.UTF8IOCompat (error')
-import Hledger.Utils.Debug
+import Hledger.Utils
 
 -- $setup
 -- >>> :set -XOverloadedStrings

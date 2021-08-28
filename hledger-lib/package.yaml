@@ -138,7 +138,6 @@ library:
   - Hledger.Utils.Test
   - Hledger.Utils.Text
   - Hledger.Utils.Tree
-  - Hledger.Utils.UTF8IOCompat
   - Text.Tabular.AsciiWide
 #  other-modules:
 #  - Ledger.Parser.Text

@@ -20,7 +20,6 @@ import Network.Socket
 import Network.Wai (Application)
 import Network.Wai.Handler.Warp (runSettings, runSettingsSocket, defaultSettings, setHost, setPort)
 import Network.Wai.Handler.Launch (runHostPortFullUrl)
-import Prelude hiding (putStrLn)
 import System.Directory (removeFile)
 import System.Environment ( getArgs, withArgs )
 import System.Exit (exitSuccess, exitFailure)
@@ -32,7 +31,6 @@ import Yesod.Default.Main (defaultDevelApp)
 
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion)
-import Hledger.Utils.UTF8IOCompat (putStrLn)
 import Hledger.Web.Application (makeApplication)
 import Hledger.Web.Settings (Extra(..), parseExtra)
 import Hledger.Web.Test (hledgerWebTest)
