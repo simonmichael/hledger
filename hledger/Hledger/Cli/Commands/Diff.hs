@@ -22,8 +22,6 @@ import qualified Data.Text.IO as T
 import System.Exit (exitFailure)
 
 import Hledger
-import Prelude hiding (putStrLn)
-import Hledger.Utils.UTF8IOCompat (putStrLn)
 import Hledger.Cli.CliOptions
 
 -- | Command line options for this command.

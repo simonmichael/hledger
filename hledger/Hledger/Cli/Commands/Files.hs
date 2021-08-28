@@ -15,8 +15,6 @@ import qualified Data.Text as T
 import Safe (headMay)
 
 import Hledger
-import Prelude hiding (putStrLn)
-import Hledger.Utils.UTF8IOCompat (putStrLn)
 import Hledger.Cli.CliOptions
 
 

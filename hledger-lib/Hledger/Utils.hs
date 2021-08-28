@@ -4,9 +4,7 @@ Standard imports and utilities which are useful everywhere, or needed low
 in the module hierarchy. This is the bottom of hledger's module graph.
 
 -}
-{-# LANGUAGE CPP               #-}
 {-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE OverloadedStrings #-}
 
 module Hledger.Utils (---- provide these frequently used modules - or not, for clearer api:
                           -- module Control.Monad,
@@ -30,8 +28,6 @@ module Hledger.Utils (---- provide these frequently used modules - or not, for c
                           module Hledger.Utils.Tree,
                           -- Debug.Trace.trace,
                           -- module Data.PPrint,
-                          -- module Hledger.Utils.UTF8IOCompat
-                          error',userError',usageError,
                           -- the rest need to be done in each module I think
                           )
 where
@@ -65,9 +61,6 @@ import Hledger.Utils.Text
 import Hledger.Utils.Test
 import Hledger.Utils.Color
 import Hledger.Utils.Tree
--- import Prelude hiding (readFile,writeFile,appendFile,getContents,putStr,putStrLn)
--- import Hledger.Utils.UTF8IOCompat   (readFile,writeFile,appendFile,getContents,putStr,putStrLn)
-import Hledger.Utils.UTF8IOCompat (error',userError',usageError)
 
 
 -- tuples
@@ -95,7 +88,6 @@ fifth6  (_,_,_,_,x,_) = x
 sixth6  (_,_,_,_,_,x) = x
 
 -- currying
-
 
 curry2 :: ((a, b) -> c) -> a -> b -> c
 curry2 f x y = f (x, y)
@@ -235,6 +227,14 @@ sequence' ms = do
 mapM' :: Monad f => (a -> f b) -> [a] -> f [b]
 mapM' f = sequence' . map f
 
+-- | Simpler alias for errorWithoutStackTrace
+error' :: String -> a
+error' = errorWithoutStackTrace
+
+-- | A version of errorWithoutStackTrace that adds a usage hint.
+usageError :: String -> a
+usageError = error' . (++ " (use -h to see usage)")
+
 -- | Like embedFile, but takes a path relative to the package directory.
 -- Similar to embedFileRelative ?
 embedFileRelative :: FilePath -> Q Exp
@@ -246,7 +246,6 @@ embedFileRelative f = makeRelativeToProject f >>= embedStringFile
 -- hereFileRelative f = makeRelativeToProject f >>= hereFileExp
 --   where
 --     QuasiQuoter{quoteExp=hereFileExp} = hereFile
-
 
 -- | Make classy lenses for Hledger options fields.
 -- This is intended to be used with BalancingOpts, InputOpt, ReportOpts,

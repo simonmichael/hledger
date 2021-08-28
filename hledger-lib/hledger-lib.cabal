@@ -86,7 +86,6 @@ library
       Hledger.Utils.Test
       Hledger.Utils.Text
       Hledger.Utils.Tree
-      Hledger.Utils.UTF8IOCompat
       Text.Tabular.AsciiWide
   other-modules:
       Text.Megaparsec.Custom

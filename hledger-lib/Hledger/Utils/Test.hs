@@ -41,7 +41,6 @@ import Text.Megaparsec.Custom
   )
 
 import Hledger.Utils.Debug (pshow)
--- import Hledger.Utils.UTF8IOCompat (error')
 
 -- * tasty helpers
 

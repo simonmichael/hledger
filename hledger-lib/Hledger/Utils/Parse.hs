@@ -47,7 +47,6 @@ import Text.Megaparsec.Custom
 import Text.Printf
 
 import Hledger.Data.Types
-import Hledger.Utils.UTF8IOCompat (error')
 
 -- | A parser of string to some type.
 type SimpleStringParser a = Parsec CustomErr String a
@@ -110,7 +109,7 @@ fromparse
 fromparse = either parseerror id
 
 parseerror :: (Show t, Show (Token t), Show e) => ParseErrorBundle t e -> a
-parseerror e = error' $ showParseError e  -- PARTIAL:
+parseerror e = errorWithoutStackTrace $ showParseError e  -- PARTIAL:
 
 showParseError
   :: (Show t, Show (Token t), Show e)
