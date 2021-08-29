@@ -1,152 +1,167 @@
 # hledger CREDITS
 
-hledger is brought to you by...
+hledger is brought to you by the
+- Issue wranglers,
+- Bug hunters,
+- Code slingers,
+- Doc poets,
+- Package marshals,
+- Helping hands,
+- Good news preachers,
+- Bank rollers,
 
-Committers as of 2020-03:
+and the innumerable other benefactors not mentioned here.
 
-- Simon Michael - project lead
-- Dmitry Astapov
-- Alex Chen
-- Mykola Orliuk
-- Jakob Schöttl
-- Everett Hildenbrandt
-- Jakub Zárybnický
-- Marko Kocić - hlint cleanup..
-- Dominik Süß
-- Justin Le
-- Thomas R. Koll
-- Joseph Weston
-- Peter Simons
-- Aleksandar Dimitrov
-- Nolan Darilek
-- Brian Wignall
-- Stephen Morgan
-- Tim Docker - parser improvements
-- Jesse Rosenthal
-- Trygve Laugstøl
-- Julien Moutinho
-- Nick Ingolia - parser improvements
-- Ryan Desfosses
-- Caleb Maclennan
-- Eli Flanagan
-- Moritz Kiefer
-- Imuli
-- Nicholas Niro
-- Hans-Peter Deifel
-- Jacob Weisz
-- Roman Cheplyaka - add improvements, chart improvements
-- Samuel May - total balance assertions
-- Clint Adams
-- Gaith Hallak
-- Xinruo Sun
-- Jacek Generowicz
-- Felix Yan
-- Michael Snoyman - some hledger-web additions
-- Henning Thielemann
-- Sergey Astanin - utf8 support
-- Eric Kow
-- Carlos Lopez-Camey
-- Christian G. Warden
-- Eric Mertens
-- Johannes Gerer
-- Gergely Risko
-- Alejandro García Montoro
-- Max Bolingbroke
-- Ben Creasy
-- Elijah Caine
-- Christoph Nicolai
-- Stefano Rodighiero
-- Pavlo Kerestey
-- Sam Jeeves
-- Gwern Branwen - cleanups
-- Judah Jacobson
-- jungle-boogie
-- Sergei Trofimovich
-- Matthias Kauer
-- Luca Molteni
-- Léo Gaspard
-- M Parker
-- Malte Brandy
-- Mark Hansen
-- David Zhang
-- Martin Michlmayr
-- Mateus Furquim
-- Michael Kainer
-- David Reaver
-- Michael Walker
-- Mick Dekkers
-- Mitchell Rosen
-- Carl Richard Theodor Schneider
-- Nadrieril
-- Carel Fellinger
-- Bryan Richter
-- Nicolas Wavrant
-- Nikhil Jha
-- Nissar Chababy
-- Brian Scott
-- Oliver Braun - GHC 6.12 compatibility
-- Omari Norman
-- Boyd Kelly
-- Pia Mancini
-- Rick Lupton
-- Gabriel Ebner
-- Ben Boeckel
-- Sam Doshi
-- Andriy Mykhaylyk
-- Andrew Jones
-- Shubham Lagwankar
-- Simon Hengel
-- Andreas Pauley
-- SpicyCat
-- Amitai Burstein
-- Steven R. Baker
-- Amarandus
-- Alvaro Fernando García
-- Timofey ZAKREVSKIY
-- Wad
-- Aiken Cairncross
-- afarrow
-- agander
-- awjchen
-- azure-pipelines[bot]
-- flip111
-- jeevcat
-- trevorriles
-- Rui Chen
-- Jan Zerebecki
-- Jeff Richards
-- Fun Ilrys (Nissar Chababy)
-- Joachim Breitner
-- Joe Horsnell
-- Johann Klähn
-- zieone
-- John Wiegley
-- Evilham
-- Joshua Chia
-- Joshua Kehn
-- Aerex
-- Kyle Marek-Spartz
 
-Special mention:
+<!-- - John Wiegley - inspiration, created the original ledger program -->
 
-- John Wiegley - created the original ledger program
+## Commit authors 
 
-And the
+143 people as of 2021-08-28:
 
-Issue wranglers,
-
-Bug hunters,
-
-Code slingers,
-
-Doc poets,
-
-Package marshals,
-
-Helping hands,
-
-Good news preachers,
-
-Bank rollers,
-
-and of course innumerable other benefactors not mentioned here.
+<!-- make showauthors -->
+| Commits | Author                         | Notes                                |
+|---------|--------------------------------|--------------------------------------|
+| 8745    | Simon Michael                  | founder, project leader              |
+| 334     | Stephen Morgan                 |                                      |
+| 158     | Dmitry Astapov                 |                                      |
+| 81      | Vladimir Zhelezov              |                                      |
+| 72      | Alex Chen                      |                                      |
+| 52      | Mykola Orliuk                  |                                      |
+| 50      | Jakob Schöttl                  |                                      |
+| 40      | Everett Hildenbrandt           |                                      |
+| 31      | Jakub Zárybnický               |                                      |
+| 29      | Marko Kocić                    | hlint cleanup                        |
+| 26      | Dominik Süß                    |                                      |
+| 26      | Justin Le                      |                                      |
+| 24      | Thomas R. Koll                 |                                      |
+| 17      | Peter Simons                   |                                      |
+| 17      | Joseph Weston                  |                                      |
+| 16      | Aleksandar Dimitrov            |                                      |
+| 15      | Nolan Darilek                  |                                      |
+| 14      | Brian Wignall                  |                                      |
+| 12      | Tim Docker                     | parser improvements                  |
+| 11      | Jesse Rosenthal                |                                      |
+| 11      | Trygve Laugstøl                |                                      |
+| 11      | Lawrence                       |                                      |
+| 10      | Julien Moutinho                |                                      |
+| 10      | Nick Ingolia                   | parser improvements                  |
+| 10      | Henning Thielemann             |                                      |
+| 10      | Caleb Maclennan                |                                      |
+| 9       | Eli Flanagan                   |                                      |
+| 9       | Ryan Desfosses                 |                                      |
+| 8       | Imuli                          |                                      |
+| 8       | Nicholas Niro                  |                                      |
+| 8       | Moritz Kiefer                  |                                      |
+| 7       | Hans-Peter Deifel              |                                      |
+| 7       | Jacob Weisz                    |                                      |
+| 7       | Felix Yan                      |                                      |
+| 6       | Roman Cheplyaka                | add improvements, chart improvements |
+| 6       | Gaith Hallak                   |                                      |
+| 6       | Samuel May                     | total balance assertions             |
+| 6       | Clint Adams                    |                                      |
+| 5       | Jacek Generowicz               |                                      |
+| 5       | Martin Michlmayr               |                                      |
+| 5       | Xinruo Sun                     |                                      |
+| 5       | Eric Mertens                   |                                      |
+| 4       | Michael Snoyman                | some hledger-web additions           |
+| 4       | Sergey Astanin                 | utf8 support                         |
+| 4       | Damien Cassou                  |                                      |
+| 3       | Eric Kow                       |                                      |
+| 3       | Michael Sanders                |                                      |
+| 3       | Carlos Lopez-Camey             |                                      |
+| 3       | Christian G. Warden            |                                      |
+| 3       | Johannes Gerer                 |                                      |
+| 2       | Elijah Caine                   |                                      |
+| 2       | Stefano Rodighiero             |                                      |
+| 2       | Ben Creasy                     |                                      |
+| 2       | Sergei Trofimovich             |                                      |
+| 2       | Sam Jeeves                     |                                      |
+| 2       | Christoph Nicolai              |                                      |
+| 2       | aragaer                        |                                      |
+| 2       | Judah Jacobson                 |                                      |
+| 2       | Pavlo Kerestey                 |                                      |
+| 2       | Gergely Risko                  |                                      |
+| 2       | crocket                        |                                      |
+| 2       | Arsen Arsenović                |                                      |
+| 2       | Gwern Branwen                  | cleanups                             |
+| 2       | Max Bolingbroke                |                                      |
+| 2       | jungle-boogie                  |                                      |
+| 2       | Arnout Engelen                 |                                      |
+| 2       | Matthias Kauer                 |                                      |
+| 2       | Alejandro García Montoro       |                                      |
+| 1       | azure-pipelines[bot]           |                                      |
+| 1       | charukiewicz                   |                                      |
+| 1       | flip111                        |                                      |
+| 1       | jeevcat                        |                                      |
+| 1       | legrostdg                      |                                      |
+| 1       | trevorriles                    |                                      |
+| 1       | Aerex                          |                                      |
+| 1       | zieone                         |                                      |
+| 1       | Aiken Cairncross               |                                      |
+| 1       | Alan Young                     |                                      |
+| 1       | Alvaro Fernando García         |                                      |
+| 1       | Amarandus                      |                                      |
+| 1       | Amitai Burstein                |                                      |
+| 1       | Andreas Pauley                 |                                      |
+| 1       | Andrew Jones                   |                                      |
+| 1       | Andriy Mykhaylyk               |                                      |
+| 1       | Arjen Langebaerd               |                                      |
+| 1       | Ben Boeckel                    |                                      |
+| 1       | Boyd Kelly                     |                                      |
+| 1       | Brian Scott                    |                                      |
+| 1       | Bryan Richter                  |                                      |
+| 1       | Carel Fellinger                |                                      |
+| 1       | Carl Richard Theodor Schneider |                                      |
+| 1       | Colin Woodbury                 |                                      |
+| 1       | Daniel Gröber                  |                                      |
+| 1       | David Reaver                   |                                      |
+| 1       | David Zhang                    |                                      |
+| 1       | Doug Goldstein                 |                                      |
+| 1       | Evilham                        |                                      |
+| 1       | Felix Van der Jeugt            |                                      |
+| 1       | Fun Ilrys (Nissar Chababy)     |                                      |
+| 1       | Gabriel Ebner                  |                                      |
+| 1       | Garret McGraw                  |                                      |
+| 1       | Jan Zerebecki                  |                                      |
+| 1       | Jeff Richards                  |                                      |
+| 1       | Joachim Breitner               |                                      |
+| 1       | Joe Horsnell                   |                                      |
+| 1       | Johann Klähn                   |                                      |
+| 1       | John Wiegley                   |                                      |
+| 1       | Joshua Chia                    |                                      |
+| 1       | Joshua Kehn                    |                                      |
+| 1       | Kyle Marek-Spartz              |                                      |
+| 1       | Lawrence Wu                    |                                      |
+| 1       | Luca Molteni                   |                                      |
+| 1       | Léo Gaspard                    |                                      |
+| 1       | M Parker                       |                                      |
+| 1       | Malte Brandy                   |                                      |
+| 1       | Mark Hansen                    |                                      |
+| 1       | Mateus Furquim                 |                                      |
+| 1       | Michael Kainer                 |                                      |
+| 1       | Michael Walker                 |                                      |
+| 1       | Mick Dekkers                   |                                      |
+| 1       | Mitchell Rosen                 |                                      |
+| 1       | Nadrieril                      |                                      |
+| 1       | Nicolas Wavrant                |                                      |
+| 1       | Nikhil Jha                     |                                      |
+| 1       | Nissar Chababy                 |                                      |
+| 1       | Oliver Braun                   | GHC 6.12 compatibility               |
+| 1       | Omari Norman                   |                                      |
+| 1       | Pavan Rikhi                    |                                      |
+| 1       | Pia Mancini                    |                                      |
+| 1       | Rick Lupton                    |                                      |
+| 1       | Rui Chen                       |                                      |
+| 1       | Sam Doshi                      |                                      |
+| 1       | Shubham Lagwankar              |                                      |
+| 1       | Simon Hengel                   |                                      |
+| 1       | SpicyCat                       |                                      |
+| 1       | Steven R. Baker                |                                      |
+| 1       | TANIGUCHI Kohei                |                                      |
+| 1       | Timofey ZAKREVSKIY             |                                      |
+| 1       | Vladimir Sorokin               |                                      |
+| 1       | Wad                            |                                      |
+| 1       | afarrow                        |                                      |
+| 1       | agander                        |                                      |
+| 1       | awjchen                        |                                      |
