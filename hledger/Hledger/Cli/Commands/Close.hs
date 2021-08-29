@@ -49,8 +49,8 @@ closemode = hledgerCommandMode
 -- debugger, beware: close is incredibly devious. simple rules combine to make a horrid maze.
 -- tests are in hledger/test/close.test.
 close CliOpts{rawopts_=rawopts, reportspec_=rspec} j = do
-  today <- getCurrentDay
   let
+    today = _rsDay rspec
     -- show opening entry, closing entry, or (default) both ?
     (opening, closing) =
       case (boolopt "open" rawopts, boolopt "close" rawopts) of

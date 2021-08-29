@@ -59,12 +59,11 @@ data OneSpan = OneSpan
 
 roi ::  CliOpts -> Journal -> IO ()
 roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportOpts{..}}} j = do
-  d <- getCurrentDay
   -- We may be converting posting amounts to value, per hledger_options.m4.md "Effect of --value on reports".
   let
+    today = _rsDay rspec
     priceOracle = journalPriceOracle infer_value_ j
     styles = journalCommodityStyles j
-    today = _rsDay rspec
     mixedAmountValue periodlast date =
         maybe id (mixedAmountApplyValuation priceOracle styles periodlast today date) value_
         . mixedAmountToCost cost_ styles
@@ -74,7 +73,7 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportO
     showCashFlow = boolopt "cashflow" rawopts
     prettyTables = pretty_tables_
     makeQuery flag = do
-        q <- either usageError (return . fst) . parseQuery d . T.pack $ stringopt flag rawopts
+        q <- either usageError (return . fst) . parseQuery today . T.pack $ stringopt flag rawopts
         return . simplifyQuery $ And [queryFromFlags ropts{period_=PeriodAll}, q]
 
   investmentsQuery <- makeQuery "investment"

@@ -33,6 +33,7 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.IO as TL
 import Data.Time.Calendar (Day)
 import Data.Time.Format (formatTime, defaultTimeLocale, iso8601DateFormat)
+import Lens.Micro ((^.))
 import Safe (headDef, headMay, atMay)
 import System.Console.CmdArgs.Explicit (flagNone)
 import System.Console.Haskeline (runInputT, defaultSettings, setComplete)
@@ -93,8 +94,8 @@ add opts j
     | otherwise = do
         hPutStrLn stderr $ "Adding transactions to journal file " <> journalFilePath j
         showHelp
-        today <- getCurrentDay
-        let es = defEntryState{esOpts=opts
+        let today = opts^.rsDay
+            es = defEntryState{esOpts=opts
                               ,esArgs=listofstringopt "args" $ rawopts_ opts
                               ,esToday=today
                               ,esDefDate=today

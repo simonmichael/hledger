@@ -777,9 +777,7 @@ updateReportSpec = setEither reportOpts
 updateReportSpecWith :: (ReportOpts -> ReportOpts) -> ReportSpec -> Either String ReportSpec
 updateReportSpecWith = overEither reportOpts
 
--- | Generate a ReportSpec from RawOpts and the current date.
-rawOptsToReportSpec :: RawOpts -> IO ReportSpec
-rawOptsToReportSpec rawopts = do
-    d <- getCurrentDay
-    let ropts = rawOptsToReportOpts d rawopts
-    either fail return $ reportOptsToSpec d ropts
+-- | Generate a ReportSpec from RawOpts and a provided day, or return an error
+-- string if there are regular expression errors.
+rawOptsToReportSpec :: Day -> RawOpts -> Either String ReportSpec
+rawOptsToReportSpec day = reportOptsToSpec day . rawOptsToReportOpts day

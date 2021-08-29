@@ -27,8 +27,8 @@ tagsmode = hledgerCommandMode
 
 tags :: CliOpts -> Journal -> IO ()
 tags CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
-  d <- getCurrentDay
-  let args = listofstringopt "args" rawopts
+  let today = _rsDay rspec
+      args = listofstringopt "args" rawopts
   mtagpat <- mapM (either Fail.fail pure . toRegexCI . T.pack) $ headMay args
   let
     querystring = map T.pack $ drop 1 args
@@ -36,7 +36,7 @@ tags CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
     parsed      = boolopt "parsed" rawopts
     empty       = empty_ $ _rsReportOpts rspec
 
-  argsquery <- either usageError (return . fst) $ parseQueryList d querystring
+  argsquery <- either usageError (return . fst) $ parseQueryList today querystring
   let
     q = simplifyQuery $ And [queryFromFlags $ _rsReportOpts rspec, argsquery]
     txns = filter (q `matchesTransaction`) $ jtxns $ journalApplyValuationFromOpts rspec j
