@@ -68,6 +68,7 @@ jobs:
           || ( echo "could not identify commits, checking last $NUM instead:"; bin/commitlint -$NUM )
 
     - name: Skip remaining CI steps if latest commit message begins with ;
+      shell: bash
       run: |
         echo "git log -1 --pretty='%s' ${GITHUB_HEAD_REF:+origin/$GITHUB_HEAD_REF} >> $$.gitlog"
         (git log -1 --pretty='%s' ${GITHUB_HEAD_REF:+origin/$GITHUB_HEAD_REF} >> $$.gitlog \
