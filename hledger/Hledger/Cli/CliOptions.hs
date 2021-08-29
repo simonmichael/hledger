@@ -118,7 +118,8 @@ helpflags = [
  ,flagNone ["man"] (setboolopt "man") "Show user manual with man"
  ,flagNone ["info"] (setboolopt "info") "Show info manual with info"
  -- ,flagNone ["browse-args"] (setboolopt "browse-args") "use a web UI to select options and build up a command line"
- ,flagReq  ["debug"]    (\s opts -> Right $ setopt "debug" s opts) "[N]" "show debug output (levels 1-9, default: 1)"
+ ,flagReq  ["debug"] (\s opts -> Right $ setopt "debug" s opts) "[N]" "show debug output (levels 1-9, default: 1)"
+ ,flagReq  ["today"] (\s opts -> Right $ setopt "today" s opts) "DATE" "generate reports treating DATE as the current day (for testing purposes)"
  ,flagNone ["version"] (setboolopt "version") "show version information"
  ]
 
@@ -466,8 +467,11 @@ replaceNumericFlags = map replace
 -- Also records the terminal width, if supported.
 rawOptsToCliOpts :: RawOpts -> IO CliOpts
 rawOptsToCliOpts rawopts = do
-  iopts <- rawOptsToInputOpts rawopts
-  rspec <- rawOptsToReportSpec rawopts
+  day <- case maybestringopt "today" rawopts of
+              Nothing -> getCurrentDay
+              Just d  -> maybe (fail $ "Unable to parse date \"" ++ d ++ "\"") pure $ parsedateM d  -- PARTIAL:
+  let iopts = rawOptsToInputOpts day rawopts
+  rspec <- either fail pure $ rawOptsToReportSpec day rawopts  -- PARTIAL:
   mcolumns <- readMay <$> getEnvSafe "COLUMNS"
   mtermwidth <-
 #ifdef mingw32_HOST_OS

@@ -43,12 +43,12 @@ statsmode = hledgerCommandMode
 -- | Print various statistics for the journal.
 stats :: CliOpts -> Journal -> IO ()
 stats opts@CliOpts{reportspec_=rspec} j = do
-  d <- getCurrentDay
-  let q = _rsQuery rspec
+  let today = _rsDay rspec
+      q = _rsQuery rspec
       l = ledgerFromJournal q j
       reportspan = ledgerDateSpan l `spanDefaultsFrom` queryDateSpan False q
       intervalspans = splitSpan (interval_ $ _rsReportOpts rspec) reportspan
-      showstats = showLedgerStats l d
+      showstats = showLedgerStats l today
       s = unlinesB $ map showstats intervalspans
   writeOutputLazyText opts $ TB.toLazyText s
 

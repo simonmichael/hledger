@@ -228,21 +228,20 @@ parseCommodity optStr =
       Left _ -> Left optStr 
       Right (Amount acommodity _ astyle _) -> Right (acommodity, astyle)
 
--- | Parse an InputOpts from a RawOpts and the current date.
+-- | Parse an InputOpts from a RawOpts and a provided date.
 -- This will fail with a usage error if the forecast period expression cannot be parsed.
-rawOptsToInputOpts :: RawOpts -> IO InputOpts
-rawOptsToInputOpts rawopts = do
-    d <- getCurrentDay
+rawOptsToInputOpts :: Day -> RawOpts -> InputOpts
+rawOptsToInputOpts day rawopts =
 
     let noinferprice = boolopt "strict" rawopts || stringopt "args" rawopts == "balancednoautoconversion"
 
         -- Do we really need to do all this work just to get the requested end date? This is duplicating
         -- much of reportOptsToSpec.
-        ropts = rawOptsToReportOpts d rawopts
-        argsquery = lefts . rights . map (parseQueryTerm d) $ querystring_ ropts
+        ropts = rawOptsToReportOpts day rawopts
+        argsquery = lefts . rights . map (parseQueryTerm day) $ querystring_ ropts
         datequery = simplifyQuery . filterQuery queryIsDate . And $ queryFromFlags ropts : argsquery
 
-    return InputOpts{
+    in InputOpts{
        -- files_             = listofstringopt "file" rawopts
        mformat_           = Nothing
       ,mrules_file_       = maybestringopt "rules-file" rawopts
@@ -251,7 +250,7 @@ rawOptsToInputOpts rawopts = do
       ,new_               = boolopt "new" rawopts
       ,new_save_          = True
       ,pivot_             = stringopt "pivot" rawopts
-      ,forecast_          = forecastPeriodFromRawOpts d rawopts
+      ,forecast_          = forecastPeriodFromRawOpts day rawopts
       ,reportspan_        = DateSpan (queryStartDate False datequery) (queryEndDate False datequery)
       ,auto_              = boolopt "auto" rawopts
       ,balancingopts_     = defbalancingopts{
