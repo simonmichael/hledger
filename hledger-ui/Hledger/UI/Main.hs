@@ -18,6 +18,7 @@ import Data.List.Extra (nubSort)
 import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import Graphics.Vty (mkVty)
+import Lens.Micro ((^.))
 import System.Directory (canonicalizePath)
 import System.FilePath (takeDirectory)
 import System.FSNotify (Event(Modified), isPollingManager, watchDir, withManager)
@@ -60,9 +61,8 @@ main = do
 
 runBrickUi :: UIOpts -> Journal -> IO ()
 runBrickUi uopts@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}} j = do
-  d <- getCurrentDay
-
   let
+    today = copts^.rsDay
 
     -- hledger-ui's query handling is currently in flux, mixing old and new approaches.
     -- Related: #1340, #1383, #1387. Some notes and terminology:
@@ -136,7 +136,7 @@ runBrickUi uopts@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=rs
           -- Initialising the accounts screen is awkward, requiring
           -- another temporary UIState value..
           ascr' = aScreen $
-                  asInit d True
+                  asInit today True
                     UIState{
                      astartupopts=uopts'
                     ,aopts=uopts'
@@ -147,7 +147,7 @@ runBrickUi uopts@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=rs
                     }
 
     ui =
-      (sInit scr) d True $
+      (sInit scr) today True $
           UIState{
            astartupopts=uopts'
           ,aopts=uopts'
@@ -189,9 +189,9 @@ runBrickUi uopts@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=rs
           writeChan eventChan dc
         watchDate new
 
-    withAsync 
+    withAsync
       -- run this small task asynchronously:
-      (getCurrentDay >>= watchDate) 
+      (getCurrentDay >>= watchDate)
       -- until this main task terminates:
       $ \_async ->
       -- start one or more background threads reporting changes in the directories of our files

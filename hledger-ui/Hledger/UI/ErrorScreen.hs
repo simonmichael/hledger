@@ -19,9 +19,9 @@ import Control.Monad.IO.Class (liftIO)
 import Data.Time.Calendar (Day)
 import Data.Void (Void)
 import Graphics.Vty (Event(..),Key(..),Modifier(..))
+import Lens.Micro ((^.))
 import Text.Megaparsec
 import Text.Megaparsec.Char
-import Lens.Micro ((^.))
 
 import Hledger.Cli hiding (progname,prognameandversion)
 import Hledger.UI.UIOptions
@@ -90,7 +90,7 @@ esHandle ui@UIState{aScreen=ErrorScreen{..}
         _                    -> helpHandle ui ev
 
     _ -> do
-      d <- liftIO getCurrentDay
+      let d = copts^.rsDay
       case ev of
         VtyEvent (EvKey (KChar 'q') []) -> halt ui
         VtyEvent (EvKey KEsc        []) -> continue $ uiCheckBalanceAssertions d $ resetScreens d ui
