@@ -96,7 +96,6 @@ library:
   - Hledger.Data.Account
   - Hledger.Data.AccountName
   - Hledger.Data.Amount
-  - Hledger.Data.Commodity
   - Hledger.Data.Dates
   - Hledger.Read.InputOptions
   - Hledger.Data.Journal
