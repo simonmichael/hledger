@@ -12,7 +12,6 @@ module Hledger.Data (
                module Hledger.Data.Account,
                module Hledger.Data.AccountName,
                module Hledger.Data.Amount,
-               module Hledger.Data.Commodity,
                module Hledger.Data.Dates,
                module Hledger.Data.Journal,
                module Hledger.Data.Json,
@@ -34,7 +33,6 @@ where
 import Hledger.Data.Account
 import Hledger.Data.AccountName
 import Hledger.Data.Amount
-import Hledger.Data.Commodity
 import Hledger.Data.Dates
 import Hledger.Data.Journal
 import Hledger.Data.Json

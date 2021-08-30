@@ -44,6 +44,10 @@ exchange rates.
 {-# LANGUAGE RecordWildCards    #-}
 
 module Hledger.Data.Amount (
+  -- * Commodity
+  showCommoditySymbol,
+  isNonsimpleCommodityChar,
+  quoteCommoditySymbolIfNeeded,
   -- * Amount
   amount,
   nullamt,
@@ -144,7 +148,9 @@ module Hledger.Data.Amount (
   tests_Amount
 ) where
 
+import Control.Applicative (liftA2)
 import Control.Monad (foldM)
+import Data.Char (isDigit)
 import Data.Decimal (DecimalRaw(..), decimalPlaces, normalizeDecimal, roundTo)
 import Data.Default (Default(..))
 import Data.Foldable (toList)
@@ -162,8 +168,29 @@ import System.Console.ANSI (Color(..),ColorIntensity(..))
 import Text.Printf (printf)
 
 import Hledger.Data.Types
-import Hledger.Data.Commodity
 import Hledger.Utils
+
+
+-- A 'Commodity' is a symbol representing a currency or some other kind of
+-- thing we are tracking, and some display preferences that tell how to
+-- display 'Amount's of the commodity - is the symbol on the left or right,
+-- are thousands separated by comma, significant decimal places and so on.
+
+-- | Show space-containing commodity symbols quoted, as they are in a journal.
+showCommoditySymbol :: T.Text -> T.Text
+showCommoditySymbol = textQuoteIfNeeded
+
+-- characters that may not be used in a non-quoted commodity symbol
+isNonsimpleCommodityChar :: Char -> Bool
+isNonsimpleCommodityChar = liftA2 (||) isDigit isOther
+  where
+    otherChars = "-+.@*;\t\n \"{}=" :: T.Text
+    isOther c = T.any (==c) otherChars
+
+quoteCommoditySymbolIfNeeded :: T.Text -> T.Text
+quoteCommoditySymbolIfNeeded s
+  | T.any isNonsimpleCommodityChar s = "\"" <> s <> "\""
+  | otherwise = s
 
 
 -- | Options for the display of Amount and MixedAmount.

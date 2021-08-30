@@ -45,7 +45,6 @@ import Hledger.Utils
 import Hledger.Data.Types
 import Hledger.Data.Amount
 import Hledger.Data.Dates (nulldate)
-import Hledger.Data.Commodity (showCommoditySymbol)
 import Text.Printf (printf)
 
 
