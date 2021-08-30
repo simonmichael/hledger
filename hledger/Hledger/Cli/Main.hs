@@ -169,7 +169,7 @@ main = do
                                  = putStrLn prognameandversion
       -- \| (null externalcmd) && "binary-filename" `inRawOpts` rawopts = putStrLn $ binaryfilename progname
       -- \| "--browse-args" `elem` args     = System.Console.CmdArgs.Helper.execute "cmdargs-browser" mainmode' args >>= (putStr . show)
-      | isNullCommand            = dbgIO "" "no command, showing commands list" >> printCommandsList addons
+      | isNullCommand            = dbgIO "" "no command, showing commands list" >> printCommandsList prognameandversion addons
       | isBadCommand             = badCommandError
 
       -- builtin commands
@@ -265,4 +265,3 @@ flagstomove = inputflags ++ reportflags ++ helpflags
 noargflagstomove  = concatMap flagNames $ filter ((==FlagNone).flagInfo) flagstomove
 reqargflagstomove = -- filter (/= "debug") $
                     concatMap flagNames $ filter ((==FlagReq ).flagInfo) flagstomove
-

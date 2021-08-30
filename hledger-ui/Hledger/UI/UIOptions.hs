@@ -5,6 +5,7 @@
 
 module Hledger.UI.UIOptions
 where
+
 import Data.Default
 import Data.List (intercalate)
 import System.Environment
@@ -25,7 +26,7 @@ progname :: String
 progname = "hledger-ui"
 
 prognameandversion :: String
-prognameandversion = versionStringFor progname
+prognameandversion = versionStringForProgname progname
 
 uiflags = [
   -- flagNone ["debug-ui"] (setboolopt "rules-file") "run with no terminal output, showing console"

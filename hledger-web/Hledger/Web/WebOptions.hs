@@ -31,7 +31,7 @@ progname :: String
 progname = "hledger-web"
 
 prognameandversion :: String
-prognameandversion = versionStringFor  progname
+prognameandversion = versionStringForProgname progname
 
 
 webflags :: [Flag RawOpts]
