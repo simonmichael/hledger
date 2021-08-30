@@ -228,15 +228,15 @@ commandsFromCommandsList s =
   [w | c:l <- s, c `elem` [' ','+'], let w:_ = words l]
 
 knownCommands :: [String]
-knownCommands = sort . commandsFromCommandsList $ commandsList prognameandversion []
+knownCommands = sort . commandsFromCommandsList . drop 1 $ commandsList progname []  -- progname will not be seen
 
 -- | Print the commands list, modifying the template above based on
 -- the currently available addons. Missing addons will be removed, and
 -- extra addons will be added under Misc.
-printCommandsList :: [String] -> IO ()
-printCommandsList addonsFound =
+printCommandsList :: String -> [String] -> IO ()
+printCommandsList progversion addonsFound =
     putStr . unlines . concatMap adjustline $
-    commandsList prognameandversion (map ('+':) unknownCommandsFound)
+    commandsList progversion (map ('+':) unknownCommandsFound)
   where
     commandsFound = map (' ':) builtinCommandNames ++ map ('+':) addonsFound
     unknownCommandsFound = addonsFound \\ knownCommands

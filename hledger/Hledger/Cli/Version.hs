@@ -1,5 +1,4 @@
 {-# LANGUAGE CPP             #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-
 Version number-related utilities. See also the Makefile.
 -}
@@ -7,12 +6,11 @@ Version number-related utilities. See also the Makefile.
 module Hledger.Cli.Version (
   packageversion,
   progname,
-  prognameandversion,
   versionStringFor,
 )
 where
 
-import GitHash (giDescribe, tGitInfoCwdTry)
+import GitHash (GitInfo, giDescribe)
 import System.Info (os, arch)
 import Hledger.Utils
 
@@ -56,11 +54,6 @@ buildversion = prettify . splitAtElement '.' $ packageversion ++ patchlevel
 progname :: String
 progname = "hledger"
 
--- | The program name and the best version information we can obtain 
--- from git describe or build variables.
-prognameandversion :: String
-prognameandversion = versionStringFor progname
-
 -- | Given a program name, make a version string consisting of: 
 --
 -- * the program name
@@ -70,11 +63,11 @@ prognameandversion = versionStringFor progname
 -- * the platform (OS) name
 -- * the processor architecture name.
 --
-versionStringFor :: String -> String
-versionStringFor progname = concat [
+versionStringFor :: Either String GitInfo -> String -> String
+versionStringFor gitinfo progname = concat [
     progname
   , " "
-  , either (const buildversion) giDescribe $$tGitInfoCwdTry
+  , either (const buildversion) giDescribe gitinfo
   , ", "
   , os'
   , "-"
