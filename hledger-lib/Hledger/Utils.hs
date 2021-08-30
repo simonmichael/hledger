@@ -24,7 +24,6 @@ module Hledger.Utils (---- provide these frequently used modules - or not, for c
                           module Hledger.Utils.String,
                           module Hledger.Utils.Text,
                           module Hledger.Utils.Test,
-                          module Hledger.Utils.Color,
                           -- Debug.Trace.trace,
                           -- module Data.PPrint,
                           -- the rest need to be done in each module I think
@@ -38,6 +37,7 @@ import Data.List.Extra (foldl', foldl1', uncons, unsnoc)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text.IO as T
+import qualified Data.Text.Lazy.Builder as TB
 import Data.Time.Clock (getCurrentTime)
 import Data.Time.LocalTime (LocalTime, ZonedTime, getCurrentTimeZone,
                             utcToLocalTime, utcToZonedTime)
@@ -46,6 +46,7 @@ import Language.Haskell.TH (DecsQ, Name, mkName, nameBase)
 import Language.Haskell.TH.Syntax (Q, Exp)
 import Lens.Micro ((&), (.~))
 import Lens.Micro.TH (DefName(TopName), lensClass, lensField, makeLensesWith, classyRules)
+import System.Console.ANSI (Color,ColorIntensity,ConsoleLayer(..), SGR(..), setSGRCode)
 import System.Directory (getHomeDirectory)
 import System.FilePath (isRelative, (</>))
 import System.IO
@@ -58,7 +59,6 @@ import Hledger.Utils.Regex
 import Hledger.Utils.String
 import Hledger.Utils.Text
 import Hledger.Utils.Test
-import Hledger.Utils.Color
 
 
 -- tuples
@@ -244,6 +244,25 @@ embedFileRelative f = makeRelativeToProject f >>= embedStringFile
 -- hereFileRelative f = makeRelativeToProject f >>= hereFileExp
 --   where
 --     QuasiQuoter{quoteExp=hereFileExp} = hereFile
+
+-- | Wrap a string in ANSI codes to set and reset foreground colour.
+color :: ColorIntensity -> Color -> String -> String
+color int col s = setSGRCode [SetColor Foreground int col] ++ s ++ setSGRCode []
+
+-- | Wrap a string in ANSI codes to set and reset background colour.
+bgColor :: ColorIntensity -> Color -> String -> String
+bgColor int col s = setSGRCode [SetColor Background int col] ++ s ++ setSGRCode []
+
+-- | Wrap a WideBuilder in ANSI codes to set and reset foreground colour.
+colorB :: ColorIntensity -> Color -> WideBuilder -> WideBuilder
+colorB int col (WideBuilder s w) =
+    WideBuilder (TB.fromString (setSGRCode [SetColor Foreground int col]) <> s <> TB.fromString (setSGRCode [])) w
+
+-- | Wrap a WideBuilder in ANSI codes to set and reset background colour.
+bgColorB :: ColorIntensity -> Color -> WideBuilder -> WideBuilder
+bgColorB int col (WideBuilder s w) =
+    WideBuilder (TB.fromString (setSGRCode [SetColor Background int col]) <> s <> TB.fromString (setSGRCode [])) w
+
 
 -- | Make classy lenses for Hledger options fields.
 -- This is intended to be used with BalancingOpts, InputOpt, ReportOpts,

@@ -130,7 +130,6 @@ library:
   - Hledger.Reports.MultiBalanceReport
   - Hledger.Reports.PostingsReport
   - Hledger.Utils
-  - Hledger.Utils.Color
   - Hledger.Utils.Debug
   - Hledger.Utils.Parse
   - Hledger.Utils.Regex
