@@ -45,7 +45,7 @@ import Graphics.Vty
   )
 import Lens.Micro.Platform
 
-import Hledger hiding (Color)
+import Hledger
 import Hledger.Cli (CliOpts)
 import Hledger.Cli.DocFiles
 import Hledger.UI.UITypes

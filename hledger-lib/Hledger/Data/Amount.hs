@@ -158,6 +158,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy.Builder as TB
 import Data.Word (Word8)
 import Safe (headDef, lastDef, lastMay)
+import System.Console.ANSI (Color(..),ColorIntensity(..))
 import Text.Printf (printf)
 
 import Hledger.Data.Types
