@@ -159,9 +159,9 @@ formatStringTester fs value expected = actual @?= expected
       FormatLiteral l                   -> formatText False Nothing Nothing l
       FormatField leftJustify min max _ -> formatText leftJustify min max value
 
-tests_StringFormat = tests "StringFormat" [
+tests_StringFormat = testGroup "StringFormat" [
 
-   test "formatStringHelper" $ do
+   testCase "formatStringHelper" $ do
       formatStringTester (FormatLiteral " ")                                     ""            " "
       formatStringTester (FormatField False Nothing Nothing DescriptionField)    "description" "description"
       formatStringTester (FormatField False (Just 20) Nothing DescriptionField)  "description" "         description"
@@ -171,8 +171,8 @@ tests_StringFormat = tests "StringFormat" [
       formatStringTester (FormatField True (Just 20) (Just 20) DescriptionField) "description" "description         "
       formatStringTester (FormatField True Nothing (Just 3) DescriptionField)    "description" "des"
 
-  ,let s `gives` expected = test s $ parseStringFormat (T.pack s) @?= Right expected
-   in tests "parseStringFormat" [
+  ,let s `gives` expected = testCase s $ parseStringFormat (T.pack s) @?= Right expected
+   in testGroup "parseStringFormat" [
       ""                           `gives` (defaultStringFormatStyle [])
     , "D"                          `gives` (defaultStringFormatStyle [FormatLiteral "D"])
     , "%(date)"                    `gives` (defaultStringFormatStyle [FormatField False (Just 0) Nothing DescriptionField])
@@ -190,6 +190,6 @@ tests_StringFormat = tests "StringFormat" [
                                                                      ,FormatLiteral " "
                                                                      ,FormatField False (Just 0) (Just 10) TotalField
                                                                      ])
-    , test "newline not parsed" $ assertLeft $ parseStringFormat "\n"
+    , testCase "newline not parsed" $ assertLeft $ parseStringFormat "\n"
     ]
  ]

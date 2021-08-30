@@ -1038,8 +1038,8 @@ nulldate = fromGregorian 0 1 1
 
 -- tests
 
-tests_Dates = tests "Dates"
-  [ test "weekday" $ do
+tests_Dates = testGroup "Dates"
+  [ testCase "weekday" $ do
       splitSpan (DaysOfWeek [1..5]) (DateSpan (Just $ fromGregorian 2021 07 01) (Just $ fromGregorian 2021 07 08))
         @?= [ (DateSpan (Just $ fromGregorian 2021 06 28) (Just $ fromGregorian 2021 06 29))
             , (DateSpan (Just $ fromGregorian 2021 06 29) (Just $ fromGregorian 2021 06 30))
@@ -1059,7 +1059,7 @@ tests_Dates = tests "Dates"
             , (DateSpan (Just $ fromGregorian 2021 07 05) (Just $ fromGregorian 2021 07 09))
             ]
 
-  , test "match dayOfWeek" $ do
+  , testCase "match dayOfWeek" $ do
       let dayofweek n s = splitspan (nthdayofweekcontaining n) (applyN (n-1) nextday . nextweek) s
           match ds day = dayofweek day ds == splitSpan (DaysOfWeek [day]) ds @?= True
           ys2021 = fromGregorian 2021 01 01

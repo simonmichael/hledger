@@ -1288,77 +1288,77 @@ parseDateWithCustomOrDefaultFormats mformat s = asum $ map parsewith formats
 
 --- ** tests
 
-tests_CsvReader = tests "CsvReader" [
-   tests "parseCsvRules" [
-     test "empty file" $
+tests_CsvReader = testGroup "CsvReader" [
+   testGroup "parseCsvRules" [
+     testCase "empty file" $
       parseCsvRules "unknown" "" @?= Right (mkrules defrules)
    ]
-  ,tests "rulesp" [
-     test "trailing comments" $
+  ,testGroup "rulesp" [
+     testCase "trailing comments" $
       parseWithState' defrules rulesp "skip\n# \n#\n" @?= Right (mkrules $ defrules{rdirectives = [("skip","")]})
 
-    ,test "trailing blank lines" $
+    ,testCase "trailing blank lines" $
       parseWithState' defrules rulesp "skip\n\n  \n" @?= (Right (mkrules $ defrules{rdirectives = [("skip","")]}))
 
-    ,test "no final newline" $
+    ,testCase "no final newline" $
       parseWithState' defrules rulesp "skip" @?= (Right (mkrules $ defrules{rdirectives=[("skip","")]}))
 
-    ,test "assignment with empty value" $
+    ,testCase "assignment with empty value" $
       parseWithState' defrules rulesp "account1 \nif foo\n  account2 foo\n" @?=
         (Right (mkrules $ defrules{rassignments = [("account1","")], rconditionalblocks = [CB{cbMatchers=[RecordMatcher None (toRegex' "foo")],cbAssignments=[("account2","foo")]}]}))
    ]
-  ,tests "conditionalblockp" [
-    test "space after conditional" $ -- #1120
+  ,testGroup "conditionalblockp" [
+    testCase "space after conditional" $ -- #1120
       parseWithState' defrules conditionalblockp "if a\n account2 b\n \n" @?=
         (Right $ CB{cbMatchers=[RecordMatcher None $ toRegexCI' "a"],cbAssignments=[("account2","b")]})
 
-  ,tests "csvfieldreferencep" [
-    test "number" $ parseWithState' defrules csvfieldreferencep "%1" @?= (Right "%1")
-   ,test "name" $ parseWithState' defrules csvfieldreferencep "%date" @?= (Right "%date")
-   ,test "quoted name" $ parseWithState' defrules csvfieldreferencep "%\"csv date\"" @?= (Right "%\"csv date\"")
+  ,testGroup "csvfieldreferencep" [
+    testCase "number" $ parseWithState' defrules csvfieldreferencep "%1" @?= (Right "%1")
+   ,testCase "name" $ parseWithState' defrules csvfieldreferencep "%date" @?= (Right "%date")
+   ,testCase "quoted name" $ parseWithState' defrules csvfieldreferencep "%\"csv date\"" @?= (Right "%\"csv date\"")
    ]
 
-  ,tests "matcherp" [
+  ,testGroup "matcherp" [
 
-    test "recordmatcherp" $
+    testCase "recordmatcherp" $
       parseWithState' defrules matcherp "A A\n" @?= (Right $ RecordMatcher None $ toRegexCI' "A A")
 
-   ,test "recordmatcherp.starts-with-&" $
+   ,testCase "recordmatcherp.starts-with-&" $
       parseWithState' defrules matcherp "& A A\n" @?= (Right $ RecordMatcher And $ toRegexCI' "A A")
 
-   ,test "fieldmatcherp.starts-with-%" $
+   ,testCase "fieldmatcherp.starts-with-%" $
       parseWithState' defrules matcherp "description A A\n" @?= (Right $ RecordMatcher None $ toRegexCI' "description A A")
 
-   ,test "fieldmatcherp" $
+   ,testCase "fieldmatcherp" $
       parseWithState' defrules matcherp "%description A A\n" @?= (Right $ FieldMatcher None "%description" $ toRegexCI' "A A")
 
-   ,test "fieldmatcherp.starts-with-&" $
+   ,testCase "fieldmatcherp.starts-with-&" $
       parseWithState' defrules matcherp "& %description A A\n" @?= (Right $ FieldMatcher And "%description" $ toRegexCI' "A A")
 
-   -- ,test "fieldmatcherp with operator" $
+   -- ,testCase "fieldmatcherp with operator" $
    --    parseWithState' defrules matcherp "%description ~ A A\n" @?= (Right $ FieldMatcher "%description" "A A")
 
    ]
 
-  ,tests "getEffectiveAssignment" [
+  ,testGroup "getEffectiveAssignment" [
     let rules = mkrules $ defrules {rcsvfieldindexes=[("csvdate",1)],rassignments=[("date","%csvdate")]}
 
-    in test "toplevel" $ getEffectiveAssignment rules ["a","b"] "date" @?= (Just "%csvdate")
+    in testCase "toplevel" $ getEffectiveAssignment rules ["a","b"] "date" @?= (Just "%csvdate")
 
    ,let rules = mkrules $ defrules{rcsvfieldindexes=[("csvdate",1)], rconditionalblocks=[CB [FieldMatcher None "%csvdate" $ toRegex' "a"] [("date","%csvdate")]]}
-    in test "conditional" $ getEffectiveAssignment rules ["a","b"] "date" @?= (Just "%csvdate")
+    in testCase "conditional" $ getEffectiveAssignment rules ["a","b"] "date" @?= (Just "%csvdate")
 
    ,let rules = mkrules $ defrules{rcsvfieldindexes=[("csvdate",1),("description",2)], rconditionalblocks=[CB [FieldMatcher None "%csvdate" $ toRegex' "a", FieldMatcher None "%description" $ toRegex' "b"] [("date","%csvdate")]]}
-    in test "conditional-with-or-a" $ getEffectiveAssignment rules ["a"] "date" @?= (Just "%csvdate")
+    in testCase "conditional-with-or-a" $ getEffectiveAssignment rules ["a"] "date" @?= (Just "%csvdate")
 
    ,let rules = mkrules $ defrules{rcsvfieldindexes=[("csvdate",1),("description",2)], rconditionalblocks=[CB [FieldMatcher None "%csvdate" $ toRegex' "a", FieldMatcher None "%description" $ toRegex' "b"] [("date","%csvdate")]]}
-    in test "conditional-with-or-b" $ getEffectiveAssignment rules ["_", "b"] "date" @?= (Just "%csvdate")
+    in testCase "conditional-with-or-b" $ getEffectiveAssignment rules ["_", "b"] "date" @?= (Just "%csvdate")
 
    ,let rules = mkrules $ defrules{rcsvfieldindexes=[("csvdate",1),("description",2)], rconditionalblocks=[CB [FieldMatcher None "%csvdate" $ toRegex' "a", FieldMatcher And "%description" $ toRegex' "b"] [("date","%csvdate")]]}
-    in test "conditional.with-and" $ getEffectiveAssignment rules ["a", "b"] "date" @?= (Just "%csvdate")
+    in testCase "conditional.with-and" $ getEffectiveAssignment rules ["a", "b"] "date" @?= (Just "%csvdate")
 
    ,let rules = mkrules $ defrules{rcsvfieldindexes=[("csvdate",1),("description",2)], rconditionalblocks=[CB [FieldMatcher None "%csvdate" $ toRegex' "a", FieldMatcher And "%description" $ toRegex' "b", FieldMatcher None "%description" $ toRegex' "c"] [("date","%csvdate")]]}
-    in test "conditional.with-and-or" $ getEffectiveAssignment rules ["_", "c"] "date" @?= (Just "%csvdate")
+    in testCase "conditional.with-and-or" $ getEffectiveAssignment rules ["_", "c"] "date" @?= (Just "%csvdate")
 
    ]
 

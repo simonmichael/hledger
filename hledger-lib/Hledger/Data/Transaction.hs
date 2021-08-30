@@ -670,11 +670,11 @@ makeHledgerClassyLenses ''BalancingOpts
 
 tests_Transaction :: TestTree
 tests_Transaction =
-  tests "Transaction" [
+  testGroup "Transaction" [
 
-      tests "showPostingLines" [
-          test "null posting" $ showPostingLines nullposting @?= ["                   0"]
-        , test "non-null posting" $
+      testGroup "showPostingLines" [
+          testCase "null posting" $ showPostingLines nullposting @?= ["                   0"]
+        , testCase "non-null posting" $
            let p =
                 posting
                   { pstatus = Cleared
@@ -709,45 +709,45 @@ tests_Transaction =
         t3 = nulltransaction {tpostings = ["a" `post` usd 1, "b" `post` missingamt, "c" `post` usd (-1)]}
         -- unbalanced amounts when precision is limited (#931)
         -- t4 = nulltransaction {tpostings = ["a" `post` usd (-0.01), "b" `post` usd (0.005), "c" `post` usd (0.005)]}
-      in tests "postingsAsLines" [
-              test "null-transaction" $ postingsAsLines False (tpostings nulltransaction) @?= []
-            , test "implicit-amount" $ postingsAsLines False (tpostings timp) @?=
+      in testGroup "postingsAsLines" [
+              testCase "null-transaction" $ postingsAsLines False (tpostings nulltransaction) @?= []
+            , testCase "implicit-amount" $ postingsAsLines False (tpostings timp) @?=
                   [ "    a           $1.00"
                   , "    b" -- implicit amount remains implicit
                   ]
-            , test "explicit-amounts" $ postingsAsLines False (tpostings texp) @?=
+            , testCase "explicit-amounts" $ postingsAsLines False (tpostings texp) @?=
                   [ "    a           $1.00"
                   , "    b          $-1.00"
                   ]
-            , test "one-explicit-amount" $ postingsAsLines False (tpostings texp1) @?=
+            , testCase "one-explicit-amount" $ postingsAsLines False (tpostings texp1) @?=
                   [ "    (a)           $1.00"
                   ]
-            , test "explicit-amounts-two-commodities" $ postingsAsLines False (tpostings texp2) @?=
+            , testCase "explicit-amounts-two-commodities" $ postingsAsLines False (tpostings texp2) @?=
                   [ "    a             $1.00"
                   , "    b    -1.00h @ $1.00"
                   ]
-            , test "explicit-amounts-not-explicitly-balanced" $ postingsAsLines False (tpostings texp2b) @?=
+            , testCase "explicit-amounts-not-explicitly-balanced" $ postingsAsLines False (tpostings texp2b) @?=
                   [ "    a           $1.00"
                   , "    b          -1.00h"
                   ]
-            , test "implicit-amount-not-last" $ postingsAsLines False (tpostings t3) @?=
+            , testCase "implicit-amount-not-last" $ postingsAsLines False (tpostings t3) @?=
                   ["    a           $1.00", "    b", "    c          $-1.00"]
-            -- , test "ensure-visibly-balanced" $
+            -- , testCase "ensure-visibly-balanced" $
             --    in postingsAsLines False (tpostings t4) @?=
             --       ["    a          $-0.01", "    b           $0.005", "    c           $0.005"]
 
             ]
 
-    , test "inferBalancingAmount" $ do
+    , testCase "inferBalancingAmount" $ do
          (fst <$> inferBalancingAmount M.empty nulltransaction) @?= Right nulltransaction
          (fst <$> inferBalancingAmount M.empty nulltransaction{tpostings = ["a" `post` usd (-5), "b" `post` missingamt]}) @?=
            Right nulltransaction{tpostings = ["a" `post` usd (-5), "b" `post` usd 5]}
          (fst <$> inferBalancingAmount M.empty nulltransaction{tpostings = ["a" `post` usd (-5), "b" `post` (eur 3 @@ usd 4), "c" `post` missingamt]}) @?=
            Right nulltransaction{tpostings = ["a" `post` usd (-5), "b" `post` (eur 3 @@ usd 4), "c" `post` usd 1]}
 
-    , tests "showTransaction" [
-          test "null transaction" $ showTransaction nulltransaction @?= "0000-01-01\n\n"
-        , test "non-null transaction" $ showTransaction
+    , testGroup "showTransaction" [
+          testCase "null transaction" $ showTransaction nulltransaction @?= "0000-01-01\n\n"
+        , testCase "non-null transaction" $ showTransaction
             nulltransaction
               { tdate = fromGregorian 2012 05 14
               , tdate2 = Just $ fromGregorian 2012 05 15
@@ -776,7 +776,7 @@ tests_Transaction =
             , "    ; pcomment2"
             , ""
             ]
-        , test "show a balanced transaction" $
+        , testCase "show a balanced transaction" $
           (let t =
                  Transaction
                    0
@@ -799,7 +799,7 @@ tests_Transaction =
              , "    assets:checking                 $-47.18"
              , ""
              ])
-        , test "show an unbalanced transaction, should not elide" $
+        , testCase "show an unbalanced transaction, should not elide" $
           (showTransaction
              (txnTieKnot $
               Transaction
@@ -822,7 +822,7 @@ tests_Transaction =
              , "    assets:checking                 $-47.19"
              , ""
              ])
-        , test "show a transaction with one posting and a missing amount" $
+        , testCase "show a transaction with one posting and a missing amount" $
           (showTransaction
              (txnTieKnot $
               Transaction
@@ -838,7 +838,7 @@ tests_Transaction =
                 []
                 [posting {paccount = "expenses:food:groceries", pamount = missingmixedamt}])) @?=
           (T.unlines ["2007-01-28 coopportunity", "    expenses:food:groceries", ""])
-        , test "show a transaction with a priced commodityless amount" $
+        , testCase "show a transaction with a priced commodityless amount" $
           (showTransaction
              (txnTieKnot $
               Transaction
@@ -857,8 +857,8 @@ tests_Transaction =
                 ])) @?=
           (T.unlines ["2010-01-01 x", "    a          1 @ $2", "    b", ""])
         ]
-    , tests "balanceTransaction" [
-         test "detect unbalanced entry, sign error" $
+    , testGroup "balanceTransaction" [
+         testCase "detect unbalanced entry, sign error" $
           assertLeft
             (balanceTransaction defbalancingopts
                (Transaction
@@ -873,7 +873,7 @@ tests_Transaction =
                   ""
                   []
                   [posting {paccount = "a", pamount = mixedAmount (usd 1)}, posting {paccount = "b", pamount = mixedAmount (usd 1)}]))
-        ,test "detect unbalanced entry, multiple missing amounts" $
+        ,testCase "detect unbalanced entry, multiple missing amounts" $
           assertLeft $
              balanceTransaction defbalancingopts
                (Transaction
@@ -890,7 +890,7 @@ tests_Transaction =
                   [ posting {paccount = "a", pamount = missingmixedamt}
                   , posting {paccount = "b", pamount = missingmixedamt}
                   ])
-        ,test "one missing amount is inferred" $
+        ,testCase "one missing amount is inferred" $
           (pamount . last . tpostings <$>
            balanceTransaction defbalancingopts
              (Transaction
@@ -906,7 +906,7 @@ tests_Transaction =
                 []
                 [posting {paccount = "a", pamount = mixedAmount (usd 1)}, posting {paccount = "b", pamount = missingmixedamt}])) @?=
           Right (mixedAmount $ usd (-1))
-        ,test "conversion price is inferred" $
+        ,testCase "conversion price is inferred" $
           (pamount . head . tpostings <$>
            balanceTransaction defbalancingopts
              (Transaction
@@ -924,7 +924,7 @@ tests_Transaction =
                 , posting {paccount = "b", pamount = mixedAmount (eur (-1))}
                 ])) @?=
           Right (mixedAmount $ usd 1.35 @@ eur 1)
-        ,test "balanceTransaction balances based on cost if there are unit prices" $
+        ,testCase "balanceTransaction balances based on cost if there are unit prices" $
           assertRight $
           balanceTransaction defbalancingopts
             (Transaction
@@ -941,7 +941,7 @@ tests_Transaction =
                [ posting {paccount = "a", pamount = mixedAmount $ usd 1 `at` eur 2}
                , posting {paccount = "a", pamount = mixedAmount $ usd (-2) `at` eur 1}
                ])
-        ,test "balanceTransaction balances based on cost if there are total prices" $
+        ,testCase "balanceTransaction balances based on cost if there are total prices" $
           assertRight $
           balanceTransaction defbalancingopts
             (Transaction
@@ -959,8 +959,8 @@ tests_Transaction =
                , posting {paccount = "a", pamount = mixedAmount $ usd (-2) @@ eur (-1)}
                ])
         ]
-    , tests "isTransactionBalanced" [
-         test "detect balanced" $
+    , testGroup "isTransactionBalanced" [
+         testCase "detect balanced" $
           assertBool "" $
           isTransactionBalanced defbalancingopts $
           Transaction
@@ -977,7 +977,7 @@ tests_Transaction =
             [ posting {paccount = "b", pamount = mixedAmount (usd 1.00)}
             , posting {paccount = "c", pamount = mixedAmount (usd (-1.00))}
             ]
-        ,test "detect unbalanced" $
+        ,testCase "detect unbalanced" $
           assertBool "" $
           not $
           isTransactionBalanced defbalancingopts $
@@ -995,7 +995,7 @@ tests_Transaction =
             [ posting {paccount = "b", pamount = mixedAmount (usd 1.00)}
             , posting {paccount = "c", pamount = mixedAmount (usd (-1.01))}
             ]
-        ,test "detect unbalanced, one posting" $
+        ,testCase "detect unbalanced, one posting" $
           assertBool "" $
           not $
           isTransactionBalanced defbalancingopts $
@@ -1011,7 +1011,7 @@ tests_Transaction =
             ""
             []
             [posting {paccount = "b", pamount = mixedAmount (usd 1.00)}]
-        ,test "one zero posting is considered balanced for now" $
+        ,testCase "one zero posting is considered balanced for now" $
           assertBool "" $
           isTransactionBalanced defbalancingopts $
           Transaction
@@ -1026,7 +1026,7 @@ tests_Transaction =
             ""
             []
             [posting {paccount = "b", pamount = mixedAmount (usd 0)}]
-        ,test "virtual postings don't need to balance" $
+        ,testCase "virtual postings don't need to balance" $
           assertBool "" $
           isTransactionBalanced defbalancingopts $
           Transaction
@@ -1044,7 +1044,7 @@ tests_Transaction =
             , posting {paccount = "c", pamount = mixedAmount (usd (-1.00))}
             , posting {paccount = "d", pamount = mixedAmount (usd 100), ptype = VirtualPosting}
             ]
-        ,test "balanced virtual postings need to balance among themselves" $
+        ,testCase "balanced virtual postings need to balance among themselves" $
           assertBool "" $
           not $
           isTransactionBalanced defbalancingopts $
@@ -1063,7 +1063,7 @@ tests_Transaction =
             , posting {paccount = "c", pamount = mixedAmount (usd (-1.00))}
             , posting {paccount = "d", pamount = mixedAmount (usd 100), ptype = BalancedVirtualPosting}
             ]
-        ,test "balanced virtual postings need to balance among themselves (2)" $
+        ,testCase "balanced virtual postings need to balance among themselves (2)" $
           assertBool "" $
           isTransactionBalanced defbalancingopts $
           Transaction

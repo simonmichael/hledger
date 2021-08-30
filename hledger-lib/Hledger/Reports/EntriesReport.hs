@@ -39,10 +39,10 @@ entriesReport rspec@ReportSpec{_rsReportOpts=ropts} =
     . journalApplyValuationFromOpts rspec{_rsReportOpts=ropts{show_costs_=True}}
     . filterJournalTransactions (_rsQuery rspec)
 
-tests_EntriesReport = tests "EntriesReport" [
-  tests "entriesReport" [
-     test "not acct" $ (length $ entriesReport defreportspec{_rsQuery=Not . Acct $ toRegex' "bank"} samplejournal) @?= 1
-    ,test "date" $ (length $ entriesReport defreportspec{_rsQuery=Date $ DateSpan (Just $ fromGregorian 2008 06 01) (Just $ fromGregorian 2008 07 01)} samplejournal) @?= 3
+tests_EntriesReport = testGroup "EntriesReport" [
+  testGroup "entriesReport" [
+     testCase "not acct" $ (length $ entriesReport defreportspec{_rsQuery=Not . Acct $ toRegex' "bank"} samplejournal) @?= 1
+    ,testCase "date" $ (length $ entriesReport defreportspec{_rsQuery=Date $ DateSpan (Just $ fromGregorian 2008 06 01) (Just $ fromGregorian 2008 07 01)} samplejournal) @?= 3
   ]
  ]
 

@@ -59,7 +59,8 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 
-import Hledger.Utils.Test ((@?=), test, tests)
+import Test.Tasty (testGroup)
+import Test.Tasty.HUnit ((@?=), testCase)
 import Text.Tabular.AsciiWide
   (Align(..), Header(..), Properties(..), TableOpts(..), renderRow, textCell)
 import Text.WideString (WideBuilder(..), wbToText, wbFromText, wbUnpack, charWidth, textWidth)
@@ -260,8 +261,8 @@ readDecimal = T.foldl' step 0
   where step a c = a * 10 + toInteger (digitToInt c)
 
 
-tests_Text = tests "Text" [
-   test "quoteIfSpaced" $ do
+tests_Text = testGroup "Text" [
+   testCase "quoteIfSpaced" $ do
      quoteIfSpaced "a'a" @?= "a'a"
      quoteIfSpaced "a\"a" @?= "a\"a"
      quoteIfSpaced "a a" @?= "\"a a\""

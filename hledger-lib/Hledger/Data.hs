@@ -31,6 +31,7 @@ module Hledger.Data (
               )
 where
 
+import Test.Tasty (testGroup)
 import Hledger.Data.Account
 import Hledger.Data.AccountName
 import Hledger.Data.Amount
@@ -49,9 +50,8 @@ import Hledger.Data.Transaction
 import Hledger.Data.TransactionModifier
 import Hledger.Data.Types hiding (MixedAmountKey, Mixed)
 import Hledger.Data.Valuation
-import Hledger.Utils.Test
 
-tests_Data = tests "Data" [
+tests_Data = testGroup "Data" [
    tests_AccountName
   ,tests_Amount
   ,tests_Dates

@@ -582,7 +582,7 @@ balanceReportTableAsText ReportOpts{..} =
 
 -- tests
 
-tests_MultiBalanceReport = tests "MultiBalanceReport" [
+tests_MultiBalanceReport = testGroup "MultiBalanceReport" [
 
   let
     amt0 = Amount {acommodity="$", aquantity=0, aprice=Nothing, astyle=AmountStyle {ascommodityside = L, ascommodityspaced = False, asprecision = Precision 2, asdecimalpoint = Just '.', asdigitgroups = Nothing}}
@@ -595,11 +595,11 @@ tests_MultiBalanceReport = tests "MultiBalanceReport" [
       (map showw aitems) @?= (map showw eitems)
       showMixedAmountDebug (prrTotal atotal) @?= showMixedAmountDebug etotal -- we only check the sum of the totals
   in
-   tests "multiBalanceReport" [
-      test "null journal"  $
+   testGroup "multiBalanceReport" [
+      testCase "null journal"  $
       (defreportspec, nulljournal) `gives` ([], nullmixedamt)
 
-     ,test "with -H on a populated period"  $
+     ,testCase "with -H on a populated period"  $
       (defreportspec{_rsReportOpts=defreportopts{period_= PeriodBetween (fromGregorian 2008 1 1) (fromGregorian 2008 1 2), balanceaccum_=Historical}}, samplejournal) `gives`
        (
         [ PeriodicReportRow (flatDisplayName "assets:bank:checking") [mamountp' "$1.00"]  (mamountp' "$1.00")  (mixedAmount amt0{aquantity=1})
@@ -607,7 +607,7 @@ tests_MultiBalanceReport = tests "MultiBalanceReport" [
         ],
         mamountp' "$0.00")
 
-     -- ,test "a valid history on an empty period"  $
+     -- ,testCase "a valid history on an empty period"  $
      --  (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 2) (fromGregorian 2008 1 3), balanceaccum_=Historical}, samplejournal) `gives`
      --   (
      --    [
@@ -616,7 +616,7 @@ tests_MultiBalanceReport = tests "MultiBalanceReport" [
      --    ],
      --    mixedAmount usd0)
 
-     -- ,test "a valid history on an empty period (more complex)"  $
+     -- ,testCase "a valid history on an empty period (more complex)"  $
      --  (defreportopts{period_= PeriodBetween (fromGregorian 2009 1 1) (fromGregorian 2009 1 2), balanceaccum_=Historical}, samplejournal) `gives`
      --   (
      --    [

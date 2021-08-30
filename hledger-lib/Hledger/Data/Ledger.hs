@@ -28,7 +28,8 @@ import qualified Data.Map as M
 import Safe (headDef)
 import Text.Printf
 
-import Hledger.Utils.Test
+import Test.Tasty (testGroup)
+import Test.Tasty.HUnit ((@?=), testCase)
 import Hledger.Data.Types
 import Hledger.Data.Account
 import Hledger.Data.Journal
@@ -101,8 +102,8 @@ ledgerCommodities = M.keys . jinferredcommodities . ljournal
 -- tests
 
 tests_Ledger =
-  tests "Ledger" [
-    test "ledgerFromJournal" $ do
+  testGroup "Ledger" [
+    testCase "ledgerFromJournal" $ do
         length (ledgerPostings $ ledgerFromJournal Any nulljournal) @?= 0
         length (ledgerPostings $ ledgerFromJournal Any samplejournal) @?= 13
         length (ledgerPostings $ ledgerFromJournal (Depth 2) samplejournal) @?= 7

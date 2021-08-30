@@ -378,34 +378,34 @@ commentAddTagNextLine cmt (t,v) =
 
 -- tests
 
-tests_Posting = tests "Posting" [
+tests_Posting = testGroup "Posting" [
 
-  test "accountNamePostingType" $ do
+  testCase "accountNamePostingType" $ do
     accountNamePostingType "a" @?= RegularPosting
     accountNamePostingType "(a)" @?= VirtualPosting
     accountNamePostingType "[a]" @?= BalancedVirtualPosting
 
- ,test "accountNameWithoutPostingType" $ do
+ ,testCase "accountNameWithoutPostingType" $ do
     accountNameWithoutPostingType "(a)" @?= "a"
 
- ,test "accountNameWithPostingType" $ do
+ ,testCase "accountNameWithPostingType" $ do
     accountNameWithPostingType VirtualPosting "[a]" @?= "(a)"
 
- ,test "joinAccountNames" $ do
+ ,testCase "joinAccountNames" $ do
     "a" `joinAccountNames` "b:c" @?= "a:b:c"
     "a" `joinAccountNames` "(b:c)" @?= "(a:b:c)"
     "[a]" `joinAccountNames` "(b:c)" @?= "[a:b:c]"
     "" `joinAccountNames` "a" @?= "a"
 
- ,test "concatAccountNames" $ do
+ ,testCase "concatAccountNames" $ do
     concatAccountNames [] @?= ""
     concatAccountNames ["a","(b)","[c:d]"] @?= "(a:b:c:d)"
 
- ,test "commentAddTag" $ do
+ ,testCase "commentAddTag" $ do
     commentAddTag "" ("a","") @?= "a: "
     commentAddTag "[1/2]" ("a","") @?= "[1/2], a: "
 
- ,test "commentAddTagNextLine" $ do
+ ,testCase "commentAddTagNextLine" $ do
     commentAddTagNextLine "" ("a","") @?= "\na: "
     commentAddTagNextLine "[1/2]" ("a","") @?= "[1/2]\na: "
 

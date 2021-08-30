@@ -100,7 +100,7 @@ Right samplejournal2 =
       ]
     }
 
-tests_BalanceReport = tests "BalanceReport" [
+tests_BalanceReport = testGroup "BalanceReport" [
 
   let
     (rspec,journal) `gives` r = do
@@ -111,12 +111,12 @@ tests_BalanceReport = tests "BalanceReport" [
       (map showw aitems) @?= (map showw eitems)
       (showMixedAmountDebug atotal) @?= (showMixedAmountDebug etotal)
   in
-    tests "balanceReport" [
+    testGroup "balanceReport" [
 
-     test "no args, null journal" $
+     testCase "no args, null journal" $
      (defreportspec, nulljournal) `gives` ([], nullmixedamt)
 
-    ,test "no args, sample journal" $
+    ,testCase "no args, sample journal" $
      (defreportspec, samplejournal) `gives`
       ([
         ("assets:bank:checking","assets:bank:checking",0, mamountp' "$1.00")
@@ -129,7 +129,7 @@ tests_BalanceReport = tests "BalanceReport" [
        ],
        mixedAmount (usd 0))
 
-    ,test "with --tree" $
+    ,testCase "with --tree" $
      (defreportspec{_rsReportOpts=defreportopts{accountlistmode_=ALTree}}, samplejournal) `gives`
       ([
         ("assets","assets",0, mamountp' "$0.00")
@@ -146,7 +146,7 @@ tests_BalanceReport = tests "BalanceReport" [
        ],
        mixedAmount (usd 0))
 
-    ,test "with --depth=N" $
+    ,testCase "with --depth=N" $
      (defreportspec{_rsReportOpts=defreportopts{depth_=Just 1}}, samplejournal) `gives`
       ([
        ("expenses",    "expenses",    0, mamountp'  "$2.00")
@@ -154,7 +154,7 @@ tests_BalanceReport = tests "BalanceReport" [
        ],
        mixedAmount (usd 0))
 
-    ,test "with depth:N" $
+    ,testCase "with depth:N" $
      (defreportspec{_rsQuery=Depth 1}, samplejournal) `gives`
       ([
        ("expenses",    "expenses",    0, mamountp'  "$2.00")
@@ -162,11 +162,11 @@ tests_BalanceReport = tests "BalanceReport" [
        ],
        mixedAmount (usd 0))
 
-    ,test "with date:" $
+    ,testCase "with date:" $
      (defreportspec{_rsQuery=Date $ DateSpan (Just $ fromGregorian 2009 01 01) (Just $ fromGregorian 2010 01 01)}, samplejournal2) `gives`
       ([], nullmixedamt)
 
-    ,test "with date2:" $
+    ,testCase "with date2:" $
      (defreportspec{_rsQuery=Date2 $ DateSpan (Just $ fromGregorian 2009 01 01) (Just $ fromGregorian 2010 01 01)}, samplejournal2) `gives`
       ([
         ("assets:bank:checking","assets:bank:checking",0,mamountp' "$1.00")
@@ -174,7 +174,7 @@ tests_BalanceReport = tests "BalanceReport" [
        ],
        mixedAmount (usd 0))
 
-    ,test "with desc:" $
+    ,testCase "with desc:" $
      (defreportspec{_rsQuery=Desc $ toRegexCI' "income"}, samplejournal) `gives`
       ([
         ("assets:bank:checking","assets:bank:checking",0,mamountp' "$1.00")
@@ -182,7 +182,7 @@ tests_BalanceReport = tests "BalanceReport" [
        ],
        mixedAmount (usd 0))
 
-    ,test "with not:desc:" $
+    ,testCase "with not:desc:" $
      (defreportspec{_rsQuery=Not . Desc $ toRegexCI' "income"}, samplejournal) `gives`
       ([
         ("assets:bank:saving","assets:bank:saving",0, mamountp' "$1.00")
@@ -193,7 +193,7 @@ tests_BalanceReport = tests "BalanceReport" [
        ],
        mixedAmount (usd 0))
 
-    ,test "with period on a populated period" $
+    ,testCase "with period on a populated period" $
       (defreportspec{_rsReportOpts=defreportopts{period_= PeriodBetween (fromGregorian 2008 1 1) (fromGregorian 2008 1 2)}}, samplejournal) `gives`
        (
         [
@@ -202,14 +202,14 @@ tests_BalanceReport = tests "BalanceReport" [
         ],
         mixedAmount (usd 0))
 
-     ,test "with period on an unpopulated period" $
+     ,testCase "with period on an unpopulated period" $
       (defreportspec{_rsReportOpts=defreportopts{period_= PeriodBetween (fromGregorian 2008 1 2) (fromGregorian 2008 1 3)}}, samplejournal) `gives`
        ([], nullmixedamt)
 
 
 
   {-
-      ,test "accounts report with account pattern o" ~:
+      ,testCase "accounts report with account pattern o" ~:
        defreportopts{patterns_=["o"]} `gives`
        ["                  $1  expenses:food"
        ,"                 $-2  income"
@@ -219,7 +219,7 @@ tests_BalanceReport = tests "BalanceReport" [
        ,"                 $-1"
        ]
 
-      ,test "accounts report with account pattern o and --depth 1" ~:
+      ,testCase "accounts report with account pattern o and --depth 1" ~:
        defreportopts{patterns_=["o"],depth_=Just 1} `gives`
        ["                  $1  expenses"
        ,"                 $-2  income"
@@ -227,7 +227,7 @@ tests_BalanceReport = tests "BalanceReport" [
        ,"                 $-1"
        ]
 
-      ,test "accounts report with account pattern a" ~:
+      ,testCase "accounts report with account pattern a" ~:
        defreportopts{patterns_=["a"]} `gives`
        ["                 $-1  assets"
        ,"                  $1    bank:saving"
@@ -238,7 +238,7 @@ tests_BalanceReport = tests "BalanceReport" [
        ,"                 $-1"
        ]
 
-      ,test "accounts report with account pattern e" ~:
+      ,testCase "accounts report with account pattern e" ~:
        defreportopts{patterns_=["e"]} `gives`
        ["                 $-1  assets"
        ,"                  $1    bank:saving"
@@ -254,7 +254,7 @@ tests_BalanceReport = tests "BalanceReport" [
        ,"                   0"
        ]
 
-      ,test "accounts report with unmatched parent of two matched subaccounts" ~:
+      ,testCase "accounts report with unmatched parent of two matched subaccounts" ~:
        defreportopts{patterns_=["cash","saving"]} `gives`
        ["                 $-1  assets"
        ,"                  $1    bank:saving"
@@ -263,14 +263,14 @@ tests_BalanceReport = tests "BalanceReport" [
        ,"                 $-1"
        ]
 
-      ,test "accounts report with multi-part account name" ~:
+      ,testCase "accounts report with multi-part account name" ~:
        defreportopts{patterns_=["expenses:food"]} `gives`
        ["                  $1  expenses:food"
        ,"--------------------"
        ,"                  $1"
        ]
 
-      ,test "accounts report with negative account pattern" ~:
+      ,testCase "accounts report with negative account pattern" ~:
        defreportopts{patterns_=["not:assets"]} `gives`
        ["                  $2  expenses"
        ,"                  $1    food"
@@ -283,20 +283,20 @@ tests_BalanceReport = tests "BalanceReport" [
        ,"                  $1"
        ]
 
-      ,test "accounts report negative account pattern always matches full name" ~:
+      ,testCase "accounts report negative account pattern always matches full name" ~:
        defreportopts{patterns_=["not:e"]} `gives`
        ["--------------------"
        ,"                   0"
        ]
 
-      ,test "accounts report negative patterns affect totals" ~:
+      ,testCase "accounts report negative patterns affect totals" ~:
        defreportopts{patterns_=["expenses","not:food"]} `gives`
        ["                  $1  expenses:supplies"
        ,"--------------------"
        ,"                  $1"
        ]
 
-      ,test "accounts report with -E shows zero-balance accounts" ~:
+      ,testCase "accounts report with -E shows zero-balance accounts" ~:
        defreportopts{patterns_=["assets"],empty_=True} `gives`
        ["                 $-1  assets"
        ,"                  $1    bank"
@@ -307,7 +307,7 @@ tests_BalanceReport = tests "BalanceReport" [
        ,"                 $-1"
        ]
 
-      ,test "accounts report with cost basis" $
+      ,testCase "accounts report with cost basis" $
          j <- (readJournal def Nothing $ unlines
                 [""
                 ,"2008/1/1 test           "

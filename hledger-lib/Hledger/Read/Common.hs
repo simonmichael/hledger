@@ -1574,12 +1574,12 @@ regexaliasp = do
 
 --- ** tests
 
-tests_Common = tests "Common" [
+tests_Common = testGroup "Common" [
 
-   tests "amountp" [
-    test "basic"                  $ assertParseEq amountp "$47.18"     (usd 47.18)
-   ,test "ends with decimal mark" $ assertParseEq amountp "$1."        (usd 1  `withPrecision` Precision 0)
-   ,test "unit price"             $ assertParseEq amountp "$10 @ €0.5"
+   testGroup "amountp" [
+    testCase "basic"                  $ assertParseEq amountp "$47.18"     (usd 47.18)
+   ,testCase "ends with decimal mark" $ assertParseEq amountp "$1."        (usd 1  `withPrecision` Precision 0)
+   ,testCase "unit price"             $ assertParseEq amountp "$10 @ €0.5"
       -- not precise enough:
       -- (usd 10 `withPrecision` 0 `at` (eur 0.5 `withPrecision` 1)) -- `withStyle` asdecimalpoint=Just '.'
       amount{
@@ -1593,7 +1593,7 @@ tests_Common = tests "Common" [
             ,astyle=amountstyle{asprecision=Precision 1, asdecimalpoint=Just '.'}
             }
         }
-   ,test "total price"            $ assertParseEq amountp "$10 @@ €5"
+   ,testCase "total price"            $ assertParseEq amountp "$10 @@ €5"
       amount{
          acommodity="$"
         ,aquantity=10
@@ -1605,12 +1605,12 @@ tests_Common = tests "Common" [
             ,astyle=amountstyle{asprecision=Precision 0, asdecimalpoint=Nothing}
             }
         }
-   ,test "unit price, parenthesised" $ assertParse amountp "$10 (@) €0.5"
-   ,test "total price, parenthesised" $ assertParse amountp "$10 (@@) €0.5"
+   ,testCase "unit price, parenthesised" $ assertParse amountp "$10 (@) €0.5"
+   ,testCase "total price, parenthesised" $ assertParse amountp "$10 (@@) €0.5"
    ]
 
   ,let p = lift (numberp Nothing) :: JournalParser IO (Quantity, Word8, Maybe Char, Maybe DigitGroupStyle) in
-   test "numberp" $ do
+   testCase "numberp" $ do
      assertParseEq p "0"          (0, 0, Nothing, Nothing)
      assertParseEq p "1"          (1, 0, Nothing, Nothing)
      assertParseEq p "1.1"        (1.1, 1, Just '.', Nothing)
@@ -1632,11 +1632,11 @@ tests_Common = tests "Common" [
      assertParseEq    p "1.555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555" (1.555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555, 255, Just '.', Nothing)
      assertParseError p "1.5555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555" ""
 
-  ,tests "spaceandamountormissingp" [
-     test "space and amount" $ assertParseEq spaceandamountormissingp " $47.18" (mixedAmount $ usd 47.18)
-    ,test "empty string" $ assertParseEq spaceandamountormissingp "" missingmixedamt
-    -- ,test "just space" $ assertParseEq spaceandamountormissingp " " missingmixedamt  -- XXX should it ?
-    -- ,test "just amount" $ assertParseError spaceandamountormissingp "$47.18" ""  -- succeeds, consuming nothing
+  ,testGroup "spaceandamountormissingp" [
+     testCase "space and amount" $ assertParseEq spaceandamountormissingp " $47.18" (mixedAmount $ usd 47.18)
+    ,testCase "empty string" $ assertParseEq spaceandamountormissingp "" missingmixedamt
+    -- ,testCase "just space" $ assertParseEq spaceandamountormissingp " " missingmixedamt  -- XXX should it ?
+    -- ,testCase "just amount" $ assertParseError spaceandamountormissingp "$47.18" ""  -- succeeds, consuming nothing
     ]
 
   ]

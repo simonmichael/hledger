@@ -126,7 +126,7 @@ entryFromTimeclockInOut i o
 
 -- tests
 
-tests_Timeclock = tests "Timeclock" [
+tests_Timeclock = testGroup "Timeclock" [
   testCaseSteps "timeclockEntriesToTransactions tests" $ \step -> do
       step "gathering data"
       today <- getCurrentDay
