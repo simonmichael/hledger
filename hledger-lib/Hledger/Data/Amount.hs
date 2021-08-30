@@ -984,24 +984,24 @@ mixedAmountTotalPriceToUnitPrice = mapMixedAmount amountTotalPriceToUnitPrice
 -------------------------------------------------------------------------------
 -- tests
 
-tests_Amount = tests "Amount" [
-   tests "Amount" [
+tests_Amount = testGroup "Amount" [
+   testGroup "Amount" [
 
-     test "amountCost" $ do
+     testCase "amountCost" $ do
        amountCost (eur 1) @?= eur 1
        amountCost (eur 2){aprice=Just $ UnitPrice $ usd 2} @?= usd 4
        amountCost (eur 1){aprice=Just $ TotalPrice $ usd 2} @?= usd 2
        amountCost (eur (-1)){aprice=Just $ TotalPrice $ usd (-2)} @?= usd (-2)
 
-    ,test "amountLooksZero" $ do
+    ,testCase "amountLooksZero" $ do
        assertBool "" $ amountLooksZero amount
        assertBool "" $ amountLooksZero $ usd 0
 
-    ,test "negating amounts" $ do
+    ,testCase "negating amounts" $ do
        negate (usd 1) @?= (usd 1){aquantity= -1}
        let b = (usd 1){aprice=Just $ UnitPrice $ eur 2} in negate b @?= b{aquantity= -1}
 
-    ,test "adding amounts without prices" $ do
+    ,testCase "adding amounts without prices" $ do
        (usd 1.23 + usd (-1.23)) @?= usd 0
        (usd 1.23 + usd (-1.23)) @?= usd 0
        (usd (-1.23) + usd (-1.23)) @?= usd (-2.46)
@@ -1012,21 +1012,21 @@ tests_Amount = tests "Amount" [
        -- adding different commodities assumes conversion rate 1
        assertBool "" $ amountLooksZero (usd 1.23 - eur 1.23)
 
-    ,test "showAmount" $ do
+    ,testCase "showAmount" $ do
       showAmount (usd 0 + gbp 0) @?= "0"
 
   ]
 
-  ,tests "MixedAmount" [
+  ,testGroup "MixedAmount" [
 
-     test "comparing mixed amounts compares based on quantities" $ do
+     testCase "comparing mixed amounts compares based on quantities" $ do
        let usdpos = mixed [usd 1]
            usdneg = mixed [usd (-1)]
            eurneg = mixed [eur (-12)]
        compare usdneg usdpos @?= LT
        compare eurneg usdpos @?= LT
 
-     ,test "adding mixed amounts to zero, the commodity and amount style are preserved" $
+     ,testCase "adding mixed amounts to zero, the commodity and amount style are preserved" $
       maSum (map mixedAmount
         [usd 1.25
         ,usd (-1) `withPrecision` Precision 3
@@ -1034,39 +1034,39 @@ tests_Amount = tests "Amount" [
         ])
         @?= mixedAmount (usd 0 `withPrecision` Precision 3)
 
-    ,test "adding mixed amounts with total prices" $ do
+    ,testCase "adding mixed amounts with total prices" $ do
       maSum (map mixedAmount
         [usd 1 @@ eur 1
         ,usd (-2) @@ eur 1
         ])
         @?= mixedAmount (usd (-1) @@ eur 2)
 
-    ,test "showMixedAmount" $ do
+    ,testCase "showMixedAmount" $ do
        showMixedAmount (mixedAmount (usd 1)) @?= "$1.00"
        showMixedAmount (mixedAmount (usd 1 `at` eur 2)) @?= "$1.00 @ €2.00"
        showMixedAmount (mixedAmount (usd 0)) @?= "0"
        showMixedAmount nullmixedamt @?= "0"
        showMixedAmount missingmixedamt @?= ""
 
-    ,test "showMixedAmountWithoutPrice" $ do
+    ,testCase "showMixedAmountWithoutPrice" $ do
       let a = usd 1 `at` eur 2
       showMixedAmountWithoutPrice False (mixedAmount (a)) @?= "$1.00"
       showMixedAmountWithoutPrice False (mixed [a, -a]) @?= "0"
 
-    ,tests "amounts" [
-       test "a missing amount overrides any other amounts" $
+    ,testGroup "amounts" [
+       testCase "a missing amount overrides any other amounts" $
         amounts (mixed [usd 1, missingamt]) @?= [missingamt]
-      ,test "unpriced same-commodity amounts are combined" $
+      ,testCase "unpriced same-commodity amounts are combined" $
         amounts (mixed [usd 0, usd 2]) @?= [usd 2]
-      ,test "amounts with same unit price are combined" $
+      ,testCase "amounts with same unit price are combined" $
         amounts (mixed [usd 1 `at` eur 1, usd 1 `at` eur 1]) @?= [usd 2 `at` eur 1]
-      ,test "amounts with different unit prices are not combined" $
+      ,testCase "amounts with different unit prices are not combined" $
         amounts (mixed [usd 1 `at` eur 1, usd 1 `at` eur 2]) @?= [usd 1 `at` eur 1, usd 1 `at` eur 2]
-      ,test "amounts with total prices are combined" $
+      ,testCase "amounts with total prices are combined" $
         amounts (mixed [usd 1 @@ eur 1, usd 1 @@ eur 1]) @?= [usd 2 @@ eur 2]
     ]
 
-    ,test "mixedAmountStripPrices" $ do
+    ,testCase "mixedAmountStripPrices" $ do
        amounts (mixedAmountStripPrices nullmixedamt) @?= [nullamt]
        assertBool "" $ mixedAmountLooksZero $ mixedAmountStripPrices
         (mixed [usd 10

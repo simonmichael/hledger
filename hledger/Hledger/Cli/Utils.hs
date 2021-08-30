@@ -256,14 +256,14 @@ journalSimilarTransaction cliopts j desc = mbestmatch
       journalTransactionsSimilarTo j q desc 10
     q = queryFromFlags $ _rsReportOpts $ reportspec_ cliopts
 
-tests_Cli_Utils = tests "Utils" [
+tests_Cli_Utils = testGroup "Utils" [
 
-  --  tests "journalApplyValue" [
+  --  testGroup "journalApplyValue" [
   --    -- Print the time required to convert one of the sample journals' amounts to value.
   --    -- Pretty clunky, but working.
   --    -- XXX sample.journal has no price records, but is always present.
   --    -- Change to eg examples/5000x1000x10.journal to make this useful.
-  --    test "time" $ do
+  --    testCase "time" $ do
   --      ej <- io $ readJournalFile definputopts "examples/3000x1000x10.journal"
   --      case ej of
   --        Left e  -> crash $ T.pack e

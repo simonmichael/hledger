@@ -688,8 +688,8 @@ matchesPriceDirective _ _           = True
 
 -- tests
 
-tests_Query = tests "Query" [
-   test "simplifyQuery" $ do
+tests_Query = testGroup "Query" [
+   testCase "simplifyQuery" $ do
      (simplifyQuery $ Or [Acct $ toRegex' "a"])      @?= (Acct $ toRegex' "a")
      (simplifyQuery $ Or [Any,None])      @?= (Any)
      (simplifyQuery $ And [Any,None])     @?= (None)
@@ -700,7 +700,7 @@ tests_Query = tests "Query" [
        @?= (Date (DateSpan (Just $ fromGregorian 2012 01 01) (Just $ fromGregorian 2013 01 01)))
      (simplifyQuery $ And [Or [],Or [Desc $ toRegex' "b b"]]) @?= (Desc $ toRegex' "b b")
 
-  ,test "parseQuery" $ do
+  ,testCase "parseQuery" $ do
      (parseQuery nulldate "acct:'expenses:autres d\233penses' desc:b") @?= Right (And [Acct $ toRegexCI' "expenses:autres d\233penses", Desc $ toRegexCI' "b"], [])
      parseQuery nulldate "inacct:a desc:\"b b\""                       @?= Right (Desc $ toRegexCI' "b b", [QueryOptInAcct "a"])
      parseQuery nulldate "inacct:a inacct:b"                           @?= Right (Any, [QueryOptInAcct "a", QueryOptInAcct "b"])
@@ -708,7 +708,7 @@ tests_Query = tests "Query" [
      parseQuery nulldate "'a a' 'b"                                    @?= Right (Or [Acct $ toRegexCI' "a a",Acct $ toRegexCI' "'b"], [])
      parseQuery nulldate "\""                                          @?= Right (Acct $ toRegexCI' "\"", [])
 
-  ,test "words''" $ do
+  ,testCase "words''" $ do
       (words'' [] "a b")                   @?= ["a","b"]
       (words'' [] "'a b'")                 @?= ["a b"]
       (words'' [] "not:a b")               @?= ["not:a","b"]
@@ -718,13 +718,13 @@ tests_Query = tests "Query" [
       (words'' prefixes "\"acct:expenses:autres d\233penses\"") @?= ["acct:expenses:autres d\233penses"]
       (words'' prefixes "\"")              @?= ["\""]
 
-  ,test "filterQuery" $ do
+  ,testCase "filterQuery" $ do
      filterQuery queryIsDepth Any       @?= Any
      filterQuery queryIsDepth (Depth 1) @?= Depth 1
      filterQuery (not.queryIsDepth) (And [And [StatusQ Cleared,Depth 1]]) @?= StatusQ Cleared
      filterQuery queryIsDepth (And [Date nulldatespan, Not (Or [Any, Depth 1])]) @?= Any   -- XXX unclear
 
-  ,test "parseQueryTerm" $ do
+  ,testCase "parseQueryTerm" $ do
      parseQueryTerm nulldate "a"                                @?= Right (Left $ Acct $ toRegexCI' "a")
      parseQueryTerm nulldate "acct:expenses:autres d\233penses" @?= Right (Left $ Acct $ toRegexCI' "expenses:autres d\233penses")
      parseQueryTerm nulldate "not:desc:a b"                     @?= Right (Left $ Not $ Desc $ toRegexCI' "a b")
@@ -745,7 +745,7 @@ tests_Query = tests "Query" [
      parseQueryTerm nulldate "amt:<0"                           @?= Right (Left $ Amt Lt 0)
      parseQueryTerm nulldate "amt:>10000.10"                    @?= Right (Left $ Amt AbsGt 10000.1)
 
-  ,test "parseAmountQueryTerm" $ do
+  ,testCase "parseAmountQueryTerm" $ do
      parseAmountQueryTerm "<0"        @?= Right (Lt,0) -- special case for convenience, since AbsLt 0 would be always false
      parseAmountQueryTerm ">0"        @?= Right (Gt,0) -- special case for convenience and consistency with above
      parseAmountQueryTerm " > - 0 "   @?= Right (Gt,0) -- accept whitespace around the argument parts
@@ -757,7 +757,7 @@ tests_Query = tests "Query" [
      assertLeft $ parseAmountQueryTerm "-0,23"
      assertLeft $ parseAmountQueryTerm "=.23"
 
-  ,test "queryStartDate" $ do
+  ,testCase "queryStartDate" $ do
      let small = Just $ fromGregorian 2000 01 01
          big   = Just $ fromGregorian 2000 01 02
      queryStartDate False (And [Date $ DateSpan small Nothing, Date $ DateSpan big Nothing])     @?= big
@@ -765,7 +765,7 @@ tests_Query = tests "Query" [
      queryStartDate False (Or  [Date $ DateSpan small Nothing, Date $ DateSpan big Nothing])     @?= small
      queryStartDate False (Or  [Date $ DateSpan small Nothing, Date $ DateSpan Nothing Nothing]) @?= Nothing
 
-  ,test "queryEndDate" $ do
+  ,testCase "queryEndDate" $ do
      let small = Just $ fromGregorian 2000 01 01
          big   = Just $ fromGregorian 2000 01 02
      queryEndDate False (And [Date $ DateSpan Nothing small, Date $ DateSpan Nothing big])     @?= small
@@ -773,7 +773,7 @@ tests_Query = tests "Query" [
      queryEndDate False (Or  [Date $ DateSpan Nothing small, Date $ DateSpan Nothing big])     @?= big
      queryEndDate False (Or  [Date $ DateSpan Nothing small, Date $ DateSpan Nothing Nothing]) @?= Nothing
 
-  ,test "matchesAccount" $ do
+  ,testCase "matchesAccount" $ do
      assertBool "" $ (Acct $ toRegex' "b:c") `matchesAccount` "a:bb:c:d"
      assertBool "" $ not $ (Acct $ toRegex' "^a:b") `matchesAccount` "c:a:b"
      assertBool "" $ Depth 2 `matchesAccount` "a"
@@ -783,22 +783,22 @@ tests_Query = tests "Query" [
      assertBool "" $ Date2 nulldatespan `matchesAccount` "a"
      assertBool "" $ not $ Tag (toRegex' "a") Nothing `matchesAccount` "a"
 
-  ,tests "matchesPosting" [
-     test "positive match on cleared posting status"  $
+  ,testGroup "matchesPosting" [
+     testCase "positive match on cleared posting status"  $
       assertBool "" $ (StatusQ Cleared)  `matchesPosting` nullposting{pstatus=Cleared}
-    ,test "negative match on cleared posting status"  $
+    ,testCase "negative match on cleared posting status"  $
       assertBool "" $ not $ (Not $ StatusQ Cleared)  `matchesPosting` nullposting{pstatus=Cleared}
-    ,test "positive match on unmarked posting status" $
+    ,testCase "positive match on unmarked posting status" $
       assertBool "" $ (StatusQ Unmarked) `matchesPosting` nullposting{pstatus=Unmarked}
-    ,test "negative match on unmarked posting status" $
+    ,testCase "negative match on unmarked posting status" $
       assertBool "" $ not $ (Not $ StatusQ Unmarked) `matchesPosting` nullposting{pstatus=Unmarked}
-    ,test "positive match on true posting status acquired from transaction" $
+    ,testCase "positive match on true posting status acquired from transaction" $
       assertBool "" $ (StatusQ Cleared) `matchesPosting` nullposting{pstatus=Unmarked,ptransaction=Just nulltransaction{tstatus=Cleared}}
-    ,test "real:1 on real posting" $ assertBool "" $ (Real True) `matchesPosting` nullposting{ptype=RegularPosting}
-    ,test "real:1 on virtual posting fails" $ assertBool "" $ not $ (Real True) `matchesPosting` nullposting{ptype=VirtualPosting}
-    ,test "real:1 on balanced virtual posting fails" $ assertBool "" $ not $ (Real True) `matchesPosting` nullposting{ptype=BalancedVirtualPosting}
-    ,test "acct:" $ assertBool "" $ (Acct $ toRegex' "'b") `matchesPosting` nullposting{paccount="'b"}
-    ,test "tag:" $ do
+    ,testCase "real:1 on real posting" $ assertBool "" $ (Real True) `matchesPosting` nullposting{ptype=RegularPosting}
+    ,testCase "real:1 on virtual posting fails" $ assertBool "" $ not $ (Real True) `matchesPosting` nullposting{ptype=VirtualPosting}
+    ,testCase "real:1 on balanced virtual posting fails" $ assertBool "" $ not $ (Real True) `matchesPosting` nullposting{ptype=BalancedVirtualPosting}
+    ,testCase "acct:" $ assertBool "" $ (Acct $ toRegex' "'b") `matchesPosting` nullposting{paccount="'b"}
+    ,testCase "tag:" $ do
       assertBool "" $ not $ (Tag (toRegex' "a") (Just $ toRegex' "r$")) `matchesPosting` nullposting
       assertBool "" $ (Tag (toRegex' "foo") Nothing) `matchesPosting` nullposting{ptags=[("foo","")]}
       assertBool "" $ (Tag (toRegex' "foo") Nothing) `matchesPosting` nullposting{ptags=[("foo","baz")]}
@@ -806,8 +806,8 @@ tests_Query = tests "Query" [
       assertBool "" $ not $ (Tag (toRegex' "foo") (Just $ toRegex' "a$")) `matchesPosting` nullposting{ptags=[("foo","bar")]}
       assertBool "" $ not $ (Tag (toRegex' " foo ") (Just $ toRegex' "a")) `matchesPosting` nullposting{ptags=[("foo","bar")]}
       assertBool "" $ not $ (Tag (toRegex' "foo foo") (Just $ toRegex' " ar ba ")) `matchesPosting` nullposting{ptags=[("foo foo","bar bar")]}
-    ,test "a tag match on a posting also sees inherited tags" $ assertBool "" $ (Tag (toRegex' "txntag") Nothing) `matchesPosting` nullposting{ptransaction=Just nulltransaction{ttags=[("txntag","")]}}
-    ,test "cur:" $ do
+    ,testCase "a tag match on a posting also sees inherited tags" $ assertBool "" $ (Tag (toRegex' "txntag") Nothing) `matchesPosting` nullposting{ptransaction=Just nulltransaction{ttags=[("txntag","")]}}
+    ,testCase "cur:" $ do
       let toSym = fromLeft (error' "No query opts") . either error' id . parseQueryTerm (fromGregorian 2000 01 01) . ("cur:"<>)
       assertBool "" $ not $ toSym "$" `matchesPosting` nullposting{pamount=mixedAmount $ usd 1} -- becomes "^$$", ie testing for null symbol
       assertBool "" $ (toSym "\\$") `matchesPosting` nullposting{pamount=mixedAmount $ usd 1} -- have to quote $ for regexpr
@@ -815,7 +815,7 @@ tests_Query = tests "Query" [
       assertBool "" $ not $ (toSym "shek") `matchesPosting` nullposting{pamount=mixedAmount nullamt{acommodity="shekels"}}
   ]
 
-  ,test "matchesTransaction" $ do
+  ,testCase "matchesTransaction" $ do
      assertBool "" $ Any `matchesTransaction` nulltransaction
      assertBool "" $ not $ (Desc $ toRegex' "x x") `matchesTransaction` nulltransaction{tdescription="x"}
      assertBool "" $ (Desc $ toRegex' "x x") `matchesTransaction` nulltransaction{tdescription="x x"}

@@ -320,6 +320,6 @@ makeHledgerClassyLenses x = flip makeLensesWith x $ classyRules
     -- Fields of ReportOpts which need to update the Query when they are updated.
     queryFields = Set.fromList ["period", "statuses", "depth", "date2", "real", "querystring"]
 
-tests_Utils = tests "Utils" [
+tests_Utils = testGroup "Utils" [
   tests_Text
   ]

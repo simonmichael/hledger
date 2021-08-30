@@ -13,7 +13,7 @@ import Yesod.Test
 import Hledger.Web.Application ( makeFoundationWith )
 import Hledger.Web.WebOptions ( WebOpts(cliopts_), defwebopts, prognameandversion )
 import Hledger.Web.Import hiding (get, j)
-import Hledger.Cli hiding (prognameandversion, tests)
+import Hledger.Cli hiding (prognameandversion)
 
 
 runHspecTestsWith :: AppConfig DefaultEnv Extra -> WebOpts -> Journal -> YesodSpec App -> IO ()

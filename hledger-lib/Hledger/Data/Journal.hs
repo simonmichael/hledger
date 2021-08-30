@@ -1513,9 +1513,9 @@ Right samplejournal = journalBalanceTransactions defbalancingopts $
           ]
          }
 
-tests_Journal = tests "Journal" [
+tests_Journal = testGroup "Journal" [
 
-   test "journalDateSpan" $
+   testCase "journalDateSpan" $
     journalDateSpan True nulljournal{
       jtxns = [nulltransaction{tdate = fromGregorian 2014 02 01
                               ,tpostings = [posting{pdate=Just (fromGregorian 2014 01 10)}]
@@ -1527,30 +1527,30 @@ tests_Journal = tests "Journal" [
       }
     @?= (DateSpan (Just $ fromGregorian 2014 1 10) (Just $ fromGregorian 2014 10 11))
 
-  ,tests "standard account type queries" $
+  ,testGroup "standard account type queries" $
     let
       j = samplejournal
       journalAccountNamesMatching :: Query -> Journal -> [AccountName]
       journalAccountNamesMatching q = filter (q `matchesAccount`) . journalAccountNames
       namesfrom qfunc = journalAccountNamesMatching (qfunc j) j
     in [
-       test "assets"      $ assertEqual "" ["assets","assets:bank","assets:bank:checking","assets:bank:saving","assets:cash"]
+       testCase "assets"      $ assertEqual "" ["assets","assets:bank","assets:bank:checking","assets:bank:saving","assets:cash"]
          (namesfrom journalAssetAccountQuery)
-      ,test "cash"        $ assertEqual "" ["assets","assets:bank","assets:bank:checking","assets:bank:saving","assets:cash"]
+      ,testCase "cash"        $ assertEqual "" ["assets","assets:bank","assets:bank:checking","assets:bank:saving","assets:cash"]
         (namesfrom journalCashAccountQuery)
-      ,test "liabilities" $ assertEqual "" ["liabilities","liabilities:debts"]
+      ,testCase "liabilities" $ assertEqual "" ["liabilities","liabilities:debts"]
         (namesfrom journalLiabilityAccountQuery)
-      ,test "equity"      $ assertEqual "" []
+      ,testCase "equity"      $ assertEqual "" []
         (namesfrom journalEquityAccountQuery)
-      ,test "income"      $ assertEqual "" ["income","income:gifts","income:salary"]
+      ,testCase "income"      $ assertEqual "" ["income","income:gifts","income:salary"]
         (namesfrom journalRevenueAccountQuery)
-      ,test "expenses"    $ assertEqual "" ["expenses","expenses:food","expenses:supplies"]
+      ,testCase "expenses"    $ assertEqual "" ["expenses","expenses:food","expenses:supplies"]
         (namesfrom journalExpenseAccountQuery)
     ]
 
-  ,tests "journalBalanceTransactions" [
+  ,testGroup "journalBalanceTransactions" [
 
-     test "balance-assignment" $ do
+     testCase "balance-assignment" $ do
       let ej = journalBalanceTransactions defbalancingopts $
             --2019/01/01
             --  (a)            = 1
@@ -1561,7 +1561,7 @@ tests_Journal = tests "Journal" [
       let Right j = ej
       (jtxns j & head & tpostings & head & pamount & amountsRaw) @?= [num 1]
 
-    ,test "same-day-1" $ do
+    ,testCase "same-day-1" $ do
       assertRight $ journalBalanceTransactions defbalancingopts $
             --2019/01/01
             --  (a)            = 1
@@ -1572,7 +1572,7 @@ tests_Journal = tests "Journal" [
               ,transaction (fromGregorian 2019 01 01) [ vpost' "a" (num 1)    (balassert (num 2)) ]
             ]}
 
-    ,test "same-day-2" $ do
+    ,testCase "same-day-2" $ do
       assertRight $ journalBalanceTransactions defbalancingopts $
             --2019/01/01
             --    (a)                  2 = 2
@@ -1590,7 +1590,7 @@ tests_Journal = tests "Journal" [
               ,transaction (fromGregorian 2019 01 01) [ post' "a" (num 0)     (balassert (num 1)) ]
             ]}
 
-    ,test "out-of-order" $ do
+    ,testCase "out-of-order" $ do
       assertRight $ journalBalanceTransactions defbalancingopts $
             --2019/1/2
             --  (a)    1 = 2
@@ -1603,7 +1603,7 @@ tests_Journal = tests "Journal" [
 
     ]
 
-    ,tests "commodityStylesFromAmounts" $ [
+    ,testGroup "commodityStylesFromAmounts" $ [
 
       -- Journal similar to the one on #1091:
       -- 2019/09/24
@@ -1612,7 +1612,7 @@ tests_Journal = tests "Journal" [
       -- 2019/09/26
       --     (a)             1000,000
       --
-      test "1091a" $ do
+      testCase "1091a" $ do
         commodityStylesFromAmounts [
            nullamt{aquantity=1000, astyle=AmountStyle L False (Precision 3) (Just ',') Nothing}
           ,nullamt{aquantity=1000, astyle=AmountStyle L False (Precision 2) (Just '.') (Just (DigitGroups ',' [3]))}
@@ -1624,7 +1624,7 @@ tests_Journal = tests "Journal" [
             ("", AmountStyle L False (Precision 3) (Just '.') (Just (DigitGroups ',' [3])))
           ])
         -- same journal, entries in reverse order
-      ,test "1091b" $ do
+      ,testCase "1091b" $ do
         commodityStylesFromAmounts [
            nullamt{aquantity=1000, astyle=AmountStyle L False (Precision 2) (Just '.') (Just (DigitGroups ',' [3]))}
           ,nullamt{aquantity=1000, astyle=AmountStyle L False (Precision 3) (Just ',') Nothing}

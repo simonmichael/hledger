@@ -260,7 +260,7 @@ tests_priceLookup =
       ,p 2001 01 01 "A" 11 "B"
       ]
     makepricegraph = makePriceGraph ps1 []
-  in test "priceLookup" $ do
+  in testCase "priceLookup" $ do
     priceLookup makepricegraph (fromGregorian 1999 01 01) "A" Nothing    @?= Nothing
     priceLookup makepricegraph (fromGregorian 2000 01 01) "A" Nothing    @?= Just ("B",10)
     priceLookup makepricegraph (fromGregorian 2000 01 01) "B" (Just "A") @?= Just ("A",0.1)
@@ -481,9 +481,9 @@ nullmarketprice = MarketPrice {
 
 ------------------------------------------------------------------------------
 
-tests_Valuation = tests "Valuation" [
+tests_Valuation = testGroup "Valuation" [
    tests_priceLookup
-  ,test "marketPriceReverse" $ do
+  ,testCase "marketPriceReverse" $ do
     marketPriceReverse nullmarketprice{mprate=2} @?= nullmarketprice{mprate=0.5}
     marketPriceReverse nullmarketprice @?= nullmarketprice  -- the reverse of a 0 price is a 0 price
 

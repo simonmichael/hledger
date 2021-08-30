@@ -255,5 +255,5 @@ filterAccountTransactionsReportByCommodity c =
 
 -- tests
 
-tests_AccountTransactionsReport = tests "AccountTransactionsReport" [
+tests_AccountTransactionsReport = testGroup "AccountTransactionsReport" [
  ]

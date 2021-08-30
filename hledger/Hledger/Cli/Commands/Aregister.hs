@@ -210,6 +210,6 @@ accountTransactionsReportItemAsText
 
 -- tests
 
-tests_Aregister = tests "Aregister" [
+tests_Aregister = testGroup "Aregister" [
 
  ]

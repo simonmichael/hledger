@@ -235,21 +235,21 @@ accountNameToAccountOnlyRegexCI a = toRegexCI' $ "^" <> escapeName a <> "$" -- P
 --isAccountRegex  :: String -> Bool
 --isAccountRegex s = take 1 s == "^" && take 5 (reverse s) == ")$|:("
 
-tests_AccountName = tests "AccountName" [
-   test "accountNameTreeFrom" $ do
+tests_AccountName = testGroup "AccountName" [
+   testCase "accountNameTreeFrom" $ do
     accountNameTreeFrom ["a"]       @?= Node "root" [Node "a" []]
     accountNameTreeFrom ["a","b"]   @?= Node "root" [Node "a" [], Node "b" []]
     accountNameTreeFrom ["a","a:b"] @?= Node "root" [Node "a" [Node "a:b" []]]
     accountNameTreeFrom ["a:b:c"]   @?= Node "root" [Node "a" [Node "a:b" [Node "a:b:c" []]]]
-  ,test "expandAccountNames" $ do
+  ,testCase "expandAccountNames" $ do
     expandAccountNames ["assets:cash","assets:checking","expenses:vacation"] @?=
      ["assets","assets:cash","assets:checking","expenses","expenses:vacation"]
-  ,test "isAccountNamePrefixOf" $ do
+  ,testCase "isAccountNamePrefixOf" $ do
     "assets" `isAccountNamePrefixOf` "assets" @?= False
     "assets" `isAccountNamePrefixOf` "assets:bank" @?= True
     "assets" `isAccountNamePrefixOf` "assets:bank:checking" @?= True
     "my assets" `isAccountNamePrefixOf` "assets:bank" @?= False
-  ,test "isSubAccountNameOf" $ do
+  ,testCase "isSubAccountNameOf" $ do
     "assets" `isSubAccountNameOf` "assets" @?= False
     "assets:bank" `isSubAccountNameOf` "assets" @?= True
     "assets:bank:checking" `isSubAccountNameOf` "assets" @?= False

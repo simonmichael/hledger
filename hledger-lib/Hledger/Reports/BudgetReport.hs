@@ -446,5 +446,5 @@ budgetReportAsCsv
 
 -- tests
 
-tests_BudgetReport = tests "BudgetReport" [
+tests_BudgetReport = testGroup "BudgetReport" [
  ]

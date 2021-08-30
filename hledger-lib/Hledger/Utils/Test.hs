@@ -7,8 +7,6 @@ module Hledger.Utils.Test (
   ,module Test.Tasty.HUnit
   -- ,module QC
   -- ,module SC
-  ,tests
-  ,test
   ,assertLeft
   ,assertRight
   ,assertParse
@@ -45,15 +43,6 @@ import Hledger.Utils.Debug (pshow)
 -- * tasty helpers
 
 -- TODO: pretty-print values in failure messages
-
-
--- | Name and group a list of tests. Shorter alias for Test.Tasty.HUnit.testGroup.
-tests :: String -> [TestTree] -> TestTree
-tests = testGroup
-
--- | Name an assertion or sequence of assertions. Shorter alias for Test.Tasty.HUnit.testCase.
-test :: String -> Assertion -> TestTree
-test = testCase
 
 -- | Assert any Left value.
 assertLeft :: (HasCallStack, Eq b, Show b) => Either a b -> Assertion

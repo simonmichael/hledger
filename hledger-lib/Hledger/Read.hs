@@ -283,7 +283,7 @@ journalFilterSinceLatestDates ds@(d:_) j = (j', ds')
 
 --- ** tests
 
-tests_Read = tests "Read" [
+tests_Read = testGroup "Read" [
    tests_Common
   ,tests_CsvReader
   ,tests_JournalReader

@@ -711,10 +711,10 @@ balanceOpts isTable ReportOpts{..} = oneLine
     , displayMaxWidth = if isTable && not no_elide_ then Just 32 else Nothing
     }
 
-tests_Balance = tests "Balance" [
+tests_Balance = testGroup "Balance" [
 
-   tests "balanceReportAsText" [
-    test "unicode in balance layout" $ do
+   testGroup "balanceReportAsText" [
+    testCase "unicode in balance layout" $ do
       j <- readJournal' "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
       let rspec = defreportspec{_rsReportOpts=defreportopts{no_total_=True}}
       TB.toLazyText (balanceReportAsText (_rsReportOpts rspec) (balanceReport rspec{_rsDay=fromGregorian 2008 11 26} j))

@@ -738,32 +738,32 @@ postingphelper isPostingRule mTransactionYear = do
 
 --- ** tests
 
-tests_JournalReader = tests "JournalReader" [
+tests_JournalReader = testGroup "JournalReader" [
 
    let p = lift accountnamep :: JournalParser IO AccountName in
-   tests "accountnamep" [
-     test "basic" $ assertParse p "a:b:c"
-    -- ,test "empty inner component" $ assertParseError p "a::c" ""  -- TODO
-    -- ,test "empty leading component" $ assertParseError p ":b:c" "x"
-    -- ,test "empty trailing component" $ assertParseError p "a:b:" "x"
+   testGroup "accountnamep" [
+     testCase "basic" $ assertParse p "a:b:c"
+    -- ,testCase "empty inner component" $ assertParseError p "a::c" ""  -- TODO
+    -- ,testCase "empty leading component" $ assertParseError p ":b:c" "x"
+    -- ,testCase "empty trailing component" $ assertParseError p "a:b:" "x"
     ]
 
   -- "Parse a date in YYYY/MM/DD format.
   -- Hyphen (-) and period (.) are also allowed as separators.
   -- The year may be omitted if a default year has been set.
   -- Leading zeroes may be omitted."
-  ,tests "datep" [
-     test "YYYY/MM/DD" $ assertParseEq datep "2018/01/01" (fromGregorian 2018 1 1)
-    ,test "YYYY-MM-DD" $ assertParse datep "2018-01-01"
-    ,test "YYYY.MM.DD" $ assertParse datep "2018.01.01"
-    ,test "yearless date with no default year" $ assertParseError datep "1/1" "current year is unknown"
-    ,test "yearless date with default year" $ do
+  ,testGroup "datep" [
+     testCase "YYYY/MM/DD" $ assertParseEq datep "2018/01/01" (fromGregorian 2018 1 1)
+    ,testCase "YYYY-MM-DD" $ assertParse datep "2018-01-01"
+    ,testCase "YYYY.MM.DD" $ assertParse datep "2018.01.01"
+    ,testCase "yearless date with no default year" $ assertParseError datep "1/1" "current year is unknown"
+    ,testCase "yearless date with default year" $ do
       let s = "1/1"
       ep <- parseWithState nulljournal{jparsedefaultyear=Just 2018} datep s
       either (assertFailure . ("parse error at "++) . customErrorBundlePretty) (const $ return ()) ep
-    ,test "no leading zero" $ assertParse datep "2018/1/1"
+    ,testCase "no leading zero" $ assertParse datep "2018/1/1"
     ]
-  ,test "datetimep" $ do
+  ,testCase "datetimep" $ do
      let
        good = assertParse datetimep
        bad  = (\t -> assertParseError datetimep t "")
@@ -779,9 +779,9 @@ tests_JournalReader = tests "JournalReader" [
      assertParseEq datetimep "2018/1/1 00:00-0800" t
      assertParseEq datetimep "2018/1/1 00:00+1234" t
 
-  ,tests "periodictransactionp" [
+  ,testGroup "periodictransactionp" [
 
-    test "more period text in comment after one space" $ assertParseEq periodictransactionp
+    testCase "more period text in comment after one space" $ assertParseEq periodictransactionp
       "~ monthly from 2018/6 ;In 2019 we will change this\n"
       nullperiodictransaction {
          ptperiodexpr  = "monthly from 2018/6"
@@ -791,7 +791,7 @@ tests_JournalReader = tests "JournalReader" [
         ,ptcomment     = "In 2019 we will change this\n"
         }
 
-    ,test "more period text in description after two spaces" $ assertParseEq periodictransactionp
+    ,testCase "more period text in description after two spaces" $ assertParseEq periodictransactionp
       "~ monthly from 2018/6   In 2019 we will change this\n"
       nullperiodictransaction {
          ptperiodexpr  = "monthly from 2018/6"
@@ -801,7 +801,7 @@ tests_JournalReader = tests "JournalReader" [
         ,ptcomment     = ""
         }
 
-    ,test "Next year in description" $ assertParseEq periodictransactionp
+    ,testCase "Next year in description" $ assertParseEq periodictransactionp
       "~ monthly  Next year blah blah\n"
       nullperiodictransaction {
          ptperiodexpr  = "monthly"
@@ -811,7 +811,7 @@ tests_JournalReader = tests "JournalReader" [
         ,ptcomment     = ""
         }
 
-    ,test "Just date, no description" $ assertParseEq periodictransactionp
+    ,testCase "Just date, no description" $ assertParseEq periodictransactionp
       "~ 2019-01-04\n"
       nullperiodictransaction {
          ptperiodexpr  = "2019-01-04"
@@ -821,13 +821,13 @@ tests_JournalReader = tests "JournalReader" [
         ,ptcomment     = ""
         }
 
-    ,test "Just date, no description + empty transaction comment" $ assertParse periodictransactionp
+    ,testCase "Just date, no description + empty transaction comment" $ assertParse periodictransactionp
       "~ 2019-01-04\n  ;\n  a  1\n  b\n"
 
     ]
 
-  ,tests "postingp" [
-     test "basic" $ assertParseEq (postingp Nothing)
+  ,testGroup "postingp" [
+     testCase "basic" $ assertParseEq (postingp Nothing)
       "  expenses:food:dining  $10.00   ; a: a a \n   ; b: b b \n"
       posting{
         paccount="expenses:food:dining",
@@ -836,7 +836,7 @@ tests_JournalReader = tests "JournalReader" [
         ptags=[("a","a a"), ("b","b b")]
         }
 
-    ,test "posting dates" $ assertParseEq (postingp Nothing)
+    ,testCase "posting dates" $ assertParseEq (postingp Nothing)
       " a  1. ; date:2012/11/28, date2=2012/11/29,b:b\n"
       nullposting{
          paccount="a"
@@ -847,7 +847,7 @@ tests_JournalReader = tests "JournalReader" [
         ,pdate2=Nothing  -- Just $ fromGregorian 2012 11 29
         }
 
-    ,test "posting dates bracket syntax" $ assertParseEq (postingp Nothing)
+    ,testCase "posting dates bracket syntax" $ assertParseEq (postingp Nothing)
       " a  1. ; [2012/11/28=2012/11/29]\n"
       nullposting{
          paccount="a"
@@ -858,25 +858,25 @@ tests_JournalReader = tests "JournalReader" [
         ,pdate2=Just $ fromGregorian 2012 11 29
         }
 
-    ,test "quoted commodity symbol with digits" $ assertParse (postingp Nothing) "  a  1 \"DE123\"\n"
+    ,testCase "quoted commodity symbol with digits" $ assertParse (postingp Nothing) "  a  1 \"DE123\"\n"
 
-    ,test "only lot price" $ assertParse (postingp Nothing) "  a  1A {1B}\n"
-    ,test "fixed lot price" $ assertParse (postingp Nothing) "  a  1A {=1B}\n"
-    ,test "total lot price" $ assertParse (postingp Nothing) "  a  1A {{1B}}\n"
-    ,test "fixed total lot price, and spaces" $ assertParse (postingp Nothing) "  a  1A {{  =  1B }}\n"
-    ,test "lot price before transaction price" $ assertParse (postingp Nothing) "  a  1A {1B} @ 1B\n"
-    ,test "lot price after transaction price" $ assertParse (postingp Nothing) "  a  1A @ 1B {1B}\n"
-    ,test "lot price after balance assertion not allowed" $ assertParseError (postingp Nothing) "  a  1A @ 1B = 1A {1B}\n" "unexpected '{'"
-    ,test "only lot date" $ assertParse (postingp Nothing) "  a  1A [2000-01-01]\n"
-    ,test "transaction price, lot price, lot date" $ assertParse (postingp Nothing) "  a  1A @ 1B {1B} [2000-01-01]\n"
-    ,test "lot date, lot price, transaction price" $ assertParse (postingp Nothing) "  a  1A [2000-01-01] {1B} @ 1B\n"
+    ,testCase "only lot price" $ assertParse (postingp Nothing) "  a  1A {1B}\n"
+    ,testCase "fixed lot price" $ assertParse (postingp Nothing) "  a  1A {=1B}\n"
+    ,testCase "total lot price" $ assertParse (postingp Nothing) "  a  1A {{1B}}\n"
+    ,testCase "fixed total lot price, and spaces" $ assertParse (postingp Nothing) "  a  1A {{  =  1B }}\n"
+    ,testCase "lot price before transaction price" $ assertParse (postingp Nothing) "  a  1A {1B} @ 1B\n"
+    ,testCase "lot price after transaction price" $ assertParse (postingp Nothing) "  a  1A @ 1B {1B}\n"
+    ,testCase "lot price after balance assertion not allowed" $ assertParseError (postingp Nothing) "  a  1A @ 1B = 1A {1B}\n" "unexpected '{'"
+    ,testCase "only lot date" $ assertParse (postingp Nothing) "  a  1A [2000-01-01]\n"
+    ,testCase "transaction price, lot price, lot date" $ assertParse (postingp Nothing) "  a  1A @ 1B {1B} [2000-01-01]\n"
+    ,testCase "lot date, lot price, transaction price" $ assertParse (postingp Nothing) "  a  1A [2000-01-01] {1B} @ 1B\n"
 
-    ,test "balance assertion over entire contents of account" $ assertParse (postingp Nothing) "  a  $1 == $1\n"
+    ,testCase "balance assertion over entire contents of account" $ assertParse (postingp Nothing) "  a  $1 == $1\n"
     ]
 
-  ,tests "transactionmodifierp" [
+  ,testGroup "transactionmodifierp" [
 
-    test "basic" $ assertParseEq transactionmodifierp
+    testCase "basic" $ assertParseEq transactionmodifierp
       "= (some value expr)\n some:postings  1.\n"
       nulltransactionmodifier {
         tmquerytxt = "(some value expr)"
@@ -884,11 +884,11 @@ tests_JournalReader = tests "JournalReader" [
       }
     ]
 
-  ,tests "transactionp" [
+  ,testGroup "transactionp" [
 
-     test "just a date" $ assertParseEq transactionp "2015/1/1\n" nulltransaction{tdate=fromGregorian 2015 1 1}
+     testCase "just a date" $ assertParseEq transactionp "2015/1/1\n" nulltransaction{tdate=fromGregorian 2015 1 1}
 
-    ,test "more complex" $ assertParseEq transactionp
+    ,testCase "more complex" $ assertParseEq transactionp
       (T.unlines [
         "2012/05/14=2012/05/15 (code) desc  ; tcomment1",
         "    ; tcomment2",
@@ -922,7 +922,7 @@ tests_JournalReader = tests "JournalReader" [
           ]
       }
 
-    ,test "parses a well-formed transaction" $
+    ,testCase "parses a well-formed transaction" $
       assertBool "" $ isRight $ rjp transactionp $ T.unlines
         ["2007/01/28 coopportunity"
         ,"    expenses:food:groceries                   $47.18"
@@ -930,10 +930,10 @@ tests_JournalReader = tests "JournalReader" [
         ,""
         ]
 
-    ,test "does not parse a following comment as part of the description" $
+    ,testCase "does not parse a following comment as part of the description" $
       assertParseEqOn transactionp "2009/1/1 a ;comment\n b 1\n" tdescription "a"
 
-    ,test "parses a following whitespace line" $
+    ,testCase "parses a following whitespace line" $
       assertBool "" $ isRight $ rjp transactionp $ T.unlines
         ["2012/1/1"
         ,"  a  1"
@@ -941,7 +941,7 @@ tests_JournalReader = tests "JournalReader" [
         ," "
         ]
 
-    ,test "parses an empty transaction comment following whitespace line" $
+    ,testCase "parses an empty transaction comment following whitespace line" $
       assertBool "" $ isRight $ rjp transactionp $ T.unlines
         ["2012/1/1"
         ,"  ;"
@@ -950,7 +950,7 @@ tests_JournalReader = tests "JournalReader" [
         ," "
         ]
 
-    ,test "comments everywhere, two postings parsed" $
+    ,testCase "comments everywhere, two postings parsed" $
       assertParseEqOn transactionp
         (T.unlines
           ["2009/1/1 x  ; transaction comment"
@@ -966,17 +966,17 @@ tests_JournalReader = tests "JournalReader" [
 
   -- directives
 
-  ,tests "directivep" [
-    test "supports !" $ do
+  ,testGroup "directivep" [
+    testCase "supports !" $ do
         assertParseE directivep "!account a\n"
         assertParseE directivep "!D 1.0\n"
      ]
 
-  ,tests "accountdirectivep" [
-       test "with-comment"       $ assertParse accountdirectivep "account a:b  ; a comment\n"
-      ,test "does-not-support-!" $ assertParseError accountdirectivep "!account a:b\n" ""
-      ,test "account-type-code"  $ assertParse accountdirectivep "account a:b  A\n"
-      ,test "account-type-tag"   $ assertParseStateOn accountdirectivep "account a:b  ; type:asset\n"
+  ,testGroup "accountdirectivep" [
+       testCase "with-comment"       $ assertParse accountdirectivep "account a:b  ; a comment\n"
+      ,testCase "does-not-support-!" $ assertParseError accountdirectivep "!account a:b\n" ""
+      ,testCase "account-type-code"  $ assertParse accountdirectivep "account a:b  A\n"
+      ,testCase "account-type-tag"   $ assertParseStateOn accountdirectivep "account a:b  ; type:asset\n"
         jdeclaredaccounts
         [("a:b", AccountDeclarationInfo{adicomment          = "type:asset\n"
                                        ,aditags             = [("type","asset")]
@@ -985,28 +985,28 @@ tests_JournalReader = tests "JournalReader" [
         ]
       ]
 
-  ,test "commodityconversiondirectivep" $ do
+  ,testCase "commodityconversiondirectivep" $ do
      assertParse commodityconversiondirectivep "C 1h = $50.00\n"
 
-  ,test "defaultcommoditydirectivep" $ do
+  ,testCase "defaultcommoditydirectivep" $ do
       assertParse defaultcommoditydirectivep "D $1,000.0\n"
       assertParseError defaultcommoditydirectivep "D $1000\n" "Please include a decimal point or decimal comma"
 
-  ,tests "defaultyeardirectivep" [
-      test "1000" $ assertParse defaultyeardirectivep "Y 1000" -- XXX no \n like the others
-     -- ,test "999" $ assertParseError defaultyeardirectivep "Y 999" "bad year number"
-     ,test "12345" $ assertParse defaultyeardirectivep "Y 12345"
+  ,testGroup "defaultyeardirectivep" [
+      testCase "1000" $ assertParse defaultyeardirectivep "Y 1000" -- XXX no \n like the others
+     -- ,testCase "999" $ assertParseError defaultyeardirectivep "Y 999" "bad year number"
+     ,testCase "12345" $ assertParse defaultyeardirectivep "Y 12345"
      ]
 
-  ,test "ignoredpricecommoditydirectivep" $ do
+  ,testCase "ignoredpricecommoditydirectivep" $ do
      assertParse ignoredpricecommoditydirectivep "N $\n"
 
-  ,tests "includedirectivep" [
-      test "include" $ assertParseErrorE includedirectivep "include nosuchfile\n" "No existing files match pattern: nosuchfile"
-     ,test "glob" $ assertParseErrorE includedirectivep "include nosuchfile*\n" "No existing files match pattern: nosuchfile*"
+  ,testGroup "includedirectivep" [
+      testCase "include" $ assertParseErrorE includedirectivep "include nosuchfile\n" "No existing files match pattern: nosuchfile"
+     ,testCase "glob" $ assertParseErrorE includedirectivep "include nosuchfile*\n" "No existing files match pattern: nosuchfile*"
      ]
 
-  ,test "marketpricedirectivep" $ assertParseEq marketpricedirectivep
+  ,testCase "marketpricedirectivep" $ assertParseEq marketpricedirectivep
     "P 2017/01/30 BTC $922.83\n"
     PriceDirective{
       pddate      = fromGregorian 2017 1 30,
@@ -1014,24 +1014,24 @@ tests_JournalReader = tests "JournalReader" [
       pdamount    = usd 922.83
       }
 
-  ,tests "payeedirectivep" [
-       test "simple"             $ assertParse payeedirectivep "payee foo\n"
-       ,test "with-comment"       $ assertParse payeedirectivep "payee foo ; comment\n"
+  ,testGroup "payeedirectivep" [
+       testCase "simple"             $ assertParse payeedirectivep "payee foo\n"
+       ,testCase "with-comment"       $ assertParse payeedirectivep "payee foo ; comment\n"
        ]
 
-  ,test "tagdirectivep" $ do
+  ,testCase "tagdirectivep" $ do
      assertParse tagdirectivep "tag foo \n"
 
-  ,test "endtagdirectivep" $ do
+  ,testCase "endtagdirectivep" $ do
       assertParse endtagdirectivep "end tag \n"
       assertParse endtagdirectivep "pop \n"
 
-  ,tests "journalp" [
-    test "empty file" $ assertParseEqE journalp "" nulljournal
+  ,testGroup "journalp" [
+    testCase "empty file" $ assertParseEqE journalp "" nulljournal
     ]
 
    -- these are defined here rather than in Common so they can use journalp
-  ,test "parseAndFinaliseJournal" $ do
+  ,testCase "parseAndFinaliseJournal" $ do
       ej <- runExceptT $ parseAndFinaliseJournal journalp definputopts "" "2019-1-1\n"
       let Right j = ej
       assertEqual "" [""] $ journalFilePaths j

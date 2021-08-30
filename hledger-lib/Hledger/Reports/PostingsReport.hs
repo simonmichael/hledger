@@ -218,9 +218,9 @@ negatePostingAmount = postingTransformAmount negate
 
 -- tests
 
-tests_PostingsReport = tests "PostingsReport" [
+tests_PostingsReport = testGroup "PostingsReport" [
 
-   test "postingsReport" $ do
+   testCase "postingsReport" $ do
     let (query, journal) `gives` n = (length $ postingsReport defreportspec{_rsQuery=query} journal) @?= n
     -- with the query specified explicitly
     (Any, nulljournal) `gives` 0
@@ -381,7 +381,7 @@ tests_PostingsReport = tests "PostingsReport" [
 
     -}
 
-  ,test "summarisePostingsByInterval" $
+  ,testCase "summarisePostingsByInterval" $
     summarisePostingsByInterval (Quarters 1) PrimaryDate Nothing False (DateSpan Nothing Nothing) [] @?= []
 
   -- ,tests_summarisePostingsInDateSpan = [

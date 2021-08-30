@@ -12,7 +12,7 @@ import           Hledger.Reports as X
 import           Hledger.Query   as X
 import           Hledger.Utils   as X
 
-tests_Hledger = tests "Hledger" [
+tests_Hledger = testGroup "Hledger" [
    tests_Data
   ,tests_Query
   ,tests_Read

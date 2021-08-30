@@ -268,27 +268,27 @@ testmode = hledgerCommandMode
 testcmd :: CliOpts -> Journal -> IO ()
 testcmd opts _undefined = do
   withArgs (listofstringopt "args" $ rawopts_ opts) $
-    Test.Tasty.defaultMain $ tests "hledger" [
+    Test.Tasty.defaultMain $ testGroup "hledger" [
        tests_Hledger
       ,tests_Hledger_Cli
       ]
 
 -- All unit tests for Hledger.Cli, defined here rather than
 -- Hledger.Cli so testcmd can use them.
-tests_Hledger_Cli = tests "Hledger.Cli" [
+tests_Hledger_Cli = testGroup "Hledger.Cli" [
    tests_Cli_Utils
   ,tests_Commands
   ]
 
-tests_Commands = tests "Commands" [
+tests_Commands = testGroup "Commands" [
    tests_Balance
   ,tests_Register
   ,tests_Aregister
 
   -- some more tests easiest to define here:
 
-  ,tests "apply account directive" [
-     test "works" $ do
+  ,testGroup "apply account directive" [
+     testCase "works" $ do
         let
           ignoresourcepos j = j{jtxns=map (\t -> t{tsourcepos=nullsourcepos}) (jtxns j)}
           sameParse str1 str2 = do
@@ -309,43 +309,43 @@ tests_Commands = tests "Commands" [
             "2008/12/07 Five\n  foo  $-5\n  bar  $5\n"
            )
 
-    ,test "preserves \"virtual\" posting type" $ do
+    ,testCase "preserves \"virtual\" posting type" $ do
       j <- readJournal definputopts Nothing "apply account test\n2008/12/07 One\n  (from)  $-1\n  (to)  $1\n" >>= either error' return  -- PARTIAL:
       let p = head $ tpostings $ head $ jtxns j
       paccount p @?= "test:from"
       ptype p @?= VirtualPosting
     ]
 
-  ,test "alias directive" $ do
+  ,testCase "alias directive" $ do
     j <- readJournal definputopts Nothing "!alias expenses = equity:draw:personal\n1/1\n (expenses:food)  1\n" >>= either error' return  -- PARTIAL:
     let p = head $ tpostings $ head $ jtxns j
     paccount p @?= "equity:draw:personal:food"
 
-  ,test "Y default year directive" $ do
+  ,testCase "Y default year directive" $ do
     j <- readJournal definputopts Nothing defaultyear_journal_txt >>= either error' return  -- PARTIAL:
     tdate (head $ jtxns j) @?= fromGregorian 2009 1 1
 
-  ,test "ledgerAccountNames" $
+  ,testCase "ledgerAccountNames" $
     (ledgerAccountNames ledger7)
     @?=
     ["assets","assets:cash","assets:checking","assets:saving","equity","equity:opening balances",
      "expenses","expenses:food","expenses:food:dining","expenses:phone","expenses:vacation",
      "liabilities","liabilities:credit cards","liabilities:credit cards:discover"]
 
-  -- ,test "journalCanonicaliseAmounts" ~:
+  -- ,testCase "journalCanonicaliseAmounts" ~:
   --  "use the greatest precision" ~:
   --   (map asprecision $ journalAmountAndPriceCommodities $ journalCanonicaliseAmounts $ journalWithAmounts ["1","2.00"]) @?= [2,2]
 
   -- don't know what this should do
-  -- ,test "elideAccountName" ~: do
+  -- ,testCase "elideAccountName" ~: do
   --    (elideAccountName 50 "aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa"
   --     @?= "aa:aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa")
   --    (elideAccountName 20 "aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa"
   --     @?= "aa:aa:aaaaaaaaaaaaaa")
 
-  ,test "show dollars" $ showAmount (usd 1) @?= "$1.00"
+  ,testCase "show dollars" $ showAmount (usd 1) @?= "$1.00"
 
-  ,test "show hours" $ showAmount (hrs 1) @?= "1.00h"
+  ,testCase "show hours" $ showAmount (hrs 1) @?= "1.00h"
 
   ]
 

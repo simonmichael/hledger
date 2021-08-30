@@ -184,10 +184,10 @@ postingsReportItemAsText opts preferredamtwidth preferredbalwidth (mdate, mperio
 
 -- tests
 
-tests_Register = tests "Register" [
+tests_Register = testGroup "Register" [
 
-   tests "postingsReportAsText" [
-    test "unicode in register layout" $ do
+   testGroup "postingsReportAsText" [
+    testCase "unicode in register layout" $ do
       j <- readJournal' "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
       let rspec = defreportspec
       (TL.unpack . postingsReportAsText defcliopts $ postingsReport rspec j)
