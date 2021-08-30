@@ -279,8 +279,8 @@ rsHandle ui@UIState{
   ,ajournal=j
   ,aMode=mode
   } ev = do
-  d <- liftIO getCurrentDay
   let
+    d = copts^.rsDay
     journalspan = journalDateSpan False j
     nonblanks = V.takeWhile (not . T.null . rsItemDate) $ rsList^.listElementsL
     lastnonblankidx = max 0 (length nonblanks - 1)

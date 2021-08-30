@@ -147,8 +147,8 @@ tsHandle ui@UIState{aScreen=TransactionScreen{tsTransaction=(i,t), tsTransaction
         _                    -> helpHandle ui ev
 
     _ -> do
-      d <- liftIO getCurrentDay
       let
+        d = copts^.rsDay
         (iprev,tprev) = maybe (i,t) ((i-1),) $ lookup (i-1) nts
         (inext,tnext) = maybe (i,t) ((i+1),) $ lookup (i+1) nts
       case ev of
@@ -166,7 +166,6 @@ tsHandle ui@UIState{aScreen=TransactionScreen{tsTransaction=(i,t), tsTransaction
             p = reportPeriod ui
         e | e `elem` [VtyEvent (EvKey (KChar 'g') []), AppEvent FileChange] -> do
           -- plog (if e == AppEvent FileChange then "file change" else "manual reload") "" `seq` return ()
-          d <- liftIO getCurrentDay
           ej <- liftIO $ journalReload copts
           case ej of
             Left err -> continue $ screenEnter d errorScreen{esError=err} ui

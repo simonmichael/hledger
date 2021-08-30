@@ -227,8 +227,8 @@ asHandle ui0@UIState{
   ,ajournal=j
   ,aMode=mode
   } ev = do
-  d <- liftIO getCurrentDay
   let
+    d = copts^.rsDay
     nonblanks = V.takeWhile (not . T.null . asItemAccountName) $ _asList^.listElementsL
     lastnonblankidx = max 0 (length nonblanks - 1)
 

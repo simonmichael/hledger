@@ -199,7 +199,7 @@ instance Show Text.Blaze.Markup where show _ = "<blaze markup>"
 getViewData :: Handler ViewData
 getViewData = do
   App{appOpts=opts@WebOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts}}}, appJournal} <- getYesod
-  today <- liftIO getCurrentDay
+  let today = _rsDay rspec
 
   -- try to read the latest journal content, keeping the old content
   -- if there's an error
