@@ -740,7 +740,7 @@ readJournalFromCsv mrulesfile csvfile csvdata =
   --     mfieldnames = lastMay headerlines
 
   let
-    -- convert CSV records to transactions
+    -- convert CSV records to transactions, saving the CSV line numbers for error positions
     txns = dbg7 "csv txns" $ snd $ mapAccumL
                    (\pos r ->
                       let
@@ -748,7 +748,7 @@ readJournalFromCsv mrulesfile csvfile csvdata =
                         line' = (mkPos . (+1) . unPos) line
                         pos' = SourcePos name line' col
                       in
-                        (pos, transactionFromCsvRecord pos' rules r)
+                        (pos', transactionFromCsvRecord pos rules r)
                    )
                    (initialPos parsecfilename) records
 
