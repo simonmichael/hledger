@@ -3759,7 +3759,9 @@ Tips:
 - Interpolation strips outer whitespace (so a CSV value like `" 1 "`
 becomes `1` when interpolated)
 ([#1051](https://github.com/simonmichael/hledger/issues/1051)).
-- See also [Tips](#tips) below.
+- Interpolations always refer to a CSV field - 
+  you can't interpolate a hledger field.
+  (See [Referencing other fields](#referencing-other-fields) below).
 
 ### Field names
 
