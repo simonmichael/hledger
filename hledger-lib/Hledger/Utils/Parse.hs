@@ -5,8 +5,6 @@ module Hledger.Utils.Parse (
   SimpleStringParser,
   SimpleTextParser,
   TextParser,
-  JournalParser,
-  ErroringJournalParser,
 
   choice',
   choiceInState,
@@ -34,7 +32,6 @@ module Hledger.Utils.Parse (
 )
 where
 
-import Control.Monad.Except (ExceptT)
 import Control.Monad.State.Strict (StateT, evalStateT)
 import Data.Char
 import Data.Functor (void)
@@ -46,8 +43,6 @@ import Text.Megaparsec.Char
 import Text.Megaparsec.Custom
 import Text.Printf
 
-import Hledger.Data.Types
-
 -- | A parser of string to some type.
 type SimpleStringParser a = Parsec CustomErr String a
 
@@ -56,15 +51,6 @@ type SimpleTextParser = Parsec CustomErr Text  -- XXX an "a" argument breaks the
 
 -- | A parser of text that runs in some monad.
 type TextParser m a = ParsecT CustomErr Text m a
-
--- | A parser of text that runs in some monad, keeping a Journal as state.
-type JournalParser m a = StateT Journal (ParsecT CustomErr Text m) a
-
--- | A parser of text that runs in some monad, keeping a Journal as
--- state, that can throw an exception to end parsing, preventing
--- further parser backtracking.
-type ErroringJournalParser m a =
-  StateT Journal (ParsecT CustomErr Text (ExceptT FinalParseError m)) a
 
 -- | Backtracking choice, use this when alternatives share a prefix.
 -- Consumes no input if all choices fail.

@@ -15,6 +15,8 @@ other data format (see "Hledger.Read").
 
 module Hledger.Data.Journal (
   -- * Parsing helpers
+  JournalParser,
+  ErroringJournalParser,
   addPriceDirective,
   addTransactionModifier,
   addPeriodicTransaction,
@@ -100,6 +102,7 @@ import Control.Monad.Except (ExceptT(..), runExceptT, throwError)
 import "extra" Control.Monad.Extra (whenM)
 import Control.Monad.Reader as R
 import Control.Monad.ST (ST, runST)
+import Control.Monad.State.Strict (StateT)
 import Data.Array.ST (STArray, getElems, newListArray, writeArray)
 import Data.Char (toUpper, isDigit)
 import Data.Default (Default(..))
@@ -119,6 +122,8 @@ import Data.Time.Calendar (Day, addDays, fromGregorian)
 import Data.Time.Clock.POSIX (POSIXTime)
 import Data.Tree (Tree, flatten)
 import Text.Printf (printf)
+import Text.Megaparsec (ParsecT)
+import Text.Megaparsec.Custom (FinalParseError)
 
 import Hledger.Utils
 import Hledger.Data.Types
@@ -130,6 +135,15 @@ import Hledger.Data.TransactionModifier
 import Hledger.Data.Posting
 import Hledger.Query
 
+
+-- | A parser of text that runs in some monad, keeping a Journal as state.
+type JournalParser m a = StateT Journal (ParsecT CustomErr Text m) a
+
+-- | A parser of text that runs in some monad, keeping a Journal as
+-- state, that can throw an exception to end parsing, preventing
+-- further parser backtracking.
+type ErroringJournalParser m a =
+  StateT Journal (ParsecT CustomErr Text (ExceptT FinalParseError m)) a
 
 -- deriving instance Show Journal
 instance Show Journal where
