@@ -10,7 +10,28 @@ account, and subaccounting-excluding and -including balances.
 -}
 
 module Hledger.Data.Account
-where
+( nullacct
+, accountsFromPostings
+, accountTree
+, showAccounts
+, showAccountsBoringFlag
+, printAccounts
+, lookupAccount
+, parentAccounts
+, accountsLevels
+, mapAccounts
+, anyAccounts
+, filterAccounts
+, sumAccounts
+, clipAccounts
+, clipAccountsAndAggregate
+, pruneAccounts
+, flattenAccounts
+, accountSetDeclarationInfo
+, sortAccountNamesByDeclaration
+, sortAccountTreeByAmount
+) where
+
 import qualified Data.HashSet as HS
 import qualified Data.HashMap.Strict as HM
 import Data.List (find, foldl', sortOn)
