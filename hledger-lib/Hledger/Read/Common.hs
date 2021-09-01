@@ -33,7 +33,6 @@ module Hledger.Read.Common (
   HasInputOpts(..),
   definputopts,
   rawOptsToInputOpts,
-  rawOptsToCommodityStylesOpts,
 
   -- * parsing utilities
   runTextParser,
@@ -198,36 +197,6 @@ data Reader m = Reader {
 
 instance Show (Reader m) where show r = rFormat r ++ " reader"
 
--- $setup
-
-rawOptsToCommodityStylesOpts :: RawOpts -> Maybe (M.Map CommoditySymbol AmountStyle)
-rawOptsToCommodityStylesOpts rawOpts = 
-    let 
-      optionStr = "commodity-style"
-      optResult = mapofcommodityStyleopt optionStr rawOpts
-    in case optResult of
-      Right cmap -> Just cmap
-      Left failedOpt -> error' ("could not parse " ++ 
-                                 optionStr ++ ": '" ++ failedOpt ++ "'.") -- PARTIAL:
-
--- | Given the name of the option and the raw options, returns either
--- | * a map of succesfully parsed commodity styles, if all options where succesfully parsed
--- | * the list of options which failed to parse, if one or more options failed to parse
-mapofcommodityStyleopt :: String -> RawOpts -> Either String (M.Map CommoditySymbol AmountStyle)
-mapofcommodityStyleopt name rawOpts =
-    let optList = listofstringopt name rawOpts
-        addStyle (Right cmap) (Right (c,a)) = Right (M.insert c a cmap)
-        addStyle err@(Left _) _ = err
-        addStyle _ (Left v) = Left v
-    in 
-      foldl' (\r e -> addStyle r $ parseCommodity e) (Right M.empty) optList
-
-parseCommodity :: String -> Either String (CommoditySymbol, AmountStyle)
-parseCommodity optStr =
-    case amountp'' optStr of
-      Left _ -> Left optStr 
-      Right (Amount acommodity _ astyle _) -> Right (acommodity, astyle)
-
 -- | Parse an InputOpts from a RawOpts and a provided date.
 -- This will fail with a usage error if the forecast period expression cannot be parsed.
 rawOptsToInputOpts :: Day -> RawOpts -> InputOpts
@@ -240,6 +209,9 @@ rawOptsToInputOpts day rawopts =
         ropts = rawOptsToReportOpts day rawopts
         argsquery = lefts . rights . map (parseQueryTerm day) $ querystring_ ropts
         datequery = simplifyQuery . filterQuery queryIsDate . And $ queryFromFlags ropts : argsquery
+
+        commodity_styles = either err id $ commodityStyleFromRawOpts rawopts
+          where err e = error' $ "could not parse commodity-style: '" ++ e ++ "'"  -- PARTIAL:
 
     in InputOpts{
        -- files_             = listofstringopt "file" rawopts
@@ -256,7 +228,7 @@ rawOptsToInputOpts day rawopts =
       ,balancingopts_     = defbalancingopts{
                                  ignore_assertions_ = boolopt "ignore-assertions" rawopts
                                , infer_prices_      = not noinferprice
-                               , commodity_styles_  = rawOptsToCommodityStylesOpts rawopts
+                               , commodity_styles_  = Just commodity_styles
                                }
       ,strict_            = boolopt "strict" rawopts
       ,_ioDay             = day
@@ -276,6 +248,18 @@ forecastPeriodFromRawOpts d rawopts = do
         NoInterval -> requestedspan
         _          -> usageError $ "--forecast's argument should not contain a report interval ("
                                  ++ show interval ++ " in \"" ++ arg ++ "\")"
+
+-- | Given the name of the option and the raw options, returns either
+-- | * a map of successfully parsed commodity styles, if all options where successfully parsed
+-- | * the first option which failed to parse, if one or more options failed to parse
+commodityStyleFromRawOpts :: RawOpts -> Either String (M.Map CommoditySymbol AmountStyle)
+commodityStyleFromRawOpts rawOpts =
+    foldM (\r -> fmap (\(c,a) -> M.insert c a r) . parseCommodity) mempty optList
+  where
+    optList = listofstringopt "commodity-style" rawOpts
+    parseCommodity optStr = case amountp'' optStr of
+        Left _ -> Left optStr
+        Right (Amount acommodity _ astyle _) -> Right (acommodity, astyle)
 
 --- ** parsing utilities
 
