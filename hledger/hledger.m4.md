@@ -2799,12 +2799,11 @@ but typically not investments or receivables.)
 To make the [balancesheet]/[balancesheetequity]/[cashflow]/[incomestatement] reports work,
 generally you should declare your top-level accounts, and their types.
 For each top-level account, write an [account directive](#declaring-accounts),
-with a `type:` [tags](#tags). The tag's value can be any of
+with a `type:` [tag](#tags). The tag's value can be any of
 `Asset`, `Liability`, `Equity`, `Revenue`, `Expense`, `Cash`,
-or (for short) `A`, `L`, `E`, `R`, `X`, `C`, all case insensitive.
-The account's type is inherited by all subaccounts, unless they declare a different type.
-
-An example:
+or (for short) `A`, `L`, `E`, `R`, `X`, `C` (case insensitive).
+An account's type is inherited by its subaccounts, unless they declare a different type.
+Here's an example, declaring all six account types:
 
 ```journal
 account assets       ; type: Asset
@@ -2816,10 +2815,24 @@ account revenues     ; type: Revenue
 account expenses     ; type: Expense
 ```
 
+There is also an older syntax, which is deprecated and will be dropped soon
+(A, L, E, R or X separated from the account name by two or more spaces):
+
+```journal
+account assets       A
+account liabilities  L
+account equity       E
+account revenues     R
+account expenses     X
+```
+
 #### Auto-detected account types
 
-As a fallback, when account types are not declared, hledger guesses them
-by looking for some common english top-level account names:
+hledger tries to find at least one top level account in each of the 
+six account types (Asset, Liability, Equity, Revenue, Expense, Cash).
+When no accounts have been declared for a particular type, 
+hledger tries to auto-detect some accounts by name,
+using [regular expressions](#regular-expressions):
 
 <!-- monospace to work around https://github.com/simonmichael/hledger/issues/1573 -->
 ```
@@ -2834,43 +2847,32 @@ by looking for some common english top-level account names:
  ^expenses?(:|$)                                                    | Expense
 ```
 
-For each type, any declaration of an account as that type will disable auto-detection of that type.
+For people using standard english account names,
+this feature helps hledger's [high-level reports](#declaring-account-types) work out of the box with minimal configuration.
 
-This feature helps hledger's high-level reports work out of the box, for new users using english account names.
-However, explicit account  declarations are usually better in the long run, 
-for clarity, predictability, and the other features described here.
+If you use non-english account names,
+you should [declare account types](#declaring-account-types) to make these reports work.
+And more generally, declaring accounts and types is usually a good idea,
+for increased clarity and predictability 
+(and for the other benefits of account directives: error checking, display order, etc).
 
-#### Interference from auto-detected account types
+Notes:
 
-If you assign any account type, it's a good idea to assign all of
-them, to prevent any confusion from mixing declared and auto-detected
-types. Although it's unlikely to happen in real life, here's an
-example: with the following journal, `balancesheetequity` shows
-"liabilities" in both Liabilities and Equity sections. Declaring another
-account as `type:Liability` would fix it:
+- When any account is declared as some type, this disables auto-detection for that particular type.
+- If you declare any account's type, it's a good idea to declare 
+  an account for all six types, since a mix of declared and auto-detected 
+  types can cause confusion.
+  For example, here liabilities is declared to be Equity, but would also 
+  be auto-detected as Liability, since no Liability account is declared:
+  
+  ```journal
+  account liabilities  ; type:Equity
 
-```journal
-account liabilities  ; type:Equity
-
-2020-01-01
-  assets        1
-  liabilities   1
-  equity       -2
-```
-
-#### Old account type syntax
-
-In some hledger journals you might instead see this old syntax (the
-letters ALERX, separated from the account name by two or more spaces);
-this is deprecated and may be removed soon:
-
-```journal
-account assets       A
-account liabilities  L
-account equity       E
-account revenues     R
-account expenses     X
-```
+  2020-01-01
+    assets        1
+    liabilities   1
+    equity       -2
+  ```
 
 ### Account display order
 
