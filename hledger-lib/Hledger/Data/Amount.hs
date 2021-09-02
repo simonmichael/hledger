@@ -165,10 +165,15 @@ import qualified Data.Text.Lazy.Builder as TB
 import Data.Word (Word8)
 import Safe (headDef, lastDef, lastMay)
 import System.Console.ANSI (Color(..),ColorIntensity(..))
-import Text.Printf (printf)
+
+import Debug.Trace (trace)
+import Test.Tasty (testGroup)
+import Test.Tasty.HUnit ((@?=), assertBool, testCase)
 
 import Hledger.Data.Types
-import Hledger.Utils
+import Hledger.Utils (colorB)
+import Hledger.Utils.Text (textQuoteIfNeeded)
+import Text.WideString (WideBuilder(..), textWidth, wbToText, wbUnpack)
 
 
 -- A 'Commodity' is a symbol representing a currency or some other kind of
@@ -494,7 +499,9 @@ showAmountWithZeroCommodity = wbUnpack . showAmountB noColour{displayZeroCommodi
 -- appropriate to the current debug level. 9 shows maximum detail.
 showAmountDebug :: Amount -> String
 showAmountDebug Amount{acommodity="AUTO"} = "(missing)"
-showAmountDebug Amount{..} = printf "Amount {acommodity=%s, aquantity=%s, aprice=%s, astyle=%s}" (show acommodity) (show aquantity) (showAmountPriceDebug aprice) (show astyle)
+showAmountDebug Amount{..} =
+      "Amount {acommodity=" ++ show acommodity ++ ", aquantity=" ++ show aquantity
+   ++ ", aprice=" ++ showAmountPriceDebug aprice ++ ", astyle=" ++ show astyle ++ "}"
 
 -- | Get a Text Builder for the string representation of the number part of of an amount,
 -- using the display settings from its commodity. Also returns the width of the
@@ -553,9 +560,9 @@ instance Num MixedAmount where
     fromInteger = mixedAmount . fromInteger
     negate = maNegate
     (+)    = maPlus
-    (*)    = error' "error, mixed amounts do not support multiplication" -- PARTIAL:
-    abs    = error' "error, mixed amounts do not support abs"
-    signum = error' "error, mixed amounts do not support signum"
+    (*)    = error "error, mixed amounts do not support multiplication" -- PARTIAL:
+    abs    = error "error, mixed amounts do not support abs"
+    signum = error "error, mixed amounts do not support signum"
 
 -- | Calculate the key used to store an Amount within a MixedAmount.
 amountKey :: Amount -> MixedAmountKey
@@ -825,7 +832,7 @@ showMixedAmountElided w c = wbUnpack . showMixedAmountB oneLine{displayColour=c,
 -- | Get an unambiguous string representation of a mixed amount for debugging.
 showMixedAmountDebug :: MixedAmount -> String
 showMixedAmountDebug m | m == missingmixedamt = "(missing)"
-                       | otherwise       = printf "Mixed [%s]" as
+                       | otherwise       = "Mixed [" ++ as ++ "]"
     where as = intercalate "\n       " $ map showAmountDebug $ amounts m
 
 -- | General function to generate a WideBuilder for a MixedAmount, according to the
@@ -953,7 +960,7 @@ maybeAppend (Just a) = (++[a])
 
 -- | Compact labelled trace of a mixed amount, for debugging.
 ltraceamount :: String -> MixedAmount -> MixedAmount
-ltraceamount s = traceWith (((s ++ ": ") ++).showMixedAmount)
+ltraceamount s a = trace (s ++ ": " ++ showMixedAmount a) a
 
 -- | Set the display precision in the amount's commodities.
 mixedAmountSetPrecision :: AmountPrecision -> MixedAmount -> MixedAmount
