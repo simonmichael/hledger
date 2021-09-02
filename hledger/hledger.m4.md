@@ -2796,16 +2796,15 @@ but typically not investments or receivables.)
 
 #### Declaring account types
 
-Generally, to make these reports work you should declare your
-top-level accounts and their types, 
-using [account directives](#declaring-accounts) 
-with `type:` [tags](#tags).
-
-The tag's value should be one of:
+To make the [balancesheet]/[balancesheetequity]/[cashflow]/[incomestatement] reports work,
+generally you should declare your top-level accounts, and their types.
+For each top-level account, write an [account directive](#declaring-accounts),
+with a `type:` [tags](#tags). The tag's value can be any of
 `Asset`, `Liability`, `Equity`, `Revenue`, `Expense`, `Cash`,
-`A`, `L`, `E`, `R`, `X`, `C` (all case insensitive).
-The type is inherited by all subaccounts except where they override it.
-Here's a complete example:
+or (for short) `A`, `L`, `E`, `R`, `X`, `C`, all case insensitive.
+The account's type is inherited by all subaccounts, unless they declare a different type.
+
+An example:
 
 ```journal
 account assets       ; type: Asset
@@ -2819,13 +2818,12 @@ account expenses     ; type: Expense
 
 #### Auto-detected account types
 
-If you happen to use common english top-level account names, you may
-not need to declare account types, as they will be detected
-automatically using the following rules:
+As a fallback, when account types are not declared, hledger guesses them
+by looking for some common english top-level account names:
 
 <!-- monospace to work around https://github.com/simonmichael/hledger/issues/1573 -->
 ```
- If account's name matches this regular expression:                 | its type is:
+ If account's name matches this case insensitive regular expression:| its type is:
 ------------------------------------------------------------------- | ------------
  ^assets?(:|$)                                                      | 
    and does not contain regexp (investment|receivable|:A/R|:fixed)  | Cash
@@ -2836,8 +2834,11 @@ automatically using the following rules:
  ^expenses?(:|$)                                                    | Expense
 ```
 
-Even so, explicit declarations may be a good idea, for clarity and
-predictability. 
+For each type, any declaration of an account as that type will disable auto-detection of that type.
+
+This feature helps hledger's high-level reports work out of the box, for new users using english account names.
+However, explicit account  declarations are usually better in the long run, 
+for clarity, predictability, and the other features described here.
 
 #### Interference from auto-detected account types
 
