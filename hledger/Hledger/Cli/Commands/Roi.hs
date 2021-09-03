@@ -19,7 +19,7 @@ import System.Exit
 import Data.Time.Calendar
 import Text.Printf
 import Data.Bifunctor (second)
-import Data.Either (fromLeft, fromRight)
+import Data.Either (fromLeft, fromRight, isLeft)
 import Data.Function (on)
 import Data.List
 import Numeric.RootFinding
@@ -168,15 +168,33 @@ timeWeightedReturn showCashFlow prettyTables investmentsQuery trans mixedAmountV
         -- will sort PnL changes to come before cash flows (on any
         -- given day), so that we will have better unit price computed
         -- first for processing cash flow. This is why pnl changes are Left
-        -- and cashflows are Right
-        sort
-        $ (++) (map (\(date,amt) -> (date,Left $ maNegate amt)) pnl )
-        -- Aggregate all entries for a single day, assuming that intraday interest is negligible
-        $ map (\date_cash -> let (dates, cash) = unzip date_cash in (head dates, Right (maSum cash)))
-        $ groupBy ((==) `on` fst)
-        $ sortOn fst
-        $ map (second maNegate)
-        $ cashFlow
+        -- and cashflows are Right.
+        -- However, if the very first date in the changes list has both
+        -- PnL and CashFlow, we would not be able to apply pnl change to 0 unit,
+        -- which would lead to an error. We make sure that we have at least one
+        -- cashflow entry at the front, and we know that there would be at most
+        -- one for the given date, by construction.
+        zeroUnitsNeedsCashflowAtTheFront
+        $ sort
+        $ dailyCashflows ++ datedPnls
+        where
+          zeroUnitsNeedsCashflowAtTheFront changes =
+            if initialUnits > 0 then changes
+            else 
+              let (leadingPnls, rest) = span (isLeft . snd) changes
+                  (firstCashflow, rest') = splitAt 1 rest
+              in firstCashflow ++ leadingPnls ++ rest'
+
+          datedPnls = map (\(date,amt) -> (date,Left $ maNegate amt)) pnl
+ 
+          dailyCashflows =
+            sort
+          -- Aggregate all entries for a single day, assuming that intraday interest is negligible
+            $ map (\date_cash -> let (dates, cash) = unzip date_cash in (head dates, Right (maSum cash)))
+            $ groupBy ((==) `on` fst)
+            $ sortOn fst
+            $ map (second maNegate)
+            $ cashFlow
 
   let units =
         tail $
@@ -195,7 +213,7 @@ timeWeightedReturn showCashFlow prettyTables investmentsQuery trans mixedAmountV
                      unitPrice' = valueAfterDate/unitBalance
                  in (valueOnDate, 0, unitPrice', unitBalance))
           (0, 0, initialUnitPrice, initialUnits)
-          changes
+          $ dbg3 "changes" changes
 
   let finalUnitBalance = if null units then initialUnits else let (_,_,_,u) = last units in u
       finalUnitPrice = if finalUnitBalance == 0 then initialUnitPrice
