@@ -21,9 +21,10 @@ module Hledger.Reports.PostingsReport (
 )
 where
 
-import Data.List (nub, sortOn)
+import Data.List (nub, sortBy, sortOn)
 import Data.List.Extra (nubSort)
 import Data.Maybe (fromMaybe, isJust, isNothing)
+import Data.Ord (comparing)
 import Data.Text (Text)
 import Data.Time.Calendar (Day)
 import Safe (headMay)
@@ -174,10 +175,26 @@ mkpostingsReportItem showdate showdesc wd mperiod p b =
 -- aggregated to the specified depth if any.
 -- Each summary posting will have a non-Nothing interval end date.
 summarisePostingsByInterval :: Interval -> WhichDate -> Maybe Int -> Bool -> DateSpan -> [Posting] -> [SummaryPosting]
-summarisePostingsByInterval interval wd mdepth showempty reportspan ps = concatMap summarisespan $ splitSpan interval reportspan
+summarisePostingsByInterval interval wd mdepth showempty reportspan =
+    concatMap (\(s,ps) -> summarisePostingsInDateSpan s wd mdepth showempty $ map snd ps)
+    -- Group postings into their columns. We try to be efficient, since
+    -- there can possibly be a very large number of intervals (cf #1683)
+    . groupByCols colspans
+    . dropWhile (beforeStart . fst)
+    . sortBy (comparing fst)
+    . map (\p -> (getDate p, p))
   where
-    summarisespan s = summarisePostingsInDateSpan s wd mdepth showempty (postingsinspan s)
-    postingsinspan s = filter (isPostingInDateSpan' wd s) ps
+    groupByCols []     _  = []
+    groupByCols (c:cs) [] = if showempty then (c,[]) : groupByCols cs [] else []
+    groupByCols (c:cs) ps = (c, matches) : groupByCols cs later
+      where (matches, later) = span ((spanEnd c >) . Just . fst) ps
+
+    -- The date spans to be included as report columns.
+    colspans = splitSpan interval reportspan
+    beforeStart = maybe (const True) (>) $ spanStart =<< headMay colspans
+    getDate = case wd of
+        PrimaryDate   -> postingDate
+        SecondaryDate -> postingDate2
 
 -- | Given a date span (representing a report interval) and a list of
 -- postings within it, aggregate the postings into one summary posting per
