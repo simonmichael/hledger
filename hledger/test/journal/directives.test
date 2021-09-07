@@ -1,6 +1,5 @@
 # apply account, end apply account directives
-hledger -f - accounts
-<<<
+<
 apply account a
 2016/1/1
     (b)  1
@@ -11,26 +10,22 @@ apply account aa
 end apply account
 2016/1/2
     (c)  1
->>>
+
+$ hledger -f - accounts
 a:b
 aa:b
 c
->>>=0
 
 # commodity directive
-hledger -f - reg
-<<<
+<
 commodity BTC
->>>
->>>2
->>>=0
+$ hledger -f - reg
 
 # commodity directive with subdirective
-hledger -f - reg
-<<<
+<
 commodity BTC
   note Bitcoin
->>>
->>>2 /expecting "format"/
->>>=1
+$ hledger -f - reg
+>2 /expecting "format"/
+>=1
 
