@@ -1,0 +1,13 @@
+# commodity directive
+<
+commodity BTC
+$ hledger -f - reg
+
+# commodity directive with subdirective
+<
+commodity BTC
+  note Bitcoin
+$ hledger -f - reg
+>2 /expecting "format"/
+>=1
+

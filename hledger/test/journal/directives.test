@@ -1,3 +1,5 @@
+# Miscellaneous directives not tested elsewhere
+
 # apply account, end apply account directives
 <
 apply account a
@@ -15,17 +17,4 @@ $ hledger -f - accounts
 a:b
 aa:b
 c
-
-# commodity directive
-<
-commodity BTC
-$ hledger -f - reg
-
-# commodity directive with subdirective
-<
-commodity BTC
-  note Bitcoin
-$ hledger -f - reg
->2 /expecting "format"/
->=1
 
