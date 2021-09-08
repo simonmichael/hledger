@@ -116,6 +116,7 @@ import qualified Hledger.Data as H
 import qualified Hledger.Query as H
 import qualified Hledger.Read as H
 import qualified Hledger.Utils.Parse as H
+import Lens.Micro (set)
 import Options.Applicative
 import "base-compat" Prelude.Compat ((<>))
 import System.Exit (exitFailure)
@@ -127,7 +128,7 @@ main :: IO ()
 main = do
     opts <- execParser args
     journalFile <- maybe H.defaultJournalPath pure (file opts)
-    ejournal    <- H.readJournalFile H.definputopts{H.ignore_assertions_=ignoreAssertions opts} journalFile
+    ejournal    <- H.readJournalFile (set H.ignore_assertions (ignoreAssertions opts) H.definputopts) journalFile
     case ejournal of
       Right j -> do
         (journal, starting) <- fixupJournal opts j
@@ -219,14 +220,14 @@ checkAssertion accounts = checkAssertion'
     evaluate (Account account) =
       fromMaybe H.nullmixedamt $ lookup account accounts
     evaluate (AccountNested account) =
-      maSum [m | (a,m) <- accounts, account == a || (a <> pack ":") `isPrefixOf` account]
+      H.maSum [m | (a,m) <- accounts, account == a || (a <> pack ":") `isPrefixOf` account]
     evaluate (Amount amount) = H.mixed [amount]
 
     -- Add missing amounts (with 0 value), normalise, throw away style
     -- information, and sort by commodity name.
     fixup m1 m2 =
-      let m = H.mixed $ amounts m1 ++ [m_ { H.aquantity = 0 } | m_ <- amounts m2]
-          as = amounts m
+      let m = H.mixed $ H.amounts m1 ++ [m_ { H.aquantity = 0 } | m_ <- H.amounts m2]
+          as = H.amounts m
       in H.mixed $ sortOn H.acommodity . map (\a -> a { H.astyle = H.amountstyle }) $ as
 
 -- | Check if an account name is mentioned in an assertion.
@@ -280,7 +281,7 @@ closingBalances' postings =
 
 -- | Add balances in matching accounts.
 addAccounts :: [(H.AccountName, H.MixedAmount)] -> [(H.AccountName, H.MixedAmount)] -> [(H.AccountName, H.MixedAmount)]
-addAccounts as1 as2 = [ (a, a1 `maPlus` a2)
+addAccounts as1 as2 = [ (a, a1 `H.maPlus` a2)
                       | a <- nub (map fst as1 ++ map fst as2)
                       , let a1 = fromMaybe H.nullmixedamt $ lookup a as1
                       , let a2 = fromMaybe H.nullmixedamt $ lookup a as2

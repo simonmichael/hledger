@@ -65,7 +65,7 @@ main = do
   (_,report1) <- mbReport report1args
   (rspec2,report2) <- mbReport report2args
   let merged = appendReports report1 report2
-  TL.putStrLn $ multiBalanceReportAsText (rsOpts rspec2) merged
+  TL.putStrLn $ multiBalanceReportAsText (_rsReportOpts rspec2) merged
   where
     mbReport args = do
       opts@CliOpts{reportspec_=rspec} <- getHledgerCliOpts' cmdmode args
