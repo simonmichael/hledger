@@ -33,7 +33,7 @@ main = do
    \j -> do
     d <- getCurrentDay
     let
-      q = rsQuery rspec
+      q = _rsQuery rspec
       ts = filter (q `matchesTransaction`) $ jtxns $ journalApplyValuationFromOpts rspec j
       ts' = map transactionSwapDates ts
     mapM_ (T.putStrLn . showTransaction) ts'
