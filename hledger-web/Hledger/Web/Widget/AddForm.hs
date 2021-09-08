@@ -152,7 +152,10 @@ validatePostings acctRes amtRes = let
   zipRow (Left e) (Left e') = Left (Just e, Just e')
   zipRow (Left e) (Right _) = Left (Just e, Nothing)
   zipRow (Right _) (Left e) = Left (Nothing, Just e)
-  zipRow (Right acct) (Right amt) = Right (nullposting {paccount = acct, pamount = mixedAmount amt})
+  zipRow (Right acct') (Right amt) = Right (nullposting {paccount = acct, ptype = atype, pamount = mixedAmount amt})
+    where
+      acct = accountNameWithoutPostingType acct'
+      atype = accountNamePostingType acct'
 
   errorToFormMsg = first (("Invalid value: " <>) . T.pack .
                           foldl (\s a -> s <> parseErrorTextPretty a) "" .
@@ -160,7 +163,7 @@ validatePostings acctRes amtRes = let
   checkAccount = errorToFormMsg . runParser (accountnamep <* eof) "" . T.strip
   checkAmount = errorToFormMsg . runParser (evalStateT (amountp <* eof) nulljournal) "" . T.strip
 
-  -- Add errors to forms with zero or one rows if the form is not a FormMissing
+  -- Add errors to forms with zero rows if the form is not a FormMissing
   result :: [(Text, Text, Either (Maybe Text, Maybe Text) Posting)]
   result = case (acctRes, amtRes) of
     (FormMissing, FormMissing) -> postings
@@ -168,7 +171,6 @@ validatePostings acctRes amtRes = let
       [] -> [ ("", "", Left (Just "Missing account", Just "Missing amount"))
            , ("", "", Left (Just "Missing account", Nothing))
            ]
-      [x] -> [x, ("", "", Left (Just "Missing account", Nothing))]
       xs -> xs
 
   -- Prepare rows for rendering - resolve Eithers into error messages and pad to
