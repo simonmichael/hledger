@@ -459,7 +459,7 @@ data Value = Account H.AccountName | AccountNested H.AccountName | Amount H.Amou
 -- | Parse a 'Value'.
 valuep :: Monad m => H.JournalParser m Value
 -- Account name parser has to come last because they eat everything.
-valuep = valueamountp <|> valueaccountnestedp <|> valueaccountp where
+valuep = P.try valueamountp <|> P.try valueaccountnestedp <|> valueaccountp where
     valueamountp  = Amount  <$> H.amountp
     valueaccountp = Account <$> lift H.accountnamep
     valueaccountnestedp = AccountNested <$> (P.char '*' *> spaces *> lift H.accountnamep)
