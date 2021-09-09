@@ -240,11 +240,11 @@ hledger -f- roi -p 2019-11 --inv Investment --pnl PnL
 >>>2
 hledger: Amounts could not be converted to a single cost basis: ["10 B","-10 B @@ 100 A"]
 Consider using --value to force all costs to be in a single commodity.
-For example, "--cost --value=end,<commodity> --infer-market-price", where commodity is the one that was used to pay for the investment.
+For example, "--cost --value=end,<commodity> --infer-market-prices", where commodity is the one that was used to pay for the investment.
 >>>=1
 
 # 10. Forcing valuation via --value
-hledger -f- roi -p 2019-11 --inv Investment --pnl PnL --cost --value=then,A --infer-market-price
+hledger -f- roi -p 2019-11 --inv Investment --pnl PnL --cost --value=then,A --infer-market-prices
 <<<
 2019/11/01 Example
   Assets:Checking  -100 A

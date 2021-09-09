@@ -378,7 +378,7 @@ prefix l = if null l then (""++) else ((l++": ")++)
 --
 -- 1. A *declared market price* or *inferred market price*:
 --    A's latest market price in B on or before the valuation date
---    as declared by a P directive, or (with the `--infer-market-price` flag)
+--    as declared by a P directive, or (with the `--infer-market-prices` flag)
 --    inferred from transaction prices.
 --   
 -- 2. A *reverse market price*:
@@ -403,7 +403,7 @@ prefix l = if null l then (""++) else ((l++": ")++)
 --    prices before the valuation date.)
 --
 -- 3. If there are no P directives at all (any commodity or date), and
---    the `--infer-market-price` flag is used, then the price commodity from
+--    the `--infer-market-prices` flag is used, then the price commodity from
 --    the latest transaction price for A on or before valuation date."
 --
 makePriceGraph :: [MarketPrice] -> [MarketPrice] -> Day -> PriceGraph
@@ -442,7 +442,7 @@ makePriceGraph alldeclaredprices allinferredprices d =
           where
             ps | not $ null visibledeclaredprices = visibledeclaredprices
                | not $ null alldeclaredprices     = alldeclaredprices
-               | otherwise                        = visibleinferredprices  -- will be null without --infer-market-price
+               | otherwise                        = visibleinferredprices  -- will be null without --infer-market-prices
 
 -- | Given a list of P-declared market prices in parse order and a
 -- list of transaction-inferred market prices in parse order, select

@@ -968,7 +968,7 @@ in this order of preference
 1. A *declared market price* or *inferred market price*:
    A's latest market price in B on or before the valuation date
    as declared by a [P directive](#declaring-market-prices), 
-   or (with the `--infer-market-price` flag)
+   or (with the `--infer-market-prices` flag)
    inferred from [transaction prices](#transaction-prices).
    <!-- (Latest by date, then parse order.) -->
    <!-- (A declared price overrides an inferred price on the same date.) -->
@@ -991,7 +991,7 @@ visible in `--debug=2` output). That limit is currently 1000.
 
 Amounts for which no suitable market price can be found, are not converted.
 
-## --infer-market-price: market prices from transactions
+## --infer-market-prices: market prices from transactions
 
 Normally, market value in hledger is fully controlled by, and requires,
 [P directives](#declaring-market-prices) in your journal.
@@ -1001,8 +1001,8 @@ why not use the recorded [transaction prices](#transaction-prices)
 as additional market prices (as Ledger does) ?
 We could produce value reports without needing P directives at all.
 
-Adding the `--infer-market-price` flag to `-V`, `-X` or `--value` enables
-this. So for example, `hledger bs -V --infer-market-price` will get market
+Adding the `--infer-market-prices` flag to `-V`, `-X` or `--value` enables
+this. So for example, `hledger bs -V --infer-market-prices` will get market
 prices both from P directives and from transactions.
 (And if both occur on the same day, the P directive takes precedence).
 
@@ -1011,7 +1011,7 @@ confusing/undesired ways by your journal entries. If this happens to
 you, read all of this [Valuation](#valuation) section carefully,
 and try adding `--debug` or `--debug=2` to troubleshoot.
 
-`--infer-market-price` can infer market prices from:
+`--infer-market-prices` can infer market prices from:
 
 - multicommodity transactions with explicit prices (`@`/`@@`)
 
@@ -1040,7 +1040,7 @@ follows, in this order of preference:
    prices before the valuation date.)
 
 3. If there are no P directives at all (any commodity or date) and the
-   `--infer-market-price` flag is used: the price commodity from the latest
+   `--infer-market-prices` flag is used: the price commodity from the latest
    transaction-inferred price for A on or before valuation date.
 
 This means:
@@ -1048,7 +1048,7 @@ This means:
 - If you have [P directives](#declaring-market-prices), 
   they determine which commodities `-V` will convert, and to what.
 
-- If you have no P directives, and use the `--infer-market-price` flag, 
+- If you have no P directives, and use the `--infer-market-prices` flag, 
   [transaction prices](#transaction-prices) determine it.
 
 Amounts for which no valuation commodity can be found are not converted.
@@ -2868,7 +2868,7 @@ Notes:
   types can cause confusion.
   For example, here liabilities is declared to be Equity, but would also 
   be auto-detected as Liability, since no Liability account is declared:
-  
+
   ```journal
   account liabilities  ; type:Equity
 

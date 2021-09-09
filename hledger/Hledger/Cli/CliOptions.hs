@@ -188,7 +188,8 @@ reportflags = [
   -- originally --infer-value
   -- 2021-02, --infer-market-price added, --infer-value deprecated 
   -- 2021-09, --infer-value hidden
- ,flagNone ["infer-market-price"] (setboolopt "infer-market-price") 
+  --          --infer-market-price renamed to --infer-market-prices, old spelling still works
+ ,flagNone ["infer-market-prices"] (setboolopt "infer-market-prices") 
     "use transaction prices (recorded with @ or @@) as additional market prices, as if they were P directives"
 
   -- generated postings/transactions
@@ -229,7 +230,7 @@ flattreeflags showamounthelp = [
 hiddenflags :: [Flag RawOpts]
 hiddenflags = [
    flagNone ["effective","aux-date"] (setboolopt "date2") "Ledger-compatible aliases for --date2"
-  ,flagNone ["infer-value"] (setboolopt "infer-market-price") "legacy flag that was renamed"
+  ,flagNone ["infer-value"] (setboolopt "infer-market-prices") "legacy flag that was renamed"
   ]
 
 -- | Common output-related flags: --output-file, --output-format...
