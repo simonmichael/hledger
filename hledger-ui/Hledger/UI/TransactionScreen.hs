@@ -77,7 +77,7 @@ tsDraw UIState{aopts=UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec
     t = transactionMapPostingAmounts mixedAmountSetFullPrecision t'
     maincontent = Widget Greedy Greedy $ do
       let
-        prices = journalPriceOracle (infer_value_ ropts) j
+        prices = journalPriceOracle (infer_prices_ ropts) j
         styles = journalCommodityStyles j
         periodlast =
           fromMaybe (error' "TransactionScreen: expected a non-empty journal") $  -- PARTIAL: shouldn't happen

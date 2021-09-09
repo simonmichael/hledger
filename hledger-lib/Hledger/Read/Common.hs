@@ -227,7 +227,7 @@ rawOptsToInputOpts day rawopts =
       ,auto_              = boolopt "auto" rawopts
       ,balancingopts_     = defbalancingopts{
                                  ignore_assertions_ = boolopt "ignore-assertions" rawopts
-                               , infer_prices_      = not noinferprice
+                               , infer_transaction_prices_ = not noinferprice
                                , commodity_styles_  = Just commodity_styles
                                }
       ,strict_            = boolopt "strict" rawopts
