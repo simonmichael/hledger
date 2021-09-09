@@ -184,8 +184,11 @@ reportflags = [
      ,"'now':  convert to current market value, in default valuation commodity or COMM"
      ,"YYYY-MM-DD: convert to market value on the given date, in default valuation commodity or COMM"
      ])
-  -- XXX infer-value renamed to infer-market-price and deprecated 2021-02
- ,flagNone ["infer-market-price","infer-value"]   (setboolopt "infer-market-price") 
+  -- history of this flag:
+  -- originally --infer-value
+  -- 2021-02, --infer-market-price added, --infer-value deprecated 
+  -- 2021-09, --infer-value hidden
+ ,flagNone ["infer-market-price"] (setboolopt "infer-market-price") 
     "use transaction prices (recorded with @ or @@) as additional market prices, as if they were P directives"
 
   -- generated postings/transactions
@@ -225,8 +228,9 @@ flattreeflags showamounthelp = [
 -- such as --effective, --aux-date.
 hiddenflags :: [Flag RawOpts]
 hiddenflags = [
-  flagNone ["effective","aux-date"] (setboolopt "date2") "Ledger-compatible aliases for --date2"
- ]
+   flagNone ["effective","aux-date"] (setboolopt "date2") "Ledger-compatible aliases for --date2"
+  ,flagNone ["infer-value"] (setboolopt "infer-market-price") "legacy flag that was renamed"
+  ]
 
 -- | Common output-related flags: --output-file, --output-format...
 
