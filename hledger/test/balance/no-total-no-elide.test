@@ -21,7 +21,7 @@ $ hledger -f - balance
   (a:b)   1
 
 # 2. An uninteresting parent account (with same balance as its single subaccount) is elided by default, like ledger
-$ hledger -f - balance --no-total
+$ hledger -f - balance --no-total --tree
 >
                    1  a:b
 >=0
@@ -98,3 +98,19 @@ Balance changes in 2020:
  a       ||    1 
    aa    ||    0 
      aaa ||    0 
+
+# 11. In flat mode, display all zero-balance accounts, including non-leaves
+$ hledger -f - balance --flat --no-total --empty
+                   1  a
+                   0  a:aa
+                   0  a:aa:aaa
+
+# 12. Same as 11 for multiperiod
+$ hledger -f - balance --flat --no-total -Y --empty
+Balance changes in 2020:
+
+          || 2020 
+==========++======
+ a        ||    1 
+ a:aa     ||    0 
+ a:aa:aaa ||    0 
