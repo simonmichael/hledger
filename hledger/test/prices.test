@@ -32,13 +32,13 @@ P 2016/2/1 EUR $1.05
 2016/1/3 spend
     expenses             20 EUR @@ $21.45
     assets:bank
-$ hledger prices -f- --costs
+$ hledger prices -f- --infer-market-prices
 P 2016-01-01 EUR $1.06
 P 2016-01-02 EUR $1.07
 P 2016-01-03 EUR $1.0725
 P 2016-02-01 EUR $1.05
 
-# 3. inverted costs from postings can be calculated
+# 3. inverted prices can be calculated
 <
 P 2016/1/1 EUR $1.06
 P 2016/2/1 EUR $1.05
@@ -51,7 +51,7 @@ P 2016/2/1 EUR $1.05
 2016/1/3 spend
     expenses             $21.45 @@ 20.00 EUR
     assets:bank
-$ hledger prices -f- --inverted-costs
+$ hledger prices -f- --infer-reverse-prices
 P 2016-01-01 EUR $1.06
 P 2016-01-03 EUR $1.0725
 P 2016-02-01 EUR $1.05
@@ -74,7 +74,7 @@ P 2019-01-01 X 1.000,123 A
 P 2019-01-02 X 1.000,1 A
 
 # 5. Commodity styles aren't yet applied to prices inferred from transaction prices.
-$ hledger -f- prices --costs
+$ hledger -f- prices --infer-market-prices
 P 2019-01-01 X 1.000,123 A
 P 2019-01-02 X 1.000,1 A
 P 2019-02-01 X 1.000,2345 A
