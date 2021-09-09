@@ -184,12 +184,17 @@ reportflags = [
      ,"'now':  convert to current market value, in default valuation commodity or COMM"
      ,"YYYY-MM-DD: convert to market value on the given date, in default valuation commodity or COMM"
      ])
-  -- history of this flag:
-  -- originally --infer-value
-  -- 2021-02, --infer-market-price added, --infer-value deprecated 
-  -- 2021-09, --infer-value hidden
-  --          --infer-market-price renamed to --infer-market-prices, old spelling still works
-  --          ReportOptions{infer_value_} renamed to infer_prices_ (and BalancingOpts{infer_prices_} renamed to infer_transaction_prices_)
+  
+  -- history of this flag so far, lest we be confused:
+  --  originally --infer-value
+  --  2021-02 --infer-market-price added, --infer-value deprecated 
+  --  2021-09
+  --   --infer-value hidden
+  --   --infer-market-price renamed to --infer-market-prices, old spelling still works
+  --   ReportOptions{infer_value_} renamed to infer_prices_, BalancingOpts{infer_prices_} renamed to infer_transaction_prices_
+  --   some related prices command changes
+  --    --costs deprecated and hidden, uses --infer-market-prices instead
+  --    --inverted-costs renamed to --infer-reverse-prices
  ,flagNone ["infer-market-prices"] (setboolopt "infer-market-prices") 
     "use transaction prices (recorded with @ or @@) as additional market prices, as if they were P directives"
 

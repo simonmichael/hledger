@@ -19,10 +19,13 @@ import System.Console.CmdArgs.Explicit
 
 pricesmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Prices.txt")
-  [flagNone ["costs"] (setboolopt "costs") "print transaction prices from postings"
-  ,flagNone ["inverted-costs"] (setboolopt "inverted-costs") "print transaction inverted prices from postings also"]
+  [flagNone ["infer-reverse-prices"] (setboolopt "infer-reverse-prices") "also show prices obtained by inverting transaction prices"
+  ]
   [generalflagsgroup1]
-  hiddenflags
+  (hiddenflags ++
+  [flagNone ["costs"]          (setboolopt "infer-market-prices") "deprecated, use --infer-market-prices instead"
+  ,flagNone ["inverted-costs"] (setboolopt "infer-reverse-prices")      "deprecated, use --infer-reverse-prices instead"
+  ])
   ([], Just $ argsFlag "[QUERY]")
 
 -- XXX the original hledger-prices script always ignored assertions
@@ -32,9 +35,18 @@ prices opts j = do
     q          = _rsQuery $ reportspec_ opts
     ps         = filter (matchesPosting q) $ allPostings j
     mprices    = jpricedirectives j
-    cprices    = map (stylePriceDirectiveExceptPrecision styles) $ concatMap postingsPriceDirectivesFromCosts ps
-    icprices   = map (stylePriceDirectiveExceptPrecision styles) $ concatMap (postingsPriceDirectivesFromCosts . postingTransformAmount (mapMixedAmount invertPrice)) ps
-    allprices  = mprices ++ ifBoolOpt "costs" cprices ++ ifBoolOpt "inverted-costs" icprices
+    cprices    = 
+      map (stylePriceDirectiveExceptPrecision styles) $ 
+      concatMap postingsPriceDirectivesFromCosts ps
+    rcprices   = 
+      map (stylePriceDirectiveExceptPrecision styles) $ 
+      concatMap (postingsPriceDirectivesFromCosts . postingTransformAmount (mapMixedAmount invertPrice)) 
+      ps
+    allprices  = 
+      mprices 
+      ++ ifBoolOpt "infer-market-prices" cprices 
+      ++ ifBoolOpt "infer-reverse-prices" rcprices  -- TODO: shouldn't this show reversed P prices also ? valuation will use them
+
   mapM_ (T.putStrLn . showPriceDirective) $
     sortOn pddate $
     filter (matchesPriceDirective q) $

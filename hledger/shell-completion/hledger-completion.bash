@@ -1600,7 +1600,6 @@ read -r -d "" _hledger_complist_options_prices <<"__TEXT__"
 --cleared
 --color=
 --cost
---costs
 --daily
 --date2
 --debug=
@@ -1613,8 +1612,8 @@ read -r -d "" _hledger_complist_options_prices <<"__TEXT__"
 --help
 --ignore-assertions
 --infer-market-prices
+--infer-reverse-prices
 --info
---inverted-costs
 --man
 --market
 --monthly
