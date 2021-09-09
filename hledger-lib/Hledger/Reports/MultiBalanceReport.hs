@@ -103,7 +103,7 @@ type ClippedAccountName = AccountName
 -- by the bs/cf/is commands.
 multiBalanceReport :: ReportSpec -> Journal -> MultiBalanceReport
 multiBalanceReport rspec j = multiBalanceReportWith rspec j (journalPriceOracle infer j)
-  where infer = infer_value_ $ _rsReportOpts rspec
+  where infer = infer_prices_ $ _rsReportOpts rspec
 
 -- | A helper for multiBalanceReport. This one takes an extra argument,
 -- a PriceOracle to be used for looking up market prices. Commands which
@@ -134,7 +134,7 @@ multiBalanceReportWith rspec' j priceoracle = report
 compoundBalanceReport :: ReportSpec -> Journal -> [CBCSubreportSpec a]
                       -> CompoundPeriodicReport a MixedAmount
 compoundBalanceReport rspec j = compoundBalanceReportWith rspec j (journalPriceOracle infer j)
-  where infer = infer_value_ $ _rsReportOpts rspec
+  where infer = infer_prices_ $ _rsReportOpts rspec
 
 -- | A helper for compoundBalanceReport, similar to multiBalanceReportWith.
 compoundBalanceReportWith :: ReportSpec -> Journal -> PriceOracle

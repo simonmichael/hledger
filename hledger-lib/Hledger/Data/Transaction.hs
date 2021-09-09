@@ -358,14 +358,14 @@ transactionsPostings = concatMap tpostings
 
 data BalancingOpts = BalancingOpts
   { ignore_assertions_ :: Bool  -- ^ Ignore balance assertions
-  , infer_prices_      :: Bool  -- ^ Infer prices in unbalanced multicommodity amounts
+  , infer_transaction_prices_ :: Bool  -- ^ Infer prices in unbalanced multicommodity amounts
   , commodity_styles_  :: Maybe (M.Map CommoditySymbol AmountStyle)  -- ^ commodity display styles
   } deriving (Show)
 
 defbalancingopts :: BalancingOpts
 defbalancingopts = BalancingOpts
   { ignore_assertions_ = False
-  , infer_prices_      = True
+  , infer_transaction_prices_ = True
   , commodity_styles_  = Nothing
   }
 
@@ -450,7 +450,7 @@ balanceTransactionHelper ::
   -> Either String (Transaction, [(AccountName, MixedAmount)])
 balanceTransactionHelper bopts t = do
   (t', inferredamtsandaccts) <- inferBalancingAmount (fromMaybe M.empty $ commodity_styles_ bopts) $
-    if infer_prices_ bopts then inferBalancingPrices t else t
+    if infer_transaction_prices_ bopts then inferBalancingPrices t else t
   case transactionCheckBalanced bopts t' of
     []   -> Right (txnTieKnot t', inferredamtsandaccts)
     errs -> Left $ transactionBalanceError t' errs

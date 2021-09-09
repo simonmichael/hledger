@@ -116,7 +116,7 @@ data ReportOpts = ReportOpts {
     ,statuses_       :: [Status]  -- ^ Zero, one, or two statuses to be matched
     ,cost_           :: Costing  -- ^ Should we convert amounts to cost, when present?
     ,value_          :: Maybe ValuationType  -- ^ What value should amounts be converted to ?
-    ,infer_value_    :: Bool      -- ^ Infer market prices from transactions ?
+    ,infer_prices_   :: Bool      -- ^ Infer market prices from transactions ?
     ,depth_          :: Maybe Int
     ,date2_          :: Bool
     ,empty_          :: Bool
@@ -171,7 +171,7 @@ defreportopts = ReportOpts
     , statuses_        = []
     , cost_            = NoCost
     , value_           = Nothing
-    , infer_value_     = False
+    , infer_prices_    = False
     , depth_           = Nothing
     , date2_           = False
     , empty_           = False
@@ -223,7 +223,7 @@ rawOptsToReportOpts d rawopts =
           ,statuses_    = statusesFromRawOpts rawopts
           ,cost_        = costing
           ,value_       = valuation
-          ,infer_value_ = boolopt "infer-market-prices" rawopts
+          ,infer_prices_ = boolopt "infer-market-prices" rawopts
           ,depth_       = maybeposintopt "depth" rawopts
           ,date2_       = boolopt "date2" rawopts
           ,empty_       = boolopt "empty" rawopts
@@ -494,7 +494,7 @@ flat_ = not . tree_
 journalApplyValuationFromOpts :: ReportSpec -> Journal -> Journal
 journalApplyValuationFromOpts rspec j =
     journalApplyValuationFromOptsWith rspec j priceoracle
-  where priceoracle = journalPriceOracle (infer_value_ $ _rsReportOpts rspec) j
+  where priceoracle = journalPriceOracle (infer_prices_ $ _rsReportOpts rspec) j
 
 -- | Like journalApplyValuationFromOpts, but takes PriceOracle as an argument.
 journalApplyValuationFromOptsWith :: ReportSpec -> Journal -> PriceOracle -> Journal
