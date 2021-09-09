@@ -303,7 +303,7 @@ unMix a =
     Just a -> aquantity a
     Nothing -> error' $ "Amounts could not be converted to a single cost basis: " ++ show (map showAmount $ amounts a) ++
                "\nConsider using --value to force all costs to be in a single commodity." ++
-               "\nFor example, \"--cost --value=end,<commodity> --infer-market-price\", where commodity is the one that was used to pay for the investment."
+               "\nFor example, \"--cost --value=end,<commodity> --infer-market-prices\", where commodity is the one that was used to pay for the investment."
 
 -- Show Decimal rounded to two decimal places, unless it has less places already. This ensures that "2" won't be shown as "2.00"
 showDecimal :: Decimal -> String

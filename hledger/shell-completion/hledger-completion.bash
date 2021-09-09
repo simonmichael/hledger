@@ -485,7 +485,7 @@ read -r -d "" _hledger_complist_generic_options <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
---infer-market-price
+--infer-market-prices
 --info
 --man
 --market
@@ -529,7 +529,7 @@ read -r -d "" _hledger_complist_options_accounts <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
---infer-market-price
+--infer-market-prices
 --info
 --man
 --market
@@ -569,7 +569,7 @@ read -r -d "" _hledger_complist_options_activity <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
---infer-market-price
+--infer-market-prices
 --info
 --man
 --market
@@ -623,7 +623,7 @@ read -r -d "" _hledger_complist_options_areg <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
---infer-market-price
+--infer-market-prices
 --info
 --man
 --market
@@ -666,7 +666,7 @@ read -r -d "" _hledger_complist_options_aregister <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
---infer-market-price
+--infer-market-prices
 --info
 --man
 --market
@@ -717,7 +717,7 @@ read -r -d "" _hledger_complist_options_bal <<"__TEXT__"
 --help
 --historical
 --ignore-assertions
---infer-market-price
+--infer-market-prices
 --info
 --invert
 --man
@@ -776,7 +776,7 @@ read -r -d "" _hledger_complist_options_balance <<"__TEXT__"
 --help
 --historical
 --ignore-assertions
---infer-market-price
+--infer-market-prices
 --info
 --invert
 --man
@@ -835,7 +835,7 @@ read -r -d "" _hledger_complist_options_balancesheet <<"__TEXT__"
 --help
 --historical
 --ignore-assertions
---infer-market-price
+--infer-market-prices
 --info
 --man
 --market
@@ -892,7 +892,7 @@ read -r -d "" _hledger_complist_options_balancesheetequity <<"__TEXT__"
 --help
 --historical
 --ignore-assertions
---infer-market-price
+--infer-market-prices
 --info
 --man
 --market
@@ -949,7 +949,7 @@ read -r -d "" _hledger_complist_options_bs <<"__TEXT__"
 --help
 --historical
 --ignore-assertions
---infer-market-price
+--infer-market-prices
 --info
 --man
 --market
@@ -1006,7 +1006,7 @@ read -r -d "" _hledger_complist_options_bse <<"__TEXT__"
 --help
 --historical
 --ignore-assertions
---infer-market-price
+--infer-market-prices
 --info
 --man
 --market
@@ -1063,7 +1063,7 @@ read -r -d "" _hledger_complist_options_cashflow <<"__TEXT__"
 --help
 --historical
 --ignore-assertions
---infer-market-price
+--infer-market-prices
 --info
 --man
 --market
@@ -1120,7 +1120,7 @@ read -r -d "" _hledger_complist_options_cf <<"__TEXT__"
 --help
 --historical
 --ignore-assertions
---infer-market-price
+--infer-market-prices
 --info
 --man
 --market
@@ -1169,7 +1169,7 @@ read -r -d "" _hledger_complist_options_check <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
---infer-market-price
+--infer-market-prices
 --info
 --man
 --market
@@ -1211,7 +1211,7 @@ read -r -d "" _hledger_complist_options_close <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
---infer-market-price
+--infer-market-prices
 --info
 --interleaved
 --man
@@ -1254,7 +1254,7 @@ read -r -d "" _hledger_complist_options_codes <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
---infer-market-price
+--infer-market-prices
 --info
 --man
 --market
@@ -1307,7 +1307,7 @@ read -r -d "" _hledger_complist_options_descriptions <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
---infer-market-price
+--infer-market-prices
 --info
 --man
 --market
@@ -1381,7 +1381,7 @@ read -r -d "" _hledger_complist_options_import <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
---infer-market-price
+--infer-market-prices
 --info
 --man
 --market
@@ -1427,7 +1427,7 @@ read -r -d "" _hledger_complist_options_incomestatement <<"__TEXT__"
 --help
 --historical
 --ignore-assertions
---infer-market-price
+--infer-market-prices
 --info
 --man
 --market
@@ -1484,7 +1484,7 @@ read -r -d "" _hledger_complist_options_is <<"__TEXT__"
 --help
 --historical
 --ignore-assertions
---infer-market-price
+--infer-market-prices
 --info
 --man
 --market
@@ -1533,7 +1533,7 @@ read -r -d "" _hledger_complist_options_notes <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
---infer-market-price
+--infer-market-prices
 --info
 --man
 --market
@@ -1572,7 +1572,7 @@ read -r -d "" _hledger_complist_options_payees <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
---infer-market-price
+--infer-market-prices
 --info
 --man
 --market
@@ -1612,7 +1612,7 @@ read -r -d "" _hledger_complist_options_prices <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
---infer-market-price
+--infer-market-prices
 --info
 --inverted-costs
 --man
@@ -1652,7 +1652,7 @@ read -r -d "" _hledger_complist_options_print <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
---infer-market-price
+--infer-market-prices
 --info
 --man
 --market
@@ -1694,7 +1694,7 @@ read -r -d "" _hledger_complist_options_print_unique <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
---infer-market-price
+--infer-market-prices
 --info
 --man
 --market
@@ -1735,7 +1735,7 @@ read -r -d "" _hledger_complist_options_reg <<"__TEXT__"
 --help
 --historical
 --ignore-assertions
---infer-market-price
+--infer-market-prices
 --info
 --invert
 --man
@@ -1781,7 +1781,7 @@ read -r -d "" _hledger_complist_options_register <<"__TEXT__"
 --help
 --historical
 --ignore-assertions
---infer-market-price
+--infer-market-prices
 --info
 --invert
 --man
@@ -1824,7 +1824,7 @@ read -r -d "" _hledger_complist_options_register_match <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
---infer-market-price
+--infer-market-prices
 --info
 --man
 --market
@@ -1864,7 +1864,7 @@ read -r -d "" _hledger_complist_options_rewrite <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
---infer-market-price
+--infer-market-prices
 --info
 --man
 --market
@@ -1903,7 +1903,7 @@ read -r -d "" _hledger_complist_options_roi <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
---infer-market-price
+--infer-market-prices
 --info
 --investment=
 --man
@@ -1943,7 +1943,7 @@ read -r -d "" _hledger_complist_options_stats <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
---infer-market-price
+--infer-market-prices
 --info
 --man
 --market
@@ -1982,7 +1982,7 @@ read -r -d "" _hledger_complist_options_tags <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
---infer-market-price
+--infer-market-prices
 --info
 --man
 --market
@@ -2032,7 +2032,7 @@ read -r -d "" _hledger_complist_options_ui <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
---infer-market-price
+--infer-market-prices
 --info
 --man
 --market
@@ -2080,7 +2080,7 @@ read -r -d "" _hledger_complist_options_web <<"__TEXT__"
 --help
 --host=
 --ignore-assertions
---infer-market-price
+--infer-market-prices
 --info
 --man
 --market

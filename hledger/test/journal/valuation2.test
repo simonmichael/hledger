@@ -232,9 +232,9 @@ $ hledger -f- bal -N -V -e 2002-01-01
 $ hledger -f- bal -N -V
                  1 A  a
 
-# 23. Market price is inferred from transactions with --infer-market-price,
+# 23. Market price is inferred from transactions with --infer-market-prices,
 # and -V can work with no P directives.
-$ hledger -f- bal -N -V --infer-market-price
+$ hledger -f- bal -N -V --infer-market-prices
                   B2  a
 
 # 24. A P-declared market price on the same date as a transaction price has precedence.
@@ -244,7 +244,7 @@ P 2020-01-01 A  1 B
 2020-01-01
   (a)   1 A @ 2 B
 
-$ hledger -f- bal -N -V --infer-market-price
+$ hledger -f- bal -N -V --infer-market-prices
                  1 B  a
 
 # 25. A transaction-inferred price newer than a P-declared price has precedence.
@@ -254,7 +254,7 @@ P 2020-01-01 A  1 B
 2020-01-02
   (a)   1 A @ 2 B
 
-$ hledger -f- bal -N -V --infer-market-price
+$ hledger -f- bal -N -V --infer-market-prices
                  2 B  a
 
 # 26. A later-dated P directive sets the valuation commodity even if parsed out of order.
@@ -275,7 +275,7 @@ $ hledger -f- bal -N -V
   (a)   1 A @ 1 D  ; date: 2020-01-02
   (a)   1 A @ 1 B
 
-$ hledger -f- bal -N -V --infer-market-price
+$ hledger -f- bal -N -V --infer-market-prices
                   D3  a
 
 # 28. #1402 It should pick the direct (forward) A 3.00 price for B here,
