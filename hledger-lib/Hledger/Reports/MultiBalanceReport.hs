@@ -409,13 +409,18 @@ displayedAccounts ReportSpec{_rsQuery=query,_rsReportOpts=ropts} valuedaccts
 
     -- Accounts interesting for their own sake
     isInteresting name amts =
-        d <= depth                                     -- Throw out anything too deep
-        && ((empty_ ropts && all (null . asubs) amts)  -- Keep all leaves when using empty_
-           || not (isZeroRow balance amts))            -- Throw out anything with zero balance
+        d <= depth                                 -- Throw out anything too deep
+        && ( (empty_ ropts && keepWhenEmpty amts)  -- Keep empty accounts when called with --empty
+           || not (isZeroRow balance amts)         -- Keep everything with a non-zero balance in the row
+           )
       where
         d = accountNameLevel name
-        balance | ALTree <- accountlistmode_ ropts, d == depth = maybeStripPrices . aibalance
-                | otherwise = maybeStripPrices . aebalance
+        keepWhenEmpty = case accountlistmode_ ropts of
+            ALFlat -> const True          -- Keep all empty accounts in flat mode
+            ALTree -> all (null . asubs)  -- Keep only empty leaves in tree mode
+        balance = maybeStripPrices . case accountlistmode_ ropts of
+            ALTree | d == depth -> aibalance
+            _                   -> aebalance
           where maybeStripPrices = if show_costs_ ropts then id else mixedAmountStripPrices
 
     -- Accounts interesting because they are a fork for interesting subaccounts
