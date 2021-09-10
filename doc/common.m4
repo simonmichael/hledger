@@ -69,6 +69,9 @@ m4_define({{_helpoptions_}}, {{
 `--debug[=N]`
 : show debug output (levels 1-9, default: 1)
 
+`--today=DATE`
+: generate reports treating DATE as the current day (for testing purposes)
+
 }} )m4_dnl
 m4_dnl
 m4_define({{_inputoptions_}}, {{
