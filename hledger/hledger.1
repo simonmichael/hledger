@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "August 2021" "hledger-1.22.99 " "hledger User Manuals"
+.TH "HLEDGER" "1" "September 2021" "hledger-1.22.99 " "hledger User Manuals"
 
 
 
@@ -762,6 +762,12 @@ T}@T{
 T}
 .TE
 .PP
+Note \[dq]today\[aq]s date\[dq] can be overridden with the
+\f[C]--today\f[R] option, in case it\[aq]s needed for testing or for
+recreating old reports.
+(Except for periodic transaction rules; those are not affected by
+\f[C]--today\f[R].)
+.PP
 .SS Report start & end date
 .PP
 By default, most hledger reports will show the full span of time
@@ -779,8 +785,8 @@ All of these accept the smart date syntax.
 .PP
 Some notes:
 .IP \[bu] 2
-As in Ledger, end dates are exclusive, so you need to write the date
-\f[I]after\f[R] the last day you want to include.
+End dates are exclusive, as in Ledger, so you should write the date
+\f[I]after\f[R] the last day you want to see in the report.
 .IP \[bu] 2
 As noted in reporting options: among start/end dates specified with
 \f[I]options\f[R], the last (i.e.
@@ -847,9 +853,16 @@ separate row or column.
 .PP
 The following \[dq]standard\[dq] report intervals can be enabled by
 using their corresponding flag:
-.PP
-\f[C]-D/--daily\f[R], \f[C]-W/--weekly\f[R], \f[C]-M/--monthly\f[R],
-\f[C]-Q/--quarterly\f[R], \f[C]-Y/--yearly\f[R].
+.IP \[bu] 2
+\f[C]-D/--daily\f[R]
+.IP \[bu] 2
+\f[C]-W/--weekly\f[R]
+.IP \[bu] 2
+\f[C]-M/--monthly\f[R]
+.IP \[bu] 2
+\f[C]-Q/--quarterly\f[R]
+.IP \[bu] 2
+\f[C]-Y/--yearly\f[R]
 .PP
 These standard intervals always start on natural interval boundaries: eg
 \f[C]--weekly\f[R] starts on mondays, \f[C]--monthly\f[R] starts on the
@@ -871,6 +884,20 @@ overridden (ie, the report starts earlier than your requested start
 date, or ends later than your requested end date).
 This is done to ensure \[dq]full\[dq] first and last subperiods, so that
 all subperiods\[aq] numbers are comparable.
+.PP
+To summarise:
+.IP \[bu] 2
+In multiperiod reports, all subperiods are forced to be the same length,
+to simplify reporting.
+.IP \[bu] 2
+Reports with the standard
+\f[C]--weekly\f[R]/\f[C]--monthly\f[R]/\f[C]--quarterly\f[R]/\f[C]--yearly\f[R]
+intervals are required to start on the first day of a
+week/month/quarter/year.
+We\[aq]d like more flexibility here but it isn\[aq]t supported yet.
+.IP \[bu] 2
+\f[C]--period\f[R] (below) can specify more complex intervals, starting
+on any date.
 .SS Period expressions
 .PP
 The \f[C]-p/--period\f[R] option accepts period expressions, a shorthand
@@ -882,7 +909,13 @@ Here\[aq]s a basic period expression specifying the first quarter of
 Note, hledger always treats start dates as inclusive and end dates as
 exclusive:
 .PP
+.TS
+tab(@);
+l.
+T{
 \f[C]-p \[dq]from 2009/1/1 to 2009/4/1\[dq]\f[R]
+T}
+.TE
 .PP
 Keywords like \[dq]from\[dq] and \[dq]to\[dq] are optional, and so are
 the spaces, as long as you don\[aq]t run two dates together.
@@ -987,17 +1020,16 @@ T}@T{
 fourth quarter of the current year
 T}
 .TE
+.SS Period expressions with a report interval
 .PP
-The argument of \f[C]-p\f[R] can also begin with, or be, a report
-interval expression.
-The basic report intervals are \f[C]daily\f[R], \f[C]weekly\f[R],
-\f[C]monthly\f[R], \f[C]quarterly\f[R], or \f[C]yearly\f[R], which have
-the same effect as the
-\f[C]-D\f[R],\f[C]-W\f[R],\f[C]-M\f[R],\f[C]-Q\f[R], or \f[C]-Y\f[R]
-flags.
-Between report interval and start/end dates (if any), the word
-\f[C]in\f[R] is optional.
-Examples:
+\f[C]-p/--period\f[R]\[aq]s argument can also begin with, or entirely
+consist of, a report interval.
+This should be separated from the start/end dates (if any) by a space,
+or the word \f[C]in\f[R].
+The basic intervals (which can also be written as command line flags)
+are \f[C]daily\f[R], \f[C]weekly\f[R], \f[C]monthly\f[R],
+\f[C]quarterly\f[R], and \f[C]yearly\f[R].
+Some examples:
 .PP
 .TS
 tab(@);
@@ -1013,11 +1045,11 @@ T{
 T}
 .TE
 .PP
-Note that \f[C]weekly\f[R], \f[C]monthly\f[R], \f[C]quarterly\f[R] and
-\f[C]yearly\f[R] intervals will always start on the first day on week,
-month, quarter or year accordingly, and will end on the last day of same
-period, even if associated period expression specifies different
-explicit start and end date.
+As mentioned above, the \f[C]weekly\f[R], \f[C]monthly\f[R],
+\f[C]quarterly\f[R] and \f[C]yearly\f[R] intervals require a report
+start date that is the first day of a week, month, quarter or year.
+And, report start/end dates will be expanded if needed to span a whole
+number of intervals.
 .PP
 For example:
 .PP
@@ -1046,15 +1078,23 @@ T}@T{
 starts on 2009/01/01, first day of 2009
 T}
 .TE
+.SS More complex report intervals
 .PP
-The following more complex report intervals are also supported:
-\f[C]biweekly\f[R], \f[C]fortnightly\f[R], \f[C]bimonthly\f[R],
-\f[C]every day|week|month|quarter|year\f[R],
-\f[C]every N days|weeks|months|quarters|years\f[R].
+Some more complex kinds of interval are also supported in period
+expressions:
+.IP \[bu] 2
+\f[C]biweekly\f[R]
+.IP \[bu] 2
+\f[C]fortnightly\f[R]
+.IP \[bu] 2
+\f[C]bimonthly\f[R]
+.IP \[bu] 2
+\f[C]every day|week|month|quarter|year\f[R]
+.IP \[bu] 2
+\f[C]every N days|weeks|months|quarters|years\f[R]
 .PP
-All of these will start on the first day of the requested period and end
-on the last one, as described above.
-.PP
+These too will cause report start/end dates to be expanded, if needed,
+to span a whole number of intervals.
 Examples:
 .PP
 .TS
@@ -1076,16 +1116,33 @@ T}@T{
 periods will have boundaries on 2009/03/01, 2009/08/01, ...
 T}
 .TE
+.SS Intervals with custom start date
 .PP
-If you want intervals that start on arbitrary day of your choosing and
-span a week, month or year, you need to use any of the following:
+All intervals mentioned above are required to start on their natural
+calendar boundaries, but the following intervals can start on any date:
 .PP
-\f[C]every Nth day of week\f[R], \f[C]every WEEKDAYNAME\f[R] (eg
-\f[C]mon|tue|wed|thu|fri|sat|sun\f[R]),
-\f[C]every Nth day [of month]\f[R],
-\f[C]every Nth WEEKDAYNAME [of month]\f[R],
-\f[C]every MM/DD [of year]\f[R], \f[C]every Nth MMM [of year]\f[R],
-\f[C]every MMM Nth [of year]\f[R].
+Weekly on custom day:
+.IP \[bu] 2
+\f[C]every Nth day of week\f[R] (\f[C]th\f[R], \f[C]nd\f[R],
+\f[C]rd\f[R], or \f[C]st\f[R] are all accepted after the number)
+.IP \[bu] 2
+\f[C]every WEEKDAYNAME\f[R] (full or three-letter english weekday name,
+case insensitive)
+.PP
+Monthly on custom day:
+.IP \[bu] 2
+\f[C]every Nth day [of month]\f[R]
+.IP \[bu] 2
+\f[C]every Nth WEEKDAYNAME [of month]\f[R]
+.PP
+Yearly on custom day:
+.IP \[bu] 2
+\f[C]every MM/DD [of year]\f[R] (month number and day of month number)
+.IP \[bu] 2
+\f[C]every MONTHNAME DDth [of year]\f[R] (full or three-letter english
+month name, case insensitive, and day of month number)
+.IP \[bu] 2
+\f[C]every DDth MONTHNAME [of year]\f[R] (equivalent to the above)
 .PP
 Examples:
 .PP
@@ -1115,10 +1172,10 @@ T}
 T{
 \f[C]-p \[dq]every 11/05\[dq]\f[R]
 T}@T{
-yearly periods with boundaries on 5th of Nov
+yearly periods with boundaries on 5th of November
 T}
 T{
-\f[C]-p \[dq]every 5th Nov\[dq]\f[R]
+\f[C]-p \[dq]every 5th November\[dq]\f[R]
 T}@T{
 same
 T}
@@ -1129,23 +1186,79 @@ same
 T}
 .TE
 .PP
-Show historical balances at end of 15th each month (N is exclusive end
-date):
+Show historical balances at end of the 15th day of each month (N is an
+end date, exclusive as always):
+.IP
+.nf
+\f[C]
+$ hledger balance -H -p \[dq]every 16th day\[dq]
+\f[R]
+.fi
 .PP
-\f[C]hledger balance -H -p \[dq]every 16th day\[dq]\f[R]
+Group postings from the start of wednesday to end of the following
+tuesday (N is both (inclusive) start date and (exclusive) end date):
+.IP
+.nf
+\f[C]
+$ hledger register checking -p \[dq]every 3rd day of week\[dq]
+\f[R]
+.fi
+.SS Periods or dates ?
 .PP
-Group postings from start of wednesday to end of next tuesday (N is
-start date and exclusive end date):
+Report intervals like the above are most often used with
+\f[C]-p|--period\f[R], to divide reports into multiple subperiods - each
+generated date marks a subperiod boundary.
+Here, the periods between the dates are what\[aq]s important.
 .PP
-\f[C]hledger register checking -p \[dq]every 3rd day of week\[dq]\f[R]
+But report intervals can also be used with \f[C]--forecast\f[R] to
+generate future transactions, or with \f[C]balance --budget\f[R] to
+generate budget goal-setting transactions.
+For these, the dates themselves are what matters.
+.SS Events on multiple weekdays
+.PP
+The \f[C]every WEEKDAYNAME\f[R] form has a special variant with multiple
+day names, comma-separated.
+Eg: \f[C]every mon,thu,sat\f[R].
+Also, \f[C]weekday\f[R] and \f[C]weekendday\f[R] are shorthand for
+\f[C]mon,tue,wed,thu,fri\f[R] and \f[C]sat,sun\f[R] respectively.
+.PP
+This form is mainly intended for use with \f[C]--forecast\f[R], to
+generate periodic transactions on arbitrary days of the week.
+It may be less useful with \f[C]-p\f[R], since it divides each week into
+subperiods of unequal length.
+(Because gaps between periods are not allowed; if you\[aq]d like to
+change this, see #1632.)
+.PP
+Examples:
+.PP
+.TS
+tab(@);
+lw(17.8n) lw(52.2n).
+T{
+\f[C]-p \[dq]every mon,wed,fri\[dq]\f[R]
+T}@T{
+dates will be Mon, Wed, Fri; periods will be Mon-Tue, Wed-Thu, Fri-Sun
+T}
+T{
+\f[C]-p \[dq]every weekday\[dq]\f[R]
+T}@T{
+dates will be Mon, Tue, Wed, Thu, Fri; periods will be Mon, Tue, Wed,
+Thu, Fri-Sun
+T}
+T{
+\f[C]-p \[dq]every weekendday\[dq]\f[R]
+T}@T{
+dates will be Sat, Sun; periods will be Sat, Sun-Fri
+T}
+.TE
 .SH DEPTH
 .PP
-With the \f[C]--depth N\f[R] option (short form: \f[C]-N\f[R]), commands
-like account, balance and register will show only the uppermost accounts
-in the account tree, down to level N.
+With the \f[C]--depth NUM\f[R] option (short form: \f[C]-NUM\f[R]),
+commands like account, balance and register will show only the uppermost
+accounts in the account tree, down to level NUM.
 Use this when you want a summary with less detail.
-This flag has the same effect as a \f[C]depth:\f[R] query argument (so
-\f[C]-2\f[R], \f[C]--depth=2\f[R] or \f[C]depth:2\f[R] are equivalent).
+This flag has the same effect as a \f[C]depth:\f[R] query argument:
+\f[C]depth:2\f[R], \f[C]--depth=2\f[R] or \f[C]-2\f[R] are equivalent.
 .SH QUERIES
 .PP
 One of hledger\[aq]s strengths is being able to quickly report on a
@@ -2256,6 +2369,24 @@ If you already have tables created via SQL output of hledger, you would
 probably want to either clear tables of existing data (via
 \f[C]delete\f[R] or \f[C]truncate\f[R] SQL statements) or drop tables
 completely as otherwise your postings will be duped.
+.SS Commodity styles
+.PP
+The display style of a commodity/currence is inferred according to the
+rules described in Commodity display style.
+The inferred display style can be overriden by an optional
+\f[C]-c/--commodity-style\f[R] option.
+For example, the following will override the display style for dollars.
+.IP
+.nf
+\f[C]
+$ hledger print -c \[aq]$1.000,0\[aq]
+\f[R]
+.fi
+.PP
+The format specification of the style is identical to the commodity
+display style specification for the commodity directive.
+The command line option can be supplied repeatedly to override the
+display style for multiple commodity/currency symbols.
 .SH COMMANDS
 .PP
 hledger provides a number of commands for producing reports and managing
@@ -2628,6 +2759,8 @@ or actual and planned balance changes (\f[C]--budget\f[R])
 or value of balance changes (\f[C]-V\f[R])
 .IP \[bu] 2
 or change of balance values (\f[C]--valuechange\f[R])
+.IP \[bu] 2
+or unrealised capital gain/loss (\f[C]--gain\f[R])
 .PP
 \&..in..
 .IP \[bu] 2
@@ -2686,11 +2819,11 @@ end of the journal period (more on this below).
 .PP
 Accounts are sorted by declaration order if any, and then alphabetically
 by account name.
-For instance, using examples/sample.journal:
+For instance (using examples/sample.journal):
 .IP
 .nf
 \f[C]
-$ hledger bal
+$ hledger -f examples/sample.journal bal
                   $1  assets:bank:saving
                  $-2  assets:cash
                   $1  expenses:food
@@ -2710,7 +2843,7 @@ Use \f[C]-E/--empty\f[R] to show them (revealing
 .IP
 .nf
 \f[C]
-$ hledger -f examples/sample.journal  bal  -E
+$ hledger -f examples/sample.journal bal  -E
                    0  assets:bank:checking
                   $1  assets:bank:saving
                  $-2  assets:cash
@@ -2735,7 +2868,7 @@ Eg:
 .IP
 .nf
 \f[C]
-$ hledger bal --cleared assets date:200806
+$ hledger -f examples/sample.journal bal --cleared assets date:200806
                  $-2  assets:cash
 --------------------
                  $-2  
@@ -2751,7 +2884,7 @@ subaccounts\[aq] \[dq]leaf\[dq] names indented below their parent:
 .IP
 .nf
 \f[C]
-$ hledger balance
+$ hledger -f examples/sample.journal balance
                  $-1  assets
                   $1    bank:saving
                  $-2    cash
@@ -2785,31 +2918,35 @@ Each group of sibling accounts (ie, under a common parent) is sorted
 separately.
 .SS Depth limiting
 .PP
-With a \f[C]depth:N\f[R] query, or \f[C]--depth N\f[R] option, or just
-\f[C]-N\f[R], balance reports will show accounts only to the specified
-depth, hiding the deeper subaccounts.
+With a \f[C]depth:NUM\f[R] query, or \f[C]--depth NUM\f[R] option, or
+just \f[C]-NUM\f[R] (eg: \f[C]-3\f[R]) balance reports will show
+accounts only to the specified depth, hiding the deeper subaccounts.
+This can be useful for getting an overview without too much detail.
+.PP
 Account balances at the depth limit always include the balances from any
-hidden subaccounts (even in list mode).
-This can be useful for getting an overview.
+deeper subaccounts (even in list mode).
 Eg, limiting to depth 1:
 .IP
 .nf
 \f[C]
-$ hledger balance -N -1
+$ hledger -f examples/sample.journal balance -1
                  $-1  assets
                   $2  expenses
                  $-2  income
                   $1  liabilities
+--------------------
+                   0  
 \f[R]
 .fi
+.SS Dropping top-level accounts
 .PP
-You can also hide top-level account name parts, using
-\f[C]--drop N\f[R].
+You can also hide one or more top-level account name parts, using
+\f[C]--drop NUM\f[R].
 This can be useful for hiding repetitive top-level account names:
 .IP
 .nf
 \f[C]
-$ hledger bal expenses --drop 1
+$ hledger -f examples/sample.journal bal expenses --drop 1
                   $1  food
                   $1  supplies
 --------------------
@@ -2827,7 +2964,7 @@ periods (and a title):
 .IP
 .nf
 \f[C]
-$ hledger balance --quarterly income expenses -E
+$ hledger -f examples/sample.journal bal --quarterly income expenses -E
 Balance changes in 2008:
 
                    ||  2008q1  2008q2  2008q3  2008q4 
@@ -2974,7 +3111,7 @@ value expressed as a percentage of the (column) total:
 .IP
 .nf
 \f[C]
-$ hledger bal expenses -Q -%
+$ hledger -f examples/sample.journal bal expenses -Q -%
 Balance changes in 2008:
 
                    || 2008Q1   2008Q2  2008Q3  2008Q4 
@@ -3070,7 +3207,11 @@ It is one of:
 \f[C]--budget\f[R] : like --sum but also show a goal amount
 .IP \[bu] 2
 \f[C]--valuechange\f[R] : show the change in period-end historical
-balance values
+balance values (caused by deposits, withdrawals, and/or market price
+fluctuations)
+.IP \[bu] 2
+\f[C]--gain\f[R] : show the unrealised capital gain/loss, (the current
+valued balance minus each amount\[aq]s original cost)
 .PP
 \f[B]Accumulation type:\f[R]
 .PD 0
@@ -3112,7 +3253,7 @@ cost
 \f[C]--value=then[,COMM]\f[R] : show value at transaction dates
 .IP \[bu] 2
 \f[C]--value=end[,COMM]\f[R] : show value at period end date(s)
-(\f[B]default with \f[CB]--valuechange\f[B]\f[R])
+(\f[B]default with \f[CB]--valuechange\f[B], \f[CB]--gain\f[B]\f[R])
 .IP \[bu] 2
 \f[C]--value=now[,COMM]\f[R] : show value at today\[aq]s date
 .IP \[bu] 2
@@ -3570,7 +3711,7 @@ Eg:
 .IP
 .nf
 \f[C]
-$ hledger balance --format \[dq]%20(account) %12(total)\[dq]
+$ hledger -f examples/sample.journal balance --format \[dq]%20(account) %12(total)\[dq]
               assets          $-1
          bank:saving           $1
                 cash          $-2
@@ -3938,19 +4079,42 @@ whichever is later.
 .PP
 Unless you are running \f[C]close\f[R] on exactly the first day of the
 new period, you\[aq]ll want to override the closing date.
-This is done by specifying a report period, where \[dq]last day of the
+This is done by specifying a report end date, where \[dq]last day of the
 report period\[dq] will be the closing date.
 The opening date is always the following day.
-So to close on 2020-12-31 and open on 2021-01-01, any of these work
-.IP \[bu] 2
-\f[C]-p 2020\f[R]
-.IP \[bu] 2
-\f[C]date:2020\f[R]
-.IP \[bu] 2
-\f[C]-e 2021-01-01\f[R] (remember \f[C]-e\f[R] specifies an exclusive
-end date)
-.IP \[bu] 2
+So to close on (end of) 2020-12-31 and open on (start of) 2021-01-01,
+any of these will work:
+.PP
+.TS
+tab(@);
+l l.
+T{
+end date argument
+T}@T{
+explanation
+T}
+_
+T{
+\f[C]-e 2021-01-01\f[R]
+T}@T{
+end dates are exclusive
+T}
+T{
 \f[C]-e 2021\f[R]
+T}@T{
+equivalent, per smart dates
+T}
+T{
+\f[C]-p 2020\f[R]
+T}@T{
+equivalent, the period\[aq]s begin date is ignored
+T}
+T{
+\f[C]date:2020\f[R]
+T}@T{
+equivalent query
+T}
+.TE
 .SS Example: close asset/liability accounts for file transition
 .PP
 Carrying asset/liability balances from 2020.journal into a new file for
@@ -4010,7 +4174,7 @@ like this:
 ; 2019.journal
 2019-01-01 opening balances  ; earliest opening txn, no tag here
 \&...
-2019-12-31 closing balances  ; close:2019
+2019-12-31 closing balances  ; clopen:2020
 \&...
 \f[R]
 .fi
@@ -4018,9 +4182,9 @@ like this:
 .nf
 \f[C]
 ; 2020.journal
-2020-01-01 opening balances  ; open:2020
+2020-01-01 opening balances  ; clopen:2020
 \&...
-2020-12-31 closing balances  ; close:2020
+2020-12-31 closing balances  ; clopen:2021
 \&...
 \f[R]
 .fi
@@ -4028,7 +4192,7 @@ like this:
 .nf
 \f[C]
 ; 2021.journal
-2021-01-01 opening balances  ; open:2021
+2021-01-01 opening balances  ; clopen:2021
 \&...
 \f[R]
 .fi
@@ -4048,14 +4212,11 @@ you could do eg:
 .IP
 .nf
 \f[C]
-$ hledger -f all.journal reg -H checking not:tag:\[aq]open|close\[aq]
+$ hledger -f all.journal reg -H checking not:tag:clopen
     # all years checking register, hiding non-essential opening/closing txns
 
-$ hledger -f all.journal bs -p 2020 not:tag:close=2020
+$ hledger -f all.journal bs -p 2020 not:tag:clopen=2020
     # 2020 year end balances, suppressing 2020 closing txn
-
-$ hledger -f 2020.journal bs not:tag:close
-    # 2020 year end balances, easier case
 \f[R]
 .fi
 .SS close and balance assertions
@@ -4104,35 +4265,45 @@ single-day transactions):
 .fi
 .SS Example: close revenue/expense accounts to retained earnings
 .PP
-Here, the opening transaction is supressed with \f[C]--close\f[R], as
-it\[aq]s probably not needed.
-Also you\[aq]ll want to use a different equity account name:
+For this, use \f[C]--close\f[R] to suppress the opening transaction, as
+it\[aq]s not needed.
+Also you\[aq]ll want to change the equity account name to your
+equivalent of \[dq]equity:retained earnings\[dq].
+.PP
+Closing 2021\[aq]s first quarter revenues/expenses:
 .IP
 .nf
 \f[C]
-$ hledger close -f 2021.journal -p 2021Q1 --close --close-acct=\[aq]equity:retained earnings\[aq] revenues expenses >> 2021.journal
-    # close 2021 first quarter revenues/expenses
+$ hledger close -f 2021.journal --close revenues expenses -p 2021Q1 \[rs]
+    --close-acct=\[aq]equity:retained earnings\[aq] >> 2021.journal
 \f[R]
 .fi
 .PP
-Or, operating on the default journal:
+The same, using the default journal and current year:
 .IP
 .nf
 \f[C]
-$ hledger close -p Q1 --close --close-acct=\[aq]equity:retained earnings\[aq] revenues expenses >> $LEDGER_FILE
-    # close current year\[aq]s first quarter revenues/expenses
+$ hledger close --close revenues expenses -p Q1 \[rs]
+    --close-acct=\[aq]equity:retained earnings\[aq] >> $LEDGER_FILE
 \f[R]
 .fi
 .PP
-Now, eg:
+Now, the first quarter\[aq]s balance sheet should show a zero (unless
+you are using \[at]/\[at]\[at] notation without equity postings):
 .IP
 .nf
 \f[C]
 $ hledger bse -p Q1
-    # Q1 full balance sheet, total should be zero
-
-$ hledger is -p Q1 not:\[aq]retained earnings\[aq]
-    # Q1 income statement, must suppress the closing txn
+\f[R]
+.fi
+.PP
+And we must suppress the closing transaction to see the first
+quarter\[aq]s income statement (using the description;
+\f[C]not:\[aq]retained earnings\[aq]\f[R] won\[aq]t work here):
+.IP
+.nf
+\f[C]
+$ hledger is -p Q1 not:desc:\[aq]closing balances\[aq]
 \f[R]
 .fi
 .SS codes
@@ -4275,8 +4446,13 @@ help
 .PD
 Show the hledger user manual in one of several formats, optionally
 positioned at a given TOPIC (if possible).
-TOPIC is any heading, or heading prefix, in the manual.
-Some examples: commands, print, \[aq]auto postings\[aq], periodic.
+.PP
+TOPIC is any heading in the manual, or the start of any heading (but not
+the middle).
+It is case insensitive.
+.PP
+Some examples: \f[C]commands\f[R], \f[C]print\f[R], \f[C]forecast\f[R],
+\f[C]\[dq]auto postings\[dq]\f[R], \f[C]\[dq]commodity column\[dq]\f[R].
 .PP
 This command shows the user manual built in to this hledger version.
 It can be useful if the correct version of the hledger manual, or the
@@ -6036,6 +6212,9 @@ commodity 1000.00000000 BTC
 commodity 1 000.
 \f[R]
 .fi
+.PP
+The inferred commodity style can be overridden by supplying a command
+line option.
 .SS Rounding
 .PP
 Amounts are stored internally as decimal numbers with up to 255 decimal
@@ -6714,6 +6893,9 @@ commodity 1 000 000.
 Note hledger normally uses banker\[aq]s rounding, so 0.5 displayed with
 zero decimal digits is \[dq]0\[dq].
 (More at Commodity display style.)
+.PP
+Even in the presence of commodity directives, the commodity display
+style can still be overridden by supplying a command line option.
 .SS Commodity error checking
 .PP
 In strict mode, enabled with the \f[C]-s\f[R]/\f[C]--strict\f[R] flag,
@@ -6910,17 +7092,18 @@ report.
 not investments or receivables.)
 .SS Declaring account types
 .PP
-Generally, to make these reports work you should declare your top-level
-accounts and their types, using account directives with \f[C]type:\f[R]
-tags.
-.PP
-The tag\[aq]s value should be one of: \f[C]Asset\f[R],
-\f[C]Liability\f[R], \f[C]Equity\f[R], \f[C]Revenue\f[R],
-\f[C]Expense\f[R], \f[C]Cash\f[R], \f[C]A\f[R], \f[C]L\f[R],
-\f[C]E\f[R], \f[C]R\f[R], \f[C]X\f[R], \f[C]C\f[R] (all case
-insensitive).
-The type is inherited by all subaccounts except where they override it.
-Here\[aq]s a complete example:
+To make the balancesheet/balancesheetequity/cashflow/incomestatement
+reports work, generally you should declare your top-level accounts, and
+their types.
+For each top-level account, write an account directive, with a
+\f[C]type:\f[R] tag.
+The tag\[aq]s value can be any of \f[C]Asset\f[R], \f[C]Liability\f[R],
+\f[C]Equity\f[R], \f[C]Revenue\f[R], \f[C]Expense\f[R], \f[C]Cash\f[R],
+or (for short) \f[C]A\f[R], \f[C]L\f[R], \f[C]E\f[R], \f[C]R\f[R],
+\f[C]X\f[R], \f[C]C\f[R] (case insensitive).
+An account\[aq]s type is inherited by its subaccounts, unless they
+declare a different type.
+Here\[aq]s an example, declaring all six account types:
 .IP
 .nf
 \f[C]
@@ -6933,15 +7116,30 @@ account revenues     ; type: Revenue
 account expenses     ; type: Expense
 \f[R]
 .fi
-.SS Auto-detected account types
 .PP
-If you happen to use common english top-level account names, you may not
-need to declare account types, as they will be detected automatically
-using the following rules:
+There is also an older syntax, which is deprecated and will be dropped
+soon (A, L, E, R or X separated from the account name by two or more
+spaces):
 .IP
 .nf
 \f[C]
- If account\[aq]s name matches this regular expression:                 | its type is:
+account assets       A
+account liabilities  L
+account equity       E
+account revenues     R
+account expenses     X
+\f[R]
+.fi
+.SS Auto-detected account types
+.PP
+hledger tries to find at least one top level account in each of the six
+account types (Asset, Liability, Equity, Revenue, Expense, Cash).
+When no accounts have been declared for a particular type, hledger tries
+to auto-detect some accounts by name, using regular expressions:
+.IP
+.nf
+\f[C]
+ If account\[aq]s name matches this case insensitive regular expression:| its type is:
 ------------------------------------------------------------------- | ------------
  \[ha]assets?(:|$)                                                      | 
    and does not contain regexp (investment|receivable|:A/R|:fixed)  | Cash
@@ -6953,17 +7151,27 @@ using the following rules:
 \f[R]
 .fi
 .PP
-Even so, explicit declarations may be a good idea, for clarity and
-predictability.
-.SS Interference from auto-detected account types
+For people using standard english account names, this feature helps
+hledger\[aq]s high-level reports work out of the box with minimal
+configuration.
 .PP
-If you assign any account type, it\[aq]s a good idea to assign all of
-them, to prevent any confusion from mixing declared and auto-detected
-types.
-Although it\[aq]s unlikely to happen in real life, here\[aq]s an
-example: with the following journal, \f[C]balancesheetequity\f[R] shows
-\[dq]liabilities\[dq] in both Liabilities and Equity sections.
-Declaring another account as \f[C]type:Liability\f[R] would fix it:
+If you use non-english account names, you should declare account types
+to make these reports work.
+And more generally, declaring accounts and types is usually a good idea,
+for increased clarity and predictability (and for the other benefits of
+account directives: error checking, display order, etc).
+.PP
+Notes:
+.IP \[bu] 2
+When any account is declared as some type, this disables auto-detection
+for that particular type.
+.IP \[bu] 2
+If you declare any account\[aq]s type, it\[aq]s a good idea to declare
+an account for all six types, since a mix of declared and auto-detected
+types can cause confusion.
+For example, here liabilities is declared to be Equity, but would also
+be auto-detected as Liability, since no Liability account is declared:
+.RS 2
 .IP
 .nf
 \f[C]
@@ -6975,21 +7183,7 @@ account liabilities  ; type:Equity
   equity       -2
 \f[R]
 .fi
-.SS Old account type syntax
-.PP
-In some hledger journals you might instead see this old syntax (the
-letters ALERX, separated from the account name by two or more spaces);
-this is deprecated and may be removed soon:
-.IP
-.nf
-\f[C]
-account assets       A
-account liabilities  L
-account equity       E
-account revenues     R
-account expenses     X
-\f[R]
-.fi
+.RE
 .SS Account display order
 .PP
 Account directives also set the order in which accounts are displayed,
@@ -7356,53 +7550,83 @@ expression.
 .PP
 The \f[C]--forecast\f[R] flag activates any periodic transaction rules
 in the journal.
-They will generate temporary recurring transactions, which are not saved
-in the journal, but will appear in all reports (eg print).
-This can be useful for estimating balances into the future, or
+These will generate temporary additional transactions, usually recurring
+and in the future, which will appear in all reports.
+\f[C]hledger print --forecast\f[R] is a good way to see them.
+.PP
+This can be useful for estimating balances into the future, perhaps
 experimenting with different scenarios.
-Or, it can be used as a data entry aid: describe recurring transactions,
-and every so often copy the output of \f[C]print --forecast\f[R] into
-the journal.
 .PP
-These transactions will have an extra tag indicating which periodic rule
-generated them: \f[C]generated-transaction:\[ti] PERIODICEXPR\f[R].
-And a similar, hidden tag (beginning with an underscore) which, because
-it\[aq]s never displayed by print, can be used to match transactions
-generated \[dq]just now\[dq]:
-\f[C]_generated-transaction:\[ti] PERIODICEXPR\f[R].
+It could also be useful for scripted data entry: you could describe
+recurring transactions, and every so often copy the output of
+\f[C]print --forecast\f[R] into the journal.
 .PP
-Periodic transactions are generated within some forecast period.
-By default, this
+The generated transactions will have an extra tag, like
+\f[C]generated-transaction:\[ti] PERIODICEXPR\f[R], indicating which
+periodic rule generated them.
+There is also a similar, hidden tag, named
+\f[C]_generated-transaction:\f[R], which you can use to reliably match
+transactions generated \[dq]just now\[dq] (rather than \f[C]print\f[R]ed
+in the past).
+.PP
+The forecast transactions are generated within a \f[I]forecast
+period\f[R], which is independent of the report period.
+(Forecast period sets the bounds for generated transactions, report
+period controls which transactions are reported.) The forecast period
+begins on:
 .IP \[bu] 2
-begins on the later of
+the start date provided within \f[C]--forecast\f[R]\[aq]s argument, if
+any
+.IP \[bu] 2
+otherwise, the later of
 .RS 2
 .IP \[bu] 2
-the report start date if specified with -b/-p/date:
+the report start date, if specified (with
+\f[C]-b\f[R]/\f[C]-p\f[R]/\f[C]date:\f[R])
 .IP \[bu] 2
-the day after the latest normal (non-periodic) transaction in the
-journal, or today if there are no normal transactions.
+the day after the latest ordinary transaction in the journal, if any
 .RE
 .IP \[bu] 2
-ends on the report end date if specified with -e/-p/date:, or 6 months
-(180 days) from today.
+otherwise today.
 .PP
-This means that periodic transactions will begin only after the latest
-recorded transaction.
-And a recorded transaction dated in the future can prevent generation of
-periodic transactions.
-(You can avoid that by writing the future transaction as a one-time
-periodic rule instead - put tilde before the date, eg
-\f[C]\[ti] YYYY-MM-DD ...\f[R]).
+It ends on:
+.IP \[bu] 2
+the end date provided within \f[C]--forecast\f[R]\[aq]s argument, if any
+.IP \[bu] 2
+otherwise, the report end date, if specified (with
+\f[C]-e\f[R]/\f[C]-p\f[R]/\f[C]date:\f[R])
+.IP \[bu] 2
+otherwise 180 days (6 months) from today.
 .PP
-Or, you can set your own arbitrary \[dq]forecast period\[dq], which can
-overlap recorded transactions, and need not be in the future, by
-providing an option argument, like \f[C]--forecast=PERIODEXPR\f[R].
-Note the equals sign is required, a space won\[aq]t work.
-PERIODEXPR is a period expression, which can specify the start date, end
-date, or both, like in a \f[C]date:\f[R] query.
-(See also hledger.1 -> Report start & end date).
+Note, this means that ordinary transactions will suppress periodic
+transactions, by default; the periodic transactions will not start until
+after the last ordinary transaction.
+This is usually convenient, but you can get around it in two ways:
+.IP \[bu] 2
+If you need to record some transactions in the future, make them
+periodic transactions (with a single occurrence, eg:
+\f[C]\[ti] YYYY-MM-DD\f[R]) rather than ordinary transactions.
+That way they won\[aq]t suppress other periodic transactions.
+.IP \[bu] 2
+Or give \f[C]--forecast\f[R] a period expression argument.
+A forecast period specified this way can overlap ordinary transactions,
+and need not be in the future.
+Some things to note:
+.RS 2
+.IP \[bu] 2
+You must use \f[C]=\f[R] between flag and argument; a space won\[aq]t
+work.
+.IP \[bu] 2
+The period expression can specify the forecast period\[aq]s start date,
+end date, or both.
+See also Report start & end date.
+.IP \[bu] 2
+The period expression should not specify a report interval.
+(Each periodic transaction rule specifies its own interval.)
+.RE
+.PP
 Some examples: \f[C]--forecast=202001-202004\f[R],
-\f[C]--forecast=jan-\f[R], \f[C]--forecast=2020\f[R].
+\f[C]--forecast=jan-\f[R], \f[C]--forecast=2021\f[R].
 .SS Budgeting with periodic transactions
 .PP
 With the \f[C]--budget\f[R] flag, currently supported by the balance
@@ -8088,7 +8312,9 @@ Tips:
 Interpolation strips outer whitespace (so a CSV value like
 \f[C]\[dq] 1 \[dq]\f[R] becomes \f[C]1\f[R] when interpolated) (#1051).
 .IP \[bu] 2
-See also Tips below.
+Interpolations always refer to a CSV field - you can\[aq]t interpolate a
+hledger field.
+(See Referencing other fields below).
 .SS Field names
 .PP
 Here are the standard hledger field (and pseudo-field) names, which you

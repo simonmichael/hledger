@@ -504,4 +504,4 @@ SEE ALSO
 
 
 
-hledger-ui-1.22.99                August 2021                    HLEDGER-UI(1)
+hledger-ui-1.22.99              September 2021                   HLEDGER-UI(1)
