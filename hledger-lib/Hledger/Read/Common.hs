@@ -259,6 +259,7 @@ rawOptsToInputOpts day rawopts =
                                , commodity_styles_  = rawOptsToCommodityStylesOpts rawopts
                                }
       ,strict_            = boolopt "strict" rawopts
+      ,_ioDay             = day
       }
 
 -- | Get the date span from --forecast's PERIODEXPR argument, if any.
@@ -316,8 +317,8 @@ journalSourcePos p p' = JournalSourcePos (sourceName p) (unPos $ sourceLine p, l
 parseAndFinaliseJournal :: ErroringJournalParser IO ParsedJournal -> InputOpts
                            -> FilePath -> Text -> ExceptT String IO Journal
 parseAndFinaliseJournal parser iopts f txt = do
-  y <- liftIO getCurrentYear
-  let initJournal = nulljournal{ jparsedefaultyear = Just y, jincludefilestack = [f] }
+  let y = first3 . toGregorian $ _ioDay iopts
+      initJournal = nulljournal{ jparsedefaultyear = Just y, jincludefilestack = [f] }
   eep <- liftIO $ runExceptT $ runParserT (evalStateT parser initJournal) f txt
   -- TODO: urgh.. clean this up somehow
   case eep of
@@ -333,15 +334,15 @@ parseAndFinaliseJournal parser iopts f txt = do
 parseAndFinaliseJournal' :: JournalParser IO ParsedJournal -> InputOpts
                            -> FilePath -> Text -> ExceptT String IO Journal
 parseAndFinaliseJournal' parser iopts f txt = do
-  y <- liftIO getCurrentYear
-  let initJournal = nulljournal
+  let y = first3 . toGregorian $ _ioDay iopts
+      initJournal = nulljournal
         { jparsedefaultyear = Just y
         , jincludefilestack = [f] }
   ep <- liftIO $ runParserT (evalStateT parser initJournal) f txt
   -- see notes above
   case ep of
     Left e   -> throwError $ customErrorBundlePretty e
-    Right pj -> 
+    Right pj ->
       -- apply any command line account aliases. Can fail with a bad replacement pattern.
       case journalApplyAliases (aliasesFromOpts iopts) pj of
         Left e    -> throwError e
@@ -366,10 +367,9 @@ parseAndFinaliseJournal' parser iopts f txt = do
 journalFinalise :: InputOpts -> FilePath -> Text -> ParsedJournal -> ExceptT String IO Journal
 journalFinalise iopts@InputOpts{auto_,balancingopts_,strict_} f txt pj = do
     t <- liftIO getPOSIXTime
-    d <- liftIO getCurrentDay
     -- Infer and apply canonical styles for each commodity (or throw an error).
     -- This affects transaction balancing/assertions/assignments, so needs to be done early.
-    liftEither $ checkAddAndBalance d <=< journalApplyCommodityStyles $
+    liftEither $ checkAddAndBalance (_ioDay iopts) <=< journalApplyCommodityStyles $
         pj{jglobalcommoditystyles=fromMaybe mempty $ commodity_styles_ balancingopts_}  -- save any global commodity styles
         & journalAddFile (f, txt)           -- save the main file's info
         & journalSetLastReadTime t          -- save the last read time
@@ -383,7 +383,7 @@ journalFinalise iopts@InputOpts{auto_,balancingopts_,strict_} f txt pj = do
           journalCheckCommoditiesDeclared j
 
         -- Add forecast transactions if enabled
-        journalAddForecast (forecastPeriod d iopts j) j
+        journalAddForecast (forecastPeriod iopts j) j
         -- Add auto postings if enabled
           & (if auto_ && not (null $ jtxnmodifiers j) then journalAddAutoPostings d balancingopts_ else pure)
         -- Balance all transactions and maybe check balance assertions.
