@@ -54,14 +54,17 @@ whichever is later.
 
 Unless you are running close on exactly the first day of the new period,
 you'll want to override the closing date. This is done by specifying a
-report period, where "last day of the report period" will be the closing
-date. The opening date is always the following day. So to close on
-2020-12-31 and open on 2021-01-01, any of these work
+report end date, where "last day of the report period" will be the
+closing date. The opening date is always the following day. So to close
+on (end of) 2020-12-31 and open on (start of) 2021-01-01, any of these
+will work:
 
--   -p 2020
--   date:2020
--   -e 2021-01-01 (remember -e specifies an exclusive end date)
--   -e 2021
+  end date argument   explanation
+  ------------------- ------------------------------------------------
+  -e 2021-01-01       end dates are exclusive
+  -e 2021             equivalent, per smart dates
+  -p 2020             equivalent, the period's begin date is ignored
+  date:2020           equivalent query
 
 Example: close asset/liability accounts for file transition
 
@@ -103,17 +106,17 @@ transactions, like this:
 ; 2019.journal
 2019-01-01 opening balances  ; earliest opening txn, no tag here
 ...
-2019-12-31 closing balances  ; close:2019
+2019-12-31 closing balances  ; clopen:2020
 ...
 
 ; 2020.journal
-2020-01-01 opening balances  ; open:2020
+2020-01-01 opening balances  ; clopen:2020
 ...
-2020-12-31 closing balances  ; close:2020
+2020-12-31 closing balances  ; clopen:2021
 ...
 
 ; 2021.journal
-2021-01-01 opening balances  ; open:2021
+2021-01-01 opening balances  ; clopen:2021
 ...
 
 Now with
@@ -125,14 +128,11 @@ include 2021.journal
 
 you could do eg:
 
-$ hledger -f all.journal reg -H checking not:tag:'open|close'
+$ hledger -f all.journal reg -H checking not:tag:clopen
     # all years checking register, hiding non-essential opening/closing txns
 
-$ hledger -f all.journal bs -p 2020 not:tag:close=2020
+$ hledger -f all.journal bs -p 2020 not:tag:clopen=2020
     # 2020 year end balances, suppressing 2020 closing txn
-
-$ hledger -f 2020.journal bs not:tag:close
-    # 2020 year end balances, easier case
 
 close and balance assertions
 
@@ -171,22 +171,27 @@ single-day transactions):
 
 Example: close revenue/expense accounts to retained earnings
 
-Here, the opening transaction is supressed with --close, as it's
-probably not needed. Also you'll want to use a different equity account
-name:
+For this, use --close to suppress the opening transaction, as it's not
+needed. Also you'll want to change the equity account name to your
+equivalent of "equity:retained earnings".
 
-$ hledger close -f 2021.journal -p 2021Q1 --close --close-acct='equity:retained earnings' revenues expenses >> 2021.journal
-    # close 2021 first quarter revenues/expenses
+Closing 2021's first quarter revenues/expenses:
 
-Or, operating on the default journal:
+$ hledger close -f 2021.journal --close revenues expenses -p 2021Q1 \
+    --close-acct='equity:retained earnings' >> 2021.journal
 
-$ hledger close -p Q1 --close --close-acct='equity:retained earnings' revenues expenses >> $LEDGER_FILE
-    # close current year's first quarter revenues/expenses
+The same, using the default journal and current year:
 
-Now, eg:
+$ hledger close --close revenues expenses -p Q1 \
+    --close-acct='equity:retained earnings' >> $LEDGER_FILE
+
+Now, the first quarter's balance sheet should show a zero (unless you
+are using @/@@ notation without equity postings):
 
 $ hledger bse -p Q1
-    # Q1 full balance sheet, total should be zero
 
-$ hledger is -p Q1 not:'retained earnings'
-    # Q1 income statement, must suppress the closing txn
+And we must suppress the closing transaction to see the first quarter's
+income statement (using the description; not:'retained earnings' won't
+work here):
+
+$ hledger is -p Q1 not:desc:'closing balances'

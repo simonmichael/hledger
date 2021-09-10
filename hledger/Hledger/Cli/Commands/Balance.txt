@@ -31,6 +31,7 @@ balance can show..
 -   or actual and planned balance changes (--budget)
 -   or value of balance changes (-V)
 -   or change of balance values (--valuechange)
+-   or unrealised capital gain/loss (--gain)
 
 ..in..
 
@@ -75,9 +76,9 @@ should also match their end balance at the end of the journal period
 (more on this below).
 
 Accounts are sorted by declaration order if any, and then alphabetically
-by account name. For instance, using examples/sample.journal:
+by account name. For instance (using examples/sample.journal):
 
-$ hledger bal
+$ hledger -f examples/sample.journal bal
                   $1  assets:bank:saving
                  $-2  assets:cash
                   $1  expenses:food
@@ -92,7 +93,7 @@ Accounts with a zero balance (and no non-zero subaccounts, in tree mode
 - see below) are hidden by default. Use -E/--empty to show them
 (revealing assets:bank:checking here):
 
-$ hledger -f examples/sample.journal  bal  -E
+$ hledger -f examples/sample.journal bal  -E
                    0  assets:bank:checking
                   $1  assets:bank:saving
                  $-2  assets:cash
@@ -113,7 +114,7 @@ You can show fewer accounts, a different time period, totals from
 cleared transactions only, etc. by using query arguments or options to
 limit the postings being matched. Eg:
 
-$ hledger bal --cleared assets date:200806
+$ hledger -f examples/sample.journal bal --cleared assets date:200806
                  $-2  assets:cash
 --------------------
                  $-2  
@@ -126,7 +127,7 @@ their full names visible, as in the examples above.
 With -t/--tree, the account hierarchy is shown, with subaccounts' "leaf"
 names indented below their parent:
 
-$ hledger balance
+$ hledger -f examples/sample.journal balance
                  $-1  assets
                   $1    bank:saving
                  $-2    cash
@@ -159,22 +160,29 @@ Notes:
 
 Depth limiting
 
-With a depth:N query, or --depth N option, or just -N, balance reports
-will show accounts only to the specified depth, hiding the deeper
-subaccounts. Account balances at the depth limit always include the
-balances from any hidden subaccounts (even in list mode). This can be
-useful for getting an overview. Eg, limiting to depth 1:
+With a depth:NUM query, or --depth NUM option, or just -NUM (eg: -3)
+balance reports will show accounts only to the specified depth, hiding
+the deeper subaccounts. This can be useful for getting an overview
+without too much detail.
 
-$ hledger balance -N -1
+Account balances at the depth limit always include the balances from any
+deeper subaccounts (even in list mode). Eg, limiting to depth 1:
+
+$ hledger -f examples/sample.journal balance -1
                  $-1  assets
                   $2  expenses
                  $-2  income
                   $1  liabilities
+--------------------
+                   0  
 
-You can also hide top-level account name parts, using --drop N. This can
-be useful for hiding repetitive top-level account names:
+Dropping top-level accounts
 
-$ hledger bal expenses --drop 1
+You can also hide one or more top-level account name parts, using
+--drop NUM. This can be useful for hiding repetitive top-level account
+names:
+
+$ hledger -f examples/sample.journal bal expenses --drop 1
                   $1  food
                   $1  supplies
 --------------------
@@ -187,7 +195,7 @@ With a report interval (set by the -D/--daily, -W/--weekly,
 shows a tabular report, with columns representing successive time
 periods (and a title):
 
-$ hledger balance --quarterly income expenses -E
+$ hledger -f examples/sample.journal bal --quarterly income expenses -E
 Balance changes in 2008:
 
                    ||  2008q1  2008q2  2008q3  2008q4 
@@ -306,7 +314,7 @@ Percentages
 With -%/--percent, balance reports show each account's value expressed
 as a percentage of the (column) total:
 
-$ hledger bal expenses -Q -%
+$ hledger -f examples/sample.journal bal expenses -Q -%
 Balance changes in 2008:
 
                    || 2008Q1   2008Q2  2008Q3  2008Q4 
@@ -382,7 +390,10 @@ The basic calculation to perform for each table cell. It is one of:
 -   --sum : sum the posting amounts (default)
 -   --budget : like --sum but also show a goal amount
 -   --valuechange : show the change in period-end historical balance
-    values
+    values (caused by deposits, withdrawals, and/or market price
+    fluctuations)
+-   --gain : show the unrealised capital gain/loss, (the current valued
+    balance minus each amount's original cost)
 
 Accumulation type:
 Which postings should be included in each cell's calculation. It is one
@@ -409,7 +420,7 @@ valuation commodity to use. It is one of:
 -   --value=cost[,COMM] : no valuation, show amounts converted to cost
 -   --value=then[,COMM] : show value at transaction dates
 -   --value=end[,COMM] : show value at period end date(s) (default with
-    --valuechange)
+    --valuechange, --gain)
 -   --value=now[,COMM] : show value at today's date
 -   --value=YYYY-MM-DD[,COMM] : show value at another date
 
@@ -752,7 +763,7 @@ For single-period balance reports displayed in the terminal (only), you
 can use --format FMT to customise the format and content of each line.
 Eg:
 
-$ hledger balance --format "%20(account) %12(total)"
+$ hledger -f examples/sample.journal balance --format "%20(account) %12(total)"
               assets          $-1
          bank:saving           $1
                 cash          $-2
