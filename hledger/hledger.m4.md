@@ -473,6 +473,10 @@ Counterexamples - malformed digit sequences might give surprising results:
 | `20181232`  | 8 digits with an invalid day gives an error                       |
 | `201801012` | 9+ digits beginning with a valid YYYYMMDD gives an error          |
 
+Note "today's date" can be overridden with the `--today` option, in case it's
+needed for testing or for recreating old reports. (Except for periodic
+transaction rules; those are not affected by `--today`.)
+
 <a name="report-period"></a>
 
 ## Report start & end date
