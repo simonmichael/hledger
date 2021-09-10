@@ -20,7 +20,7 @@ import Data.Time (Day, addDays)
 import Hledger.Data.Types
 import Hledger.Data.Transaction (BalancingOpts(..), HasBalancingOpts(..), defbalancingopts)
 import Hledger.Data.Journal (journalEndDate)
-import Hledger.Data.Dates (nulldatespan)
+import Hledger.Data.Dates (nulldate, nulldatespan)
 import Hledger.Utils (dbg2, makeHledgerClassyLenses)
 
 data InputOpts = InputOpts {
@@ -38,6 +38,7 @@ data InputOpts = InputOpts {
     ,auto_              :: Bool                 -- ^ generate automatic postings when journal is parsed
     ,balancingopts_     :: BalancingOpts        -- ^ options for balancing transactions
     ,strict_            :: Bool                 -- ^ do extra error checking (eg, all posted accounts are declared, no prices are inferred)
+    ,_ioDay             :: Day                  -- ^ today's date, for use with forecast transactions  XXX this duplicates _rsDay, and should eventually be removed when it's not needed anymore.
  } deriving (Show)
 
 definputopts :: InputOpts
@@ -54,6 +55,7 @@ definputopts = InputOpts
     , auto_              = False
     , balancingopts_     = defbalancingopts
     , strict_            = False
+    , _ioDay             = nulldate
     }
 
 -- | Get the Maybe the DateSpan to generate forecast options from.
@@ -67,11 +69,11 @@ definputopts = InputOpts
 -- - the end date supplied to the `--forecast` argument, if present
 -- - otherwise the report end date if specified with -e/-p/date:
 -- - otherwise 180 days (6 months) from today.
-forecastPeriod :: Day -> InputOpts -> Journal -> Maybe DateSpan
-forecastPeriod d iopts j = do
+forecastPeriod :: InputOpts -> Journal -> Maybe DateSpan
+forecastPeriod iopts j = do
     DateSpan requestedStart requestedEnd <- forecast_ iopts
-    let forecastStart = requestedStart <|> max mjournalend reportStart <|> Just d
-        forecastEnd   = requestedEnd <|> reportEnd <|> Just (addDays 180 d)
+    let forecastStart = requestedStart <|> max mjournalend reportStart <|> Just (_ioDay iopts)
+        forecastEnd   = requestedEnd <|> reportEnd <|> Just (addDays 180 $ _ioDay iopts)
         mjournalend   = dbg2 "journalEndDate" $ journalEndDate False j  -- ignore secondary dates
         DateSpan reportStart reportEnd = reportspan_ iopts
     return . dbg2 "forecastspan" $ DateSpan forecastStart forecastEnd
