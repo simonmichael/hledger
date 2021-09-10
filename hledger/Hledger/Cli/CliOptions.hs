@@ -79,7 +79,7 @@ import qualified Control.Exception as C
 import Control.Monad (when)
 import Data.Char
 import Data.Default
-import Data.Either (isRight)
+import Data.Either (fromRight, isRight)
 import Data.Functor.Identity (Identity)
 import "base-compat-batteries" Data.List.Compat
 import Data.List.Extra (groupSortOn, nubSort)
@@ -467,9 +467,11 @@ replaceNumericFlags = map replace
 -- Also records the terminal width, if supported.
 rawOptsToCliOpts :: RawOpts -> IO CliOpts
 rawOptsToCliOpts rawopts = do
-  day <- case maybestringopt "today" rawopts of
-              Nothing -> getCurrentDay
-              Just d  -> maybe (fail $ "Unable to parse date \"" ++ d ++ "\"") pure $ parsedateM d  -- PARTIAL:
+  currentDay <- getCurrentDay
+  let day = case maybestringopt "today" rawopts of
+              Nothing -> currentDay
+              Just d  -> fromRight (error' $ "Unable to parse date \"" ++ d ++ "\"") -- PARTIAL:
+                         $ fixSmartDateStrEither' currentDay (T.pack d)
   let iopts = rawOptsToInputOpts day rawopts
   rspec <- either fail pure $ rawOptsToReportSpec day rawopts  -- PARTIAL:
   mcolumns <- readMay <$> getEnvSafe "COLUMNS"
