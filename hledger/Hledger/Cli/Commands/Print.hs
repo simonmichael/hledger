@@ -145,7 +145,9 @@ entriesReportAsSql txns = TB.toLazyText $ mconcat
     values vs = TB.fromText "(" <> mconcat (intersperse (TB.fromText ",") $ map toSql vs) <> TB.fromText ")\n"
     toSql "" = TB.fromText "NULL"
     toSql s  = TB.fromText "'" <> TB.fromText (T.replace "'" "''" s) <> TB.fromText "'"
-    csv = concatMap transactionToCSV txns
+    csv = concatMap (transactionToCSV . transactionMapPostingAmounts (mapMixedAmount setDecimalPoint)) txns
+      where
+        setDecimalPoint a = a{astyle=(astyle a){asdecimalpoint=Just '.'}}
 
 entriesReportAsCsv :: EntriesReport -> CSV
 entriesReportAsCsv txns =
@@ -173,7 +175,7 @@ postingToCSV p =
     -- commodity goes into separate column, so we suppress it, along with digit group
     -- separators and prices
     let a_ = a{acommodity="",astyle=(astyle a){asdigitgroups=Nothing},aprice=Nothing} in
-    let showamt = TL.toStrict . TB.toLazyText . wbBuilder . showAmountB noColour in
+    let showamt = wbToText . showAmountB noColour in
     let amount = showamt a_ in
     let credit = if q < 0 then showamt $ negate a_ else "" in
     let debit  = if q >= 0 then showamt a_ else "" in
