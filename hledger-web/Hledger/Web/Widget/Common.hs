@@ -84,6 +84,8 @@ balanceReportAsHtml (journalR, registerR) here hideEmpty j q qopts (items, total
     l = ledgerFromJournal Any j
     indent a = preEscapedString $ concat $ replicate (2 + 2 * a) "&nbsp;"
     hasSubAccounts acct = maybe True (not . null . asubs) (ledgerAccount l acct)
+    isInterestingAccount acct = maybe False isInteresting $ ledgerAccount l acct
+      where isInteresting a = not (mixedAmountLooksZero (aebalance a)) || any isInteresting (asubs a)
     matchesAcctSelector acct = Just True == ((`matchesAccount` acct) <$> inAccountQuery qopts)
 
 accountQuery :: AccountName -> Text
