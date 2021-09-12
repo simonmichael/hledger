@@ -113,16 +113,20 @@ instance Yesod App where
     VD {caps, j, m, opts, q, qopts} <- getViewData
     msg <- getMessage
     showSidebar <- shouldShowSidebar
-    hideEmptyAccts <- (== Just "1") . lookup "hideemptyaccts" . reqCookies <$> getRequest
 
     let rspec = reportspec_ (cliopts_ opts)
         ropts = _rsReportOpts rspec
         ropts' = (_rsReportOpts rspec)
           {accountlistmode_ = ALTree  -- force tree mode for sidebar
-          ,empty_           = not (empty_ ropts)  -- show zero items by default
+          ,empty_           = True    -- show zero items by default
           }
         rspec' = rspec{_rsQuery=m,_rsReportOpts=ropts'}
-        accounts =
+
+    hideEmptyAccts <- if empty_ ropts
+                         then return True
+                         else (== Just "1") . lookup "hideemptyaccts" . reqCookies <$> getRequest
+
+    let accounts =
           balanceReportAsHtml (JournalR, RegisterR) here hideEmptyAccts j q qopts $
           balanceReport rspec' j
 
