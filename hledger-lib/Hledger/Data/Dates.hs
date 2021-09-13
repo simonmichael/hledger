@@ -698,6 +698,8 @@ Parse a date in any of the formats allowed in Ledger's period expressions, and s
 Assumes any text in the parse stream has been lowercased.
 Returns a SmartDate, to be converted to a full date later (see fixSmartDate).
 
+Years must be exactly four digits long.
+
 Examples:
 
 > 2004                                        (start of year, which must have 4+ digits)
@@ -729,17 +731,17 @@ YYYYMM is parsed as year-month-01 if year and month are valid:
 >>> parsewith (smartdate <* eof) "201804"
 Right (SmartAssumeStart 2018 (Just (4,Nothing)))
 
-With an invalid month, it's parsed as a year:
+With an invalid month it gives an error:
 >>> parsewith (smartdate <* eof) "201813"
-Right (SmartAssumeStart 201813 Nothing)
+Left (...)
 
 A 9+ digit number beginning with valid YYYYMMDD gives an error:
 >>> parsewith (smartdate <* eof) "201801012"
 Left (...)
 
-Big numbers not beginning with a valid YYYYMMDD are parsed as a year:
+Big numbers not beginning with a valid YYYYMMDD give an error:
 >>> parsewith (smartdate <* eof) "201813012"
-Right (SmartAssumeStart 201813012 Nothing)
+Left (...)
 
 -}
 smartdate :: TextParser m SmartDate
@@ -818,7 +820,7 @@ md = do
 yearp :: TextParser m Integer
 yearp = do
   year <- takeWhile1P (Just "year") isDigit
-  unless (T.length year >= 4) . Fail.fail $ "Year must contain at least 4 digits: " <> T.unpack year
+  unless (T.length year == 4) . Fail.fail $ "Year must contain exactly 4 digits: " <> T.unpack year
   return $ readDecimal year
 
 -- These are compared case insensitively, and should all be kept lower case.

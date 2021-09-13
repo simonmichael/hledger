@@ -614,6 +614,9 @@ datep' mYear = do
       when (sep1 /= sep2) $ customFailure $ parseErrorAtRegion startOffset endOffset $
         "invalid date: separators are different, should be the same"
 
+      when (year >= 10000) $ customFailure $ parseErrorAtRegion startOffset endOffset $
+        "invalid date: years must be exactly four digits"
+
       case fromGregorianValid year month day of
         Nothing -> customFailure $ parseErrorAtRegion startOffset endOffset $
                      "well-formed but invalid date: " ++ dateStr

@@ -995,7 +995,7 @@ tests_JournalReader = testGroup "JournalReader" [
   ,testGroup "defaultyeardirectivep" [
       testCase "1000" $ assertParse defaultyeardirectivep "Y 1000" -- XXX no \n like the others
      -- ,testCase "999" $ assertParseError defaultyeardirectivep "Y 999" "bad year number"
-     ,testCase "12345" $ assertParse defaultyeardirectivep "Y 12345"
+     ,testCase "2345" $ assertParse defaultyeardirectivep "Y 2345"
      ]
 
   ,testCase "ignoredpricecommoditydirectivep" $ do

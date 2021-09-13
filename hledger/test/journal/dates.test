@@ -42,3 +42,10 @@ hledger -f- print
    a  0
 >>>2 /unexpected '*'/
 >>>= 1
+# 6. 5-digit years should be rejected. This is to catch fat-finger typos. Y10K be damned!
+hledger -f- print
+<<<
+20151/01/01
+   a  0
+>>>2 /invalid date/
+>>>= 1
