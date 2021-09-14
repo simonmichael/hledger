@@ -173,6 +173,9 @@ m4_define({{_reportingoptions_}}, {{
 : generate future transactions from [periodic transaction](hledger.html#periodic-transactions) rules, for the next 6 months or till report end date.
 In hledger-ui, also make ordinary future transactions visible.
 
+`--commodity-style`
+: Override the commodity style in the output for the specified commodity. For example 'EUR1.000,00'.
+
 `--color=WHEN (or --colour=WHEN)`
 : Should color-supporting commands use ANSI color codes in text output.
 : 'auto' (default): whenever stdout seems to be a color-supporting terminal.

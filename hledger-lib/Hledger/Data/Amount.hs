@@ -429,11 +429,18 @@ showAmountPriceDebug (Just (TotalPrice pa)) = " @@ " ++ showAmountDebug pa
 -- | Given a map of standard commodity display styles, apply the
 -- appropriate one to this amount. If there's no standard style for
 -- this amount's commodity, return the amount unchanged.
+-- Also apply the style to the price (except for precision)
 styleAmount :: M.Map CommoditySymbol AmountStyle -> Amount -> Amount
-styleAmount styles a =
-  case M.lookup (acommodity a) styles of
-    Just s  -> a{astyle=s}
-    Nothing -> a
+styleAmount styles a = styledAmount{aprice = stylePrice styles (aprice styledAmount)}
+  where
+    styledAmount = case M.lookup (acommodity a) styles of
+      Just s -> a{astyle=s}
+      Nothing -> a
+
+stylePrice :: M.Map CommoditySymbol AmountStyle -> Maybe AmountPrice -> Maybe AmountPrice
+stylePrice styles (Just (UnitPrice a)) = Just (UnitPrice $ styleAmountExceptPrecision styles a)
+stylePrice styles (Just (TotalPrice a)) = Just (TotalPrice $ styleAmountExceptPrecision styles a)
+stylePrice _ _  = Nothing
 
 -- | Like styleAmount, but keep the number of decimal places unchanged.
 styleAmountExceptPrecision :: M.Map CommoditySymbol AmountStyle -> Amount -> Amount
