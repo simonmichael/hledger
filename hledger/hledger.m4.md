@@ -1447,10 +1447,14 @@ real-world feedback.
 
 ## Commodity styles
 
-The display style of a commodity/currence is inferred according to the rules
+The display style of a commodity/currency is inferred according to the rules
 described in [Commodity display style](#commodity-display-style). The
-inferred display style can be overriden by an optional `-c/--commodity-style` 
-option. For example, the following will override the display style for dollars.
+inferred display style can be overridden by an optional `-c/--commodity-style` 
+option (Exceptions: as is the case for inferred styles, 
+[price amounts](#transaction-prices), and all amounts displayed by the 
+[`print`](#print) command, will be displayed with all of their decimal digits 
+visible, regardless of the specified precision). For example, the following will 
+override the display style for dollars.
 ```shell
 $ hledger print -c '$1.000,0'
 ```

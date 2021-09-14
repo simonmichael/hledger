@@ -47,3 +47,13 @@ $ hledger -f- print -c 'EUR 1.000,00' -c 'EUR 1,000.00'
     (a)    EUR 1,234.00
 
 >= 0
+# Commodity styles are applied to quantity and price of a commodity (except for precision)
+<
+2021-09-12 buy A
+    (a)    1,234 A @ $ 1234,56
+$ hledger -f- print -c '1,000.0 $' -c 'A 1000.0'
+>
+2021-09-12 buy A
+    (a)    A 1.234 @ 1,234.56 $
+
+>= 0

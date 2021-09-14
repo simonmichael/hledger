@@ -319,7 +319,6 @@ balancemode = hledgerCommandMode
       "show commodity symbols in a separate column, amounts as bare numbers, one row per commodity"
     ,outputFormatFlag ["txt","html","csv","json"]
     ,outputFileFlag
-    ,commodityStyleFlag
     ]
   )
   [generalflagsgroup1]
