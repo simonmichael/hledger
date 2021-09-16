@@ -920,10 +920,11 @@ transactionFromCsvRecord sourcepos rules record = t
               ]
     code        = maybe "" singleline $ fieldval "code"
     description = maybe "" singleline $ fieldval "description"
-    comment     = maybe "" singleline $ fieldval "comment"
-    precomment  = maybe "" singleline $ fieldval "precomment"
+    comment     = maybe "" unescapeNewlines $ fieldval "comment"
+    precomment  = maybe "" unescapeNewlines $ fieldval "precomment"
 
     singleline = T.unwords . filter (not . T.null) . map T.strip . T.lines
+    unescapeNewlines = T.intercalate "\n" . T.splitOn "\\n"
 
     ----------------------------------------------------------------------
     -- 3. Generate the postings for which an account has been assigned
@@ -931,7 +932,7 @@ transactionFromCsvRecord sourcepos rules record = t
 
     p1IsVirtual = (accountNamePostingType <$> fieldval "account1") == Just VirtualPosting
     ps = [p | n <- [1..maxpostings]
-         ,let comment  = fromMaybe "" $ fieldval ("comment"<> T.pack (show n))
+         ,let comment  = maybe "" unescapeNewlines $ fieldval ("comment"<> T.pack (show n))
          ,let currency = fromMaybe "" (fieldval ("currency"<> T.pack (show n)) <|> fieldval "currency")
          ,let mamount  = getAmount rules record currency p1IsVirtual n
          ,let mbalance = getBalance rules record currency n
@@ -961,7 +962,7 @@ transactionFromCsvRecord sourcepos rules record = t
           ,tcomment          = comment
           ,tprecedingcomment = precomment
           ,tpostings         = ps
-          }  
+          }
 
 -- | Figure out the amount specified for posting N, if any.
 -- A currency symbol to prepend to the amount, if any, is provided,
