@@ -3803,7 +3803,7 @@ Assigning to `date` sets the [transaction date](#simple-dates).
 `commentN`, where N is a number, sets the Nth posting's comment.
 
 Tips:
-- Only single-line comments can be assigned.
+- You can assign multi-line comments by writing literal `\n` in the code. A comment starting with `\n` will begin on a new line.
 - Comments can contain [tags](#tags), as usual.
 
 #### account field
