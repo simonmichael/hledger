@@ -4163,7 +4163,7 @@ Here are the balance assertion types for quick reference:
 ### Rapid feedback
 
 It's a good idea to get rapid feedback while creating/troubleshooting CSV rules.
-Here's a good way, using entr from http://eradman.com/entrproject :
+Here's a good way, using entr from [eradman.com/entrproject](https://eradman.com/entrproject):
 ```shell
 $ ls foo.csv* | entr bash -c 'echo ----; hledger -f foo.csv print desc:SOMEDESC'
 ```
