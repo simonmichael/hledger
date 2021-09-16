@@ -327,3 +327,38 @@ $ hledger -f - balancesheet --tree --output-format=csv --drop 1
 "Liabilities",""
 "total"
 "Net:","$1"
+
+# 14. When declaring account types, we want boring parents to include their
+# interesting children, including their historical postings. (#1698)
+<
+account assets:foobar:reserve    ; type: Cash
+account assets:foobar:current    ; type: Cash
+account assets:receivable:anon   ; type: Asset
+
+2018-12-06
+    assets:foobar:current              1 A
+    expenses:example
+
+2019-01-04
+    assets:foobar:current              1 A
+    expenses:example
+
+$ hledger -f - balancesheet --tree --no-elide --begin 2019-01-01
+Balance Sheet 2019-01-04
+
+             || 2019-01-04 
+=============++============
+ Assets      ||            
+-------------++------------
+ assets      ||        2 A 
+   foobar    ||        2 A 
+     current ||        2 A 
+-------------++------------
+             ||        2 A 
+=============++============
+ Liabilities ||            
+-------------++------------
+-------------++------------
+             ||            
+=============++============
+ Net:        ||        2 A 

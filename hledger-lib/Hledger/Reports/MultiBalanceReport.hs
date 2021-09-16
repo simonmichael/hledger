@@ -25,7 +25,8 @@ module Hledger.Reports.MultiBalanceReport (
   makeReportQuery,
   getPostingsByColumn,
   getPostings,
-  startingBalances,
+  startingPostings,
+  startingBalancesFromPostings,
   generateMultiBalanceReport,
   balanceReportTableAsText,
 
@@ -121,7 +122,8 @@ multiBalanceReportWith rspec' j priceoracle = report
 
     -- The matched accounts with a starting balance. All of these should appear
     -- in the report, even if they have no postings during the report period.
-    startbals = dbg5 "startbals" $ startingBalances rspec j priceoracle reportspan
+    startbals = dbg5 "startbals" . startingBalancesFromPostings rspec j priceoracle
+                                 $ startingPostings rspec j priceoracle reportspan
 
     -- Generate and postprocess the report, negating balances and taking percentages if needed
     report = dbg4 "multiBalanceReportWith" $
@@ -147,9 +149,9 @@ compoundBalanceReportWith rspec' j priceoracle subreportspecs = cbr
     -- Group postings into their columns.
     colps = dbg5 "colps" $ getPostingsByColumn rspec j priceoracle reportspan
 
-    -- The matched accounts with a starting balance. All of these should appear
+    -- The matched postings with a starting balance. All of these should appear
     -- in the report, even if they have no postings during the report period.
-    startbals = dbg5 "startbals" $ startingBalances rspec j priceoracle reportspan
+    startps = dbg5 "startps" $ startingPostings rspec j priceoracle reportspan
 
     subreports = map generateSubreport subreportspecs
       where
@@ -163,7 +165,8 @@ compoundBalanceReportWith rspec' j priceoracle subreportspecs = cbr
           where
             -- Filter the column postings according to each subreport
             colps'     = filter (matchesPosting q) <$> colps
-            startbals' = HM.filterWithKey (\k _ -> matchesAccount q k) startbals
+            -- We need to filter historical postings directly, rather than their accumulated balances. (#1698)
+            startbals' = startingBalancesFromPostings rspec j priceoracle $ filter (matchesPosting q) startps
             ropts      = cbcsubreportoptions $ _rsReportOpts rspec
             q          = cbcsubreportquery j
 
@@ -180,28 +183,31 @@ compoundBalanceReportWith rspec' j priceoracle subreportspecs = cbr
 
     cbr = CompoundPeriodicReport "" (M.keys colps) subreports overalltotals
 
+-- | Calculate starting balances from postings, if needed for -H.
+startingBalancesFromPostings :: ReportSpec -> Journal -> PriceOracle -> [Posting]
+                             -> HashMap AccountName Account
+startingBalancesFromPostings rspec j priceoracle =
+      fmap (M.findWithDefault nullacct emptydatespan)
+    . calculateReportMatrix rspec j priceoracle mempty
+    . M.singleton emptydatespan
 
--- | Calculate starting balances, if needed for -H
+-- | Postings needed to calculate starting balances.
 --
 -- Balances at report start date, from all earlier postings which otherwise match the query.
 -- These balances are unvalued.
 -- TODO: Do we want to check whether to bother calculating these? isHistorical
 -- and startDate is not nothing, otherwise mempty? This currently gives a
 -- failure with some totals which are supposed to be 0 being blank.
-startingBalances :: ReportSpec -> Journal -> PriceOracle -> DateSpan -> HashMap AccountName Account
-startingBalances rspec@ReportSpec{_rsQuery=query,_rsReportOpts=ropts} j priceoracle reportspan =
-    fmap (M.findWithDefault nullacct precedingspan) acctmap
+startingPostings :: ReportSpec -> Journal -> PriceOracle -> DateSpan -> [Posting]
+startingPostings rspec@ReportSpec{_rsQuery=query,_rsReportOpts=ropts} j priceoracle reportspan =
+    map fst $ getPostings rspec' j priceoracle
   where
-    acctmap = calculateReportMatrix rspec' j priceoracle mempty
-            . M.singleton precedingspan . map fst $ getPostings rspec' j priceoracle
-
     rspec' = rspec{_rsQuery=startbalq,_rsReportOpts=ropts'}
     -- If we're re-valuing every period, we need to have the unvalued start
     -- balance, so we can do it ourselves later.
     ropts' = case value_ ropts of
-        Just (AtEnd _) -> ropts''{value_=Nothing}
-        _              -> ropts''
-      where ropts'' = ropts{period_=precedingperiod, no_elide_=accountlistmode_ ropts == ALTree}
+        Just (AtEnd _) -> ropts{period_=precedingperiod, value_=Nothing}
+        _              -> ropts{period_=precedingperiod}
 
     -- q projected back before the report start date.
     -- When there's no report start date, in case there are future txns (the hledger-ui case above),
