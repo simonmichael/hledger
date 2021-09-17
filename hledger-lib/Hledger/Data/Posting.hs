@@ -72,11 +72,11 @@ where
 
 import Control.Monad (foldM)
 import Data.Foldable (asum)
-import Data.List.Extra (nubSort)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust)
 import Data.MemoUgly (memo)
 import Data.List (foldl')
+import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)
@@ -191,7 +191,7 @@ hasBalanceAssignment p = not (hasAmount p) && isJust (pbalanceassertion p)
 
 -- | Sorted unique account names referenced by these postings.
 accountNamesFromPostings :: [Posting] -> [AccountName]
-accountNamesFromPostings = nubSort . map paccount
+accountNamesFromPostings = S.toList . S.fromList . map paccount
 
 -- | Sum all amounts from a list of postings.
 sumPostings :: [Posting] -> MixedAmount
