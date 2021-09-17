@@ -36,6 +36,7 @@ module Hledger.Reports.MultiBalanceReport (
 where
 
 import Control.Monad (guard)
+import Data.Bifunctor (second)
 import Data.Foldable (toList)
 import Data.List (sortOn, transpose)
 import Data.List.NonEmpty (NonEmpty(..))
@@ -46,7 +47,7 @@ import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, mapMaybe)
 import Data.Ord (Down(..))
 import Data.Semigroup (sconcat)
-import Data.Time.Calendar (Day, fromGregorian)
+import Data.Time.Calendar (fromGregorian)
 import Safe (lastDef, minimumMay)
 
 import Data.Default (def)
@@ -164,7 +165,7 @@ compoundBalanceReportWith rspec' j priceoracle subreportspecs = cbr
             )
           where
             -- Filter the column postings according to each subreport
-            colps'     = filter (matchesPosting q) <$> colps
+            colps'     = map (second $ filter (matchesPosting q)) colps
             -- We need to filter historical postings directly, rather than their accumulated balances. (#1698)
             startbals' = startingBalancesFromPostings rspec j priceoracle $ filter (matchesPosting q) startps
             ropts      = cbcsubreportoptions $ _rsReportOpts rspec
@@ -181,15 +182,14 @@ compoundBalanceReportWith rspec' j priceoracle subreportspecs = cbr
         subreportTotal (_, sr, increasestotal) =
             (if increasestotal then id else fmap maNegate) $ prTotals sr
 
-    cbr = CompoundPeriodicReport "" (M.keys colps) subreports overalltotals
+    cbr = CompoundPeriodicReport "" (map fst colps) subreports overalltotals
 
 -- | Calculate starting balances from postings, if needed for -H.
 startingBalancesFromPostings :: ReportSpec -> Journal -> PriceOracle -> [Posting]
                              -> HashMap AccountName Account
-startingBalancesFromPostings rspec j priceoracle =
-      fmap (M.findWithDefault nullacct emptydatespan)
-    . calculateReportMatrix rspec j priceoracle mempty
-    . M.singleton emptydatespan
+startingBalancesFromPostings rspec j priceoracle ps =
+    M.findWithDefault nullacct emptydatespan
+      <$> calculateReportMatrix rspec j priceoracle mempty [(emptydatespan, ps)]
 
 -- | Postings needed to calculate starting balances.
 --
@@ -200,7 +200,7 @@ startingBalancesFromPostings rspec j priceoracle =
 -- failure with some totals which are supposed to be 0 being blank.
 startingPostings :: ReportSpec -> Journal -> PriceOracle -> DateSpan -> [Posting]
 startingPostings rspec@ReportSpec{_rsQuery=query,_rsReportOpts=ropts} j priceoracle reportspan =
-    map fst $ getPostings rspec' j priceoracle
+    getPostings rspec' j priceoracle
   where
     rspec' = rspec{_rsQuery=startbalq,_rsReportOpts=ropts'}
     -- If we're re-valuing every period, we need to have the unvalued start
@@ -237,24 +237,21 @@ makeReportQuery rspec reportspan
     dateqcons        = if date2_ (_rsReportOpts rspec) then Date2 else Date
 
 -- | Group postings, grouped by their column
-getPostingsByColumn :: ReportSpec -> Journal -> PriceOracle -> DateSpan -> Map DateSpan [Posting]
-getPostingsByColumn rspec j priceoracle reportspan = columns
+getPostingsByColumn :: ReportSpec -> Journal -> PriceOracle -> DateSpan -> [(DateSpan, [Posting])]
+getPostingsByColumn rspec j priceoracle reportspan =
+    groupByDateSpan True getDate colspans ps
   where
     -- Postings matching the query within the report period.
-    ps :: [(Posting, Day)] = dbg5 "getPostingsByColumn" $ getPostings rspec j priceoracle
-
+    ps = dbg5 "getPostingsByColumn" $ getPostings rspec j priceoracle
     -- The date spans to be included as report columns.
     colspans = dbg3 "colspans" $ splitSpan (interval_ $ _rsReportOpts rspec) reportspan
-    addPosting (p, d) = maybe id (M.adjust (p:)) $ latestSpanContaining colspans d
-    emptyMap = M.fromList . zip colspans $ repeat []
-
-    -- Group postings into their columns
-    columns = foldr addPosting emptyMap ps
+    getDate = case whichDateFromOpts (_rsReportOpts rspec) of
+        PrimaryDate   -> postingDate
+        SecondaryDate -> postingDate2
 
 -- | Gather postings matching the query within the report period.
-getPostings :: ReportSpec -> Journal -> PriceOracle -> [(Posting, Day)]
+getPostings :: ReportSpec -> Journal -> PriceOracle -> [Posting]
 getPostings rspec@ReportSpec{_rsQuery=query,_rsReportOpts=ropts} j priceoracle =
-    map (\p -> (p, date p)) .
     journalPostings .
     valueJournal .
     filterJournalAmounts symq $      -- remove amount parts excluded by cur:
@@ -268,10 +265,6 @@ getPostings rspec@ReportSpec{_rsQuery=query,_rsReportOpts=ropts} j priceoracle =
     depthless = dbg3 "depthless" . filterQuery (not . queryIsDepth)
     valueJournal j' | isJust (valuationAfterSum ropts) = j'
                     | otherwise = journalApplyValuationFromOptsWith rspec j' priceoracle
-
-    date = case whichDateFromOpts ropts of
-        PrimaryDate   -> postingDate
-        SecondaryDate -> postingDate2
 
 
 -- | Given a set of postings, eg for a single report column, gather
@@ -295,7 +288,7 @@ acctChangesFromPostings ReportSpec{_rsQuery=query,_rsReportOpts=ropts} ps =
 -- Makes sure all report columns have an entry.
 calculateReportMatrix :: ReportSpec -> Journal -> PriceOracle
                       -> HashMap ClippedAccountName Account
-                      -> Map DateSpan [Posting]
+                      -> [(DateSpan, [Posting])]
                       -> HashMap ClippedAccountName (Map DateSpan Account)
 calculateReportMatrix rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle startbals colps =  -- PARTIAL:
     -- Ensure all columns have entries, including those with starting balances
@@ -325,21 +318,21 @@ calculateReportMatrix rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle startb
     -- pad with zeros
     allchanges     = ((<>zeros) <$> acctchanges) <> (zeros <$ startbals)
     acctchanges    = dbg5 "acctchanges" . addElided $ transposeMap colacctchanges
-    colacctchanges = dbg5 "colacctchanges" $ fmap (acctChangesFromPostings rspec) colps
+    colacctchanges = dbg5 "colacctchanges" $ map (second $ acctChangesFromPostings rspec) colps
 
     avalue = acctApplyBoth . mixedAmountApplyValuationAfterSumFromOptsWith ropts j priceoracle
     acctApplyBoth f a = a{aibalance = f $ aibalance a, aebalance = f $ aebalance a}
     addElided = if queryDepth (_rsQuery rspec) == Just 0 then HM.insert "..." zeros else id
     historicalDate = minimumMay $ mapMaybe spanStart colspans
     zeros = M.fromList [(span, nullacct) | span <- colspans]
-    colspans = M.keys colps
+    colspans = map fst colps
 
 
 -- | Lay out a set of postings grouped by date span into a regular matrix with rows
 -- given by AccountName and columns by DateSpan, then generate a MultiBalanceReport
 -- from the columns.
 generateMultiBalanceReport :: ReportSpec -> Journal -> PriceOracle
-                           -> Map DateSpan [Posting] -> HashMap AccountName Account
+                           -> [(DateSpan, [Posting])] -> HashMap AccountName Account
                            -> MultiBalanceReport
 generateMultiBalanceReport rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle colps startbals =
     report
@@ -361,7 +354,7 @@ generateMultiBalanceReport rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle c
     sortedrows = dbg5 "sortedrows" $ sortRows ropts j rows
 
     -- Take percentages if needed
-    report = reportPercent ropts $ PeriodicReport (M.keys colps) sortedrows totalsrow
+    report = reportPercent ropts $ PeriodicReport (map fst colps) sortedrows totalsrow
 
 -- | Build the report rows.
 -- One row per account, with account name info, row amounts, row total and row average.
@@ -515,9 +508,9 @@ reportPercent ropts report@(PeriodicReport spans rows totalrow)
 -- | Transpose a Map of HashMaps to a HashMap of Maps.
 --
 -- Makes sure that all DateSpans are present in all rows.
-transposeMap :: Map DateSpan (HashMap AccountName a)
+transposeMap :: [(DateSpan, HashMap AccountName a)]
              -> HashMap AccountName (Map DateSpan a)
-transposeMap = M.foldrWithKey addSpan mempty
+transposeMap = foldr (uncurry addSpan) mempty
   where
     addSpan span acctmap seen = HM.foldrWithKey (addAcctSpan span) seen acctmap
 
