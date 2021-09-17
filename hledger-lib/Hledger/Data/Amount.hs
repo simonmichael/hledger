@@ -646,13 +646,13 @@ isNegativeMixedAmount m =
 -- i.e. does it have zero quantity with no price, zero quantity with a total price (which is also zero),
 -- and zero quantity for each unit price?
 mixedAmountLooksZero :: MixedAmount -> Bool
-mixedAmountLooksZero = all amountLooksZero . amounts . normaliseMixedAmount
+mixedAmountLooksZero (Mixed ma) = all amountLooksZero ma
 
 -- | Is this mixed amount exactly zero, ignoring its display precision?
 -- i.e. does it have zero quantity with no price, zero quantity with a total price (which is also zero),
 -- and zero quantity for each unit price?
 mixedAmountIsZero :: MixedAmount -> Bool
-mixedAmountIsZero = all amountIsZero . amounts . normaliseMixedAmount
+mixedAmountIsZero (Mixed ma) = all amountIsZero ma
 
 -- | Is this mixed amount exactly zero, ignoring its display precision?
 --
@@ -766,7 +766,9 @@ mapMixedAmountUnsafe f (Mixed ma) = Mixed $ M.map f ma  -- Use M.map instead of 
 -- | Convert all component amounts to cost/selling price where
 -- possible (see amountCost).
 mixedAmountCost :: MixedAmount -> MixedAmount
-mixedAmountCost = mapMixedAmount amountCost
+mixedAmountCost (Mixed ma) =
+    foldl' (\m a -> maAddAmount m (amountCost a)) (Mixed noPrices) withPrices
+  where (noPrices, withPrices) = M.partition (isNothing . aprice) ma
 
 -- -- | MixedAmount derived Eq instance in Types.hs doesn't know that we
 -- -- want $0 = EUR0 = 0. Yet we don't want to drag all this code over there.
