@@ -389,7 +389,12 @@ defbalancingopts = BalancingOpts
 transactionCheckBalanced :: BalancingOpts -> Transaction -> [String]
 transactionCheckBalanced BalancingOpts{commodity_styles_} t = errs
   where
-    (rps, bvps) = (realPostings t, balancedVirtualPostings t)
+    (rps, bvps) = foldr partitionPosting ([], []) $ tpostings t
+      where
+        partitionPosting p ~(l, r) = case ptype p of
+            RegularPosting         -> (p:l, r)
+            BalancedVirtualPosting -> (l, p:r)
+            VirtualPosting         -> (l, r)
 
     -- check for mixed signs, detecting nonzeros at display precision
     canonicalise = maybe id canonicaliseMixedAmount commodity_styles_
@@ -410,13 +415,13 @@ transactionCheckBalanced BalancingOpts{commodity_styles_} t = errs
     errs = filter (not.null) [rmsg, bvmsg]
       where
         rmsg
+          | rsumok        = ""
           | not rsignsok  = "real postings all have the same sign"
-          | not rsumok    = "real postings' sum should be 0 but is: " ++ showMixedAmount rsumcost
-          | otherwise     = ""
+          | otherwise     = "real postings' sum should be 0 but is: " ++ showMixedAmount rsumcost
         bvmsg
+          | bvsumok       = ""
           | not bvsignsok = "balanced virtual postings all have the same sign"
-          | not bvsumok   = "balanced virtual postings' sum should be 0 but is: " ++ showMixedAmount bvsumcost
-          | otherwise     = ""
+          | otherwise     = "balanced virtual postings' sum should be 0 but is: " ++ showMixedAmount bvsumcost
 
 -- | Legacy form of transactionCheckBalanced.
 isTransactionBalanced :: BalancingOpts -> Transaction -> Bool
