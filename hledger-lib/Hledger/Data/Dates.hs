@@ -66,6 +66,7 @@ module Hledger.Data.Dates (
   latestSpanContaining,
   smartdate,
   splitSpan,
+  groupByDateSpan,
   fixSmartDate,
   fixSmartDateStr,
   fixSmartDateStrEither,
@@ -86,25 +87,28 @@ import Control.Applicative.Permutations
 import Control.Monad (guard, unless)
 import "base-compat-batteries" Data.List.Compat
 import Data.Char (digitToInt, isDigit, ord)
-import Data.Default
+import Data.Default (def)
 import Data.Foldable (asum)
 import Data.Function (on)
 import Data.Functor (($>))
-import Data.Maybe
+import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe)
+import Data.Ord (comparing)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Format hiding (months)
 import Data.Time.Calendar
-import Data.Time.Calendar.OrdinalDate
-import Data.Time.Clock
-import Data.Time.LocalTime
+    (Day, addDays, addGregorianYearsClip, addGregorianMonthsClip, diffDays,
+     fromGregorian, fromGregorianValid, toGregorian)
+import Data.Time.Calendar.OrdinalDate (fromMondayStartWeek, mondayStartWeek)
+import Data.Time.Clock (UTCTime, diffUTCTime)
+import Data.Time.LocalTime (getZonedTime, localDay, zonedTimeToLocalTime)
 import Safe (headMay, lastMay, maximumMay, minimumMay)
 import Text.Megaparsec
-import Text.Megaparsec.Char
+import Text.Megaparsec.Char (char, char', digitChar, string, string')
 import Text.Megaparsec.Char.Lexer (decimal)
-import Text.Megaparsec.Custom
-import Text.Printf
+import Text.Megaparsec.Custom (customErrorBundlePretty)
+import Text.Printf (printf)
 
 import Hledger.Data.Types
 import Hledger.Data.Period
@@ -272,6 +276,22 @@ spanContainsDate (DateSpan (Just b) (Just e)) d = d >= b && d < e
 -- (Here to avoid import cycle).
 periodContainsDate :: Period -> Day -> Bool
 periodContainsDate p = spanContainsDate (periodAsDateSpan p)
+
+-- | Group elements based on where they fall in a list of 'DateSpan's without
+-- gaps. The precondition is not checked.
+groupByDateSpan :: Bool -> (a -> Day) -> [DateSpan] -> [a] -> [(DateSpan, [a])]
+groupByDateSpan showempty date colspans =
+      groupByCols colspans
+    . dropWhile (beforeStart . fst)
+    . sortBy (comparing fst)
+    . map (\x -> (date x, x))
+  where
+    groupByCols []     _  = []
+    groupByCols (c:cs) [] = if showempty then (c, []) : groupByCols cs [] else []
+    groupByCols (c:cs) ps = (c, map snd matches) : groupByCols cs later
+      where (matches, later) = span ((spanEnd c >) . Just . fst) ps
+
+    beforeStart = maybe (const True) (>) $ spanStart =<< headMay colspans
 
 -- | Calculate the intersection of a number of datespans.
 spansIntersect [] = nulldatespan
