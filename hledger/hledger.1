@@ -1539,7 +1539,7 @@ this order of preference :
 .IP "1." 3
 A \f[I]declared market price\f[R] or \f[I]inferred market price\f[R]:
 A\[aq]s latest market price in B on or before the valuation date as
-declared by a P directive, or (with the \f[C]--infer-market-price\f[R]
+declared by a P directive, or (with the \f[C]--infer-market-prices\f[R]
 flag) inferred from transaction prices.
 .IP "2." 3
 A \f[I]reverse market price\f[R]: the inverse of a declared or inferred
@@ -1561,7 +1561,7 @@ That limit is currently 1000.
 .PP
 Amounts for which no suitable market price can be found, are not
 converted.
-.SS --infer-market-price: market prices from transactions
+.SS --infer-market-prices: market prices from transactions
 .PP
 Normally, market value in hledger is fully controlled by, and requires,
 P directives in your journal.
@@ -1570,9 +1570,9 @@ usually take place at close to market value, why not use the recorded
 transaction prices as additional market prices (as Ledger does) ?
 We could produce value reports without needing P directives at all.
 .PP
-Adding the \f[C]--infer-market-price\f[R] flag to \f[C]-V\f[R],
+Adding the \f[C]--infer-market-prices\f[R] flag to \f[C]-V\f[R],
 \f[C]-X\f[R] or \f[C]--value\f[R] enables this.
-So for example, \f[C]hledger bs -V --infer-market-price\f[R] will get
+So for example, \f[C]hledger bs -V --infer-market-prices\f[R] will get
 market prices both from P directives and from transactions.
 (And if both occur on the same day, the P directive takes precedence).
 .PP
@@ -1581,7 +1581,7 @@ confusing/undesired ways by your journal entries.
 If this happens to you, read all of this Valuation section carefully,
 and try adding \f[C]--debug\f[R] or \f[C]--debug=2\f[R] to troubleshoot.
 .PP
-\f[C]--infer-market-price\f[R] can infer market prices from:
+\f[C]--infer-market-prices\f[R] can infer market prices from:
 .IP \[bu] 2
 multicommodity transactions with explicit prices
 (\f[C]\[at]\f[R]/\f[C]\[at]\[at]\f[R])
@@ -1620,7 +1620,7 @@ date.
 valuation date.)
 .IP "3." 3
 If there are no P directives at all (any commodity or date) and the
-\f[C]--infer-market-price\f[R] flag is used: the price commodity from
+\f[C]--infer-market-prices\f[R] flag is used: the price commodity from
 the latest transaction-inferred price for A on or before valuation date.
 .PP
 This means:
@@ -1628,7 +1628,7 @@ This means:
 If you have P directives, they determine which commodities \f[C]-V\f[R]
 will convert, and to what.
 .IP \[bu] 2
-If you have no P directives, and use the \f[C]--infer-market-price\f[R]
+If you have no P directives, and use the \f[C]--infer-market-prices\f[R]
 flag, transaction prices determine it.
 .PP
 Amounts for which no valuation commodity can be found are not converted.
@@ -4693,12 +4693,13 @@ prices
 .P
 .PD
 Print market price directives from the journal.
-With --costs, also print synthetic market prices based on transaction
-prices.
-With --inverted-costs, also print inverse prices based on transaction
-prices.
-Prices (and postings providing prices) can be filtered by a query.
-Price amounts are always displayed with their full precision.
+With --infer-market-prices, generate additional market prices from
+transaction prices.
+With --infer-reverse-prices, also generate market prices by inverting
+transaction prices.
+Prices (and postings providing transaction prices) can be filtered by a
+query.
+Price amounts are displayed with their full precision.
 .SS print
 .PP
 print
