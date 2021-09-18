@@ -86,6 +86,9 @@ show general or ADDONCMD version
 .TP
 \f[B]\f[CB]--debug[=N]\f[B]\f[R]
 show debug output (levels 1-9, default: 1)
+.TP
+\f[B]\f[CB]--today=DATE\f[B]\f[R]
+generate reports treating DATE as the current day (for testing purposes)
 .PP
 General input options:
 .TP
@@ -8797,7 +8800,7 @@ Here are the balance assertion types for quick reference:
 .PP
 It\[aq]s a good idea to get rapid feedback while
 creating/troubleshooting CSV rules.
-Here\[aq]s a good way, using entr from http://eradman.com/entrproject :
+Here\[aq]s a good way, using entr from eradman.com/entrproject:
 .IP
 .nf
 \f[C]

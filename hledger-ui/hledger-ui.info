@@ -217,6 +217,10 @@ the last one takes precedence.
 `--debug[=N]'
      show debug output (levels 1-9, default: 1)
 
+`--today=DATE'
+     generate reports treating DATE as the current day (for testing
+     purposes)
+
    A @FILE argument will be expanded to the contents of FILE, which
 should contain one command line option/argument per line. (To prevent
 this, insert a `--' argument before.)
@@ -598,29 +602,29 @@ Tag Table:
 Node: Top232
 Node: OPTIONS1637
 Ref: #options1734
-Node: KEYS6129
-Ref: #keys6224
-Node: SCREENS10273
-Ref: #screens10371
-Node: Accounts screen10461
-Ref: #accounts-screen10589
-Node: Register screen12793
-Ref: #register-screen12948
-Node: Transaction screen14943
-Ref: #transaction-screen15101
-Node: Error screen15968
-Ref: #error-screen16090
-Node: TIPS16332
-Ref: #tips16431
-Node: Watch mode16483
-Ref: #watch-mode16600
-Node: Watch mode limitations17344
-Ref: #watch-mode-limitations17485
-Node: ENVIRONMENT18618
-Ref: #environment18729
-Node: FILES19534
-Ref: #files19633
-Node: BUGS19846
-Ref: #bugs19923
+Node: KEYS6228
+Ref: #keys6323
+Node: SCREENS10372
+Ref: #screens10470
+Node: Accounts screen10560
+Ref: #accounts-screen10688
+Node: Register screen12892
+Ref: #register-screen13047
+Node: Transaction screen15042
+Ref: #transaction-screen15200
+Node: Error screen16067
+Ref: #error-screen16189
+Node: TIPS16431
+Ref: #tips16530
+Node: Watch mode16582
+Ref: #watch-mode16699
+Node: Watch mode limitations17443
+Ref: #watch-mode-limitations17584
+Node: ENVIRONMENT18717
+Ref: #environment18828
+Node: FILES19633
+Ref: #files19732
+Node: BUGS19945
+Ref: #bugs20022
 
 End Tag Table

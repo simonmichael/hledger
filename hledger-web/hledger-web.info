@@ -242,6 +242,10 @@ the last one takes precedence.
 `--debug[=N]'
      show debug output (levels 1-9, default: 1)
 
+`--today=DATE'
+     generate reports treating DATE as the current day (for testing
+     purposes)
+
    A @FILE argument will be expanded to the contents of FILE, which
 should contain one command line option/argument per line. (To prevent
 this, insert a `--' argument before.)
@@ -615,19 +619,19 @@ Tag Table:
 Node: Top235
 Node: OPTIONS1878
 Ref: #options1983
-Node: PERMISSIONS9396
-Ref: #permissions9535
-Node: EDITING UPLOADING DOWNLOADING10747
-Ref: #editing-uploading-downloading10928
-Node: RELOADING11759
-Ref: #reloading11893
-Node: JSON API12325
-Ref: #json-api12439
-Node: ENVIRONMENT17928
-Ref: #environment18044
-Node: FILES18776
-Ref: #files18876
-Node: BUGS19089
-Ref: #bugs19167
+Node: PERMISSIONS9495
+Ref: #permissions9634
+Node: EDITING UPLOADING DOWNLOADING10846
+Ref: #editing-uploading-downloading11027
+Node: RELOADING11858
+Ref: #reloading11992
+Node: JSON API12424
+Ref: #json-api12538
+Node: ENVIRONMENT18027
+Ref: #environment18143
+Node: FILES18875
+Ref: #files18975
+Node: BUGS19188
+Ref: #bugs19266
 
 End Tag Table
