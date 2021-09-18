@@ -414,7 +414,7 @@ ghci-doctest: $(call def-help,ghci-doctest, start ghci REPL on hledger-lib docte
 ghci-shake: $(call def-help,ghci-shake, start ghci REPL on Shake.hs)
 	stack exec $(SHAKEDEPS) -- ghci Shake.hs
 
-copy-bins-to-%: $(call def-help,copy-bins-to-VER, save ~/.local/bin/hledger* as hledger*-VER)
+copy-bins-to-%: $(call def-help,copy-bins-to-VER, save ~/.local/bin/hledger* as hledger*.VER)
 	V=$*; for B in $(BINARIES); do cp ~/.local/bin/$$B ~/.local/bin/$$B.$$V; done
 
 # make must be GNU Make 4.3+
