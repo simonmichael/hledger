@@ -73,10 +73,6 @@ OPTIONS
        --debug[=N]
               show debug output (levels 1-9, default: 1)
 
-       --today=DATE
-              generate  reports  treating DATE as the current day (for testing
-              purposes)
-
        General input options:
 
        -f FILE --file=FILE
@@ -84,7 +80,7 @@ OPTIONS
               $LEDGER_FILE or $HOME/.hledger.journal)
 
        --rules-file=RULESFILE
-              Conversion   rules  file  to  use  when  reading  CSV  (default:
+              Conversion  rules  file  to  use  when  reading  CSV   (default:
               FILE.rules)
 
        --separator=CHAR
@@ -103,7 +99,7 @@ OPTIONS
               assignments)
 
        -s --strict
-              do  extra  error  checking  (check  that all posted accounts are
+              do extra error checking (check  that  all  posted  accounts  are
               declared)
 
        General reporting options:
@@ -132,12 +128,16 @@ OPTIONS
               multiperiod/multicolumn report by year
 
        -p --period=PERIODEXP
-              set start date, end date, and/or reporting interval all at  once
+              set  start date, end date, and/or reporting interval all at once
               using period expressions syntax
 
        --date2
-              match  the  secondary  date  instead (see command help for other
+              match the secondary date instead (see  command  help  for  other
               effects)
+
+       --today=DATE
+              override   today's  date  (affects  relative  smart  dates,  for
+              tests/examples)
 
        -U --unmarked
               include only unmarked postings/txns (can combine with -P or -C)

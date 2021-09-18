@@ -155,6 +155,10 @@ period expressions syntax
 \f[B]\f[CB]--date2\f[B]\f[R]
 match the secondary date instead (see command help for other effects)
 .TP
+\f[B]\f[CB]--today=DATE\f[B]\f[R]
+override today\[aq]s date (affects relative smart dates, for
+tests/examples)
+.TP
 \f[B]\f[CB]-U --unmarked\f[B]\f[R]
 include only unmarked postings/txns (can combine with -P or -C)
 .TP
@@ -228,9 +232,6 @@ show general or ADDONCMD version
 .TP
 \f[B]\f[CB]--debug[=N]\f[B]\f[R]
 show debug output (levels 1-9, default: 1)
-.TP
-\f[B]\f[CB]--today=DATE\f[B]\f[R]
-generate reports treating DATE as the current day (for testing purposes)
 .PP
 A \[at]FILE argument will be expanded to the contents of FILE, which
 should contain one command line option/argument per line.

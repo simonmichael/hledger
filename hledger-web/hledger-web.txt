@@ -145,6 +145,10 @@ OPTIONS
               match the secondary date instead (see  command  help  for  other
               effects)
 
+       --today=DATE
+              override   today's  date  (affects  relative  smart  dates,  for
+              tests/examples)
+
        -U --unmarked
               include only unmarked postings/txns (can combine with -P or -C)
 
@@ -161,39 +165,39 @@ OPTIONS
               hide/aggregate accounts or postings more than NUM levels deep
 
        -E --empty
-              show  items with zero amount, normally hidden (and vice-versa in
+              show items with zero amount, normally hidden (and vice-versa  in
               hledger-ui/hledger-web)
 
        -B --cost
               convert amounts to their cost/selling amount at transaction time
 
        -V --market
-              convert  amounts to their market value in default valuation com-
+              convert amounts to their market value in default valuation  com-
               modities
 
        -X --exchange=COMM
               convert amounts to their market value in commodity COMM
 
        --value
-              convert amounts to cost or  market  value,  more  flexibly  than
+              convert  amounts  to  cost  or  market value, more flexibly than
               -B/-V/-X
 
        --infer-market-prices
-              use  transaction  prices  (recorded  with @ or @@) as additional
+              use transaction prices (recorded with @  or  @@)  as  additional
               market prices, as if they were P directives
 
        --auto apply automated posting rules to modify transactions.
 
        --forecast
-              generate future transactions from  periodic  transaction  rules,
-              for  the  next 6 months or till report end date.  In hledger-ui,
+              generate  future  transactions  from periodic transaction rules,
+              for the next 6 months or till report end date.   In  hledger-ui,
               also make ordinary future transactions visible.
 
        --color=WHEN (or --colour=WHEN)
-              Should color-supporting commands use ANSI color  codes  in  text
-              output.   'auto' (default): whenever stdout seems to be a color-
-              supporting terminal.  'always' or 'yes': always, useful eg  when
-              piping  output  into  'less  -R'.   'never'  or  'no': never.  A
+              Should  color-supporting  commands  use ANSI color codes in text
+              output.  'auto' (default): whenever stdout seems to be a  color-
+              supporting  terminal.  'always' or 'yes': always, useful eg when
+              piping output into  'less  -R'.   'never'  or  'no':  never.   A
               NO_COLOR environment variable overrides this.
 
        When a reporting option appears more than once in the command line, the
@@ -215,10 +219,6 @@ OPTIONS
 
        --debug[=N]
               show debug output (levels 1-9, default: 1)
-
-       --today=DATE
-              generate  reports  treating DATE as the current day (for testing
-              purposes)
 
        A @FILE argument will be expanded to the contents of FILE, which should
        contain  one  command line option/argument per line.  (To prevent this,
