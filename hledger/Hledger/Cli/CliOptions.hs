@@ -119,7 +119,6 @@ helpflags = [
  ,flagNone ["info"] (setboolopt "info") "Show info manual with info"
  -- ,flagNone ["browse-args"] (setboolopt "browse-args") "use a web UI to select options and build up a command line"
  ,flagReq  ["debug"] (\s opts -> Right $ setopt "debug" s opts) "[N]" "show debug output (levels 1-9, default: 1)"
- ,flagReq  ["today"] (\s opts -> Right $ setopt "today" s opts) "DATE" "generate reports treating DATE as the current day (for testing purposes)"
  ,flagNone ["version"] (setboolopt "version") "show version information"
  ]
 
@@ -153,7 +152,8 @@ reportflags = [
  ,flagNone ["yearly","Y"]    (setboolopt "yearly") "multiperiod/multicolumn report by year"
  ,flagReq  ["period","p"]    (\s opts -> Right $ setopt "period" s opts) "PERIODEXP" "set start date, end date, and/or report interval all at once"
  ,flagNone ["date2"]         (setboolopt "date2") "match the secondary date instead. See command help for other effects. (--effective, --aux-date also accepted)"  -- see also hiddenflags
-
+ ,flagReq  ["today"]         (\s opts -> Right $ setopt "today" s opts) "DATE" "override today's date (affects relative smart dates, for tests/examples)"
+ 
   -- status/realness/depth/zero filters
  ,flagNone ["unmarked","U"]  (setboolopt "unmarked") "include only unmarked postings/txns (can combine with -P or -C)"
  ,flagNone ["pending","P"]   (setboolopt "pending") "include only pending postings/txns"

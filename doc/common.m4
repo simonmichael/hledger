@@ -69,9 +69,6 @@ m4_define({{_helpoptions_}}, {{
 `--debug[=N]`
 : show debug output (levels 1-9, default: 1)
 
-`--today=DATE`
-: generate reports treating DATE as the current day (for testing purposes)
-
 }} )m4_dnl
 m4_dnl
 m4_define({{_inputoptions_}}, {{
@@ -132,6 +129,9 @@ m4_define({{_reportingoptions_}}, {{
 
 `--date2`
 : match the secondary date instead (see command help for other effects)
+
+`--today=DATE`
+: override today's date (affects relative smart dates, for tests/examples)
 
 `-U --unmarked`
 : include only unmarked postings/txns (can combine with -P or -C)
