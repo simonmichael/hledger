@@ -2,15 +2,15 @@
 ; So this test will break in a few months, unfortunately. Before then
 ; we should add a --today=DATE option to help with testing.
 
-2020-01-01 a past transaction
+2020-01-01 past transaction
     (a)    1
 
-2021-12-31 a near future transaction
+2021-12-31 near future transaction
     (a)    2
 
-~ monthly from 2021 to 2023  some near future periodic transactions
+~ monthly from 2021 to 2023  near future forecast transaction
     (a)    3
 
-~ 9999-01-01  a far future periodic transaction (just one occurrence)
+~ 9999-01-01  far future forecast transaction
     (a)    4
 
