@@ -159,7 +159,7 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec} j = do
         : [posting{paccount=openingacct, pamount=mixedAmount . precise $ negate b} | interleaved]
 
         | (a,mb) <- acctbals
-        , let bs = amounts $ normaliseMixedAmount mb
+        , let bs = amounts mb
           -- mark the last balance in each commodity with the unpriced sum in that commodity (for a balance assertion)
         , let bs' = concat [reverse $ zip (reverse bs) (Just commoditysum : repeat Nothing)
                            | bs <- groupBy ((==) `on` acommodity) bs
