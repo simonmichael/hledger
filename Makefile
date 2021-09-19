@@ -823,8 +823,11 @@ site: $(call def-help,site, update the hledger.org website (run on hledger.org, 
 		&& echo 'Please run "make Shake" first (manual compilation of Shake.hs is required)' \
 		|| ( \
 			echo; \
-			./Shake -V site; \
+			./Shake -V webmanuals; \
+			make -C site build; \
 		) 2>&1 | tee -a site.log
+# once VPS can build Shake again, replace the Shake/make lines with 
+#			./Shake -V site; \
 
 BROWSE=open
 BROWSEDELAY=5
