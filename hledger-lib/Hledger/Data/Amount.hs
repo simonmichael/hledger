@@ -30,9 +30,9 @@ commodities; this is the type most often used:
   16h + $13.55 + AAPL 500 + 6 oranges
 @
 
-When a mixed amount has been \"normalised\", it has no more than one amount
-in each commodity and no zero amounts; or it has just a single zero amount
-and no others.
+A mixed amount is always \"normalised\", it has no more than one amount
+in each commodity and price. When calling 'amounts' it will have no zero
+amounts, or just a single zero amount and no other amounts.
 
 Limited arithmetic with simple and mixed amounts is supported, best used
 with similar amounts since it mostly ignores assigned prices and commodity
@@ -106,8 +106,6 @@ module Hledger.Data.Amount (
   filterMixedAmount,
   filterMixedAmountByCommodity,
   mapMixedAmount,
-  normaliseMixedAmountSquashPricesForDisplay,
-  normaliseMixedAmount,
   unifyMixedAmount,
   mixedAmountStripPrices,
   -- ** arithmetic
@@ -642,7 +640,7 @@ averageMixedAmounts as = fromIntegral (length as) `divideMixedAmount` maSum as
 -- Ie when normalised, are all individual commodity amounts negative ?
 isNegativeMixedAmount :: MixedAmount -> Maybe Bool
 isNegativeMixedAmount m =
-  case amounts $ normaliseMixedAmountSquashPricesForDisplay m of
+  case amounts $ mixedAmountStripPrices m of
     []  -> Just False
     [a] -> Just $ isNegativeAmount a
     as | all isNegativeAmount as -> Just True
@@ -707,13 +705,6 @@ amountsRaw (Mixed ma) = toList ma
 maCommodities :: MixedAmount -> S.Set CommoditySymbol
 maCommodities = S.fromList . fmap acommodity . amounts'
   where amounts' ma@(Mixed m) = if M.null m then [] else amounts ma
-
-normaliseMixedAmount :: MixedAmount -> MixedAmount
-normaliseMixedAmount = id  -- XXX Remove
-
--- | Strip prices from a MixedAmount.
-normaliseMixedAmountSquashPricesForDisplay :: MixedAmount -> MixedAmount
-normaliseMixedAmountSquashPricesForDisplay = mixedAmountStripPrices  -- XXX Remove
 
 -- | Unify a MixedAmount to a single commodity value if possible.
 -- This consolidates amounts of the same commodity and discards zero
