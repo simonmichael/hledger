@@ -7,8 +7,8 @@ uncommitted and unscheduled.
 Related:
 - SM's private backlog, gradually moving here
 - http://regressions.hledger.org, http://bugs.hledger.org, http://wishes.hledger.org
-- [Mockups](mockups.html)
-- [ROADMAP](ROADMAP.html)
+- https://hledger.org/mockups.html
+- https://hledger.org/ROADMAP.html
 
 ** cli: help: clarify/improve the various kinds of command line help
 *** survey/describe
@@ -63,3 +63,47 @@ https://hledger.org/hledger-web.html
  Best for comfortable viewing and navigation when online.
 
 #+end_example
+
+** cli: help improvements
+*** auto pager
+*** colour
+*** show commands to get more detailed help
+*** list output formats
+*** list input formats
+*** list runtime-detected input formats
+*** more intro/manual in the main --help
+*** commands list updates
+Financial reports:
+ aregister (areg)         show an account's transactions and running balance
+ register (reg)           show postings in all/matched accounts and their total
+ balancesheet (bs)        show assets, liabilities and net worth
+ balancesheetequity (bse) show assets, liabilities and equity
+ cashflow (cf)            show changes in liquid assets
+ incomestatement (is)     show revenues and expenses
+ balance (bal)            show custom balance reports, budgets, gains..
+ roi                      show a return on investment report
+*** --pivot: list possible arguments in help
+** cli: --version: include latest commit date
+** compat: support reading with beancount2ledger when in PATH
+** compat: support reading with ledger2beancount & beancount2ledger when in PATH
+** doc: quickstart: update download instructions, make maintainable
+** reports: allow -c '0.%' to set style of -%
+** reports: relax the "whole subperiods" rule
+*** when there's only one ?
+bal -YH -e tomorrow would be titled with tomorrow's date instead of 12-31
+*** when there's multiple, but no transactions before the begin date or after the end date ?
+** timeclock: improve error message
+hledger: clock-out time less than clock-in time in:
+2021-09-17 * 12:00-06:00
+    (no-electronics)          -6.00h
+
+** timeclock: ugly parse error
+hledger: line 6: expected timeclock code o but got i
+CallStack (from HasCallStack):
+  error, called at ./Hledger/Data/Timeclock.hs:85:32 in hledger-lib-1.22.99-HCWXy7WanhBI3o1AfvBpXy:Hledger.Data.Timeclock
+** timedot: more flexible parsing
+*** ignore all preamble lines (before first date line)
+*** ignore all amountless lines
+*** ignore org list bullets/checkboxes
+*** check timedotstrict: disables ignoring preamble/amountless lines
+** timedot: --alias doesn't work with timeclock, timedot ?
