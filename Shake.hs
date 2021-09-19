@@ -53,7 +53,6 @@ import "base"         Control.Exception as C
 -- required packages, keep synced with Makefile -> SHAKEDEPS:
 import "directory"    System.Directory as S (getDirectoryContents)
 import "extra"        Data.List.Extra hiding (headDef, lastDef)
-import "process"      System.Process
 import "regex"        Text.RE.TDFA.String
 import "regex"        Text.RE.Replace
 import "safe"         Safe
@@ -82,6 +81,7 @@ usage =
   ,"./Shake changelogs [-c] [-n/--dry-run]"
   ,"                         update CHANGES.md files, adding new commits & headings"
   ,"./Shake docs [-c]        update all program docs (CLI help, manuals, changelogs)"
+  ,"./Shake site             update (render) the website, in ./site"
   ,"./Shake build [PKGS]     build hledger packages and their embedded docs"
   ,"./Shake clean            remove generated texts, manuals"
   ,"./Shake Clean            also remove object files, Shake's cache"
@@ -740,6 +740,14 @@ main = do
         ,"manuals"
         ,"changelogs"
         ]
+
+      -- Update (render) the website, which should be checked out as ./site
+      phony "site" $ do
+        need [
+           "webmanuals"
+          ,".ROADMAP.md"
+          ]
+        cmd_ "make -C site build"
 
       ".ROADMAP.md" %> \out -> do
         let src = "ROADMAP.org"
