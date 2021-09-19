@@ -15,7 +15,7 @@ Related:
 Most of these are long, and best viewed with a pager, eg: hledger -h | less
 
 **** Quick command line help:
-
+#+begin_example
 hledger     -h|--help
 hledger-ui  -h|--help
 hledger-web -h|--help
@@ -27,8 +27,11 @@ hledger
 hledger COMMAND -h|--help
  COMMAND's usage, flags, and manual section.
 
+#+end_example
+
 **** User manuals:
 
+#+begin_example
 hledger help [-i|-m|-p] [TOPIC]
  View hledger user manual with info, man or pager, positioned at TOPIC.
  Good for jumping to a known (or guessed) topic.
@@ -59,3 +62,4 @@ https://hledger.org/hledger-web.html
  hledger, hledger-ui and hledger-web manuals, viewed on the web.
  Best for comfortable viewing and navigation when online.
 
+#+end_example
