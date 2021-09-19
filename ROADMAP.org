@@ -1,6 +1,7 @@
 * hledger ROADMAP
 
-Current ideas about where the hledger project should be going next.
+ROADMAP.org: ideas about where the hledger project should be going next.
+Being listed here suggests a bit of commitment and perhaps even a schedule.
 
 ** Targets
 *** Next Targets
