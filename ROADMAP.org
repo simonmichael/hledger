@@ -1,7 +1,5 @@
 * hledger ROADMAP
 
-<!-- toc -->
-
 Current ideas about where the hledger project should be going next.
 
 ** Targets
