@@ -1,0 +1,11 @@
+* hledger BACKLOG
+
+BACKLOG.org: a public store of tasks/changes/design notes
+that we're fairly sure would be good to have.
+Here they compost nicely in the sun, uncommitted and unscheduled.
+
+Related:
+- SM's private backlog, most of which is gradually moving here
+- https://wishes.hledger.org WISH issues, allowing more discussion
+- mockups.md
+- ROADMAP.org
