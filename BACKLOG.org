@@ -5,7 +5,57 @@ that we're fairly sure would be good to have.
 Here they compost nicely in the sun, uncommitted and unscheduled.
 
 Related:
-- SM's private backlog, most of which is gradually moving here
-- https://wishes.hledger.org WISH issues, allowing more discussion
+- SM's private backlog, gradually moving here
+- http://wishes.hledger.org WISH issues, allowing more discussion
 - mockups.md
 - ROADMAP.org
+
+** cli: help: clarify/improve the various kinds of command line help
+*** survey/describe
+Most of these are long, and best viewed with a pager, eg: hledger -h | less
+
+**** Quick command line help:
+
+hledger     -h|--help
+hledger-ui  -h|--help
+hledger-web -h|--help
+ General usage and command line flags for the main hledger UIs.
+
+hledger
+ hledger CLI's commands list.
+
+hledger COMMAND -h|--help
+ COMMAND's usage, flags, and manual section.
+
+**** User manuals:
+
+hledger help [-i|-m|-p] [TOPIC]
+ View hledger user manual with info, man or pager, positioned at TOPIC.
+ Good for jumping to a known (or guessed) topic.
+ Good for viewing the manual if you don't have info or man.
+ This is the main manual, covering the CLI, file formats, and concepts.
+
+hledger --info
+hledger-ui --info
+hledger-web --info
+ hledger, hledger-ui or hledger-web's builtin user manual, viewed with info.
+ Best for exploring the topic tree.
+
+hledger --man
+hledger-ui --man
+hledger-web --man
+ hledger, hledger-ui or hledger-web's builtin user manual, viewed with man.
+ Quick and searchable. 
+
+info hledger, man hledger
+info hledger-ui, man hledger-ui
+info hledger-web, man hledger-web
+ hledger, hledger-ui, or hledger-web installed user manuals.
+ Same as above, if the manuals are properly installed on your system.
+
+https://hledger.org/hledger.html
+https://hledger.org/hledger-ui.html
+https://hledger.org/hledger-web.html
+ hledger, hledger-ui and hledger-web manuals, viewed on the web.
+ Best for comfortable viewing and navigation when online.
+
