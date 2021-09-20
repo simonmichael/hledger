@@ -129,7 +129,7 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec
                 nearestidbydatethenid = third3 <$> (headMay $ sort
                   [(abs $ diffDays (tdate t) prevseld, abs (tindex t - prevselidx), tindex t) | t <- ts])
                 ts = map rsItemTransaction displayitems
-        endidx = length displayitems - 1
+        endidx = max 0 $ length displayitems - 1
 
 rsInit _ _ _ = error "init function called with wrong screen type, should not happen"  -- PARTIAL:
 
