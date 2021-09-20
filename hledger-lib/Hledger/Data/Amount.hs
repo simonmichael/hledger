@@ -40,6 +40,7 @@ exchange rates.
 
 -}
 
+{-# LANGUAGE BangPatterns       #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE RecordWildCards    #-}
 
@@ -589,11 +590,11 @@ mixed = maAddAmounts nullmixedamt
 
 -- | Create a MixedAmount from a single Amount.
 mixedAmount :: Amount -> MixedAmount
-mixedAmount a = Mixed $ M.singleton (amountKey a) a
+mixedAmount !a = Mixed $ M.singleton (amountKey a) a
 
 -- | Add an Amount to a MixedAmount, normalising the result.
 maAddAmount :: MixedAmount -> Amount -> MixedAmount
-maAddAmount (Mixed ma) a = Mixed $ M.insertWith sumSimilarAmountsUsingFirstPrice (amountKey a) a ma
+maAddAmount (Mixed ma) !a = Mixed $ M.insertWith sumSimilarAmountsUsingFirstPrice (amountKey a) a ma
 
 -- | Add a collection of Amounts to a MixedAmount, normalising the result.
 maAddAmounts :: Foldable t => MixedAmount -> t Amount -> MixedAmount
@@ -609,7 +610,7 @@ maPlus (Mixed as) (Mixed bs) = Mixed $ M.unionWith sumSimilarAmountsUsingFirstPr
 
 -- | Subtract a MixedAmount from another.
 maMinus :: MixedAmount -> MixedAmount -> MixedAmount
-maMinus a = maPlus a . maNegate
+maMinus !a = maPlus a . maNegate
 
 -- | Sum a collection of MixedAmounts.
 maSum :: Foldable t => t MixedAmount -> MixedAmount
@@ -725,7 +726,7 @@ unifyMixedAmount = foldM combine 0 . amounts
 -- price to the result and discarding any other prices. Only used as a
 -- rendering helper.
 sumSimilarAmountsUsingFirstPrice :: Amount -> Amount -> Amount
-sumSimilarAmountsUsingFirstPrice a b = (a + b){aprice=p}
+sumSimilarAmountsUsingFirstPrice !a !b = (a + b){aprice=p}
   where
     p = case (aprice a, aprice b) of
         (Just (TotalPrice ap), Just (TotalPrice bp))
@@ -976,7 +977,7 @@ mixedAmountSetFullPrecision = mapMixedAmountUnsafe amountSetFullPrecision
 -- | Remove all prices from a MixedAmount.
 mixedAmountStripPrices :: MixedAmount -> MixedAmount
 mixedAmountStripPrices (Mixed ma) =
-    foldl' (\m a -> maAddAmount m a{aprice=Nothing}) (Mixed noPrices) withPrices
+    foldl' (\(!m) (!a) -> maAddAmount m a{aprice=Nothing}) (Mixed noPrices) withPrices
   where (noPrices, withPrices) = M.partition (isNothing . aprice) ma
 
 -- | Canonicalise a mixed amount's display styles using the provided commodity style map.
