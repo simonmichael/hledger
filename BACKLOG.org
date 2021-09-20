@@ -2,7 +2,8 @@
 
 A public store of tasks/changes that we're fairly sure would be good
 to have, and their design notes. Here they compost nicely in the sun,
-uncommitted and unscheduled.
+uncommitted and unscheduled. Some items might appear best when viewed
+with org mode in Emacs.
 
 Related:
 - SM's private backlog, gradually moving here
@@ -87,6 +88,28 @@ Financial reports:
 ** compat: support reading with beancount2ledger when in PATH
 ** compat: support reading with ledger2beancount & beancount2ledger when in PATH
 ** doc: quickstart: update download instructions, make maintainable
+** entry command
+*** a convenient non-interactive version of hledger add; and an extension point for data entry validations/automations
+hledger entry [ONELINEENTRY]  
+*** ONELINEENTRY is a single argument, in quotes: a journal entry using double-space instead of newlines
+hledger entry '2021-01-01 * (123) farmers market  expenses:food  $10  assets:checking ; date:1/3'
+*** or with no argument, each line from standard input generates a journal entry
+*** with -a|--add, appends to the journal, like add/import
+*** if entry does not begin with a date, uses today's date
+hledger entry 'farmers market  expenses:food  $10  assets:cash'
+*** if any other required parts are omitted, they are filled from similar past transactions, like add
+These will match the txn above, and make the postings shown:
+hledger entry 'farmers'                                        # expenses:food $10, assets:cash -$10
+hledger entry 'farmers  expenses:food  $11'                    # expenses:food $11, assets:cash -$11
+hledger entry 'farmers  $11'                                   # same
+hledger entry 'farmers  11'                                    # same
+hledger entry 'farmers  expenses:food  6  expenses:snacks  5'  # expenses:food $6, expenses:snacks $5, assets:cash -$11
+*** leaf names of known accounts will be expanded
+hledger entry 'farmers  food  6  snacks  5'                    # same
+*** missing commodity symbol could also be inferred from source account's balance
+*** or with a flag, missing required parts will give an error
+**** --complete, --only, --standalone, --no-infer, --no-past, --no-journal
+*** entry can run validation checks, including fancy ones like "asset accounts may not go negative"
 ** reports: allow -c '0.%' to set style of -%
 ** reports: relax the "whole subperiods" rule
 *** when there's only one ?
@@ -107,3 +130,4 @@ CallStack (from HasCallStack):
 *** ignore org list bullets/checkboxes
 *** check timedotstrict: disables ignoring preamble/amountless lines
 ** timedot: --alias doesn't work with timeclock, timedot ?
+
