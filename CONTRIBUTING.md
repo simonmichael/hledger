@@ -9,24 +9,24 @@
 | | |
 |-------------------------------|----------------------------------------------------------------------------
 | Chat, Mail, Twitter, HN etc.  | <https://hledger.org/#help>
-| hledger-web demo&nbsp;&nbsp;  | [demo.hledger.org](http://demo.hledger.org) 
+| hledger-web demo&nbsp;&nbsp;  | [demo.hledger.org](https://demo.hledger.org) 
 | hledger GHCJS demo            | <https://hledger.alhur.es>
-| Trello                        | [old wishlist planning board](http://trello.hledger.org) 
-| Github                        | [simonmichael/hledger](https://github.com/simonmichael/hledger) (shortcut: code.hledger.org)<br> [commits](http://github.com/simonmichael/hledger/commits), <!-- [unreleased commits](https://github.com/simonmichael/hledger/compare/0.23...master), [release branch commits](https://github.com/simonmichael/hledger/compare/master...0.23), --> [COMMITS!](http://starlogs.net/#simonmichael/hledger) <br> [open bugs](http://bugs.hledger.org), [open wishes](http://wishes.hledger.org), [open unknowns](https://github.com/simonmichael/hledger/issues?utf8=✓&q=is%3Aissue%20is%3Aopen%20-label%3A%22A%20BUG%22%20-label%3A%22A%20WISH%22%20), [open pull requests](http://prs.hledger.org), [draft open pull requests](http://draftprs.hledger.org), [ready open pull requests](http://readyprs.hledger.org), [all issues](https://github.com/simonmichael/hledger/issues?q=) <br> [issues with bounty tag](https://github.com/simonmichael/hledger/issues?q=label:bounty), [bountysource bounties](https://github.com/simonmichael/hledger/issues?q=%22Add%20to%20the%20bounty%20at%20Bountysource%22%20OR%20%22claim%20the%20bounty%20on%20Bountysource%22%20OR%20%22bounty%20on%20this%20issue%20has%20been%20claimed%20at%20Bountysource%22%20), [codemill bounties](https://github.com/simonmichael/hledger/issues?q=codemill), [codefund bounties](https://github.com/simonmichael/hledger/issues?utf8=✓&q=codefund) <br> [stars.hledger.org](http://stars.hledger.org):  <a class="github-button" href="https://github.com/simonmichael/hledger" data-icon="octicon-star" data-count-href="/simonmichael/hledger/stargazers" data-count-api="/repos/simonmichael/hledger#stargazers_count" data-count-aria-label="# stargazers on GitHub" aria-label="Star simonmichael/hledger on GitHub"></a> our rank among starred haskell projects:<br>2016: #71, 2017: #54, 2018: #53, 2020: #36 <br> [github projects](https://github.com/simonmichael/hledger/projects) <br> [ci.hledger.org](http://ci.hledger.org) [![hledger CI](https://github.com/simonmichael/hledger/workflows/hledger%20CI/badge.svg)](https://github.com/simonmichael/hledger/actions) 
-| Hackage                       | <a name=hackage></a>packages: [hledger-lib](http://hackage.haskell.org/package/hledger-lib), [hledger](http://hackage.haskell.org/package/hledger), [hledger-ui](http://hackage.haskell.org/package/hledger-ui), [hledger-web](http://hackage.haskell.org/package/hledger-web), [hledger-diff](http://hackage.haskell.org/package/hledger-diff), [hledger-iadd](http://hackage.haskell.org/package/hledger-iadd), [hledger-interest](http://hackage.haskell.org/package/hledger-interest), [hledger-irr](http://hackage.haskell.org/package/hledger-irr), [\*hledger\*](http://hackage.haskell.org/packages/search?terms=hledger) <!-- [![...](https://img.shields.io/hackage/v/hledger.svg?label=current+release)](http://hackage.haskell.org/package/hledger) --> <br> diffs: [hledger-lib](http://hdiff.luite.com/cgit/hledger-lib/diff), [hledger](http://hdiff.luite.com/cgit/hledger/diff), [hledger-ui](http://hdiff.luite.com/cgit/hledger-ui/diff), [hledger-web](http://hdiff.luite.com/cgit/hledger-web/diff) <br> build status: [hledger-lib](http://matrix.hackage.haskell.org/package/hledger-lib), [hledger](http://matrix.hackage.haskell.org/package/hledger), [hledger-ui](http://matrix.hackage.haskell.org/package/hledger-ui), [hledger-web](http://matrix.hackage.haskell.org/package/hledger-web) <br> reverse deps: [hledger-lib](http://packdeps.haskellers.com/reverse/hledger-lib), [hledger](http://packdeps.haskellers.com/reverse/hledger), [hledger-ui](http://packdeps.haskellers.com/reverse/hledger-ui), [hledger-web](http://packdeps.haskellers.com/reverse/hledger-web) <br> [![on hackage](https://img.shields.io/hackage/v/hledger.svg?label=hackage&colorB=green)](http://hackage.haskell.org/package/hledger) <br> [![...](https://img.shields.io/hackage-deps/v/hledger-lib.svg?label=hledger-lib+bounds)](http://packdeps.haskellers.com/feed?needle=hledger-lib) [![...](https://img.shields.io/hackage-deps/v/hledger.svg?label=hledger+bounds)](http://packdeps.haskellers.com/feed?needle=hledger) <br> [![...](https://img.shields.io/hackage-deps/v/hledger-ui.svg?label=hledger-ui+bounds)](http://packdeps.haskellers.com/feed?needle=hledger-ui) [![...](https://img.shields.io/hackage-deps/v/hledger-web.svg?label=hledger-web+bounds)](http://packdeps.haskellers.com/feed?needle=hledger-web) 
+| Trello                        | [old wishlist planning board](https://trello.hledger.org) 
+| Github                        | [simonmichael/hledger](https://github.com/simonmichael/hledger) (shortcut: code.hledger.org)<br> [commits](https://github.com/simonmichael/hledger/commits), <!-- [unreleased commits](https://github.com/simonmichael/hledger/compare/0.23...master), [release branch commits](https://github.com/simonmichael/hledger/compare/master...0.23), --> [COMMITS!](https://starlogs.net/#simonmichael/hledger) <br> [open bugs](http://bugs.hledger.org), [open wishes](http://wishes.hledger.org), [open unknowns](https://github.com/simonmichael/hledger/issues?utf8=✓&q=is%3Aissue%20is%3Aopen%20-label%3A%22A%20BUG%22%20-label%3A%22A%20WISH%22%20), [open pull requests](http://prs.hledger.org), [draft open pull requests](http://draftprs.hledger.org), [ready open pull requests](http://readyprs.hledger.org), [all issues](https://github.com/simonmichael/hledger/issues?q=) <br> [issues with bounty tag](https://github.com/simonmichael/hledger/issues?q=label:bounty), [bountysource bounties](https://github.com/simonmichael/hledger/issues?q=%22Add%20to%20the%20bounty%20at%20Bountysource%22%20OR%20%22claim%20the%20bounty%20on%20Bountysource%22%20OR%20%22bounty%20on%20this%20issue%20has%20been%20claimed%20at%20Bountysource%22%20), [codemill bounties](https://github.com/simonmichael/hledger/issues?q=codemill), [codefund bounties](https://github.com/simonmichael/hledger/issues?utf8=✓&q=codefund) <br> [stars.hledger.org](http://stars.hledger.org):  <a class="github-button" href="https://github.com/simonmichael/hledger" data-icon="octicon-star" data-count-href="/simonmichael/hledger/stargazers" data-count-api="/repos/simonmichael/hledger#stargazers_count" data-count-aria-label="# stargazers on GitHub" aria-label="Star simonmichael/hledger on GitHub"></a> our rank among starred haskell projects:<br>2016: #71, 2017: #54, 2018: #53, 2020: #36 <br> [github projects](https://github.com/simonmichael/hledger/projects) <br> [ci.hledger.org](http://ci.hledger.org) [![hledger CI](https://github.com/simonmichael/hledger/workflows/hledger%20CI/badge.svg)](https://github.com/simonmichael/hledger/actions) 
+| Hackage                       | <a name=hackage></a>packages: [hledger-lib](https://hackage.haskell.org/package/hledger-lib), [hledger](https://hackage.haskell.org/package/hledger), [hledger-ui](https://hackage.haskell.org/package/hledger-ui), [hledger-web](https://hackage.haskell.org/package/hledger-web), [hledger-diff](https://hackage.haskell.org/package/hledger-diff), [hledger-iadd](https://hackage.haskell.org/package/hledger-iadd), [hledger-interest](https://hackage.haskell.org/package/hledger-interest), [hledger-irr](https://hackage.haskell.org/package/hledger-irr), [\*hledger\*](https://hackage.haskell.org/packages/search?terms=hledger) <!-- [![...](https://img.shields.io/hackage/v/hledger.svg?label=current+release)](https://hackage.haskell.org/package/hledger) --> <br> diffs: [hledger-lib](https://hdiff.luite.com/cgit/hledger-lib/diff), [hledger](https://hdiff.luite.com/cgit/hledger/diff), [hledger-ui](https://hdiff.luite.com/cgit/hledger-ui/diff), [hledger-web](https://hdiff.luite.com/cgit/hledger-web/diff) <br> build status: [hledger-lib](https://matrix.hackage.haskell.org/package/hledger-lib), [hledger](https://matrix.hackage.haskell.org/package/hledger), [hledger-ui](https://matrix.hackage.haskell.org/package/hledger-ui), [hledger-web](https://matrix.hackage.haskell.org/package/hledger-web) <br> reverse deps: [hledger-lib](https://packdeps.haskellers.com/reverse/hledger-lib), [hledger](https://packdeps.haskellers.com/reverse/hledger), [hledger-ui](https://packdeps.haskellers.com/reverse/hledger-ui), [hledger-web](https://packdeps.haskellers.com/reverse/hledger-web) <br> [![on hackage](https://img.shields.io/hackage/v/hledger.svg?label=hackage&colorB=green)](https://hackage.haskell.org/package/hledger) <br> [![...](https://img.shields.io/hackage-deps/v/hledger-lib.svg?label=hledger-lib+bounds)](https://packdeps.haskellers.com/feed?needle=hledger-lib) [![...](https://img.shields.io/hackage-deps/v/hledger.svg?label=hledger+bounds)](https://packdeps.haskellers.com/feed?needle=hledger) <br> [![...](https://img.shields.io/hackage-deps/v/hledger-ui.svg?label=hledger-ui+bounds)](https://packdeps.haskellers.com/feed?needle=hledger-ui) [![...](https://img.shields.io/hackage-deps/v/hledger-web.svg?label=hledger-web+bounds)](https://packdeps.haskellers.com/feed?needle=hledger-web) 
 | Stackage                      | [build-constraints.yaml](https://github.com/fpco/stackage/blob/master/build-constraints.yaml) <br> [open hledger-related issues](https://github.com/fpco/stackage/search?q=hledger+is%3Aopen&type=Issues) <br> packages: [hledger-lib](https://www.stackage.org/package/hledger-lib), [hledger](https://www.stackage.org/package/hledger), [hledger-ui](https://www.stackage.org/package/hledger-ui), [hledger-web](https://www.stackage.org/package/hledger-web)<br> versions: [hledger-lib](https://www.stackage.org/package/hledger-lib/snapshots), [hledger](https://www.stackage.org/package/hledger/snapshots), [hledger-ui](https://www.stackage.org/package/hledger-ui/snapshots), [hledger-web](https://www.stackage.org/package/hledger-web/snapshots) <br> [![](https://repology.org/badge/version-for-repo/stackage_lts/hledger.svg)](https://repology.org/metapackage/hledger) [![...](https://repology.org/badge/version-for-repo/stackage_nighly/hledger.svg)](https://repology.org/metapackage/hledger) 
 | Repology                      | [quick hledger packaging status](https://repology.org/metapackage/hledger/badges), [detailed hledger packaging status](https://repology.org/project/hledger/versions), [all \*hledger\* packages](https://repology.org/metapackages/?search=hledger)
 | Debian                        | source packages: [haskell-hledger-lib](https://tracker.debian.org/pkg/haskell-hledger-lib), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=haskell-hledger-lib), [haskell-hledger](https://tracker.debian.org/pkg/haskell-hledger), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=haskell-hledger), [haskell-hledger-ui](https://tracker.debian.org/pkg/haskell-hledger-ui), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=haskell-hledger-ui), [haskell-hledger-web](https://tracker.debian.org/pkg/haskell-hledger-web), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=haskell-hledger-web) <br>stable: [hledger](https://packages.debian.org/stable/hledger), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger;dist=stable), [hledger-ui](https://packages.debian.org/stable/hledger-ui), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger-ui;dist=stable), [hledger-web](https://packages.debian.org/stable/hledger-web), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger-web;dist=stable) <br>testing: [hledger](https://packages.debian.org/testing/hledger), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger;dist=testing), [hledger-ui](https://packages.debian.org/testing/hledger-ui), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger-ui;dist=testing), [hledger-web](https://packages.debian.org/testing/hledger-web), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger-web;dist=testing) <br>unstable: [hledger](https://packages.debian.org/unstable/hledger), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger;dist=unstable), [hledger-ui](https://packages.debian.org/unstable/hledger-ui), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger-ui;dist=unstable), [hledger-web](https://packages.debian.org/unstable/hledger-web), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger-web;dist=unstable) <br>all: [\*hledger\*](https://packages.debian.org/search?searchon=names&keywords=hledger) <br> sampled install stats: [hledger](https://qa.debian.org/popcon.php?packages=hledger), [hledger-ui](https://qa.debian.org/popcon-graph.php?packages=hledger-ui), [hledger-web](https://qa.debian.org/popcon-graph.php?packages=hledger-web)
-| Ubuntu                        | source packages: [haskell-hledger-lib](https://launchpad.net/ubuntu/+source/haskell-hledger-lib), [bugs](https://bugs.launchpad.net/ubuntu/+source/haskell-hledger-lib), [haskell-hledger](https://launchpad.net/ubuntu/+source/haskell-hledger), [bugs](https://bugs.launchpad.net/ubuntu/+source/haskell-hledger), [haskell-hledger-ui](https://launchpad.net/ubuntu/+source/haskell-hledger-ui), [bugs](https://bugs.launchpad.net/ubuntu/+source/haskell-hledger-ui), [haskell-hledger-web](https://launchpad.net/ubuntu/+source/haskell-hledger-web), [bugs](https://bugs.launchpad.net/ubuntu/+source/haskell-hledger-web) <br> binary packages: [\*hledger\*](http://packages.ubuntu.com/search?suite=all&searchon=names&keywords=hledger) 
-| Gentoo                        | [hledger](http://gpo.zugaina.org/dev-haskell/hledger), [hledger-web](http://gpo.zugaina.org/dev-haskell/hledger-web), [\*hledger\*](http://gpo.zugaina.org/Search?search=hledger) 
-| Fedora                        | [hledger](https://apps.fedoraproject.org/packages/hledger), [\*hledger\*](https://apps.fedoraproject.org/packages/s/hledger), [hledger (package db)](https://admin.fedoraproject.org/pkgdb/package/hledger/), [Haskell SIG](http://fedoraproject.org/wiki/Haskell_SIG) 
+| Ubuntu                        | source packages: [haskell-hledger-lib](https://launchpad.net/ubuntu/+source/haskell-hledger-lib), [bugs](https://bugs.launchpad.net/ubuntu/+source/haskell-hledger-lib), [haskell-hledger](https://launchpad.net/ubuntu/+source/haskell-hledger), [bugs](https://bugs.launchpad.net/ubuntu/+source/haskell-hledger), [haskell-hledger-ui](https://launchpad.net/ubuntu/+source/haskell-hledger-ui), [bugs](https://bugs.launchpad.net/ubuntu/+source/haskell-hledger-ui), [haskell-hledger-web](https://launchpad.net/ubuntu/+source/haskell-hledger-web), [bugs](https://bugs.launchpad.net/ubuntu/+source/haskell-hledger-web) <br> binary packages: [\*hledger\*](https://packages.ubuntu.com/search?suite=all&searchon=names&keywords=hledger) 
+| Gentoo                        | [hledger](https://gpo.zugaina.org/dev-haskell/hledger), [hledger-web](https://gpo.zugaina.org/dev-haskell/hledger-web), [\*hledger\*](https://gpo.zugaina.org/Search?search=hledger) 
+| Fedora                        | [hledger](https://apps.fedoraproject.org/packages/hledger), [\*hledger\*](https://apps.fedoraproject.org/packages/s/hledger), [hledger (package db)](https://admin.fedoraproject.org/pkgdb/package/hledger/), [Haskell SIG](https://fedoraproject.org/wiki/Haskell_SIG) 
 | Void Linux                    | [package search](https://voidlinux.org/packages/) -> hledger 
-| Nix                           | [\*hledger\*](http://hydra.nixos.org/search?query=hledger) 
+| Nix                           | [\*hledger\*](https://hydra.nixos.org/search?query=hledger) 
 | Homebrew                      | [hledger](https://formulae.brew.sh/formula/hledger) <br> our 1-year homebrew rank: <br>2020: [#1520 of 10000 on mac](https://formulae.brew.sh/analytics/install-on-request/365d), [#762 of 8288 on linux](https://formulae.brew.sh/analytics-linux/install-on-request/365d/)
 | Sandstorm                     | [hledger web app & reviews](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90), [issues](https://github.com/simonmichael/hledger/issues?utf8=✓&q=label%3A%22platform%3A%20sandstorm%22%20)
 | Reference                     | [fosskers GHC compatibility chart](https://www.fosskers.ca/en/blog/base) 
 
-<!-- | hledger-api demo        | [api-demo.hledger.org/api/v1/accounts](http://api-demo.hledger.org/api/v1/accounts), [api-demo.hledger.org/swagger.json](http://api-demo.hledger.org/swagger.json), [in swagger editor](http://editor2.swagger.io/#/?import=api-demo.hledger.org/swagger.json&no-proxy) <br> [unfinished angular sample app](http://api-demo.hledger.org) ([code](https://github.com/simonmichael/hledger/tree/master/hledger-api/examples/angular)) -->
+<!-- | hledger-api demo        | [api-demo.hledger.org/api/v1/accounts](https://api-demo.hledger.org/api/v1/accounts), [api-demo.hledger.org/swagger.json](https://api-demo.hledger.org/swagger.json), [in swagger editor](https://editor2.swagger.io/#/?import=api-demo.hledger.org/swagger.json&no-proxy) <br> [unfinished angular sample app](https://api-demo.hledger.org) ([code](https://github.com/simonmichael/hledger/tree/master/hledger-api/examples/angular)) -->
 <!-- 
 | Travis CI               | [![...](https://api.travis-ci.org/simonmichael/hledger.svg?branch=master)](https://travis-ci.org/simonmichael/hledger/builds)
 | Appveyor CI             | [![...](https://ci.appveyor.com/api/projects/status/5vejw0w5n5igdr42?svg=true)](https://ci.appveyor.com/project/simonmichael/hledger/history) 
@@ -58,7 +58,7 @@ A good place to start looking for something to work on.
 <!-- 
 This table doesn't have to be aligned, but it helps.
 Editing it may require editor support, search/replace etc.
-Syntax: http://www.pandoc.org/MANUAL.html#tables -> pipe_tables
+Syntax: https://www.pandoc.org/MANUAL.html#tables -> pipe_tables
 -->
 
 | COMPONENT [*](#components)                                                                                                 | BUGS                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | WISHES                                                                                                                 | PRS                                                                                           | OTHER
@@ -245,7 +245,7 @@ See [Developer workflows](#developer-workflows).
 A Makefile is provided to make common developer tasks easy to remember,
 and to insulate us a little from the ever-evolving Haskell tools ecosystem.
 Using it is entirely optional, but recommended.
-You'll need [GNU Make](http://www.gnu.org/software/make) installed.
+You'll need [GNU Make](https://www.gnu.org/software/make) installed.
 
 The Makefile contains a fair amount of obsolete cruft and needs cleanup. Some tasks (docs, website) are now handled by the [Shake](#shake) file instead.
 
@@ -296,7 +296,7 @@ See help:
 ## Code
 
 hledger is a suite of applications, tools and libraries.
-The main hledger code repository is [github.com/simonmichael/hledger](http://github.com/simonmichael/hledger)
+The main hledger code repository is [github.com/simonmichael/hledger](https://github.com/simonmichael/hledger)
 (shortcut url `code.hledger.org`).
 There are also various hledger addons maintained as separate projects with their own repos.
 
@@ -308,32 +308,32 @@ They are:
 
 #### hledger-lib
 
-[package](http://hackage.haskell.org/package/hledger-lib),
+[package](https://hackage.haskell.org/package/hledger-lib),
 [code](https://github.com/simonmichael/hledger/tree/master/hledger-lib)
 
 Core data models, parsing, standard reports, and utilities.
-Most data types are defined in [Hledger.Data.Types](http://hackage.haskell.org/package/hledger-lib/docs/Hledger-Data-Types.html),
+Most data types are defined in [Hledger.Data.Types](https://hackage.haskell.org/package/hledger-lib/docs/Hledger-Data-Types.html),
 while functions that operate on them are defined in Hledger.Data.TYPENAME.
 Under [Hledger.Read](https://github.com/simonmichael/hledger/tree/master/hledger-lib/Hledger/Read.hs)
 are parsers for the supported input formats.
 Data files are parsed into a
-[Journal](http://hackage.haskell.org/package/hledger-lib/docs/Hledger-Data-Types.html#t:Journal),
+[Journal](https://hackage.haskell.org/package/hledger-lib/docs/Hledger-Data-Types.html#t:Journal),
 which contains a list of
-[Transactions](http://hackage.haskell.org/package/hledger-lib/docs/Hledger-Data-Types.html#t:Transaction),
+[Transactions](https://hackage.haskell.org/package/hledger-lib/docs/Hledger-Data-Types.html#t:Transaction),
 each containing multiple
-[Postings](http://hackage.haskell.org/package/hledger-lib/docs/Hledger-Data-Types.html#t:Posting)
+[Postings](https://hackage.haskell.org/package/hledger-lib/docs/Hledger-Data-Types.html#t:Posting)
 of some
-[MixedAmount](http://hackage.haskell.org/package/hledger-lib/docs/Hledger-Data-Types.html#t:MixedAmount)
+[MixedAmount](https://hackage.haskell.org/package/hledger-lib/docs/Hledger-Data-Types.html#t:MixedAmount)
 (multiple
-single-[CommoditySymbol](http://hackage.haskell.org/package/hledger-lib/docs/Hledger-Data-Types.html#t:CommoditySymbol)
-[Amounts](http://hackage.haskell.org/package/hledger-lib/docs/Hledger-Data-Types.html#t:Amount))
+single-[CommoditySymbol](https://hackage.haskell.org/package/hledger-lib/docs/Hledger-Data-Types.html#t:CommoditySymbol)
+[Amounts](https://hackage.haskell.org/package/hledger-lib/docs/Hledger-Data-Types.html#t:Amount))
 to some
-[AccountName](http://hackage.haskell.org/package/hledger-lib/docs/Hledger-Data-Types.html#t:AccountName).
+[AccountName](https://hackage.haskell.org/package/hledger-lib/docs/Hledger-Data-Types.html#t:AccountName).
 When needed, the Journal is further processed to derive a
-[Ledger](http://hackage.haskell.org/package/hledger-lib/docs/Hledger-Data-Types.html#t:Ledger),
+[Ledger](https://hackage.haskell.org/package/hledger-lib/docs/Hledger-Data-Types.html#t:Ledger),
 which contains summed 
-[Accounts](http://hackage.haskell.org/package/hledger-lib/docs/Hledger-Data-Types.html#t:Account).
-In [Hledger.Reports](http://hackage.haskell.org/package/hledger-lib/docs/Hledger-Reports.html)
+[Accounts](https://hackage.haskell.org/package/hledger-lib/docs/Hledger-Data-Types.html#t:Account).
+In [Hledger.Reports](https://hackage.haskell.org/package/hledger-lib/docs/Hledger-Reports.html)
 there are standard reports, which extract useful data from the Journal or Ledger.
 
 Here's a diagram of the main data model:
@@ -379,7 +379,7 @@ Amount -- AmountStyle
 
 #### hledger
 
-[package](http://hackage.haskell.org/package/hledger),
+[package](https://hackage.haskell.org/package/hledger),
 [code](https://github.com/simonmichael/hledger/tree/master/hledger),
 [manual](https://hledger.org/hledger.html)
 
@@ -405,7 +405,7 @@ and [hledger-lib:Hledger.Utils](https://github.com/simonmichael/hledger/blob/mas
 
 #### hledger-ui
 
-[package](http://hackage.haskell.org/package/hledger-ui),
+[package](https://hackage.haskell.org/package/hledger-ui),
 [code](https://github.com/simonmichael/hledger/tree/master/hledger-ui),
 [manual](https://hledger.org/hledger-ui.html)
 
@@ -413,7 +413,7 @@ A terminal interface.
 
 #### hledger-web
 
-[package](http://hackage.haskell.org/package/hledger-web),
+[package](https://hackage.haskell.org/package/hledger-web),
 [code](https://github.com/simonmichael/hledger/tree/master/hledger-web),
 [manual](https://hledger.org/hledger-web.html)
 
@@ -426,16 +426,16 @@ It can also write (append) new transactions to the journal file.
 There are two main views, which can be filtered with
 [queries](https://hledger.org/hledger.html#queries):
 
-- [/journal](http://demo.hledger.org/journal), showing general journal entries (like `hledger print`)
+- [/journal](https://demo.hledger.org/journal), showing general journal entries (like `hledger print`)
 
-- [/register](http://demo.hledger.org/register?q=inacct:Expenses:Food),
+- [/register](https://demo.hledger.org/register?q=inacct:Expenses:Food),
   showing transactions affecting an account (slightly different from
   hledger's [register](https://hledger.org/hledger.html#register) command, which shows postings).
 
 There is also:
 
 - a sidebar (toggled by pressing `s`) showing the chart of accounts (like `hledger balance`)
-- an [add form](http://demo.hledger.org/journal?add=1) for adding new transactions (press `a`)
+- an [add form](https://demo.hledger.org/journal?add=1) for adding new transactions (press `a`)
 - a help dialog showing quick help and keybindings (press `h` or click ?)
 
 Most of the action is in
@@ -496,12 +496,12 @@ Relevant tools include:
 ### Code review
 
 - Code review party 2014/7/21-25:
-  [discussion](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/1070)<!-- missing ,
+  [discussion](https://thread.gmane.org/gmane.comp.finance.ledger.hledger/1070)<!-- missing ,
   [log](https://hledger.org/static/irc-20140725-code-review.html) -->
 - Dev sprint/party 2015/10/10:
-  [discussion](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/1254)<!-- ircbrowse down ,
-  [pre-chat](http://ircbrowse.net/day/hledger/2015/10/10),
-  [log](http://ircbrowse.net/day/hledger/2015/10/11) -->
+  [discussion](https://thread.gmane.org/gmane.comp.finance.ledger.hledger/1254)<!-- ircbrowse down ,
+  [pre-chat](https://ircbrowse.net/day/hledger/2015/10/10),
+  [log](https://ircbrowse.net/day/hledger/2015/10/11) -->
 
 
 ## Commit messages
@@ -591,7 +591,7 @@ Related:
 
 - <https://groups.google.com/g/hledger/c/t14xwHQMJqU/m/9frARXIdAAAJ>
 - <https://conventionalcommits.org>
-- <http://git.savannah.gnu.org/cgit/emacs.git/plain/CONTRIBUTE> -> Commit messages
+- <https://git.savannah.gnu.org/cgit/emacs.git/plain/CONTRIBUTE> -> Commit messages
 
 ## Pull requests
 
@@ -707,7 +707,7 @@ etc.
 
 ### Related ideas
 
-[Neil Mitchell’s Blog - The One PR Per Day Rule](http://neilmitchell.blogspot.com/2019/06/the-one-pr-per-day-rule.html)
+[Neil Mitchell’s Blog - The One PR Per Day Rule](https://neilmitchell.blogspot.com/2019/06/the-one-pr-per-day-rule.html)
 
 
 ## Tests
@@ -741,8 +741,8 @@ About testing in the hledger project, as of 201809.
     tests. These are mostly in hledger-lib, with a few in hledger.
 
     Our unit tests use the
-    [tasty](http://hackage.haskell.org/package/tasty) test runner,
-    [tasty-hunit](http://hackage.haskell.org/package/tasty-hunit) HUnit-style tests,
+    [tasty](https://hackage.haskell.org/package/tasty) test runner,
+    [tasty-hunit](https://hackage.haskell.org/package/tasty-hunit) HUnit-style tests,
     and some helpers from
     [Hledger.Utils.Test](https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Utils/Test.hs),
     such as:
@@ -819,7 +819,7 @@ About testing in the hledger project, as of 201809.
     functionality, provide usage examples in the API docs, and test
     those examples, all at once. They are a bit more finicky and slower
     than unit tests. See
-    [doctest](http://hackage.haskell.org/package/doctest) for more.
+    [doctest](https://hackage.haskell.org/package/doctest) for more.
 
     doctests [do not work on Mac with GHC
     8.4+](https://github.com/sol/doctest/issues/199), out of the box.
@@ -834,7 +834,7 @@ About testing in the hledger project, as of 201809.
     options and checking for the expected output. This exercises
     functionality in the hledger and hledger-lib packages. We do this
     with
-    [shelltestrunner](http://hackage.haskell.org/package/shelltestrunner).
+    [shelltestrunner](https://hackage.haskell.org/package/shelltestrunner).
     Tests are defined in files named `*.test` under
     [hledger/test/](https://github.com/simonmichael/hledger/tree/master/hledger/test),
     grouped by *component* (command or topic name).
@@ -1159,7 +1159,7 @@ Some old version numbering goals:
 
 Current version numbering policy:
 
-- We (should) follow <http://haskell.org/haskellwiki/Package_versioning_policy>
+- We (should) follow <https://haskell.org/haskellwiki/Package_versioning_policy>
 
 - The "full release version" is ma.jor.minor, where minor is 0 for a
   normal release or 1..n for bugfix releases. Each component is a
@@ -1426,16 +1426,16 @@ though you can also choose to transfer them to a new issue of your choice.
 Ensure [`stack`](https://haskell-lang.org/get-started) is installed
 (or if you’re a [cabal](https://www.haskell.org/cabal/) expert, feel free to use that.)
 
-Ensure [`git`](http://git-scm.com) is installed. On Windows, it comes with stack.
+Ensure [`git`](https://git-scm.com) is installed. On Windows, it comes with stack.
 
 Here are some useful optional tools:
 
-- [GNU Make](http://www.gnu.org/software/make): to use the convenient [Make rules](#make).
-- [`entr`](http://www.entrproject.org/) runs arbitrary commands when files change.
-- [`ghcid`](http://hackage.haskell.org/package/ghcid) gives real-time GHC feedback as you make code changes.
-- [`shelltestrunner`](http://hackage.haskell.org/package/shelltestrunner) runs hledger's functional tests.
-- [`quickbench`](http://hackage.haskell.org/package/quickbench) measures and reports time taken by commands.
-- [`hasktags`](http://hackage.haskell.org/package/hasktags) generates tag files for quick code navigation in editors like Emacs and vim.
+- [GNU Make](https://www.gnu.org/software/make): to use the convenient [Make rules](#make).
+- [`entr`](https://www.entrproject.org/) runs arbitrary commands when files change.
+- [`ghcid`](https://hackage.haskell.org/package/ghcid) gives real-time GHC feedback as you make code changes.
+- [`shelltestrunner`](https://hackage.haskell.org/package/shelltestrunner) runs hledger's functional tests.
+- [`quickbench`](https://hackage.haskell.org/package/quickbench) measures and reports time taken by commands.
+- [`hasktags`](https://hackage.haskell.org/package/hasktags) generates tag files for quick code navigation in editors like Emacs and vim.
 - For browsing and editing Haskell code, popular tools include: Emacs, Vim, IDEA, VS Code, Atom..
 
 Eg:
@@ -1591,7 +1591,7 @@ Follow the usual github workflow:
 - open a pull request on github,
 - follow up on any discussion there.
 
-If you're new to this process, [help.github.com](http://help.github.com) may be useful.
+If you're new to this process, [help.github.com](https://help.github.com) may be useful.
 
 ### Add yourself to the contributor list
 
@@ -1621,7 +1621,7 @@ Most docs tasks are handled by [Shake](#shake).
 
 ### Use ghcid for watching GHC/GHCI
 
-[ghcid](http://hackage.haskell.org/package/ghcid) is the most reliable and fastest way to see GHC's feedback, and optionally run tests or a GHCI command, as you edit. We run it via make, for convenience and to watch multiple packages rather than just one. Run `make help-ghcid` to list related rules.
+[ghcid](https://hackage.haskell.org/package/ghcid) is the most reliable and fastest way to see GHC's feedback, and optionally run tests or a GHCI command, as you edit. We run it via make, for convenience and to watch multiple packages rather than just one. Run `make help-ghcid` to list related rules.
 
 #### Watch for compile errors in hledger-lib and hledger:
 
@@ -1641,7 +1641,7 @@ If you find that adding --fast makes this any faster, please update this.
 
 ### Use entr for watching arbitrary commands
 
-[entr](http://entrproject.org/) is the most robust cross-platform tool for watching files and running a command when they change. Note its first argument must be an executable program, to run a shell command or multiple commands use `bash -c "..."`.
+[entr](https://entrproject.org/) is the most robust cross-platform tool for watching files and running a command when they change. Note its first argument must be an executable program, to run a shell command or multiple commands use `bash -c "..."`.
 
 #### Rerun a single functional test as you change it:
 
