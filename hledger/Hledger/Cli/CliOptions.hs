@@ -219,6 +219,12 @@ reportflags = [
      ,"'never' or 'no': never."
      ,"A NO_COLOR environment variable overrides this."
      ])
+ ,flagOpt "yes" ["pretty"] (\s opts -> Right $ setopt "pretty" s opts) "WHEN"
+   (unlines
+     ["Show prettier output, e.g. using unicode box-drawing characters."
+     ,"Accepts 'yes' (the default) or 'no'."
+     ,"If you provide an argument you must use '=', e.g. '--pretty=yes'."
+     ])
  ]
 
 -- | Flags for selecting flat/tree mode, used for reports organised by account.
@@ -238,6 +244,7 @@ hiddenflags :: [Flag RawOpts]
 hiddenflags = [
    flagNone ["effective","aux-date"] (setboolopt "date2") "Ledger-compatible aliases for --date2"
   ,flagNone ["infer-value"] (setboolopt "infer-market-prices") "legacy flag that was renamed"
+  ,flagNone ["pretty-tables"] (setopt "pretty" "always") "legacy flag that was renamed"
   ]
 
 -- | Common output-related flags: --output-file, --output-format...

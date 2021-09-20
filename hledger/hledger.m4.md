@@ -1383,6 +1383,21 @@ hledger can optionally produce debug output (if enabled with `--debug=N`);
 this goes to stderr, and is not affected by `-o/--output-file`.
 If you need to capture it, use shell redirects, eg: `hledger bal --debug=3 >file 2>&1`.
 
+## Output styling
+
+hledger commands can produce colour output when the terminal supports it.
+This is controlled by the `--color/--colour` option:
+- if the `NO_COLOR` environment variable is set, colour will not be used;
+- otherwise, if the `--color/--colour` option is given a value of `yes` or `always`
+  (or `no` or `never`), colour will (or will not) be used;
+- otherwise, colour will be used if the output (terminal or file) supports it.
+
+hledger commands can also use unicode box-drawing characters to produce prettier tables and output.
+This is controlled by the `--pretty` option:
+- if the `--pretty` option is given a value of `yes` or `always`
+  (or `no` or `never`), unicode characters will (or will not) be used;
+- otherwise, unicode characters will not be used.
+
 ## Output format
 
 Some commands (print, register, the balance commands) offer a choice of output format. 
