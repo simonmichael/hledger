@@ -724,8 +724,6 @@ journalModifyTransactions d j =
       Right ts -> Right j{jtxns=ts}
       Left err -> Left err
 
---
-
 -- | Choose and apply a consistent display style to the posting
 -- amounts in each commodity (see journalCommodityStyles).
 -- Can return an error message eg if inconsistent number formats are found.

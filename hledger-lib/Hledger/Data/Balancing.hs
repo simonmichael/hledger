@@ -8,6 +8,7 @@ Functions for ensuring transactions and journals are balanced.
 {-# LANGUAGE PackageImports      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TupleSections       #-}
 
 module Hledger.Data.Balancing
 ( -- * BalancingOpts
@@ -32,6 +33,7 @@ import "extra" Control.Monad.Extra (whenM)
 import Control.Monad.Reader as R
 import Control.Monad.ST (ST, runST)
 import Data.Array.ST (STArray, getElems, newListArray, writeArray)
+import Data.Bifunctor (first, second)
 import Data.Foldable (asum)
 import Data.Function ((&))
 import qualified Data.HashTable.Class as H (toList)
@@ -45,6 +47,7 @@ import Data.Time.Calendar (fromGregorian)
 import qualified Data.Map as M
 import Safe (headDef)
 import Text.Printf (printf)
+import Text.Show.Functions ()
 
 import Hledger.Utils
 import Hledger.Data.Types
@@ -59,14 +62,18 @@ import Hledger.Data.Transaction
 data BalancingOpts = BalancingOpts
   { ignore_assertions_        :: Bool  -- ^ Ignore balance assertions
   , infer_transaction_prices_ :: Bool  -- ^ Infer prices in unbalanced multicommodity amounts
+  , auto_                     :: Bool  -- ^ Generate automatic postings when journal is parsed
   , commodity_styles_         :: Maybe (M.Map CommoditySymbol AmountStyle)  -- ^ commodity display styles
+  , modify_transaction_       :: Transaction -> (Transaction, Bool)  -- ^ Function which adds auto postings
   } deriving (Show)
 
 defbalancingopts :: BalancingOpts
 defbalancingopts = BalancingOpts
   { ignore_assertions_        = False
   , infer_transaction_prices_ = True
+  , auto_                     = False
   , commodity_styles_         = Nothing
+  , modify_transaction_       = (, False)
   }
 
 -- | Check that this transaction would appear balanced to a human when displayed.
@@ -133,13 +140,15 @@ isTransactionBalanced bopts = null . transactionCheckBalanced bopts
 -- Or if balancing is not possible, because the amounts don't sum to 0 or
 -- because there's more than one missing amount, return an error message.
 --
+-- It also adds auto-postings if requested, and ensures it balances both before
+-- and after.
+--
 -- Transactions with balance assignments can have more than one
 -- missing amount; to balance those you should use the more powerful
 -- journalBalanceTransactions.
 --
 -- The "sum to 0" test is done using commodity display precisions,
 -- if provided, so that the result agrees with the numbers users can see.
---
 balanceTransaction ::
      BalancingOpts
   -> Transaction
@@ -153,12 +162,27 @@ balanceTransactionHelper ::
      BalancingOpts
   -> Transaction
   -> Either String (Transaction, [(AccountName, MixedAmount)])
-balanceTransactionHelper bopts t = do
-  (t', inferredamtsandaccts) <- inferBalancingAmount (fromMaybe M.empty $ commodity_styles_ bopts) $
-    if infer_transaction_prices_ bopts then inferBalancingPrices t else t
-  case transactionCheckBalanced bopts t' of
-    []   -> Right (txnTieKnot t', inferredamtsandaccts)
-    errs -> Left $ transactionBalanceError t' errs
+balanceTransactionHelper bopts =
+    fmap (first txnTieKnot)
+    . (if auto_ bopts then addAutoPostings else pure)
+    <=< checkBalanced
+    <=< inferMissing
+  where
+    -- Infer missing amounts to balance transaction
+    inferMissing t = inferBalancingAmount (fromMaybe M.empty $ commodity_styles_ bopts)
+                   $ if infer_transaction_prices_ bopts then inferBalancingPrices t else t
+    -- Add auto postings, then check whether it balances after auto postings
+    -- (Note adding auto postings after balancing means #893b fails;
+    -- adding them before balancing probably means #893a, #928, #938 fail.)
+    addAutoPostings (t, inferred)
+        | modified  = checkBalanced . second (++inferred) =<< inferMissing t'
+        | otherwise = pure (t', inferred)
+      where
+        (t', modified) = modify_transaction_ bopts t
+    -- Check to see whether the transaction is balanced, and display errors if not
+    checkBalanced (t, inferred) = case transactionCheckBalanced bopts t of
+        []   -> Right (t, inferred)
+        errs -> Left $ transactionBalanceError t errs
 
 -- | Generate a transaction balancing error message, given the transaction
 -- and one or more suberror messages.

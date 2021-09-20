@@ -7,8 +7,9 @@ A 'TransactionModifier' is a rule that modifies certain 'Transaction's,
 typically adding automated postings to them.
 
 -}
-module Hledger.Data.TransactionModifier (
-   modifyTransactions
+module Hledger.Data.TransactionModifier
+( modifyTransactions
+, transactionModifiersToFunction
 )
 where
 
@@ -36,17 +37,28 @@ import Hledger.Utils (dbg6, wrap)
 -- Or if any of them fails to be parsed, return the first error. A reference
 -- date is provided to help interpret relative dates in transaction modifier
 -- queries.
-modifyTransactions :: M.Map CommoditySymbol AmountStyle -> Day -> [TransactionModifier] -> [Transaction] -> Either String [Transaction]
-modifyTransactions styles d tmods ts = do
-  fs <- mapM (transactionModifierToFunction styles d) tmods  -- convert modifiers to functions, or return a parse error
-  let
-    modifytxn t = t''
-      where
-        t' = foldr (flip (.)) id fs t  -- apply each function in turn
-        t'' = if t' == t  -- and add some tags if it was changed
-              then t'
-              else t'{tcomment=tcomment t' `commentAddTag` ("modified",""), ttags=("modified","") : ttags t'}
-  Right $ map modifytxn ts
+modifyTransactions :: M.Map CommoditySymbol AmountStyle -> Day ->
+    [TransactionModifier] -> [Transaction] -> Either String [Transaction]
+modifyTransactions styles d tmods =
+    fmap (map fst) . liftA2 map (transactionModifiersToFunction styles d tmods) . pure
+
+-- | Convert a list of 'TransactionModifier's to a function which will modify
+-- 'Transaction's by applying all relevant 'TransactionModifier's, and return a
+-- Bool indicating whether the transaction has been changed, or an error
+-- string if there are parse errors.
+transactionModifiersToFunction :: M.Map CommoditySymbol AmountStyle
+                               -> Day
+                               -> [TransactionModifier]
+                               -> Either String (Transaction -> (Transaction, Bool))
+transactionModifiersToFunction styles refdate tmods = do
+    fs <- mapM (transactionModifierToFunction styles refdate) tmods  -- convert modifiers to functions, or return a parse error
+    let modifytxn t = t''
+          where
+            t' = foldr (flip (.)) id fs t  -- apply each function in turn
+            t'' = if t' == t  -- and add some tags if it was changed
+                  then (t', False)
+                  else (t'{tcomment=tcomment t' `commentAddTag` ("modified",""), ttags=("modified","") : ttags t'}, True)
+    return modifytxn
 
 -- | Converts a 'TransactionModifier' to a 'Transaction'-transforming function
 -- which applies the modification(s) specified by the TransactionModifier.
