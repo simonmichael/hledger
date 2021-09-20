@@ -71,7 +71,7 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportO
   let
     ropts = _rsReportOpts rspec
     showCashFlow = boolopt "cashflow" rawopts
-    prettyTables = pretty_tables_
+    prettyTables = pretty_
     makeQuery flag = do
         q <- either usageError (return . fst) . parseQuery today . T.pack $ stringopt flag rawopts
         return . simplifyQuery $ And [queryFromFlags ropts{period_=PeriodAll}, q]

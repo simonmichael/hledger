@@ -570,7 +570,7 @@ cumulativeSum value start = snd . M.mapAccumWithKey accumValued start
 -- unless --no-elide is used.
 balanceReportTableAsText :: ReportOpts -> Tab.Table T.Text T.Text WideBuilder -> TB.Builder
 balanceReportTableAsText ReportOpts{..} =
-    Tab.renderTableByRowsB def{Tab.tableBorders=False, Tab.prettyTable=pretty_tables_} renderCh renderRow
+    Tab.renderTableByRowsB def{Tab.tableBorders=False, Tab.prettyTable=pretty_} renderCh renderRow
   where
     renderCh
       | not commodity_column_ || transpose_ = fmap (Tab.textCell Tab.TopRight)

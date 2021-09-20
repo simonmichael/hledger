@@ -141,7 +141,7 @@ data ReportOpts = ReportOpts {
     ,row_total_      :: Bool
     ,no_total_       :: Bool
     ,show_costs_     :: Bool  -- ^ Whether to show costs for reports which normally don't show them
-    ,pretty_tables_  :: Bool
+    ,pretty_         :: Bool
     ,sort_amount_    :: Bool
     ,percent_        :: Bool
     ,invert_         :: Bool  -- ^ if true, flip all amount signs in reports
@@ -190,7 +190,7 @@ defreportopts = ReportOpts
     , row_total_       = False
     , no_total_        = False
     , show_costs_      = False
-    , pretty_tables_   = False
+    , pretty_          = False
     , sort_amount_     = False
     , percent_         = False
     , invert_          = False
@@ -211,6 +211,7 @@ rawOptsToReportOpts d rawopts =
     let formatstring = T.pack <$> maybestringopt "format" rawopts
         querystring  = map T.pack $ listofstringopt "args" rawopts  -- doesn't handle an arg like "" right
         (costing, valuation) = valuationTypeFromRawOpts rawopts
+        pretty = fromMaybe False $ alwaysneveropt "pretty" rawopts
 
         format = case parseStringFormat <$> formatstring of
             Nothing         -> defaultBalanceLineFormat
@@ -245,7 +246,7 @@ rawOptsToReportOpts d rawopts =
           ,sort_amount_ = boolopt "sort-amount" rawopts
           ,percent_     = boolopt "percent" rawopts
           ,invert_      = boolopt "invert" rawopts
-          ,pretty_tables_ = boolopt "pretty-tables" rawopts
+          ,pretty_      = pretty
           ,color_       = useColorOnStdout -- a lower-level helper
           ,transpose_   = boolopt "transpose" rawopts
           ,commodity_column_= boolopt "commodity-column" rawopts
@@ -299,6 +300,16 @@ balancecalcopt =
 
 balanceaccumopt :: RawOpts -> BalanceAccumulation
 balanceaccumopt = fromMaybe PerPeriod . balanceAccumulationOverride
+
+alwaysneveropt :: String -> RawOpts -> Maybe Bool
+alwaysneveropt opt rawopts = case maybestringopt opt rawopts of
+    Just "always" -> Just True
+    Just "yes"    -> Just True
+    Just "y"      -> Just True
+    Just "never"  -> Just False
+    Just "no"     -> Just False
+    Just "n"      -> Just False
+    _             -> Nothing
 
 balanceAccumulationOverride :: RawOpts -> Maybe BalanceAccumulation
 balanceAccumulationOverride rawopts = choiceopt parse rawopts <|> reportbal

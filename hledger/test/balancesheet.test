@@ -218,12 +218,12 @@ Balance Sheet 2017-12-31
 =============++=====================
  Net:        ||         $1       $1 
 
-# 9. --pretty-tables uses unicode chars for borders
+# 9. --pretty=yes uses unicode chars for borders
 <
 2016/1/1
   assets  1
   b
-$ hledger -f - balancesheet -M --pretty-tables
+$ hledger -f - balancesheet -M --pretty=yes
 Balance Sheet 2016-01-31
 
              ║ 2016-01-31 

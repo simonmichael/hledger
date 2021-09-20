@@ -310,7 +310,6 @@ balancemode = hledgerCommandMode
     ,flagNone ["no-total","N"] (setboolopt "no-total") "omit the final total row"
     ,flagNone ["no-elide"] (setboolopt "no-elide") "don't squash boring parent accounts (in tree mode); don't show only 2 commodities per amount"
     ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format (in simple reports)"
-    ,flagNone ["pretty-tables"] (setboolopt "pretty-tables") "use unicode to display prettier tables"
     ,flagNone ["sort-amount","S"] (setboolopt "sort-amount") "sort by amount instead of account code/name (in flat mode). With multiple columns, sorts by the row total, or by row average if that is displayed."
     ,flagNone ["percent", "%"] (setboolopt "percent") "express values in percentage of each column's total"
     ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
