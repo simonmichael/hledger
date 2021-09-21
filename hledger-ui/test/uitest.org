@@ -209,8 +209,7 @@ which has nice screenshots, but might be less up to date.
 ───────────────────────────── a transactions (1/1) ─────────────────────────────
  2021-01-01                                a                              1   1
 
-** LEFT, DOWN, RIGHT  # in list mode, register of account at depth limit also shows subaccounts' transactions (#1468)
+** LEFT, DOWN, RIGHT  # in list mode, register of account at depth limit shows its and subaccounts' transactions (#1468)
 ──────────────────────────── a:aa transactions (2/2) ───────────────────────────
  2021-01-02                              a:aa                          10    10
  2021-01-03                              a:aa:aaa                     100   110
-
