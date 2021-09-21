@@ -9,7 +9,7 @@ __      _____| |__
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 093c30483
+# 9cae7a076
 
 Improvements
 
@@ -18,6 +18,12 @@ Improvements
 - Require base >=4.11, preventing red squares on Hackage's build matrix.
 
 Fixes
+
+- Toggle showing zero items properly even when called with --empty. (#1237) (Stephen Morgan)
+
+- Do not hide empty accounts if they have non-empty subaccounts. (#1237) (Stephen Morgan)
+
+- Allow unbalanced postings (parenthesised account name) in the add transaction form. (#1058) (Stephen Morgan)
 
 - An XSS (cross-site scripting) vulnerability has been fixed.
   Previously (since hledger-web 0.24), javascript code could be added 

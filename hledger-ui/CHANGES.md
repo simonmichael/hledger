@@ -9,7 +9,7 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 16b4702dc
+# 9cae7a076
 
 Improvements
 
@@ -21,7 +21,10 @@ API changes
   ```
   version -> packageversion
   versiondescription -> versionStringFor
+  UIOpts fields
   ```
+
+- Lenses are now available for UIState etc., saving a lot of boilerplate. (Stephen Morgan)
 
 # 1.22.2 2021-08-07
 

@@ -9,9 +9,55 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# c07ad29a8
+# 378df7700
 
-API changes
+- Require base >=4.11, prevent red squares on Hackage's build matrix.
+
+Much code cleanup and reorganisation, such as:
+
+- Introduce lenses for many types. (Stephen Morgan)
+
+- The now-obsolete normaliseMixedAmount and
+  normaliseMixedAmountSquashPricesForDisplay functions have been
+  dropped. (Stephen Morgan)
+
+- GenericSourcePos has been dropped, replaced by either SourcePos or
+  (SourcePos, SourcePos), simplifying module structure. (Stephen Morgan)
+
+- Functions related to balancing (both transaction balancing and journal balancing)
+  have been moved to Hledger.Data.Balancing, reducing module size and reducing the risk
+  of import cycles.
+  (Stephen Morgan)
+
+- `ReportOptions{infer_value_}` has been renamed to `infer_prices_`,
+  for more consistency with the corresponding CLI flag.
+  And `BalancingOpts{infer_prices_}` is now `infer_transaction_prices_`.
+
+- JournalParser and ErroringJournalParser have moved to
+  Hledger.Data.Journal. (Stephen Morgan)
+
+- MixedAmounts now have a more predictable Ord instance / sort order.
+  They are compared in each commodity in turn, with
+  alphabetically-first commodity symbols being most significant.
+  Missing commodities are assumed to be zero. 
+  As a consequence, all the ways of representing zero with a MixedAmount ([],
+  [A 0], [A 0, B 0, ...]) are now Eq-ual (==), whereas before they were
+  not. We have not been able to find anything broken by this change.
+  ([#1563](https://github.com/simonmichael/hledger/issues/1563), 
+  [#1564](https://github.com/simonmichael/hledger/issues/1564), 
+  Stephen Morgan)
+
+- HUnit's testCase and testGroup are now used directly instead of
+  having test and tests aliases. (Stephen Morgan)
+
+- The codebase now passes many hlint checks
+
+- Dropped modules:
+  Hledger.Utils.Color,
+  Hledger.Data.Commodity,
+  Hledger.Utils.UTF8IOCompat,
+  Hledger.Utils.Tree module.
+  (Stephen Morgan)
 
 - Drop the deprecated old-time lib.
   A small number type signatures have changed:
@@ -107,30 +153,6 @@ API changes
 
       Hledger.Reports.ReportOptions:
        balanceTypeOverride -> balanceAccumulationOverride
-
-Improvements
-
-- MixedAmounts now have a more predictable Ord instance / sort order.
-  They are compared in each commodity in turn, with
-  alphabetically-first commodity symbols being most significant.
-  Missing commodities are assumed to be zero. 
-  ([#1563](https://github.com/simonmichael/hledger/issues/1563), 
-  [#1564](https://github.com/simonmichael/hledger/issues/1564), 
-  Stephen Morgan)
-  
-  As a consequence, all the ways of representing zero with a MixedAmount ([],
-  [A 0], [A 0, B 0, ...]) are now Eq-ual (==), whereas before they were
-  not. We have not been able to find anything broken by this change.
-
-- Our pretty-printed JSON now orders object attributes alphabetically,
-  across all GHC and haskell lib versions.
-
-- Our doctests are disabled with GHC 9 for now to work around an
-  upstream bug. 
-  ([#1503](https://github.com/simonmichael/hledger/issues/1503), 
-  [#1615](https://github.com/simonmichael/hledger/issues/1615))
-
-- Require base >=4.11, prevent red squares on Hackage's build matrix.
 
 # 1.22.2 2021-08-07
 

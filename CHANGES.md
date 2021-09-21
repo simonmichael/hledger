@@ -9,7 +9,13 @@
 General changes in the hledger project (and notable all-package releases).
 For package-specific changes and minor releases, see the hledger package changelogs.
 
-# 092e9479f
+# c2e6a2931
+
+- Added a public BACKLOG.org to the hledger repo and website.
+
+- The bin/hledger-check-fancyassertions.hs addon script,
+  allowing more complex balance assertions, works again.
+  (#1464, Stephen Morgan)
 
 - many code cleanups suggested by hlint (Stephen Morgan)
 
