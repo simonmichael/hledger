@@ -195,6 +195,10 @@ generate future transactions from periodic transaction rules, for the
 next 6 months or till report end date.
 In hledger-ui, also make ordinary future transactions visible.
 .TP
+\f[B]\f[CB]--commodity-style\f[B]\f[R]
+Override the commodity style in the output for the specified commodity.
+For example \[aq]EUR1.000,00\[aq].
+.TP
 \f[B]\f[CB]--color=WHEN (or --colour=WHEN)\f[B]\f[R]
 Should color-supporting commands use ANSI color codes in text output.
 \[aq]auto\[aq] (default): whenever stdout seems to be a color-supporting
@@ -2375,10 +2379,13 @@ probably want to either clear tables of existing data (via
 completely as otherwise your postings will be duped.
 .SS Commodity styles
 .PP
-The display style of a commodity/currence is inferred according to the
+The display style of a commodity/currency is inferred according to the
 rules described in Commodity display style.
-The inferred display style can be overriden by an optional
-\f[C]-c/--commodity-style\f[R] option.
+The inferred display style can be overridden by an optional
+\f[C]-c/--commodity-style\f[R] option (Exceptions: as is the case for
+inferred styles, price amounts, and all amounts displayed by the
+\f[C]print\f[R] command, will be displayed with all of their decimal
+digits visible, regardless of the specified precision).
 For example, the following will override the display style for dollars.
 .IP
 .nf
@@ -8347,7 +8354,9 @@ Assigning to \f[C]date\f[R] sets the transaction date.
 \f[C]commentN\f[R], where N is a number, sets the Nth posting\[aq]s
 comment.
 .PP
-Tips: - Only single-line comments can be assigned.
+Tips: - You can assign multi-line comments by writing literal
+\f[C]\[rs]n\f[R] in the code.
+A comment starting with \f[C]\[rs]n\f[R] will begin on a new line.
 - Comments can contain tags, as usual.
 .SS account field
 .PP

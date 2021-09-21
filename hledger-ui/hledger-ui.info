@@ -193,6 +193,10 @@ the data.
      generate future transactions from periodic transaction rules, for
      the next 6 months or till report end date.  In hledger-ui, also
      make ordinary future transactions visible.
+'--commodity-style'
+
+     Override the commodity style in the output for the specified
+     commodity.  For example 'EUR1.000,00'.
 '--color=WHEN (or --colour=WHEN)'
 
      Should color-supporting commands use ANSI color codes in text
@@ -600,30 +604,30 @@ Tag Table:
 Node: Top221
 Node: OPTIONS1647
 Ref: #options1744
-Node: KEYS6244
-Ref: #keys6339
-Node: SCREENS10410
-Ref: #screens10508
-Node: Accounts screen10598
-Ref: #accounts-screen10726
-Node: Register screen12941
-Ref: #register-screen13096
-Node: Transaction screen15093
-Ref: #transaction-screen15251
-Node: Error screen16121
-Ref: #error-screen16243
-Node: TIPS16487
-Ref: #tips16586
-Node: Watch mode16638
-Ref: #watch-mode16755
-Node: Watch mode limitations17501
-Ref: #watch-mode-limitations17642
-Node: ENVIRONMENT18778
-Ref: #environment18889
-Node: FILES19696
-Ref: #files19795
-Node: BUGS20008
-Ref: #bugs20085
+Node: KEYS6375
+Ref: #keys6470
+Node: SCREENS10541
+Ref: #screens10639
+Node: Accounts screen10729
+Ref: #accounts-screen10857
+Node: Register screen13072
+Ref: #register-screen13227
+Node: Transaction screen15224
+Ref: #transaction-screen15382
+Node: Error screen16252
+Ref: #error-screen16374
+Node: TIPS16618
+Ref: #tips16717
+Node: Watch mode16769
+Ref: #watch-mode16886
+Node: Watch mode limitations17632
+Ref: #watch-mode-limitations17773
+Node: ENVIRONMENT18909
+Ref: #environment19020
+Node: FILES19827
+Ref: #files19926
+Node: BUGS20139
+Ref: #bugs20216
 
 End Tag Table
 

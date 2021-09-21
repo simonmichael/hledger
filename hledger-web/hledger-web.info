@@ -219,6 +219,10 @@ before options, as shown in the synopsis above.
      generate future transactions from periodic transaction rules, for
      the next 6 months or till report end date.  In hledger-ui, also
      make ordinary future transactions visible.
+'--commodity-style'
+
+     Override the commodity style in the output for the specified
+     commodity.  For example 'EUR1.000,00'.
 '--color=WHEN (or --colour=WHEN)'
 
      Should color-supporting commands use ANSI color codes in text
@@ -609,20 +613,20 @@ Tag Table:
 Node: Top223
 Node: OPTIONS1889
 Ref: #options1994
-Node: PERMISSIONS9526
-Ref: #permissions9665
-Node: EDITING UPLOADING DOWNLOADING10877
-Ref: #editing-uploading-downloading11058
-Node: RELOADING11892
-Ref: #reloading12026
-Node: JSON API12459
-Ref: #json-api12573
-Node: ENVIRONMENT18063
-Ref: #environment18179
-Node: FILES18912
-Ref: #files19012
-Node: BUGS19225
-Ref: #bugs19303
+Node: PERMISSIONS9657
+Ref: #permissions9796
+Node: EDITING UPLOADING DOWNLOADING11008
+Ref: #editing-uploading-downloading11189
+Node: RELOADING12023
+Ref: #reloading12157
+Node: JSON API12590
+Ref: #json-api12704
+Node: ENVIRONMENT18194
+Ref: #environment18310
+Node: FILES19043
+Ref: #files19143
+Node: BUGS19356
+Ref: #bugs19434
 
 End Tag Table
 
