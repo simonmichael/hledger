@@ -43,6 +43,11 @@ For package-specific changes and minor releases, see the hledger package changel
 
 - hledger developers now use GHC 9.0/stackage nightly by default. (#1503)
 
+- Our doctests are disabled with GHC 9 for now to work around an
+  upstream bug. 
+  ([#1503](https://github.com/simonmichael/hledger/issues/1503), 
+  [#1615](https://github.com/simonmichael/hledger/issues/1615))
+
 - bin/commitlint is a new tool for hledger developers which checks and
   describes new commit conventions which simplify maintenance of
   change docs and releasing. It can be run locally while developing,

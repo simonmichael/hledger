@@ -13,11 +13,6 @@ User-visible changes in the hledger command line tool and library.
 
 Features
 
-- The new `--today=DATE` option allows overriding today's date. This
-  can be useful in tests and examples using relative dates, to make
-  them reproducible.
-  (#1674) (Stephen Morgan)
-
 - The balance command has a new `--gain` report type, showing
   unrealised capital gains/losses. Essentially, this is the difference
   between the amounts' costs and their total present value. More
@@ -38,7 +33,7 @@ Features
 
 - The `balance --budget` option can now take an argument,
   a case insensitive description substring which selects a subset of
-  the journal's periodic transactions for settinig budget goals. 
+  the journal's periodic transactions for setting budget goals. 
   This makes it possible to keep multiple named budgets in one journal, 
   and select the one you want with --budget's argument. 
   ([#1612](https://github.com/simonmichael/hledger/issues/1612))
@@ -49,35 +44,35 @@ Features
   `--forecast` (or `bal --budget`).
   (#1632, Lawrence Wu)
 
+- The new `--today=DATE` option allows overriding today's date. This
+  can be useful in tests and examples using relative dates, to make
+  them reproducible.
+  (#1674) (Stephen Morgan)
+
 Improvements
-
-- Numbers in SQL output now always use decimal period (`.`),
-  independent of commodity display styles. (Stephen Morgan)
-
-- Various incremental performance improvements have been made. (Stephen Morgan)
 
 - In CSV rules, multi-line comments are now supported. Newlines in CSV
   data are preserved, or newlines can be added by writing `\n` when
   assigning to `comment`, `comment1` etc. (Malte Brandy)
 
-- `--infer-market-price` has been renamed to `--infer-market-prices`.
-  (The old spelling still works, since we accept flag prefixes.)
-
-- `register` no longer slows down when there are many report intervals.
-  (#1683) (Stephen Morgan)
+- Numbers in SQL output now always use decimal period (`.`),
+  independent of commodity display styles. (Stephen Morgan)
 
 - `--sort` now gives a more intuitive sort oder when there are
    multiple commodities. Negative numbers in one commodity are always
    less than positive numbers in another commodity.
    (#1563, Stephen Morgan)
 
+- `--infer-market-price` has been renamed to `--infer-market-prices`.
+  (The old spelling still works, since we accept flag prefixes.)
+
 - Our pretty-printed JSON now orders object attributes alphabetically,
   across all GHC and haskell lib versions.
 
-- Our doctests are disabled with GHC 9 for now to work around an
-  upstream bug. 
-  ([#1503](https://github.com/simonmichael/hledger/issues/1503), 
-  [#1615](https://github.com/simonmichael/hledger/issues/1615))
+- `register` no longer slows down when there are many report intervals.
+  (#1683) (Stephen Morgan)
+
+- Various other incremental performance improvements have been made. (Stephen Morgan)
 
 - register with a report interval starting on custom dates
   (eg: `hledger reg -p "every 15th day of month") now makes the 
@@ -125,7 +120,7 @@ Improvements
 
 - Rules for selecting the forecast period (within with --forecast
   generates transactions) have been tweaked slightly, and
-  some variance between docs and implementation has been fixed.
+  some disagreement between docs and implementation has been fixed.
   Now, the forecast period begins on:
   - the start date supplied to the `--forecast` argument, if any
   - otherwise, the later of
@@ -138,10 +133,10 @@ Improvements
   - otherwise the report end date if specified with -e/-p/date:
   - otherwise 180 days (6 months) from today.
 
-  This is more intuitive in some cases, eg
+  This is more intuitive in some cases. (Eg:
   `hledger reg --forecast -b 2020-01-01` on a journal containing 
-  only periodic transaction rules will now show forecast transactions 
-  starting from 2020-01-01 (previously they would start from today).
+  only periodic transaction rules now shows forecast transactions 
+  starting from 2020-01-01, rather than from today.)
   ([#1648](https://github.com/simonmichael/hledger/issues/1648), 
   [#1665](https://github.com/simonmichael/hledger/issues/1665),
   [#1667](https://github.com/simonmichael/hledger/issues/1667), 
@@ -155,22 +150,22 @@ Fixes
   account directives could show wrong balances).
   (#1698) (Stephen Morgan)
 
-- The `roi` command no longer gives an ugly error in a certain case
-  with PnL applied on the first day of investment. (Dmitry Astapov)
+- aregister now aligns multicommodity amounts properly (broken since 1.21).
+  (#1656, Stephen Morgan)
 
-- `balance -E` (and hledger-ui Z) now show zero parent accounts when they should,
+- `balance -E` (and hledger-ui Z) now correctly show zero parent accounts,
   fixing a bug introduced in hledger 1.19.
   (#1688) (Stephen Morgan)
 
-- Certain errors in CSV conversion, such as a failing balance assertion,
-  were always being reported as line 2.
-
-- aregister now aligns multicommodity amounts properly (broken since 1.21).
-  (#1656, Stephen Morgan)
+- The `roi` command no longer gives an ugly error in a certain case
+  with PnL applied on the first day of investment. (Dmitry Astapov)
 
 - `--forecast` now generates transactions up to the day before the
   specified report end date (instead of two days before).
   ([#1633](https://github.com/simonmichael/hledger/issues/1633), Stephen Morgan)
+
+- Certain errors in CSV conversion, such as a failing balance assertion,
+  were always being reported as line 2.
 
 # 1.22.2 2021-08-07
 
