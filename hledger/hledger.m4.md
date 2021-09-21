@@ -351,7 +351,7 @@ Default: the full terminal width.
 **NO_COLOR**
 If this variable exists with any value, 
 hledger will not use ANSI color codes in terminal output.
-This overrides the --color/--colour option.
+This is overriden by the --color/--colour option.
 
 # DATA FILES
 
@@ -1387,9 +1387,9 @@ If you need to capture it, use shell redirects, eg: `hledger bal --debug=3 >file
 
 hledger commands can produce colour output when the terminal supports it.
 This is controlled by the `--color/--colour` option:
-- if the `NO_COLOR` environment variable is set, colour will not be used;
-- otherwise, if the `--color/--colour` option is given a value of `yes` or `always`
+- if the `--color/--colour` option is given a value of `yes` or `always`
   (or `no` or `never`), colour will (or will not) be used;
+- otherwise, if the `NO_COLOR` environment variable is set, colour will not be used;
 - otherwise, colour will be used if the output (terminal or file) supports it.
 
 hledger commands can also use unicode box-drawing characters to produce prettier tables and output.
