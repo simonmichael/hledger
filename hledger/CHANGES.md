@@ -21,9 +21,9 @@ Features
 - The balance command has a new `--gain` report type, showing
   unrealised capital gains/losses. Essentially, this is the difference
   between the amounts' costs and their total present value. More
-  precisely, between the value of the amounts' costs (so that you can
-  report gain in a different currency) and the value on the valuation
-  date(s) (period end(s) by default).
+  precisely, between the value of the amounts' costs and the value of
+  the amounts on the valuation date(s). (Ie, you can report gain in a
+  different currency.)
   (#1623, #1432, Stephen Morgan, Charlotte Van Petegem)
 
 - The new `-c/--commodity-style` option makes it easy to override
