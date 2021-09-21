@@ -167,14 +167,14 @@ debugLevel = case dropWhile (/="--debug") args of
 
 -- Avoid using dbg*, pshow etc. in this function (infinite loop).
 -- | Check the IO environment to see if ANSI colour codes should be used on stdout.
--- This is done using unsafePerformIO so it can be used anywhere, eg in 
+-- This is done using unsafePerformIO so it can be used anywhere, eg in
 -- low-level debug utilities, which should be ok since we are just reading.
--- The logic is: use color if 
--- a NO_COLOR environment variable is not defined
--- and the program was not started with --color=no|never
--- and (
---   the program was started with --color=yes|always
---   or stdout supports ANSI color and -o/--output-file was not used or is "-"
+-- The logic is: use color if
+-- the program was started with --color=yes|always
+-- or (
+--   the program was not started with --color=no|never
+--   and a NO_COLOR environment variable is not defined
+--   and stdout supports ANSI color and -o/--output-file was not used or is "-"
 -- ).
 -- Caveats:
 -- When running code in GHCI, this module must be reloaded to see a change.
@@ -200,9 +200,8 @@ useColorOnHandle h = unsafePerformIO $ do
   no_color       <- isJust <$> lookupEnv "NO_COLOR"
   supports_color <- hSupportsANSIColor h
   let coloroption = colorOption
-  return $ not no_color
-        && coloroption `notElem` ["never","no"]
-        && (coloroption `elem` ["always","yes"] || supports_color)
+  return $ coloroption `elem` ["always","yes"]
+       || (coloroption `notElem` ["never","no"] && not no_color && supports_color)
 
 -- Keep synced with color/colour flag definition in hledger:CliOptions.
 -- Avoid using dbg*, pshow etc. in this function (infinite loop).
