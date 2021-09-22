@@ -183,6 +183,11 @@ In hledger-ui, also make ordinary future transactions visible.
 : 'never' or 'no': never.
 : A NO_COLOR environment variable overrides this.
 
+`--pretty[=WHEN]`
+: Show prettier output, e.g. using unicode box-drawing characters.
+: Accepts 'yes' (the default) or 'no' ('y', 'n', 'always', 'never' also work).
+: If you provide an argument you must use '=', e.g. '--pretty=yes'.
+
 When a reporting option appears more than once in the command line, the last one takes precedence.
 
 Some reporting options can also be written as [query arguments](#queries).
