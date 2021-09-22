@@ -3336,6 +3336,9 @@ after auto postings are added. This changed in hledger 1.12+; see
 [#893](https://github.com/simonmichael/hledger/issues/893) for
 background.
 
+This also means that you cannot have more than one auto-posting with a missing
+amount applied to a given transaction, as it will be unable to infer amounts.
+
 ### Auto posting tags
 
 Automated postings will have some extra [tags](#tags-1):
