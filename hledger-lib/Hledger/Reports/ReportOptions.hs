@@ -123,6 +123,7 @@ data ReportOpts = ReportOpts {
     ,no_elide_       :: Bool
     ,real_           :: Bool
     ,format_         :: StringFormat
+    ,pretty_         :: Bool
     ,querystring_    :: [T.Text]
     --
     ,average_        :: Bool
@@ -141,7 +142,6 @@ data ReportOpts = ReportOpts {
     ,row_total_      :: Bool
     ,no_total_       :: Bool
     ,show_costs_     :: Bool  -- ^ Whether to show costs for reports which normally don't show them
-    ,pretty_         :: Bool
     ,sort_amount_    :: Bool
     ,percent_        :: Bool
     ,invert_         :: Bool  -- ^ if true, flip all amount signs in reports
@@ -178,6 +178,7 @@ defreportopts = ReportOpts
     , no_elide_        = False
     , real_            = False
     , format_          = def
+    , pretty_          = False
     , querystring_     = []
     , average_         = False
     , related_         = False
@@ -190,7 +191,6 @@ defreportopts = ReportOpts
     , row_total_       = False
     , no_total_        = False
     , show_costs_      = False
-    , pretty_          = False
     , sort_amount_     = False
     , percent_         = False
     , invert_          = False
@@ -205,6 +205,7 @@ defreportopts = ReportOpts
 -- - an invalid --format argument,
 -- - an invalid --value argument,
 -- - if --valuechange is called with a valuation type other than -V/--value=end.
+-- - an invalid --pretty argument,
 rawOptsToReportOpts :: Day -> RawOpts -> ReportOpts
 rawOptsToReportOpts d rawopts =
 
@@ -309,6 +310,7 @@ alwaysneveropt opt rawopts = case maybestringopt opt rawopts of
     Just "never"  -> Just False
     Just "no"     -> Just False
     Just "n"      -> Just False
+    Just _        -> usageError "argument to --pretty should be \"yes\" or \"no\""
     _             -> Nothing
 
 balanceAccumulationOverride :: RawOpts -> Maybe BalanceAccumulation
