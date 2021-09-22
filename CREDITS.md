@@ -1,6 +1,7 @@
 # hledger CREDITS
 
 hledger is brought to you by the
+
 - Issue wranglers,
 - Bug hunters,
 - Design dreamers,
@@ -12,7 +13,7 @@ hledger is brought to you by the
 - Bank rollers,
 - Broom pushers,
 
-and by the visionary John Wiegley, who blazed the trail with [Ledger](https://ledger-cli.org),
+by the pioneering John Wiegley, who opened up this territory with [Ledger](https://ledger-cli.org),
 
 and by the innumerable other benefactors making it all possible.
 
