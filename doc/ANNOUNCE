@@ -1,20 +1,37 @@
-I'm very pleased to announce hledger 1.22 !
-https://hledger.org/release-notes.html#hledger-1-22 
+We are very pleased to announce..
+
+..that the hledger repo recently passed 10000 commits.
+See https://hledger.org/CREDITS.html for more details, perhaps your name is there.
+
+Also.. hledger 1.23 !
+
+https://hledger.org/release-notes.html#hledger-1-23
 describes the user-visible changes. Highlights include:
 
-- Optimisations: about 20% faster overall, with register about 2x
-  faster and 4x more memory-efficient
+- Capital gains reporting (`bal --gain`)
 
-- Bugfixes, including fixes for several regressions.
+- Separate symbol/number display (`--commodity-column`)
 
-Thank you to the following release contributors this time around:
-Felix Yan,
-crocket,
-Eric Mertens,
-Damien Cassou,
-charukiewicz,
-Garret McGraw,
-and especially Stephen Morgan.
+- Command line commodity styling (`-c|--commodity-style`)
+
+- budget selection (`bal --budget=BUDGETNAME`)
+
+- weekday/weekend recurrence (`~ every weekday  ...`)
+
+- 10% speedup
+
+- Bugfixes.
+
+Thank you to release contributors:
+Stephen Morgan,
+Lawrence Wu,
+Jakob Schöttl,
+Dmitry Astapov,
+Malte Brandy,
+Arsen Arsenović,
+Arjen Langebaerd,
+Alan Young,
+Daniel Gröber.
 
 
 hledger (https://hledger.org) is a dependable, cross-platform "plain
