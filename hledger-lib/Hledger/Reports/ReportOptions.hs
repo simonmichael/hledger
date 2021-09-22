@@ -310,7 +310,7 @@ alwaysneveropt opt rawopts = case maybestringopt opt rawopts of
     Just "never"  -> Just False
     Just "no"     -> Just False
     Just "n"      -> Just False
-    Just _        -> usageError "argument to --pretty should be \"yes\" or \"no\""
+    Just _        -> usageError "--pretty's argument should be \"yes\" or \"no\" (or y, n, always, never)"
     _             -> Nothing
 
 balanceAccumulationOverride :: RawOpts -> Maybe BalanceAccumulation
