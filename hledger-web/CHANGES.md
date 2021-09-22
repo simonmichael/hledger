@@ -9,7 +9,7 @@ __      _____| |__
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 9cae7a076
+# 1.23 2021-09-21
 
 Improvements
 
@@ -19,18 +19,21 @@ Improvements
 
 Fixes
 
-- Toggle showing zero items properly even when called with --empty. (#1237) (Stephen Morgan)
+- Toggle showing zero items properly even when called with --empty. 
+  ([#1237](https://github.com/simonmichael/hledger/issues/1237), Stephen Morgan)
 
-- Do not hide empty accounts if they have non-empty subaccounts. (#1237) (Stephen Morgan)
+- Do not hide empty accounts if they have non-empty subaccounts. 
+  ([#1237](https://github.com/simonmichael/hledger/issues/1237), Stephen Morgan)
 
-- Allow unbalanced postings (parenthesised account name) in the add transaction form. (#1058) (Stephen Morgan)
+- Allow unbalanced postings (parenthesised account name) in the add transaction form. 
+  ([#1058](https://github.com/simonmichael/hledger/issues/1058), Stephen Morgan)
 
 - An XSS (cross-site scripting) vulnerability has been fixed.
   Previously (since hledger-web 0.24), javascript code could be added 
   to any autocompleteable field and could be executed automatically 
   by subsequent visitors viewing the journal.
   Thanks to Gaspard Baye and Hamidullah Muslih for reporting this vulnerability.
-  (#1525, Arsen Arsenović)
+  ([#1525](https://github.com/simonmichael/hledger/issues/1525), Arsen Arsenović)
 
 API changes
 

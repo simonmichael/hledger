@@ -9,7 +9,7 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 9cae7a076
+# 1.23 2021-09-21
 
 Features
 
@@ -19,17 +19,22 @@ Features
   precisely, between the value of the amounts' costs and the value of
   the amounts on the valuation date(s). (Ie, you can report gain in a
   different currency.)
-  (#1623, #1432, Stephen Morgan, Charlotte Van Petegem)
+  ([#1623](https://github.com/simonmichael/hledger/issues/1623),
+  [#1432](https://github.com/simonmichael/hledger/issues/1432),
+  Stephen Morgan, Charlotte Van Petegem)
 
 - The new `-c/--commodity-style` option makes it easy to override
   commodity display styles at runtime, eg to adjust the number of
   decimal places or change the position of the symbol.
-  (#1593, Arjen Langebaerd)
+  ([#1593](https://github.com/simonmichael/hledger/issues/1593), Arjen Langebaerd)
 
 - The balance commands have a new `--commodity-column` flag that
   displays commodity symbols in a dedicated column, showing one line
   per commodity and all amounts as bare numbers.
-  (#1559, #1626, #1654, Lawrence Wu, Simon Michael, Stephen Morgan)
+  ([#1559](https://github.com/simonmichael/hledger/issues/1559),
+  [#1626](https://github.com/simonmichael/hledger/issues/1626),
+  [#1654](https://github.com/simonmichael/hledger/issues/1654),
+  Lawrence Wu, Simon Michael, Stephen Morgan)
 
 - The `balance --budget` option can now take an argument,
   a case insensitive description substring which selects a subset of
@@ -42,26 +47,35 @@ Features
   `every mon,wed,...` (multiple days of the week).
   This is intended for periodic transaction rules used with
   `--forecast` (or `bal --budget`).
-  (#1632, Lawrence Wu)
+  ([#1632](https://github.com/simonmichael/hledger/issues/1632), Lawrence Wu)
 
 - The new `--today=DATE` option allows overriding today's date. This
   can be useful in tests and examples using relative dates, to make
   them reproducible.
-  (#1674) (Stephen Morgan)
-
-Improvements
+  ([#1674](https://github.com/simonmichael/hledger/issues/1674), Stephen Morgan)
 
 - In CSV rules, multi-line comments are now supported. Newlines in CSV
   data are preserved, or newlines can be added by writing `\n` when
-  assigning to `comment`, `comment1` etc. (Malte Brandy)
+  assigning to `comment`, `comment1` etc. 
+  (Malte Brandy)
+
+Improvements
+
+- Incremental performance improvements; hledger 1.23 is the fastest
+  hledger yet, about 10% faster than 1.22. 
+  (Stephen Morgan)
+
+- `register` no longer slows down when there are many report intervals.
+  ([#1683](https://github.com/simonmichael/hledger/issues/1683), Stephen Morgan)
 
 - Numbers in SQL output now always use decimal period (`.`),
-  independent of commodity display styles. (Stephen Morgan)
+  independent of commodity display styles. 
+  (Stephen Morgan)
 
 - `--sort` now gives a more intuitive sort oder when there are
    multiple commodities. Negative numbers in one commodity are always
    less than positive numbers in another commodity.
-   (#1563, Stephen Morgan)
+   ([#1563](https://github.com/simonmichael/hledger/issues/1563), Stephen Morgan)
 
 - `--infer-market-price` has been renamed to `--infer-market-prices`.
   (The old spelling still works, since we accept flag prefixes.)
@@ -69,34 +83,14 @@ Improvements
 - Our pretty-printed JSON now orders object attributes alphabetically,
   across all GHC and haskell lib versions.
 
-- `register` no longer slows down when there are many report intervals.
-  (#1683) (Stephen Morgan)
-
-- Various other incremental performance improvements have been made. (Stephen Morgan)
-
 - register with a report interval starting on custom dates
   (eg: `hledger reg -p "every 15th day of month") now makes the 
   date column wide enough to show the start and end dates.
   It also wastes less whitespace after the column.
-  (#1655, Stephen Morgan)
+  ([#1655](https://github.com/simonmichael/hledger/issues/1655), Stephen Morgan)
 
 - The --forecast option will now reject a report interval in its
   argument, instead of silently ignoring it.
-
-- doc: clarify period expressions, report intervals
-
-- Clarify version string code:
-  ```
-  version -> packageversion
-  versiondescription -> versionStringFor
-  ```
-
-- Require githash >=0.1.4.0, simplify version code.
-
-- Require base >=4.11, prevent red squares on Hackage's build matrix.
-  (We officially support GHC 8.6+, which means base 4.12, 
-  but Hackage shows all packages building successfully with 
-  base 4.11/GHC 8.4+ somehow, so it's still allowed..)
 
 - In JSON output, object attributes are now ordered alphabetically,
   consistently for all GHC and haskell lib versions. 
@@ -142,20 +136,25 @@ Improvements
   [#1667](https://github.com/simonmichael/hledger/issues/1667), 
   Stephen Morgan, Simon Michael)
 
+- Require base >=4.11, prevent red squares on Hackage's build matrix.
+  (We officially support GHC 8.6+, which means base 4.12, 
+  but Hackage shows all packages building successfully with 
+  base 4.11/GHC 8.4+ somehow, so it's still allowed..)
+
 Fixes
 
 - A rare bug causing incorrect balances to be reported by the
   cf/bs/bse/is commands, since hledger 1.19, has been fixed.
   (cf/bs/bse/is with --tree --no-elide --begin DATE and certain
   account directives could show wrong balances).
-  (#1698) (Stephen Morgan)
+  ([#1698](https://github.com/simonmichael/hledger/issues/1698), Stephen Morgan)
 
 - aregister now aligns multicommodity amounts properly (broken since 1.21).
-  (#1656, Stephen Morgan)
+  ([#1656](https://github.com/simonmichael/hledger/issues/1656), Stephen Morgan)
 
 - `balance -E` (and hledger-ui Z) now correctly show zero parent accounts,
   fixing a bug introduced in hledger 1.19.
-  (#1688) (Stephen Morgan)
+  ([#1688](https://github.com/simonmichael/hledger/issues/1688), Stephen Morgan)
 
 - The `roi` command no longer gives an ugly error in a certain case
   with PnL applied on the first day of investment. (Dmitry Astapov)

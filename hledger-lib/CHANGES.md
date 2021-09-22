@@ -9,7 +9,7 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 378df7700
+# 1.23 2021-09-21
 
 - Require base >=4.11, prevent red squares on Hackage's build matrix.
 
@@ -67,7 +67,7 @@ Much code cleanup and reorganisation, such as:
   as it is now equivalent to utcTimeToPOSIXSeconds from Data.Time.Clock.POSIX.
   To get the current system time, you should now use getPOSIXTime 
   from Data.Time.Clock.POSIX instead of getClockTime.
-  (#1650, Stephen Morgan)
+  ([#1650](https://github.com/simonmichael/hledger/issues/1650), Stephen Morgan)
 
 - modifyTransactions now takes a Map of commodity styles, and will style amounts according to that argument. journalAddForecast and journalTransform now return an Either String Journal. (Stephen Morgan)
   This improves efficiency, as we no longer have to restyle all amounts in

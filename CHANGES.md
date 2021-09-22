@@ -9,15 +9,32 @@
 General changes in the hledger project (and notable all-package releases).
 For package-specific changes and minor releases, see the hledger package changelogs.
 
-# c2e6a2931
+# 1.23 2021-09-21
 
-- Added a public BACKLOG.org to the hledger repo and website.
+Software:
 
 - The bin/hledger-check-fancyassertions.hs addon script,
   allowing more complex balance assertions, works again.
   (#1464, Stephen Morgan)
 
-- many code cleanups suggested by hlint (Stephen Morgan)
+- Many code cleanups suggested by hlint (Stephen Morgan)
+
+Docs:
+
+- Added a public BACKLOG.org to the hledger repo and website.
+
+- Website updates:
+
+  - Reorganised site content.
+  - Improved page tables of contents.
+  - Content fixes.
+  - New docs:
+    Currency conversion.
+    hledger and Beancount/GnuCash/Ledger/Quicken.
+
+- New examples: systemd and nginx configs for hledger-web (Alan Young)
+
+Tools/process:
 
 - `make site-watch` works again
 
@@ -26,20 +43,10 @@ For package-specific changes and minor releases, see the hledger package changel
 - `Shake cabalfiles` now uses (and requires) hpack in $PATH, to avoid building.
   It should be the version that's in the current stack release, to avoid commit conflicts.
 
-- website updates:
-  - Reorganised site content.
-  - Improved page tables of contents.
-  - Content fixes.
-  - New docs:
-    Currency conversion.
-    hledger and Beancount/GnuCash/Ledger/Quicken.
-
 - shake: changelogs: A leading semicolon now means 
   "skip most CI steps", not "omit from changelog".
 
 - ci: most steps are skipped if commit message begins with ;.
-
-- New examples: systemd and nginx configs for hledger-web (Alan Young)
 
 - hledger developers now use GHC 9.0/stackage nightly by default. (#1503)
 
