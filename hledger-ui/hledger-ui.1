@@ -1,5 +1,5 @@
 
-.TH "HLEDGER-UI" "1" "September 2021" "hledger-ui-1.22.99 " "hledger User Manuals"
+.TH "HLEDGER-UI" "1" "September 2021" "hledger-ui-1.23 " "hledger User Manuals"
 
 
 
@@ -7,7 +7,7 @@
 .PP
 hledger-ui is a terminal interface (TUI) for the hledger accounting
 tool.
-This manual is for hledger-ui 1.22.99.
+This manual is for hledger-ui 1.23.
 .SH SYNOPSIS
 .PP
 \f[C]hledger-ui [OPTIONS] [QUERYARGS]\f[R]
@@ -185,6 +185,14 @@ terminal.
 into \[aq]less -R\[aq].
 \[aq]never\[aq] or \[aq]no\[aq]: never.
 A NO_COLOR environment variable overrides this.
+.TP
+\f[B]\f[CB]--pretty[=WHEN]\f[B]\f[R]
+Show prettier output, e.g.
+using unicode box-drawing characters.
+Accepts \[aq]yes\[aq] (the default) or \[aq]no\[aq] (\[aq]y\[aq],
+\[aq]n\[aq], \[aq]always\[aq], \[aq]never\[aq] also work).
+If you provide an argument you must use \[aq]=\[aq], e.g.
+\[aq]--pretty=yes\[aq].
 .PP
 When a reporting option appears more than once in the command line, the
 last one takes precedence.

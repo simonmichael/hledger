@@ -1,12 +1,12 @@
 
-.TH "HLEDGER-WEB" "1" "September 2021" "hledger-web-1.22.99 " "hledger User Manuals"
+.TH "HLEDGER-WEB" "1" "September 2021" "hledger-web-1.23 " "hledger User Manuals"
 
 
 
 .SH NAME
 .PP
 hledger-web is a web interface (WUI) for the hledger accounting tool.
-This manual is for hledger-web 1.22.99.
+This manual is for hledger-web 1.23.
 .SH SYNOPSIS
 .PP
 \f[C]hledger-web [OPTIONS]\f[R]
@@ -214,6 +214,14 @@ terminal.
 into \[aq]less -R\[aq].
 \[aq]never\[aq] or \[aq]no\[aq]: never.
 A NO_COLOR environment variable overrides this.
+.TP
+\f[B]\f[CB]--pretty[=WHEN]\f[B]\f[R]
+Show prettier output, e.g.
+using unicode box-drawing characters.
+Accepts \[aq]yes\[aq] (the default) or \[aq]no\[aq] (\[aq]y\[aq],
+\[aq]n\[aq], \[aq]always\[aq], \[aq]never\[aq] also work).
+If you provide an argument you must use \[aq]=\[aq], e.g.
+\[aq]--pretty=yes\[aq].
 .PP
 When a reporting option appears more than once in the command line, the
 last one takes precedence.

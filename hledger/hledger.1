@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "September 2021" "hledger-1.22.99 " "hledger User Manuals"
+.TH "HLEDGER" "1" "September 2021" "hledger-1.23 " "hledger User Manuals"
 
 
 
@@ -9,7 +9,7 @@
 This is the command-line interface (CLI) for the hledger accounting
 tool.
 Here we also describe hledger\[aq]s concepts and file formats.
-This manual is for hledger 1.22.99.
+This manual is for hledger 1.23.
 .SH SYNOPSIS
 .PP
 \f[C]hledger\f[R]
@@ -207,6 +207,14 @@ terminal.
 into \[aq]less -R\[aq].
 \[aq]never\[aq] or \[aq]no\[aq]: never.
 A NO_COLOR environment variable overrides this.
+.TP
+\f[B]\f[CB]--pretty[=WHEN]\f[B]\f[R]
+Show prettier output, e.g.
+using unicode box-drawing characters.
+Accepts \[aq]yes\[aq] (the default) or \[aq]no\[aq] (\[aq]y\[aq],
+\[aq]n\[aq], \[aq]always\[aq], \[aq]never\[aq] also work).
+If you provide an argument you must use \[aq]=\[aq], e.g.
+\[aq]--pretty=yes\[aq].
 .PP
 When a reporting option appears more than once in the command line, the
 last one takes precedence.
@@ -528,7 +536,7 @@ Default: the full terminal width.
 .PP
 \f[B]NO_COLOR\f[R] If this variable exists with any value, hledger will
 not use ANSI color codes in terminal output.
-This overrides the --color/--colour option.
+This is overriden by the --color/--colour option.
 .SH DATA FILES
 .PP
 hledger reads transactions from one or more data files.
@@ -2308,6 +2316,24 @@ hledger can optionally produce debug output (if enabled with
 \f[C]-o/--output-file\f[R].
 If you need to capture it, use shell redirects, eg:
 \f[C]hledger bal --debug=3 >file 2>&1\f[R].
+.SS Output styling
+.PP
+hledger commands can produce colour output when the terminal supports
+it.
+This is controlled by the \f[C]--color/--colour\f[R] option: - if the
+\f[C]--color/--colour\f[R] option is given a value of \f[C]yes\f[R] or
+\f[C]always\f[R] (or \f[C]no\f[R] or \f[C]never\f[R]), colour will (or
+will not) be used; - otherwise, if the \f[C]NO_COLOR\f[R] environment
+variable is set, colour will not be used; - otherwise, colour will be
+used if the output (terminal or file) supports it.
+.PP
+hledger commands can also use unicode box-drawing characters to produce
+prettier tables and output.
+This is controlled by the \f[C]--pretty\f[R] option: - if the
+\f[C]--pretty\f[R] option is given a value of \f[C]yes\f[R] or
+\f[C]always\f[R] (or \f[C]no\f[R] or \f[C]never\f[R]), unicode
+characters will (or will not) be used; - otherwise, unicode characters
+will not be used.
 .SS Output format
 .PP
 Some commands (print, register, the balance commands) offer a choice of
