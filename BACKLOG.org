@@ -85,6 +85,7 @@ Financial reports:
  roi                      show a return on investment report
 *** --pivot: list possible arguments in help
 ** cli: --version: include latest commit date
+** cli: --version: include git branch name if not master ?
 ** compat: support reading with beancount2ledger when in PATH
 ** compat: support reading with ledger2beancount & beancount2ledger when in PATH
 ** doc: quickstart: update download instructions, make maintainable
