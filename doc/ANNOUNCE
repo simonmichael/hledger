@@ -1,3 +1,4 @@
+
 We are very pleased to announce..
 
 ..that the hledger repo recently passed 10000 commits.
@@ -51,17 +52,18 @@ $ less hledger-install.sh   # security review
 $ bash hledger-install.sh
 
 New users, check out https://hledger.org/quickstart
-or the tutorials (with pictures!) at hledger.org -> FIRST STEPS
+or the tutorials (with pictures) at hledger.org -> FIRST STEPS
 or the https://hledger.org/videos.html.
 
-To get help, see https://hledger.org#help, and join one of our chat rooms:
+To get help, see https://hledger.org#help, and join our chat via Matrix:
 
 - #hledger:matrix.org  (http://matrix.hledger.org)
+
+or Libera (they are bridged):
+
 - #hledger:libera.chat (http://irc.hledger.org)
 
-Beginners and experts, contributors, sponsors, and all feedback are most welcome!
-
-
+Beginners and experts, contributors, sponsors, and all feedback are most welcome.
 Wishing you health and prosperity,
 
 -Simon
