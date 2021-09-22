@@ -15,17 +15,17 @@ module Hledger.Cli.Commands.Print (
 )
 where
 
-import Data.Maybe (isJust)
 import Data.Text (Text)
 import Data.List (intersperse)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
+import Lens.Micro (_Just, has)
 import System.Console.CmdArgs.Explicit
-import Hledger.Read.CsvReader (CSV, printCSV)
 
 import Hledger
+import Hledger.Read.CsvReader (CSV, printCSV)
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
 
@@ -76,21 +76,27 @@ entriesReportAsText opts = TB.toLazyText . foldMap (TB.fromText . showTransactio
   where
     whichtxn
       -- With -x, use the fully-inferred txn with all amounts & txn prices explicit.
-      | boolopt "explicit" (rawopts_ opts)
-        -- Or also, if any of -B/-V/-X/--value are active.
-        -- Because of #551, and because of print -V valuing only one
-        -- posting when there's an implicit txn price.
-        -- So -B/-V/-X/--value implies -x. Is this ok ?
-        || (isJust . value_ . _rsReportOpts $ reportspec_ opts) = id
+      | boolopt "explicit" (rawopts_ opts) = id
+      -- Or also, if any of -B/-V/-X/--value are active.
+      -- Because of #551, and because of print -V valuing only one
+      -- posting when there's an implicit txn price.
+      -- So -B/-V/-X/--value implies -x. Is this ok ?
+      | has (value . _Just) opts = id
       -- By default, use the original as-written-in-the-journal txn.
       | otherwise = originalTransaction
 
 -- Replace this transaction's postings with the original postings if any, but keep the
--- current possibly rewritten account names.
+-- current possibly rewritten account names, and the inferred values of any auto postings
 originalTransaction t = t { tpostings = map originalPostingPreservingAccount $ tpostings t }
 
--- Get the original posting if any, but keep the current possibly rewritten account name.
-originalPostingPreservingAccount p = (originalPosting p) { paccount = paccount p }
+-- Get the original posting if any, but keep the current possibly rewritten account name, and
+-- the inferred values of any auto postings
+originalPostingPreservingAccount p = orig
+    { paccount = paccount p
+    , pamount = pamount $ if isGenerated then p else orig }
+  where
+    orig = originalPosting p
+    isGenerated = "generated-posting" `elem` map fst (ptags p)
 
 -- XXX
 -- tests_showTransactions = [
