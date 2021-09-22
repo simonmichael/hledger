@@ -112,3 +112,23 @@ hledger -f - print --explicit
 
 >>>2
 >>>=0
+
+# 9. Auto postings are always explicit
+hledger -f - print --auto
+<<<
+= a
+    c  *-0.453
+    d
+
+2021-09-01
+    a    1000 EUR
+    b
+>>>
+2021-09-01  ; modified:
+    a        1000 EUR
+    c        -453 EUR  ; generated-posting: = a
+    d         453 EUR  ; generated-posting: = a
+    b
+
+>>>2
+>>>=0
