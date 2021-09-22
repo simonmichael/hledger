@@ -36,6 +36,8 @@ etc.
 
 -}
 
+{-# LANGUAGE LambdaCase #-}
+
 module Hledger.Cli.Main where
 
 import Data.Char (isDigit)
@@ -234,28 +236,29 @@ moveFlagsAfterCommand args = moveArgs $ ensureDebugHasArg args
 
     moveArgs args = insertFlagsAfterCommand $ moveArgs' (args, [])
       where
-        -- -h ..., --version ...
-        moveArgs' ((f:a:as), flags)   | isMovableNoArgFlag f                   = moveArgs' (a:as, flags ++ [f])
         -- -f FILE ..., --alias ALIAS ...
         moveArgs' ((f:v:a:as), flags) | isMovableReqArgFlag f, isValue v       = moveArgs' (a:as, flags ++ [f,v])
         -- -fFILE ..., --alias=ALIAS ...
-        moveArgs' ((fv:a:as), flags)  | isMovableReqArgFlagAndValue fv         = moveArgs' (a:as, flags ++ [fv])
+        moveArgs' ((fv:a:as), flags)  | isMovableArgFlagAndValue fv            = moveArgs' (a:as, flags ++ [fv])
         -- -f(missing arg)
         moveArgs' ((f:a:as), flags)   | isMovableReqArgFlag f, not (isValue a) = moveArgs' (a:as, flags ++ [f])
+        -- -h ..., --version ...
+        moveArgs' ((f:a:as), flags)   | isMovableNoArgFlag f                   = moveArgs' (a:as, flags ++ [f])
         -- anything else
         moveArgs' (as, flags) = (as, flags)
 
         insertFlagsAfterCommand ([],           flags) = flags
         insertFlagsAfterCommand (command:args, flags) = [command] ++ flags ++ args
 
-isMovableNoArgFlag a  = "-" `isPrefixOf` a && dropWhile (=='-') a `elem` noargflagstomove
+isMovableNoArgFlag a  = "-" `isPrefixOf` a && dropWhile (=='-') a `elem` optargflagstomove ++ noargflagstomove
 
 isMovableReqArgFlag a = "-" `isPrefixOf` a && dropWhile (=='-') a `elem` reqargflagstomove
 
-isMovableReqArgFlagAndValue ('-':'-':a:as) = case break (== '=') (a:as) of (f:fs,_:_) -> (f:fs) `elem` reqargflagstomove
-                                                                           _          -> False
-isMovableReqArgFlagAndValue ('-':shortflag:_:_) = [shortflag] `elem` reqargflagstomove
-isMovableReqArgFlagAndValue _ = False
+isMovableArgFlagAndValue ('-':'-':a:as) = case break (== '=') (a:as) of
+    (f:fs,_:_) -> (f:fs) `elem` optargflagstomove ++ reqargflagstomove
+    _          -> False
+isMovableArgFlagAndValue ('-':shortflag:_:_) = [shortflag] `elem` reqargflagstomove
+isMovableArgFlagAndValue _ = False
 
 isValue "-"     = True
 isValue ('-':_) = False
@@ -265,3 +268,9 @@ flagstomove = inputflags ++ reportflags ++ helpflags
 noargflagstomove  = concatMap flagNames $ filter ((==FlagNone).flagInfo) flagstomove
 reqargflagstomove = -- filter (/= "debug") $
                     concatMap flagNames $ filter ((==FlagReq ).flagInfo) flagstomove
+optargflagstomove = concatMap flagNames $ filter (isFlagOpt   .flagInfo) flagstomove
+  where
+    isFlagOpt = \case
+      FlagOpt     _ -> True
+      FlagOptRare _ -> True
+      _             -> False
