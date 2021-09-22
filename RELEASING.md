@@ -120,28 +120,18 @@ In release branch:
 - `stack clean && stack install && hledger --version && hledger-ui --version && hledger-web --version`
   to build locally and check version strings
 
-- push to CI branches to test & generate binaries
+- push to CI branches to test and to build release binaries
   - magit `P -f e origin/ci-windows`
   - magit `P -f e origin/ci-mac`
   - magit `P -f e origin/ci-linux-static`
-  - magit `P -f e origin/ci-linux-static-arm32` if needed
+  - magit `P -f e origin/ci-linux-static-arm32` (at release time only)
+  - Tips:
+    - build these release binaries at the very last possible moment
+    - last commit should be a notable one - not docs only, not beginning with ;
 
 In site repo:
 
-- update `download.md`
-  - outputs in --version examples (search: hledger --version)
-  - final output line from `hledger test` (run in terminal for normal speed)
-  - Total count from `make functest`
-  - query-replace OLD -> NEW in 
-    - "current hledger release"
-    - CI binaries badges/links, including linux-static-arm32v7 if built
-    - "building from source"
-    - stack install command
-    - cabal install command
-  - query-replace OLD-brightgreen -> OLD-red
-  - commit: `download: NEW`
-
-- update `relnotes.md`
+- update `release-notes.md`
   - copy template, uncomment
   - replace date
   - replace XX with NEW
@@ -151,6 +141,20 @@ In site repo:
   - add summary (major release) or remove it (minor release)
   - check preview in vs code
   - commit: `relnotes: NEW`
+
+- update `download.md`
+  - query-replace OLD -> NEW in 
+    - "current hledger release"
+    - CI binaries badges/links, including linux-static-arm32v7 if built
+    - "building from source"
+    - stack install command
+    - cabal install command
+  - query-replace OLD-brightgreen -> OLD-red
+  - only after release binaries are built (preferably after release is published):
+    update --version outputs (search: hledger --version)
+  - final output line from `hledger test` (run in terminal for normal speed)
+  - Total count from `make functest`
+  - commit: `download: NEW`
 
 In release branch:
 
@@ -195,8 +199,7 @@ In release branch:
 - announce
   - push site download/relnotes updates
   - push master hledger-install update
-  - share release notes link, summary in #hledger:libera.chat
-  - share release notes link, summary, release notes markdown in #hledger:matrix.org
+  - share release notes link, then markdown content, in #hledger chat
   - send ANNOUNCE to hledger@googlegroups.com, haskell-cafe@googlegroups.com (major release)
     or brief announcement to hledger@googlegroups.com (minor release)
     - ANN: hledger NEW
