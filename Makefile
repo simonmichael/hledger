@@ -414,11 +414,11 @@ ghci-doctest: $(call def-help,ghci-doctest, start ghci REPL on hledger-lib docte
 ghci-shake: $(call def-help,ghci-shake, start ghci REPL on Shake.hs)
 	stack exec $(SHAKEDEPS) -- ghci Shake.hs
 
-copy-exe-%: $(call def-help,copy-exe-VER, copy ~/.local/bin/hledger to hledger.VER)
-	cp ~/.local/bin/hledger{,.$*}
+copy-exe-%: $(call def-help,copy-exe-VER, copy ~/.local/bin/hledger to hledger-VER)
+	cp ~/.local/bin/hledger{,-$*}
 
-copy-exes-%: $(call def-help,copy-exes-VER, copy ~/.local/bin/hledger* to hledger*.VER)
-	for EXE in $(BINARIES); do cp ~/.local/bin/$$EXE{,.$*}; done
+copy-exes-%: $(call def-help,copy-exes-VER, copy ~/.local/bin/hledger* to hledger*-VER)
+	for EXE in $(BINARIES); do cp ~/.local/bin/$$EXE{,-$*}; done
 
 # make must be GNU Make 4.3+
 .PHONY: shellcompletions
