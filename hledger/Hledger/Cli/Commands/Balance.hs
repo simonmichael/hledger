@@ -306,6 +306,7 @@ balancemode = hledgerCommandMode
     ++ flattreeflags True ++
     [flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "omit N leading account name parts (in flat mode)"
     ,flagNone ["average","A"] (setboolopt "average") "show a row average column (in multicolumn reports)"
+    ,flagNone ["related","r"] (setboolopt "related") "show postings' siblings instead"
     ,flagNone ["row-total","T"] (setboolopt "row-total") "show a row total column (in multicolumn reports)"
     ,flagNone ["no-total","N"] (setboolopt "no-total") "omit the final total row"
     ,flagNone ["no-elide"] (setboolopt "no-elide") "don't squash boring parent accounts (in tree mode); don't show only 2 commodities per amount"
