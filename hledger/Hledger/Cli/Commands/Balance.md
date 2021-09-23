@@ -73,6 +73,9 @@ This command supports the
 with output formats `txt`, `csv`, `json`, and (multi-period reports only:) `html`. 
 In `txt` output in a colour-supporting terminal, negative amounts are shown in red.
 
+The `--related`/`-r` flag shows the balance of the *other* postings in the
+transactions of the postings which would normally be shown.
+
 ### Simple balance report
 
 With no arguments, `balance` shows a list of all accounts and their
