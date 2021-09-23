@@ -524,7 +524,9 @@ journalApplyValuationFromOptsWith rspec@ReportSpec{_rsReportOpts=ropts} j priceo
 
     -- Find the end of the period containing this posting
     periodEnd  = addDays (-1) . fromMaybe err . mPeriodEnd . postingDate
-    mPeriodEnd = spanEnd <=< latestSpanContaining (historical : spans)
+    mPeriodEnd = case interval_ ropts of
+        NoInterval -> const . spanEnd $ reportSpan j rspec
+        _          -> spanEnd <=< latestSpanContaining (historical : spans)
     historical = DateSpan Nothing $ spanStart =<< headMay spans
     spans = splitSpan (interval_ ropts) $ reportSpanBothDates j rspec
     styles = journalCommodityStyles j
