@@ -250,21 +250,18 @@ getPostingsByColumn rspec j priceoracle reportspan =
 
 -- | Gather postings matching the query within the report period.
 getPostings :: ReportSpec -> Journal -> PriceOracle -> [Posting]
-getPostings rspec@ReportSpec{_rsQuery=query,_rsReportOpts=ropts} j priceoracle =
-    journalPostings .
-    valueJournal .
-    filterJournalAmounts symq $      -- remove amount parts excluded by cur:
-    filterJournalPostings reportq j  -- remove postings not matched by (adjusted) query
+getPostings rspec@ReportSpec{_rsQuery=query, _rsReportOpts=ropts} j priceoracle =
+    journalPostings $ journalValueAndFilterPostingsWith rspec' j priceoracle
   where
-    symq = dbg3 "symq" . filterQuery queryIsSym $ dbg3 "requested q" query
+    rspec' = rspec{_rsQuery=depthless, _rsReportOpts = ropts'}
+    ropts' = if isJust (valuationAfterSum ropts)
+        then ropts{value_=Nothing, cost_=NoCost}  -- If we're valuing after the sum, don't do it now
+        else ropts
+
     -- The user's query with no depth limit, and expanded to the report span
     -- if there is one (otherwise any date queries are left as-is, which
     -- handles the hledger-ui+future txns case above).
-    reportq = dbg3 "reportq" $ depthless query
-    depthless = dbg3 "depthless" . filterQuery (not . queryIsDepth)
-    valueJournal j' | isJust (valuationAfterSum ropts) = j'
-                    | otherwise = journalApplyValuationFromOptsWith rspec j' priceoracle
-
+    depthless = dbg3 "depthless" $ filterQuery (not . queryIsDepth) query
 
 -- | Given a set of postings, eg for a single report column, gather
 -- the accounts that have postings and calculate the change amount for

@@ -521,19 +521,26 @@ filterJournalPostings q j@Journal{jtxns=ts} = j{jtxns=map (filterTransactionPost
 filterJournalRelatedPostings :: Query -> Journal -> Journal
 filterJournalRelatedPostings q j@Journal{jtxns=ts} = j{jtxns=map (filterTransactionRelatedPostings q) ts}
 
--- | Within each posting's amount, keep only the parts matching the query.
+-- | Within each posting's amount, keep only the parts matching the query, and
+-- remove any postings with all amounts removed.
 -- This can leave unbalanced transactions.
 filterJournalAmounts :: Query -> Journal -> Journal
 filterJournalAmounts q j@Journal{jtxns=ts} = j{jtxns=map (filterTransactionAmounts q) ts}
 
--- | Filter out all parts of this transaction's amounts which do not match the query.
+-- | Filter out all parts of this transaction's amounts which do not match the
+-- query, and remove any postings with all amounts removed.
 -- This can leave the transaction unbalanced.
 filterTransactionAmounts :: Query -> Transaction -> Transaction
-filterTransactionAmounts q t@Transaction{tpostings=ps} = t{tpostings=map (filterPostingAmount q) ps}
+filterTransactionAmounts q t@Transaction{tpostings=ps} = t{tpostings=mapMaybe (filterPostingAmount q) ps}
 
--- | Filter out all parts of this posting's amount which do not match the query.
-filterPostingAmount :: Query -> Posting -> Posting
-filterPostingAmount q p@Posting{pamount=as} = p{pamount=filterMixedAmount (q `matchesAmount`) as}
+-- | Filter out all parts of this posting's amount which do not match the query, and remove the posting
+-- if this removes all amounts.
+filterPostingAmount :: Query -> Posting -> Maybe Posting
+filterPostingAmount q p@Posting{pamount=as}
+  | null newamt = Nothing
+  | otherwise   = Just p{pamount=Mixed newamt}
+  where
+    Mixed newamt = filterMixedAmount (q `matchesAmount`) as
 
 filterTransactionPostings :: Query -> Transaction -> Transaction
 filterTransactionPostings q t@Transaction{tpostings=ps} = t{tpostings=filter (q `matchesPosting`) ps}

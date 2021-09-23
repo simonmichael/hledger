@@ -113,29 +113,21 @@ registerRunningCalculationFn ropts
 -- A helper for the postings report.
 matchedPostingsBeforeAndDuring :: ReportSpec -> Journal -> DateSpan -> ([Posting],[Posting])
 matchedPostingsBeforeAndDuring rspec@ReportSpec{_rsReportOpts=ropts,_rsQuery=q} j reportspan =
-  dbg5 "beforeps, duringps" $ span (beforestartq `matchesPosting`) beforeandduringps
+    dbg5 "beforeps, duringps" $ span (beforestartq `matchesPosting`) beforeandduringps
   where
     beforestartq = dbg3 "beforestartq" $ dateqtype $ DateSpan Nothing $ spanStart reportspan
-    beforeandduringps =
-      dbg5 "ps4" $ sortOn sortdate $                                          -- sort postings by date or date2
-      dbg5 "ps3" $ (if invert_ ropts then map negatePostingAmount else id) $  -- with --invert, invert amounts
-                   journalPostings $
-                   journalApplyValuationFromOpts rspec $                      -- convert to cost and apply valuation
-      dbg5 "ps2" $ filterJournalAmounts symq $                                -- remove amount parts which the query's cur: terms would exclude
-      dbg5 "ps1" $ filterJournal beforeandduringq j                           -- filter postings by the query, with no start date or depth limit
+    beforeandduringps = sortOn (if date2_ ropts then postingDate2 else postingDate)  -- sort postings by date or date2
+      . (if invert_ ropts then map negatePostingAmount else id)                      -- with --invert, invert amounts
+      . journalPostings $ journalValueAndFilterPostings rspec{_rsQuery=beforeandduringq} j
 
+    -- filter postings by the query, with no start date or depth limit
     beforeandduringq = dbg4 "beforeandduringq" $ And [depthless $ dateless q, beforeendq]
       where
         depthless  = filterQuery (not . queryIsDepth)
         dateless   = filterQuery (not . queryIsDateOrDate2)
         beforeendq = dateqtype $ DateSpan Nothing $ spanEnd reportspan
 
-    sortdate = if date2_ ropts then postingDate2 else postingDate
-    filterJournal = if related_ ropts then filterJournalRelatedPostings else filterJournalPostings  -- with -r, replace each posting with its sibling postings
-    symq = dbg4 "symq" $ filterQuery queryIsSym q
-    dateqtype
-      | queryIsDate2 dateq || (queryIsDate dateq && date2_ ropts) = Date2
-      | otherwise = Date
+    dateqtype = if queryIsDate2 dateq || (queryIsDate dateq && date2_ ropts) then Date2 else Date
       where
         dateq = dbg4 "dateq" $ filterQuery queryIsDateOrDate2 $ dbg4 "q" q  -- XXX confused by multiple date:/date2: ?
 
