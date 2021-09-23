@@ -265,10 +265,10 @@ $ hledger -f- reg --value=cost -b 200002 -H
 # 23. register with starting balance, valued at period end.
 # That is unspecified so the last posting date (or price directive date) is used,
 # ie 2000/4/1, so the price is 4 B.
-# Starting balance is 5 B as above.
+# Starting balance is 1 A, which is valued at 4 B.
 $ hledger -f- reg --value=end -b 200002 -H
-2000-02-01                      (a)                            4 B           9 B
-2000-03-01                      (a)                            4 B          13 B
+2000-02-01                      (a)                            4 B           8 B
+2000-03-01                      (a)                            4 B          12 B
 
 # 24. register with starting balance, valued at specified date (when the price is 5 B).
 # Starting balance is 5 B as above.
