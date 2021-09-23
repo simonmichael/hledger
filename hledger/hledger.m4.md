@@ -1244,6 +1244,22 @@ $ hledger print -X A
 
 ```
 
+## Interaction of valuation and queries
+
+When matching postings based on queries in the presence of valuation, the
+following happens.
+
+1. The query is separated into two parts:
+    1. the currency (`cur:`) or amount (`amt:`).
+    2. all other parts.
+2. The postings are matched to the currency and amount queries based on pre-valued amounts.
+3. Valuation is applied to the postings.
+4. The postings are matched to the other parts of the query based on post-valued amounts.
+
+See:
+[1625](https://github.com/simonmichael/hledger/issues/1625)
+
+
 ## Effect of valuation on reports
 
 Here is a reference for how valuation is supposed to affect each part of hledger's reports (and a glossary).

@@ -39,6 +39,8 @@ module Hledger.Reports.ReportOptions (
   reportOptsToggleStatus,
   simplifyStatuses,
   whichDateFromOpts,
+  journalValueAndFilterPostings,
+  journalValueAndFilterPostingsWith,
   journalApplyValuationFromOpts,
   journalApplyValuationFromOptsWith,
   mixedAmountApplyValuationAfterSumFromOptsWith,
@@ -59,7 +61,7 @@ module Hledger.Reports.ReportOptions (
 )
 where
 
-import Control.Applicative (Const(..), (<|>))
+import Control.Applicative (Const(..), (<|>), liftA2)
 import Control.Monad ((<=<), join)
 import Data.Either (fromRight)
 import Data.Either.Extra (eitherToMaybe)
@@ -497,6 +499,31 @@ flat_ = not . tree_
 
 -- depthFromOpts :: ReportOpts -> Int
 -- depthFromOpts opts = min (fromMaybe 99999 $ depth_ opts) (queryDepth $ queryFromOpts nulldate opts)
+
+-- | Convert a 'Journal''s amounts to cost and/or to value (see
+-- 'journalApplyValuationFromOpts'), and filter by the 'ReportSpec' 'Query'.
+--
+-- We make sure to first filter by amt: and cur: terms, then value the
+-- 'Journal', then filter by the remaining terms.
+journalValueAndFilterPostings :: ReportSpec -> Journal -> Journal
+journalValueAndFilterPostings rspec j = journalValueAndFilterPostingsWith rspec j priceoracle
+  where priceoracle = journalPriceOracle (infer_prices_ $ _rsReportOpts rspec) j
+
+-- | Like 'journalValueAndFilterPostings', but takes a 'PriceOracle' as an argument.
+journalValueAndFilterPostingsWith :: ReportSpec -> Journal -> PriceOracle -> Journal
+journalValueAndFilterPostingsWith rspec@ReportSpec{_rsQuery=q, _rsReportOpts=ropts} j =
+    -- Filter by the remainder of the query
+      filterJournal reportq
+    -- Apply valuation and costing
+    . journalApplyValuationFromOptsWith rspec
+    -- Filter by amount and currency, so it matches pre-valuation/costing
+      (if queryIsNull amtsymq then j else filterJournalAmounts amtsymq j)
+  where
+    -- with -r, replace each posting with its sibling postings
+    filterJournal = if related_ ropts then filterJournalRelatedPostings else filterJournalPostings
+    amtsymq = dbg3 "amtsymq" $ filterQuery queryIsAmtOrSym q
+    reportq = dbg3 "reportq" $ filterQuery (not . queryIsAmtOrSym) q
+    queryIsAmtOrSym = liftA2 (||) queryIsAmt queryIsSym
 
 -- | Convert this journal's postings' amounts to cost and/or to value, if specified
 -- by options (-B/--cost/-V/-X/--value etc.). Strip prices if not needed. This
