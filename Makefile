@@ -824,6 +824,7 @@ site: $(call def-help,site, update the hledger.org website (run on hledger.org, 
 		|| ( \
 			echo; \
 			./Shake -V webmanuals; \
+			./Shake -V orgfiles; \
 			make -C site build; \
 		) 2>&1 | tee -a site.log
 # once VPS can build Shake again, replace the Shake/make lines with 
@@ -835,7 +836,7 @@ LOCALSITEURL=http://localhost:3000/dev/hledger.html
 site-watch: $(call def-help,site-watch, open a browser on the website (in ./site) and rerender when docs or web pages change )
 	@make -s Shake
 	@(printf "\nbrowser will open in $(BROWSEDELAY)s (adjust BROWSE in Makefile if needed)...\n\n"; sleep $(BROWSEDELAY); $(BROWSE) $(LOCALSITEURL)) &
-	@ls $(DOCSOURCEFILES) | entr -r bash -c './Shake webmanuals && make -sC site serve'
+	@ls $(DOCSOURCEFILES) | entr -r bash -c './Shake webmanuals && ./Shake orgfiles && make -sC site serve'
 
 ###############################################################################
 $(call def-help-subheading,RELEASING:)
