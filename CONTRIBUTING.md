@@ -53,7 +53,6 @@ libghc-hledger-lib-prof
 
 An overview of hledger's [issue tracker](https://github.com/simonmichael/hledger/issues).
 A good place to start looking for something to work on.
-(Another contribution idea: a github API script to generate this table along with issue counts.)
 
 <!-- 
 This table doesn't have to be aligned, but it helps.
@@ -61,8 +60,8 @@ Editing it may require editor support, search/replace etc.
 Syntax: https://www.pandoc.org/MANUAL.html#tables -> pipe_tables
 -->
 
-| COMPONENT [*](#components)                                                                                                 | BUGS                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | WISHES                                                                                                                 | PRS                                                                                           | OTHER
-|----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------
+| COMPONENT/TOPIC [*](#topics)                                                                                               | BUGS                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | WISHES                                                                                                                 | PRS                                                                                           | OTHER
+|----------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------
 | [all](https://github.com/simonmichael/hledger/issues?q=is:open)                                                            | [bugs](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:%22A+BUG%22) ([first](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:%22A+BUG%22+label:%22good+first+issue%22)/[easy](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:%22A+BUG%22+-label:%22good+first+issue%22+label:easy?)/[neither](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:%22A+BUG%22+-label:%22good+first+issue%22+-label:easy?))                                                                                                 | [wishes](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:%22A+WISH%22)                         | [PRs](https://github.com/simonmichael/hledger/issues?q=is:open+is:pr)                         | [other](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+-label:%22A+BUG%22+-label:%22A+WISH%22)
 | **Tools:**
 | [install](https://github.com/simonmichael/hledger/issues?q=is:open+label:install) (hledger-install.sh)                     | [bugs](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:%22A+BUG%22+label:install) ([first](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:%22A+BUG%22+label:%22good+first+issue%22+label:install)/[easy](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:%22A+BUG%22+-label:%22good+first+issue%22+label:easy?+label:install)/[neither](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:%22A+BUG%22+-label:%22good+first+issue%22+-label:easy?+label:install))                                         | [wishes](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:%22A+WISH%22+label:install)           | [PRs](https://github.com/simonmichael/hledger/issues?q=is:open+is:pr+label:install)           | [other](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+-label:%22A+BUG%22+-label:%22A+WISH%22+label:install)
@@ -506,8 +505,7 @@ Relevant tools include:
 
 ## Commit messages
 
-Starting with the 1.23 release cycle, I'm proposing some new
-conventions for commit messages (WIP, will evolve as needed), aiming to
+Since the 1.23 release cycle, we try to follow certain conventions for commit messages, to
 
 - encourage considered, focussed, well documented changes
 - reduce the cost of code review, maintaining changelogs and release notes, and releasing
@@ -570,7 +568,7 @@ conventions for commit messages (WIP, will evolve as needed), aiming to
 
 5. A topic prefix, and maybe even a subtopic prefix, can be added
    before the summary if useful. These are standard prefixes similar
-   to what I have been using for some time, see [components](#components). 
+   to what I have been using for some time, see [topics](#topics). 
    They help with readability in the commit history, changelogs and release notes.
 
 6. Any relevant issues should be mentioned, often parenthesised at 
@@ -660,7 +658,7 @@ Rebase your commits against latest master for easiest review. Especially if they
 
 We like to use some conventions in commit messages when it makes sense. These aren't mandatory, but appreciated:
 
-- prepend a  [component](#components) prefix, eg `cli: ` or `journal: `, for clarity and to help with changelog production
+- prepend a  [topic](#topics) prefix, eg `cli: ` or `journal: `, for clarity and to help with changelog production
 - prepend a semicolon (`;`) to indicate commits that need not be mentioned in changelogs/release notes (as in the Emacs project)
 - append a final `[ci skip]` line to indicate commits that need not trigger a CI build, to reduce carbon emissions from Travis.
 
@@ -1289,6 +1287,18 @@ The hledger project\'s issue tracker is on github. It contains:
 -   uncategorised issues - we don\'t know what these are yet
 -   pull requests - proposed changes to code and docs
 
+Issues are also labelled according to their [topics](#topics), for organisation.
+
+Some loose conventions:
+
+- In bug titles, mention the hledger version in which the bug first appeared 
+  (and avoid mentioning version numbers otherwise).
+  This allows searches like
+  [new issues in 1.22](https://github.com/simonmichael/hledger/issues?q=in%3Atitle+1.22+)
+  and
+  [regressions in 1.22](https://github.com/simonmichael/hledger/issues?q=in%3Atitle+1.22+label%3Aregression%21)
+
+
 ### Issue Urls
 
 -   <http://bugs.hledger.org> - show open BUG issues
@@ -1312,28 +1322,17 @@ Labels are used to categorise:
     to fix
 -   \"imported\" etc., in white: miscellaneous information
 
-### Components
+### Topics
 
-Issues and the hledger project generally are organised into components:
-mostly non-overlapping topics, one for each user command, add-on tool,
-input format, output format, etc. Each component gets a light blue label
-in the issue tracker. Component names (sometimes abbreviated) are used
-as a prefix to commit messages, and to organise changelogs and release
-notes. The current components, and their open issues, can be seen in
-the [Open Issues](#open-issues) table above.
+Short topic names, corresponding to hledger commands, input formats, output formats and other common themes,
+are used to organise things in the hledger project. In particular,
 
-AKA "topics". 
+- They are used as space saving descriptive prefixes for [commit messages](#commit-messages)
+- They can be used as prefixes for issue/PR titles
+- Issues and PRs are labelled with them (the light blue labels).
 
-Some ad hoc conventions we are using in 2021:
-
-- In issue titles, use topic prefixes where convenient, as in [commit messages](#commit-messages)
-
-- In bug titles, mention the hledger version in which the bug first appeared.
-  Avoid mentioning version numbers otherwise.
-  This allows searches like
-  [new issues in 1.22](https://github.com/simonmichael/hledger/issues?q=in%3Atitle+1.22+)
-  and
-  [regressions in 1.22](https://github.com/simonmichael/hledger/issues?q=in%3Atitle+1.22+label%3Aregression%21)
+A more or less complete list can be seen at [open issues](#open-issues)
+or in the issue tracker's labels list.
 
 ### Custodians
 
