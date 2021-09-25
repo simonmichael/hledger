@@ -124,14 +124,12 @@ grep = "grep -E"
 fromsrcmd = "-f markdown-smart-tex_math_dollars"
 
 -- The kind of org markup used in any org source files.
-fromorg = "-f org"
+fromorg = "-f org-smart"
 
 -- The kind of markdown we like to generate for the website.
--- This will be consumed by sphinx extensions:
---  recommonmark (Commonmark syntax, https://spec.commonmark.org)
---  sphinx-markdown-tables (PHP Markdown Extra table syntax, https://michelf.ca/projects/php-markdown/extra/#table)
--- XXX trying to force the use of pipe_tables here, but sometimes it uses html instead
--- --markdown-headings=atx requires pandoc 2.11.2+, with older pandoc use --atx-headers instead
+-- This was configured for sphinx+recommonmark+sphinx-markdown-tables; it could be reviewed now that we use mdbook.
+-- Trying to force the use of pipe_tables here, but sometimes it uses html instead.
+-- --markdown-headings=atx requires pandoc 2.11.2+, with older pandoc use --atx-headers instead.
 towebmd = "-t markdown-smart-fenced_divs-fenced_code_attributes-simple_tables-multiline_tables-grid_tables-raw_attribute --markdown-headings=atx"
 
 
