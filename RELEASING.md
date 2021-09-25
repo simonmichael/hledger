@@ -5,24 +5,25 @@
 </div>
 
 Guidance for release managers and maintainers.
-Some of this might move elsewhere later.
 
-## Terminology
+Some terminology used on this page:
 
-- **OLD** - previous release version, eg `1.22` or `1.22.1`
-- **NEW** - new release version, eg `1.22.2` or `1.23`
-- **MAJORVER** - just the major version part, eg `1.22` or `1.23`
-- **master** / **master branch** - `master` branch in the main hledger repo
-- **release** / **release branch** - a release branch in the main hledger repo, named MAJORVER-branch, eg `1.22-branch`
-- **site** / **site repo** - master branch in the hledger_website repo, usually cloned under the main repo as `site`
+|                         |                                                                                       |
+|-------------------------|---------------------------------------------------------------------------------------|
+| *OLD*                   | previous release version, eg `1.22` or `1.22.1`                                       |
+| *NEW*                   | new release version, eg `1.22.2` or `1.23`                                            |
+| *MAJORVER*              | just the major version part, eg `1.22` or `1.23`                                      |
+| *master (branch)*       | `master` branch in the `hledger` repo, ie the main line of development                |
+| *release&nbsp;(branch)* | a release branch in the `hledger` repo, eg `1.22-branch`                              |
+| *site*                  | `master` branch in the `hledger_website` repo. Usually checked out as `hledger/site`. |
+|                         |                                                                                       |
 
-## Commits
+## When committing / reviewing commits
 
-**When committing/reviewing:**
-
-Follow our [commit conventions](CONTRIBUTING.html#commit-messages):
-- in the summary, use a `feat:`/`imp:`/`fix:` prefix (required for user-visible changes),
-  and/or topic prefixes (`bal:`/`areg:`/`test:`/`doc:`/`lib:`/...)
+Follow/encourage [commit conventions](CONTRIBUTING.html#commit-messages). Recap:
+- commit messages must begin with one or more colon-terminated words
+- user-visible changes must begin with a `feat:`/`imp:`/`fix:` prefix, and will appear in release notes
+- other changes can begin with a topic prefix (`bal:`/`areg:`/`test:`/`doc:`/`lib:`/...)
 - add a leading `;` to skip wasteful CI builds
 - add a `!` to indicate breaking/incompatible changes
 - mention any relevant #issue numbers, usually parenthesised at the end
