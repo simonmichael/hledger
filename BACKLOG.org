@@ -15,9 +15,9 @@ See also:
 Some items may render best when viewed in Emacs org mode. 
 
 ** wip
-*** BACKLOG: move items here from SM's private backlog
+*** move items here from SM's private backlog
 ** cli
-*** cli: help: clarify/improve the various kinds of command line help
+*** help: clarify/improve the various kinds of command line help
 **** survey/describe
 Most of these are long, and best viewed with a pager, eg: hledger -h | less
 
@@ -71,7 +71,7 @@ https://hledger.org/hledger-web.html
 
 #+end_example
 
-*** cli: help improvements
+*** help improvements
 **** auto pager
 **** colour
 **** show commands to get more detailed help
@@ -90,29 +90,29 @@ Financial reports:
  balance (bal)            show custom balance reports, budgets, gains..
  roi                      show a return on investment report
 **** --pivot: list possible arguments in help
-*** cli: --version: include latest commit date
-*** cli: --version: include git branch name if not master ?
-*** cli: disable colors when writing to .txt file ?
-*** cli: trailing colon makes alias ineffective
+*** --version: include latest commit date
+*** --version: include git branch name if not master ?
+*** disable colors when writing to .txt file ?
+*** trailing colon makes alias ineffective
 `--alias expenses:personal:=expenses:`
-*** cli: unclear error if a trailing slash is written after file name
+*** unclear error if a trailing slash is written after file name
   shell completion might wrongly add a trailing slash, eg as with this symlink,
   resulting in this unclear error:
   ~/notes$ stats -f current.journal/
   hledger: SourcePos {sourceName = "/Users/simon/.sm/notes/current.journal/", sourceLine = Pos 9, sourceColumn = Pos 1} reading /Users/simon/.sm/notes/current.journal/2018.prices:
   /Users/simon/current.journal/2018.prices: openFile: inappropriate type (Not a directory)
-*** cli: -h/--help should work even with unrecognised flags/missing args
+*** -h/--help should work even with unrecognised flags/missing args
 **** hledger --help ui --watch
 **** hledger ui --watch --help
 **** hledger --nosuchflag --help
 **** hledger nosuchcommand --help
 ***** not expected to work; hledger --help nosuchcommand does work
 ***** unify hledger --help & hledger COMMAND --help more ?
-*** cli: @ does not expand file names, eg @~/somefile
-*** cli: bad --width parse error
+*** @ does not expand file names, eg @~/somefile
+*** bad --width parse error
 $ hledger -f examples/sample.journal reg -w 80,-1
 hledger: could not parse width option: ParseErrorBundle {bundleErrors = TrivialError 3 (Just (Tokens ('-' :| ""))) (fromList [Label ('d' :| "igit")]) :| [], bundlePosState = PosState {pstateInput = "80,-1", pstateOffset = 0, pstateSourcePos = SourcePos {sourceName = "(unknown)", sourceLine = Pos 1, sourceColumn = Pos 1}, pstateTabWidth = Pos 8, pstateLinePrefix = ""}} (use -h to see usage)
-*** cli: balance assertion error shows ugly transaction
+*** balance assertion error shows ugly transaction
 hledger: balance assertion error in "/Users/simon/notes/2018.journal" (line 4949, column 54):
 in transaction:
 Transaction {tindex = 976, tsourcepos = JournalSourcePos "/Users/simon/notes/2018.journal" (4948,4950), tdate = 2018-09-01, tdate2 = Nothing, tstatus = *, tcode = "5VN72122C99690620", tdescription = "add funds to paypal", tcomment = "for:, time:06:53:51, type:Bank Deposit to PP Account , status:Pending, balance:6.99, gross:6.99, fee:0.00\n", ttags = [("for",""),("time","06:53:51"),("type","Bank Deposit to PP Account"),("status","Pending"),("balance","6.99"),("gross","6.99"),("fee","0.00")], tpostings = [PostingPP {pdate="Nothing", pdate2="Nothing", pstatus="", paccount="assets:personal:online:paypal", pamount=Mixed [Amount {acommodity = "$", aquantity = 6.99, aprice = NoPrice, astyle = AmountStylePP "L False 2 Just '.' Nothing..", amultiplier = False}], pcomment="", ptype=RegularPosting, ptags=[], pbalanceassertion=Just (Amount {acommodity = "$", aquantity = 6.99, aprice = NoPrice, astyle = AmountStylePP "L False 2 Just '.' Nothing..", amultiplier = False},GenericSourcePos "/Users/simon/notes/2018.journal" 4949 54), ptransaction=Just "<txn>", porigin=Nothing},PostingPP {pdate="Nothing", pdate2="Nothing", pstatus="", paccount="assets:personal:bank:wf:checking", pamount=Mixed [Amount {acommodity = "$", aquantity = -6.99, aprice = NoPrice, astyle = AmountStylePP "L False 2 Just '.' Nothing..", amultiplier = False}], pcomment="", ptype=RegularPosting, ptags=[], pbalanceassertion=Nothing, ptransaction=Just "<txn>", porigin=Nothing}], tpreceding_comment_lines = ""}
@@ -124,7 +124,7 @@ account:    assets:personal:online:paypal
 commodity:  $
 calculated: $-93.01
 asserted:   $6.99 (difference: +$100.00)
-*** cli: color support like stack's (still a few things remaining)
+*** color support like stack's (still a few things remaining)
 **** http://no-color.org/ color should not be  added by default if the `NO_COLOR` environment variable is present.
 **** Existing global option `--color=WHEN` is now also available as a
      non-project-specific yaml configuration parameter `color:`.
@@ -145,17 +145,17 @@ asserted:   $6.99 (difference: +$100.00)
      `--color`, `--stack-colors`, `stack ls stack-colors` at the command line
    and
      for `color:` and `stack-colors:` in yaml configuration files.
-*** cli: generate commands list more dynamically from command docs
+*** generate commands list more dynamically from command docs
 **** names, aliases, descriptions
 
-*** cli: inconsistent repeated options behaviour: -b 1/1 -b 2/1 should use the last date & be documented
-*** cli: pass -- -h/--help through to tasty
-*** cli: underquoted $ gives "empty list" error 
+*** inconsistent repeated options behaviour: -b 1/1 -b 2/1 should use the last date & be documented
+*** pass -- -h/--help through to tasty
+*** underquoted $ gives "empty list" error 
 $ bal --budget ^sm:exp date:jan -M cur:\$ --tree 
 Budget performance in 2019/01:
 
 hledger: Prelude.maximum: empty list
-*** cli: 1275 drop/depth error message followup
+*** 1275 drop/depth error message followup
 Two commands:
 
 $ hledger bal --drop '-999999999999999'
@@ -174,19 +174,19 @@ hledger: drop's argument '-999999999999999' must be a positive integer less than
 hledger: drop's argument '-999999999999999' must between 0 and 2^63
 hledger: drop's argument '-999999999999999' should be 0 <= N < 2^63
 **
-*** cli: do recompile stack script addon if source is newer
+*** do recompile stack script addon if source is newer
 ie, change:
 $ hledger check-tag-files       # compiles if there's no compiled version
-*** cli: drop abbreviation uniqueness requirement ?
-*** cli: get actions from https://medium.com/@jdxcode/12-factor-cli-apps-dd3c227a0e46
-*** cli: group common options as in CliOptions.reportflags
-*** cli: hledger: "date:monday-" gave a date parse error ()
-*** cli: http://neilmitchell.blogspot.com/2020/07/automatic-uis-for-command-lines-with.html
-*** cli: improve error message:
+*** drop abbreviation uniqueness requirement ?
+*** get actions from https://medium.com/@jdxcode/12-factor-cli-apps-dd3c227a0e46
+*** group common options as in CliOptions.reportflags
+*** hledger: "date:monday-" gave a date parse error ()
+*** http://neilmitchell.blogspot.com/2020/07/automatic-uis-for-command-lines-with.html
+*** improve error message:
 hledger: balance assignments cannot be used with accounts which are
 posted to by transaction modifier rules (auto postings).
 Please write the posting amount explicitly, or remove the rule.
-*** cli: red color is bad on powershell navy background
+*** red color is bad on powershell navy background
 ```
 Guest72
 Hi, does anybody know how to change the negative value color in powershell. It's drakred and almost not readable on the dark blue background
@@ -195,12 +195,12 @@ not sure, but meanwhile using --color=never could help
 Guest72
 better than dark red ;)
 ```
-*** cli: show an extra newline after txt reports, for better display when showing one after another
-*** cli: show name of reader responsible for a parse error
-*** cli: ugly --alias parse error
+*** show an extra newline after txt reports, for better display when showing one after another
+*** show name of reader responsible for a parse error
+*** ugly --alias parse error
 $ bal --alias a
 hledger: parse error at ParseErrorBundle {bundleErrors = TrivialError 1 (Just EndOfInput) (fromList [Tokens ('=' :| "")]) :| [], bundlePosState = PosState {pstateInput = "a", pstateOffset = 0, pstateSourcePos = SourcePos {sourceName = "--alias a", sourceLine = Pos 1, sourceColumn = Pos 1}, pstateTabWidth = Pos 8, pstateLinePrefix = ""}}
-*** cli: ugly parse error from malformed --width argument
+*** ugly parse error from malformed --width argument
 ghci> :main areg sm.*foo -w 350,50,50
 Transactions in sm:assets:foo and subaccounts:
 2020-01-01 *** Exception: could not parse width option: ParseErrorBundle {bundleErrors = TrivialError 6 (Just (Tokens (',' :| ""))) (fromList [Label ('d' :| "igit"),EndOfInput]) :| [], bundlePosState = PosState {pstateInput = "350,50,50", pstateOffset = 0, pstateSourcePos = SourcePos {sourceName = "(unknown)", sourceLine = Pos 1, sourceColumn = Pos 1}, pstateTabWidth = Pos 8, pstateLinePrefix = ""}} (use -h to see usage)
