@@ -124,13 +124,22 @@ grep = "grep -E"
 fromsrcmd = "-f markdown-smart-tex_math_dollars"
 
 -- The kind of org markup used in any org source files.
+-- As of pandoc 2.14, org reader always enables smart and -smart has no effect here
+-- (but writing to markdown+strict will help, undoing the smart typography).
 fromorg = "-f org-smart"
 
 -- The kind of markdown we like to generate for the website.
+--
 -- This was configured for sphinx+recommonmark+sphinx-markdown-tables; it could be reviewed now that we use mdbook.
 -- Trying to force the use of pipe_tables here, but sometimes it uses html instead.
--- --markdown-headings=atx requires pandoc 2.11.2+, with older pandoc use --atx-headers instead.
-towebmd = "-t markdown-smart-fenced_divs-fenced_code_attributes-simple_tables-multiline_tables-grid_tables-raw_attribute --markdown-headings=atx"
+--
+-- --markdown-headings=atx requires pandoc 2.11.2+; with older pandoc use --atx-headers instead.
+--
+-- +smart here because "If you are writing Markdown, then the smart extension has the 
+-- reverse effect: what would have been curly quotes comes out straight.".
+-- This fixes the unwanted smart typography in org docs (see above).
+--
+towebmd = "-t markdown+smart-fenced_divs-fenced_code_attributes-simple_tables-multiline_tables-grid_tables-raw_attribute --markdown-headings=atx"
 
 
 main = do
