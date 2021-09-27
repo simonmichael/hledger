@@ -6,7 +6,7 @@
 
 Guidance for release managers and maintainers.
 
-Some terminology used on this page:
+## Terminology
 
 |                         |                                                                                       |
 |-------------------------|---------------------------------------------------------------------------------------|
@@ -18,7 +18,68 @@ Some terminology used on this page:
 | *site*                  | `master` branch in the `hledger_website` repo. Usually checked out as `hledger/site`. |
 |                         |                                                                                       |
 
-## Release prep
+## Phases of release cycle:
+
+
+### 0. Dev
+  
+Normal development, on master and PR branches.
+
+
+### 1. Pre-release
+  
+Preparations to make just before a release.
+
+#### Resolve issues
+
+Review, select, resolve PRs and issues.
+
+#### Polish changelogs
+
+Complete and polish changelogs.
+
+#### Plan release
+
+Plan the release number and any extra release-time activities.
+
+
+### 2. Release
+
+The sequence of steps to follow when making a release.
+
+#### Freeze
+
+- Set version.
+- Finalise changelogs.
+- Generate release notes.
+- Prepare announcement.
+- Tag.
+- Generate CI release binaries.
+- Draft github release.
+- 24 hour release countdown with no changes.
+- If any problems found, return to Pre-release.
+
+#### Publish
+
+- Website changes.
+  - release notes
+  - install page
+  - manuals
+  - webserver redirects
+- Publish hackage packages.
+- Push tags.
+- Publish github release.
+- Publish website changes.
+- Announce
+
+### 3. Post-release
+
+Monitor, support, respond.
+
+
+## Release preparation detail
+
+### Any time before release
 
 1. create release branch when needed:\
   `git branch MAJORVER-branch BRANCHPOINT`\
@@ -40,7 +101,7 @@ Some terminology used on this page:
 
     - update changelogs in master (move corresponding change items under pending release heading)
 
-## Release day
+### On release day
 
 In master:
 
@@ -124,7 +185,7 @@ In master:
 
 - pre-release pause: take a break away from keyboard
 
-## Release
+## Release detail
 
 In release branch:
 
@@ -154,7 +215,7 @@ In release branch:
   - tweet at https://twitter.com/simonkwmichael ?
   - toot at https://fosstodon.org/web/accounts/106304084994827771 ?
 
-## Post release
+## Post release detail
 
 - merge/check/update download page changes
   - docker - expect/merge PR
@@ -168,14 +229,7 @@ In release branch:
 
 - update procedures, tools, docs
 
-## New notes
-
-### Tips
-
-- During pre/post release phases, update RELEASING.md in a copy,
-  RELEASING2.md, to reduce commit noise and git interference.
-
-### Adding major release to website
+## Add major release to website
 
 In site: 
 
@@ -188,62 +242,8 @@ In hledger.org caddy config:
 - add `path` and `redir`s for NEW
 - `systemctl reload caddy`
 
-### Process
+## Tips
 
-#### Phases of release cycle:
+- During pre/post release phases, update RELEASING.md in a copy,
+  RELEASING2.md, to reduce commit noise and git interference.
 
-##### Dev
-  
-Prerequisites:
-
-- 
-
-##### Pre-release
-  
-Prerequisites:
-
-- 
-
-###### 1. Resolve issues
-
-Review, select, resolve PRs and issues.
-
-###### 2. Polish changelogs
-
-Complete and polish changelogs.
-
-###### Plan release
-
-Plan the release number and any extra release-time activities.
-
-
-##### Release
-
-###### Freeze
-
-- Set version.
-- Finalise changelogs.
-- Generate release notes.
-- Prepare announcement.
-- Tag.
-- Generate CI release binaries.
-- Draft github release.
-- 24 hour release countdown with no changes.
-- If any problems found, return to Pre-release.
-
-###### Publish
-
-- Website changes.
-  - release notes
-  - install page
-  - manuals
-  - webserver redirects
-- Publish hackage packages.
-- Push tags.
-- Publish github release.
-- Publish website changes.
-- Announce
-
-##### Post-release
-
-Monitor, support, respond.
