@@ -55,7 +55,7 @@ function checkmsg()
 
     # Is this some boring commit, eg a hard-to avoid github merge commit ?
     # Ignore those.
-    if echo "$SUMMARY" | grep -qE '^Merge \w{40} into \w{40}'
+    if echo "$SUMMARY" | grep -qE '^Merge'
     then 
         # shellcheck disable=SC2059
         printf "$FMT" "$HASH" "$SUMMARY" "[ignored]"
