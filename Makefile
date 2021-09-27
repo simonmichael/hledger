@@ -824,7 +824,6 @@ site: $(call def-help,site, update the hledger.org website (run on hledger.org, 
 		|| ( \
 			echo; \
 			./Shake -V webmanuals; \
-			./Shake -V orgfiles; \
 			make -C site build; \
 		) 2>&1 | tee -a site.log
 # once VPS can build Shake again, replace the Shake/make lines with 
