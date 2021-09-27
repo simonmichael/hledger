@@ -1,8 +1,28 @@
 # Changelogs
 
-Always maintain changelogs in master branch (not in release branches).
+<div class=pagetoc>
+<!-- toc -->
+</div>
 
-**Frequently**, especially after merging changes, and before cherry picking into release branch:
+## How to prepare changelogs & release notes
+
+Changelogs:
+
+- always maintain changelogs in master branch, not in release branches
+- ./Shake changelogs
+- edit the new changelog items (identify, filter, move to correct changelog, deduplicate, rewrite, sort/group)
+
+Release notes:
+
+- add a new TOC entry and section in site/release-notes.md
+- copy/rewrite/summarise package changelogs 
+- note any other items of interest
+- list release contributors
+- write release summary
+
+## Frequently
+
+especially after merging changes, and before cherry picking into release branch:
 
 - dry run: `./Shake changelogs -n`
 - add new changes: `./Shake changelogs`
@@ -14,7 +34,10 @@ Always maintain changelogs in master branch (not in release branches).
   - format ([#ISSUE](https://github.com/simonmichael/hledger/issues/), AUTHOR) on its own line
 - commit: `./Shake changelogs -c`
 
-**After cherry-picking** changes to a release branch:
+## After cherry-picking
+
+changes to a release branch:
+
 - in the master branch changelogs, move the corresponding changelog items under a pending release heading,
   creating that when necessary:
     ```
@@ -29,7 +52,7 @@ Always maintain changelogs in master branch (not in release branches).
     # LASTVER YYYY-MM-DD
     ```
 
-**At release:**
+## At release
 
 - do final update/edits; check organisation, wording, formatting, issue links
 - replace "unreleased" with the release date
