@@ -1,5 +1,5 @@
 * BACKLOG.org
-#+OPTIONS: H:2
+#+OPTIONS: H:2 -:nil
 
 An efficient public store of tasks/changes/design notes, mostly from
 SM's private backlog; things that I/we feel would be nice to have, or
