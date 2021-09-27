@@ -17,8 +17,6 @@ module Hledger.Cli.Commands.Help (
 
   ) where
 
-import Prelude ()
-import "base-compat-batteries" Prelude.Compat
 import Data.Maybe
 import System.Console.CmdArgs.Explicit
 import System.Environment

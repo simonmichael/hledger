@@ -46,7 +46,6 @@ dependencies:
 - ansi-terminal >=0.9
 - async
 - base >=4.11 && <4.16
-- base-compat-batteries >=0.10.1 && <0.12
 - cmdargs >=0.8
 - containers >=0.5.9
 - data-default

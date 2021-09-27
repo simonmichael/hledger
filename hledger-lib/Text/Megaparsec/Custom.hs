@@ -47,9 +47,6 @@ module Text.Megaparsec.Custom (
 )
 where
 
-import Prelude ()
-import "base-compat-batteries" Prelude.Compat hiding (readFile)
-
 import Control.Monad.Except
 import Control.Monad.State.Strict (StateT, evalStateT)
 import qualified Data.List.NonEmpty as NE

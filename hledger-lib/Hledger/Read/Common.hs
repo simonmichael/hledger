@@ -119,10 +119,8 @@ module Hledger.Read.Common (
 where
 
 --- ** imports
-import Prelude ()
-import "base-compat-batteries" Prelude.Compat hiding (fail, readFile)
 import Control.Applicative.Permutations (runPermutation, toPermutationWithDefault)
-import qualified "base-compat-batteries" Control.Monad.Fail.Compat as Fail (fail)
+import qualified Control.Monad.Fail as Fail (fail)
 import Control.Monad.Except (ExceptT(..), liftEither, runExceptT, throwError)
 import Control.Monad.State.Strict hiding (fail)
 import Data.Bifunctor (bimap, second)
@@ -131,7 +129,7 @@ import Data.Decimal (DecimalRaw (Decimal), Decimal)
 import Data.Either (lefts, rights)
 import Data.Function ((&))
 import Data.Functor ((<&>))
-import "base-compat-batteries" Data.List.Compat
+import Data.List (find, genericReplicate)
 import Data.List.NonEmpty (NonEmpty(..))
 import Data.Maybe (catMaybes, fromMaybe, isJust, listToMaybe)
 import qualified Data.Map as M

@@ -33,7 +33,6 @@ extra-source-files:
 
 dependencies:
 - base >=4.11 && <4.16
-- base-compat-batteries >=0.10.1 && <0.12
 - aeson >=1
 - aeson-pretty
 - ansi-terminal >=0.9
