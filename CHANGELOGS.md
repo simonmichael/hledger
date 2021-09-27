@@ -58,3 +58,18 @@ changes to a release branch:
 - replace "unreleased" with the release date
 - copy the new sections from master changelogs to release branch changelogs
 
+## Old notes
+
+Changelogs are plain text, but started including some markdown formatting
+from 1.0. Should make consistent.
+
+Changelogs started mentioning committer names from 2017/1,
+for hledger-ui-1.1.1 (because they won't appear on the release notes).
+Could do it just for minor releases but might as well do it for all.
+Could do it for past releases but no pressing need.
+
+In site/release-notes.md, we stopped mentioning minor releases
+around 0.27. The old minor releases should probably be removed
+or promoted to the same heading level as major releases.
+
+
