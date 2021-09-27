@@ -4,9 +4,8 @@
 <!-- toc -->
 </div>
 
-This is a collection of old developer docs on all topics.
-Gradually, these are moving to separate files/pages
-and this doc is becoming a focussed guide for new contributors.
+This doc is intended to become a focussed guide for new contributors.
+
 If you are unexpectedly seeing this page after following a link,
 the content probably moved to a separate page: 
 see the [Developer docs](dev.md).
