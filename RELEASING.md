@@ -18,61 +18,6 @@ Some terminology used on this page:
 | *site*                  | `master` branch in the `hledger_website` repo. Usually checked out as `hledger/site`. |
 |                         |                                                                                       |
 
-## When committing / reviewing commits
-
-Follow/encourage [commit conventions](CONTRIBUTING.html#commit-messages). Recap:
-- commit messages must begin with one or more colon-terminated words
-- user-visible changes must begin with a `feat:`/`imp:`/`fix:` prefix, and will appear in release notes
-- other changes can begin with a topic prefix (`bal:`/`areg:`/`test:`/`doc:`/`lib:`/...)
-- add a leading `;` to skip wasteful CI builds
-- add a `!` to indicate breaking/incompatible changes
-- mention any relevant #issue numbers, usually parenthesised at the end
-- write the summary and at least the first part of the body, if any,
-  as clear change documentation for the intended audience 
-  (users/installers/packagers/developers)
-
-**When committing/pushing/merging:**
-- run `bin/commitlint` before push, to check recent commits
-- or, run it automatically before each commit (`make installcommithook` to configure your local repo)
-- it also runs in CI on github for pull requests, etc.
-
-## Changelogs
-
-Always maintain changelogs in master branch (not in release branches).
-
-**Frequently**, especially after merging changes, and before cherry picking into release branch:
-
-- dry run: `./Shake changelogs -n`
-- add new changes: `./Shake changelogs`
-- edit
-  - drop things
-  - move things
-  - Add headings: Features, Improved, Fixes
-  - rewrite things
-  - format ([#ISSUE](https://github.com/simonmichael/hledger/issues/), AUTHOR) on its own line
-- commit: `./Shake changelogs -c`
-
-**After cherry-picking** changes to a release branch:
-- in the master branch changelogs, move the corresponding changelog items under a pending release heading,
-  creating that when necessary:
-    ```
-    # LATESTHASH
-
-    ...CHANGES ONLY IN MASTER...
-
-    # NEXTVER unreleased
-
-    ...CHANGES CHERRYPICKED INTO RELEASE BRANCH...
-
-    # LASTVER YYYY-MM-DD
-    ```
-
-**At release:**
-
-- do final update/edits; check organisation, wording, formatting, issue links
-- replace "unreleased" with the release date
-- copy the new sections from master changelogs to release branch changelogs
-
 ## Release prep
 
 1. create release branch when needed:\
@@ -122,10 +67,10 @@ In release branch:
   to build locally and check version strings
 
 - push to CI branches to test and to build release binaries
-  - magit `P -f e origin/ci-windows`
-  - magit `P -f e origin/ci-mac`
-  - magit `P -f e origin/ci-linux-static`
-  - magit `P -f e origin/ci-linux-static-arm32` (at release time only)
+  - `git push -f origin master:ci-windows`  (or magit `P -f e origin/ci-windows`)
+  - `git push -f origin master:ci-mac`
+  - `git push -f origin master:ci-linux`
+  - `git push -f origin master:ci-linux-static` (at release time only))
   - Tips:
     - build these release binaries at the very last possible moment
     - last commit should be a notable one - not docs only, not beginning with ;
@@ -222,3 +167,83 @@ In release branch:
 - handle issues
 
 - update procedures, tools, docs
+
+## New notes
+
+### Tips
+
+- During pre/post release phases, update RELEASING.md in a copy,
+  RELEASING2.md, to reduce commit noise and git interference.
+
+### Adding major release to website
+
+In site: 
+
+- make snapshot-NEW
+
+- js/site.js: add NEW, update currentrelease
+
+In hledger.org caddy config:
+
+- add `path` and `redir`s for NEW
+- `systemctl reload caddy`
+
+### Process
+
+#### Phases of release cycle:
+
+##### Dev
+  
+Prerequisites:
+
+- 
+
+##### Pre-release
+  
+Prerequisites:
+
+- 
+
+###### 1. Resolve issues
+
+Review, select, resolve PRs and issues.
+
+###### 2. Polish changelogs
+
+Complete and polish changelogs.
+
+###### Plan release
+
+Plan the release number and any extra release-time activities.
+
+
+##### Release
+
+###### Freeze
+
+- Set version.
+- Finalise changelogs.
+- Generate release notes.
+- Prepare announcement.
+- Tag.
+- Generate CI release binaries.
+- Draft github release.
+- 24 hour release countdown with no changes.
+- If any problems found, return to Pre-release.
+
+###### Publish
+
+- Website changes.
+  - release notes
+  - install page
+  - manuals
+  - webserver redirects
+- Publish hackage packages.
+- Push tags.
+- Publish github release.
+- Publish website changes.
+- Announce
+
+##### Post-release
+
+Monitor, support, respond.
