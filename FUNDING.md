@@ -1,5 +1,9 @@
 # Funding
 
+<div class=pagetoc>
+<!-- toc -->
+</div>
+
 My vision for the hledger project has always been for it to be "accountable" and "self-sustaining", possibly through new forms of incentivisation. 
 Classic non-monetary FOSS communities are a beautiful and precious thing.
 Adding money can change their dynamic.

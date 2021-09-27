@@ -1,5 +1,9 @@
 # Docs
 
+<div class=pagetoc>
+<!-- toc -->
+</div>
+
 20191209: needs update. See also doc/README.
 
 ## Four kinds of documentation

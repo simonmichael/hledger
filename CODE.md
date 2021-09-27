@@ -1,5 +1,9 @@
 # Code
 
+<div class=pagetoc>
+<!-- toc -->
+</div>
+
 hledger is a suite of applications, tools and libraries.
 The main hledger code repository is [github.com/simonmichael/hledger](https://github.com/simonmichael/hledger)
 (shortcut url `code.hledger.org`).

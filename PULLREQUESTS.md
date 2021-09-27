@@ -1,5 +1,9 @@
 # Pull requests
 
+<div class=pagetoc>
+<!-- toc -->
+</div>
+
 Most contributed hledger code (and some of the project maintainer's code)
 is submitted and reviewed via Github pull requests.
 Here are some tips for contributing PRs to hledger.

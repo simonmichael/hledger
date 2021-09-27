@@ -1,5 +1,9 @@
 # Benchmarks
 
+<div class=pagetoc>
+<!-- toc -->
+</div>
+
 Benchmarks are standard performance measurements,
 which we define using `bench` declarations in cabal files.
 There is [one in hledger.cabal](https://github.com/simonmichael/hledger/blob/master/hledger/hledger.cabal#L228),
