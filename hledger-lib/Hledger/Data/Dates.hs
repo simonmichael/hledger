@@ -79,18 +79,16 @@ module Hledger.Data.Dates (
 )
 where
 
-import Prelude ()
-import "base-compat-batteries" Prelude.Compat hiding (fail)
-import qualified "base-compat-batteries" Control.Monad.Fail.Compat as Fail (MonadFail, fail)
+import qualified Control.Monad.Fail as Fail (MonadFail, fail)
 import Control.Applicative (liftA2)
 import Control.Applicative.Permutations
 import Control.Monad (guard, unless)
-import "base-compat-batteries" Data.List.Compat
 import Data.Char (digitToInt, isDigit, ord)
 import Data.Default (def)
 import Data.Foldable (asum)
 import Data.Function (on)
 import Data.Functor (($>))
+import Data.List (elemIndex, group, sort, sortBy)
 import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe)
 import Data.Ord (comparing)
 import qualified Data.Set as Set

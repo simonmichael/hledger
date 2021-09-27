@@ -57,8 +57,6 @@ module Hledger.Read.TimeclockReader (
 where
 
 --- ** imports
-import           Prelude ()
-import "base-compat-batteries" Prelude.Compat
 import           Control.Monad
 import           Control.Monad.Except (ExceptT)
 import           Control.Monad.State.Strict

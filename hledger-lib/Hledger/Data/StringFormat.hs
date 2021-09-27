@@ -17,8 +17,6 @@ module Hledger.Data.StringFormat (
         , tests_StringFormat
         ) where
 
-import Prelude ()
-import "base-compat-batteries" Prelude.Compat
 import Numeric (readDec)
 import Data.Char (isPrint)
 import Data.Default (Default(..))

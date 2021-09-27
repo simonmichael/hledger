@@ -37,8 +37,6 @@ module Hledger.Read.CsvReader (
 where
 
 --- ** imports
-import Prelude ()
-import "base-compat-batteries" Prelude.Compat hiding (fail)
 import Control.Applicative        (liftA2)
 import Control.Exception          (IOException, handle, throw)
 import Control.Monad              (unless, when)
@@ -49,7 +47,7 @@ import Control.Monad.State.Strict (StateT, get, modify', evalStateT)
 import Control.Monad.Trans.Class  (lift)
 import Data.Char                  (toLower, isDigit, isSpace, isAlphaNum, isAscii, ord)
 import Data.Bifunctor             (first)
-import "base-compat-batteries" Data.List.Compat
+import Data.List (elemIndex, foldl', intersperse, mapAccumL, nub, sortBy)
 import Data.Maybe (catMaybes, fromMaybe, isJust)
 import Data.MemoUgly (memo)
 import Data.Ord (comparing)

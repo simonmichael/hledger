@@ -14,8 +14,6 @@ module Hledger.Cli.Commands.Add (
 )
 where
 
-import Prelude ()
-import "base-compat-batteries" Prelude.Compat hiding (fail)
 import Control.Exception as E
 import Control.Monad (when)
 import Control.Monad.Trans.Class
@@ -24,7 +22,7 @@ import Control.Monad.Trans (liftIO)
 import Data.Char (toUpper, toLower)
 import Data.Either (isRight)
 import Data.Functor.Identity (Identity(..))
-import "base-compat-batteries" Data.List.Compat
+import Data.List (isPrefixOf)
 import Data.Maybe (fromJust, fromMaybe, isJust)
 import Data.Text (Text)
 import qualified Data.Text as T

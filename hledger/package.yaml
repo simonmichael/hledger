@@ -100,7 +100,6 @@ dependencies:
 - aeson >=1
 - ansi-terminal >=0.9
 - base >=4.11 && <4.16
-- base-compat-batteries >=0.10.1 && <0.12
 - bytestring
 - cmdargs >=0.10
 - containers >=0.5.9

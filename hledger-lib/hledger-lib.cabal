@@ -100,7 +100,6 @@ library
     , ansi-terminal >=0.9
     , array
     , base >=4.11 && <4.16
-    , base-compat-batteries >=0.10.1 && <0.12
     , blaze-markup >=0.5.1
     , bytestring
     , call-stack
@@ -150,7 +149,6 @@ test-suite doctest
     , ansi-terminal >=0.9
     , array
     , base >=4.11 && <4.16
-    , base-compat-batteries >=0.10.1 && <0.12
     , blaze-markup >=0.5.1
     , bytestring
     , call-stack
@@ -203,7 +201,6 @@ test-suite unittest
     , ansi-terminal >=0.9
     , array
     , base >=4.11 && <4.16
-    , base-compat-batteries >=0.10.1 && <0.12
     , blaze-markup >=0.5.1
     , bytestring
     , call-stack

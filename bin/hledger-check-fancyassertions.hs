@@ -118,7 +118,6 @@ import qualified Hledger.Read as H
 import qualified Hledger.Utils.Parse as H
 import Lens.Micro (set)
 import Options.Applicative
-import "base-compat" Prelude.Compat ((<>))
 import System.Exit (exitFailure)
 import System.FilePath (FilePath)
 import qualified Text.Megaparsec as P

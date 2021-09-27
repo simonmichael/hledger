@@ -72,16 +72,13 @@ module Hledger.Cli.CliOptions (
 )
 where
 
-import Prelude ()
-import "base-compat-batteries" Prelude.Compat
 import qualified Control.Exception as C
 import Control.Monad (when)
 import Data.Char
 import Data.Default
 import Data.Either (fromRight, isRight)
 import Data.Functor.Identity (Identity)
-import "base-compat-batteries" Data.List.Compat
-import Data.List.Extra (groupSortOn, nubSort)
+import Data.List.Extra (groupSortOn, intercalate, isInfixOf, nubSort)
 import Data.List.Split (splitOneOf)
 import Data.Maybe
 --import Data.String.Here

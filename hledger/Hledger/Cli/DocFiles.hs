@@ -20,8 +20,6 @@ module Hledger.Cli.DocFiles (
 
   ) where
 
-import Prelude ()
-import "base-compat-batteries" Prelude.Compat
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as BC
 import Data.Maybe (fromMaybe, isNothing)
