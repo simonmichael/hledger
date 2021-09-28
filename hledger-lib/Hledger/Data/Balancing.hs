@@ -474,7 +474,7 @@ balanceTransactionAndCheckAssertionsB (Right t@Transaction{tpostings=ps}) = do
   mapM_ checkIllegalBalanceAssignmentB ps
   -- for each posting, infer its amount from the balance assignment if applicable,
   -- update the account's running balance and check the balance assertion if any
-  ps' <- mapM (addOrAssignAmountAndCheckAssertionB . postingStripPrices) ps
+  ps' <- fmap concat $ mapM (addOrAssignAmountAndCheckAssertionB . postingStripPrices) ps
   -- infer any remaining missing amounts, and make sure the transaction is now fully balanced
   styles <- R.reader bsStyles
   case balanceTransactionHelper defbalancingopts{commodity_styles_=styles} t{tpostings=ps'} of
@@ -490,30 +490,46 @@ balanceTransactionAndCheckAssertionsB (Right t@Transaction{tpostings=ps}) = do
 -- reset the running balance to, the assigned balance.
 -- If it has a missing amount and no balance assignment, leave it for later.
 -- Then test the balance assertion if any.
-addOrAssignAmountAndCheckAssertionB :: Posting -> Balancing s Posting
+addOrAssignAmountAndCheckAssertionB :: Posting -> Balancing s [Posting]
 addOrAssignAmountAndCheckAssertionB p@Posting{paccount=acc, pamount=amt, pbalanceassertion=mba}
   -- an explicit posting amount
   | hasAmount p = do
       newbal <- addToRunningBalanceB acc amt
       whenM (R.reader bsAssrt) $ checkBalanceAssertionB p newbal
-      return p
+      return [p]
 
   -- no explicit posting amount, but there is a balance assignment
-  | Just BalanceAssertion{baamount,batotal,bainclusive} <- mba = do
-      newbal <- if batotal
-                   -- a total balance assignment (==, all commodities)
-                   then return $ mixedAmount baamount
-                   -- a partial balance assignment (=, one commodity)
-                   else do
-                     oldbalothercommodities <- filterMixedAmount ((acommodity baamount /=) . acommodity) <$> getRunningBalanceB acc
-                     return $ maAddAmount oldbalothercommodities baamount
+  | Just ba@BalanceAssertion{baamount,bainclusive} <- mba,
+        not bainclusive || not (amountIsZero baamount) = do
+      newbal <- assignmentAmount ba <$> getRunningBalanceB acc
       diff <- (if bainclusive then setInclusiveRunningBalanceB else setRunningBalanceB) acc newbal
       let p' = p{pamount=diff, poriginal=Just $ originalPosting p}
       whenM (R.reader bsAssrt) $ checkBalanceAssertionB p' newbal
-      return p'
+      return [p']
+
+  -- inclusive balance assignment with zero amount. generate postings to zero out all subaccounts
+  | Just ba@BalanceAssertion{} <- mba = do
+      newbals <- withRunningBalance $ \BalancingState{bsBalances} ->
+                      fmap (fmap (assignmentAmount ba))
+                    . filter ((acc `T.isPrefixOf`) . fst)
+                   <$> H.toList bsBalances
+      diffs <- forM newbals (uncurry setRunningBalanceB)
+      forM (zip diffs newbals) $ \(diff, (account, actual)) -> do
+        let p' = p{pamount=diff, paccount=account, poriginal=Just $ originalPosting p}
+        whenM (R.reader bsAssrt) $ checkBalanceAssertionB p' actual
+        return p'
 
   -- no explicit posting amount, no balance assignment
-  | otherwise = return p
+  | otherwise = return [p]
+  where
+    assignmentAmount BalanceAssertion{baamount,batotal} bal
+      | batotal =
+          -- a total balance assignment (==, all commodities)
+          mixedAmount baamount
+      | otherwise =
+          -- a partial balance assignment (=, one commodity)
+          let oldbalothercommodities = filterMixedAmount ((acommodity baamount /=) . acommodity) bal
+           in maAddAmount oldbalothercommodities baamount
 
 -- | Add the posting's amount to its account's running balance, and
 -- optionally check the posting's balance assertion if any.
