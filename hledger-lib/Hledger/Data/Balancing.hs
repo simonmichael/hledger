@@ -511,6 +511,7 @@ addOrAssignAmountAndCheckAssertionB p@Posting{paccount=acc, pamount=amt, pbalanc
   | Just ba@BalanceAssertion{} <- mba = do
       newbals <- withRunningBalance $ \BalancingState{bsBalances} ->
                       fmap (fmap (assignmentAmount ba))
+                    . sortOn fst
                     . filter ((acc `T.isPrefixOf`) . fst)
                    <$> H.toList bsBalances
       diffs <- forM newbals (uncurry setRunningBalanceB)
