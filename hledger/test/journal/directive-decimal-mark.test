@@ -1,0 +1,22 @@
+# 1. Commas specified as decimal mark
+$ hledger -f commas.journal bal
+         -199,00 RUB  Assets:Yandex
+          199,00 RUB  Expenses:Unknown:RUB
+--------------------
+                   0  
+>=0
+
+# 2. Include file with different decimal mark
+<
+commodity 1000.00 RUB
+include commas.journal
+2021-05-19 MTS Phone
+    Assets:Yandex         -100.5 RUB
+    Expenses:Phone         100.5 RUB
+$ hledger -f - bal
+         -299.50 RUB  Assets:Yandex
+          100.50 RUB  Expenses:Phone
+          199.00 RUB  Expenses:Unknown:RUB
+--------------------
+                   0  
+>=0
