@@ -1,5 +1,5 @@
 # 1. nested includes in subdirectories
- mkdir -p b/c/d ; printf '2010/1/1\n (D)  1\n' >b/c/d/d.journal ; printf '2010/1/1\n (C)  1\n!include d/d.journal\n' >b/c/c.journal ; printf '2010/1/1\n (B)  1\n!include c/c.journal\n' >b/b.journal ; printf '2010/1/1\n (A)  1\n!include b/b.journal\n' >a.journal ; hledger -f a.journal print; rm -rf a.journal b
+ mkdir -p b/c/d ; printf '2010/1/1\n (D)  1\n' >b/c/d/d.journal ; printf '2010/1/1\n (C)  1\ninclude d/d.journal\n' >b/c/c.journal ; printf '2010/1/1\n (B)  1\ninclude c/c.journal\n' >b/b.journal ; printf '2010/1/1\n (A)  1\ninclude b/b.journal\n' >a.journal ; hledger -f a.journal print; rm -rf a.journal bG
 >>>
 2010-01-01
     (A)               1
@@ -89,4 +89,14 @@ _b
 _c
 _d
 >>>2
+>>>=0
+
+# 9. include using old !include directive
+ printf '2018/01/01\n (A)  1\n' >f.journal; hledger -f - print; rm -f f.journal
+<<<
+!include f.journal
+>>>
+2018-01-01
+    (A)               1
+
 >>>=0
