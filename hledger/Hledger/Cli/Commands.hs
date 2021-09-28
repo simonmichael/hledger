@@ -492,7 +492,7 @@ defaultyear_journal_txt = T.unlines
 --  ]
 
 -- journal4_str = unlines
---  ["!include \"somefile\""
+--  ["include \"somefile\""
 --  ,"2007/01/27 * joes diner"
 --  ,"  expenses:food:dining                    $10.00"
 --  ,"  assets:checking                        $-47.18"
