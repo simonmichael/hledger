@@ -246,6 +246,7 @@ directivep = (do
    ,defaultcommoditydirectivep
    ,commodityconversiondirectivep
    ,ignoredpricecommoditydirectivep
+   ,decimalmarkdirectivep
    ]
   ) <?> "directive"
 
@@ -317,6 +318,7 @@ includedirectivep = do
       jparsedefaultyear      = jparsedefaultyear j
       ,jparsedefaultcommodity = jparsedefaultcommodity j
       ,jparseparentaccounts   = jparseparentaccounts j
+      ,jparsedecimalmark      = jparsedecimalmark j
       ,jparsealiases          = jparsealiases j
       ,jcommodities           = jcommodities j
       -- ,jparsetransactioncount = jparsetransactioncount j
@@ -596,6 +598,18 @@ commodityconversiondirectivep = do
   char '='
   lift skipNonNewlineSpaces
   amountp
+  lift restofline
+  return ()
+
+-- | Read a valid decimal mark from the decimal-mark directive e.g
+--
+-- decimal-mark ,
+decimalmarkdirectivep :: JournalParser m ()
+decimalmarkdirectivep = do
+  string "decimal-mark" <?> "decimal mark"
+  lift skipNonNewlineSpaces1
+  mark <- satisfy isDecimalMark
+  modify' $ \j -> j{jparsedecimalmark=Just mark}
   lift restofline
   return ()
 
