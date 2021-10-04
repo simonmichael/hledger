@@ -51,7 +51,7 @@ dependencies:
 - file-embed >=0.0.10
 - filepath
 - hashtables >=1.2.3.1
-- megaparsec >=7.0.0 && <9.2
+- megaparsec >=7.0.0 && <9.3
 - microlens >=0.4
 - microlens-th >=0.4
 - mtl >=2.2.1
