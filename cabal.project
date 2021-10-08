@@ -3,11 +3,6 @@ packages: hledger-lib
           hledger-ui
           hledger-web
 
--- syntax error with cabal 3.4, seems no longer needed
--- allow-newer:
---   brick:base
---   config-ini:containers
-
 -- generate a ghc environment file, needed by doctest 
 -- (eg: ./.ghc.environment.x86_64-darwin-8.8.3). 
 -- cabal 3 doesn't write these by default.
