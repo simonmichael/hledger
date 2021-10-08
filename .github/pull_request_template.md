@@ -6,4 +6,4 @@
 # To minimise waste, and learn how to get hledger PRs accepted swiftly, 
 # please check the latest guidelines in the developer docs:
 # 
-# https://hledger.org/CONTRIBUTING.html#pull-requests
+# https://hledger.org/PULLREQUESTS.html
