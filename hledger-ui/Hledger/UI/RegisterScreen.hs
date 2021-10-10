@@ -72,6 +72,7 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec
         -- always show historical balance
       -- , balanceaccum_= Historical
       }
+    wd = whichDate ropts'
     rspec' = reportSpecSetFutureAndForecast d (forecast_ $ inputopts_ copts) .
       either (error "rsInit: adjusting the query for register, should not have failed") id $ -- PARTIAL:
       updateReportSpec ropts' rspec{_rsDay=d}
@@ -84,7 +85,7 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec
     displayitems = map displayitem items'
       where
         displayitem (t, _, _issplit, otheracctsstr, change, bal) =
-          RegisterScreenItem{rsItemDate          = showDate $ transactionRegisterDate (_rsQuery rspec') thisacctq t
+          RegisterScreenItem{rsItemDate          = showDate $ transactionRegisterDate wd (_rsQuery rspec') thisacctq t
                             ,rsItemStatus        = tstatus t
                             ,rsItemDescription   = tdescription t
                             ,rsItemOtherAccounts = otheracctsstr
