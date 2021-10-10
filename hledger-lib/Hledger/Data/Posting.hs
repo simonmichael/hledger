@@ -42,6 +42,7 @@ module Hledger.Data.Posting (
   -- * date operations
   postingDate,
   postingDate2,
+  postingDateOrDate2,
   isPostingInDateSpan,
   isPostingInDateSpan',
   -- * account name operations
@@ -219,6 +220,11 @@ postingDate2 p = fromMaybe nulldate $ asum dates
                 , pdate p
                 , tdate <$> ptransaction p
                 ]
+
+-- | Get a posting's primary or secondary date, as specified.
+postingDateOrDate2 :: WhichDate -> Posting -> Day
+postingDateOrDate2 PrimaryDate   = postingDate
+postingDateOrDate2 SecondaryDate = postingDate2
 
 -- | Get a posting's status. This is cleared or pending if those are
 -- explicitly set on the posting, otherwise the status of its parent

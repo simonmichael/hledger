@@ -64,7 +64,7 @@ postingsReport :: ReportSpec -> Journal -> PostingsReport
 postingsReport rspec@ReportSpec{_rsReportOpts=ropts@ReportOpts{..}} j = items
     where
       reportspan  = reportSpanBothDates j rspec
-      whichdate   = whichDateFromOpts ropts
+      whichdate   = whichDate ropts
       mdepth      = queryDepth $ _rsQuery rspec
       multiperiod = interval_ /= NoInterval
 
@@ -116,9 +116,11 @@ matchedPostingsBeforeAndDuring rspec@ReportSpec{_rsReportOpts=ropts,_rsQuery=q} 
     dbg5 "beforeps, duringps" $ span (beforestartq `matchesPosting`) beforeandduringps
   where
     beforestartq = dbg3 "beforestartq" $ dateqtype $ DateSpan Nothing $ spanStart reportspan
-    beforeandduringps = sortOn (if date2_ ropts then postingDate2 else postingDate)  -- sort postings by date or date2
-      . (if invert_ ropts then map negatePostingAmount else id)                      -- with --invert, invert amounts
-      . journalPostings $ journalValueAndFilterPostings rspec{_rsQuery=beforeandduringq} j
+    beforeandduringps = 
+        sortOn (postingDateOrDate2 (whichDate ropts))            -- sort postings by date or date2
+      . (if invert_ ropts then map negatePostingAmount else id)  -- with --invert, invert amounts
+      . journalPostings
+      $ journalValueAndFilterPostings rspec{_rsQuery=beforeandduringq} j
 
     -- filter postings by the query, with no start date or depth limit
     beforeandduringq = dbg4 "beforeandduringq" $ And [depthless $ dateless q, beforeendq]
@@ -152,15 +154,12 @@ postingsReportItems ((p,mperiod):ps) (pprev,mperiodprev) wd d b runningcalcfn it
 -- the transaction description.
 mkpostingsReportItem :: Bool -> Bool -> WhichDate -> Maybe Period -> Posting -> MixedAmount -> PostingsReportItem
 mkpostingsReportItem showdate showdesc wd mperiod p b =
-  (if showdate then Just date else Nothing
+  (if showdate then Just $ postingDateOrDate2 wd p else Nothing
   ,mperiod
   ,if showdesc then tdescription <$> ptransaction p else Nothing
   ,p
   ,b
   )
-  where
-    date = case wd of PrimaryDate   -> postingDate p
-                      SecondaryDate -> postingDate2 p
 
 -- | Convert a list of postings into summary postings, one per interval,
 -- aggregated to the specified depth if any.
@@ -170,13 +169,10 @@ summarisePostingsByInterval interval wd mdepth showempty reportspan =
     concatMap (\(s,ps) -> summarisePostingsInDateSpan s wd mdepth showempty ps)
     -- Group postings into their columns. We try to be efficient, since
     -- there can possibly be a very large number of intervals (cf #1683)
-    . groupByDateSpan showempty getDate colspans
+    . groupByDateSpan showempty (postingDateOrDate2 wd) colspans
   where
     -- The date spans to be included as report columns.
     colspans = splitSpan interval reportspan
-    getDate = case wd of
-        PrimaryDate   -> postingDate
-        SecondaryDate -> postingDate2
 
 -- | Given a date span (representing a report interval) and a list of
 -- postings within it, aggregate the postings into one summary posting per

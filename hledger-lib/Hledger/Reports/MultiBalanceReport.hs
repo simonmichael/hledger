@@ -244,9 +244,7 @@ getPostingsByColumn rspec j priceoracle reportspan =
     ps = dbg5 "getPostingsByColumn" $ getPostings rspec j priceoracle
     -- The date spans to be included as report columns.
     colspans = dbg3 "colspans" $ splitSpan (interval_ $ _rsReportOpts rspec) reportspan
-    getDate = case whichDateFromOpts (_rsReportOpts rspec) of
-        PrimaryDate   -> postingDate
-        SecondaryDate -> postingDate2
+    getDate = postingDateOrDate2 (whichDate (_rsReportOpts rspec))
 
 -- | Gather postings matching the query within the report period.
 getPostings :: ReportSpec -> Journal -> PriceOracle -> [Posting]

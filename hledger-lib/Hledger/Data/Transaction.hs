@@ -34,6 +34,7 @@ module Hledger.Data.Transaction
   -- nonzerobalanceerror
   -- * date operations
 , transactionDate2
+, transactionDateOrDate2
   -- * transaction description parts
 , transactionPayee
 , transactionNote
@@ -320,9 +321,14 @@ balancedVirtualPostings = filter isBalancedVirtual . tpostings
 transactionsPostings :: [Transaction] -> [Posting]
 transactionsPostings = concatMap tpostings
 
--- Get a transaction's secondary date, defaulting to the primary date.
+-- Get a transaction's secondary date, or the primary date if there is none.
 transactionDate2 :: Transaction -> Day
 transactionDate2 t = fromMaybe (tdate t) $ tdate2 t
+
+-- Get a transaction's primary or secondary date, as specified.
+transactionDateOrDate2 :: WhichDate -> Transaction -> Day
+transactionDateOrDate2 PrimaryDate   = tdate
+transactionDateOrDate2 SecondaryDate = transactionDate2
 
 -- | Ensure a transaction's postings refer back to it, so that eg
 -- relatedPostings works right.

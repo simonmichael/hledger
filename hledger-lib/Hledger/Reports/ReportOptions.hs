@@ -38,7 +38,7 @@ module Hledger.Reports.ReportOptions (
   tree_,
   reportOptsToggleStatus,
   simplifyStatuses,
-  whichDateFromOpts,
+  whichDate,
   journalValueAndFilterPostings,
   journalValueAndFilterPostingsWith,
   journalApplyValuationFromOpts,
@@ -486,8 +486,8 @@ postingDateFn :: ReportOpts -> (Posting -> Day)
 postingDateFn ReportOpts{..} = if date2_ then postingDate2 else postingDate
 
 -- | Report which date we will report on based on --date2.
-whichDateFromOpts :: ReportOpts -> WhichDate
-whichDateFromOpts ReportOpts{..} = if date2_ then SecondaryDate else PrimaryDate
+whichDate :: ReportOpts -> WhichDate
+whichDate ReportOpts{..} = if date2_ then SecondaryDate else PrimaryDate
 
 -- | Legacy-compatible convenience aliases for accountlistmode_.
 tree_ :: ReportOpts -> Bool
