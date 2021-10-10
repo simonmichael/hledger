@@ -88,6 +88,7 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
       , balanceaccum_= Historical
       , querystring_ = querystring
       }
+    wd = whichDate ropts'
   -- and regenerate the ReportSpec, making sure to use the above
   rspec' <- either fail return $ updateReportSpec ropts' rspec
   let
@@ -98,7 +99,7 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
              reverse items
     -- select renderer
     render | fmt=="txt"  = accountTransactionsReportAsText opts (_rsQuery rspec') thisacctq
-           | fmt=="csv"  = printCSV . accountTransactionsReportAsCsv (_rsQuery rspec') thisacctq
+           | fmt=="csv"  = printCSV . accountTransactionsReportAsCsv wd (_rsQuery rspec') thisacctq
            | fmt=="json" = toJsonText
            | otherwise   = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
       where
@@ -106,19 +107,19 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
 
   writeOutputLazyText opts $ render items'
 
-accountTransactionsReportAsCsv :: Query -> Query -> AccountTransactionsReport -> CSV
-accountTransactionsReportAsCsv reportq thisacctq is =
+accountTransactionsReportAsCsv :: WhichDate -> Query -> Query -> AccountTransactionsReport -> CSV
+accountTransactionsReportAsCsv wd reportq thisacctq is =
   ["txnidx","date","code","description","otheraccounts","change","balance"]
-  : map (accountTransactionsReportItemAsCsvRecord reportq thisacctq) is
+  : map (accountTransactionsReportItemAsCsvRecord wd reportq thisacctq) is
 
-accountTransactionsReportItemAsCsvRecord :: Query -> Query -> AccountTransactionsReportItem -> CsvRecord
+accountTransactionsReportItemAsCsvRecord :: WhichDate -> Query -> Query -> AccountTransactionsReportItem -> CsvRecord
 accountTransactionsReportItemAsCsvRecord
-  reportq thisacctq
+  wd reportq thisacctq
   (t@Transaction{tindex,tcode,tdescription}, _, _issplit, otheracctsstr, change, balance)
   = [idx,date,tcode,tdescription,otheracctsstr,amt,bal]
   where
     idx  = T.pack $ show tindex
-    date = showDate $ transactionRegisterDate reportq thisacctq t
+    date = showDate $ transactionRegisterDate wd reportq thisacctq t
     amt  = wbToText $ showMixedAmountB oneLine change
     bal  = wbToText $ showMixedAmountB oneLine balance
 
@@ -156,7 +157,7 @@ accountTransactionsReportAsText copts reportq thisacctq items = TB.toLazyText $
 --
 accountTransactionsReportItemAsText :: CliOpts -> Query -> Query -> Int -> Int -> AccountTransactionsReportItem -> TB.Builder
 accountTransactionsReportItemAsText
-  copts@CliOpts{reportspec_=ReportSpec{_rsReportOpts=ReportOpts{color_}}}
+  copts@CliOpts{reportspec_=ReportSpec{_rsReportOpts=ropts@ReportOpts{color_}}}
   reportq thisacctq preferredamtwidth preferredbalwidth
   (t@Transaction{tdescription}, _, _issplit, otheracctsstr, change, balance) =
     -- Transaction -- the transaction, unmodified
@@ -184,7 +185,8 @@ accountTransactionsReportItemAsText
       where w = fullwidth - wbWidth amt
     -- calculate widths
     (totalwidth,mdescwidth) = registerWidthsFromOpts copts
-    (datewidth, date) = (10, showDate $ transactionRegisterDate reportq thisacctq t)
+    (datewidth, date) = (10, showDate $ transactionRegisterDate wd reportq thisacctq t)
+      where wd = whichDate ropts
     (amtwidth, balwidth)
       | shortfall <= 0 = (preferredamtwidth, preferredbalwidth)
       | otherwise      = (adjustedamtwidth, adjustedbalwidth)

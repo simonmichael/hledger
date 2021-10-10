@@ -103,8 +103,9 @@ accountTransactionsReport rspec@ReportSpec{_rsReportOpts=ropts} j thisacctq = it
         periodq = Date . periodAsDateSpan $ period_ ropts
     amtq = filterQuery queryIsCurOrAmt $ _rsQuery rspec
     queryIsCurOrAmt q = queryIsSym q || queryIsAmt q
+    wd = whichDate ropts
 
-    -- Note that within this functions, we are only allowed limited
+    -- Note that within this function, we are only allowed limited
     -- transformation of the transaction postings: this is due to the need to
     -- pass the original transactions into accountTransactionsReportItem.
     -- Generally, we either include a transaction in full, or not at all.
@@ -112,6 +113,8 @@ accountTransactionsReport rspec@ReportSpec{_rsReportOpts=ropts} j thisacctq = it
     -- - filter them by the account query if any,
     -- - discard amounts not matched by the currency and amount query if any,
     -- - then apply valuation if any.
+    -- Additional reportq filtering, such as date filtering, happens down in 
+    -- accountTransactionsReportItem, which discards transactions with no matched postings.
     acctJournal =
           ptraceAtWith 5 (("ts3:\n"++).pshowTransactions.jtxns)
         -- maybe convert these transactions to cost or value
@@ -149,7 +152,7 @@ accountTransactionsReport rspec@ReportSpec{_rsReportOpts=ropts} j thisacctq = it
       -- sort by the transaction's register date, then index, for accurate starting balance
       . ptraceAtWith 5 (("ts4:\n"++).pshowTransactions.map snd)
       . sortBy (comparing (Down . fst) <> comparing (Down . tindex . snd))
-      . map (\t -> (transactionRegisterDate reportq thisacctq t, t))
+      . map (\t -> (transactionRegisterDate wd reportq thisacctq t, t))
       $ jtxns acctJournal
 
 pshowTransactions :: [Transaction] -> String
@@ -160,9 +163,8 @@ pshowTransactions = pshow . map (\t -> unwords [show $ tdate t, T.unpack $ tdesc
 -- which account to use as the focus, a starting balance, and a sign-setting
 -- function.
 -- Each transaction is accompanied by the date that should be shown for it
--- in the report, which is not necessarily the transaction date; it is
--- the earliest of the posting dates which match both thisacctq and reportq,
--- otherwise the transaction's date if there are no matching postings.
+-- in the report. This is not necessarily the transaction date - see
+-- transactionRegisterDate.
 accountTransactionsReportItems :: Query -> Query -> MixedAmount -> (MixedAmount -> MixedAmount)
                                -> [(Day, Transaction)] -> [AccountTransactionsReportItem]
 accountTransactionsReportItems reportq thisacctq bal signfn =
@@ -176,7 +178,7 @@ accountTransactionsReportItem reportq thisacctq signfn bal (d, torig)
     | null reportps = (bal, Nothing)  -- no matched postings in this transaction, skip it
     | otherwise     = (b, Just (torig, tacct{tdate=d}, numotheraccts > 1, otheracctstr, a, b))
     where
-      tacct@Transaction{tpostings=reportps} = filterTransactionPostings reportq torig
+      tacct@Transaction{tpostings=reportps} = filterTransactionPostings reportq torig  -- TODO needs to consider --date2, #1731
       (thisacctps, otheracctps) = partition (matchesPosting thisacctq) reportps
       numotheraccts = length $ nub $ map paccount otheracctps
       otheracctstr | thisacctq == None  = summarisePostingAccounts reportps     -- no current account ? summarise all matched postings
@@ -185,16 +187,20 @@ accountTransactionsReportItem reportq thisacctq signfn bal (d, torig)
       a = signfn . maNegate $ sumPostings thisacctps
       b = bal `maPlus` a
 
--- | What is the transaction's date in the context of a particular account
--- (specified with a query) and report query, as in an account register ?
--- It's normally the transaction's general date, but if any posting(s)
--- matched by the report query and affecting the matched account(s) have
--- their own earlier dates, it's the earliest of these dates.
--- Secondary transaction/posting dates are ignored.
-transactionRegisterDate :: Query -> Query -> Transaction -> Day
-transactionRegisterDate reportq thisacctq t
-  | null thisacctps = tdate t
-  | otherwise       = minimum $ map postingDate thisacctps
+-- TODO needs checking, cf #1731
+-- | What date should be shown for a transaction in an account register report ?
+-- This will be in context of a particular account (the "this account" query)
+-- and any additional report query. It could be:
+--
+-- - if postings are matched by both thisacctq and reportq, the earliest of those
+--   matched postings' dates (or their secondary dates if --date2 was used)
+--
+-- - the transaction date, or its secondary date if --date2 was used.
+--
+transactionRegisterDate :: WhichDate -> Query -> Query -> Transaction -> Day
+transactionRegisterDate wd reportq thisacctq t
+  | not $ null thisacctps = minimum $ map (postingDateOrDate2 wd) thisacctps
+  | otherwise             = transactionDateOrDate2 wd t
   where
     reportps   = tpostings $ filterTransactionPostings reportq t
     thisacctps = filter (matchesPosting thisacctq) reportps
