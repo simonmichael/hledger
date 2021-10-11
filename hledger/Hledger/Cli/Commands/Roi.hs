@@ -70,6 +70,7 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportO
 
   let
     ropts = _rsReportOpts rspec
+    wd = whichDate ropts
     showCashFlow = boolopt "cashflow" rawopts
     prettyTables = pretty_
     makeQuery flag = do
@@ -83,7 +84,7 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportO
     trans = dbg3 "investments" $ jtxns $ filterJournalTransactions investmentsQuery j
 
     journalSpan =
-        let dates = map transactionDate2 trans in
+        let dates = map (transactionDateOrDate2 wd) trans in
         DateSpan (Just $ minimum dates) (Just $ addDays 1 $ maximum dates)
 
     requestedSpan = periodAsDateSpan period_
@@ -121,16 +122,16 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportO
       cashFlow =
         ((map (,nullmixedamt) priceDates)++) $
         cashFlowApplyCostValue $
-        calculateCashFlow trans (And [ Not investmentsQuery
-                                     , Not pnlQuery
-                                     , Date span ] )
+        calculateCashFlow wd trans (And [ Not investmentsQuery
+                                        , Not pnlQuery
+                                        , Date span ] )
 
 
       pnl =
         cashFlowApplyCostValue $
-        calculateCashFlow trans (And [ Not investmentsQuery
-                                     , pnlQuery
-                                     , Date span ] )
+        calculateCashFlow wd trans (And [ Not investmentsQuery
+                                        , pnlQuery
+                                        , Date span ] )
 
       thisSpan = dbg3 "processing span" $
                  OneSpan spanBegin spanEnd valueBefore valueAfter cashFlow pnl
@@ -290,9 +291,9 @@ interestSum referenceDay cf rate = sum $ map go cf
   where go (t,m) = realToFrac (unMix m) * rate ** (fromIntegral (referenceDay `diffDays` t) / 365)
 
 
-calculateCashFlow :: [Transaction] -> Query -> CashFlow
-calculateCashFlow trans query = filter (maIsNonZero . snd) $ map go trans
-  where go t = (transactionDate2 t, total [t] query)
+calculateCashFlow :: WhichDate -> [Transaction] -> Query -> CashFlow
+calculateCashFlow wd trans query =
+  [ (postingDateOrDate2 wd p, pamount p) | p <- filter (matchesPosting query) (concatMap realPostings trans), maIsNonZero (pamount p) ]
 
 total :: [Transaction] -> Query -> MixedAmount
 total trans query = sumPostings . filter (matchesPosting query) $ concatMap realPostings trans
