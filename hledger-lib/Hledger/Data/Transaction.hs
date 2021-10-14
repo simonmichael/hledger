@@ -18,7 +18,6 @@ module Hledger.Data.Transaction
 , txnTieKnot
 , txnUntieKnot
   -- * operations
-, showAccountName
 , hasRealPostings
 , realPostings
 , assignmentPostings
@@ -42,14 +41,11 @@ module Hledger.Data.Transaction
   -- * rendering
 , showTransaction
 , showTransactionOneLineAmounts
-  -- showPostingLine
-, showPostingLines
 , transactionFile
   -- * tests
 , tests_Transaction
 ) where
 
-import Data.Default (Default(..))
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -57,7 +53,6 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import Data.Time.Calendar (Day, fromGregorian)
 import qualified Data.Map as M
-import Safe (maximumDef)
 
 import Hledger.Utils
 import Hledger.Data.Types
@@ -65,7 +60,6 @@ import Hledger.Data.Dates
 import Hledger.Data.Posting
 import Hledger.Data.Amount
 import Hledger.Data.Valuation
-import Text.Tabular.AsciiWide
 
 
 nulltransaction :: Transaction
@@ -154,154 +148,6 @@ showTransactionHelper onelineamounts t =
       case renderCommentLines (tcomment t) of []   -> ("",[])
                                               c:cs -> (c,cs)
     newline = TB.singleton '\n'
-
--- | Render a transaction or posting's comment as indented, semicolon-prefixed comment lines.
--- The first line (unless empty) will have leading space, subsequent lines will have a larger indent.
-renderCommentLines :: Text -> [Text]
-renderCommentLines t =
-  case T.lines t of
-    []      -> []
-    [l]     -> [commentSpace $ comment l]        -- single-line comment
-    ("":ls) -> "" : map (lineIndent . comment) ls  -- multi-line comment with empty first line
-    (l:ls)  -> commentSpace (comment l) : map (lineIndent . comment) ls
-  where
-    comment = ("; "<>)
-
--- | Given a transaction and its postings, render the postings, suitable
--- for `print` output. Normally this output will be valid journal syntax which
--- hledger can reparse (though it may include no-longer-valid balance assertions).
---
--- Explicit amounts are shown, any implicit amounts are not.
---
--- Postings with multicommodity explicit amounts are handled as follows:
--- if onelineamounts is true, these amounts are shown on one line,
--- comma-separated, and the output will not be valid journal syntax.
--- Otherwise, they are shown as several similar postings, one per commodity.
---
--- The output will appear to be a balanced transaction.
--- Amounts' display precisions, which may have been limited by commodity
--- directives, will be increased if necessary to ensure this.
---
--- Posting amounts will be aligned with each other, starting about 4 columns
--- beyond the widest account name (see postingAsLines for details).
-postingsAsLines :: Bool -> [Posting] -> [Text]
-postingsAsLines onelineamounts ps = concatMap first3 linesWithWidths
-  where
-    linesWithWidths = map (postingAsLines False onelineamounts maxacctwidth maxamtwidth) ps
-    maxacctwidth = maximumDef 0 $ map second3 linesWithWidths
-    maxamtwidth  = maximumDef 0 $ map third3 linesWithWidths
-
--- | Render one posting, on one or more lines, suitable for `print` output.
--- There will be an indented account name, plus one or more of status flag,
--- posting amount, balance assertion, same-line comment, next-line comments.
---
--- If the posting's amount is implicit or if elideamount is true, no amount is shown.
---
--- If the posting's amount is explicit and multi-commodity, multiple similar
--- postings are shown, one for each commodity, to help produce parseable journal syntax.
--- Or if onelineamounts is true, such amounts are shown on one line, comma-separated
--- (and the output will not be valid journal syntax).
---
--- By default, 4 spaces (2 if there's a status flag) are shown between
--- account name and start of amount area, which is typically 12 chars wide
--- and contains a right-aligned amount (so 10-12 visible spaces between
--- account name and amount is typical).
--- When given a list of postings to be aligned with, the whitespace will be
--- increased if needed to match the posting with the longest account name.
--- This is used to align the amounts of a transaction's postings.
---
--- Also returns the account width and amount width used.
-postingAsLines :: Bool -> Bool -> Int -> Int -> Posting -> ([Text], Int, Int)
-postingAsLines elideamount onelineamounts acctwidth amtwidth p =
-    (concatMap (++ newlinecomments) postingblocks, thisacctwidth, thisamtwidth)
-  where
-    -- This needs to be converted to strict Text in order to strip trailing
-    -- spaces. This adds a small amount of inefficiency, and the only difference
-    -- is whether there are trailing spaces in print (and related) reports. This
-    -- could be removed and we could just keep everything as a Text Builder, but
-    -- would require adding trailing spaces to 42 failing tests.
-    postingblocks = [map T.stripEnd . T.lines . TL.toStrict $
-                       render [ textCell BottomLeft statusandaccount
-                              , textCell BottomLeft "  "
-                              , Cell BottomLeft [pad amt]
-                              , Cell BottomLeft [assertion]
-                              , textCell BottomLeft samelinecomment
-                              ]
-                    | amt <- shownAmounts]
-    render = renderRow def{tableBorders=False, borderSpaces=False} . Group NoLine . map Header
-    pad amt = WideBuilder (TB.fromText $ T.replicate w " ") w <> amt
-      where w = max 12 amtwidth - wbWidth amt  -- min. 12 for backwards compatibility
-
-    assertion = maybe mempty ((WideBuilder (TB.singleton ' ') 1 <>).showBalanceAssertion) $ pbalanceassertion p
-    -- pad to the maximum account name width, plus 2 to leave room for status flags, to keep amounts aligned
-    statusandaccount = lineIndent . fitText (Just $ 2 + acctwidth) Nothing False True $ pstatusandacct p
-    thisacctwidth = textWidth $ pacctstr p
-
-    pacctstr p' = showAccountName Nothing (ptype p') (paccount p')
-    pstatusandacct p' = pstatusprefix p' <> pacctstr p'
-    pstatusprefix p' = case pstatus p' of
-        Unmarked -> ""
-        s        -> T.pack (show s) <> " "
-
-    -- currently prices are considered part of the amount string when right-aligning amounts
-    -- Since we will usually be calling this function with the knot tied between
-    -- amtwidth and thisamtwidth, make sure thisamtwidth does not depend on
-    -- amtwidth at all.
-    shownAmounts
-      | elideamount = [mempty]
-      | otherwise   = showMixedAmountLinesB noColour{displayOneLine=onelineamounts} $ pamount p
-    thisamtwidth = maximumDef 0 $ map wbWidth shownAmounts
-
-    (samelinecomment, newlinecomments) =
-      case renderCommentLines (pcomment p) of []   -> ("",[])
-                                              c:cs -> (c,cs)
-
--- | Render a balance assertion, as the =[=][*] symbol and expected amount.
-showBalanceAssertion :: BalanceAssertion -> WideBuilder
-showBalanceAssertion BalanceAssertion{..} =
-    singleton '=' <> eq <> ast <> singleton ' ' <> showAmountB def{displayZeroCommodity=True} baamount
-  where
-    eq  = if batotal     then singleton '=' else mempty
-    ast = if bainclusive then singleton '*' else mempty
-    singleton c = WideBuilder (TB.singleton c) 1
-
--- | Render a posting, simply. Used in balance assertion errors.
--- showPostingLine p =
---   lineIndent $
---   if pstatus p == Cleared then "* " else "" ++  -- XXX show !
---   showAccountName Nothing (ptype p) (paccount p) ++
---   "    " ++
---   showMixedAmountOneLine (pamount p) ++
---   assertion
---   where
---     -- XXX extract, handle ==
---     assertion = maybe "" ((" = " ++) . showAmountWithZeroCommodity . baamount) $ pbalanceassertion p
-
--- | Render a posting, at the appropriate width for aligning with
--- its siblings if any. Used by the rewrite command.
-showPostingLines :: Posting -> [Text]
-showPostingLines p = first3 $ postingAsLines False False maxacctwidth maxamtwidth p
-  where
-    linesWithWidths = map (postingAsLines False False maxacctwidth maxamtwidth) . maybe [p] tpostings $ ptransaction p
-    maxacctwidth = maximumDef 0 $ map second3 linesWithWidths
-    maxamtwidth  = maximumDef 0 $ map third3 linesWithWidths
-
--- | Prepend a suitable indent for a posting (or transaction/posting comment) line.
-lineIndent :: Text -> Text
-lineIndent = ("    "<>)
-
--- | Prepend the space required before a same-line comment.
-commentSpace :: Text -> Text
-commentSpace = ("  "<>)
-
--- | Show an account name, clipped to the given width if any, and
--- appropriately bracketed/parenthesised for the given posting type.
-showAccountName :: Maybe Int -> PostingType -> AccountName -> Text
-showAccountName w = fmt
-  where
-    fmt RegularPosting         = maybe id T.take w
-    fmt VirtualPosting         = wrap "(" ")" . maybe id (T.takeEnd . subtract 2) w
-    fmt BalancedVirtualPosting = wrap "[" "]" . maybe id (T.takeEnd . subtract 2) w
 
 hasRealPostings :: Transaction -> Bool
 hasRealPostings = not . null . realPostings
