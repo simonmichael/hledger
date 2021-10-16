@@ -50,7 +50,7 @@ registermode = hledgerCommandMode
 #endif
       ++ " or $COLUMNS). -wN,M sets description width as well."
      )
-  ,outputFormatFlag ["txt","csv","json"]
+  ,outputFormatFlag ["txt","csv","json","txt-tab-separated"]
   ,outputFileFlag
   ])
   [generalflagsgroup1]
@@ -66,6 +66,7 @@ register opts@CliOpts{reportspec_=rspec} j =
     render | fmt=="txt"  = postingsReportAsText opts
            | fmt=="csv"  = printCSV . postingsReportAsCsv
            | fmt=="json" = toJsonText
+           | fmt=="txt-tab-separated" = postingsReportAsTextTabSeparated opts
            | otherwise   = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
 
 postingsReportAsCsv :: PostingsReport -> CSV
@@ -90,6 +91,10 @@ postingsReportItemAsCsvRecord (_, _, _, p, b) = [idx,date,code,desc,acct,amt,bal
     -- Since postingsReport strips prices from all Amounts when not used, we can display prices.
     amt = wbToText . showMixedAmountB oneLine $ pamount p
     bal = wbToText $ showMixedAmountB oneLine b
+
+-- | Render a register report as tab-separated plain text suitable for console output.
+postingsReportAsTextTabSeparated :: CliOpts -> PostingsReport -> TL.Text
+postingsReportAsTextTabSeparated opts items = TB.toLazyText ""
 
 -- | Render a register report as plain text suitable for console output.
 postingsReportAsText :: CliOpts -> PostingsReport -> TL.Text
