@@ -420,7 +420,7 @@ args = info (helper <*> parser) $ mconcat
       parsed <- P.runParserT (runStateT p H.nulljournal) "" s
       case parsed of
         Right (a, _) -> pure (s, a)
-        Left err -> fail ("failed to parse input '" ++ unpack s ++ "': " ++ show err)
+        Left err -> fail ("failed to parse input '" ++ unpack s ++ "': " ++ P.errorBundlePretty err)
 
     readParsec' :: H.SimpleTextParser a -> ReadM (String, a)
     readParsec' p = do
@@ -428,7 +428,7 @@ args = info (helper <*> parser) $ mconcat
       let parsed = runIdentity $ P.runParserT p "" (pack s)
       case parsed of
         Right a -> pure (s, a)
-        Left err -> fail ("failed to parse input '" ++ s ++ "': " ++ show err)
+        Left err -> fail ("failed to parse input '" ++ s ++ "': " ++ P.errorBundlePretty err)
 
 
 -------------------------------------------------------------------------------
