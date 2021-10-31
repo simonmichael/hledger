@@ -239,7 +239,7 @@ Marketing and market understanding is vital.
 
 ### Developer
 
-See [Developer workflows](#developer-workflows).
+See [Developer workflows](WORKFLOWS.md#developer-workflows).
 
 
 
