@@ -28,16 +28,20 @@ hledger -f- register -p 2014/1/2 --date2
 2014-01-02                      (a)                              1             1
 >>>=0
 
-# 3. --date2 causes date: to match the secondary date
+# 3. --date2 causes date: to match the secondary date (or the primary date, if there is no secondary)
 hledger -f- register date:2014/1/2 --date2
 <<<
 2014/1/1=1/2
   (a)  1
 
-2014/1/3
+2014/1/2
   (b)  1
+
+2014/1/2=1/3
+  (C)  1
 >>>
 2014-01-02                      (a)                              1             1
+2014-01-02                      (b)                              1             2
 >>>=0
 
 # 4. date2: matches the secondary date (but does not necessarily display it)
