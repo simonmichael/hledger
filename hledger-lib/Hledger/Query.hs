@@ -479,7 +479,7 @@ queryTermDateSpan _ = Nothing
 queryDateSpan :: Bool -> Query -> DateSpan
 queryDateSpan secondary (Or qs)  = spansUnion     $ map (queryDateSpan secondary) qs
 queryDateSpan secondary (And qs) = spansIntersect $ map (queryDateSpan secondary) qs
-queryDateSpan False (Date span)  = span
+queryDateSpan _     (Date span)  = span
 queryDateSpan True (Date2 span)  = span
 queryDateSpan _ _                = nulldatespan
 
