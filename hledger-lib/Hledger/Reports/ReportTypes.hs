@@ -29,6 +29,7 @@ module Hledger.Reports.ReportTypes
 , prrFullName
 , prrDisplayName
 , prrDepth
+, prrAdd
 ) where
 
 import Data.Aeson (ToJSON(..))
@@ -103,12 +104,18 @@ instance Bifunctor PeriodicReportRow where
   second = fmap
 
 instance Semigroup b => Semigroup (PeriodicReportRow a b) where
-  (PeriodicReportRow _ amts1 t1 a1) <> (PeriodicReportRow n2 amts2 t2 a2) =
-      PeriodicReportRow n2 (sumPadded amts1 amts2) (t1 <> t2) (a1 <> a2)
-    where
-      sumPadded (a:as) (b:bs) = (a <> b) : sumPadded as bs
-      sumPadded as     []     = as
-      sumPadded []     bs     = bs
+  (<>) = prrAdd
+
+-- | Add two 'PeriodicReportRows', preserving the name of the first.
+prrAdd :: Semigroup b => PeriodicReportRow a b -> PeriodicReportRow a b -> PeriodicReportRow a b
+prrAdd (PeriodicReportRow n1 amts1 t1 a1) (PeriodicReportRow _ amts2 t2 a2) =
+    PeriodicReportRow n1 (zipWithPadded (<>) amts1 amts2) (t1 <> t2) (a1 <> a2)
+
+-- | Version of 'zipWith' which will not end on the shortest list, but will copy the rest of the longer list.
+zipWithPadded :: (a -> a -> a) -> [a] -> [a] -> [a]
+zipWithPadded f (a:as) (b:bs) = f a b : zipWithPadded f as bs
+zipWithPadded _ as     []     = as
+zipWithPadded _ []     bs     = bs
 
 -- | Figure out the overall date span of a PeriodicReport
 periodicReportSpan :: PeriodicReport a b -> DateSpan
