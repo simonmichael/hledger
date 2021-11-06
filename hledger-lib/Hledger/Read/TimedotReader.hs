@@ -171,21 +171,26 @@ entryp = do
   lift $ optional $ choice [orgheadingprefixp, skipNonNewlineSpaces1]
   a <- modifiedaccountnamep
   lift skipNonNewlineSpaces
-  hours <-
+  hrs <-
     try (lift followingcommentp >> return 0)
     <|> (durationp <*
          (try (lift followingcommentp) <|> (newline >> return "")))
-  let t = nulltransaction{
-        tsourcepos = (pos, pos),
-        tstatus    = Cleared,
-        tpostings  = [
-          nullposting{paccount=a
-                     ,pamount=mixedAmount . amountSetPrecision (Precision 2) $ num hours  -- don't assume hours; do set precision to 2
-                     ,ptype=VirtualPosting
-                     ,ptransaction=Just t
-                     }
-          ]
-        }
+  mcs <- getDefaultCommodityAndStyle
+  let 
+    (c,s) = case mcs of
+      Just (defc,defs) -> (defc, defs{asprecision=max (asprecision defs) (Precision 2)})
+      _ -> ("", amountstyle{asprecision=Precision 2})
+    t = nulltransaction{
+          tsourcepos = (pos, pos),
+          tstatus    = Cleared,
+          tpostings  = [
+            nullposting{paccount=a
+                      ,pamount=mixedAmount $ nullamt{acommodity=c, aquantity=hrs, astyle=s}
+                      ,ptype=VirtualPosting
+                      ,ptransaction=Just t
+                      }
+            ]
+          }
   lift $ traceparse' "entryp"
   return t
 
