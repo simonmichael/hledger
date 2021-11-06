@@ -244,7 +244,7 @@ instance Num Amount where
     abs a@Amount{aquantity=q}    = a{aquantity=abs q}
     signum a@Amount{aquantity=q} = a{aquantity=signum q}
     fromInteger i                = nullamt{aquantity=fromInteger i}
-    negate a                     = transformAmount negate a
+    negate                       = transformAmount negate
     (+)                          = similarAmountsOp (+)
     (-)                          = similarAmountsOp (-)
     (*)                          = similarAmountsOp (*)
