@@ -32,6 +32,7 @@ module Hledger.Reports.ReportTypes
 ) where
 
 import Data.Aeson (ToJSON(..))
+import Data.Bifunctor (Bifunctor(..))
 import Data.Decimal (Decimal)
 import Data.Maybe (mapMaybe)
 import Data.Text (Text)
@@ -86,6 +87,9 @@ data PeriodicReport a b =
   , prTotals :: PeriodicReportRow () b   -- The grand totals row.
   } deriving (Show, Functor, Generic, ToJSON)
 
+instance Bifunctor PeriodicReport where
+  bimap f g pr = pr{prRows = map (bimap f g) $ prRows pr, prTotals = fmap g $ prTotals pr}
+
 data PeriodicReportRow a b =
   PeriodicReportRow
   { prrName    :: a    -- An account name.
@@ -93,6 +97,10 @@ data PeriodicReportRow a b =
   , prrTotal   :: b    -- The total of this row's values.
   , prrAverage :: b    -- The average of this row's values.
   } deriving (Show, Functor, Generic, ToJSON)
+
+instance Bifunctor PeriodicReportRow where
+  first f prr = prr{prrName = f $ prrName prr}
+  second = fmap
 
 instance Semigroup b => Semigroup (PeriodicReportRow a b) where
   (PeriodicReportRow _ amts1 t1 a1) <> (PeriodicReportRow n2 amts2 t2 a2) =
