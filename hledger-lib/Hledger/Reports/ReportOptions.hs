@@ -26,6 +26,7 @@ module Hledger.Reports.ReportOptions (
   BalanceAccumulation(..),
   AccountListMode(..),
   ValuationType(..),
+  CommodityLayout(..),
   defreportopts,
   rawOptsToReportOpts,
   defreportspec,
@@ -62,7 +63,8 @@ module Hledger.Reports.ReportOptions (
 where
 
 import Control.Applicative (Const(..), (<|>), liftA2)
-import Control.Monad ((<=<), join)
+import Control.Monad ((<=<), guard, join)
+import Data.Char (toLower)
 import Data.Either (fromRight)
 import Data.Either.Extra (eitherToMaybe)
 import Data.Functor.Identity (Identity(..))
@@ -71,7 +73,7 @@ import Data.Maybe (fromMaybe, mapMaybe)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day, addDays)
 import Data.Default (Default(..))
-import Safe (headMay, lastDef, lastMay, maximumMay)
+import Safe (headDef, headMay, lastDef, lastMay, maximumMay)
 
 import Text.Megaparsec.Custom
 
@@ -107,47 +109,49 @@ data AccountListMode = ALFlat | ALTree deriving (Eq, Show)
 
 instance Default AccountListMode where def = ALFlat
 
+data CommodityLayout = CommodityOneLine | CommodityMultiLine | CommodityColumn deriving (Eq, Show)
+
 -- | Standard options for customising report filtering and output.
 -- Most of these correspond to standard hledger command-line options
 -- or query arguments, but not all. Some are used only by certain
 -- commands, as noted below.
 data ReportOpts = ReportOpts {
      -- for most reports:
-     period_         :: Period
-    ,interval_       :: Interval
-    ,statuses_       :: [Status]  -- ^ Zero, one, or two statuses to be matched
-    ,cost_           :: Costing  -- ^ Should we convert amounts to cost, when present?
-    ,value_          :: Maybe ValuationType  -- ^ What value should amounts be converted to ?
-    ,infer_prices_   :: Bool      -- ^ Infer market prices from transactions ?
-    ,depth_          :: Maybe Int
-    ,date2_          :: Bool
-    ,empty_          :: Bool
-    ,no_elide_       :: Bool
-    ,real_           :: Bool
-    ,format_         :: StringFormat
-    ,pretty_         :: Bool
-    ,querystring_    :: [T.Text]
+     period_           :: Period
+    ,interval_         :: Interval
+    ,statuses_         :: [Status]  -- ^ Zero, one, or two statuses to be matched
+    ,cost_             :: Costing  -- ^ Should we convert amounts to cost, when present?
+    ,value_            :: Maybe ValuationType  -- ^ What value should amounts be converted to ?
+    ,infer_prices_     :: Bool      -- ^ Infer market prices from transactions ?
+    ,depth_            :: Maybe Int
+    ,date2_            :: Bool
+    ,empty_            :: Bool
+    ,no_elide_         :: Bool
+    ,real_             :: Bool
+    ,format_           :: StringFormat
+    ,pretty_           :: Bool
+    ,querystring_      :: [T.Text]
     --
-    ,average_        :: Bool
+    ,average_          :: Bool
     -- for posting reports (register)
-    ,related_        :: Bool
+    ,related_          :: Bool
     -- for account transactions reports (aregister)
-    ,txn_dates_      :: Bool
+    ,txn_dates_        :: Bool
     -- for balance reports (bal, bs, cf, is)
-    ,balancecalc_    :: BalanceCalculation  -- ^ What to calculate in balance report cells
-    ,balanceaccum_   :: BalanceAccumulation -- ^ How to accumulate balance report values over time
-    ,budgetpat_      :: Maybe T.Text  -- ^ A case-insensitive description substring
-                                      --   to select periodic transactions for budget reports.
-                                      --   (Not a regexp, nor a full hledger query, for now.)
-    ,accountlistmode_ :: AccountListMode
-    ,drop_           :: Int
-    ,row_total_      :: Bool
-    ,no_total_       :: Bool
-    ,show_costs_     :: Bool  -- ^ Whether to show costs for reports which normally don't show them
-    ,sort_amount_    :: Bool
-    ,percent_        :: Bool
-    ,invert_         :: Bool  -- ^ if true, flip all amount signs in reports
-    ,normalbalance_  :: Maybe NormalSign
+    ,balancecalc_      :: BalanceCalculation  -- ^ What to calculate in balance report cells
+    ,balanceaccum_     :: BalanceAccumulation -- ^ How to accumulate balance report values over time
+    ,budgetpat_        :: Maybe T.Text  -- ^ A case-insensitive description substring
+                                        --   to select periodic transactions for budget reports.
+                                        --   (Not a regexp, nor a full hledger query, for now.)
+    ,accountlistmode_  :: AccountListMode
+    ,drop_             :: Int
+    ,row_total_        :: Bool
+    ,no_total_         :: Bool
+    ,show_costs_       :: Bool  -- ^ Whether to show costs for reports which normally don't show them
+    ,sort_amount_      :: Bool
+    ,percent_          :: Bool
+    ,invert_           :: Bool  -- ^ if true, flip all amount signs in reports
+    ,normalbalance_    :: Maybe NormalSign
       -- ^ This can be set when running balance reports on a set of accounts
       --   with the same normal balance type (eg all assets, or all incomes).
       -- - It helps --sort-amount know how to sort negative numbers
@@ -155,51 +159,51 @@ data ReportOpts = ReportOpts {
       -- - It helps compound balance report commands (is, bs etc.) do
       --   sign normalisation, converting normally negative subreports to
       --   normally positive for a more conventional display.
-    ,color_          :: Bool
+    ,color_            :: Bool
       -- ^ Whether to use ANSI color codes in text output.
       --   Influenced by the --color/colour flag (cf CliOptions),
       --   whether stdout is an interactive terminal, and the value of
       --   TERM and existence of NO_COLOR environment variables.
-    ,transpose_      :: Bool
-    ,commodity_column_:: Bool
+    ,transpose_        :: Bool
+    ,commodity_layout_ :: CommodityLayout
  } deriving (Show)
 
 instance Default ReportOpts where def = defreportopts
 
 defreportopts :: ReportOpts
 defreportopts = ReportOpts
-    { period_          = PeriodAll
-    , interval_        = NoInterval
-    , statuses_        = []
-    , cost_            = NoCost
-    , value_           = Nothing
-    , infer_prices_    = False
-    , depth_           = Nothing
-    , date2_           = False
-    , empty_           = False
-    , no_elide_        = False
-    , real_            = False
-    , format_          = def
-    , pretty_          = False
-    , querystring_     = []
-    , average_         = False
-    , related_         = False
-    , txn_dates_       = False
-    , balancecalc_     = def
-    , balanceaccum_    = def
-    , budgetpat_       = Nothing
-    , accountlistmode_ = ALFlat
-    , drop_            = 0
-    , row_total_       = False
-    , no_total_        = False
-    , show_costs_      = False
-    , sort_amount_     = False
-    , percent_         = False
-    , invert_          = False
-    , normalbalance_   = Nothing
-    , color_           = False
-    , transpose_       = False
-    , commodity_column_ = False
+    { period_           = PeriodAll
+    , interval_         = NoInterval
+    , statuses_         = []
+    , cost_             = NoCost
+    , value_            = Nothing
+    , infer_prices_     = False
+    , depth_            = Nothing
+    , date2_            = False
+    , empty_            = False
+    , no_elide_         = False
+    , real_             = False
+    , format_           = def
+    , pretty_           = False
+    , querystring_      = []
+    , average_          = False
+    , related_          = False
+    , txn_dates_        = False
+    , balancecalc_      = def
+    , balanceaccum_     = def
+    , budgetpat_        = Nothing
+    , accountlistmode_  = ALFlat
+    , drop_             = 0
+    , row_total_        = False
+    , no_total_         = False
+    , show_costs_       = False
+    , sort_amount_      = False
+    , percent_          = False
+    , invert_           = False
+    , normalbalance_    = Nothing
+    , color_            = False
+    , transpose_        = False
+    , commodity_layout_ = CommodityOneLine
     }
 
 -- | Generate a ReportOpts from raw command-line input, given a day.
@@ -222,37 +226,37 @@ rawOptsToReportOpts d rawopts =
             Just (Left err) -> usageError $ "could not parse format option: " ++ err
 
     in defreportopts
-          {period_      = periodFromRawOpts d rawopts
-          ,interval_    = intervalFromRawOpts rawopts
-          ,statuses_    = statusesFromRawOpts rawopts
-          ,cost_        = costing
-          ,value_       = valuation
-          ,infer_prices_ = boolopt "infer-market-prices" rawopts
-          ,depth_       = maybeposintopt "depth" rawopts
-          ,date2_       = boolopt "date2" rawopts
-          ,empty_       = boolopt "empty" rawopts
-          ,no_elide_    = boolopt "no-elide" rawopts
-          ,real_        = boolopt "real" rawopts
-          ,format_      = format
-          ,querystring_ = querystring
-          ,average_     = boolopt "average" rawopts
-          ,related_     = boolopt "related" rawopts
-          ,txn_dates_   = boolopt "txn-dates" rawopts
-          ,balancecalc_ = balancecalcopt rawopts
-          ,balanceaccum_ = balanceaccumopt rawopts
-          ,budgetpat_   = maybebudgetpatternopt rawopts
-          ,accountlistmode_ = accountlistmodeopt rawopts
-          ,drop_        = posintopt "drop" rawopts
-          ,row_total_   = boolopt "row-total" rawopts
-          ,no_total_    = boolopt "no-total" rawopts
-          ,show_costs_  = boolopt "show-costs" rawopts
-          ,sort_amount_ = boolopt "sort-amount" rawopts
-          ,percent_     = boolopt "percent" rawopts
-          ,invert_      = boolopt "invert" rawopts
-          ,pretty_      = pretty
-          ,color_       = useColorOnStdout -- a lower-level helper
-          ,transpose_   = boolopt "transpose" rawopts
-          ,commodity_column_= boolopt "commodity-column" rawopts
+          {period_           = periodFromRawOpts d rawopts
+          ,interval_         = intervalFromRawOpts rawopts
+          ,statuses_         = statusesFromRawOpts rawopts
+          ,cost_             = costing
+          ,value_            = valuation
+          ,infer_prices_     = boolopt "infer-market-prices" rawopts
+          ,depth_            = maybeposintopt "depth" rawopts
+          ,date2_            = boolopt "date2" rawopts
+          ,empty_            = boolopt "empty" rawopts
+          ,no_elide_         = boolopt "no-elide" rawopts
+          ,real_             = boolopt "real" rawopts
+          ,format_           = format
+          ,querystring_      = querystring
+          ,average_          = boolopt "average" rawopts
+          ,related_          = boolopt "related" rawopts
+          ,txn_dates_        = boolopt "txn-dates" rawopts
+          ,balancecalc_      = balancecalcopt rawopts
+          ,balanceaccum_     = balanceaccumopt rawopts
+          ,budgetpat_        = maybebudgetpatternopt rawopts
+          ,accountlistmode_  = accountlistmodeopt rawopts
+          ,drop_             = posintopt "drop" rawopts
+          ,row_total_        = boolopt "row-total" rawopts
+          ,no_total_         = boolopt "no-total" rawopts
+          ,show_costs_       = boolopt "show-costs" rawopts
+          ,sort_amount_      = boolopt "sort-amount" rawopts
+          ,percent_          = boolopt "percent" rawopts
+          ,invert_           = boolopt "invert" rawopts
+          ,pretty_           = pretty
+          ,color_            = useColorOnStdout -- a lower-level helper
+          ,transpose_        = boolopt "transpose" rawopts
+          ,commodity_layout_ = commoditylayoutopt rawopts
           }
 
 -- | The result of successfully parsing a ReportOpts on a particular
@@ -326,6 +330,18 @@ balanceAccumulationOverride rawopts = choiceopt parse rawopts <|> reportbal
     reportbal = case balancecalcopt rawopts of
       CalcValueChange -> Just PerPeriod
       _               -> Nothing
+
+commoditylayoutopt :: RawOpts -> CommodityLayout
+commoditylayoutopt rawopts = fromMaybe CommodityOneLine $ layout <|> column
+  where
+    layout = parse <$> maybestringopt "commodity-layout" rawopts
+    column = CommodityColumn <$ guard (boolopt "commodity-column" rawopts)
+
+    parse opt = case toLower $ headDef 'x' opt of
+      'o' -> CommodityOneLine    -- "oneline" and abbreviations
+      'm' -> CommodityMultiLine  -- "multiline" and abbreviations
+      'c' -> CommodityColumn     -- "column" and abbreviations
+      _   -> usageError "--commodity-layout's argument should be \"oneline\", \"multiline\", or \"column\""
 
 -- Get the period specified by any -b/--begin, -e/--end and/or -p/--period
 -- options appearing in the command line.

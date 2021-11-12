@@ -38,7 +38,7 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 --import System.Console.CmdArgs.Explicit as C
 --import Lucid as L
-import Text.Tabular.AsciiWide as Tab
+import qualified Text.Tabular.AsciiWide as Tab
 
 import Hledger.Data
 import Hledger.Utils
@@ -230,18 +230,18 @@ budgetReportAsText ropts@ReportOpts{..} budgetr = TB.toLazyText $
            <> ":"
 
 -- | Build a 'Table' from a multi-column balance report.
-budgetReportAsTable :: ReportOpts -> BudgetReport -> Table Text Text WideBuilder
+budgetReportAsTable :: ReportOpts -> BudgetReport -> Tab.Table Text Text WideBuilder
 budgetReportAsTable
   ReportOpts{..}
   (PeriodicReport spans items tr) =
     maybetransposetable $
     addtotalrow $
-    Table
-      (Tab.Group NoLine $ map Header accts)
-      (Tab.Group NoLine $ map Header colheadings)
+    Tab.Table
+      (Tab.Group Tab.NoLine $ map Tab.Header accts)
+      (Tab.Group Tab.NoLine $ map Tab.Header colheadings)
       rows
   where
-    colheadings = ["Commodity" | commodity_column_]
+    colheadings = ["Commodity" | commodity_layout_ == CommodityColumn]
                   ++ map (reportPeriodName balanceaccum_ spans) spans
                   ++ ["  Total" | row_total_]
                   ++ ["Average" | average_]
@@ -255,16 +255,16 @@ budgetReportAsTable
 
     addtotalrow
       | no_total_ = id
-      | otherwise = let rh = Tab.Group NoLine . replicate (length totalrows) $ Header ""
-                        ch = Header [] -- ignored
-                     in (flip (concatTables SingleLine) $ Table rh ch totalrows)
+      | otherwise = let rh = Tab.Group Tab.NoLine . replicate (length totalrows) $ Tab.Header ""
+                        ch = Tab.Header [] -- ignored
+                     in (flip (Tab.concatTables Tab.SingleLine) $ Tab.Table rh ch totalrows)
 
     maybetranspose
       | transpose_ = transpose
       | otherwise  = id
 
     maybetransposetable
-      | transpose_ = \(Table rh ch vals) -> Table ch rh (transpose vals)
+      | transpose_ = \(Tab.Table rh ch vals) -> Tab.Table ch rh (transpose vals)
       | otherwise  = id
 
     (accts, rows, totalrows) = (accts, prependcs itemscs (padcells texts), prependcs trcs (padtr trtexts))
@@ -283,19 +283,19 @@ budgetReportAsTable
         padcells = maybetranspose . fmap (fmap (uncurry paddisplaycell) . zip widths)   . maybetranspose
         padtr    = maybetranspose . fmap (fmap (uncurry paddisplaycell) . zip trwidths) . maybetranspose
 
-        -- commodities are shown with the amounts without `commodity-column`
+        -- commodities are shown with the amounts without `commodity-layout_ == CommodityColumn`
         prependcs cs
-          | commodity_column_ = zipWith (:) cs
-          | otherwise = id
+          | commodity_layout_ /= CommodityColumn = id
+          | otherwise = zipWith (:) cs
 
     rowToBudgetCells (PeriodicReportRow _ as rowtot rowavg) = as
         ++ [rowtot | row_total_ && not (null as)]
         ++ [rowavg | average_   && not (null as)]
 
-    -- functions for displaying budget cells depending on `commodity-column` flag
+    -- functions for displaying budget cells depending on `commodity-layout_` option
     rowfuncs :: [CommoditySymbol] -> (BudgetShowMixed, BudgetPercBudget)
     rowfuncs cs
-      | not commodity_column_ =
+      | commodity_layout_ == CommodityOneLine =
           ( pure . showMixedAmountB oneLine{displayColour=color_, displayMaxWidth=Just 32}
           , \a -> pure . percentage a)
       | otherwise =
@@ -408,7 +408,7 @@ budgetReportAsCsv
 
   -- heading row
   ("Account" :
-  ["Commodity" | commodity_column_ ]
+  ["Commodity" | commodity_layout_ == CommodityColumn ]
    ++ concatMap (\span -> [showDateSpan span, "budget"]) colspans
    ++ concat [["Total"  ,"budget"] | row_total_]
    ++ concat [["Average","budget"] | average_]
@@ -428,7 +428,7 @@ budgetReportAsCsv
                -> PeriodicReportRow a BudgetCell
                -> [[Text]]
     rowAsTexts render row@(PeriodicReportRow _ as (rowtot,budgettot) (rowavg, budgetavg))
-      | not commodity_column_ = [render row : fmap showNorm all]
+      | commodity_layout_ /= CommodityColumn = [render row : fmap showNorm all]
       | otherwise =
             joinNames . zipWith (:) cs  -- add symbols and names
           . transpose                   -- each row becomes a list of Text quantities
