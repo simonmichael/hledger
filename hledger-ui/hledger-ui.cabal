@@ -73,6 +73,7 @@ executable hledger-ui
     , containers >=0.5.9
     , data-default
     , directory
+    , doclayout ==0.3.*
     , extra >=1.6.3
     , filepath
     , fsnotify >=0.2.1.2 && <0.4

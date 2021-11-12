@@ -42,7 +42,7 @@ import Text.Printf (printf)
 
 import Hledger.Utils.Parse
 import Hledger.Utils.Regex (toRegex', regexReplace)
-import Text.WideString (charWidth, strWidth)
+import Text.DocLayout (charWidth, realLength)
 
 
 -- | Take elements from the end of a list.
@@ -173,6 +173,10 @@ takeWidth w (c:cs) | cw <= w   = c:takeWidth (w-cw) cs
 -- adding ANSI escape sequences, but is being kept around for now.
 strWidthAnsi :: String -> Int
 strWidthAnsi = strWidth . stripAnsi
+
+-- | Alias for 'realLength'.
+strWidth :: String -> Int
+strWidth = realLength
 
 -- | Strip ANSI escape sequences from a string.
 --

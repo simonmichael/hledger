@@ -35,7 +35,7 @@ import qualified Data.Text.Lazy as TL
 import Data.Text.Lazy.Builder (Builder, fromString, fromText, singleton, toLazyText)
 import Safe (maximumMay)
 import Text.Tabular
-import Text.WideString (WideBuilder(..), wbFromText, textWidth)
+import Text.WideString (WideBuilder(..), wbFromText)
 
 
 -- | The options to use for rendering a table.
@@ -63,7 +63,7 @@ emptyCell = Cell TopRight []
 
 -- | Create a single-line cell from the given contents with its natural width.
 textCell :: Align -> Text -> Cell
-textCell a x = Cell a . map (\x -> WideBuilder (fromText x) (textWidth x)) $ if T.null x then [""] else T.lines x
+textCell a x = Cell a . map wbFromText $ if T.null x then [""] else T.lines x
 
 -- | Create a multi-line cell from the given contents with its natural width.
 textsCell :: Align -> [Text] -> Cell

@@ -46,6 +46,7 @@ import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Tree (Tree(..))
+import Text.DocLayout (realLength)
 
 import Hledger.Data.Types
 import Hledger.Utils
@@ -186,7 +187,7 @@ elideAccountName width s
       where
         elideparts :: Int -> [Text] -> [Text] -> [Text]
         elideparts width done ss
-          | textWidth (accountNameFromComponents $ done++ss) <= width = done++ss
+          | realLength (accountNameFromComponents $ done++ss) <= width = done++ss
           | length ss > 1 = elideparts width (done++[textTakeWidth 2 $ head ss]) (tail ss)
           | otherwise = done++ss
 

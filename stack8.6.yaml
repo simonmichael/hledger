@@ -15,6 +15,8 @@ packages:
 extra-deps:
 # for Shake.hs (regex doesn't support base-compat-0.11):
 - regex-1.0.2.0@rev:1
+- doclayout-0.3.1.1
+- emojis-0.1.2
 # for testing base-compat 0.11 compatibility (mutually exclusive with the above):
 # - aeson-1.4.6.0
 # - aeson-compat-0.3.9

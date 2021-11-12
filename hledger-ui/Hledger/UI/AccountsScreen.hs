@@ -26,6 +26,7 @@ import Lens.Micro.Platform
 import Safe
 import System.Console.ANSI
 import System.FilePath (takeFileName)
+import Text.DocLayout (realLength)
 
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion)
@@ -122,7 +123,7 @@ asDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
           - 2 -- XXX due to margin ? shouldn't be necessary (cf UIUtils)
         displayitems = s ^. asList . listElementsL
 
-        acctwidths = V.map (\AccountsScreenItem{..} -> asItemIndentLevel + Hledger.Cli.textWidth asItemDisplayAccountName) displayitems
+        acctwidths = V.map (\AccountsScreenItem{..} -> asItemIndentLevel + realLength asItemDisplayAccountName) displayitems
         balwidths  = V.map (maybe 0 (wbWidth . showMixedAmountB oneLine) . asItemMixedAmount) displayitems
         preferredacctwidth = V.maximum acctwidths
         totalacctwidthseen = V.sum acctwidths

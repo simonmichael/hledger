@@ -89,6 +89,7 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import Data.Time.Calendar (Day)
 import Safe (headDef, maximumDef)
+import Text.DocLayout (realLength)
 
 import Text.Tabular.AsciiWide
 
@@ -255,7 +256,7 @@ postingAsLines elideamount onelineamounts acctwidth amtwidth p =
     assertion = maybe mempty ((WideBuilder (TB.singleton ' ') 1 <>).showBalanceAssertion) $ pbalanceassertion p
     -- pad to the maximum account name width, plus 2 to leave room for status flags, to keep amounts aligned
     statusandaccount = lineIndent . fitText (Just $ 2 + acctwidth) Nothing False True $ pstatusandacct p
-    thisacctwidth = textWidth $ pacctstr p
+    thisacctwidth = realLength $ pacctstr p
 
     pacctstr p' = showAccountName Nothing (ptype p') (paccount p')
     pstatusandacct p' = pstatusprefix p' <> pacctstr p'
