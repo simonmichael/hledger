@@ -84,13 +84,21 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
     ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format (in simple reports)"
     ,flagNone ["sort-amount","S"] (setboolopt "sort-amount") "sort by amount instead of account code/name"
     ,flagNone ["percent", "%"] (setboolopt "percent") "express values in percentage of each column's total"
-    ,flagNone ["commodity-column"] (setboolopt "commodity-column")
-      "show commodity symbols in a separate column, amounts as bare numbers, one row per commodity"
+    ,flagReq  ["commodity-layout"] (\s opts -> Right $ setopt "commodity-layout" s opts) "ARG"
+      (unlines
+        ["show multicommodity amounts in the given ARG. ARG can be:"
+        ,"'oneline':   show all commodities on a single line"
+        ,"'multiline': show each commodity on a new line"
+        ,"'column':    show commodity symbols in a separate column and amounts as bare numbers"
+        ])
     ,outputFormatFlag ["txt","html","csv","json"]
     ,outputFileFlag
     ])
     [generalflagsgroup1]
-    hiddenflags
+    (hiddenflags ++
+      [ flagNone ["commodity-column"] (setboolopt "commodity-column")
+        "show commodity symbols in a separate column, amounts as bare numbers, one row per commodity"
+      ])
     ([], Just $ argsFlag "[QUERY]")
  where
    defaultMarker :: BalanceAccumulation -> String
@@ -219,7 +227,7 @@ compoundBalanceReportAsText ropts
         let totalrows = multiBalanceRowAsTableText ropts netrow
             rh = Tab.Group NoLine $ map Header ("Net:" : replicate (length totalrows - 1) "")
             ch = Header [] -- ignored
-         in ((concatTables DoubleLine) bigtable $ Table rh ch totalrows)
+         in ((concatTables Tab.DoubleLine) bigtable $ Table rh ch totalrows)
 
     -- | Convert a named multi balance report to a table suitable for
     -- concatenating with others to make a compound balance report table.
@@ -228,7 +236,7 @@ compoundBalanceReportAsText ropts
         -- convert to table
         Table lefthdrs tophdrs cells = balanceReportAsTable ropts r
         -- tweak the layout
-        t = Table (Tab.Group SingleLine [Header title, lefthdrs]) tophdrs ([]:cells)
+        t = Table (Tab.Group Tab.SingleLine [Tab.Header title, lefthdrs]) tophdrs ([]:cells)
 
 -- | Render a compound balance report as CSV.
 -- Subreports' CSV is concatenated, with the headings rows replaced by a
@@ -239,7 +247,7 @@ compoundBalanceReportAsCsv ropts (CompoundPeriodicReport title colspans subrepor
     addtotals $
       padRow title
       : ( "Account"
-        : ["Commodity" | commodity_column_ ropts]
+        : ["Commodity" | commodity_layout_ ropts == CommodityColumn]
         ++ map (reportPeriodName (balanceaccum_ ropts) colspans) colspans
         ++ (if row_total_ ropts then ["Total"] else [])
         ++ (if average_ ropts then ["Average"] else [])
@@ -256,7 +264,7 @@ compoundBalanceReportAsCsv ropts (CompoundPeriodicReport title colspans subrepor
           | null subreports = 1
           | otherwise =
             (1 +) $ -- account name column
-            (if commodity_column_ ropts then (1+) else id) $
+            (if commodity_layout_ ropts == CommodityColumn then (1+) else id) $
             (if row_total_ ropts then (1+) else id) $
             (if average_ ropts then (1+) else id) $
             maximum $ -- depends on non-null subreports
@@ -278,7 +286,7 @@ compoundBalanceReportAsHtml ropts cbr =
     titlerows =
       (tr_ $ th_ [colspanattr, leftattr] $ h2_ $ toHtml title)
       : [thRow $
-         "" : ["Commodity" | commodity_column_ ropts] ++
+         "" : ["Commodity" | commodity_layout_ ropts == CommodityColumn] ++
          map (reportPeriodName (balanceaccum_ ropts) colspans) colspans
          ++ (if row_total_ ropts then ["Total"] else [])
          ++ (if average_ ropts then ["Average"] else [])

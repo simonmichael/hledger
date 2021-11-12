@@ -913,12 +913,9 @@ showMixedAmountOneLineB opts@AmountDisplayOpts{displayMaxWidth=mmax,displayMinWi
     withElided = zipWith (\num amt -> (amt, elisionDisplay Nothing (wbWidth sep) num amt)) [n-1,n-2..0]
 
 orderedAmounts :: AmountDisplayOpts -> MixedAmount -> [Amount]
-orderedAmounts AmountDisplayOpts{displayOrder=ord} ma
-  | Just cs <- ord = fmap pad cs
-  | otherwise = as
+orderedAmounts dopts = maybe id (mapM pad) (displayOrder dopts) . amounts
   where
-    as = amounts ma
-    pad c = fromMaybe (amountWithCommodity c nullamt) . find ((==) c . acommodity) $ as
+    pad c = fromMaybe (amountWithCommodity c nullamt) . find ((c==) . acommodity)
 
 
 data AmountDisplay = AmountDisplay

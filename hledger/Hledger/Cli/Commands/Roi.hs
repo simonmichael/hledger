@@ -150,11 +150,11 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportO
            , T.pack $ printf "%0.2f%%" $ smallIsZero twr ]
 
   let table = Table
-              (Tab.Group NoLine (map (Header . T.pack . show) (take (length tableBody) [1..])))
-              (Tab.Group DoubleLine
-               [ Tab.Group SingleLine [Header "Begin", Header "End"]
-               , Tab.Group SingleLine [Header "Value (begin)", Header "Cashflow", Header "Value (end)", Header "PnL"]
-               , Tab.Group SingleLine [Header "IRR", Header "TWR"]])
+              (Tab.Group Tab.NoLine (map (Header . T.pack . show) (take (length tableBody) [1..])))
+              (Tab.Group Tab.DoubleLine
+               [ Tab.Group Tab.SingleLine [Header "Begin", Header "End"]
+               , Tab.Group Tab.SingleLine [Header "Value (begin)", Header "Cashflow", Header "Value (end)", Header "PnL"]
+               , Tab.Group Tab.SingleLine [Header "IRR", Header "TWR"]])
               tableBody
 
   TL.putStrLn $ Tab.render prettyTables id id id table
@@ -239,9 +239,9 @@ timeWeightedReturn showCashFlow prettyTables investmentsQuery trans mixedAmountV
     TL.putStr $ Tab.render prettyTables id id T.pack
       (Table
        (Tab.Group NoLine (map (Header . showDate) dates))
-       (Tab.Group DoubleLine [ Tab.Group SingleLine [Header "Portfolio value", Header "Unit balance"]
-                         , Tab.Group SingleLine [Header "Pnl", Header "Cashflow", Header "Unit price", Header "Units"]
-                         , Tab.Group SingleLine [Header "New Unit Balance"]])
+       (Tab.Group DoubleLine [ Tab.Group Tab.SingleLine [Tab.Header "Portfolio value", Tab.Header "Unit balance"]
+                         , Tab.Group Tab.SingleLine [Tab.Header "Pnl", Tab.Header "Cashflow", Tab.Header "Unit price", Tab.Header "Units"]
+                         , Tab.Group Tab.SingleLine [Tab.Header "New Unit Balance"]])
        [ [value, oldBalance, pnl, cashflow, prc, udelta, balance]
        | value <- map showDecimal valuesOnDate
        | oldBalance <- map showDecimal (0:unitBalances)
@@ -268,8 +268,8 @@ internalRateOfReturn showCashFlow prettyTables (OneSpan spanBegin spanEnd valueB
     let (dates, amounts) = unzip totalCF
     TL.putStrLn $ Tab.render prettyTables id id id
       (Table
-       (Tab.Group NoLine (map (Header . showDate) dates))
-       (Tab.Group SingleLine [Header "Amount"])
+       (Tab.Group Tab.NoLine (map (Header . showDate) dates))
+       (Tab.Group Tab.SingleLine [Header "Amount"])
        (map ((:[]) . T.pack . showMixedAmount) amounts))
 
   -- 0% is always a solution, so require at least something here
