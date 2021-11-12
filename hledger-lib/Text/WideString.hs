@@ -9,7 +9,6 @@ module Text.WideString (
   ) where
 
 import Data.Text (Text)
-import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import Text.DocLayout (realLength)
