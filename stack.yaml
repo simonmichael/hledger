@@ -4,7 +4,7 @@ nix:
   pure: false
   packages: [perl gmp ncurses zlib]
 
-resolver: nightly-2021-07-16
+resolver: nightly-2021-11-06
 
 packages:
 - hledger-lib
@@ -17,12 +17,6 @@ extra-deps:
 # for hledger:
 # for hledger-ui:
 # for hledger-web:
-- yesod-1.6.1.2
-- yesod-core-1.6.20.2
-- yesod-form-1.7.0
-- yesod-static-1.6.1.0
-- yesod-test-1.6.12
-- yesod-persistent-1.6.0.7
 # for Shake.hs:
 
 # for precise profiling, per https://www.tweag.io/posts/2020-01-30-haskell-profiling.html:

@@ -4,7 +4,7 @@ nix:
   pure: false
   packages: [perl gmp ncurses zlib]
 
-resolver: lts-18.0
+resolver: lts-18.16
 
 packages:
 - hledger-lib
