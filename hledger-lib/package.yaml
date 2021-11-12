@@ -47,6 +47,7 @@ dependencies:
 - data-default >=0.5
 - Decimal >=0.5.1
 - directory
+- doclayout >=0.3 && <0.4
 - file-embed >=0.0.10
 - filepath
 - hashtables >=1.2.3.1

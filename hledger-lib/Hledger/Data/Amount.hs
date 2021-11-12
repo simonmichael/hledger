@@ -171,7 +171,7 @@ import Test.Tasty.HUnit ((@?=), assertBool, testCase)
 import Hledger.Data.Types
 import Hledger.Utils (colorB)
 import Hledger.Utils.Text (textQuoteIfNeeded)
-import Text.WideString (WideBuilder(..), textWidth, wbToText, wbUnpack)
+import Text.WideString (WideBuilder(..), wbFromText, wbToText, wbUnpack)
 
 
 -- A 'Commodity' is a symbol representing a currency or some other kind of
@@ -469,14 +469,13 @@ showAmountB :: AmountDisplayOpts -> Amount -> WideBuilder
 showAmountB _ Amount{acommodity="AUTO"} = mempty
 showAmountB opts a@Amount{astyle=style} =
     color $ case ascommodityside style of
-      L -> showC c' space <> quantity' <> price
-      R -> quantity' <> showC space c' <> price
+      L -> showC (wbFromText c) space <> quantity' <> price
+      R -> quantity' <> showC space (wbFromText c) <> price
   where
     quantity = showamountquantity a
     (quantity',c) | amountLooksZero a && not (displayZeroCommodity opts) = (WideBuilder (TB.singleton '0') 1,"")
                   | otherwise = (quantity, quoteCommoditySymbolIfNeeded $ acommodity a)
     space = if not (T.null c) && ascommodityspaced style then WideBuilder (TB.singleton ' ') 1 else mempty
-    c' = WideBuilder (TB.fromText c) (textWidth c)
     showC l r = if isJust (displayOrder opts) then mempty else l <> r
     price = if displayPrice opts then showAmountPrice a else mempty
     color = if displayColour opts && isNegativeAmount a then colorB Dull Red else id

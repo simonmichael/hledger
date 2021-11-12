@@ -43,7 +43,6 @@ module Hledger.Utils.Text
   wbToText,
   wbFromText,
   wbUnpack,
-  textWidth,
   textTakeWidth,
   -- * Reading
   readDecimal,
@@ -58,12 +57,13 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
+import Text.DocLayout (charWidth, realLength)
 
 import Test.Tasty (testGroup)
 import Test.Tasty.HUnit ((@?=), testCase)
 import Text.Tabular.AsciiWide
   (Align(..), Header(..), Properties(..), TableOpts(..), renderRow, textCell)
-import Text.WideString (WideBuilder(..), wbToText, wbFromText, wbUnpack, charWidth, textWidth)
+import Text.WideString (WideBuilder(..), wbToText, wbFromText, wbUnpack)
 
 
 -- lowercase, uppercase :: String -> String
@@ -206,7 +206,7 @@ fitText mminwidth mmaxwidth ellipsify rightside = clip . pad
     clip s =
       case mmaxwidth of
         Just w
-          | textWidth s > w ->
+          | realLength s > w ->
             if rightside
               then textTakeWidth (w - T.length ellipsis) s <> ellipsis
               else ellipsis <> T.reverse (textTakeWidth (w - T.length ellipsis) $ T.reverse s)
@@ -224,7 +224,7 @@ fitText mminwidth mmaxwidth ellipsify rightside = clip . pad
               else T.replicate (w - sw) " " <> s
           | otherwise -> s
         Nothing -> s
-      where sw = textWidth s
+      where sw = realLength s
 
 -- | Double-width-character-aware string truncation. Take as many
 -- characters as possible from a string without exceeding the
