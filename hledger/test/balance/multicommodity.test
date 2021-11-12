@@ -1,4 +1,4 @@
-# 1. In tabular balance reports, cap the maximum width and elide if sufficiently large
+# 1. In tabular balance reports, display on a single line by default
 <
 2020-01-01
   (a)  1.00A
@@ -8,16 +8,6 @@
   (a)  1.00E
   (a)  1.00F
 
-$ hledger -f- bal -Y
-Balance changes in 2020:
-
-   ||                          2020 
-===++===============================
- a || 1.00A, 1.00B, 1.00C, 3 more.. 
----++-------------------------------
-   || 1.00A, 1.00B, 1.00C, 3 more.. 
-
-# 2. Unless --no-elide is used.
 $ hledger -f- bal -Y --no-elide
 Balance changes in 2020:
 
@@ -48,16 +38,16 @@ Balance changes in 2020:
     ea50865f:3bfb86b7:bf72f75a:a7cad1ac       C$ -26.00
     ea50865f:325566ed:216fec7e:7b433efb         C$ 1.44
 
-# 3. Make sure all amounts up to the largest fit
+# 2. Make sure all amounts up to the largest fit
 $ hledger -f- bal -Y --color=yes
 Balance changes in 2020:
 
-                                     ||                            2020 
-=====================================++=================================
- 26018c6e:ced6cffd:c3c182f1:7b433efb ||      $ 9.41, C$ 24.56, 2 more.. 
- ea50865f:325566ed:216fec7e:7b433efb || $ 0.59, C$ 1.44, £ 0.91, € 0.79 
- ea50865f:325566ed:47134948          ||                         £ 18.25 
- ea50865f:3bfb86b7:bf72f75a:a7cad1ac ||   [31m$ -10.00[m, [31mC$ -26.00[m, [31m€ -10.00[m 
--------------------------------------++---------------------------------
-                                     ||                               0 
+                                     ||                               2020 
+=====================================++====================================
+ 26018c6e:ced6cffd:c3c182f1:7b433efb || $ 9.41, C$ 24.56, [31m£ -19.16[m, € 9.21 
+ ea50865f:325566ed:216fec7e:7b433efb ||    $ 0.59, C$ 1.44, £ 0.91, € 0.79 
+ ea50865f:325566ed:47134948          ||                            £ 18.25 
+ ea50865f:3bfb86b7:bf72f75a:a7cad1ac ||      [31m$ -10.00[m, [31mC$ -26.00[m, [31m€ -10.00[m 
+-------------------------------------++------------------------------------
+                                     ||                                  0 
 >=0

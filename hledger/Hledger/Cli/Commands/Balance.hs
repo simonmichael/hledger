@@ -312,7 +312,7 @@ balancemode = hledgerCommandMode
     ,flagNone ["related","r"] (setboolopt "related") "show postings' siblings instead"
     ,flagNone ["row-total","T"] (setboolopt "row-total") "show a row total column (in multicolumn reports)"
     ,flagNone ["no-total","N"] (setboolopt "no-total") "omit the final total row"
-    ,flagNone ["no-elide"] (setboolopt "no-elide") "don't squash boring parent accounts (in tree mode); don't show only 2 commodities per amount"
+    ,flagNone ["no-elide"] (setboolopt "no-elide") "don't squash boring parent accounts (in tree mode)"
     ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format (in simple reports)"
     ,flagNone ["sort-amount","S"] (setboolopt "sort-amount") "sort by amount instead of account code/name (in flat mode). With multiple columns, sorts by the row total, or by row average if that is displayed."
     ,flagNone ["percent", "%"] (setboolopt "percent") "express values in percentage of each column's total"
@@ -731,10 +731,7 @@ multiBalanceRowAsTableText opts = multiBalanceRowAsWbs (balanceOpts True opts) o
 
 -- | Amount display options to use for balance reports
 balanceOpts :: Bool -> ReportOpts -> AmountDisplayOpts
-balanceOpts isTable ReportOpts{..} = oneLine
-    { displayColour   = isTable && color_
-    , displayMaxWidth = if isTable && not no_elide_ then Just 32 else Nothing
-    }
+balanceOpts isTable ReportOpts{..} = oneLine {displayColour = isTable && color_}
 
 tests_Balance = testGroup "Balance" [
 
