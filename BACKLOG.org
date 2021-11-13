@@ -332,6 +332,9 @@ hledger entry 'farmers  food  6  snacks  5'                    # same
 ***** entry can run validation checks, including fancy ones like "asset accounts may not go negative"
 *** ops
 **** new hledger.org vps
+*** pkg
+**** need build-tools section in our package.yaml files to avoid build errors with happy etc. ?
+cf https://github.com/haskell/cabal/issues/5867#issuecomment-967280170
 *** process
 **** refine RELEASING doc/process
 **** automate changelog finalisation
