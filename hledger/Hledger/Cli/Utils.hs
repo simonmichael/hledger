@@ -12,6 +12,7 @@ module Hledger.Cli.Utils
     (
      unsupportedOutputFormatError,
      withJournalDo,
+     withJournalTry,
      writeOutput,
      writeOutputLazyText,
      journalTransform,
@@ -64,14 +65,22 @@ unsupportedOutputFormatError fmt = "Sorry, output format \""++fmt++"\" is unreco
 -- transformations according to options, and run a hledger command with it.
 -- Or, throw an error.
 withJournalDo :: CliOpts -> (Journal -> IO a) -> IO a
-withJournalDo opts cmd = do
+withJournalDo = withJournalTry error'
+
+-- | Parse the user's specified journal file(s) as a Journal, maybe apply some
+-- transformations according to options, and run a hledger command with it.
+-- Or, do the default action.
+withJournalTry :: (String -> IO a) -> CliOpts -> (Journal -> IO a) -> IO a
+withJournalTry catch opts cmd = do
   -- We kludgily read the file before parsing to grab the full text, unless
   -- it's stdin, or it doesn't exist and we are adding. We read it strictly
   -- to let the add command work.
   journalpaths <- journalFilePathFromOpts opts
   files <- readJournalFiles (inputopts_ opts) journalpaths
-  let transformed = journalTransform opts <$> files
-  either error' cmd transformed  -- PARTIAL:
+  case files of
+    Left e -> catch e
+    Right journal -> cmd $ journalTransform opts journal  -- PARTIAL:
+      
 
 -- | Apply some extra post-parse transformations to the journal, if
 -- specified by options. These happen after journal validation, but
