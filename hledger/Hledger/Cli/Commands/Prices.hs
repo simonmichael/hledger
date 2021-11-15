@@ -35,16 +35,16 @@ prices opts j = do
     q          = _rsQuery $ reportspec_ opts
     ps         = filter (matchesPosting q) $ allPostings j
     mprices    = jpricedirectives j
-    cprices    = 
-      map (stylePriceDirectiveExceptPrecision styles) $ 
+    cprices    =
+      map (stylePriceDirectiveExceptPrecision styles) $
       concatMap postingsPriceDirectivesFromCosts ps
-    rcprices   = 
-      map (stylePriceDirectiveExceptPrecision styles) $ 
-      concatMap (postingsPriceDirectivesFromCosts . postingTransformAmount (mapMixedAmount invertPrice)) 
+    rcprices   =
+      map (stylePriceDirectiveExceptPrecision styles) $
+      concatMap (postingsPriceDirectivesFromCosts . postingTransformAmount (mapMixedAmount invertPrice))
       ps
-    allprices  = 
-      mprices 
-      ++ ifBoolOpt "infer-market-prices" cprices 
+    allprices  =
+      mprices
+      ++ ifBoolOpt "infer-market-prices" cprices
       ++ ifBoolOpt "infer-reverse-prices" rcprices  -- TODO: shouldn't this show reversed P prices also ? valuation will use them
 
   mapM_ (T.putStrLn . showPriceDirective) $
@@ -79,8 +79,10 @@ invertPrice a =
             a { aprice = Just $ TotalPrice pa' } where
                 pa' = ((1 / aquantity a) `divideAmount` pa) { aprice = Nothing }
         Just (TotalPrice pa) ->
-            a { aquantity = aquantity pa * signum (aquantity a), acommodity = acommodity pa, aprice = Just $ TotalPrice pa' } where
+            a { aquantity = aquantity pa * nonZeroSignum (aquantity a), acommodity = acommodity pa, aprice = Just $ TotalPrice pa' } where
                 pa' = pa { aquantity = abs $ aquantity a, acommodity = acommodity a, aprice = Nothing, astyle = astyle a }
+  where
+    nonZeroSignum x = if x < 0 then -1 else 1
 
 postingsPriceDirectivesFromCosts :: Posting -> [PriceDirective]
 postingsPriceDirectivesFromCosts p = mapMaybe (amountPriceDirectiveFromCost date) . amountsRaw $ pamount p
@@ -89,11 +91,11 @@ postingsPriceDirectivesFromCosts p = mapMaybe (amountPriceDirectiveFromCost date
 amountPriceDirectiveFromCost :: Day -> Amount -> Maybe PriceDirective
 amountPriceDirectiveFromCost d a =
     case aprice a of
-        Nothing -> Nothing
         Just (UnitPrice pa) -> Just
             PriceDirective { pddate = d, pdcommodity = acommodity a, pdamount = pa }
-        Just (TotalPrice pa) -> Just
+        Just (TotalPrice pa) | aquantity a /= 0 -> Just
             PriceDirective { pddate = d, pdcommodity = acommodity a, pdamount = abs (aquantity a) `divideAmount'` pa }
+        _ -> Nothing
 
 -- | Given a map of standard amount display styles, apply the
 -- appropriate one, if any, to this price directive's amount.
