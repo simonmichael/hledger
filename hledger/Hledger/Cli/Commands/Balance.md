@@ -65,7 +65,7 @@ Many of these work with the higher-level commands as well.
 - rows and columns swapped ([`--transpose`](#multi-period-balance-report))
 - another field used as account name ([`--pivot`](#multi-period-balance-report))
 - custom-formatted line items (single-period reports only) ([`--format`](#customising-single-period-balance-reports))
-- commodities shown in a separate column, one per row ([`--commodity-column`](#commodity-column))
+- commodities displayed on the same line or multiple lines ([`--layout`](#layout))
 
 This command supports the
 [output destination](#output-destination) and
@@ -267,14 +267,24 @@ Here are some ways to handle that:
 [csv-mode]: https://elpa.gnu.org/packages/csv-mode.html
 [visidata]: https://www.visidata.org
 
-### Commodity column
+### Commodity layout
 
-With `--commodity-column`, commodity symbols are displayed in a separate column, and amounts are displayed as bare numbers. 
-In this mode, each report row will show amounts for a single commodity, using extra rows when necessary.
-It can be useful for a cleaner display of reports with many commodities:
+With `--layout`, you can control how amounts with more than one commodity are displayed:
+- `--layout=wide[,WIDTH]`: on a single line, possibly elided to the specified width
+- `--layout=tall`: each commodity is displayed on a separate line
+- `--layout=bare`: commodity symbols are displayed in a separate column, and amounts are displayed as bare numbers
 
 ```shell
-$ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y
+$ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=wide
+Balance changes in 2012-01-01..2014-12-31:
+
+                  ||                                          2012                                                     2013                                             2014                                                      Total 
+==================++====================================================================================================================================================================================================================
+ Assets:US:ETrade || 10.00 ITOT, 337.18 USD, 12.00 VEA, 106.00 VHT  70.00 GLD, 18.00 ITOT, -98.12 USD, 10.00 VEA, 18.00 VHT  -11.00 ITOT, 4881.44 USD, 14.00 VEA, 170.00 VHT  70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT 
+------------------++--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                  || 10.00 ITOT, 337.18 USD, 12.00 VEA, 106.00 VHT  70.00 GLD, 18.00 ITOT, -98.12 USD, 10.00 VEA, 18.00 VHT  -11.00 ITOT, 4881.44 USD, 14.00 VEA, 170.00 VHT  70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT 
+
+$ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=wide,32
 Balance changes in 2012-01-01..2014-12-31:
 
                   ||                             2012                             2013                   2014                            Total 
@@ -283,7 +293,24 @@ Balance changes in 2012-01-01..2014-12-31:
 ------------------++---------------------------------------------------------------------------------------------------------------------------
                   || 10.00 ITOT, 337.18 USD, 2 more..  70.00 GLD, 18.00 ITOT, 3 more..  -11.00 ITOT, 3 more..  70.00 GLD, 17.00 ITOT, 3 more.. 
 
-$ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --commodity-column
+$ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=tall
+Balance changes in 2012-01-01..2014-12-31:
+
+                  ||       2012        2013         2014        Total 
+==================++==================================================
+ Assets:US:ETrade || 10.00 ITOT   70.00 GLD  -11.00 ITOT    70.00 GLD 
+ Assets:US:ETrade || 337.18 USD  18.00 ITOT  4881.44 USD   17.00 ITOT 
+ Assets:US:ETrade ||  12.00 VEA  -98.12 USD    14.00 VEA  5120.50 USD 
+ Assets:US:ETrade || 106.00 VHT   10.00 VEA   170.00 VHT    36.00 VEA 
+ Assets:US:ETrade ||              18.00 VHT                294.00 VHT 
+------------------++--------------------------------------------------
+                  || 10.00 ITOT   70.00 GLD  -11.00 ITOT    70.00 GLD 
+                  || 337.18 USD  18.00 ITOT  4881.44 USD   17.00 ITOT 
+                  ||  12.00 VEA  -98.12 USD    14.00 VEA  5120.50 USD 
+                  || 106.00 VHT   10.00 VEA   170.00 VHT    36.00 VEA 
+                  ||              18.00 VHT                294.00 VHT 
+
+$ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=bare
 Balance changes in 2012-01-01..2014-12-31:
 
                   || Commodity    2012    2013     2014    Total 
@@ -301,7 +328,7 @@ Balance changes in 2012-01-01..2014-12-31:
                   || VHT        106.00   18.00   170.00   294.00 
 ```
 
-This flag also affects [CSV output](#output-format),
+The option `--layout=bare` also affects [CSV output](#output-format),
 which is useful for producing data that is easier to consume, eg when making charts:
 
 ```shell
@@ -310,7 +337,7 @@ $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -O csv
 "Assets:US:ETrade","70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT"
 "total","70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT"
 
-$ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -O csv --commodity-column
+$ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -O csv --layout=bare
 "account","commodity","balance"
 "Assets:US:ETrade","GLD","70.00"
 "Assets:US:ETrade","ITOT","17.00"
