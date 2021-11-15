@@ -80,3 +80,32 @@ P 2019-01-02 X 1.000,1 A
 P 2019-02-01 X 1.000,2345 A
 P 2019-02-02 X 1.000,2 A
 
+<
+;; Total asset value should be 400 USD + 1000 USD = 1400 USD
+2021-10-15 Broker initial balance (equity ABC)
+    Assets:Broker           = 4 ABC @@ 400 USD
+    Equity:Opening Balances
+
+2021-10-15 Broker initial balance (USD)
+    Assets:Broker           = 1000 USD
+    Equity:Opening Balances
+
+# 6. Inferring prices should play well with balance assertions involving mixing
+# of prices and no prices. (#1736)
+$ hledger -f- prices --infer-market-prices
+P 2021-10-15 ABC 100.0 USD
+
+<
+2021-10-15
+    (a)    1 A @@ 0 B
+
+2021-10-16
+    (b)    0 A @@ 1 B
+
+# 7. Gracefully ignore any postings which would result in an infinite price.
+$ hledger -f- prices --infer-market-prices
+P 2021-10-15 A 0.0 B
+
+# 8. Same for reverse prices
+$ hledger -f- prices --infer-reverse-prices
+P 2021-10-16 B 0.0 A
