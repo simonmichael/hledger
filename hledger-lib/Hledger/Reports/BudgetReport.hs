@@ -241,7 +241,7 @@ budgetReportAsTable
       (Tab.Group Tab.NoLine $ map Tab.Header colheadings)
       rows
   where
-    colheadings = ["Commodity" | commodity_layout_ == CommodityColumn]
+    colheadings = ["Commodity" | commodity_layout_ == CommodityBare]
                   ++ map (reportPeriodName balanceaccum_ spans) spans
                   ++ ["  Total" | row_total_]
                   ++ ["Average" | average_]
@@ -283,9 +283,9 @@ budgetReportAsTable
         padcells = maybetranspose . fmap (fmap (uncurry paddisplaycell) . zip widths)   . maybetranspose
         padtr    = maybetranspose . fmap (fmap (uncurry paddisplaycell) . zip trwidths) . maybetranspose
 
-        -- commodities are shown with the amounts without `commodity-layout_ == CommodityColumn`
+        -- commodities are shown with the amounts without `commodity_layout_ == CommodityBare`
         prependcs cs
-          | commodity_layout_ /= CommodityColumn = id
+          | commodity_layout_ /= CommodityBare = id
           | otherwise = zipWith (:) cs
 
     rowToBudgetCells (PeriodicReportRow _ as rowtot rowavg) = as
@@ -294,13 +294,12 @@ budgetReportAsTable
 
     -- functions for displaying budget cells depending on `commodity-layout_` option
     rowfuncs :: [CommoditySymbol] -> (BudgetShowMixed, BudgetPercBudget)
-    rowfuncs cs
-      | commodity_layout_ == CommodityOneLine =
-          ( pure . showMixedAmountB oneLine{displayColour=color_, displayMaxWidth=Just 32}
-          , \a -> pure . percentage a)
-      | otherwise =
-          ( showMixedAmountLinesB noPrice{displayOrder=Just cs, displayMinWidth=Nothing, displayColour=color_}
-          , \a b -> fmap (percentage' a b) cs)
+    rowfuncs cs = case commodity_layout_ of
+      CommodityWide width ->
+           ( pure . showMixedAmountB oneLine{displayColour=color_, displayMaxWidth=width}
+           , \a -> pure . percentage a)
+      _ -> ( showMixedAmountLinesB noPrice{displayOrder=Just cs, displayMinWidth=Nothing, displayColour=color_}
+           , \a b -> fmap (percentage' a b) cs)
 
     showrow :: [BudgetCell] -> [(WideBuilder, BudgetDisplayRow)]
     showrow row =
@@ -408,7 +407,7 @@ budgetReportAsCsv
 
   -- heading row
   ("Account" :
-  ["Commodity" | commodity_layout_ == CommodityColumn ]
+  ["Commodity" | commodity_layout_ == CommodityBare ]
    ++ concatMap (\span -> [showDateSpan span, "budget"]) colspans
    ++ concat [["Total"  ,"budget"] | row_total_]
    ++ concat [["Average","budget"] | average_]
@@ -428,7 +427,7 @@ budgetReportAsCsv
                -> PeriodicReportRow a BudgetCell
                -> [[Text]]
     rowAsTexts render row@(PeriodicReportRow _ as (rowtot,budgettot) (rowavg, budgetavg))
-      | commodity_layout_ /= CommodityColumn = [render row : fmap showNorm all]
+      | commodity_layout_ /= CommodityBare = [render row : fmap showNorm all]
       | otherwise =
             joinNames . zipWith (:) cs  -- add symbols and names
           . transpose                   -- each row becomes a list of Text quantities

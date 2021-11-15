@@ -84,12 +84,12 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
     ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format (in simple reports)"
     ,flagNone ["sort-amount","S"] (setboolopt "sort-amount") "sort by amount instead of account code/name"
     ,flagNone ["percent", "%"] (setboolopt "percent") "express values in percentage of each column's total"
-    ,flagReq  ["commodity-layout"] (\s opts -> Right $ setopt "commodity-layout" s opts) "ARG"
+    ,flagReq  ["layout"] (\s opts -> Right $ setopt "layout" s opts) "ARG"
       (unlines
-        ["show multicommodity amounts in the given ARG. ARG can be:"
-        ,"'oneline':   show all commodities on a single line"
-        ,"'multiline': show each commodity on a new line"
-        ,"'column':    show commodity symbols in a separate column and amounts as bare numbers"
+        ["how to show multi-commodity amounts:"
+        ,"'wide[,WIDTH]': all commodities on one line [elided at WIDTH]"
+        ,"'tall'        : each commodity on a new line"
+        ,"'bare'        : bare numbers, symbols in a column"
         ])
     ,outputFormatFlag ["txt","html","csv","json"]
     ,outputFileFlag
@@ -247,7 +247,7 @@ compoundBalanceReportAsCsv ropts (CompoundPeriodicReport title colspans subrepor
     addtotals $
       padRow title
       : ( "Account"
-        : ["Commodity" | commodity_layout_ ropts == CommodityColumn]
+        : ["Commodity" | commodity_layout_ ropts == CommodityBare]
         ++ map (reportPeriodName (balanceaccum_ ropts) colspans) colspans
         ++ (if row_total_ ropts then ["Total"] else [])
         ++ (if average_ ropts then ["Average"] else [])
@@ -264,7 +264,7 @@ compoundBalanceReportAsCsv ropts (CompoundPeriodicReport title colspans subrepor
           | null subreports = 1
           | otherwise =
             (1 +) $ -- account name column
-            (if commodity_layout_ ropts == CommodityColumn then (1+) else id) $
+            (if commodity_layout_ ropts == CommodityBare then (1+) else id) $
             (if row_total_ ropts then (1+) else id) $
             (if average_ ropts then (1+) else id) $
             maximum $ -- depends on non-null subreports
@@ -286,7 +286,7 @@ compoundBalanceReportAsHtml ropts cbr =
     titlerows =
       (tr_ $ th_ [colspanattr, leftattr] $ h2_ $ toHtml title)
       : [thRow $
-         "" : ["Commodity" | commodity_layout_ ropts == CommodityColumn] ++
+         "" : ["Commodity" | commodity_layout_ ropts == CommodityBare] ++
          map (reportPeriodName (balanceaccum_ ropts) colspans) colspans
          ++ (if row_total_ ropts then ["Total"] else [])
          ++ (if average_ ropts then ["Average"] else [])
