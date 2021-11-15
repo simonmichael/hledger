@@ -58,7 +58,7 @@ dependencies:
 - parser-combinators >=0.4.0
 - pretty-simple >4 && <5
 - regex-tdfa
-- safe >=0.2
+- safe >=0.3.18
 - tabular >=0.2
 - tasty >=1.2.3
 - tasty-hunit >=0.10.0.2
