@@ -568,11 +568,11 @@ balanceReportTableAsText ReportOpts{..} =
     Tab.renderTableByRowsB def{Tab.tableBorders=False, Tab.prettyTable=pretty_} renderCh renderRow
   where
     renderCh
-      | commodity_layout_ /= CommodityColumn || transpose_ = fmap (Tab.textCell Tab.TopRight)
+      | commodity_layout_ /= CommodityBare || transpose_ = fmap (Tab.textCell Tab.TopRight)
       | otherwise = zipWith ($) (Tab.textCell Tab.TopLeft : repeat (Tab.textCell Tab.TopRight))
 
     renderRow (rh, row)
-      | commodity_layout_ /= CommodityColumn || transpose_ =
+      | commodity_layout_ /= CommodityBare || transpose_ =
           (Tab.textCell Tab.TopLeft rh, fmap (Tab.Cell Tab.TopRight . pure) row)
       | otherwise =
           (Tab.textCell Tab.TopLeft rh, zipWith ($) (Tab.Cell Tab.TopLeft : repeat (Tab.Cell Tab.TopRight)) (fmap pure row))

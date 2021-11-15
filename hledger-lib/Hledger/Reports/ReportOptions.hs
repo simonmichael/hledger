@@ -68,12 +68,12 @@ import Data.Char (toLower)
 import Data.Either (fromRight)
 import Data.Either.Extra (eitherToMaybe)
 import Data.Functor.Identity (Identity(..))
-import Data.List.Extra (nubSort)
+import Data.List.Extra (find, isPrefixOf, nubSort)
 import Data.Maybe (fromMaybe, mapMaybe)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day, addDays)
 import Data.Default (Default(..))
-import Safe (headDef, headMay, lastDef, lastMay, maximumMay)
+import Safe (headMay, lastDef, lastMay, maximumMay, readMay)
 
 import Text.Megaparsec.Custom
 
@@ -109,7 +109,10 @@ data AccountListMode = ALFlat | ALTree deriving (Eq, Show)
 
 instance Default AccountListMode where def = ALFlat
 
-data CommodityLayout = CommodityOneLine | CommodityMultiLine | CommodityColumn deriving (Eq, Show)
+data CommodityLayout = CommodityWide (Maybe Int)
+                     | CommodityTall
+                     | CommodityBare
+  deriving (Eq, Show)
 
 -- | Standard options for customising report filtering and output.
 -- Most of these correspond to standard hledger command-line options
@@ -203,7 +206,7 @@ defreportopts = ReportOpts
     , normalbalance_    = Nothing
     , color_            = False
     , transpose_        = False
-    , commodity_layout_ = CommodityOneLine
+    , commodity_layout_ = CommodityWide Nothing
     }
 
 -- | Generate a ReportOpts from raw command-line input, given a day.
@@ -332,16 +335,25 @@ balanceAccumulationOverride rawopts = choiceopt parse rawopts <|> reportbal
       _               -> Nothing
 
 commoditylayoutopt :: RawOpts -> CommodityLayout
-commoditylayoutopt rawopts = fromMaybe CommodityOneLine $ layout <|> column
+commoditylayoutopt rawopts = fromMaybe (CommodityWide Nothing) $ layout <|> column
   where
-    layout = parse <$> maybestringopt "commodity-layout" rawopts
-    column = CommodityColumn <$ guard (boolopt "commodity-column" rawopts)
+    layout = parse <$> maybestringopt "layout" rawopts
+    column = CommodityBare <$ guard (boolopt "commodity-column" rawopts)
 
-    parse opt = case toLower $ headDef 'x' opt of
-      'o' -> CommodityOneLine    -- "oneline" and abbreviations
-      'm' -> CommodityMultiLine  -- "multiline" and abbreviations
-      'c' -> CommodityColumn     -- "column" and abbreviations
-      _   -> usageError "--commodity-layout's argument should be \"oneline\", \"multiline\", or \"column\""
+    parse opt = maybe err snd $ guard (not $ null s) *> find (isPrefixOf s . fst) checkNames
+      where
+        checkNames = [ ("wide", CommodityWide w)
+                     , ("tall", CommodityTall)
+                     , ("bare", CommodityBare)
+                     ]
+        -- For `--layout=elided,n`, elide to the given width
+        (s,n) = break (==',') $ map toLower opt
+        w = case drop 1 n of
+              "" -> Nothing
+              c | Just w <- readMay c -> Just w
+              _ -> usageError "width in --layout=wide,WIDTH must be an integer"
+
+        err = usageError "--layout's argument should be \"wide[,WIDTH]\", \"tall\", or \"bare\""
 
 -- Get the period specified by any -b/--begin, -e/--end and/or -p/--period
 -- options appearing in the command line.

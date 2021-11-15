@@ -21,7 +21,7 @@ Balance changes in 2020-01-01..2021-12-31:
    || 1.00A, 1.00B, 1.00C, 1.00D  1.00D, 1.00E, 1.00F 
 
 # 2. Display multiline if requested
-$ hledger -f- bal -Y --commodity-layout=multiline
+$ hledger -f- bal -Y --layout=tall
 Balance changes in 2020-01-01..2021-12-31:
 
    ||  2020   2021 
@@ -37,7 +37,7 @@ Balance changes in 2020-01-01..2021-12-31:
    || 1.00D        
 
 # 3. Display a commodity column if requested
-$ hledger -f- bal -Y --commodity-layout=column
+$ hledger -f- bal -Y --layout=bare
 Balance changes in 2020-01-01..2021-12-31:
 
    || Commodity  2020  2021 
@@ -55,6 +55,16 @@ Balance changes in 2020-01-01..2021-12-31:
    || D          1.00  1.00 
    || E             0  1.00 
    || F             0  1.00 
+
+# 4. Display elided to a specific width if requested
+$ hledger -f- bal -Y --layout=wide,22
+Balance changes in 2020-01-01..2021-12-31:
+
+   ||                   2020                 2021 
+===++=============================================
+ a || 1.00A, 1.00B, 2 more..  1.00D, 1.00E, 1.00F 
+---++---------------------------------------------
+   || 1.00A, 1.00B, 2 more..  1.00D, 1.00E, 1.00F 
 
 <
 2020-02-22
@@ -77,16 +87,16 @@ Balance changes in 2020-01-01..2021-12-31:
     ea50865f:3bfb86b7:bf72f75a:a7cad1ac       C$ -26.00
     ea50865f:325566ed:216fec7e:7b433efb         C$ 1.44
 
-# 4. Make sure all amounts up to the largest fit
-$ hledger -f- bal -Y --color=yes
+# 5. Make sure all amounts up to the largest fit when eliding
+$ hledger -f- bal -Y --color=yes --layout=wide,32
 Balance changes in 2020:
 
-                                     ||                               2020 
-=====================================++====================================
- 26018c6e:ced6cffd:c3c182f1:7b433efb || $ 9.41, C$ 24.56, [31m£ -19.16[m, € 9.21 
- ea50865f:325566ed:216fec7e:7b433efb ||    $ 0.59, C$ 1.44, £ 0.91, € 0.79 
- ea50865f:325566ed:47134948          ||                            £ 18.25 
- ea50865f:3bfb86b7:bf72f75a:a7cad1ac ||      [31m$ -10.00[m, [31mC$ -26.00[m, [31m€ -10.00[m 
--------------------------------------++------------------------------------
-                                     ||                                  0 
+                                     ||                            2020 
+=====================================++=================================
+ 26018c6e:ced6cffd:c3c182f1:7b433efb ||      $ 9.41, C$ 24.56, 2 more.. 
+ ea50865f:325566ed:216fec7e:7b433efb || $ 0.59, C$ 1.44, £ 0.91, € 0.79 
+ ea50865f:325566ed:47134948          ||                         £ 18.25 
+ ea50865f:3bfb86b7:bf72f75a:a7cad1ac ||   [31m$ -10.00[m, [31mC$ -26.00[m, [31m€ -10.00[m 
+-------------------------------------++---------------------------------
+                                     ||                               0 
 >=0
