@@ -88,7 +88,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import Data.Time.Calendar (Day)
-import Safe (headDef, maximumDef)
+import Safe (headDef, maximumBound)
 import Text.DocLayout (realLength)
 
 import Text.Tabular.AsciiWide
@@ -185,8 +185,8 @@ showPostingLines :: Posting -> [Text]
 showPostingLines p = first3 $ postingAsLines False False maxacctwidth maxamtwidth p
   where
     linesWithWidths = map (postingAsLines False False maxacctwidth maxamtwidth) . maybe [p] tpostings $ ptransaction p
-    maxacctwidth = maximumDef 0 $ map second3 linesWithWidths
-    maxamtwidth  = maximumDef 0 $ map third3 linesWithWidths
+    maxacctwidth = maximumBound 0 $ map second3 linesWithWidths
+    maxamtwidth  = maximumBound 0 $ map third3 linesWithWidths
 
 -- | Given a transaction and its postings, render the postings, suitable
 -- for `print` output. Normally this output will be valid journal syntax which
@@ -209,8 +209,8 @@ postingsAsLines :: Bool -> [Posting] -> [Text]
 postingsAsLines onelineamounts ps = concatMap first3 linesWithWidths
   where
     linesWithWidths = map (postingAsLines False onelineamounts maxacctwidth maxamtwidth) ps
-    maxacctwidth = maximumDef 0 $ map second3 linesWithWidths
-    maxamtwidth  = maximumDef 0 $ map third3 linesWithWidths
+    maxacctwidth = maximumBound 0 $ map second3 linesWithWidths
+    maxamtwidth  = maximumBound 0 $ map third3 linesWithWidths
 
 -- | Render one posting, on one or more lines, suitable for `print` output.
 -- There will be an indented account name, plus one or more of status flag,
@@ -271,7 +271,7 @@ postingAsLines elideamount onelineamounts acctwidth amtwidth p =
     shownAmounts
       | elideamount = [mempty]
       | otherwise   = showMixedAmountLinesB noColour{displayOneLine=onelineamounts} $ pamount p
-    thisamtwidth = maximumDef 0 $ map wbWidth shownAmounts
+    thisamtwidth = maximumBound 0 $ map wbWidth shownAmounts
 
     (samelinecomment, newlinecomments) =
       case renderCommentLines (pcomment p) of []   -> ("",[])
