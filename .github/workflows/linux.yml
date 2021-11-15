@@ -109,7 +109,7 @@ jobs:
       # related: https://stackoverflow.com/questions/64708371/how-to-run-github-workflow-on-every-commit-of-a-push
       env:
         BEFORE: ${{ github.event.before }}
-        NUM:    20
+        NUM:    5
       shell: bash
       run: |
         RANGE=${BEFORE:-origin/master}..${GITHUB_HEAD_REF:+origin/$GITHUB_HEAD_REF}
