@@ -786,7 +786,7 @@ parseCsv :: Char -> FilePath -> Text -> IO (Either String CSV)
 parseCsv separator filePath csvdata =
   case filePath of
     "-" -> parseCassava separator "(stdin)" <$> T.getContents
-    _   -> return $ parseCassava separator filePath csvdata
+    _   -> return $ if T.null csvdata then Right mempty else parseCassava separator filePath csvdata
 
 parseCassava :: Char -> FilePath -> Text -> Either String CSV
 parseCassava separator path content =
