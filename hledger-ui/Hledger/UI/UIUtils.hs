@@ -176,11 +176,11 @@ helpHandle ui ev = do
     ui' = setMode Normal ui
     closeHelpEvents = moveLeftEvents ++ [EvKey KEsc [], EvKey (KChar '?') [], EvKey (KChar 'q') []]
 
--- | Draw the minibuffer.
-minibuffer :: Editor String Name -> Widget Name
-minibuffer ed =
+-- | Draw the minibuffer with the given label.
+minibuffer :: T.Text -> Editor String Name -> Widget Name
+minibuffer string ed =
   forceAttr ("border" <> "minibuffer") $
-  hBox [txt "filter: ", renderEditor (str . unlines) True ed]
+  hBox [txt $ string <> ": ", renderEditor (str . unlines) True ed]
 
 borderQueryStr :: String -> Widget Name
 borderQueryStr ""  = str ""

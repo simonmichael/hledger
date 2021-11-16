@@ -180,8 +180,8 @@ asDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
                 nonblanks = V.takeWhile (not . T.null . asItemAccountName) $ s ^. asList . listElementsL
 
         bottomlabel = case mode of
-                        Minibuffer ed -> minibuffer ed
-                        _             -> quickhelp
+                        Minibuffer label ed -> minibuffer label ed
+                        _                   -> quickhelp
           where
             quickhelp = borderKeysStr' [
                ("?", str "help")
@@ -242,15 +242,18 @@ asHandle ui0@UIState{
     ui = ui0{aScreen=scr & asSelectedAccount .~ selacct}
 
   case mode of
-    Minibuffer ed ->
+    Minibuffer _ ed ->
       case ev of
         VtyEvent (EvKey KEsc   []) -> continue $ closeMinibuffer ui
-        VtyEvent (EvKey KEnter []) -> continue $ regenerateScreens j d $ setFilter s $ closeMinibuffer ui
-                            where s = chomp $ unlines $ map strip $ getEditContents ed
+        VtyEvent (EvKey KEnter []) -> continue $ regenerateScreens j d $
+            case setFilter s $ closeMinibuffer ui of
+              Left bad -> showMinibuffer "Cannot compile regular expression" (Just bad) ui
+              Right ui' -> ui'
+          where s = chomp $ unlines $ map strip $ getEditContents ed
         VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw ui
         VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
         VtyEvent ev        -> do ed' <- handleEditorEvent ev ed
-                                 continue $ ui{aMode=Minibuffer ed'}
+                                 continue $ ui{aMode=Minibuffer "filter" ed'}
         AppEvent _        -> continue ui
         MouseDown{}       -> continue ui
         MouseUp{}         -> continue ui
@@ -311,7 +314,7 @@ asHandle ui0@UIState{
         VtyEvent (EvKey (KUp)       [MShift]) -> continue $ regenerateScreens j d $ growReportPeriod d ui
         VtyEvent (EvKey (KRight)    [MShift]) -> continue $ regenerateScreens j d $ nextReportPeriod journalspan ui
         VtyEvent (EvKey (KLeft)     [MShift]) -> continue $ regenerateScreens j d $ previousReportPeriod journalspan ui
-        VtyEvent (EvKey (KChar '/') []) -> continue $ regenerateScreens j d $ showMinibuffer ui
+        VtyEvent (EvKey (KChar '/') []) -> continue $ regenerateScreens j d $ showMinibuffer "filter" Nothing ui
         VtyEvent (EvKey k           []) | k `elem` [KBS, KDel] -> (continue $ regenerateScreens j d $ resetFilter ui)
         VtyEvent e | e `elem` moveLeftEvents -> continue $ popScreen ui
         VtyEvent (EvKey (KChar 'l') [MCtrl]) -> scrollSelectionToMiddle _asList >> redraw ui

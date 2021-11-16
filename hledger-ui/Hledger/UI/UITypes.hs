@@ -69,7 +69,7 @@ data UIState = UIState {
 data Mode =
     Normal
   | Help
-  | Minibuffer (Editor String Name)
+  | Minibuffer Text (Editor String Name)
   deriving (Show,Eq)
 
 -- Ignore the editor when comparing Modes.

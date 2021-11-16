@@ -227,8 +227,8 @@ rsDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
             -- query = query_ $ reportopts_ $ cliopts_ opts
 
         bottomlabel = case mode of
-                        Minibuffer ed -> minibuffer ed
-                        _             -> quickhelp
+                        Minibuffer label ed -> minibuffer label ed
+                        _                   -> quickhelp
           where
             quickhelp = borderKeysStr' [
                ("?", str "help")
@@ -288,15 +288,19 @@ rsHandle ui@UIState{
     lastnonblankidx = max 0 (length nonblanks - 1)
 
   case mode of
-    Minibuffer ed ->
+    Minibuffer _ ed ->
       case ev of
         VtyEvent (EvKey KEsc   []) -> continue $ closeMinibuffer ui
-        VtyEvent (EvKey KEnter []) -> continue $ regenerateScreens j d $ setFilter s $ closeMinibuffer ui
-                            where s = chomp $ unlines $ map strip $ getEditContents ed
+        VtyEvent (EvKey KEnter []) -> continue $ regenerateScreens j d $
+            case setFilter s $ closeMinibuffer ui of
+              Left bad -> showMinibuffer "Cannot compile regular expression" (Just bad) ui
+              Right ui' -> ui'
+          where s = chomp . unlines . map strip $ getEditContents ed
+        -- VtyEvent (EvKey (KChar '/') []) -> continue $ regenerateScreens j d $ showMinibuffer ui
         VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw ui
         VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
         VtyEvent ev              -> do ed' <- handleEditorEvent ev ed
-                                       continue $ ui{aMode=Minibuffer ed'}
+                                       continue $ ui{aMode=Minibuffer "filter" ed'}
         AppEvent _        -> continue ui
         MouseDown{}       -> continue ui
         MouseUp{}         -> continue ui
@@ -342,7 +346,7 @@ rsHandle ui@UIState{
         VtyEvent (EvKey (KChar 'C') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleCleared ui
         VtyEvent (EvKey (KChar 'F') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleForecast d ui
 
-        VtyEvent (EvKey (KChar '/') []) -> continue $ regenerateScreens j d $ showMinibuffer ui
+        VtyEvent (EvKey (KChar '/') []) -> continue $ regenerateScreens j d $ showMinibuffer "filter" Nothing ui
         VtyEvent (EvKey (KDown)     [MShift]) -> continue $ regenerateScreens j d $ shrinkReportPeriod d ui
         VtyEvent (EvKey (KUp)       [MShift]) -> continue $ regenerateScreens j d $ growReportPeriod d ui
         VtyEvent (EvKey (KRight)    [MShift]) -> continue $ regenerateScreens j d $ nextReportPeriod journalspan ui

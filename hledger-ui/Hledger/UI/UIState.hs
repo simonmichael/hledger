@@ -7,9 +7,11 @@ module Hledger.UI.UIState
 where
 
 import Brick.Widgets.Edit
+import Data.Bifunctor (first)
 import Data.Foldable (asum)
 import Data.Either (fromRight)
 import Data.List ((\\), foldl', sort)
+import Data.Maybe (fromMaybe)
 import Data.Semigroup (Max(..))
 import qualified Data.Text as T
 import Data.Text.Zipper (gotoEOL)
@@ -205,11 +207,9 @@ updateReportPeriod :: (Period -> Period) -> UIState -> UIState
 updateReportPeriod updatePeriod = fromRight err . overEither period updatePeriod  -- PARTIAL:
   where err = error "updateReportPeriod: updating period should not result in an error"
 
--- | Apply a new filter query.
-setFilter :: String -> UIState -> UIState
-setFilter s = over reportSpec update
-  where
-    update rspec = fromRight rspec $ setEither querystring (words'' prefixes $ T.pack s) rspec  -- XXX silently ignores an error
+-- | Apply a new filter query, or return the failing query.
+setFilter :: String -> UIState -> Either String UIState
+setFilter s = first (const s) . setEither querystring (words'' prefixes $ T.pack s)
 
 -- | Reset some filters & toggles.
 resetFilter :: UIState -> UIState
@@ -264,11 +264,11 @@ updateReportDepth updateDepth ui = over reportSpec update ui
                       | otherwise        = Just d
 
 -- | Open the minibuffer, setting its content to the current query with the cursor at the end.
-showMinibuffer :: UIState -> UIState
-showMinibuffer ui = setMode (Minibuffer e) ui
+showMinibuffer :: T.Text -> Maybe String -> UIState -> UIState
+showMinibuffer label moldq ui = setMode (Minibuffer label e) ui
   where
     e = applyEdit gotoEOL $ editor MinibufferEditor (Just 1) oldq
-    oldq = T.unpack . T.unwords . map textQuoteIfNeeded $ ui^.querystring
+    oldq = fromMaybe (T.unpack . T.unwords . map textQuoteIfNeeded $ ui^.querystring) moldq
 
 -- | Close the minibuffer, discarding any edit in progress.
 closeMinibuffer :: UIState -> UIState
