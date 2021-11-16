@@ -996,6 +996,24 @@ $  ./csvtest.sh
 
 >=0
 
+# 49. Handle an entry with all zeros
+<
+Date;Description;Category;Debit;Credit;Balance
+"2020-01-21","Client card point of sale fee",Fees,"0","0","1068.94"
+
+RULES
+skip 1
+fields date, description, category, amount-out, amount-in, balance
+currency $
+account1 assets:bank:checking
+
+$  ./csvtest.sh
+2020-01-21 Client card point of sale fee
+    assets:bank:checking               0 = $1068.94
+    expenses:unknown                   0
+
+>=0
+
 ## . 
 #<
 #$  ./csvtest.sh
