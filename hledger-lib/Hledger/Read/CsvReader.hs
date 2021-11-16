@@ -996,33 +996,31 @@ getAmount rules record currency p1IsVirtual n =
                           ]
 
     -- if any of the numbered field names are present, discard all the unnumbered ones
-    assignments' | any isnumbered assignments = filter isnumbered assignments
-                 | otherwise                  = assignments
+    discardUnnumbered xs = if null numbered then xs else numbered
       where
-        isnumbered (f,_) = T.any isDigit f
+        numbered = filter (T.any isDigit . fst) xs
 
-    -- if there's more than one value and only some are zeros, discard the zeros
-    assignments''
-      | length assignments' > 1 && not (null nonzeros) = nonzeros
-      | otherwise                                      = assignments'
-      where nonzeros = filter (not . mixedAmountLooksZero . snd) assignments'
+    -- discard all zero amounts, unless all amounts are zero, in which case discard all but the first
+    discardExcessZeros xs = if null nonzeros then take 1 xs else nonzeros
+      where
+        nonzeros = filter (not . mixedAmountLooksZero . snd) xs
 
-  in case -- dbg0 ("amounts for posting "++show n)
-          assignments'' of
-      [] -> Nothing
-      [(f,a)] | "-out" `T.isSuffixOf` f -> Just (maNegate a)  -- for -out fields, flip the sign
-                                                              -- XXX unless it's already negative ? back compat issues / too confusing ?
-      [(_,a)] -> Just a
-      fs      -> error' . T.unpack . T.unlines $ [  -- PARTIAL:
-         "multiple non-zero amounts or multiple zero amounts assigned,"
+    -- for -out fields, flip the sign  XXX unless it's already negative ? back compat issues / too confusing ?
+    negateIfOut f = if "-out" `T.isSuffixOf` f then maNegate else id
+
+  in case discardExcessZeros $ discardUnnumbered assignments of
+      []      -> Nothing
+      [(f,a)] -> Just $ negateIfOut f a
+      fs      -> error' . T.unpack . T.unlines $  -- PARTIAL:
+        ["multiple non-zero amounts assigned,"
         ,"please ensure just one. (https://hledger.org/csv.html#amount)"
         ,"  " <> showRecord record
         ,"  for posting: " <> T.pack (show n)
-        ]
-        ++ ["  assignment: " <> f <> " " <>
-             fromMaybe "" (hledgerField rules record f) <>
-             "\t=> value: " <> wbToText (showMixedAmountB noColour a) -- XXX not sure this is showing all the right info
-           | (f,a) <- fs]
+        ] ++
+        ["  assignment: " <> f <> " " <>
+          fromMaybe "" (hledgerField rules record f) <>
+          "\t=> value: " <> wbToText (showMixedAmountB noColour a) -- XXX not sure this is showing all the right info
+        | (f,a) <- fs]
 
 -- | Figure out the expected balance (assertion or assignment) specified for posting N,
 -- if any (and its parse position).
