@@ -19,7 +19,7 @@ import Data.Maybe
 import qualified Data.Text as T
 import Data.Time.Calendar
 import qualified Data.Vector as V
-import Graphics.Vty (Event(..),Key(..),Modifier(..), Button (BLeft))
+import Graphics.Vty (Event(..),Key(..),Modifier(..), Button (BLeft, BScrollDown, BScrollUp))
 import Brick
 import Brick.Widgets.List
   (handleListEvent, list, listElementsL, listMoveDown, listMoveTo, listNameL, listSelectedElement, listSelectedL, renderList, listElements)
@@ -367,13 +367,15 @@ rsHandle ui@UIState{
           where 
             clickeddate = maybe "" rsItemDate $ listElements rsList !? y
 
-        -- prevent moving down over blank padding items;
-        -- instead scroll down by one, until maximally scrolled - shows the end has been reached
+        -- when at the last item, instead of moving down, scroll down by one, until maximally scrolled
         VtyEvent e | e `elem` moveDownEvents, isBlankElement mnextelement -> do
-          vScrollBy (viewportScroll $ rsList^.listNameL) 1
-          continue ui
-          where
-            mnextelement = listSelectedElement $ listMoveDown rsList
+          vScrollBy (viewportScroll $ rsList ^. listNameL) 1 >> continue ui
+          where mnextelement = listSelectedElement $ listMoveDown rsList
+
+        -- mouse scroll wheel scrolls the viewport up or down to its maximum extent,
+        -- TODO moving the selection when necessary to allow the scroll.
+        MouseDown _n BScrollDown _mods _loc -> vScrollBy (viewportScroll $ rsList ^. listNameL) 1 >> continue ui
+        MouseDown _n BScrollUp   _mods _loc -> vScrollBy (viewportScroll $ rsList ^. listNameL) (-1) >> continue ui
 
         -- if page down or end leads to a blank padding item, stop at last non-blank
         VtyEvent e@(EvKey k           []) | k `elem` [KPageDown, KEnd] -> do
