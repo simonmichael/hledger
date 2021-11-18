@@ -22,8 +22,7 @@ import Data.Time.Calendar
 import qualified Data.Vector as V
 import Graphics.Vty (Event(..),Key(..),Modifier(..), Button (BLeft, BScrollDown, BScrollUp))
 import Brick
-import Brick.Widgets.List
-  (handleListEvent, list, listElementsL, listMoveDown, listMoveTo, listNameL, listSelectedElement, listSelectedL, renderList, listElements, listSelected, listMoveUp)
+import Brick.Widgets.List hiding (reverse)
 import Brick.Widgets.Edit
 import Lens.Micro.Platform
 import Safe
@@ -379,31 +378,11 @@ rsHandle ui@UIState{
           where mnextelement = listSelectedElement $ listMoveDown rsList
 
         -- mouse scroll wheel scrolls the viewport up or down to its maximum extent,
-        -- The selection will be moved when necessary to keep it visible and allow the scroll.
-        MouseDown name BScrollDown _mods _loc -> do
-          mvp <- lookupViewport name
-          let mselidx = listSelected rsList
-          case (mvp, mselidx) of
-            (Just VP{_vpTop}, Just selidx) -> do
-              let
-                pushsel | selidx <= _vpTop && selidx < (listheight-1) = listMoveDown
-                        | otherwise = id
-                  where listheight = rsListSize rsList
-              viewportScroll name `vScrollBy` 1
-              continue ui{aScreen=s{rsList=pushsel rsList}}
-            _ -> continue ui
-
-        MouseDown name BScrollUp _mods _loc -> do
-          mvp <- lookupViewport name
-          let mselidx = listSelected rsList
-          case (mvp, mselidx) of
-            (Just VP{_vpTop, _vpSize=(_,vpheight)}, Just selidx) -> do
-              let
-                pushsel | selidx >= _vpTop + vpheight - 1 && selidx > 0 = listMoveUp
-                        | otherwise = id
-              viewportScroll name `vScrollBy` (-1)
-              continue ui{aScreen=s{rsList=pushsel rsList}}
-            _ -> continue ui
+        -- pushing the selection when necessary.
+        MouseDown name btn _mods _loc | btn `elem` [BScrollUp, BScrollDown] -> do
+          let scrollamt = if btn==BScrollUp then -1 else 1
+          list' <- listScrollPushingSelection name rsList (rsListSize rsList) scrollamt
+          continue ui{aScreen=s{rsList=list'}}
 
         -- if page down or end leads to a blank padding item, stop at last non-blank
         VtyEvent e@(EvKey k           []) | k `elem` [KPageDown, KEnd] -> do

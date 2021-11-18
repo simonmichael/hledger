@@ -2,6 +2,7 @@
 
 {-# LANGUAGE CPP               #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE NamedFieldPuns #-}
 
 module Hledger.UI.UIUtils (
    borderDepthStr
@@ -25,7 +26,8 @@ module Hledger.UI.UIUtils (
   ,suspend
   ,redraw
   ,reportSpecSetFutureAndForecast
-)
+  ,listScrollPushingSelection
+  )
 where
 
 import Brick
@@ -33,7 +35,7 @@ import Brick.Widgets.Border
 import Brick.Widgets.Border.Style
 import Brick.Widgets.Dialog
 import Brick.Widgets.Edit
-import Brick.Widgets.List (List, listSelectedL, listNameL, listItemHeightL)
+import Brick.Widgets.List (List, listSelectedL, listNameL, listItemHeightL, listSelected, listMoveDown, listMoveUp, GenericList, Splittable)
 import Control.Monad.IO.Class
 import Data.Bifunctor (second)
 import Data.List
@@ -360,3 +362,22 @@ reportSpecSetFutureAndForecast d forecast rspec =
          Not (Date $ DateSpan (Just $ addDays 1 d) Nothing)
         ,Not generatedTransactionTag
       ]
+
+-- Vertically scroll the named list with the given number of non-empty items
+-- by the given positive or negative number of items (usually 1 or -1).
+-- The selection will be moved when necessary to keep it visible and allow the scroll.
+listScrollPushingSelection :: (Ord n, Foldable t, Splittable t) => 
+  n -> GenericList n t e -> Int -> Int -> EventM n (GenericList n t e)
+listScrollPushingSelection name list listheight scrollamt = do
+  mvp <- lookupViewport name
+  let mselidx = listSelected list
+  case (mvp, mselidx) of
+    (Just VP{_vpTop, _vpSize=(_,vpheight)}, Just selidx) -> do
+      viewportScroll name `vScrollBy` scrollamt
+      return $ pushsel list
+      where
+        pushsel 
+          | scrollamt > 0, selidx <= _vpTop                && selidx < (listheight-1) = listMoveDown
+          | scrollamt < 0, selidx >= _vpTop + vpheight - 1 && selidx > 0              = listMoveUp
+          | otherwise = id
+    _ -> return list
