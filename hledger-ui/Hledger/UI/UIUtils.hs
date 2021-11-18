@@ -363,21 +363,23 @@ reportSpecSetFutureAndForecast d forecast rspec =
         ,Not generatedTransactionTag
       ]
 
--- Vertically scroll the named list with the given number of non-empty items
+-- Vertically scroll the named list's viewport with the given number of non-empty items
 -- by the given positive or negative number of items (usually 1 or -1).
 -- The selection will be moved when necessary to keep it visible and allow the scroll.
 listScrollPushingSelection :: (Ord n, Foldable t, Splittable t) => 
   n -> GenericList n t e -> Int -> Int -> EventM n (GenericList n t e)
 listScrollPushingSelection name list listheight scrollamt = do
+  viewportScroll name `vScrollBy` scrollamt
   mvp <- lookupViewport name
-  let mselidx = listSelected list
-  case (mvp, mselidx) of
-    (Just VP{_vpTop, _vpSize=(_,vpheight)}, Just selidx) -> do
-      viewportScroll name `vScrollBy` scrollamt
-      return $ pushsel list
-      where
-        pushsel 
-          | scrollamt > 0, selidx <= _vpTop                && selidx < (listheight-1) = listMoveDown
-          | scrollamt < 0, selidx >= _vpTop + vpheight - 1 && selidx > 0              = listMoveUp
-          | otherwise = id
+  case mvp of
+    Just VP{_vpTop, _vpSize=(_,vpheight)} -> do
+      let mselidx = listSelected list
+      case mselidx of
+        Just selidx -> return $ pushsel list
+          where
+            pushsel 
+              | scrollamt > 0, selidx <= _vpTop                && selidx < (listheight-1) = listMoveDown
+              | scrollamt < 0, selidx >= _vpTop + vpheight - 1 && selidx > 0              = listMoveUp
+              | otherwise = id
+        _ -> return list
     _ -> return list
