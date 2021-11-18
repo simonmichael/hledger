@@ -332,9 +332,8 @@ asHandle ui0@UIState{
           asEnterRegister d clickedacct ui
           where clickedacct = maybe "" asItemAccountName $ listElements _asList !? y
 
-        -- prevent moving down over blank padding items;
-        -- instead scroll down by one, until maximally scrolled - shows the end has been reached
-        VtyEvent (EvKey (KDown)     []) | isBlankElement mnextelement -> do
+        -- when selection is at the last item, DOWN scrolls instead of moving, until maximally scrolled
+        VtyEvent e | e `elem` moveDownEvents, isBlankElement mnextelement -> do
           vScrollBy (viewportScroll $ _asList^.listNameL) 1 >> continue ui
           where mnextelement = listSelectedElement $ listMoveDown _asList
 

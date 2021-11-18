@@ -372,7 +372,7 @@ rsHandle ui@UIState{
           continue $ screenEnter d transactionScreen{tsAccount=rsAccount} ui
           where clickeddate = maybe "" rsItemDate $ listElements rsList !? y
 
-        -- when at the last item, instead of moving down, scroll down by one, until maximally scrolled
+        -- when selection is at the last item, DOWN scrolls instead of moving, until maximally scrolled
         VtyEvent e | e `elem` moveDownEvents, isBlankElement mnextelement -> do
           vScrollBy (viewportScroll $ rsList ^. listNameL) 1 >> continue ui
           where mnextelement = listSelectedElement $ listMoveDown rsList
