@@ -323,11 +323,15 @@ asHandle ui0@UIState{
         VtyEvent e | e `elem` moveRightEvents
                    , not $ isBlankElement $ listSelectedElement _asList -> asEnterRegister d selacct ui
 
+        -- MouseDown is sometimes duplicated, https://github.com/jtdaugherty/brick/issues/347
+        -- just use it to move the selection
         MouseDown _n BLeft _mods Location{loc=(_x,y)} | not $ (=="") clickedacct -> do
-          let list' = listMoveTo y _asList
-          asEnterRegister d clickedacct ui{aScreen=scr{_asList=list'}}
-          where 
-            clickedacct = maybe "" asItemAccountName $ listElements _asList !? y
+          continue ui{aScreen=scr{_asList=listMoveTo y _asList}}
+          where clickedacct = maybe "" asItemAccountName $ listElements _asList !? y
+        -- and on MouseUp, enter the subscreen
+        MouseUp _n (Just BLeft) Location{loc=(_x,y)} | not $ (=="") clickedacct -> do
+          asEnterRegister d clickedacct ui
+          where clickedacct = maybe "" asItemAccountName $ listElements _asList !? y
 
         -- prevent moving down over blank padding items;
         -- instead scroll down by one, until maximally scrolled - shows the end has been reached
