@@ -19,10 +19,10 @@ import Data.Maybe
 import qualified Data.Text as T
 import Data.Time.Calendar
 import qualified Data.Vector as V
-import Graphics.Vty (Event(..),Key(..),Modifier(..))
+import Graphics.Vty (Event(..),Key(..),Modifier(..), Button (BLeft))
 import Brick
 import Brick.Widgets.List
-  (handleListEvent, list, listElementsL, listMoveDown, listMoveTo, listNameL, listSelectedElement, listSelectedL, renderList)
+  (handleListEvent, list, listElementsL, listMoveDown, listMoveTo, listNameL, listSelectedElement, listSelectedL, renderList, listElements)
 import Brick.Widgets.Edit
 import Lens.Micro.Platform
 import Safe
@@ -39,6 +39,7 @@ import Hledger.UI.UIUtils
 import Hledger.UI.Editor
 import Hledger.UI.TransactionScreen
 import Hledger.UI.ErrorScreen
+import Data.Vector ((!?))
 
 registerScreen :: Screen
 registerScreen = RegisterScreen{
@@ -357,6 +358,15 @@ rsHandle ui@UIState{
             Just _  -> continue $ screenEnter d transactionScreen{tsAccount=rsAccount} ui
             Nothing -> continue ui
 
+        -- or clicked transaction
+        MouseDown _n BLeft _mods Location{loc=(_x,y)} | not $ (=="") clickeddate -> do
+          let 
+            list' = listMoveTo y rsList
+            ui'   = ui{aScreen=s{rsList=list'}}
+          continue $ screenEnter d transactionScreen{tsAccount=rsAccount} ui'
+          where 
+            clickeddate = maybe "" rsItemDate $ listElements rsList !? y
+
         -- prevent moving down over blank padding items;
         -- instead scroll down by one, until maximally scrolled - shows the end has been reached
         VtyEvent e | e `elem` moveDownEvents, isBlankElement mnextelement -> do
@@ -382,9 +392,9 @@ rsHandle ui@UIState{
           newitems <- handleListEvent ev' rsList
           continue ui{aScreen=s{rsList=newitems}}
 
-        AppEvent _        -> continue ui
         MouseDown{}       -> continue ui
         MouseUp{}         -> continue ui
+        AppEvent _        -> continue ui
 
 rsHandle _ _ = error "event handler called with wrong screen type, should not happen"  -- PARTIAL:
 
