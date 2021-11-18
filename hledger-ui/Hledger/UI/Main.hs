@@ -17,7 +17,7 @@ import Data.List (find)
 import Data.List.Extra (nubSort)
 import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
-import Graphics.Vty (mkVty)
+import Graphics.Vty (mkVty, Mode (Mouse), Vty (outputIface), Output (setMode))
 import Lens.Micro ((^.))
 import System.Directory (canonicalizePath)
 import System.FilePath (takeDirectory)
@@ -168,9 +168,17 @@ runBrickUi uopts@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=rs
 
   -- print (length (show ui)) >> exitSuccess  -- show any debug output to this point & quit
 
+  let 
+    -- helper: make a Vty terminal controller with mouse support enabled
+    makevty = do
+      v <- mkVty mempty
+      setMode (outputIface v) Mouse True
+      return v
+
   if not (uoWatch uopts')
-  then
-    void $ Brick.defaultMain brickapp ui
+  then do
+    vty <- makevty
+    void $ customMain vty makevty Nothing brickapp ui
 
   else do
     -- a channel for sending misc. events to the app
@@ -228,7 +236,6 @@ runBrickUi uopts@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=rs
             writeChan eventChan FileChange
             )
 
-        -- and start the app. Must be inside the withManager block
-        let vtyhandle = mkVty mempty
-        vty <- vtyhandle
-        void $ customMain vty vtyhandle (Just eventChan) brickapp ui
+        -- and start the app. Must be inside the withManager block. (XXX makevty too ?)
+        vty <- makevty
+        void $ customMain vty makevty (Just eventChan) brickapp ui
