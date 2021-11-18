@@ -348,24 +348,29 @@ rsHandle ui@UIState{
         VtyEvent (EvKey (KRight)    [MShift]) -> continue $ regenerateScreens j d $ nextReportPeriod journalspan ui
         VtyEvent (EvKey (KLeft)     [MShift]) -> continue $ regenerateScreens j d $ previousReportPeriod journalspan ui
         VtyEvent (EvKey k           []) | k `elem` [KBS, KDel] -> (continue $ regenerateScreens j d $ resetFilter ui)
-        VtyEvent e | e `elem` moveLeftEvents  -> continue $ popScreen ui
         VtyEvent (EvKey (KChar 'l') [MCtrl]) -> scrollSelectionToMiddle rsList >> redraw ui
         VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
 
-        -- enter transaction screen for selected transaction
+        -- exit screen on LEFT
+        VtyEvent e | e `elem` moveLeftEvents  -> continue $ popScreen ui
+        -- or on a click in the app's left or top margin. This is a VtyEvent since not in a clickable widget.
+        VtyEvent (EvMouseUp x y (Just BLeft)) | x==0 || y==0 -> continue $ popScreen ui
+
+        -- enter transaction screen on RIGHT
         VtyEvent e | e `elem` moveRightEvents ->
           case listSelectedElement rsList of
             Just _  -> continue $ screenEnter d transactionScreen{tsAccount=rsAccount} ui
             Nothing -> continue ui
-
-        -- or clicked transaction
+        -- or on transaction click
+        -- MouseDown is sometimes duplicated, https://github.com/jtdaugherty/brick/issues/347
+        -- just use it to move the selection
         MouseDown _n BLeft _mods Location{loc=(_x,y)} | not $ (=="") clickeddate -> do
-          let 
-            list' = listMoveTo y rsList
-            ui'   = ui{aScreen=s{rsList=list'}}
-          continue $ screenEnter d transactionScreen{tsAccount=rsAccount} ui'
-          where 
-            clickeddate = maybe "" rsItemDate $ listElements rsList !? y
+          continue $ ui{aScreen=s{rsList=listMoveTo y rsList}}
+          where clickeddate = maybe "" rsItemDate $ listElements rsList !? y
+        -- and on MouseUp, enter the subscreen
+        MouseUp _n (Just BLeft) Location{loc=(_x,y)} | not $ (=="") clickeddate -> do
+          continue $ screenEnter d transactionScreen{tsAccount=rsAccount} ui
+          where clickeddate = maybe "" rsItemDate $ listElements rsList !? y
 
         -- when at the last item, instead of moving down, scroll down by one, until maximally scrolled
         VtyEvent e | e `elem` moveDownEvents, isBlankElement mnextelement -> do

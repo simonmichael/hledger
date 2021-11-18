@@ -15,7 +15,7 @@ import Data.Maybe
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)
 import qualified Data.Vector as V
-import Graphics.Vty (Event(..),Key(..),Modifier(..))
+import Graphics.Vty (Event(..),Key(..),Modifier(..), Button (BLeft))
 import Lens.Micro ((^.))
 import Brick
 import Brick.Widgets.List (listElementsL, listMoveTo, listSelectedElement)
@@ -181,7 +181,12 @@ tsHandle ui@UIState{aScreen=TransactionScreen{tsTransaction=(i,t), tsTransaction
 
         VtyEvent e | e `elem` moveUpEvents   -> continue $ tsSelect iprev tprev ui
         VtyEvent e | e `elem` moveDownEvents -> continue $ tsSelect inext tnext ui
+
+        -- exit screen on LEFT
         VtyEvent e | e `elem` moveLeftEvents -> continue . popScreen $ tsSelect i t ui  -- Probably not necessary to tsSelect here, but it's safe.
+        -- or on a click in the app's left or top margin. This is a VtyEvent since not in a clickable widget.
+        VtyEvent (EvMouseUp x y (Just BLeft)) | x==0 || y==0 -> continue . popScreen $ tsSelect i t ui
+
         VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw ui
         VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
         _ -> continue ui
