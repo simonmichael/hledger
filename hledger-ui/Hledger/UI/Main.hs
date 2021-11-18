@@ -229,6 +229,6 @@ runBrickUi uopts@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=rs
             )
 
         -- and start the app. Must be inside the withManager block
-        let mkvty = mkVty mempty
-        vty0 <- mkvty
-        void $ customMain vty0 mkvty (Just eventChan) brickapp ui
+        let vtyhandle = mkVty mempty
+        vty <- vtyhandle
+        void $ customMain vty vtyhandle (Just eventChan) brickapp ui
