@@ -12,7 +12,7 @@ where
 
 import Brick
 import Brick.Widgets.List
-  (handleListEvent, list, listElementsL, listMoveDown, listMoveTo, listNameL, listSelectedElement, listSelectedL, renderList)
+  (handleListEvent, list, listElementsL, listMoveDown, listMoveTo, listNameL, listSelectedElement, listSelectedL, renderList, listElements)
 import Brick.Widgets.Edit
 import Control.Monad
 import Control.Monad.IO.Class (liftIO)
@@ -21,7 +21,7 @@ import Data.Maybe
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)
 import qualified Data.Vector as V
-import Graphics.Vty (Event(..),Key(..),Modifier(..))
+import Graphics.Vty (Event(..),Key(..),Modifier(..), Button (BLeft))
 import Lens.Micro.Platform
 import Safe
 import System.Console.ANSI
@@ -37,6 +37,7 @@ import Hledger.UI.UIUtils
 import Hledger.UI.Editor
 import Hledger.UI.RegisterScreen
 import Hledger.UI.ErrorScreen
+import Data.Vector ((!?))
 
 
 accountsScreen :: Screen
@@ -319,16 +320,13 @@ asHandle ui0@UIState{
         -- enter register screen for selected account (if there is one),
         -- centering its selected transaction if possible
         VtyEvent e | e `elem` moveRightEvents
-                   , not $ isBlankElement $ listSelectedElement _asList->
-          -- TODO center selection after entering register screen; neither of these works till second time entering; easy strictifications didn't help
-          rsCenterAndContinue $
-          -- flip rsHandle (VtyEvent (EvKey (KChar 'l') [MCtrl])) $
-            screenEnter d regscr ui
-          where
-            regscr = rsSetAccount selacct isdepthclipped registerScreen
-            isdepthclipped = case getDepth ui of
-                                Just d  -> accountNameLevel selacct >= d
-                                Nothing -> False
+                   , not $ isBlankElement $ listSelectedElement _asList -> asEnterRegister d selacct ui
+
+        MouseDown _n BLeft _mods Location{loc=(_x,y)} | not $ (=="") clickedacct -> do
+          let list' = listMoveTo y _asList
+          asEnterRegister d clickedacct ui{aScreen=scr{_asList=list'}}
+          where 
+            clickedacct = maybe "" asItemAccountName $ listElements _asList !? y
 
         -- prevent moving down over blank padding items;
         -- instead scroll down by one, until maximally scrolled - shows the end has been reached
@@ -356,14 +354,25 @@ asHandle ui0@UIState{
                                     & asSelectedAccount .~ selacct
                                     }
 
-        AppEvent _        -> continue ui
-        MouseDown{}       -> continue ui
-        MouseUp{}         -> continue ui
+        MouseDown{} -> continue ui
+        MouseUp{}   -> continue ui
+        AppEvent _  -> continue ui
 
   where
     journalspan = journalDateSpan False j
 
 asHandle _ _ = error "event handler called with wrong screen type, should not happen"  -- PARTIAL:
+
+asEnterRegister d selacct ui = do
+  -- TODO center selection after entering register screen; neither of these works till second time entering; easy strictifications didn't help
+  rsCenterAndContinue $
+  -- flip rsHandle (VtyEvent (EvKey (KChar 'l') [MCtrl])) $
+    screenEnter d regscr ui
+      where
+        regscr = rsSetAccount selacct isdepthclipped registerScreen
+        isdepthclipped = case getDepth ui of
+                            Just d  -> accountNameLevel selacct >= d
+                            Nothing -> False
 
 asSetSelectedAccount a s@AccountsScreen{} = s & asSelectedAccount .~ a
 asSetSelectedAccount _ s = s
