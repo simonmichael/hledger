@@ -29,6 +29,7 @@ import Hledger.UI.UIState
 import Hledger.UI.UIUtils
 import Hledger.UI.Editor
 import Hledger.UI.ErrorScreen
+import Brick.Widgets.Edit (editorText, renderEditor)
 
 transactionScreen :: Screen
 transactionScreen = TransactionScreen{
@@ -59,6 +60,22 @@ tsInit _d _reset ui@UIState{aopts=UIOpts{}
         _                           -> (t, nts)
 tsInit _ _ _ = error "init function called with wrong screen type, should not happen"  -- PARTIAL:
 
+-- Render a transaction suitably for the transaction screen.
+showTxn :: ReportOpts -> ReportSpec -> Journal -> Transaction -> T.Text
+showTxn ropts rspec j t =
+    showTransactionOneLineAmounts
+  $ maybe id (transactionApplyValuation prices styles periodlast (_rsDay rspec)) (value_ ropts)
+  $ case cost_ ropts of
+        Cost   -> transactionToCost styles t
+        NoCost -> t
+  -- (if real_ ropts then filterTransactionPostings (Real True) else id) -- filter postings by --real
+  where
+    prices = journalPriceOracle (infer_prices_ ropts) j
+    styles = journalCommodityStyles j
+    periodlast =
+      fromMaybe (error' "TransactionScreen: expected a non-empty journal") $  -- PARTIAL: shouldn't happen
+      reportPeriodOrJournalLastDay rspec j
+
 tsDraw :: UIState -> [Widget Name]
 tsDraw UIState{aopts=UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}
               ,ajournal=j
@@ -73,24 +90,17 @@ tsDraw UIState{aopts=UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec
     -- Minibuffer e -> [minibuffer e, maincontent]
     _          -> [maincontent]
   where
-    maincontent = Widget Greedy Greedy $ render $ defaultLayout toplabel bottomlabel txn
+    maincontent = Widget Greedy Greedy $ render $ defaultLayout toplabel bottomlabel txneditor
       where
         -- as with print, show amounts with all of their decimal places
         t = transactionMapPostingAmounts mixedAmountSetFullPrecision t'
 
-        txn = str
-          $ T.unpack . showTransactionOneLineAmounts
-          $ maybe id (transactionApplyValuation prices styles periodlast (_rsDay rspec)) (value_ ropts)
-          $ case cost_ ropts of
-                Cost   -> transactionToCost styles t
-                NoCost -> t
-          -- (if real_ ropts then filterTransactionPostings (Real True) else id) -- filter postings by --real
-          where
-            prices = journalPriceOracle (infer_prices_ ropts) j
-            styles = journalCommodityStyles j
-            periodlast =
-              fromMaybe (error' "TransactionScreen: expected a non-empty journal") $  -- PARTIAL: shouldn't happen
-              reportPeriodOrJournalLastDay rspec j
+        -- XXX would like to shrink the editor to the size of the entry,
+        -- so handler can more easily detect clicks below it
+        txneditor = 
+          renderEditor (vBox . map txt) False $ 
+          editorText TransactionEditor Nothing $ 
+          showTxn ropts rspec j t
 
         toplabel =
           str "Transaction "
@@ -134,7 +144,7 @@ tsDraw _ = error "draw function called with wrong screen type, should not happen
 
 tsHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
 tsHandle ui@UIState{aScreen=TransactionScreen{tsTransaction=(i,t), tsTransactions=nts}
-                   ,aopts=UIOpts{uoCliOpts=copts}
+                   ,aopts=UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}
                    ,ajournal=j
                    ,aMode=mode
                    }
@@ -185,8 +195,11 @@ tsHandle ui@UIState{aScreen=TransactionScreen{tsTransaction=(i,t), tsTransaction
 
         -- exit screen on LEFT
         VtyEvent e | e `elem` moveLeftEvents -> continue . popScreen $ tsSelect i t ui  -- Probably not necessary to tsSelect here, but it's safe.
-        -- or on a click in the app's left margin. This is a VtyEvent since not in a clickable widget.
+        -- or on a click in the app's left margin.
         VtyEvent (EvMouseUp x _y (Just BLeft)) | x==0 -> continue . popScreen $ tsSelect i t ui
+        -- or on clicking the blank area below the transaction.
+        MouseUp _ (Just BLeft) Location{loc=(_,y)} | y+1 > numentrylines -> continue . popScreen $ tsSelect i t ui
+          where numentrylines = length (T.lines $ showTxn ropts rspec j t) - 1
 
         VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw ui
         VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui

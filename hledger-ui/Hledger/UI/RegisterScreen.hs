@@ -355,6 +355,9 @@ rsHandle ui@UIState{
         VtyEvent e | e `elem` moveLeftEvents  -> continue $ popScreen ui
         -- or on a click in the app's left margin. This is a VtyEvent since not in a clickable widget.
         VtyEvent (EvMouseUp x _y (Just BLeft)) | x==0 -> continue $ popScreen ui
+        -- or on clicking a blank list item.
+        MouseUp _ (Just BLeft) Location{loc=(_,y)} | clickeddate == "" -> continue $ popScreen ui
+          where clickeddate = maybe "" rsItemDate $ listElements rsList !? y
 
         -- enter transaction screen on RIGHT
         VtyEvent e | e `elem` moveRightEvents ->

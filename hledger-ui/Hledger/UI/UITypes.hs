@@ -83,6 +83,7 @@ data Name =
   | AccountsList
   | RegisterViewport
   | RegisterList
+  | TransactionEditor
   deriving (Ord, Show, Eq)
 
 data AppEvent =

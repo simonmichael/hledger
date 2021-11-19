@@ -93,9 +93,9 @@ which should contain one command line option/argument per line.
 In most modern terminals, you can navigate through the screens with a
 mouse or touchpad:
 
-- Use mouse wheel or trackpad to scroll lists up and down
-- Left click on list items to go deeper (like the `RIGHT` key)
-- Left click on the left-most column go back (like the `LEFT` key).
+- Use mouse wheel or trackpad to scroll up and down
+- Click on list items to go deeper
+- Click on the left margin (column 0), or the blank area at bottom of screen, to go back.
 
 # KEYS
 
