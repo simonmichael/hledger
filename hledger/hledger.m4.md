@@ -2053,13 +2053,13 @@ Scientific E notation is allowed:
 
 ### Decimal marks, digit group marks
 
-A decimal mark can be written as a period or a comma:
+A *decimal mark* can be written as a period or a comma:
 
     1.23
     1,23456780000009
 
 In the integer part of the quantity (left of the decimal mark), groups
-of digits can optionally be separated by a "digit group mark" - a
+of digits can optionally be separated by a *digit group mark* - a
 space, comma, or period (different from the decimal mark):
 
          $1,000,000.00
@@ -2075,11 +2075,14 @@ Are these digit group marks or decimal marks ?
 
 If you don't tell it otherwise, hledger will assume both of the above are decimal marks,
 parsing both numbers as 1.
-To prevent confusion and undetected typos, 
-<!-- especially if your data contains digit group marks, -->
-we recommend adding `commodity` directives at the top of your journal
-file to explicitly declare the decimal mark (and optionally a digit
-group mark) for each commodity. Read on for more about this.
+
+To prevent confusing parsing mistakes and undetected typos, 
+especially if your data contains digit group marks (eg, thousands separators),
+we recommend explicitly declaring the decimal mark character in each journal file,
+using a directive at the top of the file.
+The [`decimal-mark`](#declaring-the-decimal-mark) directive is best,
+otherwise [`commodity`](#declaring-commodities) directives will also work.
+These are described detail below.
 
 ### Commodity
 
@@ -2104,16 +2107,18 @@ output; you can't write them directly in the journal file.
 (If you are writing scripts or working with hledger's internals, these
 are the `Amount` and `MixedAmount` types.)
 
-### Commodity directives
+### Directives influencing number parsing and display
 
-You can add `commodity` directives to the journal, preferably at the
-top, to declare your commodities and help with number parsing (see
-above) and display (see below). These are optional, but recommended.
-They are described in more detail in JOURNAL FORMAT -> [Declaring
+You can add `decimal-mark` and `commodity` directives to the journal,
+to declare and control these things more explicitly and precisely.
+These are described below, in JOURNAL FORMAT -> [Declaring
 commodities](#declaring-commodities). Here's a quick example:
 
 ```journal
-# number format and display style for $, EUR, INR and the no-symbol commodity:
+# the decimal mark character used by all amounts in this file (all commodities)
+decimal-mark .
+
+# display styles for the $, EUR, INR and no-symbol commodities:
 commodity $1,000.00
 commodity EUR 1.000,00
 commodity INR 9,99,99,999.00
@@ -2480,6 +2485,7 @@ so here is a table summarising the directives and their effects, with links to m
 | [`apply account`] | `end apply account` |                 | prepend a common parent to account names                           | following entries until end of current file or end directive
 | [`comment`]       | `end comment`       |                 | ignore part of journal                                             | following entries until end of current file or end directive
 | [`commodity`]     |                     | `format`        | declare a commodity and its number notation & display style        | number notation: following entries until end of current file; <br>display style: amounts of that commodity in reports
+| [`decimal-mark`]  |                     |                 | declare the decimal mark character for parsing this file           | following entries until next decimal-mark or end of current file; included files can override
 | [`D`]             |                     |                 | declare a commodity to be used for commodityless amounts, and its number notation & display style  | default commodity: following commodityless entries until end of current file; <br>number notation: following entries in that commodity until end of current file; <br>display style: amounts of that commodity in reports
 | [`include`]       |                     |                 | include entries/directives from another file                       | what the included directives affect
 | [`payee`]         |                     |                 | declare a payee name                                               | following entries until end of current file
@@ -2605,6 +2611,23 @@ Eg:
 ```journal
 payee Whole Foods
 ```
+
+## Declaring the decimal mark
+
+You can use a `decimal-mark` directive - usually one per file, at the
+top of the file - to declare which character represents a decimal mark
+when parsing amounts in this file. It can look like
+```journal
+decimal-mark .
+```
+or
+```journal
+decimal-mark ,
+```
+
+This prevents any [ambiguity](#decimal-marks-digit-group-marks) when
+parsing numbers in the file, so we recommend it, especially if the
+file contains digit group marks (eg thousands separators).
 
 ## Declaring commodities
 
