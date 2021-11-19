@@ -181,9 +181,9 @@ Additional screen-specific keys are described below.
 In most modern terminals, you can also control hledger-ui with a mouse or touchpad
 as follows:
 
-- Use mouse wheel or trackpad slide to scroll lists up and down
+- Use mouse wheel or trackpad to scroll lists up and down
 - Left click on list items to go deeper (like `RIGHT`)
-- Left click on the left-most column go back (like `LEFT`)
+- Left click on the left-most column go back (like `LEFT`).
 
 # SCREENS
 
