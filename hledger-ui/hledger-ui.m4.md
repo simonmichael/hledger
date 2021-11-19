@@ -176,6 +176,15 @@ for now pressing `b` `b` `v` should reliably reset to normal mode.
 
 Additional screen-specific keys are described below.
 
+# MOUSE
+
+In most modern terminals, you can also control hledger-ui with a mouse or touchpad
+as follows:
+
+- Use mouse wheel or trackpad slide to scroll lists up and down
+- Left click on list items to go deeper (like `RIGHT`)
+- Left click on the left-most column go back (like `LEFT`)
+
 # SCREENS
 
 ## Accounts screen
