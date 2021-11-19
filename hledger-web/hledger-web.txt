@@ -5,7 +5,7 @@ HLEDGER-WEB(1)               hledger User Manuals               HLEDGER-WEB(1)
 
 NAME
        hledger-web  is  a web interface (WUI) for the hledger accounting tool.
-       This manual is for hledger-web 1.23.
+       This manual is for hledger-web 1.23.99.
 
 SYNOPSIS
        hledger-web [OPTIONS]
@@ -570,4 +570,4 @@ SEE ALSO
 
 
 
-hledger-web-1.23                September 2021                  HLEDGER-WEB(1)
+hledger-web-1.23.99              November 2021                  HLEDGER-WEB(1)

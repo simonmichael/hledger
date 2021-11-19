@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "September 2021" "hledger-1.23 " "hledger User Manuals"
+.TH "HLEDGER" "1" "November 2021" "hledger-1.23.99 " "hledger User Manuals"
 
 
 
@@ -9,7 +9,7 @@
 This is the command-line interface (CLI) for the hledger accounting
 tool.
 Here we also describe hledger\[aq]s concepts and file formats.
-This manual is for hledger 1.23.
+This manual is for hledger 1.23.99.
 .SH SYNOPSIS
 .PP
 \f[C]hledger\f[R]
@@ -1882,6 +1882,28 @@ $ hledger print -X A
     b          -0.50A
 \f[R]
 .fi
+.SS Interaction of valuation and queries
+.PP
+When matching postings based on queries in the presence of valuation,
+the following happens.
+.IP "1." 3
+The query is separated into two parts:
+.RS 4
+.IP "1." 3
+the currency (\f[C]cur:\f[R]) or amount (\f[C]amt:\f[R]).
+.IP "2." 3
+all other parts.
+.RE
+.IP "2." 3
+The postings are matched to the currency and amount queries based on
+pre-valued amounts.
+.IP "3." 3
+Valuation is applied to the postings.
+.IP "4." 3
+The postings are matched to the other parts of the query based on
+post-valued amounts.
+.PP
+See: 1625
 .SS Effect of valuation on reports
 .PP
 Here is a reference for how valuation is supposed to affect each part of
@@ -1963,6 +1985,19 @@ starting balance (-H)
 T}@T{
 cost
 T}@T{
+value at report or journal end
+T}@T{
+valued at day each historical posting was made
+T}@T{
+value at report or journal end
+T}@T{
+value at DATE/today
+T}
+T{
+starting balance (-H) with report interval
+T}@T{
+cost
+T}@T{
 value at day before report or journal start
 T}@T{
 valued at day each historical posting was made
@@ -1976,7 +2011,7 @@ posting amounts
 T}@T{
 cost
 T}@T{
-value at report end or today
+value at report or journal end
 T}@T{
 value at posting date
 T}@T{
@@ -2838,14 +2873,18 @@ another field used as account name (\f[C]--pivot\f[R])
 custom-formatted line items (single-period reports only)
 (\f[C]--format\f[R])
 .IP \[bu] 2
-commodities shown in a separate column, one per row
-(\f[C]--commodity-column\f[R])
+commodities displayed on the same line or multiple lines
+(\f[C]--layout\f[R])
 .PP
 This command supports the output destination and output format options,
 with output formats \f[C]txt\f[R], \f[C]csv\f[R], \f[C]json\f[R], and
 (multi-period reports only:) \f[C]html\f[R].
 In \f[C]txt\f[R] output in a colour-supporting terminal, negative
 amounts are shown in red.
+.PP
+The \f[C]--related\f[R]/\f[C]-r\f[R] flag shows the balance of the
+\f[I]other\f[R] postings in the transactions of the postings which would
+normally be shown.
 .SS Simple balance report
 .PP
 With no arguments, \f[C]balance\f[R] shows a list of all accounts and
@@ -3062,17 +3101,27 @@ Output as CSV and use a CSV viewer like visidata
 .IP \[bu] 2
 Output as HTML and view with a browser:
 \f[C]hledger bal -D -o a.html && open a.html\f[R]
-.SS Commodity column
+.SS Commodity layout
 .PP
-With \f[C]--commodity-column\f[R], commodity symbols are displayed in a
-separate column, and amounts are displayed as bare numbers.
-In this mode, each report row will show amounts for a single commodity,
-using extra rows when necessary.
-It can be useful for a cleaner display of reports with many commodities:
+With \f[C]--layout\f[R], you can control how amounts with more than one
+commodity are displayed: - \f[C]--layout=wide[,WIDTH]\f[R]: on a single
+line, possibly elided to the specified width - \f[C]--layout=tall\f[R]:
+each commodity is displayed on a separate line -
+\f[C]--layout=bare\f[R]: commodity symbols are displayed in a separate
+column, and amounts are displayed as bare numbers
 .IP
 .nf
 \f[C]
-$ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y
+$ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=wide
+Balance changes in 2012-01-01..2014-12-31:
+
+                  ||                                          2012                                                     2013                                             2014                                                      Total 
+==================++====================================================================================================================================================================================================================
+ Assets:US:ETrade || 10.00 ITOT, 337.18 USD, 12.00 VEA, 106.00 VHT  70.00 GLD, 18.00 ITOT, -98.12 USD, 10.00 VEA, 18.00 VHT  -11.00 ITOT, 4881.44 USD, 14.00 VEA, 170.00 VHT  70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT 
+------------------++--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                  || 10.00 ITOT, 337.18 USD, 12.00 VEA, 106.00 VHT  70.00 GLD, 18.00 ITOT, -98.12 USD, 10.00 VEA, 18.00 VHT  -11.00 ITOT, 4881.44 USD, 14.00 VEA, 170.00 VHT  70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT 
+
+$ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=wide,32
 Balance changes in 2012-01-01..2014-12-31:
 
                   ||                             2012                             2013                   2014                            Total 
@@ -3081,7 +3130,24 @@ Balance changes in 2012-01-01..2014-12-31:
 ------------------++---------------------------------------------------------------------------------------------------------------------------
                   || 10.00 ITOT, 337.18 USD, 2 more..  70.00 GLD, 18.00 ITOT, 3 more..  -11.00 ITOT, 3 more..  70.00 GLD, 17.00 ITOT, 3 more.. 
 
-$ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --commodity-column
+$ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=tall
+Balance changes in 2012-01-01..2014-12-31:
+
+                  ||       2012        2013         2014        Total 
+==================++==================================================
+ Assets:US:ETrade || 10.00 ITOT   70.00 GLD  -11.00 ITOT    70.00 GLD 
+ Assets:US:ETrade || 337.18 USD  18.00 ITOT  4881.44 USD   17.00 ITOT 
+ Assets:US:ETrade ||  12.00 VEA  -98.12 USD    14.00 VEA  5120.50 USD 
+ Assets:US:ETrade || 106.00 VHT   10.00 VEA   170.00 VHT    36.00 VEA 
+ Assets:US:ETrade ||              18.00 VHT                294.00 VHT 
+------------------++--------------------------------------------------
+                  || 10.00 ITOT   70.00 GLD  -11.00 ITOT    70.00 GLD 
+                  || 337.18 USD  18.00 ITOT  4881.44 USD   17.00 ITOT 
+                  ||  12.00 VEA  -98.12 USD    14.00 VEA  5120.50 USD 
+                  || 106.00 VHT   10.00 VEA   170.00 VHT    36.00 VEA 
+                  ||              18.00 VHT                294.00 VHT 
+
+$ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=bare
 Balance changes in 2012-01-01..2014-12-31:
 
                   || Commodity    2012    2013     2014    Total 
@@ -3100,8 +3166,9 @@ Balance changes in 2012-01-01..2014-12-31:
 \f[R]
 .fi
 .PP
-This flag also affects CSV output, which is useful for producing data
-that is easier to consume, eg when making charts:
+The option \f[C]--layout=bare\f[R] also affects CSV output, which is
+useful for producing data that is easier to consume, eg when making
+charts:
 .IP
 .nf
 \f[C]
@@ -3110,7 +3177,7 @@ $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -O csv
 \[dq]Assets:US:ETrade\[dq],\[dq]70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT\[dq]
 \[dq]total\[dq],\[dq]70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT\[dq]
 
-$ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -O csv --commodity-column
+$ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -O csv --layout=bare
 \[dq]account\[dq],\[dq]commodity\[dq],\[dq]balance\[dq]
 \[dq]Assets:US:ETrade\[dq],\[dq]GLD\[dq],\[dq]70.00\[dq]
 \[dq]Assets:US:ETrade\[dq],\[dq]ITOT\[dq],\[dq]17.00\[dq]
@@ -6104,7 +6171,7 @@ EUR 1E3
 .fi
 .SS Decimal marks, digit group marks
 .PP
-A decimal mark can be written as a period or a comma:
+A \f[I]decimal mark\f[R] can be written as a period or a comma:
 .IP
 .nf
 \f[C]
@@ -6114,7 +6181,7 @@ A decimal mark can be written as a period or a comma:
 .fi
 .PP
 In the integer part of the quantity (left of the decimal mark), groups
-of digits can optionally be separated by a \[dq]digit group mark\[dq] -
+of digits can optionally be separated by a \f[I]digit group mark\f[R] -
 a space, comma, or period (different from the decimal mark):
 .IP
 .nf
@@ -6139,11 +6206,14 @@ Are these digit group marks or decimal marks ?
 .PP
 If you don\[aq]t tell it otherwise, hledger will assume both of the
 above are decimal marks, parsing both numbers as 1.
-To prevent confusion and undetected typos, we recommend adding
-\f[C]commodity\f[R] directives at the top of your journal file to
-explicitly declare the decimal mark (and optionally a digit group mark)
-for each commodity.
-Read on for more about this.
+.PP
+To prevent confusing parsing mistakes and undetected typos, especially
+if your data contains digit group marks (eg, thousands separators), we
+recommend explicitly declaring the decimal mark character in each
+journal file, using a directive at the top of the file.
+The \f[C]decimal-mark\f[R] directive is best, otherwise
+\f[C]commodity\f[R] directives will also work.
+These are described detail below.
 .SS Commodity
 .PP
 Amounts in hledger have both a \[dq]quantity\[dq], which is a signed
@@ -6169,19 +6239,20 @@ output; you can\[aq]t write them directly in the journal file.
 .PP
 (If you are writing scripts or working with hledger\[aq]s internals,
 these are the \f[C]Amount\f[R] and \f[C]MixedAmount\f[R] types.)
-.SS Commodity directives
+.SS Directives influencing number parsing and display
 .PP
-You can add \f[C]commodity\f[R] directives to the journal, preferably at
-the top, to declare your commodities and help with number parsing (see
-above) and display (see below).
-These are optional, but recommended.
-They are described in more detail in JOURNAL FORMAT -> Declaring
-commodities.
+You can add \f[C]decimal-mark\f[R] and \f[C]commodity\f[R] directives to
+the journal, to declare and control these things more explicitly and
+precisely.
+These are described below, in JOURNAL FORMAT -> Declaring commodities.
 Here\[aq]s a quick example:
 .IP
 .nf
 \f[C]
-# number format and display style for $, EUR, INR and the no-symbol commodity:
+# the decimal mark character used by all amounts in this file (all commodities)
+decimal-mark .
+
+# display styles for the $, EUR, INR and no-symbol commodities:
 commodity $1,000.00
 commodity EUR 1.000,00
 commodity INR 9,99,99,999.00
@@ -6662,6 +6733,16 @@ number notation: following entries until end of current file; display
 style: amounts of that commodity in reports
 T}
 T{
+\f[C]decimal-mark\f[R]
+T}@T{
+T}@T{
+T}@T{
+declare the decimal mark character for parsing this file
+T}@T{
+following entries until next decimal-mark or end of current file;
+included files can override
+T}
+T{
 \f[C]D\f[R]
 T}@T{
 T}@T{
@@ -6849,6 +6930,30 @@ Eg:
 payee Whole Foods
 \f[R]
 .fi
+.SS Declaring the decimal mark
+.PP
+You can use a \f[C]decimal-mark\f[R] directive - usually one per file,
+at the top of the file - to declare which character represents a decimal
+mark when parsing amounts in this file.
+It can look like
+.IP
+.nf
+\f[C]
+decimal-mark .
+\f[R]
+.fi
+.PP
+or
+.IP
+.nf
+\f[C]
+decimal-mark ,
+\f[R]
+.fi
+.PP
+This prevents any ambiguity when parsing numbers in the file, so we
+recommend it, especially if the file contains digit group marks (eg
+thousands separators).
 .SS Declaring commodities
 .PP
 You can use \f[C]commodity\f[R] directives to declare your commodities.
@@ -7787,6 +7892,10 @@ but before balance assertions are checked.
 Note this means that journal entries must be balanced both before and
 after auto postings are added.
 This changed in hledger 1.12+; see #893 for background.
+.PP
+This also means that you cannot have more than one auto-posting with a
+missing amount applied to a given transaction, as it will be unable to
+infer amounts.
 .SS Auto posting tags
 .PP
 Automated postings will have some extra tags:
