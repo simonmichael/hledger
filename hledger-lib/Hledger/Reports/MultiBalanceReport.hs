@@ -311,12 +311,11 @@ calculateReportMatrix rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle startb
     -- Transpose to get each account's balance changes across all columns, then
     -- pad with zeros
     allchanges     = ((<>zeros) <$> acctchanges) <> (zeros <$ startbals)
-    acctchanges    = dbg5 "acctchanges" . addElided $ transposeMap colacctchanges
+    acctchanges    = dbg5 "acctchanges" $ transposeMap colacctchanges
     colacctchanges = dbg5 "colacctchanges" $ map (second $ acctChangesFromPostings rspec) colps
 
     avalue = acctApplyBoth . mixedAmountApplyValuationAfterSumFromOptsWith ropts j priceoracle
     acctApplyBoth f a = a{aibalance = f $ aibalance a, aebalance = f $ aebalance a}
-    addElided = if queryDepth (_rsQuery rspec) == Just 0 then HM.insert "..." zeros else id
     historicalDate = minimumMay $ mapMaybe spanStart colspans
     zeros = M.fromList [(span, nullacct) | span <- colspans]
     colspans = map fst colps
