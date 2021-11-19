@@ -219,7 +219,20 @@ show debug output (levels 1-9, default: 1)
 A \[at]FILE argument will be expanded to the contents of FILE, which
 should contain one command line option/argument per line.
 (To prevent this, insert a \f[C]--\f[R] argument before.)
+.SH MOUSE
+.PP
+In most modern terminals, you can navigate through the screens with a
+mouse or touchpad:
+.IP \[bu] 2
+Use mouse wheel or trackpad to scroll lists up and down
+.IP \[bu] 2
+Left click on list items to go deeper (like the \f[C]RIGHT\f[R] key)
+.IP \[bu] 2
+Left click on the left-most column go back (like the \f[C]LEFT\f[R]
+key).
 .SH KEYS
+.PP
+Keyboard gives more control.
 .PP
 \f[C]?\f[R] shows a help dialog listing all keys.
 (Some of these also appear in the quick help at the bottom of each
@@ -227,12 +240,12 @@ screen.) Press \f[C]?\f[R] again (or \f[C]ESCAPE\f[R], or
 \f[C]LEFT\f[R], or \f[C]q\f[R]) to close it.
 The following keys work on most screens:
 .PP
-The cursor keys navigate: \f[C]right\f[R] (or \f[C]enter\f[R]) goes
-deeper, \f[C]left\f[R] returns to the previous screen,
-\f[C]up\f[R]/\f[C]down\f[R]/\f[C]page up\f[R]/\f[C]page down\f[R]/\f[C]home\f[R]/\f[C]end\f[R]
+The cursor keys navigate: \f[C]RIGHT\f[R] goes deeper, \f[C]LEFT\f[R]
+returns to the previous screen,
+\f[C]UP\f[R]/\f[C]DOWN\f[R]/\f[C]PGUP\f[R]/\f[C]PGDN\f[R]/\f[C]HOME\f[R]/\f[C]END\f[R]
 move up and down through lists.
 Emacs-style
-(\f[C]ctrl-p\f[R]/\f[C]ctrl-n\f[R]/\f[C]ctrl-f\f[R]/\f[C]ctrl-b\f[R])
+(\f[C]CTRL-p\f[R]/\f[C]CTRL-n\f[R]/\f[C]CTRL-f\f[R]/\f[C]CTRL-b\f[R])
 movement keys are also supported (but not vi-style keys, since
 hledger-1.19, sorry!).
 A tip: movement speed is limited by your keyboard repeat rate, to move
@@ -241,9 +254,9 @@ faster you may want to adjust it.
 .PP
 With shift pressed, the cursor keys adjust the report period, limiting
 the transactions to be shown (by default, all are shown).
-\f[C]shift-down/up\f[R] steps downward and upward through these standard
+\f[C]SHIFT-DOWN/UP\f[R] steps downward and upward through these standard
 report period durations: year, quarter, month, week, day.
-Then, \f[C]shift-left/right\f[R] moves to the previous/next period.
+Then, \f[C]SHIFT-LEFT/RIGHT\f[R] moves to the previous/next period.
 \f[C]T\f[R] sets the report period to today.
 With the \f[C]--watch\f[R] option, when viewing a \[dq]current\[dq]
 period (the current day, week, month, quarter, or year), the period will
@@ -321,16 +334,6 @@ reliably reset to normal mode.
 \f[C]q\f[R] quits the application.
 .PP
 Additional screen-specific keys are described below.
-.SH MOUSE
-.PP
-In most modern terminals, you can also control hledger-ui with a mouse
-or touchpad as follows:
-.IP \[bu] 2
-Use mouse wheel or trackpad slide to scroll lists up and down
-.IP \[bu] 2
-Left click on list items to go deeper (like \f[C]RIGHT\f[R])
-.IP \[bu] 2
-Left click on the left-most column go back (like \f[C]LEFT\f[R])
 .SH SCREENS
 .SS Accounts screen
 .PP
@@ -383,8 +386,7 @@ all three, the filter is removed.)
 balances are shown (hledger-ui shows zero items by default, unlike
 command-line hledger).
 .PP
-Press \f[C]right\f[R] or \f[C]enter\f[R] to view an account\[aq]s
-transactions register.
+Press \f[C]RIGHT\f[R] to view an account\[aq]s transactions register.
 .SS Register screen
 .PP
 This screen shows the transactions affecting a particular account, like
@@ -430,8 +432,7 @@ activate all three, the filter is removed.)
 nonzero change are shown (hledger-ui shows zero items by default, unlike
 command-line hledger).
 .PP
-Press \f[C]right\f[R] (or \f[C]enter\f[R]) to view the selected
-transaction in detail.
+Press \f[C]RIGHT\f[R] to view the selected transaction in detail.
 .SS Transaction screen
 .PP
 This screen shows a single transaction, as a general journal entry,
@@ -443,7 +444,7 @@ description, comments, along with all of its account postings are shown.
 Simple transactions have two postings, but there can be more (or in
 certain cases, fewer).
 .PP
-\f[C]up\f[R] and \f[C]down\f[R] will step through all transactions
+\f[C]UP\f[R] and \f[C]DOWN\f[R] will step through all transactions
 listed in the previous account register screen.
 In the title bar, the numbers in parentheses show your position within
 that account register.

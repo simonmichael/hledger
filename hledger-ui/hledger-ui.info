@@ -43,8 +43,8 @@ enable "forecast mode".
 * Menu:
 
 * OPTIONS::
-* KEYS::
 * MOUSE::
+* KEYS::
 * SCREENS::
 * TIPS::
 * ENVIRONMENT::
@@ -52,7 +52,7 @@ enable "forecast mode".
 * BUGS::
 
 
-File: hledger-ui.info,  Node: OPTIONS,  Next: KEYS,  Prev: Top,  Up: Top
+File: hledger-ui.info,  Node: OPTIONS,  Next: MOUSE,  Prev: Top,  Up: Top
 
 1 OPTIONS
 *********
@@ -237,30 +237,46 @@ should contain one command line option/argument per line. (To prevent
 this, insert a `--' argument before.)
 
 
-File: hledger-ui.info,  Node: KEYS,  Next: MOUSE,  Prev: OPTIONS,  Up: Top
+File: hledger-ui.info,  Node: MOUSE,  Next: KEYS,  Prev: OPTIONS,  Up: Top
 
-2 KEYS
+2 MOUSE
+*******
+
+In most modern terminals, you can navigate through the screens with a
+mouse or touchpad:
+
+   * Use mouse wheel or trackpad to scroll lists up and down
+
+   * Left click on list items to go deeper (like the `RIGHT' key)
+
+   * Left click on the left-most column go back (like the `LEFT' key).
+
+
+File: hledger-ui.info,  Node: KEYS,  Next: SCREENS,  Prev: MOUSE,  Up: Top
+
+3 KEYS
 ******
 
-`?' shows a help dialog listing all keys. (Some of these also appear in
-the quick help at the bottom of each screen.) Press `?' again (or
+Keyboard gives more control.
+
+   `?' shows a help dialog listing all keys. (Some of these also appear
+in the quick help at the bottom of each screen.) Press `?' again (or
 `ESCAPE', or `LEFT', or `q') to close it. The following keys work on
 most screens:
 
-   The cursor keys navigate: `right' (or `enter') goes deeper, `left'
-returns to the previous screen, `up'/`down'/`page up'/`page
-down'/`home'/`end' move up and down through lists. Emacs-style
-(`ctrl-p'/`ctrl-n'/`ctrl-f'/`ctrl-b') movement keys are also supported
-(but not vi-style keys, since hledger-1.19, sorry!).  A tip: movement
-speed is limited by your keyboard repeat rate, to move faster you may
-want to adjust it. (If you're on a mac, the karabiner app is one way to
-do that.)
+   The cursor keys navigate: `RIGHT' goes deeper, `LEFT' returns to the
+previous screen, `UP'/`DOWN'/`PGUP'/`PGDN'/`HOME'/`END' move up and
+down through lists. Emacs-style (`CTRL-p'/`CTRL-n'/`CTRL-f'/`CTRL-b')
+movement keys are also supported (but not vi-style keys, since
+hledger-1.19, sorry!).  A tip: movement speed is limited by your
+keyboard repeat rate, to move faster you may want to adjust it. (If
+you're on a mac, the karabiner app is one way to do that.)
 
    With shift pressed, the cursor keys adjust the report period,
 limiting the transactions to be shown (by default, all are shown).
-`shift-down/up' steps downward and upward through these standard report
+`SHIFT-DOWN/UP' steps downward and upward through these standard report
 period durations: year, quarter, month, week, day. Then,
-`shift-left/right' moves to the previous/next period. `T' sets the
+`SHIFT-LEFT/RIGHT' moves to the previous/next period. `T' sets the
 report period to today. With the `--watch' option, when viewing a
 "current" period (the current day, week, month, quarter, or year), the
 period will move automatically to track the current date. To set a
@@ -329,22 +345,7 @@ mode.
    Additional screen-specific keys are described below.
 
 
-File: hledger-ui.info,  Node: MOUSE,  Next: SCREENS,  Prev: KEYS,  Up: Top
-
-3 MOUSE
-*******
-
-In most modern terminals, you can also control hledger-ui with a mouse
-or touchpad as follows:
-
-   * Use mouse wheel or trackpad slide to scroll lists up and down
-
-   * Left click on list items to go deeper (like `RIGHT')
-
-   * Left click on the left-most column go back (like `LEFT')
-
-
-File: hledger-ui.info,  Node: SCREENS,  Next: TIPS,  Prev: MOUSE,  Up: Top
+File: hledger-ui.info,  Node: SCREENS,  Next: TIPS,  Prev: KEYS,  Up: Top
 
 4 SCREENS
 *********
@@ -402,7 +403,7 @@ is removed.)
 balances are shown (hledger-ui shows zero items by default, unlike
 command-line hledger).
 
-   Press `right' or `enter' to view an account's transactions register.
+   Press `RIGHT' to view an account's transactions register.
 
 
 File: hledger-ui.info,  Node: Register screen,  Next: Transaction screen,  Prev: Accounts screen,  Up: SCREENS
@@ -450,8 +451,7 @@ is removed.)
 nonzero change are shown (hledger-ui shows zero items by default, unlike
 command-line hledger).
 
-   Press `right' (or `enter') to view the selected transaction in
-detail.
+   Press `RIGHT' to view the selected transaction in detail.
 
 
 File: hledger-ui.info,  Node: Transaction screen,  Next: Error screen,  Prev: Register screen,  Up: SCREENS
@@ -468,7 +468,7 @@ description, comments, along with all of its account postings are shown.
 Simple transactions have two postings, but there can be more (or in
 certain cases, fewer).
 
-   `up' and `down' will step through all transactions listed in the
+   `UP' and `DOWN' will step through all transactions listed in the
 previous account register screen. In the title bar, the numbers in
 parentheses show your position within that account register. They will
 vary depending on which account register you came from (remember most
@@ -627,32 +627,32 @@ program is restarted.
 Tag Table:
 Node: Top232
 Node: OPTIONS1647
-Ref: #options1744
-Node: KEYS6616
-Ref: #keys6709
-Node: MOUSE10758
-Ref: #mouse10853
-Node: SCREENS11139
-Ref: #screens11238
-Node: Accounts screen11328
-Ref: #accounts-screen11456
-Node: Register screen13660
-Ref: #register-screen13815
-Node: Transaction screen15810
-Ref: #transaction-screen15968
-Node: Error screen16835
-Ref: #error-screen16957
-Node: TIPS17199
-Ref: #tips17298
-Node: Watch mode17350
-Ref: #watch-mode17467
-Node: Watch mode limitations18211
-Ref: #watch-mode-limitations18352
-Node: ENVIRONMENT19485
-Ref: #environment19596
-Node: FILES20401
-Ref: #files20500
-Node: BUGS20713
-Ref: #bugs20790
+Ref: #options1745
+Node: MOUSE6617
+Ref: #mouse6712
+Node: KEYS7003
+Ref: #keys7096
+Node: SCREENS11157
+Ref: #screens11255
+Node: Accounts screen11345
+Ref: #accounts-screen11473
+Node: Register screen13666
+Ref: #register-screen13821
+Node: Transaction screen15803
+Ref: #transaction-screen15961
+Node: Error screen16828
+Ref: #error-screen16950
+Node: TIPS17192
+Ref: #tips17291
+Node: Watch mode17343
+Ref: #watch-mode17460
+Node: Watch mode limitations18204
+Ref: #watch-mode-limitations18345
+Node: ENVIRONMENT19478
+Ref: #environment19589
+Node: FILES20394
+Ref: #files20493
+Node: BUGS20706
+Ref: #bugs20783
 
 End Tag Table

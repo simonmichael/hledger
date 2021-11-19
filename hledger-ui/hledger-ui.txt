@@ -211,98 +211,100 @@ OPTIONS
        contain  one  command line option/argument per line.  (To prevent this,
        insert a -- argument before.)
 
+MOUSE
+       In most modern terminals, you can navigate through the screens  with  a
+       mouse or touchpad:
+
+       o Use mouse wheel or trackpad to scroll lists up and down
+
+       o Left click on list items to go deeper (like the RIGHT key)
+
+       o Left click on the left-most column go back (like the LEFT key).
+
 KEYS
-       ? shows a help dialog listing all keys.  (Some of these also appear  in
+       Keyboard gives more control.
+
+       ?  shows a help dialog listing all keys.  (Some of these also appear in
        the quick help at the bottom of each screen.) Press ? again (or ESCAPE,
        or LEFT, or q) to close it.  The following keys work on most screens:
 
-       The cursor keys navigate: right (or enter) goes deeper, left returns to
-       the  previous  screen,  up/down/page  up/page down/home/end move up and
-       down through lists.  Emacs-style (ctrl-p/ctrl-n/ctrl-f/ctrl-b) movement
-       keys  are  also  supported  (but not vi-style keys, since hledger-1.19,
-       sorry!).  A tip: movement speed is  limited  by  your  keyboard  repeat
-       rate,  to  move faster you may want to adjust it.  (If you're on a mac,
-       the karabiner app is one way to do that.)
+       The cursor keys navigate: RIGHT goes deeper, LEFT returns to the previ-
+       ous screen, UP/DOWN/PGUP/PGDN/HOME/END move up and down through  lists.
+       Emacs-style  (CTRL-p/CTRL-n/CTRL-f/CTRL-b)  movement keys are also sup-
+       ported (but not vi-style keys, since  hledger-1.19,  sorry!).   A  tip:
+       movement  speed is limited by your keyboard repeat rate, to move faster
+       you may want to adjust it.  (If you're on a mac, the karabiner  app  is
+       one way to do that.)
 
-       With shift pressed, the cursor keys adjust the report period,  limiting
-       the  transactions  to  be  shown  (by  default, all are shown).  shift-
-       down/up steps downward and upward through these standard report  period
-       durations:  year,  quarter,  month,  week, day.  Then, shift-left/right
-       moves to the previous/next period.  T sets the report period to  today.
-       With  the  --watch option, when viewing a "current" period (the current
+       With  shift pressed, the cursor keys adjust the report period, limiting
+       the transactions to be shown  (by  default,  all  are  shown).   SHIFT-
+       DOWN/UP  steps downward and upward through these standard report period
+       durations: year, quarter, month,  week,  day.   Then,  SHIFT-LEFT/RIGHT
+       moves  to the previous/next period.  T sets the report period to today.
+       With the --watch option, when viewing a "current" period  (the  current
        day, week, month, quarter, or year), the period will move automatically
        to track the current date.  To set a non-standard period, you can use /
        and a date: query.
 
-       / lets you set a general filter query limiting the  data  shown,  using
-       the  same query terms as in hledger and hledger-web.  While editing the
-       query, you can use CTRL-a/e/d/k, BS, cursor keys; press  ENTER  to  set
+       /  lets  you  set a general filter query limiting the data shown, using
+       the same query terms as in hledger and hledger-web.  While editing  the
+       query,  you  can  use CTRL-a/e/d/k, BS, cursor keys; press ENTER to set
        it, or ESCAPEto cancel.  There are also keys for quickly adjusting some
-       common filters like account depth and transaction status  (see  below).
+       common  filters  like account depth and transaction status (see below).
        BACKSPACE or DELETE removes all filters, showing all transactions.
 
-       As  mentioned  above, by default hledger-ui hides future transactions -
+       As mentioned above, by default hledger-ui hides future  transactions  -
        both ordinary transactions recorded in the journal, and periodic trans-
-       actions   generated  by  rule.   F  toggles  forecast  mode,  in  which
+       actions  generated  by  rule.   F  toggles  forecast  mode,  in   which
        future/forecasted transactions are shown.
 
-       ESCAPE resets the UI state and jumps back to the top screen,  restoring
-       the  app's  initial  state  at startup.  Or, it cancels minibuffer data
+       ESCAPE  resets the UI state and jumps back to the top screen, restoring
+       the app's initial state at startup.  Or,  it  cancels  minibuffer  data
        entry or the help dialog.
 
        CTRL-l redraws the screen and centers the selection if possible (selec-
-       tions  near  the top won't be centered, since we don't scroll above the
+       tions near the top won't be centered, since we don't scroll  above  the
        top).
 
-       g reloads from the data file(s) and updates the current screen and  any
-       previous  screens.   (With  large  files, this could cause a noticeable
+       g  reloads from the data file(s) and updates the current screen and any
+       previous screens.  (With large files, this  could  cause  a  noticeable
        pause.)
 
-       I toggles balance assertion  checking.   Disabling  balance  assertions
+       I  toggles  balance  assertion  checking.  Disabling balance assertions
        temporarily can be useful for troubleshooting.
 
-       a  runs  command-line  hledger's  add  command, and reloads the updated
+       a runs command-line hledger's add  command,  and  reloads  the  updated
        file.  This allows some basic data entry.
 
-       A is like a, but runs the hledger-iadd tool, which provides a  terminal
-       interface.   This key will be available if hledger-iadd is installed in
+       A  is like a, but runs the hledger-iadd tool, which provides a terminal
+       interface.  This key will be available if hledger-iadd is installed  in
        $path.
 
-       E runs $HLEDGER_UI_EDITOR, or $EDITOR, or a default (emacsclient -a  ""
-       -nw)  on  the  journal file.  With some editors (emacs, vi), the cursor
-       will be positioned at the current transaction  when  invoked  from  the
-       register  and transaction screens, and at the error location (if possi-
+       E  runs $HLEDGER_UI_EDITOR, or $EDITOR, or a default (emacsclient -a ""
+       -nw) on the journal file.  With some editors (emacs,  vi),  the  cursor
+       will  be  positioned  at  the current transaction when invoked from the
+       register and transaction screens, and at the error location (if  possi-
        ble) when invoked from the error screen.
 
-       B toggles cost mode, showing amounts in their transaction price's  com-
+       B  toggles cost mode, showing amounts in their transaction price's com-
        modity (like toggling the -B/--cost flag).
 
-       V  toggles  value  mode, showing amounts' current market value in their
-       default valuation  commodity  (like  toggling  the  -V/--market  flag).
-       Note,  "current market value" means the value on the report end date if
-       specified, otherwise today.  To see the value on another date, you  can
-       temporarily  set that as the report end date.  Eg: to see a transaction
-       as it was valued on july 30, go to the  accounts  or  register  screen,
+       V toggles value mode, showing amounts' current market  value  in  their
+       default  valuation  commodity  (like  toggling  the  -V/--market flag).
+       Note, "current market value" means the value on the report end date  if
+       specified,  otherwise today.  To see the value on another date, you can
+       temporarily set that as the report end date.  Eg: to see a  transaction
+       as  it  was  valued  on july 30, go to the accounts or register screen,
        press /, and add date:-7/30 to the query.
 
        At most one of cost or value mode can be active at once.
 
-       There's  not yet any visual reminder when cost or value mode is active;
+       There's not yet any visual reminder when cost or value mode is  active;
        for now pressing b b v should reliably reset to normal mode.
 
        q quits the application.
 
        Additional screen-specific keys are described below.
-
-MOUSE
-       In most modern terminals, you can also control hledger-ui with a  mouse
-       or touchpad as follows:
-
-       o Use mouse wheel or trackpad slide to scroll lists up and down
-
-       o Left click on list items to go deeper (like RIGHT)
-
-       o Left click on the left-most column go back (like LEFT)
 
 SCREENS
    Accounts screen
@@ -346,7 +348,7 @@ SCREENS
        are shown (hledger-ui shows zero items by default, unlike  command-line
        hledger).
 
-       Press right or enter to view an account's transactions register.
+       Press RIGHT to view an account's transactions register.
 
    Register screen
        This screen shows the transactions affecting a particular account, like
@@ -386,7 +388,7 @@ SCREENS
        change are shown (hledger-ui shows zero items by default,  unlike  com-
        mand-line hledger).
 
-       Press right (or enter) to view the selected transaction in detail.
+       Press RIGHT to view the selected transaction in detail.
 
    Transaction screen
        This  screen  shows  a  single transaction, as a general journal entry,
@@ -398,7 +400,7 @@ SCREENS
        shown.   Simple  transactions  have two postings, but there can be more
        (or in certain cases, fewer).
 
-       up and down will step through all transactions listed in  the  previous
+       UP and DOWN will step through all transactions listed in  the  previous
        account  register screen.  In the title bar, the numbers in parentheses
        show your position  within  that  account  register.   They  will  vary
        depending on which account register you came from (remember most trans-
