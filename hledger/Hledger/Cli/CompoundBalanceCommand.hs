@@ -87,7 +87,7 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
     ,flagReq  ["layout"] (\s opts -> Right $ setopt "layout" s opts) "ARG"
       (unlines
         ["how to show multi-commodity amounts:"
-        ,"'wide[,WIDTH]': all commodities on one line [elided at WIDTH]"
+        ,"'wide[,WIDTH]': all commodities on one line"
         ,"'tall'        : each commodity on a new line"
         ,"'bare'        : bare numbers, symbols in a column"
         ])
