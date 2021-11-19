@@ -44,6 +44,7 @@ enable "forecast mode".
 
 * OPTIONS::
 * KEYS::
+* MOUSE::
 * SCREENS::
 * TIPS::
 * ENVIRONMENT::
@@ -236,7 +237,7 @@ should contain one command line option/argument per line. (To prevent
 this, insert a `--' argument before.)
 
 
-File: hledger-ui.info,  Node: KEYS,  Next: SCREENS,  Prev: OPTIONS,  Up: Top
+File: hledger-ui.info,  Node: KEYS,  Next: MOUSE,  Prev: OPTIONS,  Up: Top
 
 2 KEYS
 ******
@@ -328,9 +329,24 @@ mode.
    Additional screen-specific keys are described below.
 
 
-File: hledger-ui.info,  Node: SCREENS,  Next: TIPS,  Prev: KEYS,  Up: Top
+File: hledger-ui.info,  Node: MOUSE,  Next: SCREENS,  Prev: KEYS,  Up: Top
 
-3 SCREENS
+3 MOUSE
+*******
+
+In most modern terminals, you can also control hledger-ui with a mouse
+or touchpad as follows:
+
+   * Use mouse wheel or trackpad slide to scroll lists up and down
+
+   * Left click on list items to go deeper (like `RIGHT')
+
+   * Left click on the left-most column go back (like `LEFT')
+
+
+File: hledger-ui.info,  Node: SCREENS,  Next: TIPS,  Prev: MOUSE,  Up: Top
+
+4 SCREENS
 *********
 
 * Menu:
@@ -343,7 +359,7 @@ File: hledger-ui.info,  Node: SCREENS,  Next: TIPS,  Prev: KEYS,  Up: Top
 
 File: hledger-ui.info,  Node: Accounts screen,  Next: Register screen,  Up: SCREENS
 
-3.1 Accounts screen
+4.1 Accounts screen
 ===================
 
 This is normally the first screen displayed. It lists accounts and their
@@ -391,7 +407,7 @@ command-line hledger).
 
 File: hledger-ui.info,  Node: Register screen,  Next: Transaction screen,  Prev: Accounts screen,  Up: SCREENS
 
-3.2 Register screen
+4.2 Register screen
 ===================
 
 This screen shows the transactions affecting a particular account, like
@@ -440,7 +456,7 @@ detail.
 
 File: hledger-ui.info,  Node: Transaction screen,  Next: Error screen,  Prev: Register screen,  Up: SCREENS
 
-3.3 Transaction screen
+4.3 Transaction screen
 ======================
 
 This screen shows a single transaction, as a general journal entry,
@@ -464,7 +480,7 @@ reload).
 
 File: hledger-ui.info,  Node: Error screen,  Prev: Transaction screen,  Up: SCREENS
 
-3.4 Error screen
+4.4 Error screen
 ================
 
 This screen will appear if there is a problem, such as a parse error,
@@ -475,7 +491,7 @@ to cancel the reload attempt.)
 
 File: hledger-ui.info,  Node: TIPS,  Next: ENVIRONMENT,  Prev: SCREENS,  Up: Top
 
-4 TIPS
+5 TIPS
 ******
 
 * Menu:
@@ -486,7 +502,7 @@ File: hledger-ui.info,  Node: TIPS,  Next: ENVIRONMENT,  Prev: SCREENS,  Up: Top
 
 File: hledger-ui.info,  Node: Watch mode,  Next: Watch mode limitations,  Up: TIPS
 
-4.1 Watch mode
+5.1 Watch mode
 ==============
 
 One of hledger-ui's best features is the auto-reloading `--watch' mode.
@@ -510,7 +526,7 @@ history.
 
 File: hledger-ui.info,  Node: Watch mode limitations,  Prev: Watch mode,  Up: TIPS
 
-4.2 Watch mode limitations
+5.2 Watch mode limitations
 ==========================
 
 There are situations in which it won't work, ie the display will not
@@ -541,7 +557,7 @@ gradually using more and more memory and CPU over time, as seen in
 
 File: hledger-ui.info,  Node: ENVIRONMENT,  Next: FILES,  Prev: TIPS,  Up: Top
 
-5 ENVIRONMENT
+6 ENVIRONMENT
 *************
 
 *COLUMNS* The screen width to use. Default: the full terminal width.
@@ -570,7 +586,7 @@ GUI (say, an Emacs dock icon). Eg on MacOS Catalina I have a
 
 File: hledger-ui.info,  Node: FILES,  Next: BUGS,  Prev: ENVIRONMENT,  Up: Top
 
-6 FILES
+7 FILES
 *******
 
 Reads data from one or more files in hledger journal, timeclock,
@@ -581,7 +597,7 @@ timedot, or CSV format specified with `-f', or `$LEDGER_FILE', or
 
 File: hledger-ui.info,  Node: BUGS,  Prev: FILES,  Up: Top
 
-7 BUGS
+8 BUGS
 ******
 
 The need to precede options with `--' when invoked from hledger is
@@ -610,31 +626,33 @@ program is restarted.
 
 Tag Table:
 Node: Top232
-Node: OPTIONS1637
-Ref: #options1734
-Node: KEYS6606
-Ref: #keys6701
-Node: SCREENS10750
-Ref: #screens10848
-Node: Accounts screen10938
-Ref: #accounts-screen11066
-Node: Register screen13270
-Ref: #register-screen13425
-Node: Transaction screen15420
-Ref: #transaction-screen15578
-Node: Error screen16445
-Ref: #error-screen16567
-Node: TIPS16809
-Ref: #tips16908
-Node: Watch mode16960
-Ref: #watch-mode17077
-Node: Watch mode limitations17821
-Ref: #watch-mode-limitations17962
-Node: ENVIRONMENT19095
-Ref: #environment19206
-Node: FILES20011
-Ref: #files20110
-Node: BUGS20323
-Ref: #bugs20400
+Node: OPTIONS1647
+Ref: #options1744
+Node: KEYS6616
+Ref: #keys6709
+Node: MOUSE10758
+Ref: #mouse10853
+Node: SCREENS11139
+Ref: #screens11238
+Node: Accounts screen11328
+Ref: #accounts-screen11456
+Node: Register screen13660
+Ref: #register-screen13815
+Node: Transaction screen15810
+Ref: #transaction-screen15968
+Node: Error screen16835
+Ref: #error-screen16957
+Node: TIPS17199
+Ref: #tips17298
+Node: Watch mode17350
+Ref: #watch-mode17467
+Node: Watch mode limitations18211
+Ref: #watch-mode-limitations18352
+Node: ENVIRONMENT19485
+Ref: #environment19596
+Node: FILES20401
+Ref: #files20500
+Node: BUGS20713
+Ref: #bugs20790
 
 End Tag Table
