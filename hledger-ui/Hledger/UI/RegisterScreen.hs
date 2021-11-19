@@ -353,8 +353,8 @@ rsHandle ui@UIState{
 
         -- exit screen on LEFT
         VtyEvent e | e `elem` moveLeftEvents  -> continue $ popScreen ui
-        -- or on a click in the app's left or top margin. This is a VtyEvent since not in a clickable widget.
-        VtyEvent (EvMouseUp x y (Just BLeft)) | x==0 || y==0 -> continue $ popScreen ui
+        -- or on a click in the app's left margin. This is a VtyEvent since not in a clickable widget.
+        VtyEvent (EvMouseUp x _y (Just BLeft)) | x==0 -> continue $ popScreen ui
 
         -- enter transaction screen on RIGHT
         VtyEvent e | e `elem` moveRightEvents ->

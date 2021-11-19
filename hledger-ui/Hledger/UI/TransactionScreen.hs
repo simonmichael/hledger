@@ -184,8 +184,8 @@ tsHandle ui@UIState{aScreen=TransactionScreen{tsTransaction=(i,t), tsTransaction
 
         -- exit screen on LEFT
         VtyEvent e | e `elem` moveLeftEvents -> continue . popScreen $ tsSelect i t ui  -- Probably not necessary to tsSelect here, but it's safe.
-        -- or on a click in the app's left or top margin. This is a VtyEvent since not in a clickable widget.
-        VtyEvent (EvMouseUp x y (Just BLeft)) | x==0 || y==0 -> continue . popScreen $ tsSelect i t ui
+        -- or on a click in the app's left margin. This is a VtyEvent since not in a clickable widget.
+        VtyEvent (EvMouseUp x _y (Just BLeft)) | x==0 -> continue . popScreen $ tsSelect i t ui
 
         VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw ui
         VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
