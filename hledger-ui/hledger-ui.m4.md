@@ -88,7 +88,18 @@ A @FILE argument will be expanded to the contents of FILE,
 which should contain one command line option/argument per line.
 (To prevent this, insert a `--` argument before.)
 
+# MOUSE
+
+In most modern terminals, you can navigate through the screens with a
+mouse or touchpad:
+
+- Use mouse wheel or trackpad to scroll lists up and down
+- Left click on list items to go deeper (like the `RIGHT` key)
+- Left click on the left-most column go back (like the `LEFT` key).
+
 # KEYS
+
+Keyboard gives more control.
 
 `?` shows a help dialog listing all keys.
 (Some of these also appear in the quick help at the bottom of each screen.)
@@ -96,10 +107,10 @@ Press `?` again (or `ESCAPE`, or `LEFT`, or `q`) to close it.
 The following keys work on most screens:
 
 The cursor keys navigate:
-`right` (or `enter`) goes deeper,
-`left` returns to the previous screen,
-`up`/`down`/`page up`/`page down`/`home`/`end` move up and down through lists.
-Emacs-style (`ctrl-p`/`ctrl-n`/`ctrl-f`/`ctrl-b`) movement keys are also supported
+`RIGHT` goes deeper,
+`LEFT` returns to the previous screen,
+`UP`/`DOWN`/`PGUP`/`PGDN`/`HOME`/`END` move up and down through lists.
+Emacs-style (`CTRL-p`/`CTRL-n`/`CTRL-f`/`CTRL-b`) movement keys are also supported
 (but not vi-style keys, since hledger-1.19, sorry!).
 A tip: movement speed is limited by your keyboard repeat rate,
 to move faster you may want to adjust it.
@@ -107,9 +118,9 @@ to move faster you may want to adjust it.
 
 With shift pressed, the cursor keys adjust the report period,
 limiting the transactions to be shown (by default, all are shown).
-`shift-down/up` steps downward and upward through these standard report period durations:
+`SHIFT-DOWN/UP` steps downward and upward through these standard report period durations:
 year, quarter, month, week, day.
-Then, `shift-left/right` moves to the previous/next period.
+Then, `SHIFT-LEFT/RIGHT` moves to the previous/next period.
 `T` sets the report period to today.
 With the `--watch` option, when viewing a "current" period
 (the current day, week, month, quarter, or year),
@@ -176,15 +187,6 @@ for now pressing `b` `b` `v` should reliably reset to normal mode.
 
 Additional screen-specific keys are described below.
 
-# MOUSE
-
-In most modern terminals, you can also control hledger-ui with a mouse or touchpad
-as follows:
-
-- Use mouse wheel or trackpad to scroll lists up and down
-- Left click on list items to go deeper (like `RIGHT`)
-- Left click on the left-most column go back (like `LEFT`).
-
 # SCREENS
 
 ## Accounts screen
@@ -225,7 +227,7 @@ and if you activate all three, the filter is removed.)
 are shown (hledger-ui shows zero items by default, unlike command-line
 hledger).
 
-Press `right` or `enter` to view an account's transactions register.
+Press `RIGHT` to view an account's transactions register.
 
 ## Register screen
 
@@ -264,7 +266,7 @@ and if you activate all three, the filter is removed.)
 change are shown (hledger-ui shows zero items by default,
 unlike command-line hledger).
 
-Press `right` (or `enter`) to view the selected transaction in detail.
+Press `RIGHT` to view the selected transaction in detail.
 
 ## Transaction screen
 
@@ -276,7 +278,7 @@ description, comments, along with all of its account postings are
 shown.  Simple transactions have two postings, but there can be more
 (or in certain cases, fewer).
 
-`up` and `down` will step through all transactions listed in the
+`UP` and `DOWN` will step through all transactions listed in the
 previous account register screen.  In the title bar, the numbers in
 parentheses show your position within that account register. They will
 vary depending on which account register you came from (remember most
