@@ -270,6 +270,7 @@ Here are some ways to handle that:
 ### Commodity layout
 
 With `--layout`, you can control how amounts with more than one commodity are displayed:
+
 - `--layout=wide[,WIDTH]`: on a single line, possibly elided to the specified width
 - `--layout=tall`: each commodity is displayed on a separate line
 - `--layout=bare`: commodity symbols are displayed in a separate column, and amounts are displayed as bare numbers
