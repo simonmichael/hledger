@@ -73,24 +73,25 @@ tsDraw UIState{aopts=UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec
     -- Minibuffer e -> [minibuffer e, maincontent]
     _          -> [maincontent]
   where
-    -- as with print, show amounts with all of their decimal places
-    t = transactionMapPostingAmounts mixedAmountSetFullPrecision t'
-    maincontent = Widget Greedy Greedy $ do
-      let
-        prices = journalPriceOracle (infer_prices_ ropts) j
-        styles = journalCommodityStyles j
-        periodlast =
-          fromMaybe (error' "TransactionScreen: expected a non-empty journal") $  -- PARTIAL: shouldn't happen
-          reportPeriodOrJournalLastDay rspec j
-
-      render . defaultLayout toplabel bottomlabel . str
-        . T.unpack . showTransactionOneLineAmounts
-        . maybe id (transactionApplyValuation prices styles periodlast (_rsDay rspec)) (value_ ropts)
-        $ case cost_ ropts of
-               Cost   -> transactionToCost styles t
-               NoCost -> t
-        -- (if real_ ropts then filterTransactionPostings (Real True) else id) -- filter postings by --real
+    maincontent = Widget Greedy Greedy $ render $ defaultLayout toplabel bottomlabel txn
       where
+        -- as with print, show amounts with all of their decimal places
+        t = transactionMapPostingAmounts mixedAmountSetFullPrecision t'
+
+        txn = str
+          $ T.unpack . showTransactionOneLineAmounts
+          $ maybe id (transactionApplyValuation prices styles periodlast (_rsDay rspec)) (value_ ropts)
+          $ case cost_ ropts of
+                Cost   -> transactionToCost styles t
+                NoCost -> t
+          -- (if real_ ropts then filterTransactionPostings (Real True) else id) -- filter postings by --real
+          where
+            prices = journalPriceOracle (infer_prices_ ropts) j
+            styles = journalCommodityStyles j
+            periodlast =
+              fromMaybe (error' "TransactionScreen: expected a non-empty journal") $  -- PARTIAL: shouldn't happen
+              reportPeriodOrJournalLastDay rspec j
+
         toplabel =
           str "Transaction "
           -- <+> withAttr ("border" <> "bold") (str $ "#" ++ show (tindex t))
