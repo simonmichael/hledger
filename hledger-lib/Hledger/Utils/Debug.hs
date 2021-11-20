@@ -93,7 +93,7 @@ module Hledger.Utils.Debug (
   ,module Debug.Trace
   ,useColorOnStdout
   ,useColorOnStderr
-  )
+  ,dlog)
 where
 
 import           Control.Monad (when)
@@ -304,6 +304,10 @@ ptraceAtWith level f
                             --     | otherwise     = ls
                         -- in trace (s++":"++nlorspace++intercalate "\n" ls') a
                         in trace p a
+
+-- | Log a pretty-printed showable value to "./debug.log". Uses unsafePerformIO.
+dlog :: Show a => a -> a
+dlog x = unsafePerformIO $ appendFile "debug.log" (pshow x ++ "\n") >> return x
 
 -- "dbg" would clash with megaparsec.
 -- | Pretty-print a label and the showable value to the console, then return it.
