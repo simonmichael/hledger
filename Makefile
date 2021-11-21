@@ -673,6 +673,16 @@ quickbench: samplejournals bench.sh $(call def-help,quickbench, benchmark comman
 # 	)
 # 	tools/progressionbench -- -t png -k png
 
+throughput: samplejournals \
+		$(call def-help,throughput, show throughput at various data sizes )
+	@date
+	@uname -a
+	@hledger --version
+	@for n in 1000 2000 3000 4000 5000 6000 7000 8000 9000 10000 100000 ; do \
+		printf "%d: " $$n; hledger stats -f examples/$${n}x1000x10.journal | tail -1; \
+	done
+	@date
+
 # prof: samplejournals \
 # 	$(call def-help,prof,\
 # 	generate and archive an execution profile\
