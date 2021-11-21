@@ -372,7 +372,6 @@ asHandle ui0@UIState{
 asHandle _ _ = error "event handler called with wrong screen type, should not happen"  -- PARTIAL:
 
 asEnterRegister d selacct ui = do
-  -- TODO center selection after entering register screen; neither of these works till second time entering; easy strictifications didn't help
   rsCenterAndContinue $
   -- flip rsHandle (VtyEvent (EvKey (KChar 'l') [MCtrl])) $
     screenEnter d regscr ui

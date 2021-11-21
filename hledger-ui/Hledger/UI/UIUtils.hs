@@ -42,7 +42,7 @@ import Data.List
 import qualified Data.Text as T
 import Data.Time (Day, addDays)
 import Graphics.Vty
-  (Event(..),Key(..),Modifier(..),Vty(..),Color,Attr,currentAttr,refresh
+  (Event(..),Key(..),Modifier(..),Vty(..),Color,Attr,currentAttr,refresh, displayBounds
   -- ,Output(displayBounds,mkDisplayContext),DisplayContext(..)
   )
 import Lens.Micro.Platform
@@ -321,18 +321,16 @@ withBorderAttr attr = updateAttrMap (applyAttrMappings [("border", attr)])
 -- middle of the display area.
 scrollSelectionToMiddle :: List Name e -> EventM Name ()
 scrollSelectionToMiddle list = do
-  let mselectedrow = list^.listSelectedL
-      vpname = list^.listNameL
-  mvp <- lookupViewport vpname
-  case (mselectedrow, mvp) of
-    (Just selectedrow, Just vp) -> do
+  case list^.listSelectedL of
+    Nothing -> return ()
+    Just selectedrow -> do
+      Vty{outputIface} <- getVtyHandle
+      pageheight <- dbg4 "pageheight" . snd <$> liftIO (displayBounds outputIface)
       let
         itemheight   = dbg4 "itemheight" $ list^.listItemHeightL
-        vpheight     = dbg4 "vpheight" $ vp^.vpSize._2
-        itemsperpage = dbg4 "itemsperpage" $ vpheight `div` itemheight
+        itemsperpage = dbg4 "itemsperpage" $ pageheight `div` itemheight
         toprow       = dbg4 "toprow" $ max 0 (selectedrow - (itemsperpage `div` 2)) -- assuming ViewportScroll's row offset is measured in list items not screen rows
-      setTop (viewportScroll vpname) toprow
-    _ -> return ()
+      setTop (viewportScroll $ list^.listNameL) toprow
 
 --                 arrow keys       vi keys               emacs keys
 moveUpEvents    = [EvKey KUp []   , EvKey (KChar 'k') [], EvKey (KChar 'p') [MCtrl]]
