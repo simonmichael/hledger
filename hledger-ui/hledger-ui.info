@@ -245,11 +245,12 @@ File: hledger-ui.info,  Node: MOUSE,  Next: KEYS,  Prev: OPTIONS,  Up: Top
 In most modern terminals, you can navigate through the screens with a
 mouse or touchpad:
 
-   * Use mouse wheel or trackpad to scroll lists up and down
+   * Use mouse wheel or trackpad to scroll up and down
 
-   * Left click on list items to go deeper (like the `RIGHT' key)
+   * Click on list items to go deeper
 
-   * Left click on the left-most column go back (like the `LEFT' key).
+   * Click on the left margin (column 0), or the blank area at bottom of
+     screen, to go back.
 
 
 File: hledger-ui.info,  Node: KEYS,  Next: SCREENS,  Prev: MOUSE,  Up: Top
@@ -630,29 +631,29 @@ Node: OPTIONS1647
 Ref: #options1745
 Node: MOUSE6617
 Ref: #mouse6712
-Node: KEYS7003
-Ref: #keys7096
-Node: SCREENS11157
-Ref: #screens11255
-Node: Accounts screen11345
-Ref: #accounts-screen11473
-Node: Register screen13666
-Ref: #register-screen13821
-Node: Transaction screen15803
-Ref: #transaction-screen15961
-Node: Error screen16828
-Ref: #error-screen16950
-Node: TIPS17192
-Ref: #tips17291
-Node: Watch mode17343
-Ref: #watch-mode17460
-Node: Watch mode limitations18204
-Ref: #watch-mode-limitations18345
-Node: ENVIRONMENT19478
-Ref: #environment19589
-Node: FILES20394
-Ref: #files20493
-Node: BUGS20706
-Ref: #bugs20783
+Node: KEYS6996
+Ref: #keys7089
+Node: SCREENS11150
+Ref: #screens11248
+Node: Accounts screen11338
+Ref: #accounts-screen11466
+Node: Register screen13659
+Ref: #register-screen13814
+Node: Transaction screen15796
+Ref: #transaction-screen15954
+Node: Error screen16821
+Ref: #error-screen16943
+Node: TIPS17185
+Ref: #tips17284
+Node: Watch mode17336
+Ref: #watch-mode17453
+Node: Watch mode limitations18197
+Ref: #watch-mode-limitations18338
+Node: ENVIRONMENT19471
+Ref: #environment19582
+Node: FILES20387
+Ref: #files20486
+Node: BUGS20699
+Ref: #bugs20776
 
 End Tag Table
