@@ -102,6 +102,7 @@ import Text.Megaparsec.Char
 import Hledger
 import Hledger.Cli.DocFiles
 import Hledger.Cli.Version
+import Data.Time.Clock.POSIX (POSIXTime)
 
 
 -- common cmdargs flags
@@ -441,6 +442,7 @@ data CliOpts = CliOpts {
                                         -- 1. the COLUMNS env var, if set
                                         -- 2. the width reported by the terminal, if supported
                                         -- 3. the default (80)
+    ,progstarttime_   :: POSIXTime
  } deriving (Show)
 
 instance Default CliOpts where def = defcliopts
@@ -458,6 +460,7 @@ defcliopts = CliOpts
     , no_new_accounts_ = False
     , width_           = Nothing
     , available_width_ = defaultWidth
+    , progstarttime_   = 0
     }
 
 -- | Default width for hledger console output, when not otherwise specified.

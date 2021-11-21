@@ -6,6 +6,7 @@ Print some statistics for the journal.
 
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE NamedFieldPuns #-}
 
 module Hledger.Cli.Commands.Stats (
   statsmode
@@ -29,6 +30,7 @@ import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils (writeOutputLazyText)
 import Text.Tabular.AsciiWide
+import Data.Time.Clock.POSIX (getPOSIXTime)
 
 
 statsmode = hledgerCommandMode
@@ -42,24 +44,31 @@ statsmode = hledgerCommandMode
 -- like Register.summarisePostings
 -- | Print various statistics for the journal.
 stats :: CliOpts -> Journal -> IO ()
-stats opts@CliOpts{reportspec_=rspec} j = do
+stats opts@CliOpts{reportspec_=rspec, progstarttime_} j = do
   let today = _rsDay rspec
       q = _rsQuery rspec
       l = ledgerFromJournal q j
       reportspan = ledgerDateSpan l `spanDefaultsFrom` queryDateSpan False q
       intervalspans = splitSpan (interval_ $ _rsReportOpts rspec) reportspan
       showstats = showLedgerStats l today
-      s = unlinesB $ map showstats intervalspans
-  writeOutputLazyText opts $ TB.toLazyText s
+      (ls, txncounts) = unzip $ map showstats intervalspans
+      numtxns = sum txncounts
+      b = unlinesB ls
+  writeOutputLazyText opts $ TB.toLazyText b
+  t <- getPOSIXTime
+  let dt = t - progstarttime_
+  printf "Run time                 : %.2f s\n" (realToFrac dt :: Float)
+  printf "Throughput               : %.0f txns/s\n" (fromIntegral numtxns / realToFrac dt :: Float)
 
-showLedgerStats :: Ledger -> Day -> DateSpan -> TB.Builder
+showLedgerStats :: Ledger -> Day -> DateSpan -> (TB.Builder, Int)
 showLedgerStats l today span =
-    unlinesB $ map (renderRowB def{tableBorders=False, borderSpaces=False} . showRow) stats
+    (unlinesB $ map (renderRowB def{tableBorders=False, borderSpaces=False} . showRow) stats
+    ,tnum)
   where
     showRow (label, value) = Group NoLine $ map (Header . textCell TopLeft)
       [fitText (Just w1) (Just w1) False True label `T.append` ": ", T.pack value]
     w1 = maximum $ map (T.length . fst) stats
-    stats = [
+    (stats, tnum) = ([
        ("Main file", path) -- ++ " (from " ++ source ++ ")")
       ,("Included files", unlines $ drop 1 $ journalFilePaths j)
       ,("Transactions span", printf "%s to %s (%d days)" (start span) (end span) days)
@@ -75,7 +84,8 @@ showLedgerStats l today span =
     -- Unmarked transactions      : %(unmarked)s
     -- Days since reconciliation   : %(reconcileelapsed)s
     -- Days since last transaction : %(recentelapsed)s
-     ]
+     ] 
+     ,tnum)
        where
          j = ljournal l
          path = journalFilePath j
@@ -90,7 +100,7 @@ showLedgerStats l today span =
                                    where days' = abs days
                                          direction | days >= 0 = "days ago" :: String
                                                    | otherwise = "days from now"
-         tnum = length ts
+         tnum = length ts  -- Integer would be better
          start (DateSpan (Just d) _) = show d
          start _ = ""
          end (DateSpan _ (Just d)) = show d

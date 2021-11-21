@@ -51,6 +51,7 @@ import System.Process
 import Text.Printf
 
 import Hledger.Cli
+import Data.Time.Clock.POSIX (getPOSIXTime)
 
 
 -- | The overall cmdargs mode describing hledger's command-line options and subcommands.
@@ -96,6 +97,7 @@ mainmode addons = defMode {
 -- | Let's go!
 main :: IO ()
 main = do
+  progstarttime <- getPOSIXTime
 
   -- Choose and run the appropriate internal or external command based
   -- on the raw command-line arguments, cmdarg's interpretation of
@@ -129,7 +131,8 @@ main = do
   let addons = filter (not . (`elem` builtinCommandNames) . dropExtension) addons'
 
   -- parse arguments with cmdargs
-  opts <- argsToCliOpts args addons
+  opts' <- argsToCliOpts args addons
+  let opts = opts'{progstarttime_=progstarttime}
 
   -- select an action and run it.
   let
