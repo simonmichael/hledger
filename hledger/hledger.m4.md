@@ -2509,12 +2509,15 @@ And here is an overview of which directives are useful for what:
 
 | purpose                                                                         | directives                                    | command line options with similar effect |
 |---------------------------------------------------------------------------------|-----------------------------------------------|------------------------------------------|
+| **READING/GENERATING DATA:**                                                    |                                               |                                          |
 | Declaring a commodity's or file's decimal mark to help parse amounts accurately | `commodity`, `D`, `decimal-mark`              |                                          |
-| Modifying the journal file while parsing                                        | `alias`, `apply account`, `comment`, `D`, `Y` | `--alias`                                |
+| Applying changes to the data while parsing                                      | `alias`, `apply account`, `comment`, `D`, `Y` | `--alias`                                |
 | Inlining or concatenating extra data files                                      | `include`                                     | multiple `-f/--file`'s                   |
 | Generating extra transactions or budget goals                                   | `~`                                           |                                          |
 | Generating extra postings                                                       | `=`                                           |                                          |
-| Defining entities to help with error checking                                   | `account`, `commodity`, `payee`               |                                          |
+| **CHECKING FOR ERRORS:**                                                        |                                               |                                          |
+| Defining valid entities to allow stricter error checking                        | `account`, `commodity`, `payee`               |                                          |
+| **DISPLAYING REPORTS:**                                                         |                                               |                                          |
 | Defining accounts' display order and accounting type                            | `account`                                     |                                          |
 | Defining commodity display styles                                               | `commodity`, `D`                              | `-c/--commodity-style`                   |
 
