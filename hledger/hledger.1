@@ -6691,7 +6691,90 @@ of decimal places.
 .PP
 Directives are not required when starting out with hledger, but you will
 probably add some as your needs grow.
-Here are all the directives and their precise effects:
+Here is an overview of directives by purpose:
+.PP
+.TS
+tab(@);
+lw(30.6n) lw(22.0n) lw(17.4n).
+T{
+purpose
+T}@T{
+directives
+T}@T{
+command line options with similar effect
+T}
+_
+T{
+\f[B]READING/GENERATING DATA:\f[R]
+T}@T{
+T}@T{
+T}
+T{
+Declare a commodity\[aq]s or file\[aq]s decimal mark to help parse
+amounts accurately
+T}@T{
+\f[C]commodity\f[R], \f[C]D\f[R], \f[C]decimal-mark\f[R]
+T}@T{
+T}
+T{
+Apply changes to the data while parsing
+T}@T{
+\f[C]alias\f[R], \f[C]apply account\f[R], \f[C]comment\f[R],
+\f[C]D\f[R], \f[C]Y\f[R]
+T}@T{
+\f[C]--alias\f[R]
+T}
+T{
+Inline extra data files
+T}@T{
+\f[C]include\f[R]
+T}@T{
+multiple \f[C]-f/--file\f[R]\[aq]s
+T}
+T{
+Generate extra transactions or budget goals
+T}@T{
+\f[C]\[ti]\f[R]
+T}@T{
+T}
+T{
+Generate extra postings
+T}@T{
+\f[C]=\f[R]
+T}@T{
+T}
+T{
+\f[B]CHECKING FOR ERRORS:\f[R]
+T}@T{
+T}@T{
+T}
+T{
+Define valid entities to allow stricter error checking
+T}@T{
+\f[C]account\f[R], \f[C]commodity\f[R], \f[C]payee\f[R]
+T}@T{
+T}
+T{
+\f[B]DISPLAYING REPORTS:\f[R]
+T}@T{
+T}@T{
+T}
+T{
+Declare accounts\[aq] display order and accounting type
+T}@T{
+\f[C]account\f[R]
+T}@T{
+T}
+T{
+Declare commodity display styles
+T}@T{
+\f[C]commodity\f[R], \f[C]D\f[R]
+T}@T{
+\f[C]-c/--commodity-style\f[R]
+T}
+.TE
+.PP
+And here are all the directives and their precise effects:
 .PP
 .TS
 tab(@);
@@ -6811,89 +6894,6 @@ transactions with \f[C]--auto\f[R], in current, parent, and child files
 (but not sibling files, see #1212).
 T}@T{
 partly
-T}
-.TE
-.PP
-And here is an overview of which directives are useful for what:
-.PP
-.TS
-tab(@);
-lw(30.6n) lw(22.0n) lw(17.4n).
-T{
-purpose
-T}@T{
-directives
-T}@T{
-command line options with similar effect
-T}
-_
-T{
-\f[B]READING/GENERATING DATA:\f[R]
-T}@T{
-T}@T{
-T}
-T{
-Declare a commodity\[aq]s or file\[aq]s decimal mark to help parse
-amounts accurately
-T}@T{
-\f[C]commodity\f[R], \f[C]D\f[R], \f[C]decimal-mark\f[R]
-T}@T{
-T}
-T{
-Apply changes to the data while parsing
-T}@T{
-\f[C]alias\f[R], \f[C]apply account\f[R], \f[C]comment\f[R],
-\f[C]D\f[R], \f[C]Y\f[R]
-T}@T{
-\f[C]--alias\f[R]
-T}
-T{
-Inline or concatenate extra data files
-T}@T{
-\f[C]include\f[R]
-T}@T{
-multiple \f[C]-f/--file\f[R]\[aq]s
-T}
-T{
-Generate extra transactions or budget goals
-T}@T{
-\f[C]\[ti]\f[R]
-T}@T{
-T}
-T{
-Generate extra postings
-T}@T{
-\f[C]=\f[R]
-T}@T{
-T}
-T{
-\f[B]CHECKING FOR ERRORS:\f[R]
-T}@T{
-T}@T{
-T}
-T{
-Define valid entities to allow stricter error checking
-T}@T{
-\f[C]account\f[R], \f[C]commodity\f[R], \f[C]payee\f[R]
-T}@T{
-T}
-T{
-\f[B]DISPLAYING REPORTS:\f[R]
-T}@T{
-T}@T{
-T}
-T{
-Declare accounts\[aq] display order and accounting type
-T}@T{
-\f[C]account\f[R]
-T}@T{
-T}
-T{
-Declare commodity display styles
-T}@T{
-\f[C]commodity\f[R], \f[C]D\f[R]
-T}@T{
-\f[C]-c/--commodity-style\f[R]
 T}
 .TE
 .SS Directives and multiple files
