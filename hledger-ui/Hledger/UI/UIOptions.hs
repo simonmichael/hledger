@@ -33,7 +33,7 @@ prognameandversion = versionStringForProgname progname
 
 uiflags = [
   -- flagNone ["debug-ui"] (setboolopt "rules-file") "run with no terminal output, showing console"
-   flagNone ["watch"] (setboolopt "watch") "watch for data and date changes and reload automatically"
+   flagNone ["watch","w"] (setboolopt "watch") "watch for data and date changes and reload automatically"
   ,flagReq  ["theme"] (\s opts -> Right $ setopt "theme" s opts) "THEME" ("use this custom display theme ("++intercalate ", " themeNames++")")
   ,flagReq  ["register"] (\s opts -> Right $ setopt "register" s opts) "ACCTREGEX" "start in the (first) matched account's register"
   ,flagNone ["change"] (setboolopt "change")
