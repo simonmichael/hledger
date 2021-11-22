@@ -13,7 +13,7 @@ to your $PATH so they show up in hledger's command list.
 
 Scripts overview, simplest first:
 
-- hledger-check-tagfiles.hs         - check that all tag values containing / exist as file paths
+- hledger-check-tagfiles.hs         - check that all tag values containing a `/` (forward slash) exist as file paths
 - hledger-check-tagfiles.cabal.hs   - the above as a cabal script
 - hledger-swap-dates.hs             - print transactions with their date and date2 fields swapped
 - hledger-print-location.hs         - add file path/line number tags to the print command
