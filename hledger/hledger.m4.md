@@ -2507,22 +2507,24 @@ Here are all the directives and their precise effects, with links to more detail
 
 And here is an overview of which directives are useful for what:
 
-| purpose                                                                         | directives                                    | command line options with similar effect |
-|---------------------------------------------------------------------------------|-----------------------------------------------|------------------------------------------|
-| **READING/GENERATING DATA:**                                                    |                                               |                                          |
-| Declaring a commodity's or file's decimal mark to help parse amounts accurately | `commodity`, `D`, `decimal-mark`              |                                          |
-| Applying changes to the data while parsing                                      | `alias`, `apply account`, `comment`, `D`, `Y` | `--alias`                                |
-| Inlining or concatenating extra data files                                      | `include`                                     | multiple `-f/--file`'s                   |
-| Generating extra transactions or budget goals                                   | `~`                                           |                                          |
-| Generating extra postings                                                       | `=`                                           |                                          |
-| **CHECKING FOR ERRORS:**                                                        |                                               |                                          |
-| Defining valid entities to allow stricter error checking                        | `account`, `commodity`, `payee`               |                                          |
-| **DISPLAYING REPORTS:**                                                         |                                               |                                          |
-| Defining accounts' display order and accounting type                            | `account`                                     |                                          |
-| Defining commodity display styles                                               | `commodity`, `D`                              | `-c/--commodity-style`                   |
+| purpose                                                                         | directives                                              | command line options with similar effect    |
+|---------------------------------------------------------------------------------|---------------------------------------------------------|---------------------------------------------|
+| **READING/GENERATING DATA:**                                                    |                                                         |                                             |
+| Declaring a commodity's or file's decimal mark to help parse amounts accurately | [`commodity`], [`D`], [`decimal-mark`]                  |                                             |
+| Applying changes to the data while parsing                                      | [`alias`], [`apply account`], [`comment`], [`D`], [`Y`] | [`--alias`]                                 |
+| Inlining or concatenating extra data files                                      | [`include`]                                             | [multiple `-f/--file`'s](#multiple-files)   |
+| Generating extra transactions or budget goals                                   | [`~`]                                                   |                                             |
+| Generating extra postings                                                       | [`=`]                                                   |                                             |
+| **CHECKING FOR ERRORS:**                                                        |                                                         |                                             |
+| Defining valid entities to allow stricter error checking                        | [`account`], [`commodity`], [`payee`]                   |                                             |
+| **DISPLAYING REPORTS:**                                                         |                                                         |                                             |
+| Defining accounts' display order and accounting type                            | [`account`]                                             |                                             |
+| Defining commodity display styles                                               | [`commodity`], [`D`]                                    | [`-c/--commodity-style`](#commodity-styles) |
+|                                                                                 |                                                         |                                             |
 
 [`account`]:           #declaring-accounts
 [`alias`]:             #rewriting-accounts
+[`--alias`]:           #rewriting-accounts
 [`end aliases`]:       #end-aliases
 [`apply account`]:     #default-parent-account
 [`end apply account`]: #end-apply-account
