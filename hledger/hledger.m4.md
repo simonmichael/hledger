@@ -2469,7 +2469,6 @@ A directive is a line in the journal beginning with a special keyword,
 that influences how the journal is processed, how things are displayed, and so on.
 hledger's directives are based on (a subset of) Ledger's, but there are many differences,
 and also some differences between hledger versions.
-<!-- Directives' behaviour and interactions can get [complex](https://github.com/simonmichael/hledger/issues/793). -->
 Here are some more definitions:
 
 - *subdirective* - Some directives support subdirectives, written
@@ -2482,7 +2481,9 @@ Here are some more definitions:
   symbol side and spacing, digit groups, decimal mark, and number of
   decimal places.
 
-Here are all the directives and their precise effects, with links to more detailed docs below:
+Directives are not required when starting out with hledger, but you
+will probably add some as your needs grow. Here are all the directives
+and their precise effects:
 
 <!-- <style> -->
 <!-- table a code { white-space:nowrap; } -->
@@ -2507,20 +2508,19 @@ Here are all the directives and their precise effects, with links to more detail
 
 And here is an overview of which directives are useful for what:
 
-| purpose                                                                         | directives                                              | command line options with similar effect    |
-|---------------------------------------------------------------------------------|---------------------------------------------------------|---------------------------------------------|
-| **READING/GENERATING DATA:**                                                    |                                                         |                                             |
-| Declaring a commodity's or file's decimal mark to help parse amounts accurately | [`commodity`], [`D`], [`decimal-mark`]                  |                                             |
-| Applying changes to the data while parsing                                      | [`alias`], [`apply account`], [`comment`], [`D`], [`Y`] | [`--alias`]                                 |
-| Inlining or concatenating extra data files                                      | [`include`]                                             | [multiple `-f/--file`'s](#multiple-files)   |
-| Generating extra transactions or budget goals                                   | [`~`]                                                   |                                             |
-| Generating extra postings                                                       | [`=`]                                                   |                                             |
-| **CHECKING FOR ERRORS:**                                                        |                                                         |                                             |
-| Defining valid entities to allow stricter error checking                        | [`account`], [`commodity`], [`payee`]                   |                                             |
-| **DISPLAYING REPORTS:**                                                         |                                                         |                                             |
-| Defining accounts' display order and accounting type                            | [`account`]                                             |                                             |
-| Defining commodity display styles                                               | [`commodity`], [`D`]                                    | [`-c/--commodity-style`](#commodity-styles) |
-|                                                                                 |                                                         |                                             |
+| purpose                                                                       | directives                                              | command line options with similar effect    |
+|-------------------------------------------------------------------------------|---------------------------------------------------------|---------------------------------------------|
+| **READING/GENERATING DATA:**                                                  |                                                         |                                             |
+| Declare a commodity's or file's decimal mark to help parse amounts accurately | [`commodity`], [`D`], [`decimal-mark`]                  |                                             |
+| Apply changes to the data while parsing                                       | [`alias`], [`apply account`], [`comment`], [`D`], [`Y`] | [`--alias`]                                 |
+| Inline or concatenate extra data files                                        | [`include`]                                             | [multiple `-f/--file`'s](#multiple-files)   |
+| Generate extra transactions or budget goals                                   | [`~`]                                                   |                                             |
+| Generate extra postings                                                       | [`=`]                                                   |                                             |
+| **CHECKING FOR ERRORS:**                                                      |                                                         |                                             |
+| Define valid entities to allow stricter error checking                        | [`account`], [`commodity`], [`payee`]                   |                                             |
+| **DISPLAYING REPORTS:**                                                       |                                                         |                                             |
+| Declare accounts' display order and accounting type                           | [`account`]                                             |                                             |
+| Declare commodity display styles                                              | [`commodity`], [`D`]                                    | [`-c/--commodity-style`](#commodity-styles) |
 
 [`account`]:           #declaring-accounts
 [`alias`]:             #rewriting-accounts
