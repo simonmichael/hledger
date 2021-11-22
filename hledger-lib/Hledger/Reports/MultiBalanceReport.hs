@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE NamedFieldPuns   #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-|
@@ -26,7 +27,6 @@ module Hledger.Reports.MultiBalanceReport (
   getPostingsByColumn,
   getPostings,
   startingPostings,
-  startingBalancesFromPostings,
   generateMultiBalanceReport,
   balanceReportTableAsText,
 
@@ -122,8 +122,8 @@ multiBalanceReportWith rspec' j priceoracle = report
 
     -- The matched accounts with a starting balance. All of these should appear
     -- in the report, even if they have no postings during the report period.
-    startbals = dbg5 "startbals" . startingBalancesFromPostings rspec j priceoracle
-                                 $ startingPostings rspec j priceoracle reportspan
+    startbals = dbg5 "startbals" $
+      startingBalances rspec j priceoracle $ startingPostings rspec j priceoracle reportspan
 
     -- Generate and postprocess the report, negating balances and taking percentages if needed
     report = dbg4 "multiBalanceReportWith" $
@@ -166,7 +166,7 @@ compoundBalanceReportWith rspec' j priceoracle subreportspecs = cbr
             -- Filter the column postings according to each subreport
             colps'     = map (second $ filter (matchesPosting q)) colps
             -- We need to filter historical postings directly, rather than their accumulated balances. (#1698)
-            startbals' = startingBalancesFromPostings rspec j priceoracle $ filter (matchesPosting q) startps
+            startbals' = startingBalances rspec j priceoracle $ filter (matchesPosting q) startps
             ropts      = cbcsubreportoptions $ _rsReportOpts rspec
             q          = cbcsubreportquery j
 
@@ -183,10 +183,12 @@ compoundBalanceReportWith rspec' j priceoracle subreportspecs = cbr
 
     cbr = CompoundPeriodicReport "" (map fst colps) subreports overalltotals
 
--- | Calculate starting balances from postings, if needed for -H.
-startingBalancesFromPostings :: ReportSpec -> Journal -> PriceOracle -> [Posting]
+-- XXX seems refactorable
+-- | Calculate accounts' balances on the report start date, from these postings
+-- which should be all postings before that data, and possibly also from account declarations.
+startingBalances :: ReportSpec -> Journal -> PriceOracle -> [Posting]
                              -> HashMap AccountName Account
-startingBalancesFromPostings rspec j priceoracle ps =
+startingBalances rspec j priceoracle ps =
     M.findWithDefault nullacct emptydatespan
       <$> calculateReportMatrix rspec j priceoracle mempty [(emptydatespan, ps)]
 
@@ -261,24 +263,27 @@ getPostings rspec@ReportSpec{_rsQuery=query, _rsReportOpts=ropts} j priceoracle 
     -- handles the hledger-ui+future txns case above).
     depthless = dbg3 "depthless" $ filterQuery (not . queryIsDepth) query
 
--- | Given a set of postings, eg for a single report column, gather
--- the accounts that have postings and calculate the change amount for
--- each. Accounts and amounts will be depth-clipped appropriately if
--- a depth limit is in effect.
-acctChangesFromPostings :: ReportSpec -> [Posting] -> HashMap ClippedAccountName Account
-acctChangesFromPostings ReportSpec{_rsQuery=query,_rsReportOpts=ropts} ps =
+-- | From set of postings, eg for a single report column, calculate the balance change in each account. 
+-- Accounts and amounts will be depth-clipped appropriately if a depth limit is in effect.
+--
+-- When --declared is used, accounts which have been declared with an account directive are included, 
+-- with a 0 balance change. These are really only needed when calculating starting balances, but 
+-- it's harmless to have them in the column changes as well.
+acctChanges :: ReportSpec -> Journal -> [Posting] -> HashMap ClippedAccountName Account
+acctChanges ReportSpec{_rsQuery=query,_rsReportOpts=ropts} j ps =
     HM.fromList [(aname a, a) | a <- as]
   where
-    as = filterAccounts . drop 1 $ accountsFromPostings ps
+    as = filterAccounts $
+      drop 1 (accountsFromPostings ps)
+      ++ if declared_ ropts then [nullacct{aname} | aname <- journalAccountNamesDeclared j] else []
     filterAccounts = case accountlistmode_ ropts of
-        ALTree -> filter ((depthq `matchesAccount`) . aname)      -- exclude deeper balances
-        ALFlat -> clipAccountsAndAggregate (queryDepth depthq) .  -- aggregate deeper balances at the depth limit.
-                      filter ((0<) . anumpostings)
+        ALTree -> filter ((depthq `matchesAccount`) . aname)    -- exclude deeper balances
+        ALFlat -> clipAccountsAndAggregate (queryDepth depthq)  -- aggregate deeper balances at the depth limit
+                  -- . filter ((0<) . anumpostings)                -- exclude unposted accounts
     depthq = dbg3 "depthq" $ filterQuery queryIsDepth query
 
 -- | Gather the account balance changes into a regular matrix, then
 -- accumulate and value amounts, as specified by the report options.
---
 -- Makes sure all report columns have an entry.
 calculateReportMatrix :: ReportSpec -> Journal -> PriceOracle
                       -> HashMap ClippedAccountName Account
@@ -308,11 +313,12 @@ calculateReportMatrix rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle startb
         startingBalance = HM.lookupDefault nullacct name startbals
         valuedStart = avalue (DateSpan Nothing historicalDate) startingBalance
 
-    -- Transpose to get each account's balance changes across all columns, then
-    -- pad with zeros
-    allchanges     = ((<>zeros) <$> acctchanges) <> (zeros <$ startbals)
-    acctchanges    = dbg5 "acctchanges" $ transposeMap colacctchanges
-    colacctchanges = dbg5 "colacctchanges" $ map (second $ acctChangesFromPostings rspec) colps
+    -- In each column, get each account's balance changes
+    colacctchanges = dbg5 "colacctchanges" $ map (second $ acctChanges rspec j) colps :: [(DateSpan, HashMap ClippedAccountName Account)]
+    -- Transpose it to get each account's balance changes across all columns
+    acctchanges = dbg5 "acctchanges" $ transposeMap colacctchanges :: HashMap AccountName (Map DateSpan Account)
+    -- Fill out the matrix with zeros in empty cells
+    allchanges = ((<>zeros) <$> acctchanges) <> (zeros <$ startbals)
 
     avalue = acctApplyBoth . mixedAmountApplyValuationAfterSumFromOptsWith ropts j priceoracle
     acctApplyBoth f a = a{aibalance = f $ aibalance a, aebalance = f $ aebalance a}
