@@ -128,7 +128,7 @@ import Data.Char (digitToInt, isDigit, isSpace)
 import Data.Decimal (DecimalRaw (Decimal), Decimal)
 import Data.Either (lefts, rights)
 import Data.Function ((&))
-import Data.Functor ((<&>))
+import Data.Functor ((<&>), ($>))
 import Data.List (find, genericReplicate)
 import Data.List.NonEmpty (NonEmpty(..))
 import Data.Maybe (catMaybes, fromMaybe, isJust, listToMaybe)
@@ -355,7 +355,7 @@ journalAddForecast (Just forecastspan) j = j{jtxns = jtxns j ++ forecasttxns}
 -- | Check that all the journal's transactions have payees declared with
 -- payee directives, returning an error message otherwise.
 journalCheckPayeesDeclared :: Journal -> Either String ()
-journalCheckPayeesDeclared j = sequence_ $ map checkpayee $ jtxns j
+journalCheckPayeesDeclared j = mapM_ checkpayee (jtxns j)
   where
     checkpayee t
       | p `elem` ps = Right ()
@@ -371,7 +371,7 @@ journalCheckPayeesDeclared j = sequence_ $ map checkpayee $ jtxns j
 -- | Check that all the journal's postings are to accounts declared with
 -- account directives, returning an error message otherwise.
 journalCheckAccountsDeclared :: Journal -> Either String ()
-journalCheckAccountsDeclared j = sequence_ $ map checkacct $ journalPostings j
+journalCheckAccountsDeclared j = mapM_ checkacct (journalPostings j)
   where
     checkacct Posting{paccount,ptransaction}
       | paccount `elem` as = Right ()
@@ -389,7 +389,7 @@ journalCheckAccountsDeclared j = sequence_ $ map checkacct $ journalPostings j
 -- by commodity directives, returning an error message otherwise.
 journalCheckCommoditiesDeclared :: Journal -> Either String ()
 journalCheckCommoditiesDeclared j =
-  sequence_ $ map checkcommodities $ journalPostings j
+  mapM_ checkcommodities (journalPostings j)
   where
     checkcommodities Posting{..} =
       case mfirstundeclaredcomm of
@@ -419,7 +419,7 @@ getYear = fmap jparsedefaultyear get
 getDecimalMarkStyle :: JournalParser m (Maybe AmountStyle)
 getDecimalMarkStyle = do
   Journal{jparsedecimalmark} <- get
-  let mdecmarkStyle = maybe Nothing (\c -> Just $ amountstyle{asdecimalpoint=Just c}) jparsedecimalmark
+  let mdecmarkStyle = (\c -> Just $ amountstyle{asdecimalpoint=Just c}) =<< jparsedecimalmark
   return mdecmarkStyle
 
 setDefaultCommodityAndStyle :: (CommoditySymbol,AmountStyle) -> JournalParser m ()
@@ -859,7 +859,7 @@ mamountp' = mixedAmount . amountp'
 -- | Parse a minus or plus sign followed by zero or more spaces,
 -- or nothing, returning a function that negates or does nothing.
 signp :: Num a => TextParser m (a -> a)
-signp = ((char '-' *> pure negate <|> char '+' *> pure id) <* skipNonNewlineSpaces) <|> pure id
+signp = ((char '-' $> negate <|> char '+' $> id) <* skipNonNewlineSpaces) <|> pure id
 
 commoditysymbolp :: TextParser m CommoditySymbol
 commoditysymbolp =
@@ -878,7 +878,7 @@ priceamountp baseAmt = label "transaction price" $ do
   -- https://www.ledger-cli.org/3.0/doc/ledger3.html#Virtual-posting-costs
   parenthesised <- option False $ char '(' >> pure True
   char '@'
-  totalPrice <- char '@' *> pure True <|> pure False
+  totalPrice <- char '@' $> True <|> pure False
   when parenthesised $ void $ char ')'
 
   lift skipNonNewlineSpaces
@@ -1287,8 +1287,7 @@ transactioncommentp = followingcommentp' commenttagsp
 
 commenttagsp :: TextParser m [Tag]
 commenttagsp = do
-  tagName <- fmap (last . T.split isSpace)
-            $ takeWhileP Nothing (\c -> c /= ':' && c /= '\n')
+  tagName <- (last . T.split isSpace) <$> takeWhileP Nothing (\c -> c /= ':' && c /= '\n')
   atColon tagName <|> pure [] -- if not ':', then either '\n' or EOF
 
   where
@@ -1364,8 +1363,8 @@ postingcommentp
 postingcommentp mYear = do
   (commentText, (tags, dateTags)) <-
     followingcommentp' (commenttagsanddatesp mYear)
-  let mdate  = fmap snd $ find ((=="date") .fst) dateTags
-      mdate2 = fmap snd $ find ((=="date2").fst) dateTags
+  let mdate  = snd <$> find ((=="date") .fst) dateTags
+      mdate2 = snd <$> find ((=="date2").fst) dateTags
   pure (commentText, tags, mdate, mdate2)
 {-# INLINABLE postingcommentp #-}
 
