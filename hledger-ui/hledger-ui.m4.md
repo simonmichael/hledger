@@ -54,7 +54,7 @@ Note: if invoking hledger-ui as a hledger subcommand, write `--` before options 
 
 Any QUERYARGS are interpreted as a hledger search query which filters the data.
 
-`--watch`
+`-w --watch`
 : watch for data and date changes and reload automatically
 
 `--theme=default|terminal|greenterm`
@@ -122,7 +122,7 @@ limiting the transactions to be shown (by default, all are shown).
 year, quarter, month, week, day.
 Then, `SHIFT-LEFT/RIGHT` moves to the previous/next period.
 `T` sets the report period to today.
-With the `--watch` option, when viewing a "current" period
+With the `-w/--watch` option, when viewing a "current" period
 (the current day, week, month, quarter, or year),
 the period will move automatically to track the current date.
 To set a non-standard period, you can use `/` and a `date:` query.
@@ -299,7 +299,7 @@ press g again to reload and resume normal operation.
 
 ## Watch mode
 
-One of hledger-ui's best features is the auto-reloading `--watch` mode.
+One of hledger-ui's best features is the auto-reloading `-w/--watch` mode.
 With this flag, it will update the display automatically whenever changes
 are saved to the data files. 
 
@@ -377,5 +377,5 @@ position, momentary display of parse errors, high CPU usage eventually
 subsiding, and possibly a small but persistent build-up of CPU usage
 until the program is restarted.
 
-Also, if you are viewing files mounted from another machine, `--watch`
+Also, if you are viewing files mounted from another machine, `-w/--watch`
 requires that both machine clocks are roughly in step.
