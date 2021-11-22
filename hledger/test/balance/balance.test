@@ -168,3 +168,32 @@ hledger -f - balance -N --output-format=csv --tree
 "Assets:Cash","$-1"
 >>>= 0
 
+# 9. --declared includes all declared leaf accounts, even if they have no postings.
+# They are filtered, depth-clipped, and form trees like the others.
+hledger -f - balance -NE --declared --tree --depth 2 a
+<<<
+account a
+account a:aa
+account a:ab
+account a:ac:aca
+account b
+>>>
+                   0  a
+                   0    aa
+                   0    ab
+>>>= 0
+
+# 10. In list mode we can see that non-leaf declared accounts are excluded.
+hledger -f - balance -NE --declared --flat
+<<<
+account a
+account a:aa
+account a:ab
+account a:ac:aca
+account b
+>>>
+                   0  a:aa
+                   0  a:ab
+                   0  a:ac:aca
+                   0  b
+>>>= 0

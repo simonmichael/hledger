@@ -59,6 +59,7 @@ import Hledger.Utils.Regex
 import Hledger.Utils.String
 import Hledger.Utils.Text
 import Hledger.Utils.Test
+import Data.Tree (foldTree, Tree)
 
 
 -- tuples
@@ -116,6 +117,11 @@ splitAtElement x l =
   where
     split es = let (first,rest) = break (x==) es
                in first : splitAtElement x rest
+
+-- trees
+
+treeLeaves :: Tree a -> [a]
+treeLeaves = foldTree (\a bs -> (if null bs then (a:) else id) $ concat bs)
 
 -- text
 

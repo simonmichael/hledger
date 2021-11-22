@@ -267,6 +267,19 @@ Here are some ways to handle that:
 [csv-mode]: https://elpa.gnu.org/packages/csv-mode.html
 [visidata]: https://www.visidata.org
 
+### Showing declared accounts
+
+With `--declared`, 
+accounts which have been declared with an [account directive](#declaring-accounts)
+will be included in the balance report, even if they have no transactions.
+(Since they will have a zero balance, you will also need `-E/--empty` to see them.)
+
+More precisely, *leaf* declared accounts (with no subaccounts) will be included,
+since those are usually the more useful in reports.
+
+The idea of this is to be able to see a useful "complete" balance report,
+even when you don't have transactions in all of your declared accounts yet.
+
 ### Commodity layout
 
 With `--layout`, you can control how amounts with more than one commodity are displayed:

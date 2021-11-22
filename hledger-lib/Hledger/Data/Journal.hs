@@ -92,7 +92,7 @@ module Hledger.Data.Journal (
   samplejournal,
   samplejournalMaybeExplicit,
   tests_Journal
-)
+,journalLeafAccountNamesDeclared)
 where
 
 import Control.Applicative ((<|>))
@@ -312,6 +312,11 @@ journalAccountNamesImplied = expandAccountNames . journalAccountNamesUsed
 -- | Sorted unique account names declared by account directives in this journal.
 journalAccountNamesDeclared :: Journal -> [AccountName]
 journalAccountNamesDeclared = nubSort . map fst . jdeclaredaccounts
+
+-- | Sorted unique account names declared by account directives in this journal,
+-- which have no children.
+journalLeafAccountNamesDeclared :: Journal -> [AccountName]
+journalLeafAccountNamesDeclared = treeLeaves . accountNameTreeFrom . journalAccountNamesDeclared
 
 -- | Sorted unique account names declared by account directives or posted to
 -- by transactions in this journal.
