@@ -29,4 +29,5 @@ commoditiesmode = hledgerCommandMode
 
 commodities :: CliOpts -> Journal -> IO ()
 commodities _copts =
+  -- TODO support --declared/--used like accounts, payees
   mapM_ T.putStrLn . S.filter (/= "AUTO") . journalCommodities
