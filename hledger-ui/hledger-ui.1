@@ -47,7 +47,7 @@ before options as shown above.
 Any QUERYARGS are interpreted as a hledger search query which filters
 the data.
 .TP
-\f[B]\f[CB]--watch\f[B]\f[R]
+\f[B]\f[CB]-w --watch\f[B]\f[R]
 watch for data and date changes and reload automatically
 .TP
 \f[B]\f[CB]--theme=default|terminal|greenterm\f[B]\f[R]
@@ -258,7 +258,7 @@ the transactions to be shown (by default, all are shown).
 report period durations: year, quarter, month, week, day.
 Then, \f[C]SHIFT-LEFT/RIGHT\f[R] moves to the previous/next period.
 \f[C]T\f[R] sets the report period to today.
-With the \f[C]--watch\f[R] option, when viewing a \[dq]current\[dq]
+With the \f[C]-w/--watch\f[R] option, when viewing a \[dq]current\[dq]
 period (the current day, week, month, quarter, or year), the period will
 move automatically to track the current date.
 To set a non-standard period, you can use \f[C]/\f[R] and a
@@ -464,7 +464,7 @@ normal operation.
 .SS Watch mode
 .PP
 One of hledger-ui\[aq]s best features is the auto-reloading
-\f[C]--watch\f[R] mode.
+\f[C]-w/--watch\f[R] mode.
 With this flag, it will update the display automatically whenever
 changes are saved to the data files.
 .PP
@@ -571,7 +571,8 @@ subsiding, and possibly a small but persistent build-up of CPU usage
 until the program is restarted.
 .PP
 Also, if you are viewing files mounted from another machine,
-\f[C]--watch\f[R] requires that both machine clocks are roughly in step.
+\f[C]-w/--watch\f[R] requires that both machine clocks are roughly in
+step.
 
 
 .SH "REPORTING BUGS"
