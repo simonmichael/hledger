@@ -5865,11 +5865,12 @@ purpose                             directives           command line
                                                          options with
                                                          similar effect
 ----------------------------------------------------------------------------
+*READING/GENERATING DATA:*
 Declaring a commodity's or file's   'commodity', 'D',
 decimal mark to help parse          'decimal-mark'
 amounts accurately
-Modifying the journal file while    'alias', 'apply      '--alias'
-parsing                             account',
+Applying changes to the data        'alias', 'apply      '--alias'
+while parsing                       account',
                                     'comment', 'D',
                                     'Y'
 Inlining or concatenating extra     'include'            multiple
@@ -5877,9 +5878,11 @@ data files                                               '-f/--file''s
 Generating extra transactions or    '~'
 budget goals
 Generating extra postings           '='
-Defining entities to help with      'account',
-error checking                      'commodity',
+*CHECKING FOR ERRORS:*
+Defining valid entities to allow    'account',
+stricter error checking             'commodity',
                                     'payee'
+*DISPLAYING REPORTS:*
 Defining accounts' display order    'account'
 and accounting type
 Defining commodity display styles   'commodity', 'D'     '-c/--commodity-style'
@@ -9334,196 +9337,196 @@ Node: Balance assignments and prices211022
 Ref: #balance-assignments-and-prices211188
 Node: Directives211412
 Ref: #directives211575
-Node: Directives and multiple files216025
-Ref: #directives-and-multiple-files216221
-Node: Comment blocks216913
-Ref: #comment-blocks217090
-Node: Including other files217266
-Ref: #including-other-files217440
-Node: Default year218364
-Ref: #default-year218522
-Node: Declaring payees218929
-Ref: #declaring-payees219100
-Node: Declaring the decimal mark219346
-Ref: #declaring-the-decimal-mark219546
-Node: Declaring commodities219943
-Ref: #declaring-commodities220134
-Node: Commodity error checking222652
-Ref: #commodity-error-checking222802
-Node: Default commodity223059
-Ref: #default-commodity223239
-Node: Declaring market prices224355
-Ref: #declaring-market-prices224544
-Node: Declaring accounts225357
-Ref: #declaring-accounts225537
-Node: Account error checking226739
-Ref: #account-error-checking226905
-Node: Account comments228084
-Ref: #account-comments228268
-Node: Account subdirectives228692
-Ref: #account-subdirectives228877
-Node: Account types229190
-Ref: #account-types229364
-Node: Declaring account types230022
-Ref: #declaring-account-types230201
-Node: Auto-detected account types231255
-Ref: #auto-detected-account-types231442
-Node: Account display order233460
-Ref: #account-display-order233620
-Node: Rewriting accounts234771
-Ref: #rewriting-accounts234950
-Node: Basic aliases235707
-Ref: #basic-aliases235843
-Node: Regex aliases236587
-Ref: #regex-aliases236749
-Node: Combining aliases237468
-Ref: #combining-aliases237651
-Node: Aliases and multiple files238927
-Ref: #aliases-and-multiple-files239126
-Node: end aliases239705
-Ref: #end-aliases239852
-Node: Default parent account240001
-Ref: #default-parent-account240191
-Node: Periodic transactions241075
-Ref: #periodic-transactions241258
-Node: Periodic rule syntax243175
-Ref: #periodic-rule-syntax243375
-Node: Two spaces between period expression and description!244079
-Ref: #two-spaces-between-period-expression-and-description244392
-Node: Forecasting with periodic transactions245076
-Ref: #forecasting-with-periodic-transactions245375
-Node: Budgeting with periodic transactions248146
-Ref: #budgeting-with-periodic-transactions248379
-Node: Auto postings248788
-Ref: #auto-postings248924
-Node: Auto postings and multiple files251103
-Ref: #auto-postings-and-multiple-files251301
-Node: Auto postings and dates251510
-Ref: #auto-postings-and-dates251778
-Node: Auto postings and transaction balancing / inferred amounts / balance assertions251953
-Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions252298
-Node: Auto posting tags252801
-Ref: #auto-posting-tags253010
-Node: CSV FORMAT253646
-Ref: #csv-format253774
-Node: Examples256403
-Ref: #examples256506
-Node: Basic256714
-Ref: #basic256816
-Node: Bank of Ireland257358
-Ref: #bank-of-ireland257495
-Node: Amazon258957
-Ref: #amazon259077
-Node: Paypal260796
-Ref: #paypal260892
-Node: CSV rules268536
-Ref: #csv-rules268654
-Node: skip268987
-Ref: #skip269087
-Node: fields list269462
-Ref: #fields-list269601
-Node: field assignment271104
-Ref: #field-assignment271256
-Node: Field names272291
-Ref: #field-names272431
-Node: date field272811
-Ref: #date-field272931
-Node: date2 field272979
-Ref: #date2-field273122
-Node: status field273178
-Ref: #status-field273323
-Node: code field273372
-Ref: #code-field273519
-Node: description field273564
-Ref: #description-field273726
-Node: comment field273785
-Ref: #comment-field273942
-Node: account field274242
-Ref: #account-field274394
-Node: amount field274969
-Ref: #amount-field275120
-Node: currency field276365
-Ref: #currency-field276520
-Node: balance field276777
-Ref: #balance-field276911
-Node: separator277283
-Ref: #separator277415
-Node: if block277955
-Ref: #if-block278082
-Node: Matching the whole record278483
-Ref: #matching-the-whole-record278660
-Node: Matching individual fields279463
-Ref: #matching-individual-fields279669
-Node: Combining matchers279893
-Ref: #combining-matchers280091
-Node: Rules applied on successful match280404
-Ref: #rules-applied-on-successful-match280597
-Node: if table281251
-Ref: #if-table281372
-Node: end283110
-Ref: #end283224
-Node: date-format283448
-Ref: #date-format283582
-Node: decimal-mark284578
-Ref: #decimal-mark284725
-Node: newest-first285064
-Ref: #newest-first285207
-Node: include285890
-Ref: #include286023
-Node: balance-type286467
-Ref: #balance-type286589
-Node: Tips287289
-Ref: #tips287380
-Node: Rapid feedback287679
-Ref: #rapid-feedback287798
-Node: Valid CSV288250
-Ref: #valid-csv288382
-Node: File Extension288574
-Ref: #file-extension288728
-Node: Reading multiple CSV files289157
-Ref: #reading-multiple-csv-files289344
-Node: Valid transactions289585
-Ref: #valid-transactions289765
-Node: Deduplicating importing290393
-Ref: #deduplicating-importing290574
-Node: Setting amounts291607
-Ref: #setting-amounts291764
-Node: Amount signs294205
-Ref: #amount-signs294359
-Node: Setting currency/commodity295046
-Ref: #setting-currencycommodity295234
-Node: Amount decimal places296408
-Ref: #amount-decimal-places296600
-Node: Referencing other fields296912
-Ref: #referencing-other-fields297111
-Node: How CSV rules are evaluated298008
-Ref: #how-csv-rules-are-evaluated298183
-Node: TIMECLOCK FORMAT299634
-Ref: #timeclock-format299774
-Node: TIMEDOT FORMAT301835
-Ref: #timedot-format301973
-Node: COMMON TASKS306535
-Ref: #common-tasks306664
-Node: Getting help307071
-Ref: #getting-help307205
-Node: Constructing command lines307758
-Ref: #constructing-command-lines307952
-Node: Starting a journal file308649
-Ref: #starting-a-journal-file308849
-Node: Setting opening balances310037
-Ref: #setting-opening-balances310235
-Node: Recording transactions313376
-Ref: #recording-transactions313558
-Node: Reconciling314114
-Ref: #reconciling314259
-Node: Reporting316516
-Ref: #reporting316658
-Node: Migrating to a new file320657
-Ref: #migrating-to-a-new-file320807
-Node: LIMITATIONS321106
-Ref: #limitations321234
-Node: TROUBLESHOOTING321977
-Ref: #troubleshooting322092
+Node: Directives and multiple files216097
+Ref: #directives-and-multiple-files216293
+Node: Comment blocks216985
+Ref: #comment-blocks217162
+Node: Including other files217338
+Ref: #including-other-files217512
+Node: Default year218436
+Ref: #default-year218594
+Node: Declaring payees219001
+Ref: #declaring-payees219172
+Node: Declaring the decimal mark219418
+Ref: #declaring-the-decimal-mark219618
+Node: Declaring commodities220015
+Ref: #declaring-commodities220206
+Node: Commodity error checking222724
+Ref: #commodity-error-checking222874
+Node: Default commodity223131
+Ref: #default-commodity223311
+Node: Declaring market prices224427
+Ref: #declaring-market-prices224616
+Node: Declaring accounts225429
+Ref: #declaring-accounts225609
+Node: Account error checking226811
+Ref: #account-error-checking226977
+Node: Account comments228156
+Ref: #account-comments228340
+Node: Account subdirectives228764
+Ref: #account-subdirectives228949
+Node: Account types229262
+Ref: #account-types229436
+Node: Declaring account types230094
+Ref: #declaring-account-types230273
+Node: Auto-detected account types231327
+Ref: #auto-detected-account-types231514
+Node: Account display order233532
+Ref: #account-display-order233692
+Node: Rewriting accounts234843
+Ref: #rewriting-accounts235022
+Node: Basic aliases235779
+Ref: #basic-aliases235915
+Node: Regex aliases236659
+Ref: #regex-aliases236821
+Node: Combining aliases237540
+Ref: #combining-aliases237723
+Node: Aliases and multiple files238999
+Ref: #aliases-and-multiple-files239198
+Node: end aliases239777
+Ref: #end-aliases239924
+Node: Default parent account240073
+Ref: #default-parent-account240263
+Node: Periodic transactions241147
+Ref: #periodic-transactions241330
+Node: Periodic rule syntax243247
+Ref: #periodic-rule-syntax243447
+Node: Two spaces between period expression and description!244151
+Ref: #two-spaces-between-period-expression-and-description244464
+Node: Forecasting with periodic transactions245148
+Ref: #forecasting-with-periodic-transactions245447
+Node: Budgeting with periodic transactions248218
+Ref: #budgeting-with-periodic-transactions248451
+Node: Auto postings248860
+Ref: #auto-postings248996
+Node: Auto postings and multiple files251175
+Ref: #auto-postings-and-multiple-files251373
+Node: Auto postings and dates251582
+Ref: #auto-postings-and-dates251850
+Node: Auto postings and transaction balancing / inferred amounts / balance assertions252025
+Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions252370
+Node: Auto posting tags252873
+Ref: #auto-posting-tags253082
+Node: CSV FORMAT253718
+Ref: #csv-format253846
+Node: Examples256475
+Ref: #examples256578
+Node: Basic256786
+Ref: #basic256888
+Node: Bank of Ireland257430
+Ref: #bank-of-ireland257567
+Node: Amazon259029
+Ref: #amazon259149
+Node: Paypal260868
+Ref: #paypal260964
+Node: CSV rules268608
+Ref: #csv-rules268726
+Node: skip269059
+Ref: #skip269159
+Node: fields list269534
+Ref: #fields-list269673
+Node: field assignment271176
+Ref: #field-assignment271328
+Node: Field names272363
+Ref: #field-names272503
+Node: date field272883
+Ref: #date-field273003
+Node: date2 field273051
+Ref: #date2-field273194
+Node: status field273250
+Ref: #status-field273395
+Node: code field273444
+Ref: #code-field273591
+Node: description field273636
+Ref: #description-field273798
+Node: comment field273857
+Ref: #comment-field274014
+Node: account field274314
+Ref: #account-field274466
+Node: amount field275041
+Ref: #amount-field275192
+Node: currency field276437
+Ref: #currency-field276592
+Node: balance field276849
+Ref: #balance-field276983
+Node: separator277355
+Ref: #separator277487
+Node: if block278027
+Ref: #if-block278154
+Node: Matching the whole record278555
+Ref: #matching-the-whole-record278732
+Node: Matching individual fields279535
+Ref: #matching-individual-fields279741
+Node: Combining matchers279965
+Ref: #combining-matchers280163
+Node: Rules applied on successful match280476
+Ref: #rules-applied-on-successful-match280669
+Node: if table281323
+Ref: #if-table281444
+Node: end283182
+Ref: #end283296
+Node: date-format283520
+Ref: #date-format283654
+Node: decimal-mark284650
+Ref: #decimal-mark284797
+Node: newest-first285136
+Ref: #newest-first285279
+Node: include285962
+Ref: #include286095
+Node: balance-type286539
+Ref: #balance-type286661
+Node: Tips287361
+Ref: #tips287452
+Node: Rapid feedback287751
+Ref: #rapid-feedback287870
+Node: Valid CSV288322
+Ref: #valid-csv288454
+Node: File Extension288646
+Ref: #file-extension288800
+Node: Reading multiple CSV files289229
+Ref: #reading-multiple-csv-files289416
+Node: Valid transactions289657
+Ref: #valid-transactions289837
+Node: Deduplicating importing290465
+Ref: #deduplicating-importing290646
+Node: Setting amounts291679
+Ref: #setting-amounts291836
+Node: Amount signs294277
+Ref: #amount-signs294431
+Node: Setting currency/commodity295118
+Ref: #setting-currencycommodity295306
+Node: Amount decimal places296480
+Ref: #amount-decimal-places296672
+Node: Referencing other fields296984
+Ref: #referencing-other-fields297183
+Node: How CSV rules are evaluated298080
+Ref: #how-csv-rules-are-evaluated298255
+Node: TIMECLOCK FORMAT299706
+Ref: #timeclock-format299846
+Node: TIMEDOT FORMAT301907
+Ref: #timedot-format302045
+Node: COMMON TASKS306607
+Ref: #common-tasks306736
+Node: Getting help307143
+Ref: #getting-help307277
+Node: Constructing command lines307830
+Ref: #constructing-command-lines308024
+Node: Starting a journal file308721
+Ref: #starting-a-journal-file308921
+Node: Setting opening balances310109
+Ref: #setting-opening-balances310307
+Node: Recording transactions313448
+Ref: #recording-transactions313630
+Node: Reconciling314186
+Ref: #reconciling314331
+Node: Reporting316588
+Ref: #reporting316730
+Node: Migrating to a new file320729
+Ref: #migrating-to-a-new-file320879
+Node: LIMITATIONS321178
+Ref: #limitations321306
+Node: TROUBLESHOOTING322049
+Ref: #troubleshooting322164
 
 End Tag Table
 

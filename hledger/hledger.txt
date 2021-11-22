@@ -4918,20 +4918,23 @@ JOURNAL FORMAT
                                                                   options with sim-
                                                                   ilar effect
        -----------------------------------------------------------------------------
+       READING/GENERATING DATA:
        Declaring a commodity's or file's   commodity, D, deci-
        decimal  mark   to   help   parse   mal-mark
        amounts accurately
-       Modifying the journal file  while   alias,        apply    --alias
-       parsing                             account,   comment,
+       Applying  changes  to  the   data   alias,        apply    --alias
+       while parsing                       account,   comment,
                                            D, Y
        Inlining  or  concatenating extra   include                multiple
        data files                                                 -f/--file's
        Generating  extra transactions or   ~
        budget goals
-       Generating extra postings           =
 
-       Defining entities  to  help  with   account, commodity,
-       error checking                      payee
+       Generating extra postings           =
+       CHECKING FOR ERRORS:
+       Defining valid entities to  allow   account, commodity,
+       stricter error checking             payee
+       DISPLAYING REPORTS:
        Defining accounts' display  order   account
        and accounting type
        Defining commodity display styles   commodity, D           -c/--commodity-
