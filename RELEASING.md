@@ -234,6 +234,7 @@ In release branch:
 In site: 
 
 - make snapshot-NEW
+- (cd src; rm current; ln -s NEW current)
 
 - js/site.js: add NEW, update currentrelease
 
