@@ -2858,63 +2858,63 @@ account ACCTNAME  [ACCTTYPE] [;COMMENT]
 
 ### Account types
 
-hledger recognises five main types of account,
-corresponding to the account classes in the [accounting equation]:
+By adding a `type` tag to the [account directive],
+with value
+`A`, `L`, `E`, `R`, `X`, `C`
+(or if you prefer: `Asset`, `Liability`, `Equity`, `Revenue`, `Expense`, `Cash`),
+you can declare hledger accounts to be of a certain type:
 
-`Asset`, `Liability`, `Equity`, `Revenue`, `Expense`.
+- **asset**, 
+  **liability**, 
+  **equity**, 
+  **revenue**, 
+  **expense**\
+  the [standard types] in accounting, or
 
-These account types are important for controlling which accounts
-appear in the [balancesheet], [balancesheetequity],
-[incomestatement] reports (and probably for other things in future).
+- **cash**\
+  a subtype of asset, used for [liquid assets][CCE].
 
-Additionally, we recognise the `Cash` type, which is also an `Asset`,
-and which causes accounts to appear in the [cashflow] report.
-("Cash" here means [liquid assets][CCE], eg bank balances
-but typically not investments or receivables.)
+Declaring account types is a good idea, since it helps enable the easy 
+[balancesheet], [balancesheetequity], [incomestatement] and [cashflow] reports, 
+and probably other things in future. 
+As a convenience, when account types are not declared, 
+hledger will try to guess them based on english-language account names.
 
+Here is a typical set of top-level account declarations 
+(because of the aforementioned, with these account names the type tags are not strictly needed,
+but with non-english or non-standard account names, they will be):
+
+```journal
+account assets       ; type: A
+account liabilities  ; type: L
+account equity       ; type: E
+account revenues     ; type: R
+account expenses     ; type: X
+
+account assets:bank  ; type: C
+account assets:cash  ; type: C
+```
+
+It's not necessary to declare the type of subaccounts.
+(You can, if they are different from the parent, but this is not common.)
+
+[standard types]:      https://en.wikipedia.org/wiki/Chart_of_accounts#Types_of_accounts
 [accounting equation]: https://en.wikipedia.org/wiki/Accounting_equation
 [CCE]:                 https://en.wikipedia.org/wiki/Cash_and_cash_equivalents
-
-#### Declaring account types
-
-To make the [balancesheet]/[balancesheetequity]/[cashflow]/[incomestatement] reports work,
-generally you should declare your top-level accounts, and their types.
-For each top-level account, write an [account directive](#declaring-accounts),
-with a `type:` [tag](#tags). The tag's value can be any of
-`Asset`, `Liability`, `Equity`, `Revenue`, `Expense`, `Cash`,
-or (for short) `A`, `L`, `E`, `R`, `X`, `C` (case insensitive).
-An account's type is inherited by its subaccounts, unless they declare a different type.
-Here's an example, declaring all six account types:
-
-```journal
-account assets       ; type: Asset
-account assets:bank  ; type: Cash
-account assets:cash  ; type: Cash
-account liabilities  ; type: Liability
-account equity       ; type: Equity
-account revenues     ; type: Revenue
-account expenses     ; type: Expense
-```
-
-There is also an older syntax, which is deprecated and will be dropped soon
-(A, L, E, R or X separated from the account name by two or more spaces):
-
-```journal
-account assets       A
-account liabilities  L
-account equity       E
-account revenues     R
-account expenses     X
-```
+[account directive]:   #declaring-accounts
 
 #### Auto-detected account types
 
+More about "guessing" account types:
 hledger tries to find at least one top level account in each of the 
 six account types (Asset, Liability, Equity, Revenue, Expense, Cash).
 When no accounts have been declared for a particular type, 
-hledger tries to auto-detect some accounts by name,
-using [regular expressions](#regular-expressions):
+it tries to auto-detect some accounts by name,
+using the [regular expressions](#regular-expressions) below.
+Note: if you declare any account's type, it's a good idea to declare an account for all six types,
+because a mix of declared and auto-detected types can cause confusing results. 
 
+The auto-detection rules are:
 <!-- monospace to work around https://github.com/simonmichael/hledger/issues/1573 -->
 ```
  If account's name matches this case insensitive regular expression:| its type is:
@@ -2927,33 +2927,6 @@ using [regular expressions](#regular-expressions):
  ^(income|revenue)s?(:|$)                                           | Revenue
  ^expenses?(:|$)                                                    | Expense
 ```
-
-For people using standard english account names,
-this feature helps hledger's [high-level reports](#declaring-account-types) work out of the box with minimal configuration.
-
-If you use non-english account names,
-you should [declare account types](#declaring-account-types) to make these reports work.
-And more generally, declaring accounts and types is usually a good idea,
-for increased clarity and predictability 
-(and for the other benefits of account directives: error checking, display order, etc).
-
-Notes:
-
-- When any account is declared as some type, this disables auto-detection for that particular type.
-- If you declare any account's type, it's a good idea to declare 
-  an account for all six types, since a mix of declared and auto-detected 
-  types can cause confusion.
-  For example, here liabilities is declared to be Equity, but would also 
-  be auto-detected as Liability, since no Liability account is declared:
-
-  ```journal
-  account liabilities  ; type:Equity
-
-  2020-01-01
-    assets        1
-    liabilities   1
-    equity       -2
-  ```
 
 ### Account display order
 
