@@ -267,12 +267,6 @@ Here are some ways to handle that:
 [csv-mode]: https://elpa.gnu.org/packages/csv-mode.html
 [visidata]: https://www.visidata.org
 
-### Showing declared accounts
-
-With `--declared`, accounts which have been declared with an [account directive](#declaring-accounts), 
-even if they have no transactions yet, will be included in the balance report with a zero balance,
-and will be visible with `-E/--empty`.
-
 ### Commodity layout
 
 With `--layout`, you can control how amounts with more than one commodity are displayed:

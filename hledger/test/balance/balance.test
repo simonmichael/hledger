@@ -168,10 +168,3 @@ hledger -f - balance -N --output-format=csv --tree
 "Assets:Cash","$-1"
 >>>= 0
 
-# 9. --declared includes all declared accounts, with a zero balance if they have no postings.
-hledger -f - balance -N --declared -E
-<<<
-account a
->>>
-                   0  a
->>>= 0

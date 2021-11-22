@@ -148,13 +148,12 @@ data ReportOpts = ReportOpts {
                                         --   (Not a regexp, nor a full hledger query, for now.)
     ,accountlistmode_  :: AccountListMode
     ,drop_             :: Int
-    ,declared_         :: Bool  -- ^ Include accounts declared but not yet posted to ?
     ,row_total_        :: Bool
     ,no_total_         :: Bool
-    ,show_costs_       :: Bool  -- ^ Show costs for reports which normally don't show them ?
+    ,show_costs_       :: Bool  -- ^ Whether to show costs for reports which normally don't show them
     ,sort_amount_      :: Bool
     ,percent_          :: Bool
-    ,invert_           :: Bool  -- ^ Flip all amount signs in reports ?
+    ,invert_           :: Bool  -- ^ if true, flip all amount signs in reports
     ,normalbalance_    :: Maybe NormalSign
       -- ^ This can be set when running balance reports on a set of accounts
       --   with the same normal balance type (eg all assets, or all incomes).
@@ -198,7 +197,6 @@ defreportopts = ReportOpts
     , budgetpat_        = Nothing
     , accountlistmode_  = ALFlat
     , drop_             = 0
-    , declared_         = False
     , row_total_        = False
     , no_total_         = False
     , show_costs_       = False
@@ -252,7 +250,6 @@ rawOptsToReportOpts d rawopts =
           ,budgetpat_        = maybebudgetpatternopt rawopts
           ,accountlistmode_  = accountlistmodeopt rawopts
           ,drop_             = posintopt "drop" rawopts
-          ,declared_         = boolopt "declared" rawopts
           ,row_total_        = boolopt "row-total" rawopts
           ,no_total_         = boolopt "no-total" rawopts
           ,show_costs_       = boolopt "show-costs" rawopts
