@@ -2482,8 +2482,24 @@ Here are some more definitions:
   decimal places.
 
 Directives are not required when starting out with hledger, but you
-will probably add some as your needs grow. Here are all the directives
-and their precise effects:
+will probably add some as your needs grow. 
+Here is an overview of directives by purpose:
+
+| purpose                                                                       | directives                                              | command line options with similar effect    |
+|-------------------------------------------------------------------------------|---------------------------------------------------------|---------------------------------------------|
+| **READING/GENERATING DATA:**                                                  |                                                         |                                             |
+| Declare a commodity's or file's decimal mark to help parse amounts accurately | [`commodity`], [`D`], [`decimal-mark`]                  |                                             |
+| Apply changes to the data while parsing                                       | [`alias`], [`apply account`], [`comment`], [`D`], [`Y`] | [`--alias`]                                 |
+| Inline extra data files                                                       | [`include`]                                             | [multiple `-f/--file`'s](#multiple-files)   |
+| Generate extra transactions or budget goals                                   | [`~`]                                                   |                                             |
+| Generate extra postings                                                       | [`=`]                                                   |                                             |
+| **CHECKING FOR ERRORS:**                                                      |                                                         |                                             |
+| Define valid entities to allow stricter error checking                        | [`account`], [`commodity`], [`payee`]                   |                                             |
+| **DISPLAYING REPORTS:**                                                       |                                                         |                                             |
+| Declare accounts' display order and accounting type                           | [`account`]                                             |                                             |
+| Declare commodity display styles                                              | [`commodity`], [`D`]                                    | [`-c/--commodity-style`](#commodity-styles) |
+
+And here are all the directives and their precise effects:
 
 <!-- <style> -->
 <!-- table a code { white-space:nowrap; } -->
@@ -2505,22 +2521,6 @@ and their precise effects:
 | **[`Y`]**             | Declares a year for yearless dates, for following entries until end of current file.                                                                                                                                                                                                           | Y                 |
 | **[`~`]** (tilde)     | Declares a periodic transaction rule that generates future transactions with `--forecast` and budget goals with `balance --budget`.                                                                                                                                                            |                   |
 | **[`=`]** (equals)    | Declares an auto posting rule that generates extra postings on matched transactions with `--auto`, in current, parent, and child files (but not sibling files, see [#1212](https://github.com/simonmichael/hledger/issues/1212)).                                                              | partly            |
-
-And here is an overview of which directives are useful for what:
-
-| purpose                                                                       | directives                                              | command line options with similar effect    |
-|-------------------------------------------------------------------------------|---------------------------------------------------------|---------------------------------------------|
-| **READING/GENERATING DATA:**                                                  |                                                         |                                             |
-| Declare a commodity's or file's decimal mark to help parse amounts accurately | [`commodity`], [`D`], [`decimal-mark`]                  |                                             |
-| Apply changes to the data while parsing                                       | [`alias`], [`apply account`], [`comment`], [`D`], [`Y`] | [`--alias`]                                 |
-| Inline or concatenate extra data files                                        | [`include`]                                             | [multiple `-f/--file`'s](#multiple-files)   |
-| Generate extra transactions or budget goals                                   | [`~`]                                                   |                                             |
-| Generate extra postings                                                       | [`=`]                                                   |                                             |
-| **CHECKING FOR ERRORS:**                                                      |                                                         |                                             |
-| Define valid entities to allow stricter error checking                        | [`account`], [`commodity`], [`payee`]                   |                                             |
-| **DISPLAYING REPORTS:**                                                       |                                                         |                                             |
-| Declare accounts' display order and accounting type                           | [`account`]                                             |                                             |
-| Declare commodity display styles                                              | [`commodity`], [`D`]                                    | [`-c/--commodity-style`](#commodity-styles) |
 
 [`account`]:           #declaring-accounts
 [`alias`]:             #rewriting-accounts
