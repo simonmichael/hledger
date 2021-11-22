@@ -2466,74 +2466,81 @@ $ hledger print --explicit
 ## Directives
 
 A directive is a line in the journal beginning with a special keyword,
-that influences how the journal is processed.
-hledger's directives are based on a subset of Ledger's, but there are many differences
-(and also some differences between hledger versions).
+that influences how the journal is processed, how things are displayed, and so on.
+hledger's directives are based on (a subset of) Ledger's, but there are many differences,
+and also some differences between hledger versions.
+<!-- Directives' behaviour and interactions can get [complex](https://github.com/simonmichael/hledger/issues/793). -->
+Here are some more definitions:
 
-Directives' behaviour and interactions can get a little bit [complex](https://github.com/simonmichael/hledger/issues/793),
-so here is a table summarising the directives and their effects, with links to more detailed docs.
+- *subdirective* - Some directives support subdirectives, written
+  indented below the parent directive.
+
+- *decimal mark* - The character to interpret as a decimal mark
+  (period or comma) when parsing amounts of a commodity.
+
+- *display style* - How to display amounts of a commodity in output:
+  symbol side and spacing, digit groups, decimal mark, and number of
+  decimal places.
+
+Here are all the directives and their precise effects, with links to more detailed docs below:
 
 <!-- <style> -->
 <!-- table a code { white-space:nowrap; } -->
 <!-- h1,h2,h3,h4,h5,h6 { color:red; } -->
 <!-- </style> -->
 
-| directive         | end directive       | subdirectives   | purpose                                                            | can affect (as of 2018/06)
-|-------------------|---------------------|-----------------|--------------------------------------------------------------------|----------------------------------------------
-| [`account`]       |                     | any text        | document account names, declare account types & display order      | all entries in all files, before or after
-| [`alias`]         | `end aliases`       |                 | rewrite account names                                              | following entries until end of current file or end directive
-| [`apply account`] | `end apply account` |                 | prepend a common parent to account names                           | following entries until end of current file or end directive
-| [`comment`]       | `end comment`       |                 | ignore part of journal                                             | following entries until end of current file or end directive
-| [`commodity`]     |                     | `format`        | declare a commodity and its number notation & display style        | number notation: following entries until end of current file; <br>display style: amounts of that commodity in reports
-| [`decimal-mark`]  |                     |                 | declare the decimal mark character for parsing this file           | following entries until next decimal-mark or end of current file; included files can override
-| [`D`]             |                     |                 | declare a commodity to be used for commodityless amounts, and its number notation & display style  | default commodity: following commodityless entries until end of current file; <br>number notation: following entries in that commodity until end of current file; <br>display style: amounts of that commodity in reports
-| [`include`]       |                     |                 | include entries/directives from another file                       | what the included directives affect
-| [`payee`]         |                     |                 | declare a payee name                                               | following entries until end of current file
-| [`P`]             |                     |                 | declare a market price for a commodity                             | amounts of that commodity in reports, when -V is used
-| [`Y`]             |                     |                 | declare a year for yearless dates                                  | following entries until end of current file
-| [`=`]             |                     |                 | declare an auto posting rule, adding postings to other transactions | all entries in parent/current/child files (but not sibling files, see [#1212](https://github.com/simonmichael/hledger/issues/1212))
+| directive             | effects                                                                                                                                                                                                                                                                                     |
+|-----------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **[`account`]**       | Declare an account, for [checking](#check) all entries in all files;<br>and its [display order](#account-display-order) and [type](#declaring-account-types), for reports.<br>Subdirectives: any text, ignored.                                                                             |
+| **[`alias`]**         | Rewrites account names, in following entries until end of current file or [`end aliases`].                                                                                                                                                                                                  |
+| **[`apply account`]** | Prepends a common parent account to all account names, in following entries until end of current file or [`end apply account`].                                                                                                                                                             |
+| **[`comment`]**       | Ignores part of the journal file, until end of current file or [`end comment`].                                                                                                                                                                                                             |
+| **[`commodity`]**     | Declares a commodity, for checking all entries in all files;<br>the decimal mark for parsing amounts of this commodity, for following entries until end of current file;<br>and its display style, for reports. Takes precedence over `D`.<br>Subdirectives: [`format`] (alternate syntax). |
+| **[`D`]**             | Sets a default commodity to use for no-symbol amounts,<br>and its decimal mark for parsing amounts of this commodity in following entries until end of current file;<br>and its display style, for reports.                                                                                 |
+| **[`decimal-mark`]**  | Declares the decimal mark, for parsing amounts of all commodities in following entries until next `decimal-mark` or end of current file. Included files can override. Takes precedence over `commodity` and `D`.                                                                            |
+| **[`include`]**       | Includes entries and directives from another file, as if they were written inline.                                                                                                                                                                                                          |
+| **[`payee`]**         | Declares a payee name, for checking all entries in all files.                                                                                                                                                                                                                               |
+| **[`P`]**             | Declares a market price for a commodity on some date, for [valuation](#valuation) reports.                                                                                                                                                                                                  |
+| **[`Y`]**             | Declares a year for yearless dates, for following entries until end of current file.                                                                                                                                                                                                        |
+| **[`~`]** (tilde)     | Declares a periodic transaction rule that generates future transactions with `--forecast` and budget goals with `balance --budget`.                                                                                                                                                         |
+| **[`=`]** (equals)    | Declares an auto posting rule that generates extra postings on matched transactions with `--auto`, in current, parent, and child files (but not sibling files, see [#1212](https://github.com/simonmichael/hledger/issues/1212)).                                                           |
 
-[`account`]:       #declaring-accounts
-[`alias`]:         #rewriting-accounts
-[`apply account`]: #default-parent-account
-[`comment`]:       #comment-blocks
-[`commodity`]:     #declaring-commodities
-[`D`]:             #default-commodity
-[`include`]:       #including-other-files
-[`payee`]:         #declaring-payees
-[`P`]:             #market-prices
-[`Y`]:             #default-year
-[`=`]:             #auto-postings
+And here is an overview of which directives are useful for what:
 
-And some definitions:
+| purpose                                                                         | directives                                    | command line options with similar effect |
+|---------------------------------------------------------------------------------|-----------------------------------------------|------------------------------------------|
+| Declaring a commodity's or file's decimal mark to help parse amounts accurately | `commodity`, `D`, `decimal-mark`              |                                          |
+| Modifying the journal file while parsing                                        | `alias`, `apply account`, `comment`, `D`, `Y` | `--alias`                                |
+| Inlining or concatenating extra data files                                      | `include`                                     | multiple `-f/--file`'s                   |
+| Generating extra transactions or budget goals                                   | `~`                                           |                                          |
+| Generating extra postings                                                       | `=`                                           |                                          |
+| Defining entities to help with error checking                                   | `account`, `commodity`, `payee`               |                                          |
+| Defining accounts' display order and accounting type                            | `account`                                     |                                          |
+| Defining commodity display styles for output                                    | `commodity`, `D`                              | `-c/--commodity-style`                   |
 
-|                 |                                                                                                                                                                                       |
-|-----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| subdirective    | optional indented directive line immediately following a parent directive                                                                                                             |
-| number notation | how to interpret numbers when parsing journal entries (the identity of the decimal separator character). (Currently each commodity can have its own notation, even in the same file.) |
-| display style   | how to display amounts of a commodity in reports (symbol side and spacing, digit groups, decimal separator, decimal places)                                                           |
-| directive scope | which entries and (when there are multiple files) which files are affected by a directive                                                                                             |
-
-<!-- | **entries affected:**  | -->
-<!-- | following     | subsequent entries in the file/parse stream -->
-<!-- | delimited     | subsequent entries, until an optional end directive -->
-<!-- | all           | all preceding and following entries -->
-<!-- | **files affected:**    | -->
-<!-- | current       | affects current file only -->
-<!-- | children      | affects current file and files included by it -->
-<!-- | siblings      | affects current file, included files, and other same-level files, but not higher-level files -->
-<!-- | all           | affects all files -->
-
-As you can see, directives vary in which journal entries and files they affect,
-and whether they are focussed on input (parsing) or output (reports).
-Some directives have multiple effects.
+[`account`]:           #declaring-accounts
+[`alias`]:             #rewriting-accounts
+[`end aliases`]:       #end-aliases
+[`apply account`]:     #default-parent-account
+[`end apply account`]: #end-apply-account
+[`comment`]:           #comment-blocks
+[`end comment`]:       #end-comment
+[`commodity`]:         #declaring-commodities
+[`format`]:            #format
+[`D`]:                 #default-commodity
+[`include`]:           #including-other-files
+[`payee`]:             #declaring-payees
+[`P`]:                 #market-prices
+[`Y`]:                 #default-year
+[`~`]:                 #periodic-transactions
+[`=`]:                 #auto-postings
 
 ## Directives and multiple files
 
 If you use multiple `-f`/`--file` options, or the `include` directive,
-hledger will process multiple input files. But note that directives
-which affect input (see above) typically last only until the end of
-the file in which they occur. 
+hledger will process multiple input files. But directives which affect
+input typically have effect only until the end of the file in which
+they occur (and on any included files in that region).
 
 This may seem inconvenient, but it's intentional; it makes reports
 stable and deterministic, independent of the order of input. Otherwise
@@ -2721,10 +2728,9 @@ or the end of the journal.
 For compatibility/historical reasons, `D` also acts like a [`commodity` directive](#declaring-commodities)
 (setting the commodity's decimal mark for parsing and [display style](#amount-display-format) for output).
 
+The syntax is `D AMOUNT`.
 As with `commodity`, the amount must include a decimal mark (either period or comma).
-If both `commodity` and `D` directives are used for the same commodity, the `commodity` style takes precedence.
-
-The syntax is `D AMOUNT`. Eg:
+Eg:
 ```journal
 ; commodity-less amounts should be treated as dollars
 ; (and displayed with the dollar sign on the left, thousands separators and two decimal places)
@@ -2734,6 +2740,13 @@ D $1,000.00
   a     5  ; <- commodity-less amount, parsed as $5 and displayed as $5.00
   b
 ```
+
+If both `commodity` and `D` directives are found for a commodity, 
+`commodity` takes precedence for setting decimal mark and display style.
+
+If you are using `D` and also [checking](#check) commodities, you will need
+to add a `commodity` directive similar to the `D`. 
+(The `hledger check commodities` command expects `commodity` directives, and ignores `D`).
 
 ## Declaring market prices
 
@@ -3097,8 +3110,9 @@ include c.journal  ; also affected
 
 ### `end aliases`
 
-You can clear (forget) all currently defined aliases with the `end
-aliases` directive:
+You can clear (forget) all currently defined aliases
+(seen in the journal so far, or defined on the command line)
+with this directive:
 
 ```journal
 end aliases
