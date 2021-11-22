@@ -1,4 +1,11 @@
 ;; -*- mode: org; mode: beancount; -*-
+
+account Assets
+account Liabilities
+account Equity
+account Income
+account Expenses
+
 ;; Birth: 1980-05-12
 ;; Dates: 2012-01-01 - 2014-10-12
 ;; THIS FILE HAS BEEN AUTO-GENERATED.
