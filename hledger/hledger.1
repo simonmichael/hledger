@@ -6672,194 +6672,197 @@ $ hledger print --explicit
 .SS Directives
 .PP
 A directive is a line in the journal beginning with a special keyword,
-that influences how the journal is processed.
-hledger\[aq]s directives are based on a subset of Ledger\[aq]s, but
-there are many differences (and also some differences between hledger
-versions).
+that influences how the journal is processed, how things are displayed,
+and so on.
+hledger\[aq]s directives are based on (a subset of) Ledger\[aq]s, but
+there are many differences, and also some differences between hledger
+versions.
+Here are some more definitions:
+.IP \[bu] 2
+\f[I]subdirective\f[R] - Some directives support subdirectives, written
+indented below the parent directive.
+.IP \[bu] 2
+\f[I]decimal mark\f[R] - The character to interpret as a decimal mark
+(period or comma) when parsing amounts of a commodity.
+.IP \[bu] 2
+\f[I]display style\f[R] - How to display amounts of a commodity in
+output: symbol side and spacing, digit groups, decimal mark, and number
+of decimal places.
 .PP
-Directives\[aq] behaviour and interactions can get a little bit complex,
-so here is a table summarising the directives and their effects, with
-links to more detailed docs.
+Here are all the directives and their precise effects, with links to
+more detailed docs below:
 .PP
 .TS
 tab(@);
-lw(7.8n) lw(8.6n) lw(7.0n) lw(27.8n) lw(18.8n).
+lw(5.2n) lw(64.8n).
 T{
 directive
 T}@T{
-end directive
-T}@T{
-subdirectives
-T}@T{
-purpose
-T}@T{
-can affect (as of 2018/06)
+effects
 T}
 _
 T{
-\f[C]account\f[R]
+\f[B]\f[CB]account\f[B]\f[R]
 T}@T{
-T}@T{
-any text
-T}@T{
-document account names, declare account types & display order
-T}@T{
-all entries in all files, before or after
+Declare an account, for checking all entries in all files;and its
+display order and type, for reports.Subdirectives: any text, ignored.
 T}
 T{
-\f[C]alias\f[R]
+\f[B]\f[CB]alias\f[B]\f[R]
 T}@T{
-\f[C]end aliases\f[R]
-T}@T{
-T}@T{
-rewrite account names
-T}@T{
-following entries until end of current file or end directive
+Rewrites account names, in following entries until end of current file
+or \f[C]end aliases\f[R].
 T}
 T{
-\f[C]apply account\f[R]
+\f[B]\f[CB]apply account\f[B]\f[R]
 T}@T{
-\f[C]end apply account\f[R]
-T}@T{
-T}@T{
-prepend a common parent to account names
-T}@T{
-following entries until end of current file or end directive
+Prepends a common parent account to all account names, in following
+entries until end of current file or \f[C]end apply account\f[R].
 T}
 T{
-\f[C]comment\f[R]
+\f[B]\f[CB]comment\f[B]\f[R]
 T}@T{
-\f[C]end comment\f[R]
-T}@T{
-T}@T{
-ignore part of journal
-T}@T{
-following entries until end of current file or end directive
+Ignores part of the journal file, until end of current file or
+\f[C]end comment\f[R].
 T}
 T{
-\f[C]commodity\f[R]
+\f[B]\f[CB]commodity\f[B]\f[R]
 T}@T{
-T}@T{
-\f[C]format\f[R]
-T}@T{
-declare a commodity and its number notation & display style
-T}@T{
-number notation: following entries until end of current file; display
-style: amounts of that commodity in reports
+Declares a commodity, for checking all entries in all files;the decimal
+mark for parsing amounts of this commodity, for following entries until
+end of current file;and its display style, for reports.
+Takes precedence over \f[C]D\f[R].Subdirectives: \f[C]format\f[R]
+(alternate syntax).
 T}
 T{
-\f[C]decimal-mark\f[R]
+\f[B]\f[CB]D\f[B]\f[R]
 T}@T{
-T}@T{
-T}@T{
-declare the decimal mark character for parsing this file
-T}@T{
-following entries until next decimal-mark or end of current file;
-included files can override
+Sets a default commodity to use for no-symbol amounts,and its decimal
+mark for parsing amounts of this commodity in following entries until
+end of current file;and its display style, for reports.
 T}
 T{
-\f[C]D\f[R]
+\f[B]\f[CB]decimal-mark\f[B]\f[R]
 T}@T{
-T}@T{
-T}@T{
-declare a commodity to be used for commodityless amounts, and its number
-notation & display style
-T}@T{
-default commodity: following commodityless entries until end of current
-file; number notation: following entries in that commodity until end of
-current file; display style: amounts of that commodity in reports
+Declares the decimal mark, for parsing amounts of all commodities in
+following entries until next \f[C]decimal-mark\f[R] or end of current
+file.
+Included files can override.
+Takes precedence over \f[C]commodity\f[R] and \f[C]D\f[R].
 T}
 T{
-\f[C]include\f[R]
+\f[B]\f[CB]include\f[B]\f[R]
 T}@T{
-T}@T{
-T}@T{
-include entries/directives from another file
-T}@T{
-what the included directives affect
+Includes entries and directives from another file, as if they were
+written inline.
 T}
 T{
-\f[C]payee\f[R]
+\f[B]\f[CB]payee\f[B]\f[R]
 T}@T{
-T}@T{
-T}@T{
-declare a payee name
-T}@T{
-following entries until end of current file
+Declares a payee name, for checking all entries in all files.
 T}
 T{
-\f[C]P\f[R]
+\f[B]\f[CB]P\f[B]\f[R]
 T}@T{
-T}@T{
-T}@T{
-declare a market price for a commodity
-T}@T{
-amounts of that commodity in reports, when -V is used
+Declares a market price for a commodity on some date, for valuation
+reports.
 T}
 T{
-\f[C]Y\f[R]
+\f[B]\f[CB]Y\f[B]\f[R]
 T}@T{
-T}@T{
-T}@T{
-declare a year for yearless dates
-T}@T{
-following entries until end of current file
+Declares a year for yearless dates, for following entries until end of
+current file.
 T}
 T{
-\f[C]=\f[R]
+\f[B]\f[CB]\[ti]\f[B]\f[R] (tilde)
 T}@T{
+Declares a periodic transaction rule that generates future transactions
+with \f[C]--forecast\f[R] and budget goals with
+\f[C]balance --budget\f[R].
+T}
+T{
+\f[B]\f[CB]=\f[B]\f[R] (equals)
 T}@T{
-T}@T{
-declare an auto posting rule, adding postings to other transactions
-T}@T{
-all entries in parent/current/child files (but not sibling files, see
-#1212)
+Declares an auto posting rule that generates extra postings on matched
+transactions with \f[C]--auto\f[R], in current, parent, and child files
+(but not sibling files, see #1212).
 T}
 .TE
 .PP
-And some definitions:
+And here is an overview of which directives are useful for what:
 .PP
 .TS
 tab(@);
-lw(6.0n) lw(64.0n).
+lw(33.4n) lw(19.4n) lw(17.3n).
 T{
-subdirective
+purpose
 T}@T{
-optional indented directive line immediately following a parent
-directive
+directives
+T}@T{
+command line options with similar effect
+T}
+_
+T{
+Declaring a commodity\[aq]s or file\[aq]s decimal mark to help parse
+amounts accurately
+T}@T{
+\f[C]commodity\f[R], \f[C]D\f[R], \f[C]decimal-mark\f[R]
+T}@T{
 T}
 T{
-number notation
+Modifying the journal file while parsing
 T}@T{
-how to interpret numbers when parsing journal entries (the identity of
-the decimal separator character).
-(Currently each commodity can have its own notation, even in the same
-file.)
+\f[C]alias\f[R], \f[C]apply account\f[R], \f[C]comment\f[R],
+\f[C]D\f[R], \f[C]Y\f[R]
+T}@T{
+\f[C]--alias\f[R]
 T}
 T{
-display style
+Inlining or concatenating extra data files
 T}@T{
-how to display amounts of a commodity in reports (symbol side and
-spacing, digit groups, decimal separator, decimal places)
+\f[C]include\f[R]
+T}@T{
+multiple \f[C]-f/--file\f[R]\[aq]s
 T}
 T{
-directive scope
+Generating extra transactions or budget goals
 T}@T{
-which entries and (when there are multiple files) which files are
-affected by a directive
+\f[C]\[ti]\f[R]
+T}@T{
+T}
+T{
+Generating extra postings
+T}@T{
+\f[C]=\f[R]
+T}@T{
+T}
+T{
+Defining entities to help with error checking
+T}@T{
+\f[C]account\f[R], \f[C]commodity\f[R], \f[C]payee\f[R]
+T}@T{
+T}
+T{
+Defining accounts\[aq] display order and accounting type
+T}@T{
+\f[C]account\f[R]
+T}@T{
+T}
+T{
+Defining commodity display styles for output
+T}@T{
+\f[C]commodity\f[R], \f[C]D\f[R]
+T}@T{
+\f[C]-c/--commodity-style\f[R]
 T}
 .TE
-.PP
-As you can see, directives vary in which journal entries and files they
-affect, and whether they are focussed on input (parsing) or output
-(reports).
-Some directives have multiple effects.
 .SS Directives and multiple files
 .PP
 If you use multiple \f[C]-f\f[R]/\f[C]--file\f[R] options, or the
 \f[C]include\f[R] directive, hledger will process multiple input files.
-But note that directives which affect input (see above) typically last
-only until the end of the file in which they occur.
+But directives which affect input typically have effect only until the
+end of the file in which they occur (and on any included files in that
+region).
 .PP
 This may seem inconvenient, but it\[aq]s intentional; it makes reports
 stable and deterministic, independent of the order of input.
@@ -7073,12 +7076,9 @@ For compatibility/historical reasons, \f[C]D\f[R] also acts like a
 \f[C]commodity\f[R] directive (setting the commodity\[aq]s decimal mark
 for parsing and display style for output).
 .PP
+The syntax is \f[C]D AMOUNT\f[R].
 As with \f[C]commodity\f[R], the amount must include a decimal mark
 (either period or comma).
-If both \f[C]commodity\f[R] and \f[C]D\f[R] directives are used for the
-same commodity, the \f[C]commodity\f[R] style takes precedence.
-.PP
-The syntax is \f[C]D AMOUNT\f[R].
 Eg:
 .IP
 .nf
@@ -7092,6 +7092,15 @@ D $1,000.00
   b
 \f[R]
 .fi
+.PP
+If both \f[C]commodity\f[R] and \f[C]D\f[R] directives are found for a
+commodity, \f[C]commodity\f[R] takes precedence for setting decimal mark
+and display style.
+.PP
+If you are using \f[C]D\f[R] and also checking commodities, you will
+need to add a \f[C]commodity\f[R] directive similar to the \f[C]D\f[R].
+(The \f[C]hledger check commodities\f[R] command expects
+\f[C]commodity\f[R] directives, and ignores \f[C]D\f[R]).
 .SS Declaring market prices
 .PP
 The \f[C]P\f[R] directive declares a market price, which is an exchange
@@ -7553,8 +7562,8 @@ include c.journal  ; also affected
 .fi
 .SS \f[C]end aliases\f[R]
 .PP
-You can clear (forget) all currently defined aliases with the
-\f[C]end aliases\f[R] directive:
+You can clear (forget) all currently defined aliases (seen in the
+journal so far, or defined on the command line) with this directive:
 .IP
 .nf
 \f[C]

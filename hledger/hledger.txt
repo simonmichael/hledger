@@ -4850,105 +4850,94 @@ JOURNAL FORMAT
 
    Directives
        A  directive is a line in the journal beginning with a special keyword,
-       that influences how the journal is processed.  hledger's directives are
-       based on a subset of Ledger's, but there are many differences (and also
-       some differences between hledger versions).
+       that influences how the journal is processed, how things are displayed,
+       and  so  on.  hledger's directives are based on (a subset of) Ledger's,
+       but there are many  differences,  and  also  some  differences  between
+       hledger versions.  Here are some more definitions:
 
-       Directives' behaviour and interactions can get a little bit complex, so
-       here  is  a  table  summarising  the directives and their effects, with
-       links to more detailed docs.
+       o subdirective   -   Some  directives  support  subdirectives,  written
+         indented below the parent directive.
 
+       o decimal mark - The character to interpret as a decimal  mark  (period
+         or comma) when parsing amounts of a commodity.
 
-       direc-     end         subdi-    purpose                        can  affect  (as of
-       tive       directive   rec-                                     2018/06)
-                              tives
-       ------------------------------------------------------------------------------------
-       account                any       document    account   names,   all  entries in all
-                              text      declare account types & dis-   files,  before   or
-                                        play order                     after
-       alias      end                   rewrite account names          following   entries
-                  aliases                                              until  end  of cur-
-                                                                       rent  file  or  end
-                                                                       directive
-       apply      end apply             prepend  a  common parent to   following   entries
-       account    account               account names                  until  end  of cur-
-                                                                       rent  file  or  end
-                                                                       directive
-       comment    end  com-             ignore part of journal         following   entries
-                  ment                                                 until  end  of cur-
-                                                                       rent  file  or  end
-                                                                       directive
-       commod-                format    declare a commodity and  its   number    notation:
-       ity                              number  notation  &  display   following   entries
-                                        style                          until end  of  cur-
-                                                                       rent  file; display
-                                                                       style:  amounts  of
-                                                                       that  commodity  in
-                                                                       reports
-       decimal-                         declare   the  decimal  mark   following   entries
-       mark                             character for  parsing  this   until next decimal-
-                                        file                           mark or end of cur-
-                                                                       rent file; included
-                                                                       files can override
-       D                                declare  a  commodity  to be   default  commodity:
-                                        used    for    commodityless   following   commod-
-                                        amounts,   and   its  number   ityless     entries
-                                        notation & display style       until  end  of cur-
-                                                                       rent  file;  number
-                                                                       notation: following
-                                                                       entries   in   that
-                                                                       commodity until end
-                                                                       of  current   file;
-                                                                       display      style:
-                                                                       amounts   of   that
-                                                                       commodity        in
-                                                                       reports
-       include                          include   entries/directives   what  the  included
-                                        from another file              directives affect
-       payee                            declare a payee name           following   entries
-                                                                       until  end  of cur-
-                                                                       rent file
-       P                                declare a market price for a   amounts   of   that
-                                        commodity                      commodity        in
-                                                                       reports, when -V is
-                                                                       used
-       Y                                declare a year for  yearless   following   entries
-                                        dates                          until end  of  cur-
-                                                                       rent file
-       =                                declare   an   auto  posting   all entries in par-
-                                        rule,  adding  postings   to   ent/current/child
-                                        other transactions             files (but not sib-
-                                                                       ling   files,   see
-                                                                       #1212)
+       o display style - How to display amounts of a commodity in output: sym-
+         bol side and spacing, digit groups, decimal mark, and number of deci-
+         mal places.
 
-       And some definitions:
+       Here  are  all  the directives and their precise effects, with links to
+       more detailed docs below:
 
 
-       subdi-   optional  indented directive line immediately following a parent
-       rec-     directive
+       direc-     effects
        tive
+       -----------------------------------------------------------------------------
+       account    Declare an account, for checking all entries in all files;and its
+                  display  order  and  type,  for  reports.Subdirectives: any text,
+                  ignored.
+       alias      Rewrites account names, in following entries until end of current
+                  file or end aliases.
+       apply      Prepends a common parent account to all account names, in follow-
+       account    ing entries until end of current file or end apply account.
+       comment    Ignores  part  of  the journal file, until end of current file or
+                  end comment.
+       commod-    Declares  a  commodity, for checking all entries in all files;the
+       ity        decimal mark for parsing amounts of this commodity, for following
+                  entries  until  end  of  current  file;and its display style, for
+                  reports.  Takes precedence over D.Subdirectives:  format  (alter-
+                  nate syntax).
+       D          Sets  a  default  commodity  to use for no-symbol amounts,and its
+                  decimal mark for parsing amounts of this commodity  in  following
+                  entries  until  end  of  current  file;and its display style, for
+                  reports.
+       deci-      Declares the decimal mark, for parsing amounts of all commodities
+       mal-       in  following  entries  until next decimal-mark or end of current
+       mark       file.  Included files can override.  Takes precedence  over  com-
+                  modity and D.
+       include    Includes entries and directives from another  file,  as  if  they
+                  were written inline.
+       payee      Declares a payee name, for checking all entries in all files.
+       P          Declares  a market price for a commodity on some date, for valua-
+                  tion reports.
+       Y          Declares a year for yearless dates, for following  entries  until
+                  end of current file.
+       ~          Declares a periodic transaction rule that generates future trans-
+       (tilde)    actions with --forecast and budget goals with balance --budget.
+       =          Declares an auto posting rule that generates  extra  postings  on
+       (equals)   matched  transactions  with --auto, in current, parent, and child
+                  files (but not sibling files, see #1212).
+
+       And here is an overview of which directives are useful for what:
 
 
+       purpose                             directives             command      line
+                                                                  options with sim-
+                                                                  ilar effect
+       -----------------------------------------------------------------------------
+       Declaring a commodity's or file's   commodity, D, deci-
+       decimal   mark   to   help  parse   mal-mark
+       amounts accurately
+       Modifying  the journal file while   alias,        apply    --alias
+       parsing                             account,   comment,
+                                           D, Y
+       Inlining or  concatenating  extra   include                multiple
+       data files                                                 -f/--file's
+       Generating extra transactions  or   ~
+       budget goals
+       Generating extra postings           =
+       Defining  entities  to  help with   account, commodity,
+       error checking                      payee
+       Defining  accounts' display order   account
+       and accounting type
 
-       number   how to interpret numbers when parsing journal entries (the iden-
-       nota-    tity  of the decimal separator character).  (Currently each com-
-       tion     modity can have its own notation, even in the same file.)
-       dis-     how to display amounts of a commodity in  reports  (symbol  side
-       play     and spacing, digit groups, decimal separator, decimal places)
-       style
-       direc-   which  entries  and  (when there are multiple files) which files
-       tive     are affected by a directive
-       scope
-
-       As you can see, directives vary in which journal entries and files they
-       affect,  and  whether  they  are  focussed on input (parsing) or output
-       (reports).  Some directives have multiple effects.
+       Defining commodity display styles   commodity, D           -c/--commodity-
+       for output                                                 style
 
    Directives and multiple files
        If you use  multiple  -f/--file  options,  or  the  include  directive,
-       hledger  will  process  multiple input files.  But note that directives
-       which affect input (see above) typically last only until the end of the
-       file in which they occur.
+       hledger will process multiple input files.  But directives which affect
+       input typically have effect only until the end of  the  file  in  which
+       they occur (and on any included files in that region).
 
        This may seem inconvenient, but it's intentional; it makes reports sta-
        ble and deterministic, independent of the order  of  input.   Otherwise
@@ -5117,11 +5106,8 @@ JOURNAL FORMAT
        directive (setting the commodity's decimal mark for parsing and display
        style for output).
 
-       As with commodity, the amount  must  include  a  decimal  mark  (either
-       period  or comma).  If both commodity and D directives are used for the
-       same commodity, the commodity style takes precedence.
-
-       The syntax is D AMOUNT.  Eg:
+       The syntax is D AMOUNT.  As with commodity, the amount must  include  a
+       decimal mark (either period or comma).  Eg:
 
               ; commodity-less amounts should be treated as dollars
               ; (and displayed with the dollar sign on the left, thousands separators and two decimal places)
@@ -5130,6 +5116,13 @@ JOURNAL FORMAT
               1/1
                 a     5  ; <- commodity-less amount, parsed as $5 and displayed as $5.00
                 b
+
+       If both commodity and D directives are found for a commodity, commodity
+       takes precedence for setting decimal mark and display style.
+
+       If you are using D and also checking commodities, you will need to  add
+       a commodity directive similar to the D.  (The hledger check commodities
+       command expects commodity directives, and ignores D).
 
    Declaring market prices
        The P directive declares a market price,  which  is  an  exchange  rate
@@ -5486,8 +5479,8 @@ JOURNAL FORMAT
               include c.journal  ; also affected
 
    end aliases
-       You  can  clear  (forget)  all  currently  defined aliases with the end
-       aliases directive:
+       You can clear (forget) all currently defined aliases (seen in the jour-
+       nal so far, or defined on the command line) with this directive:
 
               end aliases
 
