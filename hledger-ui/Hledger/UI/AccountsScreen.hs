@@ -78,11 +78,8 @@ asInit d reset ui@UIState{
                       where
                         as = map asItemAccountName displayitems
 
-    rspec' =
-      -- Further restrict the query based on the current period and future/forecast mode.
-      (reportSpecSetFutureAndForecast d (forecast_ $ inputopts_ copts) rspec)
-      -- always show declared accounts even if unused
-        {_rsReportOpts=ropts{declared_=True}}
+    -- Further restrict the query based on the current period and future/forecast mode.
+    rspec' = reportSpecSetFutureAndForecast d (forecast_ $ inputopts_ copts) rspec
 
     -- run the report
     (items,_total) = balanceReport rspec' j
