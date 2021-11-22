@@ -6694,52 +6694,66 @@ more detailed docs below:
 .PP
 .TS
 tab(@);
-lw(5.2n) lw(64.8n).
+lw(4.9n) lw(61.1n) lw(4.0n).
 T{
 directive
 T}@T{
 effects
+T}@T{
+ends at file end?
 T}
 _
 T{
 \f[B]\f[CB]account\f[B]\f[R]
 T}@T{
-Declare an account, for checking all entries in all files;and its
-display order and type, for reports.Subdirectives: any text, ignored.
+Declare an account, for checking all entries in all files; and its
+display order and type, for reports.
+Subdirectives: any text, ignored.
+T}@T{
 T}
 T{
 \f[B]\f[CB]alias\f[B]\f[R]
 T}@T{
 Rewrites account names, in following entries until end of current file
 or \f[C]end aliases\f[R].
+T}@T{
+Y
 T}
 T{
 \f[B]\f[CB]apply account\f[B]\f[R]
 T}@T{
 Prepends a common parent account to all account names, in following
 entries until end of current file or \f[C]end apply account\f[R].
+T}@T{
+Y
 T}
 T{
 \f[B]\f[CB]comment\f[B]\f[R]
 T}@T{
 Ignores part of the journal file, until end of current file or
 \f[C]end comment\f[R].
+T}@T{
+Y
 T}
 T{
 \f[B]\f[CB]commodity\f[B]\f[R]
 T}@T{
-Declares a commodity, for checking all entries in all files;the decimal
+Declares a commodity, for checking all entries in all files; the decimal
 mark for parsing amounts of this commodity, for following entries until
-end of current file;and its display style, for reports.
-Takes precedence over \f[C]D\f[R].Subdirectives: \f[C]format\f[R]
-(alternate syntax).
+end of current file; and its display style, for reports.
+Takes precedence over \f[C]D\f[R].
+Subdirectives: \f[C]format\f[R] (alternate syntax).
+T}@T{
+N, Y
 T}
 T{
 \f[B]\f[CB]D\f[B]\f[R]
 T}@T{
-Sets a default commodity to use for no-symbol amounts,and its decimal
+Sets a default commodity to use for no-symbol amounts, and its decimal
 mark for parsing amounts of this commodity in following entries until
-end of current file;and its display style, for reports.
+end of current file; and its display style, for reports.
+T}@T{
+Y
 T}
 T{
 \f[B]\f[CB]decimal-mark\f[B]\f[R]
@@ -6749,29 +6763,36 @@ following entries until next \f[C]decimal-mark\f[R] or end of current
 file.
 Included files can override.
 Takes precedence over \f[C]commodity\f[R] and \f[C]D\f[R].
+T}@T{
+Y
 T}
 T{
 \f[B]\f[CB]include\f[B]\f[R]
 T}@T{
 Includes entries and directives from another file, as if they were
 written inline.
+T}@T{
 T}
 T{
 \f[B]\f[CB]payee\f[B]\f[R]
 T}@T{
 Declares a payee name, for checking all entries in all files.
+T}@T{
 T}
 T{
 \f[B]\f[CB]P\f[B]\f[R]
 T}@T{
 Declares a market price for a commodity on some date, for valuation
 reports.
+T}@T{
 T}
 T{
 \f[B]\f[CB]Y\f[B]\f[R]
 T}@T{
 Declares a year for yearless dates, for following entries until end of
 current file.
+T}@T{
+Y
 T}
 T{
 \f[B]\f[CB]\[ti]\f[B]\f[R] (tilde)
@@ -6779,6 +6800,7 @@ T}@T{
 Declares a periodic transaction rule that generates future transactions
 with \f[C]--forecast\f[R] and budget goals with
 \f[C]balance --budget\f[R].
+T}@T{
 T}
 T{
 \f[B]\f[CB]=\f[B]\f[R] (equals)
@@ -6786,6 +6808,8 @@ T}@T{
 Declares an auto posting rule that generates extra postings on matched
 transactions with \f[C]--auto\f[R], in current, parent, and child files
 (but not sibling files, see #1212).
+T}@T{
+partly
 T}
 .TE
 .PP
@@ -6849,7 +6873,7 @@ T}@T{
 T}@T{
 T}
 T{
-Defining commodity display styles for output
+Defining commodity display styles
 T}@T{
 \f[C]commodity\f[R], \f[C]D\f[R]
 T}@T{
