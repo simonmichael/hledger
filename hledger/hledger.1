@@ -6689,8 +6689,9 @@ indented below the parent directive.
 output: symbol side and spacing, digit groups, decimal mark, and number
 of decimal places.
 .PP
-Here are all the directives and their precise effects, with links to
-more detailed docs below:
+Directives are not required when starting out with hledger, but you will
+probably add some as your needs grow.
+Here are all the directives and their precise effects:
 .PP
 .TS
 tab(@);
@@ -6817,7 +6818,7 @@ And here is an overview of which directives are useful for what:
 .PP
 .TS
 tab(@);
-lw(31.0n) lw(21.8n) lw(17.2n).
+lw(30.6n) lw(22.0n) lw(17.4n).
 T{
 purpose
 T}@T{
@@ -6832,14 +6833,14 @@ T}@T{
 T}@T{
 T}
 T{
-Declaring a commodity\[aq]s or file\[aq]s decimal mark to help parse
+Declare a commodity\[aq]s or file\[aq]s decimal mark to help parse
 amounts accurately
 T}@T{
 \f[C]commodity\f[R], \f[C]D\f[R], \f[C]decimal-mark\f[R]
 T}@T{
 T}
 T{
-Applying changes to the data while parsing
+Apply changes to the data while parsing
 T}@T{
 \f[C]alias\f[R], \f[C]apply account\f[R], \f[C]comment\f[R],
 \f[C]D\f[R], \f[C]Y\f[R]
@@ -6847,20 +6848,20 @@ T}@T{
 \f[C]--alias\f[R]
 T}
 T{
-Inlining or concatenating extra data files
+Inline or concatenate extra data files
 T}@T{
 \f[C]include\f[R]
 T}@T{
 multiple \f[C]-f/--file\f[R]\[aq]s
 T}
 T{
-Generating extra transactions or budget goals
+Generate extra transactions or budget goals
 T}@T{
 \f[C]\[ti]\f[R]
 T}@T{
 T}
 T{
-Generating extra postings
+Generate extra postings
 T}@T{
 \f[C]=\f[R]
 T}@T{
@@ -6871,7 +6872,7 @@ T}@T{
 T}@T{
 T}
 T{
-Defining valid entities to allow stricter error checking
+Define valid entities to allow stricter error checking
 T}@T{
 \f[C]account\f[R], \f[C]commodity\f[R], \f[C]payee\f[R]
 T}@T{
@@ -6882,21 +6883,17 @@ T}@T{
 T}@T{
 T}
 T{
-Defining accounts\[aq] display order and accounting type
+Declare accounts\[aq] display order and accounting type
 T}@T{
 \f[C]account\f[R]
 T}@T{
 T}
 T{
-Defining commodity display styles
+Declare commodity display styles
 T}@T{
 \f[C]commodity\f[R], \f[C]D\f[R]
 T}@T{
 \f[C]-c/--commodity-style\f[R]
-T}
-T{
-T}@T{
-T}@T{
 T}
 .TE
 .SS Directives and multiple files
