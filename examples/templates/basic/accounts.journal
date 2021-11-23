@@ -1,6 +1,16 @@
+; Account declarations - these provide structure, auto-completions, and extra error checking.
+;
+; https://hledger.org/hledger.html#declaring-accounts
+; https://hledger.org/hledger.html#strict-checks
+;
+; Lower case account names are easiest to type; capitalise them if you wish.
+; https://hledger.org/hledger.html#account-names
+;
+; If you prefer it, replace all occurences of "revenues" with "income" below.
 
-; Top-level accounts, their types and display order.
-; Lower-case for easy typing, capitalise if you prefer.
+
+; Top-level accounts and their https://hledger.org/hledger.html#account-types.
+; The order here sets their https://hledger.org/hledger.html#account-display-order.
 
 account assets       ; type:A
 account liabilities  ; type:L
@@ -8,7 +18,7 @@ account equity       ; type:E
 account revenues     ; type:R
 account expenses     ; type:X
 
-; Second-level accounts. These and below are typically kept alphabetically ordered.
+; Second-level accounts.
 
 account assets:checking
 account assets:receivable

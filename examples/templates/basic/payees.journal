@@ -1,2 +1,20 @@
+; Payee and/or description declarations - these provide
+; auto-completions and can help detect errors, or act as a reference
+; for standardising your transaction descriptions.
+; You can also check payees/descriptions strictly, though most people don't.
+;
+; https://hledger.org/hledger.html#description
+; https://hledger.org/hledger.html#declaring-payees
+; https://hledger.org/hledger.html#other-checks
+
+
+; Transaction descriptions
+
 payee opening balances
 payee closing balances
+
+
+; Payee/payer names
+
+;payee Joe
+;payee Whole Foods
