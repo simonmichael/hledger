@@ -4,7 +4,7 @@ nix:
   pure: false
   packages: [perl gmp ncurses zlib]
 
-resolver: nightly-2021-11-06
+resolver: nightly-2021-11-19
 
 packages:
 - hledger-lib
@@ -12,7 +12,7 @@ packages:
 - hledger-ui
 - hledger-web
 
-extra-deps:
+#extra-deps:
 # for hledger-lib:
 # for hledger:
 # for hledger-ui:
