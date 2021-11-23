@@ -302,3 +302,26 @@ Income Statement 2008
  expenses:supplies ||       0   50.0 %       0       0   50.0 %   50.0 % 
 >>>= 0
 
+# 9. With --declared, declared leaf accounts are included, and in the right place.
+hledger -f - incomestatement -N -E --declared
+<<<
+account revenues
+account revenues:aa
+account revenues:ab
+account revenues:ac:aca
+account expenses
+>>>
+Income Statement ..
+
+                 || .. 
+=================++====
+ Revenues        ||    
+-----------------++----
+ revenues:aa     ||  0 
+ revenues:ab     ||  0 
+ revenues:ac:aca ||  0 
+=================++====
+ Expenses        ||    
+-----------------++----
+ expenses        ||  0 
+>>>= 0

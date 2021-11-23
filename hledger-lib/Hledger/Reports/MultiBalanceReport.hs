@@ -159,16 +159,18 @@ compoundBalanceReportWith rspec' j priceoracle subreportspecs = cbr
             ( cbcsubreporttitle
             -- Postprocess the report, negating balances and taking percentages if needed
             , cbcsubreporttransform $
-                generateMultiBalanceReport rspec{_rsReportOpts=ropts} j priceoracle colps' startbals'
+                generateMultiBalanceReport rspecsub j priceoracle colps' startbals'
             , cbcsubreportincreasestotal
             )
           where
-            -- Filter the column postings according to each subreport
+            -- Add a restriction to this subreport to the report query.
+            -- XXX in non-thorough way, consider updateReportSpec ?
+            q = cbcsubreportquery j
+            ropts = cbcsubreportoptions $ _rsReportOpts rspec
+            rspecsub = rspec{_rsReportOpts=ropts, _rsQuery=And [q, _rsQuery rspec]}
+            -- Starting balances and column postings specific to this subreport.
+            startbals' = startingBalances rspecsub j priceoracle $ filter (matchesPosting q) startps
             colps'     = map (second $ filter (matchesPosting q)) colps
-            -- We need to filter historical postings directly, rather than their accumulated balances. (#1698)
-            startbals' = startingBalances rspec j priceoracle $ filter (matchesPosting q) startps
-            ropts      = cbcsubreportoptions $ _rsReportOpts rspec
-            q          = cbcsubreportquery j
 
     -- Sum the subreport totals by column. Handle these cases:
     -- - no subreports

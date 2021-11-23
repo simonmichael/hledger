@@ -77,6 +77,7 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
     ]
     ++ flattreeflags True ++
     [flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
+    ,flagNone ["declared"] (setboolopt "declared") "include non-parent declared accounts (best used with -E)"
     ,flagNone ["average","A"] (setboolopt "average") "show a row average column (in multicolumn reports)"
     ,flagNone ["row-total","T"] (setboolopt "row-total") "show a row total column (in multicolumn reports)"
     ,flagNone ["no-total","N"] (setboolopt "no-total") "omit the final total row"

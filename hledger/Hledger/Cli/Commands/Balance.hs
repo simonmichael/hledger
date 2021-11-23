@@ -308,7 +308,7 @@ balancemode = hledgerCommandMode
     ]
     ++ flattreeflags True ++
     [flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "omit N leading account name parts (in flat mode)"
-    ,flagNone ["declared"] (setboolopt "declared") "include accounts which have been declared but not yet used"
+    ,flagNone ["declared"] (setboolopt "declared") "include non-parent declared accounts (best used with -E)"
     ,flagNone ["average","A"] (setboolopt "average") "show a row average column (in multicolumn reports)"
     ,flagNone ["related","r"] (setboolopt "related") "show postings' siblings instead"
     ,flagNone ["row-total","T"] (setboolopt "row-total") "show a row total column (in multicolumn reports)"
