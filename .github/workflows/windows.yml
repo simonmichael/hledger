@@ -55,7 +55,7 @@ jobs:
       # For a PR, the range will be: master..origin/$GITHUB_HEAD_REF
       # For a push it will be: $BEFORE..
       # For a force push, BEFORE is the previous HEAD, and on github (though not locally) this is an "invalid revision range".
-      # In this and any case where the range is invalid, we'll just check the last N commits.
+      # In this and any case where the range is invalid, we'll just skip the check, to avoid false positives
       # related: https://stackoverflow.com/questions/64708371/how-to-run-github-workflow-on-every-commit-of-a-push
       env:
         BEFORE: ${{ github.event.before }}
@@ -65,7 +65,8 @@ jobs:
         RANGE=${BEFORE:-origin/master}..${GITHUB_HEAD_REF:+origin/$GITHUB_HEAD_REF}
         git rev-list --quiet $RANGE \
           && bin/commitlint  $RANGE \
-          || ( echo "could not identify commits, checking last $NUM instead:"; bin/commitlint -$NUM )
+          || ( echo "could not identify commits, not checking them" )
+      #   || ( echo "could not identify commits, checking last $NUM instead:"; bin/commitlint -$NUM )
 
     - name: Skip remaining CI steps if latest commit message begins with ;
       shell: bash
