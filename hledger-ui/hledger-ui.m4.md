@@ -194,6 +194,8 @@ Additional screen-specific keys are described below.
 This is normally the first screen displayed.
 It lists accounts and their balances, like hledger's balance command.
 By default, it shows all accounts and their latest ending balances (including the balances of subaccounts).
+Accounts which have been declared with an [account directive](#declaring-accounts) are also listed, even if not yet used
+(except for empty parent accounts).
 If you specify a query on the command line, it shows just the matched accounts and the balances from matched transactions.
 
 Account names are shown as a flat list by default; press `t` to toggle tree mode.
