@@ -1,0 +1,32 @@
+
+; Top-level accounts, their types and display order.
+; Lower-case for easy typing, capitalise if you prefer.
+
+account assets       ; type:A
+account liabilities  ; type:L
+account equity       ; type:E
+account revenues     ; type:R
+account expenses     ; type:X
+
+; Second-level accounts. These and below are typically kept alphabetically ordered.
+
+account assets:checking
+account assets:receivable
+
+account liabilities:credit card
+account liabilities:payable
+
+account revenues:gifts
+account revenues:salary
+
+account expenses:food
+account expenses:gifts
+account expenses:home
+account expenses:misc
+account expenses:online services
+account expenses:personal care
+account expenses:phone
+account expenses:recreation
+account expenses:transport
+account expenses:travel
+account expenses:utilities

@@ -1,0 +1,13 @@
+include accounts.journal
+include commodities.journal
+include payees.journal
+
+2021-01-01 opening balances
+    assets:checking                               $0
+    liabilities:credit card                       $0
+    equity
+
+; If you prefer to hide equity, use this form instead (and comment out equity in accounts.journal):
+; 2021-01-01 opening balances
+;     (assets:checking)                             $0
+;     (liabilities:credit card)                     $0
