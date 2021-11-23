@@ -225,7 +225,7 @@ and if you activate all three, the filter is removed.)
 
 `R` toggles real mode, in which [virtual postings](hledger.html#virtual-postings) are ignored.
 
-`Z` toggles nonzero mode, in which only accounts with nonzero balances
+`z` toggles nonzero mode, in which only accounts with nonzero balances
 are shown (hledger-ui shows zero items by default, unlike command-line
 hledger).
 
@@ -264,7 +264,7 @@ and if you activate all three, the filter is removed.)
 
 `R` toggles real mode, in which [virtual postings](hledger.html#virtual-postings) are ignored.
 
-`Z` toggles nonzero mode, in which only transactions posting a nonzero
+`z` toggles nonzero mode, in which only transactions posting a nonzero
 change are shown (hledger-ui shows zero items by default,
 unlike command-line hledger).
 

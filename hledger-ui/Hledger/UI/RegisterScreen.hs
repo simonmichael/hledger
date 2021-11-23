@@ -339,7 +339,7 @@ rsHandle ui@UIState{
         VtyEvent (EvKey (KChar 'V') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleValue ui
         VtyEvent (EvKey (KChar 'H') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleHistorical ui
         VtyEvent (EvKey (KChar 't') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleTree ui
-        VtyEvent (EvKey (KChar 'Z') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleEmpty ui
+        VtyEvent (EvKey (KChar c) []) | c `elem` ['z','Z'] -> rsCenterAndContinue $ regenerateScreens j d $ toggleEmpty ui
         VtyEvent (EvKey (KChar 'R') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleReal ui
         VtyEvent (EvKey (KChar 'U') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleUnmarked ui
         VtyEvent (EvKey (KChar 'P') []) -> rsCenterAndContinue $ regenerateScreens j d $ togglePending ui

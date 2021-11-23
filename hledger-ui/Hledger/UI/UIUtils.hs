@@ -125,7 +125,7 @@ helpDialog _copts =
                   ,renderKey ("/   ", "set a filter query")
                   ,renderKey ("F   ", "show future & periodic txns")
                   ,renderKey ("R   ", "show real/all postings")
-                  ,renderKey ("Z   ", "show nonzero/all amounts")
+                  ,renderKey ("z   ", "show nonzero/all amounts")
                   ,renderKey ("U/P/C ", "show unmarked/pending/cleared")
                   ,renderKey ("S-DOWN /S-UP  ", "shrink/grow period")
                   ,renderKey ("S-RIGHT/S-LEFT", "next/previous period")

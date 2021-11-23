@@ -306,7 +306,7 @@ asHandle ui0@UIState{
         -- display mode/query toggles
         VtyEvent (EvKey (KChar 'H') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleHistorical ui
         VtyEvent (EvKey (KChar 't') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleTree ui
-        VtyEvent (EvKey (KChar 'Z') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleEmpty ui
+        VtyEvent (EvKey (KChar c) []) | c `elem` ['z','Z'] -> asCenterAndContinue $ regenerateScreens j d $ toggleEmpty ui
         VtyEvent (EvKey (KChar 'R') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleReal ui
         VtyEvent (EvKey (KChar 'U') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleUnmarked ui
         VtyEvent (EvKey (KChar 'P') []) -> asCenterAndContinue $ regenerateScreens j d $ togglePending ui
