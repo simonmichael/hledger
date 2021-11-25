@@ -187,7 +187,7 @@ compoundBalanceReportWith rspec' j priceoracle subreportspecs = cbr
 
 -- XXX seems refactorable
 -- | Calculate accounts' balances on the report start date, from these postings
--- which should be all postings before that data, and possibly also from account declarations.
+-- which should be all postings before that date, and possibly also from account declarations.
 startingBalances :: ReportSpec -> Journal -> PriceOracle -> [Posting]
                              -> HashMap AccountName Account
 startingBalances rspec j priceoracle ps =
