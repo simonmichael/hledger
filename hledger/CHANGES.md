@@ -9,6 +9,90 @@
 User-visible changes in the hledger command line tool and library.
 
 
+# 791f4655d
+
+- fix: prices: Do not include zero amounts when calculating amounts for balance assignments. (#1736) (Stephen Morgan)
+  This is not usually a problem, but can get in the way of auto-inferring prices.
+
+- fix: csv: Successfully parse empty csv file. (#1183) (Stephen Morgan)
+
+- imp: balcmds: support --declared on bs/cf/is also (#1765)
+
+- feat: bal: with --declared, include declared leaf accounts (#1765)
+  Together with -E, this shows a balance for both used and declared
+  accounts (excluding empty parent accounts, which are usually not
+  wanted in list-mode reports).
+
+  This is somewhat consistent with --declared in the accounts and payees
+  commands, except for the leaf account restriction.
+
+  The idea of this is to be able to see a useful "complete" balance
+  report, even when you don't have transactions in all of your declared
+  accounts yet. I mainly want this for hledger-ui, but there's no harm
+  in exposing it in the balance CLI as well.
+
+- ;imp: doc: account types: prioritise short names, hide old syntax
+
+- imp: doc: more compact/accurate directives overview
+
+- imp: stats: also show run time and throughput
+  CliOpts has a new field, progstarttime_.
+
+  Currently the new stats are always printed on stdout, ignoring --output-file/--output-format.
+
+- fix: balance: Balance reports with --depth=0 should report on true values, not zero everywhere. (#1761) (Stephen Morgan)
+
+- feat: docs for decimal-mark (#1670, #1726)
+
+- imp: journal: support decimal-mark directive in journal files (Lawrence)
+  To match csv-rule and override amount-style as described in
+  https://github.com/simonmichael/hledger/issues/1670
+
+- ;imp: bal --layout: streamline help more (#1751)
+
+- imp!: balance: Stop eliding long amounts. (#1739) (Stephen Morgan)
+  This feature has caused a lot of confusion, and we now have better ways
+  of making sure columns don't get too wide.
+
+- imp: balance: Implement multi-line display for multicommodity balance reports. (Stephen Morgan)
+  This allows more control over how multicommodity amounts are displayed.
+  In addition to the default single-line display, and the recent commodity
+  column display, we now have multi-line display. This is controlled by
+  the --layout option, which has possible values "wide", "tall", and
+  "bare". The --commodity-column option has been hidden, but is equivalent
+  to --layout=bare.
+
+- fix: prices: Do not try to generate prices when there would be a zero denominator. (Stephen Morgan)
+  Also correctly generate reverse prices for zero amounts.
+
+- fix: csv: Handle multiple zero amounts in postings in csv files. (#1733) (Stephen Morgan)
+
+- imp: balance: Allow --related flag for balance reports. (#1469) (Stephen Morgan)
+
+- fix: balance: Balance reports should consider date: queries when calculating report span with --date2. (#1745) (Stephen Morgan)
+
+- fix: print: auto: The print command should always display inferred amounts for --auto generated postings. (#1276) (Stephen Morgan)
+
+- pkg: Drop base-compat-batteries dependency. (Stephen Morgan)
+  Our supported stackage versions are now new enough that we don't need
+  any of the compatibility features anymore.
+
+- fix: roi: use posting dates when available, honor --date2 (Dmitry Astapov)
+  This will not change the results computed for the typical use-case,
+  just makes "roi" more thorough/consistent by supporting posting dates
+  when they are provided.
+
+- areg: begin respecting --date2: show txns' date2 (#1731)
+
+- ;pkg: allow megaparsec 9.2
+
+- timedot: a D default commodity (and style) is applied to timedot aounts
+  This means they can be priced and converted.
+
+- imp!: value: For register reports with no reporting interval and --value=end, historical reports should be valued at journal/report end date. (Stephen Morgan)
+
+- imp: cli: Allow general optional argument flags (--pretty and --forecast) to be moved after the subcommand name. (Stephen Morgan)
+
 # 1.23 2021-09-21
 
 Features
