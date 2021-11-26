@@ -57,8 +57,8 @@ stats opts@CliOpts{reportspec_=rspec, progstarttime_} j = do
   writeOutputLazyText opts $ TB.toLazyText b
   t <- getPOSIXTime
   let dt = t - progstarttime_
-  printf "Run time                 : %.2f s\n" (realToFrac dt :: Float)
-  printf "Throughput               : %.0f txns/s\n" (fromIntegral numtxns / realToFrac dt :: Float)
+  printf "Run time (throughput)    : %.2fs (%.0f txns/s)\n" 
+    (realToFrac dt :: Float) (fromIntegral numtxns / realToFrac dt :: Float)
 
 showLedgerStats :: Ledger -> Day -> DateSpan -> (TB.Builder, Int)
 showLedgerStats l today span =
