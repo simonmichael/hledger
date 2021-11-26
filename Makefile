@@ -673,13 +673,17 @@ quickbench: samplejournals bench.sh $(call def-help,quickbench, benchmark comman
 # 	)
 # 	tools/progressionbench -- -t png -k png
 
-throughput: samplejournals \
-		$(call def-help,throughput, show throughput at various data sizes )
-	@date
-	@uname -a
-	@hledger --version
+throughput: throughput-hledger \
+		$(call def-help,throughput, show throughput at various data sizes with the default hledger executable  )
+
+throughput-%: samplejournals \
+		$(call def-help,throughput-HLEDGEREXE, show throughput at various data sizes with the given hledger executable  )
+	@echo date: `date`
+	@echo system: `uname -a`
+	@echo executable: $*
+	@echo version: `$* --version`
 	@for n in 1000 2000 3000 4000 5000 6000 7000 8000 9000 10000 100000 ; do \
-		printf "%d: " $$n; hledger stats -f examples/$${n}x1000x10.journal | tail -1; \
+		printf "%6d: " $$n; $* stats -f examples/$${n}x1000x10.journal | tail -1; \
 	done
 	@date
 
