@@ -107,7 +107,7 @@ In master:
 
 - `./Shake.hs` to ensure `Shake` is current, review commands
 
-- finalise [changelogs](#changelogs), copy each new section (emacs `C-x r s a` ... `b` ... `c` ... `d`)
+- finalise [changelogs](CHANGELOGS.html), copy each new section (emacs `C-x r s a` ... `b` ... `c` ... `d`)
 
 In release branch:
 
