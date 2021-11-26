@@ -687,6 +687,11 @@ throughput-%: samplejournals \
 	done
 	@date
 
+throughput-dev: samplejournals \
+		$(call def-help,throughput-dev, show throughput at various data sizes with the latest hledger dev build (optimised or not)  )
+	@stack build hledger
+	@stack exec -- make -s throughput
+
 # prof: samplejournals \
 # 	$(call def-help,prof,\
 # 	generate and archive an execution profile\
