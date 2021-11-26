@@ -368,7 +368,9 @@ File: hledger-ui.info,  Node: Accounts screen,  Next: Register screen,  Up: SCRE
 This is normally the first screen displayed.  It lists accounts and
 their balances, like hledger's balance command.  By default, it shows
 all accounts and their latest ending balances (including the balances of
-subaccounts).  If you specify a query on the command line, it shows just
+subaccounts).  Accounts which have been declared with an account
+directive are also listed, even if not yet used (except for empty parent
+accounts).  If you specify a query on the command line, it shows just
 the matched accounts and the balances from matched transactions.
 
    Account names are shown as a flat list by default; press 't' to
@@ -402,7 +404,7 @@ is removed.)
 
    'R' toggles real mode, in which virtual postings are ignored.
 
-   'Z' toggles nonzero mode, in which only accounts with nonzero
+   'z' toggles nonzero mode, in which only accounts with nonzero
 balances are shown (hledger-ui shows zero items by default, unlike
 command-line hledger).
 
@@ -448,7 +450,7 @@ is removed.)
 
    'R' toggles real mode, in which virtual postings are ignored.
 
-   'Z' toggles nonzero mode, in which only transactions posting a
+   'z' toggles nonzero mode, in which only transactions posting a
 nonzero change are shown (hledger-ui shows zero items by default, unlike
 command-line hledger).
 
@@ -633,24 +635,24 @@ Node: SCREENS11193
 Ref: #screens11291
 Node: Accounts screen11381
 Ref: #accounts-screen11509
-Node: Register screen13713
-Ref: #register-screen13868
-Node: Transaction screen15852
-Ref: #transaction-screen16010
-Node: Error screen16880
-Ref: #error-screen17002
-Node: TIPS17246
-Ref: #tips17345
-Node: Watch mode17397
-Ref: #watch-mode17514
-Node: Watch mode limitations18264
-Ref: #watch-mode-limitations18405
-Node: ENVIRONMENT19541
-Ref: #environment19652
-Node: FILES20459
-Ref: #files20558
-Node: BUGS20771
-Ref: #bugs20848
+Node: Register screen13848
+Ref: #register-screen14003
+Node: Transaction screen15987
+Ref: #transaction-screen16145
+Node: Error screen17015
+Ref: #error-screen17137
+Node: TIPS17381
+Ref: #tips17480
+Node: Watch mode17532
+Ref: #watch-mode17649
+Node: Watch mode limitations18399
+Ref: #watch-mode-limitations18540
+Node: ENVIRONMENT19676
+Ref: #environment19787
+Node: FILES20594
+Ref: #files20693
+Node: BUGS20906
+Ref: #bugs20983
 
 End Tag Table
 

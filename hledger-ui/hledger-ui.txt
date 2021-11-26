@@ -312,7 +312,9 @@ SCREENS
        This is normally the first screen displayed.   It  lists  accounts  and
        their  balances,  like hledger's balance command.  By default, it shows
        all accounts and their latest ending balances (including  the  balances
-       of  subaccounts).  If you specify a query on the command line, it shows
+       of  subaccounts).   Accounts  which  have been declared with an account
+       directive are also listed, even if not yet used (except for empty  par-
+       ent  accounts).   If  you specify a query on the command line, it shows
        just the matched accounts and the balances from matched transactions.
 
        Account names are shown as a flat list by default; press  t  to  toggle
@@ -345,7 +347,7 @@ SCREENS
 
        R toggles real mode, in which virtual postings are ignored.
 
-       Z toggles nonzero mode, in which only accounts  with  nonzero  balances
+       z toggles nonzero mode, in which only accounts  with  nonzero  balances
        are  shown (hledger-ui shows zero items by default, unlike command-line
        hledger).
 
@@ -385,7 +387,7 @@ SCREENS
 
        R toggles real mode, in which virtual postings are ignored.
 
-       Z toggles nonzero mode, in which only transactions  posting  a  nonzero
+       z toggles nonzero mode, in which only transactions  posting  a  nonzero
        change  are  shown (hledger-ui shows zero items by default, unlike com-
        mand-line hledger).
 

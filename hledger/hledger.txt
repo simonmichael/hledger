@@ -2161,6 +2161,19 @@ COMMANDS
        o Output  as  HTML and view with a browser: hledger bal -D -o a.html &&
          open a.html
 
+   Showing declared accounts
+       With --declared, accounts which have  been  declared  with  an  account
+       directive  will be included in the balance report, even if they have no
+       transactions.  (Since they will have a zero balance, you will also need
+       -E/--empty to see them.)
+
+       More  precisely,  leaf  declared accounts (with no subaccounts) will be
+       included, since those are usually the more useful in reports.
+
+       The idea of this is to be able  to  see  a  useful  "complete"  balance
+       report,  even  when you don't have transactions in all of your declared
+       accounts yet.
+
    Commodity layout
        With --layout, you can control how amounts with more than one commodity
        are displayed:
@@ -2412,6 +2425,7 @@ COMMANDS
                   period end         ues  from  report   from     report    report   start
                                      start  to  period   start to period    to period end
                                      end                 end
+
        --his-     change      from   sum  of  posting-   period-end         DATE-value  of
        torical    journal start to   date  market val-   value of change    change    from
        /-H        period end (his-   ues from  journal   from    journal    journal  start
@@ -4902,7 +4916,7 @@ JOURNAL FORMAT
                                                                                   file
                                                                                   end?
        ----------------------------------------------------------------------------------
-       account    Declare  an  account,  for checking all entries in all files;
+       account    Declares  an  account, for checking all entries in all files;
                   and its display order and type, for reports.   Subdirectives:
                   any text, ignored.
        alias      Rewrites  account  names,  in  following entries until end of   Y
@@ -4910,6 +4924,8 @@ JOURNAL FORMAT
        apply      Prepends a common parent account to  all  account  names,  in   Y
        account    following  entries  until  end  of  current file or end apply
                   account.
+
+
        comment    Ignores  part  of the journal file, until end of current file   Y
                   or end comment.
        commod-    Declares  a commodity, for checking all entries in all files;   N, Y
@@ -4928,8 +4944,6 @@ JOURNAL FORMAT
        include    Includes entries and directives from another file, as if they
                   were written inline.
        payee      Declares a payee name, for checking all entries in all files.
-
-
        P          Declares  a  market  price  for a commodity on some date, for
                   valuation reports.
        Y          Declares a year for yearless  dates,  for  following  entries   Y
@@ -5242,53 +5256,50 @@ JOURNAL FORMAT
                 [LEDGER-STYLE SUBDIRECTIVES, IGNORED]
 
    Account types
-       hledger  recognises  five  main  types of account, corresponding to the
-       account classes in the accounting equation:
+       By  adding  a type tag to the account directive, with value A, L, E, R,
+       X, C (or if you prefer: Asset,  Liability,  Equity,  Revenue,  Expense,
+       Cash), you can declare hledger accounts to be of a certain type:
 
-       Asset, Liability, Equity, Revenue, Expense.
+       o asset, liability, equity, revenue, expense
+       the standard types in accounting, or
 
-       These account types are important for controlling which accounts appear
-       in  the  balancesheet, balancesheetequity, incomestatement reports (and
-       probably for other things in future).
+       o cash
+       a subtype of asset, used for liquid assets.
 
-       Additionally, we recognise the Cash type, which is also an  Asset,  and
-       which  causes  accounts to appear in the cashflow report.  ("Cash" here
-       means liquid assets, eg bank balances but typically not investments  or
-       receivables.)
+       Declaring  account types is a good idea, since it helps enable the easy
+       balancesheet, balancesheetequity, incomestatement and cashflow reports,
+       and  probably  other  things in future.  As a convenience, when account
+       types are not declared,  hledger  will  try  to  guess  them  based  on
+       english-language account names.
 
-   Declaring account types
-       To  make  the  balancesheet/balancesheetequity/cashflow/incomestatement
-       reports work, generally you should declare your top-level accounts, and
-       their  types.   For each top-level account, write an account directive,
-       with a type: tag.  The tag's value can  be  any  of  Asset,  Liability,
-       Equity,  Revenue,  Expense, Cash, or (for short) A, L, E, R, X, C (case
-       insensitive).  An account's  type  is  inherited  by  its  subaccounts,
-       unless they declare a different type.  Here's an example, declaring all
-       six account types:
+       Here is a typical set of top-level account declarations (because of the
+       aforementioned, with these account names the type tags are not strictly
+       needed,  but  with non-english or non-standard account names, they will
+       be):
 
-              account assets       ; type: Asset
-              account assets:bank  ; type: Cash
-              account assets:cash  ; type: Cash
-              account liabilities  ; type: Liability
-              account equity       ; type: Equity
-              account revenues     ; type: Revenue
-              account expenses     ; type: Expense
+              account assets       ; type: A
+              account liabilities  ; type: L
+              account equity       ; type: E
+              account revenues     ; type: R
+              account expenses     ; type: X
 
-       There is also an older syntax, which is deprecated and will be  dropped
-       soon  (A,  L,  E, R or X separated from the account name by two or more
-       spaces):
+              account assets:bank  ; type: C
+              account assets:cash  ; type: C
 
-              account assets       A
-              account liabilities  L
-              account equity       E
-              account revenues     R
-              account expenses     X
+       It's not necessary to declare the type of subaccounts.   (You  can,  if
+       they are different from the parent, but this is not common.)
 
    Auto-detected account types
-       hledger tries to find at least one top level account in each of the six
-       account types (Asset, Liability, Equity, Revenue, Expense, Cash).  When
-       no accounts have been declared for a particular type, hledger tries  to
-       auto-detect some accounts by name, using regular expressions:
+       More about "guessing" account types: hledger tries to find at least one
+       top level account in each of the six account types  (Asset,  Liability,
+       Equity,  Revenue,  Expense, Cash).  When no accounts have been declared
+       for a particular type, it tries to auto-detect some accounts  by  name,
+       using  the  regular  expressions  below.   Note:  if  you  declare  any
+       account's type, it's a good idea to declare  an  account  for  all  six
+       types, because a mix of declared and auto-detected types can cause con-
+       fusing results.
+
+       The auto-detection rules are:
 
                If account's name matches this case insensitive regular expression:| its type is:
               ------------------------------------------------------------------- | ------------
@@ -5299,34 +5310,6 @@ JOURNAL FORMAT
                ^equity(:|$)                                                       | Equity
                ^(income|revenue)s?(:|$)                                           | Revenue
                ^expenses?(:|$)                                                    | Expense
-
-       For  people  using  standard  english account names, this feature helps
-       hledger's high-level reports work out of the box with minimal  configu-
-       ration.
-
-       If  you use non-english account names, you should declare account types
-       to make these reports work.  And more generally, declaring accounts and
-       types  is usually a good idea, for increased clarity and predictability
-       (and for the other benefits of account directives: error checking, dis-
-       play order, etc).
-
-       Notes:
-
-       o When  any account is declared as some type, this disables auto-detec-
-         tion for that particular type.
-
-       o If you declare any account's type, it's a good  idea  to  declare  an
-         account  for all six types, since a mix of declared and auto-detected
-         types can cause confusion.  For example, here liabilities is declared
-         to  be Equity, but would also be auto-detected as Liability, since no
-         Liability account is declared:
-
-                account liabilities  ; type:Equity
-
-                2020-01-01
-                  assets        1
-                  liabilities   1
-                  equity       -2
 
    Account display order
        Account directives also set the order in which accounts are  displayed,
@@ -5826,8 +5809,6 @@ CSV FORMAT
 
        skip                         skip one or more header lines or matched CSV
                                     records
-
-
        fields list                  name  CSV  fields,  assign  them  to hledger
                                     fields
        field assignment             assign a value to one  hledger  field,  with

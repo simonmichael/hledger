@@ -342,6 +342,8 @@ It lists accounts and their balances, like hledger\[aq]s balance
 command.
 By default, it shows all accounts and their latest ending balances
 (including the balances of subaccounts).
+Accounts which have been declared with an account directive are also
+listed, even if not yet used (except for empty parent accounts).
 If you specify a query on the command line, it shows just the matched
 accounts and the balances from matched transactions.
 .PP
@@ -382,7 +384,7 @@ all three, the filter is removed.)
 .PP
 \f[C]R\f[R] toggles real mode, in which virtual postings are ignored.
 .PP
-\f[C]Z\f[R] toggles nonzero mode, in which only accounts with nonzero
+\f[C]z\f[R] toggles nonzero mode, in which only accounts with nonzero
 balances are shown (hledger-ui shows zero items by default, unlike
 command-line hledger).
 .PP
@@ -428,7 +430,7 @@ activate all three, the filter is removed.)
 .PP
 \f[C]R\f[R] toggles real mode, in which virtual postings are ignored.
 .PP
-\f[C]Z\f[R] toggles nonzero mode, in which only transactions posting a
+\f[C]z\f[R] toggles nonzero mode, in which only transactions posting a
 nonzero change are shown (hledger-ui shows zero items by default, unlike
 command-line hledger).
 .PP
