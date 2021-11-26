@@ -11,42 +11,42 @@ See also the hledger changelog.
 
 # 791f4655d
 
-- imp: ui: Z -> z for easier zero toggling
-  Z remains supported as a hidden legacy key.
-
-- imp: ui: also show declared leaf accounts (when showing zeros)
-  Similar to (and motivating) balance --declared, the goal is to
-  show a useful list of accounts when all you have is some starter
-  files with account declarations.
-
-- imp: ui: -w short flag for --watch
-
-- imp: ui: Display an error message on invalid regexp, rather than silently ignoring. (#1394) (Stephen Morgan)
-
-- fix: ui: scroll selection to middle on first entry, also
-  The viewport doesn't exist until after first render, and scrollSelectionToMiddle didn't need it; viewportScroll queues up events for it.
-  https://github.com/jtdaugherty/brick/issues/349
-
-- feat: Mouse/touchpad support.
-  Mouse wheel scrolls accounts & register screens,
-  click things to enter them, 
-  click left margin or bottom blank area to go back.
-
-- dev: Use realLength from doclayout instead of strWidth and textWidth. (#895) (Stephen Morgan)
-  This gives us more accurate string length calculations. In particular,
-  it handles emoji and other scripts properly.
-
-- pkg: Drop base-compat-batteries dependency. (Stephen Morgan)
-  Our supported stackage versions are now new enough that we don't need
-  any of the compatibility features anymore.
-
-- Allow megaparsec 9.2
-
 Features
+
+- hledger-ui can now be controlled with mouse or touchpad.
+  Click to enter things, click left margin or bottom blank area to exit them,
+  and use mouse wheel / swipe to scroll.
+
+- In addition to accounts with postings, hledger-ui now also shows
+  declared accounts, even if they are empty (just leaf accounts, not
+  parents). The idea is to show a useful list of accounts out of the
+  box, when all you have is a starter file with account declarations.
 
 Improvements
 
+- The `Z` key for toggling display of zeroes is now the easier lower-case `z`.
+
+- The `--watch` feature now has a convenient short flag flag, `-w`.
+
+- Drop the base-compat-batteries dependency. (Stephen Morgan)
+
+- Allow megaparsec 9.2
+
 Fixes
+
+- When an invalid regular expression is entered at the `/` (filter) prompt,
+  we now display an error instead of silently ignoring it.
+  (#1394, Stephen Morgan)
+
+- Entering the register screen now always positions the selection mid-screen.
+  Previously it would be at bottom of screen on the first entry.
+
+- Report layout in the terminal is now robust with more kinds of wide
+  characters, such as emoji.
+  (#895, Stephen Morgan)
+  
+  
+  
 
 
 # 1.23 2021-09-21
