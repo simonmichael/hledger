@@ -1,6 +1,6 @@
 # Account declarations mockups
 # not compatible with existing ledger/beancount syntax, just notes
-
+# cf #217
 
 account   # settings inherited by all accounts
  nosubs   # by default disallow undeclared subaccounts
@@ -57,3 +57,64 @@ account expenses:personal:food
 account expenses:personal:food:dining
 account expenses:personal:food:groceries
 account expenses:personal:food:snacks
+
+
+
+######################################################################
+# v2 2015/7
+
+The optional `accounts` directive defines the valid high-level
+accounts for all subsequent transactions (until another accounts
+directive). Usually there is one of these at the start of a journal.
+Accounts are written in short indented form, similar to a tree-mode
+balance report.
+
+accounts
+ assets
+ liabilities
+ equity
+ income
+ expenses
+
+Subaccounts of the listed accounts are permitted, but not siblings.
+In this example, assets:checking:food would be permitted but
+assets:cheking would not.
+
+accounts
+ assets
+  checking
+  cash
+ liabilities
+  credit card
+ equity
+ income
+ expenses
+
+With the `only` modifier, subaccounts are not permitted, so only the
+exact accounts listed are valid.
+
+accounts
+ assets
+  checking
+  savings
+  cash
+ liabilities
+  credit card
+ equity
+ income
+  salary
+ expenses
+  food
+  home
+  transport
+  health
+  insurance
+  recreation
+  travel
+  tax
+
+The order in which accounts are listed determines their display order in reports.
+
+The first five top-level accounts are assumed to represent the
+standard top-level accounting categories: assets, liabilities, equity,
+income (revenue) and expenses.
