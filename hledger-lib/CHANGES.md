@@ -11,41 +11,42 @@ For user-visible changes, see the hledger package changelog.
 
 # 7e47d3645
 
-- pkg: Use maximumBound instead of maximumDef to avoid deprecation warnings in safe-0.3.18. (Stephen Morgan)
+Features
 
-- lib!: Semigroup instance of PeriodicReportRow and PeriodicReport now preserves first prrName, rather than the second. (Stephen Morgan)
-  Previously the second name would be taken, ignoring the first.
+Improvements
 
-- lib: Add Bifunctor instances for PeriodicReport and PeriodicReportRow. (Stephen Morgan)
+- The Semigroup instance of PeriodicReportRow and PeriodicReport now
+  preserves the first prrName, rather than the second.
+  (Stephen Morgan)
 
-- pkg: Drop base-compat-batteries dependency. (Stephen Morgan)
-  Our supported stackage versions are now new enough that we don't need
-  any of the compatibility features anymore.
+- PeriodicReport and PeriodicReportRow now have Bifunctor instances.
+  (Stephen Morgan)
 
-- cln: Move posting rendering functions into Hledger.Data.Posting. Replace showPosting with a wrapper around postingAsLines. (Stephen Morgan)
-  The functions textConcat(Top|Bottom)Padded are no longer used anywhere
-  in the code base, and can be removed if desired.
-
+- Move posting rendering functions into Hledger.Data.Posting.
   This produces slightly different output for showPosting, in particular
   it no longer displays the transaction date. However, this has been
-  marked as ‘for debugging only’ for a while, and is only used in
-  hledger-check-fancy assertions. The output there is still acceptable.
+  marked as ‘for debugging only’ for a while.
+  (Stephen Morgan)
 
-- ref!: postingDateOrDate2, transactionDateOrDate2, whichDateFromOpts -> whichDate (#1731)
+- Drop postingDateOrDate2, transactionDateOrDate2; rename
+  whichDateFromOpts to whichDate. (#1731)
 
-- ;pkg: allow megaparsec 9.2
+- Added new helper functions journalValueAndFilterPostings(With) to make
+  valuation and filtration less error prone.
+  (Stephen Morgan)
 
-- ref: Add new helper functions journalValueAndFilterPostings(With)?. (Stephen Morgan)
-  Combining valuation with filtration is subtle and error-prone (see e.g. #1625).
-  We have to do in in both MultiBalanceReport and PostingsReport, where it
-  is done in slightly different ways. This refactors this functionality
-  into separate functions which are called in both reports, for uniform
-  behaviour.
+- Avoid deprecation warnings with safe 0.3.18+. 
+  (Stephen Morgan)
 
-- imp!: value: For register reports with no reporting interval and --value=end, 
-  historical reports should be valued at journal/report end date. (Stephen Morgan)
+- Drop base-compat-batteries dependency. 
+  (Stephen Morgan)
+
+- Allow megaparsec 9.2.
+
+Fixes
 
 # 1.23 2021-09-21
+
 - Require base >=4.11, prevent red squares on Hackage's build matrix.
 
 Much code cleanup and reorganisation, such as:

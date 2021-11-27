@@ -11,6 +11,10 @@ For package-specific changes and minor releases, see the hledger package changel
 
 # db0361113
 
+- doc: account types: prioritise short names, hide old syntax
+
+- doc: more compact/accurate directives overview
+
 - ;imp: examples/templates/, with one example file set ("basic")
 
 - pkg: bump to latest nightly snapshot to avoid buggy happy 1.21.0

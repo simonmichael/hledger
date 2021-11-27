@@ -11,7 +11,14 @@ See also the hledger changelog.
 
 # 791f4655d
 
+Features
+
+Improvements
+
 - Allow megaparsec 9.2
+
+Fixes
+
 
 # 1.23 2021-09-21
 
