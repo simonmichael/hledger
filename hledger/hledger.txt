@@ -6,7 +6,7 @@ HLEDGER(1)                   hledger User Manuals                   HLEDGER(1)
 NAME
        This  is  the  command-line  interface (CLI) for the hledger accounting
        tool.  Here we also describe hledger's concepts and file formats.  This
-       manual is for hledger 1.23.99.
+       manual is for hledger 1.24.
 
 SYNOPSIS
        hledger
@@ -7522,4 +7522,4 @@ SEE ALSO
 
 
 
-hledger-1.23.99                  December 2021                      HLEDGER(1)
+hledger-1.24                     December 2021                      HLEDGER(1)
