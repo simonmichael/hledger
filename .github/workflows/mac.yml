@@ -224,3 +224,4 @@ jobs:
         name: hledger-macos
         path: tmp/hledger
       if: env.CONTINUE
+

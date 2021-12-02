@@ -227,4 +227,3 @@ jobs:
         name: hledger-windows
         path: tmp/hledger
       if: env.CONTINUE
-
