@@ -1,5 +1,5 @@
 name        : hledger-ui
-version     : 1.24
+version     : 1.24.99
 synopsis    : Curses-style terminal interface for the hledger accounting system
 description : |
   A simple curses-style terminal user interface for the hledger accounting system.
@@ -38,11 +38,11 @@ flags:
     manual: false
     default: true
 
-cpp-options: -DVERSION="1.24"
+cpp-options: -DVERSION="1.24.99"
 
 dependencies:
-- hledger-lib >=1.24 && <1.25
-- hledger >=1.24 && <1.25
+- hledger-lib >=1.24.99 && <1.25
+- hledger >=1.24.99 && <1.25
 - ansi-terminal >=0.9
 - async
 - base >=4.11 && <4.16
