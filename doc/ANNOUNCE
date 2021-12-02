@@ -1,38 +1,19 @@
+I am pleased to announce hledger 1.24!
 
-We are very pleased to announce..
+https://hledger.org/release-notes.html#hledger-1-24
 
-..that the hledger repo recently passed 10000 commits.
-See https://hledger.org/CREDITS.html for more details, perhaps your name is there.
+Highlights include new report layout options with less eliding,
+hledger-ui mouse support, and many fixes and improvements.
 
-Also.. hledger 1.23 !
-
-https://hledger.org/release-notes.html#hledger-1-23
-describes the user-visible changes. Highlights include:
-
-- Capital gains reporting (`bal --gain`)
-
-- Separate symbol/number display (`--commodity-column`)
-
-- Command line commodity styling (`-c|--commodity-style`)
-
-- budget selection (`bal --budget=BUDGETNAME`)
-
-- weekday/weekend recurrence (`~ every weekday  ...`)
-
-- 10% speedup
-
-- Bugfixes.
-
-Thank you to release contributors:
+Thank you to release contributors
 Stephen Morgan,
-Lawrence Wu,
-Jakob Schöttl,
+toonn,
+Pranesh Prakash,
 Dmitry Astapov,
-Malte Brandy,
-Arsen Arsenović,
-Arjen Langebaerd,
-Alan Young,
-Daniel Gröber.
+ShrykeWindgrace,
+Joaquin Azcarate,
+and
+Lawrence Wu.
 
 
 hledger (https://hledger.org) is a dependable, cross-platform "plain
