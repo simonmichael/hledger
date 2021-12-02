@@ -1,5 +1,6 @@
-# Runs on notable pushes to ci-linux, on notable pull requests against
-# master, and weekly on master.
+# Runs on notable pull requests against master,
+# and also on notable pushes to ci-linux (no longer used),
+# and weekly on master.
 
 # Builds all modules optimised and runs
 # unit/doc/functional/haddock/benchmark tests on linux,
@@ -343,35 +344,3 @@ jobs:
     #   env:
     #     MATRIX_CONTEXT: ${{ toJson(matrix) }}
     #   run: echo "$MATRIX_CONTEXT"
-
-
-
-# docs:
-
-# based on https://gist.github.com/mstksg/11f753d891cee5980326a8ea8c865233
-# http://www.btellez.com/posts/triggering-github-actions-with-webhooks.html
-# https://help.github.com/en/actions
-# https://help.github.com/en/actions/reference/events-that-trigger-workflows
-# https://help.github.com/en/actions/reference/events-that-trigger-workflows#scheduled-events-schedule
-# https://help.github.com/en/actions/configuring-and-managing-workflows/caching-and-storing-workflow-data
-# https://help.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows
-# https://help.github.com/en/actions/reference/virtual-environments-for-github-hosted-runners#supported-runners-and-hardware-resources
-# https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#filter-pattern-cheat-sheet
-# https://github.community/t5/GitHub-Actions/bd-p/actions
-
-# https://github.com/actions/cache
-# https://github.com/marketplace/actions/cache
-
-# https://github.com/actions/upload-artifact
-# https://github.com/c-hive/gha-remove-artifacts
-
-# https://github.com/actions/setup-haskell
-
-# https://github.com/marketplace/actions/checkout
-# https://github.com/sdras/awesome-actions
-
-# https://sevenzip.osdn.jp/chm/cmdline/commands/index.htm
-
-# https://github.com/mxschmitt/action-tmate
-#     - name: Setup tmate session
-#      uses: mxschmitt/action-tmate@v1
