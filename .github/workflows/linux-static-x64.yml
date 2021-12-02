@@ -26,6 +26,9 @@ jobs:
 
     - name: Check out
       uses: actions/checkout@v2
+      # have to fetch everything for git describe for --version
+      with: 
+        fetch-depth: 0  
 
     - name: Update cabal
       run: cabal update
