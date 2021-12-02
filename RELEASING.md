@@ -233,15 +233,19 @@ In release branch:
 
 In site: 
 
+- js/site.js: add NEW, update currentrelease
+- Makefile: add NEW, two places
 - make snapshot-NEW
 - (cd src; rm current; ln -s NEW current)
-
-- js/site.js: add NEW, update currentrelease
 
 In hledger.org caddy config:
 
 - add `path` and `redir`s for NEW
 - `systemctl reload caddy`
+
+On hledger.org:
+
+- make clean all
 
 ## Tips
 
