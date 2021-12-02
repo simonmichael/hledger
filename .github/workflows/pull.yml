@@ -1,6 +1,5 @@
 # Runs on notable pull requests against master,
-# and also on notable pushes to ci-linux (no longer used),
-# and weekly on master.
+# and also weekly on master.
 
 # Builds all modules optimised and runs
 # unit/doc/functional/haddock/benchmark tests on linux,
@@ -12,7 +11,7 @@
 # This is the "master" workflow on which the others are based, 
 # with the most detailed notes.
 
-name: linux CI
+name: pull CI
 
 on:
   # Scheduled workflows run on the latest commit on the default or base branch. (master)
@@ -29,29 +28,6 @@ on:
       - 'hledger-ui/**'
       - 'hledger-web/**'
       - 'bin/*.hs'
-      # ignore changes to example files, though currently some func tests depend on them
-      - 'examples/**'
-      - '!**.journal'
-      - '!**.j'
-      - '!**.ledger'
-      - '!**.csv'
-      # ignore changes to doc source files
-      - '!**.m4'
-      - '!**.md'
-      - '!**.1'
-      - '!**.5'
-      - '!**.info'
-      - '!**.txt'
-
-  push:
-    branches: [ ci-linux ]
-    paths:
-      - '.github/workflows/linux.yml'
-      - 'stack*'
-      - 'hledger-lib/**'
-      - 'hledger/**'
-      - 'hledger-ui/**'
-      - 'hledger-web/**'
       # ignore changes to example files, though currently some func tests depend on them
       - 'examples/**'
       - '!**.journal'
