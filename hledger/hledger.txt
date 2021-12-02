@@ -7522,4 +7522,4 @@ SEE ALSO
 
 
 
-hledger-1.23.99                  November 2021                      HLEDGER(1)
+hledger-1.23.99                  December 2021                      HLEDGER(1)

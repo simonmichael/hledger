@@ -570,4 +570,4 @@ SEE ALSO
 
 
 
-hledger-web-1.23.99              November 2021                  HLEDGER-WEB(1)
+hledger-web-1.23.99              December 2021                  HLEDGER-WEB(1)
