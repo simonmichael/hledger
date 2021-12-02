@@ -1,4 +1,4 @@
-# Runs on notable pushes to ci-windows, and weekly on master.
+# Runs on any push to ci-windows, and weekly on master.
 
 # Builds all modules optimised on windows,
 # and uploads a binaries artifact.
@@ -8,31 +8,8 @@ name: windows CI
 on:
   schedule:
   - cron: "0 07 * * 0"  # sunday midnight pacific
-
   push:
     branches: [ ci-windows ]
-    paths:
-      - '.github/workflows/windows.yml'
-      - 'stack*.yaml'
-      - 'hledger-lib/**'
-      - 'hledger/**'
-      - 'hledger-ui/**'
-      - 'hledger-web/**'
-      # - 'bin/*.hs'
-      # ignore changes to example files, though currently some func tests depend on them
-      - 'examples/**'
-      - '!**.journal'
-      - '!**.j'
-      - '!**.ledger'
-      - '!**.csv'
-      # ignore changes to doc source files
-      - '!**.m4'
-      - '!**.md'
-      - '!**.1'
-      - '!**.5'
-      - '!**.info'
-      - '!**.txt'
-
   workflow_dispatch:
 
 
