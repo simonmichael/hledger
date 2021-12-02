@@ -9,84 +9,57 @@
 General changes in the hledger project (and notable all-package releases).
 For package-specific changes and minor releases, see the hledger package changelogs.
 
-# db0361113
+# 1.24 2021-12-01
 
-- doc: account types: prioritise short names, hide old syntax
+Software
 
-- doc: more compact/accurate directives overview
+- bin/hledger-check-fancyassertions.hs: fix ugly assertion parse errors. 
+  (ShrykeWindgrace)
 
-- ;imp: examples/templates/, with one example file set ("basic")
+- bin/hledger-check-tagfiles.hs: Update description, clarify wording.
+  (Pranesh Prakash)
 
-- pkg: bump to latest nightly snapshot to avoid buggy happy 1.21.0
+Docs
 
-- fix: ci: when we can't figure out recent commits, don't check
+- Account types: prioritise the short one-letter names, hide the deprecated
+  legacy syntax.
 
-- Update description of hledger-check-tagfiles.hs (Pranesh Prakash)
-  Made it clear that it's a `/` and not "containing / exist" (i.e., containing or exist). 
+- Directives: a more compact and accurate overview.
 
-- ;imp: examples: set account display order in bcexamples
+- examples/templates/basic: A new starter file set, and a place to collect them.
 
-- ;imp: tools: make throughput prints quick throughput stats at various file sizes
+- Expose more developer docs as separate web pages:
+  CHANGELOGS, COMMITS, RELEASING, etc.
 
-- ;imp: perf: Ledger-friendly bench-ledger.sh, for comparative benchmarking
+- Fix a link to developer workflows. (Joaquin "Florius" Azcarate)
 
-- ci: fall back on checking last 5 commit messages, instead of 20
-  This will allow CI status to recover faster when a bad commit message
-  is accidentally merged. In some cases (eg force pushes of PRs with
-  more than 5 commits) not all commit messages will be checked at all
-  times.
+Process
 
-- pkg: Bump stack lts and nightlies. (Stephen Morgan)
+- PR template: Fix our github PR template to use proper comment syntax,
+  and link to more relevant docs.
+  (toonn)
 
-- ; Fix the link to the developer workdflows (Joaquin "Florius" Azcarate)
+- cabal.project: Drop obsolete compatibility comment. 
+  (#1365, toonn)
 
-- imp: hledger-check-fancyassertions.hs: use megaparsec's prettyprinter for assertion parse errors (ShrykeWindgrace)
+- Bump default stackage snapshot to one avoiding buggy happy version.
 
-- ; PR-template: Change comment syntax (toonn)
-  The # syntax for comments results in all the lines being rendered as
-  separate headers because it's markdown syntax for titles. I believe the
-  markdown custom is to use `<!-- HTML comments -->`.
+- bin/changelog: a new helper making changelog edits more pleasant.
 
-- ; PR-template: Update dev docs URL (toonn)
-  The URL in the PR template redirects to a general contributing guide,
-  which is useful, but it's hard to see the trees for the forest when just
-  looking for PR and commit guidelines.
+- make throughput{,-dev,-EXE}: reports transactions per second for a range of
+  file sizes with the hledger in PATH, hledger dev build, or named hledger 
+  executable.
 
-- ; cabal.project: Drop compatibility comment (toonn)
-  The offending syntax is no longer used so the comment can be removed
-  too. Ideally `allow-newer` isn't used in the project's setup. The
-  problem should rather be fixed by adjusting constraints, though these
-  adjustments may need to be made in dependencies upstream.
+- make install-as-FOO: build executables and save as bin/hledger*-FOO
 
-  Fixes #1365
+- perf: bench-ledger.sh for comparative benchmarking with Ledger.
 
-- ;make: install-as-FOO: build executables and save as bin/hledger*-FOO
+- CI: commitlint: be more forgiving when we can't figure out recent commits
+  (don't check any).
 
-- ;doc: orgfiles: disable smart dashes in another way
+- CI: commitlint: recognise any commit starting with ‘Merge’ as a merge commit
+  (and ignore it). (Stephen Morgan)
 
-- ci: Recognise any commit starting with ‘Merge’ as a merge commit, which is ignored by commitlint. (Stephen Morgan)
-
-- ;doc: merge doc/README with dev docs
-
-- ;doc: add page TOCs to more dev docs
-
-- ;doc: move more content out of CONTRIBUTING
-
-- ;doc: separate CHANGELOGS, COMMITS docs
-
-- ;doc: ACHIEVEMENTS: format, update
-
-- ;tools: make site(-watch): add orgfiles
-
-- ;doc: BACKLOG: updates; all cli items added
-
-- ;doc: RELEASING: updates
-
-- ;doc: CONTRIBUTING: updates, components -> topics
-
-- ;tools: make copy-exe*: name them -SUFF not .SUFF
-  Breaks my usual convention of hledger-foo being an addon command, but
-  -VERSION is too common (and matches the make target that you type).
 
 # 1.23 2021-09-21
 

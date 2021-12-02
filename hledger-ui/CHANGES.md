@@ -9,13 +9,13 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 791f4655d
+# 1.24 2021-12-01
 
 Features
 
 - hledger-ui can now be controlled with mouse or touchpad.
-  Click to enter things, click left margin or bottom blank area to exit them,
-  and use mouse wheel / swipe to scroll.
+  Click to enter things, click left margin or bottom blank area to return to
+  previous screen, and use mouse wheel / swipe to scroll.
 
 - In addition to accounts with postings, hledger-ui now also shows
   declared accounts, even if they are empty (just leaf accounts, not

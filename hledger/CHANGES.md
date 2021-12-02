@@ -9,30 +9,12 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 791f4655d
+# 1.24 2021-12-01
 
 Features
 
-- The balance commands have a new --declared flag, causing them to
-  include leaf (ie, non-parent) accounts declared by account directives,
-  even if they contain no transactions yet. Together with -E, this shows
-  a balance for both used and declared accounts.
-  The idea is to be able to see a useful "complete" balance report, even
-  when you don't have transactions in all of your declared accounts yet.
-  (#1765)
-
-- journal files now support a `decimal-mark` directive as a more
-  principled way to specify the decimal character in use in that file,
-  ensuring accurate number parsing.
-  (#1670, Lawrence Wu)
-
-Improvements
-
-- The stats command now shows rough but useful performance stats: run
-  time and processing speed in transactions per second.
-
-- balance commands no longer elide too-wide amounts by default. And,
-  they provide more control over how multicommodity amounts are displayed. 
+- balance commands provide more control over how multicommodity amounts
+  are displayed. (And they no longer elide too-wide amounts by default.)
   The --commodity-column flag has been deprecated and replaced by a new
   --layout option, with three values:
   
@@ -41,6 +23,24 @@ Improvements
   - bare (like the old --commodity-columm, shows one commodity per line with symbols in their own column)
   
   (Stephen Morgan)
+
+- The balance commands have a new `--declared` flag, causing them to
+  include leaf (ie, non-parent) accounts declared by account directives,
+  even if they contain no transactions yet. Together with `-E`, this shows
+  a balance for both used and declared accounts.
+  The idea is to be able to see a useful "complete" balance report, even
+  when you don't have transactions in all of your declared accounts yet.
+  (#1765)
+
+- journal files now support a `decimal-mark` directive as a more
+  principled way (than `commodity` directives) to specify the decimal character
+  in use in that file, to ensure accurate number parsing.
+  (#1670, Lawrence Wu)
+
+Improvements
+
+- The stats command now shows rough but useful performance stats: run
+  time and processing speed in transactions per second.
 
 - balance: support the --related flag, like register, showing the
   other postings from the transactions. (#1469, Stephen Morgan)

@@ -14,7 +14,7 @@ Changelogs:
 
 Release notes:
 
-- add a new TOC entry and section in site/release-notes.md
+- add a new section in site/src/release-notes.md
 - copy/rewrite/summarise package changelogs 
 - note any other items of interest
 - list release contributors

@@ -9,9 +9,7 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 7e47d3645
-
-Features
+# 1.24 2021-12-01
 
 Improvements
 
@@ -42,8 +40,6 @@ Improvements
   (Stephen Morgan)
 
 - Allow megaparsec 9.2.
-
-Fixes
 
 # 1.23 2021-09-21
 
