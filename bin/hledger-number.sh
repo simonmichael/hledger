@@ -24,11 +24,10 @@ hledger bal -0 -N -X "$VALUATION_COMMODITY" --infer-market-prices -c "$VALUATION
 # awk discards all but the number
 #
 # A note: If you're new to hledger/PTA and thinking it shouldn't be this hard..
-# well of course normally when a hledger user wants to see one number, they run
-# a much simpler command like `hledger bal lodging` or `hledger reg lodging`.
-# This script is exploring how to anticipate and neutralise all variations
-# caused by account structure, number formatting, mulltiple commodities, etc.
-# so as to *reliably* produce *one machine readable number* from highly diverse
-# data. As we figure out good approaches we'll build them in so that eg
-# producing data for charting is as easy as it can be, while still being
-# general.
+# well of course normally when a hledger user wants to see a single balance,
+# they run a much simpler command like `hledger bal lodging`. This script is
+# exploring how to anticipate and neutralise all variations from account
+# structure, number formatting, multiple commodities, etc. so as to *reliably*
+# produce *one machine readable number* from highly diverse data. As we figure
+# out good approaches we'll build them in so that producing data for charting
+# (eg) is as easy as it can be, while still being general.
