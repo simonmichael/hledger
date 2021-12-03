@@ -248,7 +248,7 @@ compoundBalanceReportAsCsv ropts (CompoundPeriodicReport title colspans subrepor
     addtotals $
       padRow title
       : ( "Account"
-        : ["Commodity" | commodity_layout_ ropts == CommodityBare]
+        : ["Commodity" | layout_ ropts == LayoutBare]
         ++ map (reportPeriodName (balanceaccum_ ropts) colspans) colspans
         ++ (if row_total_ ropts then ["Total"] else [])
         ++ (if average_ ropts then ["Average"] else [])
@@ -265,7 +265,7 @@ compoundBalanceReportAsCsv ropts (CompoundPeriodicReport title colspans subrepor
           | null subreports = 1
           | otherwise =
             (1 +) $ -- account name column
-            (if commodity_layout_ ropts == CommodityBare then (1+) else id) $
+            (if layout_ ropts == LayoutBare then (1+) else id) $
             (if row_total_ ropts then (1+) else id) $
             (if average_ ropts then (1+) else id) $
             maximum $ -- depends on non-null subreports
@@ -287,7 +287,7 @@ compoundBalanceReportAsHtml ropts cbr =
     titlerows =
       (tr_ $ th_ [colspanattr, leftattr] $ h2_ $ toHtml title)
       : [thRow $
-         "" : ["Commodity" | commodity_layout_ ropts == CommodityBare] ++
+         "" : ["Commodity" | layout_ ropts == LayoutBare] ++
          map (reportPeriodName (balanceaccum_ ropts) colspans) colspans
          ++ (if row_total_ ropts then ["Total"] else [])
          ++ (if average_ ropts then ["Average"] else [])
