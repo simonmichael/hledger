@@ -272,7 +272,7 @@ compoundBalanceReportAsCsv ropts (CompoundPeriodicReport title colspans subrepor
             map (length . prDates . second3) subreports
     addtotals
       | no_total_ ropts || length subreports == 1 = id
-      | otherwise = (++ fmap ("Net:" : ) (multiBalanceRowAsCsvText ropts netrow))
+      | otherwise = (++ fmap ("Net:" : ) (multiBalanceRowAsCsvText ropts colspans netrow))
 
 -- | Render a compound balance report as HTML.
 compoundBalanceReportAsHtml :: ReportOpts -> CompoundPeriodicReport DisplayName MixedAmount -> Html ()
@@ -309,7 +309,7 @@ compoundBalanceReportAsHtml ropts cbr =
         ++ [blankrow]
 
     totalrows | no_total_ ropts || length subreports == 1 = []
-      | otherwise = multiBalanceReportHtmlFootRow ropts <$> (("Net:" :) <$> multiBalanceRowAsCsvText ropts netrow)
+      | otherwise = multiBalanceReportHtmlFootRow ropts <$> (("Net:" :) <$> multiBalanceRowAsCsvText ropts colspans netrow)
   in do
     style_ (T.unlines [""
       ,"td { padding:0 0.5em; }"

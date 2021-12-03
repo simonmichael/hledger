@@ -525,13 +525,17 @@ multiBalanceReportAsCsv opts@ReportOpts{..} =
 
 multiBalanceReportAsCsv' :: ReportOpts -> MultiBalanceReport -> (CSV, CSV)
 multiBalanceReportAsCsv' opts@ReportOpts{..} (PeriodicReport colspans items tr) =
-    ( ("account" : ["commodity" | layout_ == LayoutBare] ++ map showDateSpan colspans
-       ++ ["total"   | row_total_]
-       ++ ["average" | average_]
-      ) : concatMap (fullRowAsTexts (accountNameDrop drop_ . prrFullName)) items
-    , totalrows)
+    ( headers : concatMap (fullRowAsTexts (accountNameDrop drop_ . prrFullName)) items
+    , totalrows
+    )
   where
-    fullRowAsTexts render row = (render row :) <$> multiBalanceRowAsCsvText opts row
+    headers = "account" : case layout_ of
+      LayoutTidy -> ["date", "commodity", "value"]
+      LayoutBare -> "commodity" : dateHeaders
+      _          -> dateHeaders
+    dateHeaders = map showDateSpan colspans ++ ["total" | row_total_] ++ ["average" | average_]
+
+    fullRowAsTexts render row = map (render row :) $ multiBalanceRowAsCsvText opts colspans row
     totalrows
       | no_total_ = mempty
       | otherwise = fullRowAsTexts (const "total") tr
@@ -692,8 +696,8 @@ balanceReportAsTable opts@ReportOpts{average_, row_total_, balanceaccum_}
     maybetranspose | transpose_ opts = \(Table rh ch vals) -> Table ch rh (transpose vals)
                    | otherwise       = id
 
-multiBalanceRowAsWbs :: AmountDisplayOpts -> ReportOpts -> PeriodicReportRow a MixedAmount -> [[WideBuilder]]
-multiBalanceRowAsWbs bopts ReportOpts{..} (PeriodicReportRow _ as rowtot rowavg) =
+multiBalanceRowAsWbs :: AmountDisplayOpts -> ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount -> [[WideBuilder]]
+multiBalanceRowAsWbs bopts ReportOpts{..} colspans (PeriodicReportRow _ as rowtot rowavg) =
     case layout_ of
       LayoutWide width -> [fmap (showMixedAmountB bopts{displayMaxWidth=width}) all]
       LayoutTall       -> paddedTranspose mempty
@@ -703,12 +707,20 @@ multiBalanceRowAsWbs bopts ReportOpts{..} (PeriodicReportRow _ as rowtot rowavg)
                            . transpose                         -- each row becomes a list of Text quantities
                            . fmap (showMixedAmountLinesB bopts{displayOrder=Just cs, displayMinWidth=Nothing})
                            $ all
+      LayoutTidy       -> concat
+                           . zipWith (\d -> map (wbFromText d :)) dates
+                           . fmap ( zipWith (\c a -> [wbFromText c, a]) cs
+                                  . showMixedAmountLinesB bopts{displayOrder=Just cs, displayMinWidth=Nothing})
+                           $ all
   where
     totalscolumn = row_total_ && balanceaccum_ `notElem` [Cumulative, Historical]
     cs = S.toList . foldl' S.union mempty $ fmap maCommodities all
     all = as
         ++ [rowtot | totalscolumn && not (null as)]
         ++ [rowavg | average_     && not (null as)]
+    dates = map showDateSpan colspans
+        ++ ["Total"   | totalscolumn && not (null as)]
+        ++ ["Average" | average_     && not (null as)]
 
     paddedTranspose :: a -> [[a]] -> [[a]]
     paddedTranspose _ [] = [[]]
@@ -724,11 +736,11 @@ multiBalanceRowAsWbs bopts ReportOpts{..} (PeriodicReportRow _ as rowtot rowavg)
           m (x:xs) = x:xs
           m [] = [n]
 
-multiBalanceRowAsCsvText :: ReportOpts -> PeriodicReportRow a MixedAmount -> [[T.Text]]
-multiBalanceRowAsCsvText opts = fmap (fmap wbToText) . multiBalanceRowAsWbs (balanceOpts False opts) opts
+multiBalanceRowAsCsvText :: ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount -> [[T.Text]]
+multiBalanceRowAsCsvText opts colspans = fmap (fmap wbToText) . multiBalanceRowAsWbs (balanceOpts False opts) opts colspans
 
 multiBalanceRowAsTableText :: ReportOpts -> PeriodicReportRow a MixedAmount -> [[WideBuilder]]
-multiBalanceRowAsTableText opts = multiBalanceRowAsWbs (balanceOpts True opts) opts
+multiBalanceRowAsTableText opts = multiBalanceRowAsWbs (balanceOpts True opts) opts []
 
 -- | Amount display options to use for balance reports
 balanceOpts :: Bool -> ReportOpts -> AmountDisplayOpts
