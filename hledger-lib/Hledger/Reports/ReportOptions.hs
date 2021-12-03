@@ -26,7 +26,7 @@ module Hledger.Reports.ReportOptions (
   BalanceAccumulation(..),
   AccountListMode(..),
   ValuationType(..),
-  CommodityLayout(..),
+  Layout(..),
   defreportopts,
   rawOptsToReportOpts,
   defreportspec,
@@ -109,9 +109,9 @@ data AccountListMode = ALFlat | ALTree deriving (Eq, Show)
 
 instance Default AccountListMode where def = ALFlat
 
-data CommodityLayout = CommodityWide (Maybe Int)
-                     | CommodityTall
-                     | CommodityBare
+data Layout = LayoutWide (Maybe Int)
+            | LayoutTall
+            | LayoutBare
   deriving (Eq, Show)
 
 -- | Standard options for customising report filtering and output.
@@ -169,7 +169,7 @@ data ReportOpts = ReportOpts {
       --   whether stdout is an interactive terminal, and the value of
       --   TERM and existence of NO_COLOR environment variables.
     ,transpose_        :: Bool
-    ,commodity_layout_ :: CommodityLayout
+    ,layout_           :: Layout
  } deriving (Show)
 
 instance Default ReportOpts where def = defreportopts
@@ -208,7 +208,7 @@ defreportopts = ReportOpts
     , normalbalance_    = Nothing
     , color_            = False
     , transpose_        = False
-    , commodity_layout_ = CommodityWide Nothing
+    , layout_           = LayoutWide Nothing
     }
 
 -- | Generate a ReportOpts from raw command-line input, given a day.
@@ -262,7 +262,7 @@ rawOptsToReportOpts d rawopts =
           ,pretty_           = pretty
           ,color_            = useColorOnStdout -- a lower-level helper
           ,transpose_        = boolopt "transpose" rawopts
-          ,commodity_layout_ = commoditylayoutopt rawopts
+          ,layout_           = layoutopt rawopts
           }
 
 -- | The result of successfully parsing a ReportOpts on a particular
@@ -337,17 +337,17 @@ balanceAccumulationOverride rawopts = choiceopt parse rawopts <|> reportbal
       CalcValueChange -> Just PerPeriod
       _               -> Nothing
 
-commoditylayoutopt :: RawOpts -> CommodityLayout
-commoditylayoutopt rawopts = fromMaybe (CommodityWide Nothing) $ layout <|> column
+layoutopt :: RawOpts -> Layout
+layoutopt rawopts = fromMaybe (LayoutWide Nothing) $ layout <|> column
   where
     layout = parse <$> maybestringopt "layout" rawopts
-    column = CommodityBare <$ guard (boolopt "commodity-column" rawopts)
+    column = LayoutBare <$ guard (boolopt "commodity-column" rawopts)
 
     parse opt = maybe err snd $ guard (not $ null s) *> find (isPrefixOf s . fst) checkNames
       where
-        checkNames = [ ("wide", CommodityWide w)
-                     , ("tall", CommodityTall)
-                     , ("bare", CommodityBare)
+        checkNames = [ ("wide", LayoutWide w)
+                     , ("tall", LayoutTall)
+                     , ("bare", LayoutBare)
                      ]
         -- For `--layout=elided,n`, elide to the given width
         (s,n) = break (==',') $ map toLower opt
