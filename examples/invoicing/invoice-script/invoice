@@ -1,0 +1,180 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC2016
+# Create invoices with hledger and pandoc.
+# cf hledger/examples/invoicing, https://hledger.org/invoicing.html, https://martinbetz.eu/articles/pandoc-invoices
+set -e
+
+#PROG=$(basename "$0")
+function usage() {
+    cat <<EOF
+--------------------------------------------------------------------------------
+invoice:
+Make markdown or pdf invoices, optionally including last month's time
+and expenses, from a markdown template and similarly-named .css file.
+Requires hledger, pandoc, awk, GNU date, envsubst, python3, sed, tail.
+
+$ invoice
+  Show this help.
+
+$ invoice TEMPLATEFILE [TIMEACCTORAMT [EXPACCTORAMT]] [FLAGS]
+  Print a markdown invoice on stdout.
+  TIMEACCTORAMT and EXPACCTORAMT are time and expense accounts to query
+  with hledger, or if numeric, the hours and expense amounts directly.
+  With --md and/or --pdf, save it as markdown / PDF in current directory.
+  With --txn, print sample hledger journal entries on stdout.
+
+EOF
+}
+
+ARGS=()
+while [[ $# -gt 0 ]]; do
+    key="$1"
+    case $key in
+        -h|--help)
+            HELP=1
+            shift
+            ;;
+        --md)
+            MD=1
+            shift
+            ;;
+        --pdf)
+            PDF=1
+            shift
+            ;;
+        --txn)
+            TXN=1
+            shift
+            ;;
+        *)
+            if [[ "$1" != -* ]]
+            then 
+                ARGS+=("$1")
+                shift
+            else
+                echo "Error: unknown option $1"
+                exit 1
+            fi
+            ;;
+    esac
+done
+if [[ $HELP = 1 || ${#ARGS} -eq 0 ]]; then usage; exit; fi
+
+DEFTIMEACCT=0
+DEFEXPACCT=0
+TEMPLATE="${ARGS[0]}"
+TIMEACCT="${ARGS[1]:-$DEFTIMEACCT}"
+EXPACCT="${ARGS[2]:-$DEFEXPACCT}"
+
+# XXX FIXEDEXPS and RATE here, and printf widths below, must be kept synced with TEMPLATE
+FIXEDEXPS=$(python3 -c "print(sum([ 1111, 2222, 333 ]))")
+RATE=444
+TIMELOG=./time.timedot
+#
+
+# if changing this period, hledger and date may need different values
+HLEDGERPERIOD='last month'
+DATECMDPERIOD='last month'
+
+NUMRE="^[0-9]+([.][0-9]+)?$"
+if [[ $TIMEACCT =~ $NUMRE ]]
+then
+    HRS=$TIMEACCT
+else
+    HRS=$(hledger -f "$TIMELOG" bal "$TIMEACCT" -1 "date:$HLEDGERPERIOD" -N | tail -1 | awk '{print $1}')
+fi
+if [[ $EXPACCT =~ $NUMRE ]]
+then
+    EXP=$EXPACCT
+else
+    EXP=$(hledger bal "$EXPACCT" "date:$HLEDGERPERIOD" amt:'>0' -N --layout=bare | tail -1 | awk '{print $1}')
+fi
+
+# on mac, use homebrew-installed GNU date
+if [ "$(builtin type -p gdate)" ]; then export date=gdate; else export date=date; fi
+
+YEAR=$($date +%Y)
+MONTH=$($date +%B)
+MON=$($date +%b)
+MM=$($date +%m)
+DD=$($date +%d)
+DAY=$($date +%-d)
+LM=$($date  +%b --date "$DATECMDPERIOD")
+LMM=$($date +%m --date "$DATECMDPERIOD")
+
+# shellcheck disable=SC2001
+INVOICEBASE=$(basename "$TEMPLATE" | sed -e 's/\..*//')
+INVOICEDATED=$INVOICEBASE$YEAR$LMM
+INVOICEMD=$INVOICEDATED".md"
+INVOICEPDF=$INVOICEDATED".pdf"
+CSS=$INVOICEBASE".css"
+
+HRS="${HRS:-0}"
+HRS=$(printf %4s "$HRS")
+EXP=$(printf %5.0f "$EXP")
+AMT=$(python3 -c "print(round( $HRS * $RATE ))")
+AMT=$(printf %5s "$AMT")
+REV=$(python3 -c "print(sum([ $FIXEDEXPS, $AMT ]))")
+REV=$(printf %5s "$REV")
+TOT=$(python3 -c "print(sum([ $FIXEDEXPS, $AMT, $EXP ]))")
+TOT=$(printf %5s "$TOT")
+export  YEAR  MONTH  DAY  LMM  LM  HRS  AMT  REV  EXP  TOT
+
+if [[ $MD != 1 && $PDF != 1 ]]; then
+   # print markdown invoice
+   envsubst '$YEAR:$MONTH:$DAY:$LMM:$LM:$HRS:$EXP:$AMT:$TOT' <"$TEMPLATE"
+
+else
+    if [[ $MD = 1 ]]; then
+        # save markdown invoice
+        envsubst '$YEAR:$MONTH:$DAY:$LMM:$LM:$HRS:$EXP:$AMT:$TOT' <"$TEMPLATE" >"$INVOICEMD"
+        echo "wrote $INVOICEMD"
+    fi
+    if [[ $PDF = 1 ]]; then
+        # save pdf invoice
+        envsubst '$YEAR:$MONTH:$DAY:$LMM:$LM:$HRS:$EXP:$AMT:$TOT' <"$TEMPLATE" \
+            | pandoc -t html5 --metadata title=" " --css "$CSS" -o "$INVOICEPDF"
+        echo "wrote $INVOICEPDF"
+    fi
+fi
+
+if [[ $TXN = 1 ]]; then
+    # generate sample journal entries
+    printf "\n--------------------------------------------------------------------------------\n\n"
+    USTAXRATE=0.28
+    STTAXRATE=0.08
+    CLIENT=$INVOICEBASE
+    USTAX=$(python3 -c "print(round( $REV * $USTAXRATE))")
+    #USTAX=$(printf %5s "$USTAX")
+    STTAX=$(python3 -c "print(round( $REV * $STTAXRATE))")
+    #STTAX=$(printf %5s "$STTAX")
+    TOTTAX=$(python3 -c "print($USTAX + $STTAX)")
+    #TOTTAX=$(printf %5s "$TOTTAX")
+    PTINC=$(python3 -c "print($REV - $TOTTAX)")
+    #PTINC=$(printf %5s "$PTINC")
+
+    envsubst '$CLIENT:$YEAR:$MM:$DD:$MON:$LMM:$LM:$REV:$EXP:$TOT:$USTAX:$STTAX:$TOTTAX:$PTINC' <<EOF
+$YEAR-$MM-$DD (${YEAR}${LMM}) $CLIENT | invoice \$$TOT
+    (assets:receivable:$CLIENT:consulting)      \$$REV ; $LM hourly & $MON fixed fees
+    ;(assets:receivable:$CLIENT:reimbursement)  \$$EXP ; $LM reimbursable expenses
+
+; $YEAR-$MM-$DD (${YEAR}${LMM}) $CLIENT | payment
+;     ; receive full amount of invoice
+;     assets:bank:checking                \$$TOT
+;     assets:receivable:$CLIENT:reimbursement    \$-$EXP
+;     assets:receivable:$CLIENT:consulting       \$-$REV = $0
+;     ; recognise revenue (cash accounting)
+;     (revenues:$CLIENT)                         \$-$REV
+;     ; estimate tax due, tax-saved-on:  ?, TODO:
+;     (liabilities:tax:us:2021)              \$-$USTAX  ; 28%
+;     (liabilities:tax:st:2021)              \$-$STTAX  ;  8%
+;     ; Total tax:                               \$$TOTTAX  ; 36%
+;     ; Post-tax income:                         \$$PTINC
+
+; $YEAR-$MM-$DD save estimated tax from $CLIENT ${YEAR}${LMM}, received $YEAR-$MM-$DD
+;     assets:bank:checking               \$-$TOTTAX
+;     assets:bank:savings:tax:us:2021     \$$USTAX
+;     assets:bank:savings:tax:st:2021     \$$STTAX
+
+EOF
+fi
