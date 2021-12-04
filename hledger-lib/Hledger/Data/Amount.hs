@@ -73,6 +73,7 @@ module Hledger.Data.Amount (
   noColour,
   noPrice,
   oneLine,
+  csvDisplay,
   amountstyle,
   styleAmount,
   styleAmountExceptPrecision,
@@ -200,6 +201,7 @@ quoteCommoditySymbolIfNeeded s
 data AmountDisplayOpts = AmountDisplayOpts
   { displayPrice         :: Bool       -- ^ Whether to display the Price of an Amount.
   , displayZeroCommodity :: Bool       -- ^ If the Amount rounds to 0, whether to display its commodity string.
+  , displayThousandsSep  :: Bool       -- ^ Whether to display thousands separators.
   , displayColour        :: Bool       -- ^ Whether to colourise negative Amounts.
   , displayOneLine       :: Bool       -- ^ Whether to display on one line.
   , displayMinWidth      :: Maybe Int  -- ^ Minimum width to pad to
@@ -217,6 +219,7 @@ noColour :: AmountDisplayOpts
 noColour = AmountDisplayOpts { displayPrice         = True
                              , displayColour        = False
                              , displayZeroCommodity = False
+                             , displayThousandsSep  = True
                              , displayOneLine       = False
                              , displayMinWidth      = Just 0
                              , displayMaxWidth      = Nothing
@@ -230,6 +233,10 @@ noPrice = def{displayPrice=False}
 -- | Display Amount and MixedAmount on one line with no prices.
 oneLine :: AmountDisplayOpts
 oneLine = def{displayOneLine=True, displayPrice=False}
+
+-- | Display Amount and MixedAmount in a form suitable for CSV output.
+csvDisplay :: AmountDisplayOpts
+csvDisplay = oneLine{displayThousandsSep=False}
 
 -------------------------------------------------------------------------------
 -- Amount styles
@@ -472,7 +479,7 @@ showAmountB opts a@Amount{astyle=style} =
       L -> showC (wbFromText c) space <> quantity' <> price
       R -> quantity' <> showC space (wbFromText c) <> price
   where
-    quantity = showamountquantity a
+    quantity = showamountquantity $ if displayThousandsSep opts then a else a{astyle=(astyle a){asdigitgroups=Nothing}}
     (quantity',c) | amountLooksZero a && not (displayZeroCommodity opts) = (WideBuilder (TB.singleton '0') 1,"")
                   | otherwise = (quantity, quoteCommoditySymbolIfNeeded $ acommodity a)
     space = if not (T.null c) && ascommodityspaced style then WideBuilder (TB.singleton ' ') 1 else mempty

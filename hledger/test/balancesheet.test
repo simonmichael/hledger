@@ -328,7 +328,23 @@ $ hledger -f - balancesheet --tree --output-format=csv --drop 1
 "total"
 "Net:","$1"
 
-# 14. In compound reports like balancesheet, parent accounts might not have
+<
+2020-03-01 * Rent
+    assets:a     -$10 000.00
+    expenses
+
+# 14. CSV output drops thousands separators
+$ hledger -f - balancesheet --output-format=csv
+"Balance Sheet 2020-03-01",""
+"Account","2020-03-01"
+"Assets",""
+"assets:a","$-10000.00"
+"total","$-10000.00"
+"Liabilities",""
+"total"
+"Net:","$-10000.00"
+
+# 15. In compound reports like balancesheet, parent accounts might not have
 # the appropriate type for a subreport, but in tree reports they should be 
 # displayed anyway, and with the right inclusive amounts and starting 
 # balances. (#1698)

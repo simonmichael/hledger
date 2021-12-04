@@ -120,8 +120,8 @@ accountTransactionsReportItemAsCsvRecord
   where
     idx  = T.pack $ show tindex
     date = showDate $ transactionRegisterDate wd reportq thisacctq t
-    amt  = wbToText $ showMixedAmountB oneLine change
-    bal  = wbToText $ showMixedAmountB oneLine balance
+    amt  = wbToText $ showMixedAmountB csvDisplay change
+    bal  = wbToText $ showMixedAmountB csvDisplay balance
 
 -- | Render a register report as plain text suitable for console output.
 accountTransactionsReportAsText :: CliOpts -> Query -> Query -> AccountTransactionsReport -> TL.Text
