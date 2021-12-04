@@ -88,8 +88,8 @@ postingsReportItemAsCsvRecord (_, _, _, p, b) = [idx,date,code,desc,acct,amt,bal
                              VirtualPosting -> wrap "(" ")"
                              _ -> id
     -- Since postingsReport strips prices from all Amounts when not used, we can display prices.
-    amt = wbToText . showMixedAmountB oneLine $ pamount p
-    bal = wbToText $ showMixedAmountB oneLine b
+    amt = wbToText . showMixedAmountB csvDisplay $ pamount p
+    bal = wbToText $ showMixedAmountB csvDisplay b
 
 -- | Render a register report as plain text suitable for console output.
 postingsReportAsText :: CliOpts -> PostingsReport -> TL.Text

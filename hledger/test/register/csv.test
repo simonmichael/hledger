@@ -1,0 +1,8 @@
+2019-1-1
+  (a)  10 000 000.0
+
+# 1. Csv output will not display thousands separators
+$ hledger -f- register -O csv
+"txnidx","date","code","description","account","amount","total"
+"1","2019-01-01","","","(a)","10000000.0","10000000.0"
+>=

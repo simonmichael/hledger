@@ -1,0 +1,11 @@
+<
+2009/1/1
+  a   $10 000.00
+  b  -$10 000.00
+
+# csv output should not display thousands separators
+$ hledger -f- print -O csv
+"txnidx","date","date2","status","code","description","comment","account","amount","commodity","credit","debit","posting-status","posting-comment"
+"1","2009-01-01","","","","","","a","10000.00","$","","10000.00","",""
+"1","2009-01-01","","","","","","b","-10000.00","$","10000.00","","",""
+>= 0

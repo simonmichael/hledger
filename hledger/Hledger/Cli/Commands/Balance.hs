@@ -422,7 +422,7 @@ balanceReportAsCsv opts (items, total) =
 
     showName = accountNameDrop (drop_ opts)
     renderAmount amt = wbToText $ showMixedAmountB bopts amt
-      where bopts = (balanceOpts False opts){displayOrder = order}
+      where bopts = csvDisplay{displayOrder = order}
             order = if layout_ opts == LayoutBare then Just (S.toList $ maCommodities amt) else Nothing
 
 -- | Render a single-column balance report as plain text.
@@ -455,7 +455,7 @@ balanceReportAsText' opts ((items, total)) =
         [ Cell TopRight damts
         , Cell TopLeft (fmap wbFromText cs)
         , Cell TopLeft (replicate (length damts - 1) mempty ++ [wbFromText dispname]) ]
-      where dopts = (balanceOpts True opts){displayOrder=Just cs}
+      where dopts = oneLine{displayColour=color_ opts, displayOrder=Just cs}
             cs    = S.toList $ maCommodities amt
             dispname = T.replicate ((depth - 1) * 2) " " <> acctname
             damts = showMixedAmountLinesB dopts amt
@@ -512,7 +512,7 @@ renderComponent topaligned oneline opts (acctname, depth, total) (FormatField lj
           | topaligned          = TopRight
           | ljust               = BottomLeft
           | otherwise           = BottomRight
-    dopts = (balanceOpts True opts){displayOneLine=oneline, displayMinWidth=mmin, displayMaxWidth=mmax}
+    dopts = noPrice{displayColour=color_ opts, displayOneLine=oneline, displayMinWidth=mmin, displayMaxWidth=mmax}
 
 -- rendering multi-column balance reports
 
@@ -742,14 +742,10 @@ multiBalanceRowAsWbs bopts ReportOpts{..} colspans (PeriodicReportRow _ as rowto
           m [] = [n]
 
 multiBalanceRowAsCsvText :: ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount -> [[T.Text]]
-multiBalanceRowAsCsvText opts colspans = fmap (fmap wbToText) . multiBalanceRowAsWbs (balanceOpts False opts) opts colspans
+multiBalanceRowAsCsvText opts colspans = fmap (fmap wbToText) . multiBalanceRowAsWbs csvDisplay opts colspans
 
 multiBalanceRowAsTableText :: ReportOpts -> PeriodicReportRow a MixedAmount -> [[WideBuilder]]
-multiBalanceRowAsTableText opts = multiBalanceRowAsWbs (balanceOpts True opts) opts []
-
--- | Amount display options to use for balance reports
-balanceOpts :: Bool -> ReportOpts -> AmountDisplayOpts
-balanceOpts isTable ReportOpts{..} = oneLine {displayColour = isTable && color_}
+multiBalanceRowAsTableText opts = multiBalanceRowAsWbs oneLine{displayColour=color_ opts} opts []
 
 tests_Balance = testGroup "Balance" [
 

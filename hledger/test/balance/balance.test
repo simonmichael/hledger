@@ -168,7 +168,19 @@ hledger -f - balance -N --output-format=csv --tree
 "Assets:Cash","$-1"
 >>>= 0
 
-# 9. --declared includes all declared leaf accounts, even if they have no postings.
+# 9. CSV output always does not show thousands separators
+hledger -f - balance -N --output-format=csv
+<<<
+2021-01-01 Test
+    Assets:ABC    $10 000.00
+    Assets:Cash  -$10 000.00
+>>>
+"account","balance"
+"Assets:ABC","$10000.00"
+"Assets:Cash","$-10000.00"
+>>>= 0
+
+# 10. --declared includes all declared leaf accounts, even if they have no postings.
 # They are filtered, depth-clipped, and form trees like the others.
 hledger -f - balance -NE --declared --tree --depth 2 a
 <<<
@@ -183,7 +195,7 @@ account b
                    0    ab
 >>>= 0
 
-# 10. In list mode we can see that non-leaf declared accounts are excluded.
+# 11. In list mode we can see that non-leaf declared accounts are excluded.
 hledger -f - balance -NE --declared --flat
 <<<
 account a

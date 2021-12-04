@@ -179,8 +179,8 @@ postingToCSV p =
   map (\(a@(Amount {aquantity=q,acommodity=c})) ->
     -- commodity goes into separate column, so we suppress it, along with digit group
     -- separators and prices
-    let a_ = a{acommodity="",astyle=(astyle a){asdigitgroups=Nothing},aprice=Nothing} in
-    let showamt = wbToText . showAmountB noColour in
+    let a_ = amountStripPrices a{acommodity=""} in
+    let showamt = wbToText . showAmountB csvDisplay in
     let amount = showamt a_ in
     let credit = if q < 0 then showamt $ negate a_ else "" in
     let debit  = if q >= 0 then showamt a_ else "" in
