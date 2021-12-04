@@ -403,9 +403,14 @@ journalCheckCommoditiesDeclared j =
                           (linesPrepend "  " . (<>"\n") . textChomp $ showTransaction t)
       where
         mfirstundeclaredcomm =
-          find (`M.notMember` jcommodities j) . map acommodity $
-          (maybe id ((:) . baamount) pbalanceassertion) . filter (/= missingamt) $ amountsRaw pamount
+          find (`M.notMember` jcommodities j)
+          . map acommodity
+          . (maybe id ((:) . baamount) pbalanceassertion)
+          . filter (not . isIgnorable)
+          $ amountsRaw pamount
 
+    -- Ignore missing amounts and zero amounts without commodity (#1767)
+    isIgnorable a = (T.null (acommodity a) && amountIsZero a) || a == missingamt
 
 setYear :: Year -> JournalParser m ()
 setYear y = modify' (\j -> j{jparsedefaultyear=Just y})

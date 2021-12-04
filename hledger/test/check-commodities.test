@@ -1,14 +1,31 @@
-# check commodities succeeds when all commodities are declared
+# 1. check commodities succeeds when all commodities are declared
 <
 commodity $1.
 2020-01-01
   (a)  $1
 $ hledger -f- check commodities
 
-# and otherwise fails
+# 2. and otherwise fails
 <
 2020-01-01
   (a)  $1
+$ hledger -f- check commodities
+>2 /undeclared commodity "\$"/
+>=1
+
+# 3. But commodityless zero amounts will not fail
+<
+2020-01-01
+  (a)  0
+
+$ hledger -f- check commodities
+>=0
+
+# 4. But zero amounts with undeclared commodities still fail
+<
+2020-01-01
+  (a)  $0
+
 $ hledger -f- check commodities
 >2 /undeclared commodity "\$"/
 >=1
