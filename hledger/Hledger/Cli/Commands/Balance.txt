@@ -350,7 +350,7 @@ Examples:
 
 Here is how --layout currently affects the various output formats:
 
-         txt   csv   html   json   sql
+  -      txt   csv   html   json   sql
   ------ ----- ----- ------ ------ -----
   wide   Y     Y     Y             
   tall   Y     Y     Y             
