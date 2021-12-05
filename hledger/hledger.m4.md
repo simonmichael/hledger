@@ -1417,26 +1417,73 @@ This is controlled by the `--pretty` option:
 
 ## Output format
 
-Some commands (print, register, the balance commands) offer a choice of output format. 
-In addition to the usual plain text format (`txt`), there are
-CSV (`csv`), HTML (`html`), JSON (`json`) and SQL (`sql`).
-This is controlled by the `-O/--output-format` option:
+Some commands offer additional output formats, other than the usual plain text terminal output.
+Here are those commands and the formats currently supported:
+
+|                          | txt | csv | json | html    | sql |
+|--------------------------|-----|-----|------|---------|-----|
+| aregister                | Y   | Y   | Y    |         |     |
+| balance *[1]*            | Y   | Y   | Y    | Y *[2]* |     |
+| balancesheet *[1]*       | Y   | Y   | Y    | Y       |     |
+| balancesheetequity *[1]* | Y   | Y   | Y    | Y       |     |
+| cashflow *[1]*           | Y   | Y   | Y    | Y       |     |
+| incomestatement *[1]*    | Y   | Y   | Y    | Y       |     |
+| print                    | Y   | Y   | Y    |         | Y   |
+| register                 | Y   | Y   | Y    |         |     |
+<!--
+| accounts              |     |     |      |      |     |
+| activity              |     |     |      |      |     |
+| add                   |     |     |      |      |     |
+| check                 |     |     |      |      |     |
+| check-fancyassertions |     |     |      |      |     |
+| check-tagfiles        |     |     |      |      |     |
+| close                 |     |     |      |      |     |
+| codes                 |     |     |      |      |     |
+| commodities           |     |     |      |      |     |
+| descriptions          |     |     |      |      |     |
+| diff                  |     |     |      |      |     |
+| files                 |     |     |      |      |     |
+| iadd                  |     |     |      |      |     |
+| import                |     |     |      |      |     |
+| interest              |     |     |      |      |     |
+| notes                 |     |     |      |      |     |
+| payees                |     |     |      |      |     |
+| prices                |     |     |      |      |     |
+| print-unique          |     |     |      |      |     |
+| register-match        |     |     |      |      |     |
+| rewrite               |     |     |      |      |     |
+| roi                   |     |     |      |      |     |
+| stats                 |     |     |      |      |     |
+| stockquotes           |     |     |      |      |     |
+| tags                  |     |     |      |      |     |
+| test                  |     |     |      |      |     |
+-->
+
+- *[1] Balance commands also have a multi-commodity [`--layout` option](#commodity-layout) which affects some output formats.*
+- *[2] Except with no report interval, or with the `--budget` flag.*
+
+The output format is selected by the `-O/--output-format=FMT` option:
 ```shell
-$ hledger print -O csv
-```
-or, by a file extension specified with `-o/--output-file`:
-```shell
-$ hledger balancesheet -o foo.html   # write HTML to foo.html
-```
-The `-O` option can be used to override the file extension if needed:
-```shell
-$ hledger balancesheet -o foo.txt -O html   # write HTML to foo.txt
+$ hledger print -O csv    # print CSV on stdout
 ```
 
-Some notes about JSON output:
+or by the filename extension of an output file specified with the `-o/--output-file=FILE.FMT` option:
+```shell
+$ hledger balancesheet -o foo.csv    # write CSV to foo.csv
+```
 
-- This feature is marked experimental, and not yet much used; you
-  should expect our JSON to evolve. Real-world feedback is welcome.
+The `-O` option can be combined with `-o` to override the file extension, if needed:
+```shell
+$ hledger balancesheet -o foo.txt -O csv    # write CSV to foo.txt
+```
+
+### HTML output
+
+- HTML output can be styled by an optional `hledger.css` file in the same directory.
+
+### JSON output
+
+- Not yet much used; real-world feedback is welcome.
 
 - Our JSON is rather large and verbose, as it is quite a faithful
   representation of hledger's internal data types. To understand the
@@ -1464,10 +1511,9 @@ Some notes about JSON output:
   find otherwise, please let us know. 
   (Cf [#1195](https://github.com/simonmichael/hledger/issues/1195))
 
-Notes about SQL output:
+### SQL output
 
-- SQL output is also marked experimental, and much like JSON could use
-real-world feedback.
+- Not yet much used; real-world feedback is welcome.
 
 - SQL output is expected to work with sqlite, MySQL and PostgreSQL
 
@@ -1476,6 +1522,8 @@ real-world feedback.
   via SQL output of hledger, you would probably want to either clear tables
   of existing data (via `delete` or `truncate` SQL statements) or drop
   tables completely as otherwise your postings will be duped.
+
+
 
 ## Commodity styles
 
