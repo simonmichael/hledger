@@ -1554,7 +1554,7 @@ OUTPUT
        currently supported:
 
 
-                     txt   csv   html    json   sql
+       -             txt   csv   html    json   sql
        ---------------------------------------------
        aregister     Y     Y             Y
        balance       Y 1   Y 1   Y 1,2   Y
@@ -2294,7 +2294,7 @@ COMMANDS
        Here is how --layout currently affects the various output formats:
 
 
-              txt   csv   html   json   sql
+       -      txt   csv   html   json   sql
        -------------------------------------
 
        wide   Y     Y     Y
