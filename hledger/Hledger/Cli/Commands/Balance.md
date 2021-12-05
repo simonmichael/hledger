@@ -371,6 +371,15 @@ Examples:
   "total","VHT","294.00"
   ```
 
+Here is how `--layout` currently affects the various [output formats](#output-format):
+
+|        | txt | csv | html | json | sql |
+|--------|-----|-----|------|------|-----|
+| `wide` | Y   | Y   | Y    |      |     |
+| `tall` | Y   | Y   | Y    |      |     |
+| `bare` | Y   | Y   | Y    |      |     |
+
+
 ### Sorting by amount
 
 With `-S/--sort-amount`, accounts with the largest (most positive) balances are shown first.
