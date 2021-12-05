@@ -1420,16 +1420,20 @@ This is controlled by the `--pretty` option:
 Some commands offer additional output formats, other than the usual plain text terminal output.
 Here are those commands and the formats currently supported:
 
-|                          | txt | csv | json | html    | sql |
-|--------------------------|-----|-----|------|---------|-----|
-| aregister                | Y   | Y   | Y    |         |     |
-| balance *[1]*            | Y   | Y   | Y    | Y *[2]* |     |
-| balancesheet *[1]*       | Y   | Y   | Y    | Y       |     |
-| balancesheetequity *[1]* | Y   | Y   | Y    | Y       |     |
-| cashflow *[1]*           | Y   | Y   | Y    | Y       |     |
-| incomestatement *[1]*    | Y   | Y   | Y    | Y       |     |
-| print                    | Y   | Y   | Y    |         | Y   |
-| register                 | Y   | Y   | Y    |         |     |
+|                    | txt   | csv   | html    | json | sql |
+|--------------------|-------|-------|---------|------|-----|
+| aregister          | Y     | Y     |         | Y    |     |
+| balance            | Y *<sup>1</sup>* | Y *<sup>1</sup>* | Y *<sup>1,2</sup>* | Y    |     |
+| balancesheet       | Y *<sup>1</sup>* | Y *<sup>1</sup>* | Y *<sup>1</sup>*   | Y    |     |
+| balancesheetequity | Y *<sup>1</sup>* | Y *<sup>1</sup>* | Y *<sup>1</sup>*   | Y    |     |
+| cashflow           | Y *<sup>1</sup>* | Y *<sup>1</sup>* | Y *<sup>1</sup>*   | Y    |     |
+| incomestatement    | Y *<sup>1</sup>* | Y *<sup>1</sup>* | Y *<sup>1</sup>*   | Y    |     |
+| print              | Y     | Y     |         | Y    | Y   |
+| register           | Y     | Y     |         | Y    |     |
+
+- *<sup>1</sup> Also affected by the balance commands' [`--layout` option](#commodity-layout).*
+- *<sup>2</sup> `balance` does not support html output without a report interval or with `--budget`.*
+
 <!--
 | accounts              |     |     |      |      |     |
 | activity              |     |     |      |      |     |
@@ -1458,9 +1462,6 @@ Here are those commands and the formats currently supported:
 | tags                  |     |     |      |      |     |
 | test                  |     |     |      |      |     |
 -->
-
-- *[1] Balance commands also have a multi-commodity [`--layout` option](#commodity-layout) which affects some output formats.*
-- *[2] Except with no report interval, or with the `--budget` flag.*
 
 The output format is selected by the `-O/--output-format=FMT` option:
 ```shell
