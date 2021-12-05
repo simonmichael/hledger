@@ -2384,9 +2384,9 @@ txt
 T}@T{
 csv
 T}@T{
-json
-T}@T{
 html
+T}@T{
+json
 T}@T{
 sql
 T}
@@ -2398,66 +2398,66 @@ Y
 T}@T{
 Y
 T}@T{
-Y
-T}@T{
-T}@T{
-T}
-T{
-balance \f[I][1]\f[R]
-T}@T{
-Y
-T}@T{
-Y
-T}@T{
-Y
-T}@T{
-Y \f[I][2]\f[R]
-T}@T{
-T}
-T{
-balancesheet \f[I][1]\f[R]
-T}@T{
-Y
-T}@T{
-Y
-T}@T{
-Y
 T}@T{
 Y
 T}@T{
 T}
 T{
-balancesheetequity \f[I][1]\f[R]
+balance
 T}@T{
-Y
+Y \f[I]1\f[R]
 T}@T{
-Y
+Y \f[I]1\f[R]
 T}@T{
-Y
-T}@T{
-Y
-T}@T{
-T}
-T{
-cashflow \f[I][1]\f[R]
-T}@T{
-Y
-T}@T{
-Y
-T}@T{
-Y
+Y \f[I]1,2\f[R]
 T}@T{
 Y
 T}@T{
 T}
 T{
-incomestatement \f[I][1]\f[R]
+balancesheet
+T}@T{
+Y \f[I]1\f[R]
+T}@T{
+Y \f[I]1\f[R]
+T}@T{
+Y \f[I]1\f[R]
 T}@T{
 Y
 T}@T{
-Y
+T}
+T{
+balancesheetequity
+T}@T{
+Y \f[I]1\f[R]
+T}@T{
+Y \f[I]1\f[R]
+T}@T{
+Y \f[I]1\f[R]
 T}@T{
 Y
+T}@T{
+T}
+T{
+cashflow
+T}@T{
+Y \f[I]1\f[R]
+T}@T{
+Y \f[I]1\f[R]
+T}@T{
+Y \f[I]1\f[R]
+T}@T{
+Y
+T}@T{
+T}
+T{
+incomestatement
+T}@T{
+Y \f[I]1\f[R]
+T}@T{
+Y \f[I]1\f[R]
+T}@T{
+Y \f[I]1\f[R]
 T}@T{
 Y
 T}@T{
@@ -2469,8 +2469,8 @@ Y
 T}@T{
 Y
 T}@T{
-Y
 T}@T{
+Y
 T}@T{
 Y
 T}
@@ -2481,17 +2481,17 @@ Y
 T}@T{
 Y
 T}@T{
-Y
 T}@T{
+Y
 T}@T{
 T}
 .TE
 .IP \[bu] 2
-\f[I][1] Balance commands also have a multi-commodity
-\f[CI]--layout\f[I] option which affects some output formats.\f[R]
+\f[I]1 Also affected by the balance commands\[aq] \f[CI]--layout\f[I]
+option.\f[R]
 .IP \[bu] 2
-\f[I][2] Except with no report interval, or with the \f[CI]--budget\f[I]
-flag.\f[R]
+\f[I]2 \f[CI]balance\f[I] does not support html output without a report
+interval or with \f[CI]--budget\f[I].\f[R]
 .PP
 The output format is selected by the \f[C]-O/--output-format=FMT\f[R]
 option:
@@ -3359,6 +3359,60 @@ $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -O csv --layout=
 \f[R]
 .fi
 .RE
+.PP
+Here is how \f[C]--layout\f[R] currently affects the various output
+formats:
+.PP
+.TS
+tab(@);
+l l l l l l.
+T{
+T}@T{
+txt
+T}@T{
+csv
+T}@T{
+html
+T}@T{
+json
+T}@T{
+sql
+T}
+_
+T{
+\f[C]wide\f[R]
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+T}@T{
+T}
+T{
+\f[C]tall\f[R]
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+T}@T{
+T}
+T{
+\f[C]bare\f[R]
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+T}@T{
+T}
+.TE
 .SS Sorting by amount
 .PP
 With \f[C]-S/--sort-amount\f[R], accounts with the largest (most

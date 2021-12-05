@@ -1554,28 +1554,25 @@ OUTPUT
        currently supported:
 
 
-                     txt   csv   json   html    sql
+                     txt   csv   html    json   sql
        ---------------------------------------------
-       aregister     Y     Y     Y
-       balance [1]   Y     Y     Y      Y [2]
-       bal-          Y     Y     Y      Y
+       aregister     Y     Y             Y
+       balance       Y 1   Y 1   Y 1,2   Y
+       bal-          Y 1   Y 1   Y 1     Y
        ancesheet
-       [1]
-       bal-          Y     Y     Y      Y
+       bal-          Y 1   Y 1   Y 1     Y
        ancesheete-
-       quity [1]
-       cashflow      Y     Y     Y      Y
-       [1]
-       incomes-      Y     Y     Y      Y
+       quity
+       cashflow      Y 1   Y 1   Y 1     Y
+       incomes-      Y 1   Y 1   Y 1     Y
        tatement
-       [1]
-       print         Y     Y     Y              Y
-       register      Y     Y     Y
+       print         Y     Y             Y      Y
+       register      Y     Y             Y
 
-       o [1]  Balance  commands  also  have  a multi-commodity --layout option
-         which affects some output formats.
+       o 1 Also affected by the balance commands' --layout option.
 
-       o [2] Except with no report interval, or with the --budget flag.
+       o 2  balance  does not support html output without a report interval or
+         with --budget.
 
        The output format is selected by the -O/--output-format=FMT option:
 
@@ -2293,6 +2290,16 @@ COMMANDS
                 "total","USD","5120.50"
                 "total","VEA","36.00"
                 "total","VHT","294.00"
+
+       Here is how --layout currently affects the various output formats:
+
+
+              txt   csv   html   json   sql
+       -------------------------------------
+
+       wide   Y     Y     Y
+       tall   Y     Y     Y
+       bare   Y     Y     Y
 
    Sorting by amount
        With -S/--sort-amount, accounts with the largest (most  positive)  bal-
@@ -4934,6 +4941,7 @@ JOURNAL FORMAT
        budget goals
        Generate extra postings           =
        CHECKING FOR ERRORS:
+
        Define valid entities to  allow   account,    commodity,
        stricter error checking           payee
        DISPLAYING REPORTS:
