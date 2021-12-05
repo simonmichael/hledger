@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "December 2021" "hledger-1.24 " "hledger User Manuals"
+.TH "HLEDGER" "1" "December 2021" "hledger-1.24.99 " "hledger User Manuals"
 
 
 
@@ -9,7 +9,7 @@
 This is the command-line interface (CLI) for the hledger accounting
 tool.
 Here we also describe hledger\[aq]s concepts and file formats.
-This manual is for hledger 1.24.
+This manual is for hledger 1.24.99.
 .SH SYNOPSIS
 .PP
 \f[C]hledger\f[R]
@@ -2371,41 +2371,161 @@ characters will (or will not) be used; - otherwise, unicode characters
 will not be used.
 .SS Output format
 .PP
-Some commands (print, register, the balance commands) offer a choice of
-output format.
-In addition to the usual plain text format (\f[C]txt\f[R]), there are
-CSV (\f[C]csv\f[R]), HTML (\f[C]html\f[R]), JSON (\f[C]json\f[R]) and
-SQL (\f[C]sql\f[R]).
-This is controlled by the \f[C]-O/--output-format\f[R] option:
-.IP
-.nf
-\f[C]
-$ hledger print -O csv
-\f[R]
-.fi
+Some commands offer additional output formats, other than the usual
+plain text terminal output.
+Here are those commands and the formats currently supported:
 .PP
-or, by a file extension specified with \f[C]-o/--output-file\f[R]:
-.IP
-.nf
-\f[C]
-$ hledger balancesheet -o foo.html   # write HTML to foo.html
-\f[R]
-.fi
-.PP
-The \f[C]-O\f[R] option can be used to override the file extension if
-needed:
-.IP
-.nf
-\f[C]
-$ hledger balancesheet -o foo.txt -O html   # write HTML to foo.txt
-\f[R]
-.fi
-.PP
-Some notes about JSON output:
+.TS
+tab(@);
+l l l l l l.
+T{
+T}@T{
+txt
+T}@T{
+csv
+T}@T{
+json
+T}@T{
+html
+T}@T{
+sql
+T}
+_
+T{
+aregister
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+T}@T{
+T}
+T{
+balance \f[I][1]\f[R]
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+Y \f[I][2]\f[R]
+T}@T{
+T}
+T{
+balancesheet \f[I][1]\f[R]
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+T}
+T{
+balancesheetequity \f[I][1]\f[R]
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+T}
+T{
+cashflow \f[I][1]\f[R]
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+T}
+T{
+incomestatement \f[I][1]\f[R]
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+T}
+T{
+print
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+T}@T{
+Y
+T}
+T{
+register
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+T}@T{
+T}
+.TE
 .IP \[bu] 2
-This feature is marked experimental, and not yet much used; you should
-expect our JSON to evolve.
-Real-world feedback is welcome.
+\f[I][1] Balance commands also have a multi-commodity
+\f[CI]--layout\f[I] option which affects some output formats.\f[R]
+.IP \[bu] 2
+\f[I][2] Except with no report interval, or with the \f[CI]--budget\f[I]
+flag.\f[R]
+.PP
+The output format is selected by the \f[C]-O/--output-format=FMT\f[R]
+option:
+.IP
+.nf
+\f[C]
+$ hledger print -O csv    # print CSV on stdout
+\f[R]
+.fi
+.PP
+or by the filename extension of an output file specified with the
+\f[C]-o/--output-file=FILE.FMT\f[R] option:
+.IP
+.nf
+\f[C]
+$ hledger balancesheet -o foo.csv    # write CSV to foo.csv
+\f[R]
+.fi
+.PP
+The \f[C]-O\f[R] option can be combined with \f[C]-o\f[R] to override
+the file extension, if needed:
+.IP
+.nf
+\f[C]
+$ hledger balancesheet -o foo.txt -O csv    # write CSV to foo.txt
+\f[R]
+.fi
+.SS HTML output
+.IP \[bu] 2
+HTML output can be styled by an optional \f[C]hledger.css\f[R] file in
+the same directory.
+.SS JSON output
+.IP \[bu] 2
+Not yet much used; real-world feedback is welcome.
 .IP \[bu] 2
 Our JSON is rather large and verbose, as it is quite a faithful
 representation of hledger\[aq]s internal data types.
@@ -2424,11 +2544,9 @@ your control.
 We hope this approach will not cause problems in practice; if you find
 otherwise, please let us know.
 (Cf #1195)
-.PP
-Notes about SQL output:
+.SS SQL output
 .IP \[bu] 2
-SQL output is also marked experimental, and much like JSON could use
-real-world feedback.
+Not yet much used; real-world feedback is welcome.
 .IP \[bu] 2
 SQL output is expected to work with sqlite, MySQL and PostgreSQL
 .IP \[bu] 2
@@ -3125,8 +3243,14 @@ the specified width
 .IP \[bu] 2
 \f[C]--layout=tall\f[R]: each commodity is displayed on a separate line
 .IP \[bu] 2
-\f[C]--layout=bare\f[R]: commodity symbols are displayed in a separate
-column, and amounts are displayed as bare numbers
+\f[C]--layout=bare\f[R]: amounts are displayed as bare numbers, with
+commodity symbols in a separate column
+.PP
+Examples:
+.IP \[bu] 2
+Wide layout.
+With many commodities, reports can be very wide:
+.RS 2
 .IP
 .nf
 \f[C]
@@ -3138,7 +3262,16 @@ Balance changes in 2012-01-01..2014-12-31:
  Assets:US:ETrade || 10.00 ITOT, 337.18 USD, 12.00 VEA, 106.00 VHT  70.00 GLD, 18.00 ITOT, -98.12 USD, 10.00 VEA, 18.00 VHT  -11.00 ITOT, 4881.44 USD, 14.00 VEA, 170.00 VHT  70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT 
 ------------------++--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                   || 10.00 ITOT, 337.18 USD, 12.00 VEA, 106.00 VHT  70.00 GLD, 18.00 ITOT, -98.12 USD, 10.00 VEA, 18.00 VHT  -11.00 ITOT, 4881.44 USD, 14.00 VEA, 170.00 VHT  70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT 
-
+\f[R]
+.fi
+.RE
+.IP \[bu] 2
+Limited wide layout.
+A width limit reduces the width, but some commodities will be hidden:
+.RS 2
+.IP
+.nf
+\f[C]
 $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=wide,32
 Balance changes in 2012-01-01..2014-12-31:
 
@@ -3147,7 +3280,17 @@ Balance changes in 2012-01-01..2014-12-31:
  Assets:US:ETrade || 10.00 ITOT, 337.18 USD, 2 more..  70.00 GLD, 18.00 ITOT, 3 more..  -11.00 ITOT, 3 more..  70.00 GLD, 17.00 ITOT, 3 more.. 
 ------------------++---------------------------------------------------------------------------------------------------------------------------
                   || 10.00 ITOT, 337.18 USD, 2 more..  70.00 GLD, 18.00 ITOT, 3 more..  -11.00 ITOT, 3 more..  70.00 GLD, 17.00 ITOT, 3 more.. 
-
+\f[R]
+.fi
+.RE
+.IP \[bu] 2
+Tall layout.
+Each commodity gets a new line (may be different in each column), and
+account names are repeated:
+.RS 2
+.IP
+.nf
+\f[C]
 $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=tall
 Balance changes in 2012-01-01..2014-12-31:
 
@@ -3164,7 +3307,17 @@ Balance changes in 2012-01-01..2014-12-31:
                   ||  12.00 VEA  -98.12 USD    14.00 VEA  5120.50 USD 
                   || 106.00 VHT   10.00 VEA   170.00 VHT    36.00 VEA 
                   ||              18.00 VHT                294.00 VHT 
-
+\f[R]
+.fi
+.RE
+.IP \[bu] 2
+Bare layout.
+Commodity symbols are kept in one column, each commodity gets its own
+report row, account names are repeated:
+.RS 2
+.IP
+.nf
+\f[C]
 $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=bare
 Balance changes in 2012-01-01..2014-12-31:
 
@@ -3183,18 +3336,14 @@ Balance changes in 2012-01-01..2014-12-31:
                   || VHT        106.00   18.00   170.00   294.00 
 \f[R]
 .fi
-.PP
-The option \f[C]--layout=bare\f[R] also affects CSV output, which is
-useful for producing data that is easier to consume, eg when making
-charts:
+.RE
+.IP \[bu] 2
+Bare layout also affects CSV output, which is useful for producing data
+that is easier to consume, eg when making charts:
+.RS 2
 .IP
 .nf
 \f[C]
-$ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -O csv
-\[dq]account\[dq],\[dq]balance\[dq]
-\[dq]Assets:US:ETrade\[dq],\[dq]70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT\[dq]
-\[dq]total\[dq],\[dq]70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT\[dq]
-
 $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -O csv --layout=bare
 \[dq]account\[dq],\[dq]commodity\[dq],\[dq]balance\[dq]
 \[dq]Assets:US:ETrade\[dq],\[dq]GLD\[dq],\[dq]70.00\[dq]
@@ -3209,6 +3358,7 @@ $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -O csv --layout=
 \[dq]total\[dq],\[dq]VHT\[dq],\[dq]294.00\[dq]
 \f[R]
 .fi
+.RE
 .SS Sorting by amount
 .PP
 With \f[C]-S/--sort-amount\f[R], accounts with the largest (most

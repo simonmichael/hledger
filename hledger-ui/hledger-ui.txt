@@ -5,7 +5,7 @@ HLEDGER-UI(1)                hledger User Manuals                HLEDGER-UI(1)
 
 NAME
        hledger-ui  is  a  terminal  interface (TUI) for the hledger accounting
-       tool.  This manual is for hledger-ui 1.24.
+       tool.  This manual is for hledger-ui 1.24.99.
 
 SYNOPSIS
        hledger-ui [OPTIONS] [QUERYARGS]
@@ -533,4 +533,4 @@ SEE ALSO
 
 
 
-hledger-ui-1.24                  December 2021                   HLEDGER-UI(1)
+hledger-ui-1.24.99               December 2021                   HLEDGER-UI(1)

@@ -6,7 +6,7 @@ HLEDGER(1)                   hledger User Manuals                   HLEDGER(1)
 NAME
        This  is  the  command-line  interface (CLI) for the hledger accounting
        tool.  Here we also describe hledger's concepts and file formats.  This
-       manual is for hledger 1.24.
+       manual is for hledger 1.24.99.
 
 SYNOPSIS
        hledger
@@ -1549,25 +1549,54 @@ OUTPUT
        unicode characters will not be used.
 
    Output format
-       Some commands (print, register, the balance commands) offer a choice of
-       output format.  In addition to the usual plain text format (txt), there
-       are  CSV  (csv),  HTML (html), JSON (json) and SQL (sql).  This is con-
-       trolled by the -O/--output-format option:
+       Some  commands  offer  additional  output formats, other than the usual
+       plain text terminal output.  Here are those commands  and  the  formats
+       currently supported:
 
-              $ hledger print -O csv
 
-       or, by a file extension specified with -o/--output-file:
+                     txt   csv   json   html    sql
+       ---------------------------------------------
+       aregister     Y     Y     Y
+       balance [1]   Y     Y     Y      Y [2]
+       bal-          Y     Y     Y      Y
+       ancesheet
+       [1]
+       bal-          Y     Y     Y      Y
+       ancesheete-
+       quity [1]
+       cashflow      Y     Y     Y      Y
+       [1]
+       incomes-      Y     Y     Y      Y
+       tatement
+       [1]
+       print         Y     Y     Y              Y
+       register      Y     Y     Y
 
-              $ hledger balancesheet -o foo.html   # write HTML to foo.html
+       o [1]  Balance  commands  also  have  a multi-commodity --layout option
+         which affects some output formats.
 
-       The -O option can be used to override the file extension if needed:
+       o [2] Except with no report interval, or with the --budget flag.
 
-              $ hledger balancesheet -o foo.txt -O html   # write HTML to foo.txt
+       The output format is selected by the -O/--output-format=FMT option:
 
-       Some notes about JSON output:
+              $ hledger print -O csv    # print CSV on stdout
 
-       o This feature is marked experimental,  and  not  yet  much  used;  you
-         should expect our JSON to evolve.  Real-world feedback is welcome.
+       or by the filename extension of  an  output  file  specified  with  the
+       -o/--output-file=FILE.FMT option:
+
+              $ hledger balancesheet -o foo.csv    # write CSV to foo.csv
+
+       The  -O  option can be combined with -o to override the file extension,
+       if needed:
+
+              $ hledger balancesheet -o foo.txt -O csv    # write CSV to foo.txt
+
+   HTML output
+       o HTML output can be styled by an optional hledger.css file in the same
+         directory.
+
+   JSON output
+       o Not yet much used; real-world feedback is welcome.
 
        o Our  JSON is rather large and verbose, as it is quite a faithful rep-
          resentation of hledger's internal  data  types.   To  understand  the
@@ -1584,40 +1613,38 @@ OUTPUT
          hope  this  approach will not cause problems in practice; if you find
          otherwise, please let us know.  (Cf #1195)
 
-       Notes about SQL output:
-
-       o SQL output is also marked experimental, and much like JSON could  use
-         real-world feedback.
+   SQL output
+       o Not yet much used; real-world feedback is welcome.
 
        o SQL output is expected to work with sqlite, MySQL and PostgreSQL
 
-       o SQL  output  is structured with the expectations that statements will
-         be executed in the empty database.  If you already have  tables  cre-
-         ated  via  SQL  output  of hledger, you would probably want to either
+       o SQL output is structured with the expectations that  statements  will
+         be  executed  in the empty database.  If you already have tables cre-
+         ated via SQL output of hledger, you would  probably  want  to  either
          clear tables of existing data (via delete or truncate SQL statements)
          or drop tables completely as otherwise your postings will be duped.
 
    Commodity styles
-       The  display style of a commodity/currency is inferred according to the
+       The display style of a commodity/currency is inferred according to  the
        rules described in Commodity display style.  The inferred display style
-       can  be  overridden  by an optional -c/--commodity-style option (Excep-
-       tions: as is the case for  inferred  styles,  price  amounts,  and  all
-       amounts  displayed  by the print command, will be displayed with all of
-       their decimal digits visible, regardless of the  specified  precision).
+       can be overridden by an optional  -c/--commodity-style  option  (Excep-
+       tions:  as  is  the  case  for  inferred styles, price amounts, and all
+       amounts displayed by the print command, will be displayed with  all  of
+       their  decimal  digits visible, regardless of the specified precision).
        For example, the following will override the display style for dollars.
 
               $ hledger print -c '$1.000,0'
 
-       The format specification of the style is  identical  to  the  commodity
-       display  style  specification for the commodity directive.  The command
-       line option can be supplied repeatedly to override  the  display  style
+       The  format  specification  of  the style is identical to the commodity
+       display style specification for the commodity directive.   The  command
+       line  option  can  be supplied repeatedly to override the display style
        for multiple commodity/currency symbols.
 
 COMMANDS
-       hledger  provides a number of commands for producing reports and manag-
-       ing your data.  Run hledger with no  arguments  to  list  the  commands
-       available,  and hledger CMD to run a command.  CMD can be the full com-
-       mand name, or its standard abbreviation shown in the commands list,  or
+       hledger provides a number of commands for producing reports and  manag-
+       ing  your  data.   Run  hledger  with no arguments to list the commands
+       available, and hledger CMD to run a command.  CMD can be the full  com-
+       mand  name, or its standard abbreviation shown in the commands list, or
        any unambiguous prefix of the name.  Eg: hledger bal.
 
        Here are the built-in commands, with the most often-used in bold:
@@ -1661,7 +1688,7 @@ COMMANDS
 
        o activity - show postings-per-interval bar charts
 
-       o balance (bal) - show  balance  changes/end  balances/budgets  in  any
+       o balance  (bal)  -  show  balance  changes/end balances/budgets in any
          accounts
 
        o codes - show transaction codes
@@ -1684,10 +1711,10 @@ COMMANDS
 
        o print-unique - show only transactions with unique descriptions
 
-       o register  (reg)  -  show  postings  in one or more accounts & running
+       o register (reg) - show postings in one  or  more  accounts  &  running
          total
 
-       o register-match - show a recent posting that best matches  a  descrip-
+       o register-match  -  show a recent posting that best matches a descrip-
          tion
 
        o stats - show journal statistics
@@ -1698,8 +1725,8 @@ COMMANDS
 
        Add-on commands:
 
-       Programs  or  scripts  named  hledger-SOMETHING in your PATH are add-on
-       commands; these appear in the commands list with  a  +  mark.   Two  of
+       Programs or scripts named hledger-SOMETHING in  your  PATH  are  add-on
+       commands;  these  appear  in  the  commands list with a + mark.  Two of
        these are maintained and released with hledger:
 
        o ui - an efficient terminal interface (TUI) for hledger
@@ -1710,10 +1737,10 @@ COMMANDS
 
        o iadd - a more interactive alternative for the add command
 
-       o interest  -  generates  interest  transactions  according  to various
+       o interest -  generates  interest  transactions  according  to  various
          schemes
 
-       o stockquotes - downloads  market  prices  for  your  commodities  from
+       o stockquotes  -  downloads  market  prices  for  your commodities from
          AlphaVantage (experimental)
 
        Next, the detailed command docs, in alphabetical order.
@@ -1722,13 +1749,13 @@ COMMANDS
        accounts
        Show account names.
 
-       This  command  lists account names, either declared with account direc-
-       tives (--declared), posted to (--used), or both  (the  default).   With
-       query  arguments,  only  matched account names and account names refer-
-       enced by matched postings are shown.  It shows a flat list by  default.
-       With  --tree,  it  uses  indentation to show the account hierarchy.  In
-       flat mode you can add --drop N to omit the first few account name  com-
-       ponents.   Account names can be depth-clipped with depth:N or --depth N
+       This command lists account names, either declared with  account  direc-
+       tives  (--declared),  posted  to (--used), or both (the default).  With
+       query arguments, only matched account names and  account  names  refer-
+       enced  by matched postings are shown.  It shows a flat list by default.
+       With --tree, it uses indentation to show  the  account  hierarchy.   In
+       flat  mode you can add --drop N to omit the first few account name com-
+       ponents.  Account names can be depth-clipped with depth:N or --depth  N
        or -N.
 
        Examples:
@@ -1747,8 +1774,8 @@ COMMANDS
        activity
        Show an ascii barchart of posting counts per interval.
 
-       The activity command displays an ascii  histogram  showing  transaction
-       counts  by  day, week, month or other reporting interval (by day is the
+       The  activity  command  displays an ascii histogram showing transaction
+       counts by day, week, month or other reporting interval (by day  is  the
        default).  With query arguments, it counts only matched transactions.
 
        Examples:
@@ -1761,25 +1788,25 @@ COMMANDS
 
    add
        add
-       Prompt for transactions and add them to  the  journal.   Any  arguments
+       Prompt  for  transactions  and  add them to the journal.  Any arguments
        will be used as default inputs for the first N prompts.
 
-       Many  hledger users edit their journals directly with a text editor, or
-       generate them from CSV.  For more interactive data entry, there is  the
-       add  command, which prompts interactively on the console for new trans-
+       Many hledger users edit their journals directly with a text editor,  or
+       generate  them from CSV.  For more interactive data entry, there is the
+       add command, which prompts interactively on the console for new  trans-
        actions, and appends them to the journal file (if there are multiple -f
-       FILE  options,  the  first file is used.) Existing transactions are not
-       changed.  This is the only hledger command that writes to  the  journal
+       FILE options, the first file is used.) Existing  transactions  are  not
+       changed.   This  is the only hledger command that writes to the journal
        file.
 
        To use it, just run hledger add and follow the prompts.  You can add as
-       many transactions as you like; when you are finished, enter . or  press
+       many  transactions as you like; when you are finished, enter . or press
        control-d or control-c to exit.
 
        Features:
 
-       o add  tries  to  provide  useful  defaults, using the most similar (by
-         description) recent transaction (filtered by the query, if any) as  a
+       o add tries to provide useful defaults,  using  the  most  similar  (by
+         description)  recent transaction (filtered by the query, if any) as a
          template.
 
        o You can also set the initial defaults with command line arguments.
@@ -1787,10 +1814,10 @@ COMMANDS
        o Readline-style edit keys can be used during data entry.
 
        o The tab key will auto-complete whenever possible - accounts, descrip-
-         tions, dates (yesterday, today, tomorrow).   If  the  input  area  is
+         tions,  dates  (yesterday,  today,  tomorrow).   If the input area is
          empty, it will insert the default value.
 
-       o If  the  journal defines a default commodity, it will be added to any
+       o If the journal defines a default commodity, it will be added  to  any
          bare numbers entered.
 
        o A parenthesised transaction code may be entered following a date.
@@ -1799,7 +1826,7 @@ COMMANDS
 
        o If you make a mistake, enter < at any prompt to go one step backward.
 
-       o Input  prompts  are displayed in a different colour when the terminal
+       o Input prompts are displayed in a different colour when  the  terminal
          supports it.
 
        Example (see the tutorial for a detailed explanation):
@@ -1829,91 +1856,91 @@ COMMANDS
               Starting the next transaction (. or ctrl-D/ctrl-C to quit)
               Date [2015/05/22]: <CTRL-D> $
 
-       On Microsoft Windows, the add command makes sure that no  part  of  the
+       On  Microsoft  Windows,  the add command makes sure that no part of the
        file path ends with a period, as that would cause problems (#1056).
 
    aregister
        aregister, areg
 
-       Show  the  transactions  and  running  historical  balance  of a single
+       Show the transactions  and  running  historical  balance  of  a  single
        account, with each transaction displayed as one line.
 
        aregister shows the overall transactions affecting a particular account
-       (and  any subaccounts).  Each report line represents one transaction in
-       this account.  Transactions before the report  start  date  are  always
+       (and any subaccounts).  Each report line represents one transaction  in
+       this  account.   Transactions  before  the report start date are always
        included in the running balance (--historical mode is always on).
 
-       This  is  a more "real world", bank-like view than the register command
-       (which shows individual postings, possibly from multiple accounts,  not
+       This is a more "real world", bank-like view than the  register  command
+       (which  shows individual postings, possibly from multiple accounts, not
        necessarily in historical mode).  As a quick rule of thumb: - use areg-
        ister for reviewing and reconciling real-world asset/liability accounts
        - use register for reviewing detailed revenues/expenses.
 
-       aregister  requires  one  argument:  the account to report on.  You can
-       write either the full  account  name,  or  a  case-insensitive  regular
-       expression  which will select the alphabetically first matched account.
-       (Eg if you have assets:aaa:checking and  assets:bbb:checking  accounts,
+       aregister requires one argument: the account to  report  on.   You  can
+       write  either  the  full  account  name,  or a case-insensitive regular
+       expression which will select the alphabetically first matched  account.
+       (Eg  if  you have assets:aaa:checking and assets:bbb:checking accounts,
        hledger areg checking would select assets:aaa:checking.)
 
-       Transactions  involving subaccounts of this account will also be shown.
-       aregister ignores depth limits, so its final total will always match  a
+       Transactions involving subaccounts of this account will also be  shown.
+       aregister  ignores depth limits, so its final total will always match a
        balance report with similar arguments.
 
-       Any  additional  arguments  form a query which will filter the transac-
+       Any additional arguments form a query which will  filter  the  transac-
        tions shown.  Note some queries will disturb the running balance, caus-
        ing it to be different from the account's real-world running balance.
 
-       An  example: this shows the transactions and historical running balance
+       An example: this shows the transactions and historical running  balance
        during july, in the first account whose name contains "checking":
 
               $ hledger areg checking date:jul
 
        Each aregister line item shows:
 
-       o the transaction's date (or the relevant posting's date if  different,
+       o the  transaction's date (or the relevant posting's date if different,
          see below)
 
-       o the  names  of  all the other account(s) involved in this transaction
+       o the names of all the other account(s) involved  in  this  transaction
          (probably abbreviated)
 
        o the total change to this account's balance from this transaction
 
        o the account's historical running balance after this transaction.
 
-       Transactions making a net change of zero are not shown by default;  add
+       Transactions  making a net change of zero are not shown by default; add
        the -E/--empty flag to show them.
 
-       This  command  also  supports  the output destination and output format
+       This command also supports the output  destination  and  output  format
        options.  The output formats supported are txt, csv, and json.
 
    aregister and custom posting dates
-       Transactions whose date is outside  the  report  period  can  still  be
-       shown,  if  they have a posting to this account dated inside the report
-       period.  (And in this case it's the posting date that is  shown.)  This
+       Transactions  whose  date  is  outside  the  report period can still be
+       shown, if they have a posting to this account dated inside  the  report
+       period.   (And  in this case it's the posting date that is shown.) This
        ensures that aregister can show an accurate historical running balance,
        matching the one shown by register -H with the same arguments.
 
-       To filter strictly by transaction date  instead,  add  the  --txn-dates
-       flag.   If  you  use  this  flag  and some of your postings have custom
+       To  filter  strictly  by  transaction date instead, add the --txn-dates
+       flag.  If you use this flag and  some  of  your  postings  have  custom
        dates, it's probably best to assume the running balance is wrong.
 
    balance
        balance, bal
        Show accounts and their balances.
 
-       balance is one of hledger's oldest and  most  versatile  commands,  for
-       listing  account  balances,  balance changes, values, value changes and
+       balance  is  one  of  hledger's oldest and most versatile commands, for
+       listing account balances, balance changes, values,  value  changes  and
        more, during one time period or many.  Generally it shows a table, with
        rows representing accounts, and columns representing periods.
 
-       Note  there  are some higher-level variants of the balance command with
-       convenient defaults, which can be simpler to  use:  balancesheet,  bal-
+       Note there are some higher-level variants of the balance  command  with
+       convenient  defaults,  which  can be simpler to use: balancesheet, bal-
        ancesheetequity, cashflow and incomestatement.  When you need more con-
        trol, then use balance.
 
    balance features
-       Here's a quick overview of the balance command's features, followed  by
-       more  detailed  descriptions and examples.  Many of these work with the
+       Here's  a quick overview of the balance command's features, followed by
+       more detailed descriptions and examples.  Many of these work  with  the
        higher-level commands as well.
 
        balance can show..
@@ -1964,7 +1991,7 @@ COMMANDS
 
        ..with..
 
-       o totals  (-T),  averages  (-A),  percentages   (-%),   inverted   sign
+       o totals   (-T),   averages   (-A),  percentages  (-%),  inverted  sign
          (--invert)
 
        o rows and columns swapped (--transpose)
@@ -1976,21 +2003,21 @@ COMMANDS
        o commodities displayed on the same line or multiple lines (--layout)
 
        This command supports the output destination and output format options,
-       with output formats txt, csv, json, and  (multi-period  reports  only:)
-       html.   In txt output in a colour-supporting terminal, negative amounts
+       with  output  formats  txt, csv, json, and (multi-period reports only:)
+       html.  In txt output in a colour-supporting terminal, negative  amounts
        are shown in red.
 
-       The --related/-r flag shows the balance of the other  postings  in  the
+       The  --related/-r  flag  shows the balance of the other postings in the
        transactions of the postings which would normally be shown.
 
    Simple balance report
-       With  no  arguments,  balance  shows  a  list of all accounts and their
-       change of balance - ie, the sum of posting amounts,  both  inflows  and
-       outflows  -  during  the  entire period of the journal.  For real-world
-       accounts, this should also match their end balance at the  end  of  the
+       With no arguments, balance shows a  list  of  all  accounts  and  their
+       change  of  balance  - ie, the sum of posting amounts, both inflows and
+       outflows - during the entire period of  the  journal.   For  real-world
+       accounts,  this  should  also match their end balance at the end of the
        journal period (more on this below).
 
-       Accounts  are  sorted  by declaration order if any, and then alphabeti-
+       Accounts are sorted by declaration order if any,  and  then  alphabeti-
        cally by account name.  For instance (using examples/sample.journal):
 
               $ hledger -f examples/sample.journal bal
@@ -2005,7 +2032,7 @@ COMMANDS
                                  0
 
        Accounts with a zero balance (and no non-zero subaccounts, in tree mode
-       -  see  below)  are  hidden  by  default.   Use -E/--empty to show them
+       - see below) are hidden  by  default.   Use  -E/--empty  to  show  them
        (revealing assets:bank:checking here):
 
               $ hledger -f examples/sample.journal bal  -E
@@ -2020,11 +2047,11 @@ COMMANDS
               --------------------
                                  0
 
-       The total of the amounts displayed is shown as the  last  line,  unless
+       The  total  of  the amounts displayed is shown as the last line, unless
        -N/--no-total is used.
 
    Filtered balance report
-       You  can  show  fewer  accounts,  a  different time period, totals from
+       You can show fewer accounts,  a  different  time  period,  totals  from
        cleared transactions only, etc.  by using query arguments or options to
        limit the postings being matched.  Eg:
 
@@ -2034,10 +2061,10 @@ COMMANDS
                                $-2
 
    List or tree mode
-       By  default,  or with -l/--flat, accounts are shown as a flat list with
+       By default, or with -l/--flat, accounts are shown as a flat  list  with
        their full names visible, as in the examples above.
 
-       With -t/--tree, the  account  hierarchy  is  shown,  with  subaccounts'
+       With  -t/--tree,  the  account  hierarchy  is  shown, with subaccounts'
        "leaf" names indented below their parent:
 
               $ hledger -f examples/sample.journal balance
@@ -2057,26 +2084,26 @@ COMMANDS
        Notes:
 
        o "Boring" accounts are combined with their subaccount for more compact
-         output, unless --no-elide is used.  Boring accounts have  no  balance
-         of  their own and just one subaccount (eg assets:bank and liabilities
+         output,  unless  --no-elide is used.  Boring accounts have no balance
+         of their own and just one subaccount (eg assets:bank and  liabilities
          above).
 
-       o All balances shown are "inclusive", ie including  the  balances  from
-         all  subaccounts.   Note  this  means  some repetition in the output,
+       o All  balances  shown  are "inclusive", ie including the balances from
+         all subaccounts.  Note this means  some  repetition  in  the  output,
          which requires explanation when sharing reports with non-plaintextac-
-         counting-users.   A  tree mode report's final total is the sum of the
+         counting-users.  A tree mode report's final total is the sum  of  the
          top-level balances shown, not of all the balances shown.
 
-       o Each group of sibling accounts (ie, under a common parent) is  sorted
+       o Each  group of sibling accounts (ie, under a common parent) is sorted
          separately.
 
    Depth limiting
-       With  a  depth:NUM  query, or --depth NUM option, or just -NUM (eg: -3)
-       balance reports will show accounts only to the specified depth,  hiding
-       the  deeper  subaccounts.   This  can be useful for getting an overview
+       With a depth:NUM query, or --depth NUM option, or just  -NUM  (eg:  -3)
+       balance  reports will show accounts only to the specified depth, hiding
+       the deeper subaccounts.  This can be useful  for  getting  an  overview
        without too much detail.
 
-       Account balances at the depth limit always include  the  balances  from
+       Account  balances  at  the depth limit always include the balances from
        any deeper subaccounts (even in list mode).  Eg, limiting to depth 1:
 
               $ hledger -f examples/sample.journal balance -1
@@ -2088,7 +2115,7 @@ COMMANDS
                                  0
 
    Dropping top-level accounts
-       You  can  also  hide  one  or  more top-level account name parts, using
+       You can also hide one or  more  top-level  account  name  parts,  using
        --drop NUM.  This can be useful for hiding repetitive top-level account
        names:
 
@@ -2100,9 +2127,9 @@ COMMANDS
 
 
    Multi-period balance report
-       With   a   report   interval   (set  by  the  -D/--daily,  -W/--weekly,
-       -M/--monthly, -Q/--quarterly, -Y/--yearly, or -p/--period  flag),  bal-
-       ance  shows a tabular report, with columns representing successive time
+       With  a  report  interval  (set   by   the   -D/--daily,   -W/--weekly,
+       -M/--monthly,  -Q/--quarterly,  -Y/--yearly, or -p/--period flag), bal-
+       ance shows a tabular report, with columns representing successive  time
        periods (and a title):
 
               $ hledger -f examples/sample.journal bal --quarterly income expenses -E
@@ -2123,21 +2150,21 @@ COMMANDS
          encompass the displayed subperiods (so that the first and last subpe-
          riods have the same duration as the others).
 
-       o Leading and trailing periods (columns) containing all zeroes are  not
+       o Leading  and trailing periods (columns) containing all zeroes are not
          shown, unless -E/--empty is used.
 
-       o Accounts   (rows)   containing  all  zeroes  are  not  shown,  unless
+       o Accounts  (rows)  containing  all  zeroes  are  not   shown,   unless
          -E/--empty is used.
 
-       o Amounts with many commodities are shown in abbreviated  form,  unless
+       o Amounts  with  many commodities are shown in abbreviated form, unless
          --no-elide is used.  (experimental)
 
-       o Average  and/or  total columns can be added with the -A/--average and
+       o Average and/or total columns can be added with the  -A/--average  and
          -T/--row-total flags.
 
        o The --transpose flag can be used to exchange rows and columns.
 
-       o The --pivot FIELD option causes a different transaction field  to  be
+       o The  --pivot  FIELD option causes a different transaction field to be
          used as "account name".  See PIVOTING.
 
        Multi-period reports with many periods can be too wide for easy viewing
@@ -2151,27 +2178,27 @@ COMMANDS
 
        o Reduce the terminal's font size
 
-       o View with a pager like less, eg: hledger bal -D  --color=yes  |  less
+       o View  with  a  pager like less, eg: hledger bal -D --color=yes | less
          -RS
 
-       o Output  as  CSV and use a CSV viewer like visidata (hledger bal -D -O
-         csv | vd -f csv), Emacs' csv-mode  (M-x  csv-mode,  C-c  C-a),  or  a
+       o Output as CSV and use a CSV viewer like visidata (hledger bal  -D  -O
+         csv  |  vd  -f  csv),  Emacs'  csv-mode (M-x csv-mode, C-c C-a), or a
          spreadsheet (hledger bal -D -o a.csv && open a.csv)
 
-       o Output  as  HTML and view with a browser: hledger bal -D -o a.html &&
+       o Output as HTML and view with a browser: hledger bal -D -o  a.html  &&
          open a.html
 
    Showing declared accounts
-       With --declared, accounts which have  been  declared  with  an  account
-       directive  will be included in the balance report, even if they have no
+       With  --declared,  accounts  which  have  been declared with an account
+       directive will be included in the balance report, even if they have  no
        transactions.  (Since they will have a zero balance, you will also need
        -E/--empty to see them.)
 
-       More  precisely,  leaf  declared accounts (with no subaccounts) will be
+       More precisely, leaf declared accounts (with no  subaccounts)  will  be
        included, since those are usually the more useful in reports.
 
-       The idea of this is to be able  to  see  a  useful  "complete"  balance
-       report,  even  when you don't have transactions in all of your declared
+       The  idea  of  this  is  to  be able to see a useful "complete" balance
+       report, even when you don't have transactions in all of  your  declared
        accounts yet.
 
    Commodity layout
@@ -2183,81 +2210,89 @@ COMMANDS
 
        o --layout=tall: each commodity is displayed on a separate line
 
-       o --layout=bare: commodity symbols are displayed in a separate  column,
-         and amounts are displayed as bare numbers
+       o --layout=bare:  amounts are displayed as bare numbers, with commodity
+         symbols in a separate column
 
-         $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=wide
-         Balance changes in 2012-01-01..2014-12-31:
+       Examples:
 
-                           ||                                          2012                                                     2013                                             2014                                                      Total
-         ==================++====================================================================================================================================================================================================================
-          Assets:US:ETrade || 10.00 ITOT, 337.18 USD, 12.00 VEA, 106.00 VHT  70.00 GLD, 18.00 ITOT, -98.12 USD, 10.00 VEA, 18.00 VHT  -11.00 ITOT, 4881.44 USD, 14.00 VEA, 170.00 VHT  70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT
-         ------------------++--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                           || 10.00 ITOT, 337.18 USD, 12.00 VEA, 106.00 VHT  70.00 GLD, 18.00 ITOT, -98.12 USD, 10.00 VEA, 18.00 VHT  -11.00 ITOT, 4881.44 USD, 14.00 VEA, 170.00 VHT  70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT
+       o Wide layout.  With many commodities, reports can be very wide:
 
-         $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=wide,32
-         Balance changes in 2012-01-01..2014-12-31:
+                $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=wide
+                Balance changes in 2012-01-01..2014-12-31:
 
-                           ||                             2012                             2013                   2014                            Total
-         ==================++===========================================================================================================================
-          Assets:US:ETrade || 10.00 ITOT, 337.18 USD, 2 more..  70.00 GLD, 18.00 ITOT, 3 more..  -11.00 ITOT, 3 more..  70.00 GLD, 17.00 ITOT, 3 more..
-         ------------------++---------------------------------------------------------------------------------------------------------------------------
-                           || 10.00 ITOT, 337.18 USD, 2 more..  70.00 GLD, 18.00 ITOT, 3 more..  -11.00 ITOT, 3 more..  70.00 GLD, 17.00 ITOT, 3 more..
+                                  ||                                          2012                                                     2013                                             2014                                                      Total
+                ==================++====================================================================================================================================================================================================================
+                 Assets:US:ETrade || 10.00 ITOT, 337.18 USD, 12.00 VEA, 106.00 VHT  70.00 GLD, 18.00 ITOT, -98.12 USD, 10.00 VEA, 18.00 VHT  -11.00 ITOT, 4881.44 USD, 14.00 VEA, 170.00 VHT  70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT
+                ------------------++--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                                  || 10.00 ITOT, 337.18 USD, 12.00 VEA, 106.00 VHT  70.00 GLD, 18.00 ITOT, -98.12 USD, 10.00 VEA, 18.00 VHT  -11.00 ITOT, 4881.44 USD, 14.00 VEA, 170.00 VHT  70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT
 
-         $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=tall
-         Balance changes in 2012-01-01..2014-12-31:
+       o Limited wide layout.  A width limit reduces the width, but some  com-
+         modities will be hidden:
 
-                           ||       2012        2013         2014        Total
-         ==================++==================================================
-          Assets:US:ETrade || 10.00 ITOT   70.00 GLD  -11.00 ITOT    70.00 GLD
-          Assets:US:ETrade || 337.18 USD  18.00 ITOT  4881.44 USD   17.00 ITOT
-          Assets:US:ETrade ||  12.00 VEA  -98.12 USD    14.00 VEA  5120.50 USD
-          Assets:US:ETrade || 106.00 VHT   10.00 VEA   170.00 VHT    36.00 VEA
-          Assets:US:ETrade ||              18.00 VHT                294.00 VHT
-         ------------------++--------------------------------------------------
-                           || 10.00 ITOT   70.00 GLD  -11.00 ITOT    70.00 GLD
-                           || 337.18 USD  18.00 ITOT  4881.44 USD   17.00 ITOT
-                           ||  12.00 VEA  -98.12 USD    14.00 VEA  5120.50 USD
-                           || 106.00 VHT   10.00 VEA   170.00 VHT    36.00 VEA
-                           ||              18.00 VHT                294.00 VHT
+                $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=wide,32
+                Balance changes in 2012-01-01..2014-12-31:
 
-         $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=bare
-         Balance changes in 2012-01-01..2014-12-31:
+                                  ||                             2012                             2013                   2014                            Total
+                ==================++===========================================================================================================================
+                 Assets:US:ETrade || 10.00 ITOT, 337.18 USD, 2 more..  70.00 GLD, 18.00 ITOT, 3 more..  -11.00 ITOT, 3 more..  70.00 GLD, 17.00 ITOT, 3 more..
+                ------------------++---------------------------------------------------------------------------------------------------------------------------
+                                  || 10.00 ITOT, 337.18 USD, 2 more..  70.00 GLD, 18.00 ITOT, 3 more..  -11.00 ITOT, 3 more..  70.00 GLD, 17.00 ITOT, 3 more..
 
-                           || Commodity    2012    2013     2014    Total
-         ==================++=============================================
-          Assets:US:ETrade || GLD             0   70.00        0    70.00
-          Assets:US:ETrade || ITOT        10.00   18.00   -11.00    17.00
-          Assets:US:ETrade || USD        337.18  -98.12  4881.44  5120.50
-          Assets:US:ETrade || VEA         12.00   10.00    14.00    36.00
-          Assets:US:ETrade || VHT        106.00   18.00   170.00   294.00
-         ------------------++---------------------------------------------
-                           || GLD             0   70.00        0    70.00
-                           || ITOT        10.00   18.00   -11.00    17.00
-                           || USD        337.18  -98.12  4881.44  5120.50
-                           || VEA         12.00   10.00    14.00    36.00
-                           || VHT        106.00   18.00   170.00   294.00
+       o Tall  layout.   Each  commodity  gets a new line (may be different in
+         each column), and account names are repeated:
 
-       The  option  --layout=bare also affects CSV output, which is useful for
-       producing data that is easier to consume, eg when making charts:
+                $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=tall
+                Balance changes in 2012-01-01..2014-12-31:
 
-              $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -O csv
-              "account","balance"
-              "Assets:US:ETrade","70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT"
-              "total","70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT"
+                                  ||       2012        2013         2014        Total
+                ==================++==================================================
+                 Assets:US:ETrade || 10.00 ITOT   70.00 GLD  -11.00 ITOT    70.00 GLD
+                 Assets:US:ETrade || 337.18 USD  18.00 ITOT  4881.44 USD   17.00 ITOT
+                 Assets:US:ETrade ||  12.00 VEA  -98.12 USD    14.00 VEA  5120.50 USD
+                 Assets:US:ETrade || 106.00 VHT   10.00 VEA   170.00 VHT    36.00 VEA
+                 Assets:US:ETrade ||              18.00 VHT                294.00 VHT
+                ------------------++--------------------------------------------------
+                                  || 10.00 ITOT   70.00 GLD  -11.00 ITOT    70.00 GLD
+                                  || 337.18 USD  18.00 ITOT  4881.44 USD   17.00 ITOT
+                                  ||  12.00 VEA  -98.12 USD    14.00 VEA  5120.50 USD
+                                  || 106.00 VHT   10.00 VEA   170.00 VHT    36.00 VEA
+                                  ||              18.00 VHT                294.00 VHT
 
-              $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -O csv --layout=bare
-              "account","commodity","balance"
-              "Assets:US:ETrade","GLD","70.00"
-              "Assets:US:ETrade","ITOT","17.00"
-              "Assets:US:ETrade","USD","5120.50"
-              "Assets:US:ETrade","VEA","36.00"
-              "Assets:US:ETrade","VHT","294.00"
-              "total","GLD","70.00"
-              "total","ITOT","17.00"
-              "total","USD","5120.50"
-              "total","VEA","36.00"
-              "total","VHT","294.00"
+       o Bare layout.  Commodity symbols are kept in one column, each  commod-
+         ity gets its own report row, account names are repeated:
+
+                $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=bare
+                Balance changes in 2012-01-01..2014-12-31:
+
+                                  || Commodity    2012    2013     2014    Total
+                ==================++=============================================
+                 Assets:US:ETrade || GLD             0   70.00        0    70.00
+                 Assets:US:ETrade || ITOT        10.00   18.00   -11.00    17.00
+                 Assets:US:ETrade || USD        337.18  -98.12  4881.44  5120.50
+                 Assets:US:ETrade || VEA         12.00   10.00    14.00    36.00
+                 Assets:US:ETrade || VHT        106.00   18.00   170.00   294.00
+                ------------------++---------------------------------------------
+                                  || GLD             0   70.00        0    70.00
+                                  || ITOT        10.00   18.00   -11.00    17.00
+                                  || USD        337.18  -98.12  4881.44  5120.50
+                                  || VEA         12.00   10.00    14.00    36.00
+                                  || VHT        106.00   18.00   170.00   294.00
+
+       o Bare  layout  also  affects CSV output, which is useful for producing
+         data that is easier to consume, eg when making charts:
+
+                $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -O csv --layout=bare
+                "account","commodity","balance"
+                "Assets:US:ETrade","GLD","70.00"
+                "Assets:US:ETrade","ITOT","17.00"
+                "Assets:US:ETrade","USD","5120.50"
+                "Assets:US:ETrade","VEA","36.00"
+                "Assets:US:ETrade","VHT","294.00"
+                "total","GLD","70.00"
+                "total","ITOT","17.00"
+                "total","USD","5120.50"
+                "total","VEA","36.00"
+                "total","VHT","294.00"
 
    Sorting by amount
        With -S/--sort-amount, accounts with the largest (most  positive)  bal-
@@ -2425,7 +2460,6 @@ COMMANDS
                   period end         ues  from  report   from     report    report   start
                                      start  to  period   start to period    to period end
                                      end                 end
-
        --his-     change      from   sum  of  posting-   period-end         DATE-value  of
        torical    journal start to   date  market val-   value of change    change    from
        /-H        period end (his-   ues from  journal   from    journal    journal  start
@@ -4924,8 +4958,6 @@ JOURNAL FORMAT
        apply      Prepends a common parent account to  all  account  names,  in   Y
        account    following  entries  until  end  of  current file or end apply
                   account.
-
-
        comment    Ignores  part  of the journal file, until end of current file   Y
                   or end comment.
        commod-    Declares  a commodity, for checking all entries in all files;   N, Y
@@ -7522,4 +7554,4 @@ SEE ALSO
 
 
 
-hledger-1.24                     December 2021                      HLEDGER(1)
+hledger-1.24.99                  December 2021                      HLEDGER(1)
