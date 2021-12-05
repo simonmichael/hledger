@@ -1420,7 +1420,7 @@ This is controlled by the `--pretty` option:
 Some commands offer additional output formats, other than the usual plain text terminal output.
 Here are those commands and the formats currently supported:
 
-|                    | txt   | csv   | html    | json | sql |
+| -                  | txt   | csv   | html    | json | sql |
 |--------------------|-------|-------|---------|------|-----|
 | aregister          | Y     | Y     |         | Y    |     |
 | balance            | Y *<sup>1</sup>* | Y *<sup>1</sup>* | Y *<sup>1,2</sup>* | Y    |     |
