@@ -260,7 +260,6 @@ module Hledger.Cli.Commands.Balance (
 
 import Data.Default (def)
 import Data.List (transpose, foldl', transpose)
-import qualified Data.Map as M
 import qualified Data.Set as S
 import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
@@ -371,7 +370,8 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ of
         writeOutputLazyText opts $ render ropts report
   where
     ropts@ReportOpts{..} = _rsReportOpts rspec
-    multiperiod = interval_ /= NoInterval
+    -- Tidy csv should be consistent between single period and multiperiod reports.
+    multiperiod = interval_ /= NoInterval || (layout_ == LayoutTidy && fmt == "csv")
     fmt         = outputFormatFromOpts opts
 
 -- XXX this allows rough HTML rendering of a flat BalanceReport, but it can't handle tree mode etc.
@@ -408,22 +408,22 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ of
 -- | Render a single-column balance report as CSV.
 balanceReportAsCsv :: ReportOpts -> BalanceReport -> CSV
 balanceReportAsCsv opts (items, total) =
-    ("account" : ((if layout_ opts == LayoutBare then (:) "commodity" else id) $ ["balance"]))
-  :  (concatMap (\(a, _, _, b) -> rows a b) items)
-  ++ if no_total_ opts then [] else rows "total" total
+    headers : concatMap (\(a, _, _, b) -> rows a b) items ++ if no_total_ opts then [] else rows "total" total
   where
+    headers = "account" : case layout_ opts of
+      LayoutBare -> ["commodity", "balance"]
+      _          -> ["balance"]
     rows :: AccountName -> MixedAmount -> [[T.Text]]
     rows name ma = case layout_ opts of
       LayoutBare ->
-          fmap (\(k, a) -> [showName name, k, renderAmount . mixedAmount . amountStripPrices $ a])
-          . M.toList . foldl' sumAmounts mempty . amounts $ ma
+          map (\a -> [showName name, acommodity a, renderAmount $ mixedAmount a])
+          . amounts $ mixedAmountStripPrices ma
       _ -> [[showName name, renderAmount ma]]
 
     showName = accountNameDrop (drop_ opts)
     renderAmount amt = wbToText $ showMixedAmountB bopts amt
       where bopts = (balanceOpts False opts){displayOrder = order}
             order = if layout_ opts == LayoutBare then Just (S.toList $ maCommodities amt) else Nothing
-    sumAmounts mp am = M.insertWith (+) (acommodity am) am mp
 
 -- | Render a single-column balance report as plain text.
 balanceReportAsText :: ReportOpts -> BalanceReport -> TB.Builder
@@ -525,9 +525,7 @@ multiBalanceReportAsCsv opts@ReportOpts{..} =
 
 multiBalanceReportAsCsv' :: ReportOpts -> MultiBalanceReport -> (CSV, CSV)
 multiBalanceReportAsCsv' opts@ReportOpts{..} (PeriodicReport colspans items tr) =
-    ( headers : concatMap (fullRowAsTexts (accountNameDrop drop_ . prrFullName)) items
-    , totalrows
-    )
+    (headers : concatMap fullRowAsTexts items, totalrows)
   where
     headers = "account" : case layout_ of
       LayoutTidy -> ["period", "start_date", "end_date", "commodity", "value"]
@@ -535,10 +533,11 @@ multiBalanceReportAsCsv' opts@ReportOpts{..} (PeriodicReport colspans items tr) 
       _          -> dateHeaders
     dateHeaders = map showDateSpan colspans ++ ["total" | row_total_] ++ ["average" | average_]
 
-    fullRowAsTexts render row = map (render row :) $ multiBalanceRowAsCsvText opts colspans row
+    fullRowAsTexts row = map (showName row :) $ multiBalanceRowAsCsvText opts colspans row
+    showName = accountNameDrop drop_ . prrFullName
     totalrows
       | no_total_ = mempty
-      | otherwise = fullRowAsTexts (const "total") tr
+      | otherwise = map ("total" :) $ multiBalanceRowAsCsvText opts colspans tr
 
 -- | Render a multi-column balance report as HTML.
 multiBalanceReportAsHtml :: ReportOpts -> MultiBalanceReport -> Html ()
