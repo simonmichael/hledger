@@ -280,13 +280,24 @@ since those are usually the more useful in reports.
 The idea of this is to be able to see a useful "complete" balance report,
 even when you don't have transactions in all of your declared accounts yet.
 
-### Commodity layout
+### Data layout
 
-With `--layout`, you can control how amounts with more than one commodity are displayed:
+With `--layout`, you can influence how amounts with more than one commodity are displayed (and a bit more),
+which in turn affects the layout of the report data:
 
-- `--layout=wide[,WIDTH]`: on a single line, possibly elided to the specified width
-- `--layout=tall`: each commodity is displayed on a separate line
-- `--layout=bare`: amounts are displayed as bare numbers, with commodity symbols in a separate column
+- `--layout=wide[,WIDTH]`: commodities are shown on a single line, possibly elided to the specified width
+- `--layout=tall`: each commodity is shown on a separate line
+- `--layout=bare`: amounts are shown as bare numbers, with commodity symbols in a separate column
+- `--layout=tidy`: data is normalised to [tidy](https://cran.r-project.org/web/packages/tidyr/vignettes/tidy-data.html) form, with one row per data value (supported with CSV output only)
+
+These `--layout` values affect some but not all of the [output formats](#output-format), as shown:
+
+| -    | txt | csv | html | json | sql |
+|------|-----|-----|------|------|-----|
+| wide | Y   | Y   | Y    |      |     |
+| tall | Y   | Y   | Y    |      |     |
+| bare | Y   | Y   | Y    |      |     |
+| tidy |     | Y   |      |      |     |
 
 Examples:
 
@@ -371,14 +382,44 @@ Examples:
   "total","VHT","294.00"
   ```
 
-Here is how `--layout` currently affects the various [output formats](#output-format):
-
-| -    | txt | csv | html | json | sql |
-|------|-----|-----|------|------|-----|
-| wide | Y   | Y   | Y    |      |     |
-| tall | Y   | Y   | Y    |      |     |
-| bare | Y   | Y   | Y    |      |     |
-
+- Tidy layout produces normalised "tidy data", where every variable is a column and each row 
+  represents a single data point (see <https://cran.r-project.org/web/packages/tidyr/vignettes/tidy-data.html>).
+  This is the form of data most easily processed by other software.
+  Currently we support it with the CSV output format only:
+  ```shell
+  $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -O csv --layout=tidy -Y
+  "account","date","commodity","value"
+  "Assets:US:ETrade","2012","GLD","0"
+  "Assets:US:ETrade","2012","ITOT","10.00"
+  "Assets:US:ETrade","2012","USD","337.18"
+  "Assets:US:ETrade","2012","VEA","12.00"
+  "Assets:US:ETrade","2012","VHT","106.00"
+  "Assets:US:ETrade","2013","GLD","70.00"
+  "Assets:US:ETrade","2013","ITOT","18.00"
+  "Assets:US:ETrade","2013","USD","-98.12"
+  "Assets:US:ETrade","2013","VEA","10.00"
+  "Assets:US:ETrade","2013","VHT","18.00"
+  "Assets:US:ETrade","2014","GLD","0"
+  "Assets:US:ETrade","2014","ITOT","-11.00"
+  "Assets:US:ETrade","2014","USD","4881.44"
+  "Assets:US:ETrade","2014","VEA","14.00"
+  "Assets:US:ETrade","2014","VHT","170.00"
+  "total","2012","GLD","0"
+  "total","2012","ITOT","10.00"
+  "total","2012","USD","337.18"
+  "total","2012","VEA","12.00"
+  "total","2012","VHT","106.00"
+  "total","2013","GLD","70.00"
+  "total","2013","ITOT","18.00"
+  "total","2013","USD","-98.12"
+  "total","2013","VEA","10.00"
+  "total","2013","VHT","18.00"
+  "total","2014","GLD","0"
+  "total","2014","ITOT","-11.00"
+  "total","2014","USD","4881.44"
+  "total","2014","VEA","14.00"
+  "total","2014","VHT","170.00"
+  ```
 
 ### Sorting by amount
 
