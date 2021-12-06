@@ -3234,18 +3234,86 @@ will be included, since those are usually the more useful in reports.
 The idea of this is to be able to see a useful \[dq]complete\[dq]
 balance report, even when you don\[aq]t have transactions in all of your
 declared accounts yet.
-.SS Commodity layout
+.SS Data layout
 .PP
-With \f[C]--layout\f[R], you can control how amounts with more than one
-commodity are displayed:
+With \f[C]--layout\f[R], you can influence how amounts with more than
+one commodity are displayed (and a bit more), which in turn affects the
+layout of the report data:
 .IP \[bu] 2
-\f[C]--layout=wide[,WIDTH]\f[R]: on a single line, possibly elided to
-the specified width
+\f[C]--layout=wide[,WIDTH]\f[R]: commodities are shown on a single line,
+possibly elided to the specified width
 .IP \[bu] 2
-\f[C]--layout=tall\f[R]: each commodity is displayed on a separate line
+\f[C]--layout=tall\f[R]: each commodity is shown on a separate line
 .IP \[bu] 2
-\f[C]--layout=bare\f[R]: amounts are displayed as bare numbers, with
+\f[C]--layout=bare\f[R]: amounts are shown as bare numbers, with
 commodity symbols in a separate column
+.IP \[bu] 2
+\f[C]--layout=tidy\f[R]: data is normalised to tidy form, with one row
+per data value (supported with CSV output only)
+.PP
+These \f[C]--layout\f[R] values affect some but not all of the output
+formats, as shown:
+.PP
+.TS
+tab(@);
+l l l l l l.
+T{
+-
+T}@T{
+txt
+T}@T{
+csv
+T}@T{
+html
+T}@T{
+json
+T}@T{
+sql
+T}
+_
+T{
+wide
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+T}@T{
+T}
+T{
+tall
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+T}@T{
+T}
+T{
+bare
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+T}@T{
+T}
+T{
+tidy
+T}@T{
+T}@T{
+Y
+T}@T{
+T}@T{
+T}@T{
+T}
+.TE
 .PP
 Examples:
 .IP \[bu] 2
@@ -3360,61 +3428,51 @@ $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -O csv --layout=
 \f[R]
 .fi
 .RE
-.PP
-Here is how \f[C]--layout\f[R] currently affects the various output
-formats:
-.PP
-.TS
-tab(@);
-l l l l l l.
-T{
--
-T}@T{
-txt
-T}@T{
-csv
-T}@T{
-html
-T}@T{
-json
-T}@T{
-sql
-T}
-_
-T{
-wide
-T}@T{
-Y
-T}@T{
-Y
-T}@T{
-Y
-T}@T{
-T}@T{
-T}
-T{
-tall
-T}@T{
-Y
-T}@T{
-Y
-T}@T{
-Y
-T}@T{
-T}@T{
-T}
-T{
-bare
-T}@T{
-Y
-T}@T{
-Y
-T}@T{
-Y
-T}@T{
-T}@T{
-T}
-.TE
+.IP \[bu] 2
+Tidy layout produces normalised \[dq]tidy data\[dq], where every
+variable is a column and each row represents a single data point (see
+https://cran.r-project.org/web/packages/tidyr/vignettes/tidy-data.html).
+This is the form of data most easily processed by other software.
+Currently we support it with the CSV output format only:
+.RS 2
+.IP
+.nf
+\f[C]
+$ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -O csv --layout=tidy -Y
+\[dq]account\[dq],\[dq]date\[dq],\[dq]commodity\[dq],\[dq]value\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]2012\[dq],\[dq]GLD\[dq],\[dq]0\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]2012\[dq],\[dq]ITOT\[dq],\[dq]10.00\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]2012\[dq],\[dq]USD\[dq],\[dq]337.18\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]2012\[dq],\[dq]VEA\[dq],\[dq]12.00\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]2012\[dq],\[dq]VHT\[dq],\[dq]106.00\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]2013\[dq],\[dq]GLD\[dq],\[dq]70.00\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]2013\[dq],\[dq]ITOT\[dq],\[dq]18.00\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]2013\[dq],\[dq]USD\[dq],\[dq]-98.12\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]2013\[dq],\[dq]VEA\[dq],\[dq]10.00\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]2013\[dq],\[dq]VHT\[dq],\[dq]18.00\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]2014\[dq],\[dq]GLD\[dq],\[dq]0\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]2014\[dq],\[dq]ITOT\[dq],\[dq]-11.00\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]2014\[dq],\[dq]USD\[dq],\[dq]4881.44\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]2014\[dq],\[dq]VEA\[dq],\[dq]14.00\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]2014\[dq],\[dq]VHT\[dq],\[dq]170.00\[dq]
+\[dq]total\[dq],\[dq]2012\[dq],\[dq]GLD\[dq],\[dq]0\[dq]
+\[dq]total\[dq],\[dq]2012\[dq],\[dq]ITOT\[dq],\[dq]10.00\[dq]
+\[dq]total\[dq],\[dq]2012\[dq],\[dq]USD\[dq],\[dq]337.18\[dq]
+\[dq]total\[dq],\[dq]2012\[dq],\[dq]VEA\[dq],\[dq]12.00\[dq]
+\[dq]total\[dq],\[dq]2012\[dq],\[dq]VHT\[dq],\[dq]106.00\[dq]
+\[dq]total\[dq],\[dq]2013\[dq],\[dq]GLD\[dq],\[dq]70.00\[dq]
+\[dq]total\[dq],\[dq]2013\[dq],\[dq]ITOT\[dq],\[dq]18.00\[dq]
+\[dq]total\[dq],\[dq]2013\[dq],\[dq]USD\[dq],\[dq]-98.12\[dq]
+\[dq]total\[dq],\[dq]2013\[dq],\[dq]VEA\[dq],\[dq]10.00\[dq]
+\[dq]total\[dq],\[dq]2013\[dq],\[dq]VHT\[dq],\[dq]18.00\[dq]
+\[dq]total\[dq],\[dq]2014\[dq],\[dq]GLD\[dq],\[dq]0\[dq]
+\[dq]total\[dq],\[dq]2014\[dq],\[dq]ITOT\[dq],\[dq]-11.00\[dq]
+\[dq]total\[dq],\[dq]2014\[dq],\[dq]USD\[dq],\[dq]4881.44\[dq]
+\[dq]total\[dq],\[dq]2014\[dq],\[dq]VEA\[dq],\[dq]14.00\[dq]
+\[dq]total\[dq],\[dq]2014\[dq],\[dq]VHT\[dq],\[dq]170.00\[dq]
+\f[R]
+.fi
+.RE
 .SS Sorting by amount
 .PP
 With \f[C]-S/--sort-amount\f[R], accounts with the largest (most
