@@ -91,7 +91,7 @@ library
       Paths_hledger_lib
   hs-source-dirs:
       ./
-  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
+  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -fno-warn-incomplete-uni-patterns
   build-depends:
       Decimal >=0.5.1
     , Glob >=0.9
@@ -99,7 +99,7 @@ library
     , aeson-pretty
     , ansi-terminal >=0.9
     , array
-    , base >=4.11 && <4.16
+    , base >=4.11 && <4.17
     , blaze-markup >=0.5.1
     , bytestring
     , call-stack
@@ -141,7 +141,7 @@ test-suite doctest
   hs-source-dirs:
       ./
       test
-  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
+  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -fno-warn-incomplete-uni-patterns
   build-depends:
       Decimal >=0.5.1
     , Glob >=0.7
@@ -149,7 +149,7 @@ test-suite doctest
     , aeson-pretty
     , ansi-terminal >=0.9
     , array
-    , base >=4.11 && <4.16
+    , base >=4.11 && <4.17
     , blaze-markup >=0.5.1
     , bytestring
     , call-stack
@@ -194,7 +194,7 @@ test-suite unittest
   hs-source-dirs:
       ./
       test
-  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
+  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -fno-warn-incomplete-uni-patterns
   build-depends:
       Decimal >=0.5.1
     , Glob >=0.9
@@ -202,7 +202,7 @@ test-suite unittest
     , aeson-pretty
     , ansi-terminal >=0.9
     , array
-    , base >=4.11 && <4.16
+    , base >=4.11 && <4.17
     , blaze-markup >=0.5.1
     , bytestring
     , call-stack

@@ -903,8 +903,8 @@ tests_Balancing =
               transaction (fromGregorian 2019 01 01) [ vpost' "a" missingamt (balassert (num 1)) ]
             ]}
       assertRight ej
-      let Right j = ej
-      (jtxns j & head & tpostings & head & pamount & amountsRaw) @?= [num 1]
+      case ej of Right j -> (jtxns j & head & tpostings & head & pamount & amountsRaw) @?= [num 1]
+                 Left _  -> error' "balance-assignment test: shouldn't happen"
 
     ,testCase "same-day-1" $ do
       assertRight $ journalBalanceTransactions defbalancingopts $

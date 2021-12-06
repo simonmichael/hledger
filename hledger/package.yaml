@@ -99,7 +99,7 @@ dependencies:
 - hledger-lib >=1.24.99 && <1.25
 - aeson >=1
 - ansi-terminal >=0.9
-- base >=4.11 && <4.16
+- base >=4.11 && <4.17
 - bytestring
 - cmdargs >=0.10
 - containers >=0.5.9

@@ -381,7 +381,7 @@ ghcid-shake: $(call def-help,ghcid-shake, start ghcid autobuilder on Shake.hs)
 # run default GHCI
 STACKGHCI=$(STACK)
 # run latest GHCI for modern features
-#STACKGHCI=stack --stack-yaml=stack8.10.yaml
+#STACKGHCI=stack --stack-yaml=stack9.2.yaml
 
 # multi-package GHCI prompts
 ghci: $(call def-help,ghci, start ghci REPL on hledger-lib + hledger)

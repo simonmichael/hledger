@@ -83,7 +83,7 @@ transactionModifierToFunction styles refdate TransactionModifier{tmquerytxt, tmp
   q <- simplifyQuery . fst <$> parseQuery refdate tmquerytxt
   let
     fs = map (tmPostingRuleToFunction styles q tmquerytxt) tmpostingrules
-    generatePostings ps = concatMap (\p -> p : map ($p) (if q `matchesPosting` p then fs else [])) ps
+    generatePostings = concatMap (\p -> p : map ($ p) (if q `matchesPosting` p then fs else []))
   Right $ \t@(tpostings -> ps) -> txnTieKnot t{tpostings=generatePostings ps}
 
 -- | Converts a 'TransactionModifier''s posting rule to a 'Posting'-generating function,

@@ -17,13 +17,19 @@ For more detailed documentation on each type, see the corresponding modules.
 -}
 
 -- {-# LANGUAGE DeriveAnyClass #-}  -- https://hackage.haskell.org/package/deepseq-1.4.4.0/docs/Control-DeepSeq.html#v:rnf
+{-# LANGUAGE CPP        #-}
 {-# LANGUAGE DeriveGeneric        #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE RecordWildCards      #-}
 {-# LANGUAGE StandaloneDeriving   #-}
 
-module Hledger.Data.Types
+module Hledger.Data.Types (
+  module Hledger.Data.Types,
+#if MIN_VERSION_time(1,11,0)
+  Year
+#endif
+)
 where
 
 import GHC.Generics (Generic)
@@ -47,6 +53,19 @@ import Text.Megaparsec (SourcePos)
 
 import Hledger.Utils.Regex
 
+-- synonyms for various date-related scalars
+#if MIN_VERSION_time(1,11,0)
+import Data.Time.Calendar (Year)
+#else
+type Year = Integer
+#endif
+type Month = Int     -- 1-12
+type Quarter = Int   -- 1-4
+type YearWeek = Int  -- 1-52
+type MonthWeek = Int -- 1-5
+type YearDay = Int   -- 1-366
+type MonthDay = Int  -- 1-31
+type WeekDay = Int   -- 1-7
 
 -- | A possibly incomplete year-month-day date provided by the user, to be
 -- interpreted as either a date or a date span depending on context. Missing
@@ -76,16 +95,6 @@ data WhichDate = PrimaryDate | SecondaryDate deriving (Eq,Show)
 data DateSpan = DateSpan (Maybe Day) (Maybe Day) deriving (Eq,Ord,Generic)
 
 instance Default DateSpan where def = DateSpan Nothing Nothing
-
--- synonyms for various date-related scalars
-type Year = Integer
-type Month = Int     -- 1-12
-type Quarter = Int   -- 1-4
-type YearWeek = Int  -- 1-52
-type MonthWeek = Int -- 1-5
-type YearDay = Int   -- 1-366
-type MonthDay = Int  -- 1-31
-type WeekDay = Int   -- 1-7
 
 -- Typical report periods (spans of time), both finite and open-ended.
 -- A higher-level abstraction than DateSpan.

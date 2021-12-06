@@ -192,23 +192,25 @@ regexReplaceUnmemo re repl s = foldM (replaceMatch repl) s (reverse $ match (reC
     -- appropriate for this match. Or return an error message.
     replaceMatch :: Replacement -> String -> MatchText String -> Either RegexError String
     replaceMatch replpat s matchgroups =
-      erepl >>= \repl -> Right $ pre ++ repl ++ post
-      where
-        ((_,(off,len)):_) = elems matchgroups  -- groups should have 0-based indexes, and there should always be at least one, since this is a match
-        (pre, post') = splitAt off s
-        post = drop len post'
-        -- The replacement text: the replacement pattern with all
-        -- numeric backreferences replaced by the appropriate groups
-        -- from this match. Or an error message.
-        erepl = regexReplaceAllByM backrefRegex (lookupMatchGroup matchgroups) replpat
+      case elems matchgroups of 
+        [] -> Right s
+        ((_,(off,len)):_) ->   -- groups should have 0-based indexes, and there should always be at least one, since this is a match
+          erepl >>= \repl -> Right $ pre ++ repl ++ post
           where
-            -- Given some match groups and a numeric backreference,
-            -- return the referenced group text, or an error message.
-            lookupMatchGroup :: MatchText String -> String -> Either RegexError String
-            lookupMatchGroup grps ('\\':s@(_:_)) | all isDigit s =
-              case read s of n | n `elem` indices grps -> Right $ fst (grps ! n)  -- PARTIAL: should not fail, all digits
-                             _                         -> Left $ "no match group exists for backreference \"\\"++s++"\""
-            lookupMatchGroup _ s = Left $ "lookupMatchGroup called on non-numeric-backreference \""++s++"\", shouldn't happen"
+            (pre, post') = splitAt off s
+            post = drop len post'
+            -- The replacement text: the replacement pattern with all
+            -- numeric backreferences replaced by the appropriate groups
+            -- from this match. Or an error message.
+            erepl = regexReplaceAllByM backrefRegex (lookupMatchGroup matchgroups) replpat
+              where
+                -- Given some match groups and a numeric backreference,
+                -- return the referenced group text, or an error message.
+                lookupMatchGroup :: MatchText String -> String -> Either RegexError String
+                lookupMatchGroup grps ('\\':s@(_:_)) | all isDigit s =
+                  case read s of n | n `elem` indices grps -> Right $ fst (grps ! n)  -- PARTIAL: should not fail, all digits
+                                 _                         -> Left $ "no match group exists for backreference \"\\"++s++"\""
+                lookupMatchGroup _ s = Left $ "lookupMatchGroup called on non-numeric-backreference \""++s++"\", shouldn't happen"
     backrefRegex = toRegex' "\\\\[0-9]+"  -- PARTIAL: should not fail
 
 -- regexReplace' :: Regexp -> Replacement -> String -> String

@@ -32,7 +32,7 @@ extra-source-files:
 #data-files:
 
 dependencies:
-- base >=4.11 && <4.16
+- base >=4.11 && <4.17
 - aeson >=1
 - aeson-pretty
 - ansi-terminal >=0.9
@@ -84,6 +84,8 @@ ghc-options:
 - -fno-warn-missing-signatures
 - -fno-warn-type-defaults
 - -fno-warn-orphans
+# XXX seems new in 9.2, fix these
+- -fno-warn-incomplete-uni-patterns
 
 source-dirs: 
 #- other/ledger-parse
