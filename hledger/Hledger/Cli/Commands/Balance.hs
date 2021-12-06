@@ -266,7 +266,7 @@ import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
-import Data.Time (fromGregorian)
+import Data.Time (addDays, fromGregorian)
 import System.Console.CmdArgs.Explicit as C
 import Lucid as L
 import Safe (headMay, maximumMay)
@@ -530,7 +530,7 @@ multiBalanceReportAsCsv' opts@ReportOpts{..} (PeriodicReport colspans items tr) 
     )
   where
     headers = "account" : case layout_ of
-      LayoutTidy -> ["date", "commodity", "value"]
+      LayoutTidy -> ["period", "start_date", "end_date", "commodity", "value"]
       LayoutBare -> "commodity" : dateHeaders
       _          -> dateHeaders
     dateHeaders = map showDateSpan colspans ++ ["total" | row_total_] ++ ["average" | average_]
@@ -708,19 +708,20 @@ multiBalanceRowAsWbs bopts ReportOpts{..} colspans (PeriodicReportRow _ as rowto
                            . fmap (showMixedAmountLinesB bopts{displayOrder=Just cs, displayMinWidth=Nothing})
                            $ all
       LayoutTidy       -> concat
-                           . zipWith (\d -> map (wbFromText d :)) dates
+                           . zipWith (map . addDateColumns) colspans
                            . fmap ( zipWith (\c a -> [wbFromText c, a]) cs
                                   . showMixedAmountLinesB bopts{displayOrder=Just cs, displayMinWidth=Nothing})
-                           $ all
+                           $ as  -- Do not include totals column or average for tidy output, as this
+                                 -- complicates the data representation and can be easily calculated
   where
     totalscolumn = row_total_ && balanceaccum_ `notElem` [Cumulative, Historical]
     cs = S.toList . foldl' S.union mempty $ fmap maCommodities all
     all = as
         ++ [rowtot | totalscolumn && not (null as)]
         ++ [rowavg | average_     && not (null as)]
-    dates = map showDateSpan colspans
-        ++ ["Total"   | totalscolumn && not (null as)]
-        ++ ["Average" | average_     && not (null as)]
+    addDateColumns span@(DateSpan s e) = (wbFromText (showDateSpan span) :)
+                                       . (wbFromText (maybe "" showDate s) :)
+                                       . (wbFromText (maybe "" (showDate . addDays (-1)) e) :)
 
     paddedTranspose :: a -> [[a]] -> [[a]]
     paddedTranspose _ [] = [[]]
