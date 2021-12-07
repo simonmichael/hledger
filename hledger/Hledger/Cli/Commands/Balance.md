@@ -282,13 +282,17 @@ even when you don't have transactions in all of your declared accounts yet.
 
 ### Data layout
 
-With `--layout`, you can influence how amounts with more than one commodity are displayed (and a bit more),
-which in turn affects the layout of the report data:
+The `--layout` option affects how multi-commodity amounts are displayed,
+and some other things, influencing the overall layout of the report data:
 
 - `--layout=wide[,WIDTH]`: commodities are shown on a single line, possibly elided to the specified width
 - `--layout=tall`: each commodity is shown on a separate line
 - `--layout=bare`: amounts are shown as bare numbers, with commodity symbols in a separate column
-- `--layout=tidy`: data is normalised to [tidy](https://cran.r-project.org/web/packages/tidyr/vignettes/tidy-data.html) form, with one row per data value (supported with CSV output only)
+- `--layout=tidy`: data is normalised to [tidy] form, with one row per data value.
+  This is supported with CSV output format only.
+  Totals and row averages are disabled in this mode (`-N/--no-total` is implied and `-T/--row-total` and `-A/--average` will be ignored).
+
+[tidy]: https://vita.had.co.nz/papers/tidy-data.html
 
 These `--layout` values affect some but not all of the [output formats](#output-format), as shown:
 
