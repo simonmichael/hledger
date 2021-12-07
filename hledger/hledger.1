@@ -3250,13 +3250,13 @@ commodity symbols in a separate column
 .IP \[bu] 2
 \f[C]--layout=tidy\f[R]: data is normalised to tidy form, with one row
 per data value.
-This is supported with CSV output format only.
-Totals and row averages are disabled in this mode
+We currently support this with CSV output only.
+In tidy mode, totals and row averages are disabled
 (\f[C]-N/--no-total\f[R] is implied and \f[C]-T/--row-total\f[R] and
 \f[C]-A/--average\f[R] will be ignored).
 .PP
-These \f[C]--layout\f[R] values affect some but not all of the output
-formats, as shown:
+These \f[C]--layout\f[R] modes are supported with some but not all of
+the output formats:
 .PP
 .TS
 tab(@);
@@ -3436,44 +3436,28 @@ $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -O csv --layout=
 Tidy layout produces normalised \[dq]tidy data\[dq], where every
 variable is a column and each row represents a single data point (see
 https://cran.r-project.org/web/packages/tidyr/vignettes/tidy-data.html).
-This is the form of data most easily processed by other software.
-Currently we support it with the CSV output format only:
+This kind of data is the easiest to process with other software:
 .RS 2
 .IP
 .nf
 \f[C]
-$ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -O csv --layout=tidy -Y
-\[dq]account\[dq],\[dq]date\[dq],\[dq]commodity\[dq],\[dq]value\[dq]
-\[dq]Assets:US:ETrade\[dq],\[dq]2012\[dq],\[dq]GLD\[dq],\[dq]0\[dq]
-\[dq]Assets:US:ETrade\[dq],\[dq]2012\[dq],\[dq]ITOT\[dq],\[dq]10.00\[dq]
-\[dq]Assets:US:ETrade\[dq],\[dq]2012\[dq],\[dq]USD\[dq],\[dq]337.18\[dq]
-\[dq]Assets:US:ETrade\[dq],\[dq]2012\[dq],\[dq]VEA\[dq],\[dq]12.00\[dq]
-\[dq]Assets:US:ETrade\[dq],\[dq]2012\[dq],\[dq]VHT\[dq],\[dq]106.00\[dq]
-\[dq]Assets:US:ETrade\[dq],\[dq]2013\[dq],\[dq]GLD\[dq],\[dq]70.00\[dq]
-\[dq]Assets:US:ETrade\[dq],\[dq]2013\[dq],\[dq]ITOT\[dq],\[dq]18.00\[dq]
-\[dq]Assets:US:ETrade\[dq],\[dq]2013\[dq],\[dq]USD\[dq],\[dq]-98.12\[dq]
-\[dq]Assets:US:ETrade\[dq],\[dq]2013\[dq],\[dq]VEA\[dq],\[dq]10.00\[dq]
-\[dq]Assets:US:ETrade\[dq],\[dq]2013\[dq],\[dq]VHT\[dq],\[dq]18.00\[dq]
-\[dq]Assets:US:ETrade\[dq],\[dq]2014\[dq],\[dq]GLD\[dq],\[dq]0\[dq]
-\[dq]Assets:US:ETrade\[dq],\[dq]2014\[dq],\[dq]ITOT\[dq],\[dq]-11.00\[dq]
-\[dq]Assets:US:ETrade\[dq],\[dq]2014\[dq],\[dq]USD\[dq],\[dq]4881.44\[dq]
-\[dq]Assets:US:ETrade\[dq],\[dq]2014\[dq],\[dq]VEA\[dq],\[dq]14.00\[dq]
-\[dq]Assets:US:ETrade\[dq],\[dq]2014\[dq],\[dq]VHT\[dq],\[dq]170.00\[dq]
-\[dq]total\[dq],\[dq]2012\[dq],\[dq]GLD\[dq],\[dq]0\[dq]
-\[dq]total\[dq],\[dq]2012\[dq],\[dq]ITOT\[dq],\[dq]10.00\[dq]
-\[dq]total\[dq],\[dq]2012\[dq],\[dq]USD\[dq],\[dq]337.18\[dq]
-\[dq]total\[dq],\[dq]2012\[dq],\[dq]VEA\[dq],\[dq]12.00\[dq]
-\[dq]total\[dq],\[dq]2012\[dq],\[dq]VHT\[dq],\[dq]106.00\[dq]
-\[dq]total\[dq],\[dq]2013\[dq],\[dq]GLD\[dq],\[dq]70.00\[dq]
-\[dq]total\[dq],\[dq]2013\[dq],\[dq]ITOT\[dq],\[dq]18.00\[dq]
-\[dq]total\[dq],\[dq]2013\[dq],\[dq]USD\[dq],\[dq]-98.12\[dq]
-\[dq]total\[dq],\[dq]2013\[dq],\[dq]VEA\[dq],\[dq]10.00\[dq]
-\[dq]total\[dq],\[dq]2013\[dq],\[dq]VHT\[dq],\[dq]18.00\[dq]
-\[dq]total\[dq],\[dq]2014\[dq],\[dq]GLD\[dq],\[dq]0\[dq]
-\[dq]total\[dq],\[dq]2014\[dq],\[dq]ITOT\[dq],\[dq]-11.00\[dq]
-\[dq]total\[dq],\[dq]2014\[dq],\[dq]USD\[dq],\[dq]4881.44\[dq]
-\[dq]total\[dq],\[dq]2014\[dq],\[dq]VEA\[dq],\[dq]14.00\[dq]
-\[dq]total\[dq],\[dq]2014\[dq],\[dq]VHT\[dq],\[dq]170.00\[dq]
+$ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -Y -O csv --layout=tidy
+\[dq]account\[dq],\[dq]period\[dq],\[dq]start_date\[dq],\[dq]end_date\[dq],\[dq]commodity\[dq],\[dq]value\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]2012\[dq],\[dq]2012-01-01\[dq],\[dq]2012-12-31\[dq],\[dq]GLD\[dq],\[dq]0\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]2012\[dq],\[dq]2012-01-01\[dq],\[dq]2012-12-31\[dq],\[dq]ITOT\[dq],\[dq]10.00\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]2012\[dq],\[dq]2012-01-01\[dq],\[dq]2012-12-31\[dq],\[dq]USD\[dq],\[dq]337.18\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]2012\[dq],\[dq]2012-01-01\[dq],\[dq]2012-12-31\[dq],\[dq]VEA\[dq],\[dq]12.00\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]2012\[dq],\[dq]2012-01-01\[dq],\[dq]2012-12-31\[dq],\[dq]VHT\[dq],\[dq]106.00\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]2013\[dq],\[dq]2013-01-01\[dq],\[dq]2013-12-31\[dq],\[dq]GLD\[dq],\[dq]70.00\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]2013\[dq],\[dq]2013-01-01\[dq],\[dq]2013-12-31\[dq],\[dq]ITOT\[dq],\[dq]18.00\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]2013\[dq],\[dq]2013-01-01\[dq],\[dq]2013-12-31\[dq],\[dq]USD\[dq],\[dq]-98.12\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]2013\[dq],\[dq]2013-01-01\[dq],\[dq]2013-12-31\[dq],\[dq]VEA\[dq],\[dq]10.00\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]2013\[dq],\[dq]2013-01-01\[dq],\[dq]2013-12-31\[dq],\[dq]VHT\[dq],\[dq]18.00\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]2014\[dq],\[dq]2014-01-01\[dq],\[dq]2014-12-31\[dq],\[dq]GLD\[dq],\[dq]0\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]2014\[dq],\[dq]2014-01-01\[dq],\[dq]2014-12-31\[dq],\[dq]ITOT\[dq],\[dq]-11.00\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]2014\[dq],\[dq]2014-01-01\[dq],\[dq]2014-12-31\[dq],\[dq]USD\[dq],\[dq]4881.44\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]2014\[dq],\[dq]2014-01-01\[dq],\[dq]2014-12-31\[dq],\[dq]VEA\[dq],\[dq]14.00\[dq]
+\[dq]Assets:US:ETrade\[dq],\[dq]2014\[dq],\[dq]2014-01-01\[dq],\[dq]2014-12-31\[dq],\[dq]VHT\[dq],\[dq]170.00\[dq]
 \f[R]
 .fi
 .RE

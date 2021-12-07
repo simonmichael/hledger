@@ -2212,12 +2212,12 @@ COMMANDS
          bols in a separate column
 
        o --layout=tidy: data is normalised to tidy form, with one row per data
-         value.  This is supported with CSV output format  only.   Totals  and
-         row  averages are disabled in this mode (-N/--no-total is implied and
-         -T/--row-total and -A/--average will be ignored).
+         value.  We currently support this with  CSV  output  only.   In  tidy
+         mode,  totals and row averages are disabled (-N/--no-total is implied
+         and -T/--row-total and -A/--average will be ignored).
 
-       These --layout values affect some but not all of the output formats, as
-       shown:
+       These --layout modes are supported with some but not all of the  output
+       formats:
 
 
 
@@ -2312,41 +2312,26 @@ COMMANDS
        o Tidy  layout produces normalised "tidy data", where every variable is
          a  column  and  each  row  represents  a  single  data   point   (see
          https://cran.r-project.org/web/packages/tidyr/vignettes/tidy-
-         data.html).  This is the form of data most easily processed by  other
-         software.  Currently we support it with the CSV output format only:
+         data.html).  This kind of data is the easiest to process  with  other
+         software:
 
-                $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -O csv --layout=tidy -Y
-                "account","date","commodity","value"
-                "Assets:US:ETrade","2012","GLD","0"
-                "Assets:US:ETrade","2012","ITOT","10.00"
-                "Assets:US:ETrade","2012","USD","337.18"
-                "Assets:US:ETrade","2012","VEA","12.00"
-                "Assets:US:ETrade","2012","VHT","106.00"
-                "Assets:US:ETrade","2013","GLD","70.00"
-                "Assets:US:ETrade","2013","ITOT","18.00"
-                "Assets:US:ETrade","2013","USD","-98.12"
-                "Assets:US:ETrade","2013","VEA","10.00"
-                "Assets:US:ETrade","2013","VHT","18.00"
-                "Assets:US:ETrade","2014","GLD","0"
-                "Assets:US:ETrade","2014","ITOT","-11.00"
-                "Assets:US:ETrade","2014","USD","4881.44"
-                "Assets:US:ETrade","2014","VEA","14.00"
-                "Assets:US:ETrade","2014","VHT","170.00"
-                "total","2012","GLD","0"
-                "total","2012","ITOT","10.00"
-                "total","2012","USD","337.18"
-                "total","2012","VEA","12.00"
-                "total","2012","VHT","106.00"
-                "total","2013","GLD","70.00"
-                "total","2013","ITOT","18.00"
-                "total","2013","USD","-98.12"
-                "total","2013","VEA","10.00"
-                "total","2013","VHT","18.00"
-                "total","2014","GLD","0"
-                "total","2014","ITOT","-11.00"
-                "total","2014","USD","4881.44"
-                "total","2014","VEA","14.00"
-                "total","2014","VHT","170.00"
+                $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -Y -O csv --layout=tidy
+                "account","period","start_date","end_date","commodity","value"
+                "Assets:US:ETrade","2012","2012-01-01","2012-12-31","GLD","0"
+                "Assets:US:ETrade","2012","2012-01-01","2012-12-31","ITOT","10.00"
+                "Assets:US:ETrade","2012","2012-01-01","2012-12-31","USD","337.18"
+                "Assets:US:ETrade","2012","2012-01-01","2012-12-31","VEA","12.00"
+                "Assets:US:ETrade","2012","2012-01-01","2012-12-31","VHT","106.00"
+                "Assets:US:ETrade","2013","2013-01-01","2013-12-31","GLD","70.00"
+                "Assets:US:ETrade","2013","2013-01-01","2013-12-31","ITOT","18.00"
+                "Assets:US:ETrade","2013","2013-01-01","2013-12-31","USD","-98.12"
+                "Assets:US:ETrade","2013","2013-01-01","2013-12-31","VEA","10.00"
+                "Assets:US:ETrade","2013","2013-01-01","2013-12-31","VHT","18.00"
+                "Assets:US:ETrade","2014","2014-01-01","2014-12-31","GLD","0"
+                "Assets:US:ETrade","2014","2014-01-01","2014-12-31","ITOT","-11.00"
+                "Assets:US:ETrade","2014","2014-01-01","2014-12-31","USD","4881.44"
+                "Assets:US:ETrade","2014","2014-01-01","2014-12-31","VEA","14.00"
+                "Assets:US:ETrade","2014","2014-01-01","2014-12-31","VHT","170.00"
 
    Sorting by amount
        With  -S/--sort-amount,  accounts with the largest (most positive) bal-
@@ -5014,8 +4999,6 @@ JOURNAL FORMAT
                   account.
        comment    Ignores part of the journal file, until end of  current  file   Y
                   or end comment.
-
-
        commod-    Declares a commodity, for checking all entries in all  files;   N, Y
        ity        the  decimal  mark for parsing amounts of this commodity, for
                   following entries until end of current file; and its  display
@@ -5899,6 +5882,7 @@ CSV FORMAT
                                     records
        fields list                  name CSV  fields,  assign  them  to  hledger
                                     fields
+
        field assignment             assign  a  value  to one hledger field, with
                                     interpolation
        Field names                  hledger field names, used in the fields list
