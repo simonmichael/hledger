@@ -520,8 +520,13 @@ renderComponent topaligned oneline opts (acctname, depth, total) (FormatField lj
 -- The CSV will always include the initial headings row,
 -- and will include the final totals row unless --no-total is set.
 multiBalanceReportAsCsv :: ReportOpts -> MultiBalanceReport -> CSV
-multiBalanceReportAsCsv opts@ReportOpts{..} =
-  (if transpose_ then transpose else id) . uncurry (++) . multiBalanceReportAsCsv' opts
+multiBalanceReportAsCsv opts@ReportOpts{..} report = maybeTranspose allRows
+  where
+    allRows = case layout_ of
+      LayoutTidy -> rows  -- tidy csv should not include totals or averages
+      _ -> rows ++ totals
+    (rows, totals) = multiBalanceReportAsCsv' opts report
+    maybeTranspose = if transpose_ then transpose else id
 
 multiBalanceReportAsCsv' :: ReportOpts -> MultiBalanceReport -> (CSV, CSV)
 multiBalanceReportAsCsv' opts@ReportOpts{..} (PeriodicReport colspans items tr) =
