@@ -1478,6 +1478,11 @@ The `-O` option can be combined with `-o` to override the file extension, if nee
 $ hledger balancesheet -o foo.txt -O csv    # write CSV to foo.txt
 ```
 
+### CSV output
+
+- In CSV output, [digit group marks](#decimal-marks-digit-group-marks) (such as thousands separators)
+  are disabled automatically.
+
 ### HTML output
 
 - HTML output can be styled by an optional `hledger.css` file in the same directory.
