@@ -3236,9 +3236,9 @@ balance report, even when you don\[aq]t have transactions in all of your
 declared accounts yet.
 .SS Data layout
 .PP
-With \f[C]--layout\f[R], you can influence how amounts with more than
-one commodity are displayed (and a bit more), which in turn affects the
-layout of the report data:
+The \f[C]--layout\f[R] option affects how multi-commodity amounts are
+displayed, and some other things, influencing the overall layout of the
+report data:
 .IP \[bu] 2
 \f[C]--layout=wide[,WIDTH]\f[R]: commodities are shown on a single line,
 possibly elided to the specified width
@@ -3249,7 +3249,11 @@ possibly elided to the specified width
 commodity symbols in a separate column
 .IP \[bu] 2
 \f[C]--layout=tidy\f[R]: data is normalised to tidy form, with one row
-per data value (supported with CSV output only)
+per data value.
+This is supported with CSV output format only.
+Totals and row averages are disabled in this mode
+(\f[C]-N/--no-total\f[R] is implied and \f[C]-T/--row-total\f[R] and
+\f[C]-A/--average\f[R] will be ignored).
 .PP
 These \f[C]--layout\f[R] values affect some but not all of the output
 formats, as shown:

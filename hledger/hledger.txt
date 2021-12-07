@@ -2199,9 +2199,9 @@ COMMANDS
        accounts yet.
 
    Data layout
-       With --layout, you can influence how amounts with more than one commod-
-       ity are displayed (and a bit more), which in turn affects the layout of
-       the report data:
+       The  --layout option affects how multi-commodity amounts are displayed,
+       and some other things, influencing the overall  layout  of  the  report
+       data:
 
        o --layout=wide[,WIDTH]: commodities are shown on a single line, possi-
          bly elided to the specified width
@@ -2212,15 +2212,17 @@ COMMANDS
          bols in a separate column
 
        o --layout=tidy: data is normalised to tidy form, with one row per data
-         value (supported with CSV output only)
+         value.  This is supported with CSV output format  only.   Totals  and
+         row  averages are disabled in this mode (-N/--no-total is implied and
+         -T/--row-total and -A/--average will be ignored).
 
        These --layout values affect some but not all of the output formats, as
        shown:
 
 
+
        -      txt   csv   html   json   sql
        -------------------------------------
-
        wide   Y     Y     Y
        tall   Y     Y     Y
        bare   Y     Y     Y
@@ -3132,7 +3134,6 @@ COMMANDS
        -e 2021-01-01       end dates are exclusive
        -e 2021             equivalent,   per    smart
                            dates
-
        -p 2020             equivalent,  the  period's
                            begin date is ignored
        date:2020           equivalent query
@@ -4987,8 +4988,6 @@ JOURNAL FORMAT
        budget goals
        Generate extra postings           =
        CHECKING FOR ERRORS:
-
-
        Define  valid entities to allow   account,    commodity,
        stricter error checking           payee
        DISPLAYING REPORTS:
@@ -5015,6 +5014,8 @@ JOURNAL FORMAT
                   account.
        comment    Ignores part of the journal file, until end of  current  file   Y
                   or end comment.
+
+
        commod-    Declares a commodity, for checking all entries in all  files;   N, Y
        ity        the  decimal  mark for parsing amounts of this commodity, for
                   following entries until end of current file; and its  display
