@@ -3839,6 +3839,7 @@ Tips:
 - The fields list always use commas, even if your CSV data uses [another separator character](#separator).
 - Currently there must be least two items in the list (at least one comma).
 - Field names may not contain spaces. Spaces before/after field names are optional.
+- Field names may contain `_` (underscore) or `-` (hyphen).
 - If the CSV contains column headings, it's a good idea to use these, suitably modified, as the basis for your field names (eg lower-cased, with underscores instead of spaces).
 - If some heading names match standard hledger fields, but you don't want to set the hledger fields directly, alter those names, eg by appending an underscore.
 - Fields you don't care about can be given a dummy name (eg: `_` ), or no name.
@@ -3911,6 +3912,7 @@ Assigning to `date` sets the [transaction date](#simple-dates).
 `commentN`, where N is a number, sets the Nth posting's comment.
 
 Tips:
+
 - You can assign multi-line comments by writing literal `\n` in the code. A comment starting with `\n` will begin on a new line.
 - Comments can contain [tags](#tags), as usual.
 
