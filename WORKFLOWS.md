@@ -40,7 +40,7 @@ Eg:
 
 ## Build in place
 
-See also https://hledger.org/download.html#c.-build-the-development-version .
+See also https://hledger.org/install.html#c.-build-the-development-version .
 
     stack build    # hledger hledger-ui ...
 
@@ -49,7 +49,7 @@ then builds all hledger packages.
 This can take a while! To save time, you can build individual packages, eg just the CLI and TUI.
 
 Note stack does not fetch C libraries such as curses or terminfo, which you might need to install yourself, using your system's package manager.
-In case of trouble, see [download](/download.html#link-errors).
+In case of trouble, see [download](/install.html#link-errors).
 
 If you want to use an older snapshot/GHC for some reason, specify one of the older stack-*.yaml files:
 
@@ -64,7 +64,7 @@ If you want to use an older snapshot/GHC for some reason, specify one of the old
 ## Build and install
 
 This builds and also copies the hledger executables to `~/.local/bin` or the Windows equivalent
-(which you should  [add to your `$PATH`](/download.html#b)).
+(which you should  [add to your `$PATH`](/install.html#b)).
 
     stack install    # hledger hledger-ui ...
 

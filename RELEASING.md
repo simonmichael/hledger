@@ -149,7 +149,7 @@ In site repo:
   - check preview in vs code
   - commit: `relnotes: NEW`
 
-- update `download.md`
+- update `install.md`
   - query-replace OLD -> NEW in 
     - "current hledger release"
     - CI binaries badges/links, including linux-static-arm32v7 if built
