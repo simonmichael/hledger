@@ -222,22 +222,35 @@ m4_dnl A standard description of the LEDGER_FILE environment variable.
 m4_define({{_LEDGER_FILE_}}, {{
 **LEDGER_FILE**
 The journal file path when not specified with `-f`.
-Default: `~/.hledger.journal` (on windows, perhaps `C:/Users/USER/.hledger.journal`).
 
-A typical value is `~/DIR/YYYY.journal`, where DIR is a version-controlled finance directory
-and YYYY is the current year. Or `~/DIR/current.journal`, where current.journal is a symbolic
-link to YYYY.journal.
+On unix computers, the default value is: `~/.hledger.journal`.
 
-On Mac computers, you can set this and other environment variables in a more thorough way
-that also affects applications started from the GUI (say, an Emacs dock icon).
-Eg on MacOS Catalina I have a `~/.MacOSX/environment.plist` file containing
+A more typical value is something like `~/finance/YYYY.journal`, 
+where `~/finance` is a version-controlled finance directory and YYYY is the current year. 
+Or, `~/finance/current.journal`, where current.journal is a symbolic link to YYYY.journal.
+
+The usual way to set this permanently is to add a command to one of your shell's startup files
+(eg `~/.profile`):
+```
+export LEDGER_FILE=~/finance/current.journal`
+```
+
+On some Mac computers, there is a more thorough way to set environment variables, 
+that will also affect applications started from the GUI (eg, Emacs started from a dock icon):
+In `~/.MacOSX/environment.plist`, add an entry like:
 ```
 {
   "LEDGER_FILE" : "~/finance/current.journal"
 }
 ```
-To see the effect you may need to `killall Dock`, or reboot.
+For this to take effect you might need to `killall Dock`, or reboot.
 
+On Windows computers, the default value is probably `C:\Users\MyUserName\.hledger.journal`.
+You can change this by running a command like this in a powershell window:
+```
+> setx LEDGER_FILE "C:\Users\MyUserName\finance\2021.journal"
+```
+(Let us know if you need to be an Administrator, and if this persists across a reboot.)
 
 }} )m4_dnl
 m4_dnl
