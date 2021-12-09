@@ -120,8 +120,9 @@ splitAtElement x l =
 
 -- trees
 
+-- | Get the leaves of this tree as a list. The root node is not counted as a leaf.
 treeLeaves :: Tree a -> [a]
-treeLeaves = foldTree (\a bs -> (if null bs then (a:) else id) $ concat bs)
+treeLeaves = drop 1 . foldTree (\a bs -> (if null bs then (a:) else id) $ concat bs)
 
 -- text
 
