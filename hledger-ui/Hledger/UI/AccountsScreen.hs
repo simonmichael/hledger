@@ -2,7 +2,6 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE NamedFieldPuns #-}
 
 module Hledger.UI.AccountsScreen
  (accountsScreen
