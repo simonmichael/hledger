@@ -212,13 +212,13 @@ account b
 >>>= 0
 
 # 12. not:ACCT queries work with declared accounts.
-# hledger -f - balance -NE --declared not:a
-# <<<
-# account a
-# account a:aa
-# account a:ab
-# account a:ac:aca
-# account b
-# >>>
-#                    0  b
-# >>>= 0
+hledger -f - balance -NE --declared not:a
+<<<
+account a
+account a:aa
+account a:ab
+account a:ac:aca
+account b
+>>>
+                   0  b
+>>>= 0
