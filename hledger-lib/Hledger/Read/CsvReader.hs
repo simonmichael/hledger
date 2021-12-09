@@ -1244,8 +1244,8 @@ renderTemplate rules record t = maybe t mconcat $ parseMaybe
         <|> replaceCsvFieldReference rules record <$> referencep)
     t
   where
-    referencep = liftA2 T.cons (char '%') (takeWhile1P (Just "reference") isDescriptorChar) :: Parsec CustomErr Text Text
-    isDescriptorChar c = isAscii c && (isAlphaNum c || c == '_' || c == '-')
+    referencep = liftA2 T.cons (char '%') (takeWhile1P (Just "reference") isFieldNameChar) :: Parsec CustomErr Text Text
+    isFieldNameChar c = isAscii c && (isAlphaNum c || c == '_' || c == '-')
 
 -- | Replace something that looks like a reference to a csv field ("%date" or "%1)
 -- with that field's value. If it doesn't look like a field reference, or if we
