@@ -59,7 +59,7 @@ import Hledger.Utils.Regex
 import Hledger.Utils.String
 import Hledger.Utils.Text
 import Hledger.Utils.Test
-import Data.Tree (foldTree, Tree)
+import Data.Tree (foldTree, Tree (Node, subForest))
 
 
 -- tuples
@@ -120,9 +120,11 @@ splitAtElement x l =
 
 -- trees
 
--- | Get the leaves of this tree as a list. The root node is not counted as a leaf.
-treeLeaves :: Tree a -> [a]
-treeLeaves = drop 1 . foldTree (\a bs -> (if null bs then (a:) else id) $ concat bs)
+-- | Get the leaves of this tree as a list. 
+-- The topmost node ("root" in hledger account trees) is not counted as a leaf.
+treeLeaves :: Show a => Tree a -> [a]
+treeLeaves Node{subForest=[]} = []
+treeLeaves t = foldTree (\a bs -> (if null bs then (a:) else id) $ concat bs) t
 
 -- text
 
