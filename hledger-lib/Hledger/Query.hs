@@ -23,6 +23,7 @@ module Hledger.Query (
   parseQueryTerm,
   simplifyQuery,
   filterQuery,
+  filterQueryOrNotQuery,
   -- * accessors
   queryIsNull,
   queryIsAcct,
@@ -378,16 +379,30 @@ simplifyQuery q =
 same [] = True
 same (a:as) = all (a==) as
 
--- | Remove query terms (or whole sub-expressions) not matching the given
--- predicate from this query.  XXX Semantics not completely clear.
+-- | Remove query terms (or whole sub-expressions) from this query
+-- which do not match the given predicate.
+-- XXX Semantics not completely clear.
 filterQuery :: (Query -> Bool) -> Query -> Query
 filterQuery p = simplifyQuery . filterQuery' p
+  where
+    filterQuery' :: (Query -> Bool) -> Query -> Query
+    filterQuery' p (And qs) = And $ map (filterQuery p) qs
+    filterQuery' p (Or qs) = Or $ map (filterQuery p) qs
+    filterQuery' p q = if p q then q else Any
 
-filterQuery' :: (Query -> Bool) -> Query -> Query
-filterQuery' p (And qs) = And $ map (filterQuery p) qs
-filterQuery' p (Or qs) = Or $ map (filterQuery p) qs
--- filterQuery' p (Not q) = Not $ filterQuery p q
-filterQuery' p q = if p q then q else Any
+-- | Remove query terms (or whole sub-expressions) from this query
+-- which match neither the given predicate nor that predicate negated 
+-- (eg, if predicate is queryIsAcct, this will keep both "acct:" and "not:acct:" terms).
+-- (Since 1.24.1, might be merged into filterQuery in future.)
+-- XXX Semantics not completely clear.
+filterQueryOrNotQuery :: (Query -> Bool) -> Query -> Query
+filterQueryOrNotQuery p = simplifyQuery . filterQuery' p
+  where
+    filterQuery' :: (Query -> Bool) -> Query -> Query
+    filterQuery' p (And qs) = And $ map (filterQuery p) qs
+    filterQuery' p (Or qs) = Or $ map (filterQuery p) qs
+    filterQuery' p (Not q) | p q = Not $ filterQuery p q
+    filterQuery' p q = if p q then q else Any
 
 -- * accessors
 
@@ -398,6 +413,9 @@ queryIsNull (And []) = True
 queryIsNull (Not (Or [])) = True
 queryIsNull _ = False
 
+-- | Is this a simple query of this type ("depth:D") ? 
+-- Note, does not match a compound query like "not:depth:D" or "depth:D acct:A".
+-- Likewise for the following functions.
 queryIsDepth :: Query -> Bool
 queryIsDepth (Depth _) = True
 queryIsDepth _ = False
