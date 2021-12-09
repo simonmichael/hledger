@@ -685,7 +685,7 @@ throughput-%: samplejournals \
 	@echo executable: $*
 	@echo version: `$* --version`
 	@for n in 1000 2000 3000 4000 5000 6000 7000 8000 9000 10000 100000 ; do \
-		printf "%6d: " $$n; $* stats -f examples/$${n}x1000x10.journal | tail -1; \
+		printf "%6d txns: " $$n; $* stats -f examples/$${n}x1000x10.journal | tail -1; \
 	done
 	@date
 
