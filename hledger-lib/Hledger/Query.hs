@@ -399,9 +399,9 @@ filterQueryOrNotQuery :: (Query -> Bool) -> Query -> Query
 filterQueryOrNotQuery p = simplifyQuery . filterQuery' p
   where
     filterQuery' :: (Query -> Bool) -> Query -> Query
-    filterQuery' p (And qs) = And $ map (filterQuery p) qs
-    filterQuery' p (Or qs) = Or $ map (filterQuery p) qs
-    filterQuery' p (Not q) | p q = Not $ filterQuery p q
+    filterQuery' p (And qs)      = And $ map (filterQueryOrNotQuery p) qs
+    filterQuery' p (Or qs)       = Or  $ map (filterQueryOrNotQuery p) qs
+    filterQuery' p (Not q) | p q = Not $ filterQueryOrNotQuery p q
     filterQuery' p q = if p q then q else Any
 
 -- * accessors
