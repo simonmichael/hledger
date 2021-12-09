@@ -285,7 +285,7 @@ acctChanges ReportSpec{_rsQuery=query,_rsReportOpts=ReportOpts{accountlistmode_,
         declaredacctps = 
           [nullposting{paccount=n} | n <- journalLeafAccountNamesDeclared j
                                    , acctq `matchesAccount` n]
-          where acctq  = dbg3 "acctq" $ filterQuery queryIsAcct query
+          where acctq  = dbg3 "acctq" $ filterQueryOrNotQuery queryIsAcct query
 
     filterbydepth = case accountlistmode_ of
       ALTree -> filter ((depthq `matchesAccount`) . aname)    -- a tree - just exclude deeper accounts
