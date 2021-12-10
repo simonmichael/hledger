@@ -15,6 +15,9 @@ Improvements
 
 - Allow megaparsec 9.2
 
+Fixes
+
+- More reliable --version output, with commit date and without patch level.
 
 # 1.23 2021-09-21
 

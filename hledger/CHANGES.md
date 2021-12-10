@@ -16,6 +16,14 @@ Fixes
 - `balance --declared` is now filtered correctly by a `not:ACCT` query.
   (#1783)
 
+- More reliable --version output, with commit date and without patch level.
+
+API changes
+
+- new type synonyms ProgramName, PackageVersion, VersionString
+- versionStringForProgname -> versionString with extra argument
+- versionStringFor -> versionStringWith with extra argument
+
 # 1.24 2021-12-01
 
 Features

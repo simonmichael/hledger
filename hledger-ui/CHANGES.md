@@ -19,6 +19,8 @@ Fixes
 - Declared accounts are now filtered correctly by a not:ACCT query.
   (#1783)
 
+- More reliable --version output, with commit date and without patch level.
+
 # 1.24 2021-12-01
 
 Features
