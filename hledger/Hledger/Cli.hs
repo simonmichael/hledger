@@ -17,7 +17,7 @@ module Hledger.Cli (
                      module Hledger,
                      module System.Console.CmdArgs.Explicit,
                      prognameandversion,
-                     versionStringForProgname
+                     versionString
               )
 where
 
@@ -31,9 +31,21 @@ import Hledger.Cli.DocFiles
 import Hledger.Cli.Utils
 import Hledger.Cli.Version
 
--- | The program name and the best version information we can obtain
--- from git describe or build variables.
-prognameandversion = versionStringForProgname progname
-versionStringForProgname = versionStringFor $$tGitInfoCwdTry
+-- | The program name and version string for this build of the hledger tool,
+-- including any git info available at build time.
+prognameandversion :: String
+prognameandversion = versionString progname packageversion
+
+-- | A helper to generate the best version string we can from the given 
+-- program name and package version strings, current os and architecture,
+-- and any git info available at build time (commit hash, commit date, branch
+-- name, patchlevel since latest release tag for that program's package).
+-- Typically called for programs "hledger", "hledger-ui", or "hledger-web".
+--
+-- The git info changes whenever any file in the repository changes. 
+-- Keeping this template haskell call here and not down in Hledger.Cli.Version
+-- helps reduce the number of modules recompiled.
+versionString :: ProgramName -> PackageVersion -> String
+versionString = versionStringWith $$tGitInfoCwdTry
 
 -- unit tests (tests_Hledger_Cli) are defined in Hledger.Cli.Commands

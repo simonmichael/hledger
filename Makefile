@@ -193,12 +193,6 @@ DOCSOURCEFILES:= \
 # We use hledger CLI's current version (XXX for all packages, which isn't quite right).
 VERSION=$(shell cat hledger/.version)
 
-# the number of commits since the last tag
-PATCHLEVEL=$(shell git describe --tags --match 'hledger-[0-9]*' --long | awk -F- '{print $$3}')
-#PATCHLEVEL:=$(shell git describe --tags --match 'hledger-web-[0-9]*' --long | awk -F- '{print $$4}')
-# the number of commits since the last_release tag
-#PATCHLEVEL:=$(shell git rev-list last_release..HEAD | wc -l)
-
 # flags for ghc builds
 
 WARNINGS:=\
@@ -223,7 +217,6 @@ BUILDFLAGS=\
 	$(WARNINGS) \
 	$(INCLUDEPATHS) \
 	$(GHCLOWMEMFLAGS) $(CABALMACROSFLAGS) \
-	-DPATCHLEVEL=$(PATCHLEVEL) \
 	-DDEVELOPMENT \
 	-DVERSION="\"$(VERSION)\"" \
 #	-fhide-source-paths \

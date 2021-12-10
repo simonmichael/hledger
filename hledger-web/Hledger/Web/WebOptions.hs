@@ -20,18 +20,19 @@ import Hledger.Web.Settings (defhost, defport, defbaseurl)
 
 -- cf Hledger.Cli.Version
 
-packageversion :: String
+packageversion :: PackageVersion
+packageversion =
 #ifdef VERSION
-packageversion = VERSION
+  VERSION
 #else
-packageversion = ""
+  ""
 #endif
 
-progname :: String
+progname :: ProgramName
 progname = "hledger-web"
 
-prognameandversion :: String
-prognameandversion = versionStringForProgname progname
+prognameandversion :: VersionString
+prognameandversion = versionString progname packageversion
 
 
 webflags :: [Flag RawOpts]
