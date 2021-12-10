@@ -19,6 +19,7 @@ import Control.Applicative ((<|>))
 import Control.Monad (join, when)
 import qualified Data.ByteString.Char8 as BC
 import Data.Traversable (for)
+import Data.FileEmbed (makeRelativeToProject)
 import Data.IORef (IORef, readIORef, writeIORef)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
@@ -82,7 +83,7 @@ data App = App
 -- for our application to be in scope. However, the handler functions
 -- usually require access to the AppRoute datatype. Therefore, we
 -- split these actions into two functions and place them in separate files.
-mkYesodData "App" $(parseRoutesFile "config/routes")
+mkYesodData "App" $(makeRelativeToProject "config/routes" >>= parseRoutesFile)
 
 -- | A convenience alias.
 type AppRoute = Route App
@@ -164,7 +165,7 @@ instance Yesod App where
       addScript $ StaticR hledger_js
       $(widgetFile "default-layout")
 
-    withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
+    withUrlRenderer $(makeRelativeToProject "templates/default-layout-wrapper.hamlet" >>= hamletFile)
 
 #ifndef DEVELOPMENT
   -- This function creates static content files in the static folder

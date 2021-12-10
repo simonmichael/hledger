@@ -169,6 +169,7 @@ library
     , data-default
     , directory >=1.2.3.0
     , extra >=1.6.3
+    , file-embed >=0.0.10
     , filepath
     , hjsmin
     , hledger >=1.24.99 && <1.25

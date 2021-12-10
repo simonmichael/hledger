@@ -5,6 +5,7 @@ import System.IO (stdout, hFlush)
 import Yesod.Static (Static, embed, publicFiles, staticDevel)
 
 import Hledger.Web.Settings (staticDir, development)
+import Data.FileEmbed (makeRelativeToProject)
 
 -- | use this to create your static file serving site
 -- staticSite :: IO Static.Static
@@ -26,6 +27,6 @@ staticSite =
             staticDevel staticDir)
    else (do
             -- putStrLn "Using built-in web files" >> hFlush stdout
-            return $(embed staticDir))
+            return $(makeRelativeToProject staticDir >>= embed))
 
-$(publicFiles staticDir)
+$(makeRelativeToProject staticDir >>= publicFiles)

@@ -117,6 +117,7 @@ library:
   - Decimal >=0.5.1
   - directory >=1.2.3.0
   - extra >=1.6.3
+  - file-embed >=0.0.10
   - filepath
   - hjsmin
   - http-conduit

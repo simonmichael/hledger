@@ -19,6 +19,7 @@ module Hledger.Web.Widget.Common
   , replaceInacct
   ) where
 
+import Data.FileEmbed (makeRelativeToProject)
 import Data.Foldable (find, for_)
 import Data.List (elemIndex)
 import Data.Text (Text)
@@ -79,7 +80,7 @@ helplink topic label _ = H.a ! A.href u ! A.target "hledgerhelp" $ toHtml label
 -- | Render a "BalanceReport" as html.
 balanceReportAsHtml :: Eq r => (r, r) -> r -> Bool -> Journal -> Text -> [QueryOpt] -> BalanceReport -> HtmlUrl r
 balanceReportAsHtml (journalR, registerR) here hideEmpty j q qopts (items, total) =
-  $(hamletFile "templates/balance-report.hamlet")
+  $(makeRelativeToProject "templates/balance-report.hamlet" >>= hamletFile)
   where
     l = ledgerFromJournal Any j
     indent a = preEscapedString $ concat $ replicate (2 + 2 * a) "&nbsp;"

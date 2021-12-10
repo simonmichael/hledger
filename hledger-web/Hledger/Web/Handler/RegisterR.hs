@@ -21,6 +21,7 @@ import Hledger.Web.Widget.AddForm (addModal)
 import Hledger.Web.Widget.Common
              (accountQuery, mixedAmountAsHtml,
               transactionFragment, removeDates, removeInacct, replaceInacct)
+import Data.FileEmbed (makeRelativeToProject)
 
 -- | The main journal/account register view, with accounts sidebar.
 getRegisterR :: Handler Html
@@ -99,7 +100,7 @@ decorateLinks = concatMap $ \(acct, (name, comma)) ->
 -- | Generate javascript/html for a register balance line chart based on
 -- the provided "AccountTransactionsReportItem"s.
 registerChartHtml :: Text -> String -> [(CommoditySymbol, [AccountTransactionsReportItem])] -> HtmlUrl AppRoute
-registerChartHtml q title percommoditytxnreports = $(hamletFile "templates/chart.hamlet")
+registerChartHtml q title percommoditytxnreports = $(makeRelativeToProject "templates/chart.hamlet" >>= hamletFile)
  -- have to make sure plot is not called when our container (maincontent)
  -- is hidden, eg with add form toggled
  where
