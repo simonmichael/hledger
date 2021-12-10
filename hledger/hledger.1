@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "December 2021" "hledger-1.24 " "hledger User Manuals"
+.TH "HLEDGER" "1" "December 2021" "hledger-1.24.1 " "hledger User Manuals"
 
 
 
@@ -9,7 +9,7 @@
 This is the command-line interface (CLI) for the hledger accounting
 tool.
 Here we also describe hledger\[aq]s concepts and file formats.
-This manual is for hledger 1.24.
+This manual is for hledger 1.24.1.
 .SH SYNOPSIS
 .PP
 \f[C]hledger\f[R]
@@ -507,19 +507,29 @@ See Special characters.
 .PP
 \f[B]LEDGER_FILE\f[R] The journal file path when not specified with
 \f[C]-f\f[R].
-Default: \f[C]\[ti]/.hledger.journal\f[R] (on windows, perhaps
-\f[C]C:/Users/USER/.hledger.journal\f[R]).
 .PP
-A typical value is \f[C]\[ti]/DIR/YYYY.journal\f[R], where DIR is a
+On unix computers, the default value is:
+\f[C]\[ti]/.hledger.journal\f[R].
+.PP
+A more typical value is something like
+\f[C]\[ti]/finance/YYYY.journal\f[R], where \f[C]\[ti]/finance\f[R] is a
 version-controlled finance directory and YYYY is the current year.
-Or \f[C]\[ti]/DIR/current.journal\f[R], where current.journal is a
+Or, \f[C]\[ti]/finance/current.journal\f[R], where current.journal is a
 symbolic link to YYYY.journal.
 .PP
-On Mac computers, you can set this and other environment variables in a
-more thorough way that also affects applications started from the GUI
-(say, an Emacs dock icon).
-Eg on MacOS Catalina I have a \f[C]\[ti]/.MacOSX/environment.plist\f[R]
-file containing
+The usual way to set this permanently is to add a command to one of your
+shell\[aq]s startup files (eg \f[C]\[ti]/.profile\f[R]):
+.IP
+.nf
+\f[C]
+export LEDGER_FILE=\[ti]/finance/current.journal\[ga]
+\f[R]
+.fi
+.PP
+On some Mac computers, there is a more thorough way to set environment
+variables, that will also affect applications started from the GUI (eg,
+Emacs started from a dock icon): In
+\f[C]\[ti]/.MacOSX/environment.plist\f[R], add an entry like:
 .IP
 .nf
 \f[C]
@@ -529,7 +539,22 @@ file containing
 \f[R]
 .fi
 .PP
-To see the effect you may need to \f[C]killall Dock\f[R], or reboot.
+For this to take effect you might need to \f[C]killall Dock\f[R], or
+reboot.
+.PP
+On Windows computers, the default value is probably
+\f[C]C:\[rs]Users\[rs]MyUserName\[rs].hledger.journal\f[R].
+You can change this by running a command like this in a powershell
+window:
+.IP
+.nf
+\f[C]
+> setx LEDGER_FILE \[dq]C:\[rs]Users\[rs]MyUserName\[rs]finance\[rs]2021.journal\[dq]
+\f[R]
+.fi
+.PP
+(Let us know if you need to be an Administrator, and if this persists
+across a reboot.)
 .PP
 \f[B]COLUMNS\f[R] The screen width used by the register command.
 Default: the full terminal width.
@@ -2371,41 +2396,162 @@ characters will (or will not) be used; - otherwise, unicode characters
 will not be used.
 .SS Output format
 .PP
-Some commands (print, register, the balance commands) offer a choice of
-output format.
-In addition to the usual plain text format (\f[C]txt\f[R]), there are
-CSV (\f[C]csv\f[R]), HTML (\f[C]html\f[R]), JSON (\f[C]json\f[R]) and
-SQL (\f[C]sql\f[R]).
-This is controlled by the \f[C]-O/--output-format\f[R] option:
-.IP
-.nf
-\f[C]
-$ hledger print -O csv
-\f[R]
-.fi
+Some commands offer additional output formats, other than the usual
+plain text terminal output.
+Here are those commands and the formats currently supported:
 .PP
-or, by a file extension specified with \f[C]-o/--output-file\f[R]:
-.IP
-.nf
-\f[C]
-$ hledger balancesheet -o foo.html   # write HTML to foo.html
-\f[R]
-.fi
-.PP
-The \f[C]-O\f[R] option can be used to override the file extension if
-needed:
-.IP
-.nf
-\f[C]
-$ hledger balancesheet -o foo.txt -O html   # write HTML to foo.txt
-\f[R]
-.fi
-.PP
-Some notes about JSON output:
+.TS
+tab(@);
+l l l l l l.
+T{
+-
+T}@T{
+txt
+T}@T{
+csv
+T}@T{
+html
+T}@T{
+json
+T}@T{
+sql
+T}
+_
+T{
+aregister
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+T}@T{
+Y
+T}@T{
+T}
+T{
+balance
+T}@T{
+Y \f[I]1\f[R]
+T}@T{
+Y \f[I]1\f[R]
+T}@T{
+Y \f[I]1,2\f[R]
+T}@T{
+Y
+T}@T{
+T}
+T{
+balancesheet
+T}@T{
+Y \f[I]1\f[R]
+T}@T{
+Y \f[I]1\f[R]
+T}@T{
+Y \f[I]1\f[R]
+T}@T{
+Y
+T}@T{
+T}
+T{
+balancesheetequity
+T}@T{
+Y \f[I]1\f[R]
+T}@T{
+Y \f[I]1\f[R]
+T}@T{
+Y \f[I]1\f[R]
+T}@T{
+Y
+T}@T{
+T}
+T{
+cashflow
+T}@T{
+Y \f[I]1\f[R]
+T}@T{
+Y \f[I]1\f[R]
+T}@T{
+Y \f[I]1\f[R]
+T}@T{
+Y
+T}@T{
+T}
+T{
+incomestatement
+T}@T{
+Y \f[I]1\f[R]
+T}@T{
+Y \f[I]1\f[R]
+T}@T{
+Y \f[I]1\f[R]
+T}@T{
+Y
+T}@T{
+T}
+T{
+print
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+T}@T{
+Y
+T}@T{
+Y
+T}
+T{
+register
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+T}@T{
+Y
+T}@T{
+T}
+.TE
 .IP \[bu] 2
-This feature is marked experimental, and not yet much used; you should
-expect our JSON to evolve.
-Real-world feedback is welcome.
+\f[I]1 Also affected by the balance commands\[aq] \f[CI]--layout\f[I]
+option.\f[R]
+.IP \[bu] 2
+\f[I]2 \f[CI]balance\f[I] does not support html output without a report
+interval or with \f[CI]--budget\f[I].\f[R]
+.PP
+The output format is selected by the \f[C]-O/--output-format=FMT\f[R]
+option:
+.IP
+.nf
+\f[C]
+$ hledger print -O csv    # print CSV on stdout
+\f[R]
+.fi
+.PP
+or by the filename extension of an output file specified with the
+\f[C]-o/--output-file=FILE.FMT\f[R] option:
+.IP
+.nf
+\f[C]
+$ hledger balancesheet -o foo.csv    # write CSV to foo.csv
+\f[R]
+.fi
+.PP
+The \f[C]-O\f[R] option can be combined with \f[C]-o\f[R] to override
+the file extension, if needed:
+.IP
+.nf
+\f[C]
+$ hledger balancesheet -o foo.txt -O csv    # write CSV to foo.txt
+\f[R]
+.fi
+.SS HTML output
+.IP \[bu] 2
+HTML output can be styled by an optional \f[C]hledger.css\f[R] file in
+the same directory.
+.SS JSON output
+.IP \[bu] 2
+Not yet much used; real-world feedback is welcome.
 .IP \[bu] 2
 Our JSON is rather large and verbose, as it is quite a faithful
 representation of hledger\[aq]s internal data types.
@@ -2424,11 +2570,9 @@ your control.
 We hope this approach will not cause problems in practice; if you find
 otherwise, please let us know.
 (Cf #1195)
-.PP
-Notes about SQL output:
+.SS SQL output
 .IP \[bu] 2
-SQL output is also marked experimental, and much like JSON could use
-real-world feedback.
+Not yet much used; real-world feedback is welcome.
 .IP \[bu] 2
 SQL output is expected to work with sqlite, MySQL and PostgreSQL
 .IP \[bu] 2
@@ -3125,8 +3269,14 @@ the specified width
 .IP \[bu] 2
 \f[C]--layout=tall\f[R]: each commodity is displayed on a separate line
 .IP \[bu] 2
-\f[C]--layout=bare\f[R]: commodity symbols are displayed in a separate
-column, and amounts are displayed as bare numbers
+\f[C]--layout=bare\f[R]: amounts are displayed as bare numbers, with
+commodity symbols in a separate column
+.PP
+Examples:
+.IP \[bu] 2
+Wide layout.
+With many commodities, reports can be very wide:
+.RS 2
 .IP
 .nf
 \f[C]
@@ -3138,7 +3288,16 @@ Balance changes in 2012-01-01..2014-12-31:
  Assets:US:ETrade || 10.00 ITOT, 337.18 USD, 12.00 VEA, 106.00 VHT  70.00 GLD, 18.00 ITOT, -98.12 USD, 10.00 VEA, 18.00 VHT  -11.00 ITOT, 4881.44 USD, 14.00 VEA, 170.00 VHT  70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT 
 ------------------++--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                   || 10.00 ITOT, 337.18 USD, 12.00 VEA, 106.00 VHT  70.00 GLD, 18.00 ITOT, -98.12 USD, 10.00 VEA, 18.00 VHT  -11.00 ITOT, 4881.44 USD, 14.00 VEA, 170.00 VHT  70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT 
-
+\f[R]
+.fi
+.RE
+.IP \[bu] 2
+Limited wide layout.
+A width limit reduces the width, but some commodities will be hidden:
+.RS 2
+.IP
+.nf
+\f[C]
 $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=wide,32
 Balance changes in 2012-01-01..2014-12-31:
 
@@ -3147,7 +3306,17 @@ Balance changes in 2012-01-01..2014-12-31:
  Assets:US:ETrade || 10.00 ITOT, 337.18 USD, 2 more..  70.00 GLD, 18.00 ITOT, 3 more..  -11.00 ITOT, 3 more..  70.00 GLD, 17.00 ITOT, 3 more.. 
 ------------------++---------------------------------------------------------------------------------------------------------------------------
                   || 10.00 ITOT, 337.18 USD, 2 more..  70.00 GLD, 18.00 ITOT, 3 more..  -11.00 ITOT, 3 more..  70.00 GLD, 17.00 ITOT, 3 more.. 
-
+\f[R]
+.fi
+.RE
+.IP \[bu] 2
+Tall layout.
+Each commodity gets a new line (may be different in each column), and
+account names are repeated:
+.RS 2
+.IP
+.nf
+\f[C]
 $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=tall
 Balance changes in 2012-01-01..2014-12-31:
 
@@ -3164,7 +3333,17 @@ Balance changes in 2012-01-01..2014-12-31:
                   ||  12.00 VEA  -98.12 USD    14.00 VEA  5120.50 USD 
                   || 106.00 VHT   10.00 VEA   170.00 VHT    36.00 VEA 
                   ||              18.00 VHT                294.00 VHT 
-
+\f[R]
+.fi
+.RE
+.IP \[bu] 2
+Bare layout.
+Commodity symbols are kept in one column, each commodity gets its own
+report row, account names are repeated:
+.RS 2
+.IP
+.nf
+\f[C]
 $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=bare
 Balance changes in 2012-01-01..2014-12-31:
 
@@ -3183,18 +3362,14 @@ Balance changes in 2012-01-01..2014-12-31:
                   || VHT        106.00   18.00   170.00   294.00 
 \f[R]
 .fi
-.PP
-The option \f[C]--layout=bare\f[R] also affects CSV output, which is
-useful for producing data that is easier to consume, eg when making
-charts:
+.RE
+.IP \[bu] 2
+Bare layout also affects CSV output, which is useful for producing data
+that is easier to consume, eg when making charts:
+.RS 2
 .IP
 .nf
 \f[C]
-$ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -O csv
-\[dq]account\[dq],\[dq]balance\[dq]
-\[dq]Assets:US:ETrade\[dq],\[dq]70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT\[dq]
-\[dq]total\[dq],\[dq]70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT\[dq]
-
 $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -O csv --layout=bare
 \[dq]account\[dq],\[dq]commodity\[dq],\[dq]balance\[dq]
 \[dq]Assets:US:ETrade\[dq],\[dq]GLD\[dq],\[dq]70.00\[dq]
@@ -3209,6 +3384,62 @@ $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -O csv --layout=
 \[dq]total\[dq],\[dq]VHT\[dq],\[dq]294.00\[dq]
 \f[R]
 .fi
+.RE
+.PP
+Here is how \f[C]--layout\f[R] currently affects the various output
+formats:
+.PP
+.TS
+tab(@);
+l l l l l l.
+T{
+-
+T}@T{
+txt
+T}@T{
+csv
+T}@T{
+html
+T}@T{
+json
+T}@T{
+sql
+T}
+_
+T{
+wide
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+T}@T{
+T}
+T{
+tall
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+T}@T{
+T}
+T{
+bare
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+Y
+T}@T{
+T}@T{
+T}
+.TE
 .SS Sorting by amount
 .PP
 With \f[C]-S/--sort-amount\f[R], accounts with the largest (most
@@ -8454,6 +8685,9 @@ comma).
 Field names may not contain spaces.
 Spaces before/after field names are optional.
 .IP \[bu] 2
+Field names may contain \f[C]_\f[R] (underscore) or \f[C]-\f[R]
+(hyphen).
+.IP \[bu] 2
 If the CSV contains column headings, it\[aq]s a good idea to use these,
 suitably modified, as the basis for your field names (eg lower-cased,
 with underscores instead of spaces).
@@ -8530,10 +8764,13 @@ Assigning to \f[C]date\f[R] sets the transaction date.
 \f[C]commentN\f[R], where N is a number, sets the Nth posting\[aq]s
 comment.
 .PP
-Tips: - You can assign multi-line comments by writing literal
-\f[C]\[rs]n\f[R] in the code.
+Tips:
+.IP \[bu] 2
+You can assign multi-line comments by writing literal \f[C]\[rs]n\f[R]
+in the code.
 A comment starting with \f[C]\[rs]n\f[R] will begin on a new line.
-- Comments can contain tags, as usual.
+.IP \[bu] 2
+Comments can contain tags, as usual.
 .SS account field
 .PP
 Assigning to \f[C]accountN\f[R], where N is 1 to 99, sets the account
