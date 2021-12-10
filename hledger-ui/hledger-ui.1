@@ -521,19 +521,29 @@ Default: the full terminal width.
 .PP
 \f[B]LEDGER_FILE\f[R] The journal file path when not specified with
 \f[C]-f\f[R].
-Default: \f[C]\[ti]/.hledger.journal\f[R] (on windows, perhaps
-\f[C]C:/Users/USER/.hledger.journal\f[R]).
 .PP
-A typical value is \f[C]\[ti]/DIR/YYYY.journal\f[R], where DIR is a
+On unix computers, the default value is:
+\f[C]\[ti]/.hledger.journal\f[R].
+.PP
+A more typical value is something like
+\f[C]\[ti]/finance/YYYY.journal\f[R], where \f[C]\[ti]/finance\f[R] is a
 version-controlled finance directory and YYYY is the current year.
-Or \f[C]\[ti]/DIR/current.journal\f[R], where current.journal is a
+Or, \f[C]\[ti]/finance/current.journal\f[R], where current.journal is a
 symbolic link to YYYY.journal.
 .PP
-On Mac computers, you can set this and other environment variables in a
-more thorough way that also affects applications started from the GUI
-(say, an Emacs dock icon).
-Eg on MacOS Catalina I have a \f[C]\[ti]/.MacOSX/environment.plist\f[R]
-file containing
+The usual way to set this permanently is to add a command to one of your
+shell\[aq]s startup files (eg \f[C]\[ti]/.profile\f[R]):
+.IP
+.nf
+\f[C]
+export LEDGER_FILE=\[ti]/finance/current.journal\[ga]
+\f[R]
+.fi
+.PP
+On some Mac computers, there is a more thorough way to set environment
+variables, that will also affect applications started from the GUI (eg,
+Emacs started from a dock icon): In
+\f[C]\[ti]/.MacOSX/environment.plist\f[R], add an entry like:
 .IP
 .nf
 \f[C]
@@ -543,7 +553,22 @@ file containing
 \f[R]
 .fi
 .PP
-To see the effect you may need to \f[C]killall Dock\f[R], or reboot.
+For this to take effect you might need to \f[C]killall Dock\f[R], or
+reboot.
+.PP
+On Windows computers, the default value is probably
+\f[C]C:\[rs]Users\[rs]MyUserName\[rs].hledger.journal\f[R].
+You can change this by running a command like this in a powershell
+window:
+.IP
+.nf
+\f[C]
+> setx LEDGER_FILE \[dq]C:\[rs]Users\[rs]MyUserName\[rs]finance\[rs]2021.journal\[dq]
+\f[R]
+.fi
+.PP
+(Let us know if you need to be an Administrator, and if this persists
+across a reboot.)
 .SH FILES
 .PP
 Reads data from one or more files in hledger journal, timeclock,
