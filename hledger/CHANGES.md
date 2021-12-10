@@ -24,12 +24,15 @@ Improvements
   for better machine readability. 
   (#1771) (Stephen Morgan)
 
+# 1.24.1 2021-12-09
+
 Fixes
 
 - `balance --declared` is now filtered correctly by a `not:ACCT` query.
   (#1783)
 
 # 1.24 2021-12-01
+
 Features
 
 - balance commands provide more control over how multicommodity amounts
