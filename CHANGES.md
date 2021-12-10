@@ -9,7 +9,7 @@
 General changes in the hledger project (and notable all-package releases).
 For package-specific changes and minor releases, see the hledger package changelogs.
 
-# 46cc60779
+# a98e6125f
 
 Software
 
@@ -20,6 +20,10 @@ Software
 Docs
 
 Process
+
+- ci: more consistent workflow, branch, binary names
+
+- ci: linux-x64: try ghc 8.10.4 -> 9.0.1
 
 - make ghci[d]-ui uses older ghc 8.10 to avoid ghc 9.0-triggered failures.
 
