@@ -9,6 +9,12 @@ __      _____| |__
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
+# 1.24.1 2021-12-10
+
+Fixes
+
+- More reliable --version output, with commit date and without patch level.
+
 # 1.24 2021-12-01
 
 Improvements

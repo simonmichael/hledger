@@ -9,7 +9,7 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 1.24.1 2021-12-09
+# 1.24.1 2021-12-10
 
 Fixes
 
@@ -20,9 +20,9 @@ Fixes
 
 API changes
 
-- new type synonyms ProgramName, PackageVersion, VersionString
-- versionStringForProgname -> versionString with extra argument
-- versionStringFor -> versionStringWith with extra argument
+- new type synonyms ProgramName, PackageVersion, VersionString
+- versionStringForProgname -> versionString with extra argument
+- versionStringFor -> versionStringWith with extra argument
 
 # 1.24 2021-12-01
 

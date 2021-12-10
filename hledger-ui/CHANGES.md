@@ -9,7 +9,7 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 1.24.1 2021-12-09
+# 1.24.1 2021-12-10
 
 Fixes
 
