@@ -9,8 +9,18 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 1.24 2021-12-01
+# 43d935efd
 
+Improvements
+
+- hledger-lib now builds with GHC 9.2 and newer libs (#1774).
+
+- Added: filterQueryOrNotQuery.
+
+- Renamed: CommodityLayout to Layout.
+  (Stephen Morgan)
+
+# 1.24 2021-12-01
 Improvements
 
 - The Semigroup instance of PeriodicReportRow and PeriodicReport now

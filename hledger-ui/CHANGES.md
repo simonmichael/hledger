@@ -9,8 +9,17 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 1.24 2021-12-01
+# e532b7be4
 
+Fixes
+
+- Declared accounts are now filtered correctly by a not:ACCT query.
+  (#1783)
+
+- An extra "root" account is no longer shown. (#1782)
+
+
+# 1.24 2021-12-01
 Features
 
 - hledger-ui can now be controlled with mouse or touchpad.

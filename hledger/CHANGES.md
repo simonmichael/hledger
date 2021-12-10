@@ -9,8 +9,27 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 1.24 2021-12-01
+# e532b7be4
 
+Features
+
+- Normalised, easy-to-process "tidy" CSV data can now be generated with `--layout tidy -O csv`.
+  In tidy data, every variable is a column and each row represents a single data point 
+  (cf <https://vita.had.co.nz/papers/tidy-data.html>).
+  (#1768, #1773, #1775) (Stephen Morgan)
+
+Improvements
+
+- CSV output now always disables digit group marks (eg, thousands separators),
+  for better machine readability. 
+  (#1771) (Stephen Morgan)
+
+Fixes
+
+- `balance --declared` is now filtered correctly by a `not:ACCT` query.
+  (#1783)
+
+# 1.24 2021-12-01
 Features
 
 - balance commands provide more control over how multicommodity amounts

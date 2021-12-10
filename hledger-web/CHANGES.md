@@ -9,8 +9,9 @@ __      _____| |__
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 1.24 2021-12-01
+# e532b7be4
 
+# 1.24 2021-12-01
 Improvements
 
 - Allow megaparsec 9.2

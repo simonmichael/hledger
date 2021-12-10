@@ -9,8 +9,23 @@
 General changes in the hledger project (and notable all-package releases).
 For package-specific changes and minor releases, see the hledger package changelogs.
 
-# 1.24 2021-12-01
+# 46cc60779
 
+Software
+
+- A new addon script: bin/hledger-number
+
+- A new invoice making script: examples/invoicing/invoice-script/invoice
+
+Docs
+
+Process
+
+- The `linux-static-x64` CI binary now has correct --version output.
+
+- make ghci[d]-ui uses older ghc 8.10 to avoid ghc 9.0-triggered failures.
+
+# 1.24 2021-12-01
 Software
 
 - bin/hledger-check-fancyassertions.hs: fix ugly assertion parse errors. 
