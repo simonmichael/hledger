@@ -1,10 +1,10 @@
-# Runs on push of a [0-9]* or r[0-9]* tag (to any branch ?)
+# Runs on push of a [0-9]* or r[0-9]* tag (to any branch ?) 
 
 # Creates a draft github release.
 # See https://github.com/actions/create-release, still pretty rough as of 20200609.
 # see also: https://github.com/marketplace/actions/tag-release-on-push-action
 
-name: release
+name: create release
 
 # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#onpushpull_requestbranchestags
 # also: "The action does not seem to work for tags created before the workflow."

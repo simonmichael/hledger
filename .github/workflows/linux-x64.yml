@@ -1,4 +1,4 @@
-name: build linux static x64
+name: linux-x64 CI binaries
 
 on:
   push:
