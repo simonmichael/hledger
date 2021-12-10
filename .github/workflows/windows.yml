@@ -3,7 +3,7 @@
 # Builds all modules optimised on windows,
 # and uploads a binaries artifact.
 
-name: windows CI
+name: windows CI binaries
 
 on:
   schedule:

@@ -11,7 +11,7 @@
 # This is the "master" workflow on which the others are based, 
 # with the most detailed notes.
 
-name: pull CI
+name: pull request CI
 
 on:
   # Scheduled workflows run on the latest commit on the default or base branch. (master)

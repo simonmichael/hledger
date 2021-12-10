@@ -4,7 +4,7 @@
 # using GHC 8.6,
 # and uploads a binaries artifact.
 
-name: mac CI
+name: mac CI binaries
 
 on:
   schedule:

@@ -1,4 +1,4 @@
-name: build linux static arm32v7
+name: linux-arm32v7 CI binaries
 
 on:
   push:
