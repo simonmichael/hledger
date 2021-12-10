@@ -18,18 +18,19 @@ import Hledger.UI.Theme (themes, themeNames)
 
 -- cf Hledger.Cli.Version
 
-packageversion :: String
+packageversion :: PackageVersion
+packageversion =
 #ifdef VERSION
-packageversion = VERSION
+  VERSION
 #else
-packageversion = ""
+  ""
 #endif
 
-progname :: String
+progname :: ProgramName
 progname = "hledger-ui"
 
-prognameandversion :: String
-prognameandversion = versionStringForProgname progname
+prognameandversion :: VersionString
+prognameandversion = versionString progname packageversion
 
 uiflags = [
   -- flagNone ["debug-ui"] (setboolopt "rules-file") "run with no terminal output, showing console"
