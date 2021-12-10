@@ -24,12 +24,14 @@ Improvements
   for better machine readability. 
   (#1771) (Stephen Morgan)
 
-# 1.24.1 2021-12-09
+# 1.24.1 2021-12-10
 
 Fixes
 
 - `balance --declared` is now filtered correctly by a `not:ACCT` query.
   (#1783)
+
+- More reliable --version output, with commit date and without patch level.
 
 # 1.24 2021-12-01
 

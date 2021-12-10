@@ -23,7 +23,7 @@ Process
 
 - make ghci[d]-ui uses older ghc 8.10 to avoid ghc 9.0-triggered failures.
 
-# 1.24.1 2021-12-09
+# 1.24.1 2021-12-10
 
 Docs
 
@@ -34,10 +34,6 @@ Docs
 - Note that hyphenated field names are allowed in CSV rules.
 
 - Fix some table layouts in non-HTML docs.
-
-Process
-
-- The `linux-static-x64` CI binary now has correct --version output.
 
 # 1.24 2021-12-01
 

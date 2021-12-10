@@ -11,6 +11,12 @@ See also the hledger changelog.
 
 # e532b7be4
 
+# 1.24.1 2021-12-10
+
+Fixes
+
+- More reliable --version output, with commit date and without patch level.
+
 # 1.24 2021-12-01
 
 Improvements

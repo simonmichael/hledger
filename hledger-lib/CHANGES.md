@@ -18,7 +18,7 @@ Improvements
 - Renamed: CommodityLayout to Layout.
   (Stephen Morgan)
 
-# 1.24.1 2021-12-09
+# 1.24.1 2021-12-10
 
 Improvements
 
