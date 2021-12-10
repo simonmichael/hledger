@@ -9,6 +9,22 @@
 General changes in the hledger project (and notable all-package releases).
 For package-specific changes and minor releases, see the hledger package changelogs.
 
+# 1.24.1 2021-12-09
+
+Docs
+
+- More platform notes for setting LEDGER_FILE.
+
+- Clarify which commands support which output formats and data layouts.
+
+- Note that hyphenated field names are allowed in CSV rules.
+
+- Fix some table layouts in non-HTML docs.
+
+Process
+
+- The `linux-static-x64` CI binary now has correct --version output.
+
 # 1.24 2021-12-01
 
 Software

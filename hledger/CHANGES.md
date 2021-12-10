@@ -9,6 +9,13 @@
 User-visible changes in the hledger command line tool and library.
 
 
+# 1.24.1 2021-12-09
+
+Fixes
+
+- `balance --declared` is now filtered correctly by a `not:ACCT` query.
+  (#1783)
+
 # 1.24 2021-12-01
 
 Features
