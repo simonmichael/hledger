@@ -39,17 +39,17 @@ jobs:
     - name: Extract and strip binaries
       run: |
         mkdir /tmp/hledger
-        cp dist-newstyle/build/x86_64-linux/ghc-*/hledger-web-*/x/hledger-web/build/hledger-web/hledger-web /tmp/hledger/hledger-web-linux-static-x64
-        cp dist-newstyle/build/x86_64-linux/ghc-*/hledger-ui-*/x/hledger-ui/build/hledger-ui/hledger-ui /tmp/hledger/hledger-ui-linux-static-x64
-        cp dist-newstyle/build/x86_64-linux/ghc-*/hledger-*/x/hledger/build/hledger/hledger /tmp/hledger/hledger-linux-static-x64
-        strip /tmp/hledger/hledger-web-linux-static-x64
-        strip /tmp/hledger/hledger-ui-linux-static-x64
-        strip /tmp/hledger/hledger-linux-static-x64
+        cp dist-newstyle/build/x86_64-linux/ghc-*/hledger-web-*/x/hledger-web/build/hledger-web/hledger-web /tmp/hledger/hledger-web-linux-x64
+        cp dist-newstyle/build/x86_64-linux/ghc-*/hledger-ui-*/x/hledger-ui/build/hledger-ui/hledger-ui /tmp/hledger/hledger-ui-linux-x64
+        cp dist-newstyle/build/x86_64-linux/ghc-*/hledger-*/x/hledger/build/hledger/hledger /tmp/hledger/hledger-linux-x64
+        strip /tmp/hledger/hledger-web-linux-x64
+        strip /tmp/hledger/hledger-ui-linux-x64
+        strip /tmp/hledger/hledger-linux-x64
 
     - name: Upload binaries
       uses: actions/upload-artifact@v2
       with:
-        name: hledger-linux-static-x64
+        name: hledger-linux-x64
         path: /tmp/hledger
 
     - name: Release
@@ -57,8 +57,8 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: |
-          /tmp/hledger/hledger-linux-static-x64
-          /tmp/hledger/hledger-web-linux-static-x64
-          /tmp/hledger/hledger-ui-linux-static-x64
+          /tmp/hledger/hledger-linux-x64
+          /tmp/hledger/hledger-web-linux-x64
+          /tmp/hledger/hledger-ui-linux-x64
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
