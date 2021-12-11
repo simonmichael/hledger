@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -e
+
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [[ $BRANCH =~ ^[0-9.]*-(branch|release) ]]; then
+    PACKAGES=$*
+    printf "\nReady to publish on hackage.haskell.org:\n\n"
+    for P in $PACKAGES; do
+        printf "%s %s\n" "$P" "$(grep ^version: "$P"/"$P".cabal | sed -E 's/version: +//')"
+    done
+    echo
+    read -rp "Ok ? Press enter to confirm, ctrl-c to abort: "
+    for P in $PACKAGES; do 
+        stack upload "$P"
+    done
+else
+    printf "%s: in $BRANCH branch, please upload from the latest release branch.\n" "$(basename "$0")"
+    printf "Perhaps: git switch %s\n" $(git branch | grep -E '[0-9.]+-(branch|release)' | tail -1)
+fi

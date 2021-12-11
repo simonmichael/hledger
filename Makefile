@@ -913,8 +913,8 @@ tag-project: $(call def-help,tag-project, make a git release tag for the project
 # 	for p in $(PACKAGES); do cabal upload $$p/dist/$$p-$(VERSION).tar.gz -v2 --check; done
 
 hackageupload: \
-	$(call def-help,hackageupload, upload all packages to hackage	)
-	for p in $(PACKAGES); do stack upload $$p; done
+	$(call def-help,hackageupload, upload all packages to hackage	from a release branch)
+	tools/hackageupload $(PACKAGES)
 
 # showreleasestats stats: \
 # 	showreleasedays \
