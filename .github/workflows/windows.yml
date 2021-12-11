@@ -41,9 +41,9 @@ jobs:
       run: |
         RANGE=${BEFORE:-origin/master}..${GITHUB_HEAD_REF:+origin/$GITHUB_HEAD_REF}
         git rev-list --quiet $RANGE \
-          && bin/commitlint  $RANGE \
+          && tools/commitlint  $RANGE \
           || ( echo "could not identify commits, not checking them" )
-      #   || ( echo "could not identify commits, checking last $NUM instead:"; bin/commitlint -$NUM )
+      #   || ( echo "could not identify commits, checking last $NUM instead:"; tools/commitlint -$NUM )
 
     - name: Skip remaining CI steps if latest commit message begins with ;
       shell: bash

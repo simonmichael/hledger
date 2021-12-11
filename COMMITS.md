@@ -21,7 +21,7 @@ Here they are in brief:
 
 ## When committing / pushing / merging:
 
-- run `bin/commitlint` before push, to check recent commits
+- run `tools/commitlintnt` before push, to check recent commits
 - or, run it automatically before each commit (`make installcommithook` to configure your local repo)
 - it also runs in CI on github for pull requests, etc.
 

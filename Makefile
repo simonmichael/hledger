@@ -1055,8 +1055,8 @@ list-commits: $(call def-help,list-commits, list all commits chronologically and
 ###############################################################################
 $(call def-help-subheading,MISCELLANEOUS:)
 
-installcommithook: $(call def-help,installcommithook, symlink bin/commitlint as .git/hooks/commit-msg)
-	ln -s ../../bin/commitlint .git/hooks/commit-msg
+installcommithook: $(call def-help,installcommithook, symlink tools/commitlint as .git/hooks/commit-msg)
+	ln -s ../../tools/commitlint .git/hooks/commit-msg
 
 watch-%: $(call def-help,watch-RULE, run make RULE repeatedly when any committed file changes)
 	 @git ls-files | entr -r make $*
