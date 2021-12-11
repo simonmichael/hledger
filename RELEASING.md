@@ -18,8 +18,8 @@ Starting over, again:
   Chunk and separate them as far as possible:
   - **Software** - selecting changes, packages, release dates; coordinating contributions; ensuring release readiness
   - **Branch Management** - coordinating main and release branch, local and remote repos, CI branches
-  - **Version Bumping** - choosing and applying new version numbers and related things like tags, github releases, urls, everywhere needed
-  - **Docs** - command help, manuals, changelogs, release notes, github release notes, install page, announcements, process docs
+  - **Version Bumping** - choosing and applying new version numbers and related things like tags, github releases, urls, ghc and dep versions, stackage resolvers, everywhere needed
+  - **Docs** - command help, manuals, changelogs, release notes, github release notes, install page, install scripts, announcements, process docs
   - **Testing** - local testing, CI testing, extra release-specific testing
   - **Artifacts** - generating binaries, zip files, github releases etc.
   - **Publishing** - uploading, pushing, making visible, finalising
