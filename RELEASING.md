@@ -28,23 +28,24 @@ Starting over, again:
 
 ## Glossary
 
-|                         |                                                                                                                                                            |
-|-------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Full release*          | A release of all the core packages (hledger-lib, hledger, hledger-ui, hledger-web)                                                                         |
-| *Partial release*       | A release of only some of the core packages                                                                                                                |
-| *Mixed release*         | A release where some of the core packages have different versions (due to previous partial release)                                                        |
-| *Test release*          | A release that is published on github, but not hackage/stackage. These test the release process (and secondly, generate fresh binaries for early adopters) |
-|                         |                                                                                                                                                            |
-| *OLD*                   | Previous release version, eg `1.22` or `1.22.1`                                                                                                            |
-| *NEW*                   | New release version, eg `1.22.2` or `1.23`                                                                                                                 |
-| *MAJORVER*              | Just the major version part, eg `1.22` or `1.23`                                                                                                           |
-| *hledger repo*          | The `hledger` git repository, containing the core hledger tools and docs. Official public copy: github.com/simonmichael/hledger                            |
-| *"master"*              | The `master` branch in the hledger repo; the main line of hledger development                                                                              |
-| *release&nbsp;(branch)* | Branches named `MAJORVERSION-branch` in the hledger repo, eg `1.24-branch`. Releases are made from these.                                                  |
-|                         |                                                                                                                                                            |
-| *site repo*             | The `hledger_website` git repository, containing the hledger.org website and additional docs. Usually checked out under the hledger repo as `site/`.       |
-| *"site"*                | The `master` branch in the site repo, used to generate <https://hledger.org>.                                                                              |
-|                         |                                                                                                                                                            |
+|                       |                                                                                                                                                            |
+|-----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Full release*        | A release of all the core packages (hledger-lib, hledger, hledger-ui, hledger-web)                                                                         |
+| *Partial release*     | A release of only some of the core packages                                                                                                                |
+| *Mixed release*       | A release where some of the core packages have different versions (due to previous partial release)                                                        |
+| *Test release*        | A release that is published on github, but not hackage/stackage. These test the release process (and secondly, generate fresh binaries for early adopters) |
+|                       |                                                                                                                                                            |
+| *hledger repo*        | The `hledger` git repository, containing the core hledger tools and docs. Official public copy: github.com/simonmichael/hledger                            |
+| *"master"*            | The `master` branch in the hledger repo; the main line of hledger development                                                                              |
+| *release&nbsp;branch* | Branches named `MAJORVERSION-branch` in the hledger repo, eg `1.24-branch`. Releases are made from these.                                                  |
+|                       |                                                                                                                                                            |
+| *site repo*           | The `hledger_website` git repository, containing the hledger.org website and additional docs. Usually checked out under the hledger repo as `site/`.       |
+| *"site"*              | The `master` branch in the site repo, used to generate <https://hledger.org>.                                                                              |
+|                       |                                                                                                                                                            |
+| *version*             | the 2 or 3-part dotted version number that names a hledger release: MA.JOR or MA.JOR.MINOR.                                                                |
+| *MAJORVER*            | Just the MA.JOR part, eg 1.24                                                                                                                              |
+| *OLD*, *NEW*          | Previous and new pending release versions. Examples: 1.24 -> 1.24.1, 1.24.1 -> 1.24.2, 1.24.2 -> 1.25.                                                     |
+|                       |                                                                                                                                                            |
 
 ## Some next goals
 
