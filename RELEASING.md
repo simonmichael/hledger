@@ -6,26 +6,6 @@
 
 Tips for hledger release managers and maintainers.
 
-## 2021-12 
-
-Starting over, again:
-
-- All the stuff below this section needs review and cleanup already; consider it old.
-- Don't try to write down, let alone automate, every step of releasing; it's too much and too unstable.
-- Practice releasing as often as possible.
-- Keep making things a little better each time through. Simpler, more reliable, easier, faster, cheaper, higher quality.
-- The different aspects of releasing have complex interdependencies and sequencing constraints.
-  Chunk and separate them as far as possible:
-  - **Software** - selecting changes, packages, release dates; coordinating contributions; ensuring release readiness
-  - **Branch Management** - coordinating main and release branch, local and remote repos, CI branches
-  - **Version Bumping** - choosing and applying new version numbers and related things like tags, github releases, urls, ghc and dep versions, stackage resolvers, everywhere needed
-  - **Docs** - command help, manuals, changelogs, release notes, github release notes, install page, install scripts, announcements, process docs
-  - **Testing** - local testing, CI testing, extra release-specific testing
-  - **Artifacts** - generating binaries, zip files, github releases etc.
-  - **Publishing** - uploading, pushing, making visible, finalising
-  - **Announcing** - various announcement stages and channels
-- All releases must now be made from a release branch, for uniformity and to avoid mishaps like uploading unreleased code to hackage.
-
 ## Glossary
 
 |                       |                                                                                                                                                            |
@@ -47,12 +27,33 @@ Starting over, again:
 | *OLD*, *NEW*          | Previous and new pending release versions. Examples: 1.24 -> 1.24.1, 1.24.1 -> 1.24.2, 1.24.2 -> 1.25.                                                     |
 |                       |                                                                                                                                                            |
 
+## 2021-12 
+
+Starting over, again:
+
+- All the stuff below the horizontal rule needs review and cleanup already; consider it old.
+- Don't try to write down, let alone automate, every step of releasing; it's too much and too unstable.
+- Practice releasing as often as possible.
+- Keep making things a little better each time through. Simpler, more reliable, easier, faster, cheaper, higher quality.
+- The different aspects of releasing have complex interdependencies and sequencing constraints.
+  Chunk and separate them as far as possible:
+  - **Software** - selecting changes, packages, release dates; coordinating contributions; ensuring release readiness
+  - **Branch Management** - coordinating main and release branch, local and remote repos, CI branches
+  - **Version Bumping** - choosing and applying new version numbers and related things like tags, github releases, urls, ghc and dep versions, stackage resolvers, everywhere needed
+  - **Docs** - command help, manuals, changelogs, release notes, github release notes, install page, install scripts, announcements, process docs
+  - **Testing** - local testing, CI testing, extra release-specific testing
+  - **Artifacts** - generating binaries, zip files, github releases etc.
+  - **Publishing** - uploading, pushing, making visible, finalising
+  - **Announcing** - various announcement stages and channels
+- All releases must now be made from a release branch, for uniformity and to avoid mishaps like uploading unreleased code to hackage.
+
 ## Some next goals
 
 - Update/consolidate release process docs.
 - Develop a process for making test releases at any time.
 - Establish routine weekly test releases.
 
+----
 
 ## Review/update/consolidate:
 
