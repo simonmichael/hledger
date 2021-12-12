@@ -24,22 +24,36 @@ Starting over, again:
   - **Artifacts** - generating binaries, zip files, github releases etc.
   - **Publishing** - uploading, pushing, making visible, finalising
   - **Announcing** - various announcement stages and channels
+- All releases must now be made from a release branch, for uniformity and to avoid mishaps like uploading unreleased code to hackage.
 
-  
+## Glossary
 
-## Review/consolidate:
+|                         |                                                                                                                                                            |
+|-------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Full release*          | A release of all the core packages (hledger-lib, hledger, hledger-ui, hledger-web)                                                                         |
+| *Partial release*       | A release of only some of the core packages                                                                                                                |
+| *Mixed release*         | A release where some of the core packages have different versions (due to previous partial release)                                                        |
+| *Test release*          | A release that is published on github, but not hackage/stackage. These test the release process (and secondly, generate fresh binaries for early adopters) |
+|                         |                                                                                                                                                            |
+| *OLD*                   | Previous release version, eg `1.22` or `1.22.1`                                                                                                            |
+| *NEW*                   | New release version, eg `1.22.2` or `1.23`                                                                                                                 |
+| *MAJORVER*              | Just the major version part, eg `1.22` or `1.23`                                                                                                           |
+| *hledger repo*          | The `hledger` git repository, containing the core hledger tools and docs. Official public copy: github.com/simonmichael/hledger                            |
+| *"master"*              | The `master` branch in the hledger repo; the main line of hledger development                                                                              |
+| *release&nbsp;(branch)* | Branches named `MAJORVERSION-branch` in the hledger repo, eg `1.24-branch`. Releases are made from these.                                                  |
+|                         |                                                                                                                                                            |
+| *site repo*             | The `hledger_website` git repository, containing the hledger.org website and additional docs. Usually checked out under the hledger repo as `site/`.       |
+| *"site"*                | The `master` branch in the site repo, used to generate <https://hledger.org>.                                                                              |
+|                         |                                                                                                                                                            |
 
-## Terminology
+## Some next goals
 
-|                         |                                                                                       |
-|-------------------------|---------------------------------------------------------------------------------------|
-| *OLD*                   | previous release version, eg `1.22` or `1.22.1`                                       |
-| *NEW*                   | new release version, eg `1.22.2` or `1.23`                                            |
-| *MAJORVER*              | just the major version part, eg `1.22` or `1.23`                                      |
-| *master (branch)*       | `master` branch in the `hledger` repo, ie the main line of development                |
-| *release&nbsp;(branch)* | a release branch in the `hledger` repo, eg `1.22-branch`                              |
-| *site*                  | `master` branch in the `hledger_website` repo. Usually checked out as `hledger/site`. |
-|                         |                                                                                       |
+- Update/consolidate release process docs.
+- Develop a process for making test releases at any time.
+- Establish routine weekly test releases.
+
+
+## Review/update/consolidate:
 
 ## Phases of release cycle:
 
