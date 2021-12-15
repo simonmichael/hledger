@@ -404,8 +404,8 @@ accountNamePostingType a
 
 accountNameWithoutPostingType :: AccountName -> AccountName
 accountNameWithoutPostingType a = case accountNamePostingType a of
-                                    BalancedVirtualPosting -> T.init $ T.tail a
-                                    VirtualPosting -> T.init $ T.tail a
+                                    BalancedVirtualPosting -> textUnbracket a
+                                    VirtualPosting -> textUnbracket a
                                     RegularPosting -> a
 
 accountNameWithPostingType :: PostingType -> AccountName -> AccountName

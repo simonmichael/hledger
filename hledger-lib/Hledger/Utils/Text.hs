@@ -169,15 +169,17 @@ stripquotes s = if isSingleQuoted s || isDoubleQuoted s then T.init $ T.tail s e
 
 isSingleQuoted :: Text -> Bool
 isSingleQuoted s =
-  T.length (T.take 2 s) == 2 && T.head s == '\'' && T.last s == '\''
+  T.length s >= 2 && T.head s == '\'' && T.last s == '\''
 
 isDoubleQuoted :: Text -> Bool
 isDoubleQuoted s =
-  T.length (T.take 2 s) == 2 && T.head s == '"' && T.last s == '"'
+  T.length s >= 2 && T.head s == '"' && T.last s == '"'
 
 textUnbracket :: Text -> Text
 textUnbracket s
-    | (T.head s == '[' && T.last s == ']') || (T.head s == '(' && T.last s == ')') = T.init $ T.tail s
+    | T.null s = s
+    | T.head s == '[' && T.last s == ']' = T.init $ T.tail s
+    | T.head s == '(' && T.last s == ')' = T.init $ T.tail s
     | otherwise = s
 
 -- | Join several multi-line strings as side-by-side rectangular strings of the same height, top-padded.
