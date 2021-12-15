@@ -892,7 +892,7 @@ generally the resulting query is their intersection.
 
 ## Queries and account aliases
 
-When account names are [rewritten](rewriting-accounts) with `--alias` or `alias`,
+When account names are [rewritten](#rewriting-accounts) with `--alias` or `alias`,
 `acct:` will match either the old or the new account name.
 
 ## Queries and valuation
@@ -904,7 +904,7 @@ not the new ones
 
 ## Querying with account aliases
 
-When account names are [rewritten](rewriting-accounts) with `--alias` or `alias`,
+When account names are [rewritten](#rewriting-accounts) with `--alias` or `alias`,
 note that `acct:` will match either the old or the new account name.
 
 ## Querying with cost or value
