@@ -18,35 +18,37 @@
 
 cradle:
   stack:
-    - path: "hledger-lib/"
-      component: "hledger-lib:lib"
-    - path: "hledger-lib/test/doctests.hs"
-      component: "hledger-lib:test:doctest"
-    - path: "hledger-lib/test/unittest.hs"
-      component: "hledger-lib:test:unittest"
+    stackYaml: stack8.10.yaml  # ghc 9.0 doesn't have arm binaries on mac yet
+    components:
+      - path: "hledger-lib/"
+        component: "hledger-lib:lib"
+      - path: "hledger-lib/test/doctests.hs"
+        component: "hledger-lib:test:doctest"
+      - path: "hledger-lib/test/unittest.hs"
+        component: "hledger-lib:test:unittest"
 
-    - path: "hledger/"
-      component: "hledger:lib"
-    - path: "hledger/app/"
-      component: "hledger:exe:hledger"
-    - path: "hledger/test/unittest.hs"
-      component: "hledger:test:unittest"
-    - path: "hledger/bench/"
-      component: "hledger:bench:bench"
+      - path: "hledger/"
+        component: "hledger:lib"
+      - path: "hledger/app/"
+        component: "hledger:exe:hledger"
+      - path: "hledger/test/unittest.hs"
+        component: "hledger:test:unittest"
+      - path: "hledger/bench/"
+        component: "hledger:bench:bench"
 
-    - path: "hledger-ui/"
-      component: "hledger-ui:exe:hledger-ui"
+      - path: "hledger-ui/"
+        component: "hledger-ui:exe:hledger-ui"
 
-    - path: "hledger-web/"
-      component: "hledger-web:lib"
-    - path: "hledger-web/app/"
-      component: "hledger-web:exe:hledger-web"
-    - path: "hledger-web/test/"
-      component: "hledger-web:test:test"
+      - path: "hledger-web/"
+        component: "hledger-web:lib"
+      - path: "hledger-web/app/"
+        component: "hledger-web:exe:hledger-web"
+      - path: "hledger-web/test/"
+        component: "hledger-web:test:test"
 
-    - path: "bin/"
-      component: "hledger:lib"
+      - path: "bin/"
+        component: "hledger:lib"
 
-    # silences hls error for Shake.hs, but I think also ignores actual errors
-    - path: "Shake.hs"
-      component: "hledger:lib"
+      # silences hls error for Shake.hs, but I think also ignores actual errors
+      - path: "Shake.hs"
+        component: "hledger:lib"
