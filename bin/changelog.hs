@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
-{- stack script --resolver nightly-2021-11-19
+{- stack script --resolver nightly-2021-12-16
     --package data-default
     --package extra
     --package hledger-lib

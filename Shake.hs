@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
-{- stack script --resolver nightly-2021-07-16 --compile
+{- stack script --resolver nightly-2021-12-16 --compile
    --package base-prelude
    --package directory
    --package extra
