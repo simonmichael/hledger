@@ -86,6 +86,8 @@ GHCI=ghci #-package ghc-datasize #-package ghc-heap-view
 # can override this with an env var, eg:
 # STACK="stack --stack-yaml=stack8.10.yaml" make functest
 STACK ?= stack
+# use older GHC till there's newer arm binaries on mac
+STACK=stack --stack-yaml=stack8.10.yaml
 
 # if using an unreleased stack with a newer hpack than the one mentioned in */*.cabal,
 # it will give warnings. To silence these, put the old hpack-X.Y in $PATH and uncomment:
@@ -373,7 +375,7 @@ ghcid-shake: $(call def-help,ghcid-shake, start ghcid autobuilder on Shake.hs)
 
 # run default GHCI
 STACKGHCI=$(STACK)
-# run latest GHCI for modern features
+# use latest GHCI for modern features
 #STACKGHCI=stack --stack-yaml=stack9.2.yaml
 
 # multi-package GHCI prompts
