@@ -1494,7 +1494,7 @@ $ hledger balancesheet -o foo.txt -O csv    # write CSV to foo.txt
 - Our JSON is rather large and verbose, as it is quite a faithful
   representation of hledger's internal data types. To understand the
   JSON, read the Haskell type definitions, which are mostly in
-  https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Data/Types.hs.
+  <https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Data/Types.hs>.
 
 <!--
 - The JSON output from hledger commands is essentially the same as the
@@ -4032,7 +4032,7 @@ REGEX is a case-insensitive [regular expression] that tries to match anywhere wi
 It is a POSIX ERE (extended regular expression) 
 that also supports GNU word boundaries (`\b`, `\B`, `\<`, `\>`),
 and nothing else.
-If you have trouble, be sure to check our doc: https://hledger.org/hledger.html#regular-expressions
+If you have trouble, be sure to check our doc: <https://hledger.org/hledger.html#regular-expressions>
 
 Important note: the record that is matched is not the original record, but a synthetic one,
 with any enclosing double quotes (but not enclosing whitespace) removed, and always comma-separated
