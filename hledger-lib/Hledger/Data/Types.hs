@@ -84,10 +84,9 @@ data SmartDate
   = SmartAssumeStart Year (Maybe (Month, Maybe MonthDay))
   | SmartFromReference (Maybe Month) MonthDay
   | SmartMonth Month
-  | SmartRelative SmartSequence SmartInterval
+  | SmartRelative Integer SmartInterval
   deriving (Show)
 
-data SmartSequence = Last | This | Next deriving (Show)
 data SmartInterval = Day | Week | Month | Quarter | Year deriving (Show)
 
 data WhichDate = PrimaryDate | SecondaryDate deriving (Eq,Show)

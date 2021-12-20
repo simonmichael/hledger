@@ -263,7 +263,7 @@ checkPeriodicTransactionStartDate i s periodexpr =
     _                    -> Nothing
     where
       checkStart d x =
-        let firstDate = fixSmartDate d $ SmartRelative This x
+        let firstDate = fixSmartDate d $ SmartRelative 0 x
         in
          if d == firstDate
          then Nothing
