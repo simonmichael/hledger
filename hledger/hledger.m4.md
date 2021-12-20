@@ -461,6 +461,9 @@ Examples:
 | `october, oct`                               | start of month in current year                                                        |
 | `yesterday, today, tomorrow`                 | -1, 0, 1 days from today                                                              |
 | `last/this/next day/week/month/quarter/year` | -1, 0, 1 periods from the current period                                              |
+| `in n days/weeks/months/quarters/years`      | n periods from the current period                                                     |
+| `n days/weeks/months/quarters/years ahead`   | n periods from the current period                                                     |
+| `n days/weeks/months/quarters/years ago`     | -n periods from the current period                                                    |
 | `20181201`                                   | 8 digit YYYYMMDD with valid year month and day                                        |
 | `201812`                                     | 6 digit YYYYMM with valid year and month                                              |
 

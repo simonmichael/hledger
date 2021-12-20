@@ -12,7 +12,8 @@ Date parsing and utilities for hledger.
 For date and time values, we use the standard Day and UTCTime types.
 
 A 'SmartDate' is a date which may be partially-specified or relative.
-Eg 2008\/12\/31, but also 2008\/12, 12\/31, tomorrow, last week, next year.
+Eg 2008\/12\/31, but also 2008\/12, 12\/31, tomorrow, last week, next year,
+in 5 days, in -3 quarters.
 We represent these as a triple of strings like (\"2008\",\"12\",\"\"),
 (\"\",\"\",\"tomorrow\"), (\"\",\"last\",\"week\").
 
@@ -104,7 +105,7 @@ import Data.Time.LocalTime (getZonedTime, localDay, zonedTimeToLocalTime)
 import Safe (headMay, lastMay, maximumMay, minimumMay)
 import Text.Megaparsec
 import Text.Megaparsec.Char (char, char', digitChar, string, string')
-import Text.Megaparsec.Char.Lexer (decimal)
+import Text.Megaparsec.Char.Lexer (decimal, signed)
 import Text.Megaparsec.Custom (customErrorBundlePretty)
 import Text.Printf (printf)
 
@@ -396,21 +397,11 @@ spanFromSmartDate refdate sdate = DateSpan (Just b) (Just e)
       (ry,rm,_) = toGregorian refdate
       (b,e) = span sdate
       span :: SmartDate -> (Day,Day)
-      span (SmartRelative This Day)                 = (refdate, nextday refdate)
-      span (SmartRelative Last Day)                 = (prevday refdate, refdate)
-      span (SmartRelative Next Day)                 = (nextday refdate, addDays 2 refdate)
-      span (SmartRelative This Week)                = (thisweek refdate, nextweek refdate)
-      span (SmartRelative Last Week)                = (prevweek refdate, thisweek refdate)
-      span (SmartRelative Next Week)                = (nextweek refdate, startofweek $ addDays 14 refdate)
-      span (SmartRelative This Month)               = (thismonth refdate, nextmonth refdate)
-      span (SmartRelative Last Month)               = (prevmonth refdate, thismonth refdate)
-      span (SmartRelative Next Month)               = (nextmonth refdate, startofmonth $ addGregorianMonthsClip 2 refdate)
-      span (SmartRelative This Quarter)             = (thisquarter refdate, nextquarter refdate)
-      span (SmartRelative Last Quarter)             = (prevquarter refdate, thisquarter refdate)
-      span (SmartRelative Next Quarter)             = (nextquarter refdate, startofquarter $ addGregorianMonthsClip 6 refdate)
-      span (SmartRelative This Year)                = (thisyear refdate, nextyear refdate)
-      span (SmartRelative Last Year)                = (prevyear refdate, thisyear refdate)
-      span (SmartRelative Next Year)                = (nextyear refdate, startofyear $ addGregorianYearsClip 2 refdate)
+      span (SmartRelative n Day)                    = (addDays n refdate, addDays (n+1) refdate)
+      span (SmartRelative n Week)                   = let d = thisweek refdate in (addDays (7*n) d, addDays (7*n+7) d)
+      span (SmartRelative n Month)                  = let d = thismonth refdate in (addGregorianMonthsClip n d, addGregorianMonthsClip (n+1) d)
+      span (SmartRelative n Quarter)                = let d = thisquarter refdate in (addGregorianMonthsClip (3*n) d, addGregorianMonthsClip (3*n+3) d)
+      span (SmartRelative n Year)                   = let d = thisyear refdate in (addGregorianYearsClip n d, addGregorianYearsClip (n+1) d)
       span (SmartAssumeStart y Nothing)             = (startofyear day, nextyear day) where day = fromGregorian y 1 1
       span (SmartAssumeStart y (Just (m, Nothing))) = (startofmonth day, nextmonth day) where day = fromGregorian y m 1
       span (SmartAssumeStart y (Just (m, Just d)))  = (day, nextday day) where day = fromGregorian y m d
@@ -510,28 +501,28 @@ fixSmartDateStrEither' d s = case parsewith smartdateonly (T.toLower s) of
 -- t "next january"
 -- "2009-01-01"
 --
+-- >>> t "in 5 days"
+-- "2008-12-01"
+-- >>> t "in 7 months"
+-- "2009-06-01"
+-- >>> t "in -2 weeks"
+-- "2008-11-10"
+-- >>> t "1 quarter ago"
+-- "2008-07-01"
+-- >>> t "1 week ahead"
+-- "2008-12-01"
 fixSmartDate :: Day -> SmartDate -> Day
 fixSmartDate refdate = fix
   where
     fix :: SmartDate -> Day
-    fix (SmartRelative This Day)     = refdate
-    fix (SmartRelative Last Day)     = prevday refdate
-    fix (SmartRelative Next Day)     = nextday refdate
-    fix (SmartRelative This Week)    = thisweek refdate
-    fix (SmartRelative Last Week)    = prevweek refdate
-    fix (SmartRelative Next Week)    = nextweek refdate
-    fix (SmartRelative This Month)   = thismonth refdate
-    fix (SmartRelative Last Month)   = prevmonth refdate
-    fix (SmartRelative Next Month)   = nextmonth refdate
-    fix (SmartRelative This Quarter) = thisquarter refdate
-    fix (SmartRelative Last Quarter) = prevquarter refdate
-    fix (SmartRelative Next Quarter) = nextquarter refdate
-    fix (SmartRelative This Year)    = thisyear refdate
-    fix (SmartRelative Last Year)    = prevyear refdate
-    fix (SmartRelative Next Year)    = nextyear refdate
-    fix (SmartAssumeStart y md)      = fromGregorian y (maybe 1 fst md) (fromMaybe 1 $ snd =<< md)
-    fix (SmartFromReference m d)     = fromGregorian ry (fromMaybe rm m) d
-    fix (SmartMonth m)               = fromGregorian ry m 1
+    fix (SmartRelative n Day)     = addDays n refdate
+    fix (SmartRelative n Week)    = addDays (7*n) $ thisweek refdate
+    fix (SmartRelative n Month)   = addGregorianMonthsClip n $ thismonth refdate
+    fix (SmartRelative n Quarter) = addGregorianMonthsClip (3*n) $ thisquarter refdate
+    fix (SmartRelative n Year)    = addGregorianYearsClip n $ thisyear refdate
+    fix (SmartAssumeStart y md)   = fromGregorian y (maybe 1 fst md) (fromMaybe 1 $ snd =<< md)
+    fix (SmartFromReference m d)  = fromGregorian ry (fromMaybe rm m) d
+    fix (SmartMonth m)            = fromGregorian ry m 1
     (ry, rm, _) = toGregorian refdate
 
 prevday :: Day -> Day
@@ -554,7 +545,6 @@ startofmonth day = fromGregorian y m 1 where (y,m,_) = toGregorian day
 nthdayofmonth d day = fromGregorian y m d where (y,m,_) = toGregorian day
 
 thisquarter = startofquarter
-prevquarter = startofquarter . addGregorianMonthsClip (-3)
 nextquarter = startofquarter . addGregorianMonthsClip 3
 startofquarter day = fromGregorian y (firstmonthofquarter m) 1
     where
@@ -726,6 +716,8 @@ Examples:
 > october, oct                                (start of month in current year)
 > yesterday, today, tomorrow                  (-1, 0, 1 days from today)
 > last/this/next day/week/month/quarter/year  (-1, 0, 1 periods from the current period)
+> in n days/weeks/months/quarters/years       (n periods from the current period)
+> n days/weeks/months/quarters/years ago      (-n periods from the current period)
 > 20181201                                    (8 digit YYYYMMDD with valid year month and day)
 > 201812                                      (6 digit YYYYMM with valid year and month)
 
@@ -763,19 +755,26 @@ Right (SmartAssumeStart 201813012 Nothing)
 smartdate :: TextParser m SmartDate
 smartdate = choice'
   -- XXX maybe obscures date errors ? see ledgerdate
-    [ yyyymmdd, ymd
+    [ relativeP
+    , yyyymmdd, ymd
     , (\(m,d) -> SmartFromReference (Just m) d) <$> md
     , failIfInvalidDate . SmartFromReference Nothing =<< decimal
     , SmartMonth <$> (month <|> mon)
-    , SmartRelative This Day <$ string' "today"
-    , SmartRelative Last Day <$ string' "yesterday"
-    , SmartRelative Next Day <$ string' "tomorrow"
-    , liftA2 SmartRelative (seqP <* skipNonNewlineSpaces) intervalP
+    , SmartRelative 0    Day <$ string' "today"
+    , SmartRelative (-1) Day <$ string' "yesterday"
+    , SmartRelative 1    Day <$ string' "tomorrow"
     ]
   where
-    seqP = choice [This <$ string' "this", Last <$ string' "last", Next <$ string' "next"]
-    intervalP = choice [Day <$ string' "day", Week <$ string' "week", Month <$ string' "month",
-                        Quarter <$ string' "quarter", Year <$ string' "year"]
+    relativeP = do
+        optional $ string' "in" <* skipNonNewlineSpaces
+        num      <- seqP <* skipNonNewlineSpaces
+        interval <- intervalP <* skipNonNewlineSpaces
+        sign     <- choice [negate <$ string' "ago", id <$ string' "ahead", pure id]
+        return $ SmartRelative (sign num) interval
+
+    seqP = choice [ 0 <$ string' "this", -1 <$ string' "last", 1 <$ string' "next", signed skipNonNewlineSpaces decimal ]
+    intervalP = choice [ Day <$ string' "day", Week <$ string' "week", Month <$ string' "month"
+                       , Quarter <$ string' "quarter", Year <$ string' "year" ] <* optional (char' 's')
 
 -- | Like smartdate, but there must be nothing other than whitespace after the date.
 smartdateonly :: TextParser m SmartDate
