@@ -505,7 +505,7 @@ functest: hledger/test/addons/hledger-addon \
 
 functest-%: hledger/test/addons/hledger-addon \
 	$(call def-help,functest-PAT, build hledger quickly and run just the functional tests matching PAT )
-	@stack build --fast hledger
+	@$(STACK) build --fast hledger
 	@($(SHELLTESTSTK) -w $(FUNCTESTEXE) hledger/test/ -i "$*" \
 		&& echo $@ PASSED) || (echo $@ FAILED; false)
 
