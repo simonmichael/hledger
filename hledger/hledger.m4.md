@@ -915,19 +915,129 @@ and `amt:` matches the new quantity, and not the old one.
 Note: this changed in hledger 1.22, previously it was the reverse, 
 see the discussion at [#1625](https://github.com/simonmichael/hledger/issues/1625).
 
-# COSTING
+## CONVERSION & COST
 
-The `-B/--cost` flag converts amounts to their cost or sale amount at
-transaction time, if they have a [transaction price](#transaction-prices)
-specified.
+This section is about converting between commodities. Some definitions:
 
-The `--infer-equity` flag generates conversion postings within equity to
-balance any transaction prices.
-The account used is "equity:conversion" by default, but this can be customised
-with an account declaration: `account <conversion_account>  Conversion`.
+- A "commodity conversion" is an exchange of one currency or commodity for another. Eg a foreign currency exchange, or a purchase or sale of stock or cryptocurrency.
 
-If either of these flags are supplied, hledger will perform cost conversion
-first, and will apply any market price valuations (if requested) afterwards.
+- A "conversion transaction" is a transaction involving one or more such conversions.
+
+- "Conversion rate" is the exchange rate in a conversion - the cost per unit of one commodity in the other.
+
+- "Cost" is how much of one commodity was paid to acquire the other (when buying), or how much was received in exchange for the other (when selling). We call both of these  "cost" for convenience (after all, it is cost for one party or the other).
+
+### Recording conversions
+
+As a concrete example, let's assume 100 EUR was converted to 120 USD. There are several ways to record this in the journal, each with pros and cons which will be explained in more detail below. (Also, these examples use [journal format](#journal-format) which is properly explained much further below; sorry about that, you may want to read some of that first.)
+
+#### Implicit conversion
+
+You can just record the outflow (100 EUR) and inflow (120 USD) in the appropriate asset account:
+
+```journal
+2021-01-01
+    assets:cash    -100 EUR
+    assets:cash     120 USD
+```
+
+hledger will assume this transaction is balanced, inferring that the conversion rate must be 1 EUR = 1.20 USD. You can see the inferred rate by using `hledger print -x`.
+
+Pro: 
+- Easy, concise
+- hledger can do cost reporting
+
+Con: 
+- Less error checking - typos in amounts or commodity symbols may not be detected
+- conversion rate is not clear
+- disturbs the accounting equation
+
+You can prevent accidental implicit conversions due to a mistyped commodity symbol, by using `hledger check commodities`.
+You can prevent implicit conversions entirely, by using `hledger check balancednoautoconversion`, or `-s/--strict`.
+
+#### Priced conversion
+
+You can add the conversion rate using @ notation:
+
+```journal
+2021-01-01
+    assets:cash        -100 EUR @ 1.20 USD
+    assets:cash         120 USD
+```
+
+Now hledger will check that 100 * 1.20 = 120, and would report an error otherwise.
+
+Pro: 
+- Still concise
+- makes the conversion rate clear
+- provides some error checking
+- hledger can do cost reporting
+
+Con: 
+- Disturbs the accounting equation
+
+#### Equity conversion
+
+In strict double entry bookkeeping, the above transaction is not balanced in EUR or in USD, since some EUR disappears, and some USD appears. This violates the accounting equation (A+L+E=0), and prevents reports like `balancesheetequity` from showing a zero total. 
+
+The proper way to make it balance is to add a balancing posting for each commodity, using an equity account:
+
+```journal
+2021-01-01
+    assets:cash        -100 EUR
+    equity:conversion   100 EUR
+    equity:conversion  -120 USD
+    assets:cash         120 USD
+```
+
+Pro: 
+- Preserves the accounting equation
+- keeps track of conversions and related gains/losses in one place
+- works in any double entry accounting system
+
+Con: 
+- More verbose
+- conversion rate is not clear
+- hledger can not do cost reporting
+
+#### Priced equity conversion
+
+Another possible notation would be to record both the conversion rate and the equity postings:
+
+```journal
+2021-01-01
+    assets:cash        -100 EUR @ 1.20 USD
+    equity:conversion   100 EUR
+    equity:conversion  -120 USD
+    assets:cash         120 USD
+```
+
+hledger currently does not allow this; instead, you can record the conversion rate as a comment.
+
+### Inferring missing conversion rates
+
+hledger will do this automatically for implicit conversions. Currently it can not do this for equity conversions.
+
+### Inferring missing equity postings
+
+With the `--infer-equity` flag, hledger will add equity postings to priced and implicit conversions (and move the conversion rate into a comment).
+
+### Cost reporting
+
+With the `-B/--cost` flag, hledger will convert the amounts in priced and implicit conversions to their cost in the other commodity. This is useful to see a report of what you paid for things (or how much you sold things for). Currently `-B/--cost` does not work on equity conversions, and it disables `--infer-equity`.
+
+These operations are transient, only affecting reports. If you want to change the journal file permanently, you could pipe each entry through 
+`hledger -f- -I print [-x] [--infer-equity] [-B]`
+
+### Conversion summary
+
+- Recording the conversion rate is good because it makes that clear and allows cost reporting.
+- Recording equity postings is good because it balances the accounting equation and is correct bookkeeping.
+- Combining these is not yet supported, so you have to choose. For now, priced conversions are a good compromise, so that:
+  - When you want to see the cost (or sale proceeds) of things, use `-B/--cost`.
+  - When you want to see a balanced balance sheet or correct journal entries, use `--infer-equity`.
+  - Combining these is not yet supported; `-B/--cost` will take precedence.
+- Conversion/cost operations are performed before valuation.
 
 
 # VALUATION
