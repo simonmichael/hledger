@@ -944,10 +944,12 @@ You can just record the outflow (100 EUR) and inflow (120 USD) in the appropriat
 hledger will assume this transaction is balanced, inferring that the conversion rate must be 1 EUR = 1.20 USD. You can see the inferred rate by using `hledger print -x`.
 
 Pro: 
+
 - Easy, concise
 - hledger can do cost reporting
 
 Con: 
+
 - Less error checking - typos in amounts or commodity symbols may not be detected
 - conversion rate is not clear
 - disturbs the accounting equation
@@ -968,12 +970,14 @@ You can add the conversion rate using @ notation:
 Now hledger will check that 100 * 1.20 = 120, and would report an error otherwise.
 
 Pro: 
+
 - Still concise
 - makes the conversion rate clear
 - provides some error checking
 - hledger can do cost reporting
 
 Con: 
+
 - Disturbs the accounting equation
 
 ### Equity conversion
@@ -991,11 +995,13 @@ The proper way to make it balance is to add a balancing posting for each commodi
 ```
 
 Pro: 
+
 - Preserves the accounting equation
 - keeps track of conversions and related gains/losses in one place
 - works in any double entry accounting system
 
 Con: 
+
 - More verbose
 - conversion rate is not clear
 - hledger can not do cost reporting
