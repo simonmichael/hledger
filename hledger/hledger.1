@@ -1529,12 +1529,171 @@ not the old one, and \f[C]amt:\f[R] matches the new quantity, and not
 the old one.
 Note: this changed in hledger 1.22, previously it was the reverse, see
 the discussion at #1625.
-.SH COSTING
+.SS CONVERSION & COST
 .PP
-The \f[C]-B/--cost\f[R] flag converts amounts to their cost or sale
-amount at transaction time, if they have a transaction price specified.
-If this flag is supplied, hledger will perform cost conversion first,
-and will apply any market price valuations (if requested) afterwards.
+This section is about converting between commodities.
+Some definitions:
+.IP \[bu] 2
+A \[dq]commodity conversion\[dq] is an exchange of one currency or
+commodity for another.
+Eg a foreign currency exchange, or a purchase or sale of stock or
+cryptocurrency.
+.IP \[bu] 2
+A \[dq]conversion transaction\[dq] is a transaction involving one or
+more such conversions.
+.IP \[bu] 2
+\[dq]Conversion rate\[dq] is the exchange rate in a conversion - the
+cost per unit of one commodity in the other.
+.IP \[bu] 2
+\[dq]Cost\[dq] is how much of one commodity was paid to acquire the
+other (when buying), or how much was received in exchange for the other
+(when selling).
+We call both of these \[dq]cost\[dq] for convenience (after all, it is
+cost for one party or the other).
+.SS Recording conversions
+.PP
+As a concrete example, let\[aq]s assume 100 EUR was converted to 120
+USD.
+There are several ways to record this in the journal, each with pros and
+cons which will be explained in more detail below.
+(Also, these examples use journal format which is properly explained
+much further below; sorry about that, you may want to read some of that
+first.)
+.SS Implicit conversion
+.PP
+You can just record the outflow (100 EUR) and inflow (120 USD) in the
+appropriate asset account:
+.IP
+.nf
+\f[C]
+2021-01-01
+    assets:cash    -100 EUR
+    assets:cash     120 USD
+\f[R]
+.fi
+.PP
+hledger will assume this transaction is balanced, inferring that the
+conversion rate must be 1 EUR = 1.20 USD.
+You can see the inferred rate by using \f[C]hledger print -x\f[R].
+.PP
+Pro: - Easy, concise - hledger can do cost reporting
+.PP
+Con: - Less error checking - typos in amounts or commodity symbols may
+not be detected - conversion rate is not clear - disturbs the accounting
+equation
+.PP
+You can prevent accidental implicit conversions due to a mistyped
+commodity symbol, by using \f[C]hledger check commodities\f[R].
+You can prevent implicit conversions entirely, by using
+\f[C]hledger check balancednoautoconversion\f[R], or
+\f[C]-s/--strict\f[R].
+.SS Priced conversion
+.PP
+You can add the conversion rate using \[at] notation:
+.IP
+.nf
+\f[C]
+2021-01-01
+    assets:cash        -100 EUR \[at] 1.20 USD
+    assets:cash         120 USD
+\f[R]
+.fi
+.PP
+Now hledger will check that 100 * 1.20 = 120, and would report an error
+otherwise.
+.PP
+Pro: - Still concise - makes the conversion rate clear - provides some
+error checking - hledger can do cost reporting
+.PP
+Con: - Disturbs the accounting equation
+.SS Equity conversion
+.PP
+In strict double entry bookkeeping, the above transaction is not
+balanced in EUR or in USD, since some EUR disappears, and some USD
+appears.
+This violates the accounting equation (A+L+E=0), and prevents reports
+like \f[C]balancesheetequity\f[R] from showing a zero total.
+.PP
+The proper way to make it balance is to add a balancing posting for each
+commodity, using an equity account:
+.IP
+.nf
+\f[C]
+2021-01-01
+    assets:cash        -100 EUR
+    equity:conversion   100 EUR
+    equity:conversion  -120 USD
+    assets:cash         120 USD
+\f[R]
+.fi
+.PP
+Pro: - Preserves the accounting equation - keeps track of conversions
+and related gains/losses in one place - works in any double entry
+accounting system
+.PP
+Con: - More verbose - conversion rate is not clear - hledger can not do
+cost reporting
+.SS Priced equity conversion
+.PP
+Another possible notation would be to record both the conversion rate
+and the equity postings:
+.IP
+.nf
+\f[C]
+2021-01-01
+    assets:cash        -100 EUR \[at] 1.20 USD
+    equity:conversion   100 EUR
+    equity:conversion  -120 USD
+    assets:cash         120 USD
+\f[R]
+.fi
+.PP
+hledger currently does not allow this; instead, you can record the
+conversion rate as a comment.
+.SS Inferring missing conversion rates
+.PP
+hledger will do this automatically for implicit conversions.
+Currently it can not do this for equity conversions.
+.SS Inferring missing equity postings
+.PP
+With the \f[C]--infer-equity\f[R] flag, hledger will add equity postings
+to priced and implicit conversions (and move the conversion rate into a
+comment).
+.SS Cost reporting
+.PP
+With the \f[C]-B/--cost\f[R] flag, hledger will convert the amounts in
+priced and implicit conversions to their cost in the other commodity.
+This is useful to see a report of what you paid for things (or how much
+you sold things for).
+Currently \f[C]-B/--cost\f[R] does not work on equity conversions, and
+it disables \f[C]--infer-equity\f[R].
+.PP
+These operations are transient, only affecting reports.
+If you want to change the journal file permanently, you could pipe each
+entry through \f[C]hledger -f- -I print [-x] [--infer-equity] [-B]\f[R]
+.SS Conversion summary
+.IP \[bu] 2
+Recording the conversion rate is good because it makes that clear and
+allows cost reporting.
+.IP \[bu] 2
+Recording equity postings is good because it balances the accounting
+equation and is correct bookkeeping.
+.IP \[bu] 2
+Combining these is not yet supported, so you have to choose.
+For now, priced conversions are a good compromise, so that:
+.RS 2
+.IP \[bu] 2
+When you want to see the cost (or sale proceeds) of things, use
+\f[C]-B/--cost\f[R].
+.IP \[bu] 2
+When you want to see a balanced balance sheet or correct journal
+entries, use \f[C]--infer-equity\f[R].
+.IP \[bu] 2
+Combining these is not yet supported; \f[C]-B/--cost\f[R] will take
+precedence.
+.RE
+.IP \[bu] 2
+Conversion/cost operations are performed before valuation.
 .SH VALUATION
 .PP
 Instead of reporting amounts in their original commodity, hledger can
@@ -7579,9 +7738,10 @@ account ACCTNAME  [ACCTTYPE] [;COMMENT]
 .PP
 By adding a \f[C]type\f[R] tag to the account directive, with value
 \f[C]A\f[R], \f[C]L\f[R], \f[C]E\f[R], \f[C]R\f[R], \f[C]X\f[R],
-\f[C]C\f[R] (or if you prefer: \f[C]Asset\f[R], \f[C]Liability\f[R],
-\f[C]Equity\f[R], \f[C]Revenue\f[R], \f[C]Expense\f[R], \f[C]Cash\f[R]),
-you can declare hledger accounts to be of a certain type:
+\f[C]C\f[R], \f[C]V\f[R] (or if you prefer: \f[C]Asset\f[R],
+\f[C]Liability\f[R], \f[C]Equity\f[R], \f[C]Revenue\f[R],
+\f[C]Expense\f[R], \f[C]Cash\f[R], \f[C]Conversion\f[R]), you can
+declare hledger accounts to be of a certain type:
 .IP \[bu] 2
 \f[B]asset\f[R], \f[B]liability\f[R], \f[B]equity\f[R],
 \f[B]revenue\f[R], \f[B]expense\f[R]
@@ -7595,6 +7755,12 @@ the standard types in accounting, or
 .P
 .PD
 a subtype of asset, used for liquid assets.
+.IP \[bu] 2
+\f[B]conversion\f[R]
+.PD 0
+.P
+.PD
+a subtype of equity, used for conversion postings
 .PP
 Declaring account types is a good idea, since it helps enable the easy
 balancesheet, balancesheetequity, incomestatement and cashflow reports,
