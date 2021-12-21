@@ -1033,7 +1033,7 @@ QUERIES
        this changed in hledger 1.22, previously it was the  reverse,  see  the
        discussion at #1625.
 
-   CONVERSION & COST
+CONVERSION & COST
        This  section  is  about  converting between commodities.  Some defini-
        tions:
 
