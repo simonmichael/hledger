@@ -58,7 +58,7 @@ There are some situations where print's output can become unparseable:
 
 - [Valuation](#valuation) affects posting amounts but not [balance assertion](#balance-assertions) or [balance assignment](#balance-assignments) amounts, potentially causing those to [fail](https://github.com/simonmichael/hledger/issues/1429).
 - [Auto postings](#auto-postings) can generate postings with [too many missing amounts](https://github.com/simonmichael/hledger/issues/1276).
-- [Account aliases can generate invalid account names](#account-aliases-can-generate-invalid-account-names).
+- [Account aliases can generate bad account names](#account-aliases-can-generate-bad-account-names).
 
 Normally, the journal entry's explicit or implicit amount style is preserved.
 For example, when an amount is omitted in the journal, it will not appear in the output.

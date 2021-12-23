@@ -3281,11 +3281,11 @@ with this directive:
 end aliases
 ```
 
-### Aliases can generate invalid account names
+### Aliases can generate bad account names
 
 Be aware that account aliases can produce malformed account names,
-which could cause confusing reports or and invalid [`print`](#print) output.
-Two examples: you can erase an account name:
+which could cause confusing reports or invalid [`print`](#print) output.
+For example, you could erase all account names:
 
 ```journal
 2021-01-01
@@ -3293,14 +3293,15 @@ Two examples: you can erase an account name:
   b
 ```
 ```shell
-$ hledger -f- print --alias '/a:.*/='
+$ hledger print --alias '/.*/='
 2021-01-01
-                    1
-    b
+                   1
+
 ```
 
-or insert an illegal double space, causing part of the account name
-to be treated as part of the amount if reparsed:
+The above `print` output is not a valid journal. 
+Or you could insert an illegal double space, causing `print` output
+that would give a different journal when reparsed:
 
 ```journal
 2021-01-01
@@ -3308,7 +3309,7 @@ to be treated as part of the amount if reparsed:
   other
 ```
 ```shell
-$ hledger -f- --alias old="new  USD" print | hledger -f- print
+$ hledger print --alias old="new  USD" | hledger -f- print
 2021-01-01
     new             USD 1
     other
