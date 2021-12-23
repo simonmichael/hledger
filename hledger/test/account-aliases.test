@@ -225,3 +225,30 @@ $ hledger -f- print
 
 >=0
 
+# Aliases can produce malformed account names and invalid print output (#1788).
+# 16. For example, you can erase an account name:
+<
+alias /a:.*/=
+2021-01-01
+  a:aa     1
+  b
+$ hledger -f- print
+2021-01-01
+                    1
+    b
+
+>=0
+
+# 17. Another example: you can insert an illegal double space, 
+# with the second part considered part of the amount if reparsed:
+<
+2021-01-01
+  old    1
+  other
+
+$ hledger -f- --alias old="new  USD" print | hledger -f- print
+2021-01-01
+    new             USD 1
+    other
+
+>=0

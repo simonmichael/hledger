@@ -3153,11 +3153,16 @@ This can be useful for:
 
 - expanding shorthand account names to their full form, allowing easier data entry and a less verbose journal
 - adapting old journals to your current chart of accounts
-- experimenting with new account organisations, like a new hierarchy or combining two accounts into one
+- experimenting with new account organisations, like a new hierarchy
+- combining two accounts into one, eg to see their sum or difference on one line
 - customising reports
 
 Account aliases also rewrite account names in [account directives](#declaring-accounts).
 They do not affect account names being entered via hledger add or hledger-web.
+
+Account aliases are very powerful.
+They are generally easy to use correctly, but you can also generate 
+invalid account names with them; more on this below.
 
 See also [Rewrite account names](rewrite-account-names.html).
 
@@ -3274,6 +3279,39 @@ with this directive:
 
 ```journal
 end aliases
+```
+
+### Aliases can generate invalid account names
+
+Be aware that account aliases can produce malformed account names,
+which could cause confusing reports or and invalid [`print`](#print) output.
+Two examples: you can erase an account name:
+
+```journal
+2021-01-01
+  a:aa     1
+  b
+```
+```shell
+$ hledger -f- print --alias '/a:.*/='
+2021-01-01
+                    1
+    b
+```
+
+or insert an illegal double space, causing part of the account name
+to be treated as part of the amount if reparsed:
+
+```journal
+2021-01-01
+  old    1
+  other
+```
+```shell
+$ hledger -f- --alias old="new  USD" print | hledger -f- print
+2021-01-01
+    new             USD 1
+    other
 ```
 
 ## Default parent account
