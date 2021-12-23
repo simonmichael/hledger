@@ -1,0 +1,49 @@
+# multicurrency example
+
+2015-01-01 * Opening state 1
+    Equity:Opening Balances                     -100.00 HRK
+    Assets:Cash                                  100.00 HRK
+
+2015-01-02 * Random gift        
+    Income:Random                                -20 EUR
+    Assets:Cash                                   20 EUR
+
+2015-01-03 * Money exchange office
+    Assets:Cash                                  -20 EUR @ 7.53 HRK
+    Assets:Cash                                  150.60 HRK
+
+2015-12-31 retain earnings
+    Income                                               ==* 0
+    Equity:Retained Earnings
+
+# declare an account under Equity for --infer-equity
+account Equity:Conversion  ; type:Conversion
+
+
+comment
+$ hledger -f examples/multicurrency.journal bse --infer-equity
+Balance Sheet With Equity 2015-12-31
+
+                               || 2015-12-31 
+===============================++============
+ Assets                        ||            
+-------------------------------++------------
+ Assets:Cash                   || 250.60 HRK 
+-------------------------------++------------
+                               || 250.60 HRK 
+===============================++============
+ Liabilities                   ||            
+-------------------------------++------------
+-------------------------------++------------
+                               ||            
+===============================++============
+ Equity                        ||            
+-------------------------------++------------
+ Equity:Conversion:EUR-HRK:EUR ||    -20 EUR 
+ Equity:Conversion:EUR-HRK:HRK || 150.60 HRK 
+ Equity:Opening Balances       || 100.00 HRK 
+ Equity:Retained Earnings      ||     20 EUR 
+-------------------------------++------------
+                               || 250.60 HRK 
+===============================++============
+ Net:                          ||          0 
