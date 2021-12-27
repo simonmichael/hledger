@@ -176,7 +176,7 @@ timeWeightedReturn showCashFlow prettyTables investmentsQuery trans mixedAmountV
         -- one for the given date, by construction.
         zeroUnitsNeedsCashflowAtTheFront
         $ sort
-        $ dailyCashflows ++ datedPnls
+        $ datedCashflows ++ datedPnls
         where
           zeroUnitsNeedsCashflowAtTheFront changes =
             if initialUnits > 0 then changes
@@ -185,16 +185,18 @@ timeWeightedReturn showCashFlow prettyTables investmentsQuery trans mixedAmountV
                   (firstCashflow, rest') = splitAt 1 rest
               in firstCashflow ++ leadingPnls ++ rest'
 
-          datedPnls = map (\(date,amt) -> (date,Left $ maNegate amt)) pnl
+          datedPnls = map (second Left) $ aggregateByDate pnl
  
-          dailyCashflows =
+          datedCashflows = map (second Right) $ aggregateByDate cashFlow
+
+          aggregateByDate datedAmounts = 
+            -- Aggregate all entries for a single day, assuming that intraday interest is negligible
             sort
-          -- Aggregate all entries for a single day, assuming that intraday interest is negligible
-            $ map (\date_cash -> let (dates, cash) = unzip date_cash in (head dates, Right (maSum cash)))
+            $ map (\date_cash -> let (dates, cash) = unzip date_cash in (head dates, maSum cash))
             $ groupBy ((==) `on` fst)
             $ sortOn fst
             $ map (second maNegate)
-            $ cashFlow
+            $ datedAmounts
 
   let units =
         tail $
@@ -216,7 +218,9 @@ timeWeightedReturn showCashFlow prettyTables investmentsQuery trans mixedAmountV
           $ dbg3 "changes" changes
 
   let finalUnitBalance = if null units then initialUnits else let (_,_,_,u) = last units in u
-      finalUnitPrice = if finalUnitBalance == 0 then initialUnitPrice
+      finalUnitPrice = if finalUnitBalance == 0 then
+                         if null units then initialUnitPrice
+                         else let (_,_,lastUnitPrice,_) = last units in lastUnitPrice
                        else (unMix valueAfter) / finalUnitBalance
       -- Technically, totalTWR should be (100*(finalUnitPrice - initialUnitPrice) / initialUnitPrice), but initalUnitPrice is 100, so 100/100 == 1
       totalTWR = roundTo 2 $ (finalUnitPrice - initialUnitPrice)
