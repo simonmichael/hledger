@@ -4571,9 +4571,9 @@ Here are the ways to set a posting's amount:
       amount1 %out
      ```
 
-3. **If you are stuck with hledger <1.17, or you want posting 2's amount converted to cost:**\
+3. **If you want posting 2's amount converted to cost:**\
    Assign to `amount` (or to `amount-in` and `amount-out`).
-   (The old numberless syntax, which sets amount1 and amount2.)
+   (This is the legacy numberless syntax, which sets amount1 and amount2 and converts amount2 to cost.)
 
 4. **If the CSV has the balance instead of the transaction amount:**\
    Assign to `balanceN`, which sets posting N's amount indirectly via a
