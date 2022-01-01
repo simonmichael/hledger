@@ -88,8 +88,8 @@ entriesReportAsText opts =
       -- By default, use the original as-written-in-the-journal txn.
       | otherwise = originalTransaction
     maybeStripPrices
-      -- Strip prices when inferring equity, unless the show-costs option is set
-      | opts ^. infer_equity && not (boolopt "show-costs" $ rawopts_ opts) =
+      -- Strip prices when inferring equity, unless the show_costs_  is set
+      | opts ^. infer_equity && not (opts ^. show_costs) =
           transactionTransformPostings postingStripPrices
       | otherwise = id
 

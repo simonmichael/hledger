@@ -102,11 +102,10 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec'} j = do
 
     -- should we show the amount(s) on the equity posting(s) ?
     explicit = boolopt "explicit" rawopts
-    show_costs = boolopt "show-costs" rawopts
 
     -- the balances to close
     (acctbals',_) = balanceReport rspec j
-    acctbals = map (\(a,_,_,b) -> (a, if show_costs then b else mixedAmountStripPrices b)) acctbals'
+    acctbals = map (\(a,_,_,b) -> (a, if show_costs_ ropts then b else mixedAmountStripPrices b)) acctbals'
     totalamt = maSum $ map snd acctbals
 
     -- since balance assertion amounts are required to be exact, the
