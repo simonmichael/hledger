@@ -11,6 +11,12 @@ For package-specific changes and minor releases, see the hledger package changel
 
 # 0317f71c0
 
+Features
+
+Improvements
+
+Fixes
+
 Software
 
 - A new addon script: bin/hledger-number

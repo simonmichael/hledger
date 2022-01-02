@@ -17,11 +17,21 @@
 -- My workflow:
 -- - In a terminal window (not emacs shell, it will hang) run this on a CHANGES.md file
 -- - Edit the changelog item to changelog-readiness (if needed)
--- - Save and quit (C-x #) to do the next; it will exit after the last. Or C-x C-x to stop.
+-- - Save and quit (C-x #) to do the next; it will exit after the last.
 -- - On the side keep an auto-reverting editor open on the file to watch progress or for fixups.
--- It might seem a bit pointless, but it made this old chore much more
--- pleasant. I can do just one, or more as I feel it, and my attention
--- is not dragged on by pending items.
+--
+-- Motivation:
+-- This might seem a bit pointless, but it made this old chore more pleasant. 
+-- I can make incremental progress by doing just one item, or more as I feel it,
+-- without having all the other pending items drag on my attention.
+--
+-- Limitations/Wishes:
+--
+-- - Parsing of uncategorised pending items currently assumes the section headings
+--   are Features, Improvements, Fixes. This does not work for other section headings,
+--   as used in the project changelog. Workaround: add those three headings at the top.
+--
+-- - It's not obvious how to stop; C-x C-x just loads the next item.
 
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
