@@ -1,13 +1,12 @@
 #!/usr/bin/env stack
-{- stack script --resolver nightly-2021-12-16
+{- stack script --resolver lts-18.18
     --package data-default
     --package extra
-    --package hledger-lib
     --package process
     --package text
 -}
-{- stack ghc
-    --package text
+{-
+    --package hledger-lib
 -}
 -- changelog.hs CHANGELOGFILE
 --
@@ -33,13 +32,13 @@ import Data.Char
 import Data.Default
 import GHC.Generics
 import Data.List.Extra
-import qualified Data.Text as T
+-- import qualified Data.Text as T
 import System.Environment
 import System.IO.Extra
 -- import System.IO
 import System.Process
 import Text.Printf
-import Hledger.Utils
+-- import Hledger.Utils (toRegex')
 
 -- A top level section in the changelog, corresponding to one release.
 data ChangelogSection = ChangelogSection {
@@ -68,7 +67,7 @@ go f = do
   (preamble:first:rest) <- splitOn "\n# " <$> readFile f
   let
     g = f ++ ".new"
-    s@ChangelogSection{..} = readSection first
+    s@ChangelogSection{} = readSection first
 
   -- ask for an edit of this item's text
   s' <- editOneUnknown s
@@ -162,5 +161,5 @@ showItem i =
 
 system' s = putStrLn s >> system s
 
-re = toRegex' . T.pack
+-- re = toRegex' . T.pack
 
