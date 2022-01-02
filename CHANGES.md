@@ -9,7 +9,7 @@
 General changes in the hledger project (and notable all-package releases).
 For package-specific changes and minor releases, see the hledger package changelogs.
 
-# a98e6125f
+# 0317f71c0
 
 Software
 
@@ -19,7 +19,17 @@ Software
 
 Docs
 
+- examples: multicurrency.journal
+
 Process
+
+- Move hie.yaml out of the way; for all except arm mac users, hls
+  probably works better without it.
+
+- Make hackageupload: this now only works from a branch named
+  VERSION-branch or (possible future naming) VERSION-release.  Ie,
+  major releases from master are no longer allowed; a release branch
+  is always required,
 
 - ci: more consistent workflow, branch, binary names
 

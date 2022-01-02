@@ -9,9 +9,33 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# a98e6125f
+# 326b2309b
 
 Features
+
+- The new --infer-equity flag replaces @/@@ prices in commodity
+  conversion transactions with equity postings, making them fully
+  balanced and preserving the accounting equation.  (When not doing
+  cost reporting; --cost/-B overrides and disables --infer-equity.)
+  For example, `hledger print --infer-equity` will show:
+
+      2000-01-01
+        a   1 AAA @@ 2 BBB
+        b  -2 BBB
+
+  as:
+
+      2000-01-01
+        a                               1 AAA
+        equity:conversion:AAA-BBB:AAA  -1 AAA
+        equity:conversion:AAA-BBB:BBB   2 BBB
+        b                              -2 BBB
+
+  The `equity:conversion` account name is used by default. You can use
+  another account by declaring it with the new `Conversion`/`V`
+  account type (a subtype of `Equity`/`E`), eg:
+  
+      account Equity:Currency Conversions   ; type: V
 
 - Normalised, easy-to-process "tidy" CSV data can now be generated with `--layout tidy -O csv`.
   In tidy data, every variable is a column and each row represents a single data point 
@@ -21,8 +45,18 @@ Features
 Improvements
 
 - CSV output now always disables digit group marks (eg, thousands separators),
-  for better machine readability. 
+  making it more machine readable by default. 
   (#1771) (Stephen Morgan)
+
+Fixes
+
+- ;roi: fixes #1791 (fix TWR when investment=0, several pnls per day) (Dmitry Astapov)
+
+Documentation
+
+- Account aliases' ability to cause malformed account names is noted. (#1788)
+
+- There is a new CONVERSION & COST section, replacing COSTING. (#1554)
 
 # 1.24.1 2021-12-10
 
@@ -35,9 +69,9 @@ Fixes
 
 API changes:
 
-- new type synonyms ProgramName, PackageVersion, VersionString
-- versionStringForProgname -> versionString with extra argument
-- versionStringFor -> versionStringWith with extra argument
+- new type synonyms ProgramName, PackageVersion, VersionString
+- versionStringForProgname -> versionString with extra argument
+- versionStringFor -> versionStringWith with extra argument
 
 # 1.24 2021-12-01
 

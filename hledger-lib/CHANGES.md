@@ -9,9 +9,18 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# a98e6125f
+# e9dd77e82
 
 Improvements
+
+- Costing has been changed to ConversionOp with three options:
+  NoConversionOp, ToCost, and InferEquity.
+  The first correspond to the previous NoCost and Cost options, while the
+  third corresponds to the --infer-equity flag.  This converts transactions with costs
+  (one or more transaction prices) to transactions with equity:conversion postings.
+  It is in ConversionOp because converting to cost with -B/--cost and inferring conversion
+  equity postings with --infer-equity are mutually exclusive.
+  The cost_ record of ReportOpts has been changed to conversionop_.
 
 - hledger-lib now builds with GHC 9.2 and newer libs (#1774).
 
