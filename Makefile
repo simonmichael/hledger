@@ -435,7 +435,7 @@ test: functest bench \
 
 # For quieter tests add --silent. It may hide troubleshooting info.
 # For very verbose tests add --verbosity=debug. It seems hard to get something in between.
-STACKTEST=$(STACK) test
+STACKTEST=$(STACK) test --fast
 # When doing build testing, save a little time and output noise by not
 # running tests & benchmarks. Comment this out if you want to run them.
 SKIPTESTSBENCHS=--no-run-tests --no-run-benchmarks
