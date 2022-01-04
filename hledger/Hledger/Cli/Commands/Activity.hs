@@ -9,9 +9,9 @@ Print a bar chart of posting activity per day, or other report interval.
 module Hledger.Cli.Commands.Activity
 where
 
-import Data.List
-import Data.Maybe
-import Text.Printf
+import Data.List (sortOn)
+import Text.Printf (printf)
+import Lens.Micro ((^.), set)
 
 import Hledger
 import Hledger.Cli.CliOptions
@@ -31,19 +31,19 @@ activity :: CliOpts -> Journal -> IO ()
 activity CliOpts{reportspec_=rspec} j = putStr $ showHistogram rspec j
 
 showHistogram :: ReportSpec -> Journal -> String
-showHistogram ReportSpec{_rsQuery=q,_rsReportOpts=ReportOpts{interval_=i,date2_=date2}} j =
+showHistogram rspec@ReportSpec{_rsQuery=q} j =
     concatMap (printDayWith countBar) spanps
   where
-    interval | i == NoInterval = Days 1
-             | otherwise = i
-    span' = queryDateSpan date2 q `spanDefaultsFrom` journalDateSpan date2 j
-    spans = filter (DateSpan Nothing Nothing /=) $ splitSpan interval span'
+    spans = filter (DateSpan Nothing Nothing /=) . snd . reportSpan j $ case rspec ^. interval of
+      NoInterval -> set interval (Days 1) rspec
+      _ -> rspec
     spanps = [(s, filter (isPostingInDateSpan s) ps) | s <- spans]
     -- same as Register
     -- should count transactions, not postings ?
     -- ps = sortBy (comparing postingDate) $ filterempties $ filter matchapats $ filterdepth $ journalPostings j
     ps = sortOn postingDate $ filter (q `matchesPosting`) $ journalPostings j
 
-printDayWith f (DateSpan b _, ps) = printf "%s %s\n" (show $ fromJust b) (f ps)
+printDayWith f (DateSpan (Just b) _, ps) = printf "%s %s\n" (show b) (f ps)
+printDayWith _ _ = error "Expected start date for DateSpan"  -- PARTIAL:
 
 countBar ps = replicate (length ps) barchar
