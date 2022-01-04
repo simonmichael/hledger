@@ -114,11 +114,11 @@ multiBalanceReportWith :: ReportSpec -> Journal -> PriceOracle -> MultiBalanceRe
 multiBalanceReportWith rspec' j priceoracle = report
   where
     -- Queries, report/column dates.
-    reportspan = dbg3 "reportspan" $ reportSpan j rspec'
-    rspec      = dbg3 "reportopts" $ makeReportQuery rspec' reportspan
+    (reportspan, colspans) = reportSpan j rspec'
+    rspec = dbg3 "reportopts" $ makeReportQuery rspec' reportspan
 
     -- Group postings into their columns.
-    colps = dbg5 "colps" $ getPostingsByColumn rspec j priceoracle reportspan
+    colps = dbg5 "colps" $ getPostingsByColumn rspec j priceoracle colspans
 
     -- The matched accounts with a starting balance. All of these should appear
     -- in the report, even if they have no postings during the report period.
@@ -143,11 +143,11 @@ compoundBalanceReportWith :: ReportSpec -> Journal -> PriceOracle
 compoundBalanceReportWith rspec' j priceoracle subreportspecs = cbr
   where
     -- Queries, report/column dates.
-    reportspan = dbg3 "reportspan" $ reportSpan j rspec'
-    rspec      = dbg3 "reportopts" $ makeReportQuery rspec' reportspan
+    (reportspan, colspans) = reportSpan j rspec'
+    rspec = dbg3 "reportopts" $ makeReportQuery rspec' reportspan
 
     -- Group postings into their columns.
-    colps = dbg5 "colps" $ getPostingsByColumn rspec j priceoracle reportspan
+    colps = dbg5 "colps" $ getPostingsByColumn rspec j priceoracle colspans
 
     -- The matched postings with a starting balance. All of these should appear
     -- in the report, even if they have no postings during the report period.
@@ -240,14 +240,13 @@ makeReportQuery rspec reportspan
     dateqcons        = if date2_ (_rsReportOpts rspec) then Date2 else Date
 
 -- | Group postings, grouped by their column
-getPostingsByColumn :: ReportSpec -> Journal -> PriceOracle -> DateSpan -> [(DateSpan, [Posting])]
-getPostingsByColumn rspec j priceoracle reportspan =
+getPostingsByColumn :: ReportSpec -> Journal -> PriceOracle -> [DateSpan] -> [(DateSpan, [Posting])]
+getPostingsByColumn rspec j priceoracle colspans =
     groupByDateSpan True getDate colspans ps
   where
     -- Postings matching the query within the report period.
     ps = dbg5 "getPostingsByColumn" $ getPostings rspec j priceoracle
     -- The date spans to be included as report columns.
-    colspans = dbg3 "colspans" $ splitSpan (interval_ $ _rsReportOpts rspec) reportspan
     getDate = postingDateOrDate2 (whichDate (_rsReportOpts rspec))
 
 -- | Gather postings matching the query within the report period.

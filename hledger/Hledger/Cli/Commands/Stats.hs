@@ -48,8 +48,7 @@ stats opts@CliOpts{reportspec_=rspec, progstarttime_} j = do
   let today = _rsDay rspec
       q = _rsQuery rspec
       l = ledgerFromJournal q j
-      reportspan = ledgerDateSpan l `spanDefaultsFrom` queryDateSpan False q
-      intervalspans = splitSpan (interval_ $ _rsReportOpts rspec) reportspan
+      intervalspans = snd $ reportSpanBothDates j rspec
       showstats = showLedgerStats l today
       (ls, txncounts) = unzip $ map showstats intervalspans
       numtxns = sum txncounts

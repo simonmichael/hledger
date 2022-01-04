@@ -136,7 +136,7 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
             _          -> showDateSpan requestedspan
           where
             enddates = map (addDays (-1)) . mapMaybe spanEnd $ cbrDates cbr  -- these spans will always have a definite end date
-            requestedspan = reportSpan j rspec
+            requestedspan = fst $ reportSpan j rspec
 
         -- when user overrides, add an indication to the report title
         -- Do we need to deal with overridden BalanceCalculation?
