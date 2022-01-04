@@ -596,10 +596,10 @@ journalApplyValuationFromOptsWith rspec@ReportSpec{_rsReportOpts=ropts} j priceo
     -- Find the end of the period containing this posting
     periodEnd  = addDays (-1) . fromMaybe err . mPeriodEnd . postingDate
     mPeriodEnd = case interval_ ropts of
-        NoInterval -> const . spanEnd $ reportSpan j rspec
+        NoInterval -> const . spanEnd . fst $ reportSpan j rspec
         _          -> spanEnd <=< latestSpanContaining (historical : spans)
     historical = DateSpan Nothing $ spanStart =<< headMay spans
-    spans = splitSpan (interval_ ropts) $ reportSpanBothDates j rspec
+    spans = snd $ reportSpanBothDates j rspec
     styles = journalCommodityStyles j
     err = error "journalApplyValuationFromOpts: expected all spans to have an end date"
 
@@ -653,18 +653,20 @@ queryFromFlags ReportOpts{..} = simplifyQuery $ And flagsq
 -- options or queries, or otherwise the earliest and latest transaction or
 -- posting dates in the journal. If no dates are specified by options/queries
 -- and the journal is empty, returns the null date span.
-reportSpan :: Journal -> ReportSpec -> DateSpan
+-- Also return the intervals if they are requested.
+reportSpan :: Journal -> ReportSpec -> (DateSpan, [DateSpan])
 reportSpan = reportSpanHelper False
 
 -- | Like reportSpan, but uses both primary and secondary dates when calculating
 -- the span.
-reportSpanBothDates :: Journal -> ReportSpec -> DateSpan
+reportSpanBothDates :: Journal -> ReportSpec -> (DateSpan, [DateSpan])
 reportSpanBothDates = reportSpanHelper True
 
 -- | A helper for reportSpan, which takes a Bool indicating whether to use both
 -- primary and secondary dates.
-reportSpanHelper :: Bool -> Journal -> ReportSpec -> DateSpan
-reportSpanHelper bothdates j ReportSpec{_rsQuery=query, _rsReportOpts=ropts} = reportspan
+reportSpanHelper :: Bool -> Journal -> ReportSpec -> (DateSpan, [DateSpan])
+reportSpanHelper bothdates j ReportSpec{_rsQuery=query, _rsReportOpts=ropts} =
+    (reportspan, intervalspans)
   where
     -- The date span specified by -b/-e/-p options and query args if any.
     requestedspan  = dbg3 "requestedspan" $ if bothdates then queryDateSpan' query else queryDateSpan (date2_ ropts) query
@@ -688,10 +690,10 @@ reportSpanHelper bothdates j ReportSpec{_rsQuery=query, _rsReportOpts=ropts} = r
                                               (spanEnd =<< lastMay intervalspans)
 
 reportStartDate :: Journal -> ReportSpec -> Maybe Day
-reportStartDate j = spanStart . reportSpan j
+reportStartDate j = spanStart . fst . reportSpan j
 
 reportEndDate :: Journal -> ReportSpec -> Maybe Day
-reportEndDate j = spanEnd . reportSpan j
+reportEndDate j = spanEnd . fst . reportSpan j
 
 -- Some pure alternatives to the above. XXX review/clean up
 

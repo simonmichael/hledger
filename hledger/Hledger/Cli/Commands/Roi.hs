@@ -81,25 +81,14 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportO
   pnlQuery         <- makeQuery "pnl"
 
   let
-    trans = dbg3 "investments" $ jtxns $ filterJournalTransactions investmentsQuery j
-
-    journalSpan =
-        let dates = map (transactionDateOrDate2 wd) trans in
-        DateSpan (Just $ minimum dates) (Just $ addDays 1 $ maximum dates)
-
-    requestedSpan = periodAsDateSpan period_
-    requestedInterval = interval_
-
-    wholeSpan = dbg3 "wholeSpan" $ spanDefaultsFrom requestedSpan journalSpan
+    filteredj = filterJournalTransactions investmentsQuery j
+    trans = dbg3 "investments" $ jtxns filteredj
 
   when (null trans) $ do
     putStrLn "No relevant transactions found. Check your investments query"
     exitFailure
 
-  let spans = case requestedInterval of
-        NoInterval -> [wholeSpan]
-        interval ->
-            splitSpan interval wholeSpan
+  let spans = snd $ reportSpan filteredj rspec
 
   let priceDirectiveDates = dbg3 "priceDirectiveDates" $ map pddate $ jpricedirectives j
 

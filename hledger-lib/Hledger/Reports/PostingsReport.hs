@@ -63,7 +63,7 @@ type SummaryPosting = (Posting, Period)
 postingsReport :: ReportSpec -> Journal -> PostingsReport
 postingsReport rspec@ReportSpec{_rsReportOpts=ropts@ReportOpts{..}} j = items
     where
-      reportspan  = reportSpanBothDates j rspec
+      (reportspan, colspans) = reportSpanBothDates j rspec
       whichdate   = whichDate ropts
       mdepth      = queryDepth $ _rsQuery rspec
       multiperiod = interval_ /= NoInterval
@@ -76,7 +76,7 @@ postingsReport rspec@ReportSpec{_rsReportOpts=ropts@ReportOpts{..}} j = items
         | multiperiod = [(p, Just period) | (p, period) <- summariseps reportps]
         | otherwise   = [(p, Nothing) | p <- reportps]
         where
-          summariseps = summarisePostingsByInterval interval_ whichdate mdepth showempty reportspan
+          summariseps = summarisePostingsByInterval whichdate mdepth showempty colspans
           showempty = empty_ || average_
 
       -- Posting report items ready for display.
@@ -164,15 +164,12 @@ mkpostingsReportItem showdate showdesc wd mperiod p b =
 -- | Convert a list of postings into summary postings, one per interval,
 -- aggregated to the specified depth if any.
 -- Each summary posting will have a non-Nothing interval end date.
-summarisePostingsByInterval :: Interval -> WhichDate -> Maybe Int -> Bool -> DateSpan -> [Posting] -> [SummaryPosting]
-summarisePostingsByInterval interval wd mdepth showempty reportspan =
+summarisePostingsByInterval :: WhichDate -> Maybe Int -> Bool -> [DateSpan] -> [Posting] -> [SummaryPosting]
+summarisePostingsByInterval wd mdepth showempty colspans =
     concatMap (\(s,ps) -> summarisePostingsInDateSpan s wd mdepth showempty ps)
     -- Group postings into their columns. We try to be efficient, since
     -- there can possibly be a very large number of intervals (cf #1683)
     . groupByDateSpan showempty (postingDateOrDate2 wd) colspans
-  where
-    -- The date spans to be included as report columns.
-    colspans = splitSpan interval reportspan
 
 -- | Given a date span (representing a report interval) and a list of
 -- postings within it, aggregate the postings into one summary posting per
@@ -377,7 +374,7 @@ tests_PostingsReport = testGroup "PostingsReport" [
     -}
 
   ,testCase "summarisePostingsByInterval" $
-    summarisePostingsByInterval (Quarters 1) PrimaryDate Nothing False (DateSpan Nothing Nothing) [] @?= []
+    summarisePostingsByInterval PrimaryDate Nothing False [DateSpan Nothing Nothing] [] @?= []
 
   -- ,tests_summarisePostingsInDateSpan = [
     --  "summarisePostingsInDateSpan" ~: do
