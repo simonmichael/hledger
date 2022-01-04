@@ -332,14 +332,14 @@ tests_PostingsReport = testGroup "PostingsReport" [
         let periodexpr `gives` dates = do
               j' <- samplejournal
               registerdates (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j') `is` dates
-                  where opts = defreportopts{period_=maybePeriod date1 periodexpr}
+                  where opts = defreportopts{period_=Just $ parsePeriodExpr' date1 periodexpr}
         ""     `gives` ["2008/01/01","2008/06/01","2008/06/02","2008/06/03","2008/12/31"]
         "2008" `gives` ["2008/01/01","2008/06/01","2008/06/02","2008/06/03","2008/12/31"]
         "2007" `gives` []
         "june" `gives` ["2008/06/01","2008/06/02","2008/06/03"]
         "monthly" `gives` ["2008/01/01","2008/06/01","2008/12/01"]
         "quarterly" `gives` ["2008/01/01","2008/04/01","2008/10/01"]
-        let opts = defreportopts{period_=maybePeriod date1 "yearly"}
+        let opts = defreportopts{period_=Just $ parsePeriodExpr' date1 "yearly"}
         (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` unlines
          ["2008/01/01 - 2008/12/31         assets:bank:saving               $1           $1"
          ,"                                assets:cash                     $-2          $-1"
@@ -349,9 +349,9 @@ tests_PostingsReport = testGroup "PostingsReport" [
          ,"                                income:salary                   $-1          $-1"
          ,"                                liabilities:debts                $1            0"
          ]
-        let opts = defreportopts{period_=maybePeriod date1 "quarterly"}
+        let opts = defreportopts{period_=Just $ parsePeriodExpr' date1 "quarterly"}
         registerdates (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` ["2008/01/01","2008/04/01","2008/10/01"]
-        let opts = defreportopts{period_=maybePeriod date1 "quarterly",empty_=True}
+        let opts = defreportopts{period_=Just $ parsePeriodExpr' date1 "quarterly",empty_=True}
         registerdates (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` ["2008/01/01","2008/04/01","2008/07/01","2008/10/01"]
 
       ]
