@@ -967,18 +967,14 @@ reportingintervalp = choice'
                                               (toPermutation $ nth <* skipNonNewlineSpaces)
 
     -- Parse any of several variants of a basic interval, eg "daily", "every day", "every N days".
-    tryinterval :: String -> String -> (Int -> Interval) -> TextParser m Interval
+    tryinterval :: Text -> Text -> (Int -> Interval) -> TextParser m Interval
     tryinterval singular compact intcons = intcons <$> choice'
-        [ 1 <$ string' compact'
+        [ 1 <$ string' compact
         , string' "every" *> skipNonNewlineSpaces *> choice
-            [ 1 <$ string' singular'
-            , decimal <* skipNonNewlineSpaces <* string' plural'
+            [ 1 <$ string' singular
+            , decimal <* skipNonNewlineSpaces <* string' (singular <> "s")
             ]
         ]
-      where
-        compact'  = T.pack compact
-        singular' = T.pack singular
-        plural'   = T.pack $ singular ++ "s"
 
 periodexprdatespanp :: Day -> TextParser m DateSpan
 periodexprdatespanp rdate = choice $ map try [
