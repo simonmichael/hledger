@@ -67,6 +67,7 @@ module Hledger.Data.Dates (
   latestSpanContaining,
   smartdate,
   splitSpan,
+  spansFromBoundaries,
   groupByDateSpan,
   fixSmartDate,
   fixSmartDateStr,
@@ -207,51 +208,47 @@ spansSpan spans = DateSpan (spanStart =<< headMay spans) (spanEnd =<< lastMay sp
 --
 splitSpan :: Interval -> DateSpan -> [DateSpan]
 splitSpan _ (DateSpan Nothing Nothing) = [DateSpan Nothing Nothing]
-splitSpan _ s | isEmptySpan s = []
-splitSpan NoInterval     s = [s]
-splitSpan (Days n)       s = splitspan startofday     (applyN n nextday)     s
-splitSpan (Weeks n)      s = splitspan startofweek    (applyN n nextweek)    s
-splitSpan (Months n)     s = splitspan startofmonth   (applyN n nextmonth)   s
-splitSpan (Quarters n)   s = splitspan startofquarter (applyN n nextquarter) s
-splitSpan (Years n)      s = splitspan startofyear    (applyN n nextyear)    s
-splitSpan (DayOfMonth n) s = splitspan (nthdayofmonthcontaining n) (nthdayofmonth n . nextmonth) s
-splitSpan (WeekdayOfMonth n wd) s = splitspan (nthweekdayofmonthcontaining n wd) (advancetonthweekday n wd . nextmonth) s
-splitSpan (DaysOfWeek []) s = [s]  -- shouldn't happen in parser but for completeness
-splitSpan (DaysOfWeek days@(n:_)) ds
-  | DateSpan Nothing  (Just e)  <- ds = split (DateSpan (Just $ start e) (Just $ nextday $ start e))
-  | DateSpan (Just s) Nothing  <- ds = split (DateSpan (Just $ start s) (Just $ nextday $ start s))
-  | DateSpan (Just s) (Just e) <- ds =
-      if s == e then [ds] else split (DateSpan (Just $ start s) (Just e))
+splitSpan _ ds | isEmptySpan ds = []
+splitSpan _ ds@(DateSpan (Just s) (Just e)) | s == e = [ds]
+splitSpan NoInterval      ds = [ds]
+splitSpan (Days n)        ds = splitspan startofday     addDays n                    ds
+splitSpan (Weeks n)       ds = splitspan startofweek    addDays (7*n)                ds
+splitSpan (Months n)      ds = splitspan startofmonth   addGregorianMonthsClip n     ds
+splitSpan (Quarters n)    ds = splitspan startofquarter addGregorianMonthsClip (3*n) ds
+splitSpan (Years n)       ds = splitspan startofyear    addGregorianYearsClip n      ds
+splitSpan (DayOfMonth n)  ds = splitspan (nthdayofmonthcontaining n)  addGregorianMonthsClip 1 ds
+splitSpan (DayOfYear m n) ds = splitspan (nthdayofyearcontaining m n) addGregorianYearsClip 1 ds
+splitSpan (WeekdayOfMonth n wd) ds = splitspan (nthweekdayofmonthcontaining n wd) advancemonths 1 ds
   where
-    start = nthdayofweekcontaining n
-
-    wheel = (\x -> zipWith (-) (tail x) x) . concat . zipWith fmap (fmap (+) [0,7..]) . repeat $ days
-
-    split = splitspan' (repeat startofday) (fmap (`applyN` nextday) wheel)
-
-splitSpan (DayOfYear m n) s = splitspan (nthdayofyearcontaining m n) (applyN (n-1) nextday . applyN (m-1) nextmonth . nextyear) s
--- splitSpan (WeekOfYear n)    s = splitspan startofweek    (applyN n nextweek)    s
--- splitSpan (MonthOfYear n)   s = splitspan startofmonth   (applyN n nextmonth)   s
--- splitSpan (QuarterOfYear n) s = splitspan startofquarter (applyN n nextquarter) s
+    advancemonths 0 = id
+    advancemonths w = advancetonthweekday n wd . startofmonth . addGregorianMonthsClip w
+splitSpan (DaysOfWeek [])         ds = [ds]
+splitSpan (DaysOfWeek days@(n:_)) ds = spansFromBoundaries e bdrys
+  where
+    (s, e) = dateSpanSplitLimits (nthdayofweekcontaining n) nextday ds
+    bdrys = concatMap (flip map starts . addDays) [0,7..]
+    -- The first representative of each weekday
+    starts = map (\d -> addDays (toInteger $ d - n) $ nthdayofweekcontaining n s) days
 
 -- Split the given span using the provided helper functions:
 -- start is applied to the span's start date to get the first sub-span's start date
--- next is applied to a sub-span's start date to get the next sub-span's start date
-splitspan :: (Day -> Day) -> (Day -> Day) -> DateSpan -> [DateSpan]
-splitspan _ _ (DateSpan Nothing Nothing) = []
-splitspan start next (DateSpan Nothing (Just e)) = splitspan start next (DateSpan (Just $ start e) (Just $ next $ start e))
-splitspan start next (DateSpan (Just s) Nothing) = splitspan start next (DateSpan (Just $ start s) (Just $ next $ start s))
-splitspan start next span@(DateSpan (Just s) (Just e))
-    | s == e = [span]
-    | otherwise = splitspan' (repeat start) (repeat next) span
+-- addInterval is applied to an integer n (multiplying it by mult) and the span's start date to get the nth sub-span's start date
+splitspan :: (Day -> Day) -> (Integer -> Day -> Day) -> Int -> DateSpan -> [DateSpan]
+splitspan start addInterval mult ds = spansFromBoundaries e bdrys
+  where
+    (s, e) = dateSpanSplitLimits start (addInterval $ toInteger mult) ds
+    bdrys = mapM (addInterval . toInteger) [0,mult..] $ start s
 
-splitspan' :: [Day -> Day] -> [Day -> Day] -> DateSpan -> [DateSpan]
-splitspan' (start:ss) (next:ns) (DateSpan (Just s) (Just e))
-    | s >= e = []
-    | otherwise = DateSpan (Just subs) (Just sube) : splitspan' ss ns (DateSpan (Just sube) (Just e))
-    where subs = start s
-          sube = next subs
-splitspan' _ _ _ = error' "won't happen, avoids warnings"  -- PARTIAL:
+-- | Fill in missing endpoints for calculating 'splitSpan'.
+dateSpanSplitLimits :: (Day -> Day) -> (Day -> Day) -> DateSpan -> (Day, Day)
+dateSpanSplitLimits start _    (DateSpan (Just s) (Just e)) = (start s, e)
+dateSpanSplitLimits start next (DateSpan (Just s) Nothing)  = (start s, next $ start s)
+dateSpanSplitLimits start next (DateSpan Nothing  (Just e)) = (start e, next $ start e)
+dateSpanSplitLimits _     _    (DateSpan Nothing   Nothing) = error "dateSpanSplitLimits: Should not be nulldatespan"  -- PARTIAL: This case should have been handled in splitSpan
+
+-- | Construct a list of 'DateSpan's from a list of boundaries, which fit within a given range.
+spansFromBoundaries :: Day -> [Day] -> [DateSpan]
+spansFromBoundaries e bdrys = zipWith (DateSpan `on` Just) (takeWhile (< e) bdrys) $ drop 1 bdrys
 
 -- | Count the days in a DateSpan, or if it is open-ended return Nothing.
 daysInSpan :: DateSpan -> Maybe Integer
@@ -1069,8 +1066,8 @@ tests_Dates = testGroup "Dates"
             ]
 
   , testCase "match dayOfWeek" $ do
-      let dayofweek n s = splitspan (nthdayofweekcontaining n) (applyN (n-1) nextday . nextweek) s
-          match ds day = dayofweek day ds == splitSpan (DaysOfWeek [day]) ds @?= True
+      let dayofweek n s = splitspan (nthdayofweekcontaining n) (\w -> (if w == 0 then id else applyN (n-1) nextday . applyN (fromInteger w) nextweek)) 1 s
+          match ds day = splitSpan (DaysOfWeek [day]) ds @?= dayofweek day ds
           ys2021 = fromGregorian 2021 01 01
           ye2021 = fromGregorian 2021 12 31
           ys2022 = fromGregorian 2022 01 01
