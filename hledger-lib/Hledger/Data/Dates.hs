@@ -74,7 +74,6 @@ module Hledger.Data.Dates (
   fixSmartDateStrEither',
   yearp,
   daysInSpan,
-  maybePeriod,
 
   tests_Dates
 )
@@ -373,9 +372,6 @@ parsePeriodExpr' :: Day -> Text -> (Interval, DateSpan)
 parsePeriodExpr' refdate s =
   either (error' . ("failed to parse:" ++) . customErrorBundlePretty) id $  -- PARTIAL:
   parsePeriodExpr refdate s
-
-maybePeriod :: Day -> Text -> Maybe (Interval,DateSpan)
-maybePeriod refdate = either (const Nothing) Just . parsePeriodExpr refdate
 
 -- | Show a DateSpan as a human-readable pseudo-period-expression string.
 -- dateSpanAsText :: DateSpan -> String
