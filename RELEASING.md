@@ -193,8 +193,8 @@ In release branch:
 - push to CI branches to test and to build release binaries
   - `git push -f origin master:ci-windows`  (or magit `P -f e origin/ci-windows`)
   - `git push -f origin master:ci-mac`
-  - `git push -f origin master:ci-linux`
-  - `git push -f origin master:ci-linux-static` (at release time only))
+  - `git push -f origin master:ci-linux-x64`
+  - `git push -f origin master:ci-linux-arm32v7` (slow, unreliable)
   - Tips:
     - build these release binaries at the very last possible moment
     - last commit should be a notable one - not docs only, not beginning with ;
