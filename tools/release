@@ -1,0 +1,126 @@
+#!/usr/bin/env bash
+# * release
+# ** Usage
+
+set -e
+
+usage() {
+    cat <<EOF
+release - Help prepare a hledger release.
+Commands:
+tools/release              - show this help
+tools/release prep VERSION - prepare this release on today's date
+tools/release bin          - push the current branch to CI to generate binaries
+
+prep does the following:
+- autocreates and switches to the appropriate release branch
+- updates all hledger package versions
+- updates all built-in docs
+- updates all changelogs
+VERSION is major (1.25), minor (1.25.1), fixup (1.25.1.1) or preview (1.25.99.1)
+(see RELEASING.md).
+
+Setting PAUSE=1, ECHO=1, and/or DRY=1 will cause commands to 
+be run one at a time, logged, or logged without running.
+EOF
+    exit
+}
+
+# ** hledger version numbers
+
+# First 0-2 parts of a dotted version number.
+versionMajorPart() {
+  echo "$1" | sed -E 's/([[:digit:]]+(\.[[:digit:]]+)?).*/\1/'  # seriously...
+}
+
+# Third part of a dotted version number, if any.
+versionMinorPart() {
+  echo "$1" | sed -E -e 's/^[[:digit:]]+(\.[[:digit:]]+(\.)?)?//' -e 's/^([[:digit:]]+).*/\1/'
+}
+
+# Fourth part of a dotted version number, if any.
+versionFourthPart() {
+  echo "$1" | sed -E -e 's/^[[:digit:]]+(\.[[:digit:]]+(\.[[:digit:]]+(\.)?))//' -e 's/^([[:digit:]]+).*/\1/'
+}
+
+# Does this dotted version number have a .99 third part and no fourth part ?
+versionIsDev() {
+  V="$1"
+  test "$(versionMinorPart "$V")" = 99 -a -z "$(versionFourthPart "$V")"
+}
+
+# Does this dotted version number have a .99 third part and a fourth part ?
+versionIsPreview() {
+  V="$1"
+  test "$(versionMinorPart "$V")" = 99 -a -n "$(versionFourthPart "$V")"
+}
+
+# Increment a major version number to the next.
+majorVersionIncrement() {
+  python3 -c "print($1 + 0.01)"
+}
+
+# Appropriate release branch name for the given version number.
+versionReleaseBranch() {
+  V="$1"
+  MAJOR=$(versionMajorPart "$V")
+  if versionIsDev "$V"; then
+    echo "$V is not a releasable version" >&2
+    exit 1
+  elif versionIsPreview "$V"; then
+    echo "$(majorVersionIncrement "$MAJOR")-branch"
+  else
+    echo "$MAJOR-branch"
+  fi
+}
+
+# ** git
+
+# Does the named branch exist in this git repo ?
+gitBranchExists() {
+  B="$1"
+  git branch -l "$B" | grep -q "$B"
+}
+
+# Switch to the named git branch, creating it if it doesn't exist.
+gitSwitchAutoCreate() {
+  B="$1"
+  if gitBranchExists "$B"; then
+    git switch "$B"
+  else
+    git switch -c "$B"
+  fi
+}
+
+# ** main
+
+# Run a command with optional logging ($ECHO), dry-running ($DRY) and pausing ($PAUSE).
+run() {
+    if [[ -n $PAUSE ]]; then read -rp "pausing, next is: $*"
+    elif [[ -n $ECHO || -n $DRY ]]; then echo "$@"
+    fi
+    if [[ -z $DRY ]]; then "$@"; fi
+}
+
+# Create/switch to appropriate release branch and prepare for release.
+prep() {
+  VERSION="$1"
+  [[ -z "$VERSION" ]] && usage
+  BRANCH=$(versionReleaseBranch "$VERSION")
+  COMMIT="-c"
+  run gitSwitchAutoCreate "$BRANCH"
+  run ./Shake setversion "$VERSION" $COMMIT
+  run ./Shake cmdhelp $COMMIT
+  run ./Shake mandates
+  run ./Shake manuals $COMMIT
+  run ./Shake changelogs $COMMIT
+}
+
+# Push the current branch to the CI branches that generate platform binaries.
+bin() {
+  run git push -f origin master:ci-windows
+  run git push -f origin master:ci-mac
+  run git push -f origin master:ci-linux-x64
+}
+
+if declare -f "$1" > /dev/null; then "$@"; else usage; fi
