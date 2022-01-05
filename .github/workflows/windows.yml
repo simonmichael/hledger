@@ -1,7 +1,7 @@
 # Runs on any push to ci-windows, and weekly on master.
-
-# Builds all modules optimised on windows,
-# and uploads a binaries artifact.
+# Produces optimised windows binaries,
+# using the default GHC version in stack.yaml.
+# Currently runs no tests.
 
 name: windows CI binaries
 
@@ -44,14 +44,6 @@ jobs:
           && tools/commitlint  $RANGE \
           || ( echo "could not identify commits, not checking them" )
       #   || ( echo "could not identify commits, checking last $NUM instead:"; tools/commitlint -$NUM )
-
-    - name: Skip remaining CI steps if latest commit message begins with ;
-      shell: bash
-      run: |
-        echo "git log -1 --pretty='%s' ${GITHUB_HEAD_REF:+origin/$GITHUB_HEAD_REF} >> $$.gitlog"
-        (git log -1 --pretty='%s' ${GITHUB_HEAD_REF:+origin/$GITHUB_HEAD_REF} >> $$.gitlog \
-          && (grep -qE '^ *;' $$.gitlog || echo "CONTINUE=true" >> $GITHUB_ENV)) \
-          || ( echo "could not identify commit range, continuing CI steps"; echo "CONTINUE=true" >> $GITHUB_ENV )
 
     # things to be cached/restored:
 
