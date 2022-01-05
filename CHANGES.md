@@ -9,7 +9,7 @@
 General changes in the hledger project (and notable all-package releases).
 For package-specific changes and minor releases, see the hledger package changelogs.
 
-# 0317f71c0
+# 9a611036f
 
 Features
 
@@ -25,9 +25,15 @@ Software
 
 Docs
 
+- RELEASING: new glossary, process updates
+
 - examples: multicurrency.journal
 
 Process
+
+- tools: releaseprep script
+
+- Make HLS work on tools/*
 
 - Move hie.yaml out of the way; for all except arm mac users, hls
   probably works better without it.
