@@ -124,3 +124,9 @@ bin() {
 }
 
 if declare -f "$1" > /dev/null; then "$@"; else usage; fi
+
+# ** notes
+# *** rerunning 
+# **** creates empty doc update commits
+# **** creates duplicate changelog headings
+# ***** CHANGES.md's version "1.24.99.1" is not yet tagged, can't list changes

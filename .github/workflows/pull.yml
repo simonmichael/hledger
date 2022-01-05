@@ -1,15 +1,8 @@
-# Runs on notable pull requests against master,
-# and also weekly on master.
+# Runs on notable pull requests against master, and weekly on master.
+# Runs unit/doc/functional/haddock/bench tests and produces optimised dynamic x64 linux binaries,
+# using the oldest supported GHC version (8.6).
 
-# Builds all modules optimised and runs
-# unit/doc/functional/haddock/benchmark tests on linux,
-# using the oldest supported GHC version (only, as a compromise to
-# reduce carbon emissions. Some of the other versions are exercised by
-# the other workflows.)
-# Currently does not upload a binaries artifact.
-
-# This is the "master" workflow on which the others are based, 
-# with the most detailed notes.
+# This was the original workflow, and may have the most detailed notes.
 
 name: pull request CI
 

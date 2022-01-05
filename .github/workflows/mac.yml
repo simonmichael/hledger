@@ -1,6 +1,6 @@
 # Runs on any push to ci-mac, and weekly on master.
 # Produces optimised mac binaries and runs unit/doc/functional tests,
-# using the GHC version below.
+# using the default stack.yaml's GHC version.
 
 name: mac CI binaries
 

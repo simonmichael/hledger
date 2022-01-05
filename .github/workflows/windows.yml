@@ -1,6 +1,6 @@
 # Runs on any push to ci-windows, and weekly on master.
 # Produces optimised windows binaries,
-# using the default GHC version in stack.yaml.
+# using the default stack.yaml's GHC version.
 # Currently runs no tests.
 
 name: windows CI binaries

@@ -1,3 +1,8 @@
+# Runs on any push to ci-linux-x64.
+# Produces optimised static x64 linux  binaries,
+# using the GHC version below (9.0.1) and cabal.
+# Currently runs no tests.
+
 name: linux-x64 CI binaries
 
 on:
