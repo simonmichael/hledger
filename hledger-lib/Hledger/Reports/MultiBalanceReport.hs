@@ -47,6 +47,8 @@ import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, mapMaybe)
 import Data.Ord (Down(..))
 import Data.Semigroup (sconcat)
+import Data.Set (Set)
+import qualified Data.Set as Set
 import Data.Time.Calendar (fromGregorian)
 import Safe (lastDef, minimumMay)
 
@@ -102,16 +104,16 @@ type ClippedAccountName = AccountName
 -- by the balance command (in multiperiod mode) and (via compoundBalanceReport)
 -- by the bs/cf/is commands.
 multiBalanceReport :: ReportSpec -> Journal -> MultiBalanceReport
-multiBalanceReport rspec j = multiBalanceReportWith rspec j (journalPriceOracle infer j)
+multiBalanceReport rspec j = multiBalanceReportWith rspec j (journalPriceOracle infer j) mempty
   where infer = infer_prices_ $ _rsReportOpts rspec
 
--- | A helper for multiBalanceReport. This one takes an extra argument,
--- a PriceOracle to be used for looking up market prices. Commands which
--- run multiple reports (bs etc.) can generate the price oracle just
--- once for efficiency, passing it to each report by calling this
--- function directly.
-multiBalanceReportWith :: ReportSpec -> Journal -> PriceOracle -> MultiBalanceReport
-multiBalanceReportWith rspec' j priceoracle = report
+-- | A helper for multiBalanceReport. This one takes some extra arguments,
+-- a 'PriceOracle' to be used for looking up market prices, and a set of
+-- 'AccountName's which should not be elided. Commands which run multiple
+-- reports (bs etc.) can generate the price oracle just once for efficiency,
+-- passing it to each report by calling this function directly.
+multiBalanceReportWith :: ReportSpec -> Journal -> PriceOracle -> Set AccountName -> MultiBalanceReport
+multiBalanceReportWith rspec' j priceoracle unelidableaccts = report
   where
     -- Queries, report/column dates.
     reportspan = dbg3 "reportspan" $ reportSpan j rspec'
@@ -127,7 +129,7 @@ multiBalanceReportWith rspec' j priceoracle = report
 
     -- Generate and postprocess the report, negating balances and taking percentages if needed
     report = dbg4 "multiBalanceReportWith" $
-      generateMultiBalanceReport rspec j priceoracle colps startbals
+      generateMultiBalanceReport rspec j priceoracle unelidableaccts colps startbals
 
 -- | Generate a compound balance report from a list of CBCSubreportSpec. This
 -- shares postings between the subreports.
@@ -159,7 +161,7 @@ compoundBalanceReportWith rspec' j priceoracle subreportspecs = cbr
             ( cbcsubreporttitle
             -- Postprocess the report, negating balances and taking percentages if needed
             , cbcsubreporttransform $
-                generateMultiBalanceReport rspecsub j priceoracle colps' startbals'
+                generateMultiBalanceReport rspecsub j priceoracle mempty colps' startbals'
             , cbcsubreportincreasestotal
             )
           where
@@ -343,17 +345,17 @@ calculateReportMatrix rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle startb
 -- | Lay out a set of postings grouped by date span into a regular matrix with rows
 -- given by AccountName and columns by DateSpan, then generate a MultiBalanceReport
 -- from the columns.
-generateMultiBalanceReport :: ReportSpec -> Journal -> PriceOracle
+generateMultiBalanceReport :: ReportSpec -> Journal -> PriceOracle -> Set AccountName
                            -> [(DateSpan, [Posting])] -> HashMap AccountName Account
                            -> MultiBalanceReport
-generateMultiBalanceReport rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle colps startbals =
+generateMultiBalanceReport rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle unelidableaccts colps startbals =
     report
   where
     -- Process changes into normal, cumulative, or historical amounts, plus value them
     matrix = calculateReportMatrix rspec j priceoracle startbals colps
 
     -- All account names that will be displayed, possibly depth-clipped.
-    displaynames = dbg5 "displaynames" $ displayedAccounts rspec matrix
+    displaynames = dbg5 "displaynames" $ displayedAccounts rspec unelidableaccts matrix
 
     -- All the rows of the report.
     rows = dbg5 "rows" . (if invert_ ropts then map (fmap maNegate) else id)  -- Negate amounts if applicable
@@ -394,9 +396,11 @@ buildReportRows ropts displaynames =
 
 -- | Calculate accounts which are to be displayed in the report, as well as
 -- their name and depth
-displayedAccounts :: ReportSpec -> HashMap AccountName (Map DateSpan Account)
+displayedAccounts :: ReportSpec
+                  -> Set AccountName
+                  -> HashMap AccountName (Map DateSpan Account)
                   -> HashMap AccountName DisplayName
-displayedAccounts ReportSpec{_rsQuery=query,_rsReportOpts=ropts} valuedaccts
+displayedAccounts ReportSpec{_rsQuery=query,_rsReportOpts=ropts} unelidableaccts valuedaccts
     | depth == 0 = HM.singleton "..." $ DisplayName "..." "..." 1
     | otherwise  = HM.mapWithKey (\a _ -> displayedName a) displayedAccts
   where
@@ -421,7 +425,8 @@ displayedAccounts ReportSpec{_rsQuery=query,_rsReportOpts=ropts} valuedaccts
     -- Accounts interesting for their own sake
     isInteresting name amts =
         d <= depth                                 -- Throw out anything too deep
-        && ( (empty_ ropts && keepWhenEmpty amts)  -- Keep empty accounts when called with --empty
+        && ( name `Set.member` unelidableaccts     -- Unelidable accounts should be kept unless too deep
+           ||(empty_ ropts && keepWhenEmpty amts)  -- Keep empty accounts when called with --empty
            || not (isZeroRow balance amts)         -- Keep everything with a non-zero balance in the row
            )
       where
