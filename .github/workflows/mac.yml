@@ -32,24 +32,6 @@ jobs:
       with: 
         fetch-depth: 0        
 
-    # keep synced in all workflows which do this
-    - name: Check commit messages
-      # For a PR, the range will be: master..origin/$GITHUB_HEAD_REF
-      # For a push it will be: $BEFORE..
-      # For a force push, BEFORE is the previous HEAD, and on github (though not locally) this is an "invalid revision range".
-      # In this and any case where the range is invalid, we'll just skip the check, to avoid false positives
-      # related: https://stackoverflow.com/questions/64708371/how-to-run-github-workflow-on-every-commit-of-a-push
-      env:
-        BEFORE: ${{ github.event.before }}
-        NUM:    5
-      shell: bash
-      run: |
-        RANGE=${BEFORE:-origin/master}..${GITHUB_HEAD_REF:+origin/$GITHUB_HEAD_REF}
-        git rev-list --quiet $RANGE \
-          && tools/commitlint  $RANGE \
-          || ( echo "could not identify commits, not checking them" )
-      #   || ( echo "could not identify commits, checking last $NUM instead:"; tools/commitlint -$NUM )
-
     # things to be cached/restored:
 
     - name: Cache stack global package db
