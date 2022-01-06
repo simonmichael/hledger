@@ -118,9 +118,9 @@ prep() {
 
 # Push the current branch to the CI branches that generate platform binaries.
 bin() {
-  run git push -f origin master:ci-windows
-  run git push -f origin master:ci-mac
-  run git push -f origin master:ci-linux-x64
+  run git push -f origin HEAD:ci-windows
+  run git push -f origin HEAD:ci-mac
+  run git push -f origin HEAD:ci-linux-x64
 }
 
 if declare -f "$1" > /dev/null; then "$@"; else usage; fi
