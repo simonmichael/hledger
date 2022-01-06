@@ -27,6 +27,9 @@ jobs:
       with: 
         fetch-depth: 0        
 
+    - name: Confirm all remaining steps should run
+      run: echo "CONTINUE=true" >> $GITHUB_ENV
+
     # things to be cached/restored:
 
     - name: Cache stack global package db
