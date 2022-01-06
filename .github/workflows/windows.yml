@@ -16,9 +16,9 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-    # defaults:
-    #   run:
-    #     shell: bash
+    defaults:
+      run:
+        shell: bash
     steps:
 
     - name: Check out
@@ -100,7 +100,6 @@ jobs:
       if: env.CONTINUE
 
     # - name: showStuff
-    #   shell: bash
     #   run: |
     #     ls -lFRa /c/users/runneradmin/appdata/roaming/stack
     #     ls -lFRa /c/users/runneradmin/appdata/local/programs/stack
@@ -111,7 +110,6 @@ jobs:
     #   run: echo "::add-path::C:\Users\runneradmin\AppData\Roaming\stack\local\bin"
 
     # - name: Install stack
-    #   shell: bash
     #   run: |
     #     mkdir -p ~/.local/bin
     #     export PATH=~/.local/bin:$PATH
