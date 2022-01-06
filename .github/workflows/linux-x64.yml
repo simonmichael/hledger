@@ -56,14 +56,3 @@ jobs:
       with:
         name: hledger-linux-x64
         path: /tmp/hledger
-
-    - name: Release
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        files: |
-          /tmp/hledger/hledger-linux-x64
-          /tmp/hledger/hledger-web-linux-x64
-          /tmp/hledger/hledger-ui-linux-x64
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
