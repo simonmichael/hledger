@@ -9,7 +9,7 @@
 General changes in the hledger project (and notable all-package releases).
 For package-specific changes and minor releases, see the hledger package changelogs.
 
-# 07e84fde4
+# 56e015c40
 
 Features
 
@@ -42,6 +42,10 @@ Process
   VERSION-branch or (possible future naming) VERSION-release.  Ie,
   major releases from master are no longer allowed; a release branch
   is always required,
+
+- ci: push, pull: clarify, robustify? commitlint step
+
+- ci: win, mac: don't commitlint, let push/pull cover that
 
 - ci: more consistent workflow, branch, binary names
 

@@ -9,7 +9,7 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 757c548c1
+# d82210cea
 
 Features
 
