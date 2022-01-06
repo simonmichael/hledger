@@ -409,7 +409,7 @@ ghci-doctest: $(call def-help,ghci-doctest, start ghci REPL on hledger-lib docte
 	cd hledger-lib; $(STACKGHCI) ghci hledger-lib:test:doctest
 
 ghci-shake: $(call def-help,ghci-shake, start ghci REPL on Shake.hs)
-	stack exec $(SHAKEDEPS) -- ghci Shake.hs
+	$(STACK) exec $(SHAKEDEPS) -- ghci Shake.hs
 
 copy-exe-%: $(call def-help,copy-exe-FOO, copy ~/.local/bin/hledger to hledger-FOO)
 	cp ~/.local/bin/hledger{,-$*}
@@ -418,7 +418,7 @@ copy-exes-%: $(call def-help,copy-exes-FOO, copy ~/.local/bin/hledger* to hledge
 	for EXE in $(BINARIES); do cp ~/.local/bin/$$EXE{,-$*}; done
 
 install-as-%: $(call def-help,install-as-FOO, like stack install but save executables as bin/hledger*-FOO)
-	@stack install --local-bin-path bin
+	@$(STACK) install --local-bin-path bin
 	@printf "\nMoved executables to:\n"
 	@for EXE in $(BINARIES); do mv bin/$$EXE bin/$$EXE-$*; echo "- bin/$$EXE-$*"; done
 
