@@ -82,10 +82,12 @@ budgetReport rspec bopts reportspan j = dbg4 "sortedbudgetreport" budgetreport
       jperiodictxns j
     actualj = journalWithBudgetAccountNames budgetedaccts showunbudgeted j
     budgetj = journalAddBudgetGoalTransactions bopts ropts reportspan j
-    actualreport@(PeriodicReport actualspans _ _) =
-        dbg5 "actualreport" $ multiBalanceReport rspec{_rsReportOpts=ropts{empty_=True}} actualj
+    priceoracle = journalPriceOracle (infer_prices_ ropts) j
     budgetgoalreport@(PeriodicReport _ budgetgoalitems budgetgoaltotals) =
-        dbg5 "budgetgoalreport" $ multiBalanceReport rspec{_rsReportOpts=ropts{empty_=True}} budgetj
+        dbg5 "budgetgoalreport" $ multiBalanceReportWith rspec{_rsReportOpts=ropts{empty_=True}} budgetj priceoracle mempty
+    budgetedacctsseen = S.fromList $ map prrFullName budgetgoalitems
+    actualreport@(PeriodicReport actualspans _ _) =
+        dbg5 "actualreport"     $ multiBalanceReportWith rspec{_rsReportOpts=ropts{empty_=True}} actualj priceoracle budgetedacctsseen
     budgetgoalreport'
       -- If no interval is specified:
       -- budgetgoalreport's span might be shorter actualreport's due to periodic txns;
