@@ -168,8 +168,8 @@ jobs:
         cd tmp
         mkdir hledger
         cd hledger
-        copy C:\Users\runneradmin\AppData\Roaming\local\bin\hledger.exe .
-        copy C:\Users\runneradmin\AppData\Roaming\local\bin\hledger-web.exe .
+        cp /C/Users/runneradmin/AppData/Roaming/local/bin/hledger.exe     .
+        cp /C/Users/runneradmin/AppData/Roaming/local/bin/hledger-web.exe .
       if: env.CONTINUE
              
     # XXX intermittent upload failures
