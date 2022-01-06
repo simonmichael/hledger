@@ -79,16 +79,18 @@ jobs:
       # related: https://stackoverflow.com/questions/64708371/how-to-run-github-workflow-on-every-commit-of-a-push
       env:
         BEFORE: ${{ github.event.before }}
-        NUM:    5
+        # NUM:    5
       shell: bash
       run: |
         RANGE=${BEFORE:-origin/master}..${GITHUB_HEAD_REF:+origin/$GITHUB_HEAD_REF}
-        git rev-list --quiet $RANGE \
-          && tools/commitlint  $RANGE \
-          || ( echo "could not identify commits, not checking them" )
-      #   || ( echo "could not identify commits, checking last $NUM instead:"; tools/commitlint -$NUM )
+        if git rev-list --quiet $RANGE
+        then tools/commitlint $RANGE
+        else echo "could not identify commits, not checking them"
+          # echo "could not identify commits, checking last $NUM instead:"
+          # tools/commitlint -$NUM
+        fi
 
-    - name: Skip remaining CI steps if latest commit message begins with ;
+    - name: Skip remaining steps if last commit message begins with ;
       shell: bash
       run: |
         echo "git log -1 --pretty='%s' ${GITHUB_HEAD_REF:+origin/$GITHUB_HEAD_REF} >> $$.gitlog"
