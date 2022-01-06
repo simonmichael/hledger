@@ -82,6 +82,17 @@ Here is the normal release/build schedule (as of 2022):
 - Develop a process for making test releases at any time.
 - Establish routine weekly test releases.
 
+## Release prerequisites
+
+- release-ready master or release branch:
+  - contains desired bugfixes
+  - contains desired PRs
+  - changelogs are up to date
+  - tests pass
+- packages to be released
+- release version
+- release date
+
 ## Procedures
 
 ### Preview release
