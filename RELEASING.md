@@ -77,6 +77,34 @@ Here is the normal release/build schedule (as of 2022):
 - Develop a process for making test releases at any time.
 - Establish routine weekly test releases.
 
+## Procedures
+
+### Preview release
+- ensure master is in releasable state
+- `./Shake changelogs`, edit, commit (`./Shake changelogs -c`)
+- `tools/release prep OLDMA.JOR.99.PREVIEW` (eg 1.24.99.1 for 1.25 preview 1)
+- edit changelogs, amend commit
+- `make functest`
+- `tools/release bin`
+- babysit/debug/repeat CI binary jobs until all succeed
+- tag
+- github release
+  - push commits & tags
+  - draft
+  - test
+  - publish 
+
+### Major release
+- as above, with MA.JOR
+- other major release stuff - release notes, site updates, hackage, announce
+- merge release changelog back to master
+- bump version in master
+
+### Minor/Fixup release
+- switch to release branch
+- cherry pick changes from master
+- proceed as above, with MA.JOR.MINOR[.FIXUP]
+
 ----
 
 ## Review/update/consolidate:
