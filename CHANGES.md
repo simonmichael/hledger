@@ -9,7 +9,7 @@
 General changes in the hledger project (and notable all-package releases).
 For package-specific changes and minor releases, see the hledger package changelogs.
 
-# 9a611036f
+# 07e84fde4
 
 Features
 
