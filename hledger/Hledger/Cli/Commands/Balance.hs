@@ -259,7 +259,7 @@ module Hledger.Cli.Commands.Balance (
 ) where
 
 import Data.Default (def)
-import Data.List (transpose, foldl', transpose)
+import Data.List (transpose, transpose)
 import qualified Data.Set as S
 import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
@@ -456,7 +456,7 @@ balanceReportAsText' opts ((items, total)) =
         , Cell TopLeft (fmap wbFromText cs)
         , Cell TopLeft (replicate (length damts - 1) mempty ++ [wbFromText dispname]) ]
       where dopts = oneLine{displayColour=color_ opts, displayOrder=Just cs}
-            cs    = S.toList $ maCommodities amt
+            cs    = if mixedAmountLooksZero amt then [""] else S.toList $ maCommodities amt
             dispname = T.replicate ((depth - 1) * 2) " " <> acctname
             damts = showMixedAmountLinesB dopts amt
     lines = fmap render items
@@ -703,14 +703,14 @@ balanceReportAsTable opts@ReportOpts{average_, row_total_, balanceaccum_}
 multiBalanceRowAsWbs :: AmountDisplayOpts -> ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount -> [[WideBuilder]]
 multiBalanceRowAsWbs bopts ReportOpts{..} colspans (PeriodicReportRow _ as rowtot rowavg) =
     case layout_ of
-      LayoutWide width -> [fmap (showMixedAmountB bopts{displayMaxWidth=width}) all]
+      LayoutWide width -> [fmap (showMixedAmountB bopts{displayMaxWidth=width}) allamts]
       LayoutTall       -> paddedTranspose mempty
                            . fmap (showMixedAmountLinesB bopts{displayMaxWidth=Nothing})
-                           $ all
+                           $ allamts
       LayoutBare       -> zipWith (:) (fmap wbFromText cs)  -- add symbols
                            . transpose                         -- each row becomes a list of Text quantities
                            . fmap (showMixedAmountLinesB bopts{displayOrder=Just cs, displayMinWidth=Nothing})
-                           $ all
+                           $ allamts
       LayoutTidy       -> concat
                            . zipWith (map . addDateColumns) colspans
                            . fmap ( zipWith (\c a -> [wbFromText c, a]) cs
@@ -719,10 +719,8 @@ multiBalanceRowAsWbs bopts ReportOpts{..} colspans (PeriodicReportRow _ as rowto
                                  -- complicates the data representation and can be easily calculated
   where
     totalscolumn = row_total_ && balanceaccum_ `notElem` [Cumulative, Historical]
-    cs = S.toList . foldl' S.union mempty $ fmap maCommodities all
-    all = as
-        ++ [rowtot | totalscolumn && not (null as)]
-        ++ [rowavg | average_     && not (null as)]
+    cs = if all mixedAmountLooksZero allamts then [""] else S.toList $ foldMap maCommodities allamts
+    allamts = as ++ [rowtot | totalscolumn && not (null as)] ++ [rowavg | average_ && not (null as)]
     addDateColumns span@(DateSpan s e) = (wbFromText (showDateSpan span) :)
                                        . (wbFromText (maybe "" showDate s) :)
                                        . (wbFromText (maybe "" (showDate . addDays (-1)) e) :)
