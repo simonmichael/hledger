@@ -1249,10 +1249,10 @@ renderTemplate rules record t = maybe t mconcat $ parseMaybe
 
 -- | Replace something that looks like a reference to a csv field ("%date" or "%1)
 -- with that field's value. If it doesn't look like a field reference, or if we
--- can't find such a field, leave it unchanged.
+-- can't find such a field, replace it with the empty string.
 replaceCsvFieldReference :: CsvRules -> CsvRecord -> CsvFieldReference -> Text
 replaceCsvFieldReference rules record s = case T.uncons s of
-    Just ('%', fieldname) -> fromMaybe s $ csvFieldValue rules record fieldname
+    Just ('%', fieldname) -> fromMaybe "" $ csvFieldValue rules record fieldname
     _                     -> s
 
 -- | Get the (whitespace-stripped) value of a CSV field, identified by its name or
