@@ -267,3 +267,28 @@ $ hledger -f bcexample.hledger bal -T assets.*etrade -3 -O csv --layout=tidy
 "Assets:US:ETrade","2012-01-01..2014-10-11","2012-01-01","2014-10-11","VEA","36.00"
 "Assets:US:ETrade","2012-01-01..2014-10-11","2012-01-01","2014-10-11","VHT","294.00"
 >=0
+
+<
+2021-01-01 Test
+    Assets:Bank           INR 1.00
+    Equity:Opening       INR -1.00
+
+# 15. Should omit commodity from totals row when the sum is zero with --layout=bare. (#1789)
+$ hledger -f - bal --layout=bare
+  1.00  INR  Assets:Bank    
+ -1.00  INR  Equity:Opening 
+ ----- 
+     0                      
+>=0
+
+# 16. The same with -M. (#1789)
+$ hledger -f - bal --layout=bare -M
+Balance changes in 2021-01:
+
+                || Commodity    Jan 
+================++==================
+ Assets:Bank    || INR         1.00 
+ Equity:Opening || INR        -1.00 
+----------------++------------------
+                ||                0 
+>=0
