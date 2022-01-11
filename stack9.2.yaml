@@ -1,5 +1,6 @@
 # stack build plan using GHC 9.2.1
 # XXX This is WIP; some deps like shakespeare don't build yet. hledger-lib builds.
+# possibly related: https://gitlab.haskell.org/ghc/ghc/-/issues/20592
 
 nix:
   pure: false
