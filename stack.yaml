@@ -5,6 +5,8 @@ nix:
   packages: [perl gmp ncurses zlib]
 
 resolver: nightly-2021-12-16
+#resolver: nightly-2022-01-10
+# ghc 9.0.2, waiting for https://gitlab.haskell.org/ghc/ghc/-/issues/20592
 
 packages:
 - hledger-lib
