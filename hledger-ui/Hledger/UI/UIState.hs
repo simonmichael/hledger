@@ -102,7 +102,6 @@ toggleConversionOp = over conversionop toggleCostMode
   where
     toggleCostMode Nothing               = Just ToCost
     toggleCostMode (Just NoConversionOp) = Just ToCost
-    toggleCostMode (Just InferEquity)    = Just ToCost
     toggleCostMode (Just ToCost)         = Just NoConversionOp
 
 -- | Toggle between showing primary amounts or default valuation.
