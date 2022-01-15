@@ -515,7 +515,6 @@ valuationTypeFromRawOpts rawopts = case (balancecalcopt rawopts, directval) of
 conversionOpFromRawOpts :: RawOpts -> Maybe ConversionOp
 conversionOpFromRawOpts rawopts
     | isJust costFlag && balancecalcopt rawopts == CalcGain = usageError "--gain cannot be combined with --cost"
-    | boolopt "infer-equity" rawopts = costFlag <|> Just InferEquity
     | otherwise = costFlag
   where
     costFlag = lastMay $ collectopts conversionopfromrawopt rawopts
@@ -619,7 +618,6 @@ mixedAmountApplyValuationAfterSumFromOptsWith ropts j priceoracle =
     gain mc span = mixedAmountGainAtDate priceoracle styles mc (maybe err (addDays (-1)) $ spanEnd span)
     costing = case fromMaybe NoConversionOp $ conversionop_ ropts of
         NoConversionOp -> id
-        InferEquity    -> mixedAmountStripPrices
         ToCost         -> styleMixedAmount styles . mixedAmountCost
     styles = journalCommodityStyles j
     err = error "mixedAmountApplyValuationAfterSumFromOptsWith: expected all spans to have an end date"

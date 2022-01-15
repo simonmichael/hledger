@@ -27,6 +27,7 @@ module Hledger.Data.Transaction
 , transactionTransformPostings
 , transactionApplyValuation
 , transactionToCost
+, transactionAddInferredEquityPostings
 , transactionApplyAliases
 , transactionMapPostings
 , transactionMapPostingAmounts
@@ -203,10 +204,14 @@ transactionApplyValuation priceoracle styles periodlast today v =
   transactionTransformPostings (postingApplyValuation priceoracle styles periodlast today v)
 
 -- | Maybe convert this 'Transaction's amounts to cost and apply the
--- appropriate amount styles; or in --infer-equity mode, replace any
--- transaction prices by a pair of equity postings.
-transactionToCost :: Text -> M.Map CommoditySymbol AmountStyle -> ConversionOp -> Transaction -> Transaction
-transactionToCost equityAcct styles cost t = t{tpostings=concatMap (postingToCost equityAcct styles cost) $ tpostings t}
+-- appropriate amount styles.
+transactionToCost :: M.Map CommoditySymbol AmountStyle -> ConversionOp -> Transaction -> Transaction
+transactionToCost styles cost = transactionMapPostings (postingToCost styles cost)
+
+-- | Add inferred equity postings to a 'Transaction' using transaction prices.
+transactionAddInferredEquityPostings :: AccountName -> Transaction -> Transaction
+transactionAddInferredEquityPostings equityAcct t =
+    t{tpostings=concatMap (postingAddInferredEquityPostings equityAcct) $ tpostings t}
 
 -- | Apply some account aliases to all posting account names in the transaction, as described by accountNameApplyAliases.
 -- This can fail due to a bad replacement pattern in a regular expression alias.

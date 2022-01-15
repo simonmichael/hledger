@@ -213,6 +213,7 @@ rawOptsToInputOpts day rawopts =
       ,forecast_          = forecastPeriodFromRawOpts day rawopts
       ,reportspan_        = DateSpan (queryStartDate False datequery) (queryEndDate False datequery)
       ,auto_              = boolopt "auto" rawopts
+      ,infer_equity_      = boolopt "infer-equity" rawopts && not (conversionop_ ropts == Just ToCost)
       ,balancingopts_     = defbalancingopts{
                                  ignore_assertions_ = boolopt "ignore-assertions" rawopts
                                , infer_transaction_prices_ = not noinferprice
@@ -302,7 +303,7 @@ parseAndFinaliseJournal' parser iopts f txt = do
 -- - infer transaction-implied market prices from transaction prices
 --
 journalFinalise :: InputOpts -> FilePath -> Text -> ParsedJournal -> ExceptT String IO Journal
-journalFinalise iopts@InputOpts{auto_,balancingopts_,strict_} f txt pj = do
+journalFinalise iopts@InputOpts{auto_,infer_equity_,balancingopts_,strict_} f txt pj = do
     t <- liftIO getPOSIXTime
     -- Infer and apply canonical styles for each commodity (or throw an error).
     -- This affects transaction balancing/assertions/assignments, so needs to be done early.
@@ -325,6 +326,8 @@ journalFinalise iopts@InputOpts{auto_,balancingopts_,strict_} f txt pj = do
           & (if auto_ && not (null $ jtxnmodifiers j) then journalAddAutoPostings d balancingopts_ else pure)
         -- Balance all transactions and maybe check balance assertions.
           >>= journalBalanceTransactions balancingopts_
+        -- Add inferred equity postings, after balancing transactions and generating auto postings
+          <&> (if infer_equity_ then journalAddInferredEquityPostings else id)
         -- infer market prices from commodity-exchanging transactions
           <&> journalInferMarketPricesFromTransactions
 

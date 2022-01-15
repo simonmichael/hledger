@@ -71,6 +71,7 @@ module Hledger.Data.Posting (
   postingTransformAmount,
   postingApplyValuation,
   postingToCost,
+  postingAddInferredEquityPostings,
   tests_Posting
 )
 where
@@ -481,12 +482,14 @@ postingApplyValuation priceoracle styles periodlast today v p =
     postingTransformAmount (mixedAmountApplyValuation priceoracle styles periodlast today (postingDate p) v) p
 
 -- | Maybe convert this 'Posting's amount to cost, and apply apply appropriate
--- amount styles; or, in --infer-equity mode, remove its cost price and add an
--- appropriate pair of equity postings.
-postingToCost :: Text -> M.Map CommoditySymbol AmountStyle -> ConversionOp -> Posting -> [Posting]
-postingToCost _          _      NoConversionOp p = [p]
-postingToCost _          styles ToCost         p = [postingTransformAmount (styleMixedAmount styles . mixedAmountCost) p]
-postingToCost equityAcct styles InferEquity    p = taggedPosting : concatMap conversionPostings priceAmounts
+-- amount styles.
+postingToCost :: M.Map CommoditySymbol AmountStyle -> ConversionOp -> Posting -> Posting
+postingToCost _      NoConversionOp p = p
+postingToCost styles ToCost         p = postingTransformAmount (styleMixedAmount styles . mixedAmountCost) p
+
+-- | Generate inferred equity postings from a 'Posting' using transaction prices.
+postingAddInferredEquityPostings :: Text -> Posting -> [Posting]
+postingAddInferredEquityPostings equityAcct p = taggedPosting : concatMap conversionPostings priceAmounts
   where
     taggedPosting
       | null priceAmounts = p
@@ -499,7 +502,7 @@ postingToCost equityAcct styles InferEquity    p = taggedPosting : concatMap con
                        , pamount = mixedAmount . negate $ amountStripPrices amt
                        }
                    , cp{ paccount = accountPrefix <> costCommodity
-                       , pamount = styleMixedAmount styles $ mixedAmount cost
+                       , pamount = mixedAmount cost
                        }
                    ]
       where

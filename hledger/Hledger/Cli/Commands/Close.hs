@@ -72,7 +72,7 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec'} j = do
         (Nothing, Nothing) -> (T.pack defclosingacct, T.pack defopeningacct)
 
     ropts = (_rsReportOpts rspec'){balanceaccum_=Historical, accountlistmode_=ALFlat}
-    rspec = setDefaultConversionOp (if show_costs then NoConversionOp else InferEquity) rspec'{_rsReportOpts=ropts}
+    rspec = setDefaultConversionOp NoConversionOp rspec'{_rsReportOpts=ropts}
 
     -- dates of the closing and opening transactions
     --
