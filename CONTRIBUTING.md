@@ -14,7 +14,7 @@ see the [Developer docs](dev.md).
 
 | | |
 |-------------------------------|----------------------------------------------------------------------------
-| Chat, Mail, Twitter, HN etc.  | <https://hledger.org/#help>
+| Chat, Mail, Twitter, HN etc.  | <https://hledger.org/support.html>
 | hledger-web demo&nbsp;&nbsp;  | [demo.hledger.org](https://demo.hledger.org) 
 | hledger GHCJS demo            | <https://hledger.alhur.es>
 | Trello                        | [old wishlist planning board](https://trello.hledger.org) 
@@ -154,7 +154,7 @@ What is the hledger project's current mission ?
 ## Getting started
 
 New contributors are always welcome in the hledger project. 
-Jump in! Or [ask us](index.html#helpfeedback) to help you find a task.
+Jump in! Or [ask us](support.html) to help you find a task.
 
 ### Funder
 
