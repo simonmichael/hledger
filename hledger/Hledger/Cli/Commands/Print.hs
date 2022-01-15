@@ -89,7 +89,7 @@ entriesReportAsText opts =
       | otherwise = originalTransaction
     maybeStripPrices
       -- Strip prices when inferring equity, unless the show-costs option is set
-      | opts ^. conversionop == Just InferEquity && not (boolopt "show-costs" $ rawopts_ opts) =
+      | opts ^. infer_equity && not (boolopt "show-costs" $ rawopts_ opts) =
           transactionTransformPostings postingStripPrices
       | otherwise = id
 

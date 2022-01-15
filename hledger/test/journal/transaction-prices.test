@@ -343,6 +343,18 @@ account  equity:trades   V
 
 >>>=0
 
+# 28. Inferred equity postings are generated early enough to match filters
+hledger -f- areg --infer-equity equity:conversion
+<<<
+2011/01/01
+    expenses:foreign currency       €100 @ $1.35
+    assets
+>>>
+Transactions in equity:conversion and subaccounts:
+2011-01-01                      ex:foreign currenc..       $135.00       $135.00
+                                                             €-100         €-100
+>>>=0
+
 # # when the *cost-basis* balance has exactly two commodities, both
 # # unpriced, infer an implicit conversion price for the first one in terms
 # # of the second.

@@ -36,6 +36,7 @@ data InputOpts = InputOpts {
     ,forecast_          :: Maybe DateSpan       -- ^ span in which to generate forecast transactions
     ,reportspan_        :: DateSpan             -- ^ a dirty hack keeping the query dates in InputOpts. This rightfully lives in ReportSpec, but is duplicated here.
     ,auto_              :: Bool                 -- ^ generate automatic postings when journal is parsed
+    ,infer_equity_      :: Bool                 -- ^ generate automatic equity postings from transaction prices
     ,balancingopts_     :: BalancingOpts        -- ^ options for balancing transactions
     ,strict_            :: Bool                 -- ^ do extra error checking (eg, all posted accounts are declared, no prices are inferred)
     ,_ioDay             :: Day                  -- ^ today's date, for use with forecast transactions  XXX this duplicates _rsDay, and should eventually be removed when it's not needed anymore.
@@ -53,6 +54,7 @@ definputopts = InputOpts
     , forecast_          = Nothing
     , reportspan_        = nulldatespan
     , auto_              = False
+    , infer_equity_      = False
     , balancingopts_     = defbalancingopts
     , strict_            = False
     , _ioDay             = nulldate

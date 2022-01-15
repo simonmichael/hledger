@@ -52,7 +52,7 @@ import Text.Printf (printf)
 -- Types
 
 -- | Which operation to perform on conversion transactions.
-data ConversionOp = NoConversionOp | InferEquity | ToCost
+data ConversionOp = NoConversionOp | ToCost
   deriving (Show,Eq)
 
 -- | What kind of value conversion should be done on amounts ?
@@ -111,7 +111,6 @@ mixedAmountApplyValuation priceoracle styles periodlast today postingdate v =
 -- | Convert an Amount to its cost if requested, and style it appropriately.
 amountToCost :: M.Map CommoditySymbol AmountStyle -> ConversionOp -> Amount -> Amount
 amountToCost styles ToCost         = styleAmount styles . amountCost
-amountToCost _      InferEquity    = amountStripPrices
 amountToCost _      NoConversionOp = id
 
 -- | Apply a specified valuation to this amount, using the provided

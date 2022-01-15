@@ -24,6 +24,7 @@ module Hledger.Data.Journal (
   commodityStylesFromAmounts,
   journalCommodityStyles,
   journalToCost,
+  journalAddInferredEquityPostings,
   journalReverse,
   journalSetLastReadTime,
   journalPivot,
@@ -881,10 +882,15 @@ postingInferredmarketPrice p@Posting{pamount} =
 -- | Convert all this journal's amounts to cost using the transaction prices, if any.
 -- The journal's commodity styles are applied to the resulting amounts.
 journalToCost :: ConversionOp -> Journal -> Journal
-journalToCost cost j@Journal{jtxns=ts} =
-    j{jtxns=map (transactionToCost (journalConversionAccount j) styles cost) ts}
+journalToCost cost j@Journal{jtxns=ts} = j{jtxns=map (transactionToCost styles cost) ts}
   where
     styles = journalCommodityStyles j
+
+-- | Add inferred equity postings to a 'Journal' using transaction prices.
+journalAddInferredEquityPostings :: Journal -> Journal
+journalAddInferredEquityPostings j = journalMapTransactions (transactionAddInferredEquityPostings equityAcct) j
+  where
+    equityAcct = journalConversionAccount j
 
 -- -- | Get this journal's unique, display-preference-canonicalised commodities, by symbol.
 -- journalCanonicalCommodities :: Journal -> M.Map String CommoditySymbol
