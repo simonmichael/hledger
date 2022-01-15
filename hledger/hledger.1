@@ -764,6 +764,21 @@ T}@T{
 -1, 0, 1 periods from the current period
 T}
 T{
+\f[C]in n days/weeks/months/quarters/years\f[R]
+T}@T{
+n periods from the current period
+T}
+T{
+\f[C]n days/weeks/months/quarters/years ahead\f[R]
+T}@T{
+n periods from the current period
+T}
+T{
+\f[C]n days/weeks/months/quarters/years ago\f[R]
+T}@T{
+-n periods from the current period
+T}
+T{
 \f[C]20181201\f[R]
 T}@T{
 8 digit YYYYMMDD with valid year month and day
@@ -1576,11 +1591,20 @@ hledger will assume this transaction is balanced, inferring that the
 conversion rate must be 1 EUR = 1.20 USD.
 You can see the inferred rate by using \f[C]hledger print -x\f[R].
 .PP
-Pro: - Easy, concise - hledger can do cost reporting
+Pro:
+.IP \[bu] 2
+Easy, concise
+.IP \[bu] 2
+hledger can do cost reporting
 .PP
-Con: - Less error checking - typos in amounts or commodity symbols may
-not be detected - conversion rate is not clear - disturbs the accounting
-equation
+Con:
+.IP \[bu] 2
+Less error checking - typos in amounts or commodity symbols may not be
+detected
+.IP \[bu] 2
+conversion rate is not clear
+.IP \[bu] 2
+disturbs the accounting equation
 .PP
 You can prevent accidental implicit conversions due to a mistyped
 commodity symbol, by using \f[C]hledger check commodities\f[R].
@@ -1602,10 +1626,19 @@ You can add the conversion rate using \[at] notation:
 Now hledger will check that 100 * 1.20 = 120, and would report an error
 otherwise.
 .PP
-Pro: - Still concise - makes the conversion rate clear - provides some
-error checking - hledger can do cost reporting
+Pro:
+.IP \[bu] 2
+Still concise
+.IP \[bu] 2
+makes the conversion rate clear
+.IP \[bu] 2
+provides some error checking
+.IP \[bu] 2
+hledger can do cost reporting
 .PP
-Con: - Disturbs the accounting equation
+Con:
+.IP \[bu] 2
+Disturbs the accounting equation
 .SS Equity conversion
 .PP
 In strict double entry bookkeeping, the above transaction is not
@@ -1627,12 +1660,21 @@ commodity, using an equity account:
 \f[R]
 .fi
 .PP
-Pro: - Preserves the accounting equation - keeps track of conversions
-and related gains/losses in one place - works in any double entry
-accounting system
+Pro:
+.IP \[bu] 2
+Preserves the accounting equation
+.IP \[bu] 2
+keeps track of conversions and related gains/losses in one place
+.IP \[bu] 2
+works in any double entry accounting system
 .PP
-Con: - More verbose - conversion rate is not clear - hledger can not do
-cost reporting
+Con:
+.IP \[bu] 2
+More verbose
+.IP \[bu] 2
+conversion rate is not clear
+.IP \[bu] 2
+hledger can not do cost reporting
 .SS Priced equity conversion
 .PP
 Another possible notation would be to record both the conversion rate
@@ -5330,6 +5372,8 @@ Valuation affects posting amounts but not balance assertion or balance
 assignment amounts, potentially causing those to fail.
 .IP \[bu] 2
 Auto postings can generate postings with too many missing amounts.
+.IP \[bu] 2
+Account aliases can generate bad account names.
 .PP
 Normally, the journal entry\[aq]s explicit or implicit amount style is
 preserved.
@@ -7881,14 +7925,20 @@ data entry and a less verbose journal
 .IP \[bu] 2
 adapting old journals to your current chart of accounts
 .IP \[bu] 2
-experimenting with new account organisations, like a new hierarchy or
-combining two accounts into one
+experimenting with new account organisations, like a new hierarchy
+.IP \[bu] 2
+combining two accounts into one, eg to see their sum or difference on
+one line
 .IP \[bu] 2
 customising reports
 .PP
 Account aliases also rewrite account names in account directives.
 They do not affect account names being entered via hledger add or
 hledger-web.
+.PP
+Account aliases are very powerful.
+They are generally easy to use correctly, but you can also generate
+invalid account names with them; more on this below.
 .PP
 See also Rewrite account names.
 .SS Basic aliases
@@ -8032,6 +8082,48 @@ journal so far, or defined on the command line) with this directive:
 .nf
 \f[C]
 end aliases
+\f[R]
+.fi
+.SS Aliases can generate bad account names
+.PP
+Be aware that account aliases can produce malformed account names, which
+could cause confusing reports or invalid \f[C]print\f[R] output.
+For example, you could erase all account names:
+.IP
+.nf
+\f[C]
+2021-01-01
+  a:aa     1
+  b
+\f[R]
+.fi
+.IP
+.nf
+\f[C]
+$ hledger print --alias \[aq]/.*/=\[aq]
+2021-01-01
+                   1
+\f[R]
+.fi
+.PP
+The above \f[C]print\f[R] output is not a valid journal.
+Or you could insert an illegal double space, causing \f[C]print\f[R]
+output that would give a different journal when reparsed:
+.IP
+.nf
+\f[C]
+2021-01-01
+  old    1
+  other
+\f[R]
+.fi
+.IP
+.nf
+\f[C]
+$ hledger print --alias old=\[dq]new  USD\[dq] | hledger -f- print
+2021-01-01
+    new             USD 1
+    other
 \f[R]
 .fi
 .SS Default parent account
@@ -9625,14 +9717,14 @@ if %out [1-9]
 .fi
 .RE
 .IP "3." 3
-\f[B]If you are stuck with hledger <1.17, or you want posting 2\[aq]s
-amount converted to cost:\f[R]
+\f[B]If you want posting 2\[aq]s amount converted to cost:\f[R]
 .PD 0
 .P
 .PD
 Assign to \f[C]amount\f[R] (or to \f[C]amount-in\f[R] and
 \f[C]amount-out\f[R]).
-(The old numberless syntax, which sets amount1 and amount2.)
+(This is the legacy numberless syntax, which sets amount1 and amount2
+and converts amount2 to cost.)
 .IP "4." 3
 \f[B]If the CSV has the balance instead of the transaction amount:\f[R]
 .PD 0
@@ -10171,7 +10263,7 @@ $ hledger help --help     # show more detailed help for the help command
 .fi
 .PP
 Find more docs, chat, mail list, reddit, issue tracker:
-https://hledger.org#help-feedback
+https://hledger.org/support.html-feedback
 .SS Constructing command lines
 .PP
 hledger has an extensive and powerful command line interface.
