@@ -9,7 +9,28 @@
 General changes in the hledger project (and notable all-package releases).
 For package-specific changes and minor releases, see the hledger package changelogs.
 
-# 56e015c40
+# fb834777a
+- ;fix: doc: update help/help-feedback links (#1807)
+
+- stack: note 9.0.2 blocker
+
+- ;doc: RELEASING: updates
+
+- ;doc: RELEASING: updates
+
+- ;ci: linux: drop unused release steps
+
+- ci: win: fix shell mismatch
+
+- ci: win: fix skipping of all steps, part 2
+
+- ci: win, mac: fix skipping of all steps
+
+- ;tools: release: push current HEAD, not master
+
+- ;tools: make stack fixes
+
+- ;doc: update changelogs
 
 Features
 

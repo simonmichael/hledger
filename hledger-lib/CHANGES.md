@@ -9,7 +9,11 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# d82210cea
+# f13ac2812
+- imp: smartdates: Simplify and generalise the SmartDate constructor and parsers to allow for arbitrary numbers of periods in relative dates. (Stephen Morgan)
+  We now accept smart dates like “in 5 days, 5 weeks ahead, in -6 months, 2 quarters ago”.
+
+- ;doc: update changelogs
 
 Improvements
 
