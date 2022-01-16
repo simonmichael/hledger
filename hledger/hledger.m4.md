@@ -2901,7 +2901,12 @@ can still be [overridden](#commodity-styles) by supplying a command line option.
 ### Commodity error checking
 
 In [strict mode], enabled with the `-s`/`--strict` flag, hledger will report an error if a
-commodity symbol is used that has not been declared by a [`commodity` directive](#declaring-commodities). This works similarly to [account error checking](#account-error-checking), see the notes there for more details.
+commodity symbol is used that has not been declared by a [`commodity` directive](#declaring-commodities).
+This works similarly to [account error checking](#account-error-checking), see the notes there for more details.
+
+Note, this disallows amounts without a commodity symbol,
+because currently it's not possible (?) to declare the "no-symbol" commodity with a directive.
+This is one exception for convenience: zero amounts are always allowed to have no commodity symbol.
 
 ## Default commodity
 
