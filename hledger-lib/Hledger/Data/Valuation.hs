@@ -52,6 +52,8 @@ import Text.Printf (printf)
 -- Types
 
 -- | Which operation to perform on conversion transactions.
+-- (There was also an "infer equity postings" operation, but that is now done 
+-- earlier, in journal finalisation.)
 data ConversionOp = NoConversionOp | ToCost
   deriving (Show,Eq)
 
