@@ -31,9 +31,10 @@ Note, in some cases this report can fail, for these reasons:
 Examples:
 
 - Using roi to compute total return of investment in stocks:
-  https://github.com/simonmichael/hledger/blob/master/examples/investing/roi-unrealised.ledger
+  <https://github.com/simonmichael/hledger/blob/master/examples/investing/roi-unrealised.ledger>
 
-- Cookbook > Return on Investment: https://hledger.org/roi.html
+- Cookbook > Return on Investment: 
+  <https://hledger.org/roi.html>
 
 ### Spaces and special characters in `--inv` and `--pnl`
 
