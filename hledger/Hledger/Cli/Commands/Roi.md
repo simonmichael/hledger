@@ -31,7 +31,7 @@ Note, in some cases this report can fail, for these reasons:
 Examples:
 
 - Using roi to compute total return of investment in stocks:
-  [roi-unrealised.ledger](https://github.com/simonmichael/hledger/blob/master/examples/roi-unrealised.ledger)
+  [roi-unrealised.ledger](https://github.com/simonmichael/hledger/blob/master/examples/investing/roi-unrealised.ledger)
 
 - Cookbook -> [Return on Investment](return-on-investment.html)
 
