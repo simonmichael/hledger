@@ -9,7 +9,27 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# fb834777a
+# 1716a3e55
+- ;doc: roi: dear lord fix links again
+
+- ;doc: roi: make links useful in plain text docs
+  And update how-to url.
+
+- ;doc: roi: fix link
+
+- ;doc: roi: formatting
+
+- fix: cost: Add inferred equity postings during journal finalisation, so they can be matched by queries. (Stephen Morgan)
+
+- ;doc: describe no-symbol commodity checking (#1772)
+
+- imp: check: Do not check commodities for zero amounts with empty commodity. (#1767) (Stephen Morgan)
+
+- ;doc: update manuals
+
+- ;doc: update CLI usage texts
+
+- ;doc: update changelogs
 - ;fix: doc: update help/help-feedback links (#1807)
 
 - imp: smartdates: Simplify and generalise the SmartDate constructor and parsers to allow for arbitrary numbers of periods in relative dates. (Stephen Morgan)

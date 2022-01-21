@@ -9,7 +9,14 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# f13ac2812
+# f36ab179c
+- ;doc: add interim note re ConversionOp (#1808)
+
+- fix: cost: Add inferred equity postings during journal finalisation, so they can be matched by queries. (Stephen Morgan)
+
+- imp: check: Do not check commodities for zero amounts with empty commodity. (#1767) (Stephen Morgan)
+
+- ;doc: update changelogs
 - imp: smartdates: Simplify and generalise the SmartDate constructor and parsers to allow for arbitrary numbers of periods in relative dates. (Stephen Morgan)
   We now accept smart dates like “in 5 days, 5 weeks ahead, in -6 months, 2 quarters ago”.
 

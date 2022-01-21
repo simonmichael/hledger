@@ -9,7 +9,10 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 0e5ae2baa
+# 57d055b64
+- fix: cost: Add inferred equity postings during journal finalisation, so they can be matched by queries. (Stephen Morgan)
+
+- ;doc: update changelogs
 - ;doc: update changelogs
 
 # 1.24.1 2021-12-10
