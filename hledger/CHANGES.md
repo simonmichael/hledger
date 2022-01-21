@@ -10,32 +10,6 @@ User-visible changes in the hledger command line tool and library.
 
 
 # 1716a3e55
-- ;doc: roi: dear lord fix links again
-
-- ;doc: roi: make links useful in plain text docs
-  And update how-to url.
-
-- ;doc: roi: fix link
-
-- ;doc: roi: formatting
-
-- fix: cost: Add inferred equity postings during journal finalisation, so they can be matched by queries. (Stephen Morgan)
-
-- ;doc: describe no-symbol commodity checking (#1772)
-
-- imp: check: Do not check commodities for zero amounts with empty commodity. (#1767) (Stephen Morgan)
-
-- ;doc: update manuals
-
-- ;doc: update CLI usage texts
-
-- ;doc: update changelogs
-- ;fix: doc: update help/help-feedback links (#1807)
-
-- imp: smartdates: Simplify and generalise the SmartDate constructor and parsers to allow for arbitrary numbers of periods in relative dates. (Stephen Morgan)
-  We now accept smart dates like “in 5 days, 5 weeks ahead, in -6 months, 2 quarters ago”.
-
-- ;doc: update changelogs
 
 Features
 
@@ -70,13 +44,21 @@ Features
 
 Improvements
 
+- `check commodities` now always accepts zero amounts with no commodity symbol. 
+  (#1767) (Stephen Morgan)
+
+- We now accept smart dates like “in 5 days, 5 weeks ahead, in -6 months, 2 quarters ago”
+  (an arbitrary number of some period into the future or past).
+  (Stephen Morgan)
+
 - CSV output now always disables digit group marks (eg, thousands separators),
   making it more machine readable by default. 
   (#1771) (Stephen Morgan)
 
 Fixes
 
-- ;roi: fixes #1791 (fix TWR when investment=0, several pnls per day) (Dmitry Astapov)
+- `roi` now shows TWR correctly when investment is zero and there are several profits/losses per day.
+  (#1791) (Dmitry Astapov)
 
 Documentation
 

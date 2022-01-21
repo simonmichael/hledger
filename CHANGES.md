@@ -10,8 +10,6 @@ General changes in the hledger project (and notable all-package releases).
 For package-specific changes and minor releases, see the hledger package changelogs.
 
 # 9444e20c3
-- ;doc: update changelogs
-- ;fix: doc: update help/help-feedback links (#1807)
 
 - stack: note 9.0.2 blocker
 
