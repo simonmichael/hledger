@@ -33,9 +33,9 @@ Note, in some cases this report can fail, for these reasons:
 Examples:
 
 -   Using roi to compute total return of investment in stocks:
-    https://github.com/simonmichael/hledger/blob/master/examples/roi-unrealised.ledger
+    https://github.com/simonmichael/hledger/blob/master/examples/investing/roi-unrealised.ledger
 
--   Cookbook -> Return on Investment
+-   Cookbook > Return on Investment: https://hledger.org/roi.html
 
 Spaces and special characters in --inv and --pnl
 
@@ -155,6 +155,10 @@ and changes in its value change the value of "investment unit". Change
 in "unit price" over the reporting period gives you rate of return of
 your investment.
 
-References: * Explanation of rate of return * Explanation of IRR *
-Explanation of TWR * Examples of computing IRR and TWR and discussion of
-the limitations of both metrics
+References:
+
+-   Explanation of rate of return
+-   Explanation of IRR
+-   Explanation of TWR
+-   Examples of computing IRR and TWR and discussion of the limitations
+    of both metrics
