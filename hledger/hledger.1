@@ -5855,9 +5855,9 @@ Either search does not converge to a solution, or converges too slowly.
 Examples:
 .IP \[bu] 2
 Using roi to compute total return of investment in stocks:
-https://github.com/simonmichael/hledger/blob/master/examples/roi-unrealised.ledger
+https://github.com/simonmichael/hledger/blob/master/examples/investing/roi-unrealised.ledger
 .IP \[bu] 2
-Cookbook -> Return on Investment
+Cookbook > Return on Investment: https://hledger.org/roi.html
 .SS Spaces and special characters in \f[C]--inv\f[R] and \f[C]--pnl\f[R]
 .PP
 Note that \f[C]--inv\f[R] and \f[C]--pnl\f[R]\[aq]s argument is a query,
@@ -6008,9 +6008,16 @@ unit\[dq].
 Change in \[dq]unit price\[dq] over the reporting period gives you rate
 of return of your investment.
 .PP
-References: * Explanation of rate of return * Explanation of IRR *
-Explanation of TWR * Examples of computing IRR and TWR and discussion of
-the limitations of both metrics
+References:
+.IP \[bu] 2
+Explanation of rate of return
+.IP \[bu] 2
+Explanation of IRR
+.IP \[bu] 2
+Explanation of TWR
+.IP \[bu] 2
+Examples of computing IRR and TWR and discussion of the limitations of
+both metrics
 .SS stats
 .PP
 stats
@@ -7602,6 +7609,12 @@ hledger will report an error if a commodity symbol is used that has not
 been declared by a \f[C]commodity\f[R] directive.
 This works similarly to account error checking, see the notes there for
 more details.
+.PP
+Note, this disallows amounts without a commodity symbol, because
+currently it\[aq]s not possible (?) to declare the \[dq]no-symbol\[dq]
+commodity with a directive.
+This is one exception for convenience: zero amounts are always allowed
+to have no commodity symbol.
 .SS Default commodity
 .PP
 The \f[C]D\f[R] directive sets a default commodity, to be used for any
