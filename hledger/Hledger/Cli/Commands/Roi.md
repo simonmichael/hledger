@@ -31,7 +31,7 @@ Note, in some cases this report can fail, for these reasons:
 Examples:
 
 - Using roi to compute total return of investment in stocks:
-https://github.com/simonmichael/hledger/blob/master/examples/roi-unrealised.ledger
+  [roi-unrealised.ledger](https://github.com/simonmichael/hledger/blob/master/examples/roi-unrealised.ledger)
 
 - Cookbook -> [Return on Investment](return-on-investment.html)
 
@@ -166,6 +166,7 @@ its value change the value of "investment unit". Change in "unit price" over the
 reporting period gives you rate of return of your investment.
 
 References:
+
 * [Explanation of rate of return](https://www.investopedia.com/terms/r/rateofreturn.asp)
 * [Explanation of IRR](https://www.investopedia.com/terms/i/irr.asp)
 * [Explanation of TWR](https://www.investopedia.com/terms/t/time-weightedror.asp)
