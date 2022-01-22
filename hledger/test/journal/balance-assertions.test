@@ -225,7 +225,7 @@ $ hledger -f - stats
   b         =$-1  ; date:2012/1/1
 
 $ hledger -f - stats
->2  /balance assignments may not have a custom date/
+>2  /can't use balance assignment with custom posting date/
 >=1
 
 # 13. Posting Date
