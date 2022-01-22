@@ -160,7 +160,7 @@ $ hledger -f- print --auto -x
 
 # 9.
 $ hledger print -f- --auto
->2 /cannot be used with accounts which are/
+>2 /can't use balance assignment with auto postings/
 >=1
 
 
