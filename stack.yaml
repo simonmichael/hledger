@@ -1,12 +1,14 @@
-# stack build plan using GHC 9.0.1
+# stack build plan using GHC 9.0.2
 
 nix:
   pure: false
   packages: [perl gmp ncurses zlib]
 
-resolver: nightly-2021-12-16
-#resolver: nightly-2022-01-10
-# ghc 9.0.2, waiting for https://gitlab.haskell.org/ghc/ghc/-/issues/20592
+resolver: nightly-2022-01-20
+
+# for https://gitlab.haskell.org/ghc/ghc/-/issues/20592 on mac m1 (adjust path if needed)
+extra-include-dirs:
+- /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/ffi
 
 packages:
 - hledger-lib
