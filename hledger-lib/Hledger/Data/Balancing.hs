@@ -640,7 +640,7 @@ checkBalanceAssignmentUnassignableAccountB p = do
       ,chomp1 $ T.unpack $ maybe (T.unlines $ showPostingLines p) (showTransaction) $ ptransaction p
       ,"Balance assignments may not be used on accounts affected by auto posting rules"
       ,"(it makes balancing the journal impossible)."
-      ,"Please write the posting amount explicitly (or remove the auto posting rule)."
+      ,"Please write the posting amount explicitly (or remove the auto posting rule(s))."
       ]
 
 -- lenses
