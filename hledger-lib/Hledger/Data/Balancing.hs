@@ -350,7 +350,7 @@ type Balancing s = ReaderT (BalancingState s) (ExceptT String (ST s))
 data BalancingState s = BalancingState {
    -- read only
    bsStyles       :: Maybe (M.Map CommoditySymbol AmountStyle)  -- ^ commodity display styles
-  ,bsUnassignable :: S.Set AccountName                          -- ^ accounts in which balance assignments may not be used
+  ,bsUnassignable :: S.Set AccountName                          -- ^ accounts where balance assignments may not be used (because of auto posting rules)
   ,bsAssrt        :: Bool                                       -- ^ whether to check balance assertions
    -- mutable
   ,bsBalances     :: H.HashTable s AccountName MixedAmount      -- ^ running account balances, initially empty
@@ -422,8 +422,8 @@ journalBalanceTransactions bopts' j' =
     -- display precisions used in balanced checking
     styles = Just $ journalCommodityStyles j
     bopts = bopts'{commodity_styles_=styles}
-    -- balance assignments will not be allowed on these
-    txnmodifieraccts = S.fromList . map (paccount . tmprPosting) . concatMap tmpostingrules $ jtxnmodifiers j
+    -- balance assignments are not allowed on accounts affected by auto postings
+    autopostingaccts = S.fromList . map (paccount . tmprPosting) . concatMap tmpostingrules $ jtxnmodifiers j
   in
     runST $ do
       -- We'll update a mutable array of transactions as we balance them,
@@ -448,7 +448,7 @@ journalBalanceTransactions bopts' j' =
         -- 2. Sort these items by date, preserving the order of same-day items,
         -- and step through them while keeping running account balances,
         runningbals <- lift $ H.newSized (length $ journalAccountNamesUsed j)
-        flip runReaderT (BalancingState styles txnmodifieraccts (not $ ignore_assertions_ bopts) runningbals balancedtxns) $ do
+        flip runReaderT (BalancingState styles autopostingaccts (not $ ignore_assertions_ bopts) runningbals balancedtxns) $ do
           -- performing balance assignments in, and balancing, the remaining transactions,
           -- and checking balance assertions as each posting is processed.
           void $ mapM' balanceTransactionAndCheckAssertionsB $ sortOn (either postingDate tdate) psandts
@@ -618,30 +618,29 @@ checkIllegalBalanceAssignmentB p = do
 checkBalanceAssignmentPostingDateB :: Posting -> Balancing s ()
 checkBalanceAssignmentPostingDateB p =
   when (hasBalanceAssignment p && isJust (pdate p)) $
-    throwError . T.unpack $ T.unlines
-      ["postings which are balance assignments may not have a custom date."
-      ,"Please write the posting amount explicitly, or remove the posting date:"
+    throwError $ chomp $ unlines [
+       "can't use balance assignment with custom posting date"
       ,""
-      ,maybe (T.unlines $ showPostingLines p) showTransaction $ ptransaction p
+      ,chomp1 $ T.unpack $ maybe (T.unlines $ showPostingLines p) showTransaction $ ptransaction p
+      ,"Balance assignments may not be used on postings with a custom posting date"
+      ,"(it makes balancing the journal impossible)."
+      ,"Please write the posting amount explicitly (or remove the posting date)."
       ]
 
 -- | Throw an error if this posting is trying to do a balance assignment and
 -- the account does not allow balance assignments (eg because it is referenced
--- by a transaction modifier, which might generate additional postings to it).
+-- by an auto posting rule, which might generate additional postings to it).
 checkBalanceAssignmentUnassignableAccountB :: Posting -> Balancing s ()
 checkBalanceAssignmentUnassignableAccountB p = do
   unassignable <- R.asks bsUnassignable
   when (hasBalanceAssignment p && paccount p `S.member` unassignable) $
-    throwError . T.unpack $ T.unlines
-      ["balance assignments cannot be used with accounts which are"
-      ,"posted to by transaction modifier rules (auto postings)."
-      ,"Please write the posting amount explicitly, or remove the rule."
+    throwError $ chomp $ unlines [
+       "can't use balance assignment with auto postings"
       ,""
-      ,"account: " <> paccount p
-      ,""
-      ,"transaction:"
-      ,""
-      ,maybe (T.unlines $ showPostingLines p) showTransaction $ ptransaction p
+      ,chomp1 $ T.unpack $ maybe (T.unlines $ showPostingLines p) (showTransaction) $ ptransaction p
+      ,"Balance assignments may not be used on accounts affected by auto posting rules"
+      ,"(it makes balancing the journal impossible)."
+      ,"Please write the posting amount explicitly (or remove the auto posting rule)."
       ]
 
 -- lenses
