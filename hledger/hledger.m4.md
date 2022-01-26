@@ -440,7 +440,8 @@ With the `-s`/`--strict` flag, additional checks are performed:
   ([Commodity error checking](#commodity-error-checking))
 - Are all commodity conversions declared explicitly ?
 
-You can also use the [check](#check) command to run these and some additional checks.
+You can use the [check](#check) command to run individual checks -- the
+ones listed above and some more.
 
 # TIME PERIODS
 ## Smart dates
