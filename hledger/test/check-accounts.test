@@ -1,14 +1,49 @@
-# check accounts succeeds when all accounts are declared
+# 1. check accounts succeeds when all accounts are declared
 <
 account a
 2020-01-01
   (a)  1
 $ hledger -f- check accounts
 
-# and otherwise fails:
+# 2. and otherwise fails:
 <
 2020-01-01
   (a)  1
 $ hledger -f- check accounts
 >2 /undeclared account "a"/
+>=1
+
+# 3. also fails for forecast accounts
+<
+account a
+~ 2022-01-31
+    a  $1
+    b
+$ hledger -f- --forecast check accounts
+>2 /undeclared account "b"/
+>=1
+
+# 4. also fails in --strict mode
+$ hledger -f- --forecast --strict bal
+>2 /undeclared account "b"/
+>=1
+
+# 5. also fails for auto accounts
+<
+account a
+
+= a
+  (b)    $1
+
+2022-01-31
+    (a)  $1
+
+2022-02-01
+$ hledger -f- --auto check accounts
+>2 /undeclared account "b"/
+>=1
+
+# 6. also fails in --strict mode
+$ hledger -f- --auto --strict bal
+>2 /undeclared account "b"/
 >=1

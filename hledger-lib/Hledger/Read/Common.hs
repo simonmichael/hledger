@@ -314,14 +314,8 @@ journalFinalise iopts@InputOpts{auto_,infer_equity_,balancingopts_,strict_} f tx
         & journalReverse                    -- convert all lists to the order they were parsed
   where
     checkAddAndBalance d j = do
-        when strict_ $ do
-          -- If in strict mode, check all postings are to declared accounts
-          journalCheckAccountsDeclared j
-          -- and using declared commodities
-          journalCheckCommoditiesDeclared j
-
         -- Add forecast transactions if enabled
-        journalAddForecast (forecastPeriod iopts j) j
+        newj <- journalAddForecast (forecastPeriod iopts j) j
         -- Add auto postings if enabled
           & (if auto_ && not (null $ jtxnmodifiers j) then journalAddAutoPostings d balancingopts_ else pure)
         -- Balance all transactions and maybe check balance assertions.
@@ -330,6 +324,14 @@ journalFinalise iopts@InputOpts{auto_,infer_equity_,balancingopts_,strict_} f tx
           <&> (if infer_equity_ then journalAddInferredEquityPostings else id)
         -- infer market prices from commodity-exchanging transactions
           <&> journalInferMarketPricesFromTransactions
+
+        when strict_ $ do
+          -- If in strict mode, check all postings are to declared accounts
+          journalCheckAccountsDeclared newj
+          -- and using declared commodities
+          journalCheckCommoditiesDeclared newj
+
+        return newj
 
 journalAddAutoPostings :: Day -> BalancingOpts -> Journal -> Either String Journal
 journalAddAutoPostings d bopts =
