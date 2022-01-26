@@ -538,7 +538,6 @@ startofmonth day = fromGregorian y m 1 where (y,m,_) = toGregorian day
 nthdayofmonth d day = fromGregorian y m d where (y,m,_) = toGregorian day
 
 thisquarter = startofquarter
-nextquarter = startofquarter . addGregorianMonthsClip 3
 startofquarter day = fromGregorian y (firstmonthofquarter m) 1
     where
       (y,m,_) = toGregorian day
