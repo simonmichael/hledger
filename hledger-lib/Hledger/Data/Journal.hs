@@ -926,25 +926,11 @@ canonicalStyle a b = a{asprecision=prec, asdecimalpoint=decmark, asdigitgroups=m
 journalInferMarketPricesFromTransactions :: Journal -> Journal
 journalInferMarketPricesFromTransactions j =
   j{jinferredmarketprices =
-       dbg4 "jinferredmarketprices" $
-       mapMaybe postingInferredmarketPrice $ journalPostings j
+       dbg4 "jinferredmarketprices" .
+       map priceDirectiveToMarketPrice .
+       concatMap postingPriceDirectivesFromCost $
+       journalPostings j
    }
-
--- | Make a market price equivalent to this posting's amount's unit
--- price, if any. If the posting amount is multicommodity, only the
--- first commodity amount is considered.
-postingInferredmarketPrice :: Posting -> Maybe MarketPrice
-postingInferredmarketPrice p@Posting{pamount} =
-    -- convert any total prices to unit prices
-    case amountsRaw $ mixedAmountTotalPriceToUnitPrice pamount of
-      Amount{acommodity=fromcomm, aprice = Just (UnitPrice Amount{acommodity=tocomm, aquantity=rate})}:_ ->
-        Just MarketPrice {
-           mpdate = postingDate p
-          ,mpfrom = fromcomm
-          ,mpto   = tocomm
-          ,mprate = rate
-          }
-      _ -> Nothing
 
 -- | Convert all this journal's amounts to cost using the transaction prices, if any.
 -- The journal's commodity styles are applied to the resulting amounts.

@@ -234,6 +234,22 @@ sequence' ms = do
 mapM' :: Monad f => (a -> f b) -> [a] -> f [b]
 mapM' f = sequence' . map f
 
+-- | Find the number of digits of an 'Int'.
+numDigitsInt :: Integral a => Int -> a
+numDigitsInt n
+    | n == minBound = 19  -- negate minBound is out of the range of Int
+    | n < 0         = go (negate n)
+    | otherwise     = go n
+  where
+    go a | a < 10                 = 1
+         | a < 100                = 2
+         | a < 1000               = 3
+         | a < 10000              = 4
+         | a >= 10000000000000000 = 16 + go (a `quot` 10000000000000000)
+         | a >= 100000000         = 8  + go (a `quot` 100000000)
+         | otherwise              = 4  + go (a `quot` 10000)
+{-# INLINE numDigitsInt #-}
+
 -- | Simpler alias for errorWithoutStackTrace
 error' :: String -> a
 error' = errorWithoutStackTrace

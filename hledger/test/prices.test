@@ -32,10 +32,15 @@ P 2016/2/1 EUR $1.05
 2016/1/3 spend
     expenses             20 EUR @@ $21.45
     assets:bank
+
+2016/1/4 spend
+    expenses            -20 EUR @@ $21.45
+    assets:bank
 $ hledger prices -f- --infer-market-prices
 P 2016-01-01 EUR $1.06
 P 2016-01-02 EUR $1.07
 P 2016-01-03 EUR $1.0725
+P 2016-01-04 EUR $1.0725
 P 2016-02-01 EUR $1.05
 
 # 3. inverted prices can be calculated

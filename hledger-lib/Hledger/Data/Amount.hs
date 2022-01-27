@@ -67,7 +67,6 @@ module Hledger.Data.Amount (
   amountLooksZero,
   divideAmount,
   multiplyAmount,
-  amountTotalPriceToUnitPrice,
   -- ** rendering
   AmountDisplayOpts(..),
   noColour,
@@ -125,7 +124,6 @@ module Hledger.Data.Amount (
   maIsZero,
   maIsNonZero,
   mixedAmountLooksZero,
-  mixedAmountTotalPriceToUnitPrice,
   -- ** rendering
   styleMixedAmount,
   mixedAmountUnstyled,
@@ -171,7 +169,7 @@ import Test.Tasty (testGroup)
 import Test.Tasty.HUnit ((@?=), assertBool, testCase)
 
 import Hledger.Data.Types
-import Hledger.Utils (colorB)
+import Hledger.Utils (colorB, numDigitsInt)
 import Hledger.Utils.Text (textQuoteIfNeeded)
 import Text.WideString (WideBuilder(..), wbFromText, wbToText, wbUnpack)
 
@@ -311,22 +309,6 @@ amountCost a@Amount{aquantity=q, aprice=mp} =
       Nothing                                  -> a
       Just (UnitPrice  p@Amount{aquantity=pq}) -> p{aquantity=pq * q}
       Just (TotalPrice p@Amount{aquantity=pq}) -> p{aquantity=pq}
-
--- | Replace an amount's TotalPrice, if it has one, with an equivalent UnitPrice.
--- Has no effect on amounts without one.
--- Also increases the unit price's display precision to show one extra decimal place,
--- to help keep transaction amounts balancing.
--- Does Decimal division, might be some rounding/irrational number issues.
-amountTotalPriceToUnitPrice :: Amount -> Amount
-amountTotalPriceToUnitPrice
-    a@Amount{aquantity=q, aprice=Just (TotalPrice pa@Amount{aquantity=pq, astyle=ps})}
-    = a{aprice = Just $ UnitPrice pa{aquantity=abs (pq/q), astyle=ps{asprecision=pp}}}
-  where
-    -- Increase the precision by 1, capping at the max bound.
-    pp = case asprecision ps of
-                NaturalPrecision -> NaturalPrecision
-                Precision p      -> Precision $ if p == maxBound then maxBound else p + 1
-amountTotalPriceToUnitPrice a = a
 
 -- | Apply a function to an amount's quantity (and its total price, if it has one).
 transformAmount :: (Quantity -> Quantity) -> Amount -> Amount
@@ -950,8 +932,8 @@ elisionDisplay mmax sep n lastAmt
   | otherwise = Nothing
   where
     fullString = T.pack $ show n ++ " more.."
-    -- sep from the separator, 7 from " more..", 1 + floor (logBase 10 n) from number
-    fullLength = sep + 8 + floor (logBase 10 $ fromIntegral n)
+    -- sep from the separator, 7 from " more..", numDigits n from number
+    fullLength = sep + 7 + numDigitsInt n
 
     str | Just m <- mmax, fullLength > m = T.take (m - 2) fullString <> ".."
         | otherwise                      = fullString
@@ -984,12 +966,6 @@ mixedAmountStripPrices (Mixed ma) =
 -- | Canonicalise a mixed amount's display styles using the provided commodity style map.
 canonicaliseMixedAmount :: M.Map CommoditySymbol AmountStyle -> MixedAmount -> MixedAmount
 canonicaliseMixedAmount styles = mapMixedAmountUnsafe (canonicaliseAmount styles)
-
--- | Replace each component amount's TotalPrice, if it has one, with an equivalent UnitPrice.
--- Has no effect on amounts without one.
--- Does Decimal division, might be some rounding/irrational number issues.
-mixedAmountTotalPriceToUnitPrice :: MixedAmount -> MixedAmount
-mixedAmountTotalPriceToUnitPrice = mapMixedAmount amountTotalPriceToUnitPrice
 
 
 -------------------------------------------------------------------------------

@@ -8,11 +8,9 @@ module Hledger.Cli.Commands.Prices (
 where
 
 import qualified Data.Map as M
-import Data.Maybe
 import Data.List
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
-import Data.Time
 import Hledger
 import Hledger.Cli.CliOptions
 import System.Console.CmdArgs.Explicit
@@ -37,10 +35,10 @@ prices opts j = do
     mprices    = jpricedirectives j
     cprices    =
       map (stylePriceDirectiveExceptPrecision styles) $
-      concatMap postingsPriceDirectivesFromCosts ps
+      concatMap postingPriceDirectivesFromCost ps
     rcprices   =
       map (stylePriceDirectiveExceptPrecision styles) $
-      concatMap (postingsPriceDirectivesFromCosts . postingTransformAmount (mapMixedAmount invertPrice))
+      concatMap (postingPriceDirectivesFromCost . postingTransformAmount (mapMixedAmount invertPrice))
       ps
     allprices  =
       mprices
@@ -58,15 +56,6 @@ prices opts j = do
 showPriceDirective :: PriceDirective -> T.Text
 showPriceDirective mp = T.unwords ["P", T.pack . show $ pddate mp, quoteCommoditySymbolIfNeeded $ pdcommodity mp, wbToText . showAmountB noColour{displayZeroCommodity=True} $ pdamount mp]
 
-divideAmount' :: Quantity -> Amount -> Amount
-divideAmount' n a = a' where
-    a' = (n `divideAmount` a) { astyle = style' }
-    style' = (astyle a) { asprecision = precision' }
-    extPrecision = (1+) . floor . logBase 10 $ (realToFrac n :: Double)
-    precision' = case asprecision (astyle a) of
-                      NaturalPrecision -> NaturalPrecision
-                      Precision p      -> Precision $ extPrecision + p
-
 -- XXX
 
 -- | Invert an amount's price for --invert-cost, somehow ? Unclear.
@@ -83,19 +72,6 @@ invertPrice a =
                 pa' = pa { aquantity = abs $ aquantity a, acommodity = acommodity a, aprice = Nothing, astyle = astyle a }
   where
     nonZeroSignum x = if x < 0 then -1 else 1
-
-postingsPriceDirectivesFromCosts :: Posting -> [PriceDirective]
-postingsPriceDirectivesFromCosts p = mapMaybe (amountPriceDirectiveFromCost date) . amountsRaw $ pamount p
-  where date = fromMaybe (tdate . fromJust $ ptransaction p) $ pdate p
-
-amountPriceDirectiveFromCost :: Day -> Amount -> Maybe PriceDirective
-amountPriceDirectiveFromCost d a =
-    case aprice a of
-        Just (UnitPrice pa) -> Just
-            PriceDirective { pddate = d, pdcommodity = acommodity a, pdamount = pa }
-        Just (TotalPrice pa) | aquantity a /= 0 -> Just
-            PriceDirective { pddate = d, pdcommodity = acommodity a, pdamount = abs (aquantity a) `divideAmount'` pa }
-        _ -> Nothing
 
 -- | Given a map of standard amount display styles, apply the
 -- appropriate one, if any, to this price directive's amount.

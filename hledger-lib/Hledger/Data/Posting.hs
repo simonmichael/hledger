@@ -66,6 +66,7 @@ module Hledger.Data.Posting (
   postingApplyValuation,
   postingToCost,
   postingAddInferredEquityPostings,
+  postingPriceDirectivesFromCost,
   tests_Posting
 )
 where
@@ -73,7 +74,7 @@ where
 import Data.Default (def)
 import Data.Foldable (asum)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, isJust)
+import Data.Maybe (fromMaybe, isJust, mapMaybe)
 import Data.List (foldl', sort, union)
 import qualified Data.Set as S
 import Data.Text (Text)
@@ -455,6 +456,12 @@ postingAddInferredEquityPostings equityAcct p = taggedPosting : concatMap conver
 
     priceTag = ("cost", T.strip . wbToText $ foldMap showAmountPrice priceAmounts)
     priceAmounts = filter (isJust . aprice) . amountsRaw $ pamount p
+
+-- | Make a market price equivalent to this posting's amount's unit
+-- price, if any.
+postingPriceDirectivesFromCost :: Posting -> [PriceDirective]
+postingPriceDirectivesFromCost p@Posting{pamount} =
+    mapMaybe (amountPriceDirectiveFromCost $ postingDate p) $ amountsRaw pamount
 
 -- | Apply a transform function to this posting's amount.
 postingTransformAmount :: (MixedAmount -> MixedAmount) -> Posting -> Posting
