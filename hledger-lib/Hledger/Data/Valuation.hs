@@ -24,6 +24,7 @@ module Hledger.Data.Valuation (
   ,mixedAmountGainAtDate
   ,marketPriceReverse
   ,priceDirectiveToMarketPrice
+  ,amountPriceDirectiveFromCost
   -- ,priceLookup
   ,tests_Valuation
 )
@@ -95,6 +96,22 @@ priceDirectiveToMarketPrice PriceDirective{..} =
              , mpto   = acommodity pdamount
              , mprate = aquantity pdamount
              }
+
+-- | Make one or more `MarketPrice` from an 'Amount' and its price directives.
+amountPriceDirectiveFromCost :: Day -> Amount -> Maybe PriceDirective
+amountPriceDirectiveFromCost d amt@Amount{acommodity=fromcomm, aquantity=fromq} = case aprice amt of
+    Just (UnitPrice pa)               -> Just $ pd{pdamount=pa}
+    Just (TotalPrice pa) | fromq /= 0 -> Just $ pd{pdamount=fromq `divideAmountExtraPrecision` pa}
+    _                                 -> Nothing
+  where
+    pd = PriceDirective{pddate = d, pdcommodity = fromcomm, pdamount = nullamt}
+
+    divideAmountExtraPrecision n a = (n `divideAmount` a) { astyle = style' }
+      where
+        style' = (astyle a) { asprecision = precision' }
+        precision' = case asprecision (astyle a) of
+                          NaturalPrecision -> NaturalPrecision
+                          Precision p      -> Precision $ (numDigitsInt $ truncate n) + p
 
 ------------------------------------------------------------------------------
 -- Converting things to value
