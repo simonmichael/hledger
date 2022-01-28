@@ -3037,7 +3037,7 @@ account assets:bank:checking
 
 Here is the full syntax of account directives:
 ```journal
-account ACCTNAME  [ACCTTYPE] [;COMMENT]
+account ACCTNAME  [;type:ACCTTYPE] [COMMENT]
   [;COMMENTS]
   [LEDGER-STYLE SUBDIRECTIVES, IGNORED]
 ```

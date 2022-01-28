@@ -329,7 +329,7 @@ hledger -f - balance --no-total -E -B
 # 27. The equity account used by --infer-equity can be customised
 hledger -f- print --infer-equity
 <<<
-account  equity:trades   V
+account  equity:trades   ; type:V
 
 2011/01/01
     expenses:foreign currency       €100 @ $1.35
