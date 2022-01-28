@@ -288,19 +288,27 @@ parseAndFinaliseJournal' parser iopts f txt = do
 
 -- | Post-process a Journal that has just been parsed or generated, in this order:
 --
--- - apply canonical amount styles,
+-- - add misc info (file path, read time) 
 --
--- - save misc info and reverse transactions into their original parse order,
+-- - reverse transactions into their original parse order
 --
--- - add forecast transactions,
+-- - apply canonical commodity styles
 --
--- - evaluate balance assignments and balance each transaction,
+-- - add forecast transactions if enabled
 --
--- - apply transaction modifiers (auto postings) if enabled,
+-- - add auto postings if enabled
 --
--- - check balance assertions if enabled.
+-- - evaluate balance assignments and balance each transaction
 --
--- - infer transaction-implied market prices from transaction prices
+-- - check balance assertions if enabled
+--
+-- - infer equity postings in conversion transactions if enabled
+--
+-- - infer market prices from costs if enabled
+--
+-- - check all accounts have been declared if in strict mode
+--
+-- - check all commodities have been declared if in strict mode
 --
 journalFinalise :: InputOpts -> FilePath -> Text -> ParsedJournal -> ExceptT String IO Journal
 journalFinalise iopts@InputOpts{auto_,infer_equity_,balancingopts_,strict_} f txt pj = do
