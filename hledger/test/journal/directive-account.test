@@ -13,11 +13,11 @@ b
 # "b" is a liability. "b:bb" is an asset.
 <
 ; a liability
-account asset  L
+account asset  ; type:L
 ; an asset
-account b:bb   A
+account b:bb   ; type:A
 ; a liability
-account b      L
+account b      ; type:L
 
 2018/1/1
   (asset:a)  1

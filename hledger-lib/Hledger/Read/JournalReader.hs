@@ -347,12 +347,6 @@ accountdirectivep = do
   -- the account name, possibly modified by preceding alias or apply account directives
   acct <- modifiedaccountnamep
 
-  -- maybe an account type code (ALERX) after two or more spaces
-  -- XXX added in 1.11, deprecated in 1.13, remove in 1.14
-  mtypecode :: Maybe Char <- lift $ optional $ try $ do
-    skipNonNewlineSpaces1 -- at least one more space in addition to the one consumed by modifiedaccountp
-    choice $ map char "ALERXV"
-
   -- maybe a comment, on this and/or following lines
   (cmt, tags) <- lift transactioncommentp
 
@@ -362,8 +356,7 @@ accountdirectivep = do
   -- an account type may have been set by account type code or a tag;
   -- the latter takes precedence
   let
-    mtypecode' :: Maybe Text = lookup accountTypeTagName tags <|> (T.singleton <$> mtypecode)
-    metype = parseAccountTypeCode <$> mtypecode'
+    metype = parseAccountTypeCode <$> lookup accountTypeTagName tags
 
   -- update the journal
   addAccountDeclaration (acct, cmt, tags)
@@ -1010,7 +1003,7 @@ tests_JournalReader = testGroup "JournalReader" [
   ,testGroup "accountdirectivep" [
        testCase "with-comment"       $ assertParse accountdirectivep "account a:b  ; a comment\n"
       ,testCase "does-not-support-!" $ assertParseError accountdirectivep "!account a:b\n" ""
-      ,testCase "account-type-code"  $ assertParse accountdirectivep "account a:b  A\n"
+      ,testCase "account-type-code"  $ assertParse accountdirectivep "account a:b  ; type:A\n"
       ,testCase "account-type-tag"   $ assertParseStateOn accountdirectivep "account a:b  ; type:asset\n"
         jdeclaredaccounts
         [("a:b", AccountDeclarationInfo{adicomment          = "type:asset\n"
