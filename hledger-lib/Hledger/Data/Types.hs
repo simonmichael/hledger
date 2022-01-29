@@ -530,6 +530,8 @@ data Journal = Journal {
                                                                     --   TODO: FilePath is a sloppy type here, don't assume it's a
                                                                     --   real file; values like "", "-", "(string)" can be seen
   ,jlastreadtime          :: POSIXTime                              -- ^ when this journal was last read from its file(s)
+  -- NOTE: after adding new fields, eg involving account names, consider updating
+  -- the Anon instance in Hleger.Cli.Anon
   } deriving (Eq, Generic)
 
 -- | A journal in the process of being parsed, not yet finalised.
