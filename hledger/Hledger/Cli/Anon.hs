@@ -19,6 +19,7 @@ import Numeric (showHex)
 import qualified Data.Text as T
 
 import Hledger.Data
+import Data.Map (mapKeys)
 
 class Anon a where
     -- | Consistent converter to structure with sensitive data anonymized
@@ -27,9 +28,11 @@ class Anon a where
 instance Anon Journal where
     -- Apply the anonymisation transformation on a journal after finalisation
     anon j = j { jtxns = map anon . jtxns $ j
-               , jparseparentaccounts = map anonAccount $ jparseparentaccounts j
-               , jparsealiases = []  -- already applied
-               , jdeclaredaccounts = map (first anon) $ jdeclaredaccounts j
+               , jparseparentaccounts  = map anonAccount $ jparseparentaccounts j
+               , jparsealiases         = []  -- already applied
+               , jdeclaredaccounts     = map (first anon) $ jdeclaredaccounts j
+               , jdeclaredaccounttags  = mapKeys anon $ jdeclaredaccounttags j
+               , jdeclaredaccounttypes = (map anon) <$> jdeclaredaccounttypes j
                }
 
 instance Anon Posting where
