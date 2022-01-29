@@ -282,11 +282,16 @@ acctChanges ReportSpec{_rsQuery=query,_rsReportOpts=ReportOpts{accountlistmode_,
     -- and the declared accounts are really only needed for the former, 
     -- but it's harmless to have them in the column changes as well.
     ps' = ps ++ if declared_ then declaredacctps else []
-      where 
-        declaredacctps = 
-          [nullposting{paccount=n} | n <- journalLeafAccountNamesDeclared j
-                                   , acctq `matchesAccount` n]
-          where acctq  = dbg3 "acctq" $ filterQueryOrNotQuery queryIsAcct query
+      where
+        declaredacctps =
+          [nullposting{paccount=a}
+          | a <- journalLeafAccountNamesDeclared j
+          , let atags = M.findWithDefault [] a $ jdeclaredaccounttags j
+          ,  acctandtagsq `matchesTaggedAccount` (a, atags)
+          ]
+          where
+            acctandtagsq  = dbg3 "acctandtagsq" $
+              filterQueryOrNotQuery (\q -> queryIsAcct q || queryIsTag q) query
 
     filterbydepth = case accountlistmode_ of
       ALTree -> filter ((depthq `matchesAccount`) . aname)    -- a tree - just exclude deeper accounts
