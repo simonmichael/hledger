@@ -48,6 +48,8 @@ module Hledger.Data.Journal (
   journalAccountNamesDeclaredOrUsed,
   journalAccountNamesDeclaredOrImplied,
   journalAccountNames,
+  journalAccountTags,
+  journalInheritedAccountTags,
   -- journalAmountAndPriceCommodities,
   -- journalAmountStyles,
   -- overJournalAmounts,
@@ -103,7 +105,7 @@ import Control.Monad.State.Strict (StateT)
 import Data.Char (toUpper, isDigit)
 import Data.Default (Default(..))
 import Data.Foldable (toList)
-import Data.List ((\\), find, foldl', sortBy)
+import Data.List ((\\), find, foldl', sortBy, union)
 import Data.List.Extra (nubSort)
 import qualified Data.Map.Strict as M
 import Data.Maybe (catMaybes, fromMaybe, mapMaybe, maybeToList)
@@ -196,6 +198,7 @@ instance Semigroup Journal where
     ,jincludefilestack          = jincludefilestack j2
     ,jdeclaredpayees            = jdeclaredpayees            j1 <> jdeclaredpayees            j2
     ,jdeclaredaccounts          = jdeclaredaccounts          j1 <> jdeclaredaccounts          j2
+    ,jdeclaredaccounttags       = jdeclaredaccounttags       j1 <> jdeclaredaccounttags       j2
     ,jdeclaredaccounttypes      = jdeclaredaccounttypes      j1 <> jdeclaredaccounttypes      j2
     ,jglobalcommoditystyles     = jglobalcommoditystyles     j1 <> jglobalcommoditystyles     j2
     ,jcommodities               = jcommodities               j1 <> jcommodities               j2
@@ -225,6 +228,7 @@ nulljournal = Journal {
   ,jincludefilestack          = []
   ,jdeclaredpayees            = []
   ,jdeclaredaccounts          = []
+  ,jdeclaredaccounttags       = M.empty
   ,jdeclaredaccounttypes      = M.empty
   ,jglobalcommoditystyles     = M.empty
   ,jcommodities               = M.empty
@@ -339,6 +343,18 @@ journalAccountNames = journalAccountNamesDeclaredOrImplied
 
 journalAccountNameTree :: Journal -> Tree AccountName
 journalAccountNameTree = accountNameTreeFrom . journalAccountNamesDeclaredOrImplied
+
+-- | Which tags have been declared for this account, if any ?
+journalAccountTags :: Journal -> AccountName -> [Tag]
+journalAccountTags Journal{jdeclaredaccounttags} a = M.findWithDefault [] a jdeclaredaccounttags
+
+-- | Which tags are in effect for this account, including tags inherited from parent accounts ?
+journalInheritedAccountTags :: Journal -> AccountName -> [Tag]
+journalInheritedAccountTags j a =
+  foldl' (\ts a -> ts `union` journalAccountTags j a) [] as
+  where
+    as = a : parentAccountNames a
+-- PERF: cache in journal ?
 
 -- | Find up to N most similar and most recent transactions matching
 -- the given transaction description and query. Transactions are

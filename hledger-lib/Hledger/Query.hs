@@ -36,6 +36,7 @@ module Hledger.Query (
   queryIsSym,
   queryIsReal,
   queryIsStatus,
+  queryIsTag,
   queryStartDate,
   queryEndDate,
   queryDateSpan,
@@ -49,6 +50,7 @@ module Hledger.Query (
   matchesPayeeWIP,
   matchesPosting,
   matchesAccount,
+  matchesTaggedAccount,
   matchesMixedAmount,
   matchesAmount,
   matchesCommodity,
@@ -457,6 +459,10 @@ queryIsStatus :: Query -> Bool
 queryIsStatus (StatusQ _) = True
 queryIsStatus _ = False
 
+queryIsTag :: Query -> Bool
+queryIsTag (Tag _ _) = True
+queryIsTag _ = False
+
 -- | Does this query specify a start date and nothing else (that would
 -- filter postings prior to the date) ?
 -- When the flag is true, look for a starting secondary date instead.
@@ -562,10 +568,8 @@ inAccountQuery (QueryOptInAcct a     : _) = Just . Acct $ accountNameToAccountRe
 
 -- matching
 
--- | Does the match expression match this account ?
+-- | Does the query match this account name ?
 -- A matching in: clause is also considered a match.
--- When matching by account name pattern, if there's a regular
--- expression error, this function calls error.
 matchesAccount :: Query -> AccountName -> Bool
 matchesAccount (None) _ = False
 matchesAccount (Not m) a = not $ matchesAccount m a
@@ -575,6 +579,18 @@ matchesAccount (Acct r) a = regexMatchText r a
 matchesAccount (Depth d) a = accountNameLevel a <= d
 matchesAccount (Tag _ _) _ = False
 matchesAccount _ _ = True
+
+-- | Does the query match this account's name, and if the query includes
+-- tag: terms, do those match at least one of the account's tags ?
+matchesTaggedAccount :: Query -> (AccountName,[Tag]) -> Bool
+matchesTaggedAccount (None) _        = False
+matchesTaggedAccount (Not m) (a,ts)  = not $ matchesTaggedAccount m (a,ts)
+matchesTaggedAccount (Or ms) (a,ts)  = any (`matchesTaggedAccount` (a,ts)) ms
+matchesTaggedAccount (And ms) (a,ts) = all (`matchesTaggedAccount` (a,ts)) ms
+matchesTaggedAccount (Acct r) (a,_)  = regexMatchText r a
+matchesTaggedAccount (Depth d) (a,_) = accountNameLevel a <= d
+matchesTaggedAccount (Tag namepat mvaluepat) (_,ts) = matchesTags namepat mvaluepat ts
+matchesTaggedAccount _ _             = True
 
 matchesMixedAmount :: Query -> MixedAmount -> Bool
 matchesMixedAmount q ma = case amountsRaw ma of
@@ -635,7 +651,7 @@ matchesPosting (Sym r) Posting{pamount=as} = any (matchesCommodity (Sym r) . aco
 matchesPosting (Tag n v) p = case (reString n, v) of
   ("payee", Just v) -> maybe False (regexMatchText v . transactionPayee) $ ptransaction p
   ("note", Just v) -> maybe False (regexMatchText v . transactionNote) $ ptransaction p
-  (_, v) -> matchesTags n v $ postingAllTags p
+  (_, mv) -> matchesTags n mv $ postingAllTags p
 
 -- | Does the match expression match this transaction ?
 matchesTransaction :: Query -> Transaction -> Bool
@@ -800,6 +816,11 @@ tests_Query = testGroup "Query" [
      assertBool "" $ Date nulldatespan `matchesAccount` "a"
      assertBool "" $ Date2 nulldatespan `matchesAccount` "a"
      assertBool "" $ not $ Tag (toRegex' "a") Nothing `matchesAccount` "a"
+
+  ,testCase "matchesTaggedAccount" $ do
+     let tagq = Tag (toRegexCI' "type") Nothing
+     assertBool "" $ not $ tagq `matchesTaggedAccount` ("a", [])
+     assertBool "" $       tagq `matchesTaggedAccount` ("a", [("type","")])
 
   ,testGroup "matchesPosting" [
      testCase "positive match on cleared posting status"  $

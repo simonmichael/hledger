@@ -39,6 +39,7 @@ module Hledger.Data.Posting (
   postingStripPrices,
   postingApplyAliases,
   postingApplyCommodityStyles,
+  postingAddTags,
   -- * date operations
   postingDate,
   postingDate2,
@@ -82,7 +83,7 @@ import Data.Foldable (asum)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust)
 import Data.MemoUgly (memo)
-import Data.List (foldl', sort)
+import Data.List (foldl', sort, union)
 import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -444,6 +445,10 @@ postingApplyCommodityStyles styles p = p{pamount=styleMixedAmount styles $ pamou
                                         ,pbalanceassertion=fixbalanceassertion <$> pbalanceassertion p}
   where
     fixbalanceassertion ba = ba{baamount=styleAmountExceptPrecision styles $ baamount ba}
+
+-- | Add tags to a posting, discarding any for which the posting already has a value.
+postingAddTags :: Posting -> [Tag] -> Posting
+postingAddTags p@Posting{ptags} tags = p{ptags=ptags `union` tags}
 
 -- | Rewrite an account name using all matching aliases from the given list, in sequence.
 -- Each alias sees the result of applying the previous aliases.

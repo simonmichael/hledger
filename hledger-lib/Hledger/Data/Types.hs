@@ -362,7 +362,8 @@ data Posting = Posting {
       pamount           :: MixedAmount,
       pcomment          :: Text,              -- ^ this posting's comment lines, as a single non-indented multi-line string
       ptype             :: PostingType,
-      ptags             :: [Tag],                   -- ^ tag names and values, extracted from the comment
+      ptags             :: [Tag],                   -- ^ tag names and values, extracted from the posting comment 
+                                                    --   and (after finalisation) the posting account's directive if any
       pbalanceassertion :: Maybe BalanceAssertion,  -- ^ an expected balance in the account after this posting,
                                                     --   in a single commodity, excluding subaccounts.
       ptransaction      :: Maybe Transaction,       -- ^ this posting's parent transaction (co-recursive types).
@@ -512,6 +513,7 @@ data Journal = Journal {
   -- principal data
   ,jdeclaredpayees        :: [(Payee,PayeeDeclarationInfo)]         -- ^ Payees declared by payee directives, in parse order (after journal finalisation)
   ,jdeclaredaccounts      :: [(AccountName,AccountDeclarationInfo)] -- ^ Accounts declared by account directives, in parse order (after journal finalisation)
+  ,jdeclaredaccounttags   :: M.Map AccountName [Tag]                -- ^ Accounts which have tags declared in their directives, and those tags. (Does not include parents' tags.)
   ,jdeclaredaccounttypes  :: M.Map AccountType [AccountName]        -- ^ Accounts whose type has been declared in account directives (usually 5 top-level accounts)
   ,jglobalcommoditystyles :: M.Map CommoditySymbol AmountStyle      -- ^ per-commodity display styles declared globally, eg by command line option or import command
   ,jcommodities           :: M.Map CommoditySymbol Commodity        -- ^ commodities and formats declared by commodity directives
