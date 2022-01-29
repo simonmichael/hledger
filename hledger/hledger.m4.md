@@ -850,9 +850,12 @@ Match unmarked, pending, or cleared transactions respectively.
 **`tag:REGEX[=REGEX]`**\
 Match by tag name, and optionally also by tag value.
 (To match only by value, use `tag:.=REGEX`.)
-Note that postings also inherit tags from their transaction,
-and transactions also acquire tags from their postings,
-when querying.
+
+When querying by tag, note that:
+
+- Accounts also inherit the tags of their parent accounts
+- Postings also inherit the tags of their account and their transaction 
+- Transactions also acquire the tags of their postings.
 
 (**`inacct:ACCTNAME`**\
 A special query term used automatically in hledger-web only:
@@ -2977,15 +2980,11 @@ in another commodity. See [Valuation](#valuation).
 Though not required, these declarations can provide several benefits:
 
 - They can document your intended chart of accounts, providing a reference.
-- They can help hledger know your accounts' types (asset, liability, equity, revenue, expense),
-  useful for reports like balancesheet and incomestatement.
-- They control account display order in reports, allowing non-alphabetic sorting
-  (eg Revenues to appear above Expenses).
-- They can store extra information about accounts (account numbers, notes, etc.)
-- They help with account name completion
-  in the add command, hledger-iadd, hledger-web, ledger-mode etc.
-- In [strict mode], they restrict which accounts may be posted to by transactions,
-  which helps detect typos.
+- They control account display order in reports, allowing non-alphabetic sorting (eg Revenues to appear above Expenses).
+- They can help hledger know your accounts' types (asset, liability, equity, revenue, expense), useful for reports like balancesheet and incomestatement.
+- They can store other account information, as comments or as tags which can be used to filter reports.
+- They help with account name completion (in hledger add, hledger-web, hledger-iadd, ledger-mode, etc.)
+- In [strict mode], they restrict which accounts may be posted to by transactions, which helps detect typos.
 
 The simplest form is just the word `account` followed by a hledger-style
 [account name](#account-names), eg this account directive declares the `assets:bank:checking` account: 
@@ -3018,12 +3017,12 @@ In [strict mode], enabled with the `-s`/`--strict` flag, hledger will report an 
 
 An example of both:
 ```journal
-account assets:bank:checking  ; same-line comment, note 2+ spaces before ;
+account assets:bank:checking    ; same-line comment, note 2+ spaces required before ;
   ; next-line comment
-  ; another with tag, acctno:12345 (not used yet)
+  ; some tags, type:A, acctnum:12345
 ```
 
-Same-line comments are not supported by Ledger, or hledger <1.13.
+Compatibility note: same-line comments are not supported by Ledger or hledger <1.13.
 
 <!-- Account comments may include [tags](#tags), though we don't yet use them for anything. -->
 
@@ -3063,25 +3062,33 @@ you can declare hledger accounts to be of a certain type:
 - **conversion**\
   a subtype of equity, used for [conversion postings](#costing)
 
-Declaring account types is a good idea, since it helps enable the easy 
+Declaring account types is a good idea: they are required by the convenient 
 [balancesheet], [balancesheetequity], [incomestatement] and [cashflow] reports, 
 and probably other things in future. 
+You can also use them with other commands to reliably select accounts by type, 
+without depending on their names. Eg:
+```shell
+hledger balance tag:type=^[AL]
+```
+
 As a convenience, when account types are not declared, 
 hledger will try to guess them based on english-language account names.
 
 Here is a typical set of top-level account declarations 
-(because of the aforementioned, with these account names the type tags are not strictly needed,
-but with non-english or non-standard account names, they will be):
+(with these account names the type tags are not strictly needed,
+but with non-english or non-standard account names, they would be):
 
 ```journal
-account assets       ; type: A
-account liabilities  ; type: L
-account equity       ; type: E
-account revenues     ; type: R
-account expenses     ; type: X
+account assets             ; type: A
+account liabilities        ; type: L
+account equity             ; type: E
+account revenues           ; type: R
+account expenses           ; type: X
 
-account assets:bank  ; type: C
-account assets:cash  ; type: C
+account assets:bank        ; type: C
+account assets:cash        ; type: C
+
+account equity:conversion  ; type: V
 ```
 
 It's not necessary to declare the type of subaccounts.
