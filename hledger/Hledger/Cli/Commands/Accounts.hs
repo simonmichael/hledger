@@ -55,7 +55,9 @@ accounts CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_rsRepo
       -- just the acct: part of the query will be reapplied later, after clipping
       acctq    = dbg1 "acctq" $ filterQuery queryIsAcct query
       depth    = dbg1 "depth" $ queryDepth $ filterQuery queryIsDepth query
-      matcheddeclaredaccts = dbg1 "matcheddeclaredaccts" $ filter (matchesAccount nodepthq) $ map fst $ jdeclaredaccounts j
+      matcheddeclaredaccts =
+        dbg1 "matcheddeclaredaccts" $
+        filter (\a -> matchesTaggedAccount nodepthq (a, (journalInheritedAccountTags j a))) $ map fst $ jdeclaredaccounts j
       matchedusedaccts     = dbg5 "matchedusedaccts" $ map paccount $ journalPostings $ filterJournalPostings nodepthq j
       accts                = dbg5 "accts to show" $ -- no need to nub/sort, accountTree will
         if | declared     && not used -> matcheddeclaredaccts

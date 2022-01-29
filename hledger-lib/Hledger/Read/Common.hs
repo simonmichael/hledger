@@ -19,7 +19,6 @@ Some of these might belong in Hledger.Read.JournalReader or Hledger.Read.
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE NoMonoLocalBinds    #-}
 {-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE PackageImports      #-}
 {-# LANGUAGE Rank2Types          #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -49,6 +48,7 @@ module Hledger.Read.Common (
   getDefaultCommodityAndStyle,
   getDefaultAmountStyle,
   getAmountStyle,
+  addDeclaredAccountTags,
   addDeclaredAccountType,
   pushParentAccount,
   popParentAccount,
@@ -129,7 +129,7 @@ import Data.Decimal (DecimalRaw (Decimal), Decimal)
 import Data.Either (lefts, rights)
 import Data.Function ((&))
 import Data.Functor ((<&>), ($>))
-import Data.List (find, genericReplicate)
+import Data.List (find, genericReplicate, union)
 import Data.List.NonEmpty (NonEmpty(..))
 import Data.Maybe (catMaybes, fromMaybe, isJust, listToMaybe)
 import qualified Data.Map as M
@@ -213,7 +213,7 @@ rawOptsToInputOpts day rawopts =
       ,forecast_          = forecastPeriodFromRawOpts day rawopts
       ,reportspan_        = DateSpan (queryStartDate False datequery) (queryEndDate False datequery)
       ,auto_              = boolopt "auto" rawopts
-      ,infer_equity_      = boolopt "infer-equity" rawopts && not (conversionop_ ropts == Just ToCost)
+      ,infer_equity_      = boolopt "infer-equity" rawopts && conversionop_ ropts /= Just ToCost
       ,balancingopts_     = defbalancingopts{
                                  ignore_assertions_ = boolopt "ignore-assertions" rawopts
                                , infer_transaction_prices_ = not noinferprice
@@ -294,9 +294,15 @@ parseAndFinaliseJournal' parser iopts f txt = do
 --
 -- - apply canonical commodity styles
 --
+-- - add tags from account directives to postings' tags
+--
 -- - add forecast transactions if enabled
 --
+-- - add tags from account directives to postings' tags (again to affect forecast transactions)
+--
 -- - add auto postings if enabled
+--
+-- - add tags from account directives to postings' tags (again to affect auto postings)
 --
 -- - evaluate balance assignments and balance each transaction
 --
@@ -322,15 +328,22 @@ journalFinalise iopts@InputOpts{auto_,infer_equity_,balancingopts_,strict_} f tx
         & journalReverse                    -- convert all lists to the order they were parsed
   where
     checkAddAndBalance d j = do
-        -- Add forecast transactions if enabled
-        newj <- journalAddForecast (forecastPeriod iopts j) j
-        -- Add auto postings if enabled
+        newj <- j
+          -- Add account tags to postings' tags
+          & journalPostingsAddAccountTags
+          -- Add forecast transactions if enabled
+          & journalAddForecast (forecastPeriod iopts j)
+          -- Add account tags again to affect forecast transactions  -- PERF: just to the new transactions ?
+          & journalPostingsAddAccountTags
+          -- Add auto postings if enabled
           & (if auto_ && not (null $ jtxnmodifiers j) then journalAddAutoPostings d balancingopts_ else pure)
-        -- Balance all transactions and maybe check balance assertions.
+          -- Add account tags again to affect auto postings  -- PERF: just to the new postings ?
+          >>= Right . journalPostingsAddAccountTags
+          -- Balance all transactions and maybe check balance assertions.
           >>= journalBalanceTransactions balancingopts_
-        -- Add inferred equity postings, after balancing transactions and generating auto postings
+          -- Add inferred equity postings, after balancing transactions and generating auto postings
           <&> (if infer_equity_ then journalAddInferredEquityPostings else id)
-        -- infer market prices from commodity-exchanging transactions
+          -- infer market prices from commodity-exchanging transactions
           <&> journalInferMarketPricesFromTransactions
 
         when strict_ $ do
@@ -341,6 +354,14 @@ journalFinalise iopts@InputOpts{auto_,infer_equity_,balancingopts_,strict_} f tx
 
         return newj
 
+-- | To all postings in the journal, add any tags from their account 
+-- (including those inherited from parent accounts).
+-- If the same tag exists on posting and account, the latter is ignored.
+journalPostingsAddAccountTags :: Journal -> Journal
+journalPostingsAddAccountTags j = journalMapPostings addtags j
+  where addtags p = p `postingAddTags` (journalInheritedAccountTags j $ paccount p)
+
+-- | Apply any auto posting rules to generate extra postings on this journal's transactions.
 journalAddAutoPostings :: Day -> BalancingOpts -> Journal -> Either String Journal
 journalAddAutoPostings d bopts =
     -- Balance all transactions without checking balance assertions,
@@ -461,6 +482,10 @@ getAmountStyle commodity = do
   let mspecificStyle = M.lookup commodity jcommodities >>= cformat
   mdefaultStyle <- fmap snd <$> getDefaultCommodityAndStyle
   return $ listToMaybe $ catMaybes [mspecificStyle, mdefaultStyle]
+
+addDeclaredAccountTags :: AccountName -> [Tag] -> JournalParser m ()
+addDeclaredAccountTags acct atags =
+  modify' (\j -> j{jdeclaredaccounttags = M.insertWith (flip union) acct atags (jdeclaredaccounttags j)})
 
 addDeclaredAccountType :: AccountName -> AccountType -> JournalParser m ()
 addDeclaredAccountType acct atype =
@@ -1593,3 +1618,5 @@ tests_Common = testGroup "Common" [
     ]
 
   ]
+
+

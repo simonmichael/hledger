@@ -73,7 +73,7 @@ where
 --- ** imports
 import qualified Control.Monad.Fail as Fail (fail)
 import qualified Control.Exception as C
-import Control.Monad (forM_, when, void)
+import Control.Monad (forM_, when, void, unless)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Except (ExceptT(..), runExceptT)
 import Control.Monad.State.Strict (evalStateT,get,modify',put)
@@ -360,6 +360,7 @@ accountdirectivep = do
 
   -- update the journal
   addAccountDeclaration (acct, cmt, tags)
+  unless (null tags) $ addDeclaredAccountTags acct tags
   case metype of
     Nothing         -> return ()
     Just (Right t)  -> addDeclaredAccountType acct t
