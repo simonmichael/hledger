@@ -1,8 +1,7 @@
 # 1. we parse metadata tags in transaction and posting comments. Currently,
 # - they can be on the same line and/or separate lines
 # - they are always printed on separate lines
-hledger -f - print
-<<<
+<
 2010/01/01  ; txntag1: txn val 1
   ; txntag2: txn val 2
   a             1
@@ -11,7 +10,7 @@ hledger -f - print
   b            -1   ; posting-2-tag-1: posting 2 val 1
   ; posting-2-tag-2:
 ; non-metadata:
->>>
+$ hledger -f - print
 2010-01-01  ; txntag1: txn val 1
     ; txntag2: txn val 2
     a               1
@@ -20,12 +19,10 @@ hledger -f - print
     b              -1  ; posting-2-tag-1: posting 2 val 1
     ; posting-2-tag-2:
 
->>>2
->>>=0
+>=
 
 # 2. reports can filter by tag existence
-hledger -f - print tag:foo
-<<<
+<
 2010/01/01  ; foo:bar
   a             1
   b            -1
@@ -37,7 +34,7 @@ hledger -f - print tag:foo
 2010/01/03
     e             1
     f            -1
->>>
+$ hledger -f - print tag:foo
 2010-01-01  ; foo:bar
     a               1
     b              -1
@@ -46,12 +43,10 @@ hledger -f - print tag:foo
     c               1
     d              -1
 
->>>2
->>>=0
+>=
 
 # 3. or tag value
-hledger -f - print tag:foo=bar
-<<<
+<
 2010/01/01  ; foo:bar
   a             1
   b            -1
@@ -64,17 +59,15 @@ hledger -f - print tag:foo=bar
 2010/01/03
     e             1
     f            -1
->>>
+$ hledger -f - print tag:foo=bar
 2010-01-01  ; foo:bar
     a               1
     b              -1
 
->>>2
->>>=0
+>=
 
 # 4. postings inherit their transaction's tags
-hledger -f - register tag:foo=bar
-<<<
+<
 2010/01/01
   a             1  ; foo:bar
   b            -1
@@ -86,16 +79,13 @@ hledger -f - register tag:foo=bar
 2010/01/03  ; foo:bar
   e             1
   f            -1
->>>
+$ hledger -f - register tag:foo=bar
 2010-01-01                      a                                1             1
 2010-01-03                      e                                1             2
                                 f                               -1             1
->>>2
->>>=0
 
 # 5. look for transactions without tags
-hledger -f - print not:tag:.
-<<<
+<
 2010/01/01 desc
   a             1
   b            -1
@@ -112,7 +102,7 @@ hledger -f - print not:tag:.
 2010/01/04 (code)
     g             4
     h            -4
->>>
+$ hledger -f - print not:tag:.
 2010-01-01 desc
     a               1
     b              -1
@@ -125,10 +115,8 @@ hledger -f - print not:tag:.
     g               4
     h              -4
 
->>>=0
+>=
 
-# 6. query is not affected by implicit tags
-hledger -f ../../examples/sample.journal reg tag:d
->>>
->>>2
->>>=0
+# 6. query is not affected by implicit tags (XXX ?)
+$ hledger -f ../../examples/sample.journal reg tag:d
+
