@@ -70,7 +70,7 @@ where
 import Control.Applicative ((<|>), many, optional)
 import Data.Default (Default(..))
 import Data.Either (fromLeft, partitionEithers)
-import Data.List (partition)
+import Data.List (partition, intercalate)
 import Data.Map (Map)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, mapMaybe)
@@ -296,7 +296,7 @@ parseQueryTerm _ (T.stripPrefix "depth:" -> Just s)
 
 parseQueryTerm _ (T.stripPrefix "cur:" -> Just s) = Left . Sym <$> toRegexCI ("^" <> s <> "$") -- support cur: as an alias
 parseQueryTerm _ (T.stripPrefix "tag:" -> Just s) = Left <$> parseTag s
-parseQueryTerm _ (T.stripPrefix "type:" -> Just s) = Left <$> parseType s
+parseQueryTerm _ (T.stripPrefix "type:" -> Just s) = Left <$> parseTypeCodes s
 parseQueryTerm _ "" = Right $ Left $ Any
 parseQueryTerm d s = parseQueryTerm d $ defaultprefix<>":"<>s
 
@@ -350,39 +350,44 @@ parseTag s = do
     return $ Tag tag body
   where (n,v) = T.break (=='=') s
 
-parseType :: T.Text -> Either String Query
-parseType s =
+-- | Parse one or more account type code letters to a query matching any of those types.
+parseTypeCodes :: T.Text -> Either String Query
+parseTypeCodes s =
   case partitionEithers $ map (parseAccountType False . T.singleton) $ T.unpack s of
+    ((e:_),_) -> Left $ "could not parse " <> show e <> " as an account type code.\n" <> help
+    ([],[])   -> Left help
     ([],ts)   -> Right $ Type ts
-    ((e:_),_) -> Left e
+  where
+    help = "type:'s argument should be one or more of " ++ accountTypeChoices False ++ " (case insensitive)."
 
--- Not a great place for this, but avoids an import cycle.
--- | Case-insensitively parse a single-letter code, or a full word if permitted, as an account type.
+accountTypeChoices :: Bool -> String
+accountTypeChoices allowlongform = 
+  intercalate ", " 
+    -- keep synced with parseAccountType
+    $ ["A","L","E","R","X","C","V"]
+    ++ if allowlongform then ["Asset","Liability","Equity","Revenue","Expense","Cash","Conversion"] else []
+
+-- | Case-insensitively parse one single-letter code, or one long-form word if permitted, to an account type.
+-- On failure, returns the unparseable text.
 parseAccountType :: Bool -> Text -> Either String AccountType
 parseAccountType allowlongform s =
   case T.toLower s of
-    "asset"      | allowlongform -> Right Asset
+    -- keep synced with accountTypeChoices
     "a"                          -> Right Asset
-    "liability"  | allowlongform -> Right Liability
     "l"                          -> Right Liability
-    "equity"     | allowlongform -> Right Equity
     "e"                          -> Right Equity
-    "revenue"    | allowlongform -> Right Revenue
     "r"                          -> Right Revenue
-    "expense"    | allowlongform -> Right Expense
     "x"                          -> Right Expense
-    "cash"       | allowlongform -> Right Cash
     "c"                          -> Right Cash
-    "conversion" | allowlongform -> Right Conversion
     "v"                          -> Right Conversion
-    _                            -> Left err
-  where
-    err = T.unpack $ "invalid account type " <> s <> ", should be one of " <>
-      (T.intercalate ", " $
-        ["A","L","E","R","X","C","V"]
-        ++ if allowlongform
-          then ["Asset","Liability","Equity","Revenue","Expense","Cash","Conversion"]
-          else [])
+    "asset"      | allowlongform -> Right Asset
+    "liability"  | allowlongform -> Right Liability
+    "equity"     | allowlongform -> Right Equity
+    "revenue"    | allowlongform -> Right Revenue
+    "expense"    | allowlongform -> Right Expense
+    "cash"       | allowlongform -> Right Cash
+    "conversion" | allowlongform -> Right Conversion
+    _                            -> Left $ T.unpack s
 
 -- | Parse the value part of a "status:" query, or return an error.
 parseStatus :: T.Text -> Either String Status
