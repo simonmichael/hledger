@@ -489,7 +489,7 @@ rawOptsToCliOpts rawopts = do
               Just d  -> fromRight (error' $ "Unable to parse date \"" ++ d ++ "\"") -- PARTIAL:
                          $ fixSmartDateStrEither' currentDay (T.pack d)
   let iopts = rawOptsToInputOpts day rawopts
-  rspec <- either fail pure $ rawOptsToReportSpec day rawopts  -- PARTIAL:
+  rspec <- either error' pure $ rawOptsToReportSpec day rawopts  -- PARTIAL:
   mcolumns <- readMay <$> getEnvSafe "COLUMNS"
   mtermwidth <-
 #ifdef mingw32_HOST_OS
