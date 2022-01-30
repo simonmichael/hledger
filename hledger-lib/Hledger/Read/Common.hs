@@ -317,42 +317,28 @@ parseAndFinaliseJournal' parser iopts f txt = do
 -- - check all commodities have been declared if in strict mode
 --
 journalFinalise :: InputOpts -> FilePath -> Text -> ParsedJournal -> ExceptT String IO Journal
-journalFinalise iopts@InputOpts{auto_,infer_equity_,balancingopts_,strict_} f txt pj = do
-    t <- liftIO getPOSIXTime
-    -- Infer and apply canonical styles for each commodity (or throw an error).
-    -- This affects transaction balancing/assertions/assignments, so needs to be done early.
-    liftEither $ checkAddAndBalance (_ioDay iopts) <=< journalApplyCommodityStyles $
-        pj{jglobalcommoditystyles=fromMaybe mempty $ commodity_styles_ balancingopts_}  -- save any global commodity styles
-        & journalAddFile (f, txt)           -- save the main file's info
-        & journalSetLastReadTime t          -- save the last read time
-        & journalReverse                    -- convert all lists to the order they were parsed
-  where
-    checkAddAndBalance d j = do
-        newj <- j
-          -- Add account tags to postings' tags
-          & journalPostingsAddAccountTags
-          -- Add forecast transactions if enabled
-          & journalAddForecast (forecastPeriod iopts j)
-          -- Add account tags again to affect forecast transactions  -- PERF: just to the new transactions ?
-          & journalPostingsAddAccountTags
-          -- Add auto postings if enabled
-          & (if auto_ && not (null $ jtxnmodifiers j) then journalAddAutoPostings d balancingopts_ else pure)
-          -- Add account tags again to affect auto postings  -- PERF: just to the new postings ?
-          >>= Right . journalPostingsAddAccountTags
-          -- Balance all transactions and maybe check balance assertions.
-          >>= journalBalanceTransactions balancingopts_
-          -- Add inferred equity postings, after balancing transactions and generating auto postings
-          <&> (if infer_equity_ then journalAddInferredEquityPostings else id)
-          -- infer market prices from commodity-exchanging transactions
-          <&> journalInferMarketPricesFromTransactions
-
-        when strict_ $ do
-          -- If in strict mode, check all postings are to declared accounts
-          journalCheckAccountsDeclared newj
-          -- and using declared commodities
-          journalCheckCommoditiesDeclared newj
-
-        return newj
+journalFinalise iopts@InputOpts{auto_,infer_equity_,balancingopts_,strict_,_ioDay} f txt pj = do
+  t <- liftIO getPOSIXTime
+  liftEither $ do
+    let pj2 = pj
+          & journalSetLastReadTime t   -- save the last read time
+          & journalAddFile (f, txt)    -- save the main file's info
+          & journalReverse             -- convert all lists to the order they were parsed          
+    pj3 <- pj2{jglobalcommoditystyles=fromMaybe mempty $ commodity_styles_ balancingopts_}
+          & journalApplyCommodityStyles                   -- Infer and apply commodity styles - should be done early
+    j <- pj3
+      &   journalPostingsAddAccountTags                  -- Add account tags to postings' tags
+      &   journalAddForecast (forecastPeriod iopts pj3)  -- Add forecast transactions if enabled
+      &   journalPostingsAddAccountTags                  -- Add account tags again to affect forecast transactions  -- PERF: just to the new transactions ?
+      &   (if auto_ && not (null $ jtxnmodifiers pj3) then journalAddAutoPostings _ioDay balancingopts_ else pure)  -- Add auto postings if enabled
+      >>= Right . journalPostingsAddAccountTags          -- Add account tags again to affect auto postings  -- PERF: just to the new postings ?
+      >>= journalBalanceTransactions balancingopts_      -- Balance all transactions and maybe check balance assertions.
+      <&> (if infer_equity_ then journalAddInferredEquityPostings else id)  -- Add inferred equity postings, after balancing transactions and generating auto postings
+      <&> journalInferMarketPricesFromTransactions       -- infer market prices from commodity-exchanging transactions
+    when strict_ $ do
+      journalCheckAccountsDeclared j                     -- If in strict mode, check all postings are to declared accounts
+      journalCheckCommoditiesDeclared j                  -- and using declared commodities
+    return j
 
 -- | To all postings in the journal, add any tags from their account 
 -- (including those inherited from parent accounts).
