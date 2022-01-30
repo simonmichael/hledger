@@ -20,6 +20,13 @@ module Hledger.Data.AccountName (
   ,accountNameToAccountRegexCI
   ,accountNameTreeFrom
   ,accountSummarisedName
+  ,accountNameInferType
+  ,assetAccountRegex
+  ,cashAccountRegex
+  ,liabilityAccountRegex
+  ,equityAccountRegex
+  ,revenueAccountRegex
+  ,expenseAccountRegex
   ,acctsep
   ,acctsepchar
   ,clipAccountName
@@ -81,6 +88,27 @@ accountSummarisedName a
     where
       cs = accountNameComponents a
       a' = accountLeafName a
+
+-- | Regular expressions matching common english top-level account names,
+-- used as a fallback when account types are not declared.
+assetAccountRegex     = toRegexCI' "^assets?(:|$)"
+cashAccountRegex      = toRegexCI' "(investment|receivable|:A/R|:fixed)"
+liabilityAccountRegex = toRegexCI' "^(debts?|liabilit(y|ies))(:|$)"
+equityAccountRegex    = toRegexCI' "^equity(:|$)"
+revenueAccountRegex   = toRegexCI' "^(income|revenue)s?(:|$)"
+expenseAccountRegex   = toRegexCI' "^expenses?(:|$)"
+
+-- | Try to guess an account's type from its name,
+-- matching common english top-level account names. 
+accountNameInferType :: AccountName -> Maybe AccountType
+accountNameInferType a
+  | regexMatchText cashAccountRegex      a = Just Cash
+  | regexMatchText assetAccountRegex     a = Just Asset
+  | regexMatchText liabilityAccountRegex a = Just Liability
+  | regexMatchText equityAccountRegex    a = Just Equity
+  | regexMatchText revenueAccountRegex   a = Just Revenue
+  | regexMatchText expenseAccountRegex   a = Just Expense
+  | otherwise                          = Nothing
 
 accountNameLevel :: AccountName -> Int
 accountNameLevel "" = 0

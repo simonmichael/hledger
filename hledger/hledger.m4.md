@@ -847,6 +847,12 @@ Match real or virtual postings respectively.
 **`status:, status:!, status:*`**\
 Match unmarked, pending, or cleared transactions respectively.
 
+**`type:ACCTTYPES`**\
+Match by account type (see [Declaring accounts > Account types](#account-types)).
+`ACCTTYPES` is one or more of the single-letter account type codes
+`ALERXCV`, case insensitive. 
+Eg: `hledger bal type:AL` shows asset and liability balances. 
+
 **`tag:REGEX[=REGEX]`**\
 Match by tag name, and optionally also by tag value.
 (To match only by value, use `tag:.=REGEX`.)
@@ -3065,10 +3071,10 @@ you can declare hledger accounts to be of a certain type:
 Declaring account types is a good idea: they are required by the convenient 
 [balancesheet], [balancesheetequity], [incomestatement] and [cashflow] reports, 
 and probably other things in future. 
-You can also use them with other commands to reliably select accounts by type, 
-without depending on their names. Eg:
+You can also use the [`type:` query](#queries) to easily select accounts by type, 
+regardless of their names. Eg, to select asset and liability accounts:
 ```shell
-hledger balance tag:type=^[AL]
+hledger balance type:AL
 ```
 
 As a convenience, when account types are not declared, 

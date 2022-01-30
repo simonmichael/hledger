@@ -514,7 +514,8 @@ data Journal = Journal {
   ,jdeclaredpayees        :: [(Payee,PayeeDeclarationInfo)]         -- ^ Payees declared by payee directives, in parse order (after journal finalisation)
   ,jdeclaredaccounts      :: [(AccountName,AccountDeclarationInfo)] -- ^ Accounts declared by account directives, in parse order (after journal finalisation)
   ,jdeclaredaccounttags   :: M.Map AccountName [Tag]                -- ^ Accounts which have tags declared in their directives, and those tags. (Does not include parents' tags.)
-  ,jdeclaredaccounttypes  :: M.Map AccountType [AccountName]        -- ^ Accounts whose type has been declared in account directives (usually 5 top-level accounts)
+  ,jdeclaredaccounttypes  :: M.Map AccountType [AccountName]        -- ^ Accounts whose type has been explicitly declared in their account directives, grouped by type.
+  ,jaccounttypes          :: M.Map AccountName AccountType          -- ^ All accounts for which a type has been declared or can be inferred from its parent or its name.
   ,jglobalcommoditystyles :: M.Map CommoditySymbol AmountStyle      -- ^ per-commodity display styles declared globally, eg by command line option or import command
   ,jcommodities           :: M.Map CommoditySymbol Commodity        -- ^ commodities and formats declared by commodity directives
   ,jinferredcommodities   :: M.Map CommoditySymbol AmountStyle      -- ^ commodities and formats inferred from journal amounts
