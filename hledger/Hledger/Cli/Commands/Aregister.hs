@@ -69,11 +69,12 @@ aregistermode = hledgerCommandMode
 aregister :: CliOpts -> Journal -> IO ()
 aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
   -- the first argument specifies the account, any remaining arguments are a filter query
+  let help = "aregister needs an ACCTPAT argument to select an account"
   (apat,querystring) <- case listofstringopt "args" rawopts of
-      []     -> fail "aregister needs an account, please provide an account name or pattern"
+      []     -> error' $ help <> ".\nPlease provide an account name or a (case-insensitive, infix, regexp) pattern."
       (a:as) -> return (a, map T.pack as)
   let
-    acct = fromMaybe (error' $ show apat++" did not match any account")   -- PARTIAL:
+    acct = fromMaybe (error' $ help <> ",\nbut " ++ show apat++" did not match any account.")   -- PARTIAL:
            . firstMatch $ journalAccountNamesDeclaredOrImplied j
     firstMatch = case toRegexCI $ T.pack apat of
         Right re -> find (regexMatchText re)
