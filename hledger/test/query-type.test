@@ -1,0 +1,77 @@
+# Matching accounts by type. 
+# Similar to the tag:type tests in query-tags.test.
+<
+account a   ; type:A
+account l   ; type:Liability
+account r   ; type:R
+account o   ; othertag:
+account u
+
+2022-01-01
+  (r)        1
+
+2022-01-02
+  (a)        1
+  (l)        1
+
+# 1. We can match declared accounts by type, using short type codes
+# regardless of whether account's type was declared in short or long form.
+$ hledger -f- accounts --declared type:AL
+a
+l
+
+# 2. Order and case of type codes doesn't matter.
+$ hledger -f- accounts --declared type:la
+a
+l
+
+# 3. Matching used accounts works the same way.
+$ hledger -f- accounts --used type:AL
+a
+l
+
+# 4. We can match postings by their account's type.
+$ hledger -f- register -w80 type:A
+2022-01-02                      (a)                              1             1
+
+# 5. We can match transactions by their accounts' types.
+$ hledger -f- print type:A
+2022-01-02
+    (a)               1
+    (l)               1
+
+>=
+
+# 6. And negatively match them.
+$ hledger -f- print type:a not:type:l
+
+# 7. We can filter balance reports by account type.
+$ hledger -f- bal type:a
+                   1  a
+--------------------
+                   1  
+
+# 8. Postingless declared accounts in balance reports are also filtered.
+<
+account a  ; type:A
+account l  ; type:L
+
+$ hledger -f- bal -N --declared -E type:A
+                   0  a
+
+# 9. type: is aware of account type inheritance.
+<
+account a    ; type:A
+account a:aa
+
+$ hledger -f- accounts type:a
+a
+a:aa
+
+# 10. type: is aware of inferred account types.
+<
+account assets
+account liabilities
+
+$ hledger -f- accounts type:a
+assets
