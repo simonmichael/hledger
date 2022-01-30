@@ -57,7 +57,8 @@ accounts CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_rsRepo
       depth    = dbg1 "depth" $ queryDepth $ filterQuery queryIsDepth query
       matcheddeclaredaccts =
         dbg1 "matcheddeclaredaccts" $
-        filter (\a -> matchesTaggedAccount nodepthq (a, (journalInheritedAccountTags j a))) $ map fst $ jdeclaredaccounts j
+        filter (\a -> matchesAccountExtra nodepthq (journalAccountType j a) (journalInheritedAccountTags j a) a)
+          $ map fst $ jdeclaredaccounts j
       matchedusedaccts     = dbg5 "matchedusedaccts" $ map paccount $ journalPostings $ filterJournalPostings nodepthq j
       accts                = dbg5 "accts to show" $ -- no need to nub/sort, accountTree will
         if | declared     && not used -> matcheddeclaredaccts
