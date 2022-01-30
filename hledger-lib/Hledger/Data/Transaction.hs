@@ -27,6 +27,7 @@ module Hledger.Data.Transaction
 , transactionApplyValuation
 , transactionToCost
 , transactionAddInferredEquityPostings
+, transactionAddPricesFromEquity
 , transactionApplyAliases
 , transactionMapPostings
 , transactionMapPostingAmounts
@@ -47,7 +48,8 @@ module Hledger.Data.Transaction
 , tests_Transaction
 ) where
 
-import Data.Maybe (fromMaybe)
+import Data.Bifunctor (second)
+import Data.Maybe (fromMaybe, mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
@@ -210,12 +212,41 @@ transactionApplyValuation priceoracle styles periodlast today v =
 -- | Maybe convert this 'Transaction's amounts to cost and apply the
 -- appropriate amount styles.
 transactionToCost :: M.Map CommoditySymbol AmountStyle -> ConversionOp -> Transaction -> Transaction
-transactionToCost styles cost = transactionMapPostings (postingToCost styles cost)
+transactionToCost styles cost t = t{tpostings = mapMaybe (postingToCost styles cost) $ tpostings t}
 
 -- | Add inferred equity postings to a 'Transaction' using transaction prices.
 transactionAddInferredEquityPostings :: AccountName -> Transaction -> Transaction
 transactionAddInferredEquityPostings equityAcct t =
     t{tpostings=concatMap (postingAddInferredEquityPostings equityAcct) $ tpostings t}
+
+-- | Add inferred transaction prices from equity postings. The transaction
+-- price will be added to the first posting whose amount is the negation of one
+-- of the (exactly) two conversion postings, if it exists.
+transactionAddPricesFromEquity :: M.Map AccountName AccountType -> Transaction -> Transaction
+transactionAddPricesFromEquity acctTypes t
+    | [(n1, cp1), (n2, cp2)] <- conversionps                                  -- Exactly two conversion postings with indices
+    , Just ca1 <- maybePostingAmount cp1, Just ca2 <- maybePostingAmount cp2  -- Each conversion posting has exactly one amount
+    , (np,pricep):_ <- mapMaybe (maybeAddPrice ca1 ca2) npostings             -- Get the first posting which matches one of the conversion postings
+    , let subPosting (n, p) = if n == np then pricep else if n == n1 then cp1 else if n == n2 then cp2 else p
+    = t{tpostings = map subPosting npostings}
+    | otherwise = t
+  where
+    maybeAddPrice a1 a2 (n,p)
+        | Just a <- mpamt, amountMatches (-a1) a = Just (n, markPosting p{pamount = mixedAmount a{aprice = Just $ TotalPrice a2}})
+        | Just a <- mpamt, amountMatches (-a2) a = Just (n, markPosting p{pamount = mixedAmount a{aprice = Just $ TotalPrice a1}})
+        | otherwise = Nothing
+      where
+        mpamt = maybePostingAmount p
+
+    conversionps = map (second (`postingAddTags` [("_matched-conversion-posting","")]))
+                 $ filter (\(_,p) -> M.lookup (paccount p) acctTypes == Just Conversion) npostings
+    markPosting = (`postingAddTags` [("_matched-transaction-price","")])
+    npostings = zip [0..] $ tpostings t
+
+    maybePostingAmount p = case amountsRaw $ pamount p of
+        [a@Amount{aprice=Nothing}] -> Just a
+        _                          -> Nothing
+    amountMatches a b = acommodity a == acommodity b && aquantity a == aquantity b
 
 -- | Apply some account aliases to all posting account names in the transaction, as described by accountNameApplyAliases.
 -- This can fail due to a bad replacement pattern in a regular expression alias.

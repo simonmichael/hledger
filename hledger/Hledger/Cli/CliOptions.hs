@@ -183,6 +183,8 @@ reportflags = [
      ])
   ,flagNone ["infer-equity"] (setboolopt "infer-equity")
     "in conversion transactions, replace costs (transaction prices) with equity postings, to keep the transactions balanced"
+  ,flagNone ["infer-costs"] (setboolopt "infer-costs")
+    "infer costs (transaction prices) from manual conversion postings"
   
   -- history of this flag so far, lest we be confused:
   --  originally --infer-value

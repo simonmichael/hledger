@@ -197,7 +197,7 @@ rawOptsToInputOpts day rawopts =
         commodity_styles = either err id $ commodityStyleFromRawOpts rawopts
           where err e = error' $ "could not parse commodity-style: '" ++ e ++ "'"  -- PARTIAL:
 
-    in InputOpts{
+    in definputopts{
        -- files_             = listofstringopt "file" rawopts
        mformat_           = Nothing
       ,mrules_file_       = maybestringopt "rules-file" rawopts
@@ -210,6 +210,7 @@ rawOptsToInputOpts day rawopts =
       ,reportspan_        = DateSpan (queryStartDate False datequery) (queryEndDate False datequery)
       ,auto_              = boolopt "auto" rawopts
       ,infer_equity_      = boolopt "infer-equity" rawopts && conversionop_ ropts /= Just ToCost
+      ,infer_costs_       = boolopt "infer-costs" rawopts
       ,balancingopts_     = defbalancingopts{
                                  ignore_assertions_ = boolopt "ignore-assertions" rawopts
                                , infer_transaction_prices_ = not noinferprice
@@ -305,7 +306,7 @@ initialiseAndParseJournal parser iopts f txt =
 -- - check all commodities have been declared if in strict mode
 --
 journalFinalise :: InputOpts -> FilePath -> Text -> ParsedJournal -> ExceptT String IO Journal
-journalFinalise iopts@InputOpts{auto_,infer_equity_,balancingopts_,strict_,_ioDay} f txt pj = do
+journalFinalise iopts@InputOpts{..} f txt pj = do
   t <- liftIO getPOSIXTime
   liftEither $ do
     j <- pj{jglobalcommoditystyles=fromMaybe mempty $ commodity_styles_ balancingopts_}
@@ -320,6 +321,7 @@ journalFinalise iopts@InputOpts{auto_,infer_equity_,balancingopts_,strict_,_ioDa
               then journalAddAutoPostings _ioDay balancingopts_  -- Add auto postings if enabled, and account tags if needed
               else pure)
       >>= journalBalanceTransactions balancingopts_      -- Balance all transactions and maybe check balance assertions.
+      <$> (if infer_costs_  then journalAddPricesFromEquity else id)        -- Add inferred transaction prices from equity postings, if present
       <&> (if infer_equity_ then journalAddInferredEquityPostings else id)  -- Add inferred equity postings, after balancing transactions and generating auto postings
       <&> journalInferMarketPricesFromTransactions       -- infer market prices from commodity-exchanging transactions
     when strict_ $ do

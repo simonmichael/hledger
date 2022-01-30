@@ -26,6 +26,7 @@ module Hledger.Data.Journal (
   journalCommodityStyles,
   journalToCost,
   journalAddInferredEquityPostings,
+  journalAddPricesFromEquity,
   journalReverse,
   journalSetLastReadTime,
   journalPivot,
@@ -948,6 +949,10 @@ journalAddInferredEquityPostings :: Journal -> Journal
 journalAddInferredEquityPostings j = journalMapTransactions (transactionAddInferredEquityPostings equityAcct) j
   where
     equityAcct = journalConversionAccount j
+
+-- | Add inferred transaction prices from equity postings.
+journalAddPricesFromEquity :: Journal -> Journal
+journalAddPricesFromEquity j = journalMapTransactions (transactionAddPricesFromEquity $ jaccounttypes j) j
 
 -- -- | Get this journal's unique, display-preference-canonicalised commodities, by symbol.
 -- journalCanonicalCommodities :: Journal -> M.Map String CommoditySymbol

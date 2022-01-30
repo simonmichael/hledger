@@ -420,13 +420,19 @@ postingApplyValuation priceoracle styles periodlast today v p =
 
 -- | Maybe convert this 'Posting's amount to cost, and apply apply appropriate
 -- amount styles.
-postingToCost :: M.Map CommoditySymbol AmountStyle -> ConversionOp -> Posting -> Posting
-postingToCost _      NoConversionOp p = p
-postingToCost styles ToCost         p = postingTransformAmount (styleMixedAmount styles . mixedAmountCost) p
+postingToCost :: M.Map CommoditySymbol AmountStyle -> ConversionOp -> Posting -> Maybe Posting
+postingToCost _      NoConversionOp p = Just p
+postingToCost styles ToCost         p
+  | ("_matched-conversion-posting","") `elem` ptags p = Nothing
+  | otherwise = Just $ postingTransformAmount (styleMixedAmount styles . mixedAmountCost) p
 
 -- | Generate inferred equity postings from a 'Posting' using transaction prices.
+-- Make sure not to generate equity postings when there are already matched
+-- conversion postings.
 postingAddInferredEquityPostings :: Text -> Posting -> [Posting]
-postingAddInferredEquityPostings equityAcct p = taggedPosting : concatMap conversionPostings priceAmounts
+postingAddInferredEquityPostings equityAcct p
+    | ("_matched-transaction-price","") `elem` ptags p = [p]
+    | otherwise = taggedPosting : concatMap conversionPostings priceAmounts
   where
     taggedPosting
       | null priceAmounts = p
