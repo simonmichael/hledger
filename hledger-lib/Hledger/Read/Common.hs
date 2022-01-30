@@ -152,6 +152,7 @@ import Hledger.Reports.ReportOptions (ReportOpts(..), queryFromFlags, rawOptsToR
 import Hledger.Utils
 import Text.Printf (printf)
 import Hledger.Read.InputOptions
+import Data.Tree
 
 --- ** doctest setup
 -- $setup
@@ -323,9 +324,10 @@ journalFinalise iopts@InputOpts{auto_,infer_equity_,balancingopts_,strict_,_ioDa
     let pj2 = pj
           & journalSetLastReadTime t   -- save the last read time
           & journalAddFile (f, txt)    -- save the main file's info
-          & journalReverse             -- convert all lists to the order they were parsed          
+          & journalReverse             -- convert all lists to the order they were parsed
+          & journalAddAccountTypes     -- build a map of all known account types
     pj3 <- pj2{jglobalcommoditystyles=fromMaybe mempty $ commodity_styles_ balancingopts_}
-          & journalApplyCommodityStyles                   -- Infer and apply commodity styles - should be done early
+      &   journalApplyCommodityStyles                    -- Infer and apply commodity styles - should be done early
     j <- pj3
       &   journalPostingsAddAccountTags                  -- Add account tags to postings' tags
       &   journalAddForecast (forecastPeriod iopts pj3)  -- Add forecast transactions if enabled
@@ -339,6 +341,33 @@ journalFinalise iopts@InputOpts{auto_,infer_equity_,balancingopts_,strict_,_ioDa
       journalCheckAccountsDeclared j                     -- If in strict mode, check all postings are to declared accounts
       journalCheckCommoditiesDeclared j                  -- and using declared commodities
     return j
+
+-- | Add a map of all known account types to the journal.
+journalAddAccountTypes :: Journal -> Journal
+journalAddAccountTypes j = j{jaccounttypes = journalAccountTypes j}
+
+-- | Build a map of all known account types, explicitly declared
+-- or inferred from the account's parent or name.
+journalAccountTypes :: Journal -> M.Map AccountName AccountType
+journalAccountTypes j =
+  let
+    t = accountNameTreeFrom $ journalAccountNames j :: Tree AccountName
+    t' = settypes Nothing t :: Tree (AccountName, Maybe AccountType)
+  in
+    M.fromList [(a,t) | (a, Just t) <- flatten t']
+  where
+    -- Map from the top of the account tree down to the leaves,
+    -- propagating account types downward.
+    settypes :: Maybe AccountType -> Tree AccountName -> Tree (AccountName, Maybe AccountType)
+    settypes mparenttype (Node a subs) =
+      let mtype = M.lookup a declaredtypes <|> mparenttype <|> accountNameInferType a
+      in Node (a, mtype) (map (settypes mtype) subs)
+    declaredtypes = journalDeclaredAccountTypes j
+
+-- | Build a map of the account types explicitly declared.
+journalDeclaredAccountTypes :: Journal -> M.Map AccountName AccountType
+journalDeclaredAccountTypes Journal{jdeclaredaccounttypes} =
+  M.fromList $ concat [map (,t) as | (t,as) <- M.toList jdeclaredaccounttypes]
 
 -- | To all postings in the journal, add any tags from their account 
 -- (including those inherited from parent accounts).

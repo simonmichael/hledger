@@ -21,6 +21,7 @@ module Hledger.Query (
   parseQuery,
   parseQueryList,
   parseQueryTerm,
+  parseAccountType,
   simplifyQuery,
   filterQuery,
   filterQueryOrNotQuery,
@@ -36,6 +37,7 @@ module Hledger.Query (
   queryIsSym,
   queryIsReal,
   queryIsStatus,
+  queryIsType,
   queryIsTag,
   queryStartDate,
   queryEndDate,
@@ -46,11 +48,13 @@ module Hledger.Query (
   inAccountQuery,
   -- * matching
   matchesTransaction,
+  matchesTransactionExtra,
   matchesDescription,
   matchesPayeeWIP,
   matchesPosting,
+  matchesPostingExtra,
   matchesAccount,
-  matchesTaggedAccount,
+  matchesAccountExtra,
   matchesMixedAmount,
   matchesAmount,
   matchesCommodity,
@@ -67,6 +71,8 @@ import Control.Applicative ((<|>), many, optional)
 import Data.Default (Default(..))
 import Data.Either (fromLeft, partitionEithers)
 import Data.List (partition)
+import Data.Map (Map)
+import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -105,6 +111,7 @@ data Query = Any              -- ^ always match
                               --   and sometimes like a query option (for controlling display)
            | Tag Regexp (Maybe Regexp)  -- ^ match if a tag's name, and optionally its value, is matched by these respective regexps
                                         -- matching the regexp if provided, exists
+           | Type [AccountType]  -- ^ match accounts whose type is one of these (or with no types, any account)
     deriving (Eq,Show)
 
 instance Default Query where def = Any
@@ -240,6 +247,7 @@ prefixes = map (<>":") [
     ,"empty"
     ,"depth"
     ,"tag"
+    ,"type"
     ]
 
 defaultprefix :: T.Text
@@ -288,6 +296,7 @@ parseQueryTerm _ (T.stripPrefix "depth:" -> Just s)
 
 parseQueryTerm _ (T.stripPrefix "cur:" -> Just s) = Left . Sym <$> toRegexCI ("^" <> s <> "$") -- support cur: as an alias
 parseQueryTerm _ (T.stripPrefix "tag:" -> Just s) = Left <$> parseTag s
+parseQueryTerm _ (T.stripPrefix "type:" -> Just s) = Left <$> parseType s
 parseQueryTerm _ "" = Right $ Left $ Any
 parseQueryTerm d s = parseQueryTerm d $ defaultprefix<>":"<>s
 
@@ -340,6 +349,40 @@ parseTag s = do
     body <- if T.null v then pure Nothing else Just <$> toRegexCI (T.tail v)
     return $ Tag tag body
   where (n,v) = T.break (=='=') s
+
+parseType :: T.Text -> Either String Query
+parseType s =
+  case partitionEithers $ map (parseAccountType False . T.singleton) $ T.unpack s of
+    ([],ts)   -> Right $ Type ts
+    ((e:_),_) -> Left e
+
+-- Not a great place for this, but avoids an import cycle.
+-- | Case-insensitively parse a single-letter code, or a full word if permitted, as an account type.
+parseAccountType :: Bool -> Text -> Either String AccountType
+parseAccountType allowlongform s =
+  case T.toLower s of
+    "asset"      | allowlongform -> Right Asset
+    "a"                          -> Right Asset
+    "liability"  | allowlongform -> Right Liability
+    "l"                          -> Right Liability
+    "equity"     | allowlongform -> Right Equity
+    "e"                          -> Right Equity
+    "revenue"    | allowlongform -> Right Revenue
+    "r"                          -> Right Revenue
+    "expense"    | allowlongform -> Right Expense
+    "x"                          -> Right Expense
+    "cash"       | allowlongform -> Right Cash
+    "c"                          -> Right Cash
+    "conversion" | allowlongform -> Right Conversion
+    "v"                          -> Right Conversion
+    _                            -> Left err
+  where
+    err = T.unpack $ "invalid account type " <> s <> ", should be one of " <>
+      (T.intercalate ", " $
+        ["A","L","E","R","X","C","V"]
+        ++ if allowlongform
+          then ["Asset","Liability","Equity","Revenue","Expense","Cash","Conversion"]
+          else [])
 
 -- | Parse the value part of a "status:" query, or return an error.
 parseStatus :: T.Text -> Either String Status
@@ -459,6 +502,10 @@ queryIsStatus :: Query -> Bool
 queryIsStatus (StatusQ _) = True
 queryIsStatus _ = False
 
+queryIsType :: Query -> Bool
+queryIsType (Type _) = True
+queryIsType _ = False
+
 queryIsTag :: Query -> Bool
 queryIsTag (Tag _ _) = True
 queryIsTag _ = False
@@ -568,35 +615,6 @@ inAccountQuery (QueryOptInAcct a     : _) = Just . Acct $ accountNameToAccountRe
 
 -- matching
 
--- | Does the query match this account name ?
--- A matching in: clause is also considered a match.
-matchesAccount :: Query -> AccountName -> Bool
-matchesAccount (None) _ = False
-matchesAccount (Not m) a = not $ matchesAccount m a
-matchesAccount (Or ms) a = any (`matchesAccount` a) ms
-matchesAccount (And ms) a = all (`matchesAccount` a) ms
-matchesAccount (Acct r) a = regexMatchText r a
-matchesAccount (Depth d) a = accountNameLevel a <= d
-matchesAccount (Tag _ _) _ = False
-matchesAccount _ _ = True
-
--- | Does the query match this account's name, and if the query includes
--- tag: terms, do those match at least one of the account's tags ?
-matchesTaggedAccount :: Query -> (AccountName,[Tag]) -> Bool
-matchesTaggedAccount (None) _        = False
-matchesTaggedAccount (Not m) (a,ts)  = not $ matchesTaggedAccount m (a,ts)
-matchesTaggedAccount (Or ms) (a,ts)  = any (`matchesTaggedAccount` (a,ts)) ms
-matchesTaggedAccount (And ms) (a,ts) = all (`matchesTaggedAccount` (a,ts)) ms
-matchesTaggedAccount (Acct r) (a,_)  = regexMatchText r a
-matchesTaggedAccount (Depth d) (a,_) = accountNameLevel a <= d
-matchesTaggedAccount (Tag namepat mvaluepat) (_,ts) = matchesTags namepat mvaluepat ts
-matchesTaggedAccount _ _             = True
-
-matchesMixedAmount :: Query -> MixedAmount -> Bool
-matchesMixedAmount q ma = case amountsRaw ma of
-    [] -> q `matchesAmount` nullamt
-    as -> any (q `matchesAmount`) as
-
 matchesCommodity :: Query -> CommoditySymbol -> Bool
 matchesCommodity (Sym r) = regexMatchText r
 matchesCommodity _ = const True
@@ -612,9 +630,6 @@ matchesAmount (Amt ord n) a = compareAmount ord n a
 matchesAmount (Sym r) a = matchesCommodity (Sym r) (acommodity a)
 matchesAmount _ _ = True
 
--- | Is this simple (single-amount) mixed amount's quantity less than, greater than, equal to, or unsignedly equal to this number ?
--- For multi-amount (multiple commodities, or just unsimplified) mixed amounts this is always true.
-
 -- | Is this amount's quantity less than, greater than, equal to, or unsignedly equal to this number ?
 compareAmount :: OrdPlus -> Quantity -> Amount -> Bool
 compareAmount ord q Amount{aquantity=aq} = case ord of Lt      -> aq <  q
@@ -628,9 +643,42 @@ compareAmount ord q Amount{aquantity=aq} = case ord of Lt      -> aq <  q
                                                        AbsGtEq -> abs aq >= abs q
                                                        AbsEq   -> abs aq == abs q
 
--- | Does the match expression match this posting ?
+matchesMixedAmount :: Query -> MixedAmount -> Bool
+matchesMixedAmount q ma = case amountsRaw ma of
+    [] -> q `matchesAmount` nullamt
+    as -> any (q `matchesAmount`) as
+
+-- | Does the query match this account name ?
+-- A matching in: clause is also considered a match.
+matchesAccount :: Query -> AccountName -> Bool
+matchesAccount (None) _ = False
+matchesAccount (Not m) a = not $ matchesAccount m a
+matchesAccount (Or ms) a = any (`matchesAccount` a) ms
+matchesAccount (And ms) a = all (`matchesAccount` a) ms
+matchesAccount (Acct r) a = regexMatchText r a
+matchesAccount (Depth d) a = accountNameLevel a <= d
+matchesAccount (Tag _ _) _ = False
+matchesAccount _ _ = True
+
+-- | Like matchesAccount, but with optional extra matching features:
 --
--- Note that for account match we try both original and effective account
+-- - If the account's type is provided, any type: terms in the query
+--   must match it (and any negated type: terms must not match it).
+--
+-- - If the account's tags are provided, any tag: terms must match
+--   at least one of them (and any negated tag: terms must match none).
+--
+matchesAccountExtra :: Query -> Maybe AccountType -> [Tag] -> AccountName -> Bool
+matchesAccountExtra (Not q ) mtype mtags a = not $ matchesAccountExtra q mtype mtags a
+matchesAccountExtra (Or  qs) mtype mtags a = any (\q -> matchesAccountExtra q mtype mtags a) qs
+matchesAccountExtra (And qs) mtype mtags a = all (\q -> matchesAccountExtra q mtype mtags a) qs
+matchesAccountExtra (Tag npat vpat) _ mtags _ = matchesTags npat vpat mtags
+matchesAccountExtra (Type ts) matype _ _      = elem matype $ map Just ts
+matchesAccountExtra q _ _ a = matchesAccount q a
+
+-- | Does the match expression match this posting ?
+-- When matching account name, and the posting has been transformed
+-- in some way, we will match either the original or transformed name.
 matchesPosting :: Query -> Posting -> Bool
 matchesPosting (Not q) p = not $ q `matchesPosting` p
 matchesPosting (Any) _ = True
@@ -639,8 +687,7 @@ matchesPosting (Or qs) p = any (`matchesPosting` p) qs
 matchesPosting (And qs) p = all (`matchesPosting` p) qs
 matchesPosting (Code r) p = maybe False (regexMatchText r . tcode) $ ptransaction p
 matchesPosting (Desc r) p = maybe False (regexMatchText r . tdescription) $ ptransaction p
-matchesPosting (Acct r) p = matches p || maybe False matches (poriginal p)
-  where matches = regexMatchText r . paccount
+matchesPosting (Acct r) p = matches p || maybe False matches (poriginal p) where matches = regexMatchText r . paccount
 matchesPosting (Date span) p = span `spanContainsDate` postingDate p
 matchesPosting (Date2 span) p = span `spanContainsDate` postingDate2 p
 matchesPosting (StatusQ s) p = postingStatus p == s
@@ -652,6 +699,17 @@ matchesPosting (Tag n v) p = case (reString n, v) of
   ("payee", Just v) -> maybe False (regexMatchText v . transactionPayee) $ ptransaction p
   ("note", Just v) -> maybe False (regexMatchText v . transactionNote) $ ptransaction p
   (_, mv) -> matchesTags n mv $ postingAllTags p
+matchesPosting (Type _) _ = False
+
+-- | Like matchesPosting, but if the posting's account's type is provided,
+-- any type: terms in the query must match it (and any negated type: terms
+-- must not match it).
+matchesPostingExtra :: Query -> Maybe AccountType -> Posting -> Bool
+matchesPostingExtra (Not q ) mtype a = not $ matchesPostingExtra q mtype a
+matchesPostingExtra (Or  qs) mtype a = any (\q -> matchesPostingExtra q mtype a) qs
+matchesPostingExtra (And qs) mtype a = all (\q -> matchesPostingExtra q mtype a) qs
+matchesPostingExtra (Type ts) (Just atype) _ = atype `elem` ts
+matchesPostingExtra q _ p                    = matchesPosting q p
 
 -- | Does the match expression match this transaction ?
 matchesTransaction :: Query -> Transaction -> Bool
@@ -674,6 +732,19 @@ matchesTransaction (Tag n v) t = case (reString n, v) of
   ("payee", Just v) -> regexMatchText v $ transactionPayee t
   ("note", Just v) -> regexMatchText v $ transactionNote t
   (_, v) -> matchesTags n v $ transactionAllTags t
+matchesTransaction (Type _) _ = False
+
+-- | Like matchesTransaction, but if the journal's account types are provided,
+-- any type: terms in the query must match at least one posting's account type
+-- (and any negated type: terms must match none).
+matchesTransactionExtra :: Query -> (Maybe (Map AccountName AccountType)) -> Transaction -> Bool
+matchesTransactionExtra (Not  q) mtypes t = not $ matchesTransactionExtra q mtypes t
+matchesTransactionExtra (Or  qs) mtypes t = any (\q -> matchesTransactionExtra q mtypes t) qs
+matchesTransactionExtra (And qs) mtypes t = all (\q -> matchesTransactionExtra q mtypes t) qs
+matchesTransactionExtra q@(Type _) (Just atypes) t =
+  any (\p -> matchesPostingExtra q (postingAccountType p) p) $ tpostings t
+  where postingAccountType p = M.lookup (paccount p) atypes
+matchesTransactionExtra q _ t = matchesTransaction q t
 
 -- | Does the query match this transaction description ?
 -- Tests desc: terms, any other terms are ignored.
@@ -685,15 +756,7 @@ matchesDescription (Or qs) d      = any (`matchesDescription` d) $ filter queryI
 matchesDescription (And qs) d     = all (`matchesDescription` d) $ filter queryIsDesc qs
 matchesDescription (Code _) _     = False
 matchesDescription (Desc r) d     = regexMatchText r d
-matchesDescription (Acct _) _     = False
-matchesDescription (Date _) _     = False
-matchesDescription (Date2 _) _    = False
-matchesDescription (StatusQ _) _  = False
-matchesDescription (Real _) _     = False
-matchesDescription (Amt _ _) _    = False
-matchesDescription (Depth _) _    = False
-matchesDescription (Sym _) _      = False
-matchesDescription (Tag _ _) _    = False
+matchesDescription _ _            = False
 
 -- | Does the query match this transaction payee ?
 -- Tests desc: (and payee: ?) terms, any other terms are ignored.
@@ -817,10 +880,10 @@ tests_Query = testGroup "Query" [
      assertBool "" $ Date2 nulldatespan `matchesAccount` "a"
      assertBool "" $ not $ Tag (toRegex' "a") Nothing `matchesAccount` "a"
 
-  ,testCase "matchesTaggedAccount" $ do
+  ,testCase "matchesAccountExtra" $ do
      let tagq = Tag (toRegexCI' "type") Nothing
-     assertBool "" $ not $ tagq `matchesTaggedAccount` ("a", [])
-     assertBool "" $       tagq `matchesTaggedAccount` ("a", [("type","")])
+     assertBool "" $ not $ matchesAccountExtra tagq Nothing [] "a"
+     assertBool "" $       matchesAccountExtra tagq Nothing [("type","")] "a"
 
   ,testGroup "matchesPosting" [
      testCase "positive match on cleared posting status"  $

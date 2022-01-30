@@ -47,7 +47,10 @@ module Hledger.Data.Journal (
   journalAccountNamesDeclared,
   journalAccountNamesDeclaredOrUsed,
   journalAccountNamesDeclaredOrImplied,
+  journalLeafAccountNamesDeclared,
   journalAccountNames,
+  journalLeafAccountNames,
+  journalAccountNameTree,
   journalAccountTags,
   journalInheritedAccountTags,
   -- journalAmountAndPriceCommodities,
@@ -73,6 +76,7 @@ module Hledger.Data.Journal (
   journalPrevTransaction,
   journalPostings,
   journalTransactionsSimilarTo,
+  journalAccountType, 
   -- journalPrices,
   -- * Standard account types
   journalBalanceSheetAccountQuery,
@@ -96,7 +100,8 @@ module Hledger.Data.Journal (
   samplejournal,
   samplejournalMaybeExplicit,
   tests_Journal
-,journalLeafAccountNamesDeclared)
+  --
+)
 where
 
 import Control.Applicative ((<|>))
@@ -200,6 +205,7 @@ instance Semigroup Journal where
     ,jdeclaredaccounts          = jdeclaredaccounts          j1 <> jdeclaredaccounts          j2
     ,jdeclaredaccounttags       = jdeclaredaccounttags       j1 <> jdeclaredaccounttags       j2
     ,jdeclaredaccounttypes      = jdeclaredaccounttypes      j1 <> jdeclaredaccounttypes      j2
+    ,jaccounttypes              = jaccounttypes              j1 <> jaccounttypes              j2
     ,jglobalcommoditystyles     = jglobalcommoditystyles     j1 <> jglobalcommoditystyles     j2
     ,jcommodities               = jcommodities               j1 <> jcommodities               j2
     ,jinferredcommodities       = jinferredcommodities       j1 <> jinferredcommodities       j2
@@ -230,6 +236,7 @@ nulljournal = Journal {
   ,jdeclaredaccounts          = []
   ,jdeclaredaccounttags       = M.empty
   ,jdeclaredaccounttypes      = M.empty
+  ,jaccounttypes              = M.empty
   ,jglobalcommoditystyles     = M.empty
   ,jcommodities               = M.empty
   ,jinferredcommodities       = M.empty
@@ -341,10 +348,15 @@ journalAccountNamesDeclaredOrImplied j = toList $ foldMap S.fromList
 journalAccountNames :: Journal -> [AccountName]
 journalAccountNames = journalAccountNamesDeclaredOrImplied
 
+-- | Sorted unique account names declared or implied in this journal
+-- which have no children.
+journalLeafAccountNames :: Journal -> [AccountName]
+journalLeafAccountNames = treeLeaves . journalAccountNameTree
+
 journalAccountNameTree :: Journal -> Tree AccountName
 journalAccountNameTree = accountNameTreeFrom . journalAccountNamesDeclaredOrImplied
 
--- | Which tags have been declared for this account, if any ?
+-- | Which tags have been declared explicitly for this account, if any ?
 journalAccountTags :: Journal -> AccountName -> [Tag]
 journalAccountTags Journal{jdeclaredaccounttags} a = M.findWithDefault [] a jdeclaredaccounttags
 
@@ -422,6 +434,8 @@ letterPairs _ = []
 -- The query will match all accounts which were declared as one of
 -- these types (by account directives with the type: tag), plus all their 
 -- subaccounts which have not been declared as some other type.
+--
+-- This is older code pre-dating 2022's expansion of account types.
 journalAccountTypeQuery :: [AccountType] -> Regexp -> Journal -> Query
 journalAccountTypeQuery atypes fallbackregex Journal{jdeclaredaccounttypes} =
   let
@@ -449,7 +463,7 @@ journalAccountTypeQuery atypes fallbackregex Journal{jdeclaredaccounttypes} =
 journalAssetAccountQuery :: Journal -> Query
 journalAssetAccountQuery j = 
   Or [
-     journalAccountTypeQuery [Asset] (toRegexCI' "^assets?(:|$)") j
+     journalAccountTypeQuery [Asset] assetAccountRegex j
     ,journalCashAccountOnlyQuery j
   ]
 
@@ -458,7 +472,7 @@ journalAssetAccountQuery j =
 -- or otherwise for accounts with names matched by the case-insensitive 
 -- regular expression @^assets?(:|$)@.
 journalAssetNonCashAccountQuery :: Journal -> Query
-journalAssetNonCashAccountQuery = journalAccountTypeQuery [Asset] (toRegexCI' "^assets?(:|$)")
+journalAssetNonCashAccountQuery = journalAccountTypeQuery [Asset] assetAccountRegex
 
 -- | A query for Cash (liquid asset) accounts in this journal, ie accounts
 -- declared as Cash by account directives, or otherwise Asset accounts whose 
@@ -470,7 +484,7 @@ journalCashAccountQuery j =
     Just _  -> journalCashAccountOnlyQuery j
     Nothing ->
       -- no Cash accounts are declared; query for Asset accounts and exclude some of them
-      And [ journalAssetNonCashAccountQuery j, Not . Acct $ toRegexCI' "(investment|receivable|:A/R|:fixed)" ]
+      And [ journalAssetNonCashAccountQuery j, Not $ Acct cashAccountRegex ]
 
 -- | A query for accounts in this journal specifically declared as Cash by 
 -- account directives, or otherwise the None query.
@@ -488,28 +502,28 @@ journalCashAccountOnlyQuery j =
 -- accounts with names matched by the case-insensitive regular expression
 -- @^(debts?|liabilit(y|ies))(:|$)@.
 journalLiabilityAccountQuery :: Journal -> Query
-journalLiabilityAccountQuery = journalAccountTypeQuery [Liability] (toRegexCI' "^(debts?|liabilit(y|ies))(:|$)")
+journalLiabilityAccountQuery = journalAccountTypeQuery [Liability] liabilityAccountRegex
 
 -- | A query for accounts in this journal which have been
 -- declared as Equity by account directives, or otherwise for
 -- accounts with names matched by the case-insensitive regular expression
 -- @^equity(:|$)@.
 journalEquityAccountQuery :: Journal -> Query
-journalEquityAccountQuery = journalAccountTypeQuery [Equity] (toRegexCI' "^equity(:|$)")
+journalEquityAccountQuery = journalAccountTypeQuery [Equity] equityAccountRegex
 
 -- | A query for accounts in this journal which have been
 -- declared as Revenue by account directives, or otherwise for
 -- accounts with names matched by the case-insensitive regular expression
 -- @^(income|revenue)s?(:|$)@.
 journalRevenueAccountQuery :: Journal -> Query
-journalRevenueAccountQuery = journalAccountTypeQuery [Revenue] (toRegexCI' "^(income|revenue)s?(:|$)")
+journalRevenueAccountQuery = journalAccountTypeQuery [Revenue] revenueAccountRegex
 
 -- | A query for accounts in this journal which have been
 -- declared as Expense by account directives, or otherwise for
 -- accounts with names matched by the case-insensitive regular expression
 -- @^expenses?(:|$)@.
 journalExpenseAccountQuery  :: Journal -> Query
-journalExpenseAccountQuery = journalAccountTypeQuery [Expense] (toRegexCI' "^expenses?(:|$)")
+journalExpenseAccountQuery = journalAccountTypeQuery [Expense] expenseAccountRegex
 
 -- | A query for Asset, Liability & Equity accounts in this journal.
 -- Cf <http://en.wikipedia.org/wiki/Chart_of_accounts#Balance_Sheet_Accounts>.
@@ -533,6 +547,11 @@ journalConversionAccount =
     . M.findWithDefault [] Conversion
     . jdeclaredaccounttypes
 
+-- Newer account type functionality.
+
+journalAccountType :: Journal -> AccountName -> Maybe AccountType
+journalAccountType Journal{jaccounttypes} a = M.lookup a jaccounttypes
+
 -- Various kinds of filtering on journals. We do it differently depending
 -- on the command.
 
@@ -541,12 +560,12 @@ journalConversionAccount =
 
 -- | Keep only transactions matching the query expression.
 filterJournalTransactions :: Query -> Journal -> Journal
-filterJournalTransactions q j@Journal{jtxns=ts} = j{jtxns=filter (q `matchesTransaction`) ts}
+filterJournalTransactions q j@Journal{jaccounttypes, jtxns} = j{jtxns=filter (matchesTransactionExtra q (Just jaccounttypes)) jtxns}
 
 -- | Keep only postings matching the query expression.
 -- This can leave unbalanced transactions.
 filterJournalPostings :: Query -> Journal -> Journal
-filterJournalPostings q j@Journal{jtxns=ts} = j{jtxns=map (filterTransactionPostings q) ts}
+filterJournalPostings q j@Journal{jtxns=ts} = j{jtxns=map (filterTransactionPostingsExtra (jaccounttypes j) q) ts}
 
 -- | Keep only postings which do not match the query expression, but for which a related posting does.
 -- This can leave unbalanced transactions.
@@ -576,6 +595,11 @@ filterPostingAmount q p@Posting{pamount=as}
 
 filterTransactionPostings :: Query -> Transaction -> Transaction
 filterTransactionPostings q t@Transaction{tpostings=ps} = t{tpostings=filter (q `matchesPosting`) ps}
+
+-- Like filterTransactionPostings, but is given the map of account types so can also filter by account type.
+filterTransactionPostingsExtra :: M.Map AccountName AccountType -> Query -> Transaction -> Transaction
+filterTransactionPostingsExtra atypes q t@Transaction{tpostings=ps} =
+  t{tpostings=filter (\p -> matchesPostingExtra q (M.lookup (paccount p) atypes) p) ps}
 
 filterTransactionRelatedPostings :: Query -> Transaction -> Transaction
 filterTransactionRelatedPostings q t@Transaction{tpostings=ps} =

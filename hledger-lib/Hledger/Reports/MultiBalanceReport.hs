@@ -171,8 +171,9 @@ compoundBalanceReportWith rspec' j priceoracle subreportspecs = cbr
             ropts = cbcsubreportoptions $ _rsReportOpts rspec
             rspecsub = rspec{_rsReportOpts=ropts, _rsQuery=And [q, _rsQuery rspec]}
             -- Starting balances and column postings specific to this subreport.
-            startbals' = startingBalances rspecsub j priceoracle $ filter (matchesPosting q) startps
-            colps'     = map (second $ filter (matchesPosting q)) colps
+            startbals' = startingBalances rspecsub j priceoracle $ 
+              filter (\p -> matchesPostingExtra q (journalAccountType j (paccount p)) p) startps
+            colps' = map (second $ filter (\p -> matchesPostingExtra q (journalAccountType j (paccount p)) p)) colps
 
     -- Sum the subreport totals by column. Handle these cases:
     -- - no subreports
@@ -286,12 +287,13 @@ acctChanges ReportSpec{_rsQuery=query,_rsReportOpts=ReportOpts{accountlistmode_,
         declaredacctps =
           [nullposting{paccount=a}
           | a <- journalLeafAccountNamesDeclared j
+          , let mtype = journalAccountType j a
           , let atags = M.findWithDefault [] a $ jdeclaredaccounttags j
-          ,  acctandtagsq `matchesTaggedAccount` (a, atags)
+          , matchesAccountExtra accttypetagsq mtype atags a
           ]
           where
-            acctandtagsq  = dbg3 "acctandtagsq" $
-              filterQueryOrNotQuery (\q -> queryIsAcct q || queryIsTag q) query
+            accttypetagsq  = dbg3 "accttypetagsq" $
+              filterQueryOrNotQuery (\q -> queryIsAcct q || queryIsType q || queryIsTag q) query
 
     filterbydepth = case accountlistmode_ of
       ALTree -> filter ((depthq `matchesAccount`) . aname)    -- a tree - just exclude deeper accounts
