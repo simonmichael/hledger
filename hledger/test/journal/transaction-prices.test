@@ -355,6 +355,72 @@ Transactions in equity:conversion and subaccounts:
                                                              €-100         €-100
 >>>=0
 
+# 29. Infer cost when equity postings are present
+hledger -f- print --cost --infer-costs
+<<<
+2011/01/01
+    expenses:foreign currency       €100
+    equity:conversion              €-100
+    equity:conversion               $135
+    assets
+>>>
+2011-01-01
+    expenses:foreign currency            $135
+    assets
+
+>>>=0
+
+# 30. Infer cost and show it when equity postings are present
+hledger -f- print --show-costs --infer-costs
+<<<
+2011/01/01
+    expenses:foreign currency       €100
+    equity:conversion              €-100
+    equity:conversion               $135
+    assets
+>>>
+2011-01-01
+    expenses:foreign currency    €100 @@ $135
+    equity:conversion                   €-100
+    equity:conversion                    $135
+    assets
+
+>>>=0
+
+# 31. Do not infer equity postings when they are specified manually
+hledger -f- print --show-costs --infer-equity --infer-costs
+<<<
+2011/01/01
+    expenses:foreign currency       €100
+    equity:conversion              €-100
+    equity:conversion               $135
+    assets
+>>>
+2011-01-01
+    expenses:foreign currency    €100 @@ $135
+    equity:conversion                   €-100
+    equity:conversion                    $135
+    assets
+
+>>>=0
+
+# 32. Inferred equity postings with non-standard conversion account
+hledger -f- print --cost --infer-costs
+<<<
+account  whoopwhoop   ; type:V
+
+2011/01/01
+    expenses:foreign currency            €100
+    whoopwhoop                          €-100
+    whoopwhoop                           $135
+    assets
+>>>
+2011-01-01
+    expenses:foreign currency            $135
+    assets
+
+>>>=0
+
 # # when the *cost-basis* balance has exactly two commodities, both
 # # unpriced, infer an implicit conversion price for the first one in terms
 # # of the second.
