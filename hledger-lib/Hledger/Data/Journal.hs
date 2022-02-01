@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE Rank2Types          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections       #-}
 
 {-|
 
@@ -76,7 +77,11 @@ module Hledger.Data.Journal (
   journalPrevTransaction,
   journalPostings,
   journalTransactionsSimilarTo,
-  journalAccountType, 
+  -- * Account types
+  journalAccountType,
+  journalAccountTypes,
+  journalAddAccountTypes,
+  journalPostingsAddAccountTags,
   -- journalPrices,
   -- * Standard account types
   journalBalanceSheetAccountQuery,
@@ -120,7 +125,7 @@ import qualified Data.Text as T
 import Safe (headMay, headDef, maximumMay, minimumMay)
 import Data.Time.Calendar (Day, addDays, fromGregorian)
 import Data.Time.Clock.POSIX (POSIXTime)
-import Data.Tree (Tree, flatten)
+import Data.Tree (Tree(..), flatten)
 import Text.Printf (printf)
 import Text.Megaparsec (ParsecT)
 import Text.Megaparsec.Custom (FinalParseError)
@@ -550,7 +555,43 @@ journalConversionAccount =
 -- Newer account type functionality.
 
 journalAccountType :: Journal -> AccountName -> Maybe AccountType
-journalAccountType Journal{jaccounttypes} a = M.lookup a jaccounttypes
+journalAccountType Journal{jaccounttypes} = accountNameType jaccounttypes
+
+-- | Add a map of all known account types to the journal.
+journalAddAccountTypes :: Journal -> Journal
+journalAddAccountTypes j = j{jaccounttypes = journalAccountTypes j}
+
+-- | Build a map of all known account types, explicitly declared
+-- or inferred from the account's parent or name.
+journalAccountTypes :: Journal -> M.Map AccountName AccountType
+journalAccountTypes j = M.fromList [(a,acctType) | (a, Just (acctType,_)) <- flatten t']
+  where
+    t = accountNameTreeFrom $ journalAccountNames j :: Tree AccountName
+    t' = settypes Nothing t :: Tree (AccountName, Maybe (AccountType, Bool))
+    -- Map from the top of the account tree down to the leaves, propagating
+    -- account types downward. Keep track of whether the account is declared
+    -- (True), in which case the parent account should be preferred, or merely
+    -- inferred (False), in which case the inferred type should be preferred.
+    settypes :: Maybe (AccountType, Bool) -> Tree AccountName -> Tree (AccountName, Maybe (AccountType, Bool))
+    settypes mparenttype (Node a subs) = Node (a, mtype) (map (settypes mtype) subs)
+      where
+        mtype = M.lookup a declaredtypes <|> minferred
+        minferred = if maybe False snd mparenttype
+                       then mparenttype
+                       else (,False) <$> accountNameInferType a <|> mparenttype
+    declaredtypes = (,True) <$> journalDeclaredAccountTypes j
+
+-- | Build a map of the account types explicitly declared.
+journalDeclaredAccountTypes :: Journal -> M.Map AccountName AccountType
+journalDeclaredAccountTypes Journal{jdeclaredaccounttypes} =
+  M.fromList $ concat [map (,t) as | (t,as) <- M.toList jdeclaredaccounttypes]
+
+-- | To all postings in the journal, add any tags from their account
+-- (including those inherited from parent accounts).
+-- If the same tag exists on posting and account, the latter is ignored.
+journalPostingsAddAccountTags :: Journal -> Journal
+journalPostingsAddAccountTags j = journalMapPostings addtags j
+  where addtags p = p `postingAddTags` (journalInheritedAccountTags j $ paccount p)
 
 -- Various kinds of filtering on journals. We do it differently depending
 -- on the command.
@@ -560,12 +601,12 @@ journalAccountType Journal{jaccounttypes} a = M.lookup a jaccounttypes
 
 -- | Keep only transactions matching the query expression.
 filterJournalTransactions :: Query -> Journal -> Journal
-filterJournalTransactions q j@Journal{jaccounttypes, jtxns} = j{jtxns=filter (matchesTransactionExtra q (Just jaccounttypes)) jtxns}
+filterJournalTransactions q j@Journal{jtxns} = j{jtxns=filter (matchesTransactionExtra (journalAccountType j) q) jtxns}
 
 -- | Keep only postings matching the query expression.
 -- This can leave unbalanced transactions.
 filterJournalPostings :: Query -> Journal -> Journal
-filterJournalPostings q j@Journal{jtxns=ts} = j{jtxns=map (filterTransactionPostingsExtra (jaccounttypes j) q) ts}
+filterJournalPostings q j@Journal{jtxns=ts} = j{jtxns=map (filterTransactionPostingsExtra (journalAccountType j) q) ts}
 
 -- | Keep only postings which do not match the query expression, but for which a related posting does.
 -- This can leave unbalanced transactions.
@@ -597,9 +638,9 @@ filterTransactionPostings :: Query -> Transaction -> Transaction
 filterTransactionPostings q t@Transaction{tpostings=ps} = t{tpostings=filter (q `matchesPosting`) ps}
 
 -- Like filterTransactionPostings, but is given the map of account types so can also filter by account type.
-filterTransactionPostingsExtra :: M.Map AccountName AccountType -> Query -> Transaction -> Transaction
+filterTransactionPostingsExtra :: (AccountName -> Maybe AccountType) -> Query -> Transaction -> Transaction
 filterTransactionPostingsExtra atypes q t@Transaction{tpostings=ps} =
-  t{tpostings=filter (\p -> matchesPostingExtra q (M.lookup (paccount p) atypes) p) ps}
+  t{tpostings=filter (matchesPostingExtra atypes q) ps}
 
 filterTransactionRelatedPostings :: Query -> Transaction -> Transaction
 filterTransactionRelatedPostings q t@Transaction{tpostings=ps} =
@@ -783,7 +824,7 @@ journalUntieTransactions t@Transaction{tpostings=ps} = t{tpostings=map (\p -> p{
 -- relative dates in transaction modifier queries.
 journalModifyTransactions :: Day -> Journal -> Either String Journal
 journalModifyTransactions d j =
-    case modifyTransactions (journalCommodityStyles j) d (jtxnmodifiers j) (jtxns j) of
+    case modifyTransactions (journalAccountType j) (journalInheritedAccountTags j) (journalCommodityStyles j) d (jtxnmodifiers j) (jtxns j) of
       Right ts -> Right j{jtxns=ts}
       Left err -> Left err
 

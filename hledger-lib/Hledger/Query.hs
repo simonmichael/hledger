@@ -71,8 +71,6 @@ import Control.Applicative ((<|>), many, optional)
 import Data.Default (Default(..))
 import Data.Either (fromLeft, partitionEithers)
 import Data.List (partition, intercalate)
-import Data.Map (Map)
-import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -673,13 +671,13 @@ matchesAccount _ _ = True
 -- - If the account's tags are provided, any tag: terms must match
 --   at least one of them (and any negated tag: terms must match none).
 --
-matchesAccountExtra :: Query -> Maybe AccountType -> [Tag] -> AccountName -> Bool
-matchesAccountExtra (Not q ) mtype mtags a = not $ matchesAccountExtra q mtype mtags a
-matchesAccountExtra (Or  qs) mtype mtags a = any (\q -> matchesAccountExtra q mtype mtags a) qs
-matchesAccountExtra (And qs) mtype mtags a = all (\q -> matchesAccountExtra q mtype mtags a) qs
-matchesAccountExtra (Tag npat vpat) _ mtags _ = matchesTags npat vpat mtags
-matchesAccountExtra (Type ts) matype _ _      = elem matype $ map Just ts
-matchesAccountExtra q _ _ a = matchesAccount q a
+matchesAccountExtra :: (AccountName -> Maybe AccountType) -> (AccountName -> [Tag]) -> Query -> AccountName -> Bool
+matchesAccountExtra atypes atags (Not q ) a = not $ matchesAccountExtra atypes atags q a
+matchesAccountExtra atypes atags (Or  qs) a = any (\q -> matchesAccountExtra atypes atags q a) qs
+matchesAccountExtra atypes atags (And qs) a = all (\q -> matchesAccountExtra atypes atags q a) qs
+matchesAccountExtra _      atags (Tag npat vpat) a = matchesTags npat vpat $ atags a
+matchesAccountExtra atypes _     (Type ts)       a = maybe False (`elem` ts) $ atypes a
+matchesAccountExtra _      _     q        a = matchesAccount q a
 
 -- | Does the match expression match this posting ?
 -- When matching account name, and the posting has been transformed
@@ -709,12 +707,12 @@ matchesPosting (Type _) _ = False
 -- | Like matchesPosting, but if the posting's account's type is provided,
 -- any type: terms in the query must match it (and any negated type: terms
 -- must not match it).
-matchesPostingExtra :: Query -> Maybe AccountType -> Posting -> Bool
-matchesPostingExtra (Not q ) mtype a = not $ matchesPostingExtra q mtype a
-matchesPostingExtra (Or  qs) mtype a = any (\q -> matchesPostingExtra q mtype a) qs
-matchesPostingExtra (And qs) mtype a = all (\q -> matchesPostingExtra q mtype a) qs
-matchesPostingExtra (Type ts) (Just atype) _ = atype `elem` ts
-matchesPostingExtra q _ p                    = matchesPosting q p
+matchesPostingExtra :: (AccountName -> Maybe AccountType) -> Query -> Posting -> Bool
+matchesPostingExtra atype (Not q )  p = not $ matchesPostingExtra atype q p
+matchesPostingExtra atype (Or  qs)  p = any (\q -> matchesPostingExtra atype q p) qs
+matchesPostingExtra atype (And qs)  p = all (\q -> matchesPostingExtra atype q p) qs
+matchesPostingExtra atype (Type ts) p = maybe False (`elem` ts) . atype $ paccount p
+matchesPostingExtra _ q p                = matchesPosting q p
 
 -- | Does the match expression match this transaction ?
 matchesTransaction :: Query -> Transaction -> Bool
@@ -742,14 +740,12 @@ matchesTransaction (Type _) _ = False
 -- | Like matchesTransaction, but if the journal's account types are provided,
 -- any type: terms in the query must match at least one posting's account type
 -- (and any negated type: terms must match none).
-matchesTransactionExtra :: Query -> (Maybe (Map AccountName AccountType)) -> Transaction -> Bool
-matchesTransactionExtra (Not  q) mtypes t = not $ matchesTransactionExtra q mtypes t
-matchesTransactionExtra (Or  qs) mtypes t = any (\q -> matchesTransactionExtra q mtypes t) qs
-matchesTransactionExtra (And qs) mtypes t = all (\q -> matchesTransactionExtra q mtypes t) qs
-matchesTransactionExtra q@(Type _) (Just atypes) t =
-  any (\p -> matchesPostingExtra q (postingAccountType p) p) $ tpostings t
-  where postingAccountType p = M.lookup (paccount p) atypes
-matchesTransactionExtra q _ t = matchesTransaction q t
+matchesTransactionExtra :: (AccountName -> Maybe AccountType) -> Query -> Transaction -> Bool
+matchesTransactionExtra atype (Not  q) t = not $ matchesTransactionExtra atype q t
+matchesTransactionExtra atype (Or  qs) t = any (\q -> matchesTransactionExtra atype q t) qs
+matchesTransactionExtra atype (And qs) t = all (\q -> matchesTransactionExtra atype q t) qs
+matchesTransactionExtra atype q@(Type _) t = any (matchesPostingExtra atype q) $ tpostings t
+matchesTransactionExtra _ q t = matchesTransaction q t
 
 -- | Does the query match this transaction description ?
 -- Tests desc: terms, any other terms are ignored.
@@ -887,8 +883,8 @@ tests_Query = testGroup "Query" [
 
   ,testCase "matchesAccountExtra" $ do
      let tagq = Tag (toRegexCI' "type") Nothing
-     assertBool "" $ not $ matchesAccountExtra tagq Nothing [] "a"
-     assertBool "" $       matchesAccountExtra tagq Nothing [("type","")] "a"
+     assertBool "" $ not $ matchesAccountExtra (const Nothing) (const []) tagq "a"
+     assertBool "" $       matchesAccountExtra (const Nothing) (const [("type","")]) tagq "a"
 
   ,testGroup "matchesPosting" [
      testCase "positive match on cleared posting status"  $

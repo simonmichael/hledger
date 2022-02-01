@@ -95,3 +95,28 @@ $ hledger -f- accounts type:v
 equity:conversion
 equity:trading
 equity:trade
+
+# 13. type: can be used in and can match auto postings
+<
+account assets  ; type:a
+
+= type:a
+  (assets:b)   1
+
+2022-02-02 Test
+  (assets)   2
+
+$ hledger -f- reg --auto type:a
+2022-02-02 Test                 (assets)                         2             2
+                                (assets:b)                       1             3
+
+# 14. type: can be used in and can match auto postings with no known parents
+<
+= type:a
+  (expenses:b)   1
+
+2022-02-02 Test
+  (assets)       2
+
+$ hledger -f- reg --auto type:x
+2022-02-02 Test                 (expenses:b)                     1             1

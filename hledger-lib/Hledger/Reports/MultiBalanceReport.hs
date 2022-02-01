@@ -171,9 +171,9 @@ compoundBalanceReportWith rspec' j priceoracle subreportspecs = cbr
             ropts = cbcsubreportoptions $ _rsReportOpts rspec
             rspecsub = rspec{_rsReportOpts=ropts, _rsQuery=And [q, _rsQuery rspec]}
             -- Starting balances and column postings specific to this subreport.
-            startbals' = startingBalances rspecsub j priceoracle $ 
-              filter (\p -> matchesPostingExtra q (journalAccountType j (paccount p)) p) startps
-            colps' = map (second $ filter (\p -> matchesPostingExtra q (journalAccountType j (paccount p)) p)) colps
+            startbals' = startingBalances rspecsub j priceoracle $
+              filter (matchesPostingExtra (journalAccountType j) q) startps
+            colps' = map (second $ filter (matchesPostingExtra (journalAccountType j) q)) colps
 
     -- Sum the subreport totals by column. Handle these cases:
     -- - no subreports
@@ -287,9 +287,7 @@ acctChanges ReportSpec{_rsQuery=query,_rsReportOpts=ReportOpts{accountlistmode_,
         declaredacctps =
           [nullposting{paccount=a}
           | a <- journalLeafAccountNamesDeclared j
-          , let mtype = journalAccountType j a
-          , let atags = M.findWithDefault [] a $ jdeclaredaccounttags j
-          , matchesAccountExtra accttypetagsq mtype atags a
+          , matchesAccountExtra (journalAccountType j) (journalAccountTags j) accttypetagsq a
           ]
           where
             accttypetagsq  = dbg3 "accttypetagsq" $

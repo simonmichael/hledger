@@ -18,12 +18,12 @@ import Data.Maybe (catMaybes)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)
 import Hledger.Data.Types
-import Hledger.Data.Dates
 import Hledger.Data.Amount
+import Hledger.Data.Dates
 import Hledger.Data.Transaction (txnTieKnot)
-import Hledger.Query (Query, filterQuery, matchesAmount, matchesPosting,
+import Hledger.Query (Query, filterQuery, matchesAmount, matchesPostingExtra,
                       parseQuery, queryIsAmt, queryIsSym, simplifyQuery)
-import Hledger.Data.Posting (commentJoin, commentAddTag, postingApplyCommodityStyles)
+import Hledger.Data.Posting (commentJoin, commentAddTag, postingAddTags, postingApplyCommodityStyles)
 import Hledger.Utils (dbg6, wrap)
 
 -- $setup
@@ -36,9 +36,13 @@ import Hledger.Utils (dbg6, wrap)
 -- Or if any of them fails to be parsed, return the first error. A reference
 -- date is provided to help interpret relative dates in transaction modifier
 -- queries.
-modifyTransactions :: M.Map CommoditySymbol AmountStyle -> Day -> [TransactionModifier] -> [Transaction] -> Either String [Transaction]
-modifyTransactions styles d tmods ts = do
-  fs <- mapM (transactionModifierToFunction styles d) tmods  -- convert modifiers to functions, or return a parse error
+modifyTransactions :: (AccountName -> Maybe AccountType)
+                   -> (AccountName -> [Tag])
+                   -> M.Map CommoditySymbol AmountStyle
+                   -> Day -> [TransactionModifier] -> [Transaction]
+                   -> Either String [Transaction]
+modifyTransactions atypes atags styles d tmods ts = do
+  fs <- mapM (transactionModifierToFunction atypes atags styles d) tmods  -- convert modifiers to functions, or return a parse error
   let
     modifytxn t = t''
       where
@@ -62,7 +66,7 @@ modifyTransactions styles d tmods ts = do
 -- >>> import qualified Data.Text.IO as T
 -- >>> t = nulltransaction{tpostings=["ping" `post` usd 1]}
 -- >>> tmpost acc amt = TMPostingRule (acc `post` amt) False
--- >>> test = either putStr (T.putStr.showTransaction) . fmap ($ t) . transactionModifierToFunction mempty nulldate
+-- >>> test = either putStr (T.putStr.showTransaction) . fmap ($ t) . transactionModifierToFunction (const Nothing) (const []) mempty nulldate
 -- >>> test $ TransactionModifier "" ["pong" `tmpost` usd 2]
 -- 0000-01-01
 --     ping           $1.00
@@ -78,13 +82,18 @@ modifyTransactions styles d tmods ts = do
 --     pong           $3.00  ; generated-posting: = ping
 -- <BLANKLINE>
 --
-transactionModifierToFunction :: M.Map CommoditySymbol AmountStyle -> Day -> TransactionModifier -> Either String (Transaction -> Transaction)
-transactionModifierToFunction styles refdate TransactionModifier{tmquerytxt, tmpostingrules} = do
+transactionModifierToFunction :: (AccountName -> Maybe AccountType)
+                              -> (AccountName -> [Tag])
+                              -> M.Map CommoditySymbol AmountStyle
+                              -> Day -> TransactionModifier
+                              -> Either String (Transaction -> Transaction)
+transactionModifierToFunction atypes atags styles refdate TransactionModifier{tmquerytxt, tmpostingrules} = do
   q <- simplifyQuery . fst <$> parseQuery refdate tmquerytxt
   let
-    fs = map (tmPostingRuleToFunction styles q tmquerytxt) tmpostingrules
-    generatePostings = concatMap (\p -> p : map ($ p) (if q `matchesPosting` p then fs else []))
-  Right $ \t@(tpostings -> ps) -> txnTieKnot t{tpostings=generatePostings ps}
+    fs = map (\tmpr -> addAccountTags . tmPostingRuleToFunction styles q tmquerytxt tmpr) tmpostingrules
+    addAccountTags p = p `postingAddTags` atags (paccount p)
+    generatePostings p = p : map ($ p) (if matchesPostingExtra atypes q p then fs else [])
+  Right $ \t@(tpostings -> ps) -> txnTieKnot t{tpostings=concatMap generatePostings ps}
 
 -- | Converts a 'TransactionModifier''s posting rule to a 'Posting'-generating function,
 -- which will be used to make a new posting based on the old one (an "automated posting").
