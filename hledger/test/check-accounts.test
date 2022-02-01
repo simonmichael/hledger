@@ -19,12 +19,12 @@ account a
 ~ 2022-01-31
     a  $1
     b
-$ hledger -f- --forecast check accounts
+$ hledger -f- --today 2022-01-01 --forecast check accounts
 >2 /undeclared account "b"/
 >=1
 
 # 4. also fails in --strict mode
-$ hledger -f- --forecast --strict bal
+$ hledger -f- --today 2022-01-01 --forecast --strict bal
 >2 /undeclared account "b"/
 >=1
 
