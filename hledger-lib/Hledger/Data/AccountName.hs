@@ -25,6 +25,7 @@ module Hledger.Data.AccountName (
   ,cashAccountRegex
   ,liabilityAccountRegex
   ,equityAccountRegex
+  ,conversionAccountRegex
   ,revenueAccountRegex
   ,expenseAccountRegex
   ,acctsep
@@ -89,26 +90,28 @@ accountSummarisedName a
       cs = accountNameComponents a
       a' = accountLeafName a
 
--- | Regular expressions matching common english top-level account names,
+-- | Regular expressions matching common English top-level account names,
 -- used as a fallback when account types are not declared.
-assetAccountRegex     = toRegexCI' "^assets?(:|$)"
-cashAccountRegex      = toRegexCI' "(investment|receivable|:A/R|:fixed)"
-liabilityAccountRegex = toRegexCI' "^(debts?|liabilit(y|ies))(:|$)"
-equityAccountRegex    = toRegexCI' "^equity(:|$)"
-revenueAccountRegex   = toRegexCI' "^(income|revenue)s?(:|$)"
-expenseAccountRegex   = toRegexCI' "^expenses?(:|$)"
+assetAccountRegex      = toRegexCI' "^assets?(:|$)"
+cashAccountRegex       = toRegexCI' "(investment|receivable|:A/R|:fixed)"
+liabilityAccountRegex  = toRegexCI' "^(debts?|liabilit(y|ies))(:|$)"
+equityAccountRegex     = toRegexCI' "^equity(:|$)"
+conversionAccountRegex = toRegexCI' "^equity:(trad(e|ing)|conversion)s?(:|$)"
+revenueAccountRegex    = toRegexCI' "^(income|revenue)s?(:|$)"
+expenseAccountRegex    = toRegexCI' "^expenses?(:|$)"
 
 -- | Try to guess an account's type from its name,
 -- matching common English top-level account names.
 accountNameInferType :: AccountName -> Maybe AccountType
 accountNameInferType a
-  | a == "asset" || a == "assets"          = Just Asset
-  | regexMatchText assetAccountRegex     a = Just $ if regexMatchText cashAccountRegex a then Asset else Cash
-  | regexMatchText liabilityAccountRegex a = Just Liability
-  | regexMatchText equityAccountRegex    a = Just Equity
-  | regexMatchText revenueAccountRegex   a = Just Revenue
-  | regexMatchText expenseAccountRegex   a = Just Expense
-  | otherwise                              = Nothing
+  | a == "asset" || a == "assets"           = Just Asset
+  | regexMatchText assetAccountRegex      a = Just $ if regexMatchText cashAccountRegex a then Asset else Cash
+  | regexMatchText liabilityAccountRegex  a = Just Liability
+  | regexMatchText conversionAccountRegex a = Just Conversion
+  | regexMatchText equityAccountRegex     a = Just Equity
+  | regexMatchText revenueAccountRegex    a = Just Revenue
+  | regexMatchText expenseAccountRegex    a = Just Expense
+  | otherwise                               = Nothing
 
 accountNameLevel :: AccountName -> Int
 accountNameLevel "" = 0
@@ -289,6 +292,7 @@ tests_AccountName = testGroup "AccountName" [
     accountNameInferType "assets:A/R"        @?= Just Asset
     accountNameInferType "liabilities"       @?= Just Liability
     accountNameInferType "equity"            @?= Just Equity
+    accountNameInferType "equity:conversion" @?= Just Conversion
     accountNameInferType "expenses"          @?= Just Expense
     accountNameInferType "revenues"          @?= Just Revenue
     accountNameInferType "revenue"           @?= Just Revenue
