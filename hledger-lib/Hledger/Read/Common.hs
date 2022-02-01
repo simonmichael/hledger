@@ -152,7 +152,6 @@ import Hledger.Reports.ReportOptions (ReportOpts(..), queryFromFlags, rawOptsToR
 import Hledger.Utils
 import Text.Printf (printf)
 import Hledger.Read.InputOptions
-import Data.Tree
 
 --- ** doctest setup
 -- $setup
@@ -321,19 +320,17 @@ journalFinalise :: InputOpts -> FilePath -> Text -> ParsedJournal -> ExceptT Str
 journalFinalise iopts@InputOpts{auto_,infer_equity_,balancingopts_,strict_,_ioDay} f txt pj = do
   t <- liftIO getPOSIXTime
   liftEither $ do
-    let pj2 = pj
-          & journalSetLastReadTime t   -- save the last read time
-          & journalAddFile (f, txt)    -- save the main file's info
-          & journalReverse             -- convert all lists to the order they were parsed
-          & journalAddAccountTypes     -- build a map of all known account types
-    pj3 <- pj2{jglobalcommoditystyles=fromMaybe mempty $ commodity_styles_ balancingopts_}
+    j <- pj{jglobalcommoditystyles=fromMaybe mempty $ commodity_styles_ balancingopts_}
+      &   journalSetLastReadTime t                       -- save the last read time
+      &   journalAddFile (f, txt)                        -- save the main file's info
+      &   journalReverse                                 -- convert all lists to the order they were parsed
+      &   journalAddAccountTypes                         -- build a map of all known account types
       &   journalApplyCommodityStyles                    -- Infer and apply commodity styles - should be done early
-    j <- pj3
-      &   journalPostingsAddAccountTags                  -- Add account tags to postings' tags
-      &   journalAddForecast (forecastPeriod iopts pj3)  -- Add forecast transactions if enabled
-      &   journalPostingsAddAccountTags                  -- Add account tags again to affect forecast transactions  -- PERF: just to the new transactions ?
-      &   (if auto_ && not (null $ jtxnmodifiers pj3) then journalAddAutoPostings _ioDay balancingopts_ else pure)  -- Add auto postings if enabled
-      >>= Right . journalPostingsAddAccountTags          -- Add account tags again to affect auto postings  -- PERF: just to the new postings ?
+      <&> journalAddForecast (forecastPeriod iopts pj)   -- Add forecast transactions if enabled
+      <&> journalPostingsAddAccountTags                  -- Add account tags to postings, so they can be matched by auto postings.
+      >>= (if auto_ && not (null $ jtxnmodifiers pj)
+              then journalAddAutoPostings _ioDay balancingopts_  -- Add auto postings if enabled, and account tags if needed
+              else pure)
       >>= journalBalanceTransactions balancingopts_      -- Balance all transactions and maybe check balance assertions.
       <&> (if infer_equity_ then journalAddInferredEquityPostings else id)  -- Add inferred equity postings, after balancing transactions and generating auto postings
       <&> journalInferMarketPricesFromTransactions       -- infer market prices from commodity-exchanging transactions
@@ -341,42 +338,6 @@ journalFinalise iopts@InputOpts{auto_,infer_equity_,balancingopts_,strict_,_ioDa
       journalCheckAccountsDeclared j                     -- If in strict mode, check all postings are to declared accounts
       journalCheckCommoditiesDeclared j                  -- and using declared commodities
     return j
-
--- | Add a map of all known account types to the journal.
-journalAddAccountTypes :: Journal -> Journal
-journalAddAccountTypes j = j{jaccounttypes = journalAccountTypes j}
-
--- | Build a map of all known account types, explicitly declared
--- or inferred from the account's parent or name.
-journalAccountTypes :: Journal -> M.Map AccountName AccountType
-journalAccountTypes j = M.fromList [(a,acctType) | (a, Just (acctType,_)) <- flatten t']
-  where
-    t = accountNameTreeFrom $ journalAccountNames j :: Tree AccountName
-    t' = settypes Nothing t :: Tree (AccountName, Maybe (AccountType, Bool))
-    -- Map from the top of the account tree down to the leaves, propagating
-    -- account types downward. Keep track of whether the account is declared
-    -- (True), in which case the parent account should be preferred, or merely
-    -- inferred (False), in which case the inferred type should be preferred.
-    settypes :: Maybe (AccountType, Bool) -> Tree AccountName -> Tree (AccountName, Maybe (AccountType, Bool))
-    settypes mparenttype (Node a subs) = Node (a, mtype) (map (settypes mtype) subs)
-      where
-        mtype = M.lookup a declaredtypes <|> minferred
-        minferred = if maybe False snd mparenttype
-                       then mparenttype
-                       else (,False) <$> accountNameInferType a <|> mparenttype
-    declaredtypes = (,True) <$> journalDeclaredAccountTypes j
-
--- | Build a map of the account types explicitly declared.
-journalDeclaredAccountTypes :: Journal -> M.Map AccountName AccountType
-journalDeclaredAccountTypes Journal{jdeclaredaccounttypes} =
-  M.fromList $ concat [map (,t) as | (t,as) <- M.toList jdeclaredaccounttypes]
-
--- | To all postings in the journal, add any tags from their account 
--- (including those inherited from parent accounts).
--- If the same tag exists on posting and account, the latter is ignored.
-journalPostingsAddAccountTags :: Journal -> Journal
-journalPostingsAddAccountTags j = journalMapPostings addtags j
-  where addtags p = p `postingAddTags` (journalInheritedAccountTags j $ paccount p)
 
 -- | Apply any auto posting rules to generate extra postings on this journal's transactions.
 journalAddAutoPostings :: Day -> BalancingOpts -> Journal -> Either String Journal
