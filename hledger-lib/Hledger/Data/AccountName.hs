@@ -21,6 +21,7 @@ module Hledger.Data.AccountName (
   ,accountNameTreeFrom
   ,accountSummarisedName
   ,accountNameInferType
+  ,accountNameType
   ,assetAccountRegex
   ,cashAccountRegex
   ,liabilityAccountRegex
@@ -48,8 +49,10 @@ module Hledger.Data.AccountName (
 )
 where
 
-import Data.Foldable (toList)
+import Control.Applicative ((<|>))
+import Data.Foldable (asum, toList)
 import qualified Data.List.NonEmpty as NE
+import qualified Data.Map as M
 import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -112,6 +115,13 @@ accountNameInferType a
   | regexMatchText revenueAccountRegex    a = Just Revenue
   | regexMatchText expenseAccountRegex    a = Just Expense
   | otherwise                               = Nothing
+
+-- Extract the 'AccountType' of an 'AccountName' by looking it up in the
+-- provided Map, traversing the parent accounts if necessary. If none of those
+-- work, try 'accountNameInferType'.
+accountNameType :: M.Map AccountName AccountType -> AccountName -> Maybe AccountType
+accountNameType atypes a = asum (map (`M.lookup` atypes) $ a : parentAccountNames a)
+                         <|> accountNameInferType a
 
 accountNameLevel :: AccountName -> Int
 accountNameLevel "" = 0
