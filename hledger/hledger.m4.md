@@ -848,10 +848,12 @@ Match real or virtual postings respectively.
 Match unmarked, pending, or cleared transactions respectively.
 
 **`type:ACCTTYPES`**\
-Match by account type (see [Declaring accounts > Account types](#account-types)).
+Match by account type (see ).
 `ACCTTYPES` is one or more of the single-letter account type codes
 `ALERXCV`, case insensitive. 
 Eg: `hledger bal type:AL` shows asset and liability balances. 
+Note: certain kinds of account alias can disrupt this, see 
+[Rewriting accounts > Aliases and account types](#aliases-and-account-types).
 
 **`tag:REGEX[=REGEX]`**\
 Match by tag name, and optionally also by tag value.
@@ -3335,6 +3337,34 @@ $ hledger print --alias old="new  USD" | hledger -f- print
 2021-01-01
     new             USD 1
     other
+```
+
+### Aliases and account types
+
+If an account with a type declaration is renamed by an alias, 
+normally the account type remains in effect.
+
+However, renaming in a way that reshapes the account tree 
+(eg renaming parent accounts but not their children, or vice versa) 
+could prevent child accounts from inheriting the account type of their parents.
+<!--
+Eg: with `account expenses  ; type:X` and `hledger acc --alias /expenses$/=expenses:uncategorised`, 
+"expenses:uncategorised" is declared to be type X and "expenses" has no type declared, 
+nor do its children (because of the $, they do not get aliased and remain under "expenses").
+-->
+
+Secondly, if an account's type is being inferred from its name,
+renaming it by an alias could prevent or alter that.
+<!--
+With `hledger -f examples/sample.journal acc --alias expenses=foo` and no account declarations, 
+it tries and fails to infer a type for "foo".
+-->
+
+If you are using account aliases and the [`type:` query](#queries) is not matching accounts as you expect,
+try troubleshooting with the accounts command, eg something like:
+
+```journal
+$ hledger accounts --alias assets=bassetts type:a
 ```
 
 ## Default parent account
