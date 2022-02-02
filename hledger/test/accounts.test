@@ -1,6 +1,6 @@
 # accounts command
 
-# basic accounts report
+# 1. basic accounts report
 <
 account a
 
@@ -10,26 +10,23 @@ account a
 $ hledger -f - accounts
 a
 a:aa
->=
 
-# tree mode
+# 2. tree mode
 $ hledger -f - accounts --tree
 a
   aa
->=
 
-# drop in flat mode
+# 3. drop in flat mode
 $ hledger -f - accounts --flat --drop 1
 ...
 aa
->=
-# drop in tree mode
+
+# 4. drop in tree mode
 $ hledger -f - accounts --tree --drop 1
 ...
 aa
->=
 
-# filtering transactions by tag
+# 5. filtering transactions by tag
 $ hledger -f - accounts tag:foo
 a:aa
->=
+
