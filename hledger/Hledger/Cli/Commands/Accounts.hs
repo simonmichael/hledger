@@ -27,6 +27,7 @@ import System.Console.CmdArgs.Explicit as C
 
 import Hledger
 import Hledger.Cli.CliOptions
+import Control.Monad (forM_)
 
 
 -- | Command line options for this command.
@@ -34,6 +35,7 @@ accountsmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Accounts.txt")
   ([flagNone ["declared"] (setboolopt "declared") "show account names declared with account directives"
   ,flagNone ["used"] (setboolopt "used") "show account names referenced by transactions"
+  ,flagNone ["types"] (setboolopt "types") "also show accounts' types, when known"
   ]
   ++ flattreeflags False ++
   [flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
@@ -50,6 +52,7 @@ accounts CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_rsRepo
   let tree     = tree_ ropts
       declared = boolopt "declared" rawopts
       used     = boolopt "used"     rawopts
+      types    = boolopt "types"    rawopts
       -- a depth limit will clip and exclude account names later, but we don't want to exclude accounts at this stage
       nodepthq = dbg1 "nodepthq" $ filterQuery (not . queryIsDepth) query
       -- just the acct: part of the query will be reapplied later, after clipping
@@ -77,12 +80,20 @@ accounts CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_rsRepo
         map (clipAccountName depth) $  -- clip at depth if specified
         sortedaccts
 
-  -- 4. print what remains as a list or tree, maybe applying --drop in the former case
-  mapM_ (T.putStrLn . render) clippedaccts
-    where
-      render a = case accountlistmode_ ropts of
-          ALTree -> T.replicate indent " " <> accountLeafName droppedName
-          ALFlat -> droppedName
-        where
-          indent = 2 * (max 0 (accountNameLevel a - drop_ ropts) - 1)
-          droppedName = accountNameDrop (drop_ ropts) a
+  -- 4. print what remains as a list or tree, maybe applying --drop in the former case.
+  -- With --types, also show the account type.
+  let
+    -- some contortions here to show types nicely aligned
+    showName a = case accountlistmode_ ropts of
+      ALTree -> indent <> accountLeafName droppedName
+      ALFlat -> droppedName
+      where
+        indent      = T.replicate (2 * (max 0 (accountNameLevel a - drop_ ropts) - 1)) " "
+        droppedName = accountNameDrop (drop_ ropts) a
+    showType a 
+      | types     = spacer <> "    ; type: " <> maybe "" (T.pack . show) (journalAccountType j a)
+      | otherwise = ""
+      where
+        spacer = T.replicate (maxwidth - T.length (showName a)) " "
+    maxwidth = maximum $ map (T.length . showName) clippedaccts
+  forM_ clippedaccts $ \a -> T.putStrLn $ showName a <> showType a

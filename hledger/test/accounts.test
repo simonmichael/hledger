@@ -30,3 +30,12 @@ aa
 $ hledger -f - accounts tag:foo
 a:aa
 
+# 6. Show account types.
+<
+account asset
+2022-01-01
+  (unknown)  1
+
+$ hledger -f - accounts --types
+asset      ; type: A
+unknown    ; type: 

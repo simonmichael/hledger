@@ -151,7 +151,16 @@ data AccountType =
   | Expense
   | Cash  -- ^ a subtype of Asset - liquid assets to show in cashflow report
   | Conversion -- ^ a subtype of Equity - account in which to generate conversion postings for transaction prices
-  deriving (Show,Eq,Ord,Generic)
+  deriving (Eq,Ord,Generic)
+
+instance Show AccountType where
+  show Asset      = "A"
+  show Liability  = "L"
+  show Equity     = "E"
+  show Revenue    = "R"
+  show Expense    = "X"
+  show Cash       = "C"
+  show Conversion = "V"
 
 -- not worth the trouble, letters defined in accountdirectivep for now
 --instance Read AccountType

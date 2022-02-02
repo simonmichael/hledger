@@ -12,6 +12,9 @@ show the account hierarchy.
 In flat mode you can add `--drop N` to omit the first few account name components.
 Account names can be depth-clipped with `depth:N` or `--depth N` or `-N`.
 
+With `--types`, it also shows each account's type, if it's known.
+(See Declaring accounts > Account types.)
+
 Examples:
 
 ```shell
