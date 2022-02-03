@@ -672,12 +672,12 @@ matchesAccount _ _ = True
 --   at least one of them (and any negated tag: terms must match none).
 --
 matchesAccountExtra :: (AccountName -> Maybe AccountType) -> (AccountName -> [Tag]) -> Query -> AccountName -> Bool
-matchesAccountExtra atypes atags (Not q ) a = not $ matchesAccountExtra atypes atags q a
-matchesAccountExtra atypes atags (Or  qs) a = any (\q -> matchesAccountExtra atypes atags q a) qs
-matchesAccountExtra atypes atags (And qs) a = all (\q -> matchesAccountExtra atypes atags q a) qs
+matchesAccountExtra atypes atags (Not q  ) a = not $ matchesAccountExtra atypes atags q a
+matchesAccountExtra atypes atags (Or  qs ) a = any (\q -> matchesAccountExtra atypes atags q a) qs
+matchesAccountExtra atypes atags (And qs ) a = all (\q -> matchesAccountExtra atypes atags q a) qs
+matchesAccountExtra atypes _     (Type ts) a = maybe False (\t -> any (t `isAccountSubtypeOf`) ts) $ atypes a
 matchesAccountExtra _      atags (Tag npat vpat) a = matchesTags npat vpat $ atags a
-matchesAccountExtra atypes _     (Type ts)       a = maybe False (`elem` ts) $ atypes a
-matchesAccountExtra _      _     q        a = matchesAccount q a
+matchesAccountExtra _      _     q         a = matchesAccount q a
 
 -- | Does the match expression match this posting ?
 -- When matching account name, and the posting has been transformed
@@ -711,8 +711,8 @@ matchesPostingExtra :: (AccountName -> Maybe AccountType) -> Query -> Posting ->
 matchesPostingExtra atype (Not q )  p = not $ matchesPostingExtra atype q p
 matchesPostingExtra atype (Or  qs)  p = any (\q -> matchesPostingExtra atype q p) qs
 matchesPostingExtra atype (And qs)  p = all (\q -> matchesPostingExtra atype q p) qs
-matchesPostingExtra atype (Type ts) p = maybe False (`elem` ts) . atype $ paccount p
-matchesPostingExtra _ q p                = matchesPosting q p
+matchesPostingExtra atype (Type ts) p = maybe False (\t -> any (t `isAccountSubtypeOf`) ts) . atype $ paccount p
+matchesPostingExtra _ q p             = matchesPosting q p
 
 -- | Does the match expression match this transaction ?
 matchesTransaction :: Query -> Transaction -> Bool
