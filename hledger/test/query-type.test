@@ -71,15 +71,18 @@ a:aa
 # 10. type: is aware of inferred account types.
 <
 account assets
+account assets:cash
 account liabilities
 
 $ hledger -f- accounts type:a
 assets
+assets:cash
 
 # 11. type: can identify cash accounts in the default case
 <
 account assets
 account assets:cash
+account liabilities
 
 $ hledger -f- accounts type:c
 assets:cash
@@ -120,3 +123,13 @@ $ hledger -f- reg --auto type:a
 
 $ hledger -f- reg --auto type:x
 2022-02-02 Test                 (expenses:b)                     1             1
+
+# 15. type:a matches cash accounts and type:e matches conversion accounts
+<
+2022-02-02 Test
+  (assets:cash)        1
+  (equity:conversion)  2
+
+$ hledger -f- reg type:ae
+2022-02-02 Test                 (assets:cash)                    1             1
+                                (equity:conversion)              2             3
