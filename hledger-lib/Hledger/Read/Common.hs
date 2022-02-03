@@ -349,20 +349,22 @@ journalAddAccountTypes j = j{jaccounttypes = journalAccountTypes j}
 -- | Build a map of all known account types, explicitly declared
 -- or inferred from the account's parent or name.
 journalAccountTypes :: Journal -> M.Map AccountName AccountType
-journalAccountTypes j =
-  let
-    t = accountNameTreeFrom $ journalAccountNames j :: Tree AccountName
-    t' = settypes Nothing t :: Tree (AccountName, Maybe AccountType)
-  in
-    M.fromList [(a,t) | (a, Just t) <- flatten t']
+journalAccountTypes j = M.fromList [(a,acctType) | (a, Just (acctType,_)) <- flatten t']
   where
-    -- Map from the top of the account tree down to the leaves,
-    -- propagating account types downward.
-    settypes :: Maybe AccountType -> Tree AccountName -> Tree (AccountName, Maybe AccountType)
-    settypes mparenttype (Node a subs) =
-      let mtype = M.lookup a declaredtypes <|> mparenttype <|> accountNameInferType a
-      in Node (a, mtype) (map (settypes mtype) subs)
-    declaredtypes = journalDeclaredAccountTypes j
+    t = accountNameTreeFrom $ journalAccountNames j :: Tree AccountName
+    t' = settypes Nothing t :: Tree (AccountName, Maybe (AccountType, Bool))
+    -- Map from the top of the account tree down to the leaves, propagating
+    -- account types downward. Keep track of whether the account is declared
+    -- (True), in which case the parent account should be preferred, or merely
+    -- inferred (False), in which case the inferred type should be preferred.
+    settypes :: Maybe (AccountType, Bool) -> Tree AccountName -> Tree (AccountName, Maybe (AccountType, Bool))
+    settypes mparenttype (Node a subs) = Node (a, mtype) (map (settypes mtype) subs)
+      where
+        mtype = M.lookup a declaredtypes <|> minferred
+        minferred = if maybe False snd mparenttype
+                       then mparenttype
+                       else (,False) <$> accountNameInferType a <|> mparenttype
+    declaredtypes = (,True) <$> journalDeclaredAccountTypes j
 
 -- | Build a map of the account types explicitly declared.
 journalDeclaredAccountTypes :: Journal -> M.Map AccountName AccountType

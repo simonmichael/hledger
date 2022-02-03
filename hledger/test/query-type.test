@@ -75,3 +75,23 @@ account liabilities
 
 $ hledger -f- accounts type:a
 assets
+
+# 11. type: can identify cash accounts in the default case
+<
+account assets
+account assets:cash
+
+$ hledger -f- accounts type:c
+assets:cash
+
+# 12. type: can identify conversion accounts in the default case
+<
+account equity
+account equity:conversion
+account equity:trading
+account equity:trade
+
+$ hledger -f- accounts type:v
+equity:conversion
+equity:trading
+equity:trade
