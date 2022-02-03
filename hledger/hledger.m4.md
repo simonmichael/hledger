@@ -3086,45 +3086,46 @@ account equity:conversion  ; type: V
 [CCE]:                 https://en.wikipedia.org/wiki/Cash_and_cash_equivalents
 [account directive]:   #declaring-accounts
 
-#### Account type tips
-Here are a few more details to aid troubleshooting.
+Here are some tips for working with account types.
 
-hledger tries to identify at least one account for each of the 
-account types (Asset, Liability, Equity, Revenue, Expense, Cash, Conversion..).
-For each type, if no account has been declared with that type, it looks for accounts matched by the appropriate [regular expression](#regular-expressions):
+- The rules for inferring types from account names are as follows (see also [Regular expressions](#regular-expressions)):
+  <!-- monospace to work around https://github.com/simonmichael/hledger/issues/1573 -->
+  ```
+  If account's name matches this case insensitive regular expression: | its type is:
+  --------------------------------------------------------------------|-------------
+  ^assets?(:|$)                                                       | 
+    and does not contain regexp (investment|receivable|:A/R|:fixed)   | Cash
+    otherwise                                                         | Asset
+  ^(debts?|liabilit(y|ies))(:|$)                                      | Liability
+  ^equity:(trad(e|ing)|conversion)s?(:|$)                             | Conversion
+  ^equity(:|$)                                                        | Equity
+  ^(income|revenue)s?(:|$)                                            | Revenue
+  ^expenses?(:|$)                                                     | Expense
+  ```
 
-<!-- monospace to work around https://github.com/simonmichael/hledger/issues/1573 -->
-```
- If account's name matches this case insensitive regular expression:| its type is:
-------------------------------------------------------------------- | ------------
- ^assets?(:|$)                                                      | 
-   and does not contain regexp (investment|receivable|:A/R|:fixed)  | Cash
-   otherwise                                                        | Asset
- ^(debts?|liabilit(y|ies))(:|$)                                     | Liability
- ^equity:(trad(e|ing)|conversion)s?(:|$)                            | Conversion
- ^equity(:|$)                                                       | Equity
- ^(income|revenue)s?(:|$)                                           | Revenue
- ^expenses?(:|$)                                                    | Expense
-```
+<!--
+hledger tries to identify at least one account for each account type (Asset, Liability, Equity, Revenue, Expense, Cash, Conversion..).
+In each case, if no account has been declared with that type, it looks for accounts matched by the appropriate regular expression above.
+-->
+- If you declare any account types, it's a good idea to declare an account for all of them (or at least the five main types),
+  because a mixture of declared and auto-detected types can disrupt certain reports.
 
-If you declare any account types, it's a good idea to declare an account for all of them.
-(Because a mixture of declared and auto-detected types can disrupt certain reports.)
+- Certain uses of [account aliases](#account-aliases) can disrupt account types.
+  See [Rewriting accounts > Aliases and account types](#aliases-and-account-types).
 
-As mentioned above, subaccounts inherit the type of their parent account by default. To be precise, an account's type is decided by the first of these that exists:
+- As mentioned above, subaccounts will inherit a type from their parent account. 
+  To be precise, an account's type is decided by the first of these that exists:
 
-1. An `type:` declaration for this account.
-2. The nearest explicit `type:` declaration in the accounts above it.
-3. An account type inferred from this account's name.
-4. An account type inferred from an account above it, preferring the nearest parent.
-5. Otherwise, it will have no type.
+  1. A `type:` declaration for this account.
+  2. A `type:` declaration in the parent accounts above it, preferring the nearest.
+  3. An account type inferred from this account's name.
+  4. An account type inferred from a parent account's name, preferring the nearest parent.
+  5. Otherwise, it will have no type.
 
-Certain uses of [account aliases](#account-aliases) can interfere with account types.
-See [Rewriting accounts > Aliases and account types](#aliases-and-account-types).
-
-In case of trouble, you can list accounts and the types identified for them with:
-```shell
-$ hledger accounts --types [ACCTPAT] [type:TYPECODES]
-```
+- For troubleshooting, you can list accounts and their types with:
+  ```
+  $ hledger accounts --types [ACCTPAT] [type:TYPECODES]
+  ```
 
 ### Account display order
 
