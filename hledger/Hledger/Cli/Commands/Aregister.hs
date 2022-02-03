@@ -130,8 +130,8 @@ accountTransactionsReportAsText copts reportq thisacctq items = TB.toLazyText $
     title <> TB.singleton '\n' <> lines
   where
     lines = foldMap (accountTransactionsReportItemAsText copts reportq thisacctq amtwidth balwidth) items
-    amtwidth = maximumStrict $ 12 : widths (map itemamt items)
-    balwidth = maximumStrict $ 12 : widths (map itembal items)
+    amtwidth = maximumStrict $ 12 : widths (map itemamt $ take 1000 items)
+    balwidth = maximumStrict $ 12 : widths (map itembal $ take 1000 items)
     widths = map wbWidth . concatMap (showMixedAmountLinesB oneLine)
     itemamt (_,_,_,_,a,_) = a
     itembal (_,_,_,_,_,a) = a
