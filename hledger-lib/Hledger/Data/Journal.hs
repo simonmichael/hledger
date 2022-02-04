@@ -466,41 +466,27 @@ journalAccountTypeQuery atypes fallbackregex Journal{jdeclaredaccounttypes} =
 -- or otherwise for accounts with names matched by the case-insensitive 
 -- regular expression @^assets?(:|$)@.
 journalAssetAccountQuery :: Journal -> Query
-journalAssetAccountQuery j = 
+journalAssetAccountQuery j =
   Or [
      journalAccountTypeQuery [Asset] assetAccountRegex j
     ,journalCashAccountOnlyQuery j
   ]
 
--- | A query for accounts in this journal which have been
--- declared as Asset (and not Cash) by account directives, 
--- or otherwise for accounts with names matched by the case-insensitive 
--- regular expression @^assets?(:|$)@.
-journalAssetNonCashAccountQuery :: Journal -> Query
-journalAssetNonCashAccountQuery = journalAccountTypeQuery [Asset] assetAccountRegex
-
 -- | A query for Cash (liquid asset) accounts in this journal, ie accounts
--- declared as Cash by account directives, or otherwise Asset accounts whose 
--- names do not include the case-insensitive regular expression 
--- @(investment|receivable|:A/R|:fixed)@.
-journalCashAccountQuery  :: Journal -> Query
-journalCashAccountQuery j =
-  case M.lookup Cash (jdeclaredaccounttypes j) of
-    Just _  -> journalCashAccountOnlyQuery j
-    Nothing ->
-      -- no Cash accounts are declared; query for Asset accounts and exclude some of them
-      And [ journalAssetNonCashAccountQuery j, Not $ Acct cashAccountRegex ]
+-- declared as Cash by account directives, or otherwise accounts whose
+-- names match the case-insensitive regular expression
+-- @(^assets:(.+:)?(cash|bank)(:|$)@.
+journalCashAccountQuery :: Journal -> Query
+journalCashAccountQuery = journalAccountTypeQuery [Cash] cashAccountRegex
 
 -- | A query for accounts in this journal specifically declared as Cash by 
 -- account directives, or otherwise the None query.
-journalCashAccountOnlyQuery  :: Journal -> Query
-journalCashAccountOnlyQuery j = 
-  case M.lookup Cash (jdeclaredaccounttypes j) of
-    Just _  -> 
-      -- Cash accounts are declared; get a query for them (the fallback regex won't be used)
-      journalAccountTypeQuery [Cash] notused j
-        where notused = error' "journalCashAccountOnlyQuery: this should not have happened!"  -- PARTIAL:
-    Nothing -> None
+journalCashAccountOnlyQuery :: Journal -> Query
+journalCashAccountOnlyQuery j
+  -- Cash accounts are declared; get a query for them (the fallback regex won't be used)
+  | Cash `M.member` jdeclaredaccounttypes j = journalAccountTypeQuery [Cash] notused j
+  | otherwise = None
+  where notused = error' "journalCashAccountOnlyQuery: this should not have happened!"  -- PARTIAL:
 
 -- | A query for accounts in this journal which have been
 -- declared as Liability by account directives, or otherwise for
@@ -1319,7 +1305,7 @@ tests_Journal = testGroup "Journal" [
       namesfrom qfunc = journalAccountNamesMatching (qfunc j) j
     in [testCase "assets"      $ assertEqual "" ["assets","assets:bank","assets:bank:checking","assets:bank:saving","assets:cash"]
          (namesfrom journalAssetAccountQuery)
-       ,testCase "cash"        $ assertEqual "" ["assets","assets:bank","assets:bank:checking","assets:bank:saving","assets:cash"]
+       ,testCase "cash"        $ assertEqual "" ["assets:bank","assets:bank:checking","assets:bank:saving","assets:cash"]
          (namesfrom journalCashAccountQuery)
        ,testCase "liabilities" $ assertEqual "" ["liabilities","liabilities:debts"]
          (namesfrom journalLiabilityAccountQuery)

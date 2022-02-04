@@ -96,7 +96,7 @@ accountSummarisedName a
 -- | Regular expressions matching common English top-level account names,
 -- used as a fallback when account types are not declared.
 assetAccountRegex      = toRegexCI' "^assets?(:|$)"
-cashAccountRegex       = toRegexCI' "(investment|receivable|:A/R|:fixed)"
+cashAccountRegex       = toRegexCI' "^assets?(:.+)?:(cash|bank|che(ck|que?)(ing)?|savings?|current)(:|$)"
 liabilityAccountRegex  = toRegexCI' "^(debts?|liabilit(y|ies))(:|$)"
 equityAccountRegex     = toRegexCI' "^equity(:|$)"
 conversionAccountRegex = toRegexCI' "^equity:(trad(e|ing)|conversion)s?(:|$)"
@@ -107,8 +107,8 @@ expenseAccountRegex    = toRegexCI' "^expenses?(:|$)"
 -- matching common English top-level account names.
 accountNameInferType :: AccountName -> Maybe AccountType
 accountNameInferType a
-  | a == "asset" || a == "assets"           = Just Asset
-  | regexMatchText assetAccountRegex      a = Just $ if regexMatchText cashAccountRegex a then Asset else Cash
+  | regexMatchText cashAccountRegex       a = Just Cash
+  | regexMatchText assetAccountRegex      a = Just Asset
   | regexMatchText liabilityAccountRegex  a = Just Liability
   | regexMatchText conversionAccountRegex a = Just Conversion
   | regexMatchText equityAccountRegex     a = Just Equity
