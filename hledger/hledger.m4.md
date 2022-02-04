@@ -847,12 +847,12 @@ Match real or virtual postings respectively.
 **`status:, status:!, status:*`**\
 Match unmarked, pending, or cleared transactions respectively.
 
-**`type:ACCTTYPES`**\
+**`type:TYPECODES`**\
 Match by account type (see [Declaring accounts > Account types](#account-types)).
-`ACCTTYPES` is one or more of the single-letter account type codes
+`TYPECODES` is one or more of the single-letter account type codes
 `ALERXCV`, case insensitive. 
-Eg: `hledger bal type:AL` shows asset and liability balances. 
-Note: certain kinds of account alias can disrupt this, see 
+Note `type:A` and `type:E` will also match their respective subtypes `C` (Cash) and `V` (Conversion).
+Certain kinds of account alias can disrupt account types, see 
 [Rewriting accounts > Aliases and account types](#aliases-and-account-types).
 
 **`tag:REGEX[=REGEX]`**\
@@ -3088,27 +3088,30 @@ account equity:conversion  ; type: V
 
 Here are some tips for working with account types.
 
-- The rules for inferring types from account names are as follows (see also [Regular expressions](#regular-expressions)):
+- The rules for inferring types from account names are as follows.
+  Note the Cash regexp changed in hledger 1.24.99.2.
+  See also [Regular expressions](#regular-expressions).
+  These are just a convenience that sometimes help new users get going;
+  if they don't work for you, just ignore them and declare your account types.
   <!-- monospace to work around https://github.com/simonmichael/hledger/issues/1573 -->
   ```
-  If account's name matches this case insensitive regular expression: | its type is:
-  --------------------------------------------------------------------|-------------
-  ^assets?(:|$)                                                       | 
-    and does not contain regexp (investment|receivable|:A/R|:fixed)   | Cash
-    otherwise                                                         | Asset
-  ^(debts?|liabilit(y|ies))(:|$)                                      | Liability
-  ^equity:(trad(e|ing)|conversion)s?(:|$)                             | Conversion
-  ^equity(:|$)                                                        | Equity
-  ^(income|revenue)s?(:|$)                                            | Revenue
-  ^expenses?(:|$)                                                     | Expense
+  If account's name contains this (CI) regular expression: | its type is:
+  ---------------------------------------------------------|-------------
+  ^assets:(.+:)?(cash|bank)(:|$)                           | Cash
+  ^assets?(:|$)                                            | Asset
+  ^(debts?|liabilit(y|ies))(:|$)                           | Liability
+  ^equity:(trad(e|ing)|conversion)s?(:|$)                  | Conversion
+  ^equity(:|$)                                             | Equity
+  ^(income|revenue)s?(:|$)                                 | Revenue
+  ^expenses?(:|$)                                          | Expense
   ```
 
 <!--
 hledger tries to identify at least one account for each account type (Asset, Liability, Equity, Revenue, Expense, Cash, Conversion..).
 In each case, if no account has been declared with that type, it looks for accounts matched by the appropriate regular expression above.
 -->
-- If you declare any account types, it's a good idea to declare an account for all of them (or at least the five main types),
-  because a mixture of declared and auto-detected types can disrupt certain reports.
+- If you declare any account types, it's a good idea to declare an account for all of them,
+  because a mixture of declared and name-inferred types can disrupt certain reports.
 
 - Certain uses of [account aliases](#account-aliases) can disrupt account types.
   See [Rewriting accounts > Aliases and account types](#aliases-and-account-types).
