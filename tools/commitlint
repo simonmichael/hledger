@@ -4,9 +4,9 @@
 
 # Check unpushed commits, or commits in the specified range, or a
 # commit message in FILE, for compliance with hledger's conventions
-# (https://hledger.org/CONTRIBUTING.html#commit-messages). If the
-# argument contains - or .. or ^! it's a range, otherwise a file
-# containing a proposed commit message. 
+# (see https://hledger.org/COMMITS.html).
+# If the argument contains - or .. or ^! it's a range, otherwise
+# a file containing a proposed commit message. 
 # Run interactively, or symlink as .git/hooks/commit-msg to check
 # your messages before commit.
 #
