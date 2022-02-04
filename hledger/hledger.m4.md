@@ -3095,15 +3095,15 @@ Here are some tips for working with account types.
   if they don't work for you, just ignore them and declare your account types.
   <!-- monospace to work around https://github.com/simonmichael/hledger/issues/1573 -->
   ```
-  If account's name contains this (CI) regular expression: | its type is:
-  ---------------------------------------------------------|-------------
-  ^assets:(.+:)?(cash|bank)(:|$)                           | Cash
-  ^assets?(:|$)                                            | Asset
-  ^(debts?|liabilit(y|ies))(:|$)                           | Liability
-  ^equity:(trad(e|ing)|conversion)s?(:|$)                  | Conversion
-  ^equity(:|$)                                             | Equity
-  ^(income|revenue)s?(:|$)                                 | Revenue
-  ^expenses?(:|$)                                          | Expense
+  If account's name contains this (CI) regular expression:            | its type is:
+  --------------------------------------------------------------------|-------------
+  ^assets?(:.+)?:(cash|bank|che(ck|que?)(ing)?|savings?|current)(:|$) | Cash
+  ^assets?(:|$)                                                       | Asset
+  ^(debts?|liabilit(y|ies))(:|$)                                      | Liability
+  ^equity:(trad(e|ing)|conversion)s?(:|$)                             | Conversion
+  ^equity(:|$)                                                        | Equity
+  ^(income|revenue)s?(:|$)                                            | Revenue
+  ^expenses?(:|$)                                                     | Expense
   ```
 
 <!--
