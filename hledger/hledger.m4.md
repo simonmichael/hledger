@@ -3106,10 +3106,6 @@ Here are some tips for working with account types.
   ^expenses?(:|$)                                                     | Expense
   ```
 
-<!--
-hledger tries to identify at least one account for each account type (Asset, Liability, Equity, Revenue, Expense, Cash, Conversion..).
-In each case, if no account has been declared with that type, it looks for accounts matched by the appropriate regular expression above.
--->
 - If you declare any account types, it's a good idea to declare an account for all of them,
   because a mixture of declared and name-inferred types can disrupt certain reports.
 
@@ -3125,9 +3121,9 @@ In each case, if no account has been declared with that type, it looks for accou
   4. An account type inferred from a parent account's name, preferring the nearest parent.
   5. Otherwise, it will have no type.
 
-- For troubleshooting, you can list accounts and their types with:
+- For troubleshooting, list accounts and their types with:
   ```
-  $ hledger accounts --types [ACCTPAT] [type:TYPECODES]
+  $ hledger accounts --types [ACCTPAT] [-DEPTH] [type:TYPECODES]
   ```
 
 ### Account display order
