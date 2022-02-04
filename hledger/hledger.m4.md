@@ -3051,9 +3051,14 @@ account ACCTNAME  [;type:ACCTTYPE] [COMMENT]
 
 ### Account types
 
-hledger knows that accounts come in several types: assets, liabilities, expenses and so on. This enables easy reports like [balancesheet] and [incomestatement], and filtering by account type with the [`type:` query](#queries). As a convenience, hledger will detect account types automatically if you use common english-language top-level account names (more on this below). 
+hledger knows that accounts come in several types: assets, liabilities, expenses and so on. 
+This enables easy reports like [balancesheet] and [incomestatement], and filtering by account type with the [`type:` query](#queries). 
 
-But in general it's recommended to declare types explicitly, by adding a `type:` [tag](#tags-1) to the [account directives] of your top level accounts. Subaccounts will inherit the type of their parent. The tag's value should be one of the [five main account types]:
+As a convenience, hledger will detect these account types automatically if you are using common english-language top-level account names (described below). 
+But generally we recommend you declare types explicitly, 
+by adding a `type:` [tag](#tags-1) to your top-level account directives. 
+Subaccounts will inherit the type of their parent. 
+The tag's value should be one of the [five main account types]:
 
 - `A` or `Asset`		(things you own)
 - `L` or `Liability`	(things you owe)
@@ -3089,10 +3094,10 @@ account equity:conversion  ; type: V
 Here are some tips for working with account types.
 
 - The rules for inferring types from account names are as follows.
-  Note the Cash regexp changed in hledger 1.24.99.2.
-  See also [Regular expressions](#regular-expressions).
   These are just a convenience that sometimes help new users get going;
   if they don't work for you, just ignore them and declare your account types.
+  See also [Regular expressions](#regular-expressions).
+  Note the Cash regexp changed in hledger 1.24.99.2.
   <!-- monospace to work around https://github.com/simonmichael/hledger/issues/1573 -->
   ```
   If account's name contains this (CI) regular expression:            | its type is:
@@ -3106,7 +3111,7 @@ Here are some tips for working with account types.
   ^expenses?(:|$)                                                     | Expense
   ```
 
-- If you declare any account types, it's a good idea to declare an account for all of them,
+- If you declare any account types, it's a good idea to declare an account for each of them,
   because a mixture of declared and name-inferred types can disrupt certain reports.
 
 - Certain uses of [account aliases](#account-aliases) can disrupt account types.
@@ -3121,7 +3126,7 @@ Here are some tips for working with account types.
   4. An account type inferred from a parent account's name, preferring the nearest parent.
   5. Otherwise, it will have no type.
 
-- For troubleshooting, list accounts and their types with:
+- For troubleshooting, you can list accounts and their types with:
   ```
   $ hledger accounts --types [ACCTPAT] [-DEPTH] [type:TYPECODES]
   ```
