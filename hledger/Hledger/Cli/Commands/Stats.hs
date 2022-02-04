@@ -24,7 +24,7 @@ import qualified Data.Text.Lazy.Builder as TB
 import Data.Time.Calendar (Day, addDays, diffDays)
 import System.Console.CmdArgs.Explicit hiding (Group)
 import Text.Printf (printf)
-import qualified Data.Map as Map
+import qualified Data.Map.Strict as Map
 
 import Hledger
 import Hledger.Cli.CliOptions

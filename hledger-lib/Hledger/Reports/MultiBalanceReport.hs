@@ -42,8 +42,8 @@ import Data.List (sortOn, transpose)
 import Data.List.NonEmpty (NonEmpty(..))
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
-import Data.Map (Map)
-import qualified Data.Map as M
+import Data.Map.Strict (Map)
+import qualified Data.Map.Strict as M
 import Data.Maybe (fromMaybe, isJust, mapMaybe)
 import Data.Ord (Down(..))
 import Data.Semigroup (sconcat)

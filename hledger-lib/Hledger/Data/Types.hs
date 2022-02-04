@@ -37,11 +37,7 @@ import Data.Decimal (Decimal, DecimalRaw(..))
 import Data.Default (Default(..))
 import Data.Functor (($>))
 import Data.List (intercalate)
---XXX https://hackage.haskell.org/package/containers/docs/Data-Map.html
---Note: You should use Data.Map.Strict instead of this module if:
---You will eventually need all the values stored.
---The stored values don't represent large virtual data structures to be lazily computed.
-import qualified Data.Map as M
+import qualified Data.Map.Strict as M
 import Data.Ord (comparing)
 import Data.Text (Text)
 import Data.Time.Calendar (Day)

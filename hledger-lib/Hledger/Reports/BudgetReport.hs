@@ -29,8 +29,8 @@ import qualified Data.HashMap.Strict as HM
 import Data.List (find, partition, transpose, foldl')
 import Data.List.Extra (nubSort)
 import Data.Maybe (fromMaybe, catMaybes)
-import Data.Map (Map)
-import qualified Data.Map as Map
+import Data.Map.Strict (Map)
+import qualified Data.Map.Strict as Map
 import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T

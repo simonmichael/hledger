@@ -8,7 +8,7 @@ where
 
 import Data.Default (def)
 import Data.List (intercalate)
-import qualified Data.Map as M
+import qualified Data.Map.Strict as M
 import Data.Maybe (fromMaybe)
 import Lens.Micro (set)
 import System.Environment (getArgs)

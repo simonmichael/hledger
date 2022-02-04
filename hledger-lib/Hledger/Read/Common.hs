@@ -132,7 +132,7 @@ import Data.Functor ((<&>), ($>))
 import Data.List (find, genericReplicate, union)
 import Data.List.NonEmpty (NonEmpty(..))
 import Data.Maybe (catMaybes, fromMaybe, isJust, listToMaybe)
-import qualified Data.Map as M
+import qualified Data.Map.Strict as M
 import qualified Data.Semigroup as Sem
 import Data.Text (Text)
 import qualified Data.Text as T

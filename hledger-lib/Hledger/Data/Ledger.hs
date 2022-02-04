@@ -24,7 +24,7 @@ module Hledger.Data.Ledger (
 )
 where
 
-import qualified Data.Map as M
+import qualified Data.Map.Strict as M
 import Safe (headDef)
 import Text.Printf
 

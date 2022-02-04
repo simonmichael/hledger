@@ -53,7 +53,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import Data.Time.Calendar (Day, fromGregorian)
-import qualified Data.Map as M
+import qualified Data.Map.Strict as M
 
 import Hledger.Utils
 import Hledger.Data.Types

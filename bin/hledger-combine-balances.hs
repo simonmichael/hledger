@@ -9,7 +9,7 @@
 
 import System.Environment (getArgs)
 import Hledger.Cli
-import qualified Data.Map as M
+import qualified Data.Map.Strict as M
 import Data.Map.Merge.Strict
 import qualified Data.Text.Lazy.IO as TL
 

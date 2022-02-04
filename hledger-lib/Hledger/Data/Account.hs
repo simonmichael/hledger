@@ -36,7 +36,7 @@ import qualified Data.HashSet as HS
 import qualified Data.HashMap.Strict as HM
 import Data.List (find, foldl', sortOn)
 import Data.List.Extra (groupOn)
-import qualified Data.Map as M
+import qualified Data.Map.Strict as M
 import Data.Ord (Down(..))
 import Safe (headMay)
 import Text.Printf (printf)

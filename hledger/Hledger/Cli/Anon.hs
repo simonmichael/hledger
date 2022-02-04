@@ -19,7 +19,7 @@ import Numeric (showHex)
 import qualified Data.Text as T
 
 import Hledger.Data
-import Data.Map (mapKeys)
+import Data.Map.Strict (mapKeys)
 
 class Anon a where
     -- | Consistent converter to structure with sensitive data anonymized

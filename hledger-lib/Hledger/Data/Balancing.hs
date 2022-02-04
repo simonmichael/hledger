@@ -42,7 +42,7 @@ import Data.Maybe (fromJust, fromMaybe, isJust, isNothing, mapMaybe)
 import qualified Data.Set as S
 import qualified Data.Text as T
 import Data.Time.Calendar (fromGregorian)
-import qualified Data.Map as M
+import qualified Data.Map.Strict as M
 import Safe (headDef)
 import Text.Printf (printf)
 

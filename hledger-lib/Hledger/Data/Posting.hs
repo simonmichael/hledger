@@ -80,7 +80,7 @@ where
 import Control.Monad (foldM)
 import Data.Default (def)
 import Data.Foldable (asum)
-import qualified Data.Map as M
+import qualified Data.Map.Strict as M
 import Data.Maybe (fromMaybe, isJust)
 import Data.MemoUgly (memo)
 import Data.List (foldl', sort, union)

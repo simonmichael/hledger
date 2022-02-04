@@ -52,7 +52,7 @@ where
 import Control.Applicative ((<|>))
 import Data.Foldable (asum, toList)
 import qualified Data.List.NonEmpty as NE
-import qualified Data.Map as M
+import qualified Data.Map.Strict as M
 import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T

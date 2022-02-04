@@ -21,7 +21,7 @@ module Hledger.Web.Handler.MiscR
   , getRootR
   ) where
 
-import qualified Data.Map as M
+import qualified Data.Map.Strict as M
 import qualified Data.Text as T
 import Yesod.Default.Handlers (getFaviconR, getRobotsR)
 

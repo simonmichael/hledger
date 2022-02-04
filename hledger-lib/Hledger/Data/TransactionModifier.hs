@@ -13,7 +13,7 @@ module Hledger.Data.TransactionModifier (
 where
 
 import Control.Applicative ((<|>), liftA2)
-import qualified Data.Map as M
+import qualified Data.Map.Strict as M
 import Data.Maybe (catMaybes)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)

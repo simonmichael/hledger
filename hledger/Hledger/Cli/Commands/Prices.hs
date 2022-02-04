@@ -7,7 +7,7 @@ module Hledger.Cli.Commands.Prices (
 )
 where
 
-import qualified Data.Map as M
+import qualified Data.Map.Strict as M
 import Data.Maybe
 import Data.List
 import qualified Data.Text as T
