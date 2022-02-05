@@ -1,5 +1,6 @@
 #!/usr/bin/env stack
-{- stack script --resolver nightly-2021-12-16 --compile
+{- stack script --resolver nightly-2022-01-20 --compile
+   --extra-include-dirs /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/ffi
    --package base-prelude
    --package directory
    --package extra
