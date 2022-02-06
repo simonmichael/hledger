@@ -9,9 +9,9 @@ __      _____| |__
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 1.24.99.1 2022-01-06
+# 1.24.99.2 2022-02-05
 
-- Use hledger 1.24.99.1
+- Use hledger 1.24.99.2
 
 # 1.24.1 2021-12-10
 

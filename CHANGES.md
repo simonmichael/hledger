@@ -9,7 +9,13 @@
 General changes in the hledger project (and notable all-package releases).
 For package-specific changes and minor releases, see the hledger package changelogs.
 
-# 1.24.99.1 2022-01-06
+# 1.24.99.2 2022-02-05
+
+Features
+
+Improvements
+
+Fixes
 
 Software
 
