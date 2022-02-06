@@ -33,9 +33,9 @@ Tips, [procedures](#procedures) and a [glossary](#glossary) for hledger release 
 
 ## hledger release types
 
-| Major release<br>A.B           | Bugfix release<br>A.B.C | Fixup release<br>A.B.C.D                     | Preview release<br>A.B.99.C              |
-|--------------------------------|-------------------------|----------------------------------------------|------------------------------------------|
-| New features, breaking changes | Only bug fixes          | Trivial packaging fixes, no software changes | Early snapshot of the next major release |
+| Major&nbsp;release<br>A.B      | Bugfix&nbsp;release<br>A.B.C | Fixup&nbsp;release<br>A.B.C.D                | Preview&nbsp;release<br>A.B.99.C         |
+|--------------------------------|------------------------------|----------------------------------------------|------------------------------------------|
+| New features, breaking changes | Only bug fixes               | Trivial packaging fixes, no software changes | Early snapshot of the next major release |
 
 See also [Glossary](#glossary).
 
@@ -46,11 +46,11 @@ hledger major releases happen in the third month of each quarter, normally at or
 Preview releases happen in the intervening months.
 Bugfix and fixup releases happen when needed (as seldom as possible). 
 
-| Q1                   | Q2                   | Q3                   | Q4                   |
-|----------------------|----------------------|----------------------|----------------------|
-| Jan 1: preview 1     | Apr 1: preview 1     | Jul 1: preview 1     | Oct 1: preview 1     |
-| Feb 1: preview 2     | May 1: preview 2     | Aug 1: preview 2     | Nov 1: preview 2     |
-| Mar 1: major release | Jun 1: major release | Sep 1: major release | Dec 1: major release |
+| Q1               | Q2               | Q3               | Q4               |
+|------------------|------------------|------------------|------------------|
+| Jan 1: preview 1 | Apr 1: preview 1 | Jul 1: preview 1 | Oct 1: preview 1 |
+| Feb 1: preview 2 | May 1: preview 2 | Aug 1: preview 2 | Nov 1: preview 2 |
+| Mar 1: major     | Jun 1: major     | Sep 1: major     | Dec 1: major     |
 
 ## Deliverables
 
