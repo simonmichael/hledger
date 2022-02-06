@@ -9,9 +9,21 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# f36ab179c
+# 31fdcdb8e
 
-Improvements
+- hledger-lib now builds with GHC 9.2 and latest deps. (#1774)
+
+- Journal has a new jaccounttypes map.
+  The journalAccountType lookup function makes it easy to check an account's type.
+  The journalTags and journalInheritedTags functions look up an account's tags.
+  Functions like journalFilterPostings and journalFilterTransactions,
+  and new matching functions matchesAccountExtra, matchesPostingExtra
+  and matchesTransactionExtra, use these to allow more powerful matching
+  that is aware of account types and tags.
+
+- Journal has a new jdeclaredaccounttags field
+  for easy lookup of account tags.
+  Query.matchesTaggedAccount is a tag-aware version of matchesAccount.
 
 - Costing has been changed to ConversionOp with three options:
   NoConversionOp, ToCost, and InferEquity.
@@ -22,10 +34,7 @@ Improvements
   equity postings with --infer-equity are mutually exclusive.
   The cost_ record of ReportOpts has been changed to conversionop_.
 
-- hledger-lib now builds with GHC 9.2 and newer libs (#1774).
-
 - Renamed: CommodityLayout to Layout.
-  (Stephen Morgan)
 
 # 1.24.1 2021-12-10
 

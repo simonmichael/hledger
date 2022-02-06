@@ -9,33 +9,66 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 1716a3e55
+# 507638916
+
+Breaking changes
+
+- Journal format's `account NAME  TYPECODE` syntax, deprecated in 1.13, has been dropped.
+  Please use `account NAME  ; type:TYPECODE` instead.
+  (Stephen Morgan)
+
+- The rule for auto-detecting "cash" (liquid asset) accounts from account names
+  for the `cashflow` report has been simplified. 
+  If you have been using the cashflow report, without explicitly declaring Cash accounts,
+  you might notice a change, and might need to declare your Cash accounts explicitly
+  (by adding `type:C` tags to top-level cash account directives).
 
 Features
 
-- The new --infer-equity flag replaces @/@@ prices in commodity
-  conversion transactions with equity postings, making them fully
-  balanced and preserving the accounting equation.  (When not doing
-  cost reporting; --cost/-B overrides and disables --infer-equity.)
-  For example, `hledger print --infer-equity` will show:
+- The new `type:TYPECODES` query matches accounts by their accounting type.
+  Account types are declared with a `type:` tag in account directives,
+  or inferred from common english account names, or inherited from parent accounts,
+  as described at [Declaring accounts > Account types].
+  This generalises the account type detection of `balancesheet`, `incomestatement` etc.,
+  so you can now select accounts by type without needing fragile account name regexps.
+  Also, the `accounts` command has a new `--types` flag to show account types.
+  Eg:
+
+      hledger bal type:AL  # balance report showing assets and liabilities
+      hledger reg type:x   # register of all expenses
+      hledger acc --types  # list accounts and their types
+
+  (#1820, #1822) (Simon Michael, Stephen Morgan)
+
+- The `tag:` query can now also match account tags, as defined in account directives.
+  Subaccounts inherit tags from their parents.
+  Accounts, postings and transactions can be filtered by account tag.
+  (#1817)
+
+- The new `--infer-equity` flag replaces the `@`/`@@` price notation in commodity
+  conversion transactions with more correct equity postings (when not using `-B/--cost`).
+  This makes these transactions fully balanced, and preserves the accounting equation.
+  For example:
 
       2000-01-01
-        a   1 AAA @@ 2 BBB
-        b  -2 BBB
+        a             1 AAA @@ 2 BBB
+        b            -2 BBB
 
-  as:
-
+      $ hledger print --infer-equity
       2000-01-01
         a                               1 AAA
         equity:conversion:AAA-BBB:AAA  -1 AAA
         equity:conversion:AAA-BBB:BBB   2 BBB
         b                              -2 BBB
 
-  The `equity:conversion` account name is used by default. You can use
-  another account by declaring it with the new `Conversion`/`V`
-  account type (a subtype of `Equity`/`E`), eg:
   
-      account Equity:Currency Conversions   ; type: V
+  `equity:conversion` is the account used by default. To use a different account,
+  declare it with an account directive and the new `V` (`Conversion`) account type.
+  Eg:
+  
+      account Equity:Trading    ; type:V
+
+  (#1554) (Stephen Morgan, Simon Michael)
 
 - Normalised, easy-to-process "tidy" CSV data can now be generated with `--layout tidy -O csv`.
   In tidy data, every variable is a column and each row represents a single data point 
@@ -44,27 +77,50 @@ Features
 
 Improvements
 
-- `check commodities` now always accepts zero amounts with no commodity symbol. 
+- Strict mode (`-s/--strict`) now also checks periodic transactions (`--forecast`) 
+  and auto postings (`--auto`). 
+  (#1810) (Stephen Morgan)
+
+- `hledger check commodities` now always accepts zero amounts which have no commodity symbol. 
   (#1767) (Stephen Morgan)
 
-- We now accept smart dates like “in 5 days, 5 weeks ahead, in -6 months, 2 quarters ago”
-  (an arbitrary number of some period into the future or past).
+- Relative [smart dates](hledger.html#smart-dates) may now specify an arbitrary number of some period into the future or past).
+  Some examples:
+  - `in 5 days`
+  - `in -6 months`
+  - `5 weeks ahead`
+  - `2 quarters ago`
+  
   (Stephen Morgan)
 
 - CSV output now always disables digit group marks (eg, thousands separators),
   making it more machine readable by default. 
   (#1771) (Stephen Morgan)
 
+- Error messages improved:
+  - Balance assignments
+  - aregister
+  - Command line parsing (less "user error")
+
 Fixes
+
+- `--layout=bare` no longer shows a commodity symbol for zero amounts. 
+  (#1789) (Stephen Morgan)
+
+- `balance --budget` no longer elides boring parents of unbudgeted accounts 
+  if they have a budget. 
+  (#1800) (Stephen Morgan)
 
 - `roi` now shows TWR correctly when investment is zero and there are several profits/losses per day.
   (#1791) (Dmitry Astapov)
 
 Documentation
 
-- Account aliases' ability to cause malformed account names is noted. (#1788)
-
 - There is a new CONVERSION & COST section, replacing COSTING. (#1554)
+
+[Declaring accounts > Account types]: (https://hledger.org/hledger.html#account-types
+
+- Some problematic interactions of account aliases with other features have been noted. (#1788)
 
 # 1.24.1 2021-12-10
 
