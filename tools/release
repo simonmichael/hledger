@@ -9,14 +9,18 @@ usage() {
 release - Help prepare a hledger release.
 Commands:
 tools/release              - show this help
-tools/release prep VERSION - prepare this release on today's date
+tools/release prep VERSION - prepare to release VERSION on today's date
 tools/release bin          - push the current branch to CI to generate binaries
 
 prep does the following:
-- autocreates and switches to the appropriate release branch
-- updates all hledger package versions
-- updates all built-in docs
-- updates all changelogs
+- switches to the appropriate release branch, creating it if needed
+- updates the version of all hledger packages
+- updates the built-in command help & manuals
+After this, you should:
+- git cherry-pick release changes from master
+- manually cherry pick the corresponding changelog items from master
+- and finalise the changelog headings
+
 VERSION is major (1.25), minor (1.25.1), fixup (1.25.1.1) or preview (1.25.99.1)
 (see RELEASING.md).
 
@@ -113,7 +117,6 @@ prep() {
   run ./Shake cmdhelp $COMMIT
   run ./Shake mandates
   run ./Shake manuals $COMMIT
-  run ./Shake changelogs $COMMIT
 }
 
 # Push the current branch to the CI branches that generate platform binaries.
