@@ -25,17 +25,7 @@ For user-visible changes, see the hledger package changelog.
   for easy lookup of account tags.
   Query.matchesTaggedAccount is a tag-aware version of matchesAccount.
 
-- Costing has been changed to ConversionOp with three options:
-  NoConversionOp, ToCost, and InferEquity.
-  The first correspond to the previous NoCost and Cost options, while the
-  third corresponds to the --infer-equity flag.  This converts transactions with costs
-  (one or more transaction prices) to transactions with equity:conversion postings.
-  It is in ConversionOp because converting to cost with -B/--cost and inferring conversion
-  equity postings with --infer-equity are mutually exclusive.
-  The cost_ record of ReportOpts has been changed to conversionop_.
-
 - Renamed: CommodityLayout to Layout.
-  (Stephen Morgan)
 
 # 1.24.1 2021-12-10
 
