@@ -13,7 +13,7 @@ hledger(1)
 
 This is the command-line interface (CLI) for the hledger accounting
 tool.  Here we also describe hledger's concepts and file formats.  This
-manual is for hledger 1.24.99.1.
+manual is for hledger 1.24.99.2.
 
    'hledger'
 
