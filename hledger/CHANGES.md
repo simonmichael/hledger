@@ -111,16 +111,20 @@ Fixes
   if they have a budget. 
   (#1800) (Stephen Morgan)
 
-- `roi` now shows TWR correctly when investment is zero and there are several profits/losses per day.
+- `roi` now reports TWR correctly
+
+  - when there are several PnL changes occurring on a single day
+  - and also when investment is fully sold/withdrawn/discounted at the end of a particular reporting period.
+
   (#1791) (Dmitry Astapov)
 
 Documentation
 
 - There is a new CONVERSION & COST section, replacing COSTING. (#1554)
 
-[Declaring accounts > Account types]: (https://hledger.org/hledger.html#account-types
-
 - Some problematic interactions of account aliases with other features have been noted. (#1788)
+
+[Declaring accounts > Account types]: (https://hledger.org/hledger.html#account-types
 
 # 1.24.1 2021-12-10
 

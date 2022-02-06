@@ -35,6 +35,7 @@ For user-visible changes, see the hledger package changelog.
   The cost_ record of ReportOpts has been changed to conversionop_.
 
 - Renamed: CommodityLayout to Layout.
+  (Stephen Morgan)
 
 # 1.24.1 2021-12-10
 
