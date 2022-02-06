@@ -4,59 +4,51 @@
 <!-- toc -->
 </div>
 
-## How to prepare changelogs & release notes
+## Update master changelogs often
+Before release, and preferably daily/weekly as well:
+- always first update changelogs in master branch, not in release branches
+- `./Shake changelogs`
+- edit the new changelog items
+    - open changelogs
+      - as VSC panes: 
+        - explorer
+        - unfold hledger, hledger-lib, hledger-ui, hledger-web directories
+        - filter list to CHANGES
+        - click project CHANGES (last one in list)
+        - click editor pane, split it, click rightmost editor pane
+        - click hledger CHANGES
+        - click rightmost editor pane, split it, ... etc.
+    - in each changelog (first ui & web; then project, cli, lib)
+      - process new items (starting above top-most section heading, working upward)
+        - drop boring items (changes not visible to end/API users, followups to other new items, minor doc updates..)
+        - drop duplicated items/content (mostly between cli and lib)
+        - move to top of appropriate changelog & section (create section when needed; consider a second pane to reduce scrolling)
+        - drop prefixes, edit texts, check/adjust links
+        - (in cli/web/ui, move any "API changes" parts to lib ?)
+    - proof read/clean up all changelogs (Obsidian works well)
+  - `./Shake changelogs -c`
 
-Changelogs:
+## Update release & master changelogs at release time
+Before release, after cherry-picking changes from master to the release branch:
+- check out master in a separate working copy
+- for each changelog
+  - open master & release changelog in side-by-side windows
+  - copy all appropriate new content from master to release
+  - in release changelog, remove any previous prerelease heading, add a new release heading
+  - in release ui/web changelogs, add/update "uses hledger X.Y" item if needed
+  - if this is a major release, or a minor release with notable project updates, copy to master changelogs:
+    - the ui/web "uses hledger X.Y"
+    - the new release heading
+- commit changelog updates in both working copies
+- pull the master changelog updates back to main working copy
+- destroy temporary working copy, emacs buffers
 
-- always maintain changelogs in master branch, not in release branches
-- ./Shake changelogs
-- edit the new changelog items (identify, filter, move to correct changelog, deduplicate, rewrite, sort/group)
-
-Release notes:
-
+## Update release notes
 - add a new section in site/src/release-notes.md
 - copy/rewrite/summarise package changelogs 
 - note any other items of interest
 - list release contributors
 - write release summary
-
-## Frequently
-
-especially after merging changes, and before cherry picking into release branch:
-
-- dry run: `./Shake changelogs -n`
-- add new changes: `./Shake changelogs`
-- edit
-  - drop things
-  - move things
-  - Add headings: Features, Improved, Fixes
-  - rewrite things
-  - format ([#ISSUE](https://github.com/simonmichael/hledger/issues/), AUTHOR) on its own line
-- commit: `./Shake changelogs -c`
-
-## After cherry-picking
-
-changes to a release branch:
-
-- in the master branch changelogs, move the corresponding changelog items under a pending release heading,
-  creating that when necessary:
-    ```
-    # LATESTHASH
-
-    ...CHANGES ONLY IN MASTER...
-
-    # NEXTVER unreleased
-
-    ...CHANGES CHERRYPICKED INTO RELEASE BRANCH...
-
-    # LASTVER YYYY-MM-DD
-    ```
-
-## At release
-
-- do final update/edits; check organisation, wording, formatting, issue links
-- replace "unreleased" with the release date
-- copy the new sections from master changelogs to release branch changelogs
 
 ## Old notes
 
