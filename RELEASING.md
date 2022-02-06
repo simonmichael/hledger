@@ -33,7 +33,7 @@ Tips, [procedures](#procedures) and a [glossary](#glossary) for hledger release 
 
 ## hledger release types
 
-| Major&nbsp;release<br>A.B      | Bugfix&nbsp;release<br>A.B.C | Fixup&nbsp;release<br>A.B.C.D                | Preview&nbsp;release<br>A.B.99.C         |
+| Major&nbsp;release<br>A.B      | Bugfix&nbsp;release<br>A.B.C | Fixup&nbsp;release<br>A.B.C.D                | Preview&nbsp;release<br>A.B.99.D         |
 |--------------------------------|------------------------------|----------------------------------------------|------------------------------------------|
 | New features, breaking changes | Only bug fixes               | Trivial packaging fixes, no software changes | Early snapshot of the next major release |
 
@@ -54,16 +54,16 @@ Bugfix and fixup releases happen when needed (as seldom as possible).
 
 ## Deliverables
 
-|                 | Preview release | Major release | Bugfix release | Fixup release |
-|-----------------|-----------------|---------------|----------------|---------------|
-| Changelogs      | Y               | Y             | Y              | Y             |
-| Github release  | Y               | Y             | Y              | Y             |
-| Binaries        | Y               | Y             | Y              | Y             |
-| Install page    | Y               | Y             | Y              | Y             |
-| Hackage release |                 | Y             | Y              | Y             |
-| hledger-install |                 | Y             | Y              | Y             |
-| Release notes   |                 | Y             | Y              |               |
-| Announcements   |                 | Y             |                |               |
+|                 | Major release | Bugfix release | Fixup release | Preview release |
+|-----------------|---------------|----------------|---------------|-----------------|
+| Changelogs      | Y             | Y              | Y             | Y               |
+| Github release  | Y             | Y              | Y             | Y               |
+| Binaries        | Y             | Y              | Y             | Y               |
+| Install page    | Y             | Y              | Y             | Y               |
+| Hackage release | Y             | Y              | Y             |                 |
+| hledger-install | Y             | Y              | Y             |                 |
+| Release notes   | Y             | Y              |               |                 |
+| Announcements   | Y             |                |               |                 |
 
 ## Prerequisites
 
