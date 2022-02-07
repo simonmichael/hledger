@@ -4,7 +4,7 @@
 
 # Check unpushed commits, or commits in the specified range, or a
 # commit message in FILE, for compliance with hledger's conventions
-# (see https://hledger.org/COMMITS.html).
+# (see https://hledger.org/COMMITS.html or the code below).
 # If the argument contains - or .. or ^! it's a range, otherwise
 # a file containing a proposed commit message. 
 # Run interactively, or symlink as .git/hooks/commit-msg to check
@@ -53,25 +53,38 @@ function checkmsg()
     SUMMARY=$(echo "$MSG" | head -1)
     FMT="%s%-60s  %b${NRM}\n"
 
-    # Is this some boring commit, eg a hard-to avoid github merge commit ?
-    # Ignore those.
-    if echo "$SUMMARY" | grep -qE '^Merge'
+    # Ignore certain boring commits, like a github merge commit
+    # or a temporary "git commit --fixup" commit.
+    if echo "$SUMMARY" | grep -qE '^(Merge|fixup!)'
     then 
         # shellcheck disable=SC2059
         printf "$FMT" "$HASH" "$SUMMARY" "[ignored]"
-    # Does the summary follow convention ?
-    # [;]type[!]: [topic: [subtopic: ...]] subject
-    # spaces after ; and ! and : are optional (also before, but that should be discouraged)
-    # the type prefix is required and must be all word characters
-    # there can be zero or more topic prefixes of increasing depth
-    # a topic prefix must begin with a word character, can contain spaces/slashes/commas
-    # (so potentially multiple topic labels, eg "imp: bs, cf, is: cli/doc: blah blah")
-    # Also permit a git "fixup! " prefix.
-    elif ! echo "$SUMMARY" | grep -qE '^(fixup! )?( *; *)?\w+( *!)? *: *(\w[\w,/ ]* *: *)*'
+
+    # Does the summary follow the conventions described in COMMITS.md ? Roughly:
+    # [;][feat|imp|fix[!]:] topic: Summary
+    #
+    # Some passing examples:
+    # feat: accounts: --types shows account types (#1820)
+    # imp!: journal: Remove deprecated account type code syntax from account directives.
+    # fix: types: Ensure auto postings can match against and be matched by type: queries.
+    # tools: commitlint: allow a git "fixup! " prefix
+    # doc: releasing: tweaks
+    #
+    # Some failing examples:
+    # Revert "imp: ui: accounts: also show declared accounts, even if unused"
+    # Update description of hledger-check-tagfiles.hs
+    # ; PR-template: Change comment syntax
+    # ; cabal.project: Drop compatibility comment
+    #
+    # At least one type/topic prefix is required. The first must be all word characters,
+    # others may contain commas/slashes/spaces.
+    # Spaces are allowed around the ; (and before the ! and :, though it's not preferred).
+    elif ! echo "$SUMMARY" | grep -qE '^( *[;!] *)?\w+ *!? *:( *\w[\w,/ ]* *:)*'  # keep synced with COMMITS.md:
     then
         # shellcheck disable=SC2059
         printf "$FMT" "$HASH" "$SUMMARY" "${RED}[FAIL]"
         STATUS=1
+
     # Looks like a good commit.
     else
         # shellcheck disable=SC2059
