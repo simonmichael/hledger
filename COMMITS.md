@@ -10,20 +10,11 @@ easier code review => quicker merging => faster delivery of quality software.
 We'll check and help you polish messages as part of CI and code review.
 (You can also set up a local commit hook, described below.)
 
-<!-- keep synced with tools/commitlint -->
-Here's the typical format:
+Here's the typical format: <!-- keep synced with tools/commitlint -->
 
     [feat|imp|fix[!]:] topic: Summary
 
     [Longer description when useful]
-
-Some examples:
-
-- *feat: accounts: --types shows account types (#1820)*
-- *imp!: journal: Remove deprecated account type code syntax from account directives.*
-- *fix: types: Ensure auto postings can match against and be matched by type: queries.*
-- *tools: commitlint: allow a git "fixup! " prefix*
-- *doc: releasing: tweaks*
 
 More precisely:
 
@@ -39,6 +30,14 @@ More precisely:
 - Try to write commit messages as changelog/release-note-ready documentation that will tell their
   intended audience (which might be users, installers, packagers, and/or developers) 
   what they need to know.
+
+Some examples:
+
+- `feat: accounts: --types shows account types (#1820)`
+- `imp!: journal: Remove deprecated account type code syntax from account directives.`
+- `fix: types: Ensure auto postings can match against and be matched by type: queries.`
+- `tools: commitlint: allow a git "fixup! " prefix`
+- `doc: releasing: tweaks`
 
 Some possible prefixes:
 
