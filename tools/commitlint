@@ -66,7 +66,8 @@ function checkmsg()
     # there can be zero or more topic prefixes of increasing depth
     # a topic prefix must begin with a word character, can contain spaces/slashes/commas
     # (so potentially multiple topic labels, eg "imp: bs, cf, is: cli/doc: blah blah")
-    elif ! echo "$SUMMARY" | grep -qE '^( *; *)?\w+( *!)? *: *(\w[\w,/ ]* *: *)*'
+    # Also permit a git "fixup! " prefix.
+    elif ! echo "$SUMMARY" | grep -qE '^(fixup! )?( *; *)?\w+( *!)? *: *(\w[\w,/ ]* *: *)*'
     then
         # shellcheck disable=SC2059
         printf "$FMT" "$HASH" "$SUMMARY" "${RED}[FAIL]"
