@@ -116,7 +116,12 @@ accountTransactionsReport rspec@ReportSpec{_rsReportOpts=ropts} j thisacctq = it
     -- Additional reportq filtering, such as date filtering, happens down in 
     -- accountTransactionsReportItem, which discards transactions with no matched postings.
     acctJournal =
-          ptraceAtWith 5 (("ts3:\n"++).pshowTransactions.jtxns)
+        -- With most calls we will not require transaction prices past this point, and can get a big
+        -- speed improvement by stripping them early. In some cases, such as in hledger-ui, we still
+        -- want to keep prices around, so we can toggle between cost and no cost quickly. We can use
+        -- the show_costs_ flag to be efficient when we can, and detailed when we have to.
+          (if show_costs_ ropts then id else journalMapPostingAmounts mixedAmountStripPrices)
+        . ptraceAtWith 5 (("ts3:\n"++).pshowTransactions.jtxns)
         -- maybe convert these transactions to cost or value
         . journalApplyValuationFromOpts rspec
         . ptraceAtWith 5 (("ts2:\n"++).pshowTransactions.jtxns)

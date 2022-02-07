@@ -69,6 +69,8 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec
     ropts' = ropts {
         -- ignore any depth limit, as in postingsReport; allows register's total to match accounts screen
         depth_=Nothing
+        -- do not strip prices so we can toggle costs within the ui
+      , show_costs_=True
       -- XXX aregister also has this, needed ?
         -- always show historical balance
       -- , balanceaccum_= Historical
