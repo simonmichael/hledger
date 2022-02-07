@@ -120,6 +120,11 @@ matchedPostingsBeforeAndDuring rspec@ReportSpec{_rsReportOpts=ropts,_rsQuery=q} 
         sortOn (postingDateOrDate2 (whichDate ropts))            -- sort postings by date or date2
       . (if invert_ ropts then map negatePostingAmount else id)  -- with --invert, invert amounts
       . journalPostings
+      -- With most calls we will not require transaction prices past this point, and can get a big
+      -- speed improvement by stripping them early. In some cases, such as in hledger-ui, we still
+      -- want to keep prices around, so we can toggle between cost and no cost quickly. We can use
+      -- the show_costs_ flag to be efficient when we can, and detailed when we have to.
+      . (if show_costs_ ropts then id else journalMapPostingAmounts mixedAmountStripPrices)
       $ journalValueAndFilterPostings rspec{_rsQuery=beforeandduringq} j
 
     -- filter postings by the query, with no start date or depth limit
