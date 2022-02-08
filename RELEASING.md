@@ -64,6 +64,9 @@ Bugfix and fixup releases happen when needed (as seldom as possible).
 | hledger-install | Y             | Y              | Y             |                 |
 | Release notes   | Y             | Y              |               |                 |
 | Announcements   | Y             |                |               |                 |
+| [Regression bounties] | Y         | Y              | Y             |                 |
+
+[Regression bounties]: http://hledger.org/regressionbounty
 
 ## Prerequisites
 
