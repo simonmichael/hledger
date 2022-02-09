@@ -993,7 +993,7 @@ Pro:
 
 Con: 
 
-- Disturbs the accounting equation
+- Disturbs the accounting equation without the --infer-equity flag
 
 ### Equity conversion
 
@@ -1014,16 +1014,17 @@ Pro:
 - Preserves the accounting equation
 - keeps track of conversions and related gains/losses in one place
 - works in any double entry accounting system
+- hledger can convert this to transaction prices using the --infer-costs flag
 
 Con: 
 
 - More verbose
 - conversion rate is not clear
-- hledger can not do cost reporting
+- depends on the order of postings
 
 ### Priced equity conversion
 
-Another possible notation would be to record both the conversion rate and the equity postings:
+Another notation is to record both the conversion rate and the equity postings:
 
 ```journal
 2021-01-01
@@ -1033,7 +1034,19 @@ Another possible notation would be to record both the conversion rate and the eq
     assets:cash         120 USD
 ```
 
-hledger currently does not allow this; instead, you can record the conversion rate as a comment.
+Pro: 
+
+- Preserves the accounting equation
+- keeps track of conversions and related gains/losses in one place
+- makes the conversion rate clear
+- provides some error checking
+- hledger can do cost reporting
+
+Con: 
+
+- Most verbose
+- Requires --infer-costs flag
+- Not compatible with ledger
 
 ## Inferring missing conversion rates
 
@@ -1041,23 +1054,27 @@ hledger will do this automatically for implicit conversions. Currently it can no
 
 ## Inferring missing equity postings
 
-With the `--infer-equity` flag, hledger will add equity postings to priced and implicit conversions (and move the conversion rate into a comment).
+With the `--infer-equity` flag, hledger will add equity postings to priced and implicit conversions.
+
+## Inferring missing transaction prices from equity postings
+
+With the `--infer-costs` flag, hledger will add transaction prices from equity postings, and will be able to handle transaction prices and equity postings together.
 
 ## Cost reporting
 
 With the `-B/--cost` flag, hledger will convert the amounts in priced and implicit conversions to their cost in the other commodity. This is useful to see a report of what you paid for things (or how much you sold things for). Currently `-B/--cost` does not work on equity conversions, and it disables `--infer-equity`.
 
 These operations are transient, only affecting reports. If you want to change the journal file permanently, you could pipe each entry through 
-`hledger -f- -I print [-x] [--infer-equity] [-B]`
+`hledger -f- -I print [-x] [--infer-equity] [--infer-costs] [-B]`
 
 ## Conversion summary
 
 - Recording the conversion rate is good because it makes that clear and allows cost reporting.
 - Recording equity postings is good because it balances the accounting equation and is correct bookkeeping.
-- Combining these is not yet supported, so you have to choose. For now, priced conversions are a good compromise, so that:
-  - When you want to see the cost (or sale proceeds) of things, use `-B/--cost`.
-  - When you want to see a balanced balance sheet or correct journal entries, use `--infer-equity`.
-  - Combining these is not yet supported; `-B/--cost` will take precedence.
+- Combining these is possible with the --infer-costs flag, but has certain requirements for the order of postings.
+- When you want to see the cost (or sale proceeds) of things, use `-B/--cost`.
+- When you want to see a balanced balance sheet or correct journal entries, use `--infer-equity`.
+- `--cost` will remove any balancing equity posts, so as not to disturb the accounting equation.
 - Conversion/cost operations are performed before valuation.
 
 
@@ -2461,6 +2478,81 @@ $ hledger bal -N --flat -B
                €-100  assets:dollars  # <- the dollars' selling price
                 €100  assets:euros
 ```
+
+### Equity conversion postings
+
+Transaction prices can be converted to and from equity conversion postings
+using the `--infer-equity` and `--infer-costs` flags.
+
+With `--infer-equity`, hledger will add equity postings to balance out any
+transaction prices.
+
+```journal
+2009/1/1
+  assets:euros     €100 @ $1.35      ; 100 euros bought
+  assets:dollars  -$135              ; for $135
+```
+```shell
+$ hledger print --infer-equity
+
+2009-01-01
+    assets:euros               €100 @ $1.35  ; 100 euros bought
+    equity:conversion:$-€:€           €-100  ; 100 euros bought, generated-posting:
+    equity:conversion:$-€:$         $135.00  ; 100 euros bought, generated-posting:
+    assets:dollars                    $-135  ; for $135
+```
+
+The reverse is possible using `--infer-costs`, which will check any equity
+conversion postings and generate a transaction price for the _first_
+non-conversion posting which matches.
+
+```journal
+2009-01-01
+    assets:euros                       €100  ; 100 euros bought
+    equity:conversion                 €-100
+    equity:conversion                  $135
+    assets:dollars                    $-135  ; for $135
+```
+```shell
+$ hledger print --infer-costs
+
+2009-01-01
+    assets:euros               €100 @@ $135  ; 100 euros bought
+    equity:conversion                 €-100
+    equity:conversion                  $135
+    assets:dollars                    $-135  ; for $135
+```
+
+Note that the above will assign the transaction price to the first matching
+posting in the transaction.
+If you want to assign it to a different posting, or if you have several
+different sets of conversion postings which must match different postings, you
+must manually specify the transaction price.
+If you do this, equity conversion postings must occur in adjacent pairs and
+must exactly match the amount of a non-conversion posting.
+
+```journal
+2009-01-01
+    assets:dollars                    $-135  ; $135 paid
+    equity:conversion                 €-100
+    equity:conversion                  $135
+    assets:euros               €100 @@ $135  ; to buy 100 euros
+```
+
+```journal
+2009-01-01
+    assets:euros               €100 @ $1.35  ; 100 euros bought
+    equity:conversion                 €-100
+    equity:conversion                  $135
+    assets:pounds               £80 @@ $100  ; 80 pounds bought
+    equity:conversion                  £-80
+    equity:conversion                  $100
+    assets:dollars                    $-235  ; for $235 total
+```
+
+The account names used for the conversion accounts can be changed with the
+[conversion account type declaration](#account-types).
+
 
 ## Lot prices, lot dates
 

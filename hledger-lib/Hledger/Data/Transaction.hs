@@ -7,8 +7,10 @@ tags.
 
 -}
 
+{-# LANGUAGE MultiWayIf        #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections     #-}
 
 module Hledger.Data.Transaction
 ( -- * Transaction
@@ -44,18 +46,23 @@ module Hledger.Data.Transaction
 , showTransactionOneLineAmounts
 , showTransactionLineFirstPart
 , transactionFile
+  -- * transaction errors
+, annotateErrorWithTransaction
   -- * tests
 , tests_Transaction
 ) where
 
-import Data.Bifunctor (second)
-import Data.Maybe (fromMaybe, mapMaybe)
+import Control.Monad.Trans.State (StateT(..), evalStateT)
+import Data.Bifunctor (first)
+import Data.Foldable (foldrM)
+import Data.Maybe (fromMaybe, isJust, mapMaybe)
+import Data.Semigroup (Endo(..))
 import Data.Text (Text)
+import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import Data.Time.Calendar (Day, fromGregorian)
-import qualified Data.Map as M
 
 import Hledger.Utils
 import Hledger.Data.Types
@@ -219,34 +226,120 @@ transactionAddInferredEquityPostings :: AccountName -> Transaction -> Transactio
 transactionAddInferredEquityPostings equityAcct t =
     t{tpostings=concatMap (postingAddInferredEquityPostings equityAcct) $ tpostings t}
 
--- | Add inferred transaction prices from equity postings. The transaction
--- price will be added to the first posting whose amount is the negation of one
--- of the (exactly) two conversion postings, if it exists.
-transactionAddPricesFromEquity :: M.Map AccountName AccountType -> Transaction -> Transaction
-transactionAddPricesFromEquity acctTypes t
-    | [(n1, cp1), (n2, cp2)] <- conversionps                                  -- Exactly two conversion postings with indices
-    , Just ca1 <- maybePostingAmount cp1, Just ca2 <- maybePostingAmount cp2  -- Each conversion posting has exactly one amount
-    , (np,pricep):_ <- mapMaybe (maybeAddPrice ca1 ca2) npostings             -- Get the first posting which matches one of the conversion postings
-    , let subPosting (n, p) = if n == np then pricep else if n == n1 then cp1 else if n == n2 then cp2 else p
-    = t{tpostings = map subPosting npostings}
-    | otherwise = t
+-- | Add inferred transaction prices from equity postings. For every adjacent
+-- pair of conversion postings, it will first search the postings with
+-- transaction prices to see if any match. If so, it will tag it as matched.
+-- If no postings with transaction prices match, it will then search the
+-- postings without transaction prices, and will match the first such posting
+-- which matches one of the conversion amounts. If it finds a match, it will
+-- add a transaction price and then tag it.
+type IdxPosting = (Int, Posting)
+transactionAddPricesFromEquity :: M.Map AccountName AccountType -> Transaction -> Either String Transaction
+transactionAddPricesFromEquity acctTypes t = first (annotateErrorWithTransaction t . T.unpack) $ do
+    (conversionPairs, stateps) <- partitionPs npostings
+    f <- transformIndexedPostingsF addPricesToPostings conversionPairs stateps
+    return t{tpostings = map (snd . f) npostings}
   where
-    maybeAddPrice a1 a2 (n,p)
-        | Just a <- mpamt, amountMatches (-a1) a = Just (n, markPosting p{pamount = mixedAmount a{aprice = Just $ TotalPrice a2}})
-        | Just a <- mpamt, amountMatches (-a2) a = Just (n, markPosting p{pamount = mixedAmount a{aprice = Just $ TotalPrice a1}})
-        | otherwise = Nothing
-      where
-        mpamt = maybePostingAmount p
-
-    conversionps = map (second (`postingAddTags` [("_matched-conversion-posting","")]))
-                 $ filter (\(_,p) -> M.lookup (paccount p) acctTypes == Just Conversion) npostings
-    markPosting = (`postingAddTags` [("_matched-transaction-price","")])
+    -- Include indices for postings
     npostings = zip [0..] $ tpostings t
+    transformIndexedPostingsF f = evalStateT . fmap (appEndo . foldMap Endo) . traverse f
 
-    maybePostingAmount p = case amountsRaw $ pamount p of
-        [a@Amount{aprice=Nothing}] -> Just a
-        _                          -> Nothing
+    -- Sort postings into pairs of conversion postings, transaction price postings, and other postings
+    partitionPs = fmap fst . foldrM select (([], ([], [])), Nothing)
+    select np@(_, p) ((cs, others@(ps, os)), Nothing)
+      | isConversion p = Right ((cs, others),      Just np)
+      | hasPrice p     = Right ((cs, (np:ps, os)), Nothing)
+      | otherwise      = Right ((cs, (ps, np:os)), Nothing)
+    select np@(_, p) ((cs, others), Just last)
+      | isConversion p = Right (((last, np):cs, others), Nothing)
+      | otherwise      = Left "Conversion postings must occur in adjacent pairs"
+
+    -- Given a pair of indexed conversion postings, and a state consisting of lists of
+    -- priced and unpriced non-conversion postings, create a function which adds transaction
+    -- prices to the posting which matches the conversion postings if necessary, and tags
+    -- the conversion and matched postings. Then update the state by removing the matched
+    -- postings. If there are no matching postings or too much ambiguity, return an error
+    -- string annotated with the conversion postings.
+    addPricesToPostings :: (IdxPosting, IdxPosting)
+                        -> StateT ([IdxPosting], [IdxPosting]) (Either Text) (IdxPosting -> IdxPosting)
+    addPricesToPostings ((n1, cp1), (n2, cp2)) = StateT $ \(priceps, otherps) -> do
+        -- Get the two conversion posting amounts, if possible
+        ca1 <- postingAmountNoPrice cp1
+        ca2 <- postingAmountNoPrice cp2
+        let -- The function to add transaction prices and tag postings in the indexed list of postings
+            transformPostingF np pricep = \(n, p) ->
+                (n, if | n == np            -> pricep `postingAddTags` [("_price-matched","")]
+                       | n == n1 || n == n2 -> p      `postingAddTags` [("_conversion-matched","")]
+                       | otherwise          -> p)
+            -- All priced postings which match the conversion posting pair
+            matchingPricePs = mapMaybe (mapM $ pricedPostingIfMatchesBothAmounts ca1 ca2) priceps
+            -- All other postings which match at least one of the conversion posting pair
+            matchingOtherPs = mapMaybe (mapM $ addPriceIfMatchesOneAmount ca1 ca2) otherps
+
+        -- Annotate any errors with the conversion posting pair
+        first (annotateWithPostings [cp1, cp2]) $
+            if -- If a single transaction price posting matches the conversion postings,
+               -- delete it from the list of priced postings in the state, delete the
+               -- first matching unpriced posting from the list of non-priced postings
+               -- in the state, and return the transformation function with the new state.
+               | [(np, (pricep, _))] <- matchingPricePs
+               , Just newpriceps <- deleteIdx np priceps
+                   -> Right (transformPostingF np pricep, (newpriceps, otherps))
+               -- If no transaction price postings match the conversion postings, but some
+               -- of the unpriced postings match, check that the first such posting has a
+               -- different amount from all the others, and if so add a transaction price to
+               -- it, then delete it from the list of non-priced postings in the state, and
+               -- return the transformation function with the new state.
+               | [] <- matchingPricePs
+               , (np, (pricep, amt)):nps <- matchingOtherPs
+               , not $ any (amountMatches amt . snd . snd) nps
+               , Just newotherps <- deleteIdx np otherps
+                   -> Right (transformPostingF np pricep, (priceps, newotherps))
+               -- Otherwise it's too ambiguous to make a guess, so return an error.
+               | otherwise -> Left "There is not a unique posting which matches the conversion posting pair:"
+
+    -- If a posting with transaction price matches both the conversion amounts, return it along
+    -- with the matching amount which must be present in another non-conversion posting.
+    pricedPostingIfMatchesBothAmounts :: Amount -> Amount -> Posting -> Maybe (Posting, Amount)
+    pricedPostingIfMatchesBothAmounts a1 a2 p = do
+        a@Amount{aprice=Just _} <- postingSingleAmount p
+        if | amountMatches (-a1) a && amountMatches a2 (amountCost a) -> Just (p, -a2)
+           | amountMatches (-a2) a && amountMatches a1 (amountCost a) -> Just (p, -a1)
+           | otherwise -> Nothing
+
+    -- Add a transaction price to a posting if it matches (negative) one of the
+    -- supplied conversion amounts, adding the other amount as the price
+    addPriceIfMatchesOneAmount :: Amount -> Amount -> Posting -> Maybe (Posting, Amount)
+    addPriceIfMatchesOneAmount a1 a2 p = do
+        a <- postingSingleAmount p
+        let newp price = p{pamount = mixedAmount a{aprice = Just $ TotalPrice price}}
+        if | amountMatches (-a1) a -> Just (newp a2, a2)
+           | amountMatches (-a2) a -> Just (newp a1, a1)
+           | otherwise             -> Nothing
+
+    hasPrice p = isJust $ aprice =<< postingSingleAmount p
+    postingAmountNoPrice p = case postingSingleAmount p of
+        Just a@Amount{aprice=Nothing} -> Right a
+        _ -> Left $ annotateWithPostings [p] "The posting must only have a single amount with no transaction price"
+    postingSingleAmount p = case amountsRaw (pamount p) of
+        [a] -> Just a
+        _   -> Nothing
+
     amountMatches a b = acommodity a == acommodity b && aquantity a == aquantity b
+    isConversion p = M.lookup (paccount p) acctTypes == Just Conversion
+
+    -- Delete a posting from the indexed list of postings based on either its
+    -- index or its posting amount.
+    -- Note: traversing the whole list to delete a single match is generally not efficient,
+    -- but given that a transaction probably doesn't have more than four postings, it should
+    -- still be more efficient than using a Map or another data structure. Even monster
+    -- transactions with up to 10 postings, which are generally not a good
+    -- idea, are still too small for there to be an advantage.
+    deleteIdx n = deleteUniqueMatch ((n==) . fst)
+    deleteUniqueMatch p (x:xs) | p x       = if any p xs then Nothing else Just xs
+                               | otherwise = (x:) <$> deleteUniqueMatch p xs
+    deleteUniqueMatch _ []                 = Nothing
+    annotateWithPostings xs str = T.unlines $ str : postingsAsLines False xs
 
 -- | Apply some account aliases to all posting account names in the transaction, as described by accountNameApplyAliases.
 -- This can fail due to a bad replacement pattern in a regular expression alias.
@@ -267,6 +360,13 @@ transactionMapPostingAmounts f  = transactionMapPostings (postingTransformAmount
 -- | The file path from which this transaction was parsed.
 transactionFile :: Transaction -> FilePath
 transactionFile Transaction{tsourcepos} = sourceName $ fst tsourcepos
+
+-- Add transaction information to an error message.
+annotateErrorWithTransaction :: Transaction -> String -> String
+annotateErrorWithTransaction t s =
+  unlines [ sourcePosPairPretty $ tsourcepos t, s
+          , T.unpack . T.stripEnd $ showTransaction t
+          ]
 
 -- tests
 
