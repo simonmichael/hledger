@@ -97,16 +97,18 @@ transactionCheckBalanced BalancingOpts{commodity_styles_} t = errs
 
     -- check for mixed signs, detecting nonzeros at display precision
     canonicalise = maybe id canonicaliseMixedAmount commodity_styles_
+    postingBalancingAmount p
+      | "_price-matched" `elem` map fst (ptags p) = mixedAmountStripPrices $ pamount p
+      | otherwise                                 = mixedAmountCost $ pamount p
     signsOk ps =
-      case filter (not.mixedAmountLooksZero) $ map (canonicalise.mixedAmountCost.pamount) ps of
+      case filter (not.mixedAmountLooksZero) $ map (canonicalise.postingBalancingAmount) ps of
         nonzeros | length nonzeros >= 2
                    -> length (nubSort $ mapMaybe isNegativeMixedAmount nonzeros) > 1
         _          -> True
     (rsignsok, bvsignsok)       = (signsOk rps, signsOk bvps)
 
     -- check for zero sum, at display precision
-    (rsum, bvsum)               = (sumPostings rps, sumPostings bvps)
-    (rsumcost, bvsumcost)       = (mixedAmountCost rsum, mixedAmountCost bvsum)
+    (rsumcost, bvsumcost)       = (foldMap postingBalancingAmount rps, foldMap postingBalancingAmount bvps)
     (rsumdisplay, bvsumdisplay) = (canonicalise rsumcost, canonicalise bvsumcost)
     (rsumok, bvsumok)           = (mixedAmountLooksZero rsumdisplay, mixedAmountLooksZero bvsumdisplay)
 

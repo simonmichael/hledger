@@ -951,8 +951,10 @@ journalAddInferredEquityPostings j = journalMapTransactions (transactionAddInfer
     equityAcct = journalConversionAccount j
 
 -- | Add inferred transaction prices from equity postings.
-journalAddPricesFromEquity :: Journal -> Journal
-journalAddPricesFromEquity j = journalMapTransactions (transactionAddPricesFromEquity $ jaccounttypes j) j
+journalAddPricesFromEquity :: Journal -> Either String Journal
+journalAddPricesFromEquity j = do
+    ts <- mapM (transactionAddPricesFromEquity $ jaccounttypes j) $ jtxns j
+    return j{jtxns=ts}
 
 -- -- | Get this journal's unique, display-preference-canonicalised commodities, by symbol.
 -- journalCanonicalCommodities :: Journal -> M.Map String CommoditySymbol

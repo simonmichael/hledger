@@ -423,22 +423,23 @@ postingApplyValuation priceoracle styles periodlast today v p =
 postingToCost :: M.Map CommoditySymbol AmountStyle -> ConversionOp -> Posting -> Maybe Posting
 postingToCost _      NoConversionOp p = Just p
 postingToCost styles ToCost         p
-  | ("_matched-conversion-posting","") `elem` ptags p = Nothing
-  | otherwise = Just $ postingTransformAmount (styleMixedAmount styles . mixedAmountCost) p
+    -- If this is a conversion posting with a matched transaction price posting, ignore it
+    | "_conversion-matched" `elem` map fst (ptags p) && noCost = Nothing
+    | otherwise = Just $ postingTransformAmount (styleMixedAmount styles . mixedAmountCost) p
+  where
+    noCost = null . filter (isJust . aprice) . amountsRaw $ pamount p
 
 -- | Generate inferred equity postings from a 'Posting' using transaction prices.
 -- Make sure not to generate equity postings when there are already matched
 -- conversion postings.
 postingAddInferredEquityPostings :: Text -> Posting -> [Posting]
 postingAddInferredEquityPostings equityAcct p
-    | ("_matched-transaction-price","") `elem` ptags p = [p]
+    | "_price-matched" `elem` map fst (ptags p) = [p]
     | otherwise = taggedPosting : concatMap conversionPostings priceAmounts
   where
     taggedPosting
       | null priceAmounts = p
-      | otherwise         = p{ pcomment = pcomment p `commentAddTag` priceTag
-                             , ptags = priceTag : ptags p
-                             }
+      | otherwise         = p{ ptags = ("_price-matched","") : ptags p }
     conversionPostings amt = case aprice amt of
         Nothing -> []
         Just _  -> [ cp{ paccount = accountPrefix <> amtCommodity
@@ -453,7 +454,7 @@ postingAddInferredEquityPostings equityAcct p
         amtCommodity  = commodity amt
         costCommodity = commodity cost
         cp = p{ pcomment = pcomment p `commentAddTag` ("generated-posting","")
-              , ptags = [("generated-posting", ""), ("_generated-posting", "")]
+              , ptags = [("_conversion-matched", ""), ("generated-posting", ""), ("_generated-posting", "")]
               , pbalanceassertion = Nothing
               , poriginal = Nothing
               }
@@ -461,7 +462,6 @@ postingAddInferredEquityPostings equityAcct p
         -- Take the commodity of an amount and collapse consecutive spaces to a single space
         commodity = T.unwords . filter (not . T.null) . T.words . acommodity
 
-    priceTag = ("cost", T.strip . wbToText $ foldMap showAmountPrice priceAmounts)
     priceAmounts = filter (isJust . aprice) . amountsRaw $ pamount p
 
 -- | Make a market price equivalent to this posting's amount's unit

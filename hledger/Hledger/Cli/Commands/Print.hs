@@ -75,11 +75,13 @@ printEntries opts@CliOpts{reportspec_=rspec} j =
 
 entriesReportAsText :: CliOpts -> EntriesReport -> TL.Text
 entriesReportAsText opts =
-    TB.toLazyText . foldMap (TB.fromText . showTransaction . maybeStripPrices . whichtxn)
+    TB.toLazyText . foldMap (TB.fromText . showTransaction . whichtxn)
   where
     whichtxn
       -- With -x, use the fully-inferred txn with all amounts & txn prices explicit.
       | boolopt "explicit" (rawopts_ opts) = id
+      -- With --show-costs, make txn prices explicit.
+      | opts ^. infer_costs = id
       -- Or also, if any of -B/-V/-X/--value are active.
       -- Because of #551, and because of print -V valuing only one
       -- posting when there's an implicit txn price.
@@ -87,11 +89,6 @@ entriesReportAsText opts =
       | has (value . _Just) opts = id
       -- By default, use the original as-written-in-the-journal txn.
       | otherwise = originalTransaction
-    maybeStripPrices
-      -- Strip prices when inferring equity, unless the show_costs_  is set
-      | opts ^. infer_equity && not (opts ^. show_costs) =
-          transactionTransformPostings postingStripPrices
-      | otherwise = id
 
 -- Replace this transaction's postings with the original postings if any, but keep the
 -- current possibly rewritten account names, and the inferred values of any auto postings

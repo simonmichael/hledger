@@ -14,6 +14,7 @@ import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import Data.Time.Calendar (addDays)
+import Lens.Micro ((^.))
 import System.Console.CmdArgs.Explicit as C
 
 import Hledger
@@ -48,7 +49,7 @@ closemode = hledgerCommandMode
 
 -- debugger, beware: close is incredibly devious. simple rules combine to make a horrid maze.
 -- tests are in hledger/test/close.test.
-close CliOpts{rawopts_=rawopts, reportspec_=rspec'} j = do
+close copts@CliOpts{rawopts_=rawopts, reportspec_=rspec'} j = do
   let
     -- show opening entry, closing entry, or (default) both ?
     (opening, closing) =
@@ -101,7 +102,7 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec'} j = do
     openingdate = addDays 1 closingdate
 
     -- should we show the amount(s) on the equity posting(s) ?
-    explicit = boolopt "explicit" rawopts
+    explicit = boolopt "explicit" rawopts || copts ^. infer_costs
 
     -- the balances to close
     (acctbals',_) = balanceReport rspec j
