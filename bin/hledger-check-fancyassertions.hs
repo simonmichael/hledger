@@ -123,6 +123,46 @@ import System.FilePath (FilePath)
 import qualified Text.Megaparsec as P
 import qualified Text.Megaparsec.Char as P
 
+-- Don't know how to preserve newlines yet.
+helptxt = unlines [
+   "ASSERTIONS can be:"
+  ,""
+  ,"1. <VALUE_OR_ACCT> CMP <VALUE_OR_ACCT> -"
+  ,""
+  ,"In the simplest form, an assertion is just a comparison between"
+  ,"values. A value is either an amount or an account name (both as"
+  ,"defined by hledger). The comparison operators are <, <=, ==,"
+  ,">=, >, and != (with the obvious meanings)."
+  ,""
+  ,"Normally, the name of an account refers to the balance of that account"
+  ,"only, without including subaccounts. The syntax `* ACCT` refers"
+  ,"to the sum of the values in both that account and its subaccounts."
+  ,""
+  ,"Example:"
+  ,""
+  ,"hledger-check-fancyassertions -D 'budget:books  >= £0'"
+  ,""
+  ,""
+  ,"\"At the end of every day, the books budget is greater than or equal to"
+  ,"£0\", implying that if I overspend, I need to take the money out of"
+  ,"some other account. Note the double space after budget:books, this is"
+  ,"because account names can contain single spaces."
+  ,""
+  ,"2. <ASSERTION> OP <ASSERTION> -"
+  ,""
+  ,"Assertions can be combined with logical connectives. The connectives"
+  ,"are &&, ||, ==>, and <==> (with the obvious meanings)."
+  ,"Assertions can also be wrapped inside parentheses."
+  ,""
+  ,"Example:"
+  ,""
+  ,"hledger-check-fancyassertions '(assets:overdraft  < £2000) ==> (*assets:checking  == £0)'"
+  ,""
+  ,""
+  ,"\"If I have taken money from my overdraft, then I must have no money in"
+  ,"my checking account (including subaccounts).\""
+  ]
+
 main :: IO ()
 main = do
     opts <- execParser args
@@ -367,6 +407,7 @@ args :: ParserInfo Opts
 args = info (helper <*> parser) $ mconcat
     [ fullDesc
     , progDesc "Complex account balance assertions for hledger journals."
+    , footer helptxt
     ]
   where
     parser = Opts <$> (optional . strOption)
