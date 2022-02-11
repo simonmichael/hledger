@@ -9,7 +9,6 @@ tags.
 
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
 
 module Hledger.Data.Transaction
 ( -- * Transaction
