@@ -45,18 +45,28 @@ module Hledger.Data.AccountName (
   ,subAccountNamesFrom
   ,topAccountNames
   ,unbudgetedAccountName
+  ,accountNamePostingType
+  ,accountNameWithoutPostingType
+  ,accountNameWithPostingType
+  ,joinAccountNames
+  ,concatAccountNames
+  ,accountNameApplyAliases
+  ,accountNameApplyAliasesMemo
   ,tests_AccountName
 )
 where
 
 import Control.Applicative ((<|>))
+import Control.Monad (foldM)
 import Data.Foldable (asum, toList)
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Map as M
+import Data.MemoUgly (memo)
 import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Tree (Tree(..))
+import Safe
 import Text.DocLayout (realLength)
 
 import Hledger.Data.Types
@@ -131,6 +141,65 @@ accountNameLevel a = T.length (T.filter (==acctsepchar) a) + 1
 -- Defined here so it can be ignored by accountNameDrop.
 unbudgetedAccountName :: T.Text
 unbudgetedAccountName = "<unbudgeted>"
+
+accountNamePostingType :: AccountName -> PostingType
+accountNamePostingType a
+    | T.null a = RegularPosting
+    | T.head a == '[' && T.last a == ']' = BalancedVirtualPosting
+    | T.head a == '(' && T.last a == ')' = VirtualPosting
+    | otherwise = RegularPosting
+
+accountNameWithoutPostingType :: AccountName -> AccountName
+accountNameWithoutPostingType a = case accountNamePostingType a of
+                                    BalancedVirtualPosting -> textUnbracket a
+                                    VirtualPosting -> textUnbracket a
+                                    RegularPosting -> a
+
+accountNameWithPostingType :: PostingType -> AccountName -> AccountName
+accountNameWithPostingType BalancedVirtualPosting = wrap "[" "]" . accountNameWithoutPostingType
+accountNameWithPostingType VirtualPosting         = wrap "(" ")" . accountNameWithoutPostingType
+accountNameWithPostingType RegularPosting         = accountNameWithoutPostingType
+
+-- | Prefix one account name to another, preserving posting type
+-- indicators like concatAccountNames.
+joinAccountNames :: AccountName -> AccountName -> AccountName
+joinAccountNames a b = concatAccountNames $ filter (not . T.null) [a,b]
+
+-- | Join account names into one. If any of them has () or [] posting type
+-- indicators, these (the first type encountered) will also be applied to
+-- the resulting account name.
+concatAccountNames :: [AccountName] -> AccountName
+concatAccountNames as = accountNameWithPostingType t $ T.intercalate ":" $ map accountNameWithoutPostingType as
+    where t = headDef RegularPosting $ filter (/= RegularPosting) $ map accountNamePostingType as
+
+-- | Rewrite an account name using all matching aliases from the given list, in sequence.
+-- Each alias sees the result of applying the previous aliases.
+-- Or, return any error arising from a bad regular expression in the aliases.
+accountNameApplyAliases :: [AccountAlias] -> AccountName -> Either RegexError AccountName
+accountNameApplyAliases aliases a =
+  let (aname,atype) = (accountNameWithoutPostingType a, accountNamePostingType a)
+  in foldM
+     (\acct alias -> dbg6 "result" $ aliasReplace (dbg6 "alias" alias) (dbg6 "account" acct))
+     aname
+     aliases
+     >>= Right . accountNameWithPostingType atype
+
+-- | Memoising version of accountNameApplyAliases, maybe overkill.
+accountNameApplyAliasesMemo :: [AccountAlias] -> AccountName -> Either RegexError AccountName
+accountNameApplyAliasesMemo aliases = memo (accountNameApplyAliases aliases)
+  -- XXX re-test this memoisation
+
+-- aliasMatches :: AccountAlias -> AccountName -> Bool
+-- aliasMatches (BasicAlias old _) a = old `isAccountNamePrefixOf` a
+-- aliasMatches (RegexAlias re  _) a = regexMatchesCI re a
+
+aliasReplace :: AccountAlias -> AccountName -> Either RegexError AccountName
+aliasReplace (BasicAlias old new) a
+  | old `isAccountNamePrefixOf` a || old == a =
+      Right $ new <> T.drop (T.length old) a
+  | otherwise = Right a
+aliasReplace (RegexAlias re repl) a =
+  fmap T.pack . regexReplace re repl $ T.unpack a -- XXX
 
 -- | Remove some number of account name components from the front of the account name.
 -- If the special "<unbudgeted>" top-level account is present, it is preserved and

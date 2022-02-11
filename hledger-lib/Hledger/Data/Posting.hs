@@ -48,13 +48,6 @@ module Hledger.Data.Posting (
   isPostingInDateSpan',
   -- * account name operations
   accountNamesFromPostings,
-  accountNamePostingType,
-  accountNameWithoutPostingType,
-  accountNameWithPostingType,
-  joinAccountNames,
-  concatAccountNames,
-  accountNameApplyAliases,
-  accountNameApplyAliasesMemo,
   -- * comment/tag operations
   commentJoin,
   commentAddTag,
@@ -77,12 +70,10 @@ module Hledger.Data.Posting (
 )
 where
 
-import Control.Monad (foldM)
 import Data.Default (def)
 import Data.Foldable (asum)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust)
-import Data.MemoUgly (memo)
 import Data.List (foldl', sort, union)
 import qualified Data.Set as S
 import Data.Text (Text)
@@ -90,7 +81,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import Data.Time.Calendar (Day)
-import Safe (headDef, maximumBound)
+import Safe (maximumBound)
 import Text.DocLayout (realLength)
 
 import Text.Tabular.AsciiWide
@@ -395,38 +386,6 @@ isPostingInDateSpan' SecondaryDate s = spanContainsDate s . postingDate2
 isEmptyPosting :: Posting -> Bool
 isEmptyPosting = mixedAmountLooksZero . pamount
 
--- AccountName stuff that depends on PostingType
-
-accountNamePostingType :: AccountName -> PostingType
-accountNamePostingType a
-    | T.null a = RegularPosting
-    | T.head a == '[' && T.last a == ']' = BalancedVirtualPosting
-    | T.head a == '(' && T.last a == ')' = VirtualPosting
-    | otherwise = RegularPosting
-
-accountNameWithoutPostingType :: AccountName -> AccountName
-accountNameWithoutPostingType a = case accountNamePostingType a of
-                                    BalancedVirtualPosting -> textUnbracket a
-                                    VirtualPosting -> textUnbracket a
-                                    RegularPosting -> a
-
-accountNameWithPostingType :: PostingType -> AccountName -> AccountName
-accountNameWithPostingType BalancedVirtualPosting = wrap "[" "]" . accountNameWithoutPostingType
-accountNameWithPostingType VirtualPosting         = wrap "(" ")" . accountNameWithoutPostingType
-accountNameWithPostingType RegularPosting         = accountNameWithoutPostingType
-
--- | Prefix one account name to another, preserving posting type
--- indicators like concatAccountNames.
-joinAccountNames :: AccountName -> AccountName -> AccountName
-joinAccountNames a b = concatAccountNames $ filter (not . T.null) [a,b]
-
--- | Join account names into one. If any of them has () or [] posting type
--- indicators, these (the first type encountered) will also be applied to
--- the resulting account name.
-concatAccountNames :: [AccountName] -> AccountName
-concatAccountNames as = accountNameWithPostingType t $ T.intercalate ":" $ map accountNameWithoutPostingType as
-    where t = headDef RegularPosting $ filter (/= RegularPosting) $ map accountNamePostingType as
-
 -- | Apply some account aliases to the posting's account name, as described by accountNameApplyAliases.
 -- This can fail due to a bad replacement pattern in a regular expression alias.
 postingApplyAliases :: [AccountAlias] -> Posting -> Either RegexError Posting
@@ -449,35 +408,6 @@ postingApplyCommodityStyles styles p = p{pamount=styleMixedAmount styles $ pamou
 -- | Add tags to a posting, discarding any for which the posting already has a value.
 postingAddTags :: Posting -> [Tag] -> Posting
 postingAddTags p@Posting{ptags} tags = p{ptags=ptags `union` tags}
-
--- | Rewrite an account name using all matching aliases from the given list, in sequence.
--- Each alias sees the result of applying the previous aliases.
--- Or, return any error arising from a bad regular expression in the aliases.
-accountNameApplyAliases :: [AccountAlias] -> AccountName -> Either RegexError AccountName
-accountNameApplyAliases aliases a =
-  let (aname,atype) = (accountNameWithoutPostingType a, accountNamePostingType a)
-  in foldM
-     (\acct alias -> dbg6 "result" $ aliasReplace (dbg6 "alias" alias) (dbg6 "account" acct))
-     aname
-     aliases
-     >>= Right . accountNameWithPostingType atype
-
--- | Memoising version of accountNameApplyAliases, maybe overkill.
-accountNameApplyAliasesMemo :: [AccountAlias] -> AccountName -> Either RegexError AccountName
-accountNameApplyAliasesMemo aliases = memo (accountNameApplyAliases aliases)
-  -- XXX re-test this memoisation
-
--- aliasMatches :: AccountAlias -> AccountName -> Bool
--- aliasMatches (BasicAlias old _) a = old `isAccountNamePrefixOf` a
--- aliasMatches (RegexAlias re  _) a = regexMatchesCI re a
-
-aliasReplace :: AccountAlias -> AccountName -> Either RegexError AccountName
-aliasReplace (BasicAlias old new) a
-  | old `isAccountNamePrefixOf` a || old == a =
-      Right $ new <> T.drop (T.length old) a
-  | otherwise = Right a
-aliasReplace (RegexAlias re repl) a =
-  fmap T.pack . regexReplace re repl $ T.unpack a -- XXX
 
 -- | Apply a specified valuation to this posting's amount, using the
 -- provided price oracle, commodity styles, and reference dates.
