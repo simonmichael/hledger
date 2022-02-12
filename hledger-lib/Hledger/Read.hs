@@ -25,6 +25,7 @@ module Hledger.Read (
   readJournalFiles,
   readJournalFile,
   requireJournalFileExists,
+  requireJournalFileExists',
   ensureJournalFileExists,
 
   -- * Journal parsing
@@ -172,32 +173,45 @@ readJournalFile iopts prefixedfile = do
   let
     (mfmt, f) = splitReaderPrefix prefixedfile
     iopts' = iopts{mformat_=asum [mfmt, mformat_ iopts]}
-  requireJournalFileExists f
-  t <- readFileOrStdinPortably f
-    -- <- T.readFile f  -- or without line ending translation, for testing
-  ej <- readJournal iopts' (Just f) t
-  case ej of
-    Left e  -> return $ Left e
-    Right j | new_ iopts -> do
-      ds <- previousLatestDates f
-      let (newj, newds) = journalFilterSinceLatestDates ds j
-      when (new_save_ iopts && not (null newds)) $ saveLatestDates newds f
-      return $ Right newj
-    Right j -> return $ Right j
+  exists <- requireJournalFileExists' f
+  case exists of
+    Left e -> return $ Left e
+    Right _ -> do
+      t <- readFileOrStdinPortably f
+        -- <- T.readFile f  -- or without line ending translation, for testing
+      ej <- readJournal iopts' (Just f) t
+      case ej of
+        Left e  -> return $ Left e
+        Right j | new_ iopts -> do
+          ds <- previousLatestDates f
+          let (newj, newds) = journalFilterSinceLatestDates ds j
+          when (new_save_ iopts && not (null newds)) $ saveLatestDates newds f
+          return $ Right newj
+        Right j -> return $ Right j
 
 --- ** utilities
 
 -- | If the specified journal file does not exist (and is not "-"),
 -- give a helpful error and quit.
 requireJournalFileExists :: FilePath -> IO ()
-requireJournalFileExists "-" = return ()
 requireJournalFileExists f = do
+  res <- requireJournalFileExists' f
+  either (\e -> hPutStr stderr e >> exitFailure) pure res
+
+-- | If the specified journal file does not exist (and is not "-"),
+-- give a helpful error.
+requireJournalFileExists' :: FilePath -> IO (Either String ())
+requireJournalFileExists' "-" = return $ Right ()
+requireJournalFileExists' f = do
   exists <- doesFileExist f
-  unless exists $ do  -- XXX might not be a journal file
-    hPutStr stderr $ "The hledger journal file \"" <> f <> "\" was not found.\n"
-    hPutStr stderr "Please create it first, eg with \"hledger add\" or a text editor.\n"
-    hPutStr stderr "Or, specify an existing journal file with -f or LEDGER_FILE.\n"
-    exitFailure
+  if exists then
+    return $ Right ()
+  else
+    return $ Left $ unlines [ "The hledger journal file \"" <> f <> "\" was not found."
+                            , "Please create it first, eg with \"hledger add\" or a text editor."
+                            , "Or, specify an existing journal file with -f or LEDGER_FILE."
+                            ]
+    
 
 -- | Ensure there is a journal file at the given path, creating an empty one if needed.
 -- On Windows, also ensure that the path contains no trailing dots

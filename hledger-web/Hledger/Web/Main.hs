@@ -39,7 +39,7 @@ import Hledger.Web.WebOptions
 -- Run in fast reloading mode for yesod devel.
 hledgerWebDev :: IO (Int, Application)
 hledgerWebDev =
-  withJournalDo (cliopts_ defwebopts) (defaultDevelApp loader . makeApplication defwebopts)
+  defaultDevelApp loader (makeApplication defwebopts)
   where
     loader =
       Yesod.Default.Config.loadConfig
@@ -48,7 +48,7 @@ hledgerWebDev =
 -- Run normally.
 hledgerWebMain :: IO ()
 hledgerWebMain = do
-  wopts@WebOpts{cliopts_=copts@CliOpts{debug_, rawopts_}} <- getHledgerWebOpts
+  wopts@WebOpts{cliopts_=_copts@CliOpts{debug_, rawopts_}} <- getHledgerWebOpts
   when (debug_ > 0) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show wopts)
   if
     | "help"            `inRawOpts` rawopts_ -> putStr (showModeUsage webmode) >> exitSuccess
@@ -59,14 +59,12 @@ hledgerWebMain = do
     | "test"            `inRawOpts` rawopts_ -> do
       -- remove --test and --, leaving other args for hspec
       (`withArgs` hledgerWebTest) . filter (`notElem` ["--test","--"]) =<< getArgs
-    | otherwise                              -> withJournalDo copts (web wopts)
+    | otherwise                              -> web wopts
 
 -- | The hledger web command.
-web :: WebOpts -> Journal -> IO ()
-web opts j = do
-  let initq = _rsQuery . reportspec_ $ cliopts_ opts
-      j' = filterJournalTransactions initq j
-      h = host_ opts
+web :: WebOpts -> IO ()
+web opts = do
+  let h = host_ opts
       p = port_ opts
       u = base_url_ opts
       staticRoot = T.pack <$> file_url_ opts
@@ -76,7 +74,7 @@ web opts j = do
                            ,appRoot = T.pack u
                            ,appExtra = Extra "" Nothing staticRoot
                            }
-  app <- makeApplication opts j' appconfig
+  app <- makeApplication opts appconfig
   -- XXX would like to allow a host name not just an IP address here
   _ <- printf "Serving web %s on %s:%d with base url %s\n"
          (if serve_api_ opts then "API" else "UI and API" :: String) h p u

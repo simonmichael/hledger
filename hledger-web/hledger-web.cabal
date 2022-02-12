@@ -100,6 +100,7 @@ extra-source-files:
     templates/default-layout-wrapper.hamlet
     templates/default-layout.hamlet
     templates/edit-form.hamlet
+    templates/error.hamlet
     templates/journal.hamlet
     templates/manage.hamlet
     templates/register.hamlet
@@ -131,6 +132,7 @@ library
   exposed-modules:
       Hledger.Web
       Hledger.Web.Application
+      Hledger.Web.Error
       Hledger.Web.Foundation
       Hledger.Web.Handler.AddR
       Hledger.Web.Handler.EditR
