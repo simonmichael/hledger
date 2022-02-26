@@ -46,13 +46,13 @@ HERE
 HLEDGER_INSTALL_TOOL=hledger-install.sh
 
 # this script's version
-HLEDGER_INSTALL_VERSION=20211210
+HLEDGER_INSTALL_VERSION=20220225
 
 # stackage snapshot to use when installing with stack.
 # You can try specifying a different stackage version here, or 
 # commenting out this line to use your current global resolver,
 # to avoid unnecessary building.
-RESOLVER="--resolver=lts-18.18"
+RESOLVER="--resolver=lts-18.26"
 
 # things to be installed
 
@@ -65,6 +65,7 @@ hledger-web \
 HLEDGER_OTHER_TOOLS="\
 hledger-iadd \
 hledger-interest \
+hledger-stockquotes \
 "
 
 # Latest hledger package versions.
@@ -76,6 +77,7 @@ HLEDGER_WEB_VERSION=1.24.1
 # addons:
 HLEDGER_IADD_VERSION=1.3.16
 HLEDGER_INTEREST_VERSION=1.6.3
+HLEDGER_STOCKQUOTES_VERSION=0.1.2.0
 
 # any required dependencies that aren't in the stackage resolver above:
 EXTRA_DEPS="\
@@ -1026,6 +1028,12 @@ fi
 if [[ $(cmpver "$(cmd_version hledger-interest 2>/dev/null)" $HLEDGER_INTEREST_VERSION) = 2 ]]; then
   echo Installing hledger-interest
   try_install hledger-interest-$HLEDGER_INTEREST_VERSION hledger-lib-$HLEDGER_LIB_VERSION $EXTRA_DEPS
+  echo
+fi
+
+if [[ $(cmpver "$(cmd_version hledger-stockquotes 2>/dev/null)" $HLEDGER_STOCKQUOTES_VERSION) = 2 ]]; then
+  echo Installing hledger-stockquotes
+  try_install hledger-stockquotes-$HLEDGER_STOCKQUOTES_VERSION hledger-lib-$HLEDGER_LIB_VERSION $EXTRA_DEPS
   echo
 fi
 
