@@ -74,7 +74,8 @@ Features
 
   ([#1554](https://github.com/simonmichael/hledger/issues/1554)) (Stephen Morgan, Simon Michael)
 
-- Normalised, easy-to-process "tidy" CSV data can now be generated with `--layout tidy -O csv`.
+- Balance commands (`bal`, `bs` etc.) can now generate easy-to-process "tidy" CSV data 
+  with `-O csv --layout tidy`.
   In tidy data, every variable is a column and each row represents a single data point 
   (cf <https://vita.had.co.nz/papers/tidy-data.html>).
   ([#1768](https://github.com/simonmichael/hledger/issues/1768), 
