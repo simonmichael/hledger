@@ -11,7 +11,10 @@ For user-visible changes, see the hledger package changelog.
 
 # e9c19e12e
 
-- hledger-lib now builds with GHC 9.2 and latest deps. (#1774)
+# 1.25 2022-03-04
+
+- hledger-lib now builds with GHC 9.2 and latest deps. 
+  ([#1774](https://github.com/simonmichael/hledger/issues/1774)
 
 - Journal has a new jaccounttypes map.
   The journalAccountType lookup function makes it easy to check an account's type.

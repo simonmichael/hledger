@@ -11,6 +11,8 @@ User-visible changes in the hledger command line tool and library.
 
 # 2f47ae05c
 
+# 1.25 2022-03-04
+
 Breaking changes
 
 - Journal format's `account NAME  TYPECODE` syntax, deprecated in 1.13, has been dropped.
@@ -38,12 +40,14 @@ Features
       hledger reg type:x   # register of all expenses
       hledger acc --types  # list accounts and their types
 
-  (#1820, #1822) (Simon Michael, Stephen Morgan)
+  ([#1820](https://github.com/simonmichael/hledger/issues/1820), 
+  [#1822](https://github.com/simonmichael/hledger/issues/1822)) 
+  (Simon Michael, Stephen Morgan)
 
 - The `tag:` query can now also match account tags, as defined in account directives.
   Subaccounts inherit tags from their parents.
   Accounts, postings and transactions can be filtered by account tag.
-  (#1817)
+  ([#1817](https://github.com/simonmichael/hledger/issues/1817))
 
 - The new `--infer-equity` flag replaces the `@`/`@@` price notation in commodity
   conversion transactions with more correct equity postings (when not using `-B/--cost`).
@@ -68,21 +72,24 @@ Features
   
       account Equity:Trading    ; type:V
 
-  (#1554) (Stephen Morgan, Simon Michael)
+  ([#1554](https://github.com/simonmichael/hledger/issues/1554)) (Stephen Morgan, Simon Michael)
 
 - Normalised, easy-to-process "tidy" CSV data can now be generated with `--layout tidy -O csv`.
   In tidy data, every variable is a column and each row represents a single data point 
   (cf <https://vita.had.co.nz/papers/tidy-data.html>).
-  (#1768, #1773, #1775) (Stephen Morgan)
+  ([#1768](https://github.com/simonmichael/hledger/issues/1768), 
+  [#1773](https://github.com/simonmichael/hledger/issues/1773), 
+  [#1775](https://github.com/simonmichael/hledger/issues/1775)) 
+  (Stephen Morgan)
 
 Improvements
 
 - Strict mode (`-s/--strict`) now also checks periodic transactions (`--forecast`) 
   and auto postings (`--auto`). 
-  (#1810) (Stephen Morgan)
+  ([#1810](https://github.com/simonmichael/hledger/issues/1810)) (Stephen Morgan)
 
 - `hledger check commodities` now always accepts zero amounts which have no commodity symbol. 
-  (#1767) (Stephen Morgan)
+  ([#1767](https://github.com/simonmichael/hledger/issues/1767)) (Stephen Morgan)
 
 - Relative [smart dates](hledger.html#smart-dates) may now specify an arbitrary number of some period into the future or past).
   Some examples:
@@ -95,10 +102,10 @@ Improvements
 
 - CSV output now always disables digit group marks (eg, thousands separators),
   making it more machine readable by default. 
-  (#1771) (Stephen Morgan)
+  ([#1771](https://github.com/simonmichael/hledger/issues/1771)) (Stephen Morgan)
 
 - Unicode may now be used in field names/references in CSV rules files.
-  (#1809) (Stephen Morgan)
+  ([#1809](https://github.com/simonmichael/hledger/issues/1809)) (Stephen Morgan)
 
 - Error messages improved:
   - Balance assignments
@@ -108,26 +115,28 @@ Improvements
 Fixes
 
 - `--layout=bare` no longer shows a commodity symbol for zero amounts. 
-  (#1789) (Stephen Morgan)
+  ([#1789](https://github.com/simonmichael/hledger/issues/1789)) (Stephen Morgan)
 
 - `balance --budget` no longer elides boring parents of unbudgeted accounts 
   if they have a budget. 
-  (#1800) (Stephen Morgan)
+  ([#1800](https://github.com/simonmichael/hledger/issues/1800)) (Stephen Morgan)
 
 - `roi` now reports TWR correctly
 
   - when there are several PnL changes occurring on a single day
   - and also when investment is fully sold/withdrawn/discounted at the end of a particular reporting period.
 
-  (#1791) (Dmitry Astapov)
+  ([#1791](https://github.com/simonmichael/hledger/issues/1791)) (Dmitry Astapov)
 
 Documentation
 
-- There is a new CONVERSION & COST section, replacing COSTING. (#1554)
+- There is a new CONVERSION & COST section, replacing COSTING. 
+  ([#1554](https://github.com/simonmichael/hledger/issues/1554))
 
-- Some problematic interactions of account aliases with other features have been noted. (#1788)
+- Some problematic interactions of account aliases with other features have been noted. 
+  ([#1788](https://github.com/simonmichael/hledger/issues/1788))
 
-[Declaring accounts > Account types]: (https://hledger.org/hledger.html#account-types
+- Updated: [Declaring accounts > Account types](https://hledger.org/hledger.html#account-types)
 
 # 1.24.1 2021-12-10
 

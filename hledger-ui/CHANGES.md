@@ -11,6 +11,10 @@ See also the hledger changelog.
 
 # ef4da9053
 
+# 1.25 2022-03-04
+
+- Uses hledger 1.25.
+
 # 1.24.1 2021-12-10
 
 Fixes

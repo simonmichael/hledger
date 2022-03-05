@@ -11,13 +11,9 @@ For package-specific changes, see the hledger package changelogs.
 
 # b5bb3b4d0
 
-Features
+# 1.25 2022-03-04
 
-Improvements
-
-Fixes
-
-Software
+Scripts/addons
 
 - hledger-install.sh now also installs Pavan Rikhi's hledger-stockquotes tool.
 
@@ -26,8 +22,6 @@ Software
 - The bin/hledger-check-fancyassertions addon now shows docs in --help.
 
 - A new invoice-making script was added: examples/invoicing/invoice-script/invoice
-
-Docs
 
 Process/tools
 
