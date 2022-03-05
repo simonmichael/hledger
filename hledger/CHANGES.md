@@ -9,8 +9,13 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 1.24.99.2 2022-02-05
+# 1.25 2022-03-04
+- ;doc: update manuals
 
+- ;cabal: update cabal files
+
+- ;pkg: bump version to 1.25
+# 1.24.99.2 2022-02-05
 Breaking changes
 
 - Journal format's `account NAME  TYPECODE` syntax, deprecated in 1.13, has been dropped.

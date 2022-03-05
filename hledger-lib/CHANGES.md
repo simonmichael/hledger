@@ -9,8 +9,13 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 1.24.99.2 2022-02-05
+# 1.25 2022-03-04
+- ;doc: update manuals
 
+- ;cabal: update cabal files
+
+- ;pkg: bump version to 1.25
+# 1.24.99.2 2022-02-05
 - hledger-lib now builds with GHC 9.2 and latest deps. (#1774)
 
 - Journal has a new jaccounttypes map.

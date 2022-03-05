@@ -9,8 +9,9 @@
 General changes in the hledger project (and notable all-package releases).
 For package-specific changes and minor releases, see the hledger package changelogs.
 
+# 1.25 2022-03-04
+- ;pkg: bump version to 1.25
 # 1.24.99.2 2022-02-05
-
 Features
 
 Improvements
