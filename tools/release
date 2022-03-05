@@ -9,6 +9,7 @@ usage() {
 release - Help prepare a hledger release.
 Commands:
 tools/release              - show this help
+tools/release relfiles     - symlink important files temporarily in .relfiles/
 tools/release prep VERSION - prepare this release on today's date
 tools/release bin          - push the current branch to CI to generate binaries
 
@@ -100,6 +101,26 @@ run() {
     elif [[ -n $ECHO || -n $DRY ]]; then echo "$@"
     fi
     if [[ -z $DRY ]]; then "$@"; fi
+}
+
+# Symlink important files temporarily in .relfiles/ for convenient access.
+relfiles() {
+  mkdir -p .relfiles
+  cd .relfiles
+  for f in \
+      ../stack.yaml \
+      ../Shake.hs \
+      ../CHANGELOGS.md \
+      ../RELEASING.md \
+      ../CHANGES.md \
+      ../hledger/CHANGES.md \
+      ../hledger-ui/CHANGES.md \
+      ../hledger-web/CHANGES.md \
+      ../hledger-lib/CHANGES.md \
+      ../site/src/release-notes.md \
+      ../site/src/install.md \
+      ../doc/ANNOUNCE \
+  ; do ln -sf $f .; done
 }
 
 # Create/switch to appropriate release branch and prepare for release.
