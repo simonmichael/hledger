@@ -9,7 +9,7 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 31fdcdb8e
+# e9c19e12e
 
 - hledger-lib now builds with GHC 9.2 and latest deps. (#1774)
 
@@ -24,6 +24,11 @@ For user-visible changes, see the hledger package changelog.
 - Journal has a new jdeclaredaccounttags field
   for easy lookup of account tags.
   Query.matchesTaggedAccount is a tag-aware version of matchesAccount.
+
+- Some account name functions have moved from Hledger.Data.Posting
+  to Hledger.Data.AccountName:
+  accountNamePostingType, accountNameWithPostingType, accountNameWithoutPostingType,
+  joinAccountNames, concatAccountNames, accountNameApplyAliases, accountNameApplyAliasesMemo.
 
 - Renamed: CommodityLayout to Layout.
 

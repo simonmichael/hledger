@@ -9,7 +9,7 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 507638916
+# 2f47ae05c
 
 Breaking changes
 
@@ -96,6 +96,9 @@ Improvements
 - CSV output now always disables digit group marks (eg, thousands separators),
   making it more machine readable by default. 
   (#1771) (Stephen Morgan)
+
+- Unicode may now be used in field names/references in CSV rules files.
+  (#1809) (Stephen Morgan)
 
 - Error messages improved:
   - Balance assignments
