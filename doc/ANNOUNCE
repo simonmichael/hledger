@@ -1,50 +1,29 @@
-I am pleased to announce hledger 1.24!
+I am pleased to announce hledger 1.25.
+Get it here: https://hledger.org/install
 
-https://hledger.org/release-notes.html#hledger-1-24
+Release notes: https://hledger.org/release-notes.html#hledger-1-25
+Highlights include:
+account querying by type or tag,
+inferring equity postings from @ notation,
+and easily-consumed "tidy" CSV output.
 
-Highlights include new report layout options with less eliding,
-hledger-ui mouse support, and many fixes and improvements.
-
-Thank you to release contributors
+Thank you to contributors
 Stephen Morgan,
-toonn,
-Pranesh Prakash,
 Dmitry Astapov,
-ShrykeWindgrace,
-Joaquin Azcarate,
-and
-Lawrence Wu.
+Patrik Keller.
+
+hledger is free, high quality Plain Text Accounting software: a fast
+and robust multicurrency double-entry accounting system that uses
+human-readable, version-controllable plain text files. It was inspired
+by and is partly compatible with Ledger CLI, and runs well on unix,
+mac and windows. For help getting started, or more info,
+see https://hledger.org and https://plaintextaccounting.org.
+
+Beginners, experts, contributors, sponsors, and all feedback are most
+welcome. Join our chat via Matrix or IRC: https://hledger.org/support
 
 
-hledger (https://hledger.org) is a dependable, cross-platform "plain
-text accounting" tool, with command-line, terminal and web interfaces.
-It is an actively maintained, largely compatible reimplementation of
-Ledger CLI with many improvements. You can use it to track money,
-time, investments, cryptocurrencies, inventory and more. See also the
-Plain Text Accounting site (https://plaintextaccounting.org).
-
-https://hledger.org/download shows all the ways to install hledger on
-mac, windows or unix (stack, cabal, brew, nix, CI binaries, your
-package manager..). Or, run this bash script to install or upgrade to
-the latest release:
-
-$ curl -sO https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh
-$ less hledger-install.sh   # security review
-$ bash hledger-install.sh
-
-New users, check out https://hledger.org/quickstart
-or the tutorials (with pictures) at hledger.org -> FIRST STEPS
-or the https://hledger.org/videos.html.
-
-To get help, see https://hledger.org#help, and join our chat via Matrix:
-
-- #hledger:matrix.org  (http://matrix.hledger.org)
-
-or Libera (they are bridged):
-
-- #hledger:libera.chat (http://irc.hledger.org)
-
-Beginners and experts, contributors, sponsors, and all feedback are most welcome.
-Wishing you health and prosperity,
+This release is dedicated to everyone affected by war in Ukraine and
+elsewhere.
 
 -Simon
