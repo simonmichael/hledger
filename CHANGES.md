@@ -10,49 +10,37 @@ General changes in the hledger project (and notable all-package releases).
 For package-specific changes and minor releases, see the hledger package changelogs.
 
 # 1.25 2022-03-04
-- ;pkg: bump version to 1.25
-# 1.24.99.2 2022-02-05
-Features
 
-Improvements
+Scripts/addons
 
-Fixes
+- hledger-install.sh now also installs Pavan Rikhi's hledger-stockquotes tool.
 
-Software
+- The bin/hledger-number addon was added.
 
-- A new addon script: bin/hledger-number
+- The bin/hledger-check-fancyassertions addon now shows docs in --help.
 
-- A new invoice making script: examples/invoicing/invoice-script/invoice
+- A new invoice-making script was added: examples/invoicing/invoice-script/invoice
 
-Docs
+Process/tools
 
-- RELEASING: new glossary, process updates
+- The RELEASING doc and release process has been updated, 
+  and a new helper script added: tools/releaseprep.
+  `make hackageupload` now only works from a branch named
+  VERSION-branch or VERSION-release. Ie, making releases from master
+  is no longer allowed, a release branch is always required,
 
-- examples: multicurrency.journal
+- CI: The commitlint check is more robust, and now runs only in
+  the push to master and pull request workflows, and not eg when 
+  building release binaries. linux-x64 binaries are now built
+  with ghc 9.0, not 8.10. Workflow, branch, and binary names
+  have been improved.
 
-Process
+- `make ghci-ui`/`make ghcid-ui` now use older ghc 8.10 to avoid 
+  ghc 9.0-triggered failures.
 
-- tools: releaseprep script
-
-- Make HLS work on tools/*
-
-- Move hie.yaml out of the way; for all except arm mac users, hls
-  probably works better without it.
-
-- Make hackageupload: this now only works from a branch named
-  VERSION-branch or (possible future naming) VERSION-release.  Ie,
-  major releases from master are no longer allowed; a release branch
-  is always required,
-
-- ci: push, pull: clarify, robustify? commitlint step
-
-- ci: win, mac: don't commitlint, let push/pull cover that
-
-- ci: more consistent workflow, branch, binary names
-
-- ci: linux-x64: try ghc 8.10.4 -> 9.0.1
-
-- make ghci[d]-ui uses older ghc 8.10 to avoid ghc 9.0-triggered failures.
+- hls support: The hie.yaml added to help hls work on mac m1 
+  has been moved out of the way, since it probably makes things worse
+  on other architectures.
 
 # 1.24.1 2021-12-10
 

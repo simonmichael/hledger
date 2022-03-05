@@ -10,13 +10,9 @@ Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
 # 1.25 2022-03-04
-- ;doc: update manuals
 
-- ;cabal: update cabal files
-
-- ;pkg: bump version to 1.25
-# 1.24.99.2 2022-02-05
-- hledger-lib now builds with GHC 9.2 and latest deps. (#1774)
+- hledger-lib now builds with GHC 9.2 and latest deps. 
+  ([#1774](https://github.com/simonmichael/hledger/issues/1774)
 
 - Journal has a new jaccounttypes map.
   The journalAccountType lookup function makes it easy to check an account's type.
@@ -29,6 +25,11 @@ For user-visible changes, see the hledger package changelog.
 - Journal has a new jdeclaredaccounttags field
   for easy lookup of account tags.
   Query.matchesTaggedAccount is a tag-aware version of matchesAccount.
+
+- Some account name functions have moved from Hledger.Data.Posting
+  to Hledger.Data.AccountName:
+  accountNamePostingType, accountNameWithPostingType, accountNameWithoutPostingType,
+  joinAccountNames, concatAccountNames, accountNameApplyAliases, accountNameApplyAliasesMemo.
 
 - Renamed: CommodityLayout to Layout.
 

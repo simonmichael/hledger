@@ -10,13 +10,8 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 # 1.25 2022-03-04
-- ;doc: update manuals
 
-- ;cabal: update cabal files
-
-- ;pkg: bump version to 1.25
-# 1.24.99.2 2022-02-05
-- Use hledger 1.24.99.2
+- Uses hledger 1.25.
 
 # 1.24.1 2021-12-10
 
