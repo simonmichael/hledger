@@ -103,8 +103,9 @@ run() {
     if [[ -z $DRY ]]; then "$@"; fi
 }
 
-# Symlink important files temporarily in .relfiles/ for convenient access.
+# Symlink important files temporarily in .relfiles/.
 relfiles() {
+  echo "linking important release files in .relfiles/ for convenient access..."
   mkdir -p .relfiles
   cd .relfiles
   for f in \
@@ -129,11 +130,17 @@ prep() {
   [[ -z "$VERSION" ]] && usage
   BRANCH=$(versionReleaseBranch "$VERSION")
   COMMIT="-c"
+  echo "Switching to $BRANCH, auto-creating it if needed..."
   run gitSwitchAutoCreate "$BRANCH"
+  echo "Bumping all version strings to $VERSION ..."
   run ./Shake setversion "$VERSION" $COMMIT
+  echo "Updating all command help texts for embedding..."
   run ./Shake cmdhelp $COMMIT
+  echo "Updating all dates in man pages..."
   run ./Shake mandates
+  echo "Generating all the manuals in all formats...."
   run ./Shake manuals $COMMIT
+  echo "Updating CHANGES.md files with latest commits..."
   run ./Shake changelogs $COMMIT
 }
 
