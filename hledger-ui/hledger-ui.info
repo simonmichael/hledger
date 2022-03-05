@@ -12,7 +12,7 @@ hledger-ui(1)
 *************
 
 hledger-ui is a terminal interface (TUI) for the hledger accounting
-tool.  This manual is for hledger-ui 1.24.99.2.
+tool.  This manual is for hledger-ui 1.25.
 
    'hledger-ui [OPTIONS] [QUERYARGS]'
 'hledger ui -- [OPTIONS] [QUERYARGS]'
@@ -639,34 +639,34 @@ program is restarted.
 
 Tag Table:
 Node: Top221
-Node: OPTIONS1659
-Ref: #options1757
-Node: MOUSE6639
-Ref: #mouse6734
-Node: KEYS7016
-Ref: #keys7109
-Node: SCREENS11195
-Ref: #screens11293
-Node: Accounts screen11383
-Ref: #accounts-screen11511
-Node: Register screen13850
-Ref: #register-screen14005
-Node: Transaction screen15989
-Ref: #transaction-screen16147
-Node: Error screen17017
-Ref: #error-screen17139
-Node: TIPS17383
-Ref: #tips17482
-Node: Watch mode17534
-Ref: #watch-mode17651
-Node: Watch mode limitations18401
-Ref: #watch-mode-limitations18542
-Node: ENVIRONMENT19678
-Ref: #environment19789
-Node: FILES21097
-Ref: #files21196
-Node: BUGS21409
-Ref: #bugs21486
+Node: OPTIONS1654
+Ref: #options1752
+Node: MOUSE6634
+Ref: #mouse6729
+Node: KEYS7011
+Ref: #keys7104
+Node: SCREENS11190
+Ref: #screens11288
+Node: Accounts screen11378
+Ref: #accounts-screen11506
+Node: Register screen13845
+Ref: #register-screen14000
+Node: Transaction screen15984
+Ref: #transaction-screen16142
+Node: Error screen17012
+Ref: #error-screen17134
+Node: TIPS17378
+Ref: #tips17477
+Node: Watch mode17529
+Ref: #watch-mode17646
+Node: Watch mode limitations18396
+Ref: #watch-mode-limitations18537
+Node: ENVIRONMENT19673
+Ref: #environment19784
+Node: FILES21092
+Ref: #files21191
+Node: BUGS21404
+Ref: #bugs21481
 
 End Tag Table
 
