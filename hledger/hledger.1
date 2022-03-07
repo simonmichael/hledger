@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "December 2021" "hledger-1.24.99 " "hledger User Manuals"
+.TH "HLEDGER" "1" "December 2021" "hledger-1.25.99 " "hledger User Manuals"
 
 
 
@@ -9,7 +9,7 @@
 This is the command-line interface (CLI) for the hledger accounting
 tool.
 Here we also describe hledger\[aq]s concepts and file formats.
-This manual is for hledger 1.24.99.
+This manual is for hledger 1.25.99.
 .SH SYNOPSIS
 .PP
 \f[C]hledger\f[R]
@@ -706,8 +706,8 @@ Are all commodities declared with a \f[C]commodity\f[R] directive ?
 .IP \[bu] 2
 Are all commodity conversions declared explicitly ?
 .PP
-You can also use the check command to run these and some additional
-checks.
+You can use the check command to run individual checks -- the ones
+listed above and some more.
 .SH TIME PERIODS
 .SS Smart dates
 .PP
@@ -1464,14 +1464,32 @@ Match real or virtual postings respectively.
 .PD
 Match unmarked, pending, or cleared transactions respectively.
 .PP
+\f[B]\f[CB]type:TYPECODES\f[B]\f[R]
+.PD 0
+.P
+.PD
+Match by account type (see Declaring accounts > Account types).
+\f[C]TYPECODES\f[R] is one or more of the single-letter account type
+codes \f[C]ALERXCV\f[R], case insensitive.
+Note \f[C]type:A\f[R] and \f[C]type:E\f[R] will also match their
+respective subtypes \f[C]C\f[R] (Cash) and \f[C]V\f[R] (Conversion).
+Certain kinds of account alias can disrupt account types, see Rewriting
+accounts > Aliases and account types.
+.PP
 \f[B]\f[CB]tag:REGEX[=REGEX]\f[B]\f[R]
 .PD 0
 .P
 .PD
 Match by tag name, and optionally also by tag value.
-(To match only by value, use \f[C]tag:.=REGEX\f[R].) Note that postings
-also inherit tags from their transaction, and transactions also acquire
-tags from their postings, when querying.
+(To match only by value, use \f[C]tag:.=REGEX\f[R].)
+.PP
+When querying by tag, note that:
+.IP \[bu] 2
+Accounts also inherit the tags of their parent accounts
+.IP \[bu] 2
+Postings also inherit the tags of their account and their transaction
+.IP \[bu] 2
+Transactions also acquire the tags of their postings.
 .PP
 (\f[B]\f[CB]inacct:ACCTNAME\f[B]\f[R]
 .PD 0
@@ -2933,6 +2951,10 @@ In flat mode you can add \f[C]--drop N\f[R] to omit the first few
 account name components.
 Account names can be depth-clipped with \f[C]depth:N\f[R] or
 \f[C]--depth N\f[R] or \f[C]-N\f[R].
+.PP
+With \f[C]--types\f[R], it also shows each account\[aq]s type, if
+it\[aq]s known.
+(See Declaring accounts > Account types.)
 .PP
 Examples:
 .IP
@@ -7031,8 +7053,8 @@ write multiple postings, each asserting one commodity\[aq]s balance.
 .PP
 You can make a stronger \[dq]total\[dq] balance assertion by writing a
 double equals sign (\f[C]== EXPECTEDBALANCE\f[R]).
-This asserts that there are no other unasserted commodities in the
-account (or, that their balance is 0).
+This asserts that there are no other commodities in the account besides
+the asserted one (or at least, that their balance is 0).
 .IP
 .nf
 \f[C]
@@ -7695,18 +7717,18 @@ Though not required, these declarations can provide several benefits:
 They can document your intended chart of accounts, providing a
 reference.
 .IP \[bu] 2
+They control account display order in reports, allowing non-alphabetic
+sorting (eg Revenues to appear above Expenses).
+.IP \[bu] 2
 They can help hledger know your accounts\[aq] types (asset, liability,
 equity, revenue, expense), useful for reports like balancesheet and
 incomestatement.
 .IP \[bu] 2
-They control account display order in reports, allowing non-alphabetic
-sorting (eg Revenues to appear above Expenses).
+They can store other account information, as comments or as tags which
+can be used to filter reports.
 .IP \[bu] 2
-They can store extra information about accounts (account numbers, notes,
-etc.)
-.IP \[bu] 2
-They help with account name completion in the add command, hledger-iadd,
-hledger-web, ledger-mode etc.
+They help with account name completion (in hledger add, hledger-web,
+hledger-iadd, ledger-mode, etc.)
 .IP \[bu] 2
 In strict mode, they restrict which accounts may be posted to by
 transactions, which helps detect typos.
@@ -7763,13 +7785,14 @@ An example of both:
 .IP
 .nf
 \f[C]
-account assets:bank:checking  ; same-line comment, note 2+ spaces before ;
+account assets:bank:checking    ; same-line comment, note 2+ spaces required before ;
   ; next-line comment
-  ; another with tag, acctno:12345 (not used yet)
+  ; some tags, type:A, acctnum:12345
 \f[R]
 .fi
 .PP
-Same-line comments are not supported by Ledger, or hledger <1.13.
+Compatibility note: same-line comments are not supported by Ledger or
+hledger <1.13.
 .SS Account subdirectives
 .PP
 We also allow (and ignore) Ledger-style indented subdirectives, just for
@@ -7786,92 +7809,124 @@ Here is the full syntax of account directives:
 .IP
 .nf
 \f[C]
-account ACCTNAME  [ACCTTYPE] [;COMMENT]
+account ACCTNAME  [;type:ACCTTYPE] [COMMENT]
   [;COMMENTS]
   [LEDGER-STYLE SUBDIRECTIVES, IGNORED]
 \f[R]
 .fi
 .SS Account types
 .PP
-By adding a \f[C]type\f[R] tag to the account directive, with value
-\f[C]A\f[R], \f[C]L\f[R], \f[C]E\f[R], \f[C]R\f[R], \f[C]X\f[R],
-\f[C]C\f[R], \f[C]V\f[R] (or if you prefer: \f[C]Asset\f[R],
-\f[C]Liability\f[R], \f[C]Equity\f[R], \f[C]Revenue\f[R],
-\f[C]Expense\f[R], \f[C]Cash\f[R], \f[C]Conversion\f[R]), you can
-declare hledger accounts to be of a certain type:
-.IP \[bu] 2
-\f[B]asset\f[R], \f[B]liability\f[R], \f[B]equity\f[R],
-\f[B]revenue\f[R], \f[B]expense\f[R]
-.PD 0
-.P
-.PD
-the standard types in accounting, or
-.IP \[bu] 2
-\f[B]cash\f[R]
-.PD 0
-.P
-.PD
-a subtype of asset, used for liquid assets.
-.IP \[bu] 2
-\f[B]conversion\f[R]
-.PD 0
-.P
-.PD
-a subtype of equity, used for conversion postings
+hledger knows that accounts come in several types: assets, liabilities,
+expenses and so on.
+This enables easy reports like balancesheet and incomestatement, and
+filtering by account type with the \f[C]type:\f[R] query.
 .PP
-Declaring account types is a good idea, since it helps enable the easy
-balancesheet, balancesheetequity, incomestatement and cashflow reports,
-and probably other things in future.
-As a convenience, when account types are not declared, hledger will try
-to guess them based on english-language account names.
+As a convenience, hledger will detect these account types automatically
+if you are using common english-language top-level account names
+(described below).
+But generally we recommend you declare types explicitly, by adding a
+\f[C]type:\f[R] tag to your top-level account directives.
+Subaccounts will inherit the type of their parent.
+The tag\[aq]s value should be one of the five main account types:
+.IP \[bu] 2
+\f[C]A\f[R] or \f[C]Asset\f[R] (things you own)
+.IP \[bu] 2
+\f[C]L\f[R] or \f[C]Liability\f[R] (things you owe)
+.IP \[bu] 2
+\f[C]E\f[R] or \f[C]Equity\f[R] (investment/ownership; balanced
+counterpart of assets & liabilities)
+.IP \[bu] 2
+\f[C]R\f[R] or \f[C]Revenue\f[R] (what you received money from, AKA
+income; technically part of Equity)
+.IP \[bu] 2
+\f[C]X\f[R] or \f[C]Expense\f[R] (what you spend money on; technically
+part of Equity)
 .PP
-Here is a typical set of top-level account declarations (because of the
-aforementioned, with these account names the type tags are not strictly
-needed, but with non-english or non-standard account names, they will
-be):
+or, it can be (these are used less often):
+.IP \[bu] 2
+\f[C]C\f[R] or \f[C]Cash\f[R] (a subtype of Asset, indicating liquid
+assets for the cashflow report)
+.IP \[bu] 2
+\f[C]V\f[R] or \f[C]Conversion\f[R] (a subtype of Equity, for
+conversions (see CONVERSION & COST).)
+.PP
+Here is a typical set of account type declarations:
 .IP
 .nf
 \f[C]
-account assets       ; type: A
-account liabilities  ; type: L
-account equity       ; type: E
-account revenues     ; type: R
-account expenses     ; type: X
+account assets             ; type: A
+account liabilities        ; type: L
+account equity             ; type: E
+account revenues           ; type: R
+account expenses           ; type: X
 
-account assets:bank  ; type: C
-account assets:cash  ; type: C
+account assets:bank        ; type: C
+account assets:cash        ; type: C
+
+account equity:conversion  ; type: V
 \f[R]
 .fi
 .PP
-It\[aq]s not necessary to declare the type of subaccounts.
-(You can, if they are different from the parent, but this is not
-common.)
-.SS Auto-detected account types
-.PP
-More about \[dq]guessing\[dq] account types: hledger tries to find at
-least one top level account in each of the six account types (Asset,
-Liability, Equity, Revenue, Expense, Cash).
-When no accounts have been declared for a particular type, it tries to
-auto-detect some accounts by name, using the regular expressions below.
-Note: if you declare any account\[aq]s type, it\[aq]s a good idea to
-declare an account for all six types, because a mix of declared and
-auto-detected types can cause confusing results.
-.PP
-The auto-detection rules are:
+Here are some tips for working with account types.
+.IP \[bu] 2
+The rules for inferring types from account names are as follows.
+These are just a convenience that sometimes help new users get going; if
+they don\[aq]t work for you, just ignore them and declare your account
+types.
+See also Regular expressions.
+Note the Cash regexp changed in hledger 1.24.99.2.
+.RS 2
 .IP
 .nf
 \f[C]
- If account\[aq]s name matches this case insensitive regular expression:| its type is:
-------------------------------------------------------------------- | ------------
- \[ha]assets?(:|$)                                                      | 
-   and does not contain regexp (investment|receivable|:A/R|:fixed)  | Cash
-   otherwise                                                        | Asset
- \[ha](debts?|liabilit(y|ies))(:|$)                                     | Liability
- \[ha]equity(:|$)                                                       | Equity
- \[ha](income|revenue)s?(:|$)                                           | Revenue
- \[ha]expenses?(:|$)                                                    | Expense
+If account\[aq]s name contains this (CI) regular expression:            | its type is:
+--------------------------------------------------------------------|-------------
+\[ha]assets?(:.+)?:(cash|bank|che(ck|que?)(ing)?|savings?|current)(:|$) | Cash
+\[ha]assets?(:|$)                                                       | Asset
+\[ha](debts?|liabilit(y|ies))(:|$)                                      | Liability
+\[ha]equity:(trad(e|ing)|conversion)s?(:|$)                             | Conversion
+\[ha]equity(:|$)                                                        | Equity
+\[ha](income|revenue)s?(:|$)                                            | Revenue
+\[ha]expenses?(:|$)                                                     | Expense
 \f[R]
 .fi
+.RE
+.IP \[bu] 2
+If you declare any account types, it\[aq]s a good idea to declare an
+account for each of them, because a mixture of declared and
+name-inferred types can disrupt certain reports.
+.IP \[bu] 2
+Certain uses of account aliases can disrupt account types.
+See Rewriting accounts > Aliases and account types.
+.IP \[bu] 2
+As mentioned above, subaccounts will inherit a type from their parent
+account.
+To be precise, an account\[aq]s type is decided by the first of these
+that exists:
+.RS 2
+.IP "1." 3
+A \f[C]type:\f[R] declaration for this account.
+.IP "2." 3
+A \f[C]type:\f[R] declaration in the parent accounts above it,
+preferring the nearest.
+.IP "3." 3
+An account type inferred from this account\[aq]s name.
+.IP "4." 3
+An account type inferred from a parent account\[aq]s name, preferring
+the nearest parent.
+.IP "5." 3
+Otherwise, it will have no type.
+.RE
+.IP \[bu] 2
+For troubleshooting, you can list accounts and their types with:
+.RS 2
+.IP
+.nf
+\f[C]
+$ hledger accounts --types [ACCTPAT] [-DEPTH] [type:TYPECODES]
+\f[R]
+.fi
+.RE
 .SS Account display order
 .PP
 Account directives also set the order in which accounts are displayed,
@@ -8137,6 +8192,28 @@ $ hledger print --alias old=\[dq]new  USD\[dq] | hledger -f- print
 2021-01-01
     new             USD 1
     other
+\f[R]
+.fi
+.SS Aliases and account types
+.PP
+If an account with a type declaration (see Declaring accounts > Account
+types) is renamed by an alias, normally the account type remains in
+effect.
+.PP
+However, renaming in a way that reshapes the account tree (eg renaming
+parent accounts but not their children, or vice versa) could prevent
+child accounts from inheriting the account type of their parents.
+.PP
+Secondly, if an account\[aq]s type is being inferred from its name,
+renaming it by an alias could prevent or alter that.
+.PP
+If you are using account aliases and the \f[C]type:\f[R] query is not
+matching accounts as you expect, try troubleshooting with the accounts
+command, eg something like:
+.IP
+.nf
+\f[C]
+$ hledger accounts --alias assets=bassetts type:a
 \f[R]
 .fi
 .SS Default parent account
