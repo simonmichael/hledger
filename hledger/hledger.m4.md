@@ -2533,8 +2533,8 @@ you can write multiple postings, each asserting one commodity's balance.
 
 You can make a stronger "total" balance assertion by writing a
 double equals sign (`== EXPECTEDBALANCE`).
-This asserts that there are no other unasserted commodities in the account
-(or, that their balance is 0).
+This asserts that there are no other commodities in the account
+besides the asserted one (or at least, that their balance is 0).
 
 ``` journal
 2013/1/1
