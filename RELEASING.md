@@ -1,50 +1,40 @@
 # Releasing
-
 <div class=pagetoc>
 <!-- toc -->
 </div>
-
-Tips, [procedures](#procedures) and a [glossary](#glossary) for hledger release managers and maintainers.
-
-## Tips
-- Don't try to document, let alone automate, the perfect process; it's too much and too unstable.
-- Keep making things a little better each time through. Better means simpler, more reliable, more automated, easier, faster, cheaper, higher quality.
-- Practice releasing as often as possible.
-- The different aspects of releasing have complex interdependencies and sequencing constraints.
-  Chunk and separate them as far as possible:
-  - **Software** - selecting changes, packages, release dates; coordinating contributions; ensuring release readiness
-  - **Branch Management** - coordinating main and release branch, local and remote repos, CI branches
-  - **Version Bumping** - choosing and applying new version numbers and related things like tags, github releases, urls, ghc and dep versions, stackage resolvers, everywhere needed
-  - **Docs** - command help, manuals, changelogs, release notes, github release notes, install page, install scripts, announcements, process docs
-  - **Testing** - local testing, CI testing, extra release-specific testing
-  - **Artifacts** - generating binaries, zip files, github releases etc.
-  - **Publishing** - uploading, pushing, making visible, finalising
-  - **Announcing** - various announcement stages and channels
-- All releases must be made from a release branch, for uniformity and to avoid mishaps like uploading 1.24.99 dev code to hackage.
-- Don't tag until the three main platform binaries have been produced from the same commit.
-- Update and edit changelogs as early and often as possible. Eg before or right after merging a PR, and before creating a release branch.
-  See also [CHANGELOGS](CHANGELOGS.html).
+Notes for hledger release managers and maintainers.
 
 ## Current goals
-
+### 2022Q1
 - Update/consolidate release process docs
 - Establish routine monthly release cadence
 - Make releasing easy
 
-## hledger release types
+## Release types
 
-| Major&nbsp;release<br>A.B      | Bugfix&nbsp;release<br>A.B.C | Fixup&nbsp;release<br>A.B.C.D                | Preview&nbsp;release<br>A.B.99.D         |
-|--------------------------------|------------------------------|----------------------------------------------|------------------------------------------|
-| New features, breaking changes | Only bug fixes               | Trivial packaging fixes, no software changes | Early snapshot of the next major release |
+|                       | Major&nbsp;release<br>A.B      | Bugfix&nbsp;release<br>A.B.C | Fixup&nbsp;release<br>A.B.C.D                | Preview&nbsp;release<br>A.B.99.D         |
+|-----------------------|--------------------------------|------------------------------|----------------------------------------------|------------------------------------------|
+| **Contains:**         | New features, breaking changes | Only bug fixes               | Trivial packaging fixes, no software changes | Early snapshot of the next major release |
+|                       |                                |                              |                                              |                                          |
+| **Deliverables:**     |                                |                              |                                              |                                          |
+| Changelogs            | ✓                              | ✓                            | ✓                                            | ✓                                        |
+| Github release        | ✓                              | ✓                            | ✓                                            | ✓                                        |
+| Binaries              | ✓                              | ✓                            | ✓                                            | ✓                                        |
+| Hackage release       | ✓                              | ✓                            | ✓                                            |                                          |
+| Install page          | ✓                              | ✓                            | ✓                                            |                                          |
+| hledger-install       | ✓                              | ✓                            | ✓                                            |                                          |
+| [Regression bounties] | ✓                              | ✓                            | ✓                                            |                                          |
+| Release notes         | ✓                              | ✓                            |                                              |                                          |
+| Web manuals           | ✓                              |                              |                                              |                                          |
+| Announcements         | ✓                              |                              |                                              |                                          |
 
-See also [Glossary](#glossary).
-
+[Regression bounties]: http://hledger.org/regressionbounty
 
 ## Cadence
 
 hledger major releases happen in the third month of each quarter, normally at or close to the start of the month.
 Preview releases happen in the intervening months.
-Bugfix and fixup releases happen when needed (as seldom as possible). 
+Bugfix and fixup releases happen only when needed.
 
 | Q1               | Q2               | Q3               | Q4               |
 |------------------|------------------|------------------|------------------|
@@ -52,101 +42,111 @@ Bugfix and fixup releases happen when needed (as seldom as possible).
 | Feb 1: preview 2 | May 1: preview 2 | Aug 1: preview 2 | Nov 1: preview 2 |
 | Mar 1: major     | Jun 1: major     | Sep 1: major     | Dec 1: major     |
 
-## Deliverables
 
-|                 | Major release | Bugfix release | Fixup release | Preview release |
-|-----------------|---------------|----------------|---------------|-----------------|
-| Changelogs      | Y             | Y              | Y             | Y               |
-| Github release  | Y             | Y              | Y             | Y               |
-| Binaries        | Y             | Y              | Y             | Y               |
-| Install page    | Y             | Y              | Y             | Y               |
-| Hackage release | Y             | Y              | Y             |                 |
-| hledger-install | Y             | Y              | Y             |                 |
-| Release notes   | Y             | Y              |               |                 |
-| Announcements   | Y             |                |               |                 |
-| [Regression bounties] | Y         | Y              | Y             |                 |
+## Glossary
+Here are some definitions, useful eg when executing or automating release procedures.
 
-[Regression bounties]: http://hledger.org/regressionbounty
-
-## Prerequisites
-
-- release-ready master or release branch:
-  - contains desired bugfixes
-  - contains desired PRs
-  - changelogs are up to date
-  - tests pass
-- packages to be released
-- release version
-- release date
-
+|                                     |                                                                                                                                                                                                                                                                                                                                                                                                                            |
+|-------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|                                     | **General concepts**                                                                                                                                                                                                                                                                                                                                                                                                       |
+| *release*                           | A snapshot of the software and related artifacts like executable binaries, which is named, tagged, documented, announced, and usually picked up by packaging systems on various platforms.                                                                                                                                                                                                                                 |
+| *version control system, VCS*       | A tool used for storing and sharing and viewing the history and different lines of development of a software project, or other set of files. hledger uses Git.                                                                                                                                                                                                                                                             |
+| *repository, repo*                  | A set of files being stored and managed by a VCS. Often published on a *repository hosting service*, such as Github.                                                                                                                                                                                                                                                                                                       |
+| *working copy, clone*               | A local copy of a repository's files. Typically each developer has one or more of these, and can share changes easily with the official public repository.                                                                                                                                                                                                                                                                 |
+| *branch*                            | Some VCS's, including Git, can store multiple branching lines of development within one repository. A working copy can be quickly switched to a different branch to show its content.                                                                                                                                                                                                                                      |
+| *master, main*                      | The main branch in a repo, usually named `master` or `main`. Pull requests are usually relative to this.                                                                                                                                                                                                                                                                                                                   |
+| *pull request, PR*                  | A request to merge a development branch with master, and any related discussion. On Github, these are kept alongside issues in the issue tracker.                                                                                                                                                                                                                                                                          |
+| *continuous integration, CI*        | Automated actions that run when new code is pushed to a shared repo, such as running tests or producing binaries. On Github this is called Github Actions and action scripts are called *workflows*.                                                                                                                                                                                                                       |
+|                                     | **hledger concepts**                                                                                                                                                                                                                                                                                                                                                                                                       |
+| *package*                           | A releasable unit of Haskell software. hledger has several core packages usually released together: hledger-lib, hledger, hledger-ui, hledger-web.                                                                                                                                                                                                                                                                         |
+| *hledger version number*            | A 2-4 part dotted number naming a hledger release or hledger package version: `MA.JOR[.MINOR[.FIXUP]]` or `MA.JOR.99[.PREVIEW]` where 99 means "unreleased (MAJOR+1)". See examples below.                                                                                                                                                                                                                                 |
+| *hledger version string*            | A line of text describing a hledger binary, shown by `--version`. It contains program name, version number, commit hash and date, machine architecture etc. Eg: `hledger 1.24.1-g7799d526b-20211210, mac-x86_64`                                                                                                                                                                                                           |
+| *Complete, partial, mixed releases* | A release of all the core hledger packages (hledger-lib, hledger, hledger-ui, hledger-web) is called *complete*. A release of only some of the core packages is called *partial*. A release where some packages have different versions (because of a previous partial release) is called *mixed*. Major and preview releases are always complete, bugfix and fixup releases can be partial and/or mixed.                  |
+| *changelog*                         | A CHANGES.md file listing the release history and the changes in each release. There is one for each hledger package and one for the hledger project as a whole.                                                                                                                                                                                                                                                           |
+| *release notes*                     | The Release Notes page on the hledger website: the combined release history of the core hledger packages, showing user visible changes only.                                                                                                                                                                                                                                                                               |
+|                                     | **hledger release/build types**                                                                                                                                                                                                                                                                                                                                                                                            |
+| *Major release*                     | Major releases include new features and incompatible API changes, and normally happen at the start of each quarter's third month (3/1, 6/1, 9/1, 12/1). Example version number: `1.25`                                                                                                                                                                                                                                     |
+| *Bugfix release*                    | Bugfix releases include only bug fixes, without API changes. These happen when needed, to fix significant bugs in the previous major release. Example version number: `1.25.2` (*"second bugfix release for 1.25"*)                                                                                                                                                                                                        |
+| *Fixup release*                     | Fixup releases fix packaging errors, with no changes to the hledger software. These should be rare. Example version number: `1.25.0.1` or `1.25.2.1` (*"first fixup release for 1.25 / 1.25.2"*)                                                                                                                                                                                                                           |
+| *Preview release*                   | A preview of the upcoming major release for testers/early adopters, and a test of the release process, published on Github. Not a formal hledger release, eg not published on Hackage, usually not packaged, no bugfix releases, no regression bounties, not shown in release notes. These typically appear in the quarter's first and second month if needed. Example version number: `1.25.99.1` (*"preview 1 of 1.26"*) |
+| *CI binaries*                       | Temporary downloadable binaries produced by a run of the `linux`/`mac`/`windows` workflows in the hledger repo. This may happen periodically, eg weekly. Downloading requires a Github login.                                                                                                                                                                                                                              |
+| *Dev build*                         | A local developer build of unreleased code. This is typically in `master` or a development/PR branch. Example version number: `1.25.99` (*"unreleased 1.26-dev"*)                                                                                                                                                                                                                                                          |
+|                                     | **hledger repos and branches**                                                                                                                                                                                                                                                                                                                                                                                             |
+| *hledger repo*                      | The `hledger` git repository, containing the hledger software, reference manuals, and developer docs. <https://github.com/simonmichael/hledger>                                                                                                                                                                                                                                                                            |
+| *site repo*                         | The `hledger_website` git repository, containing most of the hledger website which appears at <https://hledger.org>. Usually checked out under the hledger repo as `site/`. <https://github.com/simonmichael/hledger_website>                                                                                                                                                                                              |
+| *master*                            | The branch named `master` in the hledger repo; the main line of hledger development. Pull requests are usually relative to this.                                                                                                                                                                                                                                                                                           |
+| *release&nbsp;branch*               | Branches named `MA.JOR-branch` in the hledger repo, eg `1.25-branch`. Releases and release previews are always made from a release branch.                                                                                                                                                                                                                                                                                 |
 
 ## Procedures
-### Update release process docs
-- when starting release work, make a copy of RELEASING.md(, CHANGELOGS.md)
-- update that while working on the release (Obsidian works well)
-- merge changes afterward, avoiding conflicts
+### Preview release
+- check prerequisites
+- prepare release branch (`tools/release prep A.B.99.D`)
+- make binaries (`tools/release bin`, get all platforms built on the same commit, download binaries)
+- tag the release (`make tag`) (major release: make announcement first)
+- push to github (`git push origin MA.JOR-branch && git push --tags` or magit `P p`, `P t`)
+- make github preview release
+- update master after release
 
-### Make a preview release
-- check master is in releasable state
+#### Check prerequisites
+- master's changelogs are up to date (see [CHANGELOGS](CHANGELOGS.html))
+- master or release branch is ready for release
   - clean and synced working copy
   - no pending release-blocking issues/prs
-  - believed to be of appropriate quality
-  - appropriate timing and resources for release
-- update Shake.hs
-  - check resolver matches stack.yaml
-  - check for other workarounds in stack.yaml
-  - `./Shake.hs`
-  - commit any Shake.hs changes (`tools: shake: sync with stack.yaml`)
-- update master changelogs (see [CHANGELOGS](CHANGELOGS.html))
-- prepare release branch
-  - `tools/release prep OLDMA.JOR.99.PREVIEWNUM` (eg 1.24.99.1 for 1.25 preview 1)
-  - cherry pick changes from master
-    - list changes in three side-by-side magit windows
-      - 1. NEW IN MASTER: `l o MAJORVER-branch..master`, `M-x magit-toggle-buffer-lock`, `M-x toggle-window-dedicated` (`C-c D`)
-      - 2. HEAD: regular magit status view
-      - 3. RELEASE BRANCH: `l o MAJORVER-branch`, `M-x magit-toggle-buffer-lock`, `M-x toggle-window-dedicated`
-    - in master window, working from bottom upward, cherry-pick all non-conflicting changes
-      - skip changes already in release branch
-      - skip changelog, command help, and manuals updates
-  - `./Shake cmdhelp -c`
-  - `./Shake manuals -c`
-  - update release & master changelogs (see [CHANGELOGS](CHANGELOGS.html))
-- test
-  - `stack build`
-  - `make functest`
-  - check built-in manual dates
-  - check --version
-- make CI binaries
-  - `tools/release bin`
-  - babysit/fix/repeat the CI binary jobs until all succeed on the same commit
-  - download binary artifacts
-- `make tag`
-- make github release
-  - `git push origin MA.JOR-branch && git push --tags` (or magit `P p`, `P t`)
-  - draft
-    - edit previous similar release, eg https://github.com/simonmichael/hledger/releases/edit/1.24.99.1
-    - edit new release, https://github.com/simonmichael/hledger/releases/new
-    - copy/paste content
-      - title
-      - preamble
-      - cli/ui/web/lib changelogs
-        - deepen headings 2 steps and add package names
-    - upload binary artifacts
-  - test/preview
-  - publish
+  - tests pass
+- Shake is up to date
+  - uses same resolver as stack.yaml
+  - uses any required workarounds in stack.yaml
+  - binary is up to date (`./Shake.hs`)
+  - commit any changes (msg: `tools: shake`)
+- appropriate timing, release manager availability
 
-### Make a major release
-- as above, with MA.JOR
-- other major release stuff - release notes, site updates, hackage, announce
-- merge release changelog back to master
-- bump version in master
-
-### Make a bugfix or fixup release
-- switch to release branch
+#### Prepare release branch
+- `tools/release prep OLDMA.JOR.99.PREVIEWNUM` (eg 1.24.99.1 for 1.25 preview 1)
 - cherry pick changes from master
-- proceed as above, with MA.JOR.MINOR[.FIXUP]
+  - list changes in three side-by-side magit windows
+    - 1. NEW IN MASTER: `l o MAJORVER-branch..master`, `M-x magit-toggle-buffer-lock`, `M-x toggle-window-dedicated` (`C-c D`)
+    - 2. HEAD: regular magit status view
+    - 3. RELEASE BRANCH: `l o MAJORVER-branch`, `M-x magit-toggle-buffer-lock`, `M-x toggle-window-dedicated`
+  - in master window, working from bottom upward, cherry-pick all non-conflicting changes
+    - skip changes already in release branch
+    - skip changelog, command help, and manuals updates
+- `./Shake cmdhelp -c`
+- `./Shake manuals -c`
+- update release changelogs (see [CHANGELOGS](CHANGELOGS.html))
+- release branch testing
+  - `stack test --fast`
+  - `make functest`
+  - `stack exec -- hledger --version`, check version
+  - `stack exec -- hledger help | tail`, check version & date
 
-### On release day
+#### Make github preview release
+
+- review previous similar release, eg https://github.com/simonmichael/hledger/releases/edit/1.24.99.1
+- create new release, https://github.com/simonmichael/hledger/releases/new
+- set tag
+- set title
+- copy/paste preamble
+- copy/paste cli/ui/web/lib changelogs
+  - deepen headings 2 steps and add package names
+- upload CI binaries
+- save as draft
+- preview release testing
+- publish
+
+#### Update master after release
+- switch back to master
+- update master changelogs, merging final release changelog entries (see [CHANGELOGS](CHANGELOGS.html))
+- after a major release: bump master to new dev version (`./Shake setversion -c A.B.99`)
+
+### Major release
+- prepare as for preview release
+- make release notes
+- make announcement
+- update hledger-install
+- update install page
+- add manuals to website
+- announce major release
+#### Make release notes
 
 In site repo:
 
@@ -160,6 +160,33 @@ In site repo:
   - add summary (major release) or remove it (bugfix release)
   - check preview in vs code
   - commit: `relnotes: NEW`
+
+#### Make announcement
+
+In release branch (?):
+
+- update `doc/ANNOUNCE` (major release)
+  - summary, contributors from release notes
+  - any other edits
+  - commit: `;doc: ANNOUNCE`
+
+In master (?):
+
+- cherry pick useful release branch changes
+  - `;doc: ANNOUNCE`
+
+#### Update hledger-install script
+
+- update `hledger-install/hledger-install.sh`
+  - HLEDGER_INSTALL_VERSION
+  - RESOLVER
+  - HLEDGER_*_VERSION
+  - EXTRA_DEPS
+- test ? (`cd; bash \~/src/hledger/hledger-install/hledger-install.sh`)
+
+#### Update install page
+
+In site repo:
 
 - update `install.md`
   - query-replace OLD -> NEW in 
@@ -175,41 +202,7 @@ In site repo:
   - Total count from `make functest`
   - commit: `download: NEW`
 
-In release branch:
-
-- update `doc/ANNOUNCE` (major release)
-  - summary, contributors from release notes
-  - any other edits
-  - commit: `;doc: ANNOUNCE`
-
-In master:
-
-- cherry pick useful release branch changes
-  - `;doc: ANNOUNCE`
-
-- update `hledger-install/hledger-install.sh`
-  - HLEDGER_INSTALL_VERSION
-  - RESOLVER
-  - HLEDGER_*_VERSION
-  - EXTRA_DEPS
-
-- wait for CI binaries, https://ci.hledger.org
-
-- pre-release pause: take a break away from keyboard
-
-- announce
-  - push site download/relnotes updates
-  - push master hledger-install update
-  - share release notes link, then markdown content, in #hledger chat
-  - send ANNOUNCE to hledger@googlegroups.com, haskell-cafe@googlegroups.com (major release)
-    or brief announcement to hledger@googlegroups.com (bugfix release)
-    - ANN: hledger NEW
-    - release notes link, summary
-    - release notes html (copied from browser)
-  - tweet at https://twitter.com/simonkwmichael ?
-  - toot at https://fosstodon.org/web/accounts/106304084994827771 ?
-
-### Add major release to website
+#### Add manuals to website
 
 In site: 
 
@@ -217,19 +210,45 @@ In site:
 - Makefile: add NEW, two places
 - make snapshot-NEW
 - (cd src; rm current; ln -s NEW current)
-
-In hledger.org caddy config:
-
-- add `path` and `redir`s for NEW
-- `systemctl reload caddy`
+- commit/amend
+- push
 
 On hledger.org:
 
-- make clean all
+- in /etc/caddy/hledger.org:
+  - add `path` and `redir`s for NEW
+  - `systemctl reload caddy`
 
+- in site/
+  - make clean all
+
+- purge cloudflare cache
+- browsers might still require shift-reload to see new manuals (safari)
+
+#### Announce major release
+
+- push site download/relnotes updates
+- push master hledger-install update
+- share release notes link, then markdown content, in #hledger chat
+- send ANNOUNCE to hledger@googlegroups.com, haskell-cafe@googlegroups.com (major release)
+  or brief announcement to hledger@googlegroups.com (bugfix release)
+  - ANN: hledger NEW
+  - release notes link, summary
+  - release notes html (copied from browser)
+- tweet at https://twitter.com/simonkwmichael ?
+- toot at https://fosstodon.org/web/accounts/106304084994827771 ?
+
+### Bugfix release
+- switch to release branch
+- cherry pick changes from master
+- proceed as above, with MA.JOR.MINOR
+### Fixup release
+- switch to release branch
+- cherry pick changes from master
+- proceed as above, with MA.JOR.MINOR.FIXUP
 ### Post release
 
-- merge/check/update download page changes
+- merge/check/update install page changes
   - docker - expect/merge PR
   - homebrew - expect badge to update soon
   - nix - expect `make nix-hledger-version` to update after a few days, find and update to that commit hash
@@ -241,25 +260,8 @@ On hledger.org:
 
 - update procedures, tools, docs
 
-### Update hledger-install
-
-1.  in master: hledger-install/hledger-install.sh
-
-    1.  bump HLEDGER~INSTALLVERSION~
-
-    2.  bump RESOLVER
-
-    3.  bump HLEDGER~\*VERSION~
-
-    4.  check/update EXTRA~DEPS~
-
-2.  test
-
-    1.  cd
-
-    2.  bash \~/src/hledger/hledger-install/hledger-install.sh
-
-### Update homebrew formula
+### Packaging
+#### Update homebrew formula
 
 1.  ref
 
@@ -339,7 +341,7 @@ On hledger.org:
     4.  ping brew contributors/maintainers if necessary: @chenrui,
         @carlocab, @SMillerDev
 
-### Update nix install command
+#### Update nix install command
 
 1.  Wait for the new hledger version to land in nixpkgs
 
@@ -372,7 +374,7 @@ On hledger.org:
 
     3.  on mac
 
-### Update stackage
+#### Update stackage
 
 1.  update
     <https://github.com/fpco/stackage/blob/master/build-constraints.yaml>
@@ -381,41 +383,26 @@ On hledger.org:
 2.  monitor for new package versions in nightly: check
     <https://www.stackage.org/package/hledger>
     
-## Glossary
-
-Here are terms and concepts related to the hledger release process as of 2022, 
-in sufficient detail to guide release management and release automation.
-
-|                                     |                                                                                                                                                                                                                                                                                                                                                                                                                            |
-|-------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|                                     | **General concepts**                                                                                                                                                                                                                                                                                                                                                                                                       |
-| *release*                           | A snapshot of the software and related artifacts like executable binaries, which is named, tagged, documented, announced, and usually picked up by packaging systems on various platforms.                                                                                                                                                                                                                                 |
-| *version control system, VCS*       | A tool used for storing and sharing and viewing the history and different lines of development of a software project, or other set of files. hledger uses Git.                                                                                                                                                                                                                                                             |
-| *repository, repo*                  | A set of files being stored and managed by a VCS. Often published on a *repository hosting service*, such as Github.                                                                                                                                                                                                                                                                                                       |
-| *working copy, clone*               | A local copy of a repository's files. Typically each developer has one or more of these, and can share changes easily with the official public repository.                                                                                                                                                                                                                                                                 |
-| *branch*                            | Some VCS's, including Git, can store multiple branching lines of development within one repository. A working copy can be quickly switched to a different branch to show its content.                                                                                                                                                                                                                                      |
-| *master, main*                      | The main branch in a repo, usually named `master` or `main`. Pull requests are usually relative to this.                                                                                                                                                                                                                                                                                                                   |
-| *pull request, PR*                  | A request to merge a development branch with master, and any related discussion. On Github, these are kept alongside issues in the issue tracker.                                                                                                                                                                                                                                                                          |
-| *continuous integration, CI*        | Automated actions that run when new code is pushed to a shared repo, such as running tests or producing binaries. On Github this is called Github Actions and action scripts are called *workflows*.                                                                                                                                                                                                                       |
-|                                     | **hledger concepts**                                                                                                                                                                                                                                                                                                                                                                                                       |
-| *package*                           | A releasable unit of Haskell software. hledger has several core packages usually released together: hledger-lib, hledger, hledger-ui, hledger-web.                                                                                                                                                                                                                                                                         |
-| *hledger version number*            | A 2-4 part dotted number naming a hledger release or hledger package version: `MA.JOR[.MINOR[.FIXUP]]` or `MA.JOR.99[.PREVIEW]` where 99 means "unreleased (MAJOR+1)". See examples below.                                                                                                                                                                                                                                 |
-| *hledger version string*            | A line of text describing a hledger binary, shown by `--version`. It contains program name, version number, commit hash and date, machine architecture etc. Eg: `hledger 1.24.1-g7799d526b-20211210, mac-x86_64`                                                                                                                                                                                                           |
-| *Complete, partial, mixed releases* | A release of all the core hledger packages (hledger-lib, hledger, hledger-ui, hledger-web) is called *complete*. A release of only some of the core packages is called *partial*. A release where some packages have different versions (because of a previous partial release) is called *mixed*. Major and preview releases are always complete, bugfix and fixup releases can be partial and/or mixed.                  |
-| *changelog*                         | A CHANGES.md file listing the release history and the changes in each release. There is one for each hledger package and one for the hledger project as a whole.                                                                                                                                                                                                                                                           |
-| *release notes*                     | The Release Notes page on the hledger website: the combined release history of the core hledger packages, showing user visible changes only.                                                                                                                                                                                                                                                                               |
-|                                     | **hledger release/build types**                                                                                                                                                                                                                                                                                                                                                                                            |
-| *Major release*                     | Major releases include new features and incompatible API changes, and normally happen at the start of each quarter's third month (3/1, 6/1, 9/1, 12/1). Example version number: `1.25`                                                                                                                                                                                                                                     |
-| *Bugfix release*                    | Bugfix releases include only bug fixes, without API changes. These happen when needed, to fix significant bugs in the previous major release. Example version number: `1.25.2` (*"second bugfix release for 1.25"*)                                                                                                                                                                                                        |
-| *Fixup release*                     | Fixup releases fix packaging errors, with no changes to the hledger software. These should be rare. Example version number: `1.25.0.1` or `1.25.2.1` (*"first fixup release for 1.25 / 1.25.2"*)                                                                                                                                                                                                                           |
-| *Preview release*                   | A preview of the upcoming major release for testers/early adopters, and a test of the release process, published on Github. Not a formal hledger release, eg not published on Hackage, usually not packaged, no bugfix releases, no regression bounties, not shown in release notes. These typically appear in the quarter's first and second month if needed. Example version number: `1.25.99.1` (*"preview 1 of 1.26"*) |
-| *CI binaries*                       | Temporary downloadable binaries produced by a run of the `linux`/`mac`/`windows` workflows in the hledger repo. This may happen periodically, eg weekly. Downloading requires a Github login.                                                                                                                                                                                                                              |
-| *Dev build*                         | A local developer build of unreleased code. This is typically in `master` or a development/PR branch. Example version number: `1.25.99` (*"unreleased 1.26-dev"*)                                                                                                                                                                                                                                                          |
-|                                     | **hledger repos and branches**                                                                                                                                                                                                                                                                                                                                                                                             |
-| *hledger repo*                      | The `hledger` git repository, containing the hledger software, reference manuals, and developer docs. <https://github.com/simonmichael/hledger>                                                                                                                                                                                                                                                                            |
-| *site repo*                         | The `hledger_website` git repository, containing most of the hledger website which appears at <https://hledger.org>. Usually checked out under the hledger repo as `site/`. <https://github.com/simonmichael/hledger_website>                                                                                                                                                                                              |
-| *master*                            | The branch named `master` in the hledger repo; the main line of hledger development. Pull requests are usually relative to this.                                                                                                                                                                                                                                                                                           |
-| *release&nbsp;branch*               | Branches named `MA.JOR-branch` in the hledger repo, eg `1.25-branch`. Releases and release previews are always made from a release branch.                                                                                                                                                                                                                                                                                 |
-
-----
+### General tips
+- Don't try to specify, let alone automate, the perfect process; it's too much and too unstable.
+- Follow the RELEASING.md procedures, only where helpful. 
+- Don't edit RELEASING.md or other process docs while releasing; it interferes with VCS operations and is a distraction.
+  If really necessary, save temporary notes elsewhere.
+- Do update RELEASING.md after completing a release, ideally the following day.
+- Keep making things a little better each time through. Better means simpler, more reliable, more automated, easier, faster, cheaper, higher quality.
+- Practice releasing as often as possible.
+- The different aspects of releasing have complex interdependencies and sequencing constraints.
+  Chunk and separate them as far as possible:
+  - **Software** - selecting changes, packages, release dates; coordinating contributions; ensuring release readiness
+  - **Branch Management** - coordinating main and release branch, local and remote repos, CI branches
+  - **Version Bumping** - choosing and applying new version numbers and related things like tags, github releases, urls, ghc and dep versions, stackage resolvers, everywhere needed
+  - **Docs** - command help, manuals, changelogs, release notes, github release notes, install page, install scripts, announcements, process docs
+  - **Testing** - local testing, CI testing, extra release-specific testing
+  - **Artifacts** - generating binaries, zip files, github releases etc.
+  - **Publishing** - uploading, pushing, making visible, finalising
+  - **Announcing** - various announcement stages and channels
+- All releases must be made from a release branch, for uniformity and to avoid mishaps like uploading 1.24.99 dev code to hackage.
+- Don't tag until the three main platform binaries have been produced from the same commit.
+- Update and edit changelogs as early and often as possible. Eg before or right after merging a PR, and before creating a release branch.
+  See also [CHANGELOGS](CHANGELOGS.html).
 
