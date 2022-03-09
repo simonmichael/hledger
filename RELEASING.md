@@ -15,6 +15,7 @@ Notes for hledger release managers and maintainers.
 |                       | Major&nbsp;release<br>A.B      | Bugfix&nbsp;release<br>A.B.C | Fixup&nbsp;release<br>A.B.C.D                | Preview&nbsp;release<br>A.B.99.D         |
 |-----------------------|--------------------------------|------------------------------|----------------------------------------------|------------------------------------------|
 | **Contains:**         | New features, breaking changes | Only bug fixes               | Trivial packaging fixes, no software changes | Early snapshot of the next major release |
+| **When:**             | Third month of quarter: March, June, September, December | When needed                  | Never                                        | First & second months of quarter |
 |                       |                                |                              |                                              |                                          |
 | **Deliverables:**     |                                |                              |                                              |                                          |
 | Changelogs            | ✓                              | ✓                            | ✓                                            | ✓                                        |
@@ -30,11 +31,10 @@ Notes for hledger release managers and maintainers.
 
 [Regression bounties]: http://hledger.org/regressionbounty
 
-## Cadence
-
 hledger major releases happen in the third month of each quarter, normally at or close to the start of the month.
-Preview releases happen in the intervening months.
+Preview releases happen in the other months.
 Bugfix and fixup releases happen only when needed.
+Here's the ideal release schedule:
 
 | Q1               | Q2               | Q3               | Q4               |
 |------------------|------------------|------------------|------------------|
