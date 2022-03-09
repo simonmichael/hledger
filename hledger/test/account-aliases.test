@@ -252,3 +252,18 @@ $ hledger -f- --alias old="new  USD" print | hledger -f- print
     other
 
 >=0
+
+# 18. Make sure you can match forward slashes in regexps by escaping them. (#982)
+<
+alias /\// = :
+
+2021-01-01
+  hi/there    1
+  b
+
+$ hledger -f- print
+2021-01-01
+    hi:there               1
+    b
+
+>=0

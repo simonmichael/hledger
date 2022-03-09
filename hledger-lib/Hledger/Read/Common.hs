@@ -1515,11 +1515,12 @@ basicaliasp = do
 regexaliasp :: TextParser m AccountAlias
 regexaliasp = do
   -- dbgparse 0 "regexaliasp"
-  char '/'
-  off1 <- getOffset
-  re <- some $ noneOf ("/\n\r" :: [Char]) -- paranoid: don't try to read past line end
-  off2 <- getOffset
-  char '/'
+  (off1, off2, re) <- between (char '/') (char '/') $ do
+    off1 <- getOffset
+    re <- some $ noneOf ("/\\\n\r" :: [Char])  -- paranoid: don't try to read past line end
+             <|> (char '\\' *> anySingle)      -- allow escaping any character
+    off2 <- getOffset
+    return (off1, off2, re)
   skipNonNewlineSpaces
   char '='
   skipNonNewlineSpaces
