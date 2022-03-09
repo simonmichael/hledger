@@ -245,19 +245,16 @@ On hledger.org:
 - switch to release branch
 - cherry pick changes from master
 - proceed as above, with MA.JOR.MINOR.FIXUP
-### Post release
 
-- merge/check/update install page changes
+### After a release
+- monitor packaging status, update install page
   - docker - expect/merge PR
   - homebrew - expect badge to update soon
   - nix - expect `make nix-hledger-version` to update after a few days, find and update to that commit hash
   - linux distros - once in a while, follow the links & search for newer versions, update
-
-- support
-
-- handle issues
-
-- update procedures, tools, docs
+- provide support, monitor issues
+- prepare followup releases if needed
+- update process docs and tools
 
 ### Packaging
 #### Update homebrew formula
@@ -383,15 +380,16 @@ On hledger.org:
     <https://www.stackage.org/package/hledger>
     
 ### General tips
-- Don't try to specify, let alone automate, the perfect process; it's too much and too unstable.
-- Follow the RELEASING.md procedures, only where helpful. 
-- Don't edit RELEASING.md or other process docs while releasing; it interferes with VCS operations and is a distraction.
-  If really necessary, save temporary notes elsewhere.
-- Do update RELEASING.md after completing a release, ideally the following day.
-- Keep making things a little better each time through. Better means simpler, more reliable, more automated, easier, faster, cheaper, higher quality.
-- Practice releasing as often as possible.
-- The different aspects of releasing have complex interdependencies and sequencing constraints.
-  Chunk and separate them as far as possible:
+- Follow the RELEASING.md procedures when helpful, ignore them when not.
+- Don't update RELEASING.md while releasing, it's too distracting. Do update it after the release is complete.
+- Don't try to document, let alone automate, every little thing; it's too much and too unstable.
+- Make things a little better each time through: simpler, more reliable, more automated, easier, faster, cheaper, higher quality.
+- Release (or practice releasing) often.
+- Releases should always be made from a release branch, not from master.
+- Don't tag until CI binaries have been produced for all platforms from the same commit.
+- Update [CHANGELOGS](CHANGELOGS.html) early and often, eg during or after a PR, to spread the work.
+- Release tasks have complex interdependencies and sequencing constraints.
+  Chunk and separate them as far as possible. Eg
   - **Software** - selecting changes, packages, release dates; coordinating contributions; ensuring release readiness
   - **Branch Management** - coordinating main and release branch, local and remote repos, CI branches
   - **Version Bumping** - choosing and applying new version numbers and related things like tags, github releases, urls, ghc and dep versions, stackage resolvers, everywhere needed
@@ -400,8 +398,3 @@ On hledger.org:
   - **Artifacts** - generating binaries, zip files, github releases etc.
   - **Publishing** - uploading, pushing, making visible, finalising
   - **Announcing** - various announcement stages and channels
-- All releases must be made from a release branch, for uniformity and to avoid mishaps like uploading 1.24.99 dev code to hackage.
-- Don't tag until the three main platform binaries have been produced from the same commit.
-- Update and edit changelogs as early and often as possible. Eg before or right after merging a PR, and before creating a release branch.
-  See also [CHANGELOGS](CHANGELOGS.html).
-
