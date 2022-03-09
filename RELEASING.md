@@ -33,7 +33,6 @@ Notes for hledger release managers and maintainers.
 
 hledger major releases happen in the third month of each quarter, normally at or close to the start of the month.
 Preview releases happen in the other months.
-<!-- Bugfix and fixup releases happen only when needed. -->
 Here's the ideal release schedule:
 
 | Q1               | Q2               | Q3               | Q4               |
