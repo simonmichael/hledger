@@ -107,7 +107,7 @@ Income Statement 2022-01-01..2022-02-28
  Net:          || $-50  $1000                                                         
 ```
 
-More examples: <https://hledger.org/#how-to-get-started>
+More examples and screenshots: <https://hledger.org/#how-to-get-started>
 
 ## Sponsors
 
