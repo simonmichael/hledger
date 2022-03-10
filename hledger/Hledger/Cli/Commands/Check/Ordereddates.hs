@@ -30,7 +30,7 @@ journalCheckOrdereddates CliOpts{reportspec_=rspec} j = do
         let
           datestr = if date2_ ropts then "2" else ""
           uniquestr = if checkunique then " and/or not unique" else ""
-          positionstr = showSourcePosPair $ tsourcepos error
+          positionstr = sourcePosPairPretty $ tsourcepos error
           txn1str = T.unpack . linesPrepend  (T.pack "  ")               $ showTransaction previous
           txn2str = T.unpack . linesPrepend2 (T.pack "> ") (T.pack "  ") $ showTransaction error
         Left $
