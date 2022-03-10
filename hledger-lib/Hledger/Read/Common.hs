@@ -374,7 +374,7 @@ journalCheckPayeesDeclared j = mapM_ checkpayee (jtxns j)
       | otherwise = Left $
           printf "undeclared payee \"%s\"\nat: %s\n\n%s"
             (T.unpack p)
-            (showSourcePosPair $ tsourcepos t)
+            (sourcePosPairPretty $ tsourcepos t)
             (linesPrepend2 "> " "  " . (<>"\n") . textChomp $ showTransaction t)
       where
         p  = transactionPayee t
@@ -392,7 +392,7 @@ journalCheckAccountsDeclared j = mapM_ checkacct (journalPostings j)
           ++ case ptransaction of
               Nothing -> ""
               Just t  -> printf "in transaction at: %s\n\n%s"
-                          (showSourcePosPair $ tsourcepos t)
+                          (sourcePosPairPretty $ tsourcepos t)
                           (linesPrepend "  " . (<>"\n") . textChomp $ showTransaction t)
       where
         as = journalAccountNamesDeclared j
@@ -411,7 +411,7 @@ journalCheckCommoditiesDeclared j =
           ++ case ptransaction of
               Nothing -> ""
               Just t  -> printf "in transaction at: %s\n\n%s"
-                          (showSourcePosPair $ tsourcepos t)
+                          (sourcePosPairPretty $ tsourcepos t)
                           (linesPrepend "  " . (<>"\n") . textChomp $ showTransaction t)
       where
         mfirstundeclaredcomm =

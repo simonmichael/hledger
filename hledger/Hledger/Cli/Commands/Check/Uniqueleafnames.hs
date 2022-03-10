@@ -49,5 +49,5 @@ checkposting leafandfullnames Posting{paccount,ptransaction} =
         Nothing -> ""
         Just t  -> printf "\nseen in \"%s\" in transaction at: %s\n\n%s"
                     paccount
-                    (showSourcePosPair $ tsourcepos t)
+                    (sourcePosPairPretty $ tsourcepos t)
                     (linesPrepend "> " . (<>"\n") . textChomp $ showTransaction t) :: String)
