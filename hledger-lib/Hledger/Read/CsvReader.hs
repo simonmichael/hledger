@@ -37,6 +37,7 @@ module Hledger.Read.CsvReader (
 where
 
 --- ** imports
+import Prelude hiding (getContents, writeFile)
 import Control.Applicative        (liftA2)
 import Control.Monad              (unless, when)
 import Control.Monad.Except       (ExceptT(..), liftEither, throwError)
@@ -44,9 +45,14 @@ import qualified Control.Monad.Fail as Fail
 import Control.Monad.IO.Class     (MonadIO, liftIO)
 import Control.Monad.State.Strict (StateT, get, modify', evalStateT)
 import Control.Monad.Trans.Class  (lift)
-import Data.Char                  (toLower, isDigit, isSpace, isAlphaNum, ord)
 import Data.Bifunctor             (first)
 import Data.Functor               ((<&>))
+import qualified Data.ByteString as B
+import qualified Data.ByteString.Lazy as BL
+import Data.Char (toLower, isDigit, isSpace, isAlphaNum, ord)
+import qualified Data.Csv as Cassava
+import qualified Data.Csv.Parser.Megaparsec as CassavaMP
+import Data.Foldable (asum, toList)
 import Data.List (elemIndex, foldl', intersperse, mapAccumL, nub, sortBy)
 import Data.Maybe (catMaybes, fromMaybe, isJust)
 import Data.MemoUgly (memo)
@@ -54,8 +60,9 @@ import Data.Ord (comparing)
 import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
-import qualified Data.Text.IO as T
+import Data.Text.Encoding (decodeUtf8, encodeUtf8)
+import Data.Text.IO (getContents)  -- Only putStr and friends are safe
+import Data.Text.IO.Utf8 (writeFile)
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import Data.Time.Calendar (Day)
@@ -63,11 +70,6 @@ import Data.Time.Format (parseTimeM, defaultTimeLocale)
 import Safe (atMay, headMay, lastMay, readMay)
 import System.Directory (doesFileExist)
 import System.FilePath ((</>), takeDirectory, takeExtension, takeFileName)
-import qualified Data.Csv as Cassava
-import qualified Data.Csv.Parser.Megaparsec as CassavaMP
-import qualified Data.ByteString as B
-import qualified Data.ByteString.Lazy as BL
-import Data.Foldable (asum, toList)
 import Text.Megaparsec hiding (match, parse)
 import Text.Megaparsec.Char (char, newline, string)
 import Text.Megaparsec.Custom (customErrorBundlePretty, parseErrorAt)
@@ -197,7 +199,7 @@ expandIncludes dir content = mapM (expandLine dir) (T.lines content) >>= return 
   where
     expandLine dir line =
       case line of
-        (T.stripPrefix "include " -> Just f) -> expandIncludes dir' =<< T.readFile f'
+        (T.stripPrefix "include " -> Just f) -> expandIncludes dir' =<< readFilePortably f'
           where
             f' = dir </> T.unpack (T.dropWhile isSpace f)
             dir' = takeDirectory f'
@@ -745,8 +747,8 @@ readJournalFromCsv mrulesfile csvfile csvdata = do
       -- than one date and the first date is more recent than the last):
       -- reverse them to get same-date transactions ordered chronologically.
       txns' =
-        (if newestfirst || mdataseemsnewestfirst == Just True 
-          then dbg7 "reversed csv txns" . reverse else id) 
+        (if newestfirst || mdataseemsnewestfirst == Just True
+          then dbg7 "reversed csv txns" . reverse else id)
           txns
         where
           newestfirst = dbg6 "newestfirst" $ isJust $ getDirective "newest-first" rules
@@ -759,7 +761,7 @@ readJournalFromCsv mrulesfile csvfile csvdata = do
 
     liftIO $ when (not rulesfileexists) $ do
       dbg1IO "creating conversion rules file" rulesfile
-      T.writeFile rulesfile rulestext
+      writeFile rulesfile rulestext
 
     return nulljournal{jtxns=txns''}
 
@@ -774,14 +776,14 @@ parseSeparator = specials . T.toLower
 parseCsv :: Char -> FilePath -> Text -> ExceptT String IO CSV
 parseCsv separator filePath csvdata = ExceptT $
   case filePath of
-    "-" -> parseCassava separator "(stdin)" <$> T.getContents
+    "-" -> parseCassava separator "(stdin)" <$> getContents
     _   -> return $ if T.null csvdata then Right mempty else parseCassava separator filePath csvdata
 
 parseCassava :: Char -> FilePath -> Text -> Either String CSV
 parseCassava separator path content =
   either (Left . errorBundlePretty) (Right . parseResultToCsv) <$>
   CassavaMP.decodeWith (decodeOptions separator) Cassava.NoHeader path $
-  BL.fromStrict $ T.encodeUtf8 content
+  BL.fromStrict $ encodeUtf8 content
 
 decodeOptions :: Char -> Cassava.DecodeOptions
 decodeOptions separator = Cassava.defaultDecodeOptions {
@@ -792,7 +794,7 @@ parseResultToCsv :: (Foldable t, Functor t) => t (t B.ByteString) -> CSV
 parseResultToCsv = toListList . unpackFields
     where
         toListList = toList . fmap toList
-        unpackFields  = (fmap . fmap) T.decodeUtf8
+        unpackFields  = (fmap . fmap) decodeUtf8
 
 printCSV :: CSV -> TL.Text
 printCSV = TB.toLazyText . unlinesB . map printRecord

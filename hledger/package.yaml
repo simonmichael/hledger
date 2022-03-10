@@ -130,6 +130,7 @@ dependencies:
 - unordered-containers
 - utf8-string >=0.3.5
 - utility-ht >=0.0.13
+- with-utf8 >=1.0.0
 - wizards >=1.0
 
 when:

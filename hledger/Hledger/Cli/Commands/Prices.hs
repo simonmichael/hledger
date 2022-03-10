@@ -10,7 +10,7 @@ where
 import qualified Data.Map as M
 import Data.List
 import qualified Data.Text as T
-import qualified Data.Text.IO as T
+import qualified Data.Text.IO as TIO (putStrLn)  -- Only putStr and friends are safe
 import Hledger
 import Hledger.Cli.CliOptions
 import System.Console.CmdArgs.Explicit
@@ -45,7 +45,7 @@ prices opts j = do
       ++ ifBoolOpt "infer-market-prices" cprices
       ++ ifBoolOpt "infer-reverse-prices" rcprices  -- TODO: shouldn't this show reversed P prices also ? valuation will use them
 
-  mapM_ (T.putStrLn . showPriceDirective) $
+  mapM_ (TIO.putStrLn . showPriceDirective) $
     sortOn pddate $
     filter (matchesPriceDirective q) $
     allprices

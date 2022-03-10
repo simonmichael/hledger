@@ -15,7 +15,7 @@ module Hledger.Cli.Commands.Descriptions (
 ) where
 
 import Data.List.Extra (nubSort)
-import qualified Data.Text.IO as T
+import qualified Data.Text.IO as TIO (putStrLn)  -- Only putStr and friends are safe
 
 import Hledger
 import Hledger.Cli.CliOptions
@@ -35,4 +35,4 @@ descriptions CliOpts{reportspec_=rspec} j = do
   let ts = entriesReport rspec j
       descriptions = nubSort $ map tdescription ts
 
-  mapM_ T.putStrLn descriptions
+  mapM_ TIO.putStrLn descriptions

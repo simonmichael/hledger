@@ -48,8 +48,10 @@ dependencies:
 - Decimal >=0.5.1
 - directory
 - doclayout >=0.3 && <0.4
+- extra >=1.6.3
 - file-embed >=0.0.10
 - filepath
+- Glob >= 0.9
 - hashtables >=1.2.3.1
 - megaparsec >=7.0.0 && <9.3
 - microlens >=0.4
@@ -70,8 +72,7 @@ dependencies:
 - unordered-containers >=0.2
 - uglymemo
 - utf8-string >=0.3.5
-- extra >=1.6.3
-- Glob >= 0.9
+- with-utf8 >=1.0.0
 # for ledger-parse:
 #- parsers >=0.5
 #- system-filepath

@@ -15,7 +15,7 @@ module Hledger.Cli.Commands.Payees (
 ) where
 
 import qualified Data.Set as S
-import qualified Data.Text.IO as T
+import qualified Data.Text.IO as TIO (putStrLn)  -- Only putStr and friends are safe
 import System.Console.CmdArgs.Explicit as C
 
 import Hledger
@@ -45,4 +45,4 @@ payees CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query}} j = do
       if | declared     && not used -> matcheddeclaredpayees
          | not declared && used     -> matchedusedpayees
          | otherwise                -> matcheddeclaredpayees <> matchedusedpayees
-  mapM_ T.putStrLn payees
+  mapM_ TIO.putStrLn payees

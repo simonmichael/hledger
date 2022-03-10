@@ -18,7 +18,7 @@ where
 import Data.Text (Text)
 import Data.List (intersperse)
 import qualified Data.Text as T
-import qualified Data.Text.IO as T
+import qualified Data.Text.IO as TIO (putStr, putStrLn)  -- Only putStr and friends are safe
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import Lens.Micro ((^.), _Just, has)
@@ -206,5 +206,5 @@ postingToCSV p =
 printMatch :: CliOpts -> Journal -> Text -> IO ()
 printMatch opts j desc = do
   case journalSimilarTransaction opts j desc of
-    Nothing -> putStrLn "no matches found."
-    Just t  -> T.putStr $ showTransaction t
+    Nothing -> TIO.putStrLn "no matches found."
+    Just t  -> TIO.putStr $ showTransaction t

@@ -12,7 +12,7 @@ import Data.Function (on)
 import Data.List (groupBy)
 import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
-import qualified Data.Text.IO as T
+import qualified Data.Text.IO as TIO (putStr)  -- Only putStr and friends are safe
 import Data.Time.Calendar (addDays)
 import System.Console.CmdArgs.Explicit as C
 
@@ -169,5 +169,5 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec'} j = do
       ++ [posting{paccount=openingacct, pamount=if explicit then mixedAmountSetFullPrecision (maNegate totalamt) else missingmixedamt} | not interleaved]
 
   -- print them
-  when closing . T.putStr $ showTransaction closingtxn
-  when opening . T.putStr $ showTransaction openingtxn
+  when closing . TIO.putStr $ showTransaction closingtxn
+  when opening . TIO.putStr $ showTransaction openingtxn
