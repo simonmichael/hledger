@@ -19,8 +19,7 @@ $ hledger print-location -f examples/sample.journal desc:eat
 {-# LANGUAGE QuasiQuotes #-}
 
 import Data.String.QQ (s)
-import Data.Text (pack)
-import Text.Printf
+import qualified Data.Text as T
 import Hledger.Cli
 
 ------------------------------------------------------------------------------
@@ -44,9 +43,8 @@ main = do
 addLocationTag :: Transaction -> Transaction
 addLocationTag t = t{tcomment = tcomment t `commentAddTagNextLine` loctag}
   where
-    loctag = ("location", pack $ showGenericSourcePosLine $ tsourcepos t)
+    loctag = ("location", T.pack . showSourcePosPair $ tsourcepos t)
 
--- Like showGenericSourcePos in Hledger.Data.Transaction, but show just the starting line number.
-showGenericSourcePosLine :: GenericSourcePos -> String
-showGenericSourcePosLine (GenericSourcePos f line _)         = printf "%s:%d" f line
-showGenericSourcePosLine (JournalSourcePos f (startline, _)) = printf "%s:%d" f startline
+-- Like showSourcePosPair in Hledger.Data.Transaction, but show just the starting line number.
+showSourcePosPairLine :: (SourcePos, SourcePos) -> String
+showSourcePosPairLine (SourcePos f line _, _) = f ++ ":" ++ show line
