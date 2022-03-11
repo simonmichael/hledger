@@ -3216,29 +3216,33 @@ alias checking = assets:bank:wells fargo:checking
 ### Regex aliases
 
 There is also a more powerful variant that uses a [regular expression],
-indicated by the forward slashes:
+indicated by wrapping the pattern in forward slashes.
+(This is the only place where hledger requires forward slashes around a regular expression.)
 
+Eg:
 ```journal
 alias /REGEX/ = REPLACEMENT
 ```
+or:
+```cli
+$ hledger --alias '/REGEX/=REPLACEMENT' ...
+```
 
-or `--alias '/REGEX/=REPLACEMENT'`.
+Any part of an account name matched by REGEX will be replaced by REPLACEMENT.
+REGEX is case-insensitive as usual. 
 
-<!-- (Can also be written `'/REGEX/REPLACEMENT/'`). -->
-REGEX is a case-insensitive regular expression. Anywhere it matches
-inside an account name, the matched part will be replaced by
-REPLACEMENT.
+If you need to match a forward slash, escape it with a backslash, eg `/\/=:`.
+
 If REGEX contains parenthesised match groups, these can be referenced
-by the usual numeric backreferences in REPLACEMENT.
-Eg:
+by the usual backslash and number in REPLACEMENT:
 
 ```journal
 alias /^(.+):bank:([^:]+):(.*)/ = \1:\2 \3
 ; rewrites "assets:bank:wells fargo:checking" to  "assets:wells fargo checking"
 ```
 
-Also note that REPLACEMENT continues to the end of line (or on command line,
-to end of option argument), so it can contain trailing whitespace.
+REPLACEMENT continues to the end of line (or on command line, to end of option argument), 
+so it can contain trailing whitespace.
 
 ### Combining aliases
 
