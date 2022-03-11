@@ -9,7 +9,7 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# ef4da9053
+# 460a1fc20
 
 # 1.25 2022-03-04
 

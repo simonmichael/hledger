@@ -9,7 +9,9 @@
 General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
-# b5bb3b4d0
+# c7afe77cd
+
+- README cleanup, inspired by feedback from README reviewer Lars Wirzenius.
 
 # 1.25 2022-03-04
 
