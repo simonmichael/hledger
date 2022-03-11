@@ -56,7 +56,7 @@ aregistermode = hledgerCommandMode
 #endif
       ++ " or $COLUMNS). -wN,M sets description width as well."
      )
-  ,flagNone ["align-all"] (setboolopt "align-all") "truly align to the longest widths"
+  ,flagNone ["align-all"] (setboolopt "align-all") "guarantee alignment across all lines (slower)"
   ,outputFormatFlag ["txt","csv","json"]
   ,outputFileFlag
   ])
