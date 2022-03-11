@@ -56,6 +56,7 @@ aregistermode = hledgerCommandMode
 #endif
       ++ " or $COLUMNS). -wN,M sets description width as well."
      )
+  ,flagNone ["align-all"] (setboolopt "align-all") "truly align to the longest widths"
   ,outputFormatFlag ["txt","csv","json"]
   ,outputFileFlag
   ])
@@ -127,12 +128,11 @@ accountTransactionsReportItemAsCsvRecord
 -- | Render a register report as plain text suitable for console output.
 accountTransactionsReportAsText :: CliOpts -> Query -> Query -> AccountTransactionsReport -> TL.Text
 accountTransactionsReportAsText copts reportq thisacctq items = TB.toLazyText $
-    title <> TB.singleton '\n' <> lines
+    title <> TB.singleton '\n' <>
+    postingsOrTransactionsReportAsText alignAll copts itemAsText itemamt itembal items
   where
-    lines = foldMap (accountTransactionsReportItemAsText copts reportq thisacctq amtwidth balwidth) items
-    amtwidth = maximumStrict $ 12 : widths (map itemamt $ take 1000 items)
-    balwidth = maximumStrict $ 12 : widths (map itembal $ take 1000 items)
-    widths = map wbWidth . concatMap (showMixedAmountLinesB oneLine)
+    alignAll = boolopt "align-all" $ rawopts_ copts
+    itemAsText = accountTransactionsReportItemAsText copts reportq thisacctq
     itemamt (_,_,_,_,a,_) = a
     itembal (_,_,_,_,_,a) = a
 
@@ -156,11 +156,13 @@ accountTransactionsReportAsText copts reportq thisacctq items = TB.toLazyText $
 -- Returns a string which can be multi-line, eg if the running balance
 -- has multiple commodities.
 --
-accountTransactionsReportItemAsText :: CliOpts -> Query -> Query -> Int -> Int -> AccountTransactionsReportItem -> TB.Builder
+accountTransactionsReportItemAsText :: CliOpts -> Query -> Query -> Int -> Int
+                                    -> (AccountTransactionsReportItem, [WideBuilder], [WideBuilder])
+                                    -> TB.Builder
 accountTransactionsReportItemAsText
-  copts@CliOpts{reportspec_=ReportSpec{_rsReportOpts=ropts@ReportOpts{color_}}}
+  copts@CliOpts{reportspec_=ReportSpec{_rsReportOpts=ropts}}
   reportq thisacctq preferredamtwidth preferredbalwidth
-  (t@Transaction{tdescription}, _, _issplit, otheracctsstr, change, balance) =
+  ((t@Transaction{tdescription}, _, _issplit, otheracctsstr, _, _), amt, bal) =
     -- Transaction -- the transaction, unmodified
     -- Transaction -- the transaction, as seen from the current account
     -- Bool        -- is this a split (more than one posting to other accounts) ?
@@ -206,9 +208,6 @@ accountTransactionsReportItemAsText
     -- gather content
     accts = -- T.unpack $ elideAccountName acctwidth $ T.pack
             otheracctsstr
-    amt = showamt change
-    bal = showamt balance
-    showamt = showMixedAmountLinesB noPrice{displayColour=color_}
 
 -- tests
 

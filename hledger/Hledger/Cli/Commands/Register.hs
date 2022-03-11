@@ -50,6 +50,7 @@ registermode = hledgerCommandMode
 #endif
       ++ " or $COLUMNS). -wN,M sets description width as well."
      )
+  ,flagNone ["align-all"] (setboolopt "align-all") "truly align to the longest widths"
   ,outputFormatFlag ["txt","csv","json"]
   ,outputFileFlag
   ])
@@ -93,12 +94,10 @@ postingsReportItemAsCsvRecord (_, _, _, p, b) = [idx,date,code,desc,acct,amt,bal
 
 -- | Render a register report as plain text suitable for console output.
 postingsReportAsText :: CliOpts -> PostingsReport -> TL.Text
-postingsReportAsText opts items = TB.toLazyText lines
+postingsReportAsText opts = TB.toLazyText .
+    postingsOrTransactionsReportAsText alignAll opts (postingsReportItemAsText opts) itemamt itembal
   where
-    lines = foldMap (postingsReportItemAsText opts amtwidth balwidth) items
-    amtwidth = maximumStrict $ 12 : widths (map itemamt $ take 1000 items)
-    balwidth = maximumStrict $ 12 : widths (map itembal $ take 1000 items)
-    widths = map wbWidth . concatMap (showMixedAmountLinesB oneLine)
+    alignAll = boolopt "align-all" $ rawopts_ opts
     itemamt (_,_,_,Posting{pamount=a},_) = a
     itembal (_,_,_,_,a) = a
 
@@ -126,8 +125,10 @@ postingsReportAsText opts items = TB.toLazyText lines
 --
 -- Also returns the natural width (without padding) of the amount and balance
 -- fields.
-postingsReportItemAsText :: CliOpts -> Int -> Int -> PostingsReportItem -> TB.Builder
-postingsReportItemAsText opts preferredamtwidth preferredbalwidth (mdate, mperiod, mdesc, p, b) =
+postingsReportItemAsText :: CliOpts -> Int -> Int
+                         -> (PostingsReportItem, [WideBuilder], [WideBuilder])
+                         -> TB.Builder
+postingsReportItemAsText opts preferredamtwidth preferredbalwidth ((mdate, mperiod, mdesc, p, _), amt, bal) =
     table <> TB.singleton '\n'
   where
     table = renderRowB def{tableBorders=False, borderSpaces=False} . Group NoLine $ map Header
@@ -177,9 +178,6 @@ postingsReportItemAsText opts preferredamtwidth preferredbalwidth (mdate, mperio
             BalancedVirtualPosting -> (wrap "[" "]", acctwidth-2)
             VirtualPosting         -> (wrap "(" ")", acctwidth-2)
             _                      -> (id,acctwidth)
-    amt = showamt $ pamount p
-    bal = showamt b
-    showamt = showMixedAmountLinesB oneLine{displayColour=color_ . _rsReportOpts $ reportspec_ opts}
 
 -- tests
 

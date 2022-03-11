@@ -25,6 +25,7 @@ module Hledger.Cli.Utils
      pivotByOpts,
      anonymiseByOpts,
      journalSimilarTransaction,
+     postingsOrTransactionsReportAsText,
      tests_Cli_Utils,
     )
 where
@@ -35,9 +36,11 @@ import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.Builder as TB
 import qualified Data.Text.Lazy.IO as TL
 import Data.Time (Day)
 import Data.Time.Clock.POSIX (POSIXTime, utcTimeToPOSIXSeconds)
+import Lens.Micro ((^.))
 import Safe (readMay, headMay)
 import System.Console.CmdArgs
 import System.Directory (getModificationTime, getDirectoryContents, copyFile, doesFileExist)
@@ -255,6 +258,32 @@ journalSimilarTransaction cliopts j desc = mbestmatch
       dbg1With (unlines . ("similar transactions:":) . map (\(score,Transaction{..}) -> printf "%0.3f %s %s" score (show tdate) tdescription)) $
       journalTransactionsSimilarTo j q desc 10
     q = queryFromFlags $ _rsReportOpts $ reportspec_ cliopts
+
+-- | Render a 'PostingsReport' or 'AccountTransactionsReport' as Text,
+-- determining the appropriate starting widths and increasing as necessary.
+postingsOrTransactionsReportAsText
+    :: Bool -> CliOpts -> (Int -> Int -> (a, [WideBuilder], [WideBuilder]) -> TB.Builder)
+    -> (a -> MixedAmount) -> (a -> MixedAmount) -> [a] -> TB.Builder
+postingsOrTransactionsReportAsText alignAll opts itemAsText itemamt itembal report =
+    mconcat . snd $ mapAccumL renderItem (startWidth amt, startWidth bal) itemsWithAmounts
+  where
+    minWidth  = 12
+    chunkSize = 100
+
+    renderItem (amtWidth, balWidth) item@(_, amt, bal) = ((amtWidth', balWidth'), itemBuilder)
+      where
+        itemBuilder = itemAsText amtWidth' balWidth' item
+        amtWidth' = if alignAll then amtWidth else maximumStrict $ amtWidth : map wbWidth amt
+        balWidth' = if alignAll then balWidth else maximumStrict $ balWidth : map wbWidth bal
+
+    startWidth f = maximum $ minWidth : map wbWidth (concatMap f startAlign)
+      where
+        startAlign = (if alignAll then id else take chunkSize) itemsWithAmounts
+
+    itemsWithAmounts = map (\x -> (x, showAmt $ itemamt x, showAmt $ itembal x)) report
+    showAmt = showMixedAmountLinesB oneLine{displayColour=opts^.color__}
+    amt = second3
+    bal = third3
 
 tests_Cli_Utils = testGroup "Utils" [
 
