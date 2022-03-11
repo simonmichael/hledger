@@ -268,7 +268,7 @@ postingsOrTransactionsReportAsText alignAll opts itemAsText itemamt itembal repo
     mconcat . snd $ mapAccumL renderItem (startWidth amt, startWidth bal) itemsWithAmounts
   where
     minWidth  = 12
-    chunkSize = 100
+    chunkSize = 1000
 
     renderItem (amtWidth, balWidth) item@(_, amt, bal) = ((amtWidth', balWidth'), itemBuilder)
       where
