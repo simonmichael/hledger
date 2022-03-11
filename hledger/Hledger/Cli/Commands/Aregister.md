@@ -48,7 +48,7 @@ Each `aregister` line item shows:
 Transactions making a net change of zero are not shown by default;
 add the `-E/--empty` flag to show them.
 
-For performance reasons, column widths are chosen based on the first 100 lines;
+For performance reasons, column widths are chosen based on the first 1000 lines;
 this means unusually wide values in later lines can cause visual discontinuities
 as column widths are adjusted. If you want to ensure perfect alignment, 
 at the cost of more time and memory, use the `--align-all` flag.
