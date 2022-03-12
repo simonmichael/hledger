@@ -12,6 +12,7 @@ module Hledger.Cli.Commands.Diff (
  ,diff
 ) where
 
+import Control.Monad.Except (runExceptT)
 import Data.List.Extra ((\\), groupSortOn, nubBy, sortBy)
 import Data.Function (on)
 import Data.Ord (comparing)
@@ -82,7 +83,8 @@ matching ppl ppr = do
 
 readJournalFile' :: FilePath -> IO Journal
 readJournalFile' fn =
-    readJournalFile definputopts{balancingopts_=defbalancingopts{ignore_assertions_=True}} fn >>= either error' return  -- PARTIAL:
+    runExceptT (readJournalFile definputopts{balancingopts_=defbalancingopts{ignore_assertions_=True}} fn)
+    >>= either error' return  -- PARTIAL:
 
 matchingPostings :: AccountName -> Journal -> [PostingWithPath]
 matchingPostings acct j = filter ((== acct) . paccount . ppposting) $ allPostingsWithPath j

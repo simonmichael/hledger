@@ -8,6 +8,7 @@ module Hledger.Cli.Commands.Import (
 where
 
 import Control.Monad
+import Control.Monad.Except (runExceptT)
 import Data.List
 import qualified Data.Text.IO as T
 import Hledger
@@ -46,7 +47,7 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
   case inputfiles of
     [] -> error' "please provide one or more input files as arguments"  -- PARTIAL:
     fs -> do
-      enewj <- readJournalFiles iopts' fs
+      enewj <- runExceptT $ readJournalFiles iopts' fs
       case enewj of
         Left e     -> error' e
         Right newj ->

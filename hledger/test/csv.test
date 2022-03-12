@@ -759,7 +759,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 39. Insfficient number of values in tabular rules error
+# 39. Insufficient number of values in tabular rules error
 <
 10/2009/09,Flubber Co,50
 10/2009/09,Blubber Co,150
@@ -774,13 +774,12 @@ if|account2|comment
 %description Flubber|acct|
 $  ./csvtest.sh
 >2
-hledger: user error (input.rules:6:1:
+hledger: input.rules:6:1:
   |
 6 | %amount 150|acct2
   | ^
 line of conditional table should have 2 values, but this one has only 1
 
-)
 >=1
 
 # 40. unindented condition block error
@@ -797,14 +796,13 @@ account2 acct
 comment cmt
 $  ./csvtest.sh
 >2
-hledger: user error (input.rules:5:1:
+hledger: input.rules:5:1:
   |
 5 | if Flubber
   | ^
 start of conditional block found, but no assignment rules afterward
 (assignment rules in a conditional block should be indented)
 
-)
 >=1
 
 # 41. Assignment to custom field (#1264) + spaces after the if (#1120)
@@ -824,13 +822,13 @@ if Flubber
 account2 %myaccount2
 $  ./csvtest.sh
 >2
-hledger: user error (input.rules:6:3:
+hledger: input.rules:6:3:
   |
 6 |   myaccount2 acct
   |   ^^^^^^^^^^^^
 unexpected "myaccount2 a"
 expecting conditional block
-)
+
 >=1
 
 # 42. Rules override each other in the order listed in the file
@@ -872,14 +870,13 @@ if account2 comment
 %description Flubber acct 
 $  ./csvtest.sh
 >2
-hledger: user error (input.rules:5:1:
+hledger: input.rules:5:1:
   |
 5 | if account2 comment
   | ^
 start of conditional block found, but no assignment rules afterward
 (assignment rules in a conditional block should be indented)
 
-)
 >=1
 
 # 44. handle conditions with & operator

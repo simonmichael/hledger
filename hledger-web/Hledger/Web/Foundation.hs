@@ -17,6 +17,7 @@ module Hledger.Web.Foundation where
 
 import Control.Applicative ((<|>))
 import Control.Monad (join, when)
+import Control.Monad.Except (runExceptT)
 import qualified Data.ByteString.Char8 as BC
 import Data.Traversable (for)
 import Data.IORef (IORef, readIORef, writeIORef)
@@ -256,16 +257,16 @@ shouldShowSidebar = do
 -- ui message.
 getCurrentJournal :: IORef Journal -> CliOpts -> Day -> Handler (Journal, Maybe String)
 getCurrentJournal jref opts d = do
-  -- XXX put this inside atomicModifyIORef' for thread safety
-  j <- liftIO (readIORef jref)
-  (ej, changed) <- liftIO $ journalReloadIfChanged opts d j
   -- re-apply any initial filter specified at startup
   let initq = _rsQuery $ reportspec_ opts
-  case (changed, filterJournalTransactions initq <$> ej) of
-    (False, _) -> return (j, Nothing)
-    (True, Right j') -> do
-      liftIO $ writeIORef jref j'
-      return (j',Nothing)
-    (True, Left e) -> do
+  -- XXX put this inside atomicModifyIORef' for thread safety
+  j <- liftIO (readIORef jref)
+  ej <- liftIO . runExceptT $ journalReloadIfChanged opts d j
+  case ej of
+    Left e -> do
       setMessage "error while reading journal"
       return (j, Just e)
+    Right (j', True) -> do
+      liftIO . writeIORef jref $ filterJournalTransactions initq j'
+      return (j',Nothing)
+    Right (_, False) -> return (j, Nothing)

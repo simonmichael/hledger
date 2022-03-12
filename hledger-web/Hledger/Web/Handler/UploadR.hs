@@ -9,6 +9,7 @@ module Hledger.Web.Handler.UploadR
   , postUploadR
   ) where
 
+import Control.Monad.Except (runExceptT)
 import qualified Data.ByteString.Lazy as BL
 import Data.Conduit (connect)
 import Data.Conduit.Binary (sinkLbs)
@@ -52,7 +53,7 @@ postUploadR f = do
         "where the transcoding should be handled by the browser."
       showForm view enctype
     Right newtxt -> return newtxt
-  writeJournalTextIfValidAndChanged f newtxt >>= \case
+  runExceptT (writeJournalTextIfValidAndChanged f newtxt) >>= \case
     Left e -> do
       setMessage $ "Failed to load journal: " <> toHtml e
       showForm view enctype

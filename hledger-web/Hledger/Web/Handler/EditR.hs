@@ -10,6 +10,7 @@ module Hledger.Web.Handler.EditR
   , postEditR
   ) where
 
+import Control.Monad.Except (runExceptT)
 import Hledger.Web.Import
 import Hledger.Web.Widget.Common
        (fromFormSuccess, helplink, journalFile404, writeJournalTextIfValidAndChanged)
@@ -36,7 +37,7 @@ postEditR f = do
   (f', txt) <- journalFile404 f j
   ((res, view), enctype) <- runFormPost (editForm f' txt)
   newtxt <- fromFormSuccess (showForm view enctype) res
-  writeJournalTextIfValidAndChanged f newtxt >>= \case
+  runExceptT (writeJournalTextIfValidAndChanged f newtxt) >>= \case
     Left e -> do
       setMessage $ "Failed to load journal: " <> toHtml e
       showForm view enctype

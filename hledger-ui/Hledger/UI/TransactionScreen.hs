@@ -9,7 +9,7 @@ module Hledger.UI.TransactionScreen
 ) where
 
 import Control.Monad
-import Control.Monad.IO.Class (liftIO)
+import Control.Monad.Except (liftIO)
 import Data.List
 import Data.Maybe
 import qualified Data.Text as T
@@ -174,7 +174,7 @@ tsHandle ui@UIState{aScreen=TransactionScreen{tsTransaction=(i,t), tsTransaction
             p = reportPeriod ui
         e | e `elem` [VtyEvent (EvKey (KChar 'g') []), AppEvent FileChange] -> do
           -- plog (if e == AppEvent FileChange then "file change" else "manual reload") "" `seq` return ()
-          ej <- liftIO $ journalReload copts
+          ej <- liftIO . runExceptT $ journalReload copts
           case ej of
             Left err -> continue $ screenEnter d errorScreen{esError=err} ui
             Right j' -> continue $ regenerateScreens j' d ui

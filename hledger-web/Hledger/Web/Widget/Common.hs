@@ -19,6 +19,7 @@ module Hledger.Web.Widget.Common
   , replaceInacct
   ) where
 
+import Control.Monad.Except (ExceptT, mapExceptT)
 import Data.Foldable (find, for_)
 import Data.List (elemIndex)
 import Data.Text (Text)
@@ -59,17 +60,15 @@ fromFormSuccess _ (FormSuccess a) = pure a
 -- The file will be written (if changed) with the current system's native
 -- line endings (see writeFileWithBackupIfChanged).
 --
-writeJournalTextIfValidAndChanged :: MonadHandler m => FilePath -> Text -> m (Either String ())
-writeJournalTextIfValidAndChanged f t = do
+writeJournalTextIfValidAndChanged :: MonadHandler m => FilePath -> Text -> ExceptT String m ()
+writeJournalTextIfValidAndChanged f t = mapExceptT liftIO $ do
   -- Ensure unix line endings, since both readJournal (cf
   -- formatdirectivep, #1194) writeFileWithBackupIfChanged require them.
   -- XXX klunky. Any equivalent of "hSetNewlineMode h universalNewlineMode" for form posts ?
   let t' = T.replace "\r" "" t
-  liftIO (readJournal definputopts (Just f) t') >>= \case
-    Left e -> return (Left e)
-    Right _ -> do
-      _ <- liftIO (writeFileWithBackupIfChanged f t')
-      return (Right ())
+  j <- readJournal definputopts (Just f) t'
+  _ <- liftIO $ j `seq` writeFileWithBackupIfChanged f t'  -- Only write backup if the journal didn't error
+  return ()
 
 -- | Link to a topic in the manual.
 helplink :: Text -> Text -> HtmlUrl r

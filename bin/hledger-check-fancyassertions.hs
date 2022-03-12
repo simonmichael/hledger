@@ -98,6 +98,7 @@ module Main where
 
 import Control.Arrow (first)
 import Control.Monad (mplus, mzero, unless, void)
+import Control.Monad.Except (runExceptT)
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.State.Strict (runStateT)
 import Data.String (fromString)
@@ -167,7 +168,7 @@ main :: IO ()
 main = do
     opts <- execParser args
     journalFile <- maybe H.defaultJournalPath pure (file opts)
-    ejournal    <- H.readJournalFile (set H.ignore_assertions (ignoreAssertions opts) H.definputopts) journalFile
+    ejournal    <- runExceptT $ H.readJournalFile (set H.ignore_assertions (ignoreAssertions opts) H.definputopts) journalFile
     case ejournal of
       Right j -> do
         (journal, starting) <- fixupJournal opts j
