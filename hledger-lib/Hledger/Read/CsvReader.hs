@@ -38,15 +38,15 @@ where
 
 --- ** imports
 import Control.Applicative        (liftA2)
-import Control.Exception          (IOException, handle, throw)
 import Control.Monad              (unless, when)
-import Control.Monad.Except       (ExceptT, throwError)
+import Control.Monad.Except       (ExceptT(..), liftEither, throwError)
 import qualified Control.Monad.Fail as Fail
 import Control.Monad.IO.Class     (MonadIO, liftIO)
 import Control.Monad.State.Strict (StateT, get, modify', evalStateT)
 import Control.Monad.Trans.Class  (lift)
 import Data.Char                  (toLower, isDigit, isSpace, isAlphaNum, ord)
 import Data.Bifunctor             (first)
+import Data.Functor               ((<&>))
 import Data.List (elemIndex, foldl', intersperse, mapAccumL, nub, sortBy)
 import Data.Maybe (catMaybes, fromMaybe, isJust)
 import Data.MemoUgly (memo)
@@ -60,7 +60,7 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import Data.Time.Calendar (Day)
 import Data.Time.Format (parseTimeM, defaultTimeLocale)
-import Safe (atMay, headMay, lastMay, readDef, readMay)
+import Safe (atMay, headMay, lastMay, readMay)
 import System.Directory (doesFileExist)
 import System.FilePath ((</>), takeDirectory, takeExtension, takeFileName)
 import qualified Data.Csv as Cassava
@@ -103,23 +103,20 @@ reader = Reader
 parse :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
 parse iopts f t = do
   let rulesfile = mrules_file_ iopts
-  r <- liftIO $ readJournalFromCsv rulesfile f t
-  case r of Left e   -> throwError e
-            Right pj ->
-              -- journalFinalise assumes the journal's items are
-              -- reversed, as produced by JournalReader's parser.
-              -- But here they are already properly ordered. So we'd
-              -- better preemptively reverse them once more. XXX inefficient
-              let pj' = journalReverse pj
-              -- apply any command line account aliases. Can fail with a bad replacement pattern.
-              in case journalApplyAliases (aliasesFromOpts iopts) pj' of
-                  Left e -> throwError e
-                  Right pj'' -> journalFinalise iopts{balancingopts_=(balancingopts_ iopts){ignore_assertions_=True}} f t pj''
+  readJournalFromCsv rulesfile f t
+  -- journalFinalise assumes the journal's items are
+  -- reversed, as produced by JournalReader's parser.
+  -- But here they are already properly ordered. So we'd
+  -- better preemptively reverse them once more. XXX inefficient
+  <&> journalReverse
+  -- apply any command line account aliases. Can fail with a bad replacement pattern.
+  >>= liftEither . journalApplyAliases (aliasesFromOpts iopts)
+  >>= journalFinalise iopts{balancingopts_=(balancingopts_ iopts){ignore_assertions_=True}} f t
 
 --- ** reading rules files
 --- *** rules utilities
 
--- Not used by hledger; just for lib users, 
+-- Not used by hledger; just for lib users,
 -- | An pure-exception-throwing IO action that parses this file's content
 -- as CSV conversion rules, interpolating any included files first,
 -- and runs some extra validation checks.
@@ -226,7 +223,7 @@ parseCsvRules = runParser (evalStateT rulesp defrules)
 -- | Return the validated rules, or an error.
 validateRules :: CsvRules -> Either String CsvRules
 validateRules rules = do
-  unless (isAssigned "date")   $ Left "Please specify (at top level) the date field. Eg: date %1\n"
+  unless (isAssigned "date")   $ Left "Please specify (at top level) the date field. Eg: date %1"
   Right rules
   where
     isAssigned f = isJust $ getEffectiveAssignment rules [] f
@@ -568,7 +565,7 @@ conditionalblockp = do
                  , fmap Just fieldassignmentp
                  ])
   when (null as) $
-    customFailure $ parseErrorAt start $  "start of conditional block found, but no assignment rules afterward\n(assignment rules in a conditional block should be indented)\n"
+    customFailure $ parseErrorAt start $  "start of conditional block found, but no assignment rules afterward\n(assignment rules in a conditional block should be indented)"
   return $ CB{cbMatchers=ms, cbAssignments=as}
   <?> "conditional block"
 
@@ -588,10 +585,10 @@ conditionaltablep = do
     m <- matcherp' (char sep >> return ())
     vs <- T.split (==sep) . T.pack <$> lift restofline
     if (length vs /= length fields)
-      then customFailure $ parseErrorAt off $ ((printf "line of conditional table should have %d values, but this one has only %d\n" (length fields) (length vs)) :: String)
+      then customFailure $ parseErrorAt off $ ((printf "line of conditional table should have %d values, but this one has only %d" (length fields) (length vs)) :: String)
       else return (m,vs)
   when (null body) $
-    customFailure $ parseErrorAt start $ "start of conditional table found, but no assignment rules afterward\n"
+    customFailure $ parseErrorAt start $ "start of conditional table found, but no assignment rules afterward"
   return $ flip map body $ \(m,vs) ->
     CB{cbMatchers=[m], cbAssignments=zip fields vs}
   <?> "conditional table"
@@ -614,7 +611,7 @@ recordmatcherp end = do
   r <- regexp end
   return $ RecordMatcher p r
   -- when (null ps) $
-  --   Fail.fail "start of record matcher found, but no patterns afterward\n(patterns should not be indented)\n"
+  --   Fail.fail "start of record matcher found, but no patterns afterward\n(patterns should not be indented)"
   <?> "record matcher"
 
 -- | A single matcher for a specific field. A csv field reference
@@ -686,93 +683,85 @@ regexp end = do
 -- 4. if the rules file didn't exist, create it with the default rules and filename
 --
 -- 5. return the transactions as a Journal
--- 
-readJournalFromCsv :: Maybe FilePath -> FilePath -> Text -> IO (Either String Journal)
-readJournalFromCsv Nothing "-" _ = return $ Left "please use --rules-file when reading CSV from stdin"
-readJournalFromCsv mrulesfile csvfile csvdata =
- handle (\(e::IOException) -> return $ Left $ show e) $ do
+--
+readJournalFromCsv :: Maybe FilePath -> FilePath -> Text -> ExceptT String IO Journal
+readJournalFromCsv Nothing "-" _ = throwError "please use --rules-file when reading CSV from stdin"
+readJournalFromCsv mrulesfile csvfile csvdata = do
+    -- parse the csv rules
+    let rulesfile = fromMaybe (rulesFileFor csvfile) mrulesfile
+    rulesfileexists <- liftIO $ doesFileExist rulesfile
+    rulestext <- liftIO $ if rulesfileexists
+      then do
+        dbg6IO "using conversion rules file" rulesfile
+        readFilePortably rulesfile >>= expandIncludes (takeDirectory rulesfile)
+      else
+        return $ defaultRulesText rulesfile
+    rules <- liftEither $ parseAndValidateCsvRules rulesfile rulestext
+    dbg6IO "csv rules" rules
 
-  -- make and throw an IO exception.. which we catch and convert to an Either above ?
-  let throwerr = throw . userError
+    -- parse the skip directive's value, if any
+    skiplines <- case getDirective "skip" rules of
+                      Nothing -> return 0
+                      Just "" -> return 1
+                      Just s  -> maybe (throwError $ "could not parse skip value: " ++ show s) return . readMay $ T.unpack s
 
-  -- parse the csv rules
-  let rulesfile = fromMaybe (rulesFileFor csvfile) mrulesfile
-  rulesfileexists <- doesFileExist rulesfile
-  rulestext <-
-    if rulesfileexists
-    then do
-      dbg6IO "using conversion rules file" rulesfile
-      readFilePortably rulesfile >>= expandIncludes (takeDirectory rulesfile)
-    else
-      return $ defaultRulesText rulesfile
-  rules <- either throwerr return $ parseAndValidateCsvRules rulesfile rulestext
-  dbg6IO "csv rules" rules
+    -- parse csv
+    let
+      -- parsec seems to fail if you pass it "-" here TODO: try again with megaparsec
+      parsecfilename = if csvfile == "-" then "(stdin)" else csvfile
+      separator =
+        case getDirective "separator" rules >>= parseSeparator of
+          Just c           -> c
+          _ | ext == "ssv" -> ';'
+          _ | ext == "tsv" -> '\t'
+          _                -> ','
+          where
+            ext = map toLower $ drop 1 $ takeExtension csvfile
+    dbg6IO "using separator" separator
+    csv <- dbg7 "parseCsv" <$> parseCsv separator parsecfilename csvdata
+    records <- liftEither $ dbg7 "validateCsv" <$> validateCsv rules skiplines csv
+    dbg6IO "first 3 csv records" $ take 3 records
 
-  -- parse the skip directive's value, if any
-  let skiplines = case getDirective "skip" rules of
-                    Nothing -> 0
-                    Just "" -> 1
-                    Just s  -> readDef (throwerr $ "could not parse skip value: " ++ show s) $ T.unpack s
+    -- identify header lines
+    -- let (headerlines, datalines) = identifyHeaderLines records
+    --     mfieldnames = lastMay headerlines
 
-  -- parse csv
-  let
-    -- parsec seems to fail if you pass it "-" here TODO: try again with megaparsec
-    parsecfilename = if csvfile == "-" then "(stdin)" else csvfile
-    separator =
-      case getDirective "separator" rules >>= parseSeparator of
-        Just c           -> c
-        _ | ext == "ssv" -> ';'
-        _ | ext == "tsv" -> '\t'
-        _                -> ','
+    let
+      -- convert CSV records to transactions, saving the CSV line numbers for error positions
+      txns = dbg7 "csv txns" $ snd $ mapAccumL
+                     (\pos r ->
+                        let
+                          SourcePos name line col = pos
+                          line' = (mkPos . (+1) . unPos) line
+                          pos' = SourcePos name line' col
+                        in
+                          (pos', transactionFromCsvRecord pos rules r)
+                     )
+                     (initialPos parsecfilename) records
+
+      -- Ensure transactions are ordered chronologically.
+      -- First, if the CSV records seem to be most-recent-first (because
+      -- there's an explicit "newest-first" directive, or there's more
+      -- than one date and the first date is more recent than the last):
+      -- reverse them to get same-date transactions ordered chronologically.
+      txns' =
+        (if newestfirst || mdataseemsnewestfirst == Just True 
+          then dbg7 "reversed csv txns" . reverse else id) 
+          txns
         where
-          ext = map toLower $ drop 1 $ takeExtension csvfile
-  dbg6IO "using separator" separator
-  records <- (either throwerr id .
-              dbg7 "validateCsv" . validateCsv rules skiplines .
-              dbg7 "parseCsv")
-             `fmap` parseCsv separator parsecfilename csvdata
-  dbg6IO "first 3 csv records" $ take 3 records
+          newestfirst = dbg6 "newestfirst" $ isJust $ getDirective "newest-first" rules
+          mdataseemsnewestfirst = dbg6 "mdataseemsnewestfirst" $
+            case nub $ map tdate txns of
+              ds | length ds > 1 -> Just $ head ds > last ds
+              _                  -> Nothing
+      -- Second, sort by date.
+      txns'' = dbg7 "date-sorted csv txns" $ sortBy (comparing tdate) txns'
 
-  -- identify header lines
-  -- let (headerlines, datalines) = identifyHeaderLines records
-  --     mfieldnames = lastMay headerlines
+    liftIO $ when (not rulesfileexists) $ do
+      dbg1IO "creating conversion rules file" rulesfile
+      T.writeFile rulesfile rulestext
 
-  let
-    -- convert CSV records to transactions, saving the CSV line numbers for error positions
-    txns = dbg7 "csv txns" $ snd $ mapAccumL
-                   (\pos r ->
-                      let
-                        SourcePos name line col = pos
-                        line' = (mkPos . (+1) . unPos) line
-                        pos' = SourcePos name line' col
-                      in
-                        (pos', transactionFromCsvRecord pos rules r)
-                   )
-                   (initialPos parsecfilename) records
-
-    -- Ensure transactions are ordered chronologically.
-    -- First, if the CSV records seem to be most-recent-first (because
-    -- there's an explicit "newest-first" directive, or there's more
-    -- than one date and the first date is more recent than the last):
-    -- reverse them to get same-date transactions ordered chronologically.
-    txns' =
-      (if newestfirst || mdataseemsnewestfirst == Just True 
-        then dbg7 "reversed csv txns" . reverse else id) 
-        txns
-      where
-        newestfirst = dbg6 "newestfirst" $ isJust $ getDirective "newest-first" rules
-        mdataseemsnewestfirst = dbg6 "mdataseemsnewestfirst" $
-          case nub $ map tdate txns of
-            ds | length ds > 1 -> Just $ head ds > last ds
-            _                  -> Nothing
-    -- Second, sort by date.
-    txns'' = dbg7 "date-sorted csv txns" $ sortBy (comparing tdate) txns'
-
-  when (not rulesfileexists) $ do
-    dbg1IO "creating conversion rules file" rulesfile
-    T.writeFile rulesfile rulestext
-
-  return $ Right nulljournal{jtxns=txns''}
+    return nulljournal{jtxns=txns''}
 
 -- | Parse special separator names TAB and SPACE, or return the first
 -- character. Return Nothing on empty string
@@ -782,8 +771,8 @@ parseSeparator = specials . T.toLower
         specials "tab"   = Just '\t'
         specials xs      = fst <$> T.uncons xs
 
-parseCsv :: Char -> FilePath -> Text -> IO (Either String CSV)
-parseCsv separator filePath csvdata =
+parseCsv :: Char -> FilePath -> Text -> ExceptT String IO CSV
+parseCsv separator filePath csvdata = ExceptT $
   case filePath of
     "-" -> parseCassava separator "(stdin)" <$> T.getContents
     _   -> return $ if T.null csvdata then Right mempty else parseCassava separator filePath csvdata
@@ -811,9 +800,8 @@ printCSV = TB.toLazyText . unlinesB . map printRecord
           printField = wrap "\"" "\"" . T.replace "\"" "\"\""
 
 -- | Return the cleaned up and validated CSV data (can be empty), or an error.
-validateCsv :: CsvRules -> Int -> Either String CSV -> Either String [CsvRecord]
-validateCsv _ _           (Left err) = Left err
-validateCsv rules numhdrlines (Right rs) = validate $ applyConditionalSkips $ drop numhdrlines $ filternulls rs
+validateCsv :: CsvRules -> Int -> CSV -> Either String [CsvRecord]
+validateCsv rules numhdrlines = validate . applyConditionalSkips . drop numhdrlines . filternulls
   where
     filternulls = filter (/=[""])
     skipCount r =

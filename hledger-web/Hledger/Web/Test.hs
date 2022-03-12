@@ -4,7 +4,6 @@ module Hledger.Web.Test (
   hledgerWebTest
 ) where
 
-import Control.Monad.Except (runExceptT)
 import qualified Data.Text as T
 import Test.Hspec (hspec)
 import Yesod.Default.Config

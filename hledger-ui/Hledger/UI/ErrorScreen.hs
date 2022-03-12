@@ -15,7 +15,7 @@ where
 import Brick
 -- import Brick.Widgets.Border ("border")
 import Control.Monad
-import Control.Monad.IO.Class (liftIO)
+import Control.Monad.Except (liftIO)
 import Data.Time.Calendar (Day)
 import Data.Void (Void)
 import Graphics.Vty (Event(..),Key(..),Modifier(..))
@@ -155,7 +155,7 @@ uiReloadJournal :: CliOpts -> Day -> UIState -> IO UIState
 uiReloadJournal copts d ui = do
   ej <-
     let copts' = enableForecastPreservingPeriod ui copts
-    in journalReload copts'
+    in runExceptT $ journalReload copts'
   return $ case ej of
     Right j  -> regenerateScreens j d ui
     Left err ->
@@ -168,13 +168,11 @@ uiReloadJournal copts d ui = do
 -- since the provided options or today-date may have changed.
 uiReloadJournalIfChanged :: CliOpts -> Day -> Journal -> UIState -> IO UIState
 uiReloadJournalIfChanged copts d j ui = do
-  (ej, _changed) <-
-    let copts' = enableForecastPreservingPeriod ui copts
-    in journalReloadIfChanged copts' d j
+  let copts' = enableForecastPreservingPeriod ui copts
+  ej <- runExceptT $ journalReloadIfChanged copts' d j
   return $ case ej of
-    Right j' -> regenerateScreens j' d ui
-    Left err ->
-      case ui of
+    Right (j', _) -> regenerateScreens j' d ui
+    Left err -> case ui of
         UIState{aScreen=s@ErrorScreen{}} -> ui{aScreen=s{esError=err}}
         _                                -> screenEnter d errorScreen{esError=err} ui
 

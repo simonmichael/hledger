@@ -29,7 +29,9 @@ module Hledger.Cli.Utils
      tests_Cli_Utils,
     )
 where
+
 import Control.Exception as C
+import Control.Monad.Except (ExceptT, runExceptT, liftIO)
 
 import Data.List
 import Data.Maybe
@@ -72,9 +74,8 @@ withJournalDo opts cmd = do
   -- it's stdin, or it doesn't exist and we are adding. We read it strictly
   -- to let the add command work.
   journalpaths <- journalFilePathFromOpts opts
-  files <- readJournalFiles (inputopts_ opts) journalpaths
-  let transformed = journalTransform opts <$> files
-  either error' cmd transformed  -- PARTIAL:
+  j <- runExceptT $ journalTransform opts <$> readJournalFiles (inputopts_ opts) journalpaths
+  either error' cmd j  -- PARTIAL:
 
 -- | Apply some extra post-parse transformations to the journal, if
 -- specified by options. These happen after journal validation, but
@@ -132,29 +133,28 @@ writeOutputLazyText opts s = do
 -- Returns a journal or error message, and a flag indicating whether
 -- it was re-read or not.  Like withJournalDo and journalReload, reads
 -- the full journal, without filtering.
-journalReloadIfChanged :: CliOpts -> Day -> Journal -> IO (Either String Journal, Bool)
+journalReloadIfChanged :: CliOpts -> Day -> Journal -> ExceptT String IO (Journal, Bool)
 journalReloadIfChanged opts _d j = do
   let maybeChangedFilename f = do newer <- journalFileIsNewer j f
                                   return $ if newer then Just f else Nothing
-  changedfiles <- catMaybes `fmap` mapM maybeChangedFilename (journalFilePaths j)
+  changedfiles <- liftIO $ catMaybes <$> mapM maybeChangedFilename (journalFilePaths j)
   if not $ null changedfiles
    then do
      -- XXX not sure why we use cmdarg's verbosity here, but keep it for now
-     verbose <- isLoud
-     when (verbose || debugLevel >= 6) $ printf "%s has changed, reloading\n" (head changedfiles)
-     ej <- journalReload opts
-     return (ej, True)
+     verbose <- liftIO isLoud
+     when (verbose || debugLevel >= 6) . liftIO $ printf "%s has changed, reloading\n" (head changedfiles)
+     newj <- journalReload opts
+     return (newj, True)
    else
-     return (Right j, False)
+     return (j, False)
 
 -- | Re-read the journal file(s) specified by options, applying any
 -- transformations specified by options. Or return an error string.
 -- Reads the full journal, without filtering.
-journalReload :: CliOpts -> IO (Either String Journal)
+journalReload :: CliOpts -> ExceptT String IO Journal
 journalReload opts = do
-  journalpaths <- dbg6 "reloading files" <$> journalFilePathFromOpts opts
-  files <- readJournalFiles (inputopts_ opts) journalpaths
-  return $ journalTransform opts <$> files
+  journalpaths <- liftIO $ dbg6 "reloading files" <$> journalFilePathFromOpts opts
+  journalTransform opts <$> readJournalFiles (inputopts_ opts) journalpaths
 
 -- | Has the specified file changed since the journal was last read ?
 -- Typically this is one of the journal's journalFilePaths. These are

@@ -22,14 +22,20 @@ module Hledger.Read (
   PrefixedFilePath,
   defaultJournal,
   defaultJournalPath,
-  readJournalFiles,
-  readJournalFile,
   requireJournalFileExists,
   ensureJournalFileExists,
 
   -- * Journal parsing
   readJournal,
+  readJournalFile,
+  readJournalFiles,
+  runExceptT,
+
+  -- * Easy journal parsing
   readJournal',
+  readJournalFile',
+  readJournalFiles',
+  orDieTrying,
 
   -- * Re-exported
   JournalReader.tmpostingrulep,
@@ -45,10 +51,9 @@ module Hledger.Read (
 ) where
 
 --- ** imports
-import Control.Arrow (right)
 import qualified Control.Exception as C
 import Control.Monad (unless, when)
-import "mtl" Control.Monad.Except (runExceptT)
+import "mtl" Control.Monad.Except (ExceptT(..), runExceptT, liftIO)
 import Data.Default (def)
 import Data.Foldable (asum)
 import Data.List (group, sort, sortBy)
@@ -89,36 +94,9 @@ journalEnvVar           = "LEDGER_FILE"
 journalEnvVar2          = "LEDGER"
 journalDefaultFilename  = ".hledger.journal"
 
--- | Read a Journal from the given text, assuming journal format; or
--- throw an error.
-readJournal' :: Text -> IO Journal
-readJournal' t = readJournal definputopts Nothing t >>= either error' return  -- PARTIAL:
-
--- | @readJournal iopts mfile txt@
---
--- Read a Journal from some text, or return an error message.
---
--- The reader (data format) is chosen based on, in this order:
---
--- - a reader name provided in @iopts@
---
--- - a reader prefix in the @mfile@ path
---
--- - a file extension in @mfile@
---
--- If none of these is available, or if the reader name is unrecognised,
--- we use the journal reader. (We used to try all readers in this case;
--- since hledger 1.17, we prefer predictability.)
-readJournal :: InputOpts -> Maybe FilePath -> Text -> IO (Either String Journal)
-readJournal iopts mpath txt = do
-  let r :: Reader IO =
-        fromMaybe JournalReader.reader $ findReader (mformat_ iopts) mpath
-  dbg6IO "trying reader" (rFormat r)
-  (runExceptT . (rReadFn r) iopts (fromMaybe "(string)" mpath)) txt
-
 -- | Read the default journal file specified by the environment, or raise an error.
 defaultJournal :: IO Journal
-defaultJournal = defaultJournalPath >>= readJournalFile definputopts >>= either error' return  -- PARTIAL:
+defaultJournal = defaultJournalPath >>= runExceptT . readJournalFile definputopts >>= either error' return  -- PARTIAL:
 
 -- | Get the default journal file path specified by the environment.
 -- Like ledger, we look first for the LEDGER_FILE environment
@@ -144,17 +122,27 @@ defaultJournalPath = do
 -- (journal:, csv:, timedot:, etc.).
 type PrefixedFilePath = FilePath
 
--- | Read a Journal from each specified file path and combine them into one.
--- Or, return the first error message.
+-- | @readJournal iopts mfile txt@
 --
--- Combining Journals means concatenating them, basically.
--- The parse state resets at the start of each file, which means that
--- directives & aliases do not affect subsequent sibling or parent files.
--- They do affect included child files though.
--- Also the final parse state saved in the Journal does span all files.
-readJournalFiles :: InputOpts -> [PrefixedFilePath] -> IO (Either String Journal)
-readJournalFiles iopts =
-  fmap (right (maybe def sconcat . nonEmpty) . sequence) . mapM (readJournalFile iopts)
+-- Read a Journal from some text, or return an error message.
+--
+-- The reader (data format) is chosen based on, in this order:
+--
+-- - a reader name provided in @iopts@
+--
+-- - a reader prefix in the @mfile@ path
+--
+-- - a file extension in @mfile@
+--
+-- If none of these is available, or if the reader name is unrecognised,
+-- we use the journal reader. (We used to try all readers in this case;
+-- since hledger 1.17, we prefer predictability.)
+readJournal :: InputOpts -> Maybe FilePath -> Text -> ExceptT String IO Journal
+readJournal iopts mpath txt = do
+  let r :: Reader IO =
+        fromMaybe JournalReader.reader $ findReader (mformat_ iopts) mpath
+  dbg6IO "trying reader" (rFormat r)
+  rReadFn r iopts (fromMaybe "(string)" mpath) txt
 
 -- | Read a Journal from this file, or from stdin if the file path is -,
 -- or return an error message. The file path can have a READER: prefix.
@@ -167,25 +155,55 @@ readJournalFiles iopts =
 --
 -- The input options can also configure balance assertion checking, automated posting
 -- generation, a rules file for converting CSV data, etc.
-readJournalFile :: InputOpts -> PrefixedFilePath -> IO (Either String Journal)
+readJournalFile :: InputOpts -> PrefixedFilePath -> ExceptT String IO Journal
 readJournalFile iopts prefixedfile = do
   let
     (mfmt, f) = splitReaderPrefix prefixedfile
     iopts' = iopts{mformat_=asum [mfmt, mformat_ iopts]}
-  requireJournalFileExists f
-  t <- readFileOrStdinPortably f
+  liftIO $ requireJournalFileExists f
+  t <- liftIO $ readFileOrStdinPortably f
     -- <- T.readFile f  -- or without line ending translation, for testing
-  ej <- readJournal iopts' (Just f) t
-  case ej of
-    Left e  -> return $ Left e
-    Right j | new_ iopts -> do
-      ds <- previousLatestDates f
-      let (newj, newds) = journalFilterSinceLatestDates ds j
-      when (new_save_ iopts && not (null newds)) $ saveLatestDates newds f
-      return $ Right newj
-    Right j -> return $ Right j
+  j <- readJournal iopts' (Just f) t
+  if new_ iopts
+     then do
+       ds <- liftIO $ previousLatestDates f
+       let (newj, newds) = journalFilterSinceLatestDates ds j
+       when (new_save_ iopts && not (null newds)) . liftIO $ saveLatestDates newds f
+       return newj
+     else return j
+
+-- | Read a Journal from each specified file path and combine them into one.
+-- Or, return the first error message.
+--
+-- Combining Journals means concatenating them, basically.
+-- The parse state resets at the start of each file, which means that
+-- directives & aliases do not affect subsequent sibling or parent files.
+-- They do affect included child files though.
+-- Also the final parse state saved in the Journal does span all files.
+readJournalFiles :: InputOpts -> [PrefixedFilePath] -> ExceptT String IO Journal
+readJournalFiles iopts =
+  fmap (maybe def sconcat . nonEmpty) . mapM (readJournalFile iopts)
+
+-- | An easy version of 'readJournal' which assumes default options, and fails
+-- in the IO monad.
+readJournal' :: Text -> IO Journal
+readJournal' = orDieTrying . readJournal definputopts Nothing
+
+-- | An easy version of 'readJournalFile' which assumes default options, and fails
+-- in the IO monad.
+readJournalFile' :: PrefixedFilePath -> IO Journal
+readJournalFile' = orDieTrying . readJournalFile definputopts
+
+-- | An easy version of 'readJournalFiles'' which assumes default options, and fails
+-- in the IO monad.
+readJournalFiles' :: [PrefixedFilePath] -> IO Journal
+readJournalFiles' = orDieTrying . readJournalFiles definputopts
 
 --- ** utilities
+
+-- | Extract ExceptT to the IO monad, failing with an error message if necessary.
+orDieTrying :: ExceptT String IO a -> IO a
+orDieTrying a = either fail return =<< runExceptT a
 
 -- | If the specified journal file does not exist (and is not "-"),
 -- give a helpful error and quit.
