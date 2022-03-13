@@ -1517,15 +1517,17 @@ regexaliasp = do
   -- dbgparse 0 "regexaliasp"
   (off1, off2, re) <- between (char '/') (char '/') $ do
     off1 <- getOffset
-    re <- some $ noneOf ("/\\\n\r" :: [Char])  -- paranoid: don't try to read past line end
-             <|> (char '\\' *> anySingle)      -- allow escaping any character
+    re <- fmap T.concat . some $
+             (T.singleton <$> noneOf ("/\\\n\r" :: [Char]))               -- paranoid: don't try to read past line end
+             <|> string "\\/"                                             -- allow escaping forward slashes
+             <|> (liftM2 T.cons (char '\\') (T.singleton <$> anySingle))  -- Otherwise leave backslashes in
     off2 <- getOffset
     return (off1, off2, re)
   skipNonNewlineSpaces
   char '='
   skipNonNewlineSpaces
   repl <- anySingle `manyTill` eolof
-  case toRegexCI $ T.pack re of
+  case toRegexCI re of
     Right r -> return $! RegexAlias r repl
     Left e  -> customFailure $! parseErrorAtRegion off1 off2 e
 

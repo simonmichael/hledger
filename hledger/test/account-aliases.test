@@ -267,3 +267,33 @@ $ hledger -f- print
     b
 
 >=0
+
+# 19. Make sure you can escape special regexp characters.
+<
+alias /\./ = :
+
+2021-01-01
+  hi.there    1
+  b
+
+$ hledger -f- print
+2021-01-01
+    hi:there               1
+    b
+
+>=0
+
+# 20. Including backslashes
+<
+alias /\\/ = :
+
+2021-01-01
+  hi\there    1
+  b
+
+$ hledger -f- print
+2021-01-01
+    hi:there               1
+    b
+
+>=0
