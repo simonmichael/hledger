@@ -390,16 +390,16 @@ spanFromSmartDate refdate sdate = DateSpan (Just b) (Just e)
       (ry,rm,_) = toGregorian refdate
       (b,e) = span sdate
       span :: SmartDate -> (Day,Day)
-      span (SmartRelative n Day)                    = (addDays n refdate, addDays (n+1) refdate)
-      span (SmartRelative n Week)                   = let d = thisweek refdate in (addDays (7*n) d, addDays (7*n+7) d)
-      span (SmartRelative n Month)                  = let d = thismonth refdate in (addGregorianMonthsClip n d, addGregorianMonthsClip (n+1) d)
-      span (SmartRelative n Quarter)                = let d = thisquarter refdate in (addGregorianMonthsClip (3*n) d, addGregorianMonthsClip (3*n+3) d)
-      span (SmartRelative n Year)                   = let d = thisyear refdate in (addGregorianYearsClip n d, addGregorianYearsClip (n+1) d)
-      span (SmartAssumeStart y Nothing)             = (startofyear day, nextyear day) where day = fromGregorian y 1 1
-      span (SmartAssumeStart y (Just (m, Nothing))) = (startofmonth day, nextmonth day) where day = fromGregorian y m 1
-      span (SmartAssumeStart y (Just (m, Just d)))  = (day, nextday day) where day = fromGregorian y m d
-      span (SmartFromReference m d)                 = (day, nextday day) where day = fromGregorian ry (fromMaybe rm m) d
-      span (SmartMonth m)                           = (startofmonth day, nextmonth day) where day = fromGregorian ry m 1
+      span (SmartCompleteDate day)       = (day, nextday day)
+      span (SmartAssumeStart y Nothing)  = (startofyear day, nextyear day) where day = fromGregorian y 1 1
+      span (SmartAssumeStart y (Just m)) = (startofmonth day, nextmonth day) where day = fromGregorian y m 1
+      span (SmartFromReference m d)      = (day, nextday day) where day = fromGregorian ry (fromMaybe rm m) d
+      span (SmartMonth m)                = (startofmonth day, nextmonth day) where day = fromGregorian ry m 1
+      span (SmartRelative n Day)         = (addDays n refdate, addDays (n+1) refdate)
+      span (SmartRelative n Week)        = (addDays (7*n) d, addDays (7*n+7) d) where d = thisweek refdate
+      span (SmartRelative n Month)       = (addGregorianMonthsClip n d, addGregorianMonthsClip (n+1) d) where d = thismonth refdate
+      span (SmartRelative n Quarter)     = (addGregorianMonthsClip (3*n) d, addGregorianMonthsClip (3*n+3) d) where d = thisquarter refdate
+      span (SmartRelative n Year)        = (addGregorianYearsClip n d, addGregorianYearsClip (n+1) d) where d = thisyear refdate
 
 -- showDay :: Day -> String
 -- showDay day = printf "%04d/%02d/%02d" y m d where (y,m,d) = toGregorian day
@@ -508,14 +508,15 @@ fixSmartDate :: Day -> SmartDate -> Day
 fixSmartDate refdate = fix
   where
     fix :: SmartDate -> Day
+    fix (SmartCompleteDate d)     = d
+    fix (SmartAssumeStart y m)    = fromGregorian y (fromMaybe 1 m) 1
+    fix (SmartFromReference m d)  = fromGregorian ry (fromMaybe rm m) d
+    fix (SmartMonth m)            = fromGregorian ry m 1
     fix (SmartRelative n Day)     = addDays n refdate
     fix (SmartRelative n Week)    = addDays (7*n) $ thisweek refdate
     fix (SmartRelative n Month)   = addGregorianMonthsClip n $ thismonth refdate
     fix (SmartRelative n Quarter) = addGregorianMonthsClip (3*n) $ thisquarter refdate
     fix (SmartRelative n Year)    = addGregorianYearsClip n $ thisyear refdate
-    fix (SmartAssumeStart y md)   = fromGregorian y (maybe 1 fst md) (fromMaybe 1 $ snd =<< md)
-    fix (SmartFromReference m d)  = fromGregorian ry (fromMaybe rm m) d
-    fix (SmartMonth m)            = fromGregorian ry m 1
     (ry, rm, _) = toGregorian refdate
 
 prevday :: Day -> Day
@@ -725,11 +726,11 @@ Eg:
 YYYYMMDD is parsed as year-month-date if those parts are valid
 (>=4 digits, 1-12, and 1-31 respectively):
 >>> parsewith (smartdate <* eof) "20181201"
-Right (SmartAssumeStart 2018 (Just (12,Just 1)))
+Right (SmartCompleteDate 2018-12-01)
 
 YYYYMM is parsed as year-month-01 if year and month are valid:
 >>> parsewith (smartdate <* eof) "201804"
-Right (SmartAssumeStart 2018 (Just (4,Nothing)))
+Right (SmartAssumeStart 2018 (Just 4))
 
 With an invalid month, it's parsed as a year:
 >>> parsewith (smartdate <* eof) "201813"
@@ -788,31 +789,39 @@ validDay n = n >= 1 && n <= 31
 failIfInvalidDate :: Fail.MonadFail m => SmartDate -> m SmartDate
 failIfInvalidDate s = unless isValid (Fail.fail $ "bad smart date: " ++ show s) $> s
   where isValid = case s of
-            SmartAssumeStart y (Just (m, md)) -> isJust $ fromGregorianValid y m (fromMaybe 1 md)
-            SmartFromReference mm d           -> isJust $ fromGregorianValid 2004 (fromMaybe 1 mm) d
-            SmartMonth m                      -> validMonth m
-            _                                 -> True
+            SmartAssumeStart _ (Just m) -> validMonth m
+            SmartFromReference mm d     -> isJust $ fromGregorianValid 2004 (fromMaybe 1 mm) d
+            SmartMonth m                -> validMonth m
+            _                           -> True
+
+showBadDate :: Integer -> Int -> Int -> String
+showBadDate y m d = "bad smart date: " ++ show y ++ "-" ++ show m ++ "-" ++ show d
 
 yyyymmdd :: TextParser m SmartDate
 yyyymmdd = do
   y <- read <$> count 4 digitChar
   m <- read <$> count 2 digitChar
-  d <- optional $ read <$> count 2 digitChar
-  let date = SmartAssumeStart y $ Just (m, d)
-  failIfInvalidDate date
+  md <- optional $ read <$> count 2 digitChar
+  case md of
+      Nothing -> failIfInvalidDate $ SmartAssumeStart y (Just m)
+      Just d  -> maybe (Fail.fail $ showBadDate y m d) (return . SmartCompleteDate) $
+                   fromGregorianValid y m d
 
 ymd :: TextParser m SmartDate
 ymd = do
     y <- yearp
-    fmap (SmartAssumeStart y) . optional . try $ do
+    emd <- optional . try $ do
         sep <- datesepchar
         m <- decimal
         unless (validMonth m) $ Fail.fail ("Bad month " <> show m)
-        fmap (m,) . optional . try $ do
+        option (Left m) . try $ Right <$> do
             _ <- char sep
             d <- decimal
-            failIfInvalidDate $ SmartAssumeStart y (Just (m, Just d))
-            return d
+            maybe (Fail.fail $ showBadDate y m d) return $ fromGregorianValid y m d
+    return $ case emd of
+        Nothing          -> SmartAssumeStart y Nothing
+        Just (Left m)    -> SmartAssumeStart y (Just m)
+        Just (Right day) -> SmartCompleteDate day
 
 md :: TextParser m (Month, MonthDay)
 md = do
