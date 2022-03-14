@@ -81,7 +81,8 @@ type WeekDay = Int   -- 1-7
 -- (last|this|next) (day|week|month|quarter|year), where "this" means the period
 -- containing the reference date.
 data SmartDate
-  = SmartAssumeStart Year (Maybe (Month, Maybe MonthDay))
+  = SmartCompleteDate Day
+  | SmartAssumeStart Year (Maybe Month)
   | SmartFromReference (Maybe Month) MonthDay
   | SmartMonth Month
   | SmartRelative Integer SmartInterval
