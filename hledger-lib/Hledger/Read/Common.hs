@@ -35,7 +35,7 @@ module Hledger.Read.Common (
 
   -- * parsing utilities
   parseAndFinaliseJournal,
-  parseAndFinaliseJournal',
+  initialiseAndParseJournal,
   journalFinalise,
   journalCheckAccountsDeclared,
   journalCheckCommoditiesDeclared,
@@ -121,7 +121,7 @@ where
 --- ** imports
 import Control.Applicative.Permutations (runPermutation, toPermutationWithDefault)
 import qualified Control.Monad.Fail as Fail (fail)
-import Control.Monad.Except (ExceptT(..), liftEither, runExceptT, throwError)
+import Control.Monad.Except (ExceptT(..), liftEither, withExceptT)
 import Control.Monad.State.Strict hiding (fail)
 import Data.Bifunctor (bimap, second)
 import Data.Char (digitToInt, isDigit, isSpace)
@@ -144,7 +144,7 @@ import Text.Megaparsec
 import Text.Megaparsec.Char (char, char', digitChar, newline, string)
 import Text.Megaparsec.Char.Lexer (decimal)
 import Text.Megaparsec.Custom
-  (attachSource, customErrorBundlePretty, finalErrorBundlePretty, parseErrorAt, parseErrorAtRegion)
+  (FinalParseError, attachSource, customErrorBundlePretty, finalErrorBundlePretty, parseErrorAt, parseErrorAtRegion)
 
 import Hledger.Data
 import Hledger.Query (Query(..), filterQuery, parseQueryTerm, queryEndDate, queryStartDate, queryIsDate, simplifyQuery)
@@ -249,42 +249,32 @@ commodityStyleFromRawOpts rawOpts =
     parseCommodity optStr = case amountp'' optStr of
         Left _ -> Left optStr
         Right (Amount acommodity _ astyle _) -> Right (acommodity, astyle)
+
 -- | Given a parser to ParsedJournal, input options, file path and
 -- content: run the parser on the content, and finalise the result to
 -- get a Journal; or throw an error.
 parseAndFinaliseJournal :: ErroringJournalParser IO ParsedJournal -> InputOpts
                            -> FilePath -> Text -> ExceptT String IO Journal
-parseAndFinaliseJournal parser iopts f txt = do
-  let y = first3 . toGregorian $ _ioDay iopts
-      initJournal = nulljournal{ jparsedefaultyear = Just y, jincludefilestack = [f] }
-  eep <- liftIO $ runExceptT $ runParserT (evalStateT parser initJournal) f txt
-  -- TODO: urgh.. clean this up somehow
-  case eep of
-    Left finalParseError -> throwError $ finalErrorBundlePretty $ attachSource f txt finalParseError
-    Right ep -> case ep of
-                  Left e   -> throwError $ customErrorBundlePretty e
-                  Right pj -> journalFinalise iopts f txt pj
+parseAndFinaliseJournal parser iopts f txt =
+    initialiseAndParseJournal parser iopts f txt >>= journalFinalise iopts f txt
 
--- | Like parseAndFinaliseJournal but takes a (non-Erroring) JournalParser.
--- Also, applies command-line account aliases before finalising.
--- Used for timeclock/timedot.
--- TODO: get rid of this, use parseAndFinaliseJournal instead
-parseAndFinaliseJournal' :: JournalParser IO ParsedJournal -> InputOpts
-                           -> FilePath -> Text -> ExceptT String IO Journal
-parseAndFinaliseJournal' parser iopts f txt = do
-  let y = first3 . toGregorian $ _ioDay iopts
-      initJournal = nulljournal
-        { jparsedefaultyear = Just y
-        , jincludefilestack = [f] }
-  ep <- liftIO $ runParserT (evalStateT parser initJournal) f txt
-  -- see notes above
-  case ep of
-    Left e   -> throwError $ customErrorBundlePretty e
-    Right pj ->
-      -- apply any command line account aliases. Can fail with a bad replacement pattern.
-      case journalApplyAliases (aliasesFromOpts iopts) pj of
-        Left e    -> throwError e
-        Right pj' -> journalFinalise iopts f txt pj'
+-- | Given a parser to ParsedJournal, input options, file path and
+-- content: run the parser on the content. This is all steps of
+-- 'parseAndFinaliseJournal' without the finalisation step, and is used when
+-- you need to perform other actions before finalisation, as in parsing
+-- Timeclock and Timedot files.
+initialiseAndParseJournal :: ErroringJournalParser IO ParsedJournal -> InputOpts
+                          -> FilePath -> Text -> ExceptT String IO Journal
+initialiseAndParseJournal parser iopts f txt =
+    prettyParseErrors $ runParserT (evalStateT parser initJournal) f txt
+  where
+    y = first3 . toGregorian $ _ioDay iopts
+    initJournal = nulljournal{jparsedefaultyear = Just y, jincludefilestack = [f]}
+    -- Flatten parse errors and final parse errors, and output each as a pretty String.
+    prettyParseErrors :: ExceptT FinalParseError IO (Either (ParseErrorBundle Text CustomErr) a)
+                      -> ExceptT String IO a
+    prettyParseErrors = withExceptT customErrorBundlePretty . liftEither
+                    <=< withExceptT (finalErrorBundlePretty . attachSource f txt)
 
 {- HLINT ignore journalFinalise "Redundant <&>" -} -- silence this warning, the code is clearer as is
 -- NB activates TH, may slow compilation ? https://github.com/ndmitchell/hlint/blob/master/README.md#customizing-the-hints
