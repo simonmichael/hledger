@@ -41,7 +41,7 @@ where
 
 --- ** imports
 import Control.Monad
-import Control.Monad.Except (ExceptT)
+import Control.Monad.Except (ExceptT, liftEither)
 import Control.Monad.State.Strict
 import Data.Char (isSpace)
 import Data.List (foldl')
@@ -71,7 +71,9 @@ reader = Reader
 
 -- | Parse and post-process a "Journal" from the timedot format, or give an error.
 parse :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
-parse = parseAndFinaliseJournal' timedotp
+parse iopts fp t = initialiseAndParseJournal timedotp iopts fp t
+                   >>= liftEither . journalApplyAliases (aliasesFromOpts iopts)
+                   >>= journalFinalise iopts fp t
 
 --- ** utilities
 
@@ -173,7 +175,7 @@ entryp = do
   lift skipNonNewlineSpaces
   hrs <-
     try (lift followingcommentp >> return 0)
-    <|> (durationp <*
+    <|> (lift durationp <*
          (try (lift followingcommentp) <|> (newline >> return "")))
   mcs <- getDefaultCommodityAndStyle
   let 
@@ -194,9 +196,9 @@ entryp = do
   lift $ traceparse' "entryp"
   return t
 
-durationp :: JournalParser m Quantity
+durationp :: TextParser m Quantity
 durationp = do
-  lift $ traceparse "durationp"
+  traceparse "durationp"
   try numericquantityp <|> dotquantityp
     -- <* traceparse' "durationp"
 
@@ -209,12 +211,12 @@ durationp = do
 -- 1.5h
 -- 90m
 -- @
-numericquantityp :: JournalParser m Quantity
+numericquantityp :: TextParser m Quantity
 numericquantityp = do
   -- lift $ traceparse "numericquantityp"
-  (q, _, _, _) <- lift $ numberp Nothing
+  (q, _, _, _) <- numberp Nothing
   msymbol <- optional $ choice $ map (string . fst) timeUnits
-  lift skipNonNewlineSpaces
+  skipNonNewlineSpaces
   let q' =
         case msymbol of
           Nothing  -> q
@@ -239,7 +241,7 @@ timeUnits =
 -- @
 -- .... ..
 -- @
-dotquantityp :: JournalParser m Quantity
+dotquantityp :: TextParser m Quantity
 dotquantityp = do
   -- lift $ traceparse "dotquantityp"
   dots <- filter (not.isSpace) <$> many (oneOf (". " :: [Char]))

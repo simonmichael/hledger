@@ -58,7 +58,7 @@ where
 
 --- ** imports
 import           Control.Monad
-import           Control.Monad.Except (ExceptT)
+import           Control.Monad.Except (ExceptT, liftEither)
 import           Control.Monad.State.Strict
 import           Data.Maybe (fromMaybe)
 import           Data.Text (Text)
@@ -88,7 +88,9 @@ reader = Reader
 -- format, saving the provided file path and the current time, or give an
 -- error.
 parse :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
-parse = parseAndFinaliseJournal' timeclockfilep
+parse iopts fp t = initialiseAndParseJournal timeclockfilep iopts fp t
+                   >>= liftEither . journalApplyAliases (aliasesFromOpts iopts)
+                   >>= journalFinalise iopts fp t
 
 --- ** parsers
 
@@ -124,5 +126,3 @@ timeclockentryp = do
   account <- fromMaybe "" <$> optional (lift skipNonNewlineSpaces1 >> modifiedaccountnamep)
   description <- T.pack . fromMaybe "" <$> lift (optional (skipNonNewlineSpaces1 >> restofline))
   return $ TimeclockEntry sourcepos (read [code]) datetime account description
-
-
