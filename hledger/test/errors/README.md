@@ -41,7 +41,9 @@ Here is the current status
 | uniqueleafnames          |          |                  |                    | Y      | Y                |                 |
 
 Key:
-- format: the error message follows a standard format (format 1: location on first line; format 2:summary on first line, location on second line)
+- format: the error message follows a standard format
+  (format 1: location on first line, megaparsec-like. 
+   format 2: summary on first line, location on second line, rustc-like.)
 - accurate line - the optimal line(s) is(are) selected
 - accurate column - the optimal column(s) is(are) selected
 - visual - the CLI error message shows a relevant excerpt (Y), ideally with the error highlighted (YY)
@@ -52,7 +54,7 @@ Key:
 
 - [ ] phase 1: update flycheck to detect journal errors of current hledger release (and keep a branch updated to detect errors of latest hledger master)
 - [x] phase 2: survey/document current journal errors
-- [ ] phase 3: pick a new standard format
+- [x] phase 3: pick a new standard format
 - [ ] phase 4: implement consistent format for all
 - [ ] phase 5: implement accurate lines for all
 - [ ] phase 6: implement accurate columns for all
@@ -63,6 +65,7 @@ Key:
 - [ ] phase 11: do likewise for csv errors
 - [ ] phase 12: do likewise for other command line errors
 - [ ] phase 13: decide/add error ids/explanations/web pages ?
+- [ ] phase 14: support Language Server Protocol & Visual Code
 
 ## Current journal errors
 
@@ -198,7 +201,18 @@ seen in "a:c" in transaction at: /Users/simon/src/hledger/hledger/test/errors/./
 
 ## New error format
 
-Proposed new formats (see also [#1436][]). 
+The preferred standard error format for now is the following, 
+similar to the one megaparsec gives us
+and probably the easiest to implement consistently:
+
+```
+Error: FILE:LOCATION:
+EXCERPT
+SUMMARY
+[DETAILS}
+```
+
+Other format notes (see also [#1436][]):
 
 megaparsec-like:
 
@@ -228,7 +242,7 @@ EXCERPT
 
 - Having summary on the first line can be helpful eg when grepping logged errors.
 
-Open questions:
+Questions:
 
 - location needed on first line for maximum tool support ?
 - summary needed on first line for maximum concision/greppability ?
