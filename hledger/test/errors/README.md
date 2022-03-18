@@ -26,27 +26,29 @@ brings immediate practical benefits.
 Here is the current status
 (hledger 1.25, flycheck + [PR#10][flycheck-hledger-10]):
 
-|                          | consistent | accurate line(s) | accurate column(s) | visual | flycheck detects | flycheck region |
-|--------------------------|------------|------------------|--------------------|--------|------------------|-----------------|
-| parseable                |            | Y                | Y                  | YY     | Y                | Y               |
-| parseable-dates          |            | Y                | Y                  | YY     | Y                | Y               |
-| parseable-regexps        |            | Y                | Y                  | YY     | Y                | Y               |
-| balanced                 |            | Y                | -                  | Y      | Y                |                 |
-| balancednoautoconversion |            | Y                | -                  | Y      | Y                |                 |
-| assertions               |            | Y                |                    | Y      | Y                | Y               |
-| accounts                 |            |                  |                    | Y      | Y                |                 |
-| commodities              |            |                  |                    | Y      | Y                |                 |
-| payees                   |            |                  |                    | Y      | Y                | Y               |
-| ordereddates             |            |                  |                    | Y      | Y                | Y               |
-| uniqueleafnames          |            |                  |                    | Y      | Y                |                 |
+|                          | format   | accurate line(s) | accurate column(s) | visual | flycheck detects | flycheck region |
+|--------------------------|----------|------------------|--------------------|--------|------------------|-----------------|
+| parseable                | format 1 | Y                | Y                  | YY     | Y                | Y               |
+| parseable-dates          | format 1 | Y                | Y                  | YY     | Y                | Y               |
+| parseable-regexps        | format 1 | Y                | Y                  | YY     | Y                | Y               |
+| balanced                 |          | Y                | -                  | Y      | Y                |                 |
+| balancednoautoconversion |          | Y                | -                  | Y      | Y                |                 |
+| assertions               |          | Y                |                    | Y      | Y                | Y               |
+| accounts                 | format 2 |                  |                    | Y      | Y                |                 |
+| commodities              | format 2 |                  |                    | Y      | Y                |                 |
+| payees                   | format 2 |                  |                    | Y      | Y                | Y               |
+| ordereddates             | format 2 |                  |                    | Y      | Y                | Y               |
+| uniqueleafnames          |          |                  |                    | Y      | Y                |                 |
 
 Key:
-- consistent: the error message follows a standard format
+- format: the error message follows a standard format
 - accurate line - the optimal line(s) is(are) selected
 - accurate column - the optimal column(s) is(are) selected
 - visual - the CLI error message shows a relevant excerpt (Y), ideally with the error highlighted (YY)
 - flycheck detects - flycheck recognises the error output, reports the error and doesn't give a "suspicious" warning
 - flycheck region - flycheck highlights a reasonably accurate text region containing the error
+- format 1 - location on first line
+- format 2 - summary on first line, location on second line
 
 ## Goals
 
@@ -57,7 +59,7 @@ Key:
 - [ ] phase 5: implement accurate lines for all
 - [ ] phase 6: implement accurate columns for all
 - [ ] phase 7: implement useful highlighted excerpts for all
-- [ ] phase 8: implement accurate flycheck-highlighted region for all
+- [ ] phase 8: implement accurate flycheck region for all
 - [ ] phase 9: do likewise for timeclock errors
 - [ ] phase 10: do likewise for timedot errors
 - [ ] phase 11: do likewise for csv errors
