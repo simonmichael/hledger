@@ -180,7 +180,9 @@ seen in "a:c" in transaction at: /Users/simon/src/hledger/hledger/test/errors/./
 
 ## Standard error format
 
-The proposed new format from [#1436][]. This is similar to megaparsec's pretty error output.
+Proposed new formats (see also [#1436][]). 
+
+megaparsec-like:
 
 ```
 Error: [ID] FILE:LOCATION
@@ -192,7 +194,37 @@ SUMMARY
 - begins with the word "Error"
 - ID is an optional error id, eg `HL1001` (in brackets ?). We might adopt these, similar to ShellCheck.
 - FILE is the file path.
-- LOCATION is `LINE[-ENDLINE][:COLUMN[-ENDCOLUMN]]					`
+- LOCATION is `LINE[-ENDLINE][:COLUMN[-ENDCOLUMN]]`. Having location on the first line helps some tools, like Emacs M-x compile.
 - EXCERPT is a short visual snippet whenever possible, with the error region highlighted, line numbers, and colour when supported. This section must be easy for flycheck to ignore.
-- SUMMARY is a one line description/explanation of the problem. Currently we include contextual data in these for clarity, but it might be advantageous to use unchanging standard text.
+- SUMMARY is a one line description/explanation of the problem. Currently we use dynamic summaries including contextual data for clarity. ShellCheck uses static summaries, which might have some advantages.
 - DETAILS is optional additional details/advice when needed.
+
+rustc-like:
+
+```
+Error[ID]: SUMMARY
+at FILE:LOCATION
+EXCERPT
+[DETAILS]
+```
+
+- Having summary on the first line can be helpful eg when grepping logged errors.
+
+Questions:
+
+- location needed on first line for maximum tool support ?
+- summary needed on first line for maximum concision/greppability ?
+- dynamic or static summary ?
+- error ids/explanations needed ? local and/or web based ? easily editable ?
+
+## Some milestones
+
+- [ ] phase 1: update flycheck to detect errors of current hledger release (and keep a branch updated to detect errors of latest hledger master)
+- [x] phase 2: survey/document current journal errors
+- [ ] phase 3: pick a new standard format
+- [ ] phase 4: consistent format for all
+- [ ] phase 5: accurate lines for all
+- [ ] phase 6: accurate columns for all
+- [ ] phase 7: useful highlighted excerpts for all
+- [ ] phase 8: accurate flycheck-highlighted region for all
+- [ ] phase 9: design/add error ids, explanations, editable web pages ?
