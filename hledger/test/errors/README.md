@@ -3,13 +3,13 @@ They are named similarly to [hledger check][]'s checks.
 
 In the CLI, execute them to see the error messages (`./showall`).
 
-In Emacs with [flycheck-hledger][], 
+In Emacs with [flycheck-hledger][],
 customize flycheck-hledger-* to enable all appropriate checks,
 and open the files to see how flycheck handles them.
 Some files contain extra declarations to ease flycheck testing.
 
 [hledger check]:    https://hledger.org/hledger.html#check
-[flycheck-hledger]: https://github.com/DamienCassou/flycheck-hledger 
+[flycheck-hledger]: https://github.com/DamienCassou/flycheck-hledger
 [flycheck-hledger-10]: https://github.com/DamienCassou/flycheck-hledger/pull/10
 [#1436]:            https://github.com/simonmichael/hledger/issues/1436
 
@@ -19,7 +19,7 @@ whenever they change ([#1436][]).
 Getting consistent high-quality errors and accurate flycheck region
 highlighting, not to mention LSP support, for all of our journal
 errors is a big project, but it's crowd-sourceable and any progress
-brings immediate practical benefits. 
+brings immediate practical benefits.
 
 Here is the current status
 (hledger 1.25, flycheck + [PR#10][flycheck-hledger-10], last updated 2022-03-18):
@@ -49,7 +49,7 @@ Key:
 ## Current journal errors
 
 <!-- to update: erase the below then C-u M-! ./showall -->
-hledger 1.25.99-ge6bf04fce-20220316 error messages, last updated 2022-03-18:
+hledger 1.25, last updated 2022-03-18:
 
 ### parseable
 ```
@@ -88,7 +88,7 @@ hledger: /Users/simon/src/hledger/hledger/test/errors/./balanced.j:3-4
 could not balance this transaction:
 real postings' sum should be 0 but is: 1
 2022-01-01
-    a               1
+	a               1
 
 ```
 
@@ -99,8 +99,8 @@ could not balance this transaction:
 real postings' sum should be 0 but is:  1 A
 -1 B
 2022-01-01
-    a             1 A
-    b            -1 B
+	a             1 A
+	b            -1 B
 
 ```
 
@@ -109,12 +109,12 @@ real postings' sum should be 0 but is:  1 A
 hledger: balance assertion: /Users/simon/src/hledger/hledger/test/errors/./assertions.j:4:8
 transaction:
 2022-01-01
-    a               0 = 1
+	a               0 = 1
 
 assertion details:
 date:       2022-01-01
 account:    a
-commodity:  
+commodity:
 calculated: 0
 asserted:   1
 difference: 1
@@ -127,7 +127,7 @@ Error: undeclared account "a"
 in transaction at: /Users/simon/src/hledger/hledger/test/errors/./accounts.j:3-4
 
   2022-01-01
-      (a)               1
+	  (a)               1
 
 ```
 
@@ -137,7 +137,7 @@ Error: undeclared commodity "A"
 in transaction at: /Users/simon/src/hledger/hledger/test/errors/./commodities.j:5-6
 
   2022-01-01
-      (a)             A 1
+	  (a)             A 1
 
 ```
 
@@ -147,7 +147,7 @@ Error: undeclared payee "p"
 at: /Users/simon/src/hledger/hledger/test/errors/./payees.j:6-7
 
 > 2022-01-01 p
-      (a)             A 1
+	  (a)             A 1
 
 ```
 
@@ -157,11 +157,11 @@ Error: transaction date is out of order
 at /Users/simon/src/hledger/hledger/test/errors/./ordereddates.j:10-11:
 
   2022-01-02 p
-      (a)               1
-  
+	  (a)               1
+
 > 2022-01-01 p
-      (a)               1
-  
+	  (a)               1
+
 
 ```
 
@@ -176,3 +176,23 @@ seen in "a:c" in transaction at: /Users/simon/src/hledger/hledger/test/errors/./
 
 ```
 
+
+
+## Standard error format
+
+The proposed new format from [#1436][]. This is similar to megaparsec's pretty error output.
+
+```
+Error: [ID] FILE:LOCATION
+EXCERPT
+SUMMARY
+[DETAILS]
+```
+
+- begins with the word "Error"
+- ID is an optional error id, eg `HL1001` (in brackets ?). We might adopt these, similar to ShellCheck.
+- FILE is the file path.
+- LOCATION is `LINE[-ENDLINE][:COLUMN[-ENDCOLUMN]]					`
+- EXCERPT is a short visual snippet whenever possible, with the error region highlighted, line numbers, and colour when supported. This section must be easy for flycheck to ignore.
+- SUMMARY is a one line description/explanation of the problem. Currently we include contextual data in these for clarity, but it might be advantageous to use unchanging standard text.
+- DETAILS is optional additional details/advice when needed.
