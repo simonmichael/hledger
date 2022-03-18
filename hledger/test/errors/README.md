@@ -10,6 +10,7 @@ Some files contain extra declarations to ease flycheck testing.
 
 [hledger check]:    https://hledger.org/hledger.html#check
 [flycheck-hledger]: https://github.com/DamienCassou/flycheck-hledger 
+[flycheck-hledger-10]: https://github.com/DamienCassou/flycheck-hledger/pull/10
 [#1436]:            https://github.com/simonmichael/hledger/issues/1436
 
 hledger error messages are currently quite varied in format.
@@ -18,7 +19,10 @@ whenever they change ([#1436][]).
 Getting consistent high-quality errors and accurate flycheck region
 highlighting, not to mention LSP support, for all of our journal
 errors is a big project, but it's crowd-sourceable and any progress
-brings immediate practical benefits. Here is the approximate current status:
+brings immediate practical benefits. 
+
+Here is the current status
+(hledger 1.25, flycheck + [PR#10][flycheck-hledger-10], last updated 2022-03-18):
 
 |                          | consistent | accurate line(s) | accurate column(s) | visual | flycheck detects | flycheck region |
 |--------------------------|------------|------------------|--------------------|--------|------------------|-----------------|
