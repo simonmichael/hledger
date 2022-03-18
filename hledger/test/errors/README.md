@@ -8,7 +8,7 @@ customize flycheck-hledger-* to enable all appropriate checks,
 and open the files to see how flycheck handles them.
 Some files contain extra declarations to ease flycheck testing.
 
-[hledger-check]:    https://hledger.org/hledger.html#check
+[hledger check]:    https://hledger.org/hledger.html#check
 [flycheck-hledger]: https://github.com/DamienCassou/flycheck-hledger 
 [#1436]:            https://github.com/simonmichael/hledger/issues/1436
 
@@ -20,26 +20,27 @@ highlighting, not to mention LSP support, for all of our journal
 errors is a big project, but it's crowd-sourceable and any progress
 brings immediate practical benefits. Here is the approximate current status:
 
-|                          | consistent | accurate line | accurate column | flycheck detects | flycheck region |
-|--------------------------|------------|---------------|-----------------|------------------|-----------------|
-| parseable                |            |               |                 | Y                |                 |
-| parseable-dates          |            |               |                 | Y                |                 |
-| parseable-regexps        |            |               |                 | Y                |                 |
-| balanced                 |            |               |                 | Y                |                 |
-| balancednoautoconversion |            |               |                 | Y                |                 |
-| assertions               |            |               |                 | Y                |                 |
-| accounts                 |            |               |                 | Y                |                 |
-| commodities              |            |               |                 | Y                |                 |
-| payees                   |            |               |                 | Y                |                 |
-| ordereddates             |            |               |                 | Y                |                 |
-| uniqueleafnames          |            |               |                 | Y                |                 |
+|                          | consistent | accurate line(s) | accurate column(s) | visual | flycheck detects | flycheck region |
+|--------------------------|------------|------------------|--------------------|--------|------------------|-----------------|
+| parseable                |            | Y                | Y                  | YY     | Y                | Y               |
+| parseable-dates          |            | Y                | Y                  | YY     | Y                | Y               |
+| parseable-regexps        |            | Y                | Y                  | YY     | Y                | Y               |
+| balanced                 |            | Y                | -                  | Y      | Y                |                 |
+| balancednoautoconversion |            | Y                | -                  | Y      | Y                |                 |
+| assertions               |            | Y                |                    | Y      | Y                | Y               |
+| accounts                 |            |                  |                    | Y      | Y                |                 |
+| commodities              |            |                  |                    | Y      | Y                |                 |
+| payees                   |            |                  |                    | Y      | Y                | Y               |
+| ordereddates             |            |                  |                    | Y      | Y                | Y               |
+| uniqueleafnames          |            |                  |                    | Y      | Y                |                 |
 
 Key:
-- consistent: the error message follows a consistent format
+- consistent: the error message follows a standard format
 - accurate line - the optimal line(s) is(are) selected
 - accurate column - the optimal column(s) is(are) selected
+- visual - the CLI error message shows a relevant excerpt (Y), ideally with the error highlighted (YY)
 - flycheck detects - flycheck recognises the error output, reports the error and doesn't give a "suspicious" warning
-- flycheck shows region - flycheck highlights the text region containing the error
+- flycheck region - flycheck highlights a reasonably accurate text region containing the error
 
 ## Current journal errors
 
