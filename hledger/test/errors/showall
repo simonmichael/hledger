@@ -1,4 +1,28 @@
 #!/usr/bin/env sh
-# execute all journals, showing their error message
+# Execute all test journals, showing their error messages
+# (as README-ready markdown).
 
-for f in *.j; do echo $f:; ./$f || true; done
+# All test journals in this directory, in preferred test/display order
+testfiles="\
+  parseable.j \
+  parseable-dates.j \
+  parseable-regexps.j \
+  balanced.j \
+  balancednoautoconversion.j \
+  assertions.j \
+  accounts.j \
+  commodities.j \
+  payees.j \
+  ordereddates.j \
+  uniqueleafnames.j \
+  "
+
+printf '%s error messages, last updated %s:\n\n' \
+       "$(hledger --version | cut -d, -f1)" \
+       "$(date +%Y-%m-%d)"
+
+for f in $testfiles; do
+    printf '### %s\n```\n' "$(echo "$f" | cut -d. -f1)"
+    ./"$f" || true
+    printf '```\n\n'
+done
