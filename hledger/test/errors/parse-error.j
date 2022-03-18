@@ -1,0 +1,3 @@
+# hledger check
+
+1
