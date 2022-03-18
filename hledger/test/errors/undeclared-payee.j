@@ -1,4 +1,4 @@
-# hledger check payees
+#!/usr/bin/env -S hledger check payees -f
 
 account a
 commodity A

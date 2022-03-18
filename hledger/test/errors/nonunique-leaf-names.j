@@ -1,4 +1,4 @@
-# hledger check uniqueleafnames
+#!/usr/bin/env -S hledger check uniqueleafnames -f
 
 account a:c  ; XXX check uniqueleafnames doesn't notice these
 account b:c  ;

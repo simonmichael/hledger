@@ -1,4 +1,4 @@
-# hledger check ordereddates
+#!/usr/bin/env -S hledger check ordereddates -f
 
 account a
 commodity 1.

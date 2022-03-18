@@ -392,7 +392,7 @@ journalCheckAccountsDeclared j = mapM_ checkacct (journalPostings j)
           ++ case ptransaction of
               Nothing -> ""
               Just t  -> printf "in transaction at: %s\n\n%s"
-                          (sourcePosPairPretty $ tsourcepos t)
+                          (sourcePosPairPrettxy $ tsourcepos t)
                           (linesPrepend "  " . (<>"\n") . textChomp $ showTransaction t)
       where
         as = journalAccountNamesDeclared j

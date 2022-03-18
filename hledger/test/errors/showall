@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+# execute all journals, showing their error message
+
+for f in *.j; do echo $f:; ./$f || true; done

@@ -1,4 +1,4 @@
-# hledger check commodities
+#!/usr/bin/env -S hledger check commodities -f
 
 account a
 
