@@ -13,6 +13,8 @@ Some files contain extra declarations to ease flycheck testing.
 [flycheck-hledger-10]: https://github.com/DamienCassou/flycheck-hledger/pull/10
 [#1436]:            https://github.com/simonmichael/hledger/issues/1436
 
+## Status
+
 hledger error messages are currently quite varied in format.
 Tools like flycheck-hledger parse them and need updating
 whenever they change ([#1436][]).
@@ -22,7 +24,7 @@ errors is a big project, but it's crowd-sourceable and any progress
 brings immediate practical benefits.
 
 Here is the current status
-(hledger 1.25, flycheck + [PR#10][flycheck-hledger-10], last updated 2022-03-18):
+(hledger 1.25, flycheck + [PR#10][flycheck-hledger-10]):
 
 |                          | consistent | accurate line(s) | accurate column(s) | visual | flycheck detects | flycheck region |
 |--------------------------|------------|------------------|--------------------|--------|------------------|-----------------|
@@ -46,10 +48,26 @@ Key:
 - flycheck detects - flycheck recognises the error output, reports the error and doesn't give a "suspicious" warning
 - flycheck region - flycheck highlights a reasonably accurate text region containing the error
 
+## Goals
+
+- [ ] phase 1: update flycheck to detect journal errors of current hledger release (and keep a branch updated to detect errors of latest hledger master)
+- [x] phase 2: survey/document current journal errors
+- [ ] phase 3: pick a new standard format
+- [ ] phase 4: implement consistent format for all
+- [ ] phase 5: implement accurate lines for all
+- [ ] phase 6: implement accurate columns for all
+- [ ] phase 7: implement useful highlighted excerpts for all
+- [ ] phase 8: implement accurate flycheck-highlighted region for all
+- [ ] phase 9: do likewise for timeclock errors
+- [ ] phase 10: do likewise for timedot errors
+- [ ] phase 11: do likewise for csv errors
+- [ ] phase 12: do likewise for other command line errors
+- [ ] phase 13: decide/add error ids/explanations/web pages ?
+
 ## Current journal errors
 
 <!-- to update: erase the below then C-u M-! ./showall -->
-hledger 1.25, last updated 2022-03-18:
+hledger 1.25:
 
 ### parseable
 ```
@@ -178,7 +196,7 @@ seen in "a:c" in transaction at: /Users/simon/src/hledger/hledger/test/errors/./
 
 
 
-## Standard error format
+## New error format
 
 Proposed new formats (see also [#1436][]). 
 
@@ -216,20 +234,5 @@ Open questions:
 - summary needed on first line for maximum concision/greppability ?
 - allow long, much-wider-than-80-char first lines or not ?
 - dynamic or static summary ?
-- error ids/explanations needed ? local and/or web based ? easily editable ?
+- error ids/explanations needed ? local and/or web based ? easily editable ? document old hledger versions ?
 
-## Some goals
-
-- [ ] phase 1: update flycheck to detect journal errors of current hledger release (and keep a branch updated to detect errors of latest hledger master)
-- [x] phase 2: survey/document current journal errors
-- [ ] phase 3: pick a new standard format
-- [ ] phase 4: implement consistent format for all
-- [ ] phase 5: implement accurate lines for all
-- [ ] phase 6: implement accurate columns for all
-- [ ] phase 7: implement useful highlighted excerpts for all
-- [ ] phase 8: implement accurate flycheck-highlighted region for all
-- [ ] phase 9: do likewise for timeclock errors
-- [ ] phase 10: do likewise for timedot errors
-- [ ] phase 11: do likewise for csv errors
-- [ ] phase 12: do likewise for other command line errors
-- [ ] phase 13: decide/add error ids/explanations/web pages ?
