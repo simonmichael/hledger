@@ -41,14 +41,12 @@ Here is the current status
 | uniqueleafnames          |          |                  |                    | Y      | Y                |                 |
 
 Key:
-- format: the error message follows a standard format
+- format: the error message follows a standard format (format 1: location on first line; format 2:summary on first line, location on second line)
 - accurate line - the optimal line(s) is(are) selected
 - accurate column - the optimal column(s) is(are) selected
 - visual - the CLI error message shows a relevant excerpt (Y), ideally with the error highlighted (YY)
 - flycheck detects - flycheck recognises the error output, reports the error and doesn't give a "suspicious" warning
 - flycheck region - flycheck highlights a reasonably accurate text region containing the error
-- format 1 - location on first line
-- format 2 - summary on first line, location on second line
 
 ## Goals
 
