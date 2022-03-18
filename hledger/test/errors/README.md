@@ -210,21 +210,26 @@ EXCERPT
 
 - Having summary on the first line can be helpful eg when grepping logged errors.
 
-Questions:
+Open questions:
 
 - location needed on first line for maximum tool support ?
 - summary needed on first line for maximum concision/greppability ?
+- allow long, much-wider-than-80-char first lines or not ?
 - dynamic or static summary ?
 - error ids/explanations needed ? local and/or web based ? easily editable ?
 
-## Some milestones
+## Some goals
 
-- [ ] phase 1: update flycheck to detect errors of current hledger release (and keep a branch updated to detect errors of latest hledger master)
+- [ ] phase 1: update flycheck to detect journal errors of current hledger release (and keep a branch updated to detect errors of latest hledger master)
 - [x] phase 2: survey/document current journal errors
 - [ ] phase 3: pick a new standard format
-- [ ] phase 4: consistent format for all
-- [ ] phase 5: accurate lines for all
-- [ ] phase 6: accurate columns for all
-- [ ] phase 7: useful highlighted excerpts for all
-- [ ] phase 8: accurate flycheck-highlighted region for all
-- [ ] phase 9: design/add error ids, explanations, editable web pages ?
+- [ ] phase 4: implement consistent format for all
+- [ ] phase 5: implement accurate lines for all
+- [ ] phase 6: implement accurate columns for all
+- [ ] phase 7: implement useful highlighted excerpts for all
+- [ ] phase 8: implement accurate flycheck-highlighted region for all
+- [ ] phase 9: do likewise for timeclock errors
+- [ ] phase 10: do likewise for timedot errors
+- [ ] phase 11: do likewise for csv errors
+- [ ] phase 12: do likewise for other command line errors
+- [ ] phase 13: decide/add error ids/explanations/web pages ?
