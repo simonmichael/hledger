@@ -1469,7 +1469,7 @@ Related:
 Normally hledger sums amounts, and organizes them in a hierarchy, based on account name.
 The `--pivot FIELD` option causes it to sum and organize hierarchy based on the value of some other field instead.
 FIELD can be:
-`code`, `description`, `payee`, `note`,
+`status`, `code`, `description`, `payee`, `note`,
 or the full name (case insensitive) of any [tag](#tags).
 As with account names, values containing `colon:separated:parts` will be displayed hierarchically in reports.
 

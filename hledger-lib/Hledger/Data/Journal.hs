@@ -1097,6 +1097,7 @@ postingPivot fieldortagname p = p{paccount = pivotedacct, poriginal = Just $ ori
       | Just t <- ptransaction p, fieldortagname == "description" = tdescription t
       | Just t <- ptransaction p, fieldortagname == "payee"       = transactionPayee t
       | Just t <- ptransaction p, fieldortagname == "note"        = transactionNote t
+      | Just t <- ptransaction p, fieldortagname == "status"      = T.pack . show . tstatus $ t
       | Just (_, value) <- postingFindTag fieldortagname p        = value
       | otherwise                                                 = ""
 
