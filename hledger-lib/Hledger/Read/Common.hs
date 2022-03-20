@@ -286,6 +286,8 @@ parseAndFinaliseJournal' parser iopts f txt = do
         Left e    -> throwError e
         Right pj' -> journalFinalise iopts f txt pj'
 
+{- HLINT ignore journalFinalise "Redundant <&>" -} -- silence this warning, the code is clearer as is
+-- NB activates TH, may slow compilation ? https://github.com/ndmitchell/hlint/blob/master/README.md#customizing-the-hints
 -- | Post-process a Journal that has just been parsed or generated, in this order:
 --
 -- - add misc info (file path, read time) 

@@ -15,6 +15,8 @@
 - ignore: {name: "Use list comprehension"}
 - ignore: {name: "Use fewer imports"}
 
+# - ignore: {name: Redundant <&>, within: Hledger.Read.Common.journalFinalise}
+
 
 # Specify additional command line arguments
 #
