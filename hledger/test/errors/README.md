@@ -26,24 +26,25 @@ brings immediate practical benefits.
 Here is the current status
 (hledger 1.25, flycheck + [PR#10][flycheck-hledger-10]):
 
-|                          | format   | accurate line(s) | accurate column(s) | visual | flycheck detects | flycheck region |
-|--------------------------|----------|------------------|--------------------|--------|------------------|-----------------|
-| parseable                | format 1 | Y                | Y                  | YY     | Y                | Y               |
-| parseable-dates          | format 1 | Y                | Y                  | YY     | Y                | Y               |
-| parseable-regexps        | format 1 | Y                | Y                  | YY     | Y                | Y               |
-| balanced                 |          | Y                | -                  | Y      | Y                |                 |
-| balancednoautoconversion |          | Y                | -                  | Y      | Y                |                 |
-| assertions               |          | Y                |                    | Y      | Y                | Y               |
-| accounts                 | format 2 |                  |                    | Y      | Y                |                 |
-| commodities              | format 2 |                  |                    | Y      | Y                |                 |
-| payees                   | format 2 |                  |                    | Y      | Y                | Y               |
-| ordereddates             | format 2 |                  |                    | Y      | Y                | Y               |
-| uniqueleafnames          |          |                  |                    | Y      | Y                |                 |
+|                          | format  | accurate line(s) | accurate column(s) | visual | flycheck detects | flycheck region |
+|--------------------------|---------|------------------|--------------------|--------|------------------|-----------------|
+| parseable                | format1 | Y                | Y                  | YY     | Y                | Y               |
+| parseable-dates          | format1 | Y                | Y                  | YY     | Y                | Y               |
+| parseable-regexps        | format1 | Y                | Y                  | YY     | Y                | Y               |
+| balanced                 |         | Y                | -                  | Y      | Y                |                 |
+| balancednoautoconversion |         | Y                | -                  | Y      | Y                |                 |
+| assertions               |         | Y                |                    | Y      | Y                | Y               |
+| accounts                 | format2 |                  |                    | Y      | Y                |                 |
+| commodities              | format2 |                  |                    | Y      | Y                |                 |
+| payees                   | format2 |                  |                    | Y      | Y                | Y               |
+| ordereddates             | format2 |                  |                    | Y      | Y                | Y               |
+| uniqueleafnames          |         |                  |                    | Y      | Y                |                 |
 
 Key:
 - format: the error message follows a standard format
-  (format 1: location on first line, megaparsec-like. 
-   format 2: summary on first line, location on second line, rustc-like.)
+  (format1: location on first line, megaparsec-like.
+   format2: summary on first line, location on second line, rustc-like.
+   std: new standard format)
 - accurate line - the optimal line(s) is(are) selected
 - accurate column - the optimal column(s) is(are) selected
 - visual - the CLI error message shows a relevant excerpt (Y), ideally with the error highlighted (YY)
@@ -55,7 +56,7 @@ Key:
 - [ ] phase 1: update flycheck to detect journal errors of current hledger release (and keep a branch updated to detect errors of latest hledger master)
 - [x] phase 2: survey/document current journal errors
 - [x] phase 3: pick a new standard format
-- [ ] phase 4: implement consistent format for all
+- [ ] phase 4: implement standard format for all
 - [ ] phase 5: implement accurate lines for all
 - [ ] phase 6: implement accurate columns for all
 - [ ] phase 7: implement useful highlighted excerpts for all
@@ -201,7 +202,7 @@ seen in "a:c" in transaction at: /Users/simon/src/hledger/hledger/test/errors/./
 
 ## New error format
 
-The preferred standard error format for now is the following, 
+The preferred standard error format for now is the following,
 similar to the one megaparsec gives us
 and probably the easiest to implement consistently:
 
@@ -209,7 +210,7 @@ and probably the easiest to implement consistently:
 Error: FILE:LOCATION:
 EXCERPT
 SUMMARY
-[DETAILS}
+[DETAILS]
 ```
 
 Other format notes (see also [#1436][]):
@@ -249,4 +250,3 @@ Questions:
 - allow long, much-wider-than-80-char first lines or not ?
 - dynamic or static summary ?
 - error ids/explanations needed ? local and/or web based ? easily editable ? document old hledger versions ?
-
