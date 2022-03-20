@@ -360,7 +360,7 @@ latestSpanContaining datespans = go
 -- | Parse a period expression to an Interval and overall DateSpan using
 -- the provided reference date, or return a parse error.
 parsePeriodExpr
-  :: Day -> Text -> Either (ParseErrorBundle Text CustomErr) (Interval, DateSpan)
+  :: Day -> Text -> Either (ParseErrorBundle Text HledgerParseErrorData) (Interval, DateSpan)
 parsePeriodExpr refdate s = parsewith (periodexprp refdate <* eof) (T.toLower s)
 
 -- | Like parsePeriodExpr, but call error' on failure.
@@ -408,14 +408,14 @@ spanFromSmartDate refdate sdate = DateSpan (Just b) (Just e)
 fixSmartDateStr :: Day -> Text -> Text
 fixSmartDateStr d s =
   either (error' . printf "could not parse date %s %s" (show s) . show) id $  -- PARTIAL:
-  (fixSmartDateStrEither d s :: Either (ParseErrorBundle Text CustomErr) Text)
+  (fixSmartDateStrEither d s :: Either (ParseErrorBundle Text HledgerParseErrorData) Text)
 
 -- | A safe version of fixSmartDateStr.
-fixSmartDateStrEither :: Day -> Text -> Either (ParseErrorBundle Text CustomErr) Text
+fixSmartDateStrEither :: Day -> Text -> Either (ParseErrorBundle Text HledgerParseErrorData) Text
 fixSmartDateStrEither d = fmap showDate . fixSmartDateStrEither' d
 
 fixSmartDateStrEither'
-  :: Day -> Text -> Either (ParseErrorBundle Text CustomErr) Day
+  :: Day -> Text -> Either (ParseErrorBundle Text HledgerParseErrorData) Day
 fixSmartDateStrEither' d s = case parsewith smartdateonly (T.toLower s) of
                                Right sd -> Right $ fixSmartDate d sd
                                Left e -> Left e

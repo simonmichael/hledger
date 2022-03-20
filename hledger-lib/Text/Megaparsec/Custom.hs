@@ -8,7 +8,7 @@
 
 module Text.Megaparsec.Custom (
   -- * Custom parse error type
-  CustomErr,
+  HledgerParseErrorData,
 
   -- * Failing with an arbitrary source position
   parseErrorAt,
@@ -60,7 +60,7 @@ import Text.Megaparsec
 -- | A custom error type for the parser. The type is specialized to
 -- parsers of 'Text' streams.
 
-data CustomErr
+data HledgerParseErrorData
   -- | Fail with a message at a specific source position interval. The
   -- interval must be contained within a single line.
   = ErrorFailAt Int -- Starting offset
@@ -69,7 +69,7 @@ data CustomErr
   -- | Re-throw parse errors obtained from the "re-parsing" of an excerpt
   -- of the source text.
   | ErrorReparsing
-      (NE.NonEmpty (ParseError Text CustomErr)) -- Source fragment parse errors
+      (NE.NonEmpty (ParseError Text HledgerParseErrorData)) -- Source fragment parse errors
   deriving (Show, Eq, Ord)
 
 -- We require an 'Ord' instance for 'CustomError' so that they may be
@@ -77,13 +77,13 @@ data CustomErr
 -- derive it, but the derived instance requires an (orphan) instance for
 -- 'ParseError'. Hopefully this does not cause any trouble.
 
-deriving instance Ord (ParseError Text CustomErr)
+deriving instance Ord (ParseError Text HledgerParseErrorData)
 
--- Note: the pretty-printing of our 'CustomErr' type is only partally
+-- Note: the pretty-printing of our 'HledgerParseErrorData' type is only partally
 -- defined in its 'ShowErrorComponent' instance; we perform additional
 -- adjustments in 'customErrorBundlePretty'.
 
-instance ShowErrorComponent CustomErr where
+instance ShowErrorComponent HledgerParseErrorData where
   showErrorComponent (ErrorFailAt _ _ errMsg) = errMsg
   showErrorComponent (ErrorReparsing _) = "" -- dummy value
 
@@ -98,7 +98,7 @@ instance ShowErrorComponent CustomErr where
 -- start of the input stream (the number of tokens processed at that
 -- point).
 
-parseErrorAt :: Int -> String -> CustomErr
+parseErrorAt :: Int -> String -> HledgerParseErrorData
 parseErrorAt offset = ErrorFailAt offset (offset+1)
 
 -- | Fail at a specific source interval, given by the raw offsets of its
@@ -112,7 +112,7 @@ parseErrorAtRegion
   :: Int    -- ^ Start offset
   -> Int    -- ^ End end offset
   -> String -- ^ Error message
-  -> CustomErr
+  -> HledgerParseErrorData
 parseErrorAtRegion startOffset endOffset msg =
   if startOffset < endOffset
     then ErrorFailAt startOffset endOffset msg
@@ -142,7 +142,7 @@ getExcerptText (SourceExcerpt _ txt) = txt
 -- This function could be extended to return the result of 'p', but we don't
 -- currently need this.
 
-excerpt_ :: MonadParsec CustomErr Text m => m a -> m SourceExcerpt
+excerpt_ :: MonadParsec HledgerParseErrorData Text m => m a -> m SourceExcerpt
 excerpt_ p = do
   offset <- getOffset
   (!txt, _) <- match p
@@ -164,8 +164,8 @@ excerpt_ p = do
 reparseExcerpt
   :: Monad m
   => SourceExcerpt
-  -> ParsecT CustomErr Text m a
-  -> ParsecT CustomErr Text m a
+  -> ParsecT HledgerParseErrorData Text m a
+  -> ParsecT HledgerParseErrorData Text m a
 reparseExcerpt (SourceExcerpt offset txt) p = do
   (_, res) <- lift $ runParserT' p (offsetInitialState offset txt)
   case res of
@@ -210,7 +210,7 @@ reparseExcerpt (SourceExcerpt offset txt) p = do
 -- 0 (that is, the beginning of the source file), which is the
 -- case for 'ParseErrorBundle's returned from 'runParserT'.
 
-customErrorBundlePretty :: ParseErrorBundle Text CustomErr -> String
+customErrorBundlePretty :: ParseErrorBundle Text HledgerParseErrorData -> String
 customErrorBundlePretty errBundle =
   let errBundle' = errBundle { bundleErrors =
         NE.sortWith errorOffset $ -- megaparsec requires that the list of errors be sorted by their offsets
@@ -219,7 +219,7 @@ customErrorBundlePretty errBundle =
 
   where
     finalizeCustomError
-      :: ParseError Text CustomErr -> NE.NonEmpty (ParseError Text CustomErr)
+      :: ParseError Text HledgerParseErrorData -> NE.NonEmpty (ParseError Text HledgerParseErrorData)
     finalizeCustomError err = case findCustomError err of
       Nothing -> pure err
 
@@ -233,7 +233,7 @@ customErrorBundlePretty errBundle =
 
     -- If any custom errors are present, arbitrarily take the first one
     -- (since only one custom error should be used at a time).
-    findCustomError :: ParseError Text CustomErr -> Maybe CustomErr
+    findCustomError :: ParseError Text HledgerParseErrorData -> Maybe HledgerParseErrorData
     findCustomError err = case err of
       FancyError _ errSet ->
         finds (\case {ErrorCustom e -> Just e; _ -> Nothing}) errSet
@@ -280,7 +280,7 @@ data FinalParseError' e
   | FinalBundleWithStack (FinalParseErrorBundle' e)
   deriving (Show)
 
-type FinalParseError = FinalParseError' CustomErr
+type FinalParseError = FinalParseError' HledgerParseErrorData
 
 -- We need a 'Monoid' instance for 'FinalParseError' so that 'ExceptT
 -- FinalParseError m' is an instance of Alternative and MonadPlus, which
@@ -308,7 +308,7 @@ data FinalParseErrorBundle' e = FinalParseErrorBundle'
   , includeFileStack :: [FilePath]
   } deriving (Show)
 
-type FinalParseErrorBundle = FinalParseErrorBundle' CustomErr
+type FinalParseErrorBundle = FinalParseErrorBundle' HledgerParseErrorData
 
 
 --- * Constructing and throwing final parse errors
@@ -347,7 +347,7 @@ finalCustomFailure = finalFancyFailure . S.singleton . ErrorCustom
 -- 'attachSource' must be used on a "final" parse error before it can be
 -- pretty-printed.
 
-finalErrorBundlePretty :: FinalParseErrorBundle' CustomErr -> String
+finalErrorBundlePretty :: FinalParseErrorBundle' HledgerParseErrorData -> String
 finalErrorBundlePretty bundle =
      concatMap showIncludeFilepath (includeFileStack bundle)
   <> customErrorBundlePretty (finalErrorBundle bundle)
@@ -391,11 +391,11 @@ attachSource filePath sourceText finalParseError = case finalParseError of
 
 parseIncludeFile
   :: Monad m
-  => StateT st (ParsecT CustomErr Text (ExceptT FinalParseError m)) a
+  => StateT st (ParsecT HledgerParseErrorData Text (ExceptT FinalParseError m)) a
   -> st
   -> FilePath
   -> Text
-  -> StateT st (ParsecT CustomErr Text (ExceptT FinalParseError m)) a
+  -> StateT st (ParsecT HledgerParseErrorData Text (ExceptT FinalParseError m)) a
 parseIncludeFile parser initialState filepath text =
   catchError parser' handler
   where

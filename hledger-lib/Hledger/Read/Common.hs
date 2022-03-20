@@ -271,7 +271,7 @@ initialiseAndParseJournal parser iopts f txt =
     y = first3 . toGregorian $ _ioDay iopts
     initJournal = nulljournal{jparsedefaultyear = Just y, jincludefilestack = [f]}
     -- Flatten parse errors and final parse errors, and output each as a pretty String.
-    prettyParseErrors :: ExceptT FinalParseError IO (Either (ParseErrorBundle Text CustomErr) a)
+    prettyParseErrors :: ExceptT FinalParseError IO (Either (ParseErrorBundle Text HledgerParseErrorData) a)
                       -> ExceptT String IO a
     prettyParseErrors = withExceptT customErrorBundlePretty . liftEither
                     <=< withExceptT (finalErrorBundlePretty . attachSource f txt)
@@ -855,7 +855,7 @@ amountwithoutpricep mult = do
           Right (q,p,d,g) -> pure (q, Precision p, d, g)
 
 -- | Try to parse an amount from a string
-amountp'' :: String -> Either (ParseErrorBundle Text CustomErr) Amount
+amountp'' :: String -> Either (ParseErrorBundle Text HledgerParseErrorData) Amount
 amountp'' s = runParser (evalStateT (amountp <* eof) nulljournal) "" (T.pack s)
 
 -- | Parse an amount from a string, or get an error.

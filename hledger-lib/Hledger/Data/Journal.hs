@@ -142,13 +142,13 @@ import Hledger.Query
 
 
 -- | A parser of text that runs in some monad, keeping a Journal as state.
-type JournalParser m a = StateT Journal (ParsecT CustomErr Text m) a
+type JournalParser m a = StateT Journal (ParsecT HledgerParseErrorData Text m) a
 
 -- | A parser of text that runs in some monad, keeping a Journal as
 -- state, that can throw an exception to end parsing, preventing
 -- further parser backtracking.
 type ErroringJournalParser m a =
-  StateT Journal (ParsecT CustomErr Text (ExceptT FinalParseError m)) a
+  StateT Journal (ParsecT HledgerParseErrorData Text (ExceptT FinalParseError m)) a
 
 -- deriving instance Show Journal
 instance Show Journal where

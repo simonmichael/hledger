@@ -38,7 +38,7 @@ module Hledger.Utils.Parse (
   skipNonNewlineSpaces',
 
   -- * re-exports
-  CustomErr
+  HledgerParseErrorData
 )
 where
 
@@ -54,13 +54,13 @@ import Text.Megaparsec.Custom
 import Text.Printf
 
 -- | A parser of string to some type.
-type SimpleStringParser a = Parsec CustomErr String a
+type SimpleStringParser a = Parsec HledgerParseErrorData String a
 
 -- | A parser of strict text to some type.
-type SimpleTextParser = Parsec CustomErr Text  -- XXX an "a" argument breaks the CsvRulesParser declaration somehow
+type SimpleTextParser = Parsec HledgerParseErrorData Text  -- XXX an "a" argument breaks the CsvRulesParser declaration somehow
 
 -- | A parser of text that runs in some monad.
-type TextParser m a = ParsecT CustomErr Text m a
+type TextParser m a = ParsecT HledgerParseErrorData Text m a
 
 -- | Render a pair of source positions in human-readable form, only displaying the range of lines.
 sourcePosPairPretty :: (SourcePos, SourcePos) -> String
@@ -76,7 +76,7 @@ choice' = choice . map try
 
 -- | Backtracking choice, use this when alternatives share a prefix.
 -- Consumes no input if all choices fail.
-choiceInState :: [StateT s (ParsecT CustomErr Text m) a] -> StateT s (ParsecT CustomErr Text m) a
+choiceInState :: [StateT s (ParsecT HledgerParseErrorData Text m) a] -> StateT s (ParsecT HledgerParseErrorData Text m) a
 choiceInState = choice . map try
 
 surroundedBy :: Applicative m => m openclose -> m a -> m a
@@ -87,7 +87,7 @@ parsewith p = runParser p ""
 
 -- | Run a text parser in the identity monad. See also: parseWithState.
 runTextParser, rtp
-  :: TextParser Identity a -> Text -> Either (ParseErrorBundle Text CustomErr) a
+  :: TextParser Identity a -> Text -> Either (ParseErrorBundle Text HledgerParseErrorData) a
 runTextParser = parsewith
 rtp = runTextParser
 
@@ -100,9 +100,9 @@ parsewithString p = runParser p ""
 parseWithState
   :: Monad m
   => st
-  -> StateT st (ParsecT CustomErr Text m) a
+  -> StateT st (ParsecT HledgerParseErrorData Text m) a
   -> Text
-  -> m (Either (ParseErrorBundle Text CustomErr) a)
+  -> m (Either (ParseErrorBundle Text HledgerParseErrorData) a)
 parseWithState ctx p = runParserT (evalStateT p ctx) ""
 
 parseWithState'
@@ -139,7 +139,7 @@ nonspace = satisfy (not . isSpace)
 isNonNewlineSpace :: Char -> Bool
 isNonNewlineSpace c = not (isNewline c) && isSpace c
 
-spacenonewline :: (Stream s, Char ~ Token s) => ParsecT CustomErr s m Char
+spacenonewline :: (Stream s, Char ~ Token s) => ParsecT HledgerParseErrorData s m Char
 spacenonewline = satisfy isNonNewlineSpace
 {-# INLINABLE spacenonewline #-}
 
@@ -147,17 +147,17 @@ restofline :: TextParser m String
 restofline = anySingle `manyTill` eolof
 
 -- Skip many non-newline spaces.
-skipNonNewlineSpaces :: (Stream s, Token s ~ Char) => ParsecT CustomErr s m ()
+skipNonNewlineSpaces :: (Stream s, Token s ~ Char) => ParsecT HledgerParseErrorData s m ()
 skipNonNewlineSpaces = () <$ takeWhileP Nothing isNonNewlineSpace
 {-# INLINABLE skipNonNewlineSpaces #-}
 
 -- Skip many non-newline spaces, failing if there are none.
-skipNonNewlineSpaces1 :: (Stream s, Token s ~ Char) => ParsecT CustomErr s m ()
+skipNonNewlineSpaces1 :: (Stream s, Token s ~ Char) => ParsecT HledgerParseErrorData s m ()
 skipNonNewlineSpaces1 = () <$ takeWhile1P Nothing isNonNewlineSpace
 {-# INLINABLE skipNonNewlineSpaces1 #-}
 
 -- Skip many non-newline spaces, returning True if any have been skipped.
-skipNonNewlineSpaces' :: (Stream s, Token s ~ Char) => ParsecT CustomErr s m Bool
+skipNonNewlineSpaces' :: (Stream s, Token s ~ Char) => ParsecT HledgerParseErrorData s m Bool
 skipNonNewlineSpaces' = True <$ skipNonNewlineSpaces1 <|> pure False
 {-# INLINABLE skipNonNewlineSpaces' #-}
 
