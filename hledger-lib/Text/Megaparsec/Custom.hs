@@ -7,8 +7,9 @@
 {-# LANGUAGE StandaloneDeriving #-} -- new
 
 module Text.Megaparsec.Custom (
-  -- * Custom parse error type
+  -- * Custom parse error types
   HledgerParseErrorData,
+  HledgerParseErrors,
 
   -- * Failing with an arbitrary source position
   parseErrorAt,
@@ -55,11 +56,9 @@ import Data.Text (Text)
 import Text.Megaparsec
 
 
---- * Custom parse error type
+--- * Custom parse error types
 
--- | A custom error type for the parser. The type is specialized to
--- parsers of 'Text' streams.
-
+-- | Custom error data for hledger parsers. Specialised for a 'Text' parse stream.
 data HledgerParseErrorData
   -- | Fail with a message at a specific source position interval. The
   -- interval must be contained within a single line.
@@ -71,6 +70,12 @@ data HledgerParseErrorData
   | ErrorReparsing
       (NE.NonEmpty (ParseError Text HledgerParseErrorData)) -- Source fragment parse errors
   deriving (Show, Eq, Ord)
+
+-- | A specialised version of ParseErrorBundle: 
+-- a non-empty collection of hledger parse errors, 
+-- equipped with PosState to help pretty-print them.
+-- Specialised for a 'Text' parse stream.
+type HledgerParseErrors = ParseErrorBundle Text HledgerParseErrorData
 
 -- We require an 'Ord' instance for 'CustomError' so that they may be
 -- stored in a 'Set'. The actual instance is inconsequential, so we just
@@ -210,7 +215,7 @@ reparseExcerpt (SourceExcerpt offset txt) p = do
 -- 0 (that is, the beginning of the source file), which is the
 -- case for 'ParseErrorBundle's returned from 'runParserT'.
 
-customErrorBundlePretty :: ParseErrorBundle Text HledgerParseErrorData -> String
+customErrorBundlePretty :: HledgerParseErrors -> String
 customErrorBundlePretty errBundle =
   let errBundle' = errBundle { bundleErrors =
         NE.sortWith errorOffset $ -- megaparsec requires that the list of errors be sorted by their offsets

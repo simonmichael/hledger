@@ -144,7 +144,7 @@ import Text.Megaparsec
 import Text.Megaparsec.Char (char, char', digitChar, newline, string)
 import Text.Megaparsec.Char.Lexer (decimal)
 import Text.Megaparsec.Custom
-  (FinalParseError, attachSource, customErrorBundlePretty, finalErrorBundlePretty, parseErrorAt, parseErrorAtRegion)
+  (FinalParseError, attachSource, customErrorBundlePretty, finalErrorBundlePretty, parseErrorAt, parseErrorAtRegion, HledgerParseErrors)
 
 import Hledger.Data
 import Hledger.Query (Query(..), filterQuery, parseQueryTerm, queryEndDate, queryStartDate, queryIsDate, simplifyQuery)
@@ -855,7 +855,7 @@ amountwithoutpricep mult = do
           Right (q,p,d,g) -> pure (q, Precision p, d, g)
 
 -- | Try to parse an amount from a string
-amountp'' :: String -> Either (ParseErrorBundle Text HledgerParseErrorData) Amount
+amountp'' :: String -> Either HledgerParseErrors Amount
 amountp'' s = runParser (evalStateT (amountp <* eof) nulljournal) "" (T.pack s)
 
 -- | Parse an amount from a string, or get an error.

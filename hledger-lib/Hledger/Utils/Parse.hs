@@ -87,7 +87,7 @@ parsewith p = runParser p ""
 
 -- | Run a text parser in the identity monad. See also: parseWithState.
 runTextParser, rtp
-  :: TextParser Identity a -> Text -> Either (ParseErrorBundle Text HledgerParseErrorData) a
+  :: TextParser Identity a -> Text -> Either HledgerParseErrors a
 runTextParser = parsewith
 rtp = runTextParser
 
@@ -102,7 +102,7 @@ parseWithState
   => st
   -> StateT st (ParsecT HledgerParseErrorData Text m) a
   -> Text
-  -> m (Either (ParseErrorBundle Text HledgerParseErrorData) a)
+  -> m (Either HledgerParseErrors a)
 parseWithState ctx p = runParserT (evalStateT p ctx) ""
 
 parseWithState'

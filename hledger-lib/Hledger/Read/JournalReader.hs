@@ -113,7 +113,7 @@ import qualified Hledger.Read.CsvReader as CsvReader (reader)
 -- | Run a journal parser in some monad. See also: parseWithState.
 runJournalParser, rjp
   :: Monad m
-  => JournalParser m a -> Text -> m (Either (ParseErrorBundle Text HledgerParseErrorData) a)
+  => JournalParser m a -> Text -> m (Either HledgerParseErrors a)
 runJournalParser p = runParserT (evalStateT p nulljournal) ""
 rjp = runJournalParser
 
@@ -122,7 +122,7 @@ runErroringJournalParser, rejp
   :: Monad m
   => ErroringJournalParser m a
   -> Text
-  -> m (Either FinalParseError (Either (ParseErrorBundle Text HledgerParseErrorData) a))
+  -> m (Either FinalParseError (Either HledgerParseErrors a))
 runErroringJournalParser p t =
   runExceptT $ runParserT (evalStateT p nulljournal) "" t
 rejp = runErroringJournalParser

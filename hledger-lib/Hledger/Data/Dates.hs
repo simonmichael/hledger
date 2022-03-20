@@ -105,7 +105,7 @@ import Safe (headMay, lastMay, maximumMay, minimumMay)
 import Text.Megaparsec
 import Text.Megaparsec.Char (char, char', digitChar, string, string')
 import Text.Megaparsec.Char.Lexer (decimal, signed)
-import Text.Megaparsec.Custom (customErrorBundlePretty)
+import Text.Megaparsec.Custom (customErrorBundlePretty, HledgerParseErrors)
 import Text.Printf (printf)
 
 import Hledger.Data.Types
@@ -360,7 +360,7 @@ latestSpanContaining datespans = go
 -- | Parse a period expression to an Interval and overall DateSpan using
 -- the provided reference date, or return a parse error.
 parsePeriodExpr
-  :: Day -> Text -> Either (ParseErrorBundle Text HledgerParseErrorData) (Interval, DateSpan)
+  :: Day -> Text -> Either HledgerParseErrors (Interval, DateSpan)
 parsePeriodExpr refdate s = parsewith (periodexprp refdate <* eof) (T.toLower s)
 
 -- | Like parsePeriodExpr, but call error' on failure.
@@ -408,14 +408,14 @@ spanFromSmartDate refdate sdate = DateSpan (Just b) (Just e)
 fixSmartDateStr :: Day -> Text -> Text
 fixSmartDateStr d s =
   either (error' . printf "could not parse date %s %s" (show s) . show) id $  -- PARTIAL:
-  (fixSmartDateStrEither d s :: Either (ParseErrorBundle Text HledgerParseErrorData) Text)
+  (fixSmartDateStrEither d s :: Either HledgerParseErrors Text)
 
 -- | A safe version of fixSmartDateStr.
-fixSmartDateStrEither :: Day -> Text -> Either (ParseErrorBundle Text HledgerParseErrorData) Text
+fixSmartDateStrEither :: Day -> Text -> Either HledgerParseErrors Text
 fixSmartDateStrEither d = fmap showDate . fixSmartDateStrEither' d
 
 fixSmartDateStrEither'
-  :: Day -> Text -> Either (ParseErrorBundle Text HledgerParseErrorData) Day
+  :: Day -> Text -> Either HledgerParseErrors Day
 fixSmartDateStrEither' d s = case parsewith smartdateonly (T.toLower s) of
                                Right sd -> Right $ fixSmartDate d sd
                                Left e -> Left e
