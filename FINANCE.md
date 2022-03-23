@@ -1,8 +1,15 @@
-# Funding
+# Finance
 
 <div class=pagetoc>
 <!-- toc -->
 </div>
+
+<https://hledger.org/finance> this page
+<https://github.com/simonmichael/hledger_finance> finance repo
+
+Old:
+
+## Funding
 
 My vision for the hledger project has always been for it to be "accountable" and "self-sustaining", possibly through new forms of incentivisation. 
 Classic non-monetary FOSS communities are a beautiful and precious thing.
