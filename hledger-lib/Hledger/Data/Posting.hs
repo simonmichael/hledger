@@ -72,7 +72,6 @@ module Hledger.Data.Posting (
 )
 where
 
-import Data.Default (def)
 import Data.Foldable (asum)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, mapMaybe)
@@ -80,13 +79,11 @@ import Data.List (foldl', sort, union)
 import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import Data.Time.Calendar (Day)
 import Safe (maximumBound)
-import Text.DocLayout (realLength)
-
-import Text.Tabular.AsciiWide
+import Text.Layout.Table
+import Text.Layout.Table.Cell (Cell(..))
 
 import Hledger.Utils
 import Hledger.Data.Types
@@ -236,22 +233,17 @@ postingAsLines elideamount onelineamounts acctwidth amtwidth p =
     -- is whether there are trailing spaces in print (and related) reports. This
     -- could be removed and we could just keep everything as a Text Builder, but
     -- would require adding trailing spaces to 42 failing tests.
-    postingblocks = [map T.stripEnd . T.lines . TL.toStrict $
-                       render [ textCell BottomLeft statusandaccount
-                              , textCell BottomLeft "  "
-                              , Cell BottomLeft [pad amt]
-                              , Cell BottomLeft [assertion]
-                              , textCell BottomLeft samelinecomment
-                              ]
-                    | amt <- shownAmounts]
-    render = renderRow def{tableBorders=False, borderSpaces=False} . Group NoLine . map Header
-    pad amt = WideBuilder (TB.fromText $ T.replicate w " ") w <> amt
-      where w = max 12 amtwidth - wbWidth amt  -- min. 12 for backwards compatibility
+    postingblocks = map (map T.stripEnd . T.lines) . gridLinesB colSpec . map (map renderText) $
+        case showBalanceAssertion <$> pbalanceassertion p of
+          Nothing   -> [ [statusandaccount, "", wbToText amt, T.drop 1 samelinecomment] | amt <- shownAmounts ]
+          Just asst -> [ [statusandaccount, "", wbToText amt, wbToText asst, T.drop 1 samelinecomment] | amt <- shownAmounts ]
+      where
+        colSpec = [col left expand, col left expand, col right . fixedUntil $ max 12 amtwidth, col left expand, col left expand]
+        col pos len = column len pos noAlign noCutMark
 
-    assertion = maybe mempty ((WideBuilder (TB.singleton ' ') 1 <>).showBalanceAssertion) $ pbalanceassertion p
     -- pad to the maximum account name width, plus 2 to leave room for status flags, to keep amounts aligned
     statusandaccount = lineIndent . fitText (Just $ 2 + acctwidth) Nothing False True $ pstatusandacct p
-    thisacctwidth = realLength $ pacctstr p
+    thisacctwidth = visibleLength . renderText $ pacctstr p
 
     pacctstr p' = showAccountName Nothing (ptype p') (paccount p')
     pstatusandacct p' = pstatusprefix p' <> pacctstr p'

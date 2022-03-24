@@ -120,6 +120,7 @@ dependencies:
 - shakespeare >=2.0.2.2
 - split >=0.1
 - math-functions >=0.3.3.0
+- table-layout >=0.9.1.0
 - tabular >=0.2
 - tasty >=1.2.3
 - temporary
