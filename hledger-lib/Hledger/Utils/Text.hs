@@ -44,6 +44,11 @@ module Hledger.Utils.Text
   wbFromText,
   wbUnpack,
   textTakeWidth,
+  -- ** table layout
+  module Text.Layout.Table.Cell.Formatted,
+  module Text.Layout.Table.Cell.WideString,
+  RenderText,
+  renderText,
   -- * Reading
   readDecimal,
   -- * tests
@@ -52,17 +57,16 @@ module Hledger.Utils.Text
 where
 
 import Data.Char (digitToInt)
-import Data.Default (def)
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
-import Text.DocLayout (charWidth, realLength)
+import Text.Layout.Table
+import Text.Layout.Table.Cell
+import Text.Layout.Table.Cell.Formatted
+import Text.Layout.Table.Cell.WideString
 
 import Test.Tasty (testGroup)
 import Test.Tasty.HUnit ((@?=), testCase)
-import Text.Tabular.AsciiWide
-  (Align(..), Header(..), Properties(..), TableOpts(..), renderRow, textCell)
 import Text.WideString (WideBuilder(..), wbToText, wbFromText, wbUnpack)
 
 
@@ -185,14 +189,14 @@ textUnbracket s
 -- | Join several multi-line strings as side-by-side rectangular strings of the same height, top-padded.
 -- Treats wide characters as double width.
 textConcatTopPadded :: [Text] -> Text
-textConcatTopPadded = TL.toStrict . renderRow def{tableBorders=False, borderSpaces=False}
-                    . Group NoLine . map (Header . textCell BottomLeft)
+textConcatTopPadded = concatLines . map mconcat . gridB (repeat def)
+                    . colsAsRowsAll bottom . map (map WideText) . map T.lines
 
 -- | Join several multi-line strings as side-by-side rectangular strings of the same height, bottom-padded.
 -- Treats wide characters as double width.
 textConcatBottomPadded :: [Text] -> Text
-textConcatBottomPadded = TL.toStrict . renderRow def{tableBorders=False, borderSpaces=False}
-                       . Group NoLine . map (Header . textCell TopLeft)
+textConcatBottomPadded = concatLines . map mconcat . gridB (repeat def)
+                       . colsAsRowsAll top . map (map WideText) . map T.lines
 
 -- -- Functions below treat wide (eg CJK) characters as double-width.
 
@@ -202,50 +206,29 @@ textConcatBottomPadded = TL.toStrict . renderRow def{tableBorders=False, borderS
 -- It clips and pads on the right when the fourth argument is true, otherwise on the left.
 -- It treats wide characters as double width.
 fitText :: Maybe Int -> Maybe Int -> Bool -> Bool -> Text -> Text
-fitText mminwidth mmaxwidth ellipsify rightside = clip . pad
+fitText mminwidth mmaxwidth ellipsify rightside =
+    maybe id clip' mmaxwidth . maybe buildCell pad' mminwidth . WideText
   where
-    clip :: Text -> Text
-    clip s =
-      case mmaxwidth of
-        Just w
-          | realLength s > w ->
-            if rightside
-              then textTakeWidth (w - T.length ellipsis) s <> ellipsis
-              else ellipsis <> T.reverse (textTakeWidth (w - T.length ellipsis) $ T.reverse s)
-          | otherwise -> s
-          where
-            ellipsis = if ellipsify then ".." else ""
-        Nothing -> s
-    pad :: Text -> Text
-    pad s =
-      case mminwidth of
-        Just w
-          | sw < w ->
-            if rightside
-              then s <> T.replicate (w - sw) " "
-              else T.replicate (w - sw) " " <> s
-          | otherwise -> s
-        Nothing -> s
-      where sw = realLength s
+    clip' = trimIfWider ellipsify rightside
+    pad'  = pad (if rightside then left else right)
+
+-- | Trim a piece of text if it is wider than given.
+trimIfWider :: Bool -> Bool -> Int -> Text -> Text
+trimIfWider ellipsify rightside w t
+  | visibleLength (WideText t) > w = trim (if rightside then left else right) (if ellipsify then singleCutMark ".." else noCutMark) w $ WideText t
+  | otherwise = t
 
 -- | Double-width-character-aware string truncation. Take as many
 -- characters as possible from a string without exceeding the
 -- specified width. Eg textTakeWidth 3 "りんご" = "り".
 textTakeWidth :: Int -> Text -> Text
-textTakeWidth _ ""     = ""
-textTakeWidth 0 _      = ""
-textTakeWidth w t | not (T.null t),
-                let c = T.head t,
-                let cw = charWidth c,
-                cw <= w
-                = T.cons c $ textTakeWidth (w-cw) (T.tail t)
-              | otherwise = ""
+textTakeWidth = trimIfWider False True
 
 -- | Add a prefix to each line of a string.
 linesPrepend :: Text -> Text -> Text
 linesPrepend prefix = T.unlines . map (prefix<>) . T.lines
 
--- | Add a prefix to the first line of a string, 
+-- | Add a prefix to the first line of a string,
 -- and a different prefix to the remaining lines.
 linesPrepend2 :: Text -> Text -> Text -> Text
 linesPrepend2 prefix1 prefix2 s = T.unlines $ case T.lines s of
@@ -262,6 +245,12 @@ readDecimal :: Text -> Integer
 readDecimal = T.foldl' step 0
   where step a c = a * 10 + toInteger (digitToInt c)
 
+-- | An alias for formatted text measured by display length.
+type RenderText = Formatted WideText
+
+-- | Wrap 'Text' in a TextWide wrapper and apply trivial formatting.
+renderText :: Text -> RenderText
+renderText = plain . WideText
 
 tests_Text = testGroup "Text" [
    testCase "quoteIfSpaced" $ do

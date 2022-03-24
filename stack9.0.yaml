@@ -18,6 +18,8 @@ packages:
 
 extra-deps:
 # for hledger-lib:
+- git: https://github.com/Xitian9/table-layout
+  commit: 37e5bff454c1895891d52c08a2b42ea59b695a5c
 # for hledger:
 # for hledger-ui:
 - brick-1.0

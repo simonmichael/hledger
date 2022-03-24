@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.34.7.
 --
 -- see: https://github.com/sol/hpack
 
@@ -126,6 +126,7 @@ library
     , pretty-simple >4 && <5
     , regex-tdfa
     , safe >=0.3.19
+    , table-layout >=0.9.1.0
     , tabular >=0.2
     , tasty >=1.2.3
     , tasty-hunit >=0.10.0.2
@@ -177,6 +178,7 @@ test-suite doctest
     , pretty-simple >4 && <5
     , regex-tdfa
     , safe >=0.3.19
+    , table-layout >=0.9.1.0
     , tabular >=0.2
     , tasty >=1.2.3
     , tasty-hunit >=0.10.0.2
@@ -230,6 +232,7 @@ test-suite unittest
     , pretty-simple >4 && <5
     , regex-tdfa
     , safe >=0.3.19
+    , table-layout >=0.9.1.0
     , tabular >=0.2
     , tasty >=1.2.3
     , tasty-hunit >=0.10.0.2
