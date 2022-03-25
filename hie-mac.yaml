@@ -1,5 +1,5 @@
 # arm macs users may want to symlink this as hie.yaml to make hls use ghc 8.10 
-# since there isn't a widely available ghc 9.0 arm binary yet.
+# since there isn't a ghc-9-compatible hls arm binary yet.
 
 cradle:
   stack:
