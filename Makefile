@@ -248,6 +248,10 @@ build: \
 	$(call def-help,build, download dependencies and build hledger executables (with stack))
 	$(STACK) build
 
+buildtimes: \
+	$(call def-help,buildtimes, build hledger-lib showing just the GHC codegen time and allocation for each module)
+	$(STACK) build hledger-lib --force-dirty --ghc-options='-fforce-recomp -ddump-timings' 2>&1 | grep ^CodeGen
+
 # check-setup: \
 # 	$(call def-help,check-setup,\
 # 	run some tests to validate the development environment\
