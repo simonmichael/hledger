@@ -300,6 +300,10 @@ lineart _          _          _          _          = const mempty
 
 
 -- | Add the second table below the first, discarding its column headings.
-concatTables :: Properties -> Table rh ch a -> Table rh ch2 a -> Table rh ch a
+concatTables :: Monoid a => Properties -> Table rh ch a -> Table rh ch2 a -> Table rh ch a
 concatTables prop (Table hLeft hTop dat) (Table hLeft' _ dat') =
-    Table (Group prop [hLeft, hLeft']) hTop (dat ++ dat')
+    Table (Group prop [hLeft, hLeft']) hTop (map padRow $ dat ++ dat')
+  where
+    numCols = length $ headerContents hTop
+    padRow r = replicate (numCols - length r) mempty ++ r
+

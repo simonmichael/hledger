@@ -51,8 +51,8 @@ import Data.Set (Set)
 import qualified Data.Set as Set
 import Data.Time.Calendar (fromGregorian)
 import Safe (lastDef, minimumMay)
+import Text.Layout.Table
 
-import Data.Default (def)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy.Builder as TB
 import qualified Text.Tabular.AsciiWide as Tab
@@ -590,20 +590,23 @@ cumulativeSum start = snd . M.mapAccum (\a b -> let s = sumAcct a b in (s, s)) s
 -- console output. Amounts with more than two commodities will be elided
 -- unless --no-elide is used.
 balanceReportTableAsText :: ReportOpts -> Tab.Table T.Text T.Text WideBuilder -> TB.Builder
-balanceReportTableAsText ReportOpts{..} =
-    Tab.renderTableByRowsB def{Tab.tableBorders=False, Tab.prettyTable=pretty_} renderCh renderRow
+balanceReportTableAsText ReportOpts{..} (Tab.Table rh ch cells) =
+    tableStringB colSpec style rowHeader colHeader rows <> TB.singleton '\n'
   where
-    renderCh
-      | layout_ /= LayoutBare || transpose_ = fmap (Tab.textCell Tab.TopRight)
-      | otherwise = zipWith ($) (Tab.textCell Tab.TopLeft : repeat (Tab.textCell Tab.TopRight))
+    colSpec = case layout_ of
+        LayoutBare | not transpose_ -> col left : repeat (col right)
+        _                           -> repeat (col right)
+      where
+        col pos = column expand pos noAlign noCutMark
+    style = if pretty_ then hledgerPrettyStyle else hledgerStyle
+    rowHeader = renderText <$> translate left rh
+    colHeader = renderText <$> translate right ch
+    rows = map (rowG . map (renderText . wbToText)) cells
 
-    renderRow (rh, row)
-      | layout_ /= LayoutBare || transpose_ =
-          (Tab.textCell Tab.TopLeft rh, fmap (Tab.Cell Tab.TopRight . pure) row)
-      | otherwise =
-          (Tab.textCell Tab.TopLeft rh, zipWith ($) (Tab.Cell Tab.TopLeft : repeat (Tab.Cell Tab.TopRight)) (fmap pure row))
-
-
+    translate pos (Tab.Group Tab.NoLine     as) = groupH NoLine     $ map (translate pos) as
+    translate pos (Tab.Group Tab.SingleLine as) = groupH SingleLine $ map (translate pos) as
+    translate pos (Tab.Group Tab.DoubleLine as) = groupH DoubleLine $ map (translate pos) as
+    translate pos (Tab.Header a)                = headerH (headerColumn pos Nothing) a
 
 -- tests
 

@@ -237,7 +237,7 @@ compoundBalanceReportAsText ropts
         -- convert to table
         Table lefthdrs tophdrs cells = balanceReportAsTable ropts r
         -- tweak the layout
-        t = Table (Tab.Group Tab.SingleLine [Tab.Header title, lefthdrs]) tophdrs ([]:cells)
+        t = Table (Tab.Group Tab.SingleLine [Tab.Header title, lefthdrs]) tophdrs (replicate (length $ headerContents tophdrs) mempty : cells)
 
 -- | Render a compound balance report as CSV.
 -- Subreports' CSV is concatenated, with the headings rows replaced by a

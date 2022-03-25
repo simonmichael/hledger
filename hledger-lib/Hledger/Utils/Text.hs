@@ -49,6 +49,11 @@ module Hledger.Utils.Text
   module Text.Layout.Table.Cell.WideString,
   RenderText,
   renderText,
+  -- * table rendering
+  hledgerStyle,
+  hledgerStyleBorders,
+  hledgerPrettyStyle,
+  hledgerPrettyStyleBorders,
   -- * Reading
   readDecimal,
   -- * tests
@@ -251,6 +256,24 @@ type RenderText = Formatted WideText
 -- | Wrap 'Text' in a TextWide wrapper and apply trivial formatting.
 renderText :: Text -> RenderText
 renderText = plain . WideText
+
+-- | The 'TableStyle' used by hledger when using ascii characters.
+hledgerStyle :: TableStyle LineStyle LineStyle
+hledgerStyle = withoutBorders hledgerStyleBorders
+
+-- | The 'TableStyle' used by hledger when using ascii characters, including a border.
+hledgerStyleBorders :: TableStyle LineStyle LineStyle
+hledgerStyleBorders = asciiTableStyleFromSpec . setTableStyleSpecSeparator DoubleLine $
+    simpleTableStyleSpec SingleLine SingleLine
+
+-- | The 'TableStyle' used by hledger allowing unicode characters.
+hledgerPrettyStyle :: TableStyle LineStyle LineStyle
+hledgerPrettyStyle = withoutBorders hledgerPrettyStyleBorders
+
+-- | The 'TableStyle' used by hledger allowing unicode characters, including a border.
+hledgerPrettyStyleBorders :: TableStyle LineStyle LineStyle
+hledgerPrettyStyleBorders = unicodeS
+
 
 tests_Text = testGroup "Text" [
    testCase "quoteIfSpaced" $ do
