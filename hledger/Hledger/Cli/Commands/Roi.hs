@@ -26,9 +26,10 @@ import Numeric.RootFinding
 import Data.Decimal
 import qualified Data.Text as T
 import qualified Data.Text.Lazy.IO as TL
+import qualified Data.Text.Lazy.Builder as TB
 import System.Console.CmdArgs.Explicit as CmdArgs
-
-import Text.Tabular.AsciiWide as Tab
+import Text.Layout.Table
+import Text.Layout.Table.Cell (Cell)
 
 import Hledger
 import Hledger.Cli.CliOptions
@@ -138,15 +139,10 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportO
            , T.pack $ printf "%0.2f%%" $ smallIsZero irr
            , T.pack $ printf "%0.2f%%" $ smallIsZero twr ]
 
-  let table = Table
-              (Tab.Group Tab.NoLine (map (Header . T.pack . show) (take (length tableBody) [1..])))
-              (Tab.Group Tab.DoubleLine
-               [ Tab.Group Tab.SingleLine [Header "Begin", Header "End"]
-               , Tab.Group Tab.SingleLine [Header "Value (begin)", Header "Cashflow", Header "Value (end)", Header "PnL"]
-               , Tab.Group Tab.SingleLine [Header "IRR", Header "TWR"]])
-              tableBody
+  let table = renderTable prettyTables colHeader (map (T.pack . show) [1..]) tableBody
+      colHeader = [ ["" :: T.Text], ["Begin", "End"], ["Value (begin)", "Cashflow", "Value (end)", "PnL"], ["IRR", "TWR"] ]
 
-  TL.putStrLn $ Tab.render prettyTables id id id table
+  TL.putStrLn . TB.toLazyText $ table <> TB.singleton '\n'
 
 timeWeightedReturn showCashFlow prettyTables investmentsQuery trans mixedAmountValue (OneSpan spanBegin spanEnd valueBeforeAmt valueAfter cashFlow pnl) = do
   let valueBefore = unMix valueBeforeAmt
@@ -236,20 +232,18 @@ timeWeightedReturn showCashFlow prettyTables investmentsQuery trans mixedAmountV
         unitPrices = add initialUnitPrice unitPrices'
         unitBalances = add initialUnits unitBalances'
 
-    TL.putStr $ Tab.render prettyTables id id T.pack
-      (Table
-       (Tab.Group NoLine (map (Header . showDate) dates))
-       (Tab.Group DoubleLine [ Tab.Group Tab.SingleLine [Tab.Header "Portfolio value", Tab.Header "Unit balance"]
-                         , Tab.Group Tab.SingleLine [Tab.Header "Pnl", Tab.Header "Cashflow", Tab.Header "Unit price", Tab.Header "Units"]
-                         , Tab.Group Tab.SingleLine [Tab.Header "New Unit Balance"]])
-       [ [value, oldBalance, pnl, cashflow, prc, udelta, balance]
-       | value <- map showDecimal valuesOnDate
-       | oldBalance <- map showDecimal (0:unitBalances)
-       | balance <- map showDecimal unitBalances
-       | pnl <- map showMixedAmount pnls
-       | cashflow <- map showMixedAmount cashflows
-       | prc <- map showDecimal unitPrices
-       | udelta <- map showDecimal unitsBoughtOrSold ])
+    let table = renderTable prettyTables colHeader (map showDate dates) tableBody
+        tableBody = [ map T.pack [value, oldBalance, pnl, cashflow, prc, udelta, balance]
+                    | value <- map showDecimal valuesOnDate
+                    | oldBalance <- map showDecimal (0:unitBalances)
+                    | balance <- map showDecimal unitBalances
+                    | pnl <- map showMixedAmount pnls
+                    | cashflow <- map showMixedAmount cashflows
+                    | prc <- map showDecimal unitPrices
+                    | udelta <- map showDecimal unitsBoughtOrSold ]
+        colHeader = [ ["" :: T.Text], ["Portfolio value", "Unit balance"], ["Pnl", "Cashflow", "Unit price", "Units"], ["New Unit Balance"] ]
+
+    TL.putStrLn . TB.toLazyText $ table <> TB.singleton '\n'
 
     printf "Final unit price: %s/%s units = %s\nTotal TWR: %s%%.\nPeriod: %.2f years.\nAnnualized TWR: %.2f%%\n\n"
       (showMixedAmount valueAfter) (showDecimal finalUnitBalance) (showDecimal finalUnitPrice) (showDecimal totalTWR) years annualizedTWR
@@ -265,12 +259,12 @@ internalRateOfReturn showCashFlow prettyTables (OneSpan spanBegin spanEnd valueB
 
   when showCashFlow $ do
     printf "\nIRR cash flow for %s - %s\n" (showDate spanBegin) (showDate (addDays (-1) spanEnd))
-    let (dates, amounts) = unzip totalCF
-    TL.putStrLn $ Tab.render prettyTables id id id
-      (Table
-       (Tab.Group Tab.NoLine (map (Header . showDate) dates))
-       (Tab.Group Tab.SingleLine [Header "Amount"])
-       (map ((:[]) . T.pack . showMixedAmount) amounts))
+    let table = renderTable prettyTables colHeader (map showDate dates) tableBody
+        tableBody = map (pure . T.pack . showMixedAmount) amounts
+        (dates, amounts) = unzip totalCF
+        colHeader = [ ["" :: T.Text], ["Amount"] ]
+
+    TL.putStrLn $ TB.toLazyText table
 
   -- 0% is always a solution, so require at least something here
   case totalCF of
@@ -312,4 +306,12 @@ showDecimal d = if d == rounded then show d else show rounded
   where
     rounded = roundTo 2 d
 
-
+-- Utility to build the ROI table
+renderTable :: Cell a => Bool -> [[a]] -> [T.Text] -> [[T.Text]] -> TB.Builder
+renderTable pretty colHeaders rowHeaders =
+    tableStringB colSpec style (noneSepH NoLine) (groupH DoubleLine $ map (fullSepH SingleLine headerSpec) colHeaders)
+    . zipWith (\h row -> rowG . map renderText $ h : row) rowHeaders
+  where
+    colSpec = repeat (column expand right noAlign noCutMark)
+    headerSpec = repeat $ headerColumn right Nothing
+    style = if pretty then hledgerPrettyStyleBorders else hledgerStyleBorders
