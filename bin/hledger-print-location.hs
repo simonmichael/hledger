@@ -43,7 +43,7 @@ main = do
 addLocationTag :: Transaction -> Transaction
 addLocationTag t = t{tcomment = tcomment t `commentAddTagNextLine` loctag}
   where
-    loctag = ("location", T.pack . showSourcePosPair $ tsourcepos t)
+    loctag = ("location", T.pack . sourcePosPairPretty $ tsourcepos t)
 
 -- Like showSourcePosPair in Hledger.Data.Transaction, but show just the starting line number.
 showSourcePosPairLine :: (SourcePos, SourcePos) -> String
