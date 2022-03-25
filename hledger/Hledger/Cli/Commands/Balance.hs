@@ -265,8 +265,9 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import Data.Time (addDays, fromGregorian)
+import Lucid (Html, toHtml, class_, style_, table_, td_, th_, tr_)
+import qualified Lucid as L
 import System.Console.CmdArgs.Explicit as C
-import Lucid as L
 import Safe (maximumMay)
 import Text.Layout.Table
 import qualified Text.Tabular.AsciiWide as Tab
@@ -418,7 +419,7 @@ balanceReportAsCsv opts (items, total) =
       _ -> [[showName name, renderAmount ma]]
 
     showName = accountNameDrop (drop_ opts)
-    renderAmount amt = wbToText $ showMixedAmountB bopts amt
+    renderAmount amt = buildCell $ showMixedAmountB bopts amt
       where bopts = csvDisplay{displayOrder = order}
             order = if layout_ opts == LayoutBare then Just (S.toList $ maCommodities amt) else Nothing
 
@@ -459,9 +460,8 @@ balanceReportItemAsText :: ReportOpts -> BalanceReportItem -> (TB.Builder, [Int]
 balanceReportItemAsText opts (_, acctname, depth, total) =
     renderRow' $ concatMap (renderComponent oneline opts (acctname, depth, total)) comps
   where
-    renderRow' is = ( concatLines . map mconcat . gridB (concatMap colSpec comps) . colsAsRowsAll vPos $
-                        map (map (Hledger.renderText . wbToText)) is
-                    , map (fromMaybe 0 . maximumMay . map wbWidth) is )
+    renderRow' is = ( concatLines . map mconcat . gridB (concatMap colSpec comps) $ colsAsRowsAll vPos is
+                    , map (fromMaybe 0 . maximumMay . map visibleLength) is )
 
     (vPos, oneline, comps) = case format_ opts of
         OneLine       comps -> (top,    True,  comps)
@@ -475,12 +475,12 @@ balanceReportItemAsText opts (_, acctname, depth, total) =
     col ljust = column expand (if ljust then left else right) noAlign (singleCutMark "..")
 
 -- | Render one StringFormat component for a balance report item.
-renderComponent :: Bool -> ReportOpts -> (AccountName, Int, MixedAmount) -> StringFormatComponent -> [[WideBuilder]]
-renderComponent _ _ _ (FormatLiteral s) = [[wbFromText s]]
+renderComponent :: Bool -> ReportOpts -> (AccountName, Int, MixedAmount) -> StringFormatComponent -> [[RenderText]]
+renderComponent _ _ _ (FormatLiteral s) = [[renderText s]]
 renderComponent oneline opts (acctname, depth, total) (FormatField ljust mmin mmax field) = case field of
-    DepthSpacerField     -> [[WideBuilder (TB.fromText $ T.replicate d " ") d]]
+    DepthSpacerField     -> [[renderText $ T.replicate d " "]]
                             where d = maybe id min mmax $ depth * fromMaybe 1 mmin
-    AccountField         -> [[wbFromText $ formatText ljust mmin mmax acctname]]
+    AccountField         -> [[renderText $ formatText ljust mmin mmax acctname]]
     -- Add commodities after the amounts, if LayoutBare is used.
     TotalField | oneline -> [showMixedAmountB dopts total] : commoditiesColumns
     TotalField           -> showMixedAmountLinesB dopts total : commoditiesColumns
@@ -491,7 +491,7 @@ renderComponent oneline opts (acctname, depth, total) (FormatField ljust mmin mm
     commodities = case layout_ opts of
       LayoutBare -> Just $ if mixedAmountLooksZero total then [""] else S.toList $ maCommodities total
       _          -> Nothing
-    commoditiesColumns = maybe [] (\cs -> [[wbFromText "  "], map wbFromText cs]) commodities
+    commoditiesColumns = maybe [] (\cs -> [[renderText "  "], map renderText cs]) commodities
 
 -- rendering multi-column balance reports
 
@@ -648,7 +648,7 @@ multiBalanceReportAsText ropts@ReportOpts{..} r = TB.toLazyText $
         _                                     -> False
 
 -- | Build a 'Table' from a multi-column balance report.
-balanceReportAsTable :: ReportOpts -> MultiBalanceReport -> Tab.Table T.Text T.Text WideBuilder
+balanceReportAsTable :: ReportOpts -> MultiBalanceReport -> Tab.Table T.Text T.Text RenderText
 balanceReportAsTable opts@ReportOpts{average_, row_total_, balanceaccum_}
     (PeriodicReport spans items tr) =
    maybetranspose $
@@ -679,20 +679,20 @@ balanceReportAsTable opts@ReportOpts{average_, row_total_, balanceaccum_}
     maybetranspose | transpose_ opts = \(Tab.Table rh ch vals) -> Tab.Table ch rh (transpose vals)
                    | otherwise       = id
 
-multiBalanceRowAsWbs :: AmountDisplayOpts -> ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount -> [[WideBuilder]]
+multiBalanceRowAsWbs :: AmountDisplayOpts -> ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount -> [[RenderText]]
 multiBalanceRowAsWbs bopts ReportOpts{..} colspans (PeriodicReportRow _ as rowtot rowavg) =
     case layout_ of
       LayoutWide width -> [fmap (showMixedAmountB bopts{displayMaxWidth=width}) allamts]
       LayoutTall       -> paddedTranspose mempty
                            . fmap (showMixedAmountLinesB bopts{displayMaxWidth=Nothing})
                            $ allamts
-      LayoutBare       -> zipWith (:) (fmap wbFromText cs)  -- add symbols
-                           . transpose                         -- each row becomes a list of Text quantities
-                           . fmap (showMixedAmountLinesB bopts{displayOrder=Just cs, displayMinWidth=Nothing})
+      LayoutBare       -> zipWith (:) (map renderText cs)  -- add symbols
+                           . transpose                             -- each row becomes a list of Text quantities
+                           . map (showMixedAmountLinesB bopts{displayOrder=Just cs, displayMinWidth=Nothing})
                            $ allamts
       LayoutTidy       -> concat
                            . zipWith (map . addDateColumns) colspans
-                           . fmap ( zipWith (\c a -> [wbFromText c, a]) cs
+                           . fmap ( zipWith (\c a -> [renderText c, a]) cs
                                   . showMixedAmountLinesB bopts{displayOrder=Just cs, displayMinWidth=Nothing})
                            $ as  -- Do not include totals column or average for tidy output, as this
                                  -- complicates the data representation and can be easily calculated
@@ -700,9 +700,9 @@ multiBalanceRowAsWbs bopts ReportOpts{..} colspans (PeriodicReportRow _ as rowto
     totalscolumn = row_total_ && balanceaccum_ `notElem` [Cumulative, Historical]
     cs = if all mixedAmountLooksZero allamts then [""] else S.toList $ foldMap maCommodities allamts
     allamts = as ++ [rowtot | totalscolumn && not (null as)] ++ [rowavg | average_ && not (null as)]
-    addDateColumns span@(DateSpan s e) = (wbFromText (showDateSpan span) :)
-                                       . (wbFromText (maybe "" showDate s) :)
-                                       . (wbFromText (maybe "" (showDate . addDays (-1)) e) :)
+    addDateColumns span@(DateSpan s e) = (renderText (showDateSpan span) :)
+                                       . (renderText (maybe "" showDate s) :)
+                                       . (renderText (maybe "" (showDate . addDays (-1)) e) :)
 
     paddedTranspose :: a -> [[a]] -> [[a]]
     paddedTranspose _ [] = [[]]
@@ -719,9 +719,9 @@ multiBalanceRowAsWbs bopts ReportOpts{..} colspans (PeriodicReportRow _ as rowto
           m [] = [n]
 
 multiBalanceRowAsCsvText :: ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount -> [[T.Text]]
-multiBalanceRowAsCsvText opts colspans = fmap (fmap wbToText) . multiBalanceRowAsWbs csvDisplay opts colspans
+multiBalanceRowAsCsvText opts colspans = map (map buildCell) . multiBalanceRowAsWbs csvDisplay opts colspans
 
-multiBalanceRowAsTableText :: ReportOpts -> PeriodicReportRow a MixedAmount -> [[WideBuilder]]
+multiBalanceRowAsTableText :: ReportOpts -> PeriodicReportRow a MixedAmount -> [[RenderText]]
 multiBalanceRowAsTableText opts = multiBalanceRowAsWbs oneLine{displayColour=color_ opts} opts []
 
 tests_Balance = testGroup "Balance" [

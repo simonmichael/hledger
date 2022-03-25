@@ -165,8 +165,8 @@ rsDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
         whitespacewidth = 10 -- inter-column whitespace, fixed width
         minnonamtcolswidth = datewidth + 1 + 2 + 2 -- date column plus at least 1 for status and 2 for desc and accts
         maxamtswidth = max 0 (totalwidth - minnonamtcolswidth - whitespacewidth)
-        maxchangewidthseen = maximum' $ map (wbWidth . rsItemChangeAmount) displayitems
-        maxbalwidthseen = maximum' $ map (wbWidth . rsItemBalanceAmount) displayitems
+        maxchangewidthseen = maximum' $ map (visibleLength . rsItemChangeAmount) displayitems
+        maxbalwidthseen = maximum' $ map (visibleLength . rsItemBalanceAmount) displayitems
         changewidthproportion = fromIntegral maxchangewidthseen / fromIntegral (maxchangewidthseen + maxbalwidthseen)
         maxchangewidth = round $ changewidthproportion * fromIntegral maxamtswidth
         maxbalwidth = maxamtswidth - maxchangewidth
@@ -268,8 +268,8 @@ rsDrawItem (datewidth,descwidth,acctswidth,changewidth,balwidth) selected Regist
       txt "   " <+>
       withAttr balattr (txt $ fitText (Just balwidth) (Just balwidth) True False balanceAmt)
   where
-    changeAmt  = wbToText rsItemChangeAmount
-    balanceAmt = wbToText rsItemBalanceAmount
+    changeAmt  = buildCell rsItemChangeAmount
+    balanceAmt = buildCell rsItemBalanceAmount
     changeattr | T.any (=='-') changeAmt  = sel $ attrName "list" <> attrName "amount" <> attrName "decrease"
                | otherwise                = sel $ attrName "list" <> attrName "amount" <> attrName "increase"
     balattr    | T.any (=='-') balanceAmt = sel $ attrName "list" <> attrName "balance" <> attrName "negative"

@@ -39,12 +39,9 @@ module Hledger.Utils.Text
   linesPrepend2,
   unlinesB,
   -- * wide-character-aware layout
-  WideBuilder(..),
-  wbToText,
-  wbFromText,
-  wbUnpack,
   textTakeWidth,
   -- ** table layout
+  module Text.Layout.Table.Cell,
   module Text.Layout.Table.Cell.Formatted,
   module Text.Layout.Table.Cell.WideString,
   RenderText,
@@ -72,7 +69,6 @@ import Text.Layout.Table.Cell.WideString
 
 import Test.Tasty (testGroup)
 import Test.Tasty.HUnit ((@?=), testCase)
-import Text.WideString (WideBuilder(..), wbToText, wbFromText, wbUnpack)
 
 
 -- lowercase, uppercase :: String -> String

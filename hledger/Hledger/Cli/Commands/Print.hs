@@ -185,7 +185,7 @@ postingToCSV p =
     -- commodity goes into separate column, so we suppress it, along with digit group
     -- separators and prices
     let a_ = amountStripPrices a{acommodity=""} in
-    let showamt = wbToText . showAmountB csvDisplay in
+    let showamt = buildCell . showAmountB csvDisplay in
     let amount = showamt a_ in
     let credit = if q < 0 then showamt $ negate a_ else "" in
     let debit  = if q >= 0 then showamt a_ else "" in

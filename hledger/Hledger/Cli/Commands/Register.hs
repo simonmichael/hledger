@@ -88,8 +88,8 @@ postingsReportItemAsCsvRecord (_, _, _, p, b) = [idx,date,code,desc,acct,amt,bal
                              VirtualPosting -> wrap "(" ")"
                              _ -> id
     -- Since postingsReport strips prices from all Amounts when not used, we can display prices.
-    amt = wbToText . showMixedAmountB csvDisplay $ pamount p
-    bal = wbToText $ showMixedAmountB csvDisplay b
+    amt = buildCell . showMixedAmountB csvDisplay $ pamount p
+    bal = buildCell $ showMixedAmountB csvDisplay b
 
 -- | Render a register report as plain text suitable for console output.
 postingsReportAsText :: CliOpts -> PostingsReport -> TL.Text
@@ -125,13 +125,13 @@ postingsReportAsText opts = TB.toLazyText .
 -- Also returns the natural width (without padding) of the amount and balance
 -- fields.
 postingsReportItemAsText :: CliOpts -> Int -> Int
-                         -> (PostingsReportItem, [WideBuilder], [WideBuilder])
+                         -> (PostingsReportItem, [RenderText], [RenderText])
                          -> TB.Builder
 postingsReportItemAsText opts preferredamtwidth preferredbalwidth ((mdate, mperiod, mdesc, p, _), amt, bal) =
     table <> TB.singleton '\n'
   where
-    table = gridStringB colSpec $ colsAsRows [top, top, top, top, top, top, top, bottom] $ map (map renderText)
-              [[date], [desc], [""], [acct], [""], map wbToText amt, [""], map wbToText bal]
+    table = gridStringB colSpec $ colsAsRows [top, top, top, top, top, top, top, bottom]
+              [[date], [desc], [""], [acct], [""], amt, [""], bal]
       where
         colSpec = [cl datewidth, cl descwidth, cl 0, cl acctwidth, cl 0, cr amtwidth, cl 0, cr balwidth]
         cl width = column (fixed width) left  noAlign (singleCutMark "..")
@@ -140,7 +140,7 @@ postingsReportItemAsText opts preferredamtwidth preferredbalwidth ((mdate, mperi
     -- calculate widths
     (totalwidth,mdescwidth) = registerWidthsFromOpts opts
     datewidth = maybe 10 periodTextWidth mperiod
-    date = case mperiod of
+    date = renderText $ case mperiod of
              Just period -> if isJust mdate then showPeriod period else ""
              Nothing     -> maybe "" showDate mdate
     (amtwidth, balwidth)
@@ -162,8 +162,8 @@ postingsReportItemAsText opts preferredamtwidth preferredbalwidth ((mdate, mperi
         w = fromMaybe ((remaining - 2) `div` 2) mdescwidth
 
     -- gather content
-    desc = fromMaybe "" mdesc
-    acct = parenthesise . elideAccountName awidth $ paccount p
+    desc = renderText $ fromMaybe "" mdesc
+    acct = renderText . parenthesise . elideAccountName awidth $ paccount p
       where
         (parenthesise, awidth) = case ptype p of
             BalancedVirtualPosting -> (wrap "[" "]", acctwidth-2)

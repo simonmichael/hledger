@@ -121,8 +121,8 @@ accountTransactionsReportItemAsCsvRecord
   where
     idx  = T.pack $ show tindex
     date = showDate $ transactionRegisterDate wd reportq thisacctq t
-    amt  = wbToText $ showMixedAmountB csvDisplay change
-    bal  = wbToText $ showMixedAmountB csvDisplay balance
+    amt  = buildCell $ showMixedAmountB csvDisplay change
+    bal  = buildCell $ showMixedAmountB csvDisplay balance
 
 -- | Render a register report as plain text suitable for console output.
 accountTransactionsReportAsText :: CliOpts -> Query -> Query -> AccountTransactionsReport -> TL.Text
@@ -156,7 +156,7 @@ accountTransactionsReportAsText copts reportq thisacctq items = TB.toLazyText $
 -- has multiple commodities.
 --
 accountTransactionsReportItemAsText :: CliOpts -> Query -> Query -> Int -> Int
-                                    -> (AccountTransactionsReportItem, [WideBuilder], [WideBuilder])
+                                    -> (AccountTransactionsReportItem, [RenderText], [RenderText])
                                     -> TB.Builder
 accountTransactionsReportItemAsText
   copts@CliOpts{reportspec_=ReportSpec{_rsReportOpts=ropts}}
@@ -170,8 +170,8 @@ accountTransactionsReportItemAsText
     -- MixedAmount -- the register's running total or the current account(s)'s historical balance, after this transaction
     table <> TB.singleton '\n'
   where
-    table = gridStringB colSpec $ colsAsRows [top, top, top, top, top, top, top, bottom] $ map (map renderText)
-              [[date], [tdescription], [""], [accts], [""], map wbToText amt, [""], map wbToText bal]
+    table = gridStringB colSpec $ colsAsRows [top, top, top, top, top, top, top, bottom]
+              [[date], [renderText tdescription], [""], [accts], [""], amt, [""], bal]
       where
         colSpec = [cl datewidth, cl descwidth, cl 0, cl acctwidth, cl 0, cr amtwidth, cl 0, cr balwidth]
         cl width = column (fixed width) left  noAlign (singleCutMark "..")
@@ -179,7 +179,7 @@ accountTransactionsReportItemAsText
 
     -- calculate widths
     (totalwidth,mdescwidth) = registerWidthsFromOpts copts
-    (datewidth, date) = (10, showDate $ transactionRegisterDate wd reportq thisacctq t)
+    (datewidth, date) = (10, renderText . showDate $ transactionRegisterDate wd reportq thisacctq t)
       where wd = whichDate ropts
     (amtwidth, balwidth)
       | shortfall <= 0 = (preferredamtwidth, preferredbalwidth)
@@ -198,7 +198,7 @@ accountTransactionsReportItemAsText
 
     -- gather content
     accts = -- T.unpack $ elideAccountName acctwidth $ T.pack
-            otheracctsstr
+            renderText otheracctsstr
 
 -- tests
 

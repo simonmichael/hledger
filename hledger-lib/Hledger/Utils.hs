@@ -37,7 +37,6 @@ import Data.List.Extra (foldl', foldl1', uncons, unsnoc)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text.IO as T
-import qualified Data.Text.Lazy.Builder as TB
 import Data.Time.Clock (getCurrentTime)
 import Data.Time.LocalTime (LocalTime, ZonedTime, getCurrentTimeZone,
                             utcToLocalTime, utcToZonedTime)
@@ -278,15 +277,13 @@ color int col s = setSGRCode [SetColor Foreground int col] ++ s ++ setSGRCode []
 bgColor :: ColorIntensity -> Color -> String -> String
 bgColor int col s = setSGRCode [SetColor Background int col] ++ s ++ setSGRCode []
 
--- | Wrap a WideBuilder in ANSI codes to set and reset foreground colour.
-colorB :: ColorIntensity -> Color -> WideBuilder -> WideBuilder
-colorB int col (WideBuilder s w) =
-    WideBuilder (TB.fromString (setSGRCode [SetColor Foreground int col]) <> s <> TB.fromString (setSGRCode [])) w
+-- | Wrap a 'Formatted a' in ANSI codes to set and reset foreground colour.
+colorB :: ColorIntensity -> Color -> Formatted a -> Formatted a
+colorB int col s = formatted (setSGRCode [SetColor Foreground int col]) s (setSGRCode [])
 
--- | Wrap a WideBuilder in ANSI codes to set and reset background colour.
-bgColorB :: ColorIntensity -> Color -> WideBuilder -> WideBuilder
-bgColorB int col (WideBuilder s w) =
-    WideBuilder (TB.fromString (setSGRCode [SetColor Background int col]) <> s <> TB.fromString (setSGRCode [])) w
+-- | Wrap a 'Formatted a' in ANSI codes to set and reset background colour.
+bgColorB :: ColorIntensity -> Color -> Formatted a -> Formatted a
+bgColorB int col s = formatted (setSGRCode [SetColor Background int col]) s (setSGRCode [])
 
 
 -- | Make classy lenses for Hledger options fields.

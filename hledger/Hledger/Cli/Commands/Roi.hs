@@ -29,7 +29,6 @@ import qualified Data.Text.Lazy.IO as TL
 import qualified Data.Text.Lazy.Builder as TB
 import System.Console.CmdArgs.Explicit as CmdArgs
 import Text.Layout.Table
-import Text.Layout.Table.Cell (Cell)
 
 import Hledger
 import Hledger.Cli.CliOptions

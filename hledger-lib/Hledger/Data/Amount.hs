@@ -136,8 +136,6 @@ module Hledger.Data.Amount (
   showMixedAmountWithZeroCommodity,
   showMixedAmountB,
   showMixedAmountLinesB,
-  wbToText,
-  wbUnpack,
   mixedAmountSetPrecision,
   mixedAmountSetFullPrecision,
   canonicaliseMixedAmount,
@@ -158,20 +156,19 @@ import qualified Data.Map.Strict as M
 import qualified Data.Set as S
 import Data.Maybe (fromMaybe, isNothing, isJust)
 import Data.Semigroup (Semigroup(..))
+import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.Lazy.Builder as TB
 import Data.Word (Word8)
-import Safe (headDef, lastDef, lastMay)
+import Safe (lastDef, lastMay)
 import System.Console.ANSI (Color(..),ColorIntensity(..))
 
-import Debug.Trace (trace)
 import Test.Tasty (testGroup)
 import Test.Tasty.HUnit ((@?=), assertBool, testCase)
 
 import Hledger.Data.Types
-import Hledger.Utils (colorB, numDigitsInt)
-import Hledger.Utils.Text (textQuoteIfNeeded)
-import Text.WideString (WideBuilder(..), wbFromText, wbToText, wbUnpack)
+import Hledger.Utils
+  (Cell(..), RenderText, numDigitsInt, textQuoteIfNeeded, trace, colorB,
+  renderText, visibleLength)
 
 
 -- A 'Commodity' is a symbol representing a currency or some other kind of
@@ -402,11 +399,11 @@ withDecimalPoint = flip setAmountDecimalPoint
 amountStripPrices :: Amount -> Amount
 amountStripPrices a = a{aprice=Nothing}
 
-showAmountPrice :: Amount -> WideBuilder
+showAmountPrice :: Amount -> RenderText
 showAmountPrice amt = case aprice amt of
     Nothing              -> mempty
-    Just (UnitPrice  pa) -> WideBuilder (TB.fromString " @ ")  3 <> showAmountB noColour pa
-    Just (TotalPrice pa) -> WideBuilder (TB.fromString " @@ ") 4 <> showAmountB noColour (sign pa)
+    Just (UnitPrice  pa) -> " @ "  <> showAmountB noColour pa
+    Just (TotalPrice pa) -> " @@ " <> showAmountB noColour (sign pa)
   where sign = if aquantity amt < 0 then negate else id
 
 showAmountPriceDebug :: Maybe AmountPrice -> String
@@ -446,26 +443,25 @@ amountUnstyled a = a{astyle=amountstyle}
 -- zero are converted to just \"0\". The special "missing" amount is
 -- displayed as the empty string.
 --
--- > showAmount = wbUnpack . showAmountB noColour
+-- > showAmount = buildCell . showAmountB noColour
 showAmount :: Amount -> String
-showAmount = wbUnpack . showAmountB noColour
+showAmount = buildCell . showAmountB noColour
 
--- | General function to generate a WideBuilder for an Amount, according the
+-- | General function to generate a RenderText for an Amount, according the
 -- supplied AmountDisplayOpts. The special "missing" amount is displayed as
 -- the empty string. This is the main function to use for showing
--- Amounts, constructing a builder; it can then be converted to a Text with
--- wbToText, or to a String with wbUnpack.
-showAmountB :: AmountDisplayOpts -> Amount -> WideBuilder
+-- Amounts; it can then be converted to a String or Text buildCell.
+showAmountB :: AmountDisplayOpts -> Amount -> RenderText
 showAmountB _ Amount{acommodity="AUTO"} = mempty
 showAmountB opts a@Amount{astyle=style} =
     color $ case ascommodityside style of
-      L -> showC (wbFromText c) space <> quantity' <> price
-      R -> quantity' <> showC space (wbFromText c) <> price
+      L -> showC (renderText c) space <> quantity' <> price
+      R -> quantity' <> showC space (renderText c) <> price
   where
-    quantity = showamountquantity $ if displayThousandsSep opts then a else a{astyle=(astyle a){asdigitgroups=Nothing}}
-    (quantity',c) | amountLooksZero a && not (displayZeroCommodity opts) = (WideBuilder (TB.singleton '0') 1,"")
+    quantity = renderText . showamountquantity $ if displayThousandsSep opts then a else a{astyle=(astyle a){asdigitgroups=Nothing}}
+    (quantity',c) | amountLooksZero a && not (displayZeroCommodity opts) = ("0", "")
                   | otherwise = (quantity, quoteCommoditySymbolIfNeeded $ acommodity a)
-    space = if not (T.null c) && ascommodityspaced style then WideBuilder (TB.singleton ' ') 1 else mempty
+    space = if not (T.null c) && ascommodityspaced style then " " else ""
     showC l r = if isJust (displayOrder opts) then mempty else l <> r
     price = if displayPrice opts then showAmountPrice a else mempty
     color = if displayColour opts && isNegativeAmount a then colorB Dull Red else id
@@ -473,21 +469,21 @@ showAmountB opts a@Amount{astyle=style} =
 -- | Colour version. For a negative amount, adds ANSI codes to change the colour,
 -- currently to hard-coded red.
 --
--- > cshowAmount = wbUnpack . showAmountB def{displayColour=True}
+-- > cshowAmount = buildCell . showAmountB def{displayColour=True}
 cshowAmount :: Amount -> String
-cshowAmount = wbUnpack . showAmountB def{displayColour=True}
+cshowAmount = buildCell . showAmountB def{displayColour=True}
 
 -- | Get the string representation of an amount, without any \@ price.
 --
--- > showAmountWithoutPrice = wbUnpack . showAmountB noPrice
+-- > showAmountWithoutPrice = buildCell . showAmountB noPrice
 showAmountWithoutPrice :: Amount -> String
-showAmountWithoutPrice = wbUnpack . showAmountB noPrice
+showAmountWithoutPrice = buildCell . showAmountB noPrice
 
 -- | Like showAmount, but show a zero amount's commodity if it has one.
 --
--- > showAmountWithZeroCommodity = wbUnpack . showAmountB noColour{displayZeryCommodity=True}
+-- > showAmountWithZeroCommodity = buildCell . showAmountB noColour{displayZeryCommodity=True}
 showAmountWithZeroCommodity :: Amount -> String
-showAmountWithZeroCommodity = wbUnpack . showAmountB noColour{displayZeroCommodity=True}
+showAmountWithZeroCommodity = buildCell . showAmountB noColour{displayZeroCommodity=True}
 
 -- | Get a string representation of an amount for debugging,
 -- appropriate to the current debug level. 9 shows maximum detail.
@@ -497,10 +493,9 @@ showAmountDebug Amount{..} =
       "Amount {acommodity=" ++ show acommodity ++ ", aquantity=" ++ show aquantity
    ++ ", aprice=" ++ showAmountPriceDebug aprice ++ ", astyle=" ++ show astyle ++ "}"
 
--- | Get a Text Builder for the string representation of the number part of of an amount,
--- using the display settings from its commodity. Also returns the width of the
--- number.
-showamountquantity :: Amount -> WideBuilder
+-- | Get a Text for the string representation of the number part of of an amount,
+-- using the display settings from its commodity.
+showamountquantity :: Amount -> Text
 showamountquantity amt@Amount{astyle=AmountStyle{asdecimalpoint=mdec, asdigitgroups=mgrps}} =
     signB <> intB <> fracB
   where
@@ -514,19 +509,19 @@ showamountquantity amt@Amount{astyle=AmountStyle{asdecimalpoint=mdec, asdigitgro
     (intPart, fracPart) = T.splitAt intLen padded
 
     intB = applyDigitGroupStyle mgrps intLen $ if e == 0 then strN else intPart
-    signB = if n < 0 then WideBuilder (TB.singleton '-') 1 else mempty
-    fracB = if e > 0 then WideBuilder (TB.singleton dec <> TB.fromText fracPart) (fromIntegral e + 1) else mempty
+    signB = if n < 0 then "-" else ""
+    fracB = if e > 0 then T.cons dec fracPart else ""
 
 -- | Split a string representation into chunks according to DigitGroupStyle,
 -- returning a Text builder and the number of separators used.
-applyDigitGroupStyle :: Maybe DigitGroupStyle -> Int -> T.Text -> WideBuilder
-applyDigitGroupStyle Nothing                       l s = WideBuilder (TB.fromText s) l
-applyDigitGroupStyle (Just (DigitGroups _ []))     l s = WideBuilder (TB.fromText s) l
+applyDigitGroupStyle :: Maybe DigitGroupStyle -> Int -> T.Text -> Text
+applyDigitGroupStyle Nothing                       _ s = s
+applyDigitGroupStyle (Just (DigitGroups _ []))     _ s = s
 applyDigitGroupStyle (Just (DigitGroups c (g:gs))) l s = addseps (g:|gs) (toInteger l) s
   where
     addseps (g:|gs) l s
-        | l' > 0    = addseps gs' l' rest <> WideBuilder (TB.singleton c <> TB.fromText part) (fromIntegral g + 1)
-        | otherwise = WideBuilder (TB.fromText s) (fromInteger l)
+        | l' > 0    = addseps gs' l' rest <> T.cons c part
+        | otherwise = s
       where
         (rest, part) = T.splitAt (fromInteger l') s
         gs' = fromMaybe (g:|[]) $ nonEmpty gs
@@ -778,45 +773,45 @@ mixedAmountUnstyled = mapMixedAmountUnsafe amountUnstyled
 -- normalising it to one amount per commodity. Assumes amounts have
 -- no or similar prices, otherwise this can show misleading prices.
 --
--- > showMixedAmount = wbUnpack . showMixedAmountB noColour
+-- > showMixedAmount = buildCell . showMixedAmountB noColour
 showMixedAmount :: MixedAmount -> String
-showMixedAmount = wbUnpack . showMixedAmountB noColour
+showMixedAmount = buildCell . showMixedAmountB noColour
 
 -- | Get the one-line string representation of a mixed amount.
 --
--- > showMixedAmountOneLine = wbUnpack . showMixedAmountB oneLine
+-- > showMixedAmountOneLine = buildCell . showMixedAmountB oneLine
 showMixedAmountOneLine :: MixedAmount -> String
-showMixedAmountOneLine = wbUnpack . showMixedAmountB oneLine
+showMixedAmountOneLine = buildCell . showMixedAmountB oneLine
 
 -- | Like showMixedAmount, but zero amounts are shown with their
 -- commodity if they have one.
 --
--- > showMixedAmountWithZeroCommodity = wbUnpack . showMixedAmountB noColour{displayZeroCommodity=True}
+-- > showMixedAmountWithZeroCommodity = buildCell . showMixedAmountB noColour{displayZeroCommodity=True}
 showMixedAmountWithZeroCommodity :: MixedAmount -> String
-showMixedAmountWithZeroCommodity = wbUnpack . showMixedAmountB noColour{displayZeroCommodity=True}
+showMixedAmountWithZeroCommodity = buildCell . showMixedAmountB noColour{displayZeroCommodity=True}
 
 -- | Get the string representation of a mixed amount, without showing any transaction prices.
 -- With a True argument, adds ANSI codes to show negative amounts in red.
 --
--- > showMixedAmountWithoutPrice c = wbUnpack . showMixedAmountB noPrice{displayColour=c}
+-- > showMixedAmountWithoutPrice c = buildCell . showMixedAmountB noPrice{displayColour=c}
 showMixedAmountWithoutPrice :: Bool -> MixedAmount -> String
-showMixedAmountWithoutPrice c = wbUnpack . showMixedAmountB noPrice{displayColour=c}
+showMixedAmountWithoutPrice c = buildCell . showMixedAmountB noPrice{displayColour=c}
 
 -- | Get the one-line string representation of a mixed amount, but without
 -- any \@ prices.
 -- With a True argument, adds ANSI codes to show negative amounts in red.
 --
--- > showMixedAmountOneLineWithoutPrice c = wbUnpack . showMixedAmountB oneLine{displayColour=c}
+-- > showMixedAmountOneLineWithoutPrice c = buildCell . showMixedAmountB oneLine{displayColour=c}
 showMixedAmountOneLineWithoutPrice :: Bool -> MixedAmount -> String
-showMixedAmountOneLineWithoutPrice c = wbUnpack . showMixedAmountB oneLine{displayColour=c}
+showMixedAmountOneLineWithoutPrice c = buildCell . showMixedAmountB oneLine{displayColour=c}
 
 -- | Like showMixedAmountOneLineWithoutPrice, but show at most the given width,
 -- with an elision indicator if there are more.
 -- With a True argument, adds ANSI codes to show negative amounts in red.
 --
--- > showMixedAmountElided w c = wbUnpack . showMixedAmountB oneLine{displayColour=c, displayMaxWidth=Just w}
+-- > showMixedAmountElided w c = buildCell . showMixedAmountB oneLine{displayColour=c, displayMaxWidth=Just w}
 showMixedAmountElided :: Int -> Bool -> MixedAmount -> String
-showMixedAmountElided w c = wbUnpack . showMixedAmountB oneLine{displayColour=c, displayMaxWidth=Just w}
+showMixedAmountElided w c = buildCell . showMixedAmountB oneLine{displayColour=c, displayMaxWidth=Just w}
 
 -- | Get an unambiguous string representation of a mixed amount for debugging.
 showMixedAmountDebug :: MixedAmount -> String
@@ -824,10 +819,9 @@ showMixedAmountDebug m | m == missingmixedamt = "(missing)"
                        | otherwise       = "Mixed [" ++ as ++ "]"
     where as = intercalate "\n       " $ map showAmountDebug $ amounts m
 
--- | General function to generate a WideBuilder for a MixedAmount, according to the
+-- | General function to generate a RenderText for a MixedAmount, according to the
 -- supplied AmountDisplayOpts. This is the main function to use for showing
--- MixedAmounts, constructing a builder; it can then be converted to a Text with
--- wbToText, or to a String with wbUnpack.
+-- MixedAmounts; it can then be converted to a Text or String with buildCell.
 --
 -- If a maximum width is given then:
 -- - If displayed on one line, it will display as many Amounts as can
@@ -836,56 +830,52 @@ showMixedAmountDebug m | m == missingmixedamt = "(missing)"
 --   exceed the requested maximum width.
 -- - If displayed on multiple lines, any Amounts longer than the
 --   maximum width will be elided.
-showMixedAmountB :: AmountDisplayOpts -> MixedAmount -> WideBuilder
+showMixedAmountB :: AmountDisplayOpts -> MixedAmount -> RenderText
 showMixedAmountB opts ma
     | displayOneLine opts = showMixedAmountOneLineB opts ma
-    | otherwise           = WideBuilder (wbBuilder . mconcat $ intersperse sep lines) width
+    | otherwise           = mconcat $ intersperse sep lines
   where
     lines = showMixedAmountLinesB opts ma
-    width = headDef 0 $ map wbWidth lines
-    sep = WideBuilder (TB.singleton '\n') 0
+    sep = "\n"
 
 -- | Helper for showMixedAmountB to show a list of Amounts on multiple lines. This returns
--- the list of WideBuilders: one for each Amount, and padded/elided to the appropriate
+-- the list of RenderText: one for each Amount, and padded/elided to the appropriate
 -- width. This does not honour displayOneLine: all amounts will be displayed as if
 -- displayOneLine were False.
-showMixedAmountLinesB :: AmountDisplayOpts -> MixedAmount -> [WideBuilder]
+showMixedAmountLinesB :: AmountDisplayOpts -> MixedAmount -> [RenderText]
 showMixedAmountLinesB opts@AmountDisplayOpts{displayMaxWidth=mmax,displayMinWidth=mmin} ma =
     map (adBuilder . pad) elided
   where
-    astrs = amtDisplayList (wbWidth sep) (showAmountB opts) . orderedAmounts opts $
+    astrs = amtDisplayList 0 (showAmountB opts) . orderedAmounts opts $
               if displayPrice opts then ma else mixedAmountStripPrices ma
-    sep   = WideBuilder (TB.singleton '\n') 0
-    width = maximum $ map (wbWidth . adBuilder) elided
+    width = maximum $ map (visibleLength . adBuilder) elided
 
     pad amt
       | Just mw <- mmin =
-          let w = (max width mw) - wbWidth (adBuilder amt)
-           in amt{ adBuilder = WideBuilder (TB.fromText $ T.replicate w " ") w <> adBuilder amt }
+          let w = (max width mw) - visibleLength (adBuilder amt)
+           in amt{ adBuilder = renderText (T.replicate w " ") <> adBuilder amt }
       | otherwise = amt
 
     elided = maybe id elideTo mmax astrs
     elideTo m xs = maybeAppend elisionStr short
       where
-        elisionStr = elisionDisplay (Just m) (wbWidth sep) (length long) $ lastDef nullAmountDisplay short
-        (short, long) = partition ((m>=) . wbWidth . adBuilder) xs
+        elisionStr = elisionDisplay (Just m) 0 (length long) $ lastDef nullAmountDisplay short
+        (short, long) = partition ((m>=) . visibleLength . adBuilder) xs
 
 -- | Helper for showMixedAmountB to deal with single line displays. This does not
 -- honour displayOneLine: all amounts will be displayed as if displayOneLine
 -- were True.
-showMixedAmountOneLineB :: AmountDisplayOpts -> MixedAmount -> WideBuilder
+showMixedAmountOneLineB :: AmountDisplayOpts -> MixedAmount -> RenderText
 showMixedAmountOneLineB opts@AmountDisplayOpts{displayMaxWidth=mmax,displayMinWidth=mmin} ma =
-    WideBuilder (wbBuilder . pad . mconcat . intersperse sep $ map adBuilder elided)
-    . max width $ fromMaybe 0 mmin
+    pad . mconcat . intersperse sep $ map adBuilder elided
   where
     width  = maybe 0 adTotal $ lastMay elided
-    astrs  = amtDisplayList (wbWidth sep) (showAmountB opts) . orderedAmounts opts $
+    astrs  = amtDisplayList (visibleLength sep) (showAmountB opts) . orderedAmounts opts $
                if displayPrice opts then ma else mixedAmountStripPrices ma
-    sep    = WideBuilder (TB.fromString ", ") 2
+    sep    = ", "
     n      = length astrs
 
-    pad = (WideBuilder (TB.fromText $ T.replicate w " ") w <>)
-      where w = fromMaybe 0 mmin - width
+    pad = (renderText (T.replicate (fromMaybe 0 mmin - width) " ") <>)
 
     elided = maybe id elideTo mmax astrs
     elideTo m = addElide . takeFitting m . withElided
@@ -900,7 +890,7 @@ showMixedAmountOneLineB opts@AmountDisplayOpts{displayMaxWidth=mmax,displayMinWi
     dropWhileRev p = foldr (\x xs -> if null xs && p x then [] else x:xs) []
 
     -- Add the elision strings (if any) to each amount
-    withElided = zipWith (\num amt -> (amt, elisionDisplay Nothing (wbWidth sep) num amt)) [n-1,n-2..0]
+    withElided = zipWith (\num amt -> (amt, elisionDisplay Nothing (visibleLength sep) num amt)) [n-1,n-2..0]
 
 orderedAmounts :: AmountDisplayOpts -> MixedAmount -> [Amount]
 orderedAmounts dopts = maybe id (mapM pad) (displayOrder dopts) . amounts
@@ -909,34 +899,33 @@ orderedAmounts dopts = maybe id (mapM pad) (displayOrder dopts) . amounts
 
 
 data AmountDisplay = AmountDisplay
-  { adBuilder :: !WideBuilder  -- ^ String representation of the Amount
-  , adTotal   :: !Int            -- ^ Cumulative length of MixedAmount this Amount is part of,
-                                --   including separators
+  { adBuilder :: !RenderText  -- ^ String representation of the Amount
+  , adTotal   :: !Int         -- ^ Cumulative length of MixedAmount this Amount is part of, including separators
   } deriving (Show)
 
 nullAmountDisplay :: AmountDisplay
 nullAmountDisplay = AmountDisplay mempty 0
 
-amtDisplayList :: Int -> (Amount -> WideBuilder) -> [Amount] -> [AmountDisplay]
+amtDisplayList :: Int -> (Amount -> RenderText) -> [Amount] -> [AmountDisplay]
 amtDisplayList sep showamt = snd . mapAccumL display (-sep)
   where
     display tot amt = (tot', AmountDisplay str tot')
       where
         str  = showamt amt
-        tot' = tot + (wbWidth str) + sep
+        tot' = tot + (visibleLength str) + sep
 
 -- The string "m more", added to the previous running total
 elisionDisplay :: Maybe Int -> Int -> Int -> AmountDisplay -> Maybe AmountDisplay
 elisionDisplay mmax sep n lastAmt
-  | n > 0     = Just $ AmountDisplay (WideBuilder (TB.fromText str) len) (adTotal lastAmt + len)
+  | n > 0     = Just $ AmountDisplay str (adTotal lastAmt + len)
   | otherwise = Nothing
   where
     fullString = T.pack $ show n ++ " more.."
     -- sep from the separator, 7 from " more..", numDigits n from number
     fullLength = sep + 7 + numDigitsInt n
 
-    str | Just m <- mmax, fullLength > m = T.take (m - 2) fullString <> ".."
-        | otherwise                      = fullString
+    str | Just m <- mmax, fullLength > m = renderText $ T.take (m - 2) fullString <> ".."
+        | otherwise                      = renderText fullString
     len = case mmax of Nothing -> fullLength
                        Just m  -> max 2 $ min m fullLength
 

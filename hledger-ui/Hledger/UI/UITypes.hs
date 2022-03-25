@@ -153,8 +153,8 @@ data RegisterScreenItem = RegisterScreenItem {
   ,rsItemStatus         :: Status       -- ^ transaction status
   ,rsItemDescription    :: Text         -- ^ description
   ,rsItemOtherAccounts  :: Text         -- ^ other accounts
-  ,rsItemChangeAmount   :: WideBuilder  -- ^ the change to the current account from this transaction
-  ,rsItemBalanceAmount  :: WideBuilder  -- ^ the balance or running total after this transaction
+  ,rsItemChangeAmount   :: RenderText   -- ^ the change to the current account from this transaction
+  ,rsItemBalanceAmount  :: RenderText   -- ^ the balance or running total after this transaction
   ,rsItemTransaction    :: Transaction  -- ^ the full transaction
   }
   deriving (Show)

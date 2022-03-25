@@ -128,7 +128,7 @@ asDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
         displayitems = s ^. asList . listElementsL
 
         acctwidths = V.map (\AccountsScreenItem{..} -> asItemIndentLevel + realLength asItemDisplayAccountName) displayitems
-        balwidths  = V.map (maybe 0 (wbWidth . showMixedAmountB oneLine) . asItemMixedAmount) displayitems
+        balwidths  = V.map (maybe 0 (visibleLength . showMixedAmountB oneLine) . asItemMixedAmount) displayitems
         preferredacctwidth = V.maximum acctwidths
         totalacctwidthseen = V.sum acctwidths
         preferredbalwidth  = V.maximum balwidths
@@ -217,8 +217,8 @@ asDrawItem (acctwidth, balwidth) selected AccountsScreenItem{..} =
       where
         balBuilder = maybe mempty showamt asItemMixedAmount
         showamt = showMixedAmountB oneLine{displayMinWidth=Just balwidth, displayMaxWidth=Just balwidth}
-        balspace = T.replicate (2 + balwidth - wbWidth balBuilder) " "
-        splitAmounts = foldr1 (<+>) . intersperse (str ", ") . map renderamt . T.splitOn ", " . wbToText
+        balspace = T.replicate (2 + balwidth - visibleLength balBuilder) " "
+        splitAmounts = foldr1 (<+>) . intersperse (str ", ") . map renderamt . T.splitOn ", " . buildCell
         renderamt :: T.Text -> Widget Name
         renderamt a | T.any (=='-') a = withAttr (sel $ attrName "list" <> attrName "balance" <> attrName "negative") $ txt a
                     | otherwise       = withAttr (sel $ attrName "list" <> attrName "balance" <> attrName "positive") $ txt a

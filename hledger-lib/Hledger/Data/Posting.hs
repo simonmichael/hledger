@@ -79,11 +79,9 @@ import Data.List (foldl', sort, union)
 import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.Lazy.Builder as TB
 import Data.Time.Calendar (Day)
 import Safe (maximumBound)
 import Text.Layout.Table
-import Text.Layout.Table.Cell (Cell(..))
 
 import Hledger.Utils
 import Hledger.Data.Types
@@ -156,13 +154,12 @@ balassertTotInc :: Amount -> Maybe BalanceAssertion
 balassertTotInc amt = Just $ nullassertion{baamount=amt, batotal=True, bainclusive=True}
 
 -- | Render a balance assertion, as the =[=][*] symbol and expected amount.
-showBalanceAssertion :: BalanceAssertion -> WideBuilder
+showBalanceAssertion :: BalanceAssertion -> RenderText
 showBalanceAssertion ba =
-    singleton '=' <> eq <> ast <> singleton ' ' <> showAmountB def{displayZeroCommodity=True} (baamount ba)
+    "=" <> eq <> ast <> " " <> showAmountB def{displayZeroCommodity=True} (baamount ba)
   where
-    eq  = if batotal ba     then singleton '=' else mempty
-    ast = if bainclusive ba then singleton '*' else mempty
-    singleton c = WideBuilder (TB.singleton c) 1
+    eq  = if batotal ba     then "=" else ""
+    ast = if bainclusive ba then "*" else ""
 
 -- Get the original posting, if any.
 originalPosting :: Posting -> Posting
@@ -233,16 +230,16 @@ postingAsLines elideamount onelineamounts acctwidth amtwidth p =
     -- is whether there are trailing spaces in print (and related) reports. This
     -- could be removed and we could just keep everything as a Text Builder, but
     -- would require adding trailing spaces to 42 failing tests.
-    postingblocks = map (map T.stripEnd . T.lines) . gridLinesB colSpec . map (map renderText) $
+    postingblocks = map (map T.stripEnd . T.lines) . gridLinesB colSpec $
         case showBalanceAssertion <$> pbalanceassertion p of
-          Nothing   -> [ [statusandaccount, "", wbToText amt, T.drop 1 samelinecomment] | amt <- shownAmounts ]
-          Just asst -> [ [statusandaccount, "", wbToText amt, wbToText asst, T.drop 1 samelinecomment] | amt <- shownAmounts ]
+          Nothing   -> [ [statusandaccount, "", amt, renderText $ T.drop 1 samelinecomment] | amt <- shownAmounts ]
+          Just asst -> [ [statusandaccount, "", amt, asst, renderText $ T.drop 1 samelinecomment] | amt <- shownAmounts ]
       where
         colSpec = [col left expand, col left expand, col right . fixedUntil $ max 12 amtwidth, col left expand, col left expand]
         col pos len = column len pos noAlign noCutMark
 
     -- pad to the maximum account name width, plus 2 to leave room for status flags, to keep amounts aligned
-    statusandaccount = lineIndent . fitText (Just $ 2 + acctwidth) Nothing False True $ pstatusandacct p
+    statusandaccount = renderText . lineIndent . fitText (Just $ 2 + acctwidth) Nothing False True $ pstatusandacct p
     thisacctwidth = visibleLength . renderText $ pacctstr p
 
     pacctstr p' = showAccountName Nothing (ptype p') (paccount p')
@@ -258,7 +255,7 @@ postingAsLines elideamount onelineamounts acctwidth amtwidth p =
     shownAmounts
       | elideamount = [mempty]
       | otherwise   = showMixedAmountLinesB noColour{displayOneLine=onelineamounts} $ pamount p
-    thisamtwidth = maximumBound 0 $ map wbWidth shownAmounts
+    thisamtwidth = maximumBound 0 $ map visibleLength shownAmounts
 
     (samelinecomment, newlinecomments) =
       case renderCommentLines (pcomment p) of []   -> ("",[])

@@ -589,9 +589,9 @@ cumulativeSum start = snd . M.mapAccum (\a b -> let s = sumAcct a b in (s, s)) s
 -- made using 'balanceReportAsTable'), render it in a format suitable for
 -- console output. Amounts with more than two commodities will be elided
 -- unless --no-elide is used.
-balanceReportTableAsText :: ReportOpts -> Tab.Table T.Text T.Text WideBuilder -> TB.Builder
+balanceReportTableAsText :: ReportOpts -> Tab.Table T.Text T.Text RenderText -> TB.Builder
 balanceReportTableAsText ReportOpts{..} (Tab.Table rh ch cells) =
-    tableStringB colSpec style rowHeader colHeader rows <> TB.singleton '\n'
+    tableStringB colSpec style rowHeader colHeader (map rowG cells) <> TB.singleton '\n'
   where
     colSpec = case layout_ of
         LayoutBare | not transpose_ -> col left : repeat (col right)
@@ -601,7 +601,6 @@ balanceReportTableAsText ReportOpts{..} (Tab.Table rh ch cells) =
     style = if pretty_ then hledgerPrettyStyle else hledgerStyle
     rowHeader = renderText <$> translate left rh
     colHeader = renderText <$> translate right ch
-    rows = map (rowG . map (renderText . wbToText)) cells
 
     translate pos (Tab.Group Tab.NoLine     as) = groupH NoLine     $ map (translate pos) as
     translate pos (Tab.Group Tab.SingleLine as) = groupH SingleLine $ map (translate pos) as
