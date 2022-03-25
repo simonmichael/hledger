@@ -249,12 +249,20 @@ build: \
 	$(STACK) build
 
 buildtimes: \
-	$(call def-help,buildtimes, build hledger showing just GHC codegen times/allocations)
-	time ($(STACK) build hledger --force-dirty --ghc-options='-fforce-recomp -ddump-timings' 2>&1 | grep 'CodeGen \[.*time=')
+	$(call def-help,buildtimes, build hledger with GHC 9.2 showing just GHC codegen times/allocations)
+	time ($(STACK) --stack-yaml=stack9.2.yaml build hledger --force-dirty --ghc-options='-fforce-recomp -ddump-timings' 2>&1 | grep -E '\bCodeGen \[.*time=')
+
+buildtimes-fast: \
+	$(call def-help,buildtimes-fast, build hledger unoptimised with GHC 9.2 showing just GHC codegen times/allocations)
+	time ($(STACK) --stack-yaml=stack9.2.yaml build hledger --fast --force-dirty --ghc-options='-fforce-recomp -ddump-timings' 2>&1 | grep -E '\bCodeGen \[.*time=')
 
 buildtimes-cabal: \
-	$(call def-help,buildtimes-cabal, build hledger showing just GHC codegen times/allocations avoiding double compilation)
-	cabal clean; time (cabal build ./hledger-lib ./hledger --disable-library-vanilla --enable-executable-dynamic --ghc-options='-fforce-recomp -ddump-timings' 2>&1 | grep 'CodeGen \[.*time=')
+	$(call def-help,buildtimes-cabal, build hledger with GHC 9.2 showing just GHC codegen times/allocations avoiding double compilation)
+	cabal clean; time (cabal build -w ghc9.2 ./hledger-lib ./hledger --disable-library-vanilla --enable-executable-dynamic --ghc-options='-fforce-recomp -ddump-timings' 2>&1 | grep -E '\bCodeGen \[.*time=')
+
+buildtimes-cabal-fast: \
+	$(call def-help,buildtimes-cabal-fast, build hledger unoptimised with GHC 9.2 showing just GHC codegen times/allocations avoiding double compilation)
+	cabal clean; time (cabal build -w ghc-9.2 -O0 ./hledger-lib ./hledger --disable-library-vanilla --enable-executable-dynamic --ghc-options='-fforce-recomp -ddump-timings' 2>&1 | grep -E '\bCodeGen \[.*time=')
 
 # check-setup: \
 # 	$(call def-help,check-setup,\
