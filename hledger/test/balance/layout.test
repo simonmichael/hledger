@@ -28,33 +28,33 @@ $ hledger -f bcexample.hledger bal assets.*etrade -3 -O csv --layout=bare
 # 3. Balance report output with no commodity column.
 $ hledger -f bcexample.hledger bal assets.*etrade -3
 >
-           70.00 GLD
-          17.00 ITOT
-         5120.50 USD
-           36.00 VEA
+           70.00 GLD                  
+          17.00 ITOT                  
+         5120.50 USD                  
+           36.00 VEA                  
           294.00 VHT  Assets:US:ETrade
 --------------------
-           70.00 GLD
-          17.00 ITOT
-         5120.50 USD
-           36.00 VEA
+           70.00 GLD  
+          17.00 ITOT  
+         5120.50 USD  
+           36.00 VEA  
           294.00 VHT  
 >=0
 
 # 4. Balance report with commodity column.
 $ hledger -f bcexample.hledger bal assets.*etrade -3 --layout=bare
 >
-   70.00  GLD                    
-   17.00  ITOT                   
- 5120.50  USD                    
-   36.00  VEA                    
-  294.00  VHT   Assets:US:ETrade 
- ------- 
-   70.00  GLD                    
-   17.00  ITOT                   
- 5120.50  USD                    
-   36.00  VEA                    
-  294.00  VHT                    
+               70.00  GLD                   
+               17.00  ITOT                  
+             5120.50  USD                   
+               36.00  VEA                   
+              294.00  VHT   Assets:US:ETrade
+--------------------
+               70.00  GLD   
+               17.00  ITOT  
+             5120.50  USD   
+               36.00  VEA   
+              294.00  VHT   
 >=0
 
 # 5. Multicolumn balance report csv output with no commodity columns.
@@ -275,10 +275,10 @@ $ hledger -f bcexample.hledger bal -T assets.*etrade -3 -O csv --layout=tidy
 
 # 15. Should omit commodity from totals row when the sum is zero with --layout=bare. (#1789)
 $ hledger -f - bal --layout=bare
-  1.00  INR  Assets:Bank    
- -1.00  INR  Equity:Opening 
- ----- 
-     0                      
+                1.00  INR  Assets:Bank
+               -1.00  INR  Equity:Opening
+--------------------
+                   0    
 >=0
 
 # 16. The same with -M. (#1789)

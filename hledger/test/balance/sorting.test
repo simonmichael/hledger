@@ -222,7 +222,7 @@ Income Statement 2020-01-01
 # determined by their account name.
 $ hledger -f- bal -N -S
                  1 X  f
-                 1 X
+                 1 X   
                 -1 Y  e
                 -1 Y  d
                 -1 X  a
