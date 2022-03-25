@@ -249,8 +249,12 @@ build: \
 	$(STACK) build
 
 buildtimes: \
-	$(call def-help,buildtimes, build hledger-lib showing just the GHC codegen time and allocation for each module)
-	$(STACK) build hledger-lib --force-dirty --ghc-options='-fforce-recomp -ddump-timings' 2>&1 | grep ^CodeGen
+	$(call def-help,buildtimes, build hledger-lib showing just GHC codegen times/allocations)
+	time ($(STACK) build hledger-lib --force-dirty --ghc-options='-fforce-recomp -ddump-timings' 2>&1 | grep ^CodeGen)
+
+buildtimes-cabal: \
+	$(call def-help,buildtimes-cabal, build hledger-lib showing just GHC codegen times/allocations using cabal avoiding double compilation (but leaving missing files))
+	cabal clean; time (cabal build ./hledger-lib --disable-library-vanilla --ghc-options='-fforce-recomp -ddump-timings' 2>&1 | grep ^CodeGen)
 
 # check-setup: \
 # 	$(call def-help,check-setup,\
