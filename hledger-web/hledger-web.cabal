@@ -150,7 +150,7 @@ library
       Paths_hledger_web
   hs-source-dirs:
       ./
-  ghc-options: -Wall -fwarn-tabs -Wcompat -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints
+  ghc-options: -Wall -Wtabs -Wcompat -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints
   cpp-options: -DVERSION="1.25.99"
   build-depends:
       Decimal >=0.5.1
@@ -211,7 +211,7 @@ executable hledger-web
       Paths_hledger_web
   hs-source-dirs:
       app
-  ghc-options: -Wall -fwarn-tabs -Wcompat -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints
+  ghc-options: -Wall -Wtabs -Wcompat -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints
   cpp-options: -DVERSION="1.25.99"
   build-depends:
       base
@@ -231,7 +231,7 @@ test-suite test
   main-is: test.hs
   hs-source-dirs:
       test
-  ghc-options: -Wall -fwarn-tabs -Wcompat -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints
+  ghc-options: -Wall -Wtabs -Wcompat -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints
   cpp-options: -DVERSION="1.25.99"
   build-depends:
       base

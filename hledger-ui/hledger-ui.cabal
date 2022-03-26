@@ -62,7 +62,7 @@ executable hledger-ui
       Paths_hledger_ui
   hs-source-dirs:
       ./
-  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
+  ghc-options: -Wall -Wno-unused-do-bind -Wno-name-shadowing -Wno-missing-signatures -Wno-type-defaults -Wno-orphans
   cpp-options: -DVERSION="1.25.99"
   build-depends:
       ansi-terminal >=0.9

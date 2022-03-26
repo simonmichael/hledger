@@ -62,7 +62,7 @@ flags:
 
 ghc-options:
 - -Wall
-- -fwarn-tabs
+- -Wtabs
 - -Wcompat
 - -Wincomplete-uni-patterns
 - -Wincomplete-record-updates

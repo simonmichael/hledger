@@ -91,7 +91,7 @@ library
       Paths_hledger_lib
   hs-source-dirs:
       ./
-  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -fno-warn-incomplete-uni-patterns
+  ghc-options: -Wall -Wno-unused-do-bind -Wno-name-shadowing -Wno-missing-signatures -Wno-type-defaults -Wno-orphans -Wno-incomplete-uni-patterns
   build-depends:
       Decimal >=0.5.1
     , Glob >=0.9
@@ -141,7 +141,7 @@ test-suite doctest
   hs-source-dirs:
       ./
       test
-  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -fno-warn-incomplete-uni-patterns
+  ghc-options: -Wall -Wno-unused-do-bind -Wno-name-shadowing -Wno-missing-signatures -Wno-type-defaults -Wno-orphans -Wno-incomplete-uni-patterns
   build-depends:
       Decimal >=0.5.1
     , Glob >=0.7
@@ -194,7 +194,7 @@ test-suite unittest
   hs-source-dirs:
       ./
       test
-  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -fno-warn-incomplete-uni-patterns
+  ghc-options: -Wall -Wno-unused-do-bind -Wno-name-shadowing -Wno-missing-signatures -Wno-type-defaults -Wno-orphans -Wno-incomplete-uni-patterns
   build-depends:
       Decimal >=0.5.1
     , Glob >=0.9

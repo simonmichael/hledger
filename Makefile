@@ -203,11 +203,11 @@ VERSION=$(shell cat hledger/.version)
 
 WARNINGS:=\
 	-Wall \
-	-fno-warn-unused-do-bind \
-	-fno-warn-name-shadowing \
-	-fno-warn-missing-signatures \
-	-fno-warn-orphans \
-	-fno-warn-type-defaults \
+	-Wno-unused-do-bind \
+	-Wno-name-shadowing \
+	-Wno-missing-signatures \
+	-Wno-orphans \
+	-Wno-type-defaults \
 
 # if you have need to try building in less memory
 # GHCLOWMEMFLAGS= #+RTS -M200m -RTS

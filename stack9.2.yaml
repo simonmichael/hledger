@@ -26,7 +26,7 @@ extra-deps:
 
 # silence new warnings temporarily
 ghc-options:
-  "$locals": -Wno-deprecations -Wno-incomplete-uni-patterns -Wno-incomplete-record-updates
+  "$locals": -Wno-incomplete-uni-patterns -Wno-incomplete-record-updates
 
 nix:
   pure: false

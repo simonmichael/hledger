@@ -87,11 +87,11 @@ flags:
 
 ghc-options:
 - -Wall
-- -fno-warn-unused-do-bind
-- -fno-warn-name-shadowing
-- -fno-warn-missing-signatures
-- -fno-warn-type-defaults
-- -fno-warn-orphans
+- -Wno-unused-do-bind
+- -Wno-name-shadowing
+- -Wno-missing-signatures
+- -Wno-type-defaults
+- -Wno-orphans
 # avoid "non-portable path" warning on mac, https://github.com/commercialhaskell/stack/issues/3918
 - -optP-Wno-nonportable-include-path
 

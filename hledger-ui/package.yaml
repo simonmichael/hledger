@@ -94,11 +94,11 @@ executables:
     main: hledger-ui.hs
     ghc-options:
       -Wall
-      -fno-warn-unused-do-bind
-      -fno-warn-name-shadowing
-      -fno-warn-missing-signatures
-      -fno-warn-type-defaults
-      -fno-warn-orphans
+      -Wno-unused-do-bind
+      -Wno-name-shadowing
+      -Wno-missing-signatures
+      -Wno-type-defaults
+      -Wno-orphans
     when:
     - condition: flag(threaded)
       ghc-options: -threaded

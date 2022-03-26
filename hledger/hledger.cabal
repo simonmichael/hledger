@@ -135,7 +135,7 @@ library
       Hledger.Cli.CompoundBalanceCommand
   other-modules:
       Paths_hledger
-  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -optP-Wno-nonportable-include-path
+  ghc-options: -Wall -Wno-unused-do-bind -Wno-name-shadowing -Wno-missing-signatures -Wno-type-defaults -Wno-orphans -optP-Wno-nonportable-include-path
   cpp-options: -DVERSION="1.25.99"
   build-depends:
       Decimal >=0.5.1
@@ -186,7 +186,7 @@ executable hledger
       Paths_hledger
   hs-source-dirs:
       app
-  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -optP-Wno-nonportable-include-path
+  ghc-options: -Wall -Wno-unused-do-bind -Wno-name-shadowing -Wno-missing-signatures -Wno-type-defaults -Wno-orphans -optP-Wno-nonportable-include-path
   cpp-options: -DVERSION="1.25.99"
   build-depends:
       Decimal >=0.5.1
@@ -236,7 +236,7 @@ test-suite unittest
   main-is: unittest.hs
   hs-source-dirs:
       test
-  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -optP-Wno-nonportable-include-path
+  ghc-options: -Wall -Wno-unused-do-bind -Wno-name-shadowing -Wno-missing-signatures -Wno-type-defaults -Wno-orphans -optP-Wno-nonportable-include-path
   cpp-options: -DVERSION="1.25.99"
   build-depends:
       Decimal >=0.5.1
@@ -284,7 +284,7 @@ benchmark bench
   main-is: bench.hs
   hs-source-dirs:
       bench
-  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -optP-Wno-nonportable-include-path
+  ghc-options: -Wall -Wno-unused-do-bind -Wno-name-shadowing -Wno-missing-signatures -Wno-type-defaults -Wno-orphans -optP-Wno-nonportable-include-path
   build-depends:
       Decimal >=0.5.1
     , aeson >=1
