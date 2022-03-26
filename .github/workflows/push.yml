@@ -7,7 +7,7 @@ name: push CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, simon ]
     paths:
       - '.github/workflows/push.yml'
       - 'stack*.yaml'
