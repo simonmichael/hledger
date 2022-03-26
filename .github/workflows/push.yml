@@ -1,15 +1,17 @@
-# Runs after notable pushes to the branches listed below. (Failure does not prevent the push.)
-# Builds unoptimised on x64 linux and runs functional tests, using the GHC version(s) enabled below.
-# When master is configured to require a successful CI check, the process is
-# 1. push to a personal test branch, listed below, 
+# Runs after notable pushes to the branches listed below. Failure does not prevent the push.
+# master is configured to require a successful CI check, which should be one of the enabled
+# matrix plans below (it is shown in github UI as "build (810, ..." eg). So the process is:
+# 1. push new commits to a personal test branch listed below (simon)
 # 2. wait for this check to succeed, then
-# 3. push the same commits to master.
+# 3. push the same commits to master, which will now allow it.
+
+# Builds unoptimised on x64 linux and runs functional tests, using the GHC version(s) enabled below.
 
 name: push CI
 
 on:
   push:
-    branches: [ master, simon ]
+    branches: [ simon ]
     paths:
       - '.github/workflows/push.yml'
       - 'stack*.yaml'
