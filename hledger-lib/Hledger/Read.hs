@@ -202,8 +202,8 @@ readJournalFiles' = orDieTrying . readJournalFiles definputopts
 --- ** utilities
 
 -- | Extract ExceptT to the IO monad, failing with an error message if necessary.
-orDieTrying :: ExceptT String IO a -> IO a
-orDieTrying a = either fail return =<< runExceptT a
+orDieTrying :: MonadIO m => ExceptT String m a -> m a
+orDieTrying a = either (liftIO . fail) return =<< runExceptT a
 
 -- | If the specified journal file does not exist (and is not "-"),
 -- give a helpful error and quit.

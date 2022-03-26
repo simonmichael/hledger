@@ -31,7 +31,7 @@ module Hledger.Cli.Utils
 where
 
 import Control.Exception as C
-import Control.Monad.Except (ExceptT, runExceptT, liftIO)
+import Control.Monad.Except (ExceptT, liftIO)
 
 import Data.List
 import Data.Maybe

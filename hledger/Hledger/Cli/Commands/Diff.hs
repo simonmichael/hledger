@@ -12,7 +12,6 @@ module Hledger.Cli.Commands.Diff (
  ,diff
 ) where
 
-import Control.Monad.Except (runExceptT)
 import Data.List.Extra ((\\), groupSortOn, nubBy, sortBy)
 import Data.Function (on)
 import Data.Ord (comparing)
@@ -20,6 +19,7 @@ import Data.Maybe (fromJust)
 import Data.Time (diffDays)
 import Data.Either (partitionEithers)
 import qualified Data.Text.IO as T
+import Lens.Micro (set)
 import System.Exit (exitFailure)
 
 import Hledger
@@ -81,11 +81,6 @@ matching ppl ppr = do
     (left, right) <- combinedBinBy ppamountqty (ppl, ppr) -- TODO: probably not a correct choice of bins
     greedyMaxMatching $ sortBy (comparing dateCloseness) [ (l,r) | l <- left, r <- right ]
 
-readJournalFile' :: FilePath -> IO Journal
-readJournalFile' fn =
-    runExceptT (readJournalFile definputopts{balancingopts_=defbalancingopts{ignore_assertions_=True}} fn)
-    >>= either error' return  -- PARTIAL:
-
 matchingPostings :: AccountName -> Journal -> [PostingWithPath]
 matchingPostings acct j = filter ((== acct) . paccount . ppposting) $ allPostingsWithPath j
 
@@ -100,8 +95,8 @@ unmatchedtxns s pp m =
 -- | The diff command.
 diff :: CliOpts -> Journal -> IO ()
 diff CliOpts{file_=[f1, f2], reportspec_=ReportSpec{_rsQuery=Acct acctRe}} _ = do
-  j1 <- readJournalFile' f1
-  j2 <- readJournalFile' f2
+  j1 <- orDieTrying $ readJournalFile (set ignore_assertions True definputopts) f1
+  j2 <- orDieTrying $ readJournalFile (set ignore_assertions True definputopts) f2
 
   let acct = reString acctRe
   let pp1 = matchingPostings acct j1

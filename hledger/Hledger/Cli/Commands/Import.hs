@@ -8,7 +8,6 @@ module Hledger.Cli.Commands.Import (
 where
 
 import Control.Monad
-import Control.Monad.Except (runExceptT)
 import Data.List
 import qualified Data.Text.IO as T
 import Hledger
