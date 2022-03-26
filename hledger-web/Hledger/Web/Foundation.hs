@@ -17,7 +17,7 @@ module Hledger.Web.Foundation where
 
 import Control.Applicative ((<|>))
 import Control.Monad (join, when)
-import Control.Monad.Except (runExceptT)
+-- import Control.Monad.Except (runExceptT)  -- now re-exported by Hledger
 import qualified Data.ByteString.Char8 as BC
 import Data.Traversable (for)
 import Data.IORef (IORef, readIORef, writeIORef)
