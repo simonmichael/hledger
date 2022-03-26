@@ -24,6 +24,10 @@ extra-deps:
 # - base64-0.4.2.3@sha256:97bd6f7decaab6110725ef1675a3ed8576233f6bab6599bb813f6caf68d36c94,2876  # doesn't build with 9.2 yet
 # for Shake.hs:
 
+# silence new warnings temporarily
+ghc-options:
+  "$locals": -Wno-deprecations -Wno-incomplete-uni-patterns -Wno-incomplete-record-updates
+
 nix:
   pure: false
   packages: [perl gmp ncurses zlib]
