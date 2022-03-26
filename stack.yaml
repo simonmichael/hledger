@@ -4,7 +4,7 @@ nix:
   pure: false
   packages: [perl gmp ncurses zlib]
 
-resolver: nightly-2022-03-03
+resolver: lts-19.0
 
 # for https://gitlab.haskell.org/ghc/ghc/-/issues/20592 on mac m1 (adjust path if needed)
 extra-include-dirs:
