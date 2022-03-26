@@ -91,7 +91,7 @@ library
       Paths_hledger_lib
   hs-source-dirs:
       ./
-  ghc-options: -Wall -Wno-unused-do-bind -Wno-name-shadowing -Wno-missing-signatures -Wno-type-defaults -Wno-orphans -Wno-incomplete-uni-patterns
+  ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-name-shadowing -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind
   build-depends:
       Decimal >=0.5.1
     , Glob >=0.9
@@ -141,7 +141,7 @@ test-suite doctest
   hs-source-dirs:
       ./
       test
-  ghc-options: -Wall -Wno-unused-do-bind -Wno-name-shadowing -Wno-missing-signatures -Wno-type-defaults -Wno-orphans -Wno-incomplete-uni-patterns
+  ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-name-shadowing -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind
   build-depends:
       Decimal >=0.5.1
     , Glob >=0.7
@@ -194,7 +194,7 @@ test-suite unittest
   hs-source-dirs:
       ./
       test
-  ghc-options: -Wall -Wno-unused-do-bind -Wno-name-shadowing -Wno-missing-signatures -Wno-type-defaults -Wno-orphans -Wno-incomplete-uni-patterns
+  ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-name-shadowing -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind
   build-depends:
       Decimal >=0.5.1
     , Glob >=0.9

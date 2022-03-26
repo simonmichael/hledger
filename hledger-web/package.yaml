@@ -62,11 +62,11 @@ flags:
 
 ghc-options:
 - -Wall
-- -Wtabs
-- -Wcompat
-- -Wincomplete-uni-patterns
-- -Wincomplete-record-updates
+# not included in -Wall:
 - -Wredundant-constraints
+# not included in -Wall by older GHC versions:
+- -Wincomplete-record-updates
+- -Wincomplete-uni-patterns
 
 when:
 - condition: (flag(dev)) || (flag(library-only))

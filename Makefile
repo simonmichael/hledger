@@ -199,15 +199,18 @@ DOCSOURCEFILES:= \
 # We use hledger CLI's current version (XXX for all packages, which isn't quite right).
 VERSION=$(shell cat hledger/.version)
 
-# flags for ghc builds
+# Flags for ghc builds.
 
+# Warnings to see during dev tasks like make ghci*. See also the warnings in package.yamls.
+# XXX redundant with package.yamls ?
 WARNINGS:=\
 	-Wall \
-	-Wno-unused-do-bind \
-	-Wno-name-shadowing \
+  -Wno-incomplete-uni-patterns \
 	-Wno-missing-signatures \
+	-Wno-name-shadowing \
 	-Wno-orphans \
 	-Wno-type-defaults \
+	-Wno-unused-do-bind \
 
 # if you have need to try building in less memory
 # GHCLOWMEMFLAGS= #+RTS -M200m -RTS

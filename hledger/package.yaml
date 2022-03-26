@@ -87,12 +87,13 @@ flags:
 
 ghc-options:
 - -Wall
-- -Wno-unused-do-bind
-- -Wno-name-shadowing
+- -Wno-incomplete-uni-patterns
 - -Wno-missing-signatures
-- -Wno-type-defaults
+- -Wno-name-shadowing
 - -Wno-orphans
-# avoid "non-portable path" warning on mac, https://github.com/commercialhaskell/stack/issues/3918
+- -Wno-type-defaults
+- -Wno-unused-do-bind
+# avoid stack's "non-portable path" warning/error on mac, https://github.com/commercialhaskell/stack/issues/3918
 - -optP-Wno-nonportable-include-path
 
 dependencies:

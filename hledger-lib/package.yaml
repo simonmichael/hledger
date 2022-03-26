@@ -79,13 +79,12 @@ dependencies:
 
 ghc-options:
 - -Wall
-- -Wno-unused-do-bind
-- -Wno-name-shadowing
-- -Wno-missing-signatures
-- -Wno-type-defaults
-- -Wno-orphans
-# XXX seems new in 9.2, fix these
 - -Wno-incomplete-uni-patterns
+- -Wno-missing-signatures
+- -Wno-name-shadowing
+- -Wno-orphans
+- -Wno-type-defaults
+- -Wno-unused-do-bind
 
 source-dirs: 
 #- other/ledger-parse

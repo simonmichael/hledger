@@ -40,6 +40,15 @@ flags:
 
 cpp-options: -DVERSION="1.25.99"
 
+ghc-options:
+- -Wall
+- -Wno-incomplete-uni-patterns
+- -Wno-missing-signatures
+- -Wno-name-shadowing
+- -Wno-orphans
+- -Wno-type-defaults
+- -Wno-unused-do-bind
+
 dependencies:
 - hledger-lib >=1.25.99 && <1.26
 - hledger >=1.25.99 && <1.26
@@ -92,13 +101,6 @@ executables:
   hledger-ui:
     source-dirs: .
     main: hledger-ui.hs
-    ghc-options:
-      -Wall
-      -Wno-unused-do-bind
-      -Wno-name-shadowing
-      -Wno-missing-signatures
-      -Wno-type-defaults
-      -Wno-orphans
     when:
     - condition: flag(threaded)
       ghc-options: -threaded
