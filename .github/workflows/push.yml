@@ -1,11 +1,13 @@
-# Runs after notable pushes to the branches listed below. Failure does not prevent the push.
-# master is configured to require a successful CI check, which should be one of the enabled
-# matrix plans below (it is shown in github UI as "build (810, ..." eg). So the process is:
+# Runs after notable pushes to the branches listed below.
+# master is configured to require one or more status checks corresponding to
+# enabled matrix plans below (shown in github UI as "build (810, ...").
+# So the push process is:
 # 1. push new commits to a personal test branch listed below (simon)
-# 2. wait for this check to succeed, then
+# 2. this workflow runs, wait for it to succeed, then
 # 3. push the same commits to master, which will now allow it.
-
-# Builds unoptimised on x64 linux and runs functional tests, using the GHC version(s) enabled below.
+#
+# Builds unoptimised on x64 linux and runs functional tests,
+# using the GHC version(s) enabled below.
 
 name: push CI
 
@@ -38,18 +40,21 @@ on:
       - '!**.info'
       - '!**.txt'
 
+  # also allow this workflow to be triggered manually
+  workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        plan:
-        # - { ghc: "86" , stack: "stack --stack-yaml=stack8.6.yaml" }
+        plan:  # at least the check(s) required by master should be enabled
+        - { ghc: "86" , stack: "stack --stack-yaml=stack8.6.yaml" }
         # - { ghc: "88" , stack: "stack --stack-yaml=stack8.8.yaml" }
-        - { ghc: "810"  , stack: "stack --stack-yaml=stack8.10.yaml" }
+        # - { ghc: "810", stack: "stack --stack-yaml=stack8.10.yaml" }
         # - { ghc: "90" , stack: "stack --stack-yaml=stack.yaml" }
-        # - { ghc: "92"  , stack: "stack --stack-yaml=stack9.2.yaml" }
+        # - { ghc: "92" , stack: "stack --stack-yaml=stack9.2.yaml" }
 
     steps:
 

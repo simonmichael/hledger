@@ -1,15 +1,19 @@
-# Runs on notable pull requests against master, and weekly on master.
+# Runs after notable pushes to pull requests against master.
+# master is configured to require one or more status checks corresponding to
+# enabled matrix plans below (shown in github UI as "build (810, ...").
+# So those must pass before the pull request can be merged.
+#
 # Runs unit/doc/functional/haddock/bench tests and produces optimised dynamic x64 linux binaries,
-# using the oldest supported GHC version (8.6).
-
-# This was the original workflow, and may have the most detailed notes.
+# using the GHC version(s) enabled below.
+#
+# This was our first github workflow, and may have the most detailed notes.
 
 name: pull request CI
 
 on:
   # Scheduled workflows run on the latest commit on the default or base branch. (master)
-  schedule:
-  - cron: "0 07 * * 0"  # sunday midnight pacific
+  # schedule:
+  # - cron: "0 07 * * 0"  # sunday midnight pacific
 
   pull_request:
     branches: [ master ]
@@ -35,6 +39,7 @@ on:
       - '!**.info'
       - '!**.txt'
 
+  # also allow this workflow to be triggered manually
   workflow_dispatch:
 
 jobs:
@@ -43,11 +48,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        plan:
+        plan:  # at least the check(s) required by master should be enabled
         - { ghc: "86"  , stack: "stack --stack-yaml=stack8.6.yaml" }
-        # - { ghc: "88"  , stack: "stack --stack-yaml=stack8.8.yaml" }
-        # - { ghc: "810" , stack: "stack --stack-yaml=stack8.10.yaml" }
+        # - { ghc: "88" , stack: "stack --stack-yaml=stack8.8.yaml" }
+        # - { ghc: "810", stack: "stack --stack-yaml=stack8.10.yaml" }
         # - { ghc: "90" , stack: "stack --stack-yaml=stack.yaml" }
+        # - { ghc: "92" , stack: "stack --stack-yaml=stack9.2.yaml" }
 
     steps:
 
