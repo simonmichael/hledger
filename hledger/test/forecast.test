@@ -343,3 +343,20 @@ $ hledger -f - reg --forecast -b 2021-02-01 -e 2021-02-05 -H
 $ hledger -f - reg --forecast -H
 > /1           180/
 >=0
+
+# 21. Only today's date (or a Y year declaration) affects relative dates;
+# an explicit report period or forecast period does not. (#1845)
+# More explanation:
+# - "next quarter" is a relative date meaning "next quarter after the 1st of the current year".
+# - XXX it should probably be "after today", this has been affected by #1677's https://github.com/simonmichael/hledger/commit/0f205295e806fccbfce0adbbff0e0ea6dd9f51d8#diff-fcee3c006b1d2e35b8c279c9daa9963ecdb5910bdc90099f7b3a37b8b529a65dR320
+# - Current year is 2021 (because --today sets the current day to be in 2021, for a repeatable test). 
+# - Neither the start or end year of the report or forecast periods (2020, 2022) are used.
+<
+~ quarterly from next quarter
+  (a)  1
+
+$ hledger -f- --today=2021-05-01 reg --period=2020-2022 --forecast=2020-2022
+2021-04-01                      (a)                              1             1
+2021-07-01                      (a)                              1             2
+2021-10-01                      (a)                              1             3
+>=0
