@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
+{-# OPTIONS_GHC -Wno-incomplete-record-updates #-}
 
 module Hledger.UI.ErrorScreen
  (errorScreen
@@ -162,6 +163,14 @@ uiReloadJournal copts d ui = do
       case ui of
         UIState{aScreen=s@ErrorScreen{}} -> ui{aScreen=s{esError=err}}
         _                                -> screenEnter d errorScreen{esError=err} ui
+      -- XXX GHC 9.2 warning:
+      -- hledger-ui/Hledger/UI/ErrorScreen.hs:164:59: warning: [-Wincomplete-record-updates]
+      --     Pattern match(es) are non-exhaustive
+      --     In a record-update construct:
+      --         Patterns of type ‘Screen’ not matched:
+      --             AccountsScreen _ _ _ _ _
+      --             RegisterScreen _ _ _ _ _ _
+      --             TransactionScreen _ _ _ _ _ _
 
 -- | Like uiReloadJournal, but does not re-parse the journal if the file(s)
 -- have not changed since last loaded. Always regenerates the screens though,

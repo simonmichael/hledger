@@ -3,6 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TupleSections     #-}
+{-# OPTIONS_GHC -Wno-incomplete-record-updates #-}
 
 module Hledger.UI.TransactionScreen
 ( transactionScreen
