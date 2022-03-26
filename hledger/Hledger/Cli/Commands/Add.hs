@@ -30,7 +30,7 @@ import qualified Data.Text.IO as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.IO as TL
 import Data.Time.Calendar (Day)
-import Data.Time.Format (formatTime, defaultTimeLocale, iso8601DateFormat)
+import Data.Time.Format (formatTime, defaultTimeLocale)
 import Lens.Micro ((^.))
 import Safe (headDef, headMay, atMay)
 import System.Console.CmdArgs.Explicit (flagNone)
@@ -167,7 +167,7 @@ confirmedTransactionWizard prevInput es@EntryState{..} stack@(currentStage : _) 
             }
           dateAndCodeString = formatTime defaultTimeLocale yyyymmddFormat date
                             ++ T.unpack (if T.null code then "" else " (" <> code <> ")")
-          yyyymmddFormat = iso8601DateFormat Nothing
+          yyyymmddFormat = "%Y-%m-%d"
       confirmedTransactionWizard prevInput{prevDateAndCode=Just dateAndCodeString} es' (EnterDescAndComment (date, code) : stack)
     Nothing ->
       confirmedTransactionWizard prevInput es stack
