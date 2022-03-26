@@ -100,6 +100,9 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ~/.stack
+        # XXX if stack.yaml is a symlink, this fails with
+        #  Error: The template is not valid. .github/workflows/push.yml (Line: 103, Col: 14): hashFiles('**.yaml') failed. 
+        #  Fail to hash files under directory '/home/runner/work/hledger/hledger'
         key: ${{ runner.os }}-stack-global-${{ matrix.plan.ghc }}-${{ hashFiles('**.yaml') }}
         restore-keys: |
              ${{ runner.os }}-stack-global-${{ matrix.plan.ghc }}
