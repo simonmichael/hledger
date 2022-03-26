@@ -65,30 +65,32 @@ versionStringWith egitinfo progname packageversion =
         | otherwise       = os
     version = case egitinfo of
       Left _err     -> packageversion
-      Right gitinfo -> intercalate "-" [packageversion , hash, date]
-        where
-          hash = 'g' : take 9 (giHash gitinfo)  -- like git describe
-          date = concat [year,mm,dd]
-            where 
-              -- XXX PARTIAL: depends on git log's date format, which by default
-              -- is --date=default ("similar to --date=rfc2822"), but could be
-              -- overridden by a log.date config variable in repo or user git config.
-              _weekday:mon:day:_localtime:year:_offset:_ = words $ giCommitDate gitinfo
-              mm = fromMaybe mon $ lookup mon $ [
-                 ("Jan","01")
-                ,("Feb","02")
-                ,("Mar","03")
-                ,("Apr","04")
-                ,("May","05")
-                ,("Jun","06")
-                ,("Jul","07")
-                ,("Aug","08")
-                ,("Sep","09")
-                ,("Oct","10")
-                ,("Nov","11")
-                ,("Dec","12")
-                ]
-              dd = (if length day < 2 then ('0':) else id) day
+      Right gitinfo -> 
+        case words $ giCommitDate gitinfo of
+          -- git log's date format is normally --date=default ("similar to --date=rfc2822")
+          _weekday:mon:day:_localtime:year:_offset:_ ->
+            intercalate "-" [packageversion , hash, date]
+              where
+                hash = 'g' : take 9 (giHash gitinfo)  -- like git describe
+                date = concat [year,mm,dd]
+                  where 
+                    mm = fromMaybe mon $ lookup mon $ [
+                      ("Jan","01")
+                      ,("Feb","02")
+                      ,("Mar","03")
+                      ,("Apr","04")
+                      ,("May","05")
+                      ,("Jun","06")
+                      ,("Jul","07")
+                      ,("Aug","08")
+                      ,("Sep","09")
+                      ,("Oct","10")
+                      ,("Nov","11")
+                      ,("Dec","12")
+                      ]
+                    dd = (if length day < 2 then ('0':) else id) day
+          -- but could be overridden by a log.date config variable in repo or user git config
+          _ -> packageversion
 
 -- -- | Given a program name, return a precise platform-specific executable
 -- -- name suitable for naming downloadable binaries.  Can raise an error if
