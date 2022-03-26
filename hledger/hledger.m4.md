@@ -3451,9 +3451,17 @@ There is an additional constraint on the period expression:
 the start date must fall on a natural boundary of the interval.
 Eg `monthly from 2018/1/1` is valid, but `monthly from 2018/1/15` is not.
 
-Partial or relative dates (M/D, D, tomorrow, last week) in the period expression
-can work (useful or not). They will be relative to today's date, unless
-a Y default year directive is in effect, in which case they will be relative to Y/1/1.
+### Periodic rules and relative dates
+
+Partial or relative dates (like `12/31`, `25`, `tomorrow`, `last week`, `next quarter`)
+are usually not recommended in periodic rules, since the results will change as time passes.
+If used, they will be interpreted relative to, in  order of preference:
+
+1. the first day of the default year specified by a recent `Y` directive
+2. or the date specified with `--today`
+3. or the date on which you are running the report.
+
+They will not be affected at all by report period or forecast period dates.
 
 ### Two spaces between period expression and description!
 
