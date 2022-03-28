@@ -270,7 +270,6 @@ import qualified Lucid as L
 import System.Console.CmdArgs.Explicit as C
 import Safe (maximumMay)
 import Text.Layout.Table
-import qualified Text.Tabular.AsciiWide as Tab
 
 import Hledger
 import Hledger.Cli.CliOptions
@@ -648,21 +647,25 @@ multiBalanceReportAsText ropts@ReportOpts{..} r = TB.toLazyText $
         _                                     -> False
 
 -- | Build a 'Table' from a multi-column balance report.
-balanceReportAsTable :: ReportOpts -> MultiBalanceReport -> Tab.Table T.Text T.Text RenderText
+balanceReportAsTable :: ReportOpts -> MultiBalanceReport -> Table T.Text T.Text RenderText
 balanceReportAsTable opts@ReportOpts{average_, row_total_, balanceaccum_}
     (PeriodicReport spans items tr) =
    maybetranspose $
    addtotalrow $
-   Tab.Table
-     (Tab.Group Tab.NoLine $ map Tab.Header (concat accts))
-     (Tab.Group Tab.NoLine $ map Tab.Header colheadings)
+   Table
+     (makeHeader (if transpose_ opts then right else left) $ concat accts)
+     datesHeader
      (concat rows)
   where
     totalscolumn = row_total_ && balanceaccum_ `notElem` [Cumulative, Historical]
-    colheadings = ["Commodity" | layout_ opts == LayoutBare]
-                  ++ map (reportPeriodName balanceaccum_ spans) spans
-                  ++ ["  Total" | totalscolumn]
-                  ++ ["Average" | average_]
+    datesHeader = case layout_ opts of
+      LayoutBare -> groupH NoLine [headerH (headerColumn left Nothing) "Commodity", colheadings]
+      _          -> colheadings
+    colheadings = makeHeader (if transpose_ opts then left else right) $
+                    map (reportPeriodName balanceaccum_ spans) spans
+                    ++ ["  Total" | totalscolumn]
+                    ++ ["Average" | average_]
+    makeHeader pos = fullSepH NoLine (repeat $ headerColumn pos Nothing)
     fullRowAsTexts row =
       let rs = multiBalanceRowAsTableText opts row
        in (replicate (length rs) (renderacct row), rs)
@@ -673,14 +676,20 @@ balanceReportAsTable opts@ReportOpts{average_, row_total_, balanceaccum_}
       | no_total_ opts = id
       | otherwise =
         let totalrows = multiBalanceRowAsTableText opts tr
-            rh = Tab.Group Tab.NoLine . replicate (length totalrows) $ Tab.Header ""
-            ch = Tab.Header [] -- ignored
-         in (flip (Tab.concatTables Tab.SingleLine) $ Tab.Table rh ch totalrows)
-    maybetranspose | transpose_ opts = \(Tab.Table rh ch vals) -> Tab.Table ch rh (transpose vals)
+            rh = fullSepH NoLine (repeat def) $ replicate (length totalrows) ""
+            ch = noneH  -- ignored
+         in (flip (concatTables SingleLine) $ Table rh ch totalrows)
+    maybetranspose | transpose_ opts = \(Table rh ch vals) -> Table ch rh (transpose vals)
                    | otherwise       = id
 
-multiBalanceRowAsWbs :: AmountDisplayOpts -> ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount -> [[RenderText]]
-multiBalanceRowAsWbs bopts ReportOpts{..} colspans (PeriodicReportRow _ as rowtot rowavg) =
+multiBalanceRowAsCsvText :: ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount -> [[T.Text]]
+multiBalanceRowAsCsvText opts colspans = map (map buildCell) . multiBalanceRowAsTableTextHelper csvDisplay opts colspans
+
+multiBalanceRowAsTableText :: ReportOpts -> PeriodicReportRow a MixedAmount -> [[RenderText]]
+multiBalanceRowAsTableText opts = multiBalanceRowAsTableTextHelper oneLine{displayColour=color_ opts} opts []
+
+multiBalanceRowAsTableTextHelper :: AmountDisplayOpts -> ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount -> [[RenderText]]
+multiBalanceRowAsTableTextHelper bopts ReportOpts{..} colspans (PeriodicReportRow _ as rowtot rowavg) =
     case layout_ of
       LayoutWide width -> [fmap (showMixedAmountB bopts{displayMaxWidth=width}) allamts]
       LayoutTall       -> paddedTranspose mempty
@@ -707,22 +716,16 @@ multiBalanceRowAsWbs bopts ReportOpts{..} colspans (PeriodicReportRow _ as rowto
     paddedTranspose :: a -> [[a]] -> [[a]]
     paddedTranspose _ [] = [[]]
     paddedTranspose n as = take (maximum . map length $ as) . trans $ as
-        where
-          trans ([] : xss)  = (n : map h xss) :  trans ([n] : map t xss)
-          trans ((x : xs) : xss) = (x : map h xss) : trans (m xs : map t xss)
-          trans [] = []
-          h (x:_) = x
-          h [] = n
-          t (_:xs) = xs
-          t [] = [n]
-          m (x:xs) = x:xs
-          m [] = [n]
-
-multiBalanceRowAsCsvText :: ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount -> [[T.Text]]
-multiBalanceRowAsCsvText opts colspans = map (map buildCell) . multiBalanceRowAsWbs csvDisplay opts colspans
-
-multiBalanceRowAsTableText :: ReportOpts -> PeriodicReportRow a MixedAmount -> [[RenderText]]
-multiBalanceRowAsTableText opts = multiBalanceRowAsWbs oneLine{displayColour=color_ opts} opts []
+      where
+        trans ([] : xss)  = (n : map h xss) :  trans ([n] : map t xss)
+        trans ((x : xs) : xss) = (x : map h xss) : trans (m xs : map t xss)
+        trans [] = []
+        h (x:_) = x
+        h [] = n
+        t (_:xs) = xs
+        t [] = [n]
+        m (x:xs) = x:xs
+        m [] = [n]
 
 tests_Balance = testGroup "Balance" [
 

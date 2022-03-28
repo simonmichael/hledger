@@ -88,10 +88,8 @@ library
       Hledger.Utils.String
       Hledger.Utils.Test
       Hledger.Utils.Text
-      Text.Tabular.AsciiWide
   other-modules:
       Text.Megaparsec.Custom
-      Text.WideString
       Paths_hledger_lib
   hs-source-dirs:
       ./
@@ -127,7 +125,6 @@ library
     , regex-tdfa
     , safe >=0.3.19
     , table-layout >=0.9.1.0
-    , tabular >=0.2
     , tasty >=1.2.3
     , tasty-hunit >=0.10.0.2
     , template-haskell
@@ -179,7 +176,6 @@ test-suite doctest
     , regex-tdfa
     , safe >=0.3.19
     , table-layout >=0.9.1.0
-    , tabular >=0.2
     , tasty >=1.2.3
     , tasty-hunit >=0.10.0.2
     , template-haskell
@@ -233,7 +229,6 @@ test-suite unittest
     , regex-tdfa
     , safe >=0.3.19
     , table-layout >=0.9.1.0
-    , tabular >=0.2
     , tasty >=1.2.3
     , tasty-hunit >=0.10.0.2
     , template-haskell

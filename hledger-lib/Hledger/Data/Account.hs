@@ -41,7 +41,6 @@ import Data.Ord (Down(..))
 import Safe (headMay)
 import Text.Printf (printf)
 
-import Hledger.Utils (buildCell)
 import Hledger.Data.AccountName (expandAccountName, clipOrEllipsifyAccountName)
 import Hledger.Data.Amount
 import Hledger.Data.Types

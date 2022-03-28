@@ -37,9 +37,9 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import Safe (minimumDef)
+import Text.Layout.Table
 --import System.Console.CmdArgs.Explicit as C
 --import Lucid as L
-import qualified Text.Tabular.AsciiWide as Tab
 
 import Hledger.Data
 import Hledger.Utils
@@ -271,21 +271,25 @@ budgetReportAsText ropts@ReportOpts{..} budgetr = TB.toLazyText $
            <> ":"
 
 -- | Build a 'Table' from a multi-column balance report.
-budgetReportAsTable :: ReportOpts -> BudgetReport -> Tab.Table Text Text (RenderText)
+budgetReportAsTable :: ReportOpts -> BudgetReport -> Table Text Text (RenderText)
 budgetReportAsTable
   ReportOpts{..}
   (PeriodicReport spans items tr) =
     maybetransposetable $
     addtotalrow $
-    Tab.Table
-      (Tab.Group Tab.NoLine $ map Tab.Header accts)
-      (Tab.Group Tab.NoLine $ map Tab.Header colheadings)
+    Table
+      (makeHeader (if transpose_ then right else left) accts)
+      datesHeader
       rows
   where
-    colheadings = ["Commodity" | layout_ == LayoutBare]
-                  ++ map (reportPeriodName balanceaccum_ spans) spans
-                  ++ ["  Total" | row_total_]
-                  ++ ["Average" | average_]
+    datesHeader = case layout_ of
+      LayoutBare -> groupH NoLine [headerH (headerColumn left Nothing) "Commodity", colheadings]
+      _          -> colheadings
+    colheadings = makeHeader (if transpose_ then left else right) $
+                    map (reportPeriodName balanceaccum_ spans) spans
+                    ++ ["  Total" | row_total_]
+                    ++ ["Average" | average_]
+    makeHeader pos = fullSepH NoLine (repeat $ headerColumn pos Nothing)
 
     -- FIXME. Have to check explicitly for which to render here, since
     -- budgetReport sets accountlistmode to ALTree. Find a principled way to do
@@ -296,16 +300,16 @@ budgetReportAsTable
 
     addtotalrow
       | no_total_ = id
-      | otherwise = let rh = Tab.Group Tab.NoLine . replicate (length totalrows) $ Tab.Header ""
-                        ch = Tab.Header [] -- ignored
-                     in (flip (Tab.concatTables Tab.SingleLine) $ Tab.Table rh ch totalrows)
+      | otherwise = let rh = fullSepH NoLine (repeat $ headerColumn left Nothing) $ replicate (length totalrows) ""
+                        ch = noneH  -- ignored
+                     in (flip (concatTables SingleLine) $ Table rh ch totalrows)
 
     maybetranspose
       | transpose_ = transpose
       | otherwise  = id
 
     maybetransposetable
-      | transpose_ = \(Tab.Table rh ch vals) -> Tab.Table ch rh (transpose vals)
+      | transpose_ = \(Table rh ch vals) -> Table ch rh (transpose vals)
       | otherwise  = id
 
     (accts, rows, totalrows) = (accts, prependcs itemscs (padcells texts), prependcs trcs (padtr trtexts))

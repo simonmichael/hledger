@@ -55,7 +55,6 @@ import Text.Layout.Table
 
 import qualified Data.Text as T
 import qualified Data.Text.Lazy.Builder as TB
-import qualified Text.Tabular.AsciiWide as Tab
 
 import Hledger.Data
 import Hledger.Query
@@ -589,8 +588,8 @@ cumulativeSum start = snd . M.mapAccum (\a b -> let s = sumAcct a b in (s, s)) s
 -- made using 'balanceReportAsTable'), render it in a format suitable for
 -- console output. Amounts with more than two commodities will be elided
 -- unless --no-elide is used.
-balanceReportTableAsText :: ReportOpts -> Tab.Table T.Text T.Text RenderText -> TB.Builder
-balanceReportTableAsText ReportOpts{..} (Tab.Table rh ch cells) =
+balanceReportTableAsText :: ReportOpts -> Table T.Text T.Text RenderText -> TB.Builder
+balanceReportTableAsText ReportOpts{..} (Table rh ch cells) =
     tableStringB colSpec style rowHeader colHeader (map rowG cells) <> TB.singleton '\n'
   where
     colSpec = case layout_ of
@@ -599,13 +598,8 @@ balanceReportTableAsText ReportOpts{..} (Tab.Table rh ch cells) =
       where
         col pos = column expand pos noAlign noCutMark
     style = if pretty_ then hledgerPrettyStyle else hledgerStyle
-    rowHeader = renderText <$> translate left rh
-    colHeader = renderText <$> translate right ch
-
-    translate pos (Tab.Group Tab.NoLine     as) = groupH NoLine     $ map (translate pos) as
-    translate pos (Tab.Group Tab.SingleLine as) = groupH SingleLine $ map (translate pos) as
-    translate pos (Tab.Group Tab.DoubleLine as) = groupH DoubleLine $ map (translate pos) as
-    translate pos (Tab.Header a)                = headerH (headerColumn pos Nothing) a
+    rowHeader = renderText <$> rh
+    colHeader = renderText <$> ch
 
 -- tests
 

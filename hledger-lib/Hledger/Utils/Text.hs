@@ -46,6 +46,8 @@ module Hledger.Utils.Text
   module Text.Layout.Table.Cell.WideString,
   RenderText,
   renderText,
+  Table(..),
+  concatTables,
   -- * table rendering
   hledgerStyle,
   hledgerStyleBorders,
@@ -236,15 +238,29 @@ linesPrepend2 prefix1 prefix2 s = T.unlines $ case T.lines s of
     []   -> []
     l:ls -> (prefix1<>l) : map (prefix2<>) ls
 
--- | Join a list of Text Builders with a newline after each item.
-unlinesB :: [TB.Builder] -> TB.Builder
-unlinesB = foldMap (<> TB.singleton '\n')
-
 -- | Read a decimal number from a Text. Assumes the input consists only of digit
 -- characters.
 readDecimal :: Text -> Integer
 readDecimal = T.foldl' step 0
   where step a c = a * 10 + toInteger (digitToInt c)
+
+-- | Join a list of Text Builders with a newline after each item.
+unlinesB :: [TB.Builder] -> TB.Builder
+unlinesB = foldMap (<> TB.singleton '\n')
+
+
+-- Tables and rendering
+
+-- | A Table contains information about the row and column headers, as well as a table of data.
+data Table rh ch a = Table (HeaderSpec LineStyle rh) (HeaderSpec LineStyle ch) [[a]]
+
+-- | Add the second table below the first, discarding its column headings.
+concatTables :: Monoid a => LineStyle -> Table rh ch a -> Table rh ch2 a -> Table rh ch a
+concatTables prop (Table hLeft hTop dat) (Table hLeft' _ dat') =
+    Table (groupH prop [hLeft, hLeft']) hTop (map padRow $ dat ++ dat')
+  where
+    numCols = length $ headerContents hTop
+    padRow r = replicate (numCols - length r) mempty ++ r
 
 -- | An alias for formatted text measured by display length.
 type RenderText = Formatted WideText

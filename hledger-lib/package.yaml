@@ -59,7 +59,6 @@ dependencies:
 - pretty-simple >4 && <5
 - regex-tdfa
 - safe >=0.3.19
-- tabular >=0.2
 - table-layout >=0.9.1.0
 - tasty >=1.2.3
 - tasty-hunit >=0.10.0.2
@@ -142,7 +141,6 @@ library:
   - Hledger.Utils.String
   - Hledger.Utils.Test
   - Hledger.Utils.Text
-  - Text.Tabular.AsciiWide
 #  other-modules:
 #  - Ledger.Parser.Text
 

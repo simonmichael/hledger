@@ -136,6 +136,7 @@ module Hledger.Data.Amount (
   showMixedAmountWithZeroCommodity,
   showMixedAmountB,
   showMixedAmountLinesB,
+  buildCell,
   mixedAmountSetPrecision,
   mixedAmountSetFullPrecision,
   canonicaliseMixedAmount,

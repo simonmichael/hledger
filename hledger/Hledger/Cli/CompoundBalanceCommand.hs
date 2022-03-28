@@ -20,11 +20,11 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import Data.Time.Calendar (Day, addDays)
 import System.Console.CmdArgs.Explicit as C
-import Hledger.Read.CsvReader (CSV, printCSV)
 import Lucid as L hiding (value_)
-import Text.Tabular.AsciiWide as Tab
+import Text.Layout.Table
 
 import Hledger
+import Hledger.Read.CsvReader (CSV, printCSV)
 import Hledger.Cli.Commands.Balance
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils (unsupportedOutputFormatError, writeOutputLazyText)
@@ -219,25 +219,26 @@ compoundBalanceReportAsText ropts
   where
     bigtable =
       case map (subreportAsTable ropts) subreports of
-        []   -> Tab.empty
+        []   -> Table (T.pack <$> noneH) (T.pack <$> noneH) [[]] :: Table T.Text T.Text RenderText
         r:rs -> foldl' (concatTables DoubleLine) r rs
     bigtable'
       | no_total_ ropts || length subreports == 1 =
           bigtable
       | otherwise =
         let totalrows = multiBalanceRowAsTableText ropts netrow
-            rh = Tab.Group NoLine $ map Header ("Net:" : replicate (length totalrows - 1) "")
-            ch = Header [] -- ignored
-         in ((concatTables Tab.DoubleLine) bigtable $ Table rh ch totalrows)
+            rh = fullSepH NoLine (repeat $ headerColumn left Nothing) . map T.pack $ "Net:" : replicate (length totalrows - 1) ""
+            ch = noneH  -- ignored
+         in (concatTables DoubleLine bigtable $ Table rh ch totalrows)
 
     -- | Convert a named multi balance report to a table suitable for
     -- concatenating with others to make a compound balance report table.
+    subreportAsTable :: ReportOpts -> (T.Text, MultiBalanceReport, w) -> Table T.Text T.Text RenderText
     subreportAsTable ropts (title, r, _) = t
       where
         -- convert to table
         Table lefthdrs tophdrs cells = balanceReportAsTable ropts r
         -- tweak the layout
-        t = Table (Tab.Group Tab.SingleLine [Tab.Header title, lefthdrs]) tophdrs (replicate (length $ headerContents tophdrs) mempty : cells)
+        t = Table (groupH SingleLine [headerH (headerColumn left Nothing) title, lefthdrs]) tophdrs (replicate (length $ headerContents tophdrs) mempty : cells)
 
 -- | Render a compound balance report as CSV.
 -- Subreports' CSV is concatenated, with the headings rows replaced by a
