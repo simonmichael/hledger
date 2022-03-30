@@ -72,9 +72,33 @@ RATE=444
 TIMELOG=./time.timedot
 #
 
-# if changing this period, hledger and date may need different values
+# on mac, use homebrew-installed GNU date
+if [ "$(builtin type -p gdate)" ]; then export date=gdate; else export date=date; fi
+
+# the billing date (today)
+YEAR=$($date +%Y)
+MONTH=$($date +%B)
+MON=$($date +%b)
+MM=$($date +%m)
+DD=$($date +%d)
+DAY=$($date +%-d)
+
+# The period being billed, as a hledger report period.
 HLEDGERPERIOD='last month'
-DATECMDPERIOD='last month'
+# The exact year and month being billed, corresponding to the above.
+YYYYMM=$(hledger -f /dev/null is -p "$HLEDGERPERIOD" | head -1 | cut -d' ' -f3)
+LY=${YYYYMM:0:4}
+LMM=${YYYYMM:5}
+LM=$($date  +%b  --date "$YYYYMM-01")
+
+# shellcheck disable=SC2001
+INVOICEBASE=$(basename "$TEMPLATE" | sed -e 's/\..*//')
+INVOICEDATED=$INVOICEBASE$YEAR$LMM
+INVOICEMD=$INVOICEDATED".md"
+INVOICEPDF=$INVOICEDATED".pdf"
+CSS=$INVOICEBASE".css"
+
+# Calculate time and reimbursable expenses
 
 NUMRE="^[0-9]+([.][0-9]+)?$"
 if [[ $TIMEACCT =~ $NUMRE ]]
@@ -89,25 +113,6 @@ then
 else
     EXP=$(hledger bal "$EXPACCT" "date:$HLEDGERPERIOD" amt:'>0' -N --layout=bare | tail -1 | awk '{print $1}')
 fi
-
-# on mac, use homebrew-installed GNU date
-if [ "$(builtin type -p gdate)" ]; then export date=gdate; else export date=date; fi
-
-YEAR=$($date +%Y)
-MONTH=$($date +%B)
-MON=$($date +%b)
-MM=$($date +%m)
-DD=$($date +%d)
-DAY=$($date +%-d)
-LM=$($date  +%b --date "$DATECMDPERIOD")
-LMM=$($date +%m --date "$DATECMDPERIOD")
-
-# shellcheck disable=SC2001
-INVOICEBASE=$(basename "$TEMPLATE" | sed -e 's/\..*//')
-INVOICEDATED=$INVOICEBASE$YEAR$LMM
-INVOICEMD=$INVOICEDATED".md"
-INVOICEPDF=$INVOICEDATED".pdf"
-CSS=$INVOICEBASE".css"
 
 HRS="${HRS:-0}"
 HRS=$(printf %4s "$HRS")
