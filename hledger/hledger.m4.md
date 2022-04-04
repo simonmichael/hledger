@@ -2511,19 +2511,22 @@ Multiple files included with the [`include` directive](#including-other-files)
 are processed as if concatenated into one file, preserving
 their order and the posting order within each file.
 It means that balance assertions in later files will see balance from earlier files.
+
 And if you have multiple postings to an account on the same day, split
 across multiple files, and you want to assert the account's balance on
-that day, you'll need to put the assertion in the right file (the last
-one in the sequence, probably).
+that day, you'll need to put the assertion in the right file - the
+last one in the sequence, probably.
 
 ### Assertions and multiple -f files
 
-Multiple files specified on the command line with multiple `-f/--file` options
-are processed in sequence, but separately, and balance assertions will not
-see balance from earlier files. This can actually be useful, when you do not
-want older files to potentially break valid balance assertions in newer files. 
-If you want assertions to see balance from earlier files, use `include` as above,
-or [concatenate the files](#input-files) temporarily.
+Unlike `include`, when multiple files are specified on the command
+line with multiple `-f/--file` options, balance assertions will not
+see balance from earlier files. This can be useful when you do not
+want problems in earlier files to disrupt valid assertions in later
+files.
+
+If you do want assertions to see balance from earlier files, use
+`include`, or concatenate the files temporarily.
 
 ### Assertions and commodities
 
