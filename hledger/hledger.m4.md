@@ -2505,20 +2505,25 @@ updating. This order dependence does bring an advantage: precise
 control over the order of postings and assertions within a day, so you
 can assert intra-day balances.
 
-### Assertions and included files
+### Assertions and multiple included files
 
-With [included files](#including-other-files), things are a little
-more complicated. Including preserves the ordering of postings and
-assertions. If you have multiple postings to an account on the same
-day, split across different files, and you also want to assert the
-account's balance on the same day, you'll have to put the assertion
-in the right file.
+Multiple files included with the [`include` directive](#including-other-files)
+are processed as if concatenated into one file, preserving
+their order and the posting order within each file.
+It means that balance assertions in later files will see balance from earlier files.
+And if you have multiple postings to an account on the same day, split
+across multiple files, and you want to assert the account's balance on
+that day, you'll need to put the assertion in the right file (the last
+one in the sequence, probably).
 
-### Assertions and multiple -f options
+### Assertions and multiple -f files
 
-Balance assertions don't work well across files specified
-with multiple -f options. Use include or [concatenate the files](#input-files)
-instead.
+Multiple files specified on the command line with multiple `-f/--file` options
+are processed in sequence, but separately, and balance assertions will not
+see balance from earlier files. This can actually be useful, when you do not
+want older files to potentially break valid balance assertions in newer files. 
+If you want assertions to see balance from earlier files, use `include` as above,
+or [concatenate the files](#input-files) temporarily.
 
 ### Assertions and commodities
 
@@ -2599,9 +2604,21 @@ You can assert the balance including subaccounts by writing `=*` or `==*`, eg:
 
 ### Assertions and virtual postings
 
-Balance assertions are checked against all postings, both real and
-[virtual](#virtual-postings). They are not affected by the `--real/-R`
-flag or `real:` query.
+Balance assertions always consider both real and [virtual](#virtual-postings) postings;
+they are not affected by the `--real/-R` flag or `real:` query.
+
+### Assertions and auto postings
+
+Balance assertions *are* affected by the `--auto` flag, which
+generates [auto postings](#auto-postings), which can alter account
+balances.  Because auto postings are optional in hledger, accounts
+affected by them effectively have two balances. But balance assertions
+can only test one or the other of these. So to avoid making fragile
+assertions, either:
+
+- assert the balance calculated with `--auto`, and always use `--auto` with that file
+- or assert the balance calculated without `--auto`, and never use `--auto` with that file
+- or avoid balance assertions on accounts affected by auto postings (or avoid auto postings entirely).
 
 ### Assertions and precision
 
