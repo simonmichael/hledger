@@ -13,7 +13,7 @@ bin() {  # bin [PAT] - list aliases, functions, scripts in ./bin/[bashrc]
     BASHRC=$BINDIR/bashrc
     ( [[ -e $BASHRC ]] && grep -E '^(alias|function|\w+\(\))' $BASHRC \
 	  | gnused -E -e 's/^alias *//' -e 's/^(function )?(\w+) *\(\) *\{/\2()/' -e 's/#/\t#/' \
-		   # -e "s/=('[^']+'|\"[^\"]+\"|\w+)/=/"   # hide alias definitions
+		   # -e "s/=('[^']+'|\"[^\"]+\"|\w+)/=/"   # uncomment to hide alias definitions
       [[ -d $BINDIR ]] && for F in "$BINDIR"/*; do
 	  printf '%s  ' "$(basename "$F")"
 	  (grep -IE '^(#|--) ' "$F" 2>/dev/null | gnused -E 's/(#|--)/\t#/'; echo) | head -1
