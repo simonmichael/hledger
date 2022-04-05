@@ -1,4 +1,35 @@
-# some hledger-related bash aliases
+# Some hledger/PTA-related bash scripts.
+
+export FINDIR=~/finance
+export LEDGER_FILE=$FINDIR/2022.journal
+
+fin() {  # fin [PAT] - list financial scripts in $FINDIR/bin/[bashrc] (default: ~/finance)
+    (cd ${FINDIR:-~/finance} || exit; bin "$@")
+}
+
+bin() {  # bin [PAT] - list aliases, functions, scripts in ./bin/[bashrc]
+    PAT="${1-.}"
+    BINDIR=./bin
+    BASHRC=$BINDIR/bashrc
+    ( [[ -e $BASHRC ]] && grep -E '^(alias|function|\w+\(\))' $BASHRC \
+	  | gnused -E -e 's/^alias *//' -e 's/^(function )?(\w+) *\(\) *\{/\2()/' -e 's/#/\t#/' \
+		   # -e "s/=('[^']+'|\"[^\"]+\"|\w+)/=/"   # hide alias definitions
+      [[ -d $BINDIR ]] && for F in "$BINDIR"/*; do
+	  printf '%s  ' "$(basename "$F")"
+	  (grep -IE '^(#|--) ' "$F" 2>/dev/null | gnused -E 's/(#|--)/\t#/'; echo) | head -1
+      done
+      ) | grep -iE "$PAT" # | sort -b -k2
+}
+
+gnused() {  # GNU sed, called gsed on mac
+    if hash gsed 2>/dev/null; then gsed "$@"; else sed "$@"; fi
+}
+
+gnudate() {  # GNU date, called gdate on mac
+    if hash gdate 2>/dev/null; then gdate "$@"; else date "$@"; fi
+}
+
+
 
 # time
 
@@ -83,13 +114,13 @@ alias checkingcleared="checking --cleared --period 'daily to tomorrow'"
 alias checkingfuture="checking -d 'd>=[yesterday]'"
 
 # generate a chart and view it in emacs
-function chart () {
+chart () {
   hledger chart $* && emacsclient -n hledger.png
 }
 
 # old ledger 2.6 scripts
 
-function BalanceSheet() {
+BalanceSheet() {
     echo "Balance sheet as of `date`"
     echo "totals include sub-accounts"
     echo
@@ -104,7 +135,7 @@ function BalanceSheet() {
     ledger --balance-format '%10T  %2_%-a\n' --basis $* balance assets liabilities | tail -2
 }
 
-function IncomeStatement() {
+IncomeStatement() {
     echo "Income statement for `date +%Y` as of `date`"
     echo "totals include sub-accounts"
     echo
