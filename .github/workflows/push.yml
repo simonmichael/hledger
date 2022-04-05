@@ -14,35 +14,33 @@ name: push CI
 on:
   push:
     branches: [ simon ]
-    paths:
-      - '.github/workflows/push.yml'
-      - 'stack*.yaml'
-      - 'hledger-lib/**'
-      - 'hledger/**'
-      - 'hledger-ui/**'
-      - 'hledger-web/**'
-      - 'bin/*.hs'
-      - 'examples/**'
-
-      # Run this workflow on changes to any file, including trivial doc fixes,
-      # since a successful run is required before merging into master.
-      # Hopefully caching will keep it relatively cheap.
-      
-      # # ignore certain boring paths completely (even if the commit message didn't begin with ;).
-      # # XXX it would still be nice to check the commit messages.
-      # #
-      # # ignore changes to (most?) example files, though some func tests depend on them
-      # - '!**.journal'
-      # - '!**.j'
-      # - '!**.ledger'
-      # - '!**.csv'
-      # # ignore changes to doc source files
-      # - '!**.m4'
-      # - '!**.md'
-      # - '!**.1'
-      # - '!**.5'
-      # - '!**.info'
-      # - '!**.txt'
+    # Run this workflow on changes to any file, including trivial doc fixes,
+    # since a successful run is required before merging into master.
+    # Hopefully caching will keep it relatively cheap.
+    # paths:
+    #   - '.github/workflows/push.yml'
+    #   - 'stack*.yaml'
+    #   - 'hledger-lib/**'
+    #   - 'hledger/**'
+    #   - 'hledger-ui/**'
+    #   - 'hledger-web/**'
+    #   - 'bin/*.hs'
+    #   - 'examples/**'
+    #   # ignore certain boring paths completely (even if the commit message didn't begin with ;).
+    #   # XXX it would still be nice to check the commit messages.
+    #   #
+    #   # ignore changes to (most?) example files, though some func tests depend on them
+    #   - '!**.journal'
+    #   - '!**.j'
+    #   - '!**.ledger'
+    #   - '!**.csv'
+    #   # ignore changes to doc source files
+    #   - '!**.m4'
+    #   - '!**.md'
+    #   - '!**.1'
+    #   - '!**.5'
+    #   - '!**.info'
+    #   - '!**.txt'
 
   # also allow this workflow to be triggered manually
   workflow_dispatch:
