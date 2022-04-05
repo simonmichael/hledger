@@ -14,9 +14,11 @@ name: push CI
 on:
   push:
     branches: [ simon ]
-    # Run this workflow on changes to any file, including trivial doc fixes,
-    # since a successful run is required before merging into master.
-    # Hopefully caching will keep it relatively cheap.
+    # Run this workflow for changes to any file, even trivial doc fixes
+    # (since merging to master requires a successful run).
+    # Ideally caching will keep it relatively cheap; avoid over-pushing.
+
+    # Run this workflow only for changes to these files (to avoid waste):
     # paths:
     #   - '.github/workflows/push.yml'
     #   - 'stack*.yaml'
@@ -26,15 +28,13 @@ on:
     #   - 'hledger-web/**'
     #   - 'bin/*.hs'
     #   - 'examples/**'
-    #   # ignore certain boring paths completely (even if the commit message didn't begin with ;).
-    #   # XXX it would still be nice to check the commit messages.
-    #   #
-    #   # ignore changes to (most?) example files, though some func tests depend on them
+    #   # and ignore these files:   (XXX it would still be nice to check the commit messages)
+    #   # examples
     #   - '!**.journal'
     #   - '!**.j'
     #   - '!**.ledger'
     #   - '!**.csv'
-    #   # ignore changes to doc source files
+    #   # docs
     #   - '!**.m4'
     #   - '!**.md'
     #   - '!**.1'
