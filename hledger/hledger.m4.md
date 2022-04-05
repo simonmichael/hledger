@@ -1160,6 +1160,16 @@ and try adding `--debug` or `--debug=2` to troubleshoot.
   "[more correct](investments.html#a-more-correct-entry)" multicommodity transactions
   (no `@`, multiple commodities, balanced).
 
+There is another limitation (bug) currently: when a valuation commodity is not specified, 
+prices inferred with `--infer-market-prices` do not help select a default valuation commodity,
+as `P` prices would.
+So conversion might not happen because no valuation commodity was detected (`--debug=2` will show this). 
+To be safe, specify the valuation commmodity, eg:
+
+- `-X EUR --infer-market-prices`, not `-V --infer-market-prices`
+- `--value=then,EUR --infer-market-prices`, not `--value=then --infer-market-prices`
+
+
 ## Valuation commodity
 
 **When you specify a valuation commodity (`-X COMM` or `--value TYPE,COMM`):**\
