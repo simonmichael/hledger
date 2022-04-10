@@ -3148,7 +3148,7 @@ Here are some tips for working with account types.
   See [Rewriting accounts > Aliases and account types](#aliases-and-account-types).
 
 - As mentioned above, subaccounts will inherit a type from their parent account. 
-  To be precise, an account's type is decided by the first of these that exists:
+  More precisely, an account's type is decided by the first of these that exists:
 
   1. A `type:` declaration for this account.
   2. A `type:` declaration in the parent accounts above it, preferring the nearest.
