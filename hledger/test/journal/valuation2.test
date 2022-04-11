@@ -340,3 +340,21 @@ P 2020-01-01 P 100Z
 
 $ hledger -f- bal -N -X Z
                 100Z  a
+
+# 32. #1851 It should use posting date 2 if requested.
+<
+2019-12-31 FOO
+    Assets:A        $1.00
+    Income:B
+
+2020-01-01=2019-12-30 BAR
+    Assets:A        $1.00
+    Income:B
+
+$ hledger -f- bal -Y --date2 -V -N
+Balance changes in 2019, valued at period ends:
+
+          ||   2019 
+==========++========
+ Assets:A ||  $2.00 
+ Income:B || $-2.00 
