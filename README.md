@@ -118,11 +118,11 @@ and the generous financial sponsors below.
 
 After enjoying some personal or organisational success with hledger,
 you might want to become one of them, to help support this work.
-It's easy - please see <https://hledger.org/sponsor.html> for details.
+It's easy! Please see <https://hledger.org/sponsor.html> for details.
 
 <!-- keep synced with sponsor.md: -->
 
-### Organisational sponsors on Open Collective
+### Organisational sponsors
 
 <a href="https://opencollective.com/hledger/organization/0/website"><img src="https://opencollective.com/hledger/organization/0/avatar.svg?avatarHeight=200"></a>
 <a href="https://opencollective.com/hledger/organization/1/website"><img src="https://opencollective.com/hledger/organization/1/avatar.svg?avatarHeight=200"></a>
@@ -145,7 +145,7 @@ It's easy - please see <https://hledger.org/sponsor.html> for details.
 <a href="https://opencollective.com/hledger/organization/18/website"><img src="https://opencollective.com/hledger/organization/18/avatar.svg?avatarHeight=200"></a>
 <a href="https://opencollective.com/hledger/organization/19/website"><img src="https://opencollective.com/hledger/organization/19/avatar.svg?avatarHeight=200"></a>
 
-### Individual sponsors on Open Collective
+### Individual sponsors
 
 <a href="https://opencollective.com/hledger/individual/0/website"><img src="https://opencollective.com/hledger/individual/0/avatar.svg?avatarHeight=100"></a>
 <a href="https://opencollective.com/hledger/individual/1/website"><img src="https://opencollective.com/hledger/individual/1/avatar.svg?avatarHeight=100"></a>
