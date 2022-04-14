@@ -22,10 +22,12 @@ module Hledger.Query (
   parseQueryList,
   parseQueryTerm,
   parseAccountType,
+  -- * modifying
   simplifyQuery,
   filterQuery,
   filterQueryOrNotQuery,
-  -- * accessors
+  matchesQuery,
+  -- * predicates
   queryIsNull,
   queryIsAcct,
   queryIsAmt,
@@ -39,6 +41,9 @@ module Hledger.Query (
   queryIsStatus,
   queryIsType,
   queryIsTag,
+  queryIsAccountRelated,
+  queryIsTransactionOrPostingRelated,
+  -- * accessors
   queryStartDate,
   queryEndDate,
   queryDateSpan,
@@ -46,7 +51,7 @@ module Hledger.Query (
   queryDepth,
   inAccount,
   inAccountQuery,
-  -- * matching
+  -- * matching things with queries
   matchesTransaction,
   matchesTransactionExtra,
   matchesDescription,
@@ -402,6 +407,8 @@ parseBool s = s `elem` truestrings
 truestrings :: [T.Text]
 truestrings = ["1"]
 
+-- * modifying
+
 simplifyQuery :: Query -> Query
 simplifyQuery q =
   let q' = simplify q
@@ -428,31 +435,40 @@ same [] = True
 same (a:as) = all (a==) as
 
 -- | Remove query terms (or whole sub-expressions) from this query
--- which do not match the given predicate.
--- XXX Semantics not completely clear.
+-- which do not match the given predicate. XXX Semantics not completely clear.
+-- Also calls simplifyQuery on the result.
 filterQuery :: (Query -> Bool) -> Query -> Query
 filterQuery p = simplifyQuery . filterQuery' p
-  where
-    filterQuery' :: (Query -> Bool) -> Query -> Query
-    filterQuery' p (And qs) = And $ map (filterQuery p) qs
-    filterQuery' p (Or qs) = Or $ map (filterQuery p) qs
-    filterQuery' p q = if p q then q else Any
+
+-- | Like filterQuery, but returns the filtered query as is, without simplifying.
+filterQuery' :: (Query -> Bool) -> Query -> Query
+filterQuery' p (And qs) = And $ map (filterQuery p) qs
+filterQuery' p (Or qs) = Or $ map (filterQuery p) qs
+filterQuery' p q = if p q then q else Any
 
 -- | Remove query terms (or whole sub-expressions) from this query
 -- which match neither the given predicate nor that predicate negated 
 -- (eg, if predicate is queryIsAcct, this will keep both "acct:" and "not:acct:" terms).
+-- Also calls simplifyQuery on the result.
 -- (Since 1.24.1, might be merged into filterQuery in future.)
 -- XXX Semantics not completely clear.
 filterQueryOrNotQuery :: (Query -> Bool) -> Query -> Query
-filterQueryOrNotQuery p = simplifyQuery . filterQuery' p
+filterQueryOrNotQuery p = simplifyQuery . filterQueryOrNotQuery' p
   where
-    filterQuery' :: (Query -> Bool) -> Query -> Query
-    filterQuery' p (And qs)      = And $ map (filterQueryOrNotQuery p) qs
-    filterQuery' p (Or qs)       = Or  $ map (filterQueryOrNotQuery p) qs
-    filterQuery' p (Not q) | p q = Not $ filterQueryOrNotQuery p q
-    filterQuery' p q = if p q then q else Any
+    filterQueryOrNotQuery' :: (Query -> Bool) -> Query -> Query
+    filterQueryOrNotQuery' p (And qs)      = And $ map (filterQueryOrNotQuery p) qs
+    filterQueryOrNotQuery' p (Or qs)       = Or  $ map (filterQueryOrNotQuery p) qs
+    filterQueryOrNotQuery' p (Not q) | p q = Not $ filterQueryOrNotQuery p q
+    filterQueryOrNotQuery' p q = if p q then q else Any
 
--- * accessors
+-- * predicates
+
+-- | Does this simple query predicate match any part of this possibly compound query ?
+matchesQuery :: (Query -> Bool) -> Query -> Bool
+matchesQuery p (And qs) = any (matchesQuery p) qs
+matchesQuery p (Or qs)  = any (matchesQuery p) qs
+matchesQuery p (Not q)  = p q
+matchesQuery p q        = p q
 
 -- | Does this query match everything ?
 queryIsNull :: Query -> Bool
@@ -524,6 +540,36 @@ queryIsStartDateOnly secondary (And ms) = all (queryIsStartDateOnly secondary) m
 queryIsStartDateOnly False (Date (DateSpan (Just _) _)) = True
 queryIsStartDateOnly True (Date2 (DateSpan (Just _) _)) = True
 queryIsStartDateOnly _ _ = False
+
+-- | Does this query involve a property which only accounts (without their balances) have,
+-- making it inappropriate for matching other things ?
+queryIsAccountRelated :: Query -> Bool
+queryIsAccountRelated = matchesQuery (
+      queryIsAcct
+  ||| queryIsDepth
+  ||| queryIsType
+  )
+
+-- | Does this query involve a property which only transactions or postings have,
+-- making it inappropriate for matching other things ?
+queryIsTransactionOrPostingRelated :: Query -> Bool
+queryIsTransactionOrPostingRelated = matchesQuery (
+      queryIsAmt
+  -- ||| queryIsCode
+  -- ||| queryIsCur
+  ||| queryIsDesc
+  ||| queryIsDate
+  ||| queryIsDate2
+  -- ||| queryIsNote
+  -- ||| queryIsPayee
+  ||| queryIsReal
+  ||| queryIsStatus
+  )
+
+(|||) :: (a->Bool) -> (a->Bool) -> (a->Bool)
+p ||| q = \v -> p v || q v
+
+-- * accessors
 
 -- | What start date (or secondary date) does this query specify, if any ?
 -- For OR expressions, use the earliest of the dates. NOT is ignored.
@@ -616,7 +662,7 @@ inAccountQuery (QueryOptInAcct a     : _) = Just . Acct $ accountNameToAccountRe
 -- negateQuery :: Query -> Query
 -- negateQuery =  Not
 
--- matching
+-- matching things with queries
 
 matchesCommodity :: Query -> CommoditySymbol -> Bool
 matchesCommodity (Sym r) = regexMatchText r
