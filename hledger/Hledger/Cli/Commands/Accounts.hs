@@ -54,12 +54,12 @@ accounts CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_rsRepo
       used     = boolopt "used"     rawopts
       types    = boolopt "types"    rawopts
       -- a depth limit will clip and exclude account names later, but we don't want to exclude accounts at this stage
-      nodepthq = dbg1 "nodepthq" $ filterQuery (not . queryIsDepth) query
+      nodepthq = dbg4 "nodepthq" $ filterQuery (not . queryIsDepth) query
       -- just the acct: part of the query will be reapplied later, after clipping
-      acctq    = dbg1 "acctq" $ filterQuery queryIsAcct query
-      depth    = dbg1 "depth" $ queryDepth $ filterQuery queryIsDepth query
+      acctq    = dbg4 "acctq" $ filterQuery queryIsAcct query
+      depth    = dbg4 "depth" $ queryDepth $ filterQuery queryIsDepth query
       matcheddeclaredaccts =
-        dbg1 "matcheddeclaredaccts" $
+        dbg4 "matcheddeclaredaccts" $
         filter (matchesAccountExtra (journalAccountType j) (journalInheritedAccountTags j) nodepthq)
           $ map fst $ jdeclaredaccounts j
       matchedusedaccts     = dbg5 "matchedusedaccts" $ map paccount $ journalPostings $ filterJournalPostings nodepthq j
@@ -73,7 +73,7 @@ accounts CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_rsRepo
 
   -- 3. if there's a depth limit, depth-clip and remove any no longer useful items
       clippedaccts =
-        dbg1 "clippedaccts" $
+        dbg4 "clippedaccts" $
         filter (matchesAccount acctq) $           -- clipping can leave accounts that no longer match the query, remove such
         nub $                                     -- clipping can leave duplicates (adjacent, hopefully)
         filter (not . T.null) $                   -- depth:0 can leave nulls
