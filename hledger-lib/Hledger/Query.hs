@@ -95,27 +95,28 @@ import Hledger.Data.Transaction
 
 -- | A query is a composition of search criteria, which can be used to
 -- match postings, transactions, accounts and more.
-data Query = Any              -- ^ always match
-           | None             -- ^ never match
-           | Not Query        -- ^ negate this match
-           | Or [Query]       -- ^ match if any of these match
-           | And [Query]      -- ^ match if all of these match
-           | Code Regexp      -- ^ match if code matches this regexp
-           | Desc Regexp      -- ^ match if description matches this regexp
-           | Acct Regexp      -- ^ match postings whose account matches this regexp
-           | Date DateSpan    -- ^ match if primary date in this date span
-           | Date2 DateSpan   -- ^ match if secondary date in this date span
-           | StatusQ Status  -- ^ match txns/postings with this status
-           | Real Bool        -- ^ match if "realness" (involves a real non-virtual account ?) has this value
-           | Amt OrdPlus Quantity  -- ^ match if the amount's numeric quantity is less than/greater than/equal to/unsignedly equal to some value
-           | Sym Regexp       -- ^ match if the entire commodity symbol is matched by this regexp
-           | Depth Int        -- ^ match if account depth is less than or equal to this value.
-                              --   Depth is sometimes used like a query (for filtering report data)
-                              --   and sometimes like a query option (for controlling display)
-           | Tag Regexp (Maybe Regexp)  -- ^ match if a tag's name, and optionally its value, is matched by these respective regexps
-                                        -- matching the regexp if provided, exists
-           | Type [AccountType]  -- ^ match accounts whose type is one of these (or with no types, any account)
-    deriving (Eq,Show)
+data Query = 
+  -- compound queries
+    Not Query                 -- ^ negate this match
+  | And [Query]               -- ^ match if all of these match
+  | Or  [Query]               -- ^ match if any of these match
+  -- no-op queries
+  | Any                       -- ^ always match
+  | None                      -- ^ never match
+  -- data queries (in "standard" order, roughly as they appear in a transaction)
+  | Date DateSpan             -- ^ match primary dates in this date span
+  | Date2 DateSpan            -- ^ match secondary dates in this date span
+  | StatusQ Status            -- ^ match this txn/posting status
+  | Code Regexp               -- ^ match txn codes infix-matched by this regexp
+  | Desc Regexp               -- ^ match txn descriptions infix-matched by this regexp
+  | Tag Regexp (Maybe Regexp) -- ^ match if a tag's name, and optionally its value, is infix-matched by the respective regexps
+  | Acct Regexp               -- ^ match account names infix-matched by this regexp
+  | Type [AccountType]        -- ^ match accounts whose type is one of these (or with no types, any account)
+  | Depth Int                 -- ^ match if account depth is less than or equal to this value (or, sometimes used as a display option)
+  | Real Bool                 -- ^ match postings with this "realness" value
+  | Amt OrdPlus Quantity      -- ^ match if the amount's numeric quantity is less than/greater than/equal to/unsignedly equal to some value
+  | Sym Regexp                -- ^ match if the commodity symbol is fully-matched by this regexp
+  deriving (Eq,Show)
 
 instance Default Query where def = Any
 
