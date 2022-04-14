@@ -9,9 +9,35 @@
 General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
-# c7afe77cd
+# 7a1d5e66e
+
+Scripts/addons
+
+- fin (and bin) scripts show available scripts and their help
+
+- aliases.sh -> bashrc
+
+- Get hledger-print-location working. (Stephen Morgan)
+
+Docs
 
 - README cleanup, inspired by feedback from README reviewer Lars Wirzenius.
+
+- Clearer sponsoring info and more complete sponsor lists on website and README.
+
+- The new <https://github.com/simonmichael/hledger_finance> repo
+  keeps track of our public finances (on Open Collective, Liberapay etc.)
+
+Examples
+
+- invoice: calculate dates accurately on last days of month
+
+Process/tools
+
+- ci: master now requires all pushes/merges, including Simon's, to
+  have passed the `push` CI tests on some other github branch first.
+
+- make buildtimes, make buildtimes-cabal: show GHC codegen times
 
 # 1.25 2022-03-04
 

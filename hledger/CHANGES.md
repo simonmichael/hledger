@@ -9,7 +9,46 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 460a1fc20
+# 8de85be65
+
+Breaking changes
+
+Features
+
+Improvements
+
+- The accounts command now shows its debug output at a more appropriate level (4).
+
+- --pivot now supports `status` (to pivot on transaction status).
+
+- register and aregister have been made faster, by 
+
+  - considering only the first 1000 items for choosing column
+    widths. You can restore the old behaviour (guaranteed alignment
+    across all items) with the new --align-all flag.
+    (#1839, Stephen Morgan)
+
+  - discarding cost data more aggressively, giving big speedups for
+    large journals with many costs.
+	(#1828, Stephen Morgan)
+
+- More consistent layout for error messages (Stephen Morgan, Simon Michael)
+
+Fixes
+
+- The tags command now also matches accounts declared but not used.
+  It also has improved command-line help layout.
+  (#1857)
+
+- Value reports with --date2 and a report interval (like bal -VM --date2)
+  were failing with a "expected all spans to have an end date" error since 1.22;
+  this is now fixed.
+  (#1851, Stephen Morgan)
+
+- Make sure inferred market prices have the correct sign with total prices.
+
+- Allow an escaped forward slash in regular expression account aliases.
+  (#982, Stephen Morgan)
 
 # 1.25 2022-03-04
 

@@ -9,7 +9,46 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# af7a5f98e
+# 8de85be65
+
+Breaking changes
+
+- readJournal, readJournalFile, readJournalFiles now return
+  `ExceptT String IO a` instead of `IO (Either String a)`.
+  Internally, this increases composability and avoids some ugly case handling.
+It means that these must now be evaluated with `runExceptT`.
+  That can be imported from `Control.Monad.Except` in the `mtl` package,
+  but `Hledger.Read` also re-exports it for convenience.
+
+  New variants readJournal', readJournalFiles', readJournalFile' are
+  also provided; these are like the old functions but more convenient,
+  assuming default input options and needing one less argument.
+  (Stephen Morgan)
+
+Misc
+
+- Hledger.Query: Added
+  matchesQuery,
+  queryIsCode
+  queryIsTransactionRelated
+
+- Clean up journal parsing. (Stephen Morgan)
+  parseAndFinaliseJournal' has been removed. In the unlikely event you
+  needed it in your code, you can replace it with:
+
+  parseAndFinaliseJournal' parser iopts fp t =>
+  initialiseAndParseJournal parser iopts fp t
+  >>= liftEither . journalApplyAliases (aliasesFromOpts iopts)
+  >>= journalFinalise iopts fp t
+
+  Some parsers have been generalised from JournalParser to TextParser.
+
+- Improve ergonomics of SmartDate constructors. (Stephen Morgan)
+
+- Hledger.Utils: Add a helper function numDigitsInt to get the number
+  of digits in an integer, which has a surprising number of ways to
+  get it wrong.
+  (#1813) (Stephen Morgan)
 
 # 1.25 2022-03-04
 
