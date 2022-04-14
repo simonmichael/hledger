@@ -93,7 +93,6 @@ hledger-web/yesod-devel/
 *.spk
 
 # recent stuff
-/site
 /commands
 /.obsidian
 /.github/workflows/README
