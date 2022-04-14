@@ -22,6 +22,12 @@ $ hledger register checking
 
 With --date2, it shows and sorts by secondary date instead.
 
+For performance reasons, column widths are chosen based on the first
+1000 lines; this means unusually wide values in later lines can cause
+visual discontinuities as column widths are adjusted. If you want to
+ensure perfect alignment, at the cost of more time and memory, use the
+--align-all flag.
+
 The --historical/-H flag adds the balance from any undisplayed prior
 postings to the running total. This is useful when you want to see only
 recent activity, with a historically accurate running balance:

@@ -11,6 +11,9 @@ by matched postings are shown. It shows a flat list by default. With
 you can add --drop N to omit the first few account name components.
 Account names can be depth-clipped with depth:N or --depth N or -N.
 
+With --types, it also shows each account's type, if it's known. (See
+Declaring accounts > Account types.)
+
 Examples:
 
 $ hledger accounts
