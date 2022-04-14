@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "December 2021" "hledger-1.25.99 " "hledger User Manuals"
+.TH "HLEDGER" "1" "April 2022" "hledger-1.25.99 " "hledger User Manuals"
 
 
 
@@ -1849,6 +1849,20 @@ two commodities, unbalanced).
 .IP \[bu] 2
 but not, currently, from \[dq]more correct\[dq] multicommodity
 transactions (no \f[C]\[at]\f[R], multiple commodities, balanced).
+.PP
+There is another limitation (bug) currently: when a valuation commodity
+is not specified, prices inferred with \f[C]--infer-market-prices\f[R]
+do not help select a default valuation commodity, as \f[C]P\f[R] prices
+would.
+So conversion might not happen because no valuation commodity was
+detected (\f[C]--debug=2\f[R] will show this).
+To be safe, specify the valuation commmodity, eg:
+.IP \[bu] 2
+\f[C]-X EUR --infer-market-prices\f[R], not
+\f[C]-V --infer-market-prices\f[R]
+.IP \[bu] 2
+\f[C]--value=then,EUR --infer-market-prices\f[R], not
+\f[C]--value=then --infer-market-prices\f[R]
 .SS Valuation commodity
 .PP
 \f[B]When you specify a valuation commodity (\f[CB]-X COMM\f[B] or
@@ -2497,8 +2511,9 @@ Normally hledger sums amounts, and organizes them in a hierarchy, based
 on account name.
 The \f[C]--pivot FIELD\f[R] option causes it to sum and organize
 hierarchy based on the value of some other field instead.
-FIELD can be: \f[C]code\f[R], \f[C]description\f[R], \f[C]payee\f[R],
-\f[C]note\f[R], or the full name (case insensitive) of any tag.
+FIELD can be: \f[C]status\f[R], \f[C]code\f[R], \f[C]description\f[R],
+\f[C]payee\f[R], \f[C]note\f[R], or the full name (case insensitive) of
+any tag.
 As with account names, values containing \f[C]colon:separated:parts\f[R]
 will be displayed hierarchically in reports.
 .PP
@@ -3142,6 +3157,12 @@ the account\[aq]s historical running balance after this transaction.
 .PP
 Transactions making a net change of zero are not shown by default; add
 the \f[C]-E/--empty\f[R] flag to show them.
+.PP
+For performance reasons, column widths are chosen based on the first
+1000 lines; this means unusually wide values in later lines can cause
+visual discontinuities as column widths are adjusted.
+If you want to ensure perfect alignment, at the cost of more time and
+memory, use the \f[C]--align-all\f[R] flag.
 .PP
 This command also supports the output destination and output format
 options.
@@ -5523,6 +5544,12 @@ $ hledger register checking
 .PP
 With --date2, it shows and sorts by secondary date instead.
 .PP
+For performance reasons, column widths are chosen based on the first
+1000 lines; this means unusually wide values in later lines can cause
+visual discontinuities as column widths are adjusted.
+If you want to ensure perfect alignment, at the cost of more time and
+memory, use the \f[C]--align-all\f[R] flag.
+.PP
 The \f[C]--historical\f[R]/\f[C]-H\f[R] flag adds the balance from any
 undisplayed prior postings to the running total.
 This is useful when you want to see only recent activity, with a
@@ -6090,19 +6117,30 @@ tags
 .PD 0
 .P
 .PD
-List the unique tag names used in the journal.
-With a TAGREGEX argument, only tag names matching the regular expression
-(case insensitive) are shown.
-With QUERY arguments, only transactions matching the query are
-considered.
+List the tags used in the journal, or their values.
 .PP
-With the --values flag, the tags\[aq] unique values are listed instead.
+This command lists the tag names used in the journal, whether on
+transactions, postings, or account declarations.
 .PP
-With --parsed flag, all tags or values are shown in the order they are
-parsed from the input data, including duplicates.
+With a TAGREGEX argument, only tag names matching this regular
+expression (case insensitive, infix matched) are shown.
 .PP
-With -E/--empty, any blank/empty values will also be shown, otherwise
-they are omitted.
+With QUERY arguments, only transactions and accounts matching this query
+are considered.
+If the query involves transaction fields (date:, desc:, amt:, ...), the
+search is restricted to the matched transactions and their accounts.
+.PP
+With the --values flag, the tags\[aq] unique non-empty values are listed
+instead.
+With -E/--empty, blank/empty values are also shown.
+.PP
+With --parsed, tags or values are shown in the order they were parsed,
+with duplicates included.
+(Except, tags from account declarations are always shown first.)
+.PP
+Tip: remember, accounts also acquire tags from their parents, postings
+also acquire tags from their account and transaction, transactions also
+acquire tags from their postings.
 .SS test
 .PP
 test
@@ -7027,19 +7065,28 @@ break and require updating.
 This order dependence does bring an advantage: precise control over the
 order of postings and assertions within a day, so you can assert
 intra-day balances.
-.SS Assertions and included files
+.SS Assertions and multiple included files
 .PP
-With included files, things are a little more complicated.
-Including preserves the ordering of postings and assertions.
-If you have multiple postings to an account on the same day, split
-across different files, and you also want to assert the account\[aq]s
-balance on the same day, you\[aq]ll have to put the assertion in the
-right file.
-.SS Assertions and multiple -f options
+Multiple files included with the \f[C]include\f[R] directive are
+processed as if concatenated into one file, preserving their order and
+the posting order within each file.
+It means that balance assertions in later files will see balance from
+earlier files.
 .PP
-Balance assertions don\[aq]t work well across files specified with
-multiple -f options.
-Use include or concatenate the files instead.
+And if you have multiple postings to an account on the same day, split
+across multiple files, and you want to assert the account\[aq]s balance
+on that day, you\[aq]ll need to put the assertion in the right file -
+the last one in the sequence, probably.
+.SS Assertions and multiple -f files
+.PP
+Unlike \f[C]include\f[R], when multiple files are specified on the
+command line with multiple \f[C]-f/--file\f[R] options, balance
+assertions will not see balance from earlier files.
+This can be useful when you do not want problems in earlier files to
+disrupt valid assertions in later files.
+.PP
+If you do want assertions to see balance from earlier files, use
+\f[C]include\f[R], or concatenate the files temporarily.
 .SS Assertions and commodities
 .PP
 The asserted balance must be a simple single-commodity amount, and in
@@ -7128,10 +7175,26 @@ or \f[C]==*\f[R], eg:
 .fi
 .SS Assertions and virtual postings
 .PP
-Balance assertions are checked against all postings, both real and
-virtual.
-They are not affected by the \f[C]--real/-R\f[R] flag or \f[C]real:\f[R]
+Balance assertions always consider both real and virtual postings; they
+are not affected by the \f[C]--real/-R\f[R] flag or \f[C]real:\f[R]
 query.
+.SS Assertions and auto postings
+.PP
+Balance assertions \f[I]are\f[R] affected by the \f[C]--auto\f[R] flag,
+which generates auto postings, which can alter account balances.
+Because auto postings are optional in hledger, accounts affected by them
+effectively have two balances.
+But balance assertions can only test one or the other of these.
+So to avoid making fragile assertions, either:
+.IP \[bu] 2
+assert the balance calculated with \f[C]--auto\f[R], and always use
+\f[C]--auto\f[R] with that file
+.IP \[bu] 2
+or assert the balance calculated without \f[C]--auto\f[R], and never use
+\f[C]--auto\f[R] with that file
+.IP \[bu] 2
+or avoid balance assertions on accounts affected by auto postings (or
+avoid auto postings entirely).
 .SS Assertions and precision
 .PP
 Balance assertions compare the exactly calculated amounts, which are not
@@ -7901,7 +7964,7 @@ See Rewriting accounts > Aliases and account types.
 .IP \[bu] 2
 As mentioned above, subaccounts will inherit a type from their parent
 account.
-To be precise, an account\[aq]s type is decided by the first of these
+More precisely, an account\[aq]s type is decided by the first of these
 that exists:
 .RS 2
 .IP "1." 3
@@ -8043,7 +8106,11 @@ alias checking = assets:bank:wells fargo:checking
 .SS Regex aliases
 .PP
 There is also a more powerful variant that uses a regular expression,
-indicated by the forward slashes:
+indicated by wrapping the pattern in forward slashes.
+(This is the only place where hledger requires forward slashes around a
+regular expression.)
+.PP
+Eg:
 .IP
 .nf
 \f[C]
@@ -8051,14 +8118,23 @@ alias /REGEX/ = REPLACEMENT
 \f[R]
 .fi
 .PP
-or \f[C]--alias \[aq]/REGEX/=REPLACEMENT\[aq]\f[R].
+or:
+.IP
+.nf
+\f[C]
+$ hledger --alias \[aq]/REGEX/=REPLACEMENT\[aq] ...
+\f[R]
+.fi
 .PP
-REGEX is a case-insensitive regular expression.
-Anywhere it matches inside an account name, the matched part will be
-replaced by REPLACEMENT.
+Any part of an account name matched by REGEX will be replaced by
+REPLACEMENT.
+REGEX is case-insensitive as usual.
+.PP
+If you need to match a forward slash, escape it with a backslash, eg
+\f[C]/\[rs]/=:\f[R].
+.PP
 If REGEX contains parenthesised match groups, these can be referenced by
-the usual numeric backreferences in REPLACEMENT.
-Eg:
+the usual backslash and number in REPLACEMENT:
 .IP
 .nf
 \f[C]
@@ -8067,8 +8143,8 @@ alias /\[ha](.+):bank:([\[ha]:]+):(.*)/ = \[rs]1:\[rs]2 \[rs]3
 \f[R]
 .fi
 .PP
-Also note that REPLACEMENT continues to the end of line (or on command
-line, to end of option argument), so it can contain trailing whitespace.
+REPLACEMENT continues to the end of line (or on command line, to end of
+option argument), so it can contain trailing whitespace.
 .SS Combining aliases
 .PP
 You can define as many aliases as you like, using journal directives
@@ -8328,11 +8404,23 @@ There is an additional constraint on the period expression: the start
 date must fall on a natural boundary of the interval.
 Eg \f[C]monthly from 2018/1/1\f[R] is valid, but
 \f[C]monthly from 2018/1/15\f[R] is not.
+.SS Periodic rules and relative dates
 .PP
-Partial or relative dates (M/D, D, tomorrow, last week) in the period
-expression can work (useful or not).
-They will be relative to today\[aq]s date, unless a Y default year
-directive is in effect, in which case they will be relative to Y/1/1.
+Partial or relative dates (like \f[C]12/31\f[R], \f[C]25\f[R],
+\f[C]tomorrow\f[R], \f[C]last week\f[R], \f[C]next quarter\f[R]) are
+usually not recommended in periodic rules, since the results will change
+as time passes.
+If used, they will be interpreted relative to, in order of preference:
+.IP "1." 3
+the first day of the default year specified by a recent \f[C]Y\f[R]
+directive
+.IP "2." 3
+or the date specified with \f[C]--today\f[R]
+.IP "3." 3
+or the date on which you are running the report.
+.PP
+They will not be affected at all by report period or forecast period
+dates.
 .SS Two spaces between period expression and description!
 .PP
 If the period expression is followed by a transaction description, these
