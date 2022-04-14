@@ -29,20 +29,21 @@ module Hledger.Query (
   matchesQuery,
   -- * predicates
   queryIsNull,
-  queryIsAcct,
-  queryIsAmt,
-  queryIsDepth,
   queryIsDate,
   queryIsDate2,
   queryIsDateOrDate2,
-  queryIsStartDateOnly,
-  queryIsSym,
-  queryIsReal,
   queryIsStatus,
-  queryIsType,
+  queryIsCode,
+  queryIsDesc,
   queryIsTag,
-  queryIsAccountRelated,
-  queryIsTransactionOrPostingRelated,
+  queryIsAcct,
+  queryIsType,
+  queryIsDepth,
+  queryIsReal,
+  queryIsAmt,
+  queryIsSym,
+  queryIsStartDateOnly,
+  queryIsTransactionRelated,
   -- * accessors
   queryStartDate,
   queryEndDate,
@@ -478,13 +479,9 @@ queryIsNull (And []) = True
 queryIsNull (Not (Or [])) = True
 queryIsNull _ = False
 
--- | Is this a simple query of this type ("depth:D") ? 
--- Note, does not match a compound query like "not:depth:D" or "depth:D acct:A".
+-- | Is this a simple query of this type (date:) ? 
+-- Does not match a compound query involving and/or/not.
 -- Likewise for the following functions.
-queryIsDepth :: Query -> Bool
-queryIsDepth (Depth _) = True
-queryIsDepth _ = False
-
 queryIsDate :: Query -> Bool
 queryIsDate (Date _) = True
 queryIsDate _ = False
@@ -498,13 +495,37 @@ queryIsDateOrDate2 (Date _) = True
 queryIsDateOrDate2 (Date2 _) = True
 queryIsDateOrDate2 _ = False
 
+queryIsStatus :: Query -> Bool
+queryIsStatus (StatusQ _) = True
+queryIsStatus _ = False
+
+queryIsCode :: Query -> Bool
+queryIsCode (Code _) = True
+queryIsCode _ = False
+
 queryIsDesc :: Query -> Bool
 queryIsDesc (Desc _) = True
 queryIsDesc _ = False
 
+queryIsTag :: Query -> Bool
+queryIsTag (Tag _ _) = True
+queryIsTag _ = False
+
 queryIsAcct :: Query -> Bool
 queryIsAcct (Acct _) = True
 queryIsAcct _ = False
+
+queryIsType :: Query -> Bool
+queryIsType (Type _) = True
+queryIsType _ = False
+
+queryIsDepth :: Query -> Bool
+queryIsDepth (Depth _) = True
+queryIsDepth _ = False
+
+queryIsReal :: Query -> Bool
+queryIsReal (Real _) = True
+queryIsReal _ = False
 
 queryIsAmt :: Query -> Bool
 queryIsAmt (Amt _ _) = True
@@ -513,22 +534,6 @@ queryIsAmt _         = False
 queryIsSym :: Query -> Bool
 queryIsSym (Sym _) = True
 queryIsSym _ = False
-
-queryIsReal :: Query -> Bool
-queryIsReal (Real _) = True
-queryIsReal _ = False
-
-queryIsStatus :: Query -> Bool
-queryIsStatus (StatusQ _) = True
-queryIsStatus _ = False
-
-queryIsType :: Query -> Bool
-queryIsType (Type _) = True
-queryIsType _ = False
-
-queryIsTag :: Query -> Bool
-queryIsTag (Tag _ _) = True
-queryIsTag _ = False
 
 -- | Does this query specify a start date and nothing else (that would
 -- filter postings prior to the date) ?
@@ -542,29 +547,18 @@ queryIsStartDateOnly False (Date (DateSpan (Just _) _)) = True
 queryIsStartDateOnly True (Date2 (DateSpan (Just _) _)) = True
 queryIsStartDateOnly _ _ = False
 
--- | Does this query involve a property which only accounts (without their balances) have,
--- making it inappropriate for matching other things ?
-queryIsAccountRelated :: Query -> Bool
-queryIsAccountRelated = matchesQuery (
-      queryIsAcct
-  ||| queryIsDepth
-  ||| queryIsType
-  )
-
--- | Does this query involve a property which only transactions or postings have,
--- making it inappropriate for matching other things ?
-queryIsTransactionOrPostingRelated :: Query -> Bool
-queryIsTransactionOrPostingRelated = matchesQuery (
-      queryIsAmt
-  -- ||| queryIsCode
-  -- ||| queryIsCur
-  ||| queryIsDesc
-  ||| queryIsDate
+-- | Does this query involve a property of transactions (or their postings),
+-- making it inapplicable to account declarations ?
+queryIsTransactionRelated :: Query -> Bool
+queryIsTransactionRelated = matchesQuery (
+      queryIsDate
   ||| queryIsDate2
-  -- ||| queryIsNote
-  -- ||| queryIsPayee
-  ||| queryIsReal
   ||| queryIsStatus
+  ||| queryIsCode
+  ||| queryIsDesc
+  ||| queryIsReal
+  ||| queryIsAmt
+  ||| queryIsSym
   )
 
 (|||) :: (a->Bool) -> (a->Bool) -> (a->Bool)

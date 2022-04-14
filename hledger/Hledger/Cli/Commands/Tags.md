@@ -1,14 +1,23 @@
 tags\
-List the unique tag names used in the journal. With a TAGREGEX argument,
-only tag names matching the regular expression (case insensitive) are shown. 
-With QUERY arguments, only transactions matching the query are considered.
+List the unique tag names used in the journal, whether on transactions, postings,
+or account declarations.
 
-With the --values flag, the tags' unique values are listed instead.
+With a TAGREGEX argument, only tag names matching this regular expression
+(case insensitive, infix matched) are shown.
 
-With --parsed flag, all tags or values are shown in the order they
-are parsed from the input data, including duplicates.
+With QUERY arguments, only transactions and accounts matching this query are considered.
+If the query involves transaction fields (date:, desc:, amt:, ...),
+the search is restricted to the matched transactions and their accounts.
 
-With -E/--empty, any blank/empty values will also be shown, otherwise
-they are omitted.
+With the --values flag, the tags' unique non-empty values are listed instead.
+With -E/--empty, blank/empty values are also shown.
+
+With --parsed, tags or values are shown in the order they were parsed, with duplicates included.
+(Except, tags from account declarations are always shown first.)
 
 _FLAGS
+
+Tip: remember,
+accounts also acquire tags from their parents,
+postings also acquire tags from their account and transaction,
+transactions also acquire tags from their postings.

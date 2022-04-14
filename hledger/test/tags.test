@@ -1,32 +1,56 @@
 # tags command
 
-account a   ; t1:v1
+account a     ; t1:v1, an account tag
+account b:bb  ; t2:v2, an unused account, depth 2
 
-2000/1/1    ; t2:v2
-  (b)    1  ; t3:v3
+2000/1/1      ; t3:v3, a transaction tag
+  (a:aa)   1  ; t4:v4, a posting tag
 
-2000/1/2    ; t4:v4
-  (b)    1  ; t5:v5
+2000/1/2      ; t5:v4, a reused value
+  (c)      1  ; t6:v6, an undeclared account
 
-# 1. list all tags
-$ hledger -f - tags
+# 1. show all tags
+$ hledger -f- tags
+t1
 t2
 t3
 t4
 t5
+t6
 
-# 2. list tag names matching a regex
-$ hledger -f - tags '[24]'
-t2
-t4
-
-# 3. list tag values
-$ hledger -f - tags --values
+# 2. show all tag values
+$ hledger -f- tags --values
+v1
 v2
 v3
 v4
-v5
+v6
 
-# 4. list values of tags matching a regex from transactions matching a query
-$ hledger -f - tags t3 date:2000/1/1 --values
-v3
+# 3. show tags matching a regex
+$ hledger -f- tags '[1-4]'
+t1
+t2
+t3
+t4
+
+# 4. show tags matching (a regex and) a hledger query.
+# If the query is applicable to both transactions and account declarations,
+# both are searched for tags.
+$ hledger -f- tags . b c
+t2
+t5
+t6
+
+# 5. If the query involves transaction attributes,
+# only accounts used by the matched transactions will contribute tags.
+$ hledger -f- tags . date:2000/1/1
+t1
+t3
+t4
+
+# 6. show account tags even when there are no transactions (#1857)
+<
+account a   ; t1:
+
+$ hledger -f- tags
+t1
