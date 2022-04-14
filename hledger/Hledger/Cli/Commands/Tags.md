@@ -1,6 +1,10 @@
 tags\
-List the unique tag names used in the journal, whether on transactions, postings,
-or account declarations.
+List the tags used in the journal, or their values.
+
+_FLAGS
+
+This command lists the tag names used in the journal,
+whether on transactions, postings, or account declarations.
 
 With a TAGREGEX argument, only tag names matching this regular expression
 (case insensitive, infix matched) are shown.
@@ -14,8 +18,6 @@ With -E/--empty, blank/empty values are also shown.
 
 With --parsed, tags or values are shown in the order they were parsed, with duplicates included.
 (Except, tags from account declarations are always shown first.)
-
-_FLAGS
 
 Tip: remember,
 accounts also acquire tags from their parents,
