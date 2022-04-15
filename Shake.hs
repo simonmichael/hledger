@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
-{- stack script --resolver nightly-2022-03-03 --compile
+{- stack script --resolver nightly-2022-04-14 --compile
    --extra-include-dirs /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/ffi
    --package base-prelude
    --package directory
@@ -276,22 +276,22 @@ main = do
       -- (used by "cabalfiles" and "setversion")
       let gencabalfiles = do
 
-          -- Update cabal files with stack build.
-          -- stack 1.7+ no longer updates cabal files with --dry-run, we must do a full build.
-          -- stack can return zero exit code while failing to update cabal files so
-          -- we need to check for the error message (specifically) on stderr.
-          -- out <- fromStdouterr <$>  -- (getting both stdout and stderr here just as an example)
-          --   (cmd (EchoStdout True) (EchoStderr True) Shell "stack build" :: Action (Stdouterr String))
-          -- when ("was generated with a newer version of hpack" `isInfixOf` out) $
-          --   liftIO $ putStr out >> exitFailure
+            -- Update cabal files with stack build.
+            -- stack 1.7+ no longer updates cabal files with --dry-run, we must do a full build.
+            -- stack can return zero exit code while failing to update cabal files so
+            -- we need to check for the error message (specifically) on stderr.
+            -- out <- fromStdouterr <$>  -- (getting both stdout and stderr here just as an example)
+            --   (cmd (EchoStdout True) (EchoStderr True) Shell "stack build" :: Action (Stdouterr String))
+            -- when ("was generated with a newer version of hpack" `isInfixOf` out) $
+            --   liftIO $ putStr out >> exitFailure
 
-          -- Or update them with hpack directly.
-          -- It should be the same hpack version that's in current stack, to avoid commit conflicts.
-          forM_ pkgdirs $ \d -> cmd_ (Cwd d) Shell "hpack --no-hash"
+            -- Or update them with hpack directly.
+            -- It should be the same hpack version that's in current stack, to avoid commit conflicts.
+            forM_ pkgdirs $ \d -> cmd_ (Cwd d) Shell "hpack --no-hash"
 
-          when commit $ do
-            let msg = ";cabal: update cabal files"
-            cmd Shell gitcommit ("-m '"++msg++"' --") cabalfiles
+            when commit $ do
+              let msg = ";cabal: update cabal files"
+              cmd Shell gitcommit ("-m '"++msg++"' --") cabalfiles
 
       -- Update version strings in most "source" files to match what's in PKG/.version.
       -- If a version number is provided as first argument, save that in PKG/.version files first.
