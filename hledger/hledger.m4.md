@@ -667,11 +667,11 @@ These too will cause report start/end dates to be expanded, if needed,
 to span a whole number of intervals.
 Examples:
 
-|                                   |                                                             |
-|-----------------------------------|-------------------------------------------------------------|
-| `-p "bimonthly from 2008"`        | periods will have boundaries on 2008/01/01, 2008/03/01, ... |
-| `-p "every 2 weeks"`              | starts on closest preceding Monday                          |
-| `-p "every 5 month from 2009/03"` | periods will have boundaries on 2009/03/01, 2009/08/01, ... |
+|                                    |                                                             |
+|------------------------------------|-------------------------------------------------------------|
+| `-p "bimonthly from 2008"`         | periods will have boundaries on 2008/01/01, 2008/03/01, ... |
+| `-p "every 2 weeks"`               | starts on closest preceding Monday                          |
+| `-p "every 5 months from 2009/03"` | periods will have boundaries on 2009/03/01, 2009/08/01, ... |
 
 ### Intervals with custom start date
 

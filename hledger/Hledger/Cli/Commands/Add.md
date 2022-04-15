@@ -6,10 +6,10 @@ _FLAGS
 
 Many hledger users edit their journals directly with a text editor, or generate them from CSV.
 For more interactive data entry, there is the `add` command, 
-which prompts interactively on the console for new transactions, and appends
-them to the journal file (if there are multiple `-f FILE` options, the first file is used.)
+which prompts interactively on the console for new transactions, 
+and appends them to the main journal file (which should be in journal format).
 Existing transactions are not changed.
-This is the only hledger command that writes to the journal file.
+This is one of the few hledger commands that writes to the journal file (see also `import`).
 
 To use it, just run `hledger add` and follow the prompts.
 You can add as many transactions as you like; when you are finished,

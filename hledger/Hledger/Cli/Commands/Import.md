@@ -1,10 +1,14 @@
 import\
 Read new transactions added to each FILE since last run, and add them to
-the main journal file. Or with --dry-run, just print the transactions 
+the journal. Or with --dry-run, just print the transactions 
 that would be added. Or with --catchup, just mark all of the FILEs'
 transactions as imported, without actually importing any.
 
 _FLAGS
+
+This command may append new transactions to the main journal file (which should be in journal format).
+Existing transactions are not changed.
+This is one of the few hledger commands that writes to the journal file (see also `add`).
 
 Unlike other hledger commands, with `import` the journal file is an output file,
 and will be modified, though only by appending (existing data will not be changed).
