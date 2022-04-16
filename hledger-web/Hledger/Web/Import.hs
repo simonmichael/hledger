@@ -4,7 +4,7 @@ module Hledger.Web.Import
 
 import           Prelude              as Import hiding (head, init, last,
                                                  readFile, tail, writeFile)
-import           Yesod                as Import hiding (Route (..))
+import           Yesod                as Import hiding (Route (..), parseTime)
 
 import           Control.Monad        as Import
 import           Data.Bifunctor       as Import
@@ -15,7 +15,7 @@ import           Data.Foldable        as Import
 import           Data.List            as Import (unfoldr)
 import           Data.Maybe           as Import
 import           Data.Text            as Import (Text)
-import           Data.Time            as Import hiding (parseTime)
+import           Data.Time            as Import
 import           Data.Traversable     as Import
 import           Data.Void            as Import (Void)
 import           Text.Blaze           as Import (Markup)

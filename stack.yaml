@@ -6,22 +6,13 @@ packages:
 - hledger-lib
 - hledger
 - hledger-ui
-# - hledger-web
+- hledger-web
 
-# for hledger-web
-#allow-newer: true
-extra-deps:
+# extra-deps:
 # for hledger-lib:
 # for hledger:
 # for hledger-ui:
 # for hledger-web:
-# - yesod-1.6.2@sha256:4359fcb48a1e8a5cf862338de0fad56d9a50f038c8774137257bcb5276545ec0,2028
-# - yesod-static-1.6.1.0@sha256:0f075bcb8c90626ef738367333e3ac745fd7872619c6db388c0555f2ce768a5a,4419
-# - yesod-test-1.6.12@sha256:3a44e58051da38ba3cc2f29a3f2579a4a1c68c3077b5c5d2ad2f4f792d737184,2924
-# - yesod-core-1.6.21.0@sha256:d95ce6c0ff787a617fd0e1a6d4fc09ea57745ffca1e3795b01248ffcf596f83f,8124
-# - yesod-form-1.7.0@sha256:fd857fb9ea4f5af8500ec8613aa026e3a478c874b93da9d8ab8f17f329ec8c9e,3387
-# - yesod-persistent-1.6.0.7@sha256:7ece60b1a1e0c9f56ec2f1cf67dd9d0c3962ccabc878b975bef7f743709d267d,1732
-# - base64-0.4.2.3@sha256:97bd6f7decaab6110725ef1675a3ed8576233f6bab6599bb813f6caf68d36c94,2876  # doesn't build with 9.2 yet
 # for Shake.hs:
 
 nix:

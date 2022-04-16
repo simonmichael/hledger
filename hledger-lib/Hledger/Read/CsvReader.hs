@@ -1263,10 +1263,10 @@ parseDateWithCustomOrDefaultFormats mformat s = asum $ map parsewith formats
                ,"%Y-%-m-%-d"
                ,"%Y.%-m.%-d"
                -- ,"%-m/%-d/%Y"
-                -- ,parseTime defaultTimeLocale "%Y/%m/%e" (take 5 s ++ "0" ++ drop 5 s)
-                -- ,parseTime defaultTimeLocale "%Y-%m-%e" (take 5 s ++ "0" ++ drop 5 s)
-                -- ,parseTime defaultTimeLocale "%m/%e/%Y" ('0':s)
-                -- ,parseTime defaultTimeLocale "%m-%e-%Y" ('0':s)
+                -- ,parseTimeM TruedefaultTimeLocale "%Y/%m/%e" (take 5 s ++ "0" ++ drop 5 s)
+                -- ,parseTimeM TruedefaultTimeLocale "%Y-%m-%e" (take 5 s ++ "0" ++ drop 5 s)
+                -- ,parseTimeM TruedefaultTimeLocale "%m/%e/%Y" ('0':s)
+                -- ,parseTimeM TruedefaultTimeLocale "%m-%e-%Y" ('0':s)
                ]
                (:[])
                 mformat

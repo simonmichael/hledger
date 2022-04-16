@@ -673,8 +673,8 @@ advancetonthweekday n wd s =
 -- -- | Parse a couple of date-time string formats to a time type.
 -- parsedatetimeM :: String -> Maybe LocalTime
 -- parsedatetimeM s = asum [
---     parseTime defaultTimeLocale "%Y/%m/%d %H:%M:%S" s,
---     parseTime defaultTimeLocale "%Y-%m-%d %H:%M:%S" s
+--     parseTimeM TruedefaultTimeLocale "%Y/%m/%d %H:%M:%S" s,
+--     parseTimeM TruedefaultTimeLocale "%Y-%m-%d %H:%M:%S" s
 --     ]
 
 -- | Try to parse a couple of date string formats:
