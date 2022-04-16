@@ -1,7 +1,9 @@
 ## Achievements
 
 Some project achievements to unlock!
-("Being a software maintainer means unending toil in mostly-obscurity, so you've got to seek out the fun where you can!" --[me](https://www.reddit.com/r/haskell/comments/eddwbu/top_nonprogrammingrelated_haskell_apps/))
+
+> *Being a software maintainer means unending toil in mostly-obscurity, so you've got to seek out the fun where you can!*
+<!-- https://www.reddit.com/r/haskell/comments/eddwbu/top_nonprogrammingrelated_haskell_apps -->
 
 - ~~1.0 release~~
 - ~~packaged in major distros, binaries available~~
