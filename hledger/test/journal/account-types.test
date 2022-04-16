@@ -95,3 +95,32 @@ Balance Sheet 2021-01-01
 =============++============
  Liabilities ||            
 -------------++------------
+
+# Declaring and name-inferring an account type at the same time.
+<
+2022/01/01
+    (assets)  1
+
+2022/01/02
+    (other)   1
+
+account other  ; type:A
+
+# 5. bal detects both
+$ hledger -f- bal -N type:A
+                   1  other
+                   1  assets
+
+# 6. bs detects both
+$ hledger -f- bs -N
+Balance Sheet 2022-01-02
+
+             || 2022-01-02 
+=============++============
+ Assets      ||            
+-------------++------------
+ other       ||          1 
+ assets       ||         1 
+=============++============
+ Liabilities ||            
+-------------++------------
