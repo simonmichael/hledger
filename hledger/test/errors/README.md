@@ -70,7 +70,7 @@ Key:
 ## Current journal errors
 
 <!-- to update: erase the below then C-u M-! ./showall -->
-hledger 1.25:
+hledger 1.25.99-g133c54434-20220414 error messages, last updated 2022-04-15:
 
 ### parseable
 ```
@@ -109,7 +109,7 @@ hledger: /Users/simon/src/hledger/hledger/test/errors/./balanced.j:3-4
 could not balance this transaction:
 real postings' sum should be 0 but is: 1
 2022-01-01
-	a               1
+    a               1
 
 ```
 
@@ -120,8 +120,8 @@ could not balance this transaction:
 real postings' sum should be 0 but is:  1 A
 -1 B
 2022-01-01
-	a             1 A
-	b            -1 B
+    a             1 A
+    b            -1 B
 
 ```
 
@@ -130,12 +130,12 @@ real postings' sum should be 0 but is:  1 A
 hledger: balance assertion: /Users/simon/src/hledger/hledger/test/errors/./assertions.j:4:8
 transaction:
 2022-01-01
-	a               0 = 1
+    a               0 = 1
 
 assertion details:
 date:       2022-01-01
 account:    a
-commodity:
+commodity:  
 calculated: 0
 asserted:   1
 difference: 1
@@ -148,7 +148,7 @@ Error: undeclared account "a"
 in transaction at: /Users/simon/src/hledger/hledger/test/errors/./accounts.j:3-4
 
   2022-01-01
-	  (a)               1
+      (a)               1
 
 ```
 
@@ -158,7 +158,7 @@ Error: undeclared commodity "A"
 in transaction at: /Users/simon/src/hledger/hledger/test/errors/./commodities.j:5-6
 
   2022-01-01
-	  (a)             A 1
+      (a)             A 1
 
 ```
 
@@ -168,7 +168,7 @@ Error: undeclared payee "p"
 at: /Users/simon/src/hledger/hledger/test/errors/./payees.j:6-7
 
 > 2022-01-01 p
-	  (a)             A 1
+      (a)             A 1
 
 ```
 
@@ -178,11 +178,11 @@ Error: transaction date is out of order
 at /Users/simon/src/hledger/hledger/test/errors/./ordereddates.j:10-11:
 
   2022-01-02 p
-	  (a)               1
-
+      (a)               1
+  
 > 2022-01-01 p
-	  (a)               1
-
+      (a)               1
+  
 
 ```
 
@@ -196,7 +196,6 @@ seen in "a:c" in transaction at: /Users/simon/src/hledger/hledger/test/errors/./
 >     (a:c)               1
 
 ```
-
 
 
 ## New error format
