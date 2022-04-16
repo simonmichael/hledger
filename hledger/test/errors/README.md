@@ -1,6 +1,13 @@
+hledger error messages are currently quite varied in format.
+Tools like flycheck-hledger parse them and need updating
+whenever they change ([#1436][]).
+Getting consistent high-quality errors and accurate flycheck region
+highlighting, not to mention LSP support, for all of our journal
+errors is a big project, but it's crowd-sourceable and every bit of
+progress brings immediate practical benefits.
+
 Here are journals/scripts for reproducing hledger's journal error messages.
 They are named similarly to [hledger check][]'s checks.
-
 In the CLI, execute them to see the error messages (`./showall`).
 
 In Emacs with [flycheck-hledger][],
@@ -13,32 +20,7 @@ Some files contain extra declarations to ease flycheck testing.
 [flycheck-hledger-10]: https://github.com/DamienCassou/flycheck-hledger/pull/10
 [#1436]:            https://github.com/simonmichael/hledger/issues/1436
 
-## Goals
-
-- [x] phase 1: update flycheck to detect journal errors of current hledger release (and keep a branch updated to detect errors of latest hledger master)
-- [x] phase 2: survey/document current journal errors & status
-- [x] phase 3: pick a new standard format
-- [ ] **phase 4: implement standard format for all**
-- [ ] phase 5: implement accurate lines for all
-- [ ] phase 6: implement accurate columns for all
-- [ ] phase 7: implement useful highlighted excerpts for all
-- [ ] phase 8: implement accurate flycheck region for all
-- [ ] phase 9: do likewise for timeclock errors
-- [ ] phase 10: do likewise for timedot errors
-- [ ] phase 11: do likewise for csv errors
-- [ ] phase 12: do likewise for other command line errors
-- [x] phase 13: decide/add error ids/explanations/web pages ? not needed
-- [ ] phase 14: support Language Server Protocol & Visual Code
-
 ## Status
-
-hledger error messages are currently quite varied in format.
-Tools like flycheck-hledger parse them and need updating
-whenever they change ([#1436][]).
-Getting consistent high-quality errors and accurate flycheck region
-highlighting, not to mention LSP support, for all of our journal
-errors is a big project, but it's crowd-sourceable and every bit of
-progress brings immediate practical benefits.
 
 Here is the current status
 (hledger 1.25, flycheck 87b275b9):
@@ -67,6 +49,23 @@ Key:
 - visual - the CLI error message shows a relevant excerpt (Y), ideally with the error highlighted (YY)
 - flycheck detects - flycheck recognises the error output, reports the error and doesn't give a "suspicious" warning
 - flycheck region - flycheck highlights a reasonably accurate text region containing the error
+
+## Goals
+
+- [x] phase 1: update flycheck to detect journal errors of current hledger release (and keep a branch updated to detect errors of latest hledger master)
+- [x] phase 2: survey/document current journal errors & status
+- [x] phase 3: pick a new standard format
+- [ ] **phase 4: implement standard format for all**
+- [ ] phase 5: implement accurate lines for all
+- [ ] phase 6: implement accurate columns for all
+- [ ] phase 7: implement useful highlighted excerpts for all
+- [ ] phase 8: implement accurate flycheck region for all
+- [ ] phase 9: do likewise for timeclock errors
+- [ ] phase 10: do likewise for timedot errors
+- [ ] phase 11: do likewise for csv errors
+- [ ] phase 12: do likewise for other command line errors
+- [x] phase 13: decide/add error ids/explanations/web pages ? not needed
+- [ ] phase 14: support Language Server Protocol & Visual Code
 
 ## Current journal errors
 
