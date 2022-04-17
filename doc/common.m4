@@ -125,7 +125,7 @@ m4_define({{_reportingoptions_}}, {{
 : multiperiod/multicolumn report by year
 
 `-p --period=PERIODEXP`
-: set start date, end date, and/or reporting interval all at once using [period expressions](#period-expressions) syntax
+: set start date, end date, and/or reporting interval all at once using [period expressions](hledger.html#period-expressions) syntax
 
 `--date2`
 : match the secondary date instead (see command help for other effects)
@@ -190,7 +190,7 @@ In hledger-ui, also make ordinary future transactions visible.
 
 When a reporting option appears more than once in the command line, the last one takes precedence.
 
-Some reporting options can also be written as [query arguments](#queries).
+Some reporting options can also be written as [query arguments](hledger.html#queries).
 
 }} )m4_dnl
 m4_dnl
