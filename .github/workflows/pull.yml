@@ -171,29 +171,6 @@ jobs:
              ${{ runner.os }}-hledger-web-stack-work-${{ matrix.plan.ghc }}
       if: env.CONTINUE
 
-    # no longer needed I think
-    # For now due to
-    # https://github.com/actions/virtual-environments/issues/709
-    # there's only 4.8G free at this point, and we must free up space.
-    # - name: Free disk space
-    #   run: |
-    #     df -h /
-    #     # 8G:
-    #     sudo swapoff -a
-    #     sudo rm -f /swapfile
-    #     # 3G:
-    #     sudo apt clean
-    #     # 3G, takes 30s:
-    #     # docker image ls -aq
-    #     # docker rmi $(docker image ls -aq)
-    #     # 1G:
-    #     find ~/work/_temp -name "cache.tgz" -exec rm -f {} \;
-    #     # 4G, takes 14s:
-    #     # sudo rm -rf "/usr/local/share/boost"
-    #     # 2G:
-    #     sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-    #     df -h /
-
     # actions:
 
     - name: Install stack
