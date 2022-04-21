@@ -91,12 +91,12 @@ jobs:
         RANGE=${BEFORE:-origin/master}..${GITHUB_HEAD_REF:+origin/$GITHUB_HEAD_REF}
         echo debug: BEFORE: $BEFORE
         echo debug: GITHUB_HEAD_REF: $GITHUB_HEAD_REF
-        echo debug: $RANGE
+        echo debug: RANGE: $RANGE
         echo debug: log BEFORE: $(git log -1 $BEFORE | head -1)
         echo debug: log origin/master: $(git log -1 origin/master | head -1)
         echo debug: log GITHUB_HEAD_REF: $(git log -1 $GITHUB_HEAD_REF | head -1)
         echo debug: log origin/GITHUB_HEAD_REF: $(git log -1 origin/$GITHUB_HEAD_REF | head -1)
-        echo debug: log RANGE: $(git log $RANGE | grep -E '^commit')
+        echo debug: log RANGE: $(git log --format='%h -%d %s (%an, %cr)' --abbrev-commit --date=relative --date-order $RANGE)
         if git rev-list --quiet $RANGE
         then tools/commitlint $RANGE
         else echo "could not identify commits, not checking them"
