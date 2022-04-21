@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# hledger-number - try to extract just one single machine-readable number from hledger:
-# the grand total of `hledger balance` run with any provided arguments.
+# hledger-simplebal [BALANCEARGS] - try to reliably report just one single
+# machine-readable balance number: the grand total of `hledger balance`,
+# optionally with arguments.
+#
 # Requires hledger 1.24 or newer (the December 2021 release, see https://hledger.org/download.html )
 # https://gist.github.com/simonmichael/feee7fc1567c5f10355f952b87bd3090
 
