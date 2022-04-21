@@ -1,0 +1,98 @@
+#!/usr/bin/env bash
+set -e
+
+# * About
+usage() { line80; cat <<EOF # keep synced with Commands below
+hledger-git - easyish version control for your hledger journal, using git.
+
+An experimental prototype, currently works for the default journal only.
+A git repo in the main file's directory will be autocreated if needed.
+
+Subcommands: 
+
+hledger git record [MSG] - record the journal's files (as listed by 'files')
+hledger git status       - show unrecorded changes (after first record)
+hledger git log          - list the journal's change history (after record)
+hledger git              - show this help
+
+Extra arguments are passed to git (git-specific flags should be preceded by --).
+You can install these as more convenient top-level commands by creating 
+hledger-record, hledger-status, hledger-log scripts like:
+
+    #!/bin/sh
+    hledger-git record "\$@"
+
+Examples:
+
+hledger git status
+hledger git log -10
+hledger git log -- -10 --stat
+
+EOF
+}
+
+# * Utils
+
+line80() { cat <<EOF
+--------------------------------------------------------------------------------
+EOF
+}
+
+no_repo_msg() {
+    echo "Try this again after 'record'."
+}
+
+MAINFILE=$LEDGER_FILE
+FILES=$(hledger -f "$MAINFILE" files)
+DIR=$(dirname "$MAINFILE")
+# executable name, just one word
+GIT=git
+
+ensure_git() {
+    if ! hash $GIT 2>/dev/null; then
+        cat >&2 <<EOF
+This command requires '$GIT', but it's not installed in \$PATH.
+Please install it (see https://git.org/downloads) and try again.
+EOF
+        exit 1
+    fi
+}
+
+# TODO: also look in parent directories
+ensure_git_repo() {
+    if [[ ! -d "$DIR/.git" ]]; then
+        $GIT init "$DIR"
+        echo "Created git repo in $DIR"
+    fi
+}
+
+# * Commands
+# keep synced with usage() above
+
+record() {
+    ensure_git
+    ensure_git_repo
+    cd "$DIR"
+    for F in $FILES; do $GIT add -f "$F"; done
+    MSG=${1:-$(date +'%Y-%m-%d %H:%M:%S %Z')}; shift
+    $GIT record -m "$MSG" "$@" -- "$FILES"
+}
+
+status() {
+    ensure_git
+    $GIT --work-tree "$DIR" status -sb "$@" -- "$FILES"
+}
+
+log() {
+    ensure_git
+    # ensure_git_repo
+    # $GIT --work-tree "$DIR" log --format='%C(yellow)%ad %Cred%h%Creset %s%C(bold blue)%d%Creset' --date=short -1000000 "$@"
+    cd "$DIR"
+    # TODO: limit to hledger files
+    $GIT log --format='%ad %h %s' --date=short "$@"
+}
+
+# * Main
+
+# NOTE intended to run Commands but will run any function above
+if declare -f "$1" > /dev/null; then "$@"; else usage; fi
