@@ -1,27 +1,16 @@
 Miscellaneous hledger add-ons, bash scripts, example make rules, etc. 
 Things in this directory can be unfinished or out of date.
 
-## hledger scripts
+See <https://hledger.org/addons.html> and <https://hledger.org/scripting.html> 
+for more about these scripts and scripting generally.
 
-The hledger-*.hs scripts here are example/experimental hledger [add-on commands].
-See <https://hledger.org/scripting.html> for more about this.
+## About the hledger-*.hs scripts
 
-They are mostly implemented as [stack] runghc scripts. See the comments in
-hledger-check-fancyassertions.hs for more about how to run or compile them.
-Short version: run bin/compile.sh to compile all scripts, and add this directory
-to your $PATH so they show up in hledger's command list.
-
-Scripts overview, simplest first:
-
-- hledger-check-tagfiles.hs         - check that all tag values containing a `/` (forward slash) exist as file paths
-- hledger-check-tagfiles.cabal.hs   - the above as a cabal script
-- hledger-swap-dates.hs             - print transactions with their date and date2 fields swapped
-- hledger-print-location.hs         - add file path/line number tags to the print command
-- hledger-balance-as-budget.hs      - use one balance report as budget goals for another one
-- hledger-combine-balances.hs       - show balance reports for two different periods side by side
-- hledger-smooth.hs                 - incomplete attempt at automatically splitting infrequent/irregular transactions
-- hledger-check-fancyassertions.hs  - check more complex account balance assertions
-
+The hledger-*.hs [add-on commands] are mostly implemented as [stack]
+runghc scripts. See the comments in hledger-check-fancyassertions.hs
+for more about how to run or compile them.  Short version: run
+bin/compile.sh to compile all scripts, and add this directory to your
+$PATH so they show up in hledger's command list.
 
 [add-on commands]: http://hledger.org/hledger.html#add-on-commands
 [stack]: https://www.fpcomplete.com/haskell/get-started
