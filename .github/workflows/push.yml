@@ -101,7 +101,8 @@ jobs:
         echo "$(git log --format='%h -%d %s (%an, %ci)' -1 $BEFORE)"
         echo "debug: GITHUB_HEAD_REF=$GITHUB_HEAD_REF"
         echo "$(git log --format='%h -%d %s (%an, %ci)' -1 $GITHUB_HEAD_REF)"
-        echo "debug: RANGE(commits to check)=$RANGE"
+        echo "debug: RANGE=$RANGE"
+        echo "debug: commits to check:"
         echo "$(git log --format='%h -%d %s (%an, %ci)' --abbrev-commit --date=relative --date-order $RANGE)"
 
         if git rev-list --quiet $RANGE
