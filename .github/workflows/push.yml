@@ -93,10 +93,12 @@ jobs:
       run: |
         RANGE=${BEFORE:-origin/master}..${GITHUB_HEAD_REF:-}
 
+        echo "debug: last 10 commits:"
+        echo "debug:  $(git log --format='%h -%d %s (%an, %ci)' -10)"
+        echo "debug: origin/master:"
+        echo "debug:  $(git log --format='%h -%d %s (%an, %ci)' -1 origin/master)"
         echo "debug: BEFORE=$BEFORE"
         echo "debug:  $(git log --format='%h -%d %s (%an, %ci)' -1 $BEFORE)"
-        echo "debug: origin/master="
-        echo "debug:  $(git log --format='%h -%d %s (%an, %ci)' -1 origin/master)"
         echo "debug: GITHUB_HEAD_REF=$GITHUB_HEAD_REF"
         echo "debug:  $(git log --format='%h -%d %s (%an, %ci)' -1 $GITHUB_HEAD_REF)"
         echo "debug: RANGE(commits to check)=$RANGE"
