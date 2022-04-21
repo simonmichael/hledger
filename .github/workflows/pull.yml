@@ -91,19 +91,19 @@ jobs:
         RANGE=${BEFORE:-origin/master}..${GITHUB_HEAD_REF:+origin/$GITHUB_HEAD_REF}
 
         echo debug: BEFORE: $BEFORE
-        echo debug:  echo $(git log --format='%h -%d %s (%an, %cr)' -1 $BEFORE)
+        echo debug:    git log --format='%h -%d %s (%an, %cr)' -1 $BEFORE
         echo debug:  $(git log --format='%h -%d %s (%an, %cr)' -1 $BEFORE)
         echo debug: origin/master:
-        echo debug:  echo $(git log --format='%h -%d %s (%an, %cr)' -1 origin/master)
+        echo debug:    git log --format='%h -%d %s (%an, %cr)' -1 origin/master
         echo debug:  $(git log --format='%h -%d %s (%an, %cr)' -1 origin/master)
         echo debug: GITHUB_HEAD_REF: $GITHUB_HEAD_REF
-        echo debug:  echo $(git log --format='%h -%d %s (%an, %cr)' -1 $GITHUB_HEAD_REF)
+        echo debug:    git log --format='%h -%d %s (%an, %cr)' -1 $GITHUB_HEAD_REF
         echo debug:  $(git log --format='%h -%d %s (%an, %cr)' -1 $GITHUB_HEAD_REF)
         echo debug: origin/GITHUB_HEAD_REF: origin/$GITHUB_HEAD_REF
-        echo debug:  echo $(git log --format='%h -%d %s (%an, %cr)' -1 origin/$GITHUB_HEAD_REF)
+        echo debug:    git log --format='%h -%d %s (%an, %cr)' -1 origin/$GITHUB_HEAD_REF
         echo debug:  $(git log --format='%h -%d %s (%an, %cr)' -1 origin/$GITHUB_HEAD_REF)
-        echo debug: RANGE (commits being checked): $RANGE
-        echo debug:  echo $(git log --format='%h -%d %s (%an, %cr)' --abbrev-commit --date=relative --date-order $RANGE)
+        echo "debug: RANGE (commits being checked): $RANGE"
+        echo debug:    git log --format='%h -%d %s (%an, %cr)' --abbrev-commit --date=relative --date-order $RANGE
         echo debug:  $(git log --format='%h -%d %s (%an, %cr)' --abbrev-commit --date=relative --date-order $RANGE)
 
         if git rev-list --quiet $RANGE
