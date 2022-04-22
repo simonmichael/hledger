@@ -377,17 +377,38 @@ journalCheckPayeesDeclared j = mapM_ checkpayee (jtxns j)
 journalCheckAccountsDeclared :: Journal -> Either String ()
 journalCheckAccountsDeclared j = mapM_ checkacct (journalPostings j)
   where
-    checkacct Posting{paccount,ptransaction}
-      | paccount `elem` as = Right ()
-      | otherwise = Left $
-          (printf "undeclared account \"%s\"\n" (T.unpack paccount))
-          ++ case ptransaction of
-              Nothing -> ""
-              Just t  -> printf "in transaction at: %s\n\n%s"
-                          (sourcePosPairPretty $ tsourcepos t)
-                          (linesPrepend "  " . (<>"\n") . textChomp $ showTransaction t)
+    checkacct p@Posting{paccount=a,ptransaction=mt}
+      | a `elem` journalAccountNamesDeclared j = Right ()
+      | otherwise = Left msg
       where
-        as = journalAccountNamesDeclared j
+        msg = printf "%s:%d:%d:\n%sundeclared account \"%s\"\n" f l (c+1) excerpt a
+          where
+            (f,l,c,excerpt) = case mt of
+              Nothing -> ("-",0,0,"")
+              Just t  -> (tf,errabsline,errcol,txt)
+                where
+                  (SourcePos tf tl _tc) = fst $ tsourcepos t
+                  mpindex = fmap fst $ find ((a==).paccount.snd) $ zip [1..] $ tpostings t
+                  tcommentlines = max 0 $ length (T.lines $ tcomment t) - 1
+                  errrelline = maybe 0 (tcommentlines+) mpindex
+                  errabsline = unPos tl + errrelline
+                  errcol = 4 + if isVirtual p then 1 else 0
+                  txt = formatExcerptLikeMegaparsec errabsline errrelline errcol
+                          (showTransaction t & textChomp & (<>"\n"))
+
+formatExcerptLikeMegaparsec :: Int -> Int -> Int -> Text -> Text
+formatExcerptLikeMegaparsec absline relline col txt =
+  T.unlines $ js' <> ks' <> [colmarkerline] <> ms'
+  where
+    (ls,ms) = splitAt (relline+1) $ T.lines txt
+    (js,ks) = splitAt (length ls - 1) ls
+    (js',ks') = case ks of
+      [k] -> (map (lineprefix<>) js, [T.pack (show absline) <> " | " <> k])
+      _   -> ([], [])
+    ms' = map (lineprefix<>) ms
+    colmarkerline = lineprefix <> T.replicate col " " <> "^"
+    lineprefix = T.replicate marginw " " <> "| "
+      where  marginw = length (show absline) + 1
 
 -- | Check that all the commodities used in this journal's postings have been declared
 -- by commodity directives, returning an error message otherwise.
