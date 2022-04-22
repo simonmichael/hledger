@@ -252,7 +252,7 @@ numDigitsInt n
 
 -- | Simpler alias for errorWithoutStackTrace
 error' :: String -> a
-error' = errorWithoutStackTrace
+error' = errorWithoutStackTrace . ("Error: " <>)
 
 -- | A version of errorWithoutStackTrace that adds a usage hint.
 usageError :: String -> a
