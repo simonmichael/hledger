@@ -50,8 +50,8 @@ Here is the current status
 | balanced                 |            | Y                | -                  | Y      | Y                |                 |
 | balancednoautoconversion |            | Y                | -                  | Y      | Y                |                 |
 | assertions               |            | Y                |                    | Y      | Y                | Y               |
-| accounts                 | Y          |                  |                    | Y      | Y                |                 |
-| commodities              |            |                  |                    | Y      | Y                |                 |
+| accounts                 | Y          | Y                | Y                  | Y      | Y                |                 |
+| commodities              | Y          | Y                |                    | Y      | Y                |                 |
 | payees                   |            |                  |                    | Y      | Y                | Y               |
 | ordereddates             |            |                  |                    | Y      | Y                | Y               |
 | uniqueleafnames          |            |                  |                    | Y      | Y                |                 |
@@ -81,6 +81,7 @@ Notes (see also [#1436][]):
 - includes the word "Error" and the error position on line 1
 - FILE is the file path
 - LOCATION is `LINE[-ENDLINE][:COLUMN[-ENDCOLUMN]]`
+- we may show 0 for LINE or COLUMN when unknown
 - EXCERPT is a short visual snippet whenever possible, with the error region highlighted, line numbers, and colour when supported. This section must be easy for flycheck to ignore.
 - SUMMARY is a one line description/explanation of the problem. 
   These are currently dynamic, they can include helpful contextual info.
@@ -183,11 +184,11 @@ undeclared account "a"
 
 ### commodities
 ```
-hledger: Error: undeclared commodity "A"
-in transaction at: /Users/simon/src/hledger/hledger/test/errors/./commodities.j:5-6
-
-  2022-01-01
-      (a)             A 1
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/commodities.j:6:
+  | 2022-01-01
+6 |     (a)             A 1
+  |                     ^
+undeclared commodity "A"
 
 ```
 

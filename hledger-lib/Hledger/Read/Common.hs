@@ -134,6 +134,7 @@ import Data.List.NonEmpty (NonEmpty(..))
 import Data.Maybe (catMaybes, fromMaybe, isJust, listToMaybe)
 import qualified Data.Map as M
 import qualified Data.Semigroup as Sem
+import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day, fromGregorianValid, toGregorian)
@@ -152,6 +153,7 @@ import Hledger.Reports.ReportOptions (ReportOpts(..), queryFromFlags, rawOptsToR
 import Hledger.Utils
 import Text.Printf (printf)
 import Hledger.Read.InputOptions
+import Safe (atMay)
 
 --- ** doctest setup
 -- $setup
@@ -416,23 +418,39 @@ journalCheckCommoditiesDeclared :: Journal -> Either String ()
 journalCheckCommoditiesDeclared j =
   mapM_ checkcommodities (journalPostings j)
   where
-    checkcommodities Posting{..} =
+    checkcommodities p@Posting{ptransaction=mt,paccount=acct,pamount=amt,pbalanceassertion} =
       case mfirstundeclaredcomm of
-        Nothing -> Right ()
-        Just c  -> Left $
-          (printf "undeclared commodity \"%s\"\n" (T.unpack c))
-          ++ case ptransaction of
-              Nothing -> ""
-              Just t  -> printf "in transaction at: %s\n\n%s"
-                          (sourcePosPairPretty $ tsourcepos t)
-                          (linesPrepend "  " . (<>"\n") . textChomp $ showTransaction t)
+        Nothing   -> Right ()
+        Just comm -> Left $
+          -- we don't save the original column of amounts
+          printf "%s:%d:\n%sundeclared commodity \"%s\"\n" f l excerpt comm
+          where
+            (f,l,excerpt) = case mt of
+              Nothing -> ("-",0,"")
+              Just t  -> (tf,errabsline,ex)
+                where
+                  (SourcePos tf tl _tc) = fst $ tsourcepos t
+                  ppredicate = S.member comm . maCommodities . pamount
+                  mpindex = fmap fst $ find (ppredicate.snd) $ zip [1..] $ tpostings t
+                  tcommentlines = max 0 $ length (T.lines $ tcomment t) - 1
+                  errrelline = maybe 0 (tcommentlines+) mpindex
+                  errabsline = unPos tl + errrelline
+                  txn = showTransaction t & textChomp & (<>"\n")
+                  errcol = case mpindex of
+                    Nothing     -> 0
+                    Just pindex -> acctend + (T.length $ T.takeWhile isnotsymbol $ T.drop acctend l)
+                      where
+                        acctend = 4 + T.length acct + if isVirtual p then 2 else 0
+                        isnotsymbol c = isSpace c || isDigit c || isDigitSeparatorChar c
+                        l = fromMaybe "" $ (T.lines txn `atMay` pindex)
+                  ex = formatExcerptLikeMegaparsec errabsline errrelline errcol txn
       where
         mfirstundeclaredcomm =
           find (`M.notMember` jcommodities j)
           . map acommodity
           . (maybe id ((:) . baamount) pbalanceassertion)
           . filter (not . isIgnorable)
-          $ amountsRaw pamount
+          $ amountsRaw amt
 
     -- Ignore missing amounts and zero amounts without commodity (#1767)
     isIgnorable a = (T.null (acommodity a) && amountIsZero a) || a == missingamt
