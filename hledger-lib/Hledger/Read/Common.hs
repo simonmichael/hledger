@@ -363,14 +363,16 @@ journalCheckPayeesDeclared :: Journal -> Either String ()
 journalCheckPayeesDeclared j = mapM_ checkpayee (jtxns j)
   where
     checkpayee t
-      | p `elem` ps = Right ()
-      | otherwise = Left $ printf "undeclared payee \"%s\"\nat: %s\n\n%s"
-          (T.unpack p)
-          (sourcePosPairPretty $ tsourcepos t)
-          (linesPrepend2 "> " "  " . (<>"\n") . textChomp $ showTransaction t)
+      | payee `elem` journalPayeesDeclared j = Right ()
+      | otherwise = Left $
+        printf "%s:%d:%d:\n%sundeclared payee \"%s\"\n" f l (maybe 0 ((+1).fst) mcols) ex payee
       where
-        p  = transactionPayee t
-        ps = journalPayeesDeclared j
+        payee = transactionPayee t
+        (f,l,mcols,ex) = makeTransactionErrorExcerpt t finderrcols
+        finderrcols t = Just (col, Just col2)
+          where
+            col = T.length (showTransactionLineFirstPart t) + 1
+            col2 = col + T.length (transactionPayee t)
 
 -- | Check that all the journal's postings are to accounts declared with
 -- account directives, returning an error message otherwise.
@@ -382,7 +384,7 @@ journalCheckAccountsDeclared j = mapM_ checkacct (journalPostings j)
       | otherwise = Left $ 
         printf "%s:%d:%d:\n%sundeclared account \"%s\"\n" f l (maybe 0 ((+1).fst) mcols) ex a
         where
-          (f,l,mcols,ex) = makeExcerpt p finderrcols
+          (f,l,mcols,ex) = makePostingErrorExcerpt p finderrcols
           finderrcols p _ _ = Just (col, Just col2)
             where
               col = 4 + if isVirtual p then 1 else 0
@@ -398,7 +400,7 @@ journalCheckCommoditiesDeclared j = mapM_ checkcommodities (journalPostings j)
         Nothing -> Right ()
         Just (c, _) ->
           Left $ printf "%s:%d:\n%sundeclared commodity \"%s\"\n" f l ex c
-          where (f,l,_,ex) = makeExcerpt p finderrcols
+          where (f,l,_,ex) = makePostingErrorExcerpt p finderrcols
       where
         -- Find the first undeclared commodity symbol in this posting's amount
         -- or balance assertion amount, if any. The boolean will be true if
@@ -444,6 +446,36 @@ journalCheckCommoditiesDeclared j = mapM_ checkcommodities (journalPostings j)
                 amtstart = acctend + (T.length $ T.takeWhile isSpace $ T.drop acctend errline)
                 amtend = amtstart + (T.length $ T.stripEnd $ T.takeWhile (/=';') $ T.drop amtstart errline)
 
+-- | Given a problem transaction and a function calculating the best
+-- column(s) for marking the error region:
+-- render it as a megaparsec-style excerpt, showing the original line number
+-- on the transaction line, and a column(s) marker.
+-- Returns the file path, line number, column(s) if known,
+-- and the rendered excerpt, or as much of these as is possible.
+makeTransactionErrorExcerpt :: Transaction -> (Transaction -> Maybe (Int, Maybe Int)) -> (FilePath, Int, Maybe (Int, Maybe Int), Text)
+makeTransactionErrorExcerpt t findtxnerrorcolumns = (f, tl, merrcols, ex)
+  where
+    (SourcePos f tpos _) = fst $ tsourcepos t
+    tl = unPos tpos
+    txntxt = showTransaction t & textChomp & (<>"\n")
+    merrcols = findtxnerrorcolumns t
+    ex = decorateTransactionErrorExcerpt tl merrcols txntxt
+
+-- | Add megaparsec-style left margin, line number, and optional column marker(s).
+decorateTransactionErrorExcerpt :: Int -> Maybe (Int, Maybe Int) -> Text -> Text
+decorateTransactionErrorExcerpt l mcols txt =
+  T.unlines $ ls' <> colmarkerline <> map (lineprefix<>) ms
+  where
+    (ls,ms) = splitAt 1 $ T.lines txt
+    ls' = map ((T.pack (show l) <> " | ") <>) ls
+    colmarkerline =
+      [lineprefix <> T.replicate col " " <> T.replicate regionw "^"
+      | Just (col, mendcol) <- [mcols]
+      , let regionw = maybe 1 (subtract col) mendcol
+      ]
+    lineprefix = T.replicate marginw " " <> "| "
+      where  marginw = length (show l) + 1
+
 -- | Given a problem posting and a function calculating the best
 -- column(s) for marking the error region:
 -- look up error info from the parent transaction, and render the transaction
@@ -451,8 +483,8 @@ journalCheckCommoditiesDeclared j = mapM_ checkcommodities (journalPostings j)
 -- on the problem posting's line, and a column indicator.
 -- Returns the file path, line number, column(s) if known,
 -- and the rendered excerpt, or as much of these as is possible.
-makeExcerpt :: Posting -> (Posting -> Transaction -> Text -> Maybe (Int, Maybe Int)) -> (FilePath, Int, Maybe (Int, Maybe Int), Text)
-makeExcerpt p finderrorcolumns =
+makePostingErrorExcerpt :: Posting -> (Posting -> Transaction -> Text -> Maybe (Int, Maybe Int)) -> (FilePath, Int, Maybe (Int, Maybe Int), Text)
+makePostingErrorExcerpt p findpostingerrorcolumns =
   case ptransaction p of
     Nothing -> ("-", 0, Nothing, "")
     Just t  -> (f, errabsline, merrcols, ex)
@@ -463,14 +495,12 @@ makeExcerpt p finderrorcolumns =
         errrelline = maybe 0 (tcommentlines+) mpindex   -- XXX doesn't count posting coment lines
         errabsline = unPos tl + errrelline
         txntxt = showTransaction t & textChomp & (<>"\n")
-        merrcols = finderrorcolumns p t txntxt
-        ex = decorateExcerpt errabsline errrelline merrcols txntxt
+        merrcols = findpostingerrorcolumns p t txntxt
+        ex = decoratePostingErrorExcerpt errabsline errrelline merrcols txntxt
 
--- | Add megaparsec-style left margin, line number, and 
--- optional column(s) marker to a text excerpt, suitable for
--- an error message.
-decorateExcerpt :: Int -> Int -> Maybe (Int, Maybe Int) -> Text -> Text
-decorateExcerpt absline relline mcols txt =
+-- | Add megaparsec-style left margin, line number, and optional column marker(s).
+decoratePostingErrorExcerpt :: Int -> Int -> Maybe (Int, Maybe Int) -> Text -> Text
+decoratePostingErrorExcerpt absline relline mcols txt =
   T.unlines $ js' <> ks' <> colmarkerline <> ms'
   where
     (ls,ms) = splitAt (relline+1) $ T.lines txt
