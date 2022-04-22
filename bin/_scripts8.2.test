@@ -1,9 +1,0 @@
-# Functional tests for the add-on scripts in this directory.
-# See scripts.test.
-$  stack --stack-yaml ../stack8.2.yaml ghc hledger-balance-as-budget.hs     >/dev/null || true
-$  stack --stack-yaml ../stack8.2.yaml ghc hledger-check-fancyassertions.hs >/dev/null || true
-$  stack --stack-yaml ../stack8.2.yaml ghc hledger-check-tagfiles.hs        >/dev/null || true
-$  stack --stack-yaml ../stack8.2.yaml ghc hledger-combine-balances.hs      >/dev/null || true
-$  stack --stack-yaml ../stack8.2.yaml ghc --package string-qq hledger-print-location.hs        >/dev/null || true
-$  stack --stack-yaml ../stack8.2.yaml ghc --package string-qq hledger-smooth.hs                >/dev/null || true
-$  stack --stack-yaml ../stack8.2.yaml ghc --package string-qq hledger-swap-dates.hs            >/dev/null || true
