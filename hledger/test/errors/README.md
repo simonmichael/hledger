@@ -40,30 +40,29 @@ Some files contain extra declarations to ease flycheck testing.
 ## Current status
 
 Here is the current status
-(hledger 1.25, flycheck 87b275b9):
+(hledger 1.25.99-gd278c4c71-20220422, flycheck 87b275b9):
 
-|                          | std format | accurate line(s) | accurate column(s) | visual | flycheck detects | flycheck region |
-|--------------------------|------------|------------------|--------------------|--------|------------------|-----------------|
-| parseable                | Y          | Y                | Y                  | YY     | Y                | Y               |
-| parseable-dates          | Y          | Y                | Y                  | YY     | Y                | Y               |
-| parseable-regexps        | Y          | Y                | Y                  | YY     | Y                | Y               |
-| balanced                 |            | Y                | -                  | Y      | Y                |                 |
-| balancednoautoconversion |            | Y                | -                  | Y      | Y                |                 |
-| assertions               |            | Y                |                    | Y      | Y                | Y               |
-| accounts                 | Y          | Y                | Y                  | Y      | Y                |                 |
-| commodities              | Y          | Y                |                    | Y      | Y                |                 |
-| payees                   |            |                  |                    | Y      | Y                | Y               |
-| ordereddates             |            |                  |                    | Y      | Y                | Y               |
-| uniqueleafnames          |            |                  |                    | Y      | Y                |                 |
+|                          | std format | line | column     | excerpt | flycheck | flycheck region |
+|--------------------------|------------|------|------------|---------|----------|-----------------|
+| parseable                | Y          | Y    | Y          | YY      |          |                 |
+| parseable-dates          | Y          | Y    | Y          | YY      |          |                 |
+| parseable-regexps        | Y          | Y    | Y          | YY      |          |                 |
+| balanced                 |            | Y    | -          | Y       |          |                 |
+| balancednoautoconversion |            | Y    | -          | Y       |          |                 |
+| assertions               |            | Y    |            | Y       |          |                 |
+| accounts                 | Y          | Y    | Y          | YY      |          |                 |
+| commodities              | Y          | Y    | Y (approx) | YY      |          |                 |
+| payees                   | Y          | Y    | Y          | YY      |          |                 |
+| ordereddates             |            |      |            | Y       |          |                 |
+| uniqueleafnames          |            |      |            | Y       |          |                 |
 
 Key:
-- std format - the error message follows a standard format
-  (location on first line, megaparsec-like excerpt, description).
-- accurate line - the optimal line(s) is(are) selected
-- accurate column - the optimal column(s) is(are) selected
-- visual - the CLI error message shows a relevant excerpt (Y), ideally with the error highlighted (YY)
-- flycheck detects - flycheck recognises the error output, reports the error and doesn't give a "suspicious" warning
-- flycheck region - flycheck highlights a reasonably accurate text region containing the error
+- std format      - the error message follows a standard format (location on first line, megaparsec-like excerpt, description).
+- line            - the optimal line(s) is(are) selected
+- column          - the optimal column(s) is(are) selected
+- excerpt         - a useful excerpt is shown (Y), ideally with the error highlighted (YY)
+- flycheck        - latest flycheck release recognises and reports the error, with no "suspicious state" warning
+- flycheck region - flycheck highlights a reasonably accurate region containing the error
 
 ## Preferred error format
 
@@ -194,11 +193,11 @@ undeclared commodity "A"
 
 ### payees
 ```
-hledger: Error: undeclared payee "p"
-at: /Users/simon/src/hledger/hledger/test/errors/./payees.j:6-7
-
-> 2022-01-01 p
-      (a)             A 1
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/payees.j:6:12:
+6 | 2022-01-01 p
+  |            ^
+  |     (a)             A 1
+undeclared payee "p"
 
 ```
 
