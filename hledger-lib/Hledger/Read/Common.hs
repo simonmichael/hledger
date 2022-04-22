@@ -364,11 +364,10 @@ journalCheckPayeesDeclared j = mapM_ checkpayee (jtxns j)
   where
     checkpayee t
       | p `elem` ps = Right ()
-      | otherwise = Left $
-          printf "undeclared payee \"%s\"\nat: %s\n\n%s"
-            (T.unpack p)
-            (sourcePosPairPretty $ tsourcepos t)
-            (linesPrepend2 "> " "  " . (<>"\n") . textChomp $ showTransaction t)
+      | otherwise = Left $ printf "undeclared payee \"%s\"\nat: %s\n\n%s"
+          (T.unpack p)
+          (sourcePosPairPretty $ tsourcepos t)
+          (linesPrepend2 "> " "  " . (<>"\n") . textChomp $ showTransaction t)
       where
         p  = transactionPayee t
         ps = journalPayeesDeclared j
@@ -381,10 +380,13 @@ journalCheckAccountsDeclared j = mapM_ checkacct (journalPostings j)
     checkacct p@Posting{paccount=a}
       | a `elem` journalAccountNamesDeclared j = Right ()
       | otherwise = Left $ 
-        printf "%s:%d:%d:\n%sundeclared account \"%s\"\n" f l (maybe 0 (+1) mc) ex a
-      where
-        (f,l,mc,ex) = makeExcerpt p finderrcol
-        finderrcol p _ _ = Just $ 4 + if isVirtual p then 1 else 0
+        printf "%s:%d:%d:\n%sundeclared account \"%s\"\n" f l (maybe 0 ((+1).fst) mcols) ex a
+        where
+          (f,l,mcols,ex) = makeExcerpt p finderrcols
+          finderrcols p _ _ = Just (col, Just col2)
+            where
+              col = 4 + if isVirtual p then 1 else 0
+              col2 = col + T.length a
 
 -- | Check that all the commodities used in this journal's postings have been declared
 -- by commodity directives, returning an error message otherwise.
@@ -393,61 +395,82 @@ journalCheckCommoditiesDeclared j = mapM_ checkcommodities (journalPostings j)
   where
     checkcommodities p =
       case findundeclaredcomm p of
-        Nothing   -> Right ()
-        Just comm -> Left $ printf "%s:%d:\n%sundeclared commodity \"%s\"\n" f l ex comm
-          where
-            -- we don't know the original column of amounts
-            (f,l,_,ex) = makeExcerpt p finderrcol
+        Nothing -> Right ()
+        Just (c, _) ->
+          Left $ printf "%s:%d:\n%sundeclared commodity \"%s\"\n" f l ex c
+          where (f,l,_,ex) = makeExcerpt p finderrcols
       where
-        -- Find the first undeclared commodity symbol in this posting, if any.
+        -- Find the first undeclared commodity symbol in this posting's amount
+        -- or balance assertion amount, if any. The boolean will be true if
+        -- the undeclared symbol was in the posting amount.
+        findundeclaredcomm :: Posting -> Maybe (CommoditySymbol, Bool)
         findundeclaredcomm Posting{pamount=amt,pbalanceassertion} =
-          find (`M.notMember` jcommodities j)
-          . map acommodity
-          . (maybe id ((:) . baamount) pbalanceassertion)
-          . filter (not . isIgnorable)
-          $ amountsRaw amt
+          case (findundeclared postingcomms, findundeclared assertioncomms) of
+            (Just c, _) -> Just (c, True)
+            (_, Just c) -> Just (c, False)
+            _           -> Nothing
           where
-            -- Ignore missing amounts and zero amounts without commodity (#1767)
-            isIgnorable a = (T.null (acommodity a) && amountIsZero a) || a == missingamt
-
-        -- Find the best position for an error column marker.
-        finderrcol p t txntxt =
-          case transactionFindPostingIndex (==p) t of
-            Nothing -> Nothing
-            Just pindex -> Just $ 
-              acctend + (T.length $ T.takeWhile isnotsymbol $ T.drop acctend l)
+            postingcomms = map acommodity $ filter (not . isIgnorable) $ amountsRaw amt
               where
-                l = fromMaybe "" $ T.lines txntxt `atMay` pindex
+                -- Ignore missing amounts and zero amounts without commodity (#1767)
+                isIgnorable a = (T.null (acommodity a) && amountIsZero a) || a == missingamt
+            assertioncomms = [acommodity a | Just a <- [baamount <$> pbalanceassertion]]
+            findundeclared = find (`M.notMember` jcommodities j)
+
+        -- Find the best position for an error column marker when this posting
+        -- is rendered by showTransaction.
+        -- Reliably locating a problem commodity symbol in showTransaction output
+        -- is really tricky. Some examples:
+        --
+        --     assets      "C $" -1 @ $ 2
+        --                            ^
+        --     assets      $1 = $$1
+        --                      ^
+        --     assets   [ANSI RED]$-1[ANSI RESET]
+        --              ^
+        --
+        -- To simplify, we will mark the whole amount + balance assertion region, like:
+        --     assets      "C $" -1 @ $ 2
+        --                 ^^^^^^^^^^^^^^
+        finderrcols p t txntxt =
+          case transactionFindPostingIndex (==p) t of
+            Nothing     -> Nothing
+            Just pindex -> Just (amtstart, Just amtend)
+              where
+                tcommentlines = max 0 (length (T.lines $ tcomment t) - 1)
+                errrelline = 1 + tcommentlines + pindex   -- XXX doesn't count posting coment lines
+                errline = fromMaybe "" (T.lines txntxt `atMay` (errrelline-1))
                 acctend = 4 + T.length (paccount p) + if isVirtual p then 2 else 0
-                isnotsymbol c = isSpace c || isDigit c || isDigitSeparatorChar c
+                amtstart = acctend + (T.length $ T.takeWhile isSpace $ T.drop acctend errline)
+                amtend = amtstart + (T.length $ T.stripEnd $ T.takeWhile (/=';') $ T.drop amtstart errline)
 
 -- | Given a problem posting and a function calculating the best
--- position for the error column marker:
+-- column(s) for marking the error region:
 -- look up error info from the parent transaction, and render the transaction
 -- as a megaparsec-style excerpt, showing the original line number
 -- on the problem posting's line, and a column indicator.
--- Returns the file path, line number, starting column if known,
+-- Returns the file path, line number, column(s) if known,
 -- and the rendered excerpt, or as much of these as is possible.
-makeExcerpt :: Posting -> (Posting -> Transaction -> Text -> Maybe Int) -> (FilePath, Int, Maybe Int, Text)
-makeExcerpt p findErrorColumn =
+makeExcerpt :: Posting -> (Posting -> Transaction -> Text -> Maybe (Int, Maybe Int)) -> (FilePath, Int, Maybe (Int, Maybe Int), Text)
+makeExcerpt p finderrorcolumns =
   case ptransaction p of
     Nothing -> ("-", 0, Nothing, "")
-    Just t  -> (f, errabsline, merrcol, ex)
+    Just t  -> (f, errabsline, merrcols, ex)
       where
         (SourcePos f tl _) = fst $ tsourcepos t
         tcommentlines = max 0 (length (T.lines $ tcomment t) - 1)
         mpindex = transactionFindPostingIndex (==p) t
-        errrelline = maybe 0 (tcommentlines+) mpindex
+        errrelline = maybe 0 (tcommentlines+) mpindex   -- XXX doesn't count posting coment lines
         errabsline = unPos tl + errrelline
         txntxt = showTransaction t & textChomp & (<>"\n")
-        merrcol = findErrorColumn p t txntxt
-        ex = decorateExcerpt errabsline errrelline merrcol txntxt
+        merrcols = finderrorcolumns p t txntxt
+        ex = decorateExcerpt errabsline errrelline merrcols txntxt
 
 -- | Add megaparsec-style left margin, line number, and 
--- optional column marker to an excerpt to be used in an 
--- error message.
-decorateExcerpt :: Int -> Int -> Maybe Int -> Text -> Text
-decorateExcerpt absline relline mcol txt =
+-- optional column(s) marker to a text excerpt, suitable for
+-- an error message.
+decorateExcerpt :: Int -> Int -> Maybe (Int, Maybe Int) -> Text -> Text
+decorateExcerpt absline relline mcols txt =
   T.unlines $ js' <> ks' <> colmarkerline <> ms'
   where
     (ls,ms) = splitAt (relline+1) $ T.lines txt
@@ -456,7 +479,11 @@ decorateExcerpt absline relline mcol txt =
       [k] -> (map (lineprefix<>) js, [T.pack (show absline) <> " | " <> k])
       _   -> ([], [])
     ms' = map (lineprefix<>) ms
-    colmarkerline = [lineprefix <> T.replicate col " " <> "^" | Just col <- [mcol]]
+    colmarkerline =
+      [lineprefix <> T.replicate col " " <> T.replicate regionw "^"
+      | Just (col, mendcol) <- [mcols]
+      , let regionw = maybe 1 (subtract col) mendcol
+      ]
     lineprefix = T.replicate marginw " " <> "| "
       where  marginw = length (show absline) + 1
 
