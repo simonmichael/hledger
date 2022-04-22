@@ -134,7 +134,6 @@ import Data.List.NonEmpty (NonEmpty(..))
 import Data.Maybe (catMaybes, fromMaybe, isJust, listToMaybe)
 import qualified Data.Map as M
 import qualified Data.Semigroup as Sem
-import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day, fromGregorianValid, toGregorian)
@@ -379,28 +378,77 @@ journalCheckPayeesDeclared j = mapM_ checkpayee (jtxns j)
 journalCheckAccountsDeclared :: Journal -> Either String ()
 journalCheckAccountsDeclared j = mapM_ checkacct (journalPostings j)
   where
-    checkacct p@Posting{paccount=a,ptransaction=mt}
+    checkacct p@Posting{paccount=a}
       | a `elem` journalAccountNamesDeclared j = Right ()
-      | otherwise = Left msg
+      | otherwise = Left $ 
+        printf "%s:%d:%d:\n%sundeclared account \"%s\"\n" f l (maybe 0 (+1) mc) ex a
       where
-        msg = printf "%s:%d:%d:\n%sundeclared account \"%s\"\n" f l (c+1) excerpt a
-          where
-            (f,l,c,excerpt) = case mt of
-              Nothing -> ("-",0,0,"")
-              Just t  -> (tf,errabsline,errcol,txt)
-                where
-                  (SourcePos tf tl _tc) = fst $ tsourcepos t
-                  mpindex = fmap fst $ find ((a==).paccount.snd) $ zip [1..] $ tpostings t
-                  tcommentlines = max 0 $ length (T.lines $ tcomment t) - 1
-                  errrelline = maybe 0 (tcommentlines+) mpindex
-                  errabsline = unPos tl + errrelline
-                  errcol = 4 + if isVirtual p then 1 else 0
-                  txt = formatExcerptLikeMegaparsec errabsline errrelline errcol
-                          (showTransaction t & textChomp & (<>"\n"))
+        (f,l,mc,ex) = makeExcerpt p finderrcol
+        finderrcol p _ _ = Just $ 4 + if isVirtual p then 1 else 0
 
-formatExcerptLikeMegaparsec :: Int -> Int -> Int -> Text -> Text
-formatExcerptLikeMegaparsec absline relline col txt =
-  T.unlines $ js' <> ks' <> [colmarkerline] <> ms'
+-- | Check that all the commodities used in this journal's postings have been declared
+-- by commodity directives, returning an error message otherwise.
+journalCheckCommoditiesDeclared :: Journal -> Either String ()
+journalCheckCommoditiesDeclared j = mapM_ checkcommodities (journalPostings j)
+  where
+    checkcommodities p =
+      case findundeclaredcomm p of
+        Nothing   -> Right ()
+        Just comm -> Left $ printf "%s:%d:\n%sundeclared commodity \"%s\"\n" f l ex comm
+          where
+            -- we don't know the original column of amounts
+            (f,l,_,ex) = makeExcerpt p finderrcol
+      where
+        -- Find the first undeclared commodity symbol in this posting, if any.
+        findundeclaredcomm Posting{pamount=amt,pbalanceassertion} =
+          find (`M.notMember` jcommodities j)
+          . map acommodity
+          . (maybe id ((:) . baamount) pbalanceassertion)
+          . filter (not . isIgnorable)
+          $ amountsRaw amt
+          where
+            -- Ignore missing amounts and zero amounts without commodity (#1767)
+            isIgnorable a = (T.null (acommodity a) && amountIsZero a) || a == missingamt
+
+        -- Find the best position for an error column marker.
+        finderrcol p t txntxt =
+          case transactionFindPostingIndex (==p) t of
+            Nothing -> Nothing
+            Just pindex -> Just $ 
+              acctend + (T.length $ T.takeWhile isnotsymbol $ T.drop acctend l)
+              where
+                l = fromMaybe "" $ T.lines txntxt `atMay` pindex
+                acctend = 4 + T.length (paccount p) + if isVirtual p then 2 else 0
+                isnotsymbol c = isSpace c || isDigit c || isDigitSeparatorChar c
+
+-- | Given a problem posting and a function calculating the best
+-- position for the error column marker:
+-- look up error info from the parent transaction, and render the transaction
+-- as a megaparsec-style excerpt, showing the original line number
+-- on the problem posting's line, and a column indicator.
+-- Returns the file path, line number, starting column if known,
+-- and the rendered excerpt, or as much of these as is possible.
+makeExcerpt :: Posting -> (Posting -> Transaction -> Text -> Maybe Int) -> (FilePath, Int, Maybe Int, Text)
+makeExcerpt p findErrorColumn =
+  case ptransaction p of
+    Nothing -> ("-", 0, Nothing, "")
+    Just t  -> (f, errabsline, merrcol, ex)
+      where
+        (SourcePos f tl _) = fst $ tsourcepos t
+        tcommentlines = max 0 (length (T.lines $ tcomment t) - 1)
+        mpindex = transactionFindPostingIndex (==p) t
+        errrelline = maybe 0 (tcommentlines+) mpindex
+        errabsline = unPos tl + errrelline
+        txntxt = showTransaction t & textChomp & (<>"\n")
+        merrcol = findErrorColumn p t txntxt
+        ex = decorateExcerpt errabsline errrelline merrcol txntxt
+
+-- | Add megaparsec-style left margin, line number, and 
+-- optional column marker to an excerpt to be used in an 
+-- error message.
+decorateExcerpt :: Int -> Int -> Maybe Int -> Text -> Text
+decorateExcerpt absline relline mcol txt =
+  T.unlines $ js' <> ks' <> colmarkerline <> ms'
   where
     (ls,ms) = splitAt (relline+1) $ T.lines txt
     (js,ks) = splitAt (length ls - 1) ls
@@ -408,52 +456,15 @@ formatExcerptLikeMegaparsec absline relline col txt =
       [k] -> (map (lineprefix<>) js, [T.pack (show absline) <> " | " <> k])
       _   -> ([], [])
     ms' = map (lineprefix<>) ms
-    colmarkerline = lineprefix <> T.replicate col " " <> "^"
+    colmarkerline = [lineprefix <> T.replicate col " " <> "^" | Just col <- [mcol]]
     lineprefix = T.replicate marginw " " <> "| "
       where  marginw = length (show absline) + 1
 
--- | Check that all the commodities used in this journal's postings have been declared
--- by commodity directives, returning an error message otherwise.
-journalCheckCommoditiesDeclared :: Journal -> Either String ()
-journalCheckCommoditiesDeclared j =
-  mapM_ checkcommodities (journalPostings j)
-  where
-    checkcommodities p@Posting{ptransaction=mt,paccount=acct,pamount=amt,pbalanceassertion} =
-      case mfirstundeclaredcomm of
-        Nothing   -> Right ()
-        Just comm -> Left $
-          -- we don't save the original column of amounts
-          printf "%s:%d:\n%sundeclared commodity \"%s\"\n" f l excerpt comm
-          where
-            (f,l,excerpt) = case mt of
-              Nothing -> ("-",0,"")
-              Just t  -> (tf,errabsline,ex)
-                where
-                  (SourcePos tf tl _tc) = fst $ tsourcepos t
-                  ppredicate = S.member comm . maCommodities . pamount
-                  mpindex = fmap fst $ find (ppredicate.snd) $ zip [1..] $ tpostings t
-                  tcommentlines = max 0 $ length (T.lines $ tcomment t) - 1
-                  errrelline = maybe 0 (tcommentlines+) mpindex
-                  errabsline = unPos tl + errrelline
-                  txn = showTransaction t & textChomp & (<>"\n")
-                  errcol = case mpindex of
-                    Nothing     -> 0
-                    Just pindex -> acctend + (T.length $ T.takeWhile isnotsymbol $ T.drop acctend l)
-                      where
-                        acctend = 4 + T.length acct + if isVirtual p then 2 else 0
-                        isnotsymbol c = isSpace c || isDigit c || isDigitSeparatorChar c
-                        l = fromMaybe "" $ (T.lines txn `atMay` pindex)
-                  ex = formatExcerptLikeMegaparsec errabsline errrelline errcol txn
-      where
-        mfirstundeclaredcomm =
-          find (`M.notMember` jcommodities j)
-          . map acommodity
-          . (maybe id ((:) . baamount) pbalanceassertion)
-          . filter (not . isIgnorable)
-          $ amountsRaw amt
-
-    -- Ignore missing amounts and zero amounts without commodity (#1767)
-    isIgnorable a = (T.null (acommodity a) && amountIsZero a) || a == missingamt
+-- | Find the 1-based index of the first posting in this transaction
+-- satisfying the given predicate.
+transactionFindPostingIndex :: (Posting -> Bool) -> Transaction -> Maybe Int
+transactionFindPostingIndex ppredicate = 
+  fmap fst . find (ppredicate.snd) . zip [1..] . tpostings
 
 setYear :: Year -> JournalParser m ()
 setYear y = modify' (\j -> j{jparsedefaultyear=Just y})
