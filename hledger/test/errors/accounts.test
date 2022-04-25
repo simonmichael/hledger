@@ -1,9 +1,9 @@
 $$$ hledger check accounts -f accounts.j
->>>2
-hledger: Error: /Users/simon/src/hledger/hledger/test/errors/accounts.j:4:6-6:
+>>>2 /hledger: Error: .*accounts.j:4:6-6:
   | 2022-01-01
 4 |     (a)               1
   |      ^
 undeclared account "a"
 
->>>=1
+/
+>>>= 1

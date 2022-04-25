@@ -100,7 +100,7 @@ Notes (see also [#1436][]):
 
 <!-- to update: erase the below then C-u M-! ./showall -->
 <!-- GENERATED: -->
-hledger 1.25.99-gfc3d9d407-20220424 error messages:
+hledger 1.25.99-g9bff671b5-20220424 error messages:
 
 ### accounts
 ```
@@ -167,7 +167,7 @@ hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./ordereddates.j:10
 10 | 2022-01-01 p
    | ^^^^^^^^^^
    |     (a)               1
-transaction's date is out of order with previous transaction's date 2022-01-02
+transaction date is out of order with previous transaction date 2022-01-02
 ```
 
 

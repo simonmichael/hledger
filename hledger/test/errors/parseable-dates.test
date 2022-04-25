@@ -1,9 +1,9 @@
 $$$ hledger check -f parseable-dates.j
->>>2
-hledger: Error: /Users/simon/src/hledger/hledger/test/errors/parseable-dates.j:3:1:
+>>>2 /hledger: Error: .*parseable-dates.j:3:1:
   |
-3 | 2022/1/32
+3 | 2022\/1\/32
   | ^^^^^^^^^
-well-formed but invalid date: 2022/1/32
+well-formed but invalid date: 2022\/1\/32
 
->>>=1
+/
+>>>= 1

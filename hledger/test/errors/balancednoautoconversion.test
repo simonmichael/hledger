@@ -1,6 +1,5 @@
 $$$ hledger check balancednoautoconversion -f balancednoautoconversion.j
->>>2
-hledger: Error: /Users/simon/src/hledger/hledger/test/errors/balancednoautoconversion.j:6-8
+>>>2 /hledger: Error: .*balancednoautoconversion.j:6-8
 could not balance this transaction:
 real postings' sum should be 0 but is:  1 A
 -1 B
@@ -8,4 +7,5 @@ real postings' sum should be 0 but is:  1 A
     a             1 A
     b            -1 B
 
->>>=1
+/
+>>>= 1
