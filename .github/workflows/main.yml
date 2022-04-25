@@ -1,26 +1,29 @@
-# Runs after notable pushes to the branches listed below.
-# master is configured to require one or more status checks corresponding to
-# enabled matrix plans below (shown in github UI as "build (810, ...").
-# So the push process is:
-# 1. push new commits to a personal test branch listed below (simon)
-# 2. this workflow runs, wait for it to succeed, then
-# 3. push the same commits to master, which will now allow it.
-#
-# Builds unoptimised on x64 linux and runs functional tests,
+# The main hledger integration test workflow.
+# Builds warning free and runs unit/doc/functional/haddock/bench tests,
 # using the GHC version(s) enabled below.
+# Merging to master requires that this workflow's jobs ("86" at least) have passed.
 
-name: push CI
+name: main CI
 
+# This workflow runs...
 on:
+  # on master, when manually triggered
+  workflow_dispatch:
+
+  # on master, on this schedule:
+  # schedule:
+  # - cron: "0 07 * * 0"  # sunday midnight pacific
+
+  # on these dev branches, when pushed
   push:
     branches: [ simon, simon2 ]
-    # Run this workflow for changes to any file, even trivial doc fixes
-    # (since merging to master requires a successful run).
-    # Ideally caching will keep it relatively cheap; avoid over-pushing.
 
-    # Run this workflow only for changes to these files (to avoid waste):
+  # on pull request branches against these branches, when pushed
+  pull_request:
+    branches: [ master ]
+    # Uncomment to run it only for changes to these paths: (but that could prevent merging)
     # paths:
-    #   - '.github/workflows/push.yml'
+    #   - '.github/workflows/pushpull.yml'
     #   - 'stack*.yaml'
     #   - 'hledger-lib/**'
     #   - 'hledger/**'
@@ -28,7 +31,7 @@ on:
     #   - 'hledger-web/**'
     #   - 'bin/*.hs'
     #   - 'examples/**'
-    #   # and ignore these files:   (XXX it would still be nice to check the commit messages)
+    # Or to ignore certain paths:
     #   # examples
     #   - '!**.journal'
     #   - '!**.j'
@@ -42,9 +45,6 @@ on:
     #   - '!**.info'
     #   - '!**.txt'
 
-  # also allow this workflow to be triggered manually
-  workflow_dispatch:
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -52,11 +52,11 @@ jobs:
       fail-fast: false
       matrix:
         plan:  # at least the check(s) required by master should be enabled
-        - { ghc: "86" , stack: "stack --stack-yaml=stack8.6.yaml" }
+        - { ghc: "86"  , stack: "stack --stack-yaml=stack8.6.yaml" }  # oldest supported ghc
         # - { ghc: "88" , stack: "stack --stack-yaml=stack8.8.yaml" }
         # - { ghc: "810", stack: "stack --stack-yaml=stack8.10.yaml" }
         # - { ghc: "90" , stack: "stack --stack-yaml=stack.yaml" }
-        # - { ghc: "92" , stack: "stack --stack-yaml=stack9.2.yaml" }
+        # - { ghc: "92" , stack: "stack --stack-yaml=stack9.2.yaml" }  # newest supported ghc
 
     steps:
 
@@ -64,14 +64,13 @@ jobs:
       uses: actions/checkout@v2
       # have to fetch everything for git describe for --version
       with: 
-        fetch-depth: 0        
+        fetch-depth: 0
 
-    # - name: Print debug output
-    #   env:
-    #     GITHUB_CONTEXT: ${{ toJson(github) }}
-    #   run: |
-    #     echo
-
+    - name: Print debug output
+      env:
+        GITHUB_CONTEXT: ${{ toJson(github) }}
+      run: |
+        echo $GITHUB_CONTEXT
     #     echo "$GITHUB_SHA"
     #     echo "$GITHUB_REF"
     #     echo "$GITHUB_HEAD_REF"
@@ -108,6 +107,8 @@ jobs:
         if git rev-list --quiet $RANGE
         then tools/commitlint $RANGE
         else echo "could not identify commits, not checking them"
+          # echo "could not identify commits, checking last $NUM instead:"
+          # tools/commitlint -$NUM
         fi
 
     - name: Skip remaining steps if last commit message begins with ;
@@ -210,16 +211,25 @@ jobs:
       env:
         stack: ${{ matrix.plan.stack }}
       run: |
-        $stack build --only-dependencies
+        $stack build --test --bench --only-dependencies
       if: env.CONTINUE
 
-    - name: Build hledger fast
+    # - name: Build all hledger modules warning free, optimised and minimised, run unit/doc/bench tests
+    #   env:
+    #     stack: ${{ matrix.plan.stack }}
+    #   run: |
+    #     $stack install --test --bench --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror --ghc-options=-split-sections --no-terminal
+    #     # build quicker when tweaking ci: $stack install --ghc-options=-Werror --ghc-options=-split-sections --no-terminal
+    #     # -split-sections shrinks binaries by 30% on average here
+    #     # --pedantic --no-run-benchmarks
+    #   if: env.CONTINUE
+
+    - name: Build all hledger modules fast, warning free, run unit/doc/bench tests
       env:
         stack: ${{ matrix.plan.stack }}
       run: |
-        $stack build --fast --ghc-options=-Werror --force-dirty
-        # --ghc-options=-fforce-recomp   # needed occasionally to clear out stale compiled modules
-        #  --pedantic
+        $stack install --fast --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror  --test --bench
+        #  --ghc-options=-split-sections --no-terminal
       if: env.CONTINUE
 
     - name: Install shelltestrunner
@@ -236,6 +246,74 @@ jobs:
         stack: ${{ matrix.plan.stack }}
       run: |
         export PATH=~/.local/bin:$PATH
-        COLUMNS=80 $stack exec -- shelltest --execdir -j16 hledger/test -x /_ -x /addons  #  bin
-        # XXX func tests in bin are run only with GHC 8.2 for now
+        COLUMNS=80 $stack exec -- shelltest --execdir -j16 hledger/test -x /_ -x /addons
+        # XXX run the bin/ func tests corresponding to the GHC version enabled above, only
       if: env.CONTINUE
+
+    - name: Test haddock generation
+      env:
+        stack: ${{ matrix.plan.stack }}
+      run: |
+        time $stack build --haddock --no-haddock-deps --no-haddock-hyperlink-source --haddock-arguments="--no-print-missing-docs"
+        # --no-haddock-hyperlink-source is 25% faster
+        # --no-print-missing-docs is 600% quieter
+      if: env.CONTINUE
+
+    # - name: Gather executables
+    #   id: exes
+    #   run: |
+    #     mkdir tmp
+    #     cd tmp
+    #     mkdir hledger
+    #     cd hledger
+    #     cp ~/.local/bin/hledger .
+    #     cp ~/.local/bin/hledger-ui .
+    #     cp ~/.local/bin/hledger-web .
+    #   # how to set a context variable, and an attempt to make a nice artifact version suffix:
+    #   # echo "::set-output name=version::$(git branch --show-current | sed 's/-.*//')-$(git rev-parse --short HEAD)"
+    #   if: env.CONTINUE
+
+    # # XXX intermittent upload failures
+    # - name: Upload executables artifact
+    #   uses: actions/upload-artifact@v2
+    #   with:
+    # #    name: hledger-ubuntu-${{ steps.exes.outputs.version }}
+    #     name: hledger-ubuntu
+    #     path: tmp/hledger
+    #   if: env.CONTINUE
+
+
+
+
+
+    # - name: show stuff
+    #   run: |
+    #     if [[ -e ~/.local/bin ]]; then ls -lFRa ~/.local/bin; fi
+
+    # inspect available context info, per
+    # https://docs.github.com/en/free-pro-team@latest/actions/reference/context-and-expression-syntax-for-github-actions.
+    # sample output: https://github.com/simonmichael/hledger/runs/1619227104
+    # - name: Dump GitHub context
+    #   env:
+    #     GITHUB_CONTEXT: ${{ toJson(github) }}
+    #   run: echo "$GITHUB_CONTEXT"
+    # - name: Dump job context
+    #   env:
+    #     JOB_CONTEXT: ${{ toJson(job) }}
+    #   run: echo "$JOB_CONTEXT"
+    # - name: Dump steps context
+    #   env:
+    #     STEPS_CONTEXT: ${{ toJson(steps) }}
+    #   run: echo "$STEPS_CONTEXT"
+    # - name: Dump runner context
+    #   env:
+    #     RUNNER_CONTEXT: ${{ toJson(runner) }}
+    #   run: echo "$RUNNER_CONTEXT"
+    # - name: Dump strategy context
+    #   env:
+    #     STRATEGY_CONTEXT: ${{ toJson(strategy) }}
+    #   run: echo "$STRATEGY_CONTEXT"
+    # - name: Dump matrix context
+    #   env:
+    #     MATRIX_CONTEXT: ${{ toJson(matrix) }}
+    #   run: echo "$MATRIX_CONTEXT"
