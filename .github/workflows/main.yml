@@ -7,18 +7,20 @@ name: main CI
 
 # This workflow runs...
 on:
-  # on master, when manually triggered
+  # On master, when manually triggered.
   workflow_dispatch:
 
-  # on master, on this schedule:
+  # On master, on this schedule:
   # schedule:
   # - cron: "0 07 * * 0"  # sunday midnight pacific
 
-  # on these dev branches, when pushed
+  # On these dev branches, when pushed.
+  # To avoid double workflow execution, don't use these branches for pull requests.
+  # (https://github.community/t/how-to-trigger-an-action-on-push-or-pull-request-but-not-both/16662/2)
   push:
     branches: [ simon, simon2 ]
 
-  # on pull request branches against these branches, when pushed
+  # On pull request branches against these branches, when pushed.
   pull_request:
     branches: [ master ]
     # Uncomment to run it only for changes to these paths: (but that could prevent merging)
