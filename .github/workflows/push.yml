@@ -13,7 +13,7 @@ name: push CI
 
 on:
   push:
-    branches: [ simon ]
+    branches: [ simon, simon2 ]
     # Run this workflow for changes to any file, even trivial doc fixes
     # (since merging to master requires a successful run).
     # Ideally caching will keep it relatively cheap; avoid over-pushing.
