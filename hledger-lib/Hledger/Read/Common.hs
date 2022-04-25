@@ -366,14 +366,16 @@ journalCheckPayeesDeclared j = mapM_ checkpayee (jtxns j)
     checkpayee t
       | payee `elem` journalPayeesDeclared j = Right ()
       | otherwise = Left $
-        printf "%s:%d:%d:\n%sundeclared payee \"%s\"\n" f l (maybe 0 ((+1).fst) mcols) ex payee
+        printf "%s:%d:%d-%d:\n%sundeclared payee \"%s\"\n" f l col col2 ex payee
       where
         payee = transactionPayee t
         (f,l,mcols,ex) = makeTransactionErrorExcerpt t finderrcols
+        col  = maybe 0 fst mcols
+        col2 = maybe 0 (fromMaybe 0 . snd) mcols
         finderrcols t = Just (col, Just col2)
           where
-            col = T.length (showTransactionLineFirstPart t) + 1
-            col2 = col + T.length (transactionPayee t)
+            col = T.length (showTransactionLineFirstPart t) + 2
+            col2 = col + T.length (transactionPayee t) - 1
 
 -- | Check that all the journal's postings are to accounts declared with
 -- account directives, returning an error message otherwise.
@@ -383,13 +385,15 @@ journalCheckAccountsDeclared j = mapM_ checkacct (journalPostings j)
     checkacct p@Posting{paccount=a}
       | a `elem` journalAccountNamesDeclared j = Right ()
       | otherwise = Left $ 
-        printf "%s:%d:%d:\n%sundeclared account \"%s\"\n" f l (maybe 0 ((+1).fst) mcols) ex a
+        printf "%s:%d:%d-%d:\n%sundeclared account \"%s\"\n" f l col col2 ex a
         where
           (f,l,mcols,ex) = makePostingErrorExcerpt p finderrcols
+          col  = maybe 0 fst mcols
+          col2 = maybe 0 (fromMaybe 0 . snd) mcols
           finderrcols p _ _ = Just (col, Just col2)
             where
-              col = 4 + if isVirtual p then 1 else 0
-              col2 = col + T.length a
+              col = 5 + if isVirtual p then 1 else 0
+              col2 = col + T.length a - 1
 
 -- | Check that all the commodities used in this journal's postings have been declared
 -- by commodity directives, returning an error message otherwise.
@@ -399,9 +403,12 @@ journalCheckCommoditiesDeclared j = mapM_ checkcommodities (journalPostings j)
     checkcommodities p =
       case findundeclaredcomm p of
         Nothing -> Right ()
-        Just (c, _) ->
-          Left $ printf "%s:%d:\n%sundeclared commodity \"%s\"\n" f l ex c
-          where (f,l,_,ex) = makePostingErrorExcerpt p finderrcols
+        Just (comm, _) ->
+          Left $ printf "%s:%d:%d-%d:\n%sundeclared commodity \"%s\"\n" f l col col2 ex comm
+          where
+            (f,l,mcols,ex) = makePostingErrorExcerpt p finderrcols
+            col  = maybe 0 fst mcols
+            col2 = maybe 0 (fromMaybe 0 . snd) mcols
       where
         -- Find the first undeclared commodity symbol in this posting's amount
         -- or balance assertion amount, if any. The boolean will be true if
@@ -444,7 +451,7 @@ journalCheckCommoditiesDeclared j = mapM_ checkcommodities (journalPostings j)
                 errrelline = 1 + tcommentlines + pindex   -- XXX doesn't count posting coment lines
                 errline = fromMaybe "" (T.lines txntxt `atMay` (errrelline-1))
                 acctend = 4 + T.length (paccount p) + if isVirtual p then 2 else 0
-                amtstart = acctend + (T.length $ T.takeWhile isSpace $ T.drop acctend errline)
+                amtstart = acctend + (T.length $ T.takeWhile isSpace $ T.drop acctend errline) + 1
                 amtend = amtstart + (T.length $ T.stripEnd $ T.takeWhile (/=';') $ T.drop amtstart errline)
 
 -- | Given a problem transaction and a function calculating the best
@@ -512,9 +519,9 @@ decoratePostingErrorExcerpt absline relline mcols txt =
       _   -> ([], [])
     ms' = map (lineprefix<>) ms
     colmarkerline =
-      [lineprefix <> T.replicate col " " <> T.replicate regionw "^"
+      [lineprefix <> T.replicate (col-1) " " <> T.replicate regionw "^"
       | Just (col, mendcol) <- [mcols]
-      , let regionw = maybe 1 (subtract col) mendcol
+      , let regionw = 1 + maybe 0 (subtract col) mendcol
       ]
     lineprefix = T.replicate marginw " " <> "| "
       where  marginw = length (show absline) + 1
