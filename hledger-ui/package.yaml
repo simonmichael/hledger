@@ -70,6 +70,7 @@ dependencies:
 - process >=1.2
 - safe >=0.3.19
 - split >=0.1
+- table-layout >=0.9.1.0
 - text >=1.2
 - text-zipper >=0.4
 - time >=1.5

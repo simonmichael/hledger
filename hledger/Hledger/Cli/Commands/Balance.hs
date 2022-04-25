@@ -268,8 +268,9 @@ import Data.Time (addDays, fromGregorian)
 import Lucid (Html, toHtml, class_, style_, table_, td_, th_, tr_)
 import qualified Lucid as L
 import System.Console.CmdArgs.Explicit as C
-import Safe (maximumMay)
 import Text.Layout.Table
+import Text.Layout.Table.Cell.ElidableList (ElidableList)
+import Text.Layout.Table.Primitives.ColumnModifier (deriveColModInfos')
 
 import Hledger
 import Hledger.Cli.CliOptions
@@ -432,12 +433,11 @@ balanceReportAsText opts ((items, total)) =
     (totalLines, _) = balanceReportItemAsText opts ("", "", 0, total)
     -- with a custom format, extend the line to the full report width;
     -- otherwise show the usual 20-char line for compatibility
-    iscustom = case format_ opts of
-        OneLine       ((FormatField _ _ _ TotalField):_) -> False
-        TopAligned    ((FormatField _ _ _ TotalField):_) -> False
-        BottomAligned ((FormatField _ _ _ TotalField):_) -> False
-        _ -> True
-    overlinewidth = if iscustom then sum (map maximum' $ transpose sizes) else 20
+    overlinewidth = case format_ opts of
+        OneLine       ((FormatField _ w _ TotalField):_) -> fromMaybe 20 w
+        TopAligned    ((FormatField _ w _ TotalField):_) -> fromMaybe 20 w
+        BottomAligned ((FormatField _ w _ TotalField):_) -> fromMaybe 20 w
+        _ -> sum . map maximum' $ transpose sizes
     overline   = TB.fromText $ T.replicate overlinewidth "-"
 
 {-
@@ -459,8 +459,12 @@ balanceReportItemAsText :: ReportOpts -> BalanceReportItem -> (TB.Builder, [Int]
 balanceReportItemAsText opts (_, acctname, depth, total) =
     renderRow' $ concatMap (renderComponent oneline opts (acctname, depth, total)) comps
   where
-    renderRow' is = ( concatLines . map mconcat . gridB (concatMap colSpec comps) $ colsAsRowsAll vPos is
-                    , map (fromMaybe 0 . maximumMay . map visibleLength) is )
+    renderRow' is = (concatLines . map mconcat $ gridB specs tab, map (widthCMI . unalignedCMI) cmis)
+      where
+        -- Deconstruct some of gridB to get access to the widths
+        cmis = deriveColModInfos' specs tab
+        specs = concatMap colSpec comps
+        tab = colsAsRowsAll vPos is
 
     (vPos, oneline, comps) = case format_ opts of
         OneLine       comps -> (top,    True,  comps)
@@ -468,29 +472,37 @@ balanceReportItemAsText opts (_, acctname, depth, total) =
         BottomAligned comps -> (bottom, False, comps)
 
     -- If we're using LayoutBare, the commodity column goes after the totals column, along with a spacing column.
-    colSpec (FormatField ljust _ _ TotalField) | layout_ opts == LayoutBare = col ljust : replicate 2 (col True)
-    colSpec (FormatField ljust _ _ _) = [col ljust]
-    colSpec (FormatLiteral _)         = [col True]
-    col ljust = column expand (if ljust then left else right) noAlign (singleCutMark "..")
+    colSpec (FormatField ljust mmin mmax TotalField) | layout_ opts == LayoutBare
+                                                 = col ljust mmin mmax : replicate 2 (col True Nothing Nothing)
+    colSpec (FormatField _ _ _ DepthSpacerField) = [col True Nothing Nothing]
+    colSpec (FormatField ljust mmin mmax _)      = [col ljust mmin mmax]
+    colSpec (FormatLiteral _)                    = [col True Nothing Nothing]
+    col ljust mmin mmax = column lenSpec (if ljust then left else right) noAlign (singleCutMark "..")
+      where
+        lenSpec = case (mmin, mmax) of
+          (Nothing, Nothing) -> expand
+          (Just m,  Nothing) -> fixedUntil m
+          (Nothing, Just n ) -> expandUntil n
+          (Just m,  Just n ) -> expandBetween m n
 
 -- | Render one StringFormat component for a balance report item.
-renderComponent :: Bool -> ReportOpts -> (AccountName, Int, MixedAmount) -> StringFormatComponent -> [[RenderText]]
-renderComponent _ _ _ (FormatLiteral s) = [[renderText s]]
-renderComponent oneline opts (acctname, depth, total) (FormatField ljust mmin mmax field) = case field of
-    DepthSpacerField     -> [[renderText $ T.replicate d " "]]
+renderComponent :: Bool -> ReportOpts -> (AccountName, Int, MixedAmount) -> StringFormatComponent
+                -> [[Either (ElidableList String RenderText) RenderText]]
+renderComponent _ _ _ (FormatLiteral s) = [[Right $ renderText s]]
+renderComponent oneline opts (acctname, depth, total) (FormatField _ mmin mmax field) = case field of
+    DepthSpacerField     -> [[Right . renderText $ T.replicate d " "]]
                             where d = maybe id min mmax $ depth * fromMaybe 1 mmin
-    AccountField         -> [[renderText $ formatText ljust mmin mmax acctname]]
+    AccountField         -> [[Right $ renderText acctname]]
     -- Add commodities after the amounts, if LayoutBare is used.
-    TotalField | oneline -> [showMixedAmountB dopts total] : commoditiesColumns
-    TotalField           -> showMixedAmountLinesB dopts total : commoditiesColumns
+    TotalField | oneline -> [Left $ showMixedAmountOneLineB dopts total] : map (map Right) commoditiesColumns
+    TotalField           -> map (map Right) $ showMixedAmountLinesB dopts total : commoditiesColumns
     _                    -> [[]]
   where
-    dopts = noPrice{ displayColour=color_ opts, displayOneLine=oneline, displayOrder=commodities
-                   , displayMinWidth=mmin, displayMaxWidth=mmax}
+    dopts = noPrice{displayColour=color_ opts, displayOrder=commodities}
     commodities = case layout_ opts of
       LayoutBare -> Just $ if mixedAmountLooksZero total then [""] else S.toList $ maCommodities total
       _          -> Nothing
-    commoditiesColumns = maybe [] (\cs -> [[renderText "  "], map renderText cs]) commodities
+    commoditiesColumns = maybe [] (\cs -> [["  "], map renderText cs]) commodities
 
 -- rendering multi-column balance reports
 
@@ -647,7 +659,8 @@ multiBalanceReportAsText ropts@ReportOpts{..} r = TB.toLazyText $
         _                                     -> False
 
 -- | Build a 'Table' from a multi-column balance report.
-balanceReportAsTable :: ReportOpts -> MultiBalanceReport -> Table T.Text T.Text RenderText
+balanceReportAsTable :: ReportOpts -> MultiBalanceReport
+                     -> Table T.Text T.Text (Either (ElidableList String RenderText) RenderText)
 balanceReportAsTable opts@ReportOpts{average_, row_total_, balanceaccum_}
     (PeriodicReport spans items tr) =
    maybetranspose $
@@ -685,26 +698,32 @@ balanceReportAsTable opts@ReportOpts{average_, row_total_, balanceaccum_}
 multiBalanceRowAsCsvText :: ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount -> [[T.Text]]
 multiBalanceRowAsCsvText opts colspans = map (map buildCell) . multiBalanceRowAsTableTextHelper csvDisplay opts colspans
 
-multiBalanceRowAsTableText :: ReportOpts -> PeriodicReportRow a MixedAmount -> [[RenderText]]
+multiBalanceRowAsTableText :: ReportOpts -> PeriodicReportRow a MixedAmount
+                           -> [[Either (ElidableList String RenderText) RenderText]]
 multiBalanceRowAsTableText opts = multiBalanceRowAsTableTextHelper oneLine{displayColour=color_ opts} opts []
 
-multiBalanceRowAsTableTextHelper :: AmountDisplayOpts -> ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount -> [[RenderText]]
+-- | Represent a 'PeriodicReportRow' as a table of renderable text. There is
+-- one row per line and each row has a number of columns corresponding to the dates.
+multiBalanceRowAsTableTextHelper :: AmountDisplayOpts -> ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount
+                                 -> [[Either (ElidableList String RenderText) RenderText]]
 multiBalanceRowAsTableTextHelper bopts ReportOpts{..} colspans (PeriodicReportRow _ as rowtot rowavg) =
     case layout_ of
-      LayoutWide width -> [fmap (showMixedAmountB bopts{displayMaxWidth=width}) allamts]
-      LayoutTall       -> paddedTranspose mempty
-                           . fmap (showMixedAmountLinesB bopts{displayMaxWidth=Nothing})
-                           $ allamts
-      LayoutBare       -> zipWith (:) (map renderText cs)  -- add symbols
-                           . transpose                             -- each row becomes a list of Text quantities
-                           . map (showMixedAmountLinesB bopts{displayOrder=Just cs, displayMinWidth=Nothing})
-                           $ allamts
-      LayoutTidy       -> concat
-                           . zipWith (map . addDateColumns) colspans
-                           . fmap ( zipWith (\c a -> [renderText c, a]) cs
-                                  . showMixedAmountLinesB bopts{displayOrder=Just cs, displayMinWidth=Nothing})
-                           $ as  -- Do not include totals column or average for tidy output, as this
-                                 -- complicates the data representation and can be easily calculated
+      LayoutWide _ -> [map (Left . showMixedAmountOneLineB bopts) allamts]
+      LayoutTall   -> map (map Right)
+                       . colsAsRowsAll top
+                       . map (showMixedAmountLinesB bopts)
+                       $ allamts
+      LayoutBare   -> map (map Right)
+                       . zipWith (:) (map renderText cs)  -- add symbols
+                       . colsAsRowsAll top                -- each row becomes a list of Text quantities
+                       . map (showMixedAmountLinesB bopts{displayOrder=Just cs})
+                       $ allamts
+      LayoutTidy   -> map (map Right) . concat
+                       . zipWith (map . addDateColumns) colspans
+                       . map ( zipWith (\c a -> [renderText c, a]) cs
+                             . showMixedAmountLinesB bopts{displayOrder=Just cs})
+                       $ as  -- Do not include totals column or average for tidy output, as this
+                             -- complicates the data representation and can be easily calculated
   where
     totalscolumn = row_total_ && balanceaccum_ `notElem` [Cumulative, Historical]
     cs = if all mixedAmountLooksZero allamts then [""] else S.toList $ foldMap maCommodities allamts
@@ -712,20 +731,6 @@ multiBalanceRowAsTableTextHelper bopts ReportOpts{..} colspans (PeriodicReportRo
     addDateColumns span@(DateSpan s e) = (renderText (showDateSpan span) :)
                                        . (renderText (maybe "" showDate s) :)
                                        . (renderText (maybe "" (showDate . addDays (-1)) e) :)
-
-    paddedTranspose :: a -> [[a]] -> [[a]]
-    paddedTranspose _ [] = [[]]
-    paddedTranspose n as = take (maximum . map length $ as) . trans $ as
-      where
-        trans ([] : xss)  = (n : map h xss) :  trans ([n] : map t xss)
-        trans ((x : xs) : xss) = (x : map h xss) : trans (m xs : map t xss)
-        trans [] = []
-        h (x:_) = x
-        h [] = n
-        t (_:xs) = xs
-        t [] = [n]
-        m (x:xs) = x:xs
-        m [] = [n]
 
 tests_Balance = testGroup "Balance" [
 

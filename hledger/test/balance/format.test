@@ -22,7 +22,7 @@ $ hledger -f sample.journal balance --tree --format="%30(account) %-.20(total)"
 # Test too-small maximum balance widths
 $ hledger -f - balance -N --format="%7.7(total) %(account)"
 >
-1 mor.. a
+..0 AAA a
 500 AAA b
 >= 0
 

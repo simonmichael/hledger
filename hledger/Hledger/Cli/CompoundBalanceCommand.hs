@@ -22,6 +22,7 @@ import Data.Time.Calendar (Day, addDays)
 import System.Console.CmdArgs.Explicit as C
 import Lucid as L hiding (value_)
 import Text.Layout.Table
+import Text.Layout.Table.Cell.ElidableList (ElidableList)
 
 import Hledger
 import Hledger.Read.CsvReader (CSV, printCSV)
@@ -219,7 +220,7 @@ compoundBalanceReportAsText ropts
   where
     bigtable =
       case map (subreportAsTable ropts) subreports of
-        []   -> Table (T.pack <$> noneH) (T.pack <$> noneH) [[]] :: Table T.Text T.Text RenderText
+        []   -> Table (T.pack <$> noneH) (T.pack <$> noneH) [[]] :: Table T.Text T.Text (Either (ElidableList String RenderText) RenderText)
         r:rs -> foldl' (concatTables DoubleLine) r rs
     bigtable'
       | no_total_ ropts || length subreports == 1 =
@@ -232,13 +233,13 @@ compoundBalanceReportAsText ropts
 
     -- | Convert a named multi balance report to a table suitable for
     -- concatenating with others to make a compound balance report table.
-    subreportAsTable :: ReportOpts -> (T.Text, MultiBalanceReport, w) -> Table T.Text T.Text RenderText
+    subreportAsTable :: ReportOpts -> (T.Text, MultiBalanceReport, w) -> Table T.Text T.Text (Either (ElidableList String RenderText) RenderText)
     subreportAsTable ropts (title, r, _) = t
       where
         -- convert to table
         Table lefthdrs tophdrs cells = balanceReportAsTable ropts r
         -- tweak the layout
-        t = Table (groupH SingleLine [headerH (headerColumn left Nothing) title, lefthdrs]) tophdrs (replicate (length $ headerContents tophdrs) mempty : cells)
+        t = Table (groupH SingleLine [headerH (headerColumn left Nothing) title, lefthdrs]) tophdrs (replicate (length $ headerContents tophdrs) emptyCell : cells)
 
 -- | Render a compound balance report as CSV.
 -- Subreports' CSV is concatenated, with the headings rows replaced by a

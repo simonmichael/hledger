@@ -28,6 +28,7 @@ import Brick.Widgets.Edit
 import Lens.Micro.Platform
 import Safe
 import System.Console.ANSI
+import Text.Layout.Table
 
 
 import Hledger
@@ -98,7 +99,7 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec
                             ,rsItemBalanceAmount = showamt bal
                             ,rsItemTransaction   = t
                             }
-            where showamt = showMixedAmountB oneLine{displayMaxWidth=Just 32}
+            where showamt = showMixedAmountOneLineB noPrice
     -- blank items are added to allow more control of scroll position; we won't allow movement over these.
     -- XXX Ugly. Changing to 0 helps when debugging.
     blankitems = replicate 100  -- "100 ought to be enough for anyone"
@@ -106,8 +107,8 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec
                             ,rsItemStatus        = Unmarked
                             ,rsItemDescription   = ""
                             ,rsItemOtherAccounts = ""
-                            ,rsItemChangeAmount  = mempty
-                            ,rsItemBalanceAmount = mempty
+                            ,rsItemChangeAmount  = emptyCell
+                            ,rsItemBalanceAmount = emptyCell
                             ,rsItemTransaction   = nulltransaction
                             }
     -- build the List
@@ -165,8 +166,8 @@ rsDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
         whitespacewidth = 10 -- inter-column whitespace, fixed width
         minnonamtcolswidth = datewidth + 1 + 2 + 2 -- date column plus at least 1 for status and 2 for desc and accts
         maxamtswidth = max 0 (totalwidth - minnonamtcolswidth - whitespacewidth)
-        maxchangewidthseen = maximum' $ map (visibleLength . rsItemChangeAmount) displayitems
-        maxbalwidthseen = maximum' $ map (visibleLength . rsItemBalanceAmount) displayitems
+        maxchangewidthseen = min maxAmountWidth . maximum' $ map (visibleLength . rsItemChangeAmount) displayitems
+        maxbalwidthseen = min maxAmountWidth . maximum' $ map (visibleLength . rsItemBalanceAmount) displayitems
         changewidthproportion = fromIntegral maxchangewidthseen / fromIntegral (maxchangewidthseen + maxbalwidthseen)
         maxchangewidth = round $ changewidthproportion * fromIntegral maxamtswidth
         maxbalwidth = maxamtswidth - maxchangewidth
@@ -268,8 +269,8 @@ rsDrawItem (datewidth,descwidth,acctswidth,changewidth,balwidth) selected Regist
       txt "   " <+>
       withAttr balattr (txt $ fitText (Just balwidth) (Just balwidth) True False balanceAmt)
   where
-    changeAmt  = buildCell rsItemChangeAmount
-    balanceAmt = buildCell rsItemBalanceAmount
+    changeAmt  = trim right (singleCutMark "..") maxAmountWidth rsItemChangeAmount
+    balanceAmt = trim right (singleCutMark "..") maxAmountWidth rsItemBalanceAmount
     changeattr | T.any (=='-') changeAmt  = sel $ attrName "list" <> attrName "amount" <> attrName "decrease"
                | otherwise                = sel $ attrName "list" <> attrName "amount" <> attrName "increase"
     balattr    | T.any (=='-') balanceAmt = sel $ attrName "list" <> attrName "balance" <> attrName "negative"
@@ -422,6 +423,8 @@ rsHandle ev = do
     _ -> errorWrongScreenType
 
 isBlankElement mel = ((rsItemDate . snd) <$> mel) == Just ""
+
+maxAmountWidth = 32
 
 rsCenterAndContinue ui = do
   scrollSelectionToMiddle $ rsList $ aScreen ui

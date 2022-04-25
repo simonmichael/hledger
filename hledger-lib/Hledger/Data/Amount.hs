@@ -135,6 +135,7 @@ module Hledger.Data.Amount (
   showMixedAmountElided,
   showMixedAmountWithZeroCommodity,
   showMixedAmountB,
+  showMixedAmountOneLineB,
   showMixedAmountLinesB,
   buildCell,
   mixedAmountSetPrecision,
@@ -151,7 +152,7 @@ import Data.Char (isDigit)
 import Data.Decimal (DecimalRaw(..), decimalPlaces, normalizeDecimal, roundTo)
 import Data.Default (Default(..))
 import Data.Foldable (toList)
-import Data.List (find, foldl', intercalate, intersperse, mapAccumL, partition)
+import Data.List (find, foldl', intercalate, intersperse)
 import Data.List.NonEmpty (NonEmpty(..), nonEmpty)
 import qualified Data.Map.Strict as M
 import qualified Data.Set as S
@@ -160,16 +161,16 @@ import Data.Semigroup (Semigroup(..))
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Word (Word8)
-import Safe (lastDef, lastMay)
 import System.Console.ANSI (Color(..),ColorIntensity(..))
+import Text.Layout.Table (right, singleCutMark)
+import Text.Layout.Table.Cell.ElidableList (ElidableList, elidableListR)
 
 import Test.Tasty (testGroup)
 import Test.Tasty.HUnit ((@?=), assertBool, testCase)
 
 import Hledger.Data.Types
 import Hledger.Utils
-  (Cell(..), RenderText, numDigitsInt, textQuoteIfNeeded, trace, colorB,
-  renderText, visibleLength)
+  (Cell(..), RenderText, textQuoteIfNeeded, trace, colorB, renderText, trim)
 
 
 -- A 'Commodity' is a symbol representing a currency or some other kind of
@@ -201,8 +202,6 @@ data AmountDisplayOpts = AmountDisplayOpts
   , displayThousandsSep  :: Bool       -- ^ Whether to display thousands separators.
   , displayColour        :: Bool       -- ^ Whether to colourise negative Amounts.
   , displayOneLine       :: Bool       -- ^ Whether to display on one line.
-  , displayMinWidth      :: Maybe Int  -- ^ Minimum width to pad to
-  , displayMaxWidth      :: Maybe Int  -- ^ Maximum width to clip to
   -- | Display amounts in this order (without the commodity symbol) and display
   -- a 0 in case a corresponding commodity does not exist
   , displayOrder         :: Maybe [CommoditySymbol]
@@ -218,8 +217,6 @@ noColour = AmountDisplayOpts { displayPrice         = True
                              , displayZeroCommodity = False
                              , displayThousandsSep  = True
                              , displayOneLine       = False
-                             , displayMinWidth      = Just 0
-                             , displayMaxWidth      = Nothing
                              , displayOrder         = Nothing
                              }
 
@@ -802,17 +799,17 @@ showMixedAmountWithoutPrice c = buildCell . showMixedAmountB noPrice{displayColo
 -- any \@ prices.
 -- With a True argument, adds ANSI codes to show negative amounts in red.
 --
--- > showMixedAmountOneLineWithoutPrice c = buildCell . showMixedAmountB oneLine{displayColour=c}
+-- > showMixedAmountOneLineWithoutPrice c = buildCell . showMixedAmountOneLineB noPrice{displayColour=c}
 showMixedAmountOneLineWithoutPrice :: Bool -> MixedAmount -> String
-showMixedAmountOneLineWithoutPrice c = buildCell . showMixedAmountB oneLine{displayColour=c}
+showMixedAmountOneLineWithoutPrice c = buildCell . showMixedAmountB noPrice{displayColour=c}
 
 -- | Like showMixedAmountOneLineWithoutPrice, but show at most the given width,
 -- with an elision indicator if there are more.
 -- With a True argument, adds ANSI codes to show negative amounts in red.
 --
--- > showMixedAmountElided w c = buildCell . showMixedAmountB oneLine{displayColour=c, displayMaxWidth=Just w}
+-- > showMixedAmountElided w c = trim right w . showMixedAmountOneLineB noPrice{displayColour=c}
 showMixedAmountElided :: Int -> Bool -> MixedAmount -> String
-showMixedAmountElided w c = buildCell . showMixedAmountB oneLine{displayColour=c, displayMaxWidth=Just w}
+showMixedAmountElided w c = trim right (singleCutMark "..") w . showMixedAmountOneLineB noPrice{displayColour=c}
 
 -- | Get an unambiguous string representation of a mixed amount for debugging.
 showMixedAmountDebug :: MixedAmount -> String
@@ -831,10 +828,10 @@ showMixedAmountDebug m | m == missingmixedamt = "(missing)"
 --   exceed the requested maximum width.
 -- - If displayed on multiple lines, any Amounts longer than the
 --   maximum width will be elided.
-showMixedAmountB :: AmountDisplayOpts -> MixedAmount -> RenderText
+showMixedAmountB :: AmountDisplayOpts -> MixedAmount -> Either (ElidableList String RenderText) RenderText
 showMixedAmountB opts ma
-    | displayOneLine opts = showMixedAmountOneLineB opts ma
-    | otherwise           = mconcat $ intersperse sep lines
+    | displayOneLine opts = Left $ showMixedAmountOneLineB opts ma
+    | otherwise           = Right . mconcat $ intersperse sep lines
   where
     lines = showMixedAmountLinesB opts ma
     sep = "\n"
@@ -844,95 +841,20 @@ showMixedAmountB opts ma
 -- width. This does not honour displayOneLine: all amounts will be displayed as if
 -- displayOneLine were False.
 showMixedAmountLinesB :: AmountDisplayOpts -> MixedAmount -> [RenderText]
-showMixedAmountLinesB opts@AmountDisplayOpts{displayMaxWidth=mmax,displayMinWidth=mmin} ma =
-    map (adBuilder . pad) elided
-  where
-    astrs = amtDisplayList 0 (showAmountB opts) . orderedAmounts opts $
-              if displayPrice opts then ma else mixedAmountStripPrices ma
-    width = maximum $ map (visibleLength . adBuilder) elided
-
-    pad amt
-      | Just mw <- mmin =
-          let w = (max width mw) - visibleLength (adBuilder amt)
-           in amt{ adBuilder = renderText (T.replicate w " ") <> adBuilder amt }
-      | otherwise = amt
-
-    elided = maybe id elideTo mmax astrs
-    elideTo m xs = maybeAppend elisionStr short
-      where
-        elisionStr = elisionDisplay (Just m) 0 (length long) $ lastDef nullAmountDisplay short
-        (short, long) = partition ((m>=) . visibleLength . adBuilder) xs
+showMixedAmountLinesB opts =
+    map (showAmountB opts) . orderedAmounts opts
+    . if displayPrice opts then id else mixedAmountStripPrices
 
 -- | Helper for showMixedAmountB to deal with single line displays. This does not
 -- honour displayOneLine: all amounts will be displayed as if displayOneLine
 -- were True.
-showMixedAmountOneLineB :: AmountDisplayOpts -> MixedAmount -> RenderText
-showMixedAmountOneLineB opts@AmountDisplayOpts{displayMaxWidth=mmax,displayMinWidth=mmin} ma =
-    pad . mconcat . intersperse sep $ map adBuilder elided
-  where
-    width  = maybe 0 adTotal $ lastMay elided
-    astrs  = amtDisplayList (visibleLength sep) (showAmountB opts) . orderedAmounts opts $
-               if displayPrice opts then ma else mixedAmountStripPrices ma
-    sep    = ", "
-    n      = length astrs
-
-    pad = (renderText (T.replicate (fromMaybe 0 mmin - width) " ") <>)
-
-    elided = maybe id elideTo mmax astrs
-    elideTo m = addElide . takeFitting m . withElided
-    -- Add the last elision string to the end of the display list
-    addElide [] = []
-    addElide xs = maybeAppend (snd $ last xs) $ map fst xs
-    -- Return the elements of the display list which fit within the maximum width
-    -- (including their elision strings). Always display at least one amount,
-    -- regardless of width.
-    takeFitting _ []     = []
-    takeFitting m (x:xs) = x : dropWhileRev (\(a,e) -> m < adTotal (fromMaybe a e)) xs
-    dropWhileRev p = foldr (\x xs -> if null xs && p x then [] else x:xs) []
-
-    -- Add the elision strings (if any) to each amount
-    withElided = zipWith (\num amt -> (amt, elisionDisplay Nothing (visibleLength sep) num amt)) [n-1,n-2..0]
+showMixedAmountOneLineB :: AmountDisplayOpts -> MixedAmount -> ElidableList String RenderText
+showMixedAmountOneLineB opts = elidableListR (\n -> show n ++ " more..") ", " . showMixedAmountLinesB opts
 
 orderedAmounts :: AmountDisplayOpts -> MixedAmount -> [Amount]
 orderedAmounts dopts = maybe id (mapM pad) (displayOrder dopts) . amounts
   where
     pad c = fromMaybe (amountWithCommodity c nullamt) . find ((c==) . acommodity)
-
-
-data AmountDisplay = AmountDisplay
-  { adBuilder :: !RenderText  -- ^ String representation of the Amount
-  , adTotal   :: !Int         -- ^ Cumulative length of MixedAmount this Amount is part of, including separators
-  } deriving (Show)
-
-nullAmountDisplay :: AmountDisplay
-nullAmountDisplay = AmountDisplay mempty 0
-
-amtDisplayList :: Int -> (Amount -> RenderText) -> [Amount] -> [AmountDisplay]
-amtDisplayList sep showamt = snd . mapAccumL display (-sep)
-  where
-    display tot amt = (tot', AmountDisplay str tot')
-      where
-        str  = showamt amt
-        tot' = tot + (visibleLength str) + sep
-
--- The string "m more", added to the previous running total
-elisionDisplay :: Maybe Int -> Int -> Int -> AmountDisplay -> Maybe AmountDisplay
-elisionDisplay mmax sep n lastAmt
-  | n > 0     = Just $ AmountDisplay str (adTotal lastAmt + len)
-  | otherwise = Nothing
-  where
-    fullString = T.pack $ show n ++ " more.."
-    -- sep from the separator, 7 from " more..", numDigits n from number
-    fullLength = sep + 7 + numDigitsInt n
-
-    str | Just m <- mmax, fullLength > m = renderText $ T.take (m - 2) fullString <> ".."
-        | otherwise                      = renderText fullString
-    len = case mmax of Nothing -> fullLength
-                       Just m  -> max 2 $ min m fullLength
-
-maybeAppend :: Maybe a -> [a] -> [a]
-maybeAppend Nothing  = id
-maybeAppend (Just a) = (++[a])
 
 -- | Compact labelled trace of a mixed amount, for debugging.
 ltraceamount :: String -> MixedAmount -> MixedAmount

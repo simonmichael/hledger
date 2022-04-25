@@ -45,6 +45,7 @@ import Brick
 import Brick.Widgets.List (List)
 import Brick.Widgets.Edit (Editor)
 import Lens.Micro.Platform
+import Text.Layout.Table.Cell.ElidableList (ElidableList)
 import Text.Show.Functions ()
   -- import the Show instance for functions. Warning, this also re-exports it
 
@@ -149,13 +150,13 @@ data AccountsScreenItem = AccountsScreenItem {
 
 -- | An item in the register screen's list of transactions in the current account.
 data RegisterScreenItem = RegisterScreenItem {
-   rsItemDate           :: Text         -- ^ date
-  ,rsItemStatus         :: Status       -- ^ transaction status
-  ,rsItemDescription    :: Text         -- ^ description
-  ,rsItemOtherAccounts  :: Text         -- ^ other accounts
-  ,rsItemChangeAmount   :: RenderText   -- ^ the change to the current account from this transaction
-  ,rsItemBalanceAmount  :: RenderText   -- ^ the balance or running total after this transaction
-  ,rsItemTransaction    :: Transaction  -- ^ the full transaction
+   rsItemDate           :: Text                             -- ^ date
+  ,rsItemStatus         :: Status                           -- ^ transaction status
+  ,rsItemDescription    :: Text                             -- ^ description
+  ,rsItemOtherAccounts  :: Text                             -- ^ other accounts
+  ,rsItemChangeAmount   :: ElidableList String RenderText   -- ^ the change to the current account from this transaction
+  ,rsItemBalanceAmount  :: ElidableList String RenderText   -- ^ the balance or running total after this transaction
+  ,rsItemTransaction    :: Transaction                      -- ^ the full transaction
   }
   deriving (Show)
 

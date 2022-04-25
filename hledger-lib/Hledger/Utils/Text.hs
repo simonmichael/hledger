@@ -1,6 +1,7 @@
 -- | Text formatting helpers, ported from String as needed.
 -- There may be better alternatives out there.
 
+{-# LANGUAGE DeriveFunctor     #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Hledger.Utils.Text
@@ -209,23 +210,20 @@ textConcatBottomPadded = concatLines . map mconcat . gridB (repeat def)
 -- It clips and pads on the right when the fourth argument is true, otherwise on the left.
 -- It treats wide characters as double width.
 fitText :: Maybe Int -> Maybe Int -> Bool -> Bool -> Text -> Text
-fitText mminwidth mmaxwidth ellipsify rightside =
-    maybe id clip' mmaxwidth . maybe buildCell pad' mminwidth . WideText
+fitText mminwidth mmaxwidth ellipsify rightside = case (mminwidth, mmaxwidth) of
+    (Nothing, Nothing) -> id
+    (Just m,  Nothing) -> pad pos m . WideText
+    (Nothing, Just n ) -> trim pos cm n . WideText
+    (Just m,  Just n ) -> trimOrPadBetween pos cm m n . WideText
   where
-    clip' = trimIfWider ellipsify rightside
-    pad'  = pad (if rightside then left else right)
-
--- | Trim a piece of text if it is wider than given.
-trimIfWider :: Bool -> Bool -> Int -> Text -> Text
-trimIfWider ellipsify rightside w t
-  | visibleLength (WideText t) > w = trim (if rightside then left else right) (if ellipsify then singleCutMark ".." else noCutMark) w $ WideText t
-  | otherwise = t
+    pos = if rightside then left else right
+    cm = if ellipsify then singleCutMark ".." else noCutMark
 
 -- | Double-width-character-aware string truncation. Take as many
 -- characters as possible from a string without exceeding the
 -- specified width. Eg textTakeWidth 3 "りんご" = "り".
 textTakeWidth :: Int -> Text -> Text
-textTakeWidth = trimIfWider False True
+textTakeWidth n = trim left noCutMark n . WideText
 
 -- | Add a prefix to each line of a string.
 linesPrepend :: Text -> Text -> Text
@@ -253,14 +251,15 @@ unlinesB = foldMap (<> TB.singleton '\n')
 
 -- | A Table contains information about the row and column headers, as well as a table of data.
 data Table rh ch a = Table (HeaderSpec LineStyle rh) (HeaderSpec LineStyle ch) [[a]]
+  deriving (Functor)
 
 -- | Add the second table below the first, discarding its column headings.
-concatTables :: Monoid a => LineStyle -> Table rh ch a -> Table rh ch2 a -> Table rh ch a
+concatTables :: Cell a => LineStyle -> Table rh ch a -> Table rh ch2 a -> Table rh ch a
 concatTables prop (Table hLeft hTop dat) (Table hLeft' _ dat') =
     Table (groupH prop [hLeft, hLeft']) hTop (map padRow $ dat ++ dat')
   where
     numCols = length $ headerContents hTop
-    padRow r = replicate (numCols - length r) mempty ++ r
+    padRow r = replicate (numCols - length r) emptyCell ++ r
 
 -- | An alias for formatted text measured by display length.
 type RenderText = Formatted WideText

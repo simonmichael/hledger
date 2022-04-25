@@ -27,6 +27,7 @@ import Safe
 import System.Console.ANSI
 import System.FilePath (takeFileName)
 import Text.DocLayout (realLength)
+import Text.Layout.Table
 
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion)
@@ -215,10 +216,10 @@ asDrawItem (acctwidth, balwidth) selected AccountsScreenItem{..} =
       txt balspace <+>
       splitAmounts balBuilder
       where
-        balBuilder = maybe mempty showamt asItemMixedAmount
-        showamt = showMixedAmountB oneLine{displayMinWidth=Just balwidth, displayMaxWidth=Just balwidth}
+        balBuilder = maybe emptyCell showamt asItemMixedAmount
+        showamt = trimOrPad right (singleCutMark "..") balwidth . showMixedAmountOneLineB noPrice
         balspace = T.replicate (2 + balwidth - visibleLength balBuilder) " "
-        splitAmounts = foldr1 (<+>) . intersperse (str ", ") . map renderamt . T.splitOn ", " . buildCell
+        splitAmounts = foldr1 (<+>) . intersperse (str ", ") . map renderamt . T.splitOn ", "
         renderamt :: T.Text -> Widget Name
         renderamt a | T.any (=='-') a = withAttr (sel $ attrName "list" <> attrName "balance" <> attrName "negative") $ txt a
                     | otherwise       = withAttr (sel $ attrName "list" <> attrName "balance" <> attrName "positive") $ txt a

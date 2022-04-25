@@ -52,6 +52,7 @@ import qualified Data.Set as Set
 import Data.Time.Calendar (fromGregorian)
 import Safe (lastDef, minimumMay)
 import Text.Layout.Table
+import Text.Layout.Table.Cell.ElidableList (ElidableList)
 
 import qualified Data.Text as T
 import qualified Data.Text.Lazy.Builder as TB
@@ -588,15 +589,16 @@ cumulativeSum start = snd . M.mapAccum (\a b -> let s = sumAcct a b in (s, s)) s
 -- made using 'balanceReportAsTable'), render it in a format suitable for
 -- console output. Amounts with more than two commodities will be elided
 -- unless --no-elide is used.
-balanceReportTableAsText :: ReportOpts -> Table T.Text T.Text RenderText -> TB.Builder
+balanceReportTableAsText :: ReportOpts -> Table T.Text T.Text (Either (ElidableList String RenderText) RenderText) -> TB.Builder
 balanceReportTableAsText ReportOpts{..} (Table rh ch cells) =
     tableStringB colSpec style rowHeader colHeader (map rowG cells) <> TB.singleton '\n'
   where
     colSpec = case layout_ of
-        LayoutBare | not transpose_ -> col left : repeat (col right)
-        _                           -> repeat (col right)
+        LayoutBare | not transpose_ -> col left Nothing : repeat (col right Nothing)
+        LayoutWide width            -> repeat (col right width)
+        _                           -> repeat (col right Nothing)
       where
-        col pos = column expand pos noAlign noCutMark
+        col pos width = column (maybe expand expandUntil width) pos noAlign noCutMark
     style = if pretty_ then hledgerPrettyStyle else hledgerStyle
     rowHeader = renderText <$> rh
     colHeader = renderText <$> ch
