@@ -1,0 +1,13 @@
+$$$ hledger check ordereddates -f ordereddates.j
+>>>2
+hledger: Error: transaction date is out of order
+at /Users/simon/src/hledger/hledger/test/errors/ordereddates.j:10-11:
+
+  2022-01-02 p
+      (a)               1
+  
+> 2022-01-01 p
+      (a)               1
+  
+
+>>>=1

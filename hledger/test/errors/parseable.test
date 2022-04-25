@@ -1,0 +1,10 @@
+$$$ hledger check -f parseable.j
+>>>2
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/parseable.j:3:2:
+  |
+3 | 1
+  |  ^
+unexpected newline
+expecting date separator or digit
+
+>>>=1

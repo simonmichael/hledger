@@ -99,60 +99,18 @@ Notes (see also [#1436][]):
 ## Current journal errors
 
 <!-- to update: erase the below then C-u M-! ./showall -->
-hledger 1.25.99-gb8d78661e-20220422 error messages, last updated 2022-04-22:
+<!-- GENERATED: -->
+hledger 1.25.99-gc5e159574-20220422 error messages:
 
-### parseable
+### accounts
 ```
-hledger: Error: /Users/simon/src/hledger/hledger/test/errors/parseable.j:3:2:
-  |
-3 | 1
-  |  ^
-unexpected newline
-expecting date separator or digit
-
-```
-
-### parseable-dates
-```
-hledger: Error: /Users/simon/src/hledger/hledger/test/errors/parseable-dates.j:3:1:
-  |
-3 | 2022/1/32
-  | ^^^^^^^^^
-well-formed but invalid date: 2022/1/32
-
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./accounts.j:4:6:
+  | 2022-01-01
+4 |     (a)               1
+  |      ^
+undeclared account "a"
 ```
 
-### parseable-regexps
-```
-hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./parseable-regexps.j:3:8:
-  |
-3 | alias /(/ = a
-  |        ^
-this regular expression could not be compiled: (
-
-```
-
-### balanced
-```
-hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./balanced.j:3-4
-could not balance this transaction:
-real postings' sum should be 0 but is: 1
-2022-01-01
-    a               1
-
-```
-
-### balancednoautoconversion
-```
-hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./balancednoautoconversion.j:6-8
-could not balance this transaction:
-real postings' sum should be 0 but is:  1 A
--1 B
-2022-01-01
-    a             1 A
-    b            -1 B
-
-```
 
 ### assertions
 ```
@@ -168,38 +126,40 @@ commodity:
 calculated: 0
 asserted:   1
 difference: 1
-
 ```
 
-### accounts
-```
-hledger: Error: /Users/simon/src/hledger/hledger/test/errors/accounts.j:4:6:
-  | 2022-01-01
-4 |     (a)               1
-  |      ^
-undeclared account "a"
 
+### balanced
 ```
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./balanced.j:3-4
+could not balance this transaction:
+real postings' sum should be 0 but is: 1
+2022-01-01
+    a               1
+```
+
+
+### balancednoautoconversion
+```
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./balancednoautoconversion.j:6-8
+could not balance this transaction:
+real postings' sum should be 0 but is:  1 A
+-1 B
+2022-01-01
+    a             1 A
+    b            -1 B
+```
+
 
 ### commodities
 ```
-hledger: Error: /Users/simon/src/hledger/hledger/test/errors/commodities.j:6:
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./commodities.j:6:
   | 2022-01-01
 6 |     (a)             A 1
-  |                     ^
+  |                     ^^^
 undeclared commodity "A"
-
 ```
 
-### payees
-```
-hledger: Error: /Users/simon/src/hledger/hledger/test/errors/payees.j:6:12:
-6 | 2022-01-01 p
-  |            ^
-  |     (a)             A 1
-undeclared payee "p"
-
-```
 
 ### ordereddates
 ```
@@ -212,8 +172,49 @@ at /Users/simon/src/hledger/hledger/test/errors/./ordereddates.j:10-11:
 > 2022-01-01 p
       (a)               1
   
-
 ```
+
+
+### parseable-dates
+```
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./parseable-dates.j:3:1:
+  |
+3 | 2022/1/32
+  | ^^^^^^^^^
+well-formed but invalid date: 2022/1/32
+```
+
+
+### parseable-regexps
+```
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./parseable-regexps.j:3:8:
+  |
+3 | alias /(/ = a
+  |        ^
+this regular expression could not be compiled: (
+```
+
+
+### parseable
+```
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./parseable.j:3:2:
+  |
+3 | 1
+  |  ^
+unexpected newline
+expecting date separator or digit
+```
+
+
+### payees
+```
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./payees.j:6:12:
+6 | 2022-01-01 p
+  |            ^
+  |     (a)             A 1
+undeclared payee "p"
+```
+
 
 ### uniqueleafnames
 ```
@@ -223,5 +224,5 @@ seen in "a:c" in transaction at: /Users/simon/src/hledger/hledger/test/errors/./
 
 > 2022-01-01 p
 >     (a:c)               1
-
 ```
+

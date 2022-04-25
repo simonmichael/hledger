@@ -1,0 +1,16 @@
+$$$ hledger check -f assertions.j
+>>>2
+hledger: Error: balance assertion: /Users/simon/src/hledger/hledger/test/errors/assertions.j:4:8
+transaction:
+2022-01-01
+    a               0 = 1
+
+assertion details:
+date:       2022-01-01
+account:    a
+commodity:  
+calculated: 0
+asserted:   1
+difference: 1
+
+>>>=1
