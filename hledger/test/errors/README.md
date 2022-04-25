@@ -44,17 +44,17 @@ Here is the current status
 
 |                          | std format | line | column     | excerpt | flycheck | flycheck region |
 |--------------------------|------------|------|------------|---------|----------|-----------------|
+| accounts                 | Y          | Y    | Y          | YY      |          |                 |
+| assertions               |            | Y    |            | Y       |          |                 |
+| balanced                 |            | Y    | -          | Y       |          |                 |
+| balancednoautoconversion |            | Y    | -          | Y       |          |                 |
+| commodities              | Y          | Y    | Y (approx) | YY      |          |                 |
+| ordereddates             | Y          | Y    | Y          | YY      |          |                 |
 | parseable                | Y          | Y    | Y          | YY      |          |                 |
 | parseable-dates          | Y          | Y    | Y          | YY      |          |                 |
 | parseable-regexps        | Y          | Y    | Y          | YY      |          |                 |
-| balanced                 |            | Y    | -          | Y       |          |                 |
-| balancednoautoconversion |            | Y    | -          | Y       |          |                 |
-| assertions               |            | Y    |            | Y       |          |                 |
-| accounts                 | Y          | Y    | Y          | YY      |          |                 |
-| commodities              | Y          | Y    | Y (approx) | YY      |          |                 |
 | payees                   | Y          | Y    | Y          | YY      |          |                 |
-| ordereddates             |            |      |            | Y       |          |                 |
-| uniqueleafnames          |            |      |            | Y       |          |                 |
+| uniqueleafnames          | Y          | Y    | Y          | YY      |          |                 |
 
 Key:
 - std format      - the error message follows a standard format (location on first line, megaparsec-like excerpt, description).
@@ -100,11 +100,11 @@ Notes (see also [#1436][]):
 
 <!-- to update: erase the below then C-u M-! ./showall -->
 <!-- GENERATED: -->
-hledger 1.25.99-gc5e159574-20220422 error messages:
+hledger 1.25.99-gfc3d9d407-20220424 error messages:
 
 ### accounts
 ```
-hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./accounts.j:4:6:
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./accounts.j:4:6-6:
   | 2022-01-01
 4 |     (a)               1
   |      ^
@@ -153,7 +153,7 @@ real postings' sum should be 0 but is:  1 A
 
 ### commodities
 ```
-hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./commodities.j:6:
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./commodities.j:6:21-23:
   | 2022-01-01
 6 |     (a)             A 1
   |                     ^^^
@@ -163,15 +163,11 @@ undeclared commodity "A"
 
 ### ordereddates
 ```
-hledger: Error: transaction date is out of order
-at /Users/simon/src/hledger/hledger/test/errors/./ordereddates.j:10-11:
-
-  2022-01-02 p
-      (a)               1
-  
-> 2022-01-01 p
-      (a)               1
-  
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./ordereddates.j:10:1-10:
+10 | 2022-01-01 p
+   | ^^^^^^^^^^
+   |     (a)               1
+transaction's date is out of order with previous transaction's date 2022-01-02
 ```
 
 
@@ -208,7 +204,7 @@ expecting date separator or digit
 
 ### payees
 ```
-hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./payees.j:6:12:
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./payees.j:6:12-12:
 6 | 2022-01-01 p
   |            ^
   |     (a)             A 1
@@ -218,11 +214,11 @@ undeclared payee "p"
 
 ### uniqueleafnames
 ```
-hledger: Error: account leaf names are not unique
-leaf name "c" appears in account names: "a:c", "b:c"
-seen in "a:c" in transaction at: /Users/simon/src/hledger/hledger/test/errors/./uniqueleafnames.j:8-9
-
-> 2022-01-01 p
->     (a:c)               1
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./uniqueleafnames.j:9:8-8:
+  | 2022-01-01 p
+9 |     (a:c)               1
+  |        ^
+account leaf name "c" is not unique
+it is used in account names: "a:c", "b:c"
 ```
 
