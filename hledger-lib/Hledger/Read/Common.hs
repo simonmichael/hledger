@@ -112,6 +112,7 @@ module Hledger.Read.Common (
   skipNonNewlineSpaces,
   skipNonNewlineSpaces1,
   aliasesFromOpts,
+  makeTransactionErrorExcerpt,
 
   -- * tests
   tests_Common,
@@ -454,6 +455,7 @@ journalCheckCommoditiesDeclared j = mapM_ checkcommodities (journalPostings j)
 -- and the rendered excerpt, or as much of these as is possible.
 makeTransactionErrorExcerpt :: Transaction -> (Transaction -> Maybe (Int, Maybe Int)) -> (FilePath, Int, Maybe (Int, Maybe Int), Text)
 makeTransactionErrorExcerpt t findtxnerrorcolumns = (f, tl, merrcols, ex)
+  -- XXX findtxnerrorcolumns is awkward, I don't think this is the final form
   where
     (SourcePos f tpos _) = fst $ tsourcepos t
     tl = unPos tpos
@@ -469,9 +471,9 @@ decorateTransactionErrorExcerpt l mcols txt =
     (ls,ms) = splitAt 1 $ T.lines txt
     ls' = map ((T.pack (show l) <> " | ") <>) ls
     colmarkerline =
-      [lineprefix <> T.replicate col " " <> T.replicate regionw "^"
+      [lineprefix <> T.replicate (col-1) " " <> T.replicate regionw "^"
       | Just (col, mendcol) <- [mcols]
-      , let regionw = maybe 1 (subtract col) mendcol
+      , let regionw = maybe 1 (subtract col) mendcol + 1
       ]
     lineprefix = T.replicate marginw " " <> "| "
       where  marginw = length (show l) + 1
