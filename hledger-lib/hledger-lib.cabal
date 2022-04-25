@@ -184,7 +184,7 @@ test-suite doctest
     , uglymemo
     , unordered-containers >=0.2
     , utf8-string >=0.3.5
-  if impl(ghc >= 9.0) && impl(ghc < 9.2)
+  if impl(ghc < 9.2)
     buildable: False
   default-language: Haskell2010
 
