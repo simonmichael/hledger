@@ -189,20 +189,20 @@ instance Show PeriodicTransaction where
 -- <BLANKLINE>
 --
 -- >>> _ptgen ""
--- *** Exception: failed to parse...
+-- *** Exception: Error: failed to parse...
 -- ...
 --
 -- >>> _ptgen "weekly from 2017"
--- *** Exception: Unable to generate transactions according to "weekly from 2017" because 2017-01-01 is not a first day of the Week
+-- *** Exception: Error: Unable to generate transactions according to "weekly from 2017" because 2017-01-01 is not a first day of the Week
 --
 -- >>> _ptgen "monthly from 2017/5/4"
--- *** Exception: Unable to generate transactions according to "monthly from 2017/5/4" because 2017-05-04 is not a first day of the Month
+-- *** Exception: Error: Unable to generate transactions according to "monthly from 2017/5/4" because 2017-05-04 is not a first day of the Month
 --
 -- >>> _ptgen "every quarter from 2017/1/2"
--- *** Exception: Unable to generate transactions according to "every quarter from 2017/1/2" because 2017-01-02 is not a first day of the Quarter
+-- *** Exception: Error: Unable to generate transactions according to "every quarter from 2017/1/2" because 2017-01-02 is not a first day of the Quarter
 --
 -- >>> _ptgen "yearly from 2017/1/14"
--- *** Exception: Unable to generate transactions according to "yearly from 2017/1/14" because 2017-01-14 is not a first day of the Year
+-- *** Exception: Error: Unable to generate transactions according to "yearly from 2017/1/14" because 2017-01-14 is not a first day of the Year
 --
 -- >>> let reportperiod="daily from 2018/01/03" in let (i,s) = parsePeriodExpr' nulldate reportperiod in runPeriodicTransaction (nullperiodictransaction{ptperiodexpr=reportperiod, ptspan=s, ptinterval=i, ptpostings=["a" `post` usd 1]}) (DateSpan (Just $ fromGregorian 2018 01 01) (Just $ fromGregorian 2018 01 03))
 -- []

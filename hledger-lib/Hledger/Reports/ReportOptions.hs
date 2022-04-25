@@ -801,7 +801,7 @@ makeHledgerClassyLenses ''ReportSpec
 -- >>> _rsQuery $ set querystring ["assets"] defreportspec
 -- Acct (RegexpCI "assets")
 -- >>> _rsQuery $ set querystring ["(assets"] defreportspec
--- *** Exception: Updating ReportSpec failed: try using overEither instead of over or setEither instead of set
+-- *** Exception: Error: Updating ReportSpec failed: try using overEither instead of over or setEither instead of set
 -- >>> _rsQuery $ set period (MonthPeriod 2021 08) defreportspec
 -- Date DateSpan 2021-08
 class HasReportOptsNoUpdate a => HasReportOpts a where
