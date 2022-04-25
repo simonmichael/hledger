@@ -113,6 +113,7 @@ module Hledger.Read.Common (
   skipNonNewlineSpaces1,
   aliasesFromOpts,
   makeTransactionErrorExcerpt,
+  makePostingErrorExcerpt,
 
   -- * tests
   tests_Common,

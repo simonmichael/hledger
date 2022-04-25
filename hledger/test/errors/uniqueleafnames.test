@@ -1,10 +1,9 @@
 $$$ hledger check uniqueleafnames -f uniqueleafnames.j
 >>>2
-hledger: Error: account leaf names are not unique
-leaf name "c" appears in account names: "a:c", "b:c"
-seen in "a:c" in transaction at: /Users/simon/src/hledger/hledger/test/errors/uniqueleafnames.j:8-9
-
-> 2022-01-01 p
->     (a:c)               1
-
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/uniqueleafnames.j:9:8-8:
+  | 2022-01-01 p
+9 |     (a:c)               1
+  |        ^
+account leaf name "c" is not unique
+it is used in account names: "a:c", "b:c"
 >>>=1

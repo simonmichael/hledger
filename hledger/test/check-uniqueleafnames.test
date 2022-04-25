@@ -11,5 +11,5 @@ $ hledger -f- check uniqueleafnames
   (a)     1
   (b:a)   1
 $ hledger -f- check uniqueleafnames
->2 /account leaf names are not unique/
+>2 /account leaf name .* is not unique/
 >=1
