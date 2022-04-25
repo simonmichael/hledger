@@ -15,11 +15,22 @@ tests:
 	for f in $(TESTJOURNALS); do make -s $$(basename $$f .j).test; done
 	make -s test
 
+# Generate a shelltest. Run the test script/journal to generate the error message.
+# Since the error will contain an absolute file path, we must:
+# 1. remove most of the file path
+# 2. test with a (multiline) regex rather than literal text
+# 3. backslash-quote most forward slashes in error messages
+# 4. neutralise any remaining problematic error text (eg in parseable-regexps.test)
 %.test: %.j
 	head -1 $< | sed -E 's%#!/usr/bin/env -S (.*)%$$$$$$ \1 $<%' >$@
-	echo ">>>2" >>$@
-	shelltest $@ | awk '/Got stderr/{f=1;next}/Expected exit code/{f=0}f' >>$@
-	echo ">>>=1" >>$@
+	printf ">>>2 /" >>$@
+	-./$< 2>&1 | sed -E \
+		-e 's%(hledger: Error: ).*/\./(.*)%\1.*\2%' \
+		-e 's%/%\\/%g' \
+		-e 's%alias \\/\(\\/%alias \\/\\(\\/%' \
+		-e 's%compiled: \(%compiled: \\(%' \
+		>>$@
+	printf "/\n>>>= 1" >>$@
 
 readme: $(TESTJOURNALS)
 	@printf "Updating README.md with the error messages of hledger $$(hledger --version | awk '{print $$2}')\n"
