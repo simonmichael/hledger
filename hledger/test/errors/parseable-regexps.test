@@ -1,0 +1,9 @@
+$$$ hledger check -f parseable-regexps.j
+>>>2 /hledger: Error: .*parseable-regexps.j:3:8:
+  |
+3 | alias \/\(\/ = a
+  |        ^
+this regular expression could not be compiled: \(
+
+/
+>>>= 1

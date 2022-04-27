@@ -238,7 +238,7 @@ hledger -f- roi -p 2019-11 --inv Investment --pnl PnL
   Assets:Checking    101 A
   Unrealized PnL
 >>>2
-hledger: Amounts could not be converted to a single cost basis: ["10 B","-10 B @@ 100 A"]
+hledger: Error: Amounts could not be converted to a single cost basis: ["10 B","-10 B @@ 100 A"]
 Consider using --value to force all costs to be in a single commodity.
 For example, "--cost --value=end,<commodity> --infer-market-prices", where commodity is the one that was used to pay for the investment.
 >>>=1

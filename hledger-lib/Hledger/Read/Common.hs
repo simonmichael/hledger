@@ -112,6 +112,8 @@ module Hledger.Read.Common (
   skipNonNewlineSpaces,
   skipNonNewlineSpaces1,
   aliasesFromOpts,
+  makeTransactionErrorExcerpt,
+  makePostingErrorExcerpt,
 
   -- * tests
   tests_Common,
@@ -144,7 +146,7 @@ import Text.Megaparsec
 import Text.Megaparsec.Char (char, char', digitChar, newline, string)
 import Text.Megaparsec.Char.Lexer (decimal)
 import Text.Megaparsec.Custom
-  (FinalParseError, attachSource, customErrorBundlePretty, finalErrorBundlePretty, parseErrorAt, parseErrorAtRegion)
+  (FinalParseError, attachSource, customErrorBundlePretty, finalErrorBundlePretty, parseErrorAt, parseErrorAtRegion, HledgerParseErrors)
 
 import Hledger.Data
 import Hledger.Query (Query(..), filterQuery, parseQueryTerm, queryEndDate, queryStartDate, queryIsDate, simplifyQuery)
@@ -152,6 +154,7 @@ import Hledger.Reports.ReportOptions (ReportOpts(..), queryFromFlags, rawOptsToR
 import Hledger.Utils
 import Text.Printf (printf)
 import Hledger.Read.InputOptions
+import Safe (atMay)
 
 --- ** doctest setup
 -- $setup
@@ -271,7 +274,7 @@ initialiseAndParseJournal parser iopts f txt =
     y = first3 . toGregorian $ _ioDay iopts
     initJournal = nulljournal{jparsedefaultyear = Just y, jincludefilestack = [f]}
     -- Flatten parse errors and final parse errors, and output each as a pretty String.
-    prettyParseErrors :: ExceptT FinalParseError IO (Either (ParseErrorBundle Text CustomErr) a)
+    prettyParseErrors :: ExceptT FinalParseError IO (Either (ParseErrorBundle Text HledgerParseErrorData) a)
                       -> ExceptT String IO a
     prettyParseErrors = withExceptT customErrorBundlePretty . liftEither
                     <=< withExceptT (finalErrorBundlePretty . attachSource f txt)
@@ -362,59 +365,173 @@ journalCheckPayeesDeclared :: Journal -> Either String ()
 journalCheckPayeesDeclared j = mapM_ checkpayee (jtxns j)
   where
     checkpayee t
-      | p `elem` ps = Right ()
+      | payee `elem` journalPayeesDeclared j = Right ()
       | otherwise = Left $
-          printf "undeclared payee \"%s\"\nat: %s\n\n%s"
-            (T.unpack p)
-            (sourcePosPairPretty $ tsourcepos t)
-            (linesPrepend2 "> " "  " . (<>"\n") . textChomp $ showTransaction t)
+        printf "%s:%d:%d-%d:\n%sundeclared payee \"%s\"\n" f l col col2 ex payee
       where
-        p  = transactionPayee t
-        ps = journalPayeesDeclared j
+        payee = transactionPayee t
+        (f,l,mcols,ex) = makeTransactionErrorExcerpt t finderrcols
+        col  = maybe 0 fst mcols
+        col2 = maybe 0 (fromMaybe 0 . snd) mcols
+        finderrcols t = Just (col, Just col2)
+          where
+            col = T.length (showTransactionLineFirstPart t) + 2
+            col2 = col + T.length (transactionPayee t) - 1
 
 -- | Check that all the journal's postings are to accounts declared with
 -- account directives, returning an error message otherwise.
 journalCheckAccountsDeclared :: Journal -> Either String ()
 journalCheckAccountsDeclared j = mapM_ checkacct (journalPostings j)
   where
-    checkacct Posting{paccount,ptransaction}
-      | paccount `elem` as = Right ()
-      | otherwise = Left $
-          (printf "undeclared account \"%s\"\n" (T.unpack paccount))
-          ++ case ptransaction of
-              Nothing -> ""
-              Just t  -> printf "in transaction at: %s\n\n%s"
-                          (sourcePosPairPretty $ tsourcepos t)
-                          (linesPrepend "  " . (<>"\n") . textChomp $ showTransaction t)
-      where
-        as = journalAccountNamesDeclared j
+    checkacct p@Posting{paccount=a}
+      | a `elem` journalAccountNamesDeclared j = Right ()
+      | otherwise = Left $ 
+        printf "%s:%d:%d-%d:\n%sundeclared account \"%s\"\n" f l col col2 ex a
+        where
+          (f,l,mcols,ex) = makePostingErrorExcerpt p finderrcols
+          col  = maybe 0 fst mcols
+          col2 = maybe 0 (fromMaybe 0 . snd) mcols
+          finderrcols p _ _ = Just (col, Just col2)
+            where
+              col = 5 + if isVirtual p then 1 else 0
+              col2 = col + T.length a - 1
 
 -- | Check that all the commodities used in this journal's postings have been declared
 -- by commodity directives, returning an error message otherwise.
 journalCheckCommoditiesDeclared :: Journal -> Either String ()
-journalCheckCommoditiesDeclared j =
-  mapM_ checkcommodities (journalPostings j)
+journalCheckCommoditiesDeclared j = mapM_ checkcommodities (journalPostings j)
   where
-    checkcommodities Posting{..} =
-      case mfirstundeclaredcomm of
+    checkcommodities p =
+      case findundeclaredcomm p of
         Nothing -> Right ()
-        Just c  -> Left $
-          (printf "undeclared commodity \"%s\"\n" (T.unpack c))
-          ++ case ptransaction of
-              Nothing -> ""
-              Just t  -> printf "in transaction at: %s\n\n%s"
-                          (sourcePosPairPretty $ tsourcepos t)
-                          (linesPrepend "  " . (<>"\n") . textChomp $ showTransaction t)
+        Just (comm, _) ->
+          Left $ printf "%s:%d:%d-%d:\n%sundeclared commodity \"%s\"\n" f l col col2 ex comm
+          where
+            (f,l,mcols,ex) = makePostingErrorExcerpt p finderrcols
+            col  = maybe 0 fst mcols
+            col2 = maybe 0 (fromMaybe 0 . snd) mcols
       where
-        mfirstundeclaredcomm =
-          find (`M.notMember` jcommodities j)
-          . map acommodity
-          . (maybe id ((:) . baamount) pbalanceassertion)
-          . filter (not . isIgnorable)
-          $ amountsRaw pamount
+        -- Find the first undeclared commodity symbol in this posting's amount
+        -- or balance assertion amount, if any. The boolean will be true if
+        -- the undeclared symbol was in the posting amount.
+        findundeclaredcomm :: Posting -> Maybe (CommoditySymbol, Bool)
+        findundeclaredcomm Posting{pamount=amt,pbalanceassertion} =
+          case (findundeclared postingcomms, findundeclared assertioncomms) of
+            (Just c, _) -> Just (c, True)
+            (_, Just c) -> Just (c, False)
+            _           -> Nothing
+          where
+            postingcomms = map acommodity $ filter (not . isIgnorable) $ amountsRaw amt
+              where
+                -- Ignore missing amounts and zero amounts without commodity (#1767)
+                isIgnorable a = (T.null (acommodity a) && amountIsZero a) || a == missingamt
+            assertioncomms = [acommodity a | Just a <- [baamount <$> pbalanceassertion]]
+            findundeclared = find (`M.notMember` jcommodities j)
 
-    -- Ignore missing amounts and zero amounts without commodity (#1767)
-    isIgnorable a = (T.null (acommodity a) && amountIsZero a) || a == missingamt
+        -- Find the best position for an error column marker when this posting
+        -- is rendered by showTransaction.
+        -- Reliably locating a problem commodity symbol in showTransaction output
+        -- is really tricky. Some examples:
+        --
+        --     assets      "C $" -1 @ $ 2
+        --                            ^
+        --     assets      $1 = $$1
+        --                      ^
+        --     assets   [ANSI RED]$-1[ANSI RESET]
+        --              ^
+        --
+        -- To simplify, we will mark the whole amount + balance assertion region, like:
+        --     assets      "C $" -1 @ $ 2
+        --                 ^^^^^^^^^^^^^^
+        finderrcols p t txntxt =
+          case transactionFindPostingIndex (==p) t of
+            Nothing     -> Nothing
+            Just pindex -> Just (amtstart, Just amtend)
+              where
+                tcommentlines = max 0 (length (T.lines $ tcomment t) - 1)
+                errrelline = 1 + tcommentlines + pindex   -- XXX doesn't count posting coment lines
+                errline = fromMaybe "" (T.lines txntxt `atMay` (errrelline-1))
+                acctend = 4 + T.length (paccount p) + if isVirtual p then 2 else 0
+                amtstart = acctend + (T.length $ T.takeWhile isSpace $ T.drop acctend errline) + 1
+                amtend = amtstart + (T.length $ T.stripEnd $ T.takeWhile (/=';') $ T.drop amtstart errline)
+
+-- | Given a problem transaction and a function calculating the best
+-- column(s) for marking the error region:
+-- render it as a megaparsec-style excerpt, showing the original line number
+-- on the transaction line, and a column(s) marker.
+-- Returns the file path, line number, column(s) if known,
+-- and the rendered excerpt, or as much of these as is possible.
+makeTransactionErrorExcerpt :: Transaction -> (Transaction -> Maybe (Int, Maybe Int)) -> (FilePath, Int, Maybe (Int, Maybe Int), Text)
+makeTransactionErrorExcerpt t findtxnerrorcolumns = (f, tl, merrcols, ex)
+  -- XXX findtxnerrorcolumns is awkward, I don't think this is the final form
+  where
+    (SourcePos f tpos _) = fst $ tsourcepos t
+    tl = unPos tpos
+    txntxt = showTransaction t & textChomp & (<>"\n")
+    merrcols = findtxnerrorcolumns t
+    ex = decorateTransactionErrorExcerpt tl merrcols txntxt
+
+-- | Add megaparsec-style left margin, line number, and optional column marker(s).
+decorateTransactionErrorExcerpt :: Int -> Maybe (Int, Maybe Int) -> Text -> Text
+decorateTransactionErrorExcerpt l mcols txt =
+  T.unlines $ ls' <> colmarkerline <> map (lineprefix<>) ms
+  where
+    (ls,ms) = splitAt 1 $ T.lines txt
+    ls' = map ((T.pack (show l) <> " | ") <>) ls
+    colmarkerline =
+      [lineprefix <> T.replicate (col-1) " " <> T.replicate regionw "^"
+      | Just (col, mendcol) <- [mcols]
+      , let regionw = maybe 1 (subtract col) mendcol + 1
+      ]
+    lineprefix = T.replicate marginw " " <> "| "
+      where  marginw = length (show l) + 1
+
+-- | Given a problem posting and a function calculating the best
+-- column(s) for marking the error region:
+-- look up error info from the parent transaction, and render the transaction
+-- as a megaparsec-style excerpt, showing the original line number
+-- on the problem posting's line, and a column indicator.
+-- Returns the file path, line number, column(s) if known,
+-- and the rendered excerpt, or as much of these as is possible.
+makePostingErrorExcerpt :: Posting -> (Posting -> Transaction -> Text -> Maybe (Int, Maybe Int)) -> (FilePath, Int, Maybe (Int, Maybe Int), Text)
+makePostingErrorExcerpt p findpostingerrorcolumns =
+  case ptransaction p of
+    Nothing -> ("-", 0, Nothing, "")
+    Just t  -> (f, errabsline, merrcols, ex)
+      where
+        (SourcePos f tl _) = fst $ tsourcepos t
+        tcommentlines = max 0 (length (T.lines $ tcomment t) - 1)
+        mpindex = transactionFindPostingIndex (==p) t
+        errrelline = maybe 0 (tcommentlines+) mpindex   -- XXX doesn't count posting coment lines
+        errabsline = unPos tl + errrelline
+        txntxt = showTransaction t & textChomp & (<>"\n")
+        merrcols = findpostingerrorcolumns p t txntxt
+        ex = decoratePostingErrorExcerpt errabsline errrelline merrcols txntxt
+
+-- | Add megaparsec-style left margin, line number, and optional column marker(s).
+decoratePostingErrorExcerpt :: Int -> Int -> Maybe (Int, Maybe Int) -> Text -> Text
+decoratePostingErrorExcerpt absline relline mcols txt =
+  T.unlines $ js' <> ks' <> colmarkerline <> ms'
+  where
+    (ls,ms) = splitAt (relline+1) $ T.lines txt
+    (js,ks) = splitAt (length ls - 1) ls
+    (js',ks') = case ks of
+      [k] -> (map (lineprefix<>) js, [T.pack (show absline) <> " | " <> k])
+      _   -> ([], [])
+    ms' = map (lineprefix<>) ms
+    colmarkerline =
+      [lineprefix <> T.replicate (col-1) " " <> T.replicate regionw "^"
+      | Just (col, mendcol) <- [mcols]
+      , let regionw = 1 + maybe 0 (subtract col) mendcol
+      ]
+    lineprefix = T.replicate marginw " " <> "| "
+      where  marginw = length (show absline) + 1
+
+-- | Find the 1-based index of the first posting in this transaction
+-- satisfying the given predicate.
+transactionFindPostingIndex :: (Posting -> Bool) -> Transaction -> Maybe Int
+transactionFindPostingIndex ppredicate = 
+  fmap fst . find (ppredicate.snd) . zip [1..] . tpostings
 
 setYear :: Year -> JournalParser m ()
 setYear y = modify' (\j -> j{jparsedefaultyear=Just y})
@@ -855,7 +972,7 @@ amountwithoutpricep mult = do
           Right (q,p,d,g) -> pure (q, Precision p, d, g)
 
 -- | Try to parse an amount from a string
-amountp'' :: String -> Either (ParseErrorBundle Text CustomErr) Amount
+amountp'' :: String -> Either HledgerParseErrors Amount
 amountp'' s = runParser (evalStateT (amountp <* eof) nulljournal) "" (T.pack s)
 
 -- | Parse an amount from a string, or get an error.

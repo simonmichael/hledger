@@ -8,7 +8,7 @@
 # 1.
 $ hledger -f - print
 >2
-hledger: -:1:5:
+hledger: Error: -:1:5:
   |
 1 | 2018
   |     ^
@@ -123,7 +123,7 @@ $ hledger -f- print
   b  1B
 $ hledger -f- print
 >2
-hledger: -:1-3
+hledger: Error: -:1-3
 could not balance this transaction:
 real postings all have the same sign
 2020-01-01

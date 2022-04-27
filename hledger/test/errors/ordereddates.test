@@ -1,0 +1,8 @@
+$$$ hledger check ordereddates -f ordereddates.j
+>>>2 /hledger: Error: .*ordereddates.j:10:1-10:
+10 | 2022-01-01 p
+   | ^^^^^^^^^^
+   |     (a)               1
+transaction date is out of order with previous transaction date 2022-01-02
+/
+>>>= 1

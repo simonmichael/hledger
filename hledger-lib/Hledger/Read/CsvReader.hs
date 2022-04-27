@@ -216,7 +216,7 @@ parseAndValidateCsvRules rulesfile s =
       parseErrorPretty (FancyError 0 (S.singleton $ ErrorFail errorString) :: ParseError Text String)
 
 -- | Parse this text as CSV conversion rules. The file path is for error messages.
-parseCsvRules :: FilePath -> T.Text -> Either (ParseErrorBundle T.Text CustomErr) CsvRules
+parseCsvRules :: FilePath -> T.Text -> Either (ParseErrorBundle T.Text HledgerParseErrorData) CsvRules
 -- parseCsvRules rulesfile s = runParser csvrulesfile nullrules{baseAccount=takeBaseName rulesfile} rulesfile s
 parseCsvRules = runParser (evalStateT rulesp defrules)
 
@@ -1232,7 +1232,7 @@ renderTemplate rules record t = maybe t mconcat $ parseMaybe
         <|> replaceCsvFieldReference rules record <$> referencep)
     t
   where
-    referencep = liftA2 T.cons (char '%') (takeWhile1P (Just "reference") isFieldNameChar) :: Parsec CustomErr Text Text
+    referencep = liftA2 T.cons (char '%') (takeWhile1P (Just "reference") isFieldNameChar) :: Parsec HledgerParseErrorData Text Text
     isFieldNameChar c = isAlphaNum c || c == '_' || c == '-'
 
 -- | Replace something that looks like a reference to a csv field ("%date" or "%1)

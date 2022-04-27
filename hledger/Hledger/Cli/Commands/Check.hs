@@ -14,8 +14,6 @@ import Data.Either (partitionEithers)
 import Data.List (isPrefixOf, find)
 import Control.Monad (forM_)
 import System.Console.CmdArgs.Explicit
-import System.Exit (exitFailure)
-import System.IO (stderr, hPutStrLn)
 
 import Hledger
 import Hledger.Cli.CliOptions
@@ -120,4 +118,4 @@ runCheck copts@CliOpts{rawopts_} j (check,args) = do
 
   case results of
     Right () -> return ()
-    Left err -> hPutStrLn stderr ("Error: "++err) >> exitFailure
+    Left err -> error' err

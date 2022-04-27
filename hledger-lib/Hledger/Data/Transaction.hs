@@ -41,6 +41,7 @@ module Hledger.Data.Transaction
   -- * rendering
 , showTransaction
 , showTransactionOneLineAmounts
+, showTransactionLineFirstPart
 , transactionFile
   -- * tests
 , tests_Transaction
@@ -137,17 +138,21 @@ showTransactionHelper onelineamounts t =
     <> foldMap ((<> newline) . TB.fromText) (postingsAsLines onelineamounts $ tpostings t)
     <> newline
   where
-    descriptionline = T.stripEnd $ T.concat [date, status, code, desc, samelinecomment]
-    date = showDate (tdate t) <> maybe "" (("="<>) . showDate) (tdate2 t)
-    status | tstatus t == Cleared = " *"
-           | tstatus t == Pending = " !"
-           | otherwise            = ""
-    code = if T.null (tcode t) then "" else wrap " (" ")" $ tcode t
+    descriptionline = T.stripEnd $ showTransactionLineFirstPart t <> T.concat [desc, samelinecomment]
     desc = if T.null d then "" else " " <> d where d = tdescription t
     (samelinecomment, newlinecomments) =
       case renderCommentLines (tcomment t) of []   -> ("",[])
                                               c:cs -> (c,cs)
     newline = TB.singleton '\n'
+
+-- Useful when rendering error messages.
+showTransactionLineFirstPart t = T.concat [date, status, code]
+  where
+    date = showDate (tdate t) <> maybe "" (("="<>) . showDate) (tdate2 t)
+    status | tstatus t == Cleared = " *"
+           | tstatus t == Pending = " !"
+           | otherwise            = ""
+    code = if T.null (tcode t) then "" else wrap " (" ")" $ tcode t
 
 hasRealPostings :: Transaction -> Bool
 hasRealPostings = not . null . realPostings

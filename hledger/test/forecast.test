@@ -172,7 +172,7 @@ Balance changes in 2016-10-01..2017-01-31:
 $ hledger bal -M -b 2016-10 -e 2017-02 -f - --forecast=20160801-foobar
 >
 >2
-hledger: could not parse forecast period : 1:10:
+hledger: Error: could not parse forecast period : 1:10:
   |
 1 | 20160801-foobar
   |          ^

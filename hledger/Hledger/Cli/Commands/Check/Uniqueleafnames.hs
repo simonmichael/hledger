@@ -12,6 +12,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Hledger
 import Text.Printf (printf)
+import Data.Maybe (fromMaybe)
 
 -- | Check that all the journal's postings are to accounts with a unique leaf name.
 -- Otherwise, return an error message for the first offending posting.
@@ -38,16 +39,22 @@ journalLeafAndFullAccountNames = map leafAndAccountName . journalAccountNamesUse
   where leafAndAccountName a = (accountLeafName a, a)
 
 checkposting :: [(Text,[AccountName])] -> Posting -> Either String ()
-checkposting leafandfullnames Posting{paccount,ptransaction} =
-  case [lf | lf@(_,fs) <- leafandfullnames, paccount `elem` fs] of
+checkposting leafandfullnames p@Posting{paccount=a} =
+  case [lf | lf@(_,fs) <- leafandfullnames, a `elem` fs] of
     []             -> Right ()
     (leaf,fulls):_ -> Left $ printf
-      "account leaf names are not unique\nleaf name \"%s\" appears in account names: %s%s"
-      leaf
-      (T.intercalate ", " $ map (("\""<>).(<>"\"")) fulls)
-      (case ptransaction of
-        Nothing -> ""
-        Just t  -> printf "\nseen in \"%s\" in transaction at: %s\n\n%s"
-                    paccount
-                    (sourcePosPairPretty $ tsourcepos t)
-                    (linesPrepend "> " . (<>"\n") . textChomp $ showTransaction t) :: String)
+      "%s:%d:%d-%d:\n%saccount leaf name \"%s\" is not unique\nit is used in account names: %s" 
+      f l col col2 ex leaf accts
+      where
+        -- t = fromMaybe nulltransaction ptransaction  -- XXX sloppy
+        col  = maybe 0 fst mcols
+        col2 = maybe 0 (fromMaybe 0 . snd) mcols
+        (f,l,mcols,ex) = makePostingErrorExcerpt p finderrcols
+          where
+            finderrcols p _ _ = Just (col, Just col2)
+              where
+                alen = T.length $ paccount p
+                llen = T.length $ accountLeafName a
+                col = 5 + (if isVirtual p then 1 else 0) + alen - llen
+                col2 = col + llen - 1
+        accts = T.intercalate ", " $ map (("\""<>).(<>"\"")) fulls

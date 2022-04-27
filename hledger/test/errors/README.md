@@ -20,36 +20,6 @@ Some files contain extra declarations to ease flycheck testing.
 [flycheck-hledger-10]: https://github.com/DamienCassou/flycheck-hledger/pull/10
 [#1436]:            https://github.com/simonmichael/hledger/issues/1436
 
-## Status
-
-Here is the current status
-(hledger 1.25, flycheck 87b275b9):
-
-|                          | format  | accurate line(s) | accurate column(s) | visual | flycheck detects | flycheck region |
-|--------------------------|---------|------------------|--------------------|--------|------------------|-----------------|
-| parseable                | format1 | Y                | Y                  | YY     | Y                | Y               |
-| parseable-dates          | format1 | Y                | Y                  | YY     | Y                | Y               |
-| parseable-regexps        | format1 | Y                | Y                  | YY     | Y                | Y               |
-| balanced                 |         | Y                | -                  | Y      | Y                |                 |
-| balancednoautoconversion |         | Y                | -                  | Y      | Y                |                 |
-| assertions               |         | Y                |                    | Y      | Y                | Y               |
-| accounts                 | format2 |                  |                    | Y      | Y                |                 |
-| commodities              | format2 |                  |                    | Y      | Y                |                 |
-| payees                   | format2 |                  |                    | Y      | Y                | Y               |
-| ordereddates             | format2 |                  |                    | Y      | Y                | Y               |
-| uniqueleafnames          |         |                  |                    | Y      | Y                |                 |
-
-Key:
-- format: the error message follows a standard format
-  (format1: location on first line, megaparsec-like.
-   format2: summary on first line, location on second line, rustc-like.
-   std: new standard format)
-- accurate line - the optimal line(s) is(are) selected
-- accurate column - the optimal column(s) is(are) selected
-- visual - the CLI error message shows a relevant excerpt (Y), ideally with the error highlighted (YY)
-- flycheck detects - flycheck recognises the error output, reports the error and doesn't give a "suspicious" warning
-- flycheck region - flycheck highlights a reasonably accurate text region containing the error
-
 ## Goals
 
 - [x] phase 1: update flycheck to detect journal errors of current hledger release (and keep a branch updated to detect errors of latest hledger master)
@@ -67,67 +37,84 @@ Key:
 - [x] phase 13: decide/add error ids/explanations/web pages ? not needed
 - [ ] phase 14: support Language Server Protocol & Visual Code
 
+## Current status
+
+Here is the current status
+(hledger 1.25.99-gd278c4c71-20220422, flycheck 87b275b9):
+
+|                          | std format | line | column     | excerpt | flycheck | flycheck region |
+|--------------------------|------------|------|------------|---------|----------|-----------------|
+| accounts                 | Y          | Y    | Y          | YY      |          |                 |
+| assertions               |            | Y    |            | Y       |          |                 |
+| balanced                 |            | Y    | -          | Y       |          |                 |
+| balancednoautoconversion |            | Y    | -          | Y       |          |                 |
+| commodities              | Y          | Y    | Y (approx) | YY      |          |                 |
+| ordereddates             | Y          | Y    | Y          | YY      |          |                 |
+| parseable                | Y          | Y    | Y          | YY      |          |                 |
+| parseable-dates          | Y          | Y    | Y          | YY      |          |                 |
+| parseable-regexps        | Y          | Y    | Y          | YY      |          |                 |
+| payees                   | Y          | Y    | Y          | YY      |          |                 |
+| uniqueleafnames          | Y          | Y    | Y          | YY      |          |                 |
+
+Key:
+- std format      - the error message follows a standard format (location on first line, megaparsec-like excerpt, description).
+- line            - the optimal line(s) is(are) selected
+- column          - the optimal column(s) is(are) selected
+- excerpt         - a useful excerpt is shown (Y), ideally with the error highlighted (YY)
+- flycheck        - latest flycheck release recognises and reports the error, with no "suspicious state" warning
+- flycheck region - flycheck highlights a reasonably accurate region containing the error
+
+## Preferred error format
+
+Here is our preferred error message layout for now:
+```
+hledger: Error: FILE:LOCATION:
+EXCERPT
+SUMMARY
+[DETAILS]
+```
+
+Notes (see also [#1436][]):
+
+- the "hledger: " prefix could be dropped later with a bit more effort
+- includes the word "Error" and the error position on line 1
+- FILE is the file path
+- LOCATION is `LINE[-ENDLINE][:COLUMN[-ENDCOLUMN]]`
+- we may show 0 for LINE or COLUMN when unknown
+- EXCERPT is a short visual snippet whenever possible, with the error region highlighted, line numbers, and colour when supported. This section must be easy for flycheck to ignore.
+- SUMMARY is a one line description/explanation of the problem. 
+  These are currently dynamic, they can include helpful contextual info.
+  ShellCheck uses static summaries.
+- DETAILS is optional additional details/advice when needed.
+- this layout is based on megaparsec's
+- for comparison: rustc puts summary on line 1 and location on line 2:
+  ```
+  Error[ID]: SUMMARY
+  at FILE:LOCATION
+  EXCERPT
+  [DETAILS]
+  ```
+- try https://github.com/mesabloo/diagnose later
+
 ## Current journal errors
 
 <!-- to update: erase the below then C-u M-! ./showall -->
-hledger 1.25.99-g133c54434-20220414 error messages, last updated 2022-04-15:
+<!-- GENERATED: -->
+hledger 1.25.99-g9bff671b5-20220424 error messages:
 
-### parseable
+### accounts
 ```
-hledger: /Users/simon/src/hledger/hledger/test/errors/./parseable.j:3:2:
-  |
-3 | 1
-  |  ^
-unexpected newline
-expecting date separator or digit
-
-```
-
-### parseable-dates
-```
-hledger: /Users/simon/src/hledger/hledger/test/errors/./parseable-dates.j:3:1:
-  |
-3 | 2022/1/32
-  | ^^^^^^^^^
-well-formed but invalid date: 2022/1/32
-
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./accounts.j:4:6-6:
+  | 2022-01-01
+4 |     (a)               1
+  |      ^
+undeclared account "a"
 ```
 
-### parseable-regexps
-```
-hledger: /Users/simon/src/hledger/hledger/test/errors/./parseable-regexps.j:3:8:
-  |
-3 | alias /(/ = a
-  |        ^
-this regular expression could not be compiled: (
-
-```
-
-### balanced
-```
-hledger: /Users/simon/src/hledger/hledger/test/errors/./balanced.j:3-4
-could not balance this transaction:
-real postings' sum should be 0 but is: 1
-2022-01-01
-    a               1
-
-```
-
-### balancednoautoconversion
-```
-hledger: /Users/simon/src/hledger/hledger/test/errors/./balancednoautoconversion.j:6-8
-could not balance this transaction:
-real postings' sum should be 0 but is:  1 A
--1 B
-2022-01-01
-    a             1 A
-    b            -1 B
-
-```
 
 ### assertions
 ```
-hledger: balance assertion: /Users/simon/src/hledger/hledger/test/errors/./assertions.j:4:8
+hledger: Error: balance assertion: /Users/simon/src/hledger/hledger/test/errors/./assertions.j:4:8
 transaction:
 2022-01-01
     a               0 = 1
@@ -139,112 +126,99 @@ commodity:
 calculated: 0
 asserted:   1
 difference: 1
-
 ```
 
-### accounts
-```
-Error: undeclared account "a"
-in transaction at: /Users/simon/src/hledger/hledger/test/errors/./accounts.j:3-4
 
-  2022-01-01
-      (a)               1
-
+### balanced
 ```
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./balanced.j:3-4
+could not balance this transaction:
+real postings' sum should be 0 but is: 1
+2022-01-01
+    a               1
+```
+
+
+### balancednoautoconversion
+```
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./balancednoautoconversion.j:6-8
+could not balance this transaction:
+real postings' sum should be 0 but is:  1 A
+-1 B
+2022-01-01
+    a             1 A
+    b            -1 B
+```
+
 
 ### commodities
 ```
-Error: undeclared commodity "A"
-in transaction at: /Users/simon/src/hledger/hledger/test/errors/./commodities.j:5-6
-
-  2022-01-01
-      (a)             A 1
-
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./commodities.j:6:21-23:
+  | 2022-01-01
+6 |     (a)             A 1
+  |                     ^^^
+undeclared commodity "A"
 ```
 
-### payees
-```
-Error: undeclared payee "p"
-at: /Users/simon/src/hledger/hledger/test/errors/./payees.j:6-7
-
-> 2022-01-01 p
-      (a)             A 1
-
-```
 
 ### ordereddates
 ```
-Error: transaction date is out of order
-at /Users/simon/src/hledger/hledger/test/errors/./ordereddates.j:10-11:
-
-  2022-01-02 p
-      (a)               1
-  
-> 2022-01-01 p
-      (a)               1
-  
-
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./ordereddates.j:10:1-10:
+10 | 2022-01-01 p
+   | ^^^^^^^^^^
+   |     (a)               1
+transaction date is out of order with previous transaction date 2022-01-02
 ```
+
+
+### parseable-dates
+```
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./parseable-dates.j:3:1:
+  |
+3 | 2022/1/32
+  | ^^^^^^^^^
+well-formed but invalid date: 2022/1/32
+```
+
+
+### parseable-regexps
+```
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./parseable-regexps.j:3:8:
+  |
+3 | alias /(/ = a
+  |        ^
+this regular expression could not be compiled: (
+```
+
+
+### parseable
+```
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./parseable.j:3:2:
+  |
+3 | 1
+  |  ^
+unexpected newline
+expecting date separator or digit
+```
+
+
+### payees
+```
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./payees.j:6:12-12:
+6 | 2022-01-01 p
+  |            ^
+  |     (a)             A 1
+undeclared payee "p"
+```
+
 
 ### uniqueleafnames
 ```
-Error: account leaf names are not unique
-leaf name "c" appears in account names: "a:c", "b:c"
-seen in "a:c" in transaction at: /Users/simon/src/hledger/hledger/test/errors/./uniqueleafnames.j:8-9
-
-> 2022-01-01 p
->     (a:c)               1
-
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./uniqueleafnames.j:9:8-8:
+  | 2022-01-01 p
+9 |     (a:c)               1
+  |        ^
+account leaf name "c" is not unique
+it is used in account names: "a:c", "b:c"
 ```
 
-
-## New error format
-
-The preferred standard error format for now is the following,
-similar to the one megaparsec gives us
-and probably the easiest to implement consistently:
-
-```
-Error: FILE:LOCATION:
-EXCERPT
-SUMMARY
-[DETAILS]
-```
-
-Other format notes (see also [#1436][]):
-
-megaparsec-like:
-
-```
-Error: [ID] FILE:LOCATION
-EXCERPT
-SUMMARY
-[DETAILS]
-```
-
-- begins with the word "Error"
-- ID is an optional error id, eg `HL1001` (in brackets ?). We might adopt these, similar to ShellCheck.
-- FILE is the file path.
-- LOCATION is `LINE[-ENDLINE][:COLUMN[-ENDCOLUMN]]`. Having location on the first line helps some tools, like Emacs M-x compile.
-- EXCERPT is a short visual snippet whenever possible, with the error region highlighted, line numbers, and colour when supported. This section must be easy for flycheck to ignore.
-- SUMMARY is a one line description/explanation of the problem. Currently we use dynamic summaries including contextual data for clarity. ShellCheck uses static summaries, which might have some advantages.
-- DETAILS is optional additional details/advice when needed.
-
-rustc-like:
-
-```
-Error[ID]: SUMMARY
-at FILE:LOCATION
-EXCERPT
-[DETAILS]
-```
-
-- Having summary on the first line can be helpful eg when grepping logged errors.
-
-Questions:
-
-- location needed on first line for maximum tool support ?
-- summary needed on first line for maximum concision/greppability ?
-- allow long, much-wider-than-80-char first lines or not ?
-- dynamic or static summary ?
-- error ids/explanations needed ? local and/or web based ? easily editable ? document old hledger versions ?

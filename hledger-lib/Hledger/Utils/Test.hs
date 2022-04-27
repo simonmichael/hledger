@@ -31,7 +31,7 @@ import Test.Tasty.HUnit
 -- import Test.Tasty.SmallCheck as SC
 import Text.Megaparsec
 import Text.Megaparsec.Custom
-  ( CustomErr,
+  ( HledgerParseErrorData,
     FinalParseError,
     attachSource,
     customErrorBundlePretty,
@@ -56,7 +56,7 @@ assertRight (Left a)  = assertFailure $ "expected Right, got (Left " ++ show a +
 
 -- | Run a parser on the given text and display a helpful error.
 parseHelper :: (HasCallStack, Default st, Monad m) =>
-  StateT st (ParsecT CustomErr T.Text m) a -> T.Text -> ExceptT String m a
+  StateT st (ParsecT HledgerParseErrorData T.Text m) a -> T.Text -> ExceptT String m a
 parseHelper parser input =
   withExceptT (\e -> "\nparse error at " ++ customErrorBundlePretty e ++ "\n") . ExceptT
   $ runParserT (evalStateT (parser <* eof) def) "" input
@@ -65,7 +65,7 @@ parseHelper parser input =
 -- produce an 'Assertion'. Suitable for hledger's JournalParser parsers.
 assertParseHelper :: (HasCallStack, Default st) =>
   (String -> Assertion) -> (a -> Assertion)
-  -> StateT st (ParsecT CustomErr T.Text IO) a -> T.Text
+  -> StateT st (ParsecT HledgerParseErrorData T.Text IO) a -> T.Text
   -> Assertion
 assertParseHelper onFailure onSuccess parser input =
   either onFailure onSuccess =<< runExceptT (parseHelper parser input)
@@ -74,25 +74,25 @@ assertParseHelper onFailure onSuccess parser input =
 -- all of the given input text, showing the parse error if it fails.
 -- Suitable for hledger's JournalParser parsers.
 assertParse :: (HasCallStack, Default st) =>
-  StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> Assertion
+  StateT st (ParsecT HledgerParseErrorData T.Text IO) a -> T.Text -> Assertion
 assertParse = assertParseHelper assertFailure (const $ return ())
 
 -- | Assert a parser produces an expected value.
 assertParseEq :: (HasCallStack, Eq a, Show a, Default st) =>
-  StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> a -> Assertion
+  StateT st (ParsecT HledgerParseErrorData T.Text IO) a -> T.Text -> a -> Assertion
 assertParseEq parser input = assertParseEqOn parser input id
 
 -- | Like assertParseEq, but transform the parse result with the given function
 -- before comparing it.
 assertParseEqOn :: (HasCallStack, Eq b, Show b, Default st) =>
-  StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> (a -> b) -> b -> Assertion
+  StateT st (ParsecT HledgerParseErrorData T.Text IO) a -> T.Text -> (a -> b) -> b -> Assertion
 assertParseEqOn parser input f expected =
   assertParseHelper assertFailure (assertEqual "" expected . f) parser input
 
 -- | Assert that this stateful parser runnable in IO fails to parse
 -- the given input text, with a parse error containing the given string.
 assertParseError :: (HasCallStack, Eq a, Show a, Default st) =>
-  StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> String -> Assertion
+  StateT st (ParsecT HledgerParseErrorData T.Text IO) a -> T.Text -> String -> Assertion
 assertParseError parser input errstr = assertParseHelper
   (\e -> unless (errstr `isInfixOf` e) $ assertFailure $ "\nparse error is not as expected:" ++ e)
   (\v -> assertFailure $ "\nparse succeeded unexpectedly, producing:\n" ++ pshow v ++ "\n")
@@ -102,7 +102,7 @@ assertParseError parser input errstr = assertParseHelper
 -- final state (the wrapped state, not megaparsec's internal state),
 -- transformed by the given function, matches the given expected value.
 assertParseStateOn :: (HasCallStack, Eq b, Show b, Default st) =>
-     StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> (st -> b) -> b -> Assertion
+     StateT st (ParsecT HledgerParseErrorData T.Text IO) a -> T.Text -> (st -> b) -> b -> Assertion
 assertParseStateOn parser input f expected = do
   es <- runParserT (execStateT (parser <* eof) def) "" input
   case es of
@@ -111,7 +111,7 @@ assertParseStateOn parser input f expected = do
 
 -- | These "E" variants of the above are suitable for hledger's ErroringJournalParser parsers.
 parseHelperE :: (HasCallStack, Default st, Monad m) =>
-  StateT st (ParsecT CustomErr T.Text (ExceptT FinalParseError m)) a -> T.Text -> ExceptT String m a
+  StateT st (ParsecT HledgerParseErrorData T.Text (ExceptT FinalParseError m)) a -> T.Text -> ExceptT String m a
 parseHelperE parser input = do
   withExceptT (\e -> "\nparse error at " ++ customErrorBundlePretty e ++ "\n") . liftEither
   =<< withExceptT (\e -> "parse error at " ++ finalErrorBundlePretty (attachSource "" input e))
@@ -119,30 +119,30 @@ parseHelperE parser input = do
 
 assertParseHelperE :: (HasCallStack, Default st) =>
   (String -> Assertion) -> (a -> Assertion)
-  -> StateT st (ParsecT CustomErr T.Text (ExceptT FinalParseError IO)) a -> T.Text
+  -> StateT st (ParsecT HledgerParseErrorData T.Text (ExceptT FinalParseError IO)) a -> T.Text
   -> Assertion
 assertParseHelperE onFailure onSuccess parser input =
   either onFailure onSuccess =<< runExceptT (parseHelperE parser input)
 
 assertParseE
   :: (HasCallStack, Eq a, Show a, Default st)
-  => StateT st (ParsecT CustomErr T.Text (ExceptT FinalParseError IO)) a -> T.Text -> Assertion
+  => StateT st (ParsecT HledgerParseErrorData T.Text (ExceptT FinalParseError IO)) a -> T.Text -> Assertion
 assertParseE = assertParseHelperE assertFailure (const $ return ())
 
 assertParseEqE
   :: (Default st, Eq a, Show a, HasCallStack)
-  => StateT st (ParsecT CustomErr T.Text (ExceptT FinalParseError IO)) a -> T.Text -> a -> Assertion
+  => StateT st (ParsecT HledgerParseErrorData T.Text (ExceptT FinalParseError IO)) a -> T.Text -> a -> Assertion
 assertParseEqE parser input = assertParseEqOnE parser input id
 
 assertParseEqOnE
   :: (HasCallStack, Eq b, Show b, Default st)
-  => StateT st (ParsecT CustomErr T.Text (ExceptT FinalParseError IO)) a -> T.Text -> (a -> b) -> b -> Assertion
+  => StateT st (ParsecT HledgerParseErrorData T.Text (ExceptT FinalParseError IO)) a -> T.Text -> (a -> b) -> b -> Assertion
 assertParseEqOnE parser input f expected =
   assertParseHelperE assertFailure (assertEqual "" expected . f) parser input
 
 assertParseErrorE
   :: (Default st, Eq a, Show a, HasCallStack)
-  => StateT st (ParsecT CustomErr T.Text (ExceptT FinalParseError IO)) a -> T.Text -> String -> Assertion
+  => StateT st (ParsecT HledgerParseErrorData T.Text (ExceptT FinalParseError IO)) a -> T.Text -> String -> Assertion
 assertParseErrorE parser input errstr = assertParseHelperE
   (\e -> unless (errstr `isInfixOf` e) $ assertFailure $ "\nparse error is not as expected:" ++ e)
   (\v -> assertFailure $ "\nparse succeeded unexpectedly, producing:\n" ++ pshow v ++ "\n")

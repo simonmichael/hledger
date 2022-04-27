@@ -774,7 +774,7 @@ if|account2|comment
 %description Flubber|acct|
 $  ./csvtest.sh
 >2
-hledger: input.rules:6:1:
+hledger: Error: input.rules:6:1:
   |
 6 | %amount 150|acct2
   | ^
@@ -796,7 +796,7 @@ account2 acct
 comment cmt
 $  ./csvtest.sh
 >2
-hledger: input.rules:5:1:
+hledger: Error: input.rules:5:1:
   |
 5 | if Flubber
   | ^
@@ -822,7 +822,7 @@ if Flubber
 account2 %myaccount2
 $  ./csvtest.sh
 >2
-hledger: input.rules:6:3:
+hledger: Error: input.rules:6:3:
   |
 6 |   myaccount2 acct
   |   ^^^^^^^^^^^^
@@ -870,7 +870,7 @@ if account2 comment
 %description Flubber acct 
 $  ./csvtest.sh
 >2
-hledger: input.rules:5:1:
+hledger: Error: input.rules:5:1:
   |
 5 | if account2 comment
   | ^

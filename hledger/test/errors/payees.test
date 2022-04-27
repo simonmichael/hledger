@@ -1,0 +1,9 @@
+$$$ hledger check payees -f payees.j
+>>>2 /hledger: Error: .*payees.j:6:12-12:
+6 | 2022-01-01 p
+  |            ^
+  |     (a)             A 1
+undeclared payee "p"
+
+/
+>>>= 1
