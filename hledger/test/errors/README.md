@@ -42,26 +42,26 @@ Some files contain extra declarations to ease flycheck testing.
 Here is the current status
 (hledger 1.25.99-gd278c4c71-20220422, flycheck 87b275b9):
 
-|                          | std format | line | column     | excerpt | flycheck | flycheck region |
-|--------------------------|------------|------|------------|---------|----------|-----------------|
-| accounts                 | Y          | Y    | Y          | YY      |          |                 |
-| assertions               |            | Y    |            | Y       |          |                 |
-| balanced                 |            | Y    | -          | Y       |          |                 |
-| balancednoautoconversion |            | Y    | -          | Y       |          |                 |
-| commodities              | Y          | Y    | Y (approx) | YY      |          |                 |
-| ordereddates             | Y          | Y    | Y          | YY      |          |                 |
-| parseable                | Y          | Y    | Y          | YY      |          |                 |
-| parseable-dates          | Y          | Y    | Y          | YY      |          |                 |
-| parseable-regexps        | Y          | Y    | Y          | YY      |          |                 |
-| payees                   | Y          | Y    | Y          | YY      |          |                 |
-| uniqueleafnames          | Y          | Y    | Y          | YY      |          |                 |
+|                          | std format | line | column    | excerpt | flycheck | flycheck region |
+|--------------------------|------------|------|-----------|---------|----------|-----------------|
+| accounts                 | ✓          | ✓    | ✓         | ✓✓      |          |                 |
+| assertions               |            | ✓    |           | ✓       |          |                 |
+| balanced                 |            | ✓    | -         | ✓       |          |                 |
+| balancednoautoconversion |            | ✓    | -         | ✓       |          |                 |
+| commodities              | ✓          | ✓    | ✓(approx) | ✓✓      |          |                 |
+| ordereddates             | ✓          | ✓    | ✓         | ✓✓      |          |                 |
+| parseable                | ✓          | ✓    | ✓         | ✓✓      |          |                 |
+| parseable-dates          | ✓          | ✓    | ✓         | ✓✓      |          |                 |
+| parseable-regexps        | ✓          | ✓    | ✓         | ✓✓      |          |                 |
+| payees                   | ✓          | ✓    | ✓         | ✓✓      |          |                 |
+| uniqueleafnames          | ✓          | ✓    | ✓         | ✓✓      |          |                 |
 
 Key:
 - std format      - the error message follows a standard format (location on first line, megaparsec-like excerpt, description).
-- line            - the optimal line(s) is(are) selected
-- column          - the optimal column(s) is(are) selected
-- excerpt         - a useful excerpt is shown (Y), ideally with the error highlighted (YY)
-- flycheck        - latest flycheck release recognises and reports the error, with no "suspicious state" warning
+- line            - the optimal line(s) are reported
+- column          - the optimal column(s) are reported
+- excerpt         - a useful excerpt is shown, ideally with the error highlighted (✓✓)
+- flycheck        - the current flycheck release recognises and reports the error, with no "suspicious state" warning
 - flycheck region - flycheck highlights a reasonably accurate region containing the error
 
 ## Preferred error format
@@ -86,15 +86,14 @@ Notes (see also [#1436][]):
   These are currently dynamic, they can include helpful contextual info.
   ShellCheck uses static summaries.
 - DETAILS is optional additional details/advice when needed.
-- this layout is based on megaparsec's
-- for comparison: rustc puts summary on line 1 and location on line 2:
+- this layout is based on megaparsec's. For comparison, rustc puts summary on line 1 and location on line 2:
   ```
   Error[ID]: SUMMARY
   at FILE:LOCATION
   EXCERPT
   [DETAILS]
   ```
-- try https://github.com/mesabloo/diagnose later
+- try https://github.com/mesabloo/diagnose / https://hackage.haskell.org/package/errata / https://hackage.haskell.org/package/chapelure later
 
 ## Current journal errors
 
