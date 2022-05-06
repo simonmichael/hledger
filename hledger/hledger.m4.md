@@ -5097,13 +5097,13 @@ or the more extensive docs at <https://hledger.org>.
 ## Getting help
 
 ```shell
-$ hledger                 # show available commands
-$ hledger --help          # show common options
-$ hledger CMD --help      # show common and command options, and command help
-$ hledger help            # show available manuals/topics
-$ hledger help hledger    # show hledger manual as info/man/text (auto-chosen)
-$ hledger help journal --man  # show the journal manual as a man page
-$ hledger help --help     # show more detailed help for the help command
+$ hledger                  # show available commands
+$ hledger --help           # show common options
+$ hledger CMD --help       # show common and command options, and command help
+$ hledger help             # show available manuals/topics
+$ hledger help hledger     # show hledger manual, as info/man/text (auto-chosen)
+$ hledger help journal -m  # show the journal topic, as a man page scrolled to that section
+$ hledger help --help      # show more detailed help for the help command
 ```
 
 Find more docs, chat, mail list, reddit, issue tracker:
