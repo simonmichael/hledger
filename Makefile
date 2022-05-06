@@ -856,14 +856,16 @@ shakehelp-watch: \
 # 3. manually: "make site" on hledger.org, or "make hledgerorg" elsewhere (cf Makefile.local).
 # This uses the existing Shake executable without rebuilding it, 
 # as we don't want to immediately execute new code from any collaborator.
+# make site - rebuilds current release and dev manuals
+# make siteall - rebuilds all manual versions
 .PHONY: site
-site: $(call def-help,site, update the hledger.org website (run on hledger.org, or run "make hledgerorg" elsewhere) )
+site%: $(call def-help,site, update the hledger.org website (run on hledger.org, or run "make hledgerorg" elsewhere) )
 	@[ ! -x Shake ] \
 		&& echo 'Please run "make Shake" first (manual compilation of Shake.hs is required)' \
 		|| ( \
 			echo; \
 			./Shake -V webmanuals; \
-			make -C site build; \
+			make -C site build$*; \
 		) 2>&1 | tee -a site.log
 # once VPS can build Shake again, replace the Shake/make lines with 
 #			./Shake -V site; \
