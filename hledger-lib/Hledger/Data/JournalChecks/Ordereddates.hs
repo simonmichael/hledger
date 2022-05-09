@@ -1,4 +1,4 @@
-module Hledger.Read.Checks.Ordereddates (
+module Hledger.Data.JournalChecks.Ordereddates (
   journalCheckOrdereddates
 )
 where
@@ -8,8 +8,9 @@ import Data.List (groupBy)
 import Text.Printf (printf)
 import Data.Maybe (fromMaybe)
 
-import Hledger.Data
-import Hledger.Read.Error
+import Hledger.Data.Errors (makeTransactionErrorExcerpt)
+import Hledger.Data.Transaction (transactionFile, transactionDateOrDate2)
+import Hledger.Data.Types
 
 journalCheckOrdereddates :: WhichDate -> Journal -> Either String ()
 journalCheckOrdereddates whichdate j = do

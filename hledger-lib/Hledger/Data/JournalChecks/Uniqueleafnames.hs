@@ -1,7 +1,7 @@
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Hledger.Read.Checks.Uniqueleafnames (
+module Hledger.Data.JournalChecks.Uniqueleafnames (
   journalCheckUniqueleafnames
 )
 where
@@ -13,8 +13,11 @@ import qualified Data.Text as T
 import Text.Printf (printf)
 import Data.Maybe (fromMaybe)
 
-import Hledger.Data
-import Hledger.Read.Error
+import Hledger.Data.AccountName (accountLeafName)
+import Hledger.Data.Errors (makePostingErrorExcerpt)
+import Hledger.Data.Journal (journalPostings, journalAccountNamesUsed)
+import Hledger.Data.Posting (isVirtual)
+import Hledger.Data.Types
 
 -- | Check that all the journal's postings are to accounts with a unique leaf name.
 -- Otherwise, return an error message for the first offending posting.

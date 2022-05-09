@@ -42,7 +42,6 @@ module Hledger.Read (
   findReader,
   splitReaderPrefix,
   runJournalParser,
-  module Hledger.Read.Checks,
   module Hledger.Read.Common,
   module Hledger.Read.InputOptions,
 
@@ -76,7 +75,6 @@ import System.IO (hPutStr, stderr)
 
 import Hledger.Data.Dates (getCurrentDay, parsedateM, showDate)
 import Hledger.Data.Types
-import Hledger.Read.Checks
 import Hledger.Read.Common
 import Hledger.Read.InputOptions
 import Hledger.Read.JournalReader as JournalReader

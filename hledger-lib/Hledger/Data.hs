@@ -14,7 +14,9 @@ module Hledger.Data (
                module Hledger.Data.Amount,
                module Hledger.Data.Balancing,
                module Hledger.Data.Dates,
+               module Hledger.Data.Errors,
                module Hledger.Data.Journal,
+               module Hledger.Data.JournalChecks,
                module Hledger.Data.Json,
                module Hledger.Data.Ledger,
                module Hledger.Data.Period,
@@ -37,7 +39,9 @@ import Hledger.Data.AccountName
 import Hledger.Data.Amount
 import Hledger.Data.Balancing
 import Hledger.Data.Dates
+import Hledger.Data.Errors
 import Hledger.Data.Journal
+import Hledger.Data.JournalChecks
 import Hledger.Data.Json
 import Hledger.Data.Ledger
 import Hledger.Data.Period

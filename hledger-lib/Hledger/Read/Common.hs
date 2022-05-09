@@ -148,7 +148,6 @@ import Hledger.Query (Query(..), filterQuery, parseQueryTerm, queryEndDate, quer
 import Hledger.Reports.ReportOptions (ReportOpts(..), queryFromFlags, rawOptsToReportOpts)
 import Hledger.Utils
 import Hledger.Read.InputOptions
-import Hledger.Read.Checks (journalCheckAccounts, journalCheckCommodities)
 
 --- ** doctest setup
 -- $setup

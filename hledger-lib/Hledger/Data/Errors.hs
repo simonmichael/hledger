@@ -4,7 +4,7 @@ Helpers for making error messages.
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module Hledger.Read.Error (
+module Hledger.Data.Errors (
   makeTransactionErrorExcerpt,
   makePostingErrorExcerpt,
   transactionFindPostingIndex,
@@ -16,7 +16,8 @@ import Data.List (find)
 import Data.Text (Text)
 import qualified Data.Text as T
 
-import Hledger.Data
+import Hledger.Data.Transaction (showTransaction)
+import Hledger.Data.Types
 import Hledger.Utils
 
 -- | Given a problem transaction and a function calculating the best

@@ -47,8 +47,11 @@ library
       Hledger.Data.Amount
       Hledger.Data.Balancing
       Hledger.Data.Dates
-      Hledger.Read.InputOptions
+      Hledger.Data.Errors
       Hledger.Data.Journal
+      Hledger.Data.JournalChecks
+      Hledger.Data.JournalChecks.Ordereddates
+      Hledger.Data.JournalChecks.Uniqueleafnames
       Hledger.Data.Json
       Hledger.Data.Ledger
       Hledger.Data.Period
@@ -63,11 +66,9 @@ library
       Hledger.Data.Valuation
       Hledger.Query
       Hledger.Read
-      Hledger.Read.Checks
-      Hledger.Read.Checks.Ordereddates
-      Hledger.Read.Checks.Uniqueleafnames
       Hledger.Read.Common
       Hledger.Read.CsvReader
+      Hledger.Read.InputOptions
       Hledger.Read.JournalReader
       Hledger.Read.TimedotReader
       Hledger.Read.TimeclockReader
@@ -89,7 +90,6 @@ library
       Hledger.Utils.Text
       Text.Tabular.AsciiWide
   other-modules:
-      Hledger.Read.Error
       Text.Megaparsec.Custom
       Text.WideString
       Paths_hledger_lib

@@ -7,12 +7,12 @@ others can be called only via the check command.
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NamedFieldPuns #-}
 
-module Hledger.Read.Checks (
+module Hledger.Data.JournalChecks (
   journalCheckAccounts,
   journalCheckCommodities,
   journalCheckPayees,
-  module Hledger.Read.Checks.Ordereddates,
-  module Hledger.Read.Checks.Uniqueleafnames,
+  module Hledger.Data.JournalChecks.Ordereddates,
+  module Hledger.Data.JournalChecks.Uniqueleafnames,
 )
 where
 
@@ -24,10 +24,14 @@ import qualified Data.Text as T
 import Safe (atMay)
 import Text.Printf (printf)
 
-import Hledger.Data
-import Hledger.Read.Checks.Ordereddates
-import Hledger.Read.Checks.Uniqueleafnames
-import Hledger.Read.Error
+import Hledger.Data.Errors
+import Hledger.Data.Journal
+import Hledger.Data.JournalChecks.Ordereddates
+import Hledger.Data.JournalChecks.Uniqueleafnames
+import Hledger.Data.Posting (isVirtual)
+import Hledger.Data.Types
+import Hledger.Data.Amount (amountIsZero, amountsRaw, missingamt)
+import Hledger.Data.Transaction (transactionPayee, showTransactionLineFirstPart)
 
 -- | Check that all the journal's postings are to accounts  with
 -- account directives, returning an error message otherwise.
