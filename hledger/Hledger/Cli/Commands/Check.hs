@@ -98,10 +98,10 @@ runCheck :: CliOpts -> Journal -> (Check,[String]) -> IO ()
 runCheck CliOpts{reportspec_=ReportSpec{_rsReportOpts=ropts}} j (check,_) = do
   let
     results = case check of
-      Accounts        -> journalCheckAccountsDeclared j
-      Commodities     -> journalCheckCommoditiesDeclared j
+      Accounts        -> journalCheckAccounts j
+      Commodities     -> journalCheckCommodities j
       Ordereddates    -> journalCheckOrdereddates (whichDate ropts) j
-      Payees          -> journalCheckPayeesDeclared j
+      Payees          -> journalCheckPayees j
       Uniqueleafnames -> journalCheckUniqueleafnames j
       -- the other checks have been done earlier during withJournalDo
       _               -> Right ()

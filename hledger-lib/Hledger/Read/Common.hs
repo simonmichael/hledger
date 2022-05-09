@@ -148,7 +148,7 @@ import Hledger.Query (Query(..), filterQuery, parseQueryTerm, queryEndDate, quer
 import Hledger.Reports.ReportOptions (ReportOpts(..), queryFromFlags, rawOptsToReportOpts)
 import Hledger.Utils
 import Hledger.Read.InputOptions
-import Hledger.Read.Checks (journalCheckAccountsDeclared, journalCheckCommoditiesDeclared)
+import Hledger.Read.Checks (journalCheckAccounts, journalCheckCommodities)
 
 --- ** doctest setup
 -- $setup
@@ -324,8 +324,8 @@ journalFinalise iopts@InputOpts{auto_,infer_equity_,balancingopts_,strict_,_ioDa
       <&> (if infer_equity_ then journalAddInferredEquityPostings else id)  -- Add inferred equity postings, after balancing transactions and generating auto postings
       <&> journalInferMarketPricesFromTransactions       -- infer market prices from commodity-exchanging transactions
     when strict_ $ do
-      journalCheckAccountsDeclared j                     -- If in strict mode, check all postings are to declared accounts
-      journalCheckCommoditiesDeclared j                  -- and using declared commodities
+      journalCheckAccounts j                     -- If in strict mode, check all postings are to declared accounts
+      journalCheckCommodities j                  -- and using declared commodities
     return j
 
 -- | Apply any auto posting rules to generate extra postings on this journal's transactions.

@@ -8,9 +8,9 @@ others can be called only via the check command.
 {-# LANGUAGE NamedFieldPuns #-}
 
 module Hledger.Read.Checks (
-  journalCheckAccountsDeclared,
-  journalCheckCommoditiesDeclared,
-  journalCheckPayeesDeclared,
+  journalCheckAccounts,
+  journalCheckCommodities,
+  journalCheckPayees,
   module Hledger.Read.Checks.Ordereddates,
   module Hledger.Read.Checks.Uniqueleafnames,
 )
@@ -29,10 +29,10 @@ import Hledger.Read.Checks.Ordereddates
 import Hledger.Read.Checks.Uniqueleafnames
 import Hledger.Read.Error
 
--- | Check that all the journal's postings are to accounts declared with
+-- | Check that all the journal's postings are to accounts  with
 -- account directives, returning an error message otherwise.
-journalCheckAccountsDeclared :: Journal -> Either String ()
-journalCheckAccountsDeclared j = mapM_ checkacct (journalPostings j)
+journalCheckAccounts :: Journal -> Either String ()
+journalCheckAccounts j = mapM_ checkacct (journalPostings j)
   where
     checkacct p@Posting{paccount=a}
       | a `elem` journalAccountNamesDeclared j = Right ()
@@ -49,8 +49,8 @@ journalCheckAccountsDeclared j = mapM_ checkacct (journalPostings j)
 
 -- | Check that all the commodities used in this journal's postings have been declared
 -- by commodity directives, returning an error message otherwise.
-journalCheckCommoditiesDeclared :: Journal -> Either String ()
-journalCheckCommoditiesDeclared j = mapM_ checkcommodities (journalPostings j)
+journalCheckCommodities :: Journal -> Either String ()
+journalCheckCommodities j = mapM_ checkcommodities (journalPostings j)
   where
     checkcommodities p =
       case findundeclaredcomm p of
@@ -109,8 +109,8 @@ journalCheckCommoditiesDeclared j = mapM_ checkcommodities (journalPostings j)
 
 -- | Check that all the journal's transactions have payees declared with
 -- payee directives, returning an error message otherwise.
-journalCheckPayeesDeclared :: Journal -> Either String ()
-journalCheckPayeesDeclared j = mapM_ checkpayee (jtxns j)
+journalCheckPayees :: Journal -> Either String ()
+journalCheckPayees j = mapM_ checkpayee (jtxns j)
   where
     checkpayee t
       | payee `elem` journalPayeesDeclared j = Right ()
