@@ -110,7 +110,6 @@ library
       Hledger.Cli.Commands.Balancesheetequity
       Hledger.Cli.Commands.Cashflow
       Hledger.Cli.Commands.Check
-      Hledger.Cli.Commands.Check.Ordereddates
       Hledger.Cli.Commands.Close
       Hledger.Cli.Commands.Codes
       Hledger.Cli.Commands.Commodities

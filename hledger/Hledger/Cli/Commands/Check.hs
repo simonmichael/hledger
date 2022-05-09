@@ -17,7 +17,6 @@ import System.Console.CmdArgs.Explicit
 
 import Hledger
 import Hledger.Cli.CliOptions
-import Hledger.Cli.Commands.Check.Ordereddates (journalCheckOrdereddates)
 
 checkmode :: Mode RawOpts
 checkmode = hledgerCommandMode
@@ -96,20 +95,12 @@ parseCheckArgument s =
 -- | Run the named error check, possibly with some arguments, 
 -- on this journal with these options.
 runCheck :: CliOpts -> Journal -> (Check,[String]) -> IO ()
-runCheck copts@CliOpts{rawopts_} j (check,args) = do
+runCheck CliOpts{reportspec_=ReportSpec{_rsReportOpts=ropts}} j (check,_) = do
   let
-    -- XXX drop this ?
-    -- Hack: append the provided args to the raw opts, for checks 
-    -- which can use them (just journalCheckOrdereddates rignt now
-    -- which has some flags from the old checkdates command). 
-    -- Does not bother to regenerate the derived data (ReportOpts, ReportSpec..), 
-    -- so those may be inconsistent.
-    copts' = copts{rawopts_=appendopts (map (,"") args) rawopts_}
-
     results = case check of
       Accounts        -> journalCheckAccountsDeclared j
       Commodities     -> journalCheckCommoditiesDeclared j
-      Ordereddates    -> journalCheckOrdereddates copts' j
+      Ordereddates    -> journalCheckOrdereddates (whichDate ropts) j
       Payees          -> journalCheckPayeesDeclared j
       Uniqueleafnames -> journalCheckUniqueleafnames j
       -- the other checks have been done earlier during withJournalDo

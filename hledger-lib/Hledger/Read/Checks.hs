@@ -11,6 +11,7 @@ module Hledger.Read.Checks (
   journalCheckAccountsDeclared,
   journalCheckCommoditiesDeclared,
   journalCheckPayeesDeclared,
+  module Hledger.Read.Checks.Ordereddates,
   module Hledger.Read.Checks.Uniqueleafnames,
 )
 where
@@ -24,6 +25,7 @@ import Safe (atMay)
 import Text.Printf (printf)
 
 import Hledger.Data
+import Hledger.Read.Checks.Ordereddates
 import Hledger.Read.Checks.Uniqueleafnames
 import Hledger.Read.Error
 

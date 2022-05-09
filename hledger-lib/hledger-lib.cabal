@@ -64,6 +64,7 @@ library
       Hledger.Query
       Hledger.Read
       Hledger.Read.Checks
+      Hledger.Read.Checks.Ordereddates
       Hledger.Read.Checks.Uniqueleafnames
       Hledger.Read.Common
       Hledger.Read.CsvReader

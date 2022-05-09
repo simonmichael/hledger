@@ -1,45 +1,39 @@
-module Hledger.Cli.Commands.Check.Ordereddates (
+module Hledger.Read.Checks.Ordereddates (
   journalCheckOrdereddates
 )
 where
 
-import Hledger
-import Hledger.Cli.CliOptions
 import Control.Monad (forM)
 import Data.List (groupBy)
 import Text.Printf (printf)
 import Data.Maybe (fromMaybe)
-import Hledger.Read.Error (makeTransactionErrorExcerpt)
 
--- XXX does this need CliOpts ? Can it move to Hledger.Read.Checks ?
-journalCheckOrdereddates :: CliOpts -> Journal -> Either String ()
-journalCheckOrdereddates CliOpts{reportspec_=rspec} j = do
+import Hledger.Data
+import Hledger.Read.Error
+
+journalCheckOrdereddates :: WhichDate -> Journal -> Either String ()
+journalCheckOrdereddates whichdate j = do
   let 
-    ropts = (_rsReportOpts rspec){accountlistmode_=ALFlat}
-    -- check date ordering within each file, not across files
-    filets = 
-      groupBy (\t1 t2 -> transactionFile t1 == transactionFile t2) $
-      filter (_rsQuery rspec `matchesTransaction`) $
-      jtxns $ journalApplyValuationFromOpts rspec j  -- XXX why apply valuation ?
-    checkunique = False -- boolopt "unique" rawopts  XXX was supported by checkdates command
-    compare a b = if checkunique then getdate a < getdate b else getdate a <= getdate b
-      where getdate = transactionDateFn ropts
+    -- we check date ordering within each file, not across files
+    -- note, relying on txns always being sorted by file here
+    txnsbyfile = groupBy (\t1 t2 -> transactionFile t1 == transactionFile t2) $ jtxns j
+    getdate = transactionDateOrDate2 whichdate
+    compare a b = getdate a <= getdate b
   either Left (const $ Right ()) $ 
-   forM filets $ \ts ->
+   forM txnsbyfile $ \ts ->
     case checkTransactions compare ts of
       FoldAcc{fa_previous=Nothing} -> Right ()
       FoldAcc{fa_error=Nothing}    -> Right ()
       FoldAcc{fa_error=Just t, fa_previous=Just tprev} -> Left $ printf
-        "%s:%d:%d-%d:\n%stransaction date%s is out of order with previous transaction date %s%s" 
-        f l col col2 ex datenum tprevdate oruniquestr
+        "%s:%d:%d-%d:\n%stransaction date%s is out of order with previous transaction date %s" 
+        f l col col2 ex datenum tprevdate
         where
           (f,l,mcols,ex) = makeTransactionErrorExcerpt t finderrcols
           col  = maybe 0 fst mcols
           col2 = maybe 0 (fromMaybe 0 . snd) mcols
           finderrcols _t = Just (1, Just 10)
-          datenum   = if date2_ ropts then "2" else ""
-          tprevdate = show $ (if date2_ ropts then transactionDate2 else tdate) tprev
-          oruniquestr = if checkunique then ", and/or not unique" else ""  -- XXX still used ?
+          datenum   = if whichdate==SecondaryDate then "2" else ""
+          tprevdate = show $ getdate tprev
 
 data FoldAcc a b = FoldAcc
  { fa_error    :: Maybe a
