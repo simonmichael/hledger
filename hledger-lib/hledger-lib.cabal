@@ -63,6 +63,8 @@ library
       Hledger.Data.Valuation
       Hledger.Query
       Hledger.Read
+      Hledger.Read.Checks
+      Hledger.Read.Checks.Uniqueleafnames
       Hledger.Read.Common
       Hledger.Read.CsvReader
       Hledger.Read.JournalReader
@@ -86,6 +88,7 @@ library
       Hledger.Utils.Text
       Text.Tabular.AsciiWide
   other-modules:
+      Hledger.Read.Error
       Text.Megaparsec.Custom
       Text.WideString
       Paths_hledger_lib

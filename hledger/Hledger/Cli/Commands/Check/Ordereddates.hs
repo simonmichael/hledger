@@ -9,7 +9,9 @@ import Control.Monad (forM)
 import Data.List (groupBy)
 import Text.Printf (printf)
 import Data.Maybe (fromMaybe)
+import Hledger.Read.Error (makeTransactionErrorExcerpt)
 
+-- XXX does this need CliOpts ? Can it move to Hledger.Read.Checks ?
 journalCheckOrdereddates :: CliOpts -> Journal -> Either String ()
 journalCheckOrdereddates CliOpts{reportspec_=rspec} j = do
   let 
@@ -18,7 +20,7 @@ journalCheckOrdereddates CliOpts{reportspec_=rspec} j = do
     filets = 
       groupBy (\t1 t2 -> transactionFile t1 == transactionFile t2) $
       filter (_rsQuery rspec `matchesTransaction`) $
-      jtxns $ journalApplyValuationFromOpts rspec j
+      jtxns $ journalApplyValuationFromOpts rspec j  -- XXX why apply valuation ?
     checkunique = False -- boolopt "unique" rawopts  XXX was supported by checkdates command
     compare a b = if checkunique then getdate a < getdate b else getdate a <= getdate b
       where getdate = transactionDateFn ropts

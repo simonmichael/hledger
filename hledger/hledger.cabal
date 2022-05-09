@@ -111,7 +111,6 @@ library
       Hledger.Cli.Commands.Cashflow
       Hledger.Cli.Commands.Check
       Hledger.Cli.Commands.Check.Ordereddates
-      Hledger.Cli.Commands.Check.Uniqueleafnames
       Hledger.Cli.Commands.Close
       Hledger.Cli.Commands.Codes
       Hledger.Cli.Commands.Commodities

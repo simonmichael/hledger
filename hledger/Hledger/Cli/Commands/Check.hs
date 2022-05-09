@@ -18,7 +18,6 @@ import System.Console.CmdArgs.Explicit
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Commands.Check.Ordereddates (journalCheckOrdereddates)
-import Hledger.Cli.Commands.Check.Uniqueleafnames (journalCheckUniqueleafnames)
 
 checkmode :: Mode RawOpts
 checkmode = hledgerCommandMode
