@@ -1,6 +1,8 @@
 # The main hledger integration test workflow.
 # Builds warning free and runs unit/doc/functional/haddock/bench tests,
 # using the GHC version(s) enabled below.
+# It also uploads the binaries as a downloadable artifact for testers,
+# and because why not having done all the work.
 # Merging to master requires that this workflow's jobs ("86" at least) have passed.
 
 name: main CI
@@ -261,29 +263,30 @@ jobs:
         # --no-print-missing-docs is 600% quieter
       if: env.CONTINUE
 
-    # - name: Gather executables
-    #   id: exes
-    #   run: |
-    #     mkdir tmp
-    #     cd tmp
-    #     mkdir hledger
-    #     cd hledger
-    #     cp ~/.local/bin/hledger .
-    #     cp ~/.local/bin/hledger-ui .
-    #     cp ~/.local/bin/hledger-web .
-    #   # how to set a context variable, and an attempt to make a nice artifact version suffix:
-    #   # echo "::set-output name=version::$(git branch --show-current | sed 's/-.*//')-$(git rev-parse --short HEAD)"
-    #   if: env.CONTINUE
+    - name: Gather executables
+      id: exes
+      run: |
+        mkdir tmp
+        cd tmp
+        mkdir hledger-linux-x64
+        cd hledger-linux-x64
+        cp ~/.local/bin/hledger .
+        cp ~/.local/bin/hledger-ui .
+        cp ~/.local/bin/hledger-web .
+        strip hledger
+        strip hledger-ui
+        strip hledger-web
+      # how to set a context variable, and an attempt to make a nice artifact version suffix:
+      # echo "::set-output name=version::$(git branch --show-current | sed 's/-.*//')-$(git rev-parse --short HEAD)"
+      if: env.CONTINUE
 
-    # # XXX intermittent upload failures
-    # - name: Upload executables artifact
-    #   uses: actions/upload-artifact@v2
-    #   with:
-    # #    name: hledger-ubuntu-${{ steps.exes.outputs.version }}
-    #     name: hledger-ubuntu
-    #     path: tmp/hledger
-    #   if: env.CONTINUE
-
+    # XXX intermittent upload failures
+    - name: Upload executables artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: hledger-linux-x64
+        path: tmp/hledger-linux-x64
+      if: env.CONTINUE
 
 
 
