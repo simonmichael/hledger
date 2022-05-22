@@ -168,6 +168,9 @@ jobs:
         cp ~/.local/bin/hledger .
         cp ~/.local/bin/hledger-ui .
         cp ~/.local/bin/hledger-web .
+        strip hledger
+        strip hledger-ui
+        strip hledger-web
       if: env.CONTINUE
 
     # XXX intermittent upload failures
