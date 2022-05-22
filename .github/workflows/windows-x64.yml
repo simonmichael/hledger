@@ -166,8 +166,8 @@ jobs:
       run: |
         mkdir tmp
         cd tmp
-        mkdir hledger
-        cd hledger
+        mkdir hledger-windows-x64
+        cd hledger-windows-x64
         cp /C/Users/runneradmin/AppData/Roaming/local/bin/hledger.exe     .
         cp /C/Users/runneradmin/AppData/Roaming/local/bin/hledger-web.exe .
       if: env.CONTINUE
@@ -176,6 +176,6 @@ jobs:
     - name: Create executables artifact
       uses: actions/upload-artifact@v2
       with:
-        name: hledger-windows
-        path: tmp/hledger
+        name: hledger-windows-x64
+        path: tmp/hledger-windows-x64
       if: env.CONTINUE

@@ -163,8 +163,8 @@ jobs:
       run: |
         mkdir tmp
         cd tmp
-        mkdir hledger
-        cd hledger
+        mkdir hledger-mac-x64
+        cd hledger-mac-x64
         cp ~/.local/bin/hledger .
         cp ~/.local/bin/hledger-ui .
         cp ~/.local/bin/hledger-web .
@@ -174,7 +174,7 @@ jobs:
     - name: Upload executables artifact
       uses: actions/upload-artifact@v2
       with:
-        name: hledger-macos
-        path: tmp/hledger
+        name: hledger-mac-x64
+        path: tmp/hledger-mac-x64
       if: env.CONTINUE
 
