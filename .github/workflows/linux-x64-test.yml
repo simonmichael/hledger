@@ -5,7 +5,7 @@
 # and because why not having done all the work.
 # Merging to master requires that this workflow's jobs ("86" at least) have passed.
 
-name: main CI
+name: linux-x64 CI tests and binaries
 
 # This workflow runs...
 on:

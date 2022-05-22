@@ -3,7 +3,7 @@
 # using the GHC version below (9.2.2) and cabal.
 # Currently runs no tests.
 
-name: linux-x64 CI binaries
+name: linux-x64 static binaries
 
 on:
   push:
