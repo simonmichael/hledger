@@ -25,7 +25,7 @@ import Data.List
 import Numeric.RootFinding
 import Data.Decimal
 import qualified Data.Text as T
-import qualified Data.Text.Lazy.IO as TL
+import qualified Data.Text.Lazy.IO as TLIO (putStr, putStrLn)  -- Only putStr and friends are safe
 import System.Console.CmdArgs.Explicit as CmdArgs
 
 import Text.Tabular.AsciiWide as Tab
@@ -85,7 +85,7 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportO
     trans = dbg3 "investments" $ jtxns filteredj
 
   when (null trans) $ do
-    putStrLn "No relevant transactions found. Check your investments query"
+    TLIO.putStrLn "No relevant transactions found. Check your investments query"
     exitFailure
 
   let spans = snd $ reportSpan filteredj rspec
@@ -146,7 +146,7 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportO
                , Tab.Group Tab.SingleLine [Header "IRR", Header "TWR"]])
               tableBody
 
-  TL.putStrLn $ Tab.render prettyTables id id id table
+  TLIO.putStrLn $ Tab.render prettyTables id id id table
 
 timeWeightedReturn showCashFlow prettyTables investmentsQuery trans mixedAmountValue (OneSpan spanBegin spanEnd valueBeforeAmt valueAfter cashFlow pnl) = do
   let valueBefore = unMix valueBeforeAmt
@@ -229,7 +229,7 @@ timeWeightedReturn showCashFlow prettyTables investmentsQuery trans mixedAmountV
         unitPrices = add initialUnitPrice unitPrices'
         unitBalances = add initialUnits unitBalances'
 
-    TL.putStr $ Tab.render prettyTables id id T.pack
+    TLIO.putStr $ Tab.render prettyTables id id T.pack
       (Table
        (Tab.Group NoLine (map (Header . showDate) dates))
        (Tab.Group DoubleLine [ Tab.Group Tab.SingleLine [Tab.Header "Portfolio value", Tab.Header "Unit balance"]
@@ -259,7 +259,7 @@ internalRateOfReturn showCashFlow prettyTables (OneSpan spanBegin spanEnd valueB
   when showCashFlow $ do
     printf "\nIRR cash flow for %s - %s\n" (showDate spanBegin) (showDate (addDays (-1) spanEnd))
     let (dates, amounts) = unzip totalCF
-    TL.putStrLn $ Tab.render prettyTables id id id
+    TLIO.putStrLn $ Tab.render prettyTables id id id
       (Table
        (Tab.Group Tab.NoLine (map (Header . showDate) dates))
        (Tab.Group Tab.SingleLine [Header "Amount"])

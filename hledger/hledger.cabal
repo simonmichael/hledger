@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.34.6.
 --
 -- see: https://github.com/sol/hpack
 
@@ -172,6 +172,7 @@ library
     , unordered-containers
     , utf8-string >=0.3.5
     , utility-ht >=0.0.13
+    , with-utf8 >=1.0.0
     , wizards >=1.0
   if (!(os(windows))) && (flag(terminfo))
     build-depends:
@@ -221,6 +222,7 @@ executable hledger
     , unordered-containers
     , utf8-string >=0.3.5
     , utility-ht >=0.0.13
+    , with-utf8 >=1.0.0
     , wizards >=1.0
   if (!(os(windows))) && (flag(terminfo))
     build-depends:
@@ -271,6 +273,7 @@ test-suite unittest
     , unordered-containers
     , utf8-string >=0.3.5
     , utility-ht >=0.0.13
+    , with-utf8 >=1.0.0
     , wizards >=1.0
   if (!(os(windows))) && (flag(terminfo))
     build-depends:
@@ -320,6 +323,7 @@ benchmark bench
     , unordered-containers
     , utf8-string >=0.3.5
     , utility-ht >=0.0.13
+    , with-utf8 >=1.0.0
     , wizards >=1.0
   buildable: False
   if (!(os(windows))) && (flag(terminfo))

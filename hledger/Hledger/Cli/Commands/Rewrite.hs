@@ -14,7 +14,7 @@ import Data.Functor.Identity
 import Data.List (sortOn, foldl')
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.IO as T
+import qualified Data.Text.IO as TIO (putStr)  -- Only putStr and friends are safe
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Commands.Print
@@ -66,7 +66,7 @@ printOrDiff opts
 diffOutput :: Journal -> Journal -> IO ()
 diffOutput j j' = do
     let changed = [(originalTransaction t, originalTransaction t') | (t, t') <- zip (jtxns j) (jtxns j'), t /= t']
-    T.putStr $ renderPatch $ map (uncurry $ diffTxn j) changed
+    TIO.putStr $ renderPatch $ map (uncurry $ diffTxn j) changed
 
 type Chunk = (SourcePos, [DiffLine Text])
 

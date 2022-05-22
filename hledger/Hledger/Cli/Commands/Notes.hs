@@ -16,7 +16,7 @@ module Hledger.Cli.Commands.Notes (
 ) where
 
 import Data.List.Extra (nubSort)
-import qualified Data.Text.IO as T
+import qualified Data.Text.IO as TIO (putStrLn)  -- Only putStr and friends are safe
 
 import Hledger
 import Hledger.Cli.CliOptions
@@ -35,4 +35,4 @@ notes :: CliOpts -> Journal -> IO ()
 notes CliOpts{reportspec_=rspec} j = do
   let ts = entriesReport rspec j
       notes = nubSort $ map transactionNote ts
-  mapM_ T.putStrLn notes
+  mapM_ TIO.putStrLn notes

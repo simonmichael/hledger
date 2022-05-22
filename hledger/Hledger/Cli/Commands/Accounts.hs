@@ -22,7 +22,7 @@ module Hledger.Cli.Commands.Accounts (
 
 import Data.List
 import qualified Data.Text as T
-import qualified Data.Text.IO as T
+import qualified Data.Text.IO as TIO (putStrLn)  -- Only putStr and friends are safe
 import System.Console.CmdArgs.Explicit as C
 
 import Hledger
@@ -96,4 +96,4 @@ accounts CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_rsRepo
       where
         spacer = T.replicate (maxwidth - T.length (showName a)) " "
     maxwidth = maximum $ map (T.length . showName) clippedaccts
-  forM_ clippedaccts $ \a -> T.putStrLn $ showName a <> showType a
+  forM_ clippedaccts $ \a -> TIO.putStrLn $ showName a <> showType a

@@ -9,7 +9,7 @@ where
 
 import Control.Monad
 import Data.List
-import qualified Data.Text.IO as T
+import qualified Data.Text.IO as TIO (putStr)  -- Only putStr and friends are safe
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Commands.Add (journalAddTransaction)
@@ -60,7 +60,7 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
               printf "; would import %d new transactions from %s:\n\n" (length newts) inputstr
               -- TODO how to force output here ?
               -- length (jtxns newj) `seq` print' opts{rawopts_=("explicit",""):rawopts} newj
-              mapM_ (T.putStr . showTransaction) newts
+              mapM_ (TIO.putStr . showTransaction) newts
             newts | catchup -> do
               printf "marked %s as caught up, skipping %d unimported transactions\n\n" inputstr (length newts)
             newts -> do

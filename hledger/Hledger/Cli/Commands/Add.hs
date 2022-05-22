@@ -26,9 +26,9 @@ import Data.List (isPrefixOf)
 import Data.Maybe (fromJust, fromMaybe, isJust)
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.IO as T
+import qualified Data.Text.IO as TIO (hPutStr, putStr)  -- Only putStr and friends are safe
 import qualified Data.Text.Lazy as TL
-import qualified Data.Text.Lazy.IO as TL
+import qualified Data.Text.Lazy.IO as TLIO (putStrLn)   -- Only putStr and friends are safe
 import Data.Time.Calendar (Day)
 import Data.Time.Format (formatTime, defaultTimeLocale)
 import Lens.Micro ((^.))
@@ -184,7 +184,7 @@ confirmedTransactionWizard prevInput es@EntryState{..} stack@(currentStage : _) 
           prevInput' = prevInput{prevDescAndCmnt=Just descAndCommentString}
       when (isJust mbaset) . liftIO $ do
           hPutStrLn stderr "Using this similar transaction for defaults:"
-          T.hPutStr stderr $ showTransaction (fromJust mbaset)
+          TIO.hPutStr stderr $ showTransaction (fromJust mbaset)
       confirmedTransactionWizard prevInput' es' ((EnterNewPosting TxnParams{txnDate=date, txnCode=code, txnDesc=desc, txnCmnt=comment} Nothing) : stack)
     Nothing ->
       confirmedTransactionWizard prevInput es (drop 1 stack)
@@ -435,7 +435,7 @@ journalAddTransaction j@Journal{jtxns=ts} opts t = do
     -- unelided shows all amounts explicitly, in case there's a price, cf #283
   when (debug_ opts > 0) $ do
     putStrLn $ printf "\nAdded transaction to %s:" f
-    TL.putStrLn =<< registerFromString (showTransaction t)
+    TLIO.putStrLn =<< registerFromString (showTransaction t)
   return j{jtxns=ts++[t]}
 
 -- | Append a string, typically one or more transactions, to a journal
@@ -448,7 +448,7 @@ journalAddTransaction j@Journal{jtxns=ts} opts t = do
 --
 appendToJournalFileOrStdout :: FilePath -> Text -> IO ()
 appendToJournalFileOrStdout f s
-  | f == "-"  = T.putStr s'
+  | f == "-"  = TIO.putStr s'
   | otherwise = appendFile f $ T.unpack s'
   where s' = "\n" <> ensureOneNewlineTerminated s
 

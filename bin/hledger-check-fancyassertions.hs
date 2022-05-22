@@ -112,7 +112,7 @@ import Data.Time.Calendar (toGregorian)
 import Data.Time.Calendar.OrdinalDate (mondayStartWeek, sundayStartWeek, toOrdinalDate)
 import Data.Text (Text, isPrefixOf, pack, unpack)
 import qualified Data.Text as T
-import qualified Data.Text.IO as T
+import qualified Data.Text.IO as T (putStrLn)  -- Only putStr and friends are safe
 import qualified Hledger.Data as H
 import qualified Hledger.Query as H
 import qualified Hledger.Read as H

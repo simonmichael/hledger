@@ -16,7 +16,7 @@ module Hledger.Cli.Commands.Codes (
 ) where
 
 import qualified Data.Text as T
-import qualified Data.Text.IO as T
+import qualified Data.Text.IO as TIO (putStrLn)  -- Only putStr and friends are safe
 
 import Hledger
 import Hledger.Cli.CliOptions
@@ -36,4 +36,4 @@ codes CliOpts{reportspec_=rspec} j = do
   let ts = entriesReport rspec j
       codes = (if empty_ (_rsReportOpts rspec) then id else filter (not . T.null)) $
               map tcode ts
-  mapM_ T.putStrLn codes
+  mapM_ TIO.putStrLn codes

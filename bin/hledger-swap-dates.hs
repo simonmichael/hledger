@@ -9,7 +9,7 @@
 {-# LANGUAGE RecordWildCards #-}
 
 import Data.String.QQ (s)
-import qualified Data.Text.IO as T
+import qualified Data.Text.IO as T (putStrLn)  -- Only putStr and friends are safe
 import Hledger
 import Hledger.Cli
 
