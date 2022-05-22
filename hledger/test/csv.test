@@ -1029,6 +1029,19 @@ $  ./csvtest.sh
 
 >=0
 
+# 51. Throw an error when unable to substitute csv templates
+<
+"2021-12-23","caffe_siciliaexpenses:cibo:dolce","-10.5"
+
+RULES file
+
+account1 assets:bank:checking
+fields date, description, account2, amount
+
+$  ./csvtest.sh
+>2 /could not balance this transaction/
+>=1
+
 ## . 
 #<
 #$  ./csvtest.sh
