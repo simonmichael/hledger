@@ -1,16 +1,29 @@
 cashflow, cf
 This command displays a cashflow statement, showing the inflows and
-outflows affecting "cash" (ie, liquid) assets. Amounts are shown with
-normal positive sign, as in conventional financial statements.
+outflows affecting "cash" (ie, liquid, easily convertible) assets.
+Amounts are shown with normal positive sign, as in conventional
+financial statements.
 
 _FLAGS
 
-The "cash" accounts shown are those accounts declared with the Cash
-type, or otherwise all accounts under a top-level asset account (case
-insensitive, plural allowed) which do not have fixed, investment,
-receivable or A/R in their name.
+"Cash" assets are those accounts which are (or whose parents are)
+declared as Cash by an account directive, like this:
 
-Example:
+account some:liquid:asset    ; type:C
+
+Or if there are no such declarations, all accounts
+
+-   under a top-level asset account (case insensitive, plural allowed)
+-   with some variation of cash, bank, checking or saving in their name.
+
+More precisely: all accounts matching this case insensitive regular
+expression:
+
+^assets?(:.+)?:(cash|bank|che(ck|que?)(ing)?|savings?|currentcash)(:|$)
+
+and their subaccounts.
+
+An example cashflow report:
 
 $ hledger cashflow
 Cashflow Statement
