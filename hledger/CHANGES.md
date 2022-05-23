@@ -58,11 +58,11 @@ Breaking changes
   Please use `account NAME  ; type:TYPECODE` instead.
   (Stephen Morgan)
 
-- The rule for auto-detecting "cash" (liquid asset) accounts from account names
-  for the `cashflow` report has been simplified. 
-  If you have been using the cashflow report, without explicitly declaring Cash accounts,
-  you might notice a change, and might need to declare your Cash accounts explicitly
-  (by adding `type:C` tags to top-level cash account directives).
+- The rule for auto-detecting "cash" (liquid asset) accounts in the `cashflow` report  
+  has changed: it's now "all accounts under a top-level `asset` account, with 
+  `cash`, `bank`, `checking` or `saving` in their name" (case insensitive, variations allowed).  
+  So if you see a change in your `cashflow` reports, you might need to add
+  `account` directives with `type:C` tags, declaring your top-most cash accounts.
 
 Features
 
