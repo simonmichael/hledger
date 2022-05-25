@@ -4611,7 +4611,7 @@ A number of other tools and workflows, hledger-specific and otherwise,
 exist for converting, deduplicating, classifying and managing CSV
 data. See:
 
-- <https://hledger.org> -> sidebar -> real world setups
+- <https://hledger.org/cookbook.html#setups-and-workflows>
 - <https://plaintextaccounting.org> -> data import/conversion
 
 ### Setting amounts
