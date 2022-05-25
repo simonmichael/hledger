@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "April 2022" "hledger-1.25.99 " "hledger User Manuals"
+.TH "HLEDGER" "1" "May 2022" "hledger-1.25.99 " "hledger User Manuals"
 
 
 
@@ -1155,7 +1155,7 @@ Examples:
 .PP
 .TS
 tab(@);
-lw(25.5n) lw(44.5n).
+lw(26.0n) lw(44.0n).
 T{
 \f[C]-p \[dq]bimonthly from 2008\[dq]\f[R]
 T}@T{
@@ -1167,7 +1167,7 @@ T}@T{
 starts on closest preceding Monday
 T}
 T{
-\f[C]-p \[dq]every 5 month from 2009/03\[dq]\f[R]
+\f[C]-p \[dq]every 5 months from 2009/03\[dq]\f[R]
 T}@T{
 periods will have boundaries on 2009/03/01, 2009/08/01, ...
 T}
@@ -3023,10 +3023,11 @@ Many hledger users edit their journals directly with a text editor, or
 generate them from CSV.
 For more interactive data entry, there is the \f[C]add\f[R] command,
 which prompts interactively on the console for new transactions, and
-appends them to the journal file (if there are multiple
-\f[C]-f FILE\f[R] options, the first file is used.) Existing
-transactions are not changed.
-This is the only hledger command that writes to the journal file.
+appends them to the main journal file (which should be in journal
+format).
+Existing transactions are not changed.
+This is one of the few hledger commands that writes to the journal file
+(see also \f[C]import\f[R]).
 .PP
 To use it, just run \f[C]hledger add\f[R] and follow the prompts.
 You can add as many transactions as you like; when you are finished,
@@ -4539,17 +4540,36 @@ cashflow, cf
 .P
 .PD
 This command displays a cashflow statement, showing the inflows and
-outflows affecting \[dq]cash\[dq] (ie, liquid) assets.
+outflows affecting \[dq]cash\[dq] (ie, liquid, easily convertible)
+assets.
 Amounts are shown with normal positive sign, as in conventional
 financial statements.
 .PP
-The \[dq]cash\[dq] accounts shown are those accounts declared with the
-\f[C]Cash\f[R] type, or otherwise all accounts under a top-level
-\f[C]asset\f[R] account (case insensitive, plural allowed) which do not
-have \f[C]fixed\f[R], \f[C]investment\f[R], \f[C]receivable\f[R] or
-\f[C]A/R\f[R] in their name.
+\[dq]Cash\[dq] assets are those accounts which are (or whose parents
+are) declared as \f[C]Cash\f[R] by an account directive, like this:
+.IP
+.nf
+\f[C]
+account some:liquid:asset    ; type:C
+\f[R]
+.fi
 .PP
-Example:
+Or if there are no such declarations, all accounts
+.IP \[bu] 2
+under a top-level \f[C]asset\f[R] account (case insensitive, plural
+allowed)
+.IP \[bu] 2
+with some variation of \f[C]cash\f[R], \f[C]bank\f[R],
+\f[C]checking\f[R] or \f[C]saving\f[R] in their name.
+.PP
+More precisely: all accounts matching this case insensitive regular
+expression:
+.PP
+\f[C]\[ha]assets?(:.+)?:(cash|bank|che(ck|que?)(ing)?|savings?|currentcash)(:|$)\f[R]
+.PP
+and their subaccounts.
+.PP
+An example cashflow report:
 .IP
 .nf
 \f[C]
@@ -5118,10 +5138,16 @@ import
 .P
 .PD
 Read new transactions added to each FILE since last run, and add them to
-the main journal file.
+the journal.
 Or with --dry-run, just print the transactions that would be added.
 Or with --catchup, just mark all of the FILEs\[aq] transactions as
 imported, without actually importing any.
+.PP
+This command may append new transactions to the main journal file (which
+should be in journal format).
+Existing transactions are not changed.
+This is one of the few hledger commands that writes to the journal file
+(see also \f[C]add\f[R]).
 .PP
 Unlike other hledger commands, with \f[C]import\f[R] the journal file is
 an output file, and will be modified, though only by appending (existing
@@ -9812,7 +9838,7 @@ A number of other tools and workflows, hledger-specific and otherwise,
 exist for converting, deduplicating, classifying and managing CSV data.
 See:
 .IP \[bu] 2
-https://hledger.org -> sidebar -> real world setups
+https://hledger.org/cookbook.html#setups-and-workflows
 .IP \[bu] 2
 https://plaintextaccounting.org -> data import/conversion
 .SS Setting amounts
@@ -10430,13 +10456,13 @@ https://hledger.org.
 .IP
 .nf
 \f[C]
-$ hledger                 # show available commands
-$ hledger --help          # show common options
-$ hledger CMD --help      # show common and command options, and command help
-$ hledger help            # show available manuals/topics
-$ hledger help hledger    # show hledger manual as info/man/text (auto-chosen)
-$ hledger help journal --man  # show the journal manual as a man page
-$ hledger help --help     # show more detailed help for the help command
+$ hledger                  # show available commands
+$ hledger --help           # show common options
+$ hledger CMD --help       # show common and command options, and command help
+$ hledger help             # show available manuals/topics
+$ hledger help hledger     # show hledger manual, as info/man/text (auto-chosen)
+$ hledger help journal -m  # show the journal topic, as a man page scrolled to that section
+$ hledger help --help      # show more detailed help for the help command
 \f[R]
 .fi
 .PP

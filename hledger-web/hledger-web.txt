@@ -585,4 +585,4 @@ SEE ALSO
 
 
 
-hledger-web-1.25.99               April 2022                    HLEDGER-WEB(1)
+hledger-web-1.25.99                May 2022                     HLEDGER-WEB(1)

@@ -548,4 +548,4 @@ SEE ALSO
 
 
 
-hledger-ui-1.25.99                April 2022                     HLEDGER-UI(1)
+hledger-ui-1.25.99                 May 2022                      HLEDGER-UI(1)
