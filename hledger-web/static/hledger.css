@@ -1,6 +1,14 @@
 /* hledger web ui styles */
 
 /*------------------------------------------------------------------------------------------*/
+/* 0. revert some things */
+
+/* don't let bootstrap add link URLs when printing */
+@media print {
+  a[href]:after { content: none !important; }
+}
+
+/*------------------------------------------------------------------------------------------*/
 /* 1. colours */
 
 /* green */
