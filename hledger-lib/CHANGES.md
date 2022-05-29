@@ -9,14 +9,14 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 8de85be65
+# 2bce91090
 
 Breaking changes
 
 - readJournal, readJournalFile, readJournalFiles now return
   `ExceptT String IO a` instead of `IO (Either String a)`.
   Internally, this increases composability and avoids some ugly case handling.
-It means that these must now be evaluated with `runExceptT`.
+  It means that these must now be evaluated with `runExceptT`.
   That can be imported from `Control.Monad.Except` in the `mtl` package,
   but `Hledger.Read` also re-exports it for convenience.
 
@@ -25,25 +25,45 @@ It means that these must now be evaluated with `runExceptT`.
   assuming default input options and needing one less argument.
   (Stephen Morgan)
 
-Misc
-
-- Hledger.Query: Added
-  matchesQuery,
-  queryIsCode
-  queryIsTransactionRelated
-
-- Clean up journal parsing. (Stephen Morgan)
-  parseAndFinaliseJournal' has been removed. In the unlikely event you
-  needed it in your code, you can replace it with:
-
-  parseAndFinaliseJournal' parser iopts fp t =>
+- parseAndFinaliseJournal' (a variant of parseAndFinaliseJournal) has been removed. 
+  In the unlikely event you needed it in your code, you can replace:
+  ```haskell
+  parseAndFinaliseJournal' parser iopts fp t
+  ```
+  with:
+  ```haskell
   initialiseAndParseJournal parser iopts fp t
   >>= liftEither . journalApplyAliases (aliasesFromOpts iopts)
   >>= journalFinalise iopts fp t
+  ```
 
-  Some parsers have been generalised from JournalParser to TextParser.
+- Some parsers have been generalised from JournalParser to TextParser.
+  (Stephen Morgan)
 
-- Improve ergonomics of SmartDate constructors. (Stephen Morgan)
+Misc. changes
+
+- Our doctests now run with GHC 9.2+ only, to avoid doctest issues.
+
+- Hledger.Data.JournalChecks: some Journal checks have been moved and renamed:
+  journalCheckAccounts,
+  journalCheckCommodities,
+  journalCheckPayees
+  
+- Hledger.Data.Errors: new error formatting helpers
+  makeTransactionErrorExcerpt,
+  makePostingErrorExcerpt,
+  transactionFindPostingIndex
+
+- HledgerParseErrors is a new type alias for our parse errors.
+  CustomErr has been renamed to HledgerParseErrorData.
+
+- Hledger.Query: added
+  matchesQuery,
+  queryIsCode,
+  queryIsTransactionRelated
+
+- Improve ergonomics of SmartDate constructors. 
+  (Stephen Morgan)
 
 - Hledger.Utils: Add a helper function numDigitsInt to get the number
   of digits in an integer, which has a surprising number of ways to

@@ -9,46 +9,67 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 8de85be65
+# 2bce91090
 
 Breaking changes
+
+- Enforce that all files are decoded as UTF-8, ignoring the system locale.
+  Experimental; real-world testing and feedback is needed.
+  (#1619, #1834. May also affect #1154, #1033, #708, #536, #73.)
+  (Stephen Morgan)
 
 Features
 
 Improvements
 
-- The accounts command now shows its debug output at a more appropriate level (4).
-
-- --pivot now supports `status` (to pivot on transaction status).
-
-- register and aregister have been made faster, by 
+- `register` and `aregister` have been made faster, by 
 
   - considering only the first 1000 items for choosing column
     widths. You can restore the old behaviour (guaranteed alignment
-    across all items) with the new --align-all flag.
+    across all items) with the new `--align-all` flag.
     (#1839, Stephen Morgan)
 
   - discarding cost data more aggressively, giving big speedups for
     large journals with many costs.
-	(#1828, Stephen Morgan)
+  	(#1828, Stephen Morgan)
 
-- More consistent layout for error messages (Stephen Morgan, Simon Michael)
+- Most error messages from the journal reader and the `check` command now use
+  a consistent layout, with an "Error:" prefix, line and column numbers,
+  and an excerpt highlighting the problem. Work in progress.
+  (#1436) (Simon Michael, Stephen Morgan)
+
+- `hledger check ordereddates` now always checks all transactions
+  (previously it could be restricted by query arguments).
+
+- The `--pivot` options now supports a `status` argument, to pivot on transaction status.
+
+- Update bash completions (Jakob Schöttl)
 
 Fixes
 
-- The tags command now also matches accounts declared but not used.
-  It also has improved command-line help layout.
-  (#1857)
-
-- Value reports with --date2 and a report interval (like bal -VM --date2)
+- Value reports with `--date2` and a report interval (like `hledger bal -VM --date2`)
   were failing with a "expected all spans to have an end date" error since 1.22;
   this is now fixed.
   (#1851, Stephen Morgan)
 
-- Make sure inferred market prices have the correct sign with total prices.
+- In CSV rules, interpolation of a non-existent field like `%999` or `%nosuchfield`
+  is now ignored (previously it inserted that literal text).
+  Note this means such an error will not be reported; 
+  Simon chose this as the more convenient behaviour when converting CSV.
+  Experimental.
+  (#1803, #1814) (Stephen Morgan)
+
+- `--infer-market-price` was inferring a negative price when selling.
+  (#1813, Stephen Morgan)
 
 - Allow an escaped forward slash in regular expression account aliases.
   (#982, Stephen Morgan)
+
+- The `tags` command now also lists tags from unused account declarations.
+  It also has improved command-line help layout.
+  (#1857)
+
+- `hledger accounts` now shows its debug output at a more appropriate level (4).
 
 # 1.25 2022-03-04
 

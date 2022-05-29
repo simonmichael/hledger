@@ -9,13 +9,17 @@
 General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
-# 7a1d5e66e
+# 05d5b7860
 
 Scripts/addons
 
+- renamed hledger-number.sh to hledger-simplebal
+
+- added hledger-git, hledger-pijul
+
 - fin (and bin) scripts show available scripts and their help
 
-- aliases.sh -> bashrc
+- renamed aliases.sh to bashrc
 
 - Get hledger-print-location working. (Stephen Morgan)
 
@@ -32,12 +36,20 @@ Examples
 
 - invoice: calculate dates accurately on last days of month
 
-Process/tools
+Process
 
-- ci: master now requires all pushes/merges, including Simon's, to
-  have passed the `push` CI tests on some other github branch first.
+- Stackage nightly and GHC 9.2 are now the default for dev builds.
 
-- make buildtimes, make buildtimes-cabal: show GHC codegen times
+- CI workflows: 
+
+  - Workflows and binaries have more consistent naming, mentioning platform and architecture.
+  - The main test workflow is now `linux-x64-test`, replacing `push` and `pull`.
+    It runs for both pushes and pull requests, and generates binaries on every run.
+  - Pushes/merges to master, including Simon's, are required to have passed
+    `linux-x64-test` on another github branch first.
+  - Mac and Windows binaries are now stripped also (if applicable).
+
+- `make buildtimes`, `make buildtimes-cabal` show GHC codegen times.
 
 # 1.25 2022-03-04
 
