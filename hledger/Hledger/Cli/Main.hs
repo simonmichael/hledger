@@ -41,18 +41,17 @@ etc.
 module Hledger.Cli.Main where
 
 import Data.Char (isDigit)
-import Data.List (isPrefixOf)
-import Data.Time.Clock.POSIX (getPOSIXTime)
-import Main.Utf8 (withUtf8)
-import Safe (headDef, headMay)
+import Data.List
+import Safe
 import qualified System.Console.CmdArgs.Explicit as C
-import System.Environment (getArgs)
-import System.Exit (exitFailure, exitWith)
-import System.FilePath (dropExtension)
-import System.Process (system)
-import Text.Printf (printf)
+import System.Environment
+import System.Exit
+import System.FilePath
+import System.Process
+import Text.Printf
 
 import Hledger.Cli
+import Data.Time.Clock.POSIX (getPOSIXTime)
 
 
 -- | The overall cmdargs mode describing hledger's command-line options and subcommands.
@@ -97,7 +96,7 @@ mainmode addons = defMode {
 
 -- | Let's go!
 main :: IO ()
-main = withUtf8 $ do
+main = do
   progstarttime <- getPOSIXTime
 
   -- Choose and run the appropriate internal or external command based

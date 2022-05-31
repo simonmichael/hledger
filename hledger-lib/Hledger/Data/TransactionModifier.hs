@@ -63,10 +63,10 @@ modifyTransactions atypes atags styles d tmods ts = do
 -- Currently the only kind of modification possible is adding automated
 -- postings when certain other postings are present.
 --
--- >>> import qualified Data.Text.IO as TIO (putStr)  -- Only putStr and friends are safe
+-- >>> import qualified Data.Text.IO as T
 -- >>> t = nulltransaction{tpostings=["ping" `post` usd 1]}
 -- >>> tmpost acc amt = TMPostingRule (acc `post` amt) False
--- >>> test = either putStr (TIO.putStr.showTransaction) . fmap ($ t) . transactionModifierToFunction (const Nothing) (const []) mempty nulldate
+-- >>> test = either putStr (T.putStr.showTransaction) . fmap ($ t) . transactionModifierToFunction (const Nothing) (const []) mempty nulldate
 -- >>> test $ TransactionModifier "" ["pong" `tmpost` usd 2]
 -- 0000-01-01
 --     ping           $1.00

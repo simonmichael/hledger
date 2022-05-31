@@ -30,19 +30,16 @@ module Hledger.Cli.Utils
     )
 where
 
-import Prelude hiding (putStr, putStrLn, writeFile)
-
 import Control.Exception as C
 import Control.Monad.Except (ExceptT, liftIO)
+
 import Data.List
 import Data.Maybe
 import qualified Data.Text as T
+import qualified Data.Text.IO as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
-import qualified Data.Text.IO as TIO (putStrLn)      -- Only putStr and friends are safe
-import qualified Data.Text.IO.Utf8 as TIO
-import qualified Data.Text.Lazy.IO as TLIO (putStr)  -- Only putStr and friends are safe
-import qualified Data.Text.Lazy.IO.Utf8 as TLIO
+import qualified Data.Text.Lazy.IO as TL
 import Data.Time (Day)
 import Data.Time.Clock.POSIX (POSIXTime, utcTimeToPOSIXSeconds)
 import Lens.Micro ((^.))
@@ -114,7 +111,9 @@ anonymiseByOpts opts =
 -- | Write some output to stdout or to a file selected by --output-file.
 -- If the file exists it will be overwritten.
 writeOutput :: CliOpts -> String -> IO ()
-writeOutput opts = writeOutputLazyText opts . TL.pack
+writeOutput opts s = do
+  f <- outputFileFromOpts opts
+  (maybe putStr writeFile f) s
 
 -- | Write some output to stdout or to a file selected by --output-file.
 -- If the file exists it will be overwritten. This function operates on Lazy
@@ -122,7 +121,7 @@ writeOutput opts = writeOutputLazyText opts . TL.pack
 writeOutputLazyText :: CliOpts -> TL.Text -> IO ()
 writeOutputLazyText opts s = do
   f <- outputFileFromOpts opts
-  (maybe TLIO.putStr TLIO.writeFile f) s
+  (maybe TL.putStr TL.writeFile f) s
 
 -- -- | Get a journal from the given string and options, or throw an error.
 -- readJournal :: CliOpts -> String -> IO Journal
@@ -190,8 +189,8 @@ openBrowserOn u = trybrowsers browsers u
           ExitSuccess -> return ExitSuccess
           ExitFailure _ -> trybrowsers bs u
       trybrowsers [] u = do
-        TIO.putStrLn . T.pack $ "Could not start a web browser (tried: " <> intercalate ", " browsers <> ")"
-        TIO.putStrLn . T.pack $ "Please open your browser and visit " <> u
+        putStrLn $ printf "Could not start a web browser (tried: %s)" $ intercalate ", " browsers
+        putStrLn $ printf "Please open your browser and visit %s" u
         return $ ExitFailure 127
       browsers | os=="darwin"  = ["open"]
                | os=="mingw32" = ["c:/Program Files/Mozilla Firefox/firefox.exe"]
@@ -218,12 +217,12 @@ writeFileWithBackupIfChanged :: FilePath -> T.Text -> IO Bool
 writeFileWithBackupIfChanged f t = do
   s <- readFilePortably f
   if t == s then return False
-            else backUpFile f >> TIO.writeFile f t >> return True
+            else backUpFile f >> T.writeFile f t >> return True
 
 -- | Back up this file with a (incrementing) numbered suffix, then
 -- overwrite it with this new text, or give an error.
 writeFileWithBackup :: FilePath -> String -> IO ()
-writeFileWithBackup f t = backUpFile f >> TIO.writeFile f (T.pack t)
+writeFileWithBackup f t = backUpFile f >> writeFile f t
 
 readFileStrictly :: FilePath -> IO T.Text
 readFileStrictly f = readFilePortably f >>= \s -> C.evaluate (T.length s) >> return s

@@ -1,17 +1,11 @@
-# 1. Works with unicode input.
-$hledger -f unicode.journal balance
-                10 ß  ß
-         10 проверка  проверка
+hledger -f - balance
+<<<
+2009-01-01 проверка
+  τράπεζα  10 руб
+  नकद
+>>>
+              10 руб  τράπεζα
+             -10 руб  नकद
 --------------------
-                10 ß
-         10 проверка  
->=0
-
-# 2. Handles a byte order mark.
-$ hledger -f unicode-bom.journal balance
-                10 ß  ß
-         10 проверка  проверка
---------------------
-                10 ß
-         10 проверка  
->=0
+                   0  
+>>>=0

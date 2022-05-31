@@ -11,7 +11,7 @@ import System.Environment (getArgs)
 import Hledger.Cli
 import qualified Data.Map as M
 import Data.Map.Merge.Strict
-import qualified Data.Text.Lazy.IO as TL (putStrLn)  -- Only putStr and friends are safe
+import qualified Data.Text.Lazy.IO as TL
 
 appendReports :: MultiBalanceReport -> MultiBalanceReport -> MultiBalanceReport
 appendReports r1 r2 =

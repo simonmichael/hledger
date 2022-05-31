@@ -18,7 +18,7 @@ import Data.Ord (comparing)
 import Data.Maybe (fromJust)
 import Data.Time (diffDays)
 import Data.Either (partitionEithers)
-import qualified Data.Text.IO as TIO (putStr)  -- Only putStr and friends are safe
+import qualified Data.Text.IO as T
 import Lens.Micro (set)
 import System.Exit (exitFailure)
 
@@ -108,10 +108,10 @@ diff CliOpts{file_=[f1, f2], reportspec_=ReportSpec{_rsQuery=Acct acctRe}} _ = d
   let unmatchedtxn2 = unmatchedtxns R pp2 m
 
   putStrLn "These transactions are in the first file only:\n"
-  mapM_ (TIO.putStr . showTransaction) unmatchedtxn1
+  mapM_ (T.putStr . showTransaction) unmatchedtxn1
 
   putStrLn "These transactions are in the second file only:\n"
-  mapM_ (TIO.putStr . showTransaction) unmatchedtxn2
+  mapM_ (T.putStr . showTransaction) unmatchedtxn2
 
 diff _ _ = do
   putStrLn "Please specify two input files. Usage: hledger diff -f FILE1 -f FILE2 FULLACCOUNTNAME"

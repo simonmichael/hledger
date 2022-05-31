@@ -8,7 +8,7 @@
 {-| Construct two balance reports for two different time periods and use one of the as "budget" for
     the other, thus comparing them
 -}
-import Data.Text.Lazy.IO as TL (putStrLn)  -- Only putStr and friends are safe
+import Data.Text.Lazy.IO as TL
 import System.Environment (getArgs)
 import Hledger.Cli
 

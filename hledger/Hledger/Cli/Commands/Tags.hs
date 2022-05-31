@@ -10,7 +10,7 @@ where
 import qualified Control.Monad.Fail as Fail
 import Data.List.Extra (nubSort)
 import qualified Data.Text as T
-import qualified Data.Text.IO as TIO (putStrLn)  -- Only putStr and friends are safe
+import qualified Data.Text.IO as T
 import Safe
 import System.Console.CmdArgs.Explicit as C
 import Hledger
@@ -55,4 +55,4 @@ tags CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
       , let r = if values then v else t
       , not (values && T.null v && not empty)
       ]
-  mapM_ TIO.putStrLn tagsorvalues
+  mapM_ T.putStrLn tagsorvalues

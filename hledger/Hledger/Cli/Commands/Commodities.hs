@@ -13,7 +13,7 @@ module Hledger.Cli.Commands.Commodities (
 ) where
 
 import qualified Data.Set as S
-import qualified Data.Text.IO as TIO (putStrLn)  -- Only putStr and friends are safe
+import qualified Data.Text.IO as T
 
 import Hledger
 import Hledger.Cli.CliOptions
@@ -30,4 +30,4 @@ commoditiesmode = hledgerCommandMode
 commodities :: CliOpts -> Journal -> IO ()
 commodities _copts =
   -- TODO support --declared/--used like accounts, payees
-  mapM_ TIO.putStrLn . S.filter (/= "AUTO") . journalCommodities
+  mapM_ T.putStrLn . S.filter (/= "AUTO") . journalCommodities
