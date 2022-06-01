@@ -7,7 +7,7 @@ module Hledger.Cli.Commands.Checkdates (
 ) where
 
 import qualified Data.Text as T
-import qualified Data.Text.IO as TIO (putStrLn)  -- Only putStr and friends are safe
+import qualified Data.Text.IO as T
 import Hledger
 import Hledger.Cli.CliOptions
 import System.Console.CmdArgs.Explicit
@@ -43,7 +43,7 @@ checkdates CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
         positionstr = T.pack . showGenericSourcePos $ tsourcepos error
         txn1str = linesPrepend  (T.pack "  ")               $ showTransaction previous
         txn2str = linesPrepend2 (T.pack "> ") (T.pack "  ") $ showTransaction error
-      TIO.putStrLn $
+      T.putStrLn $
         T.pack "Error: transaction date is out of order"
         <> uniquestr <> T.pack "\nat " <> positionstr <> T.pack ":\n\n"
         <> txn1str <> txn2str

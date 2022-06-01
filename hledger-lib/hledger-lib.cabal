@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.7.
+-- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
 
@@ -137,7 +137,6 @@ library
     , uglymemo
     , unordered-containers >=0.2
     , utf8-string >=0.3.5
-    , with-utf8 >=1.0.0
   default-language: Haskell2010
 
 test-suite doctest
@@ -189,7 +188,6 @@ test-suite doctest
     , uglymemo
     , unordered-containers >=0.2
     , utf8-string >=0.3.5
-    , with-utf8 >=1.0.0
   if impl(ghc < 9.2)
     buildable: False
   default-language: Haskell2010
@@ -243,6 +241,5 @@ test-suite unittest
     , uglymemo
     , unordered-containers >=0.2
     , utf8-string >=0.3.5
-    , with-utf8 >=1.0.0
   buildable: True
   default-language: Haskell2010

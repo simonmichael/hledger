@@ -10,7 +10,7 @@ where
 import Data.Char (toUpper)
 import Data.List
 import qualified Data.Text as T
-import qualified Data.Text.Lazy.IO as TLIO (putStr, putStrLn)  -- Only putStr and friends are safe
+import qualified Data.Text.Lazy.IO as TL
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Commands.Register
@@ -28,8 +28,8 @@ registermatch opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j =
     [desc] -> do
         let ps = [p | (_,_,_,p,_) <- postingsReport rspec j]
         case similarPosting ps desc of
-          Nothing -> TLIO.putStrLn "no matches found."
-          Just p  -> TLIO.putStr $ postingsReportAsText opts [pri]
+          Nothing -> putStrLn "no matches found."
+          Just p  -> TL.putStr $ postingsReportAsText opts [pri]
                      where pri = (Just (postingDate p)
                                  ,Nothing
                                  ,tdescription <$> ptransaction p

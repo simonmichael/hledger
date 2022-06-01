@@ -63,7 +63,7 @@ import Data.Ord (comparing)
 import Data.Semigroup (sconcat)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Data.Text.IO.Utf8 (writeFile)
+import qualified Data.Text.IO as T
 import Data.Time (Day)
 import Safe (headDef)
 import System.Directory (doesFileExist, getHomeDirectory)
@@ -230,7 +230,7 @@ ensureJournalFileExists f = do
     hPutStr stderr $ "Creating hledger journal file " <> show f <> ".\n"
     -- note Hledger.Utils.UTF8.* do no line ending conversion on windows,
     -- we currently require unix line endings on all platforms.
-    newJournalContent >>= writeFile f
+    newJournalContent >>= T.writeFile f
 
 -- | Does any part of this path contain non-. characters and end with a . ?
 -- Such paths are not safe to use on Windows (cf #1056).
@@ -257,7 +257,7 @@ latestDates = headDef [] . take 1 . group . reverse . sort
 -- | Remember that these transaction dates were the latest seen when
 -- reading this journal file.
 saveLatestDates :: LatestDates -> FilePath -> IO ()
-saveLatestDates dates f = writeFile (latestDatesFileFor f) $ T.unlines $ map showDate dates
+saveLatestDates dates f = T.writeFile (latestDatesFileFor f) $ T.unlines $ map showDate dates
 
 -- | What were the latest transaction dates seen the last time this
 -- journal file was read ? If there were multiple transactions on the

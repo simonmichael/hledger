@@ -36,7 +36,7 @@ import Data.FileEmbed (makeRelativeToProject, embedStringFile)
 import Data.List.Extra (foldl', foldl1', uncons, unsnoc)
 import qualified Data.Set as Set
 import Data.Text (Text)
-import qualified Data.Text.IO as TIO (hGetContents)  -- Only putStr and friends are safe
+import qualified Data.Text.IO as T
 import qualified Data.Text.Lazy.Builder as TB
 import Data.Time.Clock (getCurrentTime)
 import Data.Time.LocalTime (LocalTime, ZonedTime, getCurrentTimeZone,
@@ -48,10 +48,10 @@ import Lens.Micro ((&), (.~))
 import Lens.Micro.TH (DefName(TopName), lensClass, lensField, makeLensesWith, classyRules)
 import System.Console.ANSI (Color,ColorIntensity,ConsoleLayer(..), SGR(..), setSGRCode)
 import System.Directory (getHomeDirectory)
-import System.FilePath ((</>), isRelative)
-import System.IO (Handle, IOMode (..), hGetEncoding, hSetEncoding,
-                  hSetNewlineMode, stdin, universalNewlineMode, utf8_bom)
-import qualified System.IO.Utf8 as Utf8
+import System.FilePath (isRelative, (</>))
+import System.IO
+  (Handle, IOMode (..), hGetEncoding, hSetEncoding, hSetNewlineMode,
+   openFile, stdin, universalNewlineMode, utf8_bom)
 
 import Hledger.Utils.Debug
 import Hledger.Utils.Parse
@@ -175,7 +175,7 @@ expandHomePath = \case
 -- using the system locale's text encoding,
 -- ignoring any utf8 BOM prefix (as seen in paypal's 2018 CSV, eg) if that encoding is utf8.
 readFilePortably :: FilePath -> IO Text
-readFilePortably f =  Utf8.openFile f ReadMode >>= readHandlePortably
+readFilePortably f =  openFile f ReadMode >>= readHandlePortably
 
 -- | Like readFilePortably, but read from standard input if the path is "-".
 readFileOrStdinPortably :: String -> IO Text
@@ -183,14 +183,15 @@ readFileOrStdinPortably f = openFileOrStdin f ReadMode >>= readHandlePortably
   where
     openFileOrStdin :: String -> IOMode -> IO Handle
     openFileOrStdin "-" _ = return stdin
-    openFileOrStdin f m   = Utf8.openFile f m
+    openFileOrStdin f m   = openFile f m
 
 readHandlePortably :: Handle -> IO Text
 readHandlePortably h = do
-    hSetNewlineMode h universalNewlineMode
-    menc <- hGetEncoding h
-    when (fmap show menc == Just "UTF-8") $ hSetEncoding h utf8_bom  -- No Eq instance, rely on Show
-    TIO.hGetContents h
+  hSetNewlineMode h universalNewlineMode
+  menc <- hGetEncoding h
+  when (fmap show menc == Just "UTF-8") $  -- XXX no Eq instance, rely on Show
+    hSetEncoding h utf8_bom
+  T.hGetContents h
 
 -- | Total version of maximum, for integral types, giving 0 for an empty list.
 maximum' :: Integral a => [a] -> a
