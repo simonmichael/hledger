@@ -18,16 +18,16 @@ Improvements
   - considering only the first 1000 items for choosing column
     widths. You can restore the old behaviour (guaranteed alignment
     across all items) with the new `--align-all` flag.
-    (#1839, Stephen Morgan)
+    ([#1839](https://github.com/simonmichael/hledger/issues/1839), Stephen Morgan)
 
   - discarding cost data more aggressively, giving big speedups for
     large journals with many costs.
-  	(#1828, Stephen Morgan)
+  	([#1828](https://github.com/simonmichael/hledger/issues/1828), Stephen Morgan)
 
 - Most error messages from the journal reader and the `check` command now use
   a consistent layout, with an "Error:" prefix, line and column numbers,
   and an excerpt highlighting the problem. Work in progress.
-  (#1436) (Simon Michael, Stephen Morgan)
+  ([#1436](https://github.com/simonmichael/hledger/issues/1436)) (Simon Michael, Stephen Morgan)
 
 - `hledger check ordereddates` now always checks all transactions
   (previously it could be restricted by query arguments).
@@ -41,24 +41,24 @@ Fixes
 - Value reports with `--date2` and a report interval (like `hledger bal -VM --date2`)
   were failing with a "expected all spans to have an end date" error since 1.22;
   this is now fixed.
-  (#1851, Stephen Morgan)
+  ([#1851](https://github.com/simonmichael/hledger/issues/1851), Stephen Morgan)
 
 - In CSV rules, interpolation of a non-existent field like `%999` or `%nosuchfield`
   is now ignored (previously it inserted that literal text).
   Note this means such an error will not be reported; 
   Simon chose this as the more convenient behaviour when converting CSV.
   Experimental.
-  (#1803, #1814) (Stephen Morgan)
+  ([#1803](https://github.com/simonmichael/hledger/issues/1803), [#1814](https://github.com/simonmichael/hledger/issues/1814)) (Stephen Morgan)
 
 - `--infer-market-price` was inferring a negative price when selling.
-  (#1813, Stephen Morgan)
+  ([#1813](https://github.com/simonmichael/hledger/issues/1813), Stephen Morgan)
 
 - Allow an escaped forward slash in regular expression account aliases.
-  (#982, Stephen Morgan)
+  ([#982](https://github.com/simonmichael/hledger/issues/982), Stephen Morgan)
 
 - The `tags` command now also lists tags from unused account declarations.
   It also has improved command-line help layout.
-  (#1857)
+  ([#1857](https://github.com/simonmichael/hledger/issues/1857))
 
 - `hledger accounts` now shows its debug output at a more appropriate level (4).
 
