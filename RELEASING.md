@@ -110,6 +110,7 @@ Here are some definitions, useful eg when executing or automating release proced
 - [tag the release](#tag-the-release)
 - [push to github](#push-to-github)
 - [make github release](#make-github-release)
+- [update master from release branch](#update-master-from-release-branch)
 
 #### Check release readiness
 - master's changelogs are up to date (see [CHANGELOGS](CHANGELOGS.html))
@@ -166,6 +167,12 @@ Here are some definitions, useful eg when executing or automating release proced
 - save as draft
 - github release testing (preview)
 - publish
+
+#### Update master from release branch
+- switch back to master
+- update master changelogs, merging final release changelog entries (see [CHANGELOGS](CHANGELOGS.html))
+- cherry-pick other useful changes, such as `;doc: ANNOUNCE`
+- after a major release: bump master to new dev version (`./Shake setversion -c A.B.99`)
 
 ### 2. Major release
 - [make release notes](#make-release-notes)
@@ -224,32 +231,27 @@ In site repo:
   - Total count from `make functest`
   - commit: `download: NEW`
 
-#### Add manuals to website
-In site: 
+#### Add new manuals to website
+In site repo:
 
 - js/site.js: add NEW, update currentrelease
 - Makefile: add NEW, two places
-- make snapshot-NEW
-- (cd src; rm current; ln -s NEW current)
-- commit/amend
+- make snapshot-NEW (after ensuring main repo has been release-tagged)
+- commit: `makefile, js: update for NEW`
 - push
 
-On hledger.org:
-
-- in /etc/caddy/hledger.org:
-  - add `path` and `redir`s for NEW
-  - `systemctl reload caddy`
-
-- in site/
-  - make clean all
-
-- purge cloudflare cache
-- browsers might still require shift-reload to see new manuals (safari)
-
 #### Announce major release
-
-- push site download/relnotes updates
-- push master hledger-install update
+- push main repo
+- push site repo
+- deploy site changes
+  On hledger.org:
+  - in /etc/caddy/hledger.org:
+    - add `path` and `redir`s for NEW
+    - `systemctl reload caddy`
+  - in site/
+    - make clean all
+  - purge cloudflare cache
+  - browsers might still require shift-reload to see new manuals (safari)
 - share release notes link, then markdown content, in #hledger chat
 - send ANNOUNCE to hledger@googlegroups.com, haskell-cafe@googlegroups.com (major release)
   or brief announcement to hledger@googlegroups.com (bugfix release)
@@ -270,7 +272,6 @@ On hledger.org:
 - proceed as above, with MA.JOR.MINOR
 
 ### 5. After a release
-- [update master after release](#update-master-after-release)
 - monitor packaging status, update install page
   - docker - expect/merge PR
   - homebrew - expect badge to update soon
@@ -279,12 +280,6 @@ On hledger.org:
 - provide support, monitor issues
 - prepare followup releases if needed
 - update process docs and tools
-
-#### Update master after release
-- switch back to master
-- update master changelogs, merging final release changelog entries (see [CHANGELOGS](CHANGELOGS.html))
-- cherry-pick other useful changes, such as `;doc: ANNOUNCE`
-- after a major release: bump master to new dev version (`./Shake setversion -c A.B.99`)
 
 ### Packaging
 
