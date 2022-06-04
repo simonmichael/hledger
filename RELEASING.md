@@ -1,17 +1,19 @@
 # Releasing
+
 <div class=pagetoc>
 <!-- toc -->
 </div>
+
 Notes for hledger release managers and maintainers.
 
-## Current goals
-### 2022Q1
+## Goals
+
+### 2022
 - Update/consolidate release process docs
 - Establish routine monthly release cadence
 - Make releasing easy
 
 ## Release types
-
 |                       | Major&nbsp;release<br>A.B      | Bugfix&nbsp;release<br>A.B.C | Fixup&nbsp;release<br>A.B.C.D                | Preview&nbsp;release<br>A.B.99.D         |
 |-----------------------|--------------------------------|------------------------------|----------------------------------------------|------------------------------------------|
 | **Contains:**         | New features, breaking changes | Only bug fixes               | Trivial packaging fixes, no software changes | Early snapshot of the next major release |
@@ -77,16 +79,39 @@ Here are some definitions, useful eg when executing or automating release proced
 | *release&nbsp;branch*               | Branches named `MA.JOR-branch` in the hledger repo, eg `1.25-branch`. Releases and release previews are always made from a release branch.                                                                                                                                                                                                                                                                                 |
 
 ## Procedures
-### Preview release
-- check prerequisites
-- prepare release branch (`tools/release prep A.B.99.D`)
-- make binaries (`tools/release bin`, get all platforms built on the same commit, download binaries)
-- tag the release (`make tag`) (major release: make announcement first)
-- push to github (`git push origin MA.JOR-branch && git push --tags` or magit `P p`, `P t`)
-- make github preview release
-- update master after release
 
-#### Check prerequisites
+### 0. General tips
+- Release (or practice releasing) often.
+- Release responsibilities include:
+  - **Software** - selecting changes, packages, release dates; coordinating contributions; ensuring release readiness
+  - **Branch Management** - coordinating main and release branch, local and remote repos, CI branches
+  - **Version Bumping** - choosing and applying new version numbers and related things like tags, github releases, urls, ghc and dep versions, stackage resolvers, everywhere needed
+  - **Docs** - command help, manuals, changelogs, release notes, github release notes, install page, install scripts, announcements, process docs
+  - **Testing** - local testing, CI testing, extra release-specific testing
+  - **Artifacts** - generating binaries, zip files, github releases etc.
+  - **Publishing** - uploading, pushing, making visible, finalising
+  - **Announcing** - various announcement stages and channels
+- These have complex interdependencies and sequencing constraints. Chunk, separate, routinise, document and automate them as far as possible.
+- Don't document in too much detail prematurely.
+- Follow RELEASING.md's procedures when helpful, ignore them when not.
+- As step 1, save it as RELEASING2.md and make changes there until after release.
+- Make things a little better each time through: simpler, more reliable, better documented, more automated, easier, faster, cheaper, higher quality.
+- Update [CHANGELOGS](CHANGELOGS.html) early and often, eg during/after a PR, to spread the work.
+- Make releases from a release branch, not from master.
+- Before making binaries:
+  - Try to do all possible pre-release-tag steps. (Binaries will show their source's git hash in --version, and it should match the release tag.)
+  - Ensure the last commit does not begin with a semicolon. (So that the linux-x64-test workflow will generate a binary, in case it is needed.)
+- Before tagging: make binaries for all platforms, from the same commit.
+
+### 1. Preview release
+- [check release readiness](#check-release-readiness)
+- [prepare release branch](#prepare-release-branch)
+- [make binaries](#make-binaries)
+- [tag the release](#tag-the-release)
+- [push to github](#push-to-github)
+- [make github release](#make-github-release)
+
+#### Check release readiness
 - master's changelogs are up to date (see [CHANGELOGS](CHANGELOGS.html))
 - master or release branch is ready for release
   - clean and synced working copy
@@ -100,7 +125,8 @@ Here are some definitions, useful eg when executing or automating release proced
 - appropriate timing, release manager availability
 
 #### Prepare release branch
-- `tools/release prep OLDMA.JOR.99.PREVIEWNUM` (eg 1.24.99.1 for 1.25 preview 1)
+- `PAUSE=1 ECHO=1 tools/release prep MA.JOR[.99.PREVIEWNUM]` (eg 1.24.99.1 for 1.25 preview 1)
+  (XXX seems to go wrong without PAUSE`)
 - cherry pick changes from master
   - list changes in three side-by-side magit windows
     - 1. NEW IN MASTER: `l o MAJORVER-branch..master`, `M-x magit-toggle-buffer-lock`, `M-x toggle-window-dedicated` (`C-c D`)
@@ -113,43 +139,47 @@ Here are some definitions, useful eg when executing or automating release proced
 - `./Shake manuals -c`
 - update release changelogs (see [CHANGELOGS](CHANGELOGS.html))
 - release branch testing
-  - `stack test --fast`
+  - `stack build --test`
   - `make functest`
   - `stack exec -- hledger --version`, check version
   - `stack exec -- hledger help | tail`, check version & date
 
-#### Make github preview release
+#### Make binaries
+- `tools/release bin`
+- get all platforms built on the same commit
+- download binary artifact zip files
 
-- review previous similar release, eg https://github.com/simonmichael/hledger/releases/edit/1.24.99.1
+#### Tag the release
+- `make tag`
+
+#### Push to github
+- `git push origin MA.JOR-branch && git push --tags`
+- or in magit: `P p`, `P t`
+
+#### Make github release
+- copy text from previous similar release, https://github.com/simonmichael/hledger/releases
 - create new release, https://github.com/simonmichael/hledger/releases/new
-- set tag
-- set title
-- copy/paste preamble
-- copy/paste cli/ui/web/lib changelogs
-  - deepen headings 2 steps and add package names
+- select release tag (MA.JOR[...])
+- set title (MA.JOR[...])
+- paste & replace with new release notes
 - upload CI binaries
 - save as draft
-- preview release testing
+- github release testing (preview)
 - publish
 
-#### Update master after release
-- switch back to master
-- update master changelogs, merging final release changelog entries (see [CHANGELOGS](CHANGELOGS.html))
-- after a major release: bump master to new dev version (`./Shake setversion -c A.B.99`)
+### 2. Major release
+- [make release notes](#make-release-notes)
+- [make announcement](#make-announcement)
+- [update hledger-install](#update-hledger-install)
+- prepare as for [preview release](#1-preview-release)
+- [update install page](#update-install-page)
+- [add manuals to website](#add-manuals-to-website)
+- [announce major release](#announce-major-release)
 
-### Major release
-- prepare as for preview release
-- make release notes
-- make announcement
-- update hledger-install
-- update install page
-- add manuals to website
-- announce major release
 #### Make release notes
-
 In site repo:
 
-- update `release-notes.md`
+- update `src/release-notes.md`
   - copy template, uncomment
   - replace date
   - replace XX with NEW
@@ -161,30 +191,23 @@ In site repo:
   - commit: `relnotes: NEW`
 
 #### Make announcement
-
-In release branch (?):
+In release branch:
 
 - update `doc/ANNOUNCE` (major release)
   - summary, contributors from release notes
   - any other edits
-  - commit: `;doc: ANNOUNCE`
+  - commit: `;doc: announce`
 
-In master (?):
-
-- cherry pick useful release branch changes
-  - `;doc: ANNOUNCE`
-
-#### Update hledger-install script
-
+#### Update hledger-install
 - update `hledger-install/hledger-install.sh`
   - HLEDGER_INSTALL_VERSION
   - RESOLVER
   - HLEDGER_*_VERSION
   - EXTRA_DEPS
-- test ? (`cd; bash \~/src/hledger/hledger-install/hledger-install.sh`)
+- test ? `cd; bash ~/src/hledger/hledger-install/hledger-install.sh`
+- commit: `install: NEW`
 
 #### Update install page
-
 In site repo:
 
 - update `install.md`
@@ -202,7 +225,6 @@ In site repo:
   - commit: `download: NEW`
 
 #### Add manuals to website
-
 In site: 
 
 - js/site.js: add NEW, update currentrelease
@@ -237,16 +259,18 @@ On hledger.org:
 - tweet at https://twitter.com/simonkwmichael ?
 - toot at https://fosstodon.org/web/accounts/106304084994827771 ?
 
-### Bugfix release
-- switch to release branch
-- cherry pick changes from master
-- proceed as above, with MA.JOR.MINOR
-### Fixup release
+### 3. Fixup release
 - switch to release branch
 - cherry pick changes from master
 - proceed as above, with MA.JOR.MINOR.FIXUP
 
-### After a release
+### 4. Bugfix release
+- switch to release branch
+- cherry pick changes from master
+- proceed as above, with MA.JOR.MINOR
+
+### 5. After a release
+- [update master after release](#update-master-after-release)
 - monitor packaging status, update install page
   - docker - expect/merge PR
   - homebrew - expect badge to update soon
@@ -256,7 +280,14 @@ On hledger.org:
 - prepare followup releases if needed
 - update process docs and tools
 
+#### Update master after release
+- switch back to master
+- update master changelogs, merging final release changelog entries (see [CHANGELOGS](CHANGELOGS.html))
+- cherry-pick other useful changes, such as `;doc: ANNOUNCE`
+- after a major release: bump master to new dev version (`./Shake setversion -c A.B.99`)
+
 ### Packaging
+
 #### Update homebrew formula
 
 1.  ref
@@ -379,22 +410,3 @@ On hledger.org:
 2.  monitor for new package versions in nightly: check
     <https://www.stackage.org/package/hledger>
     
-### General tips
-- Follow the RELEASING.md procedures when helpful, ignore them when not.
-- Don't update RELEASING.md while releasing, it's too distracting. Do update it after the release is complete.
-- Don't try to document, let alone automate, every little thing; it's too much and too unstable.
-- Make things a little better each time through: simpler, more reliable, more automated, easier, faster, cheaper, higher quality.
-- Release (or practice releasing) often.
-- Releases should always be made from a release branch, not from master.
-- Don't tag until CI binaries have been produced for all platforms from the same commit.
-- Update [CHANGELOGS](CHANGELOGS.html) early and often, eg during or after a PR, to spread the work.
-- Release tasks have complex interdependencies and sequencing constraints.
-  Chunk and separate them as far as possible. Eg
-  - **Software** - selecting changes, packages, release dates; coordinating contributions; ensuring release readiness
-  - **Branch Management** - coordinating main and release branch, local and remote repos, CI branches
-  - **Version Bumping** - choosing and applying new version numbers and related things like tags, github releases, urls, ghc and dep versions, stackage resolvers, everywhere needed
-  - **Docs** - command help, manuals, changelogs, release notes, github release notes, install page, install scripts, announcements, process docs
-  - **Testing** - local testing, CI testing, extra release-specific testing
-  - **Artifacts** - generating binaries, zip files, github releases etc.
-  - **Publishing** - uploading, pushing, making visible, finalising
-  - **Announcing** - various announcement stages and channels
