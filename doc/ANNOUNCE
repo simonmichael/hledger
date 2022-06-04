@@ -1,29 +1,32 @@
-I am pleased to announce hledger 1.25.
-Get it here: https://hledger.org/install
+Aloha! I am pleased to announce hledger 1.26:
 
-Release notes: https://hledger.org/release-notes.html#hledger-1-25
-Highlights include:
-account querying by type or tag,
-inferring equity postings from @ notation,
-and easily-consumed "tidy" CSV output.
+https://github.com/simonmichael/hledger/releases/1.26
+https://hledger.org/install
+https://hledger.org/release-notes.html#hledger-1-26
 
-Thank you to contributors
-Stephen Morgan,
-Dmitry Astapov,
-Patrik Keller.
+1.26 is a modest maintenance release; highlights include
+faster register reports and clearer error messages.
 
-hledger is free, high quality Plain Text Accounting software: a fast
-and robust multicurrency double-entry accounting system that uses
-human-readable, version-controllable plain text files. It was inspired
-by and is partly compatible with Ledger CLI, and runs well on unix,
-mac and windows. For help getting started, or more info,
-see https://hledger.org and https://plaintextaccounting.org.
+Thank you to core contributor Stephen Morgan.
 
-Beginners, experts, contributors, sponsors, and all feedback are most
-welcome. Join our chat via Matrix or IRC: https://hledger.org/support
+What is hledger ?
 
+- free, high quality Plain Text Accounting[1] software:
+- a fast and robust multicurrency double-entry accounting system
+- built around human-readable, version-controllable plain text files
+- inspired by and partly compatible with Ledger CLI[2]
+- convertible to and from Beancount[3]
+- written in Haskell for correctness and longevity
+- easy to install on unix, mac and windows.
 
-This release is dedicated to everyone affected by war in Ukraine and
-elsewhere.
+For help getting started, or more info, see https://hledger.org,
+and join our chat via Matrix or IRC: https://hledger.org/support.
+Newcomers, experts, contributors, sponsors, feedback are always welcome!
 
+Best wishes,
 -Simon
+
+
+[1] https://plaintextaccounting.org
+[2] https://ledger-cli.org
+[3] https://beancount.github.io
