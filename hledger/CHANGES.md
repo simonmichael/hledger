@@ -9,16 +9,7 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 2bce91090
-
-Breaking changes
-
-- Enforce that all files are decoded as UTF-8, ignoring the system locale.
-  Experimental; real-world testing and feedback is needed.
-  (#1619, #1834. May also affect #1154, #1033, #708, #536, #73.)
-  (Stephen Morgan)
-
-Features
+# 9155d679f
 
 Improvements
 

@@ -9,7 +9,7 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 2bce91090
+# 1085a2a77
 
 - Uses hledger 1.26.
 

@@ -9,7 +9,11 @@ __      _____| |__
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 2bce91090
+# 5ed6c9426
+
+Fixes
+
+- Don't add link URLs when printing.
 
 Improvements
 

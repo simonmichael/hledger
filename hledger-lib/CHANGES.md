@@ -9,7 +9,7 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 2bce91090
+# faa05764d
 
 Breaking changes
 
@@ -41,6 +41,8 @@ Breaking changes
   (Stephen Morgan)
 
 Misc. changes
+
+- Allow doclayout 0.4.
 
 - Our doctests now run with GHC 9.2+ only, to avoid doctest issues.
 
