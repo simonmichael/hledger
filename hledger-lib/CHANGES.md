@@ -77,7 +77,7 @@ Misc. changes
 - Hledger.Utils: Add a helper function numDigitsInt to get the number
   of digits in an integer, which has a surprising number of ways to
   get it wrong.
-  (#1813) (Stephen Morgan)
+  ([#1813](https://github.com/simonmichael/hledger/issues/1813) (Stephen Morgan)
 
 # 1.25 2022-03-04
 
