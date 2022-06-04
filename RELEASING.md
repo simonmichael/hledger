@@ -241,17 +241,18 @@ In site repo:
 - push
 
 #### Announce major release
+- pause; take a break afk; check time and energy
 - push main repo
 - push site repo
 - deploy site changes
   On hledger.org:
   - in /etc/caddy/hledger.org:
-    - add `path` and `redir`s for NEW
+    - @oldmanpath: add `path` for NEW
+    - @unversionedmanpath: update to NEW
     - `systemctl reload caddy`
-  - in site/
-    - make clean all
-  - purge cloudflare cache
-  - browsers might still require shift-reload to see new manuals (safari)
+  - in site/, make clean all ?
+  - purge cloudflare cache ?
+    - browsers might still require shift-reload to see new manuals (safari)
 - share release notes link, then markdown content, in #hledger chat
 - send ANNOUNCE to hledger@googlegroups.com, haskell-cafe@googlegroups.com (major release)
   or brief announcement to hledger@googlegroups.com (bugfix release)
