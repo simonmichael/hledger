@@ -9,7 +9,14 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# faa05764d
+# 1.26 2022-06-04
+- ;doc: update manuals
+
+- ;cabal: update cabal files
+
+- ;pkg: bump version to 1.26
+
+- ;doc: update changelogs
 
 Breaking changes
 
