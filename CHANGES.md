@@ -10,9 +10,6 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 # 1.26 2022-06-04
-- ;pkg: bump version to 1.26
-
-- ;doc: update changelogs
 
 Scripts/addons
 
