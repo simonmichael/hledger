@@ -1,5 +1,5 @@
 name: hledger-lib
-version: 1.25.99
+version: 1.26.99
 synopsis: A reusable library providing the core functionality of hledger
 description: |
   A reusable library containing hledger's core functionality.
