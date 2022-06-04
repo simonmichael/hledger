@@ -10,15 +10,7 @@ User-visible changes in hledger-web.
 See also the hledger changelog.
 
 # f2db4c384
-- ;cabal: update cabal files
 
-- ;pkg: bump version to 1.26.99
-
-- ;doc: changelogs
-
-- ;doc: update changelogs
-
-- ;doc: update manuals
 # 1.26 2022-06-04
 Fixes
 

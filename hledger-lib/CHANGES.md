@@ -10,15 +10,7 @@ Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
 # f2db4c384
-- ;cabal: update cabal files
 
-- ;pkg: bump version to 1.26.99
-
-- ;doc: changelogs: link 1.26 issues
-
-- ;doc: update changelogs
-
-- ;doc: update manuals
 # 1.26 2022-06-04- ;doc: update manuals
 
 - ;cabal: update cabal files

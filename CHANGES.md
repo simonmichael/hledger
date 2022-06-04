@@ -10,27 +10,16 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 # 63d7abe7f
-- ;doc: RELEASING
+Scripts/addons
 
-- ;pkg: bump version to 1.26.99
+Docs
 
-- ;doc: RELEASING
+Examples
 
-- tools: release: use new binaries branch (and force a new build)
-
-- ;doc: RELEASING
-
-- ;doc: RELEASING update
-
-- ;install: 1.26
-
-- ;doc: announce
+Process
 
 - ci: run all main workflows on push to "binaries"
 
-- ;doc: changelogs
-
-- ;doc: update changelogs
 # 1.26 2022-06-04
 Scripts/addons
 
