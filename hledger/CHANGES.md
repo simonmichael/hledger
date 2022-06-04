@@ -9,8 +9,19 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 1.26 2022-06-04
+# f2db4c384
+- ;cabal: update cabal files
 
+- ;pkg: bump version to 1.26.99
+
+- ;doc: changelogs: link 1.26 issues
+
+- ;doc: changelogs
+
+- ;doc: update changelogs
+
+- ;doc: update manuals
+# 1.26 2022-06-04
 Improvements
 
 - `register` and `aregister` have been made faster, by 
