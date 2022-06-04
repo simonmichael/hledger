@@ -9,7 +9,7 @@ on:
   schedule:
   - cron: "0 07 * * 0"  # sunday midnight pacific
   push:
-    branches: [ ci-windows ]
+    branches: [ ci-windows, binaries ]
   workflow_dispatch:
 
 

@@ -7,7 +7,7 @@ name: linux-x64 static binaries
 
 on:
   push:
-    branches: [ ci-linux-x64 ]
+    branches: [ ci-linux-x64, binaries ]
     #tags:
     #  - '[0-9]+.[0-9]+'
     #  - '[0-9]+.[0-9]+-*'
