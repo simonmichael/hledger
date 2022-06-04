@@ -250,17 +250,18 @@ In site repo:
     - @oldmanpath: add `path` for NEW
     - @unversionedmanpath: update to NEW
     - `systemctl reload caddy`
-  - in site/, make clean all ?
-  - purge cloudflare cache ?
-    - browsers might still require shift-reload to see new manuals (safari)
-- share release notes link, then markdown content, in #hledger chat
-- send ANNOUNCE to hledger@googlegroups.com, haskell-cafe@googlegroups.com (major release)
-  or brief announcement to hledger@googlegroups.com (bugfix release)
-  - ANN: hledger NEW
-  - release notes link, summary
-  - release notes html (copied from browser)
-- tweet at https://twitter.com/simonkwmichael ?
-- toot at https://fosstodon.org/web/accounts/106304084994827771 ?
+  - in main repo, `./Shake webmanuals` to update dev manuals
+  - in site repo, `make`
+  - things to try if site doesn't seem to update ?
+    - make clean all
+    - purge cloudflare cache
+    - browsers might still require shift-reload for a while to see new manuals (safari)
+- share release notes link and markdown content in #hledger chat
+- send ANNOUNCE as email announcement
+  - major release: `ANN: hledger NEW` to hledger@googlegroups.com, haskell-cafe@googlegroups.com
+  - bugfix release: brief announcement to hledger@googlegroups.com 
+- condense & tweet at https://twitter.com/simonkwmichael
+<!-- - toot at https://fosstodon.org/web/accounts/106304084994827771 ? -->
 
 ### 3. Fixup release
 - switch to release branch
