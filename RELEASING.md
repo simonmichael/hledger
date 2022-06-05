@@ -261,6 +261,7 @@ In site repo:
   - major release: `ANN: hledger NEW` to hledger@googlegroups.com, haskell-cafe@googlegroups.com
   - bugfix release: brief announcement to hledger@googlegroups.com 
 - condense & tweet at https://twitter.com/simonkwmichael
+- update last release date on plaintextaccounting.org
 <!-- - toot at https://fosstodon.org/web/accounts/106304084994827771 ? -->
 
 ### 3. Fixup release
