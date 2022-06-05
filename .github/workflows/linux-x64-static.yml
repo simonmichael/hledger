@@ -44,12 +44,12 @@ jobs:
     - name: Extract and strip binaries
       run: |
         mkdir /tmp/hledger
-        cp dist-newstyle/build/x86_64-linux/ghc-*/hledger-web-*/x/hledger-web/build/hledger-web/hledger-web /tmp/hledger/hledger-web-linux-x64
-        cp dist-newstyle/build/x86_64-linux/ghc-*/hledger-ui-*/x/hledger-ui/build/hledger-ui/hledger-ui /tmp/hledger/hledger-ui-linux-x64
-        cp dist-newstyle/build/x86_64-linux/ghc-*/hledger-*/x/hledger/build/hledger/hledger /tmp/hledger/hledger-linux-x64
-        strip /tmp/hledger/hledger-web-linux-x64
-        strip /tmp/hledger/hledger-ui-linux-x64
-        strip /tmp/hledger/hledger-linux-x64
+        cp dist-newstyle/build/x86_64-linux/ghc-*/hledger-*/x/hledger/build/hledger/hledger /tmp/hledger/hledger
+        cp dist-newstyle/build/x86_64-linux/ghc-*/hledger-ui-*/x/hledger-ui/build/hledger-ui/hledger-ui /tmp/hledger/hledger-ui
+        cp dist-newstyle/build/x86_64-linux/ghc-*/hledger-web-*/x/hledger-web/build/hledger-web/hledger-web /tmp/hledger/hledger-web
+        strip /tmp/hledger/hledger
+        strip /tmp/hledger/hledger-ui
+        strip /tmp/hledger/hledger-web
 
     - name: Upload binaries
       uses: actions/upload-artifact@v2
