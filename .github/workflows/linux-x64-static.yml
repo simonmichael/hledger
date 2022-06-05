@@ -1,6 +1,6 @@
 # Runs on any push to ci-linux-x64.
 # Produces optimised static x64 linux  binaries,
-# using the GHC version below (9.2.3) and cabal.
+# using the GHC version below (9.0.2) and cabal.
 # Currently runs no tests.
 
 name: linux-x64 static binaries
@@ -26,7 +26,7 @@ jobs:
       run: |
         apk --no-cache add binutils-gold curl gcc g++ git gmp-dev ncurses-dev ncurses-static libffi-dev make xz tar perl zlib-dev zlib-static
         mkdir -p ~/.ghcup/bin && curl https://downloads.haskell.org/~ghcup/x86_64-linux-ghcup > ~/.ghcup/bin/ghcup && chmod +x ~/.ghcup/bin/ghcup
-        ~/.ghcup/bin/ghcup install ghc 9.2.3 && ~/.ghcup/bin/ghcup set ghc 9.2.3 && ~/.ghcup/bin/ghcup install cabal
+        ~/.ghcup/bin/ghcup install ghc 9.0.2 && ~/.ghcup/bin/ghcup set ghc 9.0.2 && ~/.ghcup/bin/ghcup install cabal
         echo "$HOME/.ghcup/bin/" >> $GITHUB_PATH
 
     - name: Check out
