@@ -40,7 +40,7 @@ Improvements
 - `hledger check ordereddates` now always checks all transactions
   (previously it could be restricted by query arguments).
 
-- The `--pivot` options now supports a `status` argument, to pivot on transaction status.
+- The `--pivot` option now supports a `status` argument, to pivot on transaction status.
 
 - Update bash completions (Jakob Schöttl)
 
