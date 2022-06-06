@@ -1,6 +1,6 @@
 # stack build plan using GHC 9.2.2
 
-resolver: nightly-2022-04-14
+resolver: nightly-2022-06-06
 
 packages:
 - hledger-lib
