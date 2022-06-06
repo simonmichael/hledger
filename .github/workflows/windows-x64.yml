@@ -170,8 +170,9 @@ jobs:
         cd hledger-windows-x64
         cp /C/Users/runneradmin/AppData/Roaming/local/bin/hledger.exe     .
         cp /C/Users/runneradmin/AppData/Roaming/local/bin/hledger-web.exe .
-        strip hledger.exe
-        strip hledger-web.exe
+        # tried to reduce binary size as on other platforms, but causes https://github.com/simonmichael/hledger/issues/1869 ?
+        # strip hledger.exe
+        # strip hledger-web.exe
       if: env.CONTINUE
              
     # XXX intermittent upload failures
