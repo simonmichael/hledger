@@ -4,7 +4,7 @@
 # Currently runs no tests.
 # Slow, will probably time out.
 
-name: linux-arm32v7 static binaries
+name: binaries-linux-arm32v7-static
 
 on:
   push:

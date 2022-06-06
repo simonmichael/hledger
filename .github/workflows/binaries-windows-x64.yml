@@ -3,7 +3,7 @@
 # using the default stack.yaml's GHC version.
 # Currently runs no tests.
 
-name: windows-x64 binaries
+name: binaries-windows-x64
 
 on:
   schedule:

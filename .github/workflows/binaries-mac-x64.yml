@@ -2,7 +2,7 @@
 # Produces optimised mac binaries and runs unit/doc/functional tests,
 # using the default stack.yaml's GHC version.
 
-name: mac-x64 tests and binaries
+name: binaries-mac-x64
 
 on:
   schedule:
