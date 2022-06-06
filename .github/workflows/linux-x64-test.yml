@@ -20,7 +20,7 @@ on:
   # To avoid double workflow execution, don't use these branches for pull requests.
   # (https://github.community/t/how-to-trigger-an-action-on-push-or-pull-request-but-not-both/16662/2)
   push:
-    branches: [ simon, simon2, binaries ]
+    branches: [ simon, simon2 ]
 
   # On pull request branches against these branches, when pushed.
   pull_request:
