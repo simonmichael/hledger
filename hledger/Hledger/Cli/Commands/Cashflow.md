@@ -6,17 +6,12 @@ financial statements.
 
 _FLAGS
 
-"Cash" assets are those accounts which are (or whose parents are) 
-declared as `Cash` by an account directive, like this:
+This report shows accounts declared with the `Cash` type
+(see [account types](https://hledger.org/hledger.html#account-types)).
+Or if no such accounts are declared, it shows accounts 
 
-```journal
-account some:liquid:asset    ; type:C
-```
-
-Or if there are no such declarations, all accounts
-
-- under a top-level `asset` account (case insensitive, plural allowed) 
-- with some variation of `cash`, `bank`, `checking` or `saving` in their name.
+- under a top-level account named `asset` (case insensitive, plural allowed) 
+- whose name contains some variation of `cash`, `bank`, `checking` or `saving`.
 
 More precisely: all accounts matching this case insensitive regular expression:
 

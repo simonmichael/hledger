@@ -7,10 +7,10 @@ financial statements.
 
 _FLAGS
 
-The revenue and expense accounts shown are those accounts declared
-with the `Revenue` or `Expense` type, or otherwise all accounts under
-a top-level `revenue` or `income` or `expense` account (case
-insensitive, plurals allowed).
+This report shows accounts declared with the `Revenue` or `Expense` type
+(see [account types](https://hledger.org/hledger.html#account-types)).
+Or if no such accounts are declared, it shows top-level accounts named
+`revenue` or `income` or `expense` (case insensitive, plurals allowed) and their subaccounts.
 
 Example:
 ```shell
