@@ -1,7 +1,7 @@
 balancesheet, bs\
-This command displays a balance sheet, showing historical ending
-balances of asset and liability accounts. (To see equity as well,
-use the [balancesheetequity](#balancesheetequity) command.)
+This command displays a [balance sheet](https://en.wikipedia.org/wiki/Balance_sheet), 
+showing historical ending balances of asset and liability accounts. 
+(To see equity as well, use the [balancesheetequity](#balancesheetequity) command.)
 Amounts are shown with normal positive sign, as in conventional
 financial statements.
 

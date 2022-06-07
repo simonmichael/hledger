@@ -1,6 +1,6 @@
 cashflow, cf\
-This command displays a cashflow statement, showing the inflows and
-outflows affecting "cash" (ie, liquid, easily convertible) assets.
+This command displays a [cashflow statement](https://en.wikipedia.org/wiki/Cash_flow_statement), 
+showing the inflows and outflows affecting "cash" (ie, liquid, easily convertible) assets.
 Amounts are shown with normal positive sign, as in conventional
 financial statements.
 
