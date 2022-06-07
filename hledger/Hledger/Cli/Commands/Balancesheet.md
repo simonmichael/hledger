@@ -7,7 +7,7 @@ financial statements.
 
 _FLAGS
 
-This report shows accounts declared with the `Asset` or `Cash` or `Liability` type
+This report shows accounts declared with the `Asset`, `Cash` or `Liability` type
 (see [account types](https://hledger.org/hledger.html#account-types)).
 Or if no such accounts are declared, it shows top-level accounts named
 `asset` or `liability` (case insensitive, plurals allowed) and their subaccounts.
