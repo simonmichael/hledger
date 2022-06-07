@@ -1,15 +1,15 @@
 balancesheetequity, bse\
-This command displays a balance sheet, showing historical ending
-balances of asset, liability and equity accounts.
+This command displays a [balance sheet](https://en.wikipedia.org/wiki/Balance_sheet), 
+showing historical ending balances of asset, liability and equity accounts.
 Amounts are shown with normal positive sign, as in conventional
 financial statements.
 
 _FLAGS
 
-The asset, liability and equity accounts shown are those accounts
-declared with the `Asset`, `Cash`, `Liability` or `Equity` type, or
-otherwise all accounts under a top-level `asset`, `liability` or
-`equity` account (case insensitive, plurals allowed).
+This report shows accounts declared with the `Asset`, `Cash`, `Liability` or `Equity` type
+(see [account types](https://hledger.org/hledger.html#account-types)).
+Or if no such accounts are declared, it shows top-level accounts named
+`asset`, `liability` or `equity` (case insensitive, plurals allowed) and their subaccounts.
 
 Example:
 ```shell
