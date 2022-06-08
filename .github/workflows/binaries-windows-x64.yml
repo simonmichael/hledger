@@ -133,8 +133,9 @@ jobs:
     - name: Install GHC
       # if: steps.stack-programs-dir.outputs.cache-hit != 'true'
       # set PATH=C:\Users\runneradmin\AppData\Local\Programs\stack\local\bin;%PATH%
+      # use GHC 9.0 for now (#1869)
       run: |
-        ./stack --no-terminal setup --install-ghc
+        ./stack --no-terminal setup --install-ghc --stack-yaml=stack9.0.yaml
       if: env.CONTINUE
 
     # - name: Install shelltestrunner
@@ -144,14 +145,14 @@ jobs:
 
     - name: Install haskell deps
       run: |
-        ./stack --no-terminal build --only-dependencies
+        ./stack --no-terminal build --only-dependencies --stack-yaml=stack9.0.yaml
       if: env.CONTINUE
 
     # use whichever GHC is in default stack.yaml
 
     - name: Build all hledger modules warning free, optimised and minimised
       run: |
-        ./stack --no-terminal install --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror
+        ./stack --no-terminal install --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror --stack-yaml=stack9.0.yaml
       # --ghc-options=-split-sections doesn't work on windows, "too many sections"
       # --pedantic
       if: env.CONTINUE
@@ -170,9 +171,8 @@ jobs:
         cd hledger-windows-x64
         cp /C/Users/runneradmin/AppData/Roaming/local/bin/hledger.exe     .
         cp /C/Users/runneradmin/AppData/Roaming/local/bin/hledger-web.exe .
-        # tried to reduce binary size as on other platforms, but causes https://github.com/simonmichael/hledger/issues/1869 ?
-        # strip hledger.exe
-        # strip hledger-web.exe
+        strip hledger.exe
+        strip hledger-web.exe
       if: env.CONTINUE
              
     # XXX intermittent upload failures
