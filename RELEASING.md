@@ -98,9 +98,7 @@ Here are some definitions, useful eg when executing or automating release proced
 - Make things a little better each time through: simpler, more reliable, better documented, more automated, easier, faster, cheaper, higher quality.
 - Update [CHANGELOGS](CHANGELOGS.html) early and often, eg during/after a PR, to spread the work.
 - Make releases from a release branch, not from master.
-- Before making binaries:
-  - Try to do all possible pre-release-tag steps. (Binaries will show their source's git hash in --version, and it should match the release tag.)
-  - Ensure the last commit does not begin with a semicolon. (So that the linux-x64-test workflow will generate a binary, in case it is needed.)
+- Before making binaries: try to do all possible pre-release-tag steps. (Binaries' --version shows their git hash, and it should match the release tag.)
 - Before tagging: make binaries for all platforms, from the same commit.
 
 ### 1. Preview release
