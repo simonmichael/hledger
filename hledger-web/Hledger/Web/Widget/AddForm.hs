@@ -16,7 +16,7 @@ import Data.Foldable (toList)
 import Data.List (dropWhileEnd, unfoldr)
 import Data.Maybe (isJust)
 import qualified Data.Set as S
-import Data.Text (Text)
+import Data.Text (Text, unpack)
 import Data.Text.Encoding.Base64 (encodeBase64)
 import qualified Data.Text as T
 import Data.Time (Day)
@@ -59,13 +59,14 @@ addForm j today = identifyForm "add" $ \extra -> do
   (descRes, descView) <- mreq textField descFS Nothing
   (acctRes, _) <- mreq listField acctFS Nothing
   (amtRes, _) <- mreq listField amtFS Nothing
+  (journalRes, _) <- mreq textField journalFS Nothing
   let (postRes, displayRows) = validatePostings acctRes amtRes
 
   -- bindings used in add-form.hamlet
   let descriptions = foldMap S.fromList [journalPayeesDeclaredOrUsed j, journalDescriptions j]
       journals = fst <$> jfiles j
 
-  pure (validateTransaction dateRes descRes postRes, $(widgetFile "add-form"))
+  pure (validateTransaction dateRes descRes postRes journalRes, $(widgetFile "add-form"))
 
   where
     dateFS = FieldSettings "date" Nothing Nothing (Just "date")
@@ -74,6 +75,7 @@ addForm j today = identifyForm "add" $ \extra -> do
       [("class", "form-control input-lg typeahead"), ("placeholder", "Description"), ("size", "40")]
     acctFS = FieldSettings "amount" Nothing Nothing (Just "account") []
     amtFS = FieldSettings "amount" Nothing Nothing (Just "amount") []
+    journalFS = FieldSettings "journal" Nothing Nothing (Just "journal") []
     dateField = checkMMap (pure . validateDate) (T.pack . show) textField
     validateDate s =
       first (const ("Invalid date format" :: Text)) $
@@ -106,6 +108,7 @@ addForm j today = identifyForm "add" $ \extra -> do
           ) ts,
         "]"
         ]
+
 b64wrap :: Text -> Text
 b64wrap = ("atob(\""<>) . (<>"\")") . encodeBase64
 
@@ -113,16 +116,20 @@ validateTransaction ::
      FormResult Day
   -> FormResult Text
   -> FormResult [Posting]
+  -> FormResult Text
   -> FormResult Transaction
-validateTransaction dateRes descRes postingsRes =
-  case makeTransaction <$> dateRes <*> descRes <*> postingsRes of
+validateTransaction dateRes descRes postingsRes journalRes =
+  case makeTransaction <$> dateRes <*> descRes <*> postingsRes <*> journalRes of
     FormSuccess txn -> case balanceTransaction defbalancingopts txn of
       Left e -> FormFailure [T.pack e]
       Right txn' -> FormSuccess txn'
     x -> x
   where
-    makeTransaction date desc postings =
-      nulltransaction {tdate = date, tdescription = desc, tpostings = postings}
+    makeTransaction date desc postings journal =
+      nulltransaction {tdate = date
+        , tdescription = desc
+        , tpostings = postings
+        , tsourcepos = (SourcePos (unpack journal) (mkPos 1) (mkPos 1), SourcePos (unpack journal) (mkPos 1) (mkPos 1))}
 
 
 -- | Parse a list of postings out of a list of accounts and a corresponding list

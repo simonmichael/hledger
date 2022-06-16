@@ -27,6 +27,9 @@ getAddR = do
   checkServerSideUiEnabled
   postAddR
 
+journalFilePath' :: Transaction -> FilePath
+journalFilePath' (Transaction { tsourcepos = ((SourcePos f _ _), _)}) = f
+
 postAddR :: Handler ()
 postAddR = do
   checkServerSideUiEnabled
@@ -38,9 +41,9 @@ postAddR = do
     FormSuccess res' -> do
       let t = txnTieKnot res'
       -- XXX(?) move into balanceTransaction
-      liftIO $ ensureJournalFileExists (journalFilePath j)
+      liftIO $ ensureJournalFileExists (journalFilePath' t)
       -- XXX why not journalAddTransaction ?
-      liftIO $ appendToJournalFileOrStdout (journalFilePath j) (showTransaction t)
+      liftIO $ appendToJournalFileOrStdout (journalFilePath' t) (showTransaction t)
       setMessage "Transaction added."
       redirect JournalR
     FormMissing -> showForm view enctype
