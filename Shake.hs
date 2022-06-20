@@ -546,6 +546,7 @@ main = do
           ,"# " ++ heading
           ,""
           ,"<div class=\"pagetoc manual\">"
+          ,""
           ,"<!-- toc -->"
           ,"</div>"
           ,""
@@ -780,6 +781,7 @@ main = do
           ,"# " ++ heading
           ,""
           ,"<div class=\"pagetoc\">"
+          ,""
           ,"<!-- toc -->"
           ,"</div>"
           ,""
