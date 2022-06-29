@@ -105,7 +105,7 @@ import Safe (headMay, lastMay, maximumMay, minimumMay)
 import Text.Megaparsec
 import Text.Megaparsec.Char (char, char', digitChar, string, string')
 import Text.Megaparsec.Char.Lexer (decimal, signed)
-import Text.Megaparsec.Custom (customErrorBundlePretty, HledgerParseErrors)
+import Text.Megaparsec.Custom (customErrorBundlePretty)
 import Text.Printf (printf)
 
 import Hledger.Data.Types

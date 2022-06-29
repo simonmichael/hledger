@@ -141,7 +141,7 @@ import Text.Megaparsec
 import Text.Megaparsec.Char (char, char', digitChar, newline, string)
 import Text.Megaparsec.Char.Lexer (decimal)
 import Text.Megaparsec.Custom
-  (FinalParseError, attachSource, customErrorBundlePretty, finalErrorBundlePretty, parseErrorAt, parseErrorAtRegion, HledgerParseErrors)
+  (FinalParseError, attachSource, customErrorBundlePretty, finalErrorBundlePretty, parseErrorAt, parseErrorAtRegion)
 
 import Hledger.Data
 import Hledger.Query (Query(..), filterQuery, parseQueryTerm, queryEndDate, queryStartDate, queryIsDate, simplifyQuery)

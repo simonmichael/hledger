@@ -38,6 +38,7 @@ module Hledger.Utils.Parse (
   skipNonNewlineSpaces',
 
   -- * re-exports
+  HledgerParseErrors,
   HledgerParseErrorData
 )
 where
