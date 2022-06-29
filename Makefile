@@ -357,7 +357,7 @@ ghcid: $(call def-help,ghcid, start ghcid autobuilder on hledger-lib + hledger)
 	ghcid -c 'make ghci'
 
 ghcid-ui: $(call def-help,ghcid-ui, start ghcid autobuilder on hledger-lib + hledger + hledger-ui)
-	ghcid -c 'make ghci-ui'
+	ghcid -c 'make ui'
 
 ghcid-web: $(call def-help,ghcid-web, start ghcid autobuilder on hledger-lib + hledger + hledger-web)
 	ghcid -c 'make ghci-web'
@@ -417,6 +417,11 @@ ghci-web: webdirs $(call def-help,ghci-web, start ghci REPL on hledger-lib + hle
 
 ghci-web-test: webdirs $(call def-help,ghci-web-test, start ghci REPL on hledger-lib + hledger + hledger-web + hledger-web test suite)
 	$(STACKGHCI) exec -- $(GHCI) $(BUILDFLAGS) hledger-web/test/test.hs
+
+# better than stack exec ?
+# XXX does not see changes to files
+ghci-unit-test: $(call def-help,ghci-unit-test, start ghci REPL on hledger-lib + unit test suite)
+	$(STACKGHCI) ghci --ghc-options='-rtsopts -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-name-shadowing -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind  -ihledger-lib  -DDEVELOPMENT -DVERSION="\"1.26.99\""' hledger-lib/test/unittest.hs
 
 # ghci-all: $(call def-help,ghci-all, start ghci REPL on all the hledger)
 # 	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) \
