@@ -125,7 +125,6 @@ BINARIES=\
 
 INCLUDEPATHS=\
 	-ihledger-lib \
-	-ihledger-lib/other/ledger-parse \
 	-ihledger \
 	-ihledger-ui \
 	-ihledger-web \
