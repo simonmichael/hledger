@@ -19,4 +19,5 @@ fos:hledger   .... .... ....
 fos:ledger    0.25
 fos:haskell   .5
 inc:client1   2
+inc:client2   14-16
 

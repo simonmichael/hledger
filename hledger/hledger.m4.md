@@ -4948,7 +4948,7 @@ time transaction lines, consisting of:
 - **two or more spaces** - a field separator, 
   required if there is an amount (as in journal format).
 - a **timedot amount** - dots representing quarter hours, 
-  or a number representing hours.
+  a number representing hours, or a range calculating hours.
 - an optional **comment** beginning with semicolon. This is ignored.
 
 In more detail, timedot amounts can be:
@@ -4958,6 +4958,9 @@ In more detail, timedot amounts can be:
   Eg: `.... ..`
 
 - a **number**, representing hours. Eg: `1.5`
+
+- a **range**, representing hours between two times. Eg: `12.5-13.5` to denote
+  the 1.0 hr from 12:30pm to 1:30pm
 
 - a **number immediately followed by a unit symbol**
   `s`, `m`, `h`, `d`, `w`, `mo`, or `y`, 
@@ -5003,6 +5006,7 @@ biz:research  .
 ```timedot
 2016/2/3
 inc:client1   4
+inc:client2   13-15
 fos:hledger   3
 biz:research  1
 ```
