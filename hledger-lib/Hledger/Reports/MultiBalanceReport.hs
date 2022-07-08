@@ -315,20 +315,22 @@ calculateReportMatrix rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle startb
     -- The valued row amounts to be displayed: per-period changes,
     -- zero-based cumulative totals, or
     -- starting-balance-based historical balances.
-    rowbals name changes = dbg5 "rowbals" $ case balanceaccum_ ropts of
-        PerPeriod  -> changeamts
+    rowbals name unvaluedChanges = dbg5 "rowbals" $ case balanceaccum_ ropts of
+        PerPeriod  -> changes
         Cumulative -> cumulative
         Historical -> historical
       where
-        -- changes to report on: usually just the changes itself, but use the
-        -- differences in the historical amount for ValueChangeReports.
-        changeamts = case balancecalc_ ropts of
-            CalcChange      -> M.mapWithKey avalue changes
-            CalcBudget      -> M.mapWithKey avalue changes
+        -- changes to report on: usually just the valued changes themselves, but use the
+        -- differences in the valued historical amount for CalcValueChange and CalcGain.
+        changes = case balancecalc_ ropts of
+            CalcChange      -> M.mapWithKey avalue unvaluedChanges
+            CalcBudget      -> M.mapWithKey avalue unvaluedChanges
             CalcValueChange -> periodChanges valuedStart historical
             CalcGain        -> periodChanges valuedStart historical
-        cumulative = cumulativeSum avalue nullacct changeamts
-        historical = cumulativeSum avalue startingBalance changes
+        -- the historical balance is the valued cumulative sum of all unvalued changes
+        historical = M.mapWithKey avalue $ cumulativeSum startingBalance unvaluedChanges
+        -- since this is a cumulative sum of valued amounts, it should not be valued again
+        cumulative = cumulativeSum nullacct changes
         startingBalance = HM.lookupDefault nullacct name startbals
         valuedStart = avalue (DateSpan Nothing historicalDate) startingBalance
 
@@ -580,11 +582,9 @@ periodChanges start amtmap =
     M.fromDistinctAscList . zip dates $ zipWith subtractAcct amts (start:amts)
   where (dates, amts) = unzip $ M.toAscList amtmap
 
--- | Calculate a cumulative sum from a list of period changes and a valuation
--- function.
-cumulativeSum :: (DateSpan -> Account -> Account) -> Account -> Map DateSpan Account -> Map DateSpan Account
-cumulativeSum value start = snd . M.mapAccumWithKey accumValued start
-  where accumValued startAmt date newAmt = let s = sumAcct startAmt newAmt in (s, value date s)
+-- | Calculate a cumulative sum from a list of period changes.
+cumulativeSum :: Account -> Map DateSpan Account -> Map DateSpan Account
+cumulativeSum start = snd . M.mapAccum (\a b -> let s = sumAcct a b in (s, s)) start
 
 -- | Given a table representing a multi-column balance report (for example,
 -- made using 'balanceReportAsTable'), render it in a format suitable for
