@@ -73,7 +73,9 @@ instance Show PeriodicTransaction where
 
 --nullperiodictransaction is defined in Types.hs
 
--- | Generate transactions from 'PeriodicTransaction' within a 'DateSpan'
+-- | Generate transactions from 'PeriodicTransaction' within a 'DateSpan'.
+-- This should be a closed span with both start and end dates specified;
+-- an open ended span will generate no transactions.
 --
 -- Note that new transactions require 'txnTieKnot' post-processing.
 -- The new transactions will have three tags added: 

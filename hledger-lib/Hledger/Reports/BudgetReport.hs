@@ -28,7 +28,7 @@ import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
 import Data.List (find, partition, transpose, foldl')
 import Data.List.Extra (nubSort)
-import Data.Maybe (fromMaybe, catMaybes)
+import Data.Maybe (fromMaybe, catMaybes, isJust)
 import Data.Map (Map)
 import qualified Data.Map as Map
 import qualified Data.Set as S
@@ -36,6 +36,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
+import Safe (maximumDef, minimumDef)
 --import System.Console.CmdArgs.Explicit as C
 --import Lucid as L
 import qualified Text.Tabular.AsciiWide as Tab
@@ -96,27 +97,47 @@ budgetReport rspec bopts reportspan j = dbg4 "sortedbudgetreport" budgetreport
       | otherwise = budgetgoalreport
     budgetreport = combineBudgetAndActual ropts j budgetgoalreport' actualreport
 
--- | Use all periodic transactions in the journal to generate
--- budget goal transactions in the specified date span.
--- Budget goal transactions are similar to forecast transactions except
--- their purpose and effect is to define balance change goals, per account and period,
--- for BudgetReport.
+-- | Use all (or all matched by --budget's argument) periodic transactions in the journal 
+-- to generate budget goal transactions in the specified date span (and before, to support
+-- --historical. The precise start date is the natural start date of the largest interval
+-- of the active periodic transaction rules that is on or before the earlier of journal start date,
+-- report start date.)
+-- Budget goal transactions are similar to forecast transactions except their purpose 
+-- and effect is to define balance change goals, per account and period, for BudgetReport.
+--
 journalAddBudgetGoalTransactions :: BalancingOpts -> ReportOpts -> DateSpan -> Journal -> Journal
 journalAddBudgetGoalTransactions bopts ropts reportspan j =
   either error' id $ journalBalanceTransactions bopts j{ jtxns = budgetts }  -- PARTIAL:
   where
-    budgetspan = dbg3 "budget span" $ reportspan
-    pat = fromMaybe "" $ dbg3 "budget pattern" $ T.toLower <$> budgetpat_ ropts
+    budgetspan = dbg3 "budget span" $ DateSpan mbudgetgoalsstartdate (spanEnd reportspan)
+      where
+        mbudgetgoalsstartdate =
+          -- We want to also generate budget goal txns before the report start date, in case -H is used.
+          -- What should the actual starting date for goal txns be ? This gets a little tricky: consider a
+          -- journal with a "~ monthly" periodic transaction rule, where the first transaction is on 1/5.
+          -- Users will certainly expect a budget goal for january, but "~ monthly" generates transactions
+          -- on the first of month, and starting from 1/5 would exclude 1/1.
+          -- Hopefully the following procedure will produce intuitive behaviour in general:
+          -- from the earlier of the journal start date and the report start date,
+          -- move backward to the nearest natural start date of the largest period seen among the
+          -- active periodic transactions (so here: monthly, 1/5 -> 1/1).
+          case minimumDef Nothing $ filter isJust [journalStartDate False j, spanStart reportspan] of
+            Nothing -> Nothing
+            Just d  -> Just $ intervalStartBefore biggestinterval d
+              where
+                biggestinterval = maximumDef (Days 1) $ map ptinterval budgetpts
+
     -- select periodic transactions matching a pattern
     -- (the argument of the (final) --budget option).
     -- XXX two limitations/wishes, requiring more extensive type changes:
     -- - give an error if pat is non-null and matches no periodic txns
     -- - allow a regexp or a full hledger query, not just a substring
+    pat = fromMaybe "" $ dbg3 "budget pattern" $ T.toLower <$> budgetpat_ ropts
+    budgetpts = [pt | pt <- jperiodictxns j, pat `T.isInfixOf` T.toLower (ptdescription pt)]
     budgetts =
       dbg5 "budget goal txns" $
       [makeBudgetTxn t
-      | pt <- jperiodictxns j
-      , pat `T.isInfixOf` T.toLower (ptdescription pt)
+      | pt <- budgetpts
       , t <- runPeriodicTransaction pt budgetspan
       ]
     makeBudgetTxn t = txnTieKnot $ t { tdescription = T.pack "Budget transaction" }

@@ -635,3 +635,33 @@ $ hledger -f- bal --budget=weekly -p 2021-01
 $ hledger -f- bal --budget=monthly -p 2021-01
 > !/aaa/
 >=
+
+# 33. Cumulative budget report.
+<
+~ monthly
+  (a)  10
+
+2022-01-05
+  (a)   10
+
+2022-02-03
+  (a)   5
+
+$ hledger -f- bal --budget -M --cumulative
+Budget performance in 2022-01-01..2022-02-28:
+
+   ||      2022-01-31      2022-02-28 
+===++=================================
+ a || 10 [100% of 10]  15 [75% of 20] 
+---++---------------------------------
+   || 10 [100% of 10]  15 [75% of 20] 
+
+# 34. Historical budget report.
+$ hledger -f- bal --budget -M --historical -b 2022-02-01
+Budget performance in 2022-02:
+
+   ||     2022-02-28 
+===++================
+ a || 15 [75% of 20] 
+---++----------------
+   || 15 [75% of 20] 
