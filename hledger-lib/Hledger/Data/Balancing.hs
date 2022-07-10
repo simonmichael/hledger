@@ -43,17 +43,17 @@ import qualified Data.Set as S
 import qualified Data.Text as T
 import Data.Time.Calendar (fromGregorian)
 import qualified Data.Map as M
-import Safe (headDef)
+import Safe (headDef, headMay)
 import Text.Printf (printf)
 
 import Hledger.Utils
 import Hledger.Data.Types
 import Hledger.Data.AccountName (isAccountNamePrefixOf)
 import Hledger.Data.Amount
-import Hledger.Data.Dates (showDate)
 import Hledger.Data.Journal
 import Hledger.Data.Posting
 import Hledger.Data.Transaction
+import Hledger.Data.Errors
 
 
 data BalancingOpts = BalancingOpts
@@ -550,6 +550,7 @@ checkBalanceAssertionB _ _ = return ()
 checkBalanceAssertionOneCommodityB :: Posting -> Amount -> MixedAmount -> Balancing s ()
 checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedamt actualbal = do
   let isinclusive = maybe False bainclusive $ pbalanceassertion p
+  let istotal     = maybe False batotal     $ pbalanceassertion p
   actualbal' <-
     if isinclusive
     then
@@ -571,37 +572,58 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedamt 
       aquantity
         -- traceWith (("actual:"++).showAmountDebug)
         actualbalincomm
-
     errmsg = printf (unlines
-                  [ "balance assertion: %s",
-                    "\nassertion details:",
-                    "date:       %s",
-                    "account:    %s%s",
-                    "commodity:  %s",
-                    -- "display precision:  %d",
-                    "calculated: %s", -- (at display precision: %s)",
-                    "asserted:   %s", -- (at display precision: %s)",
-                    "difference: %s"
-                  ])
-      (case ptransaction p of
-         Nothing -> "?" -- shouldn't happen
-         Just t ->  printf "%s\ntransaction:\n%s"
-                      (sourcePosPretty pos)
-                      (textChomp $ showTransaction t)
-                      :: String
-                      where
-                        pos = baposition $ fromJust $ pbalanceassertion p
-      )
-      (showDate $ postingDate p)
+      [ "balance assertion: %s:",
+        "%s\n",
+        -- "date:       %s",
+        "account:    %-30s%s",
+        "commodity:  %-30s%s",
+        -- "display precision:  %d",
+        "asserted:   %s", -- (at display precision: %s)",
+        "actual:     %s", -- (at display precision: %s)",
+        "difference: %s"
+      ])
+      (sourcePosPretty pos)
+      (textChomp ex)
+      -- (showDate $ postingDate p)
       (T.unpack $ paccount p) -- XXX pack
-      (if isinclusive then " (and subs)" else "" :: String)
+      (if isinclusive then " (including subaccounts)" else "" :: String)
       assertedcomm
+      (if istotal then " (no other commodity balance allowed)" else "" :: String)
       -- (asprecision $ astyle actualbalincommodity)  -- should be the standard display precision I think
       (show $ aquantity actualbalincomm)
       -- (showAmount actualbalincommodity)
       (show $ aquantity assertedamt)
       -- (showAmount assertedamt)
       (show $ aquantity assertedamt - aquantity actualbalincomm)
+      where
+        ass = fromJust $ pbalanceassertion p  -- PARTIAL: fromJust won't fail, there is a balance assertion
+        pos = baposition ass
+        (_,_,_,ex) = makePostingErrorExcerpt p finderrcols
+          where
+            finderrcols p t trendered = Just (col, Just col2)
+              where
+                -- col  = unPos $ sourceColumn pos
+                -- col2 = col + (length $ wbUnpack $ showBalanceAssertion ass)
+                -- The saved parse position may not correspond to the rendering in the error message.
+                -- Instead, we analyse the rendering to find the columns:
+                tlines = length $ T.lines $ tcomment t  -- transaction comment can generate extra lines
+                (col, col2) =
+                  let def = (5, maximum (map T.length $ T.lines trendered))  -- fallback: underline whole posting. Shouldn't happen.
+                  in
+                    case transactionFindPostingIndex (==p) t of
+                      Nothing  -> def
+                      Just idx -> fromMaybe def $ do
+                        let
+                          beforeps = take (idx-1) $ tpostings t
+                          beforepslines = sum $ map (length . T.lines . pcomment) beforeps   -- posting comment can generate extra lines (assume only one commodity shown)
+                        assertionline <- headMay $ drop (tlines + beforepslines) $ T.lines trendered
+                        let
+                          col2 = T.length assertionline
+                          l = dropWhile (/= '=') $ reverse $ T.unpack assertionline
+                          l' = dropWhile (`elem` ['=','*']) l
+                          col = length l' + 1
+                        return (col, col2)
 
   unless pass $ throwError errmsg
 

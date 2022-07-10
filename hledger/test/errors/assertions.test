@@ -1,16 +1,14 @@
-$$$ hledger check -f assertions.j
->>>2 /hledger: Error: .*assertions.j:4:8
-transaction:
-2022-01-01
-    a               0 = 1
+$ hledger check -f assertions.j
+>2 /hledger: Error: balance assertion: .*assertions.j:4:8:
+  | 2022-01-01
+4 |     a               0 = 1
+  | ^^^^^^^^^^
 
-assertion details:
-date:       2022-01-01
-account:    a
-commodity:  
-calculated: 0
-asserted:   1
+account:    a                             
+commodity:                                
+asserted:   0
+actual:     1
 difference: 1
 
 /
->>>= 1
+>=1

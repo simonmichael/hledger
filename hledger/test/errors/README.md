@@ -8,7 +8,7 @@ progress brings immediate practical benefits.
 
 Here are journals/scripts for reproducing hledger's journal error messages.
 They are named similarly to [hledger check][]'s checks.
-In the CLI, execute them to see the error messages (`./showall`).
+In the CLI, execute them to see the error messages.
 
 In Emacs with [flycheck-hledger][],
 customize flycheck-hledger-* to enable all appropriate checks,
@@ -45,7 +45,7 @@ Here is the current status
 |                          | std format | line | column    | excerpt | flycheck | flycheck region |
 |--------------------------|------------|------|-----------|---------|----------|-----------------|
 | accounts                 | ✓          | ✓    | ✓         | ✓✓      |          |                 |
-| assertions               |            | ✓    |           | ✓       |          |                 |
+| assertions               | ✓          | ✓    | ✓         | ✓✓      |          |                 |
 | balanced                 |            | ✓    | -         | ✓       |          |                 |
 | balancednoautoconversion |            | ✓    | -         | ✓       |          |                 |
 | commodities              | ✓          | ✓    | ✓(approx) | ✓✓      |          |                 |

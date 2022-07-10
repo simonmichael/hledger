@@ -61,6 +61,7 @@ module Hledger.Data.Posting (
   postingsAsLines,
   showAccountName,
   renderCommentLines,
+  showBalanceAssertion,
   -- * misc.
   postingTransformAmount,
   postingApplyValuation,
