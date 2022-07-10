@@ -1,5 +1,6 @@
 -- The account register screen, showing transactions in an account, like hledger-web's register.
 
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
@@ -302,8 +303,15 @@ rsHandle ui@UIState{
         -- VtyEvent (EvKey (KChar '/') []) -> continue $ regenerateScreens j d $ showMinibuffer ui
         VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw ui
         VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
-        VtyEvent ev              -> do ed' <- handleEditorEvent ev ed
-                                       continue $ ui{aMode=Minibuffer "filter" ed'}
+        VtyEvent ev -> do
+          ed' <- handleEditorEvent 
+#if MIN_VERSION_brick(0,72,0)
+            (VtyEvent ev)
+#else
+            ev
+#endif
+            ed
+          continue $ ui{aMode=Minibuffer "filter" ed'}
         AppEvent _        -> continue ui
         MouseDown{}       -> continue ui
         MouseUp{}         -> continue ui
