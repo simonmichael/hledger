@@ -18,7 +18,6 @@ module Hledger.Data.Balancing
 , isTransactionBalanced
 , balanceTransaction
 , balanceTransactionHelper
-, annotateErrorWithTransaction
   -- * journal balancing
 , journalBalanceTransactions
 , journalCheckBalanceAssertions
@@ -36,7 +35,7 @@ import Data.Foldable (asum)
 import Data.Function ((&))
 import qualified Data.HashTable.Class as H (toList)
 import qualified Data.HashTable.ST.Cuckoo as H
-import Data.List (intercalate, partition, sortOn)
+import Data.List (partition, sortOn)
 import Data.List.Extra (nubSort)
 import Data.Maybe (fromJust, fromMaybe, isJust, isNothing, mapMaybe)
 import qualified Data.Set as S
@@ -163,15 +162,21 @@ balanceTransactionHelper bopts t = do
 -- | Generate a transaction balancing error message, given the transaction
 -- and one or more suberror messages.
 transactionBalanceError :: Transaction -> [String] -> String
-transactionBalanceError t errs =
-  annotateErrorWithTransaction t $
-  intercalate "\n" $ "could not balance this transaction:" : errs
-
-annotateErrorWithTransaction :: Transaction -> String -> String
-annotateErrorWithTransaction t s =
-  unlines [ sourcePosPairPretty $ tsourcepos t, s
-          , T.unpack . T.stripEnd $ showTransaction t
-          ]
+transactionBalanceError t errs = printf (unlines
+  [ "unbalanced transaction: %s:",
+    "%s",
+    "\n%s"
+  ])
+  (sourcePosPairPretty $ tsourcepos t)
+  (textChomp ex)
+  (chomp $ unlines errs)
+  where
+    (_f,_l,_mcols,ex) = makeTransactionErrorExcerpt t finderrcols
+      where
+        finderrcols _ = Nothing
+        -- finderrcols t = Just (1, Just w)
+        --   where
+        --     w = maximumDef 1 $ map T.length $ T.lines $ showTransaction t
 
 -- | Infer up to one missing amount for this transactions's real postings, and
 -- likewise for its balanced virtual postings, if needed; or return an error

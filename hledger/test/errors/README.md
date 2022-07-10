@@ -46,8 +46,8 @@ Here is the current status
 |--------------------------|------------|------|-----------|---------|----------|-----------------|
 | accounts                 | ✓          | ✓    | ✓         | ✓✓      |          |                 |
 | assertions               | ✓          | ✓    | ✓         | ✓✓      |          |                 |
-| balanced                 |            | ✓    | -         | ✓       |          |                 |
-| balancednoautoconversion |            | ✓    | -         | ✓       |          |                 |
+| balanced                 | ✓          | ✓    | -         | ✓       |          |                 |
+| balancednoautoconversion | ✓          | ✓    | -         | ✓       |          |                 |
 | commodities              | ✓          | ✓    | ✓(approx) | ✓✓      |          |                 |
 | ordereddates             | ✓          | ✓    | ✓         | ✓✓      |          |                 |
 | parseable                | ✓          | ✓    | ✓         | ✓✓      |          |                 |

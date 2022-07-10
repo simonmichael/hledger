@@ -323,7 +323,7 @@ $ hledger -f- register --auto
 
 # 16. No, transaction must be balanced both with and without auto postings.
 $ hledger -f- print -x --auto
->2 /could not balance/
+>2 /unbalanced/
 >=1
 
 # 17. Commodity display styles are applied to auto posting amounts.

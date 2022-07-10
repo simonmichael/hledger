@@ -1039,7 +1039,7 @@ account1 assets:bank:checking
 fields date, description, account2, amount
 
 $  ./csvtest.sh
->2 /could not balance this transaction/
+>2 /unbalanced transaction/
 >=1
 
 ## . 
