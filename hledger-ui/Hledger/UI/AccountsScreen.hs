@@ -1,5 +1,6 @@
 -- The accounts screen, showing accounts and balances like the CLI balance command.
 
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 
@@ -254,8 +255,15 @@ asHandle ui0@UIState{
           where s = chomp $ unlines $ map strip $ getEditContents ed
         VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw ui
         VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
-        VtyEvent ev        -> do ed' <- handleEditorEvent ev ed
-                                 continue $ ui{aMode=Minibuffer "filter" ed'}
+        VtyEvent ev        -> do
+          ed' <- handleEditorEvent 
+#if MIN_VERSION_brick(0,72,0)
+            (VtyEvent ev)
+#else
+            ev
+#endif
+            ed
+          continue $ ui{aMode=Minibuffer "filter" ed'}
         AppEvent _        -> continue ui
         MouseDown{}       -> continue ui
         MouseUp{}         -> continue ui
