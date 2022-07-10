@@ -46,13 +46,13 @@ HERE
 HLEDGER_INSTALL_TOOL=hledger-install.sh
 
 # this script's version
-HLEDGER_INSTALL_VERSION=20220609
+HLEDGER_INSTALL_VERSION=20220710
 
 # stackage snapshot to use when installing with stack.
 # You can try specifying a different stackage version here, or 
 # commenting out this line to use your current global resolver,
 # to avoid unnecessary building.
-RESOLVER="--resolver=nightly-2022-06-09"
+RESOLVER="--resolver=nightly-2022-07-10"
 
 # things to be installed
 
