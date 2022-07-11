@@ -9,8 +9,33 @@
 General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
-# 1.26 2022-06-04
+# 1.26.1 2022-07-11
+- ;pkg: bump version to 1.26.1
 
+- pkg: make safe 0.3.19 visible in 8.6 build
+
+- dev: stack: bump to latest nightly
+
+- shake: fix page TOC rendering (with mdbook-toc 0.8+ ?)
+
+- ci: windows: ghc 9.2.3
+
+- install: hledger-interest 1.6.4, hledger-stockquotes 0.1.2.1
+
+- pkg: stack, shake, install: bump to ghc 9.2.3
+
+- ci: windows: ghc 9.0 for now; and strip again (#1869)
+
+- ;pkg: stack: bump to latest nightly snapshot
+
+- ;ci: consistent workflow and file names
+
+- ci: windows: don't strip, seems to break it
+
+- ci: test: don't run on push to binaries
+
+- ;doc: RELEASING
+# 1.26 2022-06-04
 Scripts/addons
 
 - renamed hledger-number.sh to hledger-simplebal
