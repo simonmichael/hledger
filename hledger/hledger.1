@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "June 2022" "hledger-1.26 " "hledger User Manuals"
+.TH "HLEDGER" "1" "July 2022" "hledger-1.26.99 " "hledger User Manuals"
 
 
 
@@ -9,7 +9,7 @@
 This is the command-line interface (CLI) for the hledger accounting
 tool.
 Here we also describe hledger\[aq]s concepts and file formats.
-This manual is for hledger 1.26.
+This manual is for hledger 1.26.99.
 .SH SYNOPSIS
 .PP
 \f[C]hledger\f[R]
@@ -4436,10 +4436,11 @@ balances of asset and liability accounts.
 shown with normal positive sign, as in conventional financial
 statements.
 .PP
-The asset and liability accounts shown are those accounts declared with
-the \f[C]Asset\f[R] or \f[C]Cash\f[R] or \f[C]Liability\f[R] type, or
-otherwise all accounts under a top-level \f[C]asset\f[R] or
-\f[C]liability\f[R] account (case insensitive, plurals allowed).
+This report shows accounts declared with the \f[C]Asset\f[R],
+\f[C]Cash\f[R] or \f[C]Liability\f[R] type (see account types).
+Or if no such accounts are declared, it shows top-level accounts named
+\f[C]asset\f[R] or \f[C]liability\f[R] (case insensitive, plurals
+allowed) and their subaccounts.
 .PP
 Example:
 .IP
@@ -4487,11 +4488,12 @@ balances of asset, liability and equity accounts.
 Amounts are shown with normal positive sign, as in conventional
 financial statements.
 .PP
-The asset, liability and equity accounts shown are those accounts
-declared with the \f[C]Asset\f[R], \f[C]Cash\f[R], \f[C]Liability\f[R]
-or \f[C]Equity\f[R] type, or otherwise all accounts under a top-level
-\f[C]asset\f[R], \f[C]liability\f[R] or \f[C]equity\f[R] account (case
-insensitive, plurals allowed).
+This report shows accounts declared with the \f[C]Asset\f[R],
+\f[C]Cash\f[R], \f[C]Liability\f[R] or \f[C]Equity\f[R] type (see
+account types).
+Or if no such accounts are declared, it shows top-level accounts named
+\f[C]asset\f[R], \f[C]liability\f[R] or \f[C]equity\f[R] (case
+insensitive, plurals allowed) and their subaccounts.
 .PP
 Example:
 .IP
@@ -4545,22 +4547,15 @@ assets.
 Amounts are shown with normal positive sign, as in conventional
 financial statements.
 .PP
-\[dq]Cash\[dq] assets are those accounts which are (or whose parents
-are) declared as \f[C]Cash\f[R] by an account directive, like this:
-.IP
-.nf
-\f[C]
-account some:liquid:asset    ; type:C
-\f[R]
-.fi
-.PP
-Or if there are no such declarations, all accounts
+This report shows accounts declared with the \f[C]Cash\f[R] type (see
+account types).
+Or if no such accounts are declared, it shows accounts
 .IP \[bu] 2
-under a top-level \f[C]asset\f[R] account (case insensitive, plural
-allowed)
+under a top-level account named \f[C]asset\f[R] (case insensitive,
+plural allowed)
 .IP \[bu] 2
-with some variation of \f[C]cash\f[R], \f[C]bank\f[R],
-\f[C]checking\f[R] or \f[C]saving\f[R] in their name.
+whose name contains some variation of \f[C]cash\f[R], \f[C]bank\f[R],
+\f[C]checking\f[R] or \f[C]saving\f[R].
 .PP
 More precisely: all accounts matching this case insensitive regular
 expression:
@@ -5255,16 +5250,16 @@ incomestatement, is
 .PD 0
 .P
 .PD
-.PP
 This command displays an income statement, showing revenues and expenses
 during one or more periods.
 Amounts are shown with normal positive sign, as in conventional
 financial statements.
 .PP
-The revenue and expense accounts shown are those accounts declared with
-the \f[C]Revenue\f[R] or \f[C]Expense\f[R] type, or otherwise all
-accounts under a top-level \f[C]revenue\f[R] or \f[C]income\f[R] or
-\f[C]expense\f[R] account (case insensitive, plurals allowed).
+This report shows accounts declared with the \f[C]Revenue\f[R] or
+\f[C]Expense\f[R] type (see account types).
+Or if no such accounts are declared, it shows top-level accounts named
+\f[C]revenue\f[R] or \f[C]income\f[R] or \f[C]expense\f[R] (case
+insensitive, plurals allowed) and their subaccounts.
 .PP
 Example:
 .IP
