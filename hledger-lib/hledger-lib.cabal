@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           hledger-lib
-version:        1.26
+version:        1.26.1
 synopsis:       A reusable library providing the core functionality of hledger
 description:    A reusable library containing hledger's core functionality.
                 This is used by most hledger* packages so that they support the same
@@ -125,7 +125,7 @@ library
     , parser-combinators >=0.4.0
     , pretty-simple >4 && <5
     , regex-tdfa
-    , safe >=0.3.18
+    , safe >=0.3.19
     , tabular >=0.2
     , tasty >=1.2.3
     , tasty-hunit >=0.10.0.2
@@ -176,7 +176,7 @@ test-suite doctest
     , parser-combinators >=0.4.0
     , pretty-simple >4 && <5
     , regex-tdfa
-    , safe >=0.3.18
+    , safe >=0.3.19
     , tabular >=0.2
     , tasty >=1.2.3
     , tasty-hunit >=0.10.0.2
@@ -229,7 +229,7 @@ test-suite unittest
     , parser-combinators >=0.4.0
     , pretty-simple >4 && <5
     , regex-tdfa
-    , safe >=0.3.18
+    , safe >=0.3.19
     , tabular >=0.2
     , tasty >=1.2.3
     , tasty-hunit >=0.10.0.2
