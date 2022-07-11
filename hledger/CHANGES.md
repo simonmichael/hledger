@@ -10,21 +10,9 @@ User-visible changes in the hledger command line tool and library.
 
 
 # 1.26.1 2022-07-11
-- ;doc: update manuals
 
-- ;doc: update CLI usage texts
+- require safe 0.3.19+ to avoid deprecation warning
 
-- ;cabal: update cabal files
-
-- ;pkg: bump version to 1.26.1
-
-- pkg: require safe 0.3.19+ to avoid deprecation warning
-
-- ;doc: bse: clarify, link to account types
-
-- ;doc: bs, cf, is: clarify, link to account types
-
-- ;doc: bs, cf: add wikipedia link
 # 1.26 2022-06-04
 Improvements
 

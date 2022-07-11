@@ -10,16 +10,13 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 # 1.26.1 2022-07-11
-- ;doc: update manuals
 
-- ;cabal: update cabal files
+- support doclayout 0.4, brick 0.72+
 
-- ;pkg: bump version to 1.26.1
+- require safe 0.3.19+ to avoid deprecation warning
 
-- pkg: require safe 0.3.19+ to avoid deprecation warning
-
-- pkg: ui: support doclayout 0.4, brick 0.72+
 # 1.26 2022-06-04
+
 - Uses hledger 1.26.
 
 # 1.25 2022-03-04

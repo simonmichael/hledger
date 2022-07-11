@@ -10,11 +10,9 @@ User-visible changes in hledger-web.
 See also the hledger changelog.
 
 # 1.26.1 2022-07-11
-- ;doc: update manuals
 
-- ;cabal: update cabal files
+- Uses hledger 1.26.1.
 
-- ;pkg: bump version to 1.26.1
 # 1.26 2022-06-04
 Fixes
 
