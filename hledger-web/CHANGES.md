@@ -11,7 +11,12 @@ See also the hledger changelog.
 
 # f2db4c384
 
+# 1.26.1 2022-07-11
+
+- Uses hledger 1.26.1.
+
 # 1.26 2022-06-04
+
 Fixes
 
 - Don't add link URLs when printing.

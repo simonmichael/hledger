@@ -11,13 +11,11 @@ For user-visible changes, see the hledger package changelog.
 
 # f2db4c384
 
-# 1.26 2022-06-04- ;doc: update manuals
+# 1.26.1 2022-07-11
 
-- ;cabal: update cabal files
+- require safe 0.3.19+ to avoid deprecation warning
 
-- ;pkg: bump version to 1.26
-
-- ;doc: update changelogs
+# 1.26 2022-06-04
 
 Breaking changes
 

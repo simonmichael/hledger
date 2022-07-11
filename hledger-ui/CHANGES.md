@@ -11,7 +11,14 @@ See also the hledger changelog.
 
 # f2db4c384
 
+# 1.26.1 2022-07-11
+
+- support doclayout 0.4, brick 0.72+
+
+- require safe 0.3.19+ to avoid deprecation warning
+
 # 1.26 2022-06-04
+
 - Uses hledger 1.26.
 
 # 1.25 2022-03-04

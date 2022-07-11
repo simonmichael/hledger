@@ -18,6 +18,10 @@ Improvements
 
 Fixes
 
+# 1.26.1 2022-07-11
+
+- require safe 0.3.19+ to avoid deprecation warning
+
 # 1.26 2022-06-04
 Improvements
 
