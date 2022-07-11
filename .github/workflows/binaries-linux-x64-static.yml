@@ -35,6 +35,15 @@ jobs:
       with: 
         fetch-depth: 0  
 
+    - name: Cache cabal packages, binaries
+      id:   cabal
+      uses: actions/cache@v2
+      with:
+        path: ~/.cabal
+        key: ${{ runner.os }}-cabal-20220711-${{ hashFiles('**.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-cabal-20220711
+
     - name: Update cabal
       run: cabal update
 
