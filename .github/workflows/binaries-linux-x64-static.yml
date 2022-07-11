@@ -39,7 +39,10 @@ jobs:
       run: cabal update
 
     - name: Build on alpine
-      run: cabal build --enable-executable-static all
+      run: |
+        cabal build --enable-executable-static hledger || echo "ERROR: building hledger failed"
+        cabal build --enable-executable-static hledger-ui || echo "ERROR: building hledger failed"
+        cabal build --enable-executable-static hledger-web || echo "ERROR: building hledger-web failed"
 
     - name: Extract and strip binaries
       run: |
