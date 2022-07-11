@@ -1,7 +1,8 @@
 # Runs on any push to ci-linux-x64.
 # Produces optimised static x64 linux  binaries,
-# using the GHC version below (9.0.2) and cabal.
+# using the GHC version below (9.2.3) and cabal.
 # Currently runs no tests.
+# XXX This is randomly segfaulting while building packages, needs replacing.
 
 name: binaries-linux-x64-static
 
