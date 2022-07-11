@@ -990,8 +990,16 @@ cloc: $(call def-help,cloc, count lines of source code )
 	@echo Lines of code including tests:
 	@cloc --exclude-lang=HTML --exclude-dir=.stack-work,.idea,dist,old,bin,doc,site,.tutorial-data,static,angular .
 
+SCC=scc -z --cocomo-project-type semi-detached -f wide -s code
 
-	@echo
+scc: $(call def-help,scc, count lines of source code with scc)
+	@echo Lines of code including tests:
+	@$(SCC) -i hs,sh,m4,hamlet
+
+sccv: $(call def-help,sccv, count lines of source code with scc showing all files)
+	@echo Lines of code including tests:
+	@$(SCC) -i hs,sh,m4,hamlet --by-file
+
 # `ls $(SOURCEFILES)`
 
 # sloc: \
