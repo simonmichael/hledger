@@ -157,7 +157,14 @@ balanceTransactionHelper bopts t = do
     if infer_transaction_prices_ bopts then inferBalancingPrices t else t
   case transactionCheckBalanced bopts t' of
     []   -> Right (txnTieKnot t', inferredamtsandaccts)
-    errs -> Left $ transactionBalanceError t' errs
+    errs -> Left $ transactionBalanceError t' errs'
+      where
+        errs' = errs ++
+          [ "inference of conversion costs has been disallowed"
+          | ismulticommodity && not (infer_transaction_prices_ bopts)
+          ]
+          where
+            ismulticommodity = (length $ mconcat $ map (maCommodities . pamount) $ tpostings t') > 1
 
 -- | Generate a transaction balancing error message, given the transaction
 -- and one or more suberror messages.
