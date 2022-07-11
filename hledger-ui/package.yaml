@@ -68,7 +68,7 @@ dependencies:
 - megaparsec >=7.0.0 && <9.3
 - mtl >=2.2.1
 - process >=1.2
-- safe >=0.2
+- safe >=0.3.19
 - split >=0.1
 - text >=1.2
 - text-zipper >=0.4
