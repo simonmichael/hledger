@@ -9,14 +9,25 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# f2db4c384
+# 7be94cf50
+
 Breaking changes
 
 Features
 
 Improvements
 
+- imp: balanced, balancednoautoconversion: use new error format (#1436)
+
+- imp: balance assertions now use new error format (#1436)
+
+- imp: bal: budget goals now respect -H (#1879)
+
 Fixes
+
+- fix: bal: Allow cumulative gain and valuechange reports (Stephen Morgan)
+  Previously, --cumulative with --gain or --valuechange would produce an
+  empty report. This fixes this issue to produce a reasonable report.
 
 # 1.26.1 2022-07-11
 

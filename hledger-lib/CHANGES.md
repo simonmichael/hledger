@@ -9,7 +9,19 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# f2db4c384
+# 7be94cf50
+
+- imp: balanced, balancednoautoconversion: use new error format (#1436)
+
+- imp: balance assertions now use new error format (#1436)
+
+- imp: bal: budget goals now respect -H (#1879)
+
+- fix: bal: Allow cumulative gain and valuechange reports (Stephen Morgan)
+  Previously, --cumulative with --gain or --valuechange would produce an
+  empty report. This fixes this issue to produce a reasonable report.
+
+- imp: lib: Hledger.Utils.Parse: export HledgerParseErrors
 
 # 1.26.1 2022-07-11
 

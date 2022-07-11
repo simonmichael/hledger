@@ -9,18 +9,39 @@
 General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
-# 63d7abe7f
+# 38431b5c6
+
 Scripts/addons
+
+- install: 1.26.1
+
+- install: hledger-stockquotes 0.1.2.1
+
+- install: hledger-interest 1.6.4
+
+- bin: paypaljson, paypaljson2csv - download txns from paypal API
 
 Docs
 
+- CREDITS.html -> CREDITS.md (Pranesh Prakash)
+  Corrected the extension for the CREDITS file. 
+
 Examples
 
+- examples/csv: add example for capital one credit cards [ci skip] (max thomas)
+
 Process
+
+- tools: make ghci-unit-test
+
+- shake: fix page TOC rendering (with mdbook-toc 0.8+ ?)
+
+- ci: consistent workflow and file names
 
 - ci: run all main workflows on push to "binaries"
 
 # 1.26 2022-06-04
+
 Scripts/addons
 
 - renamed hledger-number.sh to hledger-simplebal
