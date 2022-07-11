@@ -46,7 +46,7 @@ HERE
 HLEDGER_INSTALL_TOOL=hledger-install.sh
 
 # this script's version
-HLEDGER_INSTALL_VERSION=20220710
+HLEDGER_INSTALL_VERSION=20220711
 
 # stackage snapshot to use when installing with stack.
 # You can try specifying a different stackage version here, or 
@@ -70,10 +70,10 @@ hledger-stockquotes \
 
 # Latest hledger package versions.
 # Don't forget to also bump HLEDGER_INSTALL_VERSION above.
-HLEDGER_LIB_VERSION=1.26
-HLEDGER_VERSION=1.26
-HLEDGER_UI_VERSION=1.26
-HLEDGER_WEB_VERSION=1.26
+HLEDGER_LIB_VERSION=1.26.1
+HLEDGER_VERSION=1.26.1
+HLEDGER_UI_VERSION=1.26.1
+HLEDGER_WEB_VERSION=1.26.1
 # addons:
 HLEDGER_IADD_VERSION=1.3.17
 HLEDGER_INTEREST_VERSION=1.6.4
