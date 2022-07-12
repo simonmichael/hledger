@@ -4,5 +4,5 @@
   a  -10£
   b  16$
 $ hledger -f - check balancednoautoconversion
->2 /real postings' sum should be 0 but is:  16\$/
+>2 /real postings' sum should be 0 but is: 16\$, -10£/
 >=1

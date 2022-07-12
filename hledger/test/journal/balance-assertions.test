@@ -56,7 +56,7 @@ $ hledger -f - stats
   b   $-1  = $-3
 
 $ hledger -f - stats
->2 /balance assertion.*11:12/
+>2 /Error: -:11:12/
 >=1
 
 # 4. should also work without commodity symbols
@@ -314,7 +314,7 @@ $ hledger -f - stats
     a       0 == $1
 
 $ hledger -f - stats
->2 /balance assertion.*10:15/
+>2 /Error: -:10:15:/
 >=1
 
 # 18. Mix different commodities and total assignments
@@ -385,7 +385,7 @@ commodity $1000.00
     (a)             $1.00  = $1.01
 
 $ hledger -f- print
->2 /difference: 0\.004/
+>2 /a difference of.*0\.004/
 >=1
 
 # 23. This fails
@@ -399,7 +399,7 @@ commodity $1000.00
     (a)             $1.00  = $1.0061
 
 $ hledger -f- print
->2 /difference: 0\.0001/
+>2 /a difference of.*0\.0001/
 >=1
 
 # 24. Inclusive assertions include balances from subaccounts.

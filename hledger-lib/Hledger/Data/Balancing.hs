@@ -115,12 +115,12 @@ transactionCheckBalanced BalancingOpts{commodity_styles_} t = errs
       where
         rmsg
           | rsumok        = ""
-          | not rsignsok  = "real postings all have the same sign"
-          | otherwise     = "real postings' sum should be 0 but is: " ++ showMixedAmountOneLine rsumcost
+          | not rsignsok  = "The real postings all have the same sign."
+          | otherwise     = "The real postings' sum should be 0 but is: " ++ showMixedAmountOneLine rsumcost
         bvmsg
           | bvsumok       = ""
-          | not bvsignsok = "balanced virtual postings all have the same sign"
-          | otherwise     = "balanced virtual postings' sum should be 0 but is: " ++ showMixedAmountOneLine bvsumcost
+          | not bvsignsok = "The balanced virtual postings all have the same sign."
+          | otherwise     = "The balanced virtual postings' sum should be 0 but is: " ++ showMixedAmountOneLine bvsumcost
 
 -- | Legacy form of transactionCheckBalanced.
 isTransactionBalanced :: BalancingOpts -> Transaction -> Bool
@@ -160,7 +160,7 @@ balanceTransactionHelper bopts t = do
     errs -> Left $ transactionBalanceError t' errs'
       where
         errs' = errs ++
-          [ "inference of conversion costs has been disallowed"
+          [ "Inference of conversion costs has been disallowed."
           | ismulticommodity && not (infer_transaction_prices_ bopts)
           ]
           where
@@ -169,13 +169,10 @@ balanceTransactionHelper bopts t = do
 -- | Generate a transaction balancing error message, given the transaction
 -- and one or more suberror messages.
 transactionBalanceError :: Transaction -> [String] -> String
-transactionBalanceError t errs = printf (unlines
-  [ "unbalanced transaction: %s:",
-    "%s",
-    "\n%s"
-  ])
+transactionBalanceError t errs = printf "%s:\n%s\n\n%s\n%s"
   (sourcePosPairPretty $ tsourcepos t)
   (textChomp ex)
+  ("This transaction is unbalanced."::String)
   (chomp $ unlines errs)
   where
     (_f,_l,_mcols,ex) = makeTransactionErrorExcerpt t finderrcols
@@ -200,12 +197,12 @@ inferBalancingAmount ::
 inferBalancingAmount styles t@Transaction{tpostings=ps}
   | length amountlessrealps > 1
       = Left $ transactionBalanceError t
-        ["can't have more than one real posting with no amount"
-        ,"(remember to put two or more spaces between account and amount)"]
+        ["There can't be more than one real posting with no amount."
+        ,"(Remember to put two or more spaces between account and amount.)"]
   | length amountlessbvps > 1
       = Left $ transactionBalanceError t
-        ["can't have more than one balanced virtual posting with no amount"
-        ,"(remember to put two or more spaces between account and amount)"]
+        ["There can't be more than one balanced virtual posting with no amount."
+        ,"(Remember to put two or more spaces between account and amount.)"]
   | otherwise
       = let psandinferredamts = map inferamount ps
             inferredacctsandamts = [(paccount p, amt) | (p, Just amt) <- psandinferredamts]
@@ -584,16 +581,17 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedamt 
       aquantity
         -- traceWith (("actual:"++).showAmountDebug)
         actualbalincomm
-    errmsg = printf (unlines
-      [ "balance assertion: %s:",
+    errmsg = chomp $ printf (unlines
+      [ "%s:",
         "%s\n",
+        "This balance assertion failed.",
         -- "date:       %s",
-        "account:    %-30s%s",
-        "commodity:  %-30s%s",
+        "In account:                %-30s%s",
+        "and commodity:             %-30s%s",
         -- "display precision:  %d",
-        "asserted:   %s", -- (at display precision: %s)",
-        "actual:     %s", -- (at display precision: %s)",
-        "difference: %s"
+        "this balance was asserted: %s", -- (at display precision: %s)",
+        "but the actual balance is: %s", -- (at display precision: %s)",
+        "a difference of:           %s"
       ])
       (sourcePosPretty pos)
       (textChomp ex)
