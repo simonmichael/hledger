@@ -19,7 +19,7 @@ Some project achievements to unlock!
 - ~~pretty good tutorial docs~~
 - ~~pretty good cookbook docs~~
 - ~~100 IRC chatters~~
-- **2k github stars**
+- ~~2k github stars~~
 - **in top 30 github starred haskell projects**
 - **match ledger speed**
 - **match ledger committers**
