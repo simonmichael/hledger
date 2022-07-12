@@ -603,10 +603,10 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedamt 
       assertedcomm
       (if istotal then " (no other commodity balance allowed)" else "" :: String)
       -- (asprecision $ astyle actualbalincommodity)  -- should be the standard display precision I think
-      (show $ aquantity actualbalincomm)
-      -- (showAmount actualbalincommodity)
       (show $ aquantity assertedamt)
       -- (showAmount assertedamt)
+      (show $ aquantity actualbalincomm)
+      -- (showAmount actualbalincommodity)
       (show $ aquantity assertedamt - aquantity actualbalincomm)
       where
         ass = fromJust $ pbalanceassertion p  -- PARTIAL: fromJust won't fail, there is a balance assertion
