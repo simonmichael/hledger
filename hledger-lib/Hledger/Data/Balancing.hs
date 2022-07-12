@@ -615,11 +615,8 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedamt 
           where
             finderrcols p t trendered = Just (col, Just col2)
               where
-                -- col  = unPos $ sourceColumn pos
-                -- col2 = col + (length $ wbUnpack $ showBalanceAssertion ass)
-                -- The saved parse position may not correspond to the rendering in the error message.
-                -- Instead, we analyse the rendering to find the columns:
-                tlines = length $ T.lines $ tcomment t  -- transaction comment can generate extra lines
+                -- Analyse the rendering to find the columns to highlight.
+                tlines = dbg5 "tlines" $ max 1 $ length $ T.lines $ tcomment t  -- transaction comment can generate extra lines
                 (col, col2) =
                   let def = (5, maximum (map T.length $ T.lines trendered))  -- fallback: underline whole posting. Shouldn't happen.
                   in
@@ -628,8 +625,8 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedamt 
                       Just idx -> fromMaybe def $ do
                         let
                           beforeps = take (idx-1) $ tpostings t
-                          beforepslines = sum $ map (length . T.lines . pcomment) beforeps   -- posting comment can generate extra lines (assume only one commodity shown)
-                        assertionline <- headMay $ drop (tlines + beforepslines) $ T.lines trendered
+                          beforepslines = dbg5 "beforepslines" $ sum $ map (max 1 . length . T.lines . pcomment) beforeps   -- posting comment can generate extra lines (assume only one commodity shown)
+                        assertionline <- dbg5 "assertionline" $ headMay $ drop (tlines + beforepslines) $ T.lines trendered
                         let
                           col2 = T.length assertionline
                           l = dropWhile (/= '=') $ reverse $ T.unpack assertionline
