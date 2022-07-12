@@ -26,7 +26,7 @@ import Data.Decimal (roundTo)
 import Data.Function (on)
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
-import Data.List (find, partition, transpose, foldl')
+import Data.List (find, partition, transpose, foldl', maximumBy)
 import Data.List.Extra (nubSort)
 import Data.Maybe (fromMaybe, catMaybes, isJust)
 import Data.Map (Map)
@@ -36,7 +36,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
-import Safe (maximumDef, minimumDef)
+import Safe (minimumDef)
 --import System.Console.CmdArgs.Explicit as C
 --import Lucid as L
 import qualified Text.Tabular.AsciiWide as Tab
@@ -46,6 +46,7 @@ import Hledger.Utils
 import Hledger.Reports.ReportOptions
 import Hledger.Reports.ReportTypes
 import Hledger.Reports.MultiBalanceReport
+import Data.Ord (comparing)
 
 
 type BudgetGoal    = Change
@@ -113,19 +114,34 @@ journalAddBudgetGoalTransactions bopts ropts reportspan j =
       where
         mbudgetgoalsstartdate =
           -- We want to also generate budget goal txns before the report start date, in case -H is used.
-          -- What should the actual starting date for goal txns be ? This gets a little tricky: consider a
-          -- journal with a "~ monthly" periodic transaction rule, where the first transaction is on 1/5.
+          -- What should the actual starting date for goal txns be ? This gets tricky. 
+          -- Consider a journal with a "~ monthly" periodic transaction rule, where the first transaction is on 1/5.
           -- Users will certainly expect a budget goal for january, but "~ monthly" generates transactions
           -- on the first of month, and starting from 1/5 would exclude 1/1.
-          -- Hopefully the following procedure will produce intuitive behaviour in general:
+          -- Secondly, consider a rule like "~ every february 2nd from 2020/01"; we should not start that
+          -- before 2020-02-02.
+          -- Hopefully the following algorithm produces intuitive behaviour in general:
           -- from the earlier of the journal start date and the report start date,
           -- move backward to the nearest natural start date of the largest period seen among the
-          -- active periodic transactions (so here: monthly, 1/5 -> 1/1).
+          -- active periodic transactions, unless that is disallowed by a start date in the periodic rule.
+          -- (Do we need to pay attention to an end date in the rule ? Don't think so.)
+          -- (So with "~ monthly", the journal start date 1/5 is adjusted to 1/1.)
           case minimumDef Nothing $ filter isJust [journalStartDate False j, spanStart reportspan] of
             Nothing -> Nothing
-            Just d  -> Just $ intervalStartBefore biggestinterval d
+            Just d  -> Just d'
               where
-                biggestinterval = maximumDef (Days 1) $ map ptinterval budgetpts
+                -- the interval and any date span of the periodic transaction with longest period
+                (interval, span) =
+                  case budgetpts of
+                    []  -> (Days 1, nulldatespan)
+                    pts -> (ptinterval pt, ptspan pt)
+                      where pt = maximumBy (comparing ptinterval) pts  -- PARTIAL: maximumBy won't fail
+                -- the natural start of this interval on or before the journal/report start
+                intervalstart = intervalStartBefore interval d
+                -- the natural interval start before the journal/report start,
+                -- or the rule-specified start if later,
+                -- but no later than the journal/report start.
+                d' = min d $ maybe intervalstart (max intervalstart) $ spanStart span
 
     -- select periodic transactions matching a pattern
     -- (the argument of the (final) --budget option).

@@ -620,7 +620,7 @@ Budget performance in 2020Q1:
 ---------------++-----------------------------------------------------------
                ||     0 [ 0% of $500]  0 [0% of $500]      0 [  0% of $500] 
 
-# 32. Select from multiple named budgets.
+# 32, 33. Select from multiple named budgets.
 <
 ~ weekly   weekly budget
   (aaa)   1
@@ -636,7 +636,7 @@ $ hledger -f- bal --budget=monthly -p 2021-01
 > !/aaa/
 >=
 
-# 33. Cumulative budget report.
+# 34. Cumulative budget report.
 <
 ~ monthly
   (a)  10
@@ -656,8 +656,8 @@ Budget performance in 2022-01-01..2022-02-28:
 ---++---------------------------------
    || 10 [100% of 10]  15 [75% of 20] 
 
-# 34. Historical budget report.
-$ hledger -f- bal --budget -M --historical -b 2022-02-01
+# 35. Historical budget report.
+$ hledger -f- bal --budget -MH -b 2022-02-01
 Budget performance in 2022-02:
 
    ||     2022-02-28 
@@ -665,3 +665,17 @@ Budget performance in 2022-02:
  a || 15 [75% of 20] 
 ---++----------------
    || 15 [75% of 20] 
+
+# 36. Historical budget report where the periodic transaction has date bounds.
+<
+~ every february 2nd from 2020/01
+    (a)  1
+
+$ hledger -f- bal --budget -MH -p 2020q1
+Budget performance in 2020Q1:
+
+   || 2020-01-31   2020-02-29   2020-03-31 
+===++======================================
+ a ||      0 [0]  0 [0% of 1]  0 [0% of 1] 
+---++--------------------------------------
+   ||      0 [0]  0 [0% of 1]  0 [0% of 1] 
