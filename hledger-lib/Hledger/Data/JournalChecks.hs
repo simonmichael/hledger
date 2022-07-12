@@ -41,11 +41,12 @@ journalCheckAccounts j = mapM_ checkacct (journalPostings j)
     checkacct p@Posting{paccount=a}
       | a `elem` journalAccountNamesDeclared j = Right ()
       | otherwise = Left $ 
-        printf "%s:%d:%d-%d:\n%sundeclared account \"%s\"\n" f l col col2 ex a
+        printf "%s:%d:\n%sundeclared account \"%s\"\n" f l ex a
         where
-          (f,l,mcols,ex) = makePostingErrorExcerpt p finderrcols
-          col  = maybe 0 fst mcols
-          col2 = maybe 0 (fromMaybe 0 . snd) mcols
+          (f,l,_mcols,ex) = makePostingErrorExcerpt p finderrcols
+          -- Calculate columns suitable for highlighting the excerpt.
+          -- We won't show these in the main error line as they aren't
+          -- accurate for the actual data.
           finderrcols p _ _ = Just (col, Just col2)
             where
               col = 5 + if isVirtual p then 1 else 0
@@ -60,11 +61,9 @@ journalCheckCommodities j = mapM_ checkcommodities (journalPostings j)
       case findundeclaredcomm p of
         Nothing -> Right ()
         Just (comm, _) ->
-          Left $ printf "%s:%d:%d-%d:\n%sundeclared commodity \"%s\"\n" f l col col2 ex comm
+          Left $ printf "%s:%d:\n%sundeclared commodity \"%s\"\n" f l ex comm
           where
-            (f,l,mcols,ex) = makePostingErrorExcerpt p finderrcols
-            col  = maybe 0 fst mcols
-            col2 = maybe 0 (fromMaybe 0 . snd) mcols
+            (f,l,_mcols,ex) = makePostingErrorExcerpt p finderrcols
       where
         -- Find the first undeclared commodity symbol in this posting's amount
         -- or balance assertion amount, if any. The boolean will be true if
@@ -82,6 +81,10 @@ journalCheckCommodities j = mapM_ checkcommodities (journalPostings j)
                 isIgnorable a = (T.null (acommodity a) && amountIsZero a) || a == missingamt
             assertioncomms = [acommodity a | Just a <- [baamount <$> pbalanceassertion]]
             findundeclared = find (`M.notMember` jcommodities j)
+
+        -- Calculate columns suitable for highlighting the excerpt.
+        -- We won't show these in the main error line as they aren't
+        -- accurate for the actual data.
 
         -- Find the best position for an error column marker when this posting
         -- is rendered by showTransaction.
@@ -119,13 +122,14 @@ journalCheckPayees j = mapM_ checkpayee (jtxns j)
     checkpayee t
       | payee `elem` journalPayeesDeclared j = Right ()
       | otherwise = Left $
-        printf "%s:%d:%d-%d:\n%sundeclared payee \"%s\"\n" f l col col2 ex payee
+        printf "%s:%d:\n%sundeclared payee \"%s\"\n" f l ex payee
       where
         payee = transactionPayee t
-        (f,l,mcols,ex) = makeTransactionErrorExcerpt t finderrcols
-        col  = maybe 0 fst mcols
-        col2 = maybe 0 (fromMaybe 0 . snd) mcols
+        (f,l,_mcols,ex) = makeTransactionErrorExcerpt t finderrcols
+        -- Calculate columns suitable for highlighting the excerpt.
+        -- We won't show these in the main error line as they aren't
+        -- accurate for the actual data.
         finderrcols t = Just (col, Just col2)
           where
-            col = T.length (showTransactionLineFirstPart t) + 2
+            col  = T.length (showTransactionLineFirstPart t) + 2
             col2 = col + T.length (transactionPayee t) - 1

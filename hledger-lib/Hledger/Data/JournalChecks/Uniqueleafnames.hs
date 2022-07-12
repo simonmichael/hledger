@@ -11,7 +11,6 @@ import Data.List (groupBy, sortBy)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Printf (printf)
-import Data.Maybe (fromMaybe)
 
 import Hledger.Data.AccountName (accountLeafName)
 import Hledger.Data.Errors (makePostingErrorExcerpt)
@@ -48,13 +47,11 @@ checkposting leafandfullnames p@Posting{paccount=a} =
   case [lf | lf@(_,fs) <- leafandfullnames, a `elem` fs] of
     []             -> Right ()
     (leaf,fulls):_ -> Left $ printf
-      "%s:%d:%d-%d:\n%saccount leaf name \"%s\" is not unique\nit is used in account names: %s" 
-      f l col col2 ex leaf accts
+      "%s:%d:\n%saccount leaf name \"%s\" is not unique\nit is used in account names: %s" 
+      f l ex leaf accts
       where
         -- t = fromMaybe nulltransaction ptransaction  -- XXX sloppy
-        col  = maybe 0 fst mcols
-        col2 = maybe 0 (fromMaybe 0 . snd) mcols
-        (f,l,mcols,ex) = makePostingErrorExcerpt p finderrcols
+        (f,l,_mcols,ex) = makePostingErrorExcerpt p finderrcols
           where
             finderrcols p _ _ = Just (col, Just col2)
               where
