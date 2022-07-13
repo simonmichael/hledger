@@ -598,8 +598,8 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedamt 
         "%s\n",
         "This balance assertion failed.",
         -- "date:       %s",
-        "In account:                %-30s%s",
-        "and commodity:             %-30s%s",
+        "In account:    %s",
+        "and commodity: %s",
         -- "display precision:  %d",
         "this balance was asserted: %s", -- (at display precision: %s)",
         "but the actual balance is: %s", -- (at display precision: %s)",
@@ -612,10 +612,8 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedamt 
       (sourcePosPretty pos)
       (textChomp ex)
       -- (showDate $ postingDate p)
-      acct
-      (if isinclusive then " (including subaccounts)" else "" :: String)
-      assertedcomm
-      (if istotal then " (no other commodity balance allowed)" else "" :: String)
+      (if isinclusive then printf "%-30s  (including subaccounts)" acct else acct)
+      (if istotal     then printf "%-30s  (no other commodities allowed)" (T.unpack assertedcomm) else (T.unpack assertedcomm))
       -- (asprecision $ astyle actualbalincommodity)  -- should be the standard display precision I think
       (show $ aquantity assertedamt)
       -- (showAmount assertedamt)
