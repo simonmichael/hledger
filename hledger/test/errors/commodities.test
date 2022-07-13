@@ -1,9 +1,15 @@
 $$$ hledger check commodities -f commodities.j
->>>2 /hledger: Error: .*commodities.j:6:21-23:
-  | 2022-01-01
-6 |     (a)             A 1
-  |                     ^^^
-undeclared commodity "A"
+>>>2 /hledger: Error: .*commodities.j:6:
+  \| 2022-01-01
+6 \|     \(a\)             A 1
+  \|                     \^\^\^
+
+Strict commodity checking is enabled, and
+commodity "A" has not been declared.
+Consider adding a commodity directive. Examples:
+
+commodity A1000.00
+commodity 1.000,00 A
 
 /
 >>>= 1

@@ -1,8 +1,8 @@
 $$$ hledger check -f parseable.j
 >>>2 /hledger: Error: .*parseable.j:3:2:
-  |
-3 | 1
-  |  ^
+  \|
+3 \| 1
+  \|  \^
 unexpected newline
 expecting date separator or digit
 
