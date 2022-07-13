@@ -1,7 +1,9 @@
+HLEDGER ?= hledger
+
 # Check error messages of hledger in $PATH against current error tests.
 test:
-	@printf "Running error message tests with hledger $$(hledger --version | awk '{print $$2}'):\n"
-	shelltest *.test
+	@printf "Running error message tests with hledger $$($(HLEDGER) --version | awk '{print $$2}'):\n"
+	shelltest -w $(HLEDGER) *.test
 
 TESTJOURNALS=*.j
 
