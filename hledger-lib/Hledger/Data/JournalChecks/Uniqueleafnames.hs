@@ -50,7 +50,7 @@ journalCheckUniqueleafnames j = do
                 llen = T.length $ accountLeafName a
                 col = 5 + (if isVirtual p then 1 else 0) + alen - llen
                 col2 = col + llen - 1
-            accts = T.unlines fulls  -- $ map (("\""<>).(<>"\"")) fulls
+            accts = T.unlines fulls
 
         _ -> Right ()  -- shouldn't happen
 
