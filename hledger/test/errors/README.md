@@ -99,74 +99,100 @@ Notes (see also [#1436][]):
 
 <!-- to update: erase the below then C-u M-! ./showall -->
 <!-- GENERATED: -->
-hledger 1.25.99-g9bff671b5-20220424 error messages:
+hledger 1.26.99-gc22e9f6cc-20220713 error messages:
 
 ### accounts
 ```
-hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./accounts.j:4:6-6:
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./accounts.j:4:
   | 2022-01-01
 4 |     (a)               1
   |      ^
-undeclared account "a"
+
+Strict account checking is enabled, and
+account "a" has not been declared.
+Consider adding an account directive. Examples:
+
+account a
+account a    ; type:A  ; (L,E,R,X,C,V)
 ```
 
 
 ### assertions
 ```
-hledger: Error: balance assertion: /Users/simon/src/hledger/hledger/test/errors/./assertions.j:4:8
-transaction:
-2022-01-01
-    a               0 = 1
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./assertions.j:4:8:
+  | 2022-01-01
+4 |     a               0 = 1
+  |                       ^^^
 
-assertion details:
-date:       2022-01-01
-account:    a
-commodity:  
-calculated: 0
-asserted:   1
-difference: 1
+This balance assertion failed.
+In account:    a
+and commodity: 
+this balance was asserted: 1
+but the actual balance is: 0
+a difference of:           1
+
+Consider viewing this account's register to troubleshoot. Eg:
+
+hledger reg -I 'a$' cur:''
 ```
 
 
 ### balanced
 ```
-hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./balanced.j:3-4
-could not balance this transaction:
-real postings' sum should be 0 but is: 1
-2022-01-01
-    a               1
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./balanced.j:3-4:
+3 | 2022-01-01
+  |     a               1
+
+This transaction is unbalanced.
+The real postings' sum should be 0 but is: 1
+Consider adjusting this entry's amounts, or adding missing postings.
 ```
 
 
 ### balancednoautoconversion
 ```
-hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./balancednoautoconversion.j:6-8
-could not balance this transaction:
-real postings' sum should be 0 but is:  1 A
--1 B
-2022-01-01
-    a             1 A
-    b            -1 B
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./balancednoautoconversion.j:6-8:
+6 | 2022-01-01
+  |     a             1 A
+  |     b            -1 B
+
+This multi-commodity transaction is unbalanced.
+Automatic commodity conversion is not enabled.
+The real postings' sum should be 0 but is: 1 A, -1 B
+Consider adjusting this entry's amounts, adding missing postings,
+or recording conversion price(s) with @, @@ or equity postings.
 ```
 
 
 ### commodities
 ```
-hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./commodities.j:6:21-23:
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./commodities.j:6:
   | 2022-01-01
 6 |     (a)             A 1
   |                     ^^^
-undeclared commodity "A"
+
+Strict commodity checking is enabled, and
+commodity "A" has not been declared.
+Consider adding a commodity directive. Examples:
+
+commodity A1000.00
+commodity 1.000,00 A
 ```
 
 
 ### ordereddates
 ```
-hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./ordereddates.j:10:1-10:
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./ordereddates.j:10:
+7 | 2022-01-02 p
+  |     (a)               1
+ 
 10 | 2022-01-01 p
    | ^^^^^^^^^^
    |     (a)               1
-transaction date is out of order with previous transaction date 2022-01-02
+
+Ordered dates checking is enabled, and this transaction's
+date (2022-01-01) is out of order with the previous transaction.
+Consider moving this entry into date order, or adjusting its date.
 ```
 
 
@@ -176,7 +202,8 @@ hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./parseable-dates.j
   |
 3 | 2022/1/32
   | ^^^^^^^^^
-well-formed but invalid date: 2022/1/32
+
+This date is invalid, please correct it: 2022/1/32
 ```
 
 
@@ -186,7 +213,9 @@ hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./parseable-regexps
   |
 3 | alias /(/ = a
   |        ^
-this regular expression could not be compiled: (
+
+This regular expression is malformed, please correct it:
+(
 ```
 
 
@@ -203,21 +232,35 @@ expecting date separator or digit
 
 ### payees
 ```
-hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./payees.j:6:12-12:
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./payees.j:6:
 6 | 2022-01-01 p
   |            ^
   |     (a)             A 1
-undeclared payee "p"
+
+Strict payee checking is enabled, and
+payee "p" has not been declared.
+Consider adding a payee directive. Examples:
+
+payee p
 ```
 
 
 ### uniqueleafnames
 ```
-hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./uniqueleafnames.j:9:8-8:
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./uniqueleafnames.j:12:
   | 2022-01-01 p
 9 |     (a:c)               1
-  |        ^
-account leaf name "c" is not unique
-it is used in account names: "a:c", "b:c"
+ ...
+   | 2022-01-01 p
+12 |     (b:c)               1
+   |        ^
+
+Checking for unique account leaf names is enabled, and
+account leaf name "c" is not unique.
+It appears in these account names, which are used in 2 places:
+a:c
+b:c
+
+Consider changing these account names so their last parts are different.
 ```
 
