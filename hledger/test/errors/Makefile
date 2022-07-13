@@ -13,7 +13,7 @@ tests:
 	@printf "Updating *.test with the error messages of hledger $$(hledger --version | awk '{print $$2}')\n"
 	@read -p "ok ? Press enter: "
 	for f in $(TESTJOURNALS); do make -s $$(basename $$f .j).test; done
-	make -s test
+	@printf "\nNow please edit *.test and limit regexps to 300 chars to avoid shelltestrunner limitation\n\n"
 
 # Generate a shelltest. Run the test script/journal to generate the error message.
 # Since the error will contain an absolute file path, we must:
@@ -27,10 +27,15 @@ tests:
 	-./$< 2>&1 | sed -E \
 		-e 's%(hledger: Error: ).*/\./(.*)%\1.*\2%' \
 		-e 's%/%\\/%g' \
-		-e 's%alias \\/\(\\/%alias \\/\\(\\/%' \
-		-e 's%compiled: \(%compiled: \\(%' \
+		-e 's/\^/\\^/g' \
+		-e 's/\$$/\\$$/g' \
+		-e 's/\(/\\(/g' \
+		-e 's/\)/\\)/g' \
+		-e 's/\|/\\|/g' \
 		>>$@
 	printf "/\n>>>= 1" >>$@
+#		-e 's%alias \\/\(\\/%alias \\/\\(\\/%' \
+#		-e 's%compiled: \(%compiled: \\(%' \
 
 readme: $(TESTJOURNALS)
 	@printf "Updating README.md with the error messages of hledger $$(hledger --version | awk '{print $$2}')\n"
