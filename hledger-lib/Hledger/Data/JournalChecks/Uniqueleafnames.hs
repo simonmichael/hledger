@@ -17,7 +17,7 @@ import Hledger.Data.Errors (makePostingErrorExcerpt)
 import Hledger.Data.Journal (journalPostings, journalAccountNamesUsed)
 import Hledger.Data.Posting (isVirtual)
 import Hledger.Data.Types
-import Hledger.Utils (chomp)
+import Hledger.Utils (chomp, textChomp)
 
 -- | Check that all the journal's postings are to accounts with a unique leaf name.
 -- Otherwise, return an error message for the first offending posting.
@@ -26,9 +26,33 @@ journalCheckUniqueleafnames j = do
   -- find all duplicate leafnames, and the full account names they appear in
   case finddupes $ journalLeafAndFullAccountNames j of
     [] -> Right ()
-    dupes ->
-      -- report the first posting that references one of them (and its position), for now
-      mapM_ (checkposting dupes) $ journalPostings j
+    -- pick the first duplicated leafname and show the transactions of
+    -- the first two postings using it, highlighting the second as the error.
+    (leaf,fulls):_ ->
+      case filter ((`elem` fulls).paccount) $ journalPostings j of
+        ps@(p:p2:_) -> Left $ chomp $ printf
+          ("%s:%d:\n%s\nChecking for unique account leaf names is enabled, and\n"
+          ++"account leaf name %s is not unique.\n"
+          ++"It appears in these account names, which are used in %d places:\n%s"
+          ++"\nConsider changing these account names so their last parts are different."
+          )
+          f l ex (show leaf) (length ps) accts
+          where
+            -- t = fromMaybe nulltransaction ptransaction  -- XXX sloppy
+            (_,_,_,ex1) = makePostingErrorExcerpt p (\_ _ _ -> Nothing)
+            (f,l,_,ex2) = makePostingErrorExcerpt p2 finderrcols
+            -- separate the two excerpts by a space-beginning line to help flycheck-hledger parse them
+            ex = T.unlines [textChomp ex1, T.pack " ...", textChomp ex2]
+            finderrcols p _ _ = Just (col, Just col2)
+              where
+                a = paccount p
+                alen = T.length a
+                llen = T.length $ accountLeafName a
+                col = 5 + (if isVirtual p then 1 else 0) + alen - llen
+                col2 = col + llen - 1
+            accts = T.unlines fulls  -- $ map (("\""<>).(<>"\"")) fulls
+
+        _ -> Right ()  -- shouldn't happen
 
 finddupes :: (Ord leaf, Eq full) => [(leaf, full)] -> [(leaf, [full])]
 finddupes leafandfullnames = zip dupLeafs dupAccountNames
@@ -42,26 +66,3 @@ finddupes leafandfullnames = zip dupLeafs dupAccountNames
 journalLeafAndFullAccountNames :: Journal -> [(Text, AccountName)]
 journalLeafAndFullAccountNames = map leafAndAccountName . journalAccountNamesUsed
   where leafAndAccountName a = (accountLeafName a, a)
-
-checkposting :: [(Text,[AccountName])] -> Posting -> Either String ()
-checkposting leafandfullnames p@Posting{paccount=a} =
-  case [lf | lf@(_,fs) <- leafandfullnames, a `elem` fs] of
-    []             -> Right ()
-    (leaf,fulls):_ -> Left $ chomp $ printf
-      ("%s:%d:\n%s\nChecking for unique account leaf names is enabled, and\n"
-      ++"account leaf name %s is not unique.\n"
-      ++"It appears in these account names:\n%s"
-      ++"\nConsider changing these account names so their last parts are different."
-      )
-      f l ex (show leaf) accts
-      where
-        -- t = fromMaybe nulltransaction ptransaction  -- XXX sloppy
-        (f,l,_mcols,ex) = makePostingErrorExcerpt p finderrcols
-          where
-            finderrcols p _ _ = Just (col, Just col2)
-              where
-                alen = T.length $ paccount p
-                llen = T.length $ accountLeafName a
-                col = 5 + (if isVirtual p then 1 else 0) + alen - llen
-                col2 = col + llen - 1
-        accts = T.unlines fulls  -- $ map (("\""<>).(<>"\"")) fulls
