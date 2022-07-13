@@ -17,6 +17,7 @@ import Hledger.Data.Errors (makePostingErrorExcerpt)
 import Hledger.Data.Journal (journalPostings, journalAccountNamesUsed)
 import Hledger.Data.Posting (isVirtual)
 import Hledger.Data.Types
+import Hledger.Utils (chomp)
 
 -- | Check that all the journal's postings are to accounts with a unique leaf name.
 -- Otherwise, return an error message for the first offending posting.
@@ -46,9 +47,13 @@ checkposting :: [(Text,[AccountName])] -> Posting -> Either String ()
 checkposting leafandfullnames p@Posting{paccount=a} =
   case [lf | lf@(_,fs) <- leafandfullnames, a `elem` fs] of
     []             -> Right ()
-    (leaf,fulls):_ -> Left $ printf
-      "%s:%d:\n%saccount leaf name \"%s\" is not unique\nit is used in account names: %s" 
-      f l ex leaf accts
+    (leaf,fulls):_ -> Left $ chomp $ printf
+      ("%s:%d:\n%s\nChecking for unique account leaf names is enabled, and\n"
+      ++"account leaf name %s is not unique.\n"
+      ++"It appears in these account names:\n%s"
+      ++"\nConsider changing these account names so their last parts are different."
+      )
+      f l ex (show leaf) accts
       where
         -- t = fromMaybe nulltransaction ptransaction  -- XXX sloppy
         (f,l,_mcols,ex) = makePostingErrorExcerpt p finderrcols
@@ -59,4 +64,4 @@ checkposting leafandfullnames p@Posting{paccount=a} =
                 llen = T.length $ accountLeafName a
                 col = 5 + (if isVirtual p then 1 else 0) + alen - llen
                 col2 = col + llen - 1
-        accts = T.intercalate ", " $ map (("\""<>).(<>"\"")) fulls
+        accts = T.unlines fulls  -- $ map (("\""<>).(<>"\"")) fulls

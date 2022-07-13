@@ -40,8 +40,16 @@ journalCheckAccounts j = mapM_ checkacct (journalPostings j)
   where
     checkacct p@Posting{paccount=a}
       | a `elem` journalAccountNamesDeclared j = Right ()
-      | otherwise = Left $ 
-        printf "%s:%d:\n%sundeclared account \"%s\"\n" f l ex a
+      | otherwise = Left $ printf (unlines [
+           "%s:%d:"
+          ,"%s"
+          ,"Strict account checking is enabled, and"
+          ,"account %s has not been declared."
+          ,"Consider adding an account directive. Examples:"
+          ,""
+          ,"account %s"
+          ,"account %s    ; type:A  ; (L,E,R,X,C,V)"
+          ]) f l ex (show a) a a
         where
           (f,l,_mcols,ex) = makePostingErrorExcerpt p finderrcols
           -- Calculate columns suitable for highlighting the excerpt.
@@ -61,7 +69,16 @@ journalCheckCommodities j = mapM_ checkcommodities (journalPostings j)
       case findundeclaredcomm p of
         Nothing -> Right ()
         Just (comm, _) ->
-          Left $ printf "%s:%d:\n%sundeclared commodity \"%s\"\n" f l ex comm
+          Left $ printf (unlines [
+           "%s:%d:"
+          ,"%s"
+          ,"Strict commodity checking is enabled, and"
+          ,"commodity %s has not been declared."
+          ,"Consider adding a commodity directive. Examples:"
+          ,""
+          ,"commodity %s1000.00"
+          ,"commodity 1.000,00 %s"
+          ]) f l ex (show comm) comm comm
           where
             (f,l,_mcols,ex) = makePostingErrorExcerpt p finderrcols
       where
@@ -122,7 +139,15 @@ journalCheckPayees j = mapM_ checkpayee (jtxns j)
     checkpayee t
       | payee `elem` journalPayeesDeclared j = Right ()
       | otherwise = Left $
-        printf "%s:%d:\n%sundeclared payee \"%s\"\n" f l ex payee
+        printf (unlines [
+           "%s:%d:"
+          ,"%s"
+          ,"Strict payee checking is enabled, and"
+          ,"payee %s has not been declared."
+          ,"Consider adding a payee directive. Examples:"
+          ,""
+          ,"payee %s"
+          ]) f l ex (show payee) payee
       where
         payee = transactionPayee t
         (f,l,_mcols,ex) = makeTransactionErrorExcerpt t finderrcols

@@ -120,8 +120,10 @@ parseErrorAtRegion
   -> HledgerParseErrorData
 parseErrorAtRegion startOffset endOffset msg =
   if startOffset < endOffset
-    then ErrorFailAt startOffset endOffset msg
-    else ErrorFailAt startOffset (startOffset+1) msg
+    then ErrorFailAt startOffset endOffset msg'
+    else ErrorFailAt startOffset (startOffset+1) msg'
+  where
+    msg' = "\n" ++ msg
 
 
 --- * Re-parsing

@@ -9,7 +9,7 @@ $ hledger -f - check payees
 <
 2020-01-01 foo
 $ hledger -f - check payees
->2 /undeclared payee "foo"/
+>2 /payee "foo" has not been declared/
 >=1
 
 # or:
@@ -17,5 +17,5 @@ $ hledger -f - check payees
 payee foo
 2020-01-01 the payee | foo
 $ hledger -f - check payees
->2 /undeclared payee "the payee"/
+>2 /payee "the payee" has not been declared/
 >=1

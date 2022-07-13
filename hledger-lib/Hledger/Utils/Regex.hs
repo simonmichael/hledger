@@ -134,7 +134,7 @@ toRegexCI = memo $ \s -> mkRegexErr s (RegexpCI s <$> makeRegexOptsM defaultComp
 -- | Make a nice error message for a regexp error.
 mkRegexErr :: Text -> Maybe a -> Either RegexError a
 mkRegexErr s = maybe (Left errmsg) Right
-  where errmsg = T.unpack $ "this regular expression could not be compiled: " <> s
+  where errmsg = T.unpack $ "This regular expression is malformed, please correct it:\n" <> s
 
 -- Convert a Regexp string to a compiled Regex, throw an error
 toRegex' :: Text -> Regexp

@@ -498,11 +498,12 @@ datep' mYear = do
       let dateStr = show year ++ [sep1] ++ show month ++ [sep2] ++ show day
 
       when (sep1 /= sep2) $ customFailure $ parseErrorAtRegion startOffset endOffset $
-        "invalid date: separators are different, should be the same"
+        "This date is malformed because the separators are different.\n"
+        ++"Please use consistent separators."
 
       case fromGregorianValid year month day of
         Nothing -> customFailure $ parseErrorAtRegion startOffset endOffset $
-                     "well-formed but invalid date: " ++ dateStr
+                     "This date is invalid, please correct it: " ++ dateStr
         Just date -> pure $! date
 
     partialDate :: Int -> Maybe Year -> Month -> Char -> MonthDay -> TextParser m Day
@@ -512,12 +513,13 @@ datep' mYear = do
         Just year ->
           case fromGregorianValid year month day of
             Nothing -> customFailure $ parseErrorAtRegion startOffset endOffset $
-                        "well-formed but invalid date: " ++ dateStr
+                        "This date is invalid, please correct it: " ++ dateStr
             Just date -> pure $! date
           where dateStr = show year ++ [sep] ++ show month ++ [sep] ++ show day
 
         Nothing -> customFailure $ parseErrorAtRegion startOffset endOffset $
-          "partial date "++dateStr++" found, but the current year is unknown"
+          "The partial date "++dateStr++" can not be parsed because the current year is unknown.\n"
+          ++"Consider making it a full date, or add a default year directive.\n"
           where dateStr = show month ++ [sep] ++ show day
 
 {-# INLINABLE datep' #-}
