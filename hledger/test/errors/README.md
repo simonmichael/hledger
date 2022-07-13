@@ -25,11 +25,11 @@ Some files contain extra declarations to ease flycheck testing.
 - [x] phase 1: update flycheck to detect journal errors of current hledger release (and keep a branch updated to detect errors of latest hledger master)
 - [x] phase 2: survey/document current journal errors & status
 - [x] phase 3: pick a new standard format
-- [ ] **phase 4: implement standard format for all**
-- [ ] phase 5: implement accurate lines for all
-- [ ] phase 6: implement accurate columns for all
-- [ ] phase 7: implement useful highlighted excerpts for all
-- [ ] phase 8: implement accurate flycheck region for all
+- [x] phase 4: implement standard format for all
+- [x] phase 5: implement accurate lines for all
+- [x] phase 6: implement accurate columns for all  [where possible; we currently do not save the position of every part of the transaction, so most errors do not report columns]
+- [x] phase 7: implement useful highlighted excerpts for all  [we show imperfect but useful highlighted regions]
+- [x] phase 8: implement accurate flycheck region for all  [flycheck-detected regions are imperfect but useful]
 - [ ] phase 9: do likewise for timeclock errors
 - [ ] phase 10: do likewise for timedot errors
 - [ ] phase 11: do likewise for csv errors
@@ -42,36 +42,34 @@ Some files contain extra declarations to ease flycheck testing.
 Here is the current status
 (hledger 1.26.99-gb7e6583a7-20220710, flycheck 87b275b9):
 
-|                          | std format | line | column    | excerpt | flycheck | flycheck region |
-|--------------------------|------------|------|-----------|---------|----------|-----------------|
-| accounts                 | ✓          | ✓    | ✓         | ✓✓      |          |                 |
-| assertions               | ✓          | ✓    | ✓         | ✓✓      |          |                 |
-| balanced                 | ✓          | ✓    | -         | ✓       |          |                 |
-| balancednoautoconversion | ✓          | ✓    | -         | ✓       |          |                 |
-| commodities              | ✓          | ✓    | ✓(approx) | ✓✓      |          |                 |
-| ordereddates             | ✓          | ✓    | ✓         | ✓✓      |          |                 |
-| parseable                | ✓          | ✓    | ✓         | ✓✓      |          |                 |
-| parseable-dates          | ✓          | ✓    | ✓         | ✓✓      |          |                 |
-| parseable-regexps        | ✓          | ✓    | ✓         | ✓✓      |          |                 |
-| payees                   | ✓          | ✓    | ✓         | ✓✓      |          |                 |
-| uniqueleafnames          | ✓          | ✓    | ✓         | ✓✓      |          |                 |
+| error/check name         | std format | line | column | excerpt | flycheck |
+|--------------------------|------------|------|--------|---------|----------|
+| accounts                 | ✓          | ✓    | ✓      | ✓✓      | ✓        |
+| assertions               | ✓          | ✓    | ✓      | ✓✓      | ✓        |
+| balanced                 | ✓          | ✓    | -      | ✓       | ✓        |
+| balancednoautoconversion | ✓          | ✓    | -      | ✓       | ✓        |
+| commodities              | ✓          | ✓    | ✓      | ✓✓      | ✓        |
+| ordereddates             | ✓          | ✓    | ✓      | ✓✓      | ✓        |
+| parseable                | ✓          | ✓    | ✓      | ✓✓      | ✓        |
+| parseable-dates          | ✓          | ✓    | ✓      | ✓✓      | ✓        |
+| parseable-regexps        | ✓          | ✓    | ✓      | ✓✓      | ✓        |
+| payees                   | ✓          | ✓    | ✓      | ✓✓      | ✓        |
+| uniqueleafnames          | ✓          | ✓    | ✓      | ✓✓      | ✓        |
 
 Key:
-- std format      - the error message follows a standard format (location on first line, megaparsec-like excerpt, description).
-- line            - the optimal line(s) are reported
-- column          - the optimal column(s) are reported
-- excerpt         - a useful excerpt is shown, ideally with the error highlighted (✓✓)
-- flycheck        - the current flycheck release recognises and reports the error, with no "suspicious state" warning
-- flycheck region - flycheck highlights a reasonably accurate region containing the error
+- std format - the error message follows a standard format (location on first line, megaparsec-like excerpt, explanation)
+- line       - correct line numbers are reported
+- column     - useful column numbers are reported
+- excerpt    - a useful excerpt is shown, ideally with the error highlighted (✓✓)
+- flycheck   - the current flycheck release (or a PR branch) recognises the error and highlights a useful region
 
 ## Preferred error format
 
-Here is our preferred error message layout for now:
+Here is our current standard error message layout. (It is similar to the error messages we get from megaparsec.):
 ```
 hledger: Error: FILE:LOCATION:
 EXCERPT
-SUMMARY
-[DETAILS]
+EXPLANATION
 ```
 
 Notes (see also [#1436][]):
@@ -80,12 +78,10 @@ Notes (see also [#1436][]):
 - includes the word "Error" and the error position on line 1
 - FILE is the file path
 - LOCATION is `LINE[-ENDLINE][:COLUMN[-ENDCOLUMN]]`
-- we may show 0 for LINE or COLUMN when unknown
-- EXCERPT is a short visual snippet whenever possible, with the error region highlighted, line numbers, and colour when supported. This section must be easy for flycheck to ignore.
-- SUMMARY is a one line description/explanation of the problem. 
-  These are currently dynamic, they can include helpful contextual info.
-  ShellCheck uses static summaries.
-- DETAILS is optional additional details/advice when needed.
+- EXCERPT is a short visual snippet whenever possible, with the error region highlighted, line numbers, and colour when supported. 
+  This section must be easy for flycheck to ignore. (All lines begin with a space or a digit.)
+- EXPLANATION briefly explains the problem, and suggests remedies if possible.
+  It can be dynamic, showing context-sensitive info. (ShellCheck's summaries are static.)
 - this layout is based on megaparsec's. For comparison, rustc puts summary on line 1 and location on line 2:
   ```
   Error[ID]: SUMMARY
@@ -97,7 +93,7 @@ Notes (see also [#1436][]):
 
 ## Current journal errors
 
-<!-- to update: erase the below then C-u M-! ./showall -->
+<!-- to update: make readme -->
 <!-- GENERATED: -->
 hledger 1.26.99-gc22e9f6cc-20220713 error messages:
 
