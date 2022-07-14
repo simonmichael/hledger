@@ -65,7 +65,9 @@ Key:
 
 ## Preferred error format
 
-Here is our current standard error message layout. (It is similar to the error messages we get from megaparsec.):
+Here is our current standard error message layout. 
+It is similar to the parse error messages we get from megaparsec.
+(Easier to follow that than change it.):
 ```
 hledger: Error: FILE:LOCATION:
 EXCERPT
@@ -74,8 +76,7 @@ EXPLANATION
 
 Notes (see also [#1436][]):
 
-- the "hledger: " prefix could be dropped later with a bit more effort
-- includes the word "Error" and the error position on line 1
+- line 1 includes "hledger" (dropping this would require some effort), the word "Error", and the error position
 - FILE is the file path
 - LOCATION is `LINE[-ENDLINE][:COLUMN[-ENDCOLUMN]]`
 - EXCERPT is a short visual snippet whenever possible, with the error region highlighted, line numbers, and colour when supported. 
@@ -90,6 +91,19 @@ Notes (see also [#1436][]):
   [DETAILS]
   ```
 - try https://github.com/mesabloo/diagnose / https://hackage.haskell.org/package/errata / https://hackage.haskell.org/package/chapelure later
+
+## Limitations
+
+Here are some current limitations of hledger's error messages:
+
+- We report only one error at a time. You have to fix or bypass the current error to see any others.
+
+- We currently don't save enough information for perfect analysis of the original data.
+  So we generally don't report perfect start/end line/column numbers;
+  usually just the line number(s), sometimes with the starting column number.
+
+- For the same reason, the excerpts shown in error messages are not the actual original data.
+  Instead we show a synthetic rendering that is similar enough to be explanatory.
 
 ## Current journal errors
 
