@@ -22,19 +22,19 @@ Some files contain extra declarations to ease flycheck testing.
 
 ## Goals
 
-- [x] phase 1: update flycheck to detect journal errors of current hledger release (and keep a branch updated to detect errors of latest hledger master)
-- [x] phase 2: survey/document current journal errors & status
-- [x] phase 3: pick a new standard format
-- [x] phase 4: implement standard format for all
-- [x] phase 5: implement accurate lines for all
-- [x] phase 6: implement accurate columns for all  [where possible; we currently do not save the position of every part of the transaction, so most errors do not report columns]
-- [x] phase 7: implement useful highlighted excerpts for all  [we show imperfect but useful highlighted regions]
-- [x] phase 8: implement accurate flycheck region for all  [flycheck-detected regions are imperfect but useful]
-- [ ] phase 9: do likewise for timeclock errors
-- [ ] phase 10: do likewise for timedot errors
+- [x] ~~phase 1: update flycheck to detect journal errors of current hledger release (and keep a branch updated to detect errors of latest hledger master)~~
+- [x] ~~phase 2: survey/document current journal errors & status~~
+- [x] ~~phase 3: pick a new standard format~~
+- [x] ~~phase 4: implement standard format for all~~
+- [x] ~~phase 5: implement accurate lines for all~~
+- [x] ~~phase 6: implement accurate columns for all  [where possible; we currently do not save the position of every part of the transaction, so most errors do not report columns]~~
+- [x] ~~phase 7: implement useful highlighted excerpts for all  [we show imperfect but useful highlighted regions]~~
+- [x] ~~phase 8: implement accurate flycheck region for all  [flycheck-detected regions are imperfect but useful]~~
+- [x] ~~phase 9: do likewise for timeclock errors~~
+- [x] ~~phase 10: do likewise for timedot errors~~
 - [ ] phase 11: do likewise for csv errors
 - [ ] phase 12: do likewise for other command line errors
-- [x] phase 13: decide/add error ids/explanations/web pages ? not needed
+- [x] ~~phase 13: decide/add error ids/explanations/web pages ? not needed~~
 - [ ] phase 14: support Language Server Protocol & Visual Code
 
 ## Current status
@@ -55,6 +55,8 @@ Here is the current status
 | parseable-regexps        | ✓          | ✓    | ✓      | ✓✓      | ✓        |
 | payees                   | ✓          | ✓    | ✓      | ✓✓      | ✓        |
 | uniqueleafnames          | ✓          | ✓    | ✓      | ✓✓      | ✓        |
+| tcclockouttime           | ✓          | ✓    | ✓      | ✓       |          |
+| tcorderedactions         | ✓          | ✓    | ✓      | ✓       |          |
 
 Key:
 - std format - the error message follows a standard format (location on first line, megaparsec-like excerpt, explanation)
