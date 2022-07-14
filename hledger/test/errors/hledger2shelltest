@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# hledger2shelltest SCRIPT
+#
+# Speaking generally: given an executable hashbang script (beginning with #!/usr/bin/env),
+# this generates a similarly-named shelltestrunner test that will repeatably
+# run the same command as the script and test its (stderr) output.
+# (Ideally, this would be built in to shelltestrunner.)
+# More precisely, this generates a test expecting no stdout, the given stderr,
+# and an error exit code, for scripts reproducing various hledger errors.
+#
+# The script is run once to capture its output, which is then adjusted
+# for use in a shelltest regex matcher:
+# - common regex metacharacters are escaped
+# - file paths are simplified
+# - any remaining problematic text is sanitised
+# - the regex is trimmed to <= 300 chars, to avoid a shelltestrunner limitation.
+
+SCRIPT="$1"
+TEST=$(echo "$SCRIPT" | sed -E 's/\.[^.]+$//').test
+
+{
+head -1 "$SCRIPT" | sed -E "s%#!/usr/bin/env -S (.*)%\$\$\$ \1 $SCRIPT%"
+printf ">>>2 /"
+"./$SCRIPT" 2>&1 | sed -E \
+  -e 's%(hledger: Error: ).*/\./(.*)%\1.*\2%' \
+  -e 's%/%\\/%g' \
+  -e 's/\^/\\^/g' \
+  -e 's/\$/\\$/g' \
+  -e 's/\(/\\(/g' \
+  -e 's/\)/\\)/g' \
+  -e 's/\|/\\|/g' \
+  | head -c 300
+printf "/\n>>>= 1\n"
+} >"$TEST"
+
+
+#  -e 's%alias \\/\(\\/%alias \\/\\(\\/%' \
+#  -e 's%compiled: \(%compiled: \\(%' \
+
+# gnused() {  # GNU sed, called gsed on mac
+#     if hash gsed 2>/dev/null; then gsed "$@"; else sed "$@"; fi
+# }
