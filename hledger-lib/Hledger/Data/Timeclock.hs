@@ -77,14 +77,17 @@ timeclockEntriesToTransactions now (i:o:rest)
 
 errorExpectedCodeButGot :: TimeclockCode -> TimeclockEntry -> a
 errorExpectedCodeButGot expected actual = error' $ printf
-  ("%s:\n%s\n\nExpected timeclock %s entry but got %s.\n"
-  ++"Only one session may be clocked in at a time, so please alternate i and o.")
+  ("%s:\n%s\n%s\n\nExpected timeclock %s entry but got %s.\n"
+  ++"Only one session may be clocked in at a time.\n"
+  ++"Please alternate i and o, beginning with i.")
   (sourcePosPretty $ tlsourcepos actual)
-  (show l ++ " | " ++ show actual)
+  (l ++ " | " ++ show actual)
+  (replicate (length l) ' ' ++ " |" ++ replicate c ' ' ++ "^")
   (show expected)
   (show $ tlcode actual)
   where
-    l = unPos $ sourceLine $ tlsourcepos actual
+    l = show $ unPos $ sourceLine $ tlsourcepos actual
+    c = unPos $ sourceColumn $ tlsourcepos actual
 
 -- | Convert a timeclock clockin and clockout entry to an equivalent journal
 -- transaction, representing the time expenditure. Note this entry is  not balanced,
@@ -99,11 +102,16 @@ entryFromTimeclockInOut i o
         ("%s:\n%s\nThis clockout time (%s) is earlier than the previous clockin.\n"
         ++"Please adjust it to be later than %s.")
         (sourcePosPretty $ tlsourcepos o)
-        (unlines [replicate (length l) ' '++ " | " ++ show i, l ++ " | " ++ show o])
+        (unlines [
+          replicate (length l) ' '++ " | " ++ show i,
+          l ++ " | " ++ show o,
+          (replicate (length l) ' ' ++ " |" ++ replicate c ' ' ++ replicate 19 '^')
+          ])
         (show $ tldatetime o)
         (show $ tldatetime i)
     where
       l = show $ unPos $ sourceLine $ tlsourcepos o
+      c = (unPos $ sourceColumn $ tlsourcepos o) + 2
       t = Transaction {
             tindex       = 0,
             tsourcepos   = (tlsourcepos i, tlsourcepos i),

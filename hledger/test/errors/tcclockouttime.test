@@ -2,6 +2,7 @@ $$$ hledger check -f tcclockouttime.timeclock
 >>>2 /hledger: Error: .*tcclockouttime.timeclock:5:1:
   \| i 2022-01-01 00:01:00   
 5 \| o 2022-01-01 00:00:00   
+  \|   \^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^
 
 This clockout time \(2022-01-01 00:00:00\) is earlier than the previous clockin.
 Please adjust it to be later than 2022-01-01 00:01:00.

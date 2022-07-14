@@ -55,8 +55,8 @@ Here is the current status
 | parseable-regexps        | ✓          | ✓    | ✓      | ✓✓      | ✓        |
 | payees                   | ✓          | ✓    | ✓      | ✓✓      | ✓        |
 | uniqueleafnames          | ✓          | ✓    | ✓      | ✓✓      | ✓        |
-| tcclockouttime           | ✓          | ✓    | ✓      | ✓       |          |
-| tcorderedactions         | ✓          | ✓    | ✓      | ✓       |          |
+| tcclockouttime           | ✓          | ✓    | ✓      | ✓✓      |          |
+| tcorderedactions         | ✓          | ✓    | ✓      | ✓✓      |          |
 
 Key:
 - std format - the error message follows a standard format (location on first line, megaparsec-like excerpt, explanation)
@@ -111,7 +111,7 @@ Here are some current limitations of hledger's error messages:
 
 <!-- to update: make readme -->
 <!-- GENERATED: -->
-hledger 1.26.99-g32c7f6300-20220714 error messages:
+hledger 1.26.99-gaeae7232c-20220714 error messages:
 
 ### accounts
 ```
@@ -282,6 +282,7 @@ Consider changing these account names so their last parts are different.
 hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./tcclockouttime.timeclock:5:1:
   | i 2022-01-01 00:01:00   
 5 | o 2022-01-01 00:00:00   
+  |   ^^^^^^^^^^^^^^^^^^^
 
 This clockout time (2022-01-01 00:00:00) is earlier than the previous clockin.
 Please adjust it to be later than 2022-01-01 00:01:00.
@@ -292,8 +293,10 @@ Please adjust it to be later than 2022-01-01 00:01:00.
 ```
 hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./tcorderedactions.timeclock:8:1:
 8 | i 2022-01-01 00:01:00   
+  | ^
 
 Expected timeclock o entry but got i.
-Only one session may be clocked in at a time, so please alternate i and o.
+Only one session may be clocked in at a time.
+Please alternate i and o, beginning with i.
 ```
 
