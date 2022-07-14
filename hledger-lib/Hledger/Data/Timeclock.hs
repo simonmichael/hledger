@@ -28,7 +28,6 @@ import Hledger.Data.Types
 import Hledger.Data.Dates
 import Hledger.Data.Amount
 import Hledger.Data.Posting
-import Hledger.Data.Transaction
 
 instance Show TimeclockEntry where
     show t = printf "%s %s %s  %s" (show $ tlcode t) (show $ tldatetime t) (tlaccount t) (tldescription t)
@@ -65,10 +64,10 @@ timeclockEntriesToTransactions now [i]
       o' = o{tldatetime=itime{localDay=idate, localTimeOfDay=TimeOfDay 23 59 59}}
       i' = i{tldatetime=itime{localDay=addDays 1 idate, localTimeOfDay=midnight}}
 timeclockEntriesToTransactions now (i:o:rest)
-    | tlcode i /= In = errorExpectedCodeButGot In i
-    | tlcode o /= Out =errorExpectedCodeButGot Out o
-    | odate > idate = entryFromTimeclockInOut i o' : timeclockEntriesToTransactions now (i':o:rest)
-    | otherwise = entryFromTimeclockInOut i o : timeclockEntriesToTransactions now rest
+    | tlcode i /= In  = errorExpectedCodeButGot In i
+    | tlcode o /= Out = errorExpectedCodeButGot Out o
+    | odate > idate   = entryFromTimeclockInOut i o' : timeclockEntriesToTransactions now (i':o:rest)
+    | otherwise       = entryFromTimeclockInOut i o : timeclockEntriesToTransactions now rest
     where
       (itime,otime) = (tldatetime i,tldatetime o)
       (idate,odate) = (localDay itime,localDay otime)
@@ -76,10 +75,16 @@ timeclockEntriesToTransactions now (i:o:rest)
       i' = i{tldatetime=itime{localDay=addDays 1 idate, localTimeOfDay=midnight}}
 {- HLINT ignore timeclockEntriesToTransactions -}
 
-errorExpectedCodeButGot expected actual = errorWithSourceLine line $ "expected timeclock code " ++ (show expected) ++ " but got " ++ show (tlcode actual)
-    where line = unPos . sourceLine $ tlsourcepos actual
-
-errorWithSourceLine line msg = error $ "line " ++ show line ++ ": " ++ msg
+errorExpectedCodeButGot :: TimeclockCode -> TimeclockEntry -> a
+errorExpectedCodeButGot expected actual = error' $ printf
+  ("%s:\n%s\n\nExpected timeclock %s entry but got %s.\n"
+  ++"Only one session may be clocked in at a time, so please alternate i and o.")
+  (sourcePosPretty $ tlsourcepos actual)
+  (show l ++ " | " ++ show actual)
+  (show expected)
+  (show $ tlcode actual)
+  where
+    l = unPos $ sourceLine $ tlsourcepos actual
 
 -- | Convert a timeclock clockin and clockout entry to an equivalent journal
 -- transaction, representing the time expenditure. Note this entry is  not balanced,
@@ -87,9 +92,18 @@ errorWithSourceLine line msg = error $ "line " ++ show line ++ ": " ++ msg
 entryFromTimeclockInOut :: TimeclockEntry -> TimeclockEntry -> Transaction
 entryFromTimeclockInOut i o
     | otime >= itime = t
-    | otherwise = error' . T.unpack $
-        "clock-out time less than clock-in time in:\n" <> showTransaction t  -- PARTIAL:
+    | otherwise =
+      -- Clockout time earlier than clockin is an error.
+      -- (Clockin earlier than preceding clockin/clockout is allowed.)
+      error' $ printf
+        ("%s:\n%s\nThis clockout time (%s) is earlier than the previous clockin.\n"
+        ++"Please adjust it to be later than %s.")
+        (sourcePosPretty $ tlsourcepos o)
+        (unlines [replicate (length l) ' '++ " | " ++ show i, l ++ " | " ++ show o])
+        (show $ tldatetime o)
+        (show $ tldatetime i)
     where
+      l = show $ unPos $ sourceLine $ tlsourcepos o
       t = Transaction {
             tindex       = 0,
             tsourcepos   = (tlsourcepos i, tlsourcepos i),
