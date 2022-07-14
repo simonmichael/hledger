@@ -9,6 +9,5 @@ $$$ hledger check uniqueleafnames -f uniqueleafnames.j
 
 Checking for unique account leaf names is enabled, and
 account leaf name "c" is not unique.
-.*
-/
+It appears in these account names, which a/
 >>>= 1

@@ -1,4 +1,4 @@
-#!/usr/bin/env -S hledger check -f 
+#!/usr/bin/env -S hledger check -f
 # Clockout time before previous clockin.
 
 i 2022/01/01 00:01:00

@@ -10,6 +10,6 @@ and commodity:
 this balance was asserted: 1
 but the actual balance is: 0
 a difference of:           1
-.*
-/
+
+Consider viewing this account'/
 >>>= 1

@@ -7,6 +7,5 @@ $$$ hledger check balancednoautoconversion -f balancednoautoconversion.j
 This multi-commodity transaction is unbalanced.
 Automatic commodity conversion is not enabled.
 The real postings' sum should be 0 but is: 1 A, -1 B
-.*
-/
+Consider adjusting this entry's/
 >>>= 1
