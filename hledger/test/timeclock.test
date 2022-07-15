@@ -22,7 +22,7 @@ $ hledger -f timeclock:- print
 >2
 >= 0
 
-# Command-line account aliases are applied.
+# 2. Command-line account aliases are applied.
 $ hledger -ftimeclock:- print --alias '/account/=FOO'
 2009-01-01 * 08:00-09:00
     ()           1.00h
@@ -35,37 +35,29 @@ $ hledger -ftimeclock:- print --alias '/account/=FOO'
 
 >= 0
 
-# For a missing clock-out, now is implied
+# 3. For a missing clock-out, now is implied
 <
 i 2020/1/1 08:00
 $ hledger -f timeclock:- balance
 > /./
 >= 0
 
-# For a log not starting with clock-out, print error
+# 4. For a log not starting with clock-out, print error
 <
 o 2020/1/1 08:00
 $ hledger -f timeclock:- balance
->2 /line 1: expected timeclock code i/
+>2 /Expected timeclock i entry/
 >= !0
 
-# For a different log starting not with clock-out, print error
-<
-o 2020/1/1 08:00
-o 2020/1/1 09:00
-$ hledger -f timeclock:- balance
->2 /line 1: expected timeclock code i/
->= !0
-
-# For two consecutive clock-in, print error
+# 5. For two consecutive clock-ins, print error
 <
 i 2020/1/1 08:00
 i 2020/1/1 09:00
 $ hledger -f timeclock:- balance
->2 /line 2: expected timeclock code o/
+>2 /Expected timeclock o entry/
 >= !0
 
-# Timeclock amounts are always rounded to two decimal places, 
+# 6. Timeclock amounts are always rounded to two decimal places, 
 # even when displayed by print (#1527).
 <
 i 2020-01-30 08:38:35 a
