@@ -1,0 +1,4 @@
+#!/usr/bin/env -S hledger check -f 
+# See rules.
+2022-01-01,1.0
+

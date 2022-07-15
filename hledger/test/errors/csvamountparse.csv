@@ -1,0 +1,5 @@
+#!/usr/bin/env -S hledger print -f 
+# Unparseable amount.
+2022-01-01,1
+2022-01-02,$1
+2022-01-03,badamount

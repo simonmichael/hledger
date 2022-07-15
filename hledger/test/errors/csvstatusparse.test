@@ -1,0 +1,12 @@
+$$$ hledger print -f  csvstatusparse.csv
+>>>2 /hledger: Error: error: could not parse "badstatus" as a cleared status \(should be \*, ! or empty\)
+the parse error is:      1:1:
+  \|
+1 \| badstatus
+  \| \^
+unexpected 'b'
+expecting '!', '\*', or end of input
+
+
+/
+>>>= 1

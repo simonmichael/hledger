@@ -1,0 +1,4 @@
+#!/usr/bin/env -S hledger check -f 
+# Date value not parseable by date-format rule.
+2022-01-01,b
+baddate,b

@@ -1,0 +1,6 @@
+#!/usr/bin/env -S hledger print -f 
+# Status value not parseable.
+2022-01-01,*
+2022-01-02,!
+2022-01-03,
+2022-01-04,badstatus

@@ -1,0 +1,4 @@
+skip 2
+date %1
+balance %2
+balance-type badtype

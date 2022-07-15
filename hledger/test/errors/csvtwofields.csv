@@ -1,0 +1,5 @@
+#!/usr/bin/env -S hledger check -f 
+# Record(s) have less than two fields.
+a,a
+b
+c,c
