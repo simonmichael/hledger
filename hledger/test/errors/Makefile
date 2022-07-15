@@ -1,7 +1,17 @@
 HLEDGER ?= hledger
 
-# j, csv, timeclock, timedot files which are executable
-ERRORSCRIPTS := $$(find . -perm +rwx \( -name '*.j' -or -name '*.csv' -or -name '*.timeclock' -or -name '*.timedot' -or -name '*.sh' \))
+# Executable .j, .csv, .timeclock, and .timedot files are error example scripts.
+# Some shenanigans here to order them nicely.
+ERRORSCRIPTS := \
+	$$(find -s . -name '*.j'         -perm +rwx -exec basename {} \; | grep -v csv) \
+	$$(find -s . -name '*.timeclock' -perm +rwx -exec basename {} \; ) \
+	$$(find -s . -name '*.timedot'   -perm +rwx -exec basename {} \; ) \
+	$$(find -s . -name 'csv*'        -perm +rwx -exec basename {} \; ) \
+	$$(find -s . -name '*.sh'        -perm +rwx -exec basename {} \; ) \
+
+list:
+	@echo "Error example scripts detected:"
+	@for s in $(ERRORSCRIPTS); do echo $$s; done
 
 # Check error messages of $HLEDGER against current error tests.
 # A few tests (csvstdinrules.sh) may use "hledger" in $PATH instead of $HLEDGER.
@@ -18,7 +28,7 @@ tests:
 	@read -p "ok ? Press enter: "
 	@for f in $(ERRORSCRIPTS); do echo "HLEDGER=$(HLEDGER) ./hledger2shelltest $$f"; HLEDGER=$(HLEDGER) ./hledger2shelltest $$f; done
 
-readme: $(ERRORSCRIPTS)
+readme:
 	@printf "Updating README.md with the error messages of hledger $$($(HLEDGER) --version)\n"
 	@read -p "ok ? Press enter: "
 	sed '/<!-- GENERATED: -->/q' <README.md >README.md.tmp
