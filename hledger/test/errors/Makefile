@@ -1,8 +1,10 @@
 HLEDGER ?= hledger
 
-ERRORSCRIPTS=*.j *.timeclock # *.timedot *.csv
+# j, csv, timeclock, timedot files which are executable
+ERRORSCRIPTS := $$(find . -perm +rwx \( -name '*.j' -or -name '*.csv' -or -name '*.timeclock' -or -name '*.timedot' -or -name '*.sh' \))
 
-# Check error messages of hledger in $PATH against current error tests.
+# Check error messages of $HLEDGER against current error tests.
+# A few tests (csvstdinrules.sh) may use "hledger" in $PATH instead of $HLEDGER.
 test:
 	@printf "Running error message tests with hledger $$($(HLEDGER) --version | awk '{print $$2}'):\n"
 	shelltest -w $(HLEDGER) *.test

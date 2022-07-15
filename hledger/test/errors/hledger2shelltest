@@ -21,14 +21,18 @@ TEST=$(echo "$SCRIPT" | sed -E 's/\.[^.]+$//').test
 {
 head -1 "$SCRIPT" | sed -E "s%#!/usr/bin/env -S (.*)%\$\$\$ \1 $SCRIPT%"
 printf ">>>2 /"
-"./$SCRIPT" 2>&1 | sed -E \
-  -e 's%(hledger: Error: ).*/\./(.*)%\1.*\2%' \
-  -e 's%/%\\/%g' \
+./"$SCRIPT" 2>&1 | sed -E \
   -e 's/\^/\\^/g' \
   -e 's/\$/\\$/g' \
+  -e 's/\+/\\+/g' \
+  -e 's/\*/\\*/g' \
+  -e 's/\[/\\[/g' \
+  -e 's/\]/\\]/g' \
   -e 's/\(/\\(/g' \
   -e 's/\)/\\)/g' \
   -e 's/\|/\\|/g' \
+  -e 's%(hledger: Error: ).*/\./(.*)%\1.*\2%' \
+  -e 's%/%\\/%g' \
   | head -c 300
 printf "/\n>>>= 1\n"
 } >"$TEST"
