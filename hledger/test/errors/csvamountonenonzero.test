@@ -1,10 +1,10 @@
 $$$ hledger check -f  csvamountonenonzero.csv
->>>2 /hledger: Error: multiple non-zero amounts assigned,
-please ensure just one. \(https:\/\/hledger.org\/csv.html#amount\)
-  record values: "2022-01-03","1","2"
-  for posting: 1
-  assignment: amount-in %2	=> value: 1
-  assignment: amount-out %3	=> value: 2
+>>>2 /hledger: Error: in CSV rules:
+While processing CSV record: "2022-01-03","1","2"
+while calculating amount for posting 1
+rule "amount-in %2" assigned value "1"
+rule "amount-out %3" assigned value "2"
 
-/
+Multiple non-zero amounts were assigned for an amount field.
+Please ensure just one non-zero amount i/
 >>>= 1

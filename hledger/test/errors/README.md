@@ -81,7 +81,7 @@ Here are some current limitations of hledger's error messages:
 ## Current status
 
 Here is the current status as of
-hledger 1.26.99-gaeae7232c-20220714, flycheck-hledger g1310cb518. <!-- <- MANUALLY KEEP SYNCED WITH GENERATED: BELOW -->
+hledger (see version below) and flycheck-hledger g1310cb518.
 Click error names to see an example. Key:
 
 - std format - the error message follows a standard format (location on first line, megaparsec-like excerpt, explanation)
@@ -105,7 +105,7 @@ Click error names to see an example. Key:
 | [uniqueleafnames](#uniqueleafnames)                   | ✓          | ✓    | ✓      | ✓✓      | ✓        |
 | [tcclockouttime](#tcclockouttime)                     | ✓          | ✓    | ✓      | ✓✓      |          |
 | [tcorderedactions](#tcorderedactions)                 | ✓          | ✓    | ✓      | ✓✓      |          |
-| [csvamountonenonzero](#csvamountonenonzero)           |            |      |        |         |          |
+| [csvamountonenonzero](#csvamountonenonzero)           | semi-std   |      |        |         |          |
 | [csvamountparse](#csvamountparse)                     |            |      |        |         |          |
 | [csvbalanceparse](#csvbalanceparse)                   |            |      |        |         |          |
 | [csvbalancetypeparse](#csvbalancetypeparse)           |            |      |        |         |          |
@@ -130,7 +130,7 @@ Click error names to see an example. Key:
 (To update: `make readme`)
 
 <!-- GENERATED: -->
-hledger 1.26.99-gaeae7232c-20220714 error messages:
+hledger 1.26.99-ga7b920750-20220715 error messages:
 
 ### accounts
 ```
@@ -314,7 +314,7 @@ hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./tcorderedactions.
 8 | i 2022-01-01 00:01:00   
   | ^
 
-Expected timeclock o entry but got i.
+Expected a timeclock o entry but got i.
 Only one session may be clocked in at a time.
 Please alternate i and o, beginning with i.
 ```
@@ -322,19 +322,23 @@ Please alternate i and o, beginning with i.
 
 ### csvamountonenonzero
 ```
-hledger: Error: multiple non-zero amounts assigned,
-please ensure just one. (https://hledger.org/csv.html#amount)
-  record values: "2022-01-03","1","2"
-  for posting: 1
-  assignment: amount-in %2	=> value: 1
-  assignment: amount-out %3	=> value: 2
+hledger: Error: in CSV rules:
+While processing CSV record: "2022-01-03","1","2"
+while calculating amount for posting 1
+rule "amount-in %2" assigned value "1"
+rule "amount-out %3" assigned value "2"
+
+Multiple non-zero amounts were assigned for an amount field.
+Please ensure just one non-zero amount is assigned, perhaps with an if rule.
+See also: https://hledger.org/hledger.html#setting-amounts
+(hledger manual -> CSV format -> Tips -> Setting amounts)
 ```
 
 
 ### csvamountparse
 ```
 hledger: Error: error: could not parse "badamount" as an amount
-record values: "2022-01-03","badamount"
+CSV record: "2022-01-03","badamount"
 the amount rule is: %2
 the date rule is: %1
 
@@ -352,7 +356,7 @@ you may need to change your amount*, balance*, or currency* rules, or add or cha
 ### csvbalanceparse
 ```
 hledger: Error: error: could not parse "badbalance" as balance1 amount
-record values: "2022-01-03","badbalance"
+CSV record: "2022-01-03","badbalance"
 the balance rule is: %2
 the date rule is: %1
 
@@ -368,7 +372,7 @@ expecting '+', '-', or number
 ### csvbalancetypeparse
 ```
 hledger: Error: balance-type "badtype" is invalid. Use =, ==, =* or ==*.
-record values: "2022-01-01","1"
+CSV record: "2022-01-01","1"
 the balance rule is: %2
 the date rule is: %1
 ```
@@ -377,7 +381,7 @@ the date rule is: %1
 ### csvdateformat
 ```
 hledger: Error: error: could not parse "a" as a date using date format "YYYY/M/D", "YYYY-M-D" or "YYYY.M.D"
-record values: "a","b"
+CSV record: "a","b"
 the date rule is:   %1
 the date-format is: unspecified
 you may need to change your date rule, add a date-format rule, or change your skip rule
@@ -388,7 +392,7 @@ for m/d/y or d/m/y dates, use date-format %-m/%-d/%Y or date-format %-d/%-m/%Y
 ### csvdateparse
 ```
 hledger: Error: error: could not parse "baddate" as a date using date format "%Y-%m-%d"
-record values: "baddate","b"
+CSV record: "baddate","b"
 the date rule is:   %1
 the date-format is: %Y-%m-%d
 you may need to change your date rule, change your date-format rule, or change your skip rule

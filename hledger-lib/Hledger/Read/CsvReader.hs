@@ -999,17 +999,22 @@ getAmount rules record currency p1IsVirtual n =
   in case discardExcessZeros $ discardUnnumbered assignments of
       []      -> Nothing
       [(f,a)] -> Just $ negateIfOut f a
-      fs      -> error' . T.unpack . T.unlines $  -- PARTIAL:
-        ["multiple non-zero amounts assigned,"
-        ,"please ensure just one. (https://hledger.org/csv.html#amount)"
-        ,"  " <> showRecord record
-        ,"  for posting: " <> T.pack (show n)
+      fs      -> error' . T.unpack . textChomp . T.unlines $  -- PARTIAL:
+        ["in CSV rules:"
+        ,"While processing " <> showRecord record
+        ,"while calculating amount for posting " <> T.pack (show n)
         ] ++
-        ["  assignment: " <> f <> " " <>
+        ["rule \"" <> f <> " " <>
           fromMaybe "" (hledgerField rules record f) <>
-          "\t=> value: " <> wbToText (showMixedAmountB noColour a) -- XXX not sure this is showing all the right info
-        | (f,a) <- fs]
-
+          "\" assigned value \"" <> wbToText (showMixedAmountB noColour a) <> "\"" -- XXX not sure this is showing all the right info
+          | (f,a) <- fs
+        ] ++
+        [""
+        ,"Multiple non-zero amounts were assigned for an amount field."
+        ,"Please ensure just one non-zero amount is assigned, perhaps with an if rule."
+        ,"See also: https://hledger.org/hledger.html#setting-amounts"
+        ,"(hledger manual -> CSV format -> Tips -> Setting amounts)"
+        ]
 -- | Figure out the expected balance (assertion or assignment) specified for posting N,
 -- if any (and its parse position).
 getBalance :: CsvRules -> CsvRecord -> Text -> Int -> Maybe (Amount, SourcePos)
@@ -1183,7 +1188,7 @@ negateStr amtstr = case T.uncons amtstr of
 
 -- | Show a (approximate) recreation of the original CSV record.
 showRecord :: CsvRecord -> Text
-showRecord r = "record values: "<>T.intercalate "," (map (wrap "\"" "\"") r)
+showRecord r = "CSV record: "<>T.intercalate "," (map (wrap "\"" "\"") r)
 
 -- | Given the conversion rules, a CSV record and a hledger field name, find
 -- the value template ultimately assigned to this field, if any, by a field

@@ -77,7 +77,7 @@ timeclockEntriesToTransactions now (i:o:rest)
 
 errorExpectedCodeButGot :: TimeclockCode -> TimeclockEntry -> a
 errorExpectedCodeButGot expected actual = error' $ printf
-  ("%s:\n%s\n%s\n\nExpected timeclock %s entry but got %s.\n"
+  ("%s:\n%s\n%s\n\nExpected a timeclock %s entry but got %s.\n"
   ++"Only one session may be clocked in at a time.\n"
   ++"Please alternate i and o, beginning with i.")
   (sourcePosPretty $ tlsourcepos actual)

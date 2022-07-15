@@ -46,7 +46,7 @@ $ hledger -f timeclock:- balance
 <
 o 2020/1/1 08:00
 $ hledger -f timeclock:- balance
->2 /Expected timeclock i entry/
+>2 /Expected a timeclock i entry/
 >= !0
 
 # 5. For two consecutive clock-ins, print error
@@ -54,7 +54,7 @@ $ hledger -f timeclock:- balance
 i 2020/1/1 08:00
 i 2020/1/1 09:00
 $ hledger -f timeclock:- balance
->2 /Expected timeclock o entry/
+>2 /Expected a timeclock o entry/
 >= !0
 
 # 6. Timeclock amounts are always rounded to two decimal places, 

@@ -3,7 +3,7 @@ $$$ hledger check -f  tcorderedactions.timeclock
 8 \| i 2022-01-01 00:01:00   
   \| \^
 
-Expected timeclock o entry but got i.
+Expected a timeclock o entry but got i.
 Only one session may be clocked in at a time.
 Please alternate i and o, beginning with i.
 /

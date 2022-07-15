@@ -1,6 +1,6 @@
 $$$ hledger check -f  csvamountparse.csv
 >>>2 /hledger: Error: error: could not parse "badamount" as an amount
-record values: "2022-01-03","badamount"
+CSV record: "2022-01-03","badamount"
 the amount rule is: %2
 the date rule is: %1
 
@@ -11,5 +11,5 @@ the parse error is:      1:10:
 unexpected end of input
 expecting '\+', '-', or number
 
-you may need to change your/
+you may need to change your am/
 >>>= 1
