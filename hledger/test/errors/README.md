@@ -22,70 +22,41 @@ Some files contain extra declarations to ease flycheck testing.
 
 ## Goals
 
-- [x] phase 1: update flycheck to detect journal errors of current hledger release (and keep a branch updated to detect errors of latest hledger master)
-- [x] phase 2: survey/document current journal errors & status
-- [x] phase 3: pick a new standard format
-- [ ] **phase 4: implement standard format for all**
-- [ ] phase 5: implement accurate lines for all
-- [ ] phase 6: implement accurate columns for all
-- [ ] phase 7: implement useful highlighted excerpts for all
-- [ ] phase 8: implement accurate flycheck region for all
-- [ ] phase 9: do likewise for timeclock errors
-- [ ] phase 10: do likewise for timedot errors
+- [x] ~~phase 1: update flycheck to detect journal errors of current hledger release (and keep a branch updated to detect errors of latest hledger master)~~
+- [x] ~~phase 2: survey/document current journal errors & status~~
+- [x] ~~phase 3: pick a new standard format~~
+- [x] ~~phase 4: implement standard format for all~~
+- [x] ~~phase 5: implement accurate lines for all~~
+- [x] ~~phase 6: implement accurate columns for all  [where possible; we currently do not save the position of every part of the transaction, so most errors do not report columns]~~
+- [x] ~~phase 7: implement useful highlighted excerpts for all  [we show imperfect but useful highlighted regions]~~
+- [x] ~~phase 8: implement accurate flycheck region for all  [flycheck-detected regions are imperfect but useful]~~
+- [x] ~~phase 9: do likewise for timeclock errors~~
+- [x] ~~phase 10: do likewise for timedot errors~~
 - [ ] phase 11: do likewise for csv errors
 - [ ] phase 12: do likewise for other command line errors
-- [x] phase 13: decide/add error ids/explanations/web pages ? not needed
+- [x] ~~phase 13: decide/add error ids/explanations/web pages ? not needed~~
 - [ ] phase 14: support Language Server Protocol & Visual Code
-
-## Current status
-
-Here is the current status
-(hledger 1.26.99-gb7e6583a7-20220710, flycheck 87b275b9):
-
-|                          | std format | line | column    | excerpt | flycheck | flycheck region |
-|--------------------------|------------|------|-----------|---------|----------|-----------------|
-| accounts                 | ✓          | ✓    | ✓         | ✓✓      |          |                 |
-| assertions               | ✓          | ✓    | ✓         | ✓✓      |          |                 |
-| balanced                 | ✓          | ✓    | -         | ✓       |          |                 |
-| balancednoautoconversion | ✓          | ✓    | -         | ✓       |          |                 |
-| commodities              | ✓          | ✓    | ✓(approx) | ✓✓      |          |                 |
-| ordereddates             | ✓          | ✓    | ✓         | ✓✓      |          |                 |
-| parseable                | ✓          | ✓    | ✓         | ✓✓      |          |                 |
-| parseable-dates          | ✓          | ✓    | ✓         | ✓✓      |          |                 |
-| parseable-regexps        | ✓          | ✓    | ✓         | ✓✓      |          |                 |
-| payees                   | ✓          | ✓    | ✓         | ✓✓      |          |                 |
-| uniqueleafnames          | ✓          | ✓    | ✓         | ✓✓      |          |                 |
-
-Key:
-- std format      - the error message follows a standard format (location on first line, megaparsec-like excerpt, description).
-- line            - the optimal line(s) are reported
-- column          - the optimal column(s) are reported
-- excerpt         - a useful excerpt is shown, ideally with the error highlighted (✓✓)
-- flycheck        - the current flycheck release recognises and reports the error, with no "suspicious state" warning
-- flycheck region - flycheck highlights a reasonably accurate region containing the error
 
 ## Preferred error format
 
-Here is our preferred error message layout for now:
+Here is our current standard error message layout. 
+It is similar to the parse error messages we get from megaparsec.
+(Easier to follow that than change it.):
 ```
 hledger: Error: FILE:LOCATION:
 EXCERPT
-SUMMARY
-[DETAILS]
+EXPLANATION
 ```
 
 Notes (see also [#1436][]):
 
-- the "hledger: " prefix could be dropped later with a bit more effort
-- includes the word "Error" and the error position on line 1
+- line 1 includes "hledger" (dropping this would require some effort), the word "Error", and the error position
 - FILE is the file path
 - LOCATION is `LINE[-ENDLINE][:COLUMN[-ENDCOLUMN]]`
-- we may show 0 for LINE or COLUMN when unknown
-- EXCERPT is a short visual snippet whenever possible, with the error region highlighted, line numbers, and colour when supported. This section must be easy for flycheck to ignore.
-- SUMMARY is a one line description/explanation of the problem. 
-  These are currently dynamic, they can include helpful contextual info.
-  ShellCheck uses static summaries.
-- DETAILS is optional additional details/advice when needed.
+- EXCERPT is a short visual snippet whenever possible, with the error region highlighted, line numbers, and colour when supported. 
+  This section must be easy for flycheck to ignore. (All lines begin with a space or a digit.)
+- EXPLANATION briefly explains the problem, and suggests remedies if possible.
+  It can be dynamic, showing context-sensitive info. (ShellCheck's summaries are static.)
 - this layout is based on megaparsec's. For comparison, rustc puts summary on line 1 and location on line 2:
   ```
   Error[ID]: SUMMARY
@@ -95,78 +66,164 @@ Notes (see also [#1436][]):
   ```
 - try https://github.com/mesabloo/diagnose / https://hackage.haskell.org/package/errata / https://hackage.haskell.org/package/chapelure later
 
-## Current journal errors
+## Limitations
 
-<!-- to update: erase the below then C-u M-! ./showall -->
+Here are some current limitations of hledger's error messages:
+
+- We report only one error at a time. You have to fix (or bypass) the current error to see any others.
+
+- We currently don't save perfect position information when parsing,
+  so we sometimes report only line number(s), without column number(s).
+
+- For the same reason, the excerpts we show in error messages are not the original data.
+  Instead we show a synthetic rendering that is similar enough to be explanatory.
+
+## Current status
+
+Here is the current status as of
+hledger 1.26.99-gaeae7232c-20220714, flycheck-hledger g1310cb518. <!-- <- MANUALLY KEEP SYNCED WITH GENERATED: BELOW -->
+Click error names to see an example. Key:
+
+- std format - the error message follows a standard format (location on first line, megaparsec-like excerpt, explanation)
+- line       - correct line numbers are reported
+- column     - useful column numbers are reported
+- excerpt    - a useful excerpt is shown, ideally with the error highlighted (✓✓)
+- flycheck   - the current flycheck release (or a PR branch) recognises the error and highlights a useful region
+
+| error/check name                                      | std format | line | column | excerpt | flycheck |
+|-------------------------------------------------------|------------|------|--------|---------|----------|
+| [accounts](#accounts)                                 | ✓          | ✓    | ✓      | ✓✓      | ✓        |
+| [assertions](#assertions)                             | ✓          | ✓    | ✓      | ✓✓      | ✓        |
+| [balanced](#balanced)                                 | ✓          | ✓    | -      | ✓       | ✓        |
+| [balancednoautoconversion](#balancednoautoconversion) | ✓          | ✓    | -      | ✓       | ✓        |
+| [commodities](#commodities)                           | ✓          | ✓    | ✓      | ✓✓      | ✓        |
+| [ordereddates](#ordereddates)                         | ✓          | ✓    | ✓      | ✓✓      | ✓        |
+| [parseable](#parseable)                               | ✓          | ✓    | ✓      | ✓✓      | ✓        |
+| [parseable-dates](#parseable-dates)                   | ✓          | ✓    | ✓      | ✓✓      | ✓        |
+| [parseable-regexps](#parseable-regexps)               | ✓          | ✓    | ✓      | ✓✓      | ✓        |
+| [payees](#payees)                                     | ✓          | ✓    | ✓      | ✓✓      | ✓        |
+| [uniqueleafnames](#uniqueleafnames)                   | ✓          | ✓    | ✓      | ✓✓      | ✓        |
+| [tcclockouttime](#tcclockouttime)                     | ✓          | ✓    | ✓      | ✓✓      |          |
+| [tcorderedactions](#tcorderedactions)                 | ✓          | ✓    | ✓      | ✓✓      |          |
+| [csvamountonenonzero](#csvamountonenonzero)           |            |      |        |         |          |
+| [csvamountparse](#csvamountparse)                     |            |      |        |         |          |
+| [csvbalanceparse](#csvbalanceparse)                   |            |      |        |         |          |
+| [csvbalancetypeparse](#csvbalancetypeparse)           |            |      |        |         |          |
+| [csvdateformat](#csvdateformat)                       |            |      |        |         |          |
+| [csvdateparse](#csvdateparse)                         |            |      |        |         |          |
+| [csvdaterule](#csvdaterule)                           |            |      |        |         |          |
+| [csvdecimalmarkparse](#csvdecimalmarkparse)           |            |      |        |         |          |
+| [csvifblocknonempty](#csvifblocknonempty)             |            | ✓    | ✓      | ✓       |          |
+| [csviftablefieldnames](#csviftablefieldnames)         |            | ✓    | ✓      | ✓✓      |          |
+| [csviftablenonempty](#csviftablenonempty)             |            | ✓    | ✓      | ✓       |          |
+| [csviftablevaluecount](#csviftablevaluecount)         |            | ✓    | ✓      | ✓       |          |
+| [csvnoinclude](#csvnoinclude)                         |            | ✓    | ✓      | ✓       |          |
+| [csvskipvalue](#csvskipvalue)                         |            |      |        |         |          |
+| [csvstatusparse](#csvstatusparse)                     |            |      |        | ✓       |          |
+| [csvstdinrules](#csvstdinrules)                       |            |      |        |         |          |
+| [csvtwofields](#csvtwofields)                         |            |      |        |         |          |
+| [csvstdinrules](#csvstdinrules)                       |            |      |        |         |          |
+
+
+## Current error messages
+
+(To update: `make readme`)
+
 <!-- GENERATED: -->
-hledger 1.25.99-g9bff671b5-20220424 error messages:
+hledger 1.26.99-gaeae7232c-20220714 error messages:
 
 ### accounts
 ```
-hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./accounts.j:4:6-6:
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./accounts.j:4:
   | 2022-01-01
 4 |     (a)               1
   |      ^
-undeclared account "a"
+
+Strict account checking is enabled, and
+account "a" has not been declared.
+Consider adding an account directive. Examples:
+
+account a
+account a    ; type:A  ; (L,E,R,X,C,V)
 ```
 
 
 ### assertions
 ```
-hledger: Error: balance assertion: /Users/simon/src/hledger/hledger/test/errors/./assertions.j:4:8
-transaction:
-2022-01-01
-    a               0 = 1
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./assertions.j:4:8:
+  | 2022-01-01
+4 |     a               0 = 1
+  |                       ^^^
 
-assertion details:
-date:       2022-01-01
-account:    a
-commodity:  
-calculated: 0
-asserted:   1
-difference: 1
+This balance assertion failed.
+In account:    a
+and commodity: 
+this balance was asserted: 1
+but the actual balance is: 0
+a difference of:           1
+
+Consider viewing this account's register to troubleshoot. Eg:
+
+hledger reg -I 'a$' cur:''
 ```
 
 
 ### balanced
 ```
-hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./balanced.j:3-4
-could not balance this transaction:
-real postings' sum should be 0 but is: 1
-2022-01-01
-    a               1
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./balanced.j:3-4:
+3 | 2022-01-01
+  |     a               1
+
+This transaction is unbalanced.
+The real postings' sum should be 0 but is: 1
+Consider adjusting this entry's amounts, or adding missing postings.
 ```
 
 
 ### balancednoautoconversion
 ```
-hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./balancednoautoconversion.j:6-8
-could not balance this transaction:
-real postings' sum should be 0 but is:  1 A
--1 B
-2022-01-01
-    a             1 A
-    b            -1 B
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./balancednoautoconversion.j:6-8:
+6 | 2022-01-01
+  |     a             1 A
+  |     b            -1 B
+
+This multi-commodity transaction is unbalanced.
+Automatic commodity conversion is not enabled.
+The real postings' sum should be 0 but is: 1 A, -1 B
+Consider adjusting this entry's amounts, adding missing postings,
+or recording conversion price(s) with @, @@ or equity postings.
 ```
 
 
 ### commodities
 ```
-hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./commodities.j:6:21-23:
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./commodities.j:6:
   | 2022-01-01
 6 |     (a)             A 1
   |                     ^^^
-undeclared commodity "A"
+
+Strict commodity checking is enabled, and
+commodity "A" has not been declared.
+Consider adding a commodity directive. Examples:
+
+commodity A1000.00
+commodity 1.000,00 A
 ```
 
 
 ### ordereddates
 ```
-hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./ordereddates.j:10:1-10:
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./ordereddates.j:10:
+7 | 2022-01-02 p
+  |     (a)               1
+ 
 10 | 2022-01-01 p
    | ^^^^^^^^^^
    |     (a)               1
-transaction date is out of order with previous transaction date 2022-01-02
+
+Ordered dates checking is enabled, and this transaction's
+date (2022-01-01) is out of order with the previous transaction.
+Consider moving this entry into date order, or adjusting its date.
 ```
 
 
@@ -176,7 +233,8 @@ hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./parseable-dates.j
   |
 3 | 2022/1/32
   | ^^^^^^^^^
-well-formed but invalid date: 2022/1/32
+
+This date is invalid, please correct it: 2022/1/32
 ```
 
 
@@ -186,7 +244,9 @@ hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./parseable-regexps
   |
 3 | alias /(/ = a
   |        ^
-this regular expression could not be compiled: (
+
+This regular expression is malformed, please correct it:
+(
 ```
 
 
@@ -203,21 +263,236 @@ expecting date separator or digit
 
 ### payees
 ```
-hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./payees.j:6:12-12:
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./payees.j:6:
 6 | 2022-01-01 p
   |            ^
   |     (a)             A 1
-undeclared payee "p"
+
+Strict payee checking is enabled, and
+payee "p" has not been declared.
+Consider adding a payee directive. Examples:
+
+payee p
 ```
 
 
 ### uniqueleafnames
 ```
-hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./uniqueleafnames.j:9:8-8:
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./uniqueleafnames.j:12:
   | 2022-01-01 p
 9 |     (a:c)               1
-  |        ^
-account leaf name "c" is not unique
-it is used in account names: "a:c", "b:c"
+ ...
+   | 2022-01-01 p
+12 |     (b:c)               1
+   |        ^
+
+Checking for unique account leaf names is enabled, and
+account leaf name "c" is not unique.
+It appears in these account names, which are used in 2 places:
+a:c
+b:c
+
+Consider changing these account names so their last parts are different.
+```
+
+
+### tcclockouttime
+```
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./tcclockouttime.timeclock:5:1:
+  | i 2022-01-01 00:01:00   
+5 | o 2022-01-01 00:00:00   
+  |   ^^^^^^^^^^^^^^^^^^^
+
+This clockout time (2022-01-01 00:00:00) is earlier than the previous clockin.
+Please adjust it to be later than 2022-01-01 00:01:00.
+```
+
+
+### tcorderedactions
+```
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./tcorderedactions.timeclock:8:1:
+8 | i 2022-01-01 00:01:00   
+  | ^
+
+Expected timeclock o entry but got i.
+Only one session may be clocked in at a time.
+Please alternate i and o, beginning with i.
+```
+
+
+### csvamountonenonzero
+```
+hledger: Error: multiple non-zero amounts assigned,
+please ensure just one. (https://hledger.org/csv.html#amount)
+  record values: "2022-01-03","1","2"
+  for posting: 1
+  assignment: amount-in %2	=> value: 1
+  assignment: amount-out %3	=> value: 2
+```
+
+
+### csvamountparse
+```
+hledger: Error: error: could not parse "badamount" as an amount
+record values: "2022-01-03","badamount"
+the amount rule is: %2
+the date rule is: %1
+
+the parse error is:      1:10:
+  |
+1 | badamount
+  |          ^
+unexpected end of input
+expecting '+', '-', or number
+
+you may need to change your amount*, balance*, or currency* rules, or add or change your skip rule
+```
+
+
+### csvbalanceparse
+```
+hledger: Error: error: could not parse "badbalance" as balance1 amount
+record values: "2022-01-03","badbalance"
+the balance rule is: %2
+the date rule is: %1
+
+the parse error is:      1:11:
+  |
+1 | badbalance
+  |           ^
+unexpected end of input
+expecting '+', '-', or number
+```
+
+
+### csvbalancetypeparse
+```
+hledger: Error: balance-type "badtype" is invalid. Use =, ==, =* or ==*.
+record values: "2022-01-01","1"
+the balance rule is: %2
+the date rule is: %1
+```
+
+
+### csvdateformat
+```
+hledger: Error: error: could not parse "a" as a date using date format "YYYY/M/D", "YYYY-M-D" or "YYYY.M.D"
+record values: "a","b"
+the date rule is:   %1
+the date-format is: unspecified
+you may need to change your date rule, add a date-format rule, or change your skip rule
+for m/d/y or d/m/y dates, use date-format %-m/%-d/%Y or date-format %-d/%-m/%Y
+```
+
+
+### csvdateparse
+```
+hledger: Error: error: could not parse "baddate" as a date using date format "%Y-%m-%d"
+record values: "baddate","b"
+the date rule is:   %1
+the date-format is: %Y-%m-%d
+you may need to change your date rule, change your date-format rule, or change your skip rule
+for m/d/y or d/m/y dates, use date-format %-m/%-d/%Y or date-format %-d/%-m/%Y
+```
+
+
+### csvdaterule
+```
+hledger: Error: offset=0:
+Please specify (at top level) the date field. Eg: date %1
+```
+
+
+### csvdecimalmarkparse
+```
+hledger: Error: decimal-mark's argument should be "." or "," (not "badmark")
+```
+
+
+### csvifblocknonempty
+```
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./csvifblocknonempty.csv.rules:2:1:
+  |
+2 | if foo
+  | ^
+start of conditional block found, but no assignment rules afterward
+(assignment rules in a conditional block should be indented)
+```
+
+
+### csviftablefieldnames
+```
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./csviftablefieldnames.csv.rules:2:9:
+  |
+2 | if,date,nosuchfield,description
+  |         ^^^^^^^^^^^^
+unexpected "nosuchfield,"
+expecting "account1", "account10", "account11", "account12", "account13", "account14", "account15", "account16", "account17", "account18", "account19", "account2", "account20", "account21", "account22", "account23", "account24", "account25", "account26", "account27", "account28", "account29", "account3", "account30", "account31", "account32", "account33", "account34", "account35", "account36", "account37", "account38", "account39", "account4", "account40", "account41", "account42", "account43", "account44", "account45", "account46", "account47", "account48", "account49", "account5", "account50", "account51", "account52", "account53", "account54", "account55", "account56", "account57", "account58", "account59", "account6", "account60", "account61", "account62", "account63", "account64", "account65", "account66", "account67", "account68", "account69", "account7", "account70", "account71", "account72", "account73", "account74", "account75", "account76", "account77", "account78", "account79", "account8", "account80", "account81", "account82", "account83", "account84", "account85", "account86", "account87", "account88", "account89", "account9", "account90", "account91", "account92", "account93", "account94", "account95", "account96", "account97", "account98", "account99", "amount", "amount-in", "amount-out", "amount1", "amount1-in", "amount1-out", "amount10", "amount10-in", "amount10-out", "amount11", "amount11-in", "amount11-out", "amount12", "amount12-in", "amount12-out", "amount13", "amount13-in", "amount13-out", "amount14", "amount14-in", "amount14-out", "amount15", "amount15-in", "amount15-out", "amount16", "amount16-in", "amount16-out", "amount17", "amount17-in", "amount17-out", "amount18", "amount18-in", "amount18-out", "amount19", "amount19-in", "amount19-out", "amount2", "amount2-in", "amount2-out", "amount20", "amount20-in", "amount20-out", "amount21", "amount21-in", "amount21-out", "amount22", "amount22-in", "amount22-out", "amount23", "amount23-in", "amount23-out", "amount24", "amount24-in", "amount24-out", "amount25", "amount25-in", "amount25-out", "amount26", "amount26-in", "amount26-out", "amount27", "amount27-in", "amount27-out", "amount28", "amount28-in", "amount28-out", "amount29", "amount29-in", "amount29-out", "amount3", "amount3-in", "amount3-out", "amount30", "amount30-in", "amount30-out", "amount31", "amount31-in", "amount31-out", "amount32", "amount32-in", "amount32-out", "amount33", "amount33-in", "amount33-out", "amount34", "amount34-in", "amount34-out", "amount35", "amount35-in", "amount35-out", "amount36", "amount36-in", "amount36-out", "amount37", "amount37-in", "amount37-out", "amount38", "amount38-in", "amount38-out", "amount39", "amount39-in", "amount39-out", "amount4", "amount4-in", "amount4-out", "amount40", "amount40-in", "amount40-out", "amount41", "amount41-in", "amount41-out", "amount42", "amount42-in", "amount42-out", "amount43", "amount43-in", "amount43-out", "amount44", "amount44-in", "amount44-out", "amount45", "amount45-in", "amount45-out", "amount46", "amount46-in", "amount46-out", "amount47", "amount47-in", "amount47-out", "amount48", "amount48-in", "amount48-out", "amount49", "amount49-in", "amount49-out", "amount5", "amount5-in", "amount5-out", "amount50", "amount50-in", "amount50-out", "amount51", "amount51-in", "amount51-out", "amount52", "amount52-in", "amount52-out", "amount53", "amount53-in", "amount53-out", "amount54", "amount54-in", "amount54-out", "amount55", "amount55-in", "amount55-out", "amount56", "amount56-in", "amount56-out", "amount57", "amount57-in", "amount57-out", "amount58", "amount58-in", "amount58-out", "amount59", "amount59-in", "amount59-out", "amount6", "amount6-in", "amount6-out", "amount60", "amount60-in", "amount60-out", "amount61", "amount61-in", "amount61-out", "amount62", "amount62-in", "amount62-out", "amount63", "amount63-in", "amount63-out", "amount64", "amount64-in", "amount64-out", "amount65", "amount65-in", "amount65-out", "amount66", "amount66-in", "amount66-out", "amount67", "amount67-in", "amount67-out", "amount68", "amount68-in", "amount68-out", "amount69", "amount69-in", "amount69-out", "amount7", "amount7-in", "amount7-out", "amount70", "amount70-in", "amount70-out", "amount71", "amount71-in", "amount71-out", "amount72", "amount72-in", "amount72-out", "amount73", "amount73-in", "amount73-out", "amount74", "amount74-in", "amount74-out", "amount75", "amount75-in", "amount75-out", "amount76", "amount76-in", "amount76-out", "amount77", "amount77-in", "amount77-out", "amount78", "amount78-in", "amount78-out", "amount79", "amount79-in", "amount79-out", "amount8", "amount8-in", "amount8-out", "amount80", "amount80-in", "amount80-out", "amount81", "amount81-in", "amount81-out", "amount82", "amount82-in", "amount82-out", "amount83", "amount83-in", "amount83-out", "amount84", "amount84-in", "amount84-out", "amount85", "amount85-in", "amount85-out", "amount86", "amount86-in", "amount86-out", "amount87", "amount87-in", "amount87-out", "amount88", "amount88-in", "amount88-out", "amount89", "amount89-in", "amount89-out", "amount9", "amount9-in", "amount9-out", "amount90", "amount90-in", "amount90-out", "amount91", "amount91-in", "amount91-out", "amount92", "amount92-in", "amount92-out", "amount93", "amount93-in", "amount93-out", "amount94", "amount94-in", "amount94-out", "amount95", "amount95-in", "amount95-out", "amount96", "amount96-in", "amount96-out", "amount97", "amount97-in", "amount97-out", "amount98", "amount98-in", "amount98-out", "amount99", "amount99-in", "amount99-out", "balance", "balance1", "balance10", "balance11", "balance12", "balance13", "balance14", "balance15", "balance16", "balance17", "balance18", "balance19", "balance2", "balance20", "balance21", "balance22", "balance23", "balance24", "balance25", "balance26", "balance27", "balance28", "balance29", "balance3", "balance30", "balance31", "balance32", "balance33", "balance34", "balance35", "balance36", "balance37", "balance38", "balance39", "balance4", "balance40", "balance41", "balance42", "balance43", "balance44", "balance45", "balance46", "balance47", "balance48", "balance49", "balance5", "balance50", "balance51", "balance52", "balance53", "balance54", "balance55", "balance56", "balance57", "balance58", "balance59", "balance6", "balance60", "balance61", "balance62", "balance63", "balance64", "balance65", "balance66", "balance67", "balance68", "balance69", "balance7", "balance70", "balance71", "balance72", "balance73", "balance74", "balance75", "balance76", "balance77", "balance78", "balance79", "balance8", "balance80", "balance81", "balance82", "balance83", "balance84", "balance85", "balance86", "balance87", "balance88", "balance89", "balance9", "balance90", "balance91", "balance92", "balance93", "balance94", "balance95", "balance96", "balance97", "balance98", "balance99", "code", "comment", "comment1", "comment10", "comment11", "comment12", "comment13", "comment14", "comment15", "comment16", "comment17", "comment18", "comment19", "comment2", "comment20", "comment21", "comment22", "comment23", "comment24", "comment25", "comment26", "comment27", "comment28", "comment29", "comment3", "comment30", "comment31", "comment32", "comment33", "comment34", "comment35", "comment36", "comment37", "comment38", "comment39", "comment4", "comment40", "comment41", "comment42", "comment43", "comment44", "comment45", "comment46", "comment47", "comment48", "comment49", "comment5", "comment50", "comment51", "comment52", "comment53", "comment54", "comment55", "comment56", "comment57", "comment58", "comment59", "comment6", "comment60", "comment61", "comment62", "comment63", "comment64", "comment65", "comment66", "comment67", "comment68", "comment69", "comment7", "comment70", "comment71", "comment72", "comment73", "comment74", "comment75", "comment76", "comment77", "comment78", "comment79", "comment8", "comment80", "comment81", "comment82", "comment83", "comment84", "comment85", "comment86", "comment87", "comment88", "comment89", "comment9", "comment90", "comment91", "comment92", "comment93", "comment94", "comment95", "comment96", "comment97", "comment98", "comment99", "currency", "currency1", "currency10", "currency11", "currency12", "currency13", "currency14", "currency15", "currency16", "currency17", "currency18", "currency19", "currency2", "currency20", "currency21", "currency22", "currency23", "currency24", "currency25", "currency26", "currency27", "currency28", "currency29", "currency3", "currency30", "currency31", "currency32", "currency33", "currency34", "currency35", "currency36", "currency37", "currency38", "currency39", "currency4", "currency40", "currency41", "currency42", "currency43", "currency44", "currency45", "currency46", "currency47", "currency48", "currency49", "currency5", "currency50", "currency51", "currency52", "currency53", "currency54", "currency55", "currency56", "currency57", "currency58", "currency59", "currency6", "currency60", "currency61", "currency62", "currency63", "currency64", "currency65", "currency66", "currency67", "currency68", "currency69", "currency7", "currency70", "currency71", "currency72", "currency73", "currency74", "currency75", "currency76", "currency77", "currency78", "currency79", "currency8", "currency80", "currency81", "currency82", "currency83", "currency84", "currency85", "currency86", "currency87", "currency88", "currency89", "currency9", "currency90", "currency91", "currency92", "currency93", "currency94", "currency95", "currency96", "currency97", "currency98", "currency99", "date", "date2", "description", "end", "skip", or "status"
+```
+
+
+### csviftablenonempty
+```
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./csviftablenonempty.csv.rules:2:1:
+  |
+2 | if,date,description,comment
+  | ^
+start of conditional table found, but no assignment rules afterward
+```
+
+
+### csviftablevaluecount
+```
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./csviftablevaluecount.csv.rules:4:1:
+  |
+4 | one,val1
+  | ^
+line of conditional table should have 2 values, but this one has only 1
+```
+
+
+### csvnoinclude
+```
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./csvnoinclude.j:4:23:
+  |
+4 | include csvinclude.csv
+  |                       ^
+No existing files match pattern: csvinclude.csv
+```
+
+
+### csvskipvalue
+```
+hledger: Error: could not parse skip value: "badval"
+```
+
+
+### csvstatusparse
+```
+hledger: Error: error: could not parse "badstatus" as a cleared status (should be *, ! or empty)
+the parse error is:      1:1:
+  |
+1 | badstatus
+  | ^
+unexpected 'b'
+expecting '!', '*', or end of input
+```
+
+
+### csvstdinrules
+```
+hledger: Error: please use --rules-file when reading CSV from stdin
+```
+
+
+### csvtwofields
+```
+hledger: Error: CSV record ["b"] has less than two fields
+```
+
+
+### csvstdinrules
+```
+hledger: Error: please use --rules-file when reading CSV from stdin
 ```
 

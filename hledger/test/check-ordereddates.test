@@ -12,7 +12,7 @@ $ hledger -f- check ordereddates
 2020-01-01
   (a)  1
 $ hledger -f- check ordereddates
->2 /transaction date is out of order/
+>2 /date .*is out of order/
 >=1
 
 # With --date2, it checks secondary dates instead
@@ -26,7 +26,7 @@ $ hledger -f- check ordereddates --date2
 2020-01-01=2020-01-03
 2020-01-02
 $ hledger -f- check ordereddates --date2
->2 /transaction date2 is out of order/
+>2 /date2 .*is out of order/
 >=1
 
 # XXX not supported: With a query, only matched transactions' dates are checked.

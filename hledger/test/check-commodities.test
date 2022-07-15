@@ -10,7 +10,7 @@ $ hledger -f- check commodities
 2020-01-01
   (a)  $1
 $ hledger -f- check commodities
->2 /undeclared commodity "\$"/
+>2 /commodity "\$" has not been declared/
 >=1
 
 # 3. But commodityless zero amounts will not fail
@@ -27,5 +27,5 @@ $ hledger -f- check commodities
   (a)  $0
 
 $ hledger -f- check commodities
->2 /undeclared commodity "\$"/
+>2 /commodity "\$" has not been declared/
 >=1

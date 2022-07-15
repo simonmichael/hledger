@@ -1,0 +1,5 @@
+#!/usr/bin/env -S hledger print -f 
+# Non-zero for both amount-in and amount-out.
+2022-01-01,1,
+2022-01-02,1,0
+2022-01-03,1,2

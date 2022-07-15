@@ -115,12 +115,12 @@ transactionCheckBalanced BalancingOpts{commodity_styles_} t = errs
       where
         rmsg
           | rsumok        = ""
-          | not rsignsok  = "real postings all have the same sign"
-          | otherwise     = "real postings' sum should be 0 but is: " ++ showMixedAmount rsumcost
+          | not rsignsok  = "The real postings all have the same sign. Consider negating some of them."
+          | otherwise     = "The real postings' sum should be 0 but is: " ++ showMixedAmountOneLine rsumcost
         bvmsg
           | bvsumok       = ""
-          | not bvsignsok = "balanced virtual postings all have the same sign"
-          | otherwise     = "balanced virtual postings' sum should be 0 but is: " ++ showMixedAmount bvsumcost
+          | not bvsignsok = "The balanced virtual postings all have the same sign. Consider negating some of them."
+          | otherwise     = "The balanced virtual postings' sum should be 0 but is: " ++ showMixedAmountOneLine bvsumcost
 
 -- | Legacy form of transactionCheckBalanced.
 isTransactionBalanced :: BalancingOpts -> Transaction -> Bool
@@ -157,20 +157,36 @@ balanceTransactionHelper bopts t = do
     if infer_transaction_prices_ bopts then inferBalancingPrices t else t
   case transactionCheckBalanced bopts t' of
     []   -> Right (txnTieKnot t', inferredamtsandaccts)
-    errs -> Left $ transactionBalanceError t' errs
+    errs -> Left $ transactionBalanceError t' errs'
+      where
+        ismulticommodity = (length $ transactionCommodities t') > 1
+        errs' =
+          [ "Automatic commodity conversion is not enabled."
+          | ismulticommodity && not (infer_transaction_prices_ bopts)
+          ] ++
+          errs ++
+          if ismulticommodity
+          then
+          [ "Consider adjusting this entry's amounts, adding missing postings,"
+          , "or recording conversion price(s) with @, @@ or equity postings." 
+          ]
+          else
+          [ "Consider adjusting this entry's amounts, or adding missing postings."
+          ]
+
+transactionCommodities :: Transaction -> S.Set CommoditySymbol
+transactionCommodities t = mconcat $ map (maCommodities . pamount) $ tpostings t
 
 -- | Generate a transaction balancing error message, given the transaction
 -- and one or more suberror messages.
 transactionBalanceError :: Transaction -> [String] -> String
-transactionBalanceError t errs = printf (unlines
-  [ "unbalanced transaction: %s:",
-    "%s",
-    "\n%s"
-  ])
+transactionBalanceError t errs = printf "%s:\n%s\n\nThis %stransaction is unbalanced.\n%s"
   (sourcePosPairPretty $ tsourcepos t)
   (textChomp ex)
+  (if ismulticommodity then "multi-commodity " else "" :: String)
   (chomp $ unlines errs)
   where
+    ismulticommodity = (length $ transactionCommodities t) > 1
     (_f,_l,_mcols,ex) = makeTransactionErrorExcerpt t finderrcols
       where
         finderrcols _ = Nothing
@@ -193,12 +209,12 @@ inferBalancingAmount ::
 inferBalancingAmount styles t@Transaction{tpostings=ps}
   | length amountlessrealps > 1
       = Left $ transactionBalanceError t
-        ["can't have more than one real posting with no amount"
-        ,"(remember to put two or more spaces between account and amount)"]
+        ["There can't be more than one real posting with no amount."
+        ,"(Remember to put two or more spaces between account and amount.)"]
   | length amountlessbvps > 1
       = Left $ transactionBalanceError t
-        ["can't have more than one balanced virtual posting with no amount"
-        ,"(remember to put two or more spaces between account and amount)"]
+        ["There can't be more than one balanced virtual posting with no amount."
+        ,"(Remember to put two or more spaces between account and amount.)"]
   | otherwise
       = let psandinferredamts = map inferamount ps
             inferredacctsandamts = [(paccount p, amt) | (p, Just amt) <- psandinferredamts]
@@ -577,42 +593,45 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedamt 
       aquantity
         -- traceWith (("actual:"++).showAmountDebug)
         actualbalincomm
-    errmsg = printf (unlines
-      [ "balance assertion: %s:",
+    errmsg = chomp $ printf (unlines
+      [ "%s:",
         "%s\n",
+        "This balance assertion failed.",
         -- "date:       %s",
-        "account:    %-30s%s",
-        "commodity:  %-30s%s",
+        "In account:    %s",
+        "and commodity: %s",
         -- "display precision:  %d",
-        "asserted:   %s", -- (at display precision: %s)",
-        "actual:     %s", -- (at display precision: %s)",
-        "difference: %s"
+        "this balance was asserted: %s", -- (at display precision: %s)",
+        "but the actual balance is: %s", -- (at display precision: %s)",
+        "a difference of:           %s",
+        "",
+        "Consider viewing this account's register to troubleshoot. Eg:",
+        "",
+        "hledger reg -I '%s'%s"
       ])
       (sourcePosPretty pos)
       (textChomp ex)
       -- (showDate $ postingDate p)
-      (T.unpack $ paccount p) -- XXX pack
-      (if isinclusive then " (including subaccounts)" else "" :: String)
-      assertedcomm
-      (if istotal then " (no other commodity balance allowed)" else "" :: String)
+      (if isinclusive then printf "%-30s  (including subaccounts)" acct else acct)
+      (if istotal     then printf "%-30s  (no other commodities allowed)" (T.unpack assertedcomm) else (T.unpack assertedcomm))
       -- (asprecision $ astyle actualbalincommodity)  -- should be the standard display precision I think
-      (show $ aquantity actualbalincomm)
-      -- (showAmount actualbalincommodity)
       (show $ aquantity assertedamt)
       -- (showAmount assertedamt)
+      (show $ aquantity actualbalincomm)
+      -- (showAmount actualbalincommodity)
       (show $ aquantity assertedamt - aquantity actualbalincomm)
+      (acct ++ if isinclusive then "" else "$")
+      (if istotal then "" else (" cur:'"++T.unpack assertedcomm++"'"))
       where
+        acct = T.unpack $ paccount p
         ass = fromJust $ pbalanceassertion p  -- PARTIAL: fromJust won't fail, there is a balance assertion
         pos = baposition ass
         (_,_,_,ex) = makePostingErrorExcerpt p finderrcols
           where
             finderrcols p t trendered = Just (col, Just col2)
               where
-                -- col  = unPos $ sourceColumn pos
-                -- col2 = col + (length $ wbUnpack $ showBalanceAssertion ass)
-                -- The saved parse position may not correspond to the rendering in the error message.
-                -- Instead, we analyse the rendering to find the columns:
-                tlines = length $ T.lines $ tcomment t  -- transaction comment can generate extra lines
+                -- Analyse the rendering to find the columns to highlight.
+                tlines = dbg5 "tlines" $ max 1 $ length $ T.lines $ tcomment t  -- transaction comment can generate extra lines
                 (col, col2) =
                   let def = (5, maximum (map T.length $ T.lines trendered))  -- fallback: underline whole posting. Shouldn't happen.
                   in
@@ -621,8 +640,8 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedamt 
                       Just idx -> fromMaybe def $ do
                         let
                           beforeps = take (idx-1) $ tpostings t
-                          beforepslines = sum $ map (length . T.lines . pcomment) beforeps   -- posting comment can generate extra lines (assume only one commodity shown)
-                        assertionline <- headMay $ drop (tlines + beforepslines) $ T.lines trendered
+                          beforepslines = dbg5 "beforepslines" $ sum $ map (max 1 . length . T.lines . pcomment) beforeps   -- posting comment can generate extra lines (assume only one commodity shown)
+                        assertionline <- dbg5 "assertionline" $ headMay $ drop (tlines + beforepslines) $ T.lines trendered
                         let
                           col2 = T.length assertionline
                           l = dropWhile (/= '=') $ reverse $ T.unpack assertionline
@@ -646,7 +665,7 @@ checkBalanceAssignmentPostingDateB :: Posting -> Balancing s ()
 checkBalanceAssignmentPostingDateB p =
   when (hasBalanceAssignment p && isJust (pdate p)) $
     throwError $ chomp $ unlines [
-       "can't use balance assignment with custom posting date"
+       "Balance assignments and custom posting dates may not be combined."
       ,""
       ,chomp1 $ T.unpack $ maybe (T.unlines $ showPostingLines p) showTransaction $ ptransaction p
       ,"Balance assignments may not be used on postings with a custom posting date"
@@ -662,7 +681,7 @@ checkBalanceAssignmentUnassignableAccountB p = do
   unassignable <- R.asks bsUnassignable
   when (hasBalanceAssignment p && paccount p `S.member` unassignable) $
     throwError $ chomp $ unlines [
-       "can't use balance assignment with auto postings"
+       "Balance assignments and auto postings may not be combined."
       ,""
       ,chomp1 $ T.unpack $ maybe (T.unlines $ showPostingLines p) (showTransaction) $ ptransaction p
       ,"Balance assignments may not be used on accounts affected by auto posting rules"

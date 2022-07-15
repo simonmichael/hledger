@@ -26,6 +26,7 @@ import Hledger.Utils
 -- on the transaction line, and a column(s) marker.
 -- Returns the file path, line number, column(s) if known,
 -- and the rendered excerpt, or as much of these as is possible.
+-- A limitation: columns will be accurate for the rendered error message but not for the original journal data.
 makeTransactionErrorExcerpt :: Transaction -> (Transaction -> Maybe (Int, Maybe Int)) -> (FilePath, Int, Maybe (Int, Maybe Int), Text)
 makeTransactionErrorExcerpt t findtxnerrorcolumns = (f, tl, merrcols, ex)
   -- XXX findtxnerrorcolumns is awkward, I don't think this is the final form
@@ -58,6 +59,7 @@ decorateTransactionErrorExcerpt l mcols txt =
 -- on the problem posting's line, and a column indicator.
 -- Returns the file path, line number, column(s) if known,
 -- and the rendered excerpt, or as much of these as is possible.
+-- A limitation: columns will be accurate for the rendered error message but not for the original journal data.
 makePostingErrorExcerpt :: Posting -> (Posting -> Transaction -> Text -> Maybe (Int, Maybe Int)) -> (FilePath, Int, Maybe (Int, Maybe Int), Text)
 makePostingErrorExcerpt p findpostingerrorcolumns =
   case ptransaction p of

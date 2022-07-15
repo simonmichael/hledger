@@ -160,7 +160,7 @@ $ hledger -f- print --auto -x
 
 # 9.
 $ hledger print -f- --auto
->2 /can't use balance assignment with auto postings/
+>2 /Balance assignments and auto postings may not be combined/
 >=1
 
 

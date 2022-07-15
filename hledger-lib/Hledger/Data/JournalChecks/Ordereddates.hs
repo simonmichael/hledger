@@ -6,11 +6,12 @@ where
 import Control.Monad (forM)
 import Data.List (groupBy)
 import Text.Printf (printf)
-import Data.Maybe (fromMaybe)
+import qualified Data.Text as T (pack, unlines)
 
 import Hledger.Data.Errors (makeTransactionErrorExcerpt)
 import Hledger.Data.Transaction (transactionFile, transactionDateOrDate2)
 import Hledger.Data.Types
+import Hledger.Utils (textChomp)
 
 journalCheckOrdereddates :: WhichDate -> Journal -> Either String ()
 journalCheckOrdereddates whichdate j = do
@@ -26,15 +27,17 @@ journalCheckOrdereddates whichdate j = do
       FoldAcc{fa_previous=Nothing} -> Right ()
       FoldAcc{fa_error=Nothing}    -> Right ()
       FoldAcc{fa_error=Just t, fa_previous=Just tprev} -> Left $ printf
-        "%s:%d:%d-%d:\n%stransaction date%s is out of order with previous transaction date %s" 
-        f l col col2 ex datenum tprevdate
+        ("%s:%d:\n%s\nOrdered dates checking is enabled, and this transaction's\n"
+          ++ "date%s (%s) is out of order with the previous transaction.\n" 
+          ++ "Consider moving this entry into date order, or adjusting its date.")
+        f l ex datenum (show $ getdate t)
         where
-          (f,l,mcols,ex) = makeTransactionErrorExcerpt t finderrcols
-          col  = maybe 0 fst mcols
-          col2 = maybe 0 (fromMaybe 0 . snd) mcols
+          (_,_,_,ex1) = makeTransactionErrorExcerpt tprev (const Nothing)
+          (f,l,_,ex2) = makeTransactionErrorExcerpt t finderrcols
+          -- separate the two excerpts by a space-beginning line to help flycheck-hledger parse them
+          ex = T.unlines [textChomp ex1, T.pack " ", textChomp ex2]
           finderrcols _t = Just (1, Just 10)
           datenum   = if whichdate==SecondaryDate then "2" else ""
-          tprevdate = show $ getdate tprev
 
 data FoldAcc a b = FoldAcc
  { fa_error    :: Maybe a

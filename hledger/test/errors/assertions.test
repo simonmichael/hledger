@@ -1,14 +1,15 @@
-$ hledger check -f assertions.j
->2 /hledger: Error: balance assertion: .*assertions.j:4:8:
-  | 2022-01-01
-4 |     a               0 = 1
-  | ^^^^^^^^^^
+$$$ hledger check -f assertions.j
+>>>2 /hledger: Error: .*assertions.j:4:8:
+  \| 2022-01-01
+4 \|     a               0 = 1
+  \|                       \^\^\^
 
-account:    a                             
-commodity:                                
-asserted:   0
-actual:     1
-difference: 1
+This balance assertion failed.
+In account:    a
+and commodity: 
+this balance was asserted: 1
+but the actual balance is: 0
+a difference of:           1
 
-/
->=1
+Consider viewing this account'/
+>>>= 1

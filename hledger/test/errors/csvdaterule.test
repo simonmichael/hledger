@@ -1,0 +1,6 @@
+$$$ hledger check -f  csvdaterule.csv
+>>>2 /hledger: Error: offset=0:
+Please specify \(at top level\) the date field. Eg: date %1
+
+/
+>>>= 1
