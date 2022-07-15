@@ -1,4 +1,4 @@
-$$$ hledger print -f  csvamountonenonzero.csv
+$$$ hledger check -f  csvamountonenonzero.csv
 >>>2 /hledger: Error: multiple non-zero amounts assigned,
 please ensure just one. \(https:\/\/hledger.org\/csv.html#amount\)
   record values: "2022-01-03","1","2"

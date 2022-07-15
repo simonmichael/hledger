@@ -1,5 +1,6 @@
 #!/usr/bin/env -S hledger print -f 
 # Status value not parseable.
+# check not sufficient to show this error, print is needed
 2022-01-01,*
 2022-01-02,!
 2022-01-03,

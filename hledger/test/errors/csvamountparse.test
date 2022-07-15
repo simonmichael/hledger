@@ -1,4 +1,4 @@
-$$$ hledger print -f  csvamountparse.csv
+$$$ hledger check -f  csvamountparse.csv
 >>>2 /hledger: Error: error: could not parse "badamount" as an amount
 record values: "2022-01-03","badamount"
 the amount rule is: %2

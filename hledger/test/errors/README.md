@@ -453,11 +453,7 @@ line of conditional table should have 2 values, but this one has only 1
 
 ### csvnoinclude
 ```
-hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./csvnoinclude.j:4:23:
-  |
-4 | include csvinclude.csv
-  |                       ^
-No existing files match pattern: csvinclude.csv
+hledger: Error: sorry, CSV files can't be included yet
 ```
 
 

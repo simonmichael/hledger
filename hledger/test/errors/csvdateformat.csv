@@ -1,4 +1,4 @@
 #!/usr/bin/env -S hledger print -f 
 # See rules (missing/bad date-format rule).
-# Note check doesn't show this error; print was needed.
+# Note check doesn't show this error, print is needed.
 a,b

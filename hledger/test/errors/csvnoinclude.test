@@ -1,9 +1,4 @@
 $$$ hledger check -f  csvnoinclude.j
->>>2 /hledger: Error: .*csvnoinclude.j:4:23:
-  \|
-4 \| include csvinclude.csv
-  \|                       \^
-No existing files match pattern: csvinclude.csv
-
+>>>2 /hledger: Error: sorry, CSV files can't be included yet
 /
 >>>= 1
