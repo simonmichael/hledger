@@ -37,53 +37,6 @@ Some files contain extra declarations to ease flycheck testing.
 - [x] ~~phase 13: decide/add error ids/explanations/web pages ? not needed~~
 - [ ] phase 14: support Language Server Protocol & Visual Code
 
-## Current status
-
-Here is the current status
-(hledger 1.26.99-gaeae7232c-20220714, flycheck-hledger g1310cb518): <!-- <- MANUALLY KEEP SYNCED WITH GENERATED: BELOW -->
-
-| error/check name         | std format | line | column | excerpt | flycheck |
-|--------------------------|------------|------|--------|---------|----------|
-| accounts                 | ✓          | ✓    | ✓      | ✓✓      | ✓        |
-| assertions               | ✓          | ✓    | ✓      | ✓✓      | ✓        |
-| balanced                 | ✓          | ✓    | -      | ✓       | ✓        |
-| balancednoautoconversion | ✓          | ✓    | -      | ✓       | ✓        |
-| commodities              | ✓          | ✓    | ✓      | ✓✓      | ✓        |
-| ordereddates             | ✓          | ✓    | ✓      | ✓✓      | ✓        |
-| parseable                | ✓          | ✓    | ✓      | ✓✓      | ✓        |
-| parseable-dates          | ✓          | ✓    | ✓      | ✓✓      | ✓        |
-| parseable-regexps        | ✓          | ✓    | ✓      | ✓✓      | ✓        |
-| payees                   | ✓          | ✓    | ✓      | ✓✓      | ✓        |
-| uniqueleafnames          | ✓          | ✓    | ✓      | ✓✓      | ✓        |
-| tcclockouttime           | ✓          | ✓    | ✓      | ✓✓      |          |
-| tcorderedactions         | ✓          | ✓    | ✓      | ✓✓      |          |
-| csvamountonenonzero      |            |      |        |         |          |
-| csvamountparse           |            |      |        |         |          |
-| csvbalanceparse          |            |      |        |         |          |
-| csvbalancetypeparse      |            |      |        |         |          |
-| csvdateformat            |            |      |        |         |          |
-| csvdateparse             |            |      |        |         |          |
-| csvdaterule              |            |      |        |         |          |
-| csvdecimalmarkparse      |            |      |        |         |          |
-| csvifblocknonempty       |            | ✓    | ✓      | ✓       |          |
-| csviftablefieldnames     |            | ✓    | ✓      | ✓✓      |          |
-| csviftablenonempty       |            | ✓    | ✓      | ✓       |          |
-| csviftablevaluecount     |            | ✓    | ✓      | ✓       |          |
-| csvnoinclude             |            | ✓    | ✓      | ✓       |          |
-| csvskipvalue             |            |      |        |         |          |
-| csvstatusparse           |            |      |        | ✓       |          |
-| csvstdinrules            |            |      |        |         |          |
-| csvtwofields             |            |      |        |         |          |
-| csvstdinrules            |            |      |        |         |          |
-
-
-Key:
-- std format - the error message follows a standard format (location on first line, megaparsec-like excerpt, explanation)
-- line       - correct line numbers are reported
-- column     - useful column numbers are reported
-- excerpt    - a useful excerpt is shown, ideally with the error highlighted (✓✓)
-- flycheck   - the current flycheck release (or a PR branch) recognises the error and highlights a useful region
-
 ## Preferred error format
 
 Here is our current standard error message layout. 
@@ -117,14 +70,60 @@ Notes (see also [#1436][]):
 
 Here are some current limitations of hledger's error messages:
 
-- We report only one error at a time. You have to fix or bypass the current error to see any others.
+- We report only one error at a time. You have to fix (or bypass) the current error to see any others.
 
-- We currently don't save enough information for perfect analysis of the original data.
-  So we generally don't report perfect start/end line/column numbers;
-  usually just the line number(s), sometimes with the starting column number.
+- We currently don't save perfect position information when parsing,
+  so we sometimes report only line number(s), without column number(s).
 
-- For the same reason, the excerpts shown in error messages are not the actual original data.
+- For the same reason, the excerpts we show in error messages are not the original data.
   Instead we show a synthetic rendering that is similar enough to be explanatory.
+
+## Current status
+
+Here is the current status as of
+hledger 1.26.99-gaeae7232c-20220714, flycheck-hledger g1310cb518. <!-- <- MANUALLY KEEP SYNCED WITH GENERATED: BELOW -->
+Click error names to see an example. Key:
+
+- std format - the error message follows a standard format (location on first line, megaparsec-like excerpt, explanation)
+- line       - correct line numbers are reported
+- column     - useful column numbers are reported
+- excerpt    - a useful excerpt is shown, ideally with the error highlighted (✓✓)
+- flycheck   - the current flycheck release (or a PR branch) recognises the error and highlights a useful region
+
+| error/check name                                      | std format | line | column | excerpt | flycheck |
+|-------------------------------------------------------|------------|------|--------|---------|----------|
+| [accounts](#accounts)                                 | ✓          | ✓    | ✓      | ✓✓      | ✓        |
+| [assertions](#assertions)                             | ✓          | ✓    | ✓      | ✓✓      | ✓        |
+| [balanced](#balanced)                                 | ✓          | ✓    | -      | ✓       | ✓        |
+| [balancednoautoconversion](#balancednoautoconversion) | ✓          | ✓    | -      | ✓       | ✓        |
+| [commodities](#commodities)                           | ✓          | ✓    | ✓      | ✓✓      | ✓        |
+| [ordereddates](#ordereddates)                         | ✓          | ✓    | ✓      | ✓✓      | ✓        |
+| [parseable](#parseable)                               | ✓          | ✓    | ✓      | ✓✓      | ✓        |
+| [parseable-dates](#parseable-dates)                   | ✓          | ✓    | ✓      | ✓✓      | ✓        |
+| [parseable-regexps](#parseable-regexps)               | ✓          | ✓    | ✓      | ✓✓      | ✓        |
+| [payees](#payees)                                     | ✓          | ✓    | ✓      | ✓✓      | ✓        |
+| [uniqueleafnames](#uniqueleafnames)                   | ✓          | ✓    | ✓      | ✓✓      | ✓        |
+| [tcclockouttime](#tcclockouttime)                     | ✓          | ✓    | ✓      | ✓✓      |          |
+| [tcorderedactions](#tcorderedactions)                 | ✓          | ✓    | ✓      | ✓✓      |          |
+| [csvamountonenonzero](#csvamountonenonzero)           |            |      |        |         |          |
+| [csvamountparse](#csvamountparse)                     |            |      |        |         |          |
+| [csvbalanceparse](#csvbalanceparse)                   |            |      |        |         |          |
+| [csvbalancetypeparse](#csvbalancetypeparse)           |            |      |        |         |          |
+| [csvdateformat](#csvdateformat)                       |            |      |        |         |          |
+| [csvdateparse](#csvdateparse)                         |            |      |        |         |          |
+| [csvdaterule](#csvdaterule)                           |            |      |        |         |          |
+| [csvdecimalmarkparse](#csvdecimalmarkparse)           |            |      |        |         |          |
+| [csvifblocknonempty](#csvifblocknonempty)             |            | ✓    | ✓      | ✓       |          |
+| [csviftablefieldnames](#csviftablefieldnames)         |            | ✓    | ✓      | ✓✓      |          |
+| [csviftablenonempty](#csviftablenonempty)             |            | ✓    | ✓      | ✓       |          |
+| [csviftablevaluecount](#csviftablevaluecount)         |            | ✓    | ✓      | ✓       |          |
+| [csvnoinclude](#csvnoinclude)                         |            | ✓    | ✓      | ✓       |          |
+| [csvskipvalue](#csvskipvalue)                         |            |      |        |         |          |
+| [csvstatusparse](#csvstatusparse)                     |            |      |        | ✓       |          |
+| [csvstdinrules](#csvstdinrules)                       |            |      |        |         |          |
+| [csvtwofields](#csvtwofields)                         |            |      |        |         |          |
+| [csvstdinrules](#csvstdinrules)                       |            |      |        |         |          |
+
 
 ## Current error messages
 
