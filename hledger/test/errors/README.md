@@ -40,7 +40,7 @@ Some files contain extra declarations to ease flycheck testing.
 ## Current status
 
 Here is the current status
-(hledger 1.26.99-gb7e6583a7-20220710, flycheck 87b275b9):
+(hledger 1.26.99-gaeae7232c-20220714, flycheck-hledger g1310cb518): <!-- <- MANUALLY KEEP SYNCED WITH GENERATED: BELOW -->
 
 | error/check name         | std format | line | column | excerpt | flycheck |
 |--------------------------|------------|------|--------|---------|----------|
