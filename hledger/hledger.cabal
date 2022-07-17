@@ -137,7 +137,7 @@ library
   cpp-options: -DVERSION="1.26.99"
   build-depends:
       Decimal >=0.5.1
-    , Diff
+    , Diff >= 0.2
     , aeson >=1
     , ansi-terminal >=0.9
     , base >=4.11 && <4.17
@@ -148,7 +148,7 @@ library
     , directory
     , extra >=1.6.3
     , filepath
-    , githash >=0.1.4
+    , githash >=0.1.6.1
     , hashable >=1.2.4
     , haskeline >=0.6
     , hledger-lib >=1.26.99 && <1.27
