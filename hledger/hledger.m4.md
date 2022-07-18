@@ -1184,10 +1184,11 @@ A *decimal mark* can be written as a period or a comma:
 
 In the integer part of the quantity (left of the decimal mark), groups
 of digits can optionally be separated by a *digit group mark* - a
-space, comma, or period (different from the decimal mark):
+space, comma, single quote, or period (different from the decimal mark):
 
          $1,000,000.00
       EUR 2.000.000,00
+      CHF 2'000'000.00
     INR 9,99,99,999.00
           1 000 000.9455
 
@@ -2192,9 +2193,10 @@ by 0 or more decimal digits.
 
 A few more examples:
 ```journal
-# number formats for $, EUR, INR and the no-symbol commodity:
+# number formats for $, EUR, CHF, INR and the no-symbol commodity:
 commodity $1,000.00
 commodity EUR 1.000,00
+commodity CHF 1'000.00
 commodity INR 9,99,99,999.0
 commodity 1 000 000.
 ```
