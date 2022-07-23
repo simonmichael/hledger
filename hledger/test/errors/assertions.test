@@ -7,9 +7,8 @@ $$$ hledger check -f assertions.j
 This balance assertion failed.
 In account:    a
 and commodity: 
-this balance was asserted: 1
-but the actual balance is: 0
-a difference of:           1
-
-Consider viewing this account'/
+this balance was asserted:     1
+but the calculated balance is: 0
+a difference of:               1
+/
 >>>= 1

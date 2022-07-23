@@ -97,7 +97,7 @@ $ hledger -f - print --explicit
     assets                           $-135
     expenses:other                    £200
 $ hledger -f - print
->2 /unbalanced transaction/
+>2 /transaction is unbalanced/
 >= !0
 
 # 9. another
@@ -170,7 +170,7 @@ $ hledger -f - balance -N
 
 # 15. Should not infer prices when --strict is specified
 $ hledger -f - balance --strict
->2 /unbalanced transaction/
+>2 /transaction is unbalanced/
 >=1
 
 <
@@ -181,7 +181,7 @@ $ hledger -f - balance --strict
 # 16. When commodity price is specified implicitly, transaction should
 #     NOT be considered balanced out when BOTH amounts are negative
 $ hledger -f - balance
->2 /unbalanced transaction/
+>2 /transaction is unbalanced/
 >=1
 
 # 17. Differently-priced lots of a commodity should be merged in balance report
