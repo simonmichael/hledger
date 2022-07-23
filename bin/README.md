@@ -149,6 +149,15 @@ $ hledger pijul status
 $ hledger pijul record [MSG]
 ```
 
+### hledger-addon-example
+
+[`hledger-addon-example.hs`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-addon-example.hs)
+is a starter template for a hledger add-on command.
+It has the same structure as most of the other add-ons here:
+- implemented as a stack script for robustness
+- includes command line help
+- accepts common hledger options
+
 ### hledger-print-location
 
 [`hledger-print-location.hs`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-print-location.hs)
