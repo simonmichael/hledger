@@ -84,13 +84,12 @@ $ echo "export PATH=$PATH:$PWD/bin" >>~/.bash_profile"
 $ export PATH=$PATH:$PWD/bin
 ```
 
-Scripts with no file extension are mostly [bash] scripts except where noted; 
-if you use another shell you might have to adapt them.
+Scripts with no file extension are mostly [bash] scripts except where noted.
+if you don't want to install bash you might have to adapt them to your shell.
 
-Scripts with a `.hs` file extension are usually [stack scripts][],
-requiring [stack][] to run. If you prefer you can adapt them to be
-cabal scripts or install their required libraries yourself and
-run/compile them with suitable runghc/ghc commands.
+Scripts with a `.hs` file extension are usually [stack scripts][], requiring [stack][] to run. 
+If you don't want to install stack you can adapt them to be cabal scripts,
+or install their required libraries yourself and run/compile them with suitable runghc/ghc commands.
 See also [Working with hledger-*.hs scripts](#working-with-hledger-hs-scripts) below.
 
 [bash]: https://www.gnu.org/software/bash
