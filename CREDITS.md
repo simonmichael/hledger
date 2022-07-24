@@ -1,4 +1,4 @@
-# hledger CREDITS
+# CREDITS
 
 hledger is brought to you by the
 
