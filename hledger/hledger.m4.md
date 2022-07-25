@@ -1788,7 +1788,7 @@ Programs or scripts named `hledger-SOMETHING` in your PATH are
 [add-on commands](#add-on-commands); these appear in the
 commands list with a `+` mark. 
 The following add-on commands can be installed, eg by the
-[hledger-install script](https://hledger.org/install.html#with-hledger-install):
+[hledger-install script](https://hledger.org/install.html#build-methods):
 
 - **[ui](hledger-ui.html)**   - hledger's official curses-style TUI
 - **[web](hledger-web.html)** - hledger's official web UI
