@@ -11,7 +11,7 @@ Some things to check before requesting:
 
 - We try to not clutter the bug tracker with too many wishlist items.
   Often it's best to discuss and attract interest on chat or the mail list first;
-  use your best judgement. https://hledger.org/support.html-feedback
+  use your best judgement. https://hledger.org/support.html
 
 - Have you looked for related features in (the right version of) the user manual ? 
   Use `hledger help [--help]` to view the built-in manuals,

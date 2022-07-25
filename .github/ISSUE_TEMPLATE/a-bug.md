@@ -10,7 +10,7 @@ You can delete this template text before submitting.
 Some things to check before reporting:
 
 - If you're not sure this is a bug, or if some discussion would help,
-  contact us on chat or the mail list first: https://hledger.org/support.html-feedback
+  contact us on chat or the mail list first: https://hledger.org/support.html
 
 - Have you looked at (the right version of) the user manual ? 
   Use `hledger help [--help]` to view the built-in manuals,
