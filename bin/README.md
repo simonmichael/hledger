@@ -7,89 +7,33 @@
 
 This document is the README in the hledger repo's [bin] directory, 
 and is also published as [Scripts] on hledger.org.
-Here we collect some extra scripts you can use to augment the core hledger tools.
-These are either useful in themselves, or serve as examples/starting points for making your own scripts.
+Here we collect hledger scripts: additional small tools which complement hledger in some way.
+These can be
 
-For a longer list of PTA tools (not hledger-specific), see [plaintextaccounting.org](https://plaintextaccounting.org).
+- shell aliases or functions, often defined in your shell's startup file
+- shell script files
+- programs written in languages like Python or Haskell.
+  Haskell scripts are the most powerful since they can call hledger's Haskell API.
+
+The current bin scripts are listed below, categorised by how they invoke hledger
+(not at all / via CLI / via Haskell API).
+These are either useful in themselves, or serve as examples/templates for making your own.
+The scripts named `hledger-*` are *[add-on commands](https://hledger.org/dev/hledger.html#addons)*,
+which means they will show up in hledger's [commands list](hledger.html#commands).
+Following the list are the [install instructions](#installing-the-bin-scripts) and other tips.
+
+See also:
+- [Scripting hledger] - more on this topic
+- [plaintextaccounting.org](https://plaintextaccounting.org) - a longer list of PTA tools (not hledger-specific)
 
 <!-- This page can be viewed on github or hledger.org, so use absolute urls. -->
 [bin]:                https://github.com/simonmichael/hledger/tree/master/bin
 [Scripts]:            https://hledger.org/scripts.html
 [Scripting hledger]:  https://hledger.org/scripting.html
 
-## About hledger scripts
-
-We are using the word "scripts" broadly here, meaning:
-
-- shell aliases, functions, or executable shell script files
-- or programs written in other languages like Python
-- or programs written in Haskell, optionally compiled
-
-We can categorise scripts by how they use hledger:
-
-- *hledger-related*    scripts don't use hledger directly, but perform tasks related to it
-- *hledger-running*    scripts run hledger's command line interface in some useful way
-- *hledger-integrated* scripts call hledger as a library, to do more powerful things. These must be written in Haskell.
-
-Also,
-
-- any script or program file which is named `hledger-something`, executable,
-  and in your shell's PATH, is called an *[add-on command](https://hledger.org/dev/hledger.html#addons)*.
-  These will show up in hledger's [commands list](hledger.html#commands), much like the built-in commands.
-  Many of the scripts listed below are add-on commands.
-
-Scripts can be: <!--  also vary in availability/packaging status; they -->
-
-- local, used only by you
-- or shared online
-- or included in the bin directory and listed on this page
-- (or published as haskell/system packages, and then we might stop calling them "scripts").
-
-See also: [Scripting hledger]
-
-
-## Installing
-
-The scripts collected here in the 
-[bin](https://github.com/simonmichael/hledger/tree/master/bin) directory
-are not automatically installed along with hledger; 
-if you want them you must install them separately, as follows:
-
-```cli
-# suggested: go to wherever you keep financial files
-$ cd ~/finance
-
-# get the hledger repo (the fast way, without version control):
-$ curl -LOJ https://github.com/simonmichael/hledger/archive/refs/heads/master.zip && unzip hledger-master.zip && mv hledger-master hledger
-
-# (or the slow way, with version control for easy diffing/updating/contributing):
-# git clone https://github.com/simonmichael/hledger.git
-
-# symlink the bin directory (or you can copy it):
-$ ln -s hledger/bin
-
-# add this directory to your PATH. Eg as a bash user:
-$ echo "export PATH=$PATH:$PWD/bin" >>~/.bash_profile"
-$ export PATH=$PATH:$PWD/bin
-```
-
-Scripts with no file extension are mostly [bash] scripts except where noted.
-if you don't want to install bash you might have to adapt them to your shell.
-
-Scripts with a `.hs` file extension are usually [stack scripts], requiring [stack] to run. 
-If you don't want to install stack you can adapt them to be cabal scripts,
-or install their required libraries yourself and run/compile them with suitable runghc/ghc commands.
-See also [Working with hledger-*.hs scripts](#working-with-hledger-hs-scripts) below.
-
-[bash]: https://www.gnu.org/software/bash
-[stack]: https://haskellstack.org
-[stack scripts]: https://docs.haskellstack.org/en/stable/GUIDE/#script-interpreter
-
-
-
-Here are the scripts currently collected in the bin directory:
-
 ## hledger-related scripts
+
+These don't run hledger, but are related to it in some way:
 
 ### paypaljson
 
@@ -99,9 +43,12 @@ downloads the last 30 days of Paypal transactions (requires a free developer acc
 ### paypaljson2csv
 
 [`paypaljson2csv`](https://github.com/simonmichael/hledger/blob/master/bin/paypal2csv) (python)
-converts the above to CSV, with format similar to the CSV you could download manually.
+converts `paypaljson`'s output to CSV, with format similar to Paypal's manually-downloaded CSV.
 
 ## hledger-running scripts
+
+These run hledger via its command line interface, and perhaps process its output:
+
 ### bashrc
 
 [`bashrc`](https://github.com/simonmichael/hledger/blob/master/bin/bashrc)
@@ -142,10 +89,15 @@ $ hledger pijul record [MSG]
 ```
 
 ## hledger-integrated scripts
+
+These call hledger as a Haskell library, and so must be written in
+Haskell. They can use hledger's internal data types and can do
+anything hledger's built-in commands can do:
+
 ### hledger-addon-example
 
 [`hledger-addon-example.hs`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-addon-example.hs)
-is a starter template for hledger-integrated add-on commands written in Haskell.
+is a starter template for a common type of script: a hledger-integrated add-on command.
 It has the same structure as most of the other add-ons here:
 - implemented as a stack script for robustness
 - provides command line help
@@ -176,11 +128,8 @@ prints transactions with their date and date2 fields swapped.
 
 [`hledger-check-tagfiles.hs`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-check-tagfiles.hs)
 interprets all tag values containing a `/` (forward slash) as file paths, and checks that those files exist.
-
-### hledger-check-tagfiles
-
 [`hledger-check-tagfiles.cabal.hs`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-check-tagfiles.cabal.hs)
-is the above as a cabal script.
+is the same command implemented as a cabal script rather than a stack script.
 
 ### hledger-check-fancyassertions
 
@@ -201,6 +150,46 @@ uses one balance report to set budget goals for another balance report.
 
 [`hledger-smooth.hs`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-smooth.hs)
 is an incomplete attempt at automatically splitting infrequent/irregular transactions.
+
+## Installing the bin scripts
+
+These [bin](https://github.com/simonmichael/hledger/tree/master/bin) scripts
+are not automatically installed along with hledger; 
+if you want them you must download them separately. Here's a suggested method:
+
+```cli
+# go to wherever you keep financial files
+$ cd ~/finance
+
+# get the hledger repo (the fast way, without version control)
+$ curl -LOJ https://github.com/simonmichael/hledger/archive/refs/heads/master.zip && unzip hledger-master.zip && mv hledger-master hledger
+
+# (or the slow way, with version control for easy diffing/updating/contributing)
+# git clone https://github.com/simonmichael/hledger.git
+
+# make a more convenient symlink to the bin directory
+$ ln -s hledger/bin
+
+# add the bin directory to your PATH. Eg as a bash user:
+$ echo "export PATH=$PATH:$PWD/bin" >>~/.bash_profile"
+$ export PATH=$PATH:$PWD/bin
+
+# check that hledger's command list now shows the hledger-* scripts
+# (they will be listed with a + prefix):
+$ hledger
+```
+
+Scripts with no file extension are mostly [bash] scripts except where noted.
+if you don't want to install bash you might have to adapt them to your shell.
+
+Scripts with a `.hs` file extension are usually [stack scripts], requiring [stack] to run. 
+If you don't want to install stack you can adapt them to be cabal scripts,
+or install their required libraries yourself and run/compile them with suitable runghc/ghc commands.
+See also [Working with hledger-*.hs scripts](#working-with-hledger-hs-scripts) below.
+
+[bash]: https://www.gnu.org/software/bash
+[stack]: https://haskellstack.org
+[stack scripts]: https://docs.haskellstack.org/en/stable/GUIDE/#script-interpreter
 
 ## Working with hledger-*.hs scripts
 
