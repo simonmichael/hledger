@@ -8,42 +8,32 @@
 This document is the README in the hledger repo's [bin] directory, 
 and is also published as [Scripts] on hledger.org.
 Here we collect hledger scripts: additional small tools which complement hledger in some way.
-These can be
+These can be:
 
-- shell aliases or functions, often defined in your shell's startup file
+- shell aliases or functions, defined eg in your shell's startup file
 - shell script files
-- programs written in languages like Python or Haskell.
-  Haskell scripts are the most powerful since they can call hledger's Haskell API.
+- programs written in other languages, like Python or Haskell.
+  Haskell scripts are the most powerful since they can call hledger's Haskell API (we'll call these *hledger-integrated*).
+- script files or programs  named `hledger-*`, 
+  which show up in hledger's [commands list](hledger.html#commands)
+  as [add-on commands](https://hledger.org/dev/hledger.html#addons).
 
-The current bin scripts are listed below, categorised by how they invoke hledger
-(not at all / via CLI / via Haskell API).
-These are either useful in themselves, or serve as examples/templates for making your own.
-The scripts named `hledger-*` are *[add-on commands](https://hledger.org/dev/hledger.html#addons)*,
-which means they will show up in hledger's [commands list](hledger.html#commands).
-Following the list are the [install instructions](#installing-the-bin-scripts) and other tips.
+The most common types of hledger script are:
 
-See also:
-- [Scripting hledger] - more on this topic
-- [plaintextaccounting.org](https://plaintextaccounting.org) - a longer list of PTA tools (not hledger-specific)
+1. shell aliases/functions/scripts which run hledger with custom options and arguments, eg to produce a particular report
+2. Haskell add-on command scripts implementing variants of the built-in commands, or new kinds of report.
+
+[Scripting hledger] has more on this general topic.
+
+The current "bin scripts" are listed in the page contents and below, categorised by how they invoke hledger.
+They are either useful as is, or can be examples/inspiration for making your own.
+Contributions welcome!
+Following the list are [install instructions](#installing-the-bin-scripts) and other tips.
 
 <!-- This page can be viewed on github or hledger.org, so use absolute urls. -->
 [bin]:                https://github.com/simonmichael/hledger/tree/master/bin
 [Scripts]:            https://hledger.org/scripts.html
 [Scripting hledger]:  https://hledger.org/scripting.html
-
-## hledger-related scripts
-
-These don't run hledger, but are related to it in some way:
-
-### paypaljson
-
-[`paypaljson`](https://github.com/simonmichael/hledger/blob/master/bin/paypaljson)
-downloads the last 30 days of Paypal transactions (requires a free developer account & API key).
-
-### paypaljson2csv
-
-[`paypaljson2csv`](https://github.com/simonmichael/hledger/blob/master/bin/paypal2csv) (python)
-converts `paypaljson`'s output to CSV, with format similar to Paypal's manually-downloaded CSV.
 
 ## hledger-running scripts
 
@@ -64,6 +54,8 @@ $ fin        # list the scripts available
 
 [`hledger-simplebal`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-simplebal)
 shows how to reliably report a single machine-readable number with hledger.
+This and the other "hledger-" scripts are add-on commands.
+
 ```cli
 $ hledger simplebal
 ```
@@ -150,6 +142,25 @@ uses one balance report to set budget goals for another balance report.
 
 [`hledger-smooth.hs`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-smooth.hs)
 is an incomplete attempt at automatically splitting infrequent/irregular transactions.
+
+## hledger-related scripts
+
+These don't run hledger, but are probably related to it in some way:
+
+### paypaljson
+
+[`paypaljson`](https://github.com/simonmichael/hledger/blob/master/bin/paypaljson)
+downloads the last 30 days of Paypal transactions (requires a free developer account & API key).
+
+### paypaljson2csv
+
+[`paypaljson2csv`](https://github.com/simonmichael/hledger/blob/master/bin/paypal2csv) (python)
+converts `paypaljson`'s output to CSV, with format similar to Paypal's manually-downloaded CSV.
+
+## More scripts
+
+[plaintextaccounting.org](https://plaintextaccounting.org) has a longer list of PTA tools, not hledger-specific.
+
 
 ## Installing the bin scripts
 
