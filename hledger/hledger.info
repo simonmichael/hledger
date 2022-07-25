@@ -9133,7 +9133,7 @@ $ hledger help journal -m  # show the journal topic, as a man page scrolled to t
 $ hledger help --help      # show more detailed help for the help command
 
    Find more docs, chat, mail list, reddit, issue tracker:
-https://hledger.org/support.html-feedback
+https://hledger.org/support.html
 
 
 File: hledger.info,  Node: Constructing command lines,  Next: Starting a journal file,  Prev: Getting help,  Up: COMMON TASKS
@@ -10153,24 +10153,24 @@ Node: COMMON TASKS329258
 Ref: #common-tasks329387
 Node: Getting help329794
 Ref: #getting-help329928
-Node: Constructing command lines330518
-Ref: #constructing-command-lines330712
-Node: Starting a journal file331409
-Ref: #starting-a-journal-file331609
-Node: Setting opening balances332797
-Ref: #setting-opening-balances332995
-Node: Recording transactions336136
-Ref: #recording-transactions336318
-Node: Reconciling336874
-Ref: #reconciling337019
-Node: Reporting339276
-Ref: #reporting339418
-Node: Migrating to a new file343417
-Ref: #migrating-to-a-new-file343567
-Node: LIMITATIONS343866
-Ref: #limitations343994
-Node: TROUBLESHOOTING344737
-Ref: #troubleshooting344852
+Node: Constructing command lines330509
+Ref: #constructing-command-lines330703
+Node: Starting a journal file331400
+Ref: #starting-a-journal-file331600
+Node: Setting opening balances332788
+Ref: #setting-opening-balances332986
+Node: Recording transactions336127
+Ref: #recording-transactions336309
+Node: Reconciling336865
+Ref: #reconciling337010
+Node: Reporting339267
+Ref: #reporting339409
+Node: Migrating to a new file343408
+Ref: #migrating-to-a-new-file343558
+Node: LIMITATIONS343857
+Ref: #limitations343985
+Node: TROUBLESHOOTING344728
+Ref: #troubleshooting344843
 
 End Tag Table
 
