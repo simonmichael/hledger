@@ -1780,21 +1780,21 @@ These data entry commands are the only ones which can modify your journal file.
 - [test](#test)                                    - run self tests
 
 <a name="addons"></a>
+<!-- #addons: the short explanation and list of common add-on commands. See also #add-on-commands. -->
+
 **Add-on commands:**
 
 Programs or scripts named `hledger-SOMETHING` in your PATH are 
-[add-on commands](#about-add-on-commands); these appear in the
+[add-on commands](#add-on-commands); these appear in the
 commands list with a `+` mark. 
-Two of these are maintained and released with hledger:
+The following add-on commands can be installed, eg by the
+[hledger-install script](https://hledger.org/install.html#with-hledger-install):
 
-- **[ui](hledger-ui.html)**                        - an efficient terminal interface (TUI) for hledger
-- **[web](hledger-web.html)**                      - a simple web interface (WUI) for hledger
-
-And these add-ons are maintained separately:
-
-- [iadd](http://hackage.haskell.org/package/hledger-iadd) - a more interactive alternative for the add command
-- [interest](http://hackage.haskell.org/package/hledger-interest) - generates interest transactions according to various schemes
-- [stockquotes](http://hackage.haskell.org/package/hledger-stockquotes) - downloads market prices for your commodities from AlphaVantage *(experimental)*
+- **[ui](hledger-ui.html)**   - hledger's official curses-style TUI
+- **[web](hledger-web.html)** - hledger's official web UI
+- [iadd](https://hackage.haskell.org/package/hledger-iadd)                - a popular alternative to hledger's `add` command.
+- [interest](https://hackage.haskell.org/package/hledger-interest)        - generates interest transactions
+- [stockquotes](https://hackage.haskell.org/package/hledger-stockquotes)  - downloads market prices. *(Alpha quality, needs your help.)*
 
 m4_dnl XXX maybe later
 m4_dnl _man_({{
@@ -1808,7 +1808,8 @@ Next, the detailed command docs, in alphabetical order.
 m4_dnl cf Hledger/Cli/Commands/commands.m4:
 _commands_({{##}})
 
-## About add-on commands
+## Add-on commands
+<!-- #add-on-commands: the long explanation of add-on commands. See also #addons. -->
 
 Add-on commands are programs or scripts in your PATH 
 

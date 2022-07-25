@@ -12,17 +12,6 @@ These are either useful in themselves, or serve as examples/starting points for 
 
 For a longer list of PTA tools (not hledger-specific), see [plaintextaccounting.org](https://plaintextaccounting.org).
 
-Also, the following add-on commands are not kept in the bin directory, but can be installed by the
-[hledger-install script](https://hledger.org/install.html#with-hledger-install)
-or other [install methods](https://hledger.org/install.html):
-
-- [`hledger-ui`](hledger-ui.html) is hledger's official curses-style TUI
-- [`hledger-web`](hledger-web.html) is hledger's official web UI
-- [`hledger-iadd`](https://hackage.haskell.org/package/hledger-iadd) is a popular alternative to hledger's `add` command.
-- [`hledger-interest`](https://hackage.haskell.org/package/hledger-interest) generates interest transactions.
-- [`hledger-stockquotes`](https://hackage.haskell.org/package/hledger-stockquotes) downloads market prices. (Alpha quality, needs your help.)
-
-
 <!-- This page can be viewed on github or hledger.org, so use absolute urls. -->
 [bin]:                https://github.com/simonmichael/hledger/tree/master/bin
 [Scripts]:            https://hledger.org/scripts.html
@@ -55,7 +44,7 @@ and can be:
 And furthermore,
 
 - a script or program which is named `hledger-something`, executable,
-  and in your shell's PATH, is called an [add-on command](https://hledger.org/1.26/hledger.html#about-add-on-commands).
+  and in your shell's PATH, is called an [add-on command](https://hledger.org/dev/hledger.html#addons).
   These will show up in hledger's commands list (`hledger`), and can
   be invoked with (`hledger something`), much like built-in commands.
 
@@ -152,11 +141,13 @@ $ hledger pijul record [MSG]
 ### hledger-addon-example
 
 [`hledger-addon-example.hs`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-addon-example.hs)
-is a starter template for a hledger add-on command.
+is a starter template for add-on commands written in Haskell (ie, the powerful kind).
 It has the same structure as most of the other add-ons here:
 - implemented as a stack script for robustness
-- includes command line help
+- provides command line help
 - accepts common hledger options
+
+Further cleanup and documentation is ongoing.
 
 ### hledger-print-location
 
