@@ -5200,7 +5200,7 @@ $ hledger help --help      # show more detailed help for the help command
 ```
 
 Find more docs, chat, mail list, reddit, issue tracker:
-<https://hledger.org/support.html-feedback>
+<https://hledger.org/support.html>
 
 ## Constructing command lines
 
