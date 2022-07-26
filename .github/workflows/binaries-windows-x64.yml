@@ -176,7 +176,7 @@ jobs:
              
     # XXX intermittent upload failures
     - name: Create executables artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: hledger-windows-x64
         path: tmp/hledger-windows-x64

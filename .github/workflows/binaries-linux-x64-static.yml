@@ -65,7 +65,7 @@ jobs:
         strip /tmp/hledger/hledger-web
 
     - name: Upload binaries
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: hledger-linux-x64
         path: /tmp/hledger

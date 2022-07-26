@@ -46,7 +46,7 @@ jobs:
           docker rm -v $container_id
 
       - name: Upload binary
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: hledger-linux-static-arm32v7
           path: /tmp/hledger-linux-static-arm32v7
