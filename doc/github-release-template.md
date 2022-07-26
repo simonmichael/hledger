@@ -23,13 +23,13 @@ At <https://hledger.org/install>, binary packages should be available for this r
 Or, you can build from source as described there, after cloning at tag `A.BB`:
 `git clone https://github.com/simonmichael/hledger --depth 1 -b A.BB`
 
-Or, if there are release binaries below suitable for your OS and hardware, you can use those.
+Or, if under "Assets" below there are release binaries suitable for your OS and hardware, you can use those.
 <!--
 (Note, release binaries have been updated:
 - YYYY-MM-DD: description. [#NNNN](https://github.com/simonmichael/hledger/issues/NNNN)
 -->
-
-Here are some instructions for the release binaries on various platforms. (You can copy & paste each block of commands as a unit, to save time.):
+Here are platform-specific instructions for the release binaries.
+(You can copy & paste each block of commands as a unit, to save time.):
 
 <details>
 <summary>
@@ -75,11 +75,11 @@ touch $HOME/.hledger.journal   # ensure a default journal file exists
 
 In a powershell window (press Windows-r, type powershell, press enter),
 
-Make a place to keep hledger binaries, and add it to your PATH; this makes running hledger easier. You only need to do this once, not for every release. 
+Make a place to keep hledger binaries, and add it to your PATH; this makes running hledger easier. You only need to do this once, not for every release:
 ```
 mkdir -force $HOME\bin >$null
-[Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path", [EnvironmentVariableTarget]::User)+";"+$HOME+"\bin", [EnvironmentVariableTarget]::User)
 $ENV:PATH += ";"+$HOME+"\bin"
+[Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path", [EnvironmentVariableTarget]::User)+";"+$HOME+"\bin", [EnvironmentVariableTarget]::User)
 ```
 Download and install the release binaries:
 ```
