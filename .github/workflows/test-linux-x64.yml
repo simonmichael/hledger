@@ -268,8 +268,6 @@ jobs:
       run: |
         mkdir tmp
         cd tmp
-        mkdir hledger-linux-x64
-        cd hledger-linux-x64
         cp -P ~/.local/bin/hledger .
         cp -P ~/.local/bin/hledger-ui .
         cp -P ~/.local/bin/hledger-web .

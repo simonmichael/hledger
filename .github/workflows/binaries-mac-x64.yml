@@ -163,8 +163,6 @@ jobs:
       run: |
         mkdir tmp
         cd tmp
-        mkdir hledger-mac-x64
-        cd hledger-mac-x64
         cp ~/.local/bin/hledger .
         cp ~/.local/bin/hledger-ui .
         cp ~/.local/bin/hledger-web .
