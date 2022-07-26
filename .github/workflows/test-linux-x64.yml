@@ -270,22 +270,25 @@ jobs:
         cd tmp
         mkdir hledger-linux-x64
         cd hledger-linux-x64
-        cp ~/.local/bin/hledger .
-        cp ~/.local/bin/hledger-ui .
-        cp ~/.local/bin/hledger-web .
+        cp -P ~/.local/bin/hledger .
+        cp -P ~/.local/bin/hledger-ui .
+        cp -P ~/.local/bin/hledger-web .
         strip hledger
         strip hledger-ui
         strip hledger-web
+        zip hledger-linux-x64.zip hledger hledger-ui hledger-web
+      # ^ create zip file ourselves, upload-artifact's zipping drops executable permissions
+      if: env.CONTINUE
+
       # how to set a context variable, and an attempt to make a nice artifact version suffix:
       # echo "::set-output name=version::$(git branch --show-current | sed 's/-.*//')-$(git rev-parse --short HEAD)"
-      if: env.CONTINUE
 
     # XXX intermittent upload failures
     - name: Upload executables artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: hledger-linux-x64
-        path: tmp/hledger-linux-x64
+        path: tmp/hledger-linux-x64.zip
       if: env.CONTINUE
 
 
