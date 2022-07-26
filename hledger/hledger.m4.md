@@ -357,7 +357,7 @@ This is overriden by the --color/--colour option.
 
 hledger reads transactions from one or more data files.
 The default data file is `$HOME/.hledger.journal`
-(or on Windows, something like `C:/Users/USER/.hledger.journal`).
+(or on Windows, something like `C:\Users\YOURNAME\.hledger.journal`).
 
 You can override this with the `$LEDGER_FILE` environment variable:
 

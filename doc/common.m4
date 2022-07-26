@@ -245,12 +245,14 @@ In `~/.MacOSX/environment.plist`, add an entry like:
 ```
 For this to take effect you might need to `killall Dock`, or reboot.
 
-On Windows computers, the default value is probably `C:\Users\MyUserName\.hledger.journal`.
-You can change this by running a command like this in a powershell window:
+On Windows computers, the default value is probably `C:\Users\YOURNAME\.hledger.journal`.
+You can change this by running a command like this in a powershell window
+(let us know if you need to be an Administrator, and if this persists across a reboot):
 ```
 > setx LEDGER_FILE "C:\Users\MyUserName\finance\2021.journal"
 ```
-(Let us know if you need to be an Administrator, and if this persists across a reboot.)
+
+Or, change it in settings: see https://www.java.com/en/download/help/path.html.
 
 }} )m4_dnl
 m4_dnl
