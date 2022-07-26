@@ -79,6 +79,7 @@ Make a place to keep hledger binaries, and add it to your PATH; this makes runni
 ```
 mkdir -force $HOME\bin >$null
 [Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path", [EnvironmentVariableTarget]::User)+";"+$HOME+"\bin", [EnvironmentVariableTarget]::User)
+$ENV:PATH += ";"+$HOME+"\bin"
 ```
 Download and install the release binaries:
 ```
@@ -91,7 +92,7 @@ hledger --version           # should show the new version
 ```
 And ensure a default journal file exists:
 ```
-echo $null | out-file -append -encoding ascii $HOME/.hledger.journal
+out-file -append -encoding ascii $HOME/.hledger.journal
 ```
 
 Problems:
