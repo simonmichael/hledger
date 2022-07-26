@@ -64,10 +64,13 @@ jobs:
         strip hledger
         strip hledger-ui
         strip hledger-web
-        zip hledger-linux-x64.zip hledger hledger-ui hledger-web
+        tar cvf hledger-linux-x64.tar hledger hledger-ui hledger-web
 
+    # upload-artifact loses execute permissions, so we tar the binaries to preserve them.
+    # github UI always zips artifacts when they are downloaded, so we don't bother compressing the tar.
+    # Unfortunately it means users must both unzip and untar.
     - name: Upload binaries
       uses: actions/upload-artifact@v3
       with:
         name: hledger-linux-x64
-        path: tmp/hledger-linux-x64.zip
+        path: tmp/hledger-linux-x64.tar

@@ -170,13 +170,13 @@ jobs:
         cp /C/Users/runneradmin/AppData/Roaming/local/bin/hledger-web.exe .
         strip hledger.exe
         strip hledger-web.exe
-        zip hledger-windows-x64.zip hledger.exe hledger-web.exe
       if: env.CONTINUE
              
-    # XXX intermittent upload failures
     - name: Create binaries artifact
       uses: actions/upload-artifact@v3
       with:
         name: hledger-windows-x64
-        path: tmp/hledger-windows-x64.zip
+        path: |
+          tmp/hledger.exe
+          tmp/hledger-web.exe
       if: env.CONTINUE

@@ -169,14 +169,16 @@ jobs:
         strip hledger
         strip hledger-ui
         strip hledger-web
-        zip hledger-mac-x64.zip hledger hledger-ui hledger-web
+        tar cvf hledger-mac-x64.tar hledger hledger-ui hledger-web
       if: env.CONTINUE
 
-    # XXX intermittent upload failures
+    # upload-artifact loses execute permissions, so we tar the binaries to preserve them.
+    # github UI always zips artifacts when they are downloaded, so we don't bother compressing the tar.
+    # Unfortunately it means users must both unzip and untar.
     - name: Upload binaries artifact
       uses: actions/upload-artifact@v3
       with:
         name: hledger-mac-x64
-        path: tmp/hledger-mac-x64.zip
+        path: tmp/hledger-mac-x64.tar
       if: env.CONTINUE
 

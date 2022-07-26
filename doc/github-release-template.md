@@ -29,7 +29,7 @@ Or, if there are release binaries below suitable for your OS and hardware, you c
 - YYYY-MM-DD: description. [#NNNN](https://github.com/simonmichael/hledger/issues/NNNN)
 -->
 
-Here are some instructions for the release binaries on various platforms:
+Here are some instructions for the release binaries on various platforms. (You can copy & paste each block of commands as a unit, to save time.):
 
 <details>
 <summary>
@@ -39,12 +39,12 @@ Here are some instructions for the release binaries on various platforms:
 At the command line,
 
 ```
-$ cd /usr/local/bin
-$ curl -LOC- https://github.com/simonmichael/hledger/releases/download/A.BB/hledger-linux-x64.zip   # can rerun this if interrupted
-$ unzip -X hledger-linux-x64.zip
-$ cd -
-$ hledger --version  # should show the new version
-$ touch $HOME/.hledger.journal   # ensure a default journal file exists
+cd /usr/local/bin
+curl -LOC- https://github.com/simonmichael/hledger/releases/download/A.BB/hledger-linux-x64.zip   # can rerun this if interrupted
+unzip hledger-linux-x64.zip; tar xvf hledger-linux-x64.tar; rm hledger-linux-x64.{zip,tar}        # github workaround, preserves permissions
+cd -
+hledger --version  # should show the new version
+touch $HOME/.hledger.journal   # ensure a default journal file exists
 ```
 </details>
 
@@ -56,14 +56,14 @@ $ touch $HOME/.hledger.journal   # ensure a default journal file exists
 In a terminal window,
 
 ```
-$ cd /usr/local/bin
-$ curl -LOC- https://github.com/simonmichael/hledger/releases/download/A.BB/hledger-mac-x64.zip
-$ unzip -X hledger-mac-x64.zip
-$ open .
+cd /usr/local/bin
+curl -LOC- https://github.com/simonmichael/hledger/releases/download/A.BB/hledger-mac-x64.zip
+unzip hledger-mac-x64.zip; tar xvf hledger-mac-x64.tar; rm hledger-mac-x64.{zip,tar}              # github workaround, preserves permissions
+open .
 # for the hledger, hledger-ui, hledger-web icons: right-click the executable, Open, confirm it's ok to run
-$ cd -
-$ hledger --version  # should show the new version
-$ touch $HOME/.hledger.journal   # ensure a default journal file exists
+cd -
+hledger --version  # should show the new version
+touch $HOME/.hledger.journal   # ensure a default journal file exists
 ```
 </details>
 
@@ -75,7 +75,7 @@ $ touch $HOME/.hledger.journal   # ensure a default journal file exists
 
 In a powershell window (press Windows-r, type powershell, press enter),
 
-Make a place to keep hledger binaries, and add it to your PATH. You only need to do this once, not for every release. This is optional, but makes running hledger easier. 
+Make a place to keep hledger binaries, and add it to your PATH; this makes running hledger easier. You only need to do this once, not for every release. 
 ```
 mkdir -force $HOME\bin >$null
 [Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path", [EnvironmentVariableTarget]::User)+";"+$HOME+"\bin", [EnvironmentVariableTarget]::User)
