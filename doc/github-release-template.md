@@ -25,11 +25,11 @@ Or, you can build from source as described there, after cloning at tag `A.BB`:
 
 Or, if there are release binaries below suitable for your OS and hardware, you can use those.
 <!--
-(Release binaries have been updated:
+(Note, release binaries have been updated:
 - YYYY-MM-DD: description. [#NNNN](https://github.com/simonmichael/hledger/issues/NNNN)
 -->
 
-Here are some approximate per-platform instructions:
+Here are some instructions for the release binaries on various platforms:
 
 <details>
 <summary>
@@ -70,6 +70,37 @@ $ touch $HOME/.hledger.journal   # ensure a default journal file exists
 <details>
 <summary>
 
+### Windows on 64-bit Intel
+</summary>
+
+In a powershell window (press Windows-r, type powershell, press enter),
+
+Make a place to keep hledger binaries, and add it to your PATH. You only need to do this once, not for every release. This is optional, but makes running hledger easier. 
+```
+mkdir -force $HOME\bin >$null
+[Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path", [EnvironmentVariableTarget]::User)+";"+$HOME+"\bin", [EnvironmentVariableTarget]::User)
+```
+Download and install the release binaries:
+```
+cd $HOME\bin
+curl https://github.com/simonmichael/hledger/releases/download/A.BB/hledger-windows-x64.zip -OutFile hledger-windows-x64.zip
+Expand-Archive hledger-windows-x64.zip -DestinationPath .
+rm hledger-windows-x64.zip
+cd $HOME
+hledger --version           # should show the new version
+```
+And ensure a default journal file exists:
+```
+echo $null | out-file -append -encoding ascii $HOME/.hledger.journal
+```
+
+Problems:
+- Starting hledger/hledger-web by double-clicking their icon won't work; run them from a cmd or powershell window instead.
+</details>
+
+<details>
+<summary>
+
 ### Windows 7 on 64-bit Intel, using Firefox
 </summary>
 
@@ -88,8 +119,8 @@ $ touch $HOME/.hledger.journal   # ensure a default journal file exists
 
 Problems:
 - Starting hledger by double-clicking its icon won't work because it needs arguments; run it from the command window instead.
-- Starting hledger-web by double-clicking its icon may fail because Explorer's command window is too small;
-  configure that to be larger, or run hledger-web from a command window.
+- Starting hledger-web by double-clicking its icon may fail eg because Explorer's command window is too small;
+  configure that to be larger, or run hledger-web from a command window instead.
 - hledger or hledger-web may fail to run if there is not enough memory available.
 </details>
 
