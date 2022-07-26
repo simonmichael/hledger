@@ -171,13 +171,14 @@ jobs:
         strip hledger
         strip hledger-ui
         strip hledger-web
+        zip hledger-mac-x64.zip hledger hledger-ui hledger-web
       if: env.CONTINUE
 
     # XXX intermittent upload failures
     - name: Upload executables artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: hledger-mac-x64
-        path: tmp/hledger-mac-x64
+        path: tmp/hledger-mac-x64.zip
       if: env.CONTINUE
 
