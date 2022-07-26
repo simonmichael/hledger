@@ -159,7 +159,7 @@ jobs:
 
     # artifacts:
 
-    - name: Gather executables
+    - name: Gather binaries
       run: |
         mkdir tmp
         cd tmp
@@ -173,7 +173,7 @@ jobs:
       if: env.CONTINUE
 
     # XXX intermittent upload failures
-    - name: Upload executables artifact
+    - name: Upload binaries artifact
       uses: actions/upload-artifact@v3
       with:
         name: hledger-mac-x64

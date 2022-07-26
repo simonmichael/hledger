@@ -54,18 +54,20 @@ jobs:
         cabal build --enable-executable-static hledger-ui || echo "ERROR: building hledger failed"
         cabal build --enable-executable-static hledger-web || echo "ERROR: building hledger-web failed"
 
-    - name: Extract and strip binaries
+    - name: Gather binaries
       run: |
-        mkdir /tmp/hledger
-        cp dist-newstyle/build/x86_64-linux/ghc-*/hledger-*/x/hledger/build/hledger/hledger /tmp/hledger/hledger
-        cp dist-newstyle/build/x86_64-linux/ghc-*/hledger-ui-*/x/hledger-ui/build/hledger-ui/hledger-ui /tmp/hledger/hledger-ui
-        cp dist-newstyle/build/x86_64-linux/ghc-*/hledger-web-*/x/hledger-web/build/hledger-web/hledger-web /tmp/hledger/hledger-web
-        strip /tmp/hledger/hledger
-        strip /tmp/hledger/hledger-ui
-        strip /tmp/hledger/hledger-web
+        mkdir tmp
+        cd tmp
+        cp dist-newstyle/build/x86_64-linux/ghc-*/hledger-*/x/hledger/build/hledger/hledger .
+        cp dist-newstyle/build/x86_64-linux/ghc-*/hledger-ui-*/x/hledger-ui/build/hledger-ui/hledger-ui .
+        cp dist-newstyle/build/x86_64-linux/ghc-*/hledger-web-*/x/hledger-web/build/hledger-web/hledger-web .
+        strip hledger
+        strip hledger-ui
+        strip hledger-web
+        zip hledger-linux-x64.zip hledger hledger-ui hledger-web
 
     - name: Upload binaries
       uses: actions/upload-artifact@v3
       with:
         name: hledger-linux-x64
-        path: /tmp/hledger
+        path: tmp/hledger-linux-x64.zip
