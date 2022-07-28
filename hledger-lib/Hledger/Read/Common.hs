@@ -1151,18 +1151,20 @@ isSameLineCommentStart :: Char -> Bool
 isSameLineCommentStart ';' = True
 isSameLineCommentStart _   = False
 
--- A parser combinator for parsing (possibly multiline) comments
--- following journal items.
+-- A parser for (possibly multiline) comments following a journal item.
 --
--- Several journal items may be followed by comments, which begin with
--- semicolons and extend to the end of the line. Such comments may span
--- multiple lines, but comment lines below the journal item must be
--- preceded by leading whitespace.
+-- Comments following a journal item begin with a semicolon and extend to
+-- the end of the line. They may span multiple lines; any comment lines 
+-- not on the same line as the journal item must be indented (preceded by
+-- leading whitespace).
 --
--- This parser combinator accepts a parser that consumes all input up
--- until the next newline. This parser should extract the "content" from
--- comments. The resulting parser returns this content plus the raw text
--- of the comment itself.
+-- Like Ledger, we sometimes allow data to be embedded in comments. Eg,
+-- comments on the account directive and on transactions can contain tags,
+-- and comments on postings can contain tags and/or bracketed posting dates.
+-- To handle these variations, this parser takes as parameter a subparser,
+-- which should consume all input up until the next newline, and which can
+-- optionally extract some kind of data from it.
+-- followingcommentp' returns this data along with the full text of the comment.
 --
 -- See followingcommentp for tests.
 --
