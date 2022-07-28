@@ -1855,7 +1855,7 @@ in a simple format readable by both hledger and humans.
 
 hledger's journal format is a compatible subset, mostly, of [ledger's
 journal format](http://ledger-cli.org/3.0/doc/ledger3.html#Journal-Format),
-so hledger can work with [compatible](faq.html#file-format-differences)
+so hledger can work with [compatible](ledger.html#journal-format)
 ledger journal files as well.  It's safe, and encouraged, to run both
 hledger and ledger on the same journal file, eg to validate the results
 you're getting.
