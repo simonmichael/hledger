@@ -537,23 +537,24 @@ ENVIRONMENT
 
        For this to take effect you might need to killall Dock, or reboot.
 
-       On Windows computers, the default value  is  probably  C:\Users\MyUser-
-       Name\.hledger.journal.   You  can change this by running a command like
-       this in a powershell window:
+       On Windows computers, the  default  value  is  probably  C:\Users\YOUR-
+       NAME\.hledger.journal.   You  can change this by running a command like
+       this in a powershell window (let us know if you need to be an  Adminis-
+       trator, and if this persists across a reboot):
 
               > setx LEDGER_FILE "C:\Users\MyUserName\finance\2021.journal"
 
-       (Let us know if you need to be an Administrator, and if  this  persists
-       across a reboot.)
+       Or,   change   it   in   settings:   see  https://www.java.com/en/down-
+       load/help/path.html.
 
 FILES
-       Reads  data from one or more files in hledger journal, timeclock, time-
-       dot,  or  CSV  format  specified   with   -f,   or   $LEDGER_FILE,   or
-       $HOME/.hledger.journal           (on          windows,          perhaps
+       Reads data from one or more files in hledger journal, timeclock,  time-
+       dot,   or   CSV   format   specified   with  -f,  or  $LEDGER_FILE,  or
+       $HOME/.hledger.journal          (on          windows,           perhaps
        C:/Users/USER/.hledger.journal).
 
 BUGS
-       The need to precede options with -- when invoked from hledger  is  awk-
+       The  need  to precede options with -- when invoked from hledger is awk-
        ward.
 
        -f- doesn't work (hledger-web can't read from stdin).
@@ -567,7 +568,7 @@ BUGS
 
 
 REPORTING BUGS
-       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
+       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
        or hledger mail list)
 
 

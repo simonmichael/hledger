@@ -543,9 +543,10 @@ For this to take effect you might need to \f[C]killall Dock\f[R], or
 reboot.
 .PP
 On Windows computers, the default value is probably
-\f[C]C:\[rs]Users\[rs]MyUserName\[rs].hledger.journal\f[R].
+\f[C]C:\[rs]Users\[rs]YOURNAME\[rs].hledger.journal\f[R].
 You can change this by running a command like this in a powershell
-window:
+window (let us know if you need to be an Administrator, and if this
+persists across a reboot):
 .IP
 .nf
 \f[C]
@@ -553,8 +554,8 @@ window:
 \f[R]
 .fi
 .PP
-(Let us know if you need to be an Administrator, and if this persists
-across a reboot.)
+Or, change it in settings: see
+https://www.java.com/en/download/help/path.html.
 .PP
 \f[B]COLUMNS\f[R] The screen width used by the register command.
 Default: the full terminal width.
@@ -566,7 +567,8 @@ This is overriden by the --color/--colour option.
 .PP
 hledger reads transactions from one or more data files.
 The default data file is \f[C]$HOME/.hledger.journal\f[R] (or on
-Windows, something like \f[C]C:/Users/USER/.hledger.journal\f[R]).
+Windows, something like
+\f[C]C:\[rs]Users\[rs]YOURNAME\[rs].hledger.journal\f[R]).
 .PP
 You can override this with the \f[C]$LEDGER_FILE\f[R] environment
 variable:
@@ -11027,7 +11029,7 @@ In a Cygwin/MSYS/Mintty window, the tab key is not supported in hledger
 add.
 .PP
 Not all of Ledger\[aq]s journal file syntax is supported.
-See file format differences.
+See hledger and Ledger > Differences > journal format.
 .PP
 On large data files, hledger is slower and uses more memory than Ledger.
 .SH TROUBLESHOOTING

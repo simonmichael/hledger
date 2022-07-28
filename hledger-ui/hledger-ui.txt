@@ -489,23 +489,24 @@ ENVIRONMENT
 
        For this to take effect you might need to killall Dock, or reboot.
 
-       On Windows computers, the default value  is  probably  C:\Users\MyUser-
-       Name\.hledger.journal.   You  can change this by running a command like
-       this in a powershell window:
+       On Windows computers, the  default  value  is  probably  C:\Users\YOUR-
+       NAME\.hledger.journal.   You  can change this by running a command like
+       this in a powershell window (let us know if you need to be an  Adminis-
+       trator, and if this persists across a reboot):
 
               > setx LEDGER_FILE "C:\Users\MyUserName\finance\2021.journal"
 
-       (Let us know if you need to be an Administrator, and if  this  persists
-       across a reboot.)
+       Or,   change   it   in   settings:   see  https://www.java.com/en/down-
+       load/help/path.html.
 
 FILES
-       Reads  data from one or more files in hledger journal, timeclock, time-
-       dot,  or  CSV  format  specified   with   -f,   or   $LEDGER_FILE,   or
-       $HOME/.hledger.journal           (on          windows,          perhaps
+       Reads data from one or more files in hledger journal, timeclock,  time-
+       dot,   or   CSV   format   specified   with  -f,  or  $LEDGER_FILE,  or
+       $HOME/.hledger.journal          (on          windows,           perhaps
        C:/Users/USER/.hledger.journal).
 
 BUGS
-       The need to precede options with -- when invoked from hledger  is  awk-
+       The  need  to precede options with -- when invoked from hledger is awk-
        ward.
 
        -f- doesn't work (hledger-ui can't read from stdin).
@@ -513,13 +514,13 @@ BUGS
        -V affects only the accounts screen.
 
        When you press g, the current and all previous screens are regenerated,
-       which may cause a noticeable pause with large files.  Also there is  no
+       which  may cause a noticeable pause with large files.  Also there is no
        visual indication that this is in progress.
 
-       --watch  is  not yet fully robust.  It works well for normal usage, but
-       many file changes in a short time (eg  saving  the  file  thousands  of
-       times  with an editor macro) can cause problems at least on OSX.  Symp-
-       toms include: unresponsive UI, periodic resetting of the  cursor  posi-
+       --watch is not yet fully robust.  It works well for normal  usage,  but
+       many  file  changes  in  a  short time (eg saving the file thousands of
+       times with an editor macro) can cause problems at least on OSX.   Symp-
+       toms  include:  unresponsive UI, periodic resetting of the cursor posi-
        tion, momentary display of parse errors, high CPU usage eventually sub-
        siding, and possibly a small but persistent build-up of CPU usage until
        the program is restarted.
@@ -530,7 +531,7 @@ BUGS
 
 
 REPORTING BUGS
-       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
+       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
        or hledger mail list)
 
 
