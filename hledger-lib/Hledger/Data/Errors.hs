@@ -7,6 +7,7 @@ Helpers for making error messages.
 module Hledger.Data.Errors (
   makeTransactionErrorExcerpt,
   makePostingErrorExcerpt,
+  makeBalanceAssertionErrorExcerpt,
   transactionFindPostingIndex,
 )
 where
@@ -19,6 +20,8 @@ import qualified Data.Text as T
 import Hledger.Data.Transaction (showTransaction)
 import Hledger.Data.Types
 import Hledger.Utils
+import Data.Maybe
+import Safe (headMay)
 
 -- | Given a problem transaction and a function calculating the best
 -- column(s) for marking the error region:
@@ -99,4 +102,30 @@ decoratePostingErrorExcerpt absline relline mcols txt =
 transactionFindPostingIndex :: (Posting -> Bool) -> Transaction -> Maybe Int
 transactionFindPostingIndex ppredicate = 
   fmap fst . find (ppredicate.snd) . zip [1..] . tpostings
+
+-- | From the given posting, make an error excerpt showing the transaction with
+-- the balance assertion highlighted.
+makeBalanceAssertionErrorExcerpt :: Posting -> (FilePath, Int, Maybe (Int, Maybe Int), Text)
+makeBalanceAssertionErrorExcerpt p = makePostingErrorExcerpt p finderrcols
+  where
+    finderrcols p t trendered = Just (col, Just col2)
+      where
+        -- Analyse the rendering to find the columns to highlight.
+        tlines = dbg5 "tlines" $ max 1 $ length $ T.lines $ tcomment t  -- transaction comment can generate extra lines
+        (col, col2) =
+          let def = (5, maximum (map T.length $ T.lines trendered))  -- fallback: underline whole posting. Shouldn't happen.
+          in
+            case transactionFindPostingIndex (==p) t of
+              Nothing  -> def
+              Just idx -> fromMaybe def $ do
+                let
+                  beforeps = take (idx-1) $ tpostings t
+                  beforepslines = dbg5 "beforepslines" $ sum $ map (max 1 . length . T.lines . pcomment) beforeps   -- posting comment can generate extra lines (assume only one commodity shown)
+                assertionline <- dbg5 "assertionline" $ headMay $ drop (tlines + beforepslines) $ T.lines trendered
+                let
+                  col2 = T.length assertionline
+                  l = dropWhile (/= '=') $ reverse $ T.unpack assertionline
+                  l' = dropWhile (`elem` ['=','*']) l
+                  col = length l' + 1
+                return (col, col2)
 
