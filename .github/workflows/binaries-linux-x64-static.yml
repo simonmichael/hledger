@@ -50,9 +50,9 @@ jobs:
 
     - name: Build on alpine
       run: |
-        cabal build --enable-executable-static hledger || echo "ERROR: building hledger failed"
-        cabal build --enable-executable-static hledger-ui || echo "ERROR: building hledger failed"
-        cabal build --enable-executable-static hledger-web || echo "ERROR: building hledger-web failed"
+        cabal build --enable-executable-static hledger || (echo "ERROR: building hledger failed"; false)
+        cabal build --enable-executable-static hledger-ui || (echo "ERROR: building hledger failed"; false)
+        cabal build --enable-executable-static hledger-web || (echo "ERROR: building hledger-web failed"; false)
 
     - name: Gather binaries
       run: |
