@@ -56,6 +56,10 @@ therefore optional:
 
 -   payees - all payees used by transactions have been declared
 
+-   recentassertions - all accounts with balance assertions have a
+    balance assertion, marked cleared, within 7 days of their latest
+    posting
+
 -   uniqueleafnames - all account leaf names are unique
 
 Custom checks

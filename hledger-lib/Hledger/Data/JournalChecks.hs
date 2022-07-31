@@ -6,32 +6,36 @@ others can be called only via the check command.
 
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Hledger.Data.JournalChecks (
   journalCheckAccounts,
   journalCheckCommodities,
   journalCheckPayees,
+  journalCheckRecentAssertions,
   module Hledger.Data.JournalChecks.Ordereddates,
   module Hledger.Data.JournalChecks.Uniqueleafnames,
 )
 where
 
 import Data.Char (isSpace)
-import Data.List (find)
 import Data.Maybe
 import qualified Data.Map.Strict as M
 import qualified Data.Text as T
-import Safe (atMay)
+import Safe (atMay, lastMay)
 import Text.Printf (printf)
 
 import Hledger.Data.Errors
 import Hledger.Data.Journal
 import Hledger.Data.JournalChecks.Ordereddates
 import Hledger.Data.JournalChecks.Uniqueleafnames
-import Hledger.Data.Posting (isVirtual)
+import Hledger.Data.Posting (isVirtual, postingDate, postingStatus)
 import Hledger.Data.Types
 import Hledger.Data.Amount (amountIsZero, amountsRaw, missingamt)
-import Hledger.Data.Transaction (transactionPayee, showTransactionLineFirstPart)
+import Hledger.Data.Transaction (transactionPayee, showTransactionLineFirstPart, showTransaction)
+import Data.Time (Day, diffDays)
+import Data.List.Extra
+import Hledger.Utils (chomp, textChomp, sourcePosPretty)
 
 -- | Check that all the journal's postings are to accounts  with
 -- account directives, returning an error message otherwise.
@@ -158,3 +162,131 @@ journalCheckPayees j = mapM_ checkpayee (jtxns j)
           where
             col  = T.length (showTransactionLineFirstPart t) + 2
             col2 = col + T.length (transactionPayee t) - 1
+
+----------
+
+-- | Information useful for checking the age and lag of an account's latest balance assertion.
+data BalanceAssertionInfo = BAI {
+    baiAccount                :: AccountName -- ^ the account
+  , baiLatestAssertionPosting :: Posting     -- ^ the account's latest posting with a balance assertion
+  , baiLatestAssertionDate    :: Day         -- ^ the posting date
+  , baiLatestAssertionStatus  :: Status      -- ^ the posting status
+  , baiLatestPostingDate      :: Day         -- ^ the date of this account's latest posting with or without a balance assertion
+}
+
+-- | Given a list of postings to the same account,
+-- if any of them contain a balance assertion,
+-- calculate the last asserted and posted dates.
+balanceAssertionInfo :: [Posting] -> Maybe BalanceAssertionInfo
+balanceAssertionInfo ps =
+  case (mlatestp, mlatestassertp) of
+    (Just latestp, Just latestassertp) -> Just $
+      BAI{baiAccount                 = paccount latestassertp
+          ,baiLatestAssertionDate    = postingDate latestassertp
+          ,baiLatestAssertionPosting = latestassertp
+          ,baiLatestAssertionStatus  = postingStatus latestassertp
+          ,baiLatestPostingDate      = postingDate latestp
+          }
+    _ -> Nothing
+  where
+    ps' = sortOn postingDate ps
+    mlatestp = lastMay ps'
+    mlatestassertp = lastMay $ filter (isJust.pbalanceassertion) ps
+
+maxlag = 7
+
+-- | The number of days between this balance assertion and the latest posting in its account.
+baiLag BAI{..} = diffDays baiLatestPostingDate baiLatestAssertionDate
+
+-- -- | The earliest balance assertion date which would satisfy the recentassertions check.
+-- baiLagOkDate :: BalanceAssertionInfo -> Day
+-- baiLagOkDate BAI{..} = addDays (-7) baiLatestPostingDate
+
+-- | Check that all the journal's accounts with balance assertions have
+-- an assertion no more than 7 days before their latest posting.
+-- Today's date is provided for error messages.
+journalCheckRecentAssertions :: Day -> Journal -> Either String ()
+journalCheckRecentAssertions today j =
+  let
+    acctps = groupOn paccount $ sortOn paccount $ journalPostings j
+    acctassertioninfos = mapMaybe balanceAssertionInfo acctps
+  in
+    case mapM_ checkRecentAssertion acctassertioninfos of
+      Right () -> Right ()
+      Left (bai@BAI{..}, msg) -> Left errmsg
+        where
+          errmsg = chomp $ printf 
+            (unlines [
+              "%s:",
+              "%s\n",
+              -- "In balance-asserted account %s,",
+              "The recentassertions check is enabled, so accounts with balance assertions",
+              "must have an assertion no more than %d days before their latest posting date.",
+              "In account %s,",
+              "%s",
+              "",
+              "%s"
+              ])
+            (maybe "(no position)"  -- shouldn't happen
+              (sourcePosPretty . baposition) $ pbalanceassertion baiLatestAssertionPosting)
+            (textChomp excerpt)
+            maxlag
+            baiAccount
+            msg
+            recommendation
+            where
+              (_,_,_,excerpt) = makeBalanceAssertionErrorExcerpt baiLatestAssertionPosting
+              recommendation
+                | baiLag bai > maxlag = unlines [
+                    "Consider adding a more recent balance assertion for this account. Eg:",
+                    "",
+                    printf "%s *\n    %s    $0 = $0  ; <- adjust" (show today) baiAccount
+                    ]
+                | otherwise = unlines [
+                    "Consider marking this posting or transaction cleared. Eg:",
+                    "",
+                    case ptransaction baiLatestAssertionPosting of
+                      Nothing -> "(no transaction)"  -- shouldn't happen
+                      Just t  -> T.unpack $ showTransaction t'
+                        where
+                          t' = t{tstatus=tstatus', tpostings=ps'}
+                            where
+                              -- clear just the posting if it was marked pending, otherwise clear the whole transaction
+                              ispunmarked = pstatus baiLatestAssertionPosting == Unmarked
+                              tstatus' = if ispunmarked then Cleared  else tstatus t
+                              pstatus' = if ispunmarked then Unmarked else Cleared
+                              ps' = beforeps ++ [baiLatestAssertionPosting{pstatus=pstatus'}] ++ afterps
+                                where
+                                  beforeps = takeWhile (/= baiLatestAssertionPosting) $ tpostings t
+                                  afterps  = drop (length beforeps + 1) $ tpostings t
+                    ]
+
+-- | Check that this latest assertion is close enough to the account's latest posting.
+checkRecentAssertion :: BalanceAssertionInfo -> Either (BalanceAssertionInfo, String) ()
+checkRecentAssertion bai@BAI{..}
+  | lag > maxlag          = 
+    Left (bai, printf (chomp $ unlines [
+       "the last balance assertion (%s) was %d days before"
+      ,"the latest posting (%s)."
+      ])
+      (show baiLatestAssertionDate) lag (show baiLatestPostingDate)
+      )
+  | baiLatestAssertionStatus /= Cleared = 
+    Left (bai, printf "the last balance assertion's status is %s, should be * (cleared)" 
+      (case baiLatestAssertionStatus of
+        Unmarked -> "unmarked" :: String
+        Pending  -> "! (pending)"
+        Cleared  -> "* (cleared)"))
+  | otherwise             = Right ()
+  where 
+    lag = baiLag bai
+
+-- -- | Print the last balance assertion date & status of all accounts with balance assertions.
+-- printAccountLastAssertions :: Day -> [BalanceAssertionInfo] -> IO ()
+-- printAccountLastAssertions today acctassertioninfos = do
+--   forM_ acctassertioninfos $ \BAI{..} -> do
+--     putStr $ printf "%-30s  %s %s, %d days ago\n"
+--       baiAccount
+--       (if baiLatestAssertionStatus==Unmarked then " " else show baiLatestAssertionStatus)
+--       (show baiLatestAssertionDate)
+--       (diffDays today baiLatestAssertionDate)
