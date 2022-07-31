@@ -65,6 +65,7 @@ data Check =
   -- done on demand by check
   | Ordereddates
   | Payees
+  | Recentassertions
   | Uniqueleafnames
   deriving (Read,Show,Eq,Enum,Bounded)
 
@@ -96,12 +97,14 @@ parseCheckArgument s =
 -- on this journal with these options.
 runCheck :: CliOpts -> Journal -> (Check,[String]) -> IO ()
 runCheck CliOpts{reportspec_=ReportSpec{_rsReportOpts=ropts}} j (check,_) = do
+  d <- getCurrentDay
   let
     results = case check of
       Accounts        -> journalCheckAccounts j
       Commodities     -> journalCheckCommodities j
       Ordereddates    -> journalCheckOrdereddates (whichDate ropts) j
       Payees          -> journalCheckPayees j
+      Recentassertions -> journalCheckRecentAssertions d j
       Uniqueleafnames -> journalCheckUniqueleafnames j
       -- the other checks have been done earlier during withJournalDo
       _               -> Right ()

@@ -58,6 +58,9 @@ They are more specialised and not desirable for everyone, therefore optional:
 
 - **payees** - all payees used by transactions [have been declared](#declaring-payees)
 
+- **recentassertions** - all accounts with balance assertions have a
+  (cleared) assertion no more than 7 days before their latest posting
+
 - **uniqueleafnames** - all account leaf names are unique
 
 ### Custom checks
