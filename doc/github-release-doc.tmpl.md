@@ -18,7 +18,7 @@ Or, you can build from source as described there, after cloning at tag `A.BB`:
 
 Or, if under "Assets" below there are release binaries suitable for your OS and hardware, you can use those.
 <!--
-(Note, release binaries have been updated:
+Note: release binaries have been updated:
 - YYYY-MM-DD: description. [#NNNN](https://github.com/simonmichael/hledger/issues/NNNN)
 -->
 Here are platform-specific instructions for the release binaries.
