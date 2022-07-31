@@ -607,9 +607,9 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedamt 
         "but the calculated balance is: %s", -- (at display precision: %s)",
         "a difference of:               %s",
         "",
-        "Consider viewing this account's register to troubleshoot. Eg:",
+        "Consider viewing this account's calculated balances to troubleshoot. Eg:",
         "",
-        "hledger reg -I '%s'%s"
+        "hledger reg '%s'%s -I  # -f FILE"
       ])
       (sourcePosPretty pos)
       (textChomp ex)
@@ -623,7 +623,7 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedamt 
       -- (showAmount actualbalincommodity)
       (show $ aquantity assertedamt - aquantity actualbalincomm)
       (acct ++ if isinclusive then "" else "$")
-      (if istotal then "" else (" cur:'"++T.unpack assertedcomm++"'"))
+      (if istotal then "" else (" cur:" ++ quoteForCommandLine (T.unpack assertedcomm)))
       where
         acct = T.unpack $ paccount p
         ass = fromJust $ pbalanceassertion p  -- PARTIAL: fromJust won't fail, there is a balance assertion
