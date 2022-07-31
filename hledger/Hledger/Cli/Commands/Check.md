@@ -18,6 +18,9 @@ hledger check -s   # basic + strict checks
 hledger check ordereddates payees  # basic + two other checks
 ```
 
+If you are an Emacs user, you can also configure flycheck-hledger to run these checks,
+providing instant feedback as you edit the journal.
+
 Here are the checks currently available:
 
 ### Basic checks
@@ -75,6 +78,17 @@ in <https://github.com/simonmichael/hledger/tree/master/bin>:
 You could make similar scripts to perform your own custom checks.
 See: Cookbook -> [Scripting](scripting.html).
 
+### More about specific checks
+
+`hledger check recentassertions` will complain if any balance-asserted account does not have
+a (cleared) balance assertion within 7 days before its latest posting.
+This aims to prevent the situation where you are regularly updating your journal,
+but forgetting to check your balances against the real world,
+then one day must dig back through months of data to find an error.
+It assumes that adding a balance assertion requires/reminds you to check the real-world balance.
+This won't be true if you auto-generate balance assertions when importing bank data,
+but hopefully your auto-generated transactions are uncleared, and before manually marking them 
+cleared you will remember to check the latest assertions against the real-world balances.
 
 [add-on commands]:    #add-on-commands
 [balance assertions]: #balance-assertions
