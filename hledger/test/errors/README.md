@@ -131,6 +131,7 @@ Click error names to see an example. The table headings mean:
 | [parseable-dates](#parseable-dates)                   | ✓          | ✓    | ✓      | ✓✓      | ✓        |
 | [parseable-regexps](#parseable-regexps)               | ✓          | ✓    | ✓      | ✓✓      | ✓        |
 | [payees](#payees)                                     | ✓          | ✓    | ✓      | ✓✓      | ✓        |
+| [recentassertions](#recentassertions)                 | ✓          | ✓    | ✓      | ✓✓      | ✓        |
 | [uniqueleafnames](#uniqueleafnames)                   | ✓          | ✓    | ✓      | ✓✓      | ✓        |
 | [tcclockouttime](#tcclockouttime)                     | ✓          | ✓    | ✓      | ✓✓      |          |
 | [tcorderedactions](#tcorderedactions)                 | ✓          | ✓    | ✓      | ✓✓      |          |
@@ -155,7 +156,7 @@ Click error names to see an example. The table headings mean:
 
 
 <!-- GENERATED: -->
-hledger 1.26.99-ga7b920750-20220715 error messages:
+hledger 1.26.99-g99825d37f-20220731 error messages:
 
 ### accounts
 ```
@@ -183,9 +184,9 @@ hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./assertions.j:4:8:
 This balance assertion failed.
 In account:    a
 and commodity: 
-this balance was asserted: 1
-but the actual balance is: 0
-a difference of:           1
+this balance was asserted:     1
+but the calculated balance is: 0
+a difference of:               1
 
 Consider viewing this account's register to troubleshoot. Eg:
 
@@ -298,6 +299,26 @@ payee "p" has not been declared.
 Consider adding a payee directive. Examples:
 
 payee p
+```
+
+
+### recentassertions
+```
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./recentassertions.j:4:8:
+  | 2022-01-01 *
+4 |     a               0 = 0
+  |                       ^^^
+
+The recentassertions check is enabled, so accounts with balance assertions
+must have an assertion no more than 7 days before their latest posting date.
+In account a,
+the last balance assertion (2022-01-01) was 8 days before
+the latest posting (2022-01-09).
+
+Consider adding a more recent balance assertion for this account. Eg:
+
+2022-07-31 *
+    a    $0 = $0  ; <- adjust
 ```
 
 
