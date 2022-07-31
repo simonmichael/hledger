@@ -109,7 +109,7 @@ dependencies:
 - directory
 - extra >=1.6.3
 - filepath
-- githash >=0.1.4
+- githash >=0.1.6.1
 - haskeline >=0.6
 - megaparsec >=7.0.0 && <9.3
 - microlens >=0.4
@@ -179,7 +179,7 @@ library:
   - Hledger.Cli.Commands.Tags
   - Hledger.Cli.CompoundBalanceCommand
   dependencies:
-  - Diff
+  - Diff >=0.2
   - hashable >=1.2.4
   - lucid
 

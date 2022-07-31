@@ -31,7 +31,8 @@ extra-deps:
 - doctest-0.18.1
 - safe-0.3.19
 # for hledger:
-- githash-0.1.4.0
+- githash-0.1.6.2
+- th-compat-0.1.4
 # for hledger-ui:
 # for hledger-web:
 - ghc-byteorder-4.11.0.0.10

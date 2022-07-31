@@ -20,6 +20,8 @@ extra-deps:
 - doclayout-0.3.1.1
 - emojis-0.1.2
 # for hledger:
+- githash-0.1.6.2
+- th-compat-0.1.4
 # for hledger-ui:
 # for hledger-web:
 - ghc-byteorder-4.11.0.0.10
