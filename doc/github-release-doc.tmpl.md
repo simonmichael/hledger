@@ -5,14 +5,7 @@
 
 </summary>
 
-## YYYY-MM-DD hledger-A.BB
-
-**Summary.**
-<!-- ([announcement](https://groups.google.com/g/hledger/LINK)) -->
-
-### hledger A.BB
-
-<!-- etc, from release-notes.md -->
+<!-- release-notes.md section goes here -->
 
 </details>
 
@@ -29,7 +22,7 @@ Or, if under "Assets" below there are release binaries suitable for your OS and 
 - YYYY-MM-DD: description. [#NNNN](https://github.com/simonmichael/hledger/issues/NNNN)
 -->
 Here are platform-specific instructions for the release binaries.
-(You can copy & paste each block of commands as a unit, to save time.):
+(You can copy & paste each block of commands as a unit to save time.):
 
 <details>
 <summary>
@@ -40,7 +33,7 @@ At the command line,
 
 ```
 cd /usr/local/bin
-curl -LOC- https://github.com/simonmichael/hledger/releases/download/A.BB/hledger-linux-x64.zip   # can rerun this if interrupted
+curl -LOC- https://github.com/simonmichael/hledger/releases/download/A.BB/hledger-linux-x64.zip   # can rerun if interrupted
 unzip hledger-linux-x64.zip; tar xvf hledger-linux-x64.tar; rm hledger-linux-x64.{zip,tar}        # github workaround, preserves permissions
 cd -
 hledger --version  # should show the new version
@@ -60,7 +53,7 @@ cd /usr/local/bin
 curl -LOC- https://github.com/simonmichael/hledger/releases/download/A.BB/hledger-mac-x64.zip
 unzip hledger-mac-x64.zip; tar xvf hledger-mac-x64.tar; rm hledger-mac-x64.{zip,tar}              # github workaround, preserves permissions
 open .
-# for the hledger, hledger-ui, hledger-web icons: right-click the executable, Open, confirm it's ok to run
+# for the hledger, hledger-ui, hledger-web icons: right-click, Open, confirm it's ok to run
 cd -
 hledger --version  # should show the new version
 touch $HOME/.hledger.journal   # ensure a default journal file exists
