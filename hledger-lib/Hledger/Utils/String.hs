@@ -10,6 +10,7 @@ module Hledger.Utils.String (
  -- quoting
  quoteIfNeeded,
  singleQuoteIfNeeded,
+ quoteForCommandLine,
  -- quotechars,
  -- whitespacechars,
  words',
@@ -118,15 +119,44 @@ quoteIfNeeded s | any (`elem` s) (quotechars++whitespacechars++redirectchars) = 
     escapeQuotes (c:cs)   x = showChar c        $ escapeQuotes cs x
 
 -- | Single-quote this string if it contains whitespace or double-quotes.
--- No good for strings containing single quotes.
+-- Does not work for strings containing single quotes.
 singleQuoteIfNeeded :: String -> String
-singleQuoteIfNeeded s | any (`elem` s) (quotechars++whitespacechars) = "'"++s++"'"
+singleQuoteIfNeeded s | any (`elem` s) (quotechars++whitespacechars) = singleQuote s
                       | otherwise = s
 
-quotechars, whitespacechars, redirectchars :: [Char]
+-- | Prepend and append single quotes to a string.
+singleQuote :: String -> String
+singleQuote s = "'"++s++"'"
+
+-- | Try to single- and backslash-quote a string as needed to make it usable
+-- as an argument on a (sh/bash) shell command line. At least, well enough 
+-- to handle common currency symbols, like $. Probably broken in many ways.
+--
+-- >>> quoteForCommandLine "a"
+-- "a"
+-- >>> quoteForCommandLine "\""
+-- "'\"'"
+-- >>> quoteForCommandLine "$"
+-- "'\\$'"
+--
+quoteForCommandLine :: String -> String
+quoteForCommandLine s
+  | any (`elem` s) (quotechars++whitespacechars++shellchars) = singleQuote $ quoteShellChars s
+  | otherwise = s
+
+-- | Try to backslash-quote common shell-significant characters in this string.
+-- Doesn't handle single quotes, & probably others.
+quoteShellChars :: String -> String
+quoteShellChars = concatMap escapeShellChar
+  where
+    escapeShellChar c | c `elem` shellchars = ['\\',c]
+    escapeShellChar c = [c]
+
+quotechars, whitespacechars, redirectchars, shellchars :: [Char]
 quotechars      = "'\""
 whitespacechars = " \t\n\r"
 redirectchars   = "<>"
+shellchars      = "<>(){}[]$7?#!~`"
 
 -- | Quote-aware version of words - don't split on spaces which are inside quotes.
 -- NB correctly handles "a'b" but not "''a''". Can raise an error if parsing fails.
