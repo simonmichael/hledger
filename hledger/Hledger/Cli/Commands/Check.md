@@ -62,7 +62,7 @@ They are more specialised and not desirable for everyone, therefore optional:
 - **payees** - all payees used by transactions [have been declared](#declaring-payees)
 
 - **recentassertions** - all accounts with balance assertions have a
-  (cleared) assertion no more than 7 days before their latest posting
+  balance assertion no more than 7 days before their latest posting
 
 - **uniqueleafnames** - all account leaf names are unique
 
@@ -80,15 +80,16 @@ See: Cookbook -> [Scripting](scripting.html).
 
 ### More about specific checks
 
-`hledger check recentassertions` will complain if any balance-asserted account does not have
-a (cleared) balance assertion within 7 days before its latest posting.
+`hledger check recentassertions` will complain if any balance-asserted account
+does not have a balance assertion within 7 days before its latest posting.
 This aims to prevent the situation where you are regularly updating your journal,
 but forgetting to check your balances against the real world,
 then one day must dig back through months of data to find an error.
 It assumes that adding a balance assertion requires/reminds you to check the real-world balance.
-This won't be true if you auto-generate balance assertions when importing bank data,
-but hopefully your auto-generated transactions are uncleared, and before manually marking them 
-cleared you will remember to check the latest assertions against the real-world balances.
+That may not be true if you auto-generate balance assertions from bank data;
+in that case, I recommend to import transactions uncleared, 
+then use the manual-review-and-mark-cleared phase as a reminder
+to check the latest assertions against real-world balances.
 
 [add-on commands]:    #add-on-commands
 [balance assertions]: #balance-assertions

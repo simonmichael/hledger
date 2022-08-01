@@ -156,7 +156,7 @@ Click error names to see an example. The table headings mean:
 
 
 <!-- GENERATED: -->
-hledger 1.26.99-g99825d37f-20220731 error messages:
+hledger 1.26.99-ge777ae46f-20220803 error messages:
 
 ### accounts
 ```
@@ -188,9 +188,9 @@ this balance was asserted:     1
 but the calculated balance is: 0
 a difference of:               1
 
-Consider viewing this account's register to troubleshoot. Eg:
+Consider viewing this account's calculated balances to troubleshoot. Eg:
 
-hledger reg -I 'a$' cur:''
+hledger reg 'a$' cur: -I  # -f FILE
 ```
 
 
@@ -304,20 +304,20 @@ payee p
 
 ### recentassertions
 ```
-hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./recentassertions.j:4:8:
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./recentassertions.j:5:8:
   | 2022-01-01 *
-4 |     a               0 = 0
+5 |     a               0 = 0
   |                       ^^^
 
-The recentassertions check is enabled, so accounts with balance assertions
-must have an assertion no more than 7 days before their latest posting date.
+The recentassertions check is enabled, so accounts with balance assertions must
+have a balance assertion no more than 7 days before their latest posting date.
 In account a,
 the last balance assertion (2022-01-01) was 8 days before
 the latest posting (2022-01-09).
 
 Consider adding a more recent balance assertion for this account. Eg:
 
-2022-07-31 *
+2022-08-03 *
     a    $0 = $0  ; <- adjust
 ```
 

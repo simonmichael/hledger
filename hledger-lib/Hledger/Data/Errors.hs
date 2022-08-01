@@ -7,6 +7,7 @@ Helpers for making error messages.
 module Hledger.Data.Errors (
   makeTransactionErrorExcerpt,
   makePostingErrorExcerpt,
+  makePostingAccountErrorExcerpt,
   makeBalanceAssertionErrorExcerpt,
   transactionFindPostingIndex,
 )
@@ -22,6 +23,7 @@ import Hledger.Data.Types
 import Hledger.Utils
 import Data.Maybe
 import Safe (headMay)
+import Hledger.Data.Posting (isVirtual)
 
 -- | Given a problem transaction and a function calculating the best
 -- column(s) for marking the error region:
@@ -102,6 +104,17 @@ decoratePostingErrorExcerpt absline relline mcols txt =
 transactionFindPostingIndex :: (Posting -> Bool) -> Transaction -> Maybe Int
 transactionFindPostingIndex ppredicate = 
   fmap fst . find (ppredicate.snd) . zip [1..] . tpostings
+
+-- | From the given posting, make an error excerpt showing the transaction with
+-- this posting's account part highlighted.
+makePostingAccountErrorExcerpt :: Posting -> (FilePath, Int, Maybe (Int, Maybe Int), Text)
+makePostingAccountErrorExcerpt p = makePostingErrorExcerpt p finderrcols
+  where
+    -- Calculate columns suitable for highlighting the synthetic excerpt.
+    finderrcols p _ _ = Just (col, Just col2)
+      where
+        col = 5 + if isVirtual p then 1 else 0
+        col2 = col + T.length (paccount p) - 1
 
 -- | From the given posting, make an error excerpt showing the transaction with
 -- the balance assertion highlighted.
