@@ -123,6 +123,18 @@ interprets all tag values containing a `/` (forward slash) as file paths, and ch
 [`hledger-check-tagfiles.cabal.hs`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-check-tagfiles.cabal.hs)
 is the same command implemented as a cabal script rather than a stack script.
 
+### hledger-check-postable
+
+[`hledger-check-postable.hs`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-check-postable.hs)
+check that no postings are made to accounts declared with a `postable:n` or `postable:no` tag.
+This can be used as a workaround when you must declare a parent account to control display order,
+but you don't want to allow postings to it. Eg, to allow postings to assets:cash but not assets
+(remember that account tags are inherited):
+```journal
+account assets         ; postable:n
+account assets:cash    ; postable:
+```
+
 ### hledger-check-fancyassertions
 
 [`hledger-check-fancyassertions.hs`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-check-fancyassertions.hs)
