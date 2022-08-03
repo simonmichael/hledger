@@ -347,7 +347,7 @@ Budget performance in 2018-05-01..2018-06-30, valued at period ends:
 # 16. With subaccounts, child accounts are properly included in the parent balance when budget is checked
 <
 ~ monthly from 2019/01
-    expenses:personal             $1,000.00
+    expenses:personal             $1000.00
     liabilities
 
 2019/01/01 Google home hub and home mini x2
@@ -367,7 +367,7 @@ Budget performance in 2019-01-01..2019-01-03:
 
                    ||    2019-01-01..2019-01-03 
 ===================++===========================
- expenses:personal ||  $50.00 [5% of $1,000.00] 
+ expenses:personal ||  $50.00 [5% of  $1000.00] 
  liabilities       || $-50.00 [5% of $-1000.00] 
 -------------------++---------------------------
                    ||       0 [              0] 
@@ -378,7 +378,7 @@ Budget performance in 2019-01-01..2019-01-03:
 
                                         ||    2019-01-01..2019-01-03 
 ========================================++===========================
- expenses:personal                      ||  $50.00 [5% of $1,000.00] 
+ expenses:personal                      ||  $50.00 [5% of  $1000.00] 
  expenses:personal:electronics          ||  $20.00                   
  expenses:personal:electronics:upgrades ||  $10.00                   
  liabilities                            || $-50.00 [5% of $-1000.00] 
@@ -391,7 +391,7 @@ Budget performance in 2019-01-01..2019-01-03:
 
                    ||    2019-01-01..2019-01-03 
 ===================++===========================
- expenses:personal ||  $50.00 [5% of $1,000.00] 
+ expenses:personal ||  $50.00 [5% of  $1000.00] 
  liabilities       || $-50.00 [5% of $-1000.00] 
 -------------------++---------------------------
                    ||       0 [              0] 
@@ -402,7 +402,7 @@ Budget performance in 2019-01-01..2019-01-03:
 
                    ||    2019-01-01..2019-01-03 
 ===================++===========================
- expenses:personal ||  $50.00 [5% of $1,000.00] 
+ expenses:personal ||  $50.00 [5% of  $1000.00] 
    electronics     ||  $20.00                   
      upgrades      ||  $10.00                   
  liabilities       || $-50.00 [5% of $-1000.00] 
@@ -415,7 +415,7 @@ Budget performance in 2019-01-01:
 
                                ||                2019-01-01 
 ===============================++===========================
- expenses:personal             ||  $10.00 [1% of $1,000.00] 
+ expenses:personal             ||  $10.00 [1% of  $1000.00] 
  expenses:personal:electronics ||  $10.00                   
  liabilities                   || $-10.00 [1% of $-1000.00] 
 -------------------------------++---------------------------
@@ -427,7 +427,7 @@ Budget performance in 2019-01-01:
 
                    ||                2019-01-01 
 ===================++===========================
- expenses:personal ||  $10.00 [1% of $1,000.00] 
+ expenses:personal ||  $10.00 [1% of  $1000.00] 
    electronics     ||  $10.00                   
  liabilities       || $-10.00 [1% of $-1000.00] 
 -------------------++---------------------------
@@ -436,7 +436,7 @@ Budget performance in 2019-01-01:
 # 22. Subaccounts + nested budgets
 <
 ~ monthly from 2019/01
-    expenses:personal             $1,000.00
+    expenses:personal             $1000.00
     expenses:personal:electronics  $100.00
     liabilities
 
@@ -679,3 +679,20 @@ Budget performance in 2020Q1:
  a ||      0 [0]  0 [0% of 1]  0 [0% of 1] 
 ---++--------------------------------------
    ||      0 [0]  0 [0% of 1]  0 [0% of 1] 
+
+# 37. Budget report applies command line commodity styles to goal amounts (#1905).
+<
+~ daily
+    (a)  1
+
+2022-01-01
+    (a)  1
+
+$ hledger -f- bal --budget -c "1.0"
+Budget performance in 2022-01-01:
+
+   ||        2022-01-01 
+===++===================
+ a || 1.0 [100% of 1.0] 
+---++-------------------
+   || 1.0 [100% of 1.0] 

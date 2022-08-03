@@ -47,6 +47,7 @@ import Hledger.Reports.ReportOptions
 import Hledger.Reports.ReportTypes
 import Hledger.Reports.MultiBalanceReport
 import Data.Ord (comparing)
+import Control.Monad ((>=>))
 
 
 type BudgetGoal    = Change
@@ -108,7 +109,8 @@ budgetReport rspec bopts reportspan j = dbg4 "sortedbudgetreport" budgetreport
 --
 journalAddBudgetGoalTransactions :: BalancingOpts -> ReportOpts -> DateSpan -> Journal -> Journal
 journalAddBudgetGoalTransactions bopts ropts reportspan j =
-  either error' id $ journalBalanceTransactions bopts j{ jtxns = budgetts }  -- PARTIAL:
+  either error' id $  -- PARTIAL:
+    (journalApplyCommodityStyles >=> journalBalanceTransactions bopts) j{ jtxns = budgetts }
   where
     budgetspan = dbg3 "budget span" $ DateSpan mbudgetgoalsstartdate (spanEnd reportspan)
       where
