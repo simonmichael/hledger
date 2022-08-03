@@ -25,12 +25,10 @@ update: tests readme
 
 tests:
 	@printf "(Re)generating *.test with the error messages of hledger $$($(HLEDGER) --version | awk '{print $$2}')\n"
-	@read -p "ok ? Press enter: "
 	@for f in $(ERRORSCRIPTS); do echo "HLEDGER=$(HLEDGER) ./hledger2shelltest $$f"; HLEDGER=$(HLEDGER) ./hledger2shelltest $$f; done
 
 readme:
 	@printf "Updating README.md with the error messages of hledger $$($(HLEDGER) --version)\n"
-	@read -p "ok ? Press enter: "
 	sed '/<!-- GENERATED: -->/q' <README.md >README.md.tmp
 	echo "$$($(HLEDGER) --version | cut -d, -f1) error messages:" >>README.md.tmp
 	for f in $(ERRORSCRIPTS); do \
