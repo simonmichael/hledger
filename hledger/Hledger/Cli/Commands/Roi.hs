@@ -162,7 +162,9 @@ timeWeightedReturn showCashFlow prettyTables investmentsQuery trans mixedAmountV
         -- PnL and CashFlow, we would not be able to apply pnl change to 0 unit,
         -- which would lead to an error. We make sure that we have at least one
         -- cashflow entry at the front, and we know that there would be at most
-        -- one for the given date, by construction.
+        -- one for the given date, by construction. Empty CashFlows added
+        -- because of a begin date before the first transaction are not seen as
+        -- a valid cashflow entry at the front.
         zeroUnitsNeedsCashflowAtTheFront
         $ sort
         $ datedCashflows ++ datedPnls
@@ -170,9 +172,14 @@ timeWeightedReturn showCashFlow prettyTables investmentsQuery trans mixedAmountV
           zeroUnitsNeedsCashflowAtTheFront changes =
             if initialUnits > 0 then changes
             else 
-              let (leadingPnls, rest) = span (isLeft . snd) changes
-                  (firstCashflow, rest') = splitAt 1 rest
-              in firstCashflow ++ leadingPnls ++ rest'
+              let (leadingEmptyCashFlows, rest) = span isEmptyCashflow changes
+                  (leadingPnls, rest') = span (isLeft . snd) rest
+                  (firstCashflow, rest'') = splitAt 1 rest'
+              in leadingEmptyCashFlows ++ firstCashflow ++ leadingPnls ++ rest''
+
+          isEmptyCashflow (_date, amt) = case amt of
+            Right amt -> mixedAmountIsZero amt
+            Left _ -> False
 
           datedPnls = map (second Left) $ aggregateByDate pnl
  
