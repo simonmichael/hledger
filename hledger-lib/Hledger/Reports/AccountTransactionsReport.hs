@@ -153,7 +153,7 @@ accountTransactionsReport rspec@ReportSpec{_rsReportOpts=ropts} j thisacctq = it
         datelessreportq = filterQuery (not . queryIsDateOrDate2) reportq
 
     items =
-        accountTransactionsReportItems reportq thisacctq startbal maNegate
+        accountTransactionsReportItems reportq thisacctq startbal maNegate (journalAccountType j)
       -- sort by the transaction's register date, then index, for accurate starting balance
       . ptraceAtWith 5 (("ts4:\n"++).pshowTransactions.map snd)
       . sortBy (comparing (Down . fst) <> comparing (Down . tindex . snd))
@@ -171,19 +171,21 @@ pshowTransactions = pshow . map (\t -> unwords [show $ tdate t, T.unpack $ tdesc
 -- in the report. This is not necessarily the transaction date - see
 -- transactionRegisterDate.
 accountTransactionsReportItems :: Query -> Query -> MixedAmount -> (MixedAmount -> MixedAmount)
-                               -> [(Day, Transaction)] -> [AccountTransactionsReportItem]
-accountTransactionsReportItems reportq thisacctq bal signfn =
-    catMaybes . snd . mapAccumR (accountTransactionsReportItem reportq thisacctq signfn) bal
+                               -> (AccountName -> Maybe AccountType) -> [(Day, Transaction)]
+                               -> [AccountTransactionsReportItem]
+accountTransactionsReportItems reportq thisacctq bal signfn accttypefn =
+    catMaybes . snd . mapAccumR (accountTransactionsReportItem reportq thisacctq signfn accttypefn) bal
 
-accountTransactionsReportItem :: Query -> Query -> (MixedAmount -> MixedAmount) -> MixedAmount
-                              -> (Day, Transaction) -> (MixedAmount, Maybe AccountTransactionsReportItem)
-accountTransactionsReportItem reportq thisacctq signfn bal (d, torig)
+accountTransactionsReportItem :: Query -> Query -> (MixedAmount -> MixedAmount)
+                              -> (AccountName -> Maybe AccountType) -> MixedAmount -> (Day, Transaction)
+                              -> (MixedAmount, Maybe AccountTransactionsReportItem)
+accountTransactionsReportItem reportq thisacctq signfn accttypefn bal (d, torig)
     -- 201407: I've lost my grip on this, let's just hope for the best
     -- 201606: we now calculate change and balance from filtered postings, check this still works well for all callers XXX
     | null reportps = (bal, Nothing)  -- no matched postings in this transaction, skip it
     | otherwise     = (b, Just (torig, tacct{tdate=d}, numotheraccts > 1, otheracctstr, a, b))
     where
-      tacct@Transaction{tpostings=reportps} = filterTransactionPostings reportq torig  -- TODO needs to consider --date2, #1731
+      tacct@Transaction{tpostings=reportps} = filterTransactionPostingsExtra accttypefn reportq torig  -- TODO needs to consider --date2, #1731
       (thisacctps, otheracctps) = partition (matchesPosting thisacctq) reportps
       numotheraccts = length $ nub $ map paccount otheracctps
       otheracctstr | thisacctq == None  = summarisePostingAccounts reportps     -- no current account ? summarise all matched postings

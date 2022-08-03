@@ -37,6 +37,7 @@ module Hledger.Data.Journal (
   filterJournalAmounts,
   filterTransactionAmounts,
   filterTransactionPostings,
+  filterTransactionPostingsExtra,
   filterTransactionRelatedPostings,
   filterPostingAmount,
   -- * Mapping
