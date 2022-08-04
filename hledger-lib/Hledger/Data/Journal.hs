@@ -199,7 +199,9 @@ instance Show Journal where
 -- Note that (<>) is right-biased, so nulljournal is only a left identity.
 -- In particular, this prevents Journal from being a monoid.
 instance Semigroup Journal where
-  j1 <> j2 = Journal {
+  j1 <> j2 =
+    journalRenumberAccountDeclarations $
+    Journal {
      jparsedefaultyear          = jparsedefaultyear          j2
     ,jparsedefaultcommodity     = jparsedefaultcommodity     j2
     ,jparsedecimalmark          = jparsedecimalmark          j2
@@ -225,6 +227,14 @@ instance Semigroup Journal where
     ,jfiles                     = jfiles                     j1 <> jfiles                     j2
     ,jlastreadtime              = max (jlastreadtime j1) (jlastreadtime j2)
     }
+
+-- | Renumber all the account declarations. Call this after combining two journals into one,
+-- so that account declarations have a total order again.
+journalRenumberAccountDeclarations :: Journal -> Journal
+journalRenumberAccountDeclarations j = j{jdeclaredaccounts=jdas'}
+  where
+    jdas' = [(a, adi{adideclarationorder=n}) | (n, (a,adi)) <- zip [1..] $ jdeclaredaccounts j]
+    -- XXX the per-file declaration order saved during parsing is discarded; it seems unneeded
 
 instance Default Journal where
   def = nulljournal

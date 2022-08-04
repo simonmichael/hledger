@@ -401,6 +401,9 @@ addAccountDeclaration (a,cmt,tags) =
                               adicomment          = cmt
                              ,aditags             = tags
                              ,adideclarationorder = length decls + 1
+                               -- this restarts from 1 in each file, which is not that useful
+                               -- when there are multiple files; so it gets renumbered
+                               -- automatically when combining Journals with <>
                              })
              in
                j{jdeclaredaccounts = d:decls})
