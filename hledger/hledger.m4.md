@@ -2130,45 +2130,40 @@ You can also comment larger regions of a file using [`comment` and `end comment`
 
 ## Tags
 
-Tags are a way to add extra labels or labelled data to postings and transactions,
+Tags are a way to add extra labels or labelled data to transactions, postings, or accounts,
 which you can then [search](#queries) or [pivot](#pivoting) on.
 
-A simple tag is a word (which may contain hyphens) followed by a full colon,
-written inside a transaction or posting [comment](#comments) line:
+They are written as a (optionally hyphenated) word immediately followed by a full colon
+within a transaction or posting or account directive's [comment](#comments):
 ```journal
-2017/1/16 bought groceries  ; sometag:
+account assets:checking     ; accounttag:
+
+2017/1/16 bought groceries  ; transaction-tag:
+    ; another-transaction-tag:
+    assets:checking   $-1
+    expenses:food      $1     ; posting-tag:
 ```
 
-Tags can have a value, which is the text after the colon, up to the next comma or end of line, with leading/trailing whitespace removed:
+Tags are inherited, as follows:
+
+- Tags on a transaction affect the transaction and all of its postings
+- Tags on an account affect all postings to that account.
+
+So in the example above,
+- the `assets:checking` account has one tag (`accounttag`)
+- the transaction has two tags (`transaction-tag`, `another-transaction-tag`)
+- the `assets:checking` posting has three tags (`transaction-tag`, `another-transaction-tag`, `accounttag`)
+- the `expenses:food` posting has three tags (`transaction-tag`, `another-transaction-tag`, `posting-tag`).
+
+Tags can have a value, which is the text after the colon,
+until the next comma or end of line, with surrounding whitespace stripped.
+So here `a-posting-tag`'s value is "the tag value", `tag2`'s value is "foo",
+and `tag3`'s value is "" (the empty string):
 ```journal
-    expenses:food    $10 ; a-posting-tag: the tag value
+    expenses:food    $10 
+      ; some text, a-posting-tag:the tag value, tag2: foo , tag3: , other text
 ```
-
-Note this means hledger's tag values can not contain commas or newlines.
-Ending at commas means you can write multiple short tags on one line, comma separated:
-```journal
-    assets:checking  ; a comment containing tag1:, tag2: some value ...
-```
-Here,
-
-- "`a comment containing `" is just comment text, not a tag
-- "`tag1`" is a tag with no value
-- "`tag2`" is another tag, whose value is "`some value ...`"
-
-Tags in a transaction comment affect the transaction and all of its postings,
-while tags in a posting comment affect only that posting.
-For example, the following transaction has three tags (`A`, `TAG2`, `third-tag`)
-and the posting has four (those plus `posting-tag`):
-
-```journal
-1/1 a transaction  ; A:, TAG2:
-    ; third-tag: a third transaction tag, <- with a value
-    (a)  $1  ; posting-tag:
-```
-
-Tags are like Ledger's
-[metadata](http://ledger-cli.org/3.0/doc/ledger3.html#Metadata)
-feature, except hledger's tag values are simple strings.
+A hledger tag value may not contain a comma.
 
 ## Postings
 
@@ -3111,66 +3106,94 @@ in another commodity. See [Valuation](#valuation).
 Though not required, these declarations can provide several benefits:
 
 - They can document your intended chart of accounts, providing a reference.
-- They control account display order in reports, allowing non-alphabetic sorting (eg Revenues to appear above Expenses).
-- They can help hledger know your accounts' types (asset, liability, equity, revenue, expense), useful for reports like balancesheet and incomestatement.
-- They can store other account information, as comments or as tags which can be used to filter reports.
-- They help with account name completion (in hledger add, hledger-web, hledger-iadd, ledger-mode, etc.)
 - In [strict mode], they restrict which accounts may be posted to by transactions, which helps detect typos.
+- They control account display order in reports, allowing non-alphabetic sorting (eg Revenues to appear above Expenses).
+- They help with account name completion (in hledger add, hledger-web, hledger-iadd, ledger-mode, etc.)
+- They can store additional account information as [comments](#comments), or as [tags](#tags) which can be used to filter or pivot reports.
+- They can help hledger know your accounts' types (asset, liability, equity, revenue, expense), affecting reports like 
+  [balancesheet](#balancesheet) and [incomestatement](#incomestatement).
 
-The simplest form is just the word `account` followed by a hledger-style
-[account name](#account-names), eg this account directive declares the `assets:bank:checking` account: 
+They are written as the word `account` followed by a hledger-style [account name](#account-names), eg: 
 
 ```journal
 account assets:bank:checking
 ```
 
+### Account comments
+
+[Comments](#comments), beginning with a semicolon:
+
+- can be written on the same line, but only after **two or more spaces** (because `;` is allowed in account names)
+- and/or on the next lines, indented
+- and may contain [tags](#tags), such as the `type:` tag.
+
+For example:
+```journal
+account assets:bank:checking    ; same-line comment, at least 2 spaces before the semicolon
+  ; next-line comment
+  ; some tags - type:A, acctnum:12345
+```
+
+### Account subdirectives
+
+Ledger-style indented subdirectives are also accepted, but currently ignored:
+
+```journal
+account assets:bank:checking
+  format subdirective is ignored
+```
+
 ### Account error checking
 
-By default, accounts come into existence when a transaction references them by name.
+By default, accounts need not be declared; they come into existence when a posting references them.
 This is convenient, but it means hledger can't warn you when you mis-spell an account name in the journal.
-Usually you'll find the error later, as an extra account in balance reports, 
+Usually you'll find that error later, as an extra account in balance reports, 
 or an incorrect balance when reconciling.
 
 In [strict mode], enabled with the `-s`/`--strict` flag, hledger will report an error if any transaction uses an account name that has not been declared by an [account directive](#declaring-accounts). Some notes:
 
 - The declaration is case-sensitive; transactions must use the correct account name capitalisation.
 - The account directive's scope is "whole file and below" (see [directives](#directives)). This means it affects all of the current file, and any files it includes, but not parent or sibling files. The position of account directives within the file does not matter, though it's usual to put them at the top.
-- Accounts can only be declared in `journal` files (but will affect included files in other formats).
+- Accounts can only be declared in `journal` files, but will affect [included](#including-other-files) files of all types.
 - It's currently not possible to declare "all possible subaccounts" with a wildcard; every account posted to must be declared.
 
-### Account comments
+### Account display order
 
-[Comments](#comments), beginning with a semicolon, can be added:
-
-- on the same line, **after two or more spaces**
-  (because ; is allowed in account names)
-- on the next lines, indented
-
-An example of both:
+The order in which account directives are written influences 
+the order in which accounts appear in reports, hledger-ui, hledger-web etc.
+By default accounts appear in alphabetical order,
+but if you add these account directives to the journal file:
 ```journal
-account assets:bank:checking    ; same-line comment, note 2+ spaces required before ;
-  ; next-line comment
-  ; some tags, type:A, acctnum:12345
+account assets
+account liabilities
+account equity
+account revenues
+account expenses
 ```
 
-Compatibility note: same-line comments are not supported by Ledger or hledger <1.13.
-
-<!-- Account comments may include [tags](#tags), though we don't yet use them for anything. -->
-
-### Account subdirectives
-
-We also allow (and ignore) Ledger-style indented subdirectives, just for compatibility.:
-```journal
-account assets:bank:checking
-  format blah blah  ; <- subdirective, ignored
+those accounts will be displayed in declaration order:
+```shell
+$ hledger accounts -1
+assets
+liabilities
+equity
+revenues
+expenses
 ```
 
-Here is the full syntax of account directives:
+Any undeclared accounts are displayed last, in alphabetical order.
+
+Sorting is done at each level of the account tree, 
+within each group of sibling accounts under the same parent.
+And currently, this directive:
 ```journal
-account ACCTNAME  [;type:ACCTTYPE] [COMMENT]
-  [;COMMENTS]
-  [LEDGER-STYLE SUBDIRECTIVES, IGNORED]
+account other:zoo
 ```
+would influence the position of `zoo` among `other`'s subaccounts, but not the position of `other` among the top-level accounts.
+This means:
+
+- you will sometimes declare parent accounts (eg `account other` above) that you don't intend to post to, just to customize their display order
+- sibling accounts stay together (you couldn't display `x:y` in between `a:b` and `a:c`).
 
 ### Account types
 
@@ -3253,43 +3276,6 @@ Here are some tips for working with account types.
   ```
   $ hledger accounts --types [ACCTPAT] [-DEPTH] [type:TYPECODES]
   ```
-
-### Account display order
-
-Account directives also set the order in which accounts are displayed,
-eg in reports, the hledger-ui accounts screen, and the hledger-web sidebar.
-By default accounts are listed in alphabetical order.
-But if you have these account directives in the journal:
-```journal
-account assets
-account liabilities
-account equity
-account revenues
-account expenses
-```
-
-you'll see those accounts displayed in declaration order, not alphabetically:
-```shell
-$ hledger accounts -1
-assets
-liabilities
-equity
-revenues
-expenses
-```
-
-Undeclared accounts, if any, are displayed last, in alphabetical order.
-
-Note that sorting is done at each level of the account tree (within each group of sibling accounts under the same parent).
-And currently, this directive:
-```journal
-account other:zoo
-```
-would influence the position of `zoo` among `other`'s subaccounts, but not the position of `other` among the top-level accounts.
-This means:
-
-- you will sometimes declare parent accounts (eg `account other` above) that you don't intend to post to, just to customize their display order
-- sibling accounts stay together (you couldn't display `x:y` in between `a:b` and `a:c`).
 
 ## Rewriting accounts
 
