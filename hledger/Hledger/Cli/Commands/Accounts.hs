@@ -63,12 +63,13 @@ accounts CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_rsRepo
         filter (matchesAccountExtra (journalAccountType j) (journalInheritedAccountTags j) nodepthq)
           $ map fst $ jdeclaredaccounts j
       matchedusedaccts     = dbg5 "matchedusedaccts" $ map paccount $ journalPostings $ filterJournalPostings nodepthq j
-      accts                = dbg5 "accts to show" $ -- no need to nub/sort, accountTree will
+      accts                = dbg5 "accts to show" $
         if | declared     && not used -> matcheddeclaredaccts
            | not declared && used     -> matchedusedaccts
            | otherwise                -> matcheddeclaredaccts ++ matchedusedaccts
 
-  -- 2. sort them by declaration order and name, at each level of their tree structure
+  -- 2. sort them by declaration order (then undeclared accounts alphabetically)
+  -- within each group of siblings
       sortedaccts = sortAccountNamesByDeclaration j tree accts
 
   -- 3. if there's a depth limit, depth-clip and remove any no longer useful items
