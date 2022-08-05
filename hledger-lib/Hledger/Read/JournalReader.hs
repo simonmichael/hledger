@@ -307,7 +307,11 @@ includedirectivep = do
       let r = fromMaybe reader $ findReader Nothing (Just prefixedpath)
           parser = rParser r
       dbg6IO "trying reader" (rFormat r)
-      updatedChildj <- journalAddFile (filepath, childInput) <$>
+      -- Included files's lists are still reversed, because not yet journalFinalise'd,
+      -- which confuses the calculation of account declaration order across multiple files (#1909).
+      -- Unreverse just the acct declarations to fix that without disturbing anything else.
+      let reversedecls j = j{jdeclaredaccounts = reverse $ jdeclaredaccounts j}
+      updatedChildj <- (journalAddFile (filepath, childInput) . reversedecls) <$>
                         parseIncludeFile parser initChildj filepath childInput
 
       -- discard child's parse info,  combine other fields
