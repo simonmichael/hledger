@@ -166,7 +166,7 @@ downloads the last 30 days of Paypal transactions (requires a free developer acc
 
 ### paypaljson2csv
 
-[`paypaljson2csv`](https://github.com/simonmichael/hledger/blob/master/bin/paypal2csv) (python)
+[`paypaljson2csv`](https://github.com/simonmichael/hledger/blob/master/bin/paypaljson2csv) (python)
 converts `paypaljson`'s output to CSV, with format similar to Paypal's manually-downloaded CSV.
 
 ## More scripts
