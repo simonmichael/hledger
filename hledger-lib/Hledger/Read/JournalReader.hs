@@ -185,9 +185,11 @@ reader = Reader
 -- | Parse and post-process a "Journal" from hledger's journal file
 -- format, or give an error.
 parse :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
-parse iopts = parseAndFinaliseJournal journalp' iopts
+parse iopts f = parseAndFinaliseJournal journalp' iopts f
   where
-    journalp' = do
+    journalp' =
+      -- debug logging for account display order
+      dbgJournalAcctDeclOrder (takeFileName f <> " acct decls: ") <$> do
       -- reverse parsed aliases to ensure that they are applied in order given on commandline
       mapM_ addAccountAlias (reverse $ aliasesFromOpts iopts)
       journalp
@@ -302,20 +304,40 @@ includedirectivep = do
                             `orRethrowIOError` (show parentpos ++ " reading " ++ filepath)
       let initChildj = newJournalWithParseStateFrom filepath parentj
 
-      -- Choose a reader/format based on the file path, or fall back
-      -- on journal. Duplicating readJournal a bit here.
+      -- Choose a reader/parser based on the file path prefix or file extension,
+      -- defaulting to JournalReader. Duplicating readJournal a bit here.
       let r = fromMaybe reader $ findReader Nothing (Just prefixedpath)
           parser = rParser r
       dbg6IO "trying reader" (rFormat r)
-      -- Included files's lists are still reversed, because not yet journalFinalise'd,
-      -- which confuses the calculation of account declaration order across multiple files (#1909).
-      -- Unreverse just the acct declarations to fix that without disturbing anything else.
-      let reversedecls j = j{jdeclaredaccounts = reverse $ jdeclaredaccounts j}
-      updatedChildj <- (journalAddFile (filepath, childInput) . reversedecls) <$>
+
+      -- Parse the file (of whichever format) to a Journal, with file path and source text attached.
+      updatedChildj <- (journalAddFile (filepath, childInput)) <$>
                         parseIncludeFile parser initChildj filepath childInput
 
-      -- discard child's parse info,  combine other fields
-      put $ updatedChildj <> parentj
+      -- Merge this child journal into the parent journal using Journal's Semigroup instance
+      -- (with lots of debug logging for troubleshooting account display order).
+      let
+        parentj' =
+          dbgJournalAcctDeclOrder (" " <> parentfilename <> " acct decls now : ")
+          $
+          (
+            -- The child journal has not yet been finalises and its lists are still reversed.
+            -- To help calculate account declaration order across files (#1909),
+            -- unreverse just the acct declarations without disturbing anything else.
+            -- XXX still shows wrong order in some cases
+            reverseAcctDecls $
+            dbgJournalAcctDeclOrder (childfilename <> " include file acct decls: ") updatedChildj
+          )
+          <>
+          dbgJournalAcctDeclOrder (" " <> parentfilename <> " acct decls were: ") parentj
+
+          where
+            reverseAcctDecls j = j{jdeclaredaccounts = reverse $ jdeclaredaccounts j}
+            childfilename = takeFileName filepath
+            parentfilename = maybe "" takeFileName $ headMay $ jincludefilestack parentj  -- more accurate than journalFilePath parentj somehow
+
+      -- Update the parse state.
+      put parentj'
 
     newJournalWithParseStateFrom :: FilePath -> Journal -> Journal
     newJournalWithParseStateFrom filepath j = nulljournal{
@@ -329,6 +351,22 @@ includedirectivep = do
       ,jparsetimeclockentries = jparsetimeclockentries j
       ,jincludefilestack      = filepath : jincludefilestack j
       }
+
+dbgJournalAcctDeclOrder :: String -> Journal -> Journal
+dbgJournalAcctDeclOrder prefix
+  | debugLevel >= 5 = traceWith ((prefix++) . showAcctDeclsSummary . jdeclaredaccounts)
+  | otherwise       = id
+  where
+    showAcctDeclsSummary :: [(AccountName,AccountDeclarationInfo)] -> String
+    showAcctDeclsSummary adis
+      | length adis < (2*num+2) = "[" <> showadis adis <> "]"
+      | otherwise =
+          "[" <> showadis (take num adis) <> " ... " <> showadis (takelast num adis) <> "]"
+      where
+        num = 3
+        showadis = intercalate ", " . map showadi
+        showadi (a,adi) = "("<>show (adideclarationorder adi)<>","<>T.unpack a<>")"
+        takelast n = reverse . take n . reverse
 
 -- | Lift an IO action into the exception monad, rethrowing any IO
 -- error with the given message prepended.
