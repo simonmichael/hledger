@@ -49,7 +49,7 @@ import Data.Time.Clock.POSIX (POSIXTime)
 import Data.Time.LocalTime (LocalTime)
 import Data.Word (Word8)
 import Text.Blaze (ToMarkup(..))
-import Text.Megaparsec (SourcePos)
+import Text.Megaparsec (SourcePos(SourcePos), mkPos)
 
 import Hledger.Utils.Regex
 
@@ -585,12 +585,14 @@ data AccountDeclarationInfo = AccountDeclarationInfo {
   ,aditags             :: [Tag]  -- ^ tags extracted from the account comment, if any
   ,adideclarationorder :: Int    -- ^ the order in which this account was declared,
                                  --   relative to other account declarations, during parsing (1..)
+  ,adisourcepos        :: SourcePos  -- ^ source file and position
 } deriving (Eq,Show,Generic)
 
 nullaccountdeclarationinfo = AccountDeclarationInfo {
    adicomment          = ""
   ,aditags             = []
   ,adideclarationorder = 0
+  ,adisourcepos        = SourcePos "" (mkPos 1) (mkPos 1)
 }
 
 -- | An account, with its balances, parent/subaccount relationships, etc.

@@ -344,6 +344,7 @@ orRethrowIOError io msg = do
 accountdirectivep :: JournalParser m ()
 accountdirectivep = do
   off <- getOffset -- XXX figure out a more precise position later
+  pos <- getSourcePos
 
   string "account"
   lift skipNonNewlineSpaces1
@@ -363,7 +364,7 @@ accountdirectivep = do
     metype = parseAccountTypeCode <$> lookup accountTypeTagName tags
 
   -- update the journal
-  addAccountDeclaration (acct, cmt, tags)
+  addAccountDeclaration (acct, cmt, tags, pos)
   unless (null tags) $ addDeclaredAccountTags acct tags
   case metype of
     Nothing         -> return ()
@@ -396,18 +397,19 @@ parseAccountTypeCode s =
             T.intercalate ", " ["A","L","E","R","X","C","V","Asset","Liability","Equity","Revenue","Expense","Cash","Conversion"]
 
 -- Add an account declaration to the journal, auto-numbering it.
-addAccountDeclaration :: (AccountName,Text,[Tag]) -> JournalParser m ()
-addAccountDeclaration (a,cmt,tags) =
+addAccountDeclaration :: (AccountName,Text,[Tag],SourcePos) -> JournalParser m ()
+addAccountDeclaration (a,cmt,tags,pos) = do
   modify' (\j ->
              let
                decls = jdeclaredaccounts j
                d     = (a, nullaccountdeclarationinfo{
                               adicomment          = cmt
                              ,aditags             = tags
+                              -- this restarts from 1 in each file, which is not that useful
+                              -- when there are multiple files; so it gets renumbered
+                              -- automatically when combining Journals with <>
                              ,adideclarationorder = length decls + 1
-                               -- this restarts from 1 in each file, which is not that useful
-                               -- when there are multiple files; so it gets renumbered
-                               -- automatically when combining Journals with <>
+                             ,adisourcepos        = pos
                              })
              in
                j{jdeclaredaccounts = d:decls})
@@ -1017,6 +1019,7 @@ tests_JournalReader = testGroup "JournalReader" [
         [("a:b", AccountDeclarationInfo{adicomment          = "type:asset\n"
                                        ,aditags             = [("type","asset")]
                                        ,adideclarationorder = 1
+                                       ,adisourcepos        = fst nullsourcepos
                                        })
         ]
       ]
