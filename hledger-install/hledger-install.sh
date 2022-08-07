@@ -52,7 +52,7 @@ HLEDGER_INSTALL_VERSION=20220711
 # You can try specifying a different stackage version here, or 
 # commenting out this line to use your current global resolver,
 # to avoid unnecessary building.
-RESOLVER="--resolver=nightly-2022-07-10"
+RESOLVER="--resolver=nightly-2022-08-04"
 
 # things to be installed
 
