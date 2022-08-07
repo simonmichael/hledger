@@ -92,9 +92,19 @@ accounts CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_rsRepo
         indent      = T.replicate (2 * (max 0 (accountNameLevel a - drop_ ropts) - 1)) " "
         droppedName = accountNameDrop (drop_ ropts) a
     showType a 
-      | types     = spacer <> "    ; type: " <> maybe "" (T.pack . show) (journalAccountType j a)
+      | types     = pad a <> "    ; type: " <> maybe "" (T.pack . show) (journalAccountType j a)
       | otherwise = ""
-      where
-        spacer = T.replicate (maxwidth - T.length (showName a)) " "
+    -- for troubleshooting account display order
+    dbgAcctDeclOrder a
+      | debugLevel >= 2 =
+        (if types then "," else pad a <> "    ;") <>
+        case lookup a $ jdeclaredaccounts j of
+          Just adi ->
+            " declared at " <> (T.pack $ sourcePosPretty $ adisourcepos adi) <>
+            ", overall declaration order " <> (T.pack $ show $ adideclarationorder adi)
+          Nothing -> " undeclared"
+      | otherwise = ""
+    pad a = T.replicate (maxwidth - T.length (showName a)) " "
     maxwidth = maximum $ map (T.length . showName) clippedaccts
-  forM_ clippedaccts $ \a -> T.putStrLn $ showName a <> showType a
+
+  forM_ clippedaccts $ \a -> T.putStrLn $ showName a <> showType a <> dbgAcctDeclOrder a
