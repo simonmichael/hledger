@@ -513,10 +513,10 @@ formatdirectivep expectedsym = do
          printf "commodity directive symbol \"%s\" and format directive symbol \"%s\" should be the same" expectedsym acommodity
 
 keywordp :: String -> JournalParser m ()
-keywordp = (() <$) . string . fromString
+keywordp = void . string . fromString
 
 spacesp :: JournalParser m ()
-spacesp = () <$ lift skipNonNewlineSpaces1
+spacesp = void $ lift skipNonNewlineSpaces1
 
 -- | Backtracking parser similar to string, but allows varying amount of space between words
 keywordsp :: String -> JournalParser m ()
@@ -816,8 +816,8 @@ tests_JournalReader = testGroup "JournalReader" [
     ]
   ,testCase "datetimep" $ do
      let
-       good = assertParse datetimep
-       bad  = (\t -> assertParseError datetimep t "")
+       good  = assertParse datetimep
+       bad t = assertParseError datetimep t ""
      good "2011/1/1 00:00"
      good "2011/1/1 23:59:59"
      bad "2011/1/1"
