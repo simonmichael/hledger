@@ -187,9 +187,7 @@ reader = Reader
 parse :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
 parse iopts f = parseAndFinaliseJournal journalp' iopts f
   where
-    journalp' =
-      -- debug logging for account display order
-      dbgJournalAcctDeclOrder (takeFileName f <> " acct decls: ") <$> do
+    journalp' = do
       -- reverse parsed aliases to ensure that they are applied in order given on commandline
       mapM_ addAccountAlias (reverse $ aliasesFromOpts iopts)
       journalp
@@ -300,39 +298,35 @@ includedirectivep = do
       when (filepath `elem` parentfilestack) $
         Fail.fail ("Cyclic include: " ++ filepath)
 
-      childInput <- lift $ readFilePortably filepath
-                            `orRethrowIOError` (show parentpos ++ " reading " ++ filepath)
+      childInput <-
+        traceAt 6 ("parseChild: "++takeFileName filepath) $
+        lift $ readFilePortably filepath
+          `orRethrowIOError` (show parentpos ++ " reading " ++ filepath)
       let initChildj = newJournalWithParseStateFrom filepath parentj
 
       -- Choose a reader/parser based on the file path prefix or file extension,
       -- defaulting to JournalReader. Duplicating readJournal a bit here.
       let r = fromMaybe reader $ findReader Nothing (Just prefixedpath)
           parser = rParser r
-      dbg6IO "trying reader" (rFormat r)
+      dbg6IO "parseChild: trying reader" (rFormat r)
 
       -- Parse the file (of whichever format) to a Journal, with file path and source text attached.
-      updatedChildj <- (journalAddFile (filepath, childInput)) <$>
+      updatedChildj <- journalAddFile (filepath, childInput) <$>
                         parseIncludeFile parser initChildj filepath childInput
 
-      -- Merge this child journal into the parent journal using Journal's Semigroup instance
-      -- (with lots of debug logging for troubleshooting account display order).
+      -- Merge this child journal into the parent journal
+      -- (with debug logging for troubleshooting account display order).
+      -- The parent journal is the second argument to journalConcat; this means
+      -- its parse state is kept, and its lists are appended to child's (which
+      -- ultimately produces the right list order, because parent's and child's
+      -- lists are in reverse order at this stage. Cf #1909).
       let
         parentj' =
-          dbgJournalAcctDeclOrder (" " <> parentfilename <> " acct decls now : ")
-          $
-          (
-            -- The child journal has not yet been finalises and its lists are still reversed.
-            -- To help calculate account declaration order across files (#1909),
-            -- unreverse just the acct declarations without disturbing anything else.
-            -- XXX still shows wrong order in some cases
-            reverseAcctDecls $
-            dbgJournalAcctDeclOrder (childfilename <> " include file acct decls: ") updatedChildj
-          )
-          <>
-          dbgJournalAcctDeclOrder (" " <> parentfilename <> " acct decls were: ") parentj
+          dbgJournalAcctDeclOrder ("parseChild: child " <> childfilename <> " acct decls: ") updatedChildj
+          `journalConcat`
+          dbgJournalAcctDeclOrder ("parseChild: parent " <> parentfilename <> " acct decls: ") parentj
 
           where
-            reverseAcctDecls j = j{jdeclaredaccounts = reverse $ jdeclaredaccounts j}
             childfilename = takeFileName filepath
             parentfilename = maybe "" takeFileName $ headMay $ jincludefilestack parentj  -- more accurate than journalFilePath parentj somehow
 
@@ -351,22 +345,6 @@ includedirectivep = do
       ,jparsetimeclockentries = jparsetimeclockentries j
       ,jincludefilestack      = filepath : jincludefilestack j
       }
-
-dbgJournalAcctDeclOrder :: String -> Journal -> Journal
-dbgJournalAcctDeclOrder prefix
-  | debugLevel >= 5 = traceWith ((prefix++) . showAcctDeclsSummary . jdeclaredaccounts)
-  | otherwise       = id
-  where
-    showAcctDeclsSummary :: [(AccountName,AccountDeclarationInfo)] -> String
-    showAcctDeclsSummary adis
-      | length adis < (2*num+2) = "[" <> showadis adis <> "]"
-      | otherwise =
-          "[" <> showadis (take num adis) <> " ... " <> showadis (takelast num adis) <> "]"
-      where
-        num = 3
-        showadis = intercalate ", " . map showadi
-        showadi (a,adi) = "("<>show (adideclarationorder adi)<>","<>T.unpack a<>")"
-        takelast n = reverse . take n . reverse
 
 -- | Lift an IO action into the exception monad, rethrowing any IO
 -- error with the given message prepended.
@@ -443,10 +421,7 @@ addAccountDeclaration (a,cmt,tags,pos) = do
                d     = (a, nullaccountdeclarationinfo{
                               adicomment          = cmt
                              ,aditags             = tags
-                              -- this restarts from 1 in each file, which is not that useful
-                              -- when there are multiple files; so it gets renumbered
-                              -- automatically when combining Journals with <>
-                             ,adideclarationorder = length decls + 1
+                             ,adideclarationorder = length decls + 1  -- gets renumbered when Journals are finalised or merged
                              ,adisourcepos        = pos
                              })
              in

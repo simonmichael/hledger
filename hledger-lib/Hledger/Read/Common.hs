@@ -148,6 +148,7 @@ import Hledger.Query (Query(..), filterQuery, parseQueryTerm, queryEndDate, quer
 import Hledger.Reports.ReportOptions (ReportOpts(..), queryFromFlags, rawOptsToReportOpts)
 import Hledger.Utils
 import Hledger.Read.InputOptions
+import System.FilePath (takeFileName)
 
 --- ** doctest setup
 -- $setup
@@ -324,6 +325,10 @@ journalFinalise iopts@InputOpts{..} f txt pj = do
       >>= journalBalanceTransactions balancingopts_                         -- Balance all transactions and maybe check balance assertions.
       <&> (if infer_equity_ then journalAddInferredEquityPostings else id)  -- Add inferred equity postings, after balancing and generating auto postings
       <&> journalInferMarketPricesFromTransactions       -- infer market prices from commodity-exchanging transactions
+      <&> traceAt 6 ("journalFinalise: " <> takeFileName f)  -- debug logging
+      <&> dbgJournalAcctDeclOrder ("journalFinalise: " <> takeFileName f <> "   acct decls           : ")
+      <&> journalRenumberAccountDeclarations
+      <&> dbgJournalAcctDeclOrder ("journalFinalise: " <> takeFileName f <> "   acct decls renumbered: ")
     when strict_ $ do
       journalCheckAccounts j                     -- If in strict mode, check all postings are to declared accounts
       journalCheckCommodities j                  -- and using declared commodities
