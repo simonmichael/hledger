@@ -1,0 +1,15 @@
+# 1. Accounts declared in this parent file and included child file are displayed in correct order.
+$ hledger -f 1/a.j accounts
+A1
+A2
+AA3
+AA4
+
+# 2. And with another sibling file, display order is still correct.
+$ hledger -f 1/a.j -f 1/b.j accounts
+A1
+A2
+AA3
+AA4
+B5
+B6
