@@ -36,6 +36,7 @@ accountsmode = hledgerCommandMode
   ([flagNone ["declared"] (setboolopt "declared") "show account names declared with account directives"
   ,flagNone ["used"] (setboolopt "used") "show account names referenced by transactions"
   ,flagNone ["types"] (setboolopt "types") "also show accounts' types, when known"
+  ,flagNone ["declarations"] (setboolopt "declarations") "also show where accounts were declared, for troubleshooting"
   ]
   ++ flattreeflags False ++
   [flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
@@ -53,6 +54,7 @@ accounts CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_rsRepo
       declared = boolopt "declared" rawopts
       used     = boolopt "used"     rawopts
       types    = boolopt "types"    rawopts
+      declarations = boolopt "declarations" rawopts
       -- a depth limit will clip and exclude account names later, but we don't want to exclude accounts at this stage
       nodepthq = dbg4 "nodepthq" $ filterQuery (not . queryIsDepth) query
       -- just the acct: part of the query will be reapplied later, after clipping
@@ -94,17 +96,16 @@ accounts CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_rsRepo
     showType a 
       | types     = pad a <> "    ; type: " <> maybe "" (T.pack . show) (journalAccountType j a)
       | otherwise = ""
-    -- for troubleshooting account display order
-    dbgAcctDeclOrder a
-      | debugLevel >= 2 =
+    showAcctDeclOrder a
+      | declarations =
         (if types then "," else pad a <> "    ;") <>
         case lookup a $ jdeclaredaccounts j of
           Just adi ->
-            " declared at " <> (T.pack $ sourcePosPretty $ adisourcepos adi) <>
+            " declared at " <> (T.pack $ sourcePosPretty $ adisourcepos adi) <>  -- TODO: hide the column number
             ", overall declaration order " <> (T.pack $ show $ adideclarationorder adi)
           Nothing -> " undeclared"
       | otherwise = ""
     pad a = T.replicate (maxwidth - T.length (showName a)) " "
     maxwidth = maximum $ map (T.length . showName) clippedaccts
 
-  forM_ clippedaccts $ \a -> T.putStrLn $ showName a <> showType a <> dbgAcctDeclOrder a
+  forM_ clippedaccts $ \a -> T.putStrLn $ showName a <> showType a <> showAcctDeclOrder a

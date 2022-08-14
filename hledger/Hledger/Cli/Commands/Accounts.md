@@ -15,6 +15,10 @@ Account names can be depth-clipped with `depth:N` or `--depth N` or `-N`.
 With `--types`, it also shows each account's type, if it's known.
 (See Declaring accounts > Account types.)
 
+With `--declarations`, it also shows the file and line number of each
+account's declaration, if any, and the account's overall declaration order;
+these may be useful when troubleshooting account display order.
+
 Examples:
 
 ```shell
