@@ -308,7 +308,7 @@ journalFilePaths :: Journal -> [FilePath]
 journalFilePaths = map fst . jfiles
 
 mainfile :: Journal -> (FilePath, Text)
-mainfile = headDef ("", "") . jfiles
+mainfile = headDef ("(unknown)", "") . jfiles
 
 addTransaction :: Transaction -> Journal -> Journal
 addTransaction t j = j { jtxns = t : jtxns j }

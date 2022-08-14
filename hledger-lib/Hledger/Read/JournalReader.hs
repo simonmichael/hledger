@@ -328,7 +328,7 @@ includedirectivep = do
 
           where
             childfilename = takeFileName filepath
-            parentfilename = maybe "" takeFileName $ headMay $ jincludefilestack parentj  -- more accurate than journalFilePath parentj somehow
+            parentfilename = maybe "(unknown)" takeFileName $ headMay $ jincludefilestack parentj  -- XXX more accurate than journalFilePath for some reason
 
       -- Update the parse state.
       put parentj'
