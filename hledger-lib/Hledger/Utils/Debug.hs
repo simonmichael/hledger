@@ -287,7 +287,7 @@ ptraceAt level
     | otherwise = \s a -> let p = pshow a
                               ls = lines p
                               nlorspace | length ls > 1 = "\n"
-                                        | otherwise     = replicate (11 - length s) ' '
+                                        | otherwise     = replicate (max 1 $ 11 - length s) ' '
                               ls' | length ls > 1 = map (' ':) ls
                                   | otherwise     = ls
                           in trace (s++":"++nlorspace++intercalate "\n" ls') a
