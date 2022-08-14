@@ -29,6 +29,7 @@ module Hledger.Data.Journal (
   journalAddPricesFromEquity,
   journalReverse,
   journalSetLastReadTime,
+  journalRenumberAccountDeclarations,
   journalPivot,
   -- * Filtering
   filterJournalTransactions,
@@ -98,11 +99,13 @@ module Hledger.Data.Journal (
   -- * Misc
   canonicalStyleFrom,
   nulljournal,
+  journalConcat,
   journalNumberTransactions,
   journalNumberAndTieTransactions,
   journalUntieTransactions,
   journalModifyTransactions,
   journalApplyAliases,
+  dbgJournalAcctDeclOrder,
   -- * Tests
   samplejournal,
   samplejournalMaybeExplicit,
@@ -117,7 +120,7 @@ import Control.Monad.State.Strict (StateT)
 import Data.Char (toUpper, isDigit)
 import Data.Default (Default(..))
 import Data.Foldable (toList)
-import Data.List ((\\), find, foldl', sortBy, union)
+import Data.List ((\\), find, foldl', sortBy, union, intercalate)
 import Data.List.Extra (nubSort)
 import qualified Data.Map.Strict as M
 import Data.Maybe (catMaybes, fromMaybe, mapMaybe, maybeToList)
@@ -141,6 +144,7 @@ import Hledger.Data.Transaction
 import Hledger.Data.TransactionModifier
 import Hledger.Data.Valuation
 import Hledger.Query
+import System.FilePath (takeFileName)
 
 
 -- | A parser of text that runs in some monad, keeping a Journal as state.
@@ -188,9 +192,7 @@ instance Show Journal where
 -- The semigroup instance for Journal is useful for two situations.
 --
 -- 1. concatenating finalised journals, eg with multiple -f options:
--- FIRST <> SECOND. The second's list fields are appended to the
--- first's, map fields are combined, transaction counts are summed,
--- the parse state of the second is kept.
+-- FIRST <> SECOND.
 --
 -- 2. merging a child parsed journal, eg with the include directive:
 -- CHILD <> PARENT. A parsed journal's data is in reverse order, so
@@ -198,9 +200,21 @@ instance Show Journal where
 --
 -- Note that (<>) is right-biased, so nulljournal is only a left identity.
 -- In particular, this prevents Journal from being a monoid.
-instance Semigroup Journal where
-  j1 <> j2 =
+instance Semigroup Journal where j1 <> j2 = j1 `journalConcat` j2
+
+-- | Merge two journals into one.
+-- Transaction counts are summed, map fields are combined,
+-- the second's list fields are appended to the first's,
+-- the second's parse state is kept.
+journalConcat :: Journal -> Journal -> Journal
+journalConcat j1 j2 =
+  let
+    f1 = takeFileName $ journalFilePath j1
+    f2 = maybe "(unknown)" takeFileName $ headMay $ jincludefilestack j2  -- XXX more accurate than journalFilePath for some reason
+  in
+    dbgJournalAcctDeclOrder ("journalConcat: " <> f1 <> " <> " <> f2 <> ", acct decls renumbered: ") $
     journalRenumberAccountDeclarations $
+    dbgJournalAcctDeclOrder ("journalConcat: " <> f1 <> " <> " <> f2 <> ", acct decls           : ") $
     Journal {
      jparsedefaultyear          = jparsedefaultyear          j2
     ,jparsedefaultcommodity     = jparsedefaultcommodity     j2
@@ -228,13 +242,33 @@ instance Semigroup Journal where
     ,jlastreadtime              = max (jlastreadtime j1) (jlastreadtime j2)
     }
 
--- | Renumber all the account declarations. Call this after combining two journals into one,
--- so that account declarations have a total order again.
+-- | Renumber all the account declarations. This is useful to call when
+-- finalising or concatenating Journals, to give account declarations
+-- a total order across files.
 journalRenumberAccountDeclarations :: Journal -> Journal
 journalRenumberAccountDeclarations j = j{jdeclaredaccounts=jdas'}
   where
     jdas' = [(a, adi{adideclarationorder=n}) | (n, (a,adi)) <- zip [1..] $ jdeclaredaccounts j]
-    -- XXX the per-file declaration order saved during parsing is discarded; it seems unneeded
+    -- the per-file declaration order saved during parsing is discarded,
+    -- it seems unneeded except perhaps for debugging
+
+-- | Debug log the ordering of a journal's account declarations
+-- (at debug level 5+).
+dbgJournalAcctDeclOrder :: String -> Journal -> Journal
+dbgJournalAcctDeclOrder prefix
+  | debugLevel >= 5 = traceWith ((prefix++) . showAcctDeclsSummary . jdeclaredaccounts)
+  | otherwise       = id
+  where
+    showAcctDeclsSummary :: [(AccountName,AccountDeclarationInfo)] -> String
+    showAcctDeclsSummary adis
+      | length adis < (2*num+2) = "[" <> showadis adis <> "]"
+      | otherwise =
+          "[" <> showadis (take num adis) <> " ... " <> showadis (takelast num adis) <> "]"
+      where
+        num = 3
+        showadis = intercalate ", " . map showadi
+        showadi (a,adi) = "("<>show (adideclarationorder adi)<>","<>T.unpack a<>")"
+        takelast n = reverse . take n . reverse
 
 instance Default Journal where
   def = nulljournal

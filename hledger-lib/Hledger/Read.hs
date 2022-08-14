@@ -69,7 +69,7 @@ import Safe (headDef)
 import System.Directory (doesFileExist, getHomeDirectory)
 import System.Environment (getEnv)
 import System.Exit (exitFailure)
-import System.FilePath ((<.>), (</>), splitDirectories, splitFileName)
+import System.FilePath ((<.>), (</>), splitDirectories, splitFileName, takeFileName)
 import System.Info (os)
 import System.IO (hPutStr, stderr)
 
@@ -139,9 +139,8 @@ type PrefixedFilePath = FilePath
 -- since hledger 1.17, we prefer predictability.)
 readJournal :: InputOpts -> Maybe FilePath -> Text -> ExceptT String IO Journal
 readJournal iopts mpath txt = do
-  let r :: Reader IO =
-        fromMaybe JournalReader.reader $ findReader (mformat_ iopts) mpath
-  dbg6IO "trying reader" (rFormat r)
+  let r :: Reader IO = fromMaybe JournalReader.reader $ findReader (mformat_ iopts) mpath
+  dbg6IO "readJournal: trying reader" (rFormat r)
   rReadFn r iopts (fromMaybe "(string)" mpath) txt
 
 -- | Read a Journal from this file, or from stdin if the file path is -,
@@ -161,7 +160,9 @@ readJournalFile iopts prefixedfile = do
     (mfmt, f) = splitReaderPrefix prefixedfile
     iopts' = iopts{mformat_=asum [mfmt, mformat_ iopts]}
   liftIO $ requireJournalFileExists f
-  t <- liftIO $ readFileOrStdinPortably f
+  t <-
+    traceAt 6 ("readJournalFile: "++takeFileName f) $
+    liftIO $ readFileOrStdinPortably f
     -- <- T.readFile f  -- or without line ending translation, for testing
   j <- readJournal iopts' (Just f) t
   if new_ iopts
