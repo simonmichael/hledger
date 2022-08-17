@@ -1,6 +1,6 @@
 # stack build plan using GHC 9.2.4
 
-resolver: nightly-2022-08-04
+resolver: nightly-2022-08-14
 
 packages:
 - hledger-lib
@@ -8,10 +8,11 @@ packages:
 - hledger-ui
 - hledger-web
 
-# extra-deps:
+extra-deps:
 # for hledger-lib:
 # for hledger:
 # for hledger-ui:
+- brick-1.0
 # for hledger-web:
 # for Shake.hs:
 

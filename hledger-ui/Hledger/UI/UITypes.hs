@@ -33,6 +33,7 @@ Brick.defaultMain brickapp st
 
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE FlexibleInstances  #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TemplateHaskell    #-}
 
@@ -100,7 +101,7 @@ data Screen =
     AccountsScreen {
        sInit   :: Day -> Bool -> UIState -> UIState              -- ^ function to initialise or update this screen's state
       ,sDraw   :: UIState -> [Widget Name]                             -- ^ brick renderer for this screen
-      ,sHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)  -- ^ brick event handler for this screen
+      ,sHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()  -- ^ brick event handler for this screen
       -- state fields.These ones have lenses:
       ,_asList            :: List Name AccountsScreenItem  -- ^ list widget showing account names & balances
       ,_asSelectedAccount :: AccountName              -- ^ a backup of the account name from the list widget's selected item (or "")
@@ -108,7 +109,7 @@ data Screen =
   | RegisterScreen {
        sInit   :: Day -> Bool -> UIState -> UIState
       ,sDraw   :: UIState -> [Widget Name]
-      ,sHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
+      ,sHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
       --
       ,rsList    :: List Name RegisterScreenItem      -- ^ list widget showing transactions affecting this account
       ,rsAccount :: AccountName                       -- ^ the account this register is for
@@ -119,7 +120,7 @@ data Screen =
   | TransactionScreen {
        sInit   :: Day -> Bool -> UIState -> UIState
       ,sDraw   :: UIState -> [Widget Name]
-      ,sHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
+      ,sHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
       --
       ,tsTransaction  :: NumberedTransaction          -- ^ the transaction we are currently viewing, and its position in the list
       ,tsTransactions :: [NumberedTransaction]        -- ^ list of transactions we can step through
@@ -128,7 +129,7 @@ data Screen =
   | ErrorScreen {
        sInit   :: Day -> Bool -> UIState -> UIState
       ,sDraw   :: UIState -> [Widget Name]
-      ,sHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
+      ,sHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
       --
       ,esError :: String                              -- ^ error message to show
     }
@@ -153,6 +154,10 @@ data RegisterScreenItem = RegisterScreenItem {
   ,rsItemTransaction    :: Transaction  -- ^ the full transaction
   }
   deriving (Show)
+
+instance MonadFail (EventM Name UIState) where fail _ = wrongScreenTypeError
+
+wrongScreenTypeError = error' "handler called with wrong screen type, should not happen"
 
 type NumberedTransaction = (Integer, Transaction)
 

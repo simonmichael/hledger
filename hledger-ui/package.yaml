@@ -76,7 +76,7 @@ dependencies:
 - transformers
 - vector
 # not installable on windows, cf buildable flag below
-- brick >=0.23 && <1
+- brick >=1.0
 - vty >=5.15
 - unix
 

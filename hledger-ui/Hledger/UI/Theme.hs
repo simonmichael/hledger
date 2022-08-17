@@ -65,42 +65,42 @@ select = black `on` selectbg
 themesList :: [(String, AttrMap)]
 themesList = [
    ("default", attrMap (black `on` white) [
-     ("border"                                        , white `on` black & dim)
-    ,("border" <> "bold"                              , currentAttr & bold)
-    ,("border" <> "depth"                             , active)
-    ,("border" <> "filename"                          , currentAttr)
-    ,("border" <> "key"                               , active)
-    ,("border" <> "minibuffer"                        , white `on` black & bold)
-    ,("border" <> "query"                             , active)
-    ,("border" <> "selected"                          , active)
-    ,("error"                                         , fg red)
-    ,("help"                                          , white `on` black & dim)
-    ,("help" <> "heading"                             , fg yellow)
-    ,("help" <> "key"                                 , active)
-    -- ,("list"                                          , black `on` white)
-    -- ,("list" <> "amount"                              , currentAttr)
-    ,("list" <> "amount" <> "decrease"                , fg red)
-    -- ,("list" <> "amount" <> "increase"                , fg green)
-    ,("list" <> "amount" <> "decrease" <> "selected"  , red `on` selectbg & bold)
-    -- ,("list" <> "amount" <> "increase" <> "selected"  , green `on` selectbg & bold)
-    ,("list" <> "balance"                             , currentAttr & bold)
-    ,("list" <> "balance" <> "negative"               , fg red)
-    ,("list" <> "balance" <> "positive"               , fg black)
-    ,("list" <> "balance" <> "negative" <> "selected" , red `on` selectbg & bold)
-    ,("list" <> "balance" <> "positive" <> "selected" , select & bold)
-    ,("list" <> "selected"                            , select)
-    -- ,("list" <> "accounts"                         , white `on` brightGreen)
-    -- ,("list" <> "selected"                         , black `on` brightYellow)
+     (attrName "border"                                        , white `on` black & dim)
+    ,(attrName "border" <> attrName "bold"                              , currentAttr & bold)
+    ,(attrName "border" <> attrName "depth"                             , active)
+    ,(attrName "border" <> attrName "filename"                          , currentAttr)
+    ,(attrName "border" <> attrName "key"                               , active)
+    ,(attrName "border" <> attrName "minibuffer"                        , white `on` black & bold)
+    ,(attrName "border" <> attrName "query"                             , active)
+    ,(attrName "border" <> attrName "selected"                          , active)
+    ,(attrName "error"                                         , fg red)
+    ,(attrName "help"                                          , white `on` black & dim)
+    ,(attrName "help" <> attrName "heading"                             , fg yellow)
+    ,(attrName "help" <> attrName "key"                                 , active)
+    -- ,(attrName "list"                                          , black `on` white)
+    -- ,(attrName "list" <> attrName "amount"                              , currentAttr)
+    ,(attrName "list" <> attrName "amount" <> attrName "decrease"                , fg red)
+    -- ,(attrName "list" <> attrName "amount" <> attrName "increase"                , fg green)
+    ,(attrName "list" <> attrName "amount" <> attrName "decrease" <> attrName "selected"  , red `on` selectbg & bold)
+    -- ,(attrName "list" <> attrName "amount" <> attrName "increase" <> attrName "selected"  , green `on` selectbg & bold)
+    ,(attrName "list" <> attrName "balance"                             , currentAttr & bold)
+    ,(attrName "list" <> attrName "balance" <> attrName "negative"               , fg red)
+    ,(attrName "list" <> attrName "balance" <> attrName "positive"               , fg black)
+    ,(attrName "list" <> attrName "balance" <> attrName "negative" <> attrName "selected" , red `on` selectbg & bold)
+    ,(attrName "list" <> attrName "balance" <> attrName "positive" <> attrName "selected" , select & bold)
+    ,(attrName "list" <> attrName "selected"                            , select)
+    -- ,(attrName "list" <> attrName "accounts"                         , white `on` brightGreen)
+    -- ,(attrName "list" <> attrName "selected"                         , black `on` brightYellow)
   ])
 
   ,("greenterm", attrMap (green `on` black) [
-    ("list" <> "selected"                             , black `on` green)
+    (attrName "list" <> attrName "selected"                             , black `on` green)
   ])
 
   ,("terminal", attrMap defAttr [
-    ("border"                                         , white `on` black),
-    ("list"                                           , defAttr),
-    ("list" <> "selected"                             , defAttr & reverseVideo)
+    (attrName "border"                                         , white `on` black),
+    (attrName "list"                                           , defAttr),
+    (attrName "list" <> attrName "selected"                             , defAttr & reverseVideo)
   ])
 
   ]

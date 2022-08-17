@@ -54,10 +54,10 @@ esDraw UIState{aopts=UIOpts{uoCliOpts=copts}
     _          -> [maincontent]
   where
     maincontent = Widget Greedy Greedy $ do
-      render $ defaultLayout toplabel bottomlabel $ withAttr "error" $ str $ esError
+      render $ defaultLayout toplabel bottomlabel $ withAttr (attrName "error") $ str $ esError
       where
         toplabel =
-              withAttr ("border" <> "bold") (str "Oops. Please fix this problem then press g to reload")
+              withAttr (attrName "border" <> attrName "bold") (str "Oops. Please fix this problem then press g to reload")
               -- <+> (if ignore_assertions_ copts then withAttr ("border" <> "query") (str " ignoring") else str " not ignoring")
 
         bottomlabel = quickhelp
@@ -75,44 +75,42 @@ esDraw UIState{aopts=UIOpts{uoCliOpts=copts}
 
 esDraw _ = error "draw function called with wrong screen type, should not happen"  -- PARTIAL:
 
-esHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
-esHandle ui@UIState{aScreen=ErrorScreen{..}
+esHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
+esHandle ev = do
+  ui@UIState{aScreen=ErrorScreen{..}
                    ,aopts=UIOpts{uoCliOpts=copts}
                    ,ajournal=j
                    ,aMode=mode
-                   }
-         ev =
+                   } <- get
   case mode of
     Help ->
       case ev of
-        VtyEvent (EvKey (KChar 'q') []) -> halt ui
-        VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw ui
+        VtyEvent (EvKey (KChar 'q') []) -> halt
+        VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw
         VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
-        _                    -> helpHandle ui ev
+        _                    -> helpHandle ev
 
     _ -> do
       let d = copts^.rsDay
       case ev of
-        VtyEvent (EvKey (KChar 'q') []) -> halt ui
-        VtyEvent (EvKey KEsc        []) -> continue $ uiCheckBalanceAssertions d $ resetScreens d ui
-        VtyEvent (EvKey (KChar c)   []) | c `elem` ['h','?'] -> continue $ setMode Help ui
+        VtyEvent (EvKey (KChar 'q') []) -> halt
+        VtyEvent (EvKey KEsc        []) -> put $ uiCheckBalanceAssertions d $ resetScreens d ui
+        VtyEvent (EvKey (KChar c)   []) | c `elem` ['h','?'] -> put $ setMode Help ui
         VtyEvent (EvKey (KChar 'E') []) -> suspendAndResume $ void (runEditor pos f) >> uiReloadJournalIfChanged copts d j (popScreen ui)
           where
             (pos,f) = case parsewithString hledgerparseerrorpositionp esError of
                         Right (f,l,c) -> (Just (l, Just c),f)
                         Left  _       -> (endPosition, journalFilePath j)
         e | e `elem` [VtyEvent (EvKey (KChar 'g') []), AppEvent FileChange] ->
-          liftIO (uiReloadJournal copts d (popScreen ui)) >>= continue . uiCheckBalanceAssertions d
+          liftIO (uiReloadJournal copts d (popScreen ui)) >>= put . uiCheckBalanceAssertions d
 --           (ej, _) <- liftIO $ journalReloadIfChanged copts d j
 --           case ej of
 --             Left err -> continue ui{aScreen=s{esError=err}} -- show latest parse error
 --             Right j' -> continue $ regenerateScreens j' d $ popScreen ui  -- return to previous screen, and reload it
-        VtyEvent (EvKey (KChar 'I') []) -> continue $ uiCheckBalanceAssertions d (popScreen $ toggleIgnoreBalanceAssertions ui)
-        VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw ui
+        VtyEvent (EvKey (KChar 'I') []) -> put $ uiCheckBalanceAssertions d (popScreen $ toggleIgnoreBalanceAssertions ui)
+        VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw
         VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
-        _ -> continue ui
-
-esHandle _ _ = error "event handler called with wrong screen type, should not happen"  -- PARTIAL:
+        _ -> return ()
 
 -- | Parse the file name, line and column number from a hledger parse error message, if possible.
 -- Temporary, we should keep the original parse error location. XXX
