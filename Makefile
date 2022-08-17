@@ -356,7 +356,7 @@ ghcid: $(call def-help,ghcid, start ghcid autobuilder on hledger-lib + hledger)
 	ghcid -c 'make ghci'
 
 ghcid-ui: $(call def-help,ghcid-ui, start ghcid autobuilder on hledger-lib + hledger + hledger-ui)
-	ghcid -c 'make ui'
+	ghcid -c 'make ghci-ui'
 
 ghcid-web: $(call def-help,ghcid-web, start ghcid autobuilder on hledger-lib + hledger + hledger-web)
 	ghcid -c 'make ghci-web'
@@ -407,9 +407,7 @@ ghci-dev: $(call def-help,ghci-dev, start ghci REPL on hledger-lib + hledger + d
 	$(STACKGHCI) exec -- $(GHCI) $(BUILDFLAGS) -fno-warn-unused-imports -fno-warn-unused-binds dev.hs
 
 ghci-ui: $(call def-help,ghci-ui, start ghci REPL on hledger-lib + hledger + hledger-ui)
-	stack --stack-yaml=stack8.10.yaml exec -- $(GHCI) $(BUILDFLAGS) hledger-ui/Hledger/UI/Main.hs
-# XXX run older GHCI because ghci-ui fails most of the time with 9.0
-#	$(STACKGHCI) exec -- $(GHCI) $(BUILDFLAGS) hledger-ui/Hledger/UI/Main.hs
+	$(STACKGHCI) exec -- $(GHCI) $(BUILDFLAGS) hledger-ui/Hledger/UI/Main.hs
 
 ghci-web: webdirs $(call def-help,ghci-web, start ghci REPL on hledger-lib + hledger + hledger-web)
 	$(STACKGHCI) exec -- $(GHCI) $(BUILDFLAGS) hledger-web/app/main.hs
