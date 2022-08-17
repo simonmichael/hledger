@@ -152,7 +152,7 @@ asDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
         ishistorical = balanceaccum_ ropts == Historical
 
         toplabel =
-              withAttr ("border" <> "filename") files
+              withAttr (attrName "border" <> attrName "filename") files
           <+> toggles
           <+> str (" account " ++ if ishistorical then "balances" else "changes")
           <+> borderPeriodStr (if ishistorical then "at end of" else "in") (period_ ropts)
@@ -160,7 +160,7 @@ asDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
           <+> borderDepthStr mdepth
           <+> str (" ("++curidx++"/"++totidx++")")
           <+> (if ignore_assertions_ . balancingopts_ $ inputopts_ copts
-               then withAttr ("border" <> "query") (str " ignoring balance assertions")
+               then withAttr (attrName "border" <> attrName "query") (str " ignoring balance assertions")
                else str "")
           where
             files = case journalFilePaths j of
@@ -168,7 +168,7 @@ asDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
                            f:_ -> str $ takeFileName f
                            -- [f,_:[]] -> (withAttr ("border" <> "bold") $ str $ takeFileName f) <+> str " (& 1 included file)"
                            -- f:fs  -> (withAttr ("border" <> "bold") $ str $ takeFileName f) <+> str (" (& " ++ show (length fs) ++ " included files)")
-            toggles = withAttr ("border" <> "query") $ str $ unwords $ concat [
+            toggles = withAttr (attrName "border" <> attrName "query") $ str $ unwords $ concat [
                [""]
               ,if empty_ ropts then [] else ["nonzero"]
               ,uiShowStatus copts $ statuses_ ropts
@@ -220,22 +220,24 @@ asDrawItem (acctwidth, balwidth) selected AccountsScreenItem{..} =
         balspace = T.replicate (2 + balwidth - wbWidth balBuilder) " "
         splitAmounts = foldr1 (<+>) . intersperse (str ", ") . map renderamt . T.splitOn ", " . wbToText
         renderamt :: T.Text -> Widget Name
-        renderamt a | T.any (=='-') a = withAttr (sel $ "list" <> "balance" <> "negative") $ txt a
-                    | otherwise       = withAttr (sel $ "list" <> "balance" <> "positive") $ txt a
-        sel | selected  = (<> "selected")
+        renderamt a | T.any (=='-') a = withAttr (sel $ attrName "list" <> attrName "balance" <> attrName "negative") $ txt a
+                    | otherwise       = withAttr (sel $ attrName "list" <> attrName "balance" <> attrName "positive") $ txt a
+        sel | selected  = (<> attrName "selected")
             | otherwise = id
 
-asHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
-asHandle ui0@UIState{
+asHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
+asHandle ev = do
+  ui0@UIState{
    aScreen=scr@AccountsScreen{..}
   ,aopts=UIOpts{uoCliOpts=copts}
   ,ajournal=j
   ,aMode=mode
-  } ev = do
+  } <- get  -- PARTIAL: should not fail
   let
     d = copts^.rsDay
     nonblanks = V.takeWhile (not . T.null . asItemAccountName) $ _asList^.listElementsL
     lastnonblankidx = max 0 (length nonblanks - 1)
+    journalspan = journalDateSpan False j
 
   -- save the currently selected account, in case we leave this screen and lose the selection
   let
@@ -247,87 +249,81 @@ asHandle ui0@UIState{
   case mode of
     Minibuffer _ ed ->
       case ev of
-        VtyEvent (EvKey KEsc   []) -> continue $ closeMinibuffer ui
-        VtyEvent (EvKey KEnter []) -> continue $ regenerateScreens j d $
+        VtyEvent (EvKey KEsc   []) -> put $ closeMinibuffer ui
+        VtyEvent (EvKey KEnter []) -> put $ regenerateScreens j d $
             case setFilter s $ closeMinibuffer ui of
               Left bad -> showMinibuffer "Cannot compile regular expression" (Just bad) ui
               Right ui' -> ui'
           where s = chomp $ unlines $ map strip $ getEditContents ed
-        VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw ui
+        VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw
         VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
-        VtyEvent ev        -> do
-          ed' <- handleEditorEvent 
-#if MIN_VERSION_brick(0,72,0)
-            (VtyEvent ev)
-#else
-            ev
-#endif
-            ed
-          continue $ ui{aMode=Minibuffer "filter" ed'}
-        AppEvent _        -> continue ui
-        MouseDown{}       -> continue ui
-        MouseUp{}         -> continue ui
+        VtyEvent ev -> do
+          ed' <- nestEventM' ed $ handleEditorEvent (VtyEvent ev)
+          put ui{aMode=Minibuffer "filter" ed'}
+        AppEvent _  -> return ()
+        MouseDown{} -> return ()
+        MouseUp{}   -> return ()
 
     Help ->
       case ev of
-        -- VtyEvent (EvKey (KChar 'q') []) -> halt ui
-        VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw ui
+        -- VtyEvent (EvKey (KChar 'q') []) -> halt
+        VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw
         VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
-        _                    -> helpHandle ui ev
+        _                    -> helpHandle ev
 
     Normal ->
       case ev of
-        VtyEvent (EvKey (KChar 'q') []) -> halt ui
+        VtyEvent (EvKey (KChar 'q') []) -> halt
         -- EvKey (KChar 'l') [MCtrl] -> do
-        VtyEvent (EvKey KEsc        []) -> continue $ resetScreens d ui
-        VtyEvent (EvKey (KChar c)   []) | c == '?' -> continue $ setMode Help ui
+        VtyEvent (EvKey KEsc        []) -> put $ resetScreens d ui
+        VtyEvent (EvKey (KChar c)   []) | c == '?' -> put $ setMode Help ui
         -- XXX AppEvents currently handled only in Normal mode
         -- XXX be sure we don't leave unconsumed events piling up
         AppEvent (DateChange old _) | isStandardPeriod p && p `periodContainsDate` old ->
-          continue $ regenerateScreens j d $ setReportPeriod (DayPeriod d) ui
+          put $ regenerateScreens j d $ setReportPeriod (DayPeriod d) ui
           where
             p = reportPeriod ui
         e | e `elem` [VtyEvent (EvKey (KChar 'g') []), AppEvent FileChange] ->
-          liftIO (uiReloadJournal copts d ui) >>= continue
-        VtyEvent (EvKey (KChar 'I') []) -> continue $ uiCheckBalanceAssertions d (toggleIgnoreBalanceAssertions ui)
+          liftIO (uiReloadJournal copts d ui) >>= put
+        VtyEvent (EvKey (KChar 'I') []) -> put $ uiCheckBalanceAssertions d (toggleIgnoreBalanceAssertions ui)
         VtyEvent (EvKey (KChar 'a') []) -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add copts j >> uiReloadJournalIfChanged copts d j ui
         VtyEvent (EvKey (KChar 'A') []) -> suspendAndResume $ void (runIadd (journalFilePath j)) >> uiReloadJournalIfChanged copts d j ui
         VtyEvent (EvKey (KChar 'E') []) -> suspendAndResume $ void (runEditor endPosition (journalFilePath j)) >> uiReloadJournalIfChanged copts d j ui
-        VtyEvent (EvKey (KChar 'B') []) -> continue $ regenerateScreens j d $ toggleConversionOp ui
-        VtyEvent (EvKey (KChar 'V') []) -> continue $ regenerateScreens j d $ toggleValue ui
-        VtyEvent (EvKey (KChar '0') []) -> continue $ regenerateScreens j d $ setDepth (Just 0) ui
-        VtyEvent (EvKey (KChar '1') []) -> continue $ regenerateScreens j d $ setDepth (Just 1) ui
-        VtyEvent (EvKey (KChar '2') []) -> continue $ regenerateScreens j d $ setDepth (Just 2) ui
-        VtyEvent (EvKey (KChar '3') []) -> continue $ regenerateScreens j d $ setDepth (Just 3) ui
-        VtyEvent (EvKey (KChar '4') []) -> continue $ regenerateScreens j d $ setDepth (Just 4) ui
-        VtyEvent (EvKey (KChar '5') []) -> continue $ regenerateScreens j d $ setDepth (Just 5) ui
-        VtyEvent (EvKey (KChar '6') []) -> continue $ regenerateScreens j d $ setDepth (Just 6) ui
-        VtyEvent (EvKey (KChar '7') []) -> continue $ regenerateScreens j d $ setDepth (Just 7) ui
-        VtyEvent (EvKey (KChar '8') []) -> continue $ regenerateScreens j d $ setDepth (Just 8) ui
-        VtyEvent (EvKey (KChar '9') []) -> continue $ regenerateScreens j d $ setDepth (Just 9) ui
-        VtyEvent (EvKey (KChar '-') []) -> continue $ regenerateScreens j d $ decDepth ui
-        VtyEvent (EvKey (KChar '_') []) -> continue $ regenerateScreens j d $ decDepth ui
-        VtyEvent (EvKey (KChar c)   []) | c `elem` ['+','='] -> continue $ regenerateScreens j d $ incDepth ui
-        VtyEvent (EvKey (KChar 'T') []) -> continue $ regenerateScreens j d $ setReportPeriod (DayPeriod d) ui
+        VtyEvent (EvKey (KChar 'B') []) -> put $ regenerateScreens j d $ toggleConversionOp ui
+        VtyEvent (EvKey (KChar 'V') []) -> put $ regenerateScreens j d $ toggleValue ui
+        VtyEvent (EvKey (KChar '0') []) -> put $ regenerateScreens j d $ setDepth (Just 0) ui
+        VtyEvent (EvKey (KChar '1') []) -> put $ regenerateScreens j d $ setDepth (Just 1) ui
+        VtyEvent (EvKey (KChar '2') []) -> put $ regenerateScreens j d $ setDepth (Just 2) ui
+        VtyEvent (EvKey (KChar '3') []) -> put $ regenerateScreens j d $ setDepth (Just 3) ui
+        VtyEvent (EvKey (KChar '4') []) -> put $ regenerateScreens j d $ setDepth (Just 4) ui
+        VtyEvent (EvKey (KChar '5') []) -> put $ regenerateScreens j d $ setDepth (Just 5) ui
+        VtyEvent (EvKey (KChar '6') []) -> put $ regenerateScreens j d $ setDepth (Just 6) ui
+        VtyEvent (EvKey (KChar '7') []) -> put $ regenerateScreens j d $ setDepth (Just 7) ui
+        VtyEvent (EvKey (KChar '8') []) -> put $ regenerateScreens j d $ setDepth (Just 8) ui
+        VtyEvent (EvKey (KChar '9') []) -> put $ regenerateScreens j d $ setDepth (Just 9) ui
+        VtyEvent (EvKey (KChar '-') []) -> put $ regenerateScreens j d $ decDepth ui
+        VtyEvent (EvKey (KChar '_') []) -> put $ regenerateScreens j d $ decDepth ui
+        VtyEvent (EvKey (KChar c)   []) | c `elem` ['+','='] -> put $ regenerateScreens j d $ incDepth ui
+        VtyEvent (EvKey (KChar 'T') []) -> put $ regenerateScreens j d $ setReportPeriod (DayPeriod d) ui
 
         -- display mode/query toggles
-        VtyEvent (EvKey (KChar 'H') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleHistorical ui
-        VtyEvent (EvKey (KChar 't') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleTree ui
-        VtyEvent (EvKey (KChar c) []) | c `elem` ['z','Z'] -> asCenterAndContinue $ regenerateScreens j d $ toggleEmpty ui
-        VtyEvent (EvKey (KChar 'R') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleReal ui
-        VtyEvent (EvKey (KChar 'U') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleUnmarked ui
-        VtyEvent (EvKey (KChar 'P') []) -> asCenterAndContinue $ regenerateScreens j d $ togglePending ui
-        VtyEvent (EvKey (KChar 'C') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleCleared ui
-        VtyEvent (EvKey (KChar 'F') []) -> continue $ regenerateScreens j d $ toggleForecast d ui
+        VtyEvent (EvKey (KChar 'H') []) -> modify (regenerateScreens j d . toggleHistorical) >> asCenterAndContinue
+        VtyEvent (EvKey (KChar 't') []) -> modify (regenerateScreens j d . toggleTree) >> asCenterAndContinue
+        VtyEvent (EvKey (KChar c) []) | c `elem` ['z','Z'] -> modify (regenerateScreens j d . toggleEmpty) >> asCenterAndContinue
+        VtyEvent (EvKey (KChar 'R') []) -> modify (regenerateScreens j d . toggleReal) >> asCenterAndContinue
+        VtyEvent (EvKey (KChar 'U') []) -> modify (regenerateScreens j d . toggleUnmarked) >> asCenterAndContinue
+        VtyEvent (EvKey (KChar 'P') []) -> modify (regenerateScreens j d . togglePending) >> asCenterAndContinue
+        VtyEvent (EvKey (KChar 'C') []) -> modify (regenerateScreens j d . toggleCleared) >> asCenterAndContinue
+        VtyEvent (EvKey (KChar 'F') []) -> modify (regenerateScreens j d . toggleForecast d)
 
-        VtyEvent (EvKey (KDown)     [MShift]) -> continue $ regenerateScreens j d $ shrinkReportPeriod d ui
-        VtyEvent (EvKey (KUp)       [MShift]) -> continue $ regenerateScreens j d $ growReportPeriod d ui
-        VtyEvent (EvKey (KRight)    [MShift]) -> continue $ regenerateScreens j d $ nextReportPeriod journalspan ui
-        VtyEvent (EvKey (KLeft)     [MShift]) -> continue $ regenerateScreens j d $ previousReportPeriod journalspan ui
-        VtyEvent (EvKey (KChar '/') []) -> continue $ regenerateScreens j d $ showMinibuffer "filter" Nothing ui
-        VtyEvent (EvKey k           []) | k `elem` [KBS, KDel] -> (continue $ regenerateScreens j d $ resetFilter ui)
-        VtyEvent e | e `elem` moveLeftEvents -> continue $ popScreen ui
-        VtyEvent (EvKey (KChar 'l') [MCtrl]) -> scrollSelectionToMiddle _asList >> redraw ui
+        VtyEvent (EvKey (KDown)     [MShift]) -> put $ regenerateScreens j d $ shrinkReportPeriod d ui
+        VtyEvent (EvKey (KUp)       [MShift]) -> put $ regenerateScreens j d $ growReportPeriod d ui
+        VtyEvent (EvKey (KRight)    [MShift]) -> put $ regenerateScreens j d $ nextReportPeriod journalspan ui
+        VtyEvent (EvKey (KLeft)     [MShift]) -> put $ regenerateScreens j d $ previousReportPeriod journalspan ui
+        VtyEvent (EvKey (KChar '/') []) -> put $ regenerateScreens j d $ showMinibuffer "filter" Nothing ui
+        VtyEvent (EvKey k           []) | k `elem` [KBS, KDel] -> (put $ regenerateScreens j d $ resetFilter ui)
+        VtyEvent e | e `elem` moveLeftEvents -> put $ popScreen ui
+        VtyEvent (EvKey (KChar 'l') [MCtrl]) -> scrollSelectionToMiddle _asList >> redraw
         VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
 
         -- enter register screen for selected account (if there is one),
@@ -338,7 +334,7 @@ asHandle ui0@UIState{
         -- MouseDown is sometimes duplicated, https://github.com/jtdaugherty/brick/issues/347
         -- just use it to move the selection
         MouseDown _n BLeft _mods Location{loc=(_x,y)} | not $ (=="") clickedacct -> do
-          continue ui{aScreen=scr{_asList=listMoveTo y _asList}}
+          case scr of AccountsScreen{} -> put ui{aScreen=scr}; _ -> fail ""  -- PARTIAL: should not happen
           where clickedacct = maybe "" asItemAccountName $ listElements _asList !? y
         -- and on MouseUp, enter the subscreen
         MouseUp _n (Just BLeft) Location{loc=(_x,y)} | not $ (=="") clickedacct -> do
@@ -347,42 +343,35 @@ asHandle ui0@UIState{
 
         -- when selection is at the last item, DOWN scrolls instead of moving, until maximally scrolled
         VtyEvent e | e `elem` moveDownEvents, isBlankElement mnextelement -> do
-          vScrollBy (viewportScroll $ _asList^.listNameL) 1 >> continue ui
+          vScrollBy (viewportScroll $ _asList^.listNameL) 1 >> put ui
           where mnextelement = listSelectedElement $ listMoveDown _asList
 
         -- mouse scroll wheel scrolls the viewport up or down to its maximum extent,
         -- pushing the selection when necessary.
         MouseDown name btn _mods _loc | btn `elem` [BScrollUp, BScrollDown] -> do
           let scrollamt = if btn==BScrollUp then -1 else 1
-          list' <- listScrollPushingSelection name _asList (asListSize _asList) scrollamt
-          continue ui{aScreen=scr{_asList=list'}}
+          list' <- nestEventM' _asList $ listScrollPushingSelection name (asListSize _asList) scrollamt
+          case scr of AccountsScreen{} -> put ui{aScreen=scr{_asList=list'}}; _ -> fail ""  -- PARTIAL: should not fail
 
         -- if page down or end leads to a blank padding item, stop at last non-blank
         VtyEvent e@(EvKey k           []) | k `elem` [KPageDown, KEnd] -> do
-          list <- handleListEvent e _asList
+          list <- nestEventM' _asList $ handleListEvent e
           if isBlankElement $ listSelectedElement list
           then do
             let list' = listMoveTo lastnonblankidx list
             scrollSelectionToMiddle list'
-            continue ui{aScreen=scr{_asList=list'}}
+            case scr of AccountsScreen{} -> put ui{aScreen=scr{_asList=list'}}; _ -> fail ""  -- PARTIAL: should not fail
           else
-            continue ui{aScreen=scr{_asList=list}}
+            case scr of AccountsScreen{} -> put ui{aScreen=scr{_asList=list}}; _ -> fail ""  -- PARTIAL: should not fail
 
         -- fall through to the list's event handler (handles up/down)
         VtyEvent ev -> do
-          newitems <- handleListEvent (normaliseMovementKeys ev) _asList
-          continue $ ui{aScreen=scr & asList .~ newitems
-                                    & asSelectedAccount .~ selacct
-                                    }
+          list' <- nestEventM' _asList $ handleListEvent (normaliseMovementKeys ev)
+          put $ ui{aScreen=scr & asList .~ list' & asSelectedAccount .~ selacct }
 
-        MouseDown{} -> continue ui
-        MouseUp{}   -> continue ui
-        AppEvent _  -> continue ui
-
-  where
-    journalspan = journalDateSpan False j
-
-asHandle _ _ = error "event handler called with wrong screen type, should not happen"  -- PARTIAL:
+        MouseDown{} -> put ui
+        MouseUp{}   -> put ui
+        AppEvent _  -> put ui
 
 asEnterRegister d selacct ui = do
   rsCenterAndContinue $
@@ -399,8 +388,9 @@ asSetSelectedAccount _ s = s
 
 isBlankElement mel = ((asItemAccountName . snd) <$> mel) == Just ""
 
-asCenterAndContinue ui = do
-  scrollSelectionToMiddle $ _asList $ aScreen ui
-  continue ui
+asCenterAndContinue :: EventM Name UIState ()
+asCenterAndContinue = do
+  ui <- get
+  scrollSelectionToMiddle (_asList $ aScreen ui)
 
 asListSize = V.length . V.takeWhile ((/="").asItemAccountName) . listElements

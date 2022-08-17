@@ -35,7 +35,7 @@ import Brick.Widgets.Border
 import Brick.Widgets.Border.Style
 import Brick.Widgets.Dialog
 import Brick.Widgets.Edit
-import Brick.Widgets.List (List, listSelectedL, listNameL, listItemHeightL, listSelected, listMoveDown, listMoveUp, GenericList, Splittable)
+import Brick.Widgets.List (List, listSelectedL, listNameL, listItemHeightL, listSelected, listMoveDown, listMoveUp, GenericList)
 import Control.Monad.IO.Class
 import Data.Bifunctor (second)
 import Data.List
@@ -60,6 +60,7 @@ suspendSignal :: IO ()
 suspendSignal = return ()
 #else
 import System.Posix.Signals
+import Data.Vector (Vector)
 suspendSignal :: IO ()
 suspendSignal = raiseSignal sigSTOP
 #endif
@@ -68,12 +69,12 @@ suspendSignal = raiseSignal sigSTOP
 -- like control-z in bash, returning to the original shell prompt,
 -- and when resumed, continue where we left off.
 -- On windows, does nothing.
-suspend :: s -> EventM a (Next s)
+suspend :: Ord a => s -> EventM a s ()
 suspend st = suspendAndResume $ suspendSignal >> return st
 
--- | Tell vty to redraw the whole screen, and continue.
-redraw :: s -> EventM a (Next s)
-redraw st = getVtyHandle >>= liftIO . refresh >> continue st
+-- | Tell vty to redraw the whole screen.
+redraw :: EventM a s ()
+redraw = getVtyHandle >>= liftIO . refresh
 
 -- | Wrap a widget in the default hledger-ui screen layout.
 defaultLayout :: Widget Name -> Widget Name -> Widget Name -> Widget Name
@@ -90,14 +91,14 @@ helpDialog _copts =
   Widget Fixed Fixed $ do
     c <- getContext
     render $
-      withDefAttr "help" $
+      withDefAttr (attrName "help") $
       renderDialog (dialog (Just "Help (LEFT/ESC/?/q to close help)") Nothing (c^.availWidthL)) $ -- (Just (0,[("ok",())]))
       padTop (Pad 0) $ padLeft (Pad 1) $ padRight (Pad 1) $
         vBox [
            hBox [
               padRight (Pad 1) $
                 vBox [
-                   withAttr ("help" <> "heading") $ str "Navigation"
+                   withAttr (attrName "help" <> attrName "heading") $ str "Navigation"
                   ,renderKey ("UP/DOWN/PUP/PDN/HOME/END/k/j/C-p/C-n", "")
                   ,str "     move selection up/down"
                   ,renderKey ("RIGHT/l/C-f", "show txns, or txn detail")
@@ -105,23 +106,23 @@ helpDialog _copts =
                   ,renderKey ("ESC ", "cancel, or reset app state")
 
                   ,str " "
-                  ,withAttr ("help" <> "heading") $ str "Accounts screen"
+                  ,withAttr (attrName "help" <> attrName "heading") $ str "Accounts screen"
                   ,renderKey ("1234567890-+ ", "set/adjust depth limit")
                   ,renderKey ("t ", "toggle accounts tree/list mode")
                   ,renderKey ("H ", "toggle historical balance/change")
                   ,str " "
-                  ,withAttr ("help" <> "heading") $ str "Register screen"
+                  ,withAttr (attrName "help" <> attrName "heading") $ str "Register screen"
                   ,renderKey ("t ", "toggle subaccount txns\n(and accounts tree/list mode)")
                   ,renderKey ("H ", "toggle historical/period total")
                   ,str " "
-                  ,withAttr ("help" <> "heading") $ str "Help"
+                  ,withAttr (attrName "help" <> attrName "heading") $ str "Help"
                   ,renderKey ("?    ", "toggle this help")
                   ,renderKey ("p/m/i", "while help is open:\nshow manual in pager/man/info")
                   ,str " "
                 ]
              ,padLeft (Pad 1) $ padRight (Pad 0) $
                 vBox [
-                   withAttr ("help" <> "heading") $ str "Filtering"
+                   withAttr (attrName "help" <> attrName "heading") $ str "Filtering"
                   ,renderKey ("/   ", "set a filter query")
                   ,renderKey ("F   ", "show future & periodic txns")
                   ,renderKey ("R   ", "show real/all postings")
@@ -132,7 +133,7 @@ helpDialog _copts =
                   ,renderKey ("T             ", "set period to today")
                   ,renderKey ("DEL ", "reset filters")
                   ,str " "
-                  ,withAttr ("help" <> "heading") $ str "Other"
+                  ,withAttr (attrName "help" <> attrName "heading") $ str "Other"
                   ,renderKey ("a   ", "add transaction (hledger add)")
                   ,renderKey ("A   ", "add transaction (hledger-iadd)")
                   ,renderKey ("B   ", "show amounts/costs")
@@ -160,39 +161,40 @@ helpDialog _copts =
 --             ]
           ]
   where
-    renderKey (key,desc) = withAttr ("help" <> "key") (str key) <+> str " " <+> str desc
+    renderKey (key,desc) = withAttr (attrName "help" <> attrName "key") (str key) <+> str " " <+> str desc
 
 -- | Event handler used when help mode is active.
 -- May invoke $PAGER, less, man or info, which is likely to fail on MS Windows, TODO.
-helpHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
-helpHandle ui ev = do
+helpHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
+helpHandle ev = do
+  ui <- get
+  let ui' = setMode Normal ui
   case ev of
-    VtyEvent e | e `elem` closeHelpEvents -> continue $ setMode Normal ui
+    VtyEvent e | e `elem` closeHelpEvents -> put ui'
     VtyEvent (EvKey (KChar 'p') []) -> suspendAndResume $ runPagerForTopic "hledger-ui" Nothing >> return ui'
     VtyEvent (EvKey (KChar 'm') []) -> suspendAndResume $ runManForTopic   "hledger-ui" Nothing >> return ui'
     VtyEvent (EvKey (KChar 'i') []) -> suspendAndResume $ runInfoForTopic  "hledger-ui" Nothing >> return ui'
-    _ -> continue ui
+    _ -> return ()
   where
-    ui' = setMode Normal ui
     closeHelpEvents = moveLeftEvents ++ [EvKey KEsc [], EvKey (KChar '?') [], EvKey (KChar 'q') []]
 
 -- | Draw the minibuffer with the given label.
 minibuffer :: T.Text -> Editor String Name -> Widget Name
 minibuffer string ed =
-  forceAttr ("border" <> "minibuffer") $
+  forceAttr (attrName "border" <> attrName "minibuffer") $
   hBox [txt $ string <> ": ", renderEditor (str . unlines) True ed]
 
 borderQueryStr :: String -> Widget Name
 borderQueryStr ""  = str ""
-borderQueryStr qry = str " matching " <+> withAttr ("border" <> "query") (str qry)
+borderQueryStr qry = str " matching " <+> withAttr (attrName "border" <> attrName "query") (str qry)
 
 borderDepthStr :: Maybe Int -> Widget Name
 borderDepthStr Nothing  = str ""
-borderDepthStr (Just d) = str " to depth " <+> withAttr ("border" <> "query") (str $ show d)
+borderDepthStr (Just d) = str " to depth " <+> withAttr (attrName "border" <> attrName "query") (str $ show d)
 
 borderPeriodStr :: String -> Period -> Widget Name
 borderPeriodStr _           PeriodAll = str ""
-borderPeriodStr preposition p         = str (" "++preposition++" ") <+> withAttr ("border" <> "query") (str . T.unpack $ showPeriod p)
+borderPeriodStr preposition p         = str (" "++preposition++" ") <+> withAttr (attrName "border" <> attrName "query") (str . T.unpack $ showPeriod p)
 
 borderKeysStr :: [(String,String)] -> Widget Name
 borderKeysStr = borderKeysStr' . map (second str)
@@ -201,7 +203,7 @@ borderKeysStr' :: [(String,Widget Name)] -> Widget Name
 borderKeysStr' keydescs =
   hBox $
   intersperse sep $
-  [withAttr ("border" <> "key") (str keys) <+> str ":" <+> desc | (keys, desc) <- keydescs]
+  [withAttr (attrName "border" <> attrName "key") (str keys) <+> str ":" <+> desc | (keys, desc) <- keydescs]
   where
     -- sep = str " | "
     sep = str " "
@@ -209,7 +211,7 @@ borderKeysStr' keydescs =
 -- | Show both states of a toggle ("aaa/bbb"), highlighting the active one.
 renderToggle :: Bool -> String -> String -> Widget Name
 renderToggle isright l r =
-  let bold = withAttr ("border" <> "selected") in
+  let bold = withAttr (attrName "border" <> attrName "selected") in
   if isright
   then str (l++"/") <+> bold (str r)
   else bold (str l) <+> str ("/"++r)
@@ -217,7 +219,7 @@ renderToggle isright l r =
 -- | Show a toggle's label, highlighted (bold) when the toggle is active.
 renderToggle1 :: Bool -> String -> Widget Name
 renderToggle1 isactive l =
-  let bold = withAttr ("border" <> "selected") in
+  let bold = withAttr (attrName "border" <> attrName "selected") in
   if isactive
   then bold (str l)
   else str l
@@ -262,11 +264,11 @@ topBottomBorderWithLabels toplabel bottomlabel body =
           ""
           -- "  debug: "++show (_w,h')
     render $
-      hBorderWithLabel (withAttr "border" $ toplabel <+> str debugmsg)
+      hBorderWithLabel (withAttr (attrName "border") $ toplabel <+> str debugmsg)
       <=>
       body'
       <=>
-      hBorderWithLabel (withAttr "border" bottomlabel)
+      hBorderWithLabel (withAttr (attrName "border") bottomlabel)
 
 ---- XXX should be equivalent to the above, but isn't (page down goes offscreen)
 --_topBottomBorderWithLabel2 :: Widget Name -> Widget Name -> Widget Name
@@ -303,7 +305,7 @@ margin h v mcolour w = Widget Greedy Greedy $ do
    -- applyN n border
 
 withBorderAttr :: Attr -> Widget Name -> Widget Name
-withBorderAttr attr = updateAttrMap (applyAttrMappings [("border", attr)])
+withBorderAttr attr = updateAttrMap (applyAttrMappings [(attrName "border", attr)])
 
 ---- | Like brick's continue, but first run some action to modify brick's state.
 ---- This action does not affect the app state, but might eg adjust a widget's scroll position.
@@ -319,7 +321,7 @@ withBorderAttr attr = updateAttrMap (applyAttrMappings [("border", attr)])
 
 -- | Scroll a list's viewport so that the selected item is centered in the
 -- middle of the display area.
-scrollSelectionToMiddle :: List Name e -> EventM Name ()
+scrollSelectionToMiddle :: List Name item -> EventM Name UIState ()
 scrollSelectionToMiddle list = do
   case list^.listSelectedL of
     Nothing -> return ()
@@ -364,9 +366,9 @@ reportSpecSetFutureAndForecast d forecast rspec =
 -- Vertically scroll the named list's viewport with the given number of non-empty items
 -- by the given positive or negative number of items (usually 1 or -1).
 -- The selection will be moved when necessary to keep it visible and allow the scroll.
-listScrollPushingSelection :: (Ord n, Foldable t, Splittable t) => 
-  n -> GenericList n t e -> Int -> Int -> EventM n (GenericList n t e)
-listScrollPushingSelection name list listheight scrollamt = do
+listScrollPushingSelection :: Name -> Int -> Int -> EventM Name (List Name item) (GenericList Name Vector item)
+listScrollPushingSelection name listheight scrollamt = do
+  list <- get
   viewportScroll name `vScrollBy` scrollamt
   mvp <- lookupViewport name
   case mvp of

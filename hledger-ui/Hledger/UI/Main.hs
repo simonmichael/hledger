@@ -1,3 +1,5 @@
+-- TODO: brick 1 support
+-- https://hackage.haskell.org/package/brick-1.0/changelog
 {-|
 hledger-ui - a hledger add-on providing a curses-style interface.
 Copyright (c) 2007-2015 Simon Michael <simon@joyful.com>
@@ -159,11 +161,11 @@ runBrickUi uopts@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=rs
 
     brickapp :: App UIState AppEvent Name
     brickapp = App {
-        appStartEvent   = return
+        appStartEvent   = return ()
       , appAttrMap      = const $ fromMaybe defaultTheme $ getTheme =<< uoTheme uopts'
       , appChooseCursor = showFirstCursor
-      , appHandleEvent  = \ui ev -> sHandle (aScreen ui) ui ev
-      , appDraw         = \ui    -> sDraw   (aScreen ui) ui
+      , appHandleEvent  = sHandle (aScreen ui)
+      , appDraw         = sDraw   (aScreen ui)
       }
 
   -- print (length (show ui)) >> exitSuccess  -- show any debug output to this point & quit
