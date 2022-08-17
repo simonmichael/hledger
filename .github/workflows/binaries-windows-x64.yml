@@ -144,6 +144,7 @@ jobs:
 
     - name: Install haskell deps
       run: |
+        ./stack --no-terminal build --only-dependencies --dry-run
         ./stack --no-terminal build --only-dependencies
       if: env.CONTINUE
 

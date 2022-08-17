@@ -215,6 +215,7 @@ jobs:
       env:
         stack: ${{ matrix.plan.stack }}
       run: |
+        $stack build --test --bench --only-dependencies --dry-run
         $stack build --test --bench --only-dependencies
       if: env.CONTINUE
 
