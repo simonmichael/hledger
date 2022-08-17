@@ -143,66 +143,70 @@ tsDraw _ = error "draw function called with wrong screen type, should not happen
 
 tsHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
 tsHandle ev = do
-  ui@UIState{aScreen=TransactionScreen{tsTransaction=(i,t), tsTransactions=nts}
-                   ,aopts=UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}
-                   ,ajournal=j
-                   ,aMode=mode
-                   } <- get
-  case mode of
-    Help ->
-      case ev of
-        -- VtyEvent (EvKey (KChar 'q') []) -> halt
-        VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw
-        VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
-        _                    -> helpHandle ev
+  ui0 <- get
+  case ui0 of
+    ui@UIState{aScreen=TransactionScreen{tsTransaction=(i,t), tsTransactions=nts}
+                    ,aopts=UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}
+                    ,ajournal=j
+                    ,aMode=mode
+                    } ->
+      case mode of
+        Help ->
+          case ev of
+            -- VtyEvent (EvKey (KChar 'q') []) -> halt
+            VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw
+            VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
+            _                    -> helpHandle ev
 
-    _ -> do
-      let
-        d = copts^.rsDay
-        (iprev,tprev) = maybe (i,t) ((i-1),) $ lookup (i-1) nts
-        (inext,tnext) = maybe (i,t) ((i+1),) $ lookup (i+1) nts
-      case ev of
-        VtyEvent (EvKey (KChar 'q') []) -> halt
-        VtyEvent (EvKey KEsc        []) -> put $ resetScreens d ui
-        VtyEvent (EvKey (KChar c)   []) | c == '?' -> put $ setMode Help ui
-        VtyEvent (EvKey (KChar 'E') []) -> suspendAndResume $ void (runEditor pos f) >> uiReloadJournalIfChanged copts d j ui
-          where
-            (pos,f) = case tsourcepos t of
-                        (SourcePos f l1 c1,_) -> (Just (unPos l1, Just $ unPos c1),f)
-        AppEvent (DateChange old _) | isStandardPeriod p && p `periodContainsDate` old ->
-          put $ regenerateScreens j d $ setReportPeriod (DayPeriod d) ui
-          where
-            p = reportPeriod ui
-        e | e `elem` [VtyEvent (EvKey (KChar 'g') []), AppEvent FileChange] -> do
-          -- plog (if e == AppEvent FileChange then "file change" else "manual reload") "" `seq` return ()
-          ej <- liftIO . runExceptT $ journalReload copts
-          case ej of
-            Left err -> put $ screenEnter d errorScreen{esError=err} ui
-            Right j' -> put $ regenerateScreens j' d ui
-        VtyEvent (EvKey (KChar 'I') []) -> put $ uiCheckBalanceAssertions d (toggleIgnoreBalanceAssertions ui)
+        _ -> do
+          let
+            d = copts^.rsDay
+            (iprev,tprev) = maybe (i,t) ((i-1),) $ lookup (i-1) nts
+            (inext,tnext) = maybe (i,t) ((i+1),) $ lookup (i+1) nts
+          case ev of
+            VtyEvent (EvKey (KChar 'q') []) -> halt
+            VtyEvent (EvKey KEsc        []) -> put $ resetScreens d ui
+            VtyEvent (EvKey (KChar c)   []) | c == '?' -> put $ setMode Help ui
+            VtyEvent (EvKey (KChar 'E') []) -> suspendAndResume $ void (runEditor pos f) >> uiReloadJournalIfChanged copts d j ui
+              where
+                (pos,f) = case tsourcepos t of
+                            (SourcePos f l1 c1,_) -> (Just (unPos l1, Just $ unPos c1),f)
+            AppEvent (DateChange old _) | isStandardPeriod p && p `periodContainsDate` old ->
+              put $ regenerateScreens j d $ setReportPeriod (DayPeriod d) ui
+              where
+                p = reportPeriod ui
+            e | e `elem` [VtyEvent (EvKey (KChar 'g') []), AppEvent FileChange] -> do
+              -- plog (if e == AppEvent FileChange then "file change" else "manual reload") "" `seq` return ()
+              ej <- liftIO . runExceptT $ journalReload copts
+              case ej of
+                Left err -> put $ screenEnter d errorScreen{esError=err} ui
+                Right j' -> put $ regenerateScreens j' d ui
+            VtyEvent (EvKey (KChar 'I') []) -> put $ uiCheckBalanceAssertions d (toggleIgnoreBalanceAssertions ui)
 
-        -- for toggles that may change the current/prev/next transactions,
-        -- we must regenerate the transaction list, like the g handler above ? with regenerateTransactions ? TODO WIP
-        -- EvKey (KChar 'E') [] -> put $ regenerateScreens j d $ stToggleEmpty ui
-        -- EvKey (KChar 'C') [] -> put $ regenerateScreens j d $ stToggleCleared ui
-        -- EvKey (KChar 'R') [] -> put $ regenerateScreens j d $ stToggleReal ui
-        VtyEvent (EvKey (KChar 'B') []) -> put . regenerateScreens j d $ toggleConversionOp ui
-        VtyEvent (EvKey (KChar 'V') []) -> put . regenerateScreens j d $ toggleValue ui
+            -- for toggles that may change the current/prev/next transactions,
+            -- we must regenerate the transaction list, like the g handler above ? with regenerateTransactions ? TODO WIP
+            -- EvKey (KChar 'E') [] -> put $ regenerateScreens j d $ stToggleEmpty ui
+            -- EvKey (KChar 'C') [] -> put $ regenerateScreens j d $ stToggleCleared ui
+            -- EvKey (KChar 'R') [] -> put $ regenerateScreens j d $ stToggleReal ui
+            VtyEvent (EvKey (KChar 'B') []) -> put . regenerateScreens j d $ toggleConversionOp ui
+            VtyEvent (EvKey (KChar 'V') []) -> put . regenerateScreens j d $ toggleValue ui
 
-        VtyEvent e | e `elem` moveUpEvents   -> put $ tsSelect iprev tprev ui
-        VtyEvent e | e `elem` moveDownEvents -> put $ tsSelect inext tnext ui
+            VtyEvent e | e `elem` moveUpEvents   -> put $ tsSelect iprev tprev ui
+            VtyEvent e | e `elem` moveDownEvents -> put $ tsSelect inext tnext ui
 
-        -- exit screen on LEFT
-        VtyEvent e | e `elem` moveLeftEvents -> put . popScreen $ tsSelect i t ui  -- Probably not necessary to tsSelect here, but it's safe.
-        -- or on a click in the app's left margin.
-        VtyEvent (EvMouseUp x _y (Just BLeft)) | x==0 -> put . popScreen $ tsSelect i t ui
-        -- or on clicking the blank area below the transaction.
-        MouseUp _ (Just BLeft) Location{loc=(_,y)} | y+1 > numentrylines -> put . popScreen $ tsSelect i t ui
-          where numentrylines = length (T.lines $ showTxn ropts rspec j t) - 1
+            -- exit screen on LEFT
+            VtyEvent e | e `elem` moveLeftEvents -> put . popScreen $ tsSelect i t ui  -- Probably not necessary to tsSelect here, but it's safe.
+            -- or on a click in the app's left margin.
+            VtyEvent (EvMouseUp x _y (Just BLeft)) | x==0 -> put . popScreen $ tsSelect i t ui
+            -- or on clicking the blank area below the transaction.
+            MouseUp _ (Just BLeft) Location{loc=(_,y)} | y+1 > numentrylines -> put . popScreen $ tsSelect i t ui
+              where numentrylines = length (T.lines $ showTxn ropts rspec j t) - 1
 
-        VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw
-        VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
-        _ -> return ()
+            VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw
+            VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
+            _ -> return ()
+
+    _ -> errorWrongScreenType
 
 -- | Select a new transaction and update the previous register screen
 tsSelect i t ui@UIState{aScreen=s@TransactionScreen{}} = case aPrevScreens ui of

@@ -135,6 +135,9 @@ data Screen =
     }
   deriving (Show)
 
+-- | Error message to use in case statements adapting to the different Screen shapes.
+errorWrongScreenType = error' "handler called with wrong screen type, should not happen"
+
 -- | An item in the accounts screen's list of accounts and balances.
 data AccountsScreenItem = AccountsScreenItem {
    asItemIndentLevel        :: Int                -- ^ indent level
@@ -154,10 +157,6 @@ data RegisterScreenItem = RegisterScreenItem {
   ,rsItemTransaction    :: Transaction  -- ^ the full transaction
   }
   deriving (Show)
-
-instance MonadFail (EventM Name UIState) where fail _ = wrongScreenTypeError
-
-wrongScreenTypeError = error' "handler called with wrong screen type, should not happen"
 
 type NumberedTransaction = (Integer, Transaction)
 
