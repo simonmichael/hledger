@@ -16,10 +16,14 @@ packages:
 - hledger-ui
 - hledger-web
 
-#extra-deps:
+extra-deps:
 # for hledger-lib:
 # for hledger:
 # for hledger-ui:
+- brick-1.0
+- bimap-0.5.0
+- text-zipper-0.12
+- vty-5.36
 # for hledger-web:
 # for Shake.hs:
 
