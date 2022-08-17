@@ -35,7 +35,7 @@ Notes for hledger release managers and maintainers.
 [Regression bounty]: http://hledger.org/regressionbounty
 
 hledger major releases happen in the third month of each quarter, normally at or close to the start of the month.
-Preview releases happen in the other months.
+Preview releases happen in the other months, if needed.
 Here's the ideal release schedule:
 
 | Q1               | Q2               | Q3               | Q4               |
