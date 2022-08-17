@@ -134,6 +134,7 @@ data Screen =
       ,esError :: String                              -- ^ error message to show
     }
   deriving (Show)
+-- XXX check for ideas: https://github.com/jtdaugherty/brick/issues/379#issuecomment-1191993357
 
 -- | Error message to use in case statements adapting to the different Screen shapes.
 errorWrongScreenType = error' "handler called with wrong screen type, should not happen"
