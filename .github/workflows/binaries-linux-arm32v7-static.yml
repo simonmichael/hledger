@@ -8,7 +8,7 @@ name: binaries-linux-arm32v7-static
 
 on:
   push:
-    branches: [ ci-linux-arm32v7 ]
+    branches: [ binaries-linux-arm32v7-static ]
     #tags:
     #  - '[0-9]+.[0-9]+'
     #  - '[0-9]+.[0-9]+-*'
