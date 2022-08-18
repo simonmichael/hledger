@@ -22,12 +22,12 @@ jobs:
     container: alpine:edge
     steps:
 
-    - name: Setup environment
+    - name: Install tools
       # Borrowed from fossas/haskell-static-alpine, copied here for transparency
       run: |
         apk --no-cache add binutils-gold curl gcc g++ git gmp-dev ncurses-dev ncurses-static libffi-dev make xz tar perl zlib-dev zlib-static
         mkdir -p ~/.ghcup/bin && curl https://downloads.haskell.org/~ghcup/x86_64-linux-ghcup > ~/.ghcup/bin/ghcup && chmod +x ~/.ghcup/bin/ghcup
-        ~/.ghcup/bin/ghcup install ghc 9.0.2 && ~/.ghcup/bin/ghcup set ghc 9.0.2 && ~/.ghcup/bin/ghcup install cabal
+        ~/.ghcup/bin/ghcup install --set ghc 9.0.2 && ~/.ghcup/bin/ghcup install cabal
         echo "$HOME/.ghcup/bin/" >> $GITHUB_PATH
 
     - name: Check out
