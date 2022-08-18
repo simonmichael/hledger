@@ -117,13 +117,12 @@ jobs:
         stack --version
       if: env.CONTINUE
 
-    # - name: Install GHC (with stack)
-    #   env:
-    #     stack: ${{ matrix.plan.stack }}
-    #   run: |
-    #     $stack setup --install-ghc
-    #   if: env.CONTINUE
-    # stack's ghc 9.2.4 failing with InvalidAbsFile "/Users/runner/.stack/programs/x86_64-osx/ghc-9.2.3/lib/ghc-9.2.3/lib/../lib/x86_64-osx-ghc-9.2.3/rts-1.0.2/include/ghcversion.h"
+    - name: Install GHC (with stack)
+      env:
+        stack: ${{ matrix.plan.stack }}
+      run: |
+        $stack setup --install-ghc
+      if: env.CONTINUE
 
     # - name: Install GHC (with ghcup)
     #   run: |
@@ -132,12 +131,12 @@ jobs:
     #     echo "$HOME/.ghcup/bin/" >> $GITHUB_PATH
     #   if: env.CONTINUE
 
-    - name: Install GHC (from haskell.org)
-      run: |
-        curl -sL https://downloads.haskell.org/~ghc/9.2.4/ghc-9.2.4-x86_64-apple-darwin.tar.xz | tar xj && cd ghc-9.2.4-x86_64-apple-darwin && ./configure && make install
-        ghc --version
-        mkdir -p ~/.stack && printf "system-ghc: true\ninstall-ghc: false\n" >>~/.stack/config.yaml
-      if: env.CONTINUE
+    # - name: Install GHC (from haskell.org)
+    #   run: |
+    #     curl -sL https://downloads.haskell.org/~ghc/9.2.4/ghc-9.2.4-x86_64-apple-darwin.tar.xz | tar xj && cd ghc-9.2.4-x86_64-apple-darwin && ./configure && make install
+    #     ghc --version
+    #     mkdir -p ~/.stack && printf "system-ghc: true\ninstall-ghc: false\n" >>~/.stack/config.yaml
+    #   if: env.CONTINUE
 
     - name: Install haskell deps
       env:
