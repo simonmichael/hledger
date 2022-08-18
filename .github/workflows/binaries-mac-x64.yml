@@ -53,9 +53,9 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ~/.local/bin
-        key: ${{ runner.os }}-stack-programs-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-stack-programs-after20220817-${{ hashFiles('**.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-stack-programs
+             ${{ runner.os }}-stack-programs-after20220817
       if: env.CONTINUE
 
     - name: Cache .stack-work
