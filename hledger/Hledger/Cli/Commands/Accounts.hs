@@ -33,13 +33,13 @@ import Control.Monad (forM_)
 -- | Command line options for this command.
 accountsmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Accounts.txt")
-  ([flagNone ["declared"] (setboolopt "declared") "show account names declared with account directives"
-  ,flagNone ["used"] (setboolopt "used") "show account names referenced by transactions"
-  ,flagNone ["types"] (setboolopt "types") "also show accounts' types, when known"
-  ,flagNone ["declarations"] (setboolopt "declarations") "also show where accounts were declared, for troubleshooting"
-  ]
-  ++ flattreeflags False ++
+  (flattreeflags False ++
   [flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
+  ,flagNone ["declared"] (setboolopt "declared") "show only accounts declared by account directive"
+  ,flagNone ["used"] (setboolopt "used") "show only accounts referenced by transactions"
+  ,flagNone ["types"] (setboolopt "types") "show accounts' types, when known"
+  ,flagNone ["positions"] (setboolopt "positions") "show where accounts were declared"
+  ,flagNone ["directives"] (setboolopt "directives") "show valid account directives usable in journals"
   ])
   [generalflagsgroup1]
   hiddenflags
@@ -54,7 +54,8 @@ accounts CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_rsRepo
       declared = boolopt "declared" rawopts
       used     = boolopt "used"     rawopts
       types    = boolopt "types"    rawopts
-      declarations = boolopt "declarations" rawopts
+      positions = boolopt "positions" rawopts
+      directives = boolopt "directives" rawopts
       -- a depth limit will clip and exclude account names later, but we don't want to exclude accounts at this stage
       nodepthq = dbg4 "nodepthq" $ filterQuery (not . queryIsDepth) query
       -- just the acct: part of the query will be reapplied later, after clipping
@@ -84,8 +85,9 @@ accounts CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_rsRepo
         sortedaccts
 
   -- 4. print what remains as a list or tree, maybe applying --drop in the former case.
-  -- With --types, also show the account type.
+  -- Add various bits of info if enabled.
   let
+    showKeyword = if directives then "account " else ""
     -- some contortions here to show types nicely aligned
     showName a = case accountlistmode_ ropts of
       ALTree -> indent <> accountLeafName droppedName
@@ -97,7 +99,7 @@ accounts CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_rsRepo
       | types     = pad a <> "    ; type: " <> maybe "" (T.pack . show) (journalAccountType j a)
       | otherwise = ""
     showAcctDeclOrder a
-      | declarations =
+      | positions =
         (if types then "," else pad a <> "    ;") <>
         case lookup a $ jdeclaredaccounts j of
           Just adi ->
@@ -108,4 +110,4 @@ accounts CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_rsRepo
     pad a = T.replicate (maxwidth - T.length (showName a)) " "
     maxwidth = maximum $ map (T.length . showName) clippedaccts
 
-  forM_ clippedaccts $ \a -> T.putStrLn $ showName a <> showType a <> showAcctDeclOrder a
+  forM_ clippedaccts $ \a -> T.putStrLn $ showKeyword <> showName a <> showType a <> showAcctDeclOrder a
