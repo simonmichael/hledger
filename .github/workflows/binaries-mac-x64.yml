@@ -43,9 +43,9 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ~/.stack
-        key: ${{ runner.os }}-stack-global-after20220817-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-stack-global-from20220817-${{ hashFiles('**.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-stack-global-after20220817
+             ${{ runner.os }}-stack-global-from20220817
       if: env.CONTINUE
 
     - name: Cache stack-installed programs in ~/.local/bin
@@ -53,54 +53,54 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ~/.local/bin
-        key: ${{ runner.os }}-stack-programs-after20220817-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-stack-programs-from20220817-${{ hashFiles('**.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-stack-programs-after20220817
+             ${{ runner.os }}-stack-programs-from20220817
       if: env.CONTINUE
 
     - name: Cache .stack-work
       uses: actions/cache@v2
       with:
         path: .stack-work
-        key: ${{ runner.os }}-stack-work-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-stack-work-from20220817-${{ hashFiles('**.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-stack-work
+             ${{ runner.os }}-stack-work-from20220817
       if: env.CONTINUE
 
     - name: Cache hledger-lib/.stack-work
       uses: actions/cache@v2
       with:
         path: hledger-lib/.stack-work
-        key: ${{ runner.os }}-hledger-lib-stack-work-${{ hashFiles('hledger-lib/package.yaml') }}
+        key: ${{ runner.os }}-hledger-lib-stack-work-from20220817-${{ hashFiles('hledger-lib/package.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-hledger-lib-stack-work
+             ${{ runner.os }}-hledger-lib-stack-work-from20220817
       if: env.CONTINUE
 
     - name: Cache hledger/.stack-work
       uses: actions/cache@v2
       with:
         path: hledger/.stack-work
-        key: ${{ runner.os }}-hledger-stack-work-${{ hashFiles('hledger/package.yaml') }}
+        key: ${{ runner.os }}-hledger-stack-work-from20220817-${{ hashFiles('hledger/package.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-hledger-stack-work
+             ${{ runner.os }}-hledger-stack-work-from20220817
       if: env.CONTINUE
 
     - name: Cache hledger-ui/.stack-work
       uses: actions/cache@v2
       with:
         path: hledger-ui/.stack-work
-        key: ${{ runner.os }}-hledger-ui-stack-work-${{ hashFiles('hledger-ui/package.yaml') }}
+        key: ${{ runner.os }}-hledger-ui-stack-work-from20220817-${{ hashFiles('hledger-ui/package.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-hledger-ui-stack-work
+             ${{ runner.os }}-hledger-ui-stack-work-from20220817
       if: env.CONTINUE
 
     - name: Cache hledger-web/.stack-work
       uses: actions/cache@v2
       with:
         path: hledger-web/.stack-work
-        key: ${{ runner.os }}-hledger-web-stack-work-${{ hashFiles('hledger-web/package.yaml') }}
+        key: ${{ runner.os }}-hledger-web-stack-work-from20220817-${{ hashFiles('hledger-web/package.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-hledger-web-stack-work
+             ${{ runner.os }}-hledger-web-stack-work-from20220817
       if: env.CONTINUE
 
     # actions:
