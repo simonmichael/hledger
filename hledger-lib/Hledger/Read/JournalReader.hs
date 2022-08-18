@@ -199,7 +199,7 @@ parse iopts f = parseAndFinaliseJournal journalp' iopts f
 -- which should be finalised/validated before use.
 --
 -- >>> rejp (journalp <* eof) "2015/1/1\n a  0\n"
--- Right (Right Journal  with 1 transactions, 1 accounts)
+-- Right (Right Journal (unknown) with 1 transactions, 1 accounts)
 --
 journalp :: MonadIO m => ErroringJournalParser m ParsedJournal
 journalp = do
