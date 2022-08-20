@@ -13,7 +13,7 @@ module Hledger.Web.Handler.AddR
 import Data.Aeson.Types (Result(..))
 import qualified Data.Text as T
 import Network.HTTP.Types.Status (status400)
-import Text.Blaze.Html (preEscapedToHtml)
+import Text.Blaze.Html (preEscapedToHtml, string)
 import Yesod
 
 import Hledger
@@ -27,6 +27,8 @@ getAddR = do
   checkServerSideUiEnabled
   postAddR
 
+-- The information in which journal file a transaction should be added is
+-- carried in the tsourcepos attribute.
 journalFilePath' :: Transaction -> FilePath
 journalFilePath' (Transaction { tsourcepos = ((SourcePos f _ _), _)}) = f
 
@@ -38,7 +40,9 @@ postAddR = do
 
   ((res, view), enctype) <- runFormPost $ addForm j today
   case res of
-    FormSuccess res' -> do
+    FormSuccess res' -> if
+      journalFilePath' res' `elem` journalFilePaths j
+    then do
       let t = txnTieKnot res'
       -- XXX(?) move into balanceTransaction
       liftIO $ ensureJournalFileExists (journalFilePath' t)
@@ -46,6 +50,11 @@ postAddR = do
       liftIO $ appendToJournalFileOrStdout (journalFilePath' t) (showTransaction t)
       setMessage "Transaction added."
       redirect JournalR
+      else do
+        setMessage $
+          string $
+            "Adding to '" <> journalFilePath' res' <> "' failed as it is not part of the journal."
+        showForm view enctype
     FormMissing -> showForm view enctype
     FormFailure errs -> do
       mapM_ (setMessage . preEscapedToHtml . T.replace "\n" "<br>") errs
