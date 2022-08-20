@@ -165,15 +165,14 @@ compoundBalanceReportWith rspec' j priceoracle subreportspecs = cbr
             , cbcsubreportincreasestotal
             )
           where
+            ropts = cbcsubreportoptions $ _rsReportOpts rspec
             -- Add a restriction to this subreport to the report query.
             -- XXX in non-thorough way, consider updateReportSpec ?
-            q = cbcsubreportquery j
-            ropts = cbcsubreportoptions $ _rsReportOpts rspec
-            rspecsub = rspec{_rsReportOpts=ropts, _rsQuery=And [q, _rsQuery rspec]}
+            rspecsub = rspec{_rsReportOpts=ropts, _rsQuery=And [cbcsubreportquery, _rsQuery rspec]}
             -- Starting balances and column postings specific to this subreport.
             startbals' = startingBalances rspecsub j priceoracle $
-              filter (matchesPostingExtra (journalAccountType j) q) startps
-            colps' = map (second $ filter (matchesPostingExtra (journalAccountType j) q)) colps
+              filter (matchesPostingExtra (journalAccountType j) cbcsubreportquery) startps
+            colps' = map (second $ filter (matchesPostingExtra (journalAccountType j) cbcsubreportquery)) colps
 
     -- Sum the subreport totals by column. Handle these cases:
     -- - no subreports
