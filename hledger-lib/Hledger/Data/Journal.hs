@@ -86,15 +86,6 @@ module Hledger.Data.Journal (
   journalAddAccountTypes,
   journalPostingsAddAccountTags,
   -- journalPrices,
-  -- * Standard account types
-  journalBalanceSheetAccountQuery,
-  journalProfitAndLossAccountQuery,
-  journalRevenueAccountQuery,
-  journalExpenseAccountQuery,
-  journalAssetAccountQuery,
-  journalLiabilityAccountQuery,
-  journalEquityAccountQuery,
-  journalCashAccountQuery,
   journalConversionAccount,
   -- * Misc
   canonicalStyleFrom,
@@ -473,111 +464,6 @@ wordLetterPairs = concatMap letterPairs . words
 letterPairs :: String -> [String]
 letterPairs (a:b:rest) = [a,b] : letterPairs (b:rest)
 letterPairs _ = []
-
--- Older account type code
-
--- queries for standard account types
-
--- | Get a query for accounts of the specified types in this journal. 
--- Account types include:
--- Asset, Liability, Equity, Revenue, Expense, Cash, Conversion.
--- For each type, if no accounts were declared with this type, the query 
--- will instead match accounts with names matched by the case-insensitive 
--- regular expression provided as a fallback.
--- The query will match all accounts which were declared as one of
--- these types (by account directives with the type: tag), plus all their 
--- subaccounts which have not been declared as some other type.
---
--- This is older code pre-dating 2022's expansion of account types.
-journalAccountTypeQuery :: [AccountType] -> Regexp -> Journal -> Query
-journalAccountTypeQuery atypes fallbackregex Journal{jdeclaredaccounttypes} =
-  let
-    declaredacctsoftype :: [AccountName] =
-      concat $ mapMaybe (`M.lookup` jdeclaredaccounttypes) atypes
-  in case declaredacctsoftype of
-    [] -> Acct fallbackregex
-    as -> And $ Or acctnameRegexes : if null differentlyTypedRegexes then [] else [ Not $ Or differentlyTypedRegexes ]
-      where
-        -- XXX Query isn't able to match account type since that requires extra info from the journal.
-        -- So we do a hacky search by name instead.
-        acctnameRegexes = map (Acct . accountNameToAccountRegex) as
-        differentlyTypedRegexes = map (Acct . accountNameToAccountRegex) differentlytypedsubs
-
-        differentlytypedsubs = concat
-          [subs | (t,bs) <- M.toList jdeclaredaccounttypes
-              , t `notElem` atypes
-              , let subs = [b | b <- bs, any (`isAccountNamePrefixOf` b) as]
-          ]
-
--- | A query for accounts in this journal which have been
--- declared as Asset (or Cash, a subtype of Asset) by account directives, 
--- or otherwise for accounts with names matched by the case-insensitive 
--- regular expression @^assets?(:|$)@.
-journalAssetAccountQuery :: Journal -> Query
-journalAssetAccountQuery j =
-  Or [
-     journalAccountTypeQuery [Asset] assetAccountRegex j
-    ,journalCashAccountOnlyQuery j
-  ]
-
--- | A query for Cash (liquid asset) accounts in this journal, ie accounts
--- declared as Cash by account directives, or otherwise accounts whose
--- names match the case-insensitive regular expression
--- @(^assets:(.+:)?(cash|bank)(:|$)@.
-journalCashAccountQuery :: Journal -> Query
-journalCashAccountQuery = journalAccountTypeQuery [Cash] cashAccountRegex
-
--- | A query for accounts in this journal specifically declared as Cash by 
--- account directives, or otherwise the None query.
-journalCashAccountOnlyQuery :: Journal -> Query
-journalCashAccountOnlyQuery j
-  -- Cash accounts are declared; get a query for them (the fallback regex won't be used)
-  | Cash `M.member` jdeclaredaccounttypes j = journalAccountTypeQuery [Cash] notused j
-  | otherwise = None
-  where notused = error' "journalCashAccountOnlyQuery: this should not have happened!"  -- PARTIAL:
-
--- | A query for accounts in this journal which have been
--- declared as Liability by account directives, or otherwise for
--- accounts with names matched by the case-insensitive regular expression
--- @^(debts?|liabilit(y|ies))(:|$)@.
-journalLiabilityAccountQuery :: Journal -> Query
-journalLiabilityAccountQuery = journalAccountTypeQuery [Liability] liabilityAccountRegex
-
--- | A query for accounts in this journal which have been
--- declared as Equity by account directives, or otherwise for
--- accounts with names matched by the case-insensitive regular expression
--- @^equity(:|$)@.
-journalEquityAccountQuery :: Journal -> Query
-journalEquityAccountQuery = journalAccountTypeQuery [Equity] equityAccountRegex
-
--- | A query for accounts in this journal which have been
--- declared as Revenue by account directives, or otherwise for
--- accounts with names matched by the case-insensitive regular expression
--- @^(income|revenue)s?(:|$)@.
-journalRevenueAccountQuery :: Journal -> Query
-journalRevenueAccountQuery = journalAccountTypeQuery [Revenue] revenueAccountRegex
-
--- | A query for accounts in this journal which have been
--- declared as Expense by account directives, or otherwise for
--- accounts with names matched by the case-insensitive regular expression
--- @^expenses?(:|$)@.
-journalExpenseAccountQuery  :: Journal -> Query
-journalExpenseAccountQuery = journalAccountTypeQuery [Expense] expenseAccountRegex
-
--- | A query for Asset, Liability & Equity accounts in this journal.
--- Cf <http://en.wikipedia.org/wiki/Chart_of_accounts#Balance_Sheet_Accounts>.
-journalBalanceSheetAccountQuery :: Journal -> Query
-journalBalanceSheetAccountQuery j = Or [journalAssetAccountQuery j
-                                       ,journalLiabilityAccountQuery j
-                                       ,journalEquityAccountQuery j
-                                       ]
-
--- | A query for Profit & Loss accounts in this journal.
--- Cf <http://en.wikipedia.org/wiki/Chart_of_accounts#Profit_.26_Loss_accounts>.
-journalProfitAndLossAccountQuery  :: Journal -> Query
-journalProfitAndLossAccountQuery j = Or [journalRevenueAccountQuery j
-                                        ,journalExpenseAccountQuery j
-                                        ]
 
 -- | The 'AccountName' to use for automatically generated conversion postings.
 journalConversionAccount :: Journal -> AccountName
@@ -1339,24 +1225,4 @@ tests_Journal = testGroup "Journal" [
               ]
       }
     @?= (DateSpan (Just $ fromGregorian 2014 1 10) (Just $ fromGregorian 2014 10 11))
-
-  ,testGroup "standard account type queries" $
-    let
-      j = samplejournal
-      journalAccountNamesMatching :: Query -> Journal -> [AccountName]
-      journalAccountNamesMatching q = filter (q `matchesAccount`) . journalAccountNames
-      namesfrom qfunc = journalAccountNamesMatching (qfunc j) j
-    in [testCase "assets"      $ assertEqual "" ["assets","assets:bank","assets:bank:checking","assets:bank:saving","assets:cash"]
-         (namesfrom journalAssetAccountQuery)
-       ,testCase "cash"        $ assertEqual "" ["assets:bank","assets:bank:checking","assets:bank:saving","assets:cash"]
-         (namesfrom journalCashAccountQuery)
-       ,testCase "liabilities" $ assertEqual "" ["liabilities","liabilities:debts"]
-         (namesfrom journalLiabilityAccountQuery)
-       ,testCase "equity"      $ assertEqual "" []
-         (namesfrom journalEquityAccountQuery)
-       ,testCase "income"      $ assertEqual "" ["income","income:gifts","income:salary"]
-         (namesfrom journalRevenueAccountQuery)
-       ,testCase "expenses"    $ assertEqual "" ["expenses","expenses:food","expenses:supplies"]
-         (namesfrom journalExpenseAccountQuery)
-       ]
   ]

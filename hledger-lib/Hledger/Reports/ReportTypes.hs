@@ -166,7 +166,7 @@ data CompoundPeriodicReport a b = CompoundPeriodicReport
 -- Part of a "CompoundBalanceCommandSpec", but also used in hledger-lib.
 data CBCSubreportSpec a = CBCSubreportSpec
   { cbcsubreporttitle          :: Text                      -- ^ The title to use for the subreport
-  , cbcsubreportquery          :: Journal -> Query          -- ^ The Query to use for the subreport
+  , cbcsubreportquery          :: Query                     -- ^ The Query to use for the subreport
   , cbcsubreportoptions        :: ReportOpts -> ReportOpts  -- ^ A function to transform the ReportOpts used to produce the subreport
   , cbcsubreporttransform      :: PeriodicReport DisplayName MixedAmount -> PeriodicReport a MixedAmount  -- ^ A function to transform the result of the subreport
   , cbcsubreportincreasestotal :: Bool                      -- ^ Whether the subreport and overall report total are of the same sign (e.g. Assets are normally
