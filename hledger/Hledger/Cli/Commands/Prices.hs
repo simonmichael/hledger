@@ -54,7 +54,7 @@ prices opts j = do
                   | otherwise = const []
 
 showPriceDirective :: PriceDirective -> T.Text
-showPriceDirective mp = T.unwords ["P", T.pack . show $ pddate mp, quoteCommoditySymbolIfNeeded $ pdcommodity mp, wbToText . showAmountB noColour{displayZeroCommodity=True} $ pdamount mp]
+showPriceDirective mp = T.unwords ["P", T.pack . show $ pddate mp, quoteCommoditySymbolIfNeeded $ pdcommodity mp, buildCell . showAmountB noColour{displayZeroCommodity=True} $ pdamount mp]
 
 -- XXX
 

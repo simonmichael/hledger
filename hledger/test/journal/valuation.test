@@ -352,7 +352,7 @@ $ hledger -f- reg -V -M -b 2000
 
 # 30. single column balance report valued at cost
 $ hledger -f- bal -N --value=cost -b 2000
-                15 B
+                15 B   
                  6 C  a
 
 # 31. single column balance report valued at period end (which includes market price declarations, see #1405)

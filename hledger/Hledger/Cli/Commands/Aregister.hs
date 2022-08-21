@@ -19,24 +19,23 @@ module Hledger.Cli.Commands.Aregister (
  ,tests_Aregister
 ) where
 
-import Data.Default (def)
 import Data.List (find)
 import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import System.Console.CmdArgs.Explicit (flagNone, flagReq)
+import Text.Layout.Table
 
 import Hledger
 import Hledger.Read.CsvReader (CSV, CsvRecord, printCSV)
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
-import Text.Tabular.AsciiWide
 
 aregistermode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Aregister.txt")
   ([
-   flagNone ["txn-dates"] (setboolopt "txn-dates") 
+   flagNone ["txn-dates"] (setboolopt "txn-dates")
      "filter strictly by transaction date, not posting date. Warning: this can show a wrong running balance."
    ,flagNone ["no-elide"] (setboolopt "no-elide") "don't show only 2 commodities per amount"
   --  flagNone ["cumulative"] (setboolopt "cumulative")
@@ -122,8 +121,8 @@ accountTransactionsReportItemAsCsvRecord
   where
     idx  = T.pack $ show tindex
     date = showDate $ transactionRegisterDate wd reportq thisacctq t
-    amt  = wbToText $ showMixedAmountB csvDisplay change
-    bal  = wbToText $ showMixedAmountB csvDisplay balance
+    amt  = buildCell $ showMixedAmountB csvDisplay change
+    bal  = buildCell $ showMixedAmountB csvDisplay balance
 
 -- | Render a register report as plain text suitable for console output.
 accountTransactionsReportAsText :: CliOpts -> Query -> Query -> AccountTransactionsReport -> TL.Text
@@ -157,7 +156,7 @@ accountTransactionsReportAsText copts reportq thisacctq items = TB.toLazyText $
 -- has multiple commodities.
 --
 accountTransactionsReportItemAsText :: CliOpts -> Query -> Query -> Int -> Int
-                                    -> (AccountTransactionsReportItem, [WideBuilder], [WideBuilder])
+                                    -> (AccountTransactionsReportItem, [RenderText], [RenderText])
                                     -> TB.Builder
 accountTransactionsReportItemAsText
   copts@CliOpts{reportspec_=ReportSpec{_rsReportOpts=ropts}}
@@ -171,24 +170,16 @@ accountTransactionsReportItemAsText
     -- MixedAmount -- the register's running total or the current account(s)'s historical balance, after this transaction
     table <> TB.singleton '\n'
   where
-    table = renderRowB def{tableBorders=False, borderSpaces=False} . Group NoLine $ map Header
-      [ textCell TopLeft $ fitText (Just datewidth) (Just datewidth) True True date
-      , spacerCell
-      , textCell TopLeft $ fitText (Just descwidth) (Just descwidth) True True tdescription
-      , spacerCell2
-      , textCell TopLeft $ fitText (Just acctwidth) (Just acctwidth) True True accts
-      , spacerCell2
-      , Cell TopRight $ map (pad amtwidth) amt
-      , spacerCell2
-      , Cell BottomRight $ map (pad balwidth) bal
-      ]
-    spacerCell  = Cell BottomLeft [WideBuilder (TB.singleton ' ') 1]
-    spacerCell2 = Cell BottomLeft [WideBuilder (TB.fromString "  ") 2]
-    pad fullwidth amt = WideBuilder (TB.fromText $ T.replicate w " ") w <> amt
-      where w = fullwidth - wbWidth amt
+    table = gridStringB colSpec $ colsAsRows [top, top, top, top, top, top, top, bottom]
+              [[date], [renderText tdescription], [""], [accts], [""], amt, [""], bal]
+      where
+        colSpec = [cl datewidth, cl descwidth, cl 0, cl acctwidth, cl 0, cr amtwidth, cl 0, cr balwidth]
+        cl width = column (fixed width) left  noAlign (singleCutMark "..")
+        cr width = column (fixed width) right noAlign (singleCutMark "..")
+
     -- calculate widths
     (totalwidth,mdescwidth) = registerWidthsFromOpts copts
-    (datewidth, date) = (10, showDate $ transactionRegisterDate wd reportq thisacctq t)
+    (datewidth, date) = (10, renderText . showDate $ transactionRegisterDate wd reportq thisacctq t)
       where wd = whichDate ropts
     (amtwidth, balwidth)
       | shortfall <= 0 = (preferredamtwidth, preferredbalwidth)
@@ -207,7 +198,7 @@ accountTransactionsReportItemAsText
 
     -- gather content
     accts = -- T.unpack $ elideAccountName acctwidth $ T.pack
-            otheracctsstr
+            renderText otheracctsstr
 
 -- tests
 

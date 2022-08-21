@@ -14,23 +14,22 @@ module Hledger.Cli.Commands.Stats (
 )
 where
 
-import Data.Default (def)
+import Data.HashSet (size, fromList)
 import Data.List (nub, sortOn)
 import Data.List.Extra (nubSort)
+import qualified Data.Map as Map
 import Data.Maybe (fromMaybe)
-import Data.HashSet (size, fromList)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy.Builder as TB
 import Data.Time.Calendar (Day, addDays, diffDays)
-import System.Console.CmdArgs.Explicit hiding (Group)
+import Data.Time.Clock.POSIX (getPOSIXTime)
+import System.Console.CmdArgs.Explicit
 import Text.Printf (printf)
-import qualified Data.Map as Map
+import Text.Layout.Table
 
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils (writeOutputLazyText)
-import Text.Tabular.AsciiWide
-import Data.Time.Clock.POSIX (getPOSIXTime)
 
 
 statsmode = hledgerCommandMode
@@ -60,13 +59,9 @@ stats opts@CliOpts{reportspec_=rspec, progstarttime_} j = do
     (realToFrac dt :: Float) (fromIntegral numtxns / realToFrac dt :: Float)
 
 showLedgerStats :: Ledger -> Day -> DateSpan -> (TB.Builder, Int)
-showLedgerStats l today span =
-    (unlinesB $ map (renderRowB def{tableBorders=False, borderSpaces=False} . showRow) stats
-    ,tnum)
+showLedgerStats l today span = (gridStringB [def, def] $ map showRow stats, tnum)
   where
-    showRow (label, value) = Group NoLine $ map (Header . textCell TopLeft)
-      [fitText (Just w1) (Just w1) False True label `T.append` ": ", T.pack value]
-    w1 = maximum $ map (T.length . fst) stats
+    showRow (label, value) = [label <> ": ", T.pack value]
     (stats, tnum) = ([
        ("Main file", path) -- ++ " (from " ++ source ++ ")")
       ,("Included files", unlines $ drop 1 $ journalFilePaths j)
@@ -83,7 +78,7 @@ showLedgerStats l today span =
     -- Unmarked transactions      : %(unmarked)s
     -- Days since reconciliation   : %(reconcileelapsed)s
     -- Days since last transaction : %(recentelapsed)s
-     ] 
+     ]
      ,tnum)
        where
          j = ljournal l

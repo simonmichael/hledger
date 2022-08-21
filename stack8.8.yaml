@@ -19,6 +19,8 @@ extra-deps:
 - doctest-0.18.1
 - doclayout-0.3.1.1
 - emojis-0.1.2
+- git: https://github.com/Xitian9/table-layout
+  commit: 37e5bff454c1895891d52c08a2b42ea59b695a5c
 # for hledger:
 - githash-0.1.6.2
 - th-compat-0.1.4

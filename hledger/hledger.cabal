@@ -162,7 +162,7 @@ library
     , safe >=0.3.19
     , shakespeare >=2.0.2.2
     , split >=0.1
-    , tabular >=0.2
+    , table-layout >=0.9.1.0
     , tasty >=1.2.3
     , temporary
     , text >=0.11
@@ -211,7 +211,7 @@ executable hledger
     , safe >=0.3.19
     , shakespeare >=2.0.2.2
     , split >=0.1
-    , tabular >=0.2
+    , table-layout >=0.9.1.0
     , tasty >=1.2.3
     , temporary
     , text >=0.11
@@ -261,7 +261,7 @@ test-suite unittest
     , safe >=0.3.19
     , shakespeare >=2.0.2.2
     , split >=0.1
-    , tabular >=0.2
+    , table-layout >=0.9.1.0
     , tasty >=1.2.3
     , temporary
     , text >=0.11
@@ -310,7 +310,7 @@ benchmark bench
     , safe >=0.3.19
     , shakespeare >=2.0.2.2
     , split >=0.1
-    , tabular >=0.2
+    , table-layout >=0.9.1.0
     , tasty >=1.2.3
     , temporary
     , text >=0.11

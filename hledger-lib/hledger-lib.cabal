@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.34.7.
 --
 -- see: https://github.com/sol/hpack
 
@@ -88,10 +88,8 @@ library
       Hledger.Utils.String
       Hledger.Utils.Test
       Hledger.Utils.Text
-      Text.Tabular.AsciiWide
   other-modules:
       Text.Megaparsec.Custom
-      Text.WideString
       Paths_hledger_lib
   hs-source-dirs:
       ./
@@ -126,7 +124,7 @@ library
     , pretty-simple >4 && <5
     , regex-tdfa
     , safe >=0.3.19
-    , tabular >=0.2
+    , table-layout >=0.9.1.0
     , tasty >=1.2.3
     , tasty-hunit >=0.10.0.2
     , template-haskell
@@ -177,7 +175,7 @@ test-suite doctest
     , pretty-simple >4 && <5
     , regex-tdfa
     , safe >=0.3.19
-    , tabular >=0.2
+    , table-layout >=0.9.1.0
     , tasty >=1.2.3
     , tasty-hunit >=0.10.0.2
     , template-haskell
@@ -230,7 +228,7 @@ test-suite unittest
     , pretty-simple >4 && <5
     , regex-tdfa
     , safe >=0.3.19
-    , tabular >=0.2
+    , table-layout >=0.9.1.0
     , tasty >=1.2.3
     , tasty-hunit >=0.10.0.2
     , template-haskell

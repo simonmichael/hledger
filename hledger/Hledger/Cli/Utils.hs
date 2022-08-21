@@ -262,7 +262,7 @@ journalSimilarTransaction cliopts j desc = mbestmatch
 -- | Render a 'PostingsReport' or 'AccountTransactionsReport' as Text,
 -- determining the appropriate starting widths and increasing as necessary.
 postingsOrTransactionsReportAsText
-    :: Bool -> CliOpts -> (Int -> Int -> (a, [WideBuilder], [WideBuilder]) -> TB.Builder)
+    :: Bool -> CliOpts -> (Int -> Int -> (a, [RenderText], [RenderText]) -> TB.Builder)
     -> (a -> MixedAmount) -> (a -> MixedAmount) -> [a] -> TB.Builder
 postingsOrTransactionsReportAsText alignAll opts itemAsText itemamt itembal report =
     mconcat . snd $ mapAccumL renderItem (startWidth amt, startWidth bal) itemsWithAmounts
@@ -273,10 +273,10 @@ postingsOrTransactionsReportAsText alignAll opts itemAsText itemamt itembal repo
     renderItem (amtWidth, balWidth) item@(_, amt, bal) = ((amtWidth', balWidth'), itemBuilder)
       where
         itemBuilder = itemAsText amtWidth' balWidth' item
-        amtWidth' = if alignAll then amtWidth else maximumStrict $ amtWidth : map wbWidth amt
-        balWidth' = if alignAll then balWidth else maximumStrict $ balWidth : map wbWidth bal
+        amtWidth' = if alignAll then amtWidth else maximumStrict $ amtWidth : map visibleLength amt
+        balWidth' = if alignAll then balWidth else maximumStrict $ balWidth : map visibleLength bal
 
-    startWidth f = maximum $ minWidth : map wbWidth (concatMap f startAlign)
+    startWidth f = maximum $ minWidth : map visibleLength (concatMap f startAlign)
       where
         startAlign = (if alignAll then id else take chunkSize) itemsWithAmounts
 

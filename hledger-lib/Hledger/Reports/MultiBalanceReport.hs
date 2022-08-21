@@ -51,11 +51,11 @@ import Data.Set (Set)
 import qualified Data.Set as Set
 import Data.Time.Calendar (fromGregorian)
 import Safe (lastDef, minimumMay)
+import Text.Layout.Table
+import Text.Layout.Table.Cell.ElidableList (ElidableList)
 
-import Data.Default (def)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy.Builder as TB
-import qualified Text.Tabular.AsciiWide as Tab
 
 import Hledger.Data
 import Hledger.Query
@@ -589,21 +589,19 @@ cumulativeSum start = snd . M.mapAccum (\a b -> let s = sumAcct a b in (s, s)) s
 -- made using 'balanceReportAsTable'), render it in a format suitable for
 -- console output. Amounts with more than two commodities will be elided
 -- unless --no-elide is used.
-balanceReportTableAsText :: ReportOpts -> Tab.Table T.Text T.Text WideBuilder -> TB.Builder
-balanceReportTableAsText ReportOpts{..} =
-    Tab.renderTableByRowsB def{Tab.tableBorders=False, Tab.prettyTable=pretty_} renderCh renderRow
+balanceReportTableAsText :: ReportOpts -> Table T.Text T.Text (Either (ElidableList String RenderText) RenderText) -> TB.Builder
+balanceReportTableAsText ReportOpts{..} (Table rh ch cells) =
+    tableStringB colSpec style rowHeader colHeader (map rowG cells) <> TB.singleton '\n'
   where
-    renderCh
-      | layout_ /= LayoutBare || transpose_ = fmap (Tab.textCell Tab.TopRight)
-      | otherwise = zipWith ($) (Tab.textCell Tab.TopLeft : repeat (Tab.textCell Tab.TopRight))
-
-    renderRow (rh, row)
-      | layout_ /= LayoutBare || transpose_ =
-          (Tab.textCell Tab.TopLeft rh, fmap (Tab.Cell Tab.TopRight . pure) row)
-      | otherwise =
-          (Tab.textCell Tab.TopLeft rh, zipWith ($) (Tab.Cell Tab.TopLeft : repeat (Tab.Cell Tab.TopRight)) (fmap pure row))
-
-
+    colSpec = case layout_ of
+        LayoutBare | not transpose_ -> col left Nothing : repeat (col right Nothing)
+        LayoutWide width            -> repeat (col right width)
+        _                           -> repeat (col right Nothing)
+      where
+        col pos width = column (maybe expand expandUntil width) pos noAlign noCutMark
+    style = if pretty_ then hledgerPrettyStyle else hledgerStyle
+    rowHeader = renderText <$> rh
+    colHeader = renderText <$> ch
 
 -- tests
 
