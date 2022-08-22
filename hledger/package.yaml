@@ -21,7 +21,7 @@ github: simonmichael/hledger
 homepage: http://hledger.org
 bug-reports: http://bugs.hledger.org
 stability: stable
-tested-with: GHC==8.6.5, GHC==8.8.4, GHC==8.10.4, GHC==9.0.1
+tested-with: GHC==8.10.7, GHC==9.0.2, GHC==9.2.4
 
 extra-source-files:
 - CHANGES.md
@@ -97,10 +97,10 @@ ghc-options:
 - -optP-Wno-nonportable-include-path
 
 dependencies:
+- base >=4.14 && <4.17
 - hledger-lib >=1.26.99 && <1.27
 - aeson >=1
 - ansi-terminal >=0.9
-- base >=4.11 && <4.17
 - bytestring
 - cmdargs >=0.10
 - containers >=0.5.9

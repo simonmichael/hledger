@@ -56,9 +56,7 @@ jobs:
       fail-fast: false
       matrix:
         plan:  # at least the check(s) required by master should be enabled
-        - { ghc: "86"  , stack: "stack --stack-yaml=stack8.6.yaml" }  # oldest supported ghc
-        # - { ghc: "88" , stack: "stack --stack-yaml=stack8.8.yaml" }
-        # - { ghc: "810", stack: "stack --stack-yaml=stack8.10.yaml" }
+        - { ghc: "810", stack: "stack --stack-yaml=stack8.10.yaml" }  # oldest supported ghc
         # - { ghc: "90" , stack: "stack --stack-yaml=stack.yaml" }
         # - { ghc: "92" , stack: "stack --stack-yaml=stack9.2.yaml" }  # newest supported ghc
 
