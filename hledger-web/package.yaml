@@ -106,6 +106,7 @@ library:
   - base64
   - blaze-html
   - blaze-markup
+  - breakpoint
   - bytestring
   - case-insensitive
   - clientsession

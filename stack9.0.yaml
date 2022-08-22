@@ -18,6 +18,7 @@ packages:
 
 extra-deps:
 # for hledger-lib:
+- breakpoint-0.1.0.0
 # for hledger:
 # for hledger-ui:
 - brick-1.0
@@ -26,6 +27,9 @@ extra-deps:
 - vty-5.36
 # for hledger-web:
 # for Shake.hs:
+
+ghc-options:
+  "$locals": -fplugin Debug.Breakpoint
 
 # for precise profiling, per https://www.tweag.io/posts/2020-01-30-haskell-profiling.html:
 # apply-ghc-options: everything

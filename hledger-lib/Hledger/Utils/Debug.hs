@@ -44,6 +44,8 @@ module Hledger.Utils.Debug (
   ,pprint'
   ,pshow
   ,pshow'
+  ,useColorOnStdout
+  ,useColorOnStderr
   -- * Tracing
   ,traceWith
   -- * Pretty tracing
@@ -92,9 +94,7 @@ module Hledger.Utils.Debug (
   -- ** Trace the state of hledger parsers
   ,traceParse
   ,dbgparse
-  ,module Debug.Trace
-  ,useColorOnStdout
-  ,useColorOnStderr
+  -- ** Debug-logging to a file
   ,dlogTrace
   ,dlogTraceAt
   ,dlogAt
@@ -108,6 +108,9 @@ module Hledger.Utils.Debug (
   ,dlog7
   ,dlog8
   ,dlog9
+  -- ** Re-exports
+  ,module Debug.Breakpoint
+  ,module Debug.Trace
   )
 where
 
@@ -117,6 +120,7 @@ import           Control.Monad.IO.Class
 import           Data.List hiding (uncons)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
+import           Debug.Breakpoint
 import           Debug.Trace
 import           Hledger.Utils.Parse
 import           Safe (readDef)
