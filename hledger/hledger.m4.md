@@ -5170,23 +5170,27 @@ file.
 # COMMON TASKS
 
 Here are some quick examples of how to do some basic tasks with hledger.
-For more details, see the reference section below, the hledger_journal(5) manual,
-or the more extensive docs at <https://hledger.org>.
 
 ## Getting help
 
+Here's how to list commands and view options and command docs:
+
 ```shell
-$ hledger                  # show available commands
-$ hledger --help           # show common options
-$ hledger CMD --help       # show common and command options, and command help
-$ hledger help             # show available manuals/topics
-$ hledger help hledger     # show hledger manual, as info/man/text (auto-chosen)
-$ hledger help journal -m  # show the journal topic, as a man page scrolled to that section
-$ hledger help --help      # show more detailed help for the help command
+$ hledger                # show available commands
+$ hledger --help         # show common options
+$ hledger CMD --help     # show common options and CMD's options and documentation
 ```
 
-Find more docs, chat, mail list, reddit, issue tracker:
-<https://hledger.org/support.html>
+You can also view your hledger version's manual in several formats
+by using the [help command](#help). Eg:
+```shell
+$ hledger help           # show the hledger manual with info, man or $PAGER (best available)
+$ hledger help journal   # show the journal topic in the hledger manual
+$ hledger help --help    # show how the help command works
+```
+
+To view manuals and introductory docs on the web, visit <https://hledger.org>.
+Chat and mail list support and discussion archives can be found at <https://hledger.org/support>.
 
 ## Constructing command lines
 
