@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "July 2022" "hledger-1.26.99 " "hledger User Manuals"
+.TH "HLEDGER" "1" "August 2022" "hledger-1.26.99 " "hledger User Manuals"
 
 
 
@@ -2984,6 +2984,7 @@ This command lists account names, either declared with account
 directives (--declared), posted to (--used), or both (the default).
 With query arguments, only matched account names and account names
 referenced by matched postings are shown.
+.PP
 It shows a flat list by default.
 With \f[C]--tree\f[R], it uses indentation to show the account
 hierarchy.
@@ -2995,6 +2996,15 @@ Account names can be depth-clipped with \f[C]depth:N\f[R] or
 With \f[C]--types\f[R], it also shows each account\[aq]s type, if
 it\[aq]s known.
 (See Declaring accounts > Account types.)
+.PP
+With \f[C]--positions\f[R], it also shows the file and line number of
+each account\[aq]s declaration, if any, and the account\[aq]s overall
+declaration order; these may be useful when troubleshooting account
+display order.
+.PP
+With \f[C]--directives\f[R], it adds the \f[C]account\f[R] keyword,
+showing valid account directives which can be pasted into a journal
+file.
 .PP
 Examples:
 .IP
@@ -4644,6 +4654,9 @@ hledger check ordereddates payees  # basic + two other checks
 \f[R]
 .fi
 .PP
+If you are an Emacs user, you can also configure flycheck-hledger to run
+these checks, providing instant feedback as you edit the journal.
+.PP
 Here are the checks currently available:
 .SS Basic checks
 .PP
@@ -4688,6 +4701,9 @@ file
 .IP \[bu] 2
 \f[B]payees\f[R] - all payees used by transactions have been declared
 .IP \[bu] 2
+\f[B]recentassertions\f[R] - all accounts with balance assertions have a
+balance assertion no more than 7 days before their latest posting
+.IP \[bu] 2
 \f[B]uniqueleafnames\f[R] - all account leaf names are unique
 .SS Custom checks
 .PP
@@ -4702,6 +4718,20 @@ assertions are passing
 .PP
 You could make similar scripts to perform your own custom checks.
 See: Cookbook -> Scripting.
+.SS More about specific checks
+.PP
+\f[C]hledger check recentassertions\f[R] will complain if any
+balance-asserted account does not have a balance assertion within 7 days
+before its latest posting.
+This aims to prevent the situation where you are regularly updating your
+journal, but forgetting to check your balances against the real world,
+then one day must dig back through months of data to find an error.
+It assumes that adding a balance assertion requires/reminds you to check
+the real-world balance.
+That may not be true if you auto-generate balance assertions from bank
+data; in that case, I recommend to import transactions uncleared, then
+use the manual-review-and-mark-cleared phase as a reminder to check the
+latest assertions against real-world balances.
 .SS close
 .PP
 close, equity
@@ -5134,12 +5164,10 @@ help
 Show the hledger user manual in one of several formats, optionally
 positioned at a given TOPIC (if possible).
 .PP
-TOPIC is any heading in the manual, or the start of any heading (but not
-the middle).
-It is case insensitive.
-.PP
-Some examples: \f[C]commands\f[R], \f[C]print\f[R], \f[C]forecast\f[R],
-\f[C]\[dq]auto postings\[dq]\f[R], \f[C]\[dq]commodity column\[dq]\f[R].
+TOPIC is any heading in the manual, or a heading prefix, case
+insensitive.
+Eg: \f[C]commands\f[R], \f[C]print\f[R], \f[C]forecast\f[R],
+\f[C]\[dq]auto postings\[dq]\f[R], \f[C]journal\f[R], \f[C]amount\f[R].
 .PP
 This command shows the user manual built in to this hledger version.
 It can be useful if the correct version of the hledger manual, or the
@@ -5151,6 +5179,16 @@ By default it uses the best viewer it can find in $PATH, in this order:
 When run non-interactively, it always uses stdout.
 Or you can select a particular viewer with the \f[C]-i\f[R] (info),
 \f[C]-m\f[R] (man), or \f[C]-p\f[R] (pager) flags.
+.PP
+Examples
+.IP
+.nf
+\f[C]
+$ hledger help --help    # show how the help command works
+$ hledger help           # show the hledger manual with info, man or $PAGER
+$ hledger help journal   # show the journal topic in the hledger manual
+\f[R]
+.fi
 .SS import
 .PP
 import
@@ -6595,63 +6633,53 @@ You can also comment larger regions of a file using \f[C]comment\f[R]
 and \f[C]end comment\f[R] directives.
 .SS Tags
 .PP
-Tags are a way to add extra labels or labelled data to postings and
-transactions, which you can then search or pivot on.
+Tags are a way to add extra labels or labelled data to transactions,
+postings, or accounts, which you can then search or pivot on.
 .PP
-A simple tag is a word (which may contain hyphens) followed by a full
-colon, written inside a transaction or posting comment line:
+They are written as a (optionally hyphenated) word immediately followed
+by a full colon within a transaction or posting or account
+directive\[aq]s comment:
 .IP
 .nf
 \f[C]
-2017/1/16 bought groceries  ; sometag:
+account assets:checking     ; accounttag:
+
+2017/1/16 bought groceries  ; transaction-tag:
+    ; another-transaction-tag:
+    assets:checking   $-1
+    expenses:food      $1     ; posting-tag:
 \f[R]
 .fi
 .PP
-Tags can have a value, which is the text after the colon, up to the next
-comma or end of line, with leading/trailing whitespace removed:
-.IP
-.nf
-\f[C]
-    expenses:food    $10 ; a-posting-tag: the tag value
-\f[R]
-.fi
-.PP
-Note this means hledger\[aq]s tag values can not contain commas or
-newlines.
-Ending at commas means you can write multiple short tags on one line,
-comma separated:
-.IP
-.nf
-\f[C]
-    assets:checking  ; a comment containing tag1:, tag2: some value ...
-\f[R]
-.fi
-.PP
-Here,
+Tags are inherited, as follows:
 .IP \[bu] 2
-\[dq]\f[C]a comment containing\f[R]\[dq] is just comment text, not a tag
+Tags on a transaction affect the transaction and all of its postings
 .IP \[bu] 2
-\[dq]\f[C]tag1\f[R]\[dq] is a tag with no value
-.IP \[bu] 2
-\[dq]\f[C]tag2\f[R]\[dq] is another tag, whose value is
-\[dq]\f[C]some value ...\f[R]\[dq]
+Tags on an account affect all postings to that account.
 .PP
-Tags in a transaction comment affect the transaction and all of its
-postings, while tags in a posting comment affect only that posting.
-For example, the following transaction has three tags (\f[C]A\f[R],
-\f[C]TAG2\f[R], \f[C]third-tag\f[R]) and the posting has four (those
-plus \f[C]posting-tag\f[R]):
+So in the example above, - the \f[C]assets:checking\f[R] account has one
+tag (\f[C]accounttag\f[R]) - the transaction has two tags
+(\f[C]transaction-tag\f[R], \f[C]another-transaction-tag\f[R]) - the
+\f[C]assets:checking\f[R] posting has three tags
+(\f[C]transaction-tag\f[R], \f[C]another-transaction-tag\f[R],
+\f[C]accounttag\f[R]) - the \f[C]expenses:food\f[R] posting has three
+tags (\f[C]transaction-tag\f[R], \f[C]another-transaction-tag\f[R],
+\f[C]posting-tag\f[R]).
+.PP
+Tags can have a value, which is the text after the colon, until the next
+comma or end of line, with surrounding whitespace stripped.
+So here \f[C]a-posting-tag\f[R]\[aq]s value is \[dq]the tag value\[dq],
+\f[C]tag2\f[R]\[aq]s value is \[dq]foo\[dq], and \f[C]tag3\f[R]\[aq]s
+value is \[dq]\[dq] (the empty string):
 .IP
 .nf
 \f[C]
-1/1 a transaction  ; A:, TAG2:
-    ; third-tag: a third transaction tag, <- with a value
-    (a)  $1  ; posting-tag:
+    expenses:food    $10 
+      ; some text, a-posting-tag:the tag value, tag2: foo , tag3: , other text
 \f[R]
 .fi
 .PP
-Tags are like Ledger\[aq]s metadata feature, except hledger\[aq]s tag
-values are simple strings.
+A hledger tag value may not contain a comma.
 .SS Postings
 .PP
 A posting is an addition of some amount to, or removal of some amount
@@ -7914,38 +7942,68 @@ Though not required, these declarations can provide several benefits:
 They can document your intended chart of accounts, providing a
 reference.
 .IP \[bu] 2
+In strict mode, they restrict which accounts may be posted to by
+transactions, which helps detect typos.
+.IP \[bu] 2
 They control account display order in reports, allowing non-alphabetic
 sorting (eg Revenues to appear above Expenses).
-.IP \[bu] 2
-They can help hledger know your accounts\[aq] types (asset, liability,
-equity, revenue, expense), useful for reports like balancesheet and
-incomestatement.
-.IP \[bu] 2
-They can store other account information, as comments or as tags which
-can be used to filter reports.
 .IP \[bu] 2
 They help with account name completion (in hledger add, hledger-web,
 hledger-iadd, ledger-mode, etc.)
 .IP \[bu] 2
-In strict mode, they restrict which accounts may be posted to by
-transactions, which helps detect typos.
+They can store additional account information as comments, or as tags
+which can be used to filter or pivot reports.
+.IP \[bu] 2
+They can help hledger know your accounts\[aq] types (asset, liability,
+equity, revenue, expense), affecting reports like balancesheet and
+incomestatement.
 .PP
-The simplest form is just the word \f[C]account\f[R] followed by a
-hledger-style account name, eg this account directive declares the
-\f[C]assets:bank:checking\f[R] account:
+They are written as the word \f[C]account\f[R] followed by a
+hledger-style account name, eg:
 .IP
 .nf
 \f[C]
 account assets:bank:checking
 \f[R]
 .fi
+.SS Account comments
+.PP
+Comments, beginning with a semicolon:
+.IP \[bu] 2
+can be written on the same line, but only after \f[B]two or more
+spaces\f[R] (because \f[C];\f[R] is allowed in account names)
+.IP \[bu] 2
+and/or on the next lines, indented
+.IP \[bu] 2
+and may contain tags, such as the \f[C]type:\f[R] tag.
+.PP
+For example:
+.IP
+.nf
+\f[C]
+account assets:bank:checking    ; same-line comment, at least 2 spaces before the semicolon
+  ; next-line comment
+  ; some tags - type:A, acctnum:12345
+\f[R]
+.fi
+.SS Account subdirectives
+.PP
+Ledger-style indented subdirectives are also accepted, but currently
+ignored:
+.IP
+.nf
+\f[C]
+account assets:bank:checking
+  format subdirective is ignored
+\f[R]
+.fi
 .SS Account error checking
 .PP
-By default, accounts come into existence when a transaction references
-them by name.
+By default, accounts need not be declared; they come into existence when
+a posting references them.
 This is convenient, but it means hledger can\[aq]t warn you when you
 mis-spell an account name in the journal.
-Usually you\[aq]ll find the error later, as an extra account in balance
+Usually you\[aq]ll find that error later, as an extra account in balance
 reports, or an incorrect balance when reconciling.
 .PP
 In strict mode, enabled with the \f[C]-s\f[R]/\f[C]--strict\f[R] flag,
@@ -7963,54 +8021,65 @@ includes, but not parent or sibling files.
 The position of account directives within the file does not matter,
 though it\[aq]s usual to put them at the top.
 .IP \[bu] 2
-Accounts can only be declared in \f[C]journal\f[R] files (but will
-affect included files in other formats).
+Accounts can only be declared in \f[C]journal\f[R] files, but will
+affect included files of all types.
 .IP \[bu] 2
 It\[aq]s currently not possible to declare \[dq]all possible
 subaccounts\[dq] with a wildcard; every account posted to must be
 declared.
-.SS Account comments
+.SS Account display order
 .PP
-Comments, beginning with a semicolon, can be added:
+The order in which account directives are written influences the order
+in which accounts appear in reports, hledger-ui, hledger-web etc.
+By default accounts appear in alphabetical order, but if you add these
+account directives to the journal file:
+.IP
+.nf
+\f[C]
+account assets
+account liabilities
+account equity
+account revenues
+account expenses
+\f[R]
+.fi
+.PP
+those accounts will be displayed in declaration order:
+.IP
+.nf
+\f[C]
+$ hledger accounts -1
+assets
+liabilities
+equity
+revenues
+expenses
+\f[R]
+.fi
+.PP
+Any undeclared accounts are displayed last, in alphabetical order.
+.PP
+Sorting is done at each level of the account tree, within each group of
+sibling accounts under the same parent.
+And currently, this directive:
+.IP
+.nf
+\f[C]
+account other:zoo
+\f[R]
+.fi
+.PP
+would influence the position of \f[C]zoo\f[R] among
+\f[C]other\f[R]\[aq]s subaccounts, but not the position of
+\f[C]other\f[R] among the top-level accounts.
+This means:
 .IP \[bu] 2
-on the same line, \f[B]after two or more spaces\f[R] (because ; is
-allowed in account names)
+you will sometimes declare parent accounts (eg \f[C]account other\f[R]
+above) that you don\[aq]t intend to post to, just to customize their
+display order
 .IP \[bu] 2
-on the next lines, indented
-.PP
-An example of both:
-.IP
-.nf
-\f[C]
-account assets:bank:checking    ; same-line comment, note 2+ spaces required before ;
-  ; next-line comment
-  ; some tags, type:A, acctnum:12345
-\f[R]
-.fi
-.PP
-Compatibility note: same-line comments are not supported by Ledger or
-hledger <1.13.
-.SS Account subdirectives
-.PP
-We also allow (and ignore) Ledger-style indented subdirectives, just for
-compatibility.:
-.IP
-.nf
-\f[C]
-account assets:bank:checking
-  format blah blah  ; <- subdirective, ignored
-\f[R]
-.fi
-.PP
-Here is the full syntax of account directives:
-.IP
-.nf
-\f[C]
-account ACCTNAME  [;type:ACCTTYPE] [COMMENT]
-  [;COMMENTS]
-  [LEDGER-STYLE SUBDIRECTIVES, IGNORED]
-\f[R]
-.fi
+sibling accounts stay together (you couldn\[aq]t display \f[C]x:y\f[R]
+in between \f[C]a:b\f[R] and \f[C]a:c\f[R]).
 .SS Account types
 .PP
 hledger knows that accounts come in several types: assets, liabilities,
@@ -8124,61 +8193,6 @@ $ hledger accounts --types [ACCTPAT] [-DEPTH] [type:TYPECODES]
 \f[R]
 .fi
 .RE
-.SS Account display order
-.PP
-Account directives also set the order in which accounts are displayed,
-eg in reports, the hledger-ui accounts screen, and the hledger-web
-sidebar.
-By default accounts are listed in alphabetical order.
-But if you have these account directives in the journal:
-.IP
-.nf
-\f[C]
-account assets
-account liabilities
-account equity
-account revenues
-account expenses
-\f[R]
-.fi
-.PP
-you\[aq]ll see those accounts displayed in declaration order, not
-alphabetically:
-.IP
-.nf
-\f[C]
-$ hledger accounts -1
-assets
-liabilities
-equity
-revenues
-expenses
-\f[R]
-.fi
-.PP
-Undeclared accounts, if any, are displayed last, in alphabetical order.
-.PP
-Note that sorting is done at each level of the account tree (within each
-group of sibling accounts under the same parent).
-And currently, this directive:
-.IP
-.nf
-\f[C]
-account other:zoo
-\f[R]
-.fi
-.PP
-would influence the position of \f[C]zoo\f[R] among
-\f[C]other\f[R]\[aq]s subaccounts, but not the position of
-\f[C]other\f[R] among the top-level accounts.
-This means:
-.IP \[bu] 2
-you will sometimes declare parent accounts (eg \f[C]account other\f[R]
-above) that you don\[aq]t intend to post to, just to customize their
-display order
-.IP \[bu] 2
-sibling accounts stay together (you couldn\[aq]t display \f[C]x:y\f[R]
-in between \f[C]a:b\f[R] and \f[C]a:c\f[R]).
 .SS Rewriting accounts
 .PP
 You can define account alias rules which rewrite your account names, or
@@ -8910,7 +8924,7 @@ Note, for best error messages when reading CSV files, use a
 \f[C].csv\f[R], \f[C].tsv\f[R] or \f[C].ssv\f[R] file extension or file
 prefix - see File Extension below.
 .PP
-There\[aq]s an introductory Convert CSV files tutorial on hledger.org.
+There\[aq]s an introductory Importing CSV data tutorial on hledger.org.
 .SS Examples
 .PP
 Here are some sample hledger CSV rules files.
@@ -10557,25 +10571,34 @@ A sample.timedot file.
 .SH COMMON TASKS
 .PP
 Here are some quick examples of how to do some basic tasks with hledger.
-For more details, see the reference section below, the
-hledger_journal(5) manual, or the more extensive docs at
-https://hledger.org.
 .SS Getting help
+.PP
+Here\[aq]s how to list commands and view options and command docs:
 .IP
 .nf
 \f[C]
-$ hledger                  # show available commands
-$ hledger --help           # show common options
-$ hledger CMD --help       # show common and command options, and command help
-$ hledger help             # show available manuals/topics
-$ hledger help hledger     # show hledger manual, as info/man/text (auto-chosen)
-$ hledger help journal -m  # show the journal topic, as a man page scrolled to that section
-$ hledger help --help      # show more detailed help for the help command
+$ hledger                # show available commands
+$ hledger --help         # show common options
+$ hledger CMD --help     # show common options and CMD\[aq]s options and documentation
 \f[R]
 .fi
 .PP
-Find more docs, chat, mail list, reddit, issue tracker:
-https://hledger.org/support.html
+You can also view your hledger version\[aq]s manual in several formats
+by using the help command.
+Eg:
+.IP
+.nf
+\f[C]
+$ hledger help           # show the hledger manual with info, man or $PAGER (best available)
+$ hledger help journal   # show the journal topic in the hledger manual
+$ hledger help --help    # show how the help command works
+\f[R]
+.fi
+.PP
+To view manuals and introductory docs on the web, visit
+https://hledger.org.
+Chat and mail list support and discussion archives can be found at
+https://hledger.org/support.
 .SS Constructing command lines
 .PP
 hledger has an extensive and powerful command line interface.
