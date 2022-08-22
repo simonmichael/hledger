@@ -425,8 +425,7 @@ rsHandle ev = do
 
 isBlankElement mel = ((rsItemDate . snd) <$> mel) == Just ""
 
-rsCenterAndContinue ui = do
-  scrollSelectionToMiddle $ rsList $ aScreen ui
-  put ui
+rsCenterSelection :: UIState -> EventM Name UIState ()
+rsCenterSelection = scrollSelectionToMiddle . rsList . aScreen
 
 rsListSize = V.length . V.takeWhile ((/="").rsItemDate) . listElements

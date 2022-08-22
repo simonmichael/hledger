@@ -371,21 +371,24 @@ asHandle ev = do
               list' <- nestEventM' _asList $ handleListEvent (normaliseMovementKeys ev)
               put' $ ui{aScreen=scr & asList .~ list' & asSelectedAccount .~ selacct }
 
-            MouseDown{} -> put ui
-            MouseUp{}   -> put ui
-            AppEvent _  -> put ui
+            MouseDown{} -> return ()
+            MouseUp{}   -> return ()
+            AppEvent _  -> return ()
 
     _ -> dlogUiTraceM "asHandle 2" >> errorWrongScreenType "event handler"
 
+asEnterRegister :: Day -> AccountName -> UIState -> EventM Name UIState ()
 asEnterRegister d selacct ui = do
-  rsCenterAndContinue $
-  -- flip rsHandle (VtyEvent (EvKey (KChar 'l') [MCtrl])) $
-    screenEnter d regscr ui
+  dlogUiTraceM "asEnterRegister"
+  let
+    regscr = rsSetAccount selacct isdepthclipped registerScreen
       where
-        regscr = rsSetAccount selacct isdepthclipped registerScreen
         isdepthclipped = case getDepth ui of
-                            Just d  -> accountNameLevel selacct >= d
-                            Nothing -> False
+                          Just d  -> accountNameLevel selacct >= d
+                          Nothing -> False
+  let ui' = screenEnter d regscr ui
+  put' ui'
+  rsCenterSelection ui'
 
 asSetSelectedAccount a s@AccountsScreen{} = s & asSelectedAccount .~ a
 asSetSelectedAccount _ s = s
