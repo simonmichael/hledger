@@ -3633,20 +3633,19 @@ COMMANDS
 
    help
        help
-       Show  the  hledger  user  manual  in one of several formats, optionally
-       positioned at a given TOPIC (if possible).
+       Show  the  hledger  user manual with info, man, or a pager if possible.
+       With a TOPIC argument, open it at that topic if possible.  TOPIC can be
+       any  heading in the manual, or a heading prefix, case insensitive.  Eg:
+       commands, print, forecast, journal, amount, "auto postings".
 
-       TOPIC is any heading in the manual, or a heading prefix, case  insensi-
-       tive.  Eg: commands, print, forecast, "auto postings", journal, amount.
+       This command shows the hledger manual built in to your hledger version.
+       It can be useful when offline, or when you prefer the terminal to a web
+       browser, or when the appropriate hledger manual or  viewing  tools  are
+       not installed on your system.
 
-       This command shows the user manual built in to  this  hledger  version.
-       It  can  be useful if the correct version of the hledger manual, or the
-       usual viewing tools, are not installed on your system.
-
-       By default it uses the best viewer it can find in $PATH, in this order:
-       info, man, $PAGER (unless a topic is specified), less, or stdout.  When
-       run non-interactively, it always uses stdout.  Or you can select a par-
-       ticular viewer with the -i (info), -m (man), or -p (pager) flags.
+       By  default  it chooses the best viewer found in $PATH, preferring info
+       since the hledger manual is large.  You can select a particular  viewer
+       with the -i, -m, or -p flags.
 
        Examples
 
@@ -5380,6 +5379,7 @@ JOURNAL FORMAT
        Generate  extra transactions or   ~
        budget goals
        Generate extra postings           =
+
        CHECKING FOR ERRORS:
        Define valid entities to  allow   account,    commodity,
        stricter error checking           payee
@@ -5402,9 +5402,6 @@ JOURNAL FORMAT
                   any text, ignored.
        alias      Rewrites  account  names,  in  following entries until end of   Y
                   current file or end aliases.
-
-
-
        apply      Prepends a common parent account to  all  account  names,  in   Y
        account    following  entries  until  end  of  current file or end apply
                   account.
@@ -6386,8 +6383,6 @@ CSV FORMAT
        rules  for  categorising  transactions  based  on  their  descriptions.
        Here's  an  overview  of  the CSV rules; these are described more fully
        below, after the examples:
-
-
 
 
        skip                         skip one or more header lines or matched CSV
