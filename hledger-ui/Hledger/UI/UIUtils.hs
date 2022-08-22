@@ -23,10 +23,17 @@ module Hledger.UI.UIUtils (
   ,renderToggle1
   ,replaceHiddenAccountsNameWith
   ,scrollSelectionToMiddle
+  ,get'
+  ,put'
+  ,modify'
   ,suspend
   ,redraw
   ,reportSpecSetFutureAndForecast
   ,listScrollPushingSelection
+  ,dlogUiTrace
+  ,dlogUiTraceM
+  ,uiDebugLevel
+  ,uiNumBlankItems
   )
 where
 
@@ -64,6 +71,23 @@ import Data.Vector (Vector)
 suspendSignal :: IO ()
 suspendSignal = raiseSignal sigSTOP
 #endif
+
+-- Debug logging for UI state changes.
+
+get' = do
+  x <- get
+  dlogUiTraceM $ "getting state: " ++ (head $ lines $ pshow $ aScreen x)
+  return x
+
+put' x = do
+  dlogUiTraceM $ "putting state: " ++ (head $ lines $ pshow $ aScreen x)
+  put x
+
+modify' f = do
+  x <- get
+  let x' = f x
+  dlogUiTraceM $ "modifying state: " ++ (head $ lines $ pshow $ aScreen x')
+  modify f
 
 -- | On posix platforms, suspend the program using the STOP signal,
 -- like control-z in bash, returning to the original shell prompt,
@@ -170,7 +194,7 @@ helpHandle ev = do
   ui <- get
   let ui' = setMode Normal ui
   case ev of
-    VtyEvent e | e `elem` closeHelpEvents -> put ui'
+    VtyEvent e | e `elem` closeHelpEvents -> put' ui'
     VtyEvent (EvKey (KChar 'p') []) -> suspendAndResume $ runPagerForTopic "hledger-ui" Nothing >> return ui'
     VtyEvent (EvKey (KChar 'm') []) -> suspendAndResume $ runManForTopic   "hledger-ui" Nothing >> return ui'
     VtyEvent (EvKey (KChar 'i') []) -> suspendAndResume $ runInfoForTopic  "hledger-ui" Nothing >> return ui'
@@ -383,3 +407,24 @@ listScrollPushingSelection name listheight scrollamt = do
               | otherwise = id
         _ -> return list
     _ -> return list
+
+-- | Log a string to ./debug.log before returning the second argument,
+-- if the global debug level is at or above a standard hledger-ui debug level.
+-- Uses unsafePerformIO.
+dlogUiTrace :: String -> a -> a
+dlogUiTrace = dlogTraceAt uiDebugLevel
+
+-- | Like dlogUiTrace, but within the hledger-ui brick event handler monad.
+dlogUiTraceM :: String -> EventM Name UIState ()
+dlogUiTraceM s = dlogUiTrace s $ return ()
+
+-- | Log hledger-ui events at this debug level.
+uiDebugLevel :: Int
+uiDebugLevel = 2
+
+-- | How many blank items to add to lists to fill the full window height.
+uiNumBlankItems :: Int
+uiNumBlankItems
+  -- | debugLevel >= uiDebugLevel = 0    -- suppress to improve debug output.
+  -- | otherwise 
+  = 100  -- 100 ought to be enough for anyone

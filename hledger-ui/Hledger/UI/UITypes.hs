@@ -39,6 +39,8 @@ Brick.defaultMain brickapp st
 
 module Hledger.UI.UITypes where
 
+-- import Control.Concurrent (threadDelay)
+-- import GHC.IO (unsafePerformIO)
 import Data.Text (Text)
 import Data.Time.Calendar (Day)
 import Brick
@@ -137,7 +139,10 @@ data Screen =
 -- XXX check for ideas: https://github.com/jtdaugherty/brick/issues/379#issuecomment-1191993357
 
 -- | Error message to use in case statements adapting to the different Screen shapes.
-errorWrongScreenType = error' "handler called with wrong screen type, should not happen"
+errorWrongScreenType :: String -> a
+errorWrongScreenType lbl =
+  -- unsafePerformIO $ threadDelay 2000000 >>  -- delay to allow console output to be seen
+  error' (unwords [lbl, "called with wrong screen type, should not happen"])
 
 -- | An item in the accounts screen's list of accounts and balances.
 data AccountsScreenItem = AccountsScreenItem {
