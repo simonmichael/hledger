@@ -1,21 +1,18 @@
 help\
-Show the hledger user manual in one of several formats,
-optionally positioned at a given TOPIC (if possible).
-
-TOPIC is any heading in the manual, or a heading prefix, case insensitive.
-Eg: `commands`, `print`, `forecast`, `"auto postings"`, `journal`, `amount`.
+Show the hledger user manual with info, man, or a pager if possible.
+With a TOPIC argument, open it at that topic if possible.
+TOPIC can be any heading in the manual, or a heading prefix, case insensitive.
+Eg: `commands`, `print`, `forecast`, `journal`, `amount`, `"auto postings"`.
 
 _FLAGS
 
-This command shows the user manual built in to this hledger version.
-It can be useful if the correct version of the hledger manual,
-or the usual viewing tools, are not installed on your system.
+This command shows the hledger manual built in to your hledger version.
+It can be useful when offline, or when you prefer the terminal to a web browser,
+or when the appropriate hledger manual or viewing tools are not installed on your system.
 
-By default it uses the best viewer it can find in $PATH, in this order:
-`info`, `man`, $PAGER (unless a topic is specified), `less`, or stdout.
-When run non-interactively, it always uses stdout.
-Or you can select a particular viewer with the 
-`-i` (info), `-m` (man), or `-p` (pager) flags.
+By default it chooses the best viewer found in $PATH,
+preferring info since the hledger manual is large.
+You can select a particular viewer with the `-i`, `-m`, or `-p` flags.
 
 Examples
 ```shell
