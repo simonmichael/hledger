@@ -45,6 +45,7 @@ dependencies:
 - cassava
 - cassava-megaparsec
 - data-default >=0.5
+- deepseq
 - Decimal >=0.5.1
 - directory
 - doclayout >=0.3 && <0.5

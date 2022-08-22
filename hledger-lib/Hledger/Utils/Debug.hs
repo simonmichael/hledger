@@ -41,7 +41,9 @@ Debug level:  What to show:
 module Hledger.Utils.Debug (
   -- * Pretty printing
    pprint
+  ,pprint'
   ,pshow
+  ,pshow'
   -- * Tracing
   ,traceWith
   -- * Pretty tracing
@@ -93,9 +95,23 @@ module Hledger.Utils.Debug (
   ,module Debug.Trace
   ,useColorOnStdout
   ,useColorOnStderr
-  ,dlog)
+  ,dlogTrace
+  ,dlogTraceAt
+  ,dlogAt
+  ,dlog0
+  ,dlog1
+  ,dlog2
+  ,dlog3
+  ,dlog4
+  ,dlog5
+  ,dlog6
+  ,dlog7
+  ,dlog8
+  ,dlog9
+  )
 where
 
+import           Control.DeepSeq (force)
 import           Control.Monad (when)
 import           Control.Monad.IO.Class
 import           Data.List hiding (uncons)
@@ -113,24 +129,37 @@ import           Text.Pretty.Simple  -- (defaultOutputOptionsDarkBg, OutputOptio
 import Data.Maybe (isJust)
 import System.Console.ANSI (hSupportsANSIColor)
 import System.IO (stdout, Handle, stderr)
+import Control.Exception (evaluate)
 
+-- | pretty-simple options with colour enabled if allowed.
 prettyopts = 
-  baseopts
+  (if useColorOnStderr then defaultOutputOptionsDarkBg else defaultOutputOptionsNoColor)
     { outputOptionsIndentAmount=2
     , outputOptionsCompact=True
     }
-  where
-    baseopts
-      | useColorOnStderr = defaultOutputOptionsDarkBg -- defaultOutputOptionsLightBg
-      | otherwise        = defaultOutputOptionsNoColor
+
+-- | pretty-simple options with colour disabled.
+prettyopts' =
+  defaultOutputOptionsNoColor
+    { outputOptionsIndentAmount=2
+    , outputOptionsCompact=True
+    }
 
 -- | Pretty print. Generic alias for pretty-simple's pPrint.
 pprint :: Show a => a -> IO ()
 pprint = pPrintOpt CheckColorTty prettyopts
 
+-- | Monochrome version of pprint.
+pprint' :: Show a => a -> IO ()
+pprint' = pPrintOpt CheckColorTty prettyopts'
+
 -- | Pretty show. Generic alias for pretty-simple's pShow.
 pshow :: Show a => a -> String
 pshow = TL.unpack . pShowOpt prettyopts
+
+-- | Monochrome version of pshow.
+pshow' :: Show a => a -> String
+pshow' = TL.unpack . pShowOpt prettyopts'
 
 -- XXX some of the below can be improved with pretty-simple, https://github.com/cdepillabout/pretty-simple#readme
 
@@ -284,8 +313,7 @@ traceAtWith level f a = traceAt level (f a) a
 ptraceAt :: Show a => Int -> String -> a -> a
 ptraceAt level
     | level > 0 && debugLevel < level = const id
-    | otherwise = \s a -> let p = pshow a
-                              ls = lines p
+    | otherwise = \s a -> let ls = lines $ pshow a
                               nlorspace | length ls > 1 = "\n"
                                         | otherwise     = replicate (max 1 $ 11 - length s) ' '
                               ls' | length ls > 1 = map (' ':) ls
@@ -304,10 +332,6 @@ ptraceAtWith level f
                             --     | otherwise     = ls
                         -- in trace (s++":"++nlorspace++intercalate "\n" ls') a
                         in trace p a
-
--- | Log a pretty-printed showable value to "./debug.log". Uses unsafePerformIO.
-dlog :: Show a => a -> a
-dlog x = unsafePerformIO $ appendFile "debug.log" (pshow x ++ "\n") >> return x
 
 -- "dbg" would clash with megaparsec.
 -- | Pretty-print a label and the showable value to the console, then return it.
@@ -344,6 +368,7 @@ dbg9 :: Show a => String -> a -> a
 dbg9 = ptraceAt 9
 
 -- | Like dbg0, but also exit the program. Uses unsafePerformIO.
+-- {-# NOINLINE dbgExit #-}
 dbgExit :: Show a => String -> a -> a
 dbgExit msg = const (unsafePerformIO exitFailure) . dbg0 msg
 
@@ -419,6 +444,70 @@ dbg8IO = ptraceAtIO 8
 
 dbg9IO :: (MonadIO m, Show a) => String -> a -> m ()
 dbg9IO = ptraceAtIO 9
+
+-- | Log a string to ./debug.log before returning the second argument.
+-- Uses unsafePerformIO.
+-- {-# NOINLINE dlogTrace #-}
+dlogTrace :: String -> a -> a
+dlogTrace s x = unsafePerformIO $ do
+  evaluate (force s)  -- to complete any previous logging before we attempt more
+  appendFile "debug.log" (s ++ "\n")
+  return x
+
+-- | Log a string to ./debug.log before returning the second argument,
+-- if the global debug level is at or above the specified level.
+-- At level 0, always logs. Otherwise, uses unsafePerformIO.
+dlogTraceAt :: Int -> String -> a -> a
+dlogTraceAt level s
+  | level > 0 && debugLevel < level = id
+  | otherwise = dlogTrace s
+
+-- | Log a label and pretty-printed showable value to "./debug.log",
+-- if the global debug level is at or above the specified level.
+-- At level 0, always prints. Otherwise, uses unsafePerformIO.
+dlogAt :: Show a => Int -> String -> a -> a
+dlogAt level
+  | level > 0 && debugLevel < level = const id
+  | otherwise = \lbl a ->
+    let 
+      ls = lines $ pshow' a
+      nlorspace | length ls > 1 = "\n"
+                | otherwise     = replicate (max 1 $ 11 - length lbl) ' '
+      ls' | length ls > 1 = map (' ':) ls
+          | otherwise     = ls
+    in dlogTrace (lbl++":"++nlorspace++intercalate "\n" ls') a
+
+-- | Pretty-print a label and the showable value to ./debug.log if at or above
+-- a certain debug level, then return it.
+dlog0 :: Show a => String -> a -> a
+dlog0 = dlogAt 0
+
+dlog1 :: Show a => String -> a -> a
+dlog1 = dlogAt 1
+
+dlog2 :: Show a => String -> a -> a
+dlog2 = dlogAt 2
+
+dlog3 :: Show a => String -> a -> a
+dlog3 = dlogAt 3
+
+dlog4 :: Show a => String -> a -> a
+dlog4 = dlogAt 4
+
+dlog5 :: Show a => String -> a -> a
+dlog5 = dlogAt 5
+
+dlog6 :: Show a => String -> a -> a
+dlog6 = dlogAt 6
+
+dlog7 :: Show a => String -> a -> a
+dlog7 = dlogAt 7
+
+dlog8 :: Show a => String -> a -> a
+dlog8 = dlogAt 8
+
+dlog9 :: Show a => String -> a -> a
+dlog9 = dlogAt 9
 
 -- | Print the provided label (if non-null) and current parser state
 -- (position and next input) to the console. See also megaparsec's dbg.
