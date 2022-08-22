@@ -3257,8 +3257,8 @@ Here are some tips for working with account types.
   ^expenses?(:|$)                                                     | Expense
   ```
 
-- If you declare any account types, it's a good idea to declare an account for each of them,
-  because a mixture of declared and name-inferred types can disrupt certain reports.
+- If you declare any account types, it's a good idea to declare an account for all of the
+  account types, because a mixture of declared and name-inferred types can disrupt certain reports.
 
 - Certain uses of [account aliases](#account-aliases) can disrupt account types.
   See [Rewriting accounts > Aliases and account types](#aliases-and-account-types).
