@@ -156,7 +156,7 @@ tsHandle ev = do
             -- VtyEvent (EvKey (KChar 'q') []) -> halt
             VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw
             VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
-            _                    -> helpHandle ev
+            _ -> helpHandle ev
 
         _ -> do
           let

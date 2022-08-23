@@ -298,7 +298,7 @@ rsHandle ev = do
       case mode of
         Minibuffer _ ed ->
           case ev of
-            VtyEvent (EvKey KEsc   []) -> modify closeMinibuffer
+            VtyEvent (EvKey KEsc   []) -> modify' closeMinibuffer
             VtyEvent (EvKey KEnter []) -> put' $ regenerateScreens j d $
                 case setFilter s $ closeMinibuffer ui of
                   Left bad -> showMinibuffer "Cannot compile regular expression" (Just bad) ui
@@ -319,7 +319,7 @@ rsHandle ev = do
             -- VtyEvent (EvKey (KChar 'q') []) -> halt
             VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw
             VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
-            _                    -> helpHandle ev
+            _ -> helpHandle ev
 
         Normal ->
           case ev of
@@ -344,16 +344,16 @@ rsHandle ev = do
                               rsItemTransaction=Transaction{tsourcepos=(SourcePos f l c,_)}}) -> (Just (unPos l, Just $ unPos c),f)
 
             -- display mode/query toggles
-            VtyEvent (EvKey (KChar 'B') []) -> rsCenterSelection $ regenerateScreens j d $ toggleConversionOp ui
-            VtyEvent (EvKey (KChar 'V') []) -> rsCenterSelection $ regenerateScreens j d $ toggleValue ui
-            VtyEvent (EvKey (KChar 'H') []) -> rsCenterSelection $ regenerateScreens j d $ toggleHistorical ui
-            VtyEvent (EvKey (KChar 't') []) -> rsCenterSelection $ regenerateScreens j d $ toggleTree ui
-            VtyEvent (EvKey (KChar c) []) | c `elem` ['z','Z'] -> rsCenterSelection $ regenerateScreens j d $ toggleEmpty ui
-            VtyEvent (EvKey (KChar 'R') []) -> rsCenterSelection $ regenerateScreens j d $ toggleReal ui
-            VtyEvent (EvKey (KChar 'U') []) -> rsCenterSelection $ regenerateScreens j d $ toggleUnmarked ui
-            VtyEvent (EvKey (KChar 'P') []) -> rsCenterSelection $ regenerateScreens j d $ togglePending ui
-            VtyEvent (EvKey (KChar 'C') []) -> rsCenterSelection $ regenerateScreens j d $ toggleCleared ui
-            VtyEvent (EvKey (KChar 'F') []) -> rsCenterSelection $ regenerateScreens j d $ toggleForecast d ui
+            VtyEvent (EvKey (KChar 'B') []) -> rsCenterSelection (regenerateScreens j d $ toggleConversionOp ui) >>= put'
+            VtyEvent (EvKey (KChar 'V') []) -> rsCenterSelection (regenerateScreens j d $ toggleValue ui) >>= put'
+            VtyEvent (EvKey (KChar 'H') []) -> rsCenterSelection (regenerateScreens j d $ toggleHistorical ui) >>= put'
+            VtyEvent (EvKey (KChar 't') []) -> rsCenterSelection (regenerateScreens j d $ toggleTree ui) >>= put'
+            VtyEvent (EvKey (KChar c) []) | c `elem` ['z','Z'] -> rsCenterSelection (regenerateScreens j d $ toggleEmpty ui) >>= put'
+            VtyEvent (EvKey (KChar 'R') []) -> rsCenterSelection (regenerateScreens j d $ toggleReal ui) >>= put'
+            VtyEvent (EvKey (KChar 'U') []) -> rsCenterSelection (regenerateScreens j d $ toggleUnmarked ui) >>= put'
+            VtyEvent (EvKey (KChar 'P') []) -> rsCenterSelection (regenerateScreens j d $ togglePending ui) >>= put'
+            VtyEvent (EvKey (KChar 'C') []) -> rsCenterSelection (regenerateScreens j d $ toggleCleared ui) >>= put'
+            VtyEvent (EvKey (KChar 'F') []) -> rsCenterSelection (regenerateScreens j d $ toggleForecast d ui) >>= put'
 
             VtyEvent (EvKey (KChar '/') []) -> put' $ regenerateScreens j d $ showMinibuffer "filter" Nothing ui
             VtyEvent (EvKey (KDown)     [MShift]) -> put' $ regenerateScreens j d $ shrinkReportPeriod d ui
@@ -390,7 +390,7 @@ rsHandle ev = do
 
             -- when selection is at the last item, DOWN scrolls instead of moving, until maximally scrolled
             VtyEvent e | e `elem` moveDownEvents, isBlankElement mnextelement -> do
-              vScrollBy (viewportScroll $ rsList ^. listNameL) 1 >> put' ui
+              vScrollBy (viewportScroll $ rsList ^. listNameL) 1
               where mnextelement = listSelectedElement $ listMoveDown rsList
 
             -- mouse scroll wheel scrolls the viewport up or down to its maximum extent,
@@ -417,15 +417,17 @@ rsHandle ev = do
               newitems <- nestEventM' rsList $ handleListEvent ev'
               put' ui{aScreen=s{rsList=newitems}}
 
-            MouseDown{}       -> put' ui
-            MouseUp{}         -> put' ui
-            AppEvent _        -> put' ui
+            MouseDown{}       -> return ()
+            MouseUp{}         -> return ()
+            AppEvent _        -> return ()
 
     _ -> dlogUiTrace "rsHandle 2" $ errorWrongScreenType "event handler"
 
 isBlankElement mel = ((rsItemDate . snd) <$> mel) == Just ""
 
-rsCenterSelection :: UIState -> EventM Name UIState ()
-rsCenterSelection = scrollSelectionToMiddle . rsList . aScreen
+rsCenterSelection :: UIState -> EventM Name UIState UIState
+rsCenterSelection ui = do
+  scrollSelectionToMiddle $ rsList $ aScreen ui
+  return ui  -- ui is unchanged, but this makes the function more chainable
 
 rsListSize = V.length . V.takeWhile ((/="").rsItemDate) . listElements

@@ -195,9 +195,9 @@ helpHandle ev = do
   let ui' = setMode Normal ui
   case ev of
     VtyEvent e | e `elem` closeHelpEvents -> put' ui'
-    VtyEvent (EvKey (KChar 'p') []) -> suspendAndResume $ runPagerForTopic "hledger-ui" Nothing >> return ui'
-    VtyEvent (EvKey (KChar 'm') []) -> suspendAndResume $ runManForTopic   "hledger-ui" Nothing >> return ui'
-    VtyEvent (EvKey (KChar 'i') []) -> suspendAndResume $ runInfoForTopic  "hledger-ui" Nothing >> return ui'
+    VtyEvent (EvKey (KChar 'p') []) -> suspendAndResume (runPagerForTopic "hledger-ui" Nothing >> return ui')
+    VtyEvent (EvKey (KChar 'm') []) -> suspendAndResume (runManForTopic   "hledger-ui" Nothing >> return ui')
+    VtyEvent (EvKey (KChar 'i') []) -> suspendAndResume (runInfoForTopic  "hledger-ui" Nothing >> return ui')
     _ -> return ()
   where
     closeHelpEvents = moveLeftEvents ++ [EvKey KEsc [], EvKey (KChar '?') [], EvKey (KChar 'q') []]

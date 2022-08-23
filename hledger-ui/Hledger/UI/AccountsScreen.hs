@@ -271,7 +271,7 @@ asHandle ev = do
             -- VtyEvent (EvKey (KChar 'q') []) -> halt
             VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw
             VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
-            _                    -> helpHandle ev
+            _ -> helpHandle ev
 
         Normal ->
           case ev of
@@ -309,14 +309,14 @@ asHandle ev = do
             VtyEvent (EvKey (KChar 'T') []) -> put' $ regenerateScreens j d $ setReportPeriod (DayPeriod d) ui
 
             -- display mode/query toggles
-            VtyEvent (EvKey (KChar 'H') []) -> modify (regenerateScreens j d . toggleHistorical) >> asCenterAndContinue
-            VtyEvent (EvKey (KChar 't') []) -> modify (regenerateScreens j d . toggleTree) >> asCenterAndContinue
-            VtyEvent (EvKey (KChar c) []) | c `elem` ['z','Z'] -> modify (regenerateScreens j d . toggleEmpty) >> asCenterAndContinue
-            VtyEvent (EvKey (KChar 'R') []) -> modify (regenerateScreens j d . toggleReal) >> asCenterAndContinue
-            VtyEvent (EvKey (KChar 'U') []) -> modify (regenerateScreens j d . toggleUnmarked) >> asCenterAndContinue
-            VtyEvent (EvKey (KChar 'P') []) -> modify (regenerateScreens j d . togglePending) >> asCenterAndContinue
-            VtyEvent (EvKey (KChar 'C') []) -> modify (regenerateScreens j d . toggleCleared) >> asCenterAndContinue
-            VtyEvent (EvKey (KChar 'F') []) -> modify (regenerateScreens j d . toggleForecast d)
+            VtyEvent (EvKey (KChar 'H') []) -> modify' (regenerateScreens j d . toggleHistorical) >> asCenterAndContinue
+            VtyEvent (EvKey (KChar 't') []) -> modify' (regenerateScreens j d . toggleTree) >> asCenterAndContinue
+            VtyEvent (EvKey (KChar c) []) | c `elem` ['z','Z'] -> modify' (regenerateScreens j d . toggleEmpty) >> asCenterAndContinue
+            VtyEvent (EvKey (KChar 'R') []) -> modify' (regenerateScreens j d . toggleReal) >> asCenterAndContinue
+            VtyEvent (EvKey (KChar 'U') []) -> modify' (regenerateScreens j d . toggleUnmarked) >> asCenterAndContinue
+            VtyEvent (EvKey (KChar 'P') []) -> modify' (regenerateScreens j d . togglePending) >> asCenterAndContinue
+            VtyEvent (EvKey (KChar 'C') []) -> modify' (regenerateScreens j d . toggleCleared) >> asCenterAndContinue
+            VtyEvent (EvKey (KChar 'F') []) -> modify' (regenerateScreens j d . toggleForecast d)
 
             VtyEvent (EvKey (KDown)     [MShift]) -> put' $ regenerateScreens j d $ shrinkReportPeriod d ui
             VtyEvent (EvKey (KUp)       [MShift]) -> put' $ regenerateScreens j d $ growReportPeriod d ui
@@ -369,7 +369,7 @@ asHandle ev = do
             -- fall through to the list's event handler (handles up/down)
             VtyEvent ev -> do
               list' <- nestEventM' _asList $ handleListEvent (normaliseMovementKeys ev)
-              put' $ ui{aScreen=scr & asList .~ list' & asSelectedAccount .~ selacct }
+              put' ui{aScreen=scr & asList .~ list' & asSelectedAccount .~ selacct }
 
             MouseDown{} -> return ()
             MouseUp{}   -> return ()
@@ -386,9 +386,7 @@ asEnterRegister d selacct ui = do
         isdepthclipped = case getDepth ui of
                           Just d  -> accountNameLevel selacct >= d
                           Nothing -> False
-  let ui' = screenEnter d regscr ui
-  put' ui'
-  rsCenterSelection ui'
+  rsCenterSelection (screenEnter d regscr ui) >>= put'
 
 asSetSelectedAccount a s@AccountsScreen{} = s & asSelectedAccount .~ a
 asSetSelectedAccount _ s = s
@@ -401,3 +399,4 @@ asCenterAndContinue = do
   scrollSelectionToMiddle (_asList $ aScreen ui)
 
 asListSize = V.length . V.takeWhile ((/="").asItemAccountName) . listElements
+
