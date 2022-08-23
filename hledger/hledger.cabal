@@ -27,7 +27,7 @@ license:        GPL-3
 license-file:   LICENSE
 build-type:     Simple
 tested-with:
-    GHC==8.6.5, GHC==8.8.4, GHC==8.10.4, GHC==9.0.1
+    GHC==8.10.7, GHC==9.0.2, GHC==9.2.4
 extra-source-files:
     CHANGES.md
     README.md
@@ -140,7 +140,8 @@ library
     , Diff >=0.2
     , aeson >=1
     , ansi-terminal >=0.9
-    , base >=4.11 && <4.17
+    , base >=4.14 && <4.17
+    , breakpoint
     , bytestring
     , cmdargs >=0.10
     , containers >=0.5.9
@@ -190,7 +191,8 @@ executable hledger
       Decimal >=0.5.1
     , aeson >=1
     , ansi-terminal >=0.9
-    , base >=4.11 && <4.17
+    , base >=4.14 && <4.17
+    , breakpoint
     , bytestring
     , cmdargs >=0.10
     , containers >=0.5.9
@@ -240,7 +242,8 @@ test-suite unittest
       Decimal >=0.5.1
     , aeson >=1
     , ansi-terminal >=0.9
-    , base >=4.11 && <4.17
+    , base >=4.14 && <4.17
+    , breakpoint
     , bytestring
     , cmdargs >=0.10
     , containers >=0.5.9
@@ -287,7 +290,8 @@ benchmark bench
       Decimal >=0.5.1
     , aeson >=1
     , ansi-terminal >=0.9
-    , base >=4.11 && <4.17
+    , base >=4.14 && <4.17
+    , breakpoint
     , bytestring
     , cmdargs >=0.10
     , containers >=0.5.9

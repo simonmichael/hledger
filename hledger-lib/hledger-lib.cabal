@@ -27,7 +27,7 @@ license:        GPL-3
 license-file:   LICENSE
 build-type:     Simple
 tested-with:
-    GHC==8.6.5, GHC==8.8.4, GHC==8.10.4, GHC==9.0.1
+    GHC==8.10.7, GHC==9.0.2, GHC==9.2.4
 extra-source-files:
     CHANGES.md
     README.md
@@ -103,8 +103,9 @@ library
     , aeson-pretty
     , ansi-terminal >=0.9
     , array
-    , base >=4.11 && <4.17
+    , base >=4.14 && <4.17
     , blaze-markup >=0.5.1
+    , breakpoint
     , bytestring
     , call-stack
     , cassava
@@ -112,6 +113,7 @@ library
     , cmdargs >=0.10
     , containers >=0.5.9
     , data-default >=0.5
+    , deepseq
     , directory
     , doclayout >=0.3 && <0.5
     , extra >=1.6.3
@@ -153,8 +155,9 @@ test-suite doctest
     , aeson-pretty
     , ansi-terminal >=0.9
     , array
-    , base >=4.11 && <4.17
+    , base >=4.14 && <4.17
     , blaze-markup >=0.5.1
+    , breakpoint
     , bytestring
     , call-stack
     , cassava
@@ -162,6 +165,7 @@ test-suite doctest
     , cmdargs >=0.10
     , containers >=0.5.9
     , data-default >=0.5
+    , deepseq
     , directory
     , doclayout >=0.3 && <0.5
     , doctest >=0.18.1
@@ -206,8 +210,9 @@ test-suite unittest
     , aeson-pretty
     , ansi-terminal >=0.9
     , array
-    , base >=4.11 && <4.17
+    , base >=4.14 && <4.17
     , blaze-markup >=0.5.1
+    , breakpoint
     , bytestring
     , call-stack
     , cassava
@@ -215,6 +220,7 @@ test-suite unittest
     , cmdargs >=0.10
     , containers >=0.5.9
     , data-default >=0.5
+    , deepseq
     , directory
     , doclayout >=0.3 && <0.5
     , extra >=1.6.3
