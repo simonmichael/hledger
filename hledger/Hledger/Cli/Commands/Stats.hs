@@ -60,17 +60,17 @@ stats opts@CliOpts{reportspec_=rspec, progstarttime_} j = do
     (realToFrac dt :: Float) (fromIntegral numtxns / realToFrac dt :: Float)
 
 showLedgerStats :: Ledger -> Day -> DateSpan -> (TB.Builder, Int)
-showLedgerStats l today span =
-    (unlinesB $ map (renderRowB def{tableBorders=False, borderSpaces=False} . showRow) stats
+showLedgerStats l today spn =
+    (unlinesB $ map (renderRowB def{tableBorders=False, borderSpaces=False} . showRow) stts
     ,tnum)
   where
-    showRow (label, value) = Group NoLine $ map (Header . textCell TopLeft)
-      [fitText (Just w1) (Just w1) False True label `T.append` ": ", T.pack value]
-    w1 = maximum $ map (T.length . fst) stats
-    (stats, tnum) = ([
+    showRow (label, val) = Group NoLine $ map (Header . textCell TopLeft)
+      [fitText (Just w1) (Just w1) False True label `T.append` ": ", T.pack val]
+    w1 = maximum $ map (T.length . fst) stts
+    (stts, tnum) = ([
        ("Main file", path) -- ++ " (from " ++ source ++ ")")
       ,("Included files", unlines $ drop 1 $ journalFilePaths j)
-      ,("Transactions span", printf "%s to %s (%d days)" (start span) (end span) days)
+      ,("Transactions span", printf "%s to %s (%d days)" (start spn) (end spn) days)
       ,("Last transaction", maybe "none" show lastdate ++ showelapsed lastelapsed)
       ,("Transactions", printf "%d (%0.1f per day)" tnum txnrate)
       ,("Transactions last 30 days", printf "%d (%0.1f per day)" tnum30 txnrate30)
@@ -84,29 +84,29 @@ showLedgerStats l today span =
     -- Days since reconciliation   : %(reconcileelapsed)s
     -- Days since last transaction : %(recentelapsed)s
      ] 
-     ,tnum)
+     ,tnum1)
        where
          j = ljournal l
          path = journalFilePath j
-         ts = sortOn tdate $ filter (spanContainsDate span . tdate) $ jtxns j
+         ts = sortOn tdate $ filter (spanContainsDate spn . tdate) $ jtxns j
          as = nub $ map paccount $ concatMap tpostings ts
          cs = either error' Map.keys $ commodityStylesFromAmounts $ concatMap (amountsRaw . pamount) $ concatMap tpostings ts  -- PARTIAL:
          lastdate | null ts = Nothing
                   | otherwise = Just $ tdate $ last ts
          lastelapsed = fmap (diffDays today) lastdate
          showelapsed Nothing = ""
-         showelapsed (Just days) = printf " (%d %s)" days' direction
-                                   where days' = abs days
-                                         direction | days >= 0 = "days ago" :: String
+         showelapsed (Just dys) = printf " (%d %s)" dys' direction
+                                   where dys' = abs dys
+                                         direction | dys >= 0 = "days ago" :: String
                                                    | otherwise = "days from now"
-         tnum = length ts  -- Integer would be better
+         tnum1 = length ts  -- Integer would be better
          start (DateSpan (Just d) _) = show d
          start _ = ""
          end (DateSpan _ (Just d)) = show d
          end _ = ""
-         days = fromMaybe 0 $ daysInSpan span
+         days = fromMaybe 0 $ daysInSpan spn
          txnrate | days==0 = 0
-                 | otherwise = fromIntegral tnum / fromIntegral days :: Double
+                 | otherwise = fromIntegral tnum1 / fromIntegral days :: Double
          tnum30 = length $ filter withinlast30 ts
          withinlast30 t = d >= addDays (-30) today && (d<=today) where d = tdate t
          txnrate30 = fromIntegral tnum30 / 30 :: Double

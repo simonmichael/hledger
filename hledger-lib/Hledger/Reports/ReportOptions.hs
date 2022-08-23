@@ -292,8 +292,8 @@ defreportspec = ReportSpec
 
 -- | Set the default ConversionOp.
 setDefaultConversionOp :: ConversionOp -> ReportSpec -> ReportSpec
-setDefaultConversionOp def rspec@ReportSpec{_rsReportOpts=ropts} =
-    rspec{_rsReportOpts=ropts{conversionop_=conversionop_ ropts <|> Just def}}
+setDefaultConversionOp defop rspec@ReportSpec{_rsReportOpts=ropts} =
+    rspec{_rsReportOpts=ropts{conversionop_=conversionop_ ropts <|> Just defop}}
 
 accountlistmodeopt :: RawOpts -> AccountListMode
 accountlistmodeopt =
@@ -360,7 +360,7 @@ layoutopt rawopts = fromMaybe (LayoutWide Nothing) $ layout <|> column
         (s,n) = break (==',') $ map toLower opt
         w = case drop 1 n of
               "" -> Nothing
-              c | Just w <- readMay c -> Just w
+              c | Just w' <- readMay c -> Just w'
               _ -> usageError "width in --layout=wide,WIDTH must be an integer"
 
         err = usageError "--layout's argument should be \"wide[,WIDTH]\", \"tall\", \"bare\", or \"tidy\""
@@ -390,14 +390,14 @@ periodFromRawOpts d rawopts =
 beginDatesFromRawOpts :: Day -> RawOpts -> [Day]
 beginDatesFromRawOpts d = collectopts (begindatefromrawopt d)
   where
-    begindatefromrawopt d (n,v)
+    begindatefromrawopt d' (n,v)
       | n == "begin" =
           either (\e -> usageError $ "could not parse "++n++" date: "++customErrorBundlePretty e) Just $
-          fixSmartDateStrEither' d (T.pack v)
+          fixSmartDateStrEither' d' (T.pack v)
       | n == "period" =
         case
           either (\e -> usageError $ "could not parse period option: "++customErrorBundlePretty e) id $
-          parsePeriodExpr d (stripquotes $ T.pack v)
+          parsePeriodExpr d' (stripquotes $ T.pack v)
         of
           (_, DateSpan (Just b) _) -> Just b
           _                        -> Nothing
@@ -408,14 +408,14 @@ beginDatesFromRawOpts d = collectopts (begindatefromrawopt d)
 endDatesFromRawOpts :: Day -> RawOpts -> [Day]
 endDatesFromRawOpts d = collectopts (enddatefromrawopt d)
   where
-    enddatefromrawopt d (n,v)
+    enddatefromrawopt d' (n,v)
       | n == "end" =
           either (\e -> usageError $ "could not parse "++n++" date: "++customErrorBundlePretty e) Just $
-          fixSmartDateStrEither' d (T.pack v)
+          fixSmartDateStrEither' d' (T.pack v)
       | n == "period" =
         case
           either (\e -> usageError $ "could not parse period option: "++customErrorBundlePretty e) id $
-          parsePeriodExpr d (stripquotes $ T.pack v)
+          parsePeriodExpr d' (stripquotes $ T.pack v)
         of
           (_, DateSpan _ (Just e)) -> Just e
           _                        -> Nothing
@@ -589,12 +589,12 @@ journalApplyValuationFromOptsWith rspec@ReportSpec{_rsReportOpts=ropts} j priceo
       CalcGain -> journalMapPostings (\p -> postingTransformAmount (gain p) p) j
       _        -> journalMapPostings (\p -> postingTransformAmount (valuation p) p) $ costing j
   where
-    valuation p = maybe id (mixedAmountApplyValuation priceoracle styles (periodEnd p) (_rsDay rspec) (postingDate p)) (value_ ropts)
-    gain      p = maybe id (mixedAmountApplyGain      priceoracle styles (periodEnd p) (_rsDay rspec) (postingDate p)) (value_ ropts)
+    valuation p = maybe id (mixedAmountApplyValuation priceoracle styles (postingperiodend p) (_rsDay rspec) (postingDate p)) (value_ ropts)
+    gain      p = maybe id (mixedAmountApplyGain      priceoracle styles (postingperiodend p) (_rsDay rspec) (postingDate p)) (value_ ropts)
     costing     = journalToCost (fromMaybe NoConversionOp $ conversionop_ ropts)
 
     -- Find the end of the period containing this posting
-    periodEnd  = addDays (-1) . fromMaybe err . mPeriodEnd . postingDateOrDate2 (whichDate ropts)
+    postingperiodend  = addDays (-1) . fromMaybe err . mPeriodEnd . postingDateOrDate2 (whichDate ropts)
     mPeriodEnd = case interval_ ropts of
         NoInterval -> const . spanEnd . fst $ reportSpan j rspec
         _          -> spanEnd <=< latestSpanContaining (historical : spans)
@@ -611,11 +611,11 @@ mixedAmountApplyValuationAfterSumFromOptsWith ropts j priceoracle =
     case valuationAfterSum ropts of
         Just mc -> case balancecalc_ ropts of
             CalcGain -> gain mc
-            _        -> \span -> valuation mc span . costing
+            _        -> \spn -> valuation mc spn . costing
         Nothing      -> const id
   where
-    valuation mc span = mixedAmountValueAtDate priceoracle styles mc (maybe err (addDays (-1)) $ spanEnd span)
-    gain mc span = mixedAmountGainAtDate priceoracle styles mc (maybe err (addDays (-1)) $ spanEnd span)
+    valuation mc spn = mixedAmountValueAtDate priceoracle styles mc (maybe err (addDays (-1)) $ spanEnd spn)
+    gain mc spn = mixedAmountGainAtDate priceoracle styles mc (maybe err (addDays (-1)) $ spanEnd spn)
     costing = case fromMaybe NoConversionOp $ conversionop_ ropts of
         NoConversionOp -> id
         ToCost         -> styleMixedAmount styles . mixedAmountCost
@@ -808,6 +808,8 @@ class HasReportOptsNoUpdate a => HasReportOpts a where
     reportOpts :: ReportableLens' a ReportOpts
     reportOpts = reportOptsNoUpdate
     {-# INLINE reportOpts #-}
+
+    -- XXX these names are a bit clashy
 
     period :: ReportableLens' a Period
     period = reportOpts.periodNoUpdate

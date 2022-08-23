@@ -195,7 +195,7 @@ rawOptsToInputOpts day rawopts =
         argsquery = lefts . rights . map (parseQueryTerm day) $ querystring_ ropts
         datequery = simplifyQuery . filterQuery queryIsDate . And $ queryFromFlags ropts : argsquery
 
-        commodity_styles = either err id $ commodityStyleFromRawOpts rawopts
+        styles = either err id $ commodityStyleFromRawOpts rawopts
           where err e = error' $ "could not parse commodity-style: '" ++ e ++ "'"  -- PARTIAL:
 
     in definputopts{
@@ -215,7 +215,7 @@ rawOptsToInputOpts day rawopts =
       ,balancingopts_     = defbalancingopts{
                                  ignore_assertions_ = boolopt "ignore-assertions" rawopts
                                , infer_transaction_prices_ = not noinferprice
-                               , commodity_styles_  = Just commodity_styles
+                               , commodity_styles_  = Just styles
                                }
       ,strict_            = boolopt "strict" rawopts
       ,_ioDay             = day
@@ -446,8 +446,8 @@ journalAddFile f j@Journal{jfiles=fs} = j{jfiles=fs++[f]}
 -- A version of `match` that is strict in the returned text
 match' :: TextParser m a -> TextParser m (Text, a)
 match' p = do
-  (!txt, p) <- match p
-  pure (txt, p)
+  (!txt, p') <- match p
+  pure (txt, p')
 
 --- ** parsers
 --- *** transaction bits
@@ -514,9 +514,9 @@ datep' mYear = do
         Just date -> pure $! date
 
     partialDate :: Int -> Maybe Year -> Month -> Char -> MonthDay -> TextParser m Day
-    partialDate startOffset mYear month sep day = do
+    partialDate startOffset myr month sep day = do
       endOffset <- getOffset
-      case mYear of
+      case myr of
         Just year ->
           case fromGregorianValid year month day of
             Nothing -> customFailure $ parseErrorAtRegion startOffset endOffset $
@@ -611,12 +611,12 @@ yearorintp = do
 modifiedaccountnamep :: JournalParser m AccountName
 modifiedaccountnamep = do
   parent  <- getParentAccount
-  aliases <- getAccountAliases
+  als     <- getAccountAliases
   -- off1    <- getOffset
   a       <- lift accountnamep
   -- off2    <- getOffset
   -- XXX or accountNameApplyAliasesMemo ? doesn't seem to make a difference (retest that function)
-  case accountNameApplyAliases aliases $ joinAccountNames parent a of
+  case accountNameApplyAliases als $ joinAccountNames parent a of
     Right a' -> return $! a'
     -- should not happen, regexaliasp will have displayed a better error already:
     -- (XXX why does customFailure cause error to be displayed there, but not here ?)
@@ -660,12 +660,12 @@ singlespacednoncommenttext1p = singlespacedtextsatisfying1p (not . isSameLineCom
 -- | Parse non-empty, single-spaced text starting and ending with non-whitespace,
 -- where all characters satisfy the given predicate.
 singlespacedtextsatisfying1p :: (Char -> Bool) -> TextParser m T.Text
-singlespacedtextsatisfying1p pred = do
+singlespacedtextsatisfying1p f = do
   firstPart <- partp
   otherParts <- many $ try $ singlespacep *> partp
   pure $! T.unwords $ firstPart : otherParts
   where
-    partp = takeWhile1P Nothing (\c -> pred c && not (isSpace c))
+    partp = takeWhile1P Nothing (\c -> f c && not (isSpace c))
 
 -- | Parse one non-newline whitespace character that is not followed by another one.
 singlespacep :: TextParser m ()
@@ -708,20 +708,20 @@ amountp = amountpwithmultiplier False
 amountpwithmultiplier :: Bool -> JournalParser m Amount
 amountpwithmultiplier mult = label "amount" $ do
   let spaces = lift $ skipNonNewlineSpaces
-  amount <- amountwithoutpricep mult <* spaces
+  amt <- amountwithoutpricep mult <* spaces
   (mprice, _elotprice, _elotdate) <- runPermutation $
-    (,,) <$> toPermutationWithDefault Nothing (Just <$> priceamountp amount <* spaces)
+    (,,) <$> toPermutationWithDefault Nothing (Just <$> priceamountp amt <* spaces)
          <*> toPermutationWithDefault Nothing (Just <$> lotpricep <* spaces)
          <*> toPermutationWithDefault Nothing (Just <$> lotdatep <* spaces)
-  pure $ amount { aprice = mprice }
+  pure $ amt { aprice = mprice }
 
 amountpnolotpricesp :: JournalParser m Amount
 amountpnolotpricesp = label "amount" $ do
   let spaces = lift $ skipNonNewlineSpaces
-  amount <- amountwithoutpricep False
+  amt <- amountwithoutpricep False
   spaces
-  mprice <- optional $ priceamountp amount <* spaces
-  pure $ amount { aprice = mprice }
+  mprice <- optional $ priceamountp amt <* spaces
+  pure $ amt { aprice = mprice }
 
 amountwithoutpricep :: Bool -> JournalParser m Amount
 amountwithoutpricep mult = do
@@ -1094,8 +1094,8 @@ data DigitGrp = DigitGrp {
 
 -- | A custom show instance, showing digit groups as the parser saw them.
 instance Show DigitGrp where
-  show (DigitGrp len num) = "\"" ++ padding ++ numStr ++ "\""
-    where numStr = show num
+  show (DigitGrp len n) = "\"" ++ padding ++ numStr ++ "\""
+    where numStr = show n
           padding = genericReplicate (toInteger len - toInteger (length numStr)) '0'
 
 instance Sem.Semigroup DigitGrp where

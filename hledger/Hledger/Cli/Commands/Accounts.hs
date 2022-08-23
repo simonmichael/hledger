@@ -51,25 +51,25 @@ accounts CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_rsRepo
 
   -- 1. identify the accounts we'll show
   let tree     = tree_ ropts
-      declared = boolopt "declared" rawopts
-      used     = boolopt "used"     rawopts
-      types    = boolopt "types"    rawopts
+      decl = boolopt "declared" rawopts
+      used = boolopt "used"     rawopts
+      types = boolopt "types"    rawopts
       positions = boolopt "positions" rawopts
       directives = boolopt "directives" rawopts
       -- a depth limit will clip and exclude account names later, but we don't want to exclude accounts at this stage
       nodepthq = dbg4 "nodepthq" $ filterQuery (not . queryIsDepth) query
       -- just the acct: part of the query will be reapplied later, after clipping
-      acctq    = dbg4 "acctq" $ filterQuery queryIsAcct query
-      depth    = dbg4 "depth" $ queryDepth $ filterQuery queryIsDepth query
+      acctq = dbg4 "acctq" $ filterQuery queryIsAcct query
+      dep = dbg4 "depth" $ queryDepth $ filterQuery queryIsDepth query
       matcheddeclaredaccts =
         dbg4 "matcheddeclaredaccts" $
         filter (matchesAccountExtra (journalAccountType j) (journalInheritedAccountTags j) nodepthq)
           $ map fst $ jdeclaredaccounts j
-      matchedusedaccts     = dbg5 "matchedusedaccts" $ map paccount $ journalPostings $ filterJournalPostings nodepthq j
-      accts                = dbg5 "accts to show" $
-        if | declared     && not used -> matcheddeclaredaccts
-           | not declared && used     -> matchedusedaccts
-           | otherwise                -> matcheddeclaredaccts ++ matchedusedaccts
+      matchedusedaccts = dbg5 "matchedusedaccts" $ map paccount $ journalPostings $ filterJournalPostings nodepthq j
+      accts = dbg5 "accts to show" $
+        if | decl     && not used -> matcheddeclaredaccts
+           | not decl && used     -> matchedusedaccts
+           | otherwise            -> matcheddeclaredaccts ++ matchedusedaccts
 
   -- 2. sort them by declaration order (then undeclared accounts alphabetically)
   -- within each group of siblings
@@ -78,10 +78,10 @@ accounts CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_rsRepo
   -- 3. if there's a depth limit, depth-clip and remove any no longer useful items
       clippedaccts =
         dbg4 "clippedaccts" $
-        filter (matchesAccount acctq) $           -- clipping can leave accounts that no longer match the query, remove such
-        nub $                                     -- clipping can leave duplicates (adjacent, hopefully)
-        filter (not . T.null) $                   -- depth:0 can leave nulls
-        map (clipAccountName depth) $  -- clip at depth if specified
+        filter (matchesAccount acctq) $  -- clipping can leave accounts that no longer match the query, remove such
+        nub $                            -- clipping can leave duplicates (adjacent, hopefully)
+        filter (not . T.null) $          -- depth:0 can leave nulls
+        map (clipAccountName dep) $      -- clip at depth if specified
         sortedaccts
 
   -- 4. print what remains as a list or tree, maybe applying --drop in the former case.

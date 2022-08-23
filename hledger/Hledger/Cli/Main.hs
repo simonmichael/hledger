@@ -97,7 +97,7 @@ mainmode addons = defMode {
 -- | Let's go!
 main :: IO ()
 main = do
-  progstarttime <- getPOSIXTime
+  starttime <- getPOSIXTime
 
   -- Choose and run the appropriate internal or external command based
   -- on the raw command-line arguments, cmdarg's interpretation of
@@ -132,7 +132,7 @@ main = do
 
   -- parse arguments with cmdargs
   opts' <- argsToCliOpts args addons
-  let opts = opts'{progstarttime_=progstarttime}
+  let opts = opts'{progstarttime_=starttime}
 
   -- select an action and run it.
   let
@@ -143,13 +143,13 @@ main = do
     hasVersion           = ("--version" `elem`)
     printUsage           = putStr $ showModeUsage $ mainmode addons
     badCommandError      = error' ("command "++rawcmd++" is not recognized, run with no command to see a list") >> exitFailure  -- PARTIAL:
-    hasHelpFlag args     = any (`elem` args) ["-h","--help"]
-    hasManFlag args      = (`elem` args) "--man"
-    hasInfoFlag args     = (`elem` args) "--info"
-    f `orShowHelp` mode
-      | hasHelpFlag args = putStr $ showModeUsage mode
-      | hasInfoFlag args = runInfoForTopic "hledger" (headMay $ modeNames mode)
-      | hasManFlag args  = runManForTopic "hledger" (headMay $ modeNames mode)
+    hasHelpFlag args1     = any (`elem` args1) ["-h","--help"]
+    hasManFlag args1      = (`elem` args1) "--man"
+    hasInfoFlag args1     = (`elem` args1) "--info"
+    f `orShowHelp` mode1
+      | hasHelpFlag args = putStr $ showModeUsage mode1
+      | hasInfoFlag args = runInfoForTopic "hledger" (headMay $ modeNames mode1)
+      | hasManFlag args  = runManForTopic "hledger" (headMay $ modeNames mode1)
       | otherwise        = f
       -- where
       --   lastdocflag
@@ -237,7 +237,7 @@ moveFlagsAfterCommand args = moveArgs $ ensureDebugHasArg args
        (bs,["--debug"])                                    -> bs++["--debug=1"]
        _                                                   -> as
 
-    moveArgs args = insertFlagsAfterCommand $ moveArgs' (args, [])
+    moveArgs args1 = insertFlagsAfterCommand $ moveArgs' (args1, [])
       where
         -- -f FILE ..., --alias ALIAS ...
         moveArgs' ((f:v:a:as), flags) | isMovableReqArgFlag f, isValue v       = moveArgs' (a:as, flags ++ [f,v])
@@ -251,7 +251,7 @@ moveFlagsAfterCommand args = moveArgs $ ensureDebugHasArg args
         moveArgs' (as, flags) = (as, flags)
 
         insertFlagsAfterCommand ([],           flags) = flags
-        insertFlagsAfterCommand (command:args, flags) = [command] ++ flags ++ args
+        insertFlagsAfterCommand (command1:args2, flags) = [command1] ++ flags ++ args2
 
 isMovableNoArgFlag a  = "-" `isPrefixOf` a && dropWhile (=='-') a `elem` optargflagstomove ++ noargflagstomove
 

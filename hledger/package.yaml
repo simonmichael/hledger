@@ -89,7 +89,6 @@ ghc-options:
 - -Wall
 - -Wno-incomplete-uni-patterns
 - -Wno-missing-signatures
-- -Wno-name-shadowing
 - -Wno-orphans
 - -Wno-type-defaults
 - -Wno-unused-do-bind

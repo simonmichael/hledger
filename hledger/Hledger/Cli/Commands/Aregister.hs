@@ -31,7 +31,7 @@ import Hledger
 import Hledger.Read.CsvReader (CSV, CsvRecord, printCSV)
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
-import Text.Tabular.AsciiWide
+import Text.Tabular.AsciiWide hiding (render)
 
 aregistermode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Aregister.txt")
@@ -71,7 +71,7 @@ aregister :: CliOpts -> Journal -> IO ()
 aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
   -- the first argument specifies the account, any remaining arguments are a filter query
   let help = "aregister needs an ACCTPAT argument to select an account"
-  (apat,querystring) <- case listofstringopt "args" rawopts of
+  (apat,querystr) <- case listofstringopt "args" rawopts of
       []     -> error' $ help <> ".\nPlease provide an account name or a (case-insensitive, infix, regexp) pattern."
       (a:as) -> return (a, map T.pack as)
   let
@@ -88,7 +88,7 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
         depth_=Nothing
         -- always show historical balance
       , balanceaccum_= Historical
-      , querystring_ = querystring
+      , querystring_ = querystr
       }
     wd = whichDate ropts'
   -- and regenerate the ReportSpec, making sure to use the above
@@ -184,8 +184,8 @@ accountTransactionsReportItemAsText
       ]
     spacerCell  = Cell BottomLeft [WideBuilder (TB.singleton ' ') 1]
     spacerCell2 = Cell BottomLeft [WideBuilder (TB.fromString "  ") 2]
-    pad fullwidth amt = WideBuilder (TB.fromText $ T.replicate w " ") w <> amt
-      where w = fullwidth - wbWidth amt
+    pad fullwidth amt1 = WideBuilder (TB.fromText $ T.replicate w " ") w <> amt1
+      where w = fullwidth - wbWidth amt1
     -- calculate widths
     (totalwidth,mdescwidth) = registerWidthsFromOpts copts
     (datewidth, date) = (10, showDate $ transactionRegisterDate wd reportq thisacctq t)

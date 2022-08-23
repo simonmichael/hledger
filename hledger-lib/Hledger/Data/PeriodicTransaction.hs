@@ -41,7 +41,7 @@ _ptgen str = do
           nullperiodictransaction{ ptperiodexpr=t , ptspan=s, ptinterval=i, ptpostings=["a" `post` usd 1] }
           nulldatespan
 
-_ptgenspan str span = do
+_ptgenspan str spn = do
   let
     t = T.pack str
     (i,s) = parsePeriodExpr' nulldate t
@@ -51,7 +51,7 @@ _ptgenspan str span = do
       mapM_ (T.putStr . showTransaction) $
         runPeriodicTransaction
           nullperiodictransaction{ ptperiodexpr=t , ptspan=s, ptinterval=i, ptpostings=["a" `post` usd 1] }
-          span
+          spn
 
 --deriving instance Show PeriodicTransaction
 -- for better pretty-printing:

@@ -73,8 +73,8 @@ postingsReport rspec@ReportSpec{_rsReportOpts=ropts@ReportOpts{..}} j = items
 
       -- Postings, or summary postings with their subperiod's end date, to be displayed.
       displayps :: [(Posting, Maybe Period)]
-        | multiperiod = [(p, Just period) | (p, period) <- summariseps reportps]
-        | otherwise   = [(p, Nothing) | p <- reportps]
+        | multiperiod = [(p', Just period') | (p', period') <- summariseps reportps]
+        | otherwise   = [(p', Nothing) | p' <- reportps]
         where
           summariseps = summarisePostingsByInterval whichdate mdepth showempty colspans
           showempty = empty_ || average_
@@ -189,9 +189,9 @@ summarisePostingsByInterval wd mdepth showempty colspans =
 -- with 0 amount.
 --
 summarisePostingsInDateSpan :: DateSpan -> WhichDate -> Maybe Int -> Bool -> [Posting] -> [SummaryPosting]
-summarisePostingsInDateSpan span@(DateSpan b e) wd mdepth showempty ps
+summarisePostingsInDateSpan spn@(DateSpan b e) wd mdepth showempty ps
   | null ps && (isNothing b || isNothing e) = []
-  | null ps && showempty = [(summaryp, dateSpanAsPeriod span)]
+  | null ps && showempty = [(summaryp, dateSpanAsPeriod spn)]
   | otherwise = summarypes
   where
     postingdate = if wd == PrimaryDate then postingDate else postingDate2
@@ -200,14 +200,14 @@ summarisePostingsInDateSpan span@(DateSpan b e) wd mdepth showempty ps
     clippedanames = nub $ map (clipAccountName mdepth) anames
     summaryps | mdepth == Just 0 = [summaryp{paccount="...",pamount=sumPostings ps}]
               | otherwise        = [summaryp{paccount=a,pamount=balance a} | a <- clippedanames]
-    summarypes = map (, dateSpanAsPeriod span) $ (if showempty then id else filter (not . mixedAmountLooksZero . pamount)) summaryps
+    summarypes = map (, dateSpanAsPeriod spn) $ (if showempty then id else filter (not . mixedAmountLooksZero . pamount)) summaryps
     anames = nubSort $ map paccount ps
     -- aggregate balances by account, like ledgerFromJournal, then do depth-clipping
     accts = accountsFromPostings ps
     balance a = maybe nullmixedamt bal $ lookupAccount a accts
       where
         bal = if isclipped a then aibalance else aebalance
-        isclipped a = maybe False (accountNameLevel a >=) mdepth
+        isclipped a' = maybe False (accountNameLevel a' >=) mdepth
 
 negatePostingAmount :: Posting -> Posting
 negatePostingAmount = postingTransformAmount negate

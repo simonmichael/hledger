@@ -255,6 +255,7 @@ instance Num Amount where
     (-)                          = similarAmountsOp (-)
     (*)                          = similarAmountsOp (*)
 
+-- TODO: amount, num are clashy
 -- | The empty simple amount.
 amount, nullamt :: Amount
 amount = Amount{acommodity="", aquantity=0, aprice=Nothing, astyle=amountstyle}
@@ -314,8 +315,8 @@ amountCost a@Amount{aquantity=q, aprice=mp} =
 transformAmount :: (Quantity -> Quantity) -> Amount -> Amount
 transformAmount f a@Amount{aquantity=q,aprice=p} = a{aquantity=f q, aprice=f' <$> p}
   where
-    f' (TotalPrice a@Amount{aquantity=pq}) = TotalPrice a{aquantity = f pq}
-    f' p = p
+    f' (TotalPrice a1@Amount{aquantity=pq}) = TotalPrice a1{aquantity = f pq}
+    f' p' = p'
 
 -- | Divide an amount's quantity (and its total price, if it has one) by a constant.
 divideAmount :: Quantity -> Amount -> Amount
@@ -522,15 +523,15 @@ showamountquantity amt@Amount{astyle=AmountStyle{asdecimalpoint=mdec, asdigitgro
 applyDigitGroupStyle :: Maybe DigitGroupStyle -> Int -> T.Text -> WideBuilder
 applyDigitGroupStyle Nothing                       l s = WideBuilder (TB.fromText s) l
 applyDigitGroupStyle (Just (DigitGroups _ []))     l s = WideBuilder (TB.fromText s) l
-applyDigitGroupStyle (Just (DigitGroups c (g:gs))) l s = addseps (g:|gs) (toInteger l) s
+applyDigitGroupStyle (Just (DigitGroups c (g0:gs0))) l0 s0 = addseps (g0:|gs0) (toInteger l0) s0
   where
-    addseps (g:|gs) l s
-        | l' > 0    = addseps gs' l' rest <> WideBuilder (TB.singleton c <> TB.fromText part) (fromIntegral g + 1)
-        | otherwise = WideBuilder (TB.fromText s) (fromInteger l)
+    addseps (g1:|gs1) l1 s1
+        | l2 > 0    = addseps gs2 l2 rest <> WideBuilder (TB.singleton c <> TB.fromText part) (fromIntegral g1 + 1)
+        | otherwise = WideBuilder (TB.fromText s1) (fromInteger l1)
       where
-        (rest, part) = T.splitAt (fromInteger l') s
-        gs' = fromMaybe (g:|[]) $ nonEmpty gs
-        l' = l - toInteger g
+        (rest, part) = T.splitAt (fromInteger l2) s1
+        gs2 = fromMaybe (g1:|[]) $ nonEmpty gs1
+        l2 = l1 - toInteger g1
 
 -- like journalCanonicaliseAmounts
 -- | Canonicalise an amount's display style using the provided commodity style map.
@@ -702,11 +703,11 @@ maCommodities = S.fromList . fmap acommodity . amounts'
 unifyMixedAmount :: MixedAmount -> Maybe Amount
 unifyMixedAmount = foldM combine 0 . amounts
   where
-    combine amount result
-      | amountIsZero amount                    = Just result
-      | amountIsZero result                    = Just amount
-      | acommodity amount == acommodity result = Just $ amount + result
-      | otherwise                              = Nothing
+    combine amt result
+      | amountIsZero amt                    = Just result
+      | amountIsZero result                 = Just amt
+      | acommodity amt == acommodity result = Just $ amt + result
+      | otherwise                           = Nothing
 
 -- | Sum same-commodity amounts in a lossy way, applying the first
 -- price to the result and discarding any other prices. Only used as a
@@ -839,10 +840,10 @@ showMixedAmountDebug m | m == missingmixedamt = "(missing)"
 showMixedAmountB :: AmountDisplayOpts -> MixedAmount -> WideBuilder
 showMixedAmountB opts ma
     | displayOneLine opts = showMixedAmountOneLineB opts ma
-    | otherwise           = WideBuilder (wbBuilder . mconcat $ intersperse sep lines) width
+    | otherwise           = WideBuilder (wbBuilder . mconcat $ intersperse sep ls) width
   where
-    lines = showMixedAmountLinesB opts ma
-    width = headDef 0 $ map wbWidth lines
+    ls = showMixedAmountLinesB opts ma
+    width = headDef 0 $ map wbWidth ls
     sep = WideBuilder (TB.singleton '\n') 0
 
 -- | Helper for showMixedAmountB to show a list of Amounts on multiple lines. This returns
@@ -900,7 +901,7 @@ showMixedAmountOneLineB opts@AmountDisplayOpts{displayMaxWidth=mmax,displayMinWi
     dropWhileRev p = foldr (\x xs -> if null xs && p x then [] else x:xs) []
 
     -- Add the elision strings (if any) to each amount
-    withElided = zipWith (\num amt -> (amt, elisionDisplay Nothing (wbWidth sep) num amt)) [n-1,n-2..0]
+    withElided = zipWith (\n2 amt -> (amt, elisionDisplay Nothing (wbWidth sep) n2 amt)) [n-1,n-2..0]
 
 orderedAmounts :: AmountDisplayOpts -> MixedAmount -> [Amount]
 orderedAmounts dopts = maybe id (mapM pad) (displayOrder dopts) . amounts

@@ -343,7 +343,7 @@ calculateReportMatrix rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle startb
     avalue = acctApplyBoth . mixedAmountApplyValuationAfterSumFromOptsWith ropts j priceoracle
     acctApplyBoth f a = a{aibalance = f $ aibalance a, aebalance = f $ aebalance a}
     historicalDate = minimumMay $ mapMaybe spanStart colspans
-    zeros = M.fromList [(span, nullacct) | span <- colspans]
+    zeros = M.fromList [(spn, nullacct) | spn <- colspans]
     colspans = map fst colps
 
 
@@ -406,11 +406,11 @@ displayedAccounts :: ReportSpec
                   -> HashMap AccountName (Map DateSpan Account)
                   -> HashMap AccountName DisplayName
 displayedAccounts ReportSpec{_rsQuery=query,_rsReportOpts=ropts} unelidableaccts valuedaccts
-    | depth == 0 = HM.singleton "..." $ DisplayName "..." "..." 1
+    | qdepth == 0 = HM.singleton "..." $ DisplayName "..." "..." 1
     | otherwise  = HM.mapWithKey (\a _ -> displayedName a) displayedAccts
   where
     -- Accounts which are to be displayed
-    displayedAccts = (if depth == 0 then id else HM.filterWithKey keep) valuedaccts
+    displayedAccts = (if qdepth == 0 then id else HM.filterWithKey keep) valuedaccts
       where
         keep name amts = isInteresting name amts || name `HM.member` interestingParents
 
@@ -429,7 +429,7 @@ displayedAccounts ReportSpec{_rsQuery=query,_rsReportOpts=ropts} unelidableaccts
 
     -- Accounts interesting for their own sake
     isInteresting name amts =
-        d <= depth                                 -- Throw out anything too deep
+        d <= qdepth                                  -- Throw out anything too deep
         && ( name `Set.member` unelidableaccts     -- Unelidable accounts should be kept unless too deep
            ||(empty_ ropts && keepWhenEmpty amts)  -- Keep empty accounts when called with --empty
            || not (isZeroRow balance amts)         -- Keep everything with a non-zero balance in the row
@@ -440,8 +440,8 @@ displayedAccounts ReportSpec{_rsQuery=query,_rsReportOpts=ropts} unelidableaccts
             ALFlat -> const True          -- Keep all empty accounts in flat mode
             ALTree -> all (null . asubs)  -- Keep only empty leaves in tree mode
         balance = maybeStripPrices . case accountlistmode_ ropts of
-            ALTree | d == depth -> aibalance
-            _                   -> aebalance
+            ALTree | d == qdepth -> aibalance
+            _                    -> aebalance
           where maybeStripPrices = if conversionop_ ropts == Just NoConversionOp then id else mixedAmountStripPrices
 
     -- Accounts interesting because they are a fork for interesting subaccounts
@@ -453,7 +453,7 @@ displayedAccounts ReportSpec{_rsQuery=query,_rsReportOpts=ropts} unelidableaccts
         minSubs = if no_elide_ ropts then 1 else 2
 
     isZeroRow balance = all (mixedAmountLooksZero . balance)
-    depth = fromMaybe maxBound $  queryDepth query
+    qdepth = fromMaybe maxBound $ queryDepth query
     numSubs = subaccountTallies . HM.keys $ HM.filterWithKey isInteresting valuedaccts
 
 -- | Sort the rows by amount or by account declaration order.
@@ -534,10 +534,10 @@ transposeMap :: [(DateSpan, HashMap AccountName a)]
              -> HashMap AccountName (Map DateSpan a)
 transposeMap = foldr (uncurry addSpan) mempty
   where
-    addSpan span acctmap seen = HM.foldrWithKey (addAcctSpan span) seen acctmap
+    addSpan spn acctmap seen = HM.foldrWithKey (addAcctSpan spn) seen acctmap
 
-    addAcctSpan span acct a = HM.alter f acct
-      where f = Just . M.insert span a . fromMaybe mempty
+    addAcctSpan spn acct a = HM.alter f acct
+      where f = Just . M.insert spn a . fromMaybe mempty
 
 -- | A sorting helper: sort a list of things (eg report rows) keyed by account name
 -- to match the provided ordering of those same account names.

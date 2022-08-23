@@ -4,7 +4,6 @@
 
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE PackageImports    #-}
 {-# LANGUAGE TypeFamilies      #-}
 
 module Hledger.Data.StringFormat (
@@ -154,8 +153,8 @@ fieldp = do
 formatStringTester fs value expected = actual @?= expected
   where
     actual = case fs of
-      FormatLiteral l                   -> formatText False Nothing Nothing l
-      FormatField leftJustify min max _ -> formatText leftJustify min max value
+      FormatLiteral l                 -> formatText False Nothing Nothing l
+      FormatField leftJustify mn mx _ -> formatText leftJustify mn mx value
 
 tests_StringFormat = testGroup "StringFormat" [
 

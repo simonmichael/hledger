@@ -135,11 +135,11 @@ close copts@CliOpts{rawopts_=rawopts, reportspec_=rspec'} j = do
 
         | -- get the balances for each commodity and transaction price
           (a,mb) <- acctbals
-        , let bs = amounts mb
+        , let bs0 = amounts mb
           -- mark the last balance in each commodity with True
-        , let bs' = concat [reverse $ zip (reverse bs) (True : repeat False)
-                           | bs <- groupBy ((==) `on` acommodity) bs]
-        , (b, islast) <- bs'
+        , let bs2 = concat [reverse $ zip (reverse bs1) (True : repeat False)
+                           | bs1 <- groupBy ((==) `on` acommodity) bs0]
+        , (b, islast) <- bs2
         ]
 
       -- or a final multicommodity posting transferring all balances to equity
@@ -160,12 +160,12 @@ close copts@CliOpts{rawopts_=rawopts, reportspec_=rspec'} j = do
         : [posting{paccount=openingacct, pamount=mixedAmount . precise $ negate b} | interleaved]
 
         | (a,mb) <- acctbals
-        , let bs = amounts mb
+        , let bs0 = amounts mb
           -- mark the last balance in each commodity with the unpriced sum in that commodity (for a balance assertion)
-        , let bs' = concat [reverse $ zip (reverse bs) (Just commoditysum : repeat Nothing)
-                           | bs <- groupBy ((==) `on` acommodity) bs
-                           , let commoditysum = (sum bs)]
-        , (b, mcommoditysum) <- bs'
+        , let bs2 = concat [reverse $ zip (reverse bs1) (Just commoditysum : repeat Nothing)
+                           | bs1 <- groupBy ((==) `on` acommodity) bs0
+                           , let commoditysum = (sum bs1)]
+        , (b, mcommoditysum) <- bs2
         ]
       ++ [posting{paccount=openingacct, pamount=if explicit then mixedAmountSetFullPrecision (maNegate totalamt) else missingmixedamt} | not interleaved]
 

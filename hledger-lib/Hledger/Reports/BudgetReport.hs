@@ -133,17 +133,17 @@ journalAddBudgetGoalTransactions bopts ropts reportspan j =
             Just d  -> Just d'
               where
                 -- the interval and any date span of the periodic transaction with longest period
-                (interval, span) =
+                (intervl, spn) =
                   case budgetpts of
                     []  -> (Days 1, nulldatespan)
                     pts -> (ptinterval pt, ptspan pt)
                       where pt = maximumBy (comparing ptinterval) pts  -- PARTIAL: maximumBy won't fail
                 -- the natural start of this interval on or before the journal/report start
-                intervalstart = intervalStartBefore interval d
+                intervalstart = intervalStartBefore intervl d
                 -- the natural interval start before the journal/report start,
                 -- or the rule-specified start if later,
                 -- but no later than the journal/report start.
-                d' = min d $ maybe intervalstart (max intervalstart) $ spanStart span
+                d' = min d $ maybe intervalstart (max intervalstart) $ spanStart spn
 
     -- select periodic transactions matching a pattern
     -- (the argument of the (final) --budget option).
@@ -308,11 +308,11 @@ budgetReportAsTable
       | transpose_ = \(Tab.Table rh ch vals) -> Tab.Table ch rh (transpose vals)
       | otherwise  = id
 
-    (accts, rows, totalrows) = (accts, prependcs itemscs (padcells texts), prependcs trcs (padtr trtexts))
+    (accts, rows, totalrows) = (accts', prependcs itemscs (padcells texts), prependcs trcs (padtr trtexts))
       where
         shownitems :: [[(AccountName, WideBuilder, BudgetDisplayRow)]]
         shownitems = (fmap (\i -> fmap (\(cs, cvals) -> (renderacct i, cs, cvals)) . showrow $ rowToBudgetCells i) items)
-        (accts, itemscs, texts) = unzip3 $ concat shownitems
+        (accts', itemscs, texts) = unzip3 $ concat shownitems
 
         showntr    :: [[(WideBuilder, BudgetDisplayRow)]]
         showntr    = [showrow $ rowToBudgetCells tr]
@@ -381,10 +381,8 @@ budgetReportAsTable
       where
         actual' = fromMaybe nullmixedamt actual
 
-        budgetAndPerc b = uncurry zip
-          ( showmixed b
-          , fmap (wbFromText . T.pack . show . roundTo 0) <$> percbudget actual' b
-          )
+        budgetAndPerc b = 
+          zip (showmixed b) (fmap (wbFromText . T.pack . show . roundTo 0) <$> percbudget actual' b)
 
         full
           | Just b <- mbudget = Just <$> budgetAndPerc b
@@ -397,9 +395,9 @@ budgetReportAsTable
             (TB.fromText . flip T.replicate " " $ actualwidth - w) <> b
 
         (totalpercentwidth, totalbudgetwidth) =
-          let totalpercentwidth = if percentwidth == 0 then 0 else percentwidth + 5
-           in ( totalpercentwidth
-              , if budgetwidth == 0 then 0 else budgetwidth + totalpercentwidth + 3
+          let totalpercentwidth' = if percentwidth == 0 then 0 else percentwidth + 5
+           in ( totalpercentwidth'
+              , if budgetwidth == 0 then 0 else budgetwidth + totalpercentwidth' + 3
               )
 
         -- | Display a padded budget string
@@ -447,12 +445,18 @@ budgetReportAsCsv
   = (if transpose_ then transpose else id) $
 
   -- heading row
+  
+
+  -- heading row
   ("Account" :
   ["Commodity" | layout_ == LayoutBare ]
-   ++ concatMap (\span -> [showDateSpan span, "budget"]) colspans
+   ++ concatMap (\spn -> [showDateSpan spn, "budget"]) colspans
    ++ concat [["Total"  ,"budget"] | row_total_]
    ++ concat [["Average","budget"] | average_]
   ) :
+
+  -- account rows
+  
 
   -- account rows
   concatMap (rowAsTexts prrFullName) items
@@ -461,23 +465,23 @@ budgetReportAsCsv
   ++ concat [ rowAsTexts (const "Total:") tr | not no_total_ ]
 
   where
-    flattentuples abs = concat [[a,b] | (a,b) <- abs]
+    flattentuples tups = concat [[a,b] | (a,b) <- tups]
     showNorm = maybe "" (wbToText . showMixedAmountB oneLine)
 
     rowAsTexts :: (PeriodicReportRow a BudgetCell -> Text)
                -> PeriodicReportRow a BudgetCell
                -> [[Text]]
     rowAsTexts render row@(PeriodicReportRow _ as (rowtot,budgettot) (rowavg, budgetavg))
-      | layout_ /= LayoutBare = [render row : fmap showNorm all]
+      | layout_ /= LayoutBare = [render row : fmap showNorm vals]
       | otherwise =
             joinNames . zipWith (:) cs  -- add symbols and names
           . transpose                   -- each row becomes a list of Text quantities
           . fmap (fmap wbToText . showMixedAmountLinesB oneLine{displayOrder=Just cs, displayMinWidth=Nothing}
                  .fromMaybe nullmixedamt)
-          $ all
+          $ vals
       where
-        cs = S.toList . foldl' S.union mempty . fmap maCommodities $ catMaybes all
-        all = flattentuples as
+        cs = S.toList . foldl' S.union mempty . fmap maCommodities $ catMaybes vals
+        vals = flattentuples as
             ++ concat [[rowtot, budgettot] | row_total_]
             ++ concat [[rowavg, budgetavg] | average_]
 

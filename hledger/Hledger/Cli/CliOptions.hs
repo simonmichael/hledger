@@ -323,7 +323,7 @@ defCommandMode names = defMode {
 -- given name, providing hledger's common input/reporting/help flags.
 -- Just used when invoking addons.
 addonCommandMode :: Name -> Mode RawOpts
-addonCommandMode name = (defCommandMode [name]) {
+addonCommandMode nam = (defCommandMode [nam]) {
    modeHelp = ""
      -- XXX not needed ?
      -- fromMaybe "" $ lookup (stripAddonExtension name) [
@@ -539,10 +539,10 @@ rawOptsToCliOpts rawopts = do
 -- add a space character to preserve them.
 --
 getHledgerCliOpts' :: Mode RawOpts -> [String] -> IO CliOpts
-getHledgerCliOpts' mode' args' = do
-  let rawopts = either usageError id $ process mode' args'
+getHledgerCliOpts' mode' args0 = do
+  let rawopts = either usageError id $ process mode' args0
   opts <- rawOptsToCliOpts rawopts
-  debugArgs args' opts
+  debugArgs args0 opts
   when ("help" `inRawOpts` rawopts_ opts) $ putStr shorthelp >> exitSuccess
   -- when ("help" `inRawOpts` rawopts_ opts) $ putStr longhelp  >> exitSuccess
   return opts
@@ -557,11 +557,11 @@ getHledgerCliOpts' mode' args' = do
         ]
     -- | Print debug info about arguments and options if --debug is present.
     debugArgs :: [String] -> CliOpts -> IO ()
-    debugArgs args' opts =
-      when ("--debug" `elem` args') $ do
+    debugArgs args1 opts =
+      when ("--debug" `elem` args1) $ do
         progname' <- getProgName
         putStrLn $ "running: " ++ progname'
-        putStrLn $ "raw args: " ++ show args'
+        putStrLn $ "raw args: " ++ show args1
         putStrLn $ "processed opts:\n" ++ show opts
         putStrLn $ "search query: " ++ show (_rsQuery $ reportspec_ opts)
 
@@ -590,7 +590,7 @@ expandPathPreservingPrefix d prefixedf = do
   let (p,f) = splitReaderPrefix prefixedf
   f' <- expandPath d f
   return $ case p of
-    Just p  -> p ++ ":" ++ f'
+    Just p'  -> p' ++ ":" ++ f'
     Nothing -> f'
 
 -- | Get the expanded, absolute output file path specified by an

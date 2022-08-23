@@ -13,9 +13,7 @@ A reader for CSV data, using an extra rules file to help interpret the data.
 --- ** language
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE MultiWayIf           #-}
 {-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE PackageImports       #-}
 {-# LANGUAGE RecordWildCards      #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE TypeFamilies         #-}
@@ -38,7 +36,7 @@ where
 
 --- ** imports
 import Control.Applicative        (liftA2)
-import Control.Monad              (unless, when)
+import Control.Monad              (unless, when, void)
 import Control.Monad.Except       (ExceptT(..), liftEither, throwError)
 import qualified Control.Monad.Fail as Fail
 import Control.Monad.IO.Class     (MonadIO, liftIO)
@@ -104,13 +102,13 @@ parse :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
 parse iopts f t = do
   let rulesfile = mrules_file_ iopts
   readJournalFromCsv rulesfile f t
-  -- journalFinalise assumes the journal's items are
-  -- reversed, as produced by JournalReader's parser.
-  -- But here they are already properly ordered. So we'd
-  -- better preemptively reverse them once more. XXX inefficient
-  <&> journalReverse
   -- apply any command line account aliases. Can fail with a bad replacement pattern.
   >>= liftEither . journalApplyAliases (aliasesFromOpts iopts)
+      -- journalFinalise assumes the journal's items are
+      -- reversed, as produced by JournalReader's parser.
+      -- But here they are already properly ordered. So we'd
+      -- better preemptively reverse them once more. XXX inefficient
+      . journalReverse
   >>= journalFinalise iopts{balancingopts_=(balancingopts_ iopts){ignore_assertions_=True}} f t
 
 --- ** reading rules files
@@ -193,14 +191,14 @@ instance ShowErrorComponent String where
 -- Included file paths may be relative to the directory of the provided file path.
 -- This is done as a pre-parse step to simplify the CSV rules parser.
 expandIncludes :: FilePath -> Text -> IO Text
-expandIncludes dir content = mapM (expandLine dir) (T.lines content) >>= return . T.unlines
+expandIncludes dir0 content = mapM (expandLine dir0) (T.lines content) <&> T.unlines
   where
-    expandLine dir line =
+    expandLine dir1 line =
       case line of
-        (T.stripPrefix "include " -> Just f) -> expandIncludes dir' =<< T.readFile f'
+        (T.stripPrefix "include " -> Just f) -> expandIncludes dir2 =<< T.readFile f'
           where
-            f' = dir </> T.unpack (T.dropWhile isSpace f)
-            dir' = takeDirectory f'
+            f' = dir1 </> T.unpack (T.dropWhile isSpace f)
+            dir2 = takeDirectory f'
         _ -> return line
 
 -- | An error-throwing IO action that parses this text as CSV conversion rules
@@ -257,7 +255,7 @@ type CsvRules = CsvRules' (Text -> [ConditionalBlock])
 
 instance Eq CsvRules where
   r1 == r2 = (rdirectives r1, rcsvfieldindexes r1, rassignments r1) ==
-             (rdirectives r2, rcsvfieldindexes r2, rassignments r2) 
+             (rdirectives r2, rcsvfieldindexes r2, rassignments r2)
 
 -- Custom Show instance used for debug output: omit the rblocksassigning field, which isn't showable.
 instance Show CsvRules where
@@ -582,7 +580,7 @@ conditionaltablep = do
   newline
   body <- flip manyTill (lift eolof) $ do
     off <- getOffset
-    m <- matcherp' (char sep >> return ())
+    m <- matcherp' $ void $ char sep
     vs <- T.split (==sep) . T.pack <$> lift restofline
     if (length vs /= length fields)
       then customFailure $ parseErrorAt off $ ((printf "line of conditional table should have %d values, but this one has only %d" (length fields) (length vs)) :: String)
@@ -745,8 +743,8 @@ readJournalFromCsv mrulesfile csvfile csvdata = do
       -- than one date and the first date is more recent than the last):
       -- reverse them to get same-date transactions ordered chronologically.
       txns' =
-        (if newestfirst || mdataseemsnewestfirst == Just True 
-          then dbg7 "reversed csv txns" . reverse else id) 
+        (if newestfirst || mdataseemsnewestfirst == Just True
+          then dbg7 "reversed csv txns" . reverse else id)
           txns
         where
           newestfirst = dbg6 "newestfirst" $ isJust $ getDirective "newest-first" rules
@@ -757,7 +755,7 @@ readJournalFromCsv mrulesfile csvfile csvdata = do
       -- Second, sort by date.
       txns'' = dbg7 "date-sorted csv txns" $ sortBy (comparing tdate) txns'
 
-    liftIO $ when (not rulesfileexists) $ do
+    liftIO $ unless rulesfileexists $ do
       dbg1IO "creating conversion rules file" rulesfile
       T.writeFile rulesfile rulestext
 
@@ -804,7 +802,7 @@ validateCsv :: CsvRules -> Int -> CSV -> Either String [CsvRecord]
 validateCsv rules numhdrlines = validate . applyConditionalSkips . drop numhdrlines . filternulls
   where
     filternulls = filter (/=[""])
-    skipCount r =
+    skipnum r =
       case (getEffectiveAssignment rules r "end", getEffectiveAssignment rules r "skip") of
         (Nothing, Nothing) -> Nothing
         (Just _, _) -> Just maxBound
@@ -812,7 +810,7 @@ validateCsv rules numhdrlines = validate . applyConditionalSkips . drop numhdrli
         (Nothing, Just x) -> Just (read $ T.unpack x)
     applyConditionalSkips [] = []
     applyConditionalSkips (r:rest) =
-      case skipCount r of
+      case skipnum r of
         Nothing -> r:(applyConditionalSkips rest)
         Just cnt -> applyConditionalSkips (drop (cnt-1) rest)
     validate [] = Right []
@@ -869,15 +867,15 @@ transactionFromCsvRecord sourcepos rules record = t
     field    = hledgerField      rules record :: HledgerFieldName -> Maybe FieldTemplate
     fieldval = hledgerFieldValue rules record :: HledgerFieldName -> Maybe Text
     parsedate = parseDateWithCustomOrDefaultFormats (rule "date-format")
-    mkdateerror datefield datevalue mdateformat = T.unpack $ T.unlines
+    mkdateerror datefield datevalue mdateformat' = T.unpack $ T.unlines
       ["error: could not parse \""<>datevalue<>"\" as a date using date format "
-        <>maybe "\"YYYY/M/D\", \"YYYY-M-D\" or \"YYYY.M.D\"" (T.pack . show) mdateformat
+        <>maybe "\"YYYY/M/D\", \"YYYY-M-D\" or \"YYYY.M.D\"" (T.pack . show) mdateformat'
       ,showRecord record
       ,"the "<>datefield<>" rule is:   "<>(fromMaybe "required, but missing" $ field datefield)
-      ,"the date-format is: "<>fromMaybe "unspecified" mdateformat
+      ,"the date-format is: "<>fromMaybe "unspecified" mdateformat'
       ,"you may need to "
         <>"change your "<>datefield<>" rule, "
-        <>maybe "add a" (const "change your") mdateformat<>" date-format rule, "
+        <>maybe "add a" (const "change your") mdateformat'<>" date-format rule, "
         <>"or "<>maybe "add a" (const "change your") mskip<>" skip rule"
       ,"for m/d/y or d/m/y dates, use date-format %-m/%-d/%Y or date-format %-d/%-m/%Y"
       ]
@@ -894,7 +892,7 @@ transactionFromCsvRecord sourcepos rules record = t
     -- PARTIAL:
     date'       = fromMaybe (error' $ mkdateerror "date" date mdateformat) $ parsedate date
     mdate2      = fieldval "date2"
-    mdate2'     = maybe Nothing (maybe (error' $ mkdateerror "date2" (fromMaybe "" mdate2) mdateformat) Just . parsedate) mdate2
+    mdate2'     = (maybe (error' $ mkdateerror "date2" (fromMaybe "" mdate2) mdateformat) Just . parsedate) =<< mdate2
     status      =
       case fieldval "status" of
         Nothing -> Unmarked
@@ -904,12 +902,12 @@ transactionFromCsvRecord sourcepos rules record = t
               ["error: could not parse \""<>s<>"\" as a cleared status (should be *, ! or empty)"
               ,"the parse error is:      "<>T.pack (customErrorBundlePretty err)
               ]
-    code        = maybe "" singleline $ fieldval "code"
-    description = maybe "" singleline $ fieldval "description"
+    code        = maybe "" singleline' $ fieldval "code"
+    description = maybe "" singleline' $ fieldval "description"
     comment     = maybe "" unescapeNewlines $ fieldval "comment"
     precomment  = maybe "" unescapeNewlines $ fieldval "precomment"
 
-    singleline = T.unwords . filter (not . T.null) . map T.strip . T.lines
+    singleline' = T.unwords . filter (not . T.null) . map T.strip . T.lines
     unescapeNewlines = T.intercalate "\n" . T.splitOn "\\n"
 
     ----------------------------------------------------------------------
@@ -918,7 +916,7 @@ transactionFromCsvRecord sourcepos rules record = t
 
     p1IsVirtual = (accountNamePostingType <$> fieldval "account1") == Just VirtualPosting
     ps = [p | n <- [1..maxpostings]
-         ,let comment  = maybe "" unescapeNewlines $ fieldval ("comment"<> T.pack (show n))
+         ,let cmt  = maybe "" unescapeNewlines $ fieldval ("comment"<> T.pack (show n))
          ,let currency = fromMaybe "" (fieldval ("currency"<> T.pack (show n)) <|> fieldval "currency")
          ,let mamount  = getAmount rules record currency p1IsVirtual n
          ,let mbalance = getBalance rules record currency n
@@ -930,7 +928,7 @@ transactionFromCsvRecord sourcepos rules record = t
                              ,pamount           = fromMaybe missingmixedamt mamount
                              ,ptransaction      = Just t
                              ,pbalanceassertion = mkBalanceAssertion rules record <$> mbalance
-                             ,pcomment          = comment
+                             ,pcomment          = cmt
                              ,ptype             = accountNamePostingType acct
                              }
          ]
@@ -967,7 +965,7 @@ getAmount rules record currency p1IsVirtual n =
     unnumberedfieldnames = ["amount","amount-in","amount-out"]
 
     -- amount field names which can affect this posting
-    fieldnames = map (("amount"<> T.pack(show n))<>) ["","-in","-out"]
+    fieldnames = map (("amount"<> T.pack (show n))<>) ["","-in","-out"]
                  -- For posting 1, also recognise the old amount/amount-in/amount-out names.
                  -- For posting 2, the same but only if posting 1 needs balancing.
                  ++ if n==1 || n==2 && not p1IsVirtual then unnumberedfieldnames else []
@@ -1000,6 +998,37 @@ getAmount rules record currency p1IsVirtual n =
       []      -> Nothing
       [(f,a)] -> Just $ negateIfOut f a
       fs      -> error' . T.unpack . textChomp . T.unlines $  -- PARTIAL:
+          -- PARTIAL:
+          -- PARTIAL:
+          -- PARTIAL:
+          -- PARTIAL:
+          -- PARTIAL:
+          -- PARTIAL:
+          -- PARTIAL:
+          -- PARTIAL:
+          -- PARTIAL:
+          -- PARTIAL:
+          -- PARTIAL:
+          -- PARTIAL:
+          -- PARTIAL:
+          -- PARTIAL:
+          -- PARTIAL:
+          -- PARTIAL:
+          -- PARTIAL:
+          -- PARTIAL:
+          -- PARTIAL:
+          -- PARTIAL:
+          -- PARTIAL:
+          -- PARTIAL:
+          -- PARTIAL:
+          -- PARTIAL:
+          -- PARTIAL:
+          -- PARTIAL:
+          -- PARTIAL:
+          -- PARTIAL:
+          -- PARTIAL:
+          -- PARTIAL:
+          -- PARTIAL:
         ["in CSV rules:"
         ,"While processing " <> showRecord record
         ,"while calculating amount for posting " <> T.pack (show n)
@@ -1038,6 +1067,37 @@ getBalance rules record currency n = do
 parseAmount :: CsvRules -> CsvRecord -> Text -> Text -> MixedAmount
 parseAmount rules record currency s =
     either mkerror mixedAmount $  -- PARTIAL:
+      -- PARTIAL:
+      -- PARTIAL:
+      -- PARTIAL:
+      -- PARTIAL:
+      -- PARTIAL:
+      -- PARTIAL:
+      -- PARTIAL:
+      -- PARTIAL:
+      -- PARTIAL:
+      -- PARTIAL:
+      -- PARTIAL:
+      -- PARTIAL:
+      -- PARTIAL:
+      -- PARTIAL:
+      -- PARTIAL:
+      -- PARTIAL:
+      -- PARTIAL:
+      -- PARTIAL:
+      -- PARTIAL:
+      -- PARTIAL:
+      -- PARTIAL:
+      -- PARTIAL:
+      -- PARTIAL:
+      -- PARTIAL:
+      -- PARTIAL:
+      -- PARTIAL:
+      -- PARTIAL:
+      -- PARTIAL:
+      -- PARTIAL:
+      -- PARTIAL:
+      -- PARTIAL:
     runParser (evalStateT (amountp <* eof) journalparsestate) "" $
     currency <> simplifySign s
   where
@@ -1068,8 +1128,8 @@ parseBalanceAmount rules record currency n s =
                   -- the csv record's line number would be good
   where
     journalparsestate = nulljournal{jparsedecimalmark=parseDecimalMark rules}
-    mkerror n s e = error' . T.unpack $ T.unlines
-      ["error: could not parse \"" <> s <> "\" as balance"<> T.pack (show n) <> " amount"
+    mkerror n' s' e = error' . T.unpack $ T.unlines
+      ["error: could not parse \"" <> s' <> "\" as balance"<> T.pack (show n') <> " amount"
       ,showRecord record
       ,showRules rules record
       -- ,"the default-currency is: "++fromMaybe "unspecified" mdefaultcurrency
@@ -1252,17 +1312,19 @@ replaceCsvFieldReference rules record s = case T.uncons s of
 -- column number, ("date" or "1"), from the given CSV record, if such a field exists.
 csvFieldValue :: CsvRules -> CsvRecord -> CsvFieldName -> Maybe Text
 csvFieldValue rules record fieldname = do
-  fieldindex <- if | T.all isDigit fieldname -> readMay $ T.unpack fieldname
-                   | otherwise               -> lookup (T.toLower fieldname) $ rcsvfieldindexes rules
+  fieldindex <-
+    if T.all isDigit fieldname 
+    then readMay $ T.unpack fieldname
+    else lookup (T.toLower fieldname) $ rcsvfieldindexes rules
   T.strip <$> atMay record (fieldindex-1)
 
 -- | Parse the date string using the specified date-format, or if unspecified
 -- the "simple date" formats (YYYY/MM/DD, YYYY-MM-DD, YYYY.MM.DD, leading
 -- zeroes optional).
 parseDateWithCustomOrDefaultFormats :: Maybe DateFormat -> Text -> Maybe Day
-parseDateWithCustomOrDefaultFormats mformat s = asum $ map parsewith formats
+parseDateWithCustomOrDefaultFormats mformat s = asum $ map parsewith' formats
   where
-    parsewith = flip (parseTimeM True defaultTimeLocale) (T.unpack s)
+    parsewith' = flip (parseTimeM True defaultTimeLocale) (T.unpack s)
     formats = map T.unpack $ maybe
                ["%Y/%-m/%-d"
                ,"%Y-%-m-%-d"
@@ -1299,6 +1361,37 @@ tests_CsvReader = testGroup "CsvReader" [
    ]
   ,testGroup "conditionalblockp" [
     testCase "space after conditional" $ -- #1120
+       -- #1120
+       -- #1120
+       -- #1120
+       -- #1120
+       -- #1120
+       -- #1120
+       -- #1120
+       -- #1120
+       -- #1120
+       -- #1120
+       -- #1120
+       -- #1120
+       -- #1120
+       -- #1120
+       -- #1120
+       -- #1120
+       -- #1120
+       -- #1120
+       -- #1120
+       -- #1120
+       -- #1120
+       -- #1120
+       -- #1120
+       -- #1120
+       -- #1120
+       -- #1120
+       -- #1120
+       -- #1120
+       -- #1120
+       -- #1120
+       -- #1120
       parseWithState' defrules conditionalblockp "if a\n account2 b\n \n" @?=
         (Right $ CB{cbMatchers=[RecordMatcher None $ toRegexCI' "a"],cbAssignments=[("account2","b")]})
 

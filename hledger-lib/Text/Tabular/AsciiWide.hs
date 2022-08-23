@@ -211,11 +211,11 @@ renderHLine _ _ _ _ _ NoLine = []
 renderHLine vpos borders pretty w h prop = [renderHLine' vpos borders pretty prop w h]
 
 renderHLine' :: VPos -> Bool -> Bool -> Properties -> [Int] -> Header a -> Builder
-renderHLine' vpos borders pretty prop is h = addBorders $ sep <> coreLine <> sep
+renderHLine' vpos borders pretty prop is hdr = addBorders $ sep <> coreLine <> sep
  where
   addBorders xs   = if borders then edge HL <> xs <> edge HR else xs
   edge hpos       = boxchar vpos hpos SingleLine prop pretty
-  coreLine        = foldMap helper $ flattenHeader $ zipHeader 0 is h
+  coreLine        = foldMap helper $ flattenHeader $ zipHeader 0 is hdr
   helper          = either vsep dashes
   dashes (i,_)    = stimesMonoid i sep
   sep             = boxchar vpos HM NoLine prop pretty

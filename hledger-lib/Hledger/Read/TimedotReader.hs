@@ -28,7 +28,6 @@ inc.client1   .... .... ..
 
 --- ** language
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE PackageImports #-}
 
 --- ** exports
 module Hledger.Read.TimedotReader (
@@ -173,7 +172,7 @@ entryp = do
   lift $ optional $ choice [orgheadingprefixp, skipNonNewlineSpaces1]
   a <- modifiedaccountnamep
   lift skipNonNewlineSpaces
-  hrs <-
+  hours <-
     try (lift followingcommentp >> return 0)
     <|> (lift durationp <*
          (try (lift followingcommentp) <|> (newline >> return "")))
@@ -187,7 +186,7 @@ entryp = do
           tstatus    = Cleared,
           tpostings  = [
             nullposting{paccount=a
-                      ,pamount=mixedAmount $ nullamt{acommodity=c, aquantity=hrs, astyle=s}
+                      ,pamount=mixedAmount $ nullamt{acommodity=c, aquantity=hours, astyle=s}
                       ,ptype=VirtualPosting
                       ,ptransaction=Just t
                       }

@@ -2,7 +2,6 @@
 {-# LANGUAGE NoMonoLocalBinds    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-|
 
@@ -348,9 +347,9 @@ latestSpanContaining :: [DateSpan] -> Day -> Maybe DateSpan
 latestSpanContaining datespans = go
   where
     go day = do
-        span <- Set.lookupLT supSpan spanSet
-        guard $ spanContainsDate span day
-        return span
+        spn <- Set.lookupLT supSpan spanSet
+        guard $ spanContainsDate spn day
+        return spn
       where
         -- The smallest DateSpan larger than any DateSpan containing day.
         supSpan = DateSpan (Just $ addDays 1 day) Nothing
@@ -387,18 +386,19 @@ spanFromSmartDate :: Day -> SmartDate -> DateSpan
 spanFromSmartDate refdate sdate = DateSpan (Just b) (Just e)
     where
       (ry,rm,_) = toGregorian refdate
-      (b,e) = span sdate
-      span :: SmartDate -> (Day,Day)
-      span (SmartCompleteDate day)       = (day, nextday day)
-      span (SmartAssumeStart y Nothing)  = (startofyear day, nextyear day) where day = fromGregorian y 1 1
-      span (SmartAssumeStart y (Just m)) = (startofmonth day, nextmonth day) where day = fromGregorian y m 1
-      span (SmartFromReference m d)      = (day, nextday day) where day = fromGregorian ry (fromMaybe rm m) d
-      span (SmartMonth m)                = (startofmonth day, nextmonth day) where day = fromGregorian ry m 1
-      span (SmartRelative n Day)         = (addDays n refdate, addDays (n+1) refdate)
-      span (SmartRelative n Week)        = (addDays (7*n) d, addDays (7*n+7) d) where d = thisweek refdate
-      span (SmartRelative n Month)       = (addGregorianMonthsClip n d, addGregorianMonthsClip (n+1) d) where d = thismonth refdate
-      span (SmartRelative n Quarter)     = (addGregorianMonthsClip (3*n) d, addGregorianMonthsClip (3*n+3) d) where d = thisquarter refdate
-      span (SmartRelative n Year)        = (addGregorianYearsClip n d, addGregorianYearsClip (n+1) d) where d = thisyear refdate
+      (b,e) = span' sdate
+        where
+          span' :: SmartDate -> (Day,Day)
+          span' (SmartCompleteDate day)       = (day, nextday day)
+          span' (SmartAssumeStart y Nothing)  = (startofyear day, nextyear day) where day = fromGregorian y 1 1
+          span' (SmartAssumeStart y (Just m)) = (startofmonth day, nextmonth day) where day = fromGregorian y m 1
+          span' (SmartFromReference m d)      = (day, nextday day) where day = fromGregorian ry (fromMaybe rm m) d
+          span' (SmartMonth m)                = (startofmonth day, nextmonth day) where day = fromGregorian ry m 1
+          span' (SmartRelative n Day)         = (addDays n refdate, addDays (n+1) refdate)
+          span' (SmartRelative n Week)        = (addDays (7*n) d, addDays (7*n+7) d) where d = thisweek refdate
+          span' (SmartRelative n Month)       = (addGregorianMonthsClip n d, addGregorianMonthsClip (n+1) d) where d = thismonth refdate
+          span' (SmartRelative n Quarter)     = (addGregorianMonthsClip (3*n) d, addGregorianMonthsClip (3*n+3) d) where d = thisquarter refdate
+          span' (SmartRelative n Year)        = (addGregorianYearsClip n d, addGregorianYearsClip (n+1) d) where d = thisyear refdate
 
 -- showDay :: Day -> String
 -- showDay day = printf "%04d/%02d/%02d" y m d where (y,m,d) = toGregorian day
@@ -541,7 +541,7 @@ thisquarter = startofquarter
 startofquarter day = fromGregorian y (firstmonthofquarter m) 1
     where
       (y,m,_) = toGregorian day
-      firstmonthofquarter m = ((m-1) `div` 3) * 3 + 1
+      firstmonthofquarter m2 = ((m2-1) `div` 3) * 3 + 1
 
 thisyear = startofyear
 prevyear = startofyear . addGregorianYearsClip (-1)
@@ -577,14 +577,14 @@ intervalStartBefore int d =
 -- >>> nthdayofyearcontaining 1 1 wed22nd
 -- 2017-01-01
 nthdayofyearcontaining :: Month -> MonthDay -> Day -> Day
-nthdayofyearcontaining m md date
+nthdayofyearcontaining m mdy date
   -- PARTIAL:
   | not (validMonth m)  = error' $ "nthdayofyearcontaining: invalid month "++show m
-  | not (validDay   md) = error' $ "nthdayofyearcontaining: invalid day "  ++show md
+  | not (validDay   mdy) = error' $ "nthdayofyearcontaining: invalid day "  ++show mdy
   | mmddOfSameYear <= date = mmddOfSameYear
   | otherwise = mmddOfPrevYear
-  where mmddOfSameYear = addDays (toInteger md-1) $ applyN (m-1) nextmonth s
-        mmddOfPrevYear = addDays (toInteger md-1) $ applyN (m-1) nextmonth $ prevyear s
+  where mmddOfSameYear = addDays (toInteger mdy-1) $ applyN (m-1) nextmonth s
+        mmddOfPrevYear = addDays (toInteger mdy-1) $ applyN (m-1) nextmonth $ prevyear s
         s = startofyear date
 
 -- | For given date d find month-long interval that starts on nth day of month
@@ -606,13 +606,13 @@ nthdayofyearcontaining m md date
 -- >>> nthdayofmonthcontaining 30 wed22nd
 -- 2017-10-30
 nthdayofmonthcontaining :: MonthDay -> Day -> Day
-nthdayofmonthcontaining md date
+nthdayofmonthcontaining mdy date
   -- PARTIAL:
-  | not (validDay md) = error' $ "nthdayofmonthcontaining: invalid day "  ++show md
+  | not (validDay mdy) = error' $ "nthdayofmonthcontaining: invalid day "  ++show mdy
   | nthOfSameMonth <= date = nthOfSameMonth
   | otherwise = nthOfPrevMonth
-  where nthOfSameMonth = nthdayofmonth md s
-        nthOfPrevMonth = nthdayofmonth md $ prevmonth s
+  where nthOfSameMonth = nthdayofmonth mdy s
+        nthOfPrevMonth = nthdayofmonth mdy $ prevmonth s
         s = startofmonth date
 
 -- | For given date d find week-long interval that starts on nth day of week
@@ -807,8 +807,8 @@ yyyymmdd :: TextParser m SmartDate
 yyyymmdd = do
   y <- read <$> count 4 digitChar
   m <- read <$> count 2 digitChar
-  md <- optional $ read <$> count 2 digitChar
-  case md of
+  mdy <- optional $ read <$> count 2 digitChar
+  case mdy of
       Nothing -> failIfInvalidDate $ SmartAssumeStart y (Just m)
       Just d  -> maybe (Fail.fail $ showBadDate y m d) (return . SmartCompleteDate) $
                    fromGregorianValid y m d
@@ -1080,19 +1080,19 @@ tests_Dates = testGroup "Dates"
             ]
 
   , testCase "match dayOfWeek" $ do
-      let dayofweek n s = splitspan (nthdayofweekcontaining n) (\w -> (if w == 0 then id else applyN (n-1) nextday . applyN (fromInteger w) nextweek)) 1 s
-          match ds day = splitSpan (DaysOfWeek [day]) ds @?= dayofweek day ds
+      let dayofweek n = splitspan (nthdayofweekcontaining n) (\w -> (if w == 0 then id else applyN (n-1) nextday . applyN (fromInteger w) nextweek)) 1
+          matchdow ds day = splitSpan (DaysOfWeek [day]) ds @?= dayofweek day ds
           ys2021 = fromGregorian 2021 01 01
           ye2021 = fromGregorian 2021 12 31
           ys2022 = fromGregorian 2022 01 01
-      mapM_ (match (DateSpan (Just ys2021) (Just ye2021))) [1..7]
-      mapM_ (match (DateSpan (Just ys2021) (Just ys2022))) [1..7]
-      mapM_ (match (DateSpan (Just ye2021) (Just ys2022))) [1..7]
+      mapM_ (matchdow (DateSpan (Just ys2021) (Just ye2021))) [1..7]
+      mapM_ (matchdow (DateSpan (Just ys2021) (Just ys2022))) [1..7]
+      mapM_ (matchdow (DateSpan (Just ye2021) (Just ys2022))) [1..7]
 
-      mapM_ (match (DateSpan (Just ye2021) Nothing)) [1..7]
-      mapM_ (match (DateSpan (Just ys2022) Nothing)) [1..7]
+      mapM_ (matchdow (DateSpan (Just ye2021) Nothing)) [1..7]
+      mapM_ (matchdow (DateSpan (Just ys2022) Nothing)) [1..7]
 
-      mapM_ (match (DateSpan Nothing (Just ye2021))) [1..7]
-      mapM_ (match (DateSpan Nothing (Just ys2022))) [1..7]
+      mapM_ (matchdow (DateSpan Nothing (Just ye2021))) [1..7]
+      mapM_ (matchdow (DateSpan Nothing (Just ys2022))) [1..7]
 
   ]

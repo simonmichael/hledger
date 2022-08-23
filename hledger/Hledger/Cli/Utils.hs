@@ -181,16 +181,16 @@ maybeFileModificationTime f = do
 
 -- | Attempt to open a web browser on the given url, all platforms.
 openBrowserOn :: String -> IO ExitCode
-openBrowserOn u = trybrowsers browsers u
+openBrowserOn = trybrowsers browsers
     where
-      trybrowsers (b:bs) u = do
-        (e,_,_) <- readProcessWithExitCode b [u] ""
+      trybrowsers (b:bs) u1 = do
+        (e,_,_) <- readProcessWithExitCode b [u1] ""
         case e of
           ExitSuccess -> return ExitSuccess
-          ExitFailure _ -> trybrowsers bs u
-      trybrowsers [] u = do
+          ExitFailure _ -> trybrowsers bs u1
+      trybrowsers [] u1 = do
         putStrLn $ printf "Could not start a web browser (tried: %s)" $ intercalate ", " browsers
-        putStrLn $ printf "Please open your browser and visit %s" u
+        putStrLn $ printf "Please open your browser and visit %s" u1
         return $ ExitFailure 127
       browsers | os=="darwin"  = ["open"]
                | os=="mingw32" = ["c:/Program Files/Mozilla Firefox/firefox.exe"]
@@ -270,11 +270,11 @@ postingsOrTransactionsReportAsText alignAll opts itemAsText itemamt itembal repo
     minWidth  = 12
     chunkSize = 1000
 
-    renderItem (amtWidth, balWidth) item@(_, amt, bal) = ((amtWidth', balWidth'), itemBuilder)
+    renderItem (amtWidth, balWidth) item@(_, amt1, bal1) = ((amtWidth', balWidth'), itemBuilder)
       where
         itemBuilder = itemAsText amtWidth' balWidth' item
-        amtWidth' = if alignAll then amtWidth else maximumStrict $ amtWidth : map wbWidth amt
-        balWidth' = if alignAll then balWidth else maximumStrict $ balWidth : map wbWidth bal
+        amtWidth' = if alignAll then amtWidth else maximumStrict $ amtWidth : map wbWidth amt1
+        balWidth' = if alignAll then balWidth else maximumStrict $ balWidth : map wbWidth bal1
 
     startWidth f = maximum $ minWidth : map wbWidth (concatMap f startAlign)
       where

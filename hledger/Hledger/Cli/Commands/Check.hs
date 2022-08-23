@@ -96,10 +96,10 @@ parseCheckArgument s =
 -- | Run the named error check, possibly with some arguments, 
 -- on this journal with these options.
 runCheck :: CliOpts -> Journal -> (Check,[String]) -> IO ()
-runCheck CliOpts{reportspec_=ReportSpec{_rsReportOpts=ropts}} j (check,_) = do
+runCheck CliOpts{reportspec_=ReportSpec{_rsReportOpts=ropts}} j (chck,_) = do
   d <- getCurrentDay
   let
-    results = case check of
+    results = case chck of
       Accounts        -> journalCheckAccounts j
       Commodities     -> journalCheckCommodities j
       Ordereddates    -> journalCheckOrdereddates (whichDate ropts) j

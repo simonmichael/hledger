@@ -252,14 +252,14 @@ dbgJournalAcctDeclOrder prefix
   where
     showAcctDeclsSummary :: [(AccountName,AccountDeclarationInfo)] -> String
     showAcctDeclsSummary adis
-      | length adis < (2*num+2) = "[" <> showadis adis <> "]"
+      | length adis < (2*n+2) = "[" <> showadis adis <> "]"
       | otherwise =
-          "[" <> showadis (take num adis) <> " ... " <> showadis (takelast num adis) <> "]"
+          "[" <> showadis (take n adis) <> " ... " <> showadis (takelast n adis) <> "]"
       where
-        num = 3
+        n = 3
         showadis = intercalate ", " . map showadi
         showadi (a,adi) = "("<>show (adideclarationorder adi)<>","<>T.unpack a<>")"
-        takelast n = reverse . take n . reverse
+        takelast n' = reverse . take n' . reverse
 
 instance Default Journal where
   def = nulljournal
@@ -405,7 +405,7 @@ journalAccountTags Journal{jdeclaredaccounttags} a = M.findWithDefault [] a jdec
 -- | Which tags are in effect for this account, including tags inherited from parent accounts ?
 journalInheritedAccountTags :: Journal -> AccountName -> [Tag]
 journalInheritedAccountTags j a =
-  foldl' (\ts a -> ts `union` journalAccountTags j a) [] as
+  foldl' (\ts a' -> ts `union` journalAccountTags j a') [] as
   where
     as = a : parentAccountNames a
 -- PERF: cache in journal ?

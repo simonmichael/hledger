@@ -5,7 +5,7 @@
 
 {- Construct two balance reports for two different time periods and render them side by side -}
 
-{-# OPTIONS_GHC -Wno-missing-signatures -Wno-name-shadowing #-}
+{-# OPTIONS_GHC -Wno-missing-signatures #-}
 
 import System.Environment (getArgs)
 import Hledger.Cli

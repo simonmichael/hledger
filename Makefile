@@ -206,7 +206,6 @@ WARNINGS:=\
 	-Wall \
   -Wno-incomplete-uni-patterns \
 	-Wno-missing-signatures \
-	-Wno-name-shadowing \
 	-Wno-orphans \
 	-Wno-type-defaults \
 	-Wno-unused-do-bind \
@@ -418,7 +417,7 @@ ghci-web-test: webdirs $(call def-help,ghci-web-test, start ghci REPL on hledger
 # better than stack exec ?
 # XXX does not see changes to files
 ghci-unit-test: $(call def-help,ghci-unit-test, start ghci REPL on hledger-lib + unit test suite)
-	$(STACKGHCI) ghci --ghc-options='-rtsopts -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-name-shadowing -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind  -ihledger-lib  -DDEVELOPMENT -DVERSION="\"1.26.99\""' hledger-lib/test/unittest.hs
+	$(STACKGHCI) ghci --ghc-options='-rtsopts $(WARNINGS) -ihledger-lib  -DDEVELOPMENT -DVERSION="\"1.26.99\""' hledger-lib/test/unittest.hs
 
 # ghci-all: $(call def-help,ghci-all, start ghci REPL on all the hledger)
 # 	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) \

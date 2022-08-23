@@ -210,7 +210,7 @@ updateReportPeriod updatePeriod = fromRight err . overEither period updatePeriod
 
 -- | Apply a new filter query, or return the failing query.
 setFilter :: String -> UIState -> Either String UIState
-setFilter s = first (const s) . setEither querystring (words'' prefixes $ T.pack s)
+setFilter s = first (const s) . setEither querystring (words'' queryprefixes $ T.pack s)
 
 -- | Reset some filters & toggles.
 resetFilter :: UIState -> UIState

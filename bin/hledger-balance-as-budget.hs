@@ -3,7 +3,7 @@
 -- Run from inside the hledger source tree, or compile with compile.sh.
 -- See hledger-check-fancyassertions.hs.
 
--- {-# OPTIONS_GHC -Wno-missing-signatures -Wno-name-shadowing #-}
+-- {-# OPTIONS_GHC -Wno-missing-signatures #-}
 
 {-| Construct two balance reports for two different time periods and use one of the as "budget" for
     the other, thus comparing them

@@ -139,8 +139,8 @@ entryFromTimeclockInOut i o
       -- since otherwise it will often have large recurring decimal parts which (since 1.21)
       -- print would display all 255 digits of. timeclock amounts have one second resolution,
       -- so two decimal places is precise enough (#1527).
-      amount   = mixedAmount $ setAmountInternalPrecision 2 $ hrs hours
-      ps       = [posting{paccount=acctname, pamount=amount, ptype=VirtualPosting, ptransaction=Just t}]
+      amt   = mixedAmount $ setAmountInternalPrecision 2 $ hrs hours
+      ps       = [posting{paccount=acctname, pamount=amt, ptype=VirtualPosting, ptransaction=Just t}]
 
 
 -- tests

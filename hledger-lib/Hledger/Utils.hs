@@ -183,7 +183,7 @@ readFileOrStdinPortably f = openFileOrStdin f ReadMode >>= readHandlePortably
   where
     openFileOrStdin :: String -> IOMode -> IO Handle
     openFileOrStdin "-" _ = return stdin
-    openFileOrStdin f m   = openFile f m
+    openFileOrStdin f' m   = openFile f' m
 
 readHandlePortably :: Handle -> IO Text
 readHandlePortably h = do
@@ -225,9 +225,9 @@ sequence' ms = do
   return (h [])
   where
     go h [] = return h
-    go h (m:ms) = do
+    go h (m:ms') = do
       x <- m
-      go (h . (x :)) ms
+      go (h . (x :)) ms'
 
 -- | Like mapM but uses sequence'.
 {-# INLINABLE mapM' #-}
@@ -339,7 +339,7 @@ makeHledgerClassyLenses x = flip makeLensesWith x $ classyRules
     -- HasReportOpts class with some special behaviour. We therefore give the
     -- basic lenses a special NoUpdate name to avoid conflicts.
     className "ReportOpts" = Just (mkName "HasReportOptsNoUpdate", mkName "reportOptsNoUpdate")
-    className (x:xs)       = Just (mkName ("Has" ++ x:xs), mkName (toLower x : xs))
+    className (x':xs)       = Just (mkName ("Has" ++ x':xs), mkName (toLower x' : xs))
     className []           = Nothing
 
     -- Fields of ReportOpts which need to update the Query when they are updated.

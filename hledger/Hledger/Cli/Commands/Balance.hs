@@ -267,7 +267,7 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import Data.Time (addDays, fromGregorian)
 import System.Console.CmdArgs.Explicit as C
-import Lucid as L
+import Lucid as L hiding (value_)
 import Safe (headMay, maximumMay)
 import Text.Tabular.AsciiWide
     (Align(..), Cell(..), Table(..), TableOpts(..), cellWidth, concatTables,
@@ -340,8 +340,8 @@ balancemode = hledgerCommandMode
 balance :: CliOpts -> Journal -> IO ()
 balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ of
     CalcBudget -> do  -- single or multi period budget report
-      let reportspan = fst $ reportSpan j rspec
-          budgetreport = budgetReport rspec (balancingopts_ $ inputopts_ opts) reportspan j
+      let rspan = fst $ reportSpan j rspec
+          budgetreport = budgetReport rspec (balancingopts_ $ inputopts_ opts) rspan j
           render = case fmt of
             "txt"  -> budgetReportAsText ropts
             "json" -> (<>"\n") . toJsonText
@@ -362,8 +362,8 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ of
     _ -> do  -- single period simple balance report
         let report = balanceReport rspec j -- simple Ledger-style balance report
             render = case fmt of
-              "txt"  -> \ropts -> TB.toLazyText . balanceReportAsText ropts
-              "csv"  -> \ropts -> printCSV . balanceReportAsCsv ropts
+              "txt"  -> \ropts1 -> TB.toLazyText . balanceReportAsText ropts1
+              "csv"  -> \ropts1 -> printCSV . balanceReportAsCsv ropts1
               -- "html" -> \ropts -> (<>"\n") . L.renderText . multiBalanceReportAsHtml ropts . balanceReportAsMultiBalanceReport ropts
               "json" -> const $ (<>"\n") . toJsonText
               _      -> error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
@@ -430,9 +430,9 @@ balanceReportAsText :: ReportOpts -> BalanceReport -> TB.Builder
 balanceReportAsText opts ((items, total)) = case layout_ opts of
     LayoutBare | iscustom -> error' "Custom format not supported with commodity columns"  -- PARTIAL:
     LayoutBare -> balanceReportAsText' opts ((items, total))
-    _ -> unlinesB lines <> unlinesB (if no_total_ opts then [] else [overline, totalLines])
+    _ -> unlinesB ls <> unlinesB (if no_total_ opts then [] else [overline, totalLines])
   where
-    (lines, sizes) = unzip $ map (balanceReportItemAsText opts) items
+    (ls, sizes) = unzip $ map (balanceReportItemAsText opts) items
     -- abuse renderBalanceReportItem to render the total with similar format
     (totalLines, _) = renderBalanceReportItem opts ("",0,total)
     -- with a custom format, extend the line to the full report width;
@@ -449,20 +449,20 @@ balanceReportAsText opts ((items, total)) = case layout_ opts of
 balanceReportAsText' :: ReportOpts -> BalanceReport -> TB.Builder
 balanceReportAsText' opts ((items, total)) =
   unlinesB . fmap (renderColumns def{tableBorders=False} sizes .  Tab.Group Tab.NoLine . fmap Tab.Header) $
-    lines ++ concat [[[overline], totalline] | not (no_total_ opts)]
+    ls ++ concat [[[overline], totalline] | not (no_total_ opts)]
   where
-    render (_, acctname, depth, amt) =
+    render (_, acctname, dep, amt) =
         [ Cell TopRight damts
         , Cell TopLeft (fmap wbFromText cs)
         , Cell TopLeft (replicate (length damts - 1) mempty ++ [wbFromText dispname]) ]
       where dopts = oneLine{displayColour=color_ opts, displayOrder=Just cs}
             cs    = if mixedAmountLooksZero amt then [""] else S.toList $ maCommodities amt
-            dispname = T.replicate ((depth - 1) * 2) " " <> acctname
+            dispname = T.replicate ((dep - 1) * 2) " " <> acctname
             damts = showMixedAmountLinesB dopts amt
-    lines = fmap render items
+    ls = fmap render items
     totalline = render ("", "", 0, total)
     sizes = fromMaybe 0 . maximumMay . map cellWidth <$>
-        transpose ([totalline | not (no_total_ opts)] ++ lines)
+        transpose ([totalline | not (no_total_ opts)] ++ ls)
     overline = Cell TopLeft . pure . wbFromText . flip T.replicate "-" . fromMaybe 0 $ headMay sizes
 
 {-
@@ -481,12 +481,12 @@ This implementation turned out to be a bit convoluted but implements the followi
 -- differently-priced quantities of the same commodity will appear merged.
 -- The output will be one or more lines depending on the format and number of commodities.
 balanceReportItemAsText :: ReportOpts -> BalanceReportItem -> (TB.Builder, [Int])
-balanceReportItemAsText opts (_, accountName, depth, amt) =
-  renderBalanceReportItem opts (accountName, depth, amt)
+balanceReportItemAsText opts (_, accountName, dep, amt) =
+  renderBalanceReportItem opts (accountName, dep, amt)
 
 -- | Render a balance report item using the given StringFormat, generating one or more lines of text.
 renderBalanceReportItem :: ReportOpts -> (AccountName, Int, MixedAmount) -> (TB.Builder, [Int])
-renderBalanceReportItem opts (acctname, depth, total) =
+renderBalanceReportItem opts (acctname, dep, total) =
   case format_ opts of
       OneLine       comps -> renderRow' $ render True  True  comps
       TopAligned    comps -> renderRow' $ render True  False comps
@@ -496,14 +496,14 @@ renderBalanceReportItem opts (acctname, depth, total) =
                       . Tab.Group Tab.NoLine $ map Tab.Header is
                     , map cellWidth is )
 
-    render topaligned oneline = map (renderComponent topaligned oneline opts (acctname, depth, total))
+    render topaligned oneline = map (renderComponent topaligned oneline opts (acctname, dep, total))
 
 -- | Render one StringFormat component for a balance report item.
 renderComponent :: Bool -> Bool -> ReportOpts -> (AccountName, Int, MixedAmount) -> StringFormatComponent -> Cell
 renderComponent _ _ _ _ (FormatLiteral s) = textCell TopLeft s
-renderComponent topaligned oneline opts (acctname, depth, total) (FormatField ljust mmin mmax field) = case field of
+renderComponent topaligned oneline opts (acctname, dep, total) (FormatField ljust mmin mmax field) = case field of
     DepthSpacerField -> Cell align [WideBuilder (TB.fromText $ T.replicate d " ") d]
-                        where d = maybe id min mmax $ depth * fromMaybe 1 mmin
+                        where d = maybe id min mmax $ dep * fromMaybe 1 mmin
     AccountField     -> textCell align $ formatText ljust mmin mmax acctname
     TotalField       -> Cell align . pure $ showMixedAmountB dopts total
     _                -> Cell align [mempty]
@@ -721,13 +721,13 @@ multiBalanceRowAsWbs bopts ReportOpts{..} colspans (PeriodicReportRow _ as rowto
     totalscolumn = row_total_ && balanceaccum_ `notElem` [Cumulative, Historical]
     cs = if all mixedAmountLooksZero allamts then [""] else S.toList $ foldMap maCommodities allamts
     allamts = as ++ [rowtot | totalscolumn && not (null as)] ++ [rowavg | average_ && not (null as)]
-    addDateColumns span@(DateSpan s e) = (wbFromText (showDateSpan span) :)
+    addDateColumns spn@(DateSpan s e) = (wbFromText (showDateSpan spn) :)
                                        . (wbFromText (maybe "" showDate s) :)
                                        . (wbFromText (maybe "" (showDate . addDays (-1)) e) :)
 
     paddedTranspose :: a -> [[a]] -> [[a]]
     paddedTranspose _ [] = [[]]
-    paddedTranspose n as = take (maximum . map length $ as) . trans $ as
+    paddedTranspose n as1 = take (maximum . map length $ as1) . trans $ as1
         where
           trans ([] : xss)  = (n : map h xss) :  trans ([n] : map t xss)
           trans ((x : xs) : xss) = (x : map h xss) : trans (m xs : map t xss)

@@ -3,7 +3,7 @@
 -- Run from inside the hledger source tree, or compile with compile.sh.
 -- See hledger-check-fancyassertions.hs.
 
-{-# OPTIONS_GHC -Wno-missing-signatures -Wno-name-shadowing #-}
+{-# OPTIONS_GHC -Wno-missing-signatures #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RecordWildCards #-}

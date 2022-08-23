@@ -86,7 +86,7 @@ import Data.Time.Calendar (Day)
 import Safe (maximumBound)
 import Text.DocLayout (realLength)
 
-import Text.Tabular.AsciiWide
+import Text.Tabular.AsciiWide hiding (render)
 
 import Hledger.Utils
 import Hledger.Data.Types
@@ -396,7 +396,7 @@ postingApplyAliases aliases p@Posting{paccount} =
     Right a -> Right p{paccount=a}
     Left e  -> Left err
       where
-        err = "problem while applying account aliases:\n" ++ pshow aliases 
+        err = "problem while applying account aliases:\n" ++ pshow aliases
           ++ "\n to account name: "++T.unpack paccount++"\n "++e
 
 -- | Choose and apply a consistent display style to the posting
@@ -427,7 +427,7 @@ postingToCost styles ToCost         p
     | "_conversion-matched" `elem` map fst (ptags p) && noCost = Nothing
     | otherwise = Just $ postingTransformAmount (styleMixedAmount styles . mixedAmountCost) p
   where
-    noCost = null . filter (isJust . aprice) . amountsRaw $ pamount p
+    noCost = (not . any (isJust . aprice) . amountsRaw) $ pamount p
 
 -- | Generate inferred equity postings from a 'Posting' using transaction prices.
 -- Make sure not to generate equity postings when there are already matched
@@ -497,7 +497,7 @@ commentAddTag c (t,v)
 -- A space is inserted following the colon, before the value.
 commentAddTagNextLine :: Text -> Tag -> Text
 commentAddTagNextLine cmt (t,v) =
-  cmt <> (if "\n" `T.isSuffixOf` cmt then "" else "\n") <> t <> ": " <> v 
+  cmt <> (if "\n" `T.isSuffixOf` cmt then "" else "\n") <> t <> ": " <> v
 
 
 -- tests

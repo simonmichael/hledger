@@ -1,4 +1,3 @@
-{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Hledger.Data.JournalChecks.Uniqueleafnames (
@@ -43,12 +42,12 @@ journalCheckUniqueleafnames j = do
             (f,l,_,ex2) = makePostingErrorExcerpt p2 finderrcols
             -- separate the two excerpts by a space-beginning line to help flycheck-hledger parse them
             ex = T.unlines [textChomp ex1, T.pack " ...", textChomp ex2]
-            finderrcols p _ _ = Just (col, Just col2)
+            finderrcols p' _ _ = Just (col, Just col2)
               where
-                a = paccount p
+                a = paccount p'
                 alen = T.length a
                 llen = T.length $ accountLeafName a
-                col = 5 + (if isVirtual p then 1 else 0) + alen - llen
+                col = 5 + (if isVirtual p' then 1 else 0) + alen - llen
                 col2 = col + llen - 1
             accts = T.unlines fulls
 
