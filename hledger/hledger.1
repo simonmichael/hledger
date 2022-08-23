@@ -5161,7 +5161,8 @@ help
 .PD 0
 .P
 .PD
-Show the hledger user manual with info, man, or a pager if possible.
+Show the hledger user manual in the terminal, with \f[C]info\f[R],
+\f[C]man\f[R], or a pager.
 With a TOPIC argument, open it at that topic if possible.
 TOPIC can be any heading in the manual, or a heading prefix, case
 insensitive.
@@ -5173,8 +5174,8 @@ It can be useful when offline, or when you prefer the terminal to a web
 browser, or when the appropriate hledger manual or viewing tools are not
 installed on your system.
 .PP
-By default it chooses the best viewer found in $PATH, preferring info
-since the hledger manual is large.
+By default it chooses the best viewer found in $PATH (preferring info
+since the hledger manual is large).
 You can select a particular viewer with the \f[C]-i\f[R], \f[C]-m\f[R],
 or \f[C]-p\f[R] flags.
 .PP
@@ -8157,7 +8158,7 @@ If account\[aq]s name contains this (CI) regular expression:            | its ty
 .RE
 .IP \[bu] 2
 If you declare any account types, it\[aq]s a good idea to declare an
-account for each of them, because a mixture of declared and
+account for all of the account types, because a mixture of declared and
 name-inferred types can disrupt certain reports.
 .IP \[bu] 2
 Certain uses of account aliases can disrupt account types.
