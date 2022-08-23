@@ -77,6 +77,10 @@ when:
 - condition: flag(dev)
   ghc-options: -O0
 
+dependencies:
+- base >=4.14 && <4.17
+- breakpoint
+
 library:
   source-dirs: .
   cpp-options: -DVERSION="1.26.99"
@@ -99,14 +103,12 @@ library:
   - Hledger.Web.Widget.AddForm
   - Hledger.Web.Widget.Common
   dependencies:
-  - base >=4.14 && <4.17
   - hledger-lib >=1.26.99 && <1.27
   - hledger >=1.26.99 && <1.27
   - aeson >=1
   - base64
   - blaze-html
   - blaze-markup
-  - breakpoint
   - bytestring
   - case-insensitive
   - clientsession
@@ -153,7 +155,6 @@ executables:
     main: main.hs
     cpp-options: -DVERSION="1.26.99"
     dependencies:
-    - base
     - hledger-web
     when:
     - condition: flag(library-only)
@@ -168,7 +169,6 @@ tests:
     other-modules: []  # prevent double compilation, https://github.com/sol/hpack/issues/188
     cpp-options: -DVERSION="1.26.99"
     dependencies:
-    - base
     - hledger-lib
     - hledger
     - hledger-web
