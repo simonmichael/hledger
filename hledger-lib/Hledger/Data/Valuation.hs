@@ -193,7 +193,7 @@ amountValueAtDate priceoracle styles mto d a =
                                       -- Make default display style use precision 2 instead of 0 ?
                                       -- Leave as is for now; mentioned in manual.
       styleAmount styles
-      amount{acommodity=comm, aquantity=rate * aquantity a}
+      nullamt{acommodity=comm, aquantity=rate * aquantity a}
 
 -- | Calculate the gain of each component amount, that is the difference
 -- between the valued amount and the value of the cost basis (see

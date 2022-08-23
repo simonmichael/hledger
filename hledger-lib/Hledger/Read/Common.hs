@@ -1480,24 +1480,24 @@ tests_Common = testGroup "Common" [
    ,testCase "unit price"             $ assertParseEq amountp "$10 @ €0.5"
       -- not precise enough:
       -- (usd 10 `withPrecision` 0 `at` (eur 0.5 `withPrecision` 1)) -- `withStyle` asdecimalpoint=Just '.'
-      amount{
+      nullamt{
          acommodity="$"
         ,aquantity=10 -- need to test internal precision with roundTo ? I think not
         ,astyle=amountstyle{asprecision=Precision 0, asdecimalpoint=Nothing}
         ,aprice=Just $ UnitPrice $
-          amount{
+          nullamt{
              acommodity="€"
             ,aquantity=0.5
             ,astyle=amountstyle{asprecision=Precision 1, asdecimalpoint=Just '.'}
             }
         }
    ,testCase "total price"            $ assertParseEq amountp "$10 @@ €5"
-      amount{
+      nullamt{
          acommodity="$"
         ,aquantity=10
         ,astyle=amountstyle{asprecision=Precision 0, asdecimalpoint=Nothing}
         ,aprice=Just $ TotalPrice $
-          amount{
+          nullamt{
              acommodity="€"
             ,aquantity=5
             ,astyle=amountstyle{asprecision=Precision 0, asdecimalpoint=Nothing}

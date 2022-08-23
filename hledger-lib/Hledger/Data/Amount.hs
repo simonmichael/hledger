@@ -49,7 +49,6 @@ module Hledger.Data.Amount (
   isNonsimpleCommodityChar,
   quoteCommoditySymbolIfNeeded,
   -- * Amount
-  amount,
   nullamt,
   missingamt,
   num,
@@ -255,24 +254,23 @@ instance Num Amount where
     (-)                          = similarAmountsOp (-)
     (*)                          = similarAmountsOp (*)
 
--- TODO: amount, num are clashy
 -- | The empty simple amount.
-amount, nullamt :: Amount
-amount = Amount{acommodity="", aquantity=0, aprice=Nothing, astyle=amountstyle}
-nullamt = amount
+nullamt :: Amount
+nullamt = Amount{acommodity="", aquantity=0, aprice=Nothing, astyle=amountstyle}
 
 -- | A temporary value for parsed transactions which had no amount specified.
 missingamt :: Amount
-missingamt = amount{acommodity="AUTO"}
+missingamt = nullamt{acommodity="AUTO"}
 
 -- Handy amount constructors for tests.
 -- usd/eur/gbp round their argument to a whole number of pennies/cents.
-num n = amount{acommodity="",  aquantity=n}
-hrs n = amount{acommodity="h", aquantity=n,           astyle=amountstyle{asprecision=Precision 2, ascommodityside=R}}
-usd n = amount{acommodity="$", aquantity=roundTo 2 n, astyle=amountstyle{asprecision=Precision 2}}
-eur n = amount{acommodity="€", aquantity=roundTo 2 n, astyle=amountstyle{asprecision=Precision 2}}
-gbp n = amount{acommodity="£", aquantity=roundTo 2 n, astyle=amountstyle{asprecision=Precision 2}}
-per n = amount{acommodity="%", aquantity=n,           astyle=amountstyle{asprecision=Precision 1, ascommodityside=R, ascommodityspaced=True}}
+-- XXX these are a bit clashy
+num n = nullamt{acommodity="",  aquantity=n}
+hrs n = nullamt{acommodity="h", aquantity=n,           astyle=amountstyle{asprecision=Precision 2, ascommodityside=R}}
+usd n = nullamt{acommodity="$", aquantity=roundTo 2 n, astyle=amountstyle{asprecision=Precision 2}}
+eur n = nullamt{acommodity="€", aquantity=roundTo 2 n, astyle=amountstyle{asprecision=Precision 2}}
+gbp n = nullamt{acommodity="£", aquantity=roundTo 2 n, astyle=amountstyle{asprecision=Precision 2}}
+per n = nullamt{acommodity="%", aquantity=n,           astyle=amountstyle{asprecision=Precision 1, ascommodityside=R, ascommodityspaced=True}}
 amt `at` priceamt = amt{aprice=Just $ UnitPrice priceamt}
 amt @@ priceamt = amt{aprice=Just $ TotalPrice priceamt}
 
@@ -287,7 +285,7 @@ similarAmountsOp :: (Quantity -> Quantity -> Quantity) -> Amount -> Amount -> Am
 similarAmountsOp op Amount{acommodity=_,  aquantity=q1, astyle=AmountStyle{asprecision=p1}}
                     Amount{acommodity=c2, aquantity=q2, astyle=s2@AmountStyle{asprecision=p2}} =
    -- trace ("a1:"++showAmountDebug a1) $ trace ("a2:"++showAmountDebug a2) $ traceWith (("= :"++).showAmountDebug)
-   amount{acommodity=c2, aquantity=q1 `op` q2, astyle=s2{asprecision=max p1 p2}}
+   nullamt{acommodity=c2, aquantity=q1 `op` q2, astyle=s2{asprecision=max p1 p2}}
   --  c1==c2 || q1==0 || q2==0 =
   --  otherwise = error "tried to do simple arithmetic with amounts in different commodities"
 
@@ -982,7 +980,7 @@ tests_Amount = testGroup "Amount" [
        amountCost (eur (-1)){aprice=Just $ TotalPrice $ usd (-2)} @?= usd (-2)
 
     ,testCase "amountLooksZero" $ do
-       assertBool "" $ amountLooksZero amount
+       assertBool "" $ amountLooksZero nullamt
        assertBool "" $ amountLooksZero $ usd 0
 
     ,testCase "negating amounts" $ do
