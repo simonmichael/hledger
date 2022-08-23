@@ -22,7 +22,7 @@ import Brick
 import Brick.Widgets.List (listElementsL, listMoveTo, listSelectedElement)
 
 import Hledger
-import Hledger.Cli hiding (progname,prognameandversion)
+import Hledger.Cli hiding (mode, prices, progname,prognameandversion)
 import Hledger.UI.UIOptions
 -- import Hledger.UI.Theme
 import Hledger.UI.UITypes
@@ -170,7 +170,7 @@ tsHandle ev = do
             VtyEvent (EvKey (KChar 'E') []) -> suspendAndResume $ void (runEditor pos f) >> uiReloadJournalIfChanged copts d j ui
               where
                 (pos,f) = case tsourcepos t of
-                            (SourcePos f l1 c1,_) -> (Just (unPos l1, Just $ unPos c1),f)
+                            (SourcePos f' l1 c1,_) -> (Just (unPos l1, Just $ unPos c1),f')
             AppEvent (DateChange old _) | isStandardPeriod p && p `periodContainsDate` old ->
               put' $ regenerateScreens j d $ setReportPeriod (DayPeriod d) ui
               where

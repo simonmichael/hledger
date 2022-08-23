@@ -31,7 +31,7 @@ import System.Console.ANSI
 
 
 import Hledger
-import Hledger.Cli hiding (progname,prognameandversion)
+import Hledger.Cli hiding (mode, progname,prognameandversion)
 import Hledger.UI.UIOptions
 -- import Hledger.UI.Theme
 import Hledger.UI.UITypes
@@ -284,7 +284,7 @@ rsHandle ev = do
   dlogUiTraceM "rsHandle 1"
   case ui0 of
     ui@UIState{
-      aScreen=s@RegisterScreen{..}
+      aScreen=scr@RegisterScreen{..}
       ,aopts=UIOpts{uoCliOpts=copts}
       ,ajournal=j
       ,aMode=mode
@@ -307,8 +307,8 @@ rsHandle ev = do
             -- VtyEvent (EvKey (KChar '/') []) -> put' $ regenerateScreens j d $ showMinibuffer ui
             VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw
             VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
-            VtyEvent ev -> do
-              ed' <- nestEventM' ed $ handleEditorEvent (VtyEvent ev)
+            VtyEvent e -> do
+              ed' <- nestEventM' ed $ handleEditorEvent (VtyEvent e)
               put' ui{aMode=Minibuffer "filter" ed'}
             AppEvent _  -> return ()
             MouseDown{} -> return ()
@@ -341,7 +341,7 @@ rsHandle ev = do
                 (pos,f) = case listSelectedElement rsList of
                             Nothing -> (endPosition, journalFilePath j)
                             Just (_, RegisterScreenItem{
-                              rsItemTransaction=Transaction{tsourcepos=(SourcePos f l c,_)}}) -> (Just (unPos l, Just $ unPos c),f)
+                              rsItemTransaction=Transaction{tsourcepos=(SourcePos f' l c,_)}}) -> (Just (unPos l, Just $ unPos c),f')
 
             -- display mode/query toggles
             VtyEvent (EvKey (KChar 'B') []) -> rsCenterSelection (regenerateScreens j d $ toggleConversionOp ui) >>= put'
@@ -381,7 +381,7 @@ rsHandle ev = do
             -- MouseDown is sometimes duplicated, https://github.com/jtdaugherty/brick/issues/347
             -- just use it to move the selection
             MouseDown _n BLeft _mods Location{loc=(_x,y)} | not $ (=="") clickeddate -> do
-              put' $ ui{aScreen=s{rsList=listMoveTo y rsList}}
+              put' $ ui{aScreen=scr{rsList=listMoveTo y rsList}}
               where clickeddate = maybe "" rsItemDate $ listElements rsList !? y
             -- and on MouseUp, enter the subscreen
             MouseUp _n (Just BLeft) Location{loc=(_x,y)} | not $ (=="") clickeddate -> do
@@ -398,24 +398,24 @@ rsHandle ev = do
             MouseDown name btn _mods _loc | btn `elem` [BScrollUp, BScrollDown] -> do
               let scrollamt = if btn==BScrollUp then -1 else 1
               list' <- nestEventM' rsList $ listScrollPushingSelection name (rsListSize rsList) scrollamt
-              put' ui{aScreen=s{rsList=list'}}
+              put' ui{aScreen=scr{rsList=list'}}
 
             -- if page down or end leads to a blank padding item, stop at last non-blank
             VtyEvent e@(EvKey k           []) | k `elem` [KPageDown, KEnd] -> do
-              list <- nestEventM' rsList $ handleListEvent e
-              if isBlankElement $ listSelectedElement list
+              l <- nestEventM' rsList $ handleListEvent e
+              if isBlankElement $ listSelectedElement l
               then do
-                let list' = listMoveTo lastnonblankidx list
-                scrollSelectionToMiddle list'
-                put' ui{aScreen=s{rsList=list'}}
+                let l' = listMoveTo lastnonblankidx l
+                scrollSelectionToMiddle l'
+                put' ui{aScreen=scr{rsList=l'}}
               else
-                put' ui{aScreen=s{rsList=list}}
+                put' ui{aScreen=scr{rsList=l}}
 
             -- fall through to the list's event handler (handles other [pg]up/down events)
-            VtyEvent ev -> do
-              let ev' = normaliseMovementKeys ev
-              newitems <- nestEventM' rsList $ handleListEvent ev'
-              put' ui{aScreen=s{rsList=newitems}}
+            VtyEvent e -> do
+              let e' = normaliseMovementKeys e
+              newitems <- nestEventM' rsList $ handleListEvent e'
+              put' ui{aScreen=scr{rsList=newitems}}
 
             MouseDown{}       -> return ()
             MouseUp{}         -> return ()

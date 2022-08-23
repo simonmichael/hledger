@@ -29,7 +29,7 @@ import System.FilePath (takeFileName)
 import Text.DocLayout (realLength)
 
 import Hledger
-import Hledger.Cli hiding (progname,prognameandversion)
+import Hledger.Cli hiding (mode, progname, prognameandversion)
 import Hledger.UI.UIOptions
 import Hledger.UI.UITypes
 import Hledger.UI.UIState
@@ -259,8 +259,8 @@ asHandle ev = do
               where s = chomp $ unlines $ map strip $ getEditContents ed
             VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw
             VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
-            VtyEvent ev -> do
-              ed' <- nestEventM' ed $ handleEditorEvent (VtyEvent ev)
+            VtyEvent e -> do
+              ed' <- nestEventM' ed $ handleEditorEvent (VtyEvent e)
               put' ui{aMode=Minibuffer "filter" ed'}
             AppEvent _  -> return ()
             MouseDown{} -> return ()
@@ -357,18 +357,18 @@ asHandle ev = do
 
             -- if page down or end leads to a blank padding item, stop at last non-blank
             VtyEvent e@(EvKey k           []) | k `elem` [KPageDown, KEnd] -> do
-              list <- nestEventM' _asList $ handleListEvent e
-              if isBlankElement $ listSelectedElement list
+              l <- nestEventM' _asList $ handleListEvent e
+              if isBlankElement $ listSelectedElement l
               then do
-                let list' = listMoveTo lastnonblankidx list
-                scrollSelectionToMiddle list'
-                put' ui{aScreen=scr{_asList=list'}}
+                let l' = listMoveTo lastnonblankidx l
+                scrollSelectionToMiddle l'
+                put' ui{aScreen=scr{_asList=l'}}
               else
-                put' ui{aScreen=scr{_asList=list}}
+                put' ui{aScreen=scr{_asList=l}}
 
             -- fall through to the list's event handler (handles up/down)
-            VtyEvent ev -> do
-              list' <- nestEventM' _asList $ handleListEvent (normaliseMovementKeys ev)
+            VtyEvent e -> do
+              list' <- nestEventM' _asList $ handleListEvent (normaliseMovementKeys e)
               put' ui{aScreen=scr & asList .~ list' & asSelectedAccount .~ selacct }
 
             MouseDown{} -> return ()
@@ -384,7 +384,7 @@ asEnterRegister d selacct ui = do
     regscr = rsSetAccount selacct isdepthclipped registerScreen
       where
         isdepthclipped = case getDepth ui of
-                          Just d  -> accountNameLevel selacct >= d
+                          Just de -> accountNameLevel selacct >= de
                           Nothing -> False
   rsCenterSelection (screenEnter d regscr ui) >>= put'
 

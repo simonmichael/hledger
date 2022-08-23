@@ -24,7 +24,7 @@ import Lens.Micro ((^.))
 import Text.Megaparsec
 import Text.Megaparsec.Char
 
-import Hledger.Cli hiding (progname,prognameandversion)
+import Hledger.Cli hiding (mode, progname,prognameandversion)
 import Hledger.UI.UIOptions
 import Hledger.UI.UITypes
 import Hledger.UI.UIState
@@ -101,7 +101,7 @@ esHandle ev = do
             VtyEvent (EvKey (KChar 'E') []) -> suspendAndResume $ void (runEditor pos f) >> uiReloadJournalIfChanged copts d j (popScreen ui)
               where
                 (pos,f) = case parsewithString hledgerparseerrorpositionp esError of
-                            Right (f,l,c) -> (Just (l, Just c),f)
+                            Right (f',l,c) -> (Just (l, Just c),f')
                             Left  _       -> (endPosition, journalFilePath j)
             e | e `elem` [VtyEvent (EvKey (KChar 'g') []), AppEvent FileChange] ->
               liftIO (uiReloadJournal copts d (popScreen ui)) >>= put' . uiCheckBalanceAssertions d

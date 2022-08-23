@@ -166,8 +166,8 @@ runBrickUi uopts@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=rs
         appStartEvent   = return ()
       , appAttrMap      = const $ fromMaybe defaultTheme $ getTheme =<< uoTheme uopts'
       , appChooseCursor = showFirstCursor
-      , appHandleEvent  = \ev -> do ui <- get; sHandle (aScreen ui) ev
-      , appDraw         = \ui -> sDraw (aScreen ui) ui
+      , appHandleEvent  = \ev -> do ui' <- get; sHandle (aScreen ui') ev
+      , appDraw         = \ui' -> sDraw (aScreen ui') ui'
       }
 
   -- print (length (show ui)) >> exitSuccess  -- show any debug output to this point & quit

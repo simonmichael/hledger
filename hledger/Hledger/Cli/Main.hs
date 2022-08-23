@@ -144,8 +144,8 @@ main = do
     printUsage           = putStr $ showModeUsage $ mainmode addons
     badCommandError      = error' ("command "++rawcmd++" is not recognized, run with no command to see a list") >> exitFailure  -- PARTIAL:
     hasHelpFlag args     = any (`elem` args) ["-h","--help"]
-    hasManFlag args      = any (`elem` args) ["--man"]
-    hasInfoFlag args     = any (`elem` args) ["--info"]
+    hasManFlag args      = (`elem` args) "--man"
+    hasInfoFlag args     = (`elem` args) "--info"
     f `orShowHelp` mode
       | hasHelpFlag args = putStr $ showModeUsage mode
       | hasInfoFlag args = runInfoForTopic "hledger" (headMay $ modeNames mode)
