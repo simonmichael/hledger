@@ -22,7 +22,7 @@ import Data.Time.Calendar (Day, addDays)
 import System.Console.CmdArgs.Explicit as C
 import Hledger.Read.CsvReader (CSV, printCSV)
 import Lucid as L hiding (value_)
-import Text.Tabular.AsciiWide as Tab
+import Text.Tabular.AsciiWide as Tab hiding (render)
 
 import Hledger
 import Hledger.Cli.Commands.Balance
@@ -174,11 +174,11 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
 
     -- render appropriately
     render = case outputFormatFromOpts opts of
-        "txt"  -> compoundBalanceReportAsText ropts'
-        "csv"  -> printCSV . compoundBalanceReportAsCsv ropts'
-        "html" -> L.renderText . compoundBalanceReportAsHtml ropts'
-        "json" -> toJsonText
-        x      -> error' $ unsupportedOutputFormatError x
+      "txt"  -> compoundBalanceReportAsText ropts'
+      "csv"  -> printCSV . compoundBalanceReportAsCsv ropts'
+      "html" -> L.renderText . compoundBalanceReportAsHtml ropts'
+      "json" -> toJsonText
+      x      -> error' $ unsupportedOutputFormatError x
 
 -- | Summarise one or more (inclusive) end dates, in a way that's
 -- visually different from showDateSpan, suggesting discrete end dates
@@ -232,12 +232,12 @@ compoundBalanceReportAsText ropts
 
     -- | Convert a named multi balance report to a table suitable for
     -- concatenating with others to make a compound balance report table.
-    subreportAsTable ropts (title, r, _) = t
+    subreportAsTable ropts1 (title1, r, _) = t
       where
         -- convert to table
-        Table lefthdrs tophdrs cells = balanceReportAsTable ropts r
+        Table lefthdrs tophdrs cells = balanceReportAsTable ropts1 r
         -- tweak the layout
-        t = Table (Tab.Group Tab.SingleLine [Tab.Header title, lefthdrs]) tophdrs ([]:cells)
+        t = Table (Tab.Group Tab.SingleLine [Tab.Header title1, lefthdrs]) tophdrs ([]:cells)
 
 -- | Render a compound balance report as CSV.
 -- Subreports' CSV is concatenated, with the headings rows replaced by a
@@ -256,9 +256,9 @@ compoundBalanceReportAsCsv ropts (CompoundPeriodicReport title colspans subrepor
       : concatMap (subreportAsCsv ropts) subreports
   where
     -- | Add a subreport title row and drop the heading row.
-    subreportAsCsv ropts (subreporttitle, multibalreport, _) =
+    subreportAsCsv ropts1 (subreporttitle, multibalreport, _) =
       padRow subreporttitle :
-      tail (multiBalanceReportAsCsv ropts multibalreport)
+      tail (multiBalanceReportAsCsv ropts1 multibalreport)
     padRow s = take numcols $ s : repeat ""
       where
         numcols

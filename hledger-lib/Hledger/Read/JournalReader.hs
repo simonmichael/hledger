@@ -261,8 +261,8 @@ includedirectivep = do
   prefixedglob <- T.unpack <$> takeWhileP Nothing (/= '\n') -- don't consume newline yet
   parentoff <- getOffset
   parentpos <- getSourcePos
-  let (mprefix,glob) = splitReaderPrefix prefixedglob
-  paths <- getFilePaths parentoff parentpos glob
+  let (mprefix,glb) = splitReaderPrefix prefixedglob
+  paths <- getFilePaths parentoff parentpos glb
   let prefixedpaths = case mprefix of
         Nothing  -> paths
         Just fmt -> map ((fmt++":")++) paths
@@ -460,8 +460,8 @@ commoditydirectiveonelinep = do
     string "commodity"
     lift skipNonNewlineSpaces1
     off <- getOffset
-    amount <- amountp
-    pure $ (off, amount)
+    amt <- amountp
+    pure $ (off, amt)
   lift skipNonNewlineSpaces
   _ <- lift followingcommentp
   let comm = Commodity{csymbol=acommodity, cformat=Just $ dbg6 "style from commodity directive" astyle}
@@ -489,8 +489,8 @@ commoditydirectivemultilinep = do
   lift skipNonNewlineSpaces1
   sym <- lift commoditysymbolp
   _ <- lift followingcommentp
-  mformat <- lastMay <$> many (indented $ formatdirectivep sym)
-  let comm = Commodity{csymbol=sym, cformat=mformat}
+  mfmt <- lastMay <$> many (indented $ formatdirectivep sym)
+  let comm = Commodity{csymbol=sym, cformat=mfmt}
   modify' (\j -> j{jcommodities=M.insert sym comm $ jcommodities j})
   where
     indented = (lift skipNonNewlineSpaces1 >>)
@@ -674,7 +674,7 @@ periodictransactionp = do
   -- first parsing with 'singlespacedtextp', then "re-parsing" with
   -- 'periodexprp' saves 'periodexprp' from having to respect the single-
   -- and double-space parsing rules
-  (interval, span) <- lift $ reparseExcerpt periodExcerpt $ do
+  (interval, spn) <- lift $ reparseExcerpt periodExcerpt $ do
     pexp <- periodexprp refdate
     (<|>) eof $ do
       offset1 <- getOffset
@@ -687,7 +687,7 @@ periodictransactionp = do
     pure pexp
 
   -- In periodic transactions, the period expression has an additional constraint:
-  case checkPeriodicTransactionStartDate interval span periodtxt of
+  case checkPeriodicTransactionStartDate interval spn periodtxt of
     Just e -> customFailure $ parseErrorAt off e
     Nothing -> pure ()
 
@@ -701,7 +701,7 @@ periodictransactionp = do
   return $ nullperiodictransaction{
      ptperiodexpr=periodtxt
     ,ptinterval=interval
-    ,ptspan=span
+    ,ptspan=spn
     ,ptstatus=status
     ,ptcode=code
     ,ptdescription=description
@@ -767,7 +767,7 @@ postingphelper isPostingRule mTransactionYear = do
     let (ptype, account') = (accountNamePostingType account, textUnbracket account)
     lift skipNonNewlineSpaces
     mult <- if isPostingRule then multiplierp else pure False
-    amount <- optional $ amountpwithmultiplier mult
+    amt <- optional $ amountpwithmultiplier mult
     lift skipNonNewlineSpaces
     massertion <- optional balanceassertionp
     lift skipNonNewlineSpaces
@@ -777,7 +777,7 @@ postingphelper isPostingRule mTransactionYear = do
             , pdate2=mdate2
             , pstatus=status
             , paccount=account'
-            , pamount=maybe missingmixedamt mixedAmount amount
+            , pamount=maybe missingmixedamt mixedAmount amt
             , pcomment=comment
             , ptype=ptype
             , ptags=tags

@@ -168,13 +168,13 @@ entriesReportAsCsv txns =
 -- The txnidx field (transaction index) allows postings to be grouped back into transactions.
 transactionToCSV :: Transaction -> CSV
 transactionToCSV t =
-  map (\p -> T.pack (show idx):date:date2:status:code:description:comment:p)
+  map (\p -> T.pack (show idx):d:d2:status:code:description:comment:p)
    (concatMap postingToCSV $ tpostings t)
   where
     idx = tindex t
     description = tdescription t
-    date = showDate (tdate t)
-    date2 = maybe "" showDate $ tdate2 t
+    d = showDate (tdate t)
+    d2 = maybe "" showDate $ tdate2 t
     status = T.pack . show $ tstatus t
     code = tcode t
     comment = T.strip $ tcomment t
@@ -186,10 +186,10 @@ postingToCSV p =
     -- separators and prices
     let a_ = amountStripPrices a{acommodity=""} in
     let showamt = wbToText . showAmountB csvDisplay in
-    let amount = showamt a_ in
+    let amt = showamt a_ in
     let credit = if q < 0 then showamt $ negate a_ else "" in
     let debit  = if q >= 0 then showamt a_ else "" in
-    [account, amount, c, credit, debit, status, comment])
+    [account, amt, c, credit, debit, status, comment])
     . amounts $ pamount p
   where
     status = T.pack . show $ pstatus p

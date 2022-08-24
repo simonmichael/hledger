@@ -20,7 +20,7 @@ import Hledger.Cli.CliOptions
 import Hledger.Cli.Commands.Print
 import System.Console.CmdArgs.Explicit
 import Text.Printf
-import Text.Megaparsec
+import Text.Megaparsec hiding (pos1)
 import qualified Data.Algorithm.Diff as D
 
 rewritemode = hledgerCommandMode
@@ -101,11 +101,11 @@ renderPatch = go Nothing . sortOn fst where
     go _ [] = ""
     go Nothing cs@((SourcePos fp _ _, _):_) = fileHeader fp <> go (Just (fp, 0)) cs
     go (Just (fp, _)) cs@((SourcePos fp' _ _, _):_) | fp /= fp' = go Nothing cs
-    go (Just (fp, offs)) ((SourcePos _ lineno _, diffs):cs) = chunkHeader <> chunk <> go (Just (fp, offs + adds - dels)) cs
+    go (Just (fp, offs)) ((SourcePos _ lineno _, diffs):cs) = chunkHeader <> chnk <> go (Just (fp, offs + adds - dels)) cs
         where
             chunkHeader = T.pack $ printf "@@ -%d,%d +%d,%d @@\n" (unPos lineno) dels (unPos lineno+offs) adds
             (dels, adds) = foldl' countDiff (0, 0) diffs
-            chunk = foldMap renderLine diffs
+            chnk = foldMap renderLine diffs
     fileHeader fp = "--- " <> T.pack fp <> "\n+++ " <> T.pack fp <> "\n"
 
     countDiff (dels, adds) = \case

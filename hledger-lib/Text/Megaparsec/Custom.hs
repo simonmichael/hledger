@@ -371,9 +371,9 @@ attachSource filePath sourceText finalParseError = case finalParseError of
 
   -- A parse error thrown directly with the 'FinalError' constructor
   -- requires both source and filepath.
-  FinalError parseError ->
+  FinalError err ->
     let bundle = ParseErrorBundle
-          { bundleErrors = parseError NE.:| []
+          { bundleErrors = err NE.:| []
           , bundlePosState = initialPosState filePath sourceText }
     in  FinalParseErrorBundle'
           { finalErrorBundle = bundle

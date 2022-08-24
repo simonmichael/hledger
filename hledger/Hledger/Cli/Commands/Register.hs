@@ -25,11 +25,11 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import System.Console.CmdArgs.Explicit (flagNone, flagReq)
 
-import Hledger
+import Hledger hiding (per)
 import Hledger.Read.CsvReader (CSV, CsvRecord, printCSV)
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
-import Text.Tabular.AsciiWide
+import Text.Tabular.AsciiWide hiding (render)
 
 registermode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Register.txt")
@@ -144,14 +144,14 @@ postingsReportItemAsText opts preferredamtwidth preferredbalwidth ((mdate, mperi
       ]
     spacerCell  = Cell BottomLeft [WideBuilder (TB.singleton ' ') 1]
     spacerCell2 = Cell BottomLeft [WideBuilder (TB.fromString "  ") 2]
-    pad fullwidth amt = WideBuilder (TB.fromText $ T.replicate w " ") w <> amt
-      where w = fullwidth - wbWidth amt
+    pad fullwidth amt' = WideBuilder (TB.fromText $ T.replicate w " ") w <> amt'
+      where w = fullwidth - wbWidth amt'
     -- calculate widths
     (totalwidth,mdescwidth) = registerWidthsFromOpts opts
     datewidth = maybe 10 periodTextWidth mperiod
     date = case mperiod of
-             Just period -> if isJust mdate then showPeriod period else ""
-             Nothing     -> maybe "" showDate mdate
+             Just per -> if isJust mdate then showPeriod per else ""
+             Nothing  -> maybe "" showDate mdate
     (amtwidth, balwidth)
       | shortfall <= 0 = (preferredamtwidth, preferredbalwidth)
       | otherwise      = (adjustedamtwidth, adjustedbalwidth)

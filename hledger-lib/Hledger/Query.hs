@@ -67,7 +67,7 @@ module Hledger.Query (
   matchesTags,
   matchesPriceDirective,
   words'',
-  prefixes,
+  queryprefixes,
   -- * tests
   tests_Query
 )
@@ -167,7 +167,7 @@ data QueryOpt = QueryOptInAcctOnly AccountName  -- ^ show an account register fo
 -- >>> parseQuery nulldate "\"expenses:dining out\""
 -- Right (Acct (RegexpCI "expenses:dining out"),[])
 parseQuery :: Day -> T.Text -> Either String (Query,[QueryOpt])
-parseQuery d = parseQueryList d . words'' prefixes
+parseQuery d = parseQueryList d . words'' queryprefixes
 
 -- | Convert a list of query expression containing to a query and zero
 -- or more query options; or return an error message if query parsing fails.
@@ -234,8 +234,8 @@ words'' prefixes = fromparse . parsewith maybeprefixedquotedphrases -- XXX
 
 -- XXX
 -- keep synced with patterns below, excluding "not"
-prefixes :: [T.Text]
-prefixes = map (<>":") [
+queryprefixes :: [T.Text]
+queryprefixes = map (<>":") [
      "inacctonly"
     ,"inacct"
     ,"amt"
@@ -285,10 +285,10 @@ parseQueryTerm _ (T.stripPrefix "note:" -> Just s) = Left <$> noteTag (Just s)
 parseQueryTerm _ (T.stripPrefix "acct:" -> Just s) = Left . Acct <$> toRegexCI s
 parseQueryTerm d (T.stripPrefix "date2:" -> Just s) =
         case parsePeriodExpr d s of Left e         -> Left $ "\"date2:"++T.unpack s++"\" gave a "++showDateParseError e
-                                    Right (_,span) -> Right $ Left $ Date2 span
+                                    Right (_,spn) -> Right $ Left $ Date2 spn
 parseQueryTerm d (T.stripPrefix "date:" -> Just s) =
         case parsePeriodExpr d s of Left e         -> Left $ "\"date:"++T.unpack s++"\" gave a "++showDateParseError e
-                                    Right (_,span) -> Right $ Left $ Date span
+                                    Right (_,spn) -> Right $ Left $ Date spn
 parseQueryTerm _ (T.stripPrefix "status:" -> Just s) =
         case parseStatus s of Left e   -> Left $ "\"status:"++T.unpack s++"\" gave a parse error: " ++ e
                               Right st -> Right $ Left $ StatusQ st
@@ -412,9 +412,9 @@ truestrings = ["1"]
 -- * modifying
 
 simplifyQuery :: Query -> Query
-simplifyQuery q =
-  let q' = simplify q
-  in if q' == q then q else simplifyQuery q'
+simplifyQuery q0 =
+  let q1 = simplify q0
+  in if q1 == q0 then q0 else simplifyQuery q1
   where
     simplify (And []) = Any
     simplify (And [q]) = simplify q
@@ -455,7 +455,7 @@ filterQuery' p q = if p q then q else Any
 -- (Since 1.24.1, might be merged into filterQuery in future.)
 -- XXX Semantics not completely clear.
 filterQueryOrNotQuery :: (Query -> Bool) -> Query -> Query
-filterQueryOrNotQuery p = simplifyQuery . filterQueryOrNotQuery' p
+filterQueryOrNotQuery p0 = simplifyQuery . filterQueryOrNotQuery' p0
   where
     filterQueryOrNotQuery' :: (Query -> Bool) -> Query -> Query
     filterQueryOrNotQuery' p (And qs)      = And $ map (filterQueryOrNotQuery p) qs
@@ -584,7 +584,7 @@ queryEndDate False (Date (DateSpan _ (Just d))) = Just d
 queryEndDate True (Date2 (DateSpan _ (Just d))) = Just d
 queryEndDate _ _ = Nothing
 
-queryTermDateSpan (Date span) = Just span
+queryTermDateSpan (Date spn) = Just spn
 queryTermDateSpan _ = Nothing
 
 -- | What date span (or with a true argument, what secondary date span) does this query specify ?
@@ -594,8 +594,8 @@ queryTermDateSpan _ = Nothing
 queryDateSpan :: Bool -> Query -> DateSpan
 queryDateSpan secondary (Or qs)  = spansUnion     $ map (queryDateSpan secondary) qs
 queryDateSpan secondary (And qs) = spansIntersect $ map (queryDateSpan secondary) qs
-queryDateSpan _     (Date span)  = span
-queryDateSpan True (Date2 span)  = span
+queryDateSpan _     (Date spn)  = spn
+queryDateSpan True (Date2 spn)  = spn
 queryDateSpan _ _                = nulldatespan
 
 -- | What date span does this query specify, treating primary and secondary dates as equivalent ?
@@ -605,8 +605,8 @@ queryDateSpan _ _                = nulldatespan
 queryDateSpan' :: Query -> DateSpan
 queryDateSpan' (Or qs)      = spansUnion     $ map queryDateSpan' qs
 queryDateSpan' (And qs)     = spansIntersect $ map queryDateSpan' qs
-queryDateSpan' (Date span)  = span
-queryDateSpan' (Date2 span) = span
+queryDateSpan' (Date spn)  = spn
+queryDateSpan' (Date2 spn) = spn
 queryDateSpan' _            = nulldatespan
 
 -- | What is the earliest of these dates, where Nothing is earliest ?
@@ -732,16 +732,16 @@ matchesPosting (And qs) p = all (`matchesPosting` p) qs
 matchesPosting (Code r) p = maybe False (regexMatchText r . tcode) $ ptransaction p
 matchesPosting (Desc r) p = maybe False (regexMatchText r . tdescription) $ ptransaction p
 matchesPosting (Acct r) p = matches p || maybe False matches (poriginal p) where matches = regexMatchText r . paccount
-matchesPosting (Date span) p = span `spanContainsDate` postingDate p
-matchesPosting (Date2 span) p = span `spanContainsDate` postingDate2 p
+matchesPosting (Date spn) p = spn `spanContainsDate` postingDate p
+matchesPosting (Date2 spn) p = spn `spanContainsDate` postingDate2 p
 matchesPosting (StatusQ s) p = postingStatus p == s
 matchesPosting (Real v) p = v == isReal p
 matchesPosting q@(Depth _) Posting{paccount=a} = q `matchesAccount` a
 matchesPosting q@(Amt _ _) Posting{pamount=as} = q `matchesMixedAmount` as
 matchesPosting (Sym r) Posting{pamount=as} = any (matchesCommodity (Sym r) . acommodity) $ amountsRaw as
 matchesPosting (Tag n v) p = case (reString n, v) of
-  ("payee", Just v) -> maybe False (regexMatchText v . transactionPayee) $ ptransaction p
-  ("note", Just v) -> maybe False (regexMatchText v . transactionNote) $ ptransaction p
+  ("payee", Just v') -> maybe False (regexMatchText v' . transactionPayee) $ ptransaction p
+  ("note", Just v') -> maybe False (regexMatchText v' . transactionNote) $ ptransaction p
   (_, mv) -> matchesTags n mv $ postingAllTags p
 matchesPosting (Type _) _ = False
 
@@ -765,17 +765,17 @@ matchesTransaction (And qs) t = all (`matchesTransaction` t) qs
 matchesTransaction (Code r) t = regexMatchText r $ tcode t
 matchesTransaction (Desc r) t = regexMatchText r $ tdescription t
 matchesTransaction q@(Acct _) t = any (q `matchesPosting`) $ tpostings t
-matchesTransaction (Date span) t = spanContainsDate span $ tdate t
-matchesTransaction (Date2 span) t = spanContainsDate span $ transactionDate2 t
+matchesTransaction (Date spn) t = spanContainsDate spn $ tdate t
+matchesTransaction (Date2 spn) t = spanContainsDate spn $ transactionDate2 t
 matchesTransaction (StatusQ s) t = tstatus t == s
 matchesTransaction (Real v) t = v == hasRealPostings t
 matchesTransaction q@(Amt _ _) t = any (q `matchesPosting`) $ tpostings t
 matchesTransaction (Depth d) t = any (Depth d `matchesPosting`) $ tpostings t
 matchesTransaction q@(Sym _) t = any (q `matchesPosting`) $ tpostings t
 matchesTransaction (Tag n v) t = case (reString n, v) of
-  ("payee", Just v) -> regexMatchText v $ transactionPayee t
-  ("note", Just v) -> regexMatchText v $ transactionNote t
-  (_, v) -> matchesTags n v $ transactionAllTags t
+  ("payee", Just v') -> regexMatchText v' $ transactionPayee t
+  ("note", Just v') -> regexMatchText v' $ transactionNote t
+  (_, v') -> matchesTags n v' $ transactionAllTags t
 matchesTransaction (Type _) _ = False
 
 -- | Like matchesTransaction, but if the journal's account types are provided,
@@ -821,7 +821,7 @@ matchesPriceDirective (Or qs) p     = any (`matchesPriceDirective` p) qs
 matchesPriceDirective (And qs) p    = all (`matchesPriceDirective` p) qs
 matchesPriceDirective q@(Amt _ _) p = matchesAmount q (pdamount p)
 matchesPriceDirective q@(Sym _) p   = matchesCommodity q (pdcommodity p)
-matchesPriceDirective (Date span) p = spanContainsDate span (pddate p)
+matchesPriceDirective (Date spn) p = spanContainsDate spn (pddate p)
 matchesPriceDirective _ _           = True
 
 
@@ -854,8 +854,8 @@ tests_Query = testGroup "Query" [
       (words'' [] "not:'a b'")             @?= ["not:a b"]
       (words'' [] "'not:a b'")             @?= ["not:a b"]
       (words'' ["desc:"] "not:desc:'a b'") @?= ["not:desc:a b"]
-      (words'' prefixes "\"acct:expenses:autres d\233penses\"") @?= ["acct:expenses:autres d\233penses"]
-      (words'' prefixes "\"")              @?= ["\""]
+      (words'' queryprefixes "\"acct:expenses:autres d\233penses\"") @?= ["acct:expenses:autres d\233penses"]
+      (words'' queryprefixes "\"")              @?= ["\""]
 
   ,testCase "filterQuery" $ do
      filterQuery queryIsDepth Any       @?= Any

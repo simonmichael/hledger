@@ -104,10 +104,10 @@ accountTree :: AccountName -> [AccountName] -> Account
 accountTree rootname as = nullacct{aname=rootname, asubs=map (uncurry accountTree') $ M.assocs m }
   where
     T m = treeFromPaths $ map expandAccountName as :: FastTree AccountName
-    accountTree' a (T m) =
+    accountTree' a (T m') =
       nullacct{
         aname=a
-       ,asubs=map (uncurry accountTree') $ M.assocs m
+       ,asubs=map (uncurry accountTree') $ M.assocs m'
        }
 
 -- | An efficient-to-build tree suggested by Cale Gibbard, probably
@@ -223,7 +223,7 @@ pruneAccounts p = headMay . prune
 -- tree's structure remains intact and can still be used. It's a tree/list!
 flattenAccounts :: Account -> [Account]
 flattenAccounts a = squish a []
-  where squish a as = a : Prelude.foldr squish as (asubs a)
+  where squish a' as = a' : Prelude.foldr squish as (asubs a')
 
 -- | Filter an account tree (to a list).
 filterAccounts :: (Account -> Bool) -> Account -> [Account]

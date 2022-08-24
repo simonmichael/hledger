@@ -35,6 +35,7 @@ import Hledger.UI.UITypes
 import Hledger.UI.Theme
 import Hledger.UI.AccountsScreen
 import Hledger.UI.RegisterScreen
+import Hledger.UI.UIUtils (dlogUiTrace)
 
 ----------------------------------------------------------------------
 
@@ -62,7 +63,8 @@ main = do
     _                                         -> withJournalDo copts' (runBrickUi opts)
 
 runBrickUi :: UIOpts -> Journal -> IO ()
-runBrickUi uopts@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}} j = do
+runBrickUi uopts@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}} j =
+  dlogUiTrace "========= runBrickUi" $ do
   let
     today = copts^.rsDay
 
@@ -164,8 +166,8 @@ runBrickUi uopts@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=rs
         appStartEvent   = return ()
       , appAttrMap      = const $ fromMaybe defaultTheme $ getTheme =<< uoTheme uopts'
       , appChooseCursor = showFirstCursor
-      , appHandleEvent  = sHandle (aScreen ui)
-      , appDraw         = sDraw   (aScreen ui)
+      , appHandleEvent  = \ev -> do ui' <- get; sHandle (aScreen ui') ev
+      , appDraw         = \ui' -> sDraw (aScreen ui') ui'
       }
 
   -- print (length (show ui)) >> exitSuccess  -- show any debug output to this point & quit

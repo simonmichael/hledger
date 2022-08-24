@@ -116,15 +116,15 @@ journalCheckCommodities j = mapM_ checkcommodities (journalPostings j)
         --     assets      "C $" -1 @ $ 2
         --                 ^^^^^^^^^^^^^^
         -- XXX refine this region when it's easy
-        finderrcols p t txntxt =
-          case transactionFindPostingIndex (==p) t of
+        finderrcols p' t txntxt =
+          case transactionFindPostingIndex (==p') t of
             Nothing     -> Nothing
             Just pindex -> Just (amtstart, Just amtend)
               where
                 tcommentlines = max 0 (length (T.lines $ tcomment t) - 1)
                 errrelline = 1 + tcommentlines + pindex   -- XXX doesn't count posting coment lines
                 errline = fromMaybe "" (T.lines txntxt `atMay` (errrelline-1))
-                acctend = 4 + T.length (paccount p) + if isVirtual p then 2 else 0
+                acctend = 4 + T.length (paccount p') + if isVirtual p' then 2 else 0
                 amtstart = acctend + (T.length $ T.takeWhile isSpace $ T.drop acctend errline) + 1
                 amtend = amtstart + (T.length $ T.stripEnd $ T.takeWhile (/=';') $ T.drop amtstart errline)
 
@@ -151,10 +151,10 @@ journalCheckPayees j = mapM_ checkpayee (jtxns j)
         -- Calculate columns suitable for highlighting the excerpt.
         -- We won't show these in the main error line as they aren't
         -- accurate for the actual data.
-        finderrcols t = Just (col, Just col2)
+        finderrcols t' = Just (col, Just col2)
           where
-            col  = T.length (showTransactionLineFirstPart t) + 2
-            col2 = col + T.length (transactionPayee t) - 1
+            col  = T.length (showTransactionLineFirstPart t') + 2
+            col2 = col + T.length (transactionPayee t') - 1
 
 ----------
 

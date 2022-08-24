@@ -25,21 +25,21 @@ balancesheetequitySpec = CompoundBalanceCommandSpec {
   cbcqueries  = [
      CBCSubreportSpec{
       cbcsubreporttitle="Assets"
-     ,cbcsubreportquery=journalAssetAccountQuery
+     ,cbcsubreportquery=Type [Asset]
      ,cbcsubreportoptions=(\ropts -> ropts{normalbalance_=Just NormallyPositive})
      ,cbcsubreporttransform=id
      ,cbcsubreportincreasestotal=True
      }
     ,CBCSubreportSpec{
       cbcsubreporttitle="Liabilities"
-     ,cbcsubreportquery=journalLiabilityAccountQuery
+     ,cbcsubreportquery=Type [Liability]
      ,cbcsubreportoptions=(\ropts -> ropts{normalbalance_=Just NormallyNegative})
      ,cbcsubreporttransform=fmap maNegate
      ,cbcsubreportincreasestotal=False
      }
     ,CBCSubreportSpec{
       cbcsubreporttitle="Equity"
-     ,cbcsubreportquery=journalEquityAccountQuery
+     ,cbcsubreportquery=Type [Equity]
      ,cbcsubreportoptions=(\ropts -> ropts{normalbalance_=Just NormallyNegative})
      ,cbcsubreporttransform=fmap maNegate
      ,cbcsubreportincreasestotal=False

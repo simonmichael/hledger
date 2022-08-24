@@ -21,7 +21,7 @@ github: simonmichael/hledger
 homepage: http://hledger.org
 bug-reports: http://bugs.hledger.org
 stability: stable
-tested-with: GHC==8.6.5, GHC==8.8.4, GHC==8.10.4, GHC==9.0.1
+tested-with: GHC==8.10.7, GHC==9.0.2, GHC==9.2.4
 
 extra-source-files:
 - CHANGES.md
@@ -32,12 +32,13 @@ extra-source-files:
 #data-files:
 
 dependencies:
-- base >=4.11 && <4.17
+- base >=4.14 && <4.17
 - aeson >=1
 - aeson-pretty
 - ansi-terminal >=0.9
 - array
 - blaze-markup >=0.5.1
+- breakpoint
 - bytestring
 - call-stack
 - cmdargs >=0.10
@@ -45,6 +46,7 @@ dependencies:
 - cassava
 - cassava-megaparsec
 - data-default >=0.5
+- deepseq
 - Decimal >=0.5.1
 - directory
 - doclayout >=0.3 && <0.5
@@ -81,7 +83,6 @@ ghc-options:
 - -Wall
 - -Wno-incomplete-uni-patterns
 - -Wno-missing-signatures
-- -Wno-name-shadowing
 - -Wno-orphans
 - -Wno-type-defaults
 - -Wno-unused-do-bind

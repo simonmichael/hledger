@@ -57,19 +57,19 @@ progname = "hledger"
 -- so that must not be overridden by a log.date git config variable.
 --
 versionStringWith :: Either String GitInfo -> ProgramName -> PackageVersion -> VersionString
-versionStringWith egitinfo progname packageversion =
-  concat [ progname , " " , version , ", " , os' , "-" , arch ]
+versionStringWith egitinfo prognam packagever =
+  concat [ prognam , " " , version , ", " , os' , "-" , arch ]
   where
     os' | os == "darwin"  = "mac"
         | os == "mingw32" = "windows"
         | otherwise       = os
     version = case egitinfo of
-      Left _err     -> packageversion
+      Left _err     -> packagever
       Right gitinfo -> 
         case words $ giCommitDate gitinfo of
           -- git log's date format is normally --date=default ("similar to --date=rfc2822")
           _weekday:mon:day:_localtime:year:_offset:_ ->
-            intercalate "-" [packageversion , hash, date]
+            intercalate "-" [packagever , hash, date]
               where
                 hash = 'g' : take 9 (giHash gitinfo)  -- like git describe
                 date = concat [year,mm,dd]

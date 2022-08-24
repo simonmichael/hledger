@@ -118,14 +118,14 @@ removeDates =
     map quoteIfSpaced .
     filter (\term ->
         not $ T.isPrefixOf "date:" term || T.isPrefixOf "date2:" term) .
-    Query.words'' Query.prefixes
+    Query.words'' queryprefixes
 
 removeInacct :: Text -> [Text]
 removeInacct =
     map quoteIfSpaced .
     filter (\term ->
         not $ T.isPrefixOf "inacct:" term || T.isPrefixOf "inacctonly:" term) .
-    Query.words'' Query.prefixes
+    Query.words'' queryprefixes
 
 replaceInacct :: Text -> Text -> Text
 replaceInacct q acct = T.unwords $ acct : removeInacct q

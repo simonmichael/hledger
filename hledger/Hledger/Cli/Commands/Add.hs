@@ -189,7 +189,7 @@ confirmedTransactionWizard prevInput es@EntryState{..} stack@(currentStage : _) 
     Nothing ->
       confirmedTransactionWizard prevInput es (drop 1 stack)
 
-  EnterNewPosting txnParams@TxnParams{..} posting -> case (esPostings, posting) of
+  EnterNewPosting txnParams@TxnParams{..} p -> case (esPostings, p) of
     ([], Nothing) ->
       confirmedTransactionWizard prevInput es (EnterAccount txnParams : stack)
     (_, Just _) ->
@@ -230,15 +230,15 @@ confirmedTransactionWizard prevInput es@EntryState{..} stack@(currentStage : _) 
       confirmedTransactionWizard prevInput es{esPostings=init esPostings} (dropWhile notPrevAmountAndNotEnterDesc stack)
 
   EnterAmountAndComment txnParams account -> amountAndCommentWizard prevInput es >>= \case
-    Just (amount, comment) -> do
-      let posting = nullposting{paccount=T.pack $ stripbrackets account
-                               ,pamount=mixedAmount amount
-                               ,pcomment=comment
-                               ,ptype=accountNamePostingType $ T.pack account
-                               }
-          amountAndCommentString = showAmount amount ++ T.unpack (if T.null comment then "" else "  ;" <> comment)
+    Just (amt, comment) -> do
+      let p = nullposting{paccount=T.pack $ stripbrackets account
+                          ,pamount=mixedAmount amt
+                          ,pcomment=comment
+                          ,ptype=accountNamePostingType $ T.pack account
+                          }
+          amountAndCommentString = showAmount amt ++ T.unpack (if T.null comment then "" else "  ;" <> comment)
           prevAmountAndCmnt' = replaceNthOrAppend (length esPostings) amountAndCommentString (prevAmountAndCmnt prevInput)
-          es' = es{esPostings=esPostings++[posting], esArgs=drop 2 esArgs}
+          es' = es{esPostings=esPostings++[p], esArgs=drop 2 esArgs}
       confirmedTransactionWizard prevInput{prevAmountAndCmnt=prevAmountAndCmnt'} es' (EnterNewPosting txnParams (Just posting) : stack)
     Nothing -> confirmedTransactionWizard prevInput es (drop 1 stack)
 
@@ -310,18 +310,18 @@ accountWizard PrevInput{..} EntryState{..} = do
     where
       canfinish = not (null esPostings) && postingsBalanced esPostings
       parseAccountOrDotOrNull :: String -> Bool -> String -> Maybe (Maybe String)
-      parseAccountOrDotOrNull _  _ "<"       = dbg1 $ Just Nothing
-      parseAccountOrDotOrNull _  _ "."       = dbg1 $ Just $ Just "." -- . always signals end of txn
-      parseAccountOrDotOrNull "" True ""     = dbg1 $ Just $ Just ""  -- when there's no default and txn is balanced, "" also signals end of txn
-      parseAccountOrDotOrNull def@(_:_) _ "" = dbg1 $ Just $ Just def -- when there's a default, "" means use that
-      parseAccountOrDotOrNull _ _ s          = dbg1 $ fmap (Just . T.unpack) $
+      parseAccountOrDotOrNull _  _ "<"       = dbg' $ Just Nothing
+      parseAccountOrDotOrNull _  _ "."       = dbg' $ Just $ Just "." -- . always signals end of txn
+      parseAccountOrDotOrNull "" True ""     = dbg' $ Just $ Just ""  -- when there's no default and txn is balanced, "" also signals end of txn
+      parseAccountOrDotOrNull def@(_:_) _ "" = dbg' $ Just $ Just def -- when there's a default, "" means use that
+      parseAccountOrDotOrNull _ _ s          = dbg' $ fmap (Just . T.unpack) $
         either (const Nothing) validateAccount $
           flip evalState esJournal $ runParserT (accountnamep <* eof) "" (T.pack s) -- otherwise, try to parse the input as an accountname
         where
           validateAccount :: Text -> Maybe Text
           validateAccount t | no_new_accounts_ esOpts && notElem t (journalAccountNamesDeclaredOrImplied esJournal) = Nothing
                             | otherwise = Just t
-      dbg1 = id -- strace
+      dbg' = id -- strace
 
 amountAndCommentWizard PrevInput{..} EntryState{..} = do
   let pnum = length esPostings + 1

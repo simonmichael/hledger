@@ -18,8 +18,6 @@ jobs:
       fail-fast: false
       matrix:
         plan:
-        # - { ghc: "86"    , stack: "stack --stack-yaml=stack8.6.yaml" }
-        # - { ghc: "88"  , stack: "stack --stack-yaml=stack8.8.yaml" }
         # - { ghc: "810" , stack: "stack --stack-yaml=stack8.10.yaml" }
         # XXX func tests in bin should be run only with GHC 8.10 for now (see shelltest below) (?)
         # - { ghc: "90" , stack: "stack --stack-yaml=stack9.0.yaml" }

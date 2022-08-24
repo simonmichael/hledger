@@ -10,7 +10,6 @@ tags.
 {-# LANGUAGE MultiWayIf        #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections     #-}
 
 module Hledger.Data.Transaction
 ( -- * Transaction
@@ -250,8 +249,8 @@ transactionAddPricesFromEquity acctTypes t = first (annotateErrorWithTransaction
       | isConversion p = Right ((cs, others),      Just np)
       | hasPrice p     = Right ((cs, (np:ps, os)), Nothing)
       | otherwise      = Right ((cs, (ps, np:os)), Nothing)
-    select np@(_, p) ((cs, others), Just last)
-      | isConversion p = Right (((last, np):cs, others), Nothing)
+    select np@(_, p) ((cs, others), Just lst)
+      | isConversion p = Right (((lst, np):cs, others), Nothing)
       | otherwise      = Left "Conversion postings must occur in adjacent pairs"
 
     -- Given a pair of indexed conversion postings, and a state consisting of lists of
@@ -267,10 +266,10 @@ transactionAddPricesFromEquity acctTypes t = first (annotateErrorWithTransaction
         ca1 <- postingAmountNoPrice cp1
         ca2 <- postingAmountNoPrice cp2
         let -- The function to add transaction prices and tag postings in the indexed list of postings
-            transformPostingF np pricep = \(n, p) ->
-                (n, if | n == np            -> pricep `postingAddTags` [("_price-matched","")]
-                       | n == n1 || n == n2 -> p      `postingAddTags` [("_conversion-matched","")]
-                       | otherwise          -> p)
+            transformPostingF np pricep (n,p) =
+              (n, if | n == np            -> pricep `postingAddTags` [("_price-matched","")]
+                     | n == n1 || n == n2 -> p      `postingAddTags` [("_conversion-matched","")]
+                     | otherwise          -> p)
             -- All priced postings which match the conversion posting pair
             matchingPricePs = mapMaybe (mapM $ pricedPostingIfMatchesBothAmounts ca1 ca2) priceps
             -- All other postings which match at least one of the conversion posting pair

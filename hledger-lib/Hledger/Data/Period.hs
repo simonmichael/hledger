@@ -59,7 +59,7 @@ periodAsDateSpan (QuarterPeriod y q) = DateSpan (Just $ fromGregorian y m 1) (Ju
   where
     (y', q') | q==4      = (y+1,1)
              | otherwise = (y,q+1)
-    quarterAsMonth q = (q-1) * 3 + 1
+    quarterAsMonth q2 = (q2-1) * 3 + 1
     m  = quarterAsMonth q
     m' = quarterAsMonth q'
 periodAsDateSpan (YearPeriod y) = DateSpan (Just $ fromGregorian y 1 1) (Just $ fromGregorian (y+1) 1 1)

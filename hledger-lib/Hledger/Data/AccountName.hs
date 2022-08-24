@@ -177,12 +177,12 @@ concatAccountNames as = accountNameWithPostingType t $ T.intercalate ":" $ map a
 -- Or, return any error arising from a bad regular expression in the aliases.
 accountNameApplyAliases :: [AccountAlias] -> AccountName -> Either RegexError AccountName
 accountNameApplyAliases aliases a =
-  let (aname,atype) = (accountNameWithoutPostingType a, accountNamePostingType a)
+  let (name,typ) = (accountNameWithoutPostingType a, accountNamePostingType a)
   in foldM
      (\acct alias -> dbg6 "result" $ aliasReplace (dbg6 "alias" alias) (dbg6 "account" acct))
-     aname
+     name
      aliases
-     >>= Right . accountNameWithPostingType atype
+     >>= Right . accountNameWithPostingType typ
 
 -- | Memoising version of accountNameApplyAliases, maybe overkill.
 accountNameApplyAliasesMemo :: [AccountAlias] -> AccountName -> Either RegexError AccountName
@@ -238,7 +238,7 @@ parentAccountNames :: AccountName -> [AccountName]
 parentAccountNames a = parentAccountNames' $ parentAccountName a
     where
       parentAccountNames' "" = []
-      parentAccountNames' a = a : parentAccountNames' (parentAccountName a)
+      parentAccountNames' a2 = a2 : parentAccountNames' (parentAccountName a2)
 
 -- | Is the first account a parent or other ancestor of (and not the same as) the second ?
 isAccountNamePrefixOf :: AccountName -> AccountName -> Bool
@@ -296,9 +296,9 @@ elideAccountName width s
     fitText Nothing (Just width) True False $ accountNameFromComponents $ elideparts width [] $ accountNameComponents s
       where
         elideparts :: Int -> [Text] -> [Text] -> [Text]
-        elideparts width done ss
-          | realLength (accountNameFromComponents $ done++ss) <= width = done++ss
-          | length ss > 1 = elideparts width (done++[textTakeWidth 2 $ head ss]) (tail ss)
+        elideparts w done ss
+          | realLength (accountNameFromComponents $ done++ss) <= w = done++ss
+          | length ss > 1 = elideparts w (done++[textTakeWidth 2 $ head ss]) (tail ss)
           | otherwise = done++ss
 
 -- | Keep only the first n components of an account name, where n

@@ -111,16 +111,26 @@ $ hledger -f- bal -N type:A
                    1  other
                    1  assets
 
-# # 6. bs detects both (#1858)
-# $ hledger -f- bs -N
-# Balance Sheet 2022-01-02
-# 
-#              || 2022-01-02 
-# =============++============
-#  Assets      ||            
-# -------------++------------
-#  other       ||          1 
-#  assets       ||         1 
-# =============++============
-#  Liabilities ||            
-# -------------++------------
+<
+account a         ; type:L
+account a:aa      ; type:X
+account a:aa:aaa  ; type:L
+
+2021-01-01
+    (a)                                            1
+    (a:aa)                                         1
+    (a:aa:aaa)                                     1
+
+# 6. bs will detect proper accounts even with an intervening parent account (#1921)
+$ hledger -f- bs -N
+Balance Sheet 2021-01-01
+
+             || 2021-01-01 
+=============++============
+ Assets      ||            
+-------------++------------
+=============++============
+ Liabilities ||            
+-------------++------------
+ a           ||         -1 
+ a:aa:aaa    ||         -1 

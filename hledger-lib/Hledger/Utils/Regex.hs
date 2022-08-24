@@ -99,11 +99,11 @@ instance Show Regexp where
                              RegexpCI _ _ -> showString "RegexpCI "
 
 instance Read Regexp where
-  readsPrec d r =  readParen (d > app_prec) (\r -> [(toRegexCI' m,t) |
-                                                    ("RegexCI",s) <- lex r,
+  readsPrec d r =  readParen (d > app_prec) (\r' -> [(toRegexCI' m,t) |
+                                                    ("RegexCI",s) <- lex r',
                                                     (m,t) <- readsPrec (app_prec+1) s]) r
-                ++ readParen (d > app_prec) (\r -> [(toRegex' m, t) |
-                                                    ("Regex",s) <- lex r,
+                ++ readParen (d > app_prec) (\r' -> [(toRegex' m, t) |
+                                                    ("Regex",s) <- lex r',
                                                     (m,t) <- readsPrec (app_prec+1) s]) r
     where app_prec = 10
 
@@ -186,7 +186,7 @@ regexReplace re repl = memo $ regexReplaceUnmemo re repl
 -- but there can still be a runtime error from the replacement
 -- pattern, eg a backreference referring to a nonexistent match group.)
 regexReplaceUnmemo :: Regexp -> Replacement -> String -> Either RegexError String
-regexReplaceUnmemo re repl s = foldM (replaceMatch repl) s (reverse $ match (reCompiled re) s :: [MatchText String])
+regexReplaceUnmemo re repl str = foldM (replaceMatch repl) str (reverse $ match (reCompiled re) str :: [MatchText String])
   where
     -- Replace one match within the string with the replacement text
     -- appropriate for this match. Or return an error message.
@@ -195,22 +195,22 @@ regexReplaceUnmemo re repl s = foldM (replaceMatch repl) s (reverse $ match (reC
       case elems matchgroups of 
         [] -> Right s
         ((_,(off,len)):_) ->   -- groups should have 0-based indexes, and there should always be at least one, since this is a match
-          erepl >>= \repl -> Right $ pre ++ repl ++ post
+          erpl >>= \rpl -> Right $ pre ++ rpl ++ post
           where
             (pre, post') = splitAt off s
             post = drop len post'
             -- The replacement text: the replacement pattern with all
             -- numeric backreferences replaced by the appropriate groups
             -- from this match. Or an error message.
-            erepl = regexReplaceAllByM backrefRegex (lookupMatchGroup matchgroups) replpat
+            erpl = regexReplaceAllByM backrefRegex (lookupMatchGroup matchgroups) replpat
               where
                 -- Given some match groups and a numeric backreference,
                 -- return the referenced group text, or an error message.
                 lookupMatchGroup :: MatchText String -> String -> Either RegexError String
-                lookupMatchGroup grps ('\\':s@(_:_)) | all isDigit s =
-                  case read s of n | n `elem` indices grps -> Right $ fst (grps ! n)  -- PARTIAL: should not fail, all digits
-                                 _                         -> Left $ "no match group exists for backreference \"\\"++s++"\""
-                lookupMatchGroup _ s = Left $ "lookupMatchGroup called on non-numeric-backreference \""++s++"\", shouldn't happen"
+                lookupMatchGroup grps ('\\':s2@(_:_)) | all isDigit s2 =
+                  case read s2 of n | n `elem` indices grps -> Right $ fst (grps ! n)  -- PARTIAL: should not fail, all digits
+                                  _                         -> Left $ "no match group exists for backreference \"\\"++s++"\""
+                lookupMatchGroup _ s2 = Left $ "lookupMatchGroup called on non-numeric-backreference \""++s2++"\", shouldn't happen"
     backrefRegex = toRegex' "\\\\[0-9]+"  -- PARTIAL: should not fail
 
 -- regexReplace' :: Regexp -> Replacement -> String -> String
@@ -249,8 +249,8 @@ regexReplaceAllBy re transform s = prependdone rest
         go :: (Int,String,String->String) -> (Int,Int) ->  (Int,String,String->String)
         go (pos,todo,prepend) (off,len) =
           let (prematch, matchandrest) = splitAt (off - pos) todo
-              (matched, rest) = splitAt len matchandrest
-          in (off + len, rest, prepend . (prematch++) . (transform matched ++))
+              (matched, rest2) = splitAt len matchandrest
+          in (off + len, rest2, prepend . (prematch++) . (transform matched ++))
 
 -- Replace all occurrences of a regexp in a string, transforming each match
 -- with the given monadic function. Eg if the monad is Either, a Left result

@@ -15,7 +15,7 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NamedFieldPuns #-}
-{-# OPTIONS_GHC -Wall -Wno-missing-signatures -Wno-name-shadowing #-}
+{-# OPTIONS_GHC -Wall -Wno-missing-signatures #-}
 
 import Data.List
 import Data.Maybe

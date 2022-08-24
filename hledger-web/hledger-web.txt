@@ -586,4 +586,4 @@ SEE ALSO
 
 
 
-hledger-web-1.26.99                July 2022                    HLEDGER-WEB(1)
+hledger-web-1.26.99               August 2022                   HLEDGER-WEB(1)

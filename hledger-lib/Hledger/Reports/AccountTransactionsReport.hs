@@ -245,8 +245,8 @@ accountTransactionsReportByCommodity tr =
 -- balance amount) components that don't involve the specified
 -- commodity. Other item fields such as the transaction are left unchanged.
 filterAccountTransactionsReportByCommodity :: CommoditySymbol -> AccountTransactionsReport -> AccountTransactionsReport
-filterAccountTransactionsReportByCommodity c =
-    fixTransactionsReportItemBalances . concatMap (filterTransactionsReportItemByCommodity c)
+filterAccountTransactionsReportByCommodity comm =
+    fixTransactionsReportItemBalances . concatMap (filterTransactionsReportItemByCommodity comm)
   where
     filterTransactionsReportItemByCommodity c (t,t2,s,o,a,bal)
       | c `elem` cs = [item']
@@ -261,9 +261,9 @@ filterAccountTransactionsReportByCommodity c =
     fixTransactionsReportItemBalances items = reverse $ i:(go startbal is)
       where
         i:is = reverse items
-        startbal = filterMixedAmountByCommodity c $ triBalance i
+        startbal = filterMixedAmountByCommodity comm $ triBalance i
         go _ [] = []
-        go bal ((t,t2,s,o,amt,_):is) = (t,t2,s,o,amt,bal'):go bal' is
+        go bal ((t,t2,s,o,amt,_):is') = (t,t2,s,o,amt,bal'):go bal' is'
           where bal' = bal `maPlus` amt
 
 -- tests

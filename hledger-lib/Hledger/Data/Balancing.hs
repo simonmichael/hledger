@@ -315,11 +315,11 @@ priceInferrerFor t pt = maybe id inferprice inferFromAndTo
     -- For each posting, if the posting type matches, there is only a single amount in the posting,
     -- and the commodity of the amount matches the amount we're converting from,
     -- then set its price based on the ratio between fromamount and toamount.
-    inferprice (fromamount, toamount) posting
-        | [a] <- amounts (pamount posting), ptype posting == pt, acommodity a == acommodity fromamount
-            = posting{ pamount   = mixedAmount a{aprice=Just conversionprice}
-                     , poriginal = Just $ originalPosting posting }
-        | otherwise = posting
+    inferprice (fromamount, toamount) p
+        | [a] <- amounts (pamount p), ptype p == pt, acommodity a == acommodity fromamount
+            = p{ pamount   = mixedAmount a{aprice=Just conversionprice}
+                     , poriginal = Just $ originalPosting p }
+        | otherwise = p
       where
         -- If only one Amount in the posting list matches fromamount we can use TotalPrice.
         -- Otherwise divide the conversion equally among the Amounts by using a unit price.

@@ -108,15 +108,15 @@ defaultJournal = defaultJournalPath >>= runExceptT . readJournalFile definputopt
 defaultJournalPath :: IO String
 defaultJournalPath = do
   s <- envJournalPath
-  if null s then defaultJournalPath else return s
+  if null s then defpath else return s
     where
       envJournalPath =
         getEnv journalEnvVar
          `C.catch` (\(_::C.IOException) -> getEnv journalEnvVar2
                                             `C.catch` (\(_::C.IOException) -> return ""))
-      defaultJournalPath = do
-                  home <- getHomeDirectory `C.catch` (\(_::C.IOException) -> return "")
-                  return $ home </> journalDefaultFilename
+      defpath = do
+        home <- getHomeDirectory `C.catch` (\(_::C.IOException) -> return "")
+        return $ home </> journalDefaultFilename
 
 -- | A file path optionally prefixed by a reader name and colon
 -- (journal:, csv:, timedot:, etc.).

@@ -28,7 +28,7 @@ license:        GPL-3
 license-file:   LICENSE
 build-type:     Simple
 tested-with:
-    GHC==8.8.4, GHC==8.10.4, GHC==9.0.1
+    GHC==8.10.7, GHC==9.0.2, GHC==9.2.4
 extra-source-files:
     CHANGES.md
     README.md
@@ -155,10 +155,11 @@ library
   build-depends:
       Decimal >=0.5.1
     , aeson >=1
-    , base >=4.11 && <4.17
+    , base >=4.14 && <4.17
     , base64
     , blaze-html
     , blaze-markup
+    , breakpoint
     , bytestring
     , case-insensitive
     , clientsession
@@ -214,7 +215,8 @@ executable hledger-web
   ghc-options: -Wall -Wredundant-constraints -Wincomplete-record-updates -Wincomplete-uni-patterns
   cpp-options: -DVERSION="1.26.99"
   build-depends:
-      base
+      base >=4.14 && <4.17
+    , breakpoint
     , hledger-web
   if (flag(dev)) || (flag(library-only))
     cpp-options: -DDEVELOPMENT
@@ -234,7 +236,8 @@ test-suite test
   ghc-options: -Wall -Wredundant-constraints -Wincomplete-record-updates -Wincomplete-uni-patterns
   cpp-options: -DVERSION="1.26.99"
   build-depends:
-      base
+      base >=4.14 && <4.17
+    , breakpoint
     , hledger
     , hledger-lib
     , hledger-web

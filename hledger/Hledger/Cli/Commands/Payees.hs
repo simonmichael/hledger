@@ -36,13 +36,13 @@ payeesmode = hledgerCommandMode
 payees :: CliOpts -> Journal -> IO ()
 payees CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query}} j = do
   let
-    declared = boolopt "declared" rawopts
+    decl = boolopt "declared" rawopts
     used     = boolopt "used"     rawopts
     -- XXX matchesPayee is currently an alias for matchesDescription, not sure if it matters
     matcheddeclaredpayees = S.fromList . filter (matchesPayeeWIP query) $ journalPayeesDeclared j
     matchedusedpayees     = S.fromList . map transactionPayee $ filter (matchesTransaction query) $ jtxns j
-    payees =
-      if | declared     && not used -> matcheddeclaredpayees
-         | not declared && used     -> matchedusedpayees
-         | otherwise                -> matcheddeclaredpayees <> matchedusedpayees
-  mapM_ T.putStrLn payees
+    payees' =
+      if | decl     && not used -> matcheddeclaredpayees
+         | not decl && used     -> matchedusedpayees
+         | otherwise            -> matcheddeclaredpayees <> matchedusedpayees
+  mapM_ T.putStrLn payees'

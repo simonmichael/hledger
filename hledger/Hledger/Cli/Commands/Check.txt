@@ -15,6 +15,9 @@ hledger check      # basic checks
 hledger check -s   # basic + strict checks
 hledger check ordereddates payees  # basic + two other checks
 
+If you are an Emacs user, you can also configure flycheck-hledger to run
+these checks, providing instant feedback as you edit the journal.
+
 Here are the checks currently available:
 
 Basic checks
@@ -57,8 +60,7 @@ therefore optional:
 -   payees - all payees used by transactions have been declared
 
 -   recentassertions - all accounts with balance assertions have a
-    balance assertion, marked cleared, within 7 days of their latest
-    posting
+    balance assertion no more than 7 days before their latest posting
 
 -   uniqueleafnames - all account leaf names are unique
 
@@ -75,3 +77,17 @@ https://github.com/simonmichael/hledger/tree/master/bin:
 
 You could make similar scripts to perform your own custom checks. See:
 Cookbook -> Scripting.
+
+More about specific checks
+
+hledger check recentassertions will complain if any balance-asserted
+account does not have a balance assertion within 7 days before its
+latest posting. This aims to prevent the situation where you are
+regularly updating your journal, but forgetting to check your balances
+against the real world, then one day must dig back through months of
+data to find an error. It assumes that adding a balance assertion
+requires/reminds you to check the real-world balance. That may not be
+true if you auto-generate balance assertions from bank data; in that
+case, I recommend to import transactions uncleared, then use the
+manual-review-and-mark-cleared phase as a reminder to check the latest
+assertions against real-world balances.

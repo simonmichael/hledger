@@ -210,7 +210,7 @@ updateReportPeriod updatePeriod = fromRight err . overEither period updatePeriod
 
 -- | Apply a new filter query, or return the failing query.
 setFilter :: String -> UIState -> Either String UIState
-setFilter s = first (const s) . setEither querystring (words'' prefixes $ T.pack s)
+setFilter s = first (const s) . setEither querystring (words'' queryprefixes $ T.pack s)
 
 -- | Reset some filters & toggles.
 resetFilter :: UIState -> UIState
@@ -286,11 +286,11 @@ regenerateScreens j d ui@UIState{aScreen=s,aPrevScreens=ss} =
   -- remove all the screens from the appstate and then add them back
   -- one at a time, regenerating as we go.
   let
-    first:rest = reverse $ s:ss :: [Screen]
-    ui0 = ui{ajournal=j, aScreen=first, aPrevScreens=[]} :: UIState
+    frst:rest = reverse $ s:ss :: [Screen]
+    ui0 = ui{ajournal=j, aScreen=frst, aPrevScreens=[]} :: UIState
 
-    ui1 = (sInit first) d False ui0 :: UIState
-    ui2 = foldl' (\ui s -> (sInit s) d False $ pushScreen s ui) ui1 rest :: UIState
+    ui1 = (sInit frst) d False ui0 :: UIState
+    ui2 = foldl' (\ui' s' -> (sInit s') d False $ pushScreen s' ui') ui1 rest :: UIState
   in
     ui2
 
