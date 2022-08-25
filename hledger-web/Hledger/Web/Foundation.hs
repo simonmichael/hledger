@@ -84,11 +84,12 @@ data App = App
 -- usually require access to the AppRoute datatype. Therefore, we
 -- split these actions into two functions and place them in separate files.
 mkYesodData "App" $(parseRoutesFile "config/routes")
+-- ^ defines things like:
+-- type Handler = HandlerFor App   -- HandlerT App IO, https://www.yesodweb.com/book/routing-and-handlers#routing-and-handlers_handler_monad
+-- type Widget = WidgetFor App ()  -- WidgetT App IO (), https://www.yesodweb.com/book/widgets
 
--- | A convenience alias.
 type AppRoute = Route App
-
-type Form x = Html -> MForm (HandlerFor App) (FormResult x, Widget)
+type Form a = Html -> MForm Handler (FormResult a, Widget)
 
 -- Please see the documentation for the Yesod typeclass. There are a number
 -- of settings which can be configured by overriding methods here.

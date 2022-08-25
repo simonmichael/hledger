@@ -25,15 +25,17 @@ import Text.Megaparsec (bundleErrors, eof, parseErrorTextPretty, runParser)
 import Yesod
 
 import Hledger
+import Hledger.Web.Foundation -- (App, Form, Handler, Widget)
 import Hledger.Web.Settings (widgetFile)
 
-addModal ::
-     ( MonadWidget m
-     , r ~ Route (HandlerSite m)
-     , m ~ WidgetFor (HandlerSite m)
-     , RenderMessage (HandlerSite m) FormMessage
-     )
-  => r -> Journal -> Day -> m ()
+-- addModal ::
+--      ( MonadWidget m
+--      , r ~ Route (HandlerSite m)
+--      , m ~ WidgetFor (HandlerSite m)
+--      , RenderMessage (HandlerSite m) FormMessage
+--      )
+--   => r -> Journal -> Day -> m ()
+addModal :: Route App -> Journal -> Day -> Widget
 addModal addR j today = do
   (addView, addEnctype) <- generateFormPost (addForm j today)
   [whamlet|
@@ -48,12 +50,16 @@ addModal addR j today = do
           ^{addView}
 |]
 
+-- addForm ::
+--      (site ~ HandlerSite m, RenderMessage site FormMessage, MonadHandler m)
+--   => Journal
+--   -> Day
+--   -> Markup
+--   -> MForm m (FormResult Transaction, WidgetFor site ())
 addForm ::
-     (site ~ HandlerSite m, RenderMessage site FormMessage, MonadHandler m)
-  => Journal
-  -> Day
-  -> Markup
-  -> MForm m (FormResult Transaction, WidgetFor site ())
+  (MonadHandler m, RenderMessage (HandlerSite m) FormMessage) => 
+  Journal -> Day -> Markup ->
+  MForm m (FormResult Transaction, WidgetFor (HandlerSite m) ())
 addForm j today = identifyForm "add" $ \extra -> do
   (dateRes, dateView) <- mreq dateField dateFS Nothing
   (descRes, descView) <- mreq textField descFS Nothing

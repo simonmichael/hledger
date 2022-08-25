@@ -15,7 +15,7 @@ import Hledger.Web.Import
 import Hledger.Web.Widget.Common
        (fromFormSuccess, helplink, journalFile404, writeJournalTextIfValidAndChanged)
 
-editForm :: FilePath -> Text -> Markup -> MForm Handler (FormResult Text, Widget)
+editForm :: FilePath -> Text -> Form Text
 editForm f txt =
   identifyForm "edit" $ \extra -> do
     (tRes, tView) <- mreq textareaField fs (Just (Textarea txt))
