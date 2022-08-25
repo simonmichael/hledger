@@ -58,10 +58,10 @@
   <div .col-md-4 .col-xs-4 .col-sm-4>
     <button type=submit .btn .btn-default .btn-lg name=submit>add
 
-$if length journals > 1
+$if length files > 1
   <br>
   <span .input-lg>to:
-    <select #journalselect .form-control.input-lg name=journal style="width:auto; display:inline-block;">
-      $forall p <- journals
-        <option value=#{p}>#{p}
+    <select #journalselect .form-control.input-lg name=file style="width:auto; display:inline-block;">
+      $forall f <- files
+        <option value=#{f}>#{f}
 <span .small style="padding-left:2em;">

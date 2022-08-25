@@ -61,42 +61,42 @@ addForm ::
   Journal -> Day -> Markup ->
   MForm m (FormResult Transaction, WidgetFor (HandlerSite m) ())
 addForm j today = identifyForm "add" $ \extra -> do
-  (dateRes, dateView) <- mreq dateField dateFS Nothing
-  (descRes, descView) <- mreq textField descFS Nothing
-  (acctRes, _) <- mreq listField acctFS Nothing
-  (amtRes, _) <- mreq listField amtFS Nothing
+  let  -- bindings used in add-form.hamlet
+    descriptions = foldMap S.fromList [journalPayeesDeclaredOrUsed j, journalDescriptions j]
+    files = fst <$> jfiles j
+  (dateRes, dateView) <- mreq dateField dateSettings Nothing
+  (descRes, descView) <- mreq textField descSettings Nothing
+  (acctRes, _)        <- mreq listField "account" Nothing
+  (amtRes , _)        <- mreq listField "amount" Nothing
   let (postRes, displayRows) = validatePostings acctRes amtRes
-
-  -- bindings used in add-form.hamlet
-  let descriptions = foldMap S.fromList [journalPayeesDeclaredOrUsed j, journalDescriptions j]
-      journals = fst <$> jfiles j
-
   pure (validateTransaction dateRes descRes postRes, $(widgetFile "add-form"))
 
   where
-    dateFS = FieldSettings "date" Nothing Nothing (Just "date")
+    -- field settings
+    dateSettings = FieldSettings "date" Nothing Nothing (Just "date")
       [("class", "form-control input-lg"), ("placeholder", "Date")]
-    descFS = FieldSettings "desc" Nothing Nothing (Just "description")
+    descSettings = FieldSettings "desc" Nothing Nothing (Just "description")
       [("class", "form-control input-lg typeahead"), ("placeholder", "Description"), ("size", "40")]
-    acctFS = FieldSettings "amount" Nothing Nothing (Just "account") []
-    amtFS = FieldSettings "amount" Nothing Nothing (Just "amount") []
-    dateField = checkMMap (pure . validateDate) (T.pack . show) textField
-    validateDate s =
-      first (const ("Invalid date format" :: Text)) $
-      fixSmartDateStrEither' today (T.strip s)
 
+    -- custom field types
+    dateField = checkMMap (pure . validateDate) (T.pack . show) textField
+      where
+        validateDate s =
+          first (const ("Invalid date format" :: Text)) $
+          fixSmartDateStrEither' today (T.strip s)
     listField = Field
       { fieldParse = const . pure . Right . Just . dropWhileEnd T.null
       , fieldView = error "Don't render using this!"  -- PARTIAL:
       , fieldEnctype = UrlEncoded
       }
 
-    -- Used in add-form.hamlet
+    -- helpers used in add-form.hamlet
     toBloodhoundJson :: [Text] -> Markup
     toBloodhoundJson ts =
       -- This used to work, but since 1.16, it seems like something changed.
       -- toJSON ("a"::Text) gives String "a" instead of "a", etc.
       -- preEscapedString . escapeJSSpecialChars . show . toJSON
+
       preEscapedText $ T.concat [
         "[",
         T.intercalate "," $ map (
@@ -112,8 +112,8 @@ addForm j today = identifyForm "add" $ \extra -> do
           ) ts,
         "]"
         ]
-b64wrap :: Text -> Text
-b64wrap = ("atob(\""<>) . (<>"\")") . encodeBase64
+      where
+        b64wrap = ("atob(\""<>) . (<>"\")") . encodeBase64
 
 validateTransaction ::
      FormResult Day
@@ -128,8 +128,11 @@ validateTransaction dateRes descRes postingsRes =
     x -> x
   where
     makeTransaction date desc postings =
-      nulltransaction {tdate = date, tdescription = desc, tpostings = postings}
-
+      nulltransaction {
+         tdate        = date
+        ,tdescription = desc
+        ,tpostings    = postings
+        }
 
 -- | Parse a list of postings out of a list of accounts and a corresponding list
 -- of amounts
