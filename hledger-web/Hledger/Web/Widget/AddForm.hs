@@ -14,7 +14,7 @@ import Control.Monad.State.Strict (evalStateT)
 import Data.Bifunctor (first)
 import Data.Foldable (toList)
 import Data.List (dropWhileEnd, unfoldr)
-import Data.Maybe (isJust)
+import Data.Maybe (isJust, fromMaybe)
 import qualified Data.Set as S
 import Data.Text (Text)
 import Data.Text.Encoding.Base64 (encodeBase64)
@@ -50,7 +50,7 @@ addForm j today = identifyForm "add" $ \extra -> do
     descriptions = foldMap S.fromList [journalPayeesDeclaredOrUsed j, journalDescriptions j]
     files = fst <$> jfiles j
   (dateRes, dateView) <- mreq dateField dateSettings Nothing
-  (descRes, descView) <- mreq textField descSettings Nothing
+  (descRes, descView) <- mopt textField descSettings Nothing
   (acctsRes, _)       <- mreq listField acctSettings Nothing
   (amtsRes, _)        <- mreq listField amtSettings  Nothing
   (fileRes, fileView) <- mreq fileField' fileSettings Nothing
@@ -86,7 +86,7 @@ addForm j today = identifyForm "add" $ \extra -> do
     fileSettings = FieldSettings "file" Nothing Nothing (Just "file") [("class", "form-control input-lg")]
 
 validateTransaction ::
-     FormResult Day -> FormResult Text -> FormResult [Posting] -> FormResult FilePath
+     FormResult Day -> FormResult (Maybe Text) -> FormResult [Posting] -> FormResult FilePath
   -> FormResult (Transaction, FilePath)
 validateTransaction dateRes descRes postingsRes fileRes =
   case makeTransaction <$> dateRes <*> descRes <*> postingsRes <*> fileRes of
@@ -95,10 +95,10 @@ validateTransaction dateRes descRes postingsRes fileRes =
       Right txn' -> FormSuccess (txn',f)
     x -> x
   where
-    makeTransaction date desc postings f =
+    makeTransaction date mdesc postings f =
       (nulltransaction {
          tdate = date
-        ,tdescription = desc
+        ,tdescription = fromMaybe "" mdesc
         ,tpostings = postings
         ,tsourcepos = (initialPos f, initialPos f)
         }, f)
