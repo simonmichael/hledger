@@ -60,8 +60,7 @@
 
 $if length files > 1
   <br>
-  <span .input-lg>to:
-    <select #journalselect .form-control.input-lg name=file style="width:auto; display:inline-block;">
-      $forall f <- files
-        <option value=#{f}>#{f}
-<span .small style="padding-left:2em;">
+  <div style="display:inline-block; width:auto;" .form-group :isJust (fvErrors fileView):.has-error>
+    To file: ^{fvInput fileView}
+    $maybe err <- fvErrors fileView
+      <span .help-block .error-block>#{err}

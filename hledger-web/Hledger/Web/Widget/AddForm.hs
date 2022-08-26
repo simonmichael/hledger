@@ -25,19 +25,13 @@ import Text.Megaparsec (bundleErrors, eof, parseErrorTextPretty, runParser)
 import Yesod
 
 import Hledger
-import Hledger.Web.Foundation -- (App, Form, Handler, Widget)
+import Hledger.Web.Foundation (App, Handler, Widget)
 import Hledger.Web.Settings (widgetFile)
+import Data.Function ((&))
 
--- addModal ::
---      ( MonadWidget m
---      , r ~ Route (HandlerSite m)
---      , m ~ WidgetFor (HandlerSite m)
---      , RenderMessage (HandlerSite m) FormMessage
---      )
---   => r -> Journal -> Day -> m ()
 addModal :: Route App -> Journal -> Day -> Widget
 addModal addR j today = do
-  (addView, addEnctype) <- generateFormPost (addForm j today)
+  (addView, addEnctype) <- handlerToWidget $ generateFormPost (addForm j today)
   [whamlet|
 <div .modal #addmodal tabindex="-1" role="dialog" aria-labelledby="addLabel" aria-hidden="true">
   <div .modal-dialog .modal-lg>
@@ -50,113 +44,88 @@ addModal addR j today = do
           ^{addView}
 |]
 
--- addForm ::
---      (site ~ HandlerSite m, RenderMessage site FormMessage, MonadHandler m)
---   => Journal
---   -> Day
---   -> Markup
---   -> MForm m (FormResult Transaction, WidgetFor site ())
-addForm ::
-  (MonadHandler m, RenderMessage (HandlerSite m) FormMessage) => 
-  Journal -> Day -> Markup ->
-  MForm m (FormResult Transaction, WidgetFor (HandlerSite m) ())
+addForm :: Journal -> Day -> Markup -> MForm Handler (FormResult (Transaction,FilePath), Widget)
 addForm j today = identifyForm "add" $ \extra -> do
   let  -- bindings used in add-form.hamlet
     descriptions = foldMap S.fromList [journalPayeesDeclaredOrUsed j, journalDescriptions j]
     files = fst <$> jfiles j
   (dateRes, dateView) <- mreq dateField dateSettings Nothing
   (descRes, descView) <- mreq textField descSettings Nothing
-  (acctRes, _)        <- mreq listField "account" Nothing
-  (amtRes , _)        <- mreq listField "amount" Nothing
-  let (postRes, displayRows) = validatePostings acctRes amtRes
-  pure (validateTransaction dateRes descRes postRes, $(widgetFile "add-form"))
-
+  (acctsRes, _)       <- mreq listField acctSettings Nothing
+  (amtsRes, _)        <- mreq listField amtSettings  Nothing
+  (fileRes, fileView) <- mreq fileField' fileSettings Nothing
+  let
+    (postingsRes, displayRows) = validatePostings acctsRes amtsRes
+    formRes = validateTransaction dateRes descRes postingsRes fileRes
+  return (formRes, $(widgetFile "add-form"))
   where
-    -- field settings
-    dateSettings = FieldSettings "date" Nothing Nothing (Just "date")
-      [("class", "form-control input-lg"), ("placeholder", "Date")]
-    descSettings = FieldSettings "desc" Nothing Nothing (Just "description")
-      [("class", "form-control input-lg typeahead"), ("placeholder", "Description"), ("size", "40")]
-
-    -- custom field types
-    dateField = checkMMap (pure . validateDate) (T.pack . show) textField
+    -- custom fields
+    dateField = textField & checkMMap (pure . validateDate) (T.pack . show)
       where
         validateDate s =
           first (const ("Invalid date format" :: Text)) $
           fixSmartDateStrEither' today (T.strip s)
     listField = Field
       { fieldParse = const . pure . Right . Just . dropWhileEnd T.null
-      , fieldView = error "Don't render using this!"  -- PARTIAL:
+      , fieldView = error' "listField should not be used for rendering"  -- PARTIAL:
       , fieldEnctype = UrlEncoded
       }
-
-    -- helpers used in add-form.hamlet
-    toBloodhoundJson :: [Text] -> Markup
-    toBloodhoundJson ts =
-      -- This used to work, but since 1.16, it seems like something changed.
-      -- toJSON ("a"::Text) gives String "a" instead of "a", etc.
-      -- preEscapedString . escapeJSSpecialChars . show . toJSON
-
-      preEscapedText $ T.concat [
-        "[",
-        T.intercalate "," $ map (
-          ("{\"value\":" <>).
-          (<> "}").
-          -- This will convert a value such as ``hledger!`` into
-          -- ``atob("aGxlZGdlciE=")``. When this gets evaluated on the client,
-          -- the resulting string is ``hledger!`` again. The same data is
-          -- passed, but the user-controlled bit of that string can only use
-          -- characters [a-zA-Z0-9+=/], making it impossible to break out of
-          -- string context.
-          b64wrap
-          ) ts,
-        "]"
-        ]
+    fileField' :: Field Handler FilePath
+    fileField' = selectFieldList [(T.pack f, f) | f <- fs] & check validateFilepath
       where
-        b64wrap = ("atob(\""<>) . (<>"\")") . encodeBase64
+        fs = journalFilePaths j
+        validateFilepath :: FilePath -> Either FormMessage FilePath
+        validateFilepath f
+          | f `elem` fs = Right f
+          | otherwise = Left $ MsgInputNotFound $ T.pack f
+    -- field settings
+    dateSettings = FieldSettings "date" Nothing Nothing (Just "date") [("class", "form-control input-lg"), ("placeholder", "Date")]
+    descSettings = FieldSettings "desc" Nothing Nothing (Just "description") [("class", "form-control input-lg typeahead"), ("placeholder", "Description"), ("size", "40")]
+    acctSettings = FieldSettings "account" Nothing Nothing (Just "account") []
+    amtSettings  = FieldSettings "amount" Nothing Nothing (Just "amount") []
+    fileSettings = FieldSettings "file" Nothing Nothing (Just "file") [("class", "form-control input-lg")]
 
 validateTransaction ::
-     FormResult Day
-  -> FormResult Text
-  -> FormResult [Posting]
-  -> FormResult Transaction
-validateTransaction dateRes descRes postingsRes =
-  case makeTransaction <$> dateRes <*> descRes <*> postingsRes of
-    FormSuccess txn -> case balanceTransaction defbalancingopts txn of
-      Left e -> FormFailure [T.pack e]
-      Right txn' -> FormSuccess txn'
+     FormResult Day -> FormResult Text -> FormResult [Posting] -> FormResult FilePath
+  -> FormResult (Transaction, FilePath)
+validateTransaction dateRes descRes postingsRes fileRes =
+  case makeTransaction <$> dateRes <*> descRes <*> postingsRes <*> fileRes of
+    FormSuccess (txn,f) -> case balanceTransaction defbalancingopts txn of
+      Left e     -> FormFailure [T.pack e]
+      Right txn' -> FormSuccess (txn',f)
     x -> x
   where
-    makeTransaction date desc postings =
-      nulltransaction {
-         tdate        = date
+    makeTransaction date desc postings f =
+      (nulltransaction {
+         tdate = date
         ,tdescription = desc
-        ,tpostings    = postings
-        }
+        ,tpostings = postings
+        ,tsourcepos = (initialPos f, initialPos f)
+        }, f)
 
 -- | Parse a list of postings out of a list of accounts and a corresponding list
 -- of amounts
 validatePostings ::
-     FormResult [Text]
-  -> FormResult [Text]
+     FormResult [Text] -> FormResult [Text]
   -> (FormResult [Posting], [(Int, (Text, Text, Maybe Text, Maybe Text))])
-validatePostings acctRes amtRes = let
+validatePostings acctsRes amtsRes = let
 
   -- Zip accounts and amounts, fill in missing values and drop empty rows.
   rows :: [(Text, Text)]
-  rows = filter (/= ("", "")) $ zipDefault "" (formSuccess [] acctRes) (formSuccess [] amtRes)
+  rows = filter (/= ("", "")) $ zipDefault "" (formSuccess [] acctsRes) (formSuccess [] amtsRes)
 
   -- Parse values and check for incomplete rows with only an account or an amount.
   -- The boolean in unfoldr state is for special handling of 'missingamt', where
   -- one row may have only an account and not an amount.
   postings :: [(Text, Text, Either (Maybe Text, Maybe Text) Posting)]
   postings = unfoldr go (True, rows)
-  go (True, (x, ""):y:xs) = Just ((x, "", zipRow (checkAccount x) (Left "Missing amount")), (True, y:xs))
-  go (True, (x, ""):xs) = Just ((x, "", zipRow (checkAccount x) (Right missingamt)), (False, xs))
-  go (False, (x, ""):xs) = Just ((x, "", zipRow (checkAccount x) (Left "Missing amount")), (False, xs))
-  go (_, ("", y):xs) = Just (("", y, zipRow (Left "Missing account") (checkAmount y)), (False, xs))
-  go (_, (x, y):xs) = Just ((x, y, zipRow (checkAccount x) (checkAmount y)), (True, xs))
-  go (_, []) = Nothing
+    where
+      go (True, (x, ""):y:xs) = Just ((x, "", zipRow (checkAccount x) (Left "Missing amount")), (True, y:xs))
+      go (True, (x, ""):xs) = Just ((x, "", zipRow (checkAccount x) (Right missingamt)), (False, xs))
+      go (False, (x, ""):xs) = Just ((x, "", zipRow (checkAccount x) (Left "Missing amount")), (False, xs))
+      go (_, ("", y):xs) = Just (("", y, zipRow (Left "Missing account") (checkAmount y)), (False, xs))
+      go (_, (x, y):xs) = Just ((x, y, zipRow (checkAccount x) (checkAmount y)), (True, xs))
+      go (_, []) = Nothing
 
   zipRow (Left e) (Left e') = Left (Just e, Just e')
   zipRow (Left e) (Right _) = Left (Just e, Nothing)
@@ -174,7 +143,7 @@ validatePostings acctRes amtRes = let
 
   -- Add errors to forms with zero rows if the form is not a FormMissing
   result :: [(Text, Text, Either (Maybe Text, Maybe Text) Posting)]
-  result = case (acctRes, amtRes) of
+  result = case (acctsRes, amtsRes) of
     (FormMissing, FormMissing) -> postings
     _ -> case postings of
       [] -> [ ("", "", Left (Just "Missing account", Just "Missing amount"))
@@ -196,6 +165,30 @@ validatePostings acctRes amtRes = let
 
   in (formResult, zip [(1 :: Int)..] display)
 
+-- helper for add-form.hamlet
+toBloodhoundJson :: [Text] -> Markup
+toBloodhoundJson ts =
+  -- This used to work, but since 1.16, it seems like something changed.
+  -- toJSON ("a"::Text) gives String "a" instead of "a", etc.
+  -- preEscapedString . escapeJSSpecialChars . show . toJSON
+
+  preEscapedText $ T.concat [
+    "[",
+    T.intercalate "," $ map (
+      ("{\"value\":" <>).
+      (<> "}").
+      -- This will convert a value such as ``hledger!`` into
+      -- ``atob("aGxlZGdlciE=")``. When this gets evaluated on the client,
+      -- the resulting string is ``hledger!`` again. The same data is
+      -- passed, but the user-controlled bit of that string can only use
+      -- characters [a-zA-Z0-9+=/], making it impossible to break out of
+      -- string context.
+      b64wrap
+      ) ts,
+    "]"
+    ]
+  where
+    b64wrap = ("atob(\""<>) . (<>"\")") . encodeBase64
 
 zipDefault :: a -> [a] -> [a] -> [(a, a)]
 zipDefault def (b:bs) (c:cs) = (b, c):(zipDefault def bs cs)

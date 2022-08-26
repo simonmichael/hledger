@@ -35,12 +35,11 @@ postAddR = do
 
   ((res, view), enctype) <- runFormPost $ addForm j today
   case res of
-    FormSuccess res' -> do
-      let t = txnTieKnot res'
-      -- XXX(?) move into balanceTransaction
-      liftIO $ ensureJournalFileExists (journalFilePath j)
-      -- XXX why not journalAddTransaction ?
-      liftIO $ appendToJournalFileOrStdout (journalFilePath j) (showTransaction t)
+    FormSuccess (t,f) -> do
+      let t' = txnTieKnot t
+      liftIO $ do
+        ensureJournalFileExists f
+        appendToJournalFileOrStdout f (showTransaction t')
       setMessage "Transaction added."
       redirect JournalR
     FormMissing -> showForm view enctype
