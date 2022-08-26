@@ -4,6 +4,9 @@
 // STARTUP
 
 $(document).ready(function() {
+
+  // add form helpers XXX move to addForm ?
+
   // date picker
   // http://bootstrap-datepicker.readthedocs.io/en/latest/options.html
   var dateEl = $('#dateWrap').datepicker({
@@ -13,7 +16,7 @@ $(document).ready(function() {
     weekStart: 1 // Monday
   });;
 
-  // ensure add form always focuses its first field
+  // focus and pre-fill the add form whenever it is shown
   $('#addmodal')
     .on('shown.bs.modal', function() {
       addformFocus();
@@ -163,9 +166,14 @@ function addformLastAmountBindKey() {
   $('.amount-input:last').keypress(addformAddPosting);
 }
 
-// Focus the first add form field.
+// Pre-fill today's date and focus the description field in the add form.
 function addformFocus() {
-  focus($('#addform input#date'));
+  $('#addform input[name=date]').val(isoDate());
+  focus($('#addform input[name=description]'));
+}
+
+function isoDate() {
+  return new Date().toLocaleDateString("sv");  // https://stackoverflow.com/a/58633651/84401
 }
 
 // Focus a jquery-wrapped element, working around http://stackoverflow.com/a/7046837.
