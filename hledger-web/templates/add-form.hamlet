@@ -54,13 +54,13 @@
           <span .help-block .error-block>_{err}
 
 <div .row>
-  <div .col-md-8 .col-xs-8 .col-sm-8>
-  <div .col-md-4 .col-xs-4 .col-sm-4>
-    <button type=submit .btn .btn-default .btn-lg name=submit>add
-
-$if length files > 1
-  <br>
-  <div style="display:inline-block; width:auto;" .form-group :isJust (fvErrors fileView):.has-error>
-    To file: ^{fvInput fileView}
-    $maybe err <- fvErrors fileView
-      <span .help-block .error-block>#{err}
+  <div .col-md-9 .col-xs-9 .col-sm-9>
+    $if length files > 1
+      Add to:
+      &nbsp;
+      <div style="display:inline-block; width:auto;" .form-group :isJust (fvErrors fileView):.has-error>
+        ^{fvInput fileView}
+        $maybe err <- fvErrors fileView
+          <span .help-block .error-block>#{err}
+  <div .col-md-3 .col-xs-3 .col-sm-3 style="text-align:right;">
+    <button type=submit .btn .btn-default .btn-lg name=submit style="font-weight:bold;">Add
