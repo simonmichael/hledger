@@ -21,40 +21,36 @@
   });
 ^{extra}
 
-<div .form-group>
-  <div .row>
-    <div .col-md-3 .col-xs-6 .col-sm-6 :isJust (fvErrors dateView):.has-error>
-      <div #dateWrap .form-group.input-group.date>
-        ^{fvInput dateView}
-        <div .input-group-addon>
-          <span .glyphicon .glyphicon-th>
-      $maybe err <- fvErrors dateView
-        <span .help-block .error-block>#{err}
-    <div .col-md-9 .col-xs-6 .col-sm-6 :isJust (fvErrors descView):.has-error>
-      <div .form-group>
-        ^{fvInput descView}
-      $maybe err <- fvErrors descView
-        <span .help-block .error-block>#{err}
-  <div .row>
-    <div .col-md-3 .col-xs-6 .col-sm-6>
-    <div .col-md-9 .col-xs-6 .col-sm-6>
+<div .row>
+  <div .col-md-3.col-sm-5.col-xs-6 :isJust (fvErrors dateView):.has-error>
+    <div #dateWrap .form-group.input-group.date>
+      ^{fvInput dateView}
+      <div .input-group-addon>
+        <span .glyphicon .glyphicon-th>
+    $maybe err <- fvErrors dateView
+      <span .help-block .error-block>#{err}
+  <div .col-md-9.col-sm-7.col-xs-6 :isJust (fvErrors descView):.has-error>
+    <div .form-group>
+      ^{fvInput descView}
+    $maybe err <- fvErrors descView
+      <span .help-block .error-block>#{err}
 
 <div .account-postings>
   $forall (n, (acc, amt, accE, amtE)) <- displayRows
-    <div .form-group .row .account-group>
-      <div .col-md-8 .col-xs-8 .col-sm-8 :isJust accE:.has-error>
+    <div .form-group .row .account-group style="padding-left:1em;">
+      <div .col-sm-9.col-xs-9 :isJust accE:.has-error>
         <input .account-input.form-control.input-lg.typeahead type=text
           name=account placeholder="Account #{n}" value="#{acc}">
         $maybe err <- accE
           <span .help-block .error-block>_{err}
-      <div .col-md-4 .col-xs-4 .col-sm-4 :isJust amtE:.has-error>
+      <div .col-sm-3.col-xs-3 :isJust amtE:.has-error>
         <input .amount-input.form-control.input-lg type=text
           name=amount placeholder="Amount #{n}" value="#{amt}">
         $maybe err <- amtE
           <span .help-block .error-block>_{err}
 
 <div .row>
-  <div .col-md-9 .col-xs-9 .col-sm-9>
+  <div .col-sm-9.col-xs-9>
     $if length files > 1
       Add to:
       &nbsp;
@@ -62,5 +58,5 @@
         ^{fvInput fileView}
         $maybe err <- fvErrors fileView
           <span .help-block .error-block>#{err}
-  <div .col-md-3 .col-xs-3 .col-sm-3 style="text-align:right;">
-    <button type=submit .btn .btn-default .btn-lg name=submit style="font-weight:bold;">Add
+  <div .col-sm-3.col-xs-3 style="text-align:right;">
+    <button type=submit .btn .btn-default .btn-lg name=submit style="font-weight:bold;">Save

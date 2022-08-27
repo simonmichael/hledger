@@ -51,7 +51,7 @@ postAddR = do
       sendResponse =<< defaultLayout [whamlet|
         <h2>Add transaction
         <div .row style="margin-top:1em">
-          <form#addform.form.col-xs-12.col-md-8 method=post enctype=#{enctype}>
+          <form#addform.form.col-xs-12.col-sm-11 method=post enctype=#{enctype}>
             ^{view}
       |]
 
