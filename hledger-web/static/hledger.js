@@ -13,6 +13,7 @@ $(document).ready(function() {
     showOnFocus: false,
     autoclose: true,
     format: 'yyyy-mm-dd',
+    todayHighlight: true,
     weekStart: 1 // Monday
   });;
 
