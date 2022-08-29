@@ -9,36 +9,41 @@
 General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
-# 38431b5c6
-
-Scripts/addons
-
-- install: 1.26.1
-
-- install: hledger-stockquotes 0.1.2.1
-
-- install: hledger-interest 1.6.4
-
-- bin: paypaljson, paypaljson2csv - download txns from paypal API
+# 991e5a836
 
 Docs
 
-- CREDITS.html -> CREDITS.md (Pranesh Prakash)
-  Corrected the extension for the CREDITS file. 
+- https://hledger.org/ERRORS.html - an overview of hledger's error messages.
+
+- New template for github releases, with improved install instructions for binaries.
+
+- Add modern windows binary install instructions. (Lazar Lazarov, Simon Michael)
+
+- Fix tables of contents in developer documentation. (Alex Hirzel)
+
+- Update ACHIEVEMENTS. (Alex Hirzel)
+
+- Corrected the extension for the CREDITS file.  (Pranesh Prakash)
+
+- Fix broken link in bin/README.md. (David D Lowe)
 
 Examples
 
-- examples/csv: add example for capital one credit cards [ci skip] (max thomas)
+- Add example for capital one credit cards CSV. (max thomas)
 
 Process
 
-- tools: make ghci-unit-test
+- Revive github projects, set up http://projects.hledger.org shortcut url
 
-- shake: fix page TOC rendering (with mdbook-toc 0.8+ ?)
+- Many cleanups and improvements to the CI test and binary-generating
+  github actions.  The CI tests for master now also include
+  hledger-lib's doctests.
 
-- ci: consistent workflow and file names
+- All packages now disallow name shadowing in their code.
 
-- ci: run all main workflows on push to "binaries"
+- make scc gives a modern report of code line counts.
+
+- make ghci-unit-test loads hledger-lib unit tests in GHCI.
 
 # 1.26 2022-06-04
 

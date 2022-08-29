@@ -9,8 +9,26 @@ __      _____| |__
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 7be94cf50
+# c97e05e0d
 
+Improvements
+
+- Improve the add form's layout and space usage.
+
+- Pre-fill the add form's date field.
+
+- Highlight today in the add form's date picker.
+
+- Focus the add form's description field by default.
+
+- Allow an empty description in the add form.
+
+- Use hledger 1.27
+
+Fixes
+
+- Respect the add form's file selector again.
+  (Simon Michael, Kerstin, #1229)
 # 1.26.1 2022-07-11
 
 - Uses hledger 1.26.1.

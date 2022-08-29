@@ -9,19 +9,54 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 7be94cf50
+# 6d4563001
 
-- imp: balanced, balancednoautoconversion: use new error format (#1436)
+Breaking changes
 
-- imp: balance assertions now use new error format (#1436)
+- Support for GHC 8.6 and 8.8 has been dropped.
+  hledger now requires GHC 8.10 or newer.
 
-- imp: bal: budget goals now respect -H (#1879)
+- Hledger.Data.Amount: `amount` has been dropped; use `nullamt` instead.
 
-- fix: bal: Allow cumulative gain and valuechange reports (Stephen Morgan)
-  Previously, --cumulative with --gain or --valuechange would produce an
-  empty report. This fixes this issue to produce a reasonable report.
+- journal*AccountQuery functions have been dropped; use a type: query instead.
+  cbcsubreportquery no longer takes Journal as an argument.
+  (#1921)
 
-- imp: lib: Hledger.Utils.Parse: export HledgerParseErrors
+Misc. changes
+
+- Hledger.Utils.Debug now re-exports Debug.Breakpoint from the
+  breakpoint library, so that breakpoint's helpers can be used easily
+  during development.
+
+- Hledger.Utils.Debug:
+  dlog has been replaced by more reliable functions for debug-logging
+  to a file (useful for debugging TUI apps like hledger-ui):
+
+  dlogTrace
+  dlogTraceAt
+  dlogAt
+  dlog0
+  dlog1
+  dlog2
+  dlog3
+  dlog4
+  dlog5
+  dlog6
+  dlog7
+  dlog8
+  dlog9
+
+- Hledger.Utils.Debug: pprint' and pshow' have been added,
+  forcing monochrome output.
+
+- Hledger.Utils.String: add quoteForCommandLine
+
+- Hledger.Data.Errors: export makeBalanceAssertionErrorExcerpt
+
+- Hledger.Utils.Parse: export HledgerParseErrors
+
+- Debug logging from journalFilePath and the include directive will
+  now show "(unknown)" instead of an empty string.
 
 # 1.26.1 2022-07-11
 

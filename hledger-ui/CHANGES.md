@@ -9,7 +9,15 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 7be94cf50
+# b46cb8a7f
+
+Improvements
+
+- At --debug=2 and up, log debug output to ./debug.log.
+
+- Use/require brick 1.0+. (#1889)
+
+- Use hledger 1.27
 
 # 1.26.1 2022-07-11
 

@@ -9,31 +9,97 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 7be94cf50
-
-Breaking changes
+# b46cb8a7f
 
 Features
 
+- `hledger check recentassertions` (and flycheck-hledger in Emacs if
+  you enable this check) requires that all balance-asserted accounts
+  have a balance assertion within 7 days before their latest posting.
+
+  This helps remind you to not only record transactions, but also to
+  regularly check account balances against the real world, to catch
+  errors sooner and avoid a time-consuming hunt.
+
+- The --infer-costs general flag has been added, as the inverse
+  operation to --infer-equity.  --infer-costs detects commodity
+  conversion transactions which have been written with equity
+  conversion postings (the traditional accounting notation) and adds
+  PTA cost notation (@@) to them (allowing cost reporting).
+  See https://hledger.org/hledger.html#equity-conversion-postings .
+  (Stephen Morgan)
+
 Improvements
 
-- imp: balanced, balancednoautoconversion: use new error format (#1436)
+- Many error messages have been improved. Most error messages now use
+  a consistent, more informative format. 
+  (#1436)
 
-- imp: balance assertions now use new error format (#1436)
+- The accounts command has a new --directives flag which makes it
+  show valid account directives which you can paste into a journal.
 
-- imp: bal: budget goals now respect -H (#1879)
+- The accounts command has a new --positions flag which shows where
+  accounts were declared, useful for troubleshooting.
+  (#1909)
+
+- Bump lower bounds for Diff and githash. (Andrew Lelechenko)
+
+- GHC 8.6 and 8.8 are no longer supported. Building hledger now
+  requires GHC 8.10 or greater.
 
 Fixes
 
-- fix: bal: Allow cumulative gain and valuechange reports (Stephen Morgan)
+- Account display order is now calculated correctly even when accounts
+  are declared in multiple files.
+  (#1909)
+
+- At --debug 5 and up, account declarations info is logged.
+  (#1909)
+
+- hledger aregister and hledger-ui now show transactions correctly
+  when there is a type: query.
+  (#1905)
+
+- bal: Allow cumulative gain and valuechange reports.
   Previously, --cumulative with --gain or --valuechange would produce an
   empty report. This fixes this issue to produce a reasonable report.
+  (Stephen Morgan)
+
+- bal: budget goal amounts now respect -c styles (fixes #1907)
+
+- bal: budget goals now respect -H (#1879)
+
+- bal: budget goals were ignoring rule-specified start date
+
+- bal: Allow cumulative gain and valuechange reports (Stephen Morgan)
+  Previously, --cumulative with --gain or --valuechange would produce an
+  empty report. This fixes this issue to produce a reasonable report.
+
+- cs/bs/is: Fixed non-display of child accounts when there is an
+  intervening account of another type.
+  (#1921) (Stephen Morgan)
+
+- roi: make sure empty cashflows are skipped when determining first cashflow (Charlotte Van Petegem)
+  Empty cashflows are added when the begin date of the report is before the first
+  transaction.
+
+Scripts/addons
+
+- https://hledger.org/scripts.html - an overview of scripts and addons in bin/.
+
+- paypaljson, paypaljson2csv - download txns from paypal API
+
+- hledger-check-postable.hs - check that no postings are made to accounts with a postable:(n|no) tag
+
+- hledger-addon-example.hs - script template
+
 
 # 1.26.1 2022-07-11
 
 - require safe 0.3.19+ to avoid deprecation warning
 
 # 1.26 2022-06-04
+
 Improvements
 
 - `register` and `aregister` have been made faster, by 
