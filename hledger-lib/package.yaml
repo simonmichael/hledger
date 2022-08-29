@@ -171,9 +171,7 @@ tests:
 
     when:
     # disable doctest with GHC 9.0, https://github.com/sol/doctest/issues/301
-    #- condition: impl(ghc >= 9.0) && impl(ghc < 9.2)
-    # GHC 8.6 seems to be failing now also
-    - condition: impl(ghc < 9.2)
+    - condition: impl(ghc >= 9.0) && impl(ghc < 9.2)
       buildable: false
 
     # ghc 8.4+ on mac needs this workaround. See

@@ -227,6 +227,7 @@ jobs:
     #     # --pedantic --no-run-benchmarks
     #   if: env.CONTINUE
 
+    # Note: doctests won't run if using GHC 9.0, see hledger-lib/package.yaml
     - name: Build all hledger modules fast, warning free, run unit/doc/bench tests
       env:
         stack: ${{ matrix.plan.stack }}
