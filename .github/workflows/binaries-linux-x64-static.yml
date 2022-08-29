@@ -22,32 +22,57 @@ jobs:
     container: alpine:edge
     steps:
 
-    - name: Install tools
-      # Borrowed from fossas/haskell-static-alpine, copied here for transparency
-      run: |
-        apk --no-cache add binutils-gold curl gcc g++ git gmp-dev ncurses-dev ncurses-static libffi-dev make xz tar perl zlib-dev zlib-static
-        mkdir -p ~/.ghcup/bin && curl https://downloads.haskell.org/~ghcup/x86_64-linux-ghcup > ~/.ghcup/bin/ghcup && chmod +x ~/.ghcup/bin/ghcup
-        ~/.ghcup/bin/ghcup install ghc 9.0.2 && ~/.ghcup/bin/ghcup set ghc 9.0.2
-        ~/.ghcup/bin/ghcup install cabal
-        echo "$HOME/.ghcup/bin/" >> $GITHUB_PATH
-
     - name: Check out
       uses: actions/checkout@v2
       # have to fetch everything for git describe for --version
       with: 
         fetch-depth: 0  
 
-    - name: Cache cabal packages, binaries
+    - name: Cache ghcup-installed tools
+      id:   ghcup
+      uses: actions/cache@v2
+      with:
+        path: ~/.ghcup
+        key: ${{ runner.os }}-ghcup-20220829-${{ hashFiles('**.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-ghcup-20220829
+
+    - name: Cache cabal-installed libs
       id:   cabal
       uses: actions/cache@v2
       with:
         path: ~/.cabal
-        key: ${{ runner.os }}-cabal-20220711-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-cabal-20220829-${{ hashFiles('**.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-cabal-20220711
+             ${{ runner.os }}-cabal-20220829
 
-    - name: Update cabal
-      run: cabal update
+    - name: Install general tools with system package manager
+      run: |
+        apk --no-cache add binutils-gold curl gcc g++ git gmp-dev ncurses-dev ncurses-static libffi-dev make xz tar perl zlib-dev zlib-static
+
+    - name: Add .ghcup/bin to PATH for following steps
+      run: |
+        echo "$HOME/.ghcup/bin/" >> $GITHUB_PATH
+
+    - name: Install haskell tools with ghcup if needed
+      # originally based on fossas/haskell-static-alpine
+      run: |
+        if [[ ! -x ~/.ghcup/bin/ghcup ]]; then
+          mkdir -p ~/.ghcup/bin && curl https://downloads.haskell.org/~ghcup/x86_64-linux-ghcup > ~/.ghcup/bin/ghcup && chmod +x ~/.ghcup/bin/ghcup
+        fi
+        ghcup --version
+        if [[ ! -x ~/.ghcup/bin/ghc-9.0.2 ]]; then
+          ~/.ghcup/bin/ghcup install ghc 9.0.2 && ~/.ghcup/bin/ghcup set ghc 9.0.2
+        fi
+        ghc --version
+        if [[ ! -x ~/.ghcup/bin/cabal-3.8.1.0 ]]; then
+          ~/.ghcup/bin/ghcup install cabal 3.8.1.0 && ~/.ghcup/bin/ghcup set cabal 3.8.1.0
+        fi
+        cabal --version
+
+    - name: Update cabal package index
+      run: |
+        cabal update
 
     - name: Build on alpine
       run: |
