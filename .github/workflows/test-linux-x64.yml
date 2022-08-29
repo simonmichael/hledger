@@ -227,12 +227,16 @@ jobs:
     #     # --pedantic --no-run-benchmarks
     #   if: env.CONTINUE
 
+    # Packages are built one at a time to fail faster on error.
     # Note: doctests won't run if using GHC 9.0, see hledger-lib/package.yaml
     - name: Build all hledger modules fast, warning free, run unit/doc/bench tests
       env:
         stack: ${{ matrix.plan.stack }}
       run: |
-        $stack install --fast --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror  --test --bench
+        $stack install --fast --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror  --test --bench hledger-lib
+        $stack install --fast --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror  --test --bench hledger
+        $stack install --fast --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror  --test --bench hledger-ui
+        $stack install --fast --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror  --test --bench hledger-web
         #  --ghc-options=-split-sections --no-terminal
       if: env.CONTINUE
 
