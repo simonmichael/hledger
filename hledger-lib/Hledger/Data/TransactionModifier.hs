@@ -76,7 +76,7 @@ modifyTransactions atypes atags styles d tmods ts = do
 -- 0000-01-01
 --     ping           $1.00
 -- <BLANKLINE>
--- >>> test $ TransactionModifier "ping" [("pong" `tmpost` amount{aquantity=3}){tmprIsMultiplier=True}]
+-- >>> test $ TransactionModifier "ping" [("pong" `tmpost` nullamt{aquantity=3}){tmprIsMultiplier=True}]
 -- 0000-01-01
 --     ping           $1.00
 --     pong           $3.00  ; generated-posting: = ping
