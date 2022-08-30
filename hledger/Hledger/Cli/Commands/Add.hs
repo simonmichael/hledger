@@ -258,7 +258,7 @@ confirmedTransactionWizard prevInput es@EntryState{..} stack@(currentStage : _) 
 
 dateAndCodeWizard PrevInput{..} EntryState{..} = do
   let def = headDef (T.unpack $ showDate esDefDate) esArgs
-  retryMsg "A valid hledger smart date is required. Eg: 2014/2/14, 14, yesterday." $
+  retryMsg "A valid hledger smart date is required. Eg: 2022-08-30, 8/30, 30, yesterday." $
    parser (parseSmartDateAndCode esToday) $
    withCompletion (dateCompleter def) $
    defaultTo' def $ nonEmpty $
