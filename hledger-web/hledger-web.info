@@ -12,7 +12,7 @@ hledger-web(1)
 **************
 
 hledger-web is a web interface (WUI) for the hledger accounting tool.
-This manual is for hledger-web 1.26.99.
+This manual is for hledger-web 1.27.
 
    'hledger-web [OPTIONS]'
 'hledger web -- [OPTIONS]'
@@ -632,22 +632,22 @@ awkward.
 
 Tag Table:
 Node: Top223
-Node: OPTIONS1889
-Ref: #options1994
-Node: PERMISSIONS9905
-Ref: #permissions10044
-Node: EDITING UPLOADING DOWNLOADING11256
-Ref: #editing-uploading-downloading11437
-Node: RELOADING12271
-Ref: #reloading12405
-Node: JSON API12838
-Ref: #json-api12952
-Node: ENVIRONMENT18442
-Ref: #environment18558
-Node: FILES19869
-Ref: #files19969
-Node: BUGS20182
-Ref: #bugs20260
+Node: OPTIONS1886
+Ref: #options1991
+Node: PERMISSIONS9902
+Ref: #permissions10041
+Node: EDITING UPLOADING DOWNLOADING11253
+Ref: #editing-uploading-downloading11434
+Node: RELOADING12268
+Ref: #reloading12402
+Node: JSON API12835
+Ref: #json-api12949
+Node: ENVIRONMENT18439
+Ref: #environment18555
+Node: FILES19866
+Ref: #files19966
+Node: BUGS20179
+Ref: #bugs20257
 
 End Tag Table
 

@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "August 2022" "hledger-1.26.99 " "hledger User Manuals"
+.TH "HLEDGER" "1" "September 2022" "hledger-1.27 " "hledger User Manuals"
 
 
 
@@ -9,7 +9,7 @@
 This is the command-line interface (CLI) for the hledger accounting
 tool.
 Here we also describe hledger\[aq]s concepts and file formats.
-This manual is for hledger 1.26.99.
+This manual is for hledger 1.27.
 .SH SYNOPSIS
 .PP
 \f[C]hledger\f[R]
@@ -1564,38 +1564,257 @@ not the old one, and \f[C]amt:\f[R] matches the new quantity, and not
 the old one.
 Note: this changed in hledger 1.22, previously it was the reverse, see
 the discussion at #1625.
-.SH CONVERSION & COST
+.SH COST
 .PP
-This section is about converting between commodities.
-Some definitions:
+This section is about recording the cost of things, in transactions
+where one commodity is exchanged for another.
+Eg an exchange of currency, or a stock purchase or sale.
+First, a quick glossary:
 .IP \[bu] 2
-A \[dq]commodity conversion\[dq] is an exchange of one currency or
-commodity for another.
+Conversion - an exchange of one currency or commodity for another.
 Eg a foreign currency exchange, or a purchase or sale of stock or
 cryptocurrency.
 .IP \[bu] 2
-A \[dq]conversion transaction\[dq] is a transaction involving one or
-more such conversions.
+Conversion transaction - a transaction involving one or more
+conversions.
 .IP \[bu] 2
-\[dq]Conversion rate\[dq] is the exchange rate in a conversion - the
-cost per unit of one commodity in the other.
+Conversion rate - the cost per unit of one commodity in the other, ie
+the exchange rate.
 .IP \[bu] 2
-\[dq]Cost\[dq] is how much of one commodity was paid to acquire the
-other (when buying), or how much was received in exchange for the other
-(when selling).
-We call both of these \[dq]cost\[dq] for convenience (after all, it is
-cost for one party or the other).
-.SS Recording conversions
+Cost - how much of one commodity was paid to acquire the other.
+And more generally, in hledger docs: the amount exchanged in the
+\[dq]secondary\[dq] commodity (usually your base currency), whether in a
+purchase or a sale, and whether expressed per unit or in total.
+Or, the \[at]/\[at]\[at] notation used to represent this.
+.IP \[bu] 2
+Transaction price - another name for the cost expressed with
+hledger\[aq]s cost notation.
+.SS -B: Convert to cost
 .PP
-As a concrete example, let\[aq]s assume 100 EUR was converted to 120
-USD.
-There are several ways to record this in the journal, each with pros and
-cons which will be explained in more detail below.
-(Also, these examples use journal format which is properly explained
-much further below; sorry about that, you may want to read some of that
-first.)
-.SS Implicit conversion
+As discussed a little further on in Transaction prices, when recording a
+transaction you can also record the amount\[aq]s cost in another
+commodity, by adding \f[C]\[at] UNITPRICE\f[R] or
+\f[C]\[at]\[at] TOTALPRICE\f[R].
 .PP
+Then you can see a report with amounts converted to cost, by adding the
+\f[C]-B/--cost\f[R] flag.
+(Mnemonic: \[dq]B\[dq] from \[dq]cost Basis\[dq], as in Ledger).
+Eg:
+.IP
+.nf
+\f[C]
+2022-01-01
+  assets:dollars  $-135          ; 135 dollars is exchanged for..
+  assets:euros     \[Eu]100 \[at] $1.35  ; one hundred euros purchased at $1.35 each
+\f[R]
+.fi
+.IP
+.nf
+\f[C]
+$ hledger bal -N
+               $-135  assets:dollars
+                \[Eu]100  assets:euros
+$ hledger bal -N -B
+               $-135  assets:dollars
+                $135  assets:euros    # <- the euros\[aq] cost
+\f[R]
+.fi
+.PP
+Notes:
+.PP
+-B is sensitive to the order of postings when a transaction price is
+inferred: the inferred price will be in the commodity of the last
+amount.
+So if example 3\[aq]s postings are reversed, while the transaction is
+equivalent, -B shows something different:
+.IP
+.nf
+\f[C]
+2022-01-01
+  assets:dollars  $-135              ; 135 dollars sold
+  assets:euros     \[Eu]100              ; for 100 euros
+\f[R]
+.fi
+.IP
+.nf
+\f[C]
+$ hledger bal -N -B
+               \[Eu]-100  assets:dollars  # <- the dollars\[aq] selling price
+                \[Eu]100  assets:euros
+\f[R]
+.fi
+.PP
+The \[at]/\[at]\[at] cost notation is convenient, but has some
+drawbacks: it does not truly balance the transaction, so it disrupts the
+accounting equation and tends to causes a non-zero total in balance
+reports.
+.SS Equity conversion postings
+.PP
+By contrast, conventional double entry bookkeeping (DEB) uses a
+different notation: an extra pair of equity postings to balance
+conversion transactions.
+In this style, the above entry might be written:
+.IP
+.nf
+\f[C]
+2022-01-01 one hundred euros purchased at $1.35 each
+    assets:dollars      $-135
+    equity:conversion    $135
+    equity:conversion   \[Eu]-100
+    assets:euros         \[Eu]100
+\f[R]
+.fi
+.PP
+This style is more correct, but it\[aq]s also more verbose and makes
+cost reporting more difficult for PTA tools.
+.PP
+Happily, current hledger can read either notation, or convert one to the
+other when needed, so you can use the one you prefer.
+.SS Inferring equity postings from cost
+.PP
+With \f[C]--infer-equity\f[R], hledger detects transactions written with
+PTA cost notation and adds equity conversion postings to them (and
+temporarily permits the coexistence of equity conversion postings and
+cost notation, which normally would cause an unbalanced transaction
+error).
+Eg:
+.IP
+.nf
+\f[C]
+2022-01-01
+  assets:dollars  -$135
+  assets:euros     \[Eu]100 \[at] $1.35
+\f[R]
+.fi
+.IP
+.nf
+\f[C]
+$ hledger print --infer-equity
+2022-01-01
+    assets:dollars                    $-135
+    assets:euros               \[Eu]100 \[at] $1.35
+    equity:conversion:$-\[Eu]:\[Eu]           \[Eu]-100  ; generated-posting:
+    equity:conversion:$-\[Eu]:$         $135.00  ; generated-posting:
+\f[R]
+.fi
+.PP
+The conversion account names can be changed with the conversion account
+type declaration.
+.PP
+--infer-equity is useful when when transactions have been recorded using
+PTA cost notation, to help preserve the accounting equation and balance
+reports\[aq] zero total, or to produce more conventional journal entries
+for sharing with non-PTA-users.
+.PP
+\f[I]Experimental\f[R]
+.SS Inferring cost from equity postings
+.PP
+The reverse operation is possible using \f[C]--infer-costs\f[R], which
+detects transactions written with equity conversion postings and adds
+PTA cost notation to them (and temporarily permits the coexistence of
+equity conversion postings and cost notation).
+Eg:
+.IP
+.nf
+\f[C]
+2022-01-01
+    assets:dollars            $-135
+    equity:conversion          $135
+    equity:conversion         \[Eu]-100
+    assets:euros               \[Eu]100
+\f[R]
+.fi
+.IP
+.nf
+\f[C]
+$ hledger print --infer-costs
+2022-01-01
+    assets:dollars       $-135 \[at]\[at] \[Eu]100
+    equity:conversion             $135
+    equity:conversion            \[Eu]-100
+    assets:euros                  \[Eu]100
+\f[R]
+.fi
+.PP
+--infer-costs is useful when combined with -B/--cost, allowing cost
+reporting even when transactions have been recorded using equity
+postings:
+.IP
+.nf
+\f[C]
+$ hledger print --infer-costs -B
+2009-01-01
+    assets:dollars           \[Eu]-100
+    assets:euros              \[Eu]100
+\f[R]
+.fi
+.PP
+Notes:
+.PP
+Postings will be recognised as equity conversion postings if they are 1.
+to account(s) declared with type \f[C]V\f[R] (\f[C]Conversion\f[R]; or
+if no such accounts are declared, accounts named
+\f[C]equity:conversion\f[R], \f[C]equity:trade\f[R],
+\f[C]equity:trading\f[R], or subaccounts of these) 2.
+adjacent 3.
+and exactly matching the amounts of two non-conversion postings.
+.PP
+The total cost is appended to the first matching posting in the
+transaction.
+If you need to assign it to a different posting, or if you have several
+different sets of conversion postings in one transaction, you may need
+to write the costs explicitly yourself.
+Eg:
+.IP
+.nf
+\f[C]
+2022-01-01
+    assets:dollars                    $-135
+    equity:conversion                 \[Eu]-100
+    equity:conversion                  $135
+    assets:euros               \[Eu]100 \[at]\[at] $135
+\f[R]
+.fi
+.PP
+or:
+.IP
+.nf
+\f[C]
+2022-01-01
+    assets:dollars                    $-235
+    assets:euros               \[Eu]100 \[at] $1.35  ; 100 euros bought for $1.35 each
+    equity:conversion                 \[Eu]-100
+    equity:conversion                  $135
+    assets:pounds               \[Po]80 \[at]\[at] $100  ; 80 pounds bought for $100 total
+    equity:conversion                  \[Po]-80
+    equity:conversion                  $100
+\f[R]
+.fi
+.PP
+--infer-equity and --infer-costs can be used together, eg if you have a
+mixture of both notations.
+.PP
+\f[I]Experimental\f[R]
+.SS When to infer cost/equity
+.PP
+Inferring equity postings or costs is still fairly new, so not enabled
+by default.
+We\[aq]re not sure yet if that should change.
+Here are two suggestions to try, experience reports welcome:
+.IP "1." 3
+When you use -B, always use --infer-costs as well.
+Eg: \f[C]hledger bal -B --infer-costs\f[R]
+.IP "2." 3
+Always run hledger with both flags enabled.
+Eg: \f[C]alias hl=\[dq]hledger --infer-equity --infer-costs\[dq]\f[R]
+.SS How to record conversions
+.PP
+Essentially there are four ways to record a conversion transaction in
+hledger.
+Here are all of them, with pros and cons.
+.SS Conversion with implicit cost
+.PP
+Let\[aq]s assume 100 EUR is converted to 120 USD.
 You can just record the outflow (100 EUR) and inflow (120 USD) in the
 appropriate asset account:
 .IP
@@ -1613,25 +1832,24 @@ You can see the inferred rate by using \f[C]hledger print -x\f[R].
 .PP
 Pro:
 .IP \[bu] 2
-Easy, concise
-.IP \[bu] 2
-hledger can do cost reporting
+Concise, easy
 .PP
 Con:
 .IP \[bu] 2
 Less error checking - typos in amounts or commodity symbols may not be
 detected
 .IP \[bu] 2
-conversion rate is not clear
+Conversion rate is not clear
 .IP \[bu] 2
-disturbs the accounting equation
+Disturbs the accounting equation, unless you add the --infer-equity flag
 .PP
 You can prevent accidental implicit conversions due to a mistyped
 commodity symbol, by using \f[C]hledger check commodities\f[R].
+.PP
 You can prevent implicit conversions entirely, by using
 \f[C]hledger check balancednoautoconversion\f[R], or
 \f[C]-s/--strict\f[R].
-.SS Priced conversion
+.SS Conversion with explicit cost
 .PP
 You can add the conversion rate using \[at] notation:
 .IP
@@ -1650,16 +1868,14 @@ Pro:
 .IP \[bu] 2
 Still concise
 .IP \[bu] 2
-makes the conversion rate clear
+Makes the conversion rate clear
 .IP \[bu] 2
-provides some error checking
-.IP \[bu] 2
-hledger can do cost reporting
+Provides more error checking
 .PP
 Con:
 .IP \[bu] 2
-Disturbs the accounting equation without the --infer-equity flag
-.SS Equity conversion
+Disturbs the accounting equation, unless you add the --infer-equity flag
+.SS Conversion with equity postings
 .PP
 In strict double entry bookkeeping, the above transaction is not
 balanced in EUR or in USD, since some EUR disappears, and some USD
@@ -1684,24 +1900,22 @@ Pro:
 .IP \[bu] 2
 Preserves the accounting equation
 .IP \[bu] 2
-keeps track of conversions and related gains/losses in one place
+Keeps track of conversions and related gains/losses in one place
 .IP \[bu] 2
-works in any double entry accounting system
-.IP \[bu] 2
-hledger can convert this to transaction prices using the --infer-costs
-flag
+Standard, works in any double entry accounting system
 .PP
 Con:
 .IP \[bu] 2
 More verbose
 .IP \[bu] 2
-conversion rate is not clear
+Conversion rate is not obvious
 .IP \[bu] 2
-depends on the order of postings
-.SS Priced equity conversion
+Cost reporting requires adding the --infer-costs flag
+.SS Conversion with equity postings and explicit cost
 .PP
-Another notation is to record both the conversion rate and the equity
-postings:
+Here both equity postings and \[at] notation are used together.
+hledger will usually complain about this redundancy, but when using the
+--infer-costs flag it is accepted.
 .IP
 .nf
 \f[C]
@@ -1717,68 +1931,39 @@ Pro:
 .IP \[bu] 2
 Preserves the accounting equation
 .IP \[bu] 2
-keeps track of conversions and related gains/losses in one place
+Keeps track of conversions and related gains/losses in one place
 .IP \[bu] 2
-makes the conversion rate clear
+Makes the conversion rate clear
 .IP \[bu] 2
-provides some error checking
-.IP \[bu] 2
-hledger can do cost reporting
+Provides more error checking
 .PP
 Con:
 .IP \[bu] 2
 Most verbose
 .IP \[bu] 2
-Requires --infer-costs flag
+Requires the --infer-costs flag
 .IP \[bu] 2
 Not compatible with ledger
-.SS Inferring missing conversion rates
-.PP
-hledger will do this automatically for implicit conversions.
-Currently it can not do this for equity conversions.
-.SS Inferring missing equity postings
-.PP
-With the \f[C]--infer-equity\f[R] flag, hledger will add equity postings
-to priced and implicit conversions.
-.SS Inferring missing transaction prices from equity postings
-.PP
-With the \f[C]--infer-costs\f[R] flag, hledger will add transaction
-prices from equity postings, and will be able to handle transaction
-prices and equity postings together.
-.SS Cost reporting
-.PP
-With the \f[C]-B/--cost\f[R] flag, hledger will convert the amounts in
-priced and implicit conversions to their cost in the other commodity.
-This is useful to see a report of what you paid for things (or how much
-you sold things for).
-Currently \f[C]-B/--cost\f[R] does not work on equity conversions, and
-it disables \f[C]--infer-equity\f[R].
-.PP
-These operations are transient, only affecting reports.
-If you want to change the journal file permanently, you could pipe each
-entry through
-\f[C]hledger -f- -I print [-x] [--infer-equity] [--infer-costs] [-B]\f[R]
-.SS Conversion summary
+.SS Cost tips
 .IP \[bu] 2
-Recording the conversion rate is good because it makes that clear and
-allows cost reporting.
+Recording the conversion rate explicitly is good because it makes that
+clear and helps detect errors.
 .IP \[bu] 2
-Recording equity postings is good because it balances the accounting
-equation and is correct bookkeeping.
+Recording equity postings is good because it is correct bookkeeping and
+preserves the accounting equation.
 .IP \[bu] 2
-Combining these is possible with the --infer-costs flag, but has certain
-requirements for the order of postings.
+Combining these is possible by using the --infer-costs flag (which
+requires well-ordered postings).
 .IP \[bu] 2
 When you want to see the cost (or sale proceeds) of things, use
-\f[C]-B/--cost\f[R].
+\f[C]-B\f[R] (or \f[C]--cost\f[R]).
+If you use equity conversion postings notation, use
+\f[C]-B --infer-costs\f[R].
 .IP \[bu] 2
-When you want to see a balanced balance sheet or correct journal
-entries, use \f[C]--infer-equity\f[R].
+If you use PTA cost notation, and you want to see a balanced balance
+sheet or print correct journal entries, use \f[C]--infer-equity\f[R].
 .IP \[bu] 2
-\f[C]--cost\f[R] will remove any balancing equity posts, so as not to
-disturb the accounting equation.
-.IP \[bu] 2
-Conversion/cost operations are performed before valuation.
+Conversion to cost is performed before valuation (described next).
 .SH VALUATION
 .PP
 Instead of reporting amounts in their original commodity, hledger can
@@ -6988,18 +7173,30 @@ number, eg 0.5 displayed with zero decimal places is \[dq]0\[dq]).
 hledger was built with Decimal < 0.5.1.)
 .SS Transaction prices
 .PP
-Within a transaction, you can note an amount\[aq]s price in another
-commodity.
-This can be used to document the cost (in a purchase) or selling price
-(in a sale).
-For example, transaction prices are useful to record purchases of a
-foreign currency.
-Note transaction prices are fixed at the time of the transaction, and do
-not change over time.
-See also market prices, which represent prevailing exchange rates on a
-certain date.
+(AKA Costs)
 .PP
-There are several ways to record a transaction price:
+After a posting amount, you can note its cost or selling price in
+another commodity, by writing either \f[C]\[at] UNITPRICE\f[R] or
+\f[C]\[at]\[at] TOTALPRICE\f[R] after it.
+This indicates a conversion transaction, where one commodity is
+exchanged for another.
+.PP
+hledger docs have historically called this a \[dq]transaction price\[dq]
+because it is specific to one transaction, unlike market prices which
+are not.
+\[dq]Cost\[dq] is shorter and might be preferable; just remember this
+feature can represent either a buyer\[aq]s cost, or a seller\[aq]s
+price.
+.PP
+Costs are usually written explicitly with \f[C]\[at]\f[R] or
+\f[C]\[at]\[at]\f[R], but can also be inferred automatically for simple
+multi-commodity transactions.
+.PD 0
+.P
+.PD
+As an example, here are several ways to record purchases of a foreign
+currency in hledger, using the cost notation either explicitly or
+implicitly:
 .IP "1." 3
 Write the price per unit, as \f[C]\[at] UNITPRICE\f[R] after the amount:
 .RS 4
@@ -7046,131 +7243,8 @@ Like 1, but the \f[C]\[at]\f[R] is parenthesised, i.e.
 Like 2, but as in 4 the \f[C]\[at]\[at]\f[R] is parenthesised, i.e.
 \f[C](\[at]\[at])\f[R]; in hledger, this is equivalent to 2.
 .PP
-Use the \f[C]-B/--cost\f[R] flag to convert amounts to their transaction
-price\[aq]s commodity, if any.
-(mnemonic: \[dq]B\[dq] is from \[dq]cost Basis\[dq], as in Ledger).
-Eg here is how -B affects the balance report for the example above:
-.IP
-.nf
-\f[C]
-$ hledger bal -N --flat
-               $-135  assets:dollars
-                \[Eu]100  assets:euros
-$ hledger bal -N --flat -B
-               $-135  assets:dollars
-                $135  assets:euros    # <- the euros\[aq] cost
-\f[R]
-.fi
-.PP
-Note -B is sensitive to the order of postings when a transaction price
-is inferred: the inferred price will be in the commodity of the last
-amount.
-So if example 3\[aq]s postings are reversed, while the transaction is
-equivalent, -B shows something different:
-.IP
-.nf
-\f[C]
-2009/1/1
-  assets:dollars  $-135              ; 135 dollars sold
-  assets:euros     \[Eu]100              ; for 100 euros
-\f[R]
-.fi
-.IP
-.nf
-\f[C]
-$ hledger bal -N --flat -B
-               \[Eu]-100  assets:dollars  # <- the dollars\[aq] selling price
-                \[Eu]100  assets:euros
-\f[R]
-.fi
-.SS Equity conversion postings
-.PP
-Transaction prices can be converted to and from equity conversion
-postings using the \f[C]--infer-equity\f[R] and \f[C]--infer-costs\f[R]
-flags.
-.PP
-With \f[C]--infer-equity\f[R], hledger will add equity postings to
-balance out any transaction prices.
-.IP
-.nf
-\f[C]
-2009/1/1
-  assets:euros     \[Eu]100 \[at] $1.35      ; 100 euros bought
-  assets:dollars  -$135              ; for $135
-\f[R]
-.fi
-.IP
-.nf
-\f[C]
-$ hledger print --infer-equity
-
-2009-01-01
-    assets:euros               \[Eu]100 \[at] $1.35  ; 100 euros bought
-    equity:conversion:$-\[Eu]:\[Eu]           \[Eu]-100  ; 100 euros bought, generated-posting:
-    equity:conversion:$-\[Eu]:$         $135.00  ; 100 euros bought, generated-posting:
-    assets:dollars                    $-135  ; for $135
-\f[R]
-.fi
-.PP
-The reverse is possible using \f[C]--infer-costs\f[R], which will check
-any equity conversion postings and generate a transaction price for the
-\f[I]first\f[R] non-conversion posting which matches.
-.IP
-.nf
-\f[C]
-2009-01-01
-    assets:euros                       \[Eu]100  ; 100 euros bought
-    equity:conversion                 \[Eu]-100
-    equity:conversion                  $135
-    assets:dollars                    $-135  ; for $135
-\f[R]
-.fi
-.IP
-.nf
-\f[C]
-$ hledger print --infer-costs
-
-2009-01-01
-    assets:euros               \[Eu]100 \[at]\[at] $135  ; 100 euros bought
-    equity:conversion                 \[Eu]-100
-    equity:conversion                  $135
-    assets:dollars                    $-135  ; for $135
-\f[R]
-.fi
-.PP
-Note that the above will assign the transaction price to the first
-matching posting in the transaction.
-If you want to assign it to a different posting, or if you have several
-different sets of conversion postings which must match different
-postings, you must manually specify the transaction price.
-If you do this, equity conversion postings must occur in adjacent pairs
-and must exactly match the amount of a non-conversion posting.
-.IP
-.nf
-\f[C]
-2009-01-01
-    assets:dollars                    $-135  ; $135 paid
-    equity:conversion                 \[Eu]-100
-    equity:conversion                  $135
-    assets:euros               \[Eu]100 \[at]\[at] $135  ; to buy 100 euros
-\f[R]
-.fi
-.IP
-.nf
-\f[C]
-2009-01-01
-    assets:euros               \[Eu]100 \[at] $1.35  ; 100 euros bought
-    equity:conversion                 \[Eu]-100
-    equity:conversion                  $135
-    assets:pounds               \[Po]80 \[at]\[at] $100  ; 80 pounds bought
-    equity:conversion                  \[Po]-80
-    equity:conversion                  $100
-    assets:dollars                    $-235  ; for $235 total
-\f[R]
-.fi
-.PP
-The account names used for the conversion accounts can be changed with
-the conversion account type declaration.
+Amounts can be converted to cost at report time using the
+\f[C]-B/--cost\f[R] flag; this is discussed more in the COST section.
 .SS Lot prices, lot dates
 .PP
 Ledger allows another kind of price, lot price (four variants:
@@ -8113,7 +8187,7 @@ or, it can be (these are used less often):
 assets for the cashflow report)
 .IP \[bu] 2
 \f[C]V\f[R] or \f[C]Conversion\f[R] (a subtype of Equity, for
-conversions (see CONVERSION & COST).)
+conversions (see COST).)
 .PP
 Here is a typical set of account type declarations:
 .IP
@@ -10933,7 +11007,7 @@ Show only asset and liability balances, as a flat list, limited to depth
 .IP
 .nf
 \f[C]
-$ hledger bal assets liabilities --flat -2
+$ hledger bal assets liabilities -2
                $4000  assets:bank
                 $105  assets:cash
                 $-50  liabilities:creditcard
@@ -10947,7 +11021,7 @@ balance sheet:
 .IP
 .nf
 \f[C]
-$ hledger bs --flat -2
+$ hledger bs -2
 Balance Sheet 2020-01-16
 
                         || 2020-01-16 
