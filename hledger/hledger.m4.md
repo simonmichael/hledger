@@ -930,25 +930,225 @@ and `amt:` matches the new quantity, and not the old one.
 Note: this changed in hledger 1.22, previously it was the reverse, 
 see the discussion at [#1625](https://github.com/simonmichael/hledger/issues/1625).
 
-# CONVERSION & COST
+# COST
 
-This section is about converting between commodities. Some definitions:
+This section is about recording the cost of things, in transactions
+where one commodity is exchanged for another. 
+Eg an exchange of currency, or a stock purchase or sale.
+First, a quick glossary:
 
-- A "commodity conversion" is an exchange of one currency or commodity for another. Eg a foreign currency exchange, or a purchase or sale of stock or cryptocurrency.
+- Conversion - an exchange of one currency or commodity for another.
+  Eg a foreign currency exchange, or a purchase or sale of stock or
+  cryptocurrency.
 
-- A "conversion transaction" is a transaction involving one or more such conversions.
+- Conversion transaction - a transaction involving one or more conversions.
 
-- "Conversion rate" is the exchange rate in a conversion - the cost per unit of one commodity in the other.
+- Conversion rate - the cost per unit of one commodity in the other,
+  ie the exchange rate.
 
-- "Cost" is how much of one commodity was paid to acquire the other (when buying), or how much was received in exchange for the other (when selling). We call both of these  "cost" for convenience (after all, it is cost for one party or the other).
+- Cost - how much of one commodity was paid to acquire the other.  And
+  more generally, in hledger docs: the amount exchanged in the
+  "secondary" commodity (usually your base currency), whether in a
+  purchase or a sale, and whether expressed per unit or in total. Or,
+  the @/@@ notation used to represent this.
 
-## Recording conversions
+- Transaction price - another name for the cost expressed with hledger's cost notation.
 
-As a concrete example, let's assume 100 EUR was converted to 120 USD. There are several ways to record this in the journal, each with pros and cons which will be explained in more detail below. (Also, these examples use [journal format](#journal-format) which is properly explained much further below; sorry about that, you may want to read some of that first.)
+## -B: Convert to cost
 
-### Implicit conversion
+As discussed a little further on in [Transaction prices](#transaction-price),
+when recording a transaction you can also record the amount's cost in another commodity,
+by adding `@ UNITPRICE` or `@@ TOTALPRICE`.
 
-You can just record the outflow (100 EUR) and inflow (120 USD) in the appropriate asset account:
+Then you can see a report with amounts converted to cost, by adding
+the [`-B/--cost`](#reporting-options) flag. (Mnemonic: "B" from "cost
+Basis", as in Ledger).  Eg:
+
+```journal
+2022-01-01
+  assets:dollars  $-135          ; 135 dollars is exchanged for..
+  assets:euros     €100 @ $1.35  ; one hundred euros purchased at $1.35 each
+```
+
+```shell
+$ hledger bal -N
+               $-135  assets:dollars
+                €100  assets:euros
+$ hledger bal -N -B
+               $-135  assets:dollars
+                $135  assets:euros    # <- the euros' cost
+```
+
+Notes:
+
+-B is sensitive to the order of postings when a transaction price is inferred:
+the inferred price will be in the commodity of the last amount.
+So if example 3's postings are reversed, while the transaction
+is equivalent, -B shows something different:
+
+```journal
+2022-01-01
+  assets:dollars  $-135              ; 135 dollars sold
+  assets:euros     €100              ; for 100 euros
+```
+```shell
+$ hledger bal -N -B
+               €-100  assets:dollars  # <- the dollars' selling price
+                €100  assets:euros
+```
+
+The @/@@ cost notation is convenient, but has some drawbacks: it does
+not truly balance the transaction, so it disrupts the accounting
+equation and tends to causes a non-zero total in balance reports.
+
+## Equity conversion postings
+
+By contrast, conventional double entry bookkeeping (DEB) uses a different notation:
+an extra pair of equity postings to balance conversion transactions.
+In this style, the above entry might be written:
+
+```journal
+2022-01-01 one hundred euros purchased at $1.35 each
+    assets:dollars      $-135
+    equity:conversion    $135
+    equity:conversion   €-100
+    assets:euros         €100
+```
+
+This style is more correct, but it's also more verbose and makes cost
+reporting more difficult for PTA tools.
+
+Happily, current hledger can read either notation, or convert one to
+the other when needed, so you can use the one you prefer.
+
+## Inferring equity postings from cost
+
+With `--infer-equity`, hledger detects transactions written with PTA cost notation
+and adds equity conversion postings to them
+(and temporarily permits the coexistence of equity conversion postings and
+cost notation, which normally would cause an unbalanced transaction error).
+Eg:
+
+```journal
+2022-01-01
+  assets:dollars  -$135
+  assets:euros     €100 @ $1.35
+```
+```shell
+$ hledger print --infer-equity
+2022-01-01
+    assets:dollars                    $-135
+    assets:euros               €100 @ $1.35
+    equity:conversion:$-€:€           €-100  ; generated-posting:
+    equity:conversion:$-€:$         $135.00  ; generated-posting:
+```
+
+The conversion account names can be changed with the
+[conversion account type declaration](#account-types).
+
+--infer-equity is useful when when transactions have been recorded
+using PTA cost notation, to help preserve the accounting equation 
+and balance reports' zero total, or to produce more conventional 
+journal entries for sharing with non-PTA-users.
+
+*Experimental*
+
+## Inferring cost from equity postings
+
+The reverse operation is possible using `--infer-costs`, which
+detects transactions written with equity conversion postings
+and adds PTA cost notation to them
+(and temporarily permits the coexistence of equity conversion postings
+and cost notation).
+Eg:
+
+```journal
+2022-01-01
+    assets:dollars            $-135
+    equity:conversion          $135
+    equity:conversion         €-100
+    assets:euros               €100
+```
+```shell
+$ hledger print --infer-costs
+2022-01-01
+    assets:dollars       $-135 @@ €100
+    equity:conversion             $135
+    equity:conversion            €-100
+    assets:euros                  €100
+```
+
+--infer-costs is useful when combined with -B/--cost, 
+allowing cost reporting even when transactions have been recorded 
+using equity postings:
+
+```shell
+$ hledger print --infer-costs -B
+2009-01-01
+    assets:dollars           €-100
+    assets:euros              €100
+```
+
+Notes: 
+
+Postings will be recognised as equity conversion postings if they are
+1. to account(s) declared with type `V` (`Conversion`; or if no such
+accounts are declared, accounts named `equity:conversion`,
+`equity:trade`, `equity:trading`, or subaccounts of these)
+2. adjacent
+3. and exactly matching the amounts of two non-conversion postings.
+
+The total cost is appended to the first matching posting in the transaction.
+If you need to assign it to a different posting, or if you have
+several different sets of conversion postings in one transaction, you
+may need to write the costs explicitly yourself. Eg:
+
+```journal
+2022-01-01
+    assets:dollars                    $-135
+    equity:conversion                 €-100
+    equity:conversion                  $135
+    assets:euros               €100 @@ $135
+```
+
+or:
+
+```journal
+2022-01-01
+    assets:dollars                    $-235
+    assets:euros               €100 @ $1.35  ; 100 euros bought for $1.35 each
+    equity:conversion                 €-100
+    equity:conversion                  $135
+    assets:pounds               £80 @@ $100  ; 80 pounds bought for $100 total
+    equity:conversion                  £-80
+    equity:conversion                  $100
+```
+
+--infer-equity and --infer-costs can be used together, eg if you have
+a mixture of both notations.
+
+*Experimental*
+
+## When to infer cost/equity
+
+Inferring equity postings or costs is still fairly new, so not enabled by default.
+We're not sure yet if that should change. Here are two suggestions to try,
+experience reports welcome:
+
+1. When you use -B, always use --infer-costs as well. Eg: `hledger bal -B --infer-costs`
+
+2. Always run hledger with both flags enabled. Eg: `alias hl="hledger --infer-equity --infer-costs"`
+
+## How to record conversions
+
+Essentially there are four ways to record a conversion transaction in hledger.
+Here are all of them, with pros and cons.
+
+### Conversion with implicit cost
+
+Let's assume 100 EUR is converted to 120 USD.  You can just record the
+outflow (100 EUR) and inflow (120 USD) in the appropriate asset
+account:
 
 ```journal
 2021-01-01
@@ -956,23 +1156,27 @@ You can just record the outflow (100 EUR) and inflow (120 USD) in the appropriat
     assets:cash     120 USD
 ```
 
-hledger will assume this transaction is balanced, inferring that the conversion rate must be 1 EUR = 1.20 USD. You can see the inferred rate by using `hledger print -x`.
+hledger will assume this transaction is balanced, inferring that the
+conversion rate must be 1 EUR = 1.20 USD. You can see the inferred
+rate by using `hledger print -x`.
 
 Pro: 
 
-- Easy, concise
-- hledger can do cost reporting
+- Concise, easy
 
 Con: 
 
 - Less error checking - typos in amounts or commodity symbols may not be detected
-- conversion rate is not clear
-- disturbs the accounting equation
+- Conversion rate is not clear
+- Disturbs the accounting equation, unless you add the --infer-equity flag
 
-You can prevent accidental implicit conversions due to a mistyped commodity symbol, by using `hledger check commodities`.
-You can prevent implicit conversions entirely, by using `hledger check balancednoautoconversion`, or `-s/--strict`.
+You can prevent accidental implicit conversions due to a mistyped
+commodity symbol, by using `hledger check commodities`.
 
-### Priced conversion
+You can prevent implicit conversions entirely, by using `hledger check
+balancednoautoconversion`, or `-s/--strict`.
+
+### Conversion with explicit cost
 
 You can add the conversion rate using @ notation:
 
@@ -987,19 +1191,22 @@ Now hledger will check that 100 * 1.20 = 120, and would report an error otherwis
 Pro: 
 
 - Still concise
-- makes the conversion rate clear
-- provides some error checking
-- hledger can do cost reporting
+- Makes the conversion rate clear
+- Provides more error checking
 
 Con: 
 
-- Disturbs the accounting equation without the --infer-equity flag
+- Disturbs the accounting equation, unless you add the --infer-equity flag
 
-### Equity conversion
+### Conversion with equity postings
 
-In strict double entry bookkeeping, the above transaction is not balanced in EUR or in USD, since some EUR disappears, and some USD appears. This violates the accounting equation (A+L+E=0), and prevents reports like `balancesheetequity` from showing a zero total. 
+In strict double entry bookkeeping, the above transaction is not
+balanced in EUR or in USD, since some EUR disappears, and some USD
+appears. This violates the accounting equation (A+L+E=0), and prevents
+reports like `balancesheetequity` from showing a zero total.
 
-The proper way to make it balance is to add a balancing posting for each commodity, using an equity account:
+The proper way to make it balance is to add a balancing posting for
+each commodity, using an equity account:
 
 ```journal
 2021-01-01
@@ -1012,19 +1219,20 @@ The proper way to make it balance is to add a balancing posting for each commodi
 Pro: 
 
 - Preserves the accounting equation
-- keeps track of conversions and related gains/losses in one place
-- works in any double entry accounting system
-- hledger can convert this to transaction prices using the --infer-costs flag
+- Keeps track of conversions and related gains/losses in one place
+- Standard, works in any double entry accounting system
 
 Con: 
 
 - More verbose
-- conversion rate is not clear
-- depends on the order of postings
+- Conversion rate is not obvious
+- Cost reporting requires adding the --infer-costs flag
 
-### Priced equity conversion
+### Conversion with equity postings and explicit cost
 
-Another notation is to record both the conversion rate and the equity postings:
+Here both equity postings and @ notation are used together.
+hledger will usually complain about this redundancy, but when using
+the --infer-costs flag it is accepted.
 
 ```journal
 2021-01-01
@@ -1037,46 +1245,25 @@ Another notation is to record both the conversion rate and the equity postings:
 Pro: 
 
 - Preserves the accounting equation
-- keeps track of conversions and related gains/losses in one place
-- makes the conversion rate clear
-- provides some error checking
-- hledger can do cost reporting
+- Keeps track of conversions and related gains/losses in one place
+- Makes the conversion rate clear
+- Provides more error checking
 
 Con: 
 
 - Most verbose
-- Requires --infer-costs flag
+- Requires the --infer-costs flag
 - Not compatible with ledger
 
-## Inferring missing conversion rates
+## Cost tips
 
-hledger will do this automatically for implicit conversions. Currently it can not do this for equity conversions.
-
-## Inferring missing equity postings
-
-With the `--infer-equity` flag, hledger will add equity postings to priced and implicit conversions.
-
-## Inferring missing transaction prices from equity postings
-
-With the `--infer-costs` flag, hledger will add transaction prices from equity postings, and will be able to handle transaction prices and equity postings together.
-
-## Cost reporting
-
-With the `-B/--cost` flag, hledger will convert the amounts in priced and implicit conversions to their cost in the other commodity. This is useful to see a report of what you paid for things (or how much you sold things for). Currently `-B/--cost` does not work on equity conversions, and it disables `--infer-equity`.
-
-These operations are transient, only affecting reports. If you want to change the journal file permanently, you could pipe each entry through 
-`hledger -f- -I print [-x] [--infer-equity] [--infer-costs] [-B]`
-
-## Conversion summary
-
-- Recording the conversion rate is good because it makes that clear and allows cost reporting.
-- Recording equity postings is good because it balances the accounting equation and is correct bookkeeping.
-- Combining these is possible with the --infer-costs flag, but has certain requirements for the order of postings.
-- When you want to see the cost (or sale proceeds) of things, use `-B/--cost`.
-- When you want to see a balanced balance sheet or correct journal entries, use `--infer-equity`.
-- `--cost` will remove any balancing equity posts, so as not to disturb the accounting equation.
-- Conversion/cost operations are performed before valuation.
-
+- Recording the conversion rate explicitly is good because it makes that clear and helps detect errors.
+- Recording equity postings is good because it is correct bookkeeping and preserves the accounting equation.
+- Combining these is possible by using the --infer-costs flag (which requires well-ordered postings).
+- When you want to see the cost (or sale proceeds) of things, use `-B` (or `--cost`).
+  If you use equity conversion postings notation, use `-B --infer-costs`.
+- If you use PTA cost notation, and you want to see a balanced balance sheet or print correct journal entries, use `--infer-equity`.
+- Conversion to cost is performed before valuation (described next).
 
 # VALUATION
 
@@ -2404,13 +2591,22 @@ it rounds to the nearest even number, eg 0.5 displayed with zero decimal places 
 
 ## Transaction prices
 
-Within a transaction, you can note an amount's price in another commodity.
-This can be used to document the cost (in a purchase) or selling price (in a sale).
-For example, transaction prices are useful to record purchases of a foreign currency.
-Note transaction prices are fixed at the time of the transaction, and do not change over time.
-See also [market prices](#declaring-market-prices), which represent prevailing exchange rates on a certain date.
+(AKA Costs)
 
-There are several ways to record a transaction price:
+After a posting amount, you can note its cost or selling price in another commodity,
+by writing either `@ UNITPRICE` or `@@ TOTALPRICE` after it.
+This indicates a conversion transaction, where one commodity is exchanged for another.
+
+hledger docs have historically called this a "transaction price" because it is specific
+to one transaction, unlike [market prices](#declaring-market-prices) which are not.
+"Cost" is shorter and might be preferable; just remember this feature can represent
+either a buyer's cost, or a seller's price.
+
+Costs are usually written explicitly with `@` or `@@`, but can also be
+inferred automatically for simple multi-commodity transactions.  
+As an example, here are several ways to record purchases of a foreign
+currency in hledger, using the cost notation either explicitly or
+implicitly:
 
 1. Write the price per unit, as `@ UNITPRICE` after the amount:
 
@@ -2445,110 +2641,8 @@ There are several ways to record a transaction price:
 5. Like 2, but as in 4 the `@@` is parenthesised, i.e. `(@@)`; in hledger,
    this is equivalent to 2.
 
-Use the [`-B/--cost`](#reporting-options) flag to convert
-amounts to their transaction price's commodity, if any.
-(mnemonic: "B" is from "cost Basis", as in Ledger).
-Eg here is how -B affects the balance report for the example above:
-
-```shell
-$ hledger bal -N --flat
-               $-135  assets:dollars
-                €100  assets:euros
-$ hledger bal -N --flat -B
-               $-135  assets:dollars
-                $135  assets:euros    # <- the euros' cost
-```
-
-Note -B is sensitive to the order of postings when a transaction price is inferred:
-the inferred price will be in the commodity of the last amount.
-So if example 3's postings are reversed, while the transaction
-is equivalent, -B shows something different:
-
-```journal
-2009/1/1
-  assets:dollars  $-135              ; 135 dollars sold
-  assets:euros     €100              ; for 100 euros
-```
-```shell
-$ hledger bal -N --flat -B
-               €-100  assets:dollars  # <- the dollars' selling price
-                €100  assets:euros
-```
-
-### Equity conversion postings
-
-Transaction prices can be converted to and from equity conversion postings
-using the `--infer-equity` and `--infer-costs` flags.
-
-With `--infer-equity`, hledger will add equity postings to balance out any
-transaction prices.
-
-```journal
-2009/1/1
-  assets:euros     €100 @ $1.35      ; 100 euros bought
-  assets:dollars  -$135              ; for $135
-```
-```shell
-$ hledger print --infer-equity
-
-2009-01-01
-    assets:euros               €100 @ $1.35  ; 100 euros bought
-    equity:conversion:$-€:€           €-100  ; 100 euros bought, generated-posting:
-    equity:conversion:$-€:$         $135.00  ; 100 euros bought, generated-posting:
-    assets:dollars                    $-135  ; for $135
-```
-
-The reverse is possible using `--infer-costs`, which will check any equity
-conversion postings and generate a transaction price for the _first_
-non-conversion posting which matches.
-
-```journal
-2009-01-01
-    assets:euros                       €100  ; 100 euros bought
-    equity:conversion                 €-100
-    equity:conversion                  $135
-    assets:dollars                    $-135  ; for $135
-```
-```shell
-$ hledger print --infer-costs
-
-2009-01-01
-    assets:euros               €100 @@ $135  ; 100 euros bought
-    equity:conversion                 €-100
-    equity:conversion                  $135
-    assets:dollars                    $-135  ; for $135
-```
-
-Note that the above will assign the transaction price to the first matching
-posting in the transaction.
-If you want to assign it to a different posting, or if you have several
-different sets of conversion postings which must match different postings, you
-must manually specify the transaction price.
-If you do this, equity conversion postings must occur in adjacent pairs and
-must exactly match the amount of a non-conversion posting.
-
-```journal
-2009-01-01
-    assets:dollars                    $-135  ; $135 paid
-    equity:conversion                 €-100
-    equity:conversion                  $135
-    assets:euros               €100 @@ $135  ; to buy 100 euros
-```
-
-```journal
-2009-01-01
-    assets:euros               €100 @ $1.35  ; 100 euros bought
-    equity:conversion                 €-100
-    equity:conversion                  $135
-    assets:pounds               £80 @@ $100  ; 80 pounds bought
-    equity:conversion                  £-80
-    equity:conversion                  $100
-    assets:dollars                    $-235  ; for $235 total
-```
-
-The account names used for the conversion accounts can be changed with the
-[conversion account type declaration](#account-types).
-
+Amounts can be converted to cost at report time using the [`-B/--cost`](#reporting-options) flag;
+this is discussed more in the [COST](#cost) section.
 
 ## Lot prices, lot dates
 
@@ -3215,7 +3309,7 @@ The tag's value should be one of the [five main account types]:
 or, it can be (these are used less often):
 
 - `C` or `Cash`			(a subtype of Asset, indicating [liquid assets][CCE] for the [cashflow] report)
-- `V` or `Conversion`	(a subtype of Equity, for conversions (see [CONVERSION & COST](#conversion--cost)).)
+- `V` or `Conversion`	(a subtype of Equity, for conversions (see [COST](#cost)).)
 
 Here is a typical set of account type declarations:
 
@@ -5466,7 +5560,7 @@ $ hledger balance
 
 Show only asset and liability balances, as a flat list, limited to depth 2:
 ```shell
-$ hledger bal assets liabilities --flat -2
+$ hledger bal assets liabilities -2
                $4000  assets:bank
                 $105  assets:cash
                 $-50  liabilities:creditcard
@@ -5476,7 +5570,7 @@ $ hledger bal assets liabilities --flat -2
 
 Show the same thing without negative numbers, formatted as a simple balance sheet:
 ```shell
-$ hledger bs --flat -2
+$ hledger bs -2
 Balance Sheet 2020-01-16
 
                         || 2020-01-16 
