@@ -9,7 +9,7 @@ __      _____| |__
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# c97e05e0d
+# 1.27 2022-09-01
 
 Improvements
 
@@ -29,6 +29,7 @@ Fixes
 
 - Respect the add form's file selector again.
   (Simon Michael, Kerstin, #1229)
+
 # 1.26.1 2022-07-11
 
 - Uses hledger 1.26.1.

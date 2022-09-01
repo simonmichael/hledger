@@ -9,11 +9,13 @@
 General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
-# 991e5a836
+# 1.27 2022-09-01
 
 Docs
 
 - https://hledger.org/ERRORS.html - an overview of hledger's error messages.
+
+- Rewrite/consolidate cost and conversion docs.
 
 - New template for github releases, with improved install instructions for binaries.
 
