@@ -236,7 +236,7 @@ In site repo:
 - js/site.js: add NEW, update currentrelease
 - Makefile: add NEW, two places
 - make snapshot-NEW (after ensuring main repo has been release-tagged)
-- commit: `makefile, js: update for NEW`
+- commit: `current, makefile, site.js: NEW`
 - push
 
 #### Announce major release
