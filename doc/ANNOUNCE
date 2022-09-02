@@ -1,29 +1,38 @@
-Aloha! I am pleased to announce hledger 1.26:
+I'm pleased to announce hledger 1.27 !
 
-https://github.com/simonmichael/hledger/releases/1.26
+https://github.com/simonmichael/hledger/releases/1.27
 https://hledger.org/install
-https://hledger.org/release-notes.html#hledger-1-26
+https://hledger.org/release-notes.html#hledger-1-27
 
-1.26 is a modest maintenance release; highlights include
-faster register reports and clearer error messages.
+Highlights include inferring costs from equity postings,
+new error checks, and improved error messages.
 
-Thank you to core contributor Stephen Morgan.
+Thank you to release contributors
+Stephen Morgan,
+Alex Hirzel,
+Pranesh Prakash,
+David D Lowe,
+Charlotte Van Petegem,
+Max Thomas,
+Andrew Lelechenko.
 
 What is hledger ?
 
-- free, high quality Plain Text Accounting[1] software:
-- a fast and robust multicurrency double-entry accounting system
-- built around human-readable, version-controllable plain text files
-- inspired by and partly compatible with Ledger CLI[2]
-- convertible to and from Beancount[3]
-- written in Haskell for correctness and longevity
-- easy to install on unix, mac and windows.
+- Fast, reliable, free, multicurrency, double-entry, plain text
+  accounting[1] software that runs on unix, mac, windows, and the web
 
-For help getting started, or more info, see https://hledger.org,
-and join our chat via Matrix or IRC: https://hledger.org/support.
-Newcomers, experts, contributors, sponsors, feedback are always welcome!
+- Built around human-readable, version-controllable plain text files
 
-Best wishes,
+- Inspired by and largely compatible with Ledger CLI[2];
+  convertible to and from Beancount[3]
+
+- Written in Haskell for correctness and longevity.
+
+For help getting started, or more info, see https://hledger.org
+and join our chat via Matrix or IRC: https://hledger.org/support
+Newcomers, experts, contributors, sponsors, feedback are welcome!
+
+Aloha,
 -Simon
 
 
