@@ -119,12 +119,8 @@ Problems:
 </details>
 
 ## Next steps
-Once installed, you could try these quick starts / tutorials:
 
-- https://hledger.org/index.html#how-to-get-started
-- https://hledger.org/add.html
-- https://hledger.org/ui.html
-- https://hledger.org/web.html
+- [Getting Started](https://hledger.org/start.html)
 
 
 <!--
