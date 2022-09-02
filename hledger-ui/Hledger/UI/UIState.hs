@@ -1,26 +1,77 @@
 {- | UIState operations. -}
 
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE OverloadedStrings #-}
-
 module Hledger.UI.UIState
+(uiState
+,uiShowStatus
+,setFilter
+,setMode
+,setReportPeriod
+,showMinibuffer
+,closeMinibuffer
+,toggleCleared
+,toggleConversionOp
+,toggleIgnoreBalanceAssertions
+,toggleEmpty
+,toggleForecast
+,toggleHistorical
+,togglePending
+,toggleUnmarked
+,toggleReal
+,toggleTree
+,setTree
+,setList
+,toggleValue
+,reportPeriod
+,shrinkReportPeriod
+,growReportPeriod
+,nextReportPeriod
+,previousReportPeriod
+,resetReportPeriod
+,moveReportPeriodToDate
+,getDepth
+,setDepth
+,decDepth
+,incDepth
+,resetDepth
+,popScreen
+,pushScreen
+,enableForecastPreservingPeriod
+,resetFilter
+,resetScreens
+,regenerateScreens
+)
 where
 
 import Brick.Widgets.Edit
 import Data.Bifunctor (first)
 import Data.Foldable (asum)
 import Data.Either (fromRight)
-import Data.List ((\\), foldl', sort)
+import Data.List ((\\), sort)
 import Data.Maybe (fromMaybe)
 import Data.Semigroup (Max(..))
 import qualified Data.Text as T
 import Data.Text.Zipper (gotoEOL)
 import Data.Time.Calendar (Day)
 import Lens.Micro ((^.), over, set)
+import Safe
 
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.UI.UITypes
+import Hledger.UI.UIOptions (UIOpts)
+import Hledger.UI.UIScreens (screenUpdate)
+
+-- | Make an initial UI state with the given options, journal,
+-- parent screen stack if any, and starting screen.
+uiState :: UIOpts -> Journal -> [Screen] -> Screen -> UIState
+uiState uopts j prevscrs scr = UIState {
+   astartupopts  = uopts
+  ,aopts         = uopts
+  ,ajournal      = j
+  ,aMode         = Normal
+  ,aScreen      = scr
+  ,aPrevScreens = prevscrs
+  }
 
 -- | Toggle between showing only unmarked items or all items.
 toggleUnmarked :: UIState -> UIState
@@ -66,7 +117,7 @@ toggleStatus1 s ss = if ss == [s] then [] else [s]
 -- pressing Y after first or second step starts new cycle:
 -- [u] P [p]
 -- [pc] P [p]
--- toggleStatus2 s ss
+-- toggleStatus s ss
 --   | ss == [s]            = complement [s]
 --   | ss == complement [s] = []
 --   | otherwise            = [s]  -- XXX assume only three values
@@ -218,10 +269,10 @@ resetFilter = set querystringNoUpdate [] . set realNoUpdate False . set statuses
             . set empty__ True  -- set period PeriodAll
             . set rsQuery Any . set rsQueryOpts []
 
--- | Reset all options state to exactly what it was at startup
--- (preserving any command-line options/arguments).
-resetOpts :: UIState -> UIState
-resetOpts ui@UIState{astartupopts} = ui{aopts=astartupopts}
+-- -- | Reset all options state to exactly what it was at startup
+-- -- (preserving any command-line options/arguments).
+-- resetOpts :: UIState -> UIState
+-- resetOpts ui@UIState{astartupopts} = ui{aopts=astartupopts}
 
 resetDepth :: UIState -> UIState
 resetDepth = updateReportDepth (const Nothing)
@@ -278,22 +329,6 @@ closeMinibuffer = setMode Normal
 setMode :: Mode -> UIState -> UIState
 setMode m ui = ui{aMode=m}
 
--- | Regenerate the content for the current and previous screens, from a new journal and current date.
-regenerateScreens :: Journal -> Day -> UIState -> UIState
-regenerateScreens j d ui@UIState{aScreen=s,aPrevScreens=ss} =
-  -- XXX clumsy due to entanglement of UIState and Screen.
-  -- sInit operates only on an appstate's current screen, so
-  -- remove all the screens from the appstate and then add them back
-  -- one at a time, regenerating as we go.
-  let
-    frst:rest = reverse $ s:ss :: [Screen]
-    ui0 = ui{ajournal=j, aScreen=frst, aPrevScreens=[]} :: UIState
-
-    ui1 = (sInit frst) d False ui0 :: UIState
-    ui2 = foldl' (\ui' s' -> (sInit s') d False $ pushScreen s' ui') ui1 rest :: UIState
-  in
-    ui2
-
 pushScreen :: Screen -> UIState -> UIState
 pushScreen scr ui = ui{aPrevScreens=(aScreen ui:aPrevScreens ui)
                       ,aScreen=scr
@@ -303,18 +338,19 @@ popScreen :: UIState -> UIState
 popScreen ui@UIState{aPrevScreens=s:ss} = ui{aScreen=s, aPrevScreens=ss}
 popScreen ui = ui
 
+-- | Reset options to their startup values, discard screen navigation history,
+-- and return to the top screen, regenerating it with the startup options 
+-- and the provided reporting date.
 resetScreens :: Day -> UIState -> UIState
-resetScreens d ui@UIState{aScreen=s,aPrevScreens=ss} =
-  (sInit topscreen) d True $
-  resetOpts $
-  closeMinibuffer ui{aScreen=topscreen, aPrevScreens=[]}
+resetScreens d ui@UIState{astartupopts=origopts, ajournal=j, aScreen=s,aPrevScreens=ss} =
+  ui{aopts=origopts, aPrevScreens=[], aScreen=topscreen', aMode=Normal}
   where
-    topscreen = case ss of _:_ -> last ss
-                           []  -> s
+    topscreen' = screenUpdate origopts d j $ lastDef s ss
 
--- | Enter a new screen, saving the old screen & state in the
--- navigation history and initialising the new screen's state.
-screenEnter :: Day -> Screen -> UIState -> UIState
-screenEnter d scr ui = (sInit scr) d True $
-                       pushScreen scr
-                       ui
+-- | Regenerate the content of the current and all parent screens
+-- from a new journal and reporting date (and current options),
+-- while preserving the screen navigation history.
+regenerateScreens :: Journal -> Day -> UIState -> UIState
+regenerateScreens j d ui@UIState{aopts=opts, aScreen=s,aPrevScreens=ss} =
+  ui{aScreen=screenUpdate opts d j s, aPrevScreens=map (screenUpdate opts d j) ss}
+

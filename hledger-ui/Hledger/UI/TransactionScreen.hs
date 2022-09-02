@@ -6,7 +6,9 @@
 {-# OPTIONS_GHC -Wno-incomplete-record-updates #-}
 
 module Hledger.UI.TransactionScreen
-( transactionScreen
+( tsNew
+, tsDraw
+, tsHandle
 ) where
 
 import Control.Monad
@@ -14,74 +16,29 @@ import Control.Monad.Except (liftIO)
 import Data.List
 import Data.Maybe
 import qualified Data.Text as T
-import Data.Time.Calendar (Day)
-import qualified Data.Vector as V
 import Graphics.Vty (Event(..),Key(..),Modifier(..), Button (BLeft))
 import Lens.Micro ((^.))
 import Brick
-import Brick.Widgets.List (listElementsL, listMoveTo, listSelectedElement)
+import Brick.Widgets.List (listMoveTo)
 
 import Hledger
 import Hledger.Cli hiding (mode, prices, progname,prognameandversion)
 import Hledger.UI.UIOptions
--- import Hledger.UI.Theme
 import Hledger.UI.UITypes
 import Hledger.UI.UIState
 import Hledger.UI.UIUtils
+import Hledger.UI.UIScreens
 import Hledger.UI.Editor
-import Hledger.UI.ErrorScreen
 import Brick.Widgets.Edit (editorText, renderEditor)
-
-transactionScreen :: Screen
-transactionScreen = TransactionScreen{
-   sInit   = tsInit
-  ,sDraw   = tsDraw
-  ,sHandle = tsHandle
-  ,tsTransaction  = (1,nulltransaction)
-  ,tsTransactions = [(1,nulltransaction)]
-  ,tsAccount      = ""
-  }
-
-tsInit :: Day -> Bool -> UIState -> UIState
-tsInit _d _reset ui@UIState{aopts=UIOpts{}
-                           ,ajournal=_j
-                           ,aScreen=s@TransactionScreen{tsTransaction=(_,t),tsTransactions=nts}
-                           ,aPrevScreens=prevscreens
-                           } =
-    ui{aScreen=s{tsTransaction=(i',t'),tsTransactions=nts'}}
-  where
-    i' = maybe 0 (toInteger . (+1)) . elemIndex t' $ map snd nts'
-    -- If the previous screen was RegisterScreen, use the listed and selected items as
-    -- the transactions. Otherwise, use the provided transaction and list.
-    (t',nts') = case prevscreens of
-        RegisterScreen{rsList=xs}:_ -> (seltxn, zip [1..] $ map rsItemTransaction nonblanks)
-          where
-            seltxn = maybe nulltransaction (rsItemTransaction . snd) $ listSelectedElement xs
-            nonblanks = V.toList . V.takeWhile (not . T.null . rsItemDate) $ xs ^. listElementsL
-        _                           -> (t, nts)
-tsInit _ _ _ = errorWrongScreenType "init function"  -- PARTIAL:
-
--- Render a transaction suitably for the transaction screen.
-showTxn :: ReportOpts -> ReportSpec -> Journal -> Transaction -> T.Text
-showTxn ropts rspec j t =
-      showTransactionOneLineAmounts
-    $ maybe id (transactionApplyValuation prices styles periodlast (_rsDay rspec)) (value_ ropts)
-    $ maybe id (transactionToCost styles) (conversionop_ ropts) t
-    -- (if real_ ropts then filterTransactionPostings (Real True) else id) -- filter postings by --real
-  where
-    prices = journalPriceOracle (infer_prices_ ropts) j
-    styles = journalCommodityStyles j
-    periodlast =
-      fromMaybe (error' "TransactionScreen: expected a non-empty journal") $  -- PARTIAL: shouldn't happen
-      reportPeriodOrJournalLastDay rspec j
+import Hledger.UI.ErrorScreen (uiReloadJournalIfChanged, uiCheckBalanceAssertions)
 
 tsDraw :: UIState -> [Widget Name]
 tsDraw UIState{aopts=UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}
               ,ajournal=j
-              ,aScreen=TransactionScreen{tsTransaction=(i,t')
-                                        ,tsTransactions=nts
-                                        ,tsAccount=acct
-                                        }
+              ,aScreen=TS TSS{_tssTransaction=(i,t')
+                              ,_tssTransactions=nts
+                              ,_tssAccount=acct
+                              }
               ,aMode=mode
               } =
   case mode of
@@ -141,15 +98,29 @@ tsDraw UIState{aopts=UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec
 
 tsDraw _ = errorWrongScreenType "draw function"  -- PARTIAL:
 
+-- Render a transaction suitably for the transaction screen.
+showTxn :: ReportOpts -> ReportSpec -> Journal -> Transaction -> T.Text
+showTxn ropts rspec j t =
+      showTransactionOneLineAmounts
+    $ maybe id (transactionApplyValuation prices styles periodlast (_rsDay rspec)) (value_ ropts)
+    $ maybe id (transactionToCost styles) (conversionop_ ropts) t
+    -- (if real_ ropts then filterTransactionPostings (Real True) else id) -- filter postings by --real
+  where
+    prices = journalPriceOracle (infer_prices_ ropts) j
+    styles = journalCommodityStyles j
+    periodlast =
+      fromMaybe (error' "TransactionScreen: expected a non-empty journal") $  -- PARTIAL: shouldn't happen
+      reportPeriodOrJournalLastDay rspec j
+
 tsHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
 tsHandle ev = do
   ui0 <- get'
   case ui0 of
-    ui@UIState{aScreen=TransactionScreen{tsTransaction=(i,t), tsTransactions=nts}
-                    ,aopts=UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}
-                    ,ajournal=j
-                    ,aMode=mode
-                    } ->
+    ui@UIState{aScreen=TS TSS{_tssTransaction=(i,t), _tssTransactions=nts}
+              ,aopts=UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}
+              ,ajournal=j
+              ,aMode=mode
+              } ->
       case mode of
         Help ->
           case ev of
@@ -179,7 +150,7 @@ tsHandle ev = do
               -- plog (if e == AppEvent FileChange then "file change" else "manual reload") "" `seq` return ()
               ej <- liftIO . runExceptT $ journalReload copts
               case ej of
-                Left err -> put' $ screenEnter d errorScreen{esError=err} ui
+                Left err -> put' $ pushScreen (esNew err) ui
                 Right j' -> put' $ regenerateScreens j' d ui
             VtyEvent (EvKey (KChar 'I') []) -> put' $ uiCheckBalanceAssertions d (toggleIgnoreBalanceAssertions ui)
 
@@ -209,12 +180,14 @@ tsHandle ev = do
     _ -> errorWrongScreenType "event handler"
 
 -- | Select a new transaction and update the previous register screen
-tsSelect i t ui@UIState{aScreen=s@TransactionScreen{}} = case aPrevScreens ui of
+tsSelect :: Integer -> Transaction -> UIState -> UIState
+tsSelect i t ui@UIState{aScreen=TS sst} = case aPrevScreens ui of
     x:xs -> ui'{aPrevScreens=rsSelect i x : xs}
     []   -> ui'
-  where ui' = ui{aScreen=s{tsTransaction=(i,t)}}
+  where ui' = ui{aScreen=TS sst{_tssTransaction=(i,t)}}
 tsSelect _ _ ui = ui
 
 -- | Select the nth item on the register screen.
-rsSelect i scr@RegisterScreen{..} = scr{rsList=listMoveTo (fromInteger $ i-1) rsList}
+rsSelect :: Integer -> Screen -> Screen
+rsSelect i (RS sst@RSS{..}) = RS sst{_rssList=listMoveTo (fromInteger $ i-1) _rssList}
 rsSelect _ scr = scr

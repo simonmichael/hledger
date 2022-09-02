@@ -7,7 +7,8 @@
 {-# OPTIONS_GHC -Wno-incomplete-record-updates #-}
 
 module Hledger.UI.RegisterScreen
- (registerScreen
+ (rsNew
+ ,rsDraw
  ,rsHandle
  ,rsSetAccount
  ,rsCenterSelection
@@ -16,132 +17,32 @@ where
 
 import Control.Monad
 import Control.Monad.IO.Class (liftIO)
+import Data.Bifunctor (bimap, Bifunctor (second))
 import Data.List
 import Data.Maybe
 import qualified Data.Text as T
-import Data.Time.Calendar
 import qualified Data.Vector as V
+import Data.Vector ((!?))
 import Graphics.Vty (Event(..),Key(..),Modifier(..), Button (BLeft, BScrollDown, BScrollUp))
 import Brick
 import Brick.Widgets.List hiding (reverse)
 import Brick.Widgets.Edit
 import Lens.Micro.Platform
-import Safe
 import System.Console.ANSI
-
 
 import Hledger
 import Hledger.Cli hiding (mode, progname,prognameandversion)
 import Hledger.UI.UIOptions
--- import Hledger.UI.Theme
 import Hledger.UI.UITypes
 import Hledger.UI.UIState
 import Hledger.UI.UIUtils
+import Hledger.UI.UIScreens
 import Hledger.UI.Editor
-import Hledger.UI.TransactionScreen
-import Hledger.UI.ErrorScreen
-import Data.Vector ((!?))
-
-registerScreen :: Screen
-registerScreen = RegisterScreen{
-   sInit   = rsInit
-  ,sDraw   = rsDraw
-  ,sHandle = rsHandle
-  ,rsList    = list RegisterList V.empty 1
-  ,rsAccount = ""
-  ,rsForceInclusive = False
-  }
-
-rsSetAccount :: AccountName -> Bool -> Screen -> Screen
-rsSetAccount a forceinclusive scr@RegisterScreen{} =
-  scr{rsAccount=replaceHiddenAccountsNameWith "*" a, rsForceInclusive=forceinclusive}
-rsSetAccount _ _ scr = scr
-
-rsInit :: Day -> Bool -> UIState -> UIState
-rsInit d reset ui@UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}, ajournal=j, aScreen=s@RegisterScreen{..}} =
-  dlogUiTrace "rsInit 1" $
-  ui{aScreen=s{rsList=newitems'}}
-  where
-    -- gather arguments and queries
-    -- XXX temp
-    inclusive = tree_ ropts || rsForceInclusive
-    thisacctq = Acct $ (if inclusive then accountNameToAccountRegex else accountNameToAccountOnlyRegex) rsAccount
-
-    -- adjust the report options and regenerate the ReportSpec, carefully as usual to avoid screwups (#1523)
-    ropts' = ropts {
-        -- ignore any depth limit, as in postingsReport; allows register's total to match accounts screen
-        depth_=Nothing
-        -- do not strip prices so we can toggle costs within the ui
-      , show_costs_=True
-      -- XXX aregister also has this, needed ?
-        -- always show historical balance
-      -- , balanceaccum_= Historical
-      }
-    wd = whichDate ropts'
-    rspec' = reportSpecSetFutureAndForecast d (forecast_ $ inputopts_ copts) .
-      either (error "rsInit: adjusting the query for register, should not have failed") id $ -- PARTIAL:
-      updateReportSpec ropts' rspec{_rsDay=d}
-    items = accountTransactionsReport rspec' j thisacctq
-    items' = (if empty_ ropts then id else filter (not . mixedAmountLooksZero . fifth6)) $  -- without --empty, exclude no-change txns
-             reverse  -- most recent last
-             items
-
-    -- generate pre-rendered list items. This helps calculate column widths.
-    displayitems = map displayitem items'
-      where
-        displayitem (t, _, _issplit, otheracctsstr, change, bal) =
-          RegisterScreenItem{rsItemDate          = showDate $ transactionRegisterDate wd (_rsQuery rspec') thisacctq t
-                            ,rsItemStatus        = tstatus t
-                            ,rsItemDescription   = tdescription t
-                            ,rsItemOtherAccounts = otheracctsstr
-                                                     -- _   -> "<split>"  -- should do this if accounts field width < 30
-                            ,rsItemChangeAmount  = showamt change
-                            ,rsItemBalanceAmount = showamt bal
-                            ,rsItemTransaction   = t
-                            }
-            where showamt = showMixedAmountB oneLine{displayMaxWidth=Just 32}
-    -- blank items are added to allow more control of scroll position; we won't allow movement over these.
-    -- XXX Ugly. Changing to 0 helps when debugging.
-    blankitems = replicate uiNumBlankItems
-          RegisterScreenItem{rsItemDate          = ""
-                            ,rsItemStatus        = Unmarked
-                            ,rsItemDescription   = ""
-                            ,rsItemOtherAccounts = ""
-                            ,rsItemChangeAmount  = mempty
-                            ,rsItemBalanceAmount = mempty
-                            ,rsItemTransaction   = nulltransaction
-                            }
-    -- build the List
-    newitems = list RegisterList (V.fromList $ displayitems ++ blankitems) 1
-
-    -- decide which transaction is selected:
-    -- if reset is true, the last (latest) transaction;
-    -- otherwise, the previously selected transaction if possible;
-    -- otherwise, the transaction nearest in date to it;
-    -- or if there's several with the same date, the nearest in journal order;
-    -- otherwise, the last (latest) transaction.
-    newitems' = listMoveTo newselidx newitems
-      where
-        newselidx =
-          case (reset, listSelectedElement rsList) of
-            (True, _)    -> endidx
-            (_, Nothing) -> endidx
-            (_, Just (_, RegisterScreenItem{rsItemTransaction=Transaction{tindex=prevselidx, tdate=prevseld}})) ->
-              headDef endidx $ catMaybes [
-                 findIndex ((==prevselidx) . tindex . rsItemTransaction) displayitems
-                ,findIndex ((==nearestidbydatethenid) . Just . tindex . rsItemTransaction) displayitems
-                ]
-              where
-                nearestidbydatethenid = third3 <$> (headMay $ sort
-                  [(abs $ diffDays (tdate t) prevseld, abs (tindex t - prevselidx), tindex t) | t <- ts])
-                ts = map rsItemTransaction displayitems
-        endidx = max 0 $ length displayitems - 1
-
-rsInit _ _ _ = dlogUiTrace "rsInit 2" $ errorWrongScreenType "init function"  -- PARTIAL:
+import Hledger.UI.ErrorScreen (uiReloadJournal, uiCheckBalanceAssertions, uiReloadJournalIfChanged)
 
 rsDraw :: UIState -> [Widget Name]
 rsDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
-              ,aScreen=RegisterScreen{..}
+              ,aScreen=RS RSS{..}
               ,aMode=mode
               } = dlogUiTrace "rsDraw 1" $
   case mode of
@@ -149,7 +50,7 @@ rsDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
     -- Minibuffer e -> [minibuffer e, maincontent]
     _          -> [maincontent]
   where
-    displayitems = V.toList $ rsList ^. listElementsL
+    displayitems = V.toList $ listElements $ _rssList
     maincontent = Widget Greedy Greedy $ do
       -- calculate column widths, based on current available width
       c <- getContext
@@ -191,7 +92,7 @@ rsDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
         acctswidth = maxdescacctswidth - descwidth
         colwidths = (datewidth,descwidth,acctswidth,changewidth,balwidth)
 
-      render $ defaultLayout toplabel bottomlabel $ renderList (rsDrawItem colwidths) True rsList
+      render $ defaultLayout toplabel bottomlabel $ renderList (rsDrawItem colwidths) True _rssList
 
       where
         ropts = _rsReportOpts rspec
@@ -199,7 +100,7 @@ rsDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
         -- inclusive = tree_ ropts || rsForceInclusive
 
         toplabel =
-              withAttr (attrName "border" <> attrName "bold") (str $ T.unpack $ replaceHiddenAccountsNameWith "All" rsAccount)
+              withAttr (attrName "border" <> attrName "bold") (str $ T.unpack $ replaceHiddenAccountsNameWith "All" _rssAccount)
 --           <+> withAttr ("border" <> "query") (str $ if inclusive then "" else " exclusive")
           <+> togglefilters
           <+> str " transactions"
@@ -222,11 +123,11 @@ rsDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
                   ] of
                 [] -> str ""
                 fs -> withAttr (attrName "border" <> attrName "query") (str $ " " ++ intercalate ", " fs)
-            cur = str $ case rsList ^. listSelectedL of
+            cur = str $ case listSelected _rssList of
                          Nothing -> "-"
                          Just i -> show (i + 1)
             total = str $ show $ length nonblanks
-            nonblanks = V.takeWhile (not . T.null . rsItemDate) $ rsList^.listElementsL
+            nonblanks = V.takeWhile (not . T.null . rsItemDate) $ listElements $ _rssList
 
             -- query = query_ $ reportopts_ $ cliopts_ opts
 
@@ -284,7 +185,7 @@ rsHandle ev = do
   dlogUiTraceM "rsHandle 1"
   case ui0 of
     ui@UIState{
-      aScreen=scr@RegisterScreen{..}
+      aScreen=RS sst@RSS{..}
       ,aopts=UIOpts{uoCliOpts=copts}
       ,ajournal=j
       ,aMode=mode
@@ -292,9 +193,15 @@ rsHandle ev = do
       let
         d = copts^.rsDay
         journalspan = journalDateSpan False j
-        nonblanks = V.takeWhile (not . T.null . rsItemDate) $ rsList^.listElementsL
+        nonblanks = V.takeWhile (not . T.null . rsItemDate) $ listElements $ _rssList
         lastnonblankidx = max 0 (length nonblanks - 1)
-
+        numberedtxns = zipWith (curry (second rsItemTransaction)) [(1::Integer)..] (V.toList nonblanks)
+        -- the transactions being shown and the currently selected or last transaction, if any:
+        mtxns :: Maybe ([NumberedTransaction], NumberedTransaction)
+        mtxns = case numberedtxns of
+          []        -> Nothing
+          nts@(_:_) -> Just (nts, maybe (last nts) (bimap ((+1).fromIntegral) rsItemTransaction) $
+                              listSelectedElement _rssList)  -- PARTIAL: last won't fail
       case mode of
         Minibuffer _ ed ->
           case ev of
@@ -338,7 +245,7 @@ rsHandle ev = do
             VtyEvent (EvKey (KChar 'T') []) -> put' $ regenerateScreens j d $ setReportPeriod (DayPeriod d) ui
             VtyEvent (EvKey (KChar 'E') []) -> suspendAndResume $ void (runEditor pos f) >> uiReloadJournalIfChanged copts d j ui
               where
-                (pos,f) = case listSelectedElement rsList of
+                (pos,f) = case listSelectedElement _rssList of
                             Nothing -> (endPosition, journalFilePath j)
                             Just (_, RegisterScreenItem{
                               rsItemTransaction=Transaction{tsourcepos=(SourcePos f' l c,_)}}) -> (Just (unPos l, Just $ unPos c),f')
@@ -361,7 +268,7 @@ rsHandle ev = do
             VtyEvent (EvKey (KRight)    [MShift]) -> put' $ regenerateScreens j d $ nextReportPeriod journalspan ui
             VtyEvent (EvKey (KLeft)     [MShift]) -> put' $ regenerateScreens j d $ previousReportPeriod journalspan ui
             VtyEvent (EvKey k           []) | k `elem` [KBS, KDel] -> (put' $ regenerateScreens j d $ resetFilter ui)
-            VtyEvent (EvKey (KChar 'l') [MCtrl]) -> scrollSelectionToMiddle rsList >> redraw
+            VtyEvent (EvKey (KChar 'l') [MCtrl]) -> scrollSelectionToMiddle _rssList >> redraw
             VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
 
             -- exit screen on LEFT
@@ -370,52 +277,50 @@ rsHandle ev = do
             VtyEvent (EvMouseUp x _y (Just BLeft)) | x==0 -> put' $ popScreen ui
             -- or on clicking a blank list item.
             MouseUp _ (Just BLeft) Location{loc=(_,y)} | clickeddate == "" -> put' $ popScreen ui
-              where clickeddate = maybe "" rsItemDate $ listElements rsList !? y
+              where clickeddate = maybe "" rsItemDate $ listElements _rssList !? y
 
             -- enter transaction screen on RIGHT
             VtyEvent e | e `elem` moveRightEvents ->
-              case listSelectedElement rsList of
-                Just _  -> put' $ screenEnter d transactionScreen{tsAccount=rsAccount} ui
-                Nothing -> put' ui
+              case mtxns of Nothing -> return (); Just (nts, nt) -> rsEnterTransactionScreen _rssAccount nts nt ui
             -- or on transaction click
             -- MouseDown is sometimes duplicated, https://github.com/jtdaugherty/brick/issues/347
             -- just use it to move the selection
             MouseDown _n BLeft _mods Location{loc=(_x,y)} | not $ (=="") clickeddate -> do
-              put' $ ui{aScreen=scr{rsList=listMoveTo y rsList}}
-              where clickeddate = maybe "" rsItemDate $ listElements rsList !? y
+              put' $ ui{aScreen=RS sst{_rssList=listMoveTo y _rssList}}
+              where clickeddate = maybe "" rsItemDate $ listElements _rssList !? y
             -- and on MouseUp, enter the subscreen
             MouseUp _n (Just BLeft) Location{loc=(_x,y)} | not $ (=="") clickeddate -> do
-              put' $ screenEnter d transactionScreen{tsAccount=rsAccount} ui
-              where clickeddate = maybe "" rsItemDate $ listElements rsList !? y
+              case mtxns of Nothing -> return (); Just (nts, nt) -> rsEnterTransactionScreen _rssAccount nts nt ui
+              where clickeddate = maybe "" rsItemDate $ listElements _rssList !? y
 
             -- when selection is at the last item, DOWN scrolls instead of moving, until maximally scrolled
             VtyEvent e | e `elem` moveDownEvents, isBlankElement mnextelement -> do
-              vScrollBy (viewportScroll $ rsList ^. listNameL) 1
-              where mnextelement = listSelectedElement $ listMoveDown rsList
+              vScrollBy (viewportScroll $ listName $ _rssList) 1
+              where mnextelement = listSelectedElement $ listMoveDown _rssList
 
             -- mouse scroll wheel scrolls the viewport up or down to its maximum extent,
             -- pushing the selection when necessary.
             MouseDown name btn _mods _loc | btn `elem` [BScrollUp, BScrollDown] -> do
               let scrollamt = if btn==BScrollUp then -1 else 1
-              list' <- nestEventM' rsList $ listScrollPushingSelection name (rsListSize rsList) scrollamt
-              put' ui{aScreen=scr{rsList=list'}}
+              list' <- nestEventM' _rssList $ listScrollPushingSelection name (rsListSize _rssList) scrollamt
+              put' ui{aScreen=RS sst{_rssList=list'}}
 
             -- if page down or end leads to a blank padding item, stop at last non-blank
             VtyEvent e@(EvKey k           []) | k `elem` [KPageDown, KEnd] -> do
-              l <- nestEventM' rsList $ handleListEvent e
+              l <- nestEventM' _rssList $ handleListEvent e
               if isBlankElement $ listSelectedElement l
               then do
                 let l' = listMoveTo lastnonblankidx l
                 scrollSelectionToMiddle l'
-                put' ui{aScreen=scr{rsList=l'}}
+                put' ui{aScreen=RS sst{_rssList=l'}}
               else
-                put' ui{aScreen=scr{rsList=l}}
+                put' ui{aScreen=RS sst{_rssList=l}}
 
             -- fall through to the list's event handler (handles other [pg]up/down events)
             VtyEvent e -> do
               let e' = normaliseMovementKeys e
-              newitems <- nestEventM' rsList $ handleListEvent e'
-              put' ui{aScreen=scr{rsList=newitems}}
+              newitems <- nestEventM' _rssList $ handleListEvent e'
+              put' ui{aScreen=RS sst{_rssList=newitems}}
 
             MouseDown{}       -> return ()
             MouseUp{}         -> return ()
@@ -425,9 +330,26 @@ rsHandle ev = do
 
 isBlankElement mel = ((rsItemDate . snd) <$> mel) == Just ""
 
-rsCenterSelection :: UIState -> EventM Name UIState UIState
-rsCenterSelection ui = do
-  scrollSelectionToMiddle $ rsList $ aScreen ui
-  return ui  -- ui is unchanged, but this makes the function more chainable
-
 rsListSize = V.length . V.takeWhile ((/="").rsItemDate) . listElements
+
+rsSetAccount :: AccountName -> Bool -> Screen -> Screen
+rsSetAccount a forceinclusive (RS st@RSS{}) =
+  RS st{_rssAccount=replaceHiddenAccountsNameWith "*" a, _rssForceInclusive=forceinclusive}
+rsSetAccount _ _ st = st
+
+-- | Scroll the selected item to the middle of the screen, when on the register screen.
+-- No effect on other screens.
+rsCenterSelection :: UIState -> EventM Name UIState UIState
+rsCenterSelection ui@UIState{aScreen=RS sst} = do
+  scrollSelectionToMiddle $ _rssList sst
+  return ui  -- ui is unchanged, but this makes the function more chainable
+rsCenterSelection ui = return ui
+
+rsEnterTransactionScreen :: AccountName -> [NumberedTransaction] -> NumberedTransaction -> UIState -> EventM Name UIState ()
+rsEnterTransactionScreen acct nts nt ui = do
+  dlogUiTraceM "rsEnterTransactionScreen"
+  put' $
+    pushScreen (tsNew acct nts nt)
+    ui
+
+

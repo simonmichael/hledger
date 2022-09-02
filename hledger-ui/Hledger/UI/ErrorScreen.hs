@@ -6,7 +6,8 @@
 {-# OPTIONS_GHC -Wno-incomplete-record-updates #-}
 
 module Hledger.UI.ErrorScreen
- (errorScreen
+ (esDraw
+ ,esHandle
  ,uiCheckBalanceAssertions
  ,uiReloadJournal
  ,uiReloadJournalIfChanged
@@ -29,23 +30,12 @@ import Hledger.UI.UIOptions
 import Hledger.UI.UITypes
 import Hledger.UI.UIState
 import Hledger.UI.UIUtils
+import Hledger.UI.UIScreens
 import Hledger.UI.Editor
-
-errorScreen :: Screen
-errorScreen = ErrorScreen{
-   sInit    = esInit
-  ,sDraw    = esDraw
-  ,sHandle  = esHandle
-  ,esError  = ""
-  }
-
-esInit :: Day -> Bool -> UIState -> UIState
-esInit _ _ ui@UIState{aScreen=ErrorScreen{}} = ui
-esInit _ _ _ = error "init function called with wrong screen type, should not happen"  -- PARTIAL:
 
 esDraw :: UIState -> [Widget Name]
 esDraw UIState{aopts=UIOpts{uoCliOpts=copts}
-              ,aScreen=ErrorScreen{..}
+              ,aScreen=ES ESS{..}
               ,aMode=mode
               } =
   case mode of
@@ -54,7 +44,7 @@ esDraw UIState{aopts=UIOpts{uoCliOpts=copts}
     _          -> [maincontent]
   where
     maincontent = Widget Greedy Greedy $ do
-      render $ defaultLayout toplabel bottomlabel $ withAttr (attrName "error") $ str $ esError
+      render $ defaultLayout toplabel bottomlabel $ withAttr (attrName "error") $ str $ _essError
       where
         toplabel =
               withAttr (attrName "border" <> attrName "bold") (str "Oops. Please fix this problem then press g to reload")
@@ -79,7 +69,7 @@ esHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
 esHandle ev = do
   ui0 <- get'
   case ui0 of
-    ui@UIState{aScreen=ErrorScreen{..}
+    ui@UIState{aScreen=ES ESS{..}
               ,aopts=UIOpts{uoCliOpts=copts}
               ,ajournal=j
               ,aMode=mode
@@ -100,7 +90,7 @@ esHandle ev = do
             VtyEvent (EvKey (KChar c)   []) | c `elem` ['h','?'] -> put' $ setMode Help ui
             VtyEvent (EvKey (KChar 'E') []) -> suspendAndResume $ void (runEditor pos f) >> uiReloadJournalIfChanged copts d j (popScreen ui)
               where
-                (pos,f) = case parsewithString hledgerparseerrorpositionp esError of
+                (pos,f) = case parsewithString hledgerparseerrorpositionp _essError of
                             Right (f',l,c) -> (Just (l, Just c),f')
                             Left  _       -> (endPosition, journalFilePath j)
             e | e `elem` [VtyEvent (EvKey (KChar 'g') []), AppEvent FileChange] ->
@@ -163,8 +153,8 @@ uiReloadJournal copts d ui = do
     Right j  -> regenerateScreens j d ui
     Left err ->
       case ui of
-        UIState{aScreen=s@ErrorScreen{}} -> ui{aScreen=s{esError=err}}
-        _                                -> screenEnter d errorScreen{esError=err} ui
+        UIState{aScreen=ES _} -> ui{aScreen=esNew err}
+        _                      -> pushScreen (esNew err) ui
       -- XXX GHC 9.2 warning:
       -- hledger-ui/Hledger/UI/ErrorScreen.hs:164:59: warning: [-Wincomplete-record-updates]
       --     Pattern match(es) are non-exhaustive
@@ -183,20 +173,20 @@ uiReloadJournalIfChanged copts d j ui = do
   ej <- runExceptT $ journalReloadIfChanged copts' d j
   return $ case ej of
     Right (j', _) -> regenerateScreens j' d ui
-    Left err -> case ui of
-        UIState{aScreen=s@ErrorScreen{}} -> ui{aScreen=s{esError=err}}
-        _                                -> screenEnter d errorScreen{esError=err} ui
+    Left err -> case aScreen ui of
+        ES _ -> ui{aScreen=esNew err}
+        _    -> pushScreen (esNew err) ui
 
 -- Re-check any balance assertions in the current journal, and if any
 -- fail, enter (or update) the error screen. Or if balance assertions
 -- are disabled, do nothing.
 uiCheckBalanceAssertions :: Day -> UIState -> UIState
-uiCheckBalanceAssertions d ui@UIState{ajournal=j}
+uiCheckBalanceAssertions _d ui@UIState{ajournal=j}
   | ui^.ignore_assertions = ui
   | otherwise =
     case journalCheckBalanceAssertions j of
       Nothing  -> ui
       Just err ->
         case ui of
-          UIState{aScreen=s@ErrorScreen{}} -> ui{aScreen=s{esError=err}}
-          _                                -> screenEnter d errorScreen{esError=err} ui
+          UIState{aScreen=ES sst} -> ui{aScreen=ES sst{_essError=err}}
+          _                        -> pushScreen (esNew err) ui

@@ -5,8 +5,9 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Hledger.UI.AccountsScreen
- (accountsScreen
- ,asInit
+ (asNew
+ ,asDraw
+ ,asHandle
  ,asSetSelectedAccount
  )
 where
@@ -21,9 +22,9 @@ import Data.Maybe
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)
 import qualified Data.Vector as V
+import Data.Vector ((!?))
 import Graphics.Vty (Event(..),Key(..),Modifier(..), Button (BLeft, BScrollDown, BScrollUp))
 import Lens.Micro.Platform
-import Safe
 import System.Console.ANSI
 import System.FilePath (takeFileName)
 import Text.DocLayout (realLength)
@@ -34,83 +35,16 @@ import Hledger.UI.UIOptions
 import Hledger.UI.UITypes
 import Hledger.UI.UIState
 import Hledger.UI.UIUtils
+import Hledger.UI.UIScreens
 import Hledger.UI.Editor
-import Hledger.UI.RegisterScreen
-import Hledger.UI.ErrorScreen
-import Data.Vector ((!?))
+import Hledger.UI.ErrorScreen (uiReloadJournal, uiCheckBalanceAssertions, uiReloadJournalIfChanged)
+import Hledger.UI.RegisterScreen (rsCenterSelection)
 
-
-accountsScreen :: Screen
-accountsScreen = AccountsScreen{
-   sInit   = asInit
-  ,sDraw   = asDraw
-  ,sHandle = asHandle
-  ,_asList            = list AccountsList V.empty 1
-  ,_asSelectedAccount = ""
-  }
-
-asInit :: Day -> Bool -> UIState -> UIState
-asInit d reset ui@UIState{
-  aopts=UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}},
-  ajournal=j,
-  aScreen=s@AccountsScreen{}
-  } = dlogUiTrace "asInit 1" $
-  ui{aScreen=s & asList .~ newitems'}
-   where
-    newitems = list AccountsList (V.fromList $ displayitems ++ blankitems) 1
-
-    -- decide which account is selected:
-    -- if reset is true, the first account;
-    -- otherwise, the previously selected account if possible;
-    -- otherwise, the first account with the same prefix (eg first leaf account when entering flat mode);
-    -- otherwise, the alphabetically preceding account.
-    newitems' = listMoveTo selidx newitems
-      where
-        selidx = case (reset, listSelectedElement $ _asList s) of
-                   (True, _)               -> 0
-                   (_, Nothing)            -> 0
-                   (_, Just (_,AccountsScreenItem{asItemAccountName=a})) ->
-                     headDef 0 $ catMaybes [
-                       elemIndex a as
-                      ,findIndex (a `isAccountNamePrefixOf`) as
-                      ,Just $ max 0 (length (filter (< a) as) - 1)
-                      ]
-                      where
-                        as = map asItemAccountName displayitems
-
-    rspec' =
-      -- Further restrict the query based on the current period and future/forecast mode.
-      (reportSpecSetFutureAndForecast d (forecast_ $ inputopts_ copts) rspec)
-      -- always show declared accounts even if unused
-        {_rsReportOpts=ropts{declared_=True}}
-
-    -- run the report
-    (items,_total) = balanceReport rspec' j
-
-    -- pre-render the list items
-    displayitem (fullacct, shortacct, indent, bal) =
-      AccountsScreenItem{asItemIndentLevel        = indent
-                        ,asItemAccountName        = fullacct
-                        ,asItemDisplayAccountName = replaceHiddenAccountsNameWith "All" $ if tree_ ropts then shortacct else fullacct
-                        ,asItemMixedAmount        = Just bal
-                        }
-    displayitems = map displayitem items
-    -- blanks added for scrolling control, cf RegisterScreen.
-    -- XXX Ugly. Changing to 0 helps when debugging.
-    blankitems = replicate uiNumBlankItems
-      AccountsScreenItem{asItemIndentLevel        = 0
-                        ,asItemAccountName        = ""
-                        ,asItemDisplayAccountName = ""
-                        ,asItemMixedAmount        = Nothing
-                        }
-
-
-asInit _ _ _ = dlogUiTrace "asInit 2" $ errorWrongScreenType "init function"  -- PARTIAL:
 
 asDraw :: UIState -> [Widget Name]
 asDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
               ,ajournal=j
-              ,aScreen=s@AccountsScreen{}
+              ,aScreen=AS sst
               ,aMode=mode
               } = dlogUiTrace "asDraw 1" $
     case mode of
@@ -125,7 +59,7 @@ asDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
           -- ltrace "availwidth" $
           c^.availWidthL
           - 2 -- XXX due to margin ? shouldn't be necessary (cf UIUtils)
-        displayitems = s ^. asList . listElementsL
+        displayitems = sst ^. assList . listElementsL
 
         acctwidths = V.map (\AccountsScreenItem{..} -> asItemIndentLevel + realLength asItemDisplayAccountName) displayitems
         balwidths  = V.map (maybe 0 (wbWidth . showMixedAmountB oneLine) . asItemMixedAmount) displayitems
@@ -145,7 +79,7 @@ asDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
         colwidths | shortfall <= 0 = (preferredacctwidth, preferredbalwidth)
                   | otherwise      = (adjustedacctwidth, adjustedbalwidth)
 
-      render $ defaultLayout toplabel bottomlabel $ renderList (asDrawItem colwidths) True (_asList s)
+      render $ defaultLayout toplabel bottomlabel $ renderList (asDrawItem colwidths) True (sst ^. assList)
 
       where
         ropts = _rsReportOpts rspec
@@ -175,12 +109,12 @@ asDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
               ,if real_ ropts then ["real"] else []
               ]
             mdepth = depth_ ropts
-            curidx = case _asList s ^. listSelectedL of
+            curidx = case sst ^. assList . listSelectedL of
                        Nothing -> "-"
                        Just i -> show (i + 1)
             totidx = show $ V.length nonblanks
               where
-                nonblanks = V.takeWhile (not . T.null . asItemAccountName) $ s ^. asList . listElementsL
+                nonblanks = V.takeWhile (not . T.null . asItemAccountName) $ sst ^. assList . listElementsL
 
         bottomlabel = case mode of
                         Minibuffer label ed -> minibuffer label ed
@@ -231,19 +165,19 @@ asHandle ev = do
   dlogUiTraceM "asHandle 1"
   case ui0 of
     ui1@UIState{
-      aScreen=scr@AccountsScreen{..}
-      ,aopts=UIOpts{uoCliOpts=copts}
+       aopts=UIOpts{uoCliOpts=copts}
       ,ajournal=j
       ,aMode=mode
+      ,aScreen=AS sst
       } -> do
 
       let
         -- save the currently selected account, in case we leave this screen and lose the selection
-        selacct = case listSelectedElement _asList of
+        selacct = case listSelectedElement $ _assList sst of
                     Just (_, AccountsScreenItem{..}) -> asItemAccountName
-                    Nothing -> scr ^. asSelectedAccount
-        ui = ui1{aScreen=scr & asSelectedAccount .~ selacct}
-        nonblanks = V.takeWhile (not . T.null . asItemAccountName) $ _asList^.listElementsL
+                    Nothing -> sst ^. assSelectedAccount
+        ui = ui1{aScreen=AS sst{_assSelectedAccount=selacct}}
+        nonblanks = V.takeWhile (not . T.null . asItemAccountName) $ listElements $ _assList sst
         lastnonblankidx = max 0 (length nonblanks - 1)
         journalspan = journalDateSpan False j
         d = copts^.rsDay
@@ -325,51 +259,51 @@ asHandle ev = do
             VtyEvent (EvKey (KChar '/') []) -> put' $ regenerateScreens j d $ showMinibuffer "filter" Nothing ui
             VtyEvent (EvKey k           []) | k `elem` [KBS, KDel] -> (put' $ regenerateScreens j d $ resetFilter ui)
             VtyEvent e | e `elem` moveLeftEvents -> put' $ popScreen ui
-            VtyEvent (EvKey (KChar 'l') [MCtrl]) -> scrollSelectionToMiddle _asList >> redraw
+            VtyEvent (EvKey (KChar 'l') [MCtrl]) -> scrollSelectionToMiddle (_assList sst) >> redraw
             VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
 
             -- enter register screen for selected account (if there is one),
             -- centering its selected transaction if possible
             VtyEvent e | e `elem` moveRightEvents
-                      , not $ isBlankElement $ listSelectedElement _asList -> asEnterRegister d selacct ui
+                      , not $ isBlankElement $ listSelectedElement (_assList sst) -> asEnterRegisterScreen d selacct ui
 
             -- MouseDown is sometimes duplicated, https://github.com/jtdaugherty/brick/issues/347
             -- just use it to move the selection
             MouseDown _n BLeft _mods Location{loc=(_x,y)} | not $ (=="") clickedacct -> do
-              put' ui{aScreen=scr}  -- XXX does this do anything ?
-              where clickedacct = maybe "" asItemAccountName $ listElements _asList !? y
+              put' ui{aScreen=AS sst}  -- XXX does this do anything ?
+              where clickedacct = maybe "" asItemAccountName $ listElements (_assList sst) !? y
             -- and on MouseUp, enter the subscreen
             MouseUp _n (Just BLeft) Location{loc=(_x,y)} | not $ (=="") clickedacct -> do
-              asEnterRegister d clickedacct ui
-              where clickedacct = maybe "" asItemAccountName $ listElements _asList !? y
+              asEnterRegisterScreen d clickedacct ui
+              where clickedacct = maybe "" asItemAccountName $ listElements (_assList sst) !? y
 
             -- when selection is at the last item, DOWN scrolls instead of moving, until maximally scrolled
             VtyEvent e | e `elem` moveDownEvents, isBlankElement mnextelement -> do
-              vScrollBy (viewportScroll $ _asList^.listNameL) 1
-              where mnextelement = listSelectedElement $ listMoveDown _asList
+              vScrollBy (viewportScroll $ (_assList sst)^.listNameL) 1
+              where mnextelement = listSelectedElement $ listMoveDown (_assList sst)
 
             -- mouse scroll wheel scrolls the viewport up or down to its maximum extent,
             -- pushing the selection when necessary.
             MouseDown name btn _mods _loc | btn `elem` [BScrollUp, BScrollDown] -> do
               let scrollamt = if btn==BScrollUp then -1 else 1
-              list' <- nestEventM' _asList $ listScrollPushingSelection name (asListSize _asList) scrollamt
-              put' ui{aScreen=scr{_asList=list'}}
+              list' <- nestEventM' (_assList sst) $ listScrollPushingSelection name (asListSize (_assList sst)) scrollamt
+              put' ui{aScreen=AS sst{_assList=list'}}
 
             -- if page down or end leads to a blank padding item, stop at last non-blank
             VtyEvent e@(EvKey k           []) | k `elem` [KPageDown, KEnd] -> do
-              l <- nestEventM' _asList $ handleListEvent e
+              l <- nestEventM' (_assList sst) $ handleListEvent e
               if isBlankElement $ listSelectedElement l
               then do
                 let l' = listMoveTo lastnonblankidx l
                 scrollSelectionToMiddle l'
-                put' ui{aScreen=scr{_asList=l'}}
+                put' ui{aScreen=AS sst{_assList=l'}}
               else
-                put' ui{aScreen=scr{_asList=l}}
+                put' ui{aScreen=AS sst{_assList=l}}
 
             -- fall through to the list's event handler (handles up/down)
             VtyEvent e -> do
-              list' <- nestEventM' _asList $ handleListEvent (normaliseMovementKeys e)
-              put' ui{aScreen=scr & asList .~ list' & asSelectedAccount .~ selacct }
+              list' <- nestEventM' (_assList sst) $ handleListEvent (normaliseMovementKeys e)
+              put' ui{aScreen=AS $ sst & assList .~ list' & assSelectedAccount .~ selacct }
 
             MouseDown{} -> return ()
             MouseUp{}   -> return ()
@@ -377,26 +311,33 @@ asHandle ev = do
 
     _ -> dlogUiTraceM "asHandle 2" >> errorWrongScreenType "event handler"
 
-asEnterRegister :: Day -> AccountName -> UIState -> EventM Name UIState ()
-asEnterRegister d selacct ui = do
-  dlogUiTraceM "asEnterRegister"
+asEnterRegisterScreen :: Day -> AccountName -> UIState -> EventM Name UIState ()
+asEnterRegisterScreen d acct ui@UIState{ajournal=j, aopts=uopts} = do
+  dlogUiTraceM "asEnterRegisterScreen"
   let
-    regscr = rsSetAccount selacct isdepthclipped registerScreen
+    regscr = rsNew uopts d j acct isdepthclipped
       where
         isdepthclipped = case getDepth ui of
-                          Just de -> accountNameLevel selacct >= de
+                          Just de -> accountNameLevel acct >= de
                           Nothing -> False
-  rsCenterSelection (screenEnter d regscr ui) >>= put'
+    ui1 = pushScreen regscr ui
+  rsCenterSelection ui1 >>= put'
 
-asSetSelectedAccount a s@AccountsScreen{} = s & asSelectedAccount .~ a
+-- | Set the selected account on an accounts screen. No effect on other screens.
+asSetSelectedAccount :: AccountName -> Screen -> Screen
+asSetSelectedAccount a (AS ass@ASS{}) = AS ass{_assSelectedAccount=a}
 asSetSelectedAccount _ s = s
 
 isBlankElement mel = ((asItemAccountName . snd) <$> mel) == Just ""
 
+-- | Scroll the accounts screen's selection to the center. No effect if on another screen.
 asCenterAndContinue :: EventM Name UIState ()
 asCenterAndContinue = do
   ui <- get'
-  scrollSelectionToMiddle (_asList $ aScreen ui)
+  case aScreen ui of
+    AS sst -> scrollSelectionToMiddle $ _assList sst
+    _ -> return ()
 
 asListSize = V.length . V.takeWhile ((/="").asItemAccountName) . listElements
+
 

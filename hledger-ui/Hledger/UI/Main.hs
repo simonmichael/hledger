@@ -25,17 +25,19 @@ import System.Directory (canonicalizePath)
 import System.FilePath (takeDirectory)
 import System.FSNotify (Event(Modified), isPollingManager, watchDir, withManager)
 import Brick
-
 import qualified Brick.BChan as BC
 
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion)
+import Hledger.UI.Theme
 import Hledger.UI.UIOptions
 import Hledger.UI.UITypes
-import Hledger.UI.Theme
+import Hledger.UI.UIState (uiState, getDepth)
+import Hledger.UI.UIUtils (dlogUiTrace)
 import Hledger.UI.AccountsScreen
 import Hledger.UI.RegisterScreen
-import Hledger.UI.UIUtils (dlogUiTrace)
+import Hledger.UI.TransactionScreen
+import Hledger.UI.ErrorScreen
 
 ----------------------------------------------------------------------
 
@@ -63,7 +65,7 @@ main = do
     _                                         -> withJournalDo copts' (runBrickUi opts)
 
 runBrickUi :: UIOpts -> Journal -> IO ()
-runBrickUi uopts@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}} j =
+runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}} j =
   dlogUiTrace "========= runBrickUi" $ do
   let
     today = copts^.rsDay
@@ -105,7 +107,7 @@ runBrickUi uopts@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=rs
     -- There is also a freeform text area for extra query terms (/ key).
     -- It's cleaner and less conflicting to keep the former out of the latter.
 
-    uopts' = uopts{
+    uopts = uopts0{
       uoCliOpts=copts{
          reportspec_=rspec{
             _rsQuery=filteredQuery $ _rsQuery rspec,  -- query with depth/date parts removed
@@ -125,50 +127,32 @@ runBrickUi uopts@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=rs
         filteredQuery q = simplifyQuery $ And [queryFromFlags ropts, filtered q]
           where filtered = filterQuery (\x -> not $ queryIsDepth x || queryIsDate x)
 
-    (scr, prevscrs) = case uoRegister uopts' of
-      Nothing   -> (accountsScreen, [])
+    (prevscrs, startscr) = case uoRegister uopts of
+      Nothing -> ([], acctsscr)
       -- with --register, start on the register screen, and also put
       -- the accounts screen on the prev screens stack so you can exit
       -- to that as usual.
-      Just apat -> (rsSetAccount acct False registerScreen, [ascr'])
+      Just apat -> ([acctsscr'], regscr)
         where
+          acctsscr' = asSetSelectedAccount acct acctsscr
+          regscr = 
+            rsSetAccount acct False $
+            rsNew uopts today j acct forceinclusive
+              where
+                forceinclusive = case getDepth ui of
+                                  Just de -> accountNameLevel acct >= de
+                                  Nothing -> False
           acct = fromMaybe (error' $ "--register "++apat++" did not match any account")  -- PARTIAL:
-                 . firstMatch $ journalAccountNamesDeclaredOrImplied j
-          firstMatch = case toRegexCI $ T.pack apat of
-              Right re -> find (regexMatchText re)
-              Left  _  -> const Nothing
-          -- Initialising the accounts screen is awkward, requiring
-          -- another temporary UIState value..
-          ascr' = aScreen $
-                  asInit today True
-                    UIState{
-                     astartupopts=uopts'
-                    ,aopts=uopts'
-                    ,ajournal=j
-                    ,aScreen=asSetSelectedAccount acct accountsScreen
-                    ,aPrevScreens=[]
-                    ,aMode=Normal
-                    }
+            . firstMatch $ journalAccountNamesDeclaredOrImplied j
+            where
+              firstMatch = case toRegexCI $ T.pack apat of
+                  Right re -> find (regexMatchText re)
+                  Left  _  -> const Nothing
+      where
+        acctsscr = asNew uopts today j Nothing
 
-    ui =
-      (sInit scr) today True $
-          UIState{
-           astartupopts=uopts'
-          ,aopts=uopts'
-          ,ajournal=j
-          ,aScreen=scr
-          ,aPrevScreens=prevscrs
-          ,aMode=Normal
-          }
-
-    brickapp :: App UIState AppEvent Name
-    brickapp = App {
-        appStartEvent   = return ()
-      , appAttrMap      = const $ fromMaybe defaultTheme $ getTheme =<< uoTheme uopts'
-      , appChooseCursor = showFirstCursor
-      , appHandleEvent  = \ev -> do ui' <- get; sHandle (aScreen ui') ev
-      , appDraw         = \ui' -> sDraw (aScreen ui') ui'
-      }
+    ui = uiState uopts j prevscrs startscr
+    app = brickApp (uoTheme uopts)
 
   -- print (length (show ui)) >> exitSuccess  -- show any debug output to this point & quit
 
@@ -179,10 +163,10 @@ runBrickUi uopts@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=rs
       setMode (outputIface v) Mouse True
       return v
 
-  if not (uoWatch uopts')
+  if not (uoWatch uopts)
   then do
     vty <- makevty
-    void $ customMain vty makevty Nothing brickapp ui
+    void $ customMain vty makevty Nothing app ui
 
   else do
     -- a channel for sending misc. events to the app
@@ -242,4 +226,30 @@ runBrickUi uopts@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=rs
 
         -- and start the app. Must be inside the withManager block. (XXX makevty too ?)
         vty <- makevty
-        void $ customMain vty makevty (Just eventChan) brickapp ui
+        void $ customMain vty makevty (Just eventChan) app ui
+
+brickApp :: Maybe String -> App UIState AppEvent Name
+brickApp mtheme = App {
+    appStartEvent   = return ()
+  , appAttrMap      = const $ fromMaybe defaultTheme $ getTheme =<< mtheme
+  , appChooseCursor = showFirstCursor
+  , appHandleEvent  = uiHandle
+  , appDraw         = uiDraw
+  }
+
+uiHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
+uiHandle ev = do
+  ui <- get
+  case aScreen ui of
+    AS _ -> asHandle ev
+    RS _ -> rsHandle ev
+    TS _ -> tsHandle ev
+    ES _ -> esHandle ev
+
+uiDraw :: UIState -> [Widget Name]
+uiDraw ui =
+  case aScreen ui of
+    AS _ -> asDraw ui
+    RS _ -> rsDraw ui
+    TS _ -> tsDraw ui
+    ES _ -> esDraw ui

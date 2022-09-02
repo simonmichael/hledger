@@ -58,7 +58,7 @@ import Hledger
 import Hledger.Cli (CliOpts)
 import Hledger.Cli.DocFiles
 import Hledger.UI.UITypes
-import Hledger.UI.UIState
+
 
 -- | On posix platforms, send the system STOP signal to suspend the
 -- current program. On windows, does nothing.
@@ -105,7 +105,7 @@ defaultLayout :: Widget Name -> Widget Name -> Widget Name -> Widget Name
 defaultLayout toplabel bottomlabel =
   topBottomBorderWithLabels (str " "<+>toplabel<+>str " ") (str " "<+>bottomlabel<+>str " ") .
   margin 1 0 Nothing
-  -- topBottomBorderWithLabel2 label .
+  -- topBottomBorderWithLabel label .
   -- padLeftRight 1 -- XXX should reduce inner widget's width by 2, but doesn't
                     -- "the layout adjusts... if you use the core combinators"
 
@@ -192,7 +192,7 @@ helpDialog _copts =
 helpHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
 helpHandle ev = do
   ui <- get
-  let ui' = setMode Normal ui
+  let ui' = ui{aMode=Normal}
   case ev of
     VtyEvent e | e `elem` closeHelpEvents -> put' ui'
     VtyEvent (EvKey (KChar 'p') []) -> suspendAndResume (runPagerForTopic "hledger-ui" Nothing >> return ui')
@@ -295,8 +295,8 @@ topBottomBorderWithLabels toplabel bottomlabel body =
       hBorderWithLabel (withAttr (attrName "border") bottomlabel)
 
 ---- XXX should be equivalent to the above, but isn't (page down goes offscreen)
---_topBottomBorderWithLabel2 :: Widget Name -> Widget Name -> Widget Name
---_topBottomBorderWithLabel2 label = \wrapped ->
+--_topBottomBorderWithLabel :: Widget Name -> Widget Name -> Widget Name
+--_topBottomBorderWithLabel label = \wrapped ->
 -- let debugmsg = ""
 -- in hBorderWithLabel (label <+> str debugmsg)
 --    <=>
@@ -309,7 +309,7 @@ topBottomBorderWithLabels toplabel bottomlabel body =
 -- thickness, using the current background colour or the specified
 -- colour.
 -- XXX May disrupt border style of inner widgets.
--- XXX Should reduce the available size visible to inner widget, but doesn't seem to (cf rsDraw2).
+-- XXX Should reduce the available size visible to inner widget, but doesn't seem to (cf rsDraw).
 margin :: Int -> Int -> Maybe Color -> Widget Name -> Widget Name
 margin h v mcolour w = Widget Greedy Greedy $ do
     ctx <- getContext
