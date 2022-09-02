@@ -71,11 +71,7 @@ Fixes
 
 - bal: budget goals were ignoring rule-specified start date
 
-- bal: Allow cumulative gain and valuechange reports (Stephen Morgan)
-  Previously, --cumulative with --gain or --valuechange would produce an
-  empty report. This fixes this issue to produce a reasonable report.
-
-- cs/bs/is: Fixed non-display of child accounts when there is an
+- cf/bs/is: Fixed non-display of child accounts when there is an
   intervening account of another type.
   (#1921) (Stephen Morgan)
 
