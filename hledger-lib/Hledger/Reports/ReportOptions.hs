@@ -266,13 +266,14 @@ rawOptsToReportOpts d rawopts =
           ,layout_           = layoutopt rawopts
           }
 
--- | The result of successfully parsing a ReportOpts on a particular
--- Day. Any ambiguous dates are completed and Queries are parsed,
--- ensuring that there are no regular expression errors. Values here
--- should be used in preference to re-deriving them from ReportOpts.
--- If you change the query_ in ReportOpts, you should call
--- `reportOptsToSpec` to regenerate the ReportSpec with the new
--- Query.
+-- | A fully-determined set of report parameters 
+-- (report options with all partial values made total, eg the begin and end
+-- dates are known, avoiding date/regex errors; plus the reporting date),
+-- and the query successfully calculated from them.
+--
+-- If you change the report options or date in one of these, you should
+-- use `reportOptsToSpec` to regenerate the whole thing, avoiding inconsistency.
+--
 data ReportSpec = ReportSpec
   { _rsReportOpts :: ReportOpts  -- ^ The underlying ReportOpts used to generate this ReportSpec
   , _rsDay        :: Day         -- ^ The Day this ReportSpec is generated for
