@@ -6,7 +6,9 @@
 {-# OPTIONS_GHC -Wno-incomplete-record-updates #-}
 
 module Hledger.UI.ErrorScreen
- (esDraw
+ (esNew
+ ,esUpdate
+ ,esDraw
  ,esHandle
  ,uiCheckBalanceAssertions
  ,uiReloadJournal

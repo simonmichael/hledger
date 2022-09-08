@@ -6,9 +6,10 @@
 {-# OPTIONS_GHC -Wno-incomplete-record-updates #-}
 
 module Hledger.UI.TransactionScreen
-( tsNew
-, tsDraw
-, tsHandle
+(tsNew
+,tsUpdate
+,tsDraw
+,tsHandle
 ) where
 
 import Control.Monad

@@ -6,6 +6,7 @@
 
 module Hledger.UI.AccountsScreen
  (asNew
+ ,asUpdate
  ,asDraw
  ,asHandle
  ,asSetSelectedAccount

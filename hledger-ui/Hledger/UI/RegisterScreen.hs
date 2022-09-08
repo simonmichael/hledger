@@ -7,12 +7,13 @@
 {-# OPTIONS_GHC -Wno-incomplete-record-updates #-}
 
 module Hledger.UI.RegisterScreen
- (rsNew
- ,rsDraw
- ,rsHandle
- ,rsSetAccount
- ,rsCenterSelection
- )
+(rsNew
+,rsUpdate
+,rsDraw
+,rsHandle
+,rsSetAccount
+,rsCenterSelection
+)
 where
 
 import Control.Monad
