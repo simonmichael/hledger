@@ -13,10 +13,8 @@ where
 
 import Brick
 import Brick.Widgets.List
--- import Brick.Widgets.Edit
 import Control.Monad
 import Control.Monad.IO.Class (liftIO)
--- import Data.List hiding (reverse)
 import Data.Maybe
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)
@@ -26,7 +24,6 @@ import Graphics.Vty (Event(..),Key(..),Modifier(..), Button (BLeft, BScrollDown,
 import Lens.Micro.Platform
 import System.Console.ANSI
 import System.FilePath (takeFileName)
--- import Text.DocLayout (realLength)
 
 import Hledger
 import Hledger.Cli hiding (mode, progname, prognameandversion)
@@ -38,7 +35,6 @@ import Hledger.UI.UIScreens
 import Hledger.UI.ErrorScreen (uiReloadJournal, uiCheckBalanceAssertions, uiReloadJournalIfChanged)
 import Hledger.UI.Editor (runIadd, runEditor, endPosition)
 import Brick.Widgets.Edit (getEditContents, handleEditorEvent)
--- import Hledger.UI.AccountsScreen
 
 
 msDraw :: UIState -> [Widget Name]
@@ -53,46 +49,10 @@ msDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=_rspec}}
       _                 -> [maincontent]
   where
     maincontent = Widget Greedy Greedy $ do
-      -- c <- getContext
-      -- let
-        -- availwidth =
-        --   -- ltrace "availwidth" $
-        --   c^.availWidthL
-        --   - 2 -- XXX due to margin ? shouldn't be necessary (cf UIUtils)
-        -- displayitems = sst ^. mssList . listElementsL
-
-        -- acctwidths = V.map (\AccountsScreenItem{..} -> msItemIndentLevel + realLength msItemDisplayAccountName) displayitems
-        -- balwidths  = V.map (maybe 0 (wbWidth . showMixedAmountB oneLine) . msItemMixedAmount) displayitems
-        -- preferredacctwidth = V.maximum acctwidths
-        -- totalacctwidthseen = V.sum acctwidths
-        -- preferredbalwidth  = V.maximum balwidths
-        -- totalbalwidthseen  = V.sum balwidths
-
-        -- totalwidthseen = totalacctwidthseen + totalbalwidthseen
-        -- shortfall = preferredacctwidth + preferredbalwidth + 2 - availwidth
-        -- acctwidthproportion = fromIntegral totalacctwidthseen / fromIntegral totalwidthseen
-        -- adjustedacctwidth = min preferredacctwidth . max 15 . round $ acctwidthproportion * fromIntegral (availwidth - 2)  -- leave 2 whitespace for padding
-        -- adjustedbalwidth  = availwidth - 2 - adjustedacctwidth
-
-        -- -- XXX how to minimise the balance column's jumping around as you change the depth limit ?
-
-        -- colwidths | shortfall <= 0 = (preferredacctwidth, preferredbalwidth)
-        --           | otherwise      = (adjustedacctwidth, adjustedbalwidth)
-
       render $ defaultLayout toplabel bottomlabel $ renderList msDrawItem True (sst ^. mssList)
-
       where
-        -- ropts = _rsReportOpts rspec
-        -- ishistorical = balanceaccum_ ropts == Historical
-
         toplabel =
               withAttr (attrName "border" <> attrName "filename") files
-          -- <+> toggles
-          -- <+> str " menu"
-          -- <+> borderPeriodStr (if ishistorical then "at end of" else "in") (period_ ropts)
-          -- <+> borderQueryStr (T.unpack . T.unwords . map textQuoteIfNeeded $ querystring_ ropts)
-          -- <+> borderDepthStr mdepth
-          -- <+> str (" ("++curidx++"/"++totidx++")")
           <+> (if ignore_assertions_ . balancingopts_ $ inputopts_ copts
                then withAttr (attrName "border" <> attrName "query") (str " ignoring balance assertions")
                else str "")
@@ -102,19 +62,6 @@ msDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=_rspec}}
                            f:_ -> str $ takeFileName f
                            -- [f,_:[]] -> (withAttr ("border" <> "bold") $ str $ takeFileName f) <+> str " (& 1 included file)"
                            -- f:fs  -> (withAttr ("border" <> "bold") $ str $ takeFileName f) <+> str (" (& " ++ show (length fs) ++ " included files)")
-            -- toggles = withAttr (attrName "border" <> attrName "query") $ str $ unwords $ concat [
-            --    [""]
-            --   ,if empty_ ropts then [] else ["nonzero"]
-            --   ,uiShowStatus copts $ statuses_ ropts
-            --   ,if real_ ropts then ["real"] else []
-            --   ]
-            -- mdepth = depth_ ropts
-            -- curidx = case sst ^. mssList . listSelectedL of
-            --            Nothing -> "-"
-            --            Just i -> show (i + 1)
-            -- totidx = show $ V.length nonblanks
-            --   where
-            --     nonblanks = V.takeWhile (not . T.null . msItemScreenName) $ sst ^. mssList . listElementsL
 
         bottomlabel = case mode of
                         Minibuffer label ed -> minibuffer label ed
@@ -144,23 +91,7 @@ msDraw _ =  dlogUiTrace "msDraw 2" $ errorWrongScreenType "draw function"  -- PA
 msDrawItem :: Bool -> MenuScreenItem -> Widget Name
 msDrawItem _selected MenuScreenItem{..} =
   Widget Greedy Fixed $ do
-    -- c <- getContext
-      -- let showitem = intercalate "\n" . balanceReportItemAsText defreportopts fmt
-    render $
-      txt msItemScreenName
-      -- txt (fitText (Just acctwidth) (Just acctwidth) True True $ T.replicate (msItemIndentLevel) " " <> msItemDisplayAccountName) <+>
-      -- txt balspace <+>
-      -- splitAmounts balBuilder
-      -- where
-      --   balBuilder = maybe mempty showamt msItemMixedAmount
-      --   showamt = showMixedAmountB oneLine{displayMinWidth=Just balwidth, displayMaxWidth=Just balwidth}
-      --   balspace = T.replicate (2 + balwidth - wbWidth balBuilder) " "
-      --   splitAmounts = foldr1 (<+>) . intersperse (str ", ") . map renderamt . T.splitOn ", " . wbToText
-      --   renderamt :: T.Text -> Widget Name
-      --   renderamt a | T.any (=='-') a = withAttr (sel $ attrName "list" <> attrName "balance" <> attrName "negative") $ txt a
-      --               | otherwise       = withAttr (sel $ attrName "list" <> attrName "balance" <> attrName "positive") $ txt a
-      --   sel | selected  = (<> attrName "selected")
-      --       | otherwise = id
+    render $ txt msItemScreenName
 
 msHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
 msHandle ev = do
@@ -178,10 +109,8 @@ msHandle ev = do
         mselscr = case listSelectedElement $ _mssList sst of
                     Just (_, MenuScreenItem{..}) -> Just msItemScreen
                     Nothing -> Nothing
-        -- ui = ui1{aScreen=MS sst{_assSelectedAccount=selacct}}
         nonblanks = V.takeWhile (not . T.null . msItemScreenName) $ listElements $ _mssList sst
         lastnonblankidx = max 0 (length nonblanks - 1)
---         journalspan = journalDateSpan False j
       d <- liftIO getCurrentDay
 
       case mode of
@@ -330,20 +259,7 @@ msEnterScreen d scrname ui@UIState{ajournal=j, aopts=uopts} = do
       Balancesheet -> bsNew uopts d j Nothing
   put' $ pushScreen scr ui
 
--- -- | Set the selected account on an accounts screen. No effect on other screens.
--- msSetSelectedAccount :: AccountName -> Screen -> Screen
--- msSetSelectedAccount a (MS mss@ASS{}) = MS mss{_assSelectedAccount=a}
--- msSetSelectedAccount _ s = s
-
 isBlankElement mel = ((msItemScreenName . snd) <$> mel) == Just ""
-
--- -- | Scroll the accounts screen's selection to the center. No effect if on another screen.
--- msCenterAndContinue :: EventM Name UIState ()
--- msCenterAndContinue = do
---   ui <- get'
---   case aScreen ui of
---     MS sst -> scrollSelectionToMiddle $ _assList sst
---     _ -> return ()
 
 msListSize = V.length . V.takeWhile ((/="").msItemScreenName) . listElements
 
