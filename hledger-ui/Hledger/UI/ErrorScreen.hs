@@ -85,7 +85,7 @@ esHandle ev = do
             _                    -> helpHandle ev
 
         _ -> do
-          let d = copts^.rsDay
+          d <- liftIO getCurrentDay
           case ev of
             VtyEvent (EvKey (KChar 'q') []) -> halt
             VtyEvent (EvKey KEsc        []) -> put' $ uiCheckBalanceAssertions d $ resetScreens d ui

@@ -182,7 +182,7 @@ msHandle ev = do
         nonblanks = V.takeWhile (not . T.null . msItemScreenName) $ listElements $ _mssList sst
         lastnonblankidx = max 0 (length nonblanks - 1)
 --         journalspan = journalDateSpan False j
-        d = copts^.rsDay
+      d <- liftIO getCurrentDay
 
       case mode of
         Minibuffer _ ed ->

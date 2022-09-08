@@ -191,8 +191,8 @@ rsHandle ev = do
       ,ajournal=j
       ,aMode=mode
       } -> do
+      d <- liftIO getCurrentDay
       let
-        d = copts^.rsDay
         journalspan = journalDateSpan False j
         nonblanks = V.takeWhile (not . T.null . rsItemDate) $ listElements $ _rssList
         lastnonblankidx = max 0 (length nonblanks - 1)

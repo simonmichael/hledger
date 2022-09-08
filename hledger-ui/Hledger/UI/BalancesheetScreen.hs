@@ -181,7 +181,7 @@ bsHandle ev = do
         nonblanks = V.takeWhile (not . T.null . asItemAccountName) $ listElements $ _bssList sst
         lastnonblankidx = max 0 (length nonblanks - 1)
         journalspan = journalDateSpan False j
-        d = copts^.rsDay
+      d <- liftIO getCurrentDay
 
       case mode of
         Minibuffer _ ed ->

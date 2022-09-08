@@ -18,7 +18,6 @@ import Data.List
 import Data.Maybe
 import qualified Data.Text as T
 import Graphics.Vty (Event(..),Key(..),Modifier(..), Button (BLeft))
-import Lens.Micro ((^.))
 import Brick
 import Brick.Widgets.List (listMoveTo)
 
@@ -131,8 +130,8 @@ tsHandle ev = do
             _ -> helpHandle ev
 
         _ -> do
+          d <- liftIO getCurrentDay
           let
-            d = copts^.rsDay
             (iprev,tprev) = maybe (i,t) ((i-1),) $ lookup (i-1) nts
             (inext,tnext) = maybe (i,t) ((i+1),) $ lookup (i+1) nts
           case ev of

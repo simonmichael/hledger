@@ -42,6 +42,7 @@ import Hledger.Cli hiding (mode, progname,prognameandversion)
 import Hledger.UI.UIOptions
 import Hledger.UI.UITypes
 import Hledger.UI.UIUtils
+import Data.Function ((&))
 
 
 -- | Regenerate the content of any screen from new options, reporting date and journal.
@@ -93,7 +94,7 @@ msUpdate = dlogUiTrace "msUpdate`"
 asNew :: UIOpts -> Day -> Journal -> Maybe AccountName -> Screen
 asNew uopts d j macct =
   dlogUiTrace "asNew" $
-  AS $ 
+  AS $
   asUpdate uopts d j $
   ASS {
      _assSelectedAccount = fromMaybe "" macct
@@ -129,11 +130,11 @@ asUpdate uopts d j ass = dlogUiTrace "asUpdate" ass{_assList=l}
             (items, _) = balanceReport rspec' j
               where
                 rspec' =
-                  -- Further restrict the query based on the current period and future/forecast mode.
-                  (reportSpecSetFutureAndForecast d (forecast_ $ inputopts_ copts) rspec)
-                    {_rsReportOpts=ropts{
-                       declared_=True                     -- always show declared accounts even if unused
-                      }}
+                  updateReportSpec
+                    ropts{declared_=True}  -- always show declared accounts even if unused
+                    rspec{_rsDay=d}        -- update to the given day, might have changed since program start
+                  & either (error "asUpdate: adjusting the query, should not have failed") id -- PARTIAL:
+                  & reportSpecSetFutureAndForecast (forecast_ $ inputopts_ copts)  -- include/exclude future & forecast transactions
 
             -- pre-render a list item
             displayitem (fullacct, shortacct, indent, bal) =
@@ -158,7 +159,7 @@ asUpdate uopts d j ass = dlogUiTrace "asUpdate" ass{_assList=l}
 bsNew :: UIOpts -> Day -> Journal -> Maybe AccountName -> Screen
 bsNew uopts d j macct =
   dlogUiTrace "bsNew" $
-  BS $ 
+  BS $
   bsUpdate uopts d j $
   BSS {
      _bssSelectedAccount = fromMaybe "" macct
@@ -194,16 +195,14 @@ bsUpdate uopts d j bss = dlogUiTrace "bsUpdate" bss{_bssList=l}
             (items, _) = balanceReport rspec' j
               where
                 rspec' =
-                  -- XXX recalculate reportspec properly here
-                  -- Further restrict the query based on the current period and future/forecast mode.
-                  (reportSpecSetFutureAndForecast d (forecast_ $ inputopts_ copts) $
-                  reportSpecAddQuery (Type [Asset,Liability,Equity])
-                  rspec){
-                    _rsReportOpts=ropts{
-                       declared_=True                     -- always show declared accounts even if unused
-                      ,balanceaccum_=Historical           -- always show historical end balances
-                      }
-                    }
+                  updateReportSpec
+                    ropts{declared_=True            -- always show declared accounts even if unused
+                         ,balanceaccum_=Historical  -- always show historical end balances
+                         }
+                    rspec{_rsDay=d}                 -- update to the given day, might have changed since program start
+                  & either (error "bsUpdate: adjusting the query, should not have failed") id -- PARTIAL:
+                  & reportSpecSetFutureAndForecast (forecast_ $ inputopts_ copts)  -- include/exclude future & forecast transactions
+                  & reportSpecAddQuery (Type [Asset,Liability,Equity])  -- restrict to balance sheet accounts
 
             -- pre-render a list item
             displayitem (fullacct, shortacct, indent, bal) =
@@ -229,7 +228,7 @@ bsUpdate uopts d j bss = dlogUiTrace "bsUpdate" bss{_bssList=l}
 rsNew :: UIOpts -> Day -> Journal -> AccountName -> Bool -> Screen
 rsNew uopts d j acct forceinclusive =  -- XXX forcedefaultselection - whether to force selecting the last transaction.
   dlogUiTrace "rsNew" $
-  RS $ 
+  RS $
   rsUpdate uopts d j $
   RSS {
      _rssAccount        = replaceHiddenAccountsNameWith "*" acct
@@ -240,7 +239,7 @@ rsNew uopts d j acct forceinclusive =  -- XXX forcedefaultselection - whether to
 -- | Update a register screen from these options, reporting date, and journal.
 rsUpdate :: UIOpts -> Day -> Journal -> RegisterScreenState -> RegisterScreenState
 rsUpdate uopts d j rss@RSS{_rssAccount, _rssForceInclusive, _rssList=oldlist} =
-  dlogUiTrace "rsUpdate" 
+  dlogUiTrace "rsUpdate"
   rss{_rssList=l'}
   where
     UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}} = uopts
@@ -252,10 +251,6 @@ rsUpdate uopts d j rss@RSS{_rssAccount, _rssForceInclusive, _rssList=oldlist} =
         mkregex = if inclusive then accountNameToAccountRegex else accountNameToAccountOnlyRegex
 
     -- adjust the report options and report spec, carefully as usual to avoid screwups (#1523)
-    rspec' =
-      reportSpecSetFutureAndForecast d (forecast_ $ inputopts_ copts) .
-      either (error "rsUpdate: adjusting the query for register, should not have failed") id $ -- PARTIAL:
-      updateReportSpec ropts' rspec{_rsDay=d}
     ropts' = ropts {
         -- ignore any depth limit, as in postingsReport; allows register's total to match accounts screen
         depth_=Nothing
@@ -265,6 +260,10 @@ rsUpdate uopts d j rss@RSS{_rssAccount, _rssForceInclusive, _rssList=oldlist} =
         -- always show historical balance
       -- , balanceaccum_= Historical
       }
+    rspec' =
+      updateReportSpec ropts' rspec{_rsDay=d}
+      & either (error "rsUpdate: adjusting the query for register, should not have failed") id -- PARTIAL:
+      & reportSpecSetFutureAndForecast (forecast_ $ inputopts_ copts)
 
     -- gather transactions to display
     items = accountTransactionsReport rspec' j thisacctq
@@ -344,7 +343,7 @@ rsUpdate uopts d j rss@RSS{_rssAccount, _rssForceInclusive, _rssList=oldlist} =
 -- Screen-specific arguments: the account whose transactions are being shown,
 -- the list of showable transactions, the currently shown transaction.
 tsNew :: AccountName -> [NumberedTransaction] -> NumberedTransaction -> Screen
-tsNew acct nts nt = 
+tsNew acct nts nt =
   dlogUiTrace "tsNew" $
   TS TSS{
      _tssAccount      = acct
