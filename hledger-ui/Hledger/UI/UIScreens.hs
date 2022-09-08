@@ -48,12 +48,12 @@ import Data.Function ((&))
 -- | Regenerate the content of any screen from new options, reporting date and journal.
 screenUpdate :: UIOpts -> Day -> Journal -> Screen -> Screen
 screenUpdate opts d j = \case
-  MS mss -> MS $ msUpdate mss  -- opts d j ass
-  AS ass -> AS $ asUpdate opts d j ass
-  BS bss -> BS $ bsUpdate opts d j bss
-  RS rss -> RS $ rsUpdate opts d j rss
-  TS tss -> TS $ tsUpdate tss
-  ES ess -> ES $ esUpdate ess
+  MS sst -> MS $ msUpdate sst  -- opts d j ass
+  AS sst -> AS $ asUpdate opts d j sst
+  BS sst -> BS $ asUpdate opts d j sst
+  RS sst -> RS $ rsUpdate opts d j sst
+  TS sst -> TS $ tsUpdate sst
+  ES sst -> ES $ esUpdate sst
 
 -- | Construct an error screen.
 -- Screen-specific arguments: the error message to show.
@@ -161,14 +161,14 @@ bsNew uopts d j macct =
   dlogUiTrace "bsNew" $
   BS $
   bsUpdate uopts d j $
-  BSS {
-     _bssSelectedAccount = fromMaybe "" macct
-    ,_bssList            = list AccountsList (V.fromList []) 1  -- reusing widget name..
+  ASS {
+     _assSelectedAccount = fromMaybe "" macct
+    ,_assList            = list AccountsList (V.fromList []) 1
     }
 
 -- | Update a balance sheet screen from these options, reporting date, and journal.
-bsUpdate :: UIOpts -> Day -> Journal -> BalancesheetScreenState -> BalancesheetScreenState
-bsUpdate uopts d j bss = dlogUiTrace "bsUpdate" bss{_bssList=l}
+bsUpdate :: UIOpts -> Day -> Journal -> AccountsScreenState -> AccountsScreenState
+bsUpdate uopts d j ass = dlogUiTrace "bsUpdate" ass{_assList=l}
   where
     UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}} = uopts
     -- decide which account is selected:
@@ -186,7 +186,7 @@ bsUpdate uopts d j bss = dlogUiTrace "bsUpdate" bss{_bssList=l}
                   ,Just $ max 0 (length (filter (< a) as) - 1)
                   ]
                   where
-                    a = _bssSelectedAccount bss
+                    a = _assSelectedAccount ass
                     as = map asItemAccountName displayitems
 
         displayitems = map displayitem items

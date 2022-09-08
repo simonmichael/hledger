@@ -60,7 +60,7 @@ bsDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
           -- ltrace "availwidth" $
           c^.availWidthL
           - 2 -- XXX due to margin ? shouldn't be necessary (cf UIUtils)
-        displayitems = sst ^. bssList . listElementsL
+        displayitems = sst ^. assList . listElementsL
 
         acctwidths = V.map (\AccountsScreenItem{..} -> asItemIndentLevel + realLength asItemDisplayAccountName) displayitems
         balwidths  = V.map (maybe 0 (wbWidth . showMixedAmountB oneLine) . asItemMixedAmount) displayitems
@@ -80,7 +80,7 @@ bsDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
         colwidths | shortfall <= 0 = (preferredacctwidth, preferredbalwidth)
                   | otherwise      = (adjustedacctwidth, adjustedbalwidth)
 
-      render $ defaultLayout toplabel bottomlabel $ renderList (bsDrawItem colwidths) True (sst ^. bssList)
+      render $ defaultLayout toplabel bottomlabel $ renderList (bsDrawItem colwidths) True (sst ^. assList)
 
       where
         ropts = (_rsReportOpts rspec){balanceaccum_=Historical}
@@ -110,12 +110,12 @@ bsDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
               ,if real_ ropts then ["real"] else []
               ]
             mdepth = depth_ ropts
-            curidx = case sst ^. bssList . listSelectedL of
+            curidx = case sst ^. assList . listSelectedL of
                        Nothing -> "-"
                        Just i -> show (i + 1)
             totidx = show $ V.length nonblanks
               where
-                nonblanks = V.takeWhile (not . T.null . asItemAccountName) $ sst ^. bssList . listElementsL
+                nonblanks = V.takeWhile (not . T.null . asItemAccountName) $ sst ^. assList . listElementsL
 
         bottomlabel = case mode of
                         Minibuffer label ed -> minibuffer label ed
@@ -174,11 +174,11 @@ bsHandle ev = do
 
       let
         -- save the currently selected account, in case we leave this screen and lose the selection
-        selacct = case listSelectedElement $ _bssList sst of
+        selacct = case listSelectedElement $ _assList sst of
                     Just (_, AccountsScreenItem{..}) -> asItemAccountName
-                    Nothing -> sst ^. bssSelectedAccount
-        ui = ui1{aScreen=BS sst{_bssSelectedAccount=selacct}}
-        nonblanks = V.takeWhile (not . T.null . asItemAccountName) $ listElements $ _bssList sst
+                    Nothing -> sst ^. assSelectedAccount
+        ui = ui1{aScreen=BS sst{_assSelectedAccount=selacct}}
+        nonblanks = V.takeWhile (not . T.null . asItemAccountName) $ listElements $ _assList sst
         lastnonblankidx = max 0 (length nonblanks - 1)
         journalspan = journalDateSpan False j
       d <- liftIO getCurrentDay
@@ -260,7 +260,7 @@ bsHandle ev = do
             VtyEvent (EvKey (KChar '/') []) -> put' $ regenerateScreens j d $ showMinibuffer "filter" Nothing ui
             VtyEvent (EvKey k           []) | k `elem` [KBS, KDel] -> (put' $ regenerateScreens j d $ resetFilter ui)
             VtyEvent e | e `elem` moveLeftEvents -> put' $ popScreen ui
-            VtyEvent (EvKey (KChar 'l') [MCtrl]) -> scrollSelectionToMiddle (_bssList sst) >> redraw
+            VtyEvent (EvKey (KChar 'l') [MCtrl]) -> scrollSelectionToMiddle (_assList sst) >> redraw
             VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
 
             -- exit screen on LEFT
@@ -272,45 +272,45 @@ bsHandle ev = do
             -- centering its selected transaction if possible
             -- XXX should propagate ropts{balanceaccum_=Historical}
             VtyEvent e | e `elem` moveRightEvents
-                      , not $ isBlankElement $ listSelectedElement (_bssList sst) -> bsEnterRegisterScreen d selacct ui
+                      , not $ isBlankElement $ listSelectedElement (_assList sst) -> bsEnterRegisterScreen d selacct ui
 
             -- MouseDown is sometimes duplicated, https://github.com/jtdaugherty/brick/issues/347
             -- just use it to move the selection
             MouseDown _n BLeft _mods Location{loc=(_x,y)} | not $ (=="") clickedacct -> do
               put' ui{aScreen=BS sst}  -- XXX does this do anything ?
-              where clickedacct = maybe "" asItemAccountName $ listElements (_bssList sst) !? y
+              where clickedacct = maybe "" asItemAccountName $ listElements (_assList sst) !? y
             -- and on MouseUp, enter the subscreen
             MouseUp _n (Just BLeft) Location{loc=(_x,y)} | not $ (=="") clickedacct -> do
               bsEnterRegisterScreen d clickedacct ui
-              where clickedacct = maybe "" asItemAccountName $ listElements (_bssList sst) !? y
+              where clickedacct = maybe "" asItemAccountName $ listElements (_assList sst) !? y
 
             -- when selection is at the last item, DOWN scrolls instead of moving, until maximally scrolled
             VtyEvent e | e `elem` moveDownEvents, isBlankElement mnextelement -> do
-              vScrollBy (viewportScroll $ (_bssList sst)^.listNameL) 1
-              where mnextelement = listSelectedElement $ listMoveDown (_bssList sst)
+              vScrollBy (viewportScroll $ (_assList sst)^.listNameL) 1
+              where mnextelement = listSelectedElement $ listMoveDown (_assList sst)
 
             -- mouse scroll wheel scrolls the viewport up or down to its maximum extent,
             -- pushing the selection when necessary.
             MouseDown name btn _mods _loc | btn `elem` [BScrollUp, BScrollDown] -> do
               let scrollamt = if btn==BScrollUp then -1 else 1
-              list' <- nestEventM' (_bssList sst) $ listScrollPushingSelection name (bsListSize (_bssList sst)) scrollamt
-              put' ui{aScreen=BS sst{_bssList=list'}}
+              list' <- nestEventM' (_assList sst) $ listScrollPushingSelection name (bsListSize (_assList sst)) scrollamt
+              put' ui{aScreen=BS sst{_assList=list'}}
 
             -- if page down or end leads to a blank padding item, stop at last non-blank
             VtyEvent e@(EvKey k           []) | k `elem` [KPageDown, KEnd] -> do
-              l <- nestEventM' (_bssList sst) $ handleListEvent e
+              l <- nestEventM' (_assList sst) $ handleListEvent e
               if isBlankElement $ listSelectedElement l
               then do
                 let l' = listMoveTo lastnonblankidx l
                 scrollSelectionToMiddle l'
-                put' ui{aScreen=BS sst{_bssList=l'}}
+                put' ui{aScreen=BS sst{_assList=l'}}
               else
-                put' ui{aScreen=BS sst{_bssList=l}}
+                put' ui{aScreen=BS sst{_assList=l}}
 
             -- fall through to the list's event handler (handles up/down)
             VtyEvent e -> do
-              list' <- nestEventM' (_bssList sst) $ handleListEvent (normaliseMovementKeys e)
-              put' ui{aScreen=BS $ sst & bssList .~ list' & bssSelectedAccount .~ selacct }
+              list' <- nestEventM' (_assList sst) $ handleListEvent (normaliseMovementKeys e)
+              put' ui{aScreen=BS $ sst & assList .~ list' & assSelectedAccount .~ selacct }
 
             MouseDown{} -> return ()
             MouseUp{}   -> return ()
@@ -332,7 +332,7 @@ bsEnterRegisterScreen d acct ui@UIState{ajournal=j, aopts=uopts} = do
 
 -- | Set the selected account on an accounts screen. No effect on other screens.
 bsSetSelectedAccount :: AccountName -> Screen -> Screen
-bsSetSelectedAccount a (BS bss@BSS{}) = BS bss{_bssSelectedAccount=a}
+bsSetSelectedAccount a (BS sst@ASS{}) = BS sst{_assSelectedAccount=a}
 bsSetSelectedAccount _ s = s
 
 isBlankElement mel = ((asItemAccountName . snd) <$> mel) == Just ""
@@ -342,7 +342,7 @@ bsCenterAndContinue :: EventM Name UIState ()
 bsCenterAndContinue = do
   ui <- get'
   case aScreen ui of
-    BS sst -> scrollSelectionToMiddle $ _bssList sst
+    BS sst -> scrollSelectionToMiddle $ _assList sst
     _ -> return ()
 
 bsListSize = V.length . V.takeWhile ((/="").asItemAccountName) . listElements

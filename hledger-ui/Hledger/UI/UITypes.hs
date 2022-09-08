@@ -173,7 +173,7 @@ data ScreenName =
 data Screen =
     MS MenuScreenState
   | AS AccountsScreenState
-  | BS BalancesheetScreenState
+  | BS AccountsScreenState
   | RS RegisterScreenState
   | TS TransactionScreenState
   | ES ErrorScreenState
@@ -185,18 +185,12 @@ data MenuScreenState = MSS {
   ,_mssUnused          :: ()                        -- ^ dummy field to silence warning
 } deriving (Show)
 
+-- Used for the accounts screen and similar screens.
 data AccountsScreenState = ASS {
     -- screen parameters:
    _assSelectedAccount :: AccountName                   -- ^ a copy of the account name from the list's selected item (or "")
     -- view data derived from options, reporting date, journal, and screen parameters:
   ,_assList            :: List Name AccountsScreenItem  -- ^ list widget showing account names & balances
-} deriving (Show)
-
-data BalancesheetScreenState = BSS {
-    -- screen parameters:
-   _bssSelectedAccount :: AccountName                   -- ^ a copy of the account name from the list's selected item (or "")
-    -- view data derived from options, reporting date, journal, and screen parameters:
-  ,_bssList            :: List Name AccountsScreenItem  -- ^ list widget showing account names & balances
 } deriving (Show)
 
 data RegisterScreenState = RSS {
@@ -255,7 +249,6 @@ type NumberedTransaction = (Integer, Transaction)
 -- XXX foo fields producing fooL lenses would be preferable
 makeLenses ''MenuScreenState
 makeLenses ''AccountsScreenState
-makeLenses ''BalancesheetScreenState
 makeLenses ''RegisterScreenState
 makeLenses ''TransactionScreenState
 makeLenses ''ErrorScreenState
