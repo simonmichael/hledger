@@ -36,12 +36,11 @@ import Hledger.UI.UIScreens
 import Hledger.UI.Editor
 
 esDraw :: UIState -> [Widget Name]
-esDraw UIState{aopts=UIOpts{uoCliOpts=copts}
-              ,aScreen=ES ESS{..}
+esDraw UIState{aScreen=ES ESS{..}
               ,aMode=mode
               } =
   case mode of
-    Help       -> [helpDialog copts, maincontent]
+    Help       -> [helpDialog, maincontent]
     -- Minibuffer e -> [minibuffer e, maincontent]
     _          -> [maincontent]
   where

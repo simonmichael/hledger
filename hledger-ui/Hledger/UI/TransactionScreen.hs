@@ -42,7 +42,7 @@ tsDraw UIState{aopts=UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec
               ,aMode=mode
               } =
   case mode of
-    Help       -> [helpDialog copts, maincontent]
+    Help       -> [helpDialog, maincontent]
     -- Minibuffer e -> [minibuffer e, maincontent]
     _          -> [maincontent]
   where

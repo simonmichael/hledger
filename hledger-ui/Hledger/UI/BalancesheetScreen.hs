@@ -18,8 +18,6 @@ import Brick.Widgets.List
 import Brick.Widgets.Edit
 import Control.Monad
 import Control.Monad.IO.Class (liftIO)
-import Data.List hiding (reverse)
-import Data.Maybe
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)
 import qualified Data.Vector as V
@@ -27,8 +25,6 @@ import Data.Vector ((!?))
 import Graphics.Vty (Event(..),Key(..),Modifier(..), Button (BLeft, BScrollDown, BScrollUp))
 import Lens.Micro.Platform
 import System.Console.ANSI
-import System.FilePath (takeFileName)
-import Text.DocLayout (realLength)
 
 import Hledger
 import Hledger.Cli hiding (mode, progname, prognameandversion)
@@ -39,126 +35,16 @@ import Hledger.UI.UIUtils
 import Hledger.UI.UIScreens
 import Hledger.UI.Editor
 import Hledger.UI.ErrorScreen (uiReloadJournal, uiCheckBalanceAssertions, uiReloadJournalIfChanged)
+import Hledger.UI.AccountsScreen (asDrawHelper)
 import Hledger.UI.RegisterScreen (rsCenterSelection)
 
 
 bsDraw :: UIState -> [Widget Name]
-bsDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
-              ,ajournal=j
-              ,aScreen=BS sst
-              ,aMode=mode
-              } = dlogUiTrace "bsDraw 1" $
-    case mode of
-      Help       -> [helpDialog copts, maincontent]
-      -- Minibuffer e -> [minibuffer e, maincontent]
-      _          -> [maincontent]
+bsDraw ui = dlogUiTrace "bsDraw" $ asDrawHelper ui ropts' scrname showbalchgkey
   where
-    maincontent = Widget Greedy Greedy $ do
-      c <- getContext
-      let
-        availwidth =
-          -- ltrace "availwidth" $
-          c^.availWidthL
-          - 2 -- XXX due to margin ? shouldn't be necessary (cf UIUtils)
-        displayitems = sst ^. assList . listElementsL
-
-        acctwidths = V.map (\AccountsScreenItem{..} -> asItemIndentLevel + realLength asItemDisplayAccountName) displayitems
-        balwidths  = V.map (maybe 0 (wbWidth . showMixedAmountB oneLine) . asItemMixedAmount) displayitems
-        preferredacctwidth = V.maximum acctwidths
-        totalacctwidthseen = V.sum acctwidths
-        preferredbalwidth  = V.maximum balwidths
-        totalbalwidthseen  = V.sum balwidths
-
-        totalwidthseen = totalacctwidthseen + totalbalwidthseen
-        shortfall = preferredacctwidth + preferredbalwidth + 2 - availwidth
-        acctwidthproportion = fromIntegral totalacctwidthseen / fromIntegral totalwidthseen
-        adjustedacctwidth = min preferredacctwidth . max 15 . round $ acctwidthproportion * fromIntegral (availwidth - 2)  -- leave 2 whitespace for padding
-        adjustedbalwidth  = availwidth - 2 - adjustedacctwidth
-
-        -- XXX how to minimise the balance column's jumping around as you change the depth limit ?
-
-        colwidths | shortfall <= 0 = (preferredacctwidth, preferredbalwidth)
-                  | otherwise      = (adjustedacctwidth, adjustedbalwidth)
-
-      render $ defaultLayout toplabel bottomlabel $ renderList (bsDrawItem colwidths) True (sst ^. assList)
-
-      where
-        ropts = (_rsReportOpts rspec){balanceaccum_=Historical}
-        ishistorical = balanceaccum_ ropts == Historical
-
-        toplabel =
-              withAttr (attrName "border" <> attrName "filename") files
-          <+> toggles
-          <+> str (" balance sheet")
-          <+> borderPeriodStr (if ishistorical then "at end of" else "in") (period_ ropts)
-          <+> borderQueryStr (T.unpack . T.unwords . map textQuoteIfNeeded $ querystring_ ropts)
-          <+> borderDepthStr mdepth
-          <+> str (" ("++curidx++"/"++totidx++")")
-          <+> (if ignore_assertions_ . balancingopts_ $ inputopts_ copts
-               then withAttr (attrName "border" <> attrName "query") (str " ignoring balance assertions")
-               else str "")
-          where
-            files = case journalFilePaths j of
-                           [] -> str ""
-                           f:_ -> str $ takeFileName f
-                           -- [f,_:[]] -> (withAttr ("border" <> "bold") $ str $ takeFileName f) <+> str " (& 1 included file)"
-                           -- f:fs  -> (withAttr ("border" <> "bold") $ str $ takeFileName f) <+> str (" (& " ++ show (length fs) ++ " included files)")
-            toggles = withAttr (attrName "border" <> attrName "query") $ str $ unwords $ concat [
-               [""]
-              ,if empty_ ropts then [] else ["nonzero"]
-              ,uiShowStatus copts $ statuses_ ropts
-              ,if real_ ropts then ["real"] else []
-              ]
-            mdepth = depth_ ropts
-            curidx = case sst ^. assList . listSelectedL of
-                       Nothing -> "-"
-                       Just i -> show (i + 1)
-            totidx = show $ V.length nonblanks
-              where
-                nonblanks = V.takeWhile (not . T.null . asItemAccountName) $ sst ^. assList . listElementsL
-
-        bottomlabel = case mode of
-                        Minibuffer label ed -> minibuffer label ed
-                        _                   -> quickhelp
-          where
-            quickhelp = borderKeysStr' [
-               ("?", str "help")
---              ,("RIGHT", str "register")
-              ,("t", renderToggle (tree_ ropts) "list" "tree")
-              -- ,("t", str "tree")
-              -- ,("l", str "list")
-              ,("-+", str "depth")
-              ,("", renderToggle (not ishistorical) "end-bals" "changes")
-              ,("F", renderToggle1 (isJust . forecast_ $ inputopts_ copts) "forecast")
-              --,("/", "filter")
-              --,("DEL", "unfilter")
-              --,("ESC", "cancel/top")
-              ,("a", str "add")
---               ,("g", "reload")
-              ,("q", str "quit")
-              ]
-
-bsDraw _ =  dlogUiTrace "bsDraw 2" $ errorWrongScreenType "draw function"  -- PARTIAL:
-
-bsDrawItem :: (Int,Int) -> Bool -> AccountsScreenItem -> Widget Name
-bsDrawItem (acctwidth, balwidth) selected AccountsScreenItem{..} =
-  Widget Greedy Fixed $ do
-    -- c <- getContext
-      -- let showitem = intercalate "\n" . balanceReportItemAsText defreportopts fmt
-    render $
-      txt (fitText (Just acctwidth) (Just acctwidth) True True $ T.replicate (asItemIndentLevel) " " <> asItemDisplayAccountName) <+>
-      txt balspace <+>
-      splitAmounts balBuilder
-      where
-        balBuilder = maybe mempty showamt asItemMixedAmount
-        showamt = showMixedAmountB oneLine{displayMinWidth=Just balwidth, displayMaxWidth=Just balwidth}
-        balspace = T.replicate (2 + balwidth - wbWidth balBuilder) " "
-        splitAmounts = foldr1 (<+>) . intersperse (str ", ") . map renderamt . T.splitOn ", " . wbToText
-        renderamt :: T.Text -> Widget Name
-        renderamt a | T.any (=='-') a = withAttr (sel $ attrName "list" <> attrName "balance" <> attrName "negative") $ txt a
-                    | otherwise       = withAttr (sel $ attrName "list" <> attrName "balance" <> attrName "positive") $ txt a
-        sel | selected  = (<> attrName "selected")
-            | otherwise = id
+    scrname = "balance sheet"
+    ropts' = (_rsReportOpts $ reportspec_ $ uoCliOpts $ aopts ui){balanceaccum_=Historical}
+    showbalchgkey = False
 
 bsHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
 bsHandle ev = do

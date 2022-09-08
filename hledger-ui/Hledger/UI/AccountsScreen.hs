@@ -8,6 +8,7 @@ module Hledger.UI.AccountsScreen
  (asNew
  ,asUpdate
  ,asDraw
+ ,asDrawHelper
  ,asHandle
  ,asSetSelectedAccount
  )
@@ -31,7 +32,7 @@ import System.FilePath (takeFileName)
 import Text.DocLayout (realLength)
 
 import Hledger
-import Hledger.Cli hiding (mode, progname, prognameandversion)
+import Hledger.Cli hiding (Mode, mode, progname, prognameandversion)
 import Hledger.UI.UIOptions
 import Hledger.UI.UITypes
 import Hledger.UI.UIState
@@ -43,16 +44,26 @@ import Hledger.UI.RegisterScreen (rsCenterSelection)
 
 
 asDraw :: UIState -> [Widget Name]
-asDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
-              ,ajournal=j
-              ,aScreen=AS sst
-              ,aMode=mode
-              } = dlogUiTrace "asDraw 1" $
-    case mode of
-      Help       -> [helpDialog copts, maincontent]
-      -- Minibuffer e -> [minibuffer e, maincontent]
-      _          -> [maincontent]
+asDraw ui = dlogUiTrace "asDraw 1" $ asDrawHelper ui ropts' scrname showbalchgkey
   where
+    ropts' = _rsReportOpts $ reportspec_ $ uoCliOpts $ aopts ui
+    scrname = "account " ++ if ishistorical then "balances" else "changes"
+      where ishistorical = balanceaccum_ ropts' == Historical
+    showbalchgkey = True
+
+-- | Draw an accounts-screen-like screen.
+-- The provided ReportOpts are used instead of the ones in the UIState.
+-- The other arguments are the screen display name and whether to show a key
+-- for toggling between end balance and balance change mode.
+asDrawHelper :: UIState -> ReportOpts -> String -> Bool -> [Widget Name]
+asDrawHelper UIState{aopts=uopts, ajournal=j, aScreen=AS sst, aMode=mode} ropts scrname showbalchgkey = 
+  dlogUiTrace "asDraw 1" $
+  case mode of
+    Help       -> [helpDialog, maincontent]
+    -- Minibuffer e -> [minibuffer e, maincontent]
+    _          -> [maincontent]
+  where
+    UIOpts{uoCliOpts=copts} = uopts
     maincontent = Widget Greedy Greedy $ do
       c <- getContext
       let
@@ -83,13 +94,12 @@ asDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
       render $ defaultLayout toplabel bottomlabel $ renderList (asDrawItem colwidths) True (sst ^. assList)
 
       where
-        ropts = _rsReportOpts rspec
         ishistorical = balanceaccum_ ropts == Historical
 
         toplabel =
               withAttr (attrName "border" <> attrName "filename") files
           <+> toggles
-          <+> str (" account " ++ if ishistorical then "balances" else "changes")
+          <+> str (" " ++ scrname)
           <+> borderPeriodStr (if ishistorical then "at end of" else "in") (period_ ropts)
           <+> borderQueryStr (T.unpack . T.unwords . map textQuoteIfNeeded $ querystring_ ropts)
           <+> borderDepthStr mdepth
@@ -128,7 +138,7 @@ asDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
               -- ,("t", str "tree")
               -- ,("l", str "list")
               ,("-+", str "depth")
-              ,("H", renderToggle (not ishistorical) "end-bals" "changes")
+              ,(if showbalchgkey then "H" else "", renderToggle (not ishistorical) "end-bals" "changes")
               ,("F", renderToggle1 (isJust . forecast_ $ inputopts_ copts) "forecast")
               --,("/", "filter")
               --,("DEL", "unfilter")
@@ -137,8 +147,7 @@ asDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
 --               ,("g", "reload")
               ,("q", str "quit")
               ]
-
-asDraw _ =  dlogUiTrace "asDraw 2" $ errorWrongScreenType "draw function"  -- PARTIAL:
+asDrawHelper _ _ _ _ = dlogUiTrace "asDrawHelper" $ errorWrongScreenType "draw function"  -- PARTIAL:
 
 asDrawItem :: (Int,Int) -> Bool -> AccountsScreenItem -> Widget Name
 asDrawItem (acctwidth, balwidth) selected AccountsScreenItem{..} =

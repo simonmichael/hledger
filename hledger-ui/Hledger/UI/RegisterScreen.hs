@@ -47,7 +47,7 @@ rsDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
               ,aMode=mode
               } = dlogUiTrace "rsDraw 1" $
   case mode of
-    Help       -> [helpDialog copts, maincontent]
+    Help       -> [helpDialog, maincontent]
     -- Minibuffer e -> [minibuffer e, maincontent]
     _          -> [maincontent]
   where

@@ -56,7 +56,6 @@ import Graphics.Vty
 import Lens.Micro.Platform
 
 import Hledger
-import Hledger.Cli (CliOpts)
 import Hledger.Cli.DocFiles
 import Hledger.UI.UITypes
 
@@ -111,8 +110,8 @@ defaultLayout toplabel bottomlabel =
                     -- "the layout adjusts... if you use the core combinators"
 
 -- | Draw the help dialog, called when help mode is active.
-helpDialog :: CliOpts -> Widget Name
-helpDialog _copts =
+helpDialog :: Widget Name
+helpDialog =
   Widget Fixed Fixed $ do
     c <- getContext
     render $

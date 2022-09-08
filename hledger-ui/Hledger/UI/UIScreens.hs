@@ -88,24 +88,35 @@ msNew =
 msUpdate :: MenuScreenState -> MenuScreenState
 msUpdate = dlogUiTrace "msUpdate`"
 
+nullass macct = ASS {
+   _assSelectedAccount = fromMaybe "" macct
+  ,_assList            = list AccountsList (V.fromList []) 1
+  }
+
+
 -- | Construct an accounts screen listing the appropriate set of accounts,
 -- with the appropriate one selected.
 -- Screen-specific arguments: the account to select if any.
 asNew :: UIOpts -> Day -> Journal -> Maybe AccountName -> Screen
-asNew uopts d j macct =
-  dlogUiTrace "asNew" $
-  AS $
-  asUpdate uopts d j $
-  ASS {
-     _assSelectedAccount = fromMaybe "" macct
-    ,_assList            = list AccountsList (V.fromList []) 1
-    }
+asNew uopts d j macct = dlogUiTrace "asNew" $ AS $ asUpdate uopts d j $ nullass macct
 
 -- | Update an accounts screen from these options, reporting date, and journal.
 asUpdate :: UIOpts -> Day -> Journal -> AccountsScreenState -> AccountsScreenState
-asUpdate uopts d j ass = dlogUiTrace "asUpdate" ass{_assList=l}
+asUpdate uopts d = dlogUiTrace "asUpdate" . asUpdateHelper rspec'
   where
     UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}} = uopts
+    rspec' =
+      updateReportSpec
+        ropts{declared_=True}  -- always show declared accounts even if unused
+        rspec{_rsDay=d}        -- update to the given day, might have changed since program start
+      & either (error "asUpdate: adjusting the query, should not have failed") id -- PARTIAL:
+      & reportSpecSetFutureAndForecast (forecast_ $ inputopts_ copts)  -- include/exclude future & forecast transactions
+
+-- | Update an accounts-screen-like screen from this report spec and journal.
+asUpdateHelper :: ReportSpec -> Journal -> AccountsScreenState -> AccountsScreenState
+asUpdateHelper rspec j ass = dlogUiTrace "asUpdate" ass{_assList=l}
+  where
+    ropts = _rsReportOpts rspec
     -- decide which account is selected:
     -- if selectfirst is true, the first account;
     -- otherwise, the previously selected account if possible;
@@ -127,14 +138,7 @@ asUpdate uopts d j ass = dlogUiTrace "asUpdate" ass{_assList=l}
         displayitems = map displayitem items
           where
             -- run the report
-            (items, _) = balanceReport rspec' j
-              where
-                rspec' =
-                  updateReportSpec
-                    ropts{declared_=True}  -- always show declared accounts even if unused
-                    rspec{_rsDay=d}        -- update to the given day, might have changed since program start
-                  & either (error "asUpdate: adjusting the query, should not have failed") id -- PARTIAL:
-                  & reportSpecSetFutureAndForecast (forecast_ $ inputopts_ copts)  -- include/exclude future & forecast transactions
+            (items, _) = balanceReport rspec j
 
             -- pre-render a list item
             displayitem (fullacct, shortacct, indent, bal) =
@@ -157,69 +161,22 @@ asUpdate uopts d j ass = dlogUiTrace "asUpdate" ass{_assList=l}
 -- with the appropriate one selected.
 -- Screen-specific arguments: the account to select if any.
 bsNew :: UIOpts -> Day -> Journal -> Maybe AccountName -> Screen
-bsNew uopts d j macct =
-  dlogUiTrace "bsNew" $
-  BS $
-  bsUpdate uopts d j $
-  ASS {
-     _assSelectedAccount = fromMaybe "" macct
-    ,_assList            = list AccountsList (V.fromList []) 1
-    }
+bsNew uopts d j macct = dlogUiTrace "bsNew" $ BS $ bsUpdate uopts d j $ nullass macct
 
 -- | Update a balance sheet screen from these options, reporting date, and journal.
 bsUpdate :: UIOpts -> Day -> Journal -> AccountsScreenState -> AccountsScreenState
-bsUpdate uopts d j ass = dlogUiTrace "bsUpdate" ass{_assList=l}
+bsUpdate uopts d = dlogUiTrace "bsUpdate" . asUpdateHelper rspec'
   where
     UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}} = uopts
-    -- decide which account is selected:
-    -- if selectfirst is true, the first account;
-    -- otherwise, the previously selected account if possible;
-    -- otherwise, the first account with the same prefix (eg first leaf account when entering flat mode);
-    -- otherwise, the alphabetically preceding account.
-    l =
-      listMoveTo selidx $
-      list AccountsList (V.fromList $ displayitems ++ blankitems) 1
-      where
-        selidx = headDef 0 $ catMaybes [
-                  elemIndex a as
-                  ,findIndex (a `isAccountNamePrefixOf`) as
-                  ,Just $ max 0 (length (filter (< a) as) - 1)
-                  ]
-                  where
-                    a = _assSelectedAccount ass
-                    as = map asItemAccountName displayitems
-
-        displayitems = map displayitem items
-          where
-            -- run the report
-            (items, _) = balanceReport rspec' j
-              where
-                rspec' =
-                  updateReportSpec
-                    ropts{declared_=True            -- always show declared accounts even if unused
-                         ,balanceaccum_=Historical  -- always show historical end balances
-                         }
-                    rspec{_rsDay=d}                 -- update to the given day, might have changed since program start
-                  & either (error "bsUpdate: adjusting the query, should not have failed") id -- PARTIAL:
-                  & reportSpecSetFutureAndForecast (forecast_ $ inputopts_ copts)  -- include/exclude future & forecast transactions
-                  & reportSpecAddQuery (Type [Asset,Liability,Equity])  -- restrict to balance sheet accounts
-
-            -- pre-render a list item
-            displayitem (fullacct, shortacct, indent, bal) =
-              AccountsScreenItem{asItemIndentLevel        = indent
-                                ,asItemAccountName        = fullacct
-                                ,asItemDisplayAccountName = replaceHiddenAccountsNameWith "All" $ if tree_ ropts then shortacct else fullacct
-                                ,asItemMixedAmount        = Just bal
-                                }
-
-        -- blanks added for scrolling control, cf RegisterScreen.
-        -- XXX Ugly. Changing to 0 helps when debugging.
-        blankitems = replicate uiNumBlankItems
-          AccountsScreenItem{asItemIndentLevel        = 0
-                            ,asItemAccountName        = ""
-                            ,asItemDisplayAccountName = ""
-                            ,asItemMixedAmount        = Nothing
-                            }
+    rspec' =
+      updateReportSpec
+        ropts{declared_=True            -- always show declared accounts even if unused
+              ,balanceaccum_=Historical  -- always show historical end balances
+              }
+        rspec{_rsDay=d}                 -- update to the given day, might have changed since program start
+      & either (error "bsUpdate: adjusting the query, should not have failed") id -- PARTIAL:
+      & reportSpecSetFutureAndForecast (forecast_ $ inputopts_ copts)  -- include/exclude future & forecast transactions
+      & reportSpecAddQuery (Type [Asset,Liability,Equity])  -- restrict to balance sheet accounts
 
 -- | Construct a register screen listing the appropriate set of transactions,
 -- with the appropriate one selected.
