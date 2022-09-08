@@ -267,9 +267,6 @@ bsHandle ev = do
             VtyEvent e | e `elem` moveLeftEvents -> put' $ popScreen ui
             -- or on a click in the app's left margin. This is a VtyEvent since not in a clickable widget.
             VtyEvent (EvMouseUp x _y (Just BLeft)) | x==0 -> put' $ popScreen ui
-            -- or on clicking a blank list item.
-            MouseUp _ (Just BLeft) Location{loc=(_,y)} | clickedacct == "" -> put' $ popScreen ui
-              where clickedacct = maybe "" asItemAccountName $ listElements (_bssList sst) !? y
 
             -- enter register screen for selected account (if there is one),
             -- centering its selected transaction if possible

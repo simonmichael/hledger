@@ -170,9 +170,6 @@ tsHandle ev = do
             VtyEvent e | e `elem` moveLeftEvents -> put' . popScreen $ tsSelect i t ui  -- Probably not necessary to tsSelect here, but it's safe.
             -- or on a click in the app's left margin.
             VtyEvent (EvMouseUp x _y (Just BLeft)) | x==0 -> put' . popScreen $ tsSelect i t ui
-            -- or on clicking the blank area below the transaction.
-            MouseUp _ (Just BLeft) Location{loc=(_,y)} | y+1 > numentrylines -> put' . popScreen $ tsSelect i t ui
-              where numentrylines = length (T.lines $ showTxn ropts rspec j t) - 1
 
             VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw
             VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
