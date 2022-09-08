@@ -24,7 +24,7 @@ import Lens.Micro ((^.))
 import System.Directory (canonicalizePath)
 import System.FilePath (takeDirectory)
 import System.FSNotify (Event(Modified), isPollingManager, watchDir, withManager)
-import Brick
+import Brick hiding (bsDraw)
 import qualified Brick.BChan as BC
 
 import Hledger
@@ -36,6 +36,7 @@ import Hledger.UI.UIState (uiState, getDepth)
 import Hledger.UI.UIUtils (dlogUiTrace)
 import Hledger.UI.MenuScreen
 import Hledger.UI.AccountsScreen
+import Hledger.UI.BalancesheetScreen
 import Hledger.UI.RegisterScreen
 import Hledger.UI.TransactionScreen
 import Hledger.UI.ErrorScreen
@@ -243,6 +244,7 @@ uiHandle ev = do
   case aScreen ui of
     MS _ -> msHandle ev
     AS _ -> asHandle ev
+    BS _ -> bsHandle ev
     RS _ -> rsHandle ev
     TS _ -> tsHandle ev
     ES _ -> esHandle ev
@@ -252,6 +254,7 @@ uiDraw ui =
   case aScreen ui of
     MS _ -> msDraw ui
     AS _ -> asDraw ui
+    BS _ -> bsDraw ui
     RS _ -> rsDraw ui
     TS _ -> tsDraw ui
     ES _ -> esDraw ui

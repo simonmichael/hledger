@@ -15,18 +15,20 @@
 {-# LANGUAGE NamedFieldPuns #-}
 
 module Hledger.UI.UIScreens
- (screenUpdate
- ,msNew
- ,msUpdate
- ,asNew
- ,asUpdate
- ,rsNew
- ,rsUpdate
- ,tsNew
- ,tsUpdate
- ,esNew
- ,esUpdate
- )
+(screenUpdate
+,esNew
+,esUpdate
+,msNew
+,msUpdate
+,asNew
+,asUpdate
+,bsNew
+,bsUpdate
+,rsNew
+,rsUpdate
+,tsNew
+,tsUpdate
+)
 where
 
 import Brick.Widgets.List (listMoveTo, listSelectedElement, list)
@@ -47,9 +49,25 @@ screenUpdate :: UIOpts -> Day -> Journal -> Screen -> Screen
 screenUpdate opts d j = \case
   MS mss -> MS $ msUpdate mss  -- opts d j ass
   AS ass -> AS $ asUpdate opts d j ass
+  BS bss -> BS $ bsUpdate opts d j bss
   RS rss -> RS $ rsUpdate opts d j rss
   TS tss -> TS $ tsUpdate tss
   ES ess -> ES $ esUpdate ess
+
+-- | Construct an error screen.
+-- Screen-specific arguments: the error message to show.
+esNew :: String -> Screen
+esNew msg =
+  dlogUiTrace "esNew" $
+  ES ESS {
+    _essError = msg
+    ,_essUnused = ()
+    }
+
+-- | Update an error screen. Currently a no-op since error screen
+-- depends only on its screen-specific state.
+esUpdate :: ErrorScreenState -> ErrorScreenState
+esUpdate = dlogUiTrace "esUpdate`"
 
 -- | Construct a menu screen.
 -- Screen-specific arguments: none.
@@ -58,12 +76,13 @@ msNew =
   dlogUiTrace "msNew" $
   MS MSS {
      _mssList            = list MenuList (V.fromList [
-        MenuScreenItem "All accounts" AccountsViewport
+       MenuScreenItem "All accounts" Accounts
+      ,MenuScreenItem "Balance sheet accounts" Balancesheet
       ]) 1
     ,_mssUnused = ()
     }
 
--- | Recalculate a menu screen. Currently a no-op since menu screen
+-- | Update a menu screen. Currently a no-op since menu screen
 -- has unchanging content.
 msUpdate :: MenuScreenState -> MenuScreenState
 msUpdate = dlogUiTrace "msUpdate`"
@@ -81,7 +100,7 @@ asNew uopts d j macct =
     ,_assList            = list AccountsList (V.fromList []) 1
     }
 
--- | Recalculate an accounts screen from these options, reporting date, and journal.
+-- | Update an accounts screen from these options, reporting date, and journal.
 asUpdate :: UIOpts -> Day -> Journal -> AccountsScreenState -> AccountsScreenState
 asUpdate uopts d j ass = dlogUiTrace "asUpdate" ass{_assList=l}
   where
@@ -112,8 +131,79 @@ asUpdate uopts d j ass = dlogUiTrace "asUpdate" ass{_assList=l}
                 rspec' =
                   -- Further restrict the query based on the current period and future/forecast mode.
                   (reportSpecSetFutureAndForecast d (forecast_ $ inputopts_ copts) rspec)
-                  -- always show declared accounts even if unused
-                    {_rsReportOpts=ropts{declared_=True}}
+                    {_rsReportOpts=ropts{
+                       declared_=True                     -- always show declared accounts even if unused
+                      }}
+
+            -- pre-render a list item
+            displayitem (fullacct, shortacct, indent, bal) =
+              AccountsScreenItem{asItemIndentLevel        = indent
+                                ,asItemAccountName        = fullacct
+                                ,asItemDisplayAccountName = replaceHiddenAccountsNameWith "All" $ if tree_ ropts then shortacct else fullacct
+                                ,asItemMixedAmount        = Just bal
+                                }
+
+        -- blanks added for scrolling control, cf RegisterScreen.
+        -- XXX Ugly. Changing to 0 helps when debugging.
+        blankitems = replicate uiNumBlankItems
+          AccountsScreenItem{asItemIndentLevel        = 0
+                            ,asItemAccountName        = ""
+                            ,asItemDisplayAccountName = ""
+                            ,asItemMixedAmount        = Nothing
+                            }
+
+-- | Construct a balance sheet screen listing the appropriate set of accounts,
+-- with the appropriate one selected.
+-- Screen-specific arguments: the account to select if any.
+bsNew :: UIOpts -> Day -> Journal -> Maybe AccountName -> Screen
+bsNew uopts d j macct =
+  dlogUiTrace "bsNew" $
+  BS $ 
+  bsUpdate uopts d j $
+  BSS {
+     _bssSelectedAccount = fromMaybe "" macct
+    ,_bssList            = list AccountsList (V.fromList []) 1  -- reusing widget name..
+    }
+
+-- | Update a balance sheet screen from these options, reporting date, and journal.
+bsUpdate :: UIOpts -> Day -> Journal -> BalancesheetScreenState -> BalancesheetScreenState
+bsUpdate uopts d j bss = dlogUiTrace "bsUpdate" bss{_bssList=l}
+  where
+    UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}} = uopts
+    -- decide which account is selected:
+    -- if selectfirst is true, the first account;
+    -- otherwise, the previously selected account if possible;
+    -- otherwise, the first account with the same prefix (eg first leaf account when entering flat mode);
+    -- otherwise, the alphabetically preceding account.
+    l =
+      listMoveTo selidx $
+      list AccountsList (V.fromList $ displayitems ++ blankitems) 1
+      where
+        selidx = headDef 0 $ catMaybes [
+                  elemIndex a as
+                  ,findIndex (a `isAccountNamePrefixOf`) as
+                  ,Just $ max 0 (length (filter (< a) as) - 1)
+                  ]
+                  where
+                    a = _bssSelectedAccount bss
+                    as = map asItemAccountName displayitems
+
+        displayitems = map displayitem items
+          where
+            -- run the report
+            (items, _) = balanceReport rspec' j
+              where
+                rspec' =
+                  -- XXX recalculate reportspec properly here
+                  -- Further restrict the query based on the current period and future/forecast mode.
+                  (reportSpecSetFutureAndForecast d (forecast_ $ inputopts_ copts) $
+                  reportSpecAddQuery (Type [Asset,Liability,Equity])
+                  rspec){
+                    _rsReportOpts=ropts{
+                       declared_=True                     -- always show declared accounts even if unused
+                      ,balanceaccum_=Historical           -- always show historical end balances
+                      }
+                    }
 
             -- pre-render a list item
             displayitem (fullacct, shortacct, indent, bal) =
@@ -147,7 +237,7 @@ rsNew uopts d j acct forceinclusive =  -- XXX forcedefaultselection - whether to
     ,_rssList           = list RegisterList (V.fromList []) 1
     }
 
--- | Recalculate a register screen from these options, reporting date, and journal.
+-- | Update a register screen from these options, reporting date, and journal.
 rsUpdate :: UIOpts -> Day -> Journal -> RegisterScreenState -> RegisterScreenState
 rsUpdate uopts d j rss@RSS{_rssAccount, _rssForceInclusive, _rssList=oldlist} =
   dlogUiTrace "rsUpdate" 
@@ -262,23 +352,8 @@ tsNew acct nts nt =
     ,_tssTransaction  = nt
     }
 
--- | Recalculate a transaction screen. Currently a no-op since transaction screen
+-- | Update a transaction screen. Currently a no-op since transaction screen
 -- depends only on its screen-specific state.
 tsUpdate :: TransactionScreenState -> TransactionScreenState
 tsUpdate = dlogUiTrace "tsUpdate"
-
--- | Construct a error screen.
--- Screen-specific arguments: the error message to show.
-esNew :: String -> Screen
-esNew msg =
-  dlogUiTrace "esNew" $
-  ES ESS {
-    _essError = msg
-    ,_essUnused = ()
-    }
-
--- | Recalculate an error screen. Currently a no-op since error screen
--- depends only on its screen-specific state.
-esUpdate :: ErrorScreenState -> ErrorScreenState
-esUpdate = dlogUiTrace "esUpdate`"
 

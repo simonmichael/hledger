@@ -86,7 +86,7 @@ data Mode =
 -- Ignore the editor when comparing Modes.
 instance Eq (Editor l n) where _ == _ = True
 
--- Unique names required for widgets, viewports, cursor locations etc.
+-- Unique names required for brick widgets, viewports, cursor locations etc.
 data Name =
     HelpDialog
   | MinibufferEditor
@@ -96,6 +96,12 @@ data Name =
   | RegisterViewport
   | RegisterList
   | TransactionEditor
+  deriving (Ord, Show, Eq)
+
+-- Unique names for screens the user can navigate to from the menu.
+data ScreenName =
+    Accounts
+  | Balancesheet
   deriving (Ord, Show, Eq)
 
 ----------------------------------------------------------------------------------------------------
@@ -167,6 +173,7 @@ data Name =
 data Screen =
     MS MenuScreenState
   | AS AccountsScreenState
+  | BS BalancesheetScreenState
   | RS RegisterScreenState
   | TS TransactionScreenState
   | ES ErrorScreenState
@@ -183,6 +190,13 @@ data AccountsScreenState = ASS {
    _assSelectedAccount :: AccountName                   -- ^ a copy of the account name from the list's selected item (or "")
     -- view data derived from options, reporting date, journal, and screen parameters:
   ,_assList            :: List Name AccountsScreenItem  -- ^ list widget showing account names & balances
+} deriving (Show)
+
+data BalancesheetScreenState = BSS {
+    -- screen parameters:
+   _bssSelectedAccount :: AccountName                   -- ^ a copy of the account name from the list's selected item (or "")
+    -- view data derived from options, reporting date, journal, and screen parameters:
+  ,_bssList            :: List Name AccountsScreenItem  -- ^ list widget showing account names & balances
 } deriving (Show)
 
 data RegisterScreenState = RSS {
@@ -210,8 +224,8 @@ data ErrorScreenState = ESS {
 
 -- | An item in the menu screen's list of screens.
 data MenuScreenItem = MenuScreenItem {
-   msItemScreenName :: Text                         -- ^ screen name
-  ,msItemScreen :: Name                             -- ^ an internal name we can use to find the corresponding screen
+   msItemScreenName :: Text                         -- ^ screen display name
+  ,msItemScreen     :: ScreenName                   -- ^ an internal name we can use to find the corresponding screen
   } deriving (Show)
 
 -- | An item in the accounts screen's list of accounts and balances.
@@ -241,6 +255,7 @@ type NumberedTransaction = (Integer, Transaction)
 -- XXX foo fields producing fooL lenses would be preferable
 makeLenses ''MenuScreenState
 makeLenses ''AccountsScreenState
+makeLenses ''BalancesheetScreenState
 makeLenses ''RegisterScreenState
 makeLenses ''TransactionScreenState
 makeLenses ''ErrorScreenState

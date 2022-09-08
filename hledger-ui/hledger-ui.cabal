@@ -49,6 +49,7 @@ executable hledger-ui
   other-modules:
       Hledger.UI
       Hledger.UI.AccountsScreen
+      Hledger.UI.BalancesheetScreen
       Hledger.UI.Editor
       Hledger.UI.ErrorScreen
       Hledger.UI.Main

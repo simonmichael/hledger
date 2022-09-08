@@ -294,6 +294,15 @@ preceding them is the transaction's position within the complete
 unfiltered journal, which is a more stable id (at least until the next
 reload).
 
+## Balance sheet accounts screen
+
+This is like the accounts screen, except:
+
+- it shows only asset, liability and equity accounts (see [account types](/hledger.html#account-types))
+- it always shows historical end balances on a certain date (not balance changes).
+
+It corresponds to the `hledger balancesheet` CLI report.
+
 ## Error screen
 
 This screen will appear if there is a problem, such as a parse error,

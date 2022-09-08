@@ -36,7 +36,6 @@ import Hledger.UI.UIState
 import Hledger.UI.UIUtils
 import Hledger.UI.UIScreens
 import Hledger.UI.ErrorScreen (uiReloadJournal, uiCheckBalanceAssertions, uiReloadJournalIfChanged)
-import Data.Text (Text)
 import Hledger.UI.Editor (runIadd, runEditor, endPosition)
 import Brick.Widgets.Edit (getEditContents, handleEditorEvent)
 -- import Hledger.UI.AccountsScreen
@@ -177,7 +176,7 @@ msHandle ev = do
       let
         -- save the currently selected account, in case we leave this screen and lose the selection
         mselscr = case listSelectedElement $ _mssList sst of
-                    Just (_, MenuScreenItem{..}) -> Just msItemScreenName
+                    Just (_, MenuScreenItem{..}) -> Just msItemScreen
                     Nothing -> Nothing
         -- ui = ui1{aScreen=MS sst{_assSelectedAccount=selacct}}
         nonblanks = V.takeWhile (not . T.null . msItemScreenName) $ listElements $ _mssList sst
@@ -266,19 +265,27 @@ msHandle ev = do
             VtyEvent (EvKey (KChar 'l') [MCtrl]) -> scrollSelectionToMiddle (_mssList sst) >> redraw
             VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
 
-            -- Enter enters selected screen if there is one
+            -- RIGHT enters selected screen if there is one
             VtyEvent e | e `elem` moveRightEvents
-                      , not $ isBlankElement $ listSelectedElement (_mssList sst) -> msEnterScreen d (fromMaybe "" mselscr) ui
+                      , not $ isBlankElement $ listSelectedElement (_mssList sst) -> msEnterScreen d (fromMaybe Accounts mselscr) ui
 
             -- MouseDown is sometimes duplicated, https://github.com/jtdaugherty/brick/issues/347
             -- just use it to move the selection
-            MouseDown _n BLeft _mods Location{loc=(_x,y)} | not $ (=="") clickedscr -> do
+            MouseDown _n BLeft _mods Location{loc=(_x,y)} | not $ (=="") clickedname -> do
               put' ui{aScreen=MS sst}  -- XXX does this do anything ?
-              where clickedscr = maybe "" msItemScreenName $ listElements (_mssList sst) !? y
+              where
+                item = listElements (_mssList sst) !? y
+                clickedname = maybe "" msItemScreenName item
+                -- mclickedscr  = msItemScreen <$> item
             -- and on MouseUp, enter the subscreen
-            MouseUp _n (Just BLeft) Location{loc=(_x,y)} | not $ (=="") clickedscr -> do
-              msEnterScreen d clickedscr ui
-              where clickedscr = maybe "" msItemScreenName $ listElements (_mssList sst) !? y
+            MouseUp _n (Just BLeft) Location{loc=(_x,y)} ->  -- | not $ (=="") clickedname ->
+              case mclickedscr of
+                Just scr -> msEnterScreen d scr ui
+                Nothing  -> return ()
+              where
+                item = listElements (_mssList sst) !? y
+                -- clickedname = maybe "" msItemScreenName item
+                mclickedscr  = msItemScreen <$> item
 
             -- when selection is at the last item, DOWN scrolls instead of moving, until maximally scrolled
             VtyEvent e | e `elem` moveDownEvents, isBlankElement mnextelement -> do
@@ -314,12 +321,13 @@ msHandle ev = do
 
     _ -> dlogUiTraceM "msHandle 2" >> errorWrongScreenType "event handler"
 
-type ScreenName = Text
-
 msEnterScreen :: Day -> ScreenName -> UIState -> EventM Name UIState ()
-msEnterScreen d _scrname ui@UIState{ajournal=j, aopts=uopts} = do
+msEnterScreen d scrname ui@UIState{ajournal=j, aopts=uopts} = do
   dlogUiTraceM "msEnterScreen"
-  let scr = asNew uopts d j Nothing
+  let
+    scr = case scrname of
+      Accounts -> asNew uopts d j Nothing
+      Balancesheet -> bsNew uopts d j Nothing
   put' $ pushScreen scr ui
 
 -- -- | Set the selected account on an accounts screen. No effect on other screens.
