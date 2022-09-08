@@ -118,7 +118,7 @@ tsHandle ev = do
   ui0 <- get'
   case ui0 of
     ui@UIState{aScreen=TS TSS{_tssTransaction=(i,t), _tssTransactions=nts}
-              ,aopts=UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}
+              ,aopts=UIOpts{uoCliOpts=copts}
               ,ajournal=j
               ,aMode=mode
               } ->
