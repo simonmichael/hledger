@@ -90,6 +90,7 @@ instance Eq (Editor l n) where _ == _ = True
 data Name =
     HelpDialog
   | MinibufferEditor
+  | MenuList
   | AccountsViewport
   | AccountsList
   | RegisterViewport
@@ -164,11 +165,18 @@ data Name =
 -- along with any screen-specific parameters or data influencing what they display.
 -- (The separate state types add code noise but seem to reduce partial code/invalid data a bit.)
 data Screen =
-    AS AccountsScreenState
+    MS MenuScreenState
+  | AS AccountsScreenState
   | RS RegisterScreenState
   | TS TransactionScreenState
   | ES ErrorScreenState
   deriving (Show)
+
+data MenuScreenState = MSS {
+    -- view data:
+   _mssList            :: List Name MenuScreenItem  -- ^ list widget showing screen names
+  ,_mssUnused          :: ()                        -- ^ dummy field to silence warning
+} deriving (Show)
 
 data AccountsScreenState = ASS {
     -- screen parameters:
@@ -200,6 +208,12 @@ data ErrorScreenState = ESS {
   ,_essUnused :: ()                                 -- ^ dummy field to silence warning
 } deriving (Show)
 
+-- | An item in the menu screen's list of screens.
+data MenuScreenItem = MenuScreenItem {
+   msItemScreenName :: Text                         -- ^ screen name
+  ,msItemScreen :: Name                             -- ^ an internal name we can use to find the corresponding screen
+  } deriving (Show)
+
 -- | An item in the accounts screen's list of accounts and balances.
 data AccountsScreenItem = AccountsScreenItem {
    asItemIndentLevel        :: Int                -- ^ indent level
@@ -225,6 +239,7 @@ type NumberedTransaction = (Integer, Transaction)
 -- These TH calls must come after most of the types above.
 -- Fields named _foo produce lenses named foo.
 -- XXX foo fields producing fooL lenses would be preferable
+makeLenses ''MenuScreenState
 makeLenses ''AccountsScreenState
 makeLenses ''RegisterScreenState
 makeLenses ''TransactionScreenState

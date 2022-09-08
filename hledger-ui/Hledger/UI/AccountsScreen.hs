@@ -263,6 +263,14 @@ asHandle ev = do
             VtyEvent (EvKey (KChar 'l') [MCtrl]) -> scrollSelectionToMiddle (_assList sst) >> redraw
             VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
 
+            -- exit screen on LEFT
+            VtyEvent e | e `elem` moveLeftEvents -> put' $ popScreen ui
+            -- or on a click in the app's left margin. This is a VtyEvent since not in a clickable widget.
+            VtyEvent (EvMouseUp x _y (Just BLeft)) | x==0 -> put' $ popScreen ui
+            -- or on clicking a blank list item.
+            MouseUp _ (Just BLeft) Location{loc=(_,y)} | clickedacct == "" -> put' $ popScreen ui
+              where clickedacct = maybe "" asItemAccountName $ listElements (_assList sst) !? y
+
             -- enter register screen for selected account (if there is one),
             -- centering its selected transaction if possible
             VtyEvent e | e `elem` moveRightEvents

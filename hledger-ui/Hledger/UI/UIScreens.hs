@@ -16,6 +16,8 @@
 
 module Hledger.UI.UIScreens
  (screenUpdate
+ ,msNew
+ ,msUpdate
  ,asNew
  ,asUpdate
  ,rsNew
@@ -43,10 +45,28 @@ import Hledger.UI.UIUtils
 -- | Regenerate the content of any screen from new options, reporting date and journal.
 screenUpdate :: UIOpts -> Day -> Journal -> Screen -> Screen
 screenUpdate opts d j = \case
+  MS mss -> MS $ msUpdate mss  -- opts d j ass
   AS ass -> AS $ asUpdate opts d j ass
   RS rss -> RS $ rsUpdate opts d j rss
   TS tss -> TS $ tsUpdate tss
   ES ess -> ES $ esUpdate ess
+
+-- | Construct a menu screen.
+-- Screen-specific arguments: none.
+msNew :: Screen
+msNew =
+  dlogUiTrace "msNew" $
+  MS MSS {
+     _mssList            = list MenuList (V.fromList [
+        MenuScreenItem "All accounts" AccountsViewport
+      ]) 1
+    ,_mssUnused = ()
+    }
+
+-- | Recalculate a menu screen. Currently a no-op since menu screen
+-- has unchanging content.
+msUpdate :: MenuScreenState -> MenuScreenState
+msUpdate = dlogUiTrace "msUpdate`"
 
 -- | Construct an accounts screen listing the appropriate set of accounts,
 -- with the appropriate one selected.

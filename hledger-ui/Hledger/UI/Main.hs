@@ -34,6 +34,7 @@ import Hledger.UI.UIOptions
 import Hledger.UI.UITypes
 import Hledger.UI.UIState (uiState, getDepth)
 import Hledger.UI.UIUtils (dlogUiTrace)
+import Hledger.UI.MenuScreen
 import Hledger.UI.AccountsScreen
 import Hledger.UI.RegisterScreen
 import Hledger.UI.TransactionScreen
@@ -127,14 +128,12 @@ runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=r
         filteredQuery q = simplifyQuery $ And [queryFromFlags ropts, filtered q]
           where filtered = filterQuery (\x -> not $ queryIsDepth x || queryIsDate x)
 
+    -- select the starting screen, and parent screens you can step back to:
+    -- menu > accounts by default, or menu > accounts > register with --register.
     (prevscrs, startscr) = case uoRegister uopts of
-      Nothing -> ([], acctsscr)
-      -- with --register, start on the register screen, and also put
-      -- the accounts screen on the prev screens stack so you can exit
-      -- to that as usual.
-      Just apat -> ([acctsscr'], regscr)
+      Nothing   -> ([menuscr], acctsscr)
+      Just apat -> ([menuscr, asSetSelectedAccount acct acctsscr], regscr)
         where
-          acctsscr' = asSetSelectedAccount acct acctsscr
           regscr = 
             rsSetAccount acct False $
             rsNew uopts today j acct forceinclusive
@@ -149,6 +148,7 @@ runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=r
                   Right re -> find (regexMatchText re)
                   Left  _  -> const Nothing
       where
+        menuscr = msNew
         acctsscr = asNew uopts today j Nothing
 
     ui = uiState uopts j prevscrs startscr
@@ -241,6 +241,7 @@ uiHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
 uiHandle ev = do
   ui <- get
   case aScreen ui of
+    MS _ -> msHandle ev
     AS _ -> asHandle ev
     RS _ -> rsHandle ev
     TS _ -> tsHandle ev
@@ -249,6 +250,7 @@ uiHandle ev = do
 uiDraw :: UIState -> [Widget Name]
 uiDraw ui =
   case aScreen ui of
+    MS _ -> msDraw ui
     AS _ -> asDraw ui
     RS _ -> rsDraw ui
     TS _ -> tsDraw ui

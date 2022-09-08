@@ -189,6 +189,10 @@ Additional screen-specific keys are described below.
 
 # SCREENS
 
+## Menu screen
+
+The top-most screen, currently with just one menu item and not shown by default.
+
 ## Accounts screen
 
 This is normally the first screen displayed.
@@ -230,6 +234,7 @@ are shown (hledger-ui shows zero items by default, unlike command-line
 hledger).
 
 Press `RIGHT` to view an account's transactions register.
+Or, `LEFT` to see the menu screen.
 
 ## Register screen
 

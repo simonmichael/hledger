@@ -52,6 +52,7 @@ executable hledger-ui
       Hledger.UI.Editor
       Hledger.UI.ErrorScreen
       Hledger.UI.Main
+      Hledger.UI.MenuScreen
       Hledger.UI.RegisterScreen
       Hledger.UI.Theme
       Hledger.UI.TransactionScreen
