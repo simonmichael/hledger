@@ -466,7 +466,7 @@ dlogTraceAt level s
   | level > 0 && debugLevel < level = id
   | otherwise = dlogTrace s
 
--- | Log a label and pretty-printed showable value to "./debug.log",
+-- | Log and pretty-print a label and showable value to "./debug.log",
 -- if the global debug level is at or above the specified level.
 -- At level 0, always prints. Otherwise, uses unsafePerformIO.
 dlogAt :: Show a => Int -> String -> a -> a
