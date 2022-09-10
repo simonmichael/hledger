@@ -96,7 +96,7 @@ msDrawItem _selected MenuScreenItem{..} =
 msHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
 msHandle ev = do
   ui0 <- get'
-  dlogUiTraceM "msHandle 1"
+  dlogUiTraceM "msHandle"
   case ui0 of
     ui@UIState{
        aopts=UIOpts{uoCliOpts=copts}
@@ -196,7 +196,8 @@ msHandle ev = do
 
             -- RIGHT enters selected screen if there is one
             VtyEvent e | e `elem` moveRightEvents
-                      , not $ isBlankElement $ listSelectedElement (_mssList sst) -> msEnterScreen d (fromMaybe Accounts mselscr) ui
+                      , not $ isBlankElement $ listSelectedElement (_mssList sst) ->
+              msEnterScreen d (fromMaybe Accounts mselscr) ui
 
             -- MouseDown is sometimes duplicated, https://github.com/jtdaugherty/brick/issues/347
             -- just use it to move the selection
@@ -248,7 +249,7 @@ msHandle ev = do
             MouseUp{}   -> return ()
             AppEvent _  -> return ()
 
-    _ -> dlogUiTraceM "msHandle 2" >> errorWrongScreenType "event handler"
+    _ -> dlogUiTraceM "msHandle" >> errorWrongScreenType "event handler"
 
 msEnterScreen :: Day -> ScreenName -> UIState -> EventM Name UIState ()
 msEnterScreen d scrname ui@UIState{ajournal=j, aopts=uopts} = do
