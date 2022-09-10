@@ -33,7 +33,7 @@ import Hledger.UI.Theme
 import Hledger.UI.UIOptions
 import Hledger.UI.UITypes
 import Hledger.UI.UIState (uiState, getDepth)
-import Hledger.UI.UIUtils (dlogUiTrace)
+import Hledger.UI.UIUtils (dlogUiTrace, dlogUiTraceM)
 import Hledger.UI.MenuScreen
 import Hledger.UI.AccountsScreen
 import Hledger.UI.BalancesheetScreen
@@ -68,7 +68,7 @@ main = do
 
 runBrickUi :: UIOpts -> Journal -> IO ()
 runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}} j =
-  dlogUiTrace "========= runBrickUi" $ do
+  dlogUiTrace "==== runBrickUi" $ do
   let
     today = copts^.rsDay
 
@@ -240,6 +240,7 @@ brickApp mtheme = App {
 
 uiHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
 uiHandle ev = do
+  dlogUiTraceM $ "==== " ++ show ev
   ui <- get
   case aScreen ui of
     MS _ -> msHandle ev
