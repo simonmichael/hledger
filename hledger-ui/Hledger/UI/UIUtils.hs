@@ -56,7 +56,9 @@ import Graphics.Vty
 import Lens.Micro.Platform
 
 import Hledger
+-- import Hledger.Cli.CliOptions (CliOpts(reportspec_))
 import Hledger.Cli.DocFiles
+-- import Hledger.UI.UIOptions (UIOpts(uoCliOpts))
 import Hledger.UI.UITypes
 
 import Data.Vector (Vector)
@@ -78,16 +80,20 @@ suspendSignal = raiseSignal sigSTOP
 get' = do
   x <- get
   dlogUiTraceM $ "getting state: " ++ (head $ lines $ pshow $ aScreen x)
+  -- dlogUiTraceM $ ("query: "++) $ pshow' $ x  & aopts & uoCliOpts & reportspec_ & _rsQuery
   return x
 
 put' x = do
   dlogUiTraceM $ "putting state: " ++ (head $ lines $ pshow $ aScreen x)
+  -- dlogUiTraceM $ ("query: "++) $ pshow' $ x  & aopts & uoCliOpts & reportspec_ & _rsQuery
   put x
 
 modify' f = do
   x <- get
   let x' = f x
   dlogUiTraceM $ "modifying state: " ++ (head $ lines $ pshow $ aScreen x')
+  -- dlogUiTraceM $ ("from: "++) $ pshow' $ x  & aopts & uoCliOpts & reportspec_ & _rsQuery
+  -- dlogUiTraceM $ ("to:   "++) $ pshow' $ x' & aopts & uoCliOpts & reportspec_ & _rsQuery
   modify f
 
 -- | On posix platforms, suspend the program using the STOP signal,
