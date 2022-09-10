@@ -41,7 +41,6 @@ esDraw UIState{aScreen=ES ESS{..}
               } =
   case mode of
     Help       -> [helpDialog, maincontent]
-    -- Minibuffer e -> [minibuffer e, maincontent]
     _          -> [maincontent]
   where
     maincontent = Widget Greedy Greedy $ do

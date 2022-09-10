@@ -37,6 +37,7 @@ import Hledger.UI.UIUtils (dlogUiTrace, dlogUiTraceM)
 import Hledger.UI.MenuScreen
 import Hledger.UI.AccountsScreen
 import Hledger.UI.BalancesheetScreen
+import Hledger.UI.IncomestatementScreen
 import Hledger.UI.RegisterScreen
 import Hledger.UI.TransactionScreen
 import Hledger.UI.ErrorScreen
@@ -114,10 +115,11 @@ runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=r
          reportspec_=rspec{
             _rsQuery=filteredQuery $ _rsQuery rspec,  -- query with depth/date parts removed
             _rsReportOpts=ropts{
-               depth_ =queryDepth $ _rsQuery rspec,  -- query's depth part
-               period_=periodfromoptsandargs,       -- query's date part
-               no_elide_=True,  -- avoid squashing boring account names, for a more regular tree (unlike hledger)
-               empty_=not $ empty_ ropts  -- show zero items by default, hide them with -E (unlike hledger)
+               depth_    = queryDepth $ _rsQuery rspec,  -- query's depth part
+               period_   = periodfromoptsandargs,       -- query's date part
+               no_elide_ = True,  -- avoid squashing boring account names, for a more regular tree (unlike hledger)
+               empty_    = not $ empty_ ropts,  -- show zero items by default, hide them with -E (unlike hledger)
+               declared_ = True  -- always show declared accounts even if unused
                }
             }
          }
@@ -246,6 +248,7 @@ uiHandle ev = do
     MS _ -> msHandle ev
     AS _ -> asHandle ev
     BS _ -> bsHandle ev
+    IS _ -> isHandle ev
     RS _ -> rsHandle ev
     TS _ -> tsHandle ev
     ES _ -> esHandle ev
@@ -256,6 +259,7 @@ uiDraw ui =
     MS _ -> msDraw ui
     AS _ -> asDraw ui
     BS _ -> bsDraw ui
+    IS _ -> isDraw ui
     RS _ -> rsDraw ui
     TS _ -> tsDraw ui
     ES _ -> esDraw ui

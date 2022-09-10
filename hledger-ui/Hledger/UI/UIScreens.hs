@@ -24,6 +24,8 @@ module Hledger.UI.UIScreens
 ,asUpdate
 ,bsNew
 ,bsUpdate
+,isNew
+,isUpdate
 ,rsNew
 ,rsUpdate
 ,tsNew
@@ -50,7 +52,8 @@ screenUpdate :: UIOpts -> Day -> Journal -> Screen -> Screen
 screenUpdate opts d j = \case
   MS sst -> MS $ msUpdate sst  -- opts d j ass
   AS sst -> AS $ asUpdate opts d j sst
-  BS sst -> BS $ asUpdate opts d j sst
+  BS sst -> BS $ bsUpdate opts d j sst
+  IS sst -> IS $ isUpdate opts d j sst
   RS sst -> RS $ rsUpdate opts d j sst
   TS sst -> TS $ tsUpdate sst
   ES sst -> ES $ esUpdate sst
@@ -78,7 +81,8 @@ msNew =
   MS MSS {
      _mssList            = list MenuList (V.fromList [
        MenuScreenItem "All accounts" Accounts
-      ,MenuScreenItem "Balance sheet accounts" Balancesheet
+      ,MenuScreenItem "Balance sheet accounts (assets, liabilities, equity)" Balancesheet
+      ,MenuScreenItem "Income statement accounts (revenues, expenses)" Incomestatement
       ]) 1
     ,_mssUnused = ()
     }
@@ -86,13 +90,12 @@ msNew =
 -- | Update a menu screen. Currently a no-op since menu screen
 -- has unchanging content.
 msUpdate :: MenuScreenState -> MenuScreenState
-msUpdate = dlogUiTrace "msUpdate`"
+msUpdate = dlogUiTrace "msUpdate"
 
 nullass macct = ASS {
    _assSelectedAccount = fromMaybe "" macct
   ,_assList            = list AccountsList (V.fromList []) 1
   }
-
 
 -- | Construct an accounts screen listing the appropriate set of accounts,
 -- with the appropriate one selected.
@@ -100,23 +103,30 @@ nullass macct = ASS {
 asNew :: UIOpts -> Day -> Journal -> Maybe AccountName -> Screen
 asNew uopts d j macct = dlogUiTrace "asNew" $ AS $ asUpdate uopts d j $ nullass macct
 
--- | Update an accounts screen from these options, reporting date, and journal.
+-- | Update an accounts screen's state from these options, reporting date, and journal.
 asUpdate :: UIOpts -> Day -> Journal -> AccountsScreenState -> AccountsScreenState
-asUpdate uopts d = dlogUiTrace "asUpdate" . asUpdateHelper rspec'
+asUpdate uopts d = dlogUiTrace "asUpdate" .
+  asUpdateHelper rspec d copts roptsmod extraquery
   where
-    UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}} = uopts
-    rspec' =
-      updateReportSpec
-        ropts{declared_=True}  -- always show declared accounts even if unused
-        rspec{_rsDay=d}        -- update to the given day, might have changed since program start
-      & either (error "asUpdate: adjusting the query, should not have failed") id -- PARTIAL:
-      & reportSpecSetFutureAndForecast (forecast_ $ inputopts_ copts)  -- include/exclude future & forecast transactions
+    UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}} = uopts
+    roptsmod       = id
+    extraquery     = Any
 
--- | Update an accounts-screen-like screen from this report spec and journal.
-asUpdateHelper :: ReportSpec -> Journal -> AccountsScreenState -> AccountsScreenState
-asUpdateHelper rspec j ass = dlogUiTrace "asUpdate" ass{_assList=l}
+-- | Update an accounts-like screen's state from this report spec, reporting date,
+-- cli options, report options modifier, extra query, and journal.
+asUpdateHelper :: ReportSpec -> Day -> CliOpts -> (ReportOpts -> ReportOpts) -> Query -> Journal -> AccountsScreenState -> AccountsScreenState
+asUpdateHelper rspec0 d copts roptsModify extraquery j ass = dlogUiTrace "asUpdateHelper"
+  ass{_assList=l}
   where
-    ropts = _rsReportOpts rspec
+    ropts = roptsModify $ _rsReportOpts rspec0
+    rspec =
+      updateReportSpec
+        ropts
+        rspec0{_rsDay=d}  -- update to the current date, might have changed since program start
+      & either (error "asUpdateHelper: adjusting the query, should not have failed") id -- PARTIAL:
+      & reportSpecSetFutureAndForecast (forecast_ $ inputopts_ copts)  -- include/exclude future & forecast transactions
+      & reportSpecAddQuery extraquery  -- add any extra restrictions
+
     -- decide which account is selected:
     -- if selectfirst is true, the first account;
     -- otherwise, the previously selected account if possible;
@@ -163,20 +173,29 @@ asUpdateHelper rspec j ass = dlogUiTrace "asUpdate" ass{_assList=l}
 bsNew :: UIOpts -> Day -> Journal -> Maybe AccountName -> Screen
 bsNew uopts d j macct = dlogUiTrace "bsNew" $ BS $ bsUpdate uopts d j $ nullass macct
 
--- | Update a balance sheet screen from these options, reporting date, and journal.
+-- | Update a balance sheet screen's state from these options, reporting date, and journal.
 bsUpdate :: UIOpts -> Day -> Journal -> AccountsScreenState -> AccountsScreenState
-bsUpdate uopts d = dlogUiTrace "bsUpdate" . asUpdateHelper rspec'
+bsUpdate uopts d = dlogUiTrace "bsUpdate" .
+  asUpdateHelper rspec d copts roptsmod extraquery
   where
-    UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}} = uopts
-    rspec' =
-      updateReportSpec
-        ropts{declared_=True            -- always show declared accounts even if unused
-              ,balanceaccum_=Historical  -- always show historical end balances
-              }
-        rspec{_rsDay=d}                 -- update to the given day, might have changed since program start
-      & either (error "bsUpdate: adjusting the query, should not have failed") id -- PARTIAL:
-      & reportSpecSetFutureAndForecast (forecast_ $ inputopts_ copts)  -- include/exclude future & forecast transactions
-      & reportSpecAddQuery (Type [Asset,Liability,Equity])  -- restrict to balance sheet accounts
+    UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}} = uopts
+    roptsmod ropts = ropts{balanceaccum_=Historical}  -- always show historical end balances
+    extraquery     = Type [Asset,Liability,Equity]    -- restrict to balance sheet accounts
+
+-- | Construct an income statement screen listing the appropriate set of accounts,
+-- with the appropriate one selected.
+-- Screen-specific arguments: the account to select if any.
+isNew :: UIOpts -> Day -> Journal -> Maybe AccountName -> Screen
+isNew uopts d j macct = dlogUiTrace "isNew" $ IS $ isUpdate uopts d j $ nullass macct
+
+-- | Update an income statement screen's state from these options, reporting date, and journal.
+isUpdate :: UIOpts -> Day -> Journal -> AccountsScreenState -> AccountsScreenState
+isUpdate uopts d = dlogUiTrace "isUpdate" .
+  asUpdateHelper rspec d copts roptsmod extraquery
+  where
+    UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}} = uopts
+    roptsmod ropts = ropts{balanceaccum_=PerPeriod}  -- always show historical end balances
+    extraquery     = Type [Revenue, Expense]         -- restrict to income statement accounts
 
 -- | Construct a register screen listing the appropriate set of transactions,
 -- with the appropriate one selected.

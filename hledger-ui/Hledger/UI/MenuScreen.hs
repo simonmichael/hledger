@@ -42,10 +42,9 @@ msDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=_rspec}}
               ,ajournal=j
               ,aScreen=MS sst
               ,aMode=mode
-              } = dlogUiTrace "msDraw 1" $
+              } = dlogUiTrace "msDraw" $
     case mode of
       Help              -> [helpDialog, maincontent]
-      Minibuffer lbl ed -> [minibuffer lbl ed, maincontent]
       _                 -> [maincontent]
   where
     maincontent = Widget Greedy Greedy $ do
@@ -84,7 +83,7 @@ msDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=_rspec}}
               ,("q", str "quit")
               ]
 
-msDraw _ =  dlogUiTrace "msDraw 2" $ errorWrongScreenType "draw function"  -- PARTIAL:
+msDraw _ =  dlogUiTrace "msDraw" $ errorWrongScreenType "draw function"  -- PARTIAL:
 
 -- msDrawItem :: (Int,Int) -> Bool -> MenuScreenItem -> Widget Name
 -- msDrawItem (_acctwidth, _balwidth) _selected MenuScreenItem{..} =
@@ -93,6 +92,7 @@ msDrawItem _selected MenuScreenItem{..} =
   Widget Greedy Fixed $ do
     render $ txt msItemScreenName
 
+-- XXX clean up like asHandle
 msHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
 msHandle ev = do
   ui0 <- get'
@@ -189,7 +189,7 @@ msHandle ev = do
             -- VtyEvent (EvKey (KRight)    [MShift]) -> put' $ regenerateScreens j d $ nextReportPeriod journalspan ui
             -- VtyEvent (EvKey (KLeft)     [MShift]) -> put' $ regenerateScreens j d $ previousReportPeriod journalspan ui
             VtyEvent (EvKey (KChar '/') []) -> put' $ regenerateScreens j d $ showMinibuffer "filter" Nothing ui
-            -- VtyEvent (EvKey k           []) | k `elem` [KBS, KDel] -> (put' $ regenerateScreens j d $ resetFilter ui)
+            VtyEvent (EvKey k           []) | k `elem` [KBS, KDel] -> (put' $ regenerateScreens j d $ resetFilter ui)
 
             VtyEvent (EvKey (KChar 'l') [MCtrl]) -> scrollSelectionToMiddle (_mssList sst) >> redraw
             VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
@@ -256,8 +256,9 @@ msEnterScreen d scrname ui@UIState{ajournal=j, aopts=uopts} = do
   dlogUiTraceM "msEnterScreen"
   let
     scr = case scrname of
-      Accounts -> asNew uopts d j Nothing
-      Balancesheet -> bsNew uopts d j Nothing
+      Accounts        -> asNew uopts d j Nothing
+      Balancesheet    -> bsNew uopts d j Nothing
+      Incomestatement -> isNew uopts d j Nothing
   put' $ pushScreen scr ui
 
 isBlankElement mel = ((msItemScreenName . snd) <$> mel) == Just ""

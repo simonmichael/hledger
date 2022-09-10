@@ -48,7 +48,6 @@ rsDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
               } = dlogUiTrace "rsDraw 1" $
   case mode of
     Help       -> [helpDialog, maincontent]
-    -- Minibuffer e -> [minibuffer e, maincontent]
     _          -> [maincontent]
   where
     displayitems = V.toList $ listElements $ _rssList
@@ -180,6 +179,7 @@ rsDrawItem (datewidth,descwidth,acctswidth,changewidth,balwidth) selected Regist
     sel | selected  = (<> attrName "selected")
         | otherwise = id
 
+-- XXX clean up like asHandle
 rsHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
 rsHandle ev = do
   ui0 <- get'

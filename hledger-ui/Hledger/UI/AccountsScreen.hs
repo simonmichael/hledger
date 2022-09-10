@@ -50,110 +50,110 @@ import Control.Arrow ((>>>))
 
 
 asDraw :: UIState -> [Widget Name]
-asDraw ui = dlogUiTrace "asDraw 1" $ asDrawHelper ui ropts' scrname showbalchgkey
+asDraw ui = dlogUiTrace "asDraw" $ asDrawHelper ui ropts' scrname showbalchgkey
   where
     ropts' = _rsReportOpts $ reportspec_ $ uoCliOpts $ aopts ui
     scrname = "account " ++ if ishistorical then "balances" else "changes"
       where ishistorical = balanceaccum_ ropts' == Historical
     showbalchgkey = True
 
--- | Help draw any accounts-screen-like screen.
+-- | Help draw any accounts-like screen (all accounts, balance sheet, income statement..).
 -- The provided ReportOpts are used instead of the ones in the UIState.
 -- The other arguments are the screen display name and whether to show a key
 -- for toggling between end balance and balance change mode.
 asDrawHelper :: UIState -> ReportOpts -> String -> Bool -> [Widget Name]
-asDrawHelper UIState{aopts=uopts, ajournal=j, aScreen=AS sst, aMode=mode} ropts scrname showbalchgkey =
-  dlogUiTrace "asDraw 1" $
-  case mode of
-    Help       -> [helpDialog, maincontent]
-    -- Minibuffer e -> [minibuffer e, maincontent]
-    _          -> [maincontent]
-  where
-    UIOpts{uoCliOpts=copts} = uopts
-    maincontent = Widget Greedy Greedy $ do
-      c <- getContext
-      let
-        availwidth =
-          -- ltrace "availwidth" $
-          c^.availWidthL
-          - 2 -- XXX due to margin ? shouldn't be necessary (cf UIUtils)
-        displayitems = sst ^. assList . listElementsL
-
-        acctwidths = V.map (\AccountsScreenItem{..} -> asItemIndentLevel + realLength asItemDisplayAccountName) displayitems
-        balwidths  = V.map (maybe 0 (wbWidth . showMixedAmountB oneLine) . asItemMixedAmount) displayitems
-        preferredacctwidth = V.maximum acctwidths
-        totalacctwidthseen = V.sum acctwidths
-        preferredbalwidth  = V.maximum balwidths
-        totalbalwidthseen  = V.sum balwidths
-
-        totalwidthseen = totalacctwidthseen + totalbalwidthseen
-        shortfall = preferredacctwidth + preferredbalwidth + 2 - availwidth
-        acctwidthproportion = fromIntegral totalacctwidthseen / fromIntegral totalwidthseen
-        adjustedacctwidth = min preferredacctwidth . max 15 . round $ acctwidthproportion * fromIntegral (availwidth - 2)  -- leave 2 whitespace for padding
-        adjustedbalwidth  = availwidth - 2 - adjustedacctwidth
-
-        -- XXX how to minimise the balance column's jumping around as you change the depth limit ?
-
-        colwidths | shortfall <= 0 = (preferredacctwidth, preferredbalwidth)
-                  | otherwise      = (adjustedacctwidth, adjustedbalwidth)
-
-      render $ defaultLayout toplabel bottomlabel $ renderList (asDrawItem colwidths) True (sst ^. assList)
-
+asDrawHelper UIState{aScreen=scr, aopts=uopts, ajournal=j, aMode=mode} ropts scrname showbalchgkey =
+  dlogUiTrace "asDrawHelper" $
+  case toAccountsLikeScreen scr of
+    Nothing          -> dlogUiTrace "asDrawHelper" $ errorWrongScreenType "draw helper"  -- PARTIAL:
+    Just (ALS _ ass) -> case mode of
+      Help -> [helpDialog, maincontent]
+      _    -> [maincontent]
       where
-        ishistorical = balanceaccum_ ropts == Historical
+        UIOpts{uoCliOpts=copts} = uopts
+        maincontent = Widget Greedy Greedy $ do
+          c <- getContext
+          let
+            availwidth =
+              -- ltrace "availwidth" $
+              c^.availWidthL
+              - 2 -- XXX due to margin ? shouldn't be necessary (cf UIUtils)
+            displayitems = ass ^. assList . listElementsL
 
-        toplabel =
-              withAttr (attrName "border" <> attrName "filename") files
-          <+> toggles
-          <+> str (" " ++ scrname)
-          <+> borderPeriodStr (if ishistorical then "at end of" else "in") (period_ ropts)
-          <+> borderQueryStr (T.unpack . T.unwords . map textQuoteIfNeeded $ querystring_ ropts)
-          <+> borderDepthStr mdepth
-          <+> str (" ("++curidx++"/"++totidx++")")
-          <+> (if ignore_assertions_ . balancingopts_ $ inputopts_ copts
-               then withAttr (attrName "border" <> attrName "query") (str " ignoring balance assertions")
-               else str "")
+            acctwidths = V.map (\AccountsScreenItem{..} -> asItemIndentLevel + realLength asItemDisplayAccountName) displayitems
+            balwidths  = V.map (maybe 0 (wbWidth . showMixedAmountB oneLine) . asItemMixedAmount) displayitems
+            preferredacctwidth = V.maximum acctwidths
+            totalacctwidthseen = V.sum acctwidths
+            preferredbalwidth  = V.maximum balwidths
+            totalbalwidthseen  = V.sum balwidths
+
+            totalwidthseen = totalacctwidthseen + totalbalwidthseen
+            shortfall = preferredacctwidth + preferredbalwidth + 2 - availwidth
+            acctwidthproportion = fromIntegral totalacctwidthseen / fromIntegral totalwidthseen
+            adjustedacctwidth = min preferredacctwidth . max 15 . round $ acctwidthproportion * fromIntegral (availwidth - 2)  -- leave 2 whitespace for padding
+            adjustedbalwidth  = availwidth - 2 - adjustedacctwidth
+
+            -- XXX how to minimise the balance column's jumping around as you change the depth limit ?
+
+            colwidths | shortfall <= 0 = (preferredacctwidth, preferredbalwidth)
+                      | otherwise      = (adjustedacctwidth, adjustedbalwidth)
+
+          render $ defaultLayout toplabel bottomlabel $ renderList (asDrawItem colwidths) True (ass ^. assList)
+
           where
-            files = case journalFilePaths j of
-                           [] -> str ""
-                           f:_ -> str $ takeFileName f
-                           -- [f,_:[]] -> (withAttr ("border" <> "bold") $ str $ takeFileName f) <+> str " (& 1 included file)"
-                           -- f:fs  -> (withAttr ("border" <> "bold") $ str $ takeFileName f) <+> str (" (& " ++ show (length fs) ++ " included files)")
-            toggles = withAttr (attrName "border" <> attrName "query") $ str $ unwords $ concat [
-               [""]
-              ,if empty_ ropts then [] else ["nonzero"]
-              ,uiShowStatus copts $ statuses_ ropts
-              ,if real_ ropts then ["real"] else []
-              ]
-            mdepth = depth_ ropts
-            curidx = case sst ^. assList . listSelectedL of
-                       Nothing -> "-"
-                       Just i -> show (i + 1)
-            totidx = show $ V.length nonblanks
+            ishistorical = balanceaccum_ ropts == Historical
+
+            toplabel =
+                  withAttr (attrName "border" <> attrName "filename") files
+              <+> toggles
+              <+> str (" " ++ scrname)
+              <+> borderPeriodStr (if ishistorical then "at end of" else "in") (period_ ropts)
+              <+> borderQueryStr (T.unpack . T.unwords . map textQuoteIfNeeded $ querystring_ ropts)
+              <+> borderDepthStr mdepth
+              <+> str (" ("++curidx++"/"++totidx++")")
+              <+> (if ignore_assertions_ . balancingopts_ $ inputopts_ copts
+                  then withAttr (attrName "border" <> attrName "query") (str " ignoring balance assertions")
+                  else str "")
               where
-                nonblanks = V.takeWhile (not . T.null . asItemAccountName) $ sst ^. assList . listElementsL
+                files = case journalFilePaths j of
+                              [] -> str ""
+                              f:_ -> str $ takeFileName f
+                              -- [f,_:[]] -> (withAttr ("border" <> "bold") $ str $ takeFileName f) <+> str " (& 1 included file)"
+                              -- f:fs  -> (withAttr ("border" <> "bold") $ str $ takeFileName f) <+> str (" (& " ++ show (length fs) ++ " included files)")
+                toggles = withAttr (attrName "border" <> attrName "query") $ str $ unwords $ concat [
+                  [""]
+                  ,if empty_ ropts then [] else ["nonzero"]
+                  ,uiShowStatus copts $ statuses_ ropts
+                  ,if real_ ropts then ["real"] else []
+                  ]
+                mdepth = depth_ ropts
+                curidx = case ass ^. assList . listSelectedL of
+                          Nothing -> "-"
+                          Just i -> show (i + 1)
+                totidx = show $ V.length nonblanks
+                  where
+                    nonblanks = V.takeWhile (not . T.null . asItemAccountName) $ ass ^. assList . listElementsL
 
-        bottomlabel = case mode of
-                        Minibuffer label ed -> minibuffer label ed
-                        _                   -> quickhelp
-          where
-            quickhelp = borderKeysStr' [
-               ("?", str "help")
---              ,("RIGHT", str "register")
-              ,("t", renderToggle (tree_ ropts) "list" "tree")
-              -- ,("t", str "tree")
-              -- ,("l", str "list")
-              ,("-+", str "depth")
-              ,(if showbalchgkey then "H" else "", renderToggle (not ishistorical) "end-bals" "changes")
-              ,("F", renderToggle1 (isJust . forecast_ $ inputopts_ copts) "forecast")
-              --,("/", "filter")
-              --,("DEL", "unfilter")
-              --,("ESC", "cancel/top")
-              ,("a", str "add")
---               ,("g", "reload")
-              ,("q", str "quit")
-              ]
-asDrawHelper _ _ _ _ = dlogUiTrace "asDrawHelper" $ errorWrongScreenType "draw function"  -- PARTIAL:
+            bottomlabel = case mode of
+                            Minibuffer label ed -> minibuffer label ed
+                            _                   -> quickhelp
+              where
+                quickhelp = borderKeysStr' [
+                  ("?", str "help")
+    --              ,("RIGHT", str "register")
+                  ,("t", renderToggle (tree_ ropts) "list" "tree")
+                  -- ,("t", str "tree")
+                  -- ,("l", str "list")
+                  ,("-+", str "depth")
+                  ,(if showbalchgkey then "H" else "", renderToggle (not ishistorical) "end-bals" "changes")
+                  ,("F", renderToggle1 (isJust . forecast_ $ inputopts_ copts) "forecast")
+                  --,("/", "filter")
+                  --,("DEL", "unfilter")
+                  --,("ESC", "cancel/top")
+                  ,("a", str "add")
+    --               ,("g", "reload")
+                  ,("q", str "quit")
+                  ]
 
 asDrawItem :: (Int,Int) -> Bool -> AccountsScreenItem -> Widget Name
 asDrawItem (acctwidth, balwidth) selected AccountsScreenItem{..} =
@@ -175,40 +175,37 @@ asDrawItem (acctwidth, balwidth) selected AccountsScreenItem{..} =
         sel | selected  = (<> attrName "selected")
             | otherwise = id
 
+-- | Handle events on any accounts-like screen (all accounts, balance sheet, income statement..).
 asHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
 asHandle ev = do
-  ui0 <- get'
   dlogUiTraceM "asHandle"
-  case ui0 of
-    ui1@UIState{aMode=mode, aScreen=AS sst} -> case mode of
-      Normal          -> asHandleNormalMode ui scr ev
-      Minibuffer _ ed -> handleMinibufferMode ui ed ev
-      Help            -> handleHelpMode ui ev
-      where
-        scr = AS
-        -- save the currently selected account, in case we leave this screen and lose the selection
-        selacct = case listSelectedElement $ _assList sst of
-                    Just (_, AccountsScreenItem{..}) -> asItemAccountName
-                    Nothing -> sst ^. assSelectedAccount
-        ui = ui1{aScreen=scr sst{_assSelectedAccount=selacct}}
-    _ -> dlogUiTraceM "asHandle" >> errorWrongScreenType "event handler"
+  ui0@UIState{aScreen=scr, aMode=mode} <- get'
+  case toAccountsLikeScreen scr of
+    Nothing -> dlogUiTrace "asHandle" $ errorWrongScreenType "event handler"  -- PARTIAL:
+    Just als@(ALS scons ass) -> do
+      -- save the currently selected account, in case we leave this screen and lose the selection
+      put' ui0{aScreen=scons ass{_assSelectedAccount=asSelectedAccount ass}}
+      case mode of
+        Normal          -> asHandleNormalMode als ev
+        Minibuffer _ ed -> handleMinibufferMode ed ev
+        Help            -> handleHelpMode ev
 
--- | Handle events when in normal mode on any accounts-screen-like screen.
-asHandleNormalMode :: UIState -> (AccountsScreenState -> Screen) -> BrickEvent Name AppEvent -> EventM Name UIState ()
-asHandleNormalMode ui1@UIState{aopts=UIOpts{uoCliOpts=copts}, ajournal=j, aScreen=AS sst} scr ev = do
+-- | Handle events when in normal mode on any accounts-like screen.
+-- The provided AccountsLikeScreen should correspond to the ui state's current screen.
+asHandleNormalMode :: AccountsLikeScreen -> BrickEvent Name AppEvent -> EventM Name UIState ()
+asHandleNormalMode (ALS scons ass) ev = do
+  dlogUiTraceM "asHandleNormalMode"
+
+  ui@UIState{aopts=UIOpts{uoCliOpts=copts}, ajournal=j} <- get'
   d <- liftIO getCurrentDay
   let
-    l = _assList sst
+    l = _assList ass
+    selacct = asSelectedAccount ass
     centerSelection = scrollSelectionToMiddle l
-    -- save the currently selected account, in case we leave this screen and lose the selection
-    selacct = case listSelectedElement l of
-                Just (_, AccountsScreenItem{..}) -> asItemAccountName
-                Nothing -> sst ^. assSelectedAccount
     clickedAcctAt y =
       case asItemAccountName <$> listElements l !? y of
         Just t | not $ T.null t -> Just t
         _ -> Nothing
-    ui = ui1{aScreen=AS sst{_assSelectedAccount=selacct}}
     nonblanks = V.takeWhile (not . T.null . asItemAccountName) $ listElements l
     lastnonblankidx = max 0 (length nonblanks - 1)
     journalspan = journalDateSpan False j
@@ -283,17 +280,19 @@ asHandleNormalMode ui1@UIState{aopts=UIOpts{uoCliOpts=copts}, ajournal=j, aScree
     VtyEvent e | e `elem` moveRightEvents, not $ isBlankItem $ listSelectedElement l -> enterRegisterScreen d selacct ui
     MouseUp _n (Just BLeft) Location{loc=(_,y)} | Just clkacct <- clickedAcctAt y    -> enterRegisterScreen d clkacct ui
 
-    -- MouseDown: this is sometimes duplicated (https://github.com/jtdaugherty/brick/issues/347),
-    -- so we use it only to move the selection.
+    -- MouseDown: this is not debounced and can repeat (https://github.com/jtdaugherty/brick/issues/347)
+    -- so we only let it do something harmless: move the selection.
     MouseDown _n BLeft _mods Location{loc=(_,y)} | not $ isBlankItem clickeditem ->
-      put' ui{aScreen=scr sst}  -- XXX does this do anything ?
-      where clickeditem = (0,) <$> listElements l !? y
+      put' ui{aScreen=scons ass'}
+      where
+        clickeditem = (0,) <$> listElements l !? y
+        ass' = ass{_assList=listMoveTo y l}
 
     -- Mouse scroll wheel: scroll up or down to the maximum extent, pushing the selection when necessary.
     MouseDown name btn _mods _loc | btn `elem` [BScrollUp, BScrollDown] -> do
       let scrollamt = if btn==BScrollUp then -1 else 1
       l' <- nestEventM' l $ listScrollPushingSelection name (asListSize l) scrollamt
-      put' ui{aScreen=scr sst{_assList=l'}}
+      put' ui{aScreen=scons ass{_assList=l'}}
 
     -- PGDOWN/END keys: handle with List's default handler, but restrict the selection to stop
     -- (and center) at the last non-blank item.
@@ -303,9 +302,9 @@ asHandleNormalMode ui1@UIState{aopts=UIOpts{uoCliOpts=copts}, ajournal=j, aScree
       then do
         let l2 = listMoveTo lastnonblankidx l1
         scrollSelectionToMiddle l2
-        put' ui{aScreen=scr sst{_assList=l2}}
+        put' ui{aScreen=scons ass{_assList=l2}}
       else
-        put' ui{aScreen=scr sst{_assList=l1}}
+        put' ui{aScreen=scons ass{_assList=l1}}
 
     -- DOWN key when selection is at the last item: scroll instead of moving, until maximally scrolled
     VtyEvent e | e `elem` moveDownEvents, isBlankItem mnextelement -> vScrollBy (viewportScroll $ l^.listNameL) 1
@@ -314,17 +313,16 @@ asHandleNormalMode ui1@UIState{aopts=UIOpts{uoCliOpts=copts}, ajournal=j, aScree
     -- Any other vty event (UP, DOWN, PGUP etc): handle with List's default handler.
     VtyEvent e -> do
       l' <- nestEventM' l $ handleListEvent (normaliseMovementKeys e)
-      put' ui{aScreen=scr $ sst & assList .~ l' & assSelectedAccount .~ selacct}
+      put' ui{aScreen=scons $ ass & assList .~ l' & assSelectedAccount .~ selacct}
 
     -- Any other mouse/app event: ignore
     MouseDown{} -> return ()
     MouseUp{}   -> return ()
     AppEvent _  -> return ()
 
-asHandleNormalMode _ _ _ = dlogUiTraceM "handleNormalMode" >> errorWrongScreenType "event handler"
-
 -- | Handle events when in minibuffer mode on any screen.
-handleMinibufferMode ui@UIState{ajournal=j} ed ev = do
+handleMinibufferMode ed ev = do
+  ui@UIState{ajournal=j} <- get'
   d <- liftIO getCurrentDay
   case ev of
     VtyEvent (EvKey KEsc   []) -> put' $ closeMinibuffer ui
@@ -343,7 +341,8 @@ handleMinibufferMode ui@UIState{ajournal=j} ed ev = do
     MouseUp{}   -> return ()
 
 -- | Handle events when in help mode on any screen.
-handleHelpMode ui ev =
+handleHelpMode ev = do
+  ui <- get'
   case ev of
     -- VtyEvent (EvKey (KChar 'q') []) -> halt
     VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw
@@ -361,6 +360,14 @@ enterRegisterScreen d acct ui@UIState{ajournal=j, aopts=uopts} = do
                           Nothing -> False
     ui1 = pushScreen regscr ui
   rsCenterSelection ui1 >>= put'
+
+-- | From an accounts-screen-like screen's state, get the account name from the 
+-- currently selected list item, or otherwise the last known selected account name.
+asSelectedAccount :: AccountsScreenState -> AccountName
+asSelectedAccount ass =
+  case listSelectedElement $ _assList ass of
+    Just (_, AccountsScreenItem{..}) -> asItemAccountName
+    Nothing -> ass ^. assSelectedAccount
 
 -- | Set the selected account on an accounts screen. No effect on other screens.
 asSetSelectedAccount :: AccountName -> Screen -> Screen

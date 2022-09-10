@@ -296,12 +296,21 @@ reload).
 
 ## Balance sheet accounts screen
 
-This is like the accounts screen, except:
+This is like the accounts screen except:
 
 - it shows only asset, liability and equity accounts (see [account types](/hledger.html#account-types))
-- it always shows historical end balances on a certain date (not balance changes).
+- it always shows historical end balances on some date (not balance changes).
 
-It corresponds to the `hledger balancesheet` CLI report.
+It corresponds to the `hledger balancesheet` command.
+
+## Income statement accounts screen
+
+Like the accounts screen except:
+
+- it shows only revenue and expense accounts
+- it always shows balance changes in some period (not end balances).
+
+It corresponds to the `hledger incomestatement` command.
 
 ## Error screen
 

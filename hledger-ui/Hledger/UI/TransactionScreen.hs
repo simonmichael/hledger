@@ -43,7 +43,6 @@ tsDraw UIState{aopts=UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec
               } =
   case mode of
     Help       -> [helpDialog, maincontent]
-    -- Minibuffer e -> [minibuffer e, maincontent]
     _          -> [maincontent]
   where
     maincontent = Widget Greedy Greedy $ render $ defaultLayout toplabel bottomlabel txneditor

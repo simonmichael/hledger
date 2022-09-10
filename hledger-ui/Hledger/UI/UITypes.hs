@@ -102,6 +102,7 @@ data Name =
 data ScreenName =
     Accounts
   | Balancesheet
+  | Incomestatement
   deriving (Ord, Show, Eq)
 
 ----------------------------------------------------------------------------------------------------
@@ -159,12 +160,14 @@ data ScreenName =
 -- and debug. The screen types store only state, not behaviour (functions), and there is no longer
 -- a circular dependency between UIState and Screen.
 -- A new screen requires
--- 1. a new constructor in the Screen type,
--- 2. a new screen state type,
--- 3. new cases in the uiDraw and uiHandle functions,
--- 4. new constructor and updater functions in UIScreens, and a new case in screenUpdate
--- 5. a new module implementing draw and event-handling functions, 
--- 6. a call from any other screen which enters it.
+-- 1. a new constructor in the Screen type
+-- 2. a new screen state type if needed
+-- 3. a new case in toAccountsLikeScreen if needed
+-- 4. new cases in the uiDraw and uiHandle functions
+-- 5. new constructor and updater functions in UIScreens, and a new case in screenUpdate
+-- 6. a new module implementing draw and event-handling functions
+-- 7. a call from any other screen which enters it (eg the menu screen, a new case in msEnterScreen)
+-- 8. if it appears on the main menu: a new menu item in msNew
 
 -- cf https://github.com/jtdaugherty/brick/issues/379#issuecomment-1192000374
 -- | The various screens which a user can navigate to in hledger-ui,
@@ -174,10 +177,27 @@ data Screen =
     MS MenuScreenState
   | AS AccountsScreenState
   | BS AccountsScreenState
+  | IS AccountsScreenState
   | RS RegisterScreenState
   | TS TransactionScreenState
   | ES ErrorScreenState
   deriving (Show)
+
+-- | A subset of the screens which reuse the account screen's state and logic.
+-- Such Screens can be converted to and from this more restrictive type
+-- for cleaner code.
+data AccountsLikeScreen = ALS (AccountsScreenState -> Screen) AccountsScreenState
+  deriving (Show)
+
+toAccountsLikeScreen :: Screen -> Maybe AccountsLikeScreen
+toAccountsLikeScreen scr = case scr of
+  AS ass -> Just $ ALS AS ass
+  BS ass -> Just $ ALS BS ass
+  IS ass -> Just $ ALS IS ass
+  _      -> Nothing
+
+fromAccountsLikeScreen :: AccountsLikeScreen -> Screen
+fromAccountsLikeScreen (ALS scons ass) = scons ass
 
 data MenuScreenState = MSS {
     -- view data:
