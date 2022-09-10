@@ -59,15 +59,16 @@ import Hledger
 import Hledger.Cli.DocFiles
 import Hledger.UI.UITypes
 
+import Data.Vector (Vector)
 
 -- | On posix platforms, send the system STOP signal to suspend the
 -- current program. On windows, does nothing.
+-- (Though, currently hledger-ui is not built on windows.)
 #ifdef mingw32_HOST_OS
 suspendSignal :: IO ()
 suspendSignal = return ()
 #else
 import System.Posix.Signals
-import Data.Vector (Vector)
 suspendSignal :: IO ()
 suspendSignal = raiseSignal sigSTOP
 #endif
