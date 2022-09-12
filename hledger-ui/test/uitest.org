@@ -54,19 +54,16 @@ which has nice screenshots, but might be less up to date.
  2008-06-03 * eat & shop                 ex:food, ex:supplies         $-2     0
  2008-12-31 * pay off                    li:debts                     $-1   $-1  # <- selected
 
-** ESC  # reset UI state to initial screen in list mode
-───────────────────── sample.journal account balances (1/8) ────────────────────
- assets:bank:checking    0  # <- selected
- assets:bank:saving     $1
- assets:cash           $-2
- expenses:food          $1
- expenses:supplies      $1
- income:gifts          $-1
- income:salary         $-1
- liabilities:debts      $1
+** ESC  # resets UI state to top menu screen
+──────────────────────────────── sample.journal ────────────────────────────────
+ All accounts  # <- selected
+ Balance sheet accounts (assets, liabilities, equity)
+ Income statement accounts (revenues, expenses)
 
-** / bank  # set a filter, showing only accounts with "bank" in the name
-────────────── sample.journal account balances matching bank (1/2) ─────────────
+** / bank  # sets a filter query app-wide, affecting all screens
+
+** DOWN RIGHT   # enters the balance sheet screen, showing only ALE accounts restricted to those with "bank" in the name
+─────────────── sample.journal balance sheet matching bank (2/2) ───────────────
  assets:bank:checking   0  # <- selected
  assets:bank:saving    $1
 
@@ -164,7 +161,8 @@ which has nice screenshots, but might be less up to date.
  2022-02-01   near future forecast tran..  a                              3   9  # <- selected
 
 ** hledger-ui --today 2021-09-01 -f forecast.journal --register a --forecast 2021  # "=" is required between --forecast and its argument
-───────────────────── a transactions matching 2021 (100/0) ─────────────────────
+────────────────────── a transactions matching 2021 (1/0) ──────────────────────
+
 
 ** hledger-ui --today 2021-09-01 -f forecast.journal --register a --forecast=2021  # the forecast period can be specified, and this allows forecast txns to overlap ordinary transactions
 ──────────────────────────── a transactions (14/14) ────────────────────────────
@@ -186,12 +184,13 @@ which has nice screenshots, but might be less up to date.
 ** press F four times  # the future & forecasted txns are toggled every time (#1411)
 
 ** hledger-ui --today 2021-09-01 -f forecast.journal --register a --forecast=2021 --watch, press F once  # future/forecasted txns are hidden
-───────────────────────────── a transactions (1/1) ─────────────────────────────
- 2020-01-01   past transaction             a                              1   1  # <- selected 
+───────────────────────────── a transactions (2/2) ─────────────────────────────
+ 2020-01-01   past transaction             a                              1   1
+ 2021-12-31   near future transaction      a                              2   3  # <- selected 
 
-** with the above still running, touch forecast.journal, press F again  # forecast txns reappear, even with file modified while hidden (#1204)
-───────────────────────────── a transactions (1/14) ────────────────────────────
- 2020-01-01   past transaction             a                             1    1  # <- selected 
+
+** with the above still running, touch forecast.journal, press F again  # forecast txns reappear (scrolled a bit), even with file modified while hidden (#1204)
+──────────────────────────── a transactions (14/14) ────────────────────────────
  2021-01-01   near future forecast tran..  a                             3    4
  2021-02-01   near future forecast tran..  a                             3    7
  2021-03-01   near future forecast tran..  a                             3   10
@@ -204,7 +203,7 @@ which has nice screenshots, but might be less up to date.
  2021-10-01   near future forecast tran..  a                             3   31
  2021-11-01   near future forecast tran..  a                             3   34
  2021-12-01   near future forecast tran..  a                             3   37
- 2021-12-31   near future transaction      a                             2   39
+ 2021-12-31   near future transaction      a                             2   39  # <- selected 
 
 ** hledger-ui -f 1468.j, 2, RIGHT  # in list mode, register of account above depth limit shows only its transactions
 ───────────────────────────── a transactions (1/1) ─────────────────────────────
