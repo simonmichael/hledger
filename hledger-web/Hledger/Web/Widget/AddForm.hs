@@ -49,14 +49,15 @@ addForm j today = identifyForm "add" $ \extra -> do
   let  -- bindings used in add-form.hamlet
     descriptions = foldMap S.fromList [journalPayeesDeclaredOrUsed j, journalDescriptions j]
     files = fst <$> jfiles j
+    deffile = journalFilePath j
   (dateRes, dateView) <- mreq dateField dateSettings Nothing
   (descRes, descView) <- mopt textField descSettings Nothing
   (acctsRes, _)       <- mreq listField acctSettings Nothing
   (amtsRes, _)        <- mreq listField amtSettings  Nothing
-  (fileRes, fileView) <- mreq fileField' fileSettings Nothing
+  (fileRes, fileView) <- mopt fileField' fileSettings Nothing
   let
     (postingsRes, displayRows) = validatePostings acctsRes amtsRes
-    formRes = validateTransaction dateRes descRes postingsRes fileRes
+    formRes = validateTransaction deffile dateRes descRes postingsRes fileRes
   return (formRes, $(widgetFile "add-form"))
   where
     -- custom fields
@@ -86,22 +87,23 @@ addForm j today = identifyForm "add" $ \extra -> do
     fileSettings = FieldSettings "file" Nothing Nothing (Just "file") [("class", "form-control input-lg")]
 
 validateTransaction ::
-     FormResult Day -> FormResult (Maybe Text) -> FormResult [Posting] -> FormResult FilePath
+     FilePath -> FormResult Day -> FormResult (Maybe Text) -> FormResult [Posting] -> FormResult (Maybe FilePath)
   -> FormResult (Transaction, FilePath)
-validateTransaction dateRes descRes postingsRes fileRes =
+validateTransaction deffile dateRes descRes postingsRes fileRes =
   case makeTransaction <$> dateRes <*> descRes <*> postingsRes <*> fileRes of
     FormSuccess (txn,f) -> case balanceTransaction defbalancingopts txn of
       Left e     -> FormFailure [T.pack e]
       Right txn' -> FormSuccess (txn',f)
     x -> x
   where
-    makeTransaction date mdesc postings f =
+    makeTransaction date mdesc postings mfile =
       (nulltransaction {
          tdate = date
         ,tdescription = fromMaybe "" mdesc
         ,tpostings = postings
         ,tsourcepos = (initialPos f, initialPos f)
         }, f)
+      where f = fromMaybe deffile mfile
 
 -- | Parse a list of postings out of a list of accounts and a corresponding list
 -- of amounts
