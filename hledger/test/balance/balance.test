@@ -1,6 +1,5 @@
 # 1.
-hledger -f sample.journal balance --tree
->>>
+$ hledger -f sample.journal balance --tree
                  $-1  assets
                   $1    bank:saving
                  $-2    cash
@@ -13,22 +12,18 @@ hledger -f sample.journal balance --tree
                   $1  liabilities:debts
 --------------------
                    0  
->>>=0
 
 # 2.
-hledger -f sample.journal balance --tree o
->>>
+$ hledger -f sample.journal balance --tree o
                   $1  expenses:food
                  $-2  income
                  $-1    gifts
                  $-1    salary
 --------------------
                  $-1  
->>>=0
 
 # 3. Period reporting works for a specific year
-hledger -f - balance -b 2016 -e 2017 -N
-<<<
+<
 2015/10/10 Client A | Invoice #1
     assets:receivables      $10,000.00
     revenue:clients:A      -$10,000.00
@@ -48,16 +43,13 @@ hledger -f - balance -b 2016 -e 2017 -N
 2016/03/01 Deposit | Invoice #2
     assets:checking             $10.00
     assets:receivables         -$10.00
->>>
+$ hledger -f - balance -b 2016 -e 2017 -N
              $-40.00  assets:checking
               $50.00  expense:hosting
              $-10.00  revenue:clients:B
->>>2
->>>= 0
 
 # 4. Period reporting works for two years
-hledger -f - balance --tree -b 2015 -e 2017 -N
-<<<
+<
 2015/10/10 Client A | Invoice #1
     assets:receivables      $10,000.00
     revenue:clients:A      -$10,000.00
@@ -77,18 +69,15 @@ hledger -f - balance --tree -b 2015 -e 2017 -N
 2016/03/01 Deposit | Invoice #2
     assets:checking             $10.00
     assets:receivables         -$10.00
->>>
+$ hledger -f - balance --tree -b 2015 -e 2017 -N
            $9,960.00  assets:checking
               $50.00  expense:hosting
          $-10,010.00  revenue:clients
          $-10,000.00    A
              $-10.00    B
->>>2
->>>= 0
 
 # 5. Period reporting works for one month
-hledger -f - balance --tree -b 2015/11 -e 2015/12 -N
-<<<
+<
 2015/10/10 Client A | Invoice #1
     assets:receivables      $10,000.00
     revenue:clients:A      -$10,000.00
@@ -108,16 +97,13 @@ hledger -f - balance --tree -b 2015/11 -e 2015/12 -N
 2016/03/01 Deposit | Invoice #2
     assets:checking             $10.00
     assets:receivables         -$10.00
->>>
+$ hledger -f - balance --tree -b 2015/11 -e 2015/12 -N
                    0  assets
           $10,000.00    checking
          $-10,000.00    receivables
->>>2
->>>= 0
 
 # 6. Period reporting works for one month in another year
-hledger -f - balance -b 2016/10 -e 2016/11
-<<<
+<
 2015/10/10 Client A | Invoice #1
     assets:receivables      $10,000.00
     revenue:clients:A      -$10,000.00
@@ -137,88 +123,74 @@ hledger -f - balance -b 2016/10 -e 2016/11
 2016/03/01 Deposit | Invoice #2
     assets:checking             $10.00
     assets:receivables         -$10.00
->>>
+$ hledger -f - balance -b 2016/10 -e 2016/11
 --------------------
                    0  
->>>2
->>>= 0
 
 # 7. Default CSV output. 
-hledger -f - balance -N --output-format=csv
-<<<
+<
 2021-01-01 Test
     Assets:ABC   "AB.C" 1
     Assets:Cash       -$1
->>>
+$ hledger -f - balance -N --output-format=csv
 "account","balance"
 "Assets:ABC","""AB.C"" 1"
 "Assets:Cash","$-1"
->>>= 0
 
 # 8. CSV output always shows full account names, even in tree mode (#1565).
-hledger -f - balance -N --output-format=csv --tree
-<<<
+<
 2021-01-01 Test
     Assets:ABC   "AB.C" 1
     Assets:Cash       -$1
->>>
+$ hledger -f - balance -N --output-format=csv --tree
 "account","balance"
 "Assets","$-1, ""AB.C"" 1"
 "Assets:ABC","""AB.C"" 1"
 "Assets:Cash","$-1"
->>>= 0
 
 # 9. CSV output always does not show thousands separators
-hledger -f - balance -N --output-format=csv
-<<<
+<
 2021-01-01 Test
     Assets:ABC    $10 000.00
     Assets:Cash  -$10 000.00
->>>
+$ hledger -f - balance -N --output-format=csv
 "account","balance"
 "Assets:ABC","$10000.00"
 "Assets:Cash","$-10000.00"
->>>= 0
 
 # 10. --declared includes all declared leaf accounts, even if they have no postings.
 # They are filtered, depth-clipped, and form trees like the others.
 # (XXX Here a:ac is not declared and so not shown, even though normally a balance report clipped to depth 2 would show it. Wrong ?)
-hledger -f - balance -NE --declared --tree --depth 2 a
-<<<
+<
 account a
 account a:aa
 account a:ab
 account a:ac:aca
 account b
->>>
+$ hledger -f - balance -NE --declared --tree --depth 2 a
                    0  a
                    0    aa
                    0    ab
->>>= 0
 
 # 11. In list mode we can see that non-leaf declared accounts are excluded.
-hledger -f - balance -NE --declared --flat
-<<<
+<
 account a
 account a:aa
 account a:ab
 account a:ac:aca
 account b
->>>
+$ hledger -f - balance -NE --declared --flat
                    0  a:aa
                    0  a:ab
                    0  a:ac:aca
                    0  b
->>>= 0
 
 # 12. not:ACCT queries work with declared accounts.
-hledger -f - balance -NE --declared not:a
-<<<
+<
 account a
 account a:aa
 account a:ab
 account a:ac:aca
 account b
->>>
+$ hledger -f - balance -NE --declared not:a
                    0  b
->>>= 0
