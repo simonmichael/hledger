@@ -194,3 +194,8 @@ account a:ac:aca
 account b
 $ hledger -f - balance -NE --declared not:a
                    0  b
+
+# 13. An empty totals column does not break HTML output (#1933).
+<
+$ hledger -f- bal -YT -O html
+> //

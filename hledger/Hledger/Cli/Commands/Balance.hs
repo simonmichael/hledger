@@ -573,14 +573,20 @@ multiBalanceReportHtmlRows ropts mbr =
 -- | Render one MultiBalanceReport heading row as a HTML table row.
 multiBalanceReportHtmlHeadRow :: ReportOpts -> [T.Text] -> Html ()
 multiBalanceReportHtmlHeadRow _ [] = mempty  -- shouldn't happen
-multiBalanceReportHtmlHeadRow ropts (acct:rest) =
+multiBalanceReportHtmlHeadRow ropts (acct:cells) =
   let
     defstyle = style_ ""
     (amts,tot,avg)
-      | row_total_ ropts && average_ ropts = (init $ init rest, [last $ init rest], [last rest])
-      | row_total_ ropts                   = (init rest,        [last rest],        [])
-      |                     average_ ropts = (init rest,        [],                 [last rest])
-      | otherwise                          = (rest,             [],                 [])
+      | row_total_ ropts && average_ ropts = (ini2, sndlst2, lst2)
+      | row_total_ ropts                   = (ini1, lst1,    [])
+      |                     average_ ropts = (ini1, [],      lst1)
+      | otherwise                          = (amts, [],      [])
+      where
+        n = length cells
+        (ini1,lst1)    = splitAt (n-1) cells
+        (ini2, rest)   = splitAt (n-2) cells
+        (sndlst2,lst2) = splitAt 1 rest
+
   in
     tr_ $ mconcat $
           td_ [class_ "account"]              (toHtml acct)
@@ -591,14 +597,19 @@ multiBalanceReportHtmlHeadRow ropts (acct:rest) =
 -- | Render one MultiBalanceReport data row as a HTML table row.
 multiBalanceReportHtmlBodyRow :: ReportOpts -> [T.Text] -> Html ()
 multiBalanceReportHtmlBodyRow _ [] = mempty  -- shouldn't happen
-multiBalanceReportHtmlBodyRow ropts (label:rest) =
+multiBalanceReportHtmlBodyRow ropts (label:cells) =
   let
     defstyle = style_ "text-align:right"
     (amts,tot,avg)
-      | row_total_ ropts && average_ ropts = (init $ init rest, [last $ init rest], [last rest])
-      | row_total_ ropts                   = (init rest,        [last rest],        [])
-      |                     average_ ropts = (init rest,        [],                 [last rest])
-      | otherwise                          = (rest,             [],                 [])
+      | row_total_ ropts && average_ ropts = (ini2, sndlst2, lst2)
+      | row_total_ ropts                   = (ini1, lst1,    [])
+      |                     average_ ropts = (ini1, [],      lst1)
+      | otherwise                          = (amts, [],      [])
+      where
+        n = length cells
+        (ini1,lst1)    = splitAt (n-1) cells
+        (ini2, rest)   = splitAt (n-2) cells
+        (sndlst2,lst2) = splitAt 1 rest
   in
     tr_ $ mconcat $
           td_ [class_ "account", style_ "text-align:left"]  (toHtml label)
@@ -615,14 +626,19 @@ multiBalanceReportHtmlFootRow _ropts [] = mempty
 --   : repeat nullmixedamt zeros
 --  ++ (if row_total_ ropts then [nullmixedamt] else [])
 --  ++ (if average_ ropts   then [nullmixedamt]   else [])
-multiBalanceReportHtmlFootRow ropts (acct:rest) =
+multiBalanceReportHtmlFootRow ropts (acct:cells) =
   let
     defstyle = style_ "text-align:right"
     (amts,tot,avg)
-      | row_total_ ropts && average_ ropts = (init $ init rest, [last $ init rest], [last rest])
-      | row_total_ ropts                   = (init rest,        [last rest],        [])
-      |                     average_ ropts = (init rest,        [],                 [last rest])
-      | otherwise                          = (rest,             [],                 [])
+      | row_total_ ropts && average_ ropts = (ini2, sndlst2, lst2)
+      | row_total_ ropts                   = (ini1, lst1,    [])
+      |                     average_ ropts = (ini1, [],      lst1)
+      | otherwise                          = (amts, [],      [])
+      where
+        n = length cells
+        (ini1,lst1)    = splitAt (n-1) cells
+        (ini2, rest)   = splitAt (n-2) cells
+        (sndlst2,lst2) = splitAt 1 rest
   in
     tr_ $ mconcat $
           th_ [style_ "text-align:left"]             (toHtml acct)
