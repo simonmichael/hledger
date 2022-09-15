@@ -89,7 +89,7 @@ data PeriodicReport a b =
   } deriving (Show, Functor, Generic, ToJSON)
 
 instance Bifunctor PeriodicReport where
-  bimap f g pr = pr{prRows = map (bimap f g) $ prRows pr, prTotals = fmap g $ prTotals pr}
+  bimap f g pr = pr{prRows = map (bimap f g) $ prRows pr, prTotals = g <$> prTotals pr}
 
 data PeriodicReportRow a b =
   PeriodicReportRow
