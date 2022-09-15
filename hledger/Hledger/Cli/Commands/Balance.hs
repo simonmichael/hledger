@@ -577,10 +577,10 @@ multiBalanceReportHtmlHeadRow ropts (acct:cells) =
   let
     defstyle = style_ ""
     (amts,tot,avg)
-      | row_total_ ropts && average_ ropts = (ini2, sndlst2, lst2)
-      | row_total_ ropts                   = (ini1, lst1,    [])
-      |                     average_ ropts = (ini1, [],      lst1)
-      | otherwise                          = (amts, [],      [])
+      | row_total_ ropts && average_ ropts = (ini2,  sndlst2, lst2)
+      | row_total_ ropts                   = (ini1,  lst1,    [])
+      |                     average_ ropts = (ini1,  [],      lst1)
+      | otherwise                          = (cells, [],      [])
       where
         n = length cells
         (ini1,lst1)    = splitAt (n-1) cells
@@ -601,10 +601,10 @@ multiBalanceReportHtmlBodyRow ropts (label:cells) =
   let
     defstyle = style_ "text-align:right"
     (amts,tot,avg)
-      | row_total_ ropts && average_ ropts = (ini2, sndlst2, lst2)
-      | row_total_ ropts                   = (ini1, lst1,    [])
-      |                     average_ ropts = (ini1, [],      lst1)
-      | otherwise                          = (amts, [],      [])
+      | row_total_ ropts && average_ ropts = (ini2,  sndlst2, lst2)
+      | row_total_ ropts                   = (ini1,  lst1,    [])
+      |                     average_ ropts = (ini1,  [],      lst1)
+      | otherwise                          = (cells, [],      [])
       where
         n = length cells
         (ini1,lst1)    = splitAt (n-1) cells
@@ -630,10 +630,10 @@ multiBalanceReportHtmlFootRow ropts (acct:cells) =
   let
     defstyle = style_ "text-align:right"
     (amts,tot,avg)
-      | row_total_ ropts && average_ ropts = (ini2, sndlst2, lst2)
-      | row_total_ ropts                   = (ini1, lst1,    [])
-      |                     average_ ropts = (ini1, [],      lst1)
-      | otherwise                          = (amts, [],      [])
+      | row_total_ ropts && average_ ropts = (ini2,  sndlst2, lst2)
+      | row_total_ ropts                   = (ini1,  lst1,    [])
+      |                     average_ ropts = (ini1,  [],      lst1)
+      | otherwise                          = (cells, [],      [])
       where
         n = length cells
         (ini1,lst1)    = splitAt (n-1) cells

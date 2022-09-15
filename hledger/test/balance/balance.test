@@ -195,7 +195,13 @@ account b
 $ hledger -f - balance -NE --declared not:a
                    0  b
 
-# 13. An empty totals column does not break HTML output (#1933).
+# 13. An empty periodic report in HTML output does not break.
 <
-$ hledger -f- bal -YT -O html
+$ hledger -f- bal -M -O html
 > //
+
+# 14. An empty totals column in HTML output does not break (#1933).
+<
+$ hledger -f- bal -MT -O html
+> //
+
