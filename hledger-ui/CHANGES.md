@@ -9,7 +9,7 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 0017281a6
+# a2be9a0bc
 
 Features
 
@@ -30,6 +30,10 @@ Improvements
 Fixes
 
 - Fixed a possible bug with detecting a change of date in --watch mode.
+
+# 1.27.1 2022-09-18
+
+- Uses hledger-1.27.1
 
 # 1.27 2022-09-01
 

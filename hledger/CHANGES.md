@@ -9,12 +9,18 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 65019f72b
+# a2be9a0bc
+
+Features
 
 Improvements
 
 - Developer builds made in a dirty working directory (uncommitted changes)
   now show a plus sign (+) in --version output.
+
+Fixes
+
+# 1.27.1 2022-09-18
 
 Fixes
 

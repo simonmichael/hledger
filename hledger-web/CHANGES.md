@@ -9,7 +9,12 @@ __      _____| |__
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 509459604
+# a2be9a0bc
+
+- dev: web: start also tracking manual hledger-web tests
+  related: #1932
+
+# 1.27.1 2022-09-18
 
 Fixes
 
