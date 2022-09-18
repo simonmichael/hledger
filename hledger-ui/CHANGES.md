@@ -9,6 +9,28 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
+# 0017281a6
+
+Features
+
+- New menu screen, balance sheet accounts screen, and income statement
+  accounts screens.
+
+Improvements
+
+- Mouse-clicking in empty space below the last list item no longer navigates
+  back. We found this too obtrusive, eg when you just want to focus the window.
+
+- At --debug 2 and up, also log input & app events.
+
+- Internal type changes to allow fewer invalid states and make hledger-ui
+  easier to develop and debug. Follow-on from the brick 1.0 migration work
+  (#1889, #1919).
+
+Fixes
+
+- Fixed a possible bug with detecting a change of date in --watch mode.
+
 # 1.27 2022-09-01
 
 Improvements

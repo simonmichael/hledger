@@ -9,6 +9,12 @@ __      _____| |__
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
+# 509459604
+
+Fixes
+
+- The add form no longer gives an error when there is just a single file and no file field showing. (#1932)
+
 # 1.27 2022-09-01
 
 Improvements

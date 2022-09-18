@@ -9,6 +9,8 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
+# 0a501941e
+
 # 1.27 2022-09-01
 
 Breaking changes

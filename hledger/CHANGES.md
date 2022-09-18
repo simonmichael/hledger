@@ -9,6 +9,19 @@
 User-visible changes in the hledger command line tool and library.
 
 
+# 65019f72b
+
+Improvements
+
+- Developer builds made in a dirty working directory (uncommitted changes)
+  now show a plus sign (+) in --version output.
+
+Fixes
+
+- Balance commands using `-T -O html` no longer fail with an error
+  when there is no data to report.
+  (#1933)
+
 # 1.27 2022-09-01
 
 Features
