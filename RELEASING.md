@@ -119,7 +119,8 @@ These have complex interdependencies and sequencing constraints. Chunk, separate
 - [make new manuals](#make-new-manuals) (major release)
 - [update hledger-install](#update-hledger-install) (major/bugfix/fixup release)
 - [update install page](#update-install-page) (major/bugfix/fixup release)
-- [make announcement](#make-announcement) (major/bugfix release)
+- [make announcement](#make-announcement) (major/notable bugfix release)
+- on release branch do `./Shake setversion NEW -c`
 - [tag the release](#tag-the-release)
 - [make release binaries](#make-release-binaries)
 - [make github release](#make-github-release) draft
@@ -151,7 +152,7 @@ In site repo:
   - copy template, uncomment
   - replace date
   - replace XX with NEW
-  - add new changelog sections, excluding hledger-lib
+  - add new content from changelogs, excluding hledger-lib
   - remove any empty sections
   - add contributors, `git shortlog -sn OLD..NEW`
   - add summary (major release) or remove it (bugfix release)
@@ -222,12 +223,15 @@ In release branch:
   - commit: `;doc: announce`
 
 #### Tag the release
+- ensure new version has been set with Shake setversion !
 - `make tag`
 
 #### Make release binaries
+- wait for any pending successful builds to complete and update cache
 - `tools/release bin`
 - get all platforms built on the same commit
-- download binary artifact zip files
+- delete any local downloaded binaries from last release
+- download binary artifact zip files (right click, download linked file)
 
 #### Make github release
 - `git push origin MA.JOR-branch && git push --tags` (or magit `P p`, `P t`)

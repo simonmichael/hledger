@@ -13,8 +13,8 @@ Before release, and preferably daily/weekly as well:
     - open changelogs
       - as VSC panes: 
         - explorer
-        - unfold hledger, hledger-lib, hledger-ui, hledger-web directories
-        - filter list to CHANGES
+        - unfold hledger, hledger-lib, hledger-ui, hledger-web directories (?)
+        - CMD-f, changesmd, click filter icon
         - click project CHANGES (last one in list)
         - click editor pane, split it, click rightmost editor pane
         - click hledger CHANGES
@@ -53,8 +53,7 @@ Before release, after cherry-picking changes from master to the release branch:
 
 ## Old notes
 
-Changelogs are plain text, but started including some markdown formatting
-from 1.0. Should make consistent.
+Changelogs started using markdown from 1.0 onward. Should make consistent.
 
 Changelogs started mentioning committer names from 2017/1,
 for hledger-ui-1.1.1 (because they won't appear on the release notes).
