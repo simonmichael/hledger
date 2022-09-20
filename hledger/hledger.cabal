@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.35.0.
 --
 -- see: https://github.com/sol/hpack
 
@@ -174,10 +174,10 @@ library
     , utf8-string >=0.3.5
     , utility-ht >=0.0.13
     , wizards >=1.0
+  default-language: Haskell2010
   if (!(os(windows))) && (flag(terminfo))
     build-depends:
         terminfo
-  default-language: Haskell2010
 
 executable hledger
   main-is: hledger-cli.hs
@@ -224,12 +224,12 @@ executable hledger
     , utf8-string >=0.3.5
     , utility-ht >=0.0.13
     , wizards >=1.0
+  default-language: Haskell2010
   if (!(os(windows))) && (flag(terminfo))
     build-depends:
         terminfo
   if flag(threaded)
     ghc-options: -threaded
-  default-language: Haskell2010
 
 test-suite unittest
   type: exitcode-stdio-1.0
@@ -275,10 +275,10 @@ test-suite unittest
     , utf8-string >=0.3.5
     , utility-ht >=0.0.13
     , wizards >=1.0
+  default-language: Haskell2010
   if (!(os(windows))) && (flag(terminfo))
     build-depends:
         terminfo
-  default-language: Haskell2010
 
 benchmark bench
   type: exitcode-stdio-1.0
@@ -326,7 +326,7 @@ benchmark bench
     , utility-ht >=0.0.13
     , wizards >=1.0
   buildable: False
+  default-language: Haskell2010
   if (!(os(windows))) && (flag(terminfo))
     build-depends:
         terminfo
-  default-language: Haskell2010

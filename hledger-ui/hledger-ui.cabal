@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.35.0.
 --
 -- see: https://github.com/sol/hpack
 
@@ -81,7 +81,7 @@ executable hledger-ui
     , doclayout >=0.3 && <0.5
     , extra >=1.6.3
     , filepath
-    , fsnotify >=0.2.1.2 && <0.4
+    , fsnotify ==0.4.*
     , hledger >=1.27.99 && <1.28
     , hledger-lib >=1.27.99 && <1.28
     , megaparsec >=7.0.0 && <9.3
@@ -98,10 +98,10 @@ executable hledger-ui
     , unix
     , vector
     , vty >=5.15
+  default-language: Haskell2010
   if os(windows)
     buildable: False
   else
     buildable: True
   if flag(threaded)
     ghc-options: -threaded
-  default-language: Haskell2010

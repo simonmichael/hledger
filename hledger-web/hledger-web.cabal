@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.35.0.
 --
 -- see: https://github.com/sol/hpack
 
@@ -200,11 +200,11 @@ library
     , yesod-form >=1.4 && <1.8
     , yesod-static >=1.4 && <1.7
     , yesod-test
+  default-language: Haskell2010
   if (flag(dev)) || (flag(library-only))
     cpp-options: -DDEVELOPMENT
   if flag(dev)
     ghc-options: -O0
-  default-language: Haskell2010
 
 executable hledger-web
   main-is: main.hs
@@ -218,6 +218,7 @@ executable hledger-web
       base >=4.14 && <4.17
     , breakpoint
     , hledger-web
+  default-language: Haskell2010
   if (flag(dev)) || (flag(library-only))
     cpp-options: -DDEVELOPMENT
   if flag(dev)
@@ -226,7 +227,6 @@ executable hledger-web
     buildable: False
   if flag(threaded)
     ghc-options: -threaded
-  default-language: Haskell2010
 
 test-suite test
   type: exitcode-stdio-1.0
@@ -245,8 +245,8 @@ test-suite test
     , text
     , yesod
     , yesod-test
+  default-language: Haskell2010
   if (flag(dev)) || (flag(library-only))
     cpp-options: -DDEVELOPMENT
   if flag(dev)
     ghc-options: -O0
-  default-language: Haskell2010
