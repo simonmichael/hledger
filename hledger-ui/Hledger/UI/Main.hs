@@ -23,7 +23,7 @@ import Graphics.Vty (mkVty, Mode (Mouse), Vty (outputIface), Output (setMode))
 import Lens.Micro ((^.))
 import System.Directory (canonicalizePath)
 import System.FilePath (takeDirectory)
-import System.FSNotify (Event(Modified), isPollingManager, watchDir, withManager)
+import System.FSNotify (Event(Modified), watchDir, withManager, EventIsDirectory (IsFile))
 import Brick hiding (bsDraw)
 import qualified Brick.BChan as BC
 
@@ -201,7 +201,6 @@ runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=r
       -- with Debounce at the default 1ms it clears transient errors itself
       -- but gets tied up for ages
       withManager $ \mgr -> do
-        dbg1IO "fsnotify using polling ?" $ isPollingManager mgr
         files <- mapM (canonicalizePath . fst) $ jfiles j
         let directories = nubSort $ map takeDirectory files
         dbg1IO "files" files
@@ -212,7 +211,7 @@ runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=r
           d
           -- predicate: ignore changes not involving our files
           (\case
-            Modified f _ False -> f `elem` files
+            Modified f _ IsFile -> f `elem` files
             -- Added    f _ -> f `elem` files
             -- Removed  f _ -> f `elem` files
             -- we don't handle adding/removing journal files right now
