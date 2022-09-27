@@ -32,7 +32,7 @@ Features:
 - If you make a mistake, enter `<` at any prompt to go one step backward.
 - Input prompts are displayed in a different colour when the terminal supports it.
 
-Example (see the [tutorial](step-by-step.html#record-a-transaction-with-hledger-add) for a detailed explanation):
+Example (see https://hledger.org/add.html for a detailed tutorial):
 
 ``` shell
 $ hledger add
