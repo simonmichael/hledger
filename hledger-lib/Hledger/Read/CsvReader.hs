@@ -56,8 +56,8 @@ import qualified Data.Text.Encoding as T
 import qualified Data.Text.IO as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
-import Data.Time.Calendar (Day)
-import Data.Time.Format (parseTimeM, defaultTimeLocale)
+import Data.Time ( Day, TimeZone, UTCTime, LocalTime, ZonedTime(ZonedTime),
+  defaultTimeLocale, getCurrentTimeZone, localDay, parseTimeM, utcToLocalTime, localTimeToUTC, zonedTimeToUTC)
 import Safe (atMay, headMay, lastMay, readMay)
 import System.Directory (doesFileExist)
 import System.FilePath ((</>), takeDirectory, takeExtension, takeFileName)
@@ -460,6 +460,7 @@ directives =
   -- ,"default-account"
   -- ,"default-currency"
   ,"skip"
+  ,"timezone"
   ,"newest-first"
   , "balance-type"
   ]
@@ -703,6 +704,13 @@ readJournalFromCsv mrulesfile csvfile csvdata = do
                       Just "" -> return 1
                       Just s  -> maybe (throwError $ "could not parse skip value: " ++ show s) return . readMay $ T.unpack s
 
+    mtzin <- case getDirective "timezone" rules of
+              Nothing -> return Nothing
+              Just s  ->
+                maybe (throwError $ "could not parse time zone: " ++ T.unpack s) (return.Just) $
+                parseTimeM False defaultTimeLocale "%Z" $ T.unpack s
+    tzout <- liftIO getCurrentTimeZone
+
     -- parse csv
     let
       -- parsec seems to fail if you pass it "-" here TODO: try again with megaparsec
@@ -733,9 +741,14 @@ readJournalFromCsv mrulesfile csvfile csvdata = do
                           line' = (mkPos . (+1) . unPos) line
                           pos' = SourcePos name line' col
                         in
-                          (pos', transactionFromCsvRecord pos rules r)
+                          (pos', transactionFromCsvRecord timesarezoned mtzin tzout pos rules r)
                      )
                      (initialPos parsecfilename) records
+        where
+          timesarezoned =
+            case csvRule rules "date-format" of
+              Just f | any (`T.isInfixOf` f) ["%Z","%z","%EZ","%Ez"] -> True
+              _ -> False
 
       -- Ensure transactions are ordered chronologically.
       -- First, if the CSV records seem to be most-recent-first (because
@@ -856,8 +869,8 @@ hledgerField = getEffectiveAssignment
 hledgerFieldValue :: CsvRules -> CsvRecord -> HledgerFieldName -> Maybe Text
 hledgerFieldValue rules record = fmap (renderTemplate rules record) . hledgerField rules record
 
-transactionFromCsvRecord :: SourcePos -> CsvRules -> CsvRecord -> Transaction
-transactionFromCsvRecord sourcepos rules record = t
+transactionFromCsvRecord :: Bool -> Maybe TimeZone -> TimeZone -> SourcePos -> CsvRules -> CsvRecord -> Transaction
+transactionFromCsvRecord timesarezoned mtzin tzout sourcepos rules record = t
   where
     ----------------------------------------------------------------------
     -- 1. Define some helpers:
@@ -866,7 +879,8 @@ transactionFromCsvRecord sourcepos rules record = t
     -- ruleval  = csvRuleValue      rules record :: DirectiveName    -> Maybe String
     field    = hledgerField      rules record :: HledgerFieldName -> Maybe FieldTemplate
     fieldval = hledgerFieldValue rules record :: HledgerFieldName -> Maybe Text
-    parsedate = parseDateWithCustomOrDefaultFormats (rule "date-format")
+    mdateformat = rule "date-format"
+    parsedate = parseDateWithCustomOrDefaultFormats timesarezoned mtzin tzout mdateformat
     mkdateerror datefield datevalue mdateformat' = T.unpack $ T.unlines
       ["error: could not parse \""<>datevalue<>"\" as a date using date format "
         <>maybe "\"YYYY/M/D\", \"YYYY-M-D\" or \"YYYY.M.D\"" (T.pack . show) mdateformat'
@@ -887,7 +901,6 @@ transactionFromCsvRecord sourcepos rules record = t
     -- field assignment rules using the CSV record's data, and parsing a bit
     -- more where needed (dates, status).
 
-    mdateformat = rule "date-format"
     date        = fromMaybe "" $ fieldval "date"
     -- PARTIAL:
     date'       = fromMaybe (error' $ mkdateerror "date" date mdateformat) $ parsedate date
@@ -1320,11 +1333,45 @@ csvFieldValue rules record fieldname = do
 
 -- | Parse the date string using the specified date-format, or if unspecified
 -- the "simple date" formats (YYYY/MM/DD, YYYY-MM-DD, YYYY.MM.DD, leading
--- zeroes optional).
-parseDateWithCustomOrDefaultFormats :: Maybe DateFormat -> Text -> Maybe Day
-parseDateWithCustomOrDefaultFormats mformat s = asum $ map parsewith' formats
+-- zeroes optional). If a timezone is provided, we assume the DateFormat
+-- produces a zoned time and we localise that to the given timezone.
+parseDateWithCustomOrDefaultFormats :: Bool -> Maybe TimeZone -> TimeZone -> Maybe DateFormat -> Text -> Maybe Day
+parseDateWithCustomOrDefaultFormats timesarezoned mtzin tzout mformat s = localdate <$> mutctime
+  -- this time code can probably be simpler, I'm just happy to get out alive
   where
-    parsewith' = flip (parseTimeM True defaultTimeLocale) (T.unpack s)
+    localdate :: UTCTime -> Day =
+      localDay .
+      dbg7 ("time in output timezone "++show tzout) .
+      utcToLocalTime tzout
+    mutctime :: Maybe UTCTime = asum $ map parseWithFormat formats
+
+    parseWithFormat :: String -> Maybe UTCTime
+    parseWithFormat fmt =
+      if timesarezoned
+      then
+        dbg7 "zoned CSV time, expressed as UTC" $
+        parseTimeM True defaultTimeLocale fmt $ T.unpack s :: Maybe UTCTime
+      else
+        -- parse as a local day and time; then if an input timezone is provided,
+        -- assume it's in that, otherwise assume it's in the output timezone;
+        -- then convert to UTC like the above
+        let
+          mlocaltime =
+            fmap (dbg7 "unzoned CSV time") $
+            parseTimeM True defaultTimeLocale fmt $ T.unpack s :: Maybe LocalTime
+          localTimeAsZonedTime tz lt =  ZonedTime lt tz
+        in
+          case mtzin of
+            Just tzin ->
+              (dbg7 ("unzoned CSV time, declared as "++show tzin++ ", expressed as UTC") . 
+              localTimeToUTC tzin)
+              <$> mlocaltime
+            Nothing ->
+              (dbg7 ("unzoned CSV time, treated as "++show tzout++ ", expressed as UTC") .
+                zonedTimeToUTC .
+                localTimeAsZonedTime tzout)
+              <$> mlocaltime
+
     formats = map T.unpack $ maybe
                ["%Y/%-m/%-d"
                ,"%Y-%-m-%-d"

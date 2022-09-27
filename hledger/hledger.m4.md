@@ -4592,8 +4592,9 @@ date-format DATEFMT
 ```
 This is a helper for the `date` (and `date2`) fields.
 If your CSV dates are not formatted like `YYYY-MM-DD`, `YYYY/MM/DD` or `YYYY.MM.DD`,
-you'll need to add a date-format rule describing them with a
-strptime date parsing pattern, which must parse the CSV date value completely.
+you'll need to add a date-format rule describing them with a strptime-style date parsing pattern - 
+see <https://hackage.haskell.org/package/time/docs/Data-Time-Format.html#v:formatTime>.
+The pattern must parse the CSV date value completely.
 Some examples:
 ``` rules
 # MM/DD/YY
@@ -4613,14 +4614,33 @@ date-format %Y-%h-%d
 # Note the time and junk must be fully parsed, though only the date is used.
 date-format %-m/%-d/%Y %l:%M %p some other junk
 ```
-For the supported strptime syntax, see:\
-<https://hackage.haskell.org/package/time/docs/Data-Time-Format.html#v:formatTime>
 
-Note that although you can parse date-times which include a time zone, 
-that time zone is ignored; it will not change the date that is parsed.
-This means when reading CSV data with times not in your local time zone,
-dates can be "off by one".
+### `timezone`
 
+```rules
+timezone TIMEZONE
+```
+
+When CSV contains date-times that are implicitly in some time zone
+other than yours, but containing no explicit time zone information,
+you can use this rule to declare the CSV's native time zone,
+which helps prevent off-by-one dates.
+
+When the CSV date-times do contain time zone information, 
+you don't need this rule; instead, use `%Z` in `date-format`
+(or `%z`, `%EZ`, `%Ez`; see the formatTime link above).
+
+In either of these cases, hledger will do a time-zone-aware conversion,
+localising the CSV date-times to your current system time zone.
+If you prefer to localise to some other time zone, eg for reproducibility,
+you can (on unix at least) set the output timezone with the TZ environment variable, eg:
+```shell
+$ TZ=HST hledger print -f foo.csv  # or TZ=HST hledger import foo.csv
+```
+
+`timezone` currently does not understand timezone names, except
+"UTC", "GMT", "EST", "EDT", "CST", "CDT", "MST", "MDT", "PST", or "PDT".
+For others, use numeric format: +HHMM or -HHMM.
 
 ### `decimal-mark`
 
