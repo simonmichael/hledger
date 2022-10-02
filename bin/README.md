@@ -155,6 +155,11 @@ uses one balance report to set budget goals for another balance report.
 [`hledger-smooth.hs`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-smooth.hs)
 is an incomplete attempt at automatically splitting infrequent/irregular transactions.
 
+### hledger-move
+
+[`hledger-move.hs`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-move.hs)
+helps make subaccount/cost-preserving transfers.
+
 ## hledger-related scripts
 
 These don't run hledger, but are probably related to it in some way:
