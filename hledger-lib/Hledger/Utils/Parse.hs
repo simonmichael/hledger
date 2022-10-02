@@ -39,7 +39,8 @@ module Hledger.Utils.Parse (
 
   -- * re-exports
   HledgerParseErrors,
-  HledgerParseErrorData
+  HledgerParseErrorData,
+  customErrorBundlePretty,
 )
 where
 
