@@ -1,3 +1,6 @@
+-- A bunch of megaparsec helpers for re-parsing etc.
+-- I think these are generic apart from the HledgerParseError name.
+
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -59,6 +62,7 @@ import Text.Megaparsec
 --- * Custom parse error types
 
 -- | Custom error data for hledger parsers. Specialised for a 'Text' parse stream.
+-- ReparseableTextParseErrorData ?
 data HledgerParseErrorData
   -- | Fail with a message at a specific source position interval. The
   -- interval must be contained within a single line.
