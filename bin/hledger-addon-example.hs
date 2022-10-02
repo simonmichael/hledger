@@ -55,6 +55,8 @@ import Hledger.Cli
 
 ------------------------------------------------------------------------------
 cmdmode = hledgerCommandMode
+  -- Command name and help text goes here. Current limitations:
+  -- help text must be above _FLAGS, blank lines will not be displayed.
   [s| addon-example
 Print the number of transactions in the journal.
 
