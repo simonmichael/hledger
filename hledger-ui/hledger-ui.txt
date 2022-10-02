@@ -5,7 +5,7 @@ HLEDGER-UI(1)                hledger User Manuals                HLEDGER-UI(1)
 
 NAME
        hledger-ui  is  a  terminal  interface (TUI) for the hledger accounting
-       tool.  This manual is for hledger-ui 1.27.
+       tool.  This manual is for hledger-ui 1.27.99.
 
 SYNOPSIS
        hledger-ui [OPTIONS] [QUERYARGS]
@@ -308,50 +308,55 @@ KEYS
        Additional screen-specific keys are described below.
 
 SCREENS
+   Menu screen
+       The top-most screen, currently with just one menu item and not shown by
+       default.
+
    Accounts screen
-       This is normally the first screen displayed.   It  lists  accounts  and
-       their  balances,  like hledger's balance command.  By default, it shows
-       all accounts and their latest ending balances (including  the  balances
-       of  subaccounts).   Accounts  which  have been declared with an account
-       directive are also listed, even if not yet used (except for empty  par-
-       ent  accounts).   If  you specify a query on the command line, it shows
+       This  is  normally  the  first screen displayed.  It lists accounts and
+       their balances, like hledger's balance command.  By default,  it  shows
+       all  accounts  and their latest ending balances (including the balances
+       of subaccounts).  Accounts which have been  declared  with  an  account
+       directive  are also listed, even if not yet used (except for empty par-
+       ent accounts).  If you specify a query on the command  line,  it  shows
        just the matched accounts and the balances from matched transactions.
 
-       Account names are shown as a flat list by default; press  t  to  toggle
-       tree  mode.   In  list  mode,  account balances are exclusive of subac-
-       counts, except where subaccounts are  hidden  by  a  depth  limit  (see
-       below).   In  tree  mode,  all account balances are inclusive of subac-
+       Account  names  are  shown as a flat list by default; press t to toggle
+       tree mode.  In list mode, account  balances  are  exclusive  of  subac-
+       counts,  except  where  subaccounts  are  hidden  by a depth limit (see
+       below).  In tree mode, all account balances  are  inclusive  of  subac-
        counts.
 
-       To see less detail, press a number key, 1 to 9, to set a  depth  limit.
+       To  see  less detail, press a number key, 1 to 9, to set a depth limit.
        Or use - to decrease and +/= to increase the depth limit.  0 shows even
-       less detail, collapsing all accounts to a single total.  To remove  the
-       depth  limit,  set  it  higher than the maximum account depth, or press
+       less  detail, collapsing all accounts to a single total.  To remove the
+       depth limit, set it higher than the maximum  account  depth,  or  press
        ESCAPE.
 
        H toggles between showing historical balances or period balances.  His-
-       torical  balances  (the  default) are ending balances at the end of the
-       report period, taking into account all transactions  before  that  date
-       (filtered  by  the  filter query if any), including transactions before
-       the start of the report period.  In other  words,  historical  balances
-       are  what  you  would  see on a bank statement for that account (unless
-       disturbed by a filter  query).   Period  balances  ignore  transactions
+       torical balances (the default) are ending balances at the  end  of  the
+       report  period,  taking  into account all transactions before that date
+       (filtered by the filter query if any),  including  transactions  before
+       the  start  of  the report period.  In other words, historical balances
+       are what you would see on a bank statement  for  that  account  (unless
+       disturbed  by  a  filter  query).   Period balances ignore transactions
        before the report start date, so they show the change in balance during
        the report period.  They are more useful eg when viewing a time log.
 
        U toggles filtering by unmarked status, including or excluding unmarked
        postings in the balances.  Similarly, P toggles pending postings, and C
-       toggles cleared postings.  (By default, balances include all  postings;
-       if  you  activate  one  or  two status filters, only those postings are
+       toggles  cleared postings.  (By default, balances include all postings;
+       if you activate one or two status  filters,  only  those  postings  are
        included; and if you activate all three, the filter is removed.)
 
        R toggles real mode, in which virtual postings are ignored.
 
-       z toggles nonzero mode, in which only accounts  with  nonzero  balances
-       are  shown (hledger-ui shows zero items by default, unlike command-line
+       z  toggles  nonzero  mode, in which only accounts with nonzero balances
+       are shown (hledger-ui shows zero items by default, unlike  command-line
        hledger).
 
-       Press RIGHT to view an account's transactions register.
+       Press  RIGHT  to  view an account's transactions register.  Or, LEFT to
+       see the menu screen.
 
    Register screen
        This screen shows the transactions affecting a particular account, like
@@ -410,6 +415,26 @@ SCREENS
        actions appear in multiple account registers).  The #N number preceding
        them is the transaction's position within the complete unfiltered jour-
        nal, which is a more stable id (at least until the next reload).
+
+   Balance sheet accounts screen
+       This is like the accounts screen except:
+
+       o it  shows  only  asset,  liability  and  equity accounts (see account
+         types)
+
+       o it always shows historical end balances on  some  date  (not  balance
+         changes).
+
+       It corresponds to the hledger balancesheet command.
+
+   Income statement accounts screen
+       Like the accounts screen except:
+
+       o it shows only revenue and expense accounts
+
+       o it always shows balance changes in some period (not end balances).
+
+       It corresponds to the hledger incomestatement command.
 
    Error screen
        This  screen  will appear if there is a problem, such as a parse error,
@@ -549,4 +574,4 @@ SEE ALSO
 
 
 
-hledger-ui-1.27                 September 2022                   HLEDGER-UI(1)
+hledger-ui-1.27.99               October 2022                    HLEDGER-UI(1)

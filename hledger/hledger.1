@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "September 2022" "hledger-1.27 " "hledger User Manuals"
+.TH "HLEDGER" "1" "October 2022" "hledger-1.27.99 " "hledger User Manuals"
 
 
 
@@ -9,7 +9,7 @@
 This is the command-line interface (CLI) for the hledger accounting
 tool.
 Here we also describe hledger\[aq]s concepts and file formats.
-This manual is for hledger 1.27.
+This manual is for hledger 1.27.99.
 .SH SYNOPSIS
 .PP
 \f[C]hledger\f[R]
@@ -3281,7 +3281,7 @@ backward.
 Input prompts are displayed in a different colour when the terminal
 supports it.
 .PP
-Example (see the tutorial for a detailed explanation):
+Example (see https://hledger.org/add.html for a detailed tutorial):
 .IP
 .nf
 \f[C]
@@ -9781,8 +9781,10 @@ date-format DATEFMT
 This is a helper for the \f[C]date\f[R] (and \f[C]date2\f[R]) fields.
 If your CSV dates are not formatted like \f[C]YYYY-MM-DD\f[R],
 \f[C]YYYY/MM/DD\f[R] or \f[C]YYYY.MM.DD\f[R], you\[aq]ll need to add a
-date-format rule describing them with a strptime date parsing pattern,
-which must parse the CSV date value completely.
+date-format rule describing them with a strptime-style date parsing
+pattern - see
+https://hackage.haskell.org/package/time/docs/Data-Time-Format.html#v:formatTime.
+The pattern must parse the CSV date value completely.
 Some examples:
 .IP
 .nf
@@ -9814,17 +9816,41 @@ date-format %Y-%h-%d
 date-format %-m/%-d/%Y %l:%M %p some other junk
 \f[R]
 .fi
+.SS \f[C]timezone\f[R]
+.IP
+.nf
+\f[C]
+timezone TIMEZONE
+\f[R]
+.fi
 .PP
-For the supported strptime syntax, see:
-.PD 0
-.P
-.PD
-https://hackage.haskell.org/package/time/docs/Data-Time-Format.html#v:formatTime
+When CSV contains date-times that are implicitly in some time zone other
+than yours, but containing no explicit time zone information, you can
+use this rule to declare the CSV\[aq]s native time zone, which helps
+prevent off-by-one dates.
 .PP
-Note that although you can parse date-times which include a time zone,
-that time zone is ignored; it will not change the date that is parsed.
-This means when reading CSV data with times not in your local time zone,
-dates can be \[dq]off by one\[dq].
+When the CSV date-times do contain time zone information, you don\[aq]t
+need this rule; instead, use \f[C]%Z\f[R] in \f[C]date-format\f[R] (or
+\f[C]%z\f[R], \f[C]%EZ\f[R], \f[C]%Ez\f[R]; see the formatTime link
+above).
+.PP
+In either of these cases, hledger will do a time-zone-aware conversion,
+localising the CSV date-times to your current system time zone.
+If you prefer to localise to some other time zone, eg for
+reproducibility, you can (on unix at least) set the output timezone with
+the TZ environment variable, eg:
+.IP
+.nf
+\f[C]
+$ TZ=HST hledger print -f foo.csv  # or TZ=HST hledger import foo.csv
+\f[R]
+.fi
+.PP
+\f[C]timezone\f[R] currently does not understand timezone names, except
+\[dq]UTC\[dq], \[dq]GMT\[dq], \[dq]EST\[dq], \[dq]EDT\[dq],
+\[dq]CST\[dq], \[dq]CDT\[dq], \[dq]MST\[dq], \[dq]MDT\[dq],
+\[dq]PST\[dq], or \[dq]PDT\[dq].
+For others, use numeric format: +HHMM or -HHMM.
 .SS \f[C]decimal-mark\f[R]
 .IP
 .nf

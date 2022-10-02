@@ -12,7 +12,7 @@ hledger-ui(1)
 *************
 
 hledger-ui is a terminal interface (TUI) for the hledger accounting
-tool.  This manual is for hledger-ui 1.27.
+tool.  This manual is for hledger-ui 1.27.99.
 
    'hledger-ui [OPTIONS] [QUERYARGS]'
 'hledger ui -- [OPTIONS] [QUERYARGS]'
@@ -354,15 +354,27 @@ File: hledger-ui.info,  Node: SCREENS,  Next: TIPS,  Prev: KEYS,  Up: Top
 
 * Menu:
 
+* Menu screen::
 * Accounts screen::
 * Register screen::
 * Transaction screen::
+* Balance sheet accounts screen::
+* Income statement accounts screen::
 * Error screen::
 
 
-File: hledger-ui.info,  Node: Accounts screen,  Next: Register screen,  Up: SCREENS
+File: hledger-ui.info,  Node: Menu screen,  Next: Accounts screen,  Up: SCREENS
 
-4.1 Accounts screen
+4.1 Menu screen
+===============
+
+The top-most screen, currently with just one menu item and not shown by
+default.
+
+
+File: hledger-ui.info,  Node: Accounts screen,  Next: Register screen,  Prev: Menu screen,  Up: SCREENS
+
+4.2 Accounts screen
 ===================
 
 This is normally the first screen displayed.  It lists accounts and
@@ -408,12 +420,13 @@ is removed.)
 balances are shown (hledger-ui shows zero items by default, unlike
 command-line hledger).
 
-   Press 'RIGHT' to view an account's transactions register.
+   Press 'RIGHT' to view an account's transactions register.  Or, 'LEFT'
+to see the menu screen.
 
 
 File: hledger-ui.info,  Node: Register screen,  Next: Transaction screen,  Prev: Accounts screen,  Up: SCREENS
 
-4.2 Register screen
+4.3 Register screen
 ===================
 
 This screen shows the transactions affecting a particular account, like
@@ -457,9 +470,9 @@ command-line hledger).
    Press 'RIGHT' to view the selected transaction in detail.
 
 
-File: hledger-ui.info,  Node: Transaction screen,  Next: Error screen,  Prev: Register screen,  Up: SCREENS
+File: hledger-ui.info,  Node: Transaction screen,  Next: Balance sheet accounts screen,  Prev: Register screen,  Up: SCREENS
 
-4.3 Transaction screen
+4.4 Transaction screen
 ======================
 
 This screen shows a single transaction, as a general journal entry,
@@ -481,9 +494,37 @@ unfiltered journal, which is a more stable id (at least until the next
 reload).
 
 
-File: hledger-ui.info,  Node: Error screen,  Prev: Transaction screen,  Up: SCREENS
+File: hledger-ui.info,  Node: Balance sheet accounts screen,  Next: Income statement accounts screen,  Prev: Transaction screen,  Up: SCREENS
 
-4.4 Error screen
+4.5 Balance sheet accounts screen
+=================================
+
+This is like the accounts screen except:
+
+   * it shows only asset, liability and equity accounts (see account
+     types)
+   * it always shows historical end balances on some date (not balance
+     changes).
+
+   It corresponds to the 'hledger balancesheet' command.
+
+
+File: hledger-ui.info,  Node: Income statement accounts screen,  Next: Error screen,  Prev: Balance sheet accounts screen,  Up: SCREENS
+
+4.6 Income statement accounts screen
+====================================
+
+Like the accounts screen except:
+
+   * it shows only revenue and expense accounts
+   * it always shows balance changes in some period (not end balances).
+
+   It corresponds to the 'hledger incomestatement' command.
+
+
+File: hledger-ui.info,  Node: Error screen,  Prev: Income statement accounts screen,  Up: SCREENS
+
+4.7 Error screen
 ================
 
 This screen will appear if there is a problem, such as a parse error,
@@ -640,34 +681,40 @@ program is restarted.
 
 Tag Table:
 Node: Top221
-Node: OPTIONS1654
-Ref: #options1752
-Node: MOUSE6634
-Ref: #mouse6729
-Node: KEYS7011
-Ref: #keys7104
-Node: SCREENS11190
-Ref: #screens11288
-Node: Accounts screen11378
-Ref: #accounts-screen11506
-Node: Register screen13845
-Ref: #register-screen14000
-Node: Transaction screen15984
-Ref: #transaction-screen16142
-Node: Error screen17012
-Ref: #error-screen17134
-Node: TIPS17378
-Ref: #tips17477
-Node: Watch mode17529
-Ref: #watch-mode17646
-Node: Watch mode limitations18396
-Ref: #watch-mode-limitations18537
-Node: ENVIRONMENT19673
-Ref: #environment19784
-Node: FILES21169
-Ref: #files21268
-Node: BUGS21481
-Ref: #bugs21558
+Node: OPTIONS1657
+Ref: #options1755
+Node: MOUSE6637
+Ref: #mouse6732
+Node: KEYS7014
+Ref: #keys7107
+Node: SCREENS11193
+Ref: #screens11291
+Node: Menu screen11468
+Ref: #menu-screen11584
+Node: Accounts screen11666
+Ref: #accounts-screen11814
+Node: Register screen14189
+Ref: #register-screen14344
+Node: Transaction screen16328
+Ref: #transaction-screen16503
+Node: Balance sheet accounts screen17373
+Ref: #balance-sheet-accounts-screen17587
+Node: Income statement accounts screen17855
+Ref: #income-statement-accounts-screen18069
+Node: Error screen18285
+Ref: #error-screen18421
+Node: TIPS18665
+Ref: #tips18764
+Node: Watch mode18816
+Ref: #watch-mode18933
+Node: Watch mode limitations19683
+Ref: #watch-mode-limitations19824
+Node: ENVIRONMENT20960
+Ref: #environment21071
+Node: FILES22456
+Ref: #files22555
+Node: BUGS22768
+Ref: #bugs22845
 
 End Tag Table
 
