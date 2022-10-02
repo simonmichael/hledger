@@ -76,8 +76,6 @@ module Hledger.Read.Common (
   -- ** amounts
   spaceandamountormissingp,
   amountp,
-  amountp',
-  mamountp',
   amountpwithmultiplier,
   commoditysymbolp,
   priceamountp,
@@ -86,6 +84,10 @@ module Hledger.Read.Common (
   numberp,
   fromRawNumber,
   rawnumberp,
+  parseamount,
+  parseamount',
+  parsemixedamount,
+  parsemixedamount',
 
   -- ** comments
   isLineCommentStart,
@@ -244,7 +246,7 @@ commodityStyleFromRawOpts rawOpts =
     foldM (\r -> fmap (\(c,a) -> M.insert c a r) . parseCommodity) mempty optList
   where
     optList = listofstringopt "commodity-style" rawOpts
-    parseCommodity optStr = case amountp'' optStr of
+    parseCommodity optStr = case parseamount optStr of
         Left _ -> Left optStr
         Right (Amount acommodity _ astyle _) -> Right (acommodity, astyle)
 
@@ -799,20 +801,24 @@ amountwithoutpricep mult = do
                            uncurry parseErrorAtRegion posRegion errMsg
           Right (q,p,d,g) -> pure (q, Precision p, d, g)
 
--- | Try to parse an amount from a string
-amountp'' :: String -> Either HledgerParseErrors Amount
-amountp'' s = runParser (evalStateT (amountp <* eof) nulljournal) "" (T.pack s)
+-- | Try to parse a single-commodity amount from a string
+parseamount :: String -> Either HledgerParseErrors Amount
+parseamount s = runParser (evalStateT (amountp <* eof) nulljournal) "" (T.pack s)
 
--- | Parse an amount from a string, or get an error.
-amountp' :: String -> Amount
-amountp' s =
-  case amountp'' s of
+-- | Parse a single-commodity amount from a string, or get an error.
+parseamount' :: String -> Amount
+parseamount' s =
+  case parseamount s of
     Right amt -> amt
     Left err  -> error' $ show err  -- PARTIAL: XXX should throwError
 
--- | Parse a mixed amount from a string, or get an error.
-mamountp' :: String -> MixedAmount
-mamountp' = mixedAmount . amountp'
+-- | Like parseamount', but returns a MixedAmount.
+parsemixedamount :: String -> Either HledgerParseErrors MixedAmount
+parsemixedamount = fmap mixedAmount . parseamount
+
+-- | Like parseamount', but returns a MixedAmount.
+parsemixedamount' :: String -> MixedAmount
+parsemixedamount' = mixedAmount . parseamount'
 
 -- | Parse a minus or plus sign followed by zero or more spaces,
 -- or nothing, returning a function that negates or does nothing.
