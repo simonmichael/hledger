@@ -781,11 +781,11 @@ mixedAmountUnstyled = mapMixedAmountUnsafe amountUnstyled
 showMixedAmount :: MixedAmount -> String
 showMixedAmount = wbUnpack . showMixedAmountB noColour
 
--- | Get the one-line string representation of a mixed amount.
+-- | Get the one-line string representation of a mixed amount (also showing any costs).
 --
 -- > showMixedAmountOneLine = wbUnpack . showMixedAmountB oneLine
 showMixedAmountOneLine :: MixedAmount -> String
-showMixedAmountOneLine = wbUnpack . showMixedAmountB oneLine
+showMixedAmountOneLine = wbUnpack . showMixedAmountB oneLine{displayPrice=True}
 
 -- | Like showMixedAmount, but zero amounts are shown with their
 -- commodity if they have one.

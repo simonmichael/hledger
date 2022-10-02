@@ -118,11 +118,11 @@ transactionCheckBalanced BalancingOpts{commodity_styles_} t = errs
         rmsg
           | rsumok        = ""
           | not rsignsok  = "The real postings all have the same sign. Consider negating some of them."
-          | otherwise     = "The real postings' sum should be 0 but is: " ++ showMixedAmountOneLine rsumcost
+          | otherwise     = "The real postings' sum should be 0 but is: " ++ showMixedAmountOneLineWithoutPrice False rsumcost
         bvmsg
           | bvsumok       = ""
           | not bvsignsok = "The balanced virtual postings all have the same sign. Consider negating some of them."
-          | otherwise     = "The balanced virtual postings' sum should be 0 but is: " ++ showMixedAmountOneLine bvsumcost
+          | otherwise     = "The balanced virtual postings' sum should be 0 but is: " ++ showMixedAmountOneLineWithoutPrice False bvsumcost
 
 -- | Legacy form of transactionCheckBalanced.
 isTransactionBalanced :: BalancingOpts -> Transaction -> Bool
