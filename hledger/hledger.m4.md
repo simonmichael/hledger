@@ -4635,7 +4635,7 @@ localising the CSV date-times to your current system time zone.
 If you prefer to localise to some other time zone, eg for reproducibility,
 you can (on unix at least) set the output timezone with the TZ environment variable, eg:
 ```shell
-$ TZ=HST hledger print -f foo.csv  # or TZ=HST hledger import foo.csv
+$ TZ=-1000 hledger print -f foo.csv  # or TZ=-1000 hledger import foo.csv
 ```
 
 `timezone` currently does not understand timezone names, except
