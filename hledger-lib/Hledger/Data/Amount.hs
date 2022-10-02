@@ -585,10 +585,12 @@ mixedAmount :: Amount -> MixedAmount
 mixedAmount a = Mixed $ M.singleton (amountKey a) a
 
 -- | Add an Amount to a MixedAmount, normalising the result.
+-- Amounts with different costs are kept separate.
 maAddAmount :: MixedAmount -> Amount -> MixedAmount
 maAddAmount (Mixed ma) a = Mixed $ M.insertWith sumSimilarAmountsUsingFirstPrice (amountKey a) a ma
 
 -- | Add a collection of Amounts to a MixedAmount, normalising the result.
+-- Amounts with different costs are kept separate.
 maAddAmounts :: Foldable t => MixedAmount -> t Amount -> MixedAmount
 maAddAmounts = foldl' maAddAmount
 
@@ -596,15 +598,18 @@ maAddAmounts = foldl' maAddAmount
 maNegate :: MixedAmount -> MixedAmount
 maNegate = transformMixedAmount negate
 
--- | Sum two MixedAmount.
+-- | Sum two MixedAmount, keeping the cost of the first if any.
+-- Amounts with different costs are kept separate (since 2021).
 maPlus :: MixedAmount -> MixedAmount -> MixedAmount
 maPlus (Mixed as) (Mixed bs) = Mixed $ M.unionWith sumSimilarAmountsUsingFirstPrice as bs
 
 -- | Subtract a MixedAmount from another.
+-- Amounts with different costs are kept separate.
 maMinus :: MixedAmount -> MixedAmount -> MixedAmount
 maMinus a = maPlus a . maNegate
 
 -- | Sum a collection of MixedAmounts.
+-- Amounts with different costs are kept separate.
 maSum :: Foldable t => t MixedAmount -> MixedAmount
 maSum = foldl' maPlus nullmixedamt
 
