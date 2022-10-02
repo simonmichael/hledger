@@ -35,7 +35,7 @@ Features:
 -   Input prompts are displayed in a different colour when the terminal
     supports it.
 
-Example (see the tutorial for a detailed explanation):
+Example (see https://hledger.org/add.html for a detailed tutorial):
 
 $ hledger add
 Adding transactions to journal file /src/hledger/examples/sample.journal
