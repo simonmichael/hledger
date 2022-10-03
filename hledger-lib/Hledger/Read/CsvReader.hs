@@ -1186,7 +1186,7 @@ getAccount :: CsvRules -> CsvRecord -> Maybe MixedAmount -> Maybe (Amount, Sourc
 getAccount rules record mamount mbalance n =
   let
     fieldval = hledgerFieldValue rules record :: HledgerFieldName -> Maybe Text
-    maccount = fieldval ("account"<> T.pack (show n))
+    maccount = T.strip <$> fieldval ("account"<> T.pack (show n))
   in case maccount of
     -- accountN is set to the empty string - no posting will be generated
     Just "" -> Nothing
