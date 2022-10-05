@@ -28,6 +28,8 @@ import System.Console.CmdArgs.Explicit as C
 import Hledger
 import Hledger.Cli.CliOptions
 import Control.Monad (forM_)
+import Data.Maybe (fromMaybe)
+import Safe (headDef)
 
 
 -- | Command line options for this command.
@@ -35,11 +37,13 @@ accountsmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Accounts.txt")
   (flattreeflags False ++
   [flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
+  ,flagNone ["used"] (setboolopt "used") "show only accounts used by transactions"
   ,flagNone ["declared"] (setboolopt "declared") "show only accounts declared by account directive"
-  ,flagNone ["used"] (setboolopt "used") "show only accounts referenced by transactions"
-  ,flagNone ["types"] (setboolopt "types") "show accounts' types, when known"
-  ,flagNone ["positions"] (setboolopt "positions") "show where accounts were declared"
-  ,flagNone ["directives"] (setboolopt "directives") "show valid account directives usable in journals"
+  ,flagNone ["undeclared"] (setboolopt "undeclared") "show accounts used but not declared"
+  ,flagNone ["find"] (setboolopt "find") "find the first account matched by the first command argument (a case-insensitive infix regexp or account name)"
+  ,flagNone ["types"] (setboolopt "types") "also show account types when known"
+  ,flagNone ["positions"] (setboolopt "positions") "also show where accounts were declared"
+  ,flagNone ["directives"] (setboolopt "directives") "show as account directives, for use in journals"
   ])
   [generalflagsgroup1]
   hiddenflags
@@ -51,8 +55,10 @@ accounts CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_rsRepo
 
   -- 1. identify the accounts we'll show
   let tree     = tree_ ropts
-      decl = boolopt "declared" rawopts
       used = boolopt "used"     rawopts
+      decl = boolopt "declared" rawopts
+      undecl = boolopt "undeclared" rawopts
+      find_ = boolopt "find" rawopts
       types = boolopt "types"    rawopts
       positions = boolopt "positions" rawopts
       directives = boolopt "directives" rawopts
@@ -63,13 +69,29 @@ accounts CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_rsRepo
       dep = dbg4 "depth" $ queryDepth $ filterQuery queryIsDepth query
       matcheddeclaredaccts =
         dbg4 "matcheddeclaredaccts" $
+        nub $
         filter (matchesAccountExtra (journalAccountType j) (journalInheritedAccountTags j) nodepthq)
           $ map fst $ jdeclaredaccounts j
-      matchedusedaccts = dbg5 "matchedusedaccts" $ map paccount $ journalPostings $ filterJournalPostings nodepthq j
-      accts = dbg5 "accts to show" $
-        if | decl     && not used -> matcheddeclaredaccts
-           | not decl && used     -> matchedusedaccts
-           | otherwise            -> matcheddeclaredaccts ++ matchedusedaccts
+      matchedusedaccts = dbg5 "matchedusedaccts" $ nub $ map paccount $ journalPostings $ filterJournalPostings nodepthq j
+      matchedundeclaredaccts = dbg5 "matchedundeclaredaccts" $ nub $ matchedusedaccts \\ matcheddeclaredaccts
+      -- keep synced with aregister
+      matchedacct = dbg5 "matchedacct" $
+        fromMaybe (error' $ show apat ++ " did not match any account.")   -- PARTIAL:
+            . firstMatch $ journalAccountNamesDeclaredOrImplied j
+        where
+          firstMatch = case toRegexCI $ T.pack apat of
+              Right re -> find (regexMatchText re)
+              Left  _  -> const Nothing
+          apat = headDef
+            (error' "With --find, please provide an account name or\naccount pattern (case-insensitive, infix, regexp) as first command argument.")
+            $ listofstringopt "args" rawopts
+
+      accts = dbg5 "accts to show" $ if
+        | find_                -> [matchedacct]
+        | undecl               -> matchedundeclaredaccts
+        | decl     && not used -> matcheddeclaredaccts
+        | not decl && used     -> matchedusedaccts
+        | otherwise            -> matcheddeclaredaccts ++ matchedusedaccts
 
   -- 2. sort them by declaration order (then undeclared accounts alphabetically)
   -- within each group of siblings

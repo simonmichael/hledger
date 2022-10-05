@@ -3,10 +3,16 @@ Show account names.
 
 _FLAGS
 
-This command lists account names, either declared with account directives
-(--declared), posted to (--used), or both (the default).
-With query arguments, only matched account names and account names 
-referenced by matched postings are shown.
+This command lists account names.
+By default it shows all known accounts, either used in transactions or declared with account directives.
+
+With query arguments, only matched account names and account names referenced by matched postings are shown.
+
+Or it can show just
+the used accounts (`--used`),
+the declared accounts (`--declared`),
+the accounts used but not declared (`--undeclared`),
+or the first account matched by an account name pattern, if any (`--find`).
 
 It shows a flat list by default. With `--tree`, it uses indentation to
 show the account hierarchy.
@@ -22,6 +28,12 @@ these may be useful when troubleshooting account display order.
 
 With `--directives`, it adds the `account` keyword, showing
 valid account directives which can be pasted into a journal file.
+This is useful together with `--undeclared` to update your account declarations
+when `check accounts` reports undeclared accounts. 
+
+The `--find` flag can be used to look up a single account name, in the same way
+that the `aregister` command does. It returns the alphanumerically-first matched
+account name, or if none can be found, it fails with a non-zero exit code.
 
 Examples:
 
@@ -35,4 +47,8 @@ expenses:supplies
 income:gifts
 income:salary
 liabilities:debts
+```
+```shell
+$ hledger accounts --undeclared --directives >> $LEDGER_FILE
+$ hledger check accounts
 ```
