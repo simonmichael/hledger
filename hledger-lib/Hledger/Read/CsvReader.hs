@@ -68,7 +68,7 @@ import qualified Data.ByteString.Lazy as BL
 import Data.Foldable (asum, toList)
 import Text.Megaparsec hiding (match, parse)
 import Text.Megaparsec.Char (char, newline, string)
-import Text.Megaparsec.Custom (customErrorBundlePretty, parseErrorAt)
+import Text.Megaparsec.Custom (parseErrorAt)
 import Text.Printf (printf)
 
 import Hledger.Data
