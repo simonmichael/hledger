@@ -4660,18 +4660,22 @@ you should declare the decimal mark explicitly with this rule, to avoid misparse
 
 ### `newest-first`
 
-hledger always sorts the generated transactions by date.
-Transactions on the same date should appear in the same order as their CSV records,
-as hledger can usually auto-detect whether the CSV's normal order is oldest first or newest first.
-But if all of the following are true:
+hledger tries to ensure that the generated transactions will be ordered chronologically,
+including intra-day transactions.
+Usually it can auto-detect how the CSV records are ordered.
+But if it encounters CSV where all records are on the same date,
+it assumes that the records are oldest first.
+If in fact the CSV's records are normally newest first, like:
+```csv
+2022-10-01, txn 3...
+2022-10-01, txn 2...
+2022-10-01, txn 1...
+```
+you can add the `newest-first` rule to help
+hledger generate the transactions in correct order.
 
-- the CSV might sometimes contain just one day of data (all records having the same date)
-- the CSV records are normally in reverse chronological order (newest at the top)
-- and you care about preserving the order of same-day transactions
-
-then, you should add the `newest-first` rule as a hint. Eg:
 ```rules
-# tell hledger explicitly that the CSV is normally newest first
+# same-day CSV records are newest first
 newest-first
 ```
 
@@ -4688,7 +4692,7 @@ Eg, here dates are newest first, but the transactions on each date are oldest fi
 In this situation, add the `intra-day-reversed` rule, and hledger will compensate,
 improving the order of transactions.
 ```rules
-# transactions within each day are reversed, so reverse them back
+# transactions within each day are reversed with respect to the overall date order
 intra-day-reversed
 ```
 
