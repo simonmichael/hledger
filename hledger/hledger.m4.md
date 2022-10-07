@@ -3910,7 +3910,8 @@ these are described more fully below, after the examples:
 | [**`end`**](#end)                         | skip the remaining CSV records                                        |
 | [**`date-format`**](#date-format)         | how to parse dates in CSV records                                     |
 | [**`decimal-mark`**](#decimal-mark)       | the decimal mark used in CSV amounts, if ambiguous                    |
-| [**`newest-first`**](#newest-first)       | disambiguate record order when there's only one date                  |
+| [**`newest-first`**](#newest-first)       | improve txn order when there are multiple records, newest first, all with the same date |
+| [**`intra-day-reversed`**](#intra-day-reversed) | improve txn order when each day's txns are reverse of the overall date order |
 | [**`include`**](#include)                 | inline another CSV rules file                                         |
 | [**`balance-type`**](#balance-type)       | choose which type of balance assignments to use                       |
 
@@ -4673,6 +4674,24 @@ then, you should add the `newest-first` rule as a hint. Eg:
 # tell hledger explicitly that the CSV is normally newest first
 newest-first
 ```
+
+### `intra-day-reversed`
+
+CSV records for each day are sometimes ordered in reverse compared to the overall date order.
+Eg, here dates are newest first, but the transactions on each date are oldest first:
+```csv
+2022-10-02, txn 3...
+2022-10-02, txn 4...
+2022-10-01, txn 1...
+2022-10-01, txn 2...
+```
+In this situation, add the `intra-day-reversed` rule, and hledger will compensate,
+improving the order of transactions.
+```rules
+# transactions within each day are reversed, so reverse them back
+intra-day-reversed
+```
+
 
 
 ### `include`

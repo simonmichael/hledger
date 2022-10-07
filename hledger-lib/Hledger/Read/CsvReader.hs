@@ -45,10 +45,10 @@ import Control.Monad.Trans.Class  (lift)
 import Data.Char                  (toLower, isDigit, isSpace, isAlphaNum, ord)
 import Data.Bifunctor             (first)
 import Data.Functor               ((<&>))
-import Data.List (elemIndex, foldl', intersperse, mapAccumL, nub, sortBy)
+import Data.List (elemIndex, foldl', intersperse, mapAccumL, nub, sortOn)
+import Data.List.Extra (groupOn)
 import Data.Maybe (catMaybes, fromMaybe, isJust)
 import Data.MemoUgly (memo)
-import Data.Ord (comparing)
 import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -358,7 +358,7 @@ Grammar for the CSV conversion rules, more or less:
 
 RULES: RULE*
 
-RULE: ( FIELD-LIST | FIELD-ASSIGNMENT | CONDITIONAL-BLOCK | SKIP | NEWEST-FIRST | DATE-FORMAT | DECIMAL-MARK | COMMENT | BLANK ) NEWLINE
+RULE: ( FIELD-LIST | FIELD-ASSIGNMENT | CONDITIONAL-BLOCK | SKIP | TIMEZONE | NEWEST-FIRST | INTRA-DAY-REVERSED | DATE-FORMAT | DECIMAL-MARK | COMMENT | BLANK ) NEWLINE
 
 FIELD-LIST: fields SPACE FIELD-NAME ( SPACE? , SPACE? FIELD-NAME )*
 
@@ -462,6 +462,7 @@ directives =
   ,"skip"
   ,"timezone"
   ,"newest-first"
+  ,"intra-day-reversed"
   , "balance-type"
   ]
 
@@ -750,29 +751,35 @@ readJournalFromCsv mrulesfile csvfile csvdata = do
               Just f | any (`T.isInfixOf` f) ["%Z","%z","%EZ","%Ez"] -> True
               _ -> False
 
-      -- Ensure transactions are ordered chronologically.
-      -- First, if the CSV records seem to be most-recent-first (because
-      -- there's an explicit "newest-first" directive, or there's more
-      -- than one date and the first date is more recent than the last):
-      -- reverse them to get same-date transactions ordered chronologically.
-      txns' =
-        (if newestfirst || mdataseemsnewestfirst == Just True
-          then dbg7 "reversed csv txns" . reverse else id)
-          txns
-        where
-          newestfirst = dbg6 "newestfirst" $ isJust $ getDirective "newest-first" rules
-          mdataseemsnewestfirst = dbg6 "mdataseemsnewestfirst" $
-            case nub $ map tdate txns of
-              ds | length ds > 1 -> Just $ head ds > last ds
-              _                  -> Nothing
-      -- Second, sort by date.
-      txns'' = dbg7 "date-sorted csv txns" $ sortBy (comparing tdate) txns'
+      -- Do our best to ensure transactions will be ordered chronologically,
+      -- from oldest to newest. This is done in several steps:
+      -- 1. Intra-day order: if there's an "intra-day-reversed" rule,
+      -- assume each day's CSV records were ordered in reverse of the overall date order,
+      -- so reverse each day's txns.
+      intradayreversed = dbg6 "intra-day-reversed" $ isJust $ getDirective "intra-day-reversed" rules
+      txns1 = dbg7 "txns1" $
+        (if intradayreversed then concatMap reverse . groupOn tdate else id) txns
+      -- 2. Overall date order: now if there's a "newest-first" rule,
+      -- or if there's multiple dates and the first is more recent than the last,
+      -- assume CSV records were ordered newest dates first,
+      -- so reverse all txns.
+      newestfirst = dbg6 "newest-first" $ isJust $ getDirective "newest-first" rules
+      mdatalooksnewestfirst = dbg6 "mdatalooksnewestfirst" $
+        case nub $ map tdate txns of
+          ds | length ds > 1 -> Just $ head ds > last ds
+          _                  -> Nothing
+      txns2 = dbg7 "txns2" $
+        (if newestfirst || mdatalooksnewestfirst == Just True then reverse else id) txns1
+      -- 3. Disordered dates: in case the CSV records were ordered by chaos,
+      -- do a final sort by date. If it was only a few records out of order,
+      -- this will hopefully refine any good ordering done by steps 1 and 2.
+      txns3 = dbg7 "date-sorted csv txns" $ sortOn tdate txns2
 
     liftIO $ unless rulesfileexists $ do
       dbg1IO "creating conversion rules file" rulesfile
       T.writeFile rulesfile rulestext
 
-    return nulljournal{jtxns=txns''}
+    return nulljournal{jtxns=txns3}
 
 -- | Parse special separator names TAB and SPACE, or return the first
 -- character. Return Nothing on empty string
