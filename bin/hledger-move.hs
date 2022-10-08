@@ -61,8 +61,6 @@ representing a transfer of the requested amount from the source account
 to the destination account.
 
 The commodity to be moved is determined by AMT's commodity symbol.
-As a convenience, no symbol means "move the account's only commodity";
-this works when the source account contains just one commodity.
 
 This command can also move amounts from subaccounts (one level, at least).
 It will move amounts first out of the main source account if possible,
@@ -84,12 +82,15 @@ Or, to consolidate amounts in the main destination account
 Examples:
 
 $ hledger-move $50 assets:checking assets:cash  # withdraw cash from bank
-$ hledger-move 50 checking cash                 # the same, less typing
-$ hledger-move 1000 ada:wallet1 ada:wallet2     # move 1000, keeping lots
+$ hledger-move ADA1000 ada:wallet1 ada:wallet2  # move 1000 ADA, keeping lots
 
 _FLAGS
 |]
 {- NOT YET IMPLEMENTED:
+
+As a convenience, no symbol means "move the account's only commodity";
+this works when the source account contains just one commodity.
+$ hledger-move 50 checking cash                 # the same, less typing
 
 A zero AMT means "move all of the specified commodity".
 
