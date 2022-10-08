@@ -11,6 +11,7 @@ With query arguments, only matched account names and account names referenced by
 Or it can show just
 the used accounts (`--used`),
 the declared accounts (`--declared`),
+the accounts declared but not used (`--unused`),
 the accounts used but not declared (`--undeclared`),
 or the first account matched by an account name pattern, if any (`--find`).
 
@@ -28,8 +29,8 @@ these may be useful when troubleshooting account display order.
 
 With `--directives`, it adds the `account` keyword, showing
 valid account directives which can be pasted into a journal file.
-This is useful together with `--undeclared` to update your account declarations
-when `check accounts` reports undeclared accounts. 
+This is useful together with `--undeclared` when updating your account declarations
+to satisfy `hledger check accounts`.
 
 The `--find` flag can be used to look up a single account name, in the same way
 that the `aregister` command does. It returns the alphanumerically-first matched

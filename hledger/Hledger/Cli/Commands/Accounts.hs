@@ -39,6 +39,7 @@ accountsmode = hledgerCommandMode
   [flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
   ,flagNone ["used"] (setboolopt "used") "show only accounts used by transactions"
   ,flagNone ["declared"] (setboolopt "declared") "show only accounts declared by account directive"
+  ,flagNone ["unused"] (setboolopt "unused") "show accounts declared but not used"
   ,flagNone ["undeclared"] (setboolopt "undeclared") "show accounts used but not declared"
   ,flagNone ["find"] (setboolopt "find") "find the first account matched by the first command argument (a case-insensitive infix regexp or account name)"
   ,flagNone ["types"] (setboolopt "types") "also show account types when known"
@@ -57,6 +58,7 @@ accounts CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_rsRepo
   let tree     = tree_ ropts
       used = boolopt "used"     rawopts
       decl = boolopt "declared" rawopts
+      unused = boolopt "unused" rawopts
       undecl = boolopt "undeclared" rawopts
       find_ = boolopt "find" rawopts
       types = boolopt "types"    rawopts
@@ -67,12 +69,12 @@ accounts CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_rsRepo
       -- just the acct: part of the query will be reapplied later, after clipping
       acctq = dbg4 "acctq" $ filterQuery queryIsAcct query
       dep = dbg4 "depth" $ queryDepth $ filterQuery queryIsDepth query
-      matcheddeclaredaccts =
-        dbg4 "matcheddeclaredaccts" $
+      matcheddeclaredaccts = dbg5 "matcheddeclaredaccts" $
         nub $
-        filter (matchesAccountExtra (journalAccountType j) (journalInheritedAccountTags j) nodepthq)
-          $ map fst $ jdeclaredaccounts j
+        filter (matchesAccountExtra (journalAccountType j) (journalInheritedAccountTags j) nodepthq) $
+        map fst $ jdeclaredaccounts j
       matchedusedaccts = dbg5 "matchedusedaccts" $ nub $ map paccount $ journalPostings $ filterJournalPostings nodepthq j
+      matchedunusedaccts = dbg5 "matchedunusedaccts" $ nub $ matcheddeclaredaccts \\ matchedusedaccts
       matchedundeclaredaccts = dbg5 "matchedundeclaredaccts" $ nub $ matchedusedaccts \\ matcheddeclaredaccts
       -- keep synced with aregister
       matchedacct = dbg5 "matchedacct" $
@@ -89,6 +91,7 @@ accounts CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_rsRepo
       accts = dbg5 "accts to show" $ if
         | find_                -> [matchedacct]
         | undecl               -> matchedundeclaredaccts
+        | unused               -> matchedunusedaccts
         | decl     && not used -> matcheddeclaredaccts
         | not decl && used     -> matchedusedaccts
         | otherwise            -> matcheddeclaredaccts ++ matchedusedaccts
