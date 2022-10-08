@@ -9,8 +9,8 @@ By default it shows all known accounts, either used in transactions or declared 
 With query arguments, only matched account names and account names referenced by matched postings are shown.
 
 Or it can show just
-the used accounts (`--used`),
-the declared accounts (`--declared`),
+the used accounts (`--used`/`-u`),
+the declared accounts (`--declared`/`-d`),
 the accounts declared but not used (`--unused`),
 the accounts used but not declared (`--undeclared`),
 or the first account matched by an account name pattern, if any (`--find`).

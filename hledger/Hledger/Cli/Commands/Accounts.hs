@@ -37,8 +37,8 @@ accountsmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Accounts.txt")
   (flattreeflags False ++
   [flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
-  ,flagNone ["used"] (setboolopt "used") "show only accounts used by transactions"
-  ,flagNone ["declared"] (setboolopt "declared") "show only accounts declared by account directive"
+  ,flagNone ["used","u"] (setboolopt "used") "show only accounts used by transactions"
+  ,flagNone ["declared","d"] (setboolopt "declared") "show only accounts declared by account directive"
   ,flagNone ["unused"] (setboolopt "unused") "show accounts declared but not used"
   ,flagNone ["undeclared"] (setboolopt "undeclared") "show accounts used but not declared"
   ,flagNone ["find"] (setboolopt "find") "find the first account matched by the first command argument (a case-insensitive infix regexp or account name)"
