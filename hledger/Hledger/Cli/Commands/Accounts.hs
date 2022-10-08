@@ -37,10 +37,10 @@ accountsmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Accounts.txt")
   (flattreeflags False ++
   [flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
-  ,flagNone ["used","u"] (setboolopt "used") "show only accounts used by transactions"
-  ,flagNone ["declared","d"] (setboolopt "declared") "show only accounts declared by account directive"
-  ,flagNone ["unused"] (setboolopt "unused") "show accounts declared but not used"
-  ,flagNone ["undeclared"] (setboolopt "undeclared") "show accounts used but not declared"
+  ,flagNone ["used","u"] (setboolopt "used") "show accounts used by transactions"
+  ,flagNone ["declared","d"] (setboolopt "declared") "show accounts declared by account directive"
+  ,flagNone ["unused"] (setboolopt "unused") "show only accounts declared but not used"
+  ,flagNone ["undeclared"] (setboolopt "undeclared") "show only accounts used but not declared"
   ,flagNone ["find"] (setboolopt "find") "find the first account matched by the first command argument (a case-insensitive infix regexp or account name)"
   ,flagNone ["types"] (setboolopt "types") "also show account types when known"
   ,flagNone ["positions"] (setboolopt "positions") "also show where accounts were declared"
@@ -89,11 +89,11 @@ accounts CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_rsRepo
             $ listofstringopt "args" rawopts
 
       accts = dbg5 "accts to show" $ if
-        | find_                -> [matchedacct]
-        | undecl               -> matchedundeclaredaccts
-        | unused               -> matchedunusedaccts
-        | decl     && not used -> matcheddeclaredaccts
         | not decl && used     -> matchedusedaccts
+        | decl     && not used -> matcheddeclaredaccts
+        | unused               -> matchedunusedaccts
+        | undecl               -> matchedundeclaredaccts
+        | find_                -> [matchedacct]
         | otherwise            -> matcheddeclaredaccts ++ matchedusedaccts
 
   -- 2. sort them by declaration order (then undeclared accounts alphabetically)
