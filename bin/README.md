@@ -50,6 +50,16 @@ $ . bin/bashrc
 $ fin        # list the scripts available
 ```
 
+### watchaccounts
+
+[`watchaccounts`](https://github.com/simonmichael/hledger/blob/master/bin/watchaccounts)
+shows hledger account names, updating on file change under the current directory.
+Arguments are passed to the `hledger accounts` command. Useful when cleaning up accounts.
+```cli
+$ watchaccounts expenses -2
+$ watchaccounts -f time.journal client1 date:thismonth -l
+```
+
 ### hledger-simplebal
 
 [`hledger-simplebal`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-simplebal)
