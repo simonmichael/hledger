@@ -38,7 +38,7 @@ import Text.Megaparsec.Custom
     finalErrorBundlePretty,
   )
 
-import Hledger.Utils.Debug (pshow)
+import Hledger.Utils.Print (pshow)
 
 -- * tasty helpers
 

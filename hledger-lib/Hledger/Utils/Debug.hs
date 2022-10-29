@@ -1,9 +1,7 @@
-{-# LANGUAGE FlexibleContexts, TypeFamilies #-}
 {- | 
 
-Helpers for debug output and pretty-printing 
-(using pretty-simple, with which there may be some overlap).
-This module also exports Debug.Trace.
+Helpers for debug logging to console or file.
+This module also exports Debug.Trace and (from the breakpoint package) Debug.Breakpoint.
 
 @dbg0@-@dbg9@ will pretty-print values to stderr
 if the program was run with a sufficiently high @--debug=N@ argument. 
@@ -39,15 +37,8 @@ Debug level:  What to show:
 -- http://hackage.haskell.org/packages/archive/traced/2009.7.20/doc/html/Debug-Traced.html
 
 module Hledger.Utils.Debug (
-  -- * Pretty printing
-   pprint
-  ,pprint'
-  ,pshow
-  ,pshow'
-  ,useColorOnStdout
-  ,useColorOnStderr
   -- * Tracing
-  ,traceWith
+   traceWith
   -- * Pretty tracing
   ,ptrace
   -- ** Debug-level-aware tracing
@@ -119,51 +110,18 @@ import           Control.Monad (when)
 import           Control.Monad.IO.Class
 import           Data.List hiding (uncons)
 import qualified Data.Text as T
-import qualified Data.Text.Lazy as TL
 import           Debug.Breakpoint
 import           Debug.Trace
-import           Hledger.Utils.Parse
 import           Safe (readDef)
-import           System.Environment (getArgs, lookupEnv)
+import           System.Environment (getArgs)
 import           System.Exit
 import           System.IO.Unsafe (unsafePerformIO)
 import           Text.Megaparsec
 import           Text.Printf
-import           Text.Pretty.Simple  -- (defaultOutputOptionsDarkBg, OutputOptions(..), pShowOpt, pPrintOpt)
-import Data.Maybe (isJust)
-import System.Console.ANSI (hSupportsANSIColor)
-import System.IO (stdout, Handle, stderr)
 import Control.Exception (evaluate)
 
--- | pretty-simple options with colour enabled if allowed.
-prettyopts = 
-  (if useColorOnStderr then defaultOutputOptionsDarkBg else defaultOutputOptionsNoColor)
-    { outputOptionsIndentAmount=2
-    , outputOptionsCompact=True
-    }
-
--- | pretty-simple options with colour disabled.
-prettyopts' =
-  defaultOutputOptionsNoColor
-    { outputOptionsIndentAmount=2
-    , outputOptionsCompact=True
-    }
-
--- | Pretty print. Generic alias for pretty-simple's pPrint.
-pprint :: Show a => a -> IO ()
-pprint = pPrintOpt CheckColorTty prettyopts
-
--- | Monochrome version of pprint.
-pprint' :: Show a => a -> IO ()
-pprint' = pPrintOpt CheckColorTty prettyopts'
-
--- | Pretty show. Generic alias for pretty-simple's pShow.
-pshow :: Show a => a -> String
-pshow = TL.unpack . pShowOpt prettyopts
-
--- | Monochrome version of pshow.
-pshow' :: Show a => a -> String
-pshow' = TL.unpack . pShowOpt prettyopts'
+import Hledger.Utils.Parse
+import Hledger.Utils.Print
 
 -- XXX some of the below can be improved with pretty-simple, https://github.com/cdepillabout/pretty-simple#readme
 
@@ -197,105 +155,6 @@ debugLevel = case dropWhile (/="--debug") args of
 
     where
       args = unsafePerformIO getArgs
-
--- Avoid using dbg*, pshow etc. in this function (infinite loop).
--- | Check the IO environment to see if ANSI colour codes should be used on stdout.
--- This is done using unsafePerformIO so it can be used anywhere, eg in
--- low-level debug utilities, which should be ok since we are just reading.
--- The logic is: use color if
--- the program was started with --color=yes|always
--- or (
---   the program was not started with --color=no|never
---   and a NO_COLOR environment variable is not defined
---   and stdout supports ANSI color and -o/--output-file was not used or is "-"
--- ).
--- Caveats:
--- When running code in GHCI, this module must be reloaded to see a change.
--- {-# OPTIONS_GHC -fno-cse #-}
--- {-# NOINLINE useColorOnStdout #-}
-useColorOnStdout :: Bool
-useColorOnStdout = not hasOutputFile && useColorOnHandle stdout
-
--- Avoid using dbg*, pshow etc. in this function (infinite loop).
--- | Like useColorOnStdout, but checks for ANSI color support on stderr,
--- and is not affected by -o/--output-file.
--- {-# OPTIONS_GHC -fno-cse #-}
--- {-# NOINLINE useColorOnStdout #-}
-useColorOnStderr :: Bool
-useColorOnStderr = useColorOnHandle stderr
-
--- Avoid using dbg*, pshow etc. in this function (infinite loop).
--- XXX sorry, I'm just cargo-culting these pragmas:
--- {-# OPTIONS_GHC -fno-cse #-}
--- {-# NOINLINE useColorOnHandle #-}
-useColorOnHandle :: Handle -> Bool
-useColorOnHandle h = unsafePerformIO $ do
-  no_color       <- isJust <$> lookupEnv "NO_COLOR"
-  supports_color <- hSupportsANSIColor h
-  let coloroption = colorOption
-  return $ coloroption `elem` ["always","yes"]
-       || (coloroption `notElem` ["never","no"] && not no_color && supports_color)
-
--- Keep synced with color/colour flag definition in hledger:CliOptions.
--- Avoid using dbg*, pshow etc. in this function (infinite loop).
--- | Read the value of the --color or --colour command line option provided at program startup
--- using unsafePerformIO. If this option was not provided, returns the empty string.
--- (When running code in GHCI, this module must be reloaded to see a change.)
--- {-# OPTIONS_GHC -fno-cse #-}
--- {-# NOINLINE colorOption #-}
-colorOption :: String
-colorOption = 
-  -- similar to debugLevel
-  let args = unsafePerformIO getArgs in
-  case dropWhile (/="--color") args of
-    -- --color ARG
-    "--color":v:_ -> v
-    _ ->
-      case take 1 $ filter ("--color=" `isPrefixOf`) args of
-        -- --color=ARG
-        ['-':'-':'c':'o':'l':'o':'r':'=':v] -> v
-        _ ->
-          case dropWhile (/="--colour") args of
-            -- --colour ARG
-            "--colour":v:_ -> v
-            _ ->
-              case take 1 $ filter ("--colour=" `isPrefixOf`) args of
-                -- --colour=ARG
-                ['-':'-':'c':'o':'l':'o':'u':'r':'=':v] -> v
-                _ -> ""
-
--- Avoid using dbg*, pshow etc. in this function (infinite loop).
--- | Check whether the -o/--output-file option has been used at program startup
--- with an argument other than "-", using unsafePerformIO.
--- {-# OPTIONS_GHC -fno-cse #-}
--- {-# NOINLINE hasOutputFile #-}
-hasOutputFile :: Bool
-hasOutputFile = outputFileOption `notElem` [Nothing, Just "-"]
-
--- Keep synced with output-file flag definition in hledger:CliOptions.
--- Avoid using dbg*, pshow etc. in this function (infinite loop).
--- | Read the value of the -o/--output-file command line option provided at program startup,
--- if any, using unsafePerformIO.
--- (When running code in GHCI, this module must be reloaded to see a change.)
--- {-# OPTIONS_GHC -fno-cse #-}
--- {-# NOINLINE outputFileOption #-}
-outputFileOption :: Maybe String
-outputFileOption = 
-  let args = unsafePerformIO getArgs in
-  case dropWhile (not . ("-o" `isPrefixOf`)) args of
-    -- -oARG
-    ('-':'o':v@(_:_)):_ -> Just v
-    -- -o ARG
-    "-o":v:_ -> Just v
-    _ ->
-      case dropWhile (/="--output-file") args of
-        -- --output-file ARG
-        "--output-file":v:_ -> Just v
-        _ ->
-          case take 1 $ filter ("--output-file=" `isPrefixOf`) args of
-            -- --output=file=ARG
-            ['-':'-':'o':'u':'t':'p':'u':'t':'-':'f':'i':'l':'e':'=':v] -> Just v
-            _ -> Nothing
 
 -- | Trace (print to stderr) a string if the global debug level is at
 -- or above the specified level. At level 0, always prints. Otherwise,

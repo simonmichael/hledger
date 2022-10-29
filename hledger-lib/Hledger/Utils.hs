@@ -20,6 +20,7 @@ module Hledger.Utils (---- provide these frequently used modules - or not, for c
                           module Hledger.Utils,
                           module Hledger.Utils.Debug,
                           module Hledger.Utils.Parse,
+                          module Hledger.Utils.Print,
                           module Hledger.Utils.Regex,
                           module Hledger.Utils.String,
                           module Hledger.Utils.Text,
@@ -55,6 +56,7 @@ import System.IO
 
 import Hledger.Utils.Debug
 import Hledger.Utils.Parse
+import Hledger.Utils.Print
 import Hledger.Utils.Regex
 import Hledger.Utils.String
 import Hledger.Utils.Text

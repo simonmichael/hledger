@@ -138,6 +138,7 @@ library:
   - Hledger.Utils
   - Hledger.Utils.Debug
   - Hledger.Utils.Parse
+  - Hledger.Utils.Print
   - Hledger.Utils.Regex
   - Hledger.Utils.String
   - Hledger.Utils.Test
