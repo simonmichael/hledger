@@ -149,8 +149,11 @@ uiReloadJournal copts d ui = do
   ej <-
     let copts' = enableForecastPreservingPeriod ui copts
     in runExceptT $ journalReload copts'
+  -- dlogUiTraceIO $ ("uiReloadJournal before reload: "++) $ pshow' $ map tdescription $ jtxns $ ajournal ui
   return $ case ej of
-    Right j  -> regenerateScreens j d ui
+    Right j  ->
+      -- dlogUiTrace (("uiReloadJournal after reload: "++) $ pshow' $ map tdescription $ jtxns j) $
+      regenerateScreens j d ui
     Left err ->
       case ui of
         UIState{aScreen=ES _} -> ui{aScreen=esNew err}

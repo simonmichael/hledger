@@ -27,8 +27,6 @@ module Hledger.UI.UIUtils (
   ,get'
   ,put'
   ,modify'
-  ,mapScreens
-  ,screenId
   ,suspend
   ,redraw
   ,reportSpecAddQuery
@@ -38,6 +36,9 @@ module Hledger.UI.UIUtils (
   ,dlogUiTraceIO
   ,dlogUiTraceM
   ,dlogUiScreenStack
+  ,screenRegisterDescriptions
+  ,screenId
+  ,mapScreens
   ,uiDebugLevel
   ,uiNumBlankItems
   )
@@ -48,7 +49,7 @@ import Brick.Widgets.Border
 import Brick.Widgets.Border.Style
 import Brick.Widgets.Dialog
 import Brick.Widgets.Edit
-import Brick.Widgets.List (List, listSelectedL, listNameL, listItemHeightL, listSelected, listMoveDown, listMoveUp, GenericList)
+import Brick.Widgets.List (List, listSelectedL, listNameL, listItemHeightL, listSelected, listMoveDown, listMoveUp, GenericList, listElements)
 import Control.Monad.IO.Class
 import Data.Bifunctor (second)
 import Data.List
@@ -67,6 +68,7 @@ import Hledger.Cli.DocFiles
 import Hledger.UI.UITypes
 
 import Data.Vector (Vector)
+import qualified Data.Vector as V
 
 -- | On posix platforms, send the system STOP signal to suspend the
 -- current program. On windows, does nothing.
@@ -86,46 +88,32 @@ suspendSignal = raiseSignal sigSTOP
 get' = do
   x <- get
   dlogUiTraceM $ "getting state: " ++ (head $ lines $ pshow $ aScreen x)
+    -- ++ " " ++ (show $ map tdescription $ jtxns $ ajournal x)
   -- dlogUiTraceM $ ("query: "++) $ pshow' $ x  & aopts & uoCliOpts & reportspec_ & _rsQuery
-  -- dlogUiScreenStack "" "" screenId x
-  -- dlogUiScreenStack "getting " "with register descriptions: " showscreenregisterdescriptions x
+  -- dlogUiScreenStack "getting" screenId x
+  -- dlogUiScreenStack "getting, with register descriptions" screenRegisterDescriptions x
   return x
 
 put' x = do
   dlogUiTraceM $ "putting state: " ++ (head $ lines $ pshow $ aScreen x)
+    -- ++ " " ++ (show $ map tdescription $ jtxns $ ajournal x)
   -- dlogUiTraceM $ ("query: "++) $ pshow' $ x  & aopts & uoCliOpts & reportspec_ & _rsQuery
-  -- dlogUiScreenStack "" "" screenId x
-  -- dlogUiScreenStack "putting " "with register descriptions: " showscreenregisterdescriptions x
+  -- dlogUiScreenStack "putting" screenId x
+  -- dlogUiScreenStack "putting, with register descriptions" screenRegisterDescriptions x
   put x
 
 modify' f = do
   x <- get
   let x' = f x
   dlogUiTraceM $ "modifying state: " ++ (head $ lines $ pshow $ aScreen x')
+    -- ++ " " ++ (show $ map tdescription $ jtxns $ ajournal x')
   -- dlogUiTraceM $ ("from: "++) $ pshow' $ x  & aopts & uoCliOpts & reportspec_ & _rsQuery
   -- dlogUiTraceM $ ("to:   "++) $ pshow' $ x' & aopts & uoCliOpts & reportspec_ & _rsQuery
-  -- dlogUiScreenStack "getting" "" screenId x
-  -- dlogUiScreenStack "putting" "" screenId x'
-  -- dlogUiScreenStack "getting " "with register descriptions: " showscreenregisterdescriptions x
-  -- dlogUiScreenStack "putting " "with register descriptions: " showscreenregisterdescriptions x'
+  -- dlogUiScreenStack "getting" screenId x
+  -- dlogUiScreenStack "putting" screenId x'
+  -- dlogUiScreenStack "getting, with register descriptions" screenRegisterDescriptions x
+  -- dlogUiScreenStack "putting, with register descriptions" screenRegisterDescriptions x'
   modify f
-
--- showscreenregisterdescriptions :: Screen -> String
--- showscreenregisterdescriptions scr = case scr of
---   MS _   -> "M"  -- menu
---   AS _   -> "A"  -- all accounts
---   BS _   -> "B"  -- bs accounts
---   IS _   -> "I"  -- is accounts
---   RS sst -> ("R:" ++) $ -- menu
---     intercalate "," $ map (T.unpack . rsItemDescription) $
---     takeWhile (not . T.null . rsItemDate) $ Data.Vector.toList $ listElements $ _rssList sst
---   TS _   -> "T"  -- transaction
---   ES _   -> "E"  -- error
-
--- | Run a function on each screen in a UIState's screen "stack",
--- from topmost screen down to currently-viewed screen.
-mapScreens :: (Screen -> a) -> UIState -> [a]
-mapScreens f UIState{aPrevScreens, aScreen} = map f $ reverse $ aScreen : aPrevScreens
 
 -- | On posix platforms, suspend the program using the STOP signal,
 -- like control-z in bash, returning to the original shell prompt,
@@ -465,15 +453,33 @@ dlogUiTraceIO s = dlogUiTrace s $ return ()
 dlogUiTraceM :: String -> EventM Name UIState ()
 dlogUiTraceM s = dlogUiTrace s $ return ()
 
--- | Like dlogUiTraceM, but log a prefix, "screen stack", a postfix,
--- and a compact view of the current screen stack,
+-- | Like dlogUiTraceM, but log a compact view of the current screen stack,
 -- from topmost screen to currently-viewed screen,
--- with each screen rendered by the given rendering function.
+-- with each screen rendered by the given rendering function
+-- (and with the given extra label if any).
 -- Useful for inspecting states across the whole screen stack.
--- To just show the stack: @dlogUiScreenStack "" "" screenId ui@
-dlogUiScreenStack :: String -> String -> (Screen -> String) -> UIState -> EventM Name UIState ()
-dlogUiScreenStack prefix postfix showscr ui =
-  dlogUiTraceM $ prefix ++ "screen stack: " ++ postfix ++ (unwords $ mapScreens showscr ui)
+-- To just show the stack: @dlogUiScreenStack "" screenId ui@
+dlogUiScreenStack :: String -> (Screen -> String) -> UIState -> EventM Name UIState ()
+dlogUiScreenStack postfix showscr ui =
+  dlogUiTraceM $ concat [
+     "screen stack"
+    ,if null postfix then "" else " (" ++ postfix ++ ")"
+    ,": "
+    ,unwords $ mapScreens showscr ui
+    ]
+
+-- | Run a function on each screen in a UIState's screen "stack",
+-- from topmost screen down to currently-viewed screen.
+mapScreens :: (Screen -> a) -> UIState -> [a]
+mapScreens f UIState{aPrevScreens, aScreen} = map f $ reverse $ aScreen : aPrevScreens
+
+-- Show a screen's compact id, plus for register screens, the transaction descriptions.
+screenRegisterDescriptions :: Screen -> String
+screenRegisterDescriptions scr = case scr of
+  RS sst -> ((screenId scr ++ ":") ++) $ -- menu
+    intercalate "," $ map (T.unpack . rsItemDescription) $
+    takeWhile (not . T.null . rsItemDate) $ V.toList $ listElements $ _rssList sst
+  _ -> screenId scr
 
 -- Show a screen's compact id (first letter of its constructor).
 screenId :: Screen -> String
