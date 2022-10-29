@@ -37,6 +37,11 @@ module Hledger.Utils.Parse (
   skipNonNewlineSpaces1,
   skipNonNewlineSpaces',
 
+  -- ** Trace the state of hledger parsers
+  traceParse,
+  traceParseAt,
+  dbgparse,
+
   -- * re-exports
   HledgerParseErrors,
   HledgerParseErrorData,
@@ -44,16 +49,20 @@ module Hledger.Utils.Parse (
 )
 where
 
+import Control.Monad (when)
+import qualified Data.Text as T
+import Text.Megaparsec
+import Text.Printf
 import Control.Monad.State.Strict (StateT, evalStateT)
 import Data.Char
 import Data.Functor (void)
 import Data.Functor.Identity (Identity(..))
 import Data.List
 import Data.Text (Text)
-import Text.Megaparsec
 import Text.Megaparsec.Char
 import Text.Megaparsec.Custom
-import Text.Printf
+import Debug.Trace (trace)
+import Hledger.Utils.Debug (debugLevel)
 
 -- | A parser of string to some type.
 type SimpleStringParser a = Parsec HledgerParseErrorData String a
@@ -63,6 +72,32 @@ type SimpleTextParser = Parsec HledgerParseErrorData Text  -- XXX an "a" argumen
 
 -- | A parser of text that runs in some monad.
 type TextParser m a = ParsecT HledgerParseErrorData Text m a
+
+-- | Print the provided label (if non-null) and current parser state
+-- (position and next input) to the console. See also megaparsec's dbg.
+-- traceParse :: String -> TextParser m ()
+traceParse msg = do
+  pos <- getSourcePos
+  next <- (T.take peeklength) `fmap` getInput
+  let (l,c) = (sourceLine pos, sourceColumn pos)
+      s  = printf "at line %2d col %2d: %s" (unPos l) (unPos c) (show next) :: String
+      s' = printf ("%-"++show (peeklength+30)++"s") s ++ " " ++ msg
+  trace s' $ return ()
+  where
+    peeklength = 30
+
+-- | Print the provided label (if non-null) and current parser state
+-- (position and next input) to the console if the global debug level
+-- is at or above the specified level. Uses unsafePerformIO.
+-- (See also megaparsec's dbg.)
+traceParseAt :: Int -> String -> TextParser m ()
+traceParseAt level msg = when (level <= debugLevel) $ traceParse msg
+
+-- | Convenience alias for traceParseAt
+-- class (Stream s, MonadPlus m) => MonadParsec e s m 
+-- dbgparse :: (MonadPlus m, MonadParsec e String m) => Int -> String -> m ()
+dbgparse :: Int -> String -> TextParser m ()
+dbgparse = traceParseAt
 
 -- | Render a pair of source positions in human-readable form, only displaying the range of lines.
 sourcePosPairPretty :: (SourcePos, SourcePos) -> String
@@ -150,19 +185,18 @@ restofline = anySingle `manyTill` eolof
 
 -- Skip many non-newline spaces.
 skipNonNewlineSpaces :: (Stream s, Token s ~ Char) => ParsecT HledgerParseErrorData s m ()
-skipNonNewlineSpaces = () <$ takeWhileP Nothing isNonNewlineSpace
+skipNonNewlineSpaces = void $ takeWhileP Nothing isNonNewlineSpace
 {-# INLINABLE skipNonNewlineSpaces #-}
 
 -- Skip many non-newline spaces, failing if there are none.
 skipNonNewlineSpaces1 :: (Stream s, Token s ~ Char) => ParsecT HledgerParseErrorData s m ()
-skipNonNewlineSpaces1 = () <$ takeWhile1P Nothing isNonNewlineSpace
+skipNonNewlineSpaces1 = void $ takeWhile1P Nothing isNonNewlineSpace
 {-# INLINABLE skipNonNewlineSpaces1 #-}
 
 -- Skip many non-newline spaces, returning True if any have been skipped.
 skipNonNewlineSpaces' :: (Stream s, Token s ~ Char) => ParsecT HledgerParseErrorData s m Bool
 skipNonNewlineSpaces' = True <$ skipNonNewlineSpaces1 <|> pure False
 {-# INLINABLE skipNonNewlineSpaces' #-}
-
 
 eolof :: TextParser m ()
 eolof = void newline <|> eof

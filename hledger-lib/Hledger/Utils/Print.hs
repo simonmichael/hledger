@@ -1,6 +1,8 @@
 {- | 
 Helpers for pretty-formatting haskell values, pretty-printing to console,
 deciding if ANSI colour should be used, and detecting an -o/--output-file option.
+Uses unsafePerformIO for simple program-wide read-only access to some common
+command-line flags/environment variables.
 
 Limitations:
 When running in GHCI, this module must be reloaded to see a change (because of unsafePerformIO).

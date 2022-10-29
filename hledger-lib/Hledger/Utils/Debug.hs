@@ -2,17 +2,19 @@
 
 Helpers for debug logging to console or file.
 This module also exports Debug.Trace and (from the breakpoint package) Debug.Breakpoint.
+Uses Hledger.Utils.Print. See also additional helpers in Hledger.Utils.Parse,
+Hledger.UI.UIUtils etc.
 
 @dbg0@-@dbg9@ will pretty-print values to stderr
 if the program was run with a sufficiently high @--debug=N@ argument. 
 (@--debug@ with no argument means @--debug=1@; @dbg0@ always prints).
 
-The @debugLevel@ global is set once at startup using unsafePerformIO. 
-In GHCI, this happens only on the first run of :main, so if you want
-to change the debug level without restarting GHCI,
-save a dummy change in Debug.hs and do a :reload.
-(Sometimes it's more convenient to temporarily add dbg0's and :reload.)
+Uses unsafePerformIO for simple program-wide read-only access to the debug level
+set by the --debug command-line flag. The @debugLevel@ global is set once at startup,
+so in GHCI if you want to change it you must save this file and :reload.
+(Sometimes it's more convenient to temporarily add dbg0's in your code and :reload.)
 
+Debug level is a number from 1 (least output) to 9 (most output).
 In hledger, debug levels are used as follows:
 
 Debug level:  What to show:
@@ -35,6 +37,7 @@ Debug level:  What to show:
 -- http://hackage.haskell.org/packages/archive/trace-call/0.1/doc/html/Debug-TraceCall.html
 -- http://hackage.haskell.org/packages/archive/htrace/0.1/doc/html/Debug-HTrace.html
 -- http://hackage.haskell.org/packages/archive/traced/2009.7.20/doc/html/Debug-Traced.html
+-- https://hackage.haskell.org/package/debug
 
 module Hledger.Utils.Debug (
   -- * Tracing
@@ -82,9 +85,6 @@ module Hledger.Utils.Debug (
   ,dbg7IO
   ,dbg8IO
   ,dbg9IO
-  -- ** Trace the state of hledger parsers
-  ,traceParse
-  ,dbgparse
   -- ** Debug-logging to a file
   ,dlogTrace
   ,dlogTraceAt
@@ -105,23 +105,20 @@ module Hledger.Utils.Debug (
   )
 where
 
-import           Control.DeepSeq (force)
-import           Control.Monad (when)
-import           Control.Monad.IO.Class
-import           Data.List hiding (uncons)
-import qualified Data.Text as T
-import           Debug.Breakpoint
-import           Debug.Trace
-import           Safe (readDef)
-import           System.Environment (getArgs)
-import           System.Exit
-import           System.IO.Unsafe (unsafePerformIO)
-import           Text.Megaparsec
-import           Text.Printf
+import Control.DeepSeq (force)
+import Control.Monad.IO.Class
+import Data.List hiding (uncons)
+import Debug.Breakpoint
+import Debug.Trace
+import Safe (readDef)
+import System.Environment (getArgs)
+import System.Exit
+import System.IO.Unsafe (unsafePerformIO)
 import Control.Exception (evaluate)
 
-import Hledger.Utils.Parse
+-- import Hledger.Utils.Parse
 import Hledger.Utils.Print
+-- import Text.Megaparsec (MonadParsec)
 
 -- XXX some of the below can be improved with pretty-simple, https://github.com/cdepillabout/pretty-simple#readme
 
@@ -371,28 +368,3 @@ dlog8 = dlogAt 8
 
 dlog9 :: Show a => String -> a -> a
 dlog9 = dlogAt 9
-
--- | Print the provided label (if non-null) and current parser state
--- (position and next input) to the console. See also megaparsec's dbg.
-traceParse :: String -> TextParser m ()
-traceParse msg = do
-  pos <- getSourcePos
-  next <- (T.take peeklength) `fmap` getInput
-  let (l,c) = (sourceLine pos, sourceColumn pos)
-      s  = printf "at line %2d col %2d: %s" (unPos l) (unPos c) (show next) :: String
-      s' = printf ("%-"++show (peeklength+30)++"s") s ++ " " ++ msg
-  trace s' $ return ()
-  where
-    peeklength = 30
-
--- | Print the provided label (if non-null) and current parser state
--- (position and next input) to the console if the global debug level
--- is at or above the specified level. Uses unsafePerformIO.
--- (See also megaparsec's dbg.)
-traceParseAt :: Int -> String -> TextParser m ()
-traceParseAt level msg = when (level <= debugLevel) $ traceParse msg
-
--- | Convenience alias for traceParseAt
-dbgparse :: Int -> String -> TextParser m ()
-dbgparse = traceParseAt
-
