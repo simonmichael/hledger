@@ -213,3 +213,11 @@ which has nice screenshots, but might be less up to date.
 ──────────────────────────── a:aa transactions (2/2) ───────────────────────────
  2021-01-02                              a:aa                          10    10
  2021-01-03                              a:aa:aaa                     100   110  # <- selected 
+
+** hledger-ui -f sample.journal saving, edit and change the "save" txn description and amount to "NEW" and $22, g  # current screen shows new data after reload
+───────────── sample.journal account balances matching saving (1/1) ────────────
+ assets:bank:saving  $22
+
+** RIGHT  # newly created screens show new data after reload
+───────────── assets:bank:saving transactions matching saving (1/1) ────────────
+ 2008-06-02   NEW                         as:ba:saving                 $22  $22

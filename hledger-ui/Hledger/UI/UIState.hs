@@ -347,10 +347,11 @@ resetScreens d ui@UIState{astartupopts=origopts, ajournal=j, aScreen=s,aPrevScre
   where
     topscreen' = screenUpdate origopts d j $ lastDef s ss
 
--- | Regenerate the content of the current and all parent screens
--- from a new journal and reporting date (and current options),
--- while preserving the screen navigation history.
+-- | Given a new journal and reporting date, save the new journal in the ui state,
+-- then regenerate the content of all screens in the stack
+-- (using the ui state's current options), preserving the screen navigation history.
+-- Note, does not save the reporting date.
 regenerateScreens :: Journal -> Day -> UIState -> UIState
 regenerateScreens j d ui@UIState{aopts=opts, aScreen=s,aPrevScreens=ss} =
-  ui{aScreen=screenUpdate opts d j s, aPrevScreens=map (screenUpdate opts d j) ss}
+  ui{ajournal=j, aScreen=screenUpdate opts d j s, aPrevScreens=map (screenUpdate opts d j) ss}
 
