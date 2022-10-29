@@ -131,11 +131,12 @@ runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=r
         filteredQuery q = simplifyQuery $ And [queryFromFlags ropts, filtered q]
           where filtered = filterQuery (\x -> not $ queryIsDepth x || queryIsDate x)
 
-    -- select the starting screen, and parent screens you can step back to:
+    -- Select the starting screen, and parent screens you can step back to:
     -- menu > accounts by default, or menu > accounts > register with --register.
+    -- Remember the parent screens are ordered nearest/lowest first.
     (prevscrs, startscr) = case uoRegister uopts of
       Nothing   -> ([menuscr], acctsscr)
-      Just apat -> ([menuscr, asSetSelectedAccount acct acctsscr], regscr)
+      Just apat -> ([asSetSelectedAccount acct acctsscr, menuscr], regscr)
         where
           regscr = 
             rsSetAccount acct False $
