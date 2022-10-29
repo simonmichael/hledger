@@ -3,6 +3,7 @@
 {-# LANGUAGE CPP               #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Hledger.UI.UIUtils (
    borderDepthStr
@@ -26,13 +27,17 @@ module Hledger.UI.UIUtils (
   ,get'
   ,put'
   ,modify'
+  ,mapScreens
+  ,screenId
   ,suspend
   ,redraw
   ,reportSpecAddQuery
   ,reportSpecSetFutureAndForecast
   ,listScrollPushingSelection
   ,dlogUiTrace
+  ,dlogUiTraceIO
   ,dlogUiTraceM
+  ,dlogUiScreenStack
   ,uiDebugLevel
   ,uiNumBlankItems
   )
@@ -76,16 +81,21 @@ suspendSignal = raiseSignal sigSTOP
 #endif
 
 -- Debug logging for UI state changes.
+-- A good place to log things of interest while debugging, see commented examples below.
 
 get' = do
   x <- get
   dlogUiTraceM $ "getting state: " ++ (head $ lines $ pshow $ aScreen x)
   -- dlogUiTraceM $ ("query: "++) $ pshow' $ x  & aopts & uoCliOpts & reportspec_ & _rsQuery
+  -- dlogUiScreenStack "" "" screenId x
+  -- dlogUiScreenStack "getting " "with register descriptions: " showscreenregisterdescriptions x
   return x
 
 put' x = do
   dlogUiTraceM $ "putting state: " ++ (head $ lines $ pshow $ aScreen x)
   -- dlogUiTraceM $ ("query: "++) $ pshow' $ x  & aopts & uoCliOpts & reportspec_ & _rsQuery
+  -- dlogUiScreenStack "" "" screenId x
+  -- dlogUiScreenStack "putting " "with register descriptions: " showscreenregisterdescriptions x
   put x
 
 modify' f = do
@@ -94,7 +104,28 @@ modify' f = do
   dlogUiTraceM $ "modifying state: " ++ (head $ lines $ pshow $ aScreen x')
   -- dlogUiTraceM $ ("from: "++) $ pshow' $ x  & aopts & uoCliOpts & reportspec_ & _rsQuery
   -- dlogUiTraceM $ ("to:   "++) $ pshow' $ x' & aopts & uoCliOpts & reportspec_ & _rsQuery
+  -- dlogUiScreenStack "getting" "" screenId x
+  -- dlogUiScreenStack "putting" "" screenId x'
+  -- dlogUiScreenStack "getting " "with register descriptions: " showscreenregisterdescriptions x
+  -- dlogUiScreenStack "putting " "with register descriptions: " showscreenregisterdescriptions x'
   modify f
+
+-- showscreenregisterdescriptions :: Screen -> String
+-- showscreenregisterdescriptions scr = case scr of
+--   MS _   -> "M"  -- menu
+--   AS _   -> "A"  -- all accounts
+--   BS _   -> "B"  -- bs accounts
+--   IS _   -> "I"  -- is accounts
+--   RS sst -> ("R:" ++) $ -- menu
+--     intercalate "," $ map (T.unpack . rsItemDescription) $
+--     takeWhile (not . T.null . rsItemDate) $ Data.Vector.toList $ listElements $ _rssList sst
+--   TS _   -> "T"  -- transaction
+--   ES _   -> "E"  -- error
+
+-- | Run a function on each screen in a UIState's screen "stack",
+-- from topmost screen down to currently-viewed screen.
+mapScreens :: (Screen -> a) -> UIState -> [a]
+mapScreens f UIState{aPrevScreens, aScreen} = map f $ reverse $ aScreen : aPrevScreens
 
 -- | On posix platforms, suspend the program using the STOP signal,
 -- like control-z in bash, returning to the original shell prompt,
@@ -426,9 +457,34 @@ listScrollPushingSelection name listheight scrollamt = do
 dlogUiTrace :: String -> a -> a
 dlogUiTrace = dlogTraceAt uiDebugLevel
 
--- | Like dlogUiTrace, but within the hledger-ui brick event handler monad.
+-- | Like dlogUiTrace, but convenient in IO.
+dlogUiTraceIO :: String -> IO ()
+dlogUiTraceIO s = dlogUiTrace s $ return ()
+
+-- | Like dlogUiTrace, but convenient in event handlers.
 dlogUiTraceM :: String -> EventM Name UIState ()
 dlogUiTraceM s = dlogUiTrace s $ return ()
+
+-- | Like dlogUiTraceM, but log a prefix, "screen stack", a postfix,
+-- and a compact view of the current screen stack,
+-- from topmost screen to currently-viewed screen,
+-- with each screen rendered by the given rendering function.
+-- Useful for inspecting states across the whole screen stack.
+-- To just show the stack: @dlogUiScreenStack "" "" screenId ui@
+dlogUiScreenStack :: String -> String -> (Screen -> String) -> UIState -> EventM Name UIState ()
+dlogUiScreenStack prefix postfix showscr ui =
+  dlogUiTraceM $ prefix ++ "screen stack: " ++ postfix ++ (unwords $ mapScreens showscr ui)
+
+-- Show a screen's compact id (first letter of its constructor).
+screenId :: Screen -> String
+screenId = \case
+  MS _ -> "M"  -- menu
+  AS _ -> "A"  -- all accounts
+  BS _ -> "B"  -- bs accounts
+  IS _ -> "I"  -- is accounts
+  RS _ -> "R"  -- menu
+  TS _ -> "T"  -- transaction
+  ES _ -> "E"  -- error
 
 -- | Log hledger-ui events at this debug level.
 uiDebugLevel :: Int
