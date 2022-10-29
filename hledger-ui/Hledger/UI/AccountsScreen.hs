@@ -218,11 +218,13 @@ asHandleNormalMode (ALS scons ass) ev = do
     VtyEvent (EvKey KEsc        []) -> modify' (resetScreens d)           -- ESC: reset
     VtyEvent (EvKey (KChar c)   []) | c == '?' -> modify' (setMode Help)  -- ?: enter help mode
 
-    -- App events: these do not come from the UI; they are received when --watch is used.
-    -- XXX currently these are handled only in Normal mode
+    -- AppEvents come from the system, in --watch mode.
+    -- XXX currently they are handled only in Normal mode
     -- XXX be sure we don't leave unconsumed app events piling up
     -- A data file has changed (or the user has pressed g): reload.
-    e | e `elem` [AppEvent FileChange, VtyEvent (EvKey (KChar 'g') [])] -> liftIO (uiReloadJournal copts d ui) >>= put'
+    e | e `elem` [AppEvent FileChange, VtyEvent (EvKey (KChar 'g') [])] ->
+      liftIO (uiReloadJournal copts d ui) >>= put'
+
     -- The date has changed (and we are viewing a standard period which contained the old date):
     -- adjust the viewed period and regenerate, just in case needed.
     -- (Eg: when watching data for "today" and the time has just passed midnight.)

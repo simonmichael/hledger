@@ -234,12 +234,16 @@ rsHandle ev = do
             VtyEvent (EvKey (KChar 'q') []) -> halt
             VtyEvent (EvKey KEsc        []) -> put' $ resetScreens d ui
             VtyEvent (EvKey (KChar c)   []) | c == '?' -> put' $ setMode Help ui
+
+            -- AppEvents arrive in --watch mode, see AccountsScreen
             AppEvent (DateChange old _) | isStandardPeriod p && p `periodContainsDate` old ->
               put' $ regenerateScreens j d $ setReportPeriod (DayPeriod d) ui
               where
                 p = reportPeriod ui
-            e | e `elem` [VtyEvent (EvKey (KChar 'g') []), AppEvent FileChange] ->
+
+            e | e `elem` [AppEvent FileChange, VtyEvent (EvKey (KChar 'g') [])] ->
               liftIO (uiReloadJournal copts d ui) >>= put'
+
             VtyEvent (EvKey (KChar 'I') []) -> put' $ uiCheckBalanceAssertions d (toggleIgnoreBalanceAssertions ui)
             VtyEvent (EvKey (KChar 'a') []) -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add copts j >> uiReloadJournalIfChanged copts d j ui
             VtyEvent (EvKey (KChar 'A') []) -> suspendAndResume $ void (runIadd (journalFilePath j)) >> uiReloadJournalIfChanged copts d j ui
