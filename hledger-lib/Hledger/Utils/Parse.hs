@@ -75,7 +75,7 @@ type TextParser m a = ParsecT HledgerParseErrorData Text m a
 
 -- | Print the provided label (if non-null) and current parser state
 -- (position and next input) to the console. See also megaparsec's dbg.
--- traceParse :: String -> TextParser m ()
+traceParse :: String -> TextParser m ()
 traceParse msg = do
   pos <- getSourcePos
   next <- (T.take peeklength) `fmap` getInput

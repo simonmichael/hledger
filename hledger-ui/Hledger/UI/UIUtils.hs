@@ -443,7 +443,7 @@ listScrollPushingSelection name listheight scrollamt = do
 -- if the global debug level is at or above a standard hledger-ui debug level.
 -- Uses unsafePerformIO.
 dlogUiTrace :: String -> a -> a
-dlogUiTrace = dlogTraceAt uiDebugLevel
+dlogUiTrace = traceLogAt uiDebugLevel
 
 -- | Like dlogUiTrace, but convenient in IO.
 dlogUiTraceIO :: String -> IO ()

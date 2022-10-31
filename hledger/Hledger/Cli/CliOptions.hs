@@ -556,6 +556,7 @@ getHledgerCliOpts' mode' args0 = do
         ,"  See also hledger -h for general hledger options."
         ]
     -- | Print debug info about arguments and options if --debug is present.
+    -- XXX use standard dbg helpers
     debugArgs :: [String] -> CliOpts -> IO ()
     debugArgs args1 opts =
       when ("--debug" `elem` args1) $ do
