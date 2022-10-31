@@ -33,7 +33,7 @@ import Hledger.UI.Theme
 import Hledger.UI.UIOptions
 import Hledger.UI.UITypes
 import Hledger.UI.UIState (uiState, getDepth)
-import Hledger.UI.UIUtils (dlogUiTraceM, dlogUiTraceIO)
+import Hledger.UI.UIUtils (dbguiEv, dbguiIO)
 import Hledger.UI.MenuScreen
 import Hledger.UI.AccountsScreen
 import Hledger.UI.BalancesheetScreen
@@ -167,7 +167,7 @@ runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=r
       setMode (outputIface v) Mouse True
       return v
 
-  dlogUiTraceIO "\n\n==== hledger-ui start"
+  dbguiIO "\n\n==== hledger-ui start"
 
   if not (uoWatch uopts)
   then do
@@ -244,7 +244,7 @@ brickApp mtheme = App {
 
 uiHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
 uiHandle ev = do
-  dlogUiTraceM $ "\n==== " ++ show ev
+  dbguiEv $ "\n==== " ++ show ev
   ui <- get
   case aScreen ui of
     MS _ -> msHandle ev

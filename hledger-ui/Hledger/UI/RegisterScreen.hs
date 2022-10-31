@@ -45,7 +45,7 @@ rsDraw :: UIState -> [Widget Name]
 rsDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
               ,aScreen=RS RSS{..}
               ,aMode=mode
-              } = dlogUiTrace "rsDraw 1" $
+              } = dbgui "rsDraw 1" $
   case mode of
     Help       -> [helpDialog, maincontent]
     _          -> [maincontent]
@@ -152,7 +152,7 @@ rsDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
 --               ,("q", "quit")
               ]
 
-rsDraw _ = dlogUiTrace "rsDraw 2" $ errorWrongScreenType "draw function"  -- PARTIAL:
+rsDraw _ = dbgui "rsDraw 2" $ errorWrongScreenType "draw function"  -- PARTIAL:
 
 rsDrawItem :: (Int,Int,Int,Int,Int) -> Bool -> RegisterScreenItem -> Widget Name
 rsDrawItem (datewidth,descwidth,acctswidth,changewidth,balwidth) selected RegisterScreenItem{..} =
@@ -183,7 +183,7 @@ rsDrawItem (datewidth,descwidth,acctswidth,changewidth,balwidth) selected Regist
 rsHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
 rsHandle ev = do
   ui0 <- get'
-  dlogUiTraceM "rsHandle 1"
+  dbguiEv "rsHandle 1"
   case ui0 of
     ui@UIState{
       aScreen=RS sst@RSS{..}
@@ -328,7 +328,7 @@ rsHandle ev = do
             MouseUp{}         -> return ()
             AppEvent _        -> return ()
 
-    _ -> dlogUiTrace "rsHandle 2" $ errorWrongScreenType "event handler"
+    _ -> dbgui "rsHandle 2" $ errorWrongScreenType "event handler"
 
 isBlankElement mel = ((rsItemDate . snd) <$> mel) == Just ""
 
@@ -349,7 +349,7 @@ rsCenterSelection ui = return ui
 
 rsEnterTransactionScreen :: AccountName -> [NumberedTransaction] -> NumberedTransaction -> UIState -> EventM Name UIState ()
 rsEnterTransactionScreen acct nts nt ui = do
-  dlogUiTraceM "rsEnterTransactionScreen"
+  dbguiEv "rsEnterTransactionScreen"
   put' $
     pushScreen (tsNew acct nts nt)
     ui

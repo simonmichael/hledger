@@ -50,7 +50,7 @@ import Control.Arrow ((>>>))
 
 
 asDraw :: UIState -> [Widget Name]
-asDraw ui = dlogUiTrace "asDraw" $ asDrawHelper ui ropts' scrname showbalchgkey
+asDraw ui = dbgui "asDraw" $ asDrawHelper ui ropts' scrname showbalchgkey
   where
     ropts' = _rsReportOpts $ reportspec_ $ uoCliOpts $ aopts ui
     scrname = "account " ++ if ishistorical then "balances" else "changes"
@@ -63,9 +63,9 @@ asDraw ui = dlogUiTrace "asDraw" $ asDrawHelper ui ropts' scrname showbalchgkey
 -- for toggling between end balance and balance change mode.
 asDrawHelper :: UIState -> ReportOpts -> String -> Bool -> [Widget Name]
 asDrawHelper UIState{aScreen=scr, aopts=uopts, ajournal=j, aMode=mode} ropts scrname showbalchgkey =
-  dlogUiTrace "asDrawHelper" $
+  dbgui "asDrawHelper" $
   case toAccountsLikeScreen scr of
-    Nothing          -> dlogUiTrace "asDrawHelper" $ errorWrongScreenType "draw helper"  -- PARTIAL:
+    Nothing          -> dbgui "asDrawHelper" $ errorWrongScreenType "draw helper"  -- PARTIAL:
     Just (ALS _ ass) -> case mode of
       Help -> [helpDialog, maincontent]
       _    -> [maincontent]
@@ -178,10 +178,10 @@ asDrawItem (acctwidth, balwidth) selected AccountsScreenItem{..} =
 -- | Handle events on any accounts-like screen (all accounts, balance sheet, income statement..).
 asHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
 asHandle ev = do
-  dlogUiTraceM "asHandle"
+  dbguiEv "asHandle"
   ui0@UIState{aScreen=scr, aMode=mode} <- get'
   case toAccountsLikeScreen scr of
-    Nothing -> dlogUiTrace "asHandle" $ errorWrongScreenType "event handler"  -- PARTIAL:
+    Nothing -> dbgui "asHandle" $ errorWrongScreenType "event handler"  -- PARTIAL:
     Just als@(ALS scons ass) -> do
       -- save the currently selected account, in case we leave this screen and lose the selection
       put' ui0{aScreen=scons ass{_assSelectedAccount=asSelectedAccount ass}}
@@ -194,7 +194,7 @@ asHandle ev = do
 -- The provided AccountsLikeScreen should correspond to the ui state's current screen.
 asHandleNormalMode :: AccountsLikeScreen -> BrickEvent Name AppEvent -> EventM Name UIState ()
 asHandleNormalMode (ALS scons ass) ev = do
-  dlogUiTraceM "asHandleNormalMode"
+  dbguiEv "asHandleNormalMode"
 
   ui@UIState{aopts=UIOpts{uoCliOpts=copts}, ajournal=j} <- get'
   d <- liftIO getCurrentDay
@@ -353,7 +353,7 @@ handleHelpMode ev = do
 
 enterRegisterScreen :: Day -> AccountName -> UIState -> EventM Name UIState ()
 enterRegisterScreen d acct ui@UIState{ajournal=j, aopts=uopts} = do
-  dlogUiTraceM "enterRegisterScreen"
+  dbguiEv "enterRegisterScreen"
   let
     regscr = rsNew uopts d j acct isdepthclipped
       where

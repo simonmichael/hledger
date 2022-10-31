@@ -149,10 +149,10 @@ uiReloadJournal copts d ui = do
   ej <-
     let copts' = enableForecastPreservingPeriod ui copts
     in runExceptT $ journalReload copts'
-  -- dlogUiTraceIO $ ("uiReloadJournal before reload: "++) $ pshow' $ map tdescription $ jtxns $ ajournal ui
+  -- dbguiIO $ ("uiReloadJournal before reload: "++) $ pshow' $ map tdescription $ jtxns $ ajournal ui
   return $ case ej of
     Right j  ->
-      -- dlogUiTrace (("uiReloadJournal after reload: "++) $ pshow' $ map tdescription $ jtxns j) $
+      -- dbgui (("uiReloadJournal after reload: "++) $ pshow' $ map tdescription $ jtxns j) $
       regenerateScreens j d ui
     Left err ->
       case ui of

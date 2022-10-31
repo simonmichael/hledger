@@ -62,7 +62,7 @@ screenUpdate opts d j = \case
 -- Screen-specific arguments: the error message to show.
 esNew :: String -> Screen
 esNew msg =
-  dlogUiTrace "esNew" $
+  dbgui "esNew" $
   ES ESS {
     _essError = msg
     ,_essUnused = ()
@@ -71,13 +71,13 @@ esNew msg =
 -- | Update an error screen. Currently a no-op since error screen
 -- depends only on its screen-specific state.
 esUpdate :: ErrorScreenState -> ErrorScreenState
-esUpdate = dlogUiTrace "esUpdate`"
+esUpdate = dbgui "esUpdate`"
 
 -- | Construct a menu screen.
 -- Screen-specific arguments: none.
 msNew :: Screen
 msNew =
-  dlogUiTrace "msNew" $
+  dbgui "msNew" $
   MS MSS {
      _mssList            = list MenuList (V.fromList [
        MenuScreenItem "All accounts" Accounts
@@ -90,7 +90,7 @@ msNew =
 -- | Update a menu screen. Currently a no-op since menu screen
 -- has unchanging content.
 msUpdate :: MenuScreenState -> MenuScreenState
-msUpdate = dlogUiTrace "msUpdate"
+msUpdate = dbgui "msUpdate"
 
 nullass macct = ASS {
    _assSelectedAccount = fromMaybe "" macct
@@ -101,11 +101,11 @@ nullass macct = ASS {
 -- with the appropriate one selected.
 -- Screen-specific arguments: the account to select if any.
 asNew :: UIOpts -> Day -> Journal -> Maybe AccountName -> Screen
-asNew uopts d j macct = dlogUiTrace "asNew" $ AS $ asUpdate uopts d j $ nullass macct
+asNew uopts d j macct = dbgui "asNew" $ AS $ asUpdate uopts d j $ nullass macct
 
 -- | Update an accounts screen's state from these options, reporting date, and journal.
 asUpdate :: UIOpts -> Day -> Journal -> AccountsScreenState -> AccountsScreenState
-asUpdate uopts d = dlogUiTrace "asUpdate" .
+asUpdate uopts d = dbgui "asUpdate" .
   asUpdateHelper rspec d copts roptsmod extraquery
   where
     UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}} = uopts
@@ -115,7 +115,7 @@ asUpdate uopts d = dlogUiTrace "asUpdate" .
 -- | Update an accounts-like screen's state from this report spec, reporting date,
 -- cli options, report options modifier, extra query, and journal.
 asUpdateHelper :: ReportSpec -> Day -> CliOpts -> (ReportOpts -> ReportOpts) -> Query -> Journal -> AccountsScreenState -> AccountsScreenState
-asUpdateHelper rspec0 d copts roptsModify extraquery j ass = dlogUiTrace "asUpdateHelper"
+asUpdateHelper rspec0 d copts roptsModify extraquery j ass = dbgui "asUpdateHelper"
   ass{_assList=l}
   where
     ropts = roptsModify $ _rsReportOpts rspec0
@@ -171,11 +171,11 @@ asUpdateHelper rspec0 d copts roptsModify extraquery j ass = dlogUiTrace "asUpda
 -- with the appropriate one selected.
 -- Screen-specific arguments: the account to select if any.
 bsNew :: UIOpts -> Day -> Journal -> Maybe AccountName -> Screen
-bsNew uopts d j macct = dlogUiTrace "bsNew" $ BS $ bsUpdate uopts d j $ nullass macct
+bsNew uopts d j macct = dbgui "bsNew" $ BS $ bsUpdate uopts d j $ nullass macct
 
 -- | Update a balance sheet screen's state from these options, reporting date, and journal.
 bsUpdate :: UIOpts -> Day -> Journal -> AccountsScreenState -> AccountsScreenState
-bsUpdate uopts d = dlogUiTrace "bsUpdate" .
+bsUpdate uopts d = dbgui "bsUpdate" .
   asUpdateHelper rspec d copts roptsmod extraquery
   where
     UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}} = uopts
@@ -186,11 +186,11 @@ bsUpdate uopts d = dlogUiTrace "bsUpdate" .
 -- with the appropriate one selected.
 -- Screen-specific arguments: the account to select if any.
 isNew :: UIOpts -> Day -> Journal -> Maybe AccountName -> Screen
-isNew uopts d j macct = dlogUiTrace "isNew" $ IS $ isUpdate uopts d j $ nullass macct
+isNew uopts d j macct = dbgui "isNew" $ IS $ isUpdate uopts d j $ nullass macct
 
 -- | Update an income statement screen's state from these options, reporting date, and journal.
 isUpdate :: UIOpts -> Day -> Journal -> AccountsScreenState -> AccountsScreenState
-isUpdate uopts d = dlogUiTrace "isUpdate" .
+isUpdate uopts d = dbgui "isUpdate" .
   asUpdateHelper rspec d copts roptsmod extraquery
   where
     UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}} = uopts
@@ -203,7 +203,7 @@ isUpdate uopts d = dlogUiTrace "isUpdate" .
 -- whether to force inclusive balances.
 rsNew :: UIOpts -> Day -> Journal -> AccountName -> Bool -> Screen
 rsNew uopts d j acct forceinclusive =  -- XXX forcedefaultselection - whether to force selecting the last transaction.
-  dlogUiTrace "rsNew" $
+  dbgui "rsNew" $
   RS $
   rsUpdate uopts d j $
   RSS {
@@ -215,7 +215,7 @@ rsNew uopts d j acct forceinclusive =  -- XXX forcedefaultselection - whether to
 -- | Update a register screen from these options, reporting date, and journal.
 rsUpdate :: UIOpts -> Day -> Journal -> RegisterScreenState -> RegisterScreenState
 rsUpdate uopts d j rss@RSS{_rssAccount, _rssForceInclusive, _rssList=oldlist} =
-  dlogUiTrace "rsUpdate"
+  dbgui "rsUpdate"
   rss{_rssList=l'}
   where
     UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}} = uopts
@@ -320,7 +320,7 @@ rsUpdate uopts d j rss@RSS{_rssAccount, _rssForceInclusive, _rssList=oldlist} =
 -- the list of showable transactions, the currently shown transaction.
 tsNew :: AccountName -> [NumberedTransaction] -> NumberedTransaction -> Screen
 tsNew acct nts nt =
-  dlogUiTrace "tsNew" $
+  dbgui "tsNew" $
   TS TSS{
      _tssAccount      = acct
     ,_tssTransactions = nts
@@ -330,5 +330,5 @@ tsNew acct nts nt =
 -- | Update a transaction screen. Currently a no-op since transaction screen
 -- depends only on its screen-specific state.
 tsUpdate :: TransactionScreenState -> TransactionScreenState
-tsUpdate = dlogUiTrace "tsUpdate"
+tsUpdate = dbgui "tsUpdate"
 

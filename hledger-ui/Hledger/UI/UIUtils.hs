@@ -32,14 +32,13 @@ module Hledger.UI.UIUtils (
   ,reportSpecAddQuery
   ,reportSpecSetFutureAndForecast
   ,listScrollPushingSelection
-  ,dlogUiTrace
-  ,dlogUiTraceIO
-  ,dlogUiTraceM
-  ,dlogUiScreenStack
+  ,dbgui
+  ,dbguiIO
+  ,dbguiEv
+  ,dbguiScreensEv
   ,screenRegisterDescriptions
   ,screenId
   ,mapScreens
-  ,uiDebugLevel
   ,uiNumBlankItems
   )
 where
@@ -87,32 +86,32 @@ suspendSignal = raiseSignal sigSTOP
 
 get' = do
   x <- get
-  dlogUiTraceM $ "getting state: " ++ (head $ lines $ pshow $ aScreen x)
+  dbguiEv $ "getting state: " ++ (head $ lines $ pshow $ aScreen x)
     -- ++ " " ++ (show $ map tdescription $ jtxns $ ajournal x)
-  -- dlogUiTraceM $ ("query: "++) $ pshow' $ x  & aopts & uoCliOpts & reportspec_ & _rsQuery
-  -- dlogUiScreenStack "getting" screenId x
-  -- dlogUiScreenStack "getting, with register descriptions" screenRegisterDescriptions x
+  -- dbguiEv $ ("query: "++) $ pshow' $ x  & aopts & uoCliOpts & reportspec_ & _rsQuery
+  -- dbguiScreensEv "getting" screenId x
+  -- dbguiScreensEv "getting, with register descriptions" screenRegisterDescriptions x
   return x
 
 put' x = do
-  dlogUiTraceM $ "putting state: " ++ (head $ lines $ pshow $ aScreen x)
+  dbguiEv $ "putting state: " ++ (head $ lines $ pshow $ aScreen x)
     -- ++ " " ++ (show $ map tdescription $ jtxns $ ajournal x)
-  -- dlogUiTraceM $ ("query: "++) $ pshow' $ x  & aopts & uoCliOpts & reportspec_ & _rsQuery
-  -- dlogUiScreenStack "putting" screenId x
-  -- dlogUiScreenStack "putting, with register descriptions" screenRegisterDescriptions x
+  -- dbguiEv $ ("query: "++) $ pshow' $ x  & aopts & uoCliOpts & reportspec_ & _rsQuery
+  -- dbguiScreensEv "putting" screenId x
+  -- dbguiScreensEv "putting, with register descriptions" screenRegisterDescriptions x
   put x
 
 modify' f = do
   x <- get
   let x' = f x
-  dlogUiTraceM $ "modifying state: " ++ (head $ lines $ pshow $ aScreen x')
+  dbguiEv $ "modifying state: " ++ (head $ lines $ pshow $ aScreen x')
     -- ++ " " ++ (show $ map tdescription $ jtxns $ ajournal x')
-  -- dlogUiTraceM $ ("from: "++) $ pshow' $ x  & aopts & uoCliOpts & reportspec_ & _rsQuery
-  -- dlogUiTraceM $ ("to:   "++) $ pshow' $ x' & aopts & uoCliOpts & reportspec_ & _rsQuery
-  -- dlogUiScreenStack "getting" screenId x
-  -- dlogUiScreenStack "putting" screenId x'
-  -- dlogUiScreenStack "getting, with register descriptions" screenRegisterDescriptions x
-  -- dlogUiScreenStack "putting, with register descriptions" screenRegisterDescriptions x'
+  -- dbguiEv $ ("from: "++) $ pshow' $ x  & aopts & uoCliOpts & reportspec_ & _rsQuery
+  -- dbguiEv $ ("to:   "++) $ pshow' $ x' & aopts & uoCliOpts & reportspec_ & _rsQuery
+  -- dbguiScreensEv "getting" screenId x
+  -- dbguiScreensEv "putting" screenId x'
+  -- dbguiScreensEv "getting, with register descriptions" screenRegisterDescriptions x
+  -- dbguiScreensEv "putting, with register descriptions" screenRegisterDescriptions x'
   modify f
 
 -- | On posix platforms, suspend the program using the STOP signal,
@@ -439,29 +438,33 @@ listScrollPushingSelection name listheight scrollamt = do
         _ -> return list
     _ -> return list
 
--- | Log a string to ./debug.log before returning the second argument,
--- if the global debug level is at or above a standard hledger-ui debug level.
--- Uses unsafePerformIO.
-dlogUiTrace :: String -> a -> a
-dlogUiTrace = traceLogAt uiDebugLevel
+-- Log hledger-ui events at this debug level and above.
+uiDebugLevel :: Int
+uiDebugLevel = 1
 
--- | Like dlogUiTrace, but convenient in IO.
-dlogUiTraceIO :: String -> IO ()
-dlogUiTraceIO s = dlogUiTrace s $ return ()
+-- | A debug logging helper to use in hledger-ui code:
+-- at any debug level >= 1, logs the string to ./debug.log before returning the second argument.
+-- Like traceLogAt 1. Uses unsafePerformIO.
+dbgui :: String -> a -> a
+dbgui = traceLogAt uiDebugLevel
 
--- | Like dlogUiTrace, but convenient in event handlers.
-dlogUiTraceM :: String -> EventM Name UIState ()
-dlogUiTraceM s = dlogUiTrace s $ return ()
+-- | Like dbgui, but convenient in IO.
+dbguiIO :: String -> IO ()
+dbguiIO s = dbgui s $ return ()
 
--- | Like dlogUiTraceM, but log a compact view of the current screen stack,
+-- | Like dbgui, but convenient in hledger EventM handlers.
+dbguiEv :: String -> EventM Name s ()
+dbguiEv s = dbgui s $ return ()
+
+-- | Like dbguiEv, but log a compact view of the current screen stack,
 -- from topmost screen to currently-viewed screen,
 -- with each screen rendered by the given rendering function
 -- (and with the given extra label if any).
 -- Useful for inspecting states across the whole screen stack.
--- To just show the stack: @dlogUiScreenStack "" screenId ui@
-dlogUiScreenStack :: String -> (Screen -> String) -> UIState -> EventM Name UIState ()
-dlogUiScreenStack postfix showscr ui =
-  dlogUiTraceM $ concat [
+-- To just show the stack: @dbguiScreensEv "" screenId ui@
+dbguiScreensEv :: String -> (Screen -> String) -> UIState -> EventM Name UIState ()
+dbguiScreensEv postfix showscr ui =
+  dbguiEv $ concat [
      "screen stack"
     ,if null postfix then "" else " (" ++ postfix ++ ")"
     ,": "
@@ -491,10 +494,6 @@ screenId = \case
   RS _ -> "R"  -- menu
   TS _ -> "T"  -- transaction
   ES _ -> "E"  -- error
-
--- | Log hledger-ui events at this debug level.
-uiDebugLevel :: Int
-uiDebugLevel = 2
 
 -- | How many blank items to add to lists to fill the full window height.
 uiNumBlankItems :: Int

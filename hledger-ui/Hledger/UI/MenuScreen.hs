@@ -42,7 +42,7 @@ msDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=_rspec}}
               ,ajournal=j
               ,aScreen=MS sst
               ,aMode=mode
-              } = dlogUiTrace "msDraw" $
+              } = dbgui "msDraw" $
     case mode of
       Help              -> [helpDialog, maincontent]
       _                 -> [maincontent]
@@ -83,7 +83,7 @@ msDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=_rspec}}
               ,("q", str "quit")
               ]
 
-msDraw _ =  dlogUiTrace "msDraw" $ errorWrongScreenType "draw function"  -- PARTIAL:
+msDraw _ =  dbgui "msDraw" $ errorWrongScreenType "draw function"  -- PARTIAL:
 
 -- msDrawItem :: (Int,Int) -> Bool -> MenuScreenItem -> Widget Name
 -- msDrawItem (_acctwidth, _balwidth) _selected MenuScreenItem{..} =
@@ -96,7 +96,7 @@ msDrawItem _selected MenuScreenItem{..} =
 msHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
 msHandle ev = do
   ui0 <- get'
-  dlogUiTraceM "msHandle"
+  dbguiEv "msHandle"
   case ui0 of
     ui@UIState{
        aopts=UIOpts{uoCliOpts=copts}
@@ -249,11 +249,11 @@ msHandle ev = do
             MouseUp{}   -> return ()
             AppEvent _  -> return ()
 
-    _ -> dlogUiTraceM "msHandle" >> errorWrongScreenType "event handler"
+    _ -> dbguiEv "msHandle" >> errorWrongScreenType "event handler"
 
 msEnterScreen :: Day -> ScreenName -> UIState -> EventM Name UIState ()
 msEnterScreen d scrname ui@UIState{ajournal=j, aopts=uopts} = do
-  dlogUiTraceM "msEnterScreen"
+  dbguiEv "msEnterScreen"
   let
     scr = case scrname of
       Accounts        -> asNew uopts d j Nothing

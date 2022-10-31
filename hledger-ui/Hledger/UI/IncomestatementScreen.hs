@@ -20,11 +20,11 @@ import Hledger.UI.AccountsScreen (asHandle, asDrawHelper)
 
 
 isDraw :: UIState -> [Widget Name]
-isDraw ui = dlogUiTrace "isDraw" $ asDrawHelper ui ropts' scrname showbalchgkey
+isDraw ui = dbgui "isDraw" $ asDrawHelper ui ropts' scrname showbalchgkey
   where
     scrname = "income statement"
     ropts' = (_rsReportOpts $ reportspec_ $ uoCliOpts $ aopts ui){balanceaccum_=PerPeriod}
     showbalchgkey = False
 
 isHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
-isHandle = asHandle . dlogUiTrace "isHandle"
+isHandle = asHandle . dbgui "isHandle"
