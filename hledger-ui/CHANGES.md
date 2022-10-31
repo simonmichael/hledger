@@ -13,23 +13,17 @@ See also the hledger changelog.
 
 Features
 
-- New menu screen, balance sheet accounts screen, and income statement
-  accounts screens.
+- A new balance sheet accounts screen, and income statement
+  accounts screen, and top-level menu screen have been added.
 
 Improvements
 
-- Mouse-clicking in empty space below the last list item no longer navigates
-  back. We found this too obtrusive, eg when you just want to focus the window.
-
-- At --debug 2 and up, also log input & app events.
-
-- Internal type changes to allow fewer invalid states and make hledger-ui
-  easier to develop and debug. Follow-on from the brick 1.0 migration work
+- hledger-ui's internal types have been changed to allow fewer invalid states and make it easier  to develop and debug.
   (#1889, #1919).
 
-- Debug logging to debug.log now happens at --debug=1 and up, and is more informative.
+- Debug logging has been improved, with much more informative output to debug.log (and is now enabled at debug level 1+, not 2+).
 
-- New debug logging helpers in Hledger.Ui.UIUtils:
+- Debug logging helpers have been added and cleaned up in Hledger.Ui.UIUtils:
   dbgui
   dbguiIO
   dbguiEv
@@ -42,7 +36,10 @@ Improvements
 
 Fixes
 
-- Fixed a possible bug with detecting a change of date in --watch mode.
+- Mouse-clicking in empty space below the last list item no longer navigates
+  back. It was too obtrusive, eg when you just want to focus the window. You can still navigate back with the mouse by clicking the left edge of the window.
+
+- A possible bug with detecting change of date while in --watch mode has been fixed.
 
 # 1.27.1 2022-09-18
 
