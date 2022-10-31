@@ -9,16 +9,39 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# a2be9a0bc
+# 603fae70c
 
 Features
 
+- The `accounts` command has new flags: `--undeclared` (show accounts used but not declared), `--unused` (show accounts declared but not used),  and `--find` (find the first account matched by the first command argument, a convenience for scripts). Also `-u` and `-d` short flags have been added for `--used` and `--declared`.
+
+- A new CSV rule `intra-day-reversed` helps generate transactions in correct order with CSVs where records are reversed within each day.
+
+- CSV rules can now correctly convert CSV date-times with a implicit or explicit timezone to dates in your local timezone. Previously, CSV date-times with a different time zone from yours could convert to off-by-one
+  dates, because the CSV's timezone was ignored.
+  Now,
+
+  1. When a CSV has date-times with an implicit timezone different from yours, you can use the `timezone` rule to declare it.
+
+  2. CSV date-times with a known timezone (either declared by `timezone` or parsed with `%Z`) will be localised to the system timezone
+     (or to the timezone set with the `TZ` environment variable).
+
+(#1936)
+  
 Improvements
 
 - Developer builds made in a dirty working directory (uncommitted changes)
   now show a plus sign (+) in --version output.
 
 Fixes
+
+- In CSV rules, when assigning a parenthesised account name to   `accountN`, extra whitespace is now ignored, allowing unbalanced postings to be detected correctly.
+
+Scripts/addons
+
+- bin/hledger-move helps record transfers involving subaccounts and costs, eg when withdrawing some or all of an investment balance containing many lots and costs.
+
+- bin/watchaccounts is a small shell script for watching the account tree as you make changes.
 
 # 1.27.1 2022-09-18
 

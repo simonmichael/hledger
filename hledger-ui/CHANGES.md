@@ -9,7 +9,7 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# a2be9a0bc
+# 9a9ebfc0e
 
 Features
 
@@ -26,6 +26,19 @@ Improvements
 - Internal type changes to allow fewer invalid states and make hledger-ui
   easier to develop and debug. Follow-on from the brick 1.0 migration work
   (#1889, #1919).
+
+- Debug logging to debug.log now happens at --debug=1 and up, and is more informative.
+
+- New debug logging helpers in Hledger.Ui.UIUtils:
+  dbgui
+  dbguiIO
+  dbguiEv
+  dbguiScreensEv
+  mapScreens
+  screenId
+  screenRegisterDescriptions
+
+- Support (and require) fsnotify 0.4.x
 
 Fixes
 

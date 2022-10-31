@@ -9,10 +9,9 @@ __      _____| |__
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# a2be9a0bc
+# 928cc6d61
 
-- dev: web: start also tracking manual hledger-web tests
-  related: #1932
+- add some manual tests to the test suite (#1932)
 
 # 1.27.1 2022-09-18
 

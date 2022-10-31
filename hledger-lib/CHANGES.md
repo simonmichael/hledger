@@ -9,7 +9,48 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# a2be9a0bc
+# 603fae70c
+
+- Hledger.Utils.Debug: clean up/simplify debug helpers.
+
+- Moved from Hledger.Utils.Debug to Hledger.Utils.Parse:
+  traceParse
+  traceParseAt
+  dbgparse
+
+- Moved from Hledger.Utils.Debug to Hledger.Utils.Print:
+  pshow
+  pshow'
+  pprint
+  pprint'
+  colorOption
+  useColorOnStdout
+  useColorOnStderr
+  outputFileOption
+  hasOutputFile
+
+- note changed cost handling in amount arithmetic
+
+- Hledger.Data.Amount: showMixedAmountOneLine now shows costs
+
+- Hledger.Read.Common: rename/add amount parsing helpers.
+
+  added:
+   parseamount
+   parseamount'
+   parsemixedamount
+   parsemixedamount'
+
+  removed:
+   amountp'
+   mamountp'
+
+- Hledger.Utils.Parse:
+  export customErrorBundlePretty, 
+  for pretty-printing hledger parse errors.
+
+- Update cabal files to match hpack 0.35/stack 2.9
+
 
 # 1.27 2022-09-01
 
