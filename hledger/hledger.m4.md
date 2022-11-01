@@ -353,7 +353,7 @@ If this variable exists with any value,
 hledger will not use ANSI color codes in terminal output.
 This is overriden by the --color/--colour option.
 
-# DATA FILES
+# INPUT
 
 hledger reads transactions from one or more data files.
 The default data file is `$HOME/.hledger.journal`
@@ -442,6 +442,179 @@ With the `-s`/`--strict` flag, additional checks are performed:
 
 You can use the [check](#check) command to run individual checks -- the
 ones listed above and some more.
+
+# OUTPUT
+
+Some of this section may refer to things explained further below.
+
+## Output destination
+
+hledger commands send their output to the terminal by default.
+You can of course redirect this, eg into a file, using standard shell syntax:
+```shell
+$ hledger print > foo.txt
+```
+
+Some commands (print, register, stats, the balance commands) also
+provide the `-o/--output-file` option, which does the same thing
+without needing the shell. Eg:
+```shell
+$ hledger print -o foo.txt
+$ hledger print -o -        # write to stdout (the default)
+```
+
+hledger can produce debug output (if enabled with `--debug[=N]`).
+N ranges from 1 (least output, the default) to 9 (maximum output).
+Debug output goes to stderr, and is not affected by `-o/--output-file`.
+It will appear interleaved with normal output, which can help in understanding when code is evaluated.
+To capture it in a log file instead, use shell redirects, eg: `hledger bal --debug=3 2>hledger.log`.
+
+## Output styling
+
+hledger commands can produce colour output when the terminal supports it.
+This is controlled by the `--color/--colour` option:
+- if the `--color/--colour` option is given a value of `yes` or `always`
+  (or `no` or `never`), colour will (or will not) be used;
+- otherwise, if the `NO_COLOR` environment variable is set, colour will not be used;
+- otherwise, colour will be used if the output (terminal or file) supports it.
+
+hledger commands can also use unicode box-drawing characters to produce prettier tables and output.
+This is controlled by the `--pretty` option:
+- if the `--pretty` option is given a value of `yes` or `always`
+  (or `no` or `never`), unicode characters will (or will not) be used;
+- otherwise, unicode characters will not be used.
+
+## Output format
+
+Some commands offer additional output formats, other than the usual plain text terminal output.
+Here are those commands and the formats currently supported:
+
+| -                  | txt   | csv   | html    | json | sql |
+|--------------------|-------|-------|---------|------|-----|
+| aregister          | Y     | Y     |         | Y    |     |
+| balance            | Y *<sup>1</sup>* | Y *<sup>1</sup>* | Y *<sup>1,2</sup>* | Y    |     |
+| balancesheet       | Y *<sup>1</sup>* | Y *<sup>1</sup>* | Y *<sup>1</sup>*   | Y    |     |
+| balancesheetequity | Y *<sup>1</sup>* | Y *<sup>1</sup>* | Y *<sup>1</sup>*   | Y    |     |
+| cashflow           | Y *<sup>1</sup>* | Y *<sup>1</sup>* | Y *<sup>1</sup>*   | Y    |     |
+| incomestatement    | Y *<sup>1</sup>* | Y *<sup>1</sup>* | Y *<sup>1</sup>*   | Y    |     |
+| print              | Y     | Y     |         | Y    | Y   |
+| register           | Y     | Y     |         | Y    |     |
+
+- *<sup>1</sup> Also affected by the balance commands' [`--layout` option](#commodity-layout).*
+- *<sup>2</sup> `balance` does not support html output without a report interval or with `--budget`.*
+
+<!--
+| accounts              |     |     |      |      |     |
+| activity              |     |     |      |      |     |
+| add                   |     |     |      |      |     |
+| check                 |     |     |      |      |     |
+| check-fancyassertions |     |     |      |      |     |
+| check-tagfiles        |     |     |      |      |     |
+| close                 |     |     |      |      |     |
+| codes                 |     |     |      |      |     |
+| commodities           |     |     |      |      |     |
+| descriptions          |     |     |      |      |     |
+| diff                  |     |     |      |      |     |
+| files                 |     |     |      |      |     |
+| iadd                  |     |     |      |      |     |
+| import                |     |     |      |      |     |
+| interest              |     |     |      |      |     |
+| notes                 |     |     |      |      |     |
+| payees                |     |     |      |      |     |
+| prices                |     |     |      |      |     |
+| print-unique          |     |     |      |      |     |
+| register-match        |     |     |      |      |     |
+| rewrite               |     |     |      |      |     |
+| roi                   |     |     |      |      |     |
+| stats                 |     |     |      |      |     |
+| stockquotes           |     |     |      |      |     |
+| tags                  |     |     |      |      |     |
+| test                  |     |     |      |      |     |
+-->
+
+The output format is selected by the `-O/--output-format=FMT` option:
+```shell
+$ hledger print -O csv    # print CSV on stdout
+```
+
+or by the filename extension of an output file specified with the `-o/--output-file=FILE.FMT` option:
+```shell
+$ hledger balancesheet -o foo.csv    # write CSV to foo.csv
+```
+
+The `-O` option can be combined with `-o` to override the file extension, if needed:
+```shell
+$ hledger balancesheet -o foo.txt -O csv    # write CSV to foo.txt
+```
+
+### CSV output
+
+- In CSV output, [digit group marks](#decimal-marks-digit-group-marks) (such as thousands separators)
+  are disabled automatically.
+
+### HTML output
+
+- HTML output can be styled by an optional `hledger.css` file in the same directory.
+
+### JSON output
+
+- Not yet much used; real-world feedback is welcome.
+
+- Our JSON is rather large and verbose, as it is quite a faithful
+  representation of hledger's internal data types. To understand the
+  JSON, read the Haskell type definitions, which are mostly in
+  <https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Data/Types.hs>.
+
+<!--
+- The JSON output from hledger commands is essentially the same as the
+  JSON served by [hledger-web's JSON API](hledger-web.html#json-api),
+  but pretty printed, using line breaks and indentation.
+  Our pretty printer has the ability to elide data in certain cases -
+  rendering non-strings as if they were strings, or displaying "FOO.."
+  instead of FOO's full details. This should never happen in hledger's
+  JSON output; if you see otherwise, please report as a bug.
+-->
+
+- hledger represents quantities as Decimal values storing up to 255
+  significant digits, eg for repeating decimals. Such numbers can
+  arise in practice (from automatically-calculated transaction
+  prices), and would break most JSON consumers. So in JSON, we show
+  quantities as simple Numbers with at most 10 decimal places. We
+  don't limit the number of integer digits, but that part is under
+  your control.
+  We hope this approach will not cause problems in practice; if you
+  find otherwise, please let us know. 
+  (Cf [#1195](https://github.com/simonmichael/hledger/issues/1195))
+
+### SQL output
+
+- Not yet much used; real-world feedback is welcome.
+
+- SQL output is expected to work with sqlite, MySQL and PostgreSQL
+
+- SQL output is structured with the expectations that statements will
+  be executed in the empty database. If you already have tables created
+  via SQL output of hledger, you would probably want to either clear tables
+  of existing data (via `delete` or `truncate` SQL statements) or drop
+  tables completely as otherwise your postings will be duped.
+
+## Commodity styles
+
+The display style of a commodity/currency is inferred according to the rules
+described in [Commodity display style](#commodity-display-style). The
+inferred display style can be overridden by an optional `-c/--commodity-style` 
+option (Exceptions: as is the case for inferred styles, 
+[price amounts](#transaction-prices), and all amounts displayed by the 
+[`print`](#print) command, will be displayed with all of their decimal digits 
+visible, regardless of the specified precision). For example, the following will 
+override the display style for dollars.
+```shell
+$ hledger print -c '$1.000,0'
+```
+The format specification of the style is identical to the commodity display
+style specification for the [commodity directive](#declaring-commodities). 
+The command line option can be supplied repeatedly to override the display 
+style for multiple commodity/currency symbols.
 
 # TIME PERIODS
 ## Smart dates
@@ -1729,179 +1902,6 @@ $ hledger balance --pivot member acct:.
 --------------------
               -2 EUR
 ```
-
-# OUTPUT
-
-## Output destination
-
-hledger commands send their output to the terminal by default.
-You can of course redirect this, eg into a file, using standard shell syntax:
-```shell
-$ hledger print > foo.txt
-```
-
-Some commands (print, register, stats, the balance commands) also
-provide the `-o/--output-file` option, which does the same thing
-without needing the shell. Eg:
-```shell
-$ hledger print -o foo.txt
-$ hledger print -o -        # write to stdout (the default)
-```
-
-hledger can produce debug output (if enabled with `--debug[=N]`).
-N ranges from 1 (least output, the default) to 9 (maximum output).
-Debug output goes to stderr, and is not affected by `-o/--output-file`.
-It will appear interleaved with normal output, which can help in understanding when code is evaluated.
-To capture it in a log file instead, use shell redirects, eg: `hledger bal --debug=3 2>hledger.log`.
-
-## Output styling
-
-hledger commands can produce colour output when the terminal supports it.
-This is controlled by the `--color/--colour` option:
-- if the `--color/--colour` option is given a value of `yes` or `always`
-  (or `no` or `never`), colour will (or will not) be used;
-- otherwise, if the `NO_COLOR` environment variable is set, colour will not be used;
-- otherwise, colour will be used if the output (terminal or file) supports it.
-
-hledger commands can also use unicode box-drawing characters to produce prettier tables and output.
-This is controlled by the `--pretty` option:
-- if the `--pretty` option is given a value of `yes` or `always`
-  (or `no` or `never`), unicode characters will (or will not) be used;
-- otherwise, unicode characters will not be used.
-
-## Output format
-
-Some commands offer additional output formats, other than the usual plain text terminal output.
-Here are those commands and the formats currently supported:
-
-| -                  | txt   | csv   | html    | json | sql |
-|--------------------|-------|-------|---------|------|-----|
-| aregister          | Y     | Y     |         | Y    |     |
-| balance            | Y *<sup>1</sup>* | Y *<sup>1</sup>* | Y *<sup>1,2</sup>* | Y    |     |
-| balancesheet       | Y *<sup>1</sup>* | Y *<sup>1</sup>* | Y *<sup>1</sup>*   | Y    |     |
-| balancesheetequity | Y *<sup>1</sup>* | Y *<sup>1</sup>* | Y *<sup>1</sup>*   | Y    |     |
-| cashflow           | Y *<sup>1</sup>* | Y *<sup>1</sup>* | Y *<sup>1</sup>*   | Y    |     |
-| incomestatement    | Y *<sup>1</sup>* | Y *<sup>1</sup>* | Y *<sup>1</sup>*   | Y    |     |
-| print              | Y     | Y     |         | Y    | Y   |
-| register           | Y     | Y     |         | Y    |     |
-
-- *<sup>1</sup> Also affected by the balance commands' [`--layout` option](#commodity-layout).*
-- *<sup>2</sup> `balance` does not support html output without a report interval or with `--budget`.*
-
-<!--
-| accounts              |     |     |      |      |     |
-| activity              |     |     |      |      |     |
-| add                   |     |     |      |      |     |
-| check                 |     |     |      |      |     |
-| check-fancyassertions |     |     |      |      |     |
-| check-tagfiles        |     |     |      |      |     |
-| close                 |     |     |      |      |     |
-| codes                 |     |     |      |      |     |
-| commodities           |     |     |      |      |     |
-| descriptions          |     |     |      |      |     |
-| diff                  |     |     |      |      |     |
-| files                 |     |     |      |      |     |
-| iadd                  |     |     |      |      |     |
-| import                |     |     |      |      |     |
-| interest              |     |     |      |      |     |
-| notes                 |     |     |      |      |     |
-| payees                |     |     |      |      |     |
-| prices                |     |     |      |      |     |
-| print-unique          |     |     |      |      |     |
-| register-match        |     |     |      |      |     |
-| rewrite               |     |     |      |      |     |
-| roi                   |     |     |      |      |     |
-| stats                 |     |     |      |      |     |
-| stockquotes           |     |     |      |      |     |
-| tags                  |     |     |      |      |     |
-| test                  |     |     |      |      |     |
--->
-
-The output format is selected by the `-O/--output-format=FMT` option:
-```shell
-$ hledger print -O csv    # print CSV on stdout
-```
-
-or by the filename extension of an output file specified with the `-o/--output-file=FILE.FMT` option:
-```shell
-$ hledger balancesheet -o foo.csv    # write CSV to foo.csv
-```
-
-The `-O` option can be combined with `-o` to override the file extension, if needed:
-```shell
-$ hledger balancesheet -o foo.txt -O csv    # write CSV to foo.txt
-```
-
-### CSV output
-
-- In CSV output, [digit group marks](#decimal-marks-digit-group-marks) (such as thousands separators)
-  are disabled automatically.
-
-### HTML output
-
-- HTML output can be styled by an optional `hledger.css` file in the same directory.
-
-### JSON output
-
-- Not yet much used; real-world feedback is welcome.
-
-- Our JSON is rather large and verbose, as it is quite a faithful
-  representation of hledger's internal data types. To understand the
-  JSON, read the Haskell type definitions, which are mostly in
-  <https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Data/Types.hs>.
-
-<!--
-- The JSON output from hledger commands is essentially the same as the
-  JSON served by [hledger-web's JSON API](hledger-web.html#json-api),
-  but pretty printed, using line breaks and indentation.
-  Our pretty printer has the ability to elide data in certain cases -
-  rendering non-strings as if they were strings, or displaying "FOO.."
-  instead of FOO's full details. This should never happen in hledger's
-  JSON output; if you see otherwise, please report as a bug.
--->
-
-- hledger represents quantities as Decimal values storing up to 255
-  significant digits, eg for repeating decimals. Such numbers can
-  arise in practice (from automatically-calculated transaction
-  prices), and would break most JSON consumers. So in JSON, we show
-  quantities as simple Numbers with at most 10 decimal places. We
-  don't limit the number of integer digits, but that part is under
-  your control.
-  We hope this approach will not cause problems in practice; if you
-  find otherwise, please let us know. 
-  (Cf [#1195](https://github.com/simonmichael/hledger/issues/1195))
-
-### SQL output
-
-- Not yet much used; real-world feedback is welcome.
-
-- SQL output is expected to work with sqlite, MySQL and PostgreSQL
-
-- SQL output is structured with the expectations that statements will
-  be executed in the empty database. If you already have tables created
-  via SQL output of hledger, you would probably want to either clear tables
-  of existing data (via `delete` or `truncate` SQL statements) or drop
-  tables completely as otherwise your postings will be duped.
-
-
-
-## Commodity styles
-
-The display style of a commodity/currency is inferred according to the rules
-described in [Commodity display style](#commodity-display-style). The
-inferred display style can be overridden by an optional `-c/--commodity-style` 
-option (Exceptions: as is the case for inferred styles, 
-[price amounts](#transaction-prices), and all amounts displayed by the 
-[`print`](#print) command, will be displayed with all of their decimal digits 
-visible, regardless of the specified precision). For example, the following will 
-override the display style for dollars.
-```shell
-$ hledger print -c '$1.000,0'
-```
-The format specification of the style is identical to the commodity display
-style specification for the [commodity directive](#declaring-commodities). 
-The command line option can be supplied repeatedly to override the display 
-style for multiple commodity/currency symbols.
 
 # COMMANDS
 
