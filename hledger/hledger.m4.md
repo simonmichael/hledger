@@ -1748,9 +1748,11 @@ $ hledger print -o foo.txt
 $ hledger print -o -        # write to stdout (the default)
 ```
 
-hledger can optionally produce debug output (if enabled with `--debug=N`); 
-this goes to stderr, and is not affected by `-o/--output-file`.
-If you need to capture it, use shell redirects, eg: `hledger bal --debug=3 >file 2>&1`.
+hledger can produce debug output (if enabled with `--debug[=N]`).
+N ranges from 1 (least output, the default) to 9 (maximum output).
+Debug output goes to stderr, and is not affected by `-o/--output-file`.
+It will appear interleaved with normal output, which can help in understanding when code is evaluated.
+To capture it in a log file instead, use shell redirects, eg: `hledger bal --debug=3 2>hledger.log`.
 
 ## Output styling
 
