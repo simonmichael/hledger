@@ -101,7 +101,7 @@ getHledgerUIOpts :: IO UIOpts
 --getHledgerUIOpts = processArgs uimode >>= return >>= rawOptsToUIOpts
 getHledgerUIOpts = do
   args <- getArgs >>= expandArgsAt
-  let args' = replaceNumericFlags args
+  let args' = replaceNumericFlags $ ensureDebugHasArg args
   let cmdargopts = either usageError id $ process uimode args'
   rawOptsToUIOpts cmdargopts
 

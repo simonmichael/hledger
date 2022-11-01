@@ -40,7 +40,6 @@ etc.
 
 module Hledger.Cli.Main where
 
-import Data.Char (isDigit)
 import Data.List
 import Safe
 import qualified System.Console.CmdArgs.Explicit as C
@@ -220,23 +219,17 @@ argsToCliOpts args addons = do
 -- | A hacky workaround for cmdargs not accepting flags before the
 -- subcommand name: try to detect and move such flags after the
 -- command.  This allows the user to put them in either position.
--- The order of options is not preserved, but this should be ok.
+-- The order of options is not preserved, but that should be ok.
 --
 -- Since we're not parsing flags as precisely as cmdargs here, this is
 -- imperfect. We make a decent effort to:
 -- - move all no-argument help/input/report flags
 -- - move all required-argument help/input/report flags along with their values, space-separated or not
+-- - ensure --debug has an argument (because.. "or this all goes to hell")
 -- - not confuse things further or cause misleading errors.
 moveFlagsAfterCommand :: [String] -> [String]
 moveFlagsAfterCommand args = moveArgs $ ensureDebugHasArg args
   where
-    -- quickly! make sure --debug has a numeric argument, or this all goes to hell
-    ensureDebugHasArg as =
-      case break (=="--debug") as of
-       (bs,"--debug":c:cs) | null c || not (all isDigit c) -> bs++"--debug=1":c:cs
-       (bs,["--debug"])                                    -> bs++["--debug=1"]
-       _                                                   -> as
-
     moveArgs args1 = insertFlagsAfterCommand $ moveArgs' (args1, [])
       where
         -- -f FILE ..., --alias ALIAS ...

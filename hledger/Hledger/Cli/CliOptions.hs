@@ -37,6 +37,7 @@ module Hledger.Cli.CliOptions (
   withAliases,
   likelyExecutablesInPath,
   hledgerExecutablesInPath,
+  ensureDebugHasArg,
 
   -- * CLI options
   CliOpts(..),
@@ -798,3 +799,10 @@ instance HasReportOptsNoUpdate CliOpts where
 
 instance HasReportOpts CliOpts where
     reportOpts = reportSpec.reportOpts
+
+-- | Convert an argument-less --debug flag to --debug=1 in the given arguments list.
+-- Used by hledger/ui/web to make their command line parsing easier somehow.
+ensureDebugHasArg as = case break (=="--debug") as of
+  (bs,"--debug":c:cs) | null c || not (all isDigit c) -> bs++"--debug=1":c:cs
+  (bs,["--debug"])                                    -> bs++["--debug=1"]
+  _                                                   -> as
