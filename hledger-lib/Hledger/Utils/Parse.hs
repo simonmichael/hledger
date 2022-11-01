@@ -38,8 +38,7 @@ module Hledger.Utils.Parse (
   skipNonNewlineSpaces',
 
   -- ** Trace the state of hledger parsers
-  traceParse,
-  traceParseAt,
+  traceOrLogParse,
   dbgparse,
 
   -- * re-exports
@@ -61,8 +60,7 @@ import Data.List
 import Data.Text (Text)
 import Text.Megaparsec.Char
 import Text.Megaparsec.Custom
-import Debug.Trace (trace)
-import Hledger.Utils.Debug (debugLevel)
+import Hledger.Utils.Debug (debugLevel, traceOrLog)
 
 -- | A parser of string to some type.
 type SimpleStringParser a = Parsec HledgerParseErrorData String a
@@ -73,31 +71,30 @@ type SimpleTextParser = Parsec HledgerParseErrorData Text  -- XXX an "a" argumen
 -- | A parser of text that runs in some monad.
 type TextParser m a = ParsecT HledgerParseErrorData Text m a
 
--- | Print the provided label (if non-null) and current parser state
--- (position and next input) to the console. See also megaparsec's dbg.
-traceParse :: String -> TextParser m ()
-traceParse msg = do
+-- | Trace to stderr or log to debug log the provided label (if non-null)
+-- and current parser state (position and next input).
+-- See also: Hledger.Utils.Debug, megaparsec's dbg.
+-- Uses unsafePerformIO.
+traceOrLogParse :: String -> TextParser m ()
+traceOrLogParse msg = do
   pos <- getSourcePos
   next <- (T.take peeklength) `fmap` getInput
   let (l,c) = (sourceLine pos, sourceColumn pos)
       s  = printf "at line %2d col %2d: %s" (unPos l) (unPos c) (show next) :: String
       s' = printf ("%-"++show (peeklength+30)++"s") s ++ " " ++ msg
-  trace s' $ return ()
+  traceOrLog s' $ return ()
   where
     peeklength = 30
 
--- | Print the provided label (if non-null) and current parser state
--- (position and next input) to the console if the global debug level
--- is at or above the specified level. Uses unsafePerformIO.
--- (See also megaparsec's dbg.)
-traceParseAt :: Int -> String -> TextParser m ()
-traceParseAt level msg = when (level <= debugLevel) $ traceParse msg
-
--- | Convenience alias for traceParseAt
 -- class (Stream s, MonadPlus m) => MonadParsec e s m 
 -- dbgparse :: (MonadPlus m, MonadParsec e String m) => Int -> String -> m ()
+
+-- | Trace to stderr or log to debug log the provided label (if non-null)
+-- and current parser state (position and next input),
+-- if the global debug level is at or above the specified level.
+-- Uses unsafePerformIO.
 dbgparse :: Int -> String -> TextParser m ()
-dbgparse = traceParseAt
+dbgparse level msg = when (level <= debugLevel) $ traceOrLogParse msg
 
 -- | Render a pair of source positions in human-readable form, only displaying the range of lines.
 sourcePosPairPretty :: (SourcePos, SourcePos) -> String

@@ -246,9 +246,8 @@ journalRenumberAccountDeclarations j = j{jdeclaredaccounts=jdas'}
 -- | Debug log the ordering of a journal's account declarations
 -- (at debug level 5+).
 dbgJournalAcctDeclOrder :: String -> Journal -> Journal
-dbgJournalAcctDeclOrder prefix
-  | debugLevel >= 5 = traceWith ((prefix++) . showAcctDeclsSummary . jdeclaredaccounts)
-  | otherwise       = id
+dbgJournalAcctDeclOrder prefix =
+  traceOrLogAtWith 5 ((prefix++) . showAcctDeclsSummary . jdeclaredaccounts)
   where
     showAcctDeclsSummary :: [(AccountName,AccountDeclarationInfo)] -> String
     showAcctDeclsSummary adis

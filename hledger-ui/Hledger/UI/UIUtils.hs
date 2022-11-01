@@ -33,7 +33,6 @@ module Hledger.UI.UIUtils (
   ,reportSpecSetFutureAndForecast
   ,listScrollPushingSelection
   ,dbgui
-  ,dbguiIO
   ,dbguiEv
   ,dbguiScreensEv
   ,screenRegisterDescriptions
@@ -438,29 +437,22 @@ listScrollPushingSelection name listheight scrollamt = do
         _ -> return list
     _ -> return list
 
--- Log hledger-ui events at this debug level and above.
-uiDebugLevel :: Int
-uiDebugLevel = 1
-
--- | A debug logging helper to use in hledger-ui code:
--- at any debug level >= 1, logs the string to ./debug.log before returning the second argument.
--- Like traceLogAt 1. Uses unsafePerformIO.
+-- | A debug logging helper for hledger-ui code: at any debug level >= 1,
+-- logs the string to hledger-ui.log before returning the second argument.
+-- Uses unsafePerformIO.
 dbgui :: String -> a -> a
-dbgui = traceLogAt uiDebugLevel
+dbgui = traceLogAt 1
 
--- | Like dbgui, but convenient in IO.
-dbguiIO :: String -> IO ()
-dbguiIO s = dbgui s $ return ()
-
--- | Like dbgui, but convenient in hledger EventM handlers.
+-- | Like dbgui, but convenient to use in EventM handlers.
 dbguiEv :: String -> EventM Name s ()
 dbguiEv s = dbgui s $ return ()
 
 -- | Like dbguiEv, but log a compact view of the current screen stack,
+-- adding the given postfix to the label (can be empty),
 -- from topmost screen to currently-viewed screen,
--- with each screen rendered by the given rendering function
--- (and with the given extra label if any).
+-- with each screen rendered by the given rendering function.
 -- Useful for inspecting states across the whole screen stack.
+-- Some screen rendering functions are @screenId@ and @screenRegisterDescriptions@.
 -- To just show the stack: @dbguiScreensEv "" screenId ui@
 dbguiScreensEv :: String -> (Screen -> String) -> UIState -> EventM Name UIState ()
 dbguiScreensEv postfix showscr ui =

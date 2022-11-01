@@ -161,7 +161,7 @@ readJournalFile iopts prefixedfile = do
     iopts' = iopts{mformat_=asum [mfmt, mformat_ iopts]}
   liftIO $ requireJournalFileExists f
   t <-
-    traceAt 6 ("readJournalFile: "++takeFileName f) $
+    traceOrLogAt 6 ("readJournalFile: "++takeFileName f) $
     liftIO $ readFileOrStdinPortably f
     -- <- T.readFile f  -- or without line ending translation, for testing
   j <- readJournal iopts' (Just f) t

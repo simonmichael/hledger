@@ -141,7 +141,6 @@ module Hledger.Data.Amount (
   mixedAmountSetFullPrecision,
   canonicaliseMixedAmount,
   -- * misc.
-  ltraceamount,
   tests_Amount
 ) where
 
@@ -163,7 +162,6 @@ import Data.Word (Word8)
 import Safe (headDef, lastDef, lastMay)
 import System.Console.ANSI (Color(..),ColorIntensity(..))
 
-import Debug.Trace (trace)
 import Test.Tasty (testGroup)
 import Test.Tasty.HUnit ((@?=), assertBool, testCase)
 
@@ -947,10 +945,6 @@ elisionDisplay mmax sep n lastAmt
 maybeAppend :: Maybe a -> [a] -> [a]
 maybeAppend Nothing  = id
 maybeAppend (Just a) = (++[a])
-
--- | Compact labelled trace of a mixed amount, for debugging.
-ltraceamount :: String -> MixedAmount -> MixedAmount
-ltraceamount s a = trace (s ++ ": " ++ showMixedAmount a) a
 
 -- | Set the display precision in the amount's commodities.
 mixedAmountSetPrecision :: AmountPrecision -> MixedAmount -> MixedAmount

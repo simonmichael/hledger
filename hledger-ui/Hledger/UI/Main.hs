@@ -33,7 +33,7 @@ import Hledger.UI.Theme
 import Hledger.UI.UIOptions
 import Hledger.UI.UITypes
 import Hledger.UI.UIState (uiState, getDepth)
-import Hledger.UI.UIUtils (dbguiEv, dbguiIO)
+import Hledger.UI.UIUtils (dbguiEv)
 import Hledger.UI.MenuScreen
 import Hledger.UI.AccountsScreen
 import Hledger.UI.BalancesheetScreen
@@ -41,6 +41,7 @@ import Hledger.UI.IncomestatementScreen
 import Hledger.UI.RegisterScreen
 import Hledger.UI.TransactionScreen
 import Hledger.UI.ErrorScreen
+import System.Environment (withProgName)
 
 ----------------------------------------------------------------------
 
@@ -52,7 +53,7 @@ writeChan = BC.writeBChan
 
 
 main :: IO ()
-main = do
+main = withProgName "hledger-ui,logging" $ do  -- force Hledger.Utils.Debug.* to log to hledger-ui.log
   opts@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=iopts,rawopts_=rawopts}} <- getHledgerUIOpts
   -- when (debug_ $ cliopts_ opts) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show opts)
 
@@ -167,7 +168,7 @@ runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=r
       setMode (outputIface v) Mouse True
       return v
 
-  dbguiIO "\n\n==== hledger-ui start"
+  traceLogAtIO 1 "\n\n==== hledger-ui start"
 
   if not (uoWatch uopts)
   then do

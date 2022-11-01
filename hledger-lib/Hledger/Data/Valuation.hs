@@ -335,7 +335,7 @@ pricesShortestPath start end edges =
       case concatMap extend paths of
         [] -> Nothing 
         _ | pathlength > maxpathlength -> 
-          trace ("gave up searching for a price chain at length "++show maxpathlength++", please report a bug")
+          traceOrLog ("gave up searching for a price chain at length "++show maxpathlength++", please report a bug")
           Nothing
           where 
             pathlength = 2 + maybe 0 (length . fst) (headMay paths)

@@ -327,7 +327,7 @@ journalFinalise iopts@InputOpts{..} f txt pj = do
       >>= journalBalanceTransactions balancingopts_                         -- Balance all transactions and maybe check balance assertions.
       <&> (if infer_equity_ then journalAddInferredEquityPostings else id)  -- Add inferred equity postings, after balancing and generating auto postings
       <&> journalInferMarketPricesFromTransactions       -- infer market prices from commodity-exchanging transactions
-      <&> traceAt 6 ("journalFinalise: " <> takeFileName f)  -- debug logging
+      <&> traceOrLogAt 6 ("journalFinalise: " <> takeFileName f)  -- debug logging
       <&> dbgJournalAcctDeclOrder ("journalFinalise: " <> takeFileName f <> "   acct decls           : ")
       <&> journalRenumberAccountDeclarations
       <&> dbgJournalAcctDeclOrder ("journalFinalise: " <> takeFileName f <> "   acct decls renumbered: ")
