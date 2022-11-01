@@ -463,12 +463,6 @@ $ hledger print -o foo.txt
 $ hledger print -o -        # write to stdout (the default)
 ```
 
-hledger can produce debug output (if enabled with `--debug[=N]`).
-N ranges from 1 (least output, the default) to 9 (maximum output).
-Debug output goes to stderr, and is not affected by `-o/--output-file`.
-It will appear interleaved with normal output, which can help in understanding when code is evaluated.
-To capture it in a log file instead, use shell redirects, eg: `hledger bal --debug=3 2>hledger.log`.
-
 ## Output styling
 
 hledger commands can produce colour output when the terminal supports it.
@@ -615,6 +609,17 @@ The format specification of the style is identical to the commodity display
 style specification for the [commodity directive](#declaring-commodities). 
 The command line option can be supplied repeatedly to override the display 
 style for multiple commodity/currency symbols.
+
+## Debug output
+
+We aim for hledger to be relatively easy to troubleshoot, introspect and develop.
+You can add `--debug[=N]` to any hledger command line to see additional debug output.
+N ranges from 1 (least output, the default) to 9 (maximum output).
+Typically you would start with 1 and increase until you are seeing enough.
+Debug output goes to stderr, and is not affected by `-o/--output-file` (unless you redirect stderr to stdout, eg: `2>&1`).
+It will be interleaved with normal output, which can help reveal when parts of the code are evaluated.
+To capture debug output in a log file instead, you can usually redirect stderr, eg:\
+`hledger bal --debug=3 2>hledger.log`.
 
 # TIME PERIODS
 ## Smart dates
