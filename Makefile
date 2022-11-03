@@ -109,8 +109,7 @@ SHELLTESTOPTS=--execdir --threads=64 --exclude=/_
 #SHELLTESTSTK=shelltest -w `stack exec which hledger` $(SHELLTESTOPTS)
 SHELLTESTSTK=COLUMNS=80 $(STACK) exec -- shelltest $(SHELLTESTOPTS)
 
-# # used for make auto, http://joyful.com/repos/searchpath
-# SP=sp
+WATCHEXEC=watchexec
 
 PACKAGES=\
 	hledger-lib \
@@ -844,6 +843,10 @@ haddock-open: \
 manuals-watch: Shake \
 		$(call def-help,manuals-watch, rerender manuals when their source files change  )
 	ls $(DOCSOURCEFILES) | entr ./Shake -VV manuals
+
+man-watch-%: Shake \
+		$(call def-help,man-watch-PROG, run man on the given man page when its source file changes. Eg make man-watch-hledger-web )
+	$(WATCHEXEC) -r -w $*/$*.m4.md './Shake $*/$*.1 && man $*/$*.1'
 
 shakehelp-watch: \
 		$(call def-help,shakehelp-watch, rerender Shake.hs's help when it changes)
