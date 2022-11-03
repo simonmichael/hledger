@@ -13,8 +13,9 @@ _man_({{
 # SYNOPSIS
 }})
 
-`hledger-web [OPTIONS]`\
-`hledger web -- [OPTIONS]`
+`hledger-web [OPTIONS]              # run temporarily & browse`\
+`hledger-web --serve [OPTIONS]      # run without stopping`\
+`hledger-web --serve-api [OPTIONS]  # run JSON server only`\
 
 _man_({{
 # DESCRIPTION
@@ -31,22 +32,33 @@ _web_({{
 </div>
 }})
 
-hledger-web is hledger's web interface.  It starts a simple web
-application for browsing and adding transactions, and optionally
-opens it in a web browser window if possible.
+hledger-web is a simple web application for browsing and adding transactions.
 It provides a more user-friendly UI than the hledger CLI or
-hledger-ui interface, showing more at once (accounts, the current
-account register, balance charts) and allowing history-aware data
-entry, interactive searching, and bookmarking.
+hledger-ui TUI, showing more at once (accounts, the current account register,
+balance charts) and allowing history-aware data entry, interactive searching,
+and bookmarking.
 
-hledger-web also lets you share a ledger with multiple users, or even the public web.
+hledger-web also lets you share a journal with multiple users, or even the public web.
 There is no access control, so if you need that you should put it
 behind a suitable web proxy.  As a small protection against data loss
 when running an unprotected instance, it writes a numbered backup of
-the main journal file (only ?) on every edit.
+the main journal file (only) on every edit.
 
 Like hledger, it reads _files_
 For more about this see hledger(1).
+
+hledger-web can be run in three modes:
+
+- Transient mode (the default):
+  your default web browser will be opened to show the app if possible,
+  and the app exits automatically after two minutes of inactivity
+  (no requests received and no open browser windows viewing it).
+
+- With `--serve`: the app runs without stopping, and without opening a browser.
+
+- With `--serve-api`: only the JSON API is served.
+
+In all cases hledger-web runs as a foreground process, logging requests to stdout.
 
 # OPTIONS
 
@@ -58,7 +70,7 @@ Note: if invoking hledger-web as a hledger subcommand, write `--` before options
 as shown in the synopsis above.
 
 `--serve`
-: serve and log requests, don't browse or auto-exit
+: serve and log requests, don't browse or auto-exit after timeout
 
 `--serve-api`
 : like --serve, but serve only the JSON web API, without the server-side web UI
@@ -106,16 +118,6 @@ _helpoptions_
 A @FILE argument will be expanded to the contents of FILE,
 which should contain one command line option/argument per line.
 (To prevent this, insert a `--` argument before.)
-
-By default, hledger-web starts the web app in "transient mode" and
-also opens it in your default web browser if possible. In this mode
-the web app will keep running for as long as you have it open in a
-browser window, and will exit after two minutes of inactivity (no
-requests and no browser windows viewing it).
-With `--serve`, it just runs the web app without exiting, and logs
-requests to the console.
-With `--serve-api`, only the JSON web api (see below) is served,
-with the usual HTML server-side web UI disabled.
 
 By default the server listens on IP address 127.0.0.1, accessible only to local requests.
 You can use `--host` to change this, eg `--host 0.0.0.0` to listen on all configured addresses.
