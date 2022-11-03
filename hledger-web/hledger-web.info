@@ -14,32 +14,46 @@ hledger-web(1)
 hledger-web is a web interface (WUI) for the hledger accounting tool.
 This manual is for hledger-web 1.27.99.
 
-   'hledger-web [OPTIONS]'
-'hledger web -- [OPTIONS]'
+   'hledger-web [OPTIONS] # run temporarily & browse'
+'hledger-web --serve [OPTIONS] # run without stopping'
+'hledger-web --serve-api [OPTIONS] # run JSON server only'
 
    hledger is a reliable, cross-platform set of programs for tracking
 money, time, or any other commodity, using double-entry accounting and a
 simple, editable file format.  hledger is inspired by and largely
 compatible with ledger(1).
 
-   hledger-web is hledger's web interface.  It starts a simple web
-application for browsing and adding transactions, and optionally opens
-it in a web browser window if possible.  It provides a more
-user-friendly UI than the hledger CLI or hledger-ui interface, showing
-more at once (accounts, the current account register, balance charts)
-and allowing history-aware data entry, interactive searching, and
-bookmarking.
+   hledger-web is a simple web application for browsing and adding
+transactions.  It provides a more user-friendly UI than the hledger CLI
+or hledger-ui TUI, showing more at once (accounts, the current account
+register, balance charts) and allowing history-aware data entry,
+interactive searching, and bookmarking.
 
-   hledger-web also lets you share a ledger with multiple users, or even
-the public web.  There is no access control, so if you need that you
-should put it behind a suitable web proxy.  As a small protection
+   hledger-web also lets you share a journal with multiple users, or
+even the public web.  There is no access control, so if you need that
+you should put it behind a suitable web proxy.  As a small protection
 against data loss when running an unprotected instance, it writes a
-numbered backup of the main journal file (only ?)  on every edit.
+numbered backup of the main journal file (only) on every edit.
 
    Like hledger, it reads data from one or more files in hledger
 journal, timeclock, timedot, or CSV format specified with '-f', or
 '$LEDGER_FILE', or '$HOME/.hledger.journal' (on windows, perhaps
 'C:/Users/USER/.hledger.journal').  For more about this see hledger(1).
+
+   hledger-web can be run in three modes:
+
+   * Transient mode (the default): your default web browser will be
+     opened to show the app if possible, and the app exits automatically
+     after two minutes of inactivity (no requests received and no open
+     browser windows viewing it).
+
+   * With '--serve': the app runs without stopping, and without opening
+     a browser.
+
+   * With '--serve-api': only the JSON API is served.
+
+   In all cases hledger-web runs as a foreground process, logging
+requests to stdout.
 
 * Menu:
 
@@ -67,7 +81,7 @@ before options, as shown in the synopsis above.
 
 '--serve'
 
-     serve and log requests, don't browse or auto-exit
+     serve and log requests, don't browse or auto-exit after timeout
 '--serve-api'
 
      like -serve, but serve only the JSON web API, without the
@@ -263,15 +277,6 @@ the last one takes precedence.
    A @FILE argument will be expanded to the contents of FILE, which
 should contain one command line option/argument per line.  (To prevent
 this, insert a '--' argument before.)
-
-   By default, hledger-web starts the web app in "transient mode" and
-also opens it in your default web browser if possible.  In this mode the
-web app will keep running for as long as you have it open in a browser
-window, and will exit after two minutes of inactivity (no requests and
-no browser windows viewing it).  With '--serve', it just runs the web
-app without exiting, and logs requests to the console.  With
-'--serve-api', only the JSON web api (see below) is served, with the
-usual HTML server-side web UI disabled.
 
    By default the server listens on IP address 127.0.0.1, accessible
 only to local requests.  You can use '--host' to change this, eg '--host
@@ -632,22 +637,22 @@ awkward.
 
 Tag Table:
 Node: Top223
-Node: OPTIONS1889
-Ref: #options1994
-Node: PERMISSIONS9905
-Ref: #permissions10044
-Node: EDITING UPLOADING DOWNLOADING11256
-Ref: #editing-uploading-downloading11437
-Node: RELOADING12271
-Ref: #reloading12405
-Node: JSON API12838
-Ref: #json-api12952
-Node: ENVIRONMENT18442
-Ref: #environment18558
-Node: FILES19869
-Ref: #files19969
-Node: BUGS20182
-Ref: #bugs20260
+Node: OPTIONS2419
+Ref: #options2524
+Node: PERMISSIONS9923
+Ref: #permissions10062
+Node: EDITING UPLOADING DOWNLOADING11274
+Ref: #editing-uploading-downloading11455
+Node: RELOADING12289
+Ref: #reloading12423
+Node: JSON API12856
+Ref: #json-api12970
+Node: ENVIRONMENT18460
+Ref: #environment18576
+Node: FILES19887
+Ref: #files19987
+Node: BUGS20200
+Ref: #bugs20278
 
 End Tag Table
 

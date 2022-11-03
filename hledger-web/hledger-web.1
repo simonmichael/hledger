@@ -1,5 +1,5 @@
 
-.TH "HLEDGER-WEB" "1" "October 2022" "hledger-web-1.27.99 " "hledger User Manuals"
+.TH "HLEDGER-WEB" "1" "November 2022" "hledger-web-1.27.99 " "hledger User Manuals"
 
 
 
@@ -9,11 +9,18 @@ hledger-web is a web interface (WUI) for the hledger accounting tool.
 This manual is for hledger-web 1.27.99.
 .SH SYNOPSIS
 .PP
-\f[C]hledger-web [OPTIONS]\f[R]
+\f[C]hledger-web [OPTIONS]              # run temporarily & browse\f[R]
 .PD 0
 .P
 .PD
-\f[C]hledger web -- [OPTIONS]\f[R]
+\f[C]hledger-web --serve [OPTIONS]      # run without stopping\f[R]
+.PD 0
+.P
+.PD
+\f[C]hledger-web --serve-api [OPTIONS]  # run JSON server only\f[R]
+.PD 0
+.P
+.PD
 .SH DESCRIPTION
 .PP
 hledger is a reliable, cross-platform set of programs for tracking
@@ -21,27 +28,41 @@ money, time, or any other commodity, using double-entry accounting and a
 simple, editable file format.
 hledger is inspired by and largely compatible with ledger(1).
 .PP
-hledger-web is hledger\[aq]s web interface.
-It starts a simple web application for browsing and adding transactions,
-and optionally opens it in a web browser window if possible.
+hledger-web is a simple web application for browsing and adding
+transactions.
 It provides a more user-friendly UI than the hledger CLI or hledger-ui
-interface, showing more at once (accounts, the current account register,
+TUI, showing more at once (accounts, the current account register,
 balance charts) and allowing history-aware data entry, interactive
 searching, and bookmarking.
 .PP
-hledger-web also lets you share a ledger with multiple users, or even
+hledger-web also lets you share a journal with multiple users, or even
 the public web.
 There is no access control, so if you need that you should put it behind
 a suitable web proxy.
 As a small protection against data loss when running an unprotected
-instance, it writes a numbered backup of the main journal file (only ?)
-on every edit.
+instance, it writes a numbered backup of the main journal file (only) on
+every edit.
 .PP
 Like hledger, it reads data from one or more files in hledger journal,
 timeclock, timedot, or CSV format specified with \f[C]-f\f[R], or
 \f[C]$LEDGER_FILE\f[R], or \f[C]$HOME/.hledger.journal\f[R] (on windows,
 perhaps \f[C]C:/Users/USER/.hledger.journal\f[R]).
 For more about this see hledger(1).
+.PP
+hledger-web can be run in three modes:
+.IP \[bu] 2
+Transient mode (the default): your default web browser will be opened to
+show the app if possible, and the app exits automatically after two
+minutes of inactivity (no requests received and no open browser windows
+viewing it).
+.IP \[bu] 2
+With \f[C]--serve\f[R]: the app runs without stopping, and without
+opening a browser.
+.IP \[bu] 2
+With \f[C]--serve-api\f[R]: only the JSON API is served.
+.PP
+In all cases hledger-web runs as a foreground process, logging requests
+to stdout.
 .SH OPTIONS
 .PP
 Command-line options and arguments may be used to set an initial filter
@@ -53,7 +74,7 @@ Note: if invoking hledger-web as a hledger subcommand, write
 \f[C]--\f[R] before options, as shown in the synopsis above.
 .TP
 \f[B]\f[CB]--serve\f[B]\f[R]
-serve and log requests, don\[aq]t browse or auto-exit
+serve and log requests, don\[aq]t browse or auto-exit after timeout
 .TP
 \f[B]\f[CB]--serve-api\f[B]\f[R]
 like --serve, but serve only the JSON web API, without the server-side
@@ -248,16 +269,6 @@ show debug output (levels 1-9, default: 1)
 A \[at]FILE argument will be expanded to the contents of FILE, which
 should contain one command line option/argument per line.
 (To prevent this, insert a \f[C]--\f[R] argument before.)
-.PP
-By default, hledger-web starts the web app in \[dq]transient mode\[dq]
-and also opens it in your default web browser if possible.
-In this mode the web app will keep running for as long as you have it
-open in a browser window, and will exit after two minutes of inactivity
-(no requests and no browser windows viewing it).
-With \f[C]--serve\f[R], it just runs the web app without exiting, and
-logs requests to the console.
-With \f[C]--serve-api\f[R], only the JSON web api (see below) is served,
-with the usual HTML server-side web UI disabled.
 .PP
 By default the server listens on IP address 127.0.0.1, accessible only
 to local requests.
