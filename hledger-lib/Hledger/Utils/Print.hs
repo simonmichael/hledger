@@ -110,22 +110,15 @@ colorOption =
 --   and a NO_COLOR environment variable is not defined
 --   and stdout supports ANSI color and -o/--output-file was not used or is "-"
 -- ).
--- {-# OPTIONS_GHC -fno-cse #-}
--- {-# NOINLINE useColorOnStdout #-}
 useColorOnStdout :: Bool
 useColorOnStdout = not hasOutputFile && useColorOnHandle stdout
 
 -- Avoid using dbg*, pshow etc. in this function (infinite loop).
 -- | Like useColorOnStdout, but checks for ANSI color support on stderr,
 -- and is not affected by -o/--output-file.
--- {-# OPTIONS_GHC -fno-cse #-}
--- {-# NOINLINE useColorOnStdout #-}
 useColorOnStderr :: Bool
 useColorOnStderr = useColorOnHandle stderr
 
--- sorry, I'm just cargo-culting these pragmas:
--- {-# OPTIONS_GHC -fno-cse #-}
--- {-# NOINLINE useColorOnHandle #-}
 useColorOnHandle :: Handle -> Bool
 useColorOnHandle h = unsafePerformIO $ do
   no_color       <- isJust <$> lookupEnv "NO_COLOR"
@@ -157,8 +150,6 @@ outputFileOption =
 
 -- | Check whether the -o/--output-file option has been used at program startup
 -- with an argument other than "-", using unsafePerformIO.
--- {-# OPTIONS_GHC -fno-cse #-}
--- {-# NOINLINE hasOutputFile #-}
 hasOutputFile :: Bool
 hasOutputFile = outputFileOption `notElem` [Nothing, Just "-"]
 

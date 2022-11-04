@@ -171,8 +171,6 @@ progName =
 -- unsafePerformIO and can be accessed from anywhere and before normal
 -- command-line processing. When running with :main in GHCI, you must
 -- touch and reload this module to see the effect of a new --debug option.
--- {-# OPTIONS_GHC -fno-cse #-}
-{-# NOINLINE debugLevel #-}
 debugLevel :: Int
 debugLevel = case dropWhile (/="--debug") progArgs of
                ["--debug"]   -> 1
@@ -247,7 +245,6 @@ debugLogFile = progName ++ ".log"
 
 -- | Log a string to the debug log before returning the second argument.
 -- Uses unsafePerformIO.
-{-# NOINLINE traceLog #-}
 traceLog :: String -> a -> a
 traceLog s x = unsafePerformIO $ do
   evaluate (force s)  -- to complete any previous logging before we attempt more
@@ -360,7 +357,6 @@ dbg9 :: Show a => String -> a -> a
 dbg9 = ptraceOrLogAt 9
 
 -- | Like dbg0, but also exit the program. Uses unsafePerformIO.
-{-# NOINLINE dbgExit #-}
 dbgExit :: Show a => String -> a -> a
 dbgExit label a = unsafePerformIO $ dbg0IO label a >> exitFailure
 
