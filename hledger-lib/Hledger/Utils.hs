@@ -1,34 +1,20 @@
 {-|
-
-Standard imports and utilities which are useful everywhere, or needed low
-in the module hierarchy. This is the bottom of hledger's module graph.
-
+Utilities used throughout hledger, or needed low in the module hierarchy.
+This is the bottom of hledger's module graph.
 -}
+
 {-# LANGUAGE LambdaCase #-}
 
-module Hledger.Utils (---- provide these frequently used modules - or not, for clearer api:
-                          -- module Control.Monad,
-                          -- module Data.List,
-                          -- module Data.Maybe,
-                          -- module Data.Time.Calendar,
-                          -- module Data.Time.Clock,
-                          -- module Data.Time.LocalTime,
-                          -- module Data.Tree,
-                          -- module Text.RegexPR,
-                          -- module Text.Printf,
-                          ---- all of this one:
-                          module Hledger.Utils,
-                          module Hledger.Utils.Debug,
-                          module Hledger.Utils.Parse,
-                          module Hledger.Utils.Print,
-                          module Hledger.Utils.Regex,
-                          module Hledger.Utils.String,
-                          module Hledger.Utils.Text,
-                          module Hledger.Utils.Test,
-                          -- Debug.Trace.trace,
-                          -- module Data.PPrint,
-                          -- the rest need to be done in each module I think
-                          )
+module Hledger.Utils (
+  module Hledger.Utils,
+  module Hledger.Utils.Debug,
+  module Hledger.Utils.Parse,
+  module Hledger.Utils.Print,
+  module Hledger.Utils.Regex,
+  module Hledger.Utils.String,
+  module Hledger.Utils.Text,
+  module Hledger.Utils.Test,
+)
 where
 
 import Control.Monad (when)
@@ -42,8 +28,8 @@ import qualified Data.Text.Lazy.Builder as TB
 import Data.Time.Clock (getCurrentTime)
 import Data.Time.LocalTime (LocalTime, ZonedTime, getCurrentTimeZone,
                             utcToLocalTime, utcToZonedTime)
+import Data.Tree (foldTree, Tree (Node, subForest))
 import Language.Haskell.TH (DecsQ, Name, mkName, nameBase)
--- import Language.Haskell.TH.Quote (QuasiQuoter(..))
 import Language.Haskell.TH.Syntax (Q, Exp)
 import Lens.Micro ((&), (.~))
 import Lens.Micro.TH (DefName(TopName), lensClass, lensField, makeLensesWith, classyRules)
@@ -61,7 +47,6 @@ import Hledger.Utils.Regex
 import Hledger.Utils.String
 import Hledger.Utils.Text
 import Hledger.Utils.Test
-import Data.Tree (foldTree, Tree (Node, subForest))
 
 
 -- tuples
@@ -127,8 +112,6 @@ splitAtElement x l =
 treeLeaves :: Show a => Tree a -> [a]
 treeLeaves Node{subForest=[]} = []
 treeLeaves t = foldTree (\a bs -> (if null bs then (a:) else id) $ concat bs) t
-
--- text
 
 -- time
 

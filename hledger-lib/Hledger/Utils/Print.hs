@@ -108,12 +108,12 @@ colorOption =
 -- or (
 --   the program was not started with --color=no|never
 --   and a NO_COLOR environment variable is not defined
---   and stdout supports ANSI color and -o/--output-file was not used or is "-"
+--   and stdout supports ANSI color
+--   and -o/--output-file was not used, or its value is "-"
 -- ).
 useColorOnStdout :: Bool
 useColorOnStdout = not hasOutputFile && useColorOnHandle stdout
 
--- Avoid using dbg*, pshow etc. in this function (infinite loop).
 -- | Like useColorOnStdout, but checks for ANSI color support on stderr,
 -- and is not affected by -o/--output-file.
 useColorOnStderr :: Bool
