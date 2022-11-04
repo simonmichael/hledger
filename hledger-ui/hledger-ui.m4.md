@@ -355,6 +355,11 @@ CPU and memory usage can sometimes gradually increase, if `hledger-ui --watch` i
 To work around, `q`uit and restart it,
 or (where supported) suspend (`CTRL-z`) and restart it (`fg`).
 
+## Debug output
+
+You can add `--debug[=N]` to the command line to log debug output.
+This will be logged to the file `hledger-ui.log` in the current directory.
+N ranges from 1 (least output, the default) to 9 (maximum output).
 
 # ENVIRONMENT
 

@@ -401,6 +401,17 @@ And here's how to test adding it with curl. This should add a new entry to your 
 $ curl http://127.0.0.1:5000/add -X PUT -H 'Content-Type: application/json' --data-binary @txn.json
 ```
 
+# DEBUG OUTPUT
+
+## Debug output
+
+You can add `--debug[=N]` to the command line to log debug output.
+N ranges from 1 (least output, the default) to 9 (maximum output).
+Typically you would start with 1 and increase until you are seeing enough.
+Debug output goes to stderr, interleaved with the requests logged on stdout.
+To capture debug output in a log file instead, you can usually redirect stderr, eg:\
+`hledger-web --debug=3 2>hledger-web.log`.
+
 # ENVIRONMENT
 
 _LEDGER_FILE_
