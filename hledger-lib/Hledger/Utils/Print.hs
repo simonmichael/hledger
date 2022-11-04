@@ -17,6 +17,8 @@ module Hledger.Utils.Print (
   -- * Pretty printing to stdout
   ,pprint
   ,pprint'
+  -- * Command line arguments
+  ,progArgs
   -- * Detecting --color/--colour/NO_COLOR
   ,colorOption
   ,useColorOnStdout
@@ -68,6 +70,36 @@ pprint' = pPrintOpt CheckColorTty prettyopts'
 
 -- Avoid using pshow, pprint, dbg* in the code below to prevent infinite loops.
 
+-- | The command line arguments that were used at program startup.
+-- Uses unsafePerformIO.
+{-# NOINLINE progArgs #-}
+progArgs :: [String]
+progArgs = unsafePerformIO getArgs
+
+-- | Read the value of the --color or --colour command line option provided at program startup
+-- using unsafePerformIO. If this option was not provided, returns the empty string.
+colorOption :: String
+colorOption = 
+  -- similar to debugLevel
+  -- keep synced with color/colour flag definition in hledger:CliOptions
+  let args = progArgs in
+  case dropWhile (/="--color") args of
+    -- --color ARG
+    "--color":v:_ -> v
+    _ ->
+      case take 1 $ filter ("--color=" `isPrefixOf`) args of
+        -- --color=ARG
+        ['-':'-':'c':'o':'l':'o':'r':'=':v] -> v
+        _ ->
+          case dropWhile (/="--colour") args of
+            -- --colour ARG
+            "--colour":v:_ -> v
+            _ ->
+              case take 1 $ filter ("--colour=" `isPrefixOf`) args of
+                -- --colour=ARG
+                ['-':'-':'c':'o':'l':'o':'u':'r':'=':v] -> v
+                _ -> ""
+
 -- | Check the IO environment to see if ANSI colour codes should be used on stdout.
 -- This is done using unsafePerformIO so it can be used anywhere, eg in
 -- low-level debug utilities, which should be ok since we are just reading.
@@ -102,40 +134,12 @@ useColorOnHandle h = unsafePerformIO $ do
   return $ coloroption `elem` ["always","yes"]
        || (coloroption `notElem` ["never","no"] && not no_color && supports_color)
 
--- | Read the value of the --color or --colour command line option provided at program startup
--- using unsafePerformIO. If this option was not provided, returns the empty string.
--- {-# OPTIONS_GHC -fno-cse #-}
--- {-# NOINLINE colorOption #-}
-colorOption :: String
-colorOption = 
-  -- similar to debugLevel
-  -- keep synced with color/colour flag definition in hledger:CliOptions
-  let args = unsafePerformIO getArgs in
-  case dropWhile (/="--color") args of
-    -- --color ARG
-    "--color":v:_ -> v
-    _ ->
-      case take 1 $ filter ("--color=" `isPrefixOf`) args of
-        -- --color=ARG
-        ['-':'-':'c':'o':'l':'o':'r':'=':v] -> v
-        _ ->
-          case dropWhile (/="--colour") args of
-            -- --colour ARG
-            "--colour":v:_ -> v
-            _ ->
-              case take 1 $ filter ("--colour=" `isPrefixOf`) args of
-                -- --colour=ARG
-                ['-':'-':'c':'o':'l':'o':'u':'r':'=':v] -> v
-                _ -> ""
-
 -- | Read the value of the -o/--output-file command line option provided at program startup,
 -- if any, using unsafePerformIO.
--- {-# OPTIONS_GHC -fno-cse #-}
--- {-# NOINLINE outputFileOption #-}
 outputFileOption :: Maybe String
 outputFileOption = 
   -- keep synced with output-file flag definition in hledger:CliOptions.
-  let args = unsafePerformIO getArgs in
+  let args = progArgs in
   case dropWhile (not . ("-o" `isPrefixOf`)) args of
     -- -oARG
     ('-':'o':v@(_:_)):_ -> Just v

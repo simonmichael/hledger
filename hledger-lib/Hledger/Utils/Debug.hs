@@ -142,11 +142,27 @@ import Data.List hiding (uncons)
 import Debug.Breakpoint
 import Debug.Trace (trace, traceIO, traceShowId)
 import Safe (readDef)
-import System.Environment (getArgs, getProgName)
+import System.Environment (getProgName)
 import System.Exit (exitFailure)
 import System.IO.Unsafe (unsafePerformIO)
 
-import Hledger.Utils.Print (pshow, pshow')
+import Hledger.Utils.Print (progArgs, pshow, pshow')
+
+-- | The program name as returned by @getProgName@.
+-- It's best to set this explicitly at program startup with @withProgName@,
+-- otherwise when running in GHCI (eg) it will change to "<interactive>".
+-- Setting it with a ",logging" suffix causes some functions below
+-- to log instead of trace.
+{-# NOINLINE modifiedProgName #-}
+modifiedProgName :: String
+modifiedProgName = unsafePerformIO getProgName
+
+-- | The progam name, with any ",logging" suffix removed.
+progName :: String
+progName =
+  if ",logging" `isSuffixOf` modifiedProgName
+  then reverse $ drop 8 $ reverse modifiedProgName
+  else modifiedProgName
 
 -- | Global debug output level. This is the requested verbosity of
 -- debug output printed to stderr. The default is 0 meaning no debug output.
@@ -158,15 +174,13 @@ import Hledger.Utils.Print (pshow, pshow')
 -- {-# OPTIONS_GHC -fno-cse #-}
 {-# NOINLINE debugLevel #-}
 debugLevel :: Int
-debugLevel = case dropWhile (/="--debug") args of
+debugLevel = case dropWhile (/="--debug") progArgs of
                ["--debug"]   -> 1
                "--debug":n:_ -> readDef 1 n
                _             ->
-                 case take 1 $ filter ("--debug" `isPrefixOf`) args of
+                 case take 1 $ filter ("--debug" `isPrefixOf`) progArgs of
                    ['-':'-':'d':'e':'b':'u':'g':'=':v] -> readDef 1 v
                    _                                   -> 0
-    where
-      args = unsafePerformIO getArgs
 
 -- | Trace a value with the given show function before returning it.
 traceWith :: (a -> String) -> a -> a
@@ -217,24 +231,10 @@ ptraceAtIO level label a =
   then return ()
   else liftIO $ traceIO (labelledPretty True label a)
 
--- | The program name, possibly ending with ",logging".
--- This should be set at program startup with @withProgName@,
--- otherwise it will vary, eg "<interactive>" in GHCI.
-{-# NOINLINE modifiedProgName #-}
-modifiedProgName :: String
-modifiedProgName = unsafePerformIO getProgName
-
 -- | Should the "trace or log" functions output to a file instead of stderr ?
 -- True if the program name ends with ",logging".
 shouldLog :: Bool
 shouldLog = ",logging" `isSuffixOf` modifiedProgName
-
--- | The progam name, with any ",logging" suffix removed.
-progName :: String
-progName =
-  if ",logging" `isSuffixOf` modifiedProgName
-  then reverse $ drop 8 $ reverse modifiedProgName
-  else modifiedProgName
 
 -- | The debug log file: PROGNAME.log in the current directory.
 -- See modifiedProgName.
