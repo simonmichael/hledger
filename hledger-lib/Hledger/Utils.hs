@@ -6,13 +6,83 @@ This is the bottom of hledger's module graph.
 {-# LANGUAGE LambdaCase #-}
 
 module Hledger.Utils (
-  module Hledger.Utils,
+
+  -- * Currying
+  curry2,
+  uncurry2,
+  curry3,
+  uncurry3,
+  curry4,
+  uncurry4,
+
+  -- * Console
+  color,
+  bgColor,
+  colorB,
+  bgColorB,
+
+  -- * IO
+  error',
+  usageError,
+  embedFileRelative,
+  expandHomePath,
+  expandPath,
+  readFileOrStdinPortably,
+  readFilePortably,
+  readHandlePortably,
+  -- hereFileRelative,
+
+  -- * Lists
+  splitAtElement,
+
+  -- * Time
+  getCurrentLocalTime,
+  getCurrentZonedTime,
+
+  -- * Trees
+  treeLeaves,
+
+  -- * Tuples
+  first3,
+  second3,
+  third3,
+  first4,
+  second4,
+  third4,
+  fourth4,
+  first5,
+  second5,
+  third5,
+  fourth5,
+  fifth5,
+  first6,
+  second6,
+  third6,
+  fourth6,
+  fifth6,
+  sixth6,
+
+  -- * Misc
+  applyN,
+  mapM',
+  numDigitsInt,
+  maximum',
+  maximumStrict,
+  minimumStrict,
+  sequence',
+  sumStrict,
+  makeHledgerClassyLenses,
+
+  -- * Other
   module Hledger.Utils.Debug,
   module Hledger.Utils.Parse,
   module Hledger.Utils.Print,
   module Hledger.Utils.Regex,
   module Hledger.Utils.String,
   module Hledger.Utils.Text,
+
+  -- * Tests
+  tests_Utils,
   module Hledger.Utils.Test,
 )
 where
@@ -49,31 +119,7 @@ import Hledger.Utils.Text
 import Hledger.Utils.Test
 
 
--- tuples
-
-first3  (x,_,_) = x
-second3 (_,x,_) = x
-third3  (_,_,x) = x
-
-first4  (x,_,_,_) = x
-second4 (_,x,_,_) = x
-third4  (_,_,x,_) = x
-fourth4 (_,_,_,x) = x
-
-first5  (x,_,_,_,_) = x
-second5 (_,x,_,_,_) = x
-third5  (_,_,x,_,_) = x
-fourth5 (_,_,_,x,_) = x
-fifth5  (_,_,_,_,x) = x
-
-first6  (x,_,_,_,_,_) = x
-second6 (_,x,_,_,_,_) = x
-third6  (_,_,x,_,_,_) = x
-fourth6 (_,_,_,x,_,_) = x
-fifth6  (_,_,_,_,x,_) = x
-sixth6  (_,_,_,_,_,x) = x
-
--- currying
+-- Currying
 
 curry2 :: ((a, b) -> c) -> a -> b -> c
 curry2 f x y = f (x, y)
@@ -93,51 +139,27 @@ curry4 f w x y z = f (w, x, y, z)
 uncurry4 :: (a -> b -> c -> d -> e) -> (a, b, c, d) -> e
 uncurry4 f (w, x, y, z) = f w x y z
 
--- lists
+-- Console
 
-splitAtElement :: Eq a => a -> [a] -> [[a]]
-splitAtElement x l =
-  case l of
-    []          -> []
-    e:es | e==x -> split es
-    es          -> split es
-  where
-    split es = let (first,rest) = break (x==) es
-               in first : splitAtElement x rest
+-- | Wrap a string in ANSI codes to set and reset foreground colour.
+color :: ColorIntensity -> Color -> String -> String
+color int col s = setSGRCode [SetColor Foreground int col] ++ s ++ setSGRCode []
 
--- trees
+-- | Wrap a string in ANSI codes to set and reset background colour.
+bgColor :: ColorIntensity -> Color -> String -> String
+bgColor int col s = setSGRCode [SetColor Background int col] ++ s ++ setSGRCode []
 
--- | Get the leaves of this tree as a list. 
--- The topmost node ("root" in hledger account trees) is not counted as a leaf.
-treeLeaves :: Show a => Tree a -> [a]
-treeLeaves Node{subForest=[]} = []
-treeLeaves t = foldTree (\a bs -> (if null bs then (a:) else id) $ concat bs) t
+-- | Wrap a WideBuilder in ANSI codes to set and reset foreground colour.
+colorB :: ColorIntensity -> Color -> WideBuilder -> WideBuilder
+colorB int col (WideBuilder s w) =
+    WideBuilder (TB.fromString (setSGRCode [SetColor Foreground int col]) <> s <> TB.fromString (setSGRCode [])) w
 
--- time
+-- | Wrap a WideBuilder in ANSI codes to set and reset background colour.
+bgColorB :: ColorIntensity -> Color -> WideBuilder -> WideBuilder
+bgColorB int col (WideBuilder s w) =
+    WideBuilder (TB.fromString (setSGRCode [SetColor Background int col]) <> s <> TB.fromString (setSGRCode [])) w
 
-getCurrentLocalTime :: IO LocalTime
-getCurrentLocalTime = do
-  t <- getCurrentTime
-  tz <- getCurrentTimeZone
-  return $ utcToLocalTime tz t
-
-getCurrentZonedTime :: IO ZonedTime
-getCurrentZonedTime = do
-  t <- getCurrentTime
-  tz <- getCurrentTimeZone
-  return $ utcToZonedTime tz t
-
--- misc
-
--- | Apply a function the specified number of times,
--- which should be > 0 (otherwise does nothing).
--- Possibly uses O(n) stack ?
-applyN :: Int -> (a -> a) -> a -> a
-applyN n f | n < 1     = id
-           | otherwise = (!! n) . iterate f
--- from protolude, compare
--- applyN :: Int -> (a -> a) -> a -> a
--- applyN n f = X.foldr (.) identity (X.replicate n f)
+-- IO
 
 -- | Convert a possibly relative, possibly tilde-containing file path to an absolute one,
 -- given the current directory. ~username is not supported. Leave "-" unchanged.
@@ -177,6 +199,96 @@ readHandlePortably h = do
   when (fmap show menc == Just "UTF-8") $  -- XXX no Eq instance, rely on Show
     hSetEncoding h utf8_bom
   T.hGetContents h
+
+-- | Simpler alias for errorWithoutStackTrace
+error' :: String -> a
+error' = errorWithoutStackTrace . ("Error: " <>)
+
+-- | A version of errorWithoutStackTrace that adds a usage hint.
+usageError :: String -> a
+usageError = error' . (++ " (use -h to see usage)")
+
+-- | Like embedFile, but takes a path relative to the package directory.
+-- Similar to embedFileRelative ?
+embedFileRelative :: FilePath -> Q Exp
+embedFileRelative f = makeRelativeToProject f >>= embedStringFile
+
+-- -- | Like hereFile, but takes a path relative to the package directory.
+-- -- Similar to embedFileRelative ?
+-- hereFileRelative :: FilePath -> Q Exp
+-- hereFileRelative f = makeRelativeToProject f >>= hereFileExp
+--   where
+--     QuasiQuoter{quoteExp=hereFileExp} = hereFile
+
+-- Lists
+
+splitAtElement :: Eq a => a -> [a] -> [[a]]
+splitAtElement x l =
+  case l of
+    []          -> []
+    e:es | e==x -> split es
+    es          -> split es
+  where
+    split es = let (first,rest) = break (x==) es
+               in first : splitAtElement x rest
+
+-- Time
+
+getCurrentLocalTime :: IO LocalTime
+getCurrentLocalTime = do
+  t <- getCurrentTime
+  tz <- getCurrentTimeZone
+  return $ utcToLocalTime tz t
+
+getCurrentZonedTime :: IO ZonedTime
+getCurrentZonedTime = do
+  t <- getCurrentTime
+  tz <- getCurrentTimeZone
+  return $ utcToZonedTime tz t
+
+-- Trees
+
+-- | Get the leaves of this tree as a list. 
+-- The topmost node ("root" in hledger account trees) is not counted as a leaf.
+treeLeaves :: Tree a -> [a]
+treeLeaves Node{subForest=[]} = []
+treeLeaves t = foldTree (\a bs -> (if null bs then (a:) else id) $ concat bs) t
+
+-- Tuples
+
+first3  (x,_,_) = x
+second3 (_,x,_) = x
+third3  (_,_,x) = x
+
+first4  (x,_,_,_) = x
+second4 (_,x,_,_) = x
+third4  (_,_,x,_) = x
+fourth4 (_,_,_,x) = x
+
+first5  (x,_,_,_,_) = x
+second5 (_,x,_,_,_) = x
+third5  (_,_,x,_,_) = x
+fourth5 (_,_,_,x,_) = x
+fifth5  (_,_,_,_,x) = x
+
+first6  (x,_,_,_,_,_) = x
+second6 (_,x,_,_,_,_) = x
+third6  (_,_,x,_,_,_) = x
+fourth6 (_,_,_,x,_,_) = x
+fifth6  (_,_,_,_,x,_) = x
+sixth6  (_,_,_,_,_,x) = x
+
+-- Misc
+
+-- | Apply a function the specified number of times,
+-- which should be > 0 (otherwise does nothing).
+-- Possibly uses O(n) stack ?
+applyN :: Int -> (a -> a) -> a -> a
+applyN n f | n < 1     = id
+           | otherwise = (!! n) . iterate f
+-- from protolude, compare
+-- applyN :: Int -> (a -> a) -> a -> a
+-- applyN n f = X.foldr (.) identity (X.replicate n f)
 
 -- | Total version of maximum, for integral types, giving 0 for an empty list.
 maximum' :: Integral a => [a] -> a
@@ -220,6 +332,7 @@ mapM' :: Monad f => (a -> f b) -> [a] -> f [b]
 mapM' f = sequence' . map f
 
 -- | Find the number of digits of an 'Int'.
+{-# INLINE numDigitsInt #-}
 numDigitsInt :: Integral a => Int -> a
 numDigitsInt n
     | n == minBound = 19  -- negate minBound is out of the range of Int
@@ -233,46 +346,6 @@ numDigitsInt n
          | a >= 10000000000000000 = 16 + go (a `quot` 10000000000000000)
          | a >= 100000000         = 8  + go (a `quot` 100000000)
          | otherwise              = 4  + go (a `quot` 10000)
-{-# INLINE numDigitsInt #-}
-
--- | Simpler alias for errorWithoutStackTrace
-error' :: String -> a
-error' = errorWithoutStackTrace . ("Error: " <>)
-
--- | A version of errorWithoutStackTrace that adds a usage hint.
-usageError :: String -> a
-usageError = error' . (++ " (use -h to see usage)")
-
--- | Like embedFile, but takes a path relative to the package directory.
--- Similar to embedFileRelative ?
-embedFileRelative :: FilePath -> Q Exp
-embedFileRelative f = makeRelativeToProject f >>= embedStringFile
-
--- -- | Like hereFile, but takes a path relative to the package directory.
--- -- Similar to embedFileRelative ?
--- hereFileRelative :: FilePath -> Q Exp
--- hereFileRelative f = makeRelativeToProject f >>= hereFileExp
---   where
---     QuasiQuoter{quoteExp=hereFileExp} = hereFile
-
--- | Wrap a string in ANSI codes to set and reset foreground colour.
-color :: ColorIntensity -> Color -> String -> String
-color int col s = setSGRCode [SetColor Foreground int col] ++ s ++ setSGRCode []
-
--- | Wrap a string in ANSI codes to set and reset background colour.
-bgColor :: ColorIntensity -> Color -> String -> String
-bgColor int col s = setSGRCode [SetColor Background int col] ++ s ++ setSGRCode []
-
--- | Wrap a WideBuilder in ANSI codes to set and reset foreground colour.
-colorB :: ColorIntensity -> Color -> WideBuilder -> WideBuilder
-colorB int col (WideBuilder s w) =
-    WideBuilder (TB.fromString (setSGRCode [SetColor Foreground int col]) <> s <> TB.fromString (setSGRCode [])) w
-
--- | Wrap a WideBuilder in ANSI codes to set and reset background colour.
-bgColorB :: ColorIntensity -> Color -> WideBuilder -> WideBuilder
-bgColorB int col (WideBuilder s w) =
-    WideBuilder (TB.fromString (setSGRCode [SetColor Background int col]) <> s <> TB.fromString (setSGRCode [])) w
-
 
 -- | Make classy lenses for Hledger options fields.
 -- This is intended to be used with BalancingOpts, InputOpt, ReportOpts,
