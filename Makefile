@@ -804,41 +804,19 @@ haddock-open: \
 	)
 	$(VIEWHTML) hledger/dist/doc/html/hledger-lib/index.html
 
+hoogle-setup: $(call def-help,hoogle-setup, install hoogle then build haddocks and a hoogle db for the project and all deps )
+	stack hoogle --rebuild
+
+HOOGLEBROWSER="/Applications/Firefox Dev.app/Contents/MacOS/firefox"   # safari not supported
+hoogle-serve: $(call def-help,hoogle-serve, run hoogle web app and open in supported browser)
+	$(HOOGLEBROWSER) http://localhost:8080 &
+	stack --verbosity=warn hoogle --server
+
 # sourcegraph: \
 # 	$(call def-help,sourcegraph,\
 # 	\
 # 	)
 # 	for p in $(PACKAGES); do (cd $$p; SourceGraph $$p.cabal); done
-
-# #set up the hoogle web interface
-# ## We munge haddock and hoogle into a rough but useful framed layout.
-# ## For this to work the hoogle cgi must be built with base target "main".
-# ## XXX move the framed index building into haddock: ?
-# # 	sed -i -e 's%^></HEAD%><base target="main"></HEAD%' site/api/modules-index.html ; \
-# # 	cp site/api-frames.html site/api/index.html ; \
-# # # 	cp site/hoogle-small.html site/api
-# #
-# #uses a hoogle source tree configured with --datadir=., patched to fix haddock urls/target frame
-# # HOOGLESRC=/usr/local/src/hoogle
-# # HOOGLE=$(HOOGLESRC)/dist/build/hoogle/hoogle
-# # HOOGLEVER=`$(HOOGLE) --version |tail -n 1 | sed -e 's/Version /hoogle-/'`
-# # hoogle: hoogleindex
-# # 	if test -f $(HOOGLE) ; then \
-# # 		cd site/api && \
-# # 		rm -f $(HOOGLEVER) && \
-# # 		ln -s . $(HOOGLEVER) && \
-# # 		cp -r $(HOOGLESRC)/src/res/ . && \
-# # 		cp -p $(HOOGLE) index.cgi && \
-# # 		touch log.txt && chmod 666 log.txt ; \
-# # 	else \
-# # 		echo "Could not find $(HOOGLE) in the hoogle source tree" ; \
-# # 	fi
-# #
-# #generate a hoogle index
-# # hoogleindex:
-# # 	$(HADDOCK) $(HADDOCKFLAGS) -o site/api --hoogle $(MAIN) && \
-# # 	cd site/api && \
-# # 	hoogle --convert=main.txt --output=default.hoo
 
 manuals-watch: Shake \
 		$(call def-help,manuals-watch, rerender manuals when their source files change  )
