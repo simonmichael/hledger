@@ -341,33 +341,19 @@ This leaves more mental bandwidth for your accounting.
 Of course you can still interact with hledger-ui when needed,
 eg to toggle cleared mode, or to explore the history.
 
-## Watch mode limitations
+Here are some current limitations to be aware of:
 
-There are situations in which it won't work, ie the display will not update when
-you save a change (because the underlying `inotify` library does not support it). 
-Here are some that we know of:
+Changes might not be detected with certain editors, possibly including 
+Jetbrains IDEs, `gedit`, other Gnome applications; or on certain unusual filesystems.
+([#1617](https://github.com/simonmichael/hledger/issues/1617),
+[#911](https://github.com/simonmichael/hledger/issues/911)).
+To work around, reload manually by pressing `g` in the hledger-ui window.
+(Or see #1617 for another workaround, and let us know if it works for you.)
 
-- Certain editors: saving with `gedit`, and perhaps any Gnome application,
-  won't be detected ([#1617](https://github.com/simonmichael/hledger/issues/1617)).
-  Jetbrains IDEs, such as IDEA, also may not work ([#911](https://github.com/simonmichael/hledger/issues/911)).
-  
-- Certain unusual filesystems might not be supported.
-  (All the usual ones on unix, mac and windows are supported.)
-
-In such cases, the workaround is to switch to the hledger-ui window
-and press `g` each time you want it to reload. 
-(Actually, see #1617 for another workaround, and let us know if it works for you.)
-
-If you leave `hledger-ui --watch` running for days,
-on certain platforms (?), 
-perhaps with many transactions in your journal (?),
-perhaps with large numbers of other files present (?),
-you may see it gradually using more and more memory and CPU over time, 
-as seen in `top` or Activity Monitor or Task Manager.
-
-A workaround is to `q`uit and restart it,
-or to suspend it (`CTRL-z`) and restart it (`fg`) if your shell supports that.
-
+CPU and memory usage can sometimes gradually increase, if `hledger-ui --watch` is left running for days.
+(Possibly correlated with certain platforms, many transactions, and/or large numbers of other files present).
+To work around, `q`uit and restart it,
+or (where supported) suspend (`CTRL-z`) and restart it (`fg`).
 
 
 # ENVIRONMENT
