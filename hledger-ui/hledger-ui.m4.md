@@ -191,16 +191,35 @@ Additional screen-specific keys are described below.
 
 ## Menu screen
 
-The top-most screen, currently with just one menu item and not shown by default.
+The top-most screen. hledger-ui does not show this screen at startup,
+but you can press LEFT to navigate to it.
+From here you can navigate to three accounts screens:
 
-## Accounts screen
+## All accounts screen
 
-This is normally the first screen displayed.
-It lists accounts and their balances, like hledger's balance command.
-By default, it shows all accounts and their latest ending balances (including the balances of subaccounts).
-Accounts which have been declared with an [account directive](#declaring-accounts) are also listed, even if not yet used
+This screen shows all accounts (unless filtered by a query), and their current balances.
+It is like the `hledger balance` command.
+
+## Balance sheet accounts screen
+
+This is the screen normally shown at startup.
+It shows asset, liability and equity accounts, if these can be detected (see [account types](/hledger.html#account-types)).
+It always shows historical end balances on some date (not balance changes).
+It is like the `hledger balancesheetequity` command.
+
+## Income statement accounts screen
+
+This screen shows revenue and expense accounts.
+It always shows balance changes in some period (not end balances).
+It is like the `hledger incomestatement` command.
+
+All of these accounts screens work in much the same way:
+
+They show accounts which have been posted to by transactions,
+as well as accounts which have been declared with an [account directive](#declaring-accounts)
 (except for empty parent accounts).
-If you specify a query on the command line, it shows just the matched accounts and the balances from matched transactions.
+
+If you specify a query on the command line, it shows just the matched accounts, and the balances from matched transactions.
 
 Account names are shown as a flat list by default; press `t` to toggle tree mode.
 In list mode, account balances are exclusive of subaccounts, except where subaccounts are hidden by a depth limit (see below).
@@ -211,7 +230,7 @@ Or use `-` to decrease and `+`/`=` to increase the depth limit.
 `0` shows even less detail, collapsing all accounts to a single total.
 To remove the depth limit, set it higher than the maximum account depth, or press `ESCAPE`.
 
-`H` toggles between showing historical balances or period balances.
+`H` toggles between showing historical balances or period balances (on the "All accounts" screen).
 Historical balances (the default) are ending balances at the end of the report period,
 taking into account all transactions before that date (filtered by the filter query if any),
 including transactions before the start of the report period. In other words, historical
@@ -233,7 +252,7 @@ and if you activate all three, the filter is removed.)
 are shown (hledger-ui shows zero items by default, unlike command-line
 hledger).
 
-Press `RIGHT` to view an account's transactions register.
+Press `RIGHT` to view an account's register screen,
 Or, `LEFT` to see the menu screen.
 
 ## Register screen
@@ -293,24 +312,6 @@ transactions appear in multiple account registers). The #N number
 preceding them is the transaction's position within the complete
 unfiltered journal, which is a more stable id (at least until the next
 reload).
-
-## Balance sheet accounts screen
-
-This is like the accounts screen except:
-
-- it shows only asset, liability and equity accounts (see [account types](/hledger.html#account-types))
-- it always shows historical end balances on some date (not balance changes).
-
-It corresponds to the `hledger balancesheet` command.
-
-## Income statement accounts screen
-
-Like the accounts screen except:
-
-- it shows only revenue and expense accounts
-- it always shows balance changes in some period (not end balances).
-
-It corresponds to the `hledger incomestatement` command.
 
 ## Error screen
 

@@ -136,8 +136,8 @@ runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=r
     -- menu > accounts by default, or menu > accounts > register with --register.
     -- Remember the parent screens are ordered nearest/lowest first.
     (prevscrs, startscr) = case uoRegister uopts of
-      Nothing   -> ([menuscr], acctsscr)
-      Just apat -> ([asSetSelectedAccount acct acctsscr, menuscr], regscr)
+      Nothing   -> ([menuscr], bsacctsscr)
+      Just apat -> ([asSetSelectedAccount acct bsacctsscr, menuscr], regscr)
         where
           regscr = 
             rsSetAccount acct False $
@@ -154,7 +154,7 @@ runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=r
                   Left  _  -> const Nothing
       where
         menuscr = msNew
-        acctsscr = asNew uopts today j Nothing
+        bsacctsscr = bsNew uopts today j Nothing
 
     ui = uiState uopts j prevscrs startscr
     app = brickApp (uoTheme uopts)

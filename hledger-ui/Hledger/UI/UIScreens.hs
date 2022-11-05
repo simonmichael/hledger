@@ -84,6 +84,7 @@ msNew =
       ,MenuScreenItem "Balance sheet accounts (assets, liabilities, equity)" Balancesheet
       ,MenuScreenItem "Income statement accounts (revenues, expenses)" Incomestatement
       ]) 1
+      & listMoveTo 1  -- select balance sheet accounts screen at startup (currently this screen is constructed only then)
     ,_mssUnused = ()
     }
 
