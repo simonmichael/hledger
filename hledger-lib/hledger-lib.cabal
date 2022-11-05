@@ -83,8 +83,8 @@ library
       Hledger.Reports.PostingsReport
       Hledger.Utils
       Hledger.Utils.Debug
+      Hledger.Utils.IO
       Hledger.Utils.Parse
-      Hledger.Utils.Print
       Hledger.Utils.Regex
       Hledger.Utils.String
       Hledger.Utils.Test

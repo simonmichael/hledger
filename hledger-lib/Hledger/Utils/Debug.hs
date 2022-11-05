@@ -146,7 +146,7 @@ import System.Environment (getProgName)
 import System.Exit (exitFailure)
 import System.IO.Unsafe (unsafePerformIO)
 
-import Hledger.Utils.Print (progArgs, pshow, pshow')
+import Hledger.Utils.IO (progArgs, pshow, pshow')
 
 -- | The program name as returned by @getProgName@.
 -- It's best to set this explicitly at program startup with @withProgName@,

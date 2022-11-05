@@ -76,7 +76,7 @@ module Hledger.Utils (
   -- * Other
   module Hledger.Utils.Debug,
   module Hledger.Utils.Parse,
-  module Hledger.Utils.Print,
+  module Hledger.Utils.IO,
   module Hledger.Utils.Regex,
   module Hledger.Utils.String,
   module Hledger.Utils.Text,
@@ -112,7 +112,7 @@ import System.IO
 
 import Hledger.Utils.Debug
 import Hledger.Utils.Parse
-import Hledger.Utils.Print
+import Hledger.Utils.IO
 import Hledger.Utils.Regex
 import Hledger.Utils.String
 import Hledger.Utils.Text

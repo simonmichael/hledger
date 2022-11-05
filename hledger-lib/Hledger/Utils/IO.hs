@@ -1,16 +1,15 @@
 {- | 
 Helpers for pretty-formatting haskell values, pretty-printing to console,
 deciding if ANSI colour should be used, and detecting an -o/--output-file option.
-Uses unsafePerformIO for simple program-wide read-only access to some common
-command-line flags/environment variables.
+Uses unsafePerformIO.
 
 Limitations:
-When running in GHCI, this module must be reloaded to see a change (because of unsafePerformIO).
+When running in GHCI, this module must be reloaded to see environmental changes.
 The colour scheme may be somewhat hard-coded.
 
 -}
 
-module Hledger.Utils.Print (
+module Hledger.Utils.IO (
   -- * Pretty showing as a string
    pshow
   ,pshow'
