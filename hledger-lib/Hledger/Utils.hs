@@ -1,9 +1,7 @@
 {-|
 Utilities used throughout hledger, or needed low in the module hierarchy.
-This is the bottom of hledger's module graph.
+These are the bottom of hledger's module graph.
 -}
-
-{-# LANGUAGE LambdaCase #-}
 
 module Hledger.Utils (
 
@@ -15,29 +13,8 @@ module Hledger.Utils (
   curry4,
   uncurry4,
 
-  -- * Console
-  color,
-  bgColor,
-  colorB,
-  bgColorB,
-
-  -- * IO
-  error',
-  usageError,
-  embedFileRelative,
-  expandHomePath,
-  expandPath,
-  readFileOrStdinPortably,
-  readFilePortably,
-  readHandlePortably,
-  -- hereFileRelative,
-
   -- * Lists
   splitAtElement,
-
-  -- * Time
-  getCurrentLocalTime,
-  getCurrentZonedTime,
 
   -- * Trees
   treeLeaves,
@@ -65,13 +42,18 @@ module Hledger.Utils (
   -- * Misc
   applyN,
   mapM',
-  numDigitsInt,
   maximum',
   maximumStrict,
   minimumStrict,
+  numDigitsInt,
   sequence',
   sumStrict,
+
   makeHledgerClassyLenses,
+
+  -- * Tests
+  tests_Utils,
+  module Hledger.Utils.Test,
 
   -- * Other
   module Hledger.Utils.Debug,
@@ -81,34 +63,16 @@ module Hledger.Utils (
   module Hledger.Utils.String,
   module Hledger.Utils.Text,
 
-  -- * Tests
-  tests_Utils,
-  module Hledger.Utils.Test,
 )
 where
 
-import Control.Monad (when)
 import Data.Char (toLower)
-import Data.FileEmbed (makeRelativeToProject, embedStringFile)
 import Data.List.Extra (foldl', foldl1', uncons, unsnoc)
 import qualified Data.Set as Set
-import Data.Text (Text)
-import qualified Data.Text.IO as T
-import qualified Data.Text.Lazy.Builder as TB
-import Data.Time.Clock (getCurrentTime)
-import Data.Time.LocalTime (LocalTime, ZonedTime, getCurrentTimeZone,
-                            utcToLocalTime, utcToZonedTime)
 import Data.Tree (foldTree, Tree (Node, subForest))
 import Language.Haskell.TH (DecsQ, Name, mkName, nameBase)
-import Language.Haskell.TH.Syntax (Q, Exp)
 import Lens.Micro ((&), (.~))
 import Lens.Micro.TH (DefName(TopName), lensClass, lensField, makeLensesWith, classyRules)
-import System.Console.ANSI (Color,ColorIntensity,ConsoleLayer(..), SGR(..), setSGRCode)
-import System.Directory (getHomeDirectory)
-import System.FilePath (isRelative, (</>))
-import System.IO
-  (Handle, IOMode (..), hGetEncoding, hSetEncoding, hSetNewlineMode,
-   openFile, stdin, universalNewlineMode, utf8_bom)
 
 import Hledger.Utils.Debug
 import Hledger.Utils.Parse
@@ -139,87 +103,6 @@ curry4 f w x y z = f (w, x, y, z)
 uncurry4 :: (a -> b -> c -> d -> e) -> (a, b, c, d) -> e
 uncurry4 f (w, x, y, z) = f w x y z
 
--- Console
-
--- | Wrap a string in ANSI codes to set and reset foreground colour.
-color :: ColorIntensity -> Color -> String -> String
-color int col s = setSGRCode [SetColor Foreground int col] ++ s ++ setSGRCode []
-
--- | Wrap a string in ANSI codes to set and reset background colour.
-bgColor :: ColorIntensity -> Color -> String -> String
-bgColor int col s = setSGRCode [SetColor Background int col] ++ s ++ setSGRCode []
-
--- | Wrap a WideBuilder in ANSI codes to set and reset foreground colour.
-colorB :: ColorIntensity -> Color -> WideBuilder -> WideBuilder
-colorB int col (WideBuilder s w) =
-    WideBuilder (TB.fromString (setSGRCode [SetColor Foreground int col]) <> s <> TB.fromString (setSGRCode [])) w
-
--- | Wrap a WideBuilder in ANSI codes to set and reset background colour.
-bgColorB :: ColorIntensity -> Color -> WideBuilder -> WideBuilder
-bgColorB int col (WideBuilder s w) =
-    WideBuilder (TB.fromString (setSGRCode [SetColor Background int col]) <> s <> TB.fromString (setSGRCode [])) w
-
--- IO
-
--- | Convert a possibly relative, possibly tilde-containing file path to an absolute one,
--- given the current directory. ~username is not supported. Leave "-" unchanged.
--- Can raise an error.
-expandPath :: FilePath -> FilePath -> IO FilePath -- general type sig for use in reader parsers
-expandPath _ "-" = return "-"
-expandPath curdir p = (if isRelative p then (curdir </>) else id) <$> expandHomePath p
--- PARTIAL:
-
--- | Expand user home path indicated by tilde prefix
-expandHomePath :: FilePath -> IO FilePath
-expandHomePath = \case
-    ('~':'/':p)  -> (</> p) <$> getHomeDirectory
-    ('~':'\\':p) -> (</> p) <$> getHomeDirectory
-    ('~':_)      -> ioError $ userError "~USERNAME in paths is not supported"
-    p            -> return p
-
--- | Read text from a file,
--- converting any \r\n line endings to \n,,
--- using the system locale's text encoding,
--- ignoring any utf8 BOM prefix (as seen in paypal's 2018 CSV, eg) if that encoding is utf8.
-readFilePortably :: FilePath -> IO Text
-readFilePortably f =  openFile f ReadMode >>= readHandlePortably
-
--- | Like readFilePortably, but read from standard input if the path is "-".
-readFileOrStdinPortably :: String -> IO Text
-readFileOrStdinPortably f = openFileOrStdin f ReadMode >>= readHandlePortably
-  where
-    openFileOrStdin :: String -> IOMode -> IO Handle
-    openFileOrStdin "-" _ = return stdin
-    openFileOrStdin f' m   = openFile f' m
-
-readHandlePortably :: Handle -> IO Text
-readHandlePortably h = do
-  hSetNewlineMode h universalNewlineMode
-  menc <- hGetEncoding h
-  when (fmap show menc == Just "UTF-8") $  -- XXX no Eq instance, rely on Show
-    hSetEncoding h utf8_bom
-  T.hGetContents h
-
--- | Simpler alias for errorWithoutStackTrace
-error' :: String -> a
-error' = errorWithoutStackTrace . ("Error: " <>)
-
--- | A version of errorWithoutStackTrace that adds a usage hint.
-usageError :: String -> a
-usageError = error' . (++ " (use -h to see usage)")
-
--- | Like embedFile, but takes a path relative to the package directory.
--- Similar to embedFileRelative ?
-embedFileRelative :: FilePath -> Q Exp
-embedFileRelative f = makeRelativeToProject f >>= embedStringFile
-
--- -- | Like hereFile, but takes a path relative to the package directory.
--- -- Similar to embedFileRelative ?
--- hereFileRelative :: FilePath -> Q Exp
--- hereFileRelative f = makeRelativeToProject f >>= hereFileExp
---   where
---     QuasiQuoter{quoteExp=hereFileExp} = hereFile
-
 -- Lists
 
 splitAtElement :: Eq a => a -> [a] -> [[a]]
@@ -231,20 +114,6 @@ splitAtElement x l =
   where
     split es = let (first,rest) = break (x==) es
                in first : splitAtElement x rest
-
--- Time
-
-getCurrentLocalTime :: IO LocalTime
-getCurrentLocalTime = do
-  t <- getCurrentTime
-  tz <- getCurrentTimeZone
-  return $ utcToLocalTime tz t
-
-getCurrentZonedTime :: IO ZonedTime
-getCurrentZonedTime = do
-  t <- getCurrentTime
-  tz <- getCurrentTimeZone
-  return $ utcToZonedTime tz t
 
 -- Trees
 
