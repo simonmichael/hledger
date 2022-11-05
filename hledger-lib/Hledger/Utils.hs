@@ -5,7 +5,10 @@ These are the bottom of hledger's module graph.
 
 module Hledger.Utils (
 
-  -- * Currying
+  -- * Functions
+  applyN,
+  mapM',
+  sequence',
   curry2,
   uncurry2,
   curry3,
@@ -14,7 +17,11 @@ module Hledger.Utils (
   uncurry4,
 
   -- * Lists
+  maximum',
+  maximumStrict,
+  minimumStrict,
   splitAtElement,
+  sumStrict,
 
   -- * Trees
   treeLeaves,
@@ -40,20 +47,8 @@ module Hledger.Utils (
   sixth6,
 
   -- * Misc
-  applyN,
-  mapM',
-  maximum',
-  maximumStrict,
-  minimumStrict,
   numDigitsInt,
-  sequence',
-  sumStrict,
-
   makeHledgerClassyLenses,
-
-  -- * Tests
-  tests_Utils,
-  module Hledger.Utils.Test,
 
   -- * Other
   module Hledger.Utils.Debug,
@@ -62,6 +57,10 @@ module Hledger.Utils (
   module Hledger.Utils.Regex,
   module Hledger.Utils.String,
   module Hledger.Utils.Text,
+
+  -- * Tests
+  tests_Utils,
+  module Hledger.Utils.Test,
 
 )
 where
@@ -83,7 +82,38 @@ import Hledger.Utils.Text
 import Hledger.Utils.Test
 
 
--- Currying
+-- Functions
+
+-- | Apply a function the specified number of times,
+-- which should be > 0 (otherwise does nothing).
+-- Possibly uses O(n) stack ?
+applyN :: Int -> (a -> a) -> a -> a
+applyN n f | n < 1     = id
+           | otherwise = (!! n) . iterate f
+-- from protolude, compare
+-- applyN :: Int -> (a -> a) -> a -> a
+-- applyN n f = X.foldr (.) identity (X.replicate n f)
+
+-- | Like mapM but uses sequence'.
+{-# INLINABLE mapM' #-}
+mapM' :: Monad f => (a -> f b) -> [a] -> f [b]
+mapM' f = sequence' . map f
+
+-- | This is a version of sequence based on difference lists. It is
+-- slightly faster but we mostly use it because it uses the heap
+-- instead of the stack. This has the advantage that Neil Mitchell’s
+-- trick of limiting the stack size to discover space leaks doesn’t
+-- show this as a false positive.
+{-# INLINABLE sequence' #-}
+sequence' :: Monad f => [f a] -> f [a]
+sequence' ms = do
+  h <- go id ms
+  return (h [])
+  where
+    go h [] = return h
+    go h (m:ms') = do
+      x <- m
+      go (h . (x :)) ms'
 
 curry2 :: ((a, b) -> c) -> a -> b -> c
 curry2 f x y = f (x, y)
@@ -105,6 +135,21 @@ uncurry4 f (w, x, y, z) = f w x y z
 
 -- Lists
 
+-- | Total version of maximum, for integral types, giving 0 for an empty list.
+maximum' :: Integral a => [a] -> a
+maximum' [] = 0
+maximum' xs = maximumStrict xs
+
+-- | Strict version of maximum that doesn’t leak space
+{-# INLINABLE maximumStrict #-}
+maximumStrict :: Ord a => [a] -> a
+maximumStrict = foldl1' max
+
+-- | Strict version of minimum that doesn’t leak space
+{-# INLINABLE minimumStrict #-}
+minimumStrict :: Ord a => [a] -> a
+minimumStrict = foldl1' min
+
 splitAtElement :: Eq a => a -> [a] -> [[a]]
 splitAtElement x l =
   case l of
@@ -114,6 +159,11 @@ splitAtElement x l =
   where
     split es = let (first,rest) = break (x==) es
                in first : splitAtElement x rest
+
+-- | Strict version of sum that doesn’t leak space
+{-# INLINABLE sumStrict #-}
+sumStrict :: Num a => [a] -> a
+sumStrict = foldl' (+) 0
 
 -- Trees
 
@@ -148,57 +198,6 @@ fifth6  (_,_,_,_,x,_) = x
 sixth6  (_,_,_,_,_,x) = x
 
 -- Misc
-
--- | Apply a function the specified number of times,
--- which should be > 0 (otherwise does nothing).
--- Possibly uses O(n) stack ?
-applyN :: Int -> (a -> a) -> a -> a
-applyN n f | n < 1     = id
-           | otherwise = (!! n) . iterate f
--- from protolude, compare
--- applyN :: Int -> (a -> a) -> a -> a
--- applyN n f = X.foldr (.) identity (X.replicate n f)
-
--- | Total version of maximum, for integral types, giving 0 for an empty list.
-maximum' :: Integral a => [a] -> a
-maximum' [] = 0
-maximum' xs = maximumStrict xs
-
--- | Strict version of sum that doesn’t leak space
-{-# INLINABLE sumStrict #-}
-sumStrict :: Num a => [a] -> a
-sumStrict = foldl' (+) 0
-
--- | Strict version of maximum that doesn’t leak space
-{-# INLINABLE maximumStrict #-}
-maximumStrict :: Ord a => [a] -> a
-maximumStrict = foldl1' max
-
--- | Strict version of minimum that doesn’t leak space
-{-# INLINABLE minimumStrict #-}
-minimumStrict :: Ord a => [a] -> a
-minimumStrict = foldl1' min
-
--- | This is a version of sequence based on difference lists. It is
--- slightly faster but we mostly use it because it uses the heap
--- instead of the stack. This has the advantage that Neil Mitchell’s
--- trick of limiting the stack size to discover space leaks doesn’t
--- show this as a false positive.
-{-# INLINABLE sequence' #-}
-sequence' :: Monad f => [f a] -> f [a]
-sequence' ms = do
-  h <- go id ms
-  return (h [])
-  where
-    go h [] = return h
-    go h (m:ms') = do
-      x <- m
-      go (h . (x :)) ms'
-
--- | Like mapM but uses sequence'.
-{-# INLINABLE mapM' #-}
-mapM' :: Monad f => (a -> f b) -> [a] -> f [b]
-mapM' f = sequence' . map f
 
 -- | Find the number of digits of an 'Int'.
 {-# INLINE numDigitsInt #-}

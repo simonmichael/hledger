@@ -23,8 +23,7 @@ where PROGNAME is  the executable name returned by @getProgName@.
 If using the logging feature you should ensure a stable program name
 by setting it explicitly with @withProgName@ at the start of your program
 (since otherwise it will change to "<interactive>" when you are testing in GHCI).
-Eg:
-@main = withProgName "MYPROG" $ do ...@.
+Eg: @main = withProgName "MYPROG" $ do ...@.
 
 The "traceOrLog" and "dbg" functions normally print to stderr, but if the program name
 has been set to "MYPROG,logging" (ie, with a ",logging" suffix), they will log to
@@ -41,6 +40,7 @@ If you are working in GHCI, changing the debug level requires editing and reload
 
 In hledger, debug levels are used as follows:
 
+@
 Debug level:  What to show:
 ------------  ---------------------------------------------------------
 0             normal command output only (no warnings, eg)
@@ -53,6 +53,7 @@ Debug level:  What to show:
 7             input file reading, more detail
 8             command line parsing
 9             any other rarely needed / more in-depth info
+@
 
 -}
 
@@ -164,13 +165,10 @@ progName =
   then reverse $ drop 8 $ reverse modifiedProgName
   else modifiedProgName
 
--- | Global debug output level. This is the requested verbosity of
--- debug output printed to stderr. The default is 0 meaning no debug output.
+-- | The programs debug output verbosity. The default is 0 meaning no debug output.
 -- The @--debug@ command line flag sets it to 1, or @--debug=N@ sets it to
--- a higher value (note: not @--debug N@ for some reason).  This uses
--- unsafePerformIO and can be accessed from anywhere and before normal
--- command-line processing. When running with :main in GHCI, you must
--- touch and reload this module to see the effect of a new --debug option.
+-- a higher value (the = is required). Uses unsafePerformIO. 
+-- When running in GHCI, changing this requires reloading this module.
 debugLevel :: Int
 debugLevel = case dropWhile (/="--debug") progArgs of
                ["--debug"]   -> 1
