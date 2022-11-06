@@ -69,7 +69,7 @@ data UIState = UIState {
     -- can change while program runs:
   ,aopts         :: UIOpts    -- ^ the command-line options and query arguments currently in effect
   ,ajournal      :: Journal   -- ^ the journal being viewed (can change with --watch)
-  ,aPrevScreens :: [Screen] -- ^ previously visited screens, most recent first
+  ,aPrevScreens :: [Screen] -- ^ previously visited screens, most recent first (XXX silly, reverse these)
   ,aScreen      :: Screen   -- ^ the currently active screen
   ,aMode         :: Mode      -- ^ the currently active mode on the current screen
   } deriving (Show)

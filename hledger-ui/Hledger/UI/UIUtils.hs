@@ -274,7 +274,8 @@ renderToggle1 isactive l =
 
 -- temporary shenanigans:
 
--- | Convert the special account name "*" (from balance report with depth limit 0) to something clearer.
+-- | Replace the special account names "*" and "..." (from balance reports with depth limit 0)
+-- to something clearer.
 replaceHiddenAccountsNameWith :: AccountName -> AccountName -> AccountName
 replaceHiddenAccountsNameWith anew a | a == hiddenAccountsName = anew
                                      | a == "*"                = anew

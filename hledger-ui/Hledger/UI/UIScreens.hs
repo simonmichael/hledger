@@ -160,8 +160,7 @@ asUpdateHelper rspec0 d copts roptsModify extraquery j ass = dbgui "asUpdateHelp
                                 }
 
         -- blanks added for scrolling control, cf RegisterScreen.
-        -- XXX Ugly. Changing to 0 helps when debugging.
-        blankitems = replicate uiNumBlankItems
+        blankitems = replicate uiNumBlankItems  -- XXX ugly hard-coded value. When debugging, changing to 0 reduces noise.
           AccountsScreenItem{asItemIndentLevel        = 0
                             ,asItemAccountName        = ""
                             ,asItemDisplayAccountName = ""
