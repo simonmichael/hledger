@@ -121,16 +121,16 @@ accountTransactionsReport rspec@ReportSpec{_rsReportOpts=ropts} j thisacctq = it
         -- want to keep prices around, so we can toggle between cost and no cost quickly. We can use
         -- the show_costs_ flag to be efficient when we can, and detailed when we have to.
           (if show_costs_ ropts then id else journalMapPostingAmounts mixedAmountStripPrices)
-        . traceAtWith 5 (("ts3:\n"++).pshowTransactions.jtxns)
+        . traceOrLogAtWith 5 (("ts3:\n"++).pshowTransactions.jtxns)
         -- maybe convert these transactions to cost or value
         . journalApplyValuationFromOpts rspec
-        . traceAtWith 5 (("ts2:\n"++).pshowTransactions.jtxns)
+        . traceOrLogAtWith 5 (("ts2:\n"++).pshowTransactions.jtxns)
         -- apply any cur:SYM filters in reportq
         . (if queryIsNull amtq then id else filterJournalAmounts amtq)
         -- only consider transactions which match thisacctq (possibly excluding postings
         -- which are not real or have the wrong status)
-        . traceAt 3 ("thisacctq: "++show thisacctq)
-        $ traceAtWith 5 (("ts1:\n"++).pshowTransactions.jtxns)
+        . traceOrLogAt 3 ("thisacctq: "++show thisacctq)
+        $ traceOrLogAtWith 5 (("ts1:\n"++).pshowTransactions.jtxns)
           j{jtxns = filter (matchesTransaction thisacctq . relevantPostings) $ jtxns j}
       where
         relevantPostings

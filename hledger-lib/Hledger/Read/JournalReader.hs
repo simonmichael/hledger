@@ -299,7 +299,7 @@ includedirectivep = do
         Fail.fail ("Cyclic include: " ++ filepath)
 
       childInput <-
-        traceAt 6 ("parseChild: "++takeFileName filepath) $
+        traceOrLogAt 6 ("parseChild: "++takeFileName filepath) $
         lift $ readFilePortably filepath
           `orRethrowIOError` (show parentpos ++ " reading " ++ filepath)
       let initChildj = newJournalWithParseStateFrom filepath parentj

@@ -244,7 +244,7 @@ priceLookup makepricegraph d from mto =
               ,pgEdgesRev=allprices
               ,pgDefaultValuationCommodities=defaultdests
               } =
-      traceAt 1 ("valuation date: "++show d) $ makepricegraph d
+      traceOrLogAt 1 ("valuation date: "++show d) $ makepricegraph d
     mto' = mto <|> mdefaultto
       where
         mdefaultto = dbg1 ("default valuation commodity for "++T.unpack from) $
@@ -258,10 +258,10 @@ priceLookup makepricegraph d from mto =
         -- according to the rules described in makePriceGraph.
         let msg = printf "seeking %s to %s price" (showCommoditySymbol from) (showCommoditySymbol to)
         in case 
-          (traceAt 2 (msg++" using forward prices") $ 
+          (traceOrLogAt 2 (msg++" using forward prices") $ 
             pricesShortestPath from to forwardprices)
           <|> 
-          (traceAt 2 (msg++" using forward and reverse prices") $ 
+          (traceOrLogAt 2 (msg++" using forward and reverse prices") $ 
             pricesShortestPath from to allprices)
         of
           Nothing -> Nothing
