@@ -586,6 +586,22 @@ This should add a new entry to your journal:
 $ curl http://127.0.0.1:5000/add -X PUT -H \[aq]Content-Type: application/json\[aq] --data-binary \[at]txn.json
 \f[R]
 .fi
+.SH DEBUG OUTPUT
+.SS Debug output
+.PP
+You can add \f[C]--debug[=N]\f[R] to the command line to log debug
+output.
+N ranges from 1 (least output, the default) to 9 (maximum output).
+Typically you would start with 1 and increase until you are seeing
+enough.
+Debug output goes to stderr, interleaved with the requests logged on
+stdout.
+To capture debug output in a log file instead, you can usually redirect
+stderr, eg:
+.PD 0
+.P
+.PD
+\f[C]hledger-web --debug=3 2>hledger-web.log\f[R].
 .SH ENVIRONMENT
 .PP
 \f[B]LEDGER_FILE\f[R] The journal file path when not specified with

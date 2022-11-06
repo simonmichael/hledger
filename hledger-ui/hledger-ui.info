@@ -355,35 +355,61 @@ File: hledger-ui.info,  Node: SCREENS,  Next: TIPS,  Prev: KEYS,  Up: Top
 * Menu:
 
 * Menu screen::
-* Accounts screen::
-* Register screen::
-* Transaction screen::
+* All accounts screen::
 * Balance sheet accounts screen::
 * Income statement accounts screen::
+* Register screen::
+* Transaction screen::
 * Error screen::
 
 
-File: hledger-ui.info,  Node: Menu screen,  Next: Accounts screen,  Up: SCREENS
+File: hledger-ui.info,  Node: Menu screen,  Next: All accounts screen,  Up: SCREENS
 
 4.1 Menu screen
 ===============
 
-The top-most screen, currently with just one menu item and not shown by
-default.
+The top-most screen.  hledger-ui does not show this screen at startup,
+but you can press LEFT to navigate to it.  From here you can navigate to
+three accounts screens:
 
 
-File: hledger-ui.info,  Node: Accounts screen,  Next: Register screen,  Prev: Menu screen,  Up: SCREENS
+File: hledger-ui.info,  Node: All accounts screen,  Next: Balance sheet accounts screen,  Prev: Menu screen,  Up: SCREENS
 
-4.2 Accounts screen
-===================
+4.2 All accounts screen
+=======================
 
-This is normally the first screen displayed.  It lists accounts and
-their balances, like hledger's balance command.  By default, it shows
-all accounts and their latest ending balances (including the balances of
-subaccounts).  Accounts which have been declared with an account
-directive are also listed, even if not yet used (except for empty parent
-accounts).  If you specify a query on the command line, it shows just
-the matched accounts and the balances from matched transactions.
+This screen shows all accounts (unless filtered by a query), and their
+current balances.  It is like the 'hledger balance' command.
+
+
+File: hledger-ui.info,  Node: Balance sheet accounts screen,  Next: Income statement accounts screen,  Prev: All accounts screen,  Up: SCREENS
+
+4.3 Balance sheet accounts screen
+=================================
+
+This is the screen normally shown at startup.  It shows asset, liability
+and equity accounts, if these can be detected (see account types).  It
+always shows historical end balances on some date (not balance changes).
+It is like the 'hledger balancesheetequity' command.
+
+
+File: hledger-ui.info,  Node: Income statement accounts screen,  Next: Register screen,  Prev: Balance sheet accounts screen,  Up: SCREENS
+
+4.4 Income statement accounts screen
+====================================
+
+This screen shows revenue and expense accounts.  It always shows balance
+changes in some period (not end balances).  It is like the 'hledger
+incomestatement' command.
+
+   All of these accounts screens work in much the same way:
+
+   They show accounts which have been posted to by transactions, as well
+as accounts which have been declared with an account directive (except
+for empty parent accounts).
+
+   If you specify a query on the command line, it shows just the matched
+accounts, and the balances from matched transactions.
 
    Account names are shown as a flat list by default; press 't' to
 toggle tree mode.  In list mode, account balances are exclusive of
@@ -397,15 +423,16 @@ limit.  Or use '-' to decrease and '+'/'=' to increase the depth limit.
 To remove the depth limit, set it higher than the maximum account depth,
 or press 'ESCAPE'.
 
-   'H' toggles between showing historical balances or period balances.
-Historical balances (the default) are ending balances at the end of the
-report period, taking into account all transactions before that date
-(filtered by the filter query if any), including transactions before the
-start of the report period.  In other words, historical balances are
-what you would see on a bank statement for that account (unless
-disturbed by a filter query).  Period balances ignore transactions
-before the report start date, so they show the change in balance during
-the report period.  They are more useful eg when viewing a time log.
+   'H' toggles between showing historical balances or period balances
+(on the "All accounts" screen).  Historical balances (the default) are
+ending balances at the end of the report period, taking into account all
+transactions before that date (filtered by the filter query if any),
+including transactions before the start of the report period.  In other
+words, historical balances are what you would see on a bank statement
+for that account (unless disturbed by a filter query).  Period balances
+ignore transactions before the report start date, so they show the
+change in balance during the report period.  They are more useful eg
+when viewing a time log.
 
    'U' toggles filtering by unmarked status, including or excluding
 unmarked postings in the balances.  Similarly, 'P' toggles pending
@@ -420,13 +447,13 @@ is removed.)
 balances are shown (hledger-ui shows zero items by default, unlike
 command-line hledger).
 
-   Press 'RIGHT' to view an account's transactions register.  Or, 'LEFT'
-to see the menu screen.
+   Press 'RIGHT' to view an account's register screen, Or, 'LEFT' to see
+the menu screen.
 
 
-File: hledger-ui.info,  Node: Register screen,  Next: Transaction screen,  Prev: Accounts screen,  Up: SCREENS
+File: hledger-ui.info,  Node: Register screen,  Next: Transaction screen,  Prev: Income statement accounts screen,  Up: SCREENS
 
-4.3 Register screen
+4.5 Register screen
 ===================
 
 This screen shows the transactions affecting a particular account, like
@@ -470,9 +497,9 @@ command-line hledger).
    Press 'RIGHT' to view the selected transaction in detail.
 
 
-File: hledger-ui.info,  Node: Transaction screen,  Next: Balance sheet accounts screen,  Prev: Register screen,  Up: SCREENS
+File: hledger-ui.info,  Node: Transaction screen,  Next: Error screen,  Prev: Register screen,  Up: SCREENS
 
-4.4 Transaction screen
+4.6 Transaction screen
 ======================
 
 This screen shows a single transaction, as a general journal entry,
@@ -494,35 +521,7 @@ unfiltered journal, which is a more stable id (at least until the next
 reload).
 
 
-File: hledger-ui.info,  Node: Balance sheet accounts screen,  Next: Income statement accounts screen,  Prev: Transaction screen,  Up: SCREENS
-
-4.5 Balance sheet accounts screen
-=================================
-
-This is like the accounts screen except:
-
-   * it shows only asset, liability and equity accounts (see account
-     types)
-   * it always shows historical end balances on some date (not balance
-     changes).
-
-   It corresponds to the 'hledger balancesheet' command.
-
-
-File: hledger-ui.info,  Node: Income statement accounts screen,  Next: Error screen,  Prev: Balance sheet accounts screen,  Up: SCREENS
-
-4.6 Income statement accounts screen
-====================================
-
-Like the accounts screen except:
-
-   * it shows only revenue and expense accounts
-   * it always shows balance changes in some period (not end balances).
-
-   It corresponds to the 'hledger incomestatement' command.
-
-
-File: hledger-ui.info,  Node: Error screen,  Prev: Income statement accounts screen,  Up: SCREENS
+File: hledger-ui.info,  Node: Error screen,  Prev: Transaction screen,  Up: SCREENS
 
 4.7 Error screen
 ================
@@ -541,10 +540,10 @@ File: hledger-ui.info,  Node: TIPS,  Next: ENVIRONMENT,  Prev: SCREENS,  Up: Top
 * Menu:
 
 * Watch mode::
-* Watch mode limitations::
+* Debug output::
 
 
-File: hledger-ui.info,  Node: Watch mode,  Next: Watch mode limitations,  Up: TIPS
+File: hledger-ui.info,  Node: Watch mode,  Next: Debug output,  Up: TIPS
 
 5.1 Watch mode
 ==============
@@ -566,35 +565,29 @@ bandwidth for your accounting.  Of course you can still interact with
 hledger-ui when needed, eg to toggle cleared mode, or to explore the
 history.
 
-
-File: hledger-ui.info,  Node: Watch mode limitations,  Prev: Watch mode,  Up: TIPS
+   Here are some current limitations to be aware of:
 
-5.2 Watch mode limitations
-==========================
-
-There are situations in which it won't work, ie the display will not
-update when you save a change (because the underlying 'inotify' library
-does not support it).  Here are some that we know of:
-
-   * Certain editors: saving with 'gedit', and perhaps any Gnome
-     application, won't be detected (#1617).  Jetbrains IDEs, such as
-     IDEA, also may not work (#911).
-
-   * Certain unusual filesystems might not be supported.  (All the usual
-     ones on unix, mac and windows are supported.)
-
-   In such cases, the workaround is to switch to the hledger-ui window
-and press 'g' each time you want it to reload.  (Actually, see #1617 for
+   Changes might not be detected with certain editors, possibly
+including Jetbrains IDEs, 'gedit', other Gnome applications; or on
+certain unusual filesystems.  (#1617, #911).  To work around, reload
+manually by pressing 'g' in the hledger-ui window.  (Or see #1617 for
 another workaround, and let us know if it works for you.)
 
-   If you leave 'hledger-ui --watch' running for days, on certain
-platforms (?), perhaps with many transactions in your journal (?),
-perhaps with large numbers of other files present (?), you may see it
-gradually using more and more memory and CPU over time, as seen in 'top'
-or Activity Monitor or Task Manager.
+   CPU and memory usage can sometimes gradually increase, if 'hledger-ui
+--watch' is left running for days.  (Possibly correlated with certain
+platforms, many transactions, and/or large numbers of other files
+present).  To work around, 'q'uit and restart it, or (where supported)
+suspend ('CTRL-z') and restart it ('fg').
 
-   A workaround is to 'q'uit and restart it, or to suspend it ('CTRL-z')
-and restart it ('fg') if your shell supports that.
+
+File: hledger-ui.info,  Node: Debug output,  Prev: Watch mode,  Up: TIPS
+
+5.2 Debug output
+================
+
+You can add '--debug[=N]' to the command line to log debug output.  This
+will be logged to the file 'hledger-ui.log' in the current directory.  N
+ranges from 1 (least output, the default) to 9 (maximum output).
 
 
 File: hledger-ui.info,  Node: ENVIRONMENT,  Next: FILES,  Prev: TIPS,  Up: Top
@@ -689,32 +682,32 @@ Node: KEYS7014
 Ref: #keys7107
 Node: SCREENS11193
 Ref: #screens11291
-Node: Menu screen11468
-Ref: #menu-screen11584
-Node: Accounts screen11666
-Ref: #accounts-screen11814
-Node: Register screen14189
-Ref: #register-screen14344
-Node: Transaction screen16328
-Ref: #transaction-screen16503
-Node: Balance sheet accounts screen17373
-Ref: #balance-sheet-accounts-screen17587
-Node: Income statement accounts screen17855
-Ref: #income-statement-accounts-screen18069
-Node: Error screen18285
-Ref: #error-screen18421
-Node: TIPS18665
-Ref: #tips18764
-Node: Watch mode18816
-Ref: #watch-mode18933
-Node: Watch mode limitations19683
-Ref: #watch-mode-limitations19824
-Node: ENVIRONMENT20960
-Ref: #environment21071
-Node: FILES22456
-Ref: #files22555
-Node: BUGS22768
-Ref: #bugs22845
+Node: Menu screen11472
+Ref: #menu-screen11592
+Node: All accounts screen11761
+Ref: #all-accounts-screen11935
+Node: Balance sheet accounts screen12068
+Ref: #balance-sheet-accounts-screen12283
+Node: Income statement accounts screen12554
+Ref: #income-statement-accounts-screen12771
+Node: Register screen15216
+Ref: #register-screen15388
+Node: Transaction screen17372
+Ref: #transaction-screen17530
+Node: Error screen18400
+Ref: #error-screen18522
+Node: TIPS18766
+Ref: #tips18865
+Node: Watch mode18907
+Ref: #watch-mode19014
+Node: Debug output20470
+Ref: #debug-output20581
+Node: ENVIRONMENT20793
+Ref: #environment20904
+Node: FILES22289
+Ref: #files22388
+Node: BUGS22601
+Ref: #bugs22678
 
 End Tag Table
 

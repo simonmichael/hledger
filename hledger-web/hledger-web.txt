@@ -517,22 +517,32 @@ JSON API
 
               $ curl http://127.0.0.1:5000/add -X PUT -H 'Content-Type: application/json' --data-binary @txn.json
 
+DEBUG OUTPUT
+   Debug output
+       You can add --debug[=N] to the command line to  log  debug  output.   N
+       ranges from 1 (least output, the default) to 9 (maximum output).  Typi-
+       cally you would start with 1 and increase until you are seeing  enough.
+       Debug  output  goes  to stderr, interleaved with the requests logged on
+       stdout.  To capture debug output in a log file instead, you can usually
+       redirect stderr, eg:
+       hledger-web --debug=3 2>hledger-web.log.
+
 ENVIRONMENT
        LEDGER_FILE The journal file path when not specified with -f.
 
        On unix computers, the default value is: ~/.hledger.journal.
 
-       A more typical value is something  like  ~/finance/YYYY.journal,  where
-       ~/finance  is  a  version-controlled  finance directory and YYYY is the
-       current year.  Or, ~/finance/current.journal, where current.journal  is
+       A  more  typical  value is something like ~/finance/YYYY.journal, where
+       ~/finance is a version-controlled finance directory  and  YYYY  is  the
+       current  year.  Or, ~/finance/current.journal, where current.journal is
        a symbolic link to YYYY.journal.
 
-       The  usual  way  to  set this permanently is to add a command to one of
+       The usual way to set this permanently is to add a  command  to  one  of
        your shell's startup files (eg ~/.profile):
 
               export LEDGER_FILE=~/finance/current.journal`
 
-       On some Mac computers, there is a more thorough way to set  environment
+       On  some Mac computers, there is a more thorough way to set environment
        variables, that will also affect applications started from the GUI (eg,
        Emacs started from a dock icon): In ~/.MacOSX/environment.plist, add an
        entry like:
@@ -543,24 +553,24 @@ ENVIRONMENT
 
        For this to take effect you might need to killall Dock, or reboot.
 
-       On  Windows  computers,  the  default  value is probably C:\Users\YOUR-
-       NAME\.hledger.journal.  You can change this by running a  command  like
-       this  in a powershell window (let us know if you need to be an Adminis-
+       On Windows computers, the  default  value  is  probably  C:\Users\YOUR-
+       NAME\.hledger.journal.   You  can change this by running a command like
+       this in a powershell window (let us know if you need to be an  Adminis-
        trator, and if this persists across a reboot):
 
               > setx LEDGER_FILE "C:\Users\MyUserName\finance\2021.journal"
 
-       Or,  change   it   in   settings:   see   https://www.java.com/en/down-
+       Or,   change   it   in   settings:   see  https://www.java.com/en/down-
        load/help/path.html.
 
 FILES
-       Reads  data from one or more files in hledger journal, timeclock, time-
-       dot,  or  CSV  format  specified   with   -f,   or   $LEDGER_FILE,   or
-       $HOME/.hledger.journal           (on          windows,          perhaps
+       Reads data from one or more files in hledger journal, timeclock,  time-
+       dot,   or   CSV   format   specified   with  -f,  or  $LEDGER_FILE,  or
+       $HOME/.hledger.journal          (on          windows,           perhaps
        C:/Users/USER/.hledger.journal).
 
 BUGS
-       The need to precede options with -- when invoked from hledger  is  awk-
+       The  need  to precede options with -- when invoked from hledger is awk-
        ward.
 
        -f- doesn't work (hledger-web can't read from stdin).
@@ -574,7 +584,7 @@ BUGS
 
 
 REPORTING BUGS
-       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
+       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
        or hledger mail list)
 
 

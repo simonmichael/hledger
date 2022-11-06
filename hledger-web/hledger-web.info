@@ -62,6 +62,7 @@ requests to stdout.
 * EDITING UPLOADING DOWNLOADING::
 * RELOADING::
 * JSON API::
+* DEBUG OUTPUT::
 * ENVIRONMENT::
 * FILES::
 * BUGS::
@@ -382,7 +383,7 @@ file has been fixed.
 sure that both machine clocks are roughly in step.)
 
 
-File: hledger-web.info,  Node: JSON API,  Next: ENVIRONMENT,  Prev: RELOADING,  Up: Top
+File: hledger-web.info,  Node: JSON API,  Next: DEBUG OUTPUT,  Prev: RELOADING,  Up: Top
 
 5 JSON API
 **********
@@ -566,9 +567,33 @@ entry to your journal:
 $ curl http://127.0.0.1:5000/add -X PUT -H 'Content-Type: application/json' --data-binary @txn.json
 
 
-File: hledger-web.info,  Node: ENVIRONMENT,  Next: FILES,  Prev: JSON API,  Up: Top
+File: hledger-web.info,  Node: DEBUG OUTPUT,  Next: ENVIRONMENT,  Prev: JSON API,  Up: Top
 
-6 ENVIRONMENT
+6 DEBUG OUTPUT
+**************
+
+* Menu:
+
+* Debug output::
+
+
+File: hledger-web.info,  Node: Debug output,  Up: DEBUG OUTPUT
+
+6.1 Debug output
+================
+
+You can add '--debug[=N]' to the command line to log debug output.  N
+ranges from 1 (least output, the default) to 9 (maximum output).
+Typically you would start with 1 and increase until you are seeing
+enough.  Debug output goes to stderr, interleaved with the requests
+logged on stdout.  To capture debug output in a log file instead, you
+can usually redirect stderr, eg:
+'hledger-web --debug=3 2>hledger-web.log'.
+
+
+File: hledger-web.info,  Node: ENVIRONMENT,  Next: FILES,  Prev: DEBUG OUTPUT,  Up: Top
+
+7 ENVIRONMENT
 *************
 
 *LEDGER_FILE* The journal file path when not specified with '-f'.
@@ -609,7 +634,7 @@ https://www.java.com/en/download/help/path.html.
 
 File: hledger-web.info,  Node: FILES,  Next: BUGS,  Prev: ENVIRONMENT,  Up: Top
 
-7 FILES
+8 FILES
 *******
 
 Reads data from one or more files in hledger journal, timeclock,
@@ -620,7 +645,7 @@ timedot, or CSV format specified with '-f', or '$LEDGER_FILE', or
 
 File: hledger-web.info,  Node: BUGS,  Prev: FILES,  Up: Top
 
-8 BUGS
+9 BUGS
 ******
 
 The need to precede options with '--' when invoked from hledger is
@@ -637,22 +662,26 @@ awkward.
 
 Tag Table:
 Node: Top223
-Node: OPTIONS2419
-Ref: #options2524
-Node: PERMISSIONS9923
-Ref: #permissions10062
-Node: EDITING UPLOADING DOWNLOADING11274
-Ref: #editing-uploading-downloading11455
-Node: RELOADING12289
-Ref: #reloading12423
-Node: JSON API12856
-Ref: #json-api12970
-Node: ENVIRONMENT18460
-Ref: #environment18576
-Node: FILES19887
-Ref: #files19987
-Node: BUGS20200
-Ref: #bugs20278
+Node: OPTIONS2436
+Ref: #options2541
+Node: PERMISSIONS9940
+Ref: #permissions10079
+Node: EDITING UPLOADING DOWNLOADING11291
+Ref: #editing-uploading-downloading11472
+Node: RELOADING12306
+Ref: #reloading12440
+Node: JSON API12873
+Ref: #json-api12988
+Node: DEBUG OUTPUT18478
+Ref: #debug-output18603
+Node: Debug output18630
+Ref: #debug-output-118731
+Node: ENVIRONMENT19148
+Ref: #environment19268
+Node: FILES20579
+Ref: #files20679
+Node: BUGS20892
+Ref: #bugs20970
 
 End Tag Table
 

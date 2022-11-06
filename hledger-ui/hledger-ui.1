@@ -337,19 +337,37 @@ Additional screen-specific keys are described below.
 .SH SCREENS
 .SS Menu screen
 .PP
-The top-most screen, currently with just one menu item and not shown by
-default.
-.SS Accounts screen
+The top-most screen.
+hledger-ui does not show this screen at startup, but you can press LEFT
+to navigate to it.
+From here you can navigate to three accounts screens:
+.SS All accounts screen
 .PP
-This is normally the first screen displayed.
-It lists accounts and their balances, like hledger\[aq]s balance
-command.
-By default, it shows all accounts and their latest ending balances
-(including the balances of subaccounts).
-Accounts which have been declared with an account directive are also
-listed, even if not yet used (except for empty parent accounts).
+This screen shows all accounts (unless filtered by a query), and their
+current balances.
+It is like the \f[C]hledger balance\f[R] command.
+.SS Balance sheet accounts screen
+.PP
+This is the screen normally shown at startup.
+It shows asset, liability and equity accounts, if these can be detected
+(see account types).
+It always shows historical end balances on some date (not balance
+changes).
+It is like the \f[C]hledger balancesheetequity\f[R] command.
+.SS Income statement accounts screen
+.PP
+This screen shows revenue and expense accounts.
+It always shows balance changes in some period (not end balances).
+It is like the \f[C]hledger incomestatement\f[R] command.
+.PP
+All of these accounts screens work in much the same way:
+.PP
+They show accounts which have been posted to by transactions, as well as
+accounts which have been declared with an account directive (except for
+empty parent accounts).
+.PP
 If you specify a query on the command line, it shows just the matched
-accounts and the balances from matched transactions.
+accounts, and the balances from matched transactions.
 .PP
 Account names are shown as a flat list by default; press \f[C]t\f[R] to
 toggle tree mode.
@@ -367,7 +385,7 @@ To remove the depth limit, set it higher than the maximum account depth,
 or press \f[C]ESCAPE\f[R].
 .PP
 \f[C]H\f[R] toggles between showing historical balances or period
-balances.
+balances (on the \[dq]All accounts\[dq] screen).
 Historical balances (the default) are ending balances at the end of the
 report period, taking into account all transactions before that date
 (filtered by the filter query if any), including transactions before the
@@ -392,8 +410,8 @@ all three, the filter is removed.)
 balances are shown (hledger-ui shows zero items by default, unlike
 command-line hledger).
 .PP
-Press \f[C]RIGHT\f[R] to view an account\[aq]s transactions register.
-Or, \f[C]LEFT\f[R] to see the menu screen.
+Press \f[C]RIGHT\f[R] to view an account\[aq]s register screen, Or,
+\f[C]LEFT\f[R] to see the menu screen.
 .SS Register screen
 .PP
 This screen shows the transactions affecting a particular account, like
@@ -460,25 +478,6 @@ They will vary depending on which account register you came from
 The #N number preceding them is the transaction\[aq]s position within
 the complete unfiltered journal, which is a more stable id (at least
 until the next reload).
-.SS Balance sheet accounts screen
-.PP
-This is like the accounts screen except:
-.IP \[bu] 2
-it shows only asset, liability and equity accounts (see account types)
-.IP \[bu] 2
-it always shows historical end balances on some date (not balance
-changes).
-.PP
-It corresponds to the \f[C]hledger balancesheet\f[R] command.
-.SS Income statement accounts screen
-.PP
-Like the accounts screen except:
-.IP \[bu] 2
-it shows only revenue and expense accounts
-.IP \[bu] 2
-it always shows balance changes in some period (not end balances).
-.PP
-It corresponds to the \f[C]hledger incomestatement\f[R] command.
 .SS Error screen
 .PP
 This screen will appear if there is a problem, such as a parse error,
@@ -510,34 +509,31 @@ immediately without having to context switch.
 This leaves more mental bandwidth for your accounting.
 Of course you can still interact with hledger-ui when needed, eg to
 toggle cleared mode, or to explore the history.
-.SS Watch mode limitations
 .PP
-There are situations in which it won\[aq]t work, ie the display will not
-update when you save a change (because the underlying \f[C]inotify\f[R]
-library does not support it).
-Here are some that we know of:
-.IP \[bu] 2
-Certain editors: saving with \f[C]gedit\f[R], and perhaps any Gnome
-application, won\[aq]t be detected (#1617).
-Jetbrains IDEs, such as IDEA, also may not work (#911).
-.IP \[bu] 2
-Certain unusual filesystems might not be supported.
-(All the usual ones on unix, mac and windows are supported.)
+Here are some current limitations to be aware of:
 .PP
-In such cases, the workaround is to switch to the hledger-ui window and
-press \f[C]g\f[R] each time you want it to reload.
-(Actually, see #1617 for another workaround, and let us know if it works
-for you.)
+Changes might not be detected with certain editors, possibly including
+Jetbrains IDEs, \f[C]gedit\f[R], other Gnome applications; or on certain
+unusual filesystems.
+(#1617, #911).
+To work around, reload manually by pressing \f[C]g\f[R] in the
+hledger-ui window.
+(Or see #1617 for another workaround, and let us know if it works for
+you.)
 .PP
-If you leave \f[C]hledger-ui --watch\f[R] running for days, on certain
-platforms (?), perhaps with many transactions in your journal (?),
-perhaps with large numbers of other files present (?), you may see it
-gradually using more and more memory and CPU over time, as seen in
-\f[C]top\f[R] or Activity Monitor or Task Manager.
+CPU and memory usage can sometimes gradually increase, if
+\f[C]hledger-ui --watch\f[R] is left running for days.
+(Possibly correlated with certain platforms, many transactions, and/or
+large numbers of other files present).
+To work around, \f[C]q\f[R]uit and restart it, or (where supported)
+suspend (\f[C]CTRL-z\f[R]) and restart it (\f[C]fg\f[R]).
+.SS Debug output
 .PP
-A workaround is to \f[C]q\f[R]uit and restart it, or to suspend it
-(\f[C]CTRL-z\f[R]) and restart it (\f[C]fg\f[R]) if your shell supports
-that.
+You can add \f[C]--debug[=N]\f[R] to the command line to log debug
+output.
+This will be logged to the file \f[C]hledger-ui.log\f[R] in the current
+directory.
+N ranges from 1 (least output, the default) to 9 (maximum output).
 .SH ENVIRONMENT
 .PP
 \f[B]COLUMNS\f[R] The screen width to use.
