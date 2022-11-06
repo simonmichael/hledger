@@ -2,39 +2,50 @@
 
 Here are fancier versions of Debug.Trace, with these features:
 
+- unsafePerformIO-based for easy usage in pure code, IO code, and program startup code
+- reasonably short and memorable function names
 - pretty-printing haskell values, with or without colour, using pretty-simple
 - enabling/disabling debug output with --debug
 - multiple debug verbosity levels, from 1 to 9
 - sending debug output to stderr or to a log file
 - enabling logging based on program name
-- reasonably short and memorable function names
-- easy usage in pure code, IO code, and program startup code.
 
 This module also exports Debug.Trace and the breakpoint package's Debug.Breakpoint.
 
-The "trace" functions print to stderr.
+The basic "trace" functions print to stderr.
 This debug output will be interleaved with the program's normal output, which can be
 useful for understanding when code executes.
-On most systems you can redirect stderr to a log file if you prefer (eg: @CMD 2>debug.log@).
 
-"traceLog" functions log to the program's debug log file.
-That is @PROGNAME.log@ in the current directory,
-where PROGNAME is  the executable name returned by @getProgName@.
-If using the logging feature you should ensure a stable program name
-by setting it explicitly with @withProgName@ at the start of your program
-(since otherwise it will change to "<interactive>" when you are testing in GHCI).
+The "Log" functions log to a file instead.
+The need for these is arguable, since a technically savvy user can redirect
+stderr output to a log file, eg: @CMD 2>debug.log@.
+But here is how they currently work:
+
+The "traceLog" functions log to the program's debug log file,
+which is @PROGNAME.log@ in the current directory,
+where PROGNAME is the program name returned by @getProgName@.
+When using this logging feature you should call @withProgName@ explicitly
+at the start of your program to ensure a stable program name,
+otherwise it can change to "<interactive>" eg when running in GHCI.
 Eg: @main = withProgName "MYPROG" $ do ...@.
 
-The "traceOrLog" and "dbg" functions normally print to stderr, but if the program name
-has been set to "MYPROG,logging" (ie, with a ",logging" suffix), they will log to
-MYPROG.log instead. This is useful eg for TUI programs (hledger-ui does this).
+The "OrLog" functions can either print to stderr or log to a file.
 
-The "dbgN*" functions are intended to be added at points of interest in your code.
-They (and the "*At*" functions) produce output only if the program was run with a 
-sufficiently high debug level. This ranges from 0 (no debug output) to 9 (most debug output),
-and it is set by the @--debug[=N]@ command line option. (@--debug@ with no argument means 1).
+- By default, they print to stderr.
 
-Parsing the command line for --debug, detecting program name, and file logging is done with unsafePerformIO.
+- If the program name has been set (with @withProgName) to something ending with ".log", they log to that file instead.
+  This can be useful for programs which should never print to stderr, eg TUI programs like hledger-ui.
+
+The "At" functions produce output only when the program was run with a 
+sufficiently high debug level, as set by a @--debug[=N]@ command line option.
+N ranges from 1 (least debug output) to 9 (most debug output),
+@--debug@ with no argument means 1.
+
+The "dbgN*" functions are intended to be the most convenient API, to be embedded
+at points of interest in your code. They combine the conditional output of "At",
+the conditional logging of "OrLog", pretty printing, and short searchable function names.
+
+Parsing the command line, detecting program name, and file logging is done with unsafePerformIO.
 If you are working in GHCI, changing the debug level requires editing and reloading this file
 (sometimes it's more convenient to add a dbg0 temporarily).
 
@@ -152,17 +163,17 @@ import Hledger.Utils.IO (progArgs, pshow, pshow')
 -- | The program name as returned by @getProgName@.
 -- It's best to set this explicitly at program startup with @withProgName@,
 -- otherwise when running in GHCI (eg) it will change to "<interactive>".
--- Setting it with a ",logging" suffix causes some functions below
+-- Setting it with a ".log" suffix causes some functions below
 -- to log instead of trace.
 {-# NOINLINE modifiedProgName #-}
 modifiedProgName :: String
 modifiedProgName = unsafePerformIO getProgName
 
--- | The progam name, with any ",logging" suffix removed.
+-- | The progam name, with any ".log" suffix removed.
 progName :: String
 progName =
-  if ",logging" `isSuffixOf` modifiedProgName
-  then reverse $ drop 8 $ reverse modifiedProgName
+  if ".log" `isSuffixOf` modifiedProgName
+  then reverse $ drop 4 $ reverse modifiedProgName
   else modifiedProgName
 
 -- | The programs debug output verbosity. The default is 0 meaning no debug output.
@@ -228,9 +239,9 @@ ptraceAtIO level label a =
   else liftIO $ traceIO (labelledPretty True label a)
 
 -- | Should the "trace or log" functions output to a file instead of stderr ?
--- True if the program name ends with ",logging".
+-- True if the program name ends with ".log".
 shouldLog :: Bool
-shouldLog = ",logging" `isSuffixOf` modifiedProgName
+shouldLog = ".log" `isSuffixOf` modifiedProgName
 
 -- | The debug log file: PROGNAME.log in the current directory.
 -- See modifiedProgName.

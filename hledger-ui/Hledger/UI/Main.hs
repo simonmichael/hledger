@@ -56,7 +56,7 @@ writeChan = BC.writeBChan
 
 
 main :: IO ()
-main = withProgName "hledger-ui,logging" $ do  -- force Hledger.Utils.Debug.* to log to hledger-ui.log
+main = withProgName "hledger-ui.log" $ do  -- force Hledger.Utils.Debug.* to log to hledger-ui.log
   opts@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=iopts,rawopts_=rawopts}} <- getHledgerUIOpts
   -- when (debug_ $ cliopts_ opts) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show opts)
 
