@@ -8,6 +8,7 @@ module Hledger.UI.MenuScreen
  ,msUpdate
  ,msDraw
  ,msHandle
+ ,msSetSelectedScreen
  )
 where
 
@@ -260,6 +261,11 @@ msEnterScreen d scrname ui@UIState{ajournal=j, aopts=uopts} = do
       Balancesheet    -> bsNew uopts d j Nothing
       Incomestatement -> isNew uopts d j Nothing
   put' $ pushScreen scr ui
+
+-- | Set the selected list item on the menu screen. Has no effect on other screens.
+msSetSelectedScreen :: Int -> Screen -> Screen
+msSetSelectedScreen selidx (MS mss@MSS{_mssList=l}) = MS mss{_mssList=listMoveTo selidx l}
+msSetSelectedScreen _ s = s
 
 isBlankElement mel = ((msItemScreenName . snd) <$> mel) == Just ""
 

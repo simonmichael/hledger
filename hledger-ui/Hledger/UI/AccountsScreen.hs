@@ -47,6 +47,7 @@ import Hledger.UI.ErrorScreen (uiReloadJournal, uiCheckBalanceAssertions, uiRelo
 import Hledger.UI.RegisterScreen (rsCenterSelection)
 import Data.Either (fromRight)
 import Control.Arrow ((>>>))
+import Safe (headDef)
 
 
 asDraw :: UIState -> [Widget Name]
@@ -363,7 +364,7 @@ enterRegisterScreen d acct ui@UIState{ajournal=j, aopts=uopts} = do
     ui1 = pushScreen regscr ui
   rsCenterSelection ui1 >>= put'
 
--- | From an accounts-screen-like screen's state, get the account name from the 
+-- | From any accounts screen's state, get the account name from the 
 -- currently selected list item, or otherwise the last known selected account name.
 asSelectedAccount :: AccountsScreenState -> AccountName
 asSelectedAccount ass =
@@ -371,10 +372,28 @@ asSelectedAccount ass =
     Just (_, AccountsScreenItem{..}) -> asItemAccountName
     Nothing -> ass ^. assSelectedAccount
 
--- | Set the selected account on an accounts screen. No effect on other screens.
+-- | Set the selected account on any of the accounts screens. Has no effect on other screens.
+-- Sets the high-level property _assSelectedAccount and also selects the corresponding or
+-- best alternative item in the list widget (_assList).
 asSetSelectedAccount :: AccountName -> Screen -> Screen
-asSetSelectedAccount a (AS ass@ASS{}) = AS ass{_assSelectedAccount=a}
-asSetSelectedAccount _ s = s
+asSetSelectedAccount acct scr =
+  case scr of
+    (AS ass) -> AS $ assSetSelectedAccount acct ass
+    (BS ass) -> BS $ assSetSelectedAccount acct ass
+    (IS ass) -> IS $ assSetSelectedAccount acct ass
+    _        -> scr
+    where
+      assSetSelectedAccount a ass@ASS{_assList=l} =
+        ass{_assSelectedAccount=a, _assList=listMoveTo selidx l}
+        where
+          -- which list item should be selected ?
+          selidx = headDef 0 $ catMaybes [
+            elemIndex a as                                -- the specified account, if it can be found
+            ,findIndex (a `isAccountNamePrefixOf`) as     -- or the first account found with the same prefix
+            ,Just $ max 0 (length (filter (< a) as) - 1)  -- otherwise, the alphabetically preceding account.
+            ]
+            where
+              as = map asItemAccountName $ V.toList $ listElements l
 
 isBlankItem mitem = ((asItemAccountName . snd) <$> mitem) == Just ""
 

@@ -15,6 +15,8 @@ import Control.Applicative ((<|>))
 import Control.Concurrent (threadDelay)
 import Control.Concurrent.Async (withAsync)
 import Control.Monad (forM_, void, when)
+import Data.Bifunctor (first)
+import Data.Function ((&))
 import Data.List (find)
 import Data.List.Extra (nubSort)
 import Data.Maybe (fromMaybe)
@@ -22,6 +24,7 @@ import qualified Data.Text as T
 import Graphics.Vty (mkVty, Mode (Mouse), Vty (outputIface), Output (setMode))
 import Lens.Micro ((^.))
 import System.Directory (canonicalizePath)
+import System.Environment (withProgName)
 import System.FilePath (takeDirectory)
 import System.FSNotify (Event(Modified), watchDir, withManager, EventIsDirectory (IsFile))
 import Brick hiding (bsDraw)
@@ -41,7 +44,7 @@ import Hledger.UI.IncomestatementScreen
 import Hledger.UI.RegisterScreen
 import Hledger.UI.TransactionScreen
 import Hledger.UI.ErrorScreen
-import System.Environment (withProgName)
+
 
 ----------------------------------------------------------------------
 
@@ -132,13 +135,30 @@ runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=r
         filteredQuery q = simplifyQuery $ And [queryFromFlags ropts, filtered q]
           where filtered = filterQuery (\x -> not $ queryIsDepth x || queryIsDate x)
 
-    -- Select the starting screen, and parent screens you can step back to:
-    -- menu > accounts by default, or menu > accounts > register with --register.
-    -- Remember the parent screens are ordered nearest/lowest first.
-    (prevscrs, startscr) = case uoRegister uopts of
-      Nothing   -> ([menuscr], bsacctsscr)
-      Just apat -> ([asSetSelectedAccount acct bsacctsscr, menuscr], regscr)
+    -- Set up the initial screen to display, and a stack of previous screens
+    -- as if you had navigated down to it from the top.
+    (prevscrs, currscr) = case uoRegister uopts of
+
+      -- The default initial screen stack is: 
+      -- menu screen, with balance sheet accounts screen selected
+      --  balance sheet accounts screen
+      Nothing -> ([menuscr], bsacctsscr)
+
+      -- With --register=ACCT, it is:
+      -- menu screen, with ACCTSSCR selected
+      --  ACCTSSCR (the accounts screen containing ACCT), with ACCT selected
+      --   register screen for ACCT
+      Just apat -> ([acctsscr, menuscr'], regscr)  -- remember, previous screens are ordered nearest/lowest first
         where
+          -- the account being requested
+          acct = fromMaybe (error' $ "--register "++apat++" did not match any account")  -- PARTIAL:
+            . firstMatch $ journalAccountNamesDeclaredOrImplied j
+            where
+              firstMatch = case toRegexCI $ T.pack apat of
+                  Right re -> find (regexMatchText re)
+                  Left  _  -> const Nothing
+
+          -- the register screen for acct
           regscr = 
             rsSetAccount acct False $
             rsNew uopts today j acct forceinclusive
@@ -146,17 +166,26 @@ runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=r
                 forceinclusive = case getDepth ui of
                                   Just de -> accountNameLevel acct >= de
                                   Nothing -> False
-          acct = fromMaybe (error' $ "--register "++apat++" did not match any account")  -- PARTIAL:
-            . firstMatch $ journalAccountNamesDeclaredOrImplied j
-            where
-              firstMatch = case toRegexCI $ T.pack apat of
-                  Right re -> find (regexMatchText re)
-                  Left  _  -> const Nothing
-      where
-        menuscr = msNew
-        bsacctsscr = bsNew uopts today j Nothing
 
-    ui = uiState uopts j prevscrs startscr
+          -- The accounts screen containing acct.
+          -- Keep these selidx values synced with the menu items in msNew.
+          (acctsscr, selidx) = 
+            case journalAccountType j acct of
+              Just t | isBalanceSheetAccountType t    -> (bsacctsscr, 1)
+              Just t | isIncomeStatementAccountType t -> (isacctsscr, 2)
+              _                                       -> (allacctsscr,0)
+            & first (asSetSelectedAccount acct)
+
+          -- the menu screen
+          menuscr' = msSetSelectedScreen selidx menuscr
+
+      where
+        menuscr     = msNew
+        allacctsscr = asNew uopts today j Nothing
+        bsacctsscr  = bsNew uopts today j Nothing
+        isacctsscr  = isNew uopts today j Nothing
+
+    ui = uiState uopts j prevscrs currscr
     app = brickApp (uoTheme uopts)
 
   -- print (length (show ui)) >> exitSuccess  -- show any debug output to this point & quit

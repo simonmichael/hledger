@@ -80,6 +80,7 @@ msNew =
   dbgui "msNew" $
   MS MSS {
      _mssList            = list MenuList (V.fromList [
+      -- keep initial screen stack setup in UI.Main synced with these
        MenuScreenItem "All accounts" Accounts
       ,MenuScreenItem "Balance sheet accounts (assets, liabilities, equity)" Balancesheet
       ,MenuScreenItem "Income statement accounts (revenues, expenses)" Incomestatement
@@ -128,23 +129,17 @@ asUpdateHelper rspec0 d copts roptsModify extraquery j ass = dbgui "asUpdateHelp
       & reportSpecSetFutureAndForecast (forecast_ $ inputopts_ copts)  -- include/exclude future & forecast transactions
       & reportSpecAddQuery extraquery  -- add any extra restrictions
 
-    -- decide which account is selected:
-    -- if selectfirst is true, the first account;
-    -- otherwise, the previously selected account if possible;
-    -- otherwise, the first account with the same prefix (eg first leaf account when entering flat mode);
-    -- otherwise, the alphabetically preceding account.
-    l =
-      listMoveTo selidx $
-      list AccountsList (V.fromList $ displayitems ++ blankitems) 1
+    l = listMoveTo selidx $ list AccountsList (V.fromList $ displayitems ++ blankitems) 1
       where
+        -- which account should be selected ?
         selidx = headDef 0 $ catMaybes [
-                  elemIndex a as
-                  ,findIndex (a `isAccountNamePrefixOf`) as
-                  ,Just $ max 0 (length (filter (< a) as) - 1)
-                  ]
-                  where
-                    a = _assSelectedAccount ass
-                    as = map asItemAccountName displayitems
+           elemIndex a as                               -- the one previously selected, if it can be found
+          ,findIndex (a `isAccountNamePrefixOf`) as     -- or the first account found with the same prefix
+          ,Just $ max 0 (length (filter (< a) as) - 1)  -- otherwise, the alphabetically preceding account.
+          ]
+          where
+            a = _assSelectedAccount ass
+            as = map asItemAccountName displayitems
 
         displayitems = map displayitem items
           where

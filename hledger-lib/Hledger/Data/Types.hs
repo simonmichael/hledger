@@ -163,6 +163,21 @@ instance Show AccountType where
   show Cash       = "C"
   show Conversion = "V"
 
+isBalanceSheetAccountType :: AccountType -> Bool
+isBalanceSheetAccountType t = t `elem` [
+  Asset,
+  Liability,
+  Equity,
+  Cash,
+  Conversion
+  ]
+
+isIncomeStatementAccountType :: AccountType -> Bool
+isIncomeStatementAccountType t = t `elem` [
+  Revenue,
+  Expense
+  ]
+
 -- | Check whether the first argument is a subtype of the second: either equal
 -- or one of the defined subtypes.
 isAccountSubtypeOf :: AccountType -> AccountType -> Bool
