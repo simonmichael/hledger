@@ -19,6 +19,7 @@ import Data.Bifunctor (first)
 import Data.Function ((&))
 import Data.List (find)
 import Data.List.Extra (nubSort)
+import qualified Data.Map as M (elems)
 import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import Graphics.Vty (mkVty, Mode (Mouse), Vty (outputIface), Output (setMode))
@@ -135,20 +136,19 @@ runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=r
         filteredQuery q = simplifyQuery $ And [queryFromFlags ropts, filtered q]
           where filtered = filterQuery (\x -> not $ queryIsDepth x || queryIsDate x)
 
-    -- Set up the initial screen to display, and a stack of previous screens
+    -- Choose the initial screen to display.
+    -- We like to show the balance sheet accounts screen by default,
+    -- but that can change eg if we can't detect any, or 
+    -- if an account query has been provided at startup.
+    -- Whichever it is, we also set up a stack of previous screens,
     -- as if you had navigated down to it from the top.
-    (prevscrs, currscr) = case uoRegister uopts of
+    (prevscrs, currscr) = case (uoRegister uopts, hasbsaccts, hasacctquery) of
 
-      -- The default initial screen stack is: 
-      -- menu screen, with balance sheet accounts screen selected
-      --  balance sheet accounts screen
-      Nothing -> ([menuscr], bsacctsscr)
-
-      -- With --register=ACCT, it is:
-      -- menu screen, with ACCTSSCR selected
-      --  ACCTSSCR (the accounts screen containing ACCT), with ACCT selected
-      --   register screen for ACCT
-      Just apat -> ([acctsscr, menuscr'], regscr)  -- remember, previous screens are ordered nearest/lowest first
+      -- With --register=ACCT, the initial screen stack is:
+      -- 1. menu screen, with ACCTSSCR selected
+      --  2. ACCTSSCR (the accounts screen containing ACCT), with ACCT selected
+      --   3. register screen for ACCT
+      (Just apat, _, _) ->  ([acctsscr, menuscr'], regscr)  -- remember, previous screens are ordered nearest/lowest first
         where
           -- the account being requested
           acct = fromMaybe (error' $ "--register "++apat++" did not match any account")  -- PARTIAL:
@@ -169,7 +169,7 @@ runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=r
 
           -- The accounts screen containing acct.
           -- Keep these selidx values synced with the menu items in msNew.
-          (acctsscr, selidx) = 
+          (acctsscr, selidx) =
             case journalAccountType j acct of
               Just t | isBalanceSheetAccountType t    -> (bsacctsscr, 1)
               Just t | isIncomeStatementAccountType t -> (isacctsscr, 2)
@@ -179,7 +179,20 @@ runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=r
           -- the menu screen
           menuscr' = msSetSelectedScreen selidx menuscr
 
+      -- Or with balance sheet accounts detected and no initial account query, it is:
+      -- 1. menu screen, with balance sheet accounts screen selected
+      --  2. balance sheet accounts screen
+      (Nothing, True, False) -> ([menuscr], bsacctsscr)
+
+      -- Otherwise it is: 
+      -- 1. menu screen, with all accounts screen selected
+      --  2. all accounts screen
+      (Nothing, _, _) -> ([msSetSelectedScreen 0 menuscr], allacctsscr)
+
       where
+        hasbsaccts  = any (`elem` accttypes) [Asset, Liability, Equity]
+          where accttypes = M.elems $ jaccounttypes j
+        hasacctquery = matchesQuery queryIsAcct $ _rsQuery rspec
         menuscr     = msNew
         allacctsscr = asNew uopts today j Nothing
         bsacctsscr  = bsNew uopts today j Nothing
