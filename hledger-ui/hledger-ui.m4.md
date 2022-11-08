@@ -119,11 +119,12 @@ Press `?` again (or `ESCAPE`, or `LEFT`, or `q`) to close it.
 The following keys work on most screens:
 
 The cursor keys navigate:
-`RIGHT` goes deeper,
+`RIGHT` or `ENTER` goes deeper,
 `LEFT` returns to the previous screen,
 `UP`/`DOWN`/`PGUP`/`PGDN`/`HOME`/`END` move up and down through lists.
-Emacs-style (`CTRL-p`/`CTRL-n`/`CTRL-f`/`CTRL-b`) movement keys are also supported
-(but not vi-style keys, since hledger-1.19, sorry!).
+Emacs-style (`CTRL-p`/`CTRL-n`/`CTRL-f`/`CTRL-b`)
+and VI-style (`k`,`j`,`l`,`h`) 
+movement keys are also supported.
 A tip: movement speed is limited by your keyboard repeat rate,
 to move faster you may want to adjust it.
 (If you're on a mac, the karabiner app is one way to do that.)
@@ -211,27 +212,30 @@ It shows the Balance sheet accounts screen to start with, except in the followin
 - If a starting screen is specified with --menu/--all/--bs/--is/--register
   on the command line, it starts there.
 
+From the starting screen you can press `LEFT` or `ESC` to navigate back to the menu screen.
+
 ## Menu screen
 
-The top-most screen. hledger-ui does not show this screen at startup,
-but you can press LEFT to navigate to it.
+The top-most screen.
 From here you can navigate to three accounts screens:
 
 ## All accounts screen
 
-This screen shows all accounts (possibly filtered by a query), and their current balances.
+This screen shows all accounts (possibly filtered by a query),
+and their end balances on the date shown in the title bar
+(or their balance changes in the period shown in the title bar, toggleable with `H`).
 It is like the `hledger balance` command. 
 
 ## Balance sheet accounts screen
 
 This screen shows asset, liability and equity accounts, if these can be detected (see [account types](/hledger.html#account-types)).
-It always shows historical end balances on some date (not balance changes).
+It always shows end balances.
 It is like the `hledger balancesheetequity` command.
 
 ## Income statement accounts screen
 
 This screen shows revenue and expense accounts.
-It always shows balance changes in some period (not end balances).
+It always shows balance changes.
 It is like the `hledger incomestatement` command.
 
 All of these accounts screens work in much the same way:
