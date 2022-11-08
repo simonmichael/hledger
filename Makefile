@@ -859,7 +859,7 @@ LOCALSITEURL=http://localhost:3000/dev/hledger.html
 site-watch: $(call def-help,site-watch, open a browser on the website (in ./site) and rerender when docs or web pages change )
 	@make -s Shake
 	@(printf "\nbrowser will open in $(BROWSEDELAY)s (adjust BROWSE in Makefile if needed)...\n\n"; sleep $(BROWSEDELAY); $(BROWSE) $(LOCALSITEURL)) &
-	@ls $(DOCSOURCEFILES) | entr -r bash -c './Shake webmanuals && ./Shake orgfiles && make -sC site serve'
+	@$(WATCHEXEC) -e md,m4 -r './Shake webmanuals && ./Shake orgfiles && make -sC site serve'
 
 ###############################################################################
 $(call def-help-subheading,RELEASING:)
