@@ -33,12 +33,15 @@ module Hledger.UI.UIUtils (
   ,reportSpecSetFutureAndForecast
   ,listScrollPushingSelection
   ,dbgui
+  ,dbguiIO
   ,dbguiEv
   ,dbguiScreensEv
-  ,screenRegisterDescriptions
-  ,screenId
+  ,showScreenId
+  ,showScreenRegisterDescriptions
+  ,showScreenSelection
   ,mapScreens
   ,uiNumBlankItems
+  ,showScreenStack
   )
 where
 
@@ -84,33 +87,39 @@ suspendSignal = raiseSignal sigSTOP
 -- A good place to log things of interest while debugging, see commented examples below.
 
 get' = do
-  x <- get
-  dbguiEv $ "getting state: " ++ (head $ lines $ pshow $ aScreen x)
+  ui <- get
+  dbguiEv $ "getting state: " ++ 
+    showScreenStack "" showScreenSelection ui
+    -- (head $ lines $ pshow $ aScreen x)
     -- ++ " " ++ (show $ map tdescription $ jtxns $ ajournal x)
   -- dbguiEv $ ("query: "++) $ pshow' $ x  & aopts & uoCliOpts & reportspec_ & _rsQuery
-  -- dbguiScreensEv "getting" screenId x
-  -- dbguiScreensEv "getting, with register descriptions" screenRegisterDescriptions x
-  return x
+  -- dbguiScreensEv "getting" showScreenId x
+  -- dbguiScreensEv "getting, with register descriptions" showScreenRegisterDescriptions x
+  return ui
 
-put' x = do
-  dbguiEv $ "putting state: " ++ (head $ lines $ pshow $ aScreen x)
+put' ui = do
+  dbguiEv $ "putting state: " ++
+    showScreenStack "" showScreenSelection ui
+    -- (head $ lines $ pshow $ aScreen x)
     -- ++ " " ++ (show $ map tdescription $ jtxns $ ajournal x)
   -- dbguiEv $ ("query: "++) $ pshow' $ x  & aopts & uoCliOpts & reportspec_ & _rsQuery
-  -- dbguiScreensEv "putting" screenId x
-  -- dbguiScreensEv "putting, with register descriptions" screenRegisterDescriptions x
-  put x
+  -- dbguiScreensEv "putting" showScreenId x
+  -- dbguiScreensEv "putting, with register descriptions" showScreenRegisterDescriptions x
+  put ui
 
 modify' f = do
-  x <- get
-  let x' = f x
-  dbguiEv $ "modifying state: " ++ (head $ lines $ pshow $ aScreen x')
+  ui <- get
+  let ui' = f ui
+  dbguiEv $ "getting state: " ++ (showScreenStack "" showScreenSelection ui)
+  dbguiEv $ "putting state: " ++ (showScreenStack "" showScreenSelection ui')
+    -- (head $ lines $ pshow $ aScreen x')
     -- ++ " " ++ (show $ map tdescription $ jtxns $ ajournal x')
   -- dbguiEv $ ("from: "++) $ pshow' $ x  & aopts & uoCliOpts & reportspec_ & _rsQuery
   -- dbguiEv $ ("to:   "++) $ pshow' $ x' & aopts & uoCliOpts & reportspec_ & _rsQuery
-  -- dbguiScreensEv "getting" screenId x
-  -- dbguiScreensEv "putting" screenId x'
-  -- dbguiScreensEv "getting, with register descriptions" screenRegisterDescriptions x
-  -- dbguiScreensEv "putting, with register descriptions" screenRegisterDescriptions x'
+  -- dbguiScreensEv "getting" showScreenId x
+  -- dbguiScreensEv "putting" showScreenId x'
+  -- dbguiScreensEv "getting, with register descriptions" showScreenRegisterDescriptions x
+  -- dbguiScreensEv "putting, with register descriptions" showScreenRegisterDescriptions x'
   modify f
 
 -- | On posix platforms, suspend the program using the STOP signal,
@@ -444,47 +453,72 @@ listScrollPushingSelection name listheight scrollamt = do
 dbgui :: String -> a -> a
 dbgui = traceLogAt 1
 
+-- | Like dbgui, but convenient to use in IO.
+dbguiIO :: String -> IO ()
+dbguiIO = traceLogAtIO 1
+
 -- | Like dbgui, but convenient to use in EventM handlers.
 dbguiEv :: String -> EventM Name s ()
 dbguiEv s = dbgui s $ return ()
 
--- | Like dbguiEv, but log a compact view of the current screen stack,
+-- | Like dbguiEv, but log a compact view of the current screen stack.
+-- See showScreenStack.
+-- To just log the stack: @dbguiScreensEv "" showScreenId ui@
+dbguiScreensEv :: String -> (Screen -> String) -> UIState -> EventM Name UIState ()
+dbguiScreensEv postfix showscr ui = dbguiEv $ showScreenStack postfix showscr ui
+
+-- Render a compact labelled view of the current screen stack,
 -- adding the given postfix to the label (can be empty),
--- from topmost screen to currently-viewed screen,
+-- from the topmost screen to the currently-viewed screen,
 -- with each screen rendered by the given rendering function.
 -- Useful for inspecting states across the whole screen stack.
--- Some screen rendering functions are @screenId@ and @screenRegisterDescriptions@.
--- To just show the stack: @dbguiScreensEv "" screenId ui@
-dbguiScreensEv :: String -> (Screen -> String) -> UIState -> EventM Name UIState ()
-dbguiScreensEv postfix showscr ui =
-  dbguiEv $ concat [
-     "screen stack"
-    ,if null postfix then "" else " (" ++ postfix ++ ")"
-    ,": "
-    ,unwords $ mapScreens showscr ui
-    ]
+-- Some screen rendering functions are 
+-- @showScreenId@, @showScreenSelection@, @showScreenRegisterDescriptions@.
+--
+-- Eg to just show the stack: @showScreenStack "" showScreenId ui@
+--
+-- To to show the stack plus selected item indexes: @showScreenStack "" showScreenSelection ui@
+--
+showScreenStack :: String -> (Screen -> String) -> UIState -> String
+showScreenStack postfix showscr ui = concat [
+    "screen stack"
+  ,if null postfix then "" else ", " ++ postfix
+  ,": "
+  ,unwords $ mapScreens showscr ui
+  ]
 
 -- | Run a function on each screen in a UIState's screen "stack",
 -- from topmost screen down to currently-viewed screen.
 mapScreens :: (Screen -> a) -> UIState -> [a]
 mapScreens f UIState{aPrevScreens, aScreen} = map f $ reverse $ aScreen : aPrevScreens
 
--- Show a screen's compact id, plus for register screens, the transaction descriptions.
-screenRegisterDescriptions :: Screen -> String
-screenRegisterDescriptions scr = case scr of
-  RS sst -> ((screenId scr ++ ":") ++) $ -- menu
-    intercalate "," $ map (T.unpack . rsItemDescription) $
-    takeWhile (not . T.null . rsItemDate) $ V.toList $ listElements $ _rssList sst
-  _ -> screenId scr
-
 -- Show a screen's compact id (first letter of its constructor).
-screenId :: Screen -> String
-screenId = \case
+showScreenId :: Screen -> String
+showScreenId = \case
   MS _ -> "M"  -- menu
   AS _ -> "A"  -- all accounts
   BS _ -> "B"  -- bs accounts
   IS _ -> "I"  -- is accounts
   RS _ -> "R"  -- menu
+  TS _ -> "T"  -- transaction
+  ES _ -> "E"  -- error
+
+-- Show a screen's compact id, plus for register screens, the transaction descriptions.
+showScreenRegisterDescriptions :: Screen -> String
+showScreenRegisterDescriptions scr = case scr of
+  RS sst -> ((showScreenId scr ++ ":") ++) $ -- menu
+    intercalate "," $ map (T.unpack . rsItemDescription) $
+    takeWhile (not . T.null . rsItemDate) $ V.toList $ listElements $ _rssList sst
+  _ -> showScreenId scr
+
+-- Show a screen's compact id, plus index of its selected list item if any.
+showScreenSelection :: Screen -> String
+showScreenSelection = \case
+  MS MSS{_mssList} -> "M" ++ (maybe "" show $ listSelected _mssList)  -- menu
+  AS ASS{_assList} -> "A" ++ (maybe "" show $ listSelected _assList)  -- all accounts
+  BS ASS{_assList} -> "B" ++ (maybe "" show $ listSelected _assList)  -- bs accounts
+  IS ASS{_assList} -> "I" ++ (maybe "" show $ listSelected _assList)  -- is accounts
+  RS RSS{_rssList} -> "R" ++ (maybe "" show $ listSelected _rssList)  -- menu
   TS _ -> "T"  -- transaction
   ES _ -> "E"  -- error
 
