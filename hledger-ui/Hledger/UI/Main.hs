@@ -1,5 +1,3 @@
--- TODO: brick 1 support
--- https://hackage.haskell.org/package/brick-1.0/changelog
 {-|
 hledger-ui - a hledger add-on providing a curses-style interface.
 Copyright (c) 2007-2015 Simon Michael <simon@joyful.com>
@@ -37,7 +35,7 @@ import Hledger.UI.Theme
 import Hledger.UI.UIOptions
 import Hledger.UI.UITypes
 import Hledger.UI.UIState (uiState, getDepth)
-import Hledger.UI.UIUtils (dbguiEv)
+import Hledger.UI.UIUtils (dbguiEv, showScreenStack, showScreenSelection)
 import Hledger.UI.MenuScreen
 import Hledger.UI.AccountsScreen
 import Hledger.UI.BalancesheetScreen
@@ -58,6 +56,10 @@ writeChan = BC.writeBChan
 
 main :: IO ()
 main = withProgName "hledger-ui.log" $ do  -- force Hledger.Utils.Debug.* to log to hledger-ui.log
+  traceLogAtIO 1 "\n\n\n\n==== hledger-ui start"
+  dbg1IO "args" progArgs
+  dbg1IO "debugLevel" debugLevel
+
   opts@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=iopts,rawopts_=rawopts}} <- getHledgerUIOpts
   -- when (debug_ $ cliopts_ opts) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show opts)
 
@@ -142,61 +144,63 @@ runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=r
     -- if an account query has been provided at startup.
     -- Whichever it is, we also set up a stack of previous screens,
     -- as if you had navigated down to it from the top.
-    (prevscrs, currscr) = case (uoRegister uopts, hasbsaccts, hasacctquery) of
+    (prevscrs, currscr) =
+      dbg1With (showScreenStack "initial" showScreenSelection . uncurry2 (uiState defuiopts nulljournal)) $
+      case (uoRegister uopts, hasbsaccts, hasacctquery) of
 
-      -- With --register=ACCT, the initial screen stack is:
-      -- 1. menu screen, with ACCTSSCR selected
-      --  2. ACCTSSCR (the accounts screen containing ACCT), with ACCT selected
-      --   3. register screen for ACCT
-      (Just apat, _, _) ->  ([acctsscr, menuscr'], regscr)  -- remember, previous screens are ordered nearest/lowest first
-        where
-          -- the account being requested
-          acct = fromMaybe (error' $ "--register "++apat++" did not match any account")  -- PARTIAL:
-            . firstMatch $ journalAccountNamesDeclaredOrImplied j
-            where
-              firstMatch = case toRegexCI $ T.pack apat of
-                  Right re -> find (regexMatchText re)
-                  Left  _  -> const Nothing
-
-          -- the register screen for acct
-          regscr = 
-            rsSetAccount acct False $
-            rsNew uopts today j acct forceinclusive
+        -- With --register=ACCT, the initial screen stack is:
+        -- 1. menu screen, with ACCTSSCR selected
+        --  2. ACCTSSCR (the accounts screen containing ACCT), with ACCT selected
+        --   3. register screen for ACCT
+        (Just apat, _, _) ->  ([acctsscr, menuscr'], regscr)  -- remember, previous screens are ordered nearest/lowest first
+          where
+            -- the account being requested
+            acct = fromMaybe (error' $ "--register "++apat++" did not match any account")  -- PARTIAL:
+              . firstMatch $ journalAccountNamesDeclaredOrImplied j
               where
-                forceinclusive = case getDepth ui of
-                                  Just de -> accountNameLevel acct >= de
-                                  Nothing -> False
+                firstMatch = case toRegexCI $ T.pack apat of
+                    Right re -> find (regexMatchText re)
+                    Left  _  -> const Nothing
 
-          -- The accounts screen containing acct.
-          -- Keep these selidx values synced with the menu items in msNew.
-          (acctsscr, selidx) =
-            case journalAccountType j acct of
-              Just t | isBalanceSheetAccountType t    -> (bsacctsscr, 1)
-              Just t | isIncomeStatementAccountType t -> (isacctsscr, 2)
-              _                                       -> (allacctsscr,0)
-            & first (asSetSelectedAccount acct)
+            -- the register screen for acct
+            regscr = 
+              rsSetAccount acct False $
+              rsNew uopts today j acct forceinclusive
+                where
+                  forceinclusive = case getDepth ui of
+                                    Just de -> accountNameLevel acct >= de
+                                    Nothing -> False
 
-          -- the menu screen
-          menuscr' = msSetSelectedScreen selidx menuscr
+            -- The accounts screen containing acct.
+            -- Keep these selidx values synced with the menu items in msNew.
+            (acctsscr, selidx) =
+              case journalAccountType j acct of
+                Just t | isBalanceSheetAccountType t    -> (bsacctsscr, 1)
+                Just t | isIncomeStatementAccountType t -> (isacctsscr, 2)
+                _                                       -> (allacctsscr,0)
+              & first (asSetSelectedAccount acct)
 
-      -- Or with balance sheet accounts detected and no initial account query, it is:
-      -- 1. menu screen, with balance sheet accounts screen selected
-      --  2. balance sheet accounts screen
-      (Nothing, True, False) -> ([menuscr], bsacctsscr)
+            -- the menu screen
+            menuscr' = msSetSelectedScreen selidx menuscr
 
-      -- Otherwise it is: 
-      -- 1. menu screen, with all accounts screen selected
-      --  2. all accounts screen
-      (Nothing, _, _) -> ([msSetSelectedScreen 0 menuscr], allacctsscr)
+        -- Or with balance sheet accounts detected and no initial account query, it is:
+        -- 1. menu screen, with balance sheet accounts screen selected
+        --  2. balance sheet accounts screen
+        (Nothing, True, False) -> ([menuscr], bsacctsscr)
 
-      where
-        hasbsaccts  = any (`elem` accttypes) [Asset, Liability, Equity]
-          where accttypes = M.elems $ jaccounttypes j
-        hasacctquery = matchesQuery queryIsAcct $ _rsQuery rspec
-        menuscr     = msNew
-        allacctsscr = asNew uopts today j Nothing
-        bsacctsscr  = bsNew uopts today j Nothing
-        isacctsscr  = isNew uopts today j Nothing
+        -- Otherwise it is: 
+        -- 1. menu screen, with all accounts screen selected
+        --  2. all accounts screen
+        (Nothing, _, _) -> ([msSetSelectedScreen 0 menuscr], allacctsscr)
+
+        where
+          hasbsaccts  = any (`elem` accttypes) [Asset, Liability, Equity]
+            where accttypes = M.elems $ jaccounttypes j
+          hasacctquery = matchesQuery queryIsAcct $ _rsQuery rspec
+          menuscr     = msNew
+          allacctsscr = asNew uopts today j Nothing
+          bsacctsscr  = bsNew uopts today j Nothing
+          isacctsscr  = isNew uopts today j Nothing
 
     ui = uiState uopts j prevscrs currscr
     app = brickApp (uoTheme uopts)
@@ -209,8 +213,6 @@ runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=r
       v <- mkVty mempty
       setMode (outputIface v) Mouse True
       return v
-
-  traceLogAtIO 1 "\n\n==== hledger-ui start"
 
   if not (uoWatch uopts)
   then do
