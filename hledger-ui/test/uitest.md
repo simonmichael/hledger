@@ -1,109 +1,100 @@
-* Tests for hledger-ui
+# Tests for hledger-ui
 
-When you want to check that hledger-ui is working correctly, 
-run through the following tests, by hand, in an 80x25 terminal. 
-Each test gives a command to run in this directory, and the first
-few lines of expected output (and any notes as a # comment).
+Manual tests for hledger-ui.
+If you don't want to run them all, spot-checking just a few of them
+is still much better than nothing.
 
-Once you're familiar with the tests, you can view this file in Emacs
-org mode (eg) with all body text folded, showing just the test steps
-and brief expected result.
+Each test is a heading and a literal block containing
+a command, keypress sequence, or other tester action on the first line,
+followed by the expected output, or a recognisable excerpt of it.
+Generally tests assume an 80x25 terminal. 
 
-Another source of tests is the tutorial at https://hledger.org/ui.html,
-which has nice screenshots, but might be less up to date.
+Another source of hledger-ui tests is the https://hledger.org/ui.html tutorial,
+which has nice screenshots but might be less up to date.
 
-** hledger-ui -f sample.journal  # shows all accounts in list mode
-───────────────────── sample.journal account balances (1/8) ────────────────────
- assets:bank:checking    0  # <- selected
- assets:bank:saving     $1
- assets:cash           $-2
- expenses:food          $1
- expenses:supplies      $1
- income:gifts          $-1
- income:salary         $-1
- liabilities:debts      $1
+## Shows balance sheet accounts by default, in list mode
+```
+$ hledger-ui -f sample.journal
+────────────────── sample.journal balance sheet balances (1/4) ─────────────────
+ assets:bank:checking    0                                                      
+ assets:bank:saving     $1                                                      
+ assets:cash           $-2                                                      
+ liabilities:debts      $1                                                      
+```
 
-** t  # switches to tree mode
-──────────────────── sample.journal account balances (3/13) ────────────────────
- assets       $-1
-  bank         $1
-   checking     0  # <- selected
-   saving      $1
-  cash        $-2
- expenses      $2
-  food         $1
-  supplies     $1
- income       $-2
-  gifts       $-1
-  salary      $-1
- liabilities   $1
-  debts        $1
+## `t` switches to tree mode
+```
+t
+────────────────── sample.journal balance sheet balances (3/7) ─────────────────
+ assets       $-1                                                               
+  bank         $1                                                               
+   checking     0                                                               
+   saving      $1                                                               
+  cash        $-2                                                               
+ liabilities   $1                                                               
+  debts        $1                                                               
+                                                                                ```
 
-** 1  # clips accounts to depth 1
-─────────────── sample.journal account balances to depth 1 (1/4) ───────────────
- assets       $-1  # <- selected
- expenses      $2
- income       $-2
- liabilities   $1
+## `1` clips accounts to depth 1
+```
+1
+──────────── sample.journal balance sheet balances to depth 1 (1/2) ────────────
+ assets       $-1                                                               
+ liabilities   $1                                                               
+```
 
-** RIGHT  # shows assets & subaccounts' transactions (register ignores depth limit)
+## `RIGHT` shows assets & subaccounts' transactions (register ignores depth limit)
+```
+RIGHT
 ─────────────────────────── assets transactions (5/5) ──────────────────────────
  2008-01-01   income                     in:salary                     $1    $1
  2008-06-01   gift                       in:gifts                      $1    $2
  2008-06-02   save                       as:ba:saving, as:ba:chec..     0    $2
  2008-06-03 * eat & shop                 ex:food, ex:supplies         $-2     0
  2008-12-31 * pay off                    li:debts                     $-1   $-1  # <- selected
+```
 
-** ESC  # resets UI state to top menu screen
+## `ESC` resets UI state to top menu screen
+```
+ESC
 ──────────────────────────────── sample.journal ────────────────────────────────
- All accounts  # <- selected
- Balance sheet accounts (assets, liabilities, equity)
+ All accounts
+ Balance sheet accounts (assets, liabilities, equity)  # <- selected
  Income statement accounts (revenues, expenses)
+```
 
-** / bank  # sets a filter query app-wide, affecting all screens
+## `/` sets a filter query app-wide, affecting all screens
+```
+/ expenses ENTER
+```
 
-** DOWN RIGHT   # enters the balance sheet screen, showing only ALE accounts restricted to those with "bank" in the name
-─────────────── sample.journal balance sheet matching bank (2/2) ───────────────
- assets:bank:checking   0  # <- selected
- assets:bank:saving    $1
+## The Income statement accounts screen shows only RX accounts, now filtered by "expenses"
+```
+DOWN RIGHT
+──────── sample.journal income statement changes matching expenses (1/2) ───────
+ expenses:food      $1                                                          
+ expenses:supplies  $1                                                          
+```
 
-** RIGHT  # shows assets:bank:checking & subaccounts' transactions
-───────────── assets:bank:checking transactions matching bank (4/4) ────────────
- 2008-01-01   income                      in:salary                     $1   $1
- 2008-06-01   gift                        in:gifts                      $1   $2
- 2008-06-02   save                        as:ba:saving                 $-1   $1
- 2008-12-31 * pay off                     li:debts                     $-1    0  # <- selected
+## `RIGHT` from register screen shows transaction detail
+```
+RIGHT RIGHT
+────────── Transaction #4 (1 of 1 matching expenses in expenses:food) ──────────
+ 2008-06-03 * eat & shop                                                        
+     expenses:food                  $1                                          
+     expenses:supplies              $1                                          
+     assets:cash                   $-2                                          
+```
 
-** / SPACE desc:a  # add another filter term, showing only transactions with "a" in the description
-───────── assets:bank:checking transactions matching bank desc:a (2/2) ─────────
- 2008-06-02   save                       as:ba:saving                 $-1   $-1
- 2008-12-31 * pay off                    as:ba:checking               $-1   $-2  # <- selected
-
-** RIGHT  # shows transaction detail
-───── Transaction #5 (2 of 2 matching bank desc:a in assets:bank:checking) ─────
- 2008-12-31 * pay off
-     liabilities:debts                 $1
-     assets:bank:checking             $-1
-
-** UP  # shows previous matched transaction
-───── Transaction #3 (1 of 2 matching bank desc:a in assets:bank:checking) ─────
- 2008-06-02 save
-     assets:bank:saving                $1
-     assets:bank:checking             $-1
-
-** DOWN  # shows next matched transaction
-───── Transaction #5 (2 of 2 matching bank desc:a in assets:bank:checking) ─────
- 2008-12-31 * pay off
-     liabilities:debts                 $1
-     assets:bank:checking             $-1
-
-** ?  # shows help dialog over current screen; all content fits unclipped in 80x25, including the last q quit line
+## `?` shows help dialog over current screen; all content fits unclipped in 80x25, including the last q quit line
+```
+?
 ┌──────────────────────Help (LEFT/ESC/?/q to close help)──────────────────────┐─
 │ Navigation                             Filtering                            │
 │ UP/DOWN/PUP/PDN/HOME/END/k/j/C-p/C-n   /    set a filter query              │
 │      move selection up/down            F    show future & periodic txns     │
 │ RIGHT/l/C-f show txns, or txn detail   R    show real/all postings          │
-│ LEFT/h/C-b  go back                    Z    show nonzero/all amounts        │
+│ LEFT/h/C-b  go back                    z    show nonzero/all amounts        │
 │ ESC  cancel, or reset app state        U/P/C  show unmarked/pending/cleared │
 │                                        S-DOWN /S-UP   shrink/grow period    │
 │ Accounts screen                        S-RIGHT/S-LEFT next/previous period  │
@@ -122,49 +113,77 @@ which has nice screenshots, but might be less up to date.
 │       show manual in pager/man/info    C-z  suspend                         │
 │                                        q    quit                            │
 └─────────────────────────────────────────────────────────────────────────────┘
-──── ?:help t:list/tree -+:depth H:end-bals/changes F:forecast a:add q:quit ────
+────────── ?:help LEFT:back UP/DOWN:prev/next E:editor g:reload q:quit ─────────
+```
 
-** q  # q with help dialog open closes it
-──── Transaction #5 (1 of 1 matching bank desc:pay in assets:bank:checking) ────
- 2008-12-31 * pay off
-     liabilities:debts                 $1
-     assets:bank:checking             $-1
+## q with help dialog open closes it
+```
+q
+────────── Transaction #4 (1 of 1 matching expenses in expenses:food) ──────────
+ 2008-06-03 * eat & shop
+     expenses:food                  $1
+     expenses:supplies              $1
+     assets:cash                   $-2
+```
 
-** q  # q elsewhere exits the app, terminal is restored to its previous state
+## q in other cases exits the app; terminal is restored cleanly to its previous state
+```
+q
 ~/src/hledger/hledger-ui/test$ hledger-ui -f sample.journal
 ~/src/hledger/hledger-ui/test$ 
+```
 
-** hledger-ui -f sample.journal --register checking date:200812  # date query at startup
+## date query at startup
+```
+hledger-ui -f sample.journal --register checking date:200812
 ──── assets:bank:checking transactions matching date:200812 in 2008-12 (1/1) ───
  2008-12-31 * pay off                     li:debts                      $-1   0  # <- selected
+```
 
-** hledger-ui -f sample.journal --register checking date:200812 --change  # total is now $-1
+## total is now $-1
+```
+hledger-ui -f sample.journal --register checking date:200812 --change
 ──── assets:bank:checking transactions matching date:200812 in 2008-12 (1/1) ───
  2008-12-31 * pay off                    li:debts                     $-1   $-1
+```
 
-** hledger-ui -f bcexample.journal --tree --register assets  # wide content is elided as shown
+## wide content is elided as shown
+```
+hledger-ui -f bcexample.journal --tree --register assets
 ───────────────────────── Assets transactions (518/518) ────────────────────────
  2014-07-26 * ..  ..      16.00 GLD, -1515.83 USD   ..GLD, 17.00 ITOT, 6 more..
  2014-07-31 * ..  ..      2550.60 USD, 4.62 VACHR   ..GLD, 17.00 ITOT, 6 more..
  2014-08-03 * ..  ..                 -2400.00 USD   ..GLD, 17.00 ITOT, 6 more..
  ...  # <- last item selected
+```
 
-** hledger-ui --today 2021-09-01 -f forecast.journal --register a   # future and forecasted txns are hidden by default
+## future and forecasted txns are hidden by default
+```
+hledger-ui --today 2021-09-01 -f forecast.journal --register a
 ───────────────────────────── a transactions (1/1) ─────────────────────────────
  0000-01-01   past transaction             a                              1   1
+```
 
-** hledger-ui --today 2021-09-01 -f forecast.journal --register a --forecast  # with --forecast, future ordinary txns, and forecasted txns within the default forecast period, are shown
+## with --forecast, future ordinary txns, and forecasted txns within the default forecast period, are shown
+```
+hledger-ui --today 2021-09-01 -f forecast.journal --register a --forecast
 ───────────────────────────── a transactions (4/4) ─────────────────────────────
  2020-01-01   past transaction             a                              1   1
  2021-12-31   near future transaction      a                              2   3
  2022-01-01   near future forecast tran..  a                              3   6
  2022-02-01   near future forecast tran..  a                              3   9  # <- selected
+```
 
-** hledger-ui --today 2021-09-01 -f forecast.journal --register a --forecast 2021  # "=" is required between --forecast and its argument
+## "=" is required between --forecast and its argument
+```
+hledger-ui --today 2021-09-01 -f forecast.journal --register a --forecast 2021
 ────────────────────── a transactions matching 2021 (1/0) ──────────────────────
 
+```
 
-** hledger-ui --today 2021-09-01 -f forecast.journal --register a --forecast=2021  # the forecast period can be specified, and this allows forecast txns to overlap ordinary transactions
+## the forecast period can be specified, and this allows forecast txns to overlap ordinary transactions
+```
+hledger-ui --today 2021-09-01 -f forecast.journal --register a --forecast=2021
 ──────────────────────────── a transactions (14/14) ────────────────────────────
  2020-01-01   past transaction             a                             1    1
  2021-01-01   near future forecast tran..  a                             3    4
@@ -180,16 +199,25 @@ which has nice screenshots, but might be less up to date.
  2021-11-01   near future forecast tran..  a                             3   34
  2021-12-01   near future forecast tran..  a                             3   37
  2021-12-31   near future transaction      a                             2   39  # <- selected
+```
 
-** press F four times  # the future & forecasted txns are toggled every time (#1411)
+## the future & forecasted txns are toggled every time (#1411)
+```
+press F four times
+```
 
-** hledger-ui --today 2021-09-01 -f forecast.journal --register a --forecast=2021 --watch, press F once  # future/forecasted txns are hidden
+## future/forecasted txns are hidden
+```
+hledger-ui --today 2021-09-01 -f forecast.journal --register a --forecast=2021 --watch, press F once
 ───────────────────────────── a transactions (2/2) ─────────────────────────────
  2020-01-01   past transaction             a                              1   1
  2021-12-31   near future transaction      a                              2   3  # <- selected 
 
+```
 
-** with the above still running, touch forecast.journal, press F again  # forecast txns reappear (scrolled a bit), even with file modified while hidden (#1204)
+## forecast txns reappear (scrolled a bit), even with file modified while hidden (#1204)
+```
+with the above still running, touch forecast.journal, press F again
 ──────────────────────────── a transactions (14/14) ────────────────────────────
  2021-01-01   near future forecast tran..  a                             3    4
  2021-02-01   near future forecast tran..  a                             3    7
@@ -204,20 +232,33 @@ which has nice screenshots, but might be less up to date.
  2021-11-01   near future forecast tran..  a                             3   34
  2021-12-01   near future forecast tran..  a                             3   37
  2021-12-31   near future transaction      a                             2   39  # <- selected 
+```
 
-** hledger-ui -f 1468.j, 2, RIGHT  # in list mode, register of account above depth limit shows only its transactions
+## in list mode, register of account above depth limit shows only its transactions
+```
+hledger-ui -f 1468.j, 2, RIGHT
 ───────────────────────────── a transactions (1/1) ─────────────────────────────
  2021-01-01                                a                              1   1  # <- selected 
+```
 
-** LEFT, DOWN, RIGHT  # in list mode, register of account at depth limit shows its and subaccounts' transactions (#1468)
+## in list mode, register of account at depth limit shows its and subaccounts' transactions (#1468)
+```
+LEFT, DOWN, RIGHT
 ──────────────────────────── a:aa transactions (2/2) ───────────────────────────
  2021-01-02                              a:aa                          10    10
  2021-01-03                              a:aa:aaa                     100   110  # <- selected 
+```
 
-** hledger-ui -f sample.journal saving, edit and change the "save" txn description and amount to "NEW" and $22, g  # current screen shows new data after reload
+## current screen shows new data after reload
+```
+hledger-ui -f sample.journal saving, edit and change the "save" txn description and amount to "NEW" and $22, g
 ───────────── sample.journal account balances matching saving (1/1) ────────────
  assets:bank:saving  $22
+```
 
-** RIGHT  # newly created screens show new data after reload
+## newly created screens show new data after reload
+```
+RIGHT
 ───────────── assets:bank:saving transactions matching saving (1/1) ────────────
  2008-06-02   NEW                         as:ba:saving                 $22  $22
+```
