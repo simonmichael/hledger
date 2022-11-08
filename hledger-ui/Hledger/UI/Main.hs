@@ -6,6 +6,7 @@ Released under GPL version 3 or later.
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE MultiWayIf #-}
 
 module Hledger.UI.Main where
 
@@ -140,20 +141,27 @@ runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=r
 
     -- Choose the initial screen to display.
     -- We like to show the balance sheet accounts screen by default,
-    -- but that can change eg if we can't detect any, or 
-    -- if an account query has been provided at startup.
-    -- Whichever it is, we also set up a stack of previous screens,
+    -- but that can change eg if we can't detect any accounts for it,
+    -- or if an account query has been provided at startup,
+    -- or if a specific screen has been requested by command line flag.
+    -- Whichever is the initial screen, we also set up a stack of previous screens,
     -- as if you had navigated down to it from the top.
+    -- (remember, the previous screens list is ordered nearest/lowest first)
+    rawopts = rawopts_ $ uoCliOpts $ uopts
     (prevscrs, currscr) =
       dbg1With (showScreenStack "initial" showScreenSelection . uncurry2 (uiState defuiopts nulljournal)) $
-      case (uoRegister uopts, hasbsaccts, hasacctquery) of
+      if
+        | boolopt "menu" rawopts -> ([], menuscr)
+        | boolopt "all"  rawopts -> ([msSetSelectedScreen 0 menuscr], allacctsscr)
+        | boolopt "bs"   rawopts -> ([menuscr], bsacctsscr)
+        | boolopt "is"   rawopts -> ([msSetSelectedScreen 2 menuscr], isacctsscr)
 
         -- With --register=ACCT, the initial screen stack is:
-        -- 1. menu screen, with ACCTSSCR selected
-        --  2. ACCTSSCR (the accounts screen containing ACCT), with ACCT selected
-        --   3. register screen for ACCT
-        (Just apat, _, _) ->  ([acctsscr, menuscr'], regscr)  -- remember, previous screens are ordered nearest/lowest first
-          where
+        -- menu screen, with ACCTSSCR selected
+        --  ACCTSSCR (the accounts screen containing ACCT), with ACCT selected
+        --   register screen for ACCT
+        | Just apat <- uoRegister uopts ->
+          let
             -- the account being requested
             acct = fromMaybe (error' $ "--register "++apat++" did not match any account")  -- PARTIAL:
               . firstMatch $ journalAccountNamesDeclaredOrImplied j
@@ -182,16 +190,12 @@ runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=r
 
             -- the menu screen
             menuscr' = msSetSelectedScreen selidx menuscr
+          in ([acctsscr, menuscr'], regscr)
 
-        -- Or with balance sheet accounts detected and no initial account query, it is:
-        -- 1. menu screen, with balance sheet accounts screen selected
-        --  2. balance sheet accounts screen
-        (Nothing, True, False) -> ([menuscr], bsacctsscr)
+        -- No balance sheet accounts detected, or an initial account query specified:
+        | not hasbsaccts || hasacctquery -> ([msSetSelectedScreen 0 menuscr], allacctsscr)
 
-        -- Otherwise it is: 
-        -- 1. menu screen, with all accounts screen selected
-        --  2. all accounts screen
-        (Nothing, _, _) -> ([msSetSelectedScreen 0 menuscr], allacctsscr)
+        | otherwise -> ([menuscr], bsacctsscr)
 
         where
           hasbsaccts  = any (`elem` accttypes) [Asset, Liability, Equity]

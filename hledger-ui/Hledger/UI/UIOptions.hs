@@ -36,7 +36,11 @@ uiflags = [
   -- flagNone ["debug-ui"] (setboolopt "rules-file") "run with no terminal output, showing console"
    flagNone ["watch","w"] (setboolopt "watch") "watch for data and date changes and reload automatically"
   ,flagReq  ["theme"] (\s opts -> Right $ setopt "theme" s opts) "THEME" ("use this custom display theme ("++intercalate ", " themeNames++")")
-  ,flagReq  ["register"] (\s opts -> Right $ setopt "register" s opts) "ACCTREGEX" "start in the (first) matched account's register"
+  ,flagNone ["menu"] (setboolopt "menu") "start in the menu screen"
+  ,flagNone ["all"] (setboolopt "all") "start in the all accounts screen"
+  ,flagNone ["bs"] (setboolopt "bs") "start in the balance sheet accounts screen"
+  ,flagNone ["is"] (setboolopt "is") "start in the income statement accounts screen"
+  ,flagReq  ["register"] (\s opts -> Right $ setopt "register" s opts) "ACCTREGEX" "start in the (first matched) account's register"
   ,flagNone ["change"] (setboolopt "change")
     "show period balances (changes) at startup instead of historical balances"
   -- ,flagNone ["cumulative"] (setboolopt "cumulative")
@@ -53,7 +57,7 @@ uiflags = [
 --uimode :: Mode RawOpts
 uimode =  (mode "hledger-ui" (setopt "command" "ui" def)
             "browse accounts, postings and entries in a full-window curses interface"
-            (argsFlag "[PATTERNS]") []){
+            (argsFlag "[--menu|--all|--bs|--is|--register=ACCT] [QUERY]") []){
               modeGroupFlags = Group {
                                 groupUnnamed = uiflags
                                ,groupHidden = hiddenflags

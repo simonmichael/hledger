@@ -60,6 +60,18 @@ Any QUERYARGS are interpreted as a hledger search query which filters the data.
 `--theme=default|terminal|greenterm`
 : use this custom display theme
 
+`--menu`
+: start in the menu screen
+
+`--all`
+: start in the all accounts screen
+
+`--bs`
+: start in the balance sheet accounts screen
+
+`--is`
+: start in the income statement accounts screen
+
 `--register=ACCTREGEX`
 : start in the (first) matched account's register screen
 
@@ -189,6 +201,16 @@ Additional screen-specific keys are described below.
 
 # SCREENS
 
+hledger-ui can show a number of different screens, described below.
+It shows the Balance sheet accounts screen to start with, except in the following situations:
+
+- If no asset/liability/equity accounts can be detected,
+  or if an account query has been given on the command line,
+  it starts in the All accounts screen.
+
+- If a starting screen is specified with --menu/--all/--bs/--is/--register
+  on the command line, it starts there.
+
 ## Menu screen
 
 The top-most screen. hledger-ui does not show this screen at startup,
@@ -197,13 +219,12 @@ From here you can navigate to three accounts screens:
 
 ## All accounts screen
 
-This screen shows all accounts (unless filtered by a query), and their current balances.
-It is like the `hledger balance` command.
+This screen shows all accounts (possibly filtered by a query), and their current balances.
+It is like the `hledger balance` command. 
 
 ## Balance sheet accounts screen
 
-This is the screen normally shown at startup.
-It shows asset, liability and equity accounts, if these can be detected (see [account types](/hledger.html#account-types)).
+This screen shows asset, liability and equity accounts, if these can be detected (see [account types](/hledger.html#account-types)).
 It always shows historical end balances on some date (not balance changes).
 It is like the `hledger balancesheetequity` command.
 
