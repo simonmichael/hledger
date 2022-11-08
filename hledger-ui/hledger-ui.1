@@ -53,6 +53,18 @@ watch for data and date changes and reload automatically
 \f[B]\f[CB]--theme=default|terminal|greenterm\f[B]\f[R]
 use this custom display theme
 .TP
+\f[B]\f[CB]--menu\f[B]\f[R]
+start in the menu screen
+.TP
+\f[B]\f[CB]--all\f[B]\f[R]
+start in the all accounts screen
+.TP
+\f[B]\f[CB]--bs\f[B]\f[R]
+start in the balance sheet accounts screen
+.TP
+\f[B]\f[CB]--is\f[B]\f[R]
+start in the income statement accounts screen
+.TP
 \f[B]\f[CB]--register=ACCTREGEX\f[B]\f[R]
 start in the (first) matched account\[aq]s register screen
 .TP
@@ -335,6 +347,17 @@ reliably reset to normal mode.
 .PP
 Additional screen-specific keys are described below.
 .SH SCREENS
+.PP
+hledger-ui can show a number of different screens, described below.
+It shows the Balance sheet accounts screen to start with, except in the
+following situations:
+.IP \[bu] 2
+If no asset/liability/equity accounts can be detected, or if an account
+query has been given on the command line, it starts in the All accounts
+screen.
+.IP \[bu] 2
+If a starting screen is specified with --menu/--all/--bs/--is/--register
+on the command line, it starts there.
 .SS Menu screen
 .PP
 The top-most screen.
@@ -343,14 +366,13 @@ to navigate to it.
 From here you can navigate to three accounts screens:
 .SS All accounts screen
 .PP
-This screen shows all accounts (unless filtered by a query), and their
+This screen shows all accounts (possibly filtered by a query), and their
 current balances.
 It is like the \f[C]hledger balance\f[R] command.
 .SS Balance sheet accounts screen
 .PP
-This is the screen normally shown at startup.
-It shows asset, liability and equity accounts, if these can be detected
-(see account types).
+This screen shows asset, liability and equity accounts, if these can be
+detected (see account types).
 It always shows historical end balances on some date (not balance
 changes).
 It is like the \f[C]hledger balancesheetequity\f[R] command.

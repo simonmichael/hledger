@@ -68,6 +68,18 @@ the data.
 '--theme=default|terminal|greenterm'
 
      use this custom display theme
+'--menu'
+
+     start in the menu screen
+'--all'
+
+     start in the all accounts screen
+'--bs'
+
+     start in the balance sheet accounts screen
+'--is'
+
+     start in the income statement accounts screen
 '--register=ACCTREGEX'
 
      start in the (first) matched account's register screen
@@ -352,6 +364,17 @@ File: hledger-ui.info,  Node: SCREENS,  Next: TIPS,  Prev: KEYS,  Up: Top
 4 SCREENS
 *********
 
+hledger-ui can show a number of different screens, described below.  It
+shows the Balance sheet accounts screen to start with, except in the
+following situations:
+
+   * If no asset/liability/equity accounts can be detected, or if an
+     account query has been given on the command line, it starts in the
+     All accounts screen.
+
+   * If a starting screen is specified with -menu/-all/-bs/-is/-register
+     on the command line, it starts there.
+
 * Menu:
 
 * Menu screen::
@@ -378,7 +401,7 @@ File: hledger-ui.info,  Node: All accounts screen,  Next: Balance sheet accounts
 4.2 All accounts screen
 =======================
 
-This screen shows all accounts (unless filtered by a query), and their
+This screen shows all accounts (possibly filtered by a query), and their
 current balances.  It is like the 'hledger balance' command.
 
 
@@ -387,10 +410,10 @@ File: hledger-ui.info,  Node: Balance sheet accounts screen,  Next: Income state
 4.3 Balance sheet accounts screen
 =================================
 
-This is the screen normally shown at startup.  It shows asset, liability
-and equity accounts, if these can be detected (see account types).  It
-always shows historical end balances on some date (not balance changes).
-It is like the 'hledger balancesheetequity' command.
+This screen shows asset, liability and equity accounts, if these can be
+detected (see account types).  It always shows historical end balances
+on some date (not balance changes).  It is like the 'hledger
+balancesheetequity' command.
 
 
 File: hledger-ui.info,  Node: Income statement accounts screen,  Next: Register screen,  Prev: Balance sheet accounts screen,  Up: SCREENS
@@ -676,38 +699,38 @@ Tag Table:
 Node: Top221
 Node: OPTIONS1657
 Ref: #options1755
-Node: MOUSE6637
-Ref: #mouse6732
-Node: KEYS7014
-Ref: #keys7107
-Node: SCREENS11193
-Ref: #screens11291
-Node: Menu screen11472
-Ref: #menu-screen11592
-Node: All accounts screen11761
-Ref: #all-accounts-screen11935
-Node: Balance sheet accounts screen12068
-Ref: #balance-sheet-accounts-screen12283
-Node: Income statement accounts screen12554
-Ref: #income-statement-accounts-screen12771
-Node: Register screen15216
-Ref: #register-screen15388
-Node: Transaction screen17372
-Ref: #transaction-screen17530
-Node: Error screen18400
-Ref: #error-screen18522
-Node: TIPS18766
-Ref: #tips18865
-Node: Watch mode18907
-Ref: #watch-mode19014
-Node: Debug output20470
-Ref: #debug-output20581
-Node: ENVIRONMENT20793
-Ref: #environment20904
-Node: FILES22289
-Ref: #files22388
-Node: BUGS22601
-Ref: #bugs22678
+Node: MOUSE6839
+Ref: #mouse6934
+Node: KEYS7216
+Ref: #keys7309
+Node: SCREENS11395
+Ref: #screens11493
+Node: Menu screen12123
+Ref: #menu-screen12243
+Node: All accounts screen12412
+Ref: #all-accounts-screen12586
+Node: Balance sheet accounts screen12721
+Ref: #balance-sheet-accounts-screen12936
+Node: Income statement accounts screen13170
+Ref: #income-statement-accounts-screen13387
+Node: Register screen15832
+Ref: #register-screen16004
+Node: Transaction screen17988
+Ref: #transaction-screen18146
+Node: Error screen19016
+Ref: #error-screen19138
+Node: TIPS19382
+Ref: #tips19481
+Node: Watch mode19523
+Ref: #watch-mode19630
+Node: Debug output21086
+Ref: #debug-output21197
+Node: ENVIRONMENT21409
+Ref: #environment21520
+Node: FILES22905
+Ref: #files23004
+Node: BUGS23217
+Ref: #bugs23294
 
 End Tag Table
 
