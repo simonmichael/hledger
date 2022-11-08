@@ -51,19 +51,17 @@ import Safe (headDef)
 
 
 asDraw :: UIState -> [Widget Name]
-asDraw ui = dbgui "asDraw" $ asDrawHelper ui ropts' scrname showbalchgkey
+asDraw ui = dbgui "asDraw" $ asDrawHelper ui ropts' scrname
   where
     ropts' = _rsReportOpts $ reportspec_ $ uoCliOpts $ aopts ui
     scrname = "account " ++ if ishistorical then "balances" else "changes"
       where ishistorical = balanceaccum_ ropts' == Historical
-    showbalchgkey = True
 
 -- | Help draw any accounts-like screen (all accounts, balance sheet, income statement..).
 -- The provided ReportOpts are used instead of the ones in the UIState.
--- The other arguments are the screen display name and whether to show a key
--- for toggling between end balance and balance change mode.
-asDrawHelper :: UIState -> ReportOpts -> String -> Bool -> [Widget Name]
-asDrawHelper UIState{aScreen=scr, aopts=uopts, ajournal=j, aMode=mode} ropts scrname showbalchgkey =
+-- The other argument is the screen display name.
+asDrawHelper :: UIState -> ReportOpts -> String -> [Widget Name]
+asDrawHelper UIState{aScreen=scr, aopts=uopts, ajournal=j, aMode=mode} ropts scrname =
   dbgui "asDrawHelper" $
   case toAccountsLikeScreen scr of
     Nothing          -> dbgui "asDrawHelper" $ errorWrongScreenType "draw helper"  -- PARTIAL:
@@ -146,7 +144,10 @@ asDrawHelper UIState{aScreen=scr, aopts=uopts, ajournal=j, aMode=mode} ropts scr
                   -- ,("t", str "tree")
                   -- ,("l", str "list")
                   ,("-+", str "depth")
-                  ,(if showbalchgkey then "H" else "", renderToggle (not ishistorical) "end-bals" "changes")
+                  ,case scr of
+                    BS _ -> ("", str "")
+                    IS _ -> ("", str "")
+                    _    -> ("H", renderToggle (not ishistorical) "end-bals" "changes")
                   ,("F", renderToggle1 (isJust . forecast_ $ inputopts_ copts) "forecast")
                   --,("/", "filter")
                   --,("DEL", "unfilter")
@@ -267,7 +268,7 @@ asHandleNormalMode (ALS scons ass) ev = do
     VtyEvent (EvKey (KChar c) []) | c `elem` ['-','_'] -> modify' (decDepth >>> regenerateScreens j d)
     VtyEvent (EvKey (KChar c) []) | c `elem` ['+','='] -> modify' (incDepth >>> regenerateScreens j d)
     -- toggles after which the selection should be recentered:
-    VtyEvent (EvKey (KChar 'H') []) -> modify' (toggleHistorical   >>> regenerateScreens j d) >> centerSelection
+    VtyEvent (EvKey (KChar 'H') []) -> modify' (toggleHistorical   >>> regenerateScreens j d) >> centerSelection  -- harmless on BS/IS screens
     VtyEvent (EvKey (KChar 't') []) -> modify' (toggleTree         >>> regenerateScreens j d) >> centerSelection
     VtyEvent (EvKey (KChar 'R') []) -> modify' (toggleReal         >>> regenerateScreens j d) >> centerSelection
     VtyEvent (EvKey (KChar 'U') []) -> modify' (toggleUnmarked     >>> regenerateScreens j d) >> centerSelection
