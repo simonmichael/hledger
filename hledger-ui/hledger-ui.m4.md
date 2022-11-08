@@ -107,7 +107,7 @@ mouse or touchpad:
 
 - Use mouse wheel or trackpad to scroll up and down
 - Click on list items to go deeper
-- Click on the left margin (column 0), or the blank area at bottom of screen, to go back.
+- Click on the left margin (column 0) to go back.
 
 # KEYS
 
@@ -202,37 +202,37 @@ Additional screen-specific keys are described below.
 
 # SCREENS
 
-hledger-ui can show a number of different screens, described below.
-It shows the Balance sheet accounts screen to start with, except in the following situations:
+hledger-ui shows several different screens, described below.
+It shows the "Balance sheet accounts" screen to start with, except in the following situations:
 
 - If no asset/liability/equity accounts can be detected,
   or if an account query has been given on the command line,
-  it starts in the All accounts screen.
+  it starts in the "All accounts" screen.
 
 - If a starting screen is specified with --menu/--all/--bs/--is/--register
-  on the command line, it starts there.
+  on the command line, it starts in that screen.
 
-From the starting screen you can press `LEFT` or `ESC` to navigate back to the menu screen.
+From any screen you can press `LEFT` or `ESC` to navigate back to the top level "Menu" screen.
 
-## Menu screen
+## Menu
 
 The top-most screen.
 From here you can navigate to three accounts screens:
 
-## All accounts screen
+## All accounts
 
 This screen shows all accounts (possibly filtered by a query),
 and their end balances on the date shown in the title bar
 (or their balance changes in the period shown in the title bar, toggleable with `H`).
 It is like the `hledger balance` command. 
 
-## Balance sheet accounts screen
+## Balance sheet accounts
 
 This screen shows asset, liability and equity accounts, if these can be detected (see [account types](/hledger.html#account-types)).
 It always shows end balances.
 It is like the `hledger balancesheetequity` command.
 
-## Income statement accounts screen
+## Income statement accounts
 
 This screen shows revenue and expense accounts.
 It always shows balance changes.
@@ -244,7 +244,11 @@ They show accounts which have been posted to by transactions,
 as well as accounts which have been declared with an [account directive](#declaring-accounts)
 (except for empty parent accounts).
 
-If you specify a query on the command line, it shows just the matched accounts, and the balances from matched transactions.
+If you specify a query on the command line or with `/` in the app,
+they show just the matched accounts, and the balances from matched transactions.
+
+hledger-ui shows accounts with zero balances by default (unlike command-line hledger).
+To hide these, press `z` to toggle nonzero mode.
 
 Account names are shown as a flat list by default; press `t` to toggle tree mode.
 In list mode, account balances are exclusive of subaccounts, except where subaccounts are hidden by a depth limit (see below).
@@ -273,14 +277,10 @@ and if you activate all three, the filter is removed.)
 
 `R` toggles real mode, in which [virtual postings](hledger.html#virtual-postings) are ignored.
 
-`z` toggles nonzero mode, in which only accounts with nonzero balances
-are shown (hledger-ui shows zero items by default, unlike command-line
-hledger).
-
 Press `RIGHT` to view an account's register screen,
 Or, `LEFT` to see the menu screen.
 
-## Register screen
+## Register
 
 This screen shows the transactions affecting a particular account, like a check register.
 Each line represents one transaction and shows:
@@ -319,7 +319,7 @@ unlike command-line hledger).
 
 Press `RIGHT` to view the selected transaction in detail.
 
-## Transaction screen
+## Transaction
 
 This screen shows a single transaction, as a general journal entry,
 similar to hledger's print command and journal format (hledger_journal(5)).
@@ -338,7 +338,7 @@ preceding them is the transaction's position within the complete
 unfiltered journal, which is a more stable id (at least until the next
 reload).
 
-## Error screen
+## Error
 
 This screen will appear if there is a problem, such as a parse error,
 when you press g to reload. Once you have fixed the problem,
