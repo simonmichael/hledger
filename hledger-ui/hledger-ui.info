@@ -278,13 +278,13 @@ in the quick help at the bottom of each screen.)  Press '?' again (or
 'ESCAPE', or 'LEFT', or 'q') to close it.  The following keys work on
 most screens:
 
-   The cursor keys navigate: 'RIGHT' goes deeper, 'LEFT' returns to the
-previous screen, 'UP'/'DOWN'/'PGUP'/'PGDN'/'HOME'/'END' move up and down
-through lists.  Emacs-style ('CTRL-p'/'CTRL-n'/'CTRL-f'/'CTRL-b')
-movement keys are also supported (but not vi-style keys, since
-hledger-1.19, sorry!).  A tip: movement speed is limited by your
-keyboard repeat rate, to move faster you may want to adjust it.  (If
-you're on a mac, the karabiner app is one way to do that.)
+   The cursor keys navigate: 'RIGHT' or 'ENTER' goes deeper, 'LEFT'
+returns to the previous screen, 'UP'/'DOWN'/'PGUP'/'PGDN'/'HOME'/'END'
+move up and down through lists.  Emacs-style
+('CTRL-p'/'CTRL-n'/'CTRL-f'/'CTRL-b') and VI-style ('k','j','l','h')
+movement keys are also supported.  A tip: movement speed is limited by
+your keyboard repeat rate, to move faster you may want to adjust it.
+(If you're on a mac, the karabiner app is one way to do that.)
 
    With shift pressed, the cursor keys adjust the report period,
 limiting the transactions to be shown (by default, all are shown).
@@ -375,6 +375,9 @@ following situations:
    * If a starting screen is specified with -menu/-all/-bs/-is/-register
      on the command line, it starts there.
 
+   From the starting screen you can press 'LEFT' or 'ESC' to navigate
+back to the menu screen.
+
 * Menu:
 
 * Menu screen::
@@ -391,9 +394,8 @@ File: hledger-ui.info,  Node: Menu screen,  Next: All accounts screen,  Up: SCRE
 4.1 Menu screen
 ===============
 
-The top-most screen.  hledger-ui does not show this screen at startup,
-but you can press LEFT to navigate to it.  From here you can navigate to
-three accounts screens:
+The top-most screen.  From here you can navigate to three accounts
+screens:
 
 
 File: hledger-ui.info,  Node: All accounts screen,  Next: Balance sheet accounts screen,  Prev: Menu screen,  Up: SCREENS
@@ -402,7 +404,9 @@ File: hledger-ui.info,  Node: All accounts screen,  Next: Balance sheet accounts
 =======================
 
 This screen shows all accounts (possibly filtered by a query), and their
-current balances.  It is like the 'hledger balance' command.
+end balances on the date shown in the title bar (or their balance
+changes in the period shown in the title bar, toggleable with 'H').  It
+is like the 'hledger balance' command.
 
 
 File: hledger-ui.info,  Node: Balance sheet accounts screen,  Next: Income statement accounts screen,  Prev: All accounts screen,  Up: SCREENS
@@ -411,9 +415,8 @@ File: hledger-ui.info,  Node: Balance sheet accounts screen,  Next: Income state
 =================================
 
 This screen shows asset, liability and equity accounts, if these can be
-detected (see account types).  It always shows historical end balances
-on some date (not balance changes).  It is like the 'hledger
-balancesheetequity' command.
+detected (see account types).  It always shows end balances.  It is like
+the 'hledger balancesheetequity' command.
 
 
 File: hledger-ui.info,  Node: Income statement accounts screen,  Next: Register screen,  Prev: Balance sheet accounts screen,  Up: SCREENS
@@ -422,8 +425,7 @@ File: hledger-ui.info,  Node: Income statement accounts screen,  Next: Register 
 ====================================
 
 This screen shows revenue and expense accounts.  It always shows balance
-changes in some period (not end balances).  It is like the 'hledger
-incomestatement' command.
+changes.  It is like the 'hledger incomestatement' command.
 
    All of these accounts screens work in much the same way:
 
@@ -703,34 +705,34 @@ Node: MOUSE6839
 Ref: #mouse6934
 Node: KEYS7216
 Ref: #keys7309
-Node: SCREENS11395
-Ref: #screens11493
-Node: Menu screen12123
-Ref: #menu-screen12243
-Node: All accounts screen12412
-Ref: #all-accounts-screen12586
-Node: Balance sheet accounts screen12721
-Ref: #balance-sheet-accounts-screen12936
-Node: Income statement accounts screen13170
-Ref: #income-statement-accounts-screen13387
-Node: Register screen15832
-Ref: #register-screen16004
-Node: Transaction screen17988
-Ref: #transaction-screen18146
-Node: Error screen19016
-Ref: #error-screen19138
-Node: TIPS19382
-Ref: #tips19481
-Node: Watch mode19523
-Ref: #watch-mode19630
-Node: Debug output21086
-Ref: #debug-output21197
-Node: ENVIRONMENT21409
-Ref: #environment21520
-Node: FILES22905
-Ref: #files23004
-Node: BUGS23217
-Ref: #bugs23294
+Node: SCREENS11384
+Ref: #screens11482
+Node: Menu screen12208
+Ref: #menu-screen12328
+Node: All accounts screen12405
+Ref: #all-accounts-screen12579
+Node: Balance sheet accounts screen12830
+Ref: #balance-sheet-accounts-screen13045
+Node: Income statement accounts screen13233
+Ref: #income-statement-accounts-screen13450
+Node: Register screen15861
+Ref: #register-screen16033
+Node: Transaction screen18017
+Ref: #transaction-screen18175
+Node: Error screen19045
+Ref: #error-screen19167
+Node: TIPS19411
+Ref: #tips19510
+Node: Watch mode19552
+Ref: #watch-mode19659
+Node: Debug output21115
+Ref: #debug-output21226
+Node: ENVIRONMENT21438
+Ref: #environment21549
+Node: FILES22934
+Ref: #files23033
+Node: BUGS23246
+Ref: #bugs23323
 
 End Tag Table
 

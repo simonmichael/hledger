@@ -252,14 +252,14 @@ screen.) Press \f[C]?\f[R] again (or \f[C]ESCAPE\f[R], or
 \f[C]LEFT\f[R], or \f[C]q\f[R]) to close it.
 The following keys work on most screens:
 .PP
-The cursor keys navigate: \f[C]RIGHT\f[R] goes deeper, \f[C]LEFT\f[R]
-returns to the previous screen,
+The cursor keys navigate: \f[C]RIGHT\f[R] or \f[C]ENTER\f[R] goes
+deeper, \f[C]LEFT\f[R] returns to the previous screen,
 \f[C]UP\f[R]/\f[C]DOWN\f[R]/\f[C]PGUP\f[R]/\f[C]PGDN\f[R]/\f[C]HOME\f[R]/\f[C]END\f[R]
 move up and down through lists.
 Emacs-style
 (\f[C]CTRL-p\f[R]/\f[C]CTRL-n\f[R]/\f[C]CTRL-f\f[R]/\f[C]CTRL-b\f[R])
-movement keys are also supported (but not vi-style keys, since
-hledger-1.19, sorry!).
+and VI-style (\f[C]k\f[R],\f[C]j\f[R],\f[C]l\f[R],\f[C]h\f[R]) movement
+keys are also supported.
 A tip: movement speed is limited by your keyboard repeat rate, to move
 faster you may want to adjust it.
 (If you\[aq]re on a mac, the karabiner app is one way to do that.)
@@ -358,28 +358,30 @@ screen.
 .IP \[bu] 2
 If a starting screen is specified with --menu/--all/--bs/--is/--register
 on the command line, it starts there.
+.PP
+From the starting screen you can press \f[C]LEFT\f[R] or \f[C]ESC\f[R]
+to navigate back to the menu screen.
 .SS Menu screen
 .PP
 The top-most screen.
-hledger-ui does not show this screen at startup, but you can press LEFT
-to navigate to it.
 From here you can navigate to three accounts screens:
 .SS All accounts screen
 .PP
 This screen shows all accounts (possibly filtered by a query), and their
-current balances.
+end balances on the date shown in the title bar (or their balance
+changes in the period shown in the title bar, toggleable with
+\f[C]H\f[R]).
 It is like the \f[C]hledger balance\f[R] command.
 .SS Balance sheet accounts screen
 .PP
 This screen shows asset, liability and equity accounts, if these can be
 detected (see account types).
-It always shows historical end balances on some date (not balance
-changes).
+It always shows end balances.
 It is like the \f[C]hledger balancesheetequity\f[R] command.
 .SS Income statement accounts screen
 .PP
 This screen shows revenue and expense accounts.
-It always shows balance changes in some period (not end balances).
+It always shows balance changes.
 It is like the \f[C]hledger incomestatement\f[R] command.
 .PP
 All of these accounts screens work in much the same way:
