@@ -153,7 +153,7 @@ commandsList progversion othercmds = [
   ,""
   ,"Data entry (these commands modify the journal file):"
   ," add                      add transactions using guided prompts"
-  ,"+iadd                     add transactions using curses ui"
+  ,"+iadd                     add transactions using a TUI"
   ," import                   add any new transactions from other files (eg csv)"
   ,""
   ,"Data management:"

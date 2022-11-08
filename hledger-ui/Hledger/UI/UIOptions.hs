@@ -56,7 +56,7 @@ uiflags = [
 
 --uimode :: Mode RawOpts
 uimode =  (mode "hledger-ui" (setopt "command" "ui" def)
-            "browse accounts, postings and entries in a full-window curses interface"
+            "browse accounts, postings and entries in a full-window TUI"
             (argsFlag "[--menu|--all|--bs|--is|--register=ACCT] [QUERY]") []){
               modeGroupFlags = Group {
                                 groupUnnamed = uiflags
@@ -65,7 +65,7 @@ uimode =  (mode "hledger-ui" (setopt "command" "ui" def)
                                ,groupNamed = [(generalflagsgroup1)]
                                }
              ,modeHelpSuffix=[
-                  -- "Reads your ~/.hledger.journal file, or another specified by $LEDGER_FILE or -f, and starts the full-window curses ui."
+                  -- "Reads your ~/.hledger.journal file, or another specified by $LEDGER_FILE or -f, and starts the full-window TUI."
                  ]
            }
 

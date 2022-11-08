@@ -1,5 +1,5 @@
 {-|
-hledger-ui - a hledger add-on providing a curses-style interface.
+hledger-ui - a hledger add-on providing an efficient TUI.
 Copyright (c) 2007-2015 Simon Michael <simon@joyful.com>
 Released under GPL version 3 or later.
 -}
