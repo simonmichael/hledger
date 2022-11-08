@@ -808,7 +808,7 @@ hoogle-setup: $(call def-help,hoogle-setup, install hoogle then build haddocks a
 	stack hoogle --rebuild
 
 HOOGLEBROWSER="/Applications/Firefox Dev.app/Contents/MacOS/firefox"   # safari not supported
-hoogle-serve: $(call def-help,hoogle-serve, run hoogle web app and open in supported browser)
+hoogle-serve: $(call def-help,hoogle-serve, run hoogle web app and open in browser after doing setup if needed )
 	$(HOOGLEBROWSER) http://localhost:8080 &
 	stack --verbosity=warn hoogle --server
 
