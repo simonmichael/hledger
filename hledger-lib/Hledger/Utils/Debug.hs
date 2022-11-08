@@ -101,6 +101,7 @@ module Hledger.Utils.Debug (
   ,traceOrLog
   ,traceOrLogAt
   ,ptraceOrLogAt
+  ,ptraceOrLogAtIO
   ,traceOrLogAtWith
 
   -- * Pretty tracing/logging in pure code
@@ -304,7 +305,7 @@ ptraceLogAtIO :: (MonadIO m, Show a) => Int -> String -> a -> m ()
 ptraceLogAtIO level label a =
   if level > 0 && debugLevel < level
   then return ()
-  else return $ traceLog (labelledPretty False label a) ()
+  else traceLogIO (labelledPretty False label a)
 
 -- Trace or log a string depending on shouldLog,
 -- before returning the second argument.
