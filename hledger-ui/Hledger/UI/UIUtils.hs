@@ -392,11 +392,11 @@ scrollSelectionToMiddle list = do
         toprow       = dbg4 "toprow" $ max 0 (selectedrow - (itemsperpage `div` 2)) -- assuming ViewportScroll's row offset is measured in list items not screen rows
       setTop (viewportScroll $ list^.listNameL) toprow
 
---                 arrow keys       vi keys               emacs keys
+--                 arrow keys       vi keys               emacs keys                 enter key
 moveUpEvents    = [EvKey KUp []   , EvKey (KChar 'k') [], EvKey (KChar 'p') [MCtrl]]
 moveDownEvents  = [EvKey KDown [] , EvKey (KChar 'j') [], EvKey (KChar 'n') [MCtrl]]
 moveLeftEvents  = [EvKey KLeft [] , EvKey (KChar 'h') [], EvKey (KChar 'b') [MCtrl]]
-moveRightEvents = [EvKey KRight [], EvKey (KChar 'l') [], EvKey (KChar 'f') [MCtrl]]
+moveRightEvents = [EvKey KRight [], EvKey (KChar 'l') [], EvKey (KChar 'f') [MCtrl], EvKey KEnter []]
 
 normaliseMovementKeys ev
   | ev `elem` moveUpEvents    = EvKey KUp []
