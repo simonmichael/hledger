@@ -82,8 +82,8 @@ msNew =
      _mssList            = list MenuList (V.fromList [
       -- keep initial screen stack setup in UI.Main synced with these
        MenuScreenItem "All accounts" Accounts
-      ,MenuScreenItem "Balance sheet accounts (assets, liabilities, equity)" Balancesheet
-      ,MenuScreenItem "Income statement accounts (revenues, expenses)" Incomestatement
+      ,MenuScreenItem "Balance sheet accounts" Balancesheet
+      ,MenuScreenItem "Income statement accounts" Incomestatement
       ]) 1
       & listMoveTo 1  -- select balance sheet accounts screen at startup (currently this screen is constructed only then)
     ,_mssUnused = ()
