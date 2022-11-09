@@ -1070,6 +1070,7 @@ This makes certain queries hard to express, but here are some tricks that can he
 
 1. Use a doubled `not:` prefix.
     Eg, to print only the food expenses paid with cash:
+
     ```shell
     $ hledger print food not:not:cash
     ```
@@ -1077,6 +1078,7 @@ This makes certain queries hard to express, but here are some tricks that can he
 2. Or pre-filter the transactions with `print`, 
    piping the result into a second hledger command
    (with balance assertions disabled):
+
     ```shell
     $ hledger print cash | hledger -f- -I balance food
     ```
