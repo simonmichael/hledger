@@ -1049,31 +1049,37 @@ tells hledger-web to show the transaction register for an account.)
 
 ## Combining query terms
 
-Most commands select things which match:
+When given multiple query terms, most commands select things which match:
 
 - any of the description terms AND
 - any of the account terms AND
 - any of the status terms AND
 - all the other terms.
 
-while the [print](#print) command shows transactions which:
+The [print](#print) command is a little different, showing transactions which:
 
 - match any of the description terms AND
 - have any postings matching any of the positive account terms AND
 - have no postings matching any of the negative account terms AND
 - match all the other terms.
 
-You can do more powerful queries (such as AND-ing two like terms)
-by running a first query with `print`,
-and piping the result into a second hledger command.
-Eg: how much of food expenses was paid with cash ?
+Although these fixed rules are enough for many needs,
+we do not support full boolean expressions ([#203](https://github.com/simonmichael/hledger/issues/203)),
+(and you should not write AND or OR in your queries).
+This makes certain queries hard to express, but here are some tricks that can help:
 
-```shell
-$ hledger print assets:cash | hledger -f- -I balance expenses:food
-```
+1. Use a doubled `not:` prefix.
+    Eg, to print only the food expenses paid with cash:
+    ```shell
+    $ hledger print food not:not:cash
+    ```
 
-If you are interested in full boolean expressions for queries,
-see [#203](https://github.com/simonmichael/hledger/issues/203).
+2. Or pre-filter the transactions with `print`, 
+   piping the result into a second hledger command
+   (with balance assertions disabled):
+    ```shell
+    $ hledger print cash | hledger -f- -I balance food
+    ```
 
 ## Queries and command options
 
