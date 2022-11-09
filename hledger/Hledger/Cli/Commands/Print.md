@@ -78,7 +78,8 @@ are converted to cost using that price. This can be used for troubleshooting.
 
 With `-m`/`--match` and a STR argument, print will show at most one transaction: the one 
 one whose description is most similar to STR, and is most recent. STR should contain at
-least two characters. If there is no similar-enough match, no transaction will be shown.
+least two characters. If there is no similar-enough match, no transaction will be shown
+(and command's exit code will be non-zero).
 
 With `--new`, hledger prints only transactions it has not seen on a previous run.
 This uses the same deduplication system as the [`import`](#import) command.

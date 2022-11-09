@@ -28,6 +28,7 @@ import Hledger
 import Hledger.Read.CsvReader (CSV, printCSV)
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
+import System.Exit (exitFailure)
 
 
 printmode = hledgerCommandMode
@@ -203,5 +204,5 @@ postingToCSV p =
 printMatch :: CliOpts -> Journal -> Text -> IO ()
 printMatch opts j desc = do
   case journalSimilarTransaction opts j desc of
-    Nothing -> putStrLn "no matches found."
+    Nothing -> putStrLn "no matches found." >> exitFailure
     Just t  -> T.putStr $ showTransaction t
