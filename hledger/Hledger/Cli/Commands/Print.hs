@@ -33,9 +33,9 @@ import System.Exit (exitFailure)
 
 printmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Print.txt")
-  ([let arg = "STR" in
+  ([let arg = "DESC" in
    flagReq  ["match","m"] (\s opts -> Right $ setopt "match" s opts) arg
-    ("show the transaction whose description is most similar to "++arg++", and is most recent")
+    ("fuzzy search for the transaction with description closest to "++arg++", and also most recent")
   ,flagNone ["explicit","x"] (setboolopt "explicit")
     "show all amounts explicitly"
   ,flagNone ["show-costs"] (setboolopt "show-costs")
