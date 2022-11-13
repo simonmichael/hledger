@@ -8,7 +8,7 @@ hledger-git - easyish version control for your hledger journal, using git.
 An experimental prototype, currently works for the default journal only.
 A git repo in the main file's directory will be autocreated if needed.
 
-Subcommands: 
+Subcommands:
 
 hledger git record [MSG] - record the journal's files (as listed by 'files')
 hledger git status       - show unrecorded changes (after first record)
@@ -16,7 +16,7 @@ hledger git log          - list the journal's change history (after record)
 hledger git              - show this help
 
 Extra arguments are passed to git (git-specific flags should be preceded by --).
-You can install these as more convenient top-level commands by creating 
+You can install these as more convenient top-level commands by creating
 hledger-record, hledger-status, hledger-log scripts like:
 
     #!/bin/sh
@@ -74,8 +74,11 @@ record() {
     ensure_git_repo
     cd "$DIR"
     for F in $FILES; do $GIT add -f "$F"; done
-    MSG=${1:-$(date +'%Y-%m-%d %H:%M:%S %Z')}; shift
-    $GIT record -m "$MSG" "$@" -- "$FILES"
+    MSG=${1:-$(date +'%Y-%m-%d %H:%M:%S %Z')}
+    if [ $# -ge 1 ]; then
+        shift
+    fi
+    $GIT commit -m "$MSG" "$@" || $GIT reset
 }
 
 status() {
