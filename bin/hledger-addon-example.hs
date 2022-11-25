@@ -1,6 +1,6 @@
 #!/usr/bin/env stack
 -- stack runghc --verbosity info --package hledger --package string-qq
---resolver nightly-2022-09-01
+--resolver  lts-20.1
 
 {-
 hledger-addon-example - a hledger addon command template.
