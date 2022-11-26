@@ -48,39 +48,38 @@ cmdmode = hledgerCommandMode
   -- help text must be above _FLAGS, blank lines will not be displayed.
   [s| hledger-move
 Print an entry to move funds between accounts, preserving costs and subaccounts
-
+.
 Usage: hledger-move AMT FROMACCT TOACCT
-
-AMT is a positive hledger amount, as in journal format.
-FROMACCT is an account name or regular expression, as in an acct: query.
-The alphabetically first account name it matches is the source account.
-TOACCT is an account name or regexp selecting the destination account.
-
+.
 This command prints a journal entry which you can add to your journal,
-representing a transfer of the requested amount from the source account
-to the destination account.
-
-The commodity to be moved is determined by AMT's commodity symbol.
-
-This command can also move amounts from subaccounts (one level, at least).
-It will move amounts first out of the main source account if possible,
-then as needed out of each subaccount in alphanumerical order of names,
+representing a transfer of some amount from a source account (and/or
+its subaccounts) to a destination account.
+It is mainly intended for moving assets, especially investment assets
+with subaccounts representing lots.
+.
+AMT is a positive hledger amount, including a commodity symbol.
+.
+FROMACCT is the source account (an account name, or a regular expression
+whose alphanumerically first match is the source account).
+.
+TOACCT is the destination account (or account-matching regexp).
+.
+This command can also transfer from, and to, child accounts.
+It will move amounts first out of FROMACCT if possible,
+then as needed out of its subaccounts in alphanumerical order,
 until the total requested amount is moved.
-(This is useful when withdrawing from an account with subaccounts
-representing investment lots; if these are named by acquisition date
-(eg ":YYYYMMDD"), they will be moved in FIFO order.)
-
-This command is mainly intended for moving assets.
-If there are not sufficient positive balances in the source account(s)
+Ie, if subaccounts are named by acquisition date (eg ":YYYYMMDD"),
+they will be withdrawn in FIFO order.
+.
+Any subaccounts withdrawn from will be recreated under TOACCT,
+unless the --consolidate flag is used. With --consolidate,
+all amounts are transferred to TOACCT, discarding lot information.
+.
+If there is not a sufficient positive balance in FROMACCT and its subaccounts
 to supply the requested amount, the command will fail.
-
-Any source subaccounts used will be recreated under the destination account.
-Or, to consolidate amounts in the main destination account 
-(discarding lot information), use the --consolidate flag.
-
-
+.
 Examples:
-
+.
 $ hledger-move $50 assets:checking assets:cash  # withdraw cash from bank
 $ hledger-move ADA1000 ada:wallet1 ada:wallet2  # move 1000 ADA, keeping lots
 
@@ -107,6 +106,8 @@ or the destination account go positive (as when over-paying a liability).
 You can disable this validation by adding the --force flag.
 
 balance assertions
+
+respecting end date, for calculating balances and generated txn date
 
 -}
 

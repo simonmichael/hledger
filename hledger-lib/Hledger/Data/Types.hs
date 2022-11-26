@@ -353,38 +353,14 @@ instance Show Status where -- custom show.. bad idea.. don't do it..
 -- at a certain point (posting date and parse order). They provide additional
 -- error checking and readability to a journal file.
 --
--- The 'BalanceAssertion' type is also used to represent balance assignments,
--- which instruct hledger what an account's balance should become at a certain
--- point.
+-- A balance assignments is an instruction to hledger to adjust an
+-- account's balance to a certain amount at a certain point.
 --
--- Different kinds of balance assertions are discussed eg on #290.
--- Variables include:
+-- The 'BalanceAssertion' type is used for representing both of these.
 --
--- - which postings are to be summed (real/virtual; unmarked/pending/cleared; this account/this account including subs)
---
--- - which commodities within the balance are to be checked
---
--- - whether to do a partial or a total check (disallowing other commodities)
---
--- I suspect we want:
---
--- 1. partial, subaccount-exclusive, Ledger-compatible assertions. Because
---    they're what we've always had, and removing them would break some
---    journals unnecessarily.  Implemented with = syntax.
---
--- 2. total assertions. Because otherwise assertions are a bit leaky.
---    Implemented with == syntax.
---
--- 3. subaccount-inclusive assertions. Because that's something folks need.
---    Not implemented.
---
--- 4. flexible assertions allowing custom criteria (perhaps arbitrary
---    queries). Because power users have diverse needs and want to try out
---    different schemes (assert cleared balances, assert balance from real or
---    virtual postings, etc.). Not implemented.
---
--- 5. multicommodity assertions, asserting the balance of multiple commodities
---    at once. Not implemented, requires #934.
+-- hledger supports multiple kinds of balance assertions/assignments,
+-- which differ in whether they refer to a single commodity or all commodities,
+-- and the (subaccount-)inclusive or exclusive account balance.
 --
 data BalanceAssertion = BalanceAssertion {
       baamount    :: Amount,    -- ^ the expected balance in a particular commodity

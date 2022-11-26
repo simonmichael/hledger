@@ -15,10 +15,8 @@ module Hledger.Cli.Commands.Print (
 )
 where
 
-import Data.Text (Text)
 import Data.List (intersperse)
 import qualified Data.Text as T
-import qualified Data.Text.IO as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import Lens.Micro ((^.), _Just, has)
@@ -61,11 +59,14 @@ print' opts j = do
   let j' = journalMapPostingAmounts mixedAmountSetFullPrecision j
   case maybestringopt "match" $ rawopts_ opts of
     Nothing   -> printEntries opts j'
-    Just desc -> printMatch opts j' $ T.pack $ dbg1 "finding best match for description" desc
+    Just desc -> 
+      case journalSimilarTransaction opts j' (dbg1 "finding best match for description" $ T.pack desc) of
+        Just t  -> printEntries opts j'{jtxns=[t]}
+        Nothing -> putStrLn "no matches found." >> exitFailure
 
 printEntries :: CliOpts -> Journal -> IO ()
 printEntries opts@CliOpts{reportspec_=rspec} j =
-    writeOutputLazyText opts . render $ entriesReport rspec j
+  writeOutputLazyText opts . render $ entriesReport rspec j
   where
     fmt = outputFormatFromOpts opts
     render | fmt=="txt"  = entriesReportAsText opts
@@ -196,13 +197,3 @@ postingToCSV p =
     status = T.pack . show $ pstatus p
     account = showAccountName Nothing (ptype p) (paccount p)
     comment = T.strip $ pcomment p
-
--- --match
-
--- | Print the transaction most closely and recently matching a description
--- (and the query, if any).
-printMatch :: CliOpts -> Journal -> Text -> IO ()
-printMatch opts j desc = do
-  case journalSimilarTransaction opts j desc of
-    Nothing -> putStrLn "no matches found." >> exitFailure
-    Just t  -> T.putStr $ showTransaction t
