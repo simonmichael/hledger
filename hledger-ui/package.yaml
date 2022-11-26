@@ -49,7 +49,7 @@ ghc-options:
 - -Wno-unused-do-bind
 
 dependencies:
-- base >=4.14 && <4.17
+- base >=4.14 && <4.18
 - hledger-lib >=1.27.99 && <1.28
 - hledger >=1.27.99 && <1.28
 - ansi-terminal >=0.9

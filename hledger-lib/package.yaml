@@ -32,7 +32,7 @@ extra-source-files:
 #data-files:
 
 dependencies:
-- base >=4.14 && <4.17
+- base >=4.14 && <4.18
 - aeson >=1
 - aeson-pretty
 - ansi-terminal >=0.9
