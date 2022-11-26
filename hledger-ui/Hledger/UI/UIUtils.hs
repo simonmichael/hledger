@@ -149,7 +149,7 @@ helpDialog =
     c <- getContext
     render $
       withDefAttr (attrName "help") $
-      renderDialog (dialog (Just "Help (LEFT/ESC/?/q to close help)") Nothing (c^.availWidthL)) $ -- (Just (0,[("ok",())]))
+      renderDialog (dialog (Just $ str "Help (LEFT/ESC/?/q to close help)") Nothing (c^.availWidthL)) $ -- (Just (0,[("ok",())]))
       padTop (Pad 0) $ padLeft (Pad 1) $ padRight (Pad 1) $
         vBox [
            hBox [
