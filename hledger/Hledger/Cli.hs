@@ -9,16 +9,16 @@ adds some more which are easier to define here.
 -}
 
 module Hledger.Cli (
-                     module Hledger.Cli.CliOptions,
-                     module Hledger.Cli.Commands,
-                     module Hledger.Cli.DocFiles,
-                     module Hledger.Cli.Utils,
-                     module Hledger.Cli.Version,
-                     module Hledger,
-                     module System.Console.CmdArgs.Explicit,
-                     prognameandversion,
-                     versionString
-              )
+  module Hledger.Cli.CliOptions,
+  module Hledger.Cli.Commands,
+  module Hledger.Cli.DocFiles,
+  module Hledger.Cli.Utils,
+  module Hledger.Cli.Version,
+  module Hledger,
+  module System.Console.CmdArgs.Explicit,
+  prognameandversion,
+  versionString
+)
 where
 
 import GitHash (tGitInfoCwdTry)
