@@ -1,5 +1,5 @@
 
-.TH "HLEDGER-UI" "1" "November 2022" "hledger-ui-1.27.99 " "hledger User Manuals"
+.TH "HLEDGER-UI" "1" "November 2022" "hledger-ui-1.28 " "hledger User Manuals"
 
 
 
@@ -7,7 +7,7 @@
 .PP
 hledger-ui is a terminal interface (TUI) for the hledger accounting
 tool.
-This manual is for hledger-ui 1.27.99.
+This manual is for hledger-ui 1.28.
 .SH SYNOPSIS
 .PP
 \f[C]hledger-ui [OPTIONS] [QUERYARGS]\f[R]
@@ -240,8 +240,7 @@ Use mouse wheel or trackpad to scroll up and down
 .IP \[bu] 2
 Click on list items to go deeper
 .IP \[bu] 2
-Click on the left margin (column 0), or the blank area at bottom of
-screen, to go back.
+Click on the left margin (column 0) to go back.
 .SH KEYS
 .PP
 Keyboard gives more control.
@@ -348,37 +347,37 @@ reliably reset to normal mode.
 Additional screen-specific keys are described below.
 .SH SCREENS
 .PP
-hledger-ui can show a number of different screens, described below.
-It shows the Balance sheet accounts screen to start with, except in the
-following situations:
+hledger-ui shows several different screens, described below.
+It shows the \[dq]Balance sheet accounts\[dq] screen to start with,
+except in the following situations:
 .IP \[bu] 2
 If no asset/liability/equity accounts can be detected, or if an account
-query has been given on the command line, it starts in the All accounts
-screen.
+query has been given on the command line, it starts in the \[dq]All
+accounts\[dq] screen.
 .IP \[bu] 2
 If a starting screen is specified with --menu/--all/--bs/--is/--register
-on the command line, it starts there.
+on the command line, it starts in that screen.
 .PP
-From the starting screen you can press \f[C]LEFT\f[R] or \f[C]ESC\f[R]
-to navigate back to the menu screen.
-.SS Menu screen
+From any screen you can press \f[C]LEFT\f[R] or \f[C]ESC\f[R] to
+navigate back to the top level \[dq]Menu\[dq] screen.
+.SS Menu
 .PP
 The top-most screen.
 From here you can navigate to three accounts screens:
-.SS All accounts screen
+.SS All accounts
 .PP
 This screen shows all accounts (possibly filtered by a query), and their
 end balances on the date shown in the title bar (or their balance
 changes in the period shown in the title bar, toggleable with
 \f[C]H\f[R]).
 It is like the \f[C]hledger balance\f[R] command.
-.SS Balance sheet accounts screen
+.SS Balance sheet accounts
 .PP
 This screen shows asset, liability and equity accounts, if these can be
 detected (see account types).
 It always shows end balances.
 It is like the \f[C]hledger balancesheetequity\f[R] command.
-.SS Income statement accounts screen
+.SS Income statement accounts
 .PP
 This screen shows revenue and expense accounts.
 It always shows balance changes.
@@ -390,8 +389,13 @@ They show accounts which have been posted to by transactions, as well as
 accounts which have been declared with an account directive (except for
 empty parent accounts).
 .PP
-If you specify a query on the command line, it shows just the matched
-accounts, and the balances from matched transactions.
+If you specify a query on the command line or with \f[C]/\f[R] in the
+app, they show just the matched accounts, and the balances from matched
+transactions.
+.PP
+hledger-ui shows accounts with zero balances by default (unlike
+command-line hledger).
+To hide these, press \f[C]z\f[R] to toggle nonzero mode.
 .PP
 Account names are shown as a flat list by default; press \f[C]t\f[R] to
 toggle tree mode.
@@ -430,13 +434,9 @@ all three, the filter is removed.)
 .PP
 \f[C]R\f[R] toggles real mode, in which virtual postings are ignored.
 .PP
-\f[C]z\f[R] toggles nonzero mode, in which only accounts with nonzero
-balances are shown (hledger-ui shows zero items by default, unlike
-command-line hledger).
-.PP
 Press \f[C]RIGHT\f[R] to view an account\[aq]s register screen, Or,
 \f[C]LEFT\f[R] to see the menu screen.
-.SS Register screen
+.SS Register
 .PP
 This screen shows the transactions affecting a particular account, like
 a check register.
@@ -482,7 +482,7 @@ nonzero change are shown (hledger-ui shows zero items by default, unlike
 command-line hledger).
 .PP
 Press \f[C]RIGHT\f[R] to view the selected transaction in detail.
-.SS Transaction screen
+.SS Transaction
 .PP
 This screen shows a single transaction, as a general journal entry,
 similar to hledger\[aq]s print command and journal format
@@ -502,7 +502,7 @@ They will vary depending on which account register you came from
 The #N number preceding them is the transaction\[aq]s position within
 the complete unfiltered journal, which is a more stable id (at least
 until the next reload).
-.SS Error screen
+.SS Error
 .PP
 This screen will appear if there is a problem, such as a parse error,
 when you press g to reload.

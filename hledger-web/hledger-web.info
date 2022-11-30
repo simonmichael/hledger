@@ -12,7 +12,7 @@ hledger-web(1)
 **************
 
 hledger-web is a web interface (WUI) for the hledger accounting tool.
-This manual is for hledger-web 1.27.99.
+This manual is for hledger-web 1.28.
 
    'hledger-web [OPTIONS] # run temporarily & browse'
 'hledger-web --serve [OPTIONS] # run without stopping'
@@ -662,26 +662,26 @@ awkward.
 
 Tag Table:
 Node: Top223
-Node: OPTIONS2436
-Ref: #options2541
-Node: PERMISSIONS9940
-Ref: #permissions10079
-Node: EDITING UPLOADING DOWNLOADING11291
-Ref: #editing-uploading-downloading11472
-Node: RELOADING12306
-Ref: #reloading12440
-Node: JSON API12873
-Ref: #json-api12988
-Node: DEBUG OUTPUT18478
-Ref: #debug-output18603
-Node: Debug output18630
-Ref: #debug-output-118731
-Node: ENVIRONMENT19148
-Ref: #environment19268
-Node: FILES20579
-Ref: #files20679
-Node: BUGS20892
-Ref: #bugs20970
+Node: OPTIONS2433
+Ref: #options2538
+Node: PERMISSIONS9937
+Ref: #permissions10076
+Node: EDITING UPLOADING DOWNLOADING11288
+Ref: #editing-uploading-downloading11469
+Node: RELOADING12303
+Ref: #reloading12437
+Node: JSON API12870
+Ref: #json-api12985
+Node: DEBUG OUTPUT18475
+Ref: #debug-output18600
+Node: Debug output18627
+Ref: #debug-output-118728
+Node: ENVIRONMENT19145
+Ref: #environment19265
+Node: FILES20576
+Ref: #files20676
+Node: BUGS20889
+Ref: #bugs20967
 
 End Tag Table
 

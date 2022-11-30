@@ -13,7 +13,7 @@ hledger(1)
 
 This is the command-line interface (CLI) for the hledger accounting
 tool.  Here we also describe hledger's concepts and file formats.  This
-manual is for hledger 1.27.99.
+manual is for hledger 1.28.
 
    'hledger'
 
@@ -1367,28 +1367,35 @@ File: hledger.info,  Node: Combining query terms,  Next: Queries and command opt
 7.2 Combining query terms
 =========================
 
-Most commands select things which match:
+When given multiple query terms, most commands select things which
+match:
 
    * any of the description terms AND
    * any of the account terms AND
    * any of the status terms AND
    * all the other terms.
 
-   while the print command shows transactions which:
+   The print command is a little different, showing transactions which:
 
    * match any of the description terms AND
    * have any postings matching any of the positive account terms AND
    * have no postings matching any of the negative account terms AND
    * match all the other terms.
 
-   You can do more powerful queries (such as AND-ing two like terms) by
-running a first query with 'print', and piping the result into a second
-hledger command.  Eg: how much of food expenses was paid with cash ?
+   Although these fixed rules are enough for many needs, we do not
+support full boolean expressions (#203), (and you should not write AND
+or OR in your queries).  This makes certain queries hard to express, but
+here are some tricks that can help:
 
-$ hledger print assets:cash | hledger -f- -I balance expenses:food
+  1. Use a doubled 'not:' prefix.  Eg, to print only the food expenses
+     paid with cash:
 
-   If you are interested in full boolean expressions for queries, see
-#203.
+     $ hledger print food not:not:cash
+
+  2. Or pre-filter the transactions with 'print', piping the result into
+     a second hledger command (with balance assertions disabled):
+
+     $ hledger print cash | hledger -f- -I balance food
 
 
 File: hledger.info,  Node: Queries and command options,  Next: Queries and account aliases,  Prev: Combining query terms,  Up: QUERIES
@@ -4770,10 +4777,11 @@ keeping the output parseable.
    With '-B'/'--cost', amounts with transaction prices are converted to
 cost using that price.  This can be used for troubleshooting.
 
-   With '-m'/'--match' and a STR argument, print will show at most one
-transaction: the one one whose description is most similar to STR, and
-is most recent.  STR should contain at least two characters.  If there
-is no similar-enough match, no transaction will be shown.
+   With '-m DESC'/'--match=DESC', print does a fuzzy search for the one
+transaction whose description is most similar to DESC, also preferring
+recent tranactions.  DESC should contain at least two characters.  If
+there is no similar-enough match, no transaction will be shown and the
+program exit code will be non-zero.
 
    With '--new', hledger prints only transactions it has not seen on a
 previous run.  This uses the same deduplication system as the 'import'
@@ -9788,562 +9796,562 @@ $ LANG=en_US.UTF-8 hledger -f my.journal print
 
 Tag Table:
 Node: Top208
-Node: OPTIONS2597
-Ref: #options2698
-Node: General options2840
-Ref: #general-options2965
-Node: Command options7178
-Ref: #command-options7329
-Node: Command arguments7729
-Ref: #command-arguments7887
-Node: Special characters8767
-Ref: #special-characters8930
-Node: Single escaping shell metacharacters9093
-Ref: #single-escaping-shell-metacharacters9334
-Node: Double escaping regular expression metacharacters9937
-Ref: #double-escaping-regular-expression-metacharacters10248
-Node: Triple escaping for add-on commands10774
-Ref: #triple-escaping-for-add-on-commands11034
-Node: Less escaping11678
-Ref: #less-escaping11832
-Node: Unicode characters12156
-Ref: #unicode-characters12321
-Node: Regular expressions13733
-Ref: #regular-expressions13873
-Node: ENVIRONMENT15609
-Ref: #environment15720
-Node: INPUT17289
-Ref: #input17387
-Node: Data formats17930
-Ref: #data-formats18043
-Node: Multiple files19437
-Ref: #multiple-files19574
-Node: Strict mode20043
-Ref: #strict-mode20153
-Node: OUTPUT20877
-Ref: #output20978
-Node: Output destination21153
-Ref: #output-destination21285
-Node: Output styling21710
-Ref: #output-styling21856
-Node: Output format22613
-Ref: #output-format22755
-Node: CSV output24119
-Ref: #csv-output24235
-Node: HTML output24338
-Ref: #html-output24476
-Node: JSON output24570
-Ref: #json-output24708
-Node: SQL output25625
-Ref: #sql-output25741
-Node: Commodity styles26242
-Ref: #commodity-styles26388
-Node: Debug output27164
-Ref: #debug-output27280
-Node: TIME PERIODS27946
-Ref: #time-periods28059
-Node: Smart dates28157
-Ref: #smart-dates28283
-Node: Report start & end date30113
-Ref: #report-start-end-date30288
-Node: Report intervals31955
-Ref: #report-intervals32123
-Node: Period expressions33862
-Ref: #period-expressions34002
-Node: Period expressions with a report interval35733
-Ref: #period-expressions-with-a-report-interval35965
-Node: More complex report intervals37046
-Ref: #more-complex-report-intervals37295
-Node: Intervals with custom start date37935
-Ref: #intervals-with-custom-start-date38167
-Node: Periods or dates ?39741
-Ref: #periods-or-dates39943
-Node: Events on multiple weekdays40385
-Ref: #events-on-multiple-weekdays40564
-Node: DEPTH41427
-Ref: #depth41527
-Node: QUERIES41861
-Ref: #queries41957
-Node: Query types42898
-Ref: #query-types43017
-Node: Combining query terms46191
-Ref: #combining-query-terms46366
-Node: Queries and command options47169
-Ref: #queries-and-command-options47372
-Node: Queries and account aliases47621
-Ref: #queries-and-account-aliases47824
-Node: Queries and valuation47944
-Ref: #queries-and-valuation48137
-Node: Querying with account aliases48366
-Ref: #querying-with-account-aliases48575
-Node: Querying with cost or value48705
-Ref: #querying-with-cost-or-value48880
-Node: COST49181
-Ref: #cost49275
-Node: -B Convert to cost50469
-Ref: #b-convert-to-cost50613
-Node: Equity conversion postings52041
-Ref: #equity-conversion-postings52243
-Node: Inferring equity postings from cost52870
-Ref: #inferring-equity-postings-from-cost53107
-Node: Inferring cost from equity postings54096
-Ref: #inferring-cost-from-equity-postings54332
-Node: When to infer cost/equity56557
-Ref: #when-to-infer-costequity56763
-Node: How to record conversions57159
-Ref: #how-to-record-conversions57339
-Node: Conversion with implicit cost57630
-Ref: #conversion-with-implicit-cost57833
-Node: Conversion with explicit cost58710
-Ref: #conversion-with-explicit-cost58953
-Node: Conversion with equity postings59370
-Ref: #conversion-with-equity-postings59637
-Node: Conversion with equity postings and explicit cost60456
-Ref: #conversion-with-equity-postings-and-explicit-cost60721
-Node: Cost tips61326
-Ref: #cost-tips61440
-Node: VALUATION62169
-Ref: #valuation62274
-Node: -V Value63041
-Ref: #v-value63165
-Node: -X Value in specified commodity63360
-Ref: #x-value-in-specified-commodity63553
-Node: Valuation date63702
-Ref: #valuation-date63864
-Node: Market prices64301
-Ref: #market-prices64483
-Node: --infer-market-prices market prices from transactions65666
-Ref: #infer-market-prices-market-prices-from-transactions65933
-Node: Valuation commodity67817
-Ref: #valuation-commodity68028
-Node: Simple valuation examples69254
-Ref: #simple-valuation-examples69450
-Node: --value Flexible valuation70109
-Ref: #value-flexible-valuation70311
-Node: More valuation examples71955
-Ref: #more-valuation-examples72162
-Node: Interaction of valuation and queries74161
-Ref: #interaction-of-valuation-and-queries74400
-Node: Effect of valuation on reports74872
-Ref: #effect-of-valuation-on-reports75067
-Node: PIVOTING82764
-Ref: #pivoting82873
-Node: COMMANDS84559
-Ref: #commands84673
-Node: accounts87927
-Ref: #accounts88027
-Node: activity89923
-Ref: #activity90035
-Node: add90418
-Ref: #add90521
-Node: aregister93329
-Ref: #aregister93443
-Node: aregister and custom posting dates96112
-Ref: #aregister-and-custom-posting-dates96278
-Node: balance96830
-Ref: #balance96949
-Node: balance features97942
-Ref: #balance-features98082
-Node: Simple balance report100006
-Ref: #simple-balance-report100188
-Node: Filtered balance report101668
-Ref: #filtered-balance-report101855
-Node: List or tree mode102182
-Ref: #list-or-tree-mode102350
-Node: Depth limiting103695
-Ref: #depth-limiting103861
-Node: Dropping top-level accounts104462
-Ref: #dropping-top-level-accounts104664
-Node: Multi-period balance report104974
-Ref: #multi-period-balance-report105187
-Node: Showing declared accounts107462
-Ref: #showing-declared-accounts107655
-Node: Data layout108186
-Ref: #data-layout108341
-Node: Sorting by amount116281
-Ref: #sorting-by-amount116436
-Node: Percentages117106
-Ref: #percentages117264
-Node: Balance change end balance118225
-Ref: #balance-change-end-balance118418
-Node: Balance report types119846
-Ref: #balance-report-types120036
-Node: Useful balance reports124315
-Ref: #useful-balance-reports124496
-Node: Budget report125581
-Ref: #budget-report125765
-Node: Budget report start date131040
-Ref: #budget-report-start-date131218
-Node: Budgets and subaccounts132550
-Ref: #budgets-and-subaccounts132757
-Node: Selecting budget goals136197
-Ref: #selecting-budget-goals136369
-Node: Customising single-period balance reports137403
-Ref: #customising-single-period-balance-reports137612
-Node: balancesheet139787
-Ref: #balancesheet139925
-Node: balancesheetequity141253
-Ref: #balancesheetequity141404
-Node: cashflow142807
-Ref: #cashflow142931
-Node: check144363
-Ref: #check144468
-Node: Basic checks145276
-Ref: #basic-checks145394
-Node: Strict checks145945
-Ref: #strict-checks146086
-Node: Other checks146522
-Ref: #other-checks146662
-Node: Custom checks147161
-Ref: #custom-checks147316
-Node: More about specific checks147733
-Ref: #more-about-specific-checks147893
-Node: close148621
-Ref: #close148725
-Node: close and prices150816
-Ref: #close-and-prices150945
-Node: close date151340
-Ref: #close-date151524
-Node: Example close asset/liability accounts for file transition152281
-Ref: #example-close-assetliability-accounts-for-file-transition152582
-Node: Hiding opening/closing transactions153441
-Ref: #hiding-openingclosing-transactions153712
-Node: close and balance assertions155089
-Ref: #close-and-balance-assertions155347
-Node: Example close revenue/expense accounts to retained earnings156701
-Ref: #example-close-revenueexpense-accounts-to-retained-earnings156979
-Node: codes157869
-Ref: #codes157979
-Node: commodities158691
-Ref: #commodities158820
-Node: descriptions158902
-Ref: #descriptions159032
-Node: diff159336
-Ref: #diff159444
-Node: files160491
-Ref: #files160593
-Node: help160740
-Ref: #help160842
-Node: import161793
-Ref: #import161909
-Node: Deduplication163002
-Ref: #deduplication163127
-Node: Import testing165021
-Ref: #import-testing165186
-Node: Importing balance assignments165674
-Ref: #importing-balance-assignments165880
-Node: Commodity display styles166529
-Ref: #commodity-display-styles166702
-Node: incomestatement166831
-Ref: #incomestatement166966
-Node: notes168298
-Ref: #notes168413
-Node: payees168781
-Ref: #payees168889
-Node: prices169415
-Ref: #prices169523
-Node: print169892
-Ref: #print170004
-Node: print-unique175372
-Ref: #print-unique175500
-Node: register175785
-Ref: #register175914
-Node: Custom register output180664
-Ref: #custom-register-output180795
-Node: register-match182132
-Ref: #register-match182268
-Node: rewrite182619
-Ref: #rewrite182736
-Node: Re-write rules in a file184642
-Ref: #re-write-rules-in-a-file184805
-Node: Diff output format185954
-Ref: #diff-output-format186137
-Node: rewrite vs print --auto187229
-Ref: #rewrite-vs.-print---auto187389
-Node: roi187945
-Ref: #roi188045
-Node: Spaces and special characters in --inv and --pnl189770
-Ref: #spaces-and-special-characters-in---inv-and---pnl190010
-Node: Semantics of --inv and --pnl190498
-Ref: #semantics-of---inv-and---pnl190737
-Node: IRR and TWR explained192587
-Ref: #irr-and-twr-explained192747
-Node: stats195833
-Ref: #stats195934
-Node: tags197314
-Ref: #tags197414
-Node: test198428
-Ref: #test198538
-Node: Add-on commands199285
-Ref: #add-on-commands199404
-Node: JOURNAL FORMAT200535
-Ref: #journal-format200663
-Node: Transactions202890
-Ref: #transactions203005
-Node: Dates204019
-Ref: #dates204135
-Node: Simple dates204200
-Ref: #simple-dates204320
-Node: Secondary dates204829
-Ref: #secondary-dates204977
-Node: Posting dates206313
-Ref: #posting-dates206436
-Node: Status207808
-Ref: #status207918
-Node: Code209626
-Ref: #code209738
-Node: Description209970
-Ref: #description210098
-Node: Payee and note210418
-Ref: #payee-and-note210526
-Node: Comments210861
-Ref: #comments210983
-Node: Tags212177
-Ref: #tags-1212288
-Node: Postings213743
-Ref: #postings213867
-Node: Virtual postings214893
-Ref: #virtual-postings215004
-Node: Account names216309
-Ref: #account-names216446
-Node: Amounts216934
-Ref: #amounts217071
-Node: Decimal marks digit group marks218056
-Ref: #decimal-marks-digit-group-marks218233
-Node: Commodity219254
-Ref: #commodity219443
-Node: Directives influencing number parsing and display220395
-Ref: #directives-influencing-number-parsing-and-display220656
-Node: Commodity display style221149
-Ref: #commodity-display-style221357
-Node: Rounding223552
-Ref: #rounding223672
-Node: Transaction prices224084
-Ref: #transaction-prices224250
-Node: Lot prices lot dates226173
-Ref: #lot-prices-lot-dates226356
-Node: Balance assertions226844
-Ref: #balance-assertions227022
-Node: Assertions and ordering228095
-Ref: #assertions-and-ordering228286
-Node: Assertions and multiple included files228986
-Ref: #assertions-and-multiple-included-files229248
-Node: Assertions and multiple -f files229748
-Ref: #assertions-and-multiple--f-files230001
-Node: Assertions and commodities230398
-Ref: #assertions-and-commodities230622
-Node: Assertions and prices231802
-Ref: #assertions-and-prices232010
-Node: Assertions and subaccounts232450
-Ref: #assertions-and-subaccounts232673
-Node: Assertions and virtual postings232997
-Ref: #assertions-and-virtual-postings233237
-Node: Assertions and auto postings233369
-Ref: #assertions-and-auto-postings233601
-Node: Assertions and precision234246
-Ref: #assertions-and-precision234430
-Node: Balance assignments234697
-Ref: #balance-assignments234867
-Node: Balance assignments and prices236031
-Ref: #balance-assignments-and-prices236197
-Node: Directives236421
-Ref: #directives236584
-Node: Directives and multiple files241076
-Ref: #directives-and-multiple-files241272
-Node: Comment blocks241964
-Ref: #comment-blocks242141
-Node: Including other files242317
-Ref: #including-other-files242491
-Node: Default year243415
-Ref: #default-year243573
-Node: Declaring payees243980
-Ref: #declaring-payees244151
-Node: Declaring the decimal mark244397
-Ref: #declaring-the-decimal-mark244597
-Node: Declaring commodities244994
-Ref: #declaring-commodities245185
-Node: Commodity error checking247703
-Ref: #commodity-error-checking247853
-Node: Default commodity248368
-Ref: #default-commodity248548
-Node: Declaring market prices249664
-Ref: #declaring-market-prices249853
-Node: Declaring accounts250666
-Ref: #declaring-accounts250846
-Node: Account comments252010
-Ref: #account-comments252163
-Node: Account subdirectives252586
-Ref: #account-subdirectives252780
-Node: Account error checking252922
-Ref: #account-error-checking253123
-Node: Account display order254312
-Ref: #account-display-order254503
-Node: Account types255604
-Ref: #account-types255748
-Node: Rewriting accounts259422
-Ref: #rewriting-accounts259601
-Node: Basic aliases260641
-Ref: #basic-aliases260777
-Node: Regex aliases261521
-Ref: #regex-aliases261683
-Node: Combining aliases262573
-Ref: #combining-aliases262756
-Node: Aliases and multiple files264032
-Ref: #aliases-and-multiple-files264231
-Node: end aliases264810
-Ref: #end-aliases265004
-Node: Aliases can generate bad account names265153
-Ref: #aliases-can-generate-bad-account-names265396
-Node: Aliases and account types265981
-Ref: #aliases-and-account-types266178
-Node: Default parent account266874
-Ref: #default-parent-account267064
-Node: Periodic transactions267948
-Ref: #periodic-transactions268131
-Node: Periodic rule syntax270086
-Ref: #periodic-rule-syntax270266
-Node: Periodic rules and relative dates270725
-Ref: #periodic-rules-and-relative-dates270993
-Node: Two spaces between period expression and description!271504
-Ref: #two-spaces-between-period-expression-and-description271830
-Node: Forecasting with periodic transactions272514
-Ref: #forecasting-with-periodic-transactions272813
-Node: Budgeting with periodic transactions275584
-Ref: #budgeting-with-periodic-transactions275817
-Node: Auto postings276226
-Ref: #auto-postings276362
-Node: Auto postings and multiple files278541
-Ref: #auto-postings-and-multiple-files278739
-Node: Auto postings and dates278948
-Ref: #auto-postings-and-dates279216
-Node: Auto postings and transaction balancing / inferred amounts / balance assertions279391
-Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions279736
-Node: Auto posting tags280239
-Ref: #auto-posting-tags280448
-Node: CSV FORMAT281084
-Ref: #csv-format281212
-Node: Examples284038
-Ref: #examples284141
-Node: Basic284349
-Ref: #basic284451
-Node: Bank of Ireland284993
-Ref: #bank-of-ireland285130
-Node: Amazon286592
-Ref: #amazon286712
-Node: Paypal288431
-Ref: #paypal288527
-Node: CSV rules296171
-Ref: #csv-rules296289
-Node: skip296658
-Ref: #skip296758
-Node: fields list297133
-Ref: #fields-list297272
-Node: field assignment298838
-Ref: #field-assignment298990
-Node: Field names300025
-Ref: #field-names300165
-Node: date field300545
-Ref: #date-field300665
-Node: date2 field300713
-Ref: #date2-field300856
-Node: status field300912
-Ref: #status-field301057
-Node: code field301106
-Ref: #code-field301253
-Node: description field301298
-Ref: #description-field301460
-Node: comment field301519
-Ref: #comment-field301676
-Node: account field301987
-Ref: #account-field302139
-Node: amount field302714
-Ref: #amount-field302865
-Node: currency field304110
-Ref: #currency-field304265
-Node: balance field304522
-Ref: #balance-field304656
-Node: separator305028
-Ref: #separator305160
-Node: if block305700
-Ref: #if-block305827
-Node: Matching the whole record306228
-Ref: #matching-the-whole-record306405
-Node: Matching individual fields307208
-Ref: #matching-individual-fields307414
-Node: Combining matchers307638
-Ref: #combining-matchers307836
-Node: Rules applied on successful match308149
-Ref: #rules-applied-on-successful-match308342
-Node: if table308996
-Ref: #if-table309117
-Node: end310855
-Ref: #end310969
-Node: date-format311193
-Ref: #date-format311323
-Node: timezone312047
-Ref: #timezone312182
-Node: decimal-mark313187
-Ref: #decimal-mark313331
-Node: newest-first313670
-Ref: #newest-first313824
-Node: intra-day-reversed314402
-Ref: #intra-day-reversed314563
-Node: include315056
-Ref: #include315195
-Node: balance-type315639
-Ref: #balance-type315761
-Node: Tips316461
-Ref: #tips316552
-Node: Rapid feedback316851
-Ref: #rapid-feedback316970
-Node: Valid CSV317422
-Ref: #valid-csv317554
-Node: File Extension317746
-Ref: #file-extension317900
-Node: Reading multiple CSV files318329
-Ref: #reading-multiple-csv-files318516
-Node: Valid transactions318757
-Ref: #valid-transactions318937
-Node: Deduplicating importing319565
-Ref: #deduplicating-importing319746
-Node: Setting amounts320782
-Ref: #setting-amounts320939
-Node: Amount signs323383
-Ref: #amount-signs323537
-Node: Setting currency/commodity324224
-Ref: #setting-currencycommodity324412
-Node: Amount decimal places325586
-Ref: #amount-decimal-places325778
-Node: Referencing other fields326090
-Ref: #referencing-other-fields326289
-Node: How CSV rules are evaluated327186
-Ref: #how-csv-rules-are-evaluated327361
-Node: TIMECLOCK FORMAT328812
-Ref: #timeclock-format328952
-Node: TIMEDOT FORMAT331013
-Ref: #timedot-format331151
-Node: COMMON TASKS335713
-Ref: #common-tasks335842
-Node: Getting help336116
-Ref: #getting-help336250
-Node: Constructing command lines337002
-Ref: #constructing-command-lines337196
-Node: Starting a journal file337893
-Ref: #starting-a-journal-file338093
-Node: Setting opening balances339281
-Ref: #setting-opening-balances339479
-Node: Recording transactions342620
-Ref: #recording-transactions342802
-Node: Reconciling343358
-Ref: #reconciling343503
-Node: Reporting345760
-Ref: #reporting345902
-Node: Migrating to a new file349887
-Ref: #migrating-to-a-new-file350037
-Node: LIMITATIONS350336
-Ref: #limitations350464
-Node: TROUBLESHOOTING351233
-Ref: #troubleshooting351348
+Node: OPTIONS2594
+Ref: #options2695
+Node: General options2837
+Ref: #general-options2962
+Node: Command options7175
+Ref: #command-options7326
+Node: Command arguments7726
+Ref: #command-arguments7884
+Node: Special characters8764
+Ref: #special-characters8927
+Node: Single escaping shell metacharacters9090
+Ref: #single-escaping-shell-metacharacters9331
+Node: Double escaping regular expression metacharacters9934
+Ref: #double-escaping-regular-expression-metacharacters10245
+Node: Triple escaping for add-on commands10771
+Ref: #triple-escaping-for-add-on-commands11031
+Node: Less escaping11675
+Ref: #less-escaping11829
+Node: Unicode characters12153
+Ref: #unicode-characters12318
+Node: Regular expressions13730
+Ref: #regular-expressions13870
+Node: ENVIRONMENT15606
+Ref: #environment15717
+Node: INPUT17286
+Ref: #input17384
+Node: Data formats17927
+Ref: #data-formats18040
+Node: Multiple files19434
+Ref: #multiple-files19571
+Node: Strict mode20040
+Ref: #strict-mode20150
+Node: OUTPUT20874
+Ref: #output20975
+Node: Output destination21150
+Ref: #output-destination21282
+Node: Output styling21707
+Ref: #output-styling21853
+Node: Output format22610
+Ref: #output-format22752
+Node: CSV output24116
+Ref: #csv-output24232
+Node: HTML output24335
+Ref: #html-output24473
+Node: JSON output24567
+Ref: #json-output24705
+Node: SQL output25622
+Ref: #sql-output25738
+Node: Commodity styles26239
+Ref: #commodity-styles26385
+Node: Debug output27161
+Ref: #debug-output27277
+Node: TIME PERIODS27943
+Ref: #time-periods28056
+Node: Smart dates28154
+Ref: #smart-dates28280
+Node: Report start & end date30110
+Ref: #report-start-end-date30285
+Node: Report intervals31952
+Ref: #report-intervals32120
+Node: Period expressions33859
+Ref: #period-expressions33999
+Node: Period expressions with a report interval35730
+Ref: #period-expressions-with-a-report-interval35962
+Node: More complex report intervals37043
+Ref: #more-complex-report-intervals37292
+Node: Intervals with custom start date37932
+Ref: #intervals-with-custom-start-date38164
+Node: Periods or dates ?39738
+Ref: #periods-or-dates39940
+Node: Events on multiple weekdays40382
+Ref: #events-on-multiple-weekdays40561
+Node: DEPTH41424
+Ref: #depth41524
+Node: QUERIES41858
+Ref: #queries41954
+Node: Query types42895
+Ref: #query-types43014
+Node: Combining query terms46188
+Ref: #combining-query-terms46363
+Node: Queries and command options47437
+Ref: #queries-and-command-options47640
+Node: Queries and account aliases47889
+Ref: #queries-and-account-aliases48092
+Node: Queries and valuation48212
+Ref: #queries-and-valuation48405
+Node: Querying with account aliases48634
+Ref: #querying-with-account-aliases48843
+Node: Querying with cost or value48973
+Ref: #querying-with-cost-or-value49148
+Node: COST49449
+Ref: #cost49543
+Node: -B Convert to cost50737
+Ref: #b-convert-to-cost50881
+Node: Equity conversion postings52309
+Ref: #equity-conversion-postings52511
+Node: Inferring equity postings from cost53138
+Ref: #inferring-equity-postings-from-cost53375
+Node: Inferring cost from equity postings54364
+Ref: #inferring-cost-from-equity-postings54600
+Node: When to infer cost/equity56825
+Ref: #when-to-infer-costequity57031
+Node: How to record conversions57427
+Ref: #how-to-record-conversions57607
+Node: Conversion with implicit cost57898
+Ref: #conversion-with-implicit-cost58101
+Node: Conversion with explicit cost58978
+Ref: #conversion-with-explicit-cost59221
+Node: Conversion with equity postings59638
+Ref: #conversion-with-equity-postings59905
+Node: Conversion with equity postings and explicit cost60724
+Ref: #conversion-with-equity-postings-and-explicit-cost60989
+Node: Cost tips61594
+Ref: #cost-tips61708
+Node: VALUATION62437
+Ref: #valuation62542
+Node: -V Value63309
+Ref: #v-value63433
+Node: -X Value in specified commodity63628
+Ref: #x-value-in-specified-commodity63821
+Node: Valuation date63970
+Ref: #valuation-date64132
+Node: Market prices64569
+Ref: #market-prices64751
+Node: --infer-market-prices market prices from transactions65934
+Ref: #infer-market-prices-market-prices-from-transactions66201
+Node: Valuation commodity68085
+Ref: #valuation-commodity68296
+Node: Simple valuation examples69522
+Ref: #simple-valuation-examples69718
+Node: --value Flexible valuation70377
+Ref: #value-flexible-valuation70579
+Node: More valuation examples72223
+Ref: #more-valuation-examples72430
+Node: Interaction of valuation and queries74429
+Ref: #interaction-of-valuation-and-queries74668
+Node: Effect of valuation on reports75140
+Ref: #effect-of-valuation-on-reports75335
+Node: PIVOTING83032
+Ref: #pivoting83141
+Node: COMMANDS84827
+Ref: #commands84941
+Node: accounts88195
+Ref: #accounts88295
+Node: activity90191
+Ref: #activity90303
+Node: add90686
+Ref: #add90789
+Node: aregister93597
+Ref: #aregister93711
+Node: aregister and custom posting dates96380
+Ref: #aregister-and-custom-posting-dates96546
+Node: balance97098
+Ref: #balance97217
+Node: balance features98210
+Ref: #balance-features98350
+Node: Simple balance report100274
+Ref: #simple-balance-report100456
+Node: Filtered balance report101936
+Ref: #filtered-balance-report102123
+Node: List or tree mode102450
+Ref: #list-or-tree-mode102618
+Node: Depth limiting103963
+Ref: #depth-limiting104129
+Node: Dropping top-level accounts104730
+Ref: #dropping-top-level-accounts104932
+Node: Multi-period balance report105242
+Ref: #multi-period-balance-report105455
+Node: Showing declared accounts107730
+Ref: #showing-declared-accounts107923
+Node: Data layout108454
+Ref: #data-layout108609
+Node: Sorting by amount116549
+Ref: #sorting-by-amount116704
+Node: Percentages117374
+Ref: #percentages117532
+Node: Balance change end balance118493
+Ref: #balance-change-end-balance118686
+Node: Balance report types120114
+Ref: #balance-report-types120304
+Node: Useful balance reports124583
+Ref: #useful-balance-reports124764
+Node: Budget report125849
+Ref: #budget-report126033
+Node: Budget report start date131308
+Ref: #budget-report-start-date131486
+Node: Budgets and subaccounts132818
+Ref: #budgets-and-subaccounts133025
+Node: Selecting budget goals136465
+Ref: #selecting-budget-goals136637
+Node: Customising single-period balance reports137671
+Ref: #customising-single-period-balance-reports137880
+Node: balancesheet140055
+Ref: #balancesheet140193
+Node: balancesheetequity141521
+Ref: #balancesheetequity141672
+Node: cashflow143075
+Ref: #cashflow143199
+Node: check144631
+Ref: #check144736
+Node: Basic checks145544
+Ref: #basic-checks145662
+Node: Strict checks146213
+Ref: #strict-checks146354
+Node: Other checks146790
+Ref: #other-checks146930
+Node: Custom checks147429
+Ref: #custom-checks147584
+Node: More about specific checks148001
+Ref: #more-about-specific-checks148161
+Node: close148889
+Ref: #close148993
+Node: close and prices151084
+Ref: #close-and-prices151213
+Node: close date151608
+Ref: #close-date151792
+Node: Example close asset/liability accounts for file transition152549
+Ref: #example-close-assetliability-accounts-for-file-transition152850
+Node: Hiding opening/closing transactions153709
+Ref: #hiding-openingclosing-transactions153980
+Node: close and balance assertions155357
+Ref: #close-and-balance-assertions155615
+Node: Example close revenue/expense accounts to retained earnings156969
+Ref: #example-close-revenueexpense-accounts-to-retained-earnings157247
+Node: codes158137
+Ref: #codes158247
+Node: commodities158959
+Ref: #commodities159088
+Node: descriptions159170
+Ref: #descriptions159300
+Node: diff159604
+Ref: #diff159712
+Node: files160759
+Ref: #files160861
+Node: help161008
+Ref: #help161110
+Node: import162061
+Ref: #import162177
+Node: Deduplication163270
+Ref: #deduplication163395
+Node: Import testing165289
+Ref: #import-testing165454
+Node: Importing balance assignments165942
+Ref: #importing-balance-assignments166148
+Node: Commodity display styles166797
+Ref: #commodity-display-styles166970
+Node: incomestatement167099
+Ref: #incomestatement167234
+Node: notes168566
+Ref: #notes168681
+Node: payees169049
+Ref: #payees169157
+Node: prices169683
+Ref: #prices169791
+Node: print170160
+Ref: #print170272
+Node: print-unique175689
+Ref: #print-unique175817
+Node: register176102
+Ref: #register176231
+Node: Custom register output180981
+Ref: #custom-register-output181112
+Node: register-match182449
+Ref: #register-match182585
+Node: rewrite182936
+Ref: #rewrite183053
+Node: Re-write rules in a file184959
+Ref: #re-write-rules-in-a-file185122
+Node: Diff output format186271
+Ref: #diff-output-format186454
+Node: rewrite vs print --auto187546
+Ref: #rewrite-vs.-print---auto187706
+Node: roi188262
+Ref: #roi188362
+Node: Spaces and special characters in --inv and --pnl190087
+Ref: #spaces-and-special-characters-in---inv-and---pnl190327
+Node: Semantics of --inv and --pnl190815
+Ref: #semantics-of---inv-and---pnl191054
+Node: IRR and TWR explained192904
+Ref: #irr-and-twr-explained193064
+Node: stats196150
+Ref: #stats196251
+Node: tags197631
+Ref: #tags197731
+Node: test198745
+Ref: #test198855
+Node: Add-on commands199602
+Ref: #add-on-commands199721
+Node: JOURNAL FORMAT200852
+Ref: #journal-format200980
+Node: Transactions203207
+Ref: #transactions203322
+Node: Dates204336
+Ref: #dates204452
+Node: Simple dates204517
+Ref: #simple-dates204637
+Node: Secondary dates205146
+Ref: #secondary-dates205294
+Node: Posting dates206630
+Ref: #posting-dates206753
+Node: Status208125
+Ref: #status208235
+Node: Code209943
+Ref: #code210055
+Node: Description210287
+Ref: #description210415
+Node: Payee and note210735
+Ref: #payee-and-note210843
+Node: Comments211178
+Ref: #comments211300
+Node: Tags212494
+Ref: #tags-1212605
+Node: Postings214060
+Ref: #postings214184
+Node: Virtual postings215210
+Ref: #virtual-postings215321
+Node: Account names216626
+Ref: #account-names216763
+Node: Amounts217251
+Ref: #amounts217388
+Node: Decimal marks digit group marks218373
+Ref: #decimal-marks-digit-group-marks218550
+Node: Commodity219571
+Ref: #commodity219760
+Node: Directives influencing number parsing and display220712
+Ref: #directives-influencing-number-parsing-and-display220973
+Node: Commodity display style221466
+Ref: #commodity-display-style221674
+Node: Rounding223869
+Ref: #rounding223989
+Node: Transaction prices224401
+Ref: #transaction-prices224567
+Node: Lot prices lot dates226490
+Ref: #lot-prices-lot-dates226673
+Node: Balance assertions227161
+Ref: #balance-assertions227339
+Node: Assertions and ordering228412
+Ref: #assertions-and-ordering228603
+Node: Assertions and multiple included files229303
+Ref: #assertions-and-multiple-included-files229565
+Node: Assertions and multiple -f files230065
+Ref: #assertions-and-multiple--f-files230318
+Node: Assertions and commodities230715
+Ref: #assertions-and-commodities230939
+Node: Assertions and prices232119
+Ref: #assertions-and-prices232327
+Node: Assertions and subaccounts232767
+Ref: #assertions-and-subaccounts232990
+Node: Assertions and virtual postings233314
+Ref: #assertions-and-virtual-postings233554
+Node: Assertions and auto postings233686
+Ref: #assertions-and-auto-postings233918
+Node: Assertions and precision234563
+Ref: #assertions-and-precision234747
+Node: Balance assignments235014
+Ref: #balance-assignments235184
+Node: Balance assignments and prices236348
+Ref: #balance-assignments-and-prices236514
+Node: Directives236738
+Ref: #directives236901
+Node: Directives and multiple files241393
+Ref: #directives-and-multiple-files241589
+Node: Comment blocks242281
+Ref: #comment-blocks242458
+Node: Including other files242634
+Ref: #including-other-files242808
+Node: Default year243732
+Ref: #default-year243890
+Node: Declaring payees244297
+Ref: #declaring-payees244468
+Node: Declaring the decimal mark244714
+Ref: #declaring-the-decimal-mark244914
+Node: Declaring commodities245311
+Ref: #declaring-commodities245502
+Node: Commodity error checking248020
+Ref: #commodity-error-checking248170
+Node: Default commodity248685
+Ref: #default-commodity248865
+Node: Declaring market prices249981
+Ref: #declaring-market-prices250170
+Node: Declaring accounts250983
+Ref: #declaring-accounts251163
+Node: Account comments252327
+Ref: #account-comments252480
+Node: Account subdirectives252903
+Ref: #account-subdirectives253097
+Node: Account error checking253239
+Ref: #account-error-checking253440
+Node: Account display order254629
+Ref: #account-display-order254820
+Node: Account types255921
+Ref: #account-types256065
+Node: Rewriting accounts259739
+Ref: #rewriting-accounts259918
+Node: Basic aliases260958
+Ref: #basic-aliases261094
+Node: Regex aliases261838
+Ref: #regex-aliases262000
+Node: Combining aliases262890
+Ref: #combining-aliases263073
+Node: Aliases and multiple files264349
+Ref: #aliases-and-multiple-files264548
+Node: end aliases265127
+Ref: #end-aliases265321
+Node: Aliases can generate bad account names265470
+Ref: #aliases-can-generate-bad-account-names265713
+Node: Aliases and account types266298
+Ref: #aliases-and-account-types266495
+Node: Default parent account267191
+Ref: #default-parent-account267381
+Node: Periodic transactions268265
+Ref: #periodic-transactions268448
+Node: Periodic rule syntax270403
+Ref: #periodic-rule-syntax270583
+Node: Periodic rules and relative dates271042
+Ref: #periodic-rules-and-relative-dates271310
+Node: Two spaces between period expression and description!271821
+Ref: #two-spaces-between-period-expression-and-description272147
+Node: Forecasting with periodic transactions272831
+Ref: #forecasting-with-periodic-transactions273130
+Node: Budgeting with periodic transactions275901
+Ref: #budgeting-with-periodic-transactions276134
+Node: Auto postings276543
+Ref: #auto-postings276679
+Node: Auto postings and multiple files278858
+Ref: #auto-postings-and-multiple-files279056
+Node: Auto postings and dates279265
+Ref: #auto-postings-and-dates279533
+Node: Auto postings and transaction balancing / inferred amounts / balance assertions279708
+Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions280053
+Node: Auto posting tags280556
+Ref: #auto-posting-tags280765
+Node: CSV FORMAT281401
+Ref: #csv-format281529
+Node: Examples284355
+Ref: #examples284458
+Node: Basic284666
+Ref: #basic284768
+Node: Bank of Ireland285310
+Ref: #bank-of-ireland285447
+Node: Amazon286909
+Ref: #amazon287029
+Node: Paypal288748
+Ref: #paypal288844
+Node: CSV rules296488
+Ref: #csv-rules296606
+Node: skip296975
+Ref: #skip297075
+Node: fields list297450
+Ref: #fields-list297589
+Node: field assignment299155
+Ref: #field-assignment299307
+Node: Field names300342
+Ref: #field-names300482
+Node: date field300862
+Ref: #date-field300982
+Node: date2 field301030
+Ref: #date2-field301173
+Node: status field301229
+Ref: #status-field301374
+Node: code field301423
+Ref: #code-field301570
+Node: description field301615
+Ref: #description-field301777
+Node: comment field301836
+Ref: #comment-field301993
+Node: account field302304
+Ref: #account-field302456
+Node: amount field303031
+Ref: #amount-field303182
+Node: currency field304427
+Ref: #currency-field304582
+Node: balance field304839
+Ref: #balance-field304973
+Node: separator305345
+Ref: #separator305477
+Node: if block306017
+Ref: #if-block306144
+Node: Matching the whole record306545
+Ref: #matching-the-whole-record306722
+Node: Matching individual fields307525
+Ref: #matching-individual-fields307731
+Node: Combining matchers307955
+Ref: #combining-matchers308153
+Node: Rules applied on successful match308466
+Ref: #rules-applied-on-successful-match308659
+Node: if table309313
+Ref: #if-table309434
+Node: end311172
+Ref: #end311286
+Node: date-format311510
+Ref: #date-format311640
+Node: timezone312364
+Ref: #timezone312499
+Node: decimal-mark313504
+Ref: #decimal-mark313648
+Node: newest-first313987
+Ref: #newest-first314141
+Node: intra-day-reversed314719
+Ref: #intra-day-reversed314880
+Node: include315373
+Ref: #include315512
+Node: balance-type315956
+Ref: #balance-type316078
+Node: Tips316778
+Ref: #tips316869
+Node: Rapid feedback317168
+Ref: #rapid-feedback317287
+Node: Valid CSV317739
+Ref: #valid-csv317871
+Node: File Extension318063
+Ref: #file-extension318217
+Node: Reading multiple CSV files318646
+Ref: #reading-multiple-csv-files318833
+Node: Valid transactions319074
+Ref: #valid-transactions319254
+Node: Deduplicating importing319882
+Ref: #deduplicating-importing320063
+Node: Setting amounts321099
+Ref: #setting-amounts321256
+Node: Amount signs323700
+Ref: #amount-signs323854
+Node: Setting currency/commodity324541
+Ref: #setting-currencycommodity324729
+Node: Amount decimal places325903
+Ref: #amount-decimal-places326095
+Node: Referencing other fields326407
+Ref: #referencing-other-fields326606
+Node: How CSV rules are evaluated327503
+Ref: #how-csv-rules-are-evaluated327678
+Node: TIMECLOCK FORMAT329129
+Ref: #timeclock-format329269
+Node: TIMEDOT FORMAT331330
+Ref: #timedot-format331468
+Node: COMMON TASKS336030
+Ref: #common-tasks336159
+Node: Getting help336433
+Ref: #getting-help336567
+Node: Constructing command lines337319
+Ref: #constructing-command-lines337513
+Node: Starting a journal file338210
+Ref: #starting-a-journal-file338410
+Node: Setting opening balances339598
+Ref: #setting-opening-balances339796
+Node: Recording transactions342937
+Ref: #recording-transactions343119
+Node: Reconciling343675
+Ref: #reconciling343820
+Node: Reporting346077
+Ref: #reporting346219
+Node: Migrating to a new file350204
+Ref: #migrating-to-a-new-file350354
+Node: LIMITATIONS350653
+Ref: #limitations350781
+Node: TROUBLESHOOTING351550
+Ref: #troubleshooting351665
 
 End Tag Table
 

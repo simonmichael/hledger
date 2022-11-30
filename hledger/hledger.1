@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "November 2022" "hledger-1.27.99 " "hledger User Manuals"
+.TH "HLEDGER" "1" "November 2022" "hledger-1.28 " "hledger User Manuals"
 
 
 
@@ -9,7 +9,7 @@
 This is the command-line interface (CLI) for the hledger accounting
 tool.
 Here we also describe hledger\[aq]s concepts and file formats.
-This manual is for hledger 1.27.99.
+This manual is for hledger 1.28.
 .SH SYNOPSIS
 .PP
 \f[C]hledger\f[R]
@@ -1778,7 +1778,8 @@ A special query term used automatically in hledger-web only: tells
 hledger-web to show the transaction register for an account.)
 .SS Combining query terms
 .PP
-Most commands select things which match:
+When given multiple query terms, most commands select things which
+match:
 .IP \[bu] 2
 any of the description terms AND
 .IP \[bu] 2
@@ -1788,7 +1789,7 @@ any of the status terms AND
 .IP \[bu] 2
 all the other terms.
 .PP
-while the print command shows transactions which:
+The print command is a little different, showing transactions which:
 .IP \[bu] 2
 match any of the description terms AND
 .IP \[bu] 2
@@ -1798,18 +1799,33 @@ have no postings matching any of the negative account terms AND
 .IP \[bu] 2
 match all the other terms.
 .PP
-You can do more powerful queries (such as AND-ing two like terms) by
-running a first query with \f[C]print\f[R], and piping the result into a
-second hledger command.
-Eg: how much of food expenses was paid with cash ?
+Although these fixed rules are enough for many needs, we do not support
+full boolean expressions (#203), (and you should not write AND or OR in
+your queries).
+This makes certain queries hard to express, but here are some tricks
+that can help:
+.IP "1." 3
+Use a doubled \f[C]not:\f[R] prefix.
+Eg, to print only the food expenses paid with cash:
+.RS 4
 .IP
 .nf
 \f[C]
-$ hledger print assets:cash | hledger -f- -I balance expenses:food
+$ hledger print food not:not:cash
 \f[R]
 .fi
-.PP
-If you are interested in full boolean expressions for queries, see #203.
+.RE
+.IP "2." 3
+Or pre-filter the transactions with \f[C]print\f[R], piping the result
+into a second hledger command (with balance assertions disabled):
+.RS 4
+.IP
+.nf
+\f[C]
+$ hledger print cash | hledger -f- -I balance food
+\f[R]
+.fi
+.RE
 .SS Queries and command options
 .PP
 Some queries can also be expressed as command-line options:
@@ -5746,11 +5762,12 @@ With \f[C]-B\f[R]/\f[C]--cost\f[R], amounts with transaction prices are
 converted to cost using that price.
 This can be used for troubleshooting.
 .PP
-With \f[C]-m\f[R]/\f[C]--match\f[R] and a STR argument, print will show
-at most one transaction: the one one whose description is most similar
-to STR, and is most recent.
-STR should contain at least two characters.
-If there is no similar-enough match, no transaction will be shown.
+With \f[C]-m DESC\f[R]/\f[C]--match=DESC\f[R], print does a fuzzy search
+for the one transaction whose description is most similar to DESC, also
+preferring recent tranactions.
+DESC should contain at least two characters.
+If there is no similar-enough match, no transaction will be shown and
+the program exit code will be non-zero.
 .PP
 With \f[C]--new\f[R], hledger prints only transactions it has not seen
 on a previous run.
