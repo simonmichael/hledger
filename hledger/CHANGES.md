@@ -9,7 +9,7 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 603fae70c
+# 66b51472f
 
 Features
 
@@ -30,8 +30,16 @@ Features
   
 Improvements
 
+- print --match now respects -o and -O.
+
+- print --match now returns a non-zero exit code when there is no acceptable match.
+
 - Developer builds made in a dirty working directory (uncommitted changes)
   now show a plus sign (+) in --version output.
+
+- Support megaparsec 9.3. (Felix Yan)
+
+- Support GHC 9.4.
 
 Fixes
 
@@ -39,7 +47,11 @@ Fixes
 
 Scripts/addons
 
-- bin/hledger-move helps record transfers involving subaccounts and costs, eg when withdrawing some or all of an investment balance containing many lots and costs.
+- bin/hledger-move helps record transfers involving subaccounts and costs,
+  eg when withdrawing some or all of an investment balance containing many lots and costs.
+
+- bin/hledger-git no longer uses the non-existent git record command.
+  (#1942) (Patrick Fiaux)
 
 - bin/watchaccounts is a small shell script for watching the account tree as you make changes.
 

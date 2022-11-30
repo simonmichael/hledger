@@ -9,9 +9,15 @@ __      _____| |__
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 928cc6d61
+# 66b51472f
 
-- add some manual tests to the test suite (#1932)
+Improvements
+
+- --debug with no argument is now equivalent to --debug=1.
+
+- Allow megaparsec 9.3 (Felix Yan)
+
+- Support GHC 9.4
 
 # 1.27.1 2022-09-18
 

@@ -9,19 +9,46 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 9a9ebfc0e
+# 66b51472f
 
 Features
 
-- A new balance sheet accounts screen, and income statement
-  accounts screen, and top-level menu screen have been added.
+- New "Balance sheet accounts" and "Income statement accounts" screens have been added,
+  along with a new top-level "Menu" screen for navigating between these and the
+  "All accounts" screen.
+
+- hledger-ui now starts in the "Balance sheet accounts" screen by default
+  (unless no asset/liability/equity accounts can be detected,
+  or command line account query arguments are provided).
+  This provides a more useful default view than the giant "All accounts" list.
+  Or, you can force a particular starting screen with the new --menu/--all/--bs/--is flags
+  (eg, `hledger-ui --all` to replicate the old behaviour).
 
 Improvements
 
+- The ENTER key is equivalent to RIGHT for navigation.
+
+- hledger-ui debug output is now always logged to ./hledger-ui.log rather than the console,
+  --debug with no argument is equivalent to --debug=1,
+  and debug output is much more informative.
+
+- Support GHC 9.4.
+
+- Support megaparsec 9.3 (Felix Yan)
+
+- Support (and require) brick 1.5, fsnotify 0.4.x.
+
+Fixes
+
+- Mouse-clicking in empty space below the last list item no longer navigates
+  back. It was too obtrusive, eg when you just want to focus the window. You can still navigate back with the mouse by clicking the left edge of the window.
+
+- A possible bug with detecting change of date while in --watch mode has been fixed.
+
+API
+
 - hledger-ui's internal types have been changed to allow fewer invalid states and make it easier  to develop and debug.
   (#1889, #1919).
-
-- Debug logging has been improved, with much more informative output to debug.log (and is now enabled at debug level 1+, not 2+).
 
 - Debug logging helpers have been added and cleaned up in Hledger.Ui.UIUtils:
   dbgui
@@ -31,15 +58,6 @@ Improvements
   mapScreens
   screenId
   screenRegisterDescriptions
-
-- Support (and require) fsnotify 0.4.x
-
-Fixes
-
-- Mouse-clicking in empty space below the last list item no longer navigates
-  back. It was too obtrusive, eg when you just want to focus the window. You can still navigate back with the mouse by clicking the left edge of the window.
-
-- A possible bug with detecting change of date while in --watch mode has been fixed.
 
 # 1.27.1 2022-09-18
 

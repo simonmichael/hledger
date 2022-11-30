@@ -9,7 +9,23 @@
 General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
-# a6cc98521
+# f4831533b
+
+Docs
+
+- Miscellaneous improvements.
+
+Examples
+
+- Indian National Pension Service CSV rules (Pranesh Prakash)
+
+Infrastructure
+
+- make site-watch: switch from entr to watchexec.
+
+- make hoogle-setup, hoogle-serve: run a local hoogle on hledger code.
+
+- make man-watch-PROG: watch a hledger program's man page as source files change.
 
 # 1.27 2022-09-01
 

@@ -9,9 +9,12 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 603fae70c
+# 66b51472f
 
-- Hledger.Utils.Debug: clean up/simplify debug helpers.
+- Hledger.Utils.Debug's debug logging helpers have been unified.
+  The "trace or log" functions log to stderr by default, or to a file
+  if ",logging" is appended to the program name (using withProgName). 
+  The debug log file is PROGNAME.log (changed from debug.log).
 
 - Moved from Hledger.Utils.Debug to Hledger.Utils.Parse:
   traceParse
@@ -29,9 +32,12 @@ For user-visible changes, see the hledger package changelog.
   outputFileOption
   hasOutputFile
 
-- note changed cost handling in amount arithmetic
+- Rename Hledger.Utils.Print -> Hledger.Utils.IO, consolidate utils there.
 
-- Hledger.Data.Amount: showMixedAmountOneLine now shows costs
+- Hledger.Utils cleaned up.
+
+- Hledger.Data.Amount: showMixedAmountOneLine now also shows costs.
+  Note that different costs are kept separate in amount arithmetic.
 
 - Hledger.Read.Common: rename/add amount parsing helpers.
 
@@ -48,6 +54,10 @@ For user-visible changes, see the hledger package changelog.
 - Hledger.Utils.Parse:
   export customErrorBundlePretty, 
   for pretty-printing hledger parse errors.
+
+- Support megaparsec 9.3. (Felix Yan)
+
+- Support GHC 9.4.
 
 - Update cabal files to match hpack 0.35/stack 2.9
 
