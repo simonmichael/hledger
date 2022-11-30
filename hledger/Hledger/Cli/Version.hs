@@ -13,7 +13,7 @@ module Hledger.Cli.Version (
 )
 where
 
-import GitHash (GitInfo, giHash, giCommitDate, giDirty)
+import GitHash (GitInfo, giHash, giCommitDate)  -- giDirty
 import System.Info (os, arch)
 import Data.List (intercalate)
 import Data.Maybe (fromMaybe)
@@ -43,7 +43,8 @@ progname = "hledger"
 -- * Program name, OS and architecture are always shown.
 -- * The package version is always shown.
 -- * If there is git info at build time, the latest commit hash and commit date are shown,
---   and if the working copy has uncommitted changes a + sign is appended.
+--   and (TODO, requires githash to use -uno for giDirty):
+--   if the working copy has uncommitted changes a + sign is appended.
 -- * (TODO, requires adding --match support to githash:
 --   If there are tags matching THISPKG-[0-9]*, the latest one is used to calculate patch level
 --   (number of commits since tag), and if non-zero, it and the branch name are shown.)
@@ -70,7 +71,9 @@ versionStringWith egitinfo prognam packagever =
         case words $ giCommitDate gitinfo of
           -- git log's date format is normally --date=default ("similar to --date=rfc2822")
           _weekday:mon:day:_localtime:year:_offset:_ ->
-            intercalate "-" $ [packagever, hash, date] ++ ["+" | giDirty gitinfo]
+            intercalate "-" $ [packagever, hash, date]
+              -- ++ ["+" | giDirty gitinfo]
+              --   XXX giDirty is wrong when repo shows untracked files by default, skip it for now
               where
                 hash = 'g' : take 9 (giHash gitinfo)  -- like git describe
                 date = concat [year,mm,dd]
