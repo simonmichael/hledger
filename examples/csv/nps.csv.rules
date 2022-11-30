@@ -1,0 +1,104 @@
+# Rules for Indian National Pension Scheme CSV. See also nps.csv.sh.
+
+# skip the headings line:
+skip 1
+
+# use the following CSV fields:
+fields date, desc, intermediary_charge, e_value, e_nav, e_units, c_value, c_nav, c_units, g_value, g_nav, g_units
+
+# use the first date format if you have older CSV files
+#date-format %d-%h-%y
+date-format %d-%h-%Y
+
+# since the CSV amounts have no currency symbol, add one:
+currency ₹
+
+description NPS | %desc
+
+# set the base account that this CSV file corresponds to
+if %desc (Opening|Closing)
+ account1 Retirement:Investment:NPS:SM001003:E
+ currency1 "SM001003"
+ balance1 %e_units
+ account2 Retirement:Investment:NPS:SM001004:C
+ currency2 "SM001004"
+ balance2 %c_units
+ account3 Retirement:Investment:NPS:SM001005:G
+ currency3 "SM001005"
+ balance3 %g_units
+ skip 1
+
+if %desc Billing
+ account1 Expenses:Financial:NPS
+
+if %desc Persistency
+ account1 Expenses:Financial:NPS:POP:Indirect
+
+if %intermediary_charge [1-9]
+ amount1 -%intermediary_charge
+
+if %e_value [1-9]
+ account2 Equity:Trading:NPS:Equity:INR-SM001003:INR
+ amount2 %e_value
+ account3 Equity:Trading:NPS:Equity:INR-SM001003:SM001003
+ amount3 -%e_units
+ currency3 "SM001003"
+ account4 Retirement:Investment:NPS:SM001003:E
+ amount4 %e_units
+ currency4 "SM001003"
+
+if %e_value [1-9]
+& %desc (Billing|Persistency)
+ account2 Equity:Trading:NPS:Billing:INR-SM001003:INR
+ amount2 %e_value
+ account3 Equity:Trading:NPS:Equity:INR-SM001003:SM001003
+ amount3 -%e_units
+ currency3 "SM001003"
+ account4 Retirement:Investment:NPS:SM001003:E
+ amount4 %e_units
+ currency4 "SM001003"
+
+if %c_value [1-9]
+ account5 Equity:Trading:NPS:Corp:INR-SM001004:INR
+ amount5 %c_value
+account6 Equity:Trading:NPS:Corp:INR-SM001004:SM001004
+amount6 -%c_units
+currency6 "SM001004"
+account7 Retirement:Investment:NPS:SM001004:C
+amount7 %c_units
+currency7 "SM001004"
+
+if %c_value [1-9]
+& %desc (Billing|Persistency)
+ account5 Equity:Trading:NPS:Billing:INR-SM001004:INR
+ amount5 %c_value
+account6 Equity:Trading:NPS:Corp:INR-SM001004:SM001004
+amount6 -%c_units
+currency6 "SM001004"
+account7 Retirement:Investment:NPS:SM001004:C
+amount7 %c_units
+currency7 "SM001004"
+
+if %g_value [1-9]
+ account8 Equity:Trading:NPS:Govt:INR-SM001005:INR
+ amount8 %g_value
+account9 Equity:Trading:NPS:Govt:INR-SM001005:SM001005
+amount9 -%g_units
+currency9 "SM001005"
+account10 Retirement:Investment:NPS:SM001005:G
+amount10 %g_units
+currency10 "SM001005"
+
+if %g_value [1-9]
+& %desc (Billing|Persistency)
+ account8 Equity:Trading:NPS:Billing:INR-SM001005:INR
+ amount8 %g_value
+account9 Equity:Trading:NPS:Govt:INR-SM001005:SM001005
+amount9 -%g_units
+currency9 "SM001005"
+account10 Retirement:Investment:NPS:SM001005:G
+amount10 %g_units
+currency10 "SM001005"
+
+if %desc Contribution
+ account11 Retirement:Investment:NPS
