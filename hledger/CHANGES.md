@@ -9,7 +9,7 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 66b51472f
+# 1.28 2022-12-01
 
 Features
 
@@ -26,16 +26,13 @@ Features
   2. CSV date-times with a known timezone (either declared by `timezone` or parsed with `%Z`) will be localised to the system timezone
      (or to the timezone set with the `TZ` environment variable).
 
-(#1936)
+  (#1936)
   
 Improvements
 
 - print --match now respects -o and -O.
 
 - print --match now returns a non-zero exit code when there is no acceptable match.
-
-- Developer builds made in a dirty working directory (uncommitted changes)
-  now show a plus sign (+) in --version output.
 
 - Support megaparsec 9.3. (Felix Yan)
 

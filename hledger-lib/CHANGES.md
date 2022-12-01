@@ -9,7 +9,7 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 66b51472f
+# 1.28 2022-12-01
 
 - Hledger.Utils.Debug's debug logging helpers have been unified.
   The "trace or log" functions log to stderr by default, or to a file
