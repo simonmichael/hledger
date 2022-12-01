@@ -4,6 +4,8 @@ https://github.com/simonmichael/hledger/releases/1.28
 https://hledger.org/install
 https://hledger.org/release-notes.html#hledger-1-28
 
+Nothing earth-shaking for users in this release, but internal changes
+and the usual incremental improvements.
 Highlights:
 new hledger-ui screens and default screen;
 new hledger-move, watchaccounts scripts.
