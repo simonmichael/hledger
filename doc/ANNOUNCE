@@ -1,20 +1,16 @@
-I'm pleased to announce hledger 1.27 !
+I'm pleased to announce hledger 1.28 !
 
-https://github.com/simonmichael/hledger/releases/1.27
+https://github.com/simonmichael/hledger/releases/1.28
 https://hledger.org/install
-https://hledger.org/release-notes.html#hledger-1-27
+https://hledger.org/release-notes.html#hledger-1-28
 
-Highlights include inferring costs from equity postings,
-new error checks, and improved error messages.
+Highlights:
+new hledger-ui screens and default screen;
+new hledger-move, watchaccounts scripts.
 
 Thank you to release contributors
-Stephen Morgan,
-Alex Hirzel,
-Pranesh Prakash,
-David D Lowe,
-Charlotte Van Petegem,
-Max Thomas,
-Andrew Lelechenko.
+Felix Yan,
+Patrick Fiaux.
 
 What is hledger ?
 
