@@ -1,0 +1,15 @@
+I'm pleased to announce hledger 1.28!
+
+#hledger is fast, reliable, free, multicurrency, double-entry, #plaintextaccounting software for unix, mac, windows, and the web.
+
+Nothing earth-shaking for users in this release, but internal changes
+and the usual incremental improvements. Highlights:
+new hledger-ui screens and default screen;
+new hledger-move, watchaccounts scripts.
+
+https://github.com/simonmichael/hledger/releases/1.28
+https://hledger.org/install
+
+For help, join our chat: https://hledger.org/discuss
+
+Peace and prosperity.
