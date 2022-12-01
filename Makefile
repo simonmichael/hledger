@@ -830,28 +830,30 @@ shakehelp-watch: \
 		$(call def-help,shakehelp-watch, rerender Shake.hs's help when it changes)
 	ls Shake.hs | entr -c ./Shake.hs
 
-# This rule, for updating the website, gets called on hledger.org by:
+# The following rule, for updating the website, gets called on hledger.org by:
 # 1. github-post-receive (github webhook handler), when something is pushed
 #    to the main or wiki repos on Github. Config:
 #     /etc/supervisord.conf -> [program:github-post-receive]
 #     /etc/github-post-receive.conf
 # 2. cron, nightly. Config: /etc/crontab
 # 3. manually: "make site" on hledger.org, or "make hledgerorg" elsewhere (cf Makefile.local).
-# This uses the existing Shake executable without rebuilding it, 
-# as we don't want to immediately execute new code from any collaborator.
-# make site - rebuilds current release and dev manuals
-# make siteall - rebuilds all manual versions
+
+
 .PHONY: site
-site%: $(call def-help,site, update the hledger.org website (run on hledger.org, or run "make hledgerorg" elsewhere) )
-	@[ ! -x Shake ] \
-		&& echo 'Please run "make Shake" first (manual compilation of Shake.hs is required)' \
-		|| ( \
-			echo; \
-			./Shake -V webmanuals; \
-			make -C site build$*; \
-		) 2>&1 | tee -a site.log
-# once VPS can build Shake again, replace the Shake/make lines with 
-#			./Shake -V site; \
+
+# Use the existing Shake executable without recompiling it, so as not to automatially run unreviewed code by hook ? I think this no longer applies.
+# site: $(call def-help,site-build, update the hledger.org website (run this on hledger.org, or run "make hledgerorg" elsewhere) )
+# 	@[ ! -x Shake ] \
+# 		&& echo 'Please run "make Shake" first (manual compilation required for safety)' \
+# 		|| ( \
+# 			echo; \
+# 			./Shake -V site; \
+# 		) 2>&1 | tee -a site.log
+
+site: Shake \
+	$(call def-help,site, update the hledger.org website (run on hledger.org, or run "make hledgerorg" elsewhere) )
+	./Shake -V site 2>&1 | tee -a site.log
+
 
 BROWSE=open
 BROWSEDELAY=5
