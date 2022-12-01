@@ -10,8 +10,6 @@ Here are fancier versions of Debug.Trace, with these features:
 - sending debug output to stderr or to a log file
 - enabling logging based on program name
 
-This module also exports Debug.Trace and the breakpoint package's Debug.Breakpoint.
-
 The basic "trace" functions print to stderr.
 This debug output will be interleaved with the program's normal output, which can be
 useful for understanding when code executes.
@@ -67,6 +65,9 @@ Debug level:  What to show:
 @
 
 -}
+
+-- Disabled until 0.1.2.0 is released with windows support
+-- This module also exports Debug.Trace and the breakpoint package's Debug.Breakpoint.
 
 -- more:
 -- http://hackage.haskell.org/packages/archive/TraceUtils/0.1.0.2/doc/html/Debug-TraceUtils.html
@@ -142,7 +143,7 @@ module Hledger.Utils.Debug (
   ,dbg9With
 
   -- * Re-exports
-  ,module Debug.Breakpoint
+  -- ,module Debug.Breakpoint
   ,module Debug.Trace
 
   )
@@ -152,7 +153,7 @@ import Control.DeepSeq (force)
 import Control.Exception (evaluate)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.List hiding (uncons)
-import Debug.Breakpoint
+-- import Debug.Breakpoint
 import Debug.Trace (trace, traceIO, traceShowId)
 import Safe (readDef)
 import System.Environment (getProgName)

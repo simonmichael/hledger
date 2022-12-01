@@ -38,7 +38,7 @@ dependencies:
 - ansi-terminal >=0.9
 - array
 - blaze-markup >=0.5.1
-- breakpoint
+# - breakpoint >=0.1.2.0
 - bytestring
 - call-stack
 - cmdargs >=0.10

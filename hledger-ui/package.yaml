@@ -54,7 +54,7 @@ dependencies:
 - hledger >=1.27.99 && <1.28
 - ansi-terminal >=0.9
 - async
-- breakpoint
+# - breakpoint >=0.1.2.0
 - cmdargs >=0.8
 - containers >=0.5.9
 - data-default
