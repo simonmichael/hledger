@@ -100,7 +100,7 @@ dependencies:
 - hledger-lib >=1.28 && <1.29
 - aeson >=1
 - ansi-terminal >=0.9
-- breakpoint
+# - breakpoint >=0.1.2.0
 - bytestring
 - cmdargs >=0.10
 - containers >=0.5.9
