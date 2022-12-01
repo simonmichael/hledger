@@ -159,7 +159,6 @@ library
     , base64
     , blaze-html
     , blaze-markup
-    , breakpoint
     , bytestring
     , case-insensitive
     , clientsession
@@ -216,7 +215,6 @@ executable hledger-web
   cpp-options: -DVERSION="1.28"
   build-depends:
       base >=4.14 && <4.18
-    , breakpoint
     , hledger-web
   default-language: Haskell2010
   if (flag(dev)) || (flag(library-only))
@@ -237,7 +235,6 @@ test-suite test
   cpp-options: -DVERSION="1.28"
   build-depends:
       base >=4.14 && <4.18
-    , breakpoint
     , hledger
     , hledger-lib
     , hledger-web
