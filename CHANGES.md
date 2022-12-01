@@ -9,7 +9,7 @@
 General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
-# 1.28 2022-11-30
+# 1.28 2022-12-01
 
 Docs
 
