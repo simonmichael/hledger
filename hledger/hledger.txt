@@ -8228,4 +8228,4 @@ SEE ALSO
 
 
 
-hledger-1.28                     November 2022                      HLEDGER(1)
+hledger-1.28                     December 2022                      HLEDGER(1)

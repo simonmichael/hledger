@@ -602,4 +602,4 @@ SEE ALSO
 
 
 
-hledger-web-1.28                 November 2022                  HLEDGER-WEB(1)
+hledger-web-1.28                 December 2022                  HLEDGER-WEB(1)
