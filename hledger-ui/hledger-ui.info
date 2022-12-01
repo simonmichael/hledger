@@ -12,7 +12,7 @@ hledger-ui(1)
 *************
 
 hledger-ui is a terminal interface (TUI) for the hledger accounting
-tool.  This manual is for hledger-ui 1.27.99.
+tool.  This manual is for hledger-ui 1.28.99.
 
    'hledger-ui [OPTIONS] [QUERYARGS]'
 'hledger ui -- [OPTIONS] [QUERYARGS]'
@@ -262,8 +262,7 @@ mouse or touchpad:
 
    * Use mouse wheel or trackpad to scroll up and down
    * Click on list items to go deeper
-   * Click on the left margin (column 0), or the blank area at bottom of
-     screen, to go back.
+   * Click on the left margin (column 0) to go back.
 
 
 File: hledger-ui.info,  Node: KEYS,  Next: SCREENS,  Prev: MOUSE,  Up: Top
@@ -364,44 +363,44 @@ File: hledger-ui.info,  Node: SCREENS,  Next: TIPS,  Prev: KEYS,  Up: Top
 4 SCREENS
 *********
 
-hledger-ui can show a number of different screens, described below.  It
-shows the Balance sheet accounts screen to start with, except in the
+hledger-ui shows several different screens, described below.  It shows
+the "Balance sheet accounts" screen to start with, except in the
 following situations:
 
    * If no asset/liability/equity accounts can be detected, or if an
      account query has been given on the command line, it starts in the
-     All accounts screen.
+     "All accounts" screen.
 
    * If a starting screen is specified with -menu/-all/-bs/-is/-register
-     on the command line, it starts there.
+     on the command line, it starts in that screen.
 
-   From the starting screen you can press 'LEFT' or 'ESC' to navigate
-back to the menu screen.
+   From any screen you can press 'LEFT' or 'ESC' to navigate back to the
+top level "Menu" screen.
 
 * Menu:
 
-* Menu screen::
-* All accounts screen::
-* Balance sheet accounts screen::
-* Income statement accounts screen::
-* Register screen::
-* Transaction screen::
-* Error screen::
+* Menu::
+* All accounts::
+* Balance sheet accounts::
+* Income statement accounts::
+* Register::
+* Transaction::
+* Error::
 
 
-File: hledger-ui.info,  Node: Menu screen,  Next: All accounts screen,  Up: SCREENS
+File: hledger-ui.info,  Node: Menu,  Next: All accounts,  Up: SCREENS
 
-4.1 Menu screen
-===============
+4.1 Menu
+========
 
 The top-most screen.  From here you can navigate to three accounts
 screens:
 
 
-File: hledger-ui.info,  Node: All accounts screen,  Next: Balance sheet accounts screen,  Prev: Menu screen,  Up: SCREENS
+File: hledger-ui.info,  Node: All accounts,  Next: Balance sheet accounts,  Prev: Menu,  Up: SCREENS
 
-4.2 All accounts screen
-=======================
+4.2 All accounts
+================
 
 This screen shows all accounts (possibly filtered by a query), and their
 end balances on the date shown in the title bar (or their balance
@@ -409,20 +408,20 @@ changes in the period shown in the title bar, toggleable with 'H').  It
 is like the 'hledger balance' command.
 
 
-File: hledger-ui.info,  Node: Balance sheet accounts screen,  Next: Income statement accounts screen,  Prev: All accounts screen,  Up: SCREENS
+File: hledger-ui.info,  Node: Balance sheet accounts,  Next: Income statement accounts,  Prev: All accounts,  Up: SCREENS
 
-4.3 Balance sheet accounts screen
-=================================
+4.3 Balance sheet accounts
+==========================
 
 This screen shows asset, liability and equity accounts, if these can be
 detected (see account types).  It always shows end balances.  It is like
 the 'hledger balancesheetequity' command.
 
 
-File: hledger-ui.info,  Node: Income statement accounts screen,  Next: Register screen,  Prev: Balance sheet accounts screen,  Up: SCREENS
+File: hledger-ui.info,  Node: Income statement accounts,  Next: Register,  Prev: Balance sheet accounts,  Up: SCREENS
 
-4.4 Income statement accounts screen
-====================================
+4.4 Income statement accounts
+=============================
 
 This screen shows revenue and expense accounts.  It always shows balance
 changes.  It is like the 'hledger incomestatement' command.
@@ -433,8 +432,12 @@ changes.  It is like the 'hledger incomestatement' command.
 as accounts which have been declared with an account directive (except
 for empty parent accounts).
 
-   If you specify a query on the command line, it shows just the matched
-accounts, and the balances from matched transactions.
+   If you specify a query on the command line or with '/' in the app,
+they show just the matched accounts, and the balances from matched
+transactions.
+
+   hledger-ui shows accounts with zero balances by default (unlike
+command-line hledger).  To hide these, press 'z' to toggle nonzero mode.
 
    Account names are shown as a flat list by default; press 't' to
 toggle tree mode.  In list mode, account balances are exclusive of
@@ -468,18 +471,14 @@ is removed.)
 
    'R' toggles real mode, in which virtual postings are ignored.
 
-   'z' toggles nonzero mode, in which only accounts with nonzero
-balances are shown (hledger-ui shows zero items by default, unlike
-command-line hledger).
-
    Press 'RIGHT' to view an account's register screen, Or, 'LEFT' to see
 the menu screen.
 
 
-File: hledger-ui.info,  Node: Register screen,  Next: Transaction screen,  Prev: Income statement accounts screen,  Up: SCREENS
+File: hledger-ui.info,  Node: Register,  Next: Transaction,  Prev: Income statement accounts,  Up: SCREENS
 
-4.5 Register screen
-===================
+4.5 Register
+============
 
 This screen shows the transactions affecting a particular account, like
 a check register.  Each line represents one transaction and shows:
@@ -522,10 +521,10 @@ command-line hledger).
    Press 'RIGHT' to view the selected transaction in detail.
 
 
-File: hledger-ui.info,  Node: Transaction screen,  Next: Error screen,  Prev: Register screen,  Up: SCREENS
+File: hledger-ui.info,  Node: Transaction,  Next: Error,  Prev: Register,  Up: SCREENS
 
-4.6 Transaction screen
-======================
+4.6 Transaction
+===============
 
 This screen shows a single transaction, as a general journal entry,
 similar to hledger's print command and journal format
@@ -546,10 +545,10 @@ unfiltered journal, which is a more stable id (at least until the next
 reload).
 
 
-File: hledger-ui.info,  Node: Error screen,  Prev: Transaction screen,  Up: SCREENS
+File: hledger-ui.info,  Node: Error,  Prev: Transaction,  Up: SCREENS
 
-4.7 Error screen
-================
+4.7 Error
+=========
 
 This screen will appear if there is a problem, such as a parse error,
 when you press g to reload.  Once you have fixed the problem, press g
@@ -703,36 +702,36 @@ Node: OPTIONS1657
 Ref: #options1755
 Node: MOUSE6839
 Ref: #mouse6934
-Node: KEYS7216
-Ref: #keys7309
-Node: SCREENS11384
-Ref: #screens11482
-Node: Menu screen12208
-Ref: #menu-screen12328
-Node: All accounts screen12405
-Ref: #all-accounts-screen12579
-Node: Balance sheet accounts screen12830
-Ref: #balance-sheet-accounts-screen13045
-Node: Income statement accounts screen13233
-Ref: #income-statement-accounts-screen13450
-Node: Register screen15861
-Ref: #register-screen16033
-Node: Transaction screen18017
-Ref: #transaction-screen18175
-Node: Error screen19045
-Ref: #error-screen19167
-Node: TIPS19411
-Ref: #tips19510
-Node: Watch mode19552
-Ref: #watch-mode19659
-Node: Debug output21115
-Ref: #debug-output21226
-Node: ENVIRONMENT21438
-Ref: #environment21549
-Node: FILES22934
-Ref: #files23033
-Node: BUGS23246
-Ref: #bugs23323
+Node: KEYS7171
+Ref: #keys7264
+Node: SCREENS11339
+Ref: #screens11437
+Node: Menu12123
+Ref: #menu12215
+Node: All accounts12292
+Ref: #all-accounts12431
+Node: Balance sheet accounts12682
+Ref: #balance-sheet-accounts12862
+Node: Income statement accounts13050
+Ref: #income-statement-accounts13232
+Node: Register15652
+Ref: #register15789
+Node: Transaction17773
+Ref: #transaction17896
+Node: Error18766
+Ref: #error18860
+Node: TIPS19104
+Ref: #tips19203
+Node: Watch mode19245
+Ref: #watch-mode19352
+Node: Debug output20808
+Ref: #debug-output20919
+Node: ENVIRONMENT21131
+Ref: #environment21242
+Node: FILES22627
+Ref: #files22726
+Node: BUGS22939
+Ref: #bugs23016
 
 End Tag Table
 

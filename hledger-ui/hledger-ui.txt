@@ -5,7 +5,7 @@ HLEDGER-UI(1)                hledger User Manuals                HLEDGER-UI(1)
 
 NAME
        hledger-ui  is  a  terminal  interface (TUI) for the hledger accounting
-       tool.  This manual is for hledger-ui 1.27.99.
+       tool.  This manual is for hledger-ui 1.28.99.
 
 SYNOPSIS
        hledger-ui [OPTIONS] [QUERYARGS]
@@ -227,15 +227,15 @@ MOUSE
 
        o Click on list items to go deeper
 
-       o Click  on  the left margin (column 0), or the blank area at bottom of
-         screen, to go back.
+       o Click on the left margin (column 0) to go back.
 
 KEYS
        Keyboard gives more control.
 
-       ? shows a help dialog listing all keys.  (Some of these also appear  in
-       the quick help at the bottom of each screen.) Press ? again (or ESCAPE,
-       or LEFT, or q) to close it.  The following keys work on most screens:
+       ?  shows a help dialog listing all keys.  (Some of these also appear in
+       the quick help at the bottom  of  each  screen.)   Press  ?  again  (or
+       ESCAPE,  or  LEFT,  or q) to close it.  The following keys work on most
+       screens:
 
        The cursor keys navigate: RIGHT or ENTER goes deeper, LEFT  returns  to
        the  previous  screen,  UP/DOWN/PGUP/PGDN/HOME/END  move  up  and  down
@@ -316,36 +316,36 @@ KEYS
        Additional screen-specific keys are described below.
 
 SCREENS
-       hledger-ui can show a number of different screens, described below.  It
-       shows  the  Balance  sheet accounts screen to start with, except in the
-       following situations:
+       hledger-ui shows several different screens, described below.  It  shows
+       the  "Balance  sheet accounts" screen to start with, except in the fol-
+       lowing situations:
 
        o If no asset/liability/equity accounts  can  be  detected,  or  if  an
          account  query  has  been given on the command line, it starts in the
-         All accounts screen.
+         "All accounts" screen.
 
        o If a starting screen is specified with  --menu/--all/--bs/--is/--reg-
-         ister on the command line, it starts there.
+         ister on the command line, it starts in that screen.
 
-       From  the starting screen you can press LEFT or ESC to navigate back to
-       the menu screen.
+       From  any  screen you can press LEFT or ESC to navigate back to the top
+       level "Menu" screen.
 
-   Menu screen
+   Menu
        The top-most screen.  From here you  can  navigate  to  three  accounts
        screens:
 
-   All accounts screen
+   All accounts
        This  screen  shows  all  accounts  (possibly filtered by a query), and
        their end balances on the date shown in the title bar (or their balance
        changes  in  the period shown in the title bar, toggleable with H).  It
        is like the hledger balance command.
 
-   Balance sheet accounts screen
+   Balance sheet accounts
        This screen shows asset, liability and equity accounts, if these can be
        detected  (see  account  types).   It always shows end balances.  It is
        like the hledger balancesheetequity command.
 
-   Income statement accounts screen
+   Income statement accounts
        This screen shows revenue and expense accounts.  It always  shows  bal-
        ance changes.  It is like the hledger incomestatement command.
 
@@ -355,8 +355,12 @@ SCREENS
        as accounts which have been declared with an account directive  (except
        for empty parent accounts).
 
-       If  you  specify a query on the command line, it shows just the matched
-       accounts, and the balances from matched transactions.
+       If  you  specify a query on the command line or with / in the app, they
+       show just the matched accounts, and the balances from matched  transac-
+       tions.
+
+       hledger-ui  shows  accounts  with zero balances by default (unlike com-
+       mand-line hledger).  To hide these, press z to toggle nonzero mode.
 
        Account names are shown as a flat list by default; press  t  to  toggle
        tree  mode.   In  list  mode,  account balances are exclusive of subac-
@@ -389,14 +393,10 @@ SCREENS
 
        R toggles real mode, in which virtual postings are ignored.
 
-       z  toggles  nonzero  mode, in which only accounts with nonzero balances
-       are shown (hledger-ui shows zero items by default, unlike  command-line
-       hledger).
-
        Press  RIGHT  to view an account's register screen, Or, LEFT to see the
        menu screen.
 
-   Register screen
+   Register
        This screen shows the transactions affecting a particular account, like
        a check register.  Each line represents one transaction and shows:
 
@@ -436,7 +436,7 @@ SCREENS
 
        Press RIGHT to view the selected transaction in detail.
 
-   Transaction screen
+   Transaction
        This screen shows a single transaction, as  a  general  journal  entry,
        similar  to  hledger's  print command and journal format (hledger_jour-
        nal(5)).
@@ -454,7 +454,7 @@ SCREENS
        them is the transaction's position within the complete unfiltered jour-
        nal, which is a more stable id (at least until the next reload).
 
-   Error screen
+   Error
        This  screen  will appear if there is a problem, such as a parse error,
        when you press g to reload.  Once you have fixed the problem,  press  g
        again to reload and resume normal operation.  (Or, you can press escape
@@ -586,4 +586,4 @@ SEE ALSO
 
 
 
-hledger-ui-1.27.99               November 2022                   HLEDGER-UI(1)
+hledger-ui-1.28.99               December 2022                   HLEDGER-UI(1)

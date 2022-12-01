@@ -12,7 +12,7 @@ hledger-web(1)
 **************
 
 hledger-web is a web interface (WUI) for the hledger accounting tool.
-This manual is for hledger-web 1.27.99.
+This manual is for hledger-web 1.28.99.
 
    'hledger-web [OPTIONS] # run temporarily & browse'
 'hledger-web --serve [OPTIONS] # run without stopping'

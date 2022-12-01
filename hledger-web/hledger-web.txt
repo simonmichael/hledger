@@ -5,7 +5,7 @@ HLEDGER-WEB(1)               hledger User Manuals               HLEDGER-WEB(1)
 
 NAME
        hledger-web  is  a web interface (WUI) for the hledger accounting tool.
-       This manual is for hledger-web 1.27.99.
+       This manual is for hledger-web 1.28.99.
 
 SYNOPSIS
        hledger-web [OPTIONS]              # run temporarily & browse
@@ -320,7 +320,7 @@ EDITING, UPLOADING, DOWNLOADING
 
        Normally whenever a file is changed in this way,  hledger-web  saves  a
        numbered  backup  (assuming  file permissions allow it, the disk is not
-       full, etc.) hledger-web is not aware of version control  systems,  cur-
+       full, etc.)  hledger-web is not aware of version control systems,  cur-
        rently;  if  you  use one, you'll have to arrange to commit the changes
        yourself (eg with a cron job or a file watcher like entr).
 
@@ -602,4 +602,4 @@ SEE ALSO
 
 
 
-hledger-web-1.27.99              November 2022                  HLEDGER-WEB(1)
+hledger-web-1.28.99              December 2022                  HLEDGER-WEB(1)
