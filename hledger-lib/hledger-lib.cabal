@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           hledger-lib
-version:        1.27.99
+version:        1.28.99
 synopsis:       A reusable library providing the core functionality of hledger
 description:    A reusable library containing hledger's core functionality.
                 This is used by most hledger* packages so that they support the same
@@ -106,7 +106,6 @@ library
     , array
     , base >=4.14 && <4.18
     , blaze-markup >=0.5.1
-    , breakpoint
     , bytestring
     , call-stack
     , cassava
@@ -158,7 +157,6 @@ test-suite doctest
     , array
     , base >=4.14 && <4.18
     , blaze-markup >=0.5.1
-    , breakpoint
     , bytestring
     , call-stack
     , cassava
@@ -213,7 +211,6 @@ test-suite unittest
     , array
     , base >=4.14 && <4.18
     , blaze-markup >=0.5.1
-    , breakpoint
     , bytestring
     , call-stack
     , cassava
