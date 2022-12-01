@@ -145,8 +145,9 @@ prep() {
 }
 
 # Push the current branch to the CI branches that generate platform binaries.
+# Assumes the github remote is named "github".
 bin() {
-  run git push -f origin HEAD:binaries
+  run git push -f github HEAD:binaries
 }
 
 if declare -f "$1" > /dev/null; then "$@"; else usage; fi
