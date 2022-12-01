@@ -107,32 +107,13 @@ These have complex interdependencies and sequencing constraints. Chunk, separate
 
 ## Procedures
 
-### Do a release
-- save RELEASING.md as RELEASING2.md
-- [check release readiness](#check-release-readiness)
-- start making draft binaries: push to `origin/binaries`, resolve failures
-- update changelogs: see CHANGELOGS.md
-- [make release notes](#make-release-notes)
-- choose version: MA.JOR, MA.JOR.MINOR, or MA.JOR.MINOR.FIXUP
-- [prepare release branch](#prepare-release-branch) (preview/major release)
-  or cherry pick changes from master (bugfix/fixup release)
-- [make new manuals](#make-new-manuals) (major release)
-- [update hledger-install](#update-hledger-install) (major/bugfix/fixup release)
-- [update install page](#update-install-page) (major/bugfix/fixup release)
-- [make announcement](#make-announcement) (major/notable bugfix release)
-- on release branch do `./Shake setversion NEW -c`
-- [tag the release](#tag-the-release)
-- [make release binaries](#make-release-binaries)
-- [make github release](#make-github-release) draft
-- upload to hackage: `make hackageupload` (major/bugfix/fixup release)
-- publish github release
-- publish website changes: manuals, release notes, install page
-- [announce release](#announce-release) (major/bugfix release)
-- move RELEASING2 updates back to RELEASING, commit
-- [cherry-pick release branch to master](#cherry-pick-release-branch-to-master)
-- bump master to next version: `./Shake setversion A.BB.99` (major release)
+### Release
+
+#### Copy RELEASING.md
+- save a copy of RELEASING.md, make updates in the copy
 
 #### Check release readiness
+- appropriate timing, release manager availability
 - master's changelogs are up to date (see [CHANGELOGS](CHANGELOGS.html))
 - master or release branch is ready for release
   - clean and synced working copy
@@ -143,9 +124,45 @@ These have complex interdependencies and sequencing constraints. Chunk, separate
   - uses any required workarounds in stack.yaml
   - binary is up to date (`./Shake.hs`)
   - commit any changes (msg: `tools: shake`)
-- appropriate timing, release manager availability
 
-#### Make release notes
+#### Start making cross-platform binaries
+- do a preliminary push to `origin/binaries`
+- resolve failures
+
+#### Update changelogs
+in main repo, master branch:
+- `./Shake changelogs`, clean up CHANGES.md's, `./Shake changelogs -c`
+
+See also CHANGELOGS.md.
+
+#### Prepare release branch
+Preview/major release:
+
+- `PAUSE=1 ECHO=1 tools/release prep MA.JOR[.99.PREVIEWNUM]` (eg 1.24.99.1 for 1.25 preview 1)
+  (XXX seems to go wrong without PAUSE`)
+- clean up changelogs, amend changelogs commit (see also [CHANGELOGS](CHANGELOGS.html))
+- cherry pick changes from master (if needed)
+  - list changes in three side-by-side magit windows
+    - 1. NEW IN MASTER: `l o MAJORVER-branch..master`, `M-x magit-toggle-buffer-lock`, `M-x toggle-window-dedicated` (`C-c D`)
+    - 2. HEAD: regular magit status view
+    - 3. RELEASE BRANCH: `l o MAJORVER-branch`, `M-x magit-toggle-buffer-lock`, `M-x toggle-window-dedicated`
+  - in master window, working from bottom upward, cherry-pick all non-conflicting changes
+    - skip changes already in release branch
+    - skip changelog, command help, and manuals updates
+- release branch testing
+  - `stack build --test`
+  - `make functest`
+
+Bugfix/fixup release:
+- cherry pick changes from master
+
+#### Choose new version
+- AKA NEW: MA.JOR, MA.JOR.MINOR, or MA.JOR.MINOR.FIXUP
+
+#### Set new version
+- on release branch do `./Shake setversion -c NEW`
+
+#### Prepare release notes
 In site repo:
 
 - update `src/release-notes.md`
@@ -157,47 +174,62 @@ In site repo:
   - add contributors, `git shortlog -sn OLD..NEW`
   - add summary (major release) or remove it (bugfix release)
   - check preview in vs code
-  - commit: `relnotes: NEW`
+  - site repo commit: `relnotes: NEW`
 
-#### Prepare release branch
-- `PAUSE=1 ECHO=1 tools/release prep MA.JOR[.99.PREVIEWNUM]` (eg 1.24.99.1 for 1.25 preview 1)
-  (XXX seems to go wrong without PAUSE`)
-- cherry pick changes from master
-  - list changes in three side-by-side magit windows
-    - 1. NEW IN MASTER: `l o MAJORVER-branch..master`, `M-x magit-toggle-buffer-lock`, `M-x toggle-window-dedicated` (`C-c D`)
-    - 2. HEAD: regular magit status view
-    - 3. RELEASE BRANCH: `l o MAJORVER-branch`, `M-x magit-toggle-buffer-lock`, `M-x toggle-window-dedicated`
-  - in master window, working from bottom upward, cherry-pick all non-conflicting changes
-    - skip changes already in release branch
-    - skip changelog, command help, and manuals updates
-- `./Shake cmdhelp -c`
-- `./Shake manuals -c`
-- update release changelogs (see [CHANGELOGS](CHANGELOGS.html))
-- release branch testing
-  - `stack build --test`
-  - `make functest`
-  - `stack exec -- hledger --version`, check version
-  - `stack exec -- hledger help | tail`, check version & date
+#### Prepare announcement
+(major/notable bugfix release)
 
-#### Make new manuals
+In release branch:
+
+- update `doc/ANNOUNCE` (major release)
+  - summary, contributors from release notes
+  - any other edits
+  - commit: `;doc: announce`
+
+#### Tag the release
+- ensure new version has been set with Shake setversion !
+- `make tag`
+
+#### Do release build testing
+  - touch/change Version.hs to encourage recompilation
+  - `stack build`
+  - `stack exec -- hledger --version`, check version string: version, release date, no +
+  - `stack exec -- hledger help | tail`, check version, month matches release
+
+#### Prepare release binaries
+- wait for any pending successful builds to complete and update cache
+- `tools/release bin`
+- get all platforms built on the same commit
+- delete any local downloaded binaries from last release
+- download binary artifact zip files (on each successful run: right click, download linked file)
+
+#### Prepare new site manuals
+(major release)
+
 In site repo:
 
-- js/site.js: add NEW, update currentrelease
-- Makefile: add NEW, two places
+- js/site.js: add NEW, three places
+- Makefile: add NEW, three places
 - make snapshot-NEW (after ensuring main repo has been release-tagged)
-- commit: `current, makefile, site.js: NEW`
+- commit: `manuals: add NEW`
 - push
 
-#### Update hledger-install
+#### Prepare hledger-install script
+(major/bugfix/fixup release)
+ 
 - update `hledger-install/hledger-install.sh`
-  - HLEDGER_INSTALL_VERSION
-  - RESOLVER
-  - HLEDGER_*_VERSION
-  - EXTRA_DEPS
-- test ? `cd; bash ~/src/hledger/hledger-install/hledger-install.sh`
+  - HLEDGER_INSTALL_VERSION (release date)
+  - RESOLVER (same as stack.yaml)
+  - EXTRA_DEPS (same as stack.yaml)
+  - hledger official packages (NEW)
+  - hledger third-party packages (latest version on hackage)
+- test ? (won't work until new hledger packages are on hackage)
+  `cd; bash ~/src/hledger/hledger-install/hledger-install.sh`
 - commit: `install: NEW`
 
-#### Update install page
+#### Prepare install page
+(major/bugfix/fixup release)
+
 In site repo:
 
 - update `install.md`
@@ -214,68 +246,98 @@ In site repo:
   - Total count from `make functest`
   - commit: `download: NEW`
 
-#### Make announcement
-In release branch:
-
-- update `doc/ANNOUNCE` (major release)
-  - summary, contributors from release notes
-  - any other edits
-  - commit: `;doc: announce`
-
-#### Tag the release
-- ensure new version has been set with Shake setversion !
-- `make tag`
-
-#### Make release binaries
-- wait for any pending successful builds to complete and update cache
-- `tools/release bin`
-- get all platforms built on the same commit
-- delete any local downloaded binaries from last release
-- download binary artifact zip files (right click, download linked file)
-
-#### Make github release
-- `git push origin MA.JOR-branch && git push --tags` (or magit `P p`, `P t`)
+#### Draft github release
 - copy text from previous similar release, https://github.com/simonmichael/hledger/releases
 - create new release, https://github.com/simonmichael/hledger/releases/new
-- select release tag (MA.JOR[...])
+- leave release tag unselected for now
 - set title (MA.JOR[...])
 - paste & replace with new release notes
 - upload CI binaries
 - save as draft
-- github release testing: preview on github, upload to hackage
-- publish
+- check preview, resolve issues
 
-#### Announce release
-- pause; take a break afk; check time and energy
-- push main repo
-- push site repo
-- deploy site changes
-  On hledger.org:
-  - in /etc/caddy/hledger.org:
+#### Pre-release pause
+- stop, go afk, take a break
+- review time, energy, availability, decide go/no-go
+
+#### Pre-release tests
+- appropriate dates in: changelogs, release notes, --version output, man pages, hledger-install script
+
+#### Push release branch
+in main repo, release branch:
+- `git push github MA.JOR-branch` or magit `P p`
+- wait for CI success (?)
+
+#### Upload to hackage
+in main repo, release branch:
+- `make hackageupload` (major/bugfix/fixup release)
+
+#### Push release branch and tags
+in main repo, release branch:
+- `git push --tags` or magit `P t`
+
+#### Publish github release
+- edit release
+- select release tag (MA.JOR[...])
+- click publish button
+
+#### Update website
+- push to github: in site repo, `git push github` or magit `P u`
+- on hledger.org server:
+  - in main repo (both main and site repos on master):
+    - `git -C site pull && git pull && make site`
+    - (or to rebuild all pages, also run `make -C site all`)
+  - in /opt/hledger/site/hledger.org.caddy:
     - @oldmanpath: add `path` for NEW
     - @unversionedmanpath: update to NEW
-    - `systemctl reload caddy`
-  - in main repo, `./Shake webmanuals` to update dev manuals
-  - in site repo, `make`
-  - things to try if site doesn't seem to update ?
-    - make clean all
-    - purge cloudflare cache
-    - browsers might still require shift-reload for a while to see new manuals (safari)
-- share release notes link and markdown content in #hledger chat
-- send ANNOUNCE as email announcement
-  - major release: `ANN: hledger NEW` to hledger@googlegroups.com, haskell-cafe@googlegroups.com
-  - bugfix release: brief announcement to hledger@googlegroups.com 
-- condense & tweet at https://twitter.com/simonkwmichael
-- update last release date on plaintextaccounting.org
-<!-- - toot at https://fosstodon.org/web/accounts/106304084994827771 ? -->
+  - `systemctl reload caddy`
+- check site in browser
+  - install page versions, badge colours
+  - manuals' versions list in browser. If not updating, try
+    - checking https://hledger.org/js/site.js
+    - another browser (not safari)
+    - shift-reload
+    - https://dash.cloudflare.com/f629035917dd3b99b1e37ae20c15ff09/hledger.org/caching/configuration > purge
+  - redirects
+    - hledger.org/hledger.html redirects to https://hledger.org/NEW/hledger.html
 
-#### Cherry-pick release branch to master
+#### Merge release branch changes to master
 - switch back to master
-- update master changelogs, merging final release changelog entries (see [CHANGELOGS](CHANGELOGS.html))
-- cherry-pick other useful changes, such as `;doc: ANNOUNCE`
-- after a major release: bump master to new dev version (`./Shake setversion -c A.B.99`)
+- check out release branch in another working copy (hledger2)
+- manually merge release changelogs into master changelogs (see also [CHANGELOGS](CHANGELOGS.html))
+- list commits only in release branch: magit `l o master..MA.JOR-branch`
+- cherry-pick any other useful commits
 
-### Do post-release followup
+#### Bump master to next version
+(major release)
+- `./Shake setversion MA.JOR.99 -c`
+- `./Shake cmdhelp -c`
+- `./Shake mandates`
+- `./Shake manuals -c`
+
+#### Push master
+in main repo, master branch:
+- pass CI checks in dev branch:
+  - ensure latest commit will trigger CI (does not begin with semicolon) (?)
+  - `git push github master:simon` or magit `P e github/simon`, with `-f` if needed
+  - wait for CI success at http://ci.hledger.org
+- `git push github master` or magit `P u`
+
+#### Announce release
+(major/bugfix release)
+
+- update last release date on plaintextaccounting.org
+- share github release link and release notes markdown in #hledger chat
+- send ANNOUNCE as email announcement
+  - (major release): `ANN: hledger NEW` to hledger@googlegroups.com, haskell-cafe@googlegroups.com
+  - (bugfix release): brief announcement to hledger@googlegroups.com 
+- condense to 500 & post at https://fosstodon.org/@simonmic
+- maybe condense to 140 & post at https://twitter.com/simonkwmichael
+
+#### Commit RELEASING.md
+- move copy back to RELEASING.md, commit
+
+### Post-release followup
 - monitor packaging status, update install page
   - docker - expect/merge PR
   - homebrew - expect badge to update soon
@@ -284,6 +346,7 @@ In release branch:
 - provide support, monitor issues
 - prepare followup releases if needed
 - update process docs and tools
+
 
 ### Update packaging
 
