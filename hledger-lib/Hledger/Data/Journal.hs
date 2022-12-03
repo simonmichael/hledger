@@ -111,7 +111,7 @@ import Control.Monad.State.Strict (StateT)
 import Data.Char (toUpper, isDigit)
 import Data.Default (Default(..))
 import Data.Foldable (toList)
-import Data.List ((\\), find, foldl', sortBy, union, intercalate)
+import Data.List ((\\), find, foldl', sortBy, intercalate)
 import Data.List.Extra (nubSort)
 import qualified Data.Map.Strict as M
 import Data.Maybe (catMaybes, fromMaybe, mapMaybe, maybeToList)
@@ -404,9 +404,14 @@ journalAccountTags Journal{jdeclaredaccounttags} a = M.findWithDefault [] a jdec
 -- | Which tags are in effect for this account, including tags inherited from parent accounts ?
 journalInheritedAccountTags :: Journal -> AccountName -> [Tag]
 journalInheritedAccountTags j a =
-  foldl' (\ts a' -> ts `union` journalAccountTags j a') [] as
+  fst $ foldl'
+    (\(ts, nms) (ts', nms') ->
+      (ts <> filter (\(nm, _) -> nm `S.notMember` nms) ts', nms `S.union` nms'))
+    (ats, S.fromList $ fst <$> ats)
+    asts
   where
-    as = a : parentAccountNames a
+    ats = journalAccountTags j a
+    asts = (\ts -> (ts, S.fromList $ fst <$> ts)) <$> journalAccountTags j <$> parentAccountNames a
 -- PERF: cache in journal ?
 
 -- | Find up to N most similar and most recent transactions matching

@@ -214,3 +214,23 @@ $ hledger -f- bal -N tag:type=a
 # 21.
 $ hledger -f- reg -w80 tag:type=a
 2022-01-01                      (a:aa)                           1             1
+
+# 22. Postings can override the tags of their parents
+<
+2022-11-17 Aldi
+    ; concerns: me
+    Assets               -30 €
+    Costs:Food            20 €
+    Loaned                10 €  ; concerns: you
+
+$ hledger -f- reg tag:concerns=me --pivot=concerns
+2022-11-17 Aldi                 me                           -30 €         -30 €
+                                me                            20 €         -10 €
+
+# 23. Accounts can override the tags of their parents
+<
+account a    ; atag:A
+account a:b  ; atag:B
+
+$ hledger -f- accounts tag:atag=a
+a

@@ -365,7 +365,12 @@ postingStatus Posting{pstatus=s, ptransaction=mt} = case s of
 
 -- | Tags for this posting including any inherited from its parent transaction.
 postingAllTags :: Posting -> [Tag]
-postingAllTags p = ptags p ++ maybe [] ttags (ptransaction p)
+postingAllTags p = ptags p
+  ++ filter
+       (\(nm, _) -> nm `S.notMember` pTagNames)
+       (maybe [] ttags (ptransaction p))
+  where
+    pTagNames = S.fromList (fst <$> ptags p)
 
 -- | Tags for this transaction including any from its postings.
 transactionAllTags :: Transaction -> [Tag]
