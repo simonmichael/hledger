@@ -1,6 +1,6 @@
 # stack build plan using GHC 9.4.3
 
-resolver: nightly-2022-11-26
+resolver: nightly-2022-12-03
 
 packages:
 - hledger-lib
@@ -15,10 +15,10 @@ extra-deps:
 # for hledger-ui:
 # for hledger-web:
 - hjsmin-0.2.0.4
-- yesod-1.6.2.1
 - yesod-static-1.6.1.0
 # for Shake.hs:
 
+# currently required for hjsmin (& yesod-static, hledger-web)
 allow-newer: true
 
 nix:
