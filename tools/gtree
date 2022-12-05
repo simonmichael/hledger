@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# gtree [REGEX] - list [a matched subset of] git files as an indented tree.
+# Because the other tools suck more. Only lists files, not directories.
+# REGEX is a case-insensitive grep regexp matching the relative file paths.
+#
+# gtree
+# gtree yaml
+# gtree '(^|/)((bsd)?m|sh)ake' 
+
+REGEX="${1:-.}"
+
+# list git-tracked files
+# keep only the paths matching REGEX
+# convert paths list to an indented tree
+git ls-files | \
+    grep -iE "$REGEX" | \
+    sed -e 's/\//:/g' -e 's/^/account /' | hledger -f- accounts -t
