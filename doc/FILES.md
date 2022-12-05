@@ -254,7 +254,8 @@ src/hledger/tools/
 
 ## Sh/makefiles
 
-Many developer tasks are automated with make and/or shake, also.
+Many developer tasks are automated with Make and/or Shake also.
+Run `make` or `./Shake` (after `make Shake`) to see help.
 
 <!-- $ gtree '(^|/)((bsd)?m|sh)ake' -->
 <pre>
@@ -334,7 +335,7 @@ Core documentation which should stay closely synced with hledger's implementatio
   are the user manuals, which get rendered as html, info, man and plain text.
   They are processed first with m4 for extra flexibility.
 
-- The hledger manual imports subcommand docs from hledger/Hledger/Cli/Commands/*.md.
+- The hledger manual imports the subcommand docs from hledger/Hledger/Cli/Commands/*.md.
 
 - doc/ contains other developer docs.
 
@@ -463,6 +464,8 @@ src/hledger/
 
 Additional docs (intro pages, faqs, tutorials, cookbook..)
 are kept in the site repo's src/ directory.
+index.md is the home page.
+SUMMARY.md defines the site structure.
 
 Developer docs (UPPERCASE) and the latest dev manuals (dev/*.md) from
 the main repo are also symbolically linked there, so that they too
@@ -768,7 +771,7 @@ These help configure the website.
 
 - [src/SUMMARY.md](https://github.com/simonmichael/hledger_site/blob/master/src/SUMMARY.md)
   defines the site's pages and which ones appear in the sidebar
-  (except for old manual versions which are rendered separately).
+  (except for old manual versions; those are rendered separately).
 
 <!-- $ gtree 'Makefile|toml|css|js|theme|SUMMARY' -->
 <pre>
