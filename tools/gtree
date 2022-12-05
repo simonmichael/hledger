@@ -1,17 +1,59 @@
 #!/usr/bin/env bash
-# gtree [REGEX] - list [a matched subset of] git files as an indented tree.
-# Because the other tools suck more. Only lists files, not directories.
-# REGEX is a case-insensitive grep regexp matching the relative file paths.
-#
-# gtree
-# gtree yaml
-# gtree '(^|/)((bsd)?m|sh)ake' 
+# List git files as an indented tree (because the other tools suck).
 
-REGEX="${1:-.}"
+set -e
+
+usage() {
+    cat <<EOF
+gtree [-d] [REGEX] - list some or all git-tracked files as an indented tree.
+Directories are shown with a trailing slash.
+REGEX is a case-insensitive grep regexp matching the relative file paths.
+-d: show only directories
+
+Examples:
+gtree
+gtree -d
+gtree yaml
+gtree '(^|/)((bsd)?m|sh)ake'
+EOF
+    exit
+}
+
+ARGS=()
+while [[ $# -gt 0 ]]; do
+    key="$1"
+    case $key in
+        -h|--help)
+            HELP=1
+            shift
+            ;;
+        -d)
+            D=1
+            shift
+            ;;
+        *)
+            if [[ "$1" != -* ]]
+            then
+                ARGS+=("$1")
+                shift
+            else
+                >&2 echo "Error: unknown option $1"
+                exit 1
+            fi
+            ;;
+    esac
+done
+#if [[ $HELP = 1 || ${#ARGS} -eq 0 ]]; then usage; exit; fi
+if [[ $HELP = 1 ]]; then usage; exit; fi
+
+REGEX="${ARGS[0]:-.}"
+ROOT=$(pwd)
 
 # list git-tracked files
-# keep only the paths matching REGEX
+# keep only the paths matching REGEX, if provided
 # convert paths list to an indented tree
-git ls-files | \
-    grep -iE "$REGEX" | \
-    sed -e 's/\//:/g' -e 's/^/account /' | hledger -f- accounts -t
+# keep only the directories, if -d provided
+git ls-files \
+    | grep -iE "$REGEX" \
+    | sed -e 's%/%/:%g' -e "s%^%account $ROOT/:%" | hledger -f- accounts -t \
+    | grep -E "$(if [[ $D = 1 ]]; then echo '/$'; else echo '.'; fi)"
