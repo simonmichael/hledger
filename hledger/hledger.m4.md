@@ -2335,40 +2335,38 @@ You can also comment larger regions of a file using [`comment` and `end comment`
 Tags are a way to add extra labels or labelled data to transactions, postings, or accounts,
 which you can then [search](#queries) or [pivot](#pivoting) on.
 
-They are written as a (optionally hyphenated) word immediately followed by a full colon
-within a transaction or posting or account directive's [comment](#comments):
-```journal
-account assets:checking     ; accounttag:
+They are written as a word (optionally hyphenated) immediately followed by a full colon,
+in a transaction or posting or account directive's [comment](#comments).
+(This is an exception to the usual rule that things in comments are ignored.)
+Eg, here four different tags are recorded: one on the checking account,
+two on the transaction, and one on the expenses posting:
 
-2017/1/16 bought groceries  ; transaction-tag:
-    ; another-transaction-tag:
-    assets:checking   $-1
-    expenses:food      $1     ; posting-tag:
+```journal
+account assets:checking         ; accounttag:
+
+2017/1/16 bought groceries      ; transactiontag-1:
+    ; transactiontag-2:
+    assets:checking        $-1
+    expenses:food           $1  ; postingtag:
 ```
 
-Tags are inherited, as follows:
+Postings also inherit tags from their transaction and their account.
+And transactions also acquire tags from their postings (and postings' accounts).
+So in the example above, the expenses posting effectively has all four tags
+(by inheriting from account and transaction), 
+and the transaction also has all four tags (by acquiring from the expenses posting).
 
-- Tags on a transaction affect the transaction and all of its postings
-- Tags on an account affect all postings to that account.
+You can list tag names with `hledger tags [TAGNAMEREGEX]`.
 
-So in the example above,
+### Tag values
 
-- the `assets:checking` account has one tag (`accounttag`)
-- the transaction has two tags (`transaction-tag`, `another-transaction-tag`)
-- the `assets:checking` posting has three tags (`transaction-tag`, `another-transaction-tag`, `accounttag`)
-- the `expenses:food` posting has three tags (`transaction-tag`, `another-transaction-tag`, `posting-tag`).
-
-Tags can have a value, which is the text after the colon,
-until the next comma or end of line, with surrounding whitespace stripped.
+Tags can have a value, which is any text after the colon up until a comma or end of line
+(with surrounding whitespace removed).
 Note this means that hledger tag values can not contain commas.
-For example, in this posting:
+Eg in the following posting, the three tags' values are "value 1", "value 2", and "" (empty) respectively:
 ```journal
     expenses:food   $10    ; foo, tag1: value 1 , tag2:value 2, bar tag3: , baz
 ```
-
-- `tag1`'s value is "value 1"
-- `tag2`'s value is "value 2"
-- `tag3`'s value is "" (the empty string)
 
 Note that tags are multi-valued. When a tag name is seen again with a new value,
 the new value is added, rather than overriding the previous value.
@@ -2378,7 +2376,7 @@ Currently this is true for all same-tag situations, ie:
 - Posting inheriting the same tag from its transaction or account
 - Transaction acquiring the same tag from one or more of its postings
 
-To list all of a tag's values: `hledger tags --values TAGNAME`
+You can list a tag's values with `hledger tags TAGNAME --values`.
 
 ## Postings
 
