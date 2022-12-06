@@ -2356,7 +2356,8 @@ So in the example above, the expenses posting effectively has all four tags
 (by inheriting from account and transaction), 
 and the transaction also has all four tags (by acquiring from the expenses posting).
 
-You can list tag names with `hledger tags [TAGNAMEREGEX]`.
+You can list tag names with `hledger tags [NAMEREGEX]`,
+or match by tag name with a `tag:NAMEREGEX` query.
 
 ### Tag values
 
@@ -2376,7 +2377,8 @@ Currently this is true for all same-tag situations, ie:
 - Posting inheriting the same tag from its transaction or account
 - Transaction acquiring the same tag from one or more of its postings
 
-You can list a tag's values with `hledger tags TAGNAME --values`.
+You can list a tag's values with `hledger tags TAGNAME --values`,
+or match by tag value with a `tag:NAMEREGEX=VALUEREGEX` query.
 
 ## Postings
 
