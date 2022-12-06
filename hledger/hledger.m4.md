@@ -2352,6 +2352,7 @@ Tags are inherited, as follows:
 - Tags on an account affect all postings to that account.
 
 So in the example above,
+
 - the `assets:checking` account has one tag (`accounttag`)
 - the transaction has two tags (`transaction-tag`, `another-transaction-tag`)
 - the `assets:checking` posting has three tags (`transaction-tag`, `another-transaction-tag`, `accounttag`)
@@ -2359,13 +2360,15 @@ So in the example above,
 
 Tags can have a value, which is the text after the colon,
 until the next comma or end of line, with surrounding whitespace stripped.
-So here `a-posting-tag`'s value is "the tag value", `tag2`'s value is "foo",
-and `tag3`'s value is "" (the empty string):
+Note this means that hledger tag values may not contain commas.
+For example, in this posting:
 ```journal
-    expenses:food    $10 
-      ; some text, a-posting-tag:the tag value, tag2: foo , tag3: , other text
+    expenses:food   $10    ; foo, tag1: value 1 , tag2:value 2, bar tag3: , baz
 ```
-A hledger tag value may not contain a comma.
+
+- `tag1`'s value is "value 1"
+- `tag2`'s value is "value 2"
+- `tag3`'s value is "" (the empty string)
 
 ## Postings
 
