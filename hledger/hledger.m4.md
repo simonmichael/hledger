@@ -2291,95 +2291,6 @@ into separate fields for payee/payer name on the left (up to the first `|`) and 
 field on the right (after the first `|`). This may be worthwhile if you need to do more precise
 [querying](#queries) and [pivoting](#pivoting) by payee or by note.
 
-## Comments
-
-Lines in the journal beginning with a semicolon (`;`) or hash (`#`) or
-star (`*`) are comments, and will be ignored. (Star comments cause
-org-mode nodes to be ignored, allowing emacs users to fold and navigate
-their journals with org-mode or orgstruct-mode.)
-
-You can attach comments to a transaction by writing them after the
-description and/or indented on the following lines (before the
-postings).  Similarly, you can attach comments to an individual
-posting by writing them after the amount and/or indented on the
-following lines.
-Transaction and posting comments must begin with a semicolon (`;`).
-
-Some examples:
-
-```journal
-# a file comment
-; another file comment
-* also a file comment, useful in org/orgstruct mode
-
-comment
-A multiline file comment, which continues
-until a line containing just "end comment"
-(or end of file).
-end comment
-
-2012/5/14 something  ; a transaction comment
-    ; the transaction comment, continued
-    posting1  1  ; a comment for posting 1
-    posting2
-    ; a comment for posting 2
-    ; another comment line for posting 2
-; a file comment (because not indented)
-```
-
-You can also comment larger regions of a file using [`comment` and `end comment` directives](#comment-blocks).
-
-
-## Tags
-
-Tags are a way to add extra labels or labelled data to transactions, postings, or accounts,
-which you can then [search](#queries) or [pivot](#pivoting) on.
-
-They are written as a word (optionally hyphenated) immediately followed by a full colon,
-in a transaction or posting or account directive's [comment](#comments).
-(This is an exception to the usual rule that things in comments are ignored.)
-Eg, here four different tags are recorded: one on the checking account,
-two on the transaction, and one on the expenses posting:
-
-```journal
-account assets:checking         ; accounttag:
-
-2017/1/16 bought groceries      ; transactiontag-1:
-    ; transactiontag-2:
-    assets:checking        $-1
-    expenses:food           $1  ; postingtag:
-```
-
-Postings also inherit tags from their transaction and their account.
-And transactions also acquire tags from their postings (and postings' accounts).
-So in the example above, the expenses posting effectively has all four tags
-(by inheriting from account and transaction), 
-and the transaction also has all four tags (by acquiring from the expenses posting).
-
-You can list tag names with `hledger tags [NAMEREGEX]`,
-or match by tag name with a `tag:NAMEREGEX` query.
-
-### Tag values
-
-Tags can have a value, which is any text after the colon up until a comma or end of line
-(with surrounding whitespace removed).
-Note this means that hledger tag values can not contain commas.
-Eg in the following posting, the three tags' values are "value 1", "value 2", and "" (empty) respectively:
-```journal
-    expenses:food   $10    ; foo, tag1: value 1 , tag2:value 2, bar tag3: , baz
-```
-
-Note that tags are multi-valued. When a tag name is seen again with a new value,
-the new value is added, rather than overriding the previous value.
-Currently this is true for all same-tag situations, ie:
-
-- Same tag on multiple transactions
-- Posting inheriting the same tag from its transaction or account
-- Transaction acquiring the same tag from one or more of its postings
-
-You can list a tag's values with `hledger tags TAGNAME --values`,
-or match by tag value with a `tag:NAMEREGEX=VALUEREGEX` query.
-
 ## Postings
 
 A posting is an addition of some amount to, or removal of some amount from, an account.
@@ -2894,6 +2805,95 @@ $ hledger print --explicit
 2019-01-01
     (a)         $1 @ €2 = $1 @ €2
 ```
+
+## Comments
+
+Lines in the journal beginning with a semicolon (`;`) or hash (`#`) or
+star (`*`) are comments, and will be ignored. (Star comments cause
+org-mode nodes to be ignored, allowing emacs users to fold and navigate
+their journals with org-mode or orgstruct-mode.)
+
+You can attach comments to a transaction by writing them after the
+description and/or indented on the following lines (before the
+postings).  Similarly, you can attach comments to an individual
+posting by writing them after the amount and/or indented on the
+following lines.
+Transaction and posting comments must begin with a semicolon (`;`).
+
+Some examples:
+
+```journal
+# a file comment
+; another file comment
+* also a file comment, useful in org/orgstruct mode
+
+comment
+A multiline file comment, which continues
+until a line containing just "end comment"
+(or end of file).
+end comment
+
+2012/5/14 something  ; a transaction comment
+    ; the transaction comment, continued
+    posting1  1  ; a comment for posting 1
+    posting2
+    ; a comment for posting 2
+    ; another comment line for posting 2
+; a file comment (because not indented)
+```
+
+You can also comment larger regions of a file using [`comment` and `end comment` directives](#comment-blocks).
+
+
+## Tags
+
+Tags are a way to add extra labels or labelled data to transactions, postings, or accounts,
+which you can then [search](#queries) or [pivot](#pivoting) on.
+
+They are written as a word (optionally hyphenated) immediately followed by a full colon,
+in a transaction or posting or account directive's [comment](#comments).
+(This is an exception to the usual rule that things in comments are ignored.)
+Eg, here four different tags are recorded: one on the checking account,
+two on the transaction, and one on the expenses posting:
+
+```journal
+account assets:checking         ; accounttag:
+
+2017/1/16 bought groceries      ; transactiontag-1:
+    ; transactiontag-2:
+    assets:checking        $-1
+    expenses:food           $1  ; postingtag:
+```
+
+Postings also inherit tags from their transaction and their account.
+And transactions also acquire tags from their postings (and postings' accounts).
+So in the example above, the expenses posting effectively has all four tags
+(by inheriting from account and transaction), 
+and the transaction also has all four tags (by acquiring from the expenses posting).
+
+You can list tag names with `hledger tags [NAMEREGEX]`,
+or match by tag name with a `tag:NAMEREGEX` query.
+
+### Tag values
+
+Tags can have a value, which is any text after the colon up until a comma or end of line
+(with surrounding whitespace removed).
+Note this means that hledger tag values can not contain commas.
+Eg in the following posting, the three tags' values are "value 1", "value 2", and "" (empty) respectively:
+```journal
+    expenses:food   $10    ; foo, tag1: value 1 , tag2:value 2, bar tag3: , baz
+```
+
+Note that tags are multi-valued. When a tag name is seen again with a new value,
+the new value is added, rather than overriding the previous value.
+Currently this is true for all same-tag situations, ie:
+
+- Same tag on multiple transactions
+- Posting inheriting the same tag from its transaction or account
+- Transaction acquiring the same tag from one or more of its postings
+
+You can list a tag's values with `hledger tags TAGNAME --values`,
+or match by tag value with a `tag:NAMEREGEX=VALUEREGEX` query.
 
 ## Directives
 
