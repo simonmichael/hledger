@@ -2360,7 +2360,7 @@ So in the example above,
 
 Tags can have a value, which is the text after the colon,
 until the next comma or end of line, with surrounding whitespace stripped.
-Note this means that hledger tag values may not contain commas.
+Note this means that hledger tag values can not contain commas.
 For example, in this posting:
 ```journal
     expenses:food   $10    ; foo, tag1: value 1 , tag2:value 2, bar tag3: , baz
@@ -2369,6 +2369,16 @@ For example, in this posting:
 - `tag1`'s value is "value 1"
 - `tag2`'s value is "value 2"
 - `tag3`'s value is "" (the empty string)
+
+Note that tags are multi-valued. When a tag name is seen again with a new value,
+the new value is added, rather than overriding the previous value.
+Currently this is true for all same-tag situations, ie:
+
+- Same tag on multiple transactions
+- Posting inheriting the same tag from its transaction or account
+- Transaction acquiring the same tag from one or more of its postings
+
+To list all of a tag's values: `hledger tags --values TAGNAME`
 
 ## Postings
 
