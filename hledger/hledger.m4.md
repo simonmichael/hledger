@@ -4254,7 +4254,7 @@ $ hledger -f paypal-custom.csv  print
 ## CSV rules
 
 The following kinds of rule can appear in the rules file, in any order.
-Blank lines and lines beginning with `#` or `;` are ignored.
+Blank lines and lines beginning with `#` or `;` or `*` are ignored.
 
 
 ### `skip`
@@ -5091,6 +5091,7 @@ The date is a [simple date](#simple-dates).
 The time format is HH:MM[:SS][+-ZZZZ]. Seconds and timezone are optional.
 The timezone, if present, must be four digits and is ignored
 (currently the time is always interpreted as a local time).
+Lines beginning with `#` or `;` or `*`, and blank lines, are ignored.
 
 ```timeclock
 i 2015/03/30 09:00:00 some:account name  optional description after two spaces
@@ -5141,9 +5142,8 @@ To generate time logs, ie to clock in and clock out, you could:
 - or use the old `ti` and `to` scripts in the [ledger 2.x repository](https://github.com/ledger/ledger/tree/maint/scripts).
   These rely on a "timeclock" executable which I think is just the ledger 2 executable renamed.
 
+
 # TIMEDOT FORMAT
-
-
 
 `timedot` format is hledger's human-friendly time logging format.
 Compared to [`timeclock` format](#timeclock-format), it is
@@ -5219,16 +5219,17 @@ In more detail, timedot amounts can be:
 There is some added flexibility to help with keeping time log data
 in the same file as your notes, todo lists, etc.:
 
-- Lines beginning with `#` or `;`, and blank lines, are ignored.
+- Blank lines and lines beginning with `#` or `;` are ignored.
+
+- Before the first date line, lines beginning with `*` are ignored.
+  From the first date line onward, a sequence of `*`'s followed by a space
+  at beginning of lines (ie, the headline prefix used by Emacs Org mode) is ignored.
+  This means the time log can be kept under an Org headline,
+  and date lines or time transaction lines can be Org headlines.
 
 - Lines not ending with a double-space and amount are 
   parsed as transactions with zero amount.
   (Most hledger reports hide these by default; add -E to see them.)
-
-- One or more stars (`*`) followed by a space, at the start of a line, is ignored.
-  So date lines or time transaction lines can also be Org-mode headlines.
-  
-- All Org-mode headlines before the first date line are ignored. 
 
 More examples:
 
