@@ -455,3 +455,62 @@ $ hledger -f- print -x
     (a)              -2 ==* 1
 
 >=0
+
+# 26. Inclusive balance assignments to 0 set all subaccount balances to 0
+<
+2020-09-27
+  revenues                                       -1 BYN
+  revenues:forex gain                            -1 BYN
+  revenues:forex gain:unrealised                 -1 FOO
+  assets:fudge
+
+2021-09-27
+  revenues                                    ==* 0
+  equity:retained earnings
+
+$ hledger -f- print -x
+>
+2020-09-27
+    revenues                                -1 BYN
+    revenues:forex gain                     -1 BYN
+    revenues:forex gain:unrealised          -1 FOO
+    assets:fudge                             2 BYN
+    assets:fudge                             1 FOO
+
+2021-09-27
+    revenues                                 1 BYN ==* 0
+    revenues:forex gain                      1 BYN ==* 0
+    revenues:forex gain:unrealised           1 FOO ==* 0
+    equity:retained earnings                -2 BYN
+    equity:retained earnings                -1 FOO
+
+>=0
+
+# 27. Inclusive partial balance assignments to 0 set all relevant subaccount balances to 0
+<
+2020-09-27
+  revenues                                       -1 BYN
+  revenues:forex gain                            -1 BYN
+  revenues:forex gain:unrealised                 -1 FOO
+  assets:fudge
+
+2021-09-27
+  revenues                                     =* 0 BYN
+  equity:retained earnings
+
+$ hledger -f- print -x
+>
+2020-09-27
+    revenues                                -1 BYN
+    revenues:forex gain                     -1 BYN
+    revenues:forex gain:unrealised          -1 FOO
+    assets:fudge                             2 BYN
+    assets:fudge                             1 FOO
+
+2021-09-27
+    revenues                                 1 BYN =* 0 BYN
+    revenues:forex gain                      1 BYN =* 0 BYN
+    revenues:forex gain:unrealised               0 =* 0 BYN
+    equity:retained earnings                -2 BYN
+
+>=0
