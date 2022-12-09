@@ -1192,7 +1192,7 @@ First, a quick glossary:
 
 ## -B: Convert to cost
 
-As discussed a little further on in [Transaction prices](#transaction-price),
+As discussed a little further on in [Transaction prices](#transaction-prices),
 when recording a transaction you can also record the amount's cost in another commodity,
 by adding `@ UNITPRICE` or `@@ TOTALPRICE`.
 
