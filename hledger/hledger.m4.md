@@ -2309,38 +2309,35 @@ But if you accidentally leave only one space (or tab) before the amount, the amo
 
 ### Virtual postings
 
-A posting with a parenthesised account name is called a *virtual posting*
-or *unbalanced posting*, which means it is exempt from the usual rule
-that a transaction's postings must balance add up to zero.
+A posting with parentheses around the account name is called a *virtual posting* or *unbalanced posting*,
+which means it is exempt from the usual rule that a transaction's postings must balance add up to zero.
 
-This is not part of double entry accounting, so you might choose to
-avoid this feature. Or you can use it sparingly for certain special
-cases where it can be convenient. Eg, you could set opening balances
-without using a balancing equity account:
+This is not part of double entry bookkeeping, so you might choose to avoid this feature.
+Or you can use it sparingly for certain special cases where it can be convenient.
+Eg, you could set opening balances without using a balancing equity account:
 
 ```journal
-1/1 opening balances
+2022-01-01 opening balances
   (assets:checking)   $1000
   (assets:savings)    $2000
 ```
 
-A posting with a bracketed account name is called a *balanced virtual
-posting*. The balanced virtual postings in a transaction must add up
-to zero (separately from other postings). Eg:
+A posting with brackets around the account name is called a *balanced virtual posting*.
+The balanced virtual postings in a transaction must add up to zero (separately from other postings).
+Eg:
 
 ```journal
-1/1 buy food with cash, update budget envelope subaccounts, & something else
-  assets:cash                    $-10 ; <- these balance
-  expenses:food                    $7 ; <-
-  expenses:food                    $3 ; <-
-  [assets:checking:budget:food]  $-10    ; <- and these balance
-  [assets:checking:available]     $10    ; <-
-  (something:else)                 $5       ; <- not required to balance
+2022-01-01 buy food with cash, update budget envelope subaccounts, & something else
+  assets:cash                    $-10  ; <- these balance each other
+  expenses:food                    $7  ; <-
+  expenses:food                    $3  ; <-
+  [assets:checking:budget:food]  $-10  ;   <- and these balance each other
+  [assets:checking:available]     $10  ;   <-
+  (something:else)                 $5  ;     <- this is not required to balance
 ```
 
-Ordinary non-parenthesised, non-bracketed postings are called *real postings*.
-You can exclude virtual postings from reports with the `-R/--real`
-flag or `real:1` query.
+Postings whose account names are neither parenthesised nor bracketed are called *real postings*.
+You can exclude virtual postings from reports with the `-R/--real` flag or a `real:1` query.
 
 ## Account names
 
