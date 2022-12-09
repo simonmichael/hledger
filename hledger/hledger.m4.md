@@ -937,6 +937,56 @@ will show only the uppermost accounts in the account tree, down to level NUM.
 Use this when you want a summary with less detail.
 This flag has the same effect as a `depth:` query argument: `depth:2`, `--depth=2` or `-2` are equivalent.
 
+# PIVOTING
+
+`--pivot` is a general option affecting all reports.
+<!-- (Not to be confused with `--transpose`, a `balance` command flag.) -->
+Normally hledger groups and sums amounts by account name.
+`--pivot FIELD` substitutes some other transaction field for account names,
+causing amounts to be grouped and summed by that field's value instead.
+Values containing `colon:separated:parts` will form a hierarchy, as with account names.
+
+FIELD can be any of the transaction fields `status`, `code`, `description`, `payee`, `note`,
+or a tag name. ([Transactions](#transactions) and [Tags](#tags-1) are explained below.)
+
+Some examples:
+
+```journal
+2016/02/16 Member Fee Payment
+    assets:bank account                    2 EUR
+    income:member fees                    -2 EUR  ; member: John Doe
+```
+Normal balance report showing account names:
+```shell
+$ hledger balance
+               2 EUR  assets:bank account
+              -2 EUR  income:member fees
+--------------------
+                   0
+```
+Pivoted balance report, using member: tag values instead:
+```shell
+$ hledger balance --pivot member
+               2 EUR
+              -2 EUR  John Doe
+--------------------
+                   0
+```
+One way to show only amounts with a member: value (using a [query](#queries), described below):
+```shell
+$ hledger balance --pivot member tag:member=.
+              -2 EUR  John Doe
+--------------------
+              -2 EUR
+```
+Another way (the acct: query matches against the pivoted "account name"):
+```shell
+$ hledger balance --pivot member acct:.
+              -2 EUR  John Doe
+--------------------
+              -2 EUR
+```
+
 # QUERIES
 
 One of hledger's strengths is being able to quickly report on a precise subset of your data. 
@@ -1863,58 +1913,6 @@ Related:
 
 
 
-
-# PIVOTING
-
-Normally hledger sums amounts, and organizes them in a hierarchy, based on account name.
-The `--pivot FIELD` option causes it to sum and organize hierarchy based on the value of some other field instead.
-FIELD can be:
-`status`, `code`, `description`, `payee`, `note`,
-or the full name (case insensitive) of any [tag](#tags).
-As with account names, values containing `colon:separated:parts` will be displayed hierarchically in reports.
-
-`--pivot` is a general option affecting all reports; you can think of hledger transforming
-the journal before any other processing, replacing every posting's account name with
-the value of the specified field on that posting, inheriting it from the transaction
-or using a blank value if it's not present.
-
-An example:
-
-```journal
-2016/02/16 Member Fee Payment
-    assets:bank account                    2 EUR
-    income:member fees                    -2 EUR  ; member: John Doe
-```
-Normal balance report showing account names:
-```shell
-$ hledger balance
-               2 EUR  assets:bank account
-              -2 EUR  income:member fees
---------------------
-                   0
-```
-Pivoted balance report, using member: tag values instead:
-```shell
-$ hledger balance --pivot member
-               2 EUR
-              -2 EUR  John Doe
---------------------
-                   0
-```
-One way to show only amounts with a member: value (using a [query](#queries), described below):
-```shell
-$ hledger balance --pivot member tag:member=.
-              -2 EUR  John Doe
---------------------
-              -2 EUR
-```
-Another way (the acct: query matches against the pivoted "account name"):
-```shell
-$ hledger balance --pivot member acct:.
-              -2 EUR  John Doe
---------------------
-              -2 EUR
-```
 
 # COMMANDS
 
