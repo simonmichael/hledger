@@ -15,8 +15,8 @@ A full working copy of the official hledger [repos](REPOS.html)
 is best laid out like this (manually; we currently don't use git submodules):
 <pre>
 src/hledger/ - git clone https://github.com/simonmichael/hledger; cd hledger
-  finance/   - git clone https://github.com/simonmichael/hledger_finance finance
   site/      - git clone https://github.com/simonmichael/hledger_site site
+  finance/   - git clone https://github.com/simonmichael/hledger_finance finance
 </pre>
 
 You don't need to clone all of these repos unless you are working in all of those areas.
