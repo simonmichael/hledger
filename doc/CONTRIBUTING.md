@@ -5,33 +5,49 @@
 <!-- toc -->
 </div>
 
-Here are some ways to contribute. Other content has moved elsewhere, see the DEVELOPERS section in the sidebar.
+New contributors are always welcome in the hledger project. 
+Jump in!
+Browse the ideas below,
+or [join the chat](support.html) and tell us your interests.
 
 ## About the project
 
 See [About FAQ](faq.html).
 
-## Roles and activities
 
-- newcomer/potential user
-- user
-- library user
-- field tester
-- bug wrangler
-- support
-- documentor
-- qa
-- developer
-- packager
-- communicator
-- project manager
+## Ideas for contributing as a ...
 
+### Visitor
 
+- Give feedback on the site and your impressions of the project
 
-## Getting started
+### New user
 
-New contributors are always welcome in the hledger project. 
-Jump in! Or [ask us](support.html) to help you find a task.
+- Give feedback on your new user experience
+
+### Developer
+
+- See the [Developer workflows](WORKFLOWS.html) 
+- and other [Developer docs](dev.html)
+
+### Developer using the hledger libraries
+
+- Give feedback on your experience using the hledger packages
+- Suggest API improvements
+
+### Packager
+
+- Improve hledger's packaging on one or more platforms
+
+### Communicator
+
+Marketing and market understanding is vital.
+
+- clarify project goals, value proposition, brand, mission, story
+- monitor product-market fit
+- identify new opportunities
+- influence developer priorities
+- spread the word!
 
 ### Funder
 
@@ -66,6 +82,10 @@ the IRC channel and mail list (see [Getting help](index.html#getting-help)).
 Both are archived and linkable, so the idea won't be lost.
 There is also a collection of wishes at the old [trello board](http://trello.hledger.org).
 
+### Bug wrangler
+
+### Tech support provider
+
 ### Technical Writer
 
 - get familiar with the website and documentation online, review and test
@@ -80,15 +100,6 @@ There is also a collection of wishes at the old [trello board](http://trello.hle
 - web design mockups for home page, site, hledger-web UI
 
 <!-- ### Product Designer -->
-### Communicator
-
-Marketing and market understanding is vital.
-
-- clarify project goals, value proposition, brand, mission, story
-- monitor product-market fit
-- identify new opportunities
-- influence developer priorities
-- spread the word!
 
 ### Maintainer
 
@@ -113,12 +124,3 @@ Marketing and market understanding is vital.
 - identify collaboration opportunities
 - marketing, communication, outreach
 - release management, roadmap planning
-
-### Developer
-
-See [Developer workflows](WORKFLOWS.md#developer-workflows).
-
-
-
-
-
