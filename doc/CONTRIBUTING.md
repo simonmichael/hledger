@@ -7,13 +7,12 @@
 
 New contributors are always welcome in the hledger project. 
 Jump in!
-Browse the ideas below,
-or [join the chat](support.html) and tell us your interests.
+Browse the ideas below, or join the chat and we'll help find you a job.
 
-## About the project
+## First steps
 
-See [About FAQ](faq.html).
-
+- Join the [chat](support.html)
+- Skim the [FAQs](faq.html)
 
 ## Ideas for contributing as a ...
 
