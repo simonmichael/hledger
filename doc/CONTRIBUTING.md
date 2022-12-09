@@ -5,13 +5,12 @@
 <!-- toc -->
 </div>
 
-New contributors are always welcome in the hledger project. 
-Jump in!
-Browse the ideas below, or join the chat and we'll help find you a job.
+New contributors are always welcome in the hledger project. Jump in!
+Browse the ideas below, or say hello in the chat and we'll help find you a job.
 
 ## First steps
 
-- Join the [chat](support.html)
+- Join the [#hledger chat](support.html), best place for quick help and feedback
 - Skim the [FAQs](faq.html)
 
 ## Ideas for contributing as a ...
