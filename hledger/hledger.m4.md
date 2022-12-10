@@ -25,17 +25,17 @@ m4_dnl Be wary of pandoc/mdbook handling [shortcut] link syntax differently ?
 [cashflow]:            #cashflow
 [commands]:            #commands
 [common tasks]:        #common-tasks
-[csv]:                 #csv-format
+[csv]:                 #csv
 [directives]:          #directives
 [incomestatement]:     #incomestatement
-[journal]:             #journal-format
+[journal]:             #journal
 [period expressions]:  #period-expressions
 [queries]:             #queries
 [regular expression]:  #regular-expressions
 [regular expressions]: #regular-expressions
 [strict mode]:         #strict-mode
-[timeclock]:           #timeclock-format
-[timedot]:             #timedot-format
+[timeclock]:           #timeclock
+[timedot]:             #timedot
 [transaction prices]:  #transaction-prices
 [valuation]:           #valuation
 
@@ -72,9 +72,7 @@ _man_({{
 
 `hledger [-f FILE] ADDONCMD -- [OPTIONS] [ARGS]`
 
-_man_({{
-# DESCRIPTION
-}})
+# INTRODUCTION
 
 m4_dnl Include the standard description:
 _hledgerdescription_
@@ -110,6 +108,8 @@ To get started, you can either save some entries like the above in
 `~/.hledger.journal`, or run `hledger add` and follow the prompts. Then
 try some commands like `hledger print` or `hledger balance`.
 Run `hledger` with no arguments for a list of commands.
+
+# PART 1: USER INTERFACE
 
 # OPTIONS
 
@@ -620,6 +620,99 @@ Debug output goes to stderr, and is not affected by `-o/--output-file` (unless y
 It will be interleaved with normal output, which can help reveal when parts of the code are evaluated.
 To capture debug output in a log file instead, you can usually redirect stderr, eg:\
 `hledger bal --debug=3 2>hledger.log`.
+
+# LIMITATIONS
+
+The need to precede add-on command options with `--` when invoked from hledger is awkward.
+
+When input data contains non-ascii characters, a suitable system locale must be configured (or there will be an unhelpful error).
+Eg on POSIX, set LANG to something other than C.
+
+In a Microsoft Windows CMD window, non-ascii characters and colours are not supported.
+
+On Windows, non-ascii characters may not display correctly when running a hledger built
+in CMD in MSYS/CYGWIN, or vice-versa.
+
+In a Cygwin/MSYS/Mintty window, the tab key is not supported in hledger add.
+
+Not all of Ledger's journal file syntax is supported.
+See [hledger and Ledger > Differences > journal format](/ledger.html#journal-format).
+
+On large data files, hledger is slower and uses more memory than Ledger.
+
+# TROUBLESHOOTING
+
+Here are some issues you might encounter when you run hledger
+(and remember you can also seek help from the
+[IRC channel](http://irc.hledger.org),
+[mail list](http://list.hledger.org) or
+[bug tracker](http://bugs.hledger.org)):
+
+**Successfully installed, but "No command 'hledger' found"**\
+stack and cabal install binaries into a special directory, which
+should be added to your PATH environment variable.  Eg on unix-like
+systems, that is ~/.local/bin and ~/.cabal/bin respectively.
+
+**I set a custom LEDGER_FILE, but hledger is still using the default file**\
+`LEDGER_FILE` should be a real environment variable, not just a shell variable.
+The command `env | grep LEDGER_FILE` should show it.
+You may need to use `export`. Here's an [explanation](http://stackoverflow.com/a/7411509).
+
+**Getting errors like "Illegal byte sequence" or "Invalid or incomplete multibyte or wide character" or "commitAndReleaseBuffer: invalid argument (invalid character)"**\
+Programs compiled with GHC (hledger, haskell build tools, etc.) 
+need to have a UTF-8-aware locale configured in the environment, 
+otherwise they will fail with these kinds of errors when they encounter non-ascii characters.
+
+To fix it, set the LANG environment variable to some locale which supports UTF-8.
+The locale you choose must be installed on your system.
+
+Here's an example of setting LANG temporarily, on Ubuntu GNU/Linux:
+
+```shell
+$ file my.journal
+my.journal: UTF-8 Unicode text         # the file is UTF8-encoded
+$ echo $LANG
+C                                      # LANG is set to the default locale, which does not support UTF8
+$ locale -a                            # which locales are installed ?
+C
+en_US.utf8                             # here's a UTF8-aware one we can use
+POSIX
+$ LANG=en_US.utf8 hledger -f my.journal print   # ensure it is used for this command
+```
+
+If available, `C.UTF-8` will also work.
+If your preferred locale isn't listed by `locale -a`, you might need to install it. Eg on Ubuntu/Debian:
+
+```shell
+$ apt-get install language-pack-fr
+$ locale -a
+C
+en_US.utf8
+fr_BE.utf8
+fr_CA.utf8
+fr_CH.utf8
+fr_FR.utf8
+fr_LU.utf8
+POSIX
+$ LANG=fr_FR.utf8 hledger -f my.journal print
+```
+
+Here's how you could set it permanently, if you use a bash shell:
+
+```shell
+$ echo "export LANG=en_US.utf8" >>~/.bash_profile
+$ bash --login
+```
+
+Exact spelling and capitalisation may be important. Note the difference on MacOS (`UTF-8`, not `utf8`).
+Some platforms (eg ubuntu) allow variant spellings, but others (eg macos) require it to be exact:
+
+```shell
+$ locale -a | grep -iE en_us.*utf
+en_US.UTF-8
+$ LANG=en_US.UTF-8 hledger -f my.journal print
+```
+# PART 2: CONCEPTS
 
 # TIME PERIODS
 ## Smart dates
@@ -1914,135 +2007,12 @@ Related:
 
 
 
-# COMMANDS
+# PART 3: DATA FORMATS
 
-hledger provides a number of commands for producing reports and managing your data. 
-Run `hledger` with no arguments to list the commands available,
-and `hledger CMD` to run a command. CMD can be the full command name,
-or its standard abbreviation shown in the commands list,
-or any unambiguous prefix of the name.
-Eg: `hledger bal`.
 
-m4_dnl XXX maybe later
-m4_dnl Each command's detailed docs are available :
-m4_dnl 
-m4_dnl - command line help, eg: `hledger balance --help`
-m4_dnl - 
-m4_dnl - info manuals, eg: `hledger help --info hledger` (or possibly `info hledger`) <!-- -> m4_dnl Commands -> balance -->
-m4_dnl - web manuals, eg: <https://hledger.org/hledger.html#balance>
-m4_dnl <!-- - man pages, eg: `man hledger-balance` -->
+<a name="journal-format"></a>
 
-Here are the built-in commands, with the most often-used in bold:
-<!-- keep synced with Hledger.Cli.Commands.commandsList, commands.m4 -->
-
-**Data entry:**
-
-These data entry commands are the only ones which can modify your journal file.
- 
-- **[add](#add)**                                  - add transactions using guided prompts
-- **[import](#import)**                            - add any new transactions from other files (eg csv)
-
-**Data management:**
-
-- [check](#check)                                  - check for various kinds of issue in the data
-- [close](#close) (equity)                         - generate balance-resetting transactions
-- [diff](#diff)                                    - compare account transactions in two journal files
-- [rewrite](#rewrite)                              - generate extra postings, similar to print --auto
-
-**Financial statements:**
-
-- **[aregister](#aregister) (areg)**               - show transactions in a particular account
-- **[balancesheet](#balancesheet) (bs)**           - show assets, liabilities and net worth
-- [balancesheetequity](#balancesheetequity) (bse)  - show assets, liabilities and equity
-- [cashflow](#cashflow) (cf)                       - show changes in liquid assets
-- **[incomestatement](#incomestatement) (is)**     - show revenues and expenses
-- [roi](#roi)                                      - show return on investments
-
-**Miscellaneous reports:**
-
-- [accounts](#accounts)                            - show account names
-- [activity](#activity)                            - show postings-per-interval bar charts
-- **[balance](#balance) (bal)**                    - show balance changes/end balances/budgets in any accounts
-- [codes](#codes)                                  - show transaction codes
-- [commodities](#commodities)                      - show commodity/currency symbols
-- [descriptions](#descriptions)                    - show unique transaction descriptions
-- [files](#files)                                  - show input file paths
-- [help](#help)                                    - show hledger user manuals in several formats
-- [notes](#notes)                                  - show unique note segments of transaction descriptions
-- [payees](#payees)                                - show unique payee segments of transaction descriptions
-- [prices](#prices)                                - show market price records
-- **[print](#print)**                              - show transactions (journal entries)
-- [print-unique](#print-unique)                    - show only transactions with unique descriptions
-- **[register](#register) (reg)**                  - show postings in one or more accounts & running total
-- [register-match](#register-match)                - show a recent posting that best matches a description
-- [stats](#stats)                                  - show journal statistics
-- [tags](#tags)                                    - show tag names
-- [test](#test)                                    - run self tests
-
-<a name="addons"></a>
-<!-- #addons: the short explanation and list of common add-on commands. See also #add-on-commands. -->
-
-**Add-on commands:**
-
-Programs or scripts named `hledger-SOMETHING` in your PATH are 
-[add-on commands](#add-on-commands); these appear in the
-commands list with a `+` mark. 
-The following add-on commands can be installed, eg by the
-[hledger-install script](https://hledger.org/install.html#build-methods):
-
-- **[ui](hledger-ui.html)**   - hledger's official curses-style TUI
-- **[web](hledger-web.html)** - hledger's official web UI
-- [iadd](https://hackage.haskell.org/package/hledger-iadd)                - a popular alternative to hledger's `add` command.
-- [interest](https://hackage.haskell.org/package/hledger-interest)        - generates interest transactions
-- [stockquotes](https://hackage.haskell.org/package/hledger-stockquotes)  - downloads market prices. *(Alpha quality, needs your help.)*
-
-m4_dnl XXX maybe later
-m4_dnl _man_({{
-m4_dnl For detailed command docs please see the appropriate man page (eg `man hledger-print`), 
-m4_dnl or the info or web format of this manual.
-m4_dnl }})
-m4_dnl _notman_({{
-
-Next, the detailed command docs, in alphabetical order.
-
-m4_dnl cf Hledger/Cli/Commands/commands.m4:
-_commands_({{##}})
-
-## Add-on commands
-<!-- #add-on-commands: the long explanation of add-on commands. See also #addons. -->
-
-Add-on commands are programs or scripts in your PATH 
-
-- whose name starts with `hledger-`
-- whose name ends with a recognised file extension:
-  `.bat`,`.com`,`.exe`, `.hs`,`.lhs`,`.pl`,`.py`,`.rb`,`.rkt`,`.sh` or none
-- and (on unix, mac) which are executable by the current user.
-
-Add-ons are a relatively easy way to add local features or experiment with new ideas.
-They can be written in any language, but haskell scripts have a big advantage:
-they can use the same hledger library functions that built-in commands use for command-line options, parsing and reporting.
-Some experimental/example add-on scripts can be found in the hledger repo's
-[bin/ directory](https://github.com/simonmichael/hledger/tree/master/bin).
-
-Note in a hledger command line, add-on command flags must have a double dash (`--`) preceding them.
-Eg you must write:
-```shell
-$ hledger web -- --serve
-```
-and not:
-```shell
-$ hledger web --serve
-```
-(because the `--serve` flag belongs to `hledger-web`, not `hledger`).
-
-The `-h/--help` and `--version` flags don't require `--`.
-
-If you have any trouble with this, remember you can always run the add-on program directly, eg:
-```shell
-$ hledger-web --serve
-```
-
-# JOURNAL FORMAT
+# JOURNAL
 
 hledger's default file format, representing a General Journal.
 
@@ -3895,7 +3865,9 @@ Also, any transaction that has been changed by auto posting rules will have thes
 
 
 
-# CSV FORMAT
+<a name="csv-format"></a>
+
+# CSV
 
 How hledger reads CSV data, and the CSV rules file format.
 
@@ -5073,7 +5045,9 @@ use to parse input files. When all files have been read successfully,
 the transactions are passed as input to whichever hledger command the
 user specified.
 
-# TIMECLOCK FORMAT
+<a name="timeclock-format"></a>
+
+# TIMECLOCK
 
 The time logging format of timeclock.el, as read by hledger.
 
@@ -5138,10 +5112,12 @@ To generate time logs, ie to clock in and clock out, you could:
   These rely on a "timeclock" executable which I think is just the ledger 2 executable renamed.
 
 
-# TIMEDOT FORMAT
+<a name="timedot-format"></a>
+
+# TIMEDOT
 
 `timedot` format is hledger's human-friendly time logging format.
-Compared to [`timeclock` format](#timeclock-format), it is
+Compared to [`timeclock` format](#timeclock), it is
 
 - convenient for quick, approximate, and retroactive time logging
 - readable: you can see at a glance where time was spent.
@@ -5328,7 +5304,140 @@ file.
 <!-- $ hledger -f sample.timedot register -p weekly --depth 1 --empty  # time summary by week -->
 <!-- ``` -->
 
-# COMMON TASKS
+<a name="commands"></a>
+
+# PART 4: COMMANDS
+
+
+hledger provides a number of commands for producing reports and managing your data. 
+Run `hledger` with no arguments to list the commands available,
+and `hledger CMD` to run a command. CMD can be the full command name,
+or its standard abbreviation shown in the commands list,
+or any unambiguous prefix of the name.
+Eg: `hledger bal`.
+
+m4_dnl XXX maybe later
+m4_dnl Each command's detailed docs are available :
+m4_dnl 
+m4_dnl - command line help, eg: `hledger balance --help`
+m4_dnl - 
+m4_dnl - info manuals, eg: `hledger help --info hledger` (or possibly `info hledger`) <!-- -> m4_dnl Commands -> balance -->
+m4_dnl - web manuals, eg: <https://hledger.org/hledger.html#balance>
+m4_dnl <!-- - man pages, eg: `man hledger-balance` -->
+
+Here are the built-in commands, with the most often-used in bold:
+<!-- keep synced with Hledger.Cli.Commands.commandsList, commands.m4 -->
+
+**Data entry:**
+
+These data entry commands are the only ones which can modify your journal file.
+ 
+- **[add](#add)**                                  - add transactions using guided prompts
+- **[import](#import)**                            - add any new transactions from other files (eg csv)
+
+**Data management:**
+
+- [check](#check)                                  - check for various kinds of issue in the data
+- [close](#close) (equity)                         - generate balance-resetting transactions
+- [diff](#diff)                                    - compare account transactions in two journal files
+- [rewrite](#rewrite)                              - generate extra postings, similar to print --auto
+
+**Financial statements:**
+
+- **[aregister](#aregister) (areg)**               - show transactions in a particular account
+- **[balancesheet](#balancesheet) (bs)**           - show assets, liabilities and net worth
+- [balancesheetequity](#balancesheetequity) (bse)  - show assets, liabilities and equity
+- [cashflow](#cashflow) (cf)                       - show changes in liquid assets
+- **[incomestatement](#incomestatement) (is)**     - show revenues and expenses
+- [roi](#roi)                                      - show return on investments
+
+**Miscellaneous reports:**
+
+- [accounts](#accounts)                            - show account names
+- [activity](#activity)                            - show postings-per-interval bar charts
+- **[balance](#balance) (bal)**                    - show balance changes/end balances/budgets in any accounts
+- [codes](#codes)                                  - show transaction codes
+- [commodities](#commodities)                      - show commodity/currency symbols
+- [descriptions](#descriptions)                    - show unique transaction descriptions
+- [files](#files)                                  - show input file paths
+- [help](#help)                                    - show hledger user manuals in several formats
+- [notes](#notes)                                  - show unique note segments of transaction descriptions
+- [payees](#payees)                                - show unique payee segments of transaction descriptions
+- [prices](#prices)                                - show market price records
+- **[print](#print)**                              - show transactions (journal entries)
+- [print-unique](#print-unique)                    - show only transactions with unique descriptions
+- **[register](#register) (reg)**                  - show postings in one or more accounts & running total
+- [register-match](#register-match)                - show a recent posting that best matches a description
+- [stats](#stats)                                  - show journal statistics
+- [tags](#tags)                                    - show tag names
+- [test](#test)                                    - run self tests
+
+<a name="addons"></a>
+<!-- #addons: the short explanation and list of common add-on commands. See also #add-on-commands. -->
+
+**Add-on commands:**
+
+Programs or scripts named `hledger-SOMETHING` in your PATH are 
+[add-on commands](#add-on-commands); these appear in the
+commands list with a `+` mark. 
+The following add-on commands can be installed, eg by the
+[hledger-install script](https://hledger.org/install.html#build-methods):
+
+- **[ui](hledger-ui.html)**   - hledger's official curses-style TUI
+- **[web](hledger-web.html)** - hledger's official web UI
+- [iadd](https://hackage.haskell.org/package/hledger-iadd)                - a popular alternative to hledger's `add` command.
+- [interest](https://hackage.haskell.org/package/hledger-interest)        - generates interest transactions
+- [stockquotes](https://hackage.haskell.org/package/hledger-stockquotes)  - downloads market prices. *(Alpha quality, needs your help.)*
+
+m4_dnl XXX maybe later
+m4_dnl _man_({{
+m4_dnl For detailed command docs please see the appropriate man page (eg `man hledger-print`), 
+m4_dnl or the info or web format of this manual.
+m4_dnl }})
+m4_dnl _notman_({{
+
+Next, the detailed command docs, in alphabetical order.
+
+m4_dnl cf Hledger/Cli/Commands/commands.m4:
+_commands_({{##}})
+
+## Add-on commands
+<!-- #add-on-commands: the long explanation of add-on commands. See also #addons. -->
+
+Add-on commands are programs or scripts in your PATH 
+
+- whose name starts with `hledger-`
+- whose name ends with a recognised file extension:
+  `.bat`,`.com`,`.exe`, `.hs`,`.lhs`,`.pl`,`.py`,`.rb`,`.rkt`,`.sh` or none
+- and (on unix, mac) which are executable by the current user.
+
+Add-ons are a relatively easy way to add local features or experiment with new ideas.
+They can be written in any language, but haskell scripts have a big advantage:
+they can use the same hledger library functions that built-in commands use for command-line options, parsing and reporting.
+Some experimental/example add-on scripts can be found in the hledger repo's
+[bin/ directory](https://github.com/simonmichael/hledger/tree/master/bin).
+
+Note in a hledger command line, add-on command flags must have a double dash (`--`) preceding them.
+Eg you must write:
+```shell
+$ hledger web -- --serve
+```
+and not:
+```shell
+$ hledger web --serve
+```
+(because the `--serve` flag belongs to `hledger-web`, not `hledger`).
+
+The `-h/--help` and `--version` flags don't require `--`.
+
+If you have any trouble with this, remember you can always run the add-on program directly, eg:
+```shell
+$ hledger-web --serve
+```
+
+<a name="common-tasks"></a>
+
+# PART 5: COMMON TASKS
 
 Here are some quick examples of how to do some basic tasks with hledger.
 
@@ -5710,94 +5819,3 @@ See the [close command](#close).
 
 If using version control, don't forget to `git add` the new file.
 
-# LIMITATIONS
-
-The need to precede add-on command options with `--` when invoked from hledger is awkward.
-
-When input data contains non-ascii characters, a suitable system locale must be configured (or there will be an unhelpful error).
-Eg on POSIX, set LANG to something other than C.
-
-In a Microsoft Windows CMD window, non-ascii characters and colours are not supported.
-
-On Windows, non-ascii characters may not display correctly when running a hledger built
-in CMD in MSYS/CYGWIN, or vice-versa.
-
-In a Cygwin/MSYS/Mintty window, the tab key is not supported in hledger add.
-
-Not all of Ledger's journal file syntax is supported.
-See [hledger and Ledger > Differences > journal format](/ledger.html#journal-format).
-
-On large data files, hledger is slower and uses more memory than Ledger.
-
-# TROUBLESHOOTING
-
-Here are some issues you might encounter when you run hledger
-(and remember you can also seek help from the
-[IRC channel](http://irc.hledger.org),
-[mail list](http://list.hledger.org) or
-[bug tracker](http://bugs.hledger.org)):
-
-**Successfully installed, but "No command 'hledger' found"**\
-stack and cabal install binaries into a special directory, which
-should be added to your PATH environment variable.  Eg on unix-like
-systems, that is ~/.local/bin and ~/.cabal/bin respectively.
-
-**I set a custom LEDGER_FILE, but hledger is still using the default file**\
-`LEDGER_FILE` should be a real environment variable, not just a shell variable.
-The command `env | grep LEDGER_FILE` should show it.
-You may need to use `export`. Here's an [explanation](http://stackoverflow.com/a/7411509).
-
-**Getting errors like "Illegal byte sequence" or "Invalid or incomplete multibyte or wide character" or "commitAndReleaseBuffer: invalid argument (invalid character)"**\
-Programs compiled with GHC (hledger, haskell build tools, etc.) 
-need to have a UTF-8-aware locale configured in the environment, 
-otherwise they will fail with these kinds of errors when they encounter non-ascii characters.
-
-To fix it, set the LANG environment variable to some locale which supports UTF-8.
-The locale you choose must be installed on your system.
-
-Here's an example of setting LANG temporarily, on Ubuntu GNU/Linux:
-
-```shell
-$ file my.journal
-my.journal: UTF-8 Unicode text         # the file is UTF8-encoded
-$ echo $LANG
-C                                      # LANG is set to the default locale, which does not support UTF8
-$ locale -a                            # which locales are installed ?
-C
-en_US.utf8                             # here's a UTF8-aware one we can use
-POSIX
-$ LANG=en_US.utf8 hledger -f my.journal print   # ensure it is used for this command
-```
-
-If available, `C.UTF-8` will also work.
-If your preferred locale isn't listed by `locale -a`, you might need to install it. Eg on Ubuntu/Debian:
-
-```shell
-$ apt-get install language-pack-fr
-$ locale -a
-C
-en_US.utf8
-fr_BE.utf8
-fr_CA.utf8
-fr_CH.utf8
-fr_FR.utf8
-fr_LU.utf8
-POSIX
-$ LANG=fr_FR.utf8 hledger -f my.journal print
-```
-
-Here's how you could set it permanently, if you use a bash shell:
-
-```shell
-$ echo "export LANG=en_US.utf8" >>~/.bash_profile
-$ bash --login
-```
-
-Exact spelling and capitalisation may be important. Note the difference on MacOS (`UTF-8`, not `utf8`).
-Some platforms (eg ubuntu) allow variant spellings, but others (eg macos) require it to be exact:
-
-```shell
-$ locale -a | grep -iE en_us.*utf
-en_US.UTF-8
-$ LANG=en_US.UTF-8 hledger -f my.journal print
-```
