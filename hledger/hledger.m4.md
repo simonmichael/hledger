@@ -54,25 +54,26 @@ _web_({{
 [Common tasks]*
 }})
 
-_man_({{
+_notinfo_({{
 # NAME
 }})
 
-This is the command-line interface (CLI) for the hledger accounting tool.
-Here we also describe hledger's concepts and file formats.
-This manual is for hledger _version_.
+hledger - robust, friendly plain text accounting (CLI version)
 
-_man_({{
+_notinfo_({{
 # SYNOPSIS
 }})
 
-`hledger`
+`hledger`\
+`hledger [-f FILE] COMMAND [OPTS] [ARGS]`\
+`hledger [-f FILE] ADDONCMD -- [OPTS] [ARGS]`
 
-`hledger [-f FILE] COMMAND [OPTIONS] [ARGS]`
-
-`hledger [-f FILE] ADDONCMD -- [OPTIONS] [ARGS]`
-
+_notinfo_({{
 # INTRODUCTION
+}})
+
+This manual is for hledger's command line interface, version _version_.
+Here we also describe concepts and file formats common to all hledger programs.
 
 m4_dnl Include the standard description:
 _hledgerdescription_
