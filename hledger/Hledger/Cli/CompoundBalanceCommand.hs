@@ -279,8 +279,13 @@ compoundBalanceReportAsHtml :: ReportOpts -> CompoundPeriodicReport DisplayName 
 compoundBalanceReportAsHtml ropts cbr =
   let
     CompoundPeriodicReport title colspans subreports netrow = cbr
-    colspanattr = colspan_ $ T.pack $ show $
-      1 + length colspans + (if row_total_ ropts then 1 else 0) + (if average_ ropts then 1 else 0)
+    colspanattr = colspan_ $ T.pack $ show $ sum [
+      1,
+      length colspans,
+      if row_total_ ropts then 1 else 0,
+      if average_ ropts then 1 else 0,
+      if layout_ ropts == LayoutBare then 1 else 0
+      ]
     leftattr = style_ "text-align:left"
     blankrow = tr_ $ td_ [colspanattr] $ toHtmlRaw ("&nbsp;"::String)
 
