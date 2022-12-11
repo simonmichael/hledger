@@ -2925,7 +2925,7 @@ $ hledger print --explicit
 Text following `;`, at the end of a posting line, 
 and/or on indented lines immediately below it, form comments for that posting.
 They are reproduced by `print` but otherwise ignored,
-except they may contain [tags](#tags-1) or [bracketed posting dates][#posting-dates], which are not ignored.
+except they may contain [tags](#tags-1) or [bracketed posting dates](#posting-dates), which are not ignored.
 
 ```journal
 2012-01-01
