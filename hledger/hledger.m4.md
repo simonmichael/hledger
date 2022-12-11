@@ -1330,12 +1330,80 @@ Two features for generating transient data (visible only at report time)
 are built in to hledger's journal format. They are mentioned here
 briefly and described below:
 
+- Auto posting rules can generate extra postings on certain transactions.
+  They are activated by the `--auto` flag.
+
 - Periodic transaction rules can generate repeating transactions, 
   usually dated in the future, to help with forecasting or budgeting.
   They are activated by the `--forecast` or `balance --budget` options.
 
-- Auto posting rules can generate extra postings on certain transactions.
-  They are activated by the `--auto` flag.
+# FORECASTING
+
+The `--forecast` flag activates any [periodic transaction rules](#periodic-transactions) 
+in the journal. These will generate temporary additional transactions, 
+usually recurring and in the future, which will appear in all reports.
+`hledger print --forecast` is a good way to see them.
+
+This can be useful for estimating balances into the future,
+perhaps experimenting with different scenarios.
+
+It could also be useful for scripted data entry: you could describe recurring
+transactions, and every so often copy the output of `print --forecast`
+into the journal.
+
+The generated transactions will have an extra [tag](#tags), like
+`generated-transaction:~ PERIODICEXPR`, 
+indicating which periodic rule generated them.
+There is also a similar, hidden tag, named `_generated-transaction:`, 
+which you can use to reliably match transactions generated "just now"
+(rather than `print`ed in the past).
+
+The forecast transactions are generated within a *forecast period*,
+which is independent of the [report period](#report-start--end-date).
+(Forecast period sets the bounds for generated transactions,
+report period controls which transactions are reported.)
+The forecast period begins on:
+
+- the start date provided within `--forecast`'s argument, if any
+- otherwise, the later of
+  - the report start date, if specified (with `-b`/`-p`/`date:`)
+  - the day after the latest ordinary transaction in the journal, if any
+- otherwise today.
+
+It ends on:
+
+- the end date provided within `--forecast`'s argument, if any
+- otherwise, the report end date, if specified (with `-e`/`-p`/`date:`)
+- otherwise 180 days (6 months) from today.
+
+Note, this means that ordinary transactions will suppress periodic transactions,
+by default; the periodic transactions will not start until after the last ordinary transaction.
+This is usually convenient, but you can get around it in two ways:
+
+- If you need to record some transactions in the future, make them 
+  periodic transactions (with a single occurrence, eg: `~ YYYY-MM-DD`) rather than ordinary transactions.
+  That way they won't suppress other periodic transactions.
+
+- Or give `--forecast` a [period expression](#period-expressions) argument.
+  A forecast period specified this way can overlap ordinary transactions, 
+  and need not be in the future. Some things to note:
+
+  - You must use `=` between flag and argument; a space won't work.
+  - The period expression can specify the forecast period's start date, end date, or both.
+    See also [Report start & end date](#report-start--end-date).
+  - The period expression should not specify a [report interval](#report-intervals).
+    (Each periodic transaction rule specifies its own interval.)
+
+Some examples: `--forecast=202001-202004`, `--forecast=jan-`, `--forecast=2021`.
+
+# BUDGETING
+
+With the balance command's [`--budget` report](#budget-report).
+each periodic transaction rule generates recurring budget goals in specified accounts,
+and goals and actual performance can be compared.
+
+See also: [Budgeting and Forecasting](budgeting-and-forecasting.html).
+
 
 # COST
 
@@ -2083,74 +2151,6 @@ Related:
 : a flag (-D/-W/-M/-Q/-Y) or period expression that activates the report's multi-period mode (whether showing one or many subperiods).
 
 
-
-
-# FORECASTING
-
-The `--forecast` flag activates any [periodic transaction rules](#periodic-transactions) 
-in the journal. These will generate temporary additional transactions, 
-usually recurring and in the future, which will appear in all reports.
-`hledger print --forecast` is a good way to see them.
-
-This can be useful for estimating balances into the future,
-perhaps experimenting with different scenarios.
-
-It could also be useful for scripted data entry: you could describe recurring
-transactions, and every so often copy the output of `print --forecast`
-into the journal.
-
-The generated transactions will have an extra [tag](#tags), like
-`generated-transaction:~ PERIODICEXPR`, 
-indicating which periodic rule generated them.
-There is also a similar, hidden tag, named `_generated-transaction:`, 
-which you can use to reliably match transactions generated "just now"
-(rather than `print`ed in the past).
-
-The forecast transactions are generated within a *forecast period*,
-which is independent of the [report period](#report-start--end-date).
-(Forecast period sets the bounds for generated transactions,
-report period controls which transactions are reported.)
-The forecast period begins on:
-
-- the start date provided within `--forecast`'s argument, if any
-- otherwise, the later of
-  - the report start date, if specified (with `-b`/`-p`/`date:`)
-  - the day after the latest ordinary transaction in the journal, if any
-- otherwise today.
-
-It ends on:
-
-- the end date provided within `--forecast`'s argument, if any
-- otherwise, the report end date, if specified (with `-e`/`-p`/`date:`)
-- otherwise 180 days (6 months) from today.
-
-Note, this means that ordinary transactions will suppress periodic transactions,
-by default; the periodic transactions will not start until after the last ordinary transaction.
-This is usually convenient, but you can get around it in two ways:
-
-- If you need to record some transactions in the future, make them 
-  periodic transactions (with a single occurrence, eg: `~ YYYY-MM-DD`) rather than ordinary transactions.
-  That way they won't suppress other periodic transactions.
-
-- Or give `--forecast` a [period expression](#period-expressions) argument.
-  A forecast period specified this way can overlap ordinary transactions, 
-  and need not be in the future. Some things to note:
-
-  - You must use `=` between flag and argument; a space won't work.
-  - The period expression can specify the forecast period's start date, end date, or both.
-    See also [Report start & end date](#report-start--end-date).
-  - The period expression should not specify a [report interval](#report-intervals).
-    (Each periodic transaction rule specifies its own interval.)
-
-Some examples: `--forecast=202001-202004`, `--forecast=jan-`, `--forecast=2021`.
-
-# BUDGETING
-
-With the balance command's [`--budget` report](#budget-report).
-each periodic transaction rule generates recurring budget goals in specified accounts,
-and goals and actual performance can be compared.
-
-See also: [Budgeting and Forecasting](budgeting-and-forecasting.html).
 
 
 # PART 3: DATA FORMATS
