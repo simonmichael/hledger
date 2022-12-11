@@ -2611,27 +2611,34 @@ implicitly:
       assets:dollars  $-135          ; for $135
     ```
 
-4. Like 1, but the `@` is parenthesised, i.e. `(@)`; this is for
-   compatibility with Ledger journals
-   ([Virtual posting costs](https://www.ledger-cli.org/3.0/doc/ledger3.html#Virtual-posting-costs)),
-   and is equivalent to 1 in hledger.
-
-5. Like 2, but as in 4 the `@@` is parenthesised, i.e. `(@@)`; in hledger,
-   this is equivalent to 2.
-
 Amounts can be converted to cost at report time using the [`-B/--cost`](#reporting-options) flag;
 this is discussed more in the [COST](#cost) section.
 
-## Lot prices, lot dates
+## Other cost notations
 
-Ledger allows another kind of price, 
-[lot price](http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices)
-(four variants: `{UNITPRICE}`, `{{{{TOTALPRICE}}}}`, `{=FIXEDUNITPRICE}`, `{{{{=FIXEDTOTALPRICE}}}}`),
-and/or a lot date (`[DATE]`) to be specified.
-These are normally used to select a lot when selling investments.
-hledger will parse these, for compatibility with Ledger journals, but currently ignores them.
-A [cost](#costs), lot price and/or lot date may appear in any order,
-after the posting amount and before the balance assertion if any.
+A slight digression for Ledger users. Ledger has several other cost notations:
+
+- `(@) UNITCOST` and `(@@) TOTALCOST`
+  - means "[this cost was exceptional][ledger: Virtual posting costs], don't use it when inferring market prices".
+
+Currently, hledger treats the above like `@` and `@@`; the parentheses are ignored.
+
+- `{UNITCOST}` and `{{{{TOTALCOST}}}}`
+  - can be used identically to `@ UNITCOST` and `@@ TOTALCOST`, when [buying or selling][ledger: buying and selling stock]
+  - can also be used when selling, to select an investment lot by its cost basis
+
+- `{=FIXEDUNITCOST}` and `{{{{=FIXEDTOTALCOST}}}}`
+  - when buying, means "this amount has a [fixed price][ledger: fixing lot prices], do not let its value fluctuate with market prices in value reports"
+
+- and related: `[YYYY/MM/DD]`
+  - when selling, select the investment lot that was purchased on this date
+
+Currently, hledger accepts any or all of the above in any order after the posting amount, but ignores them.
+(To select lots, we use subaccounts instead.)
+
+[ledger: Virtual posting costs]:    https://www.ledger-cli.org/3.0/doc/ledger3.html#Virtual-posting-costs
+[ledger: buying and selling stock]: https://www.ledger-cli.org/3.0/doc/ledger3.html#Buying-and-Selling-Stock
+[ledger: fixing lot prices]:        https://www.ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices
 
 ## Balance assertions
 
