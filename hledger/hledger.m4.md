@@ -3,7 +3,7 @@
 % _monthyear_
 
 m4_dnl Quick hledger docs editing intro:
-m4_dnl  .m4.md are hledger docs source, processed with m4 to generate markdown.
+nm4_dnl  .m4.md are hledger docs source, processed with m4 to generate markdown.
 m4_dnl  Lines beginning with m4_dnl are comments.
 m4_dnl  Words enclosed in underscores are macros, defined in doc/common.m4.
 m4_dnl  Macro arguments are enclosed in (). Text literals are enclosed in {{}}.
@@ -790,6 +790,7 @@ Use this when you want a summary with less detail.
 This flag has the same effect as a `depth:` query argument: `depth:2`, `--depth=2` or `-2` are equivalent.
 
 # TIME PERIODS
+
 <a name="report-period"></a>
 
 ## Report start & end date
@@ -2082,6 +2083,74 @@ Related:
 : a flag (-D/-W/-M/-Q/-Y) or period expression that activates the report's multi-period mode (whether showing one or many subperiods).
 
 
+
+
+# FORECASTING
+
+The `--forecast` flag activates any [periodic transaction rules](#periodic-transactions) 
+in the journal. These will generate temporary additional transactions, 
+usually recurring and in the future, which will appear in all reports.
+`hledger print --forecast` is a good way to see them.
+
+This can be useful for estimating balances into the future,
+perhaps experimenting with different scenarios.
+
+It could also be useful for scripted data entry: you could describe recurring
+transactions, and every so often copy the output of `print --forecast`
+into the journal.
+
+The generated transactions will have an extra [tag](#tags), like
+`generated-transaction:~ PERIODICEXPR`, 
+indicating which periodic rule generated them.
+There is also a similar, hidden tag, named `_generated-transaction:`, 
+which you can use to reliably match transactions generated "just now"
+(rather than `print`ed in the past).
+
+The forecast transactions are generated within a *forecast period*,
+which is independent of the [report period](#report-start--end-date).
+(Forecast period sets the bounds for generated transactions,
+report period controls which transactions are reported.)
+The forecast period begins on:
+
+- the start date provided within `--forecast`'s argument, if any
+- otherwise, the later of
+  - the report start date, if specified (with `-b`/`-p`/`date:`)
+  - the day after the latest ordinary transaction in the journal, if any
+- otherwise today.
+
+It ends on:
+
+- the end date provided within `--forecast`'s argument, if any
+- otherwise, the report end date, if specified (with `-e`/`-p`/`date:`)
+- otherwise 180 days (6 months) from today.
+
+Note, this means that ordinary transactions will suppress periodic transactions,
+by default; the periodic transactions will not start until after the last ordinary transaction.
+This is usually convenient, but you can get around it in two ways:
+
+- If you need to record some transactions in the future, make them 
+  periodic transactions (with a single occurrence, eg: `~ YYYY-MM-DD`) rather than ordinary transactions.
+  That way they won't suppress other periodic transactions.
+
+- Or give `--forecast` a [period expression](#period-expressions) argument.
+  A forecast period specified this way can overlap ordinary transactions, 
+  and need not be in the future. Some things to note:
+
+  - You must use `=` between flag and argument; a space won't work.
+  - The period expression can specify the forecast period's start date, end date, or both.
+    See also [Report start & end date](#report-start--end-date).
+  - The period expression should not specify a [report interval](#report-intervals).
+    (Each periodic transaction rule specifies its own interval.)
+
+Some examples: `--forecast=202001-202004`, `--forecast=jan-`, `--forecast=2021`.
+
+# BUDGETING
+
+With the balance command's [`--budget` report](#budget-report).
+each periodic transaction rule generates recurring budget goals in specified accounts,
+and goals and actual performance can be compared.
+
+See also: [Budgeting and Forecasting](budgeting-and-forecasting.html).
 
 
 # PART 3: DATA FORMATS
@@ -3721,153 +3790,7 @@ P 2010-01-01 € $1.40
 The `-V`, `-X` and `--value` flags use these market prices to show amount values
 in another commodity. See [Valuation](#valuation).
 
-## Periodic transactions
-
-Periodic transaction rules describe transactions that recur.
-They allow hledger to generate temporary future transactions to help with forecasting,
-so you don't have to write out each one in the journal,
-and it's easy to try out different forecasts.
-
-Periodic transactions can be a little tricky, so before you use them,
-read this whole section - or at least these tips:
-
-1. Two spaces accidentally added or omitted will cause you trouble - read about this below.
-2. For troubleshooting, show the generated transactions with `hledger print --forecast tag:generated` or `hledger register --forecast tag:generated`.
-3. Forecasted transactions will begin only after the last non-forecasted transaction's date.
-4. Forecasted transactions will end 6 months from today, by default. See below for the exact start/end rules.
-5. [period expressions](#period-expressions) can be tricky. Their documentation needs improvement, but is worth studying.
-6. Some period expressions with a repeating interval must begin on a natural boundary of that interval.
-   Eg in `weekly from DATE`, DATE must be a monday. `~ weekly from 2019/10/1` (a tuesday) will give an error.
-7. Other period expressions with an interval are automatically expanded to cover a whole number of that interval.
-   (This is done to improve reports, but it also affects periodic transactions. Yes, it's a bit inconsistent with the above.)
-   Eg: <br>
-   `~ every 10th day of month from 2020/01`, which is equivalent to <br>
-   `~ every 10th day of month from 2020/01/01`, will be adjusted to start on 2019/12/10.
-
-Periodic transaction rules also have a second meaning:
-they are used to define budget goals, shown in [budget reports](#budget-report).
-
-
-### Periodic rule syntax
-
-A periodic transaction rule looks like a normal journal entry,
-with the date replaced by a tilde (`~`) followed by a
-[period expression](#period-expressions)
-(mnemonic: `~` looks like a recurring sine wave.):
-```journal
-~ monthly
-    expenses:rent          $2000
-    assets:bank:checking
-```
-There is an additional constraint on the period expression:
-the start date must fall on a natural boundary of the interval.
-Eg `monthly from 2018/1/1` is valid, but `monthly from 2018/1/15` is not.
-
-### Periodic rules and relative dates
-
-Partial or relative dates (like `12/31`, `25`, `tomorrow`, `last week`, `next quarter`)
-are usually not recommended in periodic rules, since the results will change as time passes.
-If used, they will be interpreted relative to, in  order of preference:
-
-1. the first day of the default year specified by a recent `Y` directive
-2. or the date specified with `--today`
-3. or the date on which you are running the report.
-
-They will not be affected at all by report period or forecast period dates.
-
-### Two spaces between period expression and description!
-
-If the period expression is followed by a transaction description,
-these must be separated by **two or more spaces**.
-This helps hledger know where the period expression ends, so that descriptions
-can not accidentally alter their meaning, as in this example:
-
-```
-; 2 or more spaces needed here, so the period is not understood as "every 2 months in 2020"
-;               ||
-;               vv
-~ every 2 months  in 2020, we will review
-    assets:bank:checking   $1500
-    income:acme inc
-```
-
-So,
-
-- Do write two spaces between your period expression and your transaction description, if any.
-- Don't accidentally write two spaces in the middle of your period expression.
-
-### Forecasting with periodic transactions
-
-The `--forecast` flag activates any [periodic transaction rules](#periodic-transactions) 
-in the journal. These will generate temporary additional transactions, 
-usually recurring and in the future, which will appear in all reports.
-`hledger print --forecast` is a good way to see them.
-
-This can be useful for estimating balances into the future,
-perhaps experimenting with different scenarios.
-
-It could also be useful for scripted data entry: you could describe recurring
-transactions, and every so often copy the output of `print --forecast`
-into the journal.
-
-The generated transactions will have an extra [tag](#tags), like
-`generated-transaction:~ PERIODICEXPR`, 
-indicating which periodic rule generated them.
-There is also a similar, hidden tag, named `_generated-transaction:`, 
-which you can use to reliably match transactions generated "just now"
-(rather than `print`ed in the past).
-
-The forecast transactions are generated within a *forecast period*,
-which is independent of the [report period](#report-start--end-date).
-(Forecast period sets the bounds for generated transactions,
-report period controls which transactions are reported.)
-The forecast period begins on:
-
-- the start date provided within `--forecast`'s argument, if any
-- otherwise, the later of
-  - the report start date, if specified (with `-b`/`-p`/`date:`)
-  - the day after the latest ordinary transaction in the journal, if any
-- otherwise today.
-
-It ends on:
-
-- the end date provided within `--forecast`'s argument, if any
-- otherwise, the report end date, if specified (with `-e`/`-p`/`date:`)
-- otherwise 180 days (6 months) from today.
-
-Note, this means that ordinary transactions will suppress periodic transactions,
-by default; the periodic transactions will not start until after the last ordinary transaction.
-This is usually convenient, but you can get around it in two ways:
-
-- If you need to record some transactions in the future, make them 
-  periodic transactions (with a single occurrence, eg: `~ YYYY-MM-DD`) rather than ordinary transactions.
-  That way they won't suppress other periodic transactions.
-
-- Or give `--forecast` a [period expression](#period-expressions) argument.
-  A forecast period specified this way can overlap ordinary transactions, 
-  and need not be in the future. Some things to note:
-
-  - You must use `=` between flag and argument; a space won't work.
-  - The period expression can specify the forecast period's start date, end date, or both.
-    See also [Report start & end date](#report-start--end-date).
-  - The period expression should not specify a [report interval](#report-intervals).
-    (Each periodic transaction rule specifies its own interval.)
-
-Some examples: `--forecast=202001-202004`, `--forecast=jan-`, `--forecast=2021`.
-
-### Budgeting with periodic transactions
-
-With the `--budget` flag, currently supported by the balance command,
-each periodic transaction rule declares recurring budget goals for the specified accounts.
-Eg the first example above declares a goal of spending $2000 on rent
-(and also, a goal of depositing $2000 into checking) every month.
-Goals and actual performance can then be compared in [budget reports](#budget-report).
-
-See also: [Budgeting and Forecasting](budgeting-and-forecasting.html).
-
-
 <a name="automated-postings"></a>
-<a name="auto-postings"></a>
 
 ## Auto postings
 
@@ -3980,8 +3903,76 @@ Also, any transaction that has been changed by auto posting rules will have thes
 - `_modified:` - a hidden tag not appearing in the comment; this transaction was modified "just now".
 
 
+## Periodic transactions
 
-<a name="csv-format"></a>
+Periodic transaction rules describe transactions that recur.
+They allow hledger to generate temporary future transactions (visible only in reports)
+to help with [forecasting](#forecasting) or [budgeting](#budgeting).
+
+Periodic transactions can be a little tricky, so before you use them,
+read this whole section, or at least these tips:
+
+1. Two spaces accidentally added or omitted will cause you trouble - read about this below.
+2. For troubleshooting, show the generated transactions with `hledger print --forecast tag:generated` or `hledger register --forecast tag:generated`.
+3. Forecasted transactions will begin only after the last non-forecasted transaction's date.
+4. Forecasted transactions will end 6 months from today, by default. See below for the exact start/end rules.
+5. [period expressions](#period-expressions) can be tricky. Their documentation needs improvement, but is worth studying.
+6. Some period expressions with a repeating interval must begin on a natural boundary of that interval.
+   Eg in `weekly from DATE`, DATE must be a monday. `~ weekly from 2019/10/1` (a tuesday) will give an error.
+7. Other period expressions with an interval are automatically expanded to cover a whole number of that interval.
+   (This is done to improve reports, but it also affects periodic transactions. Yes, it's a bit inconsistent with the above.)
+   Eg: <br>
+   `~ every 10th day of month from 2020/01`, which is equivalent to <br>
+   `~ every 10th day of month from 2020/01/01`, will be adjusted to start on 2019/12/10.
+
+
+### Periodic rule syntax
+
+A periodic transaction rule looks like a normal journal entry,
+with the date replaced by a tilde (`~`) followed by a
+[period expression](#period-expressions)
+(mnemonic: `~` looks like a recurring sine wave.):
+```journal
+~ monthly
+    expenses:rent          $2000
+    assets:bank:checking
+```
+There is an additional constraint on the period expression:
+the start date must fall on a natural boundary of the interval.
+Eg `monthly from 2018/1/1` is valid, but `monthly from 2018/1/15` is not.
+
+### Periodic rules and relative dates
+
+Partial or relative dates (like `12/31`, `25`, `tomorrow`, `last week`, `next quarter`)
+are usually not recommended in periodic rules, since the results will change as time passes.
+If used, they will be interpreted relative to, in  order of preference:
+
+1. the first day of the default year specified by a recent `Y` directive
+2. or the date specified with `--today`
+3. or the date on which you are running the report.
+
+They will not be affected at all by report period or forecast period dates.
+
+### Two spaces between period expression and description!
+
+If the period expression is followed by a transaction description,
+these must be separated by **two or more spaces**.
+This helps hledger know where the period expression ends, so that descriptions
+can not accidentally alter their meaning, as in this example:
+
+```
+; 2 or more spaces needed here, so the period is not understood as "every 2 months in 2020"
+;               ||
+;               vv
+~ every 2 months  in 2020, we will review
+    assets:bank:checking   $1500
+    income:acme inc
+```
+
+So,
+
+- Do write two spaces between your period expression and your transaction description, if any.
+- Don't accidentally write two spaces in the middle of your period expression.
 
 # CSV
 
@@ -4312,6 +4303,8 @@ $ hledger -f paypal-custom.csv  print
 
 ```
 
+
+<a name="csv-format"></a>
 
 ## CSV rules
 
@@ -5155,6 +5148,7 @@ This is all part of the CSV reader, one of several readers hledger can
 use to parse input files. When all files have been read successfully,
 the transactions are passed as input to whichever hledger command the
 user specified.
+
 
 <a name="timeclock-format"></a>
 
