@@ -10,22 +10,38 @@ REMOTECIBRANCH=simon
 REMOTEMAINBRANCH=master
 NUMRUNS=3
 NUMCOMMITS=5
-CISTARTDELAY=10  # too short, and the script will try to push too early
+CISTARTDELAY=5  # between ci push and run start
+MAINPUSHDELAY=5  # between run end and master push
 
-ciwait() {
-    echo "waiting for CI to start..."
-    sleep $CISTARTDELAY
-    gh run list -L$NUMRUNS
-    echo "waiting for CI to finish..."
-    ciwatch "$INTERVAL"
+gitlog() {
+    REF=$1
+    git log --format='%ad %h %s%d' --date=short -$NUMCOMMITS ${REF:+"$REF"}
+}
+
+runlog() {
+    echo "latest runs are:"
     gh run list -L$NUMRUNS
 }
 
+ciwait() {
+    runlog
+    echo "waiting for CI to start..."
+    sleep $CISTARTDELAY
+    runlog
+    echo "waiting for CI to finish..."
+    ciwatch "$INTERVAL"
+    runlog
+    echo "waiting for master to notice CI success..."
+    sleep $MAINPUSHDELAY
+}
+
+echo "latest local commits are:"
+gitlog
 echo "force-pushing to github/$REMOTECIBRANCH"
 git push -f github $LOCALBRANCH:$REMOTECIBRANCH
 ciwait
 echo "pushing to $REMOTEMAINBRANCH"
 git push github $REMOTEMAINBRANCH
-echo "Latest commits on github/$REMOTEMAINBRANCH are now:"
-git log --format='%ad %h %s%d' --date=short -$NUMCOMMITS github/$REMOTEMAINBRANCH
+echo "latest commits on github/$REMOTEMAINBRANCH are:"
+gitlog github/$REMOTEMAINBRANCH
 echo "done"
