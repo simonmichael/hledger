@@ -2645,31 +2645,68 @@ implicitly:
 Amounts can be converted to cost at report time using the [`-B/--cost`](#reporting-options) flag;
 this is discussed more in the [COST](#cost) section.
 
-## Other cost notations
+## Other cost/lot notations
 
-A slight digression for Ledger users. Ledger has several other cost notations:
+A slight digression for Ledger users. Ledger has a number of cost/lot-related notations:
+
+- `@ UNITCOST` and `@@ TOTALCOST`
+  - expresses a conversion rate, as in hledger
+  - when buying, also creates a lot than can be selected at selling time
 
 - `(@) UNITCOST` and `(@@) TOTALCOST`
-  - means "[this cost was exceptional][ledger: Virtual posting costs], don't use it when inferring market prices".
+  - like the above, but also means "[this cost was exceptional][ledger: virtual posting costs], don't use it when inferring market prices".
 
 Currently, hledger treats the above like `@` and `@@`; the parentheses are ignored.
-
-- `{UNITCOST}` and `{{{{TOTALCOST}}}}`
-  - can be used identically to `@ UNITCOST` and `@@ TOTALCOST`, when [buying or selling][ledger: buying and selling stock]
-  - can also be used when selling, to select an investment lot by its cost basis
 
 - `{=FIXEDUNITCOST}` and `{{{{=FIXEDTOTALCOST}}}}`
   - when buying, means "this amount has a [fixed price][ledger: fixing lot prices], do not let its value fluctuate with market prices in value reports"
 
-- and related: `[YYYY/MM/DD]`
-  - when selling, select the investment lot that was purchased on this date
+- `{UNITCOST}` and `{{{{TOTALCOST}}}}`
+  - can be used identically to `@ UNITCOST` and `@@ TOTALCOST`
+  - when [selling][ledger: buying and selling stock], can be used to select an investment lot by its cost basis
+
+- and related: `[YYYY/MM/DD]` ([lot date][ledger: lot dates])
+  - when buying, attaches this acquisition date to the lot
+  - when selling, selects a lot by its acquisition date
 
 Currently, hledger accepts any or all of the above in any order after the posting amount, but ignores them.
 (To select lots, we use subaccounts instead.)
 
-[ledger: Virtual posting costs]:    https://www.ledger-cli.org/3.0/doc/ledger3.html#Virtual-posting-costs
+- also: `(SOME TEXT)` ([lot note][ledger: lot notes])
+  - when buying, attaches this note to the lot
+  - when selling, selects a lot by its note
+
+Currently, hledger rejects lot notes.
+
+[ledger: virtual posting costs]:    https://www.ledger-cli.org/3.0/doc/ledger3.html#Virtual-posting-costs
 [ledger: buying and selling stock]: https://www.ledger-cli.org/3.0/doc/ledger3.html#Buying-and-Selling-Stock
 [ledger: fixing lot prices]:        https://www.ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices
+[ledger: lot dates]:                https://www.ledger-cli.org/3.0/doc/ledger3.html#Lot-dates
+[ledger: lot notes]:                https://www.ledger-cli.org/3.0/doc/ledger3.html#Lot-notes
+
+For Beancount users, the [notation][beancount: costs and prices] and [behaviour][beancount: how inventories work] is different:
+
+- `@ UNITCOST` and `@@ TOTALCOST`
+  - expresses a cost without creating a lot, as in hledger
+  - when buying (augmenting) or selling (reducing) a lot, combined with `{...}`: documents the cost/selling price (not used for transaction balancing)
+
+- `{UNITCOST}` and `{{{{TOTALCOST}}}}`
+  - when buying (augmenting), expresses the cost for transaction balancing, and also creates a lot with this cost basis attached
+  - when selling (reducing),
+    - selects a lot by its cost basis
+    - raises an error if that lot is not present or can not be selected unambiguously (depending on booking method configured)
+    - expresses the selling price for transaction balancing
+
+Currently, hledger accepts the `{UNITCOST}`/`{{{{TOTALCOST}}}}` notation but ignores it.
+
+- variations: `{}`, `{YYYY-MM-DD}`, `{"LABEL"}`, `{UNITCOST, "LABEL"}`, `{UNITCOST, YYYY-MM-DD, "LABEL"}` etc.
+
+Currently, hledger rejects these.
+
+
+[beancount: costs and prices]:      https://beancount.github.io/docs/beancount_language_syntax.html#costs-and-prices
+[beancount: how inventories work]:  https://beancount.github.io/docs/how_inventories_work.html
+
 
 ## Balance assertions
 
