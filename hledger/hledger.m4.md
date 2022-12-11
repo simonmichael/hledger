@@ -75,8 +75,8 @@ _notinfo_({{
 This manual is for hledger's command line interface, version
 _version_.  It also describes the concepts and file formats common to
 all hledger programs.  You can read it on hledger.org, or as an info
-manual or man page on your system. It is detailed, often too much so
-when you are learning - so feel free to read just the parts you need.
+xmanual or man page on your system. It is detailed and not entirely linear,
+so you should feel free to skip ahead / read just the parts you need.
 
 m4_dnl Include the standard description:
 _hledgerdescription_
@@ -447,6 +447,63 @@ With the `-s`/`--strict` flag, additional checks are performed:
 You can use the [check](#check) command to run individual checks -- the
 ones listed above and some more.
 
+# COMMANDS
+
+hledger provides a number of built-in subcommands (described [below](#part-4-commands)).
+Most of these read your data without changing it, and display a report.
+A few assist with data entry and management.
+
+Run `hledger` with no arguments to list the commands available,
+and `hledger CMD` to run a command. CMD can be the full command name,
+or its standard abbreviation shown in the commands list,
+or any unambiguous prefix of the name.
+Eg: `hledger bal`.
+
+m4_dnl XXX maybe later
+m4_dnl Each command's detailed docs are available :
+m4_dnl 
+m4_dnl - command line help, eg: `hledger balance --help`
+m4_dnl - 
+m4_dnl - info manuals, eg: `hledger help --info hledger` (or possibly `info hledger`) <!-- -> m4_dnl Commands -> balance -->
+m4_dnl - web manuals, eg: <https://hledger.org/hledger.html#balance>
+m4_dnl <!-- - man pages, eg: `man hledger-balance` -->
+
+## Add-on commands
+<!-- #add-on-commands: the long explanation of add-on commands. See also #addons. -->
+
+Add-on commands are extra subcommands provided by programs or scripts in your PATH 
+
+- whose name starts with `hledger-`
+- whose name ends with a recognised file extension:
+  `.bat`,`.com`,`.exe`, `.hs`,`.lhs`,`.pl`,`.py`,`.rb`,`.rkt`,`.sh` or none
+- and (on unix, mac) which are executable by the current user.
+
+Addons can be written in any language, but haskell scripts or programs have a big advantage:
+they can use hledger's library code, for command-line options, parsing and reporting.
+
+Several add-on commands are installed by the 
+[hledger-install script](https://hledger.org/install.html#build-methods).
+See <https://hledger.org/scripts.html> for more details.
+
+
+Note in a hledger command line, add-on command flags must have a double dash (`--`) preceding them.
+Eg you must write:
+```shell
+$ hledger web -- --serve
+```
+and not:
+```shell
+$ hledger web --serve
+```
+(because the `--serve` flag belongs to `hledger-web`, not `hledger`).
+
+The `-h/--help` and `--version` flags don't require `--`.
+
+If you have any trouble with this, remember you can always run the add-on program directly, eg:
+```shell
+$ hledger-web --serve
+```
+
 # OUTPUT
 
 ## Output destination
@@ -725,7 +782,57 @@ $ LANG=en_US.UTF-8 hledger -f my.journal print
 ```
 # PART 2: CONCEPTS
 
+# DEPTH
+
+With the `--depth NUM` option (short form: `-NUM`), 
+reports will show accounts only to the specified depth, hiding deeper subaccounts.
+Use this when you want a summary with less detail.
+This flag has the same effect as a `depth:` query argument: `depth:2`, `--depth=2` or `-2` are equivalent.
+
 # TIME PERIODS
+<a name="report-period"></a>
+
+## Report start & end date
+
+By default, most hledger reports will show the full span of time represented by the journal data.
+The report start date will be the earliest transaction or posting date,
+and the report end date will be the latest transaction, posting, or market price date.
+
+Often you will want to see a shorter time span, such as the current month.
+You can specify a start and/or end date using
+[`-b/--begin`](#reporting-options),
+[`-e/--end`](#reporting-options),
+[`-p/--period`](#period-expressions)
+or a [`date:` query](#queries) (described below).
+All of these accept the [smart date](#smart-dates) syntax (below).
+
+Some notes:
+
+- End dates are exclusive, as in Ledger, so you should write the date *after*
+  the last day you want to see in the report.
+- As noted in [reporting options](#general-options):
+  among start/end dates specified with *options*, the last (i.e. right-most)
+  option takes precedence.
+- The effective report start and end dates are the intersection of the
+  start/end dates from options and that from `date:` queries.
+  That is, `date:2019-01 date:2019 -p'2000 to 2030'` yields January 2019, the
+  smallest common time span.
+- A [report interval](#report-intervals) (see below) will adjust start/end dates,
+  when needed, so that they fall on subperiod boundaries.
+
+Examples:
+
+|                    |                                                                                             |
+|--------------------|---------------------------------------------------------------------------------------------|
+| `-b 2016/3/17`     | begin on St. Patrick’s day 2016                                                             |
+| `-e 12/1`          | end at the start of december 1st of the current year (11/30 will be the last date included) |
+| `-b thismonth`     | all transactions on or after the 1st of the current month                                   |
+| `-p thismonth`     | all transactions in the current month                                                       |
+| `date:2016/3/17..` | the above written as queries instead (`..` can also be replaced with `-`)                   |
+| `date:..12/1`      |                                                                                             |
+| `date:thismonth..` |                                                                                             |
+| `date:thismonth`   |                                                                                             |
+
 ## Smart dates
 
 hledger's user interfaces accept a flexible "smart date" syntax.
@@ -762,49 +869,6 @@ Counterexamples - malformed digit sequences might give surprising results:
 Note "today's date" can be overridden with the `--today` option, in case it's
 needed for testing or for recreating old reports. (Except for periodic
 transaction rules; those are not affected by `--today`.)
-
-<a name="report-period"></a>
-
-## Report start & end date
-
-By default, most hledger reports will show the full span of time represented by the journal data.
-The report start date will be the earliest transaction or posting date, and the report end date
-will be the latest transaction, posting, or market price date.
-
-Often you will want to see a shorter time span, such as the current month.
-You can specify a start and/or end date using
-[`-b/--begin`](#reporting-options),
-[`-e/--end`](#reporting-options),
-[`-p/--period`](#period-expressions)
-or a [`date:` query](#queries) (described below).
-All of these accept the [smart date](#smart-dates) syntax.
-
-Some notes:
-
-- End dates are exclusive, as in Ledger, so you should write the date *after*
-  the last day you want to see in the report.
-- As noted in [reporting options](#general-options):
-  among start/end dates specified with *options*, the last (i.e. right-most)
-  option takes precedence.
-- The effective report start and end dates are the intersection of the
-  start/end dates from options and that from `date:` queries.
-  That is, `date:2019-01 date:2019 -p'2000 to 2030'` yields January 2019, the
-  smallest common time span.
-- A [report interval](#report-intervals) (see below) will adjust start/end dates,
-  when needed, so that they fall on subperiod boundaries.
-
-Examples:
-
-|                    |                                                                                             |
-|--------------------|---------------------------------------------------------------------------------------------|
-| `-b 2016/3/17`     | begin on St. Patrick’s day 2016                                                             |
-| `-e 12/1`          | end at the start of december 1st of the current year (11/30 will be the last date included) |
-| `-b thismonth`     | all transactions on or after the 1st of the current month                                   |
-| `-p thismonth`     | all transactions in the current month                                                       |
-| `date:2016/3/17..` | the above written as queries instead (`..` can also be replaced with `-`)                   |
-| `date:..12/1`      |                                                                                             |
-| `date:thismonth..` |                                                                                             |
-| `date:thismonth`   |                                                                                             |
 
 ## Report intervals
 
@@ -1033,64 +1097,6 @@ Examples:
 | `-p "every weekday"`         | dates will be Mon, Tue, Wed, Thu, Fri; <br>periods will be Mon, Tue, Wed, Thu, Fri-Sun |
 | `-p "every weekendday"`      | dates will be Sat, Sun; <br>periods will be Sat, Sun-Fri                               |
 
-# DEPTH
-
-With the `--depth NUM` option (short form: `-NUM`), 
-commands like [account](#account), [balance](#balance) and [register](#register) 
-will show only the uppermost accounts in the account tree, down to level NUM. 
-Use this when you want a summary with less detail.
-This flag has the same effect as a `depth:` query argument: `depth:2`, `--depth=2` or `-2` are equivalent.
-
-# PIVOTING
-
-`--pivot` is a general option affecting all reports.
-<!-- (Not to be confused with `--transpose`, a `balance` command flag.) -->
-Normally hledger groups and sums amounts by account name.
-`--pivot FIELD` substitutes some other transaction field for account names,
-causing amounts to be grouped and summed by that field's value instead.
-Values containing `colon:separated:parts` will form a hierarchy, as with account names.
-
-FIELD can be any of the transaction fields `status`, `code`, `description`, `payee`, `note`,
-or a tag name. ([Transactions](#transactions) and [Tags](#tags-1) are explained below.)
-
-Some examples:
-
-```journal
-2016/02/16 Member Fee Payment
-    assets:bank account                    2 EUR
-    income:member fees                    -2 EUR  ; member: John Doe
-```
-Normal balance report showing account names:
-```shell
-$ hledger balance
-               2 EUR  assets:bank account
-              -2 EUR  income:member fees
---------------------
-                   0
-```
-Pivoted balance report, using member: tag values instead:
-```shell
-$ hledger balance --pivot member
-               2 EUR
-              -2 EUR  John Doe
---------------------
-                   0
-```
-One way to show only amounts with a member: value (using a [query](#queries), described below):
-```shell
-$ hledger balance --pivot member tag:member=.
-              -2 EUR  John Doe
---------------------
-              -2 EUR
-```
-Another way (the acct: query matches against the pivoted "account name"):
-```shell
-$ hledger balance --pivot member acct:.
-              -2 EUR  John Doe
---------------------
-              -2 EUR
-```
-
 # QUERIES
 
 One of hledger's strengths is being able to quickly report on a precise subset of your data. 
@@ -1269,6 +1275,66 @@ note that `cur:` matches the new commodity symbol, and not the old one,
 and `amt:` matches the new quantity, and not the old one.
 Note: this changed in hledger 1.22, previously it was the reverse, 
 see the discussion at [#1625](https://github.com/simonmichael/hledger/issues/1625).
+
+# GENERATING DATA
+
+Two features for generating transient data (visible only at report time)
+are built in to hledger's journal format. They are mentioned here
+briefly and described below:
+
+- Periodic transaction rules can generate repeating transactions, 
+  usually dated in the future, to help with forecasting or budgeting.
+  They are activated by the `--forecast` or `balance --budget` options.
+
+- Auto posting rules can generate extra postings on certain transactions.
+  They are activated by the `--auto` flag.
+
+# PIVOTING
+
+Normally, hledger groups and sums amounts within each account.
+The `--pivot FIELD` option substitutes some other transaction field for account names,
+causing amounts to be grouped and summed by that field's value instead.
+FIELD can be any of the transaction fields `status`, `code`, `description`, `payee`, `note`,
+or a tag name (transactions and tags are explained below).
+Values containing `colon:separated:parts` will form a hierarchy, as account names do.
+
+Some examples:
+
+```journal
+2016/02/16 Member Fee Payment
+    assets:bank account                    2 EUR
+    income:member fees                    -2 EUR  ; member: John Doe
+```
+Normal balance report showing account names:
+```shell
+$ hledger balance
+               2 EUR  assets:bank account
+              -2 EUR  income:member fees
+--------------------
+                   0
+```
+Pivoted balance report, using member: tag values instead:
+```shell
+$ hledger balance --pivot member
+               2 EUR
+              -2 EUR  John Doe
+--------------------
+                   0
+```
+One way to show only amounts with a member: value (using a [query](#queries), described below):
+```shell
+$ hledger balance --pivot member tag:member=.
+              -2 EUR  John Doe
+--------------------
+              -2 EUR
+```
+Another way (the acct: query matches against the pivoted "account name"):
+```shell
+$ hledger balance --pivot member acct:.
+              -2 EUR  John Doe
+--------------------
+              -2 EUR
+```
 
 # COST
 
@@ -5315,28 +5381,9 @@ file.
 <!-- $ hledger -f sample.timedot register -p weekly --depth 1 --empty  # time summary by week -->
 <!-- ``` -->
 
-<a name="commands"></a>
-
 # PART 4: COMMANDS
 
-
-hledger provides a number of commands for producing reports and managing your data. 
-Run `hledger` with no arguments to list the commands available,
-and `hledger CMD` to run a command. CMD can be the full command name,
-or its standard abbreviation shown in the commands list,
-or any unambiguous prefix of the name.
-Eg: `hledger bal`.
-
-m4_dnl XXX maybe later
-m4_dnl Each command's detailed docs are available :
-m4_dnl 
-m4_dnl - command line help, eg: `hledger balance --help`
-m4_dnl - 
-m4_dnl - info manuals, eg: `hledger help --info hledger` (or possibly `info hledger`) <!-- -> m4_dnl Commands -> balance -->
-m4_dnl - web manuals, eg: <https://hledger.org/hledger.html#balance>
-m4_dnl <!-- - man pages, eg: `man hledger-balance` -->
-
-Here are the built-in commands, with the most often-used in bold:
+Here are the built-in [commands](#commands), with the most often-used in bold:
 <!-- keep synced with Hledger.Cli.Commands.commandsList, commands.m4 -->
 
 **Data entry:**
@@ -5386,13 +5433,9 @@ These data entry commands are the only ones which can modify your journal file.
 <a name="addons"></a>
 <!-- #addons: the short explanation and list of common add-on commands. See also #add-on-commands. -->
 
-**Add-on commands:**
-
-Programs or scripts named `hledger-SOMETHING` in your PATH are 
-[add-on commands](#add-on-commands); these appear in the
-commands list with a `+` mark. 
-The following add-on commands can be installed, eg by the
-[hledger-install script](https://hledger.org/install.html#build-methods):
+And here are some typical [add-on commands](#add-on-commands)
+installed by the [hledger-install script](https://hledger.org/install.html#build-methods).
+If installed, these will also appear in hledger's commands list, with a `+` mark:
 
 - **[ui](hledger-ui.html)**   - hledger's official curses-style TUI
 - **[web](hledger-web.html)** - hledger's official web UI
@@ -5407,44 +5450,10 @@ m4_dnl or the info or web format of this manual.
 m4_dnl }})
 m4_dnl _notman_({{
 
-Next, the detailed command docs, in alphabetical order.
+Next, each command is described in detail, in alphabetical order.
 
 m4_dnl cf Hledger/Cli/Commands/commands.m4:
 _commands_({{##}})
-
-## Add-on commands
-<!-- #add-on-commands: the long explanation of add-on commands. See also #addons. -->
-
-Add-on commands are programs or scripts in your PATH 
-
-- whose name starts with `hledger-`
-- whose name ends with a recognised file extension:
-  `.bat`,`.com`,`.exe`, `.hs`,`.lhs`,`.pl`,`.py`,`.rb`,`.rkt`,`.sh` or none
-- and (on unix, mac) which are executable by the current user.
-
-Add-ons are a relatively easy way to add local features or experiment with new ideas.
-They can be written in any language, but haskell scripts have a big advantage:
-they can use the same hledger library functions that built-in commands use for command-line options, parsing and reporting.
-Some experimental/example add-on scripts can be found in the hledger repo's
-[bin/ directory](https://github.com/simonmichael/hledger/tree/master/bin).
-
-Note in a hledger command line, add-on command flags must have a double dash (`--`) preceding them.
-Eg you must write:
-```shell
-$ hledger web -- --serve
-```
-and not:
-```shell
-$ hledger web --serve
-```
-(because the `--serve` flag belongs to `hledger-web`, not `hledger`).
-
-The `-h/--help` and `--version` flags don't require `--`.
-
-If you have any trouble with this, remember you can always run the add-on program directly, eg:
-```shell
-$ hledger-web --serve
-```
 
 <a name="common-tasks"></a>
 
