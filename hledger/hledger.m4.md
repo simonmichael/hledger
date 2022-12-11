@@ -3,10 +3,10 @@
 % _monthyear_
 
 m4_dnl  Lines beginning with m4_dnl are comments. See help at end of file.
-
+m4_dnl  The macro below includes the content only in the web format:
 _web_({{
 *Quick links:
-[Commands],
+[Commands][commands-list],
 [Queries],
 [Regular expressions],
 [Period expressions],
@@ -5844,7 +5844,7 @@ m4_dnl Be wary of pandoc/mdbook handling [shortcut] link syntax differently ?
 [balancesheet]:        #balancesheet
 [balancesheetequity]:  #balancesheetequity
 [cashflow]:            #cashflow
-[commands]:            #commands
+[commands-list]:       #part-4-commands
 [common tasks]:        #common-tasks
 [csv]:                 #csv
 [directives]:          #directives
