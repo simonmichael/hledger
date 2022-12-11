@@ -176,9 +176,8 @@ With some editors (emacs, vi), the cursor will be positioned at the current tran
 when invoked from the register and transaction screens, and at the error location (if possible)
 when invoked from the error screen.
 
-`B` toggles cost mode, showing amounts in their transaction price's
-commodity (like toggling the
-[`-B/--cost`](https://hledger.org/hledger.html#b-cost) flag).
+`B` toggles cost mode, showing amounts in their cost's commodity
+(like toggling the [`-B/--cost`](https://hledger.org/hledger.html#b-cost) flag).
 
 `V` toggles value mode, showing amounts' current market value in their
 default valuation commodity (like toggling the

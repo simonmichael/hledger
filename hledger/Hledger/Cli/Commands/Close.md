@@ -33,9 +33,9 @@ and if it involves multiple commodities, there will be a separate equity posting
 With `--interleaved`, each equity posting is shown next to the posting it balances 
 (good for troubleshooting).
 
-### close and prices
+### close and costs
 
-Transaction prices are ignored (and discarded) by closing/opening transactions, by default.
+Costs are ignored (and discarded) by closing/opening transactions, by default.
 With `--show-costs`, they are preserved;
 there will be a separate equity posting for each cost in each commodity.
 This means `balance -B` reports will look the same after the transition.

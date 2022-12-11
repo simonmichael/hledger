@@ -36,7 +36,7 @@ m4_dnl Be wary of pandoc/mdbook handling [shortcut] link syntax differently ?
 [strict mode]:         #strict-mode
 [timeclock]:           #timeclock
 [timedot]:             #timedot
-[transaction prices]:  #transaction-prices
+[costs]:  #costs
 [valuation]:           #valuation
 
 _web_({{
@@ -645,7 +645,7 @@ each commodity/currency, as described below in
 [Commodity display style](#commodity-display-style).
 
 If needed, this can be overridden by a `-c/--commodity-style` option
-(except for [cost amounts](#transaction-prices) and amounts displayed
+(except for [cost amounts](#costs) and amounts displayed
 by the [`print`](#print) command, which are always displayed with all
 decimal digits).
 For example, the following will force dollar amounts to be displayed as shown:
@@ -1362,7 +1362,7 @@ First, a quick glossary:
 
 ## -B: Convert to cost
 
-As discussed a little further on in [Transaction prices](#transaction-prices),
+As discussed a little further on in [Costs](#costs),
 when recording a transaction you can also record the amount's cost in another commodity,
 by adding `@ UNITPRICE` or `@@ TOTALPRICE`.
 
@@ -1387,7 +1387,7 @@ $ hledger bal -N -B
 
 Notes:
 
--B is sensitive to the order of postings when a transaction price is inferred:
+-B is sensitive to the order of postings when a cost is inferred:
 the inferred price will be in the commodity of the last amount.
 So if example 3's postings are reversed, while the transaction
 is equivalent, -B shows something different:
@@ -1717,7 +1717,7 @@ in this order of preference
    A's latest market price in B on or before the valuation date
    as declared by a [P directive](#declaring-market-prices), 
    or (with the `--infer-market-prices` flag)
-   inferred from [transaction prices](#transaction-prices).
+   inferred from [costs](#costs).
    <!-- (Latest by date, then parse order.) -->
    <!-- (A declared price overrides an inferred price on the same date.) -->
   
@@ -1745,7 +1745,7 @@ Normally, market value in hledger is fully controlled by, and requires,
 [P directives](#declaring-market-prices) in your journal.
 Since adding and updating those can be a chore,
 and since transactions usually take place at close to market value,
-why not use the recorded [transaction prices](#transaction-prices)
+why not use the recorded [costs](#costs)
 as additional market prices (as Ledger does) ?
 We could produce value reports without needing P directives at all.
 
@@ -1807,7 +1807,7 @@ This means:
   they determine which commodities `-V` will convert, and to what.
 
 - If you have no P directives, and use the `--infer-market-prices` flag, 
-  [transaction prices](#transaction-prices) determine it.
+  [costs](#costs) determine it.
 
 Amounts for which no valuation commodity can be found are not converted.
 
@@ -2513,7 +2513,7 @@ commodity 1 000 000.9455
 ### Commodity display style
 
 For the amounts in each commodity, hledger chooses a consistent display style to use in most reports.
-(Exceptions: [price amounts](#transaction-prices), 
+(Exceptions: [price amounts](#costs), 
 and all amounts displayed by the [`print`](#print) command,
 are displayed with all of their decimal digits visible.)
 
@@ -2538,9 +2538,9 @@ A style is inferred from journal amounts as follows:
 - Use the first-seen digit group style (digit group mark, digit group sizes), if any
 - Use the maximum number of decimal places of all.
 
-Transaction price amounts don't affect the commodity display style directly,
+Cost amounts don't affect the commodity display style directly,
 but occasionally they can do so indirectly (eg when a posting's amount is
-inferred using a transaction price). If you find this causing
+inferred using a cost). If you find this causing
 problems, use a commodity directive to fix the display style.
 
 To summarise: each commodity's amounts will be normalised to (a) 
@@ -2570,18 +2570,15 @@ it rounds to the nearest even number, eg 0.5 displayed with zero decimal places 
 (Guaranteed since hledger 1.17.1; in older versions this could vary  if hledger was built with Decimal < 0.5.1.)
 
 
-## Transaction prices
+## Costs
 
-(AKA Costs)
-
-After a posting amount, you can note its cost or selling price in another commodity,
+After a posting amount, you can note its cost (when buying) or selling price (when selling) in another commodity,
 by writing either `@ UNITPRICE` or `@@ TOTALPRICE` after it.
 This indicates a conversion transaction, where one commodity is exchanged for another.
 
-hledger docs have historically called this a "transaction price" because it is specific
-to one transaction, unlike [market prices](#declaring-market-prices) which are not.
-"Cost" is shorter and might be preferable; just remember this feature can represent
-either a buyer's cost, or a seller's price.
+(You might also see this called "transaction price" in hledger docs, discussions, or code;
+that term was directionally neutral and reminded that it is a price specific to a transaction,
+but we now just call it "cost", with the understanding that the transaction could be a purchase or a sale.)
 
 Costs are usually written explicitly with `@` or `@@`, but can also be
 inferred automatically for simple multi-commodity transactions.  
@@ -2633,7 +2630,7 @@ Ledger allows another kind of price,
 and/or a lot date (`[DATE]`) to be specified.
 These are normally used to select a lot when selling investments.
 hledger will parse these, for compatibility with Ledger journals, but currently ignores them.
-A [transaction price](#transaction-prices), lot price and/or lot date may appear in any order,
+A [cost](#costs), lot price and/or lot date may appear in any order,
 after the posting amount and before the balance assertion if any.
 
 ## Balance assertions
@@ -2751,7 +2748,7 @@ One workaround is to isolate each commodity into its own subaccount:
 
 ### Assertions and prices
 
-Balance assertions ignore [transaction prices](#transaction-prices),
+Balance assertions ignore [costs](#costs),
 and should normally be written without one:
 
 ``` journal
@@ -2835,7 +2832,7 @@ instead of just reading it.
 
 ### Balance assignments and prices
 
-A [transaction price](#transaction-prices) in a balance assignment
+A [cost](#costs) in a balance assignment
 will cause the calculated amount to have that price attached:
 
 ``` journal
@@ -4449,7 +4446,7 @@ to keep pre-hledger-1.17 CSV rules files working (and for occasional convenience
 They are suitable only for two-posting transactions; 
 they set both posting 1's and posting 2's amount.
 Posting 2's amount will be negated, and also converted to cost 
-if there's a [transaction price](#transaction-prices).
+if there's a [cost price](#costs).
 
 If you have an existing rules file using the unnumbered form, you
 might want to use the numbered form in certain conditional blocks,
