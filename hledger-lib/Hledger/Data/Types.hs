@@ -225,7 +225,7 @@ deriving instance Generic (DecimalRaw a)
 
 -- | An amount's per-unit or total cost/selling price in another
 -- commodity, as recorded in the journal entry eg with @ or @@.
--- Docs call this "transaction price". The amount is always positive.
+-- "Cost", formerly AKA "transaction price". The amount is always positive.
 data AmountPrice = UnitPrice !Amount | TotalPrice !Amount
   deriving (Eq,Ord,Generic,Show)
 
