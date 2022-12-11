@@ -4315,18 +4315,19 @@ Blank lines and lines beginning with `#` or `;` or `*` are ignored.
 |-------------------------------------------------|-----------------------------------------------------------------------------------------|
 | [**`separator`**](#separator)                   | a custom field separator                                                                |
 | [**`skip`**](#skip)                             | skip one or more header lines or matched CSV records                                    |
-| [**`fields` list**](#fields-list)               | name CSV fields, assign them to hledger fields                                          |
-| [**Field assignment**](#field-assignment)       | assign a value to one hledger field, with interpolation                                 |
-| [**Field names**](#field-names)                 | hledger field names, used in the fields list and field assignments                      |
-| [**`if` block**](#if-block)                     | apply some rules to CSV records matched by patterns                                     |
-| [**`if` table**](#if-table)                     | apply some rules to CSV records matched by patterns, alternate syntax                   |
-| [**`end`**](#end)                               | skip the remaining CSV records                                                          |
 | [**`date-format`**](#date-format)               | how to parse dates in CSV records                                                       |
+| [**`timezone`**](#timezone)                     | declare the time zone of ambiguous CSV date-times                                       |
 | [**`decimal-mark`**](#decimal-mark-1)           | the decimal mark used in CSV amounts, if ambiguous                                      |
 | [**`newest-first`**](#newest-first)             | improve txn order when there are multiple records, newest first, all with the same date |
 | [**`intra-day-reversed`**](#intra-day-reversed) | improve txn order when each day's txns are reverse of the overall date order            |
-| [**`include`**](#include)                       | inline another CSV rules file                                                           |
 | [**`balance-type`**](#balance-type)             | choose which type of balance assignments to use                                         |
+| [**`fields`**](#fields)                         | name CSV fields, assign them to hledger fields                                          |
+| [**Field assignment**](#field-assignment)       | assign a value to one hledger field, with interpolation                                 |
+| [**Field names**](#field-names)                 | hledger field names, used in the fields list and field assignments                      |
+| [**`if`**](#if)                                 | apply some rules to CSV records matched by patterns                                     |
+| [**`if` table**](#if-table)                     | apply some rules to CSV records matched by patterns, alternate syntax                   |
+| [**`end`**](#end)                               | skip the remaining CSV records                                                          |
+| [**`include`**](#include)                       | inline another CSV rules file                                                           |
 
 ## `separator`
 
@@ -4364,11 +4365,123 @@ tells hledger to ignore this many non-empty lines preceding the CSV data.
 (Empty/blank lines are skipped automatically.)
 You'll need this whenever your CSV data contains header lines.
 
-It also has a second purpose: it can be used inside [if blocks](#if-block)
+It also has a second purpose: it can be used inside [if blocks](#if)
 to ignore certain CSV records (described below).
 
 
-## `fields` list
+## `date-format`
+
+```rules
+date-format DATEFMT
+```
+This is a helper for the `date` (and `date2`) fields.
+If your CSV dates are not formatted like `YYYY-MM-DD`, `YYYY/MM/DD` or `YYYY.MM.DD`,
+you'll need to add a date-format rule describing them with a strptime-style date parsing pattern - 
+see <https://hackage.haskell.org/package/time/docs/Data-Time-Format.html#v:formatTime>.
+The pattern must parse the CSV date value completely.
+Some examples:
+``` rules
+# MM/DD/YY
+date-format %m/%d/%y
+```
+``` rules
+# D/M/YYYY
+# The - makes leading zeros optional.
+date-format %-d/%-m/%Y
+```
+``` rules
+# YYYY-Mmm-DD
+date-format %Y-%h-%d
+```
+``` rules
+# M/D/YYYY HH:MM AM some other junk
+# Note the time and junk must be fully parsed, though only the date is used.
+date-format %-m/%-d/%Y %l:%M %p some other junk
+```
+
+## `timezone`
+
+```rules
+timezone TIMEZONE
+```
+
+When CSV contains date-times that are implicitly in some time zone
+other than yours, but containing no explicit time zone information,
+you can use this rule to declare the CSV's native time zone,
+which helps prevent off-by-one dates.
+
+When the CSV date-times do contain time zone information, 
+you don't need this rule; instead, use `%Z` in `date-format`
+(or `%z`, `%EZ`, `%Ez`; see the formatTime link above).
+
+In either of these cases, hledger will do a time-zone-aware conversion,
+localising the CSV date-times to your current system time zone.
+If you prefer to localise to some other time zone, eg for reproducibility,
+you can (on unix at least) set the output timezone with the TZ environment variable, eg:
+```shell
+$ TZ=-1000 hledger print -f foo.csv  # or TZ=-1000 hledger import foo.csv
+```
+
+`timezone` currently does not understand timezone names, except
+"UTC", "GMT", "EST", "EDT", "CST", "CDT", "MST", "MDT", "PST", or "PDT".
+For others, use numeric format: +HHMM or -HHMM.
+
+## `decimal-mark`
+
+```rules
+decimal-mark .
+```
+or:
+```rules
+decimal-mark ,
+```
+
+hledger automatically accepts either period or comma as a decimal mark when parsing numbers
+(cf [Amounts](#amounts)).
+However if any numbers in the CSV contain digit group marks, such as thousand-separating commas,
+you should declare the decimal mark explicitly with this rule, to avoid misparsed numbers.
+
+## `newest-first`
+
+hledger tries to ensure that the generated transactions will be ordered chronologically,
+including intra-day transactions.
+Usually it can auto-detect how the CSV records are ordered.
+But if it encounters CSV where all records are on the same date,
+it assumes that the records are oldest first.
+If in fact the CSV's records are normally newest first, like:
+```csv
+2022-10-01, txn 3...
+2022-10-01, txn 2...
+2022-10-01, txn 1...
+```
+you can add the `newest-first` rule to help
+hledger generate the transactions in correct order.
+
+```rules
+# same-day CSV records are newest first
+newest-first
+```
+
+## `intra-day-reversed`
+
+CSV records for each day are sometimes ordered in reverse compared to the overall date order.
+Eg, here dates are newest first, but the transactions on each date are oldest first:
+```csv
+2022-10-02, txn 3...
+2022-10-02, txn 4...
+2022-10-01, txn 1...
+2022-10-01, txn 2...
+```
+In this situation, add the `intra-day-reversed` rule, and hledger will compensate,
+improving the order of transactions.
+```rules
+# transactions within each day are reversed with respect to the overall date order
+intra-day-reversed
+```
+
+
+
+## `fields`
 
 ```rules
 fields FIELDNAME1, FIELDNAME2, ...
@@ -4408,9 +4521,9 @@ HLEDGERFIELDNAME FIELDVALUE
 ```
 
 Field assignments are the more flexible way to assign CSV values to hledger fields.
-They can be used instead of or in addition to a [fields list](#fields-list) (see above).
+They can be used instead of or in addition to a [fields](#fields) list (see above).
 
-To assign a value to a hledger field, write the [field name](#field-name)
+To assign a value to a hledger field, write the [field name](#field-names)
 (any of the standard hledger field/pseudo-field names, defined below),
 a space, followed by a text value on the same line.
 This text value may interpolate CSV fields,
@@ -4439,7 +4552,7 @@ becomes `1` when interpolated)
 ## Field names
 
 Here are the standard hledger field (and pseudo-field) names, which
-you can use in a [fields list](#fields-list) or in [field assignments](#field-assignment).
+you can use in a [fields](#fields) list or in [field assignments](#field-assignment).
 For more about the transaction parts they refer to, see [Transactions](#transactions).
 
 ### date field
@@ -4533,7 +4646,7 @@ You can adjust the type of assertion/assignment with the
 See [Tips](#tips) below for more about setting amounts and currency.
 
 
-## `if` block
+## `if`
 
 ```rules
 if MATCHER
@@ -4674,7 +4787,7 @@ atm transaction fee,expenses:business:banking,deductible? check it
 
 ## `end`
 
-This rule can be used inside [if blocks](#if-block) (only), to make hledger stop
+This rule can be used inside [if blocks](#if) (only), to make hledger stop
 reading this CSV file and move on to the next input file, or to command execution.
 Eg:
 ```rules
@@ -4682,118 +4795,6 @@ Eg:
 if ,,,,
  end
 ```
-
-
-## `date-format`
-
-```rules
-date-format DATEFMT
-```
-This is a helper for the `date` (and `date2`) fields.
-If your CSV dates are not formatted like `YYYY-MM-DD`, `YYYY/MM/DD` or `YYYY.MM.DD`,
-you'll need to add a date-format rule describing them with a strptime-style date parsing pattern - 
-see <https://hackage.haskell.org/package/time/docs/Data-Time-Format.html#v:formatTime>.
-The pattern must parse the CSV date value completely.
-Some examples:
-``` rules
-# MM/DD/YY
-date-format %m/%d/%y
-```
-``` rules
-# D/M/YYYY
-# The - makes leading zeros optional.
-date-format %-d/%-m/%Y
-```
-``` rules
-# YYYY-Mmm-DD
-date-format %Y-%h-%d
-```
-``` rules
-# M/D/YYYY HH:MM AM some other junk
-# Note the time and junk must be fully parsed, though only the date is used.
-date-format %-m/%-d/%Y %l:%M %p some other junk
-```
-
-## `timezone`
-
-```rules
-timezone TIMEZONE
-```
-
-When CSV contains date-times that are implicitly in some time zone
-other than yours, but containing no explicit time zone information,
-you can use this rule to declare the CSV's native time zone,
-which helps prevent off-by-one dates.
-
-When the CSV date-times do contain time zone information, 
-you don't need this rule; instead, use `%Z` in `date-format`
-(or `%z`, `%EZ`, `%Ez`; see the formatTime link above).
-
-In either of these cases, hledger will do a time-zone-aware conversion,
-localising the CSV date-times to your current system time zone.
-If you prefer to localise to some other time zone, eg for reproducibility,
-you can (on unix at least) set the output timezone with the TZ environment variable, eg:
-```shell
-$ TZ=-1000 hledger print -f foo.csv  # or TZ=-1000 hledger import foo.csv
-```
-
-`timezone` currently does not understand timezone names, except
-"UTC", "GMT", "EST", "EDT", "CST", "CDT", "MST", "MDT", "PST", or "PDT".
-For others, use numeric format: +HHMM or -HHMM.
-
-## `decimal-mark`
-
-```rules
-decimal-mark .
-```
-or:
-```rules
-decimal-mark ,
-```
-
-hledger automatically accepts either period or comma as a decimal mark when parsing numbers
-(cf [Amounts](#amounts)).
-However if any numbers in the CSV contain digit group marks, such as thousand-separating commas,
-you should declare the decimal mark explicitly with this rule, to avoid misparsed numbers.
-
-## `newest-first`
-
-hledger tries to ensure that the generated transactions will be ordered chronologically,
-including intra-day transactions.
-Usually it can auto-detect how the CSV records are ordered.
-But if it encounters CSV where all records are on the same date,
-it assumes that the records are oldest first.
-If in fact the CSV's records are normally newest first, like:
-```csv
-2022-10-01, txn 3...
-2022-10-01, txn 2...
-2022-10-01, txn 1...
-```
-you can add the `newest-first` rule to help
-hledger generate the transactions in correct order.
-
-```rules
-# same-day CSV records are newest first
-newest-first
-```
-
-## `intra-day-reversed`
-
-CSV records for each day are sometimes ordered in reverse compared to the overall date order.
-Eg, here dates are newest first, but the transactions on each date are oldest first:
-```csv
-2022-10-02, txn 3...
-2022-10-02, txn 4...
-2022-10-01, txn 1...
-2022-10-01, txn 2...
-```
-In this situation, add the `intra-day-reversed` rule, and hledger will compensate,
-improving the order of transactions.
-```rules
-# transactions within each day are reversed with respect to the overall date order
-intra-day-reversed
-```
-
 
 
 ## `include`
@@ -4946,7 +4947,7 @@ Here are the ways to set a posting's amount:
      and negates the "-out" value.
 
    b. **If either field is signed (can contain a minus sign):**\
-     Use a [conditional rule](#if-block) to flip the sign (of non-empty values).
+     Use a [conditional rule](#if) to flip the sign (of non-empty values).
      Since hledger always negates amountN-out, if it was already negative, 
      we must undo that by negating once more (but only if the field is non-empty):
 
@@ -4966,7 +4967,7 @@ Here are the ways to set a posting's amount:
      "1", "none"
      ```
 
-     So, use smarter [conditional rules](#if-block) to set the amount from the appropriate field.
+     So, use smarter [conditional rules](#if) to set the amount from the appropriate field.
      Eg, these rules would make it use only the value containing non-zero digits,
      handling the above:
 
