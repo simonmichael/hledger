@@ -75,7 +75,7 @@ _notinfo_({{
 This manual is for hledger's command line interface, version
 _version_.  It also describes the concepts and file formats common to
 all hledger programs.  You can read it on hledger.org, or as an info
-xmanual or man page on your system. It is detailed and not entirely linear,
+manual or man page on your system. It is detailed and not entirely linear,
 so you should feel free to skip ahead / read just the parts you need.
 
 m4_dnl Include the standard description:
