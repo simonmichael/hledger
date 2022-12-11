@@ -76,7 +76,7 @@ This manual is for hledger's command line interface, version
 _version_.  It also describes the concepts and file formats common to
 all hledger programs.  You can read it on hledger.org, or as an info
 manual or man page on your system. It is detailed and not entirely linear,
-so you should feel free to skip ahead / read just the parts you need.
+so you should feel free to skip ahead / skim when needed.
 
 m4_dnl Include the standard description:
 _hledgerdescription_
@@ -1276,19 +1276,6 @@ and `amt:` matches the new quantity, and not the old one.
 Note: this changed in hledger 1.22, previously it was the reverse, 
 see the discussion at [#1625](https://github.com/simonmichael/hledger/issues/1625).
 
-# GENERATING DATA
-
-Two features for generating transient data (visible only at report time)
-are built in to hledger's journal format. They are mentioned here
-briefly and described below:
-
-- Periodic transaction rules can generate repeating transactions, 
-  usually dated in the future, to help with forecasting or budgeting.
-  They are activated by the `--forecast` or `balance --budget` options.
-
-- Auto posting rules can generate extra postings on certain transactions.
-  They are activated by the `--auto` flag.
-
 # PIVOTING
 
 Normally, hledger groups and sums amounts within each account.
@@ -1335,6 +1322,19 @@ $ hledger balance --pivot member acct:.
 --------------------
               -2 EUR
 ```
+
+# GENERATING DATA
+
+Two features for generating transient data (visible only at report time)
+are built in to hledger's journal format. They are mentioned here
+briefly and described below:
+
+- Periodic transaction rules can generate repeating transactions, 
+  usually dated in the future, to help with forecasting or budgeting.
+  They are activated by the `--forecast` or `balance --budget` options.
+
+- Auto posting rules can generate extra postings on certain transactions.
+  They are activated by the `--auto` flag.
 
 # COST
 
@@ -2153,12 +2153,30 @@ Here's an example:
 ```
 -->
 
-Here's a description of each part of the file format
-(and hledger's data model).
-These are mostly in the order you'll use them, but in some cases
-related concepts have been grouped together for easy reference,
-or linked before they are introduced,
-so feel free to skip over anything that looks unnecessary right now.
+Here's a description of each part of the file format (and hledger's data model).
+
+A hledger journal file can contain three kinds of thing:
+file comments, transactions, and/or directives
+(counting periodic transaction rules and auto posting rules as directives).
+
+## File comments
+
+Lines in the journal beginning with a semicolon (`;`), a hash (`#`) or
+a star (`*`) are file-level comments, and will be ignored.
+They are not attached to anything (even if right next to a transaction).
+
+(Star comments allow emacs users to view and fold/unfold long journals in org mode,
+but nowadays regular comments and ledger mode + orgstruct mode may work better).
+
+```journal
+# a file comment
+; another file comment
+* also a file comment, useful in org/orgstruct mode
+comment
+A multiline file comment, continuing until an
+"end comment" directive or the end of the current file.
+end comment
+```
 
 ## Transactions
 
@@ -2184,7 +2202,6 @@ Here's a simple journal file containing one transaction:
   assets:bank:checking   $1
   income:salary         $-1
 ```
-
 
 ## Dates
 
@@ -2335,6 +2352,20 @@ You can optionally include a `|` (pipe) character in descriptions to subdivide t
 into separate fields for payee/payer name on the left (up to the first `|`) and an additional note
 field on the right (after the first `|`). This may be worthwhile if you need to do more precise
 [querying](#queries) and [pivoting](#pivoting) by payee or by note.
+
+## Transaction comments
+
+Text following `;`, after a transaction description,
+and/or on indented lines immediately below it, form comments for that transaction.
+They are reproduced by `print` but otherwise ignored,
+except they may contain [tags](#tags-1), which are not ignored.
+
+```journal
+2012-01-01 something  ; a transaction comment
+    ; a second line of transaction comment
+    expenses   1
+    assets
+```
 
 ## Postings
 
@@ -2852,44 +2883,20 @@ $ hledger print --explicit
     (a)         $1 @ €2 = $1 @ €2
 ```
 
-## Comments
+## Posting comments
 
-Lines in the journal beginning with a semicolon (`;`) or hash (`#`) or
-star (`*`) are comments, and will be ignored. (Star comments cause
-org-mode nodes to be ignored, allowing emacs users to fold and navigate
-their journals with org-mode or orgstruct-mode.)
-
-You can attach comments to a transaction by writing them after the
-description and/or indented on the following lines (before the
-postings).  Similarly, you can attach comments to an individual
-posting by writing them after the amount and/or indented on the
-following lines.
-Transaction and posting comments must begin with a semicolon (`;`).
-
-Some examples:
+Text following `;`, at the end of a posting line, 
+and/or on indented lines immediately below it, form comments for that posting.
+They are reproduced by `print` but otherwise ignored,
+except they may contain [tags](#tags-1) or [bracketed posting dates][#posting-dates], which are not ignored.
 
 ```journal
-# a file comment
-; another file comment
-* also a file comment, useful in org/orgstruct mode
-
-comment
-A multiline file comment, which continues
-until a line containing just "end comment"
-(or end of file).
-end comment
-
-2012/5/14 something  ; a transaction comment
-    ; the transaction comment, continued
-    posting1  1  ; a comment for posting 1
-    posting2
+2012-01-01
+    expenses   1  ; a comment for posting 1
+    assets
     ; a comment for posting 2
-    ; another comment line for posting 2
-; a file comment (because not indented)
+    ; a second comment line for posting 2
 ```
-
-You can also comment larger regions of a file using [`comment` and `end comment` directives](#comment-blocks).
-
 
 ## Tags
 
@@ -3289,13 +3296,12 @@ account assets:bank:checking
 
 ### Account comments
 
-[Comments](#comments), beginning with a semicolon:
+Text following **two or more spaces** and `;` at the end of an account directive line,
+and/or following `;` on indented lines immediately below it, form comments for that account.
+They are ignored except they may contain [tags](#tags-1), which are not ignored.
 
-- can be written on the same line, but only after **two or more spaces** (because `;` is allowed in account names)
-- and/or on the next lines, indented
-- and may contain [tags](#tags), such as the `type:` tag.
+The two-space requirement for same-line account comments is because `;` is allowed in account names.
 
-For example:
 ```journal
 account assets:bank:checking    ; same-line comment, at least 2 spaces before the semicolon
   ; next-line comment
