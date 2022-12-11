@@ -2,42 +2,7 @@
 % _author_
 % _monthyear_
 
-m4_dnl Quick hledger docs editing intro:
-m4_dnl  .m4.md are hledger docs source, processed with m4 to generate markdown.
-m4_dnl  Lines beginning with m4_dnl are comments.
-m4_dnl  Words enclosed in underscores are macros, defined in doc/common.m4.
-m4_dnl  Macro arguments are enclosed in (). Text literals are enclosed in {{}}.
-m4_dnl  Macros may depend on command line flags, configured in Shake.hs.
-m4_dnl  In Emacs:
-m4_dnl   markdown-mode S-TAB cycles visibility, TAB toggles one section.
-m4_dnl   C-x n s on a heading narrows to that section (C-x n w to widen again).
-
-m4_dnl Some common markdown links.
-m4_dnl These are also usable in hledger/Hledger/Cli/Commands/*.md.
-m4_dnl Some are defined there also - don't remove, they are needed there for Shake cmdhelp eg.
-m4_dnl Duplicate definitions won't give warnings as long as the target is identical.
-m4_dnl Be wary of pandoc/mdbook handling [shortcut] link syntax differently ?
-
-[add-on commands]:     #add-on-commands
-[balance assertions]:  #balance-assertions
-[balancesheet]:        #balancesheet
-[balancesheetequity]:  #balancesheetequity
-[cashflow]:            #cashflow
-[commands]:            #commands
-[common tasks]:        #common-tasks
-[csv]:                 #csv
-[directives]:          #directives
-[incomestatement]:     #incomestatement
-[journal]:             #journal
-[period expressions]:  #period-expressions
-[queries]:             #queries
-[regular expression]:  #regular-expressions
-[regular expressions]: #regular-expressions
-[strict mode]:         #strict-mode
-[timeclock]:           #timeclock
-[timedot]:             #timedot
-[costs]:  #costs
-[valuation]:           #valuation
+m4_dnl  Lines beginning with m4_dnl are comments. See help at end of file.
 
 _web_({{
 *Quick links:
@@ -5867,3 +5832,44 @@ See the [close command](#close).
 
 If using version control, don't forget to `git add` the new file.
 
+
+m4_dnl Some common markdown links.
+m4_dnl These are also usable in hledger/Hledger/Cli/Commands/*.md.
+m4_dnl Some are defined there also - don't remove, they are needed there for Shake cmdhelp eg.
+m4_dnl Duplicate definitions won't give warnings as long as the target is identical.
+m4_dnl Be wary of pandoc/mdbook handling [shortcut] link syntax differently ?
+
+[add-on commands]:     #add-on-commands
+[balance assertions]:  #balance-assertions
+[balancesheet]:        #balancesheet
+[balancesheetequity]:  #balancesheetequity
+[cashflow]:            #cashflow
+[commands]:            #commands
+[common tasks]:        #common-tasks
+[csv]:                 #csv
+[directives]:          #directives
+[incomestatement]:     #incomestatement
+[journal]:             #journal
+[period expressions]:  #period-expressions
+[queries]:             #queries
+[regular expression]:  #regular-expressions
+[regular expressions]: #regular-expressions
+[strict mode]:         #strict-mode
+[timeclock]:           #timeclock
+[timedot]:             #timedot
+[costs]:  #costs
+[valuation]:           #valuation
+
+m4_dnl Tips for editing hledger .m4.md docs.
+m4_dnl
+m4_dnl  .m4.md are hledger docs source files processed with m4 to generate markdown.
+m4_dnl  Lines beginning with m4_dnl are comments.
+m4_dnl  Words enclosed in underscores are macros, defined in doc/common.m4.
+m4_dnl  Macro arguments are enclosed in ().
+m4_dnl  Literal text macro arguments are enclosed in {{}}.
+m4_dnl  "{{foo}}" in docs can be written as "{{{{foo}}}}".
+m4_dnl  Macros can depend on command line flags, configured in Shake.hs.
+m4_dnl  Emacs markdown-mode can be helpful:
+m4_dnl   S-TAB cycles visibility of all sections.
+m4_dnl   TAB on a heading toggles that section.
+m4_dnl   C-x n s on a heading narrows to that section, C-x n w widens again.
