@@ -134,7 +134,7 @@ csvFileFor = reverse . drop 6 . reverse
 defaultRulesText :: FilePath -> Text
 defaultRulesText csvfile = T.pack $ unlines
   ["# hledger csv conversion rules for " ++ csvFileFor (takeFileName csvfile)
-  ,"# cf http://hledger.org/manual#csv-files"
+  ,"# cf http://hledger.org/hledger.html#csv"
   ,""
   ,"account1 assets:bank:checking"
   ,""

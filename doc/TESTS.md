@@ -99,7 +99,7 @@ About testing in the hledger project, as of 201809.
     [examples](https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Read/JournalReader.hs#L579).
 
     The unit tests are shipped as part of the hledger executable, and
-    can always be run via the [test](https://hledger.org/manual#test)
+    can always be run via the [test](https://hledger.org/hledger.html#test)
     command (`hledger test`).
 
     Here\'s the quick way to run unit tests while developing:\

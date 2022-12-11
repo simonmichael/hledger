@@ -605,7 +605,7 @@ Also:
 ### Budget report
 
 The `--budget` report type activates extra columns showing any budget goals for each account and period.
-The budget goals are defined by [periodic transactions](journal.html#periodic-transactions).
+The budget goals are defined by [periodic transactions](hledger.html#periodic-transactions).
 This is very useful for comparing planned and actual income, expenses, time usage, etc.
 
 For example, you can take average monthly expenses in the common expense categories to construct a minimal monthly budget:

@@ -4,7 +4,7 @@
 {-|
 
 A reader for hledger's journal file format
-(<http://hledger.org/MANUAL.html#the-journal-file>).  hledger's journal
+(<http://hledger.org/hledger.html#the-journal-file>).  hledger's journal
 format is a compatible subset of c++ ledger's
 (<http://ledger-cli.org/3.0/doc/ledger3.html#Journal-Format>), so this
 reader should handle many ledger files as well. Example:
@@ -226,7 +226,7 @@ addJournalItemP =
 --- *** directives
 
 -- | Parse any journal directive and update the parse state accordingly.
--- Cf http://hledger.org/manual.html#directives,
+-- Cf http://hledger.org/hledger.html#directives,
 -- http://ledger-cli.org/3.0/doc/ledger3.html#Command-Directives
 directivep :: MonadIO m => ErroringJournalParser m ()
 directivep = (do
