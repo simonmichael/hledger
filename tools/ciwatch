@@ -11,4 +11,8 @@ cilatestrunning() {
 }
 LATESTRUNNING=$(cilatestrunning)
 
-gh run watch -i"$INTERVAL" ${LATESTRUNNING:+$LATESTRUNNING} --exit-status
+if [[ -n $LATESTRUNNING ]]; then
+    gh run watch -i"$INTERVAL" "$LATESTRUNNING" --exit-status
+else
+    echo "no runs in progress, attempting push"
+fi
