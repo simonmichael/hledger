@@ -3,7 +3,7 @@
 % _monthyear_
 
 m4_dnl Quick hledger docs editing intro:
-nm4_dnl  .m4.md are hledger docs source, processed with m4 to generate markdown.
+m4_dnl  .m4.md are hledger docs source, processed with m4 to generate markdown.
 m4_dnl  Lines beginning with m4_dnl are comments.
 m4_dnl  Words enclosed in underscores are macros, defined in doc/common.m4.
 m4_dnl  Macro arguments are enclosed in (). Text literals are enclosed in {{}}.
@@ -1835,9 +1835,9 @@ and try adding `--debug` or `--debug=2` to troubleshoot.
 - multicommodity transactions with implicit prices (no `@`, two commodities, unbalanced).
   (With these, the order of postings matters. `hledger print -x` can be useful for troubleshooting.)
 
-- but not, currently, from
-  "[more correct](investments.html#a-more-correct-entry)" multicommodity transactions
-  (no `@`, multiple commodities, balanced).
+- [multicommodity transactions with equity postings](#conversion-with-equity-postings),
+  if cost is inferred with [`--infer-costs`](#inferring-cost-from-equity-postings).
+  
 
 There is another limitation (bug) currently: when a valuation commodity is not specified, 
 prices inferred with `--infer-market-prices` do not help select a default valuation commodity,
