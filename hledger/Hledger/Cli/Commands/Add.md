@@ -28,7 +28,7 @@ Features:
 - If the journal defines a [default commodity](#default-commodity),
   it will be added to any bare numbers entered.
 - A parenthesised transaction [code](#entries) may be entered following a date.
-- [Comments](#comments) and tags may be entered following a description or amount.
+- [Comments](#transaction-comments) and tags may be entered following a description or amount.
 - If you make a mistake, enter `<` at any prompt to go one step backward.
 - Input prompts are displayed in a different colour when the terminal supports it.
 

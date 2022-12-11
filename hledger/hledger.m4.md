@@ -2258,7 +2258,7 @@ $ hledger register checking --date2
 ### Posting dates
 
 You can give individual postings a different date from their parent
-transaction, by adding a [posting comment](#comments) containing a
+transaction, by adding a [posting comment](#posting-comment) containing a
 [tag](#tags) (see below) like `date:DATE`.  This is probably the best
 way to control posting dates precisely. Eg in this example the expense
 should appear in May reports, and the deduction from checking should
@@ -2344,7 +2344,7 @@ or reference number.
 
 A transaction's description is the rest of the line following the date and status mark (or until a comment begins).
 Sometimes called the "narration" in traditional bookkeeping, it can be used for whatever you wish,
-or left blank. Transaction descriptions can be queried, unlike [comments](#comments).
+or left blank. Transaction descriptions can be queried, unlike [comments](#transaction-comments).
 
 ### Payee and note
 
@@ -2941,7 +2941,7 @@ Tags are a way to add extra labels or labelled data to transactions, postings, o
 which you can then [search](#queries) or [pivot](#pivoting) on.
 
 They are written as a word (optionally hyphenated) immediately followed by a full colon,
-in a transaction or posting or account directive's [comment](#comments).
+in a transaction or posting or account directive's [comment](#account-comments).
 (This is an exception to the usual rule that things in comments are ignored.)
 Eg, here four different tags are recorded: one on the checking account,
 two on the transaction, and one on the expenses posting:
@@ -3078,12 +3078,6 @@ your files.
 It can be surprising though; for example, it means that 
 [`alias` directives do not affect parent or sibling files](#aliases-and-multiple-files)
 (see below).
-
-## Comment blocks
-
-A line containing just `comment` starts a commented region of the file,
-and a line containing just `end comment` (or the end of the current file) ends it.
-See also [comments](#comments).
 
 ## Including other files
 
@@ -3321,7 +3315,7 @@ Though not required, these declarations can provide several benefits:
 - In [strict mode], they restrict which accounts may be posted to by transactions, which helps detect typos.
 - They control account display order in reports, allowing non-alphabetic sorting (eg Revenues to appear above Expenses).
 - They help with account name completion (in hledger add, hledger-web, hledger-iadd, ledger-mode, etc.)
-- They can store additional account information as [comments](#comments), or as [tags](#tags) which can be used to filter or pivot reports.
+- They can store additional account information as [comments](#account-comments), or as [tags](#tags) which can be used to filter or pivot reports.
 - They can help hledger know your accounts' types (asset, liability, equity, revenue, expense), affecting reports like 
   [balancesheet](#balancesheet) and [incomestatement](#incomestatement).
 
@@ -4458,7 +4452,7 @@ Assigning to `date` sets the [transaction date](#simple-dates).
 
 #### comment field
 
-`comment` sets the transaction's [comment](#comments), if any.
+`comment` sets the transaction's [comment](#transaction-comments), if any.
 
 `commentN`, where N is a number, sets the Nth posting's comment.
 
