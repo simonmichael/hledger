@@ -2653,17 +2653,17 @@ A slight digression for Ledger users. Ledger has a number of cost/lot-related no
   - expresses a conversion rate, as in hledger
   - when buying, also creates a lot than can be selected at selling time
 
-- `(@) UNITCOST` and `(@@) TOTALCOST`
-  - like the above, but also means "[this cost was exceptional][ledger: virtual posting costs], don't use it when inferring market prices".
+- `(@) UNITCOST` and `(@@) TOTALCOST` ([virtual cost][ledger: virtual posting costs])
+  - like the above, but also means "this cost was exceptional, don't use it when inferring market prices".
 
 Currently, hledger treats the above like `@` and `@@`; the parentheses are ignored.
 
-- `{=FIXEDUNITCOST}` and `{{{{=FIXEDTOTALCOST}}}}`
-  - when buying, means "this amount has a [fixed price][ledger: fixing lot prices], do not let its value fluctuate with market prices in value reports"
+- `{=FIXEDUNITCOST}` and `{{{{=FIXEDTOTALCOST}}}}` ([fixed price][ledger: fixing lot prices])
+  - when buying, means "this cost is also the fixed price, don't let it fluctuate in value reports"
 
-- `{UNITCOST}` and `{{{{TOTALCOST}}}}`
-  - can be used identically to `@ UNITCOST` and `@@ TOTALCOST`
-  - when [selling][ledger: buying and selling stock], can be used to select an investment lot by its cost basis
+- `{UNITCOST}` and `{{{{TOTALCOST}}}}` ([lot price][ledger: buying and selling stock])
+  - can be used identically to `@ UNITCOST` and `@@ TOTALCOST`, also creates a lot
+  - when selling, combined with `@ ...`, specifies an investment lot by its cost basis; does not check if that lot is present
 
 - and related: `[YYYY/MM/DD]` ([lot date][ledger: lot dates])
   - when buying, attaches this acquisition date to the lot
