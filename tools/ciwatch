@@ -5,6 +5,10 @@
 INTERVAL="${1:-10}"
 
 #LATESTRUN=$(gh run list -L1 --json databaseId -q .[0].databaseId)
-LATESTRUNNING=$(gh run list --json status,databaseId -q '.[] | select(.status=="completed").databaseId' | head -1)
 
-gh run watch -i"$INTERVAL" "$LATESTRUNNING" --exit-status
+cilatestrunning() {
+    gh run list --json status,databaseId -q '.[] | select(.status | in({"in_progress":0,"queued":0,"requested":0,"waiting":0})).databaseId' | head -1
+}
+LATESTRUNNING=$(cilatestrunning)
+
+gh run watch -i"$INTERVAL" ${LATESTRUNNING:+$LATESTRUNNING} --exit-status
