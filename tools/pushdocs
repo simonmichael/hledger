@@ -1,20 +1,14 @@
 #!/usr/bin/env bash
-# PROG MSG - commit manuals with ";doc: MSG" prefix, push to CI, then to master
+# pushdocs [MSG] - commit manuals with ";doc: MSG" prefix, push to CI, then to master
 
 set -e
 
-DELAY=30
-INTERVAL=10
 MSG=";doc: $1"
 
-#WAIT="sleep $DELAY"
-WAIT="ciwatch $INTERVAL"
+DOCS=(hledger/hledger.m4.md hledger-ui/hledger-ui.m4.md hledger-web/hledger-web.m4.md)
 
-git commit -uno -m "$MSG" hledger/hledger.m4.md hledger-ui/hledger-ui.m4.md hledger-web/hledger-web.m4.md || true
-git push -f github master:simon \
-&& echo "waiting for CI to finish..." \
-&& $WAIT \
-&& git push github master \
+git commit -uno -m "$MSG" "${DOCS[@]}" hledger-web/hledger-web.m4.md || true
+push \
 && printf "Docs should be up to date momentarily:\n\
 \n\
 https://hledger.org/dev/hledger.html\n\

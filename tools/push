@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# push [INTERVALSECS] - push to CI branch, watch for a successful run, then push to master
+
+set -e
+
+INTERVAL="${1:-10}"
+
+LOCALBRANCH=master
+REMOTECIBRANCH=simon
+REMOTEMAINBRANCH=master
+NUMRUNS=3
+NUMCOMMITS=5
+CISTARTDELAY=10  # too short, and the script will try to push too early
+
+ciwait() {
+    echo "waiting for CI to start..."
+    sleep $CISTARTDELAY
+    gh run list -L$NUMRUNS
+    echo "waiting for CI to finish..."
+    ciwatch "$INTERVAL"
+    gh run list -L$NUMRUNS
+}
+
+echo "force-pushing to github/$REMOTECIBRANCH"
+git push -f github $LOCALBRANCH:$REMOTECIBRANCH
+ciwait
+echo "pushing to $REMOTEMAINBRANCH"
+git push github $REMOTEMAINBRANCH
+echo "Latest commits on github/$REMOTEMAINBRANCH are now:"
+git log --format='%ad %h %s%d' --date=short -$NUMCOMMITS github/$REMOTEMAINBRANCH
+echo "done"
