@@ -72,8 +72,11 @@ _notinfo_({{
 # INTRODUCTION
 }})
 
-This manual is for hledger's command line interface, version _version_.
-Here we also describe concepts and file formats common to all hledger programs.
+This manual is for hledger's command line interface, version
+_version_.  It also describes the concepts and file formats common to
+all hledger programs.  You can read it on hledger.org, or as an info
+manual or man page on your system. It is detailed, often too much so
+when you are learning - so feel free to read just the parts you need.
 
 m4_dnl Include the standard description:
 _hledgerdescription_
@@ -391,7 +394,7 @@ any of the supported file formats, which currently are:
 | `timedot`   | timedot files, for approximate time logging                      | `.timedot`                           |
 | `csv`       | comma/semicolon/tab/other-separated values, for data import      | `.csv` `.ssv` `.tsv`                 |
 
-These formats are described in their own sections, below.
+These formats are described in more detail below.
 
 hledger detects the format automatically based on the file extensions
 shown above. If it can't recognise the file extension, it assumes
@@ -446,8 +449,6 @@ ones listed above and some more.
 
 # OUTPUT
 
-Some of this section may refer to things explained further below.
-
 ## Output destination
 
 hledger commands send their output to the terminal by default.
@@ -464,24 +465,9 @@ $ hledger print -o foo.txt
 $ hledger print -o -        # write to stdout (the default)
 ```
 
-## Output styling
-
-hledger commands can produce colour output when the terminal supports it.
-This is controlled by the `--color/--colour` option:
-- if the `--color/--colour` option is given a value of `yes` or `always`
-  (or `no` or `never`), colour will (or will not) be used;
-- otherwise, if the `NO_COLOR` environment variable is set, colour will not be used;
-- otherwise, colour will be used if the output (terminal or file) supports it.
-
-hledger commands can also use unicode box-drawing characters to produce prettier tables and output.
-This is controlled by the `--pretty` option:
-- if the `--pretty` option is given a value of `yes` or `always`
-  (or `no` or `never`), unicode characters will (or will not) be used;
-- otherwise, unicode characters will not be used.
-
 ## Output format
 
-Some commands offer additional output formats, other than the usual plain text terminal output.
+Some commands offer other kinds of output, not just text on the terminal.
 Here are those commands and the formats currently supported:
 
 | -                  | txt   | csv   | html    | json | sql |
@@ -542,6 +528,8 @@ The `-O` option can be combined with `-o` to override the file extension, if nee
 $ hledger balancesheet -o foo.txt -O csv    # write CSV to foo.txt
 ```
 
+Some notes about the various output formats:
+
 ### CSV output
 
 - In CSV output, [digit group marks](#decimal-marks-digit-group-marks) (such as thousands separators)
@@ -553,9 +541,9 @@ $ hledger balancesheet -o foo.txt -O csv    # write CSV to foo.txt
 
 ### JSON output
 
-- Not yet much used; real-world feedback is welcome.
+- This is not yet much used; real-world feedback is welcome.
 
-- Our JSON is rather large and verbose, as it is quite a faithful
+- Our JSON is rather large and verbose, since it is a faithful
   representation of hledger's internal data types. To understand the
   JSON, read the Haskell type definitions, which are mostly in
   <https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Data/Types.hs>.
@@ -583,7 +571,7 @@ $ hledger balancesheet -o foo.txt -O csv    # write CSV to foo.txt
 
 ### SQL output
 
-- Not yet much used; real-world feedback is welcome.
+- This is not yet much used; real-world feedback is welcome.
 
 - SQL output is expected to work with sqlite, MySQL and PostgreSQL
 
@@ -595,32 +583,54 @@ $ hledger balancesheet -o foo.txt -O csv    # write CSV to foo.txt
 
 ## Commodity styles
 
-The display style of a commodity/currency is inferred according to the rules
-described in [Commodity display style](#commodity-display-style). The
-inferred display style can be overridden by an optional `-c/--commodity-style` 
-option (Exceptions: as is the case for inferred styles, 
-[price amounts](#transaction-prices), and all amounts displayed by the 
-[`print`](#print) command, will be displayed with all of their decimal digits 
-visible, regardless of the specified precision). For example, the following will 
-override the display style for dollars.
+When displaying amounts, hledger infers a standard display style for
+each commodity/currency, as described below in
+[Commodity display style](#commodity-display-style).
+
+If needed, this can be overridden by a `-c/--commodity-style` option
+(except for [cost amounts](#transaction-prices) and amounts displayed
+by the [`print`](#print) command, which are always displayed with all
+decimal digits).
+For example, the following will force dollar amounts to be displayed as shown:
+
 ```shell
 $ hledger print -c '$1.000,0'
 ```
-The format specification of the style is identical to the commodity display
-style specification for the [commodity directive](#declaring-commodities). 
-The command line option can be supplied repeatedly to override the display 
-style for multiple commodity/currency symbols.
+
+This option can repeated to set the display style for multiple
+commodities/currencies. Its argument is as described in 
+the [commodity directive](#declaring-commodities).
+
+## Colour
+
+In terminal output, some commands can produce colour when the terminal supports it:
+
+- if the `--color/--colour` option is given a value of `yes` or `always`
+  (or `no` or `never`), colour will (or will not) be used;
+- otherwise, if the `NO_COLOR` environment variable is set, colour will not be used;
+- otherwise, colour will be used if the output (terminal or file) supports it.
+
+## Box-drawing
+
+In terminal output, you can enable unicode box-drawing characters to
+render prettier tables:
+
+- if the `--pretty` option is given a value of `yes` or `always`
+  (or `no` or `never`), unicode characters will (or will not) be used;
+- otherwise, unicode characters will not be used.
 
 ## Debug output
 
-We aim for hledger to be relatively easy to troubleshoot, introspect and develop.
+We intend hledger to be relatively easy to troubleshoot, introspect and develop.
 You can add `--debug[=N]` to any hledger command line to see additional debug output.
 N ranges from 1 (least output, the default) to 9 (maximum output).
 Typically you would start with 1 and increase until you are seeing enough.
 Debug output goes to stderr, and is not affected by `-o/--output-file` (unless you redirect stderr to stdout, eg: `2>&1`).
 It will be interleaved with normal output, which can help reveal when parts of the code are evaluated.
-To capture debug output in a log file instead, you can usually redirect stderr, eg:\
-`hledger bal --debug=3 2>hledger.log`.
+To capture debug output in a log file instead, you can usually redirect stderr, eg:
+```shell
+hledger bal --debug=3 2>hledger.log
+```
 
 # LIMITATIONS
 
