@@ -84,7 +84,7 @@ outflows - during the entire period of the journal.
 For real-world accounts, this should also match their end balance
 at the end of the journal period (more on this below).
 
-Accounts are sorted by [declaration order](#declaring-accounts)
+Accounts are sorted by [declaration order](#account)
 if any, and then alphabetically by account name.
 For instance 
 (using [examples/sample.journal](https://github.com/simonmichael/hledger/blob/master/examples/sample.journal)):
@@ -270,7 +270,7 @@ Here are some ways to handle that:
 ### Showing declared accounts
 
 With `--declared`, 
-accounts which have been declared with an [account directive](#declaring-accounts)
+accounts which have been declared with an [account directive](#account)
 will be included in the balance report, even if they have no transactions.
 (Since they will have a zero balance, you will also need `-E/--empty` to see them.)
 

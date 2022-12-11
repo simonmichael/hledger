@@ -307,7 +307,7 @@ hledger uses [regular expressions](http://www.regular-expressions.info) in a num
 
 - [query terms](#queries), on the command line and in the hledger-web search form: `REGEX`, `desc:REGEX`, `cur:REGEX`, `tag:...=REGEX`
 - [CSV rules](#csv-rules) conditional blocks: `if REGEX ...`
-- [account alias](#rewriting-accounts) directives and options: `alias /REGEX/ = REPLACEMENT`, `--alias /REGEX/=REPLACEMENT`
+- [account alias](#account-aliases) directives and options: `alias /REGEX/ = REPLACEMENT`, `--alias /REGEX/=REPLACEMENT`
 
 hledger's regular expressions come from the
 [regex-tdfa](http://hackage.haskell.org/package/regex-tdfa/docs/Text-Regex-TDFA.html)
@@ -423,7 +423,7 @@ There are some limitations with this:
 
 If you need either of those things, you can 
 
-- use a single parent file which [includes](#including-other-files) the others
+- use a single parent file which [includes](#including-files) the others
 - or concatenate the files into one before reading, eg: `cat a.journal b.journal | hledger -f- CMD`.
 
 ## Strict mode
@@ -656,7 +656,7 @@ $ hledger print -c '$1.000,0'
 
 This option can repeated to set the display style for multiple
 commodities/currencies. Its argument is as described in 
-the [commodity directive](#declaring-commodities).
+the [commodity directive](#commodities).
 
 ## Colour
 
@@ -1253,7 +1253,7 @@ generally the resulting query is their intersection.
 
 ## Queries and account aliases
 
-When account names are [rewritten](#rewriting-accounts) with `--alias` or `alias`,
+When account names are [rewritten](#account-aliases) with `--alias` or `alias`,
 `acct:` will match either the old or the new account name.
 
 ## Queries and valuation
@@ -1265,7 +1265,7 @@ not the new ones
 
 ## Querying with account aliases
 
-When account names are [rewritten](#rewriting-accounts) with `--alias` or `alias`,
+When account names are [rewritten](#account-aliases) with `--alias` or `alias`,
 note that `acct:` will match either the old or the new account name.
 
 ## Querying with cost or value
@@ -1715,7 +1715,7 @@ in this order of preference
 
 1. A *declared market price* or *inferred market price*:
    A's latest market price in B on or before the valuation date
-   as declared by a [P directive](#declaring-market-prices), 
+   as declared by a [P directive](#market-prices), 
    or (with the `--infer-market-prices` flag)
    inferred from [costs](#costs).
    <!-- (Latest by date, then parse order.) -->
@@ -1742,7 +1742,7 @@ Amounts for which no suitable market price can be found, are not converted.
 ## --infer-market-prices: market prices from transactions
 
 Normally, market value in hledger is fully controlled by, and requires,
-[P directives](#declaring-market-prices) in your journal.
+[P directives](#market-prices) in your journal.
 Since adding and updating those can be a chore,
 and since transactions usually take place at close to market value,
 why not use the recorded [costs](#costs)
@@ -1803,7 +1803,7 @@ follows, in this order of preference:
 
 This means:
 
-- If you have [P directives](#declaring-market-prices), 
+- If you have [P directives](#market-prices), 
   they determine which commodities `-V` will convert, and to what.
 
 - If you have no P directives, and use the `--infer-market-prices` flag, 
@@ -2427,7 +2427,7 @@ accounts: `assets`, `liabilities`, `revenue`, `expenses`, and `equity`.
 Account names may contain single spaces, eg: `assets:accounts receivable`.
 Because of this, they must always be followed by **two or more spaces** (or newline).
 
-Account names can be [aliased](#rewriting-accounts).
+Account names can be [aliased](#account-aliases).
 
 ## Amounts
 
@@ -2494,8 +2494,8 @@ To prevent confusing parsing mistakes and undetected typos,
 especially if your data contains digit group marks (eg, thousands separators),
 we recommend explicitly declaring the decimal mark character in each journal file,
 using a directive at the top of the file.
-The [`decimal-mark`](#declaring-the-decimal-mark) directive is best,
-otherwise [`commodity`](#declaring-commodities) directives will also work.
+The [`decimal-mark`](#decimal-mark) directive is best,
+otherwise [`commodity`](#commodities) directives will also work.
 These are described detail below.
 
 ### Commodity
@@ -2526,7 +2526,7 @@ are the `Amount` and `MixedAmount` types.)
 You can add `decimal-mark` and `commodity` directives to the journal,
 to declare and control these things more explicitly and precisely.
 These are described below, in JOURNAL FORMAT -> [Declaring
-commodities](#declaring-commodities). Here's a quick example:
+commodities](#commodities). Here's a quick example:
 
 ```journal
 # the decimal mark character used by all amounts in this file (all commodities)
@@ -2556,7 +2556,7 @@ in the journal.
 
 Then each commodity's style is inferred from one of the following, in order of preference:
 
-- The [commodity directive](#declaring-commodities) for that commodity
+- The [commodity directive](#commodities) for that commodity
   (including the no-symbol commodity), if any.
 - The amounts in that commodity seen in the journal's transactions.
   (Posting amounts only; prices and periodic or auto rules are ignored, currently.)
@@ -2645,7 +2645,7 @@ implicitly:
 Amounts can be converted to cost at report time using the [`-B/--cost`](#reporting-options) flag;
 this is discussed more in the [COST](#cost) section.
 
-## Other cost/lot notations
+### Other cost/lot notations
 
 A slight digression for Ledger users. Ledger has a number of cost/lot-related notations:
 
@@ -2752,7 +2752,7 @@ can assert intra-day balances.
 
 ### Assertions and multiple included files
 
-Multiple files included with the [`include` directive](#including-other-files)
+Multiple files included with the [`include` directive](#including-files)
 are processed as if concatenated into one file, preserving
 their order and the posting order within each file.
 It means that balance assertions in later files will see balance from earlier files.
@@ -2872,7 +2872,7 @@ assertions, either:
 
 Balance assertions compare the exactly calculated amounts,
 which are not always what is shown by reports.
-Eg a [commodity directive](#declaring-commodities)
+Eg a [commodity directive](#commodities)
 may limit the display precision, but this will not affect balance assertions.
 Balance assertion failure messages show exact amounts.
 
@@ -3020,6 +3020,7 @@ Here is an overview of directives by purpose:
 | **DISPLAYING REPORTS:**                                                       |                                                         |                                             |
 | Declare accounts' display order and accounting type                           | [`account`]                                             |                                             |
 | Declare commodity display styles                                              | [`commodity`], [`D`]                                    | [`-c/--commodity-style`](#commodity-styles) |
+| Declare market prices                                                         | [`P`]                                                   |                                             |
 
 And here are all the directives and their precise effects:
 
@@ -3028,41 +3029,38 @@ And here are all the directives and their precise effects:
 <!-- h1,h2,h3,h4,h5,h6 { color:red; } -->
 <!-- </style> -->
 
-| directive             | effects                                                                                                                                                                                                                                                                                        | ends at file end? |
-|-----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------|
-| **[`account`]**       | Declares an account, for [checking](#check) all entries in all files; <br>and its [display order](#account-display-order) and [type](#declaring-account-types), for reports. <br>Subdirectives: any text, ignored.                                                                             |                   |
-| **[`alias`]**         | Rewrites account names, in following entries until end of current file or [`end aliases`].                                                                                                                                                                                                     | Y                 |
-| **[`apply account`]** | Prepends a common parent account to all account names, in following entries until end of current file or [`end apply account`].                                                                                                                                                                | Y                 |
-| **[`comment`]**       | Ignores part of the journal file, until end of current file or [`end comment`].                                                                                                                                                                                                                | Y                 |
-| **[`commodity`]**     | Declares a commodity, for checking all entries in all files; <br>the decimal mark for parsing amounts of this commodity, for following entries until end of current file; <br>and its display style, for reports. Takes precedence over `D`. <br>Subdirectives: [`format`] (alternate syntax). | N, <br>Y<br><br>  |
-| **[`D`]**             | Sets a default commodity to use for no-symbol amounts, <br>and its decimal mark for parsing amounts of this commodity in following entries until end of current file; <br>and its display style, for reports.                                                                                  | Y                 |
-| **[`decimal-mark`]**  | Declares the decimal mark, for parsing amounts of all commodities in following entries until next `decimal-mark` or end of current file. Included files can override. Takes precedence over `commodity` and `D`.                                                                               | Y                 |
-| **[`include`]**       | Includes entries and directives from another file, as if they were written inline.                                                                                                                                                                                                             |                   |
-| **[`payee`]**         | Declares a payee name, for checking all entries in all files.                                                                                                                                                                                                                                  |                   |
-| **[`P`]**             | Declares a market price for a commodity on some date, for [valuation](#valuation) reports.                                                                                                                                                                                                     |                   |
-| **[`Y`]**             | Declares a year for yearless dates, for following entries until end of current file.                                                                                                                                                                                                           | Y                 |
-| **[`~`]** (tilde)     | Declares a periodic transaction rule that generates future transactions with `--forecast` and budget goals with `balance --budget`.                                                                                                                                                            |                   |
-| **[`=`]** (equals)    | Declares an auto posting rule that generates extra postings on matched transactions with `--auto`, in current, parent, and child files (but not sibling files, see [#1212](https://github.com/simonmichael/hledger/issues/1212)).                                                              | partly            |
+| directive             | effects                                                                                                                                                                                                                                                                                      | ends at file end? |
+|-----------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------|
+| **[`account`]**       | Declares an account, for [checking](#check) all entries in all files; <br>and its [display order](#account-display-order) and [type](#declaring-account-types), for reports. <br>Subdirectives: any text, ignored.                                                                           |                   |
+| **[`alias`]**         | Rewrites account names, in following entries until end of current file or [`end aliases`].                                                                                                                                                                                                   | Y                 |
+| **[`apply account`]** | Prepends a common parent account to all account names, in following entries until end of current file or `end apply account`.                                                                                                                                                                | Y                 |
+| **[`comment`]**       | Ignores part of the journal file, until end of current file or `end comment`.                                                                                                                                                                                                                | Y                 |
+| **[`commodity`]**     | Declares a commodity, for checking all entries in all files; <br>the decimal mark for parsing amounts of this commodity, for following entries until end of current file; <br>and its display style, for reports. Takes precedence over `D`. <br>Subdirectives: `format` (alternate syntax). | N, <br>Y<br><br>  |
+| **[`D`]**             | Sets a default commodity to use for no-symbol amounts, <br>and its decimal mark for parsing amounts of this commodity in following entries until end of current file; <br>and its display style, for reports.                                                                                | Y                 |
+| **[`decimal-mark`]**  | Declares the decimal mark, for parsing amounts of all commodities in following entries until next `decimal-mark` or end of current file. Included files can override. Takes precedence over `commodity` and `D`.                                                                             | Y                 |
+| **[`include`]**       | Includes entries and directives from another file, as if they were written inline.                                                                                                                                                                                                           |                   |
+| **[`payee`]**         | Declares a payee name, for checking all entries in all files.                                                                                                                                                                                                                                |                   |
+| **[`P`]**             | Declares a market price for a commodity on some date, for [valuation](#valuation) reports.                                                                                                                                                                                                   |                   |
+| **[`Y`]**             | Declares a year for yearless dates, for following entries until end of current file.                                                                                                                                                                                                         | Y                 |
+| **[`~`]** (tilde)     | Declares a periodic transaction rule that generates future transactions with `--forecast` and budget goals with `balance --budget`.                                                                                                                                                          |                   |
+| **[`=`]** (equals)    | Declares an auto posting rule that generates extra postings on matched transactions with `--auto`, in current, parent, and child files (but not sibling files, see [#1212](https://github.com/simonmichael/hledger/issues/1212)).                                                            | partly            |
 
-[`account`]:           #declaring-accounts
-[`alias`]:             #rewriting-accounts
-[`--alias`]:           #rewriting-accounts
-[`end aliases`]:       #end-aliases
-[`apply account`]:     #default-parent-account
-[`end apply account`]: #end-apply-account
-[`comment`]:           #comment-blocks
-[`end comment`]:       #end-comment
-[`commodity`]:         #declaring-commodities
-[`format`]:            #format
+[`=`]:                 #auto-postings
 [`D`]:                 #default-commodity
-[`include`]:           #including-other-files
-[`payee`]:             #declaring-payees
 [`P`]:                 #market-prices
 [`Y`]:                 #default-year
+[`account`]:           #accounts
+[`alias`]:             #account-aliases
+[`--alias`]:           #account-aliases
+[`apply account`]:     #default-parent-account
+[`comment`]:           #file-comment
+[`commodity`]:         #commodities
+[`end aliases`]:       #end-aliases
+[`include`]:           #including-files
+[`payee`]:             #payees
 [`~`]:                 #periodic-transactions
-[`=`]:                 #auto-postings
 
-## Directives and multiple files
+### Directives and multiple files
 
 If you use multiple `-f`/`--file` options, or the `include` directive,
 hledger will process multiple input files. But directives which affect
@@ -3079,7 +3077,7 @@ It can be surprising though; for example, it means that
 [`alias` directives do not affect parent or sibling files](#aliases-and-multiple-files)
 (see below).
 
-## Including other files
+## Including files
 
 You can pull in the content of additional files by writing an include directive, like this:
 
@@ -3130,17 +3128,7 @@ Y2010  ; change default year to 2010
   assets
 ```
 
-## Declaring payees
-
-The `payee` directive can be used to declare a limited set of payees which may appear in transaction descriptions.
-The ["payees" check](#check) will report an error if any transaction refers to a payee that has not been declared.
-Eg:
-
-```journal
-payee Whole Foods
-```
-
-## Declaring the decimal mark
+## Decimal mark
 
 You can use a `decimal-mark` directive - usually one per file, at the
 top of the file - to declare which character represents a decimal mark
@@ -3157,7 +3145,7 @@ This prevents any [ambiguity](#decimal-marks-digit-group-marks) when
 parsing numbers in the file, so we recommend it, especially if the
 file contains digit group marks (eg thousands separators).
 
-## Declaring commodities
+## Commodities
 
 You can use `commodity` directives to declare your commodities.
 In fact the `commodity` directive performs several functions at once:
@@ -3237,7 +3225,7 @@ can still be [overridden](#commodity-styles) by supplying a command line option.
 ### Commodity error checking
 
 In [strict mode], enabled with the `-s`/`--strict` flag, hledger will report an error if a
-commodity symbol is used that has not been declared by a [`commodity` directive](#declaring-commodities).
+commodity symbol is used that has not been declared by a [`commodity` directive](#commodities).
 This works similarly to [account error checking](#account-error-checking), see the notes there for more details.
 
 Note, this disallows amounts without a commodity symbol,
@@ -3251,7 +3239,7 @@ subsequent commodityless amounts (ie, plain numbers) seen while
 parsing the journal. This effect lasts until the next `D` directive,
 or the end of the journal.
 
-For compatibility/historical reasons, `D` also acts like a [`commodity` directive](#declaring-commodities)
+For compatibility/historical reasons, `D` also acts like a [`commodity` directive](#commodities)
 (setting the commodity's decimal mark for parsing and [display style](#amount-display-format) for output).
 
 The syntax is `D AMOUNT`.
@@ -3274,38 +3262,7 @@ If you are using `D` and also [checking](#check) commodities, you will need
 to add a `commodity` directive similar to the `D`. 
 (The `hledger check commodities` command expects `commodity` directives, and ignores `D`).
 
-## Declaring market prices
-
-The `P` directive declares a market price, which is
-an exchange rate between two commodities on a certain date.
-(In Ledger, they are called "historical prices".)
-These are often obtained from a
-[stock exchange](https://en.wikipedia.org/wiki/Stock_exchange),
-cryptocurrency exchange, or the
-[foreign exchange market](https://en.wikipedia.org/wiki/Foreign_exchange_market).
-
-The format is:
-
-```journal
-P DATE COMMODITY1SYMBOL COMMODITY2AMOUNT
-```
-DATE is a [simple date](#simple-dates),
-COMMODITY1SYMBOL is the symbol of the commodity being priced,
-and COMMODITY2AMOUNT is the [amount](#amounts) (symbol and quantity) of commodity 2
-that one unit of commodity 1 is worth on this date.
-Examples:
-```journal
-# one euro was worth $1.35 from 2009-01-01 onward:
-P 2009-01-01 € $1.35
-
-# and $1.40 from 2010-01-01 onward:
-P 2010-01-01 € $1.40
-```
-
-The `-V`, `-X` and `--value` flags use these market prices to show amount values
-in another commodity. See [Valuation](#valuation).
-
-## Declaring accounts
+## Accounts
 
 `account` directives can be used to declare accounts 
 (ie, the places that amounts are transferred from and to).
@@ -3355,11 +3312,11 @@ This is convenient, but it means hledger can't warn you when you mis-spell an ac
 Usually you'll find that error later, as an extra account in balance reports, 
 or an incorrect balance when reconciling.
 
-In [strict mode], enabled with the `-s`/`--strict` flag, hledger will report an error if any transaction uses an account name that has not been declared by an [account directive](#declaring-accounts). Some notes:
+In [strict mode], enabled with the `-s`/`--strict` flag, hledger will report an error if any transaction uses an account name that has not been declared by an [account directive](#account). Some notes:
 
 - The declaration is case-sensitive; transactions must use the correct account name capitalisation.
 - The account directive's scope is "whole file and below" (see [directives](#directives)). This means it affects all of the current file, and any files it includes, but not parent or sibling files. The position of account directives within the file does not matter, though it's usual to put them at the top.
-- Accounts can only be declared in `journal` files, but will affect [included](#including-other-files) files of all types.
+- Accounts can only be declared in `journal` files, but will affect [included](#including-files) files of all types.
 - It's currently not possible to declare "all possible subaccounts" with a wildcard; every account posted to must be declared.
 
 ### Account display order
@@ -3440,7 +3397,7 @@ account equity:conversion  ; type: V
 [five main account types]:      https://en.wikipedia.org/wiki/Chart_of_accounts#Types_of_accounts
 [accounting equation]: https://en.wikipedia.org/wiki/Accounting_equation
 [CCE]:                 https://en.wikipedia.org/wiki/Cash_and_cash_equivalents
-[account directive]:   #declaring-accounts
+[account directive]:   #account
 
 Here are some tips for working with account types.
 
@@ -3482,7 +3439,7 @@ Here are some tips for working with account types.
   $ hledger accounts --types [ACCTPAT] [-DEPTH] [type:TYPECODES]
   ```
 
-## Rewriting accounts
+## Account aliases
 
 You can define account alias rules which rewrite your account names, or parts of them,
 before generating reports.
@@ -3494,7 +3451,7 @@ This can be useful for:
 - combining two accounts into one, eg to see their sum or difference on one line
 - customising reports
 
-Account aliases also rewrite account names in [account directives](#declaring-accounts).
+Account aliases also rewrite account names in [account directives](#account).
 They do not affect account names being entered via hledger add or hledger-web.
 
 Account aliases are very powerful.
@@ -3507,7 +3464,7 @@ See also [Rewrite account names](rewrite-account-names.html).
 
 To set an account alias, use the `alias` directive in your journal file.
 This affects all subsequent journal entries in the current file or its
-[included files](#including-other-files)
+[included files](#including-files)
 (but note: [not sibling or parent files](#aliases-and-multiple-files)).
 The spaces around the = are optional:
 
@@ -3719,9 +3676,50 @@ include personal.journal
 
 Prior to hledger 1.0, legacy `account` and `end` spellings were also supported.
 
-A default parent account also affects [account directives](#declaring-accounts).
+A default parent account also affects [account directives](#account).
 It does not affect account names being entered via hledger add or hledger-web.
 If account aliases are present, they are applied after the default parent account.
+
+## Payees
+
+The `payee` directive can be used to declare a limited set of payees which may appear in transaction descriptions.
+The ["payees" check](#check) will report an error if any transaction refers to a payee that has not been declared.
+Eg:
+
+```journal
+payee Whole Foods
+```
+
+## Market prices
+
+The `P` directive declares a market price, which is
+an exchange rate between two commodities on a certain date.
+(In Ledger, they are called "historical prices".)
+These are often obtained from a
+[stock exchange](https://en.wikipedia.org/wiki/Stock_exchange),
+cryptocurrency exchange, or the
+[foreign exchange market](https://en.wikipedia.org/wiki/Foreign_exchange_market).
+
+The format is:
+
+```journal
+P DATE COMMODITY1SYMBOL COMMODITY2AMOUNT
+```
+DATE is a [simple date](#simple-dates),
+COMMODITY1SYMBOL is the symbol of the commodity being priced,
+and COMMODITY2AMOUNT is the [amount](#amounts) (symbol and quantity) of commodity 2
+that one unit of commodity 1 is worth on this date.
+Examples:
+```journal
+# one euro was worth $1.35 from 2009-01-01 onward:
+P 2009-01-01 € $1.35
+
+# and $1.40 from 2010-01-01 onward:
+P 2010-01-01 € $1.40
+```
+
+The `-V`, `-X` and `--value` flags use these market prices to show amount values
+in another commodity. See [Valuation](#valuation).
 
 ## Periodic transactions
 

@@ -59,7 +59,7 @@ They are more specialised and not desirable for everyone, therefore optional:
 
 - **ordereddates** - transactions are ordered by date within each file
 
-- **payees** - all payees used by transactions [have been declared](#declaring-payees)
+- **payees** - all payees used by transactions [have been declared](#payees)
 
 - **recentassertions** - all accounts with balance assertions have a
   balance assertion no more than 7 days before their latest posting

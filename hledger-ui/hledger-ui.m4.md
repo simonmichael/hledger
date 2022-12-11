@@ -239,7 +239,7 @@ It is like the `hledger incomestatement` command.
 All of these accounts screens work in much the same way:
 
 They show accounts which have been posted to by transactions,
-as well as accounts which have been declared with an [account directive](#declaring-accounts)
+as well as accounts which have been declared with an [account directive](#account)
 (except for empty parent accounts).
 
 If you specify a query on the command line or with `/` in the app,
