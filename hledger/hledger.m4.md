@@ -42,6 +42,7 @@ _version_.  It also describes the concepts and file formats common to
 all hledger programs.  You can read it on hledger.org, or as an info
 manual or man page on your system. It is detailed and not entirely linear,
 so you should feel free to skip ahead / skim when needed.
+You don't need to know everything in here to use hledger productively.
 
 _hledgerdescription_
 
