@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# push [INTERVALSECS] - push to CI branch, watch for a successful run, then push to master
+# push [INTERVALSECS] - push to github CI branch, watch for a successful run, then push to master
 
 set -e
 
@@ -10,7 +10,7 @@ REMOTECIBRANCH=simon
 REMOTEMAINBRANCH=master
 NUMRUNS=3
 NUMCOMMITS=5
-CISTARTDELAY=5  # between ci push and run start
+CISTARTDELAY=5   # between ci push and run start
 MAINPUSHDELAY=5  # between run end and master push
 
 gitlog() {
