@@ -1367,7 +1367,7 @@ With the balance command's [`--budget` report](#budget-report).
 each periodic transaction rule generates recurring budget goals in specified accounts,
 and goals and actual performance can be compared.
 
-See also: [Budgeting and Forecasting](budgeting-and-forecasting.html).
+See also: [Budgeting and Forecasting](/budgeting-and-forecasting.html).
 
 
 # COST
@@ -2136,7 +2136,7 @@ in a simple format readable by both hledger and humans.
 
 hledger's journal format is a compatible subset, mostly, of [ledger's
 journal format](http://ledger-cli.org/3.0/doc/ledger3.html#Journal-Format),
-so hledger can work with [compatible](ledger.html#journal-format)
+so hledger can work with [compatible](/ledger.html#journal-format)
 ledger journal files as well.  It's safe, and encouraged, to run both
 hledger and ledger on the same journal file, eg to validate the results
 you're getting.
@@ -2152,7 +2152,7 @@ ledger-mode or hledger-mode for Emacs,
 vim-ledger for Vim,
 and hledger-vscode for Visual Studio Code,
 make this easier, adding colour, formatting, tab completion, and useful commands.
-See [Editor configuration](editors.html) at hledger.org for the full list.
+See [Editor configuration](/editors.html) at hledger.org for the full list.
 
 <!--
 Here's an example:
@@ -3492,7 +3492,7 @@ Account aliases are very powerful.
 They are generally easy to use correctly, but you can also generate 
 invalid account names with them; more on this below.
 
-See also [Rewrite account names](rewrite-account-names.html).
+See also [Rewrite account names](/rewrite-account-names.html).
 
 ### Basic aliases
 

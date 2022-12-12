@@ -272,17 +272,17 @@ $ curl -s http://127.0.0.1:5000/transactions | python -m json.tool
 ```
 
 Most of the JSON corresponds to hledger's data types; for details of what the fields mean, see the
-[Hledger.Data.Json haddock docs](http://hackage.haskell.org/package/hledger-lib-1.17.1/docs/Hledger-Data-Json.html)
+[Hledger.Data.Json haddock docs](https://hackage.haskell.org/package/hledger-lib-1.17.1/docs/Hledger-Data-Json.html)
 and click on the various data types, eg 
-[Transaction](http://hackage.haskell.org/package/hledger-lib-1.17.1/docs/Hledger-Data-Types.html#t:Transaction).
-And for a higher level understanding, see the [journal manual](hledger.html).
+[Transaction](https://hackage.haskell.org/package/hledger-lib-1.17.1/docs/Hledger-Data-Types.html#t:Transaction).
+And for a higher level understanding, see the [journal docs](hledger.html#journal).
 
 In some cases there is outer JSON corresponding to a "Report" type.
 To understand that, go to the
-[Hledger.Web.Handler.MiscR haddock](http://hackage.haskell.org/package/hledger-web-1.17.1/docs/Hledger-Web-Handler-MiscR.html)
+[Hledger.Web.Handler.MiscR haddock](https://hackage.haskell.org/package/hledger-web-1.17.1/docs/Hledger-Web-Handler-MiscR.html)
 and look at the source for the appropriate handler to see what it returns.
 Eg for `/accounttransactions` it's
-[getAccounttransactionsR](http://hackage.haskell.org/package/hledger-web-1.17.1/docs/src/Hledger.Web.Handler.MiscR.html#getAccounttransactionsR),
+[getAccounttransactionsR](https://hackage.haskell.org/package/hledger-web-1.17.1/docs/src/Hledger.Web.Handler.MiscR.html#getAccounttransactionsR),
 returning a "`accountTransactionsReport ...`".
 [Looking up](https://hoogle.haskell.org/?hoogle=accountTransactionsReport) the haddock for that
 we can see that /accounttransactions returns an 
