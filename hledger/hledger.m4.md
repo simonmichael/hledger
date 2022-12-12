@@ -43,7 +43,6 @@ all hledger programs.  You can read it on hledger.org, or as an info
 manual or man page on your system. It is detailed and not entirely linear,
 so you should feel free to skip ahead / skim when needed.
 
-m4_dnl Include the standard description:
 _hledgerdescription_
 
 The basic function of the hledger CLI is to read a plain text file describing
@@ -61,7 +60,6 @@ You can specify standard input with `-f-`.
 Transactions are dated movements of money between two (or more) named
 accounts, and are recorded with journal entries like this:
 
-m4_dnl Format as a journal snippet:
 _journal_({{
 2015/10/16 bought food
  expenses:food          $10
@@ -310,7 +308,6 @@ See [Special characters](#special-characters).
 
 # ENVIRONMENT
 
-m4_dnl Standard LEDGER_FILE description:
 _LEDGER_FILE_
 
 **COLUMNS**

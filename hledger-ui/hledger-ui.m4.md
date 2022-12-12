@@ -2,23 +2,25 @@
 % _author_
 % _monthyear_
 
-_man_({{
+_notinfo_({{
 # NAME
 }})
 
-hledger-ui is a terminal interface (TUI) for the hledger accounting tool.
-This manual is for hledger-ui _version_.
+hledger-ui - robust, friendly plain text accounting (TUI version)
 
-_man_({{
+_notinfo_({{
 # SYNOPSIS
 }})
 
 `hledger-ui [OPTIONS] [QUERYARGS]`\
 `hledger ui -- [OPTIONS] [QUERYARGS]`
 
-_man_({{
+_notinfo_({{
 # DESCRIPTION
 }})
+
+This manual is for hledger's terminal interface, version _version_.
+See also the hledger manual for common concepts and file formats.
 
 _hledgerdescription_
 
@@ -398,8 +400,6 @@ _LEDGER_FILE_
 Reads _files_
 
 # BUGS
-
-The need to precede options with `--` when invoked from hledger is awkward.
 
 `-f-` doesn't work (hledger-ui can't read from stdin).
 

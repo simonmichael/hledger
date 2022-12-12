@@ -2,24 +2,27 @@
 % _author_
 % _monthyear_
 
-_man_({{
+_notinfo_({{
 # NAME
 }})
 
-hledger-web is a web interface (WUI) for the hledger accounting tool.
-This manual is for hledger-web _version_.
+hledger-web - robust, friendly plain text accounting (Web version)
 
-_man_({{
+_notinfo_({{
 # SYNOPSIS
 }})
 
-`hledger-web [OPTIONS]              # run temporarily & browse`\
-`hledger-web --serve [OPTIONS]      # run without stopping`\
-`hledger-web --serve-api [OPTIONS]  # run JSON server only`\
+`hledger-web [OPTIONS]                  # run temporarily & browse`\
+`hledger-web --serve [OPTIONS]          # run without stopping`\
+`hledger-web --serve-api [OPTIONS]      # run JSON server only`\
+`hledger web -- [OPTIONS] [QUERYARGS]`  # start from hledger
 
-_man_({{
+_notinfo_({{
 # DESCRIPTION
 }})
+
+This manual is for hledger's web interface, version _version_.
+See also the hledger manual for common concepts and file formats.
 
 _hledgerdescription_
 
@@ -421,8 +424,6 @@ _LEDGER_FILE_
 Reads _files_
 
 # BUGS
-
-The need to precede options with `--` when invoked from hledger is awkward.
 
 `-f-` doesn't work (hledger-web can't read from stdin).
 
