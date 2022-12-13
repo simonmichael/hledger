@@ -42,7 +42,8 @@ _version_.  It also describes the concepts and file formats common to
 all hledger programs.  You can read it on hledger.org, or as an info
 manual or man page on your system. It is detailed and not entirely linear,
 so you should feel free to skip ahead / skim when needed.
-You don't need to know everything in here to use hledger productively.
+You don't need to know everything in here to use hledger productively,
+but when you have a question about functionality, this doc should answer it.
 
 _hledgerdescription_
 
@@ -76,6 +77,7 @@ To get started, you can either save some entries like the above in
 `~/.hledger.journal`, or run `hledger add` and follow the prompts. Then
 try some commands like `hledger print` or `hledger balance`.
 Run `hledger` with no arguments for a list of commands.
+
 
 # PART 1: USER INTERFACE
 
@@ -743,1360 +745,9 @@ $ locale -a | grep -iE en_us.*utf
 en_US.UTF-8
 $ LANG=en_US.UTF-8 hledger -f my.journal print
 ```
-# PART 2: CONCEPTS
 
-# DEPTH
 
-With the `--depth NUM` option (short form: `-NUM`), 
-reports will show accounts only to the specified depth, hiding deeper subaccounts.
-Use this when you want a summary with less detail.
-This flag has the same effect as a `depth:` query argument: `depth:2`, `--depth=2` or `-2` are equivalent.
-
-# TIME PERIODS
-
-<a name="report-period"></a>
-
-## Report start & end date
-
-By default, most hledger reports will show the full span of time represented by the journal data.
-The report start date will be the earliest transaction or posting date,
-and the report end date will be the latest transaction, posting, or market price date.
-
-Often you will want to see a shorter time span, such as the current month.
-You can specify a start and/or end date using
-[`-b/--begin`](#reporting-options),
-[`-e/--end`](#reporting-options),
-[`-p/--period`](#period-expressions)
-or a [`date:` query](#queries) (described below).
-All of these accept the [smart date](#smart-dates) syntax (below).
-
-Some notes:
-
-- End dates are exclusive, as in Ledger, so you should write the date *after*
-  the last day you want to see in the report.
-- As noted in [reporting options](#general-options):
-  among start/end dates specified with *options*, the last (i.e. right-most)
-  option takes precedence.
-- The effective report start and end dates are the intersection of the
-  start/end dates from options and that from `date:` queries.
-  That is, `date:2019-01 date:2019 -p'2000 to 2030'` yields January 2019, the
-  smallest common time span.
-- A [report interval](#report-intervals) (see below) will adjust start/end dates,
-  when needed, so that they fall on subperiod boundaries.
-
-Examples:
-
-|                    |                                                                                             |
-|--------------------|---------------------------------------------------------------------------------------------|
-| `-b 2016/3/17`     | begin on St. Patrick’s day 2016                                                             |
-| `-e 12/1`          | end at the start of december 1st of the current year (11/30 will be the last date included) |
-| `-b thismonth`     | all transactions on or after the 1st of the current month                                   |
-| `-p thismonth`     | all transactions in the current month                                                       |
-| `date:2016/3/17..` | the above written as queries instead (`..` can also be replaced with `-`)                   |
-| `date:..12/1`      |                                                                                             |
-| `date:thismonth..` |                                                                                             |
-| `date:thismonth`   |                                                                                             |
-
-## Smart dates
-
-hledger's user interfaces accept a flexible "smart date" syntax.
-Smart dates allow some english words, can be relative to today's date,
-and can have less-significant date parts omitted (defaulting to 1).
-
-Examples:
-
-|                                              |                                                                                       |
-|----------------------------------------------|---------------------------------------------------------------------------------------|
-| `2004/10/1`, `2004-01-01`, `2004.9.1`        | exact date, several separators allowed. Year is 4+ digits, month is 1-12, day is 1-31 |
-| `2004`                                       | start of year                                                                         |
-| `2004/10`                                    | start of month                                                                        |
-| `10/1`                                       | month and day in current year                                                         |
-| `21`                                         | day in current month                                                                  |
-| `october, oct`                               | start of month in current year                                                        |
-| `yesterday, today, tomorrow`                 | -1, 0, 1 days from today                                                              |
-| `last/this/next day/week/month/quarter/year` | -1, 0, 1 periods from the current period                                              |
-| `in n days/weeks/months/quarters/years`      | n periods from the current period                                                     |
-| `n days/weeks/months/quarters/years ahead`   | n periods from the current period                                                     |
-| `n days/weeks/months/quarters/years ago`     | -n periods from the current period                                                    |
-| `20181201`                                   | 8 digit YYYYMMDD with valid year month and day                                        |
-| `201812`                                     | 6 digit YYYYMM with valid year and month                                              |
-
-Counterexamples - malformed digit sequences might give surprising results:
-
-|             |                                                                   |
-|-------------|-------------------------------------------------------------------|
-| `201813`    | 6 digits with an invalid month is parsed as start of 6-digit year |
-| `20181301`  | 8 digits with an invalid month is parsed as start of 8-digit year |
-| `20181232`  | 8 digits with an invalid day gives an error                       |
-| `201801012` | 9+ digits beginning with a valid YYYYMMDD gives an error          |
-
-Note "today's date" can be overridden with the `--today` option, in case it's
-needed for testing or for recreating old reports. (Except for periodic
-transaction rules; those are not affected by `--today`.)
-
-## Report intervals
-
-A report interval can be specified so that commands like
-[register](#register), [balance](#balance) and [activity](#activity)
-become multi-period, showing each subperiod as a separate row or
-column.
-
-The following "standard" report intervals can be enabled by using
-their corresponding flag:
-
-- `-D/--daily`
-- `-W/--weekly`
-- `-M/--monthly`
-- `-Q/--quarterly`
-- `-Y/--yearly`
-
-These standard intervals always start on natural interval boundaries:
-eg `--weekly` starts on mondays, `--monthly` starts on the first of
-the month, `--yearly` always starts on January 1st, etc.
-
-Certain more complex intervals, and more flexible boundary dates, can
-be specified by `-p/--period`. These are described in [period
-expressions](#period-expressions), below.
-
-Report intervals can only be specified by the flags above, and not by
-[query](#queries) arguments, currently.
-
-Report intervals have another effect: multi-period reports are always
-expanded to fill a whole number of subperiods. So if you use a report
-interval (other than `--daily`), and you have specified a start or end
-date, you may notice those dates being overridden (ie, the report
-starts earlier than your requested start date, or ends later than your
-requested end date). This is done to ensure "full" first and last
-subperiods, so that all subperiods' numbers are comparable.
-
-To summarise:
-
-- In multiperiod reports, all subperiods are forced to be the same length, to simplify reporting.
-- Reports with the standard `--weekly`/`--monthly`/`--quarterly`/`--yearly`  intervals
-  are required to start on the first day of a week/month/quarter/year. 
-  We'd like more flexibility here but it isn't supported yet.
-- `--period` (below) can specify more complex intervals, starting on any date.
-
-## Period expressions
-
-The `-p/--period` option accepts period expressions, a shorthand way
-of expressing a start date, end date, and/or report interval all at
-once.
-
-Here's a basic period expression specifying the first quarter of 2009. Note,
-hledger always treats start dates as inclusive and end dates as exclusive:
-
-|                                  |
-|----------------------------------|
-| `-p "from 2009/1/1 to 2009/4/1"` |
-
-Keywords like "from" and "to" are optional, and so are the spaces, as long
-as you don't run two dates together. "to" can also be written as ".." or "-".
-These are equivalent to the above:
-
-|                           |
-|---------------------------|
-| `-p "2009/1/1 2009/4/1"`  |
-| `-p2009/1/1to2009/4/1`    |
-| `-p2009/1/1..2009/4/1`    |
-
-Dates are [smart dates](#smart-dates), so if the current year is 2009, the
-above can also be written as:
-
-|                         |
-|-------------------------|
-| `-p "1/1 4/1"`          |
-| `-p "january-apr"`      |
-| `-p "this year to 4/1"` |
-
-If you specify only one date, the missing start or end date will be the
-earliest or latest transaction in your journal:
-
-|                      |                                   |
-|----------------------|-----------------------------------|
-| `-p "from 2009/1/1"` | everything after january 1, 2009  |
-| `-p "from 2009/1"`   | the same                          |
-| `-p "from 2009"`     | the same                          |
-| `-p "to 2009"`       | everything before january 1, 2009 |
-
-A single date with no "from" or "to" defines both the start and end date
-like so:
-
-|                 |                                                             |
-|-----------------|-------------------------------------------------------------|
-| `-p "2009"`     | the year 2009; equivalent to “2009/1/1 to 2010/1/1”         |
-| `-p "2009/1"`   | the month of jan; equivalent to “2009/1/1 to 2009/2/1”      |
-| `-p "2009/1/1"` | just that day; equivalent to “2009/1/1 to 2009/1/2”         |
-
-Or you can specify a single quarter like so:
-
-|                 |                                                             |
-|-----------------|-------------------------------------------------------------|
-| `-p "2009Q1"`   | first quarter of 2009, equivalent to “2009/1/1 to 2009/4/1” |
-| `-p "q4"`       | fourth quarter of the current year                          |
-
-### Period expressions with a report interval
-
-`-p/--period`'s argument can also begin with, or entirely consist of, 
-a [report interval](#report-intervals). 
-This should be separated from the start/end dates (if any) by a space, or the word `in`.
-The basic intervals (which can also be written as command line flags) 
-are `daily`, `weekly`, `monthly`, `quarterly`, and `yearly`.
-Some examples:
-
-|                                         |
-|-----------------------------------------|
-| `-p "weekly from 2009/1/1 to 2009/4/1"` |
-| `-p "monthly in 2008"`                  |
-| `-p "quarterly"`                        |
-
-As mentioned above, the `weekly`, `monthly`, `quarterly` and `yearly` intervals 
-require a report start date that is the first day of a week, month, quarter or year.
-And, report start/end dates will be expanded if needed to span a whole number of intervals.
-
-For example:
-
-|                                                |                                                                                    |
-|------------------------------------------------|------------------------------------------------------------------------------------|
-| `-p "weekly from 2009/1/1 to 2009/4/1"`        | starts on 2008/12/29, closest preceding Monday                                     |
-| `-p "monthly in 2008/11/25"`                   | starts on 2018/11/01                                                               |
-| `-p "quarterly from 2009-05-05 to 2009-06-01"` | starts on 2009/04/01, ends on 2009/06/30, which are first and last days of Q2 2009 |
-| `-p "yearly from 2009-12-29"`                  | starts on 2009/01/01, first day of 2009                                            |
-
-### More complex report intervals
-
-Some more complex kinds of interval are also supported in period expressions:
-
-- `biweekly`
-- `fortnightly`
-- `bimonthly`
-- `every day|week|month|quarter|year`
-- `every N days|weeks|months|quarters|years`
-
-These too will cause report start/end dates to be expanded, if needed,
-to span a whole number of intervals.
-Examples:
-
-|                                    |                                                             |
-|------------------------------------|-------------------------------------------------------------|
-| `-p "bimonthly from 2008"`         | periods will have boundaries on 2008/01/01, 2008/03/01, ... |
-| `-p "every 2 weeks"`               | starts on closest preceding Monday                          |
-| `-p "every 5 months from 2009/03"` | periods will have boundaries on 2009/03/01, 2009/08/01, ... |
-
-### Intervals with custom start date
-
-All intervals mentioned above are required to start on their natural calendar boundaries,
-but the following intervals can start on any date:
-
-Weekly on custom day:
-
-- `every Nth day of week` (`th`, `nd`, `rd`, or `st` are all accepted after the number)
-- `every WEEKDAYNAME` (full or three-letter english weekday name, case insensitive)
-
-Monthly on custom day:
-
-- `every Nth day [of month]`
-- `every Nth WEEKDAYNAME [of month]`
-
-Yearly on custom day:
-
-- `every MM/DD [of year]` (month number and day of month number)
-- `every MONTHNAME DDth [of year]` (full or three-letter english month name, case insensitive, and day of month number)
-- `every DDth MONTHNAME [of year]` (equivalent to the above)
-
-Examples:
-
-|                              |                                                          |
-|------------------------------|----------------------------------------------------------|
-| `-p "every 2nd day of week"` | periods will go from Tue to Tue                          |
-| `-p "every Tue"`             | same                                                     |
-| `-p "every 15th day"`        | period boundaries will be on 15th of each month          |
-| `-p "every 2nd Monday"`      | period boundaries will be on second Monday of each month |
-| `-p "every 11/05"`           | yearly periods with boundaries on 5th of November        |
-| `-p "every 5th November"`    | same                                                     |
-| `-p "every Nov 5th"`         | same                                                     |
-
-Show historical balances at end of the 15th day of each month (N is an end date, exclusive as always):
-
-```shell
-$ hledger balance -H -p "every 16th day"
-```
-
-Group postings from the start of wednesday to end of the following tuesday (N is both (inclusive) start date and (exclusive) end date):
-
-```shell
-$ hledger register checking -p "every 3rd day of week"
-```
-
-### Periods or dates ?
-
-Report intervals like the above are most often used with `-p|--period`,
-to divide reports into multiple subperiods -
-each generated date marks a subperiod boundary.
-Here, the periods between the dates are what's important.
-
-But report intervals can also be used 
-with `--forecast` to generate future transactions,
-or with `balance --budget` to generate budget goal-setting transactions.
-For these, the dates themselves are what matters.
-
-### Events on multiple weekdays
-
-The `every WEEKDAYNAME` form has a special variant with multiple day names, comma-separated. 
-Eg: `every mon,thu,sat`.
-Also, `weekday` and `weekendday` are shorthand for `mon,tue,wed,thu,fri` and `sat,sun` 
-respectively.
-
-This form is mainly intended for use with `--forecast`, to generate 
-[periodic transactions](#periodic-transactions) on arbitrary days of the week.
-It may be less useful with `-p`, since it divides each week into subperiods 
-of unequal length. (Because gaps between periods are not allowed;
-if you'd like to change this, see [#1632](https://github.com/simonmichael/hledger/pull/1632).)
-
-Examples:
-
-|                              |                                                                                        |
-|------------------------------|----------------------------------------------------------------------------------------|
-| `-p "every mon,wed,fri"`     | dates will be Mon, Wed, Fri; <br>periods will be Mon-Tue, Wed-Thu, Fri-Sun             |
-| `-p "every weekday"`         | dates will be Mon, Tue, Wed, Thu, Fri; <br>periods will be Mon, Tue, Wed, Thu, Fri-Sun |
-| `-p "every weekendday"`      | dates will be Sat, Sun; <br>periods will be Sat, Sun-Fri                               |
-
-# QUERIES
-
-One of hledger's strengths is being able to quickly report on a precise subset of your data. 
-Most hledger commands accept optional query arguments to restrict their scope.
-The syntax is as follows:
-
-- Zero or more space-separated query terms. 
-These are most often [account name](#account-names) substrings:
-
-  `utilities food:groceries`
-
-- Terms with spaces or other [special characters](#special-characters) should be enclosed in quotes:
-
-  `"personal care"`
-
-- [Regular expressions](#regular-expressions) are also supported:
-
-  `"^expenses\b" "accounts (payable|receivable)"`
-
-- Add a query type prefix to match other parts of the data:
-
-  `date:202012- desc:amazon cur:USD amt:">100" status:`
-
-- Add a `not:` prefix to negate a term:
-
-  `not:cur:USD`
-
-## Query types
-
-Here are the types of query term available.
-Remember these can also be prefixed with **`not:`** to convert them into a negative match.
-
-**`acct:REGEX`, `REGEX`**\
-Match account names containing this (case insensitive) [regular expression]. 
-This is the default query type when there is no prefix,
-and regular expression syntax is typically not needed,
-so usually we just write an account name substring, like `expenses` or `food`.
-
-**`amt:N, amt:<N, amt:<=N, amt:>N, amt:>=N`**\
-Match postings with a single-commodity amount equal to, less than, or greater than N.
-(Postings with multi-commodity amounts are not tested and will always match.)
-The comparison has two modes: 
-if N is preceded by a + or - sign (or is 0), the two signed numbers are compared. 
-Otherwise, the absolute magnitudes are compared, ignoring sign.
-
-**`code:REGEX`**\
-Match by transaction code (eg check number).
-
-**`cur:REGEX`**\
-Match postings or transactions including any amounts whose
-currency/commodity symbol is fully matched by REGEX. (For a partial
-match, use `.*REGEX.*`). 
-Note, to match [special characters](#special-characters) which are regex-significant, you need to escape them with `\`.
-And for characters which are significant to your shell you may need one more level of escaping. 
-So eg to match the dollar sign:\
-`hledger print cur:\\$`.
-
-**`desc:REGEX`**\
-Match transaction descriptions.
-
-**`date:PERIODEXPR`**\
-Match dates (or with the `--date2` flag, [secondary dates](#secondary-dates))
-within the specified period.
-PERIODEXPR is a [period expression](#period-expressions) with no report interval.
-Examples:\
-`date:2016`, `date:thismonth`, `date:2/1-2/15`, `date:2021-07-27..nextquarter`.
-
-
-**`date2:PERIODEXPR`**\
-Match secondary dates within the specified period (independent of the `--date2` flag).
-
-**`depth:N`**\
-Match (or display, depending on command) accounts at or above this depth.
-
-**`note:REGEX`**\
-Match transaction [notes](#payee-and-note)
-(the part of the description right of `|`, or the whole description if there's no `|`).
-
-**`payee:REGEX`**\
-Match transaction [payee/payer names](#payee-and-note)
-(the part of the description left of `|`, or the whole description if there's no `|`).
-
-**`real:, real:0`**\
-Match real or virtual postings respectively.
-
-**`status:, status:!, status:*`**\
-Match unmarked, pending, or cleared transactions respectively.
-
-**`type:TYPECODES`**\
-Match by account type (see [Declaring accounts > Account types](#account-types)).
-`TYPECODES` is one or more of the single-letter account type codes
-`ALERXCV`, case insensitive. 
-Note `type:A` and `type:E` will also match their respective subtypes `C` (Cash) and `V` (Conversion).
-Certain kinds of account alias can disrupt account types, see 
-[Rewriting accounts > Aliases and account types](#aliases-and-account-types).
-
-**`tag:REGEX[=REGEX]`**\
-Match by tag name, and optionally also by tag value.
-(To match only by value, use `tag:.=REGEX`.)
-
-When querying by tag, note that:
-
-- Accounts also inherit the tags of their parent accounts
-- Postings also inherit the tags of their account and their transaction 
-- Transactions also acquire the tags of their postings.
-
-(**`inacct:ACCTNAME`**\
-A special query term used automatically in hledger-web only:
-tells hledger-web to show the transaction register for an account.)
-
-## Combining query terms
-
-When given multiple query terms, most commands select things which match:
-
-- any of the description terms AND
-- any of the account terms AND
-- any of the status terms AND
-- all the other terms.
-
-The [print](#print) command is a little different, showing transactions which:
-
-- match any of the description terms AND
-- have any postings matching any of the positive account terms AND
-- have no postings matching any of the negative account terms AND
-- match all the other terms.
-
-Although these fixed rules are enough for many needs,
-we do not support full boolean expressions ([#203](https://github.com/simonmichael/hledger/issues/203)),
-(and you should not write AND or OR in your queries).
-This makes certain queries hard to express, but here are some tricks that can help:
-
-1. Use a doubled `not:` prefix.
-    Eg, to print only the food expenses paid with cash:
-
-    ```shell
-    $ hledger print food not:not:cash
-    ```
-
-2. Or pre-filter the transactions with `print`, 
-   piping the result into a second hledger command
-   (with balance assertions disabled):
-
-    ```shell
-    $ hledger print cash | hledger -f- -I balance food
-    ```
-
-## Queries and command options
-
-Some queries can also be expressed as command-line options:
-`depth:2` is equivalent to `--depth 2`, 
-`date:2020` is equivalent to `-p 2020`, etc.
-When you mix command options and query arguments, 
-generally the resulting query is their intersection.
-
-## Queries and account aliases
-
-When account names are [rewritten](#account-aliases) with `--alias` or `alias`,
-`acct:` will match either the old or the new account name.
-
-## Queries and valuation
-
-When amounts are converted to other commodities in [cost](#costing) or [value](#valuation) reports,
-`cur:` and `amt:` match the old commodity symbol and the old amount quantity, 
-not the new ones
-(except in hledger 1.22.0 where it's reversed, see [#1625](https://github.com/simonmichael/hledger/issues/1625)).
-
-## Querying with account aliases
-
-When account names are [rewritten](#account-aliases) with `--alias` or `alias`,
-note that `acct:` will match either the old or the new account name.
-
-## Querying with cost or value
-
-When amounts are converted to other commodities in [cost](#costing) or [value](#valuation) reports,
-note that `cur:` matches the new commodity symbol, and not the old one,
-and `amt:` matches the new quantity, and not the old one.
-Note: this changed in hledger 1.22, previously it was the reverse, 
-see the discussion at [#1625](https://github.com/simonmichael/hledger/issues/1625).
-
-# PIVOTING
-
-Normally, hledger groups and sums amounts within each account.
-The `--pivot FIELD` option substitutes some other transaction field for account names,
-causing amounts to be grouped and summed by that field's value instead.
-FIELD can be any of the transaction fields `status`, `code`, `description`, `payee`, `note`,
-or a tag name (transactions and tags are explained below).
-Values containing `colon:separated:parts` will form a hierarchy, as account names do.
-
-Some examples:
-
-```journal
-2016/02/16 Member Fee Payment
-    assets:bank account                    2 EUR
-    income:member fees                    -2 EUR  ; member: John Doe
-```
-Normal balance report showing account names:
-```shell
-$ hledger balance
-               2 EUR  assets:bank account
-              -2 EUR  income:member fees
---------------------
-                   0
-```
-Pivoted balance report, using member: tag values instead:
-```shell
-$ hledger balance --pivot member
-               2 EUR
-              -2 EUR  John Doe
---------------------
-                   0
-```
-One way to show only amounts with a member: value (using a [query](#queries), described below):
-```shell
-$ hledger balance --pivot member tag:member=.
-              -2 EUR  John Doe
---------------------
-              -2 EUR
-```
-Another way (the acct: query matches against the pivoted "account name"):
-```shell
-$ hledger balance --pivot member acct:.
-              -2 EUR  John Doe
---------------------
-              -2 EUR
-```
-
-# GENERATING DATA
-
-Two features for generating transient data (visible only at report time)
-are built in to hledger's journal format. They are mentioned here
-briefly and described below:
-
-- Auto posting rules can generate extra postings on certain transactions.
-  They are activated by the `--auto` flag.
-
-- Periodic transaction rules can generate repeating transactions, 
-  usually dated in the future, to help with forecasting or budgeting.
-  They are activated by the `--forecast` or `balance --budget` options.
-
-# FORECASTING
-
-The `--forecast` flag activates any [periodic transaction rules](#periodic-transactions) 
-in the journal. These will generate temporary additional transactions, 
-usually recurring and in the future, which will appear in all reports.
-`hledger print --forecast` is a good way to see them.
-
-This can be useful for estimating balances into the future,
-perhaps experimenting with different scenarios.
-
-It could also be useful for scripted data entry: you could describe recurring
-transactions, and every so often copy the output of `print --forecast`
-into the journal.
-
-The generated transactions will have an extra [tag](#tags), like
-`generated-transaction:~ PERIODICEXPR`, 
-indicating which periodic rule generated them.
-There is also a similar, hidden tag, named `_generated-transaction:`, 
-which you can use to reliably match transactions generated "just now"
-(rather than `print`ed in the past).
-
-The forecast transactions are generated within a *forecast period*,
-which is independent of the [report period](#report-start--end-date).
-(Forecast period sets the bounds for generated transactions,
-report period controls which transactions are reported.)
-The forecast period begins on:
-
-- the start date provided within `--forecast`'s argument, if any
-- otherwise, the later of
-  - the report start date, if specified (with `-b`/`-p`/`date:`)
-  - the day after the latest ordinary transaction in the journal, if any
-- otherwise today.
-
-It ends on:
-
-- the end date provided within `--forecast`'s argument, if any
-- otherwise, the report end date, if specified (with `-e`/`-p`/`date:`)
-- otherwise 180 days (6 months) from today.
-
-Note, this means that ordinary transactions will suppress periodic transactions,
-by default; the periodic transactions will not start until after the last ordinary transaction.
-This is usually convenient, but you can get around it in two ways:
-
-- If you need to record some transactions in the future, make them 
-  periodic transactions (with a single occurrence, eg: `~ YYYY-MM-DD`) rather than ordinary transactions.
-  That way they won't suppress other periodic transactions.
-
-- Or give `--forecast` a [period expression](#period-expressions) argument.
-  A forecast period specified this way can overlap ordinary transactions, 
-  and need not be in the future. Some things to note:
-
-  - You must use `=` between flag and argument; a space won't work.
-  - The period expression can specify the forecast period's start date, end date, or both.
-    See also [Report start & end date](#report-start--end-date).
-  - The period expression should not specify a [report interval](#report-intervals).
-    (Each periodic transaction rule specifies its own interval.)
-
-Some examples: `--forecast=202001-202004`, `--forecast=jan-`, `--forecast=2021`.
-
-# BUDGETING
-
-With the balance command's [`--budget` report](#budget-report).
-each periodic transaction rule generates recurring budget goals in specified accounts,
-and goals and actual performance can be compared.
-
-See also: [Budgeting and Forecasting](/budgeting-and-forecasting.html).
-
-
-# COST
-
-This section is about recording the cost of things, in transactions
-where one commodity is exchanged for another. 
-Eg an exchange of currency, or a stock purchase or sale.
-First, a quick glossary:
-
-- Conversion - an exchange of one currency or commodity for another.
-  Eg a foreign currency exchange, or a purchase or sale of stock or
-  cryptocurrency.
-
-- Conversion transaction - a transaction involving one or more conversions.
-
-- Conversion rate - the cost per unit of one commodity in the other,
-  ie the exchange rate.
-
-- Cost - how much of one commodity was paid to acquire the other.  And
-  more generally, in hledger docs: the amount exchanged in the
-  "secondary" commodity (usually your base currency), whether in a
-  purchase or a sale, and whether expressed per unit or in total. Also,
-  the "@/@@ PRICE" notation used to represent this.
-
-## -B: Convert to cost
-
-As discussed a little further on in [Costs](#costs),
-when recording a transaction you can also record the amount's cost in another commodity,
-by adding `@ UNITPRICE` or `@@ TOTALPRICE`.
-
-Then you can see a report with amounts converted to cost, by adding
-the [`-B/--cost`](#reporting-options) flag. (Mnemonic: "B" from "cost
-Basis", as in Ledger).  Eg:
-
-```journal
-2022-01-01
-  assets:dollars  $-135          ; 135 dollars is exchanged for..
-  assets:euros     €100 @ $1.35  ; one hundred euros purchased at $1.35 each
-```
-
-```shell
-$ hledger bal -N
-               $-135  assets:dollars
-                €100  assets:euros
-$ hledger bal -N -B
-               $-135  assets:dollars
-                $135  assets:euros    # <- the euros' cost
-```
-
-Notes:
-
--B is sensitive to the order of postings when a cost is inferred:
-the inferred price will be in the commodity of the last amount.
-So if example 3's postings are reversed, while the transaction
-is equivalent, -B shows something different:
-
-```journal
-2022-01-01
-  assets:dollars  $-135              ; 135 dollars sold
-  assets:euros     €100              ; for 100 euros
-```
-```shell
-$ hledger bal -N -B
-               €-100  assets:dollars  # <- the dollars' selling price
-                €100  assets:euros
-```
-
-The @/@@ cost notation is convenient, but has some drawbacks: it does
-not truly balance the transaction, so it disrupts the accounting
-equation and tends to causes a non-zero total in balance reports.
-
-## Equity conversion postings
-
-By contrast, conventional double entry bookkeeping (DEB) uses a different notation:
-an extra pair of equity postings to balance conversion transactions.
-In this style, the above entry might be written:
-
-```journal
-2022-01-01 one hundred euros purchased at $1.35 each
-    assets:dollars      $-135
-    equity:conversion    $135
-    equity:conversion   €-100
-    assets:euros         €100
-```
-
-This style is more correct, but it's also more verbose and makes cost
-reporting more difficult for PTA tools.
-
-Happily, current hledger can read either notation, or convert one to
-the other when needed, so you can use the one you prefer.
-
-## Inferring equity postings from cost
-
-With `--infer-equity`, hledger detects transactions written with PTA cost notation
-and adds equity conversion postings to them
-(and temporarily permits the coexistence of equity conversion postings and
-cost notation, which normally would cause an unbalanced transaction error).
-Eg:
-
-```journal
-2022-01-01
-  assets:dollars  -$135
-  assets:euros     €100 @ $1.35
-```
-```shell
-$ hledger print --infer-equity
-2022-01-01
-    assets:dollars                    $-135
-    assets:euros               €100 @ $1.35
-    equity:conversion:$-€:€           €-100  ; generated-posting:
-    equity:conversion:$-€:$         $135.00  ; generated-posting:
-```
-
-The conversion account names can be changed with the
-[conversion account type declaration](#account-types).
-
---infer-equity is useful when when transactions have been recorded
-using cost notation, to help preserve the accounting equation 
-and balance reports' zero total, or to produce more conventional 
-journal entries for sharing with non-PTA-users.
-
-## Inferring cost from equity postings
-
-The reverse operation is possible using `--infer-costs`, which
-detects transactions written with equity conversion postings
-and adds PTA cost notation to them
-(and temporarily permits the coexistence of equity conversion postings
-and cost notation).
-Eg:
-
-```journal
-2022-01-01
-    assets:dollars            $-135
-    equity:conversion          $135
-    equity:conversion         €-100
-    assets:euros               €100
-```
-```shell
-$ hledger print --infer-costs
-2022-01-01
-    assets:dollars       $-135 @@ €100
-    equity:conversion             $135
-    equity:conversion            €-100
-    assets:euros                  €100
-```
-
---infer-costs is useful when combined with -B/--cost, 
-allowing cost reporting even when transactions have been recorded 
-using equity postings:
-
-```shell
-$ hledger print --infer-costs -B
-2009-01-01
-    assets:dollars           €-100
-    assets:euros              €100
-```
-
-Notes: 
-
-For `--infer-costs` to work, an exchange must consist of four postings:
-
-1. two non-equity postings
-2. two equity postings, next to one another
-2. the equity accounts must be declared, with account type `V`/`Conversion`
-   (or if they are not declared, they must be named
-   `equity:conversion`, `equity:trade`, `equity:trading` or subaccounts of these)
-3. the equity postings' amounts must exactly match the non-equity postings' amounts
-
-Multiple such exchanges can coexist within a single transaction, should you need that.
-
-When inferring cost, the order of postings matters:
-the cost is added to the first of the non-equity postings involved in the exchange,
-in the commodity of the last non-equity posting involved in the exchange.
-If you don't want to write your postings in the required order,
-the alternative is not to infer cost; instead, use explicit cost notation,
-omitting the equity postings, inferring them later with --infer-equity if needed.
-
---infer-equity and --infer-costs can be used together, if you have a
-mixture of both notations in your journal.
-
-## When to infer cost/equity
-
-Inferring equity postings or costs is still fairly new, so not enabled by default.
-We're not sure yet if that should change. Here are two suggestions to try,
-experience reports welcome:
-
-1. When you use -B, always use --infer-costs as well. Eg: `hledger bal -B --infer-costs`
-
-2. Always run hledger with both flags enabled. Eg: `alias hl="hledger --infer-equity --infer-costs"`
-
-## How to record conversions
-
-Essentially there are four ways to record a conversion transaction in hledger.
-Here are all of them, with pros and cons.
-
-### Conversion with implicit cost
-
-Let's assume 100 EUR is converted to 120 USD.  You can just record the
-outflow (100 EUR) and inflow (120 USD) in the appropriate asset
-account:
-
-```journal
-2021-01-01
-    assets:cash    -100 EUR
-    assets:cash     120 USD
-```
-
-hledger will assume this transaction is balanced, inferring that the
-conversion rate must be 1 EUR = 1.20 USD. You can see the inferred
-rate by using `hledger print -x`.
-
-Pro: 
-
-- Concise, easy
-
-Con: 
-
-- Less error checking - typos in amounts or commodity symbols may not be detected
-- Conversion rate is not clear
-- Disturbs the accounting equation, unless you add the --infer-equity flag
-
-You can prevent accidental implicit conversions due to a mistyped
-commodity symbol, by using `hledger check commodities`.
-
-You can prevent implicit conversions entirely, by using `hledger check
-balancednoautoconversion`, or `-s/--strict`.
-
-### Conversion with explicit cost
-
-You can add the conversion rate using @ notation:
-
-```journal
-2021-01-01
-    assets:cash        -100 EUR @ 1.20 USD
-    assets:cash         120 USD
-```
-
-Now hledger will check that 100 * 1.20 = 120, and would report an error otherwise.
-
-Pro: 
-
-- Still concise
-- Makes the conversion rate clear
-- Provides more error checking
-
-Con: 
-
-- Disturbs the accounting equation, unless you add the --infer-equity flag
-
-### Conversion with equity postings
-
-In strict double entry bookkeeping, the above transaction is not
-balanced in EUR or in USD, since some EUR disappears, and some USD
-appears. This violates the accounting equation (A+L+E=0), and prevents
-reports like `balancesheetequity` from showing a zero total.
-
-The proper way to make it balance is to add a balancing posting for
-each commodity, using an equity account:
-
-```journal
-2021-01-01
-    assets:cash        -100 EUR
-    equity:conversion   100 EUR
-    equity:conversion  -120 USD
-    assets:cash         120 USD
-```
-
-Pro: 
-
-- Preserves the accounting equation
-- Keeps track of conversions and related gains/losses in one place
-- Standard, works in any double entry accounting system
-
-Con: 
-
-- More verbose
-- Conversion rate is not obvious
-- Cost reporting requires adding the --infer-costs flag
-
-### Conversion with equity postings and explicit cost
-
-Here both equity postings and @ notation are used together.
-hledger will usually complain about this redundancy, but when using
-the --infer-costs flag it is accepted.
-
-```journal
-2021-01-01
-    assets:cash        -100 EUR @ 1.20 USD
-    equity:conversion   100 EUR
-    equity:conversion  -120 USD
-    assets:cash         120 USD
-```
-
-Pro: 
-
-- Preserves the accounting equation
-- Keeps track of conversions and related gains/losses in one place
-- Makes the conversion rate clear
-- Provides more error checking
-
-Con: 
-
-- Most verbose
-- Requires the --infer-costs flag
-- Not compatible with ledger
-
-## Cost tips
-
-- Recording the conversion rate explicitly is good because it makes that clear and helps detect errors.
-- Recording equity postings is good because it is correct bookkeeping and preserves the accounting equation.
-- Combining these is possible by using the --infer-costs flag (which requires well-ordered postings).
-- When you want to see the cost (or sale proceeds) of things, use `-B` (or `--cost`).
-  If you use equity conversion postings notation, use `-B --infer-costs`.
-- If you use PTA cost notation, and you want to see a balanced balance sheet or print correct journal entries, use `--infer-equity`.
-- Conversion to cost is performed before valuation (described next).
-
-# VALUATION
-
-Instead of reporting amounts in their original commodity, hledger can convert them to
-cost/sale amount (using the conversion rate recorded in the transaction),
-and/or to market value (using some market price on a certain date).
-This is controlled by the `--value=TYPE[,COMMODITY]` option, which will be described below.
-We also provide the simpler `-V` and `-X COMMODITY` options, and often
-one of these is all you need:
-
-## -V: Value
-
-The `-V/--market` flag converts amounts to market value in their
-default *valuation commodity*, using the
-[market prices](#market-prices) in effect on the *valuation date(s)*, if any.
-More on these in a minute.
-
-## -X: Value in specified commodity
-
-The `-X/--exchange=COMM` option is like `-V`, except you tell it which
-currency you want to convert to, and it tries to convert everything to that.
-
-## Valuation date
-
-Since market prices can change from day to day, market value reports
-have a valuation date (or more than one), which determines which
-market prices will be used.
-
-For single period reports, if an explicit
-[report end date](#report-start-end-date) is specified, that will be
-used as the valuation date; otherwise the valuation date is the journal's end date.
-
-For [multiperiod reports](#report-intervals), each column/period is
-valued on the last day of the period, by default.
-
-## Market prices
-
-To convert a commodity A to its market value in another commodity B,
-hledger looks for a suitable market price (exchange rate) as follows,
-in this order of preference
-<!-- (-X tries all of these; -V tries only 1) (really ?) -->
-:
-
-1. A *declared market price* or *inferred market price*:
-   A's latest market price in B on or before the valuation date
-   as declared by a [P directive](#market-prices), 
-   or (with the `--infer-market-prices` flag)
-   inferred from [costs](#costs).
-   <!-- (Latest by date, then parse order.) -->
-   <!-- (A declared price overrides an inferred price on the same date.) -->
-  
-2. A *reverse market price*:
-   the inverse of a declared or inferred market price from B to A.
-
-3. A *forward chain of market prices*:
-   a synthetic price formed by combining the shortest chain of
-   "forward" (only 1 above) market prices, leading from A to B.
-
-4. *Any chain of market prices*:
-   a chain of any market prices, including both forward and
-   reverse prices (1 and 2 above), leading from A to B.
-
-There is a limit to the length of these price chains; if hledger
-reaches that length without finding a complete chain or exhausting 
-all possibilities, it will give up (with a "gave up" message 
-visible in `--debug=2` output). That limit is currently 1000.
-
-Amounts for which no suitable market price can be found, are not converted.
-
-## --infer-market-prices: market prices from transactions
-
-Normally, market value in hledger is fully controlled by, and requires,
-[P directives](#market-prices) in your journal.
-Since adding and updating those can be a chore,
-and since transactions usually take place at close to market value,
-why not use the recorded [costs](#costs)
-as additional market prices (as Ledger does) ?
-We could produce value reports without needing P directives at all.
-
-Adding the `--infer-market-prices` flag to `-V`, `-X` or `--value` enables
-this. So for example, `hledger bs -V --infer-market-prices` will get market
-prices both from P directives and from transactions.
-(And if both occur on the same day, the P directive takes precedence).
-
-There is a downside: value reports can sometimes  be affected in
-confusing/undesired ways by your journal entries. If this happens to
-you, read all of this [Valuation](#valuation) section carefully,
-and try adding `--debug` or `--debug=2` to troubleshoot.
-
-`--infer-market-prices` can infer market prices from:
-
-- multicommodity transactions with explicit prices (`@`/`@@`)
-
-- multicommodity transactions with implicit prices (no `@`, two commodities, unbalanced).
-  (With these, the order of postings matters. `hledger print -x` can be useful for troubleshooting.)
-
-- [multicommodity transactions with equity postings](#conversion-with-equity-postings),
-  if cost is inferred with [`--infer-costs`](#inferring-cost-from-equity-postings).
-  
-
-There is another limitation (bug) currently: when a valuation commodity is not specified, 
-prices inferred with `--infer-market-prices` do not help select a default valuation commodity,
-as `P` prices would.
-So conversion might not happen because no valuation commodity was detected (`--debug=2` will show this). 
-To be safe, specify the valuation commmodity, eg:
-
-- `-X EUR --infer-market-prices`, not `-V --infer-market-prices`
-- `--value=then,EUR --infer-market-prices`, not `--value=then --infer-market-prices`
-
-
-## Valuation commodity
-
-**When you specify a valuation commodity (`-X COMM` or `--value TYPE,COMM`):**\
-hledger will convert all amounts to COMM,
-wherever it can find a suitable market price (including by reversing or chaining prices).
-
-**When you leave the valuation commodity unspecified (`-V` or `--value TYPE`):**\
-For each commodity A, hledger picks a default valuation commodity as
-follows, in this order of preference:
-
-1. The price commodity from the latest P-declared market price for A
-   on or before valuation date.
-
-2. The price commodity from the latest P-declared market price for A on
-   any date. (Allows conversion to proceed when there are inferred
-   prices before the valuation date.)
-
-3. If there are no P directives at all (any commodity or date) and the
-   `--infer-market-prices` flag is used: the price commodity from the latest
-   transaction-inferred price for A on or before valuation date.
-
-This means:
-
-- If you have [P directives](#market-prices), 
-  they determine which commodities `-V` will convert, and to what.
-
-- If you have no P directives, and use the `--infer-market-prices` flag, 
-  [costs](#costs) determine it.
-
-Amounts for which no valuation commodity can be found are not converted.
-
-## Simple valuation examples
-
-Here are some quick examples of `-V`:
-
-```journal
-; one euro is worth this many dollars from nov 1
-P 2016/11/01 € $1.10
-
-; purchase some euros on nov 3
-2016/11/3
-    assets:euros        €100
-    assets:checking
-
-; the euro is worth fewer dollars by dec 21
-P 2016/12/21 € $1.03
-```
-How many euros do I have ?
-```shell
-$ hledger -f t.j bal -N euros
-                €100  assets:euros
-```
-What are they worth at end of nov 3 ?
-```shell
-$ hledger -f t.j bal -N euros -V -e 2016/11/4
-             $110.00  assets:euros
-```
-What are they worth after 2016/12/21 ? (no report end date specified, defaults to today)
-```shell
-$ hledger -f t.j bal -N euros -V
-             $103.00  assets:euros
-```
-
-## --value: Flexible valuation
-
-`-V` and `-X` are special cases of the more general `--value` option:
-
-     --value=TYPE[,COMM]  TYPE is then, end, now or YYYY-MM-DD.
-                          COMM is an optional commodity symbol.
-                          Shows amounts converted to:
-                          - default valuation commodity (or COMM) using market prices at posting dates
-                          - default valuation commodity (or COMM) using market prices at period end(s)
-                          - default valuation commodity (or COMM) using current market prices
-                          - default valuation commodity (or COMM) using market prices at some date
-
-The TYPE part selects cost or value and valuation date:
-
-`--value=then`
-: Convert amounts to their value in the [default valuation commodity](#valuation-commodity),
-  using market prices on each posting's date.
-
-`--value=end`
-: Convert amounts to their value in the default valuation commodity, using market prices
-  on the last day of the report period (or if unspecified, the journal's end date);
-  or in multiperiod reports, market prices on the last day of each subperiod.
-
-`--value=now`
-: Convert amounts to their value in the default valuation commodity
-  using current market prices (as of when report is generated).
-
-`--value=YYYY-MM-DD`
-: Convert amounts to their value in the default valuation commodity
-  using market prices on this date.
-
-To select a different valuation commodity, add the optional `,COMM` part:
-a comma, then the target commodity's symbol. Eg: **`--value=now,EUR`**.
-hledger will do its best to convert amounts to this commodity, deducing
-[market prices](#market-prices) as described above.
-
-## More valuation examples
-
-Here are some examples showing the effect of `--value`, as seen with `print`:
-
-```journal
-P 2000-01-01 A  1 B
-P 2000-02-01 A  2 B
-P 2000-03-01 A  3 B
-P 2000-04-01 A  4 B
-
-2000-01-01
-  (a)      1 A @ 5 B
-
-2000-02-01
-  (a)      1 A @ 6 B
-
-2000-03-01
-  (a)      1 A @ 7 B
-```
-
-Show the cost of each posting:
-```shell
-$ hledger -f- print --cost
-2000-01-01
-    (a)             5 B
-
-2000-02-01
-    (a)             6 B
-
-2000-03-01
-    (a)             7 B
-
-```
-
-Show the value as of the last day of the report period (2000-02-29):
-```shell
-$ hledger -f- print --value=end date:2000/01-2000/03
-2000-01-01
-    (a)             2 B
-
-2000-02-01
-    (a)             2 B
-
-```
-
-With no report period specified, that shows the value as of the last day of the journal (2000-03-01):
-```shell
-$ hledger -f- print --value=end
-2000-01-01
-    (a)             3 B
-
-2000-02-01
-    (a)             3 B
-
-2000-03-01
-    (a)             3 B
-
-```
-
-Show the current value (the 2000-04-01 price is still in effect today):
-```shell
-$ hledger -f- print --value=now
-2000-01-01
-    (a)             4 B
-
-2000-02-01
-    (a)             4 B
-
-2000-03-01
-    (a)             4 B
-
-```
-
-Show the value on 2000/01/15:
-```shell
-$ hledger -f- print --value=2000-01-15
-2000-01-01
-    (a)             1 B
-
-2000-02-01
-    (a)             1 B
-
-2000-03-01
-    (a)             1 B
-
-```
-
-You may need to explicitly set a commodity's display style, when reverse prices are used.
-Eg this output might be surprising:
-```journal
-P 2000-01-01 A 2B
-
-2000-01-01
-  a  1B
-  b
-```
-```shell
-$ hledger print -x -X A
-2000-01-01
-    a               0
-    b               0
-
-```
-Explanation: because there's no amount or commodity directive specifying a display style
-for A, 0.5A gets the default style, which shows no decimal digits. Because the displayed
-amount looks like zero, the commodity symbol and minus sign are not displayed either.
-Adding a commodity directive sets a more useful display style for A:
-```journal
-P 2000-01-01 A 2B
-commodity 0.00A
-
-2000-01-01
-  a  1B
-  b
-```
-```shell
-$ hledger print -X A
-2000-01-01
-    a           0.50A
-    b          -0.50A
-
-```
-
-## Interaction of valuation and queries
-
-When matching postings based on queries in the presence of valuation, the
-following happens.
-
-1. The query is separated into two parts:
-    1. the currency (`cur:`) or amount (`amt:`).
-    2. all other parts.
-2. The postings are matched to the currency and amount queries based on pre-valued amounts.
-3. Valuation is applied to the postings.
-4. The postings are matched to the other parts of the query based on post-valued amounts.
-
-See:
-[1625](https://github.com/simonmichael/hledger/issues/1625)
-
-
-## Effect of valuation on reports
-
-Here is a reference for how valuation is supposed to affect each part of hledger's reports (and a glossary).
-(It's wide, you'll have to scroll sideways.)
-It may be useful when troubleshooting.
-If you find problems, please report them, ideally with a reproducible example.
-Related:
-[#329](https://github.com/simonmichael/hledger/issues/329),
-[#1083](https://github.com/simonmichael/hledger/issues/1083).
-
-| Report type                                         | `-B`, `--cost`                                                   | `-V`, `-X`                                                        | `--value=then`                                                                                 | `--value=end`                                                     | `--value=DATE`, `--value=now`           |
-|-----------------------------------------------------|------------------------------------------------------------------|-------------------------------------------------------------------|------------------------------------------------------------------------------------------------|-------------------------------------------------------------------|-----------------------------------------|
-| **print**                                           |                                                                  |                                                                   |                                                                                                |                                                                   |                                         |
-| posting amounts                                     | cost                                                             | value at report end or today                                      | value at posting date                                                                          | value at report or journal end                                    | value at DATE/today                     |
-| balance assertions/assignments                      | unchanged                                                        | unchanged                                                         | unchanged                                                                                      | unchanged                                                         | unchanged                               |
-| <br>                                                |                                                                  |                                                                   |                                                                                                |                                                                   |                                         |
-| **register**                                        |                                                                  |                                                                   |                                                                                                |                                                                   |                                         |
-| starting balance (-H)                               | cost                                                             | value at report or journal end                                    | valued at day each historical posting was made                                                 | value at report or journal end                                    | value at DATE/today                     |
-| starting balance (-H) with report interval          | cost                                                             | value at day before report or journal start                       | valued at day each historical posting was made                                                 | value at day before report or journal start                       | value at DATE/today                     |
-| posting amounts                                     | cost                                                             | value at report or journal end                                    | value at posting date                                                                          | value at report or journal end                                    | value at DATE/today                     |
-| summary posting amounts with report interval        | summarised cost                                                  | value at period ends                                              | sum of postings in interval, valued at interval start                                          | value at period ends                                              | value at DATE/today                     |
-| running total/average                               | sum/average of displayed values                                  | sum/average of displayed values                                   | sum/average of displayed values                                                                | sum/average of displayed values                                   | sum/average of displayed values         |
-| <br>                                                |                                                                  |                                                                   |                                                                                                |                                                                   |                                         |
-| **balance (bs, bse, cf, is)**                       |                                                                  |                                                                   |                                                                                                |                                                                   |                                         |
-| balance changes                                     | sums of costs                                                    | value at report end or today of sums of postings                  | value at posting date                                                                          | value at report or journal end of sums of postings                | value at DATE/today of sums of postings |
-| budget amounts (--budget)                           | like balance changes                                             | like balance changes                                              | like balance changes                                                                           | like balances                                                     | like balance changes                    |
-| grand total                                         | sum of displayed values                                          | sum of displayed values                                           | sum of displayed valued                                                                        | sum of displayed values                                           | sum of displayed values                 |
-| <br>                                                |                                                                  |                                                                   |                                                                                                |                                                                   |                                         |
-| **balance (bs, bse, cf, is) with report interval**  |                                                                  |                                                                   |                                                                                                |                                                                   |                                         |
-| starting balances (-H)                              | sums of costs of postings before report start                    | value at report start of sums of all postings before report start | sums of values of postings before report start at respective posting dates                     | value at report start of sums of all postings before report start | sums of postings before report start    |
-| balance changes (bal, is, bs --change, cf --change) | sums of costs of postings in period                              | same as --value=end                                               | sums of values of postings in period at respective posting dates                               | balance change in each period, valued at period ends              | value at DATE/today of sums of postings |
-| end balances (bal -H, is --H, bs, cf)               | sums of costs of postings from before report start to period end | same as --value=end                                               | sums of values of postings from before period start to period end at respective posting dates  | period end balances, valued at period ends                        | value at DATE/today of sums of postings |
-| budget amounts (--budget)                           | like balance changes/end balances                                | like balance changes/end balances                                 | like balance changes/end balances                                                              | like balances                                                     | like balance changes/end balances       |
-| row totals, row averages (-T, -A)                   | sums, averages of displayed values                               | sums, averages of displayed values                                | sums, averages of displayed values                                                             | sums, averages of displayed values                                | sums, averages of displayed values      |
-| column totals                                       | sums of displayed values                                         | sums of displayed values                                          | sums of displayed values                                                                       | sums of displayed values                                          | sums of displayed values                |
-| grand total, grand average                          | sum, average of column totals                                    | sum, average of column totals                                     | sum, average of column totals                                                                  | sum, average of column totals                                     | sum, average of column totals           |
-| <br>                                                |                                                                  |                                                                   |                                                                                                |                                                                   |                                         |
-
-`--cumulative` is omitted to save space, it works like `-H` but with a zero starting balance.
-
-**Glossary:**
-
-*cost*
-: calculated using price(s) recorded in the transaction(s).
-
-*value*
-: market value using available market price declarations, or the unchanged amount if no conversion rate can be found.
-
-*report start*
-: the first day of the report period specified with -b or -p or date:, otherwise today.
-
-*report or journal start*
-: the first day of the report period specified with -b or -p or date:, otherwise the earliest transaction date in the journal, otherwise today.
-
-*report end*
-: the last day of the report period specified with -e or -p or date:, otherwise today.
-
-*report or journal end*
-: the last day of the report period specified with -e or -p or date:, otherwise the latest transaction date in the journal, otherwise today.
-
-*report interval*
-: a flag (-D/-W/-M/-Q/-Y) or period expression that activates the report's multi-period mode (whether showing one or many subperiods).
-
-
-
-
-# PART 3: DATA FORMATS
-
+# PART 2: DATA FORMATS
 
 <a name="journal-format"></a>
 
@@ -2270,7 +921,8 @@ $ hledger register checking --date2
 
 You can give individual postings a different date from their parent
 transaction, by adding a [posting comment](#posting-comment) containing a
-[tag](#tags) (see below) like `date:DATE`.  This is probably the best
+[tag](#tags) (see 
+below) like `date:DATE`.  This is probably the best
 way to control posting dates precisely. Eg in this example the expense
 should appear in May reports, and the deduction from checking should
 be reported on 6/1 for easy bank reconciliation:
@@ -2507,7 +1159,7 @@ we recommend explicitly declaring the decimal mark character in each journal fil
 using a directive at the top of the file.
 The [`decimal-mark`](#decimal-mark) directive is best,
 otherwise [`commodity`](#commodities) directives will also work.
-These are described detail below.
+These are described below.
 
 ### Commodity
 
@@ -2536,8 +1188,7 @@ are the `Amount` and `MixedAmount` types.)
 
 You can add `decimal-mark` and `commodity` directives to the journal,
 to declare and control these things more explicitly and precisely.
-These are described below, in JOURNAL FORMAT -> [Declaring
-commodities](#commodities). Here's a quick example:
+These are described below, but here's a quick example:
 
 ```journal
 # the decimal mark character used by all amounts in this file (all commodities)
@@ -2658,11 +1309,11 @@ implicitly:
     ```
 
 Amounts can be converted to cost at report time using the [`-B/--cost`](#reporting-options) flag;
-this is discussed more in the ˜[COST](#cost) section.
+this is discussed more in the ˜[COST REPORTING](#cost-reporting) section.
 
-### Other cost/lot notations˜
+### Other cost/lot notations
 
-A slight digression for Ledger users. Ledger has a number of cost/lot-related notations:
+A slight digression for Ledger and Beancount users. Ledger has a number of cost/lot-related notations:
 
 - `@ UNITCOST` and `@@ TOTALCOST`
   - expresses a conversion rate, as in hledger
@@ -2748,7 +1399,7 @@ can protect you from, eg, inadvertently disrupting reconciled balances
 while cleaning up old entries. You can disable them temporarily with
 the `-I/--ignore-assertions` flag, which can be useful for
 troubleshooting or for reading Ledger files.
-(Note: this flag currently does not disable balance assignments, below).
+(Note: this flag currently does not disable balance assignments, described below).
 
 ### Assertions and ordering
 
@@ -3392,7 +2043,7 @@ The tag's value should be one of the [five main account types]:
 or, it can be (these are used less often):
 
 - `C` or `Cash`			(a subtype of Asset, indicating [liquid assets][CCE] for the [cashflow] report)
-- `V` or `Conversion`	(a subtype of Equity, for conversions (see [COST](#cost)).)
+- `V` or `Conversion`	(a subtype of Equity, for conversions (see [COST REPORTING](#cost-reporting)).)
 
 Here is a typical set of account type declarations:
 
@@ -4311,8 +2962,8 @@ tells hledger to ignore this many non-empty lines preceding the CSV data.
 (Empty/blank lines are skipped automatically.)
 You'll need this whenever your CSV data contains header lines.
 
-It also has a second purpose: it can be used inside [if blocks](#if)
-to ignore certain CSV records (described below).
+It also has a second purpose: it can be used inside [if blocks](#if) (described below)
+to ignore certain CSV records.
 
 
 ## `date-format`
@@ -5355,6 +4006,1357 @@ file.
 <!-- $ hledger -f sample.timedot register -p weekly --depth 1 --empty  # time summary by week -->
 <!-- ``` -->
 
+
+# PART 3: REPORTING CONCEPTS
+
+# TIME PERIODS
+
+<a name="report-period"></a>
+
+## Report start & end date
+
+By default, most hledger reports will show the full span of time represented by the journal data.
+The report start date will be the earliest transaction or posting date,
+and the report end date will be the latest transaction, posting, or market price date.
+
+Often you will want to see a shorter time span, such as the current month.
+You can specify a start and/or end date using
+[`-b/--begin`](#reporting-options),
+[`-e/--end`](#reporting-options),
+[`-p/--period`](#period-expressions)
+or a [`date:` query](#queries) (described below).
+All of these accept the [smart date](#smart-dates) syntax (below).
+
+Some notes:
+
+- End dates are exclusive, as in Ledger, so you should write the date *after*
+  the last day you want to see in the report.
+- As noted in [reporting options](#general-options):
+  among start/end dates specified with *options*, the last (i.e. right-most)
+  option takes precedence.
+- The effective report start and end dates are the intersection of the
+  start/end dates from options and that from `date:` queries.
+  That is, `date:2019-01 date:2019 -p'2000 to 2030'` yields January 2019, the
+  smallest common time span.
+- A [report interval](#report-intervals) (see below) will adjust start/end dates,
+  when needed, so that they fall on subperiod boundaries.
+
+Examples:
+
+|                    |                                                                                             |
+|--------------------|---------------------------------------------------------------------------------------------|
+| `-b 2016/3/17`     | begin on St. Patrick’s day 2016                                                             |
+| `-e 12/1`          | end at the start of december 1st of the current year (11/30 will be the last date included) |
+| `-b thismonth`     | all transactions on or after the 1st of the current month                                   |
+| `-p thismonth`     | all transactions in the current month                                                       |
+| `date:2016/3/17..` | the above written as queries instead (`..` can also be replaced with `-`)                   |
+| `date:..12/1`      |                                                                                             |
+| `date:thismonth..` |                                                                                             |
+| `date:thismonth`   |                                                                                             |
+
+## Smart dates
+
+hledger's user interfaces accept a flexible "smart date" syntax.
+Smart dates allow some english words, can be relative to today's date,
+and can have less-significant date parts omitted (defaulting to 1).
+
+Examples:
+
+|                                              |                                                                                       |
+|----------------------------------------------|---------------------------------------------------------------------------------------|
+| `2004/10/1`, `2004-01-01`, `2004.9.1`        | exact date, several separators allowed. Year is 4+ digits, month is 1-12, day is 1-31 |
+| `2004`                                       | start of year                                                                         |
+| `2004/10`                                    | start of month                                                                        |
+| `10/1`                                       | month and day in current year                                                         |
+| `21`                                         | day in current month                                                                  |
+| `october, oct`                               | start of month in current year                                                        |
+| `yesterday, today, tomorrow`                 | -1, 0, 1 days from today                                                              |
+| `last/this/next day/week/month/quarter/year` | -1, 0, 1 periods from the current period                                              |
+| `in n days/weeks/months/quarters/years`      | n periods from the current period                                                     |
+| `n days/weeks/months/quarters/years ahead`   | n periods from the current period                                                     |
+| `n days/weeks/months/quarters/years ago`     | -n periods from the current period                                                    |
+| `20181201`                                   | 8 digit YYYYMMDD with valid year month and day                                        |
+| `201812`                                     | 6 digit YYYYMM with valid year and month                                              |
+
+Counterexamples - malformed digit sequences might give surprising results:
+
+|             |                                                                   |
+|-------------|-------------------------------------------------------------------|
+| `201813`    | 6 digits with an invalid month is parsed as start of 6-digit year |
+| `20181301`  | 8 digits with an invalid month is parsed as start of 8-digit year |
+| `20181232`  | 8 digits with an invalid day gives an error                       |
+| `201801012` | 9+ digits beginning with a valid YYYYMMDD gives an error          |
+
+Note "today's date" can be overridden with the `--today` option, in case it's
+needed for testing or for recreating old reports. (Except for periodic
+transaction rules; those are not affected by `--today`.)
+
+## Report intervals
+
+A report interval can be specified so that commands like
+[register](#register), [balance](#balance) and [activity](#activity)
+become multi-period, showing each subperiod as a separate row or
+column.
+
+The following "standard" report intervals can be enabled by using
+their corresponding flag:
+
+- `-D/--daily`
+- `-W/--weekly`
+- `-M/--monthly`
+- `-Q/--quarterly`
+- `-Y/--yearly`
+
+These standard intervals always start on natural interval boundaries:
+eg `--weekly` starts on mondays, `--monthly` starts on the first of
+the month, `--yearly` always starts on January 1st, etc.
+
+Certain more complex intervals, and more flexible boundary dates, can
+be specified by `-p/--period`. These are described in [period
+expressions](#period-expressions), below.
+
+Report intervals can only be specified by the flags above, and not by
+[query](#queries) arguments, currently.
+
+Report intervals have another effect: multi-period reports are always
+expanded to fill a whole number of subperiods. So if you use a report
+interval (other than `--daily`), and you have specified a start or end
+date, you may notice those dates being overridden (ie, the report
+starts earlier than your requested start date, or ends later than your
+requested end date). This is done to ensure "full" first and last
+subperiods, so that all subperiods' numbers are comparable.
+
+To summarise:
+
+- In multiperiod reports, all subperiods are forced to be the same length, to simplify reporting.
+- Reports with the standard `--weekly`/`--monthly`/`--quarterly`/`--yearly`  intervals
+  are required to start on the first day of a week/month/quarter/year. 
+  We'd like more flexibility here but it isn't supported yet.
+- `--period` (below) can specify more complex intervals, starting on any date.
+
+## Period expressions
+
+The `-p/--period` option accepts period expressions, a shorthand way
+of expressing a start date, end date, and/or report interval all at
+once.
+
+Here's a basic period expression specifying the first quarter of 2009. Note,
+hledger always treats start dates as inclusive and end dates as exclusive:
+
+|                                  |
+|----------------------------------|
+| `-p "from 2009/1/1 to 2009/4/1"` |
+
+Keywords like "from" and "to" are optional, and so are the spaces, as long
+as you don't run two dates together. "to" can also be written as ".." or "-".
+These are equivalent to the above:
+
+|                           |
+|---------------------------|
+| `-p "2009/1/1 2009/4/1"`  |
+| `-p2009/1/1to2009/4/1`    |
+| `-p2009/1/1..2009/4/1`    |
+
+Dates are [smart dates](#smart-dates), so if the current year is 2009, the
+above can also be written as:
+
+|                         |
+|-------------------------|
+| `-p "1/1 4/1"`          |
+| `-p "january-apr"`      |
+| `-p "this year to 4/1"` |
+
+If you specify only one date, the missing start or end date will be the
+earliest or latest transaction in your journal:
+
+|                      |                                   |
+|----------------------|-----------------------------------|
+| `-p "from 2009/1/1"` | everything after january 1, 2009  |
+| `-p "from 2009/1"`   | the same                          |
+| `-p "from 2009"`     | the same                          |
+| `-p "to 2009"`       | everything before january 1, 2009 |
+
+A single date with no "from" or "to" defines both the start and end date
+like so:
+
+|                 |                                                             |
+|-----------------|-------------------------------------------------------------|
+| `-p "2009"`     | the year 2009; equivalent to “2009/1/1 to 2010/1/1”         |
+| `-p "2009/1"`   | the month of jan; equivalent to “2009/1/1 to 2009/2/1”      |
+| `-p "2009/1/1"` | just that day; equivalent to “2009/1/1 to 2009/1/2”         |
+
+Or you can specify a single quarter like so:
+
+|                 |                                                             |
+|-----------------|-------------------------------------------------------------|
+| `-p "2009Q1"`   | first quarter of 2009, equivalent to “2009/1/1 to 2009/4/1” |
+| `-p "q4"`       | fourth quarter of the current year                          |
+
+### Period expressions with a report interval
+
+`-p/--period`'s argument can also begin with, or entirely consist of, 
+a [report interval](#report-intervals). 
+This should be separated from the start/end dates (if any) by a space, or the word `in`.
+The basic intervals (which can also be written as command line flags) 
+are `daily`, `weekly`, `monthly`, `quarterly`, and `yearly`.
+Some examples:
+
+|                                         |
+|-----------------------------------------|
+| `-p "weekly from 2009/1/1 to 2009/4/1"` |
+| `-p "monthly in 2008"`                  |
+| `-p "quarterly"`                        |
+
+As mentioned above, the `weekly`, `monthly`, `quarterly` and `yearly` intervals 
+require a report start date that is the first day of a week, month, quarter or year.
+And, report start/end dates will be expanded if needed to span a whole number of intervals.
+
+For example:
+
+|                                                |                                                                                    |
+|------------------------------------------------|------------------------------------------------------------------------------------|
+| `-p "weekly from 2009/1/1 to 2009/4/1"`        | starts on 2008/12/29, closest preceding Monday                                     |
+| `-p "monthly in 2008/11/25"`                   | starts on 2018/11/01                                                               |
+| `-p "quarterly from 2009-05-05 to 2009-06-01"` | starts on 2009/04/01, ends on 2009/06/30, which are first and last days of Q2 2009 |
+| `-p "yearly from 2009-12-29"`                  | starts on 2009/01/01, first day of 2009                                            |
+
+### More complex report intervals
+
+Some more complex kinds of interval are also supported in period expressions:
+
+- `biweekly`
+- `fortnightly`
+- `bimonthly`
+- `every day|week|month|quarter|year`
+- `every N days|weeks|months|quarters|years`
+
+These too will cause report start/end dates to be expanded, if needed,
+to span a whole number of intervals.
+Examples:
+
+|                                    |                                                             |
+|------------------------------------|-------------------------------------------------------------|
+| `-p "bimonthly from 2008"`         | periods will have boundaries on 2008/01/01, 2008/03/01, ... |
+| `-p "every 2 weeks"`               | starts on closest preceding Monday                          |
+| `-p "every 5 months from 2009/03"` | periods will have boundaries on 2009/03/01, 2009/08/01, ... |
+
+### Intervals with custom start date
+
+All intervals mentioned above are required to start on their natural calendar boundaries,
+but the following intervals can start on any date:
+
+Weekly on custom day:
+
+- `every Nth day of week` (`th`, `nd`, `rd`, or `st` are all accepted after the number)
+- `every WEEKDAYNAME` (full or three-letter english weekday name, case insensitive)
+
+Monthly on custom day:
+
+- `every Nth day [of month]`
+- `every Nth WEEKDAYNAME [of month]`
+
+Yearly on custom day:
+
+- `every MM/DD [of year]` (month number and day of month number)
+- `every MONTHNAME DDth [of year]` (full or three-letter english month name, case insensitive, and day of month number)
+- `every DDth MONTHNAME [of year]` (equivalent to the above)
+
+Examples:
+
+|                              |                                                          |
+|------------------------------|----------------------------------------------------------|
+| `-p "every 2nd day of week"` | periods will go from Tue to Tue                          |
+| `-p "every Tue"`             | same                                                     |
+| `-p "every 15th day"`        | period boundaries will be on 15th of each month          |
+| `-p "every 2nd Monday"`      | period boundaries will be on second Monday of each month |
+| `-p "every 11/05"`           | yearly periods with boundaries on 5th of November        |
+| `-p "every 5th November"`    | same                                                     |
+| `-p "every Nov 5th"`         | same                                                     |
+
+Show historical balances at end of the 15th day of each month (N is an end date, exclusive as always):
+
+```shell
+$ hledger balance -H -p "every 16th day"
+```
+
+Group postings from the start of wednesday to end of the following tuesday (N is both (inclusive) start date and (exclusive) end date):
+
+```shell
+$ hledger register checking -p "every 3rd day of week"
+```
+
+### Periods or dates ?
+
+Report intervals like the above are most often used with `-p|--period`,
+to divide reports into multiple subperiods -
+each generated date marks a subperiod boundary.
+Here, the periods between the dates are what's important.
+
+But report intervals can also be used 
+with `--forecast` to generate future transactions,
+or with `balance --budget` to generate budget goal-setting transactions.
+For these, the dates themselves are what matters.
+
+### Events on multiple weekdays
+
+The `every WEEKDAYNAME` form has a special variant with multiple day names, comma-separated. 
+Eg: `every mon,thu,sat`.
+Also, `weekday` and `weekendday` are shorthand for `mon,tue,wed,thu,fri` and `sat,sun` 
+respectively.
+
+This form is mainly intended for use with `--forecast`, to generate 
+[periodic transactions](#periodic-transactions) on arbitrary days of the week.
+It may be less useful with `-p`, since it divides each week into subperiods 
+of unequal length. (Because gaps between periods are not allowed;
+if you'd like to change this, see [#1632](https://github.com/simonmichael/hledger/pull/1632).)
+
+Examples:
+
+|                              |                                                                                        |
+|------------------------------|----------------------------------------------------------------------------------------|
+| `-p "every mon,wed,fri"`     | dates will be Mon, Wed, Fri; <br>periods will be Mon-Tue, Wed-Thu, Fri-Sun             |
+| `-p "every weekday"`         | dates will be Mon, Tue, Wed, Thu, Fri; <br>periods will be Mon, Tue, Wed, Thu, Fri-Sun |
+| `-p "every weekendday"`      | dates will be Sat, Sun; <br>periods will be Sat, Sun-Fri                               |
+
+# DEPTH
+
+With the `--depth NUM` option (short form: `-NUM`), 
+reports will show accounts only to the specified depth, hiding deeper subaccounts.
+Use this when you want a summary with less detail.
+This flag has the same effect as a `depth:` query argument: `depth:2`, `--depth=2` or `-2` are equivalent.
+
+# QUERIES
+
+One of hledger's strengths is being able to quickly report on a precise subset of your data. 
+Most hledger commands accept optional query arguments to restrict their scope.
+The syntax is as follows:
+
+- Zero or more space-separated query terms. 
+These are most often [account name](#account-names) substrings:
+
+  `utilities food:groceries`
+
+- Terms with spaces or other [special characters](#special-characters) should be enclosed in quotes:
+
+  `"personal care"`
+
+- [Regular expressions](#regular-expressions) are also supported:
+
+  `"^expenses\b" "accounts (payable|receivable)"`
+
+- Add a query type prefix to match other parts of the data:
+
+  `date:202012- desc:amazon cur:USD amt:">100" status:`
+
+- Add a `not:` prefix to negate a term:
+
+  `not:cur:USD`
+
+## Query types
+
+Here are the types of query term available.
+Remember these can also be prefixed with **`not:`** to convert them into a negative match.
+
+**`acct:REGEX`, `REGEX`**\
+Match account names containing this (case insensitive) [regular expression]. 
+This is the default query type when there is no prefix,
+and regular expression syntax is typically not needed,
+so usually we just write an account name substring, like `expenses` or `food`.
+
+**`amt:N, amt:<N, amt:<=N, amt:>N, amt:>=N`**\
+Match postings with a single-commodity amount equal to, less than, or greater than N.
+(Postings with multi-commodity amounts are not tested and will always match.)
+The comparison has two modes: 
+if N is preceded by a + or - sign (or is 0), the two signed numbers are compared. 
+Otherwise, the absolute magnitudes are compared, ignoring sign.
+
+**`code:REGEX`**\
+Match by transaction code (eg check number).
+
+**`cur:REGEX`**\
+Match postings or transactions including any amounts whose
+currency/commodity symbol is fully matched by REGEX. (For a partial
+match, use `.*REGEX.*`). 
+Note, to match [special characters](#special-characters) which are regex-significant, you need to escape them with `\`.
+And for characters which are significant to your shell you may need one more level of escaping. 
+So eg to match the dollar sign:\
+`hledger print cur:\\$`.
+
+**`desc:REGEX`**\
+Match transaction descriptions.
+
+**`date:PERIODEXPR`**\
+Match dates (or with the `--date2` flag, [secondary dates](#secondary-dates))
+within the specified period.
+PERIODEXPR is a [period expression](#period-expressions) with no report interval.
+Examples:\
+`date:2016`, `date:thismonth`, `date:2/1-2/15`, `date:2021-07-27..nextquarter`.
+
+
+**`date2:PERIODEXPR`**\
+Match secondary dates within the specified period (independent of the `--date2` flag).
+
+**`depth:N`**\
+Match (or display, depending on command) accounts at or above this depth.
+
+**`note:REGEX`**\
+Match transaction [notes](#payee-and-note)
+(the part of the description right of `|`, or the whole description if there's no `|`).
+
+**`payee:REGEX`**\
+Match transaction [payee/payer names](#payee-and-note)
+(the part of the description left of `|`, or the whole description if there's no `|`).
+
+**`real:, real:0`**\
+Match real or virtual postings respectively.
+
+**`status:, status:!, status:*`**\
+Match unmarked, pending, or cleared transactions respectively.
+
+**`type:TYPECODES`**\
+Match by account type (see [Declaring accounts > Account types](#account-types)).
+`TYPECODES` is one or more of the single-letter account type codes
+`ALERXCV`, case insensitive. 
+Note `type:A` and `type:E` will also match their respective subtypes `C` (Cash) and `V` (Conversion).
+Certain kinds of account alias can disrupt account types, see 
+[Rewriting accounts > Aliases and account types](#aliases-and-account-types).
+
+**`tag:REGEX[=REGEX]`**\
+Match by tag name, and optionally also by tag value.
+(To match only by value, use `tag:.=REGEX`.)
+
+When querying by tag, note that:
+
+- Accounts also inherit the tags of their parent accounts
+- Postings also inherit the tags of their account and their transaction 
+- Transactions also acquire the tags of their postings.
+
+(**`inacct:ACCTNAME`**\
+A special query term used automatically in hledger-web only:
+tells hledger-web to show the transaction register for an account.)
+
+## Combining query terms
+
+When given multiple query terms, most commands select things which match:
+
+- any of the description terms AND
+- any of the account terms AND
+- any of the status terms AND
+- all the other terms.
+
+The [print](#print) command is a little different, showing transactions which:
+
+- match any of the description terms AND
+- have any postings matching any of the positive account terms AND
+- have no postings matching any of the negative account terms AND
+- match all the other terms.
+
+Although these fixed rules are enough for many needs,
+we do not support full boolean expressions ([#203](https://github.com/simonmichael/hledger/issues/203)),
+(and you should not write AND or OR in your queries).
+This makes certain queries hard to express, but here are some tricks that can help:
+
+1. Use a doubled `not:` prefix.
+    Eg, to print only the food expenses paid with cash:
+
+    ```shell
+    $ hledger print food not:not:cash
+    ```
+
+2. Or pre-filter the transactions with `print`, 
+   piping the result into a second hledger command
+   (with balance assertions disabled):
+
+    ```shell
+    $ hledger print cash | hledger -f- -I balance food
+    ```
+
+## Queries and command options
+
+Some queries can also be expressed as command-line options:
+`depth:2` is equivalent to `--depth 2`, 
+`date:2020` is equivalent to `-p 2020`, etc.
+When you mix command options and query arguments, 
+generally the resulting query is their intersection.
+
+## Queries and account aliases
+
+When account names are [rewritten](#account-aliases) with `--alias` or `alias`,
+`acct:` will match either the old or the new account name.
+
+## Queries and valuation
+
+When amounts are converted to other commodities in [cost](#cost-reporting) or [value](#valuation) reports,
+`cur:` and `amt:` match the old commodity symbol and the old amount quantity, 
+not the new ones
+(except in hledger 1.22.0 where it's reversed, see [#1625](https://github.com/simonmichael/hledger/issues/1625)).
+
+## Querying with account aliases
+
+When account names are [rewritten](#account-aliases) with `--alias` or `alias`,
+note that `acct:` will match either the old or the new account name.
+
+## Querying with cost or value
+
+When amounts are converted to other commodities in [cost](#cost-reporting) or [value](#valuation) reports,
+note that `cur:` matches the new commodity symbol, and not the old one,
+and `amt:` matches the new quantity, and not the old one.
+Note: this changed in hledger 1.22, previously it was the reverse, 
+see the discussion at [#1625](https://github.com/simonmichael/hledger/issues/1625).
+
+# PIVOTING
+
+Normally, hledger groups and sums amounts within each account.
+The `--pivot FIELD` option substitutes some other transaction field for account names,
+causing amounts to be grouped and summed by that field's value instead.
+FIELD can be any of the transaction fields `status`, `code`, `description`, `payee`, `note`,
+or a tag name.
+Values containing `colon:separated:parts` will form a hierarchy, as account names do.
+
+Some examples:
+
+```journal
+2016/02/16 Member Fee Payment
+    assets:bank account                    2 EUR
+    income:member fees                    -2 EUR  ; member: John Doe
+```
+Normal balance report showing account names:
+```shell
+$ hledger balance
+               2 EUR  assets:bank account
+              -2 EUR  income:member fees
+--------------------
+                   0
+```
+Pivoted balance report, using member: tag values instead:
+```shell
+$ hledger balance --pivot member
+               2 EUR
+              -2 EUR  John Doe
+--------------------
+                   0
+```
+One way to show only amounts with a member: value (using a [query](#queries)):
+```shell
+$ hledger balance --pivot member tag:member=.
+              -2 EUR  John Doe
+--------------------
+              -2 EUR
+```
+Another way (the acct: query matches against the pivoted "account name"):
+```shell
+$ hledger balance --pivot member acct:.
+              -2 EUR  John Doe
+--------------------
+              -2 EUR
+```
+
+# GENERATING DATA
+
+Two features for generating transient data (visible only at report time)
+are built in to hledger's journal format:
+
+- [Auto posting](#auto-postings) rules can generate extra postings on certain transactions.
+  They are activated by the `--auto` flag.
+
+- [Periodic transaction](#periodic-transactions) rules can generate repeating transactions, 
+  usually dated in the future, to help with forecasting or budgeting.
+  They are activated by the `--forecast` or `balance --budget` options, described next.
+
+# FORECASTING
+
+The `--forecast` flag activates any [periodic transaction rules](#periodic-transactions) 
+in the journal. These will generate temporary additional transactions, 
+usually recurring and in the future, which will appear in all reports.
+`hledger print --forecast` is a good way to see them.
+
+This can be useful for estimating balances into the future,
+perhaps experimenting with different scenarios.
+
+It could also be useful for scripted data entry: you could describe recurring
+transactions, and every so often copy the output of `print --forecast`
+into the journal.
+
+The generated transactions will have an extra [tag](#tags), like
+`generated-transaction:~ PERIODICEXPR`, 
+indicating which periodic rule generated them.
+There is also a similar, hidden tag, named `_generated-transaction:`, 
+which you can use to reliably match transactions generated "just now"
+(rather than `print`ed in the past).
+
+The forecast transactions are generated within a *forecast period*,
+which is independent of the [report period](#report-start--end-date).
+(Forecast period sets the bounds for generated transactions,
+report period controls which transactions are reported.)
+The forecast period begins on:
+
+- the start date provided within `--forecast`'s argument, if any
+- otherwise, the later of
+  - the report start date, if specified (with `-b`/`-p`/`date:`)
+  - the day after the latest ordinary transaction in the journal, if any
+- otherwise today.
+
+It ends on:
+
+- the end date provided within `--forecast`'s argument, if any
+- otherwise, the report end date, if specified (with `-e`/`-p`/`date:`)
+- otherwise 180 days (6 months) from today.
+
+Note, this means that ordinary transactions will suppress periodic transactions,
+by default; the periodic transactions will not start until after the last ordinary transaction.
+This is usually convenient, but you can get around it in two ways:
+
+- If you need to record some transactions in the future, make them 
+  periodic transactions (with a single occurrence, eg: `~ YYYY-MM-DD`) rather than ordinary transactions.
+  That way they won't suppress other periodic transactions.
+
+- Or give `--forecast` a [period expression](#period-expressions) argument.
+  A forecast period specified this way can overlap ordinary transactions, 
+  and need not be in the future. Some things to note:
+
+  - You must use `=` between flag and argument; a space won't work.
+  - The period expression can specify the forecast period's start date, end date, or both.
+    See also [Report start & end date](#report-start--end-date).
+  - The period expression should not specify a [report interval](#report-intervals).
+    (Each periodic transaction rule specifies its own interval.)
+
+Some examples: `--forecast=202001-202004`, `--forecast=jan-`, `--forecast=2021`.
+
+# BUDGETING
+
+With the balance command's [`--budget` report](#budget-report),
+each periodic transaction rule generates recurring budget goals in specified accounts,
+and goals and actual performance can be compared.
+See the balance command's doc below.
+ 
+See also: [Budgeting and Forecasting](/budgeting-and-forecasting.html).
+
+
+# COST REPORTING
+
+This section is about recording the cost of things, in transactions
+where one commodity is exchanged for another. 
+Eg an exchange of currency, or a stock purchase or sale.
+First, a quick glossary:
+
+- Conversion - an exchange of one currency or commodity for another.
+  Eg a foreign currency exchange, or a purchase or sale of stock or
+  cryptocurrency.
+
+- Conversion transaction - a transaction involving one or more conversions.
+
+- Conversion rate - the cost per unit of one commodity in the other,
+  ie the exchange rate.
+
+- Cost - how much of one commodity was paid to acquire the other.  And
+  more generally, in hledger docs: the amount exchanged in the
+  "secondary" commodity (usually your base currency), whether in a
+  purchase or a sale, and whether expressed per unit or in total. Also,
+  the "@/@@ PRICE" notation used to represent this.
+
+## -B: Convert to cost
+
+As discussed in [JOURNAL > Costs](#costs),
+when recording a transaction you can also record the amount's cost in another commodity,
+by adding `@ UNITPRICE` or `@@ TOTALPRICE`.
+
+Then you can see a report with amounts converted to cost, by adding
+the [`-B/--cost`](#reporting-options) flag. (Mnemonic: "B" from "cost
+Basis", as in Ledger).  Eg:
+
+```journal
+2022-01-01
+  assets:dollars  $-135          ; 135 dollars is exchanged for..
+  assets:euros     €100 @ $1.35  ; one hundred euros purchased at $1.35 each
+```
+
+```shell
+$ hledger bal -N
+               $-135  assets:dollars
+                €100  assets:euros
+$ hledger bal -N -B
+               $-135  assets:dollars
+                $135  assets:euros    # <- the euros' cost
+```
+
+Notes:
+
+-B is sensitive to the order of postings when a cost is inferred:
+the inferred price will be in the commodity of the last amount.
+So if example 3's postings are reversed, while the transaction
+is equivalent, -B shows something different:
+
+```journal
+2022-01-01
+  assets:dollars  $-135              ; 135 dollars sold
+  assets:euros     €100              ; for 100 euros
+```
+```shell
+$ hledger bal -N -B
+               €-100  assets:dollars  # <- the dollars' selling price
+                €100  assets:euros
+```
+
+The @/@@ cost notation is convenient, but has some drawbacks: it does
+not truly balance the transaction, so it disrupts the accounting
+equation and tends to causes a non-zero total in balance reports.
+
+## Equity conversion postings
+
+By contrast, conventional double entry bookkeeping (DEB) uses a different notation:
+an extra pair of equity postings to balance conversion transactions.
+In this style, the above entry might be written:
+
+```journal
+2022-01-01 one hundred euros purchased at $1.35 each
+    assets:dollars      $-135
+    equity:conversion    $135
+    equity:conversion   €-100
+    assets:euros         €100
+```
+
+This style is more correct, but it's also more verbose and makes cost
+reporting more difficult for PTA tools.
+
+Happily, current hledger can read either notation, or convert one to
+the other when needed, so you can use the one you prefer.
+
+## Inferring equity postings from cost
+
+With `--infer-equity`, hledger detects transactions written with PTA cost notation
+and adds equity conversion postings to them
+(and temporarily permits the coexistence of equity conversion postings and
+cost notation, which normally would cause an unbalanced transaction error).
+Eg:
+
+```journal
+2022-01-01
+  assets:dollars  -$135
+  assets:euros     €100 @ $1.35
+```
+```shell
+$ hledger print --infer-equity
+2022-01-01
+    assets:dollars                    $-135
+    assets:euros               €100 @ $1.35
+    equity:conversion:$-€:€           €-100  ; generated-posting:
+    equity:conversion:$-€:$         $135.00  ; generated-posting:
+```
+
+The conversion account names can be changed with the
+[conversion account type declaration](#account-types).
+
+--infer-equity is useful when when transactions have been recorded
+using cost notation, to help preserve the accounting equation 
+and balance reports' zero total, or to produce more conventional 
+journal entries for sharing with non-PTA-users.
+
+## Inferring cost from equity postings
+
+The reverse operation is possible using `--infer-costs`, which
+detects transactions written with equity conversion postings
+and adds PTA cost notation to them
+(and temporarily permits the coexistence of equity conversion postings
+and cost notation).
+Eg:
+
+```journal
+2022-01-01
+    assets:dollars            $-135
+    equity:conversion          $135
+    equity:conversion         €-100
+    assets:euros               €100
+```
+```shell
+$ hledger print --infer-costs
+2022-01-01
+    assets:dollars       $-135 @@ €100
+    equity:conversion             $135
+    equity:conversion            €-100
+    assets:euros                  €100
+```
+
+--infer-costs is useful when combined with -B/--cost, 
+allowing cost reporting even when transactions have been recorded 
+using equity postings:
+
+```shell
+$ hledger print --infer-costs -B
+2009-01-01
+    assets:dollars           €-100
+    assets:euros              €100
+```
+
+Notes: 
+
+For `--infer-costs` to work, an exchange must consist of four postings:
+
+1. two non-equity postings
+2. two equity postings, next to one another
+2. the equity accounts must be declared, with account type `V`/`Conversion`
+   (or if they are not declared, they must be named
+   `equity:conversion`, `equity:trade`, `equity:trading` or subaccounts of these)
+3. the equity postings' amounts must exactly match the non-equity postings' amounts
+
+Multiple such exchanges can coexist within a single transaction, should you need that.
+
+When inferring cost, the order of postings matters:
+the cost is added to the first of the non-equity postings involved in the exchange,
+in the commodity of the last non-equity posting involved in the exchange.
+If you don't want to write your postings in the required order,
+the alternative is not to infer cost; instead, use explicit cost notation,
+omitting the equity postings, inferring them later with --infer-equity if needed.
+
+--infer-equity and --infer-costs can be used together, if you have a
+mixture of both notations in your journal.
+
+## When to infer cost/equity
+
+Inferring equity postings or costs is still fairly new, so not enabled by default.
+We're not sure yet if that should change. Here are two suggestions to try,
+experience reports welcome:
+
+1. When you use -B, always use --infer-costs as well. Eg: `hledger bal -B --infer-costs`
+
+2. Always run hledger with both flags enabled. Eg: `alias hl="hledger --infer-equity --infer-costs"`
+
+## How to record conversions
+
+Essentially there are four ways to record a conversion transaction in hledger.
+Here are all of them, with pros and cons.
+
+### Conversion with implicit cost
+
+Let's assume 100 EUR is converted to 120 USD.  You can just record the
+outflow (100 EUR) and inflow (120 USD) in the appropriate asset
+account:
+
+```journal
+2021-01-01
+    assets:cash    -100 EUR
+    assets:cash     120 USD
+```
+
+hledger will assume this transaction is balanced, inferring that the
+conversion rate must be 1 EUR = 1.20 USD. You can see the inferred
+rate by using `hledger print -x`.
+
+Pro: 
+
+- Concise, easy
+
+Con: 
+
+- Less error checking - typos in amounts or commodity symbols may not be detected
+- Conversion rate is not clear
+- Disturbs the accounting equation, unless you add the --infer-equity flag
+
+You can prevent accidental implicit conversions due to a mistyped
+commodity symbol, by using `hledger check commodities`.
+
+You can prevent implicit conversions entirely, by using `hledger check
+balancednoautoconversion`, or `-s/--strict`.
+
+### Conversion with explicit cost
+
+You can add the conversion rate using @ notation:
+
+```journal
+2021-01-01
+    assets:cash        -100 EUR @ 1.20 USD
+    assets:cash         120 USD
+```
+
+Now hledger will check that 100 * 1.20 = 120, and would report an error otherwise.
+
+Pro: 
+
+- Still concise
+- Makes the conversion rate clear
+- Provides more error checking
+
+Con: 
+
+- Disturbs the accounting equation, unless you add the --infer-equity flag
+
+### Conversion with equity postings
+
+In strict double entry bookkeeping, the above transaction is not
+balanced in EUR or in USD, since some EUR disappears, and some USD
+appears. This violates the accounting equation (A+L+E=0), and prevents
+reports like `balancesheetequity` from showing a zero total.
+
+The proper way to make it balance is to add a balancing posting for
+each commodity, using an equity account:
+
+```journal
+2021-01-01
+    assets:cash        -100 EUR
+    equity:conversion   100 EUR
+    equity:conversion  -120 USD
+    assets:cash         120 USD
+```
+
+Pro: 
+
+- Preserves the accounting equation
+- Keeps track of conversions and related gains/losses in one place
+- Standard, works in any double entry accounting system
+
+Con: 
+
+- More verbose
+- Conversion rate is not obvious
+- Cost reporting requires adding the --infer-costs flag
+
+### Conversion with equity postings and explicit cost
+
+Here both equity postings and @ notation are used together.
+hledger will usually complain about this redundancy, but when using
+the --infer-costs flag it is accepted.
+
+```journal
+2021-01-01
+    assets:cash        -100 EUR @ 1.20 USD
+    equity:conversion   100 EUR
+    equity:conversion  -120 USD
+    assets:cash         120 USD
+```
+
+Pro: 
+
+- Preserves the accounting equation
+- Keeps track of conversions and related gains/losses in one place
+- Makes the conversion rate clear
+- Provides more error checking
+
+Con: 
+
+- Most verbose
+- Requires the --infer-costs flag
+- Not compatible with ledger
+
+## Cost tips
+
+- Recording the conversion rate explicitly is good because it makes that clear and helps detect errors.
+- Recording equity postings is good because it is correct bookkeeping and preserves the accounting equation.
+- Combining these is possible by using the --infer-costs flag (which requires well-ordered postings).
+- When you want to see the cost (or sale proceeds) of things, use `-B` (or `--cost`).
+  If you use equity conversion postings notation, use `-B --infer-costs`.
+- If you use PTA cost notation, and you want to see a balanced balance sheet or print correct journal entries, use `--infer-equity`.
+- Conversion to cost is performed before valuation (described next).
+
+# VALUATION
+
+Instead of reporting amounts in their original commodity, hledger can convert them to
+cost/sale amount (using the conversion rate recorded in the transaction),
+and/or to market value (using some market price on a certain date).
+This is controlled by the `--value=TYPE[,COMMODITY]` option, which will be described below.
+We also provide the simpler `-V` and `-X COMMODITY` options, and often
+one of these is all you need:
+
+## -V: Value
+
+The `-V/--market` flag converts amounts to market value in their
+default *valuation commodity*, using the
+[market prices](#market-prices) in effect on the *valuation date(s)*, if any.
+More on these in a minute.
+
+## -X: Value in specified commodity
+
+The `-X/--exchange=COMM` option is like `-V`, except you tell it which
+currency you want to convert to, and it tries to convert everything to that.
+
+## Valuation date
+
+Since market prices can change from day to day, market value reports
+have a valuation date (or more than one), which determines which
+market prices will be used.
+
+For single period reports, if an explicit
+[report end date](#report-start-end-date) is specified, that will be
+used as the valuation date; otherwise the valuation date is the journal's end date.
+
+For [multiperiod reports](#report-intervals), each column/period is
+valued on the last day of the period, by default.
+
+## Market prices
+
+To convert a commodity A to its market value in another commodity B,
+hledger looks for a suitable market price (exchange rate) as follows,
+in this order of preference
+<!-- (-X tries all of these; -V tries only 1) (really ?) -->
+:
+
+1. A *declared market price* or *inferred market price*:
+   A's latest market price in B on or before the valuation date
+   as declared by a [P directive](#market-prices), 
+   or (with the `--infer-market-prices` flag)
+   inferred from [costs](#costs).
+   <!-- (Latest by date, then parse order.) -->
+   <!-- (A declared price overrides an inferred price on the same date.) -->
+  
+2. A *reverse market price*:
+   the inverse of a declared or inferred market price from B to A.
+
+3. A *forward chain of market prices*:
+   a synthetic price formed by combining the shortest chain of
+   "forward" (only 1 above) market prices, leading from A to B.
+
+4. *Any chain of market prices*:
+   a chain of any market prices, including both forward and
+   reverse prices (1 and 2 above), leading from A to B.
+
+There is a limit to the length of these price chains; if hledger
+reaches that length without finding a complete chain or exhausting 
+all possibilities, it will give up (with a "gave up" message 
+visible in `--debug=2` output). That limit is currently 1000.
+
+Amounts for which no suitable market price can be found, are not converted.
+
+## --infer-market-prices: market prices from transactions
+
+Normally, market value in hledger is fully controlled by, and requires,
+[P directives](#market-prices) in your journal.
+Since adding and updating those can be a chore,
+and since transactions usually take place at close to market value,
+why not use the recorded [costs](#costs)
+as additional market prices (as Ledger does) ?
+We could produce value reports without needing P directives at all.
+
+Adding the `--infer-market-prices` flag to `-V`, `-X` or `--value` enables
+this. So for example, `hledger bs -V --infer-market-prices` will get market
+prices both from P directives and from transactions.
+(And if both occur on the same day, the P directive takes precedence).
+
+There is a downside: value reports can sometimes  be affected in
+confusing/undesired ways by your journal entries. If this happens to
+you, read all of this [Valuation](#valuation) section carefully,
+and try adding `--debug` or `--debug=2` to troubleshoot.
+
+`--infer-market-prices` can infer market prices from:
+
+- multicommodity transactions with explicit prices (`@`/`@@`)
+
+- multicommodity transactions with implicit prices (no `@`, two commodities, unbalanced).
+  (With these, the order of postings matters. `hledger print -x` can be useful for troubleshooting.)
+
+- [multicommodity transactions with equity postings](#conversion-with-equity-postings),
+  if cost is inferred with [`--infer-costs`](#inferring-cost-from-equity-postings).
+  
+
+There is another limitation (bug) currently: when a valuation commodity is not specified, 
+prices inferred with `--infer-market-prices` do not help select a default valuation commodity,
+as `P` prices would.
+So conversion might not happen because no valuation commodity was detected (`--debug=2` will show this). 
+To be safe, specify the valuation commmodity, eg:
+
+- `-X EUR --infer-market-prices`, not `-V --infer-market-prices`
+- `--value=then,EUR --infer-market-prices`, not `--value=then --infer-market-prices`
+
+
+## Valuation commodity
+
+**When you specify a valuation commodity (`-X COMM` or `--value TYPE,COMM`):**\
+hledger will convert all amounts to COMM,
+wherever it can find a suitable market price (including by reversing or chaining prices).
+
+**When you leave the valuation commodity unspecified (`-V` or `--value TYPE`):**\
+For each commodity A, hledger picks a default valuation commodity as
+follows, in this order of preference:
+
+1. The price commodity from the latest P-declared market price for A
+   on or before valuation date.
+
+2. The price commodity from the latest P-declared market price for A on
+   any date. (Allows conversion to proceed when there are inferred
+   prices before the valuation date.)
+
+3. If there are no P directives at all (any commodity or date) and the
+   `--infer-market-prices` flag is used: the price commodity from the latest
+   transaction-inferred price for A on or before valuation date.
+
+This means:
+
+- If you have [P directives](#market-prices), 
+  they determine which commodities `-V` will convert, and to what.
+
+- If you have no P directives, and use the `--infer-market-prices` flag, 
+  [costs](#costs) determine it.
+
+Amounts for which no valuation commodity can be found are not converted.
+
+## Simple valuation examples
+
+Here are some quick examples of `-V`:
+
+```journal
+; one euro is worth this many dollars from nov 1
+P 2016/11/01 € $1.10
+
+; purchase some euros on nov 3
+2016/11/3
+    assets:euros        €100
+    assets:checking
+
+; the euro is worth fewer dollars by dec 21
+P 2016/12/21 € $1.03
+```
+How many euros do I have ?
+```shell
+$ hledger -f t.j bal -N euros
+                €100  assets:euros
+```
+What are they worth at end of nov 3 ?
+```shell
+$ hledger -f t.j bal -N euros -V -e 2016/11/4
+             $110.00  assets:euros
+```
+What are they worth after 2016/12/21 ? (no report end date specified, defaults to today)
+```shell
+$ hledger -f t.j bal -N euros -V
+             $103.00  assets:euros
+```
+
+## --value: Flexible valuation
+
+`-V` and `-X` are special cases of the more general `--value` option:
+
+     --value=TYPE[,COMM]  TYPE is then, end, now or YYYY-MM-DD.
+                          COMM is an optional commodity symbol.
+                          Shows amounts converted to:
+                          - default valuation commodity (or COMM) using market prices at posting dates
+                          - default valuation commodity (or COMM) using market prices at period end(s)
+                          - default valuation commodity (or COMM) using current market prices
+                          - default valuation commodity (or COMM) using market prices at some date
+
+The TYPE part selects cost or value and valuation date:
+
+`--value=then`
+: Convert amounts to their value in the [default valuation commodity](#valuation-commodity),
+  using market prices on each posting's date.
+
+`--value=end`
+: Convert amounts to their value in the default valuation commodity, using market prices
+  on the last day of the report period (or if unspecified, the journal's end date);
+  or in multiperiod reports, market prices on the last day of each subperiod.
+
+`--value=now`
+: Convert amounts to their value in the default valuation commodity
+  using current market prices (as of when report is generated).
+
+`--value=YYYY-MM-DD`
+: Convert amounts to their value in the default valuation commodity
+  using market prices on this date.
+
+To select a different valuation commodity, add the optional `,COMM` part:
+a comma, then the target commodity's symbol. Eg: **`--value=now,EUR`**.
+hledger will do its best to convert amounts to this commodity, deducing
+[market prices](#market-prices) as described above.
+
+## More valuation examples
+
+Here are some examples showing the effect of `--value`, as seen with `print`:
+
+```journal
+P 2000-01-01 A  1 B
+P 2000-02-01 A  2 B
+P 2000-03-01 A  3 B
+P 2000-04-01 A  4 B
+
+2000-01-01
+  (a)      1 A @ 5 B
+
+2000-02-01
+  (a)      1 A @ 6 B
+
+2000-03-01
+  (a)      1 A @ 7 B
+```
+
+Show the cost of each posting:
+```shell
+$ hledger -f- print --cost
+2000-01-01
+    (a)             5 B
+
+2000-02-01
+    (a)             6 B
+
+2000-03-01
+    (a)             7 B
+
+```
+
+Show the value as of the last day of the report period (2000-02-29):
+```shell
+$ hledger -f- print --value=end date:2000/01-2000/03
+2000-01-01
+    (a)             2 B
+
+2000-02-01
+    (a)             2 B
+
+```
+
+With no report period specified, that shows the value as of the last day of the journal (2000-03-01):
+```shell
+$ hledger -f- print --value=end
+2000-01-01
+    (a)             3 B
+
+2000-02-01
+    (a)             3 B
+
+2000-03-01
+    (a)             3 B
+
+```
+
+Show the current value (the 2000-04-01 price is still in effect today):
+```shell
+$ hledger -f- print --value=now
+2000-01-01
+    (a)             4 B
+
+2000-02-01
+    (a)             4 B
+
+2000-03-01
+    (a)             4 B
+
+```
+
+Show the value on 2000/01/15:
+```shell
+$ hledger -f- print --value=2000-01-15
+2000-01-01
+    (a)             1 B
+
+2000-02-01
+    (a)             1 B
+
+2000-03-01
+    (a)             1 B
+
+```
+
+You may need to explicitly set a commodity's display style, when reverse prices are used.
+Eg this output might be surprising:
+```journal
+P 2000-01-01 A 2B
+
+2000-01-01
+  a  1B
+  b
+```
+```shell
+$ hledger print -x -X A
+2000-01-01
+    a               0
+    b               0
+
+```
+Explanation: because there's no amount or commodity directive specifying a display style
+for A, 0.5A gets the default style, which shows no decimal digits. Because the displayed
+amount looks like zero, the commodity symbol and minus sign are not displayed either.
+Adding a commodity directive sets a more useful display style for A:
+```journal
+P 2000-01-01 A 2B
+commodity 0.00A
+
+2000-01-01
+  a  1B
+  b
+```
+```shell
+$ hledger print -X A
+2000-01-01
+    a           0.50A
+    b          -0.50A
+
+```
+
+## Interaction of valuation and queries
+
+When matching postings based on queries in the presence of valuation, the
+following happens.
+
+1. The query is separated into two parts:
+    1. the currency (`cur:`) or amount (`amt:`).
+    2. all other parts.
+2. The postings are matched to the currency and amount queries based on pre-valued amounts.
+3. Valuation is applied to the postings.
+4. The postings are matched to the other parts of the query based on post-valued amounts.
+
+See:
+[1625](https://github.com/simonmichael/hledger/issues/1625)
+
+
+## Effect of valuation on reports
+
+Here is a reference for how valuation is supposed to affect each part of hledger's reports (and a glossary).
+(It's wide, you'll have to scroll sideways.)
+It may be useful when troubleshooting.
+If you find problems, please report them, ideally with a reproducible example.
+Related:
+[#329](https://github.com/simonmichael/hledger/issues/329),
+[#1083](https://github.com/simonmichael/hledger/issues/1083).
+
+| Report type                                         | `-B`, `--cost`                                                   | `-V`, `-X`                                                        | `--value=then`                                                                                 | `--value=end`                                                     | `--value=DATE`, `--value=now`           |
+|-----------------------------------------------------|------------------------------------------------------------------|-------------------------------------------------------------------|------------------------------------------------------------------------------------------------|-------------------------------------------------------------------|-----------------------------------------|
+| **print**                                           |                                                                  |                                                                   |                                                                                                |                                                                   |                                         |
+| posting amounts                                     | cost                                                             | value at report end or today                                      | value at posting date                                                                          | value at report or journal end                                    | value at DATE/today                     |
+| balance assertions/assignments                      | unchanged                                                        | unchanged                                                         | unchanged                                                                                      | unchanged                                                         | unchanged                               |
+| <br>                                                |                                                                  |                                                                   |                                                                                                |                                                                   |                                         |
+| **register**                                        |                                                                  |                                                                   |                                                                                                |                                                                   |                                         |
+| starting balance (-H)                               | cost                                                             | value at report or journal end                                    | valued at day each historical posting was made                                                 | value at report or journal end                                    | value at DATE/today                     |
+| starting balance (-H) with report interval          | cost                                                             | value at day before report or journal start                       | valued at day each historical posting was made                                                 | value at day before report or journal start                       | value at DATE/today                     |
+| posting amounts                                     | cost                                                             | value at report or journal end                                    | value at posting date                                                                          | value at report or journal end                                    | value at DATE/today                     |
+| summary posting amounts with report interval        | summarised cost                                                  | value at period ends                                              | sum of postings in interval, valued at interval start                                          | value at period ends                                              | value at DATE/today                     |
+| running total/average                               | sum/average of displayed values                                  | sum/average of displayed values                                   | sum/average of displayed values                                                                | sum/average of displayed values                                   | sum/average of displayed values         |
+| <br>                                                |                                                                  |                                                                   |                                                                                                |                                                                   |                                         |
+| **balance (bs, bse, cf, is)**                       |                                                                  |                                                                   |                                                                                                |                                                                   |                                         |
+| balance changes                                     | sums of costs                                                    | value at report end or today of sums of postings                  | value at posting date                                                                          | value at report or journal end of sums of postings                | value at DATE/today of sums of postings |
+| budget amounts (--budget)                           | like balance changes                                             | like balance changes                                              | like balance changes                                                                           | like balances                                                     | like balance changes                    |
+| grand total                                         | sum of displayed values                                          | sum of displayed values                                           | sum of displayed valued                                                                        | sum of displayed values                                           | sum of displayed values                 |
+| <br>                                                |                                                                  |                                                                   |                                                                                                |                                                                   |                                         |
+| **balance (bs, bse, cf, is) with report interval**  |                                                                  |                                                                   |                                                                                                |                                                                   |                                         |
+| starting balances (-H)                              | sums of costs of postings before report start                    | value at report start of sums of all postings before report start | sums of values of postings before report start at respective posting dates                     | value at report start of sums of all postings before report start | sums of postings before report start    |
+| balance changes (bal, is, bs --change, cf --change) | sums of costs of postings in period                              | same as --value=end                                               | sums of values of postings in period at respective posting dates                               | balance change in each period, valued at period ends              | value at DATE/today of sums of postings |
+| end balances (bal -H, is --H, bs, cf)               | sums of costs of postings from before report start to period end | same as --value=end                                               | sums of values of postings from before period start to period end at respective posting dates  | period end balances, valued at period ends                        | value at DATE/today of sums of postings |
+| budget amounts (--budget)                           | like balance changes/end balances                                | like balance changes/end balances                                 | like balance changes/end balances                                                              | like balances                                                     | like balance changes/end balances       |
+| row totals, row averages (-T, -A)                   | sums, averages of displayed values                               | sums, averages of displayed values                                | sums, averages of displayed values                                                             | sums, averages of displayed values                                | sums, averages of displayed values      |
+| column totals                                       | sums of displayed values                                         | sums of displayed values                                          | sums of displayed values                                                                       | sums of displayed values                                          | sums of displayed values                |
+| grand total, grand average                          | sum, average of column totals                                    | sum, average of column totals                                     | sum, average of column totals                                                                  | sum, average of column totals                                     | sum, average of column totals           |
+| <br>                                                |                                                                  |                                                                   |                                                                                                |                                                                   |                                         |
+
+`--cumulative` is omitted to save space, it works like `-H` but with a zero starting balance.
+
+**Glossary:**
+
+*cost*
+: calculated using price(s) recorded in the transaction(s).
+
+*value*
+: market value using available market price declarations, or the unchanged amount if no conversion rate can be found.
+
+*report start*
+: the first day of the report period specified with -b or -p or date:, otherwise today.
+
+*report or journal start*
+: the first day of the report period specified with -b or -p or date:, otherwise the earliest transaction date in the journal, otherwise today.
+
+*report end*
+: the last day of the report period specified with -e or -p or date:, otherwise today.
+
+*report or journal end*
+: the last day of the report period specified with -e or -p or date:, otherwise the latest transaction date in the journal, otherwise today.
+
+*report interval*
+: a flag (-D/-W/-M/-Q/-Y) or period expression that activates the report's multi-period mode (whether showing one or many subperiods).
+
+
 # PART 4: COMMANDS
 
 Here are the built-in [commands](#commands), with the most often-used in bold:
@@ -5460,7 +5462,7 @@ Chat and mail list support and discussion archives can be found at <https://hled
 
 hledger has an extensive and powerful command line interface. We
 strive to keep it simple and ergonomic, but you may run into one of
-the confusing real world details described in OPTIONS, below.
+the confusing real world details [OPTIONS](#options).
 If that happens, here are some tips that may help:
 
 - command-specific options must go after the command (it's fine to put all options there) (`hledger CMD OPTS ARGS`)
