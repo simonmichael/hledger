@@ -1525,18 +1525,20 @@ $ hledger print --infer-costs -B
 
 Notes: 
 
-For `--infer-costs` to work, currently there must be
+For `--infer-costs` to work, an exchange must consist of four postings:
 
-1. a pair of equity postings, next to one another
-2. they must be to account(s) declared with type `V`/`Conversion`;
-   or if no such accounts are declared, accounts named
-   `equity:conversion`, `equity:trade`, `equity:trading` or subaccounts of these
-3. they must exactly match the amounts of two non-conversion postings.
+1. two non-equity postings
+2. two equity postings, next to one another
+2. the equity accounts must be declared, with account type `V`/`Conversion`
+   (or if they are not declared, they must be named
+   `equity:conversion`, `equity:trade`, `equity:trading` or subaccounts of these)
+3. the equity postings' amounts must exactly match the non-equity postings' amounts
+
+Multiple such exchanges can coexist within a single transaction, should you need that.
 
 When inferring cost, the order of postings matters:
 the cost is added to the first of the non-equity postings involved in the exchange,
 in the commodity of the last non-equity posting involved in the exchange.
-
 If you don't want to write your postings in the required order,
 the alternative is not to infer cost; instead, use explicit cost notation,
 omitting the equity postings, inferring them later with --infer-equity if needed.
