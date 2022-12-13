@@ -1387,10 +1387,8 @@ First, a quick glossary:
 - Cost - how much of one commodity was paid to acquire the other.  And
   more generally, in hledger docs: the amount exchanged in the
   "secondary" commodity (usually your base currency), whether in a
-  purchase or a sale, and whether expressed per unit or in total. Or,
-  the @/@@ notation used to represent this.
-
-- Transaction price - another name for the cost expressed with hledger's cost notation.
+  purchase or a sale, and whether expressed per unit or in total. Also,
+  the "@/@@ PRICE" notation used to represent this.
 
 ## -B: Convert to cost
 
@@ -1485,11 +1483,9 @@ The conversion account names can be changed with the
 [conversion account type declaration](#account-types).
 
 --infer-equity is useful when when transactions have been recorded
-using PTA cost notation, to help preserve the accounting equation 
+using cost notation, to help preserve the accounting equation 
 and balance reports' zero total, or to produce more conventional 
 journal entries for sharing with non-PTA-users.
-
-*Experimental*
 
 ## Inferring cost from equity postings
 
@@ -1529,43 +1525,24 @@ $ hledger print --infer-costs -B
 
 Notes: 
 
-Postings will be recognised as equity conversion postings if they are
-1. to account(s) declared with type `V` (`Conversion`; or if no such
-accounts are declared, accounts named `equity:conversion`,
-`equity:trade`, `equity:trading`, or subaccounts of these)
-2. adjacent
-3. and exactly matching the amounts of two non-conversion postings.
+For `--infer-costs` to work, currently there must be
 
-The total cost is appended to the first matching posting in the transaction.
-If you need to assign it to a different posting, or if you have
-several different sets of conversion postings in one transaction, you
-may need to write the costs explicitly yourself. Eg:
+1. a pair of equity postings, next to one another
+2. they must be to account(s) declared with type `V`/`Conversion`;
+   or if no such accounts are declared, accounts named
+   `equity:conversion`, `equity:trade`, `equity:trading` or subaccounts of these
+3. they must exactly match the amounts of two non-conversion postings.
 
-```journal
-2022-01-01
-    assets:dollars                    $-135
-    equity:conversion                 €-100
-    equity:conversion                  $135
-    assets:euros               €100 @@ $135
-```
+When inferring cost, the order of postings matters:
+the cost is added to the first of the non-equity postings involved in the exchange,
+in the commodity of the last non-equity posting involved in the exchange.
 
-or:
+If you don't want to write your postings in the required order,
+the alternative is not to infer cost; instead, use explicit cost notation,
+omitting the equity postings, inferring them later with --infer-equity if needed.
 
-```journal
-2022-01-01
-    assets:dollars                    $-235
-    assets:euros               €100 @ $1.35  ; 100 euros bought for $1.35 each
-    equity:conversion                 €-100
-    equity:conversion                  $135
-    assets:pounds               £80 @@ $100  ; 80 pounds bought for $100 total
-    equity:conversion                  £-80
-    equity:conversion                  $100
-```
-
---infer-equity and --infer-costs can be used together, eg if you have
-a mixture of both notations.
-
-*Experimental*
+--infer-equity and --infer-costs can be used together, if you have a
+mixture of both notations in your journal.
 
 ## When to infer cost/equity
 
@@ -2630,7 +2607,6 @@ Amounts are stored internally as decimal numbers with up to 255 decimal places,
 and displayed with the number of decimal places specified by the commodity display style.
 Note, hledger uses [banker's rounding](https://en.wikipedia.org/wiki/Bankers_rounding): 
 it rounds to the nearest even number, eg 0.5 displayed with zero decimal places is "0").
-(Guaranteed since hledger 1.17.1; in older versions this could vary  if hledger was built with Decimal < 0.5.1.)
 
 
 ## Costs
@@ -2644,7 +2620,10 @@ that term was directionally neutral and reminded that it is a price specific to 
 but we now just call it "cost", with the understanding that the transaction could be a purchase or a sale.)
 
 Costs are usually written explicitly with `@` or `@@`, but can also be
-inferred automatically for simple multi-commodity transactions.  
+inferred automatically for simple multi-commodity transactions.
+Note, if costs are inferred, the order of postings is significant;
+the first posting will have a cost attached, in the commodity of the second.
+
 As an example, here are several ways to record purchases of a foreign
 currency in hledger, using the cost notation either explicitly or
 implicitly:
@@ -2666,7 +2645,9 @@ implicitly:
     ```
 
 3. Specify amounts for all postings, using exactly two commodities,
-   and let hledger infer the price that balances the transaction:
+   and let hledger infer the price that balances the transaction.
+   Note the effect of posting order: the price is added to first posting,
+   making it `€100 @@ $135`, as in example 2:
 
     ```journal
     2009/1/1
@@ -2675,9 +2656,9 @@ implicitly:
     ```
 
 Amounts can be converted to cost at report time using the [`-B/--cost`](#reporting-options) flag;
-this is discussed more in the [COST](#cost) section.
+this is discussed more in the ˜[COST](#cost) section.
 
-### Other cost/lot notations
+### Other cost/lot notations˜
 
 A slight digression for Ledger users. Ledger has a number of cost/lot-related notations:
 
