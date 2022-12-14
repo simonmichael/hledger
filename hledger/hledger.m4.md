@@ -2359,8 +2359,7 @@ payee Whole Foods
 ## Market prices
 
 The `P` directive declares a market price, which is
-an exchange rate between two commodities on a certain date.
-(In Ledger, they are called "historical prices".)
+a conversion rate between two commodities on a certain date.
 These are often obtained from a
 [stock exchange](https://en.wikipedia.org/wiki/Stock_exchange),
 cryptocurrency exchange, or the

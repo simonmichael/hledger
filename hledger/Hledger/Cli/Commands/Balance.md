@@ -884,9 +884,8 @@ $ hledger -f examples/sample.journal balance --format "%20(account) %12(total)"
                                 0
 ```
 
-The FMT format string (plus a newline) specifies the formatting
-applied to each account/balance pair. It may contain any suitable
-text, with data fields interpolated like so:
+The FMT format string specifies the formatting applied to each account/balance pair.
+It may contain any suitable text, with data fields interpolated like so:
 
 `%[MIN][.MAX](FIELDNAME)`
 
