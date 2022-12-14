@@ -208,15 +208,19 @@ _optionnotes_
 m4_dnl
 m4_dnl A standard description of hledger.
 m4_define({{_hledgerdescription_}}, {{
-hledger is a reliable, cross-platform set of programs for tracking money, time, or any other commodity,
+hledger is a robust, user-friendly, cross-platform set of programs
+for tracking money, time, or any other commodity,
 using double-entry accounting and a simple, editable file format.
-hledger is inspired by and largely compatible with ledger(1). }} )m4_dnl
+hledger is inspired by and largely compatible with ledger(1),
+and largely interconvertible with beancount(1). }} )m4_dnl
 m4_dnl
 m4_dnl A standard description of where hledger reads data from.
-m4_define({{_files_}},
-{{data from one or more files in hledger journal, timeclock, timedot, or CSV format
-specified with `-f`, or `$LEDGER_FILE`,
-or `$HOME/.hledger.journal` (on windows, perhaps `C:/Users/USER/.hledger.journal`).}})m4_dnl
+m4_define({{_inputfiles_}},
+{{data from one or more files in journal, timeclock, timedot, or CSV format.
+The default file is `.hledger.journal` in your home directory;
+this can be overridden with one or more `-f FILE` options,
+or the `LEDGER_FILE` environment variable.}})m4_dnl
+
 m4_dnl
 m4_dnl A standard description of the LEDGER_FILE environment variable.
 m4_define({{_LEDGER_FILE_}}, {{

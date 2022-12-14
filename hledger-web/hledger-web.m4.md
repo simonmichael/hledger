@@ -47,7 +47,7 @@ behind a suitable web proxy.  As a small protection against data loss
 when running an unprotected instance, it writes a numbered backup of
 the main journal file (only) on every edit.
 
-Like hledger, it reads _files_
+Like hledger, it reads _inputfiles_
 For more about this see hledger(1).
 
 hledger-web can be run in three modes:
@@ -421,7 +421,7 @@ _LEDGER_FILE_
 
 # FILES
 
-Reads _files_
+Reads _inpufiles_
 
 # BUGS
 

@@ -42,7 +42,7 @@ for viewing accounts and transactions, and some limited data entry capability.
 It is easier than hledger's command-line interface, and
 sometimes quicker and more convenient than the web interface.
 
-Like hledger, it reads _files_
+Like hledger, it reads _inputfiles_
 For more about this see hledger(1), hledger_journal(5) etc.
 
 Unlike hledger, hledger-ui hides all future-dated transactions by default.
@@ -397,7 +397,7 @@ _LEDGER_FILE_
 
 # FILES
 
-Reads _files_
+Reads _inputfiles_
 
 # BUGS
 

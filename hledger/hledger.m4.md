@@ -54,10 +54,8 @@ can also read some other file formats such as CSV files, translating
 them to journal format. Additionally, hledger lists other hledger-\*
 executables found in the user’s \$PATH and can invoke them as subcommands.
 
-hledger reads _files_
-If using `$LEDGER_FILE`, note this must be a real environment variable,
-not a shell variable.
-You can specify standard input with `-f-`.
+hledger reads _inputfiles_
+hledger CLI can also read from stdin with `-f-`; more on that below.
 
 Transactions are dated movements of money between two (or more) named
 accounts, and are recorded with journal entries like this:
