@@ -414,19 +414,12 @@ To see accurate historical end balances:
 ### Balance report types
 
 The balance command is quite flexible; here is the full detail on how to control what it reports.
+If the following seems complicated, don't worry - this is for advanced reporting,
+and it does typically take some time and experimentation to get clear on all these report modes.
+
 There are three important option groups:
 
 `hledger balance [CALCULATIONTYPE] [ACCUMULATIONTYPE] [VALUATIONTYPE] ...`
-
-The first two are the most important:
-
-- calculation type selects the basic calculation to perform for each table cell
-- accumulation type says which postings should be included in each cell's calculation
-
-Typically one or both of these are selected by default, so you don't need to write them explicitly.
-Then
-
-- a valuation type can be added if you want to convert the basic report to value or cost
 
 #### Calculation type
 
@@ -434,7 +427,7 @@ The basic calculation to perform for each table cell.
 It is one of:
 
 - `--sum` : sum the posting amounts (**default**)
-- `--budget` : like --sum but also show a goal amount
+- `--budget` : sum the amounts, but also show the budget goal amount (for each account/period)
 - `--valuechange` : show the change in period-end historical balance values
   (caused by deposits, withdrawals, and/or market price fluctuations)
 - `--gain` : show the unrealised capital gain/loss, (the current valued balance
@@ -442,39 +435,43 @@ It is one of:
 
 #### Accumulation type
 
-Which postings should be included in each cell's calculation.
+How amounts should accumulate across report periods.
+Another way to say it: which time period's postings should contribute to each cell's calculation.
 It is one of:
 
-- `--change` : postings from column start to column end, ie within the cell's period.
+- `--change` : calculate with postings from column start to column end, ie "just this column".
   Typically used to see revenues/expenses.
   (**default for balance, incomestatement**)
-  <!-- /--periodic -->
 
-- `--cumulative` : postings from report start to column end, eg to show
-  changes accumulated since the report's start date. Rarely used.
+- `--cumulative` : calculate with postings from report start to column end, ie "previous columns plus this column".
+  Typically used to show changes accumulated since the report's start date.
+  Not often used.
 
-- `--historical/-H` : postings from journal start to column end, ie
-  all postings from account creation to the end of the cell's period.
+- `--historical/-H` : calculate with postings from journal start to column end,
+  ie "all postings from before report start date until this column's end".
   Typically used to see historical end balances of assets/liabilities/equity.
   (**default for balancesheet, balancesheetequity, cashflow**)
 
 #### Valuation type
 
-Which kind of [valuation], [valuation date(s)] and optionally a target [valuation commodity] to use.
+Which kind of value or cost conversion should be applied, if any, before displaying the report.
 It is one of:
 
-- no valuation, show amounts in their original commodities (**default**)
-- `--value=cost[,COMM]`       : no valuation, show amounts converted to cost
-- `--value=then[,COMM]`       : show value at transaction dates
-- `--value=end[,COMM]`        : show value at period end date(s) (**default with `--valuechange`, `--gain`**)
-- `--value=now[,COMM]`        : show value at today's date
-- `--value=YYYY-MM-DD[,COMM]` : show value at another date
+- no valuation type           : don't convert to cost or value (**default**)
+- `--value=cost[,COMM]`       : convert amounts to cost (then optionally to some other commodity)
+- `--value=then[,COMM]`       : convert amounts to market value on transaction dates
+- `--value=end[,COMM]`        : convert amounts to market value on period end date(s)\
+                                (**default with `--valuechange`, `--gain`**)
+- `--value=now[,COMM]`        : convert amounts to market value on today's date
+- `--value=YYYY-MM-DD[,COMM]` : convert amounts to market value on another date
 
-or one of their aliases: [`--cost/-B`], [`--market/-V`] or [`--exchange/-X`].
+or one of the equivalent simpler flags:
 
-[`--cost/-B`]: #-b-cost
-[`--market/-V`]: #-v-value
-[`--exchange/-X`]: #-x-value-in-specified-commodity
+- `-B/--cost`               : like --value=cost (though, note --cost and --value are independent options which can both be used at once)
+- `-V/--market`             : like --value=end
+- `-X COMM/--exchange COMM` : like --value=end,COMM
+
+See [Cost reporting](#cost-reporting) and [Valuation](#valuation) for more about these.
 
 #### Combining balance report types
 
@@ -498,7 +495,7 @@ For reference, here is what the combinations of accumulation and valuation show:
 
 The `--budget` report type activates extra columns showing any budget goals for each account and period.
 The budget goals are defined by [periodic transactions](hledger.html#periodic-transactions).
-This is very useful for comparing planned and actual income, expenses, time usage, etc.
+This is useful for comparing planned and actual income, expenses, time usage, etc.
 
 For example, you can take average monthly expenses in the common expense categories to construct a minimal monthly budget:
 ```journal
@@ -756,17 +753,18 @@ and then select from multiple budgets defined in your journal.
 
 ### Data layout
 
-The `--layout` option affects how balance reports show commodity symbols
-and multi-commodity amounts, which can improve readability. 
+The `--layout` option affects how balance reports show
+multi-commodity amounts and commodity symbols, which can improve readability. 
 It can also normalise the data for easy consumption by other programs.
 It has four possible values:
 
-- `--layout=wide[,WIDTH]`: commodities are shown on a single line, possibly elided to the specified width
+- `--layout=wide[,WIDTH]`: commodities are shown on a single line, optionally elided to WIDTH
 - `--layout=tall`: each commodity is shown on a separate line
-- `--layout=bare`: amounts are shown as bare numbers, with commodity symbols in a separate column
-- `--layout=tidy`: data is normalised to easily-consumed "tidy" form, with one row per data value (works only with CSV output)
+- `--layout=bare`: commodity symbols are in their own column, amounts are bare numbers
+- `--layout=tidy`: data is normalised to easily-consumed "tidy" form, with one row per data value
 
-These `--layout` modes are supported with some but not all of the [output formats](#output-format):
+Here are the `--layout` modes supported by each [output format](#output-format);
+note only CSV output supports all of them:
 
 | -    | txt | csv | html | json | sql |
 |------|-----|-----|------|------|-----|
@@ -842,7 +840,7 @@ Examples:
   ```
 
 - Bare layout also affects [CSV output](#output-format),
-  which is useful for producing data that is easier to consume, eg when making charts:
+  which is useful for producing data that is easier to consume, eg for making charts:
   ```shell
   $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -O csv --layout=bare
   "account","commodity","balance"
@@ -861,8 +859,7 @@ Examples:
 - Tidy layout produces normalised "tidy data", where every variable
   has its own column and each row represents a single data point.
   See <https://cran.r-project.org/web/packages/tidyr/vignettes/tidy-data.html> for more.
-
-  This kind of output is the easiest to process with other software.
+  This is the easiest kind of data for other software to consume.
   Here's how it looks:
   
   ```shell
@@ -884,11 +881,6 @@ Examples:
   "Assets:US:ETrade","2014","2014-01-01","2014-12-31","VEA","14.00"
   "Assets:US:ETrade","2014","2014-01-01","2014-12-31","VHT","170.00"
   ```
-
-  Currently tidy layout is supported only with [CSV output](#output-format).
-
-  In tidy mode, row totals, row averages and column totals are not shown
-  (`-T/--row-total` and `-A/--average` flags are disabled and `-N/--no-total` is enabled).
 
 ### Useful balance reports
 
