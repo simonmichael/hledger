@@ -4981,7 +4981,7 @@ used as the valuation date; otherwise the valuation date is the journal's end da
 For [multiperiod reports](#report-intervals), each column/period is
 valued on the last day of the period, by default.
 
-## Market prices
+## Finding market price
 
 To convert a commodity A to its market value in another commodity B,
 hledger looks for a suitable market price (exchange rate) as follows,
