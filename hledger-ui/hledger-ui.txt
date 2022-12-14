@@ -4,14 +4,16 @@ HLEDGER-UI(1)                hledger User Manuals                HLEDGER-UI(1)
 
 
 NAME
-       hledger-ui  is  a  terminal  interface (TUI) for the hledger accounting
-       tool.  This manual is for hledger-ui 1.28.99.
+       hledger-ui - robust, friendly plain text accounting (TUI version)
 
 SYNOPSIS
        hledger-ui [OPTIONS] [QUERYARGS]
        hledger ui -- [OPTIONS] [QUERYARGS]
 
 DESCRIPTION
+       This  manual is for hledger's terminal interface, version 1.28.99.  See
+       also the hledger manual for common concepts and file formats.
+
        hledger is a reliable, cross-platform  set  of  programs  for  tracking
        money,  time, or any other commodity, using double-entry accounting and
        a simple, editable file format.  hledger is  inspired  by  and  largely
@@ -295,8 +297,8 @@ KEYS
        register  and transaction screens, and at the error location (if possi-
        ble) when invoked from the error screen.
 
-       B toggles cost mode, showing amounts in their transaction price's  com-
-       modity (like toggling the -B/--cost flag).
+       B toggles cost mode, showing amounts in their  cost's  commodity  (like
+       toggling the -B/--cost flag).
 
        V  toggles  value  mode, showing amounts' current market value in their
        default valuation  commodity  (like  toggling  the  -V/--market  flag).
@@ -543,21 +545,18 @@ FILES
        C:/Users/USER/.hledger.journal).
 
 BUGS
-       The  need  to precede options with -- when invoked from hledger is awk-
-       ward.
-
        -f- doesn't work (hledger-ui can't read from stdin).
 
        -V affects only the accounts screen.
 
        When you press g, the current and all previous screens are regenerated,
-       which  may cause a noticeable pause with large files.  Also there is no
+       which may cause a noticeable pause with large files.  Also there is  no
        visual indication that this is in progress.
 
-       --watch is not yet fully robust.  It works well for normal  usage,  but
-       many  file  changes  in  a  short time (eg saving the file thousands of
-       times with an editor macro) can cause problems at least on OSX.   Symp-
-       toms  include:  unresponsive UI, periodic resetting of the cursor posi-
+       --watch  is  not yet fully robust.  It works well for normal usage, but
+       many file changes in a short time (eg  saving  the  file  thousands  of
+       times  with an editor macro) can cause problems at least on OSX.  Symp-
+       toms include: unresponsive UI, periodic resetting of the  cursor  posi-
        tion, momentary display of parse errors, high CPU usage eventually sub-
        siding, and possibly a small but persistent build-up of CPU usage until
        the program is restarted.
@@ -568,16 +567,20 @@ BUGS
 
 
 REPORTING BUGS
-       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
-       or hledger mail list)
+       Report bugs at http://bugs.hledger.org (or  on  the  #hledger  chat  or
+       hledger mail list)
 
 
 AUTHORS
-       Simon Michael <simon@joyful.com> and contributors
+       Simon Michael <simon@joyful.com> and contributors.
+       See http://hledger.org/CREDITS.html
 
 
 COPYRIGHT
-       Copyright (C) 2007-2020 Simon Michael.
+       Copyright 2007-2023 Simon Michael and contributors.
+
+
+LICENSE
        Released under GNU GPL v3 or later.
 
 

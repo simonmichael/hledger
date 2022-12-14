@@ -5,23 +5,26 @@
 
 .SH NAME
 .PP
-hledger-web is a web interface (WUI) for the hledger accounting tool.
-This manual is for hledger-web 1.28.99.
+hledger-web - robust, friendly plain text accounting (Web version)
 .SH SYNOPSIS
 .PP
-\f[V]hledger-web [OPTIONS]              # run temporarily & browse\f[R]
+\f[V]hledger-web [OPTIONS]                  # run temporarily & browse\f[R]
 .PD 0
 .P
 .PD
-\f[V]hledger-web --serve [OPTIONS]      # run without stopping\f[R]
+\f[V]hledger-web --serve [OPTIONS]          # run without stopping\f[R]
 .PD 0
 .P
 .PD
-\f[V]hledger-web --serve-api [OPTIONS]  # run JSON server only\f[R]
+\f[V]hledger-web --serve-api [OPTIONS]      # run JSON server only\f[R]
 .PD 0
 .P
 .PD
+\f[V]hledger web -- [OPTIONS] [QUERYARGS]\f[R] # start from hledger
 .SH DESCRIPTION
+.PP
+This manual is for hledger\[aq]s web interface, version 1.28.99.
+See also the hledger manual for common concepts and file formats.
 .PP
 hledger is a reliable, cross-platform set of programs for tracking
 money, time, or any other commodity, using double-entry accounting and a
@@ -457,7 +460,7 @@ $ curl -s http://127.0.0.1:5000/transactions | python -m json.tool
 Most of the JSON corresponds to hledger\[aq]s data types; for details of
 what the fields mean, see the Hledger.Data.Json haddock docs and click
 on the various data types, eg Transaction.
-And for a higher level understanding, see the journal manual.
+And for a higher level understanding, see the journal docs.
 .PP
 In some cases there is outer JSON corresponding to a \[dq]Report\[dq]
 type.
@@ -664,9 +667,6 @@ timedot, or CSV format specified with \f[V]-f\f[R], or
 perhaps \f[V]C:/Users/USER/.hledger.journal\f[R]).
 .SH BUGS
 .PP
-The need to precede options with \f[V]--\f[R] when invoked from hledger
-is awkward.
-.PP
 \f[V]-f-\f[R] doesn\[aq]t work (hledger-web can\[aq]t read from stdin).
 .PP
 Query arguments and some hledger options are ignored.
@@ -678,15 +678,17 @@ Does not work well on small screens.
 
 .SH "REPORTING BUGS"
 Report bugs at http://bugs.hledger.org
-(or on the #hledger IRC channel or hledger mail list)
+(or on the #hledger chat or hledger mail list)
 
 .SH AUTHORS
-Simon Michael <simon@joyful.com> and contributors
+Simon Michael <simon@joyful.com> and contributors.
+.br
+See http://hledger.org/CREDITS.html
 
 .SH COPYRIGHT
+Copyright 2007-2023 Simon Michael and contributors.
 
-Copyright (C) 2007-2020 Simon Michael.
-.br
+.SH LICENSE
 Released under GNU GPL v3 or later.
 
 .SH SEE ALSO

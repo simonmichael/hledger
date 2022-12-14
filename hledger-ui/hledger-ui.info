@@ -11,11 +11,13 @@ File: hledger-ui.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
 hledger-ui(1)
 *************
 
-hledger-ui is a terminal interface (TUI) for the hledger accounting
-tool.  This manual is for hledger-ui 1.28.99.
+hledger-ui - robust, friendly plain text accounting (TUI version)
 
    'hledger-ui [OPTIONS] [QUERYARGS]'
 'hledger ui -- [OPTIONS] [QUERYARGS]'
+
+   This manual is for hledger's terminal interface, version 1.28.99.
+See also the hledger manual for common concepts and file formats.
 
    hledger is a reliable, cross-platform set of programs for tracking
 money, time, or any other commodity, using double-entry accounting and a
@@ -336,8 +338,8 @@ cursor will be positioned at the current transaction when invoked from
 the register and transaction screens, and at the error location (if
 possible) when invoked from the error screen.
 
-   'B' toggles cost mode, showing amounts in their transaction price's
-commodity (like toggling the '-B/--cost' flag).
+   'B' toggles cost mode, showing amounts in their cost's commodity
+(like toggling the '-B/--cost' flag).
 
    'V' toggles value mode, showing amounts' current market value in
 their default valuation commodity (like toggling the '-V/--market'
@@ -673,10 +675,7 @@ File: hledger-ui.info,  Node: BUGS,  Prev: FILES,  Up: Top
 8 BUGS
 ******
 
-The need to precede options with '--' when invoked from hledger is
-awkward.
-
-   '-f-' doesn't work (hledger-ui can't read from stdin).
+'-f-' doesn't work (hledger-ui can't read from stdin).
 
    '-V' affects only the accounts screen.
 
@@ -698,40 +697,40 @@ program is restarted.
 
 Tag Table:
 Node: Top221
-Node: OPTIONS1657
-Ref: #options1755
-Node: MOUSE6839
-Ref: #mouse6934
-Node: KEYS7171
-Ref: #keys7264
-Node: SCREENS11339
-Ref: #screens11437
-Node: Menu12123
-Ref: #menu12215
-Node: All accounts12292
-Ref: #all-accounts12431
-Node: Balance sheet accounts12682
-Ref: #balance-sheet-accounts12862
-Node: Income statement accounts13050
-Ref: #income-statement-accounts13232
-Node: Register15652
-Ref: #register15789
-Node: Transaction17773
-Ref: #transaction17896
-Node: Error18766
-Ref: #error18860
-Node: TIPS19104
-Ref: #tips19203
-Node: Watch mode19245
-Ref: #watch-mode19352
-Node: Debug output20808
-Ref: #debug-output20919
-Node: ENVIRONMENT21131
-Ref: #environment21242
-Node: FILES22627
-Ref: #files22726
-Node: BUGS22939
-Ref: #bugs23016
+Node: OPTIONS1745
+Ref: #options1843
+Node: MOUSE6927
+Ref: #mouse7022
+Node: KEYS7259
+Ref: #keys7352
+Node: SCREENS11414
+Ref: #screens11512
+Node: Menu12198
+Ref: #menu12290
+Node: All accounts12367
+Ref: #all-accounts12506
+Node: Balance sheet accounts12757
+Ref: #balance-sheet-accounts12937
+Node: Income statement accounts13125
+Ref: #income-statement-accounts13307
+Node: Register15727
+Ref: #register15864
+Node: Transaction17848
+Ref: #transaction17971
+Node: Error18841
+Ref: #error18935
+Node: TIPS19179
+Ref: #tips19278
+Node: Watch mode19320
+Ref: #watch-mode19427
+Node: Debug output20883
+Ref: #debug-output20994
+Node: ENVIRONMENT21206
+Ref: #environment21317
+Node: FILES22702
+Ref: #files22801
+Node: BUGS23014
+Ref: #bugs23091
 
 End Tag Table
 

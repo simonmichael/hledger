@@ -11,12 +11,15 @@ File: hledger-web.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
 hledger-web(1)
 **************
 
-hledger-web is a web interface (WUI) for the hledger accounting tool.
-This manual is for hledger-web 1.28.99.
+hledger-web - robust, friendly plain text accounting (Web version)
 
    'hledger-web [OPTIONS] # run temporarily & browse'
 'hledger-web --serve [OPTIONS] # run without stopping'
 'hledger-web --serve-api [OPTIONS] # run JSON server only'
+'hledger web -- [OPTIONS] [QUERYARGS]' # start from hledger
+
+   This manual is for hledger's web interface, version 1.28.99.  See
+also the hledger manual for common concepts and file formats.
 
    hledger is a reliable, cross-platform set of programs for tracking
 money, time, or any other commodity, using double-entry accounting and a
@@ -450,7 +453,7 @@ $ curl -s http://127.0.0.1:5000/transactions | python -m json.tool
    Most of the JSON corresponds to hledger's data types; for details of
 what the fields mean, see the Hledger.Data.Json haddock docs and click
 on the various data types, eg Transaction.  And for a higher level
-understanding, see the journal manual.
+understanding, see the journal docs.
 
    In some cases there is outer JSON corresponding to a "Report" type.
 To understand that, go to the Hledger.Web.Handler.MiscR haddock and look
@@ -648,10 +651,7 @@ File: hledger-web.info,  Node: BUGS,  Prev: FILES,  Up: Top
 9 BUGS
 ******
 
-The need to precede options with '--' when invoked from hledger is
-awkward.
-
-   '-f-' doesn't work (hledger-web can't read from stdin).
+'-f-' doesn't work (hledger-web can't read from stdin).
 
    Query arguments and some hledger options are ignored.
 
@@ -662,26 +662,26 @@ awkward.
 
 Tag Table:
 Node: Top223
-Node: OPTIONS2436
-Ref: #options2541
-Node: PERMISSIONS9940
-Ref: #permissions10079
-Node: EDITING UPLOADING DOWNLOADING11291
-Ref: #editing-uploading-downloading11472
-Node: RELOADING12306
-Ref: #reloading12440
-Node: JSON API12873
-Ref: #json-api12988
-Node: DEBUG OUTPUT18478
-Ref: #debug-output18603
-Node: Debug output18630
-Ref: #debug-output-118731
-Node: ENVIRONMENT19148
-Ref: #environment19268
-Node: FILES20579
-Ref: #files20679
-Node: BUGS20892
-Ref: #bugs20970
+Node: OPTIONS2585
+Ref: #options2690
+Node: PERMISSIONS10089
+Ref: #permissions10228
+Node: EDITING UPLOADING DOWNLOADING11440
+Ref: #editing-uploading-downloading11621
+Node: RELOADING12455
+Ref: #reloading12589
+Node: JSON API13022
+Ref: #json-api13137
+Node: DEBUG OUTPUT18625
+Ref: #debug-output18750
+Node: Debug output18777
+Ref: #debug-output-118878
+Node: ENVIRONMENT19295
+Ref: #environment19415
+Node: FILES20726
+Ref: #files20826
+Node: BUGS21039
+Ref: #bugs21117
 
 End Tag Table
 

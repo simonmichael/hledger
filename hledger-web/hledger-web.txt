@@ -4,15 +4,18 @@ HLEDGER-WEB(1)               hledger User Manuals               HLEDGER-WEB(1)
 
 
 NAME
-       hledger-web  is  a web interface (WUI) for the hledger accounting tool.
-       This manual is for hledger-web 1.28.99.
+       hledger-web - robust, friendly plain text accounting (Web version)
 
 SYNOPSIS
-       hledger-web [OPTIONS]              # run temporarily & browse
-       hledger-web --serve [OPTIONS]      # run without stopping
-       hledger-web --serve-api [OPTIONS]  # run JSON server only
+       hledger-web [OPTIONS]                  # run temporarily & browse
+       hledger-web --serve [OPTIONS]          # run without stopping
+       hledger-web --serve-api [OPTIONS]      # run JSON server only
+       hledger web -- [OPTIONS] [QUERYARGS] # start from hledger
 
 DESCRIPTION
+       This  manual is for hledger's web interface, version 1.28.99.  See also
+       the hledger manual for common concepts and file formats.
+
        hledger is a reliable, cross-platform  set  of  programs  for  tracking
        money,  time, or any other commodity, using double-entry accounting and
        a simple, editable file format.  hledger is  inspired  by  and  largely
@@ -401,7 +404,7 @@ JSON API
        Most  of  the  JSON corresponds to hledger's data types; for details of
        what the fields mean, see the Hledger.Data.Json haddock docs and  click
        on  the  various  data  types,  eg Transaction.  And for a higher level
-       understanding, see the journal manual.
+       understanding, see the journal docs.
 
        In some cases there is outer JSON corresponding to a "Report" type.  To
        understand  that,  go to the Hledger.Web.Handler.MiscR haddock and look
@@ -570,9 +573,6 @@ FILES
        C:/Users/USER/.hledger.journal).
 
 BUGS
-       The  need  to precede options with -- when invoked from hledger is awk-
-       ward.
-
        -f- doesn't work (hledger-web can't read from stdin).
 
        Query arguments and some hledger options are ignored.
@@ -584,16 +584,20 @@ BUGS
 
 
 REPORTING BUGS
-       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
-       or hledger mail list)
+       Report  bugs  at  http://bugs.hledger.org  (or  on the #hledger chat or
+       hledger mail list)
 
 
 AUTHORS
-       Simon Michael <simon@joyful.com> and contributors
+       Simon Michael <simon@joyful.com> and contributors.
+       See http://hledger.org/CREDITS.html
 
 
 COPYRIGHT
-       Copyright (C) 2007-2020 Simon Michael.
+       Copyright 2007-2023 Simon Michael and contributors.
+
+
+LICENSE
        Released under GNU GPL v3 or later.
 
 

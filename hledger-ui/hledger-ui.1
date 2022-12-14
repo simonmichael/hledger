@@ -5,9 +5,7 @@
 
 .SH NAME
 .PP
-hledger-ui is a terminal interface (TUI) for the hledger accounting
-tool.
-This manual is for hledger-ui 1.28.99.
+hledger-ui - robust, friendly plain text accounting (TUI version)
 .SH SYNOPSIS
 .PP
 \f[V]hledger-ui [OPTIONS] [QUERYARGS]\f[R]
@@ -16,6 +14,9 @@ This manual is for hledger-ui 1.28.99.
 .PD
 \f[V]hledger ui -- [OPTIONS] [QUERYARGS]\f[R]
 .SH DESCRIPTION
+.PP
+This manual is for hledger\[aq]s terminal interface, version 1.28.99.
+See also the hledger manual for common concepts and file formats.
 .PP
 hledger is a reliable, cross-platform set of programs for tracking
 money, time, or any other commodity, using double-entry accounting and a
@@ -323,8 +324,8 @@ current transaction when invoked from the register and transaction
 screens, and at the error location (if possible) when invoked from the
 error screen.
 .PP
-\f[V]B\f[R] toggles cost mode, showing amounts in their transaction
-price\[aq]s commodity (like toggling the \f[V]-B/--cost\f[R] flag).
+\f[V]B\f[R] toggles cost mode, showing amounts in their cost\[aq]s
+commodity (like toggling the \f[V]-B/--cost\f[R] flag).
 .PP
 \f[V]V\f[R] toggles value mode, showing amounts\[aq] current market
 value in their default valuation commodity (like toggling the
@@ -623,9 +624,6 @@ timedot, or CSV format specified with \f[V]-f\f[R], or
 perhaps \f[V]C:/Users/USER/.hledger.journal\f[R]).
 .SH BUGS
 .PP
-The need to precede options with \f[V]--\f[R] when invoked from hledger
-is awkward.
-.PP
 \f[V]-f-\f[R] doesn\[aq]t work (hledger-ui can\[aq]t read from stdin).
 .PP
 \f[V]-V\f[R] affects only the accounts screen.
@@ -650,15 +648,17 @@ step.
 
 .SH "REPORTING BUGS"
 Report bugs at http://bugs.hledger.org
-(or on the #hledger IRC channel or hledger mail list)
+(or on the #hledger chat or hledger mail list)
 
 .SH AUTHORS
-Simon Michael <simon@joyful.com> and contributors
+Simon Michael <simon@joyful.com> and contributors.
+.br
+See http://hledger.org/CREDITS.html
 
 .SH COPYRIGHT
+Copyright 2007-2023 Simon Michael and contributors.
 
-Copyright (C) 2007-2020 Simon Michael.
-.br
+.SH LICENSE
 Released under GNU GPL v3 or later.
 
 .SH SEE ALSO
