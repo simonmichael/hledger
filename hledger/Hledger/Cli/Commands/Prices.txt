@@ -1,9 +1,8 @@
 prices
 Print market price directives from the journal. With
---infer-market-prices, generate additional market prices from
-transaction prices. With --infer-reverse-prices, also generate market
-prices by inverting transaction prices. Prices (and postings providing
-transaction prices) can be filtered by a query. Price amounts are
+--infer-market-prices, generate additional market prices from costs.
+With --infer-reverse-prices, also generate market prices by inverting
+known prices. Prices can be filtered by a query. Price amounts are
 displayed with their full precision.
 
 _FLAGS

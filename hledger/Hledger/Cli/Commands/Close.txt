@@ -38,14 +38,14 @@ separate equity posting for each commodity (as in the print command).
 With --interleaved, each equity posting is shown next to the posting it
 balances (good for troubleshooting).
 
-close and prices
+close and costs
 
-Transaction prices are ignored (and discarded) by closing/opening
-transactions, by default. With --show-costs, they are preserved; there
-will be a separate equity posting for each cost in each commodity. This
-means balance -B reports will look the same after the transition. Note
-if you have many foreign currency or investment transactions, this will
-generate very large journal entries.
+Costs are ignored (and discarded) by closing/opening transactions, by
+default. With --show-costs, they are preserved; there will be a separate
+equity posting for each cost in each commodity. This means balance -B
+reports will look the same after the transition. Note if you have many
+foreign currency or investment transactions, this will generate very
+large journal entries.
 
 close date
 
@@ -59,12 +59,18 @@ closing date. The opening date is always the following day. So to close
 on (end of) 2020-12-31 and open on (start of) 2021-01-01, any of these
 will work:
 
-  end date argument   explanation
-  ------------------- ------------------------------------------------
-  -e 2021-01-01       end dates are exclusive
-  -e 2021             equivalent, per smart dates
-  -p 2020             equivalent, the period's begin date is ignored
-  date:2020           equivalent query
+  -----------------------------------------------------------------------
+  end date        explanation
+  argument        
+  --------------- -------------------------------------------------------
+  -e 2021-01-01   end dates are exclusive
+
+  -e 2021         equivalent, per smart dates
+
+  -p 2020         equivalent, the period's begin date is ignored
+
+  date:2020       equivalent query
+  -----------------------------------------------------------------------
 
 Example: close asset/liability accounts for file transition
 
