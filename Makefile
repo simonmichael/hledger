@@ -822,6 +822,9 @@ manuals-watch: Shake \
 		$(call def-help,manuals-watch, rerender manuals when their source files change  )
 	ls $(DOCSOURCEFILES) | entr ./Shake -VV manuals
 
+man-watch: man-watch-hledger \
+		$(call def-help,man-watch, run man on the hledger man page when its source file changes )
+
 man-watch-%: Shake \
 		$(call def-help,man-watch-PROG, run man on the given man page when its source file changes. Eg make man-watch-hledger-web )
 	$(WATCHEXEC) -r -w $*/$*.m4.md './Shake $*/$*.1 && man $*/$*.1'
