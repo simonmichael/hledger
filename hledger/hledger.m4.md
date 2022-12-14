@@ -37,45 +37,62 @@ _notinfo_({{
 # INTRODUCTION
 }})
 
-This manual is for hledger's command line interface, version
-_version_.  It also describes the concepts and file formats common to
-all hledger programs.  You can read it on hledger.org, or as an info
-manual or man page on your system. It is detailed and not entirely linear,
-so you should feel free to skip ahead / skim when needed.
-You don't need to know everything in here to use hledger productively,
-but when you have a question about functionality, this doc should answer it.
-
 _hledgerdescription_
 
-The basic function of the hledger CLI is to read a plain text file describing
-financial transactions (in accounting terms, a general journal) and
-print useful reports on standard output, or export them as CSV. hledger
-can also read some other file formats such as CSV files, translating
-them to journal format. Additionally, hledger lists other hledger-\*
-executables found in the user’s \$PATH and can invoke them as subcommands.
+This manual is for hledger's command line interface, version _version_.
+It also describes the common options, file formats and concepts used by all hledger programs. 
+It might accidentally teach you some bookkeeping/accounting as well!
+You don't need to know everything in here to use hledger productively,
+but when you have a question about functionality, this doc should answer it.
+It is detailed, so do skip ahead or skim when needed.
+You can read it on hledger.org, or as an info manual or man page on
+your system (each has benefits).
+You can also get it from hledger itself with\
+`hledger --man`, `hledger --info` or `hledger help [TOPIC]`.
+
+The main function of the hledger CLI is
+to read plain text files describing financial transactions,
+crunch the numbers,
+and print a useful report on the terminal (or save it as HTML, CSV, JSON or SQL).
+Many reports are available, as subcommands.
+hledger will also detect other `hledger-*` executables as extra subcommands.
 
 hledger reads _inputfiles_
 hledger CLI can also read from stdin with `-f-`; more on that below.
 
-Transactions are dated movements of money between two (or more) named
-accounts, and are recorded with journal entries like this:
+Here is a small but valid hledger journal file describing one transaction:
 
 _journal_({{
-2015/10/16 bought food
- expenses:food          $10
- assets:cash
+2015-10-16 bought food
+  expenses:food          $10
+  assets:cash
 }})
 
-Most users use a text editor to edit the journal, usually with an editor
-mode such as ledger-mode for added convenience. hledger’s interactive
-add command is another way to record new transactions. hledger never
-changes existing transactions.
+Transactions are dated movements of money (etc.) between two or more *accounts*:
+bank accounts, your wallet, revenue/expense categories, people, etc.
+You can choose any account names you wish, using `:` to indicate subaccounts.
+There must be at least two spaces between account name and amount.
+Positive amounts are inflow to that account (*debit*), negatives are outflow from it (*credit*).
+(Some reports show revenue, liability and equity account balances as negative numbers
+as a result; this is normal.)
 
-To get started, you can either save some entries like the above in
-`~/.hledger.journal`, or run `hledger add` and follow the prompts. Then
-try some commands like `hledger print` or `hledger balance`.
-Run `hledger` with no arguments for a list of commands.
+hledger’s add command can help you add transactions,
+or you can install other data entry UIs like hledger-web or hledger-iadd.
+For more extensive/efficient changes, use a text editor:
+Emacs + ledger-mode, VIM + vim-ledger, or VS Code + hledger-vscode
+are some good choices (see <https://hledger.org/editors.html>).
 
+To get started, run `hledger add` and follow the prompts,
+or save some entries like the above in `$HOME/.hledger.journal`,
+then try commands like:\
+`hledger print -x`\
+`hledger aregister assets`\
+`hledger balance`\
+`hledger balancesheet`\
+`hledger incomestatement`.\
+Run `hledger` to list the commands.
+See also the "Starting a journal file" and "Setting opening balances" sections
+in [PART 5: COMMON TASKS](#part-5-common-tasks).
 
 # PART 1: USER INTERFACE
 
@@ -5484,7 +5501,7 @@ Here's how to list commands and view options and command docs:
 ```shell
 $ hledger                # show available commands
 $ hledger --help         # show common options
-$ hledger CMD --help     # show common options and CMD's options and documentation
+$ hledger CMD --help     # show CMD's options, common options and CMD's documentation
 ```
 
 You can also view your hledger version's manual in several formats
@@ -5492,7 +5509,7 @@ by using the [help command](#help). Eg:
 ```shell
 $ hledger help           # show the hledger manual with info, man or $PAGER (best available)
 $ hledger help journal   # show the journal topic in the hledger manual
-$ hledger help --help    # show how the help command works
+$ hledger help --help    # find out more about the help command
 ```
 
 To view manuals and introductory docs on the web, visit <https://hledger.org>.
@@ -5500,16 +5517,16 @@ Chat and mail list support and discussion archives can be found at <https://hled
 
 ## Constructing command lines
 
-hledger has an extensive and powerful command line interface. We
-strive to keep it simple and ergonomic, but you may run into one of
-the confusing real world details [OPTIONS](#options).
-If that happens, here are some tips that may help:
+hledger has a flexible command line interface.
+We strive to keep it simple and ergonomic, but if you run into one of
+the sharp edges described in [OPTIONS](#options),
+here are some tips that might help:
 
-- command-specific options must go after the command (it's fine to put all options there) (`hledger CMD OPTS ARGS`)
+- command-specific options must go after the command (it's fine to put common options there too: `hledger CMD OPTS ARGS`)
 - running add-on executables directly simplifies command line parsing (`hledger-ui OPTS ARGS`)
 - enclose "problematic" args in single quotes
 - if needed, also add a backslash to hide regular expression metacharacters from the shell
-- to see how a misbehaving command is being parsed, add `--debug=2`.
+- to see how a misbehaving command line is being parsed, add `--debug=2`.
 
 ## Starting a journal file
 
