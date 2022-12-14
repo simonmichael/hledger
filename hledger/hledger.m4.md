@@ -81,7 +81,7 @@ Run `hledger` with no arguments for a list of commands.
 
 # PART 1: USER INTERFACE
 
-# OPTIONS
+# Options
 
 ## General options
 
@@ -309,7 +309,7 @@ dollar sign in hledger-web, write `cur:\$`.
 meaning to the shell and so must be escaped at least once more.
 See [Special characters](#special-characters).
 
-# ENVIRONMENT
+# Environment
 
 _LEDGER_FILE_
 
@@ -322,7 +322,7 @@ If this variable exists with any value,
 hledger will not use ANSI color codes in terminal output.
 This is overriden by the --color/--colour option.
 
-# INPUT
+# Input
 
 hledger reads transactions from one or more data files.
 The default data file is `$HOME/.hledger.journal`
@@ -412,7 +412,7 @@ With the `-s`/`--strict` flag, additional checks are performed:
 You can use the [check](#check) command to run individual checks -- the
 ones listed above and some more.
 
-# COMMANDS
+# Commands
 
 hledger provides a number of built-in subcommands (described [below](#part-4-commands)).
 Most of these read your data without changing it, and display a report.
@@ -469,7 +469,7 @@ If you have any trouble with this, remember you can always run the add-on progra
 $ hledger-web --serve
 ```
 
-# OUTPUT
+# Output
 
 ## Output destination
 
@@ -654,7 +654,7 @@ To capture debug output in a log file instead, you can usually redirect stderr, 
 hledger bal --debug=3 2>hledger.log
 ```
 
-# LIMITATIONS
+# Limitations
 
 The need to precede add-on command options with `--` when invoked from hledger is awkward.
 
@@ -673,7 +673,7 @@ See [hledger and Ledger > Differences > journal format](/ledger.html#journal-for
 
 On large data files, hledger is slower and uses more memory than Ledger.
 
-# TROUBLESHOOTING
+# Troubleshooting
 
 Here are some issues you might encounter when you run hledger
 (and remember you can also seek help from the
@@ -751,7 +751,7 @@ $ LANG=en_US.UTF-8 hledger -f my.journal print
 
 <a name="journal-format"></a>
 
-# JOURNAL
+# Journal
 
 hledger's default file format, representing a General Journal.
 
@@ -3749,7 +3749,7 @@ user specified.
 
 <a name="timeclock-format"></a>
 
-# TIMECLOCK
+# Timeclock
 
 The time logging format of timeclock.el, as read by hledger.
 
@@ -3816,7 +3816,8 @@ To generate time logs, ie to clock in and clock out, you could:
 
 <a name="timedot-format"></a>
 
-# TIMEDOT
+# Timedot
+
 
 `timedot` format is hledger's human-friendly time logging format.
 Compared to [`timeclock` format](#timeclock), it is
@@ -4009,7 +4010,7 @@ file.
 
 # PART 3: REPORTING CONCEPTS
 
-# TIME PERIODS
+# Time periods
 
 <a name="report-period"></a>
 
@@ -4318,14 +4319,14 @@ Examples:
 | `-p "every weekday"`         | dates will be Mon, Tue, Wed, Thu, Fri; <br>periods will be Mon, Tue, Wed, Thu, Fri-Sun |
 | `-p "every weekendday"`      | dates will be Sat, Sun; <br>periods will be Sat, Sun-Fri                               |
 
-# DEPTH
+# Depth
 
 With the `--depth NUM` option (short form: `-NUM`), 
 reports will show accounts only to the specified depth, hiding deeper subaccounts.
 Use this when you want a summary with less detail.
 This flag has the same effect as a `depth:` query argument: `depth:2`, `--depth=2` or `-2` are equivalent.
 
-# QUERIES
+# Queries
 
 One of hledger's strengths is being able to quickly report on a precise subset of your data. 
 Most hledger commands accept optional query arguments to restrict their scope.
@@ -4504,7 +4505,7 @@ and `amt:` matches the new quantity, and not the old one.
 Note: this changed in hledger 1.22, previously it was the reverse, 
 see the discussion at [#1625](https://github.com/simonmichael/hledger/issues/1625).
 
-# PIVOTING
+# Pivoting
 
 Normally, hledger groups and sums amounts within each account.
 The `--pivot FIELD` option substitutes some other transaction field for account names,
@@ -4551,7 +4552,7 @@ $ hledger balance --pivot member acct:.
               -2 EUR
 ```
 
-# GENERATING DATA
+# Generating data
 
 Two features for generating transient data (visible only at report time)
 are built in to hledger's journal format:
@@ -4563,7 +4564,7 @@ are built in to hledger's journal format:
   usually dated in the future, to help with forecasting or budgeting.
   They are activated by the `--forecast` or `balance --budget` options, described next.
 
-# FORECASTING
+# Forecasting
 
 The `--forecast` flag activates any [periodic transaction rules](#periodic-transactions) 
 in the journal. These will generate temporary additional transactions, 
@@ -4622,7 +4623,7 @@ This is usually convenient, but you can get around it in two ways:
 
 Some examples: `--forecast=202001-202004`, `--forecast=jan-`, `--forecast=2021`.
 
-# BUDGETING
+# Budgeting
 
 With the balance command's [`--budget` report](#budget-report),
 each periodic transaction rule generates recurring budget goals in specified accounts,
@@ -4632,7 +4633,7 @@ See the balance command's doc below.
 See also: [Budgeting and Forecasting](/budgeting-and-forecasting.html).
 
 
-# COST REPORTING
+# Cost reporting
 
 This section is about recording the cost of things, in transactions
 where one commodity is exchanged for another. 
@@ -4946,7 +4947,7 @@ Con:
 - If you use PTA cost notation, and you want to see a balanced balance sheet or print correct journal entries, use `--infer-equity`.
 - Conversion to cost is performed before valuation (described next).
 
-# VALUATION
+# Valuation
 
 Instead of reporting amounts in their original commodity, hledger can convert them to
 cost/sale amount (using the conversion rate recorded in the transaction),
