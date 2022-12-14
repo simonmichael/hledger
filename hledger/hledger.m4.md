@@ -5022,12 +5022,11 @@ Since adding and updating those can be a chore,
 and since transactions usually take place at close to market value,
 why not use the recorded [costs](#costs)
 as additional market prices (as Ledger does) ?
-We could produce value reports without needing P directives at all.
+Adding the `--infer-market-prices` flag to `-V`, `-X` or `--value` enables this.
 
-Adding the `--infer-market-prices` flag to `-V`, `-X` or `--value` enables
-this. So for example, `hledger bs -V --infer-market-prices` will get market
+So for example, `hledger bs -V --infer-market-prices` will get market
 prices both from P directives and from transactions.
-(And if both occur on the same day, the P directive takes precedence).
+If both occur on the same day, the P directive takes precedence.
 
 There is a downside: value reports can sometimes  be affected in
 confusing/undesired ways by your journal entries. If this happens to
@@ -5044,8 +5043,7 @@ and try adding `--debug` or `--debug=2` to troubleshoot.
 - [multicommodity transactions with equity postings](#conversion-with-equity-postings),
   if cost is inferred with [`--infer-costs`](#inferring-cost-from-equity-postings).
   
-
-There is another limitation (bug) currently: when a valuation commodity is not specified, 
+There is a limitation (bug) currently: when a valuation commodity is not specified, 
 prices inferred with `--infer-market-prices` do not help select a default valuation commodity,
 as `P` prices would.
 So conversion might not happen because no valuation commodity was detected (`--debug=2` will show this). 
@@ -5054,6 +5052,50 @@ To be safe, specify the valuation commmodity, eg:
 - `-X EUR --infer-market-prices`, not `-V --infer-market-prices`
 - `--value=then,EUR --infer-market-prices`, not `--value=then --infer-market-prices`
 
+Signed costs and market prices can be confusing.
+For reference, here is the current behaviour, since hledger 1.25.
+(If you think it should work differently, see [#1870](https://github.com/simonmichael/hledger/issues/1870).)
+
+```journal
+2022-01-01 Positive Unit prices
+    a        A 1
+    b        B -1 @ A 1
+
+2022-01-01 Positive Total prices
+    a        A 1
+    b        B -1 @@ A 1
+
+
+2022-01-02 Negative unit prices
+    a        A 1
+    b        B 1 @ A -1
+
+2022-01-02 Negative total prices
+    a        A 1
+    b        B 1 @@ A -1
+
+
+2022-01-03 Double Negative unit prices
+    a        A -1
+    b        B -1 @ A -1
+
+2022-01-03 Double Negative total prices
+    a        A -1
+    b        B -1 @@ A -1
+```
+
+All of the transactions above are considered balanced (and on each day, the two transactions are considered equivalent).
+Here are the market prices inferred for B:
+
+```shell
+$ hledger -f- --infer-market-prices prices
+P 2022-01-01 B A 1
+P 2022-01-01 B A 1.0
+P 2022-01-02 B A -1
+P 2022-01-02 B A -1.0
+P 2022-01-03 B A -1
+P 2022-01-03 B A -1.0
+```
 
 ## Valuation commodity
 
