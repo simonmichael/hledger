@@ -64,7 +64,7 @@ Many of these work with the higher-level commands as well.
   inverted sign ([`--invert`](#sorting-by-amount))
 - rows and columns swapped ([`--transpose`](#multi-period-balance-report))
 - another field used as account name ([`--pivot`](#multi-period-balance-report))
-- custom-formatted line items (single-period reports only) ([`--format`](#customising-single-period-balance-reports))
+- custom-formatted line items (single-period reports only) ([`--format`](#balance-report-line-format))
 - commodities displayed on the same line or multiple lines ([`--layout`](#commodity-layout))
 
 This command supports the
@@ -81,8 +81,11 @@ transactions of the postings which would normally be shown.
 With no arguments, `balance` shows a list of all accounts and their
 change of balance - ie, the sum of posting amounts, both inflows and
 outflows - during the entire period of the journal.
-For real-world accounts, this should also match their end balance
-at the end of the journal period (more on this below).
+("Simple" here means just one column of numbers, covering a single period.
+You can also have multi-period reports, described later.)
+
+For real-world accounts, these numbers will normally be their end balance 
+at the end of the journal period; more on this below.
 
 Accounts are sorted by [declaration order](#account)
 if any, and then alphabetically by account name.
@@ -122,6 +125,66 @@ $ hledger -f examples/sample.journal bal  -E
 
 The total of the amounts displayed is shown as the last line, unless `-N`/`--no-total` is used.
 
+### Balance report line format
+
+For single-period balance reports displayed in the terminal (only),
+you can use `--format FMT` to customise the format and content of each
+line. Eg:
+
+```shell
+$ hledger -f examples/sample.journal balance --format "%20(account) %12(total)"
+              assets          $-1
+         bank:saving           $1
+                cash          $-2
+            expenses           $2
+                food           $1
+            supplies           $1
+              income          $-2
+               gifts          $-1
+              salary          $-1
+   liabilities:debts           $1
+---------------------------------
+                                0
+```
+
+The FMT format string specifies the formatting applied to each account/balance pair.
+It may contain any suitable text, with data fields interpolated like so:
+
+`%[MIN][.MAX](FIELDNAME)`
+
+- MIN pads with spaces to at least this width (optional)
+- MAX truncates at this width (optional)
+- FIELDNAME must be enclosed in parentheses, and can be one of:
+
+    - `depth_spacer` - a number of spaces equal to the account's depth, or if MIN is specified, MIN * depth spaces.
+    - `account`      - the account's name
+    - `total`        - the account's balance/posted total, right justified
+
+Also, FMT can begin with an optional prefix to control how
+multi-commodity amounts are rendered:
+
+- `%_` - render on multiple lines, bottom-aligned (the default)
+- `%^` - render on multiple lines, top-aligned
+- `%,` - render on one line, comma-separated
+
+There are some quirks. Eg in one-line mode, `%(depth_spacer)` has no
+effect, instead `%(account)` has indentation built in.
+<!-- XXX retest:
+Consistent column widths are not well enforced, causing ragged edges unless you set suitable widths.
+Beware of specifying a maximum width; it will clip account names and amounts that are too wide, with no visible indication.
+-->
+Experimentation may be needed to get pleasing results.
+
+Some example formats:
+
+- `%(total)`         - the account's total
+- `%-20.20(account)` - the account's name, left justified, padded to 20 characters and clipped at 20 characters
+- `%,%-50(account)  %25(total)` - account name padded to 50 characters, total padded to 20 characters, with multiple commodities rendered on one line
+- `%20(total)  %2(depth_spacer)%-(account)` - the default format for the single-column balance report
+
+[valuation]: #valuation
+[valuation date(s)]: #valuation-date
+[valuation commodity]: #valuation-commodity
 ### Filtered balance report
 
 You can show fewer accounts, a different time period, totals from
@@ -211,6 +274,56 @@ $ hledger -f examples/sample.journal bal expenses --drop 1
 
 <a name="multicolumn-balance-report"></a>
 
+### Showing declared accounts
+
+With `--declared`, 
+accounts which have been declared with an [account directive](#account)
+will be included in the balance report, even if they have no transactions.
+(Since they will have a zero balance, you will also need `-E/--empty` to see them.)
+
+More precisely, *leaf* declared accounts (with no subaccounts) will be included,
+since those are usually the more useful in reports.
+
+The idea of this is to be able to see a useful "complete" balance report,
+even when you don't have transactions in all of your declared accounts yet.
+
+### Sorting by amount
+
+With `-S/--sort-amount`, accounts with the largest (most positive) balances are shown first.
+Eg: `hledger bal expenses -MAS` shows your biggest averaged monthly expenses first.
+When more than one commodity is present, they will be sorted by the alphabetically earliest
+commodity first, and then by subsequent commodities (if an amount is missing a commodity, it
+is treated as 0).
+
+Revenues and liability balances are typically negative, however, so `-S` shows these in reverse order.
+To work around this, you can add `--invert` to flip the signs.
+(Or, use one of the higher-level reports, which flip the sign automatically. Eg: `hledger incomestatement -MAS`).
+
+<a name="tree-mode"></a>
+
+### Percentages
+
+With `-%/--percent`, balance reports show each account's value
+expressed as a percentage of the (column) total.
+
+Note it is not useful to calculate percentages if the amounts in a
+column have mixed signs. In this case, make a separate report for each
+sign, eg:
+
+```shell
+$ hledger bal -% amt:`>0`
+$ hledger bal -% amt:`<0`
+```
+
+Similarly, if the amounts in a column have mixed commodities, convert
+them to one commodity with `-B`, `-V`, `-X` or `--value`, or make a
+separate report for each commodity:
+
+```shell
+$ hledger bal -% cur:\\$
+$ hledger bal -% cur:€
+```
+
 ### Multi-period balance report
 
 With a [report interval](#report-intervals) (set by the `-D/--daily`,
@@ -267,197 +380,6 @@ Here are some ways to handle that:
 [csv-mode]: https://elpa.gnu.org/packages/csv-mode.html
 [visidata]: https://www.visidata.org
 
-### Showing declared accounts
-
-With `--declared`, 
-accounts which have been declared with an [account directive](#account)
-will be included in the balance report, even if they have no transactions.
-(Since they will have a zero balance, you will also need `-E/--empty` to see them.)
-
-More precisely, *leaf* declared accounts (with no subaccounts) will be included,
-since those are usually the more useful in reports.
-
-The idea of this is to be able to see a useful "complete" balance report,
-even when you don't have transactions in all of your declared accounts yet.
-
-### Data layout
-
-The `--layout` option affects how multi-commodity amounts are displayed,
-and some other things, influencing the overall layout of the report data:
-
-- `--layout=wide[,WIDTH]`: commodities are shown on a single line, possibly elided to the specified width
-- `--layout=tall`: each commodity is shown on a separate line
-- `--layout=bare`: amounts are shown as bare numbers, with commodity symbols in a separate column
-- `--layout=tidy`: data is normalised to [tidy] form, with one row per data value.
-  We currently support this with CSV output only.
-  In tidy mode, totals and row averages are disabled (`-N/--no-total` is implied and `-T/--row-total` and `-A/--average` will be ignored).
-
-[tidy]: https://vita.had.co.nz/papers/tidy-data.html
-
-These `--layout` modes are supported with some but not all of the [output formats](#output-format):
-
-| -    | txt | csv | html | json | sql |
-|------|-----|-----|------|------|-----|
-| wide | Y   | Y   | Y    |      |     |
-| tall | Y   | Y   | Y    |      |     |
-| bare | Y   | Y   | Y    |      |     |
-| tidy |     | Y   |      |      |     |
-
-Examples:
-
-- Wide layout. With many commodities, reports can be very wide:
-  ```shell
-  $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=wide
-  Balance changes in 2012-01-01..2014-12-31:
-  
-                    ||                                          2012                                                     2013                                             2014                                                      Total 
-  ==================++====================================================================================================================================================================================================================
-   Assets:US:ETrade || 10.00 ITOT, 337.18 USD, 12.00 VEA, 106.00 VHT  70.00 GLD, 18.00 ITOT, -98.12 USD, 10.00 VEA, 18.00 VHT  -11.00 ITOT, 4881.44 USD, 14.00 VEA, 170.00 VHT  70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT 
-  ------------------++--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                    || 10.00 ITOT, 337.18 USD, 12.00 VEA, 106.00 VHT  70.00 GLD, 18.00 ITOT, -98.12 USD, 10.00 VEA, 18.00 VHT  -11.00 ITOT, 4881.44 USD, 14.00 VEA, 170.00 VHT  70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT 
-  ```
-
-- Limited wide layout. A width limit reduces the width, but some commodities will be hidden:
-  ```shell  
-  $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=wide,32
-  Balance changes in 2012-01-01..2014-12-31:
-  
-                    ||                             2012                             2013                   2014                            Total 
-  ==================++===========================================================================================================================
-   Assets:US:ETrade || 10.00 ITOT, 337.18 USD, 2 more..  70.00 GLD, 18.00 ITOT, 3 more..  -11.00 ITOT, 3 more..  70.00 GLD, 17.00 ITOT, 3 more.. 
-  ------------------++---------------------------------------------------------------------------------------------------------------------------
-                    || 10.00 ITOT, 337.18 USD, 2 more..  70.00 GLD, 18.00 ITOT, 3 more..  -11.00 ITOT, 3 more..  70.00 GLD, 17.00 ITOT, 3 more.. 
-  ```
-
-- Tall layout. Each commodity gets a new line (may be different in each column), and account names are repeated:
-  ```shell
-  $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=tall
-  Balance changes in 2012-01-01..2014-12-31:
-  
-                    ||       2012        2013         2014        Total 
-  ==================++==================================================
-   Assets:US:ETrade || 10.00 ITOT   70.00 GLD  -11.00 ITOT    70.00 GLD 
-   Assets:US:ETrade || 337.18 USD  18.00 ITOT  4881.44 USD   17.00 ITOT 
-   Assets:US:ETrade ||  12.00 VEA  -98.12 USD    14.00 VEA  5120.50 USD 
-   Assets:US:ETrade || 106.00 VHT   10.00 VEA   170.00 VHT    36.00 VEA 
-   Assets:US:ETrade ||              18.00 VHT                294.00 VHT 
-  ------------------++--------------------------------------------------
-                    || 10.00 ITOT   70.00 GLD  -11.00 ITOT    70.00 GLD 
-                    || 337.18 USD  18.00 ITOT  4881.44 USD   17.00 ITOT 
-                    ||  12.00 VEA  -98.12 USD    14.00 VEA  5120.50 USD 
-                    || 106.00 VHT   10.00 VEA   170.00 VHT    36.00 VEA 
-                    ||              18.00 VHT                294.00 VHT 
-  ```
-
-- Bare layout. Commodity symbols are kept in one column, each commodity gets its own report row, account names are repeated:
-  ```shell
-  $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=bare
-  Balance changes in 2012-01-01..2014-12-31:
-  
-                    || Commodity    2012    2013     2014    Total 
-  ==================++=============================================
-   Assets:US:ETrade || GLD             0   70.00        0    70.00 
-   Assets:US:ETrade || ITOT        10.00   18.00   -11.00    17.00 
-   Assets:US:ETrade || USD        337.18  -98.12  4881.44  5120.50 
-   Assets:US:ETrade || VEA         12.00   10.00    14.00    36.00 
-   Assets:US:ETrade || VHT        106.00   18.00   170.00   294.00 
-  ------------------++---------------------------------------------
-                    || GLD             0   70.00        0    70.00 
-                    || ITOT        10.00   18.00   -11.00    17.00 
-                    || USD        337.18  -98.12  4881.44  5120.50 
-                    || VEA         12.00   10.00    14.00    36.00 
-                    || VHT        106.00   18.00   170.00   294.00 
-  ```
-
-- Bare layout also affects [CSV output](#output-format),
-  which is useful for producing data that is easier to consume, eg when making charts:
-  ```shell
-  $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -O csv --layout=bare
-  "account","commodity","balance"
-  "Assets:US:ETrade","GLD","70.00"
-  "Assets:US:ETrade","ITOT","17.00"
-  "Assets:US:ETrade","USD","5120.50"
-  "Assets:US:ETrade","VEA","36.00"
-  "Assets:US:ETrade","VHT","294.00"
-  "total","GLD","70.00"
-  "total","ITOT","17.00"
-  "total","USD","5120.50"
-  "total","VEA","36.00"
-  "total","VHT","294.00"
-  ```
-
-- Tidy layout produces normalised "tidy data", where every variable is a column and each row 
-  represents a single data point (see <https://cran.r-project.org/web/packages/tidyr/vignettes/tidy-data.html>).
-  This kind of data is the easiest to process with other software:
-  ```shell
-  $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -Y -O csv --layout=tidy
-  "account","period","start_date","end_date","commodity","value"
-  "Assets:US:ETrade","2012","2012-01-01","2012-12-31","GLD","0"
-  "Assets:US:ETrade","2012","2012-01-01","2012-12-31","ITOT","10.00"
-  "Assets:US:ETrade","2012","2012-01-01","2012-12-31","USD","337.18"
-  "Assets:US:ETrade","2012","2012-01-01","2012-12-31","VEA","12.00"
-  "Assets:US:ETrade","2012","2012-01-01","2012-12-31","VHT","106.00"
-  "Assets:US:ETrade","2013","2013-01-01","2013-12-31","GLD","70.00"
-  "Assets:US:ETrade","2013","2013-01-01","2013-12-31","ITOT","18.00"
-  "Assets:US:ETrade","2013","2013-01-01","2013-12-31","USD","-98.12"
-  "Assets:US:ETrade","2013","2013-01-01","2013-12-31","VEA","10.00"
-  "Assets:US:ETrade","2013","2013-01-01","2013-12-31","VHT","18.00"
-  "Assets:US:ETrade","2014","2014-01-01","2014-12-31","GLD","0"
-  "Assets:US:ETrade","2014","2014-01-01","2014-12-31","ITOT","-11.00"
-  "Assets:US:ETrade","2014","2014-01-01","2014-12-31","USD","4881.44"
-  "Assets:US:ETrade","2014","2014-01-01","2014-12-31","VEA","14.00"
-  "Assets:US:ETrade","2014","2014-01-01","2014-12-31","VHT","170.00"
-  ```
-
-### Sorting by amount
-
-With `-S/--sort-amount`, accounts with the largest (most positive) balances are shown first.
-Eg: `hledger bal expenses -MAS` shows your biggest averaged monthly expenses first.
-When more than one commodity is present, they will be sorted by the alphabetically earliest
-commodity first, and then by subsequent commodities (if an amount is missing a commodity, it
-is treated as 0).
-
-Revenues and liability balances are typically negative, however, so `-S` shows these in reverse order.
-To work around this, you can add `--invert` to flip the signs.
-(Or, use one of the higher-level reports, which flip the sign automatically. Eg: `hledger incomestatement -MAS`).
-
-<a name="tree-mode"></a>
-
-### Percentages
-
-With `-%/--percent`, balance reports show each account's value
-expressed as a percentage of the (column) total:
-
-```shell
-$ hledger -f examples/sample.journal bal expenses -Q -%
-Balance changes in 2008:
-
-                   || 2008Q1   2008Q2  2008Q3  2008Q4 
-===================++=================================
- expenses:food     ||      0   50.0 %       0       0 
- expenses:supplies ||      0   50.0 %       0       0 
--------------------++---------------------------------
-                   ||      0  100.0 %       0       0 
-```
-
-Note it is not useful to calculate percentages if the amounts in a
-column have mixed signs. In this case, make a separate report for each
-sign, eg:
-
-```shell
-$ hledger bal -% amt:`>0`
-$ hledger bal -% amt:`<0`
-```
-
-Similarly, if the amounts in a column have mixed commodities, convert
-them to one commodity with `-B`, `-V`, `-X` or `--value`, or make a
-separate report for each commodity:
-
-```shell
-$ hledger bal -% cur:\\$
-$ hledger bal -% cur:€
-```
-
 ### Balance change, end balance
 
 It's important to be clear on the meaning of the numbers shown in
@@ -491,17 +413,23 @@ To see accurate historical end balances:
 
 ### Balance report types
 
-For more flexible reporting, there are three important option groups:
+The balance command is quite flexible; here is the full detail on how to control what it reports.
+There are three important option groups:
 
 `hledger balance [CALCULATIONTYPE] [ACCUMULATIONTYPE] [VALUATIONTYPE] ...`
 
 The first two are the most important:
-calculation type selects the basic calculation to perform for each table cell, while
-accumulation type says which postings should be included in each cell's calculation.
-Typically one or both of these are selected by default, so you don't need to write them explicitly.
-A valuation type can be added if you want to convert the basic report to value or cost.
 
-**Calculation type:**\
+- calculation type selects the basic calculation to perform for each table cell
+- accumulation type says which postings should be included in each cell's calculation
+
+Typically one or both of these are selected by default, so you don't need to write them explicitly.
+Then
+
+- a valuation type can be added if you want to convert the basic report to value or cost
+
+#### Calculation type
+
 The basic calculation to perform for each table cell.
 It is one of:
 
@@ -512,7 +440,8 @@ It is one of:
 - `--gain` : show the unrealised capital gain/loss, (the current valued balance
   minus each amount's original cost)
 
-**Accumulation type:**\
+#### Accumulation type
+
 Which postings should be included in each cell's calculation.
 It is one of:
 
@@ -529,7 +458,8 @@ It is one of:
   Typically used to see historical end balances of assets/liabilities/equity.
   (**default for balancesheet, balancesheetequity, cashflow**)
 
-**Valuation type:**\
+#### Valuation type
+
 Which kind of [valuation], [valuation date(s)] and optionally a target [valuation commodity] to use.
 It is one of:
 
@@ -546,7 +476,7 @@ or one of their aliases: [`--cost/-B`], [`--market/-V`] or [`--exchange/-X`].
 [`--market/-V`]: #-v-value
 [`--exchange/-X`]: #-x-value-in-specified-commodity
 
-<!-- ### Combining balance report types -->
+#### Combining balance report types
 
 Most combinations of these options should produce reasonable reports,
 but if you find any that seem wrong or misleading, let us know.
@@ -558,49 +488,11 @@ The following restrictions are applied:
 
 For reference, here is what the combinations of accumulation and valuation show:
 
-| Valuation: ><br>Accumulation: v | no valuation                                                     | `--value= then`                                                    | `--value= end`                                              | `--value= YYYY-MM-DD /now`                            |
-|---------------------------------|------------------------------------------------------------------|--------------------------------------------------------------------|-------------------------------------------------------------|-------------------------------------------------------|
-| `--change`                      | change in period                                                 | sum of posting-date market values in period                        | period-end value of change in period                        | DATE-value of change in period                        |
-| `--cumulative`                  | change from report start to period end                           | sum of posting-date market values from report start to period end  | period-end value of change from report start to period end  | DATE-value of change from report start to period end  |
-| `--historical /-H`              | change from journal start to period end (historical end balance) | sum of posting-date market values from journal start to period end | period-end value of change from journal start to period end | DATE-value of change from journal start to period end |
-
-### Useful balance reports
-
-Some frequently used `balance` options/reports are:
-
-- `bal -M revenues expenses`\
-  Show revenues/expenses in each month.
-  Also available as the [`incomestatement`](#incomestatement) command.
-  <!-- `bal --monthly --sum --change revenues expenses` -->
-  
-- `bal -M -H assets liabilities`\
-  Show historical asset/liability balances at each month end.
-  Also available as the [`balancesheet`](#balancesheet) command.
-  <!-- `bal --monthly --sum --historical assets liabilities` -->
-
-- `bal -M -H assets liabilities equity`\
-  Show historical asset/liability/equity balances at each month end.
-  Also available as the [`balancesheetequity`](#balancesheetequity) command.
-  <!-- `bal --monthly --sum --historical assets liabilities equity` -->
-
-- `bal -M assets not:receivable`\
-  Show changes to liquid assets in each month.
-  Also available as the [`cashflow`](#cashflow) command.
-  <!-- `bal --monthly --sum --change assets not:receivable` -->
-
-Also:
-
-- `bal -M expenses -2 -SA`\
-  Show monthly expenses summarised to depth 2 and sorted by average amount.
-
-- `bal -M --budget expenses`\
-  Show monthly expenses and budget goals.
-
-- `bal -M --valuechange investments`\
-  Show monthly change in market value of investment assets.
-
-- `bal investments --valuechange -D date:lastweek amt:'>1000' -STA [--invert]`\
-  Show top gainers [or losers] last week
+| Valuation:><br> Accumulation:v | no valuation                                                     | `--value= then`                                                    | `--value= end`                                              | `--value= YYYY-MM-DD /now`                            |
+|--------------------------------|------------------------------------------------------------------|--------------------------------------------------------------------|-------------------------------------------------------------|-------------------------------------------------------|
+| `--change`                     | change in period                                                 | sum of posting-date market values in period                        | period-end value of change in period                        | DATE-value of change in period                        |
+| `--cumulative`                 | change from report start to period end                           | sum of posting-date market values from report start to period end  | period-end value of change from report start to period end  | DATE-value of change from report start to period end  |
+| `--historical /-H`             | change from journal start to period end (historical end balance) | sum of posting-date market values from journal start to period end | period-end value of change from journal start to period end | DATE-value of change from journal start to period end |
 
 ### Budget report
 
@@ -862,63 +754,177 @@ This means you can give your periodic rules descriptions
 (remember that [two spaces are needed](#two-spaces-between-period-expression-and-description)),
 and then select from multiple budgets defined in your journal.
 
-### Customising single-period balance reports
+### Data layout
 
-For single-period balance reports displayed in the terminal (only),
-you can use `--format FMT` to customise the format and content of each
-line. Eg:
+The `--layout` option affects how balance reports show commodity symbols
+and multi-commodity amounts, which can improve readability. 
+It can also normalise the data for easy consumption by other programs.
+It has four possible values:
 
-```shell
-$ hledger -f examples/sample.journal balance --format "%20(account) %12(total)"
-              assets          $-1
-         bank:saving           $1
-                cash          $-2
-            expenses           $2
-                food           $1
-            supplies           $1
-              income          $-2
-               gifts          $-1
-              salary          $-1
-   liabilities:debts           $1
----------------------------------
-                                0
-```
+- `--layout=wide[,WIDTH]`: commodities are shown on a single line, possibly elided to the specified width
+- `--layout=tall`: each commodity is shown on a separate line
+- `--layout=bare`: amounts are shown as bare numbers, with commodity symbols in a separate column
+- `--layout=tidy`: data is normalised to easily-consumed "tidy" form, with one row per data value (works only with CSV output)
 
-The FMT format string specifies the formatting applied to each account/balance pair.
-It may contain any suitable text, with data fields interpolated like so:
+These `--layout` modes are supported with some but not all of the [output formats](#output-format):
 
-`%[MIN][.MAX](FIELDNAME)`
+| -    | txt | csv | html | json | sql |
+|------|-----|-----|------|------|-----|
+| wide | Y   | Y   | Y    |      |     |
+| tall | Y   | Y   | Y    |      |     |
+| bare | Y   | Y   | Y    |      |     |
+| tidy |     | Y   |      |      |     |
 
-- MIN pads with spaces to at least this width (optional)
-- MAX truncates at this width (optional)
-- FIELDNAME must be enclosed in parentheses, and can be one of:
+Examples:
 
-    - `depth_spacer` - a number of spaces equal to the account's depth, or if MIN is specified, MIN * depth spaces.
-    - `account`      - the account's name
-    - `total`        - the account's balance/posted total, right justified
+- Wide layout. With many commodities, reports can be very wide:
+  ```shell
+  $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=wide
+  Balance changes in 2012-01-01..2014-12-31:
+  
+                    ||                                          2012                                                     2013                                             2014                                                      Total 
+  ==================++====================================================================================================================================================================================================================
+   Assets:US:ETrade || 10.00 ITOT, 337.18 USD, 12.00 VEA, 106.00 VHT  70.00 GLD, 18.00 ITOT, -98.12 USD, 10.00 VEA, 18.00 VHT  -11.00 ITOT, 4881.44 USD, 14.00 VEA, 170.00 VHT  70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT 
+  ------------------++--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                    || 10.00 ITOT, 337.18 USD, 12.00 VEA, 106.00 VHT  70.00 GLD, 18.00 ITOT, -98.12 USD, 10.00 VEA, 18.00 VHT  -11.00 ITOT, 4881.44 USD, 14.00 VEA, 170.00 VHT  70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT 
+  ```
 
-Also, FMT can begin with an optional prefix to control how
-multi-commodity amounts are rendered:
+- Limited wide layout. A width limit reduces the width, but some commodities will be hidden:
+  ```shell  
+  $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=wide,32
+  Balance changes in 2012-01-01..2014-12-31:
+  
+                    ||                             2012                             2013                   2014                            Total 
+  ==================++===========================================================================================================================
+   Assets:US:ETrade || 10.00 ITOT, 337.18 USD, 2 more..  70.00 GLD, 18.00 ITOT, 3 more..  -11.00 ITOT, 3 more..  70.00 GLD, 17.00 ITOT, 3 more.. 
+  ------------------++---------------------------------------------------------------------------------------------------------------------------
+                    || 10.00 ITOT, 337.18 USD, 2 more..  70.00 GLD, 18.00 ITOT, 3 more..  -11.00 ITOT, 3 more..  70.00 GLD, 17.00 ITOT, 3 more.. 
+  ```
 
-- `%_` - render on multiple lines, bottom-aligned (the default)
-- `%^` - render on multiple lines, top-aligned
-- `%,` - render on one line, comma-separated
+- Tall layout. Each commodity gets a new line (may be different in each column), and account names are repeated:
+  ```shell
+  $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=tall
+  Balance changes in 2012-01-01..2014-12-31:
+  
+                    ||       2012        2013         2014        Total 
+  ==================++==================================================
+   Assets:US:ETrade || 10.00 ITOT   70.00 GLD  -11.00 ITOT    70.00 GLD 
+   Assets:US:ETrade || 337.18 USD  18.00 ITOT  4881.44 USD   17.00 ITOT 
+   Assets:US:ETrade ||  12.00 VEA  -98.12 USD    14.00 VEA  5120.50 USD 
+   Assets:US:ETrade || 106.00 VHT   10.00 VEA   170.00 VHT    36.00 VEA 
+   Assets:US:ETrade ||              18.00 VHT                294.00 VHT 
+  ------------------++--------------------------------------------------
+                    || 10.00 ITOT   70.00 GLD  -11.00 ITOT    70.00 GLD 
+                    || 337.18 USD  18.00 ITOT  4881.44 USD   17.00 ITOT 
+                    ||  12.00 VEA  -98.12 USD    14.00 VEA  5120.50 USD 
+                    || 106.00 VHT   10.00 VEA   170.00 VHT    36.00 VEA 
+                    ||              18.00 VHT                294.00 VHT 
+  ```
 
-There are some quirks. Eg in one-line mode, `%(depth_spacer)` has no
-effect, instead `%(account)` has indentation built in.
-<!-- XXX retest:
-Consistent column widths are not well enforced, causing ragged edges unless you set suitable widths.
-Beware of specifying a maximum width; it will clip account names and amounts that are too wide, with no visible indication.
--->
-Experimentation may be needed to get pleasing results.
+- Bare layout. Commodity symbols are kept in one column, each commodity gets its own report row, account names are repeated:
+  ```shell
+  $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=bare
+  Balance changes in 2012-01-01..2014-12-31:
+  
+                    || Commodity    2012    2013     2014    Total 
+  ==================++=============================================
+   Assets:US:ETrade || GLD             0   70.00        0    70.00 
+   Assets:US:ETrade || ITOT        10.00   18.00   -11.00    17.00 
+   Assets:US:ETrade || USD        337.18  -98.12  4881.44  5120.50 
+   Assets:US:ETrade || VEA         12.00   10.00    14.00    36.00 
+   Assets:US:ETrade || VHT        106.00   18.00   170.00   294.00 
+  ------------------++---------------------------------------------
+                    || GLD             0   70.00        0    70.00 
+                    || ITOT        10.00   18.00   -11.00    17.00 
+                    || USD        337.18  -98.12  4881.44  5120.50 
+                    || VEA         12.00   10.00    14.00    36.00 
+                    || VHT        106.00   18.00   170.00   294.00 
+  ```
 
-Some example formats:
+- Bare layout also affects [CSV output](#output-format),
+  which is useful for producing data that is easier to consume, eg when making charts:
+  ```shell
+  $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -O csv --layout=bare
+  "account","commodity","balance"
+  "Assets:US:ETrade","GLD","70.00"
+  "Assets:US:ETrade","ITOT","17.00"
+  "Assets:US:ETrade","USD","5120.50"
+  "Assets:US:ETrade","VEA","36.00"
+  "Assets:US:ETrade","VHT","294.00"
+  "total","GLD","70.00"
+  "total","ITOT","17.00"
+  "total","USD","5120.50"
+  "total","VEA","36.00"
+  "total","VHT","294.00"
+  ```
 
-- `%(total)`         - the account's total
-- `%-20.20(account)` - the account's name, left justified, padded to 20 characters and clipped at 20 characters
-- `%,%-50(account)  %25(total)` - account name padded to 50 characters, total padded to 20 characters, with multiple commodities rendered on one line
-- `%20(total)  %2(depth_spacer)%-(account)` - the default format for the single-column balance report
+- Tidy layout produces normalised "tidy data", where every variable
+  has its own column and each row represents a single data point.
+  See <https://cran.r-project.org/web/packages/tidyr/vignettes/tidy-data.html> for more.
 
-[valuation]: #valuation
-[valuation date(s)]: #valuation-date
-[valuation commodity]: #valuation-commodity
+  This kind of output is the easiest to process with other software.
+  Here's how it looks:
+  
+  ```shell
+  $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -Y -O csv --layout=tidy
+  "account","period","start_date","end_date","commodity","value"
+  "Assets:US:ETrade","2012","2012-01-01","2012-12-31","GLD","0"
+  "Assets:US:ETrade","2012","2012-01-01","2012-12-31","ITOT","10.00"
+  "Assets:US:ETrade","2012","2012-01-01","2012-12-31","USD","337.18"
+  "Assets:US:ETrade","2012","2012-01-01","2012-12-31","VEA","12.00"
+  "Assets:US:ETrade","2012","2012-01-01","2012-12-31","VHT","106.00"
+  "Assets:US:ETrade","2013","2013-01-01","2013-12-31","GLD","70.00"
+  "Assets:US:ETrade","2013","2013-01-01","2013-12-31","ITOT","18.00"
+  "Assets:US:ETrade","2013","2013-01-01","2013-12-31","USD","-98.12"
+  "Assets:US:ETrade","2013","2013-01-01","2013-12-31","VEA","10.00"
+  "Assets:US:ETrade","2013","2013-01-01","2013-12-31","VHT","18.00"
+  "Assets:US:ETrade","2014","2014-01-01","2014-12-31","GLD","0"
+  "Assets:US:ETrade","2014","2014-01-01","2014-12-31","ITOT","-11.00"
+  "Assets:US:ETrade","2014","2014-01-01","2014-12-31","USD","4881.44"
+  "Assets:US:ETrade","2014","2014-01-01","2014-12-31","VEA","14.00"
+  "Assets:US:ETrade","2014","2014-01-01","2014-12-31","VHT","170.00"
+  ```
+
+  Currently tidy layout is supported only with [CSV output](#output-format).
+
+  In tidy mode, row totals, row averages and column totals are not shown
+  (`-T/--row-total` and `-A/--average` flags are disabled and `-N/--no-total` is enabled).
+
+### Useful balance reports
+
+Some frequently used `balance` options/reports are:
+
+- `bal -M revenues expenses`\
+  Show revenues/expenses in each month.
+  Also available as the [`incomestatement`](#incomestatement) command.
+  <!-- `bal --monthly --sum --change revenues expenses` -->
+  
+- `bal -M -H assets liabilities`\
+  Show historical asset/liability balances at each month end.
+  Also available as the [`balancesheet`](#balancesheet) command.
+  <!-- `bal --monthly --sum --historical assets liabilities` -->
+
+- `bal -M -H assets liabilities equity`\
+  Show historical asset/liability/equity balances at each month end.
+  Also available as the [`balancesheetequity`](#balancesheetequity) command.
+  <!-- `bal --monthly --sum --historical assets liabilities equity` -->
+
+- `bal -M assets not:receivable`\
+  Show changes to liquid assets in each month.
+  Also available as the [`cashflow`](#cashflow) command.
+  <!-- `bal --monthly --sum --change assets not:receivable` -->
+
+Also:
+
+- `bal -M expenses -2 -SA`\
+  Show monthly expenses summarised to depth 2 and sorted by average amount.
+
+- `bal -M --budget expenses`\
+  Show monthly expenses and budget goals.
+
+- `bal -M --valuechange investments`\
+  Show monthly change in market value of investment assets.
+
+- `bal investments --valuechange -D date:lastweek amt:'>1000' -STA [--invert]`\
+  Show top gainers [or losers] last week
+
