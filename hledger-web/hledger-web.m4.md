@@ -421,7 +421,7 @@ _LEDGER_FILE_
 
 # FILES
 
-Reads _inpufiles_
+Reads _inputfiles_
 
 # BUGS
 
