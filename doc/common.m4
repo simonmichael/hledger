@@ -2,6 +2,8 @@ m4_dnl m4 macro definitions used in all hledger package docs.
 m4_dnl m4 commands in Shake.hs always load this file first;
 m4_dnl m4 macros in package directories could override these.
 m4_dnl
+m4_dnl Don't leave any blank lines here, outside of macros.
+m4_dnl
 m4_dnl "m4_dnl" ignores the rest of the line (including newline).
 m4_dnl
 m4_dnl {{ }} will be our quoting delimiters
@@ -220,7 +222,6 @@ m4_define({{_inputfiles_}},
 The default file is `.hledger.journal` in your home directory;
 this can be overridden with one or more `-f FILE` options,
 or the `LEDGER_FILE` environment variable.}})m4_dnl
-
 m4_dnl
 m4_dnl A standard description of the LEDGER_FILE environment variable.
 m4_define({{_LEDGER_FILE_}}, {{
