@@ -190,7 +190,8 @@ toBloodhoundJson ts =
     "]"
     ]
   where
-    b64wrap = ("atob(\""<>) . (<>"\")") . encodeBase64
+    -- decodeBase64EncodedText is defined in add-form.hamlet
+    b64wrap = ("decodeBase64EncodedText(\""<>) . (<>"\")") . encodeBase64
 
 zipDefault :: a -> [a] -> [a] -> [(a, a)]
 zipDefault def (b:bs) (c:cs) = (b, c):(zipDefault def bs cs)

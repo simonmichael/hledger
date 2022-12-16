@@ -19,6 +19,17 @@
     jQuery('input[name=description]').typeahead({ highlight: true }, { source: descriptionsSuggester.ttAdapter() });
     jQuery('input[name=account]').typeahead({ highlight: true }, { source: accountsSuggester.ttAdapter() });
   });
+
+  const utf8textdecoder = new TextDecoder();
+  function decodeBase64EncodedText(b64) {
+      const unb64 = window.atob(b64);
+      const arr = new Uint8Array(unb64.length);
+      for (let i = 0; i < arr.length; i++) {
+          arr[i] = unb64.charCodeAt(i);
+      }
+      return utf8textdecoder.decode(arr);
+  }
+
 ^{extra}
 
 <div .row>
