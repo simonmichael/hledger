@@ -11,7 +11,7 @@ _web_({{
 [Regular expressions],
 [Period expressions],
 [Journal],
-[Directives],
+[Directive effects],
 [CSV],
 [Timeclock],
 [Timedot],
@@ -5890,6 +5890,7 @@ m4_dnl Be wary of pandoc/mdbook handling [shortcut] link syntax differently ?
 [common tasks]:        #common-tasks
 [csv]:                 #csv
 [directives]:          #directives
+[directive effects]:   #directive-effects
 [incomestatement]:     #incomestatement
 [journal]:             #journal
 [period expressions]:  #period-expressions
