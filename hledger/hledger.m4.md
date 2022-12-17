@@ -838,20 +838,26 @@ file comments, transactions, and/or directives
 
 ## File comments
 
-Lines in the journal beginning with a semicolon (`;`), a hash (`#`) or
-a star (`*`) are file-level comments, and will be ignored.
-They are not attached to anything (even if right next to a transaction).
+Lines in the journal will be ignored if they begin with a semicolon (`;`), a hash (`#`) or a star (`*`).
+hledger will also ignore regions beginning with a `comment` line and ending with an `end comment` line (or file end).
 
-(Star comments allow emacs users to view and fold/unfold long journals in org mode,
-but nowadays regular comments and ledger mode + orgstruct mode may work better).
+These four comment syntaxes are equivalent, but here's a suggestion:
 
+- `#` for significant/top-level notes
+- `;` for minor notes, eg on specific transactions, and for commenting out things temporarily
+- `comment` for quickly commenting large regions (remember it's there, or you might get confused)
+- `*` for emacs users managing big journals as org outlines (but orgstruct + ledger mode is probably better now)
+
+Eg:
 ```journal
 # a file comment
 ; another file comment
-* also a file comment, useful in org/orgstruct mode
+* a file comment and an org headline
 comment
-A multiline file comment, continuing until an
-"end comment" directive or the end of the current file.
+A multi-line file comment block,
+
+continuing until "end comment" directive
+or the end of the current file.
 end comment
 ```
 
