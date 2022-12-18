@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Try to read all .test files, save and report the results.
+
+set -e
+for f in *.test; do
+    printf "%s: " "$f"
+    (hledger -f "$f" stats >/dev/null && echo ok) || echo fail
+    # (hledger -f "$f" stats >/dev/null 2>&1 && echo ok) || echo fail
+    # printf "." 1>&2
+done 2>&1 | tee log
+echo
+cp log log."$(date +%Y%m%d)"
+printf "files: ";  rg -c '\.test:'      log || echo 0
+printf "read: ";   rg -c ': ok$'        log || echo 0
+printf "failed: "; rg -c '(^|: )fail$'  log || echo 0
+echo "tested on $(date +%Y-%m-%d) with $(hledger --version)"
