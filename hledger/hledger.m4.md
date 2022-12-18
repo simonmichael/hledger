@@ -1283,6 +1283,8 @@ Note, hledger uses [banker's rounding](https://en.wikipedia.org/wiki/Bankers_rou
 it rounds to the nearest even number, eg 0.5 displayed with zero decimal places is "0").
 
 
+<a name="transaction-prices"></a>
+
 ## Costs
 
 After a posting amount, you can note its cost (when buying) or selling price (when selling) in another commodity,
