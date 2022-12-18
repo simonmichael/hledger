@@ -1,17 +1,9 @@
 #!/usr/bin/env bash
-# test [ROOTDIR] - find test files and try to read them, saving a dated log
+# test - run the file-reading tests in ledgerfiles.test and log the result
 
 set -e
-ROOT="${1:-.}"
-FILES=$(find "$ROOT" -name "*.journal" -name "*.j" -o -name "*.ledger" -o -name "*.test" )
-
-for f in $FILES ; do
-    printf ":%s: " "$f"
-    (hledger -f "$f" stats >/dev/null && echo ok) || echo fail
-    # (hledger -f "$f" stats >/dev/null 2>&1 && echo ok) || echo fail
-    # printf "." 1>&2
-done 2>&1 | tee log
-echo
-echo "tested on $(date +%Y-%m-%d) with $(hledger --version)"
-cp log log."$(date +%Y%m%d)"
-./summary
+mkdir -p log
+(shelltest ledgerfiles.shelltest -j8
+ echo "Tested  $(date +%Y-%m-%d) with $(hledger --version)") \
+    | tee log/latest
+cp log/latest log/"$(date +%Y%m%d)"
