@@ -1,0 +1,11 @@
+2000/01/01 Post-transaction balance
+	A  $5.00 = $5.00
+	B
+
+comment
+test bal
+               $5.00  A
+              $-5.00  B
+--------------------
+                   0
+end test

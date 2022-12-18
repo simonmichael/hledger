@@ -1,0 +1,9 @@
+2021/1/2 Test
+    A  $1.00
+    B
+
+comment
+test -p 'last %^@' bal -> 1
+__ERROR__
+Error: Invalid char '%'
+end test

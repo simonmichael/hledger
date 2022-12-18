@@ -1,0 +1,13 @@
+2011-02-23   Rocket Fuel
+    Expenses:Travel   $100000000.00 ; trip: Moon 
+    Asset:NASA
+
+2011-02-23   Liquid Oxygen
+    Expenses:Travel  $232233223.00  ; trip: Moon
+    Asset:NASA
+
+comment
+test bal --group-by "tag('trip')"
+Moon
+       $332233223.00  Expenses:Travel
+end test

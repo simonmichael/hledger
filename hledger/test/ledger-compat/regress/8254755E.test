@@ -1,0 +1,18 @@
+~ Monthly
+  Expenses:Auto:Fuel           $120.00
+  Expenses:Food:Out            $100.00
+  Expenses:Food:Groceries      $350.00
+  Assets
+
+2009/11/01
+  Expenses:Food:Out             $50.00
+  Assets
+
+comment
+test bal --flat food:out --now=2009/12/31
+              $50.00  Expenses:Food:Out
+end test
+
+test bal --flat --budget food:out --now=2009/12/31
+            $-150.00  Expenses:Food:Out
+end test
