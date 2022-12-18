@@ -4,9 +4,19 @@
 set -e
 mkdir -p log
 time \
-    (shelltest collected baseline regress --execdir -j8 --hide-successes; \
-     echo ":Summary"; ) | tee log/latest
+    shelltest collected baseline regress --execdir -j8 --hide-successes \
+    | tee log/latest
+
 (echo "* Tested $(date +%Y-%m-%d) with $(hledger --version)"; \
  echo "** failures") >log/latest.org
-perl -p -e 's/^:/*** ..\//' log/latest >>log/latest.org  # ../ for easy ffap
+perl -p -e 's/^:/*** ..\//' log/latest \
+    | perl -p -e 's/ +Test Cases +Total +/** Summary/' \
+      >>log/latest.org
+cat >>log/latest.org <<EOF
+
+# Local Variables:
+# eval: (highlight-lines-matching-regexp "^\\*\\*\\* " 'hi-black-b)
+# eval: (highlight-lines-matching-regexp "|" 'hi-pink)
+# End:
+EOF
 cp log/latest.org log/"$(date +%Y%m%d)".org
