@@ -17,12 +17,13 @@ P 2008/10/20 12:00:00 QQQQ $110
 ;     Assets:Brokerage          $-100
 ;     Equity:Unrealized Losses
 
-comment
+$ hledger -f- check
 
-test bal -V --unrealized
-                   0  Assets
-            $-800.00    Brokerage
-             $800.00    Checking
---------------------
-                   0
-end test
+#test bal -V --unrealized
+#                   0  Assets
+#            $-800.00    Brokerage
+#             $800.00    Checking
+#--------------------
+#                   0
+#end test
+#

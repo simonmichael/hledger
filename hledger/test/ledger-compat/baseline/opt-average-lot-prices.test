@@ -10,9 +10,10 @@
     Assets:Investments       1 FOO @ 180.00 EUR
     Assets:Investments              -180.00 EUR
 
-comment
+$ hledger -f- check
 
-test bal assets:investments --average-lot-prices
-          520.00 EUR
-  3 FOO {160.00 EUR}  Assets:Investments
-end test
+#test bal assets:investments --average-lot-prices
+#          520.00 EUR
+#  3 FOO {160.00 EUR}  Assets:Investments
+#end test
+#

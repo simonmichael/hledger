@@ -2,8 +2,10 @@
     Expenses:E of March: End of April  $100.00
     Assets:Cash
 
-comment
-test reg
-12-Mar-16 KFC                   Ex:E of: End of April       $100.00      $100.00
-                                Assets:Cash                $-100.00            0
-end test
+$ hledger -f- check
+
+#test reg
+#12-Mar-16 KFC                   Ex:E of: End of April       $100.00      $100.00
+#                                Assets:Cash                $-100.00            0
+#end test
+#

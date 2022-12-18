@@ -6,7 +6,9 @@
     Assets:Cash                           -22.00 EUR
     Assets:Cash                            44.00 BAM
 
-comment
-test pricedb
-P 2011/07/30 00:00:00 EUR 2.00 BAM
-end test
+$ hledger -f- check
+
+#test pricedb
+#P 2011/07/30 00:00:00 EUR 2.00 BAM
+#end test
+#

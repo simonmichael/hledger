@@ -11,8 +11,10 @@ P 2011-02-01 EUR 0.8576 GBP
     Assets:Receivable:AdSense              10.00 EUR
     Income:AdSense
 
-comment
-test reg income:adse -X GBP -H
-11-Jan-31 AdSense earnings      Income:AdSense            -9.46 GBP    -9.46 GBP
-11-Feb-28 AdSense earnings      Income:AdSense            -8.58 GBP   -18.04 GBP
-end test
+$ hledger -f- check
+
+#test reg income:adse -X GBP -H
+#11-Jan-31 AdSense earnings      Income:AdSense            -9.46 GBP    -9.46 GBP
+#11-Feb-28 AdSense earnings      Income:AdSense            -8.58 GBP   -18.04 GBP
+#end test
+#

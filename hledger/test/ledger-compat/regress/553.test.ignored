@@ -5,17 +5,19 @@ apply fixed
 apply rate
 apply year
 
-comment
-test -f - bal -> 5
-__ERROR__
-While parsing file "", line 2:
-Error: Directive 'apply account' requires an argument
-While parsing file "", line 3:
-Error: Directive 'apply tag' requires an argument
-While parsing file "", line 4:
-Error: Directive 'apply fixed' requires an argument
-While parsing file "", line 5:
-Error: Directive 'apply rate' requires an argument
-While parsing file "", line 6:
-Error: Directive 'apply year' requires an argument
-end test
+$ hledger -f- check
+
+#test -f - bal -> 5
+#__ERROR__
+#While parsing file "", line 2:
+#Error: Directive 'apply account' requires an argument
+#While parsing file "", line 3:
+#Error: Directive 'apply tag' requires an argument
+#While parsing file "", line 4:
+#Error: Directive 'apply fixed' requires an argument
+#While parsing file "", line 5:
+#Error: Directive 'apply rate' requires an argument
+#While parsing file "", line 6:
+#Error: Directive 'apply year' requires an argument
+#end test
+#

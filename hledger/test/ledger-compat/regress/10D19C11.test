@@ -27,12 +27,14 @@
   Liabilities:MasterCard         $20.00
   Assets:Bank:Checking
 
-comment
-test -E bal liabilities
-              $-2.00  Liabilities
-                   0    MasterCard
-              $-2.00    Taxes
---------------------
-              $-2.00
-end test
+$ hledger -f- check
 
+#test -E bal liabilities
+#              $-2.00  Liabilities
+#                   0    MasterCard
+#              $-2.00    Taxes
+#--------------------
+#              $-2.00
+#end test
+#
+#

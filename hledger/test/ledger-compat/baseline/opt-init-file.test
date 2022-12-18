@@ -2,11 +2,12 @@
     Expenses:Food                12,50 €
     Assets:Cash
 
-comment
+$ hledger -f- check
 
-test --init-file test/baseline/opt-init-file.dat bal
-            -12,50 €  Assets:Cash
-             12,50 €  Expenses:Food
---------------------
-                   0
-end test
+#test --init-file test/baseline/opt-init-file.dat bal
+#            -12,50 €  Assets:Cash
+#             12,50 €  Expenses:Food
+#--------------------
+#                   0
+#end test
+#

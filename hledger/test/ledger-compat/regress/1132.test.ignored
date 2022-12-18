@@ -6,12 +6,14 @@
     Actif:Remboursement:Autre               126,00 F
     Actif:Courant:BnpCc
 
-comment
-test bal -> 1
-__ERROR__
-While parsing file "$FILE", line 3:
-While parsing posting:
-  Actif:Remboursement:Autre              -126,00 F = 0,00 F
-                                                     ^^^^^^
-Error: Balance assertion off by 126,00 F (expected to see -126,00 F)
-end test
+$ hledger -f- check
+
+#test bal -> 1
+#__ERROR__
+#While parsing file "$FILE", line 3:
+#While parsing posting:
+#  Actif:Remboursement:Autre              -126,00 F = 0,00 F
+#                                                     ^^^^^^
+#Error: Balance assertion off by 126,00 F (expected to see -126,00 F)
+#end test
+#

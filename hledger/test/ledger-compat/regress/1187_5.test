@@ -21,17 +21,19 @@
     Crédit:Viseca                                       672.10 CHF = 0
     Actif:Comptes:CP courant
 
-comment
-test bal
-         -672.10 CHF  Actif:Comptes:CP courant
-           -1.00 EUR  Crédit:Viseca
-           -1.00 EUR    MasterCard P1
-            1.50 CHF
-           19.00 EUR  Dépenses
-            1.50 CHF    Frais:Gestion Comptes
-           19.00 EUR    Nourriture
-          670.60 CHF  Equity:Opening Balances
-          -18.00 EUR  Recettes:Erreurs
---------------------
-                   0
-end test
+$ hledger -f- check
+
+#test bal
+#         -672.10 CHF  Actif:Comptes:CP courant
+#           -1.00 EUR  Crédit:Viseca
+#           -1.00 EUR    MasterCard P1
+#            1.50 CHF
+#           19.00 EUR  Dépenses
+#            1.50 CHF    Frais:Gestion Comptes
+#           19.00 EUR    Nourriture
+#          670.60 CHF  Equity:Opening Balances
+#          -18.00 EUR  Recettes:Erreurs
+#--------------------
+#                   0
+#end test
+#

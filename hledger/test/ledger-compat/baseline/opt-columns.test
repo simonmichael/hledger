@@ -2,10 +2,11 @@
     Assets:Investments:Vanguard:VMMXX  0.350 VMMXX @ $1.00
     Income:Dividends:Vanguard:VMMXX        $-0.35
 
-comment
+$ hledger -f- check
 
-test reg --columns=100
-07-Feb-02 RD VMMXX                   Asse:Investment:Vanguard:VMMXX     0.350 VMMXX     0.350 VMMXX
-                                     Incom:Dividends:Vanguard:VMMXX          $-0.35          $-0.35
-                                                                                        0.350 VMMXX
-end test
+#test reg --columns=100
+#07-Feb-02 RD VMMXX                   Asse:Investment:Vanguard:VMMXX     0.350 VMMXX     0.350 VMMXX
+#                                     Incom:Dividends:Vanguard:VMMXX          $-0.35          $-0.35
+#                                                                                        0.350 VMMXX
+#end test
+#

@@ -22,12 +22,14 @@
     C  $14
     C  8 F
 
-comment
-test bal
-                30 F  A
-              $-7.00  B
-               $7.00
-               -30 F  C
---------------------
-                   0
-end test
+$ hledger -f- check
+
+#test bal
+#                30 F  A
+#              $-7.00  B
+#               $7.00
+#               -30 F  C
+#--------------------
+#                   0
+#end test
+#

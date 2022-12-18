@@ -11,23 +11,25 @@
     Assets:Checking                             = $80.00
     Expenses:Groceries
 
-comment
-test bal
-              $80.00  Assets
-             $100.00    Budget:Food
-              $20.00      Groceries
-              $80.00      Restaurants
-             $-20.00    Checking
-            $-100.00  Equity:Opening Balances
-              $20.00  Expenses:Groceries
---------------------
-                   0
-end test
+$ hledger -f- check
 
-test bal -R
-              $80.00  Assets:Checking
-            $-100.00  Equity:Opening Balances
-              $20.00  Expenses:Groceries
---------------------
-                   0
-end test
+#test bal
+#              $80.00  Assets
+#             $100.00    Budget:Food
+#              $20.00      Groceries
+#              $80.00      Restaurants
+#             $-20.00    Checking
+#            $-100.00  Equity:Opening Balances
+#              $20.00  Expenses:Groceries
+#--------------------
+#                   0
+#end test
+#
+#test bal -R
+#              $80.00  Assets:Checking
+#            $-100.00  Equity:Opening Balances
+#              $20.00  Expenses:Groceries
+#--------------------
+#                   0
+#end test
+#

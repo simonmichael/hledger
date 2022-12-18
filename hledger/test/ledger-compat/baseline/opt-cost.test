@@ -2,11 +2,12 @@
     Assets:Investments:Vanguard:VMMXX  0.350 VMMXX @ $1.00
     Income:Dividends:Vanguard:VMMXX        $-0.35
 
-comment
+$ hledger -f- check
 
-test bal --cost
-               $0.35  Assets:Investments:Vanguard:VMMXX
-              $-0.35  Income:Dividends:Vanguard:VMMXX
---------------------
-                   0
-end test
+#test bal --cost
+#               $0.35  Assets:Investments:Vanguard:VMMXX
+#              $-0.35  Income:Dividends:Vanguard:VMMXX
+#--------------------
+#                   0
+#end test
+#

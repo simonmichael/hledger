@@ -15,11 +15,13 @@
     Assets:Checking                             -$20 = $80
     Expenses:Food:Groceries                     $20
 
-comment
-test bal Assets
-              $80.00  Assets:Budget:Food:Restaurants
-end test
+$ hledger -f- check
 
-test bal Assets -R
-              $80.00  Assets:Checking
-end test
+#test bal Assets
+#              $80.00  Assets:Budget:Food:Restaurants
+#end test
+#
+#test bal Assets -R
+#              $80.00  Assets:Checking
+#end test
+#

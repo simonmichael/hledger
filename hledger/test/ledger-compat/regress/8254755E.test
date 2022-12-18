@@ -8,11 +8,13 @@
   Expenses:Food:Out             $50.00
   Assets
 
-comment
-test bal --flat food:out --now=2009/12/31
-              $50.00  Expenses:Food:Out
-end test
+$ hledger -f- check
 
-test bal --flat --budget food:out --now=2009/12/31
-            $-150.00  Expenses:Food:Out
-end test
+#test bal --flat food:out --now=2009/12/31
+#              $50.00  Expenses:Food:Out
+#end test
+#
+#test bal --flat --budget food:out --now=2009/12/31
+#            $-150.00  Expenses:Food:Out
+#end test
+#

@@ -26,11 +26,12 @@ apply account Master Account
 include dir-apply.dat
 end
 
-comment
+$ hledger -f- check
 
-test reg food
-12-Mar-12 KFC                   Master A:Expenses:Food          $20          $20
-12-Mar-12 KFC                   Master A:Expenses:Food          $20          $40
-12-Mar-12 KFC                   Master A:Expenses:Food          $20          $60
-12-Mar-12 KFC                   Master A:Expenses:Food          $40         $100
-end test
+#test reg food
+#12-Mar-12 KFC                   Master A:Expenses:Food          $20          $20
+#12-Mar-12 KFC                   Master A:Expenses:Food          $20          $40
+#12-Mar-12 KFC                   Master A:Expenses:Food          $20          $60
+#12-Mar-12 KFC                   Master A:Expenses:Food          $40         $100
+#end test
+#

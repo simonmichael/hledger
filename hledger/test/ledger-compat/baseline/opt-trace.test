@@ -8,10 +8,11 @@
 ; was given and that debugging information contains timing information, e.g. [1ms]
 ; which is likely to differ on each test run, this test only checks that ledger
 ; does not crash when the --trace options was specified.
-comment
+$ hledger -f- check
 
-test reg --trace 10 2>/dev/null
-07-Feb-02 RD VMMXX              As:Inves:Vanguar:VMMXX  0.350 VMMXX  0.350 VMMXX
-                                In:Divid:Vanguar:VMMXX       $-0.35       $-0.35
-                                                                     0.350 VMMXX
-end test
+#test reg --trace 10 2>/dev/null
+#07-Feb-02 RD VMMXX              As:Inves:Vanguar:VMMXX  0.350 VMMXX  0.350 VMMXX
+#                                In:Divid:Vanguar:VMMXX       $-0.35       $-0.35
+#                                                                     0.350 VMMXX
+#end test
+#

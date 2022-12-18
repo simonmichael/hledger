@@ -7,16 +7,18 @@
        alice                         $-50
        expenses:food:groceries
 
-comment
-test bal -r simon
-                $-50  alice
-                $100  expenses:food:groceries
---------------------
-                 $50
-end test
+$ hledger -f- check
 
-test reg -r simon
-11-Oct-26 trader joe's          alice                          $-50         $-50
-                                expense:food:groceries         $100          $50
-end test
-
+#test bal -r simon
+#                $-50  alice
+#                $100  expenses:food:groceries
+#--------------------
+#                 $50
+#end test
+#
+#test reg -r simon
+#11-Oct-26 trader joe's          alice                          $-50         $-50
+#                                expense:food:groceries         $100          $50
+#end test
+#
+#

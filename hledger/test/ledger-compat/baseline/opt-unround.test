@@ -82,13 +82,14 @@
     Expenses:Travel:Passport                 $127.00
     Assets:Checking                             
 
-comment
+$ hledger -f- check
 
-test bal --percent --unround
-             100.00%  Assets:Checking
-             100.00%  Expenses:Travel
-        92.14958953%    Airfare
-         3.12882793%    Auto
-         4.72158253%    Passport
-             100.00%  Liabilities:MasterCard
-end test
+#test bal --percent --unround
+#             100.00%  Assets:Checking
+#             100.00%  Expenses:Travel
+#        92.14958953%    Airfare
+#         3.12882793%    Auto
+#         4.72158253%    Passport
+#             100.00%  Liabilities:MasterCard
+#end test
+#

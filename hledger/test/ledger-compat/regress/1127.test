@@ -10,7 +10,9 @@
 
 2018-06-09 Assert amount added by automated transaction
     [Foo]                            = $100
-comment
-test bal Foo
-                $100  Foo
-end test
+$ hledger -f- check
+
+#test bal Foo
+#                $100  Foo
+#end test
+#

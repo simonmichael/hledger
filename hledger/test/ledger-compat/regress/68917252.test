@@ -1,6 +1,8 @@
-comment
-test -f /dev/null --input-date-format "%m/%d/%Y" convert test/regress/68917252.dat
-2011/12/12 * 
-    Expenses:Unknown                              10
-    Equity:Unknown
-end test
+$ hledger -f- check
+
+#test -f /dev/null --input-date-format "%m/%d/%Y" convert test/regress/68917252.dat
+#2011/12/12 * 
+#    Expenses:Unknown                              10
+#    Equity:Unknown
+#end test
+#

@@ -47,9 +47,10 @@
     Assets:Cash
 
 
-comment
+$ hledger -f- check
 
-test reg --dow books
-08-Jan-01 Tuesdays              Expenses:Books               $60.00       $60.00
-08-Feb-01 Fridays               Expenses:Books              $120.00      $180.00
-end test
+#test reg --dow books
+#08-Jan-01 Tuesdays              Expenses:Books               $60.00       $60.00
+#08-Feb-01 Fridays               Expenses:Books              $120.00      $180.00
+#end test
+#

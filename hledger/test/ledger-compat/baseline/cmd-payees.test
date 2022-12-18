@@ -23,28 +23,29 @@
     E            10
     F
 
-comment
+$ hledger -f- check
 
-test payees
-1
-3
-9
-A
-B
-Z
-end test
-
-test payees a
-Z
-end test
-
-test payees no:such:account
-end test
-
-test payees "^B$"
-1
-9
-B
-Z
-end test
-
+#test payees
+#1
+#3
+#9
+#A
+#B
+#Z
+#end test
+#
+#test payees a
+#Z
+#end test
+#
+#test payees no:such:account
+#end test
+#
+#test payees "^B$"
+#1
+#9
+#B
+#Z
+#end test
+#
+#

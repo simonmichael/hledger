@@ -1,14 +1,15 @@
-comment
+$ hledger -f- check
 
-test -f opt-file-does-not-exist.dat bal -> 1
-__ERROR__
-Error: Cannot read journal file "$sourcepath/opt-file-does-not-exist.dat"
-end test
-
-test -f test/baseline/opt-file1.dat -f test/baseline/opt-file2.dat bal
-                  10  A
-                 -10  C
---------------------
-                   0
-end test
-
+#test -f opt-file-does-not-exist.dat bal -> 1
+#__ERROR__
+#Error: Cannot read journal file "$sourcepath/opt-file-does-not-exist.dat"
+#end test
+#
+#test -f test/baseline/opt-file1.dat -f test/baseline/opt-file2.dat bal
+#                  10  A
+#                 -10  C
+#--------------------
+#                   0
+#end test
+#
+#

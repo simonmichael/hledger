@@ -6,9 +6,11 @@
     A         1 AAA @ 2.00 EUR
     B                -2.00 EUR
 
-comment
-test --anon pricedb --format "%(date) %(amount)\n"
-2012/01/01 1.00 A
-2012/02/01 2.00 A
-end test
+$ hledger -f- check
 
+#test --anon pricedb --format "%(date) %(amount)\n"
+#2012/01/01 1.00 A
+#2012/02/01 2.00 A
+#end test
+#
+#

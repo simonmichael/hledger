@@ -5,8 +5,9 @@ D 1.00c
     Assets:Gruulmorg             248720c
     Equity:Gold
 
-comment
+$ hledger -f- check
 
-test bal --lot-tags tajer
-   1339829.00c (TAG)  Assets:Tajer
-end test
+#test bal --lot-tags tajer
+#   1339829.00c (TAG)  Assets:Tajer
+#end test
+#

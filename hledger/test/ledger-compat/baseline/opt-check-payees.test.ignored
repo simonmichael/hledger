@@ -28,21 +28,22 @@ tag Payee
     Expenses:Phone             10.00 EUR ; Payee: MobilePhone
     Assets:Cash
 
-comment
+$ hledger -f- check
 
-test bal --strict --check-payees
-          -40.00 EUR
-         -570.00 GBP  Assets:Cash
-           40.00 EUR
-          570.00 GBP  Expenses
-           30.00 EUR    Food
-           10.00 EUR
-           20.00 GBP    Phone
-          550.00 GBP    Rent
---------------------
-                   0
-__ERROR__
-Warning: "$FILE", line 17: Unknown payee 'Rent'
-Warning: "$FILE", line 21: Unknown payee 'Food'
-Warning: "$FILE", line 27: Unknown payee 'Food'
-end test
+#test bal --strict --check-payees
+#          -40.00 EUR
+#         -570.00 GBP  Assets:Cash
+#           40.00 EUR
+#          570.00 GBP  Expenses
+#           30.00 EUR    Food
+#           10.00 EUR
+#           20.00 GBP    Phone
+#          550.00 GBP    Rent
+#--------------------
+#                   0
+#__ERROR__
+#Warning: "$FILE", line 17: Unknown payee 'Rent'
+#Warning: "$FILE", line 21: Unknown payee 'Food'
+#Warning: "$FILE", line 27: Unknown payee 'Food'
+#end test
+#

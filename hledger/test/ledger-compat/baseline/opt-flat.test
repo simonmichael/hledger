@@ -18,17 +18,18 @@
     Income:One:Two:Books          $-10.00
     Income:One:Two:Three:Books          $-10.00
 
-comment
+$ hledger -f- check
 
-test bal --flat
-              $10.00  Expenses:Books
-              $10.00  Expenses:One:Books
-              $10.00  Expenses:One:Two:Books
-              $10.00  Expenses:One:Two:Three:Books
-             $-10.00  Income:Books
-             $-10.00  Income:One:Books
-             $-10.00  Income:One:Two:Books
-             $-10.00  Income:One:Two:Three:Books
---------------------
-                   0
-end test
+#test bal --flat
+#              $10.00  Expenses:Books
+#              $10.00  Expenses:One:Books
+#              $10.00  Expenses:One:Two:Books
+#              $10.00  Expenses:One:Two:Three:Books
+#             $-10.00  Income:Books
+#             $-10.00  Income:One:Books
+#             $-10.00  Income:One:Two:Books
+#             $-10.00  Income:One:Two:Three:Books
+#--------------------
+#                   0
+#end test
+#

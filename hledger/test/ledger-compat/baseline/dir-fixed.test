@@ -6,9 +6,10 @@ apply fixed XCD $0.374531835206
 
 end apply fixed
 
-comment
+$ hledger -f- check
 
-test reg
-08-Apr-08 KFC                   Expenses:Food             XCD 43.00    XCD 43.00
-                                Assets:Cash              XCD -43.00            0
-end test
+#test reg
+#08-Apr-08 KFC                   Expenses:Food             XCD 43.00    XCD 43.00
+#                                Assets:Cash              XCD -43.00            0
+#end test
+#

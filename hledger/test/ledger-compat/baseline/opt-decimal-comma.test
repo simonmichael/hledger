@@ -10,15 +10,16 @@
     Expenses:Food                €10,00
     Assets:Cash                 €-10,00
 
-comment
+$ hledger -f- check
 
-test --decimal-comma bal
-           90,00 EUR
-             €-10,00  Assets:Cash
-         -100,00 EUR  Equity:Opening Balance
-           10,00 EUR
-              €10,00  Expenses:Food
---------------------
-                   0
-end test
-
+#test --decimal-comma bal
+#           90,00 EUR
+#             €-10,00  Assets:Cash
+#         -100,00 EUR  Equity:Opening Balance
+#           10,00 EUR
+#              €10,00  Expenses:Food
+#--------------------
+#                   0
+#end test
+#
+#

@@ -12,12 +12,14 @@
     Assets:Investments  -1 AAA {10.00 GBP} @@ 12.00 GBP
     Income:Capital gains                      -2.00 GBP
 
-comment
-test bal
-           12.00 GBP  Assets:Cash
-          -10.00 GBP  Equity:Opening balance
-           -2.00 GBP  Income:Capital gains
---------------------
-                   0
-end test
+$ hledger -f- check
 
+#test bal
+#           12.00 GBP  Assets:Cash
+#          -10.00 GBP  Equity:Opening balance
+#           -2.00 GBP  Income:Capital gains
+#--------------------
+#                   0
+#end test
+#
+#

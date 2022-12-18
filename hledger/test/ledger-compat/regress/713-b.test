@@ -22,28 +22,30 @@
     Assets:Investments         -1 AAA {20.00 GBP} [2014-03-01] @@ 20.00 GBP
     Assets:Broker               2.00 GBP
 
-comment
-test bal -B Assets:Investment -p "until 2014-02-20"
-           10.00 GBP  Assets:Investments
-end test
+$ hledger -f- check
 
-test bal -B Assets:Investment -p "until 2014-03-20"
-           30.00 GBP  Assets:Investments
-end test
-
-test bal -B Assets:Investment -p "until 2014-04-20"
-           28.00 GBP  Assets:Investments
-end test
-
-test bal Assets:Investment -p "until 2014-02-20"
-               1 AAA  Assets:Investments
-end test
-
-test bal Assets:Investment -p "until 2014-03-20"
-               2 AAA  Assets:Investments
-end test
-
-test bal Assets:Investment -p "until 2014-04-20"
-               2 AAA  Assets:Investments
-end test
-
+#test bal -B Assets:Investment -p "until 2014-02-20"
+#           10.00 GBP  Assets:Investments
+#end test
+#
+#test bal -B Assets:Investment -p "until 2014-03-20"
+#           30.00 GBP  Assets:Investments
+#end test
+#
+#test bal -B Assets:Investment -p "until 2014-04-20"
+#           28.00 GBP  Assets:Investments
+#end test
+#
+#test bal Assets:Investment -p "until 2014-02-20"
+#               1 AAA  Assets:Investments
+#end test
+#
+#test bal Assets:Investment -p "until 2014-03-20"
+#               2 AAA  Assets:Investments
+#end test
+#
+#test bal Assets:Investment -p "until 2014-04-20"
+#               2 AAA  Assets:Investments
+#end test
+#
+#

@@ -9,36 +9,38 @@ P 2012-03-01 GBP $2
     Expenses:Food                10 GBP
     Assets:Cash
 
-comment
-test reg food
-12-Mar-05 KFC                   Expenses:Food                10 EUR       10 EUR
-12-Mar-10 KFC                   Expenses:Food                10 GBP       10 EUR
-                                                                          10 GBP
-end test
+$ hledger -f- check
 
-test reg food -V
-12-Mar-05 KFC                   Expenses:Food                   $20          $20
-12-Mar-10 KFC                   Expenses:Food                   $20          $40
-end test
-
-test reg food -X '$'
-12-Mar-05 KFC                   Expenses:Food                   $20          $20
-12-Mar-10 KFC                   Expenses:Food                   $20          $40
-end test
-
-test reg food -X '$,GBP'
-12-Mar-05 KFC                   Expenses:Food                   $20          $20
-12-Mar-10 KFC                   Expenses:Food                10 GBP          $20
-                                                                          10 GBP
-end test
-
-test reg food -X '$!,GBP'
-12-Mar-05 KFC                   Expenses:Food                   $20          $20
-12-Mar-10 KFC                   Expenses:Food                   $20          $40
-end test
-
-test reg food -X '$,EUR'
-12-Mar-05 KFC                   Expenses:Food                10 EUR       10 EUR
-12-Mar-10 KFC                   Expenses:Food                   $20          $20
-                                                                          10 EUR
-end test
+#test reg food
+#12-Mar-05 KFC                   Expenses:Food                10 EUR       10 EUR
+#12-Mar-10 KFC                   Expenses:Food                10 GBP       10 EUR
+#                                                                          10 GBP
+#end test
+#
+#test reg food -V
+#12-Mar-05 KFC                   Expenses:Food                   $20          $20
+#12-Mar-10 KFC                   Expenses:Food                   $20          $40
+#end test
+#
+#test reg food -X '$'
+#12-Mar-05 KFC                   Expenses:Food                   $20          $20
+#12-Mar-10 KFC                   Expenses:Food                   $20          $40
+#end test
+#
+#test reg food -X '$,GBP'
+#12-Mar-05 KFC                   Expenses:Food                   $20          $20
+#12-Mar-10 KFC                   Expenses:Food                10 GBP          $20
+#                                                                          10 GBP
+#end test
+#
+#test reg food -X '$!,GBP'
+#12-Mar-05 KFC                   Expenses:Food                   $20          $20
+#12-Mar-10 KFC                   Expenses:Food                   $20          $40
+#end test
+#
+#test reg food -X '$,EUR'
+#12-Mar-05 KFC                   Expenses:Food                10 EUR       10 EUR
+#12-Mar-10 KFC                   Expenses:Food                   $20          $20
+#                                                                          10 EUR
+#end test
+#

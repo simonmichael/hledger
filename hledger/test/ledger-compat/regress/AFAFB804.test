@@ -25,34 +25,36 @@
     C         $15
     D
 
-comment
-test reg -S date,payee
-10-Feb-09 X                     C                               $10          $10
-                                D                              $-10            0
-10-Feb-09 Y                     B                               $10          $10
-                                C                              $-10            0
-10-Feb-09 Z                     A                               $10          $10
-                                B                              $-10            0
-10-Feb-10 X                     C                               $15          $15
-                                D                              $-15            0
-10-Feb-10 Y                     B                               $15          $15
-                                C                              $-15            0
-10-Feb-10 Z                     A                               $15          $15
-                                B                              $-15            0
-end test
+$ hledger -f- check
 
-test reg -S payee,date
-10-Feb-09 X                     C                               $10          $10
-                                D                              $-10            0
-10-Feb-10 X                     C                               $15          $15
-                                D                              $-15            0
-10-Feb-09 Y                     B                               $10          $10
-                                C                              $-10            0
-10-Feb-10 Y                     B                               $15          $15
-                                C                              $-15            0
-10-Feb-09 Z                     A                               $10          $10
-                                B                              $-10            0
-10-Feb-10 Z                     A                               $15          $15
-                                B                              $-15            0
-end test
-
+#test reg -S date,payee
+#10-Feb-09 X                     C                               $10          $10
+#                                D                              $-10            0
+#10-Feb-09 Y                     B                               $10          $10
+#                                C                              $-10            0
+#10-Feb-09 Z                     A                               $10          $10
+#                                B                              $-10            0
+#10-Feb-10 X                     C                               $15          $15
+#                                D                              $-15            0
+#10-Feb-10 Y                     B                               $15          $15
+#                                C                              $-15            0
+#10-Feb-10 Z                     A                               $15          $15
+#                                B                              $-15            0
+#end test
+#
+#test reg -S payee,date
+#10-Feb-09 X                     C                               $10          $10
+#                                D                              $-10            0
+#10-Feb-10 X                     C                               $15          $15
+#                                D                              $-15            0
+#10-Feb-09 Y                     B                               $10          $10
+#                                C                              $-10            0
+#10-Feb-10 Y                     B                               $15          $15
+#                                C                              $-15            0
+#10-Feb-09 Z                     A                               $10          $10
+#                                B                              $-10            0
+#10-Feb-10 Z                     A                               $15          $15
+#                                B                              $-15            0
+#end test
+#
+#

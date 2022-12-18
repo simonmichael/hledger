@@ -17,12 +17,14 @@ account NEW3
   OLD3  $10.00
   Other
 
-comment
-test bal
-              $10.00  NEW1
-              $10.00  NEW2
-              $10.00  NEW3
-             $-30.00  Other
---------------------
-                   0
-end test
+$ hledger -f- check
+
+#test bal
+#              $10.00  NEW1
+#              $10.00  NEW2
+#              $10.00  NEW3
+#             $-30.00  Other
+#--------------------
+#                   0
+#end test
+#

@@ -15,16 +15,18 @@ P 2010/01/01 EONE $15.00
   Assets:Checking    20 EONE
   Payroll:Employee1
 
-comment
-test bal -V
-             $300.00  Assets:Checking
-             $-22.95  Liabilities:Taxes
-             $-18.60    CFICA
-              $-4.35    CMED
-            $-277.05  Payroll:Employee1
-              $18.60    EFICA
-               $4.35    EMED
---------------------
-                   0
-end test
+$ hledger -f- check
 
+#test bal -V
+#             $300.00  Assets:Checking
+#             $-22.95  Liabilities:Taxes
+#             $-18.60    CFICA
+#              $-4.35    CMED
+#            $-277.05  Payroll:Employee1
+#              $18.60    EFICA
+#               $4.35    EMED
+#--------------------
+#                   0
+#end test
+#
+#

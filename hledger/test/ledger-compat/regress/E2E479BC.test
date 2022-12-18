@@ -7,12 +7,14 @@
     Expenses:Gamma       10 C
     Income:Unknown
 
-comment
-test print
-2009/01/01 Sample
-    Expenses:Alpha                              10 A
-    Expenses:Beta                               10 B
-    Expenses:Gamma                              10 C
-    Income:Unknown
-end test
+$ hledger -f- check
 
+#test print
+#2009/01/01 Sample
+#    Expenses:Alpha                              10 A
+#    Expenses:Beta                               10 B
+#    Expenses:Gamma                              10 C
+#    Income:Unknown
+#end test
+#
+#

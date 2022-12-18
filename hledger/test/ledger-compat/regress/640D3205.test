@@ -8,14 +8,16 @@
     Assets:Brokerage                 $200.00 = $1,000.00
     Income:Somewhere
 
-comment
-test print
-2008/12/31 * Interest
-    Assets:Brokerage                         $800.00
-    Income:Somewhere
+$ hledger -f- check
 
-2008/12/31 * Interest
-    Assets:Brokerage                         $200.00 = $1000.00
-    Income:Somewhere
-end test
-
+#test print
+#2008/12/31 * Interest
+#    Assets:Brokerage                         $800.00
+#    Income:Somewhere
+#
+#2008/12/31 * Interest
+#    Assets:Brokerage                         $200.00 = $1000.00
+#    Income:Somewhere
+#end test
+#
+#

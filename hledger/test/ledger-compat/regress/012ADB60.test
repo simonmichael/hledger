@@ -16,10 +16,12 @@
     Expenses:Misc                           $49.95
     * Liabilities:CredCard
 
-comment
-test equity -e 2006
-2005/01/03 Opening Balances
-    Assets:Current:Checking               $-1,000.00
-    Liabilities:CredCard                   $1,000.00
-    (Virtualaccount)                       $1,000.00
-end test
+$ hledger -f- check
+
+#test equity -e 2006
+#2005/01/03 Opening Balances
+#    Assets:Current:Checking               $-1,000.00
+#    Liabilities:CredCard                   $1,000.00
+#    (Virtualaccount)                       $1,000.00
+#end test
+#

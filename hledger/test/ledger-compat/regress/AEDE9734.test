@@ -6,8 +6,10 @@
     Expenses:Travel  $232233223.00  ; trip: Moon
     Asset:NASA
 
-comment
-test bal --group-by "tag('trip')"
-Moon
-       $332233223.00  Expenses:Travel
-end test
+$ hledger -f- check
+
+#test bal --group-by "tag('trip')"
+#Moon
+#       $332233223.00  Expenses:Travel
+#end test
+#

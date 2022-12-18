@@ -18,33 +18,34 @@ P 2015-05-01 USD 20 DM
 
 P 2015-06-01 USD 22 DM
 
-comment
+$ hledger -f- check
 
-test bal assets:investments -V --value-expr "25.00 EUR"
-           50.00 EUR  Assets:Investments
-end test
-
-test bal assets:investments -G --value-expr "date < [March 2015] ? 22.00 EUR : 25.00 EUR" --now "2015-02-20"
-           24.00 EUR  Assets:Investments
-end test
-
-test bal assets:investments -G --value-expr "date < [March 2015] ? 22.00 EUR : 25.00 EUR" --now "2015-03-20"
-           30.00 EUR  Assets:Investments
-end test
-
-test bal expenses:food
-           20.00 USD  Expenses:Food
-end test
-
-test bal expenses:food -V
-           600.00 DM  Expenses:Food
-end test
-
-test bal expenses:food   -X "DM" --now "2015-05-02"
-           600.00 DM  Expenses:Food
-end test
-
-test bal expenses:food   -X "DM" --now "2015-06-02"
-           600.00 DM  Expenses:Food
-end test
-
+#test bal assets:investments -V --value-expr "25.00 EUR"
+#           50.00 EUR  Assets:Investments
+#end test
+#
+#test bal assets:investments -G --value-expr "date < [March 2015] ? 22.00 EUR : 25.00 EUR" --now "2015-02-20"
+#           24.00 EUR  Assets:Investments
+#end test
+#
+#test bal assets:investments -G --value-expr "date < [March 2015] ? 22.00 EUR : 25.00 EUR" --now "2015-03-20"
+#           30.00 EUR  Assets:Investments
+#end test
+#
+#test bal expenses:food
+#           20.00 USD  Expenses:Food
+#end test
+#
+#test bal expenses:food -V
+#           600.00 DM  Expenses:Food
+#end test
+#
+#test bal expenses:food   -X "DM" --now "2015-05-02"
+#           600.00 DM  Expenses:Food
+#end test
+#
+#test bal expenses:food   -X "DM" --now "2015-06-02"
+#           600.00 DM  Expenses:Food
+#end test
+#
+#

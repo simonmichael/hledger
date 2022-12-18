@@ -2,8 +2,10 @@
    assets  0 FOO @ $8.88
    equity
 
-comment
-test reg -E
-09-Jan-01 Sample                assets                            0            0
-                                equity                            0            0
-end test
+$ hledger -f- check
+
+#test reg -E
+#09-Jan-01 Sample                assets                            0            0
+#                                equity                            0            0
+#end test
+#

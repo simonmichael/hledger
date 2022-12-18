@@ -14,18 +14,20 @@ commodity EUR
    Assets:Baz  3 EUR
    Income
 
-comment
-test equity ^Assets: --unround
-2022/05/04 Opening Balances
-    Assets:Bar                            0.0002 EUR
-    Assets:Baz                              3.00 EUR
-    Assets:Foo                            1.0001 EUR
-    Equity:Opening Balances              -4.0003 EUR
-end test
+$ hledger -f- check
 
-test reg --equity ^Assets: --unround
-22-May-04 Opening Balances      Assets:Bar               0.0002 EUR   0.0002 EUR
-                                Assets:Baz                 3.00 EUR   3.0002 EUR
-                                Assets:Foo               1.0001 EUR   4.0003 EUR
-                                Equit:Opening Balances  -4.0003 EUR            0
-end test
+#test equity ^Assets: --unround
+#2022/05/04 Opening Balances
+#    Assets:Bar                            0.0002 EUR
+#    Assets:Baz                              3.00 EUR
+#    Assets:Foo                            1.0001 EUR
+#    Equity:Opening Balances              -4.0003 EUR
+#end test
+#
+#test reg --equity ^Assets: --unround
+#22-May-04 Opening Balances      Assets:Bar               0.0002 EUR   0.0002 EUR
+#                                Assets:Baz                 3.00 EUR   3.0002 EUR
+#                                Assets:Foo               1.0001 EUR   4.0003 EUR
+#                                Equit:Opening Balances  -4.0003 EUR            0
+#end test
+#

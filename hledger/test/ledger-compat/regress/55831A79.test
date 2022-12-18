@@ -15,11 +15,13 @@
     liabilities:credit cards:discover 4462        $1198.14
     assets:bank:wells fargo:checking
 
-comment
-test bal discover
-                   0  liabilities:credit cards:discover 4462
-             $-39.00    fee
-             $-64.76    interest
---------------------
-                   0
-end test
+$ hledger -f- check
+
+#test bal discover
+#                   0  liabilities:credit cards:discover 4462
+#             $-39.00    fee
+#             $-64.76    interest
+#--------------------
+#                   0
+#end test
+#

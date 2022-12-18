@@ -190,11 +190,12 @@
     Expenses:Books         $120.00
     Assets:Cash
 
-comment
+$ hledger -f- check
 
-test reg --pending
-08-Feb-01 February              Expenses:Books               $20.00       $20.00
-                                Assets:Cash                 $-20.00            0
-08-May-01 May                   Assets:Cash                 $-50.00      $-50.00
-08-May-31 End of May            Assets:Cash                 $-50.00     $-100.00
-end test
+#test reg --pending
+#08-Feb-01 February              Expenses:Books               $20.00       $20.00
+#                                Assets:Cash                 $-20.00            0
+#08-May-01 May                   Assets:Cash                 $-50.00      $-50.00
+#08-May-31 End of May            Assets:Cash                 $-50.00     $-100.00
+#end test
+#

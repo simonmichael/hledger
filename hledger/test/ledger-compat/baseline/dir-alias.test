@@ -13,12 +13,13 @@ account Delta
   D  20 EUR
   Foo
 
-comment
+$ hledger -f- check
 
-test reg
-01-Jan-01 Test                  B:A                          10 EUR       10 EUR
-                                Foo                         -10 EUR            0
-01-Jan-01 Test                  Delta                        20 EUR       20 EUR
-                                Foo                         -20 EUR            0
-end test
-
+#test reg
+#01-Jan-01 Test                  B:A                          10 EUR       10 EUR
+#                                Foo                         -10 EUR            0
+#01-Jan-01 Test                  Delta                        20 EUR       20 EUR
+#                                Foo                         -20 EUR            0
+#end test
+#
+#

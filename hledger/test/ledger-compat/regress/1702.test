@@ -9,10 +9,12 @@ tag Foo
     Assets:Cash   $-1
     Expenses:Baz   $1
 
-comment
-test bal
-                  $1  Expenses:Baz
-                 $-1  Income:Foo
---------------------
-                   0
-end test
+$ hledger -f- check
+
+#test bal
+#                  $1  Expenses:Baz
+#                 $-1  Income:Foo
+#--------------------
+#                   0
+#end test
+#

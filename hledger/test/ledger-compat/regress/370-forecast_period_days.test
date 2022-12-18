@@ -7,12 +7,14 @@
 ;now is Mon jun 21 2010
 ;a Tuesday?
 ;forecasts period start is now first forecast transaction is now + 1 'tomorrow'
-comment
-test reg --forecast 'date <[2010/08/01]' --now=2010/06/13
-10-Jun-27 Forecast transaction  Ex:Bills:Housecleaning       $85.00       $85.00
-10-Jun-27 Forecast transaction  Assets:Bank:Checking        $-85.00            0
-10-Jul-11 Forecast transaction  Ex:Bills:Housecleaning       $85.00       $85.00
-10-Jul-11 Forecast transaction  Assets:Bank:Checking        $-85.00            0
-10-Jul-25 Forecast transaction  Ex:Bills:Housecleaning       $85.00       $85.00
-10-Jul-25 Forecast transaction  Assets:Bank:Checking        $-85.00            0
-end test
+$ hledger -f- check
+
+#test reg --forecast 'date <[2010/08/01]' --now=2010/06/13
+#10-Jun-27 Forecast transaction  Ex:Bills:Housecleaning       $85.00       $85.00
+#10-Jun-27 Forecast transaction  Assets:Bank:Checking        $-85.00            0
+#10-Jul-11 Forecast transaction  Ex:Bills:Housecleaning       $85.00       $85.00
+#10-Jul-11 Forecast transaction  Assets:Bank:Checking        $-85.00            0
+#10-Jul-25 Forecast transaction  Ex:Bills:Housecleaning       $85.00       $85.00
+#10-Jul-25 Forecast transaction  Assets:Bank:Checking        $-85.00            0
+#end test
+#

@@ -18,7 +18,9 @@
     Expenses:Food                $20
     Assets:Cash
 
-comment
-test payees
-KFC
-end test
+$ hledger -f- check
+
+#test payees
+#KFC
+#end test
+#

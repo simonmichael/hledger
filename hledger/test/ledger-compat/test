@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
-# test - run the file-reading tests in ledgerfiles.test and log the result
+# run all the ledger compatibility tests and log the results as an org file
 
 set -e
 mkdir -p log
-(shelltest ledgerfiles.shelltest -j8
- echo "Tested  $(date +%Y-%m-%d) with $(hledger --version)") \
-    | tee log/latest
-cp log/latest log/"$(date +%Y%m%d)"
+time \
+    (shelltest collected baseline regress --execdir -j8 --hide-successes; \
+     echo ":Summary"; ) | tee log/latest
+(echo "* Tested $(date +%Y-%m-%d) with $(hledger --version)"; \
+ echo "** failures") >log/latest.org
+perl -p -e 's/^:/*** ..\//' log/latest >>log/latest.org  # ../ for easy ffap
+cp log/latest.org log/"$(date +%Y%m%d)".org

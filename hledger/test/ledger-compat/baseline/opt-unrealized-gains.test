@@ -8,13 +8,14 @@ P 2008/10/20 12:00:00 AAPL $30.00
 ;     Assets:Brokerage           $100
 ;     Equity:Unrealized Gains
 
-comment
+$ hledger -f- check
 
-test bal -V --unrealized --unrealized-gains G
-             $100.00  Assets
-             $300.00    Brokerage
-            $-200.00    Checking
-            $-100.00  G
---------------------
-                   0
-end test
+#test bal -V --unrealized --unrealized-gains G
+#             $100.00  Assets
+#             $300.00    Brokerage
+#            $-200.00    Checking
+#            $-100.00  G
+#--------------------
+#                   0
+#end test
+#

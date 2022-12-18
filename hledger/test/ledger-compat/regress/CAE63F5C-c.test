@@ -4,12 +4,14 @@
     Assets                        $-271.54
     Income:Currency Conversion    $-6.45
 
-comment
-test bal -X $
-             $272.67  Accrued
-            $-271.54  Assets
-               $5.32  Expenses
-              $-6.45  Income:Currency Conversion
---------------------
-                   0
-end test
+$ hledger -f- check
+
+#test bal -X $
+#             $272.67  Accrued
+#            $-271.54  Assets
+#               $5.32  Expenses
+#              $-6.45  Income:Currency Conversion
+#--------------------
+#                   0
+#end test
+#

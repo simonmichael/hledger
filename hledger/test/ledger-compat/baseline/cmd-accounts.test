@@ -14,27 +14,28 @@
     Assets:♚                        3.00 GBP
     Assets:Testing123ÕßDone
 
-comment
+$ hledger -f- check
 
-test accounts
-Assets:AAA
-Assets:Bank
-Assets:Testing123ÕßDone
-Assets:XXX
-Assets:♚
-Equity:Opening balance
-end test
-
-test accounts assets:a
-Assets:AAA
-end test
-
-test accounts b
-Assets:Bank
-Equity:Opening balance
-end test
-
-test accounts ß
-Assets:Testing123ÕßDone
-end test
-
+#test accounts
+#Assets:AAA
+#Assets:Bank
+#Assets:Testing123ÕßDone
+#Assets:XXX
+#Assets:♚
+#Equity:Opening balance
+#end test
+#
+#test accounts assets:a
+#Assets:AAA
+#end test
+#
+#test accounts b
+#Assets:Bank
+#Equity:Opening balance
+#end test
+#
+#test accounts ß
+#Assets:Testing123ÕßDone
+#end test
+#
+#

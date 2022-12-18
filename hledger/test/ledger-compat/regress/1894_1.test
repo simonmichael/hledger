@@ -11,12 +11,14 @@
     Expenses:Transportation            300.00 EUR
     Assets:Bank                       -300.00 EUR
 
-comment
-test bal
-         -500.00 EUR  Assets:Bank
-          500.00 EUR  Expenses
-           40.00 EUR    Tax
-          460.00 EUR    Transportation
---------------------
-                   0
-end test
+$ hledger -f- check
+
+#test bal
+#         -500.00 EUR  Assets:Bank
+#          500.00 EUR  Expenses
+#           40.00 EUR    Tax
+#          460.00 EUR    Transportation
+#--------------------
+#                   0
+#end test
+#

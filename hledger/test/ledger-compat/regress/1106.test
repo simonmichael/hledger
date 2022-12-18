@@ -2,11 +2,13 @@
   Assets:Cash      ¤ 12,34
   Expenses:Food
 
-comment
-test -F "»%(trim(' 	Trimmed 	 '))«\n" reg expenses
-»Trimmed«
-end test
+$ hledger -f- check
 
-test -F "»%(trim('Trimmed'))«\n" reg expenses
-»Trimmed«
-end test
+#test -F "»%(trim(' 	Trimmed 	 '))«\n" reg expenses
+#»Trimmed«
+#end test
+#
+#test -F "»%(trim('Trimmed'))«\n" reg expenses
+#»Trimmed«
+#end test
+#

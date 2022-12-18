@@ -2,7 +2,9 @@
     Expenses:Food                $20
     Assets:Cash
 
-comment
-test reg --monthly --invert exp
-12-Mar-01 - 12-Mar-31           Expenses:Food                  $-20         $-20
-end test
+$ hledger -f- check
+
+#test reg --monthly --invert exp
+#12-Mar-01 - 12-Mar-31           Expenses:Food                  $-20         $-20
+#end test
+#

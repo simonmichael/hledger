@@ -10,13 +10,14 @@
     Expenses:Books          $20.00
     Assets:Cash
 
-comment
+$ hledger -f- check
 
-test reg --aux-date
-08-Jan-01 January               Expenses:Books               $10.00       $10.00
-                                Assets:Cash                 $-10.00            0
-08-Feb-01 End of January        Expenses:Books               $10.00       $10.00
-08-Jan-01 End of January        Assets:Cash                 $-10.00            0
-08-Feb-01 February              Expenses:Books               $20.00       $20.00
-                                Assets:Cash                 $-20.00            0
-end test
+#test reg --aux-date
+#08-Jan-01 January               Expenses:Books               $10.00       $10.00
+#                                Assets:Cash                 $-10.00            0
+#08-Feb-01 End of January        Expenses:Books               $10.00       $10.00
+#08-Jan-01 End of January        Assets:Cash                 $-10.00            0
+#08-Feb-01 February              Expenses:Books               $20.00       $20.00
+#                                Assets:Cash                 $-20.00            0
+#end test
+#

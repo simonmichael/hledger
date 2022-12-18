@@ -11,8 +11,10 @@
     Expenses:Test                      10.00 GBP
     Liabilities:Foo
 
-comment
-test bal Liabilities:Foo
-          -10.00 GBP  Liabilities:Foo
-end test
+$ hledger -f- check
 
+#test bal Liabilities:Foo
+#          -10.00 GBP  Liabilities:Foo
+#end test
+#
+#

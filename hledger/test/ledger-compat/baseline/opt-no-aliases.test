@@ -8,15 +8,16 @@ account Bar
   A   10 EUR
   B
 
-comment
+$ hledger -f- check
 
-test reg
-01-Jan-01 Test                  Foo                          10 EUR       10 EUR
-                                Bar                         -10 EUR            0
-end test
-
-test reg --no-aliases
-01-Jan-01 Test                  A                            10 EUR       10 EUR
-                                B                           -10 EUR            0
-end test
-
+#test reg
+#01-Jan-01 Test                  Foo                          10 EUR       10 EUR
+#                                Bar                         -10 EUR            0
+#end test
+#
+#test reg --no-aliases
+#01-Jan-01 Test                  A                            10 EUR       10 EUR
+#                                B                           -10 EUR            0
+#end test
+#
+#

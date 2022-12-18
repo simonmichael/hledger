@@ -13,15 +13,17 @@
 2018/01/02 * Assertion
     Assets:Checking                             = $100.00
 
-comment
-test bal Assets
-             $100.00  Assets:Budget:Food
-              $20.00    Groceries
-              $80.00    Restaurants
---------------------
-             $100.00
-end test
+$ hledger -f- check
 
-test bal Assets -R
-             $100.00  Assets:Checking
-end test
+#test bal Assets
+#             $100.00  Assets:Budget:Food
+#              $20.00    Groceries
+#              $80.00    Restaurants
+#--------------------
+#             $100.00
+#end test
+#
+#test bal Assets -R
+#             $100.00  Assets:Checking
+#end test
+#

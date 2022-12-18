@@ -3,11 +3,13 @@
     Assets:B                    2.84 GBP
     Equity:Opening balance
 
-comment
-test reg
-10-Apr-02 Opening balance       Assets:A                  14.75 EUR    14.75 EUR
-                                Assets:B                   2.84 GBP    14.75 EUR
-                                                                        2.84 GBP
-                                Equity:Opening balance   -14.75 EUR     2.84 GBP
-                                Equity:Opening balance    -2.84 GBP            0
-end test
+$ hledger -f- check
+
+#test reg
+#10-Apr-02 Opening balance       Assets:A                  14.75 EUR    14.75 EUR
+#                                Assets:B                   2.84 GBP    14.75 EUR
+#                                                                        2.84 GBP
+#                                Equity:Opening balance   -14.75 EUR     2.84 GBP
+#                                Equity:Opening balance    -2.84 GBP            0
+#end test
+#

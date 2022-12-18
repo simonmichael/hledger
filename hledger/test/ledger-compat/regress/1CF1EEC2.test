@@ -16,11 +16,13 @@
     Assets:Super:CSS:Contributions   $1000.00
     Income:Opening Balances
 
-comment
-test equity assets
-2009/03/01 Opening Balances
-    Assets:Super:ARF                        $3000.00
-    Assets:Super:CSS                        $3000.00
-    Assets:Super:CSS:Contributions          $3000.00
-    Equity:Opening Balances                $-9000.00
-end test
+$ hledger -f- check
+
+#test equity assets
+#2009/03/01 Opening Balances
+#    Assets:Super:ARF                        $3000.00
+#    Assets:Super:CSS                        $3000.00
+#    Assets:Super:CSS:Contributions          $3000.00
+#    Equity:Opening Balances                $-9000.00
+#end test
+#

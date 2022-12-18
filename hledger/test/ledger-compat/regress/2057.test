@@ -4,10 +4,12 @@ C 1 "" = 1 $
     A               $10
     B
 
-comment
-test bal
-                  10  A
-                 -10  B
---------------------
-                   0
-end test
+$ hledger -f- check
+
+#test bal
+#                  10  A
+#                 -10  B
+#--------------------
+#                   0
+#end test
+#

@@ -6,10 +6,11 @@
     Expenses:Books          $10.00
     Assets:Cash            $-10.00
 
-comment
+$ hledger -f- check
 
-test print --actual
-2008/01/01 January
-    Expenses:Books                            $10.00
-    Assets:Cash                              $-10.00
-end test
+#test print --actual
+#2008/01/01 January
+#    Expenses:Books                            $10.00
+#    Assets:Cash                              $-10.00
+#end test
+#

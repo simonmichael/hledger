@@ -1,6 +1,8 @@
 2017/3/17 deferred posting
     <deferred posting>
 
-comment
-test reg
-end test
+$ hledger -f- check
+
+#test reg
+#end test
+#

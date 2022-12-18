@@ -18,11 +18,12 @@
     Income:One:Two:Books          $-10.00
     Income:One:Two:Three:Books          $-10.00
 
-comment
+$ hledger -f- check
 
-test reg --empty --collapse
-08-Jan-01 January               <Total>                           0            0
-08-Jan-01 January               <Total>                           0            0
-08-Jan-01 January               <Total>                           0            0
-08-Jan-01 January               <Total>                           0            0
-end test
+#test reg --empty --collapse
+#08-Jan-01 January               <Total>                           0            0
+#08-Jan-01 January               <Total>                           0            0
+#08-Jan-01 January               <Total>                           0            0
+#08-Jan-01 January               <Total>                           0            0
+#end test
+#

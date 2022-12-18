@@ -8,12 +8,14 @@
     Revenu:Devise      10000,00 F
     Revenu:Devise      -1524,49 €
 
-comment
-test bal
-           1524,49 €  Actif:Courant:Cc
-         -10000,00 F  Equity
-          10000,00 F
-          -1524,49 €  Revenu:Devise
---------------------
-                   0
-end test
+$ hledger -f- check
+
+#test bal
+#           1524,49 €  Actif:Courant:Cc
+#         -10000,00 F  Equity
+#          10000,00 F
+#          -1524,49 €  Revenu:Devise
+#--------------------
+#                   0
+#end test
+#

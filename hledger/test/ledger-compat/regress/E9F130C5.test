@@ -19,11 +19,13 @@
     liabilities:debts  $1
     assets:bank:checking
 
-comment
-test bal as
-                 $-1  assets
-                  $1    bank:saving
-                 $-2    cash
---------------------
-                 $-1
-end test
+$ hledger -f- check
+
+#test bal as
+#                 $-1  assets
+#                  $1    bank:saving
+#                 $-2    cash
+#--------------------
+#                 $-1
+#end test
+#

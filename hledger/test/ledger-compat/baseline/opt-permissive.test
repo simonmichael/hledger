@@ -9,13 +9,14 @@
     Expenses:Foo          $10
     Assets:Cash          -$10 = $80
 
-comment
+$ hledger -f- check
 
-test bal --permissive
-                 $90  Assets:Cash
-               $-100  Equity:Opening balance
-                 $10  Expenses:Foo
---------------------
-                   0
-end test
-
+#test bal --permissive
+#                 $90  Assets:Cash
+#               $-100  Equity:Opening balance
+#                 $10  Expenses:Foo
+#--------------------
+#                   0
+#end test
+#
+#

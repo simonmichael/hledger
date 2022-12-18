@@ -18,12 +18,14 @@ assert account("Assets:Current Account").total == $900.00
 
 assert account("Assets:Current Account").total == $800.00
 
-comment
-test bal
-            $1000.00  Assets
-             $800.00    Current Account
-             $200.00    Savings
-           $-1000.00  Equity:Opening Balances
---------------------
-                   0
-end test
+$ hledger -f- check
+
+#test bal
+#            $1000.00  Assets
+#             $800.00    Current Account
+#             $200.00    Savings
+#           $-1000.00  Equity:Opening Balances
+#--------------------
+#                   0
+#end test
+#

@@ -27,12 +27,14 @@
   Liabilities:MasterCard         $20.00
   Assets:Bank:Checking
 
-comment
-test -n reg
-04-May-01 Investment balance    <Total>                  $-1,500.00
-                                                            50 AAPL   $-1,500.00
-                                                                         50 AAPL
-04-May-27 Book Store            <Total>                      $-2.00   $-1,502.00
-                                                                         50 AAPL
-end test
+$ hledger -f- check
 
+#test -n reg
+#04-May-01 Investment balance    <Total>                  $-1,500.00
+#                                                            50 AAPL   $-1,500.00
+#                                                                         50 AAPL
+#04-May-27 Book Store            <Total>                      $-2.00   $-1,502.00
+#                                                                         50 AAPL
+#end test
+#
+#

@@ -43,9 +43,11 @@ N $
     Assets:Bank:Checking
     ; :AnotherTag:
 
-comment
-test entry 2009/03/15 book 10
-2009/03/15 Book Store
-    Expenses:Books                            $10.00
-    Liabilities:MasterCard
-end test
+$ hledger -f- check
+
+#test entry 2009/03/15 book 10
+#2009/03/15 Book Store
+#    Expenses:Books                            $10.00
+#    Liabilities:MasterCard
+#end test
+#

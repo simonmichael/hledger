@@ -29,8 +29,10 @@
   Liabilities:MasterCard         $20.00
   Assets:Bank:Checking
 
-comment
-test -s reg liabilities
-04-May-27 - 04-May-27           (Liabilities:Taxes)          $-2.00       $-2.00
-end test
+$ hledger -f- check
 
+#test -s reg liabilities
+#04-May-27 - 04-May-27           (Liabilities:Taxes)          $-2.00       $-2.00
+#end test
+#
+#

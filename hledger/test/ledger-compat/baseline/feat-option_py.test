@@ -8,9 +8,10 @@ python
 --pyfirst
 --pysecond Hey
 
-comment
+$ hledger -f- check
 
-test reg
-In --pyfirst (from $FILE)
-In --pysecond=Hey (from $FILE)
-end test
+#test reg
+#In --pyfirst (from $FILE)
+#In --pysecond=Hey (from $FILE)
+#end test
+#

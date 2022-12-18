@@ -47,13 +47,14 @@
     Assets:Cash
 
 
-comment
+$ hledger -f- check
 
-test reg --display='payee =~ /February/' books
-08-Feb-01 February              Expenses:Books               $20.00       $80.00
-08-Feb-01 End of February       Expenses:Books               $20.00      $100.00
-08-Feb-01 February              Expenses:Books               $20.00      $120.00
-08-Feb-01 End of February       Expenses:Books               $20.00      $140.00
-08-Feb-01 February              Expenses:Books               $20.00      $160.00
-08-Feb-01 End of February       Expenses:Books               $20.00      $180.00
-end test
+#test reg --display='payee =~ /February/' books
+#08-Feb-01 February              Expenses:Books               $20.00       $80.00
+#08-Feb-01 End of February       Expenses:Books               $20.00      $100.00
+#08-Feb-01 February              Expenses:Books               $20.00      $120.00
+#08-Feb-01 End of February       Expenses:Books               $20.00      $140.00
+#08-Feb-01 February              Expenses:Books               $20.00      $160.00
+#08-Feb-01 End of February       Expenses:Books               $20.00      $180.00
+#end test
+#

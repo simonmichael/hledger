@@ -3,7 +3,9 @@
   Income:Salary                 € 1.500,00
     ; Reference: Christmas bonus
 
-comment
-test python test/regress/B21BF389.py
-Christmas bonus
-end test
+$ hledger -f- check
+
+#test python test/regress/B21BF389.py
+#Christmas bonus
+#end test
+#

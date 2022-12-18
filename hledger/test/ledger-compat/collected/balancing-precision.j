@@ -9,3 +9,4 @@
 2022-01-02 txn2
     expenses                                      $0.1234
     checking
+

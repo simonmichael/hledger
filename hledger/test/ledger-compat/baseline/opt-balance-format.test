@@ -2,9 +2,10 @@
     Assets:Investments:Vanguard:VMMXX  0.350 VMMXX @ $1.00
     Income:Dividends:Vanguard:VMMXX        $-0.35
 
-comment
+$ hledger -f- check
 
-test bal --balance-format='%(account)\n' --no-total
-Assets:Investments:Vanguard:VMMXX
-Income:Dividends:Vanguard:VMMXX
-end test
+#test bal --balance-format='%(account)\n' --no-total
+#Assets:Investments:Vanguard:VMMXX
+#Income:Dividends:Vanguard:VMMXX
+#end test
+#

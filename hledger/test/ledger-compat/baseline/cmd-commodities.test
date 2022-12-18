@@ -14,19 +14,20 @@
     Assets:Rewards           1000 "M&M"
     Income:Rewards
 
-comment
+$ hledger -f- check
 
-test commodities
-"AA2"
-"M&M"
-AAA
-GBP
-end test
-
-test commodities Assets:Rewards
-"M&M"
-end test
-
-test commodities no:such:account
-end test
-
+#test commodities
+#"AA2"
+#"M&M"
+#AAA
+#GBP
+#end test
+#
+#test commodities Assets:Rewards
+#"M&M"
+#end test
+#
+#test commodities no:such:account
+#end test
+#
+#

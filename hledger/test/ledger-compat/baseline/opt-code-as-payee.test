@@ -18,17 +18,18 @@
     Expenses:Books          $30.00
     Assets:Cash
 
-comment
+$ hledger -f- check
 
-test reg --payee=code
-08-Jan-01 100                   Expenses:Books               $10.00       $10.00
-08-Jan-01 100                   Assets:Cash                 $-10.00            0
-08-Jan-31 101                   Expenses:Books               $10.00       $10.00
-08-Jan-31 101                   Assets:Cash                 $-10.00            0
-08-Feb-01 102                   Expenses:Books               $20.00       $20.00
-08-Feb-01 102                   Assets:Cash                 $-20.00            0
-08-Feb-28 103                   Expenses:Books               $20.00       $20.00
-08-Feb-28 103                   Assets:Cash                 $-20.00            0
-08-Mar-01 March                 Expenses:Books               $30.00       $30.00
-08-Mar-01 March                 Assets:Cash                 $-30.00            0
-end test
+#test reg --payee=code
+#08-Jan-01 100                   Expenses:Books               $10.00       $10.00
+#08-Jan-01 100                   Assets:Cash                 $-10.00            0
+#08-Jan-31 101                   Expenses:Books               $10.00       $10.00
+#08-Jan-31 101                   Assets:Cash                 $-10.00            0
+#08-Feb-01 102                   Expenses:Books               $20.00       $20.00
+#08-Feb-01 102                   Assets:Cash                 $-20.00            0
+#08-Feb-28 103                   Expenses:Books               $20.00       $20.00
+#08-Feb-28 103                   Assets:Cash                 $-20.00            0
+#08-Mar-01 March                 Expenses:Books               $30.00       $30.00
+#08-Mar-01 March                 Assets:Cash                 $-30.00            0
+#end test
+#

@@ -106,24 +106,26 @@
     da39a3ee:8d437dbf:ee2bf9bd:f61e33bf       $117.80
     Assets
 
-comment
-test bal da39 --flat --sort amount --display-total amount
-              $14.00  da39a3ee:8d437dbf:ee2bf9bd:2c7a078f
-              $67.36  da39a3ee:8d437dbf:ee2bf9bd:14e351e1
-             $116.15  da39a3ee:8d437dbf:ee2bf9bd:d31d367b
-             $132.82  da39a3ee:8d437dbf:ee2bf9bd:071c929a
-             $139.62  da39a3ee:8d437dbf:ee2bf9bd:9b69a35a
-             $141.98  da39a3ee:8d437dbf:ee2bf9bd:9c6e5a3f
-             $144.99  da39a3ee:8d437dbf:ee2bf9bd:131260cb
-             $239.59  da39a3ee:8d437dbf:ee2bf9bd:9c4ba7d0
-             $386.62  da39a3ee:8d437dbf:ee2bf9bd:d4e7d7d3
-             $488.28  da39a3ee:8d437dbf:ee2bf9bd:e97de844
-             $763.10  da39a3ee:8d437dbf:ee2bf9bd:75b04b88
-             $831.15  da39a3ee:8d437dbf:ee2bf9bd:f61e33bf
-           $1,160.14  da39a3ee:8d437dbf:ee2bf9bd:35b25929
-           $1,675.00  da39a3ee:8d437dbf:ee2bf9bd:d219c681
-           $1,885.04  da39a3ee:8d437dbf:ee2bf9bd
-           $2,468.00  da39a3ee:8d437dbf:ee2bf9bd:75b04b88:b3850e04
---------------------
-                   0
-end test
+$ hledger -f- check
+
+#test bal da39 --flat --sort amount --display-total amount
+#              $14.00  da39a3ee:8d437dbf:ee2bf9bd:2c7a078f
+#              $67.36  da39a3ee:8d437dbf:ee2bf9bd:14e351e1
+#             $116.15  da39a3ee:8d437dbf:ee2bf9bd:d31d367b
+#             $132.82  da39a3ee:8d437dbf:ee2bf9bd:071c929a
+#             $139.62  da39a3ee:8d437dbf:ee2bf9bd:9b69a35a
+#             $141.98  da39a3ee:8d437dbf:ee2bf9bd:9c6e5a3f
+#             $144.99  da39a3ee:8d437dbf:ee2bf9bd:131260cb
+#             $239.59  da39a3ee:8d437dbf:ee2bf9bd:9c4ba7d0
+#             $386.62  da39a3ee:8d437dbf:ee2bf9bd:d4e7d7d3
+#             $488.28  da39a3ee:8d437dbf:ee2bf9bd:e97de844
+#             $763.10  da39a3ee:8d437dbf:ee2bf9bd:75b04b88
+#             $831.15  da39a3ee:8d437dbf:ee2bf9bd:f61e33bf
+#           $1,160.14  da39a3ee:8d437dbf:ee2bf9bd:35b25929
+#           $1,675.00  da39a3ee:8d437dbf:ee2bf9bd:d219c681
+#           $1,885.04  da39a3ee:8d437dbf:ee2bf9bd
+#           $2,468.00  da39a3ee:8d437dbf:ee2bf9bd:75b04b88:b3850e04
+#--------------------
+#                   0
+#end test
+#

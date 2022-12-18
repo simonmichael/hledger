@@ -16,6 +16,8 @@
   assets:checking  $1,000.00
   income:work:salary
 
-comment
-test reg
-end test
+$ hledger -f- check
+
+#test reg
+#end test
+#

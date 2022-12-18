@@ -16,26 +16,28 @@
     Assets:Investments                 1 BBB {15.00 GBP}
     Assets:Cash                              -15.00 GBP
 
-comment
-test bal -B Assets:Investments -p "until 2011-02-20"
-           10.00 GBP  Assets:Investments
-end test
+$ hledger -f- check
 
-test bal -B Assets:Investments -p "until 2011-03-20"
-end test
-
-test bal -B Assets:Investments -p "until 2011-04-20"
-           15.00 GBP  Assets:Investments
-end test
-
-test bal Assets:Investments -p "until 2011-02-20"
-               1 AAA  Assets:Investments
-end test
-
-test bal Assets:Investments -p "until 2011-03-20"
-end test
-
-test bal Assets:Investments -p "until 2011-04-20"
-               1 BBB  Assets:Investments
-end test
-
+#test bal -B Assets:Investments -p "until 2011-02-20"
+#           10.00 GBP  Assets:Investments
+#end test
+#
+#test bal -B Assets:Investments -p "until 2011-03-20"
+#end test
+#
+#test bal -B Assets:Investments -p "until 2011-04-20"
+#           15.00 GBP  Assets:Investments
+#end test
+#
+#test bal Assets:Investments -p "until 2011-02-20"
+#               1 AAA  Assets:Investments
+#end test
+#
+#test bal Assets:Investments -p "until 2011-03-20"
+#end test
+#
+#test bal Assets:Investments -p "until 2011-04-20"
+#               1 BBB  Assets:Investments
+#end test
+#
+#

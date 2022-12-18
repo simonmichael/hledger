@@ -17,14 +17,15 @@ payee Foo Bar Inc
     A            20
     B
 
-comment
+$ hledger -f- check
 
-test reg
-12-Mar-25 KFC                   A                                10           10
-                                B                               -10            0
-12-Mar-26 KFC                   A                                10           10
-                                B                               -10            0
-14-May-13 Foo Bar Inc           A                                20           20
-                                B                               -20            0
-end test
-
+#test reg
+#12-Mar-25 KFC                   A                                10           10
+#                                B                               -10            0
+#12-Mar-26 KFC                   A                                10           10
+#                                B                               -10            0
+#14-May-13 Foo Bar Inc           A                                20           20
+#                                B                               -20            0
+#end test
+#
+#

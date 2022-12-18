@@ -28,33 +28,34 @@
     A          $10
     B              ; b: bbb
 
-comment
+$ hledger -f- check
 
-test tags
-a
-b
-bar
-foo
-xxx
-end test
-
-test tags --values
-a
-a: aaa
-b
-b: bbb
-bar
-foo
-xxx
-end test
-
-test tags --values --count
-1 a
-2 a: aaa
-1 b
-1 b: bbb
-1 bar
-1 foo
-2 xxx
-end test
-
+#test tags
+#a
+#b
+#bar
+#foo
+#xxx
+#end test
+#
+#test tags --values
+#a
+#a: aaa
+#b
+#b: bbb
+#bar
+#foo
+#xxx
+#end test
+#
+#test tags --values --count
+#1 a
+#2 a: aaa
+#1 b
+#1 b: bbb
+#1 bar
+#1 foo
+#2 xxx
+#end test
+#
+#

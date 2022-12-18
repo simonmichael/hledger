@@ -50,26 +50,28 @@ P 2010/09/29 13:50:19 B $39.830
  Assets:Sub1                       6 D @ $22.64
  Assets:Sub1:Leftovers
 
-comment
-test bal -X \$ sub1
-           $18026.74  Assets:Sub1
-               $8.10    Leftovers
---------------------
-           $18026.74
-end test
+$ hledger -f- check
 
-test reg -X \$ sub1 --now=2012/03/14
-10-Apr-04 Opening Balance       Assets:Sub1                   $1.00        $1.00
-10-Apr-04 Opening Balance       Assets:Sub1                $3227.00     $3228.00
-10-Apr-04 Opening Balance       Assets:Sub1                $1130.00     $4358.00
-10-Apr-04 Opening Balance       Assets:Sub1                $2030.00     $6388.00
-10-Apr-04 Opening Balance       Assets:Sub1:Leftovers         $6.79     $6394.79
-10-Apr-04 Opening Balance       Assets:Sub1                 $223.30     $6618.09
-10-Apr-04 Opening Balance       Assets:Sub1                 $297.00     $6915.09
-10-May-18 FOO                   Assets:Sub1                $5438.00    $12353.09
-10-Jul-02 Commodities revalued  <Revalued>                  $259.74    $12612.83
-10-Jul-02 BAR                   Assets:Sub1                 $135.84    $12748.67
-                                Assets:Sub1:Leftovers         $1.31    $12749.98
-10-Sep-29 Commodities revalued  <Revalued>                 $5251.46    $18001.44
-12-Mar-14 Commodities revalued  <Revalued>                   $25.30    $18026.74
-end test
+#test bal -X \$ sub1
+#           $18026.74  Assets:Sub1
+#               $8.10    Leftovers
+#--------------------
+#           $18026.74
+#end test
+#
+#test reg -X \$ sub1 --now=2012/03/14
+#10-Apr-04 Opening Balance       Assets:Sub1                   $1.00        $1.00
+#10-Apr-04 Opening Balance       Assets:Sub1                $3227.00     $3228.00
+#10-Apr-04 Opening Balance       Assets:Sub1                $1130.00     $4358.00
+#10-Apr-04 Opening Balance       Assets:Sub1                $2030.00     $6388.00
+#10-Apr-04 Opening Balance       Assets:Sub1:Leftovers         $6.79     $6394.79
+#10-Apr-04 Opening Balance       Assets:Sub1                 $223.30     $6618.09
+#10-Apr-04 Opening Balance       Assets:Sub1                 $297.00     $6915.09
+#10-May-18 FOO                   Assets:Sub1                $5438.00    $12353.09
+#10-Jul-02 Commodities revalued  <Revalued>                  $259.74    $12612.83
+#10-Jul-02 BAR                   Assets:Sub1                 $135.84    $12748.67
+#                                Assets:Sub1:Leftovers         $1.31    $12749.98
+#10-Sep-29 Commodities revalued  <Revalued>                 $5251.46    $18001.44
+#12-Mar-14 Commodities revalued  <Revalued>                   $25.30    $18026.74
+#end test
+#

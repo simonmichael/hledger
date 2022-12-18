@@ -20,15 +20,17 @@
     Expenses:Gifts                          $46.50   
     Liabilities:CredCard
 
-comment
-test equity -e 2006
-2005/01/10 Opening Balances
-    Assets:Checking                       $-1,550.00
-    Assets:Current:Checking               $-1,000.00
-    Assets:Savings                         $1,550.00
-    Expenses:Dining                           $46.50
-    Expenses:Gifts                            $30.00
-    Liabilities:CredCard                     $923.50
-    (Virtualaccount)                       $1,000.00
-    (Virtualaccount2)                         $46.50
-end test
+$ hledger -f- check
+
+#test equity -e 2006
+#2005/01/10 Opening Balances
+#    Assets:Checking                       $-1,550.00
+#    Assets:Current:Checking               $-1,000.00
+#    Assets:Savings                         $1,550.00
+#    Expenses:Dining                           $46.50
+#    Expenses:Gifts                            $30.00
+#    Liabilities:CredCard                     $923.50
+#    (Virtualaccount)                       $1,000.00
+#    (Virtualaccount2)                         $46.50
+#end test
+#

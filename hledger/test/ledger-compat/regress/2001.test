@@ -6,8 +6,10 @@
     Expenses:Something          (3-1)
     Assets:Cash
 
-comment
-test reg exp
-21-Apr-01 Was Already Working   Expenses:Something                2            2
-21-Apr-02 Now Fixed             Expenses:Something                2            4
-end test
+$ hledger -f- check
+
+#test reg exp
+#21-Apr-01 Was Already Working   Expenses:Something                2            2
+#21-Apr-02 Now Fixed             Expenses:Something                2            4
+#end test
+#

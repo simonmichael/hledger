@@ -6,8 +6,10 @@ Y 2012
     Expenses:Food        $20
     Assets:Cash
 
-comment
-test reg
-12-Feb-29 E-trade Bank          Expenses:Food                   $20          $20
-                                Assets:Cash                    $-20            0
-end test
+$ hledger -f- check
+
+#test reg
+#12-Feb-29 E-trade Bank          Expenses:Food                   $20          $20
+#                                Assets:Cash                    $-20            0
+#end test
+#

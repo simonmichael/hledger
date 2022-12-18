@@ -8,10 +8,12 @@
 
 !end
 
-comment
-test bal -> 1
-__ERROR__
-While parsing file "$FILE", line 9:
-Error: 'end' or 'end apply' found, but no enclosing 'apply' directive
-end test
+$ hledger -f- check
 
+#test bal -> 1
+#__ERROR__
+#While parsing file "$FILE", line 9:
+#Error: 'end' or 'end apply' found, but no enclosing 'apply' directive
+#end test
+#
+#

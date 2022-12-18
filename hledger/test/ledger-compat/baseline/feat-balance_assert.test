@@ -5,11 +5,12 @@
 2012-01-01 Reconciliation
     [Assets:Checking]    = $100
 
-comment
+$ hledger -f- check
 
-test balance
-                $100  Assets:Checking
-               $-100  Equity
---------------------
-                   0
-end test
+#test balance
+#                $100  Assets:Checking
+#               $-100  Equity
+#--------------------
+#                   0
+#end test
+#

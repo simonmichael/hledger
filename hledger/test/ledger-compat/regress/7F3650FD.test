@@ -1,85 +1,87 @@
-comment
-test period --now=2010/11/01 12/01
---- Period expression tokens ---
-TOK_DATE:  month Dec day 1
-END_REACHED: <EOF>
+$ hledger -f- check
 
---- Before stabilization ---
-   range: in month Dec day 1
-
---- After stabilization ---
-   range: in month Dec day 1
-   start: 10-Dec-01
-  finish: 10-Dec-02
-
---- Sample dates in range (max. 20) ---
- 1: 10-Dec-01
-end test
-
-test period --now=2010/11/01 10/01
---- Period expression tokens ---
-TOK_DATE:  month Oct day 1
-END_REACHED: <EOF>
-
---- Before stabilization ---
-   range: in month Oct day 1
-
---- After stabilization ---
-   range: in month Oct day 1
-   start: 10-Oct-01
-  finish: 10-Oct-02
-
---- Sample dates in range (max. 20) ---
- 1: 10-Oct-01
-end test
-
-test period --now=2010/11/01 2009/10
---- Period expression tokens ---
-TOK_DATE:  year 2009 month Oct
-END_REACHED: <EOF>
-
---- Before stabilization ---
-   range: in year 2009 month Oct
-
---- After stabilization ---
-   range: in year 2009 month Oct
-   start: 09-Oct-01
-  finish: 09-Nov-01
-
---- Sample dates in range (max. 20) ---
- 1: 09-Oct-01
-end test
-
-test period --now=2010/11/01 2009/10/01
---- Period expression tokens ---
-TOK_DATE:  year 2009 month Oct day 1
-END_REACHED: <EOF>
-
---- Before stabilization ---
-   range: in year 2009 month Oct day 1
-
---- After stabilization ---
-   range: in year 2009 month Oct day 1
-   start: 09-Oct-01
-  finish: 09-Oct-02
-
---- Sample dates in range (max. 20) ---
- 1: 09-Oct-01
-end test
-
-test period --now=2010/11/01 2009
---- Period expression tokens ---
-TOK_INT: 2009
-END_REACHED: <EOF>
-
---- Before stabilization ---
-   range: in year 2009
-
---- After stabilization ---
-   range: in year 2009
-   start: 09-Jan-01
-  finish: 10-Jan-01
-
---- Sample dates in range (max. 20) ---
- 1: 09-Jan-01
-end test
+#test period --now=2010/11/01 12/01
+#--- Period expression tokens ---
+#TOK_DATE:  month Dec day 1
+#END_REACHED: <EOF>
+#
+#--- Before stabilization ---
+#   range: in month Dec day 1
+#
+#--- After stabilization ---
+#   range: in month Dec day 1
+#   start: 10-Dec-01
+#  finish: 10-Dec-02
+#
+#--- Sample dates in range (max. 20) ---
+# 1: 10-Dec-01
+#end test
+#
+#test period --now=2010/11/01 10/01
+#--- Period expression tokens ---
+#TOK_DATE:  month Oct day 1
+#END_REACHED: <EOF>
+#
+#--- Before stabilization ---
+#   range: in month Oct day 1
+#
+#--- After stabilization ---
+#   range: in month Oct day 1
+#   start: 10-Oct-01
+#  finish: 10-Oct-02
+#
+#--- Sample dates in range (max. 20) ---
+# 1: 10-Oct-01
+#end test
+#
+#test period --now=2010/11/01 2009/10
+#--- Period expression tokens ---
+#TOK_DATE:  year 2009 month Oct
+#END_REACHED: <EOF>
+#
+#--- Before stabilization ---
+#   range: in year 2009 month Oct
+#
+#--- After stabilization ---
+#   range: in year 2009 month Oct
+#   start: 09-Oct-01
+#  finish: 09-Nov-01
+#
+#--- Sample dates in range (max. 20) ---
+# 1: 09-Oct-01
+#end test
+#
+#test period --now=2010/11/01 2009/10/01
+#--- Period expression tokens ---
+#TOK_DATE:  year 2009 month Oct day 1
+#END_REACHED: <EOF>
+#
+#--- Before stabilization ---
+#   range: in year 2009 month Oct day 1
+#
+#--- After stabilization ---
+#   range: in year 2009 month Oct day 1
+#   start: 09-Oct-01
+#  finish: 09-Oct-02
+#
+#--- Sample dates in range (max. 20) ---
+# 1: 09-Oct-01
+#end test
+#
+#test period --now=2010/11/01 2009
+#--- Period expression tokens ---
+#TOK_INT: 2009
+#END_REACHED: <EOF>
+#
+#--- Before stabilization ---
+#   range: in year 2009
+#
+#--- After stabilization ---
+#   range: in year 2009
+#   start: 09-Jan-01
+#  finish: 10-Jan-01
+#
+#--- Sample dates in range (max. 20) ---
+# 1: 09-Jan-01
+#end test
+#

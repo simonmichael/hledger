@@ -8,10 +8,12 @@ P 2021-01-01 EUR 1.15 USD
     A             100 EUR
     B
 
-comment
-test -X USD --sort display_amount reg
-21-Jan-01 Test 2                B                          -115 USD     -115 USD
-21-Jan-01 Test 1                B                          -100 USD     -215 USD
-                                A                           100 USD     -115 USD
-21-Jan-01 Test 2                A                           115 USD            0
-end test
+$ hledger -f- check
+
+#test -X USD --sort display_amount reg
+#21-Jan-01 Test 2                B                          -115 USD     -115 USD
+#21-Jan-01 Test 1                B                          -100 USD     -215 USD
+#                                A                           100 USD     -115 USD
+#21-Jan-01 Test 2                A                           115 USD            0
+#end test
+#

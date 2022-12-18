@@ -12,8 +12,10 @@ year 2014
     Expenses:Rent          $600
     Assets:Cash
 
-comment
-test reg --now 2014-05-14 -p 'this month'
-14-May-13 Bug 1038 Test         Expenses:Some:Account          $500         $500
-                                Assets:Cash                   $-500            0
-end test
+$ hledger -f- check
+
+#test reg --now 2014-05-14 -p 'this month'
+#14-May-13 Bug 1038 Test         Expenses:Some:Account          $500         $500
+#                                Assets:Cash                   $-500            0
+#end test
+#

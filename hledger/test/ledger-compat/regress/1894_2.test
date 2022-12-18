@@ -10,13 +10,15 @@
     Expenses:Transportation            200.00 EUR
     A:Assets:Checking
 
-comment
-test bal
-         -100.00 EUR  A:Assets
-         -200.00 EUR    Checking
-          100.00 EUR    Split
-         -100.00 EUR  B:Assets:Split
-          200.00 EUR  Expenses:Transportation
---------------------
-                   0
-end test
+$ hledger -f- check
+
+#test bal
+#         -100.00 EUR  A:Assets
+#         -200.00 EUR    Checking
+#          100.00 EUR    Split
+#         -100.00 EUR  B:Assets:Split
+#          200.00 EUR  Expenses:Transportation
+#--------------------
+#                   0
+#end test
+#

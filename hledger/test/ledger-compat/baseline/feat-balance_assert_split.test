@@ -51,12 +51,13 @@
     Liabilities:MasterCard  $150.00
     Assets:Checking        $-150.00 = $150.00
 
-comment
+$ hledger -f- check
 
-test balance
-             $300.00  Expenses:Unknown
-            $-450.00  Income
-             $150.00  Liabilities:MasterCard
---------------------
-                   0
-end test
+#test balance
+#             $300.00  Expenses:Unknown
+#            $-450.00  Income
+#             $150.00  Liabilities:MasterCard
+#--------------------
+#                   0
+#end test
+#

@@ -8,9 +8,10 @@
     Assets:Bank:Checking
     ; :AnotherTag:
 
-comment
+$ hledger -f- check
 
-test reg --meta Sample --meta-width=15
-Another Value  04-May-27 Credit card co.. Liabi:MasterCard     $20.00     $20.00
-Value                                     As:Bank:Checking    $-20.00          0
-end test
+#test reg --meta Sample --meta-width=15
+#Another Value  04-May-27 Credit card co.. Liabi:MasterCard     $20.00     $20.00
+#Value                                     As:Bank:Checking    $-20.00          0
+#end test
+#

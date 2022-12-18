@@ -11,13 +11,15 @@
     Assets:Cash      -1.00 GBP (@) 1.20 EUR
     Assets:Cash                    1.20 EUR
 
-comment
-test pricedb
-P 2014/02/01 00:00:00 GBP 1.10 EUR
-end test
+$ hledger -f- check
 
-test reg Equity:Opening -X EUR
-14-Jan-01 Test                  Equity:Opening balance   -10.00 GBP   -10.00 GBP
-14-Feb-01 Commodities revalued  <Revalued>                        0   -11.00 EUR
-end test
-
+#test pricedb
+#P 2014/02/01 00:00:00 GBP 1.10 EUR
+#end test
+#
+#test reg Equity:Opening -X EUR
+#14-Jan-01 Test                  Equity:Opening balance   -10.00 GBP   -10.00 GBP
+#14-Feb-01 Commodities revalued  <Revalued>                        0   -11.00 EUR
+#end test
+#
+#

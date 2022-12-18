@@ -14,14 +14,16 @@
     Assets:Broker                                1 BBB = 1 BBB
     Assets:Broker                           -15.00 GBP
 
-comment
-test bal
-               2 AAA
-               1 BBB
-          215.00 GBP  Assets:Broker
-         -250.00 GBP  Equity:Opening balance
---------------------
-               2 AAA
-               1 BBB
-          -35.00 GBP
-end test
+$ hledger -f- check
+
+#test bal
+#               2 AAA
+#               1 BBB
+#          215.00 GBP  Assets:Broker
+#         -250.00 GBP  Equity:Opening balance
+#--------------------
+#               2 AAA
+#               1 BBB
+#          -35.00 GBP
+#end test
+#

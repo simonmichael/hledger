@@ -2,7 +2,9 @@
     Expenses:Books                 20 BOOK @ $10
     Liabilities:MasterCard        $-200.00
 
-comment
-test bal --sort total --flat -X '$' not '(Income|Liabilities)'
-             $200.00  Expenses:Books
-end test
+$ hledger -f- check
+
+#test bal --sort total --flat -X '$' not '(Income|Liabilities)'
+#             $200.00  Expenses:Books
+#end test
+#

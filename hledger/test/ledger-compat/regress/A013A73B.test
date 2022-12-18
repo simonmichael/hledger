@@ -3,9 +3,11 @@
   a    1
   b
 
-comment
-test reg
-14-Jan-01 c                     a                                 1            1
-                                b                                -1            0
-end test
+$ hledger -f- check
 
+#test reg
+#14-Jan-01 c                     a                                 1            1
+#                                b                                -1            0
+#end test
+#
+#

@@ -11,10 +11,12 @@
     Assets:Cash                            10.00 EUR
 
 
-comment
-test equity
-2012/01/03 Opening Balances
-    Assets:Cash                           100.00 EUR
-    Equity:Opening balances
-end test
+$ hledger -f- check
 
+#test equity
+#2012/01/03 Opening Balances
+#    Assets:Cash                           100.00 EUR
+#    Equity:Opening balances
+#end test
+#
+#

@@ -33,14 +33,15 @@
    Expenses:Food:Tips       $1
    Assets:Cash
 
-comment
+$ hledger -f- check
 
-test reg --collapse food
-09-Oct-01 Test                  <Total>                         $11          $11
-09-Oct-02 Test                  <Total>                         $11          $22
-09-Oct-03 Test                  <Total>                         $11          $33
-09-Oct-04 Test                  <Total>                         $11          $44
-09-Oct-05 Test                  <Total>                         $11          $55
-09-Oct-06 Test                  <Total>                         $11          $66
-09-Oct-07 Test                  <Total>                         $11          $77
-end test
+#test reg --collapse food
+#09-Oct-01 Test                  <Total>                         $11          $11
+#09-Oct-02 Test                  <Total>                         $11          $22
+#09-Oct-03 Test                  <Total>                         $11          $33
+#09-Oct-04 Test                  <Total>                         $11          $44
+#09-Oct-05 Test                  <Total>                         $11          $55
+#09-Oct-06 Test                  <Total>                         $11          $66
+#09-Oct-07 Test                  <Total>                         $11          $77
+#end test
+#

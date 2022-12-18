@@ -2,8 +2,10 @@
     A  $1.00
     B
 
-comment
-test -p 'last %^@' bal -> 1
-__ERROR__
-Error: Invalid char '%'
-end test
+$ hledger -f- check
+
+#test -p 'last %^@' bal -> 1
+#__ERROR__
+#Error: Invalid char '%'
+#end test
+#

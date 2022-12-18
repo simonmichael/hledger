@@ -1,19 +1,21 @@
 
-comment
-test period june 2008
---- Period expression tokens ---
-TOK_A_MONTH: Jun
-TOK_INT: 2008
-END_REACHED: <EOF>
+$ hledger -f- check
 
---- Before stabilization ---
-   range: in year 2008 month Jun
-
---- After stabilization ---
-   range: in year 2008 month Jun
-   start: 08-Jun-01
-  finish: 08-Jul-01
-
---- Sample dates in range (max. 20) ---
- 1: 08-Jun-01
-end test
+#test period june 2008
+#--- Period expression tokens ---
+#TOK_A_MONTH: Jun
+#TOK_INT: 2008
+#END_REACHED: <EOF>
+#
+#--- Before stabilization ---
+#   range: in year 2008 month Jun
+#
+#--- After stabilization ---
+#   range: in year 2008 month Jun
+#   start: 08-Jun-01
+#  finish: 08-Jul-01
+#
+#--- Sample dates in range (max. 20) ---
+# 1: 08-Jun-01
+#end test
+#

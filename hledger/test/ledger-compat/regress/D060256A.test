@@ -6,10 +6,12 @@
   Expenses:Food:Dining          $20.00
   Assets
 
-comment
-test budget --now=2009/11/01 --end=2009/11/30
-     $-20.00     $-500.00      $480.00    4%  Assets
-      $20.00      $500.00     $-480.00    4%  Expenses:Food
------------- ------------ ------------ -----
-           0            0            0     0
-end test
+$ hledger -f- check
+
+#test budget --now=2009/11/01 --end=2009/11/30
+#     $-20.00     $-500.00      $480.00    4%  Assets
+#      $20.00      $500.00     $-480.00    4%  Expenses:Food
+#------------ ------------ ------------ -----
+#           0            0            0     0
+#end test
+#

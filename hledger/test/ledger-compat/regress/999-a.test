@@ -2,6 +2,8 @@
          Assets:Brokerage            1000 AAPL (@) $1
          Income:Gifts Received
 
-comment
-test prices
-end test
+$ hledger -f- check
+
+#test prices
+#end test
+#

@@ -7,18 +7,20 @@
     Assets:Bank:Checking              €1.190,00
     Income:Clients:ACME_Inc
 
-comment
-test --decimal-comma bal
-           €1.190,00  Assets:Bank:Checking
-          €-1.190,00  Income:Clients:ACME_Inc
-            €-190,00  Liabilities:Taxes:VAT
---------------------
-            €-190,00
-end test
+$ hledger -f- check
 
-test --decimal-comma reg
-09-Jul-27 Invoice               Assets:Bank:Checking      €1.190,00    €1.190,00
-                                Incom:Clients:ACME_Inc   €-1.190,00            0
-                                (Liabilitie:Taxes:VAT)     €-190,00     €-190,00
-end test
-
+#test --decimal-comma bal
+#           €1.190,00  Assets:Bank:Checking
+#          €-1.190,00  Income:Clients:ACME_Inc
+#            €-190,00  Liabilities:Taxes:VAT
+#--------------------
+#            €-190,00
+#end test
+#
+#test --decimal-comma reg
+#09-Jul-27 Invoice               Assets:Bank:Checking      €1.190,00    €1.190,00
+#                                Incom:Clients:ACME_Inc   €-1.190,00            0
+#                                (Liabilitie:Taxes:VAT)     €-190,00     €-190,00
+#end test
+#
+#

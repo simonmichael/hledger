@@ -6,18 +6,19 @@
     Expenses:Phone            20.00 GBP
     Assets:Cash
 
-comment
+$ hledger -f- check
 
-test bal --pedantic -> 2
-__ERROR__
-While parsing file "$FILE", line 2:
-While parsing posting:
-  Expenses:Phone            20.00 GBP
-
-Error: Unknown account 'Expenses:Phone'
-While parsing file "$FILE", line 6:
-While parsing posting:
-  Expenses:Phone            20.00 GBP
-
-Error: Unknown account 'Expenses:Phone'
-end test
+#test bal --pedantic -> 2
+#__ERROR__
+#While parsing file "$FILE", line 2:
+#While parsing posting:
+#  Expenses:Phone            20.00 GBP
+#
+#Error: Unknown account 'Expenses:Phone'
+#While parsing file "$FILE", line 6:
+#While parsing posting:
+#  Expenses:Phone            20.00 GBP
+#
+#Error: Unknown account 'Expenses:Phone'
+#end test
+#

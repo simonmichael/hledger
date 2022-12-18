@@ -10,9 +10,11 @@
     Asset:Bank:Boi:Savings:Dk           -3016.24
     Income:NetSalary:Dk
 
-comment
-test reg -> 1
-__ERROR__
-While parsing file "$FILE", line 5:
-Error: Unexpected whitespace at beginning of line
-end test
+$ hledger -f- check
+
+#test reg -> 1
+#__ERROR__
+#While parsing file "$FILE", line 5:
+#Error: Unexpected whitespace at beginning of line
+#end test
+#

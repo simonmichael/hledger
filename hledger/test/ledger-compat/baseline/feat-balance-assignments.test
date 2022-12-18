@@ -26,12 +26,13 @@
     Expenses:Cash
     Assets:Cash                         = ($4,000.00 + $100.00)
 
-comment
+$ hledger -f- check
 
-test bal
-           $4,100.00  Assets:Cash
-         $-10,000.00  Equity:Opening Balances
-           $5,900.00  Expenses:Cash
---------------------
-                   0
-end test
+#test bal
+#           $4,100.00  Assets:Cash
+#         $-10,000.00  Equity:Opening Balances
+#           $5,900.00  Expenses:Cash
+#--------------------
+#                   0
+#end test
+#

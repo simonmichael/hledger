@@ -15,24 +15,25 @@ P 2012-03-25 AAA $10.00
     G          1 AAA @ $10.00
     H
 
-comment
+$ hledger -f- check
 
-test pricemap
-graph G {
-0[label=""];
-1[label="s"];
-2[label="%"];
-3[label="m"];
-4[label="h"];
-5[label="GBP"];
-6[label="EUR"];
-7[label="$"];
-8[label="USD"];
-9[label="AAA"];
-6--5 ;
-6--7 ;
-8--6 ;
-9--7 ;
-}
-end test
-
+#test pricemap
+#graph G {
+#0[label=""];
+#1[label="s"];
+#2[label="%"];
+#3[label="m"];
+#4[label="h"];
+#5[label="GBP"];
+#6[label="EUR"];
+#7[label="$"];
+#8[label="USD"];
+#9[label="AAA"];
+#6--5 ;
+#6--7 ;
+#8--6 ;
+#9--7 ;
+#}
+#end test
+#
+#

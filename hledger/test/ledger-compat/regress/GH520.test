@@ -2,33 +2,35 @@
     A               100.00 EUR
     B
 
-comment
-test reg --format '%(trim(""))\n'
+$ hledger -f- check
 
-
-end test
-
-test reg --format '%(trim("a"))\n'
-a
-a
-end test
-
-test reg --format '%(trim(" a"))\n'
-a
-a
-end test
-
-test reg --format '%(trim("a "))\n'
-a
-a
-end test
-
-test reg --format '%(trim(" a "))\n'
-a
-a
-end test
-
-test reg --format '%(trim(" aa "))\n'
-aa
-aa
-end test
+#test reg --format '%(trim(""))\n'
+#
+#
+#end test
+#
+#test reg --format '%(trim("a"))\n'
+#a
+#a
+#end test
+#
+#test reg --format '%(trim(" a"))\n'
+#a
+#a
+#end test
+#
+#test reg --format '%(trim("a "))\n'
+#a
+#a
+#end test
+#
+#test reg --format '%(trim(" a "))\n'
+#a
+#a
+#end test
+#
+#test reg --format '%(trim(" aa "))\n'
+#aa
+#aa
+#end test
+#
