@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Try to read all .test files, save and report the results.
+# test [ROOTDIR] - find test files and try to read them, saving a dated log
 
 set -e
-FILES=$(find . -name "*.j" -o -name "*.test")
-#FILES=$(find . -name "*.j")
+ROOT="${1:-.}"
+FILES=$(find "$ROOT" -name "*.journal" -name "*.j" -o -name "*.ledger" -o -name "*.test" )
 
 for f in $FILES ; do
     printf ":%s: " "$f"
