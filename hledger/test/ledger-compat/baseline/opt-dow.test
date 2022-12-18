@@ -1,0 +1,55 @@
+2008/01/01 January
+    Expenses:Books          $10.00
+    Assets:Cash
+
+2008/01/01 End of January
+    Expenses:Books          $10.00
+    Assets:Cash
+
+2008/01/01 January
+    Expenses:Books          $10.00
+    Assets:Cash
+
+2008/01/01 End of January
+    Expenses:Books          $10.00
+    Assets:Cash
+
+2008/01/01 January
+    Expenses:Books          $10.00
+    Assets:Cash
+
+2008/01/01 End of January
+    Expenses:Books          $10.00
+    Assets:Cash
+
+2008/02/01 February
+    Expenses:Books          $20.00
+    Assets:Cash
+
+2008/02/01 End of February
+    Expenses:Books          $20.00
+    Assets:Cash
+
+2008/02/01 February
+    Expenses:Books          $20.00
+    Assets:Cash
+
+2008/02/01 End of February
+    Expenses:Books          $20.00
+    Assets:Cash
+
+2008/02/01 February
+    Expenses:Books          $20.00
+    Assets:Cash
+
+2008/02/01 End of February
+    Expenses:Books          $20.00
+    Assets:Cash
+
+
+comment
+
+test reg --dow books
+08-Jan-01 Tuesdays              Expenses:Books               $60.00       $60.00
+08-Feb-01 Fridays               Expenses:Books              $120.00      $180.00
+end test

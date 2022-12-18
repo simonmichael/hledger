@@ -1,0 +1,11 @@
+2008/01/01 January
+    Expenses:Books          $10.00
+    (Liabilities:Cards)     $10.00
+    Assets:Cash
+
+comment
+
+test reg --real
+08-Jan-01 January               Expenses:Books               $10.00       $10.00
+                                Assets:Cash                 $-10.00            0
+end test

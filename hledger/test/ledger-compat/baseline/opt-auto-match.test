@@ -1,0 +1,73 @@
+2012-01-01 * Opening balance
+    Assets:Cash              100.00 EUR
+    Equity:Opening Balance
+
+2012-01-02 * Food
+    Expenses:Food             25.00 EUR
+    Assets:Cash              -25.00 EUR
+
+2012-01-03 * Phone
+    Expenses:Phone            10.00 EUR
+    Assets:Cash              -10.00 EUR
+
+2012-01-04 * Dining
+    Expenses:Food             20.00 EUR
+    Liabilities:CC           -20.00 EUR
+
+comment
+
+test --input-date-format "%Y-%m-%d" convert test/baseline/opt-auto-match.dat
+2012/03/01 * Food
+    Expenses:Unknown                              10
+    Equity:Unknown
+
+2012/03/02 * Phone
+    Expenses:Unknown                              10
+    Equity:Unknown
+
+2012/03/02 * Dining
+    Expenses:Unknown                              10
+    Equity:Unknown
+end test
+
+test --input-date-format "%Y-%m-%d" --auto-match convert test/baseline/opt-auto-match.dat
+2012/03/01 * Food
+    Expenses:Food                                 10
+    Equity:Unknown
+
+2012/03/02 * Phone
+    Expenses:Phone                                10
+    Equity:Unknown
+
+2012/03/02 * Dining
+    Expenses:Food                                 10
+    Equity:Unknown
+end test
+
+test --input-date-format "%Y-%m-%d" --account Assets:Bank convert test/baseline/opt-auto-match.dat
+2012/03/01 * Food
+    Expenses:Unknown                              10
+    Assets:Bank
+
+2012/03/02 * Phone
+    Expenses:Unknown                              10
+    Assets:Bank
+
+2012/03/02 * Dining
+    Expenses:Unknown                              10
+    Assets:Bank
+end test
+
+test --input-date-format "%Y-%m-%d" --auto-match --account Assets:Bank convert test/baseline/opt-auto-match.dat
+2012/03/01 * Food
+    Expenses:Food                                 10
+    Assets:Bank
+
+2012/03/02 * Phone
+    Expenses:Phone                                10
+    Assets:Bank
+
+2012/03/02 * Dining
+    Expenses:Food                                 10
+    Assets:Bank
+end test

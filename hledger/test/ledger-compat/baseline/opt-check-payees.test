@@ -1,0 +1,48 @@
+account Assets:Cash
+account Expenses:Phone
+account Expenses:Rent
+account Expenses:Food
+commodity EUR
+commodity GBP
+payee Phone
+    alias MobilePhone
+payee Several
+tag food
+tag Payee
+
+2012-03-20 Phone
+    Expenses:Phone            20.00 GBP
+    Assets:Cash
+
+2012-03-21 Rent
+    Expenses:Rent            550.00 GBP
+    Assets:Cash
+
+2012-03-22 Food
+    ; :food:
+    Expenses:Food             20.00 EUR
+    Assets:Cash
+
+2012-03-23 Several
+    Expenses:Food              10.00 EUR ; Payee: Food
+    Expenses:Phone             10.00 EUR ; Payee: MobilePhone
+    Assets:Cash
+
+comment
+
+test bal --strict --check-payees
+          -40.00 EUR
+         -570.00 GBP  Assets:Cash
+           40.00 EUR
+          570.00 GBP  Expenses
+           30.00 EUR    Food
+           10.00 EUR
+           20.00 GBP    Phone
+          550.00 GBP    Rent
+--------------------
+                   0
+__ERROR__
+Warning: "$FILE", line 17: Unknown payee 'Rent'
+Warning: "$FILE", line 21: Unknown payee 'Food'
+Warning: "$FILE", line 27: Unknown payee 'Food'
+end test

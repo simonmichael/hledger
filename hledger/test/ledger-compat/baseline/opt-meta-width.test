@@ -1,0 +1,16 @@
+2004/05/27 (100) Credit card company
+    ; This is an xact note!
+    ; Sample: Value
+    Liabilities:MasterCard                            $20.00
+    ; This is a posting note!
+    ; Sample: Another Value
+    ; :MyTag:
+    Assets:Bank:Checking
+    ; :AnotherTag:
+
+comment
+
+test reg --meta Sample --meta-width=15
+Another Value  04-May-27 Credit card co.. Liabi:MasterCard     $20.00     $20.00
+Value                                     As:Bank:Checking    $-20.00          0
+end test

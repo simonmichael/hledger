@@ -1,0 +1,14 @@
+comment
+
+test echo foo
+foo
+end test
+
+test echo "foo bar"
+foo bar
+end test
+
+test echo "foo\nbar"
+foo\nbar
+end test
+

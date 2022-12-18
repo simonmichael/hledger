@@ -1,0 +1,44 @@
+2008/01/01 * Purchase Apple shares
+       Equities        1000 AAPL @ $2
+       Cash              $-2000
+
+2008/06/30 * Sell some Apple shares
+       Cash                $1250
+       Equities        -500 AAPL {$2} @ $2.50
+       Income:Gains        $-250
+
+P 2008/10/01 02:18:02 AAPL $3
+P 2009/01/31 02:18:02 AAPL $4
+P 3000/01/01 02:18:02 APPL $100
+
+comment
+
+test reg equities
+08-Jan-01 Purchase Apple shares Equities                  1000 AAPL    1000 AAPL
+08-Jun-30 Sell some Apple sha.. Equities                  -500 AAPL     500 AAPL
+end test
+
+test reg -B equities
+08-Jan-01 Purchase Apple shares Equities                      $2000        $2000
+08-Jun-30 Sell some Apple sha.. Equities                     $-1000        $1000
+end test
+
+test reg --end 2009/06/26 -V equities
+08-Jan-01 Purchase Apple shares Equities                      $2000        $2000
+08-Jun-30 Commodities revalued  <Revalued>                     $500        $2500
+08-Jun-30 Sell some Apple sha.. Equities                     $-1250        $1250
+09-Jan-31 Commodities revalued  <Revalued>                     $250        $1500
+09-Jun-26 Commodities revalued  <Revalued>                     $500        $2000
+end test
+
+test reg --end 2009/06/26 -G equities
+08-Jun-30 Commodities revalued  <Revalued>                     $500         $500
+08-Jun-30 Sell some Apple sha.. Equities                      $-250         $250
+09-Jan-31 Commodities revalued  <Revalued>                     $250         $500
+09-Jun-26 Commodities revalued  <Revalued>                     $500        $1000
+end test
+
+test reg -I equities
+08-Jan-01 Purchase Apple shares Equities                      $2000        $2000
+08-Jun-30 Sell some Apple sha.. Equities                     $-1000        $1000
+end test
