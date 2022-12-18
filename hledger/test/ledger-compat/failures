@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+grep -v ': ok$' log
