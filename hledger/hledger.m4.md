@@ -941,30 +941,29 @@ A hledger journal file can contain three kinds of thing:
 file comments, transactions, and/or directives
 (counting periodic transaction rules and auto posting rules as directives).
 
-## File comments
+## Comments
 
-Lines in the journal will be ignored if they begin with a semicolon (`;`), a hash (`#`) or a star (`*`).
+Lines in the journal will be ignored if they begin with a hash (`#`) or a semicolon (`;`). (See also [Other syntax](#other-syntax).)
 hledger will also ignore regions beginning with a `comment` line and ending with an `end comment` line (or file end).
+Here's a suggestion for choosing between them:
 
-These four comment syntaxes are equivalent, but here's a suggestion:
-
-- `#` for significant/top-level notes
-- `;` for minor notes, eg on specific transactions, and for commenting out things temporarily
+- `#` for top-level notes
+- `;` for commenting out things temporarily
 - `comment` for quickly commenting large regions (remember it's there, or you might get confused)
-- `*` for emacs users managing big journals as org outlines (but orgstruct + ledger mode is probably better now)
 
 Eg:
 ```journal
-# a file comment
-; another file comment
-* a file comment and an org headline
+# a comment line
+; another commentline
 comment
-A multi-line file comment block,
-
+A multi-line comment block,
 continuing until "end comment" directive
 or the end of the current file.
 end comment
 ```
+
+Some hledger entries can have same-line comments attached to them, from ; (semicolon) to end of line.
+See Transaction comments, Posting comments, and Account comments below.
 
 ## Transactions
 
@@ -1005,44 +1004,6 @@ Some examples: `2010-01-31`, `2010/01/31`, `2010.1.31`, `1/31`.
 (The UI also accepts simple dates, as well as the more flexible [smart
 dates](#smart-dates) documented in the hledger manual.)
 
-### Secondary dates
-
-Real-life transactions sometimes involve more than one date - eg the date
-you write a cheque, and the date it clears in your bank.  When you want to
-model this, for more accurate daily balances, you can specify individual
-[posting dates](#posting-dates).
-
-Or, you can use the older *secondary date* feature
-(Ledger calls it auxiliary date or effective date).
-Note: we support this for compatibility, but I usually recommend
-avoiding this feature; posting dates are almost always clearer and
-simpler.
-<!-- (Secondary dates require you to remember to use them consistently in -->
-<!-- your journal, and to choose them or not for each report.) -->
-
-A secondary date is written after the primary date, following an
-equals sign. If the year is omitted, the primary date's year is
-assumed. When running reports, the primary (left) date is used by
-default, but with the `--date2` flag (or `--aux-date` or
-`--effective`), the secondary (right) date will be used instead.
-
-The meaning of secondary dates is up to you, but it's best to follow a
-consistent rule.  Eg "primary = the bank's clearing date, secondary =
-date the transaction was initiated, if different", as shown here:
-```journal
-2010/2/23=2/19 movie ticket
-  expenses:cinema                   $10
-  assets:checking
-```
-```shell
-$ hledger register checking
-2010-02-23 movie ticket         assets:checking                $-10         $-10
-```
-```shell
-$ hledger register checking --date2
-2010-02-19 movie ticket         assets:checking                $-10         $-10
-```
-
 ### Posting dates
 
 You can give individual postings a different date from their parent
@@ -1070,16 +1031,9 @@ $ hledger -f t.j register checking
 ```
 
 DATE should be a [simple date](#simple-dates); if the year is not
-specified it will use the year of the transaction's date.  You can set
-the secondary date similarly, with `date2:DATE2`.  The `date:` or
-`date2:` tags must have a valid simple date value if they are present,
+specified it will use the year of the transaction's date.  
+The `date:` tag must have a valid simple date value if it is present,
 eg a `date:` tag with no value is not allowed.
-
-Ledger's earlier, more compact bracketed date syntax is also
-supported: `[DATE]`, `[DATE=DATE2]` or `[=DATE2]`. hledger will
-attempt to parse any square-bracketed sequence of the `0123456789/-.=`
-characters in this way. With this syntax, DATE infers its year from
-the transaction and DATE2 infers its year from DATE.
 
 ## Status
 
@@ -1173,38 +1127,6 @@ As a convenience, one amount may be left blank; it will be inferred so as to bal
 Be sure to note the unusual two-space delimiter between account name and amount.
 This makes it easy to write account names containing spaces.
 But if you accidentally leave only one space (or tab) before the amount, the amount will be considered part of the account name.
-
-### Virtual postings
-
-A posting with parentheses around the account name is called a *virtual posting* or *unbalanced posting*,
-which means it is exempt from the usual rule that a transaction's postings must balance add up to zero.
-
-This is not part of double entry bookkeeping, so you might choose to avoid this feature.
-Or you can use it sparingly for certain special cases where it can be convenient.
-Eg, you could set opening balances without using a balancing equity account:
-
-```journal
-2022-01-01 opening balances
-  (assets:checking)   $1000
-  (assets:savings)    $2000
-```
-
-A posting with brackets around the account name is called a *balanced virtual posting*.
-The balanced virtual postings in a transaction must add up to zero (separately from other postings).
-Eg:
-
-```journal
-2022-01-01 buy food with cash, update budget envelope subaccounts, & something else
-  assets:cash                    $-10  ; <- these balance each other
-  expenses:food                    $7  ; <-
-  expenses:food                    $3  ; <-
-  [assets:checking:budget:food]  $-10  ;   <- and these balance each other
-  [assets:checking:available]     $10  ;   <-
-  (something:else)                 $5  ;     <- this is not required to balance
-```
-
-Postings whose account names are neither parenthesised nor bracketed are called *real postings*.
-You can exclude virtual postings from reports with the `-R/--real` flag or a `real:1` query.
 
 ## Account names
 
@@ -1670,56 +1592,12 @@ Eg a [commodity directive](#commodities)
 may limit the display precision, but this will not affect balance assertions.
 Balance assertion failure messages show exact amounts.
 
-## Balance assignments
-
-[Ledger-style balance assignments](http://ledger-cli.org/3.0/doc/ledger3.html#Balance-assignments) are also supported.
-These are like [balance assertions](#balance-assertions), but with no posting amount on the left side of the equals sign;
-instead it is calculated automatically so as to satisfy the assertion.
-This can be a convenience during data entry, eg when setting opening balances:
-```journal
-; starting a new journal, set asset account balances
-2016/1/1 opening balances
-  assets:checking            = $409.32
-  assets:savings             = $735.24
-  assets:cash                 = $42
-  equity:opening balances
-```
-or when adjusting a balance to reality:
-```journal
-; no cash left; update balance, record any untracked spending as a generic expense
-2016/1/15
-  assets:cash    = $0
-  expenses:misc
-```
-
-The calculated amount depends on the account's balance in the commodity at that point
-(which depends on the previously-dated postings of the commodity to that account
-since the last balance assertion or assignment).
-Note that using balance assignments makes your journal a little less explicit;
-to know the exact amount posted, you have to run hledger or do the calculations yourself,
-instead of just reading it.
-
-### Balance assignments and prices
-
-A [cost](#costs) in a balance assignment
-will cause the calculated amount to have that price attached:
-
-``` journal
-2019/1/1
-  (a)             = $1 @ €2
-```
-```
-$ hledger print --explicit
-2019-01-01
-    (a)         $1 @ €2 = $1 @ €2
-```
-
 ## Posting comments
 
 Text following `;`, at the end of a posting line, 
 and/or on indented lines immediately below it, form comments for that posting.
 They are reproduced by `print` but otherwise ignored,
-except they may contain [tags](#tags-1) or [bracketed posting dates](#posting-dates), which are not ignored.
+except they may contain [tags](#tags-1), which are not ignored.
 
 ```journal
 2012-01-01
@@ -1799,22 +1677,24 @@ Here are some more definitions:
 
 Directives are not required when starting out with hledger,
 but you will probably want to add some as your needs grow. 
-Here are the directives organised by use case:
+Here some key directives for particular needs:
 
-| purpose                                                                       | directives                                              |
-|-------------------------------------------------------------------------------|---------------------------------------------------------|
-| **READING/GENERATING DATA:**                                                  |                                                         |
-| Declare a commodity's or file's decimal mark to help parse amounts accurately | [`commodity`], [`D`], [`decimal-mark`]                  |
-| Apply changes to the data while parsing                                       | [`alias`], [`apply account`], [`comment`], [`D`], [`Y`] |
-| Inline extra data files                                                       | [`include`]                                             |
-| Generate extra transactions or budget goals                                   | [`~`]                                                   |
-| Generate extra postings                                                       | [`=`]                                                   |
-| **CHECKING FOR ERRORS:**                                                      |                                                         |
-| Define valid entities to allow stricter error checking                        | [`account`], [`commodity`], [`payee`]                   |
-| **DISPLAYING REPORTS:**                                                       |                                                         |
-| Declare accounts' display order and accounting type                           | [`account`]                                             |
-| Declare commodity display styles                                              | [`commodity`], [`D`]                                    |
-| Declare market prices                                                         | [`P`]                                                   |
+| purpose                                                      | directives                            |
+|--------------------------------------------------------------|---------------------------------------|
+| **READING DATA:**                                            |                                       |
+| Declare file's decimal mark to help parse amounts accurately | [`decimal-mark`]                      |
+| Rewrite account names                                        | [`alias`]                             |
+| Comment out sections of the data                             | [`comment`]                           |
+| Include extra data files                                     | [`include`]                           |
+| **GENERATING DATA:**                                         |                                       |
+| Generate recurring transactions or budget goals              | [`~`]                                 |
+| Generate extra postings on transactions                      | [`=`]                                 |
+| **CHECKING FOR ERRORS:**                                     |                                       |
+| Define valid entities to provide more error checking         | [`account`], [`commodity`], [`payee`] |
+| **REPORTING:**                                               |                                       |
+| Declare accounts' type and display order                     | [`account`]                           |
+| Declare commodity display styles                             | [`commodity`]                         |
+| Declare market prices                                        | [`P`]                                 |
 
 ### Directive effects
 
@@ -1829,17 +1709,18 @@ And here is what each directive does, and which files and journal entries (trans
 |-----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------|
 | **[`account`]**       | Declares an account, for [checking](#check) all entries in all files; <br>and its [display order](#account-display-order) and [type](#declaring-account-types). <br>Subdirectives: any text, ignored.                                                                                                                                                                                                                                                                                                                                                                              | N                   |
 | **[`alias`]**         | Rewrites account names, in following entries until end of current file or [`end aliases`]. <br>Command line equivalent: [`--alias`]                                                                                                                                                                                                                                                                                                                                                                                                                                                | Y                   |
-| **[`apply account`]** | Prepends a common parent account to all account names, in following entries until end of current file or `end apply account`.                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Y                   |
 | **[`comment`]**       | Ignores part of the journal file, until end of current file or `end comment`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Y                   |
 | **[`commodity`]**     | Declares up to four things: <br>1. a commodity symbol, for checking all amounts in all files <br>2. the decimal mark for parsing amounts of this commodity, in the following entries until end of current file (if there is no `decimal-mark` directive) <br>3. and the display style for amounts of this commodity <br>4. which is also the precision to use for balanced-transaction checking in this commodity.<br> Takes precedence over `D`. <br>Subdirectives: `format` (Ledger-compatible syntax). <br>Command line equivalent: [`-c/--commodity-style`](#commodity-styles) | N,<br>Y,<br>N,<br>N |
-| **[`D`]**             | Sets a default commodity to use for no-symbol amounts;<br>and, if there is no `commodity` directive for this commodity: its decimal mark, balancing precision, and display style, as above.                                                                                                                                                                                                                                                                                                                                                                                        | Y,<br>Y,<br>N,<br>N |
 | **[`decimal-mark`]**  | Declares the decimal mark, for parsing amounts of all commodities in following entries until next `decimal-mark` or end of current file. Included files can override. Takes precedence over `commodity` and `D`.                                                                                                                                                                                                                                                                                                                                                                   | Y                   |
 | **[`include`]**       | Includes entries and directives from another file, as if they were written inline. <br>Command line alternative: multiple [`-f/--file`](#multiple-files)                                                                                                                                                                                                                                                                                                                                                                                                                           | N                   |
 | **[`payee`]**         | Declares a payee name, for checking all entries in all files.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | N                   |
 | **[`P`]**             | Declares the market price of a commodity on some date, for [value reports](#valuation).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | N                   |
-| **[`Y`]**             | Sets a default year to use for any yearless dates, in following entries until end of current file.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | Y                   |
 | **[`~`]** (tilde)     | Declares a periodic transaction rule that generates future transactions with `--forecast` and budget goals with `balance --budget`.                                                                                                                                                                                                                                                                                                                                                                                                                                                | N                   |
 | **[`=`]** (equals)    | Declares an auto posting rule that generates extra postings on matched transactions with `--auto`, in current, parent, and child files (but not sibling files, see [#1212](https://github.com/simonmichael/hledger/issues/1212)).                                                                                                                                                                                                                                                                                                                                                  | partly              |
+| Other syntax:         |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |                     |
+| **[`apply account`]** | Prepends a common parent account to all account names, in following entries until end of current file or `end apply account`.                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Y                   |
+| **[`D`]**             | Sets a default commodity to use for no-symbol amounts;<br>and, if there is no `commodity` directive for this commodity: its decimal mark, balancing precision, and display style, as above.                                                                                                                                                                                                                                                                                                                                                                                        | Y,<br>Y,<br>N,<br>N |
+| **[`Y`]**             | Sets a default year to use for any yearless dates, in following entries until end of current file.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | Y                   |
 
 [`=`]:                 #auto-postings
 [`D`]:                 #default-commodity
@@ -1872,191 +1753,6 @@ your files.
 It can be surprising though; for example, it means that 
 [`alias` directives do not affect parent or sibling files](#aliases-and-multiple-files)
 (see below).
-
-## Including files
-
-You can pull in the content of additional files by writing an include directive, like this:
-
-```journal
-include FILEPATH
-```
-
-Only journal files can include, and only journal, timeclock or timedot files can be included (not CSV files, currently).
-
-If the file path does not begin with a slash, it is relative to the current file's folder. 
-
-A tilde means home directory, eg: `include ~/main.journal`.
-
-The path may contain [glob patterns] to match multiple files, eg: `include *.journal`.
-
-There is limited support for recursive wildcards: `**/` (the slash is required)
-matches 0 or more subdirectories. It's not super convenient since you have to 
-avoid include cycles and including directories, but this can be done, eg:
-`include */**/*.journal`.
-
-The path may also be prefixed to force a specific file format,
-overriding the file extension (as described in
-[hledger.1 -> Input files](#input-files)):
-`include timedot:~/notes/2020*.md`.
-
-[glob patterns]: https://hackage.haskell.org/package/Glob-0.9.2/docs/System-FilePath-Glob.html#v:compile
-
-## Default year
-
-You can set a default year to be used for subsequent dates which don't
-specify a year. This is a line beginning with `Y` followed by the year. Eg:
-
-```journal
-Y2009  ; set default year to 2009
-
-12/15  ; equivalent to 2009/12/15
-  expenses  1
-  assets
-
-Y2010  ; change default year to 2010
-
-2009/1/30  ; specifies the year, not affected
-  expenses  1
-  assets
-
-1/31   ; equivalent to 2010/1/31
-  expenses  1
-  assets
-```
-
-## Decimal mark
-
-You can use a `decimal-mark` directive - usually one per file, at the
-top of the file - to declare which character represents a decimal mark
-when parsing amounts in this file. It can look like
-```journal
-decimal-mark .
-```
-or
-```journal
-decimal-mark ,
-```
-
-This prevents any [ambiguity](#decimal-marks-digit-group-marks) when
-parsing numbers in the file, so we recommend it, especially if the
-file contains digit group marks (eg thousands separators).
-
-## Commodities
-
-You can use `commodity` directives to declare your commodities.
-In fact the `commodity` directive performs several functions at once:
-
-1. It declares commodities which may be used in the journal.
-   This can optionally be enforced, providing useful error checking.
-   (Cf [Commodity error checking](#commodity-error-checking))
-
-2. It declares which decimal mark character (period or comma), to
-   expect when parsing input - useful to disambiguate international
-   number formats in your data. Without this, hledger will parse both
-   `1,000` and `1.000` as 1. 
-   (Cf [Amounts](#amounts))
-
-3. It declares how to render the commodity's amounts when displaying
-   output - the decimal mark, any digit group marks, the number of
-   decimal places, symbol placement and so on.
-   (Cf [Commodity display style](#commodity-display-style))
-
-You will run into one of the problems solved by commodity directives
-sooner or later, so we recommend using them, for robust and
-predictable parsing and display.
-
-Generally you should put them at the top of your journal file
-(since for function 2, they affect only following amounts,
-cf [#793](https://github.com/simonmichael/hledger/issues/793)).
-
-A commodity directive is just the word `commodity` followed by a
-sample [amount](#amounts), like this:
-
-```journal
-;commodity SAMPLEAMOUNT
-
-commodity $1000.00
-commodity 1,000.0000 AAAA  ; optional same-line comment
-```
-
-It may also be written on multiple lines, and use the `format`
-subdirective, as in Ledger. Note in this case the commodity symbol
-appears twice; it must be the same in both places:
-
-```journal
-;commodity SYMBOL
-;  format SAMPLEAMOUNT
-
-; display indian rupees with currency name on the left,
-; thousands, lakhs and crores comma-separated,
-; period as decimal point, and two decimal places.
-commodity INR
-  format INR 1,00,00,000.00
-```
-
-Remember that if the commodity symbol contains spaces, numbers, or
-punctuation, it must be enclosed in double quotes (cf [Commodity](#commodity)).
-
-The amount's quantity does not matter; only the format is significant.
-It must include a decimal mark - either a period or a comma - followed
-by 0 or more decimal digits.
-
-A few more examples:
-```journal
-# number formats for $, EUR, INR and the no-symbol commodity:
-commodity $1,000.00
-commodity EUR 1.000,00
-commodity INR 9,99,99,999.0
-commodity 1 000 000.
-```
-
-Note hledger normally uses 
-[banker's rounding](https://en.wikipedia.org/wiki/Bankers_rounding), 
-so 0.5 displayed with zero decimal digits is "0". 
-(More at [Commodity display style](#commodity-display-style).)
-
-Even in the presence of commodity directives, the commodity display style 
-can still be [overridden](#commodity-styles) by supplying a command line option.
-
-### Commodity error checking
-
-In [strict mode], enabled with the `-s`/`--strict` flag, hledger will report an error if a
-commodity symbol is used that has not been declared by a [`commodity` directive](#commodities).
-This works similarly to [account error checking](#account-error-checking), see the notes there for more details.
-
-Note, this disallows amounts without a commodity symbol,
-because currently it's not possible (?) to declare the "no-symbol" commodity with a directive.
-This is one exception for convenience: zero amounts are always allowed to have no commodity symbol.
-
-## Default commodity
-
-The `D` directive sets a default commodity, to be used for any
-subsequent commodityless amounts (ie, plain numbers) seen while
-parsing the journal. This effect lasts until the next `D` directive,
-or the end of the journal.
-
-For compatibility/historical reasons, `D` also acts like a [`commodity` directive](#commodities)
-(setting the commodity's decimal mark for parsing and [display style](#amount-display-format) for output).
-
-The syntax is `D AMOUNT`.
-As with `commodity`, the amount must include a decimal mark (either period or comma).
-Eg:
-```journal
-; commodity-less amounts should be treated as dollars
-; (and displayed with the dollar sign on the left, thousands separators and two decimal places)
-D $1,000.00
-
-1/1
-  a     5  ; <- commodity-less amount, parsed as $5 and displayed as $5.00
-  b
-```
-
-If both `commodity` and `D` directives are found for a commodity, 
-`commodity` takes precedence for setting decimal mark and display style.
-
-If you are using `D` and also [checking](#check) commodities, you will need
-to add a `commodity` directive similar to the `D`. 
-(The `hledger check commodities` command expects `commodity` directives, and ignores `D`).
 
 ## Accounts
 
@@ -2437,54 +2133,137 @@ try troubleshooting with the accounts command, eg something like:
 $ hledger accounts --alias assets=bassetts type:a
 ```
 
-## Default parent account
+## Commodities
 
-You can specify a parent account which will be prepended to all accounts
-within a section of the journal. Use the `apply account` and `end apply account`
-directives like so:
+You can use `commodity` directives to declare your commodities.
+In fact the `commodity` directive performs several functions at once:
 
-```journal
-apply account home
+1. It declares commodities which may be used in the journal.
+   This can optionally be enforced, providing useful error checking.
+   (Cf [Commodity error checking](#commodity-error-checking))
 
-2010/1/1
-    food    $10
-    cash
+2. It declares which decimal mark character (period or comma), to
+   expect when parsing input - useful to disambiguate international
+   number formats in your data. Without this, hledger will parse both
+   `1,000` and `1.000` as 1. 
+   (Cf [Amounts](#amounts))
 
-end apply account
-```
-which is equivalent to:
-```journal
-2010/01/01
-    home:food           $10
-    home:cash          $-10
-```
+3. It declares how to render the commodity's amounts when displaying
+   output - the decimal mark, any digit group marks, the number of
+   decimal places, symbol placement and so on.
+   (Cf [Commodity display style](#commodity-display-style))
 
-If `end apply account` is omitted, the effect lasts to the end of the file.
-Included files are also affected, eg:
+You will run into one of the problems solved by commodity directives
+sooner or later, so we recommend using them, for robust and
+predictable parsing and display.
 
-```journal
-apply account business
-include biz.journal
-end apply account
-apply account personal
-include personal.journal
-```
+Generally you should put them at the top of your journal file
+(since for function 2, they affect only following amounts,
+cf [#793](https://github.com/simonmichael/hledger/issues/793)).
 
-Prior to hledger 1.0, legacy `account` and `end` spellings were also supported.
-
-A default parent account also affects [account directives](#account).
-It does not affect account names being entered via hledger add or hledger-web.
-If account aliases are present, they are applied after the default parent account.
-
-## Payees
-
-The `payee` directive can be used to declare a limited set of payees which may appear in transaction descriptions.
-The ["payees" check](#check) will report an error if any transaction refers to a payee that has not been declared.
-Eg:
+A commodity directive is just the word `commodity` followed by a
+sample [amount](#amounts), like this:
 
 ```journal
-payee Whole Foods
+;commodity SAMPLEAMOUNT
+
+commodity $1000.00
+commodity 1,000.0000 AAAA  ; optional same-line comment
 ```
+
+It may also be written on multiple lines, and use the `format`
+subdirective, as in Ledger. Note in this case the commodity symbol
+appears twice; it must be the same in both places:
+
+```journal
+;commodity SYMBOL
+;  format SAMPLEAMOUNT
+
+; display indian rupees with currency name on the left,
+; thousands, lakhs and crores comma-separated,
+; period as decimal point, and two decimal places.
+commodity INR
+  format INR 1,00,00,000.00
+```
+
+Remember that if the commodity symbol contains spaces, numbers, or
+punctuation, it must be enclosed in double quotes (cf [Commodity](#commodity)).
+
+The amount's quantity does not matter; only the format is significant.
+It must include a decimal mark - either a period or a comma - followed
+by 0 or more decimal digits.
+
+A few more examples:
+```journal
+# number formats for $, EUR, INR and the no-symbol commodity:
+commodity $1,000.00
+commodity EUR 1.000,00
+commodity INR 9,99,99,999.0
+commodity 1 000 000.
+```
+
+Note hledger normally uses 
+[banker's rounding](https://en.wikipedia.org/wiki/Bankers_rounding), 
+so 0.5 displayed with zero decimal digits is "0". 
+(More at [Commodity display style](#commodity-display-style).)
+
+Even in the presence of commodity directives, the commodity display style 
+can still be [overridden](#commodity-styles) by supplying a command line option.
+
+### Commodity error checking
+
+In [strict mode], enabled with the `-s`/`--strict` flag, hledger will report an error if a
+commodity symbol is used that has not been declared by a [`commodity` directive](#commodities).
+This works similarly to [account error checking](#account-error-checking), see the notes there for more details.
+
+Note, this disallows amounts without a commodity symbol,
+because currently it's not possible (?) to declare the "no-symbol" commodity with a directive.
+This is one exception for convenience: zero amounts are always allowed to have no commodity symbol.
+
+## Decimal mark
+
+You can use a `decimal-mark` directive - usually one per file, at the
+top of the file - to declare which character represents a decimal mark
+when parsing amounts in this file. It can look like
+```journal
+decimal-mark .
+```
+or
+```journal
+decimal-mark ,
+```
+
+This prevents any [ambiguity](#decimal-marks-digit-group-marks) when
+parsing numbers in the file, so we recommend it, especially if the
+file contains digit group marks (eg thousands separators).
+
+## Include files
+
+You can pull in the content of additional files by writing an include directive, like this:
+
+```journal
+include FILEPATH
+```
+
+Only journal files can include, and only journal, timeclock or timedot files can be included (not CSV files, currently).
+
+If the file path does not begin with a slash, it is relative to the current file's folder. 
+
+A tilde means home directory, eg: `include ~/main.journal`.
+
+The path may contain [glob patterns] to match multiple files, eg: `include *.journal`.
+
+There is limited support for recursive wildcards: `**/` (the slash is required)
+matches 0 or more subdirectories. It's not super convenient since you have to 
+avoid include cycles and including directories, but this can be done, eg:
+`include */**/*.journal`.
+
+The path may also be prefixed to force a specific file format,
+overriding the file extension (as described in
+[hledger.1 -> Input files](#input-files)):
+`include timedot:~/notes/2020*.md`.
+
+[glob patterns]: https://hackage.haskell.org/package/Glob-0.9.2/docs/System-FilePath-Glob.html#v:compile
 
 ## Market prices
 
@@ -2518,116 +2297,15 @@ in another commodity. See [Valuation](#valuation).
 
 <a name="automated-postings"></a>
 
-## Auto postings
+## Payees
 
-"Automated postings" or "auto postings" are extra postings which get
-added automatically to transactions which match certain queries,
-defined by "auto posting rules", when you use the `--auto` flag.
+The `payee` directive can be used to declare a limited set of payees which may appear in transaction descriptions.
+The ["payees" check](#check) will report an error if any transaction refers to a payee that has not been declared.
+Eg:
 
-An auto posting rule looks a bit like a transaction:
 ```journal
-= QUERY
-    ACCOUNT  AMOUNT
-    ...
-    ACCOUNT  [AMOUNT]
+payee Whole Foods
 ```
-except the first line is an equals sign (mnemonic: `=` suggests matching),
-followed by a [query](#queries) (which matches existing postings),
-and each "posting" line describes a posting to be generated, 
-and the posting amounts can be:
-
-- a normal amount with a commodity symbol, eg `$2`. This will be used as-is.
-- a number, eg `2`. The commodity symbol (if any) from the matched
-  posting will be added to this.
-- a numeric multiplier, eg `*2` (a star followed by a number N). The
-  matched posting's amount (and total price, if any) will be
-  multiplied by N.
-- a multiplier with a commodity symbol, eg `*$2` (a star, number N,
-  and symbol S). The matched posting's amount will be multiplied by N,
-  and its commodity symbol will be replaced with S.
-
-Any query term containing spaces must be enclosed in single or double
-quotes, as on the command line. Eg, note the quotes around the second query term below:
-```journal
-= expenses:groceries 'expenses:dining out'
-    (budget:funds:dining out)                 *-1
-```
-
-Some examples:
-```journal
-; every time I buy food, schedule a dollar donation
-= expenses:food
-    (liabilities:charity)   $-1
-
-; when I buy a gift, also deduct that amount from a budget envelope subaccount
-= expenses:gifts
-    assets:checking:gifts  *-1
-    assets:checking         *1
-
-2017/12/1
-  expenses:food    $10
-  assets:checking
-
-2017/12/14
-  expenses:gifts   $20
-  assets:checking
-```
-```shell
-$ hledger print --auto
-2017-12-01
-    expenses:food              $10
-    assets:checking
-    (liabilities:charity)      $-1
-
-2017-12-14
-    expenses:gifts             $20
-    assets:checking
-    assets:checking:gifts     -$20
-    assets:checking            $20
-```
-
-### Auto postings and multiple files
-
-An auto posting rule can affect any transaction in the current file,
-or in any parent file or child file. Note, currently it will not
-affect sibling files (when multiple `-f`/`--file` are used - see
-[#1212](https://github.com/simonmichael/hledger/issues/1212)).
-
-### Auto postings and dates
-
-A [posting date](#posting-dates) (or secondary date) in the matched posting,
-or (taking precedence) a posting date in the auto posting rule itself,
-will also be used in the generated posting.
-
-### Auto postings and transaction balancing / inferred amounts / balance assertions
-
-Currently, auto postings are added:
-
-- after [missing amounts are inferred, and transactions are checked for balancedness](#postings),
-- but before [balance assertions](#balance-assertions) are checked.
-
-Note this means that journal entries must be balanced both before and
-after auto postings are added. This changed in hledger 1.12+; see
-[#893](https://github.com/simonmichael/hledger/issues/893) for
-background.
-
-This also means that you cannot have more than one auto-posting with a missing
-amount applied to a given transaction, as it will be unable to infer amounts.
-
-### Auto posting tags
-
-Automated postings will have some extra [tags](#tags-1):
-
-- `generated-posting:= QUERY`  - shows this was generated by an auto posting rule, and the query
-- `_generated-posting:= QUERY` - a hidden tag, which does not appear in hledger's output.
-                                     This can be used to match postings generated "just now",
-                                     rather than generated in the past and saved to the journal.
-
-Also, any transaction that has been changed by auto posting rules will have these tags added:
-
-- `modified:` - this transaction was modified
-- `_modified:` - a hidden tag not appearing in the comment; this transaction was modified "just now".
-
 
 ## Periodic transactions
 
@@ -2699,6 +2377,359 @@ So,
 
 - Do write two spaces between your period expression and your transaction description, if any.
 - Don't accidentally write two spaces in the middle of your period expression.
+
+## Other syntax
+
+hledger journal format supports quite a few other features,
+mainly to make interoperating with or converting from Ledger easier.
+Note some of the features below are powerful and can be useful in special cases,
+but in general, features in this section are considered less important
+or even not recommended for most users.
+Downsides are mentioned to help you decide if you want to use them.
+
+### Auto postings
+
+"Automated postings" or "auto postings" are extra postings which get
+added automatically to transactions which match certain queries,
+defined by "auto posting rules", when you use the `--auto` flag.
+
+Downsides: depending on generated data for your reports makes
+your financial data less portable, less future-proof,
+and less trustworthy in an audit. Also, because the feature
+is optional, other features like balance assertions can break
+depending on whether it is on or off.
+
+An auto posting rule looks a bit like a transaction:
+```journal
+= QUERY
+    ACCOUNT  AMOUNT
+    ...
+    ACCOUNT  [AMOUNT]
+```
+except the first line is an equals sign (mnemonic: `=` suggests matching),
+followed by a [query](#queries) (which matches existing postings),
+and each "posting" line describes a posting to be generated, 
+and the posting amounts can be:
+
+- a normal amount with a commodity symbol, eg `$2`. This will be used as-is.
+- a number, eg `2`. The commodity symbol (if any) from the matched
+  posting will be added to this.
+- a numeric multiplier, eg `*2` (a star followed by a number N). The
+  matched posting's amount (and total price, if any) will be
+  multiplied by N.
+- a multiplier with a commodity symbol, eg `*$2` (a star, number N,
+  and symbol S). The matched posting's amount will be multiplied by N,
+  and its commodity symbol will be replaced with S.
+
+Any query term containing spaces must be enclosed in single or double
+quotes, as on the command line. Eg, note the quotes around the second query term below:
+```journal
+= expenses:groceries 'expenses:dining out'
+    (budget:funds:dining out)                 *-1
+```
+
+Some examples:
+```journal
+; every time I buy food, schedule a dollar donation
+= expenses:food
+    (liabilities:charity)   $-1
+
+; when I buy a gift, also deduct that amount from a budget envelope subaccount
+= expenses:gifts
+    assets:checking:gifts  *-1
+    assets:checking         *1
+
+2017/12/1
+  expenses:food    $10
+  assets:checking
+
+2017/12/14
+  expenses:gifts   $20
+  assets:checking
+```
+```shell
+$ hledger print --auto
+2017-12-01
+    expenses:food              $10
+    assets:checking
+    (liabilities:charity)      $-1
+
+2017-12-14
+    expenses:gifts             $20
+    assets:checking
+    assets:checking:gifts     -$20
+    assets:checking            $20
+```
+
+#### Auto postings and multiple files
+
+An auto posting rule can affect any transaction in the current file,
+or in any parent file or child file. Note, currently it will not
+affect sibling files (when multiple `-f`/`--file` are used - see
+[#1212](https://github.com/simonmichael/hledger/issues/1212)).
+
+#### Auto postings and dates
+
+A [posting date](#posting-dates) (or secondary date) in the matched posting,
+or (taking precedence) a posting date in the auto posting rule itself,
+will also be used in the generated posting.
+
+#### Auto postings and transaction balancing / inferred amounts / balance assertions
+
+Currently, auto postings are added:
+
+- after [missing amounts are inferred, and transactions are checked for balancedness](#postings),
+- but before [balance assertions](#balance-assertions) are checked.
+
+Note this means that journal entries must be balanced both before and
+after auto postings are added. This changed in hledger 1.12+; see
+[#893](https://github.com/simonmichael/hledger/issues/893) for
+background.
+
+This also means that you cannot have more than one auto-posting with a missing
+amount applied to a given transaction, as it will be unable to infer amounts.
+
+#### Auto posting tags
+
+Automated postings will have some extra [tags](#tags-1):
+
+- `generated-posting:= QUERY`  - shows this was generated by an auto posting rule, and the query
+- `_generated-posting:= QUERY` - a hidden tag, which does not appear in hledger's output.
+                                     This can be used to match postings generated "just now",
+                                     rather than generated in the past and saved to the journal.
+
+Also, any transaction that has been changed by auto posting rules will have these tags added:
+
+- `modified:` - this transaction was modified
+- `_modified:` - a hidden tag not appearing in the comment; this transaction was modified "just now".
+
+
+### Balance assignments
+
+[Ledger-style balance assignments](http://ledger-cli.org/3.0/doc/ledger3.html#Balance-assignments) are also supported.
+These are like [balance assertions](#balance-assertions), but with no posting amount on the left side of the equals sign;
+instead it is calculated automatically so as to satisfy the assertion.
+This can be a convenience during data entry, eg when setting opening balances:
+```journal
+; starting a new journal, set asset account balances
+2016/1/1 opening balances
+  assets:checking            = $409.32
+  assets:savings             = $735.24
+  assets:cash                 = $42
+  equity:opening balances
+```
+or when adjusting a balance to reality:
+```journal
+; no cash left; update balance, record any untracked spending as a generic expense
+2016/1/15
+  assets:cash    = $0
+  expenses:misc
+```
+
+The calculated amount depends on the account's balance in the commodity at that point
+(which depends on the previously-dated postings of the commodity to that account
+since the last balance assertion or assignment).
+
+Downsides: using balance assignments makes your journal less explicit;
+to know the exact amount posted, you have to run hledger or do the
+calculations yourself, instead of just reading it.  Also balance
+assignments' forcing of balances can hide errors.  These things make
+your financial data less portable, less future-proof, and less
+trustworthy in an audit.
+
+#### Balance assignments and prices
+
+A [cost](#costs) in a balance assignment
+will cause the calculated amount to have that price attached:
+
+``` journal
+2019/1/1
+  (a)             = $1 @ €2
+```
+```
+$ hledger print --explicit
+2019-01-01
+    (a)         $1 @ €2 = $1 @ €2
+```
+
+### Bracketed posting dates
+
+For setting [posting dates](#posting-dates) and [secondary posting dates](#secondary-dates),
+Ledger's bracketed date syntax is also supported:
+`[DATE]`, `[DATE=DATE2]` or `[=DATE2]` in posting comments. 
+hledger will attempt to parse any square-bracketed sequence of the
+`0123456789/-.=` characters in this way.
+With this syntax, DATE infers its year from the transaction and DATE2
+infers its year from DATE.
+
+Downsides: another syntax to learn, redundant with hledger's
+`date:`/`date2:` tags, and confusingly similar to Ledger's lot date syntax.
+
+### Default commodity
+
+The `D` directive sets a default commodity, to be used for any
+subsequent commodityless amounts (ie, plain numbers) seen while
+parsing the journal. This effect lasts until the next `D` directive,
+or the end of the journal.
+
+For compatibility/historical reasons, `D` also acts like a [`commodity` directive](#commodities)
+(setting the commodity's decimal mark for parsing and [display style](#amount-display-format) for output).
+
+The syntax is `D AMOUNT`.
+As with `commodity`, the amount must include a decimal mark (either period or comma).
+Eg:
+```journal
+; commodity-less amounts should be treated as dollars
+; (and displayed with the dollar sign on the left, thousands separators and two decimal places)
+D $1,000.00
+
+1/1
+  a     5  ; <- commodity-less amount, parsed as $5 and displayed as $5.00
+  b
+```
+
+If both `commodity` and `D` directives are found for a commodity, 
+`commodity` takes precedence for setting decimal mark and display style.
+
+If you are using `D` and also [checking](#check) commodities, you will need
+to add a `commodity` directive similar to the `D`. 
+(The `hledger check commodities` command expects `commodity` directives, and ignores `D`).
+
+Downsides: omitting commodity symbols
+makes your financial data less explicit, less portable, and less trustworthy in an audit.
+It is usually an unsustainable shortcut; sooner or later you will want to track multiple commodities.
+D is overloaded with functions redundant with `commodity` and `decimal mark`.
+And it works differently from Ledger's `D`.
+
+### Default parent account
+
+The `apply account` directive sets a parent account which will be prepended
+to all accounts in following entries, until an `end apply account` directive
+or end of current file.
+Eg:
+
+```journal
+apply account home
+
+2010/1/1
+    food    $10
+    cash
+
+end apply account
+```
+
+is equivalent to:
+```journal
+2010/01/01
+    home:food           $10
+    home:cash          $-10
+```
+
+`account` directives are also affected, and so is any `include`d content.
+
+Account names entered via hledger add or hledger-web are not affected.
+
+Account aliases, if any, are applied after the parent account is prepended.
+
+Downsides: this can make your financial data less explicit, less portable,
+and less trustworthy in an audit.
+
+### Default year
+
+You can set a default year to be used for subsequent dates which don't
+specify a year. This is a line beginning with `Y` followed by the year. Eg:
+
+```journal
+Y2009  ; set default year to 2009
+
+12/15  ; equivalent to 2009/12/15
+  expenses  1
+  assets
+
+Y2010  ; change default year to 2010
+
+2009/1/30  ; specifies the year, not affected
+  expenses  1
+  assets
+
+1/31   ; equivalent to 2010/1/31
+  expenses  1
+  assets
+```
+
+Downsides: 
+omitting the year (from primary transaction dates, at least) 
+makes your financial data less explicit, less portable, and less trustworthy in an audit.
+Such dates can get separated from their corresponding Y directive,
+eg when evaluating a region of the journal in your editor.
+A missing Y directive makes reports dependent on today's date.
+
+### Secondary dates
+
+A secondary date is written after the primary date, following an
+equals sign. If the year is omitted, the primary date's year is
+assumed. When running reports, the primary (left) date is used by
+default, but with the `--date2` flag (or `--aux-date` or
+`--effective`), the secondary (right) date will be used instead.
+
+The meaning of secondary dates is up to you, but it's best to follow a
+consistent rule.  Eg "primary = the bank's clearing date, secondary =
+date the transaction was initiated, if different".
+
+Downsides: makes your financial data more complicated, less portable,
+and less trustworthy in an audit. Keeping the meaning of the two dates
+consistent requires discipline, and you have to remember which
+reporting mode is appropriate for a given report.
+[Posting dates](#posting-dates) are simpler and better.
+
+### Star comments
+
+Lines beginning with `*` (star/asterisk) are also comment lines. 
+This feature allows Emacs users to insert org headings in their journal,
+allowing them to fold/unfold/navigate it like an outline when viewed with org mode.
+
+Downsides: another, unconventional comment syntax to learn.
+Decreases your journal's portability.
+And switching to Emacs org mode just for folding/unfolding meant losing the benefits of ledger mode;
+nowadays you can add outshine mode to ledger mode to get folding
+without losing ledger mode's features.
+
+### Virtual postings
+
+A posting with parentheses around the account name is called a *virtual posting* or *unbalanced posting*,
+which means it is exempt from the usual rule that a transaction's postings must balance add up to zero.
+
+This is not part of double entry bookkeeping, so you might choose to avoid this feature.
+Or you can use it sparingly for certain special cases where it can be convenient.
+Eg, you could set opening balances without using a balancing equity account:
+
+```journal
+2022-01-01 opening balances
+  (assets:checking)   $1000
+  (assets:savings)    $2000
+```
+
+A posting with brackets around the account name is called a *balanced virtual posting*.
+The balanced virtual postings in a transaction must add up to zero (separately from other postings).
+Eg:
+
+```journal
+2022-01-01 buy food with cash, update budget envelope subaccounts, & something else
+  assets:cash                    $-10  ; <- these balance each other
+  expenses:food                    $7  ; <-
+  expenses:food                    $3  ; <-
+  [assets:checking:budget:food]  $-10  ;   <- and these balance each other
+  [assets:checking:available]     $10  ;   <-
+  (something:else)                 $5  ;     <- this is not required to balance
+```
+
+Postings whose account names are neither parenthesised nor bracketed are called *real postings*.
+You can exclude virtual postings from reports with the `-R/--real` flag or a `real:1` query.
+
+Downsides: violates double entry bookkeeping, 
+can be used to avoid figuring out correct entries,
+makes your financial data less portable and less trustworthy in an audit.
+
 
 # CSV
 
