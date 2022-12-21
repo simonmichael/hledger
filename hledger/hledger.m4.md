@@ -796,7 +796,7 @@ end comment
 
 ###############################################################################
 # 2. Directives modify parsing or reports in some way.
-# They begin with a word or letter (or ~ or =).
+# They begin with a word or letter (or symbol).
 
 account actifs     ; type:A, declare an account that is an Asset. 2+ spaces before ;.
 account passifs    ; type:L, declare an account that is a Liability, and so on.. (ALERX)
@@ -809,7 +809,7 @@ P 2022-01-01 AAAA $1.40
 ~ monthly    budget goals  ; <- 2+ spaces between period expression and description
     expenses:food       $400
     expenses:home      $1000
-    assets:checking
+    budgeted
 
 ###############################################################################
 # 3. Transactions are what it's all about; they are dated events,
