@@ -769,6 +769,111 @@ $ LANG=en_US.UTF-8 hledger -f my.journal print
 # Journal
 
 hledger's default file format, representing a General Journal.
+Here's a cheatsheet/mini-tutorial,
+or you can skip ahead to [About journal format](#about-journal-format).
+
+## Journal cheatsheet
+
+<!-- keep synced with hledger/test/ledger-compat/syntax/supported.test -->
+```journal
+# Here is the main syntax of hledger's journal format
+# (omitting extra Ledger compatibility syntax).
+# hledger journals contain comments, directives, and transactions, in any order:
+
+###############################################################################
+# 1. Comment lines are for notes or temporarily disabling things.
+# They begin with #, ;, or a line containing the word "comment".
+
+# hash comment line
+; semicolon comment line
+comment
+These lines
+are commented.
+end comment
+
+# Some but not all hledger entries can have same-line comments attached to them,
+# from ; (semicolon) to end of line.
+
+###############################################################################
+# 2. Directives modify parsing or reports in some way.
+# They begin with a word or letter (or ~ or =).
+
+account actifs     ; type:A, declare an account that is an Asset. 2+ spaces before ;.
+account passifs    ; type:L, declare an account that is a Liability, and so on.. (ALERX)
+alias chkg = assets:checking
+commodity $0.00
+D $0.00
+decimal-mark .
+include /dev/null
+payee Whole Foods
+P 2022-01-01 AAAA $1.40
+Y 2022
+= food
+~ monthly
+
+###############################################################################
+# 3. Transactions are what it's all about; they are dated events,
+# usually describing movements of money.
+# They begin with a date.
+
+# DATE DESCRIPTION           ; This is a transaction comment.
+#   ACCOUNT NAME 1  AMOUNT1  ; <- posting 1. This is a posting comment.
+#   ACCOUNT NAME 2  AMOUNT2  ; <- posting 2. Postings must be idented.
+#               ; ^^ At least 2 spaces between account and amount.
+#   ...  ; Any number of postings is allowed. The amounts must balance (sum to 0).
+
+2022-01-01 opening balances are declared this way
+    assets:checking          $1000  ; Account names can be anything. lower case is easy to type.
+    assets:savings           $1000  ; assets, liabilities, equity, revenues, expenses are common.
+    assets:cash:wallet        $100  ; : indicates subaccounts.
+    liabilities:credit card  $-200  ; liabilities, equity, revenues balances are usually negative.
+    equity                          ; One amount can be left blank; $-1900 is inferred here.
+
+2022-04-15 * (#12345) pay taxes
+    ; There can be a ! or * after the date meaning "pending" or "cleared".
+    ; There can be a transaction code (text in parentheses) after the date/status.
+    ; Amounts' sign represents direction of flow, or credit/debit:
+    assets:checking          $-500  ; minus means removed from this account (credit)
+    expenses:tax:us:2021      $500  ; plus  means added to this account (debit)
+                                    ; revenue/expense categories are also "accounts"
+
+2022-01-01 Whole Foods | payee name and description can be separated by a pipe char
+    ; Transaction or posting comments can contain searchable tags,
+    ; written NAME: or NAME:VALUE (value ends at comma or end of line).
+    ; Here's tag1:with a value, and an empty tag2:
+    ; A few tags have special meaning. A "date:" tag on a posting adjusts its date.
+    assets:checking           $-50  ; date:2022-01-03, checking cleared two days later
+    expenses:food
+
+2022-01-01                          ; The description is optional.
+    ; Any currency/commodity symbols are allowed, on either side.
+    assets:cash:wallet     GBP -10
+    expenses:clothing       GBP 10
+    assets:gringotts           -10 gold
+    assets:pouch                10 gold
+    revenues:gifts              -2 "Liquorice Wands"  ; Symbols containing unusual characters
+    assets:bag                   2 "Liquorice Wands"  ; must be double-quoted.
+
+2022-01-01 Cost in another commodity can be noted with @ or @@
+    assets:investments           2.0 AAAA @ $1.50  ; @  means per-unit cost
+    assets:investments           3.0 AAAA @@ $4    ; @@ means total cost
+    assets:checking            $-7.00
+
+2022-01-02 assert balances
+    ; Balances can be asserted for extra error checking, in any transaction.
+    assets:investments           0 AAAA = 5.0 AAAA
+    assets:pouch                 0 gold = 10 gold
+    assets:savings              $0      = $1000
+
+1999-12-31 Ordering transactions by date is recommended but not required.
+    ; Postings are not required.
+
+2022.01.01 These date
+2022/1/1   formats are
+12/31      also allowed (but consistent YYYY-MM-DD is recommended).
+```
+
+## About journal format
 
 hledger's usual data source is a plain text file containing journal entries in hledger journal format.
 This file represents a standard accounting [general journal](http://en.wikipedia.org/wiki/General_journal).
