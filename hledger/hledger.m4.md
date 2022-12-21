@@ -802,14 +802,14 @@ account actifs     ; type:A, declare an account that is an Asset. 2+ spaces befo
 account passifs    ; type:L, declare an account that is a Liability, and so on.. (ALERX)
 alias chkg = assets:checking
 commodity $0.00
-D $0.00
 decimal-mark .
 include /dev/null
 payee Whole Foods
 P 2022-01-01 AAAA $1.40
-Y 2022
-= food
-~ monthly
+~ monthly    budget goals  ; <- 2+ spaces between period expression and description
+    expenses:food       $400
+    expenses:home      $1000
+    assets:checking
 
 ###############################################################################
 # 3. Transactions are what it's all about; they are dated events,
