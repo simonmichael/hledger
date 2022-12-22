@@ -4362,7 +4362,7 @@ earliest or latest transaction in your journal:
 |                      |                                   |
 |----------------------|-----------------------------------|
 | `-p "from 2009/1/1"` | everything after january 1, 2009  |
-| `-p "from 2009/1"`   | the same                          |
+| `-p "since 2009/1"`  | the same, since is a synonym      |
 | `-p "from 2009"`     | the same                          |
 | `-p "to 2009"`       | everything before january 1, 2009 |
 

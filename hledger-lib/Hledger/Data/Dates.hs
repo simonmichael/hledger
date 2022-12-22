@@ -904,6 +904,8 @@ weekdaysp = fmap head . group . sort <$> sepBy1 weekday (string' ",")
 -- Right (DayOfYear 11 29,DateSpan 2009-01-01..)
 -- >>> p "every 11/29 from 2009"
 -- Right (DayOfYear 11 29,DateSpan 2009-01-01..)
+-- >>> p "every 11/29 since 2009"
+-- Right (DayOfYear 11 29,DateSpan 2009-01-01..)
 -- >>> p "every 2nd Thursday of month to 2009"
 -- Right (WeekdayOfMonth 2 4,DateSpan ..2008-12-31)
 -- >>> p "every 1st monday of month to 2009"
@@ -1004,7 +1006,7 @@ periodexprdatespanp rdate = choice $ map try [
 -- Right DateSpan 2017
 doubledatespanp :: Day -> TextParser m DateSpan
 doubledatespanp rdate = liftA2 fromToSpan
-    (optional (string' "from" *> skipNonNewlineSpaces) *> smartdate)
+    (optional ((string' "from" <|> string' "since") *> skipNonNewlineSpaces) *> smartdate)
     (skipNonNewlineSpaces *> choice [string' "to", string "..", string "-"]
     *> skipNonNewlineSpaces *> smartdate)
   where
@@ -1027,7 +1029,7 @@ quarterdatespanp rdate = do
 
 fromdatespanp :: Day -> TextParser m DateSpan
 fromdatespanp rdate = fromSpan <$> choice
-    [ string' "from" *> skipNonNewlineSpaces *> smartdate
+    [ (string' "from" <|> string' "since") *> skipNonNewlineSpaces *> smartdate
     , smartdate <* choice [string "..", string "-"]
     ]
   where
