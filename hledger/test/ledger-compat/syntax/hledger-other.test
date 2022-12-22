@@ -59,6 +59,9 @@ tag Receipt
   check value =~ /pattern/
   assert value != "foobar"
 value some_func
+python
+  import os
+eval foo
 --command-line-flag
 
 $ hledger -f- check

@@ -248,8 +248,10 @@ directivep = (do
    ,commoditydirectivep
    ,commodityconversiondirectivep
    ,definedirectivep
+   ,evaldirectivep
    ,exprdirectivep
    ,payeedirectivep
+   ,pythondirectivep
    ,decimalmarkdirectivep
    ,defaultyeardirectivep
    ,defaultcommoditydirectivep
@@ -528,7 +530,8 @@ formatdirectivep expectedsym = do
 -- apply fixed, apply tag, assert, bucket, A, capture, check, define, expr
 applyfixeddirectivep, applytagdirectivep, assertdirectivep, bucketdirectivep,
   capturedirectivep, checkdirectivep, definedirectivep, exprdirectivep,
-  valuedirectivep, commandlineflagdirectivep :: JournalParser m ()
+  valuedirectivep, pythondirectivep, evaldirectivep, commandlineflagdirectivep
+  :: JournalParser m ()
 applyfixeddirectivep = do string "apply fixed" >> lift restofline >> return ()
 applytagdirectivep   = do string "apply tag" >> lift restofline >> return ()
 assertdirectivep     = do string "assert"  >> lift restofline >> return ()
@@ -538,6 +541,10 @@ checkdirectivep      = do string "check"   >> lift restofline >> return ()
 definedirectivep     = do string "define"  >> lift restofline >> return ()
 exprdirectivep       = do string "expr"    >> lift restofline >> return ()
 valuedirectivep      = do string "value"   >> lift restofline >> return ()
+pythondirectivep      = do string "python" >> lift restofline >> many (indented $ lift restofline) >> return ()
+  where
+    indented = (lift skipNonNewlineSpaces1 >>)
+evaldirectivep      = do string "eval"   >> lift restofline >> return ()
 commandlineflagdirectivep = do string "--" >> lift restofline >> return ()
 
 keywordp :: String -> JournalParser m ()

@@ -2751,6 +2751,8 @@ define  VAR=EXPR
 expr    EXPR
 tag     NAME
 value   EXPR
+python
+eval    EXPR
 --command-line-flag
 ```
 
