@@ -519,7 +519,9 @@ FUNCTESTEXE ?= `$(STACK) exec -- which hledger`
 functest: hledger/test/addons/hledger-addon \
 	$(call def-help,functest, build hledger quickly and quietly run the functional tests (and some unit tests) )
 	@$(STACK) build --fast hledger
-	@($(SHELLTESTSTK) --hide-successes -w $(FUNCTESTEXE) hledger/test/ bin/ \
+	@($(SHELLTESTSTK) --hide-successes -w $(FUNCTESTEXE) \
+		hledger/test/ bin/ \
+		-x ledger-compat/baseline -x ledger-compat/regress -x ledger-compat/collected \
 		&& echo $@ PASSED) || (echo $@ FAILED; false)
 
 functest-%: hledger/test/addons/hledger-addon \
