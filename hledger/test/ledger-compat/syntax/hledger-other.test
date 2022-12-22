@@ -33,3 +33,16 @@ $ hledger -f- check
     (budget:food)  *-1
 
 $ hledger -f- check
+
+# `Y`/`year` set the year for year-less dates
+<
+Y 1111
+1/1
+year 2222
+2/2
+$ hledger -f- print
+1111-01-01
+
+2222-02-02
+
+>=

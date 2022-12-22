@@ -2641,7 +2641,7 @@ and less trustworthy in an audit.
 ### Default year
 
 You can set a default year to be used for subsequent dates which don't
-specify a year. This is a line beginning with `Y` followed by the year. Eg:
+specify a year. This is a line beginning with `Y` or `year` followed by the year. Eg:
 
 ```journal
 Y2009  ; set default year to 2009
@@ -2650,7 +2650,7 @@ Y2009  ; set default year to 2009
   expenses  1
   assets
 
-Y2010  ; change default year to 2010
+year 2010  ; change default year to 2010
 
 2009/1/30  ; specifies the year, not affected
   expenses  1

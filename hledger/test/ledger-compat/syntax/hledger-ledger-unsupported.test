@@ -130,13 +130,6 @@ $ hledger -f- check
 >2//
 >=1
 
-# `year`/`Y` set the year for year-less dates
-<
-year 2022
-$ hledger -f- check
->2//
->=1
-
 # `C AMT1 = AMT2` declare a commodity equivalency
 <
 C $ 1 USD
@@ -151,3 +144,7 @@ o 2013/04/05 13:30:00
 $ hledger -f- check
 >2//
 >=1
+
+# amount expressions
+
+# lot notation

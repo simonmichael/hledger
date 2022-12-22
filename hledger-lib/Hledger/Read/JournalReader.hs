@@ -575,7 +575,7 @@ payeedirectivep = do
 
 defaultyeardirectivep :: JournalParser m ()
 defaultyeardirectivep = do
-  char 'Y' <?> "default year"
+  (string "Y" <|> string "year") <?> "default year"
   lift skipNonNewlineSpaces
   setYear =<< lift yearp
 
