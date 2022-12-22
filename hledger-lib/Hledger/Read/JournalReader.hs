@@ -578,6 +578,7 @@ tagdirectivep = do
   lift skipNonNewlineSpaces1
   _ <- lift $ some nonspace
   lift restofline
+  skipMany indentedlinep
   return ()
 
 endtagdirectivep :: JournalParser m ()

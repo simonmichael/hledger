@@ -55,6 +55,9 @@ check 1
 define var_name=$100
 expr 1
 N USD
+tag Receipt
+  check value =~ /pattern/
+  assert value != "foobar"
 --command-line-flag
 
 $ hledger -f- check
