@@ -2741,15 +2741,17 @@ These other Ledger directives are currently ignored:
 
 ```journal
 apply fixed COMM AMT
-end apply fixed
 apply tag TAG
-end apply tag
 assert  EXPR
 A       ACCT
 bucket  ACCT
 capture ACCT REGEX
 check   EXPR
 define  VAR=EXPR
+end apply fixed
+end apply tag
+end apply year
+end tag
 expr    EXPR
 tag     NAME
 value   EXPR

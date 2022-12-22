@@ -237,11 +237,8 @@ directivep = (do
    ,endaliasesdirectivep
    ,accountdirectivep
    ,applyaccountdirectivep
-   ,endapplyaccountdirectivep
    ,applyfixeddirectivep
-   ,endapplyfixeddirectivep
    ,applytagdirectivep
-   ,endapplytagdirectivep
    ,assertdirectivep
    ,bucketdirectivep
    ,capturedirectivep
@@ -249,17 +246,21 @@ directivep = (do
    ,commandlineflagdirectivep
    ,commoditydirectivep
    ,commodityconversiondirectivep
-   ,definedirectivep
-   ,evaldirectivep
-   ,exprdirectivep
-   ,payeedirectivep
-   ,pythondirectivep
    ,decimalmarkdirectivep
    ,defaultyeardirectivep
    ,defaultcommoditydirectivep
-   ,ignoredpricecommoditydirectivep
-   ,tagdirectivep
+   ,definedirectivep
+   ,endapplyaccountdirectivep
+   ,endapplyfixeddirectivep
+   ,endapplytagdirectivep
+   ,endapplyyeardirectivep
    ,endtagdirectivep
+   ,evaldirectivep
+   ,exprdirectivep
+   ,ignoredpricecommoditydirectivep
+   ,payeedirectivep
+   ,pythondirectivep
+   ,tagdirectivep
    ,valuedirectivep
    ]
   ) <?> "directive"
@@ -532,24 +533,25 @@ formatdirectivep expectedsym = do
 -- apply fixed, apply tag, assert, bucket, A, capture, check, define, expr
 applyfixeddirectivep, endapplyfixeddirectivep, applytagdirectivep, endapplytagdirectivep,
   assertdirectivep, bucketdirectivep, capturedirectivep, checkdirectivep, 
-  definedirectivep, exprdirectivep, valuedirectivep, pythondirectivep, 
-  evaldirectivep, commandlineflagdirectivep
+  endapplyyeardirectivep, definedirectivep, exprdirectivep, valuedirectivep,
+  evaldirectivep, pythondirectivep, commandlineflagdirectivep
   :: JournalParser m ()
-applyfixeddirectivep = do string "apply fixed" >> lift restofline >> return ()
+applyfixeddirectivep    = do string "apply fixed" >> lift restofline >> return ()
 endapplyfixeddirectivep = do string "end apply fixed" >> lift restofline >> return ()
-applytagdirectivep   = do string "apply tag" >> lift restofline >> return ()
+applytagdirectivep      = do string "apply tag" >> lift restofline >> return ()
 endapplytagdirectivep   = do string "end apply tag" >> lift restofline >> return ()
-assertdirectivep     = do string "assert"  >> lift restofline >> return ()
-bucketdirectivep     = do string "A " <|> string "bucket " >> lift restofline >> return ()
-capturedirectivep    = do string "capture" >> lift restofline >> return ()
-checkdirectivep      = do string "check"   >> lift restofline >> return ()
-definedirectivep     = do string "define"  >> lift restofline >> return ()
-exprdirectivep       = do string "expr"    >> lift restofline >> return ()
-valuedirectivep      = do string "value"   >> lift restofline >> return ()
-pythondirectivep      = do string "python" >> lift restofline >> many (indented $ lift restofline) >> return ()
+endapplyyeardirectivep  = do string "end apply year" >> lift restofline >> return ()
+assertdirectivep        = do string "assert"  >> lift restofline >> return ()
+bucketdirectivep        = do string "A " <|> string "bucket " >> lift restofline >> return ()
+capturedirectivep       = do string "capture" >> lift restofline >> return ()
+checkdirectivep         = do string "check"   >> lift restofline >> return ()
+definedirectivep        = do string "define"  >> lift restofline >> return ()
+exprdirectivep          = do string "expr"    >> lift restofline >> return ()
+valuedirectivep         = do string "value"   >> lift restofline >> return ()
+evaldirectivep          = do string "eval"   >> lift restofline >> return ()
+pythondirectivep        = do string "python" >> lift restofline >> many (indented $ lift restofline) >> return ()
   where
     indented = (lift skipNonNewlineSpaces1 >>)
-evaldirectivep      = do string "eval"   >> lift restofline >> return ()
 commandlineflagdirectivep = do string "--" >> lift restofline >> return ()
 
 keywordp :: String -> JournalParser m ()
@@ -596,11 +598,17 @@ tagdirectivep = do
   skipMany indentedlinep
   return ()
 
+-- end tag or end apply tag
 endtagdirectivep :: JournalParser m ()
-endtagdirectivep = do
-  (keywordsp "end tag" <|> keywordp "pop") <?> "end tag or pop directive"
-  lift restofline
+endtagdirectivep = (do
+  string "end"
+  lift skipNonNewlineSpaces1
+  optional $ string "apply" >> lift skipNonNewlineSpaces1
+  string "tag"
+  lift skipNonNewlineSpaces
+  eol
   return ()
+  ) <?> "end tag or end apply tag directive"
 
 payeedirectivep :: JournalParser m ()
 payeedirectivep = do
@@ -1118,7 +1126,7 @@ tests_JournalReader = testGroup "JournalReader" [
 
   ,testCase "endtagdirectivep" $ do
       assertParse endtagdirectivep "end tag \n"
-      assertParse endtagdirectivep "pop \n"
+      assertParse endtagdirectivep "end apply tag \n"
 
   ,testGroup "journalp" [
     testCase "empty file" $ assertParseEqE journalp "" nulljournal
