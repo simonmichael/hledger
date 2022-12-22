@@ -2750,6 +2750,7 @@ check   EXPR
 define  VAR=EXPR
 expr    EXPR
 tag     NAME
+value   EXPR
 --command-line-flag
 ```
 
