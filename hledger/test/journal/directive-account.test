@@ -55,6 +55,19 @@ Balance Sheet 2018-01-01
  asset:a     ||         -1 
  b           ||         -2 
 
+# 4. It ignores subdirectives.
+<
+account Expenses:Food
+    note This account is all about the chicken!
+    alias food
+    payee ^(KFC|Popeyes)$
+    check commodity == "$"
+    assert commodity == "$"
+    eval print("Hello!")
+    default
+$ hledger -f- accounts
+Expenses:Food
+
 # TODO
 # a trailing : should give a clear error
 # 2009/1/1
