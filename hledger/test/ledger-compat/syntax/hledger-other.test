@@ -1,0 +1,35 @@
+# hledger journal "other"/legacy syntax                         -*- ledger -*-
+# keep synced with hledger.m4.md
+
+# `apply account` set a default parent account
+<
+apply account per
+
+2022-01-01
+    expenses:food      1   ; parsed as per:expenses:food
+    assets:cash            ; parsed as per:assets:cash
+
+end apply account
+$ hledger -f- check
+
+# `D AMT` set a default commodity and its format
+<
+D $0.0
+$ hledger -f- check
+
+# `N COMM` ignore pricing information for a commodity (ignored)
+<
+N USD
+$ hledger -f- check
+
+# star comment line
+<
+*
+$ hledger -f- check
+
+# `=` An automated transaction
+<
+= expenses:food
+    (budget:food)  *-1
+
+$ hledger -f- check
