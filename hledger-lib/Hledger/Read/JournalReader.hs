@@ -239,7 +239,9 @@ directivep = (do
    ,applyaccountdirectivep
    ,endapplyaccountdirectivep
    ,applyfixeddirectivep
+   ,endapplyfixeddirectivep
    ,applytagdirectivep
+   ,endapplytagdirectivep
    ,assertdirectivep
    ,bucketdirectivep
    ,capturedirectivep
@@ -528,12 +530,15 @@ formatdirectivep expectedsym = do
 
 -- More Ledger directives, ignore for now:
 -- apply fixed, apply tag, assert, bucket, A, capture, check, define, expr
-applyfixeddirectivep, applytagdirectivep, assertdirectivep, bucketdirectivep,
-  capturedirectivep, checkdirectivep, definedirectivep, exprdirectivep,
-  valuedirectivep, pythondirectivep, evaldirectivep, commandlineflagdirectivep
+applyfixeddirectivep, endapplyfixeddirectivep, applytagdirectivep, endapplytagdirectivep,
+  assertdirectivep, bucketdirectivep, capturedirectivep, checkdirectivep, 
+  definedirectivep, exprdirectivep, valuedirectivep, pythondirectivep, 
+  evaldirectivep, commandlineflagdirectivep
   :: JournalParser m ()
 applyfixeddirectivep = do string "apply fixed" >> lift restofline >> return ()
+endapplyfixeddirectivep = do string "end apply fixed" >> lift restofline >> return ()
 applytagdirectivep   = do string "apply tag" >> lift restofline >> return ()
+endapplytagdirectivep   = do string "end apply tag" >> lift restofline >> return ()
 assertdirectivep     = do string "assert"  >> lift restofline >> return ()
 bucketdirectivep     = do string "A " <|> string "bucket " >> lift restofline >> return ()
 capturedirectivep    = do string "capture" >> lift restofline >> return ()

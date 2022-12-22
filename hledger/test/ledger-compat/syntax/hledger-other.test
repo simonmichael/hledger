@@ -35,17 +35,23 @@ Y 1111
 1/1
 year 2222
 2/2
+apply year 3333
+3/3
 $ hledger -f- print
 1111-01-01
 
 2222-02-02
+
+3333-03-03
 
 >=
 
 # ignored directives
 <
 apply fixed CAD $0.90
+end apply fixed
 apply tag tag1:val1
+end apply tag
 assert 1
 bucket Assets:Checking
 A Assets:Checking

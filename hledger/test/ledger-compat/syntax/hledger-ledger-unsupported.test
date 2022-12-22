@@ -9,8 +9,10 @@ $ hledger -f- check
 >2//
 >=1
 
-# `end` close block commands like `apply` or `comment` (ignores any words after "end")
+# Just `end` or `end apply` as shorthand for closing the most recent "apply FOO".
 <
+apply account a
+end apply
 apply account a
 end
 $ hledger -f- check

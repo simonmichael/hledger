@@ -2741,7 +2741,9 @@ These other Ledger directives are currently ignored:
 
 ```journal
 apply fixed COMM AMT
+end apply fixed
 apply tag TAG
+end apply tag
 assert  EXPR
 A       ACCT
 bucket  ACCT
