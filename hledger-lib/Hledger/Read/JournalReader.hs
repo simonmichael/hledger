@@ -230,7 +230,7 @@ addJournalItemP =
 -- http://ledger-cli.org/3.0/doc/ledger3.html#Command-Directives
 directivep :: MonadIO m => ErroringJournalParser m ()
 directivep = (do
-  optional $ char '!'
+  optional $ oneOf ['!','@']
   choice [
     includedirectivep
    ,aliasdirectivep
