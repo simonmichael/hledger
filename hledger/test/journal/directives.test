@@ -18,10 +18,24 @@ a:b
 aa:b
 c
 
+# Y, year directives
 <
 Y 1111
 1/1
 year 2222
+2/2
+$ hledger -f- print
+1111-01-01
+
+2222-02-02
+
+>=
+
+# Legacy ! and @ prefixes are accepted.
+<
+!Y 1111
+1/1
+@year 2222
 2/2
 $ hledger -f- print
 1111-01-01
