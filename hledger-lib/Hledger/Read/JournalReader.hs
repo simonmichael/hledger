@@ -821,7 +821,7 @@ postingphelper isPostingRule mTransactionYear = do
     let (ptype, account') = (accountNamePostingType account, textUnbracket account)
     lift skipNonNewlineSpaces
     mult <- if isPostingRule then multiplierp else pure False
-    amt <- optional $ amountpwithmultiplier mult
+    amt <- optional $ amountp' mult
     lift skipNonNewlineSpaces
     massertion <- optional balanceassertionp
     lift skipNonNewlineSpaces
