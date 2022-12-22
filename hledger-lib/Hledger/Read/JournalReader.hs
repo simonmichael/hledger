@@ -549,10 +549,14 @@ definedirectivep        = do string "define"  >> lift restofline >> return ()
 exprdirectivep          = do string "expr"    >> lift restofline >> return ()
 valuedirectivep         = do string "value"   >> lift restofline >> return ()
 evaldirectivep          = do string "eval"   >> lift restofline >> return ()
-pythondirectivep        = do string "python" >> lift restofline >> many (indented $ lift restofline) >> return ()
-  where
-    indented = (lift skipNonNewlineSpaces1 >>)
 commandlineflagdirectivep = do string "--" >> lift restofline >> return ()
+pythondirectivep = do
+  string "python" >> lift restofline
+  many $ indentedline <|> blankline
+  return ()
+  where
+    indentedline = lift skipNonNewlineSpaces1 >> lift restofline
+    blankline = lift skipNonNewlineSpaces >> newline >> return "" <?> "blank line"
 
 keywordp :: String -> JournalParser m ()
 keywordp = void . string . fromString
