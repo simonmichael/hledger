@@ -64,10 +64,13 @@ $ hledger -f - commodities
 >2 /unexpected 'f'/
 >=1
 
-# 10 it rejects unrecognised subdirectives (should be permissive like account, TODO)
+# 10 it ignores unrecognised subdirectives
 <
-commodity A
-  note a a
+commodity USD
+   note American Dollars
+   format USD 1,000.00
+   nomarket
+   alias DOLLARS
+   default
 $ hledger -f - commodities
->2 /expecting "format"/
->=1
+USD

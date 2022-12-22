@@ -2186,6 +2186,8 @@ commodity INR
   format INR 1,00,00,000.00
 ```
 
+Any indented subdirectives other than `format` are currently ignored.
+
 Remember that if the commodity symbol contains spaces, numbers, or
 punctuation, it must be enclosed in double quotes (cf [Commodity](#commodity)).
 

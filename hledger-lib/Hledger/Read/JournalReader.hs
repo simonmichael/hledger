@@ -79,7 +79,7 @@ import Control.Monad.Except (ExceptT(..), runExceptT)
 import Control.Monad.State.Strict (evalStateT,get,modify',put)
 import Control.Monad.Trans.Class (lift)
 import Data.Char (toLower)
-import Data.Either (isRight)
+import Data.Either (isRight, lefts)
 import qualified Data.Map.Strict as M
 import Data.Text (Text)
 import Data.String
@@ -489,7 +489,9 @@ commoditydirectivemultilinep = do
   lift skipNonNewlineSpaces1
   sym <- lift commoditysymbolp
   _ <- lift followingcommentp
-  mfmt <- lastMay <$> many (indented $ formatdirectivep sym)
+  -- read all subdirectives, saving format subdirectives as Lefts
+  subdirectives <- many $ indented (eitherP (formatdirectivep sym) (lift restofline))
+  let mfmt = lastMay $ lefts subdirectives
   let comm = Commodity{csymbol=sym, cformat=mfmt}
   modify' (\j -> j{jcommodities=M.insert sym comm $ jcommodities j})
   where
