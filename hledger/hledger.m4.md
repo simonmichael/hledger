@@ -818,7 +818,7 @@ P 2022-01-01 AAAA $1.40
 
 # DATE DESCRIPTION           ; This is a transaction comment.
 #   ACCOUNT NAME 1  AMOUNT1  ; <- posting 1. This is a posting comment.
-#   ACCOUNT NAME 2  AMOUNT2  ; <- posting 2. Postings must be idented.
+#   ACCOUNT NAME 2  AMOUNT2  ; <- posting 2. Postings must be indented.
 #               ; ^^ At least 2 spaces between account and amount.
 #   ...  ; Any number of postings is allowed. The amounts must balance (sum to 0).
 
@@ -851,7 +851,7 @@ P 2022-01-01 AAAA $1.40
     expenses:clothing       GBP 10
     assets:gringotts           -10 gold
     assets:pouch                10 gold
-    revenues:gifts              -2 "Liquorice Wands"  ; Symbols containing unusual characters
+    revenues:gifts              -2 "Liquorice Wands"  ; Complex symbols
     assets:bag                   2 "Liquorice Wands"  ; must be double-quoted.
 
 2022-01-01 Cost in another commodity can be noted with @ or @@
