@@ -32,61 +32,6 @@ $ hledger -f- accounts   # -> both account names printed, alias did not work
 Expenses:Food
 food
 
-# `apply fixed` set fixated prices
-<
-apply fixed CAD $0.90
-$ hledger -f- check
->2//
->=1
-
-# `assert` test a value expression
-<
-assert 1
-$ hledger -f- check
->2//
->=1
-
-# `bucket`/`A` set a default balancing account
-<
-bucket Assets:Checking
-A Assets:Checking
-$ hledger -f- check
->2//
->=1
-
-# `capture` replace accounts matched by regex with another
-<
-capture Expenses:Deductible:Medical Medical
-$ hledger -f- check
->2//
->=1
-
-# `check` test a value expression
-<
-check 1
-$ hledger -f- check
->2//
->=1
-
-# `commodity` subdirectives
-<
-commodity $
-   note American Dollars
-   format $1,000.00
-   nomarket
-   alias USD
-   default
-$ hledger -f- check
->2//
->=1
-
-# `define` define value expressions for future use
-<
-define var_name=$100
-$ hledger -f- check
->2//
->=1
-
 # `end` close block commands like `apply` or `comment` (ignores any words after "end")
 <
 comment
@@ -94,29 +39,6 @@ comment
 end
 2222-02-02
 $ hledger -f- print   # -> nothing printed, comment did not end
-
-# `expr` ?
-<
-expr 1
-$ hledger -f- check
->2//
->=1
-
-# `payee` subdirectives
-<
-payee KFC
-    alias KENTUCKY FRIED CHICKEN
-    uuid 1234
-$ hledger -f- check
->2//
->=1
-
-# `apply tag` assign a tag to transactions
-<
-apply tag tag1:val1
-$ hledger -f- check
->2//
->=1
 
 # `tag` pre-declare tag names
 <
@@ -126,13 +48,6 @@ $ hledger -f- tags   # -> nothing printed, tag not declared
 # `test`, a synonym for `comment`
 <
 test
-$ hledger -f- check
->2//
->=1
-
-# `C AMT1 = AMT2` declare a commodity equivalency
-<
-C $ 1 USD
 $ hledger -f- check
 >2//
 >=1

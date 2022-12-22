@@ -17,11 +17,6 @@ $ hledger -f- check
 D $0.0
 $ hledger -f- check
 
-# `N COMM` ignore pricing information for a commodity (ignored)
-<
-N USD
-$ hledger -f- check
-
 # star comment line
 <
 *
@@ -46,3 +41,18 @@ $ hledger -f- print
 2222-02-02
 
 >=
+
+# ignored directives
+<
+apply fixed CAD $0.90
+apply tag tag1:val1
+assert 1
+bucket Assets:Checking
+A Assets:Checking
+C $1 = USD 1
+capture Expenses:Deductible:Medical Medical
+check 1
+define var_name=$100
+expr 1
+N USD
+$ hledger -f- check

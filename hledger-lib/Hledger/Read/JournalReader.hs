@@ -237,16 +237,24 @@ directivep = (do
    ,endaliasesdirectivep
    ,accountdirectivep
    ,applyaccountdirectivep
-   ,commoditydirectivep
    ,endapplyaccountdirectivep
+   ,applyfixeddirectivep
+   ,applytagdirectivep
+   ,assertdirectivep
+   ,bucketdirectivep
+   ,capturedirectivep
+   ,checkdirectivep
+   ,commoditydirectivep
+   ,commodityconversiondirectivep
+   ,definedirectivep
+   ,exprdirectivep
    ,payeedirectivep
-   ,tagdirectivep
-   ,endtagdirectivep
+   ,decimalmarkdirectivep
    ,defaultyeardirectivep
    ,defaultcommoditydirectivep
-   ,commodityconversiondirectivep
    ,ignoredpricecommoditydirectivep
-   ,decimalmarkdirectivep
+   ,tagdirectivep
+   ,endtagdirectivep
    ]
   ) <?> "directive"
 
@@ -513,6 +521,19 @@ formatdirectivep expectedsym = do
       else return $ dbg6 "style from format subdirective" astyle
     else customFailure $ parseErrorAt off $
          printf "commodity directive symbol \"%s\" and format directive symbol \"%s\" should be the same" expectedsym acommodity
+
+-- More Ledger directives, ignore for now:
+-- apply fixed, apply tag, assert, bucket, A, capture, check, define, expr
+applyfixeddirectivep, applytagdirectivep, assertdirectivep, bucketdirectivep, capturedirectivep,
+  checkdirectivep, definedirectivep, exprdirectivep :: JournalParser m ()
+applyfixeddirectivep = do string "apply fixed" >> lift restofline >> return ()
+applytagdirectivep   = do string "apply tag" >> lift restofline >> return ()
+assertdirectivep     = do string "assert"  >> lift restofline >> return ()
+bucketdirectivep     = do string "A " <|> string "bucket " >> lift restofline >> return ()
+capturedirectivep    = do string "capture" >> lift restofline >> return ()
+checkdirectivep      = do string "check"   >> lift restofline >> return ()
+definedirectivep     = do string "define"  >> lift restofline >> return ()
+exprdirectivep       = do string "expr"    >> lift restofline >> return ()
 
 keywordp :: String -> JournalParser m ()
 keywordp = void . string . fromString

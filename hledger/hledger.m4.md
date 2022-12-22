@@ -2735,6 +2735,22 @@ can be used to avoid figuring out correct entries,
 makes your financial data less portable and less trustworthy in an audit.
 
 
+### Other Ledger directives
+
+These other Ledger directives are currently ignored:
+
+```journal
+apply fixed COMM AMT
+apply tag TAG
+assert  EXPR
+A       ACCT
+bucket  ACCT
+capture ACCT REGEX
+check   EXPR
+define  VAR=EXPR
+expr    EXPR
+```
+
 # CSV
 
 hledger can read [CSV](http://en.wikipedia.org/wiki/Comma-separated_values) files
