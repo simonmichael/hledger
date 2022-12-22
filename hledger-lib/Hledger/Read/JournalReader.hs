@@ -569,6 +569,7 @@ payeedirectivep = do
   lift skipNonNewlineSpaces1
   payee <- lift $ T.strip <$> noncommenttext1p
   (comment, tags) <- lift transactioncommentp
+  skipMany indentedlinep
   addPayeeDeclaration (payee, comment, tags)
   return ()
 

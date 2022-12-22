@@ -2309,6 +2309,8 @@ Eg:
 payee Whole Foods
 ```
 
+Any indented subdirectives are currently ignored.
+
 ## Periodic transactions
 
 Periodic transaction rules describe transactions that recur.
