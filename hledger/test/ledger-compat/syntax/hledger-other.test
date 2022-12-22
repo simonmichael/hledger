@@ -55,4 +55,6 @@ check 1
 define var_name=$100
 expr 1
 N USD
+--command-line-flag
+
 $ hledger -f- check

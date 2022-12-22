@@ -49,10 +49,3 @@ $ hledger -f- check
 $ hledger -f- check
 >2//
 >=1
-
-# command line options
-<
---strict
-$ hledger -f- check
->2//
->=1

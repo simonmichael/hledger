@@ -2749,6 +2749,7 @@ capture ACCT REGEX
 check   EXPR
 define  VAR=EXPR
 expr    EXPR
+--command-line-flag
 ```
 
 # CSV

@@ -244,6 +244,7 @@ directivep = (do
    ,bucketdirectivep
    ,capturedirectivep
    ,checkdirectivep
+   ,commandlineflagdirectivep
    ,commoditydirectivep
    ,commodityconversiondirectivep
    ,definedirectivep
@@ -525,7 +526,7 @@ formatdirectivep expectedsym = do
 -- More Ledger directives, ignore for now:
 -- apply fixed, apply tag, assert, bucket, A, capture, check, define, expr
 applyfixeddirectivep, applytagdirectivep, assertdirectivep, bucketdirectivep, capturedirectivep,
-  checkdirectivep, definedirectivep, exprdirectivep :: JournalParser m ()
+  checkdirectivep, definedirectivep, exprdirectivep, commandlineflagdirectivep :: JournalParser m ()
 applyfixeddirectivep = do string "apply fixed" >> lift restofline >> return ()
 applytagdirectivep   = do string "apply tag" >> lift restofline >> return ()
 assertdirectivep     = do string "assert"  >> lift restofline >> return ()
@@ -534,6 +535,7 @@ capturedirectivep    = do string "capture" >> lift restofline >> return ()
 checkdirectivep      = do string "check"   >> lift restofline >> return ()
 definedirectivep     = do string "define"  >> lift restofline >> return ()
 exprdirectivep       = do string "expr"    >> lift restofline >> return ()
+commandlineflagdirectivep = do string "--" >> lift restofline >> return ()
 
 keywordp :: String -> JournalParser m ()
 keywordp = void . string . fromString
