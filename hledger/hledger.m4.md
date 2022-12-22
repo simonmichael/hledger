@@ -1385,14 +1385,12 @@ Currently, hledger treats the above like `@` and `@@`; the parentheses are ignor
   - when buying, attaches this acquisition date to the lot
   - when selling, selects a lot by its acquisition date
 
-Currently, hledger accepts any or all of the above in any order after the posting amount, but ignores them.
-(To select lots, we use subaccounts instead.)
-
-- also: `(SOME TEXT)` ([lot note][ledger: lot notes])
+- `(SOME TEXT)` ([lot note][ledger: lot notes])
   - when buying, attaches this note to the lot
   - when selling, selects a lot by its note
 
-Currently, hledger rejects lot notes.
+Currently, hledger accepts any or all of the above in any order after the posting amount, but ignores them.
+(This can break transaction balancing.)
 
 [ledger: virtual posting costs]:    https://www.ledger-cli.org/3.0/doc/ledger3.html#Virtual-posting-costs
 [ledger: buying and selling stock]: https://www.ledger-cli.org/3.0/doc/ledger3.html#Buying-and-Selling-Stock

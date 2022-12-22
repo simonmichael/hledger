@@ -220,7 +220,7 @@ $ hledger -f - print
   (a)   A1B 2
 
 $ hledger -f- print cur:A1B amt:2
->2 /expecting ';', '=', digit, end of input, exponent, ledger-style lot date, ledger-style lot price, newline, space, or transaction price/
+>2 /unexpected 'B'/
 >=1
 
 # 16. Unquoted commodity symbol on the right, gives this long error message.
@@ -229,7 +229,7 @@ $ hledger -f- print cur:A1B amt:2
   (a)   1 A2
 
 $ hledger -f- print cur:A1 amt:2
->2 /expecting ';', '=', end of input, ledger-style lot date, ledger-style lot price, newline, or transaction price/
+>2 /unexpected '2'/
 >=1
 
 # 17. Unquoted commodity symbol on the left ending with numbers, could parse successfully.

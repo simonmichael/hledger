@@ -41,13 +41,3 @@ $ hledger -f- check
 $ hledger -f- check
 >2//
 >=1
-
-# lot notation
-<
-2012-04-10
-    Assets:Brokerage:Cash       $375.00
-    Assets:Brokerage            -5 AAPL {$50.00} [2012-04-10] (Oh my!) @@ $375.00
-    Income:Capital Gains       $-125.00
-$ hledger -f- check
->2//
->=1

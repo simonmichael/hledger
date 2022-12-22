@@ -80,7 +80,7 @@ module Hledger.Read.Common (
   commoditysymbolp,
   costp,
   balanceassertionp,
-  lotpricep,
+  lotcostp,
   numberp,
   fromRawNumber,
   rawnumberp,
@@ -133,24 +133,25 @@ import Data.List.NonEmpty (NonEmpty(..))
 import Data.Maybe (catMaybes, fromMaybe, isJust, listToMaybe)
 import qualified Data.Map as M
 import qualified Data.Semigroup as Sem
-import Data.Text (Text)
+import Data.Text (Text, stripEnd)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day, fromGregorianValid, toGregorian)
 import Data.Time.Clock.POSIX (getPOSIXTime)
 import Data.Time.LocalTime (LocalTime(..), TimeOfDay(..))
 import Data.Word (Word8)
+import System.FilePath (takeFileName)
 import Text.Megaparsec
 import Text.Megaparsec.Char (char, char', digitChar, newline, string)
 import Text.Megaparsec.Char.Lexer (decimal)
 import Text.Megaparsec.Custom
   (FinalParseError, attachSource, finalErrorBundlePretty, parseErrorAt, parseErrorAtRegion)
+-- import Text.Megaparsec.Debug (dbg)  -- from megaparsec 9.3+
 
 import Hledger.Data
 import Hledger.Query (Query(..), filterQuery, parseQueryTerm, queryEndDate, queryStartDate, queryIsDate, simplifyQuery)
 import Hledger.Reports.ReportOptions (ReportOpts(..), queryFromFlags, rawOptsToReportOpts)
 import Hledger.Utils
 import Hledger.Read.InputOptions
-import System.FilePath (takeFileName)
 
 --- ** doctest setup
 -- $setup
@@ -732,18 +733,24 @@ amountp = amountp' False
 -- A flag indicates whether we are parsing a multiplier amount;
 -- if not, a commodity-less amount will have the default commodity applied to it.
 amountp' :: Bool -> JournalParser m Amount
-amountp' mult = label "amount" $ do
+amountp' mult =
+  -- dbg "amountp'" $ 
+  label "amount" $ do
   let spaces = lift $ skipNonNewlineSpaces
   amt <- simpleamountp mult <* spaces
-  (mprice, _elotprice, _elotdate) <- runPermutation $
-    (,,) <$> toPermutationWithDefault Nothing (Just <$> costp amt <* spaces)
-         <*> toPermutationWithDefault Nothing (Just <$> lotpricep <* spaces)
-         <*> toPermutationWithDefault Nothing (Just <$> lotdatep <* spaces)
-  pure $ amt { aprice = mprice }
+  (mcost, _mlotcost, _mlotdate, _mlotnote) <- runPermutation $
+    -- need a try on costp so that it doesn't consume the ( of a lot note
+    (,,,) <$> toPermutationWithDefault Nothing (Just <$> try (costp amt) <* spaces)
+          <*> toPermutationWithDefault Nothing (Just <$> lotcostp <* spaces)
+          <*> toPermutationWithDefault Nothing (Just <$> lotdatep <* spaces)
+          <*> toPermutationWithDefault Nothing (Just <$> lotnotep <* spaces)
+  pure $ amt { aprice = mcost }
 
 -- An amount with optional cost, but no cost basis.
 amountnobasisp :: JournalParser m Amount
-amountnobasisp = label "amount" $ do
+amountnobasisp =
+  -- dbg "amountnobasisp" $ 
+  label "amount" $ do
   let spaces = lift $ skipNonNewlineSpaces
   amt <- simpleamountp False
   spaces
@@ -754,7 +761,9 @@ amountnobasisp = label "amount" $ do
 -- A flag indicates whether we are parsing a multiplier amount;
 -- if not, a commodity-less amount will have the default commodity applied to it.
 simpleamountp :: Bool -> JournalParser m Amount
-simpleamountp mult = do
+simpleamountp mult = 
+  -- dbg "simpleamountp" $
+  do
   sign <- lift signp
   leftsymbolamountp sign <|> rightornosymbolamountp sign
 
@@ -871,7 +880,9 @@ simplecommoditysymbolp = takeWhile1P Nothing (not . isNonsimpleCommodityChar)
 -- | Ledger-style cost notation:
 -- @ UNITAMT, @@ TOTALAMT, (@) UNITAMT, or (@@) TOTALAMT. The () are ignored.
 costp :: Amount -> JournalParser m AmountPrice
-costp baseAmt = label "transaction price" $ do
+costp baseAmt =
+  -- dbg "costp" $
+  label "transaction price" $ do
   -- https://www.ledger-cli.org/3.0/doc/ledger3.html#Virtual-posting-costs
   parenthesised <- option False $ char '(' >> pure True
   char '@'
@@ -906,12 +917,13 @@ balanceassertionp = do
     , baposition  = sourcepos
     }
 
--- Parse a Ledger-style fixed {=UNITPRICE} or non-fixed {UNITPRICE}
--- or fixed {{=TOTALPRICE}} or non-fixed {{TOTALPRICE}} lot price,
--- and ignore it.
--- https://www.ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices .
-lotpricep :: JournalParser m ()
-lotpricep = label "ledger-style lot price" $ do
+-- Parse a Ledger-style lot cost,
+-- {UNITCOST} or {{TOTALCOST}} or {=FIXEDUNITCOST} or {{=FIXEDTOTALCOST}},
+-- and discard it.
+lotcostp :: JournalParser m ()
+lotcostp =
+  -- dbg "lotcostp" $
+  label "ledger-style lot cost" $ do
   char '{'
   doublebrace <- option False $ char '{' >> pure True
   _fixed <- fmap isJust $ optional $ lift skipNonNewlineSpaces >> char '='
@@ -921,17 +933,28 @@ lotpricep = label "ledger-style lot price" $ do
   char '}'
   when (doublebrace) $ void $ char '}'
 
--- Parse a Ledger-style lot date [DATE], and ignore it.
--- https://www.ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices .
+-- Parse a Ledger-style [LOTDATE], and discard it.
 lotdatep :: JournalParser m ()
-lotdatep = (do
+lotdatep =
+  -- dbg "lotdatep" $
+  label "ledger-style lot date" $ do
   char '['
   lift skipNonNewlineSpaces
   _d <- datep
   lift skipNonNewlineSpaces
   char ']'
   return ()
-  ) <?> "ledger-style lot date"
+
+-- Parse a Ledger-style (LOT NOTE), and discard it.
+lotnotep :: JournalParser m ()
+lotnotep =
+  -- dbg "lotnotep" $
+  label "ledger-style lot note" $ do
+  char '('
+  lift skipNonNewlineSpaces
+  _note <- stripEnd . T.pack <$> (many $ noneOf [')','\n'])  -- XXX other line endings ?
+  char ')'
+  return ()
 
 -- | Parse a string representation of a number for its value and display
 -- attributes.
