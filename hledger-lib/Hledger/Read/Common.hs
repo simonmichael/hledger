@@ -831,7 +831,7 @@ commoditysymbolp =
 
 quotedcommoditysymbolp :: TextParser m CommoditySymbol
 quotedcommoditysymbolp =
-  between (char '"') (char '"') $ takeWhile1P Nothing f
+  between (char '"') (char '"') $ takeWhileP Nothing f
   where f c = c /= ';' && c /= '\n' && c /= '\"'
 
 simplecommoditysymbolp :: TextParser m CommoditySymbol
