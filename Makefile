@@ -225,7 +225,7 @@ BUILDFLAGS=\
 	$(GHCLOWMEMFLAGS) $(CABALMACROSFLAGS) \
 	-DDEVELOPMENT \
 	-DVERSION="\"$(VERSION)\"" \
-	-fplugin Debug.Breakpoint \
+#	-fplugin Debug.Breakpoint \
 #	-fhide-source-paths \
 
 # PROFBUILDFLAGS:=-prof -fprof-auto -osuf hs_p
