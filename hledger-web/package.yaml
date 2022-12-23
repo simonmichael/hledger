@@ -125,7 +125,8 @@ library:
   - http-conduit
   - http-client
   - http-types
-  - megaparsec >=9.3 && <9.4
+  - megaparsec >=7.0.0 && <9.4
+  #- megaparsec >=9.3 && <9.4
   - mtl >=2.2.1
   - network
   - shakespeare >=2.0.2.2
