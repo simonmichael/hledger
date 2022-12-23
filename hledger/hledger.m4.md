@@ -2696,6 +2696,11 @@ And switching to Emacs org mode just for folding/unfolding meant losing the bene
 nowadays you can add outshine mode to ledger mode to get folding
 without losing ledger mode's features.
 
+### Valuation expressions
+
+Ledger allows a valuation function or value to be written in double parentheses after an amount.
+hledger ignores these.
+
 ### Virtual postings
 
 A posting with parentheses around the account name is called a *virtual posting* or *unbalanced posting*,

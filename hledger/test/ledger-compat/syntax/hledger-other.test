@@ -79,12 +79,20 @@ eval foo
 
 $ hledger -f- check
 
+# amount valuation, ignored
+<
+;; Lastly, you can specify the valuation function/value for any specific
+;; amount using the (( )) commodity annotation.
+2012-03-02 KFC
+    Expenses:Food               $1 ((2 EUR))
+    Assets:Cash
+$ hledger -f- check
 
 # lot notation 
 <
 2022-01-01 sell 5 AAPL acquired at $50 for $375, for a $125 gain
     Assets:Brokerage:Cash       $375.00
-    Assets:Brokerage              -5 AAPL {$50.00} [2012-04-10] (a lot note) (@@) $375.00   ; using (@@) to make parsing harder
+    Assets:Brokerage              -5 AAPL {$50.00} [2012-04-10] (a lot note) (($400)) (@@) $375.00  ; use lots of tricky syntax
     Income:Capital Gains       $-125.00
 
 $ hledger -f- check

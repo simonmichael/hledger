@@ -685,10 +685,12 @@ spaceandamountormissingp =
 
 -- | Parse a single-commodity amount, applying the default commodity if there is no commodity symbol;
 -- optionally followed by, in any order:
--- a Ledger-style cost and/or one or more parts of a Ledger-style cost basis:
+-- a Ledger-style cost, Ledger-style valuation expression, and/or Ledger-style cost basis, which is one or more of
 -- lot cost, lot date, and/or lot note (we loosely call this triple the lot's cost basis).
--- The cost basis makes it a lot rather than just an amount. The cost basis info is discarded for now.
--- The main amount's sign is significant; here are the possibilities and their interpretation:
+-- The cost basis makes it a lot rather than just an amount. Both cost basis info and valuation expression
+-- are discarded for now.
+-- The main amount's sign is significant; here are the possibilities and their interpretation.
+-- Also imagine an optional VALUATIONEXPR added to any of these (omitted for clarity):
 -- @
 --
 --   AMT                         -- acquiring an amount
@@ -707,9 +709,12 @@ spaceandamountormissingp =
 -- COSTBASIS    is one or more of {LOTCOST}, [LOTDATE], (LOTNOTE), in any order, with LOTCOST defaulting to COST.
 -- COSTBASISSEL is one or more of {LOTCOST}, [LOTDATE], (LOTNOTE), in any order.
 -- {LOTCOST} can be {UNITAMT}, {{TOTALAMT}}, {=UNITAMT}, or {{=TOTALAMT}}. The = is ignored.
--- Rule of thumb: curly braces, parentheses, and/or square brackets in an amount means a Ledger-style cost basis is involved.
+-- VALUATIONEXPR can be ((VALUE AMOUNT)) or ((VALUE FUNCTION)).
 --
 -- @
+-- Ledger amount syntax is really complex.
+-- Rule of thumb: curly braces, parentheses, and/or square brackets
+-- in an amount means a Ledger-style cost basis is involved.
 --
 -- To parse an amount's numeric quantity we need to know which character 
 -- represents a decimal mark. We find it in one of three ways:
@@ -729,7 +734,7 @@ spaceandamountormissingp =
 amountp :: JournalParser m Amount
 amountp = amountp' False
 
--- An amount with optional cost and/or cost basis, as described above.
+-- An amount with optional cost, valuation, and/or cost basis, as described above.
 -- A flag indicates whether we are parsing a multiplier amount;
 -- if not, a commodity-less amount will have the default commodity applied to it.
 amountp' :: Bool -> JournalParser m Amount
@@ -738,9 +743,10 @@ amountp' mult =
   label "amount" $ do
   let spaces = lift $ skipNonNewlineSpaces
   amt <- simpleamountp mult <* spaces
-  (mcost, _mlotcost, _mlotdate, _mlotnote) <- runPermutation $
-    -- need a try on costp so that it doesn't consume the ( of a lot note
-    (,,,) <$> toPermutationWithDefault Nothing (Just <$> try (costp amt) <* spaces)
+  (mcost, _valuationexpr, _mlotcost, _mlotdate, _mlotnote) <- runPermutation $
+    -- costp, valuationexprp, lotnotep all parse things beginning with parenthesis, try needed
+    (,,,,) <$> toPermutationWithDefault Nothing (Just <$> try (costp amt) <* spaces)
+          <*> toPermutationWithDefault Nothing (Just <$> valuationexprp <* spaces)  -- XXX no try needed here ?
           <*> toPermutationWithDefault Nothing (Just <$> lotcostp <* spaces)
           <*> toPermutationWithDefault Nothing (Just <$> lotdatep <* spaces)
           <*> toPermutationWithDefault Nothing (Just <$> lotnotep <* spaces)
@@ -899,6 +905,15 @@ costp baseAmt =
             then TotalPrice priceAmount{aquantity=amtsign * aquantity priceAmount}
             else UnitPrice  priceAmount
 
+-- | A valuation function or value can be written in double parentheses after an amount.
+valuationexprp :: JournalParser m ()
+valuationexprp =
+  -- dbg "valuationexprp" $
+  label "valuation expression" $ do
+  string "(("
+  _ <- T.strip . T.pack <$> (many $ noneOf [')','\n'])  -- XXX other line endings ?
+  string "))"
+  return ()
 
 balanceassertionp :: JournalParser m BalanceAssertion
 balanceassertionp = do
