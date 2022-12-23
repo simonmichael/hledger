@@ -10,6 +10,7 @@ packages:
 
 extra-deps:
 # for hledger-lib:
+- megaparsec-9.3.0
 # - breakpoint-0.1.2.0
 # for hledger:
 # for hledger-ui:
