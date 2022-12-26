@@ -193,6 +193,7 @@ showPostingLines p = first3 $ postingAsLines False False maxacctwidth maxamtwidt
 -- if onelineamounts is true, these amounts are shown on one line,
 -- comma-separated, and the output will not be valid journal syntax.
 -- Otherwise, they are shown as several similar postings, one per commodity.
+-- When the posting has a balance assertion, it is attached to the last of these postings.
 --
 -- The output will appear to be a balanced transaction.
 -- Amounts' display precisions, which may have been limited by commodity
@@ -243,15 +244,10 @@ postingAsLines elideamount onelineamounts acctwidth amtwidth p =
                               , Cell BottomLeft [assertion]
                               , textCell BottomLeft samelinecomment
                               ]
-                    | amt <- shownAmounts]
+                    | (amt,assertion) <- shownAmountsAssertions]
     render = renderRow def{tableBorders=False, borderSpaces=False} . Group NoLine . map Header
     pad amt = WideBuilder (TB.fromText $ T.replicate w " ") w <> amt
       where w = max 12 amtwidth - wbWidth amt  -- min. 12 for backwards compatibility
-
-    assertion = maybe mempty ((WideBuilder (TB.singleton ' ') 1 <>).showBalanceAssertion) $ pbalanceassertion p
-    -- pad to the maximum account name width, plus 2 to leave room for status flags, to keep amounts aligned
-    statusandaccount = lineIndent . fitText (Just $ 2 + acctwidth) Nothing False True $ pstatusandacct p
-    thisacctwidth = realLength $ pacctstr p
 
     pacctstr p' = showAccountName Nothing (ptype p') (paccount p')
     pstatusandacct p' = pstatusprefix p' <> pacctstr p'
@@ -267,6 +263,17 @@ postingAsLines elideamount onelineamounts acctwidth amtwidth p =
       | elideamount = [mempty]
       | otherwise   = showMixedAmountLinesB noColour{displayOneLine=onelineamounts} $ pamount p
     thisamtwidth = maximumBound 0 $ map wbWidth shownAmounts
+
+    -- when there is a balance assertion, show it only on the last posting line
+    shownAmountsAssertions = zip shownAmounts shownAssertions
+      where
+        shownAssertions = replicate (length shownAmounts - 1) mempty ++ [assertion]
+          where
+            assertion = maybe mempty ((WideBuilder (TB.singleton ' ') 1 <>).showBalanceAssertion) $ pbalanceassertion p
+
+    -- pad to the maximum account name width, plus 2 to leave room for status flags, to keep amounts aligned
+    statusandaccount = lineIndent . fitText (Just $ 2 + acctwidth) Nothing False True $ pstatusandacct p
+    thisacctwidth = realLength $ pacctstr p
 
     (samelinecomment, newlinecomments) =
       case renderCommentLines (pcomment p) of []   -> ("",[])

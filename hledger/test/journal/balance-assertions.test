@@ -455,3 +455,23 @@ $ hledger -f- print -x
     (a)              -2 ==* 1
 
 >=0
+
+# 26. When balance assignment with a cost generates two postings in one commodity,
+# the balance assertion appears only on the last, not both. (#1965)
+<
+2022-01-01
+	assets:eur  €10
+	equity
+
+2022-01-02
+	assets:eur      = €1 @ $1
+	assets:usd
+
+$ hledger -f- print -x date:2022-01-02
+2022-01-02
+    assets:eur            €-10
+    assets:eur         €1 @ $1 = €1 @ $1
+    assets:usd             $-1
+    assets:usd             €10
+
+>=
