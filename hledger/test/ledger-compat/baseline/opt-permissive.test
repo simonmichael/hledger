@@ -9,7 +9,7 @@
     Expenses:Foo          $10
     Assets:Cash          -$10 = $80
 
-$ hledger -f- check
+$ hledger -f- check -I
 
 #test bal --permissive
 #                 $90  Assets:Cash

@@ -89,6 +89,22 @@ $ hledger -f- check
 $ hledger -f- check
 
 # lot notation 
+#    ,testCase "only lot price" $ assertParse (postingp Nothing) "  a  1A {1B}\n"
+#    ,testCase "fixed lot price" $ assertParse (postingp Nothing) "  a  1A {=1B}\n"
+#    ,testCase "total lot price" $ assertParse (postingp Nothing) "  a  1A {{1B}}\n"
+#    ,testCase "fixed total lot price, and spaces" $ assertParse (postingp Nothing) "  a  1A {{  =  1B }}\n"
+#    ,testCase "lot price before transaction price" $ assertParse (postingp Nothing) "  a  1A {1B} @ 1B\n"
+#    ,testCase "lot price after transaction price" $ assertParse (postingp Nothing) "  a  1A @ 1B {1B}\n"
+#    ,testCase "lot price after balance assertion not allowed" $ assertParseError (postingp Nothing) "  a  1A @ 1B = 1A {1B}\n" "unexpected '{'"
+#    ,testCase "only lot date" $ assertParse (postingp Nothing) "  a  1A [2000-01-01]\n"
+#    ,testCase "transaction price, lot price, lot date" $ assertParse (postingp Nothing) "  a  1A @ 1B {1B} [2000-01-01]\n"
+#    ,testCase "lot date, lot price, transaction price" $ assertParse (postingp Nothing) "  a  1A [2000-01-01] {1B} @ 1B\n"
+#    Assets:Brokerage            -5 AAPL {$50.00} [2012-04-10] (Oh my!) @@ $375.00
+# 2022-01-01 buy 1 share of AAA at $2.50, saving cost basis of {$2}
+#     assets  $-5
+#     assets    1 AAA {$2} @ $2.50
+#     assets    1 AAA {{$2}} @ $2.50
+
 <
 2022-01-01 sell 5 AAPL acquired at $50 for $375, for a $125 gain
     Assets:Brokerage:Cash       $375.00
