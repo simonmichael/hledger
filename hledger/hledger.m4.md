@@ -3645,11 +3645,17 @@ the command re-runs, making it easier to read the output.
 
 ## Valid CSV
 
-hledger accepts CSV conforming to [RFC 4180](https://tools.ietf.org/html/rfc4180).
-When CSV values are enclosed in quotes, note:
+Note that hledger will only accept valid CSV conforming to [RFC 4180](https://tools.ietf.org/html/rfc4180),
+and equivalent SSV and TSV formats (like RFC 4180 but with semicolon or tab as separators).
+This means, eg:
 
-- they must be double quotes (not single quotes)
-- spaces outside the quotes are [not allowed](https://stackoverflow.com/questions/4863852/space-before-quote-in-csv-field)
+- Values may be enclosed in double quotes, or not. Enclosing in single quotes is not allowed. (Eg `'A','B'` is rejected.)
+- When values are enclosed in double quotes, spaces outside the quotes are
+  [not allowed](https://stackoverflow.com/questions/4863852/space-before-quote-in-csv-field). (Eg `"A", "B"` is rejected.)
+- When values are not enclosed in quotes, they may not contain double quotes. (Eg `A"A, B` is rejected.)
+
+If your CSV/SSV/TSV is not valid in this sense, you'll need to transform it before reading with hledger.
+Try using sed, or a more permissive CSV parser like [python's csv lib](https://docs.python.org/3/library/csv.html).
 
 ## File Extension
 
