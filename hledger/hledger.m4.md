@@ -4709,15 +4709,15 @@ Values containing `colon:separated:parts` will form a hierarchy, as account name
 Some examples:
 
 ```journal
-2016/02/16 Member Fee Payment
+2016/02/16 Yearly Dues Payment
     assets:bank account                    2 EUR
-    income:member fees                    -2 EUR  ; member: John Doe
+    income:dues                    -2 EUR  ; member: John Doe
 ```
 Normal balance report showing account names:
 ```shell
 $ hledger balance
                2 EUR  assets:bank account
-              -2 EUR  income:member fees
+              -2 EUR  income:dues
 --------------------
                    0
 ```
