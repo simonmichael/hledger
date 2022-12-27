@@ -3149,14 +3149,15 @@ won't need this rule.
 ```rules
 skip N
 ```
-The word "skip" followed by a number (or no number, meaning 1)
-tells hledger to ignore this many non-empty lines preceding the CSV data.
-(Empty/blank lines are skipped automatically.)
+The word `skip` followed by a number (or no number, meaning 1)
+tells hledger to ignore this many non-empty lines at the start of the input data.
+(Empty/blank lines are skipped automatically, so you don't need to count those.)
 You'll need this whenever your CSV data contains header lines.
+Header lines skipped in this way are ignored, and not parsed as CSV.
 
-It also has a second purpose: it can be used inside [if blocks](#if) (described below)
-to ignore certain CSV records.
-
+`skip` can also be used inside [if blocks](#if) (described below),
+to skip individual data records.
+Note records skipped in this way are still required to be [valid CSV](#valid-csv), even though otherwise ignored.
 
 ## `date-format`
 
