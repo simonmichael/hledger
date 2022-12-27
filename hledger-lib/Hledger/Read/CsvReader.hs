@@ -699,18 +699,19 @@ readJournalFromCsv mrulesfile csvfile csvdata = do
     rules <- liftEither $ parseAndValidateCsvRules rulesfile rulestext
     dbg6IO "csv rules" rules
 
-    -- parse the skip directive's value, if any
-    skiplines <- case getDirective "skip" rules of
-                      Nothing -> return 0
-                      Just "" -> return 1
-                      Just s  -> maybe (throwError $ "could not parse skip value: " ++ show s) return . readMay $ T.unpack s
-
     mtzin <- case getDirective "timezone" rules of
               Nothing -> return Nothing
               Just s  ->
                 maybe (throwError $ "could not parse time zone: " ++ T.unpack s) (return.Just) $
                 parseTimeM False defaultTimeLocale "%Z" $ T.unpack s
     tzout <- liftIO getCurrentTimeZone
+
+    -- skip header lines, if there is a top-level skip rule
+    skiplines <- case getDirective "skip" rules of
+                      Nothing -> return 0
+                      Just "" -> return 1
+                      Just s  -> maybe (throwError $ "could not parse skip value: " ++ show s) return . readMay $ T.unpack s
+    let csvdata' = T.unlines $ drop skiplines $ T.lines csvdata
 
     -- parse csv
     let
@@ -725,8 +726,8 @@ readJournalFromCsv mrulesfile csvfile csvdata = do
           where
             ext = map toLower $ drop 1 $ takeExtension csvfile
     dbg6IO "using separator" separator
-    csv <- dbg7 "parseCsv" <$> parseCsv separator parsecfilename csvdata
-    records <- liftEither $ dbg7 "validateCsv" <$> validateCsv rules skiplines csv
+    csv <- dbg7 "parseCsv" <$> parseCsv separator parsecfilename csvdata'
+    records <- liftEither $ dbg7 "validateCsv" <$> validateCsv rules csv
     dbg6IO "first 3 csv records" $ take 3 records
 
     -- identify header lines
@@ -818,8 +819,8 @@ printCSV = TB.toLazyText . unlinesB . map printRecord
           printField = wrap "\"" "\"" . T.replace "\"" "\"\""
 
 -- | Return the cleaned up and validated CSV data (can be empty), or an error.
-validateCsv :: CsvRules -> Int -> CSV -> Either String [CsvRecord]
-validateCsv rules numhdrlines = validate . applyConditionalSkips . drop numhdrlines . filternulls
+validateCsv :: CsvRules -> CSV -> Either String [CsvRecord]
+validateCsv rules = validate . applyConditionalSkips . filternulls
   where
     filternulls = filter (/=[""])
     skipnum r =
