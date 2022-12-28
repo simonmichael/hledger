@@ -1033,14 +1033,33 @@ $  ./csvtest.sh
 <
 "2021-12-23","caffe_siciliaexpenses:cibo:dolce","-10.5"
 
-RULES file
-
+RULES
 account1 assets:bank:checking
 fields date, description, account2, amount
 
 $  ./csvtest.sh
 >2 /transaction is unbalanced/
 >=1
+
+# 52. We can't parse double quotes inside an unquoted field, or other non-RFC4180 data. (#1966)
+<
+2022-01-01,B"B",C
+RULES
+fields date, b, c
+$  ./csvtest.sh
+>2 /unexpected '"'/
+>=1
+
+# 53. A top-level skip directive is able to skip lines which would fail to parse as CSV. (#1967)
+<
+2022-01-01,B"B",C
+RULES
+skip 1
+fields date, b, c
+$  ./csvtest.sh
+>=
+
+
 
 ## . 
 #<

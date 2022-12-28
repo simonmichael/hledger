@@ -1703,22 +1703,23 @@ And here is what each directive does, and which files and journal entries (trans
 <!-- h1,h2,h3,h4,h5,h6 { color:red; } -->
 <!-- </style> -->
 
-| directive             | what it does                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ends at file end?   |
-|-----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------|
-| **[`account`]**       | Declares an account, for [checking](#check) all entries in all files; <br>and its [display order](#account-display-order) and [type](#declaring-account-types). <br>Subdirectives: any text, ignored.                                                                                                                                                                                                                                                                                                                                                                              | N                   |
-| **[`alias`]**         | Rewrites account names, in following entries until end of current file or [`end aliases`]. <br>Command line equivalent: [`--alias`]                                                                                                                                                                                                                                                                                                                                                                                                                                                | Y                   |
-| **[`comment`]**       | Ignores part of the journal file, until end of current file or `end comment`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Y                   |
-| **[`commodity`]**     | Declares up to four things: <br>1. a commodity symbol, for checking all amounts in all files <br>2. the decimal mark for parsing amounts of this commodity, in the following entries until end of current file (if there is no `decimal-mark` directive) <br>3. and the display style for amounts of this commodity <br>4. which is also the precision to use for balanced-transaction checking in this commodity.<br> Takes precedence over `D`. <br>Subdirectives: `format` (Ledger-compatible syntax). <br>Command line equivalent: [`-c/--commodity-style`](#commodity-styles) | N,<br>Y,<br>N,<br>N |
-| **[`decimal-mark`]**  | Declares the decimal mark, for parsing amounts of all commodities in following entries until next `decimal-mark` or end of current file. Included files can override. Takes precedence over `commodity` and `D`.                                                                                                                                                                                                                                                                                                                                                                   | Y                   |
-| **[`include`]**       | Includes entries and directives from another file, as if they were written inline. <br>Command line alternative: multiple [`-f/--file`](#multiple-files)                                                                                                                                                                                                                                                                                                                                                                                                                           | N                   |
-| **[`payee`]**         | Declares a payee name, for checking all entries in all files.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | N                   |
-| **[`P`]**             | Declares the market price of a commodity on some date, for [value reports](#valuation).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | N                   |
-| **[`~`]** (tilde)     | Declares a periodic transaction rule that generates future transactions with `--forecast` and budget goals with `balance --budget`.                                                                                                                                                                                                                                                                                                                                                                                                                                                | N                   |
-| **[`=`]** (equals)    | Declares an auto posting rule that generates extra postings on matched transactions with `--auto`, in current, parent, and child files (but not sibling files, see [#1212](https://github.com/simonmichael/hledger/issues/1212)).                                                                                                                                                                                                                                                                                                                                                  | partly              |
-| Other syntax:         |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |                     |
-| **[`apply account`]** | Prepends a common parent account to all account names, in following entries until end of current file or `end apply account`.                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Y                   |
-| **[`D`]**             | Sets a default commodity to use for no-symbol amounts;<br>and, if there is no `commodity` directive for this commodity: its decimal mark, balancing precision, and display style, as above.                                                                                                                                                                                                                                                                                                                                                                                        | Y,<br>Y,<br>N,<br>N |
-| **[`Y`]**             | Sets a default year to use for any yearless dates, in following entries until end of current file.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | Y                   |
+| directive                     | what it does                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ends at file end?   |
+|-------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------|
+| **[`account`]**               | Declares an account, for [checking](#check) all entries in all files; <br>and its [display order](#account-display-order) and [type](#declaring-account-types). <br>Subdirectives: any text, ignored.                                                                                                                                                                                                                                                                                                                                                                              | N                   |
+| **[`alias`]**                 | Rewrites account names, in following entries until end of current file or [`end aliases`]. <br>Command line equivalent: [`--alias`]                                                                                                                                                                                                                                                                                                                                                                                                                                                | Y                   |
+| **[`comment`]**               | Ignores part of the journal file, until end of current file or `end comment`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Y                   |
+| **[`commodity`]**             | Declares up to four things: <br>1. a commodity symbol, for checking all amounts in all files <br>2. the decimal mark for parsing amounts of this commodity, in the following entries until end of current file (if there is no `decimal-mark` directive) <br>3. and the display style for amounts of this commodity <br>4. which is also the precision to use for balanced-transaction checking in this commodity.<br> Takes precedence over `D`. <br>Subdirectives: `format` (Ledger-compatible syntax). <br>Command line equivalent: [`-c/--commodity-style`](#commodity-styles) | N,<br>Y,<br>N,<br>N |
+| **[`decimal-mark`]**          | Declares the decimal mark, for parsing amounts of all commodities in following entries until next `decimal-mark` or end of current file. Included files can override. Takes precedence over `commodity` and `D`.                                                                                                                                                                                                                                                                                                                                                                   | Y                   |
+| **[`include`]**               | Includes entries and directives from another file, as if they were written inline. <br>Command line alternative: multiple [`-f/--file`](#multiple-files)                                                                                                                                                                                                                                                                                                                                                                                                                           | N                   |
+| **[`payee`]**                 | Declares a payee name, for checking all entries in all files.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | N                   |
+| **[`P`]**                     | Declares the market price of a commodity on some date, for [value reports](#valuation).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | N                   |
+| **[`~`]** (tilde)             | Declares a periodic transaction rule that generates future transactions with `--forecast` and budget goals with `balance --budget`.                                                                                                                                                                                                                                                                                                                                                                                                                                                | N                   |
+| Other syntax:                 |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |                     |
+| **[`apply account`]**         | Prepends a common parent account to all account names, in following entries until end of current file or `end apply account`.                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Y                   |
+| **[`D`]**                     | Sets a default commodity to use for no-symbol amounts;<br>and, if there is no `commodity` directive for this commodity: its decimal mark, balancing precision, and display style, as above.                                                                                                                                                                                                                                                                                                                                                                                        | Y,<br>Y,<br>N,<br>N |
+| **[`Y`]**                     | Sets a default year to use for any yearless dates, in following entries until end of current file.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | Y                   |
+| **[`=`]** (equals)            | Declares an auto posting rule that generates extra postings on matched transactions with `--auto`, in current, parent, and child files (but not sibling files, see [#1212](https://github.com/simonmichael/hledger/issues/1212)).                                                                                                                                                                                                                                                                                                                                                  | partly              |
+| **[Other Ledger directives]** | Other directives from Ledger's file format are accepted but ignored.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |                     |
 
 [`=`]:                 #auto-postings
 [`D`]:                 #default-commodity
@@ -1734,6 +1735,7 @@ And here is what each directive does, and which files and journal entries (trans
 [`include`]:           #including-files
 [`payee`]:             #payees
 [`~`]:                 #periodic-transactions
+[Other Ledger directives]: #other-ledger-directives
 
 ### Directives and multiple files
 
@@ -2184,7 +2186,7 @@ commodity INR
   format INR 1,00,00,000.00
 ```
 
-Any indented subdirectives other than `format` are currently ignored.
+Other indented subdirectives are currently ignored.
 
 Remember that if the commodity symbol contains spaces, numbers, or
 punctuation, it must be enclosed in double quotes (cf [Commodity](#commodity)).
@@ -2740,28 +2742,31 @@ makes your financial data less portable and less trustworthy in an audit.
 
 ### Other Ledger directives
 
-These other Ledger directives are currently ignored:
+These other Ledger directives are currently accepted but ignored.
+This allows hledger to read more Ledger files, 
+but be aware that hledger's reports may differ from Ledger's if you use these.
 
 ```journal
 apply fixed COMM AMT
-apply tag TAG
-assert  EXPR
-A       ACCT
-bucket  ACCT
-capture ACCT REGEX
-check   EXPR
-define  VAR=EXPR
+apply tag   TAG
+assert      EXPR
+bucket / A  ACCT
+capture     ACCT REGEX
+check       EXPR
+define      VAR=EXPR
 end apply fixed
 end apply tag
 end apply year
 end tag
-expr    EXPR
-tag     NAME
-value   EXPR
+eval / expr EXPR
 python
-eval    EXPR
---command-line-flag
+  PYTHONCODE
+tag         NAME
+value       EXPR
+--command-line-flags
 ```
+
+See also <https://hledger.org/ledger.html> for a detailed hledger/Ledger syntax comparison.
 
 # CSV
 
@@ -3149,14 +3154,15 @@ won't need this rule.
 ```rules
 skip N
 ```
-The word "skip" followed by a number (or no number, meaning 1)
-tells hledger to ignore this many non-empty lines preceding the CSV data.
-(Empty/blank lines are skipped automatically.)
+The word `skip` followed by a number (or no number, meaning 1)
+tells hledger to ignore this many non-empty lines at the start of the input data.
+(Empty/blank lines are skipped automatically, so you don't need to count those.)
 You'll need this whenever your CSV data contains header lines.
+Header lines skipped in this way are ignored, and not parsed as CSV.
 
-It also has a second purpose: it can be used inside [if blocks](#if) (described below)
-to ignore certain CSV records.
-
+`skip` can also be used inside [if blocks](#if) (described below),
+to skip individual data records.
+Note records skipped in this way are still required to be [valid CSV](#valid-csv), even though otherwise ignored.
 
 ## `date-format`
 
@@ -3645,11 +3651,17 @@ the command re-runs, making it easier to read the output.
 
 ## Valid CSV
 
-hledger accepts CSV conforming to [RFC 4180](https://tools.ietf.org/html/rfc4180).
-When CSV values are enclosed in quotes, note:
+Note that hledger will only accept valid CSV conforming to [RFC 4180](https://tools.ietf.org/html/rfc4180),
+and equivalent SSV and TSV formats (like RFC 4180 but with semicolon or tab as separators).
+This means, eg:
 
-- they must be double quotes (not single quotes)
-- spaces outside the quotes are [not allowed](https://stackoverflow.com/questions/4863852/space-before-quote-in-csv-field)
+- Values may be enclosed in double quotes, or not. Enclosing in single quotes is not allowed. (Eg `'A','B'` is rejected.)
+- When values are enclosed in double quotes, spaces outside the quotes are
+  [not allowed](https://stackoverflow.com/questions/4863852/space-before-quote-in-csv-field). (Eg `"A", "B"` is rejected.)
+- When values are not enclosed in quotes, they may not contain double quotes. (Eg `A"A, B` is rejected.)
+
+If your CSV/SSV/TSV is not valid in this sense, you'll need to transform it before reading with hledger.
+Try using sed, or a more permissive CSV parser like [python's csv lib](https://docs.python.org/3/library/csv.html).
 
 ## File Extension
 
