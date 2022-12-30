@@ -604,7 +604,7 @@ Budget performance in 2017/11/01-2017/12/31:
                       ||      0 [              0]       0 [              0] 
 ```
 
-For more examples and notes, see [Budgeting](budgeting.html).
+For more examples and notes, see [Budgeting](/budgeting.html).
 
 #### Budget report start date
 
