@@ -19,7 +19,10 @@ and by the innumerable other benefactors making it all possible.
 
 ## Commit authors 
 
+<https://github.com/simonmichael/hledger/graphs/contributors>
+
 11231 commits in 16 years by 155 people as of 2022-12-21:
+
 
 <!-- year-end: update stats, make showauthors, replace table preserving notes (eg emacs macro), maybe fix root commits -->
 | Commits | Author                         | Notes ([chat](#footer) me with updates!)                                                                                                                                                      |
