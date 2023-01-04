@@ -3402,7 +3402,8 @@ By assigning to `amount1`, `amount2`, ... etc. you can generate up to 99 posting
 `amountN-in` and `amountN-out` can be used instead,
 if the CSV uses separate fields for debits and credits (inflows and outflows).
 hledger assumes both of these CSV fields are unsigned, and will automatically negate the "-out" value.
-If they are signed, see ["Setting amounts"](#setting-amounts) below.
+It also requires that at least one of them is either empty or zero.
+See ["Setting amounts"](#setting-amounts) below for more on this topic.
 
 `amount`, or `amount-in` and `amount-out` are a legacy mode,
 to keep pre-hledger-1.17 CSV rules files working (and for occasional convenience).
