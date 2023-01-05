@@ -90,6 +90,26 @@ $ hledger pijul status
 $ hledger pijul record [MSG]
 ```
 
+### hledger-utils
+
+The [`hledger-utils` Python package](https://pypi.org/project/hledger-utils/) ships an `hledger edit` command to edit the queried transactions in your `$EDITOR` no matter what file they reside in:
+
+```cli
+# Opens your $EDITOR or $VISUAL with only costs in Florida 
+# (if you named and tagged them like that)
+# edit the transactions, save and exit your editor, 
+# then the changes are distributed to the original files
+$ hledger edit Cost tag:location=Florida
+
+# Automate changes by setting `$EDITOR` to a script
+# (here all food we had on that one day in Florida was Fast Food 🌭 and we initially forgot to write that) 
+EDITOR='perl -pi -e "s|Cost:Food|Cost:Food:Fast Food|g"' hledger edit tag:location=Florida date:2022-12-20
+```
+
+📹 Screencast
+
+[![asciicast](https://asciinema.org/a/549559.svg)](https://asciinema.org/a/549559)
+
 ## hledger-integrated scripts
 
 These call hledger as a Haskell library, and so must be written in
