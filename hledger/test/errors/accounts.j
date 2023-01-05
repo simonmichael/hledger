@@ -1,4 +1,4 @@
 #!/usr/bin/env -S hledger check accounts -f
 
-1/1
+2022/1/1
   (a)  1
