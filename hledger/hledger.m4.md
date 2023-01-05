@@ -1644,13 +1644,9 @@ Eg in the following posting, the three tags' values are "value 1", "value 2", an
     expenses:food   $10    ; foo, tag1: value 1 , tag2:value 2, bar tag3: , baz
 ```
 
-Note that tags are multi-valued. When a tag name is seen again with a new value,
-the new value is added, rather than overriding the previous value.
-Currently this is true for all same-tag situations, ie:
-
-- Same tag on multiple transactions
-- Posting inheriting the same tag from its transaction or account
-- Transaction acquiring the same tag from one or more of its postings
+Note that tags can be repeated, and are additive rather than overriding:
+when the same tag name is seen again with a new value, the new name:value pair is added to the tags.
+(It is not possible to override a tag's value or remove a tag.)
 
 You can list a tag's values with `hledger tags TAGNAME --values`,
 or match by tag value with a `tag:NAMEREGEX=VALUEREGEX` query.
