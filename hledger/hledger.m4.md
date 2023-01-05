@@ -3412,6 +3412,9 @@ they set both posting 1's and posting 2's amount.
 Posting 2's amount will be negated, and also converted to cost 
 if there's a [cost price](#costs).
 
+Note: it might sound as if amount-in is for one posting and amount-out for the other posting, but no;
+use the -in and -out rules together for the same posting, producing one amount from two CSV fields.
+
 If you have an existing rules file using the unnumbered form, you
 might want to use the numbered form in certain conditional blocks,
 without having to update and retest all the old rules. 
