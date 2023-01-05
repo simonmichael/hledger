@@ -1,4 +1,5 @@
-help\
+## help
+
 Show the hledger user manual in the terminal, with `info`, `man`, or a pager.
 With a TOPIC argument, open it at that topic if possible.
 TOPIC can be any heading in the manual, or a heading prefix, case insensitive.

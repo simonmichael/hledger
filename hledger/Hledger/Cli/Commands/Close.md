@@ -1,4 +1,7 @@
-close, equity\
+## close
+
+(equity)
+
 Prints a sample "closing" transaction bringing specified account balances to zero,
 and an inverse "opening" transaction restoring the same account balances.
 

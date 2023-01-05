@@ -1,4 +1,5 @@
-stats\
+## stats
+
 Show journal and performance statistics.
 
 _FLAGS

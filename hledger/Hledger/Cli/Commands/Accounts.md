@@ -1,4 +1,5 @@
-accounts\
+## accounts
+
 Show account names.
 
 _FLAGS

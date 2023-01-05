@@ -1,4 +1,6 @@
-aregister, areg\
+## aregister
+
+(areg)
 
 Show the transactions and running historical balance of a single account,
 with each transaction displayed as one line.

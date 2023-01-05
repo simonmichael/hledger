@@ -1,4 +1,5 @@
-add\
+## add
+
 Prompt for transactions and add them to the journal.
 Any arguments will be used as default inputs for the first N prompts.
 
