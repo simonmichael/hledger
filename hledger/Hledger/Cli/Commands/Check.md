@@ -1,4 +1,5 @@
-check\
+## check
+
 Check for various kinds of errors in your data. 
 
 _FLAGS

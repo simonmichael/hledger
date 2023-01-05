@@ -1,4 +1,5 @@
-activity\
+## activity
+
 Show an ascii barchart of posting counts per interval.
 
 _FLAGS

@@ -1,4 +1,5 @@
-diff\
+## diff
+
 Compares a particular account's transactions in two input files.
 It shows any transactions to this account which are in one file but
 not in the other.

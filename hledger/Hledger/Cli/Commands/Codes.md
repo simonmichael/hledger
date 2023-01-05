@@ -1,4 +1,5 @@
-codes\
+## codes
+
 List the codes seen in transactions, in the order parsed.
 
 _FLAGS

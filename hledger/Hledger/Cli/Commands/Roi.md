@@ -1,4 +1,5 @@
-roi\
+## roi
+
 Shows the time-weighted (TWR) and money-weighted (IRR) rate of return
 on your investments.
 

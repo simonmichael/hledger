@@ -1,4 +1,7 @@
-incomestatement, is\
+## incomestatement
+
+(is)
+
 This command displays an
 [income statement](http://en.wikipedia.org/wiki/Income_statement), 
 showing revenues and expenses during one or more periods. 

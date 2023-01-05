@@ -1,4 +1,5 @@
-descriptions\
+## descriptions
+
 List the unique descriptions that appear in transactions.
 
 _FLAGS

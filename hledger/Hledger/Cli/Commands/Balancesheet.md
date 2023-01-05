@@ -1,4 +1,7 @@
-balancesheet, bs\
+## balancesheet
+
+(bs)
+
 This command displays a [balance sheet](https://en.wikipedia.org/wiki/Balance_sheet), 
 showing historical ending balances of asset and liability accounts. 
 (To see equity as well, use the [balancesheetequity](#balancesheetequity) command.)

@@ -5751,8 +5751,9 @@ m4_dnl _notman_({{
 
 Next, each command is described in detail, in alphabetical order.
 
-m4_dnl cf Hledger/Cli/Commands/commands.m4:
-_commands_({{##}})
+m4_dnl Include the command docs. Each starts with a level 2 heading.
+m4_dnl (To change that, see Hledger/Cli/Commands/{*.md,commands.m4})
+_commands_
 
 <a name="common-tasks"></a>
 
