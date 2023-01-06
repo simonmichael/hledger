@@ -11,6 +11,7 @@ module Hledger.Data.RawOptions (
   RawOpts,
   setopt,
   setboolopt,
+  unsetboolopt,
   appendopts,
   inRawOpts,
   boolopt,
@@ -48,6 +49,9 @@ setopt name val = overRawOpts (++ [(name, val)])
 
 setboolopt :: String -> RawOpts -> RawOpts
 setboolopt name = overRawOpts (++ [(name,"")])
+
+unsetboolopt :: String -> RawOpts -> RawOpts
+unsetboolopt name = overRawOpts (filter ((/=name).fst))
 
 appendopts :: [(String,String)] -> RawOpts -> RawOpts
 appendopts new = overRawOpts (++new)
