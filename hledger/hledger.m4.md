@@ -4834,7 +4834,7 @@ each periodic transaction rule generates recurring budget goals in specified acc
 and goals and actual performance can be compared.
 See the balance command's doc below.
  
-See also: [Budgeting and Forecasting](/budgeting-and-forecasting.html).
+See also: [Budgeting and Forecasting](https://hledger.org/budgeting-and-forecasting.html).
 
 
 # Cost reporting

@@ -80,7 +80,7 @@ $ make Shake
 
 Then render the per-package manuals from markdown-m4 source files (*.m4.md) 
 to text, man, info, and markdown formats. This requires some unix tools 
-such as m4:
+such as m4, as well as pandoc:
 
 ```
 $ ./Shake manuals
