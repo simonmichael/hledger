@@ -16,27 +16,29 @@ DESCRIPTION
        This  manual is for hledger's web interface, version 1.28.99.  See also
        the hledger manual for common concepts and file formats.
 
-       hledger is a reliable, cross-platform  set  of  programs  for  tracking
-       money,  time, or any other commodity, using double-entry accounting and
-       a simple, editable file format.  hledger is  inspired  by  and  largely
-       compatible with ledger(1).
+       hledger is a robust, user-friendly, cross-platform set of programs  for
+       tracking  money,  time,  or  any  other  commodity,  using double-entry
+       accounting and a simple, editable file format.  hledger is inspired  by
+       and  largely  compatible  with  ledger(1), and largely interconvertible
+       with beancount(1).
 
-       hledger-web  is a simple web application for browsing and adding trans-
-       actions.  It provides a more user-friendly UI than the hledger  CLI  or
-       hledger-ui  TUI,  showing  more  at once (accounts, the current account
+       hledger-web is a simple web application for browsing and adding  trans-
+       actions.   It  provides a more user-friendly UI than the hledger CLI or
+       hledger-ui TUI, showing more at once  (accounts,  the  current  account
        register, balance charts) and allowing history-aware data entry, inter-
        active searching, and bookmarking.
 
-       hledger-web  also lets you share a journal with multiple users, or even
-       the public web.  There is no access control, so if you  need  that  you
-       should  put  it  behind  a  suitable  web proxy.  As a small protection
-       against data loss when running an unprotected  instance,  it  writes  a
+       hledger-web also lets you share a journal with multiple users, or  even
+       the  public  web.   There is no access control, so if you need that you
+       should put it behind a suitable  web  proxy.   As  a  small  protection
+       against  data  loss  when  running an unprotected instance, it writes a
        numbered backup of the main journal file (only) on every edit.
 
-       Like  hledger, it reads data from one or more files in hledger journal,
-       timeclock, timedot, or CSV format specified with -f,  or  $LEDGER_FILE,
-       or        $HOME/.hledger.journal       (on       windows,       perhaps
-       C:/Users/USER/.hledger.journal).  For more about this see hledger(1).
+       Like hledger, it reads data from one or more files  in  journal,  time-
+       clock, timedot, or CSV format.  The default file is .hledger.journal in
+       your home directory; this can be overridden with one or  more  -f  FILE
+       options,  or the LEDGER_FILE environment variable.  For more about this
+       see hledger(1).
 
        hledger-web can be run in three modes:
 
@@ -567,10 +569,10 @@ ENVIRONMENT
        load/help/path.html.
 
 FILES
-       Reads data from one or more files in hledger journal, timeclock,  time-
-       dot,   or   CSV   format   specified   with  -f,  or  $LEDGER_FILE,  or
-       $HOME/.hledger.journal          (on          windows,           perhaps
-       C:/Users/USER/.hledger.journal).
+       Reads data from one or more files in journal,  timeclock,  timedot,  or
+       CSV  format.   The default file is .hledger.journal in your home direc-
+       tory; this can be overridden with one or more -f FILE options,  or  the
+       LEDGER_FILE environment variable.
 
 BUGS
        -f- doesn't work (hledger-web can't read from stdin).
@@ -606,4 +608,4 @@ SEE ALSO
 
 
 
-hledger-web-1.28.99              December 2022                  HLEDGER-WEB(1)
+hledger-web-1.28.99              January 2023                   HLEDGER-WEB(1)

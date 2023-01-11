@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "December 2022" "hledger-1.28.99 " "hledger User Manuals"
+.TH "HLEDGER" "1" "January 2023" "hledger-1.28.99 " "hledger User Manuals"
 
 
 
@@ -20,63 +20,102 @@ hledger - robust, friendly plain text accounting (CLI version)
 \f[V]hledger [-f FILE] ADDONCMD -- [OPTS] [ARGS]\f[R]
 .SH INTRODUCTION
 .PP
+hledger is a robust, user-friendly, cross-platform set of programs for
+tracking money, time, or any other commodity, using double-entry
+accounting and a simple, editable file format.
+hledger is inspired by and largely compatible with ledger(1), and
+largely interconvertible with beancount(1).
+.PP
 This manual is for hledger\[aq]s command line interface, version
 1.28.99.
-It also describes the concepts and file formats common to all hledger
-programs.
-You can read it on hledger.org, or as an info manual or man page on your
-system.
-It is detailed and not entirely linear, so you should feel free to skip
-ahead / skim when needed.
+It also describes the common options, file formats and concepts used by
+all hledger programs.
+It might accidentally teach you some bookkeeping/accounting as well!
 You don\[aq]t need to know everything in here to use hledger
 productively, but when you have a question about functionality, this doc
 should answer it.
+It is detailed, so do skip ahead or skim when needed.
+You can read it on hledger.org, or as an info manual or man page on your
+system (each has benefits).
+You can also get it from hledger itself with
+.PD 0
+.P
+.PD
+\f[V]hledger --man\f[R], \f[V]hledger --info\f[R] or
+\f[V]hledger help [TOPIC]\f[R].
 .PP
-hledger is a reliable, cross-platform set of programs for tracking
-money, time, or any other commodity, using double-entry accounting and a
-simple, editable file format.
-hledger is inspired by and largely compatible with ledger(1).
+The main function of the hledger CLI is to read plain text files
+describing financial transactions, crunch the numbers, and print a
+useful report on the terminal (or save it as HTML, CSV, JSON or SQL).
+Many reports are available, as subcommands.
+hledger will also detect other \f[V]hledger-*\f[R] executables as extra
+subcommands.
 .PP
-The basic function of the hledger CLI is to read a plain text file
-describing financial transactions (in accounting terms, a general
-journal) and print useful reports on standard output, or export them as
-CSV.
-hledger can also read some other file formats such as CSV files,
-translating them to journal format.
-Additionally, hledger lists other hledger-* executables found in the
-user\[cq]s $PATH and can invoke them as subcommands.
+hledger reads data from one or more files in journal, timeclock,
+timedot, or CSV format.
+The default file is \f[V].hledger.journal\f[R] in your home directory;
+this can be overridden with one or more \f[V]-f FILE\f[R] options, or
+the \f[V]LEDGER_FILE\f[R] environment variable.
+hledger CLI can also read from stdin with \f[V]-f-\f[R]; more on that
+below.
 .PP
-hledger reads data from one or more files in hledger journal, timeclock,
-timedot, or CSV format specified with \f[V]-f\f[R], or
-\f[V]$LEDGER_FILE\f[R], or \f[V]$HOME/.hledger.journal\f[R] (on windows,
-perhaps \f[V]C:/Users/USER/.hledger.journal\f[R]).
-If using \f[V]$LEDGER_FILE\f[R], note this must be a real environment
-variable, not a shell variable.
-You can specify standard input with \f[V]-f-\f[R].
-.PP
-Transactions are dated movements of money between two (or more) named
-accounts, and are recorded with journal entries like this:
+Here is a small but valid hledger journal file describing one
+transaction:
 .IP
 .nf
 \f[C]
-2015/10/16 bought food
- expenses:food          $10
- assets:cash
+2015-10-16 bought food
+  expenses:food          $10
+  assets:cash
 \f[R]
 .fi
 .PP
-Most users use a text editor to edit the journal, usually with an editor
-mode such as ledger-mode for added convenience.
-hledger\[cq]s interactive add command is another way to record new
-transactions.
-hledger never changes existing transactions.
+Transactions are dated movements of money (etc.)
+between two or more \f[I]accounts\f[R]: bank accounts, your wallet,
+revenue/expense categories, people, etc.
+You can choose any account names you wish, using \f[V]:\f[R] to indicate
+subaccounts.
+There must be at least two spaces between account name and amount.
+Positive amounts are inflow to that account (\f[I]debit\f[R]), negatives
+are outflow from it (\f[I]credit\f[R]).
+(Some reports show revenue, liability and equity account balances as
+negative numbers as a result; this is normal.)
 .PP
-To get started, you can either save some entries like the above in
-\f[V]\[ti]/.hledger.journal\f[R], or run \f[V]hledger add\f[R] and
-follow the prompts.
-Then try some commands like \f[V]hledger print\f[R] or
-\f[V]hledger balance\f[R].
-Run \f[V]hledger\f[R] with no arguments for a list of commands.
+hledger\[cq]s add command can help you add transactions, or you can
+install other data entry UIs like hledger-web or hledger-iadd.
+For more extensive/efficient changes, use a text editor: Emacs +
+ledger-mode, VIM + vim-ledger, or VS Code + hledger-vscode are some good
+choices (see https://hledger.org/editors.html).
+.PP
+To get started, run \f[V]hledger add\f[R] and follow the prompts, or
+save some entries like the above in \f[V]$HOME/.hledger.journal\f[R],
+then try commands like:
+.PD 0
+.P
+.PD
+\f[V]hledger print -x\f[R]
+.PD 0
+.P
+.PD
+\f[V]hledger aregister assets\f[R]
+.PD 0
+.P
+.PD
+\f[V]hledger balance\f[R]
+.PD 0
+.P
+.PD
+\f[V]hledger balancesheet\f[R]
+.PD 0
+.P
+.PD
+\f[V]hledger incomestatement\f[R].
+.PD 0
+.P
+.PD
+Run \f[V]hledger\f[R] to list the commands.
+See also the \[dq]Starting a journal file\[dq] and \[dq]Setting opening
+balances\[dq] sections in PART 5: COMMON TASKS.
 .SH PART 1: USER INTERFACE
 .SH Options
 .SS General options
@@ -1201,6 +1240,110 @@ $ LANG=en_US.UTF-8 hledger -f my.journal print
 .SH Journal
 .PP
 hledger\[aq]s default file format, representing a General Journal.
+Here\[aq]s a cheatsheet/mini-tutorial, or you can skip ahead to About
+journal format.
+.SS Journal cheatsheet
+.IP
+.nf
+\f[C]
+# Here is the main syntax of hledger\[aq]s journal format
+# (omitting extra Ledger compatibility syntax).
+# hledger journals contain comments, directives, and transactions, in any order:
+
+###############################################################################
+# 1. Comment lines are for notes or temporarily disabling things.
+# They begin with #, ;, or a line containing the word \[dq]comment\[dq].
+
+# hash comment line
+; semicolon comment line
+comment
+These lines
+are commented.
+end comment
+
+# Some but not all hledger entries can have same-line comments attached to them,
+# from ; (semicolon) to end of line.
+
+###############################################################################
+# 2. Directives modify parsing or reports in some way.
+# They begin with a word or letter (or symbol).
+
+account actifs     ; type:A, declare an account that is an Asset. 2+ spaces before ;.
+account passifs    ; type:L, declare an account that is a Liability, and so on.. (ALERX)
+alias chkg = assets:checking
+commodity $0.00
+decimal-mark .
+include /dev/null
+payee Whole Foods
+P 2022-01-01 AAAA $1.40
+\[ti] monthly    budget goals  ; <- 2+ spaces between period expression and description
+    expenses:food       $400
+    expenses:home      $1000
+    budgeted
+
+###############################################################################
+# 3. Transactions are what it\[aq]s all about; they are dated events,
+# usually describing movements of money.
+# They begin with a date.
+
+# DATE DESCRIPTION           ; This is a transaction comment.
+#   ACCOUNT NAME 1  AMOUNT1  ; <- posting 1. This is a posting comment.
+#   ACCOUNT NAME 2  AMOUNT2  ; <- posting 2. Postings must be indented.
+#               ; \[ha]\[ha] At least 2 spaces between account and amount.
+#   ...  ; Any number of postings is allowed. The amounts must balance (sum to 0).
+
+2022-01-01 opening balances are declared this way
+    assets:checking          $1000  ; Account names can be anything. lower case is easy to type.
+    assets:savings           $1000  ; assets, liabilities, equity, revenues, expenses are common.
+    assets:cash:wallet        $100  ; : indicates subaccounts.
+    liabilities:credit card  $-200  ; liabilities, equity, revenues balances are usually negative.
+    equity                          ; One amount can be left blank; $-1900 is inferred here.
+
+2022-04-15 * (#12345) pay taxes
+    ; There can be a ! or * after the date meaning \[dq]pending\[dq] or \[dq]cleared\[dq].
+    ; There can be a transaction code (text in parentheses) after the date/status.
+    ; Amounts\[aq] sign represents direction of flow, or credit/debit:
+    assets:checking          $-500  ; minus means removed from this account (credit)
+    expenses:tax:us:2021      $500  ; plus  means added to this account (debit)
+                                    ; revenue/expense categories are also \[dq]accounts\[dq]
+
+2022-01-01 Whole Foods | payee name and description can be separated by a pipe char
+    ; Transaction or posting comments can contain searchable tags,
+    ; written NAME: or NAME:VALUE (value ends at comma or end of line).
+    ; Here\[aq]s tag1:with a value, and an empty tag2:
+    ; A few tags have special meaning. A \[dq]date:\[dq] tag on a posting adjusts its date.
+    assets:checking           $-50  ; date:2022-01-03, checking cleared two days later
+    expenses:food
+
+2022-01-01                          ; The description is optional.
+    ; Any currency/commodity symbols are allowed, on either side.
+    assets:cash:wallet     GBP -10
+    expenses:clothing       GBP 10
+    assets:gringotts           -10 gold
+    assets:pouch                10 gold
+    revenues:gifts              -2 \[dq]Liquorice Wands\[dq]  ; Complex symbols
+    assets:bag                   2 \[dq]Liquorice Wands\[dq]  ; must be double-quoted.
+
+2022-01-01 Cost in another commodity can be noted with \[at] or \[at]\[at]
+    assets:investments           2.0 AAAA \[at] $1.50  ; \[at]  means per-unit cost
+    assets:investments           3.0 AAAA \[at]\[at] $4    ; \[at]\[at] means total cost
+    assets:checking            $-7.00
+
+2022-01-02 assert balances
+    ; Balances can be asserted for extra error checking, in any transaction.
+    assets:investments           0 AAAA = 5.0 AAAA
+    assets:pouch                 0 gold = 10 gold
+    assets:savings              $0      = $1000
+
+1999-12-31 Ordering transactions by date is recommended but not required.
+    ; Postings are not required.
+
+2022.01.01 These date
+2022/1/1   formats are
+12/31      also allowed (but consistent YYYY-MM-DD is recommended).
+\f[R]
+.fi
+.SS About journal format
 .PP
 hledger\[aq]s usual data source is a plain text file containing journal
 entries in hledger journal format.
@@ -1233,28 +1376,39 @@ hledger\[aq]s data model).
 A hledger journal file can contain three kinds of thing: file comments,
 transactions, and/or directives (counting periodic transaction rules and
 auto posting rules as directives).
-.SS File comments
+.SS Comments
 .PP
-Lines in the journal beginning with a semicolon (\f[V];\f[R]), a hash
-(\f[V]#\f[R]) or a star (\f[V]*\f[R]) are file-level comments, and will
-be ignored.
-They are not attached to anything (even if right next to a transaction).
+Lines in the journal will be ignored if they begin with a hash
+(\f[V]#\f[R]) or a semicolon (\f[V];\f[R]).
+(See also Other syntax.)
+hledger will also ignore regions beginning with a \f[V]comment\f[R] line
+and ending with an \f[V]end comment\f[R] line (or file end).
+Here\[aq]s a suggestion for choosing between them:
+.IP \[bu] 2
+\f[V]#\f[R] for top-level notes
+.IP \[bu] 2
+\f[V];\f[R] for commenting out things temporarily
+.IP \[bu] 2
+\f[V]comment\f[R] for quickly commenting large regions (remember
+it\[aq]s there, or you might get confused)
 .PP
-(Star comments allow emacs users to view and fold/unfold long journals
-in org mode, but nowadays regular comments and ledger mode + orgstruct
-mode may work better).
+Eg:
 .IP
 .nf
 \f[C]
-# a file comment
-; another file comment
-* also a file comment, useful in org/orgstruct mode
+# a comment line
+; another commentline
 comment
-A multiline file comment, continuing until an
-\[dq]end comment\[dq] directive or the end of the current file.
+A multi-line comment block,
+continuing until \[dq]end comment\[dq] directive
+or the end of the current file.
 end comment
 \f[R]
 .fi
+.PP
+Some hledger entries can have same-line comments attached to them, from
+; (semicolon) to end of line.
+See Transaction comments, Posting comments, and Account comments below.
 .SS Transactions
 .PP
 Transactions are the main unit of information in a journal file.
@@ -1302,52 +1456,6 @@ Some examples: \f[V]2010-01-31\f[R], \f[V]2010/01/31\f[R],
 .PP
 (The UI also accepts simple dates, as well as the more flexible smart
 dates documented in the hledger manual.)
-.SS Secondary dates
-.PP
-Real-life transactions sometimes involve more than one date - eg the
-date you write a cheque, and the date it clears in your bank.
-When you want to model this, for more accurate daily balances, you can
-specify individual posting dates.
-.PP
-Or, you can use the older \f[I]secondary date\f[R] feature (Ledger calls
-it auxiliary date or effective date).
-Note: we support this for compatibility, but I usually recommend
-avoiding this feature; posting dates are almost always clearer and
-simpler.
-.PP
-A secondary date is written after the primary date, following an equals
-sign.
-If the year is omitted, the primary date\[aq]s year is assumed.
-When running reports, the primary (left) date is used by default, but
-with the \f[V]--date2\f[R] flag (or \f[V]--aux-date\f[R] or
-\f[V]--effective\f[R]), the secondary (right) date will be used instead.
-.PP
-The meaning of secondary dates is up to you, but it\[aq]s best to follow
-a consistent rule.
-Eg \[dq]primary = the bank\[aq]s clearing date, secondary = date the
-transaction was initiated, if different\[dq], as shown here:
-.IP
-.nf
-\f[C]
-2010/2/23=2/19 movie ticket
-  expenses:cinema                   $10
-  assets:checking
-\f[R]
-.fi
-.IP
-.nf
-\f[C]
-$ hledger register checking
-2010-02-23 movie ticket         assets:checking                $-10         $-10
-\f[R]
-.fi
-.IP
-.nf
-\f[C]
-$ hledger register checking --date2
-2010-02-19 movie ticket         assets:checking                $-10         $-10
-\f[R]
-.fi
 .SS Posting dates
 .PP
 You can give individual postings a different date from their parent
@@ -1382,18 +1490,11 @@ $ hledger -f t.j register checking
 .PP
 DATE should be a simple date; if the year is not specified it will use
 the year of the transaction\[aq]s date.
-You can set the secondary date similarly, with \f[V]date2:DATE2\f[R].
-The \f[V]date:\f[R] or \f[V]date2:\f[R] tags must have a valid simple
-date value if they are present, eg a \f[V]date:\f[R] tag with no value
-is not allowed.
-.PP
-Ledger\[aq]s earlier, more compact bracketed date syntax is also
-supported: \f[V][DATE]\f[R], \f[V][DATE=DATE2]\f[R] or
-\f[V][=DATE2]\f[R].
-hledger will attempt to parse any square-bracketed sequence of the
-\f[V]0123456789/-.=\f[R] characters in this way.
-With this syntax, DATE infers its year from the transaction and DATE2
-infers its year from DATE.
+.PD 0
+.P
+.PD
+The \f[V]date:\f[R] tag must have a valid simple date value if it is
+present, eg a \f[V]date:\f[R] tag with no value is not allowed.
 .SS Status
 .PP
 Transactions, or individual postings within a transaction, can have a
@@ -1544,50 +1645,6 @@ amount.
 This makes it easy to write account names containing spaces.
 But if you accidentally leave only one space (or tab) before the amount,
 the amount will be considered part of the account name.
-.SS Virtual postings
-.PP
-A posting with parentheses around the account name is called a
-\f[I]virtual posting\f[R] or \f[I]unbalanced posting\f[R], which means
-it is exempt from the usual rule that a transaction\[aq]s postings must
-balance add up to zero.
-.PP
-This is not part of double entry bookkeeping, so you might choose to
-avoid this feature.
-Or you can use it sparingly for certain special cases where it can be
-convenient.
-Eg, you could set opening balances without using a balancing equity
-account:
-.IP
-.nf
-\f[C]
-2022-01-01 opening balances
-  (assets:checking)   $1000
-  (assets:savings)    $2000
-\f[R]
-.fi
-.PP
-A posting with brackets around the account name is called a
-\f[I]balanced virtual posting\f[R].
-The balanced virtual postings in a transaction must add up to zero
-(separately from other postings).
-Eg:
-.IP
-.nf
-\f[C]
-2022-01-01 buy food with cash, update budget envelope subaccounts, & something else
-  assets:cash                    $-10  ; <- these balance each other
-  expenses:food                    $7  ; <-
-  expenses:food                    $3  ; <-
-  [assets:checking:budget:food]  $-10  ;   <- and these balance each other
-  [assets:checking:available]     $10  ;   <-
-  (something:else)                 $5  ;     <- this is not required to balance
-\f[R]
-.fi
-.PP
-Postings whose account names are neither parenthesised nor bracketed are
-called \f[I]real postings\f[R].
-You can exclude virtual postings from reports with the
-\f[V]-R/--real\f[R] flag or a \f[V]real:1\f[R] query.
 .SS Account names
 .PP
 Account names typically have several parts separated by a full colon,
@@ -1821,6 +1878,7 @@ places, and displayed with the number of decimal places specified by the
 commodity display style.
 Note, hledger uses banker\[aq]s rounding: it rounds to the nearest even
 number, eg 0.5 displayed with zero decimal places is \[dq]0\[dq]).
+.PP
 .SS Costs
 .PP
 After a posting amount, you can note its cost (when buying) or selling
@@ -1937,12 +1995,8 @@ when buying, attaches this acquisition date to the lot
 .IP \[bu] 2
 when selling, selects a lot by its acquisition date
 .RE
-.PP
-Currently, hledger accepts any or all of the above in any order after
-the posting amount, but ignores them.
-(To select lots, we use subaccounts instead.)
 .IP \[bu] 2
-also: \f[V](SOME TEXT)\f[R] (lot note)
+\f[V](SOME TEXT)\f[R] (lot note)
 .RS 2
 .IP \[bu] 2
 when buying, attaches this note to the lot
@@ -1950,7 +2004,9 @@ when buying, attaches this note to the lot
 when selling, selects a lot by its note
 .RE
 .PP
-Currently, hledger rejects lot notes.
+Currently, hledger accepts any or all of the above in any order after
+the posting amount, but ignores them.
+(This can break transaction balancing.)
 .PP
 For Beancount users, the notation and behaviour is different:
 .IP \[bu] 2
@@ -2172,69 +2228,12 @@ always what is shown by reports.
 Eg a commodity directive may limit the display precision, but this will
 not affect balance assertions.
 Balance assertion failure messages show exact amounts.
-.SS Balance assignments
-.PP
-Ledger-style balance assignments are also supported.
-These are like balance assertions, but with no posting amount on the
-left side of the equals sign; instead it is calculated automatically so
-as to satisfy the assertion.
-This can be a convenience during data entry, eg when setting opening
-balances:
-.IP
-.nf
-\f[C]
-; starting a new journal, set asset account balances
-2016/1/1 opening balances
-  assets:checking            = $409.32
-  assets:savings             = $735.24
-  assets:cash                 = $42
-  equity:opening balances
-\f[R]
-.fi
-.PP
-or when adjusting a balance to reality:
-.IP
-.nf
-\f[C]
-; no cash left; update balance, record any untracked spending as a generic expense
-2016/1/15
-  assets:cash    = $0
-  expenses:misc
-\f[R]
-.fi
-.PP
-The calculated amount depends on the account\[aq]s balance in the
-commodity at that point (which depends on the previously-dated postings
-of the commodity to that account since the last balance assertion or
-assignment).
-Note that using balance assignments makes your journal a little less
-explicit; to know the exact amount posted, you have to run hledger or do
-the calculations yourself, instead of just reading it.
-.SS Balance assignments and prices
-.PP
-A cost in a balance assignment will cause the calculated amount to have
-that price attached:
-.IP
-.nf
-\f[C]
-2019/1/1
-  (a)             = $1 \[at] \[Eu]2
-\f[R]
-.fi
-.IP
-.nf
-\f[C]
-$ hledger print --explicit
-2019-01-01
-    (a)         $1 \[at] \[Eu]2 = $1 \[at] \[Eu]2
-\f[R]
-.fi
 .SS Posting comments
 .PP
 Text following \f[V];\f[R], at the end of a posting line, and/or on
 indented lines immediately below it, form comments for that posting.
 They are reproduced by \f[V]print\f[R] but otherwise ignored, except
-they may contain tags or bracketed posting dates, which are not ignored.
+they may contain tags, which are not ignored.
 .IP
 .nf
 \f[C]
@@ -2292,16 +2291,10 @@ Eg in the following posting, the three tags\[aq] values are \[dq]value
 \f[R]
 .fi
 .PP
-Note that tags are multi-valued.
-When a tag name is seen again with a new value, the new value is added,
-rather than overriding the previous value.
-Currently this is true for all same-tag situations, ie:
-.IP \[bu] 2
-Same tag on multiple transactions
-.IP \[bu] 2
-Posting inheriting the same tag from its transaction or account
-.IP \[bu] 2
-Transaction acquiring the same tag from one or more of its postings
+Note that tags can be repeated, and are additive rather than overriding:
+when the same tag name is seen again with a new value, the new
+name:value pair is added to the tags.
+(It is not possible to override a tag\[aq]s value or remove a tag.)
 .PP
 You can list a tag\[aq]s values with
 \f[V]hledger tags TAGNAME --values\f[R], or match by tag value with a
@@ -2327,105 +2320,97 @@ output: symbol side and spacing, digit groups, decimal mark, and number
 of decimal places.
 .PP
 Directives are not required when starting out with hledger, but you will
-probably add some as your needs grow.
-Here is an overview of directives by purpose:
+probably want to add some as your needs grow.
+Here some key directives for particular needs:
 .PP
 .TS
 tab(@);
-lw(30.6n) lw(22.0n) lw(17.4n).
+lw(43.0n) lw(27.0n).
 T{
 purpose
 T}@T{
 directives
-T}@T{
-command line options with similar effect
 T}
 _
 T{
-\f[B]READING/GENERATING DATA:\f[R]
-T}@T{
-T}@T{
-T}
-T{
-Declare a commodity\[aq]s or file\[aq]s decimal mark to help parse
-amounts accurately
-T}@T{
-\f[V]commodity\f[R], \f[V]D\f[R], \f[V]decimal-mark\f[R]
+\f[B]READING DATA:\f[R]
 T}@T{
 T}
 T{
-Apply changes to the data while parsing
+Declare file\[aq]s decimal mark to help parse amounts accurately
 T}@T{
-\f[V]alias\f[R], \f[V]apply account\f[R], \f[V]comment\f[R],
-\f[V]D\f[R], \f[V]Y\f[R]
-T}@T{
-\f[V]--alias\f[R]
+\f[V]decimal-mark\f[R]
 T}
 T{
-Inline extra data files
+Rewrite account names
+T}@T{
+\f[V]alias\f[R]
+T}
+T{
+Comment out sections of the data
+T}@T{
+\f[V]comment\f[R]
+T}
+T{
+Include extra data files
 T}@T{
 \f[V]include\f[R]
-T}@T{
-multiple \f[V]-f/--file\f[R]\[aq]s
 T}
 T{
-Generate extra transactions or budget goals
+\f[B]GENERATING DATA:\f[R]
+T}@T{
+T}
+T{
+Generate recurring transactions or budget goals
 T}@T{
 \f[V]\[ti]\f[R]
-T}@T{
 T}
 T{
-Generate extra postings
+Generate extra postings on transactions
 T}@T{
 \f[V]=\f[R]
-T}@T{
 T}
 T{
 \f[B]CHECKING FOR ERRORS:\f[R]
 T}@T{
-T}@T{
 T}
 T{
-Define valid entities to allow stricter error checking
+Define valid entities to provide more error checking
 T}@T{
 \f[V]account\f[R], \f[V]commodity\f[R], \f[V]payee\f[R]
+T}
+T{
+\f[B]REPORTING:\f[R]
 T}@T{
 T}
 T{
-\f[B]DISPLAYING REPORTS:\f[R]
-T}@T{
-T}@T{
-T}
-T{
-Declare accounts\[aq] display order and accounting type
+Declare accounts\[aq] type and display order
 T}@T{
 \f[V]account\f[R]
-T}@T{
 T}
 T{
 Declare commodity display styles
 T}@T{
-\f[V]commodity\f[R], \f[V]D\f[R]
-T}@T{
-\f[V]-c/--commodity-style\f[R]
+\f[V]commodity\f[R]
 T}
 T{
 Declare market prices
 T}@T{
 \f[V]P\f[R]
-T}@T{
 T}
 .TE
+.SS Directive effects
 .PP
-And here are all the directives and their precise effects:
+And here is what each directive does, and which files and journal
+entries (transactions) it affects:
 .PP
 .TS
 tab(@);
-lw(4.9n) lw(61.0n) lw(4.1n).
+lw(3.5n) lw(64.1n) lw(2.4n).
 T{
 directive
 T}@T{
-effects
+what it does
 T}@T{
 ends at file end?
 T}
@@ -2434,23 +2419,17 @@ T{
 \f[B]\f[VB]account\f[B]\f[R]
 T}@T{
 Declares an account, for checking all entries in all files; and its
-display order and type, for reports.
+display order and type.
 Subdirectives: any text, ignored.
 T}@T{
+N
 T}
 T{
 \f[B]\f[VB]alias\f[B]\f[R]
 T}@T{
 Rewrites account names, in following entries until end of current file
 or \f[V]end aliases\f[R].
-T}@T{
-Y
-T}
-T{
-\f[B]\f[VB]apply account\f[B]\f[R]
-T}@T{
-Prepends a common parent account to all account names, in following
-entries until end of current file or \f[V]end apply account\f[R].
+Command line equivalent: \f[V]--alias\f[R]
 T}@T{
 Y
 T}
@@ -2465,22 +2444,19 @@ T}
 T{
 \f[B]\f[VB]commodity\f[B]\f[R]
 T}@T{
-Declares a commodity, for checking all entries in all files; the decimal
-mark for parsing amounts of this commodity, for following entries until
-end of current file; and its display style, for reports.
+Declares up to four things: 1.
+a commodity symbol, for checking all amounts in all files 2.
+the decimal mark for parsing amounts of this commodity, in the following
+entries until end of current file (if there is no \f[V]decimal-mark\f[R]
+directive) 3.
+and the display style for amounts of this commodity 4.
+which is also the precision to use for balanced-transaction checking in
+this commodity.
 Takes precedence over \f[V]D\f[R].
-Subdirectives: \f[V]format\f[R] (alternate syntax).
+Subdirectives: \f[V]format\f[R] (Ledger-compatible syntax).
+Command line equivalent: \f[V]-c/--commodity-style\f[R]
 T}@T{
-N, Y
-T}
-T{
-\f[B]\f[VB]D\f[B]\f[R]
-T}@T{
-Sets a default commodity to use for no-symbol amounts, and its decimal
-mark for parsing amounts of this commodity in following entries until
-end of current file; and its display style, for reports.
-T}@T{
-Y
+N,Y,N,N
 T}
 T{
 \f[B]\f[VB]decimal-mark\f[B]\f[R]
@@ -2498,28 +2474,24 @@ T{
 T}@T{
 Includes entries and directives from another file, as if they were
 written inline.
+Command line alternative: multiple \f[V]-f/--file\f[R]
 T}@T{
+N
 T}
 T{
 \f[B]\f[VB]payee\f[B]\f[R]
 T}@T{
 Declares a payee name, for checking all entries in all files.
 T}@T{
+N
 T}
 T{
 \f[B]\f[VB]P\f[B]\f[R]
 T}@T{
-Declares a market price for a commodity on some date, for valuation
+Declares the market price of a commodity on some date, for value
 reports.
 T}@T{
-T}
-T{
-\f[B]\f[VB]Y\f[B]\f[R]
-T}@T{
-Declares a year for yearless dates, for following entries until end of
-current file.
-T}@T{
-Y
+N
 T}
 T{
 \f[B]\f[VB]\[ti]\f[B]\f[R] (tilde)
@@ -2528,6 +2500,37 @@ Declares a periodic transaction rule that generates future transactions
 with \f[V]--forecast\f[R] and budget goals with
 \f[V]balance --budget\f[R].
 T}@T{
+N
+T}
+T{
+Other syntax:
+T}@T{
+T}@T{
+T}
+T{
+\f[B]\f[VB]apply account\f[B]\f[R]
+T}@T{
+Prepends a common parent account to all account names, in following
+entries until end of current file or \f[V]end apply account\f[R].
+T}@T{
+Y
+T}
+T{
+\f[B]\f[VB]D\f[B]\f[R]
+T}@T{
+Sets a default commodity to use for no-symbol amounts;and, if there is
+no \f[V]commodity\f[R] directive for this commodity: its decimal mark,
+balancing precision, and display style, as above.
+T}@T{
+Y,Y,N,N
+T}
+T{
+\f[B]\f[VB]Y\f[B]\f[R]
+T}@T{
+Sets a default year to use for any yearless dates, in following entries
+until end of current file.
+T}@T{
+Y
 T}
 T{
 \f[B]\f[VB]=\f[B]\f[R] (equals)
@@ -2537,6 +2540,12 @@ transactions with \f[V]--auto\f[R], in current, parent, and child files
 (but not sibling files, see #1212).
 T}@T{
 partly
+T}
+T{
+\f[B]Other Ledger directives\f[R]
+T}@T{
+Other directives from Ledger\[aq]s file format are accepted but ignored.
+T}@T{
 T}
 .TE
 .SS Directives and multiple files
@@ -2555,222 +2564,6 @@ cleaning up your files.
 .PP
 It can be surprising though; for example, it means that \f[V]alias\f[R]
 directives do not affect parent or sibling files (see below).
-.SS Including files
-.PP
-You can pull in the content of additional files by writing an include
-directive, like this:
-.IP
-.nf
-\f[C]
-include FILEPATH
-\f[R]
-.fi
-.PP
-Only journal files can include, and only journal, timeclock or timedot
-files can be included (not CSV files, currently).
-.PP
-If the file path does not begin with a slash, it is relative to the
-current file\[aq]s folder.
-.PP
-A tilde means home directory, eg: \f[V]include \[ti]/main.journal\f[R].
-.PP
-The path may contain glob patterns to match multiple files, eg:
-\f[V]include *.journal\f[R].
-.PP
-There is limited support for recursive wildcards: \f[V]**/\f[R] (the
-slash is required) matches 0 or more subdirectories.
-It\[aq]s not super convenient since you have to avoid include cycles and
-including directories, but this can be done, eg:
-\f[V]include */**/*.journal\f[R].
-.PP
-The path may also be prefixed to force a specific file format,
-overriding the file extension (as described in hledger.1 -> Input
-files): \f[V]include timedot:\[ti]/notes/2020*.md\f[R].
-.SS Default year
-.PP
-You can set a default year to be used for subsequent dates which
-don\[aq]t specify a year.
-This is a line beginning with \f[V]Y\f[R] followed by the year.
-Eg:
-.IP
-.nf
-\f[C]
-Y2009  ; set default year to 2009
-
-12/15  ; equivalent to 2009/12/15
-  expenses  1
-  assets
-
-Y2010  ; change default year to 2010
-
-2009/1/30  ; specifies the year, not affected
-  expenses  1
-  assets
-
-1/31   ; equivalent to 2010/1/31
-  expenses  1
-  assets
-\f[R]
-.fi
-.SS Decimal mark
-.PP
-You can use a \f[V]decimal-mark\f[R] directive - usually one per file,
-at the top of the file - to declare which character represents a decimal
-mark when parsing amounts in this file.
-It can look like
-.IP
-.nf
-\f[C]
-decimal-mark .
-\f[R]
-.fi
-.PP
-or
-.IP
-.nf
-\f[C]
-decimal-mark ,
-\f[R]
-.fi
-.PP
-This prevents any ambiguity when parsing numbers in the file, so we
-recommend it, especially if the file contains digit group marks (eg
-thousands separators).
-.SS Commodities
-.PP
-You can use \f[V]commodity\f[R] directives to declare your commodities.
-In fact the \f[V]commodity\f[R] directive performs several functions at
-once:
-.IP "1." 3
-It declares commodities which may be used in the journal.
-This can optionally be enforced, providing useful error checking.
-(Cf Commodity error checking)
-.IP "2." 3
-It declares which decimal mark character (period or comma), to expect
-when parsing input - useful to disambiguate international number formats
-in your data.
-Without this, hledger will parse both \f[V]1,000\f[R] and
-\f[V]1.000\f[R] as 1.
-(Cf Amounts)
-.IP "3." 3
-It declares how to render the commodity\[aq]s amounts when displaying
-output - the decimal mark, any digit group marks, the number of decimal
-places, symbol placement and so on.
-(Cf Commodity display style)
-.PP
-You will run into one of the problems solved by commodity directives
-sooner or later, so we recommend using them, for robust and predictable
-parsing and display.
-.PP
-Generally you should put them at the top of your journal file (since for
-function 2, they affect only following amounts, cf #793).
-.PP
-A commodity directive is just the word \f[V]commodity\f[R] followed by a
-sample amount, like this:
-.IP
-.nf
-\f[C]
-;commodity SAMPLEAMOUNT
-
-commodity $1000.00
-commodity 1,000.0000 AAAA  ; optional same-line comment
-\f[R]
-.fi
-.PP
-It may also be written on multiple lines, and use the \f[V]format\f[R]
-subdirective, as in Ledger.
-Note in this case the commodity symbol appears twice; it must be the
-same in both places:
-.IP
-.nf
-\f[C]
-;commodity SYMBOL
-;  format SAMPLEAMOUNT
-
-; display indian rupees with currency name on the left,
-; thousands, lakhs and crores comma-separated,
-; period as decimal point, and two decimal places.
-commodity INR
-  format INR 1,00,00,000.00
-\f[R]
-.fi
-.PP
-Remember that if the commodity symbol contains spaces, numbers, or
-punctuation, it must be enclosed in double quotes (cf Commodity).
-.PP
-The amount\[aq]s quantity does not matter; only the format is
-significant.
-It must include a decimal mark - either a period or a comma - followed
-by 0 or more decimal digits.
-.PP
-A few more examples:
-.IP
-.nf
-\f[C]
-# number formats for $, EUR, INR and the no-symbol commodity:
-commodity $1,000.00
-commodity EUR 1.000,00
-commodity INR 9,99,99,999.0
-commodity 1 000 000.
-\f[R]
-.fi
-.PP
-Note hledger normally uses banker\[aq]s rounding, so 0.5 displayed with
-zero decimal digits is \[dq]0\[dq].
-(More at Commodity display style.)
-.PP
-Even in the presence of commodity directives, the commodity display
-style can still be overridden by supplying a command line option.
-.SS Commodity error checking
-.PP
-In strict mode, enabled with the \f[V]-s\f[R]/\f[V]--strict\f[R] flag,
-hledger will report an error if a commodity symbol is used that has not
-been declared by a \f[V]commodity\f[R] directive.
-This works similarly to account error checking, see the notes there for
-more details.
-.PP
-Note, this disallows amounts without a commodity symbol, because
-currently it\[aq]s not possible (?)
-to declare the \[dq]no-symbol\[dq] commodity with a directive.
-This is one exception for convenience: zero amounts are always allowed
-to have no commodity symbol.
-.SS Default commodity
-.PP
-The \f[V]D\f[R] directive sets a default commodity, to be used for any
-subsequent commodityless amounts (ie, plain numbers) seen while parsing
-the journal.
-This effect lasts until the next \f[V]D\f[R] directive, or the end of
-the journal.
-.PP
-For compatibility/historical reasons, \f[V]D\f[R] also acts like a
-\f[V]commodity\f[R] directive (setting the commodity\[aq]s decimal mark
-for parsing and display style for output).
-.PP
-The syntax is \f[V]D AMOUNT\f[R].
-As with \f[V]commodity\f[R], the amount must include a decimal mark
-(either period or comma).
-Eg:
-.IP
-.nf
-\f[C]
-; commodity-less amounts should be treated as dollars
-; (and displayed with the dollar sign on the left, thousands separators and two decimal places)
-D $1,000.00
-
-1/1
-  a     5  ; <- commodity-less amount, parsed as $5 and displayed as $5.00
-  b
-\f[R]
-.fi
-.PP
-If both \f[V]commodity\f[R] and \f[V]D\f[R] directives are found for a
-commodity, \f[V]commodity\f[R] takes precedence for setting decimal mark
-and display style.
-.PP
-If you are using \f[V]D\f[R] and also checking commodities, you will
-need to add a \f[V]commodity\f[R] directive similar to the \f[V]D\f[R].
-(The \f[V]hledger check commodities\f[R] command expects
-\f[V]commodity\f[R] directives, and ignores \f[V]D\f[R]).
 .SS Accounts
 .PP
 \f[V]account\f[R] directives can be used to declare accounts (ie, the
@@ -3275,70 +3068,161 @@ command, eg something like:
 $ hledger accounts --alias assets=bassetts type:a
 \f[R]
 .fi
-.SS Default parent account
+.SS Commodities
 .PP
-You can specify a parent account which will be prepended to all accounts
-within a section of the journal.
-Use the \f[V]apply account\f[R] and \f[V]end apply account\f[R]
-directives like so:
+You can use \f[V]commodity\f[R] directives to declare your commodities.
+In fact the \f[V]commodity\f[R] directive performs several functions at
+once:
+.IP "1." 3
+It declares commodities which may be used in the journal.
+This can optionally be enforced, providing useful error checking.
+(Cf Commodity error checking)
+.IP "2." 3
+It declares which decimal mark character (period or comma), to expect
+when parsing input - useful to disambiguate international number formats
+in your data.
+Without this, hledger will parse both \f[V]1,000\f[R] and
+\f[V]1.000\f[R] as 1.
+(Cf Amounts)
+.IP "3." 3
+It declares how to render the commodity\[aq]s amounts when displaying
+output - the decimal mark, any digit group marks, the number of decimal
+places, symbol placement and so on.
+(Cf Commodity display style)
+.PP
+You will run into one of the problems solved by commodity directives
+sooner or later, so we recommend using them, for robust and predictable
+parsing and display.
+.PP
+Generally you should put them at the top of your journal file (since for
+function 2, they affect only following amounts, cf #793).
+.PP
+A commodity directive is just the word \f[V]commodity\f[R] followed by a
+sample amount, like this:
 .IP
 .nf
 \f[C]
-apply account home
+;commodity SAMPLEAMOUNT
 
-2010/1/1
-    food    $10
-    cash
+commodity $1000.00
+commodity 1,000.0000 AAAA  ; optional same-line comment
+\f[R]
+.fi
+.PP
+It may also be written on multiple lines, and use the \f[V]format\f[R]
+subdirective, as in Ledger.
+Note in this case the commodity symbol appears twice; it must be the
+same in both places:
+.IP
+.nf
+\f[C]
+;commodity SYMBOL
+;  format SAMPLEAMOUNT
 
-end apply account
+; display indian rupees with currency name on the left,
+; thousands, lakhs and crores comma-separated,
+; period as decimal point, and two decimal places.
+commodity INR
+  format INR 1,00,00,000.00
 \f[R]
 .fi
 .PP
-which is equivalent to:
+Other indented subdirectives are currently ignored.
+.PP
+Remember that if the commodity symbol contains spaces, numbers, or
+punctuation, it must be enclosed in double quotes (cf Commodity).
+.PP
+The amount\[aq]s quantity does not matter; only the format is
+significant.
+It must include a decimal mark - either a period or a comma - followed
+by 0 or more decimal digits.
+.PP
+A few more examples:
 .IP
 .nf
 \f[C]
-2010/01/01
-    home:food           $10
-    home:cash          $-10
+# number formats for $, EUR, INR and the no-symbol commodity:
+commodity $1,000.00
+commodity EUR 1.000,00
+commodity INR 9,99,99,999.0
+commodity 1 000 000.
 \f[R]
 .fi
 .PP
-If \f[V]end apply account\f[R] is omitted, the effect lasts to the end
-of the file.
-Included files are also affected, eg:
+Note hledger normally uses banker\[aq]s rounding, so 0.5 displayed with
+zero decimal digits is \[dq]0\[dq].
+(More at Commodity display style.)
+.PP
+Even in the presence of commodity directives, the commodity display
+style can still be overridden by supplying a command line option.
+.SS Commodity error checking
+.PP
+In strict mode, enabled with the \f[V]-s\f[R]/\f[V]--strict\f[R] flag,
+hledger will report an error if a commodity symbol is used that has not
+been declared by a \f[V]commodity\f[R] directive.
+This works similarly to account error checking, see the notes there for
+more details.
+.PP
+Note, this disallows amounts without a commodity symbol, because
+currently it\[aq]s not possible (?)
+to declare the \[dq]no-symbol\[dq] commodity with a directive.
+This is one exception for convenience: zero amounts are always allowed
+to have no commodity symbol.
+.SS Decimal mark
+.PP
+You can use a \f[V]decimal-mark\f[R] directive - usually one per file,
+at the top of the file - to declare which character represents a decimal
+mark when parsing amounts in this file.
+It can look like
 .IP
 .nf
 \f[C]
-apply account business
-include biz.journal
-end apply account
-apply account personal
-include personal.journal
+decimal-mark .
 \f[R]
 .fi
 .PP
-Prior to hledger 1.0, legacy \f[V]account\f[R] and \f[V]end\f[R]
-spellings were also supported.
-.PP
-A default parent account also affects account directives.
-It does not affect account names being entered via hledger add or
-hledger-web.
-If account aliases are present, they are applied after the default
-parent account.
-.SS Payees
-.PP
-The \f[V]payee\f[R] directive can be used to declare a limited set of
-payees which may appear in transaction descriptions.
-The \[dq]payees\[dq] check will report an error if any transaction
-refers to a payee that has not been declared.
-Eg:
+or
 .IP
 .nf
 \f[C]
-payee Whole Foods
+decimal-mark ,
 \f[R]
 .fi
+.PP
+This prevents any ambiguity when parsing numbers in the file, so we
+recommend it, especially if the file contains digit group marks (eg
+thousands separators).
+.SS Include files
+.PP
+You can pull in the content of additional files by writing an include
+directive, like this:
+.IP
+.nf
+\f[C]
+include FILEPATH
+\f[R]
+.fi
+.PP
+Only journal files can include, and only journal, timeclock or timedot
+files can be included (not CSV files, currently).
+.PP
+If the file path does not begin with a slash, it is relative to the
+current file\[aq]s folder.
+.PP
+A tilde means home directory, eg: \f[V]include \[ti]/main.journal\f[R].
+.PP
+The path may contain glob patterns to match multiple files, eg:
+\f[V]include *.journal\f[R].
+.PP
+There is limited support for recursive wildcards: \f[V]**/\f[R] (the
+slash is required) matches 0 or more subdirectories.
+It\[aq]s not super convenient since you have to avoid include cycles and
+including directories, but this can be done, eg:
+\f[V]include */**/*.journal\f[R].
+.PP
+The path may also be prefixed to force a specific file format,
+overriding the file extension (as described in hledger.1 -> Input
+files): \f[V]include timedot:\[ti]/notes/2020*.md\f[R].
 .SS Market prices
 .PP
 The \f[V]P\f[R] directive declares a market price, which is a conversion
@@ -3373,12 +3257,141 @@ The \f[V]-V\f[R], \f[V]-X\f[R] and \f[V]--value\f[R] flags use these
 market prices to show amount values in another commodity.
 See Valuation.
 .PP
+.SS Payees
+.PP
+The \f[V]payee\f[R] directive can be used to declare a limited set of
+payees which may appear in transaction descriptions.
+The \[dq]payees\[dq] check will report an error if any transaction
+refers to a payee that has not been declared.
+Eg:
+.IP
+.nf
+\f[C]
+payee Whole Foods
+\f[R]
+.fi
+.PP
+Any indented subdirectives are currently ignored.
+.SS Periodic transactions
+.PP
+Periodic transaction rules describe transactions that recur.
+They allow hledger to generate temporary future transactions (visible
+only in reports) to help with forecasting or budgeting.
+.PP
+Periodic transactions can be a little tricky, so before you use them,
+read this whole section, or at least these tips:
+.IP "1." 3
+Two spaces accidentally added or omitted will cause you trouble - read
+about this below.
+.IP "2." 3
+For troubleshooting, show the generated transactions with
+\f[V]hledger print --forecast tag:generated\f[R] or
+\f[V]hledger register --forecast tag:generated\f[R].
+.IP "3." 3
+Forecasted transactions will begin only after the last non-forecasted
+transaction\[aq]s date.
+.IP "4." 3
+Forecasted transactions will end 6 months from today, by default.
+See below for the exact start/end rules.
+.IP "5." 3
+period expressions can be tricky.
+Their documentation needs improvement, but is worth studying.
+.IP "6." 3
+Some period expressions with a repeating interval must begin on a
+natural boundary of that interval.
+Eg in \f[V]weekly from DATE\f[R], DATE must be a monday.
+\f[V]\[ti] weekly from 2019/10/1\f[R] (a tuesday) will give an error.
+.IP "7." 3
+Other period expressions with an interval are automatically expanded to
+cover a whole number of that interval.
+(This is done to improve reports, but it also affects periodic
+transactions.
+Yes, it\[aq]s a bit inconsistent with the above.)
+Eg: \f[V]\[ti] every 10th day of month from 2020/01\f[R], which is
+equivalent to \f[V]\[ti] every 10th day of month from 2020/01/01\f[R],
+will be adjusted to start on 2019/12/10.
+.SS Periodic rule syntax
+.PP
+A periodic transaction rule looks like a normal journal entry, with the
+date replaced by a tilde (\f[V]\[ti]\f[R]) followed by a period
+expression (mnemonic: \f[V]\[ti]\f[R] looks like a recurring sine
+wave.):
+.IP
+.nf
+\f[C]
+\[ti] monthly
+    expenses:rent          $2000
+    assets:bank:checking
+\f[R]
+.fi
+.PP
+There is an additional constraint on the period expression: the start
+date must fall on a natural boundary of the interval.
+Eg \f[V]monthly from 2018/1/1\f[R] is valid, but
+\f[V]monthly from 2018/1/15\f[R] is not.
+.SS Periodic rules and relative dates
+.PP
+Partial or relative dates (like \f[V]12/31\f[R], \f[V]25\f[R],
+\f[V]tomorrow\f[R], \f[V]last week\f[R], \f[V]next quarter\f[R]) are
+usually not recommended in periodic rules, since the results will change
+as time passes.
+If used, they will be interpreted relative to, in order of preference:
+.IP "1." 3
+the first day of the default year specified by a recent \f[V]Y\f[R]
+directive
+.IP "2." 3
+or the date specified with \f[V]--today\f[R]
+.IP "3." 3
+or the date on which you are running the report.
+.PP
+They will not be affected at all by report period or forecast period
+dates.
+.SS Two spaces between period expression and description!
+.PP
+If the period expression is followed by a transaction description, these
+must be separated by \f[B]two or more spaces\f[R].
+This helps hledger know where the period expression ends, so that
+descriptions can not accidentally alter their meaning, as in this
+example:
+.IP
+.nf
+\f[C]
+; 2 or more spaces needed here, so the period is not understood as \[dq]every 2 months in 2020\[dq]
+;               ||
+;               vv
+\[ti] every 2 months  in 2020, we will review
+    assets:bank:checking   $1500
+    income:acme inc
+\f[R]
+.fi
+.PP
+So,
+.IP \[bu] 2
+Do write two spaces between your period expression and your transaction
+description, if any.
+.IP \[bu] 2
+Don\[aq]t accidentally write two spaces in the middle of your period
+expression.
+.SS Other syntax
+.PP
+hledger journal format supports quite a few other features, mainly to
+make interoperating with or converting from Ledger easier.
+Note some of the features below are powerful and can be useful in
+special cases, but in general, features in this section are considered
+less important or even not recommended for most users.
+Downsides are mentioned to help you decide if you want to use them.
 .SS Auto postings
 .PP
 \[dq]Automated postings\[dq] or \[dq]auto postings\[dq] are extra
 postings which get added automatically to transactions which match
 certain queries, defined by \[dq]auto posting rules\[dq], when you use
 the \f[V]--auto\f[R] flag.
+.PP
+Downsides: depending on generated data for your reports makes your
+financial data less portable, less future-proof, and less trustworthy in
+an audit.
+Also, because the feature is optional, other features like balance
+assertions can break depending on whether it is on or off.
 .PP
 An auto posting rule looks a bit like a transaction:
 .IP
@@ -3507,106 +3520,313 @@ have these tags added:
 .IP \[bu] 2
 \f[V]_modified:\f[R] - a hidden tag not appearing in the comment; this
 transaction was modified \[dq]just now\[dq].
-.SS Periodic transactions
+.SS Balance assignments
 .PP
-Periodic transaction rules describe transactions that recur.
-They allow hledger to generate temporary future transactions (visible
-only in reports) to help with forecasting or budgeting.
-.PP
-Periodic transactions can be a little tricky, so before you use them,
-read this whole section, or at least these tips:
-.IP "1." 3
-Two spaces accidentally added or omitted will cause you trouble - read
-about this below.
-.IP "2." 3
-For troubleshooting, show the generated transactions with
-\f[V]hledger print --forecast tag:generated\f[R] or
-\f[V]hledger register --forecast tag:generated\f[R].
-.IP "3." 3
-Forecasted transactions will begin only after the last non-forecasted
-transaction\[aq]s date.
-.IP "4." 3
-Forecasted transactions will end 6 months from today, by default.
-See below for the exact start/end rules.
-.IP "5." 3
-period expressions can be tricky.
-Their documentation needs improvement, but is worth studying.
-.IP "6." 3
-Some period expressions with a repeating interval must begin on a
-natural boundary of that interval.
-Eg in \f[V]weekly from DATE\f[R], DATE must be a monday.
-\f[V]\[ti] weekly from 2019/10/1\f[R] (a tuesday) will give an error.
-.IP "7." 3
-Other period expressions with an interval are automatically expanded to
-cover a whole number of that interval.
-(This is done to improve reports, but it also affects periodic
-transactions.
-Yes, it\[aq]s a bit inconsistent with the above.)
-Eg: \f[V]\[ti] every 10th day of month from 2020/01\f[R], which is
-equivalent to \f[V]\[ti] every 10th day of month from 2020/01/01\f[R],
-will be adjusted to start on 2019/12/10.
-.SS Periodic rule syntax
-.PP
-A periodic transaction rule looks like a normal journal entry, with the
-date replaced by a tilde (\f[V]\[ti]\f[R]) followed by a period
-expression (mnemonic: \f[V]\[ti]\f[R] looks like a recurring sine
-wave.):
+Ledger-style balance assignments are also supported.
+These are like balance assertions, but with no posting amount on the
+left side of the equals sign; instead it is calculated automatically so
+as to satisfy the assertion.
+This can be a convenience during data entry, eg when setting opening
+balances:
 .IP
 .nf
 \f[C]
-\[ti] monthly
-    expenses:rent          $2000
-    assets:bank:checking
+; starting a new journal, set asset account balances
+2016/1/1 opening balances
+  assets:checking            = $409.32
+  assets:savings             = $735.24
+  assets:cash                 = $42
+  equity:opening balances
 \f[R]
 .fi
 .PP
-There is an additional constraint on the period expression: the start
-date must fall on a natural boundary of the interval.
-Eg \f[V]monthly from 2018/1/1\f[R] is valid, but
-\f[V]monthly from 2018/1/15\f[R] is not.
-.SS Periodic rules and relative dates
-.PP
-Partial or relative dates (like \f[V]12/31\f[R], \f[V]25\f[R],
-\f[V]tomorrow\f[R], \f[V]last week\f[R], \f[V]next quarter\f[R]) are
-usually not recommended in periodic rules, since the results will change
-as time passes.
-If used, they will be interpreted relative to, in order of preference:
-.IP "1." 3
-the first day of the default year specified by a recent \f[V]Y\f[R]
-directive
-.IP "2." 3
-or the date specified with \f[V]--today\f[R]
-.IP "3." 3
-or the date on which you are running the report.
-.PP
-They will not be affected at all by report period or forecast period
-dates.
-.SS Two spaces between period expression and description!
-.PP
-If the period expression is followed by a transaction description, these
-must be separated by \f[B]two or more spaces\f[R].
-This helps hledger know where the period expression ends, so that
-descriptions can not accidentally alter their meaning, as in this
-example:
+or when adjusting a balance to reality:
 .IP
 .nf
 \f[C]
-; 2 or more spaces needed here, so the period is not understood as \[dq]every 2 months in 2020\[dq]
-;               ||
-;               vv
-\[ti] every 2 months  in 2020, we will review
-    assets:bank:checking   $1500
-    income:acme inc
+; no cash left; update balance, record any untracked spending as a generic expense
+2016/1/15
+  assets:cash    = $0
+  expenses:misc
 \f[R]
 .fi
 .PP
-So,
-.IP \[bu] 2
-Do write two spaces between your period expression and your transaction
-description, if any.
-.IP \[bu] 2
-Don\[aq]t accidentally write two spaces in the middle of your period
-expression.
+The calculated amount depends on the account\[aq]s balance in the
+commodity at that point (which depends on the previously-dated postings
+of the commodity to that account since the last balance assertion or
+assignment).
+.PP
+Downsides: using balance assignments makes your journal less explicit;
+to know the exact amount posted, you have to run hledger or do the
+calculations yourself, instead of just reading it.
+Also balance assignments\[aq] forcing of balances can hide errors.
+These things make your financial data less portable, less future-proof,
+and less trustworthy in an audit.
+.SS Balance assignments and prices
+.PP
+A cost in a balance assignment will cause the calculated amount to have
+that price attached:
+.IP
+.nf
+\f[C]
+2019/1/1
+  (a)             = $1 \[at] \[Eu]2
+\f[R]
+.fi
+.IP
+.nf
+\f[C]
+$ hledger print --explicit
+2019-01-01
+    (a)         $1 \[at] \[Eu]2 = $1 \[at] \[Eu]2
+\f[R]
+.fi
+.SS Bracketed posting dates
+.PP
+For setting posting dates and secondary posting dates, Ledger\[aq]s
+bracketed date syntax is also supported: \f[V][DATE]\f[R],
+\f[V][DATE=DATE2]\f[R] or \f[V][=DATE2]\f[R] in posting comments.
+hledger will attempt to parse any square-bracketed sequence of the
+\f[V]0123456789/-.=\f[R] characters in this way.
+With this syntax, DATE infers its year from the transaction and DATE2
+infers its year from DATE.
+.PP
+Downsides: another syntax to learn, redundant with hledger\[aq]s
+\f[V]date:\f[R]/\f[V]date2:\f[R] tags, and confusingly similar to
+Ledger\[aq]s lot date syntax.
+.SS Default commodity
+.PP
+The \f[V]D\f[R] directive sets a default commodity, to be used for any
+subsequent commodityless amounts (ie, plain numbers) seen while parsing
+the journal.
+This effect lasts until the next \f[V]D\f[R] directive, or the end of
+the journal.
+.PP
+For compatibility/historical reasons, \f[V]D\f[R] also acts like a
+\f[V]commodity\f[R] directive (setting the commodity\[aq]s decimal mark
+for parsing and display style for output).
+.PP
+The syntax is \f[V]D AMOUNT\f[R].
+As with \f[V]commodity\f[R], the amount must include a decimal mark
+(either period or comma).
+Eg:
+.IP
+.nf
+\f[C]
+; commodity-less amounts should be treated as dollars
+; (and displayed with the dollar sign on the left, thousands separators and two decimal places)
+D $1,000.00
+
+1/1
+  a     5  ; <- commodity-less amount, parsed as $5 and displayed as $5.00
+  b
+\f[R]
+.fi
+.PP
+If both \f[V]commodity\f[R] and \f[V]D\f[R] directives are found for a
+commodity, \f[V]commodity\f[R] takes precedence for setting decimal mark
+and display style.
+.PP
+If you are using \f[V]D\f[R] and also checking commodities, you will
+need to add a \f[V]commodity\f[R] directive similar to the \f[V]D\f[R].
+(The \f[V]hledger check commodities\f[R] command expects
+\f[V]commodity\f[R] directives, and ignores \f[V]D\f[R]).
+.PP
+Downsides: omitting commodity symbols makes your financial data less
+explicit, less portable, and less trustworthy in an audit.
+It is usually an unsustainable shortcut; sooner or later you will want
+to track multiple commodities.
+D is overloaded with functions redundant with \f[V]commodity\f[R] and
+\f[V]decimal mark\f[R].
+And it works differently from Ledger\[aq]s \f[V]D\f[R].
+.SS Default parent account
+.PP
+The \f[V]apply account\f[R] directive sets a parent account which will
+be prepended to all accounts in following entries, until an
+\f[V]end apply account\f[R] directive or end of current file.
+Eg:
+.IP
+.nf
+\f[C]
+apply account home
+
+2010/1/1
+    food    $10
+    cash
+
+end apply account
+\f[R]
+.fi
+.PP
+is equivalent to:
+.IP
+.nf
+\f[C]
+2010/01/01
+    home:food           $10
+    home:cash          $-10
+\f[R]
+.fi
+.PP
+\f[V]account\f[R] directives are also affected, and so is any
+\f[V]include\f[R]d content.
+.PP
+Account names entered via hledger add or hledger-web are not affected.
+.PP
+Account aliases, if any, are applied after the parent account is
+prepended.
+.PP
+Downsides: this can make your financial data less explicit, less
+portable, and less trustworthy in an audit.
+.SS Default year
+.PP
+You can set a default year to be used for subsequent dates which
+don\[aq]t specify a year.
+This is a line beginning with \f[V]Y\f[R] (or \f[V]year\f[R] or
+\f[V]apply year\f[R]) followed by the year.
+Eg:
+.IP
+.nf
+\f[C]
+Y2009  ; set default year to 2009
+
+12/15  ; equivalent to 2009/12/15
+  expenses  1
+  assets
+
+year 2010  ; change default year to 2010
+
+2009/1/30  ; specifies the year, not affected
+  expenses  1
+  assets
+
+1/31   ; equivalent to 2010/1/31
+  expenses  1
+  assets
+\f[R]
+.fi
+.PP
+Downsides: omitting the year (from primary transaction dates, at least)
+makes your financial data less explicit, less portable, and less
+trustworthy in an audit.
+Such dates can get separated from their corresponding Y directive, eg
+when evaluating a region of the journal in your editor.
+A missing Y directive makes reports dependent on today\[aq]s date.
+.SS Secondary dates
+.PP
+A secondary date is written after the primary date, following an equals
+sign.
+If the year is omitted, the primary date\[aq]s year is assumed.
+When running reports, the primary (left) date is used by default, but
+with the \f[V]--date2\f[R] flag (or \f[V]--aux-date\f[R] or
+\f[V]--effective\f[R]), the secondary (right) date will be used instead.
+.PP
+The meaning of secondary dates is up to you, but it\[aq]s best to follow
+a consistent rule.
+Eg \[dq]primary = the bank\[aq]s clearing date, secondary = date the
+transaction was initiated, if different\[dq].
+.PP
+Downsides: makes your financial data more complicated, less portable,
+and less trustworthy in an audit.
+Keeping the meaning of the two dates consistent requires discipline, and
+you have to remember which reporting mode is appropriate for a given
+report.
+Posting dates are simpler and better.
+.SS Star comments
+.PP
+Lines beginning with \f[V]*\f[R] (star/asterisk) are also comment lines.
+This feature allows Emacs users to insert org headings in their journal,
+allowing them to fold/unfold/navigate it like an outline when viewed
+with org mode.
+.PP
+Downsides: another, unconventional comment syntax to learn.
+Decreases your journal\[aq]s portability.
+And switching to Emacs org mode just for folding/unfolding meant losing
+the benefits of ledger mode; nowadays you can add outshine mode to
+ledger mode to get folding without losing ledger mode\[aq]s features.
+.SS Valuation expressions
+.PP
+Ledger allows a valuation function or value to be written in double
+parentheses after an amount.
+hledger ignores these.
+.SS Virtual postings
+.PP
+A posting with parentheses around the account name is called a
+\f[I]virtual posting\f[R] or \f[I]unbalanced posting\f[R], which means
+it is exempt from the usual rule that a transaction\[aq]s postings must
+balance add up to zero.
+.PP
+This is not part of double entry bookkeeping, so you might choose to
+avoid this feature.
+Or you can use it sparingly for certain special cases where it can be
+convenient.
+Eg, you could set opening balances without using a balancing equity
+account:
+.IP
+.nf
+\f[C]
+2022-01-01 opening balances
+  (assets:checking)   $1000
+  (assets:savings)    $2000
+\f[R]
+.fi
+.PP
+A posting with brackets around the account name is called a
+\f[I]balanced virtual posting\f[R].
+The balanced virtual postings in a transaction must add up to zero
+(separately from other postings).
+Eg:
+.IP
+.nf
+\f[C]
+2022-01-01 buy food with cash, update budget envelope subaccounts, & something else
+  assets:cash                    $-10  ; <- these balance each other
+  expenses:food                    $7  ; <-
+  expenses:food                    $3  ; <-
+  [assets:checking:budget:food]  $-10  ;   <- and these balance each other
+  [assets:checking:available]     $10  ;   <-
+  (something:else)                 $5  ;     <- this is not required to balance
+\f[R]
+.fi
+.PP
+Postings whose account names are neither parenthesised nor bracketed are
+called \f[I]real postings\f[R].
+You can exclude virtual postings from reports with the
+\f[V]-R/--real\f[R] flag or a \f[V]real:1\f[R] query.
+.PP
+Downsides: violates double entry bookkeeping, can be used to avoid
+figuring out correct entries, makes your financial data less portable
+and less trustworthy in an audit.
+.SS Other Ledger directives
+.PP
+These other Ledger directives are currently accepted but ignored.
+This allows hledger to read more Ledger files, but be aware that
+hledger\[aq]s reports may differ from Ledger\[aq]s if you use these.
+.IP
+.nf
+\f[C]
+apply fixed COMM AMT
+apply tag   TAG
+assert      EXPR
+bucket / A  ACCT
+capture     ACCT REGEX
+check       EXPR
+define      VAR=EXPR
+end apply fixed
+end apply tag
+end apply year
+end tag
+eval / expr EXPR
+python
+  PYTHONCODE
+tag         NAME
+value       EXPR
+--command-line-flags
+\f[R]
+.fi
+.PP
+See also https://hledger.org/ledger.html for a detailed hledger/Ledger
+syntax comparison.
 .SH CSV
 .PP
 hledger can read CSV files (Character Separated Value - usually comma,
@@ -4100,14 +4320,18 @@ skip N
 \f[R]
 .fi
 .PP
-The word \[dq]skip\[dq] followed by a number (or no number, meaning 1)
-tells hledger to ignore this many non-empty lines preceding the CSV
-data.
-(Empty/blank lines are skipped automatically.)
+The word \f[V]skip\f[R] followed by a number (or no number, meaning 1)
+tells hledger to ignore this many non-empty lines at the start of the
+input data.
+(Empty/blank lines are skipped automatically, so you don\[aq]t need to
+count those.)
 You\[aq]ll need this whenever your CSV data contains header lines.
+Header lines skipped in this way are ignored, and not parsed as CSV.
 .PP
-It also has a second purpose: it can be used inside if blocks (described
-below) to ignore certain CSV records.
+\f[V]skip\f[R] can also be used inside if blocks (described below), to
+skip individual data records.
+Note records skipped in this way are still required to be valid CSV,
+even though otherwise ignored.
 .SS \f[V]date-format\f[R]
 .IP
 .nf
@@ -4413,7 +4637,8 @@ the CSV uses separate fields for debits and credits (inflows and
 outflows).
 hledger assumes both of these CSV fields are unsigned, and will
 automatically negate the \[dq]-out\[dq] value.
-If they are signed, see \[dq]Setting amounts\[dq] below.
+It also requires that at least one of them is either empty or zero.
+See \[dq]Setting amounts\[dq] below for more on this topic.
 .PP
 \f[V]amount\f[R], or \f[V]amount-in\f[R] and \f[V]amount-out\f[R] are a
 legacy mode, to keep pre-hledger-1.17 CSV rules files working (and for
@@ -4422,6 +4647,10 @@ They are suitable only for two-posting transactions; they set both
 posting 1\[aq]s and posting 2\[aq]s amount.
 Posting 2\[aq]s amount will be negated, and also converted to cost if
 there\[aq]s a cost price.
+.PP
+Note: it might sound as if amount-in is for one posting and amount-out
+for the other posting, but no; use the -in and -out rules together for
+the same posting, producing one amount from two CSV fields.
 .PP
 If you have an existing rules file using the unnumbered form, you might
 want to use the numbered form in certain conditional blocks, without
@@ -4719,12 +4948,27 @@ separator each time the command re-runs, making it easier to read the
 output.
 .SS Valid CSV
 .PP
-hledger accepts CSV conforming to RFC 4180.
-When CSV values are enclosed in quotes, note:
+Note that hledger will only accept valid CSV conforming to RFC 4180, and
+equivalent SSV and TSV formats (like RFC 4180 but with semicolon or tab
+as separators).
+This means, eg:
 .IP \[bu] 2
-they must be double quotes (not single quotes)
+Values may be enclosed in double quotes, or not.
+Enclosing in single quotes is not allowed.
+(Eg \f[V]\[aq]A\[aq],\[aq]B\[aq]\f[R] is rejected.)
 .IP \[bu] 2
-spaces outside the quotes are not allowed
+When values are enclosed in double quotes, spaces outside the quotes are
+not allowed.
+(Eg \f[V]\[dq]A\[dq], \[dq]B\[dq]\f[R] is rejected.)
+.IP \[bu] 2
+When values are not enclosed in quotes, they may not contain double
+quotes.
+(Eg \f[V]A\[dq]A, B\f[R] is rejected.)
+.PP
+If your CSV/SSV/TSV is not valid in this sense, you\[aq]ll need to
+transform it before reading with hledger.
+Try using sed, or a more permissive CSV parser like python\[aq]s csv
+lib.
 .SS File Extension
 .PP
 To help hledger identify the format and show the right error messages,
@@ -5734,9 +5978,9 @@ T}@T{
 everything after january 1, 2009
 T}
 T{
-\f[V]-p \[dq]from 2009/1\[dq]\f[R]
+\f[V]-p \[dq]since 2009/1\[dq]\f[R]
 T}@T{
-the same
+the same, since is a synonym
 T}
 T{
 \f[V]-p \[dq]from 2009\[dq]\f[R]
@@ -6301,16 +6545,18 @@ that field\[aq]s value instead.
 FIELD can be any of the transaction fields \f[V]status\f[R],
 \f[V]code\f[R], \f[V]description\f[R], \f[V]payee\f[R], \f[V]note\f[R],
 or a tag name.
-Values containing \f[V]colon:separated:parts\f[R] will form a hierarchy,
-as account names do.
+When pivoting on a tag and a posting has multiple values of that tag,
+only the first value is displayed.
+Values containing \f[V]colon:separated:parts\f[R] will be displayed
+hierarchically, like account names.
 .PP
 Some examples:
 .IP
 .nf
 \f[C]
-2016/02/16 Member Fee Payment
-    assets:bank account                    2 EUR
-    income:member fees                    -2 EUR  ; member: John Doe
+2016/02/16 Yearly Dues Payment
+    assets:bank account                 2 EUR
+    income:dues                        -2 EUR  ; member: John Doe
 \f[R]
 .fi
 .PP
@@ -6320,7 +6566,7 @@ Normal balance report showing account names:
 \f[C]
 $ hledger balance
                2 EUR  assets:bank account
-              -2 EUR  income:member fees
+              -2 EUR  income:dues
 --------------------
                    0
 \f[R]
@@ -7862,7 +8108,7 @@ You can also set the initial defaults with command line arguments.
 Readline-style edit keys can be used during data entry.
 .IP \[bu] 2
 The tab key will auto-complete whenever possible - accounts,
-descriptions, dates (\f[V]yesterday\f[R], \f[V]today\f[R],
+payees/descriptions, dates (\f[V]yesterday\f[R], \f[V]today\f[R],
 \f[V]tomorrow\f[R]).
 If the input area is empty, it will insert the default value.
 .IP \[bu] 2
@@ -8488,24 +8734,13 @@ postings.)
 .PP
 The balance command is quite flexible; here is the full detail on how to
 control what it reports.
+If the following seems complicated, don\[aq]t worry - this is for
+advanced reporting, and it does typically take some time and
+experimentation to get clear on all these report modes.
+.PP
 There are three important option groups:
 .PP
 \f[V]hledger balance [CALCULATIONTYPE] [ACCUMULATIONTYPE] [VALUATIONTYPE] ...\f[R]
-.PP
-The first two are the most important:
-.IP \[bu] 2
-calculation type selects the basic calculation to perform for each table
-cell
-.IP \[bu] 2
-accumulation type says which postings should be included in each
-cell\[aq]s calculation
-.PP
-Typically one or both of these are selected by default, so you don\[aq]t
-need to write them explicitly.
-Then
-.IP \[bu] 2
-a valuation type can be added if you want to convert the basic report to
-value or cost
 .SS Calculation type
 .PP
 The basic calculation to perform for each table cell.
@@ -8513,7 +8748,8 @@ It is one of:
 .IP \[bu] 2
 \f[V]--sum\f[R] : sum the posting amounts (\f[B]default\f[R])
 .IP \[bu] 2
-\f[V]--budget\f[R] : like --sum but also show a goal amount
+\f[V]--budget\f[R] : sum the amounts, but also show the budget goal
+amount (for each account/period)
 .IP \[bu] 2
 \f[V]--valuechange\f[R] : show the change in period-end historical
 balance values (caused by deposits, withdrawals, and/or market price
@@ -8523,47 +8759,66 @@ fluctuations)
 valued balance minus each amount\[aq]s original cost)
 .SS Accumulation type
 .PP
-Which postings should be included in each cell\[aq]s calculation.
+How amounts should accumulate across report periods.
+Another way to say it: which time period\[aq]s postings should
+contribute to each cell\[aq]s calculation.
 It is one of:
 .IP \[bu] 2
-\f[V]--change\f[R] : postings from column start to column end, ie within
-the cell\[aq]s period.
+\f[V]--change\f[R] : calculate with postings from column start to column
+end, ie \[dq]just this column\[dq].
 Typically used to see revenues/expenses.
 (\f[B]default for balance, incomestatement\f[R])
 .IP \[bu] 2
-\f[V]--cumulative\f[R] : postings from report start to column end, eg to
-show changes accumulated since the report\[aq]s start date.
-Rarely used.
+\f[V]--cumulative\f[R] : calculate with postings from report start to
+column end, ie \[dq]previous columns plus this column\[dq].
+Typically used to show changes accumulated since the report\[aq]s start
+date.
+Not often used.
 .IP \[bu] 2
-\f[V]--historical/-H\f[R] : postings from journal start to column end,
-ie all postings from account creation to the end of the cell\[aq]s
-period.
+\f[V]--historical/-H\f[R] : calculate with postings from journal start
+to column end, ie \[dq]all postings from before report start date until
+this column\[aq]s end\[dq].
 Typically used to see historical end balances of
 assets/liabilities/equity.
 (\f[B]default for balancesheet, balancesheetequity, cashflow\f[R])
 .SS Valuation type
 .PP
-Which kind of valuation, valuation date(s) and optionally a target
-valuation commodity to use.
+Which kind of value or cost conversion should be applied, if any, before
+displaying the report.
 It is one of:
 .IP \[bu] 2
-no valuation, show amounts in their original commodities
+no valuation type : don\[aq]t convert to cost or value
 (\f[B]default\f[R])
 .IP \[bu] 2
-\f[V]--value=cost[,COMM]\f[R] : no valuation, show amounts converted to
-cost
+\f[V]--value=cost[,COMM]\f[R] : convert amounts to cost (then optionally
+to some other commodity)
 .IP \[bu] 2
-\f[V]--value=then[,COMM]\f[R] : show value at transaction dates
+\f[V]--value=then[,COMM]\f[R] : convert amounts to market value on
+transaction dates
 .IP \[bu] 2
-\f[V]--value=end[,COMM]\f[R] : show value at period end date(s)
+\f[V]--value=end[,COMM]\f[R] : convert amounts to market value on period
+end date(s)
+.PD 0
+.P
+.PD
 (\f[B]default with \f[VB]--valuechange\f[B], \f[VB]--gain\f[B]\f[R])
 .IP \[bu] 2
-\f[V]--value=now[,COMM]\f[R] : show value at today\[aq]s date
+\f[V]--value=now[,COMM]\f[R] : convert amounts to market value on
+today\[aq]s date
 .IP \[bu] 2
-\f[V]--value=YYYY-MM-DD[,COMM]\f[R] : show value at another date
+\f[V]--value=YYYY-MM-DD[,COMM]\f[R] : convert amounts to market value on
+another date
 .PP
-or one of their aliases: \f[V]--cost/-B\f[R], \f[V]--market/-V\f[R] or
-\f[V]--exchange/-X\f[R].
+or one of the equivalent simpler flags:
+.IP \[bu] 2
+\f[V]-B/--cost\f[R] : like --value=cost (though, note --cost and --value
+are independent options which can both be used at once)
+.IP \[bu] 2
+\f[V]-V/--market\f[R] : like --value=end
+.IP \[bu] 2
+\f[V]-X COMM/--exchange COMM\f[R] : like --value=end,COMM
+.PP
+See Cost reporting and Valuation for more about these.
 .SS Combining balance report types
 .PP
 Most combinations of these options should produce reasonable reports,
@@ -8635,8 +8890,8 @@ T}
 The \f[V]--budget\f[R] report type activates extra columns showing any
 budget goals for each account and period.
 The budget goals are defined by periodic transactions.
-This is very useful for comparing planned and actual income, expenses,
-time usage, etc.
+This is useful for comparing planned and actual income, expenses, time
+usage, etc.
 .PP
 For example, you can take average monthly expenses in the common expense
 categories to construct a minimal monthly budget:
@@ -8950,25 +9205,25 @@ two spaces are needed), and then select from multiple budgets defined in
 your journal.
 .SS Data layout
 .PP
-The \f[V]--layout\f[R] option affects how balance reports show commodity
-symbols and multi-commodity amounts, which can improve readability.
+The \f[V]--layout\f[R] option affects how balance reports show
+multi-commodity amounts and commodity symbols, which can improve
+readability.
 It can also normalise the data for easy consumption by other programs.
 It has four possible values:
 .IP \[bu] 2
 \f[V]--layout=wide[,WIDTH]\f[R]: commodities are shown on a single line,
-possibly elided to the specified width
+optionally elided to WIDTH
 .IP \[bu] 2
 \f[V]--layout=tall\f[R]: each commodity is shown on a separate line
 .IP \[bu] 2
-\f[V]--layout=bare\f[R]: amounts are shown as bare numbers, with
-commodity symbols in a separate column
+\f[V]--layout=bare\f[R]: commodity symbols are in their own column,
+amounts are bare numbers
 .IP \[bu] 2
 \f[V]--layout=tidy\f[R]: data is normalised to easily-consumed
-\[dq]tidy\[dq] form, with one row per data value (works only with CSV
-output)
+\[dq]tidy\[dq] form, with one row per data value
 .PP
-These \f[V]--layout\f[R] modes are supported with some but not all of
-the output formats:
+Here are the \f[V]--layout\f[R] modes supported by each output format;
+note only CSV output supports all of them:
 .PP
 .TS
 tab(@);
@@ -9124,7 +9379,7 @@ Balance changes in 2012-01-01..2014-12-31:
 .RE
 .IP \[bu] 2
 Bare layout also affects CSV output, which is useful for producing data
-that is easier to consume, eg when making charts:
+that is easier to consume, eg for making charts:
 .RS 2
 .IP
 .nf
@@ -9150,10 +9405,9 @@ variable has its own column and each row represents a single data point.
 See
 https://cran.r-project.org/web/packages/tidyr/vignettes/tidy-data.html
 for more.
-.RS 2
-.PP
-This kind of output is the easiest to process with other software.
+This is the easiest kind of data for other software to consume.
 Here\[aq]s how it looks:
+.RS 2
 .IP
 .nf
 \f[C]
@@ -9176,12 +9430,6 @@ $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -Y -O csv --layo
 \[dq]Assets:US:ETrade\[dq],\[dq]2014\[dq],\[dq]2014-01-01\[dq],\[dq]2014-12-31\[dq],\[dq]VHT\[dq],\[dq]170.00\[dq]
 \f[R]
 .fi
-.PP
-Currently tidy layout is supported only with CSV output.
-.PP
-In tidy mode, row totals, row averages and column totals are not shown
-(\f[V]-T/--row-total\f[R] and \f[V]-A/--average\f[R] flags are disabled
-and \f[V]-N/--no-total\f[R] is enabled).
 .RE
 .SS Useful balance reports
 .PP
@@ -10977,8 +11225,8 @@ Throughput               : 8342 txns/s
 \f[R]
 .fi
 .PP
-This command also supports output destination and output format
-selection.
+This command supports the -o/--output-file option (but not
+-O/--output-format selection).
 .SS tags
 .PP
 tags
@@ -11051,7 +11299,7 @@ Here\[aq]s how to list commands and view options and command docs:
 \f[C]
 $ hledger                # show available commands
 $ hledger --help         # show common options
-$ hledger CMD --help     # show common options and CMD\[aq]s options and documentation
+$ hledger CMD --help     # show CMD\[aq]s options, common options and CMD\[aq]s documentation
 \f[R]
 .fi
 .PP
@@ -11063,7 +11311,7 @@ Eg:
 \f[C]
 $ hledger help           # show the hledger manual with info, man or $PAGER (best available)
 $ hledger help journal   # show the journal topic in the hledger manual
-$ hledger help --help    # show how the help command works
+$ hledger help --help    # find out more about the help command
 \f[R]
 .fi
 .PP
@@ -11073,13 +11321,13 @@ Chat and mail list support and discussion archives can be found at
 https://hledger.org/support.
 .SS Constructing command lines
 .PP
-hledger has an extensive and powerful command line interface.
-We strive to keep it simple and ergonomic, but you may run into one of
-the confusing real world details OPTIONS.
-If that happens, here are some tips that may help:
+hledger has a flexible command line interface.
+We strive to keep it simple and ergonomic, but if you run into one of
+the sharp edges described in OPTIONS, here are some tips that might
+help:
 .IP \[bu] 2
 command-specific options must go after the command (it\[aq]s fine to put
-all options there) (\f[V]hledger CMD OPTS ARGS\f[R])
+common options there too: \f[V]hledger CMD OPTS ARGS\f[R])
 .IP \[bu] 2
 running add-on executables directly simplifies command line parsing
 (\f[V]hledger-ui OPTS ARGS\f[R])
@@ -11089,7 +11337,7 @@ enclose \[dq]problematic\[dq] args in single quotes
 if needed, also add a backslash to hide regular expression
 metacharacters from the shell
 .IP \[bu] 2
-to see how a misbehaving command is being parsed, add
+to see how a misbehaving command line is being parsed, add
 \f[V]--debug=2\f[R].
 .SS Starting a journal file
 .PP

@@ -1,5 +1,5 @@
 
-.TH "HLEDGER-UI" "1" "December 2022" "hledger-ui-1.28.99 " "hledger User Manuals"
+.TH "HLEDGER-UI" "1" "January 2023" "hledger-ui-1.28.99 " "hledger User Manuals"
 
 
 
@@ -18,10 +18,11 @@ hledger-ui - robust, friendly plain text accounting (TUI version)
 This manual is for hledger\[aq]s terminal interface, version 1.28.99.
 See also the hledger manual for common concepts and file formats.
 .PP
-hledger is a reliable, cross-platform set of programs for tracking
-money, time, or any other commodity, using double-entry accounting and a
-simple, editable file format.
-hledger is inspired by and largely compatible with ledger(1).
+hledger is a robust, user-friendly, cross-platform set of programs for
+tracking money, time, or any other commodity, using double-entry
+accounting and a simple, editable file format.
+hledger is inspired by and largely compatible with ledger(1), and
+largely interconvertible with beancount(1).
 .PP
 hledger-ui is hledger\[aq]s terminal interface, providing an efficient
 full-window text UI for viewing accounts and transactions, and some
@@ -29,10 +30,11 @@ limited data entry capability.
 It is easier than hledger\[aq]s command-line interface, and sometimes
 quicker and more convenient than the web interface.
 .PP
-Like hledger, it reads data from one or more files in hledger journal,
-timeclock, timedot, or CSV format specified with \f[V]-f\f[R], or
-\f[V]$LEDGER_FILE\f[R], or \f[V]$HOME/.hledger.journal\f[R] (on windows,
-perhaps \f[V]C:/Users/USER/.hledger.journal\f[R]).
+Like hledger, it reads data from one or more files in journal,
+timeclock, timedot, or CSV format.
+The default file is \f[V].hledger.journal\f[R] in your home directory;
+this can be overridden with one or more \f[V]-f FILE\f[R] options, or
+the \f[V]LEDGER_FILE\f[R] environment variable.
 For more about this see hledger(1), hledger_journal(5) etc.
 .PP
 Unlike hledger, hledger-ui hides all future-dated transactions by
@@ -618,10 +620,11 @@ Or, change it in settings: see
 https://www.java.com/en/download/help/path.html.
 .SH FILES
 .PP
-Reads data from one or more files in hledger journal, timeclock,
-timedot, or CSV format specified with \f[V]-f\f[R], or
-\f[V]$LEDGER_FILE\f[R], or \f[V]$HOME/.hledger.journal\f[R] (on windows,
-perhaps \f[V]C:/Users/USER/.hledger.journal\f[R]).
+Reads data from one or more files in journal, timeclock, timedot, or CSV
+format.
+The default file is \f[V].hledger.journal\f[R] in your home directory;
+this can be overridden with one or more \f[V]-f FILE\f[R] options, or
+the \f[V]LEDGER_FILE\f[R] environment variable.
 .SH BUGS
 .PP
 \f[V]-f-\f[R] doesn\[aq]t work (hledger-ui can\[aq]t read from stdin).
