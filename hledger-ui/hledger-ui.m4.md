@@ -141,6 +141,17 @@ With the `-w/--watch` option, when viewing a "current" period
 the period will move automatically to track the current date.
 To set a non-standard period, you can use `/` and a `date:` query.
 
+(Mac users: SHIFT-DOWN/UP keys do not work by default in Terminal, as of MacOS Monterey.
+You can configure them as follows: 
+open Terminal,
+press CMD-comma to open preferences,
+click Profiles,
+select your current terminal profile on the left,
+click Keyboard on the right,
+click + and add this for Shift-Down: `\033[1;2B`,
+click + and add this for Shift-Up:   `\033[1;2A`.
+Press the Escape key to enter the `\033` part, you can't type it directly.)
+
 `/` lets you set a general filter query limiting the data shown,
 using the same [query terms](hledger.html#queries) as in hledger and hledger-web.
 While editing the query, you can use [CTRL-a/e/d/k, BS, cursor keys](http://hackage.haskell.org/package/brick-0.7/docs/brick-widgets-edit.html#t:editor);
