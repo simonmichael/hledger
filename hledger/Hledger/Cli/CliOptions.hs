@@ -662,7 +662,7 @@ registerWidthsFromOpts :: CliOpts -> (Int, Maybe Int)
 registerWidthsFromOpts CliOpts{width_=Nothing, available_width_=w} = (w, Nothing)
 registerWidthsFromOpts CliOpts{width_=Just s}  =
     case runParser registerwidthp "(unknown)" s of
-        Left e   -> usageError $ "could not parse width option: "++show e
+        Left e   -> usageError $ "could not parse width option: "++errorBundlePretty e
         Right ws -> ws
     where
         registerwidthp :: (Stream s, Char ~ Token s) => ParsecT Void s m (Int, Maybe Int)
