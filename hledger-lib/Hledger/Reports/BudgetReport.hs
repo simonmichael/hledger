@@ -139,7 +139,7 @@ journalAddBudgetGoalTransactions bopts ropts reportspan j =
                     pts -> (ptinterval pt, ptspan pt)
                       where pt = maximumBy (comparing ptinterval) pts  -- PARTIAL: maximumBy won't fail
                 -- the natural start of this interval on or before the journal/report start
-                intervalstart = intervalStartBefore intervl d
+                intervalstart = intervalBoundaryBefore intervl d
                 -- the natural interval start before the journal/report start,
                 -- or the rule-specified start if later,
                 -- but no later than the journal/report start.

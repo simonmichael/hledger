@@ -75,7 +75,7 @@ module Hledger.Data.Dates (
   daysInSpan,
 
   tests_Dates
-, intervalStartBefore)
+, intervalBoundaryBefore)
 where
 
 import qualified Control.Monad.Fail as Fail (MonadFail, fail)
@@ -548,8 +548,8 @@ nextyear = startofyear . addGregorianYearsClip 1
 startofyear day = fromGregorian y 1 1 where (y,_,_) = toGregorian day
 
 -- Get the natural start for the given interval that falls on or before the given day.
-intervalStartBefore :: Interval -> Day -> Day
-intervalStartBefore int d =
+intervalBoundaryBefore :: Interval -> Day -> Day
+intervalBoundaryBefore int d =
   case splitSpan int (DateSpan (Just d) (Just $ addDays 1 d)) of
     (DateSpan (Just start) _:_) -> start
     _ -> d
