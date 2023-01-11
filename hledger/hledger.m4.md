@@ -3101,23 +3101,21 @@ $ hledger -f paypal-custom.csv  print
 The following kinds of rule can appear in the rules file, in any order.
 Blank lines and lines beginning with `#` or `;` or `*` are ignored.
 
-|                                                 |                                                                                         |
-|-------------------------------------------------|-----------------------------------------------------------------------------------------|
-| [**`separator`**](#separator)                   | a custom field separator                                                                |
-| [**`skip`**](#skip)                             | skip one or more header lines or matched CSV records                                    |
-| [**`date-format`**](#date-format)               | how to parse dates in CSV records                                                       |
-| [**`timezone`**](#timezone)                     | declare the time zone of ambiguous CSV date-times                                       |
-| [**`decimal-mark`**](#decimal-mark-1)           | the decimal mark used in CSV amounts, if ambiguous                                      |
-| [**`newest-first`**](#newest-first)             | improve txn order when there are multiple records, newest first, all with the same date |
-| [**`intra-day-reversed`**](#intra-day-reversed) | improve txn order when each day's txns are reverse of the overall date order            |
-| [**`balance-type`**](#balance-type)             | choose which type of balance assignments to use                                         |
-| [**`fields`**](#fields)                         | name CSV fields, assign them to hledger fields                                          |
-| [**Field assignment**](#field-assignment)       | assign a value to one hledger field, with interpolation                                 |
-| [**Field names**](#field-names)                 | hledger field names, used in the fields list and field assignments                      |
-| [**`if`**](#if)                                 | apply some rules to CSV records matched by patterns                                     |
-| [**`if` table**](#if-table)                     | apply some rules to CSV records matched by patterns, alternate syntax                   |
-| [**`end`**](#end)                               | skip the remaining CSV records                                                          |
-| [**`include`**](#include)                       | inline another CSV rules file                                                           |
+|                                                 |                                                                                                |
+|-------------------------------------------------|------------------------------------------------------------------------------------------------|
+| [**`separator`**](#separator)                   | declare the field separator, instead of relying on file extension                              |
+| [**`skip`**](#skip)                             | skip one or more header lines at start of file                                                 |
+| [**`date-format`**](#date-format)               | declare how to parse dates in CSV records                                                      |
+| [**`timezone`**](#timezone)                     | declare the time zone of ambiguous CSV date-times                                              |
+| [**`decimal-mark`**](#decimal-mark-1)           | declare the decimal mark used in CSV amounts, if ambiguous                                     |
+| [**`newest-first`**](#newest-first)             | improve txn order when: there are multiple records, newest first, all with the same date       |
+| [**`intra-day-reversed`**](#intra-day-reversed) | improve txn order when: same-day txns are in opposite order to the overall file                |
+| [**`balance-type`**](#balance-type)             | select which type of balance assignments to use                                                |
+| [**`fields`**](#fields)                         | name CSV fields for easy reference, and optionally assign their values to hledger fields       |
+| [**Field assignment**](#field-assignment)       | assign a CSV value or interpolated text value to a hledger field, constructing the txn         |
+| [**`if` block**](#if-block)                     | conditionally assign values to hledger fields, or `skip` a record or `end` (skip rest of file) |
+| [**`if` table**](#if-table)                     | conditionally assign values to hledger fields, using compact syntax                            |
+| [**`include`**](#include)                       | inline another CSV rules file                                                                  |
 
 ## `separator`
 
@@ -3277,16 +3275,16 @@ intra-day-reversed
 ```rules
 fields FIELDNAME1, FIELDNAME2, ...
 ```
-A fields list (the word "fields" followed by comma-separated field
-names) is the quick way to assign CSV field values to [hledger fields](#field-names).
-(The other way is [field assignments](#field-assignment), see below.)
-A fields list does does two things:
+A fields list (the word "fields" followed by comma-separated field names) is optional, but convenient.
+It does two things:
 
-1. It names the CSV fields.
-   This is optional, but can be convenient later for interpolating them.
+1. It names the CSV field in each column.
+   This can be convenient if you are referencing them in other rules,
+   so you can say `%SomeField` instead of remembering `%13`.
 
-2. Whenever you use a standard hledger field name (defined below),
-   the CSV value is assigned to that part of the hledger transaction.
+2. Whenever you use one of the special [hledger field names](#field names) (described below),
+   it assigns the CSV value in this position to that hledger field.
+   This is the quickest way to populate hledger's fields and build a transaction.
 
 Here's an example that says
 "use the 1st, 2nd and 4th fields as the transaction's date, description and amount;
@@ -3295,20 +3293,24 @@ name the last two fields for later reference; and ignore the others":
 fields date, description, , amount, , , somefield, anotherfield
 ```
 
-Tips:
+In a fields list, the separator is always comma; it is unrelated to the CSV file's separator.
+Also:
 
-- The fields list always use commas, even if your CSV data uses [another separator character](#separator).
-- Currently there must be least two items in the list (at least one comma).
+- There must be least two items in the list (at least one comma).
 - Field names may not contain spaces. Spaces before/after field names are optional.
 - Field names may contain `_` (underscore) or `-` (hyphen).
-- If the CSV contains column headings, it's a good idea to use these, suitably modified, as the basis for your field names (eg lower-cased, with underscores instead of spaces).
-- If some heading names match standard hledger fields, but you don't want to set the hledger fields directly, alter those names, eg by appending an underscore.
-- Fields you don't care about can be given a dummy name (eg: `_` ), or no name.
+- Fields you don't care about can be given a dummy name (eg just `_`) or an empty name.
+
+If the CSV contains column headings, it's convenient to use these for your field names,
+suitably modified (eg lower-cased with spaces replaced by underscores).
+
+Sometimes you may want to alter a CSV field name to avoid assigning to a hledger field with the same name.
+Eg you could call the CSV's "balance" field `balance_` to avoid directly setting hledger's `balance` field (and generating a balance assertion).
 
 ## Field assignment
 
 ```rules
-HLEDGERFIELDNAME FIELDVALUE
+HLEDGERFIELD FIELDVALUE
 ```
 
 Field assignments are the more flexible way to assign CSV values to hledger fields.
@@ -3319,7 +3321,7 @@ To assign a value to a hledger field, write the [field name](#field-names)
 a space, followed by a text value on the same line.
 This text value may interpolate CSV fields,
 referenced by their 1-based position in the CSV record (`%N`),
-or by the name they were given in the fields list (`%CSVFIELDNAME`).
+or by the name they were given in the fields list (`%CSVFIELD`).
 
 Some examples:
 
@@ -3342,9 +3344,20 @@ becomes `1` when interpolated)
 
 ## Field names
 
-Here are the standard hledger field (and pseudo-field) names, which
-you can use in a [fields](#fields) list or in [field assignments](#field-assignment).
-For more about the transaction parts they refer to, see [Transactions](#transactions).
+Note the two kinds of "field names" used in hledger CSV rules:
+
+1. **CSV field names** (`CSVFIELD` in examples):\
+   These are arbitrary names you have given to columns in the CSV data,
+   using a `fields` list, so that you can reference that CSV field
+   more conveniently by name (`%SomeField`) rather than column number (`%13`).
+
+2. **hledger field names** (`HLEDGERFIELD` in examples):\
+   These are special reserved names corresponding (directly or indirectly) to
+   parts of a hledger transaction (described here and in Journal > [Transactions](#transactions)).
+   You assign values to these to construct a transaction (journal entry),
+   using field assignment rules or by writing them in a `fields` list.
+
+Here are the hledger field names available in CSV rules, and their effects:
 
 ### date field
 
@@ -3391,33 +3404,28 @@ a default account name will be chosen (like "expenses:unknown" or "income:unknow
 
 ### amount field
 
-`amountN` sets the amount of the Nth posting,
-and causes that posting to be generated.
+There are a number of "amount" field name variants,
+to handle different situations when detecting and setting amounts:
+
+`amountN` sets the amount of the Nth posting, and causes that posting to be generated.
 By assigning to `amount1`, `amount2`, ... etc. you can generate up to 99 postings.
 
-`amountN-in` and `amountN-out` can be used instead,
-if the CSV uses separate fields for debits and credits (inflows and outflows).
+`amountN-in` and `amountN-out` should be used instead when the CSV has debits and credits (inflows and outflows) in separate fields.
 hledger assumes both of these CSV fields are unsigned, and will automatically negate the "-out" value.
 It also requires that at least one of them is either empty or zero.
 See ["Setting amounts"](#setting-amounts) below for more on this topic.
+Note: it might sound as if amount-in is for one posting in a transaction and amount-out for the other posting, but not so;
+the -in and -out rules work together to produce the amount for a single posting, from two CSV fields.
 
-`amount`, or `amount-in` and `amount-out` are a legacy mode,
-to keep pre-hledger-1.17 CSV rules files working (and for occasional convenience).
-They are suitable only for two-posting transactions; 
-they set both posting 1's and posting 2's amount.
-Posting 2's amount will be negated, and also converted to cost 
-if there's a [cost price](#costs).
-
-Note: it might sound as if amount-in is for one posting and amount-out for the other posting, but no;
-use the -in and -out rules together for the same posting, producing one amount from two CSV fields.
-
-If you have an existing rules file using the unnumbered form, you
-might want to use the numbered form in certain conditional blocks,
-without having to update and retest all the old rules. 
-To facilitate this, 
-posting 1 ignores `amount`/`amount-in`/`amount-out` if any of `amount1`/`amount1-in`/`amount1-out` are assigned,
-and posting 2 ignores them if any of `amount2`/`amount2-in`/`amount2-out` are assigned,
-avoiding conflicts.
+`amount` (or `amount-in` and `amount-out`), with no number, are a legacy syntax
+kept for backwards compatibility and occasional convenience.
+They are suitable for two-posting transactions and behave as follows:
+they set both posting 1's and posting 2's amount,
+with posting 2's amount negated and also converted to cost if there's a [cost price](#costs).
+Also, they will be overridden by the newer syntax if it is present;
+eg if `amount1` is assigned, that overrides `amount` for posting 1;
+`amount2-in` would override `amount-in` for posting 2, and so on.
+(This allows incrementally adding the newer numbered syntax in old rules files.)
 
 ### currency field
 
@@ -3441,84 +3449,53 @@ You can adjust the type of assertion/assignment with the
 See [Tips](#tips) below for more about setting amounts and currency.
 
 
-## `if`
+## `if` block
+
+Rules can be applied conditionally, depending on patterns in the CSV data.
+This allows flexibility; in particular, it is how you can categorise transactions,
+selecting an appropriate account name based on their description (for example).
+There are two ways to write conditional rules: "if blocks", described here,
+and "if tables", described below.
+
+An if block is the word `if` 
+and one or more "matcher" expressions (can be a word or phrase),
+one per line, starting either on the same or next line;
+followed by one or more indented rules.
+Eg,
 
 ```rules
 if MATCHER
  RULE
-
-if
-MATCHER
-MATCHER
-MATCHER
- RULE
- RULE
 ```
 
-Conditional blocks ("if blocks") are a block of rules that are applied
-only to CSV records which match certain patterns. They are often used
-for customising account names based on transaction descriptions.
-
-### Matching the whole record
-
-Each MATCHER can be a record matcher, which looks like this:
-```rules
-REGEX
-```
-
-REGEX is a case-insensitive [regular expression] that tries to match anywhere within the CSV record.
-It is a POSIX ERE (extended regular expression) 
-that also supports GNU word boundaries (`\b`, `\B`, `\<`, `\>`),
-and nothing else.
-If you have trouble, be sure to check our doc: <https://hledger.org/hledger.html#regular-expressions>
-
-Important note: the record that is matched is not the original record, but a synthetic one,
-with any enclosing double quotes (but not enclosing whitespace) removed, and always comma-separated
-(which means that a field containing a comma will appear like two fields).
-Eg, if the original record is `2020-01-01; "Acme, Inc.";  1,000`,
-the REGEX will actually see   `2020-01-01,Acme, Inc.,  1,000`).
-
-### Matching individual fields
-
-Or, MATCHER can be a field matcher, like this:
-```rules
-%CSVFIELD REGEX
-```
-which matches just the content of a particular CSV field.
-CSVFIELD is a percent sign followed by the field's name or column number, like `%date` or `%1`.
-
-### Combining matchers
-
-A single matcher can be written on the same line as the "if";
-or multiple matchers can be written on the following lines, non-indented.
-Multiple matchers are OR'd (any one of them can match), unless one begins with
-an `&` symbol, in which case it is AND'ed with the previous matcher.
+or
 
 ```rules
 if
 MATCHER
-& MATCHER
+MATCHER
+MATCHER
+ RULE
  RULE
 ```
 
-### Rules applied on successful match
+If any of the matchers succeeds, all of the indented rules will be applied.
+They are usually [field assignments](#field-assignments),
+but the following special rules may also be used within an if block:
 
-After the patterns there should be one or more rules to apply, all
-indented by at least one space. Three kinds of rule are allowed in
-conditional blocks:
+- `skip` - skips the matched CSV record (generating no transaction from it)
+- `end`  - skips the rest of the current CSV file.
 
-- [field assignments](#field-assignment) (to set a hledger field)
-- [skip](#skip) (to skip the matched CSV record)
-- [end](#end) (to skip all remaining CSV records).
+Some examples:
 
-Examples:
 ```rules
-# if the CSV record contains "groceries", set account2 to "expenses:groceries"
+# if the record contains "groceries", set account2 to "expenses:groceries"
 if groceries
  account2 expenses:groceries
 ```
+
 ```rules
-# if the CSV record contains any of these patterns, set account2 and comment as shown
+# if the record contains any of these phrases, set account2 and a transaction comment as shown
 if
 monthly service fee
 atm transaction fee
@@ -3527,50 +3504,88 @@ banking thru software
  comment  XXX deductible ? check it
 ```
 
+```rules
+# if an empty record is seen (assuming five fields), ignore the rest of the CSV file
+if ,,,,
+ end
+```
+
+## Matchers
+
+There are two kinds:
+
+1. A record matcher is a word or single-line text fragment or regular expression (`REGEX`), 
+   which hledger will try to match case-insensitively anywhere within the CSV record.\
+   Eg: `whole foods`
+
+2. A field matcher is preceded with a percent sign and [CSV field name](#field-names) (`%CSVFIELD REGEX`).
+   hledger will try to match these just within the named CSV field.\
+   Eg: `%date 2023`
+
+The regular expression is (as usual in hledger) a POSIX extended regular expression,
+that also supports GNU word boundaries (`\b`, `\B`, `\<`, `\>`),
+and nothing else.
+If you have trouble, see "Regular expressions" in the hledger manual (<https://hledger.org/hledger.html#regular-expressions>).
+
+With record matchers, it's important to know that the record matched is not the original CSV record, but a modified one:
+separators will be converted to commas, and enclosing double quotes (but not enclosing whitespace) are removed.
+So for example, when reading an SSV file, if the original record was:
+```ssv
+2020-01-01; "Acme, Inc.";  1,000
+```
+the regex would see, and try to match, this modified record text:
+```
+2020-01-01,Acme, Inc.,  1,000
+```
+
+When an if block has multiple matchers, they are combined as follows:
+
+- By default they are OR'd (any one of them can match)
+- When a matcher is preceded by ampersand (`&`) it will be AND'ed with the previous matcher (both of them must match).
+
+There's not yet an easy syntax to negate a matcher.
 
 ## `if` table
 
+"if tables" are an alternative to [if blocks](#if-blocks);
+they can express many matchers and field assignments in a more compact tabular format, like this:
+
 ```rules
-if,CSVFIELDNAME1,CSVFIELDNAME2,...,CSVFIELDNAMEn
-MATCHER1,VALUE11,VALUE12,...,VALUE1n
-MATCHER2,VALUE21,VALUE22,...,VALUE2n
-MATCHER3,VALUE31,VALUE32,...,VALUE3n
+if,HLEDGERFIELD1,HLEDGERFIELD2,...
+MATCHERA,VALUE1,VALUE2,...
+MATCHERB,VALUE1,VALUE2,...
+MATCHERC,VALUE1,VALUE2,...
 <empty line>
 ```
 
-Conditional tables ("if tables") are a different syntax to specify
-field assignments that will be applied only to CSV records which match certain patterns.
+The first character after `if` is taken to be the separator for the rest of the table.
+It should be a non-alphanumeric character like `,` or `|` that does not appear anywhere else in the table.
+(Note: it is unrelated to the CSV file's separator.)
+Whitespace can be used in the matcher lines for readability, but not in the if line currently.
+The table must be terminated by an empty line (or end of file).
+Each line must contain the same number of separators; empty values are allowed.
 
-MATCHER could be either field or record matcher, as described above. When MATCHER matches,
-values from that row would be assigned to the CSV fields named on the `if` line, in the same order.
+The above means: try all of the matchers; whenever a matcher succeeds, 
+assign all of the values on that line to the corresponding hledger fields;
+later lines can overrider earlier ones.
+It is equivalent to this sequence of if blocks:
 
-Therefore `if` table is exactly equivalent to a sequence of of `if` blocks:
 ```rules
-if MATCHER1
-  CSVFIELDNAME1 VALUE11
-  CSVFIELDNAME2 VALUE12
+if MATCHERA
+  HLEDGERFIELD1 VALUE1
+  HLEDGERFIELD2 VALUE2
   ...
-  CSVFIELDNAMEn VALUE1n
 
-if MATCHER2
-  CSVFIELDNAME1 VALUE21
-  CSVFIELDNAME2 VALUE22
+if MATCHERB
+  HLEDGERFIELD1 VALUE1
+  HLEDGERFIELD2 VALUE2
   ...
-  CSVFIELDNAMEn VALUE2n
 
-if MATCHER3
-  CSVFIELDNAME1 VALUE31
-  CSVFIELDNAME2 VALUE32
+if MATCHERC
+  HLEDGERFIELD1 VALUE1
+  HLEDGERFIELD2 VALUE2
   ...
-  CSVFIELDNAMEn VALUE3n
 ```
-
-Each line starting with MATCHER should contain enough (possibly empty) values for all the listed fields.
-
-Rules would be checked and applied in the order they are listed in the table and, like with `if` blocks, later rules (in the same or another table) or `if` blocks could override the effect of any rule.
-
-Instead of ',' you can use a variety of other non-alphanumeric characters as a separator. First character after `if` is taken to be the separator for the rest of the table. It is the responsibility of the user to ensure that separator does not occur inside MATCHERs and values - there is no way to escape separator.
-
 
 Example:
 ```rules
@@ -3579,18 +3594,6 @@ atm transaction fee,expenses:business:banking,deductible? check it
 %description groceries,expenses:groceries,
 2020/01/12.*Plumbing LLC,expenses:house:upkeep,emergency plumbing call-out
 ```
-
-## `end`
-
-This rule can be used inside [if blocks](#if) (only), to make hledger stop
-reading this CSV file and move on to the next input file, or to command execution.
-Eg:
-```rules
-# ignore everything following the first empty record
-if ,,,,
- end
-```
-
 
 ## `include`
 
@@ -3942,7 +3945,7 @@ Then for each CSV record in turn:
 - collect all field assignments at top level and in matched `if` blocks.
   When there are multiple assignments for a field, keep only the last one.
 - compute a value for each hledger field - either the one that was assigned to it
-  (and interpolate the %CSVFIELDNAME references), or a default
+  (and interpolate the %CSVFIELD references), or a default
 - generate a synthetic hledger transaction from these values.
 
 This is all part of the CSV reader, one of several readers hledger can
