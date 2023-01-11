@@ -12,6 +12,7 @@ related utilities used by hledger commands.
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE TypeOperators       #-}
 
 module Hledger.Cli.CliOptions (
 
