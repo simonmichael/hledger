@@ -58,7 +58,7 @@ module Hledger.Cli.CliOptions (
   outputFileFromOpts,
   outputFormatFromOpts,
   defaultWidth,
-  widthFromOpts,
+  -- widthFromOpts,
   replaceNumericFlags,
   -- | For register:
   registerWidthsFromOpts,
@@ -78,7 +78,6 @@ import Control.Monad (when)
 import Data.Char
 import Data.Default
 import Data.Either (fromRight, isRight)
-import Data.Functor.Identity (Identity)
 import Data.List.Extra (groupSortOn, intercalate, isInfixOf, nubSort)
 import Data.List.Split (splitOneOf)
 import Data.Maybe
@@ -637,16 +636,16 @@ rulesFilePathFromOpts opts = do
   d <- getCurrentDirectory
   maybe (return Nothing) (fmap Just . expandPath d) $ mrules_file_ $ inputopts_ opts
 
--- | Get the width in characters to use for console output.
--- This comes from the --width option, or the COLUMNS environment
--- variable, or (on posix platforms) the current terminal width, or 80.
--- Will raise a parse error for a malformed --width argument.
-widthFromOpts :: CliOpts -> Int
-widthFromOpts CliOpts{width_=Nothing, available_width_=w} = w
-widthFromOpts CliOpts{width_=Just s}  =
-    case runParser (read `fmap` some digitChar <* eof :: ParsecT Void String Identity Int) "(unknown)" s of
-        Left e   -> usageError $ "could not parse width option: "++show e
-        Right w  -> w
+-- -- | Get the width in characters to use for console output.
+-- -- This comes from the --width option, or the COLUMNS environment
+-- -- variable, or (on posix platforms) the current terminal width, or 80.
+-- -- Will raise a parse error for a malformed --width argument.
+-- widthFromOpts :: CliOpts -> Int
+-- widthFromOpts CliOpts{width_=Nothing, available_width_=w} = w
+-- widthFromOpts CliOpts{width_=Just s}  =
+--     case runParser (read `fmap` some digitChar <* eof :: ParsecT Void String Identity Int) "(unknown)" s of
+--         Left e   -> usageError $ "could not parse width option: "++errorBundlePretty e
+--         Right w  -> w
 
 -- for register:
 
