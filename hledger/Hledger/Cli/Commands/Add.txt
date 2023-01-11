@@ -24,8 +24,8 @@ Features:
 -   You can also set the initial defaults with command line arguments.
 -   Readline-style edit keys can be used during data entry.
 -   The tab key will auto-complete whenever possible - accounts,
-    descriptions, dates (yesterday, today, tomorrow). If the input area
-    is empty, it will insert the default value.
+    payees/descriptions, dates (yesterday, today, tomorrow). If the
+    input area is empty, it will insert the default value.
 -   If the journal defines a default commodity, it will be added to any
     bare numbers entered.
 -   A parenthesised transaction code may be entered following a date.
