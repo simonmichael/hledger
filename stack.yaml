@@ -1,12 +1,12 @@
-# stack build plan using GHC 9.4.3
+# stack build plan using GHC 9.4.4
 
-resolver: nightly-2023-01-11
+resolver: nightly-2023-01-12
 
 packages:
 - hledger-lib
 - hledger
 - hledger-ui
-#- hledger-web
+- hledger-web
 
 #extra-deps:
 #- megaparsec-9.3.0
