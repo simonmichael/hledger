@@ -2819,23 +2819,26 @@ and a larger collection at <https://github.com/simonmichael/hledger/tree/master/
 ## CSV rules cheatsheet
 
 The following kinds of rule can appear in the rules file, in any order.
-Blank lines and lines beginning with `#` or `;` or `*` are ignored.
+(Blank lines and lines beginning with `#` or `;` or `*` are ignored.)
 
 |                                                 |                                                                                                |
 |-------------------------------------------------|------------------------------------------------------------------------------------------------|
 | [**`separator`**](#separator)                   | declare the field separator, instead of relying on file extension                              |
 | [**`skip`**](#skip)                             | skip one or more header lines at start of file                                                 |
-| [**`date-format`**](#date-format)               | declare how to parse dates in CSV records                                                      |
+| [**`date-format`**](#date-format)               | declare how to parse CSV dates/date-times                                                      |
 | [**`timezone`**](#timezone)                     | declare the time zone of ambiguous CSV date-times                                              |
 | [**`newest-first`**](#newest-first)             | improve txn order when: there are multiple records, newest first, all with the same date       |
 | [**`intra-day-reversed`**](#intra-day-reversed) | improve txn order when: same-day txns are in opposite order to the overall file                |
-| [**`decimal-mark`**](#decimal-mark-1)           | declare the decimal mark used in CSV amounts, if ambiguous                                     |
+| [**`decimal-mark`**](#decimal-mark-1)           | declare the decimal mark used in CSV amounts, when ambiguous                                   |
 | [**`fields` list**](#fields-list)               | name CSV fields for easy reference, and optionally assign their values to hledger fields       |
 | [**Field assignment**](#field-assignment)       | assign a CSV value or interpolated text value to a hledger field                               |
 | [**`if` block**](#if-block)                     | conditionally assign values to hledger fields, or `skip` a record or `end` (skip rest of file) |
 | [**`if` table**](#if-table)                     | conditionally assign values to hledger fields, using compact syntax                            |
-| [**`balance-type`**](#balance-type)             | select which type of balance assignments to generate                                           |
+| [**`balance-type`**](#balance-type)             | select which type of balance assertions/assignments to generate                                |
 | [**`include`**](#include)                       | inline another CSV rules file                                                                  |
+
+[Working with CSV](#working-with-csv) tips can be found below,
+including [How CSV rules are evaluated](#how-csv-rules-are-evaluated).
 
 ## `separator`
 
@@ -3358,7 +3361,9 @@ account2 expenses:misc
 include categorisation.rules
 ```
 
-## CSV rules tips
+## Working with CSV
+
+Some tips:
 
 ### Rapid feedback
 
@@ -3665,7 +3670,7 @@ Then for each CSV record in turn:
   When there are multiple assignments for a field, keep only the last one.
 - compute a value for each hledger field - either the one that was assigned to it
   (and interpolate the %CSVFIELD references), or a default
-- generate a synthetic hledger transaction from these values.
+- generate a hledger transaction (journal entry) from these values.
 
 This is all part of the CSV reader, one of several readers hledger can
 use to parse input files. When all files have been read successfully,
