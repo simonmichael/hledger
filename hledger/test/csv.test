@@ -1059,7 +1059,16 @@ fields date, b, c
 $  ./csvtest.sh
 >=
 
-
+# 54. Some validation is done on account name assignments; trying to
+# also set an amount there (with 2+ spaces) will be rejected. (#1978)
+<
+2022-01-01,1
+RULES
+fields date,amt
+account1 assets    %amt
+$  ./csvtest.sh
+>2 /unexpected space/
+>=1
 
 ## . 
 #<

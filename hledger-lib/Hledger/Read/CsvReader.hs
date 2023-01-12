@@ -73,7 +73,7 @@ import Text.Printf (printf)
 
 import Hledger.Data
 import Hledger.Utils
-import Hledger.Read.Common (aliasesFromOpts, Reader(..), InputOpts(..), amountp, statusp, journalFinalise )
+import Hledger.Read.Common (aliasesFromOpts, Reader(..), InputOpts(..), amountp, statusp, journalFinalise, accountnamep )
 
 --- ** doctest setup
 -- $setup
@@ -1199,7 +1199,12 @@ getAccount rules record mamount mbalance n =
     -- accountN is set to the empty string - no posting will be generated
     Just "" -> Nothing
     -- accountN is set (possibly to "expenses:unknown"! #1192) - mark it final
-    Just a  -> Just (a, True)
+    Just a  ->
+      -- Check it and reject if invalid.. sometimes people try
+      -- to set an amount or comment along with the account name.
+      case parsewith (accountnamep >> eof) a of
+        Left e  -> usageError $ errorBundlePretty e
+        Right _ -> Just (a, True)
     -- accountN is unset
     Nothing ->
       case (mamount, mbalance) of
