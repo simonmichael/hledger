@@ -2,7 +2,7 @@
 #
 # sh version, ported from bash so freebsd users can run these tests.
 # This scripts expects stdin formatted like this:
-# <multi-line csv file>
+# <multi-line csv file (at least one line required, even if blank)>
 # RULES
 # <multi-line rules>
 #
