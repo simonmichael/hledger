@@ -3392,20 +3392,29 @@ Try using sed, or a more permissive CSV parser like [python's csv lib](https://d
 
 ### File Extension
 
-To help hledger identify the format and show the right error messages,
-CSV/SSV/TSV files should normally be named with a `.csv`, `.ssv` or `.tsv`
-filename extension. Or, the file path should be prefixed with `csv:`, `ssv:` or `tsv:`.
+To help hledger choose the CSV file reader and show the right error messages
+(and choose the right field separator character by default),
+it's best if CSV/SSV/TSV files are named with a `.csv`, `.ssv` or `.tsv`
+filename extension. 
+(More about this at [Data formats](#data-formats).)
+
+When reading files with the "wrong" extension, you can ensure the CSV reader
+(and the default field separator) by prefixing the file path with `csv:`, `ssv:` or `tsv:`:
 Eg:
 ```shell
-$ hledger -f foo.ssv print
-```
-or:
-```
-$ cat foo | hledger -f ssv:- foo
+$ hledger -f ssv:foo.dat print
 ```
 
-You can override the file extension with a [separator](#separator) rule if needed.
-See also: [Input files](#input-files) in the hledger manual.
+You can also override the default field separator with a [separator](#separator) rule if needed.
+
+### Reading CSV from standard input
+
+You'll need the file format prefix when reading CSV from stdin also, since hledger assumes journal format by default.
+Eg:
+
+```
+$ cat foo.dat | hledger -f ssv:- print
+```
 
 ### Reading multiple CSV files
 
