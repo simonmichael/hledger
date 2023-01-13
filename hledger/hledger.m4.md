@@ -45,8 +45,7 @@ It might accidentally teach you some bookkeeping/accounting as well!
 You don't need to know everything in here to use hledger productively,
 but when you have a question about functionality, this doc should answer it.
 It is detailed, so do skip ahead or skim when needed.
-You can read it on hledger.org, or as an info manual or man page on
-your system (each has benefits).
+You can read it on hledger.org, or as an info manual or man page on your system.
 You can also get it from hledger itself with\
 `hledger --man`, `hledger --info` or `hledger help [TOPIC]`.
 
