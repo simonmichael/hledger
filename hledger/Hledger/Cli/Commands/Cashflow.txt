@@ -1,4 +1,7 @@
-cashflow, cf
+cashflow
+
+(cf)
+
 This command displays a cashflow statement, showing the inflows and
 outflows affecting "cash" (ie, liquid, easily convertible) assets.
 Amounts are shown with normal positive sign, as in conventional

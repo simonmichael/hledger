@@ -1,4 +1,5 @@
 notes
+
 List the unique notes that appear in transactions.
 
 _FLAGS
