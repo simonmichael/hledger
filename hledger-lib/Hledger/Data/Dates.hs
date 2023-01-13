@@ -165,20 +165,21 @@ spanYears (DateSpan ma mb) = mapMaybe (fmap (first3 . toGregorian)) [ma,mb]
 spansSpan :: [DateSpan] -> DateSpan
 spansSpan spans = DateSpan (spanStart =<< headMay spans) (spanEnd =<< lastMay spans)
 
--- | Split a DateSpan into consecutive whole spans of the specified interval
--- which fully encompass the original span (and a little more when necessary).
+-- | Split a DateSpan into consecutive spans of the specified Interval.
+-- If the first argument is true and the interval is Weeks, Months, Quarters or Years,
+-- the start date will be adjusted backward if needed to nearest natural interval boundary
+-- (a monday, first of month, first of quarter or first of year).
 -- If no interval is specified, the original span is returned.
 -- If the original span is the null date span, ie unbounded, the null date span is returned.
 -- If the original span is empty, eg if the end date is <= the start date, no spans are returned.
 --
---
 -- ==== Examples:
--- >>> let t i y1 m1 d1 y2 m2 d2 = splitSpan i $ DateSpan (Just $ fromGregorian y1 m1 d1) (Just $ fromGregorian y2 m2 d2)
+-- >>> let t i y1 m1 d1 y2 m2 d2 = splitSpan True i $ DateSpan (Just $ fromGregorian y1 m1 d1) (Just $ fromGregorian y2 m2 d2)
 -- >>> t NoInterval 2008 01 01 2009 01 01
 -- [DateSpan 2008]
 -- >>> t (Quarters 1) 2008 01 01 2009 01 01
 -- [DateSpan 2008Q1,DateSpan 2008Q2,DateSpan 2008Q3,DateSpan 2008Q4]
--- >>> splitSpan (Quarters 1) nulldatespan
+-- >>> splitSpan True (Quarters 1) nulldatespan
 -- [DateSpan ..]
 -- >>> t (Days 1) 2008 01 01 2008 01 01  -- an empty datespan
 -- []
@@ -203,24 +204,24 @@ spansSpan spans = DateSpan (spanStart =<< headMay spans) (spanEnd =<< lastMay sp
 -- >>> t (DayOfYear 11 29) 2011 12 01 2012 12 15
 -- [DateSpan 2011-11-29..2012-11-28,DateSpan 2012-11-29..2013-11-28]
 --
-splitSpan :: Interval -> DateSpan -> [DateSpan]
-splitSpan _ (DateSpan Nothing Nothing) = [DateSpan Nothing Nothing]
-splitSpan _ ds | isEmptySpan ds = []
-splitSpan _ ds@(DateSpan (Just s) (Just e)) | s == e = [ds]
-splitSpan NoInterval      ds = [ds]
-splitSpan (Days n)        ds = splitspan startofday     addDays n                    ds
-splitSpan (Weeks n)       ds = splitspan startofweek    addDays (7*n)                ds
-splitSpan (Months n)      ds = splitspan startofmonth   addGregorianMonthsClip n     ds
-splitSpan (Quarters n)    ds = splitspan startofquarter addGregorianMonthsClip (3*n) ds
-splitSpan (Years n)       ds = splitspan startofyear    addGregorianYearsClip n      ds
-splitSpan (DayOfMonth n)  ds = splitspan (nthdayofmonthcontaining n)  addGregorianMonthsClip 1 ds
-splitSpan (DayOfYear m n) ds = splitspan (nthdayofyearcontaining m n) addGregorianYearsClip 1 ds
-splitSpan (WeekdayOfMonth n wd) ds = splitspan (nthweekdayofmonthcontaining n wd) advancemonths 1 ds
+splitSpan :: Bool -> Interval -> DateSpan -> [DateSpan]
+splitSpan _ _ (DateSpan Nothing Nothing) = [DateSpan Nothing Nothing]
+splitSpan _ _ ds | isEmptySpan ds = []
+splitSpan _ _ ds@(DateSpan (Just s) (Just e)) | s == e = [ds]
+splitSpan _ NoInterval ds = [ds]
+splitSpan _ (Days n) ds = splitspan id addDays n                    ds
+splitSpan adjust (Weeks n)    ds = splitspan (if adjust then startofweek    else id) addDays (7*n)                ds
+splitSpan adjust (Months n)   ds = splitspan (if adjust then startofmonth   else id) addGregorianMonthsClip n     ds
+splitSpan adjust (Quarters n) ds = splitspan (if adjust then startofquarter else id) addGregorianMonthsClip (3*n) ds
+splitSpan adjust (Years n)    ds = splitspan (if adjust then startofyear    else id) addGregorianYearsClip n      ds
+splitSpan _ (DayOfMonth n)  ds = splitspan (nthdayofmonthcontaining n)  addGregorianMonthsClip 1 ds
+splitSpan _ (DayOfYear m n) ds = splitspan (nthdayofyearcontaining m n) addGregorianYearsClip 1 ds
+splitSpan _ (WeekdayOfMonth n wd) ds = splitspan (nthweekdayofmonthcontaining n wd) advancemonths 1 ds
   where
     advancemonths 0 = id
     advancemonths w = advancetonthweekday n wd . startofmonth . addGregorianMonthsClip w
-splitSpan (DaysOfWeek [])         ds = [ds]
-splitSpan (DaysOfWeek days@(n:_)) ds = spansFromBoundaries e bdrys
+splitSpan _ (DaysOfWeek [])         ds = [ds]
+splitSpan _ (DaysOfWeek days@(n:_)) ds = spansFromBoundaries e bdrys
   where
     (s, e) = dateSpanSplitLimits (nthdayofweekcontaining n) nextday ds
     bdrys = concatMap (flip map starts . addDays) [0,7..]
@@ -520,7 +521,6 @@ fixSmartDate refdate = fix
 prevday :: Day -> Day
 prevday = addDays (-1)
 nextday = addDays 1
-startofday = id
 
 thisweek = startofweek
 prevweek = startofweek . addDays (-7)
@@ -547,10 +547,11 @@ prevyear = startofyear . addGregorianYearsClip (-1)
 nextyear = startofyear . addGregorianYearsClip 1
 startofyear day = fromGregorian y 1 1 where (y,_,_) = toGregorian day
 
--- Get the natural start for the given interval that falls on or before the given day.
+-- Get the natural start for the given interval that falls on or before the given day,
+-- when applicable. Works for Weeks, Months, Quarters, Years, eg.
 intervalBoundaryBefore :: Interval -> Day -> Day
-intervalBoundaryBefore int d =
-  case splitSpan int (DateSpan (Just d) (Just $ addDays 1 d)) of
+intervalBoundaryBefore i d =
+  case splitSpan True i (DateSpan (Just d) (Just $ addDays 1 d)) of
     (DateSpan (Just start) _:_) -> start
     _ -> d
 
@@ -1061,7 +1062,7 @@ nulldate = fromGregorian 0 1 1
 
 tests_Dates = testGroup "Dates"
   [ testCase "weekday" $ do
-      splitSpan (DaysOfWeek [1..5]) (DateSpan (Just $ fromGregorian 2021 07 01) (Just $ fromGregorian 2021 07 08))
+      splitSpan False (DaysOfWeek [1..5]) (DateSpan (Just $ fromGregorian 2021 07 01) (Just $ fromGregorian 2021 07 08))
         @?= [ (DateSpan (Just $ fromGregorian 2021 06 28) (Just $ fromGregorian 2021 06 29))
             , (DateSpan (Just $ fromGregorian 2021 06 29) (Just $ fromGregorian 2021 06 30))
             , (DateSpan (Just $ fromGregorian 2021 06 30) (Just $ fromGregorian 2021 07 01))
@@ -1073,7 +1074,7 @@ tests_Dates = testGroup "Dates"
             , (DateSpan (Just $ fromGregorian 2021 07 07) (Just $ fromGregorian 2021 07 08))
             ]
 
-      splitSpan (DaysOfWeek [1, 5]) (DateSpan (Just $ fromGregorian 2021 07 01) (Just $ fromGregorian 2021 07 08))
+      splitSpan False (DaysOfWeek [1, 5]) (DateSpan (Just $ fromGregorian 2021 07 01) (Just $ fromGregorian 2021 07 08))
         @?= [ (DateSpan (Just $ fromGregorian 2021 06 28) (Just $ fromGregorian 2021 07 02))
             , (DateSpan (Just $ fromGregorian 2021 07 02) (Just $ fromGregorian 2021 07 05))
             -- next week
@@ -1082,7 +1083,7 @@ tests_Dates = testGroup "Dates"
 
   , testCase "match dayOfWeek" $ do
       let dayofweek n = splitspan (nthdayofweekcontaining n) (\w -> (if w == 0 then id else applyN (n-1) nextday . applyN (fromInteger w) nextweek)) 1
-          matchdow ds day = splitSpan (DaysOfWeek [day]) ds @?= dayofweek day ds
+          matchdow ds day = splitSpan False (DaysOfWeek [day]) ds @?= dayofweek day ds
           ys2021 = fromGregorian 2021 01 01
           ye2021 = fromGregorian 2021 12 31
           ys2022 = fromGregorian 2022 01 01

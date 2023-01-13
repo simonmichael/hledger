@@ -722,8 +722,6 @@ periodictransactionp = do
   -- first line
   char '~' <?> "periodic transaction"
   lift $ skipNonNewlineSpaces
-  -- a period expression
-  off <- getOffset
 
   -- if there's a default year in effect, use Y/1/1 as base for partial/relative dates
   today <- liftIO getCurrentDay
@@ -749,11 +747,6 @@ periodictransactionp = do
         <> "\nperhaps you need to terminate the period expression with a double space?"
         <> "\na double space is required between period expression and description/comment"
     pure pexp
-
-  -- In periodic transactions, the period expression has an additional constraint:
-  case checkPeriodicTransactionStartDate interval spn periodtxt of
-    Just e -> customFailure $ parseErrorAt off e
-    Nothing -> pure ()
 
   status <- lift statusp <?> "cleared status"
   code <- lift codep <?> "transaction code"

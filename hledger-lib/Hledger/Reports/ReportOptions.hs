@@ -685,7 +685,10 @@ reportSpanHelper bothdates j ReportSpec{_rsQuery=query, _rsReportOpts=ropts} =
     -- This list can be empty if the journal was empty,
     -- or if hledger-ui has added its special date:-tomorrow to the query
     -- and all txns are in the future.
-    intervalspans  = dbg3 "intervalspans" $ splitSpan (interval_ ropts) requestedspan'
+    intervalspans  = dbg3 "intervalspans" $ splitSpan adjust (interval_ ropts) requestedspan'
+      where
+        -- When calculating report periods, we will always adjust the start date back to the nearest interval boundary.
+        adjust = True  -- isNothing $ spanStart requestedspan
     -- The requested span enlarged to enclose a whole number of intervals.
     -- This can be the null span if there were no intervals.
     reportspan = dbg3 "reportspan" $ DateSpan (spanStart =<< headMay intervalspans)
