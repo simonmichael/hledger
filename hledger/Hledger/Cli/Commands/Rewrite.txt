@@ -1,4 +1,5 @@
 rewrite
+
 Print all transactions, rewriting the postings of matched transactions.
 For now the only rewrite available is adding new postings, like print
 --auto.
