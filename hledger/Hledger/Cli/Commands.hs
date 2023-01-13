@@ -103,7 +103,7 @@ builtinCommands = [
   ,(closemode              , close)
   ,(codesmode              , codes)
   ,(commoditiesmode        , commodities)
-  ,(descriptionsmode        , descriptions)
+  ,(descriptionsmode       , descriptions)
   ,(diffmode               , diff)
   ,(filesmode              , files)
   ,(helpmode               , help')
@@ -187,10 +187,14 @@ commandsList progversion othercmds highlight0 =
   (if highlight then (map (\s -> if "+" `isPrefixOf` s then highlightAddon (' ' : drop 1 s) else s)) else id) $
   map (bold'.accent) _banner_smslant ++ 
   [
-  -- keep synced with hledger.m4.md > PART 4: COMMANDS, Hledger/Cli/Commands > commands.m4 -->
-    -----------------------------------------80-------------------------------------
-   ""
-  ,accent progversion
+  -- Keep the following synced with:
+  --  commands.m4
+  --  hledger.m4.md -> Commands
+  --  commandsFromCommandsList. Only commands should begin with space or plus.
+   "-------------------------------------------------------------------------------"
+  ,progversion
+  ,"Usage: hledger COMMAND [OPTIONS] [-- ADDONCMDOPTIONS]"
+  ,"Commands (+ addons found in $PATH):"
   ,""
   ,"Usage: " ++ bold' "hledger CMD [OPTS] [-- ADDONCMDOPTS]"
   ,""
@@ -296,11 +300,10 @@ findCommand cmdname = find (elem cmdname . modeNames . fst) builtinCommands
 -- | Extract the command names from commandsList: the first word
 -- of lines beginning with a space or + sign.
 commandsFromCommandsList :: [String] -> [String]
-commandsFromCommandsList s =
-  [w | c:l <- s, c `elem` [' ','+'], let w:_ = words l]
+commandsFromCommandsList s = [w | c:l <- s, c `elem` [' ','+'], let w:_ = words l]
 
 knownCommands :: [String]
-knownCommands = sort . commandsFromCommandsList . drop 1 $ commandsList progname [] False -- progname will not be seen
+knownCommands = sort . commandsFromCommandsList $ commandsList progname [] False -- progname will not be seen
 
 -- | Print the commands list, modifying the template above based on
 -- the currently available addons. Missing addons will be removed, and
