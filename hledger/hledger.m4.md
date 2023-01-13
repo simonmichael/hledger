@@ -2397,13 +2397,20 @@ with the date replaced by a tilde (`~`) followed by a
 [period expression](#period-expressions)
 (mnemonic: `~` looks like a recurring sine wave.):
 ```journal
+# every first of month
 ~ monthly
     expenses:rent          $2000
     assets:bank:checking
+
+# every 15th of month in 2023's first quarter:
+~ monthly from 2023-04-15 to 2023-06-16
+    expenses:utilities          $400
+    assets:bank:checking
 ```
-There is an additional constraint on the period expression:
-the start date must fall on a natural boundary of the interval.
-Eg `monthly from 2018/1/1` is valid, but `monthly from 2018/1/15` is not.
+
+The period expression is the same syntax used for specifying multi-period reports,
+just interpreted differently; there, it specifies report periods; 
+here it specifies recurrence dates (the periods' start dates).
 
 ### Periodic rules and relative dates
 
@@ -4376,8 +4383,8 @@ Some notes:
   start/end dates from options and that from `date:` queries.
   That is, `date:2019-01 date:2019 -p'2000 to 2030'` yields January 2019, the
   smallest common time span.
-- A [report interval](#report-intervals) (see below) will adjust start/end dates,
-  when needed, so that they fall on subperiod boundaries.
+- With a [report interval](#report-intervals) (see below), the report start date
+  will be adjusted back to the nearest subperiod boundary, if needed.
 
 Examples:
 
@@ -4445,32 +4452,24 @@ their corresponding flag:
 - `-Q/--quarterly`
 - `-Y/--yearly`
 
-These standard intervals always start on natural interval boundaries:
-eg `--weekly` starts on mondays, `--monthly` starts on the first of
-the month, `--yearly` always starts on January 1st, etc.
+Intervals specified by these flags will always start on their natural
+boundaries: eg `--weekly` starts on mondays, `--monthly` starts on
+first days of months, `--yearly` starts on January 1st, etc.
 
-Certain more complex intervals, and more flexible boundary dates, can
-be specified by `-p/--period`. These are described in [period
-expressions](#period-expressions), below.
+Intervals starting on other dates, and more complex intervals, can be
+specified with the `-p/--period` option. These are described in
+[period expressions](#period-expressions), below.
 
-Report intervals can only be specified by the flags above, and not by
-[query](#queries) arguments, currently.
-
-Report intervals have another effect: multi-period reports are always
-expanded to fill a whole number of subperiods. So if you use a report
-interval (other than `--daily`), and you have specified a start or end
-date, you may notice those dates being overridden (ie, the report
-starts earlier than your requested start date, or ends later than your
-requested end date). This is done to ensure "full" first and last
-subperiods, so that all subperiods' numbers are comparable.
+When you use a report interval (other than `--daily`), the overall
+report period will be expanded to fill a whole number of subperiods,
+(possibly overriding your requested report start or end dates).
+This ensures first and last subperiods are comparable to the others.
 
 To summarise:
 
-- In multiperiod reports, all subperiods are forced to be the same length, to simplify reporting.
-- Reports with the standard `--weekly`/`--monthly`/`--quarterly`/`--yearly`  intervals
-  are required to start on the first day of a week/month/quarter/year. 
-  We'd like more flexibility here but it isn't supported yet.
+- Reports with the standard `--weekly`/`--monthly`/`--quarterly`/`--yearly` intervals will start on the first day of a week/month/quarter/year. 
 - `--period` (below) can specify more complex intervals, starting on any date.
+- In multiperiod reports, all subperiods will be the same length.
 
 ## Period expressions
 
@@ -4625,7 +4624,7 @@ $ hledger register checking -p "every 3rd day of week"
 
 ### Periods or dates ?
 
-Report intervals like the above are most often used with `-p|--period`,
+Report intervals like the above are most often used with `-p/--period`,
 to divide reports into multiple subperiods -
 each generated date marks a subperiod boundary.
 Here, the periods between the dates are what's important.

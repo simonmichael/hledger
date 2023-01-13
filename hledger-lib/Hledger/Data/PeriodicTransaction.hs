@@ -11,6 +11,7 @@ module Hledger.Data.PeriodicTransaction (
 )
 where
 
+import Data.Maybe (isNothing)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import Text.Printf
@@ -20,7 +21,6 @@ import Hledger.Data.Dates
 import Hledger.Data.Amount
 import Hledger.Data.Posting (post, commentAddTagNextLine)
 import Hledger.Data.Transaction
-import Hledger.Utils
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -33,25 +33,19 @@ _ptgen str = do
   let
     t = T.pack str
     (i,s) = parsePeriodExpr' nulldate t
-  case checkPeriodicTransactionStartDate i s t of
-    Just e  -> error' e  -- PARTIAL:
-    Nothing ->
-      mapM_ (T.putStr . showTransaction) $
-        runPeriodicTransaction
-          nullperiodictransaction{ ptperiodexpr=t , ptspan=s, ptinterval=i, ptpostings=["a" `post` usd 1] }
-          nulldatespan
+  mapM_ (T.putStr . showTransaction) $
+    runPeriodicTransaction
+      nullperiodictransaction{ ptperiodexpr=t , ptspan=s, ptinterval=i, ptpostings=["a" `post` usd 1] }
+      nulldatespan
 
 _ptgenspan str spn = do
   let
     t = T.pack str
     (i,s) = parsePeriodExpr' nulldate t
-  case checkPeriodicTransactionStartDate i s t of
-    Just e  -> error' e  -- PARTIAL:
-    Nothing ->
-      mapM_ (T.putStr . showTransaction) $
-        runPeriodicTransaction
-          nullperiodictransaction{ ptperiodexpr=t , ptspan=s, ptinterval=i, ptpostings=["a" `post` usd 1] }
-          spn
+  mapM_ (T.putStr . showTransaction) $
+    runPeriodicTransaction
+      nullperiodictransaction{ ptperiodexpr=t , ptspan=s, ptinterval=i, ptpostings=["a" `post` usd 1] }
+      spn
 
 --deriving instance Show PeriodicTransaction
 -- for better pretty-printing:
@@ -192,22 +186,6 @@ instance Show PeriodicTransaction where
 --     a           $1.00
 -- <BLANKLINE>
 --
--- >>> _ptgen ""
--- *** Exception: Error: failed to parse...
--- ...
---
--- >>> _ptgen "weekly from 2017"
--- *** Exception: Error: Unable to generate transactions according to "weekly from 2017" because 2017-01-01 is not a first day of the Week
---
--- >>> _ptgen "monthly from 2017/5/4"
--- *** Exception: Error: Unable to generate transactions according to "monthly from 2017/5/4" because 2017-05-04 is not a first day of the Month
---
--- >>> _ptgen "every quarter from 2017/1/2"
--- *** Exception: Error: Unable to generate transactions according to "every quarter from 2017/1/2" because 2017-01-02 is not a first day of the Quarter
---
--- >>> _ptgen "yearly from 2017/1/14"
--- *** Exception: Error: Unable to generate transactions according to "yearly from 2017/1/14" because 2017-01-14 is not a first day of the Year
---
 -- >>> let reportperiod="daily from 2018/01/03" in let (i,s) = parsePeriodExpr' nulldate reportperiod in runPeriodicTransaction (nullperiodictransaction{ptperiodexpr=reportperiod, ptspan=s, ptinterval=i, ptpostings=["a" `post` usd 1]}) (DateSpan (Just $ fromGregorian 2018 01 01) (Just $ fromGregorian 2018 01 03))
 -- []
 --
@@ -250,10 +228,13 @@ runPeriodicTransaction PeriodicTransaction{..} requestedspan =
           ,tpostings    = ptpostings
           }
     period = "~ " <> ptperiodexpr
-    -- All spans described by this periodic transaction, where spanStart is event date.
-    -- If transaction does not have start/end date, we set them to start/end of requested span,
-    -- to avoid generating (infinitely) many events. 
-    alltxnspans = dbg3 "alltxnspans" $ ptinterval `splitSpan` (spanDefaultsFrom ptspan requestedspan)
+    -- All the date spans described by this periodic transaction rule.
+    alltxnspans = splitSpan adjust ptinterval span'
+      where
+        -- If the PT does not specify  start or end dates, we take them from the requestedspan.
+        span' = ptspan `spanDefaultsFrom` requestedspan
+        -- Unless the PT specified a start date explicitly, we will adjust the start date to the previous interval boundary.
+        adjust = isNothing $ spanStart span'
 
 -- | Check that this date span begins at a boundary of this interval,
 -- or return an explanatory error message including the provided period expression
