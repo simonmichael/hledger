@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE MultiWayIf #-}
 
 module Hledger.Cli.Commands.Close (
   closemode
@@ -20,92 +21,75 @@ import System.Console.CmdArgs.Explicit as C
 import Hledger
 import Hledger.Cli.CliOptions
 
-defclosingdesc = "closing balances"
-defopeningdesc = "opening balances"
-defclosingacct = "equity:opening/closing balances"
-defopeningacct = defclosingacct
+defretaindesc = "retain earnings"
+defclosedesc  = "closing balances"
+defopendesc   = "opening balances"
+defretainacct = "equity:retained earnings"
+defcloseacct  = "equity:opening/closing balances"
 
 closemode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Close.txt")
-  [flagNone ["close"]        (setboolopt "close") "show just closing transaction"
-  ,flagNone ["open"]         (setboolopt "open") "show just opening transaction"
-  ,flagReq  ["close-desc"]   (\s opts -> Right $ setopt "close-desc" s opts) "DESC" ("description for closing transaction (default: "++defclosingdesc++")")
-  ,flagReq  ["open-desc"]    (\s opts -> Right $ setopt "open-desc"  s opts) "DESC" ("description for opening transaction (default: "++defopeningdesc++")")
-  ,flagReq  ["close-acct"]   (\s opts -> Right $ setopt "close-acct" s opts) "ACCT" ("account to transfer closing balances to (default: "++defclosingacct++")")
-  ,flagReq  ["open-acct"]    (\s opts -> Right $ setopt "open-acct"  s opts) "ACCT" ("account to transfer opening balances from (default: "++defopeningacct++")")
+  [flagNone ["retain"]       (setboolopt "retain")  "show RX retain earnings transaction"
+  ,flagNone ["migrate"]      (setboolopt "migrate") "show ALE closing/opening transactions"
+  ,flagNone ["open"]         (setboolopt "open")    "show ALE opening transaction"
+  ,flagReq  ["close-desc"]   (\s opts -> Right $ setopt "close-desc" s opts) "DESC" ("description for closing transaction (default: "++defclosedesc++")")
+  ,flagReq  ["open-desc"]    (\s opts -> Right $ setopt "open-desc"  s opts) "DESC" ("description for opening transaction (default: "++defopendesc++")")
+  ,flagReq  ["close-acct"]   (\s opts -> Right $ setopt "close-acct" s opts) "ACCT" ("account to transfer closing balances to (default: "++defcloseacct++")")
   ,flagNone ["explicit","x"] (setboolopt "explicit") "show all amounts explicitly"
-  ,flagNone ["interleaved"]  (setboolopt "interleaved") "keep equity and non-equity postings adjacent"
+  ,flagNone ["interleaved"]  (setboolopt "interleaved") "keep source and destination postings adjacent"
   ,flagNone ["show-costs"]   (setboolopt "show-costs") "keep balances with different costs separate"
   ]
   [generalflagsgroup1]
-  (hiddenflags ++
-    -- old close flags for compatibility, hidden
-    [flagNone ["closing"] (setboolopt "close") "old spelling of --close"
-    ,flagNone ["opening"] (setboolopt "open") "old spelling of --open"
-    ,flagReq  ["close-to"]  (\s opts -> Right $ setopt "close-acct" s opts) "ACCT" ("old spelling of --close-acct")
-    ,flagReq  ["open-from"] (\s opts -> Right $ setopt "open-acct" s opts) "ACCT" ("old spelling of --open-acct")
-    ])
+  (hiddenflags
+    -- any old command flags for compatibility, hidden
+    -- ++ []
+  )
   ([], Just $ argsFlag "[QUERY]")
 
--- debugger, beware: close is incredibly devious. simple rules combine to make a horrid maze.
--- tests are in hledger/test/close.test.
-close copts@CliOpts{rawopts_=rawopts, reportspec_=rspec'} j = do
+-- Debugger, beware: close is incredibly devious; simple rules combine to make a horrid maze.
+-- Tests are in hledger/test/close.test.
+-- This code is also used by the close command.
+close copts@CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
   let
-    -- show opening entry, closing entry, or (default) both ?
-    (opening, closing) =
-      case (boolopt "open" rawopts, boolopt "close" rawopts) of
-        (False, False) -> (True, True)
-        (o, c)         -> (o, c)
+    (close_, open_, defclosedesc_, defopendesc_, defcloseacct_, defacctsq_) = if
+      | boolopt "retain"  rawopts -> (True,  False, defretaindesc, undefined,   defretainacct, Type [Revenue, Expense])
+      | boolopt "migrate" rawopts -> (True,  True,  defclosedesc,  defopendesc, defcloseacct,  Type [Asset, Liability, Equity])
+      | boolopt "open"    rawopts -> (False, True,  undefined,     defopendesc, defcloseacct,  Type [Asset, Liability, Equity])
+      | otherwise                 -> (True,  False, defclosedesc,  undefined,   defcloseacct,  Any)
 
     -- descriptions to use for the closing/opening transactions
-    closingdesc = maybe (T.pack defclosingdesc) T.pack $ maybestringopt "close-desc" rawopts
-    openingdesc = maybe (T.pack defopeningdesc) T.pack $ maybestringopt "open-desc" rawopts
+    closedesc = T.pack $ fromMaybe defclosedesc_ $ maybestringopt "close-desc" rawopts
+    opendesc  = T.pack $ fromMaybe defopendesc_  $ maybestringopt "open-desc"  rawopts
+    closeacct = T.pack $ fromMaybe defcloseacct_ $ maybestringopt "close-acct" rawopts
+    openacct  = closeacct
 
-    -- accounts to close to and open from
-    -- if only one is specified, it is used for both
-    (closingacct, openingacct) =
-      let (mc, mo) =
-            (T.pack <$> maybestringopt "close-acct" rawopts, T.pack <$> maybestringopt "open-acct" rawopts)
-      in case (mc, mo) of
-        (Just c, Just o)   -> (c, o)
-        (Just c, Nothing)  -> (c, c)
-        (Nothing, Just o)  -> (o, o)
-        (Nothing, Nothing) -> (T.pack defclosingacct, T.pack defopeningacct)
-
-    ropts = (_rsReportOpts rspec'){balanceaccum_=Historical, accountlistmode_=ALFlat}
-    rspec = setDefaultConversionOp NoConversionOp rspec'{_rsReportOpts=ropts}
+    ropts = (_rsReportOpts rspec0){balanceaccum_=Historical, accountlistmode_=ALFlat}
+    rspec1 = setDefaultConversionOp NoConversionOp rspec0{_rsReportOpts=ropts}
 
     -- dates of the closing and opening transactions
-    --
     -- Close.md:
     -- "The default closing date is yesterday, or the journal's end date, whichever is later.
-    --
-    -- Unless you are running `close` on exactly the first day of the new period, 
-    -- you'll want to override the closing date. 
-    -- This is done by specifying a [report period](#report-start--end-date), 
+    -- You can change this by specifying a [report end date](#report-start--end-date),
     -- where "last day of the report period" will be the closing date.
-    -- The opening date is always the following day.
-    -- So to close on 2020-12-31 and open on 2021-01-01, any of these work
-    --
-    -- - `-p 2020`
-    -- - `date:2020`
-    -- - `-e 2021-01-01`  (remember `-e` specifies an exclusive report end date)
-    -- - `-e 2021`"
-    --
-    q = _rsQuery rspec
-    yesterday = addDays (-1) $ _rsDay rspec
+    -- (Only the end date matters; a report start date will be ignored.)
+    -- The opening date is always the day after the closing date."
+    argsq = _rsQuery rspec1
+    yesterday = addDays (-1) $ _rsDay rspec1
     yesterdayorjournalend = case journalLastDay False j of
       Just journalend -> max yesterday journalend
       Nothing         -> yesterday
-    mreportlastday = addDays (-1) <$> queryEndDate False q
-    closingdate = fromMaybe yesterdayorjournalend  mreportlastday
-    openingdate = addDays 1 closingdate
+    mreportlastday = addDays (-1) <$> queryEndDate False argsq
+    closedate = fromMaybe yesterdayorjournalend  mreportlastday
+    opendate = addDays 1 closedate
 
     -- should we show the amount(s) on the equity posting(s) ?
     explicit = boolopt "explicit" rawopts || copts ^. infer_costs
 
     -- the balances to close
-    (acctbals',_) = balanceReport rspec j
+    argsacctq = filterQuery (\q -> queryIsAcct q || queryIsType q) argsq
+    q2 = if queryIsNull argsacctq then And [argsq, defacctsq_] else argsq
+    rspec2 = rspec1{_rsQuery=q2}
+    (acctbals',_) = balanceReport rspec2 j
     acctbals = map (\(a,_,_,b) -> (a, if show_costs_ ropts then b else mixedAmountStripPrices b)) acctbals'
     totalamt = maSum $ map snd acctbals
 
@@ -117,8 +101,8 @@ close copts@CliOpts{rawopts_=rawopts, reportspec_=rspec'} j = do
     interleaved = boolopt "interleaved" rawopts
 
     -- the closing transaction
-    closingtxn = nulltransaction{tdate=closingdate, tdescription=closingdesc, tpostings=closingps}
-    closingps =
+    closetxn = nulltransaction{tdate=closedate, tdescription=closedesc, tpostings=closeps}
+    closeps =
       concat [
         posting{paccount          = a
                ,pamount           = mixedAmount . precise $ negate b
@@ -131,7 +115,7 @@ close copts@CliOpts{rawopts_=rawopts, reportspec_=rspec'} j = do
                }
 
         -- maybe an interleaved posting transferring this balance to equity
-        : [posting{paccount=closingacct, pamount=mixedAmount $ precise b} | interleaved]
+        : [posting{paccount=closeacct, pamount=mixedAmount $ precise b} | interleaved]
 
         | -- get the balances for each commodity and transaction price
           (a,mb) <- acctbals
@@ -144,11 +128,11 @@ close copts@CliOpts{rawopts_=rawopts, reportspec_=rspec'} j = do
 
       -- or a final multicommodity posting transferring all balances to equity
       -- (print will show this as multiple single-commodity postings)
-      ++ [posting{paccount=closingacct, pamount=if explicit then mixedAmountSetFullPrecision totalamt else missingmixedamt} | not interleaved]
+      ++ [posting{paccount=closeacct, pamount=if explicit then mixedAmountSetFullPrecision totalamt else missingmixedamt} | not interleaved]
 
     -- the opening transaction
-    openingtxn = nulltransaction{tdate=openingdate, tdescription=openingdesc, tpostings=openingps}
-    openingps =
+    opentxn = nulltransaction{tdate=opendate, tdescription=opendesc, tpostings=openps}
+    openps =
       concat [
         posting{paccount          = a
                ,pamount           = mixedAmount $ precise b
@@ -157,7 +141,7 @@ close copts@CliOpts{rawopts_=rawopts, reportspec_=rspec'} j = do
                      Just s  -> Just nullassertion{baamount=precise s{aprice=Nothing}}
                      Nothing -> Nothing
                }
-        : [posting{paccount=openingacct, pamount=mixedAmount . precise $ negate b} | interleaved]
+        : [posting{paccount=openacct, pamount=mixedAmount . precise $ negate b} | interleaved]
 
         | (a,mb) <- acctbals
         , let bs0 = amounts mb
@@ -167,8 +151,8 @@ close copts@CliOpts{rawopts_=rawopts, reportspec_=rspec'} j = do
                            , let commoditysum = (sum bs1)]
         , (b, mcommoditysum) <- bs2
         ]
-      ++ [posting{paccount=openingacct, pamount=if explicit then mixedAmountSetFullPrecision (maNegate totalamt) else missingmixedamt} | not interleaved]
+      ++ [posting{paccount=openacct, pamount=if explicit then mixedAmountSetFullPrecision (maNegate totalamt) else missingmixedamt} | not interleaved]
 
   -- print them
-  when closing . T.putStr $ showTransaction closingtxn
-  when opening . T.putStr $ showTransaction openingtxn
+  when close_ . T.putStr $ showTransaction closetxn
+  when open_  . T.putStr $ showTransaction opentxn
