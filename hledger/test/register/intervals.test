@@ -53,26 +53,59 @@ $ hledger -f- register --monthly --date2
 2014-01   a                                                      1             1
           b                                                      1             2
 
-# 6. All matched postings in the displayed intervals should be reported on.
+#
 <
 2014/1/5
- (before)  1
+ (before report period)  1
 
 2014/2/1
- (within)  1
+ (explicit report period)  10
 
 2014/2/25
- (after)  1
+ (expanded report period)  100
 
+2014/3/12
+ (after report period)  1000
+
+# 6. Here, the report interval is monthly (interval size is one month)
+# but the explicitly-specified start date causes report periods to start there.
+# And the end date is expanded to make a whole month-long last period.
 $ hledger -f- register -p 'monthly 2014/1/10-2014/2/20'
-2014-01   before                                                 1             1
-2014-02   after                                                  1             2
-          within                                                 1             3
+2014-01-10..2014-02-09   explicit report period                 10            10
+2014-02-10..2014-03-09   expanded report period                100           110
 
+# 7. Here no definite start date has been specifed so it is inferred from the journal
+# (2014/1/5), but it is specified to be a tuesday, so that is adjusted to
+# the nearest previous tuesday (2013/12/31).
+# No end date has been specified so it is inferred from the journal (2014/3/11),
+# but that is adjusted to make a whole week-long last period (2014/3/18).
+# -E is required here to see the empty weeks.
+$ hledger -f- register -p 'every tue' -E
+2013-12-31..2014-01-06   before report period                    1             1
+2014-01-07..2014-01-13                                           0             1
+2014-01-14..2014-01-20                                           0             1
+2014-01-21..2014-01-27                                           0             1
+2014-01-28..2014-02-03   explicit report period                 10            11
+2014-02-04..2014-02-10                                           0            11
+2014-02-11..2014-02-17                                           0            11
+2014-02-18..2014-02-24                                           0            11
+2014-02-25..2014-03-03   expanded report period                100           111
+2014-03-04..2014-03-10                                           0           111
+2014-03-11..2014-03-17   after report period                  1000          1111
 
-# 7. Custom ranges should display fully.
-$ hledger -f- register -p 'every tue'
-2013-12-31..2014-01-06   before                                  1             1
-2014-01-28..2014-02-03   within                                  1             2
-2014-02-25..2014-03-03   after                                   1             3
+# 8. "in 2014-02" is considered to explicitly specify a start date of 2014/2/1
+# (a saturday), forcing the periods to start there.
+$ hledger -f- register -p 'weekly in 2014-02' -E
+2014-02-01..2014-02-07   explicit report period                 10            10
+2014-02-08..2014-02-14                                           0            10
+2014-02-15..2014-02-21                                           0            10
+2014-02-22..2014-02-28   expanded report period                100           110
 
+# 9. So to see simple monday-based week periods here, you must specify a start date
+# that is a monday.
+$ hledger -f- register -p 'weekly from 2014-01-27 to 2014-03' -E
+2014-01-27W05   explicit report period                          10            10
+2014-02-03W06                                                    0            10
+2014-02-10W07                                                    0            10
+2014-02-17W08                                                    0            10
+2014-02-24W09   expanded report period                         100           110

@@ -71,7 +71,7 @@ import Data.Either (fromRight)
 import Data.Either.Extra (eitherToMaybe)
 import Data.Functor.Identity (Identity(..))
 import Data.List.Extra (find, isPrefixOf, nubSort)
-import Data.Maybe (fromMaybe, isJust)
+import Data.Maybe (fromMaybe, isJust, isNothing)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day, addDays)
 import Data.Default (Default(..))
@@ -687,8 +687,9 @@ reportSpanHelper bothdates j ReportSpec{_rsQuery=query, _rsReportOpts=ropts} =
     -- and all txns are in the future.
     intervalspans  = dbg3 "intervalspans" $ splitSpan adjust (interval_ ropts) requestedspan'
       where
-        -- When calculating report periods, we will always adjust the start date back to the nearest interval boundary.
-        adjust = True  -- isNothing $ spanStart requestedspan
+        -- When calculating report periods, we will adjust the start date back to the nearest interval boundary
+        -- unless a start date was specified explicitly.
+        adjust = isNothing $ spanStart requestedspan
     -- The requested span enlarged to enclose a whole number of intervals.
     -- This can be the null span if there were no intervals.
     reportspan = dbg3 "reportspan" $ DateSpan (spanStart =<< headMay intervalspans)
