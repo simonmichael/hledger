@@ -110,6 +110,13 @@ EDITOR='perl -pi -e "s|Cost:Food|Cost:Food:Fast Food|g"' hledger edit tag:locati
 
 [![asciicast](https://asciinema.org/a/549559.svg)](https://asciinema.org/a/549559)
 
+And also a useful `hledger plot` command for generating charts.
+
+To install or upgrade the hledger-utils tools:
+```shell
+$ pip install -U hledger-utils    # might be slightly different on your system
+```
+
 ## hledger-integrated scripts
 
 These call hledger as a Haskell library, and so must be written in
