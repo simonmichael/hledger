@@ -4383,8 +4383,8 @@ Some notes:
   start/end dates from options and that from `date:` queries.
   That is, `date:2019-01 date:2019 -p'2000 to 2030'` yields January 2019, the
   smallest common time span.
-- With a [report interval](#report-intervals) (see below), the report start date
-  will be adjusted back to the nearest subperiod boundary, if needed.
+- In some cases a [report interval](#report-intervals) will adjust start/end dates
+  to fall on interval boundaries (see below).
 
 Examples:
 
@@ -4440,11 +4440,8 @@ transaction rules; those are not affected by `--today`.)
 
 A report interval can be specified so that commands like
 [register](#register), [balance](#balance) and [activity](#activity)
-become multi-period, showing each subperiod as a separate row or
-column.
-
-The following "standard" report intervals can be enabled by using
-their corresponding flag:
+become multi-period, showing each subperiod as a separate row or column.
+These "standard" report intervals can be enabled by using the corresponding flag:
 
 - `-D/--daily`
 - `-W/--weekly`
@@ -4452,24 +4449,25 @@ their corresponding flag:
 - `-Q/--quarterly`
 - `-Y/--yearly`
 
-Intervals specified by these flags will always start on their natural
-boundaries: eg `--weekly` starts on mondays, `--monthly` starts on
-first days of months, `--yearly` starts on January 1st, etc.
+More complex intervals can be specified using `-p/--period` (see below).
 
-Intervals starting on other dates, and more complex intervals, can be
-specified with the `-p/--period` option. These are described in
-[period expressions](#period-expressions), below.
+Specifying a report interval other than daily can cause a report's
+start date and end date to be adjusted in some cases:
 
-When you use a report interval (other than `--daily`), the overall
-report period will be expanded to fill a whole number of subperiods,
-(possibly overriding your requested report start or end dates).
-This ensures first and last subperiods are comparable to the others.
+- If the report start date is specified explicitly, periods will start exactly on that date.
+  Eg with `-M -b 2023/1/15',
+  periods will begin on the 15th day of each month, starting from 2023-01-15.
+  (Since hledger 1.29).
 
-To summarise:
+- If the report start date is inferred, eg from the journal,
+  it will be adjusted earlier if necessary to start on a natural interval boundary.
+  Eg with `-M` by itself, and if the journal's earliest transaction is on 2023-02-04,
+  periods will begin on the 1st of each month, starting from 2023-02-01.
 
-- Reports with the standard `--weekly`/`--monthly`/`--quarterly`/`--yearly` intervals will start on the first day of a week/month/quarter/year. 
-- `--period` (below) can specify more complex intervals, starting on any date.
-- In multiperiod reports, all subperiods will be the same length.
+- The report end date will be adjusted later if necessary
+  so that the last period is a whole interval, the same length as the others.
+  Eg in the example above if the journal's latest transaction is on 2023-03-15,
+  the report end date will be adjusted to 2023-04-01.
 
 ## Period expressions
 
@@ -4534,8 +4532,6 @@ Or you can specify a single quarter like so:
 `-p/--period`'s argument can also begin with, or entirely consist of, 
 a [report interval](#report-intervals). 
 This should be separated from the start/end dates (if any) by a space, or the word `in`.
-The basic intervals (which can also be written as command line flags) 
-are `daily`, `weekly`, `monthly`, `quarterly`, and `yearly`.
 Some examples:
 
 |                                         |
@@ -4544,24 +4540,12 @@ Some examples:
 | `-p "monthly in 2008"`                  |
 | `-p "quarterly"`                        |
 
-When specifying report periods at the command line,
-the simple `weekly`, `monthly`, `quarterly` and `yearly` intervals 
-will force the report to start on the first day of a week, month, quarter or year
-(moving the start date backward if needed).
-For example:
-
-|                                                |                                                                                    |
-|------------------------------------------------|------------------------------------------------------------------------------------|
-| `-p "weekly from 2009/1/1 to 2009/4/1"`        | starts on 2008/12/29, closest preceding Monday                                     |
-| `-p "monthly in 2008/11/25"`                   | starts on 2018/11/01                                                               |
-| `-p "quarterly from 2009-05-05 to 2009-06-01"` | starts on 2009/04/01, ends on 2009/06/30, which are first and last days of Q2 2009 |
-| `-p "yearly from 2009-12-29"`                  | starts on 2009/01/01, first day of 2009                                            |
-
-All periods in a multi-period report will have similar length.
+Note a report interval can cause the report start/end dates to be adjusted in some cases,
+as described above in [Report intervals](#report-intervals).
 
 ### More complex report intervals
 
-These other kinds of interval are also supported in period expressions:
+Period expressions allow some more complex kinds of interval to be specified, including:
 
 - `biweekly`
 - `fortnightly`
@@ -4569,30 +4553,25 @@ These other kinds of interval are also supported in period expressions:
 - `every day|week|month|quarter|year`
 - `every N days|weeks|months|quarters|years`
 
-These too will force report start date to be adjusted to an interval boundary, if needed.
+Examples:
 
+|                                    |
+|------------------------------------|
+| `-p "bimonthly from 2008"`         |
+| `-p "every 2 weeks"`               |
+| `-p "every 5 months from 2009/03"` |
 
-|                                    |                                                             |
-|------------------------------------|-------------------------------------------------------------|
-| `-p "bimonthly from 2008"`         | periods will have boundaries on 2008/01/01, 2008/03/01, ... |
-| `-p "every 2 weeks"`               | starts on closest preceding Monday                          |
-| `-p "every 5 months from 2009/03"` | periods will have boundaries on 2009/03/01, 2009/08/01, ... |
-
-### Intervals with arbitrary start date
-
-You can start report periods on any date by using one of these forms:
-
-Each certain day of the week:
+Weekly on custom day:
 
 - `every Nth day of week` (`th`, `nd`, `rd`, or `st` are all accepted after the number)
 - `every WEEKDAYNAME` (full or three-letter english weekday name, case insensitive)
 
-Each certain day of the month:
+Monthly on custom day:
 
 - `every Nth day [of month]`
 - `every Nth WEEKDAYNAME [of month]`
 
-Each certain day of the year:
+Yearly on custom day:
 
 - `every MM/DD [of year]` (month number and day of month number)
 - `every MONTHNAME DDth [of year]` (full or three-letter english month name, case insensitive, and day of month number)
@@ -4622,10 +4601,18 @@ Group postings from the start of wednesday to end of the following tuesday (N is
 $ hledger register checking -p "every 3rd day of week"
 ```
 
-### Starting on multiple weekdays
+### Multiple weekday intervals
 
-- `every WEEKDAYNAME,WEEKDAYNAME,...` allows multiple days of week to be specified.
-  `weekday` and `weekendday` are accepted as shorthand for `mon,tue,wed,thu,fri` and `sat,sun`.
+This special form is also supported:
+
+- `every WEEKDAYNAME,WEEKDAYNAME,...` (full or three-letter english weekday names, case insensitive)
+
+Also, `weekday` and `weekendday` are shorthand for `mon,tue,wed,thu,fri` and `sat,sun`.
+
+This is mainly intended for use with `--forecast`, to generate 
+[periodic transactions](#periodic-transactions) on arbitrary days of the week.
+It may be less useful with `-p`, since it divides each week into subperiods  of unequal length, which is unusual.
+(Related: [#1632](https://github.com/simonmichael/hledger/pull/1632))
 
 Examples:
 
@@ -4634,13 +4621,6 @@ Examples:
 | `-p "every mon,wed,fri"`     | dates will be Mon, Wed, Fri; <br>periods will be Mon-Tue, Wed-Thu, Fri-Sun             |
 | `-p "every weekday"`         | dates will be Mon, Tue, Wed, Thu, Fri; <br>periods will be Mon, Tue, Wed, Thu, Fri-Sun |
 | `-p "every weekendday"`      | dates will be Sat, Sun; <br>periods will be Sat, Sun-Fri                               |
-
-This form is mainly intended for use with `--forecast`, to generate 
-[periodic transactions](#periodic-transactions) on arbitrary days of the week.
-It may be less useful with `-p`, since it divides each week into subperiods of unequal length.
-Related: [#1632](https://github.com/simonmichael/hledger/pull/1632)
-
-
 
 # Depth
 

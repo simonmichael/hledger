@@ -207,24 +207,28 @@ Balance changes in 2014-01:
 ---++-----
    ||   2 
 
-# 18. All matched postings in the displayed intervals should be reported on.
+# 18. Here, the report interval is monthly (interval size is one month)
+# but the explicitly-specified start date causes report periods to start there.
+# And the end date is expanded to make a whole last period.
 <
 2014/1/5
- (before)  1
+ (before report period)  1ew
 
 2014/2/1
- (within)  1
+ (explicit report period)  10
 
 2014/2/25
- (after)  1
+ (expanded report period)  100
+
+2014/3/10
+ (after report period)  1000
 
 $ hledger -f- balance -p 'monthly 2014/1/10-2014/2/20'
-Balance changes in 2014-01-01..2014-02-28:
+Balance changes in 2014-01-10..2014-03-09:
 
-        || Jan  Feb 
-========++==========
- after  ||   0    1 
- before ||   1    0 
- within ||   0    1 
---------++----------
-        ||   1    2 
+                        || 2014-01-10..2014-02-09  2014-02-10..2014-03-09 
+========================++================================================
+ expanded report period ||                      0                     100 
+ explicit report period ||                     10                       0 
+------------------------++------------------------------------------------
+                        ||                     10                     100 
