@@ -76,11 +76,11 @@ module Hledger.Read.Common (
   -- ** amounts
   spaceandamountormissingp,
   amountp,
-  amountpwithmultiplier,
+  amountp',
   commoditysymbolp,
-  priceamountp,
+  costp,
   balanceassertionp,
-  lotpricep,
+  lotcostp,
   numberp,
   fromRawNumber,
   rawnumberp,
@@ -133,24 +133,25 @@ import Data.List.NonEmpty (NonEmpty(..))
 import Data.Maybe (catMaybes, fromMaybe, isJust, listToMaybe)
 import qualified Data.Map as M
 import qualified Data.Semigroup as Sem
-import Data.Text (Text)
+import Data.Text (Text, stripEnd)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day, fromGregorianValid, toGregorian)
 import Data.Time.Clock.POSIX (getPOSIXTime)
 import Data.Time.LocalTime (LocalTime(..), TimeOfDay(..))
 import Data.Word (Word8)
+import System.FilePath (takeFileName)
 import Text.Megaparsec
 import Text.Megaparsec.Char (char, char', digitChar, newline, string)
 import Text.Megaparsec.Char.Lexer (decimal)
 import Text.Megaparsec.Custom
   (FinalParseError, attachSource, finalErrorBundlePretty, parseErrorAt, parseErrorAtRegion)
+-- import Text.Megaparsec.Debug (dbg)  -- from megaparsec 9.3+
 
 import Hledger.Data
 import Hledger.Query (Query(..), filterQuery, parseQueryTerm, queryEndDate, queryStartDate, queryIsDate, simplifyQuery)
 import Hledger.Reports.ReportOptions (ReportOpts(..), queryFromFlags, rawOptsToReportOpts)
 import Hledger.Utils
 import Hledger.Read.InputOptions
-import System.FilePath (takeFileName)
 
 --- ** doctest setup
 -- $setup
@@ -675,21 +676,47 @@ singlespacep = spacenonewline *> notFollowedBy spacenonewline
 
 --- *** amounts
 
--- | Parse whitespace then an amount, with an optional left or right
--- currency symbol and optional price, or return the special
--- "missing" marker amount.
+-- | Parse whitespace then an amount, or return the special "missing" marker amount.
 spaceandamountormissingp :: JournalParser m MixedAmount
 spaceandamountormissingp =
   option missingmixedamt $ try $ do
     lift $ skipNonNewlineSpaces1
     mixedAmount <$> amountp
 
--- | Parse a single-commodity amount, with optional symbol on the left
--- or right, followed by, in any order: an optional transaction price,
--- an optional ledger-style lot price, and/or an optional ledger-style
--- lot date. A lot price and lot date will be ignored.
+-- | Parse a single-commodity amount, applying the default commodity if there is no commodity symbol;
+-- optionally followed by, in any order:
+-- a Ledger-style cost, Ledger-style valuation expression, and/or Ledger-style cost basis, which is one or more of
+-- lot cost, lot date, and/or lot note (we loosely call this triple the lot's cost basis).
+-- The cost basis makes it a lot rather than just an amount. Both cost basis info and valuation expression
+-- are discarded for now.
+-- The main amount's sign is significant; here are the possibilities and their interpretation.
+-- Also imagine an optional VALUATIONEXPR added to any of these (omitted for clarity):
+-- @
 --
--- To parse the amount's quantity (number) we need to know which character 
+--   AMT                         -- acquiring an amount
+--   AMT COST                    -- acquiring an amount at some cost
+--   AMT COST COSTBASIS          -- acquiring a lot at some cost, saving its cost basis
+--   AMT COSTBASIS COST          -- like the above
+--   AMT COSTBASIS               -- like the above with cost same as the cost basis
+--
+--  -AMT                         -- releasing an amount
+--  -AMT SELLPRICE               -- releasing an amount at some selling price
+--  -AMT SELLPRICE COSTBASISSEL  -- releasing a lot at some selling price, selecting it by its cost basis
+--  -AMT COSTBASISSEL SELLPRICE  -- like the above
+--  -AMT COSTBASISSEL            -- like the above with selling price same as the selected lot's cost basis amount
+--
+-- COST/SELLPRICE can be @ UNITAMT, @@ TOTALAMT, (@) UNITAMT, or (@@) TOTALAMT. The () are ignored.
+-- COSTBASIS    is one or more of {LOTCOST}, [LOTDATE], (LOTNOTE), in any order, with LOTCOST defaulting to COST.
+-- COSTBASISSEL is one or more of {LOTCOST}, [LOTDATE], (LOTNOTE), in any order.
+-- {LOTCOST} can be {UNITAMT}, {{TOTALAMT}}, {=UNITAMT}, or {{=TOTALAMT}}. The = is ignored.
+-- VALUATIONEXPR can be ((VALUE AMOUNT)) or ((VALUE FUNCTION)).
+--
+-- @
+-- Ledger amount syntax is really complex.
+-- Rule of thumb: curly braces, parentheses, and/or square brackets
+-- in an amount means a Ledger-style cost basis is involved.
+--
+-- To parse an amount's numeric quantity we need to know which character 
 -- represents a decimal mark. We find it in one of three ways:
 --
 -- 1. If a decimal mark has been set explicitly in the journal parse state, 
@@ -700,38 +727,54 @@ spaceandamountormissingp =
 --
 -- 3. Otherwise we will parse any valid decimal mark appearing in the
 --    number, as long as the number appears well formed.
+--    (This means we handle files with any supported decimal mark without configuration,
+--    but it also allows different decimal marks in  different amounts,
+--    which is a bit too loose. There's an open issue.)
 --
--- Note 3 is the default zero-config case; it means we automatically handle
--- files with any supported decimal mark, but it also allows different decimal marks
--- in  different amounts, which is a bit too loose. There's an open issue.
 amountp :: JournalParser m Amount
-amountp = amountpwithmultiplier False
+amountp = amountp' False
 
-amountpwithmultiplier :: Bool -> JournalParser m Amount
-amountpwithmultiplier mult = label "amount" $ do
+-- An amount with optional cost, valuation, and/or cost basis, as described above.
+-- A flag indicates whether we are parsing a multiplier amount;
+-- if not, a commodity-less amount will have the default commodity applied to it.
+amountp' :: Bool -> JournalParser m Amount
+amountp' mult =
+  -- dbg "amountp'" $ 
+  label "amount" $ do
   let spaces = lift $ skipNonNewlineSpaces
-  amt <- amountwithoutpricep mult <* spaces
-  (mprice, _elotprice, _elotdate) <- runPermutation $
-    (,,) <$> toPermutationWithDefault Nothing (Just <$> priceamountp amt <* spaces)
-         <*> toPermutationWithDefault Nothing (Just <$> lotpricep <* spaces)
-         <*> toPermutationWithDefault Nothing (Just <$> lotdatep <* spaces)
-  pure $ amt { aprice = mprice }
+  amt <- simpleamountp mult <* spaces
+  (mcost, _valuationexpr, _mlotcost, _mlotdate, _mlotnote) <- runPermutation $
+    -- costp, valuationexprp, lotnotep all parse things beginning with parenthesis, try needed
+    (,,,,) <$> toPermutationWithDefault Nothing (Just <$> try (costp amt) <* spaces)
+          <*> toPermutationWithDefault Nothing (Just <$> valuationexprp <* spaces)  -- XXX no try needed here ?
+          <*> toPermutationWithDefault Nothing (Just <$> lotcostp <* spaces)
+          <*> toPermutationWithDefault Nothing (Just <$> lotdatep <* spaces)
+          <*> toPermutationWithDefault Nothing (Just <$> lotnotep <* spaces)
+  pure $ amt { aprice = mcost }
 
-amountpnolotpricesp :: JournalParser m Amount
-amountpnolotpricesp = label "amount" $ do
+-- An amount with optional cost, but no cost basis.
+amountnobasisp :: JournalParser m Amount
+amountnobasisp =
+  -- dbg "amountnobasisp" $ 
+  label "amount" $ do
   let spaces = lift $ skipNonNewlineSpaces
-  amt <- amountwithoutpricep False
+  amt <- simpleamountp False
   spaces
-  mprice <- optional $ priceamountp amt <* spaces
+  mprice <- optional $ costp amt <* spaces
   pure $ amt { aprice = mprice }
 
-amountwithoutpricep :: Bool -> JournalParser m Amount
-amountwithoutpricep mult = do
+-- An amount with no cost or cost basis.
+-- A flag indicates whether we are parsing a multiplier amount;
+-- if not, a commodity-less amount will have the default commodity applied to it.
+simpleamountp :: Bool -> JournalParser m Amount
+simpleamountp mult = 
+  -- dbg "simpleamountp" $
+  do
   sign <- lift signp
   leftsymbolamountp sign <|> rightornosymbolamountp sign
 
   where
-
+  -- An amount with commodity symbol on the left.
   leftsymbolamountp :: (Decimal -> Decimal) -> JournalParser m Amount
   leftsymbolamountp sign = label "amount" $ do
     c <- lift commoditysymbolp
@@ -750,6 +793,9 @@ amountwithoutpricep mult = do
     let s = amountstyle{ascommodityside=L, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
     return nullamt{acommodity=c, aquantity=sign (sign2 q), astyle=s, aprice=Nothing}
 
+  -- An amount with commodity symbol on the right or no commodity symbol.
+  -- A no-symbol amount will have the default commodity applied to it
+  -- unless we are parsing a multiplier amount (*AMT).
   rightornosymbolamountp :: (Decimal -> Decimal) -> JournalParser m Amount
   rightornosymbolamountp sign = label "amount" $ do
     offBeforeNum <- getOffset
@@ -831,14 +877,18 @@ commoditysymbolp =
 
 quotedcommoditysymbolp :: TextParser m CommoditySymbol
 quotedcommoditysymbolp =
-  between (char '"') (char '"') $ takeWhile1P Nothing f
+  between (char '"') (char '"') $ takeWhileP Nothing f
   where f c = c /= ';' && c /= '\n' && c /= '\"'
 
 simplecommoditysymbolp :: TextParser m CommoditySymbol
 simplecommoditysymbolp = takeWhile1P Nothing (not . isNonsimpleCommodityChar)
 
-priceamountp :: Amount -> JournalParser m AmountPrice
-priceamountp baseAmt = label "transaction price" $ do
+-- | Ledger-style cost notation:
+-- @ UNITAMT, @@ TOTALAMT, (@) UNITAMT, or (@@) TOTALAMT. The () are ignored.
+costp :: Amount -> JournalParser m AmountPrice
+costp baseAmt =
+  -- dbg "costp" $
+  label "transaction price" $ do
   -- https://www.ledger-cli.org/3.0/doc/ledger3.html#Virtual-posting-costs
   parenthesised <- option False $ char '(' >> pure True
   char '@'
@@ -846,7 +896,7 @@ priceamountp baseAmt = label "transaction price" $ do
   when parenthesised $ void $ char ')'
 
   lift skipNonNewlineSpaces
-  priceAmount <- amountwithoutpricep False -- <?> "unpriced amount (specifying a price)"
+  priceAmount <- simpleamountp False -- <?> "unpriced amount (specifying a price)"
 
   let amtsign' = signum $ aquantity baseAmt
       amtsign  = if amtsign' == 0 then 1 else amtsign'
@@ -855,6 +905,15 @@ priceamountp baseAmt = label "transaction price" $ do
             then TotalPrice priceAmount{aquantity=amtsign * aquantity priceAmount}
             else UnitPrice  priceAmount
 
+-- | A valuation function or value can be written in double parentheses after an amount.
+valuationexprp :: JournalParser m ()
+valuationexprp =
+  -- dbg "valuationexprp" $
+  label "valuation expression" $ do
+  string "(("
+  _ <- T.strip . T.pack <$> (many $ noneOf [')','\n'])  -- XXX other line endings ?
+  string "))"
+  return ()
 
 balanceassertionp :: JournalParser m BalanceAssertion
 balanceassertionp = do
@@ -863,9 +922,9 @@ balanceassertionp = do
   istotal <- fmap isJust $ optional $ try $ char '='
   isinclusive <- fmap isJust $ optional $ try $ char '*'
   lift skipNonNewlineSpaces
-  -- this amount can have a price; balance assertions ignore it,
-  -- but balance assignments will use it
-  a <- amountpnolotpricesp <?> "amount (for a balance assertion or assignment)"
+  -- this amount can have a cost, but not a cost basis.
+  -- balance assertions ignore it, but balance assignments will use it
+  a <- amountnobasisp <?> "amount (for a balance assertion or assignment)"
   return BalanceAssertion
     { baamount    = a
     , batotal     = istotal
@@ -873,32 +932,44 @@ balanceassertionp = do
     , baposition  = sourcepos
     }
 
--- Parse a Ledger-style fixed {=UNITPRICE} or non-fixed {UNITPRICE}
--- or fixed {{=TOTALPRICE}} or non-fixed {{TOTALPRICE}} lot price,
--- and ignore it.
--- https://www.ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices .
-lotpricep :: JournalParser m ()
-lotpricep = label "ledger-style lot price" $ do
+-- Parse a Ledger-style lot cost,
+-- {UNITCOST} or {{TOTALCOST}} or {=FIXEDUNITCOST} or {{=FIXEDTOTALCOST}},
+-- and discard it.
+lotcostp :: JournalParser m ()
+lotcostp =
+  -- dbg "lotcostp" $
+  label "ledger-style lot cost" $ do
   char '{'
   doublebrace <- option False $ char '{' >> pure True
   _fixed <- fmap isJust $ optional $ lift skipNonNewlineSpaces >> char '='
   lift skipNonNewlineSpaces
-  _a <- amountwithoutpricep False
+  _a <- simpleamountp False
   lift skipNonNewlineSpaces
   char '}'
   when (doublebrace) $ void $ char '}'
 
--- Parse a Ledger-style lot date [DATE], and ignore it.
--- https://www.ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices .
+-- Parse a Ledger-style [LOTDATE], and discard it.
 lotdatep :: JournalParser m ()
-lotdatep = (do
+lotdatep =
+  -- dbg "lotdatep" $
+  label "ledger-style lot date" $ do
   char '['
   lift skipNonNewlineSpaces
   _d <- datep
   lift skipNonNewlineSpaces
   char ']'
   return ()
-  ) <?> "ledger-style lot date"
+
+-- Parse a Ledger-style (LOT NOTE), and discard it.
+lotnotep :: JournalParser m ()
+lotnotep =
+  -- dbg "lotnotep" $
+  label "ledger-style lot note" $ do
+  char '('
+  lift skipNonNewlineSpaces
+  _note <- stripEnd . T.pack <$> (many $ noneOf [')','\n'])  -- XXX other line endings ?
+  char ')'
+  return ()
 
 -- | Parse a string representation of a number for its value and display
 -- attributes.

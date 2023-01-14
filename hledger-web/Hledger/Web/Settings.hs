@@ -34,7 +34,7 @@ hledgerorgurl :: Text
 hledgerorgurl = "http://hledger.org"
 
 manualurl :: Text
-manualurl = hledgerorgurl <> "/manual"
+manualurl = hledgerorgurl <> "hledger.html"
 
 -- | The default IP address to listen on. May be overridden with --host.
 defhost :: String

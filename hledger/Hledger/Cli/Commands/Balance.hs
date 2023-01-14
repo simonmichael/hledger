@@ -320,10 +320,11 @@ balancemode = hledgerCommandMode
     ,flagNone ["transpose"] (setboolopt "transpose") "transpose rows and columns"
     ,flagReq  ["layout"] (\s opts -> Right $ setopt "layout" s opts) "ARG"
       (unlines
-        ["how to show multi-commodity amounts:"
-        ,"'wide[,WIDTH]': all commodities on one line"
-        ,"'tall'        : each commodity on a new line"
-        ,"'bare'        : bare numbers, symbols in a column"
+        ["how to lay out multi-commodity amounts and the overall table:"
+        ,"'wide[,WIDTH]': commodities on one line"
+        ,"'tall'        : commodities on separate lines"
+        ,"'bare'        : commodity symbols in one column"
+        ,"'tidy'        : every attribute in its own column"
         ])
     ,outputFormatFlag ["txt","html","csv","json"]
     ,outputFileFlag

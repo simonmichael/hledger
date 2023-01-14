@@ -30,8 +30,7 @@ commands, including check:
 
 -   balancedwithautoconversion - all transactions are balanced,
     inferring missing amounts where necessary, and possibly converting
-    commodities using transaction prices or automatically-inferred
-    transaction prices
+    commodities using costs or automatically-inferred costs
 
 -   assertions - all balance assertions in the journal are passing.
     (This check can be disabled with -I/--ignore-assertions.)
@@ -47,7 +46,7 @@ check:
 -   commodities - all commodity symbols used have been declared
 
 -   balancednoautoconversion - transactions are balanced, possibly using
-    explicit transaction prices but not inferred ones
+    explicit costs but not inferred ones
 
 Other checks
 

@@ -17,17 +17,21 @@ You can add a query to select a subset of transactions.
 Examples:
 
 ```journal
-1/1 (123)
- (a)  1
+2022/1/1 (123) Supermarket   
+ Food       $5.00
+ Checking    
 
-1/1 ()
- (a)  1
+2022/1/2 (124) Post Office
+ Postage    $8.32
+ Checking
 
-1/1
- (a)  1
+2022/1/3 Supermarket
+ Food      $11.23
+ Checking 
 
-1/1 (126)
- (a)  1
+2022/1/4 (126) Post Office
+ Postage    $3.21
+ Checking
 ```
 
 ```shell
@@ -41,7 +45,6 @@ $ hledger codes
 $ hledger codes -E
 123
 124
-
 
 126
 ```

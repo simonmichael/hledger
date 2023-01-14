@@ -51,7 +51,7 @@ Some possible prefixes:
 - `doc` - documentation-related
 - `test` - tests-related
 - `ci`  - continuous integration-related
-- Any of the standard [topics](ISSUES.html#topics) used in the issue tracker.
+- Any of the standard [labels](ISSUES.html#labels) used in the issue tracker.
 
 ## How to check commits
 

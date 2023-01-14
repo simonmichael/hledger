@@ -2,24 +2,27 @@
 % _author_
 % _monthyear_
 
-_man_({{
+_notinfo_({{
 # NAME
 }})
 
-hledger-web is a web interface (WUI) for the hledger accounting tool.
-This manual is for hledger-web _version_.
+hledger-web - robust, friendly plain text accounting (Web version)
 
-_man_({{
+_notinfo_({{
 # SYNOPSIS
 }})
 
-`hledger-web [OPTIONS]              # run temporarily & browse`\
-`hledger-web --serve [OPTIONS]      # run without stopping`\
-`hledger-web --serve-api [OPTIONS]  # run JSON server only`\
+`hledger-web [OPTIONS]                  # run temporarily & browse`\
+`hledger-web --serve [OPTIONS]          # run without stopping`\
+`hledger-web --serve-api [OPTIONS]      # run JSON server only`\
+`hledger web -- [OPTIONS] [QUERYARGS]`  # start from hledger
 
-_man_({{
+_notinfo_({{
 # DESCRIPTION
 }})
+
+This manual is for hledger's web interface, version _version_.
+See also the hledger manual for common concepts and file formats.
 
 _hledgerdescription_
 
@@ -44,7 +47,7 @@ behind a suitable web proxy.  As a small protection against data loss
 when running an unprotected instance, it writes a numbered backup of
 the main journal file (only) on every edit.
 
-Like hledger, it reads _files_
+Like hledger, it reads _inputfiles_
 For more about this see hledger(1).
 
 hledger-web can be run in three modes:
@@ -272,17 +275,17 @@ $ curl -s http://127.0.0.1:5000/transactions | python -m json.tool
 ```
 
 Most of the JSON corresponds to hledger's data types; for details of what the fields mean, see the
-[Hledger.Data.Json haddock docs](http://hackage.haskell.org/package/hledger-lib-1.17.1/docs/Hledger-Data-Json.html)
+[Hledger.Data.Json haddock docs](https://hackage.haskell.org/package/hledger-lib-1.17.1/docs/Hledger-Data-Json.html)
 and click on the various data types, eg 
-[Transaction](http://hackage.haskell.org/package/hledger-lib-1.17.1/docs/Hledger-Data-Types.html#t:Transaction).
-And for a higher level understanding, see the [journal manual](hledger.html).
+[Transaction](https://hackage.haskell.org/package/hledger-lib-1.17.1/docs/Hledger-Data-Types.html#t:Transaction).
+And for a higher level understanding, see the [journal docs](hledger.html#journal).
 
 In some cases there is outer JSON corresponding to a "Report" type.
 To understand that, go to the
-[Hledger.Web.Handler.MiscR haddock](http://hackage.haskell.org/package/hledger-web-1.17.1/docs/Hledger-Web-Handler-MiscR.html)
+[Hledger.Web.Handler.MiscR haddock](https://hackage.haskell.org/package/hledger-web-1.17.1/docs/Hledger-Web-Handler-MiscR.html)
 and look at the source for the appropriate handler to see what it returns.
 Eg for `/accounttransactions` it's
-[getAccounttransactionsR](http://hackage.haskell.org/package/hledger-web-1.17.1/docs/src/Hledger.Web.Handler.MiscR.html#getAccounttransactionsR),
+[getAccounttransactionsR](https://hackage.haskell.org/package/hledger-web-1.17.1/docs/src/Hledger.Web.Handler.MiscR.html#getAccounttransactionsR),
 returning a "`accountTransactionsReport ...`".
 [Looking up](https://hoogle.haskell.org/?hoogle=accountTransactionsReport) the haddock for that
 we can see that /accounttransactions returns an 
@@ -418,11 +421,9 @@ _LEDGER_FILE_
 
 # FILES
 
-Reads _files_
+Reads _inputfiles_
 
 # BUGS
-
-The need to precede options with `--` when invoked from hledger is awkward.
 
 `-f-` doesn't work (hledger-web can't read from stdin).
 

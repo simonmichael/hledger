@@ -5,51 +5,47 @@
 <!-- toc -->
 </div>
 
-Here are some ways to contribute. Other content has moved elsewhere, see the DEVELOPERS section in the sidebar.
+New contributors are always welcome in the hledger project. Jump in!
+Browse the ideas below, or say hello in the chat and we'll help find you a job.
 
-## About the project
+## First steps
 
-### Mission
+- Join the [#hledger chat](support.html), best place for quick help and feedback
+- Skim the [FAQs](faq.html)
 
-Why was hledger created ?
+## Ideas for contributing as a ...
 
-Mainly:
+### Visitor
 
-- to provide a more usable, robust, documented, cross-platform-installable version of Ledger for users
-- to provide a more maintainable and hackable version of Ledger for developers 
+- Give feedback on the site and your impressions of the project
 
-Also:
+### New user
 
-- to provide a useful library and toolbox for finance-minded haskell programmers
-- to explore the suitability of Haskell for such applications
-- to experiment with building a successful time-and-money-solvent project in a thriving ecosystem of financial software projects
+- Give feedback on your new user experience
 
-What is the hledger project's current mission ?
+### Developer
 
-1. Provide peace of mind: bring clarity, relief, and peace of mind to folks stressed, confused, overwhelmed by finances.
-2. Educate and empower: help individuals and communities achieve clarity, accountability and mastery with money and time.
+- See the [Developer workflows](WORKFLOWS.html) 
+- and other [Developer docs](dev.html)
 
-### Roles and activities
+### Developer using the hledger libraries
 
-- newcomer/potential user
-- user
-- library user
-- field tester
-- bug wrangler
-- support
-- documentor
-- qa
-- developer
-- packager
-- communicator
-- project manager
+- Give feedback on your experience using the hledger packages
+- Suggest API improvements
 
+### Packager
 
+- Improve hledger's packaging on one or more platforms
 
-## Getting started
+### Communicator
 
-New contributors are always welcome in the hledger project. 
-Jump in! Or [ask us](support.html) to help you find a task.
+Marketing and market understanding is vital.
+
+- clarify project goals, value proposition, brand, mission, story
+- monitor product-market fit
+- identify new opportunities
+- influence developer priorities
+- spread the word!
 
 ### Funder
 
@@ -84,6 +80,10 @@ the IRC channel and mail list (see [Getting help](index.html#getting-help)).
 Both are archived and linkable, so the idea won't be lost.
 There is also a collection of wishes at the old [trello board](http://trello.hledger.org).
 
+### Bug wrangler
+
+### Tech support provider
+
 ### Technical Writer
 
 - get familiar with the website and documentation online, review and test
@@ -98,15 +98,6 @@ There is also a collection of wishes at the old [trello board](http://trello.hle
 - web design mockups for home page, site, hledger-web UI
 
 <!-- ### Product Designer -->
-### Communicator
-
-Marketing and market understanding is vital.
-
-- clarify project goals, value proposition, brand, mission, story
-- monitor product-market fit
-- identify new opportunities
-- influence developer priorities
-- spread the word!
 
 ### Maintainer
 
@@ -131,12 +122,3 @@ Marketing and market understanding is vital.
 - identify collaboration opportunities
 - marketing, communication, outreach
 - release management, roadmap planning
-
-### Developer
-
-See [Developer workflows](WORKFLOWS.md#developer-workflows).
-
-
-
-
-

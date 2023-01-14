@@ -2,23 +2,25 @@
 % _author_
 % _monthyear_
 
-_man_({{
+_notinfo_({{
 # NAME
 }})
 
-hledger-ui is a terminal interface (TUI) for the hledger accounting tool.
-This manual is for hledger-ui _version_.
+hledger-ui - robust, friendly plain text accounting (TUI version)
 
-_man_({{
+_notinfo_({{
 # SYNOPSIS
 }})
 
 `hledger-ui [OPTIONS] [QUERYARGS]`\
 `hledger ui -- [OPTIONS] [QUERYARGS]`
 
-_man_({{
+_notinfo_({{
 # DESCRIPTION
 }})
+
+This manual is for hledger's terminal interface, version _version_.
+See also the hledger manual for common concepts and file formats.
 
 _hledgerdescription_
 
@@ -40,7 +42,7 @@ for viewing accounts and transactions, and some limited data entry capability.
 It is easier than hledger's command-line interface, and
 sometimes quicker and more convenient than the web interface.
 
-Like hledger, it reads _files_
+Like hledger, it reads _inputfiles_
 For more about this see hledger(1), hledger_journal(5) etc.
 
 Unlike hledger, hledger-ui hides all future-dated transactions by default.
@@ -139,6 +141,17 @@ With the `-w/--watch` option, when viewing a "current" period
 the period will move automatically to track the current date.
 To set a non-standard period, you can use `/` and a `date:` query.
 
+(Mac users: SHIFT-DOWN/UP keys do not work by default in Terminal, as of MacOS Monterey.
+You can configure them as follows: 
+open Terminal,
+press CMD-comma to open preferences,
+click Profiles,
+select your current terminal profile on the left,
+click Keyboard on the right,
+click + and add this for Shift-Down: `\033[1;2B`,
+click + and add this for Shift-Up:   `\033[1;2A`.
+Press the Escape key to enter the `\033` part, you can't type it directly.)
+
 `/` lets you set a general filter query limiting the data shown,
 using the same [query terms](hledger.html#queries) as in hledger and hledger-web.
 While editing the query, you can use [CTRL-a/e/d/k, BS, cursor keys](http://hackage.haskell.org/package/brick-0.7/docs/brick-widgets-edit.html#t:editor);
@@ -176,9 +189,8 @@ With some editors (emacs, vi), the cursor will be positioned at the current tran
 when invoked from the register and transaction screens, and at the error location (if possible)
 when invoked from the error screen.
 
-`B` toggles cost mode, showing amounts in their transaction price's
-commodity (like toggling the
-[`-B/--cost`](https://hledger.org/hledger.html#b-cost) flag).
+`B` toggles cost mode, showing amounts in their cost's commodity
+(like toggling the [`-B/--cost`](https://hledger.org/hledger.html#b-cost) flag).
 
 `V` toggles value mode, showing amounts' current market value in their
 default valuation commodity (like toggling the
@@ -240,7 +252,7 @@ It is like the `hledger incomestatement` command.
 All of these accounts screens work in much the same way:
 
 They show accounts which have been posted to by transactions,
-as well as accounts which have been declared with an [account directive](#declaring-accounts)
+as well as accounts which have been declared with an [account directive](#account)
 (except for empty parent accounts).
 
 If you specify a query on the command line or with `/` in the app,
@@ -396,11 +408,9 @@ _LEDGER_FILE_
 
 # FILES
 
-Reads _files_
+Reads _inputfiles_
 
 # BUGS
-
-The need to precede options with `--` when invoked from hledger is awkward.
 
 `-f-` doesn't work (hledger-ui can't read from stdin).
 

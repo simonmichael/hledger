@@ -5,8 +5,8 @@ account b:c  ;
 commodity 1.
 payee p
 
-1/1 p
+2022/1/1 p
   (a:c)  1
 
-1/1 p
+2022/1/1 p
   (b:c)  1

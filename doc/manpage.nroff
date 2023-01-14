@@ -20,19 +20,21 @@ $endfor$
 
 .SH "REPORTING BUGS"
 Report bugs at http://bugs.hledger.org
-(or on the #hledger IRC channel or hledger mail list)
+(or on the #hledger chat or hledger mail list)
 
 .SH AUTHORS
 $if(author)$
 $for(author)$$author$$sep$; $endfor$.
 $else$
-Simon Michael <simon@joyful.com> and contributors
+Simon Michael <simon@joyful.com> and contributors.
+.br
+See http://hledger.org/CREDITS.html
 $endif$
 
 .SH COPYRIGHT
+Copyright 2007-2023 Simon Michael and contributors.
 
-Copyright (C) 2007-2020 Simon Michael.
-.br
+.SH LICENSE
 Released under GNU GPL v3 or later.
 
 .SH SEE ALSO

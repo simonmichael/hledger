@@ -13,6 +13,7 @@ Options common to most hledger reports.
 {-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators #-}
 
 module Hledger.Reports.ReportOptions (
   ReportOpts(..),

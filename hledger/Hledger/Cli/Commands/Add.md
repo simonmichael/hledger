@@ -23,12 +23,12 @@ Features:
 - [Readline-style edit keys](http://tiswww.case.edu/php/chet/readline/rluserman.html#SEC3)
   can be used during data entry.
 - The tab key will auto-complete whenever possible - accounts,
-  descriptions, dates (`yesterday`, `today`, `tomorrow`). If the input
-  area is empty, it will insert the default value.
+  payees/descriptions, dates (`yesterday`, `today`, `tomorrow`).
+  If the input area is empty, it will insert the default value.
 - If the journal defines a [default commodity](#default-commodity),
   it will be added to any bare numbers entered.
 - A parenthesised transaction [code](#entries) may be entered following a date.
-- [Comments](#comments) and tags may be entered following a description or amount.
+- [Comments](#transaction-comments) and tags may be entered following a description or amount.
 - If you make a mistake, enter `<` at any prompt to go one step backward.
 - Input prompts are displayed in a different colour when the terminal supports it.
 

@@ -73,7 +73,7 @@ import Text.Printf (printf)
 
 import Hledger.Data
 import Hledger.Utils
-import Hledger.Read.Common (aliasesFromOpts, Reader(..), InputOpts(..), amountp, statusp, journalFinalise )
+import Hledger.Read.Common (aliasesFromOpts, Reader(..), InputOpts(..), amountp, statusp, journalFinalise, accountnamep )
 
 --- ** doctest setup
 -- $setup
@@ -134,7 +134,7 @@ csvFileFor = reverse . drop 6 . reverse
 defaultRulesText :: FilePath -> Text
 defaultRulesText csvfile = T.pack $ unlines
   ["# hledger csv conversion rules for " ++ csvFileFor (takeFileName csvfile)
-  ,"# cf http://hledger.org/manual#csv-files"
+  ,"# cf http://hledger.org/hledger.html#csv"
   ,""
   ,"account1 assets:bank:checking"
   ,""
@@ -400,7 +400,7 @@ VALUE: SPACE? ( CHAR* ) SPACE?
 
 COMMENT: SPACE? COMMENT-CHAR VALUE
 
-COMMENT-CHAR: # | ;
+COMMENT-CHAR: # | ; | *
 
 NONSPACE: any CHAR not a SPACE-CHAR
 
@@ -699,18 +699,19 @@ readJournalFromCsv mrulesfile csvfile csvdata = do
     rules <- liftEither $ parseAndValidateCsvRules rulesfile rulestext
     dbg6IO "csv rules" rules
 
-    -- parse the skip directive's value, if any
-    skiplines <- case getDirective "skip" rules of
-                      Nothing -> return 0
-                      Just "" -> return 1
-                      Just s  -> maybe (throwError $ "could not parse skip value: " ++ show s) return . readMay $ T.unpack s
-
     mtzin <- case getDirective "timezone" rules of
               Nothing -> return Nothing
               Just s  ->
                 maybe (throwError $ "could not parse time zone: " ++ T.unpack s) (return.Just) $
                 parseTimeM False defaultTimeLocale "%Z" $ T.unpack s
     tzout <- liftIO getCurrentTimeZone
+
+    -- skip header lines, if there is a top-level skip rule
+    skiplines <- case getDirective "skip" rules of
+                      Nothing -> return 0
+                      Just "" -> return 1
+                      Just s  -> maybe (throwError $ "could not parse skip value: " ++ show s) return . readMay $ T.unpack s
+    let csvdata' = T.unlines $ drop skiplines $ T.lines csvdata
 
     -- parse csv
     let
@@ -725,8 +726,8 @@ readJournalFromCsv mrulesfile csvfile csvdata = do
           where
             ext = map toLower $ drop 1 $ takeExtension csvfile
     dbg6IO "using separator" separator
-    csv <- dbg7 "parseCsv" <$> parseCsv separator parsecfilename csvdata
-    records <- liftEither $ dbg7 "validateCsv" <$> validateCsv rules skiplines csv
+    csv <- dbg7 "parseCsv" <$> parseCsv separator parsecfilename csvdata'
+    records <- liftEither $ dbg7 "validateCsv" <$> validateCsv rules csv
     dbg6IO "first 3 csv records" $ take 3 records
 
     -- identify header lines
@@ -818,8 +819,8 @@ printCSV = TB.toLazyText . unlinesB . map printRecord
           printField = wrap "\"" "\"" . T.replace "\"" "\"\""
 
 -- | Return the cleaned up and validated CSV data (can be empty), or an error.
-validateCsv :: CsvRules -> Int -> CSV -> Either String [CsvRecord]
-validateCsv rules numhdrlines = validate . applyConditionalSkips . drop numhdrlines . filternulls
+validateCsv :: CsvRules -> CSV -> Either String [CsvRecord]
+validateCsv rules = validate . applyConditionalSkips . filternulls
   where
     filternulls = filter (/=[""])
     skipnum r =
@@ -1198,7 +1199,12 @@ getAccount rules record mamount mbalance n =
     -- accountN is set to the empty string - no posting will be generated
     Just "" -> Nothing
     -- accountN is set (possibly to "expenses:unknown"! #1192) - mark it final
-    Just a  -> Just (a, True)
+    Just a  ->
+      -- Check it and reject if invalid.. sometimes people try
+      -- to set an amount or comment along with the account name.
+      case parsewith (accountnamep >> eof) a of
+        Left e  -> usageError $ errorBundlePretty e
+        Right _ -> Just (a, True)
     -- accountN is unset
     Nothing ->
       case (mamount, mbalance) of

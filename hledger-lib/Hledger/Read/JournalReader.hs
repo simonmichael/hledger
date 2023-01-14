@@ -4,7 +4,7 @@
 {-|
 
 A reader for hledger's journal file format
-(<http://hledger.org/MANUAL.html#the-journal-file>).  hledger's journal
+(<http://hledger.org/hledger.html#the-journal-file>).  hledger's journal
 format is a compatible subset of c++ ledger's
 (<http://ledger-cli.org/3.0/doc/ledger3.html#Journal-Format>), so this
 reader should handle many ledger files as well. Example:
@@ -79,7 +79,7 @@ import Control.Monad.Except (ExceptT(..), runExceptT)
 import Control.Monad.State.Strict (evalStateT,get,modify',put)
 import Control.Monad.Trans.Class (lift)
 import Data.Char (toLower)
-import Data.Either (isRight)
+import Data.Either (isRight, lefts)
 import qualified Data.Map.Strict as M
 import Data.Text (Text)
 import Data.String
@@ -226,27 +226,42 @@ addJournalItemP =
 --- *** directives
 
 -- | Parse any journal directive and update the parse state accordingly.
--- Cf http://hledger.org/manual.html#directives,
+-- Cf http://hledger.org/hledger.html#directives,
 -- http://ledger-cli.org/3.0/doc/ledger3.html#Command-Directives
 directivep :: MonadIO m => ErroringJournalParser m ()
 directivep = (do
-  optional $ char '!'
+  optional $ oneOf ['!','@']
   choice [
     includedirectivep
    ,aliasdirectivep
    ,endaliasesdirectivep
    ,accountdirectivep
    ,applyaccountdirectivep
+   ,applyfixeddirectivep
+   ,applytagdirectivep
+   ,assertdirectivep
+   ,bucketdirectivep
+   ,capturedirectivep
+   ,checkdirectivep
+   ,commandlineflagdirectivep
    ,commoditydirectivep
-   ,endapplyaccountdirectivep
-   ,payeedirectivep
-   ,tagdirectivep
-   ,endtagdirectivep
+   ,commodityconversiondirectivep
+   ,decimalmarkdirectivep
    ,defaultyeardirectivep
    ,defaultcommoditydirectivep
-   ,commodityconversiondirectivep
+   ,definedirectivep
+   ,endapplyaccountdirectivep
+   ,endapplyfixeddirectivep
+   ,endapplytagdirectivep
+   ,endapplyyeardirectivep
+   ,endtagdirectivep
+   ,evaldirectivep
+   ,exprdirectivep
    ,ignoredpricecommoditydirectivep
-   ,decimalmarkdirectivep
+   ,payeedirectivep
+   ,pythondirectivep
+   ,tagdirectivep
+   ,valuedirectivep
    ]
   ) <?> "directive"
 
@@ -489,7 +504,9 @@ commoditydirectivemultilinep = do
   lift skipNonNewlineSpaces1
   sym <- lift commoditysymbolp
   _ <- lift followingcommentp
-  mfmt <- lastMay <$> many (indented $ formatdirectivep sym)
+  -- read all subdirectives, saving format subdirectives as Lefts
+  subdirectives <- many $ indented (eitherP (formatdirectivep sym) (lift restofline))
+  let mfmt = lastMay $ lefts subdirectives
   let comm = Commodity{csymbol=sym, cformat=mfmt}
   modify' (\j -> j{jcommodities=M.insert sym comm $ jcommodities j})
   where
@@ -511,6 +528,35 @@ formatdirectivep expectedsym = do
       else return $ dbg6 "style from format subdirective" astyle
     else customFailure $ parseErrorAt off $
          printf "commodity directive symbol \"%s\" and format directive symbol \"%s\" should be the same" expectedsym acommodity
+
+-- More Ledger directives, ignore for now:
+-- apply fixed, apply tag, assert, bucket, A, capture, check, define, expr
+applyfixeddirectivep, endapplyfixeddirectivep, applytagdirectivep, endapplytagdirectivep,
+  assertdirectivep, bucketdirectivep, capturedirectivep, checkdirectivep, 
+  endapplyyeardirectivep, definedirectivep, exprdirectivep, valuedirectivep,
+  evaldirectivep, pythondirectivep, commandlineflagdirectivep
+  :: JournalParser m ()
+applyfixeddirectivep    = do string "apply fixed" >> lift restofline >> return ()
+endapplyfixeddirectivep = do string "end apply fixed" >> lift restofline >> return ()
+applytagdirectivep      = do string "apply tag" >> lift restofline >> return ()
+endapplytagdirectivep   = do string "end apply tag" >> lift restofline >> return ()
+endapplyyeardirectivep  = do string "end apply year" >> lift restofline >> return ()
+assertdirectivep        = do string "assert"  >> lift restofline >> return ()
+bucketdirectivep        = do string "A " <|> string "bucket " >> lift restofline >> return ()
+capturedirectivep       = do string "capture" >> lift restofline >> return ()
+checkdirectivep         = do string "check"   >> lift restofline >> return ()
+definedirectivep        = do string "define"  >> lift restofline >> return ()
+exprdirectivep          = do string "expr"    >> lift restofline >> return ()
+valuedirectivep         = do string "value"   >> lift restofline >> return ()
+evaldirectivep          = do string "eval"   >> lift restofline >> return ()
+commandlineflagdirectivep = do string "--" >> lift restofline >> return ()
+pythondirectivep = do
+  string "python" >> lift restofline
+  many $ indentedline <|> blankline
+  return ()
+  where
+    indentedline = lift skipNonNewlineSpaces1 >> lift restofline
+    blankline = lift skipNonNewlineSpaces >> newline >> return "" <?> "blank line"
 
 keywordp :: String -> JournalParser m ()
 keywordp = void . string . fromString
@@ -553,13 +599,20 @@ tagdirectivep = do
   lift skipNonNewlineSpaces1
   _ <- lift $ some nonspace
   lift restofline
+  skipMany indentedlinep
   return ()
 
+-- end tag or end apply tag
 endtagdirectivep :: JournalParser m ()
-endtagdirectivep = do
-  (keywordsp "end tag" <|> keywordp "pop") <?> "end tag or pop directive"
-  lift restofline
+endtagdirectivep = (do
+  string "end"
+  lift skipNonNewlineSpaces1
+  optional $ string "apply" >> lift skipNonNewlineSpaces1
+  string "tag"
+  lift skipNonNewlineSpaces
+  eol
   return ()
+  ) <?> "end tag or end apply tag directive"
 
 payeedirectivep :: JournalParser m ()
 payeedirectivep = do
@@ -567,12 +620,13 @@ payeedirectivep = do
   lift skipNonNewlineSpaces1
   payee <- lift $ T.strip <$> noncommenttext1p
   (comment, tags) <- lift transactioncommentp
+  skipMany indentedlinep
   addPayeeDeclaration (payee, comment, tags)
   return ()
 
 defaultyeardirectivep :: JournalParser m ()
 defaultyeardirectivep = do
-  char 'Y' <?> "default year"
+  (string "Y" <|> string "year" <|> string "apply year") <?> "default year"
   lift skipNonNewlineSpaces
   setYear =<< lift yearp
 
@@ -767,7 +821,7 @@ postingphelper isPostingRule mTransactionYear = do
     let (ptype, account') = (accountNamePostingType account, textUnbracket account)
     lift skipNonNewlineSpaces
     mult <- if isPostingRule then multiplierp else pure False
-    amt <- optional $ amountpwithmultiplier mult
+    amt <- optional $ amountp' mult
     lift skipNonNewlineSpaces
     massertion <- optional balanceassertionp
     lift skipNonNewlineSpaces
@@ -1076,7 +1130,7 @@ tests_JournalReader = testGroup "JournalReader" [
 
   ,testCase "endtagdirectivep" $ do
       assertParse endtagdirectivep "end tag \n"
-      assertParse endtagdirectivep "pop \n"
+      assertParse endtagdirectivep "end apply tag \n"
 
   ,testGroup "journalp" [
     testCase "empty file" $ assertParseEqE journalp "" nulljournal

@@ -62,8 +62,8 @@ There are some situations where print's output can become unparseable:
 
 Normally, the journal entry's explicit or implicit amount style is preserved.
 For example, when an amount is omitted in the journal, it will not appear in the output.
-Similarly, when a transaction price is implied but not written, it will not appear in the output.
-You can use the `-x`/`--explicit` flag to make all amounts and transaction prices explicit, 
+Similarly, when a cost is implied but not written, it will not appear in the output.
+You can use the `-x`/`--explicit` flag to make all amounts and costs explicit, 
 which can be useful for troubleshooting or for making your journal more readable and
 robust against data entry errors.
 `-x` is also implied by using any of `-B`,`-V`,`-X`,`--value`.
@@ -73,7 +73,7 @@ Note, `-x`/`--explicit` will cause postings with a multi-commodity amount
 to be split into multiple single-commodity postings, 
 keeping the output parseable.
 
-With `-B`/`--cost`, amounts with [transaction prices](https://hledger.org/hledger.html#transaction-prices)
+With `-B`/`--cost`, amounts with [costs](https://hledger.org/hledger.html#costs)
 are converted to cost using that price. This can be used for troubleshooting.
 
 With `-m DESC`/`--match=DESC`, print does a fuzzy search for the one transaction

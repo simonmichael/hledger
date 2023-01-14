@@ -3,5 +3,5 @@
 account a
 commodity A
 
-1/1 p
+2022/1/1 p
   (a)  A 1

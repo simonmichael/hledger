@@ -33,7 +33,7 @@ including `check`:
 
 - **balancedwithautoconversion** - all transactions are [balanced](hledger.html#postings),
   inferring missing amounts where necessary, and possibly converting commodities 
-  using [transaction prices] or automatically-inferred transaction prices
+  using [costs] or automatically-inferred costs
 
 - **assertions** - all [balance assertions] in the journal are passing. 
   (This check can be disabled with `-I`/`--ignore-assertions`.)
@@ -50,7 +50,7 @@ Or, they can be run by giving their names as arguments to `check`:
   [have been declared](hledger.html#commodity-error-checking)
 
 - **balancednoautoconversion** - transactions are balanced, possibly using
-  explicit transaction prices but not [inferred ones](#transaction-prices)
+  explicit costs but not [inferred ones](#costs)
 
 ### Other checks
 
@@ -59,7 +59,7 @@ They are more specialised and not desirable for everyone, therefore optional:
 
 - **ordereddates** - transactions are ordered by date within each file
 
-- **payees** - all payees used by transactions [have been declared](#declaring-payees)
+- **payees** - all payees used by transactions [have been declared](#payees)
 
 - **recentassertions** - all accounts with balance assertions have a
   balance assertion no more than 7 days before their latest posting
@@ -94,4 +94,4 @@ to check the latest assertions against real-world balances.
 [add-on commands]:    #add-on-commands
 [balance assertions]: #balance-assertions
 [strict mode]:        #strict-mode
-[transaction prices]: #transaction-prices
+[costs]: #costs

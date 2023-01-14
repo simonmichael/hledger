@@ -33,6 +33,6 @@ Run time                 : 0.12 s
 Throughput               : 8342 txns/s
 ```
 
-This command also supports
-[output destination](hledger.html#output-destination) and
-[output format](hledger.html#output-format) selection.
+This command supports
+the [-o/--output-file](hledger.html#output-destination) option
+(but not [-O/--output-format](hledger.html#output-format) selection).

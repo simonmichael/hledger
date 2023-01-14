@@ -5,6 +5,14 @@
 <!-- toc -->
 </div>
 
+The hledger project\'s issue tracker is on github. It contains:
+
+-   BUG issues - failures in some part of the hledger project (the main
+    hledger packages, docs, website..)
+-   WISH issues - feature proposals, enhancement requests
+-   uncategorised issues - we don\'t know what these are yet
+-   pull requests - proposed changes to code and docs
+
 ## Quick urls
 
 - <http://issues.hledger.org>    - all issues, open or closed
@@ -23,7 +31,7 @@ Editing it may require editor support, search/replace etc.
 Syntax: https://www.pandoc.org/MANUAL.html#tables -> pipe_tables
 -->
 
-| COMPONENT/TOPIC [*](#topics)                                                                                               | BUGS                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | WISHES                                                                                                                 | PRS                                                                                           | OTHER
+| COMPONENT/TOPIC                                                                                                            | BUGS                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | WISHES                                                                                                                 | PRS                                                                                           | OTHER
 |----------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------
 | [all](https://github.com/simonmichael/hledger/issues?q=is:open)                                                            | [bugs](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:%22A+BUG%22) ([first](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:%22A+BUG%22+label:%22good+first+issue%22)/[easy](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:%22A+BUG%22+-label:%22good+first+issue%22+label:easy?)/[neither](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:%22A+BUG%22+-label:%22good+first+issue%22+-label:easy?))                                                                                                 | [wishes](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:%22A+WISH%22)                         | [PRs](https://github.com/simonmichael/hledger/issues?q=is:open+is:pr)                         | [other](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+-label:%22A+BUG%22+-label:%22A+WISH%22)
 | **Tools:**
@@ -69,17 +77,6 @@ Syntax: https://www.pandoc.org/MANUAL.html#tables -> pipe_tables
 | [tools](https://github.com/simonmichael/hledger/issues?q=is:open+label:tools) (dev tools, infrastructure)                  | [bugs](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:%22A+BUG%22+label:tools) ([first](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:%22A+BUG%22+label:%22good+first+issue%22+label:tools)/[easy](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:%22A+BUG%22+-label:%22good+first+issue%22+label:easy?+label:tools)/[neither](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:%22A+BUG%22+-label:%22good+first+issue%22+-label:easy?+label:tools))                                                 | [wishes](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:%22A+WISH%22+label:tools)             | [PRs](https://github.com/simonmichael/hledger/issues?q=is:open+is:pr+label:tools)             | [other](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+-label:%22A+BUG%22+-label:%22A+WISH%22+label:tools)
 
 
-## 
-
-The hledger project\'s issue tracker is on github. It contains:
-
--   BUG issues - failures in some part of the hledger project (the main
-    hledger packages, docs, website..)
--   WISH issues - feature proposals, enhancement requests
--   uncategorised issues - we don\'t know what these are yet
--   pull requests - proposed changes to code and docs
-
-Issues are also labelled according to their [topics](#topics), for organisation.
 
 Some loose conventions:
 
@@ -93,30 +90,20 @@ Some loose conventions:
 
 ## Labels
 
-Labels are used to categorise:
+<https://github.com/simonmichael/hledger/labels>,
+also listed at [open issues](#open-issues) above,
+are used to categorise:
 
--   the issue\'s type: \"A BUG\" or \"A WISH\", in shades of red (The A
-    makes it appear as first label)
--   relevant subsystems/topics, in light blue. More about this below.
--   relevant platforms, in light purple
--   resolution if not fixed:
-    \"closed:cant-reproduce/duplicate/invalid/wont-fix\", in dark grey
--   \"bounty\", in bright yellow: issues with bountysource funding
--   \"easy?\", in dim yellow: issues which are probably relatively easy
-    to fix
--   \"imported\" etc., in white: miscellaneous information
+- whether an issue is a bug (red) or a wish (pink)
+- related subcomponents (tools, commands, input/output formats) (light blue)
+- related general topics (light green)
+- related platforms (light purple)
+- whether a bounty has been offered (dark green)
+- why an issue is blocked (dark grey) or was closed (black)
+- low priority info, like "imported" (white)
 
-## Topics
-
-Short topic names, corresponding to hledger commands, input formats, output formats and other common themes,
-are used to organise things in the hledger project. In particular,
-
-- They are used as space saving descriptive prefixes for [commit messages](#commit-messages)
-- They can be used as prefixes for issue/PR titles
-- Issues and PRs are labelled with them (the light blue labels).
-
-A more or less complete list can be seen at [open issues](#open-issues)
-or in the issue tracker's labels list.
+Labels can also be used as prefixes in issue/PR titles,
+as prefixes in [commit messages](#commit-messages), etc.
 
 ## Custodians
 

@@ -225,7 +225,7 @@ BUILDFLAGS=\
 	$(GHCLOWMEMFLAGS) $(CABALMACROSFLAGS) \
 	-DDEVELOPMENT \
 	-DVERSION="\"$(VERSION)\"" \
-	-fplugin Debug.Breakpoint \
+#	-fplugin Debug.Breakpoint \
 #	-fhide-source-paths \
 
 # PROFBUILDFLAGS:=-prof -fprof-auto -osuf hs_p
@@ -519,7 +519,9 @@ FUNCTESTEXE ?= `$(STACK) exec -- which hledger`
 functest: hledger/test/addons/hledger-addon \
 	$(call def-help,functest, build hledger quickly and quietly run the functional tests (and some unit tests) )
 	@$(STACK) build --fast hledger
-	@($(SHELLTESTSTK) --hide-successes -w $(FUNCTESTEXE) hledger/test/ bin/ \
+	@($(SHELLTESTSTK) --hide-successes -w $(FUNCTESTEXE) \
+		hledger/test/ bin/ \
+		-x ledger-compat/baseline -x ledger-compat/regress -x ledger-compat/collected \
 		&& echo $@ PASSED) || (echo $@ FAILED; false)
 
 functest-%: hledger/test/addons/hledger-addon \
@@ -822,6 +824,9 @@ manuals-watch: Shake \
 		$(call def-help,manuals-watch, rerender manuals when their source files change  )
 	ls $(DOCSOURCEFILES) | entr ./Shake -VV manuals
 
+man-watch: man-watch-hledger \
+		$(call def-help,man-watch, run man on the hledger man page when its source file changes )
+
 man-watch-%: Shake \
 		$(call def-help,man-watch-PROG, run man on the given man page when its source file changes. Eg make man-watch-hledger-web )
 	$(WATCHEXEC) -r -w $*/$*.m4.md './Shake $*/$*.1 && man $*/$*.1'
@@ -861,7 +866,7 @@ LOCALSITEURL=http://localhost:3000/dev/hledger.html
 site-watch: $(call def-help,site-watch, open a browser on the website (in ./site) and rerender when docs or web pages change )
 	@make -s Shake
 	@(printf "\nbrowser will open in $(BROWSEDELAY)s (adjust BROWSE in Makefile if needed)...\n\n"; sleep $(BROWSEDELAY); $(BROWSE) $(LOCALSITEURL)) &
-	@$(WATCHEXEC) -e md,m4 -r './Shake webmanuals && ./Shake orgfiles && make -sC site serve'
+	@$(WATCHEXEC) --print-events -e md,m4 -i hledger.md -i hledger-ui.md -i hledger-web.md -r './Shake webmanuals && ./Shake orgfiles && make -sC site serve'
 
 ###############################################################################
 $(call def-help-subheading,RELEASING:)

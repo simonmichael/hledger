@@ -22,7 +22,7 @@ import Control.Monad.Trans (liftIO)
 import Data.Char (toUpper, toLower)
 import Data.Either (isRight)
 import Data.Functor.Identity (Identity(..))
-import Data.List (isPrefixOf)
+import Data.List (isPrefixOf, nub)
 import Data.Maybe (fromJust, fromMaybe, isJust)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -390,8 +390,9 @@ maybeExit = parser (\s -> if s=="." then throw UnexpectedEOF else Just s)
 dateCompleter :: String -> CompletionFunc IO
 dateCompleter = completer ["today","tomorrow","yesterday"]
 
+-- Offer payees declared, payees used, or full descriptions used.
 descriptionCompleter :: Journal -> String -> CompletionFunc IO
-descriptionCompleter j = completer (map T.unpack $ journalDescriptions j)
+descriptionCompleter j = completer (map T.unpack $ nub $ journalPayeesDeclaredOrUsed j ++ journalDescriptions j)
 
 accountCompleter :: Journal -> String -> CompletionFunc IO
 accountCompleter j = completer (map T.unpack $ journalAccountNamesDeclaredOrImplied j)

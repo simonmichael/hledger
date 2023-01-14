@@ -32,5 +32,5 @@ Market prices            : 1000 (A)
 Run time                 : 0.12 s
 Throughput               : 8342 txns/s
 
-This command also supports output destination and output format
-selection.
+This command supports the -o/--output-file option (but not
+-O/--output-format selection).

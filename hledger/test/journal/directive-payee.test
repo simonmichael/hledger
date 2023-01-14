@@ -1,0 +1,7 @@
+# 1. payee ignores subdirectives
+<
+payee KFC
+    alias KENTUCKY FRIED CHICKEN
+    uuid 1234
+$ hledger -f - payees
+KFC
