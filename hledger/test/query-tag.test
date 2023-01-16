@@ -234,3 +234,30 @@ account a:b  ; atag:B
 
 $ hledger -f- accounts tag:atag=a
 a
+
+# 24. Transactions can override the tags of used accounts
+<
+account a    ; atag:A
+account a:b  ; atag:B
+2023-01-01 Test
+    ; atag:C
+    (a:b)  10 €
+
+$ hledger -f- bal --pivot=atag
+                10 €  C
+--------------------
+                10 €
+
+# 25. Postings can override the tags of their accounts
+<
+account a    ; atag:A
+account a:b  ; atag:B
+
+2023-01-01 Test
+    ; atag:C
+    (a:b)  10 €  ; atag:D
+
+$ hledger -f- bal --pivot=atag
+                10 €  D
+--------------------
+                10 €
