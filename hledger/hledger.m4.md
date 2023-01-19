@@ -3760,20 +3760,20 @@ are imported into a journal file.
 ### Coinbase
 
 A simple example with some CSV from Coinbase. The spot price is recorded using cost notation. 
-The legacy `amount` field name conveniently sets amount2 to the total cost.
+The legacy `amount` field name conveniently sets amount 2 (posting 2's amount) to the total cost.
 ```csv
 # Timestamp,Transaction Type,Asset,Quantity Transacted,Spot Price Currency,Spot Price at Transaction,Subtotal,Total (inclusive of fees and/or spread),Fees and/or Spread,Notes
 # 2021-12-30T06:57:59Z,Receive,USDC,100,GBP,0.740000,"","","","Received 100.00 USDC from an external account"
 ```
 ```rules
 # coinbase.csv.rules
-skip 1
-fields Timestamp,Transaction_Type,Asset,Quantity_Transacted,Spot_Price_Currency,Spot_Price_at_Transaction,Subtotal,Total,Fees_Spread,Notes
-date %Timestamp
-date-format %Y-%m-%dT%T%Z
-description %Notes
-account1 assets:coinbase:cc
-amount %Quantity_Transacted %Asset @ %Spot_Price_at_Transaction %Spot_Price_Currency
+skip         1
+fields       Timestamp,Transaction_Type,Asset,Quantity_Transacted,Spot_Price_Currency,Spot_Price_at_Transaction,Subtotal,Total,Fees_Spread,Notes
+date         %Timestamp
+date-format  %Y-%m-%dT%T%Z
+description  %Notes
+account1     assets:coinbase:cc
+amount       %Quantity_Transacted %Asset @ %Spot_Price_at_Transaction %Spot_Price_Currency
 ```
 ```shell
 $ hledger print -f coinbase.csv
