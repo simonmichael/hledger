@@ -3069,17 +3069,19 @@ becomes `1` when interpolated)
 Note the two kinds of "field names" used in hledger CSV rules:
 
 1. **CSV field names** (`CSVFIELD` in examples):\
-   These are arbitrary names you have given to columns in the CSV data,
-   using a `fields` list, so that you can reference that CSV field
-   more conveniently by name (`%SomeField`) rather than column number (`%13`).
+   These are arbitrary names you have given to columns in the CSV data, by writing them in a `fields` list.
+   This does not affect hledger's output (at least not directly); it only gives that CSV field a custom name,
+   so that elsewhere, in a hledger field assignment, you can interpolate it by name (`%SomeField`) rather than column number (`%13`).
 
 2. **hledger field names** (`HLEDGERFIELD` in examples):\
-   These are special reserved names corresponding (directly or indirectly) to
-   parts of a hledger transaction (described here and in Journal > [Transactions](#transactions)).
-   You assign values to these to construct a transaction (journal entry),
-   using field assignment rules or by writing them in a `fields` list.
+   These are special reserved names corresponding (directly or indirectly) to parts of a hledger transaction.
+   If you use one of these names in a [`fields` list](#fields-list), or in a [field assignment](#field-assignment) rule,
+   it sets the value of some part of the hledger transaction corresponding the current CSV record, influencing the generated journal entry and hledger's output.
 
-Here are the hledger field names available in CSV rules, and their effects:
+Note these field names (both kinds) are used only in CSV rules files,
+though the hledger field names correspond to the hledger transaction parts described in Journal > [Transactions](#transactions).
+
+Here are the hledger field names available, and what happens when you assign values to them using a fields list or field assignment rule:
 
 ### date field
 
