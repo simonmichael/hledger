@@ -23,7 +23,7 @@ where
 
 import Data.List (nub, sortOn)
 import Data.List.Extra (nubSort)
-import Data.Maybe (fromMaybe, isJust, isNothing)
+import Data.Maybe (isJust, isNothing)
 import Data.Text (Text)
 import Data.Time.Calendar (Day)
 import Safe (headMay)
@@ -115,7 +115,7 @@ matchedPostingsBeforeAndDuring :: ReportSpec -> Journal -> DateSpan -> ([Posting
 matchedPostingsBeforeAndDuring rspec@ReportSpec{_rsReportOpts=ropts,_rsQuery=q} j reportspan =
     dbg5 "beforeps, duringps" $ span (beforestartq `matchesPosting`) beforeandduringps
   where
-    beforestartq = dbg3 "beforestartq" $ dateqtype $ DateSpan Nothing $ spanStart reportspan
+    beforestartq = dbg3 "beforestartq" $ dateqtype $ DateSpan Nothing (Exact <$> spanStart reportspan)
     beforeandduringps = 
         sortOn (postingDateOrDate2 (whichDate ropts))            -- sort postings by date or date2
       . (if invert_ ropts then map negatePostingAmount else id)  -- with --invert, invert amounts
@@ -132,7 +132,7 @@ matchedPostingsBeforeAndDuring rspec@ReportSpec{_rsReportOpts=ropts,_rsQuery=q} 
       where
         depthless  = filterQuery (not . queryIsDepth)
         dateless   = filterQuery (not . queryIsDateOrDate2)
-        beforeendq = dateqtype $ DateSpan Nothing $ spanEnd reportspan
+        beforeendq = dateqtype $ DateSpan Nothing (Exact <$> spanEnd reportspan)
 
     dateqtype = if queryIsDate2 dateq || (queryIsDate dateq && date2_ ropts) then Date2 else Date
       where
@@ -195,7 +195,7 @@ summarisePostingsInDateSpan spn@(DateSpan b e) wd mdepth showempty ps
   | otherwise = summarypes
   where
     postingdate = if wd == PrimaryDate then postingDate else postingDate2
-    b' = fromMaybe (maybe nulldate postingdate $ headMay ps) b
+    b' = maybe (maybe nulldate postingdate $ headMay ps) fromEFDay b
     summaryp = nullposting{pdate=Just b'}
     clippedanames = nub $ map (clipAccountName mdepth) anames
     summaryps | mdepth == Just 0 = [summaryp{paccount="...",pamount=sumPostings ps}]

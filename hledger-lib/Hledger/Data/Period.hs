@@ -44,38 +44,38 @@ import Text.Printf
 
 import Hledger.Data.Types
 
--- | Convert Periods to DateSpans.
+-- | Convert Periods to exact DateSpans.
 --
--- >>> periodAsDateSpan (MonthPeriod 2000 1) == DateSpan (Just $ fromGregorian 2000 1 1) (Just $ fromGregorian 2000 2 1)
+-- >>> periodAsDateSpan (MonthPeriod 2000 1) == DateSpan (Just $ Flex $ fromGregorian 2000 1 1) (Just $ Flex $ fromGregorian 2000 2 1)
 -- True
 periodAsDateSpan :: Period -> DateSpan
-periodAsDateSpan (DayPeriod d) = DateSpan (Just d) (Just $ addDays 1 d)
-periodAsDateSpan (WeekPeriod b) = DateSpan (Just b) (Just $ addDays 7 b)
-periodAsDateSpan (MonthPeriod y m) = DateSpan (Just $ fromGregorian y m 1) (Just $ fromGregorian y' m' 1)
+periodAsDateSpan (DayPeriod d) = DateSpan (Just $ Exact d) (Just $ Exact $ addDays 1 d)
+periodAsDateSpan (WeekPeriod b) = DateSpan (Just $ Flex b) (Just $ Flex $ addDays 7 b)
+periodAsDateSpan (MonthPeriod y m) = DateSpan (Just $ Flex $ fromGregorian y m 1) (Just $ Flex $ fromGregorian y' m' 1)
   where
     (y',m') | m==12     = (y+1,1)
             | otherwise = (y,m+1)
-periodAsDateSpan (QuarterPeriod y q) = DateSpan (Just $ fromGregorian y m 1) (Just $ fromGregorian y' m' 1)
+periodAsDateSpan (QuarterPeriod y q) = DateSpan (Just $ Flex $ fromGregorian y m 1) (Just $ Flex $ fromGregorian y' m' 1)
   where
     (y', q') | q==4      = (y+1,1)
              | otherwise = (y,q+1)
     quarterAsMonth q2 = (q2-1) * 3 + 1
     m  = quarterAsMonth q
     m' = quarterAsMonth q'
-periodAsDateSpan (YearPeriod y) = DateSpan (Just $ fromGregorian y 1 1) (Just $ fromGregorian (y+1) 1 1)
-periodAsDateSpan (PeriodBetween b e) = DateSpan (Just b) (Just e)
-periodAsDateSpan (PeriodFrom b) = DateSpan (Just b) Nothing
-periodAsDateSpan (PeriodTo e) = DateSpan Nothing (Just e)
+periodAsDateSpan (YearPeriod y) = DateSpan (Just $ Flex $ fromGregorian y 1 1) (Just $ Flex $ fromGregorian (y+1) 1 1)
+periodAsDateSpan (PeriodBetween b e) = DateSpan (Just $ Exact b) (Just $ Exact e)
+periodAsDateSpan (PeriodFrom b) = DateSpan (Just $ Exact b) Nothing
+periodAsDateSpan (PeriodTo e) = DateSpan Nothing (Just $ Exact e)
 periodAsDateSpan (PeriodAll) = DateSpan Nothing Nothing
 
 -- | Convert DateSpans to Periods.
 --
--- >>> dateSpanAsPeriod $ DateSpan (Just $ fromGregorian 2000 1 1) (Just $ fromGregorian 2000 2 1)
+-- >>> dateSpanAsPeriod $ DateSpan (Just $ Exact $ fromGregorian 2000 1 1) (Just $ Exact $ fromGregorian 2000 2 1)
 -- MonthPeriod 2000 1
 dateSpanAsPeriod :: DateSpan -> Period
-dateSpanAsPeriod (DateSpan (Just b) (Just e)) = simplifyPeriod $ PeriodBetween b e
-dateSpanAsPeriod (DateSpan (Just b) Nothing) = PeriodFrom b
-dateSpanAsPeriod (DateSpan Nothing (Just e)) = PeriodTo e
+dateSpanAsPeriod (DateSpan (Just b) (Just e)) = simplifyPeriod $ PeriodBetween (fromEFDay b) (fromEFDay e)
+dateSpanAsPeriod (DateSpan (Just b) Nothing) = PeriodFrom (fromEFDay b)
+dateSpanAsPeriod (DateSpan Nothing (Just e)) = PeriodTo (fromEFDay e)
 dateSpanAsPeriod (DateSpan Nothing Nothing) = PeriodAll
 
 -- | Convert PeriodBetweens to a more abstract period where possible.
@@ -195,12 +195,12 @@ showPeriodMonthAbbrev (MonthPeriod _ m)                           -- Jan
 showPeriodMonthAbbrev p = showPeriod p
 
 periodStart :: Period -> Maybe Day
-periodStart p = mb
+periodStart p = fromEFDay <$> mb
   where
     DateSpan mb _ = periodAsDateSpan p
 
 periodEnd :: Period -> Maybe Day
-periodEnd p = me
+periodEnd p = fromEFDay <$> me
   where
     DateSpan _ me = periodAsDateSpan p
 
@@ -231,11 +231,12 @@ periodPrevious p = p
 -- | Move a standard period to the following period of same duration, staying within enclosing dates.
 -- Non-standard periods are unaffected.
 periodNextIn :: DateSpan -> Period -> Period
-periodNextIn (DateSpan _ (Just e)) p =
+periodNextIn (DateSpan _ (Just e0)) p =
   case mb of
     Just b -> if b < e then p' else p
     _      -> p
   where
+    e = fromEFDay e0
     p' = periodNext p
     mb = periodStart p'
 periodNextIn _ p = periodNext p
@@ -243,11 +244,12 @@ periodNextIn _ p = periodNext p
 -- | Move a standard period to the preceding period of same duration, staying within enclosing dates.
 -- Non-standard periods are unaffected.
 periodPreviousIn :: DateSpan -> Period -> Period
-periodPreviousIn (DateSpan (Just b) _) p =
+periodPreviousIn (DateSpan (Just b0) _) p =
   case me of
     Just e -> if e > b then p' else p
     _      -> p
   where
+    b = fromEFDay b0
     p' = periodPrevious p
     me = periodEnd p'
 periodPreviousIn _ p = periodPrevious p

@@ -120,7 +120,7 @@ zipWithPadded _ []     bs     = bs
 -- | Figure out the overall date span of a PeriodicReport
 periodicReportSpan :: PeriodicReport a b -> DateSpan
 periodicReportSpan (PeriodicReport [] _ _)       = DateSpan Nothing Nothing
-periodicReportSpan (PeriodicReport colspans _ _) = DateSpan (spanStart $ head colspans) (spanEnd $ last colspans)
+periodicReportSpan (PeriodicReport colspans _ _) = DateSpan (fmap Exact . spanStart $ head colspans) (fmap Exact . spanEnd $ last colspans)
 
 -- | Map a function over the row names.
 prMapName :: (a -> b) -> PeriodicReport a c -> PeriodicReport b c

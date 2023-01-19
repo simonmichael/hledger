@@ -42,7 +42,7 @@ entriesReport rspec@ReportSpec{_rsReportOpts=ropts} =
 tests_EntriesReport = testGroup "EntriesReport" [
   testGroup "entriesReport" [
      testCase "not acct" $ (length $ entriesReport defreportspec{_rsQuery=Not . Acct $ toRegex' "bank"} samplejournal) @?= 1
-    ,testCase "date" $ (length $ entriesReport defreportspec{_rsQuery=Date $ DateSpan (Just $ fromGregorian 2008 06 01) (Just $ fromGregorian 2008 07 01)} samplejournal) @?= 3
+    ,testCase "date" $ (length $ entriesReport defreportspec{_rsQuery=Date $ DateSpan (Just $ Exact $ fromGregorian 2008 06 01) (Just $ Exact $ fromGregorian 2008 07 01)} samplejournal) @?= 3
   ]
  ]
 

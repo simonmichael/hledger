@@ -160,14 +160,15 @@ confirmedTransactionWizard :: PrevInput -> EntryState -> [AddingStage] -> Wizard
 confirmedTransactionWizard prevInput es [] = confirmedTransactionWizard prevInput es [EnterDateAndCode]
 confirmedTransactionWizard prevInput es@EntryState{..} stack@(currentStage : _) = case currentStage of
   EnterDateAndCode -> dateAndCodeWizard prevInput es >>= \case
-    Just (date, code) -> do
-      let es' = es
-            { esArgs = drop 1 esArgs
-            , esDefDate = date
-            }
-          dateAndCodeString = formatTime defaultTimeLocale yyyymmddFormat date
+    Just (efd, code) -> do
+      let 
+        date = fromEFDay efd
+        es' = es{ esArgs = drop 1 esArgs
+                , esDefDate = date
+                }
+        dateAndCodeString = formatTime defaultTimeLocale yyyymmddFormat date
                             ++ T.unpack (if T.null code then "" else " (" <> code <> ")")
-          yyyymmddFormat = "%Y-%m-%d"
+        yyyymmddFormat = "%Y-%m-%d"
       confirmedTransactionWizard prevInput{prevDateAndCode=Just dateAndCodeString} es' (EnterDescAndComment (date, code) : stack)
     Nothing ->
       confirmedTransactionWizard prevInput es stack

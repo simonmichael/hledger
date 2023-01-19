@@ -382,14 +382,14 @@ periodFromRawOpts d rawopts =
   where
     mlastb = case beginDatesFromRawOpts d rawopts of
                    [] -> Nothing
-                   bs -> Just $ last bs
+                   bs -> Just $ fromEFDay $ last bs
     mlaste = case endDatesFromRawOpts d rawopts of
                    [] -> Nothing
-                   es -> Just $ last es
+                   es -> Just $ fromEFDay $ last es
 
 -- Get all begin dates specified by -b/--begin or -p/--period options, in order,
 -- using the given date to interpret relative date expressions.
-beginDatesFromRawOpts :: Day -> RawOpts -> [Day]
+beginDatesFromRawOpts :: Day -> RawOpts -> [EFDay]
 beginDatesFromRawOpts d = collectopts (begindatefromrawopt d)
   where
     begindatefromrawopt d' (n,v)
@@ -407,7 +407,7 @@ beginDatesFromRawOpts d = collectopts (begindatefromrawopt d)
 
 -- Get all end dates specified by -e/--end or -p/--period options, in order,
 -- using the given date to interpret relative date expressions.
-endDatesFromRawOpts :: Day -> RawOpts -> [Day]
+endDatesFromRawOpts :: Day -> RawOpts -> [EFDay]
 endDatesFromRawOpts d = collectopts (enddatefromrawopt d)
   where
     enddatefromrawopt d' (n,v)
@@ -600,7 +600,7 @@ journalApplyValuationFromOptsWith rspec@ReportSpec{_rsReportOpts=ropts} j priceo
     mPeriodEnd = case interval_ ropts of
         NoInterval -> const . spanEnd . fst $ reportSpan j rspec
         _          -> spanEnd <=< latestSpanContaining (historical : spans)
-    historical = DateSpan Nothing $ spanStart =<< headMay spans
+    historical = DateSpan Nothing $ (fmap Exact . spanStart) =<< headMay spans
     spans = snd $ reportSpanBothDates j rspec
     styles = journalCommodityStyles j
     err = error "journalApplyValuationFromOpts: expected all spans to have an end date"
@@ -676,7 +676,7 @@ reportSpanHelper bothdates j ReportSpec{_rsQuery=query, _rsReportOpts=ropts} =
     -- include price directives after the last transaction
     journalspan = dbg3 "journalspan" $ if bothdates then journalDateSpanBothDates j else journalDateSpan (date2_ ropts) j
     pricespan = dbg3 "pricespan" . DateSpan Nothing $ case value_ ropts of
-        Just (AtEnd _) -> fmap (addDays 1) . maximumMay . map pddate $ jpricedirectives j
+        Just (AtEnd _) -> fmap (Exact . addDays 1) . maximumMay . map pddate $ jpricedirectives j
         _              -> Nothing
     -- If the requested span is open-ended, close it using the journal's start and end dates.
     -- This can still be the null (open) span if the journal is empty.
@@ -692,8 +692,8 @@ reportSpanHelper bothdates j ReportSpec{_rsQuery=query, _rsReportOpts=ropts} =
         adjust = isNothing $ spanStart requestedspan
     -- The requested span enlarged to enclose a whole number of intervals.
     -- This can be the null span if there were no intervals.
-    reportspan = dbg3 "reportspan" $ DateSpan (spanStart =<< headMay intervalspans)
-                                              (spanEnd =<< lastMay intervalspans)
+    reportspan = dbg3 "reportspan" $ DateSpan (fmap Exact . spanStart =<< headMay intervalspans)
+                                              (fmap Exact . spanEnd =<< lastMay intervalspans)
 
 reportStartDate :: Journal -> ReportSpec -> Maybe Day
 reportStartDate j = spanStart . fst . reportSpan j

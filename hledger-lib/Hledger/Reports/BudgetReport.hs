@@ -112,7 +112,7 @@ journalAddBudgetGoalTransactions bopts ropts reportspan j =
   either error' id $  -- PARTIAL:
     (journalApplyCommodityStyles >=> journalBalanceTransactions bopts) j{ jtxns = budgetts }
   where
-    budgetspan = dbg3 "budget span" $ DateSpan mbudgetgoalsstartdate (spanEnd reportspan)
+    budgetspan = dbg3 "budget span" $ DateSpan (Exact <$> mbudgetgoalsstartdate) (Exact <$> spanEnd reportspan)
       where
         mbudgetgoalsstartdate =
           -- We want to also generate budget goal txns before the report start date, in case -H is used.

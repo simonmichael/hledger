@@ -1002,7 +1002,7 @@ journalStyleInfluencingAmounts j =
 --     pamt  g p          = (\amt -> p {pamount  =amt}) <$> g (pamount p)
 --     amts  g (Mixed as) = Mixed <$> g as
 
--- | The fully specified date span enclosing the dates (primary or secondary)
+-- | The fully specified exact date span enclosing the dates (primary or secondary)
 -- of all this journal's transactions and postings, or DateSpan Nothing Nothing
 -- if there are none.
 journalDateSpan :: Bool -> Journal -> DateSpan
@@ -1019,7 +1019,7 @@ journalDateSpanBothDates = journalDateSpanHelper Nothing
 -- uses both primary and secondary dates.
 journalDateSpanHelper :: Maybe WhichDate -> Journal -> DateSpan
 journalDateSpanHelper whichdate j =
-    DateSpan (minimumMay dates) (addDays 1 <$> maximumMay dates)
+    DateSpan (Exact <$> minimumMay dates) (Exact . addDays 1 <$> maximumMay dates)
   where
     dates    = pdates ++ tdates
     tdates   = concatMap gettdate ts
@@ -1037,12 +1037,12 @@ journalDateSpanHelper whichdate j =
 -- | The earliest of this journal's transaction and posting dates, or
 -- Nothing if there are none.
 journalStartDate :: Bool -> Journal -> Maybe Day
-journalStartDate secondary j = b where DateSpan b _ = journalDateSpan secondary j
+journalStartDate secondary j = fromEFDay <$> b where DateSpan b _ = journalDateSpan secondary j
 
 -- | The "exclusive end date" of this journal: the day following its latest transaction 
 -- or posting date, or Nothing if there are none.
 journalEndDate :: Bool -> Journal -> Maybe Day
-journalEndDate secondary j = e where DateSpan _ e = journalDateSpan secondary j
+journalEndDate secondary j = fromEFDay <$> e where DateSpan _ e = journalDateSpan secondary j
 
 -- | The latest of this journal's transaction and posting dates, or
 -- Nothing if there are none.
@@ -1254,5 +1254,5 @@ tests_Journal = testGroup "Journal" [
                               }
               ]
       }
-    @?= (DateSpan (Just $ fromGregorian 2014 1 10) (Just $ fromGregorian 2014 10 11))
+    @?= (DateSpan (Just $ Exact $ fromGregorian 2014 1 10) (Just $ Exact $ fromGregorian 2014 10 11))
   ]

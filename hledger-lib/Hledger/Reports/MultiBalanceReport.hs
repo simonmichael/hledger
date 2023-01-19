@@ -222,7 +222,7 @@ startingPostings rspec@ReportSpec{_rsQuery=query,_rsReportOpts=ropts} j priceora
 
     precedingperiod = dateSpanAsPeriod . spanIntersect precedingspan .
                          periodAsDateSpan $ period_ ropts
-    precedingspan = DateSpan Nothing $ spanStart reportspan
+    precedingspan = DateSpan Nothing (Exact <$> spanStart reportspan)
     precedingspanq = (if date2_ ropts then Date2 else Date) $ case precedingspan of
         DateSpan Nothing Nothing -> emptydatespan
         a -> a
@@ -331,7 +331,7 @@ calculateReportMatrix rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle startb
         -- since this is a cumulative sum of valued amounts, it should not be valued again
         cumulative = cumulativeSum nullacct changes
         startingBalance = HM.lookupDefault nullacct name startbals
-        valuedStart = avalue (DateSpan Nothing historicalDate) startingBalance
+        valuedStart = avalue (DateSpan Nothing (Exact <$> historicalDate)) startingBalance
 
     -- In each column, get each account's balance changes
     colacctchanges = dbg5 "colacctchanges" $ map (second $ acctChanges rspec j) colps :: [(DateSpan, HashMap ClippedAccountName Account)]

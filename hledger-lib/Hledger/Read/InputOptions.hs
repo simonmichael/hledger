@@ -76,11 +76,11 @@ definputopts = InputOpts
 forecastPeriod :: InputOpts -> Journal -> Maybe DateSpan
 forecastPeriod iopts j = do
     DateSpan requestedStart requestedEnd <- forecast_ iopts
-    let forecastStart = requestedStart <|> max mjournalend reportStart <|> Just (_ioDay iopts)
-        forecastEnd   = requestedEnd <|> reportEnd <|> Just (addDays 180 $ _ioDay iopts)
+    let forecastStart = fromEFDay <$> requestedStart <|> max mjournalend (fromEFDay <$> reportStart) <|> Just (_ioDay iopts)
+        forecastEnd   = fromEFDay <$> requestedEnd <|> fromEFDay <$> reportEnd <|> (Just $ addDays 180 $ _ioDay iopts)
         mjournalend   = dbg2 "journalEndDate" $ journalEndDate False j  -- ignore secondary dates
         DateSpan reportStart reportEnd = reportspan_ iopts
-    return . dbg2 "forecastspan" $ DateSpan forecastStart forecastEnd
+    return . dbg2 "forecastspan" $ DateSpan (Exact <$> forecastStart) (Exact <$> forecastEnd)
 
 -- ** Lenses
 

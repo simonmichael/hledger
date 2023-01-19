@@ -211,7 +211,7 @@ rawOptsToInputOpts day rawopts =
       ,new_save_          = True
       ,pivot_             = stringopt "pivot" rawopts
       ,forecast_          = forecastPeriodFromRawOpts day rawopts
-      ,reportspan_        = DateSpan (queryStartDate False datequery) (queryEndDate False datequery)
+      ,reportspan_        = DateSpan (Exact <$> queryStartDate False datequery) (Exact <$> queryEndDate False datequery)
       ,auto_              = boolopt "auto" rawopts
       ,infer_equity_      = boolopt "infer-equity" rawopts && conversionop_ ropts /= Just ToCost
       ,infer_costs_       = boolopt "infer-costs" rawopts

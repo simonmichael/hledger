@@ -509,8 +509,8 @@ rawOptsToCliOpts rawopts = do
   currentDay <- getCurrentDay
   let day = case maybestringopt "today" rawopts of
               Nothing -> currentDay
-              Just d  -> fromRight (error' $ "Unable to parse date \"" ++ d ++ "\"") -- PARTIAL:
-                         $ fixSmartDateStrEither' currentDay (T.pack d)
+              Just d  -> fromRight (error' $ "Unable to parse date \"" ++ d ++ "\"") $ -- PARTIAL:
+                         fromEFDay <$> fixSmartDateStrEither' currentDay (T.pack d)
   let iopts = rawOptsToInputOpts day rawopts
   rspec <- either error' pure $ rawOptsToReportSpec day rawopts  -- PARTIAL:
   mcolumns <- readMay <$> getEnvSafe "COLUMNS"

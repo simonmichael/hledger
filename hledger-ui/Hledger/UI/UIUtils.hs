@@ -422,7 +422,7 @@ reportSpecSetFutureAndForecast fcast rspec =
     excludeforecastq (Just _) = Any
     excludeforecastq Nothing  =  -- not:date:tomorrow- not:tag:generated-transaction
       And [
-         Not (Date $ DateSpan (Just $ addDays 1 $ _rsDay rspec) Nothing)
+         Not (Date $ DateSpan (Just $ Exact $ addDays 1 $ _rsDay rspec) Nothing)
         ,Not generatedTransactionTag
       ]
 

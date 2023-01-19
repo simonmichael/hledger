@@ -834,16 +834,7 @@ P 2022-01-01 AAAA $1.40
     expenses:tax:us:2021      $500  ; plus  means added to this account (debit)
                                     ; revenue/expense categories are also "accounts"
 
-2022-01-01 Whole Foods | payee name and description can be separated by a pipe char  ; tag1:
-    ; Transaction or posting comments can contain searchable tags,
-    ; written NAME: or NAME:VALUE (value ends at comma or end of line).
-    ; There's tag1 above with an empty value, and here's tag2:with a five word value
-    expenses:food              $50
-    assets:checking           $-50
-     ; A few tags have special meaning.
-     ; A "date" tag on a posting adjusts its date. (Doesn't affect the transaction date).
-     ; date:2022-01-03, the checking posting cleared two days later.
-
+Kv
 2022-01-01                          ; The description is optional.
     ; Any currency/commodity symbols are allowed, on either side.
     assets:cash:wallet     GBP -10
@@ -4360,7 +4351,7 @@ file.
 
 ## Report start & end date
 
-By default, most hledger reports will show the full span of time represented by the journal data.
+By default, most hledger reports will show the full span of time represented by the journal.
 The report start date will be the earliest transaction or posting date,
 and the report end date will be the latest transaction, posting, or market price date.
 
@@ -4401,11 +4392,12 @@ Examples:
 
 ## Smart dates
 
-hledger's user interfaces accept a flexible "smart date" syntax.
-Smart dates allow some english words, can be relative to today's date,
-and can have less-significant date parts omitted (defaulting to 1).
-
-Examples:
+hledger's user interfaces accept a "smart date" syntax for added convenience.
+Smart dates optionally can
+be relative to today's date,
+be written with english words,
+and have less-significant parts omitted (missing parts are inferred as 1).
+Some examples:
 
 |                                              |                                                                                       |
 |----------------------------------------------|---------------------------------------------------------------------------------------|
@@ -4423,7 +4415,7 @@ Examples:
 | `20181201`                                   | 8 digit YYYYMMDD with valid year month and day                                        |
 | `201812`                                     | 6 digit YYYYMM with valid year and month                                              |
 
-Counterexamples - malformed digit sequences might give surprising results:
+Some counterexamples - malformed digit sequences might give surprising results:
 
 |             |                                                                   |
 |-------------|-------------------------------------------------------------------|
@@ -4432,16 +4424,17 @@ Counterexamples - malformed digit sequences might give surprising results:
 | `20181232`  | 8 digits with an invalid day gives an error                       |
 | `201801012` | 9+ digits beginning with a valid YYYYMMDD gives an error          |
 
-Note "today's date" can be overridden with the `--today` option, in case it's
-needed for testing or for recreating old reports. (Except for periodic
-transaction rules; those are not affected by `--today`.)
+"Today's date" can be overridden with the `--today` option, in case
+it's needed for testing or for recreating old reports. (Except for
+periodic transaction rules, which are not affected by `--today`.)
 
 ## Report intervals
 
-A report interval can be specified so that commands like
-[register](#register), [balance](#balance) and [activity](#activity)
+A report interval can be specified so that reports like
+[register](#register), [balance](#balance) or [activity](#activity)
 become multi-period, showing each subperiod as a separate row or column.
-These "standard" report intervals can be enabled by using the corresponding flag:
+
+The following standard intervals can be enabled with command-line flags:
 
 - `-D/--daily`
 - `-W/--weekly`
@@ -4449,42 +4442,49 @@ These "standard" report intervals can be enabled by using the corresponding flag
 - `-Q/--quarterly`
 - `-Y/--yearly`
 
-More complex intervals can be specified using `-p/--period` (see below).
+More complex intervals can be specified using `-p/--period`, described below.
 
-Specifying a report interval other than daily can cause a report's
-start date and end date to be adjusted in some cases:
+## Date adjustment
 
-- If the report start date is specified explicitly, periods will start exactly on that date.
-  Eg with `-M -b 2023/1/15',
-  periods will begin on the 15th day of each month, starting from 2023-01-15.
-  (Since hledger 1.29).
+With a report interval (other than daily), report start / end dates which
+have not been specified explicitly and in full (eg not `-b 2023-01-01`, 
+but `-b 2023-01` or `-b 2023` or unspecified) are considered flexible:
 
-- If the report start date is inferred, eg from the journal,
-  it will be adjusted earlier if necessary to start on a natural interval boundary.
-  Eg with `-M` by itself, and if the journal's earliest transaction is on 2023-02-04,
-  periods will begin on the 1st of each month, starting from 2023-02-01.
+- A flexible start date will be automatically adjusted earlier if needed to
+  fall on a natural interval boundary.
+- Similarly, a flexible end date will be adjusted later if needed
+  to make the last period a whole interval (the same length as the others).
 
-- The report end date will be adjusted later if necessary
-  so that the last period is a whole interval, the same length as the others.
-  Eg in the example above if the journal's latest transaction is on 2023-03-15,
-  the report end date will be adjusted to 2023-04-01.
+This is convenient for producing clean periodic reports (this is traditional hledger behaviour).
+By contrast, fully-specified exact dates will not be adjusted (this is new in hledger 1.29).
+
+An example: with a journal whose first date is 2023-01-10 and last date is 2023-03-20:
+
+- `hledger bal -M -b 2023/1/15 -e 2023/3/10`\
+  The report periods will begin on the 15th day of each month, starting from 2023-01-15,
+  and the last period's last day will be 2023-03-09.
+  (Exact start and end dates, neither is adjusted.)
+
+- `hledger bal -M -b 2023-01 -e 2023-04` or  `hledger bal -M`\
+  The report periods will begin on the 1st of each month, starting from 2023-01-01,
+  and the last period's last day will be 2023-03-31.
+  (Flexible start and end dates, both are adjusted.)
 
 ## Period expressions
 
-The `-p/--period` option accepts period expressions, a shorthand way
-of expressing a start date, end date, and/or report interval all at
-once.
+The `-p/--period` option specifies a period expression, which is a compact way
+of expressing a start date, end date, and/or report interval.
 
-Here's a basic period expression specifying the first quarter of 2009. Note,
-hledger always treats start dates as inclusive and end dates as exclusive:
+Here's a period expression with a start and end date (specifying the first quarter of 2009):
 
 |                                  |
 |----------------------------------|
 | `-p "from 2009/1/1 to 2009/4/1"` |
 
-Keywords like "from" and "to" are optional, and so are the spaces, as long
-as you don't run two dates together. "to" can also be written as ".." or "-".
-These are equivalent to the above:
+Several keywords like "from" and "to" are supported for readability; these are optional.
+"to" can also be written as ".." or "-".
+The spaces are also optional, as long as you don't run two dates together.
+So the following are equivalent to the above:
 
 |                           |
 |---------------------------|
@@ -4492,17 +4492,17 @@ These are equivalent to the above:
 | `-p2009/1/1to2009/4/1`    |
 | `-p2009/1/1..2009/4/1`    |
 
-Dates are [smart dates](#smart-dates), so if the current year is 2009, the
-above can also be written as:
+Dates are [smart dates](#smart-dates), so if the current year is 2009,
+these are also equivalent to the above:
 
 |                         |
 |-------------------------|
 | `-p "1/1 4/1"`          |
-| `-p "january-apr"`      |
+| `-p "jan-apr"`          |
 | `-p "this year to 4/1"` |
 
 If you specify only one date, the missing start or end date will be the
-earliest or latest transaction in your journal:
+earliest or latest transaction date in the journal:
 
 |                      |                                   |
 |----------------------|-----------------------------------|
@@ -4511,16 +4511,15 @@ earliest or latest transaction in your journal:
 | `-p "from 2009"`     | the same                          |
 | `-p "to 2009"`       | everything before january 1, 2009 |
 
-A single date with no "from" or "to" defines both the start and end date
-like so:
+You can also specify a period by writing a single partial or full date:
 
-|                 |                                                             |
-|-----------------|-------------------------------------------------------------|
-| `-p "2009"`     | the year 2009; equivalent to “2009/1/1 to 2010/1/1”         |
-| `-p "2009/1"`   | the month of jan; equivalent to “2009/1/1 to 2009/2/1”      |
-| `-p "2009/1/1"` | just that day; equivalent to “2009/1/1 to 2009/1/2”         |
+|                 |                                                                 |
+|-----------------|-----------------------------------------------------------------|
+| `-p "2009"`     | the year 2009; equivalent to “2009/1/1 to 2010/1/1”             |
+| `-p "2009/1"`   | the month of january 2009; equivalent to “2009/1/1 to 2009/2/1” |
+| `-p "2009/1/1"` | the first day of 2009; equivalent to “2009/1/1 to 2009/1/2”     |
 
-Or you can specify a single quarter like so:
+or by using the "Q" quarter-year syntax (case insensitive):
 
 |                 |                                                             |
 |-----------------|-------------------------------------------------------------|
@@ -4529,10 +4528,8 @@ Or you can specify a single quarter like so:
 
 ### Period expressions with a report interval
 
-`-p/--period`'s argument can also begin with, or entirely consist of, 
-a [report interval](#report-intervals). 
-This should be separated from the start/end dates (if any) by a space, or the word `in`.
-Some examples:
+A period expression can also begin with a [report interval](#report-intervals),
+separated from the start/end dates (if any) by a space or the word `in`:
 
 |                                         |
 |-----------------------------------------|
@@ -4540,38 +4537,27 @@ Some examples:
 | `-p "monthly in 2008"`                  |
 | `-p "quarterly"`                        |
 
-Note a report interval can cause the report start/end dates to be adjusted in some cases,
-as described above in [Report intervals](#report-intervals).
-
 ### More complex report intervals
 
-Period expressions allow some more complex kinds of interval to be specified, including:
+Some more complex intervals can be specified within period expressions, such as:
 
-- `biweekly`
+- `biweekly` (every two weeks)
 - `fortnightly`
-- `bimonthly`
+- `bimonthly` (every two months)
 - `every day|week|month|quarter|year`
 - `every N days|weeks|months|quarters|years`
 
-Examples:
-
-|                                    |
-|------------------------------------|
-| `-p "bimonthly from 2008"`         |
-| `-p "every 2 weeks"`               |
-| `-p "every 5 months from 2009/03"` |
-
-Weekly on custom day:
+Weekly on a custom day:
 
 - `every Nth day of week` (`th`, `nd`, `rd`, or `st` are all accepted after the number)
 - `every WEEKDAYNAME` (full or three-letter english weekday name, case insensitive)
 
-Monthly on custom day:
+Monthly on a custom day:
 
 - `every Nth day [of month]`
 - `every Nth WEEKDAYNAME [of month]`
 
-Yearly on custom day:
+Yearly on a custom day:
 
 - `every MM/DD [of year]` (month number and day of month number)
 - `every MONTHNAME DDth [of year]` (full or three-letter english month name, case insensitive, and day of month number)
@@ -4579,15 +4565,18 @@ Yearly on custom day:
 
 Examples:
 
-|                              |                                                          |
-|------------------------------|----------------------------------------------------------|
-| `-p "every 2nd day of week"` | periods will go from Tue to Tue                          |
-| `-p "every Tue"`             | same                                                     |
-| `-p "every 15th day"`        | period boundaries will be on 15th of each month          |
-| `-p "every 2nd Monday"`      | period boundaries will be on second Monday of each month |
-| `-p "every 11/05"`           | yearly periods with boundaries on 5th of November        |
-| `-p "every 5th November"`    | same                                                     |
-| `-p "every Nov 5th"`         | same                                                     |
+|                                    |                                                          |
+|------------------------------------|----------------------------------------------------------|
+| `-p "bimonthly from 2008"`         |                                                          |
+| `-p "every 2 weeks"`               |                                                          |
+| `-p "every 5 months from 2009/03"` |                                                          |
+| `-p "every 2nd day of week"`       | periods will go from Tue to Tue                          |
+| `-p "every Tue"`                   | same                                                     |
+| `-p "every 15th day"`              | period boundaries will be on 15th of each month          |
+| `-p "every 2nd Monday"`            | period boundaries will be on second Monday of each month |
+| `-p "every 11/05"`                 | yearly periods with boundaries on 5th of November        |
+| `-p "every 5th November"`          | same                                                     |
+| `-p "every Nov 5th"`               | same                                                     |
 
 Show historical balances at end of the 15th day of each month (N is an end date, exclusive as always):
 
