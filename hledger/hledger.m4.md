@@ -3071,23 +3071,26 @@ Note the two kinds of field names mentioned here, and used only in hledger CSV r
 1. **CSV field names** (`CSVFIELD` in these docs):
    you can optionally name the CSV columns for easy reference
    (since hledger doesn't yet automatically recognise column headings in a CSV file),
-   by writing arbitrary names in a `fields` list:
+   by writing arbitrary names in a `fields` list, eg:
    ```csv
-   fields Transaction_Date, Transaction_Id, Net_Amount, Total_Amount, Other_Field
+   fields When, What, Some_Id, Net_Amount, Total_Amount, Foo, Bar
    ```
 
 2. Special **hledger field names** (`HLEDGERFIELD` in these docs):
    you must set at least some of these to generate the hledger transaction from a CSV record,
-   by writing them as the left hand side of a [field assignment](#field-assignment):
+   by writing them as the left hand side of a [field assignment](#field-assignment), eg:
    ```csv
-   date     %Transaction_Date
-   code     %Transaction_Id
-   amount1  $ %Total_Amount
+   date        %When
+   code        %Some_Id
+   description %What
+   comment     %Foo %Bar
+   amount1     $ %Total_Amount
    ```
    or directly in a [`fields` list](#fields-list):
    ```csv
-   fields date, code, , amount, 
+   fields date, description, code, , amount, Foo, Bar
    currency $
+   comment  %Foo %Bar
    ```
    
 Here are all the special hledger field names available, and what happens when you assign values to them:
