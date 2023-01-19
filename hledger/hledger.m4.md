@@ -3066,22 +3066,18 @@ becomes `1` when interpolated)
 
 ## Field names
 
-Note the two kinds of "field names" used in hledger CSV rules:
+Note the two kinds of field names mentioned here, and used only in hledger CSV rules files:
 
-1. **CSV field names** (`CSVFIELD` in examples):\
-   These are arbitrary names you have given to columns in the CSV data, by writing them in a `fields` list.
-   This does not affect hledger's output (at least not directly); it only gives that CSV field a custom name,
-   so that elsewhere, in a field assignment rule, you can interpolate it by name (`%SomeField`) rather than column number (`%13`).
+1. **CSV field names** (`CSVFIELD` in these docs):
+   you can optionally name the CSV columns for easy reference,
+   by writing arbitrary names in a `fields` list
+   (since hledger doesn't yet automatically recognise column headings in a CSV file).
 
-2. **hledger field names** (`HLEDGERFIELD` in examples):\
-   These are special reserved names corresponding (directly or indirectly) to parts of a hledger transaction.
-   If you use one of these names in a [`fields` list](#fields-list), or in a [field assignment](#field-assignment) rule,
-   it sets the value of some part of the hledger transaction corresponding to the current CSV record, influencing the generated journal entry and hledger's output.
+2. Special **hledger field names** (`HLEDGERFIELD` in these docs):
+   you must set at least some of these to generate the hledger transaction from a CSV record,
+   by writing them in a [`fields` list](#fields-list) or as the left hand side of a [field assignment](#field-assignment).
 
-Note these field names (both kinds) are used only in CSV rules files,
-though the hledger field names correspond to the hledger transaction parts described in [hledger manual > Journal](#transactions).
-
-Here are the hledger field names available, and what happens when you assign values to them using a fields list or field assignment rule:
+Here are all the special hledger field names available, and what happens when you assign values to them:
 
 ### date field
 
