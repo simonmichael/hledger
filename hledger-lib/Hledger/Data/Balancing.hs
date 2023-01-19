@@ -156,7 +156,7 @@ balanceTransactionHelper ::
   -> Either String (Transaction, [(AccountName, MixedAmount)])
 balanceTransactionHelper bopts t = do
   (t', inferredamtsandaccts) <- transactionInferBalancingAmount (fromMaybe M.empty $ commodity_styles_ bopts) $
-    if infer_transaction_prices_ bopts then inferBalancingPrices t else t
+    if infer_transaction_prices_ bopts then transactionInferBalancingCosts t else t
   case transactionCheckBalanced bopts t' of
     []   -> Right (txnTieKnot t', inferredamtsandaccts)
     errs -> Left $ transactionBalanceError t' errs'
@@ -244,55 +244,55 @@ transactionInferBalancingAmount styles t@Transaction{tpostings=ps}
               -- (since the main amount styling pass happened before this balancing pass);
               a' = styleMixedAmount styles . mixedAmountCost $ maNegate a
 
--- | Infer prices for this transaction's posting amounts, if needed to make
+-- | Infer costs for this transaction's posting amounts, if needed to make
 -- the postings balance, and if possible. This is done once for the real
 -- postings and again (separately) for the balanced virtual postings. When
 -- it's not possible, the transaction is left unchanged.
 --
 -- The simplest example is a transaction with two postings, each in a
--- different commodity, with no prices specified. In this case we'll add a
--- price to the first posting such that it can be converted to the commodity
+-- different commodity, with no costs specified. In this case we'll add a
+-- cost to the first posting such that it can be converted to the commodity
 -- of the second posting (with -B), and such that the postings balance.
 --
--- In general, we can infer a conversion price when the sum of posting amounts
--- contains exactly two different commodities and no explicit prices.  Also
+-- In general, we can infer a cost (conversion rate) when the sum of posting amounts
+-- contains exactly two different commodities and no explicit costs.  Also
 -- all postings are expected to contain an explicit amount (no missing
--- amounts) in a single commodity. Otherwise no price inferring is attempted.
+-- amounts) in a single commodity. Otherwise no cost inferring is attempted.
 --
 -- The transaction itself could contain more than two commodities, and/or
--- prices, if they cancel out; what matters is that the sum of posting amounts
--- contains exactly two commodities and zero prices.
+-- costs, if they cancel out; what matters is that the sum of posting amounts
+-- contains exactly two commodities and zero costs.
 --
 -- There can also be more than two postings in either of the commodities.
 --
--- We want to avoid excessive display of digits when the calculated price is
+-- We want to avoid excessive display of digits when the calculated cost is
 -- an irrational number, while hopefully also ensuring the displayed numbers
 -- make sense if the user does a manual calculation. This is (mostly) achieved
 -- in two ways:
 --
--- - when there is only one posting in the "from" commodity, a total price
+-- - when there is only one posting in the "from" commodity, a total cost
 --   (@@) is used, and all available decimal digits are shown
 --
--- - otherwise, a suitable averaged unit price (@) is applied to the relevant
+-- - otherwise, a suitable averaged unit cost (@) is applied to the relevant
 --   postings, with display precision equal to the summed display precisions
 --   of the two commodities being converted between, or 2, whichever is larger.
 --
--- (We don't always calculate a good-looking display precision for unit prices
+-- (We don't always calculate a good-looking display precision for unit costs
 -- when the commodity display precisions are low, eg when a journal doesn't
--- use any decimal places. The minimum of 2 helps make the prices shown by the
+-- use any decimal places. The minimum of 2 helps make the costs shown by the
 -- print command a bit less surprising in this case. Could do better.)
 --
-inferBalancingPrices :: Transaction -> Transaction
-inferBalancingPrices t@Transaction{tpostings=ps} = t{tpostings=ps'}
+transactionInferBalancingCosts :: Transaction -> Transaction
+transactionInferBalancingCosts t@Transaction{tpostings=ps} = t{tpostings=ps'}
   where
-    ps' = map (priceInferrerFor t BalancedVirtualPosting . priceInferrerFor t RegularPosting) ps
+    ps' = map (costInferrerFor t BalancedVirtualPosting . costInferrerFor t RegularPosting) ps
 
--- | Generate a posting update function which assigns a suitable balancing
--- price to the posting, if and as appropriate for the given transaction and
--- posting type (real or balanced virtual). If we cannot or should not infer
--- prices, just act as the identity on postings.
-priceInferrerFor :: Transaction -> PostingType -> (Posting -> Posting)
-priceInferrerFor t pt = maybe id inferprice inferFromAndTo
+-- | Generate a posting update function which assigns a suitable cost to
+-- balance the posting, if and as appropriate for the given transaction and
+-- posting type (real or balanced virtual) (or if we cannot or should not infer
+-- costs, leaves the posting unchanged).
+costInferrerFor :: Transaction -> PostingType -> (Posting -> Posting)
+costInferrerFor t pt = maybe id infercost inferFromAndTo
   where
     postings     = filter ((==pt).ptype) $ tpostings t
     pcommodities = map acommodity $ concatMap (amounts . pamount) postings
@@ -314,8 +314,8 @@ priceInferrerFor t pt = maybe id inferprice inferFromAndTo
 
     -- For each posting, if the posting type matches, there is only a single amount in the posting,
     -- and the commodity of the amount matches the amount we're converting from,
-    -- then set its price based on the ratio between fromamount and toamount.
-    inferprice (fromamount, toamount) p
+    -- then set its cost based on the ratio between fromamount and toamount.
+    infercost (fromamount, toamount) p
         | [a] <- amounts (pamount p), ptype p == pt, acommodity a == acommodity fromamount
             = p{ pamount   = mixedAmount a{aprice=Just conversionprice}
                      , poriginal = Just $ originalPosting p }
