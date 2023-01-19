@@ -3777,7 +3777,7 @@ amount       %Quantity_Transacted %Asset @ %Spot_Price_at_Transaction %Spot_Pric
 ```
 ```shell
 $ hledger print -f coinbase.csv
-2021-12-29 Received 100.00 USDC from an external account
+2021-12-30 Received 100.00 USDC from an external account
     assets:coinbase:cc    100 USDC @ 0.740000 GBP
     income:unknown                 -74.000000 GBP
 ```
