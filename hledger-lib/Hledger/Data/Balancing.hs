@@ -155,7 +155,7 @@ balanceTransactionHelper ::
   -> Transaction
   -> Either String (Transaction, [(AccountName, MixedAmount)])
 balanceTransactionHelper bopts t = do
-  (t', inferredamtsandaccts) <- inferBalancingAmount (fromMaybe M.empty $ commodity_styles_ bopts) $
+  (t', inferredamtsandaccts) <- transactionInferBalancingAmount (fromMaybe M.empty $ commodity_styles_ bopts) $
     if infer_transaction_prices_ bopts then inferBalancingPrices t else t
   case transactionCheckBalanced bopts t' of
     []   -> Right (txnTieKnot t', inferredamtsandaccts)
@@ -204,11 +204,11 @@ transactionBalanceError t errs = printf "%s:\n%s\n\nThis %stransaction is unbala
 -- We can infer a missing amount when there are multiple postings and exactly
 -- one of them is amountless. If the amounts had price(s) the inferred amount
 -- have the same price(s), and will be converted to the price commodity.
-inferBalancingAmount ::
+transactionInferBalancingAmount ::
      M.Map CommoditySymbol AmountStyle -- ^ commodity display styles
   -> Transaction
   -> Either String (Transaction, [(AccountName, MixedAmount)])
-inferBalancingAmount styles t@Transaction{tpostings=ps}
+transactionInferBalancingAmount styles t@Transaction{tpostings=ps}
   | length amountlessrealps > 1
       = Left $ transactionBalanceError t
         ["There can't be more than one real posting with no amount."
@@ -679,11 +679,11 @@ tests_Balancing :: TestTree
 tests_Balancing =
   testGroup "Balancing" [
 
-      testCase "inferBalancingAmount" $ do
-         (fst <$> inferBalancingAmount M.empty nulltransaction) @?= Right nulltransaction
-         (fst <$> inferBalancingAmount M.empty nulltransaction{tpostings = ["a" `post` usd (-5), "b" `post` missingamt]}) @?=
+      testCase "transactionInferBalancingAmount" $ do
+         (fst <$> transactionInferBalancingAmount M.empty nulltransaction) @?= Right nulltransaction
+         (fst <$> transactionInferBalancingAmount M.empty nulltransaction{tpostings = ["a" `post` usd (-5), "b" `post` missingamt]}) @?=
            Right nulltransaction{tpostings = ["a" `post` usd (-5), "b" `post` usd 5]}
-         (fst <$> inferBalancingAmount M.empty nulltransaction{tpostings = ["a" `post` usd (-5), "b" `post` (eur 3 @@ usd 4), "c" `post` missingamt]}) @?=
+         (fst <$> transactionInferBalancingAmount M.empty nulltransaction{tpostings = ["a" `post` usd (-5), "b" `post` (eur 3 @@ usd 4), "c" `post` missingamt]}) @?=
            Right nulltransaction{tpostings = ["a" `post` usd (-5), "b" `post` (eur 3 @@ usd 4), "c" `post` usd 1]}
 
     , testGroup "balanceTransaction" [
