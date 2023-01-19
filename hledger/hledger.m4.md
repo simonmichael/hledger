@@ -3071,7 +3071,7 @@ Note the two kinds of "field names" used in hledger CSV rules:
 1. **CSV field names** (`CSVFIELD` in examples):\
    These are arbitrary names you have given to columns in the CSV data, by writing them in a `fields` list.
    This does not affect hledger's output (at least not directly); it only gives that CSV field a custom name,
-   so that elsewhere, in a hledger field assignment, you can interpolate it by name (`%SomeField`) rather than column number (`%13`).
+   so that elsewhere, in a field assignment rule, you can interpolate it by name (`%SomeField`) rather than column number (`%13`).
 
 2. **hledger field names** (`HLEDGERFIELD` in examples):\
    These are special reserved names corresponding (directly or indirectly) to parts of a hledger transaction.
