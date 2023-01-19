@@ -28,7 +28,7 @@ module Hledger.Data.Transaction
 , transactionApplyValuation
 , transactionToCost
 , transactionAddInferredEquityPostings
-, transactionAddPricesFromEquity
+, transactionInferCostsFromEquity
 , transactionApplyAliases
 , transactionMapPostings
 , transactionMapPostingAmounts
@@ -225,16 +225,15 @@ transactionAddInferredEquityPostings :: AccountName -> Transaction -> Transactio
 transactionAddInferredEquityPostings equityAcct t =
     t{tpostings=concatMap (postingAddInferredEquityPostings equityAcct) $ tpostings t}
 
--- | Add inferred transaction prices from equity postings. For every adjacent
--- pair of conversion postings, it will first search the postings with
--- transaction prices to see if any match. If so, it will tag it as matched.
--- If no postings with transaction prices match, it will then search the
--- postings without transaction prices, and will match the first such posting
--- which matches one of the conversion amounts. If it finds a match, it will
--- add a transaction price and then tag it.
+-- | Add costs inferred from equity postings in this transaction.
+-- For every adjacent pair of conversion postings, it will first search the postings
+-- with costs to see if any match. If so, it will tag these as matched.
+-- If no postings with costs match, it will then search the postings without costs,
+-- and will match the first such posting which matches one of the conversion amounts.
+-- If it finds a match, it will add a cost and then tag it.
 type IdxPosting = (Int, Posting)
-transactionAddPricesFromEquity :: M.Map AccountName AccountType -> Transaction -> Either String Transaction
-transactionAddPricesFromEquity acctTypes t = first (annotateErrorWithTransaction t . T.unpack) $ do
+transactionInferCostsFromEquity :: M.Map AccountName AccountType -> Transaction -> Either String Transaction
+transactionInferCostsFromEquity acctTypes t = first (annotateErrorWithTransaction t . T.unpack) $ do
     (conversionPairs, stateps) <- partitionPs npostings
     f <- transformIndexedPostingsF addPricesToPostings conversionPairs stateps
     return t{tpostings = map (snd . f) npostings}

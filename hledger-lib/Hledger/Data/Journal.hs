@@ -880,10 +880,11 @@ journalAddInferredEquityPostings j = journalMapTransactions (transactionAddInfer
   where
     equityAcct = journalConversionAccount j
 
--- | Add inferred transaction prices from equity postings.
+-- | Add costs inferred from equity postings, where needed and possible.
+-- See hledger manual > Inferring cost from equity postings.
 journalInferCosts :: Journal -> Either String Journal
 journalInferCosts j = do
-    ts <- mapM (transactionAddPricesFromEquity $ jaccounttypes j) $ jtxns j
+    ts <- mapM (transactionInferCostsFromEquity $ jaccounttypes j) $ jtxns j
     return j{jtxns=ts}
 
 -- -- | Get this journal's unique, display-preference-canonicalised commodities, by symbol.
