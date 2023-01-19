@@ -571,8 +571,8 @@ p ||| q = \v -> p v || q v
 queryStartDate :: Bool -> Query -> Maybe Day
 queryStartDate secondary (Or ms) = earliestMaybeDate $ map (queryStartDate secondary) ms
 queryStartDate secondary (And ms) = latestMaybeDate $ map (queryStartDate secondary) ms
-queryStartDate False (Date (DateSpan (Just d) _)) = Just d
-queryStartDate True (Date2 (DateSpan (Just d) _)) = Just d
+queryStartDate False (Date (DateSpan (Just d) _)) = Just $ fromEFDay d
+queryStartDate True (Date2 (DateSpan (Just d) _)) = Just $ fromEFDay d
 queryStartDate _ _ = Nothing
 
 -- | What end date (or secondary date) does this query specify, if any ?
@@ -580,8 +580,8 @@ queryStartDate _ _ = Nothing
 queryEndDate :: Bool -> Query -> Maybe Day
 queryEndDate secondary (Or ms) = latestMaybeDate' $ map (queryEndDate secondary) ms
 queryEndDate secondary (And ms) = earliestMaybeDate' $ map (queryEndDate secondary) ms
-queryEndDate False (Date (DateSpan _ (Just d))) = Just d
-queryEndDate True (Date2 (DateSpan _ (Just d))) = Just d
+queryEndDate False (Date (DateSpan _ (Just d))) = Just $ fromEFDay d
+queryEndDate True (Date2 (DateSpan _ (Just d))) = Just $ fromEFDay d
 queryEndDate _ _ = Nothing
 
 queryTermDateSpan (Date spn) = Just spn
@@ -835,8 +835,8 @@ tests_Query = testGroup "Query" [
      (simplifyQuery $ And [Any,Any])      @?= (Any)
      (simplifyQuery $ And [Acct $ toRegex' "b",Any]) @?= (Acct $ toRegex' "b")
      (simplifyQuery $ And [Any,And [Date (DateSpan Nothing Nothing)]]) @?= (Any)
-     (simplifyQuery $ And [Date (DateSpan Nothing (Just $ fromGregorian 2013 01 01)), Date (DateSpan (Just $ fromGregorian 2012 01 01) Nothing)])
-       @?= (Date (DateSpan (Just $ fromGregorian 2012 01 01) (Just $ fromGregorian 2013 01 01)))
+     (simplifyQuery $ And [Date (DateSpan Nothing (Just $ Exact $ fromGregorian 2013 01 01)), Date (DateSpan (Just $ Exact $ fromGregorian 2012 01 01) Nothing)])
+       @?= (Date (DateSpan (Just $ Exact $ fromGregorian 2012 01 01) (Just $ Exact $ fromGregorian 2013 01 01)))
      (simplifyQuery $ And [Or [],Or [Desc $ toRegex' "b b"]]) @?= (Desc $ toRegex' "b b")
 
   ,testCase "parseQuery" $ do
@@ -875,9 +875,9 @@ tests_Query = testGroup "Query" [
      parseQueryTerm nulldate "payee:x"                          @?= Left <$> payeeTag (Just "x")
      parseQueryTerm nulldate "note:x"                           @?= Left <$> noteTag (Just "x")
      parseQueryTerm nulldate "real:1"                           @?= Right (Left $ Real True)
-     parseQueryTerm nulldate "date:2008"                        @?= Right (Left $ Date $ DateSpan (Just $ fromGregorian 2008 01 01) (Just $ fromGregorian 2009 01 01))
-     parseQueryTerm nulldate "date:from 2012/5/17"              @?= Right (Left $ Date $ DateSpan (Just $ fromGregorian 2012 05 17) Nothing)
-     parseQueryTerm nulldate "date:20180101-201804"             @?= Right (Left $ Date $ DateSpan (Just $ fromGregorian 2018 01 01) (Just $ fromGregorian 2018 04 01))
+     parseQueryTerm nulldate "date:2008"                        @?= Right (Left $ Date $ DateSpan (Just $ Flex $ fromGregorian 2008 01 01) (Just $ Flex $ fromGregorian 2009 01 01))
+     parseQueryTerm nulldate "date:from 2012/5/17"              @?= Right (Left $ Date $ DateSpan (Just $ Exact $ fromGregorian 2012 05 17) Nothing)
+     parseQueryTerm nulldate "date:20180101-201804"             @?= Right (Left $ Date $ DateSpan (Just $ Exact $ fromGregorian 2018 01 01) (Just $ Flex $ fromGregorian 2018 04 01))
      parseQueryTerm nulldate "inacct:a"                         @?= Right (Right $ QueryOptInAcct "a")
      parseQueryTerm nulldate "tag:a"                            @?= Right (Left $ Tag (toRegexCI' "a") Nothing)
      parseQueryTerm nulldate "tag:a=some value"                 @?= Right (Left $ Tag (toRegexCI' "a") (Just $ toRegexCI' "some value"))
@@ -899,18 +899,18 @@ tests_Query = testGroup "Query" [
   ,testCase "queryStartDate" $ do
      let small = Just $ fromGregorian 2000 01 01
          big   = Just $ fromGregorian 2000 01 02
-     queryStartDate False (And [Date $ DateSpan small Nothing, Date $ DateSpan big Nothing])     @?= big
-     queryStartDate False (And [Date $ DateSpan small Nothing, Date $ DateSpan Nothing Nothing]) @?= small
-     queryStartDate False (Or  [Date $ DateSpan small Nothing, Date $ DateSpan big Nothing])     @?= small
-     queryStartDate False (Or  [Date $ DateSpan small Nothing, Date $ DateSpan Nothing Nothing]) @?= Nothing
+     queryStartDate False (And [Date $ DateSpan (Exact <$> small) Nothing, Date $ DateSpan (Exact <$> big) Nothing]) @?= big
+     queryStartDate False (And [Date $ DateSpan (Exact <$> small) Nothing, Date $ DateSpan Nothing Nothing])         @?= small
+     queryStartDate False (Or  [Date $ DateSpan (Exact <$> small) Nothing, Date $ DateSpan (Exact <$> big) Nothing]) @?= small
+     queryStartDate False (Or  [Date $ DateSpan (Exact <$> small) Nothing, Date $ DateSpan Nothing Nothing])         @?= Nothing
 
   ,testCase "queryEndDate" $ do
      let small = Just $ fromGregorian 2000 01 01
          big   = Just $ fromGregorian 2000 01 02
-     queryEndDate False (And [Date $ DateSpan Nothing small, Date $ DateSpan Nothing big])     @?= small
-     queryEndDate False (And [Date $ DateSpan Nothing small, Date $ DateSpan Nothing Nothing]) @?= small
-     queryEndDate False (Or  [Date $ DateSpan Nothing small, Date $ DateSpan Nothing big])     @?= big
-     queryEndDate False (Or  [Date $ DateSpan Nothing small, Date $ DateSpan Nothing Nothing]) @?= Nothing
+     queryEndDate False (And [Date $ DateSpan Nothing (Exact <$> small), Date $ DateSpan Nothing (Exact <$> big)]) @?= small
+     queryEndDate False (And [Date $ DateSpan Nothing (Exact <$> small), Date $ DateSpan Nothing Nothing])         @?= small
+     queryEndDate False (Or  [Date $ DateSpan Nothing (Exact <$> small), Date $ DateSpan Nothing (Exact <$> big)]) @?= big
+     queryEndDate False (Or  [Date $ DateSpan Nothing (Exact <$> small), Date $ DateSpan Nothing Nothing])         @?= Nothing
 
   ,testCase "matchesAccount" $ do
      assertBool "" $ (Acct $ toRegex' "b:c") `matchesAccount` "a:bb:c:d"

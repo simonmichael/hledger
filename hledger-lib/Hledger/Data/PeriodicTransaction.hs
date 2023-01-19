@@ -186,17 +186,17 @@ instance Show PeriodicTransaction where
 --     a           $1.00
 -- <BLANKLINE>
 --
--- >>> let reportperiod="daily from 2018/01/03" in let (i,s) = parsePeriodExpr' nulldate reportperiod in runPeriodicTransaction (nullperiodictransaction{ptperiodexpr=reportperiod, ptspan=s, ptinterval=i, ptpostings=["a" `post` usd 1]}) (DateSpan (Just $ fromGregorian 2018 01 01) (Just $ fromGregorian 2018 01 03))
+-- >>> let reportperiod="daily from 2018/01/03" in let (i,s) = parsePeriodExpr' nulldate reportperiod in runPeriodicTransaction (nullperiodictransaction{ptperiodexpr=reportperiod, ptspan=s, ptinterval=i, ptpostings=["a" `post` usd 1]}) (DateSpan (Just $ Flex $ fromGregorian 2018 01 01) (Just $ Flex $ fromGregorian 2018 01 03))
 -- []
 --
--- >>> _ptgenspan "every 3 months from 2019-05" (DateSpan (Just $ fromGregorian 2020 01 01) (Just $ fromGregorian 2020 02 01))
+-- >>> _ptgenspan "every 3 months from 2019-05" (DateSpan (Just $ Flex $ fromGregorian 2020 01 01) (Just $ Flex $ fromGregorian 2020 02 01))
 --
--- >>> _ptgenspan "every 3 months from 2019-05" (DateSpan (Just $ fromGregorian 2020 02 01) (Just $ fromGregorian 2020 03 01))
+-- >>> _ptgenspan "every 3 months from 2019-05" (DateSpan (Just $ Flex $ fromGregorian 2020 02 01) (Just $ Flex $ fromGregorian 2020 03 01))
 -- 2020-02-01
 --     ; generated-transaction: ~ every 3 months from 2019-05
 --     a           $1.00
 -- <BLANKLINE>
--- >>> _ptgenspan "every 3 days from 2018" (DateSpan (Just $ fromGregorian 2018 01 01) (Just $ fromGregorian 2018 01 05))
+-- >>> _ptgenspan "every 3 days from 2018" (DateSpan (Just $ Flex $ fromGregorian 2018 01 01) (Just $ Flex $ fromGregorian 2018 01 05))
 -- 2018-01-01
 --     ; generated-transaction: ~ every 3 days from 2018
 --     a           $1.00
@@ -205,7 +205,7 @@ instance Show PeriodicTransaction where
 --     ; generated-transaction: ~ every 3 days from 2018
 --     a           $1.00
 -- <BLANKLINE>
--- >>> _ptgenspan "every 3 days from 2018" (DateSpan (Just $ fromGregorian 2018 01 02) (Just $ fromGregorian 2018 01 05))
+-- >>> _ptgenspan "every 3 days from 2018" (DateSpan (Just $ Flex $ fromGregorian 2018 01 02) (Just $ Flex $ fromGregorian 2018 01 05))
 -- 2018-01-04
 --     ; generated-transaction: ~ every 3 days from 2018
 --     a           $1.00
@@ -213,7 +213,7 @@ instance Show PeriodicTransaction where
 
 runPeriodicTransaction :: PeriodicTransaction -> DateSpan -> [Transaction]
 runPeriodicTransaction PeriodicTransaction{..} requestedspan =
-    [ t{tdate=d} | (DateSpan (Just d) _) <- alltxnspans, spanContainsDate requestedspan d ]
+    [ t{tdate=d} | (DateSpan (Just efd) _) <- alltxnspans, let d = fromEFDay efd, spanContainsDate requestedspan d ]
   where
     t = nulltransaction{
            tsourcepos   = ptsourcepos
@@ -249,7 +249,7 @@ checkPeriodicTransactionStartDate i s periodexpr =
     _                    -> Nothing
     where
       checkStart d x =
-        let firstDate = fixSmartDate d $ SmartRelative 0 x
+        let firstDate = fromEFDay $ fixSmartDate d $ SmartRelative 0 x
         in
          if d == firstDate
          then Nothing

@@ -739,8 +739,8 @@ multiBalanceRowAsWbs bopts ReportOpts{..} colspans (PeriodicReportRow _ as rowto
     cs = if all mixedAmountLooksZero allamts then [""] else S.toList $ foldMap maCommodities allamts
     allamts = as ++ [rowtot | totalscolumn && not (null as)] ++ [rowavg | average_ && not (null as)]
     addDateColumns spn@(DateSpan s e) = (wbFromText (showDateSpan spn) :)
-                                       . (wbFromText (maybe "" showDate s) :)
-                                       . (wbFromText (maybe "" (showDate . addDays (-1)) e) :)
+                                       . (wbFromText (maybe "" showEFDate s) :)
+                                       . (wbFromText (maybe "" (showEFDate . modifyEFDay (addDays (-1))) e) :)
 
     paddedTranspose :: a -> [[a]] -> [[a]]
     paddedTranspose _ [] = [[]]

@@ -125,6 +125,7 @@ instance ToJSON TransactionModifier
 instance ToJSON TMPostingRule
 instance ToJSON PeriodicTransaction
 instance ToJSON PriceDirective
+instance ToJSON EFDay
 instance ToJSON DateSpan
 instance ToJSON Interval
 instance ToJSON Period

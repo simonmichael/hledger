@@ -162,11 +162,11 @@ tests_BalanceReport = testGroup "BalanceReport" [
        mixedAmount (usd 0))
 
     ,testCase "with date:" $
-     (defreportspec{_rsQuery=Date $ DateSpan (Just $ fromGregorian 2009 01 01) (Just $ fromGregorian 2010 01 01)}, samplejournal2) `gives`
+     (defreportspec{_rsQuery=Date $ DateSpan (Just $ Exact $ fromGregorian 2009 01 01) (Just $ Exact $ fromGregorian 2010 01 01)}, samplejournal2) `gives`
       ([], nullmixedamt)
 
     ,testCase "with date2:" $
-     (defreportspec{_rsQuery=Date2 $ DateSpan (Just $ fromGregorian 2009 01 01) (Just $ fromGregorian 2010 01 01)}, samplejournal2) `gives`
+     (defreportspec{_rsQuery=Date2 $ DateSpan (Just $ Exact $ fromGregorian 2009 01 01) (Just $ Exact $ fromGregorian 2010 01 01)}, samplejournal2) `gives`
       ([
         ("assets:bank:checking","assets:bank:checking",0,mixedAmount (usd 1))
        ,("income:salary","income:salary",0,mixedAmount (usd (-1)))

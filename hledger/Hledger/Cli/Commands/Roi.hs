@@ -3,6 +3,7 @@
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TupleSections     #-}
 {-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE ViewPatterns #-}
 {-|
 
 The @roi@ command prints internal rate of return and time-weighted rate of return for and investment.
@@ -95,15 +96,17 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportO
   tableBody <- forM spans $ \spn@(DateSpan (Just begin) (Just end)) -> do
     -- Spans are [begin,end), and end is 1 day after the actual end date we are interested in
     let
-      cashFlowApplyCostValue = map (\(d,amt) -> (d,mixedAmountValue end d amt))
+      b = fromEFDay begin
+      e = fromEFDay end
+      cashFlowApplyCostValue = map (\(d,amt) -> (d,mixedAmountValue e d amt))
 
       valueBefore =
-        mixedAmountValue end begin $ 
+        mixedAmountValue e b $ 
         total trans (And [ investmentsQuery
                          , Date (DateSpan Nothing (Just begin))])
 
       valueAfter  =
-        mixedAmountValue end end $ 
+        mixedAmountValue e e $ 
         total trans (And [investmentsQuery
                          , Date (DateSpan Nothing (Just end))])
 
@@ -123,14 +126,14 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportO
                                         , Date spn ] )
 
       thisSpan = dbg3 "processing span" $
-                 OneSpan begin end valueBefore valueAfter cashFlow pnl
+                 OneSpan b e valueBefore valueAfter cashFlow pnl
 
     irr <- internalRateOfReturn showCashFlow prettyTables thisSpan
     twr <- timeWeightedReturn showCashFlow prettyTables investmentsQuery trans mixedAmountValue thisSpan
     let cashFlowAmt = maNegate . maSum $ map snd cashFlow
     let smallIsZero x = if abs x < 0.01 then 0.0 else x
-    return [ showDate begin
-           , showDate (addDays (-1) end)
+    return [ showDate b
+           , showDate (addDays (-1) e)
            , T.pack $ showMixedAmount valueBefore
            , T.pack $ showMixedAmount cashFlowAmt
            , T.pack $ showMixedAmount valueAfter
@@ -198,7 +201,7 @@ timeWeightedReturn showCashFlow prettyTables investmentsQuery trans mixedAmountV
         tail $
         scanl
           (\(_, _, unitPrice, unitBalance) (date, amt) ->
-             let valueOnDate = unMix $ mixedAmountValue end date $ total trans (And [investmentsQuery, Date (DateSpan Nothing (Just date))])
+             let valueOnDate = unMix $ mixedAmountValue end date $ total trans (And [investmentsQuery, Date (DateSpan Nothing (Just $ Exact date))])
              in
              case amt of
                Right amt' ->

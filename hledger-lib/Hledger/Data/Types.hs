@@ -1,4 +1,4 @@
-{-|
+  {-|
 
 Most data types are defined here to avoid import cycles.
 Here is an overview of the hledger data model:
@@ -82,8 +82,8 @@ type WeekDay = Int   -- 1-7
 -- containing the reference date.
 data SmartDate
   = SmartCompleteDate Day
-  | SmartAssumeStart Year (Maybe Month)
-  | SmartFromReference (Maybe Month) MonthDay
+  | SmartAssumeStart Year (Maybe Month)         -- XXX improve these constructor names
+  | SmartFromReference (Maybe Month) MonthDay   --
   | SmartMonth Month
   | SmartRelative Integer SmartInterval
   deriving (Show)
@@ -92,7 +92,27 @@ data SmartInterval = Day | Week | Month | Quarter | Year deriving (Show)
 
 data WhichDate = PrimaryDate | SecondaryDate deriving (Eq,Show)
 
-data DateSpan = DateSpan (Maybe Day) (Maybe Day) deriving (Eq,Ord,Generic)
+-- | A date which is either exact or flexible.
+-- Flexible dates are allowed to be adjusted in certain situations.
+data EFDay = Exact Day | Flex Day deriving (Eq,Generic,Show)
+
+-- EFDay's Ord instance treats them like ordinary dates, ignoring exact/flexible.
+instance Ord EFDay where compare d1 d2 = compare (fromEFDay d1) (fromEFDay d2)
+
+-- instance Ord EFDay where compare = maCompare
+
+fromEFDay :: EFDay -> Day
+fromEFDay (Exact d) = d
+fromEFDay (Flex  d) = d
+
+modifyEFDay :: (Day -> Day) -> EFDay -> EFDay
+modifyEFDay f (Exact d) = Exact $ f d
+modifyEFDay f (Flex  d) = Flex  $ f d
+
+-- | A possibly open-ended span of time, from an optional inclusive start date
+-- to an optional exclusive end date. Each date can be either exact or flexible.
+-- An "exact date span" is a Datepan with exact start and end dates.
+data DateSpan = DateSpan (Maybe EFDay) (Maybe EFDay) deriving (Eq,Ord,Generic)
 
 instance Default DateSpan where def = DateSpan Nothing Nothing
 

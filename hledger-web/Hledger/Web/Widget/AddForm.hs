@@ -28,6 +28,7 @@ import Hledger
 import Hledger.Web.Foundation (App, Handler, Widget)
 import Hledger.Web.Settings (widgetFile)
 import Data.Function ((&))
+import Control.Arrow (right)
 
 addModal :: Route App -> Journal -> Day -> Widget
 addModal addR j today = do
@@ -61,7 +62,7 @@ addForm j today = identifyForm "add" $ \extra -> do
   return (formRes, $(widgetFile "add-form"))
   where
     -- custom fields
-    dateField = textField & checkMMap (pure . validateDate) (T.pack . show)
+    dateField = textField & checkMMap (pure . right fromEFDay . validateDate) (T.pack . show)
       where
         validateDate s =
           first (const ("Invalid date format" :: Text)) $

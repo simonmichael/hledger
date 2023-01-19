@@ -147,7 +147,7 @@ accountTransactionsReport rspec@ReportSpec{_rsReportOpts=ropts} j thisacctq = it
         priorq = dbg5 "priorq" $ And [thisacctq, tostartdateq, datelessreportq]
         tostartdateq =
           case mstartdate of
-            Just _  -> Date (DateSpan Nothing mstartdate)
+            Just _  -> Date (DateSpan Nothing (Exact <$> mstartdate))
             Nothing -> None  -- no start date specified, there are no prior postings
         mstartdate = queryStartDate (date2_ ropts) reportq
         datelessreportq = filterQuery (not . queryIsDateOrDate2) reportq

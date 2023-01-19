@@ -898,7 +898,7 @@ tests_JournalReader = testGroup "JournalReader" [
       nullperiodictransaction {
          ptperiodexpr  = "monthly from 2018/6"
         ,ptinterval    = Months 1
-        ,ptspan        = DateSpan (Just $ fromGregorian 2018 6 1) Nothing
+        ,ptspan        = DateSpan (Just $ Flex $ fromGregorian 2018 6 1) Nothing
         ,ptsourcepos   = (SourcePos "" (mkPos 1) (mkPos 1), SourcePos "" (mkPos 2) (mkPos 1))
         ,ptdescription = ""
         ,ptcomment     = "In 2019 we will change this\n"
@@ -909,7 +909,7 @@ tests_JournalReader = testGroup "JournalReader" [
       nullperiodictransaction {
          ptperiodexpr  = "monthly from 2018/6"
         ,ptinterval    = Months 1
-        ,ptspan        = DateSpan (Just $ fromGregorian 2018 6 1) Nothing
+        ,ptspan        = DateSpan (Just $ Flex $ fromGregorian 2018 6 1) Nothing
         ,ptsourcepos   = (SourcePos "" (mkPos 1) (mkPos 1), SourcePos "" (mkPos 2) (mkPos 1))
         ,ptdescription = "In 2019 we will change this"
         ,ptcomment     = ""
@@ -931,7 +931,7 @@ tests_JournalReader = testGroup "JournalReader" [
       nullperiodictransaction {
          ptperiodexpr  = "2019-01-04"
         ,ptinterval    = NoInterval
-        ,ptspan        = DateSpan (Just $ fromGregorian 2019 1 4) (Just $ fromGregorian 2019 1 5)
+        ,ptspan        = DateSpan (Just $ Exact $ fromGregorian 2019 1 4) (Just $ Exact $ fromGregorian 2019 1 5)
         ,ptsourcepos   = (SourcePos "" (mkPos 1) (mkPos 1), SourcePos "" (mkPos 2) (mkPos 1))
         ,ptdescription = ""
         ,ptcomment     = ""
