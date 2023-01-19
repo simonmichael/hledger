@@ -3073,7 +3073,7 @@ Note the two kinds of field names mentioned here, and used only in hledger CSV r
    (since hledger doesn't yet automatically recognise column headings in a CSV file),
    by writing arbitrary names in a `fields` list, eg:
    ```csv
-   fields When, What, Some_Id, Net_Amount, Total_Amount, Foo, Bar
+   fields When, What, Some_Id, Net, Total, Foo, Bar
    ```
 
 2. Special **hledger field names** (`HLEDGERFIELD` in these docs):
@@ -3084,11 +3084,11 @@ Note the two kinds of field names mentioned here, and used only in hledger CSV r
    code        %Some_Id
    description %What
    comment     %Foo %Bar
-   amount1     $ %Total_Amount
+   amount1     $ %Total
    ```
    or directly in a [`fields` list](#fields-list):
    ```csv
-   fields date, description, code, , amount, Foo, Bar
+   fields date, description, code, , amount1, Foo, Bar
    currency $
    comment  %Foo %Bar
    ```
