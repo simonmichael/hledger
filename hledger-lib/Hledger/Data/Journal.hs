@@ -26,7 +26,7 @@ module Hledger.Data.Journal (
   journalCommodityStyles,
   journalToCost,
   journalAddInferredEquityPostings,
-  journalAddPricesFromEquity,
+  journalInferCosts,
   journalReverse,
   journalSetLastReadTime,
   journalRenumberAccountDeclarations,
@@ -881,8 +881,8 @@ journalAddInferredEquityPostings j = journalMapTransactions (transactionAddInfer
     equityAcct = journalConversionAccount j
 
 -- | Add inferred transaction prices from equity postings.
-journalAddPricesFromEquity :: Journal -> Either String Journal
-journalAddPricesFromEquity j = do
+journalInferCosts :: Journal -> Either String Journal
+journalInferCosts j = do
     ts <- mapM (transactionAddPricesFromEquity $ jaccounttypes j) $ jtxns j
     return j{jtxns=ts}
 

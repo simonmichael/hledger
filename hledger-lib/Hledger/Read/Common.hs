@@ -324,7 +324,7 @@ journalFinalise iopts@InputOpts{..} f txt pj = do
       >>= (if auto_ && not (null $ jtxnmodifiers pj)
               then journalAddAutoPostings _ioDay balancingopts_  -- Add auto postings if enabled, and account tags if needed
               else pure)
-      >>= (if infer_costs_  then journalAddPricesFromEquity else pure)      -- Add inferred transaction prices from equity postings, if present
+      >>= (if infer_costs_  then journalInferCosts else pure)      -- Add inferred transaction prices from equity postings, if present
       >>= journalBalanceTransactions balancingopts_                         -- Balance all transactions and maybe check balance assertions.
       <&> (if infer_equity_ then journalAddInferredEquityPostings else id)  -- Add inferred equity postings, after balancing and generating auto postings
       <&> journalInferMarketPricesFromTransactions       -- infer market prices from commodity-exchanging transactions
