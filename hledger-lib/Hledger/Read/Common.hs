@@ -190,7 +190,7 @@ instance Show (Reader m) where show r = rFormat r ++ " reader"
 rawOptsToInputOpts :: Day -> RawOpts -> InputOpts
 rawOptsToInputOpts day rawopts =
 
-    let noinferprice = boolopt "strict" rawopts || stringopt "args" rawopts == "balancednoautoconversion"
+    let noinferbalancingcosts = boolopt "strict" rawopts || stringopt "args" rawopts == "balancednoautoconversion"
 
         -- Do we really need to do all this work just to get the requested end date? This is duplicating
         -- much of reportOptsToSpec.
@@ -216,9 +216,9 @@ rawOptsToInputOpts day rawopts =
       ,infer_equity_      = boolopt "infer-equity" rawopts && conversionop_ ropts /= Just ToCost
       ,infer_costs_       = boolopt "infer-costs" rawopts
       ,balancingopts_     = defbalancingopts{
-                                 ignore_assertions_ = boolopt "ignore-assertions" rawopts
-                               , infer_transaction_prices_ = not noinferprice
-                               , commodity_styles_  = Just styles
+                                 ignore_assertions_     = boolopt "ignore-assertions" rawopts
+                               , infer_balancing_costs_ = not noinferbalancingcosts
+                               , commodity_styles_      = Just styles
                                }
       ,strict_            = boolopt "strict" rawopts
       ,_ioDay             = day

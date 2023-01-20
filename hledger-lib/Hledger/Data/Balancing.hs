@@ -56,16 +56,17 @@ import Hledger.Data.Errors
 
 
 data BalancingOpts = BalancingOpts
-  { ignore_assertions_        :: Bool  -- ^ Ignore balance assertions
-  , infer_transaction_prices_ :: Bool  -- ^ Infer prices in unbalanced multicommodity amounts
-  , commodity_styles_         :: Maybe (M.Map CommoditySymbol AmountStyle)  -- ^ commodity display styles
+  { ignore_assertions_     :: Bool  -- ^ should failing balance assertions be ignored ?
+  , infer_balancing_costs_ :: Bool  -- ^ Are we permitted to infer missing costs to balance transactions ?
+                                    --   Distinct from InputOpts{infer_costs_}.
+  , commodity_styles_      :: Maybe (M.Map CommoditySymbol AmountStyle)  -- ^ commodity display styles
   } deriving (Show)
 
 defbalancingopts :: BalancingOpts
 defbalancingopts = BalancingOpts
-  { ignore_assertions_        = False
-  , infer_transaction_prices_ = True
-  , commodity_styles_         = Nothing
+  { ignore_assertions_     = False
+  , infer_balancing_costs_ = True
+  , commodity_styles_      = Nothing
   }
 
 -- | Check that this transaction would appear balanced to a human when displayed.
@@ -156,7 +157,7 @@ balanceTransactionHelper ::
   -> Either String (Transaction, [(AccountName, MixedAmount)])
 balanceTransactionHelper bopts t = do
   (t', inferredamtsandaccts) <- transactionInferBalancingAmount (fromMaybe M.empty $ commodity_styles_ bopts) $
-    if infer_transaction_prices_ bopts then transactionInferBalancingCosts t else t
+    if infer_balancing_costs_ bopts then transactionInferBalancingCosts t else t
   case transactionCheckBalanced bopts t' of
     []   -> Right (txnTieKnot t', inferredamtsandaccts)
     errs -> Left $ transactionBalanceError t' errs'
@@ -164,7 +165,7 @@ balanceTransactionHelper bopts t = do
         ismulticommodity = (length $ transactionCommodities t') > 1
         errs' =
           [ "Automatic commodity conversion is not enabled."
-          | ismulticommodity && not (infer_transaction_prices_ bopts)
+          | ismulticommodity && not (infer_balancing_costs_ bopts)
           ] ++
           errs ++
           if ismulticommodity
@@ -245,7 +246,7 @@ transactionInferBalancingAmount styles t@Transaction{tpostings=ps}
               a' = styleMixedAmount styles . mixedAmountCost $ maNegate a
 
 -- | Infer costs for this transaction's posting amounts, if needed to make
--- the postings balance, and if possible. This is done once for the real
+-- the postings balance, and if permitted. This is done once for the real
 -- postings and again (separately) for the balanced virtual postings. When
 -- it's not possible, the transaction is left unchanged.
 --

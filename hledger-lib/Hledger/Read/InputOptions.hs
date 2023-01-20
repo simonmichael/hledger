@@ -35,9 +35,9 @@ data InputOpts = InputOpts {
     ,pivot_             :: String               -- ^ use the given field's value as the account name
     ,forecast_          :: Maybe DateSpan       -- ^ span in which to generate forecast transactions
     ,reportspan_        :: DateSpan             -- ^ a dirty hack keeping the query dates in InputOpts. This rightfully lives in ReportSpec, but is duplicated here.
-    ,auto_              :: Bool                 -- ^ generate automatic postings when journal is parsed
-    ,infer_equity_      :: Bool                 -- ^ generate automatic equity postings from transaction prices
-    ,infer_costs_       :: Bool                 -- ^ infer transaction prices from equity conversion postings
+    ,auto_              :: Bool                 -- ^ generate automatic postings when journal is parsed ?
+    ,infer_equity_      :: Bool                 -- ^ infer equity conversion postings from costs ?
+    ,infer_costs_       :: Bool                 -- ^ infer costs from equity conversion postings ? distinct from BalancingOpts{infer_balancing_costs_}
     ,balancingopts_     :: BalancingOpts        -- ^ options for balancing transactions
     ,strict_            :: Bool                 -- ^ do extra error checking (eg, all posted accounts are declared, no prices are inferred)
     ,_ioDay             :: Day                  -- ^ today's date, for use with forecast transactions  XXX this duplicates _rsDay, and should eventually be removed when it's not needed anymore.
