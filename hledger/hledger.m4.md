@@ -3494,11 +3494,11 @@ various amount-setting situations:
 1. **If the amount is in a single CSV field:**\
 
    a. **If its sign indicates direction of flow:**\
-   Assign it to `amountN`, to set the Nth posting's amount. N is usually 1 or 2 but can go up to 99.
-   (Or you can use numberless `amount` if you want the extra effects of that form.)
+   Assign it to `amountN`, to set the Nth posting's amount.
+   N is usually 1 or 2 but can go up to 99.
 
-   b. **If its sign is always the same, and another field indicates direction:**\
-   Use one or more conditional rules to set the appropriate sign. Eg:
+   b. **If another field indicates direction of flow:**\
+   Use one or more conditional rules to set the appropriate amount sign. Eg:
    ```rules
    # assume a withdrawal unless Type contains "deposit":
    amount1  -%Amount
@@ -3509,11 +3509,11 @@ various amount-setting situations:
 2. **If the amount is in one of two CSV fields (eg Debit and Credit):**\
 
    a. **If both fields are unsigned:**\
-     Assign to `amountN-in` and `amountN-out`.
-     This sets posting N's amount to whichever of these has a non-zero value,
-     and negates the "-out" value.
+     Assign the fields to `amountN-in` and `amountN-out`.
+     This sets posting N's amount to whichever of these has a non-zero value.
+     If it's the -out value, the amount will be negated.
 
-   b. **If either field is signed (can contain a minus sign):**\
+   b. **If either field is signed:**\
      Use a [conditional rule](#if-block) to flip the sign when needed.
      Eg below, the -out value already has a minus sign so we undo hledger's automatic
 	 negating by [negating once more](#amount-signs) 
@@ -3541,10 +3541,10 @@ various amount-setting situations:
 3. **If you want posting 2's amount converted to cost:**\
    Use the unnumbered `amount` (or `amount-in` and `amount-out`) syntax.
 
-4. **If the CSV has the balance instead of the transaction amount:**\
-   Assign to `balanceN`, which sets posting N's amount indirectly via a
-   [balance assignment](#balance-assignments).
-   (Old syntax: `balance`, equivalent to `balance1`.)
+4. **If the CSV has only balance amounts, not transaction amounts:**\
+   Assign to `balanceN`, to set a [balance assignment](#balance-assignments) on the Nth posting,
+   causing the posting's amount to be calculated automatically.
+   `balance` with no number is equivalent to `balance1`.
    In this situation hledger is more likely to guess the wrong default account name,
    so you may need to set that explicitly.
 
