@@ -2876,7 +2876,7 @@ tells hledger to ignore this many non-empty lines at the start of the input data
 You'll need this whenever your CSV data contains header lines.
 Header lines skipped in this way are ignored, and not parsed as CSV.
 
-`skip` can also be used inside [if blocks](#if) (described below),
+`skip` can also be used inside [if blocks](#if-block) (described below),
 to skip individual data records.
 Note records skipped in this way are still required to be [valid CSV](#valid-csv), even though otherwise ignored.
 
@@ -3140,28 +3140,35 @@ a default account name will be chosen (like "expenses:unknown" or "income:unknow
 
 ### amount field
 
-There are a number of "amount" field name variants,
-to handle different situations when detecting and setting amounts:
+There are several "amount" field name variants, useful for different situations:
 
-`amountN` sets the amount of the Nth posting, and causes that posting to be generated.
-By assigning to `amount1`, `amount2`, ... etc. you can generate up to 99 postings.
 
-`amountN-in` and `amountN-out` should be used instead when the CSV has debits and credits (inflows and outflows) in separate fields.
-hledger assumes both of these CSV fields are unsigned, and will automatically negate the "-out" value.
-It also requires that at least one of them is either empty or zero.
-See ["Setting amounts"](#setting-amounts) below for more on this topic.
-Note: it might sound as if amount-in is for one posting in a transaction and amount-out for the other posting, but not so;
-the -in and -out rules work together to produce the amount for a single posting, from two CSV fields.
+- `amountN` sets the amount of the Nth posting, and causes that posting to be generated.
+  By assigning to `amount1`, `amount2`, ... etc. you can generate up to 99 postings.
+  Posting numbers don't have to be consecutive; in certain situations using a high number
+  might be helpful to influence the layout of postings.
+  
+- `amountN-in` and `amountN-out` should be used instead, as a pair, when and only when
+  the amount must be obtained from two CSV fields.
+  Eg when the CSV has separate Debit and Credit fields instead of a single Amount field.
+  Note:
+  
+  - Don't think "-in is for the first posting and -out is for the second posting" - that's not correct.
+    Think: "`amountN-in` and `amountN-out` together detect the amount for posting N, by inspecting two CSV fields at once."
+  - hledger assumes both CSV fields are unsigned, and will automatically negate the -out value.
+  - It also expects that at least one of the values is empty or zero, so it knows which one to ignore.
+    If that's not the case you'll need an if rule (see Setting amounts below).
+  
+- `amount`, with no posting number (and similarly, `amount-in` and `amount-out` with no number)
+  are an older syntax. We keep them for backwards compatibility, and because they have special behaviour
+  that is sometimes convenient:
+  
+  - They set the amount of posting 1 and (negated) the amount of posting 2.
+  - Posting 2's amount will be converted to cost if it has a [cost price](#costs).
+  - Any of the newer rules for posting 1 or 2 (like `amount1`, or `amount2-in` and `amount2-out`)
+    will take precedence. This allows incrementally migrating old rules files to the new syntax.
 
-`amount` (or `amount-in` and `amount-out`), with no number, are a legacy syntax
-kept for backwards compatibility and occasional convenience.
-They are suitable for two-posting transactions and behave as follows:
-they set both posting 1's and posting 2's amount,
-with posting 2's amount negated and also converted to cost if there's a [cost price](#costs).
-Also, they will be overridden by the newer syntax if it is present;
-eg if `amount1` is assigned, that overrides `amount` for posting 1;
-`amount2-in` would override `amount-in` for posting 2, and so on.
-(This allows incrementally adding the newer numbered syntax in old rules files.)
+There's more to say about amount-setting that doesn't fit here; please see also ["Setting amounts"](#setting-amounts) below.
 
 ### currency field
 
@@ -3481,15 +3488,25 @@ data. See:
 
 ### Setting amounts
 
-Some tips on using the [amount-setting rules](#amount) discussed above.
+Continuing from [amount field](#amount-field) above, here are more tips on handling
+various amount-setting situations:
 
-Here are the ways to set a posting's amount:
+1. **If the amount is in a single CSV field:**\
 
-1. **If the CSV has a single amount field:**\
-   Assign (via a [fields list](#fields-list) or a [field assignment](#field-assignment)) to `amountN`.
-   This sets the Nth posting's amount. N is usually 1 or 2 but can go up to 99.
+   a. **If its sign indicates direction of flow:**\
+   Assign it to `amountN`, to set the Nth posting's amount. N is usually 1 or 2 but can go up to 99.
+   (Or you can use numberless `amount` if you want the extra effects of that form.)
 
-2. **If the CSV has separate amount fields for debit & credit (in & out):**\
+   b. **If its sign is always the same, and another field indicates direction:**\
+   Use one or more conditional rules to set the appropriate sign. Eg:
+   ```rules
+   # assume a withdrawal unless Type contains "deposit":
+   amount1  -%Amount
+   if %Type deposit
+     amount1  %Amount
+   ```
+
+2. **If the amount is in one of two CSV fields (eg Debit and Credit):**\
 
    a. **If both fields are unsigned:**\
      Assign to `amountN-in` and `amountN-out`.
@@ -3497,9 +3514,10 @@ Here are the ways to set a posting's amount:
      and negates the "-out" value.
 
    b. **If either field is signed (can contain a minus sign):**\
-     Use a [conditional rule](#if) to flip the sign (of non-empty values).
-     Since hledger always negates amountN-out, if it was already negative, 
-     we must undo that by negating once more (but only if the field is non-empty):
+     Use a [conditional rule](#if-block) to flip the sign when needed.
+     Eg below, the -out value already has a minus sign so we undo hledger's automatic
+	 negating by [negating once more](#amount-signs) 
+	 (but only if the field is non-empty, so that we don't leave a minus sign by itself):
 
      ```rules
      fields date, description, amount1-in, amount1-out
@@ -3507,20 +3525,11 @@ Here are the ways to set a posting's amount:
       amount1-out -%amount1-out
      ```
  
-   c. **If both fields, or neither field, can contain a non-zero value:**\
-     hledger normally expects exactly one of the fields to have a non-zero value.
-     Eg, the `amountN-in`/`amountN-out` rules would reject value pairs like these:
-
-     ```csv
-     "",  ""
-     "0", "0"
-     "1", "none"
-     ```
-
-     So, use smarter [conditional rules](#if) to set the amount from the appropriate field.
-     Eg, these rules would make it use only the value containing non-zero digits,
-     handling the above:
-
+   c. **If both fields can contain a non-zero value (or both can be empty):**\
+     The -in/-out rules normally choose the value which is non-zero/non-empty.
+     Some value pairs can be ambiguous, such as `1` and `none`.
+     For such cases, use [conditional rules](#if-block) to help select the amount.
+     Eg, to handle the above you could select the value containing non-zero digits:
      ```rules
      fields date, description, in, out
      if %in [1-9]
@@ -3530,22 +3539,14 @@ Here are the ways to set a posting's amount:
      ```
 
 3. **If you want posting 2's amount converted to cost:**\
-   Assign to `amount` (or to `amount-in` and `amount-out`).
-   (This is the legacy numberless syntax, which sets amount1 and amount2 and converts amount2 to cost.)
+   Use the unnumbered `amount` (or `amount-in` and `amount-out`) syntax.
 
 4. **If the CSV has the balance instead of the transaction amount:**\
    Assign to `balanceN`, which sets posting N's amount indirectly via a
    [balance assignment](#balance-assignments).
    (Old syntax: `balance`, equivalent to `balance1`.)
-   
-   - **If hledger guesses the wrong default account name:**\
-     When setting the amount via balance assertion, hledger may guess the wrong default account name.
-     So, set the account name explicitly, eg:
-
-      ```rules
-      fields date, description, balance1
-      account1 assets:checking
-      ```
+   In this situation hledger is more likely to guess the wrong default account name,
+   so you may need to set that explicitly.
 
 ### Amount signs
 
