@@ -5051,6 +5051,7 @@ For `--infer-costs` to work, an exchange must consist of four postings:
    (or if they are not declared, they must be named
    `equity:conversion`, `equity:trade`, `equity:trading` or subaccounts of these)
 3. the equity postings' amounts must exactly match the non-equity postings' amounts
+4. all of the amounts must be explicit, with none missing
 
 Multiple such exchanges can coexist within a single transaction, should you need that.
 
