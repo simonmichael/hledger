@@ -1,10 +1,11 @@
-# price-related tests
+# Cost-related tests
+
 <
 2011/01/01
     expenses:foreign currency       €100 @ $1.35
     assets
 
-# 1. print a transaction with an explicit unit price
+# 1. print a transaction with an explicit unit cost
 $ hledger -f- print --explicit
 2011-01-01
     expenses:foreign currency    €100 @ $1.35
@@ -12,7 +13,7 @@ $ hledger -f- print --explicit
 
 >=0
 
-# 2. -B/--cost converts to the price's commodity ("cost")
+# 2. -B/--cost converts to the cost price's commodity
 $ hledger -f- print --explicit --cost
 2011-01-01
     expenses:foreign currency         $135.00
@@ -47,7 +48,7 @@ $ hledger -f- print --cost --infer-equity
     expenses:foreign currency    €100 @@ $135
     assets
 
-# 5. print a transaction with a total price
+# 5. print a transaction with a total cost
 $ hledger -f - print --explicit
 2011-01-01
     expenses:foreign currency    €100 @@ $135
@@ -55,8 +56,8 @@ $ hledger -f - print --explicit
 
 >=0
 
-# 6. when the balance has exactly two commodities, both unpriced, infer an
-# implicit conversion price for the first one in terms of the second.
+# 6. when the balance has exactly two commodities, both without cost,
+# infer an implicit balancing cost (conversion rate) for the first one in terms of the second.
 <
 2011/01/01
     expenses:foreign currency       €100
@@ -155,9 +156,8 @@ $ hledger -f - balance
                  10£  
 >=0
 
-# 14. When commodity price is specified implicitly, transaction should
-#     be considered balanced out even when first amount is negative
-#     (that is, price for it should be determined properly, with proper sign)
+# 14. The balancing cost should still be inferred properly, with proper sign,
+#     if the first amount is negative
 <
 2011/01/01 x
   a  -10£
@@ -168,7 +168,7 @@ $ hledger -f - balance -N
                  16$  b
 >=0
 
-# 15. Should not infer prices when --strict is specified
+# 15. Should not infer balancing costs when --strict is specified
 $ hledger -f - balance --strict
 >2 /transaction is unbalanced/
 >=1
@@ -178,8 +178,7 @@ $ hledger -f - balance --strict
   a  -10£
   b  -16$
 
-# 16. When commodity price is specified implicitly, transaction should
-#     NOT be considered balanced out when BOTH amounts are negative
+# 16. A balancing cost can not be inferred when BOTH amounts are negative
 $ hledger -f - balance
 >2 /transaction is unbalanced/
 >=1
@@ -211,7 +210,7 @@ $ hledger -f - balance --no-total
                 $-30  c
 >= 0
 
-# 19. these balance because of the unit prices, and should parse successfully
+# 19. these balance because of the unit costs, and should parse successfully
 <
 1/1
     a   1X @ 2Y
@@ -225,7 +224,7 @@ $ hledger -f - balance --no-total
 $ hledger -f - balance --no-total -B
 >= 0
 
-# 21. likewise with total prices. Note how the primary amount's sign is used.
+# 21. likewise with total costs. Note how the primary amount's sign is used.
 <
 1/1
     a   1X @@ 1Y
@@ -242,53 +241,53 @@ $ hledger -f - balance --no-total -B
 # In fact, here is how sign works with costs currently.
 # See discussion at https://github.com/simonmichael/hledger/issues/1870
 <
-2022-01-01 Positive Unit prices
+2022-01-01 Positive Unit cost
     a        A 1
     b        B -1 @ A 1
 
-2022-01-01 Positive Total prices
+2022-01-01 Positive Total cost
     a        A 1
     b        B -1 @@ A 1
 
-2022-01-02 Negative unit prices
+2022-01-02 Negative unit cost
     a        A 1
     b        B 1 @ A -1
 
-2022-01-02 Negative total prices
+2022-01-02 Negative total cost
     a        A 1
     b        B 1 @@ A -1
 
-2022-01-03 Double Negative unit prices
+2022-01-03 Double Negative unit cost
     a        A -1
     b        B -1 @ A -1
 
-2022-01-03 Double Negative total prices
+2022-01-03 Double Negative total cost
     a        A -1
     b        B -1 @@ A -1
 
 # 23. All these transactions are considered balanced
 $ hledger -f- print -x
-2022-01-01 Positive Unit prices
+2022-01-01 Positive Unit cost
     a             A 1
     b      B -1 @ A 1
 
-2022-01-01 Positive Total prices
+2022-01-01 Positive Total cost
     a             A 1
     b     B -1 @@ A 1
 
-2022-01-02 Negative unit prices
+2022-01-02 Negative unit cost
     a             A 1
     b      B 1 @ A -1
 
-2022-01-02 Negative total prices
+2022-01-02 Negative total cost
     a             A 1
     b     B 1 @@ A -1
 
-2022-01-03 Double Negative unit prices
+2022-01-03 Double Negative unit cost
     a            A -1
     b     B -1 @ A -1
 
-2022-01-03 Double Negative total prices
+2022-01-03 Double Negative total cost
     a            A -1
     b    B -1 @@ A -1
 
@@ -296,27 +295,27 @@ $ hledger -f- print -x
 
 # 24. Here they are converted to cost
 $ hledger -f- print -xB
-2022-01-01 Positive Unit prices
+2022-01-01 Positive Unit cost
     a             A 1
     b            A -1
 
-2022-01-01 Positive Total prices
+2022-01-01 Positive Total cost
     a             A 1
     b            A -1
 
-2022-01-02 Negative unit prices
+2022-01-02 Negative unit cost
     a             A 1
     b            A -1
 
-2022-01-02 Negative total prices
+2022-01-02 Negative total cost
     a             A 1
     b            A -1
 
-2022-01-03 Double Negative unit prices
+2022-01-03 Double Negative unit cost
     a            A -1
     b             A 1
 
-2022-01-03 Double Negative total prices
+2022-01-03 Double Negative total cost
     a            A -1
     b             A 1
 
@@ -481,7 +480,7 @@ $ hledger -f- print --show-costs --infer-costs
 >=0
 
 # 37. And convert to cost
-$ hledger -f- print --cost --infer-costs --cost
+$ hledger -f- print --infer-costs --cost
 2011-01-01
     expenses:food                         £80
     expenses:foreign currency            $135
@@ -594,9 +593,8 @@ $ hledger -f- print --infer-costs
 
 >=0
 
-# # when the *cost-basis* balance has exactly two commodities, both
-# # unpriced, infer an implicit conversion price for the first one in terms
-# # of the second.
+# # when the *cost-basis* balance has exactly two commodities, both cost-less,
+# # infer a balancing cost for the first one in terms of the second.
 # hledger -f - print
 # <<<
 # 2011/01/01
