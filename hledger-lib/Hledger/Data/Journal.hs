@@ -27,6 +27,7 @@ module Hledger.Data.Journal (
   journalToCost,
   journalAddInferredEquityPostings,
   journalInferCostsFromEquity,
+  journalMarkRedundantCosts,
   journalReverse,
   journalSetLastReadTime,
   journalRenumberAccountDeclarations,
@@ -884,7 +885,17 @@ journalAddInferredEquityPostings j = journalMapTransactions (transactionAddInfer
 -- See hledger manual > Inferring cost from equity postings.
 journalInferCostsFromEquity :: Journal -> Either String Journal
 journalInferCostsFromEquity j = do
-    ts <- mapM (transactionInferCostsFromEquity $ jaccounttypes j) $ jtxns j
+    ts <- mapM (transactionInferCostsFromEquity False $ jaccounttypes j) $ jtxns j
+    return j{jtxns=ts}
+
+-- | Do just the internal tagging that is normally done by journalInferCostsFromEquity,
+-- identifying equity conversion postings and, in particular, postings which have redundant costs.
+-- Tagging the latter is useful as it allows them to be ignored during transaction balancedness checking.
+-- And that allows journalInferCostsFromEquity to be postponed till after transaction balancing,
+-- when it will have more information (amounts) to work with.
+journalMarkRedundantCosts :: Journal -> Either String Journal
+journalMarkRedundantCosts j = do
+    ts <- mapM (transactionInferCostsFromEquity True $ jaccounttypes j) $ jtxns j
     return j{jtxns=ts}
 
 -- -- | Get this journal's unique, display-preference-canonicalised commodities, by symbol.
