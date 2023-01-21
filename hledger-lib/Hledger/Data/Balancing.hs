@@ -149,15 +149,17 @@ balanceTransaction ::
 balanceTransaction bopts = fmap fst . balanceTransactionHelper bopts
 
 -- | Helper used by balanceTransaction and balanceTransactionWithBalanceAssignmentAndCheckAssertionsB;
--- use one of those instead. It also returns a list of accounts
--- and amounts that were inferred.
+-- use one of those instead.
+-- It also returns a list of accounts and amounts that were inferred.
 balanceTransactionHelper ::
      BalancingOpts
   -> Transaction
   -> Either String (Transaction, [(AccountName, MixedAmount)])
 balanceTransactionHelper bopts t = do
-  (t', inferredamtsandaccts) <- transactionInferBalancingAmount (fromMaybe M.empty $ commodity_styles_ bopts) $
-    if infer_balancing_costs_ bopts then transactionInferBalancingCosts t else t
+  (t', inferredamtsandaccts) <-
+    transactionInferBalancingAmount (fromMaybe M.empty $ commodity_styles_ bopts) $
+    (if infer_balancing_costs_ bopts then transactionInferBalancingCosts else id)
+    t
   case transactionCheckBalanced bopts t' of
     []   -> Right (txnTieKnot t', inferredamtsandaccts)
     errs -> Left $ transactionBalanceError t' errs'
@@ -428,10 +430,11 @@ updateTransactionB :: Transaction -> Balancing s ()
 updateTransactionB t = withRunningBalance $ \BalancingState{bsTransactions}  ->
   void $ writeArray bsTransactions (tindex t) t
 
--- | Infer any missing amounts (to satisfy balance assignments and
--- to balance transactions) and check that all transactions balance
--- and (optional) all balance assertions pass. Or return an error message
--- (just the first error encountered).
+-- | Infer any missing amounts and/or conversion costs
+-- (as needed to balance transactions and satisfy balance assignments);
+-- and check that all transactions are balanced;
+-- and (optional) check that all balance assertions pass.
+-- Or, return an error message (just the first error encountered).
 --
 -- Assumes journalInferCommodityStyles has been called, since those
 -- affect transaction balancing.
@@ -449,18 +452,18 @@ journalBalanceTransactions bopts' j' =
     -- balance assignments are not allowed on accounts affected by auto postings
     autopostingaccts = S.fromList . map (paccount . tmprPosting) . concatMap tmpostingrules $ jtxnmodifiers j
   in
+    -- Store the transactions in a mutable array, which we'll update as we balance them.
+    -- Not strictly necessary but avoids a sort at the end I think.
     runST $ do
-      -- We'll update a mutable array of transactions as we balance them,
-      -- not strictly necessary but avoids a sort at the end I think.
       balancedtxns <- newListArray (1, toInteger $ length ts) ts
 
-      -- Infer missing posting amounts, check transactions are balanced,
-      -- and check balance assertions. This is done in two passes:
+      -- Process all transactions, or short-circuit with an error.
       runExceptT $ do
 
-        -- 1. Step through the transactions, balancing the ones which don't have balance assignments
-        -- and leaving the others for later. The balanced ones are split into their postings.
-        -- The postings and not-yet-balanced transactions remain in the same relative order.
+        -- Two passes are required:
+        -- 1. Step through the transactions, balancing the ones which don't have balance assignments,
+        -- postponing those which do until later. The balanced ones are split into their postings,
+        -- keeping these and the not-yet-balanced transactions in the same relative order.
         psandts :: [Either Posting Transaction] <- fmap concat $ forM ts $ \case
           t | null $ assignmentPostings t -> case balanceTransaction bopts t of
               Left  e  -> throwError e
@@ -469,14 +472,16 @@ journalBalanceTransactions bopts' j' =
                 return $ map Left $ tpostings t'
           t -> return [Right t]
 
-        -- 2. Sort these items by date, preserving the order of same-day items,
-        -- and step through them while keeping running account balances,
+        -- 2. Step through these items in date order (and preserved same-day order),
+        -- keeping running balances for all accounts.
         runningbals <- lift $ H.newSized (length $ journalAccountNamesUsed j)
         flip runReaderT (BalancingState styles autopostingaccts (not $ ignore_assertions_ bopts) runningbals balancedtxns) $ do
-          -- performing balance assignments in, and balancing, the remaining transactions,
-          -- and checking balance assertions as each posting is processed.
+          -- On encountering any not-yet-balanced transaction with a balance assignment,
+          -- enact the balance assignment then finish balancing the transaction.
+          -- And, check any balance assertions encountered along the way.
           void $ mapM' balanceTransactionAndCheckAssertionsB $ sortOn (either postingDate tdate) psandts
 
+        -- Return the now fully-balanced and checked transactions.
         ts' <- lift $ getElems balancedtxns
         return j{jtxns=ts'}
 
