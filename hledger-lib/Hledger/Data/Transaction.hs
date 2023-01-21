@@ -225,17 +225,20 @@ transactionAddInferredEquityPostings :: AccountName -> Transaction -> Transactio
 transactionAddInferredEquityPostings equityAcct t =
     t{tpostings=concatMap (postingAddInferredEquityPostings equityAcct) $ tpostings t}
 
+type IdxPosting = (Int, Posting)
+
+-- WARNING: twisty code ahead
+
 -- | Add costs inferred from equity postings in this transaction.
 -- For every adjacent pair of conversion postings, it will first search the postings
 -- with costs to see if any match. If so, it will tag these as matched.
 -- If no postings with costs match, it will then search the postings without costs,
 -- and will match the first such posting which matches one of the conversion amounts.
 -- If it finds a match, it will add a cost and then tag it.
-type IdxPosting = (Int, Posting)
-transactionInferCostsFromEquity :: M.Map AccountName AccountType -> Transaction -> Either String Transaction
-transactionInferCostsFromEquity acctTypes t = first (annotateErrorWithTransaction t . T.unpack) $ do
+transactionInferCostsFromEquity :: Bool -> M.Map AccountName AccountType -> Transaction -> Either String Transaction
+transactionInferCostsFromEquity dryrun acctTypes t = first (annotateErrorWithTransaction t . T.unpack) $ do
     (conversionPairs, stateps) <- partitionPs npostings
-    f <- transformIndexedPostingsF addCostsToPostings conversionPairs stateps
+    f <- transformIndexedPostingsF (addCostsToPostings dryrun) conversionPairs stateps
     return t{tpostings = map (snd . f) npostings}
   where
     -- Include indices for postings
@@ -258,21 +261,26 @@ transactionInferCostsFromEquity acctTypes t = first (annotateErrorWithTransactio
     -- and tags the conversion and matched postings. Then update the state by removing the
     -- matched postings. If there are no matching postings or too much ambiguity,
     -- return an error string annotated with the conversion postings.
-    addCostsToPostings :: (IdxPosting, IdxPosting)
+    -- If the first argument is true, do a dry run instead: identify and tag
+    -- the costful and conversion postings, but don't add costs.
+    addCostsToPostings :: Bool -> (IdxPosting, IdxPosting)
                         -> StateT ([IdxPosting], [IdxPosting]) (Either Text) (IdxPosting -> IdxPosting)
-    addCostsToPostings ((n1, cp1), (n2, cp2)) = StateT $ \(costps, otherps) -> do
+    addCostsToPostings dryrun' ((n1, cp1), (n2, cp2)) = StateT $ \(costps, otherps) -> do
         -- Get the two conversion posting amounts, if possible
-        ca1 <- postingAmountNoCost cp1
-        ca2 <- postingAmountNoCost cp2
+        ca1 <- conversionPostingAmountNoCost cp1
+        ca2 <- conversionPostingAmountNoCost cp2
         let -- The function to add costs and tag postings in the indexed list of postings
             transformPostingF np costp (n,p) =
               (n, if | n == np            -> costp `postingAddTags` [("_price-matched","")]
-                     | n == n1 || n == n2 -> p      `postingAddTags` [("_conversion-matched","")]
+                     | n == n1 || n == n2 -> p     `postingAddTags` [("_conversion-matched","")]
                      | otherwise          -> p)
             -- All costful postings which match the conversion posting pair
             matchingCostPs = mapMaybe (mapM $ costfulPostingIfMatchesBothAmounts ca1 ca2) costps
-            -- All other postings which match at least one of the conversion posting pair
-            matchingOtherPs = mapMaybe (mapM $ addCostIfMatchesOneAmount ca1 ca2) otherps
+            -- All other postings which match at least one of the conversion posting pair.
+            -- Add a corresponding cost to these postings, unless in dry run mode.
+            matchingOtherPs
+              | dryrun'   = [(n,(p, a)) | (n,p) <- otherps, let Just a = postingSingleAmount p]
+              | otherwise = mapMaybe (mapM $ addCostIfMatchesOneAmount ca1 ca2) otherps
 
         -- Annotate any errors with the conversion posting pair
         first (annotateWithPostings [cp1, cp2]) $
@@ -282,7 +290,7 @@ transactionInferCostsFromEquity acctTypes t = first (annotateErrorWithTransactio
                -- in the state, and return the transformation function with the new state.
                | [(np, (costp, _))] <- matchingCostPs
                , Just newcostps <- deleteIdx np costps
-                   -> Right (transformPostingF np costp, (newcostps, otherps))
+                   -> Right (transformPostingF np costp, (if dryrun' then costps else newcostps, otherps))
                -- If no costful postings match the conversion postings, but some
                -- of the costless postings match, check that the first such posting has a
                -- different amount from all the others, and if so add a cost to it,
@@ -292,7 +300,7 @@ transactionInferCostsFromEquity acctTypes t = first (annotateErrorWithTransactio
                , (np, (costp, amt)):nps <- matchingOtherPs
                , not $ any (amountMatches amt . snd . snd) nps
                , Just newotherps <- deleteIdx np otherps
-                   -> Right (transformPostingF np costp, (costps, newotherps))
+                   -> Right (transformPostingF np costp, (costps, if dryrun' then otherps else newotherps))
                -- Otherwise it's too ambiguous to make a guess, so return an error.
                | otherwise -> Left "There is not a unique posting which matches the conversion posting pair:"
 
@@ -315,14 +323,18 @@ transactionInferCostsFromEquity acctTypes t = first (annotateErrorWithTransactio
            | amountMatches (-a2) a -> Just (newp a1, a1)
            | otherwise             -> Nothing
 
-    hasCost p = isJust $ aprice =<< postingSingleAmount p
-    postingAmountNoCost p = case postingSingleAmount p of
+    -- Get the single-commodity costless amount from a conversion posting, or raise an error.
+    conversionPostingAmountNoCost p = case postingSingleAmount p of
         Just a@Amount{aprice=Nothing} -> Right a
-        _ -> Left $ annotateWithPostings [p] "The posting must only have a single amount with no cost"
+        Just Amount{aprice=Just _} -> Left $ annotateWithPostings [p] "Conversion postings must not have a cost:"
+        Nothing                    -> Left $ annotateWithPostings [p] "Conversion postings must have a single-commodity amount:"
+
+    -- Get a posting's amount if it is single-commodity.
     postingSingleAmount p = case amountsRaw (pamount p) of
         [a] -> Just a
         _   -> Nothing
 
+    hasCost p = isJust $ aprice =<< postingSingleAmount p
     amountMatches a b = acommodity a == acommodity b && aquantity a == aquantity b
     isConversion p = M.lookup (paccount p) acctTypes == Just Conversion
 
