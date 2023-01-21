@@ -6,6 +6,7 @@ set -e
 INTERVAL="${1:-10}"
 
 LOCALBRANCH=master
+REMOTE=github
 REMOTECIBRANCH=simon
 REMOTEMAINBRANCH=master
 NUMRUNS=3
@@ -37,11 +38,11 @@ ciwait() {
 
 echo "latest local commits are:"
 gitlog
-echo "force-pushing $LOCALBRANCH to github/$REMOTECIBRANCH"
-git push -f github $LOCALBRANCH:$REMOTECIBRANCH
+echo "force-pushing $LOCALBRANCH to $REMOTE/$REMOTECIBRANCH"
+git push -f $REMOTE $LOCALBRANCH:$REMOTECIBRANCH
 ciwait
-echo "pushing CI-passing $LOCALBRANCH to $REMOTEMAINBRANCH"
-git push github $LOCALBRANCH:$REMOTEMAINBRANCH
-echo "latest commits on github/$REMOTEMAINBRANCH are:"
-gitlog github/$REMOTEMAINBRANCH
+echo "pushing CI-passing $LOCALBRANCH to $REMOTE/$REMOTEMAINBRANCH"
+git push $REMOTE $LOCALBRANCH:$REMOTEMAINBRANCH
+echo "latest commits on $REMOTE/$REMOTEMAINBRANCH are:"
+gitlog $REMOTE/$REMOTEMAINBRANCH
 echo "done"
