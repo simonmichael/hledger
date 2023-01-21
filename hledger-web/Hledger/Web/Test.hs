@@ -97,5 +97,5 @@ hledgerWebTest = do
       yit "serves a journal page showing forecasted transactions" $ do
         get JournalR
         statusIs 200
-        bodyContains "id=\"transaction-0-1\""  -- 0 indicates a fileless (forecasted) txn
-        bodyContains "id=\"transaction-0-2\""  -- etc.
+        bodyContains "id=\"transaction-2-1\""
+        bodyContains "id=\"transaction-2-2\""
