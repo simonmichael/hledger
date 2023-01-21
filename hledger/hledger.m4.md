@@ -3133,7 +3133,7 @@ and causes that posting to be generated.
 
 Most often there are two postings, so you'll want to set `account1` and `account2`.
 Typically `account1` is associated with the CSV file, and is set once with a top-level assignment,
-while `account2` is set based on each transaction's description, and in conditional blocks.
+while `account2` is set based on each transaction's description, in [conditional rules](#if-blocks).
 
 If a posting's account name is left unset but its amount is set (see below),
 a default account name will be chosen (like "expenses:unknown" or "income:unknown").
@@ -3702,6 +3702,14 @@ user specified.
 
 
 <a name="timeclock-format"></a>
+
+### Well factored rules
+
+Some things than can help reduce duplication and complexity in rules files:
+
+- Extracting common rules usable with multiple CSV files into a `common.rules`, and adding `include common.rules` to each CSV's rules file.
+
+- Splitting if blocks into smaller if blocks, extracting the frequently used parts.
 
 ## CSV rules examples
 
