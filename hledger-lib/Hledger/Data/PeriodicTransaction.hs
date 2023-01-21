@@ -61,6 +61,7 @@ instance Show PeriodicTransaction where
       ("ptperiodexpr=" ++ show ptperiodexpr)
       ("ptinterval=" ++ show ptinterval)
       ("ptspan=" ++ show (show ptspan))
+      ("ptsourcepos=" ++ show ptsourcepos)
       ("ptstatus=" ++ show (show ptstatus))
       ("ptcode=" ++ show ptcode)
       ("ptdescription=" ++ show ptdescription)
@@ -236,7 +237,8 @@ runPeriodicTransaction PeriodicTransaction{..} requestedspan =
     [ t{tdate=d} | (DateSpan (Just d) _) <- alltxnspans, spanContainsDate requestedspan d ]
   where
     t = nulltransaction{
-           tstatus      = ptstatus
+           tsourcepos   = ptsourcepos
+          ,tstatus      = ptstatus
           ,tcode        = ptcode
           ,tdescription = ptdescription
           ,tcomment     = ptcomment

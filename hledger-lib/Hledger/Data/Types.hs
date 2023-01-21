@@ -455,6 +455,7 @@ data PeriodicTransaction = PeriodicTransaction {
       ptinterval     :: Interval, -- ^ the interval at which this transaction recurs
       ptspan         :: DateSpan, -- ^ the (possibly unbounded) period during which this transaction recurs. Contains a whole number of intervals.
       --
+      ptsourcepos    :: (SourcePos, SourcePos),  -- ^ the file position where the period expression starts, and where the last posting ends
       ptstatus       :: Status,   -- ^ some of Transaction's fields
       ptcode         :: Text,
       ptdescription  :: Text,
@@ -467,6 +468,7 @@ nullperiodictransaction = PeriodicTransaction{
       ptperiodexpr   = ""
      ,ptinterval     = def
      ,ptspan         = def
+     ,ptsourcepos    = (SourcePos "" (mkPos 1) (mkPos 1), SourcePos "" (mkPos 1) (mkPos 1))
      ,ptstatus       = Unmarked
      ,ptcode         = ""
      ,ptdescription  = ""
