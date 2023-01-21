@@ -235,90 +235,90 @@ type IdxPosting = (Int, Posting)
 transactionInferCostsFromEquity :: M.Map AccountName AccountType -> Transaction -> Either String Transaction
 transactionInferCostsFromEquity acctTypes t = first (annotateErrorWithTransaction t . T.unpack) $ do
     (conversionPairs, stateps) <- partitionPs npostings
-    f <- transformIndexedPostingsF addPricesToPostings conversionPairs stateps
+    f <- transformIndexedPostingsF addCostsToPostings conversionPairs stateps
     return t{tpostings = map (snd . f) npostings}
   where
     -- Include indices for postings
     npostings = zip [0..] $ tpostings t
     transformIndexedPostingsF f = evalStateT . fmap (appEndo . foldMap Endo) . traverse f
 
-    -- Sort postings into pairs of conversion postings, transaction price postings, and other postings
+    -- Sort postings into pairs of conversion postings, costful postings, and other postings
     partitionPs = fmap fst . foldrM select (([], ([], [])), Nothing)
     select np@(_, p) ((cs, others@(ps, os)), Nothing)
       | isConversion p = Right ((cs, others),      Just np)
-      | hasPrice p     = Right ((cs, (np:ps, os)), Nothing)
+      | hasCost p     = Right ((cs, (np:ps, os)), Nothing)
       | otherwise      = Right ((cs, (ps, np:os)), Nothing)
     select np@(_, p) ((cs, others), Just lst)
       | isConversion p = Right (((lst, np):cs, others), Nothing)
       | otherwise      = Left "Conversion postings must occur in adjacent pairs"
 
     -- Given a pair of indexed conversion postings, and a state consisting of lists of
-    -- priced and unpriced non-conversion postings, create a function which adds transaction
-    -- prices to the posting which matches the conversion postings if necessary, and tags
-    -- the conversion and matched postings. Then update the state by removing the matched
-    -- postings. If there are no matching postings or too much ambiguity, return an error
-    -- string annotated with the conversion postings.
-    addPricesToPostings :: (IdxPosting, IdxPosting)
+    -- costful and costless non-conversion postings, create a function which adds a conversion cost
+    -- to the posting which matches the conversion postings if necessary,
+    -- and tags the conversion and matched postings. Then update the state by removing the
+    -- matched postings. If there are no matching postings or too much ambiguity,
+    -- return an error string annotated with the conversion postings.
+    addCostsToPostings :: (IdxPosting, IdxPosting)
                         -> StateT ([IdxPosting], [IdxPosting]) (Either Text) (IdxPosting -> IdxPosting)
-    addPricesToPostings ((n1, cp1), (n2, cp2)) = StateT $ \(priceps, otherps) -> do
+    addCostsToPostings ((n1, cp1), (n2, cp2)) = StateT $ \(costps, otherps) -> do
         -- Get the two conversion posting amounts, if possible
-        ca1 <- postingAmountNoPrice cp1
-        ca2 <- postingAmountNoPrice cp2
-        let -- The function to add transaction prices and tag postings in the indexed list of postings
-            transformPostingF np pricep (n,p) =
-              (n, if | n == np            -> pricep `postingAddTags` [("_price-matched","")]
+        ca1 <- postingAmountNoCost cp1
+        ca2 <- postingAmountNoCost cp2
+        let -- The function to add costs and tag postings in the indexed list of postings
+            transformPostingF np costp (n,p) =
+              (n, if | n == np            -> costp `postingAddTags` [("_price-matched","")]
                      | n == n1 || n == n2 -> p      `postingAddTags` [("_conversion-matched","")]
                      | otherwise          -> p)
-            -- All priced postings which match the conversion posting pair
-            matchingPricePs = mapMaybe (mapM $ pricedPostingIfMatchesBothAmounts ca1 ca2) priceps
+            -- All costful postings which match the conversion posting pair
+            matchingCostPs = mapMaybe (mapM $ costfulPostingIfMatchesBothAmounts ca1 ca2) costps
             -- All other postings which match at least one of the conversion posting pair
-            matchingOtherPs = mapMaybe (mapM $ addPriceIfMatchesOneAmount ca1 ca2) otherps
+            matchingOtherPs = mapMaybe (mapM $ addCostIfMatchesOneAmount ca1 ca2) otherps
 
         -- Annotate any errors with the conversion posting pair
         first (annotateWithPostings [cp1, cp2]) $
-            if -- If a single transaction price posting matches the conversion postings,
-               -- delete it from the list of priced postings in the state, delete the
-               -- first matching unpriced posting from the list of non-priced postings
+            if -- If a single costful posting matches the conversion postings,
+               -- delete it from the list of costful postings in the state, delete the
+               -- first matching costless posting from the list of costless postings
                -- in the state, and return the transformation function with the new state.
-               | [(np, (pricep, _))] <- matchingPricePs
-               , Just newpriceps <- deleteIdx np priceps
-                   -> Right (transformPostingF np pricep, (newpriceps, otherps))
-               -- If no transaction price postings match the conversion postings, but some
-               -- of the unpriced postings match, check that the first such posting has a
-               -- different amount from all the others, and if so add a transaction price to
-               -- it, then delete it from the list of non-priced postings in the state, and
-               -- return the transformation function with the new state.
-               | [] <- matchingPricePs
-               , (np, (pricep, amt)):nps <- matchingOtherPs
+               | [(np, (costp, _))] <- matchingCostPs
+               , Just newcostps <- deleteIdx np costps
+                   -> Right (transformPostingF np costp, (newcostps, otherps))
+               -- If no costful postings match the conversion postings, but some
+               -- of the costless postings match, check that the first such posting has a
+               -- different amount from all the others, and if so add a cost to it,
+               -- then delete it from the list of costless postings in the state,
+               -- and return the transformation function with the new state.
+               | [] <- matchingCostPs
+               , (np, (costp, amt)):nps <- matchingOtherPs
                , not $ any (amountMatches amt . snd . snd) nps
                , Just newotherps <- deleteIdx np otherps
-                   -> Right (transformPostingF np pricep, (priceps, newotherps))
+                   -> Right (transformPostingF np costp, (costps, newotherps))
                -- Otherwise it's too ambiguous to make a guess, so return an error.
                | otherwise -> Left "There is not a unique posting which matches the conversion posting pair:"
 
-    -- If a posting with transaction price matches both the conversion amounts, return it along
+    -- If a posting with cost matches both the conversion amounts, return it along
     -- with the matching amount which must be present in another non-conversion posting.
-    pricedPostingIfMatchesBothAmounts :: Amount -> Amount -> Posting -> Maybe (Posting, Amount)
-    pricedPostingIfMatchesBothAmounts a1 a2 p = do
+    costfulPostingIfMatchesBothAmounts :: Amount -> Amount -> Posting -> Maybe (Posting, Amount)
+    costfulPostingIfMatchesBothAmounts a1 a2 p = do
         a@Amount{aprice=Just _} <- postingSingleAmount p
         if | amountMatches (-a1) a && amountMatches a2 (amountCost a) -> Just (p, -a2)
            | amountMatches (-a2) a && amountMatches a1 (amountCost a) -> Just (p, -a1)
            | otherwise -> Nothing
 
-    -- Add a transaction price to a posting if it matches (negative) one of the
-    -- supplied conversion amounts, adding the other amount as the price
-    addPriceIfMatchesOneAmount :: Amount -> Amount -> Posting -> Maybe (Posting, Amount)
-    addPriceIfMatchesOneAmount a1 a2 p = do
+    -- Add a cost to a posting if it matches (negative) one of the
+    -- supplied conversion amounts, adding the other amount as the cost.
+    addCostIfMatchesOneAmount :: Amount -> Amount -> Posting -> Maybe (Posting, Amount)
+    addCostIfMatchesOneAmount a1 a2 p = do
         a <- postingSingleAmount p
-        let newp price = p{pamount = mixedAmount a{aprice = Just $ TotalPrice price}}
+        let newp cost = p{pamount = mixedAmount a{aprice = Just $ TotalPrice cost}}
         if | amountMatches (-a1) a -> Just (newp a2, a2)
            | amountMatches (-a2) a -> Just (newp a1, a1)
            | otherwise             -> Nothing
 
-    hasPrice p = isJust $ aprice =<< postingSingleAmount p
-    postingAmountNoPrice p = case postingSingleAmount p of
+    hasCost p = isJust $ aprice =<< postingSingleAmount p
+    postingAmountNoCost p = case postingSingleAmount p of
         Just a@Amount{aprice=Nothing} -> Right a
-        _ -> Left $ annotateWithPostings [p] "The posting must only have a single amount with no transaction price"
+        _ -> Left $ annotateWithPostings [p] "The posting must only have a single amount with no cost"
     postingSingleAmount p = case amountsRaw (pamount p) of
         [a] -> Just a
         _   -> Nothing
@@ -333,6 +333,7 @@ transactionInferCostsFromEquity acctTypes t = first (annotateErrorWithTransactio
     -- still be more efficient than using a Map or another data structure. Even monster
     -- transactions with up to 10 postings, which are generally not a good
     -- idea, are still too small for there to be an advantage.
+    -- XXX shouldn't assume transactions have few postings
     deleteIdx n = deleteUniqueMatch ((n==) . fst)
     deleteUniqueMatch p (x:xs) | p x       = if any p xs then Nothing else Just xs
                                | otherwise = (x:) <$> deleteUniqueMatch p xs
