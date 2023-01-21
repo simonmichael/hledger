@@ -37,11 +37,11 @@ ciwait() {
 
 echo "latest local commits are:"
 gitlog
-echo "force-pushing to github/$REMOTECIBRANCH"
+echo "force-pushing $LOCALBRANCH to github/$REMOTECIBRANCH"
 git push -f github $LOCALBRANCH:$REMOTECIBRANCH
 ciwait
-echo "pushing to $REMOTEMAINBRANCH"
-git push github $REMOTEMAINBRANCH
+echo "pushing CI-passing $LOCALBRANCH to $REMOTEMAINBRANCH"
+git push github $LOCALBRANCH:$REMOTEMAINBRANCH
 echo "latest commits on github/$REMOTEMAINBRANCH are:"
 gitlog github/$REMOTEMAINBRANCH
 echo "done"
