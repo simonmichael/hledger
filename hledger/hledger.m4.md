@@ -1769,6 +1769,12 @@ They are written as the word `account` followed by a hledger-style [account name
 account assets:bank:checking
 ```
 
+Note, however, that account names declared in the account directive are stripped of surrounding brackets and parentheses. 
+The above directive is thus equivalent to this:
+```journal 
+account (assets:bank:checking)
+```
+
 ### Account comments
 
 Text following **two or more spaces** and `;` at the end of an account directive line,

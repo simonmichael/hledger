@@ -376,5 +376,21 @@ tests_AccountName = testGroup "AccountName" [
     accountNameInferType "revenues"          @?= Just Revenue
     accountNameInferType "revenue"           @?= Just Revenue
     accountNameInferType "income"            @?= Just Revenue
+  ,testCase "joinAccountNames" $ do
+    joinAccountNames "assets" "cash"     @?= "assets:cash"
+    joinAccountNames "assets:cash" "a"   @?= "assets:cash:a"
+    joinAccountNames "assets" "(cash)"   @?= "(assets:cash)"
+    joinAccountNames "assets" "[cash]"   @?= "[assets:cash]"
+    joinAccountNames "(assets)" "cash"   @?= "(assets:cash)"
+    joinAccountNames "" "assets"         @?= "assets"
+    joinAccountNames "assets" ""         @?= "assets"
+  ,testCase "concatAccountNames" $ do
+    concatAccountNames ["assets", "cash"]   @?= "assets:cash"
+    concatAccountNames ["assets:cash", "a"] @?= "assets:cash:a"
+    concatAccountNames ["assets", "(cash)"] @?= "(assets:cash)"
+    concatAccountNames ["assets", "[cash]"] @?= "[assets:cash]"
+    concatAccountNames ["(assets)", "cash"] @?= "(assets:cash)"
+    concatAccountNames ["", "assets"]       @?= ":assets"
+    concatAccountNames ["assets", ""]       @?= "assets:"
  ]
 
