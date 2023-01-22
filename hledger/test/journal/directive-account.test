@@ -68,6 +68,29 @@ account Expenses:Food
 $ hledger -f- accounts
 Expenses:Food
 
+# 5. It unbrackets account names.
+<
+account (a)
+account (a:aa)
+account (a:(aaa))
+account [b]
+account [b:bb]
+account [b:[bbb]]
+account [([c])]
+account [([c:cc])]
+account [([c:[ccc]])]
+
+$ hledger -f- accounts
+a
+a:aa
+a:(aaa)
+b
+b:bb
+b:[bbb]
+c
+c:cc
+c:[ccc]
+
 # TODO
 # a trailing : should give a clear error
 # 2009/1/1
