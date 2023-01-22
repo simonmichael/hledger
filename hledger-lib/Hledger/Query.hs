@@ -8,6 +8,7 @@ transactions..)  by various criteria, and a SimpleTextParser for query expressio
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE ViewPatterns       #-}
+{-# LANGUAGE TupleSections      #-}
 
 module Hledger.Query (
   -- * Query and QueryOpt
@@ -19,7 +20,7 @@ module Hledger.Query (
   generatedTransactionTag,
   -- * parsing
   parseQuery,
-  parseQueryList,
+  parseQueries,
   parseQueryTerm,
   parseAccountType,
   -- * modifying
@@ -82,8 +83,9 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day, fromGregorian )
 import Safe (readDef, readMay, maximumByMay, maximumMay, minimumMay)
-import Text.Megaparsec (between, noneOf, sepBy)
+import Text.Megaparsec (between, noneOf, sepBy, try, (<?>), notFollowedBy)
 import Text.Megaparsec.Char (char, string)
+
 
 import Hledger.Utils hiding (words')
 import Hledger.Data.Types
@@ -154,23 +156,13 @@ data QueryOpt = QueryOptInAcctOnly AccountName  -- ^ show an account register fo
 -- showAccountMatcher _ = Nothing
 
 
--- | A version of parseQueryList which acts on a single Text of
--- space-separated terms.
+-- | Parses a query from the string containing a query expression.
+-- Parts of the query expression are either (sub-)queries or query options.
 --
 -- The usual shell quoting rules are assumed. When a pattern contains
 -- whitespace, it (or the whole term including prefix) should be enclosed
--- in single or double quotes.
---
--- >>> parseQuery nulldate "expenses:dining out"
--- Right (Or [Acct (RegexpCI "expenses:dining"),Acct (RegexpCI "out")],[])
---
--- >>> parseQuery nulldate "\"expenses:dining out\""
--- Right (Acct (RegexpCI "expenses:dining out"),[])
-parseQuery :: Day -> T.Text -> Either String (Query,[QueryOpt])
-parseQuery d = parseQueryList d . words'' queryprefixes
-
--- | Convert a list of query expression containing to a query and zero
--- or more query options; or return an error message if query parsing fails.
+-- in ESCAPED single or double quotes or the whole term should be between
+-- parentheses to denotate a subquery.
 --
 -- A query term is either:
 --
@@ -191,30 +183,121 @@ parseQuery d = parseQueryList d . words'' queryprefixes
 -- Period expressions may contain relative dates, so a reference date is
 -- required to fully parse these.
 --
+-- >>> parseQuery nulldate "expenses:dining out"
+-- Right (Or [Acct (RegexpCI "expenses:dining"),Acct (RegexpCI "out")],[])
+--
+-- >>> parseQuery nulldate "\"expenses:dining out\""
+-- Right (Acct (RegexpCI "expenses:dining out"),[])
+parseQuery :: Day -> T.Text -> Either String (Query,[QueryOpt])
+parseQuery = parseBooleanQuery
+
+-- | Variant of parseQuery that recombines a list of queries before parsing.
+--
+-- This function succeeds the parseQueryList function. The list of expressions
+-- is simply concatenated before passing to parseQuery, as the list might contain
+-- keywords such as AND that cannot be separately interpreted as a query.
+parseQueries :: Day -> [T.Text] -> Either String (Query,[QueryOpt])
+parseQueries d ts = parseQuery d $ T.intercalate " " ts
+
+-- | Parses a boolean query expression.
+--
+-- Boolean queries combine smaller queries into larger ones. The boolean operators
+-- made available through this function are "NOT e", "e AND e", "e OR e", and "e e".
+-- Query options defined in multiple sub-queries are simply combined by concatenating
+-- all options into one list.
+--
+-- Boolean operators in queries take precedence over one another. For instance, the
+-- prefix-operator "NOT e" is always parsed before "e AND e", "e AND e" before "e OR e",
+-- and "e OR e" before "e e".
+--
+-- The space-separation operator is left as it was the default before the introduction of
+-- boolean operators. It takes the behaviour defined in the interpretQueryList function,
+-- whereas the NOT, OR, and AND operators simply wrap a list of queries with the associated
+--
+--
+-- The result of this function is either an error encountered during parsing of the
+-- expression or the combined query and query options.
+--
+-- >>> parseBooleanQuery nulldate "expenses:dining AND out"
+-- Right (And [Acct (RegexpCI "expenses:dining"),Acct (RegexpCI "out")],[])
+--
+-- >>> parseBooleanQuery nulldate "expenses:dining AND desc:a OR desc:b"
+-- Right (Or [And [Acct (RegexpCI "expenses:dining"),Desc (RegexpCI "a")],Desc (RegexpCI "b")],[])
+parseBooleanQuery :: Day -> T.Text -> Either String (Query,[QueryOpt])
+parseBooleanQuery d t = either (Left . ("failed to parse query:" <>) . customErrorBundlePretty) Right $ parsewith allQueriesP t
+  where
+    allQueriesP  :: SimpleTextParser (Query, [QueryOpt])
+    allQueriesP  = either (Any,) id <$> spacedQueriesP
+
+    regexP       :: SimpleTextParser T.Text
+    regexP       = choice'
+      [ stripquotes . T.pack <$> between (char '\'') (char '\'') (many $ noneOf ("'" :: [Char])),
+        stripquotes . T.pack <$> between (char '"') (char '"') (many $ noneOf ("\"" :: [Char])),
+        T.pack <$> (notFollowedBy keywordSpaceP >> (many $ noneOf (") \n\r" :: [Char]))) ]
+    queryPrefixP :: SimpleTextParser T.Text
+    queryPrefixP = (string "not:" <> (fromMaybe "" <$> optional queryPrefixP))
+               <|> choice' (string <$> queryprefixes)
+               <?> "query prefix"
+    queryTermP   :: SimpleTextParser (Either [QueryOpt] (Query, [QueryOpt]))
+    queryTermP   = do
+      prefix <- optional queryPrefixP
+      queryRegex <- regexP
+
+      case parseQueryTerm d (fromMaybe "" prefix <> queryRegex) of
+        Right q -> case q of
+          Right opt -> return $ Left [opt]
+          Left query -> return $ Right (query, [])
+        Left err -> error' err -- PARTIAL:
+
+    keywordSpaceP :: SimpleTextParser T.Text
+    keywordSpaceP = choice' ["NOT ", "AND ", "OR "]
+
+    parQueryP,notQueryP :: SimpleTextParser (Either [QueryOpt] (Query, [QueryOpt]))
+    parQueryP = between (char '(' >> skipNonNewlineSpaces)
+                        (try $ skipNonNewlineSpaces >> char ')')
+                        spacedQueriesP
+            <|> queryTermP
+    notQueryP = (maybe id (\_ (Right (q, qopts)) -> Right (Not q, qopts)) <$> optional (string "NOT" >> skipNonNewlineSpaces1)) <*> parQueryP
+
+    andQueriesP,orQueriesP,spacedQueriesP :: SimpleTextParser (Either [QueryOpt] (Query, [QueryOpt]))
+    andQueriesP    = nArityOp And <$> notQueryP `sepBy` (try $ skipNonNewlineSpaces >> string "AND" >> skipNonNewlineSpaces1)
+    orQueriesP     = nArityOp Or <$> andQueriesP `sepBy` (try $ skipNonNewlineSpaces >> string "OR" >> skipNonNewlineSpaces1)
+    spacedQueriesP = nArityOp interpretQueryList <$> orQueriesP `sepBy` skipNonNewlineSpaces1
+
+    nArityOp       :: ([Query] -> Query) -> [Either [QueryOpt] (Query, [QueryOpt])] -> Either [QueryOpt] (Query, [QueryOpt])
+    nArityOp f res = let (qoptss, results) = partitionEithers res
+                         (qs, qoptss')     = unzip results
+                         qoptss''          = concat qoptss <> concat qoptss'
+                      in case qs of
+                         []     -> Left qoptss''
+                         (q:[]) -> Right (simplifyQuery q, qoptss'')
+                         _      -> Right (simplifyQuery $ f qs, qoptss'')
+
+-- | Convert a list of space-separated queries to a single query
+--
 -- Multiple terms are combined as follows:
 -- 1. multiple account patterns are OR'd together
 -- 2. multiple description patterns are OR'd together
 -- 3. multiple status patterns are OR'd together
 -- 4. then all terms are AND'd together
-parseQueryList :: Day -> [T.Text] -> Either String (Query, [QueryOpt])
-parseQueryList d termstrs = do
-  eterms <- mapM (parseQueryTerm d) termstrs
-  let (pats, opts) = partitionEithers eterms
-      (descpats, pats') = partition queryIsDesc pats
-      (acctpats, pats'') = partition queryIsAcct pats'
-      (statuspats, otherpats) = partition queryIsStatus pats''
-      q = simplifyQuery $ And $ [Or acctpats, Or descpats, Or statuspats] ++ otherpats
-  Right (q, opts)
-
+interpretQueryList :: [Query] -> Query
+interpretQueryList pats = q
+  where
+    (descpats, pats') = partition queryIsDesc pats
+    (acctpats, pats'') = partition queryIsAcct pats'
+    (statuspats, otherpats) = partition queryIsStatus pats''
+    q = simplifyQuery $ And $ [Or acctpats, Or descpats, Or statuspats] ++ otherpats
+  
 -- XXX
 -- | Quote-and-prefix-aware version of words - don't split on spaces which
 -- are inside quotes, including quotes which may have one of the specified
 -- prefixes in front, and maybe an additional not: prefix in front of that.
 words'' :: [T.Text] -> T.Text -> [T.Text]
-words'' prefixes = fromparse . parsewith maybeprefixedquotedphrases -- XXX
-    where
-      maybeprefixedquotedphrases :: SimpleTextParser [T.Text]
-      maybeprefixedquotedphrases = choice' [prefixedQuotedPattern, singleQuotedPattern, doubleQuotedPattern, patterns] `sepBy` skipNonNewlineSpaces1
+words'' prefixes = fromparse . parsewith maybePrefixedQuotedPhrases -- XXX
+   where
+      maybePrefixedQuotedPhrases :: SimpleTextParser [T.Text]
+      maybePrefixedQuotedPhrases = choice' [prefixedQuotedPattern, singleQuotedPattern, doubleQuotedPattern, patterns] `sepBy`
+          (notFollowedBy (skipNonNewlineSpaces >> char ')') >> skipNonNewlineSpaces1)
       prefixedQuotedPattern :: SimpleTextParser T.Text
       prefixedQuotedPattern = do
         not' <- fromMaybe "" `fmap` (optional $ string "not:")
@@ -846,6 +929,22 @@ tests_Query = testGroup "Query" [
      parseQuery nulldate "desc:'x x'"                                  @?= Right (Desc $ toRegexCI' "x x", [])
      parseQuery nulldate "'a a' 'b"                                    @?= Right (Or [Acct $ toRegexCI' "a a",Acct $ toRegexCI' "'b"], [])
      parseQuery nulldate "\""                                          @?= Right (Acct $ toRegexCI' "\"", [])
+
+  ,testCase "parseBooleanQuery" $ do
+     parseBooleanQuery nulldate "(tag:'atag=a')"     @?= Right (Tag (toRegexCI' "atag") (Just $ toRegexCI' "a"), [])
+     parseBooleanQuery nulldate "(  tag:\"atag=a\"  )"     @?= Right (Tag (toRegexCI' "atag") (Just $ toRegexCI' "a"), [])
+     parseBooleanQuery nulldate "(acct:'expenses:food')"     @?= Right (Acct $ toRegexCI' "expenses:food", [])
+     parseBooleanQuery nulldate "(((acct:'expenses:food')))" @?= Right (Acct $ toRegexCI' "expenses:food", [])
+     parseBooleanQuery nulldate "acct:'expenses:food' AND desc:'b'" @?= Right (And [Acct $ toRegexCI' "expenses:food", Desc $ toRegexCI' "b"], [])
+     parseBooleanQuery nulldate "((desc:'a') AND (desc:'b') OR (desc:'c'))" @?= Right (Or [And [Desc $ toRegexCI' "a", Desc $ toRegexCI' "b"], Desc $ toRegexCI' "c"], [])
+     parseBooleanQuery nulldate "((desc:'a') OR (desc:'b') AND (desc:'c'))" @?= Right (Or [Desc $ toRegexCI' "a", And [Desc $ toRegexCI' "b", Desc $ toRegexCI' "c"]], [])
+     parseBooleanQuery nulldate "((desc:'a') AND desc:'b' AND (desc:'c'))" @?= Right (And [Desc $ toRegexCI' "a", Desc $ toRegexCI' "b", Desc $ toRegexCI' "c"], [])
+     parseBooleanQuery nulldate "(NOT (desc:'a') AND (desc:'b'))" @?= Right (And [Not $ Desc $ toRegexCI' "a", Desc $ toRegexCI' "b"], [])
+     parseBooleanQuery nulldate "((desc:'a') AND (NOT desc:'b'))" @?= Right (And [Desc $ toRegexCI' "a", Not $ Desc $ toRegexCI' "b"], [])
+     parseBooleanQuery nulldate "(desc:'a' AND desc:'b')" @?= Right (And [Desc $ toRegexCI' "a", Desc $ toRegexCI' "b"], [])
+     parseBooleanQuery nulldate "(acct:'a' acct:'b')" @?= Right (Or [Acct $ toRegexCI' "a", Acct $ toRegexCI' "b"], [])
+     parseBooleanQuery nulldate " acct:'a' acct:'b'" @?= Right (Or [Acct $ toRegexCI' "a", Acct $ toRegexCI' "b"], [])
+     parseBooleanQuery nulldate "not:a" @?= Right (Not $ Acct $ toRegexCI' "a", [])
 
   ,testCase "words''" $ do
       (words'' [] "a b")                   @?= ["a","b"]

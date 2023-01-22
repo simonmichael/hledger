@@ -36,7 +36,7 @@ tags CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
     values   = boolopt "values" rawopts
     parsed   = boolopt "parsed" rawopts
     empty    = empty_ $ _rsReportOpts rspec
-  query <- either usageError (return . fst) $ parseQueryList today querystr
+  query <- either usageError (return . fst) $ parseQueries today querystr
   let
     q = simplifyQuery $ And [queryFromFlags $ _rsReportOpts rspec, query]
     matchedtxns = filter (q `matchesTransaction`) $ jtxns $ journalApplyValuationFromOpts rspec j
