@@ -4631,11 +4631,11 @@ These are most often [account name](#account-names) substrings:
 
 - Terms with spaces or other [special characters](#special-characters) should be enclosed in quotes:
 
-  `"personal care"`
+  `'personal care'`
 
 - [Regular expressions](#regular-expressions) are also supported:
 
-  `"^expenses\b" "accounts (payable|receivable)"`
+  `'^expenses\b' 'accounts (payable|receivable)'`
 
 - Add a query type prefix to match other parts of the data:
 
@@ -4644,6 +4644,15 @@ These are most often [account name](#account-names) substrings:
 - Add a `not:` prefix to negate a term:
 
   `not:cur:USD`
+
+When quotes are used to escape spaces and/or special characters, the entire query should be enclosed with quotes as well:
+
+   `"'^expenses\b' 'accounts (payable|receivable)\""`
+
+Note that we use double quotes to escape the query and single quotes to escape the individual parts of the query.
+Escaping parts of the query with double quotes would also be possible, but those quotes would need to be escaped to be part of the query:
+
+   `"'^expenses\b' \"accounts (payable|receivable)\""`
 
 ## Query types
 
@@ -4730,7 +4739,7 @@ tells hledger-web to show the transaction register for an account.)
 
 ## Combining query terms
 
-When given multiple query terms, most commands select things which match:
+When given multiple space-separated query terms, most commands select things which match:
 
 - any of the description terms AND
 - any of the account terms AND
@@ -4744,25 +4753,25 @@ The [print](#print) command is a little different, showing transactions which:
 - have no postings matching any of the negative account terms AND
 - match all the other terms.
 
-Although these fixed rules are enough for many needs,
-we do not support full boolean expressions ([#203](https://github.com/simonmichael/hledger/issues/203)),
-(and you should not write AND or OR in your queries).
-This makes certain queries hard to express, but here are some tricks that can help:
+We also support more complex boolean queries.
+This allows one to combine queries using one of three operators:
+AND, OR, and NOT, where NOT is different syntax for 'not:'.
 
-1. Use a doubled `not:` prefix.
-    Eg, to print only the food expenses paid with cash:
+Examples of such queries are:
 
-    ```shell
-    $ hledger print food not:not:cash
-    ```
+- Match transactions with 'cool' in the description AND with the 'A' tag
 
-2. Or pre-filter the transactions with `print`, 
-   piping the result into a second hledger command
-   (with balance assertions disabled):
+  `desc:cool AND tag:A`
 
-    ```shell
-    $ hledger print cash | hledger -f- -I balance food
-    ```
+- Match transactions NOT to the 'expenses:food' account OR with the 'A' tag
+
+  `NOT expenses:food OR tag:A`
+
+- Match transactions NOT involving the 'expenses:food' account OR 
+  with the 'A' tag AND involving the 'expenses:drink' account.
+  (the AND is implicitly added by space-separation, following the rules above)
+
+  `expenses:food OR (tag:A expenses:drink)`
 
 ## Queries and command options
 

@@ -945,6 +945,7 @@ tests_Query = testGroup "Query" [
      parseBooleanQuery nulldate "(acct:'a' acct:'b')" @?= Right (Or [Acct $ toRegexCI' "a", Acct $ toRegexCI' "b"], [])
      parseBooleanQuery nulldate " acct:'a' acct:'b'" @?= Right (Or [Acct $ toRegexCI' "a", Acct $ toRegexCI' "b"], [])
      parseBooleanQuery nulldate "not:a" @?= Right (Not $ Acct $ toRegexCI' "a", [])
+     parseBooleanQuery nulldate "expenses:food OR (tag:A expenses:drink)" @?= Right (Or [Acct $ toRegexCI' "expenses:food", And [Acct $ toRegexCI' "expenses:drink", Tag (toRegexCI' "A") Nothing]], [])
 
   ,testCase "words''" $ do
       (words'' [] "a b")                   @?= ["a","b"]
