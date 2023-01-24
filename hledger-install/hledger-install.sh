@@ -6,6 +6,12 @@
 #set -e  # causes trouble, https://github.com/simonmichael/hledger/issues/714
 set -o pipefail
 
+# this script's name (can't use $0 when it's piped into bash)
+HLEDGER_INSTALL_TOOL=hledger-install.sh
+
+# this script's version
+HLEDGER_INSTALL_VERSION=20230124
+
 usage() {
   cat <<HERE
 hledger-install.sh version $HLEDGER_INSTALL_VERSION, installs hledger $HLEDGER_VERSION and related tools
@@ -40,12 +46,6 @@ HERE
 #TODO https://github.com/commercialhaskell/stack/issues/3055 https://github.com/haskell/hackage-security/issues/187
 #Updating package index Hackage (mirrored at https://s3.amazonaws.com/hackage.fpcomplete.com/) ...
 #   /Users/simon/.stack/indices/Hackage/hackage-security-lock: createDirectory: already exists (File exists)
-
-# this script's name (can't use $0 when it's piped into bash)
-HLEDGER_INSTALL_TOOL=hledger-install.sh
-
-# this script's version
-HLEDGER_INSTALL_VERSION=20221201
 
 # stackage snapshot to use when installing with stack.
 # You can try specifying a different stackage version here, or 
