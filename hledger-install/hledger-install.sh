@@ -85,10 +85,8 @@ HLEDGER_WEB_VERSION=1.28
 HLEDGER_INTEREST_VERSION=1.6.5
 HLEDGER_STOCKQUOTES_VERSION=0.1.2.1
 
-# the oldest version of stack that might possibly work:
-# XXX 2.3.1 is doubtful, retest; 2.5.1 ?
-STACK_MIN_VERSION=2.3.1
-
+# the oldest version of stack that might possibly work: perhaps 2.5.1
+STACK_MIN_VERSION=2.5.1
 
 
 # start of (most of) get-stack.sh, https://github.com/commercialhaskell/stack/blob/master/etc/scripts/get-stack.sh
