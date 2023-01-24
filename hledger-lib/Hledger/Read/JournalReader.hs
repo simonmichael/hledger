@@ -433,7 +433,7 @@ addAccountDeclaration (a,cmt,tags,pos) = do
   modify' (\j ->
              let
                decls = jdeclaredaccounts j
-               d     = (a, nullaccountdeclarationinfo{
+               d     = (textUnbracket a, nullaccountdeclarationinfo{
                               adicomment          = cmt
                              ,aditags             = tags
                              ,adideclarationorder = length decls + 1  -- gets renumbered when Journals are finalised or merged

@@ -53,6 +53,7 @@ where
 
 import Data.Char (digitToInt)
 import Data.Default (def)
+import Data.Maybe (catMaybes)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
@@ -175,12 +176,17 @@ isDoubleQuoted :: Text -> Bool
 isDoubleQuoted s =
   T.length s >= 2 && T.head s == '"' && T.last s == '"'
 
+-- | Remove all matching pairs of square brackets and parentheses from the text.
 textUnbracket :: Text -> Text
-textUnbracket s
-    | T.null s = s
-    | T.head s == '[' && T.last s == ']' = T.init $ T.tail s
-    | T.head s == '(' && T.last s == ')' = T.init $ T.tail s
-    | otherwise = s
+textUnbracket s = T.drop stripN $ T.dropEnd stripN s
+  where
+    matchBracket :: Char -> Maybe Char
+    matchBracket '(' = Just ')'
+    matchBracket '[' = Just ']'
+    matchBracket _ = Nothing
+
+    expectedClosingBrackets = catMaybes $ takeWhile (/= Nothing) $ matchBracket <$> T.unpack s
+    stripN = length $ takeWhile (uncurry (==)) $ zip expectedClosingBrackets $ reverse $ T.unpack s
 
 -- | Join several multi-line strings as side-by-side rectangular strings of the same height, top-padded.
 -- Treats wide characters as double width.
@@ -271,5 +277,18 @@ tests_Text = testGroup "Text" [
      quoteIfSpaced "mimi's cafe" @?= "\"mimi's cafe\""
      quoteIfSpaced "\"alex\" cafe" @?= "\"\\\"alex\\\" cafe\""
      quoteIfSpaced "le'shan's cafe" @?= "\"le'shan's cafe\""
-     quoteIfSpaced "\"be'any's\" cafe" @?= "\"\\\"be'any's\\\" cafe\""
+     quoteIfSpaced "\"be'any's\" cafe" @?= "\"\\\"be'any's\\\" cafe\"",
+   testCase "textUnbracket" $ do
+     textUnbracket "()" @?= ""
+     textUnbracket "(a)" @?= "a"
+     textUnbracket "(ab)" @?= "ab"
+     textUnbracket "[ab]" @?= "ab"
+     textUnbracket "([ab])" @?= "ab"
+     textUnbracket "(()b)" @?= "()b"
+     textUnbracket "[[]b]" @?= "[]b"
+     textUnbracket "[()b]" @?= "()b"
+     textUnbracket "[([]())]" @?= "[]()"
+     textUnbracket "[([[[()]]])]" @?= ""
+     textUnbracket "[([[[(]]])]" @?= "("
+     textUnbracket "[([[[)]]])]" @?= ")"
   ]

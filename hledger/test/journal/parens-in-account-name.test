@@ -1,13 +1,33 @@
+# Tests for parentheses and brackets in account names
+
+# 1. Parentheses in the middle of an account name are ignored.
 hledger -f - print
 <<<
 2009-01-01 x
   a  2
   b (b) b  -1
   c
+
 >>>
 2009-01-01 x
     a                     2
     b (b) b              -1
     c
+
+>>>=0
+
+# 2. Nested parentheses are removed and the outer brackets are used as the type.
+hledger -f- print
+<<<
+2023-01-01
+  [([(a)])]  1
+  [(b:bb)]   1
+  [b:[bbb]]
+
+>>>
+2023-01-01
+    [a]                     1
+    [b:bb]                  1
+    [b:[bbb]]
 
 >>>=0

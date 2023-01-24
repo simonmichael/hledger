@@ -1129,15 +1129,47 @@ But if you accidentally leave only one space (or tab) before the amount, the amo
 
 ## Account names
 
-Account names typically have several parts separated by a full colon, from
-which hledger derives a hierarchical chart of accounts. They can be
-anything you like, but in finance there are traditionally five top-level
-accounts: `assets`, `liabilities`, `revenue`, `expenses`, and `equity`.
+Accounts are the main way of categorising things in hledger.
+As in Double Entry Bookkeeping, they can represent real world accounts (such as a bank account),
+or more abstract categories such as "money borrowed from Frank" or "money spent on electricity".
 
-Account names may contain single spaces, eg: `assets:accounts receivable`.
-Because of this, they must always be followed by **two or more spaces** (or newline).
+You can use any account names you like, but we usually start with the traditional accounting categories,
+which in english are `assets`, `liabilities`, `equity`, `revenues`, `expenses`.
+(You might see these referred to as A, L, E, R, X for short.)
 
-Account names can be [aliased](#account-aliases).
+For more precise reporting, we usually divide the top level accounts into more detailed subaccounts,
+by writing a full colon between account name parts. 
+For example, from the account names `assets:bank:checking` and `expenses:food`, 
+hledger will infer this hierarchy of five accounts:
+```
+assets
+assets:bank
+assets:bank:checking
+expenses
+expenses:food
+```
+Shown as an outline, the hierarchical tree structure is more clear:
+```
+assets
+ bank
+  checking
+expenses
+ food
+```
+
+hledger reports can summarise the account tree to any depth,
+so you can go as deep as you like with subcategories,
+but keeping your account names relatively simple may be best when starting out.
+
+Account names may be capitalised or not; they may contain letters, numbers, symbols, or single spaces. 
+Note, when an account name and an amount are written on the same line,
+they must be separated by **two or more spaces** (or tabs).
+
+Parentheses or brackets enclosing the full account name indicate [virtual postings](#virtual-postings),
+described below.
+Parentheses or brackets internal to the account name have no special meaning.
+
+Account names can be altered temporarily or permanently by [account aliases](#account-aliases).
 
 ## Amounts
 
@@ -1767,6 +1799,12 @@ They are written as the word `account` followed by a hledger-style [account name
 
 ```journal
 account assets:bank:checking
+```
+
+Note, however, that account names declared in the account directive are stripped of surrounding brackets and parentheses. 
+The above directive is thus equivalent to this:
+```journal 
+account (assets:bank:checking)
 ```
 
 ### Account comments
