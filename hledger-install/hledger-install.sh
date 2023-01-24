@@ -873,7 +873,7 @@ quietly_run() {
   "$@" 2>/dev/null || true
 }
 
-# Try to install the executables of the given haskell package(s) and versions, 
+# Try to install the executables of the given haskell package versions,
 # using stack or cabal, logging the commands, continuing on failure.
 # It's assumed that either a new-enough stack or cabal-install is already installed.
 # stack is preferred.
@@ -885,6 +885,17 @@ try_install() {
     try_info stack install --install-ghc $RESOLVER "$@" --verbosity="$STACK_VERBOSITY"
   elif has_cmd cabal ; then
     try_info cabal install "$@" --verbose="$CABAL_VERBOSITY"
+  else
+    echo "Failed to install $@"
+  fi
+}
+
+# Try to install the given python package versions,
+# using pip, logging the commands, continuing on failure.
+try_install_py() {
+  cd  # ensure we install at user level, not in some project's env
+  if has_cmd pip ; then
+    try_info pip install --disable-pip-version-check -U "$@" $PIP_VERBOSITY
   else
     echo "Failed to install $@"
   fi
@@ -941,6 +952,7 @@ fi
 if [[ $VERBOSEFLAG ]]; then
   CABAL_VERBOSITY=1       # 0-3
   STACK_VERBOSITY=info    # silent, error, warn, info, debug
+  PIP_VERBOSITY=-v
 else
   CABAL_VERBOSITY=0
   # info shows too many warnings, but error hides install plan failure details,
@@ -949,7 +961,8 @@ else
   # Try error again. It looks much better, and it might have improved by now.
   # If there's trouble, they must rerun with --verbose.
   STACK_VERBOSITY=error
-  QUIET="true"
+  PIP_VERBOSITY=-q
+  QUIET=true
 fi
 
 date
