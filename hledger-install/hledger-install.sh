@@ -938,7 +938,12 @@ if [[ $VERBOSEFLAG ]]; then
   STACK_VERBOSITY=info    # silent, error, warn, info, debug
 else
   CABAL_VERBOSITY=0
-  STACK_VERBOSITY=info    # XXX info shows too many warnings, but error hides install plan failure details, and still shows warnings
+  # info shows too many warnings, but error hides install plan failure details,
+  # and still shows warnings.
+  # STACK_VERBOSITY=info
+  # Try error again. It looks much better, and it might have improved by now.
+  # If there's trouble, they must rerun with --verbose.
+  STACK_VERBOSITY=error
   QUIET="true"
 fi
 
