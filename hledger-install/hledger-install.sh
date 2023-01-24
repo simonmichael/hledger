@@ -1011,7 +1011,7 @@ fi
 
 if [[ $(cmpver "$(cmd_version hledger-ui 2>/dev/null)" $HLEDGER_UI_VERSION) = 2 ]]; then
   echo Installing hledger-ui
-try_install hledger-ui-$HLEDGER_UI_VERSION hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_LIB_VERSION $EXTRA_DEPS \
+  try_install hledger-ui-$HLEDGER_UI_VERSION hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_LIB_VERSION $EXTRA_DEPS \
     # brick-X.Y   # when hledger-iadd requires a special brick, use the same here to reduce rebuilding
   echo
 fi
