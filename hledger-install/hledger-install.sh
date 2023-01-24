@@ -8,16 +8,13 @@ set -o pipefail
 
 usage() {
   cat <<HERE
-hledger-install.sh version $HLEDGER_INSTALL_VERSION, installs hledger $HLEDGER_VERSION
+hledger-install.sh version $HLEDGER_INSTALL_VERSION, installs hledger $HLEDGER_VERSION and related tools
 
 hledger-install.sh [-f|--force-install-stack] [-s|--status] [-v|--verbose]
                    [--version] [-h|--help]
 
 This script builds and installs the current release of hledger and addons,
-on GHC-supporting POSIX system with bash installed, as reliably as possible.
-If cabal is installed and stack is not, and --force-install-stack is not used,
-it will use cabal; otherwise it will use stack, installing stack if needed.
-
+on a GHC-supporting POSIX system with bash installed, as reliably as possible.
 Run it the security-conscious way:
 
  curl -sSLO https://hledger.org/hledger-install.sh  # download
@@ -28,13 +25,15 @@ or the lazy way:
 
  curl -sSL https://hledger.org/hledger-install.sh | bash
 
-Note this can require up to 2G each of free RAM and disk space,
-and could take between a minute and an hour.
+The stack build tool is used by preference, and will be installed if needed.
+The cabal build tool will be used instead if it is installed and stack is not,
+and the -f/--force-install-stack flag is not used,
+
+Note building can require 2G or more of both memory and disk space,
+and could take up to an hour (subsequent runs will be faster).
 You can kill and rerun it without losing progress.
 
-To see what hledger tools are currently installed:
-
- bash hledger-install.sh -s
+To just show which hledger tools are currently installed, run with the -s flag.
 
 HERE
 }
