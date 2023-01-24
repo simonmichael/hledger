@@ -125,7 +125,7 @@ import Control.Monad.State.Strict hiding (fail)
 import Data.Bifunctor (bimap, second)
 import Data.Char (digitToInt, isDigit, isSpace)
 import Data.Decimal (DecimalRaw (Decimal), Decimal)
-import Data.Either (lefts, rights)
+import Data.Either (rights)
 import Data.Function ((&))
 import Data.Functor ((<&>), ($>))
 import Data.List (find, genericReplicate, union)
@@ -195,7 +195,7 @@ rawOptsToInputOpts day rawopts =
         -- Do we really need to do all this work just to get the requested end date? This is duplicating
         -- much of reportOptsToSpec.
         ropts = rawOptsToReportOpts day rawopts
-        argsquery = lefts . rights . map (parseQueryTerm day) $ querystring_ ropts
+        argsquery = map fst . rights . map (parseQueryTerm day) $ querystring_ ropts
         datequery = simplifyQuery . filterQuery queryIsDate . And $ queryFromFlags ropts : argsquery
 
         styles = either err id $ commodityStyleFromRawOpts rawopts

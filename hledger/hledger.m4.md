@@ -4631,11 +4631,11 @@ These are most often [account name](#account-names) substrings:
 
 - Terms with spaces or other [special characters](#special-characters) should be enclosed in quotes:
 
-  `'personal care'`
+  `"personal care"`
 
 - [Regular expressions](#regular-expressions) are also supported:
 
-  `'^expenses\b' 'accounts (payable|receivable)'`
+  `"^expenses\b" "accounts (payable|receivable)"`
 
 - Add a query type prefix to match other parts of the data:
 
@@ -4644,15 +4644,6 @@ These are most often [account name](#account-names) substrings:
 - Add a `not:` prefix to negate a term:
 
   `not:cur:USD`
-
-When quotes are used to escape spaces and/or special characters, the entire query should be enclosed with quotes as well:
-
-   `"'^expenses\b' 'accounts (payable|receivable)\""`
-
-Note that we use double quotes to escape the query and single quotes to escape the individual parts of the query.
-Escaping parts of the query with double quotes would also be possible, but those quotes would need to be escaped to be part of the query:
-
-   `"'^expenses\b' \"accounts (payable|receivable)\""`
 
 ## Query types
 
@@ -4753,7 +4744,7 @@ The [print](#print) command is a little different, showing transactions which:
 - have no postings matching any of the negative account terms AND
 - match all the other terms.
 
-We also support more complex boolean queries.
+We also support more complex boolean queries with the 'expr:' prefix.
 This allows one to combine queries using one of three operators:
 AND, OR, and NOT, where NOT is different syntax for 'not:'.
 
@@ -4761,17 +4752,17 @@ Examples of such queries are:
 
 - Match transactions with 'cool' in the description AND with the 'A' tag
 
-  `desc:cool AND tag:A`
+  `expr:"desc:cool AND tag:A"`
 
 - Match transactions NOT to the 'expenses:food' account OR with the 'A' tag
 
-  `NOT expenses:food OR tag:A`
+  `expr:"NOT expenses:food OR tag:A"`
 
 - Match transactions NOT involving the 'expenses:food' account OR 
   with the 'A' tag AND involving the 'expenses:drink' account.
   (the AND is implicitly added by space-separation, following the rules above)
 
-  `expenses:food OR (tag:A expenses:drink)`
+  `expr:"expenses:food OR (tag:A expenses:drink)"`
 
 ## Queries and command options
 

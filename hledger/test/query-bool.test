@@ -17,8 +17,8 @@
     expenses:food           2
     expenses:drink
 
-# 1. Simple queries can be encased in an arbitrary number of parentheses (1)
-$ hledger -f - print "(tag:'transactiontag=B')"
+# 1. Simple queries can be directly embedded in expression queries
+$ hledger -f - print expr:"tag:transactiontag=B"
 2022-01-01 Transaction 3  ; transactiontag:B
     assets:bank:main              -1  ; A comment
     expenses:drink
@@ -30,8 +30,8 @@ $ hledger -f - print "(tag:'transactiontag=B')"
 
 >=
 
-# 2. Simple queries can be encased in an arbitrary number of parentheses (3)
-$ hledger -f - print "(((tag:'transactiontag=B')))"
+# 2. Simple queries can be encased in an arbitrary number of parentheses
+$ hledger -f - print "expr:(((tag:transactiontag=B)))"
 2022-01-01 Transaction 3  ; transactiontag:B
     assets:bank:main              -1  ; A comment
     expenses:drink
@@ -44,7 +44,7 @@ $ hledger -f - print "(((tag:'transactiontag=B')))"
 >=
 
 # 3. Simple boolean AND query works
-$ hledger -f - print tag:'transactiontag=B' AND desc:3
+$ hledger -f - print expr:"tag:'transactiontag=B' AND desc:3"
 2022-01-01 Transaction 3  ; transactiontag:B
     assets:bank:main              -1  ; A comment
     expenses:drink
@@ -52,7 +52,7 @@ $ hledger -f - print tag:'transactiontag=B' AND desc:3
 >=
 
 # 4. AND + OR works without parentheses
-$ hledger -f - print tag:'transactiontag=B' AND desc:3 OR desc:1
+$ hledger -f - print expr:"tag:'transactiontag=B' AND desc:3 OR desc:1"
 2022-01-01 Transaction 1  ; transactiontag:A
     assets:bank:main              -1  ; A comment
     expenses:food
@@ -64,7 +64,7 @@ $ hledger -f - print tag:'transactiontag=B' AND desc:3 OR desc:1
 >=
 
 # 5. Unnecessary NOT + OR works without parentheses
-$ hledger -f - print NOT tag:'transactiontag=B' OR desc:1
+$ hledger -f - print expr:"NOT tag:'transactiontag=B' OR desc:1"
 2022-01-01 Transaction 1  ; transactiontag:A
     assets:bank:main              -1  ; A comment
     expenses:food
@@ -77,7 +77,7 @@ $ hledger -f - print NOT tag:'transactiontag=B' OR desc:1
 >=
 
 # 6. Necessary NOT + OR works without parentheses
-$ hledger -f - print NOT tag:'transactiontag=B' OR desc:4
+$ hledger -f - print expr:"NOT tag:'transactiontag=B' OR desc:4"
 2022-01-01 Transaction 1  ; transactiontag:A
     assets:bank:main              -1  ; A comment
     expenses:food
