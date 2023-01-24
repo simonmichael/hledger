@@ -381,7 +381,8 @@ accountdirectivep = do
   lift skipNonNewlineSpaces1
 
   -- the account name, possibly modified by preceding alias or apply account directives
-  acct <- modifiedaccountnamep
+  acct <- (notFollowedBy (char '(' <|> char '[') <?> "account name without brackets") >>
+          modifiedaccountnamep
 
   -- maybe a comment, on this and/or following lines
   (cmt, tags) <- lift transactioncommentp
@@ -433,7 +434,7 @@ addAccountDeclaration (a,cmt,tags,pos) = do
   modify' (\j ->
              let
                decls = jdeclaredaccounts j
-               d     = (textUnbracket a, nullaccountdeclarationinfo{
+               d     = (a, nullaccountdeclarationinfo{
                               adicomment          = cmt
                              ,aditags             = tags
                              ,adideclarationorder = length decls + 1  -- gets renumbered when Journals are finalised or merged

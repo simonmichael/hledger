@@ -1801,8 +1801,10 @@ They are written as the word `account` followed by a hledger-style [account name
 account assets:bank:checking
 ```
 
-Note, however, that account names declared in the account directive are stripped of surrounding brackets and parentheses. 
-The above directive is thus equivalent to this:
+Note, however, that accounts declared in account directives are not allowed to have surrounding
+brackets and parentheses, unlike accounts used in postings.
+So the following journal will not parse:
+
 ```journal 
 account (assets:bank:checking)
 ```
