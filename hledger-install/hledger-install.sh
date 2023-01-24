@@ -995,13 +995,13 @@ if has_stack ; then
   # install stack now (or if new enough, just print its precise version)
   ensure_stack
   echo "Updating stack's package db to see latest packages"
-  try_info stack update
+  try_info stack update --verbosity=error
 # else if cabal is installed, use cabal
 elif has_cmd cabal ; then
   echo "no stack installed, cabal $(cabal --numeric-version) installed; using cabal to install hledger in $HOME/.cabal/bin"
   echo Using $(cabal --version)  # unquoted to squash cabal version to one line
   # run cabal update to make sure it knows about latest packages
-  try_info cabal update
+  try_info cabal update -v0
 # else use stack
 else
   echo "no stack or cabal installed; stack will be installed and used to install hledger in $HOME/.local/bin"
