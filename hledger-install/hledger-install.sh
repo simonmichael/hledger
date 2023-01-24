@@ -69,10 +69,10 @@ hledger-web \
 "
 
 HLEDGER_OTHER_TOOLS="\
-hledger-iadd \
 hledger-interest \
 hledger-stockquotes \
 "
+# hledger-iadd not buildable with current libs, https://github.com/hpdeifel/hledger-iadd/issues/71
 
 # Latest hledger package versions.
 # Don't forget to also bump HLEDGER_INSTALL_VERSION above.
@@ -81,7 +81,7 @@ HLEDGER_VERSION=1.28
 HLEDGER_UI_VERSION=1.28
 HLEDGER_WEB_VERSION=1.28
 # addons:
-HLEDGER_IADD_VERSION=1.3.17
+#HLEDGER_IADD_VERSION=1.3.17
 HLEDGER_INTEREST_VERSION=1.6.5
 HLEDGER_STOCKQUOTES_VERSION=0.1.2.1
 
@@ -1024,13 +1024,15 @@ if [[ $(cmpver "$(cmd_version hledger-web 2>/dev/null)" $HLEDGER_WEB_VERSION) = 
   echo
 fi
 
-# Third-party addons. We might build these with an older version
-# of hledger[-lib], if their bounds have not been updated yet.
-if [[ $(cmpver "$(cmd_version hledger-iadd 2>/dev/null)" $HLEDGER_IADD_VERSION) = 2 ]]; then
-  echo Installing hledger-iadd
-  try_install hledger-iadd-$HLEDGER_IADD_VERSION hledger-lib-$HLEDGER_LIB_VERSION $EXTRA_DEPS
-  echo
-fi
+# Third-party addons.
+# We might have to build these with an older version of hledger,
+# if they have not been updated yet.
+
+# if [[ $(cmpver "$(cmd_version hledger-iadd 2>/dev/null)" $HLEDGER_IADD_VERSION) = 2 ]]; then
+#   echo Installing hledger-iadd
+#   try_install hledger-iadd-$HLEDGER_IADD_VERSION hledger-lib-$HLEDGER_LIB_VERSION $EXTRA_DEPS
+#   echo
+# fi
 
 if [[ $(cmpver "$(cmd_version hledger-interest 2>/dev/null)" $HLEDGER_INTEREST_VERSION) = 2 ]]; then
   echo Installing hledger-interest
