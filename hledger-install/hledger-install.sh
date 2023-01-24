@@ -638,9 +638,14 @@ pkg_install_pkgs() {
     fi
 }
 
-# Get installed Stack version, if any
-stack_version() {
+# Get installed Stack version, if any.
+stack_version_number() {
   stack --version | grep -o 'Version \([[:digit:]]\|\.\)\+'
+}
+
+# Get Stack's --version output, trimmed for sanity, if it is installed.
+stack_version_quiet() {
+  stack --version | grep -E -v '^(Compiled|- |$)'
 }
 
 # Get installed Stack's path
@@ -750,7 +755,7 @@ check_usr_local_bin_on_path() {
 # Check whether Stack is already installed, and print an error if it is.
 check_stack_installed() {
   if [ "$FORCE_INSTALL_STACK" != "true" ] && has_good_stack ; then
-    die "Stack $(stack_version) already appears to be installed at:
+    die "Stack $(stack_version_number) already appears to be installed at:
   $(stack_location)
 Use 'stack upgrade' or your OS's package manager to upgrade,
 or pass --force-install-stack to this script to install anyway."
@@ -814,7 +819,7 @@ ensure_stack() {
       exit 1
     fi
   fi
-  echo "Using stack $(stack --version)"
+  echo "Using stack $(stack_version_quiet)"
 }
 
 # get a sed command that supports EREs
