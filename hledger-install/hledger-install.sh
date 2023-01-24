@@ -71,7 +71,9 @@ hledger-web \
 "
 
 HLEDGER_OTHER_TOOLS="\
+hledger-edit \
 hledger-interest \
+hledger-plot \
 hledger-stockquotes \
 "
 # hledger-iadd not buildable with current libs, https://github.com/hpdeifel/hledger-iadd/issues/71
@@ -83,6 +85,8 @@ HLEDGER_VERSION=1.28
 HLEDGER_UI_VERSION=1.28
 HLEDGER_WEB_VERSION=1.28
 # addons:
+HLEDGER_EDIT_VERSION=1.12.0
+HLEDGER_PLOT_VERSION=1.12.0
 #HLEDGER_IADD_VERSION=1.3.17
 HLEDGER_INTEREST_VERSION=1.6.5
 HLEDGER_STOCKQUOTES_VERSION=0.1.2.1
@@ -1054,6 +1058,19 @@ fi
 #   try_install hledger-iadd-$HLEDGER_IADD_VERSION hledger-lib-$HLEDGER_LIB_VERSION $EXTRA_DEPS
 #   echo
 # fi
+
+# hledger-edit, hledger-plot packaged together as hledger-utils, just install it twice for now
+if [[ $(cmpver "$(cmd_version hledger-edit 2>/dev/null)" $HLEDGER_EDIT_VERSION) = 2 ]]; then
+  echo Installing hledger-edit
+  try_install_py hledger-utils
+  echo
+fi
+
+if [[ $(cmpver "$(cmd_version hledger-plot 2>/dev/null)" $HLEDGER_PLOT_VERSION) = 2 ]]; then
+  echo Installing hledger-plot
+  try_install_py hledger-utils
+  echo
+fi
 
 if [[ $(cmpver "$(cmd_version hledger-interest 2>/dev/null)" $HLEDGER_INTEREST_VERSION) = 2 ]]; then
   echo Installing hledger-interest
