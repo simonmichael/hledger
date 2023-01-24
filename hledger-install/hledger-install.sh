@@ -998,9 +998,9 @@ if [[ $STATUSFLAG ]] ; then
   exit 0
 fi
 
-# explain the planned install method
+# ensure a haskell build tool
 echo
-echo "Install method:"
+echo "Ensuring a Haskell build tool:"
 # if stack is installed, use stack
 # || [[ "$FORCE_INSTALL_STACK" == "true" ]]  #--force-install-stack
 if has_stack ; then
@@ -1024,6 +1024,15 @@ else
   echo "no stack or cabal installed; stack will be installed and used to install hledger in $HOME/.local/bin"
     # install stack now
   ensure_stack
+fi
+
+# ensure a python install tool
+echo
+echo "Ensuring the Python pip install tool:"
+if has_cmd pip ; then
+  echo "$(pip --version) is installed"
+else
+  echo "pip was not found; python-based addons will not be installed"
 fi
 
 # try installing each package that needs installing, in turn
