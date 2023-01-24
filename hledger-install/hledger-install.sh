@@ -851,7 +851,7 @@ has_cmd_version() {
 # Show a command's presence in $PATH, and its version if present.
 print_cmd_version() {
   if [[ $(cmd_location "$1") ]]; then
-    echo "$1" $(cmd_version "$1") is installed at $(cmd_location "$1")
+    printf "%-28s is installed at %s\n" "$1 $(cmd_version "$1")" $(cmd_location "$1")
   else
     echo "$1 is not found"
   fi
