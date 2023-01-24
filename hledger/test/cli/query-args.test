@@ -8,7 +8,7 @@
   a    1
   b
 
-$ hledger -f- register "'a a'"
+$ hledger -f- register 'a a'
 >
 2010-03-01 x                    a a                              1             1
 >=0
@@ -24,7 +24,7 @@ $ hledger -f- register "'a a'"
   a  1
   b
 
-$ hledger -f- register "desc:'x x'"
+$ hledger -f- register desc:'x x'
 >
 2010-03-02 x x                  a                                1             1
                                 b                               -1             0
@@ -37,7 +37,7 @@ $ hledger -f- register "desc:'x x'"
   a a  1
   'b
 
-$ hledger -f- register "'a a' \"'b\""
+$ hledger -f- register 'a a' "'b"
 >
 2011-09-11                      a a                              1             1
                                 'b                              -1             0

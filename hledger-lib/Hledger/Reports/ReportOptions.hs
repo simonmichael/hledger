@@ -804,7 +804,7 @@ makeHledgerClassyLenses ''ReportSpec
 -- >>> _rsQuery <$> setEither querystring ["assets"] defreportspec
 -- Right (Acct (RegexpCI "assets"))
 -- >>> _rsQuery <$> setEither querystring ["(assets"] defreportspec
--- Left "failed to parse query:1:8:\n  |\n1 | (assets\n  |        ^\nunexpected end of input\nexpecting \"AND\", \"OR\", or ')'\n"
+-- Left "This regular expression is malformed, please correct it:\n(assets"
 -- >>> _rsQuery $ set querystring ["assets"] defreportspec
 -- Acct (RegexpCI "assets")
 -- >>> _rsQuery $ set querystring ["(assets"] defreportspec
@@ -855,7 +855,7 @@ instance HasReportOpts ReportSpec where
 -- | Generate a ReportSpec from a set of ReportOpts on a given day.
 reportOptsToSpec :: Day -> ReportOpts -> Either String ReportSpec
 reportOptsToSpec day ropts = do
-    (argsquery, queryopts) <- parseQueries day $ querystring_ ropts
+    (argsquery, queryopts) <- parseQueryList day $ querystring_ ropts
     return ReportSpec
       { _rsReportOpts = ropts
       , _rsDay        = day
