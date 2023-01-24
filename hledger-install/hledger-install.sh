@@ -854,7 +854,7 @@ print_cmd_version() {
 
 # Show the current installation status of the hledger packages.
 print_installed_versions() {
-  for cmd in $HLEDGER_MAIN_TOOLS $HLEDGER_OTHER_TOOLS $HLEDGER_INSTALL_TOOL ; do print_cmd_version "$cmd"; done
+  for cmd in $HLEDGER_MAIN_TOOLS $HLEDGER_OTHER_TOOLS ; do print_cmd_version "$cmd"; done
 }
 
 # Run a command, but first log it with "Trying" prepended.
