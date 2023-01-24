@@ -3,7 +3,10 @@
 # and some other POSIX tools.
 # This is based on get-stack.sh which is copyright (c) 2015-2017, Stack contributors.
 
-#set -e  # causes trouble, https://github.com/simonmichael/hledger/issues/714
+# This was disabled as a workaround for https://github.com/simonmichael/hledger/issues/714
+# It has been left off so that one uninstallable tool doesn't block the others.
+# (XXX though, try_install is supposed to continue on failure)
+#set -e
 set -o pipefail
 
 # this script's name (can't use $0 when it's piped into bash)
@@ -88,8 +91,11 @@ HLEDGER_STOCKQUOTES_VERSION=0.1.2.1
 STACK_MIN_VERSION=2.5.1
 
 
-# start of (most of) get-stack.sh, https://github.com/commercialhaskell/stack/blob/master/etc/scripts/get-stack.sh
+##############################################################################
+# Below is (most of) FP Complete's/Stack team's get-stack.sh, from
+# https://github.com/commercialhaskell/stack/blob/master/etc/scripts/get-stack.sh .
 # CHANGED marks a few of our customisations, but not all.
+##############################################################################
 
 HOME_LOCAL_BIN="$HOME/.local/bin"
 USR_LOCAL_BIN="/usr/local/bin"
