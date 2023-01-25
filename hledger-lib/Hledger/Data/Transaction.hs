@@ -245,15 +245,17 @@ transactionInferCostsFromEquity dryrun acctTypes t = first (annotateErrorWithTra
     npostings = zip [0..] $ tpostings t
     transformIndexedPostingsF f = evalStateT . fmap (appEndo . foldMap Endo) . traverse f
 
-    -- Sort postings into pairs of conversion postings, costful postings, and other postings
+    -- Sort posting numbers into three lists (stored in two pairs), like so:
+    -- (conversion postings, (costful postings, other postings)).
     partitionPs = fmap fst . foldrM select (([], ([], [])), Nothing)
-    select np@(_, p) ((cs, others@(ps, os)), Nothing)
-      | isConversion p = Right ((cs, others),      Just np)
-      | hasCost p     = Right ((cs, (np:ps, os)), Nothing)
-      | otherwise      = Right ((cs, (ps, np:os)), Nothing)
-    select np@(_, p) ((cs, others), Just lst)
-      | isConversion p = Right (((lst, np):cs, others), Nothing)
-      | otherwise      = Left "Conversion postings must occur in adjacent pairs"
+      where
+        select np@(_, p) ((cs, others@(ps, os)), Nothing)
+          | isConversion p = Right ((cs, others),      Just np)
+          | hasCost p      = Right ((cs, (np:ps, os)), Nothing)
+          | otherwise      = Right ((cs, (ps, np:os)), Nothing)
+        select np@(_, p) ((cs, others), Just lst)
+          | isConversion p = Right (((lst, np):cs, others), Nothing)
+          | otherwise      = Left "Conversion postings must occur in adjacent pairs"
 
     -- Given a pair of indexed conversion postings, and a state consisting of lists of
     -- costful and costless non-conversion postings, create a function which adds a conversion cost
