@@ -32,6 +32,7 @@ module Hledger.Data.Transaction
 , transactionApplyAliases
 , transactionMapPostings
 , transactionMapPostingAmounts
+, partitionAndCheckConversionPostings
   -- nonzerobalanceerror
   -- * date operations
 , transactionDate2
@@ -235,27 +236,17 @@ type IdxPosting = (Int, Posting)
 -- If no postings with costs match, it will then search the postings without costs,
 -- and will match the first such posting which matches one of the conversion amounts.
 -- If it finds a match, it will add a cost and then tag it.
+-- If the first argument is true, do a dry run instead: identify and tag
+-- the costful and conversion postings, but don't add costs.
 transactionInferCostsFromEquity :: Bool -> M.Map AccountName AccountType -> Transaction -> Either String Transaction
 transactionInferCostsFromEquity dryrun acctTypes t = first (annotateErrorWithTransaction t . T.unpack) $ do
-    (conversionPairs, stateps) <- partitionPs npostings
+    (conversionPairs, stateps) <- partitionAndCheckConversionPostings False acctTypes npostings
     f <- transformIndexedPostingsF (addCostsToPostings dryrun) conversionPairs stateps
     return t{tpostings = map (snd . f) npostings}
   where
     -- Include indices for postings
     npostings = zip [0..] $ tpostings t
     transformIndexedPostingsF f = evalStateT . fmap (appEndo . foldMap Endo) . traverse f
-
-    -- Sort posting numbers into three lists (stored in two pairs), like so:
-    -- (conversion postings, (costful postings, other postings)).
-    partitionPs = fmap fst . foldrM select (([], ([], [])), Nothing)
-      where
-        select np@(_, p) ((cs, others@(ps, os)), Nothing)
-          | isConversion p = Right ((cs, others),      Just np)
-          | hasCost p      = Right ((cs, (np:ps, os)), Nothing)
-          | otherwise      = Right ((cs, (ps, np:os)), Nothing)
-        select np@(_, p) ((cs, others), Just lst)
-          | isConversion p = Right (((lst, np):cs, others), Nothing)
-          | otherwise      = Left "Conversion postings must occur in adjacent pairs"
 
     -- Given a pair of indexed conversion postings, and a state consisting of lists of
     -- costful and costless non-conversion postings, create a function which adds a conversion cost
@@ -331,14 +322,7 @@ transactionInferCostsFromEquity dryrun acctTypes t = first (annotateErrorWithTra
         Just Amount{aprice=Just _} -> Left $ annotateWithPostings [p] "Conversion postings must not have a cost:"
         Nothing                    -> Left $ annotateWithPostings [p] "Conversion postings must have a single-commodity amount:"
 
-    -- Get a posting's amount if it is single-commodity.
-    postingSingleAmount p = case amountsRaw (pamount p) of
-        [a] -> Just a
-        _   -> Nothing
-
-    hasCost p = isJust $ aprice =<< postingSingleAmount p
     amountMatches a b = acommodity a == acommodity b && aquantity a == aquantity b
-    isConversion p = M.lookup (paccount p) acctTypes == Just Conversion
 
     -- Delete a posting from the indexed list of postings based on either its
     -- index or its posting amount.
@@ -353,6 +337,31 @@ transactionInferCostsFromEquity dryrun acctTypes t = first (annotateErrorWithTra
                                | otherwise = (x:) <$> deleteUniqueMatch p xs
     deleteUniqueMatch _ []                 = Nothing
     annotateWithPostings xs str = T.unlines $ str : postingsAsLines False xs
+
+-- Using the provided account types map, sort the given indexed postings
+-- into three lists of posting numbers (stored in two pairs), like so:
+-- (conversion postings, (costful postings, other postings)).
+-- A true first argument activates its secondary function: check that all
+-- conversion postings occur in adjacent pairs, otherwise return an error.
+partitionAndCheckConversionPostings :: Bool -> M.Map AccountName AccountType -> [IdxPosting] -> Either Text ( [(IdxPosting, IdxPosting)], ([IdxPosting], [IdxPosting]) )
+partitionAndCheckConversionPostings check acctTypes = fmap fst . foldrM select (([], ([], [])), Nothing)
+  where
+    select np@(_, p) ((cs, others@(ps, os)), Nothing)
+      | isConversion p = Right ((cs, others),      Just np)
+      | hasCost p      = Right ((cs, (np:ps, os)), Nothing)
+      | otherwise      = Right ((cs, (ps, np:os)), Nothing)
+    select np@(_, p) ((cs, others@(ps,os)), Just lst)
+      | isConversion p = Right (((lst, np):cs, others), Nothing)
+      | check          = Left "Conversion postings must occur in adjacent pairs"
+      | otherwise      = Right ((cs, (ps, np:os)), Nothing)
+    isConversion p = M.lookup (paccount p) acctTypes == Just Conversion
+    hasCost p = isJust $ aprice =<< postingSingleAmount p
+
+-- | Get a posting's amount if it is single-commodity.
+postingSingleAmount :: Posting -> Maybe Amount
+postingSingleAmount p = case amountsRaw (pamount p) of
+  [a] -> Just a
+  _   -> Nothing
 
 -- | Apply some account aliases to all posting account names in the transaction, as described by accountNameApplyAliases.
 -- This can fail due to a bad replacement pattern in a regular expression alias.

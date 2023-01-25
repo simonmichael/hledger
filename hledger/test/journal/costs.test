@@ -506,15 +506,20 @@ $ hledger -f- print --infer-costs
 
 >=0
 
-# 39. Conversion postings should come in adjacent pairs
+# 39. In strict mode, conversion postings must be in adjacent pairs.
 <
+account assets
+account equity:conversion
+account expenses:foreign currency
+commodity €0.
+commodity $0.
 2011/01/01
-    expenses:foreign currency    €100 @@ $135
+    expenses:foreign currency            €100
     equity:conversion                   €-100
     assets                              $-135
     equity:conversion                    $135
 
-$ hledger -f- print --infer-costs
+$ hledger -f- print -s
 >2 /Conversion postings must occur in adjacent pairs/
 >=1
 

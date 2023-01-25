@@ -337,6 +337,8 @@ journalFinalise iopts@InputOpts{..} f txt pj = do
     when strict_ $ do
       journalCheckAccounts j                     -- If in strict mode, check all postings are to declared accounts
       journalCheckCommodities j                  -- and using declared commodities
+      journalCheckPairedConversionPostings j     -- check conversion postings are in adjacent pairs
+
     return j
 
 -- | Apply any auto posting rules to generate extra postings on this journal's transactions.

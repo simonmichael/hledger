@@ -52,6 +52,9 @@ Or, they can be run by giving their names as arguments to `check`:
 - **balancednoautoconversion** - transactions are balanced, possibly using
   explicit costs but not [inferred ones](#costs)
 
+- **adjacentconversionpostings** - all [conversion postings](#equity-conversion-postings)
+  occur in adjacent pairs, as required for [inferring cost from equity postings](#inferring-cost-from-equity-postings).
+
 ### Other checks
 
 These checks can be run only by giving their names as arguments to `check`.

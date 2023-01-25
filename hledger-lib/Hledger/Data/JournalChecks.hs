@@ -12,6 +12,7 @@ module Hledger.Data.JournalChecks (
   journalCheckAccounts,
   journalCheckCommodities,
   journalCheckPayees,
+  journalCheckPairedConversionPostings,
   journalCheckRecentAssertions,
   module Hledger.Data.JournalChecks.Ordereddates,
   module Hledger.Data.JournalChecks.Uniqueleafnames,
@@ -32,7 +33,7 @@ import Hledger.Data.JournalChecks.Uniqueleafnames
 import Hledger.Data.Posting (isVirtual, postingDate, postingStatus)
 import Hledger.Data.Types
 import Hledger.Data.Amount (amountIsZero, amountsRaw, missingamt)
-import Hledger.Data.Transaction (transactionPayee, showTransactionLineFirstPart)
+import Hledger.Data.Transaction (transactionPayee, showTransactionLineFirstPart, partitionAndCheckConversionPostings)
 import Data.Time (Day, diffDays)
 import Data.List.Extra
 import Hledger.Utils (chomp, textChomp, sourcePosPretty)
@@ -155,6 +156,17 @@ journalCheckPayees j = mapM_ checkpayee (jtxns j)
           where
             col  = T.length (showTransactionLineFirstPart t') + 2
             col2 = col + T.length (transactionPayee t') - 1
+
+-- | In each tranaction, check that any conversion postings occur in adjacent pairs.
+journalCheckPairedConversionPostings :: Journal -> Either String ()
+journalCheckPairedConversionPostings j =
+  mapM_ (transactionCheckPairedConversionPostings (jaccounttypes j)) $ jtxns j
+
+transactionCheckPairedConversionPostings :: M.Map AccountName AccountType -> Transaction -> Either String ()
+transactionCheckPairedConversionPostings accttypes t =
+  case partitionAndCheckConversionPostings True accttypes (zip [0..] $ tpostings t) of
+    Left err -> Left $ T.unpack err
+    Right _  -> Right ()
 
 ----------
 
