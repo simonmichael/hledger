@@ -20,8 +20,12 @@ As a quick rule of thumb:
 `aregister` requires one argument: the account to report on.
 You can write either the full account name, or a case-insensitive regular expression 
 which will select the alphabetically first matched account.
-(Eg if you have `assets:aaa:checking` and `assets:bbb:checking` accounts,
-`hledger areg checking` would select `assets:aaa:checking`.)
+
+When there are multiple matches, the alphabetically-first choice can be surprising; 
+eg if you have `assets:per:checking 1` and `assets:biz:checking 2` accounts,
+`hledger areg checking` would select `assets:biz:checking 2`.
+It's just a convenience to save typing, so if in doubt, write the full account name,
+or a distinctive substring that matches uniquely.
 
 Transactions involving subaccounts of this account will also be shown.
 `aregister` ignores depth limits, so its final total will always match 
