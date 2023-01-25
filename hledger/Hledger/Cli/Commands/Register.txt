@@ -92,6 +92,11 @@ will be adjusted outward if necessary to contain a whole number of
 intervals. This ensures that the first and last intervals are full
 length and comparable to the others in the report.
 
+With -m DESC/--match=DESC, register does a fuzzy search for one recent
+posting whose description is most similar to DESC. DESC should contain
+at least two characters. If there is no similar-enough match, no posting
+will be shown and the program exit code will be non-zero.
+
 Custom register output
 
 register uses the full terminal width by default, except on windows. You
