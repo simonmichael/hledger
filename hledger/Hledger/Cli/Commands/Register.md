@@ -23,7 +23,7 @@ $ hledger register checking
 2008/12/31 pay off              assets:bank:checking           $-1            0
 ```
 
-With --date2, it shows and sorts by secondary date instead.
+With `--date2`, it shows and sorts by secondary date instead.
 
 For performance reasons, column widths are chosen based on the first 1000 lines;
 this means unusually wide values in later lines can cause visual discontinuities
@@ -103,6 +103,12 @@ Note when using report intervals, if you specify start/end dates these
 will be adjusted outward if necessary to contain a whole number of
 intervals. This ensures that the first and last intervals are full
 length and comparable to the others in the report.
+
+With `-m DESC`/`--match=DESC`, register does a fuzzy search for one recent posting
+whose description is most similar to DESC.
+DESC should contain at least two characters.
+If there is no similar-enough match, 
+no posting will be shown and the program exit code will be non-zero.
 
 ### Custom register output
 

@@ -445,7 +445,6 @@ src/hledger/
           Print.md
           README.md
           Register.md
-          Registermatch.md
           Rewrite.md
           Roi.md
           Stats.md

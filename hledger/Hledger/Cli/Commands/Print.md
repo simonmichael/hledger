@@ -76,8 +76,8 @@ keeping the output parseable.
 With `-B`/`--cost`, amounts with [costs](https://hledger.org/hledger.html#costs)
 are converted to cost using that price. This can be used for troubleshooting.
 
-With `-m DESC`/`--match=DESC`, print does a fuzzy search for the one transaction
-whose description is most similar to DESC, also preferring recent tranactions.
+With `-m DESC`/`--match=DESC`, print does a fuzzy search for one recent transaction
+whose description is most similar to DESC.
 DESC should contain at least two characters.
 If there is no similar-enough match, 
 no transaction will be shown and the program exit code will be non-zero.

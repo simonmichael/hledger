@@ -33,7 +33,7 @@ printmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Print.txt")
   ([let arg = "DESC" in
    flagReq  ["match","m"] (\s opts -> Right $ setopt "match" s opts) arg
-    ("fuzzy search for the transaction with description closest to "++arg++", and also most recent")
+    ("fuzzy search for one recent transaction with description closest to "++arg)
   ,flagNone ["explicit","x"] (setboolopt "explicit")
     "show all amounts explicitly"
   ,flagNone ["show-costs"] (setboolopt "show-costs")
@@ -60,6 +60,8 @@ print' opts j = do
   case maybestringopt "match" $ rawopts_ opts of
     Nothing   -> printEntries opts j'
     Just desc -> 
+      -- match mode, prints one recent transaction most similar to given description
+      -- XXX should match similarly to register --match
       case journalSimilarTransaction opts j' (dbg1 "finding best match for description" $ T.pack desc) of
         Just t  -> printEntries opts j'{jtxns=[t]}
         Nothing -> putStrLn "no matches found." >> exitFailure

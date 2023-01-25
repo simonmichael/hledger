@@ -539,7 +539,6 @@ Here are those commands and the formats currently supported:
 | notes                 |     |     |      |      |     |
 | payees                |     |     |      |      |     |
 | prices                |     |     |      |      |     |
-| register-match        |     |     |      |      |     |
 | rewrite               |     |     |      |      |     |
 | roi                   |     |     |      |      |     |
 | stats                 |     |     |      |      |     |
@@ -5745,7 +5744,6 @@ These data entry commands are the only ones which can modify your journal file.
 - [prices](#prices)                                - show market price records
 - **[print](#print)**                              - show transactions (journal entries)
 - **[register](#register) (reg)**                  - show postings in one or more accounts & running total
-- [register-match](#register-match)                - show a recent posting that best matches a description
 - [stats](#stats)                                  - show journal statistics
 - [tags](#tags)                                    - show tag names
 - [test](#test)                                    - run self tests

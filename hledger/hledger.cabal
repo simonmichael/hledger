@@ -69,7 +69,6 @@ extra-source-files:
     Hledger/Cli/Commands/Prices.txt
     Hledger/Cli/Commands/Print.txt
     Hledger/Cli/Commands/Register.txt
-    Hledger/Cli/Commands/Registermatch.txt
     Hledger/Cli/Commands/Rewrite.txt
     Hledger/Cli/Commands/Roi.txt
     Hledger/Cli/Commands/Stats.txt
@@ -123,7 +122,6 @@ library
       Hledger.Cli.Commands.Prices
       Hledger.Cli.Commands.Print
       Hledger.Cli.Commands.Register
-      Hledger.Cli.Commands.Registermatch
       Hledger.Cli.Commands.Rewrite
       Hledger.Cli.Commands.Roi
       Hledger.Cli.Commands.Stats
