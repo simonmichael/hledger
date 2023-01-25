@@ -36,7 +36,7 @@ productively, but when you have a question about functionality, this doc
 should answer it.
 It is detailed, so do skip ahead or skim when needed.
 You can read it on hledger.org, or as an info manual or man page on your
-system (each has benefits).
+system.
 You can also get it from hledger itself with
 .PD 0
 .P
@@ -1647,18 +1647,62 @@ But if you accidentally leave only one space (or tab) before the amount,
 the amount will be considered part of the account name.
 .SS Account names
 .PP
-Account names typically have several parts separated by a full colon,
-from which hledger derives a hierarchical chart of accounts.
-They can be anything you like, but in finance there are traditionally
-five top-level accounts: \f[V]assets\f[R], \f[V]liabilities\f[R],
-\f[V]revenue\f[R], \f[V]expenses\f[R], and \f[V]equity\f[R].
+Accounts are the main way of categorising things in hledger.
+As in Double Entry Bookkeeping, they can represent real world accounts
+(such as a bank account), or more abstract categories such as \[dq]money
+borrowed from Frank\[dq] or \[dq]money spent on electricity\[dq].
 .PP
-Account names may contain single spaces, eg:
-\f[V]assets:accounts receivable\f[R].
-Because of this, they must always be followed by \f[B]two or more
-spaces\f[R] (or newline).
+You can use any account names you like, but we usually start with the
+traditional accounting categories, which in english are
+\f[V]assets\f[R], \f[V]liabilities\f[R], \f[V]equity\f[R],
+\f[V]revenues\f[R], \f[V]expenses\f[R].
+(You might see these referred to as A, L, E, R, X for short.)
 .PP
-Account names can be aliased.
+For more precise reporting, we usually divide the top level accounts
+into more detailed subaccounts, by writing a full colon between account
+name parts.
+For example, from the account names \f[V]assets:bank:checking\f[R] and
+\f[V]expenses:food\f[R], hledger will infer this hierarchy of five
+accounts:
+.IP
+.nf
+\f[C]
+assets
+assets:bank
+assets:bank:checking
+expenses
+expenses:food
+\f[R]
+.fi
+.PP
+Shown as an outline, the hierarchical tree structure is more clear:
+.IP
+.nf
+\f[C]
+assets
+ bank
+  checking
+expenses
+ food
+\f[R]
+.fi
+.PP
+hledger reports can summarise the account tree to any depth, so you can
+go as deep as you like with subcategories, but keeping your account
+names relatively simple may be best when starting out.
+.PP
+Account names may be capitalised or not; they may contain letters,
+numbers, symbols, or single spaces.
+Note, when an account name and an amount are written on the same line,
+they must be separated by \f[B]two or more spaces\f[R] (or tabs).
+.PP
+Parentheses or brackets enclosing the full account name indicate virtual
+postings, described below.
+Parentheses or brackets internal to the account name have no special
+meaning.
+.PP
+Account names can be altered temporarily or permanently by account
+aliases.
 .SS Amounts
 .PP
 After the account name, there is usually an amount.
@@ -2595,6 +2639,17 @@ hledger-style account name, eg:
 .nf
 \f[C]
 account assets:bank:checking
+\f[R]
+.fi
+.PP
+Note, however, that accounts declared in account directives are not
+allowed to have surrounding brackets and parentheses, unlike accounts
+used in postings.
+So the following journal will not parse:
+.IP
+.nf
+\f[C]
+account (assets:bank:checking)
 \f[R]
 .fi
 .SS Account comments
@@ -3827,6 +3882,7 @@ value       EXPR
 .PP
 See also https://hledger.org/ledger.html for a detailed hledger/Ledger
 syntax comparison.
+.PP
 .SH CSV
 .PP
 hledger can read CSV files (Character Separated Value - usually comma,
@@ -3835,10 +3891,9 @@ each record into a transaction.
 .PP
 (To learn about \f[I]writing\f[R] CSV, see CSV output.)
 .PP
-Note, for best error messages when reading CSV/TSV/SSV files, make sure
-they have a corresponding \f[V].csv\f[R], \f[V].tsv\f[R] or
-\f[V].ssv\f[R] file extension or use a hledger file prefix (see File
-Extension below).
+For best error messages when reading CSV/TSV/SSV files, make sure they
+have a corresponding \f[V].csv\f[R], \f[V].tsv\f[R] or \f[V].ssv\f[R]
+file extension or use a hledger file prefix (see File Extension below).
 .PP
 Each CSV file must be described by a corresponding \f[I]rules file\f[R].
 .PD 0
@@ -3857,17 +3912,6 @@ option.
 If no rules file is found, hledger will create a sample rules file,
 which you\[aq]ll need to adjust.
 .PP
-There\[aq]s an introductory Importing CSV data tutorial on hledger.org.
-.SS Examples
-.PP
-Here are some sample hledger CSV rules files.
-See also the full collection at:
-.PD 0
-.P
-.PD
-https://github.com/simonmichael/hledger/tree/master/examples/csv
-.SS Basic
-.PP
 At minimum, the rules file must identify the date and amount fields, and
 often it also specifies the date format and how many header lines there
 are.
@@ -3884,7 +3928,7 @@ Date, Description, Id, Amount
 \f[C]
 # basic.csv.rules
 skip         1
-fields       date, description, _, amount
+fields       date, description, , amount
 date-format  %d/%m/%Y
 \f[R]
 .fi
@@ -3898,7 +3942,1265 @@ $ hledger print -f basic.csv
 \f[R]
 .fi
 .PP
-Default account names are chosen, since we didn\[aq]t set them.
+There\[aq]s an introductory Importing CSV data tutorial on hledger.org,
+and more CSV rules examples below, and a larger collection at
+https://github.com/simonmichael/hledger/tree/master/examples/csv.
+.SS CSV rules cheatsheet
+.PP
+The following kinds of rule can appear in the rules file, in any order.
+(Blank lines and lines beginning with \f[V]#\f[R] or \f[V];\f[R] or
+\f[V]*\f[R] are ignored.)
+.PP
+.TS
+tab(@);
+lw(23.7n) lw(46.3n).
+T{
+\f[B]\f[VB]separator\f[B]\f[R]
+T}@T{
+declare the field separator, instead of relying on file extension
+T}
+T{
+\f[B]\f[VB]skip\f[B]\f[R]
+T}@T{
+skip one or more header lines at start of file
+T}
+T{
+\f[B]\f[VB]date-format\f[B]\f[R]
+T}@T{
+declare how to parse CSV dates/date-times
+T}
+T{
+\f[B]\f[VB]timezone\f[B]\f[R]
+T}@T{
+declare the time zone of ambiguous CSV date-times
+T}
+T{
+\f[B]\f[VB]newest-first\f[B]\f[R]
+T}@T{
+improve txn order when: there are multiple records, newest first, all
+with the same date
+T}
+T{
+\f[B]\f[VB]intra-day-reversed\f[B]\f[R]
+T}@T{
+improve txn order when: same-day txns are in opposite order to the
+overall file
+T}
+T{
+\f[B]\f[VB]decimal-mark\f[B]\f[R]
+T}@T{
+declare the decimal mark used in CSV amounts, when ambiguous
+T}
+T{
+\f[B]\f[VB]fields\f[B] list\f[R]
+T}@T{
+name CSV fields for easy reference, and optionally assign their values
+to hledger fields
+T}
+T{
+\f[B]Field assignment\f[R]
+T}@T{
+assign a CSV value or interpolated text value to a hledger field
+T}
+T{
+\f[B]\f[VB]if\f[B] block\f[R]
+T}@T{
+conditionally assign values to hledger fields, or \f[V]skip\f[R] a
+record or \f[V]end\f[R] (skip rest of file)
+T}
+T{
+\f[B]\f[VB]if\f[B] table\f[R]
+T}@T{
+conditionally assign values to hledger fields, using compact syntax
+T}
+T{
+\f[B]\f[VB]balance-type\f[B]\f[R]
+T}@T{
+select which type of balance assertions/assignments to generate
+T}
+T{
+\f[B]\f[VB]include\f[B]\f[R]
+T}@T{
+inline another CSV rules file
+T}
+.TE
+.PP
+Working with CSV tips can be found below, including How CSV rules are
+evaluated.
+.SS \f[V]separator\f[R]
+.PP
+You can use the \f[V]separator\f[R] rule to read other kinds of
+character-separated data.
+The argument is any single separator character, or the words
+\f[V]tab\f[R] or \f[V]space\f[R] (case insensitive).
+Eg, for comma-separated values (CSV):
+.IP
+.nf
+\f[C]
+separator ,
+\f[R]
+.fi
+.PP
+or for semicolon-separated values (SSV):
+.IP
+.nf
+\f[C]
+separator ;
+\f[R]
+.fi
+.PP
+or for tab-separated values (TSV):
+.IP
+.nf
+\f[C]
+separator TAB
+\f[R]
+.fi
+.PP
+If the input file has a \f[V].csv\f[R], \f[V].ssv\f[R] or \f[V].tsv\f[R]
+file extension (or a \f[V]csv:\f[R], \f[V]ssv:\f[R], \f[V]tsv:\f[R]
+prefix), the appropriate separator will be inferred automatically, and
+you won\[aq]t need this rule.
+.SS \f[V]skip\f[R]
+.IP
+.nf
+\f[C]
+skip N
+\f[R]
+.fi
+.PP
+The word \f[V]skip\f[R] followed by a number (or no number, meaning 1)
+tells hledger to ignore this many non-empty lines at the start of the
+input data.
+(Empty/blank lines are skipped automatically, so you don\[aq]t need to
+count those.)
+You\[aq]ll need this whenever your CSV data contains header lines.
+Header lines skipped in this way are ignored, and not parsed as CSV.
+.PP
+\f[V]skip\f[R] can also be used inside if blocks (described below), to
+skip individual data records.
+Note records skipped in this way are still required to be valid CSV,
+even though otherwise ignored.
+.SS \f[V]date-format\f[R]
+.IP
+.nf
+\f[C]
+date-format DATEFMT
+\f[R]
+.fi
+.PP
+This is a helper for the \f[V]date\f[R] (and \f[V]date2\f[R]) fields.
+If your CSV dates are not formatted like \f[V]YYYY-MM-DD\f[R],
+\f[V]YYYY/MM/DD\f[R] or \f[V]YYYY.MM.DD\f[R], you\[aq]ll need to add a
+date-format rule describing them with a strptime-style date parsing
+pattern - see
+https://hackage.haskell.org/package/time/docs/Data-Time-Format.html#v:formatTime.
+The pattern must parse the CSV date value completely.
+Some examples:
+.IP
+.nf
+\f[C]
+# MM/DD/YY
+date-format %m/%d/%y
+\f[R]
+.fi
+.IP
+.nf
+\f[C]
+# D/M/YYYY
+# The - makes leading zeros optional.
+date-format %-d/%-m/%Y
+\f[R]
+.fi
+.IP
+.nf
+\f[C]
+# YYYY-Mmm-DD
+date-format %Y-%h-%d
+\f[R]
+.fi
+.IP
+.nf
+\f[C]
+# M/D/YYYY HH:MM AM some other junk
+# Note the time and junk must be fully parsed, though only the date is used.
+date-format %-m/%-d/%Y %l:%M %p some other junk
+\f[R]
+.fi
+.SS \f[V]timezone\f[R]
+.IP
+.nf
+\f[C]
+timezone TIMEZONE
+\f[R]
+.fi
+.PP
+When CSV contains date-times that are implicitly in some time zone other
+than yours, but containing no explicit time zone information, you can
+use this rule to declare the CSV\[aq]s native time zone, which helps
+prevent off-by-one dates.
+.PP
+When the CSV date-times do contain time zone information, you don\[aq]t
+need this rule; instead, use \f[V]%Z\f[R] in \f[V]date-format\f[R] (or
+\f[V]%z\f[R], \f[V]%EZ\f[R], \f[V]%Ez\f[R]; see the formatTime link
+above).
+.PP
+In either of these cases, hledger will do a time-zone-aware conversion,
+localising the CSV date-times to your current system time zone.
+If you prefer to localise to some other time zone, eg for
+reproducibility, you can (on unix at least) set the output timezone with
+the TZ environment variable, eg:
+.IP
+.nf
+\f[C]
+$ TZ=-1000 hledger print -f foo.csv  # or TZ=-1000 hledger import foo.csv
+\f[R]
+.fi
+.PP
+\f[V]timezone\f[R] currently does not understand timezone names, except
+\[dq]UTC\[dq], \[dq]GMT\[dq], \[dq]EST\[dq], \[dq]EDT\[dq],
+\[dq]CST\[dq], \[dq]CDT\[dq], \[dq]MST\[dq], \[dq]MDT\[dq],
+\[dq]PST\[dq], or \[dq]PDT\[dq].
+For others, use numeric format: +HHMM or -HHMM.
+.SS \f[V]newest-first\f[R]
+.PP
+hledger tries to ensure that the generated transactions will be ordered
+chronologically, including intra-day transactions.
+Usually it can auto-detect how the CSV records are ordered.
+But if it encounters CSV where all records are on the same date, it
+assumes that the records are oldest first.
+If in fact the CSV\[aq]s records are normally newest first, like:
+.IP
+.nf
+\f[C]
+2022-10-01, txn 3...
+2022-10-01, txn 2...
+2022-10-01, txn 1...
+\f[R]
+.fi
+.PP
+you can add the \f[V]newest-first\f[R] rule to help hledger generate the
+transactions in correct order.
+.IP
+.nf
+\f[C]
+# same-day CSV records are newest first
+newest-first
+\f[R]
+.fi
+.SS \f[V]intra-day-reversed\f[R]
+.PP
+CSV records for each day are sometimes ordered in reverse compared to
+the overall date order.
+Eg, here dates are newest first, but the transactions on each date are
+oldest first:
+.IP
+.nf
+\f[C]
+2022-10-02, txn 3...
+2022-10-02, txn 4...
+2022-10-01, txn 1...
+2022-10-01, txn 2...
+\f[R]
+.fi
+.PP
+In this situation, add the \f[V]intra-day-reversed\f[R] rule, and
+hledger will compensate, improving the order of transactions.
+.IP
+.nf
+\f[C]
+# transactions within each day are reversed with respect to the overall date order
+intra-day-reversed
+\f[R]
+.fi
+.SS \f[V]decimal-mark\f[R]
+.IP
+.nf
+\f[C]
+decimal-mark .
+\f[R]
+.fi
+.PP
+or:
+.IP
+.nf
+\f[C]
+decimal-mark ,
+\f[R]
+.fi
+.PP
+hledger automatically accepts either period or comma as a decimal mark
+when parsing numbers (cf Amounts).
+However if any numbers in the CSV contain digit group marks, such as
+thousand-separating commas, you should declare the decimal mark
+explicitly with this rule, to avoid misparsed numbers.
+.SS \f[V]fields\f[R] list
+.IP
+.nf
+\f[C]
+fields FIELDNAME1, FIELDNAME2, ...
+\f[R]
+.fi
+.PP
+A fields list (the word \f[V]fields\f[R] followed by comma-separated
+field names) is optional, but convenient.
+It does two things:
+.IP "1." 3
+It names the CSV field in each column.
+This can be convenient if you are referencing them in other rules, so
+you can say \f[V]%SomeField\f[R] instead of remembering \f[V]%13\f[R].
+.IP "2." 3
+Whenever you use one of the special hledger field names (described
+below), it assigns the CSV value in this position to that hledger field.
+This is the quickest way to populate hledger\[aq]s fields and build a
+transaction.
+.PP
+Here\[aq]s an example that says \[dq]use the 1st, 2nd and 4th fields as
+the transaction\[aq]s date, description and amount; name the last two
+fields for later reference; and ignore the others\[dq]:
+.IP
+.nf
+\f[C]
+fields date, description, , amount, , , somefield, anotherfield
+\f[R]
+.fi
+.PP
+In a fields list, the separator is always comma; it is unrelated to the
+CSV file\[aq]s separator.
+Also:
+.IP \[bu] 2
+There must be least two items in the list (at least one comma).
+.IP \[bu] 2
+Field names may not contain spaces.
+Spaces before/after field names are optional.
+.IP \[bu] 2
+Field names may contain \f[V]_\f[R] (underscore) or \f[V]-\f[R]
+(hyphen).
+.IP \[bu] 2
+Fields you don\[aq]t care about can be given a dummy name or an empty
+name.
+.PP
+If the CSV contains column headings, it\[aq]s convenient to use these
+for your field names, suitably modified (eg lower-cased with spaces
+replaced by underscores).
+.PP
+Sometimes you may want to alter a CSV field name to avoid assigning to a
+hledger field with the same name.
+Eg you could call the CSV\[aq]s \[dq]balance\[dq] field
+\f[V]balance_\f[R] to avoid directly setting hledger\[aq]s
+\f[V]balance\f[R] field (and generating a balance assertion).
+.SS Field assignment
+.IP
+.nf
+\f[C]
+HLEDGERFIELD FIELDVALUE
+\f[R]
+.fi
+.PP
+Field assignments are the more flexible way to assign CSV values to
+hledger fields.
+They can be used instead of or in addition to a fields list (see above).
+.PP
+To assign a value to a hledger field, write the field name (any of the
+standard hledger field/pseudo-field names, defined below), a space,
+followed by a text value on the same line.
+This text value may interpolate CSV fields, referenced by their 1-based
+position in the CSV record (\f[V]%N\f[R]), or by the name they were
+given in the fields list (\f[V]%CSVFIELD\f[R]).
+.PP
+Some examples:
+.IP
+.nf
+\f[C]
+# set the amount to the 4th CSV field, with \[dq] USD\[dq] appended
+amount %4 USD
+
+# combine three fields to make a comment, containing note: and date: tags
+comment note: %somefield - %anotherfield, date: %1
+\f[R]
+.fi
+.PP
+Tips:
+.IP \[bu] 2
+Interpolation strips outer whitespace (so a CSV value like
+\f[V]\[dq] 1 \[dq]\f[R] becomes \f[V]1\f[R] when interpolated) (#1051).
+.IP \[bu] 2
+Interpolations always refer to a CSV field - you can\[aq]t interpolate a
+hledger field.
+(See Referencing other fields below).
+.SS Field names
+.PP
+Note the two kinds of field names mentioned here, and used only in
+hledger CSV rules files:
+.IP "1." 3
+\f[B]CSV field names\f[R] (\f[V]CSVFIELD\f[R] in these docs): you can
+optionally name the CSV columns for easy reference (since hledger
+doesn\[aq]t yet automatically recognise column headings in a CSV file),
+by writing arbitrary names in a \f[V]fields\f[R] list, eg:
+.RS 4
+.IP
+.nf
+\f[C]
+fields When, What, Some_Id, Net, Total, Foo, Bar
+\f[R]
+.fi
+.RE
+.IP "2." 3
+Special \f[B]hledger field names\f[R] (\f[V]HLEDGERFIELD\f[R] in these
+docs): you must set at least some of these to generate the hledger
+transaction from a CSV record, by writing them as the left hand side of
+a field assignment, eg:
+.RS 4
+.IP
+.nf
+\f[C]
+date        %When
+code        %Some_Id
+description %What
+comment     %Foo %Bar
+amount1     $ %Total
+\f[R]
+.fi
+.PP
+or directly in a \f[V]fields\f[R] list:
+.IP
+.nf
+\f[C]
+fields date, description, code, , amount1, Foo, Bar
+currency $
+comment  %Foo %Bar
+\f[R]
+.fi
+.RE
+.PP
+Here are all the special hledger field names available, and what happens
+when you assign values to them:
+.SS date field
+.PP
+Assigning to \f[V]date\f[R] sets the transaction date.
+.SS date2 field
+.PP
+\f[V]date2\f[R] sets the transaction\[aq]s secondary date, if any.
+.SS status field
+.PP
+\f[V]status\f[R] sets the transaction\[aq]s status, if any.
+.SS code field
+.PP
+\f[V]code\f[R] sets the transaction\[aq]s code, if any.
+.SS description field
+.PP
+\f[V]description\f[R] sets the transaction\[aq]s description, if any.
+.SS comment field
+.PP
+\f[V]comment\f[R] sets the transaction\[aq]s comment, if any.
+.PP
+\f[V]commentN\f[R], where N is a number, sets the Nth posting\[aq]s
+comment.
+.PP
+You can assign multi-line comments by writing literal \f[V]\[rs]n\f[R]
+in the code.
+A comment starting with \f[V]\[rs]n\f[R] will begin on a new line.
+.PP
+Comments can contain tags, as usual.
+.SS account field
+.PP
+Assigning to \f[V]accountN\f[R], where N is 1 to 99, sets the account
+name of the Nth posting, and causes that posting to be generated.
+.PP
+Most often there are two postings, so you\[aq]ll want to set
+\f[V]account1\f[R] and \f[V]account2\f[R].
+Typically \f[V]account1\f[R] is associated with the CSV file, and is set
+once with a top-level assignment, while \f[V]account2\f[R] is set based
+on each transaction\[aq]s description, in conditional rules.
+.PP
+If a posting\[aq]s account name is left unset but its amount is set (see
+below), a default account name will be chosen (like
+\[dq]expenses:unknown\[dq] or \[dq]income:unknown\[dq]).
+.SS amount field
+.PP
+There are several \[dq]amount\[dq] field name variants, useful for
+different situations:
+.IP \[bu] 2
+\f[V]amountN\f[R] sets the amount of the Nth posting, and causes that
+posting to be generated.
+By assigning to \f[V]amount1\f[R], \f[V]amount2\f[R], ...
+etc.
+you can generate up to 99 postings.
+Posting numbers don\[aq]t have to be consecutive; in certain situations
+using a high number might be helpful to influence the layout of
+postings.
+.IP \[bu] 2
+\f[V]amountN-in\f[R] and \f[V]amountN-out\f[R] should be used instead,
+as a pair, when and only when the amount must be obtained from two CSV
+fields.
+Eg when the CSV has separate Debit and Credit fields instead of a single
+Amount field.
+Note:
+.RS 2
+.IP \[bu] 2
+Don\[aq]t think \[dq]-in is for the first posting and -out is for the
+second posting\[dq] - that\[aq]s not correct.
+Think: \[dq]\f[V]amountN-in\f[R] and \f[V]amountN-out\f[R] together
+detect the amount for posting N, by inspecting two CSV fields at
+once.\[dq]
+.IP \[bu] 2
+hledger assumes both CSV fields are unsigned, and will automatically
+negate the -out value.
+.IP \[bu] 2
+It also expects that at least one of the values is empty or zero, so it
+knows which one to ignore.
+If that\[aq]s not the case you\[aq]ll need an if rule (see Setting
+amounts below).
+.RE
+.IP \[bu] 2
+\f[V]amount\f[R], with no posting number (and similarly,
+\f[V]amount-in\f[R] and \f[V]amount-out\f[R] with no number) are an
+older syntax.
+We keep them for backwards compatibility, and because they have special
+behaviour that is sometimes convenient:
+.RS 2
+.IP \[bu] 2
+They set the amount of posting 1 and (negated) the amount of posting 2.
+.IP \[bu] 2
+Posting 2\[aq]s amount will be converted to cost if it has a cost price.
+.IP \[bu] 2
+Any of the newer rules for posting 1 or 2 (like \f[V]amount1\f[R], or
+\f[V]amount2-in\f[R] and \f[V]amount2-out\f[R]) will take precedence.
+This allows incrementally migrating old rules files to the new syntax.
+.RE
+.PP
+There\[aq]s more to say about amount-setting that doesn\[aq]t fit here;
+please see also \[dq]Setting amounts\[dq] below.
+.SS currency field
+.PP
+\f[V]currency\f[R] sets a currency symbol, to be prepended to all
+postings\[aq] amounts.
+You can use this if the CSV amounts do not have a currency symbol, eg if
+it is in a separate column.
+.PP
+\f[V]currencyN\f[R] prepends a currency symbol to just the Nth
+posting\[aq]s amount.
+.SS balance field
+.PP
+\f[V]balanceN\f[R] sets a balance assertion amount (or if the posting
+amount is left empty, a balance assignment) on posting N.
+.PP
+\f[V]balance\f[R] is a compatibility spelling for hledger <1.17; it is
+equivalent to \f[V]balance1\f[R].
+.PP
+You can adjust the type of assertion/assignment with the
+\f[V]balance-type\f[R] rule (see below).
+.PP
+See Tips below for more about setting amounts and currency.
+.SS \f[V]if\f[R] block
+.PP
+Rules can be applied conditionally, depending on patterns in the CSV
+data.
+This allows flexibility; in particular, it is how you can categorise
+transactions, selecting an appropriate account name based on their
+description (for example).
+There are two ways to write conditional rules: \[dq]if blocks\[dq],
+described here, and \[dq]if tables\[dq], described below.
+.PP
+An if block is the word \f[V]if\f[R] and one or more \[dq]matcher\[dq]
+expressions (can be a word or phrase), one per line, starting either on
+the same or next line; followed by one or more indented rules.
+Eg,
+.IP
+.nf
+\f[C]
+if MATCHER
+ RULE
+\f[R]
+.fi
+.PP
+or
+.IP
+.nf
+\f[C]
+if
+MATCHER
+MATCHER
+MATCHER
+ RULE
+ RULE
+\f[R]
+.fi
+.PP
+If any of the matchers succeeds, all of the indented rules will be
+applied.
+They are usually field assignments, but the following special rules may
+also be used within an if block:
+.IP \[bu] 2
+\f[V]skip\f[R] - skips the matched CSV record (generating no transaction
+from it)
+.IP \[bu] 2
+\f[V]end\f[R] - skips the rest of the current CSV file.
+.PP
+Some examples:
+.IP
+.nf
+\f[C]
+# if the record contains \[dq]groceries\[dq], set account2 to \[dq]expenses:groceries\[dq]
+if groceries
+ account2 expenses:groceries
+\f[R]
+.fi
+.IP
+.nf
+\f[C]
+# if the record contains any of these phrases, set account2 and a transaction comment as shown
+if
+monthly service fee
+atm transaction fee
+banking thru software
+ account2 expenses:business:banking
+ comment  XXX deductible ? check it
+\f[R]
+.fi
+.IP
+.nf
+\f[C]
+# if an empty record is seen (assuming five fields), ignore the rest of the CSV file
+if ,,,,
+ end
+\f[R]
+.fi
+.SS Matchers
+.PP
+There are two kinds:
+.IP "1." 3
+A record matcher is a word or single-line text fragment or regular
+expression (\f[V]REGEX\f[R]), which hledger will try to match
+case-insensitively anywhere within the CSV record.
+.PD 0
+.P
+.PD
+Eg: \f[V]whole foods\f[R]
+.IP "2." 3
+A field matcher is preceded with a percent sign and CSV field name
+(\f[V]%CSVFIELD REGEX\f[R]).
+hledger will try to match these just within the named CSV field.
+.PD 0
+.P
+.PD
+Eg: \f[V]%date 2023\f[R]
+.PP
+The regular expression is (as usual in hledger) a POSIX extended regular
+expression, that also supports GNU word boundaries (\f[V]\[rs]b\f[R],
+\f[V]\[rs]B\f[R], \f[V]\[rs]<\f[R], \f[V]\[rs]>\f[R]), and nothing else.
+If you have trouble, see \[dq]Regular expressions\[dq] in the hledger
+manual (https://hledger.org/hledger.html#regular-expressions).
+.PP
+With record matchers, it\[aq]s important to know that the record matched
+is not the original CSV record, but a modified one: separators will be
+converted to commas, and enclosing double quotes (but not enclosing
+whitespace) are removed.
+So for example, when reading an SSV file, if the original record was:
+.IP
+.nf
+\f[C]
+2020-01-01; \[dq]Acme, Inc.\[dq];  1,000
+\f[R]
+.fi
+.PP
+the regex would see, and try to match, this modified record text:
+.IP
+.nf
+\f[C]
+2020-01-01,Acme, Inc.,  1,000
+\f[R]
+.fi
+.PP
+When an if block has multiple matchers, they are combined as follows:
+.IP \[bu] 2
+By default they are OR\[aq]d (any one of them can match)
+.IP \[bu] 2
+When a matcher is preceded by ampersand (\f[V]&\f[R]) it will be
+AND\[aq]ed with the previous matcher (both of them must match).
+.PP
+There\[aq]s not yet an easy syntax to negate a matcher.
+.SS \f[V]if\f[R] table
+.PP
+\[dq]if tables\[dq] are an alternative to if blocks; they can express
+many matchers and field assignments in a more compact tabular format,
+like this:
+.IP
+.nf
+\f[C]
+if,HLEDGERFIELD1,HLEDGERFIELD2,...
+MATCHERA,VALUE1,VALUE2,...
+MATCHERB,VALUE1,VALUE2,...
+MATCHERC,VALUE1,VALUE2,...
+<empty line>
+\f[R]
+.fi
+.PP
+The first character after \f[V]if\f[R] is taken to be the separator for
+the rest of the table.
+It should be a non-alphanumeric character like \f[V],\f[R] or
+\f[V]|\f[R] that does not appear anywhere else in the table.
+(Note: it is unrelated to the CSV file\[aq]s separator.)
+Whitespace can be used in the matcher lines for readability, but not in
+the if line currently.
+The table must be terminated by an empty line (or end of file).
+Each line must contain the same number of separators; empty values are
+allowed.
+.PP
+The above means: try all of the matchers; whenever a matcher succeeds,
+assign all of the values on that line to the corresponding hledger
+fields; later lines can overrider earlier ones.
+It is equivalent to this sequence of if blocks:
+.IP
+.nf
+\f[C]
+if MATCHERA
+  HLEDGERFIELD1 VALUE1
+  HLEDGERFIELD2 VALUE2
+  ...
+
+if MATCHERB
+  HLEDGERFIELD1 VALUE1
+  HLEDGERFIELD2 VALUE2
+  ...
+
+if MATCHERC
+  HLEDGERFIELD1 VALUE1
+  HLEDGERFIELD2 VALUE2
+  ...
+\f[R]
+.fi
+.PP
+Example:
+.IP
+.nf
+\f[C]
+if,account2,comment
+atm transaction fee,expenses:business:banking,deductible? check it
+%description groceries,expenses:groceries,
+2020/01/12.*Plumbing LLC,expenses:house:upkeep,emergency plumbing call-out
+\f[R]
+.fi
+.SS \f[V]balance-type\f[R]
+.PP
+Balance assertions generated by assigning to balanceN are of the simple
+\f[V]=\f[R] type by default, which is a single-commodity,
+subaccount-excluding assertion.
+You may find the subaccount-including variants more useful, eg if you
+have created some virtual subaccounts of checking to help with
+budgeting.
+You can select a different type of assertion with the
+\f[V]balance-type\f[R] rule:
+.IP
+.nf
+\f[C]
+# balance assertions will consider all commodities and all subaccounts
+balance-type ==*
+\f[R]
+.fi
+.PP
+Here are the balance assertion types for quick reference:
+.IP
+.nf
+\f[C]
+=    single commodity, exclude subaccounts
+=*   single commodity, include subaccounts
+==   multi commodity,  exclude subaccounts
+==*  multi commodity,  include subaccounts
+\f[R]
+.fi
+.SS \f[V]include\f[R]
+.IP
+.nf
+\f[C]
+include RULESFILE
+\f[R]
+.fi
+.PP
+This includes the contents of another CSV rules file at this point.
+\f[V]RULESFILE\f[R] is an absolute file path or a path relative to the
+current file\[aq]s directory.
+This can be useful for sharing common rules between several rules files,
+eg:
+.IP
+.nf
+\f[C]
+# someaccount.csv.rules
+
+## someaccount-specific rules
+fields   date,description,amount
+account1 assets:someaccount
+account2 expenses:misc
+
+## common rules
+include categorisation.rules
+\f[R]
+.fi
+.SS Working with CSV
+.PP
+Some tips:
+.SS Rapid feedback
+.PP
+It\[aq]s a good idea to get rapid feedback while
+creating/troubleshooting CSV rules.
+Here\[aq]s a good way, using entr from eradman.com/entrproject:
+.IP
+.nf
+\f[C]
+$ ls foo.csv* | entr bash -c \[aq]echo ----; hledger -f foo.csv print desc:SOMEDESC\[aq]
+\f[R]
+.fi
+.PP
+A desc: query (eg) is used to select just one, or a few, transactions of
+interest.
+\[dq]bash -c\[dq] is used to run multiple commands, so we can echo a
+separator each time the command re-runs, making it easier to read the
+output.
+.SS Valid CSV
+.PP
+Note that hledger will only accept valid CSV conforming to RFC 4180, and
+equivalent SSV and TSV formats (like RFC 4180 but with semicolon or tab
+as separators).
+This means, eg:
+.IP \[bu] 2
+Values may be enclosed in double quotes, or not.
+Enclosing in single quotes is not allowed.
+(Eg \f[V]\[aq]A\[aq],\[aq]B\[aq]\f[R] is rejected.)
+.IP \[bu] 2
+When values are enclosed in double quotes, spaces outside the quotes are
+not allowed.
+(Eg \f[V]\[dq]A\[dq], \[dq]B\[dq]\f[R] is rejected.)
+.IP \[bu] 2
+When values are not enclosed in quotes, they may not contain double
+quotes.
+(Eg \f[V]A\[dq]A, B\f[R] is rejected.)
+.PP
+If your CSV/SSV/TSV is not valid in this sense, you\[aq]ll need to
+transform it before reading with hledger.
+Try using sed, or a more permissive CSV parser like python\[aq]s csv
+lib.
+.SS File Extension
+.PP
+To help hledger choose the CSV file reader and show the right error
+messages (and choose the right field separator character by default),
+it\[aq]s best if CSV/SSV/TSV files are named with a \f[V].csv\f[R],
+\f[V].ssv\f[R] or \f[V].tsv\f[R] filename extension.
+(More about this at Data formats.)
+.PP
+When reading files with the \[dq]wrong\[dq] extension, you can ensure
+the CSV reader (and the default field separator) by prefixing the file
+path with \f[V]csv:\f[R], \f[V]ssv:\f[R] or \f[V]tsv:\f[R]: Eg:
+.IP
+.nf
+\f[C]
+$ hledger -f ssv:foo.dat print
+\f[R]
+.fi
+.PP
+You can also override the default field separator with a separator rule
+if needed.
+.SS Reading CSV from standard input
+.PP
+You\[aq]ll need the file format prefix when reading CSV from stdin also,
+since hledger assumes journal format by default.
+Eg:
+.IP
+.nf
+\f[C]
+$ cat foo.dat | hledger -f ssv:- print
+\f[R]
+.fi
+.SS Reading multiple CSV files
+.PP
+If you use multiple \f[V]-f\f[R] options to read multiple CSV files at
+once, hledger will look for a correspondingly-named rules file for each
+CSV file.
+But if you use the \f[V]--rules-file\f[R] option, that rules file will
+be used for all the CSV files.
+.SS Valid transactions
+.PP
+After reading a CSV file, hledger post-processes and validates the
+generated journal entries as it would for a journal file - balancing
+them, applying balance assignments, and canonicalising amount styles.
+Any errors at this stage will be reported in the usual way, displaying
+the problem entry.
+.PP
+There is one exception: balance assertions, if you have generated them,
+will not be checked, since normally these will work only when the CSV
+data is part of the main journal.
+If you do need to check balance assertions generated from CSV right
+away, pipe into another hledger:
+.IP
+.nf
+\f[C]
+$ hledger -f file.csv print | hledger -f- print
+\f[R]
+.fi
+.SS Deduplicating, importing
+.PP
+When you download a CSV file periodically, eg to get your latest bank
+transactions, the new file may overlap with the old one, containing some
+of the same records.
+.PP
+The import command will (a) detect the new transactions, and (b) append
+just those transactions to your main journal.
+It is idempotent, so you don\[aq]t have to remember how many times you
+ran it or with which version of the CSV.
+(It keeps state in a hidden \f[V].latest.FILE.csv\f[R] file.)
+This is the easiest way to import CSV data.
+Eg:
+.IP
+.nf
+\f[C]
+# download the latest CSV files, then run this command.
+# Note, no -f flags needed here.
+$ hledger import *.csv [--dry]
+\f[R]
+.fi
+.PP
+This method works for most CSV files.
+(Where records have a stable chronological order, and new records appear
+only at the new end.)
+.PP
+A number of other tools and workflows, hledger-specific and otherwise,
+exist for converting, deduplicating, classifying and managing CSV data.
+See:
+.IP \[bu] 2
+https://hledger.org/cookbook.html#setups-and-workflows
+.IP \[bu] 2
+https://plaintextaccounting.org -> data import/conversion
+.SS Setting amounts
+.PP
+Continuing from amount field above, here are more tips on handling
+various amount-setting situations:
+.IP "1." 3
+\f[B]If the amount is in a single CSV field:\f[R]
+.PD 0
+.P
+.PD
+.RS 4
+.IP "a." 3
+\f[B]If its sign indicates direction of flow:\f[R]
+.PD 0
+.P
+.PD
+Assign it to \f[V]amountN\f[R], to set the Nth posting\[aq]s amount.
+N is usually 1 or 2 but can go up to 99.
+.IP "b." 3
+\f[B]If another field indicates direction of flow:\f[R]
+.PD 0
+.P
+.PD
+Use one or more conditional rules to set the appropriate amount sign.
+Eg:
+.IP
+.nf
+\f[C]
+# assume a withdrawal unless Type contains \[dq]deposit\[dq]:
+amount1  -%Amount
+if %Type deposit
+  amount1  %Amount
+\f[R]
+.fi
+.RE
+.IP "2." 3
+\f[B]If the amount is in one of two CSV fields (eg Debit and
+Credit):\f[R]
+.PD 0
+.P
+.PD
+.RS 4
+.IP "a." 3
+\f[B]If both fields are unsigned:\f[R]
+.PD 0
+.P
+.PD
+Assign the fields to \f[V]amountN-in\f[R] and \f[V]amountN-out\f[R].
+This sets posting N\[aq]s amount to whichever of these has a non-zero
+value.
+If it\[aq]s the -out value, the amount will be negated.
+.IP "b." 3
+\f[B]If either field is signed:\f[R]
+.PD 0
+.P
+.PD
+Use a conditional rule to flip the sign when needed.
+Eg below, the -out value already has a minus sign so we undo
+hledger\[aq]s automatic negating by negating once more (but only if the
+field is non-empty, so that we don\[aq]t leave a minus sign by itself):
+.IP
+.nf
+\f[C]
+fields date, description, amount1-in, amount1-out
+if %amount1-out [1-9]
+ amount1-out -%amount1-out
+\f[R]
+.fi
+.IP "c." 3
+\f[B]If both fields can contain a non-zero value (or both can be
+empty):\f[R]
+.PD 0
+.P
+.PD
+The -in/-out rules normally choose the value which is
+non-zero/non-empty.
+Some value pairs can be ambiguous, such as \f[V]1\f[R] and
+\f[V]none\f[R].
+For such cases, use conditional rules to help select the amount.
+Eg, to handle the above you could select the value containing non-zero
+digits:
+.IP
+.nf
+\f[C]
+fields date, description, in, out
+if %in [1-9]
+ amount1 %in
+if %out [1-9]
+ amount1 %out
+\f[R]
+.fi
+.RE
+.IP "3." 3
+\f[B]If you want posting 2\[aq]s amount converted to cost:\f[R]
+.PD 0
+.P
+.PD
+Use the unnumbered \f[V]amount\f[R] (or \f[V]amount-in\f[R] and
+\f[V]amount-out\f[R]) syntax.
+.IP "4." 3
+\f[B]If the CSV has only balance amounts, not transaction amounts:\f[R]
+.PD 0
+.P
+.PD
+Assign to \f[V]balanceN\f[R], to set a balance assignment on the Nth
+posting, causing the posting\[aq]s amount to be calculated
+automatically.
+\f[V]balance\f[R] with no number is equivalent to \f[V]balance1\f[R].
+In this situation hledger is more likely to guess the wrong default
+account name, so you may need to set that explicitly.
+.SS Amount signs
+.PP
+There is some special handling for amount signs, to simplify parsing and
+sign-flipping:
+.IP \[bu] 2
+\f[B]If an amount value begins with a plus sign:\f[R]
+.PD 0
+.P
+.PD
+that will be removed: \f[V]+AMT\f[R] becomes \f[V]AMT\f[R]
+.IP \[bu] 2
+\f[B]If an amount value is parenthesised:\f[R]
+.PD 0
+.P
+.PD
+it will be de-parenthesised and sign-flipped: \f[V](AMT)\f[R] becomes
+\f[V]-AMT\f[R]
+.IP \[bu] 2
+\f[B]If an amount value has two minus signs (or two sets of parentheses,
+or a minus sign and parentheses):\f[R]
+.PD 0
+.P
+.PD
+they cancel out and will be removed: \f[V]--AMT\f[R] or \f[V]-(AMT)\f[R]
+becomes \f[V]AMT\f[R]
+.IP \[bu] 2
+\f[B]If an amount value contains just a sign (or just a set of
+parentheses):\f[R]
+.PD 0
+.P
+.PD
+that is removed, making it an empty value.
+\f[V]\[dq]+\[dq]\f[R] or \f[V]\[dq]-\[dq]\f[R] or \f[V]\[dq]()\[dq]\f[R]
+becomes \f[V]\[dq]\[dq]\f[R].
+.SS Setting currency/commodity
+.PP
+If the currency/commodity symbol is included in the CSV\[aq]s amount
+field(s):
+.IP
+.nf
+\f[C]
+2020-01-01,foo,$123.00
+\f[R]
+.fi
+.PP
+you don\[aq]t have to do anything special for the commodity symbol, it
+will be assigned as part of the amount.
+Eg:
+.IP
+.nf
+\f[C]
+fields date,description,amount
+\f[R]
+.fi
+.IP
+.nf
+\f[C]
+2020-01-01 foo
+    expenses:unknown         $123.00
+    income:unknown          $-123.00
+\f[R]
+.fi
+.PP
+If the currency is provided as a separate CSV field:
+.IP
+.nf
+\f[C]
+2020-01-01,foo,USD,123.00
+\f[R]
+.fi
+.PP
+You can assign that to the \f[V]currency\f[R] pseudo-field, which has
+the special effect of prepending itself to every amount in the
+transaction (on the left, with no separating space):
+.IP
+.nf
+\f[C]
+fields date,description,currency,amount
+\f[R]
+.fi
+.IP
+.nf
+\f[C]
+2020-01-01 foo
+    expenses:unknown       USD123.00
+    income:unknown        USD-123.00
+\f[R]
+.fi
+.PP
+Or, you can use a field assignment to construct the amount yourself,
+with more control.
+Eg to put the symbol on the right, and separated by a space:
+.IP
+.nf
+\f[C]
+fields date,description,cur,amt
+amount %amt %cur
+\f[R]
+.fi
+.IP
+.nf
+\f[C]
+2020-01-01 foo
+    expenses:unknown        123.00 USD
+    income:unknown         -123.00 USD
+\f[R]
+.fi
+.PP
+Note we used a temporary field name (\f[V]cur\f[R]) that is not
+\f[V]currency\f[R] - that would trigger the prepending effect, which we
+don\[aq]t want here.
+.SS Amount decimal places
+.PP
+Like amounts in a journal file, the amounts generated by CSV rules like
+\f[V]amount1\f[R] influence commodity display styles, such as the number
+of decimal places displayed in reports.
+.PP
+The original amounts as written in the CSV file do not affect display
+style (because we don\[aq]t yet reliably know their commodity).
+.SS Referencing other fields
+.PP
+In field assignments, you can interpolate only CSV fields, not hledger
+fields.
+In the example below, there\[aq]s both a CSV field and a hledger field
+named amount1, but %amount1 always means the CSV field, not the hledger
+field:
+.IP
+.nf
+\f[C]
+# Name the third CSV field \[dq]amount1\[dq]
+fields date,description,amount1
+
+# Set hledger\[aq]s amount1 to the CSV amount1 field followed by USD
+amount1 %amount1 USD
+
+# Set comment to the CSV amount1 (not the amount1 assigned above)
+comment %amount1
+\f[R]
+.fi
+.PP
+Here, since there\[aq]s no CSV amount1 field, %amount1 will produce a
+literal \[dq]amount1\[dq]:
+.IP
+.nf
+\f[C]
+fields date,description,csvamount
+amount1 %csvamount USD
+# Can\[aq]t interpolate amount1 here
+comment %amount1
+\f[R]
+.fi
+.PP
+When there are multiple field assignments to the same hledger field,
+only the last one takes effect.
+Here, comment\[aq]s value will be be B, or C if \[dq]something\[dq] is
+matched, but never A:
+.IP
+.nf
+\f[C]
+comment A
+comment B
+if something
+ comment C
+\f[R]
+.fi
+.SS How CSV rules are evaluated
+.PP
+Here\[aq]s how to think of CSV rules being evaluated (if you really need
+to).
+First,
+.IP \[bu] 2
+\f[V]include\f[R] - all includes are inlined, from top to bottom, depth
+first.
+(At each include point the file is inlined and scanned for further
+includes, recursively, before proceeding.)
+.PP
+Then \[dq]global\[dq] rules are evaluated, top to bottom.
+If a rule is repeated, the last one wins:
+.IP \[bu] 2
+\f[V]skip\f[R] (at top level)
+.IP \[bu] 2
+\f[V]date-format\f[R]
+.IP \[bu] 2
+\f[V]newest-first\f[R]
+.IP \[bu] 2
+\f[V]fields\f[R] - names the CSV fields, optionally sets up initial
+assignments to hledger fields
+.PP
+Then for each CSV record in turn:
+.IP \[bu] 2
+test all \f[V]if\f[R] blocks.
+If any of them contain a \f[V]end\f[R] rule, skip all remaining CSV
+records.
+Otherwise if any of them contain a \f[V]skip\f[R] rule, skip that many
+CSV records.
+If there are multiple matched \f[V]skip\f[R] rules, the first one wins.
+.IP \[bu] 2
+collect all field assignments at top level and in matched \f[V]if\f[R]
+blocks.
+When there are multiple assignments for a field, keep only the last one.
+.IP \[bu] 2
+compute a value for each hledger field - either the one that was
+assigned to it (and interpolate the %CSVFIELD references), or a default
+.IP \[bu] 2
+generate a hledger transaction (journal entry) from these values.
+.PP
+This is all part of the CSV reader, one of several readers hledger can
+use to parse input files.
+When all files have been read successfully, the transactions are passed
+as input to whichever hledger command the user specified.
+.PP
+.SS Well factored rules
+.PP
+Some things than can help reduce duplication and complexity in rules
+files:
+.IP \[bu] 2
+Extracting common rules usable with multiple CSV files into a
+\f[V]common.rules\f[R], and adding \f[V]include common.rules\f[R] to
+each CSV\[aq]s rules file.
+.IP \[bu] 2
+Splitting if blocks into smaller if blocks, extracting the frequently
+used parts.
+.SS CSV rules examples
 .SS Bank of Ireland
 .PP
 Here\[aq]s a CSV with two amount fields (Debit and Credit), and a
@@ -3959,6 +5261,41 @@ $ hledger -f bankofireland-checking.csv print
 The balance assertions don\[aq]t raise an error above, because we\[aq]re
 reading directly from CSV, but they will be checked if these entries are
 imported into a journal file.
+.SS Coinbase
+.PP
+A simple example with some CSV from Coinbase.
+The spot price is recorded using cost notation.
+The legacy \f[V]amount\f[R] field name conveniently sets amount 2
+(posting 2\[aq]s amount) to the total cost.
+.IP
+.nf
+\f[C]
+# Timestamp,Transaction Type,Asset,Quantity Transacted,Spot Price Currency,Spot Price at Transaction,Subtotal,Total (inclusive of fees and/or spread),Fees and/or Spread,Notes
+# 2021-12-30T06:57:59Z,Receive,USDC,100,GBP,0.740000,\[dq]\[dq],\[dq]\[dq],\[dq]\[dq],\[dq]Received 100.00 USDC from an external account\[dq]
+\f[R]
+.fi
+.IP
+.nf
+\f[C]
+# coinbase.csv.rules
+skip         1
+fields       Timestamp,Transaction_Type,Asset,Quantity_Transacted,Spot_Price_Currency,Spot_Price_at_Transaction,Subtotal,Total,Fees_Spread,Notes
+date         %Timestamp
+date-format  %Y-%m-%dT%T%Z
+description  %Notes
+account1     assets:coinbase:cc
+amount       %Quantity_Transacted %Asset \[at] %Spot_Price_at_Transaction %Spot_Price_Currency
+\f[R]
+.fi
+.IP
+.nf
+\f[C]
+$ hledger print -f coinbase.csv
+2021-12-30 Received 100.00 USDC from an external account
+    assets:coinbase:cc    100 USDC \[at] 0.740000 GBP
+    income:unknown                 -74.000000 GBP
+\f[R]
+.fi
 .SS Amazon
 .PP
 Here we convert amazon.com order history, and use an if block to
@@ -4190,1196 +5527,6 @@ $ hledger -f paypal-custom.csv  print
     expenses:banking:paypal                    $0.59  ; business:
 \f[R]
 .fi
-.PP
-.SS CSV rules
-.PP
-The following kinds of rule can appear in the rules file, in any order.
-Blank lines and lines beginning with \f[V]#\f[R] or \f[V];\f[R] or
-\f[V]*\f[R] are ignored.
-.PP
-.TS
-tab(@);
-lw(24.9n) lw(45.1n).
-T{
-\f[B]\f[VB]separator\f[B]\f[R]
-T}@T{
-a custom field separator
-T}
-T{
-\f[B]\f[VB]skip\f[B]\f[R]
-T}@T{
-skip one or more header lines or matched CSV records
-T}
-T{
-\f[B]\f[VB]date-format\f[B]\f[R]
-T}@T{
-how to parse dates in CSV records
-T}
-T{
-\f[B]\f[VB]timezone\f[B]\f[R]
-T}@T{
-declare the time zone of ambiguous CSV date-times
-T}
-T{
-\f[B]\f[VB]decimal-mark\f[B]\f[R]
-T}@T{
-the decimal mark used in CSV amounts, if ambiguous
-T}
-T{
-\f[B]\f[VB]newest-first\f[B]\f[R]
-T}@T{
-improve txn order when there are multiple records, newest first, all
-with the same date
-T}
-T{
-\f[B]\f[VB]intra-day-reversed\f[B]\f[R]
-T}@T{
-improve txn order when each day\[aq]s txns are reverse of the overall
-date order
-T}
-T{
-\f[B]\f[VB]balance-type\f[B]\f[R]
-T}@T{
-choose which type of balance assignments to use
-T}
-T{
-\f[B]\f[VB]fields\f[B]\f[R]
-T}@T{
-name CSV fields, assign them to hledger fields
-T}
-T{
-\f[B]Field assignment\f[R]
-T}@T{
-assign a value to one hledger field, with interpolation
-T}
-T{
-\f[B]Field names\f[R]
-T}@T{
-hledger field names, used in the fields list and field assignments
-T}
-T{
-\f[B]\f[VB]if\f[B]\f[R]
-T}@T{
-apply some rules to CSV records matched by patterns
-T}
-T{
-\f[B]\f[VB]if\f[B] table\f[R]
-T}@T{
-apply some rules to CSV records matched by patterns, alternate syntax
-T}
-T{
-\f[B]\f[VB]end\f[B]\f[R]
-T}@T{
-skip the remaining CSV records
-T}
-T{
-\f[B]\f[VB]include\f[B]\f[R]
-T}@T{
-inline another CSV rules file
-T}
-.TE
-.SS \f[V]separator\f[R]
-.PP
-You can use the \f[V]separator\f[R] rule to read other kinds of
-character-separated data.
-The argument is any single separator character, or the words
-\f[V]tab\f[R] or \f[V]space\f[R] (case insensitive).
-Eg, for comma-separated values (CSV):
-.IP
-.nf
-\f[C]
-separator ,
-\f[R]
-.fi
-.PP
-or for semicolon-separated values (SSV):
-.IP
-.nf
-\f[C]
-separator ;
-\f[R]
-.fi
-.PP
-or for tab-separated values (TSV):
-.IP
-.nf
-\f[C]
-separator TAB
-\f[R]
-.fi
-.PP
-If the input file has a \f[V].csv\f[R], \f[V].ssv\f[R] or \f[V].tsv\f[R]
-file extension (or a \f[V]csv:\f[R], \f[V]ssv:\f[R], \f[V]tsv:\f[R]
-prefix), the appropriate separator will be inferred automatically, and
-you won\[aq]t need this rule.
-.SS \f[V]skip\f[R]
-.IP
-.nf
-\f[C]
-skip N
-\f[R]
-.fi
-.PP
-The word \f[V]skip\f[R] followed by a number (or no number, meaning 1)
-tells hledger to ignore this many non-empty lines at the start of the
-input data.
-(Empty/blank lines are skipped automatically, so you don\[aq]t need to
-count those.)
-You\[aq]ll need this whenever your CSV data contains header lines.
-Header lines skipped in this way are ignored, and not parsed as CSV.
-.PP
-\f[V]skip\f[R] can also be used inside if blocks (described below), to
-skip individual data records.
-Note records skipped in this way are still required to be valid CSV,
-even though otherwise ignored.
-.SS \f[V]date-format\f[R]
-.IP
-.nf
-\f[C]
-date-format DATEFMT
-\f[R]
-.fi
-.PP
-This is a helper for the \f[V]date\f[R] (and \f[V]date2\f[R]) fields.
-If your CSV dates are not formatted like \f[V]YYYY-MM-DD\f[R],
-\f[V]YYYY/MM/DD\f[R] or \f[V]YYYY.MM.DD\f[R], you\[aq]ll need to add a
-date-format rule describing them with a strptime-style date parsing
-pattern - see
-https://hackage.haskell.org/package/time/docs/Data-Time-Format.html#v:formatTime.
-The pattern must parse the CSV date value completely.
-Some examples:
-.IP
-.nf
-\f[C]
-# MM/DD/YY
-date-format %m/%d/%y
-\f[R]
-.fi
-.IP
-.nf
-\f[C]
-# D/M/YYYY
-# The - makes leading zeros optional.
-date-format %-d/%-m/%Y
-\f[R]
-.fi
-.IP
-.nf
-\f[C]
-# YYYY-Mmm-DD
-date-format %Y-%h-%d
-\f[R]
-.fi
-.IP
-.nf
-\f[C]
-# M/D/YYYY HH:MM AM some other junk
-# Note the time and junk must be fully parsed, though only the date is used.
-date-format %-m/%-d/%Y %l:%M %p some other junk
-\f[R]
-.fi
-.SS \f[V]timezone\f[R]
-.IP
-.nf
-\f[C]
-timezone TIMEZONE
-\f[R]
-.fi
-.PP
-When CSV contains date-times that are implicitly in some time zone other
-than yours, but containing no explicit time zone information, you can
-use this rule to declare the CSV\[aq]s native time zone, which helps
-prevent off-by-one dates.
-.PP
-When the CSV date-times do contain time zone information, you don\[aq]t
-need this rule; instead, use \f[V]%Z\f[R] in \f[V]date-format\f[R] (or
-\f[V]%z\f[R], \f[V]%EZ\f[R], \f[V]%Ez\f[R]; see the formatTime link
-above).
-.PP
-In either of these cases, hledger will do a time-zone-aware conversion,
-localising the CSV date-times to your current system time zone.
-If you prefer to localise to some other time zone, eg for
-reproducibility, you can (on unix at least) set the output timezone with
-the TZ environment variable, eg:
-.IP
-.nf
-\f[C]
-$ TZ=-1000 hledger print -f foo.csv  # or TZ=-1000 hledger import foo.csv
-\f[R]
-.fi
-.PP
-\f[V]timezone\f[R] currently does not understand timezone names, except
-\[dq]UTC\[dq], \[dq]GMT\[dq], \[dq]EST\[dq], \[dq]EDT\[dq],
-\[dq]CST\[dq], \[dq]CDT\[dq], \[dq]MST\[dq], \[dq]MDT\[dq],
-\[dq]PST\[dq], or \[dq]PDT\[dq].
-For others, use numeric format: +HHMM or -HHMM.
-.SS \f[V]decimal-mark\f[R]
-.IP
-.nf
-\f[C]
-decimal-mark .
-\f[R]
-.fi
-.PP
-or:
-.IP
-.nf
-\f[C]
-decimal-mark ,
-\f[R]
-.fi
-.PP
-hledger automatically accepts either period or comma as a decimal mark
-when parsing numbers (cf Amounts).
-However if any numbers in the CSV contain digit group marks, such as
-thousand-separating commas, you should declare the decimal mark
-explicitly with this rule, to avoid misparsed numbers.
-.SS \f[V]newest-first\f[R]
-.PP
-hledger tries to ensure that the generated transactions will be ordered
-chronologically, including intra-day transactions.
-Usually it can auto-detect how the CSV records are ordered.
-But if it encounters CSV where all records are on the same date, it
-assumes that the records are oldest first.
-If in fact the CSV\[aq]s records are normally newest first, like:
-.IP
-.nf
-\f[C]
-2022-10-01, txn 3...
-2022-10-01, txn 2...
-2022-10-01, txn 1...
-\f[R]
-.fi
-.PP
-you can add the \f[V]newest-first\f[R] rule to help hledger generate the
-transactions in correct order.
-.IP
-.nf
-\f[C]
-# same-day CSV records are newest first
-newest-first
-\f[R]
-.fi
-.SS \f[V]intra-day-reversed\f[R]
-.PP
-CSV records for each day are sometimes ordered in reverse compared to
-the overall date order.
-Eg, here dates are newest first, but the transactions on each date are
-oldest first:
-.IP
-.nf
-\f[C]
-2022-10-02, txn 3...
-2022-10-02, txn 4...
-2022-10-01, txn 1...
-2022-10-01, txn 2...
-\f[R]
-.fi
-.PP
-In this situation, add the \f[V]intra-day-reversed\f[R] rule, and
-hledger will compensate, improving the order of transactions.
-.IP
-.nf
-\f[C]
-# transactions within each day are reversed with respect to the overall date order
-intra-day-reversed
-\f[R]
-.fi
-.SS \f[V]fields\f[R]
-.IP
-.nf
-\f[C]
-fields FIELDNAME1, FIELDNAME2, ...
-\f[R]
-.fi
-.PP
-A fields list (the word \[dq]fields\[dq] followed by comma-separated
-field names) is the quick way to assign CSV field values to hledger
-fields.
-(The other way is field assignments, see below.)
-A fields list does does two things:
-.IP "1." 3
-It names the CSV fields.
-This is optional, but can be convenient later for interpolating them.
-.IP "2." 3
-Whenever you use a standard hledger field name (defined below), the CSV
-value is assigned to that part of the hledger transaction.
-.PP
-Here\[aq]s an example that says \[dq]use the 1st, 2nd and 4th fields as
-the transaction\[aq]s date, description and amount; name the last two
-fields for later reference; and ignore the others\[dq]:
-.IP
-.nf
-\f[C]
-fields date, description, , amount, , , somefield, anotherfield
-\f[R]
-.fi
-.PP
-Tips:
-.IP \[bu] 2
-The fields list always use commas, even if your CSV data uses another
-separator character.
-.IP \[bu] 2
-Currently there must be least two items in the list (at least one
-comma).
-.IP \[bu] 2
-Field names may not contain spaces.
-Spaces before/after field names are optional.
-.IP \[bu] 2
-Field names may contain \f[V]_\f[R] (underscore) or \f[V]-\f[R]
-(hyphen).
-.IP \[bu] 2
-If the CSV contains column headings, it\[aq]s a good idea to use these,
-suitably modified, as the basis for your field names (eg lower-cased,
-with underscores instead of spaces).
-.IP \[bu] 2
-If some heading names match standard hledger fields, but you don\[aq]t
-want to set the hledger fields directly, alter those names, eg by
-appending an underscore.
-.IP \[bu] 2
-Fields you don\[aq]t care about can be given a dummy name (eg:
-\f[V]_\f[R] ), or no name.
-.SS Field assignment
-.IP
-.nf
-\f[C]
-HLEDGERFIELDNAME FIELDVALUE
-\f[R]
-.fi
-.PP
-Field assignments are the more flexible way to assign CSV values to
-hledger fields.
-They can be used instead of or in addition to a fields list (see above).
-.PP
-To assign a value to a hledger field, write the field name (any of the
-standard hledger field/pseudo-field names, defined below), a space,
-followed by a text value on the same line.
-This text value may interpolate CSV fields, referenced by their 1-based
-position in the CSV record (\f[V]%N\f[R]), or by the name they were
-given in the fields list (\f[V]%CSVFIELDNAME\f[R]).
-.PP
-Some examples:
-.IP
-.nf
-\f[C]
-# set the amount to the 4th CSV field, with \[dq] USD\[dq] appended
-amount %4 USD
-
-# combine three fields to make a comment, containing note: and date: tags
-comment note: %somefield - %anotherfield, date: %1
-\f[R]
-.fi
-.PP
-Tips:
-.IP \[bu] 2
-Interpolation strips outer whitespace (so a CSV value like
-\f[V]\[dq] 1 \[dq]\f[R] becomes \f[V]1\f[R] when interpolated) (#1051).
-.IP \[bu] 2
-Interpolations always refer to a CSV field - you can\[aq]t interpolate a
-hledger field.
-(See Referencing other fields below).
-.SS Field names
-.PP
-Here are the standard hledger field (and pseudo-field) names, which you
-can use in a fields list or in field assignments.
-For more about the transaction parts they refer to, see Transactions.
-.SS date field
-.PP
-Assigning to \f[V]date\f[R] sets the transaction date.
-.SS date2 field
-.PP
-\f[V]date2\f[R] sets the transaction\[aq]s secondary date, if any.
-.SS status field
-.PP
-\f[V]status\f[R] sets the transaction\[aq]s status, if any.
-.SS code field
-.PP
-\f[V]code\f[R] sets the transaction\[aq]s code, if any.
-.SS description field
-.PP
-\f[V]description\f[R] sets the transaction\[aq]s description, if any.
-.SS comment field
-.PP
-\f[V]comment\f[R] sets the transaction\[aq]s comment, if any.
-.PP
-\f[V]commentN\f[R], where N is a number, sets the Nth posting\[aq]s
-comment.
-.PP
-You can assign multi-line comments by writing literal \f[V]\[rs]n\f[R]
-in the code.
-A comment starting with \f[V]\[rs]n\f[R] will begin on a new line.
-.PP
-Comments can contain tags, as usual.
-.SS account field
-.PP
-Assigning to \f[V]accountN\f[R], where N is 1 to 99, sets the account
-name of the Nth posting, and causes that posting to be generated.
-.PP
-Most often there are two postings, so you\[aq]ll want to set
-\f[V]account1\f[R] and \f[V]account2\f[R].
-Typically \f[V]account1\f[R] is associated with the CSV file, and is set
-once with a top-level assignment, while \f[V]account2\f[R] is set based
-on each transaction\[aq]s description, and in conditional blocks.
-.PP
-If a posting\[aq]s account name is left unset but its amount is set (see
-below), a default account name will be chosen (like
-\[dq]expenses:unknown\[dq] or \[dq]income:unknown\[dq]).
-.SS amount field
-.PP
-\f[V]amountN\f[R] sets the amount of the Nth posting, and causes that
-posting to be generated.
-By assigning to \f[V]amount1\f[R], \f[V]amount2\f[R], ...
-etc.
-you can generate up to 99 postings.
-.PP
-\f[V]amountN-in\f[R] and \f[V]amountN-out\f[R] can be used instead, if
-the CSV uses separate fields for debits and credits (inflows and
-outflows).
-hledger assumes both of these CSV fields are unsigned, and will
-automatically negate the \[dq]-out\[dq] value.
-It also requires that at least one of them is either empty or zero.
-See \[dq]Setting amounts\[dq] below for more on this topic.
-.PP
-\f[V]amount\f[R], or \f[V]amount-in\f[R] and \f[V]amount-out\f[R] are a
-legacy mode, to keep pre-hledger-1.17 CSV rules files working (and for
-occasional convenience).
-They are suitable only for two-posting transactions; they set both
-posting 1\[aq]s and posting 2\[aq]s amount.
-Posting 2\[aq]s amount will be negated, and also converted to cost if
-there\[aq]s a cost price.
-.PP
-Note: it might sound as if amount-in is for one posting and amount-out
-for the other posting, but no; use the -in and -out rules together for
-the same posting, producing one amount from two CSV fields.
-.PP
-If you have an existing rules file using the unnumbered form, you might
-want to use the numbered form in certain conditional blocks, without
-having to update and retest all the old rules.
-To facilitate this, posting 1 ignores
-\f[V]amount\f[R]/\f[V]amount-in\f[R]/\f[V]amount-out\f[R] if any of
-\f[V]amount1\f[R]/\f[V]amount1-in\f[R]/\f[V]amount1-out\f[R] are
-assigned, and posting 2 ignores them if any of
-\f[V]amount2\f[R]/\f[V]amount2-in\f[R]/\f[V]amount2-out\f[R] are
-assigned, avoiding conflicts.
-.SS currency field
-.PP
-\f[V]currency\f[R] sets a currency symbol, to be prepended to all
-postings\[aq] amounts.
-You can use this if the CSV amounts do not have a currency symbol, eg if
-it is in a separate column.
-.PP
-\f[V]currencyN\f[R] prepends a currency symbol to just the Nth
-posting\[aq]s amount.
-.SS balance field
-.PP
-\f[V]balanceN\f[R] sets a balance assertion amount (or if the posting
-amount is left empty, a balance assignment) on posting N.
-.PP
-\f[V]balance\f[R] is a compatibility spelling for hledger <1.17; it is
-equivalent to \f[V]balance1\f[R].
-.PP
-You can adjust the type of assertion/assignment with the
-\f[V]balance-type\f[R] rule (see below).
-.PP
-See Tips below for more about setting amounts and currency.
-.SS \f[V]if\f[R]
-.IP
-.nf
-\f[C]
-if MATCHER
- RULE
-
-if
-MATCHER
-MATCHER
-MATCHER
- RULE
- RULE
-\f[R]
-.fi
-.PP
-Conditional blocks (\[dq]if blocks\[dq]) are a block of rules that are
-applied only to CSV records which match certain patterns.
-They are often used for customising account names based on transaction
-descriptions.
-.SS Matching the whole record
-.PP
-Each MATCHER can be a record matcher, which looks like this:
-.IP
-.nf
-\f[C]
-REGEX
-\f[R]
-.fi
-.PP
-REGEX is a case-insensitive regular expression that tries to match
-anywhere within the CSV record.
-It is a POSIX ERE (extended regular expression) that also supports GNU
-word boundaries (\f[V]\[rs]b\f[R], \f[V]\[rs]B\f[R], \f[V]\[rs]<\f[R],
-\f[V]\[rs]>\f[R]), and nothing else.
-If you have trouble, be sure to check our doc:
-https://hledger.org/hledger.html#regular-expressions
-.PP
-Important note: the record that is matched is not the original record,
-but a synthetic one, with any enclosing double quotes (but not enclosing
-whitespace) removed, and always comma-separated (which means that a
-field containing a comma will appear like two fields).
-Eg, if the original record is
-\f[V]2020-01-01; \[dq]Acme, Inc.\[dq];  1,000\f[R], the REGEX will
-actually see \f[V]2020-01-01,Acme, Inc.,  1,000\f[R]).
-.SS Matching individual fields
-.PP
-Or, MATCHER can be a field matcher, like this:
-.IP
-.nf
-\f[C]
-%CSVFIELD REGEX
-\f[R]
-.fi
-.PP
-which matches just the content of a particular CSV field.
-CSVFIELD is a percent sign followed by the field\[aq]s name or column
-number, like \f[V]%date\f[R] or \f[V]%1\f[R].
-.SS Combining matchers
-.PP
-A single matcher can be written on the same line as the \[dq]if\[dq]; or
-multiple matchers can be written on the following lines, non-indented.
-Multiple matchers are OR\[aq]d (any one of them can match), unless one
-begins with an \f[V]&\f[R] symbol, in which case it is AND\[aq]ed with
-the previous matcher.
-.IP
-.nf
-\f[C]
-if
-MATCHER
-& MATCHER
- RULE
-\f[R]
-.fi
-.SS Rules applied on successful match
-.PP
-After the patterns there should be one or more rules to apply, all
-indented by at least one space.
-Three kinds of rule are allowed in conditional blocks:
-.IP \[bu] 2
-field assignments (to set a hledger field)
-.IP \[bu] 2
-skip (to skip the matched CSV record)
-.IP \[bu] 2
-end (to skip all remaining CSV records).
-.PP
-Examples:
-.IP
-.nf
-\f[C]
-# if the CSV record contains \[dq]groceries\[dq], set account2 to \[dq]expenses:groceries\[dq]
-if groceries
- account2 expenses:groceries
-\f[R]
-.fi
-.IP
-.nf
-\f[C]
-# if the CSV record contains any of these patterns, set account2 and comment as shown
-if
-monthly service fee
-atm transaction fee
-banking thru software
- account2 expenses:business:banking
- comment  XXX deductible ? check it
-\f[R]
-.fi
-.SS \f[V]if\f[R] table
-.IP
-.nf
-\f[C]
-if,CSVFIELDNAME1,CSVFIELDNAME2,...,CSVFIELDNAMEn
-MATCHER1,VALUE11,VALUE12,...,VALUE1n
-MATCHER2,VALUE21,VALUE22,...,VALUE2n
-MATCHER3,VALUE31,VALUE32,...,VALUE3n
-<empty line>
-\f[R]
-.fi
-.PP
-Conditional tables (\[dq]if tables\[dq]) are a different syntax to
-specify field assignments that will be applied only to CSV records which
-match certain patterns.
-.PP
-MATCHER could be either field or record matcher, as described above.
-When MATCHER matches, values from that row would be assigned to the CSV
-fields named on the \f[V]if\f[R] line, in the same order.
-.PP
-Therefore \f[V]if\f[R] table is exactly equivalent to a sequence of of
-\f[V]if\f[R] blocks:
-.IP
-.nf
-\f[C]
-if MATCHER1
-  CSVFIELDNAME1 VALUE11
-  CSVFIELDNAME2 VALUE12
-  ...
-  CSVFIELDNAMEn VALUE1n
-
-if MATCHER2
-  CSVFIELDNAME1 VALUE21
-  CSVFIELDNAME2 VALUE22
-  ...
-  CSVFIELDNAMEn VALUE2n
-
-if MATCHER3
-  CSVFIELDNAME1 VALUE31
-  CSVFIELDNAME2 VALUE32
-  ...
-  CSVFIELDNAMEn VALUE3n
-\f[R]
-.fi
-.PP
-Each line starting with MATCHER should contain enough (possibly empty)
-values for all the listed fields.
-.PP
-Rules would be checked and applied in the order they are listed in the
-table and, like with \f[V]if\f[R] blocks, later rules (in the same or
-another table) or \f[V]if\f[R] blocks could override the effect of any
-rule.
-.PP
-Instead of \[aq],\[aq] you can use a variety of other non-alphanumeric
-characters as a separator.
-First character after \f[V]if\f[R] is taken to be the separator for the
-rest of the table.
-It is the responsibility of the user to ensure that separator does not
-occur inside MATCHERs and values - there is no way to escape separator.
-.PP
-Example:
-.IP
-.nf
-\f[C]
-if,account2,comment
-atm transaction fee,expenses:business:banking,deductible? check it
-%description groceries,expenses:groceries,
-2020/01/12.*Plumbing LLC,expenses:house:upkeep,emergency plumbing call-out
-\f[R]
-.fi
-.SS \f[V]end\f[R]
-.PP
-This rule can be used inside if blocks (only), to make hledger stop
-reading this CSV file and move on to the next input file, or to command
-execution.
-Eg:
-.IP
-.nf
-\f[C]
-# ignore everything following the first empty record
-if ,,,,
- end
-\f[R]
-.fi
-.SS \f[V]include\f[R]
-.IP
-.nf
-\f[C]
-include RULESFILE
-\f[R]
-.fi
-.PP
-This includes the contents of another CSV rules file at this point.
-\f[V]RULESFILE\f[R] is an absolute file path or a path relative to the
-current file\[aq]s directory.
-This can be useful for sharing common rules between several rules files,
-eg:
-.IP
-.nf
-\f[C]
-# someaccount.csv.rules
-
-## someaccount-specific rules
-fields   date,description,amount
-account1 assets:someaccount
-account2 expenses:misc
-
-## common rules
-include categorisation.rules
-\f[R]
-.fi
-.SS \f[V]balance-type\f[R]
-.PP
-Balance assertions generated by assigning to balanceN are of the simple
-\f[V]=\f[R] type by default, which is a single-commodity,
-subaccount-excluding assertion.
-You may find the subaccount-including variants more useful, eg if you
-have created some virtual subaccounts of checking to help with
-budgeting.
-You can select a different type of assertion with the
-\f[V]balance-type\f[R] rule:
-.IP
-.nf
-\f[C]
-# balance assertions will consider all commodities and all subaccounts
-balance-type ==*
-\f[R]
-.fi
-.PP
-Here are the balance assertion types for quick reference:
-.IP
-.nf
-\f[C]
-=    single commodity, exclude subaccounts
-=*   single commodity, include subaccounts
-==   multi commodity,  exclude subaccounts
-==*  multi commodity,  include subaccounts
-\f[R]
-.fi
-.SS Tips
-.SS Rapid feedback
-.PP
-It\[aq]s a good idea to get rapid feedback while
-creating/troubleshooting CSV rules.
-Here\[aq]s a good way, using entr from eradman.com/entrproject:
-.IP
-.nf
-\f[C]
-$ ls foo.csv* | entr bash -c \[aq]echo ----; hledger -f foo.csv print desc:SOMEDESC\[aq]
-\f[R]
-.fi
-.PP
-A desc: query (eg) is used to select just one, or a few, transactions of
-interest.
-\[dq]bash -c\[dq] is used to run multiple commands, so we can echo a
-separator each time the command re-runs, making it easier to read the
-output.
-.SS Valid CSV
-.PP
-Note that hledger will only accept valid CSV conforming to RFC 4180, and
-equivalent SSV and TSV formats (like RFC 4180 but with semicolon or tab
-as separators).
-This means, eg:
-.IP \[bu] 2
-Values may be enclosed in double quotes, or not.
-Enclosing in single quotes is not allowed.
-(Eg \f[V]\[aq]A\[aq],\[aq]B\[aq]\f[R] is rejected.)
-.IP \[bu] 2
-When values are enclosed in double quotes, spaces outside the quotes are
-not allowed.
-(Eg \f[V]\[dq]A\[dq], \[dq]B\[dq]\f[R] is rejected.)
-.IP \[bu] 2
-When values are not enclosed in quotes, they may not contain double
-quotes.
-(Eg \f[V]A\[dq]A, B\f[R] is rejected.)
-.PP
-If your CSV/SSV/TSV is not valid in this sense, you\[aq]ll need to
-transform it before reading with hledger.
-Try using sed, or a more permissive CSV parser like python\[aq]s csv
-lib.
-.SS File Extension
-.PP
-To help hledger identify the format and show the right error messages,
-CSV/SSV/TSV files should normally be named with a \f[V].csv\f[R],
-\f[V].ssv\f[R] or \f[V].tsv\f[R] filename extension.
-Or, the file path should be prefixed with \f[V]csv:\f[R], \f[V]ssv:\f[R]
-or \f[V]tsv:\f[R].
-Eg:
-.IP
-.nf
-\f[C]
-$ hledger -f foo.ssv print
-\f[R]
-.fi
-.PP
-or:
-.IP
-.nf
-\f[C]
-$ cat foo | hledger -f ssv:- foo
-\f[R]
-.fi
-.PP
-You can override the file extension with a separator rule if needed.
-See also: Input files in the hledger manual.
-.SS Reading multiple CSV files
-.PP
-If you use multiple \f[V]-f\f[R] options to read multiple CSV files at
-once, hledger will look for a correspondingly-named rules file for each
-CSV file.
-But if you use the \f[V]--rules-file\f[R] option, that rules file will
-be used for all the CSV files.
-.SS Valid transactions
-.PP
-After reading a CSV file, hledger post-processes and validates the
-generated journal entries as it would for a journal file - balancing
-them, applying balance assignments, and canonicalising amount styles.
-Any errors at this stage will be reported in the usual way, displaying
-the problem entry.
-.PP
-There is one exception: balance assertions, if you have generated them,
-will not be checked, since normally these will work only when the CSV
-data is part of the main journal.
-If you do need to check balance assertions generated from CSV right
-away, pipe into another hledger:
-.IP
-.nf
-\f[C]
-$ hledger -f file.csv print | hledger -f- print
-\f[R]
-.fi
-.SS Deduplicating, importing
-.PP
-When you download a CSV file periodically, eg to get your latest bank
-transactions, the new file may overlap with the old one, containing some
-of the same records.
-.PP
-The import command will (a) detect the new transactions, and (b) append
-just those transactions to your main journal.
-It is idempotent, so you don\[aq]t have to remember how many times you
-ran it or with which version of the CSV.
-(It keeps state in a hidden \f[V].latest.FILE.csv\f[R] file.)
-This is the easiest way to import CSV data.
-Eg:
-.IP
-.nf
-\f[C]
-# download the latest CSV files, then run this command.
-# Note, no -f flags needed here.
-$ hledger import *.csv [--dry]
-\f[R]
-.fi
-.PP
-This method works for most CSV files.
-(Where records have a stable chronological order, and new records appear
-only at the new end.)
-.PP
-A number of other tools and workflows, hledger-specific and otherwise,
-exist for converting, deduplicating, classifying and managing CSV data.
-See:
-.IP \[bu] 2
-https://hledger.org/cookbook.html#setups-and-workflows
-.IP \[bu] 2
-https://plaintextaccounting.org -> data import/conversion
-.SS Setting amounts
-.PP
-Some tips on using the amount-setting rules discussed above.
-.PP
-Here are the ways to set a posting\[aq]s amount:
-.IP "1." 3
-\f[B]If the CSV has a single amount field:\f[R]
-.PD 0
-.P
-.PD
-Assign (via a fields list or a field assignment) to \f[V]amountN\f[R].
-This sets the Nth posting\[aq]s amount.
-N is usually 1 or 2 but can go up to 99.
-.IP "2." 3
-\f[B]If the CSV has separate amount fields for debit & credit (in &
-out):\f[R]
-.PD 0
-.P
-.PD
-.RS 4
-.IP "a." 3
-\f[B]If both fields are unsigned:\f[R]
-.PD 0
-.P
-.PD
-Assign to \f[V]amountN-in\f[R] and \f[V]amountN-out\f[R].
-This sets posting N\[aq]s amount to whichever of these has a non-zero
-value, and negates the \[dq]-out\[dq] value.
-.IP "b." 3
-\f[B]If either field is signed (can contain a minus sign):\f[R]
-.PD 0
-.P
-.PD
-Use a conditional rule to flip the sign (of non-empty values).
-Since hledger always negates amountN-out, if it was already negative, we
-must undo that by negating once more (but only if the field is
-non-empty):
-.IP
-.nf
-\f[C]
-fields date, description, amount1-in, amount1-out
-if %amount1-out [1-9]
- amount1-out -%amount1-out
-\f[R]
-.fi
-.IP "c." 3
-\f[B]If both fields, or neither field, can contain a non-zero
-value:\f[R]
-.PD 0
-.P
-.PD
-hledger normally expects exactly one of the fields to have a non-zero
-value.
-Eg, the \f[V]amountN-in\f[R]/\f[V]amountN-out\f[R] rules would reject
-value pairs like these:
-.IP
-.nf
-\f[C]
-\[dq]\[dq],  \[dq]\[dq]
-\[dq]0\[dq], \[dq]0\[dq]
-\[dq]1\[dq], \[dq]none\[dq]
-\f[R]
-.fi
-.PP
-So, use smarter conditional rules to set the amount from the appropriate
-field.
-Eg, these rules would make it use only the value containing non-zero
-digits, handling the above:
-.IP
-.nf
-\f[C]
-fields date, description, in, out
-if %in [1-9]
- amount1 %in
-if %out [1-9]
- amount1 %out
-\f[R]
-.fi
-.RE
-.IP "3." 3
-\f[B]If you want posting 2\[aq]s amount converted to cost:\f[R]
-.PD 0
-.P
-.PD
-Assign to \f[V]amount\f[R] (or to \f[V]amount-in\f[R] and
-\f[V]amount-out\f[R]).
-(This is the legacy numberless syntax, which sets amount1 and amount2
-and converts amount2 to cost.)
-.IP "4." 3
-\f[B]If the CSV has the balance instead of the transaction amount:\f[R]
-.PD 0
-.P
-.PD
-Assign to \f[V]balanceN\f[R], which sets posting N\[aq]s amount
-indirectly via a balance assignment.
-(Old syntax: \f[V]balance\f[R], equivalent to \f[V]balance1\f[R].)
-.RS 4
-.IP \[bu] 2
-\f[B]If hledger guesses the wrong default account name:\f[R]
-.PD 0
-.P
-.PD
-When setting the amount via balance assertion, hledger may guess the
-wrong default account name.
-So, set the account name explicitly, eg:
-.RS 2
-.IP
-.nf
-\f[C]
-fields date, description, balance1
-account1 assets:checking
-\f[R]
-.fi
-.RE
-.RE
-.SS Amount signs
-.PP
-There is some special handling for amount signs, to simplify parsing and
-sign-flipping:
-.IP \[bu] 2
-\f[B]If an amount value begins with a plus sign:\f[R]
-.PD 0
-.P
-.PD
-that will be removed: \f[V]+AMT\f[R] becomes \f[V]AMT\f[R]
-.IP \[bu] 2
-\f[B]If an amount value is parenthesised:\f[R]
-.PD 0
-.P
-.PD
-it will be de-parenthesised and sign-flipped: \f[V](AMT)\f[R] becomes
-\f[V]-AMT\f[R]
-.IP \[bu] 2
-\f[B]If an amount value has two minus signs (or two sets of parentheses,
-or a minus sign and parentheses):\f[R]
-.PD 0
-.P
-.PD
-they cancel out and will be removed: \f[V]--AMT\f[R] or \f[V]-(AMT)\f[R]
-becomes \f[V]AMT\f[R]
-.IP \[bu] 2
-\f[B]If an amount value contains just a sign (or just a set of
-parentheses):\f[R]
-.PD 0
-.P
-.PD
-that is removed, making it an empty value.
-\f[V]\[dq]+\[dq]\f[R] or \f[V]\[dq]-\[dq]\f[R] or \f[V]\[dq]()\[dq]\f[R]
-becomes \f[V]\[dq]\[dq]\f[R].
-.SS Setting currency/commodity
-.PP
-If the currency/commodity symbol is included in the CSV\[aq]s amount
-field(s):
-.IP
-.nf
-\f[C]
-2020-01-01,foo,$123.00
-\f[R]
-.fi
-.PP
-you don\[aq]t have to do anything special for the commodity symbol, it
-will be assigned as part of the amount.
-Eg:
-.IP
-.nf
-\f[C]
-fields date,description,amount
-\f[R]
-.fi
-.IP
-.nf
-\f[C]
-2020-01-01 foo
-    expenses:unknown         $123.00
-    income:unknown          $-123.00
-\f[R]
-.fi
-.PP
-If the currency is provided as a separate CSV field:
-.IP
-.nf
-\f[C]
-2020-01-01,foo,USD,123.00
-\f[R]
-.fi
-.PP
-You can assign that to the \f[V]currency\f[R] pseudo-field, which has
-the special effect of prepending itself to every amount in the
-transaction (on the left, with no separating space):
-.IP
-.nf
-\f[C]
-fields date,description,currency,amount
-\f[R]
-.fi
-.IP
-.nf
-\f[C]
-2020-01-01 foo
-    expenses:unknown       USD123.00
-    income:unknown        USD-123.00
-\f[R]
-.fi
-.PP
-Or, you can use a field assignment to construct the amount yourself,
-with more control.
-Eg to put the symbol on the right, and separated by a space:
-.IP
-.nf
-\f[C]
-fields date,description,cur,amt
-amount %amt %cur
-\f[R]
-.fi
-.IP
-.nf
-\f[C]
-2020-01-01 foo
-    expenses:unknown        123.00 USD
-    income:unknown         -123.00 USD
-\f[R]
-.fi
-.PP
-Note we used a temporary field name (\f[V]cur\f[R]) that is not
-\f[V]currency\f[R] - that would trigger the prepending effect, which we
-don\[aq]t want here.
-.SS Amount decimal places
-.PP
-Like amounts in a journal file, the amounts generated by CSV rules like
-\f[V]amount1\f[R] influence commodity display styles, such as the number
-of decimal places displayed in reports.
-.PP
-The original amounts as written in the CSV file do not affect display
-style (because we don\[aq]t yet reliably know their commodity).
-.SS Referencing other fields
-.PP
-In field assignments, you can interpolate only CSV fields, not hledger
-fields.
-In the example below, there\[aq]s both a CSV field and a hledger field
-named amount1, but %amount1 always means the CSV field, not the hledger
-field:
-.IP
-.nf
-\f[C]
-# Name the third CSV field \[dq]amount1\[dq]
-fields date,description,amount1
-
-# Set hledger\[aq]s amount1 to the CSV amount1 field followed by USD
-amount1 %amount1 USD
-
-# Set comment to the CSV amount1 (not the amount1 assigned above)
-comment %amount1
-\f[R]
-.fi
-.PP
-Here, since there\[aq]s no CSV amount1 field, %amount1 will produce a
-literal \[dq]amount1\[dq]:
-.IP
-.nf
-\f[C]
-fields date,description,csvamount
-amount1 %csvamount USD
-# Can\[aq]t interpolate amount1 here
-comment %amount1
-\f[R]
-.fi
-.PP
-When there are multiple field assignments to the same hledger field,
-only the last one takes effect.
-Here, comment\[aq]s value will be be B, or C if \[dq]something\[dq] is
-matched, but never A:
-.IP
-.nf
-\f[C]
-comment A
-comment B
-if something
- comment C
-\f[R]
-.fi
-.SS How CSV rules are evaluated
-.PP
-Here\[aq]s how to think of CSV rules being evaluated (if you really need
-to).
-First,
-.IP \[bu] 2
-\f[V]include\f[R] - all includes are inlined, from top to bottom, depth
-first.
-(At each include point the file is inlined and scanned for further
-includes, recursively, before proceeding.)
-.PP
-Then \[dq]global\[dq] rules are evaluated, top to bottom.
-If a rule is repeated, the last one wins:
-.IP \[bu] 2
-\f[V]skip\f[R] (at top level)
-.IP \[bu] 2
-\f[V]date-format\f[R]
-.IP \[bu] 2
-\f[V]newest-first\f[R]
-.IP \[bu] 2
-\f[V]fields\f[R] - names the CSV fields, optionally sets up initial
-assignments to hledger fields
-.PP
-Then for each CSV record in turn:
-.IP \[bu] 2
-test all \f[V]if\f[R] blocks.
-If any of them contain a \f[V]end\f[R] rule, skip all remaining CSV
-records.
-Otherwise if any of them contain a \f[V]skip\f[R] rule, skip that many
-CSV records.
-If there are multiple matched \f[V]skip\f[R] rules, the first one wins.
-.IP \[bu] 2
-collect all field assignments at top level and in matched \f[V]if\f[R]
-blocks.
-When there are multiple assignments for a field, keep only the last one.
-.IP \[bu] 2
-compute a value for each hledger field - either the one that was
-assigned to it (and interpolate the %CSVFIELDNAME references), or a
-default
-.IP \[bu] 2
-generate a synthetic hledger transaction from these values.
-.PP
-This is all part of the CSV reader, one of several readers hledger can
-use to parse input files.
-When all files have been read successfully, the transactions are passed
-as input to whichever hledger command the user specified.
-.PP
 .SH Timeclock
 .PP
 The time logging format of timeclock.el, as read by hledger.
@@ -6902,6 +7049,8 @@ be named \f[V]equity:conversion\f[R], \f[V]equity:trade\f[R],
 .IP "4." 3
 the equity postings\[aq] amounts must exactly match the non-equity
 postings\[aq] amounts
+.IP "5." 3
+all of the amounts must be explicit, with none missing
 .PP
 Multiple such exchanges can coexist within a single transaction, should
 you need that.
@@ -7948,12 +8097,8 @@ prices - show market price records
 .IP \[bu] 2
 \f[B]print\f[R] - show transactions (journal entries)
 .IP \[bu] 2
-print-unique - show only transactions with unique descriptions
-.IP \[bu] 2
 \f[B]register (reg)\f[R] - show postings in one or more accounts &
 running total
-.IP \[bu] 2
-register-match - show a recent posting that best matches a description
 .IP \[bu] 2
 stats - show journal statistics
 .IP \[bu] 2
@@ -8185,9 +8330,14 @@ for reviewing detailed revenues/expenses.
 You can write either the full account name, or a case-insensitive
 regular expression which will select the alphabetically first matched
 account.
-(Eg if you have \f[V]assets:aaa:checking\f[R] and
-\f[V]assets:bbb:checking\f[R] accounts, \f[V]hledger areg checking\f[R]
-would select \f[V]assets:aaa:checking\f[R].)
+.PP
+When there are multiple matches, the alphabetically-first choice can be
+surprising; eg if you have \f[V]assets:per:checking 1\f[R] and
+\f[V]assets:biz:checking 2\f[R] accounts,
+\f[V]hledger areg checking\f[R] would select
+\f[V]assets:biz:checking 2\f[R].
+It\[aq]s just a convenience to save typing, so if in doubt, write the
+full account name, or a distinctive substring that matches uniquely.
 .PP
 Transactions involving subaccounts of this account will also be shown.
 \f[V]aregister\f[R] ignores depth limits, so its final total will always
@@ -10556,8 +10706,7 @@ cost using that price.
 This can be used for troubleshooting.
 .PP
 With \f[V]-m DESC\f[R]/\f[V]--match=DESC\f[R], print does a fuzzy search
-for the one transaction whose description is most similar to DESC, also
-preferring recent tranactions.
+for one recent transaction whose description is most similar to DESC.
 DESC should contain at least two characters.
 If there is no similar-enough match, no transaction will be shown and
 the program exit code will be non-zero.
@@ -10606,29 +10755,6 @@ The numeric amount is repeated in either the \[dq]credit\[dq] or
 \[dq]debit\[dq] column, for convenience.
 (Those names are not accurate in the accounting sense; it just puts
 negative amounts under credit and zero or greater amounts under debit.)
-.SS print-unique
-.PP
-print-unique
-.PD 0
-.P
-.PD
-Print transactions which do not reuse an already-seen description.
-.PP
-Example:
-.IP
-.nf
-\f[C]
-$ cat unique.journal
-1/1 test
- (acct:one)  1
-2/2 test
- (acct:two)  2
-$ LEDGER_FILE=unique.journal hledger print-unique
-(-f option not supported)
-2015/01/01 test
-    (acct:one)             1
-\f[R]
-.fi
 .SS register
 .PP
 register, reg
@@ -10658,7 +10784,7 @@ $ hledger register checking
 \f[R]
 .fi
 .PP
-With --date2, it shows and sorts by secondary date instead.
+With \f[V]--date2\f[R], it shows and sorts by secondary date instead.
 .PP
 For performance reasons, column widths are chosen based on the first
 1000 lines; this means unusually wide values in later lines can cause
@@ -10757,6 +10883,12 @@ will be adjusted outward if necessary to contain a whole number of
 intervals.
 This ensures that the first and last intervals are full length and
 comparable to the others in the report.
+.PP
+With \f[V]-m DESC\f[R]/\f[V]--match=DESC\f[R], register does a fuzzy
+search for one recent posting whose description is most similar to DESC.
+DESC should contain at least two characters.
+If there is no similar-enough match, no posting will be shown and the
+program exit code will be non-zero.
 .SS Custom register output
 .PP
 register uses the full terminal width by default, except on windows.
@@ -10794,18 +10926,6 @@ $ hledger reg -w $COLUMNS,40      # use terminal width, & description width 40
 This command also supports the output destination and output format
 options The output formats supported are \f[V]txt\f[R], \f[V]csv\f[R],
 and (experimental) \f[V]json\f[R].
-.SS register-match
-.PP
-register-match
-.PD 0
-.P
-.PD
-Print the one posting whose transaction description is closest to DESC,
-in the style of the register command.
-If there are multiple equally good matches, it shows the most recent.
-Query options (options, not arguments) can be used to restrict the
-search space.
-Helps ledger-autosync detect already-seen transactions when importing.
 .SS rewrite
 .PP
 rewrite

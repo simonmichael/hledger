@@ -298,6 +298,14 @@ report period to today.  With the ‘-w/--watch’ option, when viewing a
 period will move automatically to track the current date.  To set a
 non-standard period, you can use ‘/’ and a ‘date:’ query.
 
+   (Mac users: SHIFT-DOWN/UP keys do not work by default in Terminal, as
+of MacOS Monterey.  You can configure them as follows: open Terminal,
+press CMD-comma to open preferences, click Profiles, select your current
+terminal profile on the left, click Keyboard on the right, click + and
+add this for Shift-Down: ‘\033[1;2B’, click + and add this for Shift-Up:
+‘\033[1;2A’.  Press the Escape key to enter the ‘\033’ part, you can’t
+type it directly.)
+
    ‘/’ lets you set a general filter query limiting the data shown,
 using the same query terms as in hledger and hledger-web.  While editing
 the query, you can use CTRL-a/e/d/k, BS, cursor keys; press ‘ENTER’ to
@@ -704,34 +712,34 @@ Node: MOUSE7336
 Ref: #mouse7431
 Node: KEYS7674
 Ref: #keys7767
-Node: SCREENS12061
-Ref: #screens12159
-Node: Menu12867
-Ref: #menu12959
-Node: All accounts13036
-Ref: #all-accounts13175
-Node: Balance sheet accounts13434
-Ref: #balance-sheet-accounts13614
-Node: Income statement accounts13806
-Ref: #income-statement-accounts13988
-Node: Register16482
-Ref: #register16619
-Node: Transaction18647
-Ref: #transaction18770
-Node: Error19654
-Ref: #error19748
-Node: TIPS19992
-Ref: #tips20091
-Node: Watch mode20133
-Ref: #watch-mode20240
-Node: Debug output21728
-Ref: #debug-output21839
-Node: ENVIRONMENT22059
-Ref: #environment22170
-Node: FILES23593
-Ref: #files23692
-Node: BUGS23952
-Ref: #bugs24029
+Node: SCREENS12526
+Ref: #screens12624
+Node: Menu13332
+Ref: #menu13424
+Node: All accounts13501
+Ref: #all-accounts13640
+Node: Balance sheet accounts13899
+Ref: #balance-sheet-accounts14079
+Node: Income statement accounts14271
+Ref: #income-statement-accounts14453
+Node: Register16947
+Ref: #register17084
+Node: Transaction19112
+Ref: #transaction19235
+Node: Error20119
+Ref: #error20213
+Node: TIPS20457
+Ref: #tips20556
+Node: Watch mode20598
+Ref: #watch-mode20705
+Node: Debug output22193
+Ref: #debug-output22304
+Node: ENVIRONMENT22524
+Ref: #environment22635
+Node: FILES24058
+Ref: #files24157
+Node: BUGS24417
+Ref: #bugs24494
 
 End Tag Table
 

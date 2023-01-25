@@ -30,8 +30,8 @@ bookkeeping/accounting as well!  You don’t need to know everything in
 here to use hledger productively, but when you have a question about
 functionality, this doc should answer it.  It is detailed, so do skip
 ahead or skim when needed.  You can read it on hledger.org, or as an
-info manual or man page on your system (each has benefits).  You can
-also get it from hledger itself with
+info manual or man page on your system.  You can also get it from
+hledger itself with
 ‘hledger --man’, ‘hledger --info’ or ‘hledger help [TOPIC]’.
 
    The main function of the hledger CLI is to read plain text files
@@ -1489,17 +1489,50 @@ File: hledger.info,  Node: Account names,  Next: Amounts,  Prev: Postings,  Up: 
 10.11 Account names
 ===================
 
-Account names typically have several parts separated by a full colon,
-from which hledger derives a hierarchical chart of accounts.  They can
-be anything you like, but in finance there are traditionally five
-top-level accounts: ‘assets’, ‘liabilities’, ‘revenue’, ‘expenses’, and
-‘equity’.
+Accounts are the main way of categorising things in hledger.  As in
+Double Entry Bookkeeping, they can represent real world accounts (such
+as a bank account), or more abstract categories such as "money borrowed
+from Frank" or "money spent on electricity".
 
-   Account names may contain single spaces, eg: ‘assets:accounts
-receivable’.  Because of this, they must always be followed by *two or
-more spaces* (or newline).
+   You can use any account names you like, but we usually start with the
+traditional accounting categories, which in english are ‘assets’,
+‘liabilities’, ‘equity’, ‘revenues’, ‘expenses’.  (You might see these
+referred to as A, L, E, R, X for short.)
 
-   Account names can be aliased.
+   For more precise reporting, we usually divide the top level accounts
+into more detailed subaccounts, by writing a full colon between account
+name parts.  For example, from the account names ‘assets:bank:checking’
+and ‘expenses:food’, hledger will infer this hierarchy of five accounts:
+
+assets
+assets:bank
+assets:bank:checking
+expenses
+expenses:food
+
+   Shown as an outline, the hierarchical tree structure is more clear:
+
+assets
+ bank
+  checking
+expenses
+ food
+
+   hledger reports can summarise the account tree to any depth, so you
+can go as deep as you like with subcategories, but keeping your account
+names relatively simple may be best when starting out.
+
+   Account names may be capitalised or not; they may contain letters,
+numbers, symbols, or single spaces.  Note, when an account name and an
+amount are written on the same line, they must be separated by *two or
+more spaces* (or tabs).
+
+   Parentheses or brackets enclosing the full account name indicate
+virtual postings, described below.  Parentheses or brackets internal to
+the account name have no special meaning.
+
+   Account names can be altered temporarily or permanently by account
+aliases.
 
 
 File: hledger.info,  Node: Amounts,  Next: Costs,  Prev: Account names,  Up: Journal
@@ -2269,6 +2302,12 @@ declarations can provide several benefits:
 account name, eg:
 
 account assets:bank:checking
+
+   Note, however, that accounts declared in account directives are not
+allowed to have surrounding brackets and parentheses, unlike accounts
+used in postings.  So the following journal will not parse:
+
+account (assets:bank:checking)
 
 * Menu:
 
@@ -3476,9 +3515,9 @@ each record into a transaction.
 
    (To learn about _writing_ CSV, see CSV output.)
 
-   Note, for best error messages when reading CSV/TSV/SSV files, make
-sure they have a corresponding ‘.csv’, ‘.tsv’ or ‘.ssv’ file extension
-or use a hledger file prefix (see File Extension below).
+   For best error messages when reading CSV/TSV/SSV files, make sure
+they have a corresponding ‘.csv’, ‘.tsv’ or ‘.ssv’ file extension or use
+a hledger file prefix (see File Extension below).
 
    Each CSV file must be described by a corresponding _rules file_.
 This contains rules describing the CSV data (header line, fields layout,
@@ -3492,31 +3531,738 @@ specify a different rules file with the ‘--rules-file’ option.  If no
 rules file is found, hledger will create a sample rules file, which
 you’ll need to adjust.
 
-   There’s an introductory Importing CSV data tutorial on hledger.org.
+   At minimum, the rules file must identify the date and amount fields,
+and often it also specifies the date format and how many header lines
+there are.  Here’s a simple CSV file and a rules file for it:
+
+Date, Description, Id, Amount
+12/11/2019, Foo, 123, 10.23
+
+# basic.csv.rules
+skip         1
+fields       date, description, , amount
+date-format  %d/%m/%Y
+
+$ hledger print -f basic.csv
+2019-11-12 Foo
+    expenses:unknown           10.23
+    income:unknown            -10.23
+
+   There’s an introductory Importing CSV data tutorial on hledger.org,
+and more CSV rules examples below, and a larger collection at
+https://github.com/simonmichael/hledger/tree/master/examples/csv.
 
 * Menu:
 
-* Examples::
-* CSV rules::
+* CSV rules cheatsheet::
 * separator::
 * skip::
 * date-format::
 * timezone::
-* decimal-mark::
 * newest-first::
 * intra-day-reversed::
-* fields::
+* decimal-mark::
+* fields list::
 * Field assignment::
 * Field names::
-* if::
+* if block::
+* Matchers::
 * if table::
-* end::
-* include::
 * balance-type::
-* Tips::
+* include::
+* Working with CSV::
+* CSV rules examples::
+
+
+File: hledger.info,  Node: CSV rules cheatsheet,  Next: separator,  Up: CSV
+
+11.1 CSV rules cheatsheet
+=========================
+
+The following kinds of rule can appear in the rules file, in any order.
+(Blank lines and lines beginning with ‘#’ or ‘;’ or ‘*’ are ignored.)
+
+*‘separator’*            declare the field separator, instead of
+                         relying on file extension
+*‘skip’*                 skip one or more header lines at start of file
+*‘date-format’*          declare how to parse CSV dates/date-times
+*‘timezone’*             declare the time zone of ambiguous CSV
+                         date-times
+*‘newest-first’*         improve txn order when: there are multiple
+                         records, newest first, all with the same date
+*‘intra-day-reversed’*   improve txn order when: same-day txns are in
+                         opposite order to the overall file
+*‘decimal-mark’*         declare the decimal mark used in CSV amounts,
+                         when ambiguous
+*‘fields’ list*          name CSV fields for easy reference, and
+                         optionally assign their values to hledger
+                         fields
+*Field assignment*       assign a CSV value or interpolated text value
+                         to a hledger field
+*‘if’ block*             conditionally assign values to hledger fields,
+                         or ‘skip’ a record or ‘end’ (skip rest of
+                         file)
+*‘if’ table*             conditionally assign values to hledger fields,
+                         using compact syntax
+*‘balance-type’*         select which type of balance
+                         assertions/assignments to generate
+*‘include’*              inline another CSV rules file
+
+   Working with CSV tips can be found below, including How CSV rules are
+evaluated.
+
+
+File: hledger.info,  Node: separator,  Next: skip,  Prev: CSV rules cheatsheet,  Up: CSV
+
+11.2 ‘separator’
+================
+
+You can use the ‘separator’ rule to read other kinds of
+character-separated data.  The argument is any single separator
+character, or the words ‘tab’ or ‘space’ (case insensitive).  Eg, for
+comma-separated values (CSV):
+
+separator ,
+
+   or for semicolon-separated values (SSV):
+
+separator ;
+
+   or for tab-separated values (TSV):
+
+separator TAB
+
+   If the input file has a ‘.csv’, ‘.ssv’ or ‘.tsv’ file extension (or a
+‘csv:’, ‘ssv:’, ‘tsv:’ prefix), the appropriate separator will be
+inferred automatically, and you won’t need this rule.
+
+
+File: hledger.info,  Node: skip,  Next: date-format,  Prev: separator,  Up: CSV
+
+11.3 ‘skip’
+===========
+
+skip N
+
+   The word ‘skip’ followed by a number (or no number, meaning 1) tells
+hledger to ignore this many non-empty lines at the start of the input
+data.  (Empty/blank lines are skipped automatically, so you don’t need
+to count those.)  You’ll need this whenever your CSV data contains
+header lines.  Header lines skipped in this way are ignored, and not
+parsed as CSV.
+
+   ‘skip’ can also be used inside if blocks (described below), to skip
+individual data records.  Note records skipped in this way are still
+required to be valid CSV, even though otherwise ignored.
+
+
+File: hledger.info,  Node: date-format,  Next: timezone,  Prev: skip,  Up: CSV
+
+11.4 ‘date-format’
+==================
+
+date-format DATEFMT
+
+   This is a helper for the ‘date’ (and ‘date2’) fields.  If your CSV
+dates are not formatted like ‘YYYY-MM-DD’, ‘YYYY/MM/DD’ or ‘YYYY.MM.DD’,
+you’ll need to add a date-format rule describing them with a
+strptime-style date parsing pattern - see
+https://hackage.haskell.org/package/time/docs/Data-Time-Format.html#v:formatTime.
+The pattern must parse the CSV date value completely.  Some examples:
+
+# MM/DD/YY
+date-format %m/%d/%y
+
+# D/M/YYYY
+# The - makes leading zeros optional.
+date-format %-d/%-m/%Y
+
+# YYYY-Mmm-DD
+date-format %Y-%h-%d
+
+# M/D/YYYY HH:MM AM some other junk
+# Note the time and junk must be fully parsed, though only the date is used.
+date-format %-m/%-d/%Y %l:%M %p some other junk
+
+
+File: hledger.info,  Node: timezone,  Next: newest-first,  Prev: date-format,  Up: CSV
+
+11.5 ‘timezone’
+===============
+
+timezone TIMEZONE
+
+   When CSV contains date-times that are implicitly in some time zone
+other than yours, but containing no explicit time zone information, you
+can use this rule to declare the CSV’s native time zone, which helps
+prevent off-by-one dates.
+
+   When the CSV date-times do contain time zone information, you don’t
+need this rule; instead, use ‘%Z’ in ‘date-format’ (or ‘%z’, ‘%EZ’,
+‘%Ez’; see the formatTime link above).
+
+   In either of these cases, hledger will do a time-zone-aware
+conversion, localising the CSV date-times to your current system time
+zone.  If you prefer to localise to some other time zone, eg for
+reproducibility, you can (on unix at least) set the output timezone with
+the TZ environment variable, eg:
+
+$ TZ=-1000 hledger print -f foo.csv  # or TZ=-1000 hledger import foo.csv
+
+   ‘timezone’ currently does not understand timezone names, except
+"UTC", "GMT", "EST", "EDT", "CST", "CDT", "MST", "MDT", "PST", or "PDT".
+For others, use numeric format: +HHMM or -HHMM.
+
+
+File: hledger.info,  Node: newest-first,  Next: intra-day-reversed,  Prev: timezone,  Up: CSV
+
+11.6 ‘newest-first’
+===================
+
+hledger tries to ensure that the generated transactions will be ordered
+chronologically, including intra-day transactions.  Usually it can
+auto-detect how the CSV records are ordered.  But if it encounters CSV
+where all records are on the same date, it assumes that the records are
+oldest first.  If in fact the CSV’s records are normally newest first,
+like:
+
+2022-10-01, txn 3...
+2022-10-01, txn 2...
+2022-10-01, txn 1...
+
+   you can add the ‘newest-first’ rule to help hledger generate the
+transactions in correct order.
+
+# same-day CSV records are newest first
+newest-first
+
+
+File: hledger.info,  Node: intra-day-reversed,  Next: decimal-mark,  Prev: newest-first,  Up: CSV
+
+11.7 ‘intra-day-reversed’
+=========================
+
+CSV records for each day are sometimes ordered in reverse compared to
+the overall date order.  Eg, here dates are newest first, but the
+transactions on each date are oldest first:
+
+2022-10-02, txn 3...
+2022-10-02, txn 4...
+2022-10-01, txn 1...
+2022-10-01, txn 2...
+
+   In this situation, add the ‘intra-day-reversed’ rule, and hledger
+will compensate, improving the order of transactions.
+
+# transactions within each day are reversed with respect to the overall date order
+intra-day-reversed
+
+
+File: hledger.info,  Node: decimal-mark,  Next: fields list,  Prev: intra-day-reversed,  Up: CSV
+
+11.8 ‘decimal-mark’
+===================
+
+decimal-mark .
+
+   or:
+
+decimal-mark ,
+
+   hledger automatically accepts either period or comma as a decimal
+mark when parsing numbers (cf Amounts).  However if any numbers in the
+CSV contain digit group marks, such as thousand-separating commas, you
+should declare the decimal mark explicitly with this rule, to avoid
+misparsed numbers.
+
+
+File: hledger.info,  Node: fields list,  Next: Field assignment,  Prev: decimal-mark,  Up: CSV
+
+11.9 ‘fields’ list
+==================
+
+fields FIELDNAME1, FIELDNAME2, ...
+
+   A fields list (the word ‘fields’ followed by comma-separated field
+names) is optional, but convenient.  It does two things:
+
+  1. It names the CSV field in each column.  This can be convenient if
+     you are referencing them in other rules, so you can say
+     ‘%SomeField’ instead of remembering ‘%13’.
+
+  2. Whenever you use one of the special hledger field names (described
+     below), it assigns the CSV value in this position to that hledger
+     field.  This is the quickest way to populate hledger’s fields and
+     build a transaction.
+
+   Here’s an example that says "use the 1st, 2nd and 4th fields as the
+transaction’s date, description and amount; name the last two fields for
+later reference; and ignore the others":
+
+fields date, description, , amount, , , somefield, anotherfield
+
+   In a fields list, the separator is always comma; it is unrelated to
+the CSV file’s separator.  Also:
+
+   • There must be least two items in the list (at least one comma).
+   • Field names may not contain spaces.  Spaces before/after field
+     names are optional.
+   • Field names may contain ‘_’ (underscore) or ‘-’ (hyphen).
+   • Fields you don’t care about can be given a dummy name or an empty
+     name.
+
+   If the CSV contains column headings, it’s convenient to use these for
+your field names, suitably modified (eg lower-cased with spaces replaced
+by underscores).
+
+   Sometimes you may want to alter a CSV field name to avoid assigning
+to a hledger field with the same name.  Eg you could call the CSV’s
+"balance" field ‘balance_’ to avoid directly setting hledger’s ‘balance’
+field (and generating a balance assertion).
+
+
+File: hledger.info,  Node: Field assignment,  Next: Field names,  Prev: fields list,  Up: CSV
+
+11.10 Field assignment
+======================
+
+HLEDGERFIELD FIELDVALUE
+
+   Field assignments are the more flexible way to assign CSV values to
+hledger fields.  They can be used instead of or in addition to a fields
+list (see above).
+
+   To assign a value to a hledger field, write the field name (any of
+the standard hledger field/pseudo-field names, defined below), a space,
+followed by a text value on the same line.  This text value may
+interpolate CSV fields, referenced by their 1-based position in the CSV
+record (‘%N’), or by the name they were given in the fields list
+(‘%CSVFIELD’).
+
+   Some examples:
+
+# set the amount to the 4th CSV field, with " USD" appended
+amount %4 USD
+
+# combine three fields to make a comment, containing note: and date: tags
+comment note: %somefield - %anotherfield, date: %1
+
+   Tips:
+
+   • Interpolation strips outer whitespace (so a CSV value like ‘" 1 "’
+     becomes ‘1’ when interpolated) (#1051).
+   • Interpolations always refer to a CSV field - you can’t interpolate
+     a hledger field.  (See Referencing other fields below).
+
+
+File: hledger.info,  Node: Field names,  Next: if block,  Prev: Field assignment,  Up: CSV
+
+11.11 Field names
+=================
+
+Note the two kinds of field names mentioned here, and used only in
+hledger CSV rules files:
+
+  1. *CSV field names* (‘CSVFIELD’ in these docs): you can optionally
+     name the CSV columns for easy reference (since hledger doesn’t yet
+     automatically recognise column headings in a CSV file), by writing
+     arbitrary names in a ‘fields’ list, eg:
+
+     fields When, What, Some_Id, Net, Total, Foo, Bar
+
+  2. Special *hledger field names* (‘HLEDGERFIELD’ in these docs): you
+     must set at least some of these to generate the hledger transaction
+     from a CSV record, by writing them as the left hand side of a field
+     assignment, eg:
+
+     date        %When
+     code        %Some_Id
+     description %What
+     comment     %Foo %Bar
+     amount1     $ %Total
+
+     or directly in a ‘fields’ list:
+
+     fields date, description, code, , amount1, Foo, Bar
+     currency $
+     comment  %Foo %Bar
+
+   Here are all the special hledger field names available, and what
+happens when you assign values to them:
+
+* Menu:
+
+* date field::
+* date2 field::
+* status field::
+* code field::
+* description field::
+* comment field::
+* account field::
+* amount field::
+* currency field::
+* balance field::
+
+
+File: hledger.info,  Node: date field,  Next: date2 field,  Up: Field names
+
+11.11.1 date field
+------------------
+
+Assigning to ‘date’ sets the transaction date.
+
+
+File: hledger.info,  Node: date2 field,  Next: status field,  Prev: date field,  Up: Field names
+
+11.11.2 date2 field
+-------------------
+
+‘date2’ sets the transaction’s secondary date, if any.
+
+
+File: hledger.info,  Node: status field,  Next: code field,  Prev: date2 field,  Up: Field names
+
+11.11.3 status field
+--------------------
+
+‘status’ sets the transaction’s status, if any.
+
+
+File: hledger.info,  Node: code field,  Next: description field,  Prev: status field,  Up: Field names
+
+11.11.4 code field
+------------------
+
+‘code’ sets the transaction’s code, if any.
+
+
+File: hledger.info,  Node: description field,  Next: comment field,  Prev: code field,  Up: Field names
+
+11.11.5 description field
+-------------------------
+
+‘description’ sets the transaction’s description, if any.
+
+
+File: hledger.info,  Node: comment field,  Next: account field,  Prev: description field,  Up: Field names
+
+11.11.6 comment field
+---------------------
+
+‘comment’ sets the transaction’s comment, if any.
+
+   ‘commentN’, where N is a number, sets the Nth posting’s comment.
+
+   You can assign multi-line comments by writing literal ‘\n’ in the
+code.  A comment starting with ‘\n’ will begin on a new line.
+
+   Comments can contain tags, as usual.
+
+
+File: hledger.info,  Node: account field,  Next: amount field,  Prev: comment field,  Up: Field names
+
+11.11.7 account field
+---------------------
+
+Assigning to ‘accountN’, where N is 1 to 99, sets the account name of
+the Nth posting, and causes that posting to be generated.
+
+   Most often there are two postings, so you’ll want to set ‘account1’
+and ‘account2’.  Typically ‘account1’ is associated with the CSV file,
+and is set once with a top-level assignment, while ‘account2’ is set
+based on each transaction’s description, in conditional rules.
+
+   If a posting’s account name is left unset but its amount is set (see
+below), a default account name will be chosen (like "expenses:unknown"
+or "income:unknown").
+
+
+File: hledger.info,  Node: amount field,  Next: currency field,  Prev: account field,  Up: Field names
+
+11.11.8 amount field
+--------------------
+
+There are several "amount" field name variants, useful for different
+situations:
+
+   • ‘amountN’ sets the amount of the Nth posting, and causes that
+     posting to be generated.  By assigning to ‘amount1’, ‘amount2’, ...
+     etc.  you can generate up to 99 postings.  Posting numbers don’t
+     have to be consecutive; in certain situations using a high number
+     might be helpful to influence the layout of postings.
+
+   • ‘amountN-in’ and ‘amountN-out’ should be used instead, as a pair,
+     when and only when the amount must be obtained from two CSV fields.
+     Eg when the CSV has separate Debit and Credit fields instead of a
+     single Amount field.  Note:
+
+        • Don’t think "-in is for the first posting and -out is for the
+          second posting" - that’s not correct.  Think: "‘amountN-in’
+          and ‘amountN-out’ together detect the amount for posting N, by
+          inspecting two CSV fields at once."
+        • hledger assumes both CSV fields are unsigned, and will
+          automatically negate the -out value.
+        • It also expects that at least one of the values is empty or
+          zero, so it knows which one to ignore.  If that’s not the case
+          you’ll need an if rule (see Setting amounts below).
+
+   • ‘amount’, with no posting number (and similarly, ‘amount-in’ and
+     ‘amount-out’ with no number) are an older syntax.  We keep them for
+     backwards compatibility, and because they have special behaviour
+     that is sometimes convenient:
+
+        • They set the amount of posting 1 and (negated) the amount of
+          posting 2.
+        • Posting 2’s amount will be converted to cost if it has a cost
+          price.
+        • Any of the newer rules for posting 1 or 2 (like ‘amount1’, or
+          ‘amount2-in’ and ‘amount2-out’) will take precedence.  This
+          allows incrementally migrating old rules files to the new
+          syntax.
+
+   There’s more to say about amount-setting that doesn’t fit here;
+please see also "Setting amounts" below.
+
+
+File: hledger.info,  Node: currency field,  Next: balance field,  Prev: amount field,  Up: Field names
+
+11.11.9 currency field
+----------------------
+
+‘currency’ sets a currency symbol, to be prepended to all postings’
+amounts.  You can use this if the CSV amounts do not have a currency
+symbol, eg if it is in a separate column.
+
+   ‘currencyN’ prepends a currency symbol to just the Nth posting’s
+amount.
+
+
+File: hledger.info,  Node: balance field,  Prev: currency field,  Up: Field names
+
+11.11.10 balance field
+----------------------
+
+‘balanceN’ sets a balance assertion amount (or if the posting amount is
+left empty, a balance assignment) on posting N.
+
+   ‘balance’ is a compatibility spelling for hledger <1.17; it is
+equivalent to ‘balance1’.
+
+   You can adjust the type of assertion/assignment with the
+‘balance-type’ rule (see below).
+
+   See Tips below for more about setting amounts and currency.
+
+
+File: hledger.info,  Node: if block,  Next: Matchers,  Prev: Field names,  Up: CSV
+
+11.12 ‘if’ block
+================
+
+Rules can be applied conditionally, depending on patterns in the CSV
+data.  This allows flexibility; in particular, it is how you can
+categorise transactions, selecting an appropriate account name based on
+their description (for example).  There are two ways to write
+conditional rules: "if blocks", described here, and "if tables",
+described below.
+
+   An if block is the word ‘if’ and one or more "matcher" expressions
+(can be a word or phrase), one per line, starting either on the same or
+next line; followed by one or more indented rules.  Eg,
+
+if MATCHER
+ RULE
+
+   or
+
+if
+MATCHER
+MATCHER
+MATCHER
+ RULE
+ RULE
+
+   If any of the matchers succeeds, all of the indented rules will be
+applied.  They are usually field assignments, but the following special
+rules may also be used within an if block:
+
+   • ‘skip’ - skips the matched CSV record (generating no transaction
+     from it)
+   • ‘end’ - skips the rest of the current CSV file.
+
+   Some examples:
+
+# if the record contains "groceries", set account2 to "expenses:groceries"
+if groceries
+ account2 expenses:groceries
+
+# if the record contains any of these phrases, set account2 and a transaction comment as shown
+if
+monthly service fee
+atm transaction fee
+banking thru software
+ account2 expenses:business:banking
+ comment  XXX deductible ? check it
+
+# if an empty record is seen (assuming five fields), ignore the rest of the CSV file
+if ,,,,
+ end
+
+
+File: hledger.info,  Node: Matchers,  Next: if table,  Prev: if block,  Up: CSV
+
+11.13 Matchers
+==============
+
+There are two kinds:
+
+  1. A record matcher is a word or single-line text fragment or regular
+     expression (‘REGEX’), which hledger will try to match
+     case-insensitively anywhere within the CSV record.
+     Eg: ‘whole foods’
+
+  2. A field matcher is preceded with a percent sign and CSV field name
+     (‘%CSVFIELD REGEX’).  hledger will try to match these just within
+     the named CSV field.
+     Eg: ‘%date 2023’
+
+   The regular expression is (as usual in hledger) a POSIX extended
+regular expression, that also supports GNU word boundaries (‘\b’, ‘\B’,
+‘\<’, ‘\>’), and nothing else.  If you have trouble, see "Regular
+expressions" in the hledger manual
+(https://hledger.org/hledger.html#regular-expressions).
+
+   With record matchers, it’s important to know that the record matched
+is not the original CSV record, but a modified one: separators will be
+converted to commas, and enclosing double quotes (but not enclosing
+whitespace) are removed.  So for example, when reading an SSV file, if
+the original record was:
+
+2020-01-01; "Acme, Inc.";  1,000
+
+   the regex would see, and try to match, this modified record text:
+
+2020-01-01,Acme, Inc.,  1,000
+
+   When an if block has multiple matchers, they are combined as follows:
+
+   • By default they are OR’d (any one of them can match)
+   • When a matcher is preceded by ampersand (‘&’) it will be AND’ed
+     with the previous matcher (both of them must match).
+
+   There’s not yet an easy syntax to negate a matcher.
+
+
+File: hledger.info,  Node: if table,  Next: balance-type,  Prev: Matchers,  Up: CSV
+
+11.14 ‘if’ table
+================
+
+"if tables" are an alternative to if blocks; they can express many
+matchers and field assignments in a more compact tabular format, like
+this:
+
+if,HLEDGERFIELD1,HLEDGERFIELD2,...
+MATCHERA,VALUE1,VALUE2,...
+MATCHERB,VALUE1,VALUE2,...
+MATCHERC,VALUE1,VALUE2,...
+<empty line>
+
+   The first character after ‘if’ is taken to be the separator for the
+rest of the table.  It should be a non-alphanumeric character like ‘,’
+or ‘|’ that does not appear anywhere else in the table.  (Note: it is
+unrelated to the CSV file’s separator.)  Whitespace can be used in the
+matcher lines for readability, but not in the if line currently.  The
+table must be terminated by an empty line (or end of file).  Each line
+must contain the same number of separators; empty values are allowed.
+
+   The above means: try all of the matchers; whenever a matcher
+succeeds, assign all of the values on that line to the corresponding
+hledger fields; later lines can overrider earlier ones.  It is
+equivalent to this sequence of if blocks:
+
+if MATCHERA
+  HLEDGERFIELD1 VALUE1
+  HLEDGERFIELD2 VALUE2
+  ...
+
+if MATCHERB
+  HLEDGERFIELD1 VALUE1
+  HLEDGERFIELD2 VALUE2
+  ...
+
+if MATCHERC
+  HLEDGERFIELD1 VALUE1
+  HLEDGERFIELD2 VALUE2
+  ...
+
+   Example:
+
+if,account2,comment
+atm transaction fee,expenses:business:banking,deductible? check it
+%description groceries,expenses:groceries,
+2020/01/12.*Plumbing LLC,expenses:house:upkeep,emergency plumbing call-out
+
+
+File: hledger.info,  Node: balance-type,  Next: include,  Prev: if table,  Up: CSV
+
+11.15 ‘balance-type’
+====================
+
+Balance assertions generated by assigning to balanceN are of the simple
+‘=’ type by default, which is a single-commodity, subaccount-excluding
+assertion.  You may find the subaccount-including variants more useful,
+eg if you have created some virtual subaccounts of checking to help with
+budgeting.  You can select a different type of assertion with the
+‘balance-type’ rule:
+
+# balance assertions will consider all commodities and all subaccounts
+balance-type ==*
+
+   Here are the balance assertion types for quick reference:
+
+=    single commodity, exclude subaccounts
+=*   single commodity, include subaccounts
+==   multi commodity,  exclude subaccounts
+==*  multi commodity,  include subaccounts
+
+
+File: hledger.info,  Node: include,  Next: Working with CSV,  Prev: balance-type,  Up: CSV
+
+11.16 ‘include’
+===============
+
+include RULESFILE
+
+   This includes the contents of another CSV rules file at this point.
+‘RULESFILE’ is an absolute file path or a path relative to the current
+file’s directory.  This can be useful for sharing common rules between
+several rules files, eg:
+
+# someaccount.csv.rules
+
+## someaccount-specific rules
+fields   date,description,amount
+account1 assets:someaccount
+account2 expenses:misc
+
+## common rules
+include categorisation.rules
+
+
+File: hledger.info,  Node: Working with CSV,  Next: CSV rules examples,  Prev: include,  Up: CSV
+
+11.17 Working with CSV
+======================
+
+Some tips:
+
+* Menu:
+
 * Rapid feedback::
 * Valid CSV::
 * File Extension::
+* Reading CSV from standard input::
 * Reading multiple CSV files::
 * Valid transactions::
 * Deduplicating importing::
@@ -3526,54 +4272,402 @@ you’ll need to adjust.
 * Amount decimal places::
 * Referencing other fields::
 * How CSV rules are evaluated::
+* Well factored rules::
 
 
-File: hledger.info,  Node: Examples,  Next: CSV rules,  Up: CSV
+File: hledger.info,  Node: Rapid feedback,  Next: Valid CSV,  Up: Working with CSV
 
-11.1 Examples
-=============
+11.17.1 Rapid feedback
+----------------------
 
-Here are some sample hledger CSV rules files.  See also the full
-collection at:
-https://github.com/simonmichael/hledger/tree/master/examples/csv
+It’s a good idea to get rapid feedback while creating/troubleshooting
+CSV rules.  Here’s a good way, using entr from eradman.com/entrproject:
+
+$ ls foo.csv* | entr bash -c 'echo ----; hledger -f foo.csv print desc:SOMEDESC'
+
+   A desc: query (eg) is used to select just one, or a few, transactions
+of interest.  "bash -c" is used to run multiple commands, so we can echo
+a separator each time the command re-runs, making it easier to read the
+output.
+
+
+File: hledger.info,  Node: Valid CSV,  Next: File Extension,  Prev: Rapid feedback,  Up: Working with CSV
+
+11.17.2 Valid CSV
+-----------------
+
+Note that hledger will only accept valid CSV conforming to RFC 4180, and
+equivalent SSV and TSV formats (like RFC 4180 but with semicolon or tab
+as separators).  This means, eg:
+
+   • Values may be enclosed in double quotes, or not.  Enclosing in
+     single quotes is not allowed.  (Eg ‘'A','B'’ is rejected.)
+   • When values are enclosed in double quotes, spaces outside the
+     quotes are not allowed.  (Eg ‘"A", "B"’ is rejected.)
+   • When values are not enclosed in quotes, they may not contain double
+     quotes.  (Eg ‘A"A, B’ is rejected.)
+
+   If your CSV/SSV/TSV is not valid in this sense, you’ll need to
+transform it before reading with hledger.  Try using sed, or a more
+permissive CSV parser like python’s csv lib.
+
+
+File: hledger.info,  Node: File Extension,  Next: Reading CSV from standard input,  Prev: Valid CSV,  Up: Working with CSV
+
+11.17.3 File Extension
+----------------------
+
+To help hledger choose the CSV file reader and show the right error
+messages (and choose the right field separator character by default),
+it’s best if CSV/SSV/TSV files are named with a ‘.csv’, ‘.ssv’ or ‘.tsv’
+filename extension.  (More about this at Data formats.)
+
+   When reading files with the "wrong" extension, you can ensure the CSV
+reader (and the default field separator) by prefixing the file path with
+‘csv:’, ‘ssv:’ or ‘tsv:’: Eg:
+
+$ hledger -f ssv:foo.dat print
+
+   You can also override the default field separator with a separator
+rule if needed.
+
+
+File: hledger.info,  Node: Reading CSV from standard input,  Next: Reading multiple CSV files,  Prev: File Extension,  Up: Working with CSV
+
+11.17.4 Reading CSV from standard input
+---------------------------------------
+
+You’ll need the file format prefix when reading CSV from stdin also,
+since hledger assumes journal format by default.  Eg:
+
+$ cat foo.dat | hledger -f ssv:- print
+
+
+File: hledger.info,  Node: Reading multiple CSV files,  Next: Valid transactions,  Prev: Reading CSV from standard input,  Up: Working with CSV
+
+11.17.5 Reading multiple CSV files
+----------------------------------
+
+If you use multiple ‘-f’ options to read multiple CSV files at once,
+hledger will look for a correspondingly-named rules file for each CSV
+file.  But if you use the ‘--rules-file’ option, that rules file will be
+used for all the CSV files.
+
+
+File: hledger.info,  Node: Valid transactions,  Next: Deduplicating importing,  Prev: Reading multiple CSV files,  Up: Working with CSV
+
+11.17.6 Valid transactions
+--------------------------
+
+After reading a CSV file, hledger post-processes and validates the
+generated journal entries as it would for a journal file - balancing
+them, applying balance assignments, and canonicalising amount styles.
+Any errors at this stage will be reported in the usual way, displaying
+the problem entry.
+
+   There is one exception: balance assertions, if you have generated
+them, will not be checked, since normally these will work only when the
+CSV data is part of the main journal.  If you do need to check balance
+assertions generated from CSV right away, pipe into another hledger:
+
+$ hledger -f file.csv print | hledger -f- print
+
+
+File: hledger.info,  Node: Deduplicating importing,  Next: Setting amounts,  Prev: Valid transactions,  Up: Working with CSV
+
+11.17.7 Deduplicating, importing
+--------------------------------
+
+When you download a CSV file periodically, eg to get your latest bank
+transactions, the new file may overlap with the old one, containing some
+of the same records.
+
+   The import command will (a) detect the new transactions, and (b)
+append just those transactions to your main journal.  It is idempotent,
+so you don’t have to remember how many times you ran it or with which
+version of the CSV. (It keeps state in a hidden ‘.latest.FILE.csv’
+file.)  This is the easiest way to import CSV data.  Eg:
+
+# download the latest CSV files, then run this command.
+# Note, no -f flags needed here.
+$ hledger import *.csv [--dry]
+
+   This method works for most CSV files.  (Where records have a stable
+chronological order, and new records appear only at the new end.)
+
+   A number of other tools and workflows, hledger-specific and
+otherwise, exist for converting, deduplicating, classifying and managing
+CSV data.  See:
+
+   • https://hledger.org/cookbook.html#setups-and-workflows
+   • https://plaintextaccounting.org -> data import/conversion
+
+
+File: hledger.info,  Node: Setting amounts,  Next: Amount signs,  Prev: Deduplicating importing,  Up: Working with CSV
+
+11.17.8 Setting amounts
+-----------------------
+
+Continuing from amount field above, here are more tips on handling
+various amount-setting situations:
+
+  1. *If the amount is in a single CSV field:*
+
+       a. *If its sign indicates direction of flow:*
+          Assign it to ‘amountN’, to set the Nth posting’s amount.  N is
+          usually 1 or 2 but can go up to 99.
+
+       b. *If another field indicates direction of flow:*
+          Use one or more conditional rules to set the appropriate
+          amount sign.  Eg:
+
+     # assume a withdrawal unless Type contains "deposit":
+     amount1  -%Amount
+     if %Type deposit
+       amount1  %Amount
+
+  2. *If the amount is in one of two CSV fields (eg Debit and Credit):*
+
+       a. *If both fields are unsigned:*
+          Assign the fields to ‘amountN-in’ and ‘amountN-out’.  This
+          sets posting N’s amount to whichever of these has a non-zero
+          value.  If it’s the -out value, the amount will be negated.
+
+       b. *If either field is signed:*
+          Use a conditional rule to flip the sign when needed.  Eg
+          below, the -out value already has a minus sign so we undo
+          hledger’s automatic negating by negating once more (but only
+          if the field is non-empty, so that we don’t leave a minus sign
+          by itself):
+
+     fields date, description, amount1-in, amount1-out
+     if %amount1-out [1-9]
+      amount1-out -%amount1-out
+
+       c. *If both fields can contain a non-zero value (or both can be
+          empty):*
+          The -in/-out rules normally choose the value which is
+          non-zero/non-empty.  Some value pairs can be ambiguous, such
+          as ‘1’ and ‘none’.  For such cases, use conditional rules to
+          help select the amount.  Eg, to handle the above you could
+          select the value containing non-zero digits:
+
+     fields date, description, in, out
+     if %in [1-9]
+      amount1 %in
+     if %out [1-9]
+      amount1 %out
+
+  3. *If you want posting 2’s amount converted to cost:*
+     Use the unnumbered ‘amount’ (or ‘amount-in’ and ‘amount-out’)
+     syntax.
+
+  4. *If the CSV has only balance amounts, not transaction amounts:*
+     Assign to ‘balanceN’, to set a balance assignment on the Nth
+     posting, causing the posting’s amount to be calculated
+     automatically.  ‘balance’ with no number is equivalent to
+     ‘balance1’.  In this situation hledger is more likely to guess the
+     wrong default account name, so you may need to set that explicitly.
+
+
+File: hledger.info,  Node: Amount signs,  Next: Setting currency/commodity,  Prev: Setting amounts,  Up: Working with CSV
+
+11.17.9 Amount signs
+--------------------
+
+There is some special handling for amount signs, to simplify parsing and
+sign-flipping:
+
+   • *If an amount value begins with a plus sign:*
+     that will be removed: ‘+AMT’ becomes ‘AMT’
+
+   • *If an amount value is parenthesised:*
+     it will be de-parenthesised and sign-flipped: ‘(AMT)’ becomes
+     ‘-AMT’
+
+   • *If an amount value has two minus signs (or two sets of
+     parentheses, or a minus sign and parentheses):*
+     they cancel out and will be removed: ‘--AMT’ or ‘-(AMT)’ becomes
+     ‘AMT’
+
+   • *If an amount value contains just a sign (or just a set of
+     parentheses):*
+     that is removed, making it an empty value.  ‘"+"’ or ‘"-"’ or
+     ‘"()"’ becomes ‘""’.
+
+
+File: hledger.info,  Node: Setting currency/commodity,  Next: Amount decimal places,  Prev: Amount signs,  Up: Working with CSV
+
+11.17.10 Setting currency/commodity
+-----------------------------------
+
+If the currency/commodity symbol is included in the CSV’s amount
+field(s):
+
+2020-01-01,foo,$123.00
+
+   you don’t have to do anything special for the commodity symbol, it
+will be assigned as part of the amount.  Eg:
+
+fields date,description,amount
+
+2020-01-01 foo
+    expenses:unknown         $123.00
+    income:unknown          $-123.00
+
+   If the currency is provided as a separate CSV field:
+
+2020-01-01,foo,USD,123.00
+
+   You can assign that to the ‘currency’ pseudo-field, which has the
+special effect of prepending itself to every amount in the transaction
+(on the left, with no separating space):
+
+fields date,description,currency,amount
+
+2020-01-01 foo
+    expenses:unknown       USD123.00
+    income:unknown        USD-123.00
+
+   Or, you can use a field assignment to construct the amount yourself,
+with more control.  Eg to put the symbol on the right, and separated by
+a space:
+
+fields date,description,cur,amt
+amount %amt %cur
+
+2020-01-01 foo
+    expenses:unknown        123.00 USD
+    income:unknown         -123.00 USD
+
+   Note we used a temporary field name (‘cur’) that is not ‘currency’ -
+that would trigger the prepending effect, which we don’t want here.
+
+
+File: hledger.info,  Node: Amount decimal places,  Next: Referencing other fields,  Prev: Setting currency/commodity,  Up: Working with CSV
+
+11.17.11 Amount decimal places
+------------------------------
+
+Like amounts in a journal file, the amounts generated by CSV rules like
+‘amount1’ influence commodity display styles, such as the number of
+decimal places displayed in reports.
+
+   The original amounts as written in the CSV file do not affect display
+style (because we don’t yet reliably know their commodity).
+
+
+File: hledger.info,  Node: Referencing other fields,  Next: How CSV rules are evaluated,  Prev: Amount decimal places,  Up: Working with CSV
+
+11.17.12 Referencing other fields
+---------------------------------
+
+In field assignments, you can interpolate only CSV fields, not hledger
+fields.  In the example below, there’s both a CSV field and a hledger
+field named amount1, but %amount1 always means the CSV field, not the
+hledger field:
+
+# Name the third CSV field "amount1"
+fields date,description,amount1
+
+# Set hledger's amount1 to the CSV amount1 field followed by USD
+amount1 %amount1 USD
+
+# Set comment to the CSV amount1 (not the amount1 assigned above)
+comment %amount1
+
+   Here, since there’s no CSV amount1 field, %amount1 will produce a
+literal "amount1":
+
+fields date,description,csvamount
+amount1 %csvamount USD
+# Can't interpolate amount1 here
+comment %amount1
+
+   When there are multiple field assignments to the same hledger field,
+only the last one takes effect.  Here, comment’s value will be be B, or
+C if "something" is matched, but never A:
+
+comment A
+comment B
+if something
+ comment C
+
+
+File: hledger.info,  Node: How CSV rules are evaluated,  Next: Well factored rules,  Prev: Referencing other fields,  Up: Working with CSV
+
+11.17.13 How CSV rules are evaluated
+------------------------------------
+
+Here’s how to think of CSV rules being evaluated (if you really need
+to).  First,
+
+   • ‘include’ - all includes are inlined, from top to bottom, depth
+     first.  (At each include point the file is inlined and scanned for
+     further includes, recursively, before proceeding.)
+
+   Then "global" rules are evaluated, top to bottom.  If a rule is
+repeated, the last one wins:
+
+   • ‘skip’ (at top level)
+   • ‘date-format’
+   • ‘newest-first’
+   • ‘fields’ - names the CSV fields, optionally sets up initial
+     assignments to hledger fields
+
+   Then for each CSV record in turn:
+
+   • test all ‘if’ blocks.  If any of them contain a ‘end’ rule, skip
+     all remaining CSV records.  Otherwise if any of them contain a
+     ‘skip’ rule, skip that many CSV records.  If there are multiple
+     matched ‘skip’ rules, the first one wins.
+   • collect all field assignments at top level and in matched ‘if’
+     blocks.  When there are multiple assignments for a field, keep only
+     the last one.
+   • compute a value for each hledger field - either the one that was
+     assigned to it (and interpolate the %CSVFIELD references), or a
+     default
+   • generate a hledger transaction (journal entry) from these values.
+
+   This is all part of the CSV reader, one of several readers hledger
+can use to parse input files.  When all files have been read
+successfully, the transactions are passed as input to whichever hledger
+command the user specified.
+
+
+File: hledger.info,  Node: Well factored rules,  Prev: How CSV rules are evaluated,  Up: Working with CSV
+
+11.17.14 Well factored rules
+----------------------------
+
+Some things than can help reduce duplication and complexity in rules
+files:
+
+   • Extracting common rules usable with multiple CSV files into a
+     ‘common.rules’, and adding ‘include common.rules’ to each CSV’s
+     rules file.
+
+   • Splitting if blocks into smaller if blocks, extracting the
+     frequently used parts.
+
+
+File: hledger.info,  Node: CSV rules examples,  Prev: Working with CSV,  Up: CSV
+
+11.18 CSV rules examples
+========================
 
 * Menu:
 
-* Basic::
 * Bank of Ireland::
+* Coinbase::
 * Amazon::
 * Paypal::
 
 
-File: hledger.info,  Node: Basic,  Next: Bank of Ireland,  Up: Examples
+File: hledger.info,  Node: Bank of Ireland,  Next: Coinbase,  Up: CSV rules examples
 
-11.1.1 Basic
-------------
-
-At minimum, the rules file must identify the date and amount fields, and
-often it also specifies the date format and how many header lines there
-are.  Here’s a simple CSV file and a rules file for it:
-
-Date, Description, Id, Amount
-12/11/2019, Foo, 123, 10.23
-
-# basic.csv.rules
-skip         1
-fields       date, description, _, amount
-date-format  %d/%m/%Y
-
-$ hledger print -f basic.csv
-2019-11-12 Foo
-    expenses:unknown           10.23
-    income:unknown            -10.23
-
-   Default account names are chosen, since we didn’t set them.
-
-
-File: hledger.info,  Node: Bank of Ireland,  Next: Amazon,  Prev: Basic,  Up: Examples
-
-11.1.2 Bank of Ireland
-----------------------
+11.18.1 Bank of Ireland
+-----------------------
 
 Here’s a CSV with two amount fields (Debit and Credit), and a balance
 field, which we can use to add balance assertions, which is not
@@ -3623,10 +4717,37 @@ reading directly from CSV, but they will be checked if these entries are
 imported into a journal file.
 
 
-File: hledger.info,  Node: Amazon,  Next: Paypal,  Prev: Bank of Ireland,  Up: Examples
+File: hledger.info,  Node: Coinbase,  Next: Amazon,  Prev: Bank of Ireland,  Up: CSV rules examples
 
-11.1.3 Amazon
--------------
+11.18.2 Coinbase
+----------------
+
+A simple example with some CSV from Coinbase.  The spot price is
+recorded using cost notation.  The legacy ‘amount’ field name
+conveniently sets amount 2 (posting 2’s amount) to the total cost.
+
+# Timestamp,Transaction Type,Asset,Quantity Transacted,Spot Price Currency,Spot Price at Transaction,Subtotal,Total (inclusive of fees and/or spread),Fees and/or Spread,Notes
+# 2021-12-30T06:57:59Z,Receive,USDC,100,GBP,0.740000,"","","","Received 100.00 USDC from an external account"
+
+# coinbase.csv.rules
+skip         1
+fields       Timestamp,Transaction_Type,Asset,Quantity_Transacted,Spot_Price_Currency,Spot_Price_at_Transaction,Subtotal,Total,Fees_Spread,Notes
+date         %Timestamp
+date-format  %Y-%m-%dT%T%Z
+description  %Notes
+account1     assets:coinbase:cc
+amount       %Quantity_Transacted %Asset @ %Spot_Price_at_Transaction %Spot_Price_Currency
+
+$ hledger print -f coinbase.csv
+2021-12-30 Received 100.00 USDC from an external account
+    assets:coinbase:cc    100 USDC @ 0.740000 GBP
+    income:unknown                 -74.000000 GBP
+
+
+File: hledger.info,  Node: Amazon,  Next: Paypal,  Prev: Coinbase,  Up: CSV rules examples
+
+11.18.3 Amazon
+--------------
 
 Here we convert amazon.com order history, and use an if block to
 generate a third posting if there’s a fee.  (In practice you’d probably
@@ -3681,10 +4802,10 @@ $ hledger -f amazon-orders.csv print
     expenses:fees           $1.00
 
 
-File: hledger.info,  Node: Paypal,  Prev: Amazon,  Up: Examples
+File: hledger.info,  Node: Paypal,  Prev: Amazon,  Up: CSV rules examples
 
-11.1.4 Paypal
--------------
+11.18.4 Paypal
+--------------
 
 Here’s a real-world rules file for (customised) Paypal CSV, with some
 Paypal-specific rules, and a second rules file included:
@@ -3833,1035 +4954,6 @@ $ hledger -f paypal-custom.csv  print
     assets:online:paypal                       $9.41 = $9.41
     revenues:foss donations:darcshub         $-10.00  ; business:
     expenses:banking:paypal                    $0.59  ; business:
-
-
-File: hledger.info,  Node: CSV rules,  Next: separator,  Prev: Examples,  Up: CSV
-
-11.2 CSV rules
-==============
-
-The following kinds of rule can appear in the rules file, in any order.
-Blank lines and lines beginning with ‘#’ or ‘;’ or ‘*’ are ignored.
-
-*‘separator’*              a custom field separator
-*‘skip’*                   skip one or more header lines or matched CSV
-                           records
-*‘date-format’*            how to parse dates in CSV records
-*‘timezone’*               declare the time zone of ambiguous CSV
-                           date-times
-*‘decimal-mark’*           the decimal mark used in CSV amounts, if
-                           ambiguous
-*‘newest-first’*           improve txn order when there are multiple
-                           records, newest first, all with the same
-                           date
-*‘intra-day-reversed’*     improve txn order when each day’s txns are
-                           reverse of the overall date order
-*‘balance-type’*           choose which type of balance assignments to
-                           use
-*‘fields’*                 name CSV fields, assign them to hledger
-                           fields
-*Field assignment*         assign a value to one hledger field, with
-                           interpolation
-*Field names*              hledger field names, used in the fields list
-                           and field assignments
-*‘if’*                     apply some rules to CSV records matched by
-                           patterns
-*‘if’ table*               apply some rules to CSV records matched by
-                           patterns, alternate syntax
-*‘end’*                    skip the remaining CSV records
-*‘include’*                inline another CSV rules file
-
-
-File: hledger.info,  Node: separator,  Next: skip,  Prev: CSV rules,  Up: CSV
-
-11.3 ‘separator’
-================
-
-You can use the ‘separator’ rule to read other kinds of
-character-separated data.  The argument is any single separator
-character, or the words ‘tab’ or ‘space’ (case insensitive).  Eg, for
-comma-separated values (CSV):
-
-separator ,
-
-   or for semicolon-separated values (SSV):
-
-separator ;
-
-   or for tab-separated values (TSV):
-
-separator TAB
-
-   If the input file has a ‘.csv’, ‘.ssv’ or ‘.tsv’ file extension (or a
-‘csv:’, ‘ssv:’, ‘tsv:’ prefix), the appropriate separator will be
-inferred automatically, and you won’t need this rule.
-
-
-File: hledger.info,  Node: skip,  Next: date-format,  Prev: separator,  Up: CSV
-
-11.4 ‘skip’
-===========
-
-skip N
-
-   The word ‘skip’ followed by a number (or no number, meaning 1) tells
-hledger to ignore this many non-empty lines at the start of the input
-data.  (Empty/blank lines are skipped automatically, so you don’t need
-to count those.)  You’ll need this whenever your CSV data contains
-header lines.  Header lines skipped in this way are ignored, and not
-parsed as CSV.
-
-   ‘skip’ can also be used inside if blocks (described below), to skip
-individual data records.  Note records skipped in this way are still
-required to be valid CSV, even though otherwise ignored.
-
-
-File: hledger.info,  Node: date-format,  Next: timezone,  Prev: skip,  Up: CSV
-
-11.5 ‘date-format’
-==================
-
-date-format DATEFMT
-
-   This is a helper for the ‘date’ (and ‘date2’) fields.  If your CSV
-dates are not formatted like ‘YYYY-MM-DD’, ‘YYYY/MM/DD’ or ‘YYYY.MM.DD’,
-you’ll need to add a date-format rule describing them with a
-strptime-style date parsing pattern - see
-https://hackage.haskell.org/package/time/docs/Data-Time-Format.html#v:formatTime.
-The pattern must parse the CSV date value completely.  Some examples:
-
-# MM/DD/YY
-date-format %m/%d/%y
-
-# D/M/YYYY
-# The - makes leading zeros optional.
-date-format %-d/%-m/%Y
-
-# YYYY-Mmm-DD
-date-format %Y-%h-%d
-
-# M/D/YYYY HH:MM AM some other junk
-# Note the time and junk must be fully parsed, though only the date is used.
-date-format %-m/%-d/%Y %l:%M %p some other junk
-
-
-File: hledger.info,  Node: timezone,  Next: decimal-mark,  Prev: date-format,  Up: CSV
-
-11.6 ‘timezone’
-===============
-
-timezone TIMEZONE
-
-   When CSV contains date-times that are implicitly in some time zone
-other than yours, but containing no explicit time zone information, you
-can use this rule to declare the CSV’s native time zone, which helps
-prevent off-by-one dates.
-
-   When the CSV date-times do contain time zone information, you don’t
-need this rule; instead, use ‘%Z’ in ‘date-format’ (or ‘%z’, ‘%EZ’,
-‘%Ez’; see the formatTime link above).
-
-   In either of these cases, hledger will do a time-zone-aware
-conversion, localising the CSV date-times to your current system time
-zone.  If you prefer to localise to some other time zone, eg for
-reproducibility, you can (on unix at least) set the output timezone with
-the TZ environment variable, eg:
-
-$ TZ=-1000 hledger print -f foo.csv  # or TZ=-1000 hledger import foo.csv
-
-   ‘timezone’ currently does not understand timezone names, except
-"UTC", "GMT", "EST", "EDT", "CST", "CDT", "MST", "MDT", "PST", or "PDT".
-For others, use numeric format: +HHMM or -HHMM.
-
-
-File: hledger.info,  Node: decimal-mark,  Next: newest-first,  Prev: timezone,  Up: CSV
-
-11.7 ‘decimal-mark’
-===================
-
-decimal-mark .
-
-   or:
-
-decimal-mark ,
-
-   hledger automatically accepts either period or comma as a decimal
-mark when parsing numbers (cf Amounts).  However if any numbers in the
-CSV contain digit group marks, such as thousand-separating commas, you
-should declare the decimal mark explicitly with this rule, to avoid
-misparsed numbers.
-
-
-File: hledger.info,  Node: newest-first,  Next: intra-day-reversed,  Prev: decimal-mark,  Up: CSV
-
-11.8 ‘newest-first’
-===================
-
-hledger tries to ensure that the generated transactions will be ordered
-chronologically, including intra-day transactions.  Usually it can
-auto-detect how the CSV records are ordered.  But if it encounters CSV
-where all records are on the same date, it assumes that the records are
-oldest first.  If in fact the CSV’s records are normally newest first,
-like:
-
-2022-10-01, txn 3...
-2022-10-01, txn 2...
-2022-10-01, txn 1...
-
-   you can add the ‘newest-first’ rule to help hledger generate the
-transactions in correct order.
-
-# same-day CSV records are newest first
-newest-first
-
-
-File: hledger.info,  Node: intra-day-reversed,  Next: fields,  Prev: newest-first,  Up: CSV
-
-11.9 ‘intra-day-reversed’
-=========================
-
-CSV records for each day are sometimes ordered in reverse compared to
-the overall date order.  Eg, here dates are newest first, but the
-transactions on each date are oldest first:
-
-2022-10-02, txn 3...
-2022-10-02, txn 4...
-2022-10-01, txn 1...
-2022-10-01, txn 2...
-
-   In this situation, add the ‘intra-day-reversed’ rule, and hledger
-will compensate, improving the order of transactions.
-
-# transactions within each day are reversed with respect to the overall date order
-intra-day-reversed
-
-
-File: hledger.info,  Node: fields,  Next: Field assignment,  Prev: intra-day-reversed,  Up: CSV
-
-11.10 ‘fields’
-==============
-
-fields FIELDNAME1, FIELDNAME2, ...
-
-   A fields list (the word "fields" followed by comma-separated field
-names) is the quick way to assign CSV field values to hledger fields.
-(The other way is field assignments, see below.)  A fields list does
-does two things:
-
-  1. It names the CSV fields.  This is optional, but can be convenient
-     later for interpolating them.
-
-  2. Whenever you use a standard hledger field name (defined below), the
-     CSV value is assigned to that part of the hledger transaction.
-
-   Here’s an example that says "use the 1st, 2nd and 4th fields as the
-transaction’s date, description and amount; name the last two fields for
-later reference; and ignore the others":
-
-fields date, description, , amount, , , somefield, anotherfield
-
-   Tips:
-
-   • The fields list always use commas, even if your CSV data uses
-     another separator character.
-   • Currently there must be least two items in the list (at least one
-     comma).
-   • Field names may not contain spaces.  Spaces before/after field
-     names are optional.
-   • Field names may contain ‘_’ (underscore) or ‘-’ (hyphen).
-   • If the CSV contains column headings, it’s a good idea to use these,
-     suitably modified, as the basis for your field names (eg
-     lower-cased, with underscores instead of spaces).
-   • If some heading names match standard hledger fields, but you don’t
-     want to set the hledger fields directly, alter those names, eg by
-     appending an underscore.
-   • Fields you don’t care about can be given a dummy name (eg: ‘_’ ),
-     or no name.
-
-
-File: hledger.info,  Node: Field assignment,  Next: Field names,  Prev: fields,  Up: CSV
-
-11.11 Field assignment
-======================
-
-HLEDGERFIELDNAME FIELDVALUE
-
-   Field assignments are the more flexible way to assign CSV values to
-hledger fields.  They can be used instead of or in addition to a fields
-list (see above).
-
-   To assign a value to a hledger field, write the field name (any of
-the standard hledger field/pseudo-field names, defined below), a space,
-followed by a text value on the same line.  This text value may
-interpolate CSV fields, referenced by their 1-based position in the CSV
-record (‘%N’), or by the name they were given in the fields list
-(‘%CSVFIELDNAME’).
-
-   Some examples:
-
-# set the amount to the 4th CSV field, with " USD" appended
-amount %4 USD
-
-# combine three fields to make a comment, containing note: and date: tags
-comment note: %somefield - %anotherfield, date: %1
-
-   Tips:
-
-   • Interpolation strips outer whitespace (so a CSV value like ‘" 1 "’
-     becomes ‘1’ when interpolated) (#1051).
-   • Interpolations always refer to a CSV field - you can’t interpolate
-     a hledger field.  (See Referencing other fields below).
-
-
-File: hledger.info,  Node: Field names,  Next: if,  Prev: Field assignment,  Up: CSV
-
-11.12 Field names
-=================
-
-Here are the standard hledger field (and pseudo-field) names, which you
-can use in a fields list or in field assignments.  For more about the
-transaction parts they refer to, see Transactions.
-
-* Menu:
-
-* date field::
-* date2 field::
-* status field::
-* code field::
-* description field::
-* comment field::
-* account field::
-* amount field::
-* currency field::
-* balance field::
-
-
-File: hledger.info,  Node: date field,  Next: date2 field,  Up: Field names
-
-11.12.1 date field
-------------------
-
-Assigning to ‘date’ sets the transaction date.
-
-
-File: hledger.info,  Node: date2 field,  Next: status field,  Prev: date field,  Up: Field names
-
-11.12.2 date2 field
--------------------
-
-‘date2’ sets the transaction’s secondary date, if any.
-
-
-File: hledger.info,  Node: status field,  Next: code field,  Prev: date2 field,  Up: Field names
-
-11.12.3 status field
---------------------
-
-‘status’ sets the transaction’s status, if any.
-
-
-File: hledger.info,  Node: code field,  Next: description field,  Prev: status field,  Up: Field names
-
-11.12.4 code field
-------------------
-
-‘code’ sets the transaction’s code, if any.
-
-
-File: hledger.info,  Node: description field,  Next: comment field,  Prev: code field,  Up: Field names
-
-11.12.5 description field
--------------------------
-
-‘description’ sets the transaction’s description, if any.
-
-
-File: hledger.info,  Node: comment field,  Next: account field,  Prev: description field,  Up: Field names
-
-11.12.6 comment field
----------------------
-
-‘comment’ sets the transaction’s comment, if any.
-
-   ‘commentN’, where N is a number, sets the Nth posting’s comment.
-
-   You can assign multi-line comments by writing literal ‘\n’ in the
-code.  A comment starting with ‘\n’ will begin on a new line.
-
-   Comments can contain tags, as usual.
-
-
-File: hledger.info,  Node: account field,  Next: amount field,  Prev: comment field,  Up: Field names
-
-11.12.7 account field
----------------------
-
-Assigning to ‘accountN’, where N is 1 to 99, sets the account name of
-the Nth posting, and causes that posting to be generated.
-
-   Most often there are two postings, so you’ll want to set ‘account1’
-and ‘account2’.  Typically ‘account1’ is associated with the CSV file,
-and is set once with a top-level assignment, while ‘account2’ is set
-based on each transaction’s description, and in conditional blocks.
-
-   If a posting’s account name is left unset but its amount is set (see
-below), a default account name will be chosen (like "expenses:unknown"
-or "income:unknown").
-
-
-File: hledger.info,  Node: amount field,  Next: currency field,  Prev: account field,  Up: Field names
-
-11.12.8 amount field
---------------------
-
-‘amountN’ sets the amount of the Nth posting, and causes that posting to
-be generated.  By assigning to ‘amount1’, ‘amount2’, ...  etc.  you can
-generate up to 99 postings.
-
-   ‘amountN-in’ and ‘amountN-out’ can be used instead, if the CSV uses
-separate fields for debits and credits (inflows and outflows).  hledger
-assumes both of these CSV fields are unsigned, and will automatically
-negate the "-out" value.  It also requires that at least one of them is
-either empty or zero.  See "Setting amounts" below for more on this
-topic.
-
-   ‘amount’, or ‘amount-in’ and ‘amount-out’ are a legacy mode, to keep
-pre-hledger-1.17 CSV rules files working (and for occasional
-convenience).  They are suitable only for two-posting transactions; they
-set both posting 1’s and posting 2’s amount.  Posting 2’s amount will be
-negated, and also converted to cost if there’s a cost price.
-
-   Note: it might sound as if amount-in is for one posting and
-amount-out for the other posting, but no; use the -in and -out rules
-together for the same posting, producing one amount from two CSV fields.
-
-   If you have an existing rules file using the unnumbered form, you
-might want to use the numbered form in certain conditional blocks,
-without having to update and retest all the old rules.  To facilitate
-this, posting 1 ignores ‘amount’/‘amount-in’/‘amount-out’ if any of
-‘amount1’/‘amount1-in’/‘amount1-out’ are assigned, and posting 2 ignores
-them if any of ‘amount2’/‘amount2-in’/‘amount2-out’ are assigned,
-avoiding conflicts.
-
-
-File: hledger.info,  Node: currency field,  Next: balance field,  Prev: amount field,  Up: Field names
-
-11.12.9 currency field
-----------------------
-
-‘currency’ sets a currency symbol, to be prepended to all postings’
-amounts.  You can use this if the CSV amounts do not have a currency
-symbol, eg if it is in a separate column.
-
-   ‘currencyN’ prepends a currency symbol to just the Nth posting’s
-amount.
-
-
-File: hledger.info,  Node: balance field,  Prev: currency field,  Up: Field names
-
-11.12.10 balance field
-----------------------
-
-‘balanceN’ sets a balance assertion amount (or if the posting amount is
-left empty, a balance assignment) on posting N.
-
-   ‘balance’ is a compatibility spelling for hledger <1.17; it is
-equivalent to ‘balance1’.
-
-   You can adjust the type of assertion/assignment with the
-‘balance-type’ rule (see below).
-
-   See Tips below for more about setting amounts and currency.
-
-
-File: hledger.info,  Node: if,  Next: if table,  Prev: Field names,  Up: CSV
-
-11.13 ‘if’
-==========
-
-if MATCHER
- RULE
-
-if
-MATCHER
-MATCHER
-MATCHER
- RULE
- RULE
-
-   Conditional blocks ("if blocks") are a block of rules that are
-applied only to CSV records which match certain patterns.  They are
-often used for customising account names based on transaction
-descriptions.
-
-* Menu:
-
-* Matching the whole record::
-* Matching individual fields::
-* Combining matchers::
-* Rules applied on successful match::
-
-
-File: hledger.info,  Node: Matching the whole record,  Next: Matching individual fields,  Up: if
-
-11.13.1 Matching the whole record
----------------------------------
-
-Each MATCHER can be a record matcher, which looks like this:
-
-REGEX
-
-   REGEX is a case-insensitive regular expression that tries to match
-anywhere within the CSV record.  It is a POSIX ERE (extended regular
-expression) that also supports GNU word boundaries (‘\b’, ‘\B’, ‘\<’,
-‘\>’), and nothing else.  If you have trouble, be sure to check our doc:
-https://hledger.org/hledger.html#regular-expressions
-
-   Important note: the record that is matched is not the original
-record, but a synthetic one, with any enclosing double quotes (but not
-enclosing whitespace) removed, and always comma-separated (which means
-that a field containing a comma will appear like two fields).  Eg, if
-the original record is ‘2020-01-01; "Acme, Inc."; 1,000’, the REGEX will
-actually see ‘2020-01-01,Acme, Inc., 1,000’).
-
-
-File: hledger.info,  Node: Matching individual fields,  Next: Combining matchers,  Prev: Matching the whole record,  Up: if
-
-11.13.2 Matching individual fields
-----------------------------------
-
-Or, MATCHER can be a field matcher, like this:
-
-%CSVFIELD REGEX
-
-   which matches just the content of a particular CSV field.  CSVFIELD
-is a percent sign followed by the field’s name or column number, like
-‘%date’ or ‘%1’.
-
-
-File: hledger.info,  Node: Combining matchers,  Next: Rules applied on successful match,  Prev: Matching individual fields,  Up: if
-
-11.13.3 Combining matchers
---------------------------
-
-A single matcher can be written on the same line as the "if"; or
-multiple matchers can be written on the following lines, non-indented.
-Multiple matchers are OR’d (any one of them can match), unless one
-begins with an ‘&’ symbol, in which case it is AND’ed with the previous
-matcher.
-
-if
-MATCHER
-& MATCHER
- RULE
-
-
-File: hledger.info,  Node: Rules applied on successful match,  Prev: Combining matchers,  Up: if
-
-11.13.4 Rules applied on successful match
------------------------------------------
-
-After the patterns there should be one or more rules to apply, all
-indented by at least one space.  Three kinds of rule are allowed in
-conditional blocks:
-
-   • field assignments (to set a hledger field)
-   • skip (to skip the matched CSV record)
-   • end (to skip all remaining CSV records).
-
-   Examples:
-
-# if the CSV record contains "groceries", set account2 to "expenses:groceries"
-if groceries
- account2 expenses:groceries
-
-# if the CSV record contains any of these patterns, set account2 and comment as shown
-if
-monthly service fee
-atm transaction fee
-banking thru software
- account2 expenses:business:banking
- comment  XXX deductible ? check it
-
-
-File: hledger.info,  Node: if table,  Next: end,  Prev: if,  Up: CSV
-
-11.14 ‘if’ table
-================
-
-if,CSVFIELDNAME1,CSVFIELDNAME2,...,CSVFIELDNAMEn
-MATCHER1,VALUE11,VALUE12,...,VALUE1n
-MATCHER2,VALUE21,VALUE22,...,VALUE2n
-MATCHER3,VALUE31,VALUE32,...,VALUE3n
-<empty line>
-
-   Conditional tables ("if tables") are a different syntax to specify
-field assignments that will be applied only to CSV records which match
-certain patterns.
-
-   MATCHER could be either field or record matcher, as described above.
-When MATCHER matches, values from that row would be assigned to the CSV
-fields named on the ‘if’ line, in the same order.
-
-   Therefore ‘if’ table is exactly equivalent to a sequence of of ‘if’
-blocks:
-
-if MATCHER1
-  CSVFIELDNAME1 VALUE11
-  CSVFIELDNAME2 VALUE12
-  ...
-  CSVFIELDNAMEn VALUE1n
-
-if MATCHER2
-  CSVFIELDNAME1 VALUE21
-  CSVFIELDNAME2 VALUE22
-  ...
-  CSVFIELDNAMEn VALUE2n
-
-if MATCHER3
-  CSVFIELDNAME1 VALUE31
-  CSVFIELDNAME2 VALUE32
-  ...
-  CSVFIELDNAMEn VALUE3n
-
-   Each line starting with MATCHER should contain enough (possibly
-empty) values for all the listed fields.
-
-   Rules would be checked and applied in the order they are listed in
-the table and, like with ‘if’ blocks, later rules (in the same or
-another table) or ‘if’ blocks could override the effect of any rule.
-
-   Instead of ’,’ you can use a variety of other non-alphanumeric
-characters as a separator.  First character after ‘if’ is taken to be
-the separator for the rest of the table.  It is the responsibility of
-the user to ensure that separator does not occur inside MATCHERs and
-values - there is no way to escape separator.
-
-   Example:
-
-if,account2,comment
-atm transaction fee,expenses:business:banking,deductible? check it
-%description groceries,expenses:groceries,
-2020/01/12.*Plumbing LLC,expenses:house:upkeep,emergency plumbing call-out
-
-
-File: hledger.info,  Node: end,  Next: include,  Prev: if table,  Up: CSV
-
-11.15 ‘end’
-===========
-
-This rule can be used inside if blocks (only), to make hledger stop
-reading this CSV file and move on to the next input file, or to command
-execution.  Eg:
-
-# ignore everything following the first empty record
-if ,,,,
- end
-
-
-File: hledger.info,  Node: include,  Next: balance-type,  Prev: end,  Up: CSV
-
-11.16 ‘include’
-===============
-
-include RULESFILE
-
-   This includes the contents of another CSV rules file at this point.
-‘RULESFILE’ is an absolute file path or a path relative to the current
-file’s directory.  This can be useful for sharing common rules between
-several rules files, eg:
-
-# someaccount.csv.rules
-
-## someaccount-specific rules
-fields   date,description,amount
-account1 assets:someaccount
-account2 expenses:misc
-
-## common rules
-include categorisation.rules
-
-
-File: hledger.info,  Node: balance-type,  Next: Tips,  Prev: include,  Up: CSV
-
-11.17 ‘balance-type’
-====================
-
-Balance assertions generated by assigning to balanceN are of the simple
-‘=’ type by default, which is a single-commodity, subaccount-excluding
-assertion.  You may find the subaccount-including variants more useful,
-eg if you have created some virtual subaccounts of checking to help with
-budgeting.  You can select a different type of assertion with the
-‘balance-type’ rule:
-
-# balance assertions will consider all commodities and all subaccounts
-balance-type ==*
-
-   Here are the balance assertion types for quick reference:
-
-=    single commodity, exclude subaccounts
-=*   single commodity, include subaccounts
-==   multi commodity,  exclude subaccounts
-==*  multi commodity,  include subaccounts
-
-
-File: hledger.info,  Node: Tips,  Next: Rapid feedback,  Prev: balance-type,  Up: CSV
-
-11.18 Tips
-==========
-
-
-File: hledger.info,  Node: Rapid feedback,  Next: Valid CSV,  Prev: Tips,  Up: CSV
-
-11.19 Rapid feedback
-====================
-
-It’s a good idea to get rapid feedback while creating/troubleshooting
-CSV rules.  Here’s a good way, using entr from eradman.com/entrproject:
-
-$ ls foo.csv* | entr bash -c 'echo ----; hledger -f foo.csv print desc:SOMEDESC'
-
-   A desc: query (eg) is used to select just one, or a few, transactions
-of interest.  "bash -c" is used to run multiple commands, so we can echo
-a separator each time the command re-runs, making it easier to read the
-output.
-
-
-File: hledger.info,  Node: Valid CSV,  Next: File Extension,  Prev: Rapid feedback,  Up: CSV
-
-11.20 Valid CSV
-===============
-
-Note that hledger will only accept valid CSV conforming to RFC 4180, and
-equivalent SSV and TSV formats (like RFC 4180 but with semicolon or tab
-as separators).  This means, eg:
-
-   • Values may be enclosed in double quotes, or not.  Enclosing in
-     single quotes is not allowed.  (Eg ‘'A','B'’ is rejected.)
-   • When values are enclosed in double quotes, spaces outside the
-     quotes are not allowed.  (Eg ‘"A", "B"’ is rejected.)
-   • When values are not enclosed in quotes, they may not contain double
-     quotes.  (Eg ‘A"A, B’ is rejected.)
-
-   If your CSV/SSV/TSV is not valid in this sense, you’ll need to
-transform it before reading with hledger.  Try using sed, or a more
-permissive CSV parser like python’s csv lib.
-
-
-File: hledger.info,  Node: File Extension,  Next: Reading multiple CSV files,  Prev: Valid CSV,  Up: CSV
-
-11.21 File Extension
-====================
-
-To help hledger identify the format and show the right error messages,
-CSV/SSV/TSV files should normally be named with a ‘.csv’, ‘.ssv’ or
-‘.tsv’ filename extension.  Or, the file path should be prefixed with
-‘csv:’, ‘ssv:’ or ‘tsv:’.  Eg:
-
-$ hledger -f foo.ssv print
-
-   or:
-
-$ cat foo | hledger -f ssv:- foo
-
-   You can override the file extension with a separator rule if needed.
-See also: Input files in the hledger manual.
-
-
-File: hledger.info,  Node: Reading multiple CSV files,  Next: Valid transactions,  Prev: File Extension,  Up: CSV
-
-11.22 Reading multiple CSV files
-================================
-
-If you use multiple ‘-f’ options to read multiple CSV files at once,
-hledger will look for a correspondingly-named rules file for each CSV
-file.  But if you use the ‘--rules-file’ option, that rules file will be
-used for all the CSV files.
-
-
-File: hledger.info,  Node: Valid transactions,  Next: Deduplicating importing,  Prev: Reading multiple CSV files,  Up: CSV
-
-11.23 Valid transactions
-========================
-
-After reading a CSV file, hledger post-processes and validates the
-generated journal entries as it would for a journal file - balancing
-them, applying balance assignments, and canonicalising amount styles.
-Any errors at this stage will be reported in the usual way, displaying
-the problem entry.
-
-   There is one exception: balance assertions, if you have generated
-them, will not be checked, since normally these will work only when the
-CSV data is part of the main journal.  If you do need to check balance
-assertions generated from CSV right away, pipe into another hledger:
-
-$ hledger -f file.csv print | hledger -f- print
-
-
-File: hledger.info,  Node: Deduplicating importing,  Next: Setting amounts,  Prev: Valid transactions,  Up: CSV
-
-11.24 Deduplicating, importing
-==============================
-
-When you download a CSV file periodically, eg to get your latest bank
-transactions, the new file may overlap with the old one, containing some
-of the same records.
-
-   The import command will (a) detect the new transactions, and (b)
-append just those transactions to your main journal.  It is idempotent,
-so you don’t have to remember how many times you ran it or with which
-version of the CSV. (It keeps state in a hidden ‘.latest.FILE.csv’
-file.)  This is the easiest way to import CSV data.  Eg:
-
-# download the latest CSV files, then run this command.
-# Note, no -f flags needed here.
-$ hledger import *.csv [--dry]
-
-   This method works for most CSV files.  (Where records have a stable
-chronological order, and new records appear only at the new end.)
-
-   A number of other tools and workflows, hledger-specific and
-otherwise, exist for converting, deduplicating, classifying and managing
-CSV data.  See:
-
-   • https://hledger.org/cookbook.html#setups-and-workflows
-   • https://plaintextaccounting.org -> data import/conversion
-
-
-File: hledger.info,  Node: Setting amounts,  Next: Amount signs,  Prev: Deduplicating importing,  Up: CSV
-
-11.25 Setting amounts
-=====================
-
-Some tips on using the amount-setting rules discussed above.
-
-   Here are the ways to set a posting’s amount:
-
-  1. *If the CSV has a single amount field:*
-     Assign (via a fields list or a field assignment) to ‘amountN’.
-     This sets the Nth posting’s amount.  N is usually 1 or 2 but can go
-     up to 99.
-
-  2. *If the CSV has separate amount fields for debit & credit (in &
-     out):*
-
-       a. *If both fields are unsigned:*
-          Assign to ‘amountN-in’ and ‘amountN-out’.  This sets posting
-          N’s amount to whichever of these has a non-zero value, and
-          negates the "-out" value.
-
-       b. *If either field is signed (can contain a minus sign):*
-          Use a conditional rule to flip the sign (of non-empty values).
-          Since hledger always negates amountN-out, if it was already
-          negative, we must undo that by negating once more (but only if
-          the field is non-empty):
-
-     fields date, description, amount1-in, amount1-out
-     if %amount1-out [1-9]
-      amount1-out -%amount1-out
-
-       c. *If both fields, or neither field, can contain a non-zero
-          value:*
-          hledger normally expects exactly one of the fields to have a
-          non-zero value.  Eg, the ‘amountN-in’/‘amountN-out’ rules
-          would reject value pairs like these:
-
-     "",  ""
-     "0", "0"
-     "1", "none"
-
-     So, use smarter conditional rules to set the amount from the
-     appropriate field.  Eg, these rules would make it use only the
-     value containing non-zero digits, handling the above:
-
-     fields date, description, in, out
-     if %in [1-9]
-      amount1 %in
-     if %out [1-9]
-      amount1 %out
-
-  3. *If you want posting 2’s amount converted to cost:*
-     Assign to ‘amount’ (or to ‘amount-in’ and ‘amount-out’).  (This is
-     the legacy numberless syntax, which sets amount1 and amount2 and
-     converts amount2 to cost.)
-
-  4. *If the CSV has the balance instead of the transaction amount:*
-     Assign to ‘balanceN’, which sets posting N’s amount indirectly via
-     a balance assignment.  (Old syntax: ‘balance’, equivalent to
-     ‘balance1’.)
-
-        • *If hledger guesses the wrong default account name:*
-          When setting the amount via balance assertion, hledger may
-          guess the wrong default account name.  So, set the account
-          name explicitly, eg:
-
-          fields date, description, balance1
-          account1 assets:checking
-
-
-File: hledger.info,  Node: Amount signs,  Next: Setting currency/commodity,  Prev: Setting amounts,  Up: CSV
-
-11.26 Amount signs
-==================
-
-There is some special handling for amount signs, to simplify parsing and
-sign-flipping:
-
-   • *If an amount value begins with a plus sign:*
-     that will be removed: ‘+AMT’ becomes ‘AMT’
-
-   • *If an amount value is parenthesised:*
-     it will be de-parenthesised and sign-flipped: ‘(AMT)’ becomes
-     ‘-AMT’
-
-   • *If an amount value has two minus signs (or two sets of
-     parentheses, or a minus sign and parentheses):*
-     they cancel out and will be removed: ‘--AMT’ or ‘-(AMT)’ becomes
-     ‘AMT’
-
-   • *If an amount value contains just a sign (or just a set of
-     parentheses):*
-     that is removed, making it an empty value.  ‘"+"’ or ‘"-"’ or
-     ‘"()"’ becomes ‘""’.
-
-
-File: hledger.info,  Node: Setting currency/commodity,  Next: Amount decimal places,  Prev: Amount signs,  Up: CSV
-
-11.27 Setting currency/commodity
-================================
-
-If the currency/commodity symbol is included in the CSV’s amount
-field(s):
-
-2020-01-01,foo,$123.00
-
-   you don’t have to do anything special for the commodity symbol, it
-will be assigned as part of the amount.  Eg:
-
-fields date,description,amount
-
-2020-01-01 foo
-    expenses:unknown         $123.00
-    income:unknown          $-123.00
-
-   If the currency is provided as a separate CSV field:
-
-2020-01-01,foo,USD,123.00
-
-   You can assign that to the ‘currency’ pseudo-field, which has the
-special effect of prepending itself to every amount in the transaction
-(on the left, with no separating space):
-
-fields date,description,currency,amount
-
-2020-01-01 foo
-    expenses:unknown       USD123.00
-    income:unknown        USD-123.00
-
-   Or, you can use a field assignment to construct the amount yourself,
-with more control.  Eg to put the symbol on the right, and separated by
-a space:
-
-fields date,description,cur,amt
-amount %amt %cur
-
-2020-01-01 foo
-    expenses:unknown        123.00 USD
-    income:unknown         -123.00 USD
-
-   Note we used a temporary field name (‘cur’) that is not ‘currency’ -
-that would trigger the prepending effect, which we don’t want here.
-
-
-File: hledger.info,  Node: Amount decimal places,  Next: Referencing other fields,  Prev: Setting currency/commodity,  Up: CSV
-
-11.28 Amount decimal places
-===========================
-
-Like amounts in a journal file, the amounts generated by CSV rules like
-‘amount1’ influence commodity display styles, such as the number of
-decimal places displayed in reports.
-
-   The original amounts as written in the CSV file do not affect display
-style (because we don’t yet reliably know their commodity).
-
-
-File: hledger.info,  Node: Referencing other fields,  Next: How CSV rules are evaluated,  Prev: Amount decimal places,  Up: CSV
-
-11.29 Referencing other fields
-==============================
-
-In field assignments, you can interpolate only CSV fields, not hledger
-fields.  In the example below, there’s both a CSV field and a hledger
-field named amount1, but %amount1 always means the CSV field, not the
-hledger field:
-
-# Name the third CSV field "amount1"
-fields date,description,amount1
-
-# Set hledger's amount1 to the CSV amount1 field followed by USD
-amount1 %amount1 USD
-
-# Set comment to the CSV amount1 (not the amount1 assigned above)
-comment %amount1
-
-   Here, since there’s no CSV amount1 field, %amount1 will produce a
-literal "amount1":
-
-fields date,description,csvamount
-amount1 %csvamount USD
-# Can't interpolate amount1 here
-comment %amount1
-
-   When there are multiple field assignments to the same hledger field,
-only the last one takes effect.  Here, comment’s value will be be B, or
-C if "something" is matched, but never A:
-
-comment A
-comment B
-if something
- comment C
-
-
-File: hledger.info,  Node: How CSV rules are evaluated,  Prev: Referencing other fields,  Up: CSV
-
-11.30 How CSV rules are evaluated
-=================================
-
-Here’s how to think of CSV rules being evaluated (if you really need
-to).  First,
-
-   • ‘include’ - all includes are inlined, from top to bottom, depth
-     first.  (At each include point the file is inlined and scanned for
-     further includes, recursively, before proceeding.)
-
-   Then "global" rules are evaluated, top to bottom.  If a rule is
-repeated, the last one wins:
-
-   • ‘skip’ (at top level)
-   • ‘date-format’
-   • ‘newest-first’
-   • ‘fields’ - names the CSV fields, optionally sets up initial
-     assignments to hledger fields
-
-   Then for each CSV record in turn:
-
-   • test all ‘if’ blocks.  If any of them contain a ‘end’ rule, skip
-     all remaining CSV records.  Otherwise if any of them contain a
-     ‘skip’ rule, skip that many CSV records.  If there are multiple
-     matched ‘skip’ rules, the first one wins.
-   • collect all field assignments at top level and in matched ‘if’
-     blocks.  When there are multiple assignments for a field, keep only
-     the last one.
-   • compute a value for each hledger field - either the one that was
-     assigned to it (and interpolate the %CSVFIELDNAME references), or a
-     default
-   • generate a synthetic hledger transaction from these values.
-
-   This is all part of the CSV reader, one of several readers hledger
-can use to parse input files.  When all files have been read
-successfully, the transactions are passed as input to whichever hledger
-command the user specified.
 
 
 File: hledger.info,  Node: Timeclock,  Next: Timedot,  Prev: CSV,  Up: Top
@@ -6017,6 +6109,7 @@ postings:
      subaccounts of these)
   4. the equity postings’ amounts must exactly match the non-equity
      postings’ amounts
+  5. all of the amounts must be explicit, with none missing
 
    Multiple such exchanges can coexist within a single transaction,
 should you need that.
@@ -6837,11 +6930,8 @@ journal file.
    • payees - show unique payee segments of transaction descriptions
    • prices - show market price records
    • *print* - show transactions (journal entries)
-   • print-unique - show only transactions with unique descriptions
    • *register (reg)* - show postings in one or more accounts & running
      total
-   • register-match - show a recent posting that best matches a
-     description
    • stats - show journal statistics
    • tags - show tag names
    • test - run self tests
@@ -6883,9 +6973,7 @@ hledger’s commands list, with a ‘+’ mark:
 * payees::
 * prices::
 * print::
-* print-unique::
 * register::
-* register-match::
 * rewrite::
 * roi::
 * stats::
@@ -7069,8 +7157,13 @@ revenues/expenses.
    ‘aregister’ requires one argument: the account to report on.  You can
 write either the full account name, or a case-insensitive regular
 expression which will select the alphabetically first matched account.
-(Eg if you have ‘assets:aaa:checking’ and ‘assets:bbb:checking’
-accounts, ‘hledger areg checking’ would select ‘assets:aaa:checking’.)
+
+   When there are multiple matches, the alphabetically-first choice can
+be surprising; eg if you have ‘assets:per:checking 1’ and
+‘assets:biz:checking 2’ accounts, ‘hledger areg checking’ would select
+‘assets:biz:checking 2’.  It’s just a convenience to save typing, so if
+in doubt, write the full account name, or a distinctive substring that
+matches uniquely.
 
    Transactions involving subaccounts of this account will also be
 shown.  ‘aregister’ ignores depth limits, so its final total will always
@@ -9079,7 +9172,7 @@ known prices.  Prices can be filtered by a query.  Price amounts are
 displayed with their full precision.
 
 
-File: hledger.info,  Node: print,  Next: print-unique,  Prev: prices,  Up: PART 4 COMMANDS
+File: hledger.info,  Node: print,  Next: register,  Prev: prices,  Up: PART 4 COMMANDS
 
 24.22 print
 ===========
@@ -9160,11 +9253,11 @@ keeping the output parseable.
    With ‘-B’/‘--cost’, amounts with costs are converted to cost using
 that price.  This can be used for troubleshooting.
 
-   With ‘-m DESC’/‘--match=DESC’, print does a fuzzy search for the one
-transaction whose description is most similar to DESC, also preferring
-recent tranactions.  DESC should contain at least two characters.  If
-there is no similar-enough match, no transaction will be shown and the
-program exit code will be non-zero.
+   With ‘-m DESC’/‘--match=DESC’, print does a fuzzy search for one
+recent transaction whose description is most similar to DESC. DESC
+should contain at least two characters.  If there is no similar-enough
+match, no transaction will be shown and the program exit code will be
+non-zero.
 
    With ‘--new’, hledger prints only transactions it has not seen on a
 previous run.  This uses the same deduplication system as the ‘import’
@@ -9204,30 +9297,9 @@ $ hledger print -Ocsv
      zero or greater amounts under debit.)
 
 
-File: hledger.info,  Node: print-unique,  Next: register,  Prev: print,  Up: PART 4 COMMANDS
+File: hledger.info,  Node: register,  Next: rewrite,  Prev: print,  Up: PART 4 COMMANDS
 
-24.23 print-unique
-==================
-
-print-unique
-Print transactions which do not reuse an already-seen description.
-
-   Example:
-
-$ cat unique.journal
-1/1 test
- (acct:one)  1
-2/2 test
- (acct:two)  2
-$ LEDGER_FILE=unique.journal hledger print-unique
-(-f option not supported)
-2015/01/01 test
-    (acct:one)             1
-
-
-File: hledger.info,  Node: register,  Next: register-match,  Prev: print-unique,  Up: PART 4 COMMANDS
-
-24.24 register
+24.23 register
 ==============
 
 register, reg
@@ -9251,7 +9323,7 @@ $ hledger register checking
 2008/06/02 save                 assets:bank:checking           $-1           $1
 2008/12/31 pay off              assets:bank:checking           $-1            0
 
-   With –date2, it shows and sorts by secondary date instead.
+   With ‘--date2’, it shows and sorts by secondary date instead.
 
    For performance reasons, column widths are chosen based on the first
 1000 lines; this means unusually wide values in later lines can cause
@@ -9324,6 +9396,11 @@ these will be adjusted outward if necessary to contain a whole number of
 intervals.  This ensures that the first and last intervals are full
 length and comparable to the others in the report.
 
+   With ‘-m DESC’/‘--match=DESC’, register does a fuzzy search for one
+recent posting whose description is most similar to DESC. DESC should
+contain at least two characters.  If there is no similar-enough match,
+no posting will be shown and the program exit code will be non-zero.
+
 * Menu:
 
 * Custom register output::
@@ -9331,7 +9408,7 @@ length and comparable to the others in the report.
 
 File: hledger.info,  Node: Custom register output,  Up: register
 
-24.24.1 Custom register output
+24.23.1 Custom register output
 ------------------------------
 
 register uses the full terminal width by default, except on windows.
@@ -9361,22 +9438,9 @@ options The output formats supported are ‘txt’, ‘csv’, and
 (experimental) ‘json’.
 
 
-File: hledger.info,  Node: register-match,  Next: rewrite,  Prev: register,  Up: PART 4 COMMANDS
+File: hledger.info,  Node: rewrite,  Next: roi,  Prev: register,  Up: PART 4 COMMANDS
 
-24.25 register-match
-====================
-
-register-match
-Print the one posting whose transaction description is closest to DESC,
-in the style of the register command.  If there are multiple equally
-good matches, it shows the most recent.  Query options (options, not
-arguments) can be used to restrict the search space.  Helps
-ledger-autosync detect already-seen transactions when importing.
-
-
-File: hledger.info,  Node: rewrite,  Next: roi,  Prev: register-match,  Up: PART 4 COMMANDS
-
-24.26 rewrite
+24.24 rewrite
 =============
 
 rewrite
@@ -9430,7 +9494,7 @@ commodity.
 
 File: hledger.info,  Node: Re-write rules in a file,  Next: Diff output format,  Up: rewrite
 
-24.26.1 Re-write rules in a file
+24.24.1 Re-write rules in a file
 --------------------------------
 
 During the run this tool will execute so called "Automated Transactions"
@@ -9468,7 +9532,7 @@ postings.
 
 File: hledger.info,  Node: Diff output format,  Next: rewrite vs print --auto,  Prev: Re-write rules in a file,  Up: rewrite
 
-24.26.2 Diff output format
+24.24.2 Diff output format
 --------------------------
 
 To use this tool for batch modification of your journal files you may
@@ -9509,7 +9573,7 @@ output from ‘hledger print’.
 
 File: hledger.info,  Node: rewrite vs print --auto,  Prev: Diff output format,  Up: rewrite
 
-24.26.3 rewrite vs. print –auto
+24.24.3 rewrite vs. print –auto
 -------------------------------
 
 This command predates print –auto, and currently does much the same
@@ -9529,7 +9593,7 @@ thing, but with these differences:
 
 File: hledger.info,  Node: roi,  Next: stats,  Prev: rewrite,  Up: PART 4 COMMANDS
 
-24.27 roi
+24.25 roi
 =========
 
 roi
@@ -9578,7 +9642,7 @@ display, regardless of the length of reporting interval.
 
 File: hledger.info,  Node: Spaces and special characters in --inv and --pnl,  Next: Semantics of --inv and --pnl,  Up: roi
 
-24.27.1 Spaces and special characters in ‘--inv’ and
+24.25.1 Spaces and special characters in ‘--inv’ and
 ----------------------------------------------------
 
 ‘--pnl’ Note that ‘--inv’ and ‘--pnl’’s argument is a query, and queries
@@ -9597,7 +9661,7 @@ $ hledger roi --inv="'Assets:Test 1'" --pnl="'Equity:Unrealized Profit and Loss'
 
 File: hledger.info,  Node: Semantics of --inv and --pnl,  Next: IRR and TWR explained,  Prev: Spaces and special characters in --inv and --pnl,  Up: roi
 
-24.27.2 Semantics of ‘--inv’ and ‘--pnl’
+24.25.2 Semantics of ‘--inv’ and ‘--pnl’
 ----------------------------------------
 
 Query supplied to ‘--inv’ has to match all transactions that are related
@@ -9651,7 +9715,7 @@ postings in the example below would be classifed as:
 
 File: hledger.info,  Node: IRR and TWR explained,  Prev: Semantics of --inv and --pnl,  Up: roi
 
-24.27.3 IRR and TWR explained
+24.25.3 IRR and TWR explained
 -----------------------------
 
 "ROI" stands for "return on investment".  Traditionally this was
@@ -9718,7 +9782,7 @@ your investment.
 
 File: hledger.info,  Node: stats,  Next: tags,  Prev: roi,  Up: PART 4 COMMANDS
 
-24.28 stats
+24.26 stats
 ===========
 
 stats
@@ -9759,7 +9823,7 @@ Throughput               : 8342 txns/s
 
 File: hledger.info,  Node: tags,  Next: test,  Prev: stats,  Up: PART 4 COMMANDS
 
-24.29 tags
+24.27 tags
 ==========
 
 tags
@@ -9790,7 +9854,7 @@ transactions also acquire tags from their postings.
 
 File: hledger.info,  Node: test,  Prev: tags,  Up: PART 4 COMMANDS
 
-24.30 test
+24.28 test
 ==========
 
 test
@@ -10243,602 +10307,594 @@ close command.
 
 Tag Table:
 Node: Top210
-Node: PART 1 USER INTERFACE3967
-Ref: #part-1-user-interface4108
-Node: Options4108
-Ref: #options4227
-Node: General options4369
-Ref: #general-options4494
-Node: Command options8944
-Ref: #command-options9095
-Node: Command arguments9511
-Ref: #command-arguments9669
-Node: Special characters10571
-Ref: #special-characters10734
-Node: Single escaping shell metacharacters10897
-Ref: #single-escaping-shell-metacharacters11138
-Node: Double escaping regular expression metacharacters11773
-Ref: #double-escaping-regular-expression-metacharacters12084
-Node: Triple escaping for add-on commands12654
-Ref: #triple-escaping-for-add-on-commands12914
-Node: Less escaping13582
-Ref: #less-escaping13736
-Node: Unicode characters14074
-Ref: #unicode-characters14239
-Node: Regular expressions15671
-Ref: #regular-expressions15811
-Node: Environment17653
-Ref: #environment17764
-Node: Input19375
-Ref: #input19475
-Node: Data formats20038
-Ref: #data-formats20151
-Node: Multiple files21603
-Ref: #multiple-files21740
-Node: Strict mode22225
-Ref: #strict-mode22335
-Node: Commands23089
-Ref: #commands23190
-Node: Add-on commands23674
-Ref: #add-on-commands23776
-Node: Output24943
-Ref: #output25046
-Node: Output destination25162
-Ref: #output-destination25293
-Node: Output format25722
-Ref: #output-format25868
-Node: CSV output27440
-Ref: #csv-output27556
-Node: HTML output27661
-Ref: #html-output27799
-Node: JSON output27899
-Ref: #json-output28037
-Node: SQL output28969
-Ref: #sql-output29085
-Node: Commodity styles29608
-Ref: #commodity-styles29748
-Node: Colour30355
-Ref: #colour30473
-Node: Box-drawing30907
-Ref: #box-drawing31031
-Node: Debug output31345
-Ref: #debug-output31456
-Node: Limitations32131
-Ref: #limitations32251
-Node: Troubleshooting33026
-Ref: #troubleshooting33167
-Node: PART 2 DATA FORMATS35689
-Ref: #part-2-data-formats35836
-Node: Journal35836
-Ref: #journal35947
-Node: Journal cheatsheet36534
-Ref: #journal-cheatsheet36675
-Node: About journal format41124
-Ref: #about-journal-format41286
-Node: Comments42824
-Ref: #comments42956
-Node: Transactions43810
-Ref: #transactions43935
-Node: Dates44969
-Ref: #dates45078
-Node: Simple dates45123
-Ref: #simple-dates45241
-Node: Posting dates45778
-Ref: #posting-dates45898
-Node: Status46881
-Ref: #status46984
-Node: Code48736
-Ref: #code48841
-Node: Description49073
-Ref: #description49206
-Node: Payee and note49528
-Ref: #payee-and-note49636
-Node: Transaction comments49983
-Ref: #transaction-comments50138
-Node: Postings50509
-Ref: #postings50644
-Node: Account names51653
-Ref: #account-names51785
-Node: Amounts52297
-Ref: #amounts52414
-Node: Decimal marks digit group marks53403
-Ref: #decimal-marks-digit-group-marks53580
-Node: Commodity54604
-Ref: #commodity54793
-Node: Directives influencing number parsing and display55775
-Ref: #directives-influencing-number-parsing-and-display56036
-Node: Commodity display style56498
-Ref: #commodity-display-style56706
-Node: Rounding58917
-Ref: #rounding59037
-Node: Costs59338
-Ref: #costs59456
-Node: Other cost/lot notations61487
-Ref: #other-costlot-notations61621
-Node: Balance assertions64374
-Ref: #balance-assertions64527
-Node: Assertions and ordering65620
-Ref: #assertions-and-ordering65811
-Node: Assertions and multiple included files66513
-Ref: #assertions-and-multiple-included-files66775
-Node: Assertions and multiple -f files67283
-Ref: #assertions-and-multiple--f-files67536
-Node: Assertions and commodities67945
-Ref: #assertions-and-commodities68169
-Node: Assertions and prices69359
-Ref: #assertions-and-prices69567
-Node: Assertions and subaccounts69998
-Ref: #assertions-and-subaccounts70221
-Node: Assertions and virtual postings70563
-Ref: #assertions-and-virtual-postings70803
-Node: Assertions and auto postings70943
-Ref: #assertions-and-auto-postings71175
-Node: Assertions and precision71846
-Ref: #assertions-and-precision72030
-Node: Posting comments72297
-Ref: #posting-comments72445
-Node: Tags72830
-Ref: #tags72946
-Node: Tag values74151
-Ref: #tag-values74242
-Node: Directives75015
-Ref: #directives75135
-Node: Directive effects77003
-Ref: #directive-effects77159
-Node: Directives and multiple files80242
-Ref: #directives-and-multiple-files80422
-Node: Accounts81132
-Ref: #accounts81259
-Node: Account comments82445
-Ref: #account-comments82588
-Node: Account subdirectives83108
-Ref: #account-subdirectives83292
-Node: Account error checking83434
-Ref: #account-error-checking83625
-Node: Account display order84844
-Ref: #account-display-order85025
-Node: Account types86164
-Ref: #account-types86298
-Node: Account aliases90090
-Ref: #account-aliases90232
-Node: Basic aliases91282
-Ref: #basic-aliases91415
-Node: Regex aliases92169
-Ref: #regex-aliases92328
-Node: Combining aliases93222
-Ref: #combining-aliases93402
-Node: Aliases and multiple files94696
-Ref: #aliases-and-multiple-files94892
-Node: end aliases95477
-Ref: #end-aliases95672
-Node: Aliases can generate bad account names95821
-Ref: #aliases-can-generate-bad-account-names96061
-Node: Aliases and account types96658
-Ref: #aliases-and-account-types96852
-Node: Commodities97554
-Ref: #commodities97692
-Node: Commodity error checking100296
-Ref: #commodity-error-checking100436
-Node: Decimal mark100965
-Ref: #decimal-mark101103
-Node: Include files101504
-Ref: #include-files101646
-Node: Market prices102594
-Ref: #market-prices102730
-Node: Payees103509
-Ref: #payees103639
-Node: Periodic transactions103943
-Ref: #periodic-transactions104102
-Node: Periodic rule syntax105815
-Ref: #periodic-rule-syntax105995
-Node: Periodic rules and relative dates106470
-Ref: #periodic-rules-and-relative-dates106738
-Node: Two spaces between period expression and description!107277
-Ref: #two-spaces-between-period-expression-and-description107556
-Node: Other syntax108246
-Ref: #other-syntax108372
-Node: Auto postings109023
-Ref: #auto-postings109159
-Node: Auto postings and multiple files111655
-Ref: #auto-postings-and-multiple-files111857
-Node: Auto postings and dates112074
-Ref: #auto-postings-and-dates112346
-Node: Auto postings and transaction balancing / inferred amounts / balance assertions112521
-Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions112860
-Node: Auto posting tags113367
-Ref: #auto-posting-tags113580
-Node: Balance assignments114242
-Ref: #balance-assignments114422
-Node: Balance assignments and prices115756
-Ref: #balance-assignments-and-prices115926
-Node: Bracketed posting dates116137
-Ref: #bracketed-posting-dates116329
-Node: Default commodity116873
-Ref: #default-commodity117056
-Node: Default parent account118607
-Ref: #default-parent-account118789
-Node: Default year119498
-Ref: #default-year119658
-Node: Secondary dates120471
-Ref: #secondary-dates120628
-Node: Star comments121460
-Ref: #star-comments121622
-Node: Valuation expressions122162
-Ref: #valuation-expressions122341
-Node: Virtual postings122463
-Ref: #virtual-postings122644
-Node: Other Ledger directives124216
-Ref: #other-ledger-directives124381
-Node: CSV124951
-Ref: #csv125044
-Node: Examples126783
-Ref: #examples126879
-Node: Basic127087
-Ref: #basic127189
-Node: Bank of Ireland127735
-Ref: #bank-of-ireland127872
-Node: Amazon129340
-Ref: #amazon129460
-Node: Paypal131185
-Ref: #paypal131281
-Node: CSV rules138927
-Ref: #csv-rules139043
-Node: separator140759
-Ref: #separator140879
-Node: skip141457
-Ref: #skip141569
-Node: date-format142152
-Ref: #date-format142277
-Node: timezone143023
-Ref: #timezone143150
-Node: decimal-mark144183
-Ref: #decimal-mark-1144319
-Node: newest-first144658
-Ref: #newest-first144804
-Node: intra-day-reversed145388
-Ref: #intra-day-reversed145540
-Node: fields146037
-Ref: #fields146171
-Node: Field assignment147773
-Ref: #field-assignment147912
-Node: Field names148969
-Ref: #field-names149094
-Node: date field149473
-Ref: #date-field149591
-Node: date2 field149643
-Ref: #date2-field149784
-Node: status field149846
-Ref: #status-field149989
-Node: code field150044
-Ref: #code-field150189
-Node: description field150240
-Ref: #description-field150400
-Node: comment field150465
-Ref: #comment-field150620
-Node: account field150933
-Ref: #account-field151083
-Node: amount field151684
-Ref: #amount-field151833
-Node: currency field153425
-Ref: #currency-field153578
-Node: balance field153847
-Ref: #balance-field153979
-Node: if154367
-Ref: #if154474
-Node: Matching the whole record154875
-Ref: #matching-the-whole-record155044
-Node: Matching individual fields155871
-Ref: #matching-individual-fields156069
-Node: Combining matchers156303
-Ref: #combining-matchers156493
-Node: Rules applied on successful match156814
-Ref: #rules-applied-on-successful-match156999
-Node: if table157659
-Ref: #if-table157770
-Node: end159536
-Ref: #end159642
-Node: include159866
-Ref: #include159984
-Node: balance-type160434
-Ref: #balance-type160563
-Node: Tips161271
-Ref: #tips161383
-Node: Rapid feedback161383
-Ref: #rapid-feedback161512
-Node: Valid CSV161968
-Ref: #valid-csv162097
-Node: File Extension162851
-Ref: #file-extension163002
-Node: Reading multiple CSV files163455
-Ref: #reading-multiple-csv-files163639
-Node: Valid transactions163888
-Ref: #valid-transactions164065
-Node: Deduplicating importing164693
-Ref: #deduplicating-importing164871
-Node: Setting amounts165917
-Ref: #setting-amounts166071
-Node: Amount signs168571
-Ref: #amount-signs168722
-Node: Setting currency/commodity169461
-Ref: #setting-currencycommodity169646
-Node: Amount decimal places170838
-Ref: #amount-decimal-places171025
-Node: Referencing other fields171343
-Ref: #referencing-other-fields171537
-Node: How CSV rules are evaluated172440
-Ref: #how-csv-rules-are-evaluated172610
-Node: Timeclock174121
-Ref: #timeclock174226
-Node: Timedot176394
-Ref: #timedot176517
-Node: PART 3 REPORTING CONCEPTS181368
-Ref: #part-3-reporting-concepts181532
-Node: Time periods181532
-Ref: #time-periods181666
-Node: Report start & end date181764
-Ref: #report-start-end-date181916
-Node: Smart dates183665
-Ref: #smart-dates183818
-Node: Report intervals185740
-Ref: #report-intervals185898
-Node: Period expressions187719
-Ref: #period-expressions187861
-Node: Period expressions with a report interval189712
-Ref: #period-expressions-with-a-report-interval189946
-Node: More complex report intervals191101
-Ref: #more-complex-report-intervals191352
-Node: Intervals with custom start date192034
-Ref: #intervals-with-custom-start-date192268
-Node: Periods or dates ?193928
-Ref: #periods-or-dates194132
-Node: Events on multiple weekdays194588
-Ref: #events-on-multiple-weekdays194769
-Node: Depth195678
-Ref: #depth195780
-Node: Queries196100
-Ref: #queries196202
-Node: Query types197179
-Ref: #query-types197300
-Node: Combining query terms200640
-Ref: #combining-query-terms200817
-Node: Queries and command options201915
-Ref: #queries-and-command-options202120
-Node: Queries and account aliases202385
-Ref: #queries-and-account-aliases202590
-Node: Queries and valuation202722
-Ref: #queries-and-valuation202917
-Node: Querying with account aliases203156
-Ref: #querying-with-account-aliases203367
-Node: Querying with cost or value203509
-Ref: #querying-with-cost-or-value203686
-Node: Pivoting203995
-Ref: #pivoting204109
-Node: Generating data205597
-Ref: #generating-data205729
-Node: Forecasting206227
-Ref: #forecasting206352
-Node: Budgeting209239
-Ref: #budgeting209359
-Node: Cost reporting209630
-Ref: #cost-reporting209758
-Node: -B Convert to cost210873
-Ref: #b-convert-to-cost211029
-Node: Equity conversion postings212437
-Ref: #equity-conversion-postings212651
-Node: Inferring equity postings from cost213280
-Ref: #inferring-equity-postings-from-cost213529
-Node: Inferring cost from equity postings214503
-Ref: #inferring-cost-from-equity-postings214751
-Node: When to infer cost/equity216794
-Ref: #when-to-infer-costequity217012
-Node: How to record conversions217420
-Ref: #how-to-record-conversions217612
-Node: Conversion with implicit cost217903
-Ref: #conversion-with-implicit-cost218108
-Node: Conversion with explicit cost219013
-Ref: #conversion-with-explicit-cost219258
-Node: Conversion with equity postings219685
-Ref: #conversion-with-equity-postings219954
-Node: Conversion with equity postings and explicit cost220791
-Ref: #conversion-with-equity-postings-and-explicit-cost221058
-Node: Cost tips221681
-Ref: #cost-tips221807
-Node: Valuation222566
-Ref: #valuation222690
-Node: -V Value223476
-Ref: #v-value223602
-Node: -X Value in specified commodity223801
-Ref: #x-value-in-specified-commodity223996
-Node: Valuation date224153
-Ref: #valuation-date224324
-Node: Finding market price224763
-Ref: #finding-market-price224968
-Node: --infer-market-prices market prices from transactions226148
-Ref: #infer-market-prices-market-prices-from-transactions226426
-Node: Valuation commodity229272
-Ref: #valuation-commodity229485
-Node: Simple valuation examples230730
-Ref: #simple-valuation-examples230928
-Node: --value Flexible valuation231591
-Ref: #value-flexible-valuation231797
-Node: More valuation examples233483
-Ref: #more-valuation-examples233692
-Node: Interaction of valuation and queries235703
-Ref: #interaction-of-valuation-and-queries235944
-Node: Effect of valuation on reports236424
-Ref: #effect-of-valuation-on-reports236621
-Node: PART 4 COMMANDS244380
-Ref: #part-4-commands244523
-Node: accounts247444
-Ref: #accounts-1247551
-Node: activity249535
-Ref: #activity249654
-Node: add250037
-Ref: #add250147
-Node: aregister253012
-Ref: #aregister253133
-Node: aregister and custom posting dates255888
-Ref: #aregister-and-custom-posting-dates256054
-Node: balance256622
-Ref: #balance256748
-Node: balance features257756
-Ref: #balance-features257896
-Node: Simple balance report260026
-Ref: #simple-balance-report260211
-Node: Balance report line format261856
-Ref: #balance-report-line-format262058
-Node: Filtered balance report264308
-Ref: #filtered-balance-report264500
-Node: List or tree mode264827
-Ref: #list-or-tree-mode264995
-Node: Depth limiting266370
-Ref: #depth-limiting266536
-Node: Dropping top-level accounts267153
-Ref: #dropping-top-level-accounts267353
-Node: Showing declared accounts267667
-Ref: #showing-declared-accounts267866
-Node: Sorting by amount268407
-Ref: #sorting-by-amount268574
-Node: Percentages269264
-Ref: #percentages269423
-Node: Multi-period balance report269993
-Ref: #multi-period-balance-report270193
-Node: Balance change end balance272586
-Ref: #balance-change-end-balance272795
-Node: Balance report types274243
-Ref: #balance-report-types274424
-Node: Calculation type274940
-Ref: #calculation-type275095
-Node: Accumulation type275626
-Ref: #accumulation-type275806
-Node: Valuation type276734
-Ref: #valuation-type276922
-Node: Combining balance report types277989
-Ref: #combining-balance-report-types278183
-Node: Budget report280087
-Ref: #budget-report280239
-Node: Budget report start date285541
-Ref: #budget-report-start-date285719
-Node: Budgets and subaccounts287081
-Ref: #budgets-and-subaccounts287288
-Node: Selecting budget goals290774
-Ref: #selecting-budget-goals290946
-Node: Data layout291988
-Ref: #data-layout292138
-Node: Useful balance reports300079
-Ref: #useful-balance-reports300229
-Node: balancesheet301382
-Ref: #balancesheet301527
-Node: balancesheetequity302901
-Ref: #balancesheetequity303059
-Node: cashflow304516
-Ref: #cashflow304647
-Node: check306137
-Ref: #check306249
-Node: Basic checks307061
-Ref: #basic-checks307179
-Node: Strict checks307717
-Ref: #strict-checks307858
-Node: Other checks308299
-Ref: #other-checks308439
-Node: Custom checks308950
-Ref: #custom-checks309105
-Node: More about specific checks309526
-Ref: #more-about-specific-checks309686
-Node: close310418
-Ref: #close310529
-Node: close and costs312669
-Ref: #close-and-costs312795
-Node: close date313187
-Ref: #close-date313370
-Node: Example close asset/liability accounts for file transition314162
-Ref: #example-close-assetliability-accounts-for-file-transition314463
-Node: Hiding opening/closing transactions315322
-Ref: #hiding-openingclosing-transactions315593
-Node: close and balance assertions316980
-Ref: #close-and-balance-assertions317238
-Node: Example close revenue/expense accounts to retained earnings318614
-Ref: #example-close-revenueexpense-accounts-to-retained-earnings318892
-Node: codes319802
-Ref: #codes319919
-Node: commodities320801
-Ref: #commodities-1320937
-Node: descriptions321019
-Ref: #descriptions321156
-Node: diff321460
-Ref: #diff321575
-Node: files322626
-Ref: #files322735
-Node: help322882
-Ref: #help322991
-Node: import323986
-Ref: #import324109
-Node: Deduplication325224
-Ref: #deduplication325349
-Node: Import testing327271
-Ref: #import-testing327436
-Node: Importing balance assignments327928
-Ref: #importing-balance-assignments328134
-Node: Commodity display styles328791
-Ref: #commodity-display-styles328964
-Node: incomestatement329093
-Ref: #incomestatement329235
-Node: notes330613
-Ref: #notes330735
-Node: payees331103
-Ref: #payees-1331218
-Node: prices331750
-Ref: #prices331865
-Node: print332174
-Ref: #print332293
-Node: print-unique337779
-Ref: #print-unique337914
-Node: register338199
-Ref: #register338335
-Node: Custom register output343153
-Ref: #custom-register-output343284
-Node: register-match344659
-Ref: #register-match344802
-Node: rewrite345153
-Ref: #rewrite345277
-Node: Re-write rules in a file347197
-Ref: #re-write-rules-in-a-file347360
-Node: Diff output format348513
-Ref: #diff-output-format348696
-Node: rewrite vs print --auto349808
-Ref: #rewrite-vs.-print---auto349970
-Node: roi350544
-Ref: #roi350651
-Node: Spaces and special characters in --inv and --pnl352416
-Ref: #spaces-and-special-characters-in---inv-and---pnl352664
-Node: Semantics of --inv and --pnl353162
-Ref: #semantics-of---inv-and---pnl353409
-Node: IRR and TWR explained355287
-Ref: #irr-and-twr-explained355447
-Node: stats358559
-Ref: #stats358667
-Node: tags360070
-Ref: #tags-1360177
-Node: test361199
-Ref: #test361292
-Node: PART 5 COMMON TASKS362047
-Ref: #part-5-common-tasks362180
-Node: Getting help362454
-Ref: #getting-help362595
-Node: Constructing command lines363359
-Ref: #constructing-command-lines363560
-Node: Starting a journal file364241
-Ref: #starting-a-journal-file364448
-Node: Setting opening balances365646
-Ref: #setting-opening-balances365851
-Node: Recording transactions369004
-Ref: #recording-transactions369193
-Node: Reconciling369749
-Ref: #reconciling369901
-Node: Reporting372214
-Ref: #reporting372363
-Node: Migrating to a new file376352
-Ref: #migrating-to-a-new-file376509
+Node: PART 1 USER INTERFACE3947
+Ref: #part-1-user-interface4088
+Node: Options4088
+Ref: #options4207
+Node: General options4349
+Ref: #general-options4474
+Node: Command options8924
+Ref: #command-options9075
+Node: Command arguments9491
+Ref: #command-arguments9649
+Node: Special characters10551
+Ref: #special-characters10714
+Node: Single escaping shell metacharacters10877
+Ref: #single-escaping-shell-metacharacters11118
+Node: Double escaping regular expression metacharacters11753
+Ref: #double-escaping-regular-expression-metacharacters12064
+Node: Triple escaping for add-on commands12634
+Ref: #triple-escaping-for-add-on-commands12894
+Node: Less escaping13562
+Ref: #less-escaping13716
+Node: Unicode characters14054
+Ref: #unicode-characters14219
+Node: Regular expressions15651
+Ref: #regular-expressions15791
+Node: Environment17633
+Ref: #environment17744
+Node: Input19355
+Ref: #input19455
+Node: Data formats20018
+Ref: #data-formats20131
+Node: Multiple files21583
+Ref: #multiple-files21720
+Node: Strict mode22205
+Ref: #strict-mode22315
+Node: Commands23069
+Ref: #commands23170
+Node: Add-on commands23654
+Ref: #add-on-commands23756
+Node: Output24923
+Ref: #output25026
+Node: Output destination25142
+Ref: #output-destination25273
+Node: Output format25702
+Ref: #output-format25848
+Node: CSV output27420
+Ref: #csv-output27536
+Node: HTML output27641
+Ref: #html-output27779
+Node: JSON output27879
+Ref: #json-output28017
+Node: SQL output28949
+Ref: #sql-output29065
+Node: Commodity styles29588
+Ref: #commodity-styles29728
+Node: Colour30335
+Ref: #colour30453
+Node: Box-drawing30887
+Ref: #box-drawing31011
+Node: Debug output31325
+Ref: #debug-output31436
+Node: Limitations32111
+Ref: #limitations32231
+Node: Troubleshooting33006
+Ref: #troubleshooting33147
+Node: PART 2 DATA FORMATS35669
+Ref: #part-2-data-formats35816
+Node: Journal35816
+Ref: #journal35927
+Node: Journal cheatsheet36514
+Ref: #journal-cheatsheet36655
+Node: About journal format41104
+Ref: #about-journal-format41266
+Node: Comments42804
+Ref: #comments42936
+Node: Transactions43790
+Ref: #transactions43915
+Node: Dates44949
+Ref: #dates45058
+Node: Simple dates45103
+Ref: #simple-dates45221
+Node: Posting dates45758
+Ref: #posting-dates45878
+Node: Status46861
+Ref: #status46964
+Node: Code48716
+Ref: #code48821
+Node: Description49053
+Ref: #description49186
+Node: Payee and note49508
+Ref: #payee-and-note49616
+Node: Transaction comments49963
+Ref: #transaction-comments50118
+Node: Postings50489
+Ref: #postings50624
+Node: Account names51633
+Ref: #account-names51765
+Node: Amounts53467
+Ref: #amounts53584
+Node: Decimal marks digit group marks54573
+Ref: #decimal-marks-digit-group-marks54750
+Node: Commodity55774
+Ref: #commodity55963
+Node: Directives influencing number parsing and display56945
+Ref: #directives-influencing-number-parsing-and-display57206
+Node: Commodity display style57668
+Ref: #commodity-display-style57876
+Node: Rounding60087
+Ref: #rounding60207
+Node: Costs60508
+Ref: #costs60626
+Node: Other cost/lot notations62657
+Ref: #other-costlot-notations62791
+Node: Balance assertions65544
+Ref: #balance-assertions65697
+Node: Assertions and ordering66790
+Ref: #assertions-and-ordering66981
+Node: Assertions and multiple included files67683
+Ref: #assertions-and-multiple-included-files67945
+Node: Assertions and multiple -f files68453
+Ref: #assertions-and-multiple--f-files68706
+Node: Assertions and commodities69115
+Ref: #assertions-and-commodities69339
+Node: Assertions and prices70529
+Ref: #assertions-and-prices70737
+Node: Assertions and subaccounts71168
+Ref: #assertions-and-subaccounts71391
+Node: Assertions and virtual postings71733
+Ref: #assertions-and-virtual-postings71973
+Node: Assertions and auto postings72113
+Ref: #assertions-and-auto-postings72345
+Node: Assertions and precision73016
+Ref: #assertions-and-precision73200
+Node: Posting comments73467
+Ref: #posting-comments73615
+Node: Tags74000
+Ref: #tags74116
+Node: Tag values75321
+Ref: #tag-values75412
+Node: Directives76185
+Ref: #directives76305
+Node: Directive effects78173
+Ref: #directive-effects78329
+Node: Directives and multiple files81412
+Ref: #directives-and-multiple-files81592
+Node: Accounts82302
+Ref: #accounts82429
+Node: Account comments83849
+Ref: #account-comments83992
+Node: Account subdirectives84512
+Ref: #account-subdirectives84696
+Node: Account error checking84838
+Ref: #account-error-checking85029
+Node: Account display order86248
+Ref: #account-display-order86429
+Node: Account types87568
+Ref: #account-types87702
+Node: Account aliases91494
+Ref: #account-aliases91636
+Node: Basic aliases92686
+Ref: #basic-aliases92819
+Node: Regex aliases93573
+Ref: #regex-aliases93732
+Node: Combining aliases94626
+Ref: #combining-aliases94806
+Node: Aliases and multiple files96100
+Ref: #aliases-and-multiple-files96296
+Node: end aliases96881
+Ref: #end-aliases97076
+Node: Aliases can generate bad account names97225
+Ref: #aliases-can-generate-bad-account-names97465
+Node: Aliases and account types98062
+Ref: #aliases-and-account-types98256
+Node: Commodities98958
+Ref: #commodities99096
+Node: Commodity error checking101700
+Ref: #commodity-error-checking101840
+Node: Decimal mark102369
+Ref: #decimal-mark102507
+Node: Include files102908
+Ref: #include-files103050
+Node: Market prices103998
+Ref: #market-prices104134
+Node: Payees104913
+Ref: #payees105043
+Node: Periodic transactions105347
+Ref: #periodic-transactions105506
+Node: Periodic rule syntax107219
+Ref: #periodic-rule-syntax107399
+Node: Periodic rules and relative dates107874
+Ref: #periodic-rules-and-relative-dates108142
+Node: Two spaces between period expression and description!108681
+Ref: #two-spaces-between-period-expression-and-description108960
+Node: Other syntax109650
+Ref: #other-syntax109776
+Node: Auto postings110427
+Ref: #auto-postings110563
+Node: Auto postings and multiple files113059
+Ref: #auto-postings-and-multiple-files113261
+Node: Auto postings and dates113478
+Ref: #auto-postings-and-dates113750
+Node: Auto postings and transaction balancing / inferred amounts / balance assertions113925
+Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions114264
+Node: Auto posting tags114771
+Ref: #auto-posting-tags114984
+Node: Balance assignments115646
+Ref: #balance-assignments115826
+Node: Balance assignments and prices117160
+Ref: #balance-assignments-and-prices117330
+Node: Bracketed posting dates117541
+Ref: #bracketed-posting-dates117733
+Node: Default commodity118277
+Ref: #default-commodity118460
+Node: Default parent account120011
+Ref: #default-parent-account120193
+Node: Default year120902
+Ref: #default-year121062
+Node: Secondary dates121875
+Ref: #secondary-dates122032
+Node: Star comments122864
+Ref: #star-comments123026
+Node: Valuation expressions123566
+Ref: #valuation-expressions123745
+Node: Virtual postings123867
+Ref: #virtual-postings124048
+Node: Other Ledger directives125620
+Ref: #other-ledger-directives125785
+Node: CSV126355
+Ref: #csv126448
+Node: CSV rules cheatsheet128551
+Ref: #csv-rules-cheatsheet128683
+Node: separator130451
+Ref: #separator130582
+Node: skip131160
+Ref: #skip131272
+Node: date-format131855
+Ref: #date-format131980
+Node: timezone132726
+Ref: #timezone132853
+Node: newest-first133886
+Ref: #newest-first134028
+Node: intra-day-reversed134612
+Ref: #intra-day-reversed134770
+Node: decimal-mark135267
+Ref: #decimal-mark-1135412
+Node: fields list135751
+Ref: #fields-list135892
+Node: Field assignment137615
+Ref: #field-assignment137759
+Node: Field names138808
+Ref: #field-names138939
+Node: date field140160
+Ref: #date-field140278
+Node: date2 field140330
+Ref: #date2-field140471
+Node: status field140533
+Ref: #status-field140676
+Node: code field140731
+Ref: #code-field140876
+Node: description field140927
+Ref: #description-field141087
+Node: comment field141152
+Ref: #comment-field141307
+Node: account field141620
+Ref: #account-field141770
+Node: amount field142366
+Ref: #amount-field142515
+Node: currency field144620
+Ref: #currency-field144773
+Node: balance field145042
+Ref: #balance-field145174
+Node: if block145562
+Ref: #if-block145687
+Node: Matchers147111
+Ref: #matchers147225
+Node: if table148755
+Ref: #if-table148881
+Node: balance-type150317
+Ref: #balance-type150450
+Node: include151158
+Ref: #include151289
+Node: Working with CSV151739
+Ref: #working-with-csv151886
+Node: Rapid feedback152257
+Ref: #rapid-feedback152390
+Node: Valid CSV152846
+Ref: #valid-csv152992
+Node: File Extension153746
+Ref: #file-extension153919
+Node: Reading CSV from standard input154509
+Ref: #reading-csv-from-standard-input154733
+Node: Reading multiple CSV files154899
+Ref: #reading-multiple-csv-files155117
+Node: Valid transactions155366
+Ref: #valid-transactions155560
+Node: Deduplicating importing156188
+Ref: #deduplicating-importing156383
+Node: Setting amounts157429
+Ref: #setting-amounts157600
+Node: Amount signs160123
+Ref: #amount-signs160291
+Node: Setting currency/commodity161030
+Ref: #setting-currencycommodity161234
+Node: Amount decimal places162426
+Ref: #amount-decimal-places162632
+Node: Referencing other fields162950
+Ref: #referencing-other-fields163163
+Node: How CSV rules are evaluated164066
+Ref: #how-csv-rules-are-evaluated164283
+Node: Well factored rules165796
+Ref: #well-factored-rules165964
+Node: CSV rules examples166302
+Ref: #csv-rules-examples166437
+Node: Bank of Ireland166502
+Ref: #bank-of-ireland166639
+Node: Coinbase168107
+Ref: #coinbase168245
+Node: Amazon169298
+Ref: #amazon169423
+Node: Paypal171148
+Ref: #paypal171256
+Node: Timeclock178902
+Ref: #timeclock179007
+Node: Timedot181175
+Ref: #timedot181298
+Node: PART 3 REPORTING CONCEPTS186149
+Ref: #part-3-reporting-concepts186313
+Node: Time periods186313
+Ref: #time-periods186447
+Node: Report start & end date186545
+Ref: #report-start-end-date186697
+Node: Smart dates188446
+Ref: #smart-dates188599
+Node: Report intervals190521
+Ref: #report-intervals190679
+Node: Period expressions192500
+Ref: #period-expressions192642
+Node: Period expressions with a report interval194493
+Ref: #period-expressions-with-a-report-interval194727
+Node: More complex report intervals195882
+Ref: #more-complex-report-intervals196133
+Node: Intervals with custom start date196815
+Ref: #intervals-with-custom-start-date197049
+Node: Periods or dates ?198709
+Ref: #periods-or-dates198913
+Node: Events on multiple weekdays199369
+Ref: #events-on-multiple-weekdays199550
+Node: Depth200459
+Ref: #depth200561
+Node: Queries200881
+Ref: #queries200983
+Node: Query types201960
+Ref: #query-types202081
+Node: Combining query terms205421
+Ref: #combining-query-terms205598
+Node: Queries and command options206696
+Ref: #queries-and-command-options206901
+Node: Queries and account aliases207166
+Ref: #queries-and-account-aliases207371
+Node: Queries and valuation207503
+Ref: #queries-and-valuation207698
+Node: Querying with account aliases207937
+Ref: #querying-with-account-aliases208148
+Node: Querying with cost or value208290
+Ref: #querying-with-cost-or-value208467
+Node: Pivoting208776
+Ref: #pivoting208890
+Node: Generating data210378
+Ref: #generating-data210510
+Node: Forecasting211008
+Ref: #forecasting211133
+Node: Budgeting214020
+Ref: #budgeting214140
+Node: Cost reporting214411
+Ref: #cost-reporting214539
+Node: -B Convert to cost215654
+Ref: #b-convert-to-cost215810
+Node: Equity conversion postings217218
+Ref: #equity-conversion-postings217432
+Node: Inferring equity postings from cost218061
+Ref: #inferring-equity-postings-from-cost218310
+Node: Inferring cost from equity postings219284
+Ref: #inferring-cost-from-equity-postings219532
+Node: When to infer cost/equity221635
+Ref: #when-to-infer-costequity221853
+Node: How to record conversions222261
+Ref: #how-to-record-conversions222453
+Node: Conversion with implicit cost222744
+Ref: #conversion-with-implicit-cost222949
+Node: Conversion with explicit cost223854
+Ref: #conversion-with-explicit-cost224099
+Node: Conversion with equity postings224526
+Ref: #conversion-with-equity-postings224795
+Node: Conversion with equity postings and explicit cost225632
+Ref: #conversion-with-equity-postings-and-explicit-cost225899
+Node: Cost tips226522
+Ref: #cost-tips226648
+Node: Valuation227407
+Ref: #valuation227531
+Node: -V Value228317
+Ref: #v-value228443
+Node: -X Value in specified commodity228642
+Ref: #x-value-in-specified-commodity228837
+Node: Valuation date228994
+Ref: #valuation-date229165
+Node: Finding market price229604
+Ref: #finding-market-price229809
+Node: --infer-market-prices market prices from transactions230989
+Ref: #infer-market-prices-market-prices-from-transactions231267
+Node: Valuation commodity234113
+Ref: #valuation-commodity234326
+Node: Simple valuation examples235571
+Ref: #simple-valuation-examples235769
+Node: --value Flexible valuation236432
+Ref: #value-flexible-valuation236638
+Node: More valuation examples238324
+Ref: #more-valuation-examples238533
+Node: Interaction of valuation and queries240544
+Ref: #interaction-of-valuation-and-queries240785
+Node: Effect of valuation on reports241265
+Ref: #effect-of-valuation-on-reports241462
+Node: PART 4 COMMANDS249221
+Ref: #part-4-commands249364
+Node: accounts252096
+Ref: #accounts-1252203
+Node: activity254187
+Ref: #activity254306
+Node: add254689
+Ref: #add254799
+Node: aregister257664
+Ref: #aregister257785
+Node: aregister and custom posting dates260770
+Ref: #aregister-and-custom-posting-dates260936
+Node: balance261504
+Ref: #balance261630
+Node: balance features262638
+Ref: #balance-features262778
+Node: Simple balance report264908
+Ref: #simple-balance-report265093
+Node: Balance report line format266738
+Ref: #balance-report-line-format266940
+Node: Filtered balance report269190
+Ref: #filtered-balance-report269382
+Node: List or tree mode269709
+Ref: #list-or-tree-mode269877
+Node: Depth limiting271252
+Ref: #depth-limiting271418
+Node: Dropping top-level accounts272035
+Ref: #dropping-top-level-accounts272235
+Node: Showing declared accounts272549
+Ref: #showing-declared-accounts272748
+Node: Sorting by amount273289
+Ref: #sorting-by-amount273456
+Node: Percentages274146
+Ref: #percentages274305
+Node: Multi-period balance report274875
+Ref: #multi-period-balance-report275075
+Node: Balance change end balance277468
+Ref: #balance-change-end-balance277677
+Node: Balance report types279125
+Ref: #balance-report-types279306
+Node: Calculation type279822
+Ref: #calculation-type279977
+Node: Accumulation type280508
+Ref: #accumulation-type280688
+Node: Valuation type281616
+Ref: #valuation-type281804
+Node: Combining balance report types282871
+Ref: #combining-balance-report-types283065
+Node: Budget report284969
+Ref: #budget-report285121
+Node: Budget report start date290423
+Ref: #budget-report-start-date290601
+Node: Budgets and subaccounts291963
+Ref: #budgets-and-subaccounts292170
+Node: Selecting budget goals295656
+Ref: #selecting-budget-goals295828
+Node: Data layout296870
+Ref: #data-layout297020
+Node: Useful balance reports304961
+Ref: #useful-balance-reports305111
+Node: balancesheet306264
+Ref: #balancesheet306409
+Node: balancesheetequity307783
+Ref: #balancesheetequity307941
+Node: cashflow309398
+Ref: #cashflow309529
+Node: check311019
+Ref: #check311131
+Node: Basic checks311943
+Ref: #basic-checks312061
+Node: Strict checks312599
+Ref: #strict-checks312740
+Node: Other checks313181
+Ref: #other-checks313321
+Node: Custom checks313832
+Ref: #custom-checks313987
+Node: More about specific checks314408
+Ref: #more-about-specific-checks314568
+Node: close315300
+Ref: #close315411
+Node: close and costs317551
+Ref: #close-and-costs317677
+Node: close date318069
+Ref: #close-date318252
+Node: Example close asset/liability accounts for file transition319044
+Ref: #example-close-assetliability-accounts-for-file-transition319345
+Node: Hiding opening/closing transactions320204
+Ref: #hiding-openingclosing-transactions320475
+Node: close and balance assertions321862
+Ref: #close-and-balance-assertions322120
+Node: Example close revenue/expense accounts to retained earnings323496
+Ref: #example-close-revenueexpense-accounts-to-retained-earnings323774
+Node: codes324684
+Ref: #codes324801
+Node: commodities325683
+Ref: #commodities-1325819
+Node: descriptions325901
+Ref: #descriptions326038
+Node: diff326342
+Ref: #diff326457
+Node: files327508
+Ref: #files327617
+Node: help327764
+Ref: #help327873
+Node: import328868
+Ref: #import328991
+Node: Deduplication330106
+Ref: #deduplication330231
+Node: Import testing332153
+Ref: #import-testing332318
+Node: Importing balance assignments332810
+Ref: #importing-balance-assignments333016
+Node: Commodity display styles333673
+Ref: #commodity-display-styles333846
+Node: incomestatement333975
+Ref: #incomestatement334117
+Node: notes335495
+Ref: #notes335617
+Node: payees335985
+Ref: #payees-1336100
+Node: prices336632
+Ref: #prices336747
+Node: print337056
+Ref: #print337171
+Node: register342623
+Ref: #register342745
+Node: Custom register output347858
+Ref: #custom-register-output347989
+Node: rewrite349364
+Ref: #rewrite349482
+Node: Re-write rules in a file351402
+Ref: #re-write-rules-in-a-file351565
+Node: Diff output format352718
+Ref: #diff-output-format352901
+Node: rewrite vs print --auto354013
+Ref: #rewrite-vs.-print---auto354175
+Node: roi354749
+Ref: #roi354856
+Node: Spaces and special characters in --inv and --pnl356621
+Ref: #spaces-and-special-characters-in---inv-and---pnl356869
+Node: Semantics of --inv and --pnl357367
+Ref: #semantics-of---inv-and---pnl357614
+Node: IRR and TWR explained359492
+Ref: #irr-and-twr-explained359652
+Node: stats362764
+Ref: #stats362872
+Node: tags364275
+Ref: #tags-1364382
+Node: test365404
+Ref: #test365497
+Node: PART 5 COMMON TASKS366252
+Ref: #part-5-common-tasks366385
+Node: Getting help366659
+Ref: #getting-help366800
+Node: Constructing command lines367564
+Ref: #constructing-command-lines367765
+Node: Starting a journal file368446
+Ref: #starting-a-journal-file368653
+Node: Setting opening balances369851
+Ref: #setting-opening-balances370056
+Node: Recording transactions373209
+Ref: #recording-transactions373398
+Node: Reconciling373954
+Ref: #reconciling374106
+Node: Reporting376419
+Ref: #reporting376568
+Node: Migrating to a new file380557
+Ref: #migrating-to-a-new-file380714
 
 End Tag Table
 

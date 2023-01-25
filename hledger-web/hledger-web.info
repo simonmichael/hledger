@@ -105,9 +105,9 @@ before options, as shown in the synopsis above.
      operating system can provide this type of socket.
 ‘--base-url=URL’
 
-     set the base url (default: http://IPADDR:PORT). You would change
-     this when sharing over the network, or integrating within a larger
-     website.
+     set the base url (default: http://IPADDR:PORT). Note: affects url
+     generation but not route parsing.  Can be useful if running behind
+     a reverse web proxy that does path rewriting.
 ‘--file-url=URL’
 
      set the static files url (default: BASEURL/static).  hledger-web
@@ -666,24 +666,24 @@ Tag Table:
 Node: Top225
 Node: OPTIONS2727
 Ref: #options2832
-Node: PERMISSIONS10588
-Ref: #permissions10727
-Node: EDITING UPLOADING DOWNLOADING11985
-Ref: #editing-uploading-downloading12166
-Node: RELOADING13008
-Ref: #reloading13142
-Node: JSON API13575
-Ref: #json-api13690
-Node: DEBUG OUTPUT19222
-Ref: #debug-output19347
-Node: Debug output19374
-Ref: #debug-output-119475
-Node: ENVIRONMENT19900
-Ref: #environment20020
-Node: FILES21369
-Ref: #files21469
-Node: BUGS21729
-Ref: #bugs21807
+Node: PERMISSIONS10626
+Ref: #permissions10765
+Node: EDITING UPLOADING DOWNLOADING12023
+Ref: #editing-uploading-downloading12204
+Node: RELOADING13046
+Ref: #reloading13180
+Node: JSON API13613
+Ref: #json-api13728
+Node: DEBUG OUTPUT19260
+Ref: #debug-output19385
+Node: Debug output19412
+Ref: #debug-output-119513
+Node: ENVIRONMENT19938
+Ref: #environment20058
+Node: FILES21407
+Ref: #files21507
+Node: BUGS21767
+Ref: #bugs21845
 
 End Tag Table
 
