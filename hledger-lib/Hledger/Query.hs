@@ -84,7 +84,7 @@ import qualified Data.Text as T
 import Data.Time.Calendar (Day, fromGregorian )
 import Safe (readDef, readMay, maximumByMay, maximumMay, minimumMay)
 import Text.Megaparsec (between, noneOf, sepBy, try, (<?>), notFollowedBy)
-import Text.Megaparsec.Char (char, string)
+import Text.Megaparsec.Char (char, string, string')
 
 
 import Hledger.Utils hiding (words')
@@ -359,18 +359,18 @@ parseBooleanQuery d t = either (Left . ("failed to parse query:" <>) . customErr
         Left err -> error' err
 
     keywordSpaceP :: SimpleTextParser T.Text
-    keywordSpaceP = choice' ["NOT ", "AND ", "OR "]
+    keywordSpaceP = choice' (string' <$> ["not ", "and ", "or "])
 
     parQueryP,notQueryP :: SimpleTextParser (Query, [QueryOpt])
     parQueryP = between (char '(' >> skipNonNewlineSpaces)
                         (try $ skipNonNewlineSpaces >> char ')')
                         spacedQueriesP
             <|> queryTermP
-    notQueryP = (maybe id (\_ (q, qopts) -> (Not q, qopts)) <$> optional (string "NOT" >> skipNonNewlineSpaces1)) <*> parQueryP
+    notQueryP = (maybe id (\_ (q, qopts) -> (Not q, qopts)) <$> optional (try $ string' "not" >> notFollowedBy (char ':') >> skipNonNewlineSpaces1)) <*> parQueryP
 
     andQueriesP,orQueriesP,spacedQueriesP :: SimpleTextParser (Query, [QueryOpt])
-    andQueriesP    = nArityOp And <$> notQueryP `sepBy` (try $ skipNonNewlineSpaces >> string "AND" >> skipNonNewlineSpaces1)
-    orQueriesP     = nArityOp Or <$> andQueriesP `sepBy` (try $ skipNonNewlineSpaces >> string "OR" >> skipNonNewlineSpaces1)
+    andQueriesP    = nArityOp And <$> notQueryP `sepBy` (try $ skipNonNewlineSpaces >> string' "and" >> skipNonNewlineSpaces1)
+    orQueriesP     = nArityOp Or <$> andQueriesP `sepBy` (try $ skipNonNewlineSpaces >> string' "or" >> skipNonNewlineSpaces1)
     spacedQueriesP = nArityOp combineQueryList <$> orQueriesP `sepBy` skipNonNewlineSpaces1
 
     nArityOp       :: ([Query] -> Query) -> [(Query, [QueryOpt])] -> (Query, [QueryOpt])
@@ -939,6 +939,9 @@ tests_Query = testGroup "Query" [
      parseBooleanQuery nulldate " acct:'a' acct:'b'" @?= Right (Or [Acct $ toRegexCI' "a", Acct $ toRegexCI' "b"], [])
      parseBooleanQuery nulldate "not:a" @?= Right (Not $ Acct $ toRegexCI' "a", [])
      parseBooleanQuery nulldate "expenses:food OR (tag:A expenses:drink)" @?= Right (Or [Acct $ toRegexCI' "expenses:food", And [Acct $ toRegexCI' "expenses:drink", Tag (toRegexCI' "A") Nothing]], [])
+     parseBooleanQuery nulldate "not a" @?= Right (Not $ Acct $ toRegexCI' "a", [])
+     parseBooleanQuery nulldate "nota" @?= Right (Acct $ toRegexCI' "nota", [])
+     parseBooleanQuery nulldate "not (acct:a)" @?= Right (Not $ Acct $ toRegexCI' "a", [])
 
   ,testCase "words''" $ do
       (words'' [] "a b")                   @?= ["a","b"]

@@ -93,3 +93,54 @@ $ hledger -f - print expr:"NOT tag:'transactiontag=B' OR desc:4"
     expenses:drink
 
 >=
+
+# 7. Boolean expression query keywords are case insensitive
+$ hledger -f - print expr:"NoT tag:'transactiontag=B' OR desc:4"
+2022-01-01 Transaction 1  ; transactiontag:A
+    assets:bank:main              -1  ; A comment
+    expenses:food
+
+2022-01-01 Transaction 2  ; transactiontag:A
+    assets:bank:main                   -1
+    assets:bank:secondary              -1  ; atag:a
+    expenses:food
+
+2022-01-01 Transaction 4  ; transactiontag:B
+    assets:bank:main              -1  ; A comment
+    expenses:food                  2
+    expenses:drink
+
+>=
+
+# 8. Lower case not is not confused with existing not: queries
+$ hledger -f - print expr:"not tag:transactiontag=B"
+2022-01-01 Transaction 1  ; transactiontag:A
+    assets:bank:main              -1  ; A comment
+    expenses:food
+
+2022-01-01 Transaction 2  ; transactiontag:A
+    assets:bank:main                   -1
+    assets:bank:secondary              -1  ; atag:a
+    expenses:food
+
+>=
+
+# 9. Having parentheses directly follow 'not' sees 'not' as part of a query.
+$ hledger -f - print expr:"not(tag:transactiontag=B)"
+>2
+hledger: Error: This regular expression is malformed, please correct it:
+not(tag:transactiontag=B
+>=1
+
+# 10. ... whereas parentheses with a space between 'not' and '(' is fine.
+$ hledger -f - print expr:"not (tag:transactiontag=B)"
+2022-01-01 Transaction 1  ; transactiontag:A
+    assets:bank:main              -1  ; A comment
+    expenses:food
+
+2022-01-01 Transaction 2  ; transactiontag:A
+    assets:bank:main                   -1
+    assets:bank:secondary              -1  ; atag:a
+    expenses:food
+
+>=
