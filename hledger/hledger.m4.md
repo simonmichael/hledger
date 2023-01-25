@@ -5022,13 +5022,15 @@ reporting more difficult for PTA tools.
 Happily, current hledger can read either notation, or convert one to
 the other when needed, so you can use the one you prefer.
 
+You can even use cost notation and equivalent conversion postings at the same time, for clarity.
+hledger will ignore the redundancy.
+But be sure the cost and conversion posting amounts match, or you'll see 
+a not-so-clear transaction balancing error message.
+
 ## Inferring equity postings from cost
 
 With `--infer-equity`, hledger detects transactions written with PTA cost notation
-and adds equity conversion postings to them
-(and temporarily permits the coexistence of equity conversion postings and
-cost notation, which normally would cause an unbalanced transaction error).
-Eg:
+and adds equity conversion postings to them:
 
 ```journal
 2022-01-01
@@ -5056,10 +5058,7 @@ journal entries for sharing with non-PTA-users.
 
 The reverse operation is possible using `--infer-costs`, which
 detects transactions written with equity conversion postings
-and adds PTA cost notation to them
-(and temporarily permits the coexistence of equity conversion postings
-and cost notation).
-Eg:
+and adds cost notation to them:
 
 ```journal
 2022-01-01
@@ -5097,17 +5096,15 @@ For `--infer-costs` to work, an exchange must consist of four postings:
 2. the equity accounts must be declared, with account type `V`/`Conversion`
    (or if they are not declared, they must be named
    `equity:conversion`, `equity:trade`, `equity:trading` or subaccounts of these)
-3. the equity postings' amounts must exactly match the non-equity postings' amounts
-4. all of the amounts must be explicit, with none missing
+3. the equity postings' amounts must exactly match the non-equity postings' amounts.
 
-Multiple such exchanges can coexist within a single transaction, should you need that.
+Multiple such exchanges can coexist within a single transaction.
 
 When inferring cost, the order of postings matters:
 the cost is added to the first of the non-equity postings involved in the exchange,
 in the commodity of the last non-equity posting involved in the exchange.
 If you don't want to write your postings in the required order,
-the alternative is not to infer cost; instead, use explicit cost notation,
-omitting the equity postings, inferring them later with --infer-equity if needed.
+you can use explicit cost notation instead.
 
 --infer-equity and --infer-costs can be used together, if you have a
 mixture of both notations in your journal.
@@ -5214,8 +5211,6 @@ Con:
 ### Conversion with equity postings and explicit cost
 
 Here both equity postings and @ notation are used together.
-hledger will usually complain about this redundancy, but when using
-the --infer-costs flag it is accepted.
 
 ```journal
 2021-01-01
@@ -5235,17 +5230,16 @@ Pro:
 Con: 
 
 - Most verbose
-- Requires the --infer-costs flag
 - Not compatible with ledger
 
 ## Cost tips
 
-- Recording the conversion rate explicitly is good because it makes that clear and helps detect errors.
+- Recording the cost/conversion rate explicitly is good because it makes that clear and helps detect errors.
 - Recording equity postings is good because it is correct bookkeeping and preserves the accounting equation.
-- Combining these is possible by using the --infer-costs flag (which requires well-ordered postings).
-- When you want to see the cost (or sale proceeds) of things, use `-B` (or `--cost`).
-  If you use equity conversion postings notation, use `-B --infer-costs`.
-- If you use PTA cost notation, and you want to see a balanced balance sheet or print correct journal entries, use `--infer-equity`.
+- Combining these is possible.
+- When you want to see the cost (or sale proceeds) of things, use `-B` (short form of `--cost`).
+- If you use conversion postings without cost notation, add `--infer-costs` also.
+- If you use cost notation without conversion postings, and you want to see a balanced balance sheet or print correct journal entries, use `--infer-equity`.
 - Conversion to cost is performed before valuation (described next).
 
 # Valuation
