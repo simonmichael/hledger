@@ -129,7 +129,9 @@ $ hledger -f- reg --auto type:x
 2022-02-02 Test
   (assets:cash)        1
   (equity:conversion)  2
+  (equity:conversion)  -2
 
 $ hledger -f- reg type:ae
 2022-02-02 Test                 (assets:cash)                    1             1
                                 (equity:conversion)              2             3
+                                (equity:conversion)             -2             1

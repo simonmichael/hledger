@@ -324,10 +324,10 @@ journalFinalise iopts@InputOpts{..} f txt pj = do
       >>= (if auto_ && not (null $ jtxnmodifiers pj)
               then journalAddAutoPostings _ioDay balancingopts_  -- Add auto postings if enabled, and account tags if needed
               else pure)
-      >>= (if infer_costs_  then journalInferCostsFromEquity else pure)     -- Maybe infer costs from equity postings where possible
-             -- XXX ^ You might think this should happen after journalBalanceTransactions, since filling in a missing amount can help
-             -- infer costs from equity. But currently ignoring excess inferred costs depends somehow on inferring them before balancing.
+      -- >>= Right . dbg0With (concatMap (T.unpack.showTransaction).jtxns)  -- debug
+      >>= journalMarkRedundantCosts                      -- Mark redundant costs, to help journalBalanceTransactions ignore them
       >>= journalBalanceTransactions balancingopts_                         -- Balance all transactions and maybe check balance assertions.
+      >>= (if infer_costs_  then journalInferCostsFromEquity else pure)     -- Maybe infer costs from equity postings where possible
       <&> (if infer_equity_ then journalAddInferredEquityPostings else id)  -- Maybe infer equity postings from costs where possible
       <&> journalInferMarketPricesFromTransactions       -- infer market prices from commodity-exchanging transactions
       <&> traceOrLogAt 6 ("journalFinalise: " <> takeFileName f)  -- debug logging
