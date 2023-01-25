@@ -87,6 +87,7 @@ import Hledger.Cli.Commands.Roi
 import Hledger.Cli.Commands.Stats
 import Hledger.Cli.Commands.Tags
 import Hledger.Cli.Utils (tests_Cli_Utils)
+import Data.List.Extra (chunksOf)
 
 -- | The cmdargs subcommand mode (for command-line parsing)
 -- and IO action (for doing the command's work) for each builtin command.
@@ -125,6 +126,34 @@ builtinCommands = [
   ,(testmode               , testcmd)
   ]
 
+-- figlet -f FONTNAME hledger, then escape backslashes
+_banner_slant = drop 1 [""
+    -----------------------------------------80-------------------------------------
+  ,"    __    __         __               "
+  ,"   / /_  / /__  ____/ /___ ____  _____"
+  ,"  / __ \\/ / _ \\/ __  / __ `/ _ \\/ ___/"
+  ," / / / / /  __/ /_/ / /_/ /  __/ /    "
+  ,"/_/ /_/_/\\___/\\__,_/\\__, /\\___/_/     "
+  ,"                   /____/             "
+  ]
+
+_banner_smslant = drop 1 [""
+  ,"   __   __       __            "
+  ,"  / /  / /__ ___/ /__ ____ ____"
+  ," / _ \\/ / -_) _  / _ `/ -_) __/"
+  ,"/_//_/_/\\__/\\_,_/\\_, /\\__/_/   "
+  ,"                /___/          "
+  ]
+
+_banner_speed = drop 1 [""
+  ,"______ ______    _________                    "
+  ,"___  /____  /__________  /______ _____________"
+  ,"__  __ \\_  /_  _ \\  __  /__  __ `/  _ \\_  ___/"
+  ,"_  / / /  / /  __/ /_/ / _  /_/ //  __/  /    "
+  ,"/_/ /_//_/  \\___/\\__,_/  _\\__, / \\___//_/     "
+  ,"                         /____/               "
+  ]
+
 -- | The commands list, showing command names, standard aliases,
 -- and short descriptions. This is modified at runtime, as follows:
 --
@@ -144,74 +173,107 @@ builtinCommands = [
 -- TODO: generate more of this automatically.
 -- 
 commandsList :: String -> [String] -> [String]
-commandsList progversion othercmds = [
-  -- keep synced with hledger.m4.md -> Commands, commands.m4 -->
-   "-------------------------------------------------------------------------------"
+commandsList progversion othercmds =
+  _banner_smslant ++ [
+  -- keep synced with hledger.m4.md > PART 4: COMMANDS, Hledger/Cli/Commands > commands.m4 -->
+    -----------------------------------------80-------------------------------------
+   ""
   ,progversion
+  ,""
   ,"Usage: hledger COMMAND [OPTIONS] [-- ADDONCMDOPTIONS]"
-  ,"Commands (+ addons found in $PATH):"
+  ,"Commands (+ addon commands found in PATH):"
   ,""
-  ,"Data entry (these commands modify the journal file):"
-  ," add                      add transactions using guided prompts"
+  ,"DATA ENTRY - add or edit entries in the journal file:"
+  ," add                      add transactions using terminal prompts"
+  ,"+edit                     edit a subset of transactions"
   ,"+iadd                     add transactions using a TUI"
-  ," import                   add any new transactions from other files (eg csv)"
+  ," import                   add new transactions from from other files, eg csv"
   ,""
-  ,"Data management:"
+    -----------------------------------------80-------------------------------------
+  ,"DATA CREATION - create or convert entries to be added to the journal file:"
   ,"+autosync                 download/deduplicate/convert OFX data"
+  ," close                    generate balance-zeroing/restoring transactions"
+  ,"+interest                 generate interest transactions"
+  ," rewrite                  generate auto postings, like print --auto"
+  ,"+stockquotes              download market prices from AlphaVantage"
+  ,""
+    -----------------------------------------80-------------------------------------
+  ,"DATA MANAGEMENT - help validate or manage journal files:"
   ," check                    check for various kinds of issue in the data"
   ,"+check-fancyassertions    check more powerful balance assertions"
   ,"+check-tagfiles           check file paths in tag values exist"
-  ," close                    generate balance-resetting transactions"
   ," diff                     compare account transactions in two journal files"
-  ,"+interest                 generate interest transactions"
-  ," rewrite                  generate extra postings, similar to print --auto"
-  ,"+stockquotes              download market prices from AlphaVantage"
+  ,"+git                      record/status/log journal changes with git"
+  ,"+pijul                    record/status/log journal changes with pijul"
   ,""
-  ,"Financial reports:"
+    -----------------------------------------80-------------------------------------
+  ,"REPORTS, FINANCIAL - standard financial reports:"
   ," aregister (areg)         show transactions in a particular account"
   ," balancesheet (bs)        show assets, liabilities and net worth"
   ," balancesheetequity (bse) show assets, liabilities and equity"
   ," cashflow (cf)            show changes in liquid assets"
   ," incomestatement (is)     show revenues and expenses"
-  ," roi                      show return on investments"
   ,""
-  ,"Low-level reports:"
-  ," accounts                 show account names"
-  ," activity                 show postings-per-interval bar charts"
-  ," balance (bal)            show balance changes/end balances/budgets in accounts"
-  ," codes                    show transaction codes"
-  ," commodities              show commodity/currency symbols"
-  ," descriptions             show unique transaction descriptions"
-  ," files                    show input file paths"
-  ," notes                    show unique note segments of transaction descriptions"
-  ," payees                   show unique payee segments of transaction descriptions"
-  ," prices                   show market price records"
-  ," print                    show transactions (journal entries)"
-  ," print-unique             show only transactions with unique descriptions"
+    -----------------------------------------80-------------------------------------
+  ,"REPORTS, VERSATILE - more complex/versatile reporting commands:"
+  ," balance (bal)            show balance changes, end balances, budgets, gains.."
+  ,"+plot                     create charts from balance reports, in terminal or GUI"
+  ," print                    show transactions or export journal data"
+  ," print-unique             show only transactions with new descriptions"
   ," register (reg)           show postings in one or more accounts & running total"
   ," register-match           show a recent posting that best matches a description"
+  ," roi                      show return on investments"
+  ,""
+    -----------------------------------------80-------------------------------------
+  ,"REPORTS, BASIC - simple reports:"
+  ," accounts                 show account names"
+  ," activity                 show bar charts of posting counts per period"
+  ," codes                    show transaction codes"
+  ," commodities              show commodity/currency symbols"
+  ," descriptions             show transaction descriptions"
+  ," files                    show input file paths"
+  ," notes                    show note parts of transaction descriptions"
+  ," payees                   show payee parts of transaction descriptions"
+  ," prices                   show market prices"
   ," stats                    show journal statistics"
   ," tags                     show tag names"
   ," test                     run self tests"
   ,""
-  ,"Alternate user interfaces:"
+    -----------------------------------------80-------------------------------------
+  ,"UIS - other user interfaces:"
   ,"+ui                       run terminal UI"
   ,"+web                      run web UI"
   ,""
-  ,"Other:"
+  ,"OTHER - other hledger-* addon commands found in PATH:"
   ] ++
-  othercmds
+  multicol 80 (map ((' ':) . drop 1) othercmds)
   ++
   [""
-  ,"Help:"
-  ," (no arguments)           show this commands list"
-  ," -h                       show general flags"
-  ," COMMAND -h               show flags & docs for COMMAND"
-  ," help [MANUAL]            show hledger manuals in various formats"
+    -----------------------------------------80-------------------------------------
+  ,"HELP - viewing command-line help and more docs:"
+  ," hledger                          show this commands list"
+  ," hledger -h                       show hledger's general help"
+  ," hledger COMMAND -h               show COMMAND's help"
+  ," hledger help [TOPIC] [-i|-m|-p]  show the hledger manual with info/man/pager"
+  ," https://hledger.org              html manuals, tutorials, support.."
   ,""
   ]
 -- edit                     open a text editor on some part of the journal
 
+-- | Convert a single-column list of items to a multicolumn list
+-- fitting within the given width. Wide character-aware.
+multicol :: Int -> [String] -> [String]
+multicol _ [] = []
+multicol width strs =
+  let
+    maxwidth = maximum' $ map length strs
+    numcols = width `div` (maxwidth+2)
+    itemspercol = length strs `div` numcols
+    colitems = chunksOf itemspercol strs
+    cols = map unlines colitems
+    sep = " "
+  in
+    lines $ T.unpack $ textConcatBottomPadded $ map T.pack $ intersperse sep cols
 
 -- | All names and aliases of builtin commands.
 builtinCommandNames :: [String]
