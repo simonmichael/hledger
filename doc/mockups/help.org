@@ -1,5 +1,3 @@
--*- org -*-
-
 * 0.27
 
 $ hledger --help
