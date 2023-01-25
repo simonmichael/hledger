@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.35.0.
+-- This file has been generated from package.yaml by hpack version 0.35.1.
 --
 -- see: https://github.com/sol/hpack
 
@@ -68,7 +68,6 @@ extra-source-files:
     Hledger/Cli/Commands/Payees.txt
     Hledger/Cli/Commands/Prices.txt
     Hledger/Cli/Commands/Print.txt
-    Hledger/Cli/Commands/Printunique.txt
     Hledger/Cli/Commands/Register.txt
     Hledger/Cli/Commands/Registermatch.txt
     Hledger/Cli/Commands/Rewrite.txt
@@ -123,7 +122,6 @@ library
       Hledger.Cli.Commands.Payees
       Hledger.Cli.Commands.Prices
       Hledger.Cli.Commands.Print
-      Hledger.Cli.Commands.Printunique
       Hledger.Cli.Commands.Register
       Hledger.Cli.Commands.Registermatch
       Hledger.Cli.Commands.Rewrite

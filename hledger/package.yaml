@@ -63,7 +63,6 @@ extra-source-files:
 - Hledger/Cli/Commands/Payees.txt
 - Hledger/Cli/Commands/Prices.txt
 - Hledger/Cli/Commands/Print.txt
-- Hledger/Cli/Commands/Printunique.txt
 - Hledger/Cli/Commands/Register.txt
 - Hledger/Cli/Commands/Registermatch.txt
 - Hledger/Cli/Commands/Rewrite.txt
@@ -171,7 +170,6 @@ library:
   - Hledger.Cli.Commands.Payees
   - Hledger.Cli.Commands.Prices
   - Hledger.Cli.Commands.Print
-  - Hledger.Cli.Commands.Printunique
   - Hledger.Cli.Commands.Register
   - Hledger.Cli.Commands.Registermatch
   - Hledger.Cli.Commands.Rewrite

@@ -443,7 +443,6 @@ src/hledger/
           Payees.md
           Prices.md
           Print.md
-          Printunique.md
           README.md
           Register.md
           Registermatch.md

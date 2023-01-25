@@ -36,7 +36,6 @@ module Hledger.Cli.Commands (
   ,module Hledger.Cli.Commands.Payees
   ,module Hledger.Cli.Commands.Prices
   ,module Hledger.Cli.Commands.Print
-  ,module Hledger.Cli.Commands.Printunique
   ,module Hledger.Cli.Commands.Register
   ,module Hledger.Cli.Commands.Registermatch
   ,module Hledger.Cli.Commands.Rewrite
@@ -79,7 +78,6 @@ import Hledger.Cli.Commands.Notes
 import Hledger.Cli.Commands.Payees
 import Hledger.Cli.Commands.Prices
 import Hledger.Cli.Commands.Print
-import Hledger.Cli.Commands.Printunique
 import Hledger.Cli.Commands.Register
 import Hledger.Cli.Commands.Registermatch
 import Hledger.Cli.Commands.Rewrite
@@ -116,7 +114,6 @@ builtinCommands = [
   ,(payeesmode             , payees)
   ,(pricesmode             , prices)
   ,(printmode              , print')
-  ,(printuniquemode        , printunique)
   ,(registermatchmode      , registermatch)
   ,(registermode           , register)
   ,(rewritemode            , rewrite)
@@ -219,9 +216,7 @@ commandsList progversion othercmds =
   ," balance (bal)            show balance changes, end balances, budgets, gains.."
   ,"+plot                     create charts from balance reports, in terminal or GUI"
   ," print                    show transactions or export journal data"
-  ," print-unique             show only transactions with new descriptions"
   ," register (reg)           show postings in one or more accounts & running total"
-  ," register-match           show a recent posting that best matches a description"
   ," roi                      show return on investments"
   ,""
     -----------------------------------------80-------------------------------------
