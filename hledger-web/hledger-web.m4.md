@@ -90,7 +90,8 @@ as shown in the synopsis above.
 
 `--base-url=URL`
 : set the base url (default: http://IPADDR:PORT).
-You would change this when sharing over the network, or integrating within a larger website.
+Note: affects url generation but not route parsing.
+Can be useful if running behind a reverse web proxy that does path rewriting.
 
 `--file-url=URL`
 : set the static files url (default: BASEURL/static).
