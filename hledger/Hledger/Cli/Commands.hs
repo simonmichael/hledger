@@ -48,6 +48,7 @@ import Data.List
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar
+import String.ANSI
 import System.Environment (withArgs)
 import System.Console.CmdArgs.Explicit as C
 import Test.Tasty (defaultMain)
@@ -120,6 +121,8 @@ builtinCommands = [
   ,(testmode               , testcmd)
   ]
 
+accent = blue
+
 -- figlet -f FONTNAME hledger, then escape backslashes
 _banner_slant = drop 1 [""
     -----------------------------------------80-------------------------------------
@@ -131,7 +134,7 @@ _banner_slant = drop 1 [""
   ,"                   /____/             "
   ]
 
-_banner_smslant = drop 1 [""
+_banner_smslant = map accent $ drop 1 [""
   ,"   __   __       __            "
   ,"  / /  / /__ ___/ /__ ____ ____"
   ," / _ \\/ / -_) _  / _ `/ -_) __/"
@@ -147,6 +150,8 @@ _banner_speed = drop 1 [""
   ,"/_/ /_//_/  \\___/\\__,_/  _\\__, / \\___//_/     "
   ,"                         /____/               "
   ]
+
+highlightAddon = id
 
 -- | The commands list, showing command names, standard aliases,
 -- and short descriptions. This is modified at runtime, as follows:
@@ -166,25 +171,26 @@ _banner_speed = drop 1 [""
 --
 -- TODO: generate more of this automatically.
 -- 
-commandsList :: String -> [String] -> [String]
-commandsList progversion othercmds =
+commandsList :: String -> [String] -> Bool -> [String]
+commandsList progversion othercmds highlight =
+  (if highlight then (map (\s -> if "+" `isPrefixOf` s then highlightAddon (' ' : drop 1 s) else s)) else id) $
   _banner_smslant ++ [
   -- keep synced with hledger.m4.md > PART 4: COMMANDS, Hledger/Cli/Commands > commands.m4 -->
     -----------------------------------------80-------------------------------------
    ""
-  ,progversion
+  ,accent progversion
   ,""
-  ,"Usage: hledger COMMAND [OPTIONS] [-- ADDONCMDOPTIONS]"
+  ,"Usage: " ++ bold "hledger CMD [OPTS] [-- ADDONCMDOPTS]"
+  ,""
   ,"Commands:"
-  ,""
-  ,"DATA ENTRY: add or edit entries in the journal file"
+  ,bold "DATA ENTRY: add or edit entries in the journal file"
   ," add                      add transactions using terminal prompts"
   ,"+edit                     edit a subset of transactions"
   ,"+iadd                     add transactions using a TUI"
   ," import                   add new transactions from from other files, eg csv"
   ,""
     -----------------------------------------80-------------------------------------
-  ,"DATA CREATION: create or convert entries to be added to the journal file"
+  ,bold "DATA CREATION: create or convert entries to be added to the journal file"
   ,"+autosync                 download/deduplicate/convert OFX data"
   ," close                    generate balance-zeroing/restoring transactions"
   ,"+interest                 generate interest transactions"
@@ -192,7 +198,7 @@ commandsList progversion othercmds =
   ,"+stockquotes              download market prices from AlphaVantage"
   ,""
     -----------------------------------------80-------------------------------------
-  ,"DATA MANAGEMENT: help validate or manage journal files"
+  ,bold "DATA MANAGEMENT: help validate or manage journal files"
   ," check                    check for various kinds of issue in the data"
   ,"+check-fancyassertions    check more powerful balance assertions"
   ,"+check-tagfiles           check file paths in tag values exist"
@@ -201,7 +207,7 @@ commandsList progversion othercmds =
   ,"+pijul                    record/status/log journal changes easily with pijul"
   ,""
     -----------------------------------------80-------------------------------------
-  ,"REPORTS, FINANCIAL: standard financial reports"
+  ,bold "REPORTS, FINANCIAL: standard financial reports"
   ," aregister (areg)         show transactions in a particular account"
   ," balancesheet (bs)        show assets, liabilities and net worth"
   ," balancesheetequity (bse) show assets, liabilities and equity"
@@ -209,7 +215,7 @@ commandsList progversion othercmds =
   ," incomestatement (is)     show revenues and expenses"
   ,""
     -----------------------------------------80-------------------------------------
-  ,"REPORTS, VERSATILE: more complex/versatile reporting commands"
+  ,bold "REPORTS, VERSATILE: more complex/versatile reporting commands"
   ," balance (bal)            show balance changes, end balances, budgets, gains.."
   ,"+plot                     create charts from balance reports, in terminal or GUI"
   ," print                    show transactions or export journal data"
@@ -217,7 +223,7 @@ commandsList progversion othercmds =
   ," roi                      show return on investments"
   ,""
     -----------------------------------------80-------------------------------------
-  ,"REPORTS, BASIC: simple reports"
+  ,bold "REPORTS, BASIC: simple reports"
   ," accounts                 show account names"
   ," activity                 show bar charts of posting counts per period"
   ," codes                    show transaction codes"
@@ -232,17 +238,17 @@ commandsList progversion othercmds =
   ," test                     run self tests"
   ,""
     -----------------------------------------80-------------------------------------
-  ,"UIS: other user interfaces"
+  ,bold "UIS: other user interfaces"
   ,"+ui                       run terminal UI"
   ,"+web                      run web UI"
   ,""
-  ,"OTHER: other hledger-* addon commands found in PATH"
+  ,bold "OTHER: other hledger-* addon commands found in PATH"
   ] ++
-  multicol 80 (map ((' ':) . drop 1) othercmds)
+  multicol 80 (map (highlightAddon . (' ':) . drop 1) othercmds)
   ++
   [""
     -----------------------------------------80-------------------------------------
-  ,"HELP: command-line help and more docs"
+  ,bold "HELP: command-line help and more docs"
   ," hledger                          show this commands list"
   ," hledger -h                       show hledger's general help"
   ," hledger COMMAND -h               show COMMAND's help"
@@ -282,7 +288,7 @@ commandsFromCommandsList s =
   [w | c:l <- s, c `elem` [' ','+'], let w:_ = words l]
 
 knownCommands :: [String]
-knownCommands = sort . commandsFromCommandsList . drop 1 $ commandsList progname []  -- progname will not be seen
+knownCommands = sort . commandsFromCommandsList . drop 1 $ commandsList progname [] False -- progname will not be seen
 
 -- | Print the commands list, modifying the template above based on
 -- the currently available addons. Missing addons will be removed, and
@@ -290,7 +296,7 @@ knownCommands = sort . commandsFromCommandsList . drop 1 $ commandsList progname
 printCommandsList :: String -> [String] -> IO ()
 printCommandsList progversion addonsFound =
     pager . unlines . concatMap adjustline $
-    commandsList progversion (map ('+':) unknownCommandsFound)
+    commandsList progversion (map ('+':) unknownCommandsFound) True
   where
     commandsFound = map (' ':) builtinCommandNames ++ map ('+':) addonsFound
     unknownCommandsFound = addonsFound \\ knownCommands

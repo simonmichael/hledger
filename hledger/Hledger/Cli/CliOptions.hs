@@ -87,6 +87,7 @@ import Data.Maybe
 import qualified Data.Text as T
 import Data.Void (Void)
 import Safe
+import String.ANSI
 import System.Console.CmdArgs hiding (Default,def)
 import System.Console.CmdArgs.Explicit
 import System.Console.CmdArgs.Text
@@ -396,8 +397,25 @@ parseCommandDoc t =
 
 -- | Get a mode's usage message as a nicely wrapped string.
 showModeUsage :: Mode a -> String
-showModeUsage = (showText defaultWrap :: [Text] -> String) .
-               (helpText [] HelpFormatDefault :: Mode a -> [Text])
+showModeUsage =
+  highlightHelp .
+  (showText defaultWrap :: [Text] -> String) .
+  (helpText [] HelpFormatDefault :: Mode a -> [Text])
+
+-- | Add some ANSI decoration to cmdargs' help output.
+highlightHelp = unlines . zipWith (curry f) [1..] . lines
+  where
+    f (n,s)
+      | n==1 = bold s
+      | s `elem` [
+           "General input flags:"
+          ,"General reporting flags:"
+          ,"General help flags:"
+          ,"Flags:"
+          ,"General flags:"
+          ,"Examples:"
+          ] = bold s
+      | otherwise = s
 
 -- | Get the most appropriate documentation topic for a mode.
 -- Currently, that is either the hledger, hledger-ui or hledger-web
