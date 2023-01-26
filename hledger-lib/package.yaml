@@ -45,6 +45,7 @@ dependencies:
 - containers >=0.5.9
 - cassava
 - cassava-megaparsec
+- colour >=2.3.6
 - data-default >=0.5
 - deepseq
 - Decimal >=0.5.1

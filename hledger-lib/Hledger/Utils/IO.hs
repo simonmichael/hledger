@@ -34,7 +34,10 @@ module Hledger.Utils.IO (
   color,
   bgColor,
   colorB,
-  bgColorB,  
+  bgColorB,
+  terminalIsLight,
+  terminalFgColor,
+  terminalBgColor,
 
   -- * Errors
   error',
@@ -57,6 +60,8 @@ module Hledger.Utils.IO (
 where
 
 import           Control.Monad (when)
+import           Data.Colour.RGBSpace (RGB(RGB))
+import           Data.Colour.RGBSpace.HSL (lightness)
 import           Data.FileEmbed (makeRelativeToProject, embedStringFile)
 import           Data.List hiding (uncons)
 import           Data.Maybe (isJust)
@@ -67,9 +72,10 @@ import qualified Data.Text.Lazy.Builder as TB
 import           Data.Time.Clock (getCurrentTime)
 import           Data.Time.LocalTime
   (LocalTime, ZonedTime, getCurrentTimeZone, utcToLocalTime, utcToZonedTime)
+import           Data.Word (Word16)
 import           Language.Haskell.TH.Syntax (Q, Exp)
 import           System.Console.ANSI
-  (Color,ColorIntensity,ConsoleLayer(..), SGR(..), hSupportsANSIColor, setSGRCode)
+  (Color,ColorIntensity,ConsoleLayer(..), SGR(..), hSupportsANSIColor, setSGRCode, getLayerColor)
 import           System.Directory (getHomeDirectory)
 import           System.Environment (getArgs, lookupEnv)
 import           System.FilePath (isRelative, (</>))
@@ -77,7 +83,7 @@ import           System.IO
   (Handle, IOMode (..), hGetEncoding, hSetEncoding, hSetNewlineMode,
    openFile, stdin, stdout, stderr, universalNewlineMode, utf8_bom)
 import           System.IO.Unsafe (unsafePerformIO)
-import System.Pager
+import           System.Pager
 import           Text.Pretty.Simple
   (CheckColorTty(CheckColorTty), OutputOptions(..), 
   defaultOutputOptionsDarkBg, defaultOutputOptionsNoColor, pShowOpt, pPrintOpt)
@@ -227,6 +233,31 @@ colorB int col (WideBuilder s w) =
 bgColorB :: ColorIntensity -> Color -> WideBuilder -> WideBuilder
 bgColorB int col (WideBuilder s w) =
     WideBuilder (TB.fromString (setSGRCode [SetColor Background int col]) <> s <> TB.fromString (setSGRCode [])) w
+
+-- | Detect whether the terminal currently has a light background colour,
+-- if possible, using unsafePerformIO.
+terminalIsLight :: Maybe Bool
+terminalIsLight = (>lightthreshold).lightness <$> terminalColor Background
+  where lightthreshold = 0.7
+
+-- | Detect the terminal's current background colour, if possible, using unsafePerformIO.
+terminalBgColor :: Maybe (RGB Float)
+terminalBgColor = terminalColor Background
+
+-- | Detect the terminal's current foreground colour, if possible, using unsafePerformIO.
+terminalFgColor :: Maybe (RGB Float)
+terminalFgColor = terminalColor Foreground
+
+{-# NOINLINE terminalColor #-}
+terminalColor :: ConsoleLayer -> Maybe (RGB Float)
+terminalColor layer = unsafePerformIO $ do
+  inemacs <- not.null <$> lookupEnv "INSIDE_EMACS"
+  if inemacs  -- skip this in emacs shell buffers, the terminal escape sequence is visible for some reason
+  then return Nothing
+  else fmap fractionalRGB <$> getLayerColor layer
+  where
+    fractionalRGB :: (Fractional a) => RGB Word16 -> RGB a
+    fractionalRGB (RGB r g b) = RGB (fromIntegral r / 65535) (fromIntegral g / 65535) (fromIntegral b / 65535)  -- chatgpt
 
 -- Errors
 
