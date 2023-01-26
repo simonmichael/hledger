@@ -123,6 +123,7 @@ dependencies:
 - tasty >=1.2.3
 - temporary
 - text >=0.11
+- text-ansi >=0.2.1
 - time >=1.5
 - timeit
 - transformers

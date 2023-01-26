@@ -4,7 +4,7 @@ nix:
   pure: false
   packages: [perl gmp ncurses zlib]
 
-resolver: lts-19.0
+resolver: lts-19.33
 
 # for https://gitlab.haskell.org/ghc/ghc/-/issues/20592 on mac m1 (adjust path if needed)
 extra-include-dirs:
@@ -19,6 +19,10 @@ packages:
 extra-deps:
 - megaparsec-9.3.0
 # for hledger-lib:
+- text-ansi-0.2.1
+- text-builder-0.6.7
+- text-builder-dev-0.3.3.2
+- isomorphism-class-0.1.0.7
 # - breakpoint-0.1.2.0
 # for hledger:
 # for hledger-ui:
