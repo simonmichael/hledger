@@ -134,6 +134,7 @@ library
     , tasty-hunit >=0.10.0.2
     , template-haskell
     , text >=1.2
+    , text-ansi >=0.2.1
     , time >=1.5
     , timeit
     , transformers >=0.2
@@ -187,6 +188,7 @@ test-suite doctest
     , tasty-hunit >=0.10.0.2
     , template-haskell
     , text >=1.2
+    , text-ansi >=0.2.1
     , time >=1.5
     , timeit
     , transformers >=0.2
@@ -242,6 +244,7 @@ test-suite unittest
     , tasty-hunit >=0.10.0.2
     , template-haskell
     , text >=1.2
+    , text-ansi >=0.2.1
     , time >=1.5
     , timeit
     , transformers >=0.2
