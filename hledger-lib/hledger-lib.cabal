@@ -111,6 +111,7 @@ library
     , cassava
     , cassava-megaparsec
     , cmdargs >=0.10
+    , colour >=2.3.6
     , containers >=0.5.9
     , data-default >=0.5
     , deepseq
@@ -164,6 +165,7 @@ test-suite doctest
     , cassava
     , cassava-megaparsec
     , cmdargs >=0.10
+    , colour >=2.3.6
     , containers >=0.5.9
     , data-default >=0.5
     , deepseq
@@ -220,6 +222,7 @@ test-suite unittest
     , cassava
     , cassava-megaparsec
     , cmdargs >=0.10
+    , colour >=2.3.6
     , containers >=0.5.9
     , data-default >=0.5
     , deepseq
