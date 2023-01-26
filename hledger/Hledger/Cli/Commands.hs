@@ -121,8 +121,6 @@ builtinCommands = [
   ,(testmode               , testcmd)
   ]
 
-accent = blue
-
 -- figlet -f FONTNAME hledger, then escape backslashes
 _banner_slant = drop 1 [""
     -----------------------------------------80-------------------------------------
@@ -134,7 +132,7 @@ _banner_slant = drop 1 [""
   ,"                   /____/             "
   ]
 
-_banner_smslant = map accent $ drop 1 [""
+_banner_smslant = drop 1 [""
   ,"   __   __       __            "
   ,"  / /  / /__ ___/ /__ ____ ____"
   ," / _ \\/ / -_) _  / _ `/ -_) __/"
@@ -150,6 +148,11 @@ _banner_speed = drop 1 [""
   ,"/_/ /_//_/  \\___/\\__,_/  _\\__, / \\___//_/     "
   ,"                         /____/               "
   ]
+
+-- | Choose and apply an accent color for hledger output, if possible
+-- picking one that will contrast with the current terminal background colour.
+accent :: String -> String
+accent = if terminalIsLight == Just False then yellow else blue
 
 highlightAddon = id
 
@@ -174,7 +177,7 @@ highlightAddon = id
 commandsList :: String -> [String] -> Bool -> [String]
 commandsList progversion othercmds highlight =
   (if highlight then (map (\s -> if "+" `isPrefixOf` s then highlightAddon (' ' : drop 1 s) else s)) else id) $
-  _banner_smslant ++ [
+  map accent _banner_smslant ++ [
   -- keep synced with hledger.m4.md > PART 4: COMMANDS, Hledger/Cli/Commands > commands.m4 -->
     -----------------------------------------80-------------------------------------
    ""
