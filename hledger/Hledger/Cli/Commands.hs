@@ -289,7 +289,7 @@ knownCommands = sort . commandsFromCommandsList . drop 1 $ commandsList progname
 -- extra addons will be added under Misc.
 printCommandsList :: String -> [String] -> IO ()
 printCommandsList progversion addonsFound =
-    putStr . unlines . concatMap adjustline $
+    pager . unlines . concatMap adjustline $
     commandsList progversion (map ('+':) unknownCommandsFound)
   where
     commandsFound = map (' ':) builtinCommandNames ++ map ('+':) addonsFound

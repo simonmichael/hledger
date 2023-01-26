@@ -19,6 +19,9 @@ module Hledger.Utils.IO (
   pprint,
   pprint',
 
+  -- * Viewing with pager
+  pager,
+
   -- * Command line arguments
   progArgs,
   outputFileOption,
@@ -57,7 +60,7 @@ import           Control.Monad (when)
 import           Data.FileEmbed (makeRelativeToProject, embedStringFile)
 import           Data.List hiding (uncons)
 import           Data.Maybe (isJust)
-import           Data.Text (Text)
+import           Data.Text (Text, pack)
 import qualified Data.Text.IO as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
@@ -74,6 +77,7 @@ import           System.IO
   (Handle, IOMode (..), hGetEncoding, hSetEncoding, hSetNewlineMode,
    openFile, stdin, stdout, stderr, universalNewlineMode, utf8_bom)
 import           System.IO.Unsafe (unsafePerformIO)
+import System.Pager
 import           Text.Pretty.Simple
   (CheckColorTty(CheckColorTty), OutputOptions(..), 
   defaultOutputOptionsDarkBg, defaultOutputOptionsNoColor, pShowOpt, pPrintOpt)
@@ -113,6 +117,11 @@ pprint' :: Show a => a -> IO ()
 pprint' = pPrintOpt CheckColorTty prettyopts'
 
 -- "Avoid using pshow, pprint, dbg* in the code below to prevent infinite loops." (?)
+
+-- | Display the given text on the terminal, using the user's $PAGER if the text is taller 
+-- than the current terminal and stdout is interactive.
+pager :: String -> IO ()
+pager s = printOrPage $ pack s
 
 -- Command line arguments
 

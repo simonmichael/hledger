@@ -140,13 +140,13 @@ main = do
     isExternalCommand    = not (null cmd) && cmd `elem` addons -- probably
     isBadCommand         = not (null rawcmd) && null cmd
     hasVersion           = ("--version" `elem`)
-    printUsage           = putStr $ showModeUsage $ mainmode addons
+    printUsage           = pager $ showModeUsage $ mainmode addons
     badCommandError      = error' ("command "++rawcmd++" is not recognized, run with no command to see a list") >> exitFailure  -- PARTIAL:
     hasHelpFlag args1     = any (`elem` args1) ["-h","--help"]
     hasManFlag args1      = (`elem` args1) "--man"
     hasInfoFlag args1     = (`elem` args1) "--info"
     f `orShowHelp` mode1
-      | hasHelpFlag args = putStr $ showModeUsage mode1
+      | hasHelpFlag args = pager $ showModeUsage mode1
       | hasInfoFlag args = runInfoForTopic "hledger" (headMay $ modeNames mode1)
       | hasManFlag args  = runManForTopic "hledger" (headMay $ modeNames mode1)
       | otherwise        = f
