@@ -175,16 +175,16 @@ commandsList progversion othercmds =
   ,progversion
   ,""
   ,"Usage: hledger COMMAND [OPTIONS] [-- ADDONCMDOPTIONS]"
-  ,"Commands (+ addon commands found in PATH):"
+  ,"Commands:"
   ,""
-  ,"DATA ENTRY - add or edit entries in the journal file:"
+  ,"DATA ENTRY: add or edit entries in the journal file"
   ," add                      add transactions using terminal prompts"
   ,"+edit                     edit a subset of transactions"
   ,"+iadd                     add transactions using a TUI"
   ," import                   add new transactions from from other files, eg csv"
   ,""
     -----------------------------------------80-------------------------------------
-  ,"DATA CREATION - create or convert entries to be added to the journal file:"
+  ,"DATA CREATION: create or convert entries to be added to the journal file"
   ,"+autosync                 download/deduplicate/convert OFX data"
   ," close                    generate balance-zeroing/restoring transactions"
   ,"+interest                 generate interest transactions"
@@ -192,16 +192,16 @@ commandsList progversion othercmds =
   ,"+stockquotes              download market prices from AlphaVantage"
   ,""
     -----------------------------------------80-------------------------------------
-  ,"DATA MANAGEMENT - help validate or manage journal files:"
+  ,"DATA MANAGEMENT: help validate or manage journal files"
   ," check                    check for various kinds of issue in the data"
   ,"+check-fancyassertions    check more powerful balance assertions"
   ,"+check-tagfiles           check file paths in tag values exist"
   ," diff                     compare account transactions in two journal files"
-  ,"+git                      record/status/log journal changes with git"
-  ,"+pijul                    record/status/log journal changes with pijul"
+  ,"+git                      record/status/log journal changes easily with git"
+  ,"+pijul                    record/status/log journal changes easily with pijul"
   ,""
     -----------------------------------------80-------------------------------------
-  ,"REPORTS, FINANCIAL - standard financial reports:"
+  ,"REPORTS, FINANCIAL: standard financial reports"
   ," aregister (areg)         show transactions in a particular account"
   ," balancesheet (bs)        show assets, liabilities and net worth"
   ," balancesheetequity (bse) show assets, liabilities and equity"
@@ -209,7 +209,7 @@ commandsList progversion othercmds =
   ," incomestatement (is)     show revenues and expenses"
   ,""
     -----------------------------------------80-------------------------------------
-  ,"REPORTS, VERSATILE - more complex/versatile reporting commands:"
+  ,"REPORTS, VERSATILE: more complex/versatile reporting commands"
   ," balance (bal)            show balance changes, end balances, budgets, gains.."
   ,"+plot                     create charts from balance reports, in terminal or GUI"
   ," print                    show transactions or export journal data"
@@ -217,7 +217,7 @@ commandsList progversion othercmds =
   ," roi                      show return on investments"
   ,""
     -----------------------------------------80-------------------------------------
-  ,"REPORTS, BASIC - simple reports:"
+  ,"REPORTS, BASIC: simple reports"
   ," accounts                 show account names"
   ," activity                 show bar charts of posting counts per period"
   ," codes                    show transaction codes"
@@ -232,21 +232,21 @@ commandsList progversion othercmds =
   ," test                     run self tests"
   ,""
     -----------------------------------------80-------------------------------------
-  ,"UIS - other user interfaces:"
+  ,"UIS: other user interfaces"
   ,"+ui                       run terminal UI"
   ,"+web                      run web UI"
   ,""
-  ,"OTHER - other hledger-* addon commands found in PATH:"
+  ,"OTHER: other hledger-* addon commands found in PATH"
   ] ++
   multicol 80 (map ((' ':) . drop 1) othercmds)
   ++
   [""
     -----------------------------------------80-------------------------------------
-  ,"HELP - viewing command-line help and more docs:"
+  ,"HELP: command-line help and more docs"
   ," hledger                          show this commands list"
   ," hledger -h                       show hledger's general help"
   ," hledger COMMAND -h               show COMMAND's help"
-  ," hledger help [TOPIC] [-i|-m|-p]  show the hledger manual with info/man/pager"
+  ," hledger help [-i|-m|-p] [TOPIC]  show the hledger manual with info/man/pager"
   ," https://hledger.org              html manuals, tutorials, support.."
   ,""
   ]
