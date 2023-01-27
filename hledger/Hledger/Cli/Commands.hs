@@ -153,8 +153,8 @@ _banner_speed = drop 1 [""
 -- picking one that will contrast with the current terminal background colour.
 accent :: String -> String
 accent
-  | terminalIsLight == Just False = bold . yellow -- . blackBg
-  | otherwise                     = bold . green  -- . blackBg
+  | terminalIsLight == Just False = yellow -- . blackBg
+  | otherwise                     = green  -- . blackBg
 
 highlightAddon = id
 
@@ -179,7 +179,7 @@ highlightAddon = id
 commandsList :: String -> [String] -> Bool -> [String]
 commandsList progversion othercmds highlight =
   (if highlight then (map (\s -> if "+" `isPrefixOf` s then highlightAddon (' ' : drop 1 s) else s)) else id) $
-  map accent _banner_smslant ++ [
+  map (bold.accent) _banner_smslant ++ [
   -- keep synced with hledger.m4.md > PART 4: COMMANDS, Hledger/Cli/Commands > commands.m4 -->
     -----------------------------------------80-------------------------------------
    ""
