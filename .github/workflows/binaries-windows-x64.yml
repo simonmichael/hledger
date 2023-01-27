@@ -34,7 +34,7 @@ jobs:
 
     - name: Cache stack global package db
       id:   stack-global-package-db
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: C:\Users\runneradmin\AppData\Roaming\stack\
         key: ${{ runner.os }}-appdata-roaming-stack-${{ hashFiles('**.yaml') }}
@@ -44,7 +44,7 @@ jobs:
 
     - name: Cache stack programs dir   # ghc, ghc-included packages and their haddocks, mingw, msys2
       id:   stack-programs-dir
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: C:\Users\runneradmin\AppData\Local\Programs\stack\
         # which files signal a change in stack's global db ?
@@ -55,7 +55,7 @@ jobs:
       if: env.CONTINUE
 
     - name: Cache .stack-work
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: .stack-work
         key: ${{ runner.os }}-stack-work-${{ hashFiles('**.yaml') }}
@@ -64,7 +64,7 @@ jobs:
       if: env.CONTINUE
 
     - name: Cache hledger-lib/.stack-work
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: hledger-lib/.stack-work
         key: ${{ runner.os }}-hledger-lib-stack-work-${{ hashFiles('hledger-lib/package.yaml') }}
@@ -73,7 +73,7 @@ jobs:
       if: env.CONTINUE
 
     - name: Cache hledger/.stack-work
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: hledger/.stack-work
         key: ${{ runner.os }}-hledger-stack-work-${{ hashFiles('hledger/package.yaml') }}
@@ -82,7 +82,7 @@ jobs:
       if: env.CONTINUE
 
     - name: Cache hledger-ui/.stack-work
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: hledger-ui/.stack-work
         key: ${{ runner.os }}-hledger-ui-stack-work-${{ hashFiles('hledger-ui/package.yaml') }}
@@ -91,7 +91,7 @@ jobs:
       if: env.CONTINUE
 
     - name: Cache hledger-web/.stack-work
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: hledger-web/.stack-work
         key: ${{ runner.os }}-hledger-web-stack-work-${{ hashFiles('hledger-web/package.yaml') }}

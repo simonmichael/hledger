@@ -30,7 +30,7 @@ jobs:
 
     - name: Cache ghcup-installed tools
       id:   ghcup
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ~/.ghcup
         key: ${{ runner.os }}-ghcup-20220829-${{ hashFiles('**.yaml') }}
@@ -39,7 +39,7 @@ jobs:
 
     - name: Cache cabal-installed libs
       id:   cabal
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ~/.cabal
         key: ${{ runner.os }}-cabal-20220829-${{ hashFiles('**.yaml') }}
