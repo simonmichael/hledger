@@ -36,6 +36,7 @@ module Hledger.Utils.IO (
   colorB,
   bgColorB,
   terminalIsLight,
+  terminalLightness,
   terminalFgColor,
   terminalBgColor,
 
@@ -236,9 +237,14 @@ bgColorB int col (WideBuilder s w) =
 
 -- | Detect whether the terminal currently has a light background colour,
 -- if possible, using unsafePerformIO.
+-- If the terminal is transparent, its apparent light/darkness may be different.
 terminalIsLight :: Maybe Bool
-terminalIsLight = (>lightthreshold).lightness <$> terminalColor Background
-  where lightthreshold = 0.7
+terminalIsLight = (> 0.5) <$> terminalLightness
+
+-- | Detect the terminal's current background lightness (0..1), if possible, using unsafePerformIO.
+-- If the terminal is transparent, its apparent lightness may be different.
+terminalLightness :: Maybe Float
+terminalLightness = lightness <$> terminalColor Background
 
 -- | Detect the terminal's current background colour, if possible, using unsafePerformIO.
 terminalBgColor :: Maybe (RGB Float)

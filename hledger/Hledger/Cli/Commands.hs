@@ -152,7 +152,9 @@ _banner_speed = drop 1 [""
 -- | Choose and apply an accent color for hledger output, if possible
 -- picking one that will contrast with the current terminal background colour.
 accent :: String -> String
-accent = if terminalIsLight == Just False then yellow else blue
+accent
+  | terminalIsLight == Just False = bold . yellow -- . blackBg
+  | otherwise                     = bold . green  -- . blackBg
 
 highlightAddon = id
 
