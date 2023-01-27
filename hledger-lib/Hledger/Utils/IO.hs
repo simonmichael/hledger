@@ -126,9 +126,11 @@ pprint' = pPrintOpt CheckColorTty prettyopts'
 -- "Avoid using pshow, pprint, dbg* in the code below to prevent infinite loops." (?)
 
 -- | Display the given text on the terminal, using the user's $PAGER if the text is taller 
--- than the current terminal and stdout is interactive.
+-- than the current terminal and stdout is interactive and TERM is not "dumb".
 pager :: String -> IO ()
-pager s = printOrPage $ pack s
+pager s = do
+  dumbterm <- (== Just "dumb") <$> lookupEnv "TERM"
+  (if dumbterm then putStrLn else printOrPage . pack) s
 
 -- Command line arguments
 
@@ -163,6 +165,7 @@ outputFileOption =
 -- with an argument other than "-", using unsafePerformIO.
 hasOutputFile :: Bool
 hasOutputFile = outputFileOption `notElem` [Nothing, Just "-"]
+-- XXX shouldn't we check that stdout is interactive. instead ?
 
 -- ANSI colour
 
