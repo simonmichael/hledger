@@ -19,6 +19,7 @@ packages:
 extra-deps:
 - megaparsec-9.3.0
 # for hledger-lib:
+- ansi-terminal-0.11.4
 - text-ansi-0.2.1
 - text-builder-0.6.7
 - text-builder-dev-0.3.3.2
