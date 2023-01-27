@@ -153,10 +153,14 @@ _banner_speed = drop 1 [""
 -- picking one that will contrast with the current terminal background colour.
 accent :: String -> String
 accent
+  | not useColorOnStdout          = id
   | terminalIsLight == Just False = yellow -- . blackBg
   | otherwise                     = green  -- . blackBg
 
 highlightAddon = id
+
+-- More careful version of bold
+bold' = if useColorOnStdout then bold else id
 
 -- | The commands list, showing command names, standard aliases,
 -- and short descriptions. This is modified at runtime, as follows:
@@ -177,25 +181,27 @@ highlightAddon = id
 -- TODO: generate more of this automatically.
 -- 
 commandsList :: String -> [String] -> Bool -> [String]
-commandsList progversion othercmds highlight =
+commandsList progversion othercmds highlight0 =
+  let highlight = highlight0 && useColorOnStdout in
   (if highlight then (map (\s -> if "+" `isPrefixOf` s then highlightAddon (' ' : drop 1 s) else s)) else id) $
-  map (bold.accent) _banner_smslant ++ [
+  map (bold'.accent) _banner_smslant ++ 
+  [
   -- keep synced with hledger.m4.md > PART 4: COMMANDS, Hledger/Cli/Commands > commands.m4 -->
     -----------------------------------------80-------------------------------------
    ""
   ,accent progversion
   ,""
-  ,"Usage: " ++ bold "hledger CMD [OPTS] [-- ADDONCMDOPTS]"
+  ,"Usage: " ++ bold' "hledger CMD [OPTS] [-- ADDONCMDOPTS]"
   ,""
   ,"Commands:"
-  ,bold "DATA ENTRY: add or edit entries in the journal file"
+  ,bold' "DATA ENTRY: add or edit entries in the journal file"
   ," add                      add transactions using terminal prompts"
   ,"+edit                     edit a subset of transactions"
   ,"+iadd                     add transactions using a TUI"
   ," import                   add new transactions from from other files, eg csv"
   ,""
     -----------------------------------------80-------------------------------------
-  ,bold "DATA CREATION: create or convert entries to be added to the journal file"
+  ,bold' "DATA CREATION: create or convert entries to be added to the journal file"
   ,"+autosync                 download/deduplicate/convert OFX data"
   ," close                    generate balance-zeroing/restoring transactions"
   ,"+interest                 generate interest transactions"
@@ -203,7 +209,7 @@ commandsList progversion othercmds highlight =
   ,"+stockquotes              download market prices from AlphaVantage"
   ,""
     -----------------------------------------80-------------------------------------
-  ,bold "DATA MANAGEMENT: help validate or manage journal files"
+  ,bold' "DATA MANAGEMENT: help validate or manage journal files"
   ," check                    check for various kinds of issue in the data"
   ,"+check-fancyassertions    check more powerful balance assertions"
   ,"+check-tagfiles           check file paths in tag values exist"
@@ -212,7 +218,7 @@ commandsList progversion othercmds highlight =
   ,"+pijul                    record/status/log journal changes easily with pijul"
   ,""
     -----------------------------------------80-------------------------------------
-  ,bold "REPORTS, FINANCIAL: standard financial reports"
+  ,bold' "REPORTS, FINANCIAL: standard financial reports"
   ," aregister (areg)         show transactions in a particular account"
   ," balancesheet (bs)        show assets, liabilities and net worth"
   ," balancesheetequity (bse) show assets, liabilities and equity"
@@ -220,7 +226,7 @@ commandsList progversion othercmds highlight =
   ," incomestatement (is)     show revenues and expenses"
   ,""
     -----------------------------------------80-------------------------------------
-  ,bold "REPORTS, VERSATILE: more complex/versatile reporting commands"
+  ,bold' "REPORTS, VERSATILE: more complex/versatile reporting commands"
   ," balance (bal)            show balance changes, end balances, budgets, gains.."
   ,"+plot                     create charts from balance reports, in terminal or GUI"
   ," print                    show transactions or export journal data"
@@ -228,7 +234,7 @@ commandsList progversion othercmds highlight =
   ," roi                      show return on investments"
   ,""
     -----------------------------------------80-------------------------------------
-  ,bold "REPORTS, BASIC: simple reports"
+  ,bold' "REPORTS, BASIC: simple reports"
   ," accounts                 show account names"
   ," activity                 show bar charts of posting counts per period"
   ," codes                    show transaction codes"
@@ -243,17 +249,17 @@ commandsList progversion othercmds highlight =
   ," test                     run self tests"
   ,""
     -----------------------------------------80-------------------------------------
-  ,bold "UIS: other user interfaces"
+  ,bold' "UIS: other user interfaces"
   ,"+ui                       run terminal UI"
   ,"+web                      run web UI"
   ,""
-  ,bold "OTHER: other hledger-* addon commands found in PATH"
+  ,bold' "OTHER: other hledger-* addon commands found in PATH"
   ] ++
   multicol 80 (map (highlightAddon . (' ':) . drop 1) othercmds)
   ++
   [""
     -----------------------------------------80-------------------------------------
-  ,bold "HELP: command-line help and more docs"
+  ,bold' "HELP: command-line help and more docs"
   ," hledger                          show this commands list"
   ," hledger -h                       show hledger's general help"
   ," hledger COMMAND -h               show COMMAND's help"

@@ -403,7 +403,9 @@ showModeUsage =
   (helpText [] HelpFormatDefault :: Mode a -> [Text])
 
 -- | Add some ANSI decoration to cmdargs' help output.
-highlightHelp = unlines . zipWith (curry f) [1..] . lines
+highlightHelp
+  | not useColorOnStdout = id
+  | otherwise = unlines . zipWith (curry f) [1..] . lines
   where
     f (n,s)
       | n==1 = bold s

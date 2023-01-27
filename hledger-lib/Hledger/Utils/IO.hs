@@ -260,10 +260,7 @@ terminalFgColor = terminalColor Foreground
 {-# NOINLINE terminalColor #-}
 terminalColor :: ConsoleLayer -> Maybe (RGB Float)
 terminalColor layer = unsafePerformIO $ do
-  inemacs <- not.null <$> lookupEnv "INSIDE_EMACS"
-  if inemacs  -- skip this in emacs shell buffers, the terminal escape sequence is visible for some reason
-  then return Nothing
-  else fmap fractionalRGB <$> getLayerColor layer
+  fmap fractionalRGB <$> getLayerColor layer  -- safe to run on non-interactive/dumb terminal
   where
     fractionalRGB :: (Fractional a) => RGB Word16 -> RGB a
     fractionalRGB (RGB r g b) = RGB (fromIntegral r / 65535) (fromIntegral g / 65535) (fromIntegral b / 65535)  -- chatgpt
