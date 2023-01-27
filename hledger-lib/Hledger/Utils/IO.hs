@@ -82,7 +82,7 @@ import           System.Environment (getArgs, lookupEnv)
 import           System.FilePath (isRelative, (</>))
 import           System.IO
   (Handle, IOMode (..), hGetEncoding, hSetEncoding, hSetNewlineMode,
-   openFile, stdin, stdout, stderr, universalNewlineMode, utf8_bom)
+   openFile, stdin, stdout, stderr, universalNewlineMode, utf8_bom, hIsTerminalDevice)
 import           System.IO.Unsafe (unsafePerformIO)
 import           System.Pager
 import           Text.Pretty.Simple
@@ -257,14 +257,23 @@ terminalBgColor = terminalColor Background
 terminalFgColor :: Maybe (RGB Float)
 terminalFgColor = terminalColor Foreground
 
+-- | Detect the terminal's current foreground or background colour, if possible, using unsafePerformIO.
 {-# NOINLINE terminalColor #-}
 terminalColor :: ConsoleLayer -> Maybe (RGB Float)
-terminalColor layer = unsafePerformIO $ do
-  -- getLayerColor is not safe to run in emacs shell buffers with TERM=xterm-256color eg,
-  -- it prints escape codes; prevent that for now
-  inemacs <- not.null <$> lookupEnv "INSIDE_EMACS"
-  if inemacs then return Nothing
-  else fmap fractionalRGB <$> getLayerColor layer  -- getLayerColor is safe to run in non-interactive terminal
+terminalColor = unsafePerformIO . getLayerColor'
+
+-- A version of getLayerColor that is less likely to leak escape sequences to output,
+-- and that returns a RGB of Floats (0..1) that is more compatible with the colour package.
+-- This does nothing in a non-interactive context (eg when piping stdout to another command),
+-- inside emacs (emacs shell buffers show the escape sequence for some reason),
+-- or in a non-colour-supporting terminal.
+getLayerColor' :: ConsoleLayer -> IO (Maybe (RGB Float))
+getLayerColor' l = do
+  inemacs       <- not.null <$> lookupEnv "INSIDE_EMACS"
+  interactive   <- hIsTerminalDevice stdout
+  supportscolor <- hSupportsANSIColor stdout
+  if inemacs || interactive || not supportscolor then return Nothing
+  else fmap fractionalRGB <$> getLayerColor l
   where
     fractionalRGB :: (Fractional a) => RGB Word16 -> RGB a
     fractionalRGB (RGB r g b) = RGB (fromIntegral r / 65535) (fromIntegral g / 65535) (fromIntegral b / 65535)  -- chatgpt
