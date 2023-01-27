@@ -23,7 +23,7 @@ jobs:
     steps:
 
     - name: Check out
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       # have to fetch everything for git describe for --version
       with: 
         fetch-depth: 0  
