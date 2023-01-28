@@ -272,7 +272,7 @@ getLayerColor' l = do
   inemacs       <- not.null <$> lookupEnv "INSIDE_EMACS"
   interactive   <- hIsTerminalDevice stdout
   supportscolor <- hSupportsANSIColor stdout
-  if inemacs || interactive || not supportscolor then return Nothing
+  if inemacs || not interactive || not supportscolor then return Nothing
   else fmap fractionalRGB <$> getLayerColor l
   where
     fractionalRGB :: (Fractional a) => RGB Word16 -> RGB a
