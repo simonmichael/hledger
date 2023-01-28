@@ -154,8 +154,9 @@ _banner_speed = drop 1 [""
 accent :: String -> String
 accent
   | not useColorOnStdout          = id
-  | terminalIsLight == Just False = yellow -- . blackBg
-  | otherwise                     = green  -- . blackBg
+  | terminalIsLight == Just False = brightWhite
+  | terminalIsLight == Just True  = brightBlack
+  | otherwise                     = id
 
 highlightAddon = id
 
