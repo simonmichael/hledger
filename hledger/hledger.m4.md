@@ -1931,7 +1931,6 @@ Here are some tips for working with account types.
   These are just a convenience that sometimes help new users get going;
   if they don't work for you, just ignore them and declare your account types.
   See also [Regular expressions](#regular-expressions).
-  Note the Cash regexp changed in hledger 1.24.99.2.
   <!-- monospace to work around https://github.com/simonmichael/hledger/issues/1573 -->
   ```
   If account's name contains this (CI) regular expression:            | its type is:
