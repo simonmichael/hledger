@@ -163,7 +163,7 @@ is the same command implemented as a cabal script rather than a stack script.
 ### hledger-register-max
 
 [`hledger-register-max.hs`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-register-max.hs)
-runs "register -H" and prints the posting with largest historical balance.
+runs a register report and prints the posting with largest historical balance.
 
 ```cli
 $ hledger-register-max -f examples/bcexample.hledger checking

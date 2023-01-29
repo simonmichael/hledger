@@ -38,9 +38,9 @@ main = do
     let r = postingsReport (reportspec_ opts) j
     unless (null r) $ do
       let
-        i = maximumBy (comparing fifth5) r
-        (_, _, mdesc, p, _) = i
-        d = postingDate p
+        (_, _, mdesc, p, bal) = maximumBy (comparing fifth5) r
+        d    = postingDate p
         desc = fromMaybe "" mdesc
         ptxt = T.strip $ T.unlines $ first3 $ postingAsLines False True 20 15 p
-      T.putStrLn $ T.unwords [showDate d, desc, "", ptxt, "", T.pack $ showMixedAmountOneLine $ fifth5 i]
+        baltxt  = T.pack $ showMixedAmountOneLine bal
+      T.putStrLn $ T.unwords [showDate d, desc, "", ptxt, "", baltxt]
