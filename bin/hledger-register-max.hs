@@ -5,7 +5,7 @@
 -- Usage:
 -- hledger-register-max [REGISTERARGS]
 -- hledger register-max -- [REGISTERARGS]
--- For historical balances, add -H. For negative balances, add --invert. For value, add -V --infer-market-prices, etc.
+-- For historical balances, add -H. To see the smallest, add --invert. For value, add -V --infer-market-prices, etc.
 
 -- Examples:
 -- $ hledger-register-max -f examples/bcexample.hledger -H checking
@@ -46,10 +46,10 @@ printItem (_, _, _, p, bal) = do
     d      = postingDate p
     mt     = ptransaction p
     desc   = fmt  30 $ maybe "-" tdescription mt
-    acct   = fmt  40 $ paccount p
+    acct   = fmt  30 $ paccount p
     amt    = fmta 12 $ T.pack $ showMixedAmountOneLine $ pamount p
     baltxt = fmta 12 $ T.pack $ showMixedAmountOneLine bal
   T.putStrLn $ T.unwords [showDate d, desc, "", acct, "", amt, " ", baltxt]
   where
-    fmt w  = formatText True (Just w) (Just w) . textElideRight (w-2)
+    fmt w  = formatText True (Just w) (Just w) . textElideRight w
     fmta w = formatText False (Just w) Nothing
