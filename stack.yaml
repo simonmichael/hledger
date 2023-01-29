@@ -1,6 +1,6 @@
 # stack build plan using GHC 9.4.4
 
-resolver: nightly-2023-01-12
+resolver: nightly-2023-01-29
 
 packages:
 - hledger-lib
@@ -19,8 +19,7 @@ packages:
 #- yesod-static-1.6.1.0
 # for Shake.hs:
 
-# currently required for hjsmin (& yesod-static, hledger-web)
-allow-newer: true
+#allow-newer: true
 
 nix:
   pure: false
