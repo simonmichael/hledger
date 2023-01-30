@@ -146,6 +146,7 @@ library:
   - Hledger.Cli.DocFiles
   - Hledger.Cli.Utils
   - Hledger.Cli.Anon
+  - Hledger.Cli.Script
   - Hledger.Cli.Version
   - Hledger.Cli.Commands
   - Hledger.Cli.Commands.Accounts
