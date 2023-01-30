@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.35.0.
+-- This file has been generated from package.yaml by hpack version 0.35.1.
 --
 -- see: https://github.com/sol/hpack
 
@@ -97,6 +97,7 @@ library
       Hledger.Cli.DocFiles
       Hledger.Cli.Utils
       Hledger.Cli.Anon
+      Hledger.Cli.Script
       Hledger.Cli.Version
       Hledger.Cli.Commands
       Hledger.Cli.Commands.Accounts
