@@ -422,7 +422,6 @@ With the `-s`/`--strict` flag, additional checks are performed:
 - Are all commodities declared with a `commodity` directive ?
   ([Commodity error checking](#commodity-error-checking))
 - Are all commodity conversions declared explicitly ?
-- Are all commodity conversion equity postings occurring in adjacent pairs ?
 
 You can use the [check](#check) command to run individual checks -- the
 ones listed above and some more.

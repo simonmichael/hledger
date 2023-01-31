@@ -506,24 +506,7 @@ $ hledger -f- print --infer-costs
 
 >=0
 
-# 39. In strict mode, conversion postings must be in adjacent pairs.
-<
-account assets
-account equity:conversion
-account expenses:foreign currency
-commodity €0.
-commodity $0.
-2011/01/01
-    expenses:foreign currency            €100
-    equity:conversion                   €-100
-    assets                              $-135
-    equity:conversion                    $135
-
-$ hledger -f- print -s
->2 /Conversion postings must occur in adjacent pairs/
->=1
-
-# 40. If a conversion pair matches several postings it should throw an error
+# 39. If a conversion pair matches several postings it should throw an error
 <
 2011/01/01
     expenses:foreign currency    €100 @@ $135
@@ -537,7 +520,7 @@ $ hledger -f- print --infer-costs
 >2 /There is not a unique posting which matches the conversion posting pair/
 >=1
 
-# 41. If a conversion pair does not match it should throw an error
+# 42. If a conversion pair does not match it should throw an error
 <
 2011/01/01
     expenses:foreign currency            €120
@@ -551,7 +534,7 @@ $ hledger -f- print --infer-costs
 >2 /There is not a unique posting which matches the conversion posting pair/
 >=1
 
-# 42. Multiple conversion pairs which match a single posting should cause an
+# 43. Multiple conversion pairs which match a single posting should cause an
 # error, and should not match both ‘sides’ of the conversion
 <
 2011/01/01
@@ -567,7 +550,7 @@ $ hledger -f- print --infer-costs
 >2 /There is not a unique posting which matches the conversion posting pair/
 >=1
 
-# 43. We can combine ‘other’ amounts into one posting, if they still match up.
+# 44. We can combine ‘other’ amounts into one posting, if they still match up.
 <
 2011-01-01
     expenses:foreign currency    €100 @ $1.35
