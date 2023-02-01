@@ -16,8 +16,10 @@ hledger git status       - show unrecorded changes in journal's files (after fir
 hledger git log          - list recorded changes in journal's files (after first record)
 hledger git GITARGS      - run another git command in this repo, on all files
 
-Extra arguments are passed to git (git-specific flags should be preceded by --).
-You can install these as more convenient top-level commands by creating
+The shorter r, s, l command aliases may be used instead.
+Extra/unrecognised arguments are passed to git. Git-specific flags should be preceded by --.
+
+You can install this as more convenient top-level commands by creating
 hledger-record, hledger-status, hledger-log scripts like:
 
     #!/bin/sh
@@ -25,9 +27,9 @@ hledger-record, hledger-status, hledger-log scripts like:
 
 Examples:
 
-hledger git status
-hledger git log -10
-hledger git log -- -10 --stat
+$ hledger git s            # briefly show status of journal's files
+$ hledger git l -10        # briefly list last 10 recorded changes to journal's files
+$ hledger git l -- --stat  # list recorded changes to journal's files with summaries
 
 EOF
 }
@@ -81,11 +83,13 @@ record() {
     fi
     $GIT commit -m "$MSG" "$@" || $GIT reset
 }
+r() { record "$@"; }
 
 status() {
     ensure_git
     $GIT --work-tree "$DIR" status -sb "$@" -- $FILES
 }
+s() { status "$@"; }
 
 log() {
     ensure_git
@@ -95,6 +99,7 @@ log() {
     # TODO: limit to hledger files
     $GIT log --format='%ad %h %s' --date=short "$@"
 }
+l() { log "$@"; }
 
 # * Main
 
