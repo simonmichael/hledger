@@ -10,10 +10,11 @@ A git repo in the main file's directory will be autocreated if needed.
 
 Subcommands:
 
-hledger git record [MSG] - record the journal's files (as listed by 'files')
-hledger git status       - show unrecorded changes (after first record)
-hledger git log          - list the journal's change history (after record)
-hledger git              - show this help
+hledger git [-h|--help]  - show this help
+hledger git record [MSG] - record (commit) the journal's files (as listed by 'files')
+hledger git status       - show unrecorded changes in journal's files (after first record)
+hledger git log          - list recorded changes in journal's files (after first record)
+hledger git GITARGS      - run another git command in this repo, on all files
 
 Extra arguments are passed to git (git-specific flags should be preceded by --).
 You can install these as more convenient top-level commands by creating
@@ -98,4 +99,9 @@ log() {
 # * Main
 
 # NOTE intended to run Commands but will run any function above
-if declare -f "$1" > /dev/null; then "$@"; else usage; fi
+if [[ "$1" == "-h" ||  "$1" == "--help" || $# == 0 ]]; then usage
+elif declare -f "$1" > /dev/null; then "$@"
+else
+    ensure_git
+    $GIT "$@"
+fi
