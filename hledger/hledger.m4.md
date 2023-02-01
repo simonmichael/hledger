@@ -4780,11 +4780,6 @@ Some queries can also be expressed as command-line options:
 When you mix command options and query arguments, 
 generally the resulting query is their intersection.
 
-## Queries and account aliases
-
-When account names are [rewritten](#account-aliases) with `--alias` or `alias`,
-`acct:` will match either the old or the new account name.
-
 ## Queries and valuation
 
 When amounts are converted to other commodities in [cost](#cost-reporting) or [value](#valuation) reports,
