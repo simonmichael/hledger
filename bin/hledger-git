@@ -83,7 +83,7 @@ record() {
 
 status() {
     ensure_git
-    $GIT --work-tree "$DIR" status -sb "$@" -- "$FILES"
+    $GIT --work-tree "$DIR" status -sb "$@" -- $FILES
 }
 
 log() {
