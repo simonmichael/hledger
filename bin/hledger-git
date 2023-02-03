@@ -87,7 +87,11 @@ r() { record "$@"; }
 
 status() {
     ensure_git
+    # short status
     $GIT --work-tree "$DIR" status -sb "$@" -- $FILES
+    echo
+    # diff
+    $GIT --work-tree "$DIR" diff "$@" -- $FILES
 }
 s() { status "$@"; }
 
