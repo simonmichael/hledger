@@ -76,12 +76,12 @@ record() {
     ensure_git
     ensure_git_repo
     cd "$DIR"
-    for F in $FILES; do $GIT add "$F"; done || echo "(ignored)"
+    for F in $FILES; do $GIT add "$F"; done || echo "(ignored)" >&2
     MSG=${1:-$(date +'%Y-%m-%d %H:%M:%S %Z')}
     if [ $# -ge 1 ]; then
         shift
     fi
-    $GIT commit -m "$MSG" "$@" || $GIT reset
+    $GIT commit -m "$MSG" "$@" || (echo "error: commit failed" >&2; $GIT reset -q)
 }
 r() { record "$@"; }
 
