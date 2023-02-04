@@ -734,7 +734,7 @@ Budget performance in 2019/01:
 
 The budget report evaluates periodic transaction rules to generate special "goal transactions",
 which generate the goal amounts for each account in each report subperiod.
-When troubleshooting, you can use the print command to show these as forecasted transactions:
+When troubleshooting, you can use `print --forecast` to show these as forecasted transactions:
 ```shell
 $ hledger print --forecast=BUDGETREPORTPERIOD tag:generated
 ```
