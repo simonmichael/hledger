@@ -66,6 +66,9 @@ module Hledger.Data.Journal (
   journalPayeesDeclared,
   journalPayeesUsed,
   journalPayeesDeclaredOrUsed,
+  journalTagsDeclared,
+  journalTagsUsed,
+  journalTagsDeclaredOrUsed,
   journalCommoditiesDeclared,
   journalCommodities,
   journalDateSpan,
@@ -217,6 +220,7 @@ journalConcat j1 j2 =
     ,jparsetimeclockentries     = jparsetimeclockentries     j1 <> jparsetimeclockentries     j2
     ,jincludefilestack          = jincludefilestack j2
     ,jdeclaredpayees            = jdeclaredpayees            j1 <> jdeclaredpayees            j2
+    ,jdeclaredtags              = jdeclaredtags              j1 <> jdeclaredtags              j2
     ,jdeclaredaccounts          = jdeclaredaccounts          j1 <> jdeclaredaccounts          j2
     ,jdeclaredaccounttags       = jdeclaredaccounttags       j1 <> jdeclaredaccounttags       j2
     ,jdeclaredaccounttypes      = jdeclaredaccounttypes      j1 <> jdeclaredaccounttypes      j2
@@ -275,6 +279,7 @@ nulljournal = Journal {
   ,jparsetimeclockentries     = []
   ,jincludefilestack          = []
   ,jdeclaredpayees            = []
+  ,jdeclaredtags              = []
   ,jdeclaredaccounts          = []
   ,jdeclaredaccounttags       = M.empty
   ,jdeclaredaccounttypes      = M.empty
@@ -355,6 +360,20 @@ journalPayeesUsed = nubSort . map transactionPayee . jtxns
 journalPayeesDeclaredOrUsed :: Journal -> [Payee]
 journalPayeesDeclaredOrUsed j = toList $ foldMap S.fromList
     [journalPayeesDeclared j, journalPayeesUsed j]
+
+-- | Sorted unique tag names declared by tag directives in this journal.
+journalTagsDeclared :: Journal -> [TagName]
+journalTagsDeclared = nubSort . map fst . jdeclaredtags
+
+-- | Sorted unique tag names used in this journal (in account directives, transactions, postings..)
+journalTagsUsed :: Journal -> [TagName]
+journalTagsUsed j = nubSort $ map fst $ concatMap transactionAllTags $ jtxns j
+  -- tags used in all transactions and postings and postings' accounts
+
+-- | Sorted unique tag names used in transactions or declared by tag directives in this journal.
+journalTagsDeclaredOrUsed :: Journal -> [TagName]
+journalTagsDeclaredOrUsed j = toList $ foldMap S.fromList
+    [journalTagsDeclared j, journalTagsUsed j]
 
 -- | Sorted unique account names posted to by this journal's transactions.
 journalAccountNamesUsed :: Journal -> [AccountName]

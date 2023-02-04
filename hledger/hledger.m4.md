@@ -2339,7 +2339,9 @@ in another commodity. See [Valuation](#valuation).
 
 ## `payee` directive
 
-The `payee` directive can be used to declare a limited set of payees which may appear in [transaction descriptions](#descriptions).
+`payee PAYEE NAME`
+
+This directive can be used to declare a limited set of payees which may appear in [transaction descriptions](#descriptions).
 The ["payees" check](#check) will report an error if any transaction refers to a payee that has not been declared.
 Eg:
 
@@ -2347,6 +2349,18 @@ Eg:
 payee Whole Foods
 ```
 
+Any indented subdirectives are currently ignored.
+
+## `tag` directive
+
+`tag TAGNAME`
+
+This directive can be used to declare a limited set of tag names allowed in [tags](#tags).
+TAGNAME should be a valid tag name (no spaces). Eg:
+
+```journal
+tag  item-id
+```
 Any indented subdirectives are currently ignored.
 
 ## Periodic transactions

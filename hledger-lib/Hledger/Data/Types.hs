@@ -529,6 +529,7 @@ data Journal = Journal {
   ,jincludefilestack      :: [FilePath]
   -- principal data
   ,jdeclaredpayees        :: [(Payee,PayeeDeclarationInfo)]         -- ^ Payees declared by payee directives, in parse order (after journal finalisation)
+  ,jdeclaredtags          :: [(TagName,TagDeclarationInfo)]         -- ^ Tags declared by tag directives, in parse order (after journal finalisation)
   ,jdeclaredaccounts      :: [(AccountName,AccountDeclarationInfo)] -- ^ Accounts declared by account directives, in parse order (after journal finalisation)
   ,jdeclaredaccounttags   :: M.Map AccountName [Tag]                -- ^ Accounts which have tags declared in their directives, and those tags. (Does not include parents' tags.)
   ,jdeclaredaccounttypes  :: M.Map AccountType [AccountName]        -- ^ Accounts whose type has been explicitly declared in their account directives, grouped by type.
@@ -569,6 +570,15 @@ data PayeeDeclarationInfo = PayeeDeclarationInfo {
 nullpayeedeclarationinfo = PayeeDeclarationInfo {
    pdicomment          = ""
   ,pditags             = []
+}
+
+-- | Extra information found in a tag directive.
+data TagDeclarationInfo = TagDeclarationInfo {
+   tdicomment :: Text   -- ^ any comment lines following the tag directive
+} deriving (Eq,Show,Generic)
+
+nulltagdeclarationinfo = TagDeclarationInfo {
+   tdicomment          = ""
 }
 
 -- | Extra information about an account that can be derived from
