@@ -3,8 +3,10 @@ Helpers for making error messages.
 -}
 
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Hledger.Data.Errors (
+  makeAccountTagErrorExcerpt,
   makeTransactionErrorExcerpt,
   makePostingErrorExcerpt,
   makePostingAccountErrorExcerpt,
@@ -25,13 +27,57 @@ import Data.Maybe
 import Safe (headMay)
 import Hledger.Data.Posting (isVirtual)
 
+-- | Given an account name and its account directive, and a problem tag within the latter:
+-- render it as a megaparsec-style excerpt, showing the original line number and
+-- marked column or region.
+-- Returns the file path, line number, column(s) if known,
+-- and the rendered excerpt, or as much of these as is possible.
+-- The returned columns will be accurate for the rendered error message but not for the original journal data.
+makeAccountTagErrorExcerpt :: (AccountName, AccountDeclarationInfo) -> TagName -> (FilePath, Int, Maybe (Int, Maybe Int), Text)
+makeAccountTagErrorExcerpt (a, adi) _t = (f, l, merrcols, ex)
+  -- XXX findtxnerrorcolumns is awkward, I don't think this is the final form
+  where
+    (SourcePos f pos _) = adisourcepos adi
+    l = unPos pos
+    txt   = showAccountDirective (a, adi) & textChomp & (<>"\n")
+    ex = decorateTagErrorExcerpt l merrcols txt
+    -- Calculate columns which will help highlight the region in the excerpt
+    -- (but won't exactly match the real data, so won't be shown in the main error line)
+    merrcols = Nothing
+      -- don't bother for now
+      -- Just (col, Just col2)
+      -- where
+      --   col  = undefined -- T.length (showTransactionLineFirstPart t') + 2
+      --   col2 = undefined -- col + T.length tagname - 1      
+
+showAccountDirective (a, AccountDeclarationInfo{..}) =
+  "account " <> a
+  <> (if not $ T.null adicomment then "    ; " <> adicomment else "")
+
+-- | Add megaparsec-style left margin, line number, and optional column marker(s).
+decorateTagErrorExcerpt :: Int -> Maybe (Int, Maybe Int) -> Text -> Text
+decorateTagErrorExcerpt l mcols txt =
+  T.unlines $ ls' <> colmarkerline <> map (lineprefix<>) ms
+  where
+    (ls,ms) = splitAt 1 $ T.lines txt
+    ls' = map ((T.pack (show l) <> " | ") <>) ls
+    colmarkerline =
+      [lineprefix <> T.replicate (col-1) " " <> T.replicate regionw "^"
+      | Just (col, mendcol) <- [mcols]
+      , let regionw = maybe 1 (subtract col) mendcol + 1
+      ]
+    lineprefix = T.replicate marginw " " <> "| "
+      where  marginw = length (show l) + 1
+
+_showAccountDirective = undefined
+
 -- | Given a problem transaction and a function calculating the best
 -- column(s) for marking the error region:
 -- render it as a megaparsec-style excerpt, showing the original line number
 -- on the transaction line, and a column(s) marker.
 -- Returns the file path, line number, column(s) if known,
 -- and the rendered excerpt, or as much of these as is possible.
--- A limitation: columns will be accurate for the rendered error message but not for the original journal data.
+-- The returned columns will be accurate for the rendered error message but not for the original journal data.
 makeTransactionErrorExcerpt :: Transaction -> (Transaction -> Maybe (Int, Maybe Int)) -> (FilePath, Int, Maybe (Int, Maybe Int), Text)
 makeTransactionErrorExcerpt t findtxnerrorcolumns = (f, tl, merrcols, ex)
   -- XXX findtxnerrorcolumns is awkward, I don't think this is the final form

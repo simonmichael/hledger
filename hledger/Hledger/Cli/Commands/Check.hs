@@ -66,6 +66,7 @@ data Check =
   | Ordereddates
   | Payees
   | Recentassertions
+  | Tags
   | Uniqueleafnames
   deriving (Read,Show,Eq,Enum,Bounded)
 
@@ -105,6 +106,7 @@ runCheck CliOpts{reportspec_=ReportSpec{_rsReportOpts=ropts}} j (chck,_) = do
       Ordereddates    -> journalCheckOrdereddates (whichDate ropts) j
       Payees          -> journalCheckPayees j
       Recentassertions -> journalCheckRecentAssertions d j
+      Tags            -> journalCheckTags j
       Uniqueleafnames -> journalCheckUniqueleafnames j
       -- the other checks have been done earlier during withJournalDo
       _               -> Right ()

@@ -454,6 +454,13 @@ addPayeeDeclaration (p, cmt, tags) =
                     ,pditags    = tags
                     })
 
+-- Add a tag declaration to the journal.
+addTagDeclaration :: (TagName,Text) -> JournalParser m ()
+addTagDeclaration (t, cmt) =
+  modify' (\j@Journal{jdeclaredtags} -> j{jdeclaredtags=tagandinfo:jdeclaredtags})
+  where
+    tagandinfo = (t, nulltagdeclarationinfo{tdicomment=cmt})
+
 indentedlinep :: JournalParser m String
 indentedlinep = lift skipNonNewlineSpaces1 >> (rstrip <$> lift restofline)
 
@@ -598,9 +605,10 @@ tagdirectivep :: JournalParser m ()
 tagdirectivep = do
   string "tag" <?> "tag directive"
   lift skipNonNewlineSpaces1
-  _ <- lift $ some nonspace
-  lift restofline
+  tagname <- lift $ T.pack <$> some nonspace
+  (comment, _) <- lift transactioncommentp
   skipMany indentedlinep
+  addTagDeclaration (tagname,comment)
   return ()
 
 -- end tag or end apply tag

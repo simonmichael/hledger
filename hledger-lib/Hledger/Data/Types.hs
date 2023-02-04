@@ -573,8 +573,8 @@ nullpayeedeclarationinfo = PayeeDeclarationInfo {
 }
 
 -- | Extra information found in a tag directive.
-data TagDeclarationInfo = TagDeclarationInfo {
-   tdicomment :: Text   -- ^ any comment lines following the tag directive
+newtype TagDeclarationInfo = TagDeclarationInfo {
+   tdicomment :: Text   -- ^ any comment lines following the tag directive. No tags allowed here.
 } deriving (Eq,Show,Generic)
 
 nulltagdeclarationinfo = TagDeclarationInfo {

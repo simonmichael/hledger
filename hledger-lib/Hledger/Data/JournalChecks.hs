@@ -14,12 +14,14 @@ module Hledger.Data.JournalChecks (
   journalCheckPayees,
   journalCheckPairedConversionPostings,
   journalCheckRecentAssertions,
+  journalCheckTags,
   module Hledger.Data.JournalChecks.Ordereddates,
   module Hledger.Data.JournalChecks.Uniqueleafnames,
 )
 where
 
 import Data.Char (isSpace)
+import Data.List.Extra
 import Data.Maybe
 import qualified Data.Map.Strict as M
 import qualified Data.Text as T
@@ -30,13 +32,12 @@ import Hledger.Data.Errors
 import Hledger.Data.Journal
 import Hledger.Data.JournalChecks.Ordereddates
 import Hledger.Data.JournalChecks.Uniqueleafnames
-import Hledger.Data.Posting (isVirtual, postingDate, postingStatus)
+import Hledger.Data.Posting (isVirtual, postingDate, postingStatus, transactionAllTags)
 import Hledger.Data.Types
 import Hledger.Data.Amount (amountIsZero, amountsRaw, missingamt)
 import Hledger.Data.Transaction (transactionPayee, showTransactionLineFirstPart, partitionAndCheckConversionPostings)
 import Data.Time (Day, diffDays)
-import Data.List.Extra
-import Hledger.Utils (chomp, textChomp, sourcePosPretty)
+import Hledger.Utils
 
 -- | Check that all the journal's postings are to accounts  with
 -- account directives, returning an error message otherwise.
@@ -156,6 +157,44 @@ journalCheckPayees j = mapM_ checkpayee (jtxns j)
           where
             col  = T.length (showTransactionLineFirstPart t') + 2
             col2 = col + T.length (transactionPayee t') - 1
+
+-- | Check that all the journal's tags (on accounts, transactions, postings..)
+-- have been declared with tag directives, returning an error message otherwise.
+journalCheckTags :: Journal -> Either String ()
+journalCheckTags j = do
+  mapM_ checkaccttags $ jdeclaredaccounts j
+  mapM_ checktxntags  $ jtxns j
+  where
+    checkaccttags (a, adi) = mapM_ (checkaccttag.fst) $ aditags adi
+      where
+        checkaccttag tagname
+          | tagname `elem` declaredtags = Right ()
+          | otherwise = Left $ printf msg f l ex (show tagname) tagname
+            where (f,l,_mcols,ex) = makeAccountTagErrorExcerpt (a, adi) tagname
+    checktxntags txn = mapM_ (checktxntag . fst) $ transactionAllTags txn
+      where
+        checktxntag tagname
+          | tagname `elem` declaredtags = Right ()
+          | otherwise = Left $ printf msg f l ex (show tagname) tagname
+            where
+              (f,l,_mcols,ex) = makeTransactionErrorExcerpt txn finderrcols
+                where
+                  finderrcols _txn' = Nothing
+                    -- don't bother for now
+                    -- Just (col, Just col2)
+                    -- where
+                    --   col  = T.length (showTransactionLineFirstPart txn') + 2
+                    --   col2 = col + T.length tagname - 1
+    declaredtags = journalTagsDeclared j
+    msg = (unlines [
+      "%s:%d:"
+      ,"%s"
+      ,"Strict tag checking is enabled, and"
+      ,"tag %s has not been declared."
+      ,"Consider adding a tag directive. Examples:"
+      ,""
+      ,"tag %s"
+      ])
 
 -- | In each tranaction, check that any conversion postings occur in adjacent pairs.
 journalCheckPairedConversionPostings :: Journal -> Either String ()

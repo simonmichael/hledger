@@ -2363,6 +2363,10 @@ tag  item-id
 ```
 Any indented subdirectives are currently ignored.
 
+The ["tags" check](#check) will report an error if any undeclared tag name is used.
+It is quite easy to accidentally create a tag through normal use of colons in [comments](#comments];
+if you want to prevent this, you can declare and check your tags .
+
 ## Periodic transactions
 
 The `~` directive declares recurring transactions.

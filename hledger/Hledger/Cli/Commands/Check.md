@@ -64,7 +64,7 @@ They are more specialised and not desirable for everyone, therefore optional:
 - **recentassertions** - all accounts with balance assertions have a
   balance assertion no more than 7 days before their latest posting
 
-- **tags** - all tags used by transactions [have been declared](#tags)
+- **tags** - all tags used by transactions [have been declared](#tag-directive)
 
 - **uniqueleafnames** - all account leaf names are unique
 
