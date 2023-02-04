@@ -1,5 +1,7 @@
 tags\
-List the tags used in the journal, or their values.
+List the [tags](#tags) used in the journal, or their values.
+
+<!-- same section name as Journal > Tags, if reordering these update all #tags[-1] links -->
 
 _FLAGS
 
