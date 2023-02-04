@@ -834,13 +834,15 @@ P 2022-01-01 AAAA $1.40
     expenses:tax:us:2021      $500  ; plus  means added to this account (debit)
                                     ; revenue/expense categories are also "accounts"
 
-2022-01-01 Whole Foods | payee name and description can be separated by a pipe char
+2022-01-01 Whole Foods | payee name and description can be separated by a pipe char  ; tag1:
     ; Transaction or posting comments can contain searchable tags,
     ; written NAME: or NAME:VALUE (value ends at comma or end of line).
-    ; Here's tag1:with a value, and an empty tag2:
-    ; A few tags have special meaning. A "date:" tag on a posting adjusts its date.
-    assets:checking           $-50  ; date:2022-01-03, checking cleared two days later
-    expenses:food
+    ; There's tag1 above with an empty value, and here's tag2:with a five word value
+    expenses:food              $50
+    assets:checking           $-50
+     ; A few tags have special meaning.
+     ; A "date" tag on a posting adjusts its date. (Doesn't affect the transaction date).
+     ; date:2022-01-03, the checking posting cleared two days later.
 
 2022-01-01                          ; The description is optional.
     ; Any currency/commodity symbols are allowed, on either side.
