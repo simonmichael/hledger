@@ -62,10 +62,12 @@ They are more specialised and not desirable for everyone, therefore optional:
 
 - **ordereddates** - transactions are ordered by date within each file
 
-- **payees** - all payees used by transactions [have been declared](#payees)
+- **payees** - all payees used by transactions [have been declared](#payee-directive)
 
 - **recentassertions** - all accounts with balance assertions have a
   balance assertion no more than 7 days before their latest posting
+
+- **tags** - all tags used by transactions [have been declared](#tags)
 
 - **uniqueleafnames** - all account leaf names are unique
 

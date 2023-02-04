@@ -287,7 +287,7 @@ hledger uses [regular expressions](http://www.regular-expressions.info) in a num
 
 - [query terms](#queries), on the command line and in the hledger-web search form: `REGEX`, `desc:REGEX`, `cur:REGEX`, `tag:...=REGEX`
 - [CSV rules](#csv-rules) conditional blocks: `if REGEX ...`
-- [account alias](#account-aliases) directives and options: `alias /REGEX/ = REPLACEMENT`, `--alias /REGEX/=REPLACEMENT`
+- [account alias directive](#alias-directive) and `--alias` option: `alias /REGEX/ = REPLACEMENT`, `--alias /REGEX/=REPLACEMENT`
 
 hledger's regular expressions come from the
 [regex-tdfa](http://hackage.haskell.org/package/regex-tdfa/docs/Text-Regex-TDFA.html)
@@ -633,7 +633,7 @@ $ hledger print -c '$1.000,0'
 
 This option can repeated to set the display style for multiple
 commodities/currencies. Its argument is as described in 
-the [commodity directive](#commodities).
+the [commodity directive](#commodity-directive).
 
 ## Colour
 
@@ -994,7 +994,7 @@ Here's a simple journal file containing one transaction:
 Dates in the journal file use *simple dates* format:
 `YYYY-MM-DD` or `YYYY/MM/DD` or `YYYY.MM.DD`, with leading zeros optional.
 The year may be omitted, in which case it will be inferred from the context:
-the current transaction, the default year set with a [default year directive](#default-year),
+the current transaction, the default year set with a [`Y` directive](#y-directive),
 or the current date when the command is run.
 Some examples: `2010-01-31`, `2010/01/31`, `2010.1.31`, `1/31`.
 
@@ -1167,7 +1167,7 @@ Parentheses or brackets enclosing the full account name indicate [virtual postin
 described below.
 Parentheses or brackets internal to the account name have no special meaning.
 
-Account names can be altered temporarily or permanently by [account aliases](#account-aliases).
+Account names can be altered temporarily or permanently by [account aliases](#alias-directive).
 
 ## Amounts
 
@@ -1235,7 +1235,7 @@ especially if your data contains digit group marks (eg, thousands separators),
 we recommend explicitly declaring the decimal mark character in each journal file,
 using a directive at the top of the file.
 The [`decimal-mark`](#decimal-mark) directive is best,
-otherwise [`commodity`](#commodities) directives will also work.
+otherwise [`commodity`](#commodity-directive) directives will also work.
 These are described below.
 
 ### Commodity
@@ -1295,7 +1295,7 @@ in the journal.
 
 Then each commodity's style is inferred from one of the following, in order of preference:
 
-- The [commodity directive](#commodities) for that commodity
+- The [commodity directive](#commodity-directive) for that commodity
   (including the no-symbol commodity), if any.
 - The amounts in that commodity seen in the journal's transactions.
   (Posting amounts only; prices and periodic or auto rules are ignored, currently.)
@@ -1615,7 +1615,7 @@ assertions, either:
 
 Balance assertions compare the exactly calculated amounts,
 which are not always what is shown by reports.
-Eg a [commodity directive](#commodities)
+Eg a [commodity directive](#commodity-directive)
 may limit the display precision, but this will not affect balance assertions.
 Balance assertion failure messages show exact amounts.
 
@@ -1781,7 +1781,7 @@ It can be surprising though; for example, it means that
 [`alias` directives do not affect parent or sibling files](#aliases-and-multiple-files)
 (see below).
 
-## Accounts
+## `account` directive
 
 `account` directives can be used to declare accounts 
 (ie, the places that amounts are transferred from and to).
@@ -1948,7 +1948,7 @@ Here are some tips for working with account types.
 - If you declare any account types, it's a good idea to declare an account for all of the
   account types, because a mixture of declared and name-inferred types can disrupt certain reports.
 
-- Certain uses of [account aliases](#account-aliases) can disrupt account types.
+- Certain uses of [account aliases](#alias-directive) can disrupt account types.
   See [Rewriting accounts > Aliases and account types](#aliases-and-account-types).
 
 - As mentioned above, subaccounts will inherit a type from their parent account. 
@@ -1965,7 +1965,7 @@ Here are some tips for working with account types.
   $ hledger accounts --types [ACCTPAT] [-DEPTH] [type:TYPECODES]
   ```
 
-## Account aliases
+## `alias` directive
 
 You can define account alias rules which rewrite your account names, or parts of them,
 before generating reports.
@@ -2095,7 +2095,7 @@ alias bar=Bar
 include c.journal  ; also affected
 ```
 
-### `end aliases`
+### `end aliases` directive
 
 You can clear (forget) all currently defined aliases
 (seen in the journal so far, or defined on the command line)
@@ -2167,7 +2167,7 @@ try troubleshooting with the accounts command, eg something like:
 $ hledger accounts --alias assets=bassetts type:a
 ```
 
-## Commodities
+## `commodity` directive
 
 You can use `commodity` directives to declare your commodities.
 In fact the `commodity` directive performs several functions at once:
@@ -2249,14 +2249,14 @@ can still be [overridden](#commodity-styles) by supplying a command line option.
 ### Commodity error checking
 
 In [strict mode], enabled with the `-s`/`--strict` flag, hledger will report an error if a
-commodity symbol is used that has not been declared by a [`commodity` directive](#commodities).
+commodity symbol is used that has not been declared by a [`commodity` directive](#commodity-directive).
 This works similarly to [account error checking](#account-error-checking), see the notes there for more details.
 
 Note, this disallows amounts without a commodity symbol,
 because currently it's not possible (?) to declare the "no-symbol" commodity with a directive.
 This is one exception for convenience: zero amounts are always allowed to have no commodity symbol.
 
-## Decimal mark
+## `decimal-mark` directive
 
 You can use a `decimal-mark` directive - usually one per file, at the
 top of the file - to declare which character represents a decimal mark
@@ -2273,7 +2273,7 @@ This prevents any [ambiguity](#decimal-marks-digit-group-marks) when
 parsing numbers in the file, so we recommend it, especially if the
 file contains digit group marks (eg thousands separators).
 
-## Include files
+## `include` directive
 
 You can pull in the content of additional files by writing an include directive, like this:
 
@@ -2301,14 +2301,16 @@ overriding the file extension (as described in
 
 [glob patterns]: https://hackage.haskell.org/package/Glob-0.9.2/docs/System-FilePath-Glob.html#v:compile
 
-## Market prices
+## `P` directive
 
 The `P` directive declares a market price, which is
 a conversion rate between two commodities on a certain date.
-These are often obtained from a
-[stock exchange](https://en.wikipedia.org/wiki/Stock_exchange),
-cryptocurrency exchange, or the
-[foreign exchange market](https://en.wikipedia.org/wiki/Foreign_exchange_market).
+This allows [value reports](#valuation) to convert amounts of one commodity
+to their value in another, on or after that date.
+These prices are often obtained from
+a [stock exchange](https://en.wikipedia.org/wiki/Stock_exchange),
+[cryptocurrency exchange](https://en.wikipedia.org/wiki/Cryptocurrency_exchange),
+the or [foreign exchange market](https://en.wikipedia.org/wiki/Foreign_exchange_market).
 
 The format is:
 
@@ -2333,9 +2335,9 @@ in another commodity. See [Valuation](#valuation).
 
 <a name="automated-postings"></a>
 
-## Payees
+## `payee` directive
 
-The `payee` directive can be used to declare a limited set of payees which may appear in transaction descriptions.
+The `payee` directive can be used to declare a limited set of payees which may appear in [transaction descriptions](#descriptions).
 The ["payees" check](#check) will report an error if any transaction refers to a payee that has not been declared.
 Eg:
 
@@ -2347,8 +2349,8 @@ Any indented subdirectives are currently ignored.
 
 ## Periodic transactions
 
-Periodic transaction rules describe transactions that recur.
-They allow hledger to generate temporary future transactions (visible only in reports)
+The `~` directive declares recurring transactions.
+Such directives allow hledger to generate temporary future transactions (visible in reports, not in the journal file)
 to help with [forecasting](#forecasting) or [budgeting](#budgeting).
 
 Periodic transactions can be a little tricky, so before you use them,
@@ -2427,9 +2429,10 @@ Downsides are mentioned to help you decide if you want to use them.
 
 ### Auto postings
 
-"Automated postings" or "auto postings" are extra postings which get
-added automatically to transactions which match certain queries,
-defined by "auto posting rules", when you use the `--auto` flag.
+The `=` directive declares a rule for automatically adding
+temporary extra postings (visible in reports, not in the journal file)
+to all transactions matched by a certain query,
+when you use the `--auto` flag.
 
 Downsides: depending on generated data for your reports makes
 your financial data less portable, less future-proof,
@@ -2603,18 +2606,19 @@ infers its year from DATE.
 Downsides: another syntax to learn, redundant with hledger's
 `date:`/`date2:` tags, and confusingly similar to Ledger's lot date syntax.
 
-### Default commodity
+### `D` directive
 
-The `D` directive sets a default commodity, to be used for any
+`D AMOUNT`
+
+This directive sets a default commodity, to be used for any
 subsequent commodityless amounts (ie, plain numbers) seen while
 parsing the journal. This effect lasts until the next `D` directive,
 or the end of the journal.
 
-For compatibility/historical reasons, `D` also acts like a [`commodity` directive](#commodities)
+For compatibility/historical reasons, `D` also acts like a [`commodity` directive](#commodity-directive)
 (setting the commodity's decimal mark for parsing and [display style](#amount-display-format) for output).
-
-The syntax is `D AMOUNT`.
-As with `commodity`, the amount must include a decimal mark (either period or comma).
+So its argument is not just a commodity symbol, but a full amount demonstrating the style.
+The amount must include a decimal mark (either period or comma).
 Eg:
 ```journal
 ; commodity-less amounts should be treated as dollars
@@ -2626,22 +2630,27 @@ D $1,000.00
   b
 ```
 
-If both `commodity` and `D` directives are found for a commodity, 
-`commodity` takes precedence for setting decimal mark and display style.
+Interactions with other directives:
 
-If you are using `D` and also [checking](#check) commodities, you will need
-to add a `commodity` directive similar to the `D`. 
-(The `hledger check commodities` command expects `commodity` directives, and ignores `D`).
+For setting a commodity's display style, a `commodity` directive has highest priority,
+then a `D` directive.
 
-Downsides: omitting commodity symbols
+For detecting a commodity's decimal mark during parsing, `decimal-mark` has highest priority,
+then `commodity`, then `D`.
+
+For checking commodity symbols with the [check command](#check),
+a `commodity` directive is required (`hledger check commodities` ignores `D` directives).
+
+Downsides:
+omitting commodity symbols
 makes your financial data less explicit, less portable, and less trustworthy in an audit.
 It is usually an unsustainable shortcut; sooner or later you will want to track multiple commodities.
-D is overloaded with functions redundant with `commodity` and `decimal mark`.
+D is overloaded with functions redundant with `commodity` and `decimal-mark`.
 And it works differently from Ledger's `D`.
 
-### Default parent account
+### `apply account` directive
 
-The `apply account` directive sets a parent account which will be prepended
+This directive sets a default parent account, which will be prepended
 to all accounts in following entries, until an `end apply account` directive
 or end of current file.
 Eg:
@@ -2672,10 +2681,17 @@ Account aliases, if any, are applied after the parent account is prepended.
 Downsides: this can make your financial data less explicit, less portable,
 and less trustworthy in an audit.
 
-### Default year
+### `Y` directive
 
-You can set a default year to be used for subsequent dates which don't
-specify a year. This is a line beginning with `Y` (or `year` or `apply year`) followed by the year. Eg:
+`Y YEAR`
+
+or (deprecated backward-compatible forms):
+
+`year YEAR`
+`apply year YEAR`
+
+The space is optional.
+This sets a default year to be used for subsequent dates which don't specify a year.  Eg:
 
 ```journal
 Y2009  ; set default year to 2009
@@ -4790,7 +4806,7 @@ not the new ones
 
 ## Querying with account aliases
 
-When account names are [rewritten](#account-aliases) with `--alias` or `alias`,
+When account names are [rewritten](#alias-directive) with `--alias` or `alias`,
 note that `acct:` will match either the old or the new account name.
 
 ## Querying with cost or value
@@ -5251,7 +5267,7 @@ one of these is all you need:
 
 The `-V/--market` flag converts amounts to market value in their
 default *valuation commodity*, using the
-[market prices](#market-prices) in effect on the *valuation date(s)*, if any.
+[market prices](#p-directive) in effect on the *valuation date(s)*, if any.
 More on these in a minute.
 
 ## -X: Value in specified commodity
@@ -5282,7 +5298,7 @@ in this order of preference
 
 1. A *declared market price* or *inferred market price*:
    A's latest market price in B on or before the valuation date
-   as declared by a [P directive](#market-prices), 
+   as declared by a [P directive](#p-directive), 
    or (with the `--infer-market-prices` flag)
    inferred from [costs](#costs).
    <!-- (Latest by date, then parse order.) -->
@@ -5309,7 +5325,7 @@ Amounts for which no suitable market price can be found, are not converted.
 ## --infer-market-prices: market prices from transactions
 
 Normally, market value in hledger is fully controlled by, and requires,
-[P directives](#market-prices) in your journal.
+[P directives](#p-directive) in your journal.
 Since adding and updating those can be a chore,
 and since transactions usually take place at close to market value,
 why not use the recorded [costs](#costs)
@@ -5412,7 +5428,7 @@ follows, in this order of preference:
 
 This means:
 
-- If you have [P directives](#market-prices), 
+- If you have [P directives](#p-directive), 
   they determine which commodities `-V` will convert, and to what.
 
 - If you have no P directives, and use the `--infer-market-prices` flag, 
@@ -5486,7 +5502,7 @@ The TYPE part selects cost or value and valuation date:
 To select a different valuation commodity, add the optional `,COMM` part:
 a comma, then the target commodity's symbol. Eg: **`--value=now,EUR`**.
 hledger will do its best to convert amounts to this commodity, deducing
-[market prices](#market-prices) as described above.
+[market prices](#p-directive) as described above.
 
 ## More valuation examples
 
@@ -5725,7 +5741,7 @@ These data entry commands are the only ones which can modify your journal file.
 - [activity](#activity)                            - show postings-per-interval bar charts
 - **[balance](#balance) (bal)**                    - show balance changes/end balances/budgets in any accounts
 - [codes](#codes)                                  - show transaction codes
-- [commodities](#commodities)                      - show commodity/currency symbols
+- [commodities](#commodity-directive)                      - show commodity/currency symbols
 - [descriptions](#descriptions)                    - show unique transaction descriptions
 - [files](#files)                                  - show input file paths
 - [help](#help)                                    - show hledger user manuals in several formats
