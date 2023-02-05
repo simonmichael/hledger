@@ -774,18 +774,22 @@ You can use both features at the same time if you want.
 Here are some differences between them, as of hledger 1.29:
 
 CLI:
+
 - --forecast is a general hledger option, usable with any command
 - --budget is a `balance` command option, usable only with that command.
 
 Visibility of generated transactions:
+
 - forecast transactions are visible in any report, like ordinary transactions
 - budget goal transactions are invisible except for the goal amounts they produce in --budget reports.
 
 Periodic transaction rules:
+
 - --forecast uses all available periodic transaction rules
 - --budget uses all periodic rules (`--budget`) or a selected subset (`--budget=DESCPAT`)
 
 Period of generated transactions:
+
 - --forecast generates forecast transactions
   - from after the last regular transaction to the end of the report period (`--forecast`)
   - or, during a specified period (`--forecast=PERIODEXPR`)
