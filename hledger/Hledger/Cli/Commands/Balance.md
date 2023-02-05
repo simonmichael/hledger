@@ -604,6 +604,19 @@ Budget performance in 2017/11/01-2017/12/31:
                       ||      0 [              0]       0 [              0] 
 ```
 
+It's common to limit budgets/budget reports to just expenses
+```
+hledger bal -M --budget expenses
+```
+or just revenues and expenses (eg, using account types):
+```
+hledger bal -M --budget type:rx
+```
+
+It's also common to limit or convert them to a single currency
+(`cur:COMM` or `-X COMM [--infer-market-prices]`).
+If showing multiple currencies, `--layout bare` or `--layout tall` can help.
+
 For more examples and notes, see [Budgeting](/budgeting.html).
 
 #### Budget report start date
@@ -666,10 +679,10 @@ To illustrate this, consider the following budget:
     liabilities
 ```
 
-With this, monthly budget for electronics is defined to be $100 and budget for personal expenses is an additional $1000, which implicitly means
-that budget for both `expenses:personal` and `expenses` is $1100.
+With this, monthly budget for electronics is defined to be \$100 and budget for personal expenses is an additional $1000, which implicitly means
+that budget for both `expenses:personal` and `expenses` is \$1100.
 
-Transactions in `expenses:personal:electronics` will be counted both towards its $100 budget and $1100 of `expenses:personal` , and transactions in any other subaccount of `expenses:personal` would be
+Transactions in `expenses:personal:electronics` will be counted both towards its \$100 budget and \$1100 of `expenses:personal` , and transactions in any other subaccount of `expenses:personal` would be
 counted towards only towards the budget of `expenses:personal`.
 
 For example, let's consider these transactions:
@@ -750,6 +763,38 @@ a case-insensitive substring (not a regular expression or query).
 This means you can give your periodic rules descriptions
 (remember that [two spaces are needed](#two-spaces-between-period-expression-and-description)),
 and then select from multiple budgets defined in your journal.
+
+#### Budget vs forecast
+
+`hledger --forecast ...` and `hledger balance --budget ...` are separate features,
+though both of them use the periodic transaction rules defined in the journal,
+and both of them generate temporary transactions for reporting purposes
+("forecast transactions" and "budget goal transactions", respectively).
+You can use both features at the same time if you want.
+Here are some differences between them, as of hledger 1.29:
+
+CLI:
+- --forecast is a general hledger option, usable with any command
+- --budget is a `balance` command option, usable only with that command.
+
+Visibility of generated transactions:
+- forecast transactions are visible in any report, like ordinary transactions
+- budget goal transactions are invisible except for the goal amounts they produce in --budget reports.
+
+Periodic transaction rules:
+- --forecast uses all available periodic transaction rules
+- --budget uses all periodic rules (`--budget`) or a selected subset (`--budget=DESCPAT`)
+
+Period of generated transactions:
+- --forecast generates forecast transactions
+  - from after the last regular transaction to the end of the report period (`--forecast`)
+  - or, during a specified period (`--forecast=PERIODEXPR`)
+  - possibly further restricted by a period specified in the periodic transaction rule
+  - and always restricted within the bounds of the report period
+- --budget generates budget goal transactions
+  - throughout the report period
+  - possibly restricted by a period specified in the periodic transaction rule.
+
 
 ### Data layout
 
