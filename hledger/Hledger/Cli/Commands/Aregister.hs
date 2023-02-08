@@ -25,6 +25,7 @@ import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
+import Lucid as L hiding (value_)
 import System.Console.CmdArgs.Explicit (flagNone, flagReq)
 
 import Hledger
@@ -57,7 +58,7 @@ aregistermode = hledgerCommandMode
       ++ " or $COLUMNS). -wN,M sets description width as well."
      )
   ,flagNone ["align-all"] (setboolopt "align-all") "guarantee alignment across all lines (slower)"
-  ,outputFormatFlag ["txt","csv","json"]
+  ,outputFormatFlag ["txt","html","csv","json"]
   ,outputFileFlag
   ])
   [generalflagsgroup1]
@@ -102,6 +103,7 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
              reverse items
     -- select renderer
     render | fmt=="txt"  = accountTransactionsReportAsText opts (_rsQuery rspec') thisacctq
+           | fmt=="html" = accountTransactionsReportAsHTML opts (_rsQuery rspec') thisacctq
            | fmt=="csv"  = printCSV . accountTransactionsReportAsCsv wd (_rsQuery rspec') thisacctq
            | fmt=="json" = toJsonText
            | otherwise   = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
@@ -125,6 +127,27 @@ accountTransactionsReportItemAsCsvRecord
     date = showDate $ transactionRegisterDate wd reportq thisacctq t
     amt  = wbToText $ showMixedAmountB csvDisplay change
     bal  = wbToText $ showMixedAmountB csvDisplay balance
+
+-- | Render a register report as a HTML snippet.
+accountTransactionsReportAsHTML :: CliOpts -> Query -> Query -> AccountTransactionsReport -> TL.Text
+accountTransactionsReportAsHTML copts reportq thisacctq items =
+    L.renderText $ L.table_ (do L.thead_ (L.tr_ (do L.th_ "date"
+                                                    L.th_ "description"
+                                                    L.th_ "otheraccounts"
+                                                    L.th_ "change"
+                                                    L.th_ "balance"))
+                                L.tbody_ (mconcat (map (htmlRow copts reportq thisacctq) items)))
+
+-- | Render one account register report line item as a HTML table row snippet.
+htmlRow :: CliOpts -> Query -> Query -> AccountTransactionsReportItem -> L.Html ()
+htmlRow CliOpts{reportspec_=ReportSpec{_rsReportOpts=ropts}} reportq thisacctq
+    (t@Transaction{tdescription}, _, _issplit, otheracctsstr, amt, bal) =
+    L.tr_ (do (L.td_ . toHtml . show . transactionRegisterDate (whichDate ropts) reportq thisacctq) t
+              (L.td_ . toHtml) tdescription
+              (L.td_ . toHtml) otheracctsstr
+              -- piggy back on the oneLine display style for now.
+              (L.td_ . toHtml . wbUnpack . showMixedAmountB oneLine) amt
+              (L.td_ . toHtml . wbUnpack . showMixedAmountB oneLine) bal)
 
 -- | Render a register report as plain text suitable for console output.
 accountTransactionsReportAsText :: CliOpts -> Query -> Query -> AccountTransactionsReport -> TL.Text
