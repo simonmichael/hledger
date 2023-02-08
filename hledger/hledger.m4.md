@@ -508,7 +508,7 @@ Here are those commands and the formats currently supported:
 
 | -                  | txt   | csv   | html    | json | sql |
 |--------------------|-------|-------|---------|------|-----|
-| aregister          | Y     | Y     |         | Y    |     |
+| aregister          | Y     | Y     | Y       | Y    |     |
 | balance            | Y *<sup>1</sup>* | Y *<sup>1</sup>* | Y *<sup>1,2</sup>* | Y    |     |
 | balancesheet       | Y *<sup>1</sup>* | Y *<sup>1</sup>* | Y *<sup>1</sup>*   | Y    |     |
 | balancesheetequity | Y *<sup>1</sup>* | Y *<sup>1</sup>* | Y *<sup>1</sup>*   | Y    |     |
