@@ -60,6 +60,20 @@ $ watchaccounts expenses -2
 $ watchaccounts -f time.journal client1 date:thismonth -l
 ```
 
+### sortandmergepostings
+
+[`sortandmergepostings`](https://github.com/simonmichael/hledger/blob/master/bin/sortandmergepostings)
+can be used to cleanup and normalize postings.
+It will sort postings so that positive ones are first, negative ones last.
+Inside of that it sorts postings by account name alphabetically.
+Lastly it facilitates merging postings on transactions with more than one posting in the same direction on the same account.
+This works by removing the duplicates and cleaning the amount field for at-most one account per run
+Piping the output to `hledger print` can recalculate the missing amounts.
+Subsequent runs can cleanup further duplicates.
+```cli
+$ sortandmergepostings input.journal | hledger -f - print -x
+```
+
 ### hledger-simplebal
 
 [`hledger-simplebal`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-simplebal)
