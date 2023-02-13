@@ -1082,6 +1082,8 @@ disambiguateNumber msuggestedStyle (AmbiguousNumber grp1 sep grp2) =
 -- Left (AmbiguousNumber "1" ',' "000")
 -- >>> parseTest rawnumberp "1 000"
 -- Right (WithSeparators ' ' ["1","000"] Nothing)
+-- >>> parseTest rawnumberp "1'000"
+-- Right (WithSeparators '\'' ["1","000"] Nothing)
 --
 rawnumberp :: TextParser m (Either AmbiguousNumber RawNumber)
 rawnumberp = label "number" $ do
@@ -1147,7 +1149,7 @@ rawnumberp = label "number" $ do
     pure $ NoSeparators grp1 (Just (decPt, mempty))
 
 isDigitSeparatorChar :: Char -> Bool
-isDigitSeparatorChar c = isDecimalMark c || c == ' '
+isDigitSeparatorChar c = isDecimalMark c || c == ' ' || c == '\''
 
 -- | Some kinds of number literal we might parse.
 data RawNumber

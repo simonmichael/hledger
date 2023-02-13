@@ -234,3 +234,16 @@ Balance changes in 2021:
 ===++===================================
  a || -0.12345678901234567890123456 EUR 
 >>>=0
+
+# 21. commodity with single quote digit group
+hledger bal -f -
+<<<
+commodity 1'000.00 CHF
+
+2017/1/1
+	a   1000 CHF
+	b  -1000 CHF
+>>>
+        1'000.00 CHF a
+       -1'000.00 CHF b
+>>>=0
