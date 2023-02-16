@@ -1,14 +1,12 @@
-# This can be symlinked as hie.yaml to make hls use a different ghc version
-# from the default stack.yaml.
-#
-# Eg mac m1 users could use it to select ghc 8.10,
-# until there is a ghc-9-compatible arm hls binary.
-# (Though, since such a binary is relatively easy to build yourself,
-# and 2-3x faster, I recommend doing that instead.)
+# Symlink this as hie.yaml to make HLS use the stack yaml/ghc mentioned below.
+# This works better than relying on the implicit cradle, which doesn't
+# work with multi-package projects (opening a file from a second package breaks HLS).
+
+# Circa HLS 1.9.1.0, this one (using GHC 9.2) is the only one that works.
 
 cradle:
   stack:
-    stackYaml: "stack8.10.yaml"
+    stackYaml: "stack9.2.yaml"
 
     # since there is a hie.yaml, these must be listed explicitly 
     # (a current limitation of hls with a multi-package stack project):

@@ -1,0 +1,47 @@
+# Symlink this as hie.yaml to make HLS use the stack yaml/ghc mentioned below.
+# This works better than relying on the implicit cradle, which doesn't
+# work with multi-package projects (opening a file from a second package breaks HLS).
+
+# Circa HLS 1.9.1.0, this one (using GHC 9.4) does not work.
+
+cradle:
+  stack:
+    stackYaml: "stack.yaml"
+
+    # since there is a hie.yaml, these must be listed explicitly 
+    # (a current limitation of hls with a multi-package stack project):
+    components:
+    - path: "hledger-lib/"
+      component: "hledger-lib:lib"
+    - path: "hledger-lib/test/doctests.hs"
+      component: "hledger-lib:test:doctest"
+    - path: "hledger-lib/test/unittest.hs"
+      component: "hledger-lib:test:unittest"
+
+    - path: "hledger/"
+      component: "hledger:lib"
+    - path: "hledger/app/"
+      component: "hledger:exe:hledger"
+    - path: "hledger/test/unittest.hs"
+      component: "hledger:test:unittest"
+    - path: "hledger/bench/"
+      component: "hledger:bench:bench"
+
+    - path: "hledger-ui/"
+      component: "hledger-ui:exe:hledger-ui"
+
+    - path: "hledger-web/"
+      component: "hledger-web:lib"
+    - path: "hledger-web/app/"
+      component: "hledger-web:exe:hledger-web"
+    - path: "hledger-web/test/"
+      component: "hledger-web:test:test"
+
+    - path: "bin/"
+      component: "hledger:lib"
+    - path: "tools/"
+      component: "hledger:lib"
+
+    # silences hls error for Shake.hs, but I think also ignores actual errors
+    - path: "Shake.hs"
+      component: "hledger:lib"
