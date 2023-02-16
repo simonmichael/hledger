@@ -1,5 +1,4 @@
-hledger -f- register date:2014/4
-<<<
+<
 2014/3/30
   (a)  1
 
@@ -9,7 +8,5 @@ hledger -f- register date:2014/4
 2014/3/31
   (a)  1
 
->>>
+$ hledger -f- register date:2014/4
 2014-04-01                      (a)                              1             1
->>>2
->>>= 0

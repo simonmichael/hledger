@@ -1,121 +1,104 @@
 # Tests of --explicit option effect
 
 # 1. implicit transaction balance w/o --explict
-hledger -f - print
-<<<
+<
 2017/1/1
     expenses  $5
     assets
->>>
+$ hledger -f - print
 2017-01-01
     expenses              $5
     assets
 
->>>2
->>>=0
+>= 0
 
 # 2. implicit transaction balance w/ --explict
-hledger -f - print --explicit
-<<<
+<
 2017/1/1
     expenses  $5
     assets
->>>
+$ hledger -f - print --explicit
 2017-01-01
     expenses              $5
     assets               $-5
 
->>>2
->>>=0
+>= 0
 
 # 3. implicit commodity price w/o --explict
-hledger -f - print
-<<<
+<
 2017/1/1
     expenses  4 EUR
     assets  $-5
->>>
+$ hledger -f - print
 2017-01-01
     expenses           4 EUR
     assets               $-5
 
->>>2
->>>=0
+>= 0
 
 # 4. implicit commodity price w/ --explict
-hledger -f - print --explicit
-<<<
+<
 2017/1/1
     expenses  4 EUR
     assets  $-5
->>>
+$ hledger -f - print --explicit
 2017-01-01
     expenses     4 EUR @@ $5
     assets               $-5
 
->>>2
->>>=0
+>= 0
 
 # 5. implicit account balance w/o --explict
-hledger -f - print
-<<<
+<
 2017/1/1
     assets  = $100
     equity
->>>
+$ hledger -f - print
 2017-01-01
     assets                 = $100
     equity
 
->>>2
->>>=0
+>= 0
 
 # 6. implicit account balance w/ --explict
-hledger -f - print --explicit
-<<<
+<
 2017/1/1
     assets  = $100
     equity
->>>
+$ hledger -f - print --explicit
 2017-01-01
     assets            $100 = $100
     equity           $-100
 
->>>2
->>>=0
+>= 0
 
 # 7. default commodity always applied because print do not issue appropriate directive
-hledger -f - print
-<<<
+<
 D 1000.00 EUR
 2017/1/1
     expenses  100
     assets
->>>
+$ hledger -f - print
 2017-01-01
     expenses      100.00 EUR
     assets
 
->>>2
->>>=0
+>= 0
 
 # 8. option --explicit implies effect of --empty
-hledger -f - print --explicit
-<<<
+<
 2017/1/1
     assets  $0
     equity
->>>
+$ hledger -f - print --explicit
 2017-01-01
     assets               0
     equity               0
 
->>>2
->>>=0
+>= 0
 
 # 9. Auto postings are always explicit
-hledger -f - print --auto
-<<<
+<
 = a
     c  *-0.453
     d
@@ -123,12 +106,11 @@ hledger -f - print --auto
 2021-09-01
     a    1000 EUR
     b
->>>
+$ hledger -f - print --auto
 2021-09-01  ; modified:
     a        1000 EUR
     c        -453 EUR  ; generated-posting: = a
     d         453 EUR  ; generated-posting: = a
     b
 
->>>2
->>>=0
+>= 0

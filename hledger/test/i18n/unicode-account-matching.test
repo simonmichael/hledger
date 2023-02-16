@@ -1,17 +1,13 @@
-hledger -f - register τράπ
-<<<
+<
 2009-01-01 проверка
   τράπεζα  10 руб
   नकद
->>>
+$ hledger -f - register τράπ
 2009-01-01 проверка             τράπεζα                     10 руб        10 руб
->>>=0
 
-hledger -f - balance -N " ét"
-<<<
+<
 2020-09-19 Test
     assets:a ét            5
     assets:b
->>>
+$ hledger -f - balance -N " ét"
                    5  assets:a ét
->>>=0

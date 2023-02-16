@@ -1,5 +1,5 @@
-$$$ hledger check -f balanced.j
->>>2 /hledger: Error: .*balanced.j:3-4:
+$ hledger check -f balanced.j
+>2 /hledger: Error: .*balanced.j:3-4:
 3 \| 2022-01-01
   \|     a               1
 
@@ -7,4 +7,4 @@ This transaction is unbalanced.
 The real postings' sum should be 0 but is: 1
 Consider adjusting this entry's amounts, or adding missing postings.
 /
->>>= 1
+>= 1

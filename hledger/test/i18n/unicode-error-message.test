@@ -1,7 +1,7 @@
-hledger -f - balance
-<<<
+<
 2009-01-01 broken entry
   дебит    1
   кредит  -2
->>>2 /дебит/
->>>= 1
+$ hledger -f - balance
+>2 /дебит/
+>= 1

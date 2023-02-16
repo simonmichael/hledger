@@ -1,17 +1,17 @@
 # 1. accept a blank description
-hledger -f- print
-<<<
+<
 2010/1/1 
   a  1
   b
 
->>>=0
+$ hledger -f- print
+> //
 
 # 2. same, but no separator space after the date
-hledger -f- print
-<<<
+<
 2010/1/1
   a  1
   b
 
->>>=0
+$ hledger -f- print
+> //

@@ -1,14 +1,10 @@
 # 1. empty file
-hledger -f- stats
-<<<
->>> /Accounts.* 0 \(depth 0\)/
->>>=0
+$ hledger -f- stats
+> /Accounts.* 0 \(depth 0\)/
 
 # 2. included files should be listed in parse order
- touch a.j b.j; hledger -f- stats; rm -f a.j b.j
-<<<
+<
 include a.j
 include b.j
->>> /Included files *: *\.\/a\.j/
->>>2
->>>=0
+$  touch a.j b.j; hledger -f- stats; rm -f a.j b.j
+> /Included files *: *\.\/a\.j/

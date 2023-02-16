@@ -2,24 +2,23 @@
 # data validation
 #
 # 1. should prompt again for a bad date
-hledger -f $$-add.j add; rm -f $$-add.j
 <<<
 2009/1/32
+$$$ hledger -f $$-add.j add; rm -f $$-add.j
 >>> /A valid hledger smart date is required/
->>>=0
+>>>2 //
 
 # 2. should accept a blank date
-hledger -f $$-add.j add; rm -f $$-add.j
 <<<
 
+$$$ hledger -f $$-add.j add; rm -f $$-add.j
 >>> /Date .*Description:/
->>>=0
+>>>2 //
 
 ##############################################################################
 # precision and commodity handling
 #
 # 3. simple add with no existing journal, no commodity entered
-hledger -f $$-add.j add; rm -f $$-add.j
 <<<
 
 
@@ -28,11 +27,11 @@ a
 b
 
 .
+$$$ hledger -f $$-add.j add; rm -f $$-add.j
 >>> /Date.*Description.*Account 1.*Amount  1.*Account 2.*Amount  2.*Account 3.*or \. or enter to finish.*/
->>>=0
+>>>2 //
 
 # 4. default commodity with greater precision
- printf 'D $1000.00\n' >t$$.j; hledger -f t$$.j add >/dev/null; cat t$$.j; rm -f t$$.j
 <<<
 
 
@@ -42,11 +41,11 @@ b
 
 .
 
+$$$  printf 'D $1000.00\n' >t$$.j; hledger -f t$$.j add >/dev/null; cat t$$.j; rm -f t$$.j
 >>> /a  +\$1000\.0/
->>>=0
+>>>2 //
 
 # 5. default commodity with less precision
- printf 'D $1000.0\n' >t$$.j; hledger -f t$$.j add >/dev/null; cat t$$.j; rm -f t$$.j
 <<<
 
 
@@ -56,11 +55,11 @@ b
 
 .
 
+$$$  printf 'D $1000.0\n' >t$$.j; hledger -f t$$.j add >/dev/null; cat t$$.j; rm -f t$$.j
 >>> /a  +\$1000\.00/
->>>=0
+>>>2 //
 
 # 6. existing commodity with greater precision
- printf '2010/1/1\n a  $1000.00\n b\n' >t$$.j; hledger -f t$$.j add >/dev/null; cat t$$.j; rm -f t$$.j
 <<<
 
 
@@ -69,11 +68,11 @@ $1000.0
 b
 
 .
+$$$  printf '2010/1/1\n a  $1000.00\n b\n' >t$$.j; hledger -f t$$.j add >/dev/null; cat t$$.j; rm -f t$$.j
 >>> /a  +\$1000\.0/
->>>=0
+>>>2 //
 
 # 7. existing commodity with less precision
- printf '2010/1/1\n a  $1000.0\n b\n' >t$$.j; hledger -f t$$.j add >/dev/null; cat t$$.j; rm -f t$$.j
 <<<
 
 
@@ -83,11 +82,11 @@ b
 
 .
 
+$$$  printf '2010/1/1\n a  $1000.0\n b\n' >t$$.j; hledger -f t$$.j add >/dev/null; cat t$$.j; rm -f t$$.j
 >>> /a  +\$1000\.00/
->>>=0
+>>>2 //
 
 # 8. default amounts should not fail to balance due to precision
-rm -f nosuch.journal; hledger -f nosuch.journal add; rm -f nosuch.journal
 <<<
 2010/1/1
 x
@@ -96,8 +95,9 @@ a
 b
 0.5
 c
+$$$ rm -f nosuch.journal; hledger -f nosuch.journal add; rm -f nosuch.journal
 >>> /Amount  3 \[-0.75\]:/
->>>=0
+>>>2 //
 
 ## 9. shouldn't add decimals if there aren't any
 ## printf '\n\na\n1\nb\n' | hledger -f /dev/null add

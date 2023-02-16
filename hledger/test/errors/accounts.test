@@ -1,5 +1,5 @@
-$$$ hledger check accounts -f accounts.j
->>>2 /hledger: Error: .*accounts.j:4:
+$ hledger check accounts -f accounts.j
+>2 /hledger: Error: .*accounts.j:4:
   \| 2022-01-01
 4 \|     \(a\)               1
   \|      \^
@@ -12,4 +12,4 @@ account a
 account a    ; type:A  ; \(L,E,R,X,C,V\)
 
 /
->>>= 1
+>= 1

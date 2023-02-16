@@ -1,236 +1,203 @@
 # 1. Simple case
-hledger bal -f - --no-total
-<<<
+<
 2017/1/1
 	a   1,000.00 EUR
 	b  -1,000.00 EUR
->>>
+$ hledger bal -f - --no-total
         1,000.00 EUR  a
        -1,000.00 EUR  b
->>>2
->>>=0
 
 # 2. No digits before decimal sep
-hledger bal -f - --no-total
-<<<
+<
 2017/1/1
 	a   .01 EUR
 	b
->>>
+$ hledger bal -f - --no-total
             0.01 EUR  a
            -0.01 EUR  b
->>>2
->>>=0
 
 # 3. No digits after decimal sep
-hledger bal -f - --no-total
-<<<
+<
 2017/1/1
 	a   1. EUR
 	b
->>>
+$ hledger bal -f - --no-total
                1 EUR  a
               -1 EUR  b
->>>2
->>>=0
 
 # 4. No digits at all
-hledger bal -f -
-<<<
+<
 2017/1/1
 	a   . EUR
 	b
->>>
->>>=1
+$ hledger bal -f -
+>2 //
+>= 1
 
 # 5. Space between digits groups
-hledger bal -f - --no-total
-<<<
+<
 2017/1/1
 	a   1 000.00 EUR
 	b  -1 000.00 EUR
->>>
+$ hledger bal -f - --no-total
         1 000.00 EUR  a
        -1 000.00 EUR  b
->>>2
->>>=0
 
 # 6. Space between digits groups in commodity directive
-hledger bal -f - --no-total
-<<<
+<
 commodity 1 000.00 EUR
 
 2017/1/1
 	a   1,000.00 EUR
 	b  -1,000.00 EUR
->>>
+$ hledger bal -f - --no-total
         1 000.00 EUR  a
        -1 000.00 EUR  b
->>>2
->>>=0
 
 # 7. Default commodity
-hledger bal -f -
-<<<
+<
 D 1,000.00 EUR
 
 2017/1/1
 	a   1,000
 	b  -1,000 EUR
->>>
+$ hledger bal -f -
         1,000.00 EUR  a
        -1,000.00 EUR  b
 --------------------
                    0  
->>>2
->>>=0
 
 # 8. Omitted decimals
-hledger bal -f -
-<<<
+<
 2017/1/1
 	a   1,000 EUR
 	b  -1,000.00 EUR
->>>
->>>=1
+$ hledger bal -f -
+>2 //
+>= 1
 
 # 9. Omitted decimals with commodity hint
-hledger bal -f -
-<<<
+<
 commodity 1,000.00 EUR
 
 2017/1/1
 	a   1,000 EUR
 	b  -1,000.00 EUR
->>>
+$ hledger bal -f -
         1,000.00 EUR  a
        -1,000.00 EUR  b
 --------------------
                    0  
->>>2
->>>=0
 
 # 10. Omitted decimals with commodity hint and symbol on left
-hledger bal -f -
-<<<
+<
 commodity €1,000.00
 
 2017/1/1
 	a   €1,000
 	b  €-1,000.00
->>>
+$ hledger bal -f -
            €1,000.00  a
           €-1,000.00  b
 --------------------
                    0  
->>>2
->>>=0
 
 # 11. Commodity directive requires a decimal separator
-hledger bal -f -
-<<<
+<
 commodity 1000 EUR
->>>2 /Please include a decimal point or decimal comma/
->>>=1
+$ hledger bal -f -
+> //
+>2 /Please include a decimal point or decimal comma/
+>= 1
 
 # 12. Commodity directive with zero precision
-hledger bal -f -
-<<<
+<
 commodity 100. EUR
 
 2017/1/1
 	a   1,000 EUR
 	b  -1,000.00 EUR
->>>
+$ hledger bal -f -
             1000 EUR  a
            -1000 EUR  b
 --------------------
                    0  
->>>2
->>>=0
 
 # 13. Big prices
-hledger bal -f -  --no-total
-<<<
+<
 2017/1/1
 	a   -1 BTC @ 24,840 UAH
 	b   24,840.00 UAH
->>>
->>>=1
+$ hledger bal -f -  --no-total
+>2 //
+>= 1
 
 # 14. Big prices with commodity hint
-hledger bal -f -  --no-total
-<<<
+<
 commodity ₴1,000.00
 
 2017/1/1
 	a   -1 BTC @ ₴24,840
 	b   ₴24,840.00
->>>
+$ hledger bal -f -  --no-total
               -1 BTC  a
           ₴24,840.00  b
->>>2
->>>=0
 
 # 15. adjacent punctuation chars
-hledger bal -f -
-<<<
+<
 2017/1/1
 	a   1,,0,,0.0 EUR
 	b  -1..0..0,0 EUR
->>>
->>>=1
+$ hledger bal -f -
+>2 //
+>= 1
 
 # 16. adjacent punctuation chars of different types
-hledger bal -f -
-<<<
+<
 2017/1/1
 	a   1,0,.0 EUR
 	b  -1.0.,0 EUR
->>>
->>>=1
+$ hledger bal -f -
+>2 //
+>= 1
 
 # 17. separator chars vary
-hledger bal -f -
-<<<
+<
 2017/1/1
 	a   1.0,0.0,0 EUR
 	b  -1,0.0,0.0 EUR
->>>
->>>=1
+$ hledger bal -f -
+>2 //
+>= 1
 
 # 18. number begins with a decimal char
-hledger bal -f -
-<<<
+<
 2017/1/1
 	a   .1 EUR
 	b  -.1 EUR
->>>
+$ hledger bal -f -
              0.1 EUR  a
             -0.1 EUR  b
 --------------------
                    0  
->>>2
->>>=0
 
 # 19. number begins with a separator char
-hledger bal -f -
-<<<
+<
 2017/1/1
 	a   ,100.0 EUR
 	b  -,100.0 EUR
->>>
->>>=1
+$ hledger bal -f -
+>2 //
+>= 1
 
 # 20. long numbers in multi balance reports
-hledger bal -YN -f -
-<<<
+<
 2021-01-01
     (a)      -0.12345678901234567890123456 EUR
->>>
+$ hledger bal -YN -f -
 Balance changes in 2021:
 
    ||                              2021 
 ===++===================================
  a || -0.12345678901234567890123456 EUR 
->>>=0
+

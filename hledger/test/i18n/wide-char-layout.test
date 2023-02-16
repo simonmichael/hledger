@@ -5,8 +5,7 @@
 # XXX how to test hledger-ui ?
 
 # 1.
-hledger -f - print
-<<<
+<
 2000-01-01 transaction 1
   㐀                                          㐃㐃1 @ 2 㐂㐂㐂㐂㐂㐂㐂㐂㐂㐂㐂
   㐀:㐁                                       ;㐃㐃-1
@@ -18,7 +17,7 @@ hledger -f - print
 2000-01-03 transaction 3
   㐀:㐁:㐂:㐃:㐄                                  1
   㐀                                            -1
->>>
+$ hledger -f - print
 2000-01-01 transaction 1
     㐀       㐃㐃1 @ 2 㐂㐂㐂㐂㐂㐂㐂㐂㐂㐂㐂
     㐀:㐁                                      ; 㐃㐃-1
@@ -31,36 +30,28 @@ hledger -f - print
     㐀:㐁:㐂:㐃:㐄               1
     㐀                          -1
 
->>>2
->>>=0
+>= 0
 
 # 2.
-hledger -f chinese.journal register --width 80
->>>
+$ hledger -f chinese.journal register --width 80
 2000-01-01 transaction 1        㐀                             1 A           1 A
                                 㐀:㐁                         -1 A             0
 2000-01-02 transaction 2        㐀:㐁:㐂                       1 A           1 A
                                 㐀:㐁:㐂:㐃                   -1 A             0
 2000-01-03 transaction 3        㐀:㐁:㐂:㐃:㐄                 1 A           1 A
                                 㐀                            -1 A             0
->>>2
->>>=0
 
 # 3.
-hledger -f chinese.journal balance --tree
->>>
+$ hledger -f chinese.journal balance --tree
                    0  㐀:㐁
                  1 A    㐂
                    0      㐃
                  1 A        㐄
 --------------------
                    0  
->>>2
->>>=0
 
 # 4.
-hledger -f chinese.journal balance -Y
->>>
+$ hledger -f chinese.journal balance -Y
 Balance changes in 2000:
 
                 || 2000 
@@ -71,8 +62,6 @@ Balance changes in 2000:
  㐀:㐁:㐂:㐃:㐄 ||  1 A 
 ----------------++------
                 ||    0 
->>>2
->>>=0
 
 # 5.
 

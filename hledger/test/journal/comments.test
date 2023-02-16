@@ -3,8 +3,7 @@
 # 1. several comment characters allowed for file characters; 
 # print shows in-transaction & posting comments;
 # comment line is preserved, starting column is not.
-hledger -f - print
-<<<
+<
 ; file comments, ignored
 # file comment using a hash
 * file comment using a star (org node)
@@ -22,7 +21,7 @@ hledger -f - print
 ; file comment right after the transaction, ignored
 
 ; trailing file comment, ignored
->>>
+$ hledger -f - print
 2009-01-01 x  ; transaction same line comment
     ; transaction new line comment
     a               1  ; posting 1 same line comment
@@ -30,36 +29,32 @@ hledger -f - print
     a
     ; posting 2 new line comment
 
->>>2
->>>=0
+>= 0
 
 # 2. transaction comments must use ;
-hledger -f - print
-<<<
+<
 2017/1/1 this # and * are not ; the comment
->>>
+$ hledger -f - print
 2017-01-01 this # and * are not  ; the comment
 
->>>2
->>>=0
+>= 0
 
 # 3. posting comments must use ;
-hledger -f - print
-<<<
+<
 2017/1/1
   a  0  # hash & star not allowed for posting comments
->>>=1
+$ hledger -f - print
+> //
+>2 //
+>= 1
 
 # 4. register does not show comments
-hledger -f - register
-<<<
+<
 2010/1/1 x
     a  1 ; comment
     b
 
->>>
+$ hledger -f - register
 2010-01-01 x                    a                                1             1
                                 b                               -1             0
->>>2
->>>=0
 

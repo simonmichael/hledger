@@ -1,17 +1,14 @@
 # just check
-hledger -f - bal --no-total
-<<<
+<
 D $1,000.00
 
 2018/1/1
    (a)  2.3
->>>
+$ hledger -f - bal --no-total
                $2.30  a
->>>=0
 
 # some basic cases with commodity
-hledger -f - bal --no-total
-<<<
+<
 commodity $1,000.00000000
 
 2018/1/1
@@ -19,16 +16,14 @@ commodity $1,000.00000000
    b  $31415926e-7
    c  $1E+3
    d
->>>
+$ hledger -f - bal --no-total
        $105.00000000  a
          $3.14159260  b
      $1,000.00000000  c
     $-1,108.14159260  d
->>>=0
 
 # some basic cases with commodity
-hledger -f - print --explicit
-<<<
+<
 commodity $1,000.00000000
 
 2018/1/1
@@ -36,48 +31,43 @@ commodity $1,000.00000000
    b  $31415926e-7
    c  $1E+3
    d
->>>
+$ hledger -f - print --explicit
 2018-01-01
     a       $105.00000000
     b         $3.14159260
     c     $1,000.00000000
     d    $-1,108.14159260
 
->>>=0
-#
+>=
+
 # some basic cases
-hledger -f - bal --no-total
-<<<
+<
 2018/1/1
    a  1.05e2
    b  31415926e-7
    c  1E+3
    d
->>>
+$ hledger -f - bal --no-total
          105.0000000  a
            3.1415926  b
         1000.0000000  c
        -1108.1415926  d
->>>2
->>>=0
 
 # we still should recognize commodities with e
-hledger -f - bal --no-total
-<<<
+<
 2018/1/1
    (a)  1.00005e
    (a)  2.00003E
->>>
+$ hledger -f - bal --no-total
             2.00003E
             1.00005e  a
->>>=0
 
-hledger -f - reg
-<<<
+<
 2018/1/1
    (a)  1,000.5e-1
->>>
->>>=1
+$ hledger -f - reg
+>2 //
+>= 1
 
 # different digit group separator chars before and after decimal point, not supported
 # 2018/1/4

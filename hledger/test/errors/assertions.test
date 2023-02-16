@@ -1,5 +1,5 @@
-$$$ hledger check -f assertions.j
->>>2 /hledger: Error: .*assertions.j:4:8:
+$ hledger check -f assertions.j
+>2 /hledger: Error: .*assertions.j:4:8:
   \| 2022-01-01
 4 \|     a               0 = 1
   \|                       \^\^\^
@@ -12,4 +12,4 @@ but the calculated balance is: 0
 a difference of:               1
 
 Consider viewing t/
->>>= 1
+>= 1

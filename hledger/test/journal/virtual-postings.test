@@ -1,42 +1,42 @@
 # 1. virtual posting shouldn't affect balance
-hledger -f- print
-<<<
+<
 2009/1/1 x
   (virtual)  100
   a  1
   b
->>>=0
-#
+$ hledger -f- print
+> //
+
 # 2. balanced virtual postings should be required to balance (themselves)
-hledger -f- print
-<<<
+<
 2010/1/1 x
   [balanced virtual]  10
   a  1
   b
->>>= !0
-#
+$ hledger -f- print
+>2 //
+>= 1
+
 # 3. balanced virtual postings should be required to balance (themselves)
-hledger -f- print
-<<<
+<
 2010/1/1 x
   [balanced virtual]  10
   [balanced virtual]  -10
   a  1
   b
->>>=0
-#
+$ hledger -f- print
+> //
+
 # 4. a virtual posting with implicit amount should be handled correctly
-hledger -f- print
-<<<
+<
 2010/1/1 x
   [a]    10
   [b]
->>>=0
-#
+$ hledger -f- print
+> //
+
 # 5. real and balanced virtual postings are balanced separately, and multiple blank virtuals are ok
-hledger -f- balance --tree
-<<<
+<
 2010/1/1 x
   a  1
   b
@@ -44,12 +44,10 @@ hledger -f- balance --tree
   [f]
   (c)
   (d)
->>>
+$ hledger -f- balance --tree
                    1  a
                   -1  b
                   10  e
                  -10  f
 --------------------
                    0  
->>>2
->>>=0

@@ -1,68 +1,61 @@
 # amount layout tests, using default vertical layout
 # 1. print
-hledger -f - print --explicit
-<<<
+<
 2010/1/1
     a  EUR 1  ; a euro
     b  USD 1  ; a dollar
     c         ; a euro and a dollar
->>>
+$ hledger -f - print --explicit
 2010-01-01
     a           EUR 1  ; a euro
     b           USD 1  ; a dollar
     c          EUR -1  ; a euro and a dollar
     c          USD -1  ; a euro and a dollar
 
->>>=0
+>= 0
 
 # 2. register
-hledger -f - register
-<<<
+<
 2010/1/1
     a  EUR 1  ; a euro
     b  USD 1  ; a dollar
     c         ; a euro and a dollar
->>>
+$ hledger -f - register
 2010-01-01                      a                            EUR 1         EUR 1
                                 b                            USD 1         EUR 1
                                                                            USD 1
                                 c                           EUR -1              
                                                             USD -1             0
->>>=0
 
 # 3. balance
-hledger -f - balance -N
-<<<
+<
 2010/1/1
     a  EUR 1  ; a euro
     b  USD 1  ; a dollar
     c         ; a euro and a dollar
->>>
+$ hledger -f - balance -N
                EUR 1  a
                USD 1  b
               EUR -1
               USD -1  c
->>>=0
 
 # 4. a single-commodity zero amount's commodity/decimal places/price is preserved, when possible
-hledger -f- print --explicit --empty
-<<<
+<
 2010/3/1 x
   a  $0.00 @ 3EUR
   b
->>>
+$ hledger -f- print --explicit --empty
 2010-03-01 x
     a        0 @ 3EUR
     b               0
 
->>>=0
+>= 0
 
 # 5.
 # When preserving a zero amount's commodity, we should also preserve
 # the amount style, such as where to place the symbol.
 # https://github.com/simonmichael/hledger/issues/230
-hledger -f- balance --tree -N
-<<<
+<
 D 1000,00€
 
 1/1
@@ -72,12 +65,11 @@ D 1000,00€
       a:1      4000,58
       a:D     -1000,58
       e       -3000
->>>
+$ hledger -f- balance --tree -N
             3000,00€  a
             4000,58€    1
            -1000,58€    D
            -3000,00€  e
->>>= 0
 
 
 # 5. mixed amounts with prices

@@ -1,4 +1,4 @@
-$$$  sh csvstdinrules.sh
->>>2 /hledger: Error: please use --rules-file when reading CSV from stdin
+$  sh csvstdinrules.sh
+>2 /hledger: Error: please use --rules-file when reading CSV from stdin
 /
->>>= 1
+>= 1
