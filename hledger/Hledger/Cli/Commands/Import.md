@@ -76,6 +76,12 @@ or (live updating):
 $ ls bank.csv* | entr bash -c 'echo ====; hledger import --dry bank.csv | hledger -f- -I print unknown'
 ```
 
+Note: when importing from multiple files at once, it's currently possible for
+some .latest files to be updated successfully, while the actual import fails
+because of a problem in one of the files, leaving them out of sync (and causing
+some transactions to be missed, requiring the .latest files to be manually reset).
+To prevent this, do a --dry-run first and fix any problems before the real import.
+
 ### Importing balance assignments
 
 Entries added by import will have their posting amounts made explicit (like `hledger print -x`).
