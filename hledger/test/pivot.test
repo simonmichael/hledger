@@ -1,6 +1,6 @@
 # --pivot tests
 
-# check pivot with print
+# 1. check pivot with print
 hledger -f- --pivot TAG print
 <<<
 2016/02/16 Test Transaction
@@ -15,7 +15,7 @@ hledger -f- --pivot TAG print
 
 >>>=0
 
-# check pivot with bal
+# 2. check pivot with bal
 hledger -f- --pivot member bal --no-total
 <<<
 2016/02/16 Member Fee Payment John Doe
@@ -27,7 +27,7 @@ hledger -f- --pivot member bal --no-total
               -2 EUR  John Doe
 >>>=0
 
-# check with another example
+# 3. check with another example
 hledger -f- --pivot budget bal --no-total
 <<<
 2016/02/16 Donation Freifunk
@@ -39,7 +39,7 @@ hledger -f- --pivot budget bal --no-total
               -2 EUR  Freifunk
 >>>=0
 
-# query on account will find either effective name or original one
+# 4. query on account will find either effective name or original one
 hledger -f- --pivot TAG reg '^Account2$' '^fun$' not:hidden
 <<<
 2016/02/16 Test Transaction
@@ -54,7 +54,7 @@ hledger -f- --pivot TAG reg '^Account2$' '^fun$' not:hidden
                                 value                       -1 EUR         1 EUR
 >>>=0
 
-# We should be able to query on original account names
+# 5. We should be able to query on original account names
 hledger -f- --pivot expenses reg not:liabilities
 <<<
 2017/1/1 prepay
@@ -68,7 +68,7 @@ hledger -f- --pivot expenses reg not:liabilities
                                 c                               $5         $1605
 >>>=0
 
-# pivot for implicit tag desc (technical sample)
+# 6. pivot for implicit tag desc (technical sample)
 hledger -f- --pivot description reg -M
 <<<
 2016/02/16 Freifunk
@@ -79,7 +79,7 @@ hledger -f- --pivot description reg -M
 2016-03   Freifunk                                           2 EUR             0
 >>>=0
 
-# pivot for implicit tag code (technical sample)
+# 7. pivot for implicit tag code (technical sample)
 hledger -f- --pivot code reg -M
 <<<
 2016/02/16 (Freifunk) Donation Freifunk
@@ -90,7 +90,7 @@ hledger -f- --pivot code reg -M
 2016-03   Freifunk                                           2 EUR             0
 >>>=0
 
-# use of pivot with code-based budgeting
+# 8. use of pivot with code-based budgeting
 hledger -f- --pivot code reg ^income
 <<<
 2016/02/16 (Freifunk) Donation Freifunk
@@ -100,7 +100,7 @@ hledger -f- --pivot code reg ^income
 2016-02-16 Donation Freifunk    Freifunk                    -2 EUR        -2 EUR
 >>>=0
 
-# get expenses balance by description/payee
+# 9. get expenses balance by description/payee
 hledger -f- --pivot payee bal --no-total --flat ^expense
 <<<
 2016/02/16 (1138) Auchan | buy a food for tomorrow morning
@@ -116,7 +116,7 @@ hledger -f- --pivot payee bal --no-total --flat ^expense
                5 EUR  StarBars
 >>>=0
 
-# get daily expenses by description/payee
+# 10. get daily expenses by description/payee
 hledger -f- --pivot payee reg -D ^expense
 <<<
 2016/02/16 (1138) Auchan
