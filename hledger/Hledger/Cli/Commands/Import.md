@@ -79,7 +79,7 @@ $ ls bank.csv* | entr bash -c 'echo ====; hledger import --dry bank.csv | hledge
 Note: when importing from multiple files at once, it's currently possible for
 some .latest files to be updated successfully, while the actual import fails
 because of a problem in one of the files, leaving them out of sync (and causing
-some transactions to be missed, requiring the .latest files to be manually reset).
+some transactions to be missed).
 To prevent this, do a --dry-run first and fix any problems before the real import.
 
 ### Importing balance assignments
