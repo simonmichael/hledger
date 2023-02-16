@@ -159,7 +159,7 @@ helpDialog =
                   ,renderKey ("UP/DOWN/PUP/PDN/HOME/END/k/j/C-p/C-n", "")
                   ,str "     move selection up/down"
                   ,renderKey ("RIGHT/l/C-f", "show txns, or txn detail")
-                  ,renderKey ("LEFT/h/C-b ", "go back")
+                  ,renderKey ("LEFT/h/C-b ", "go back/see other screens")
                   ,renderKey ("ESC ", "cancel, or reset app state")
 
                   ,str " "
