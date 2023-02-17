@@ -57,7 +57,8 @@ _ptgenspan str spn = do
 -- for better pretty-printing:
 instance Show PeriodicTransaction where
   show PeriodicTransaction{..} =
-    printf "PeriodicTransactionPP {%s, %s, %s, %s, %s, %s, %s, %s, %s}"
+    printf "PeriodicTransactionPP {%s, %s, %s, %s, %s, %s, %s, %s, %s, %s}"
+      -- Warning, be careful to keep these synced ^ v
       ("ptperiodexpr=" ++ show ptperiodexpr)
       ("ptinterval=" ++ show ptinterval)
       ("ptspan=" ++ show (show ptspan))
