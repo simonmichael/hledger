@@ -277,7 +277,7 @@ multicol _ [] = []
 multicol width strs =
   let
     maxwidth = maximum' $ map length strs
-    numcols = width `div` (maxwidth+2)
+    numcols = min (length strs) (width `div` (maxwidth+2))
     itemspercol = length strs `div` numcols
     colitems = chunksOf itemspercol strs
     cols = map unlines colitems
