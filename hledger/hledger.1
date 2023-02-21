@@ -7993,6 +7993,7 @@ otherwise the latest transaction date in the journal, otherwise today.
 a flag (-D/-W/-M/-Q/-Y) or period expression that activates the
 report\[aq]s multi-period mode (whether showing one or many subperiods).
 .SH PART 4: COMMANDS
+.SS Commands overview
 .PP
 Here are the built-in commands:
 .SS DATA ENTRY
@@ -8000,17 +8001,17 @@ Here are the built-in commands:
 These data entry commands are the only ones which can modify your
 journal file.
 .IP \[bu] 2
-add - add transactions using guided prompts
+add - add transactions using terminal prompts
 .IP \[bu] 2
-import - add any new transactions from other files (eg csv)
+import - add new transactions from other files, eg CSV files
 .SS DATA CREATION
 .IP \[bu] 2
-close - generate balance-resetting transactions
+close - generate balance-zeroing/restoring transactions
 .IP \[bu] 2
-rewrite - generate extra postings, similar to print --auto
+rewrite - generate auto postings, like print --auto
 .SS DATA MANAGEMENT
 .IP \[bu] 2
-check - check for various kinds of issue in the data
+check - check for various kinds of error in the data
 .IP \[bu] 2
 diff - compare account transactions in two journal files
 .SS REPORTS, FINANCIAL
@@ -8026,10 +8027,9 @@ cashflow (cf) - show changes in liquid assets
 incomestatement (is) - show revenues and expenses
 .SS REPORTS, VERSATILE
 .IP \[bu] 2
-balance (bal) - show balance changes/end balances/budgets in any
-accounts
+balance (bal) - show balance changes, end balances, budgets, gains..
 .IP \[bu] 2
-print - show transactions (journal entries)
+print - show transactions or export journal data
 .IP \[bu] 2
 register (reg) - show postings in one or more accounts & running total
 .IP \[bu] 2
@@ -8038,21 +8038,21 @@ roi - show return on investments
 .IP \[bu] 2
 accounts - show account names
 .IP \[bu] 2
-activity - show postings-per-interval bar charts
+activity - show bar charts of posting counts per period
 .IP \[bu] 2
 codes - show transaction codes
 .IP \[bu] 2
 commodities - show commodity/currency symbols
 .IP \[bu] 2
-descriptions - show unique transaction descriptions
+descriptions - show transaction descriptions
 .IP \[bu] 2
 files - show input file paths
 .IP \[bu] 2
-notes - show unique note segments of transaction descriptions
+notes - show note parts of transaction descriptions
 .IP \[bu] 2
-payees - show unique payee segments of transaction descriptions
+payees - show payee parts of transaction descriptions
 .IP \[bu] 2
-prices - show market price records
+prices - show market prices
 .IP \[bu] 2
 stats - show journal statistics
 .IP \[bu] 2
@@ -8061,7 +8061,7 @@ tags - show tag names
 test - run self tests
 .SS HELP
 .IP \[bu] 2
-help - show hledger user manuals in several formats
+help - show the hledger manual with info/man/pager
 .PP
 .SS ADD-ONS
 .PP
@@ -8069,16 +8069,15 @@ And here are some typical add-on commands.
 Some of these are installed by the hledger-install script.
 If installed, they will appear in hledger\[aq]s commands list:
 .IP \[bu] 2
-ui - hledger\[aq]s official terminal UI
+ui - run hledger\[aq]s terminal UI
 .IP \[bu] 2
-web - hledger\[aq]s official web UI
+web - run hledger\[aq]s web UI
 .IP \[bu] 2
-iadd - an alternative to hledger\[aq]s \f[V]add\f[R] command (currently
-hard to build)
+iadd - add transactions using a TUI (currently hard to build)
 .IP \[bu] 2
-interest - generates interest transactions
+interest - generate interest transactions
 .IP \[bu] 2
-stockquotes - downloads market prices
+stockquotes - download market prices from AlphaVantage
 .IP \[bu] 2
 Scripts and add-ons - check-fancyassertions, edit, fifo, git, move,
 pijul, plot, and more..
