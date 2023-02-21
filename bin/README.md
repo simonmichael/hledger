@@ -114,7 +114,7 @@ Install or upgrade:
 ```
 $ pip install -U git+https://github.com/edkedk99/hledger-fifo
 ```
-
+Examples:
 ```cli
 $ hledger fifo
 $ hledger fifo lots -h
@@ -124,13 +124,10 @@ $ hledger fifo sell
 $ hledger fifo -- sell -c ADA -n 'closing balances' -b '$' -a assets:bank:checking -r 'revenues:capital gains' -d 2023-02-20 -q 100.23 -p 0.40
 ```
 
-### hledger-utils
+### hledger-edit
 
-The [`hledger-utils` Python package](https://pypi.org/project/hledger-utils/) provides
-- a `hledger-edit` command to edit the queried transactions in your `$EDITOR` no matter what file they reside in
-- a `hledger-plot` command for generating charts with matplotlib.
-
-
+The [hledger-utils python package](https://pypi.org/project/hledger-utils/) provides
+a `hledger-edit` command to edit the queried transactions in your `$EDITOR` no matter what file they reside in.
 
 Install or upgrade:
 ```shell
@@ -152,6 +149,15 @@ EDITOR='perl -pi -e "s|Cost:Food|Cost:Food:Fast Food|g"' hledger edit tag:locati
 ```
 [![asciicast](https://asciinema.org/a/549559.svg)](https://asciinema.org/a/549559)
 
+### hledger-plot
+The [hledger-utils python package](https://pypi.org/project/hledger-utils/) provides
+a `hledger-plot` command for generating charts with matplotlib.
+
+Install or upgrade:
+```shell
+$ pip install -U hledger-utils    # might be slightly different on your system
+```
+Examples:
 ```
 $ hledger-plot -h
 $ hledger plot -- bal -DH ^Assets -2
