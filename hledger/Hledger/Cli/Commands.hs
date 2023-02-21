@@ -209,6 +209,7 @@ commandsList progversion othercmds highlight0 =
   ,bold' "DATA CREATION: create or convert entries to be added to the journal file"
   ,"+autosync                 download/deduplicate/convert OFX data"
   ," close                    generate balance-zeroing/restoring transactions"
+  ,"+fifo sell                generate a lot-selling transaction, using FIFO"
   ,"+interest                 generate interest transactions"
   ," rewrite                  generate auto postings, like print --auto"
   ,"+stockquotes              download market prices from AlphaVantage"
@@ -233,7 +234,7 @@ commandsList progversion othercmds highlight0 =
     -----------------------------------------80-------------------------------------
   ,bold' "REPORTS, VERSATILE: more complex/versatile reporting commands"
   ," balance (bal)            show balance changes, end balances, budgets, gains.."
-  ," fifo                     show lots or generate a lot sale entry, using FIFO"
+  ,"+fifo lots                show a commodity's remaining lots, using FIFO"
   ,"+plot                     create charts from balance reports, in terminal or GUI"
   ," print                    show transactions or export journal data"
   ," register (reg)           show postings in one or more accounts & running total"
