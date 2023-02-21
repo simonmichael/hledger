@@ -12,36 +12,33 @@ Transactions in a and subaccounts:
 2021-01-02                      b                                1             1
 
 <
-2021-01-01
-  (a)  1
+2023-01-01
+    assets:checking   1
+    income:salary    -1
 
-2021-01-02
-  (a:aa)  10
-
-2021-01-03
-  (a:aa:aaa)  100
+2023-01-02
+    assets:checking  -2
+    expenses:food     2
 
 # 2. aregister ignores a depth limit, always showing transactions in subaccounts. #1448
-$ hledger -f- areg a depth:1
-Transactions in a and subaccounts:
-2021-01-01                      a                                1             1
-2021-01-02                      a:aa                            10            11
-2021-01-03                      a:aa:aaa                       100           111
+$ hledger -f- areg checking depth:1
+Transactions in assets:checking and subaccounts:
+2023-01-01                      in:salary                        1             1
+2023-01-02                      ex:food                         -2            -1
 
 #1634:
 
 # 3. aregister is always in historical mode, showing balance from prior transactions.
-$ hledger -f- areg a -b 2021-01-02
-Transactions in a and subaccounts:
-2021-01-02                      a:aa                            10            11
-2021-01-03                      a:aa:aaa                       100           111
+$ hledger -f- areg checking -b 2023-01-02
+Transactions in assets:checking and subaccounts:
+2023-01-02                      ex:food                         -2            -1
 
-# 4. Any additional arguments are a query filtering the transactions.
+# 4. Any additional arguments are a query filtering the transactions. #2007
 # This can cause the running balance to diverge from the real-world running balance.
 # For non-date/date2/depth queries, a hint is shown in the title.
-$ hledger -f- areg a aaa
-Transactions in a and subaccounts (matching query):
-2021-01-03                      a:aa:aaa                       100           100
+$ hledger -f- areg checking expenses
+Transactions in assets:checking and subaccounts (matching query):
+2023-01-02                      ex:food                         -2            -2
 
 # 5. Sorts transactions first by transaction date (earliest date of the
 # matching postings) then by parse order. (#1642)

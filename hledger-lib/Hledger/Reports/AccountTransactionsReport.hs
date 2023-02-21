@@ -191,7 +191,13 @@ accountTransactionsReportItem reportq thisacctq signfn accttypefn bal (d, t)
       otheracctstr | thisacctq == None  = summarisePostingAccounts reportps     -- no current account ? summarise all matched postings
                    | numotheraccts == 0 = summarisePostingAccounts thisacctps   -- only postings to current account ? summarise those
                    | otherwise          = summarisePostingAccounts otheracctps  -- summarise matched postings to other account(s)
-      amt = signfn . maNegate $ sumPostings thisacctps
+      -- 202302: Impact of t on thisacct - normally the sum of thisacctps,
+      -- but if they are null it probably means reportq is an account filter
+      -- and we should sum otheracctps instead.
+      -- This fixes hledger areg ACCT ACCT2 (#2007), hopefully it's correct in general.
+      amt
+        | null thisacctps = signfn $ sumPostings otheracctps
+        | otherwise       = signfn . maNegate $ sumPostings thisacctps
       bal' = bal `maPlus` amt
 
 -- TODO needs checking, cf #1731
