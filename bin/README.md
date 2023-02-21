@@ -45,7 +45,7 @@ converts `paypaljson`'s output to CSV, with format similar to Paypal's manually-
 ## HLEDGER-RUNNING
 
 These scripts run hledger via its CLI,
-eg to produce a particular report without remembering a complicated command line. 
+eg to help you produce a particular report without needing to remember a complicated command line. 
 They might also consume its text or CSV or JSON output.
 They can be:
 - small shell aliases or functions, typically defined in shell startup files (eg ~/.bashrc)
