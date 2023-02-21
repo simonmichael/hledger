@@ -233,6 +233,7 @@ commandsList progversion othercmds highlight0 =
     -----------------------------------------80-------------------------------------
   ,bold' "REPORTS, VERSATILE: more complex/versatile reporting commands"
   ," balance (bal)            show balance changes, end balances, budgets, gains.."
+  ," fifo                     show lots or generate a lot sale entry, using FIFO"
   ,"+plot                     create charts from balance reports, in terminal or GUI"
   ," print                    show transactions or export journal data"
   ," register (reg)           show postings in one or more accounts & running total"
