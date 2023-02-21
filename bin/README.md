@@ -104,31 +104,57 @@ $ hledger pijul status
 $ hledger pijul record [MSG]
 ```
 
+### hledger-fifo
+
+[`hledger-fifo`](https://github.com/edkedk99/hledger-fifo)
+shows a lots report, or generates a lot sale transaction, using FIFO strategy
+(and without needing subaccounts for lots).
+
+Install or upgrade:
+```
+$ pip install -U git+https://github.com/edkedk99/hledger-fifo
+```
+
+```cli
+$ hledger fifo
+$ hledger fifo lots -h
+$ hledger fifo lots
+$ hledger-fifo lots -c ADA -n 'closing balances'
+$ hledger fifo sell
+$ hledger fifo -- sell -c ADA -n 'closing balances' -b '$' -a assets:bank:checking -r 'revenues:capital gains' -d 2023-02-20 -q 100.23 -p 0.40
+```
+
 ### hledger-utils
 
-The [`hledger-utils` Python package](https://pypi.org/project/hledger-utils/) ships an `hledger edit` command to edit the queried transactions in your `$EDITOR` no matter what file they reside in:
+The [`hledger-utils` Python package](https://pypi.org/project/hledger-utils/) provides
+- a `hledger-edit` command to edit the queried transactions in your `$EDITOR` no matter what file they reside in
+- a `hledger-plot` command for generating charts with matplotlib.
 
+
+
+Install or upgrade:
+```shell
+$ pip install -U hledger-utils    # might be slightly different on your system
+```
+
+Examples:
 ```cli
 # Opens your $EDITOR or $VISUAL with only costs in Florida 
 # (if you named and tagged them like that)
 # edit the transactions, save and exit your editor, 
 # then the changes are distributed to the original files
 $ hledger edit Cost tag:location=Florida
-
+```
+```
 # Automate changes by setting `$EDITOR` to a script
 # (here all food we had on that one day in Florida was Fast Food 🌭 and we initially forgot to write that) 
 EDITOR='perl -pi -e "s|Cost:Food|Cost:Food:Fast Food|g"' hledger edit tag:location=Florida date:2022-12-20
 ```
-
-📹 Screencast
-
 [![asciicast](https://asciinema.org/a/549559.svg)](https://asciinema.org/a/549559)
 
-And also a useful `hledger plot` command for generating charts.
-
-To install or upgrade the hledger-utils tools:
-```shell
-$ pip install -U hledger-utils    # might be slightly different on your system
+```
+$ hledger-plot -h
+$ hledger plot -- bal -DH ^Assets -2
 ```
 
 ## hledger-integrated scripts
