@@ -5684,63 +5684,75 @@ Related:
 
 # PART 4: COMMANDS
 
-Here are the built-in [commands](#commands), with the most often-used in bold:
+Here are the built-in [commands](#commands):
 <!-- keep synced with Hledger.Cli.Commands.commandsList, commands.m4 -->
 
-**Data entry:**
+## DATA ENTRY
 
 These data entry commands are the only ones which can modify your journal file.
  
-- **[add](#add)**                                  - add transactions using guided prompts
-- **[import](#import)**                            - add any new transactions from other files (eg csv)
+- [add](#add)                                      - add transactions using guided prompts
+- [import](#import)                                - add any new transactions from other files (eg csv)
 
-**Data management:**
+## DATA CREATION
 
-- [check](#check)                                  - check for various kinds of issue in the data
-- [close](#close) (equity)                         - generate balance-resetting transactions
-- [diff](#diff)                                    - compare account transactions in two journal files
+- [close](#close)                                  - generate balance-resetting transactions
 - [rewrite](#rewrite)                              - generate extra postings, similar to print --auto
 
-**Financial statements:**
+## DATA MANAGEMENT
 
-- **[aregister](#aregister) (areg)**               - show transactions in a particular account
-- **[balancesheet](#balancesheet) (bs)**           - show assets, liabilities and net worth
+- [check](#check)                                  - check for various kinds of issue in the data
+- [diff](#diff)                                    - compare account transactions in two journal files
+
+## REPORTS, FINANCIAL
+
+- [aregister](#aregister) (areg)                   - show transactions in a particular account
+- [balancesheet](#balancesheet) (bs)               - show assets, liabilities and net worth
 - [balancesheetequity](#balancesheetequity) (bse)  - show assets, liabilities and equity
 - [cashflow](#cashflow) (cf)                       - show changes in liquid assets
-- **[incomestatement](#incomestatement) (is)**     - show revenues and expenses
+- [incomestatement](#incomestatement) (is)         - show revenues and expenses
+
+## REPORTS, VERSATILE
+
+- [balance](#balance) (bal)                        - show balance changes/end balances/budgets in any accounts
+- [print](#print)                                  - show transactions (journal entries)
+- [register](#register) (reg)                      - show postings in one or more accounts & running total
 - [roi](#roi)                                      - show return on investments
 
-**Miscellaneous reports:**
+## REPORTS, BASIC
 
 - [accounts](#accounts)                            - show account names
 - [activity](#activity)                            - show postings-per-interval bar charts
-- **[balance](#balance) (bal)**                    - show balance changes/end balances/budgets in any accounts
 - [codes](#codes)                                  - show transaction codes
-- [commodities](#commodity-directive)                      - show commodity/currency symbols
+- [commodities](#commodity-directive)              - show commodity/currency symbols
 - [descriptions](#descriptions)                    - show unique transaction descriptions
 - [files](#files)                                  - show input file paths
-- [help](#help)                                    - show hledger user manuals in several formats
 - [notes](#notes)                                  - show unique note segments of transaction descriptions
 - [payees](#payees)                                - show unique payee segments of transaction descriptions
 - [prices](#prices)                                - show market price records
-- **[print](#print)**                              - show transactions (journal entries)
-- **[register](#register) (reg)**                  - show postings in one or more accounts & running total
 - [stats](#stats)                                  - show journal statistics
 - [tags](#tags-1)                                  - show tag names
 - [test](#test)                                    - run self tests
 
+## HELP
+
+- [help](#help)                                    - show hledger user manuals in several formats
+
 <a name="addons"></a>
 <!-- #addons: the short explanation and list of common add-on commands. See also #add-on-commands. -->
 
-And here are some typical [add-on commands](#add-on-commands)
-installed by the [hledger-install script](https://hledger.org/install.html#build-methods).
-If installed, these will also appear in hledger's commands list, with a `+` mark:
+## ADD-ONS
 
-- **[ui](hledger-ui.html)**   - hledger's official curses-style TUI
-- **[web](hledger-web.html)** - hledger's official web UI
-- [iadd](https://hackage.haskell.org/package/hledger-iadd)                - a popular alternative to hledger's `add` command.
+And here are some typical [add-on commands](#add-on-commands).
+Some of these are installed by the [hledger-install script](https://hledger.org/install.html#build-methods).
+If installed, they will appear in hledger's commands list:
+
+- [ui](hledger-ui.html)                                                   - hledger's official terminal UI
+- [web](hledger-web.html)                                                 - hledger's official web UI
+- [iadd](https://hackage.haskell.org/package/hledger-iadd)                - an alternative to hledger's `add` command (currently hard to build)
 - [interest](https://hackage.haskell.org/package/hledger-interest)        - generates interest transactions
-- [stockquotes](https://hackage.haskell.org/package/hledger-stockquotes)  - downloads market prices. *(Alpha quality, needs your help.)*
+- [stockquotes](https://hackage.haskell.org/package/hledger-stockquotes)  - downloads market prices
+- [Scripts and add-ons](https://hledger.org/scripts.html)                 - check-fancyassertions, edit, fifo, git, move, pijul, plot, and more..
 
 m4_dnl XXX maybe later
 m4_dnl _man_({{
