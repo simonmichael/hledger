@@ -203,7 +203,7 @@ commandsList progversion othercmds highlight0 =
   ," add                      add transactions using terminal prompts"
   ,"+edit                     edit a subset of transactions"
   ,"+iadd                     add transactions using a TUI"
-  ," import                   add new transactions from from other files, eg csv"
+  ," import                   add new transactions from other files, eg CSV files"
   ,""
     -----------------------------------------80-------------------------------------
   ,bold' "DATA CREATION: create or convert entries to be added to the journal file"
@@ -216,7 +216,7 @@ commandsList progversion othercmds highlight0 =
   ,""
     -----------------------------------------80-------------------------------------
   ,bold' "DATA MANAGEMENT: help validate or manage journal files"
-  ," check                    check for various kinds of issue in the data"
+  ," check                    check for various kinds of error in the data"
   ,"+check-fancyassertions    check more powerful balance assertions"
   ,"+check-tagfiles           check file paths in tag values exist"
   ," diff                     compare account transactions in two journal files"

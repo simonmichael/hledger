@@ -5684,27 +5684,29 @@ Related:
 
 # PART 4: COMMANDS
 
-Here are the built-in [commands](#commands):
-<!-- keep synced with Hledger.Cli.Commands.commandsList, commands.m4 -->
+## Commands overview
 
-## DATA ENTRY
+Here are the built-in [commands](#commands):
+<!-- keep commands & descriptions synced with Hledger.Cli.Commands.commandsList, commands.m4 -->
+
+### DATA ENTRY
 
 These data entry commands are the only ones which can modify your journal file.
  
-- [add](#add)                                      - add transactions using guided prompts
-- [import](#import)                                - add any new transactions from other files (eg csv)
+- [add](#add)                                      - add transactions using terminal prompts
+- [import](#import)                                - add new transactions from other files, eg CSV files
 
-## DATA CREATION
+### DATA CREATION
 
-- [close](#close)                                  - generate balance-resetting transactions
-- [rewrite](#rewrite)                              - generate extra postings, similar to print --auto
+- [close](#close)                                  - generate balance-zeroing/restoring transactions
+- [rewrite](#rewrite)                              - generate auto postings, like print --auto
 
-## DATA MANAGEMENT
+### DATA MANAGEMENT
 
-- [check](#check)                                  - check for various kinds of issue in the data
+- [check](#check)                                  - check for various kinds of error in the data
 - [diff](#diff)                                    - compare account transactions in two journal files
 
-## REPORTS, FINANCIAL
+### REPORTS, FINANCIAL
 
 - [aregister](#aregister) (areg)                   - show transactions in a particular account
 - [balancesheet](#balancesheet) (bs)               - show assets, liabilities and net worth
@@ -5712,46 +5714,46 @@ These data entry commands are the only ones which can modify your journal file.
 - [cashflow](#cashflow) (cf)                       - show changes in liquid assets
 - [incomestatement](#incomestatement) (is)         - show revenues and expenses
 
-## REPORTS, VERSATILE
+### REPORTS, VERSATILE
 
-- [balance](#balance) (bal)                        - show balance changes/end balances/budgets in any accounts
-- [print](#print)                                  - show transactions (journal entries)
+- [balance](#balance) (bal)                        - show balance changes, end balances, budgets, gains..
+- [print](#print)                                  - show transactions or export journal data
 - [register](#register) (reg)                      - show postings in one or more accounts & running total
 - [roi](#roi)                                      - show return on investments
 
-## REPORTS, BASIC
+### REPORTS, BASIC
 
 - [accounts](#accounts)                            - show account names
-- [activity](#activity)                            - show postings-per-interval bar charts
+- [activity](#activity)                            - show bar charts of posting counts per period
 - [codes](#codes)                                  - show transaction codes
 - [commodities](#commodity-directive)              - show commodity/currency symbols
-- [descriptions](#descriptions)                    - show unique transaction descriptions
+- [descriptions](#descriptions)                    - show transaction descriptions
 - [files](#files)                                  - show input file paths
-- [notes](#notes)                                  - show unique note segments of transaction descriptions
-- [payees](#payees)                                - show unique payee segments of transaction descriptions
-- [prices](#prices)                                - show market price records
+- [notes](#notes)                                  - show note parts of transaction descriptions
+- [payees](#payees)                                - show payee parts of transaction descriptions
+- [prices](#prices)                                - show market prices
 - [stats](#stats)                                  - show journal statistics
 - [tags](#tags-1)                                  - show tag names
 - [test](#test)                                    - run self tests
 
-## HELP
+### HELP
 
-- [help](#help)                                    - show hledger user manuals in several formats
+- [help](#help)                                    - show the hledger manual with info/man/pager
 
 <a name="addons"></a>
 <!-- #addons: the short explanation and list of common add-on commands. See also #add-on-commands. -->
 
-## ADD-ONS
+### ADD-ONS
 
 And here are some typical [add-on commands](#add-on-commands).
 Some of these are installed by the [hledger-install script](https://hledger.org/install.html#build-methods).
 If installed, they will appear in hledger's commands list:
 
-- [ui](hledger-ui.html)                                                   - hledger's official terminal UI
-- [web](hledger-web.html)                                                 - hledger's official web UI
-- [iadd](https://hackage.haskell.org/package/hledger-iadd)                - an alternative to hledger's `add` command (currently hard to build)
-- [interest](https://hackage.haskell.org/package/hledger-interest)        - generates interest transactions
-- [stockquotes](https://hackage.haskell.org/package/hledger-stockquotes)  - downloads market prices
+- [ui](hledger-ui.html)                                                   - run hledger's terminal UI
+- [web](hledger-web.html)                                                 - run hledger's web UI
+- [iadd](https://hackage.haskell.org/package/hledger-iadd)                - add transactions using a TUI (currently hard to build)
+- [interest](https://hackage.haskell.org/package/hledger-interest)        - generate interest transactions
+- [stockquotes](https://hackage.haskell.org/package/hledger-stockquotes)  - download market prices from AlphaVantage
 - [Scripts and add-ons](https://hledger.org/scripts.html)                 - check-fancyassertions, edit, fifo, git, move, pijul, plot, and more..
 
 m4_dnl XXX maybe later
