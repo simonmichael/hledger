@@ -36,10 +36,11 @@ Transactions in a and subaccounts:
 2021-01-02                      a:aa                            10            11
 2021-01-03                      a:aa:aaa                       100           111
 
-# 4. Any additional arguments are a query, filtering the transactions. This may
-# cause the running balance to diverge from the real-world running balance.
+# 4. Any additional arguments are a query filtering the transactions.
+# This can cause the running balance to diverge from the real-world running balance.
+# For non-date/date2/depth queries, a hint is shown in the title.
 $ hledger -f- areg a aaa
-Transactions in a and subaccounts:
+Transactions in a and subaccounts (matching query):
 2021-01-03                      a:aa:aaa                       100           100
 
 # 5. Sorts transactions first by transaction date (earliest date of the

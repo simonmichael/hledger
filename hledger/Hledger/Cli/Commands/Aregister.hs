@@ -161,12 +161,18 @@ accountTransactionsReportAsText copts reportq thisacctq items = TB.toLazyText $
     itembal (_,_,_,_,_,a) = a
 
     -- show a title indicating which account was picked, which can be confusing otherwise
-    title = maybe mempty (\s -> foldMap TB.fromText ["Transactions in ", s, " and subaccounts:"]) macct
+    title = maybe mempty (\s -> foldMap TB.fromText ["Transactions in ", s, " and subaccounts", qmsg, ":"]) macct
       where
         -- XXX temporary hack ? recover the account name from the query
         macct = case filterQuery queryIsAcct thisacctq of
                   Acct r -> Just . T.drop 1 . T.dropEnd 5 $ reString r  -- Acct "^JS:expenses(:|$)"
                   _      -> Nothing  -- shouldn't happen
+        -- show a hint in the title when results are restricted by an extra query (other than depth or date or date2)
+        qmsg = if hasextraquery then " (matching query)" else ""
+          where
+            hasextraquery =
+              length (querystring_ $ _rsReportOpts $ reportspec_ copts) > 1
+              && not (queryIsNull $ filterQuery (not.(\q->queryIsDepth q || queryIsDateOrDate2 q)) reportq)
 
 -- | Render one account register report line item as plain text. Layout is like so:
 -- @
