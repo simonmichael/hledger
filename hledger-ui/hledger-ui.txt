@@ -598,4 +598,4 @@ SEE ALSO
 
 
 
-hledger-ui-1.28.99               January 2023                    HLEDGER-UI(1)
+hledger-ui-1.28.99               February 2023                   HLEDGER-UI(1)

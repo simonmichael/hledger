@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "January 2023" "hledger-1.28.99 " "hledger User Manuals"
+.TH "HLEDGER" "1" "February 2023" "hledger-1.28.99 " "hledger User Manuals"
 
 
 
@@ -514,7 +514,7 @@ query terms, on the command line and in the hledger-web search form:
 .IP \[bu] 2
 CSV rules conditional blocks: \f[V]if REGEX ...\f[R]
 .IP \[bu] 2
-account alias directives and options:
+account alias directive and \f[V]--alias\f[R] option:
 \f[V]alias /REGEX/ = REPLACEMENT\f[R],
 \f[V]--alias /REGEX/=REPLACEMENT\f[R]
 .PP
@@ -881,6 +881,7 @@ Y
 T}@T{
 Y
 T}@T{
+Y
 T}@T{
 Y
 T}@T{
@@ -1307,14 +1308,7 @@ P 2022-01-01 AAAA $1.40
     expenses:tax:us:2021      $500  ; plus  means added to this account (debit)
                                     ; revenue/expense categories are also \[dq]accounts\[dq]
 
-2022-01-01 Whole Foods | payee name and description can be separated by a pipe char
-    ; Transaction or posting comments can contain searchable tags,
-    ; written NAME: or NAME:VALUE (value ends at comma or end of line).
-    ; Here\[aq]s tag1:with a value, and an empty tag2:
-    ; A few tags have special meaning. A \[dq]date:\[dq] tag on a posting adjusts its date.
-    assets:checking           $-50  ; date:2022-01-03, checking cleared two days later
-    expenses:food
-
+Kv
 2022-01-01                          ; The description is optional.
     ; Any currency/commodity symbols are allowed, on either side.
     assets:cash:wallet     GBP -10
@@ -1449,8 +1443,8 @@ Dates in the journal file use \f[I]simple dates\f[R] format:
 \f[V]YYYY-MM-DD\f[R] or \f[V]YYYY/MM/DD\f[R] or \f[V]YYYY.MM.DD\f[R],
 with leading zeros optional.
 The year may be omitted, in which case it will be inferred from the
-context: the current transaction, the default year set with a default
-year directive, or the current date when the command is run.
+context: the current transaction, the default year set with a
+\f[V]Y\f[R] directive, or the current date when the command is run.
 Some examples: \f[V]2010-01-31\f[R], \f[V]2010/01/31\f[R],
 \f[V]2010.1.31\f[R], \f[V]1/31\f[R].
 .PP
@@ -2608,7 +2602,7 @@ cleaning up your files.
 .PP
 It can be surprising though; for example, it means that \f[V]alias\f[R]
 directives do not affect parent or sibling files (see below).
-.SS Accounts
+.SS \f[V]account\f[R] directive
 .PP
 \f[V]account\f[R] directives can be used to declare accounts (ie, the
 places that amounts are transferred from and to).
@@ -2823,7 +2817,6 @@ These are just a convenience that sometimes help new users get going; if
 they don\[aq]t work for you, just ignore them and declare your account
 types.
 See also Regular expressions.
-Note the Cash regexp changed in hledger 1.24.99.2.
 .RS 2
 .IP
 .nf
@@ -2876,7 +2869,7 @@ $ hledger accounts --types [ACCTPAT] [-DEPTH] [type:TYPECODES]
 \f[R]
 .fi
 .RE
-.SS Account aliases
+.SS \f[V]alias\f[R] directive
 .PP
 You can define account alias rules which rewrite your account names, or
 parts of them, before generating reports.
@@ -3049,7 +3042,7 @@ alias bar=Bar
 include c.journal  ; also affected
 \f[R]
 .fi
-.SS \f[V]end aliases\f[R]
+.SS \f[V]end aliases\f[R] directive
 .PP
 You can clear (forget) all currently defined aliases (seen in the
 journal so far, or defined on the command line) with this directive:
@@ -3123,7 +3116,7 @@ command, eg something like:
 $ hledger accounts --alias assets=bassetts type:a
 \f[R]
 .fi
-.SS Commodities
+.SS \f[V]commodity\f[R] directive
 .PP
 You can use \f[V]commodity\f[R] directives to declare your commodities.
 In fact the \f[V]commodity\f[R] directive performs several functions at
@@ -3223,7 +3216,7 @@ currently it\[aq]s not possible (?)
 to declare the \[dq]no-symbol\[dq] commodity with a directive.
 This is one exception for convenience: zero amounts are always allowed
 to have no commodity symbol.
-.SS Decimal mark
+.SS \f[V]decimal-mark\f[R] directive
 .PP
 You can use a \f[V]decimal-mark\f[R] directive - usually one per file,
 at the top of the file - to declare which character represents a decimal
@@ -3247,7 +3240,7 @@ decimal-mark ,
 This prevents any ambiguity when parsing numbers in the file, so we
 recommend it, especially if the file contains digit group marks (eg
 thousands separators).
-.SS Include files
+.SS \f[V]include\f[R] directive
 .PP
 You can pull in the content of additional files by writing an include
 directive, like this:
@@ -3278,12 +3271,14 @@ including directories, but this can be done, eg:
 The path may also be prefixed to force a specific file format,
 overriding the file extension (as described in hledger.1 -> Input
 files): \f[V]include timedot:\[ti]/notes/2020*.md\f[R].
-.SS Market prices
+.SS \f[V]P\f[R] directive
 .PP
 The \f[V]P\f[R] directive declares a market price, which is a conversion
 rate between two commodities on a certain date.
-These are often obtained from a stock exchange, cryptocurrency exchange,
-or the foreign exchange market.
+This allows value reports to convert amounts of one commodity to their
+value in another, on or after that date.
+These prices are often obtained from a stock exchange, cryptocurrency
+exchange, the or foreign exchange market.
 .PP
 The format is:
 .IP
@@ -3312,10 +3307,12 @@ The \f[V]-V\f[R], \f[V]-X\f[R] and \f[V]--value\f[R] flags use these
 market prices to show amount values in another commodity.
 See Valuation.
 .PP
-.SS Payees
+.SS \f[V]payee\f[R] directive
 .PP
-The \f[V]payee\f[R] directive can be used to declare a limited set of
-payees which may appear in transaction descriptions.
+\f[V]payee PAYEE NAME\f[R]
+.PP
+This directive can be used to declare a limited set of payees which may
+appear in transaction descriptions.
 The \[dq]payees\[dq] check will report an error if any transaction
 refers to a payee that has not been declared.
 Eg:
@@ -3327,11 +3324,34 @@ payee Whole Foods
 .fi
 .PP
 Any indented subdirectives are currently ignored.
+.SS \f[V]tag\f[R] directive
+.PP
+\f[V]tag TAGNAME\f[R]
+.PP
+This directive can be used to declare a limited set of tag names allowed
+in tags.
+TAGNAME should be a valid tag name (no spaces).
+Eg:
+.IP
+.nf
+\f[C]
+tag  item-id
+\f[R]
+.fi
+.PP
+Any indented subdirectives are currently ignored.
+.PP
+The \[dq]tags\[dq] check will report an error if any undeclared tag name
+is used.
+It is quite easy to accidentally create a tag through normal use of
+colons in comments(#comments]; if you want to prevent this, you can
+declare and check your tags .
 .SS Periodic transactions
 .PP
-Periodic transaction rules describe transactions that recur.
-They allow hledger to generate temporary future transactions (visible
-only in reports) to help with forecasting or budgeting.
+The \f[V]\[ti]\f[R] directive declares recurring transactions.
+Such directives allow hledger to generate temporary future transactions
+(visible in reports, not in the journal file) to help with forecasting
+or budgeting.
 .PP
 Periodic transactions can be a little tricky, so before you use them,
 read this whole section, or at least these tips:
@@ -3374,16 +3394,22 @@ wave.):
 .IP
 .nf
 \f[C]
+# every first of month
 \[ti] monthly
     expenses:rent          $2000
+    assets:bank:checking
+
+# every 15th of month in 2023\[aq]s first quarter:
+\[ti] monthly from 2023-04-15 to 2023-06-16
+    expenses:utilities          $400
     assets:bank:checking
 \f[R]
 .fi
 .PP
-There is an additional constraint on the period expression: the start
-date must fall on a natural boundary of the interval.
-Eg \f[V]monthly from 2018/1/1\f[R] is valid, but
-\f[V]monthly from 2018/1/15\f[R] is not.
+The period expression is the same syntax used for specifying
+multi-period reports, just interpreted differently; there, it specifies
+report periods; here it specifies recurrence dates (the periods\[aq]
+start dates).
 .SS Periodic rules and relative dates
 .PP
 Partial or relative dates (like \f[V]12/31\f[R], \f[V]25\f[R],
@@ -3437,10 +3463,10 @@ less important or even not recommended for most users.
 Downsides are mentioned to help you decide if you want to use them.
 .SS Auto postings
 .PP
-\[dq]Automated postings\[dq] or \[dq]auto postings\[dq] are extra
-postings which get added automatically to transactions which match
-certain queries, defined by \[dq]auto posting rules\[dq], when you use
-the \f[V]--auto\f[R] flag.
+The \f[V]=\f[R] directive declares a rule for automatically adding
+temporary extra postings (visible in reports, not in the journal file)
+to all transactions matched by a certain query, when you use the
+\f[V]--auto\f[R] flag.
 .PP
 Downsides: depending on generated data for your reports makes your
 financial data less portable, less future-proof, and less trustworthy in
@@ -3649,21 +3675,22 @@ infers its year from DATE.
 Downsides: another syntax to learn, redundant with hledger\[aq]s
 \f[V]date:\f[R]/\f[V]date2:\f[R] tags, and confusingly similar to
 Ledger\[aq]s lot date syntax.
-.SS Default commodity
+.SS \f[V]D\f[R] directive
 .PP
-The \f[V]D\f[R] directive sets a default commodity, to be used for any
-subsequent commodityless amounts (ie, plain numbers) seen while parsing
-the journal.
+\f[V]D AMOUNT\f[R]
+.PP
+This directive sets a default commodity, to be used for any subsequent
+commodityless amounts (ie, plain numbers) seen while parsing the
+journal.
 This effect lasts until the next \f[V]D\f[R] directive, or the end of
 the journal.
 .PP
 For compatibility/historical reasons, \f[V]D\f[R] also acts like a
 \f[V]commodity\f[R] directive (setting the commodity\[aq]s decimal mark
 for parsing and display style for output).
-.PP
-The syntax is \f[V]D AMOUNT\f[R].
-As with \f[V]commodity\f[R], the amount must include a decimal mark
-(either period or comma).
+So its argument is not just a commodity symbol, but a full amount
+demonstrating the style.
+The amount must include a decimal mark (either period or comma).
 Eg:
 .IP
 .nf
@@ -3678,27 +3705,31 @@ D $1,000.00
 \f[R]
 .fi
 .PP
-If both \f[V]commodity\f[R] and \f[V]D\f[R] directives are found for a
-commodity, \f[V]commodity\f[R] takes precedence for setting decimal mark
-and display style.
+Interactions with other directives:
 .PP
-If you are using \f[V]D\f[R] and also checking commodities, you will
-need to add a \f[V]commodity\f[R] directive similar to the \f[V]D\f[R].
-(The \f[V]hledger check commodities\f[R] command expects
-\f[V]commodity\f[R] directives, and ignores \f[V]D\f[R]).
+For setting a commodity\[aq]s display style, a \f[V]commodity\f[R]
+directive has highest priority, then a \f[V]D\f[R] directive.
+.PP
+For detecting a commodity\[aq]s decimal mark during parsing,
+\f[V]decimal-mark\f[R] has highest priority, then \f[V]commodity\f[R],
+then \f[V]D\f[R].
+.PP
+For checking commodity symbols with the check command, a
+\f[V]commodity\f[R] directive is required
+(\f[V]hledger check commodities\f[R] ignores \f[V]D\f[R] directives).
 .PP
 Downsides: omitting commodity symbols makes your financial data less
 explicit, less portable, and less trustworthy in an audit.
 It is usually an unsustainable shortcut; sooner or later you will want
 to track multiple commodities.
 D is overloaded with functions redundant with \f[V]commodity\f[R] and
-\f[V]decimal mark\f[R].
+\f[V]decimal-mark\f[R].
 And it works differently from Ledger\[aq]s \f[V]D\f[R].
-.SS Default parent account
+.SS \f[V]apply account\f[R] directive
 .PP
-The \f[V]apply account\f[R] directive sets a parent account which will
-be prepended to all accounts in following entries, until an
-\f[V]end apply account\f[R] directive or end of current file.
+This directive sets a default parent account, which will be prepended to
+all accounts in following entries, until an \f[V]end apply account\f[R]
+directive or end of current file.
 Eg:
 .IP
 .nf
@@ -3733,12 +3764,17 @@ prepended.
 .PP
 Downsides: this can make your financial data less explicit, less
 portable, and less trustworthy in an audit.
-.SS Default year
+.SS \f[V]Y\f[R] directive
 .PP
-You can set a default year to be used for subsequent dates which
-don\[aq]t specify a year.
-This is a line beginning with \f[V]Y\f[R] (or \f[V]year\f[R] or
-\f[V]apply year\f[R]) followed by the year.
+\f[V]Y YEAR\f[R]
+.PP
+or (deprecated backward-compatible forms):
+.PP
+\f[V]year YEAR\f[R] \f[V]apply year YEAR\f[R]
+.PP
+The space is optional.
+This sets a default year to be used for subsequent dates which don\[aq]t
+specify a year.
 Eg:
 .IP
 .nf
@@ -5817,7 +5853,7 @@ A sample.timedot file.
 .SS Report start & end date
 .PP
 By default, most hledger reports will show the full span of time
-represented by the journal data.
+represented by the journal.
 The report start date will be the earliest transaction or posting date,
 and the report end date will be the latest transaction, posting, or
 market price date.
@@ -5843,8 +5879,8 @@ start/end dates from options and that from \f[V]date:\f[R] queries.
 That is, \f[V]date:2019-01 date:2019 -p\[aq]2000 to 2030\[aq]\f[R]
 yields January 2019, the smallest common time span.
 .IP \[bu] 2
-A report interval (see below) will adjust start/end dates, when needed,
-so that they fall on subperiod boundaries.
+In some cases a report interval will adjust start/end dates to fall on
+interval boundaries (see below).
 .PP
 Examples:
 .PP
@@ -5893,13 +5929,12 @@ T}
 .TE
 .SS Smart dates
 .PP
-hledger\[aq]s user interfaces accept a flexible \[dq]smart date\[dq]
-syntax.
-Smart dates allow some english words, can be relative to today\[aq]s
-date, and can have less-significant date parts omitted (defaulting to
-1).
-.PP
-Examples:
+hledger\[aq]s user interfaces accept a \[dq]smart date\[dq] syntax for
+added convenience.
+Smart dates optionally can be relative to today\[aq]s date, be written
+with english words, and have less-significant parts omitted (missing
+parts are inferred as 1).
+Some examples:
 .PP
 .TS
 tab(@);
@@ -5972,7 +6007,7 @@ T}@T{
 T}
 .TE
 .PP
-Counterexamples - malformed digit sequences might give surprising
+Some counterexamples - malformed digit sequences might give surprising
 results:
 .PP
 .TS
@@ -6000,19 +6035,18 @@ T}@T{
 T}
 .TE
 .PP
-Note \[dq]today\[aq]s date\[dq] can be overridden with the
-\f[V]--today\f[R] option, in case it\[aq]s needed for testing or for
-recreating old reports.
-(Except for periodic transaction rules; those are not affected by
+\[dq]Today\[aq]s date\[dq] can be overridden with the \f[V]--today\f[R]
+option, in case it\[aq]s needed for testing or for recreating old
+reports.
+(Except for periodic transaction rules, which are not affected by
 \f[V]--today\f[R].)
 .SS Report intervals
 .PP
-A report interval can be specified so that commands like register,
-balance and activity become multi-period, showing each subperiod as a
+A report interval can be specified so that reports like register,
+balance or activity become multi-period, showing each subperiod as a
 separate row or column.
 .PP
-The following \[dq]standard\[dq] report intervals can be enabled by
-using their corresponding flag:
+The following standard intervals can be enabled with command-line flags:
 .IP \[bu] 2
 \f[V]-D/--daily\f[R]
 .IP \[bu] 2
@@ -6024,50 +6058,53 @@ using their corresponding flag:
 .IP \[bu] 2
 \f[V]-Y/--yearly\f[R]
 .PP
-These standard intervals always start on natural interval boundaries: eg
-\f[V]--weekly\f[R] starts on mondays, \f[V]--monthly\f[R] starts on the
-first of the month, \f[V]--yearly\f[R] always starts on January 1st,
-etc.
+More complex intervals can be specified using \f[V]-p/--period\f[R],
+described below.
+.SS Date adjustment
 .PP
-Certain more complex intervals, and more flexible boundary dates, can be
-specified by \f[V]-p/--period\f[R].
-These are described in period expressions, below.
-.PP
-Report intervals can only be specified by the flags above, and not by
-query arguments, currently.
-.PP
-Report intervals have another effect: multi-period reports are always
-expanded to fill a whole number of subperiods.
-So if you use a report interval (other than \f[V]--daily\f[R]), and you
-have specified a start or end date, you may notice those dates being
-overridden (ie, the report starts earlier than your requested start
-date, or ends later than your requested end date).
-This is done to ensure \[dq]full\[dq] first and last subperiods, so that
-all subperiods\[aq] numbers are comparable.
-.PP
-To summarise:
+With a report interval (other than daily), report start / end dates
+which have not been specified explicitly and in full (eg not
+\f[V]-b 2023-01-01\f[R], but \f[V]-b 2023-01\f[R] or \f[V]-b 2023\f[R]
+or unspecified) are considered flexible:
 .IP \[bu] 2
-In multiperiod reports, all subperiods are forced to be the same length,
-to simplify reporting.
+A flexible start date will be automatically adjusted earlier if needed
+to fall on a natural interval boundary.
 .IP \[bu] 2
-Reports with the standard
-\f[V]--weekly\f[R]/\f[V]--monthly\f[R]/\f[V]--quarterly\f[R]/\f[V]--yearly\f[R]
-intervals are required to start on the first day of a
-week/month/quarter/year.
-We\[aq]d like more flexibility here but it isn\[aq]t supported yet.
+Similarly, a flexible end date will be adjusted later if needed to make
+the last period a whole interval (the same length as the others).
+.PP
+This is convenient for producing clean periodic reports (this is
+traditional hledger behaviour).
+By contrast, fully-specified exact dates will not be adjusted (this is
+new in hledger 1.29).
+.PP
+An example: with a journal whose first date is 2023-01-10 and last date
+is 2023-03-20:
 .IP \[bu] 2
-\f[V]--period\f[R] (below) can specify more complex intervals, starting
-on any date.
+\f[V]hledger bal -M -b 2023/1/15 -e 2023/3/10\f[R]
+.PD 0
+.P
+.PD
+The report periods will begin on the 15th day of each month, starting
+from 2023-01-15, and the last period\[aq]s last day will be 2023-03-09.
+(Exact start and end dates, neither is adjusted.)
+.IP \[bu] 2
+\f[V]hledger bal -M -b 2023-01 -e 2023-04\f[R] or
+\f[V]hledger bal -M\f[R]
+.PD 0
+.P
+.PD
+The report periods will begin on the 1st of each month, starting from
+2023-01-01, and the last period\[aq]s last day will be 2023-03-31.
+(Flexible start and end dates, both are adjusted.)
 .SS Period expressions
 .PP
-The \f[V]-p/--period\f[R] option accepts period expressions, a shorthand
-way of expressing a start date, end date, and/or report interval all at
-once.
+The \f[V]-p/--period\f[R] option specifies a period expression, which is
+a compact way of expressing a start date, end date, and/or report
+interval.
 .PP
-Here\[aq]s a basic period expression specifying the first quarter of
-2009.
-Note, hledger always treats start dates as inclusive and end dates as
-exclusive:
+Here\[aq]s a period expression with a start and end date (specifying the
+first quarter of 2009):
 .PP
 .TS
 tab(@);
@@ -6077,10 +6114,12 @@ T{
 T}
 .TE
 .PP
-Keywords like \[dq]from\[dq] and \[dq]to\[dq] are optional, and so are
-the spaces, as long as you don\[aq]t run two dates together.
+Several keywords like \[dq]from\[dq] and \[dq]to\[dq] are supported for
+readability; these are optional.
 \[dq]to\[dq] can also be written as \[dq]..\[dq] or \[dq]-\[dq].
-These are equivalent to the above:
+The spaces are also optional, as long as you don\[aq]t run two dates
+together.
+So the following are equivalent to the above:
 .PP
 .TS
 tab(@);
@@ -6096,8 +6135,8 @@ T{
 T}
 .TE
 .PP
-Dates are smart dates, so if the current year is 2009, the above can
-also be written as:
+Dates are smart dates, so if the current year is 2009, these are also
+equivalent to the above:
 .PP
 .TS
 tab(@);
@@ -6106,7 +6145,7 @@ T{
 \f[V]-p \[dq]1/1 4/1\[dq]\f[R]
 T}
 T{
-\f[V]-p \[dq]january-apr\[dq]\f[R]
+\f[V]-p \[dq]jan-apr\[dq]\f[R]
 T}
 T{
 \f[V]-p \[dq]this year to 4/1\[dq]\f[R]
@@ -6114,7 +6153,7 @@ T}
 .TE
 .PP
 If you specify only one date, the missing start or end date will be the
-earliest or latest transaction in your journal:
+earliest or latest transaction date in the journal:
 .PP
 .TS
 tab(@);
@@ -6141,12 +6180,11 @@ everything before january 1, 2009
 T}
 .TE
 .PP
-A single date with no \[dq]from\[dq] or \[dq]to\[dq] defines both the
-start and end date like so:
+You can also specify a period by writing a single partial or full date:
 .PP
 .TS
 tab(@);
-lw(15.3n) lw(54.7n).
+lw(14.5n) lw(55.5n).
 T{
 \f[V]-p \[dq]2009\[dq]\f[R]
 T}@T{
@@ -6155,16 +6193,16 @@ T}
 T{
 \f[V]-p \[dq]2009/1\[dq]\f[R]
 T}@T{
-the month of jan; equivalent to \[lq]2009/1/1 to 2009/2/1\[rq]
+the month of january 2009; equivalent to \[lq]2009/1/1 to 2009/2/1\[rq]
 T}
 T{
 \f[V]-p \[dq]2009/1/1\[dq]\f[R]
 T}@T{
-just that day; equivalent to \[lq]2009/1/1 to 2009/1/2\[rq]
+the first day of 2009; equivalent to \[lq]2009/1/1 to 2009/1/2\[rq]
 T}
 .TE
 .PP
-Or you can specify a single quarter like so:
+or by using the \[dq]Q\[dq] quarter-year syntax (case insensitive):
 .PP
 .TS
 tab(@);
@@ -6182,14 +6220,8 @@ T}
 .TE
 .SS Period expressions with a report interval
 .PP
-\f[V]-p/--period\f[R]\[aq]s argument can also begin with, or entirely
-consist of, a report interval.
-This should be separated from the start/end dates (if any) by a space,
-or the word \f[V]in\f[R].
-The basic intervals (which can also be written as command line flags)
-are \f[V]daily\f[R], \f[V]weekly\f[R], \f[V]monthly\f[R],
-\f[V]quarterly\f[R], and \f[V]yearly\f[R].
-Some examples:
+A period expression can also begin with a report interval, separated
+from the start/end dates (if any) by a space or the word \f[V]in\f[R]:
 .PP
 .TS
 tab(@);
@@ -6204,84 +6236,22 @@ T{
 \f[V]-p \[dq]quarterly\[dq]\f[R]
 T}
 .TE
-.PP
-As mentioned above, the \f[V]weekly\f[R], \f[V]monthly\f[R],
-\f[V]quarterly\f[R] and \f[V]yearly\f[R] intervals require a report
-start date that is the first day of a week, month, quarter or year.
-And, report start/end dates will be expanded if needed to span a whole
-number of intervals.
-.PP
-For example:
-.PP
-.TS
-tab(@);
-lw(25.5n) lw(44.5n).
-T{
-\f[V]-p \[dq]weekly from 2009/1/1 to 2009/4/1\[dq]\f[R]
-T}@T{
-starts on 2008/12/29, closest preceding Monday
-T}
-T{
-\f[V]-p \[dq]monthly in 2008/11/25\[dq]\f[R]
-T}@T{
-starts on 2018/11/01
-T}
-T{
-\f[V]-p \[dq]quarterly from 2009-05-05 to 2009-06-01\[dq]\f[R]
-T}@T{
-starts on 2009/04/01, ends on 2009/06/30, which are first and last days
-of Q2 2009
-T}
-T{
-\f[V]-p \[dq]yearly from 2009-12-29\[dq]\f[R]
-T}@T{
-starts on 2009/01/01, first day of 2009
-T}
-.TE
 .SS More complex report intervals
 .PP
-Some more complex kinds of interval are also supported in period
-expressions:
+Some more complex intervals can be specified within period expressions,
+such as:
 .IP \[bu] 2
-\f[V]biweekly\f[R]
+\f[V]biweekly\f[R] (every two weeks)
 .IP \[bu] 2
 \f[V]fortnightly\f[R]
 .IP \[bu] 2
-\f[V]bimonthly\f[R]
+\f[V]bimonthly\f[R] (every two months)
 .IP \[bu] 2
 \f[V]every day|week|month|quarter|year\f[R]
 .IP \[bu] 2
 \f[V]every N days|weeks|months|quarters|years\f[R]
 .PP
-These too will cause report start/end dates to be expanded, if needed,
-to span a whole number of intervals.
-Examples:
-.PP
-.TS
-tab(@);
-lw(26.0n) lw(44.0n).
-T{
-\f[V]-p \[dq]bimonthly from 2008\[dq]\f[R]
-T}@T{
-periods will have boundaries on 2008/01/01, 2008/03/01, ...
-T}
-T{
-\f[V]-p \[dq]every 2 weeks\[dq]\f[R]
-T}@T{
-starts on closest preceding Monday
-T}
-T{
-\f[V]-p \[dq]every 5 months from 2009/03\[dq]\f[R]
-T}@T{
-periods will have boundaries on 2009/03/01, 2009/08/01, ...
-T}
-.TE
-.SS Intervals with custom start date
-.PP
-All intervals mentioned above are required to start on their natural
-calendar boundaries, but the following intervals can start on any date:
-.PP
-Weekly on custom day:
+Weekly on a custom day:
 .IP \[bu] 2
 \f[V]every Nth day of week\f[R] (\f[V]th\f[R], \f[V]nd\f[R],
 \f[V]rd\f[R], or \f[V]st\f[R] are all accepted after the number)
@@ -6289,13 +6259,13 @@ Weekly on custom day:
 \f[V]every WEEKDAYNAME\f[R] (full or three-letter english weekday name,
 case insensitive)
 .PP
-Monthly on custom day:
+Monthly on a custom day:
 .IP \[bu] 2
 \f[V]every Nth day [of month]\f[R]
 .IP \[bu] 2
 \f[V]every Nth WEEKDAYNAME [of month]\f[R]
 .PP
-Yearly on custom day:
+Yearly on a custom day:
 .IP \[bu] 2
 \f[V]every MM/DD [of year]\f[R] (month number and day of month number)
 .IP \[bu] 2
@@ -6308,7 +6278,19 @@ Examples:
 .PP
 .TS
 tab(@);
-lw(23.9n) lw(46.1n).
+lw(26.8n) lw(43.2n).
+T{
+\f[V]-p \[dq]bimonthly from 2008\[dq]\f[R]
+T}@T{
+T}
+T{
+\f[V]-p \[dq]every 2 weeks\[dq]\f[R]
+T}@T{
+T}
+T{
+\f[V]-p \[dq]every 5 months from 2009/03\[dq]\f[R]
+T}@T{
+T}
 T{
 \f[V]-p \[dq]every 2nd day of week\[dq]\f[R]
 T}@T{
@@ -6363,31 +6345,21 @@ tuesday (N is both (inclusive) start date and (exclusive) end date):
 $ hledger register checking -p \[dq]every 3rd day of week\[dq]
 \f[R]
 .fi
-.SS Periods or dates ?
+.SS Multiple weekday intervals
 .PP
-Report intervals like the above are most often used with
-\f[V]-p|--period\f[R], to divide reports into multiple subperiods - each
-generated date marks a subperiod boundary.
-Here, the periods between the dates are what\[aq]s important.
+This special form is also supported:
+.IP \[bu] 2
+\f[V]every WEEKDAYNAME,WEEKDAYNAME,...\f[R] (full or three-letter
+english weekday names, case insensitive)
 .PP
-But report intervals can also be used with \f[V]--forecast\f[R] to
-generate future transactions, or with \f[V]balance --budget\f[R] to
-generate budget goal-setting transactions.
-For these, the dates themselves are what matters.
-.SS Events on multiple weekdays
-.PP
-The \f[V]every WEEKDAYNAME\f[R] form has a special variant with multiple
-day names, comma-separated.
-Eg: \f[V]every mon,thu,sat\f[R].
 Also, \f[V]weekday\f[R] and \f[V]weekendday\f[R] are shorthand for
-\f[V]mon,tue,wed,thu,fri\f[R] and \f[V]sat,sun\f[R] respectively.
+\f[V]mon,tue,wed,thu,fri\f[R] and \f[V]sat,sun\f[R].
 .PP
-This form is mainly intended for use with \f[V]--forecast\f[R], to
-generate periodic transactions on arbitrary days of the week.
+This is mainly intended for use with \f[V]--forecast\f[R], to generate
+periodic transactions on arbitrary days of the week.
 It may be less useful with \f[V]-p\f[R], since it divides each week into
-subperiods of unequal length.
-(Because gaps between periods are not allowed; if you\[aq]d like to
-change this, see #1632.)
+subperiods of unequal length, which is unusual.
+(Related: #1632)
 .PP
 Examples:
 .PP
@@ -6659,11 +6631,6 @@ Some queries can also be expressed as command-line options:
 \f[V]date:2020\f[R] is equivalent to \f[V]-p 2020\f[R], etc.
 When you mix command options and query arguments, generally the
 resulting query is their intersection.
-.SS Queries and account aliases
-.PP
-When account names are rewritten with \f[V]--alias\f[R] or
-\f[V]alias\f[R], \f[V]acct:\f[R] will match either the old or the new
-account name.
 .SS Queries and valuation
 .PP
 When amounts are converted to other commodities in cost or value
@@ -6956,14 +6923,16 @@ cost reporting more difficult for PTA tools.
 .PP
 Happily, current hledger can read either notation, or convert one to the
 other when needed, so you can use the one you prefer.
+.PP
+You can even use cost notation and equivalent conversion postings at the
+same time, for clarity.
+hledger will ignore the redundancy.
+But be sure the cost and conversion posting amounts match, or you\[aq]ll
+see a not-so-clear transaction balancing error message.
 .SS Inferring equity postings from cost
 .PP
 With \f[V]--infer-equity\f[R], hledger detects transactions written with
-PTA cost notation and adds equity conversion postings to them (and
-temporarily permits the coexistence of equity conversion postings and
-cost notation, which normally would cause an unbalanced transaction
-error).
-Eg:
+PTA cost notation and adds equity conversion postings to them:
 .IP
 .nf
 \f[C]
@@ -6995,9 +6964,7 @@ for sharing with non-PTA-users.
 .PP
 The reverse operation is possible using \f[V]--infer-costs\f[R], which
 detects transactions written with equity conversion postings and adds
-PTA cost notation to them (and temporarily permits the coexistence of
-equity conversion postings and cost notation).
-Eg:
+cost notation to them:
 .IP
 .nf
 \f[C]
@@ -7048,20 +7015,15 @@ be named \f[V]equity:conversion\f[R], \f[V]equity:trade\f[R],
 \f[V]equity:trading\f[R] or subaccounts of these)
 .IP "4." 3
 the equity postings\[aq] amounts must exactly match the non-equity
-postings\[aq] amounts
-.IP "5." 3
-all of the amounts must be explicit, with none missing
+postings\[aq] amounts.
 .PP
-Multiple such exchanges can coexist within a single transaction, should
-you need that.
+Multiple such exchanges can coexist within a single transaction.
 .PP
 When inferring cost, the order of postings matters: the cost is added to
 the first of the non-equity postings involved in the exchange, in the
 commodity of the last non-equity posting involved in the exchange.
-If you don\[aq]t want to write your postings in the required order, the
-alternative is not to infer cost; instead, use explicit cost notation,
-omitting the equity postings, inferring them later with --infer-equity
-if needed.
+If you don\[aq]t want to write your postings in the required order, you
+can use explicit cost notation instead.
 .PP
 --infer-equity and --infer-costs can be used together, if you have a
 mixture of both notations in your journal.
@@ -7184,8 +7146,6 @@ Cost reporting requires adding the --infer-costs flag
 .SS Conversion with equity postings and explicit cost
 .PP
 Here both equity postings and \[at] notation are used together.
-hledger will usually complain about this redundancy, but when using the
---infer-costs flag it is accepted.
 .IP
 .nf
 \f[C]
@@ -7211,27 +7171,26 @@ Con:
 .IP \[bu] 2
 Most verbose
 .IP \[bu] 2
-Requires the --infer-costs flag
-.IP \[bu] 2
 Not compatible with ledger
 .SS Cost tips
 .IP \[bu] 2
-Recording the conversion rate explicitly is good because it makes that
-clear and helps detect errors.
+Recording the cost/conversion rate explicitly is good because it makes
+that clear and helps detect errors.
 .IP \[bu] 2
 Recording equity postings is good because it is correct bookkeeping and
 preserves the accounting equation.
 .IP \[bu] 2
-Combining these is possible by using the --infer-costs flag (which
-requires well-ordered postings).
+Combining these is possible.
 .IP \[bu] 2
 When you want to see the cost (or sale proceeds) of things, use
-\f[V]-B\f[R] (or \f[V]--cost\f[R]).
-If you use equity conversion postings notation, use
-\f[V]-B --infer-costs\f[R].
+\f[V]-B\f[R] (short form of \f[V]--cost\f[R]).
 .IP \[bu] 2
-If you use PTA cost notation, and you want to see a balanced balance
-sheet or print correct journal entries, use \f[V]--infer-equity\f[R].
+If you use conversion postings without cost notation, add
+\f[V]--infer-costs\f[R] also.
+.IP \[bu] 2
+If you use cost notation without conversion postings, and you want to
+see a balanced balance sheet or print correct journal entries, use
+\f[V]--infer-equity\f[R].
 .IP \[bu] 2
 Conversion to cost is performed before valuation (described next).
 .SH Valuation
@@ -8035,49 +7994,51 @@ a flag (-D/-W/-M/-Q/-Y) or period expression that activates the
 report\[aq]s multi-period mode (whether showing one or many subperiods).
 .SH PART 4: COMMANDS
 .PP
-Here are the built-in commands, with the most often-used in bold:
-.PP
-\f[B]Data entry:\f[R]
+Here are the built-in commands:
+.SS DATA ENTRY
 .PP
 These data entry commands are the only ones which can modify your
 journal file.
 .IP \[bu] 2
-\f[B]add\f[R] - add transactions using guided prompts
+add - add transactions using guided prompts
 .IP \[bu] 2
-\f[B]import\f[R] - add any new transactions from other files (eg csv)
-.PP
-\f[B]Data management:\f[R]
+import - add any new transactions from other files (eg csv)
+.SS DATA CREATION
+.IP \[bu] 2
+close - generate balance-resetting transactions
+.IP \[bu] 2
+rewrite - generate extra postings, similar to print --auto
+.SS DATA MANAGEMENT
 .IP \[bu] 2
 check - check for various kinds of issue in the data
 .IP \[bu] 2
-close (equity) - generate balance-resetting transactions
-.IP \[bu] 2
 diff - compare account transactions in two journal files
+.SS REPORTS, FINANCIAL
 .IP \[bu] 2
-rewrite - generate extra postings, similar to print --auto
-.PP
-\f[B]Financial statements:\f[R]
+aregister (areg) - show transactions in a particular account
 .IP \[bu] 2
-\f[B]aregister (areg)\f[R] - show transactions in a particular account
-.IP \[bu] 2
-\f[B]balancesheet (bs)\f[R] - show assets, liabilities and net worth
+balancesheet (bs) - show assets, liabilities and net worth
 .IP \[bu] 2
 balancesheetequity (bse) - show assets, liabilities and equity
 .IP \[bu] 2
 cashflow (cf) - show changes in liquid assets
 .IP \[bu] 2
-\f[B]incomestatement (is)\f[R] - show revenues and expenses
+incomestatement (is) - show revenues and expenses
+.SS REPORTS, VERSATILE
+.IP \[bu] 2
+balance (bal) - show balance changes/end balances/budgets in any
+accounts
+.IP \[bu] 2
+print - show transactions (journal entries)
+.IP \[bu] 2
+register (reg) - show postings in one or more accounts & running total
 .IP \[bu] 2
 roi - show return on investments
-.PP
-\f[B]Miscellaneous reports:\f[R]
+.SS REPORTS, BASIC
 .IP \[bu] 2
 accounts - show account names
 .IP \[bu] 2
 activity - show postings-per-interval bar charts
-.IP \[bu] 2
-\f[B]balance (bal)\f[R] - show balance changes/end balances/budgets in
-any accounts
 .IP \[bu] 2
 codes - show transaction codes
 .IP \[bu] 2
@@ -8087,49 +8048,44 @@ descriptions - show unique transaction descriptions
 .IP \[bu] 2
 files - show input file paths
 .IP \[bu] 2
-help - show hledger user manuals in several formats
-.IP \[bu] 2
 notes - show unique note segments of transaction descriptions
 .IP \[bu] 2
 payees - show unique payee segments of transaction descriptions
 .IP \[bu] 2
 prices - show market price records
 .IP \[bu] 2
-\f[B]print\f[R] - show transactions (journal entries)
-.IP \[bu] 2
-\f[B]register (reg)\f[R] - show postings in one or more accounts &
-running total
-.IP \[bu] 2
 stats - show journal statistics
 .IP \[bu] 2
 tags - show tag names
 .IP \[bu] 2
 test - run self tests
+.SS HELP
+.IP \[bu] 2
+help - show hledger user manuals in several formats
 .PP
+.SS ADD-ONS
 .PP
-And here are some typical add-on commands installed by the
-hledger-install script.
-If installed, these will also appear in hledger\[aq]s commands list,
-with a \f[V]+\f[R] mark:
+And here are some typical add-on commands.
+Some of these are installed by the hledger-install script.
+If installed, they will appear in hledger\[aq]s commands list:
 .IP \[bu] 2
-\f[B]ui\f[R] - hledger\[aq]s official curses-style TUI
+ui - hledger\[aq]s official terminal UI
 .IP \[bu] 2
-\f[B]web\f[R] - hledger\[aq]s official web UI
+web - hledger\[aq]s official web UI
 .IP \[bu] 2
-iadd - a popular alternative to hledger\[aq]s \f[V]add\f[R] command.
+iadd - an alternative to hledger\[aq]s \f[V]add\f[R] command (currently
+hard to build)
 .IP \[bu] 2
 interest - generates interest transactions
 .IP \[bu] 2
-stockquotes - downloads market prices.
-\f[I](Alpha quality, needs your help.)\f[R]
+stockquotes - downloads market prices
+.IP \[bu] 2
+Scripts and add-ons - check-fancyassertions, edit, fifo, git, move,
+pijul, plot, and more..
 .PP
 Next, each command is described in detail, in alphabetical order.
 .SS accounts
 .PP
-accounts
-.PD 0
-.P
-.PD
 Show account names.
 .PP
 This command lists account names.
@@ -8197,10 +8153,6 @@ $ hledger check accounts
 .fi
 .SS activity
 .PP
-activity
-.PD 0
-.P
-.PD
 Show an ascii barchart of posting counts per interval.
 .PP
 The activity command displays an ascii histogram showing transaction
@@ -8221,10 +8173,6 @@ $ hledger activity --quarterly
 .fi
 .SS add
 .PP
-add
-.PD 0
-.P
-.PD
 Prompt for transactions and add them to the journal.
 Any arguments will be used as default inputs for the first N prompts.
 .PP
@@ -8305,10 +8253,7 @@ On Microsoft Windows, the add command makes sure that no part of the
 file path ends with a period, as that would cause problems (#1056).
 .SS aregister
 .PP
-aregister, areg
-.PD 0
-.P
-.PD
+(areg)
 .PP
 Show the transactions and running historical balance of a single
 account, with each transaction displayed as one line.
@@ -8398,10 +8343,8 @@ If you use this flag and some of your postings have custom dates,
 it\[aq]s probably best to assume the running balance is wrong.
 .SS balance
 .PP
-balance, bal
-.PD 0
-.P
-.PD
+(bal)
+.PP
 Show accounts and their balances.
 .PP
 \f[V]balance\f[R] is one of hledger\[aq]s oldest and most versatile
@@ -9169,6 +9112,27 @@ Budget performance in 2017/11/01-2017/12/31:
 \f[R]
 .fi
 .PP
+It\[aq]s common to limit budgets/budget reports to just expenses
+.IP
+.nf
+\f[C]
+hledger bal -M --budget expenses
+\f[R]
+.fi
+.PP
+or just revenues and expenses (eg, using account types):
+.IP
+.nf
+\f[C]
+hledger bal -M --budget type:rx
+\f[R]
+.fi
+.PP
+It\[aq]s also common to limit or convert them to a single currency
+(\f[V]cur:COMM\f[R] or \f[V]-X COMM [--infer-market-prices]\f[R]).
+If showing multiple currencies, \f[V]--layout bare\f[R] or
+\f[V]--layout tall\f[R] can help.
+.PP
 For more examples and notes, see Budgeting.
 .SS Budget report start date
 .PP
@@ -9330,8 +9294,8 @@ Budget performance in 2019/01:
 The budget report evaluates periodic transaction rules to generate
 special \[dq]goal transactions\[dq], which generate the goal amounts for
 each account in each report subperiod.
-When troubleshooting, you can use the print command to show these as
-forecasted transactions:
+When troubleshooting, you can use \f[V]print --forecast\f[R] to show
+these as forecasted transactions:
 .IP
 .nf
 \f[C]
@@ -9353,6 +9317,63 @@ regular expression or query).
 This means you can give your periodic rules descriptions (remember that
 two spaces are needed), and then select from multiple budgets defined in
 your journal.
+.SS Budget vs forecast
+.PP
+\f[V]hledger --forecast ...\f[R] and
+\f[V]hledger balance --budget ...\f[R] are separate features, though
+both of them use the periodic transaction rules defined in the journal,
+and both of them generate temporary transactions for reporting purposes
+(\[dq]forecast transactions\[dq] and \[dq]budget goal transactions\[dq],
+respectively).
+You can use both features at the same time if you want.
+Here are some differences between them, as of hledger 1.29:
+.PP
+CLI:
+.IP \[bu] 2
+--forecast is a general hledger option, usable with any command
+.IP \[bu] 2
+--budget is a \f[V]balance\f[R] command option, usable only with that
+command.
+.PP
+Visibility of generated transactions:
+.IP \[bu] 2
+forecast transactions are visible in any report, like ordinary
+transactions
+.IP \[bu] 2
+budget goal transactions are invisible except for the goal amounts they
+produce in --budget reports.
+.PP
+Periodic transaction rules:
+.IP \[bu] 2
+--forecast uses all available periodic transaction rules
+.IP \[bu] 2
+--budget uses all periodic rules (\f[V]--budget\f[R]) or a selected
+subset (\f[V]--budget=DESCPAT\f[R])
+.PP
+Period of generated transactions:
+.IP \[bu] 2
+--forecast generates forecast transactions
+.RS 2
+.IP \[bu] 2
+from after the last regular transaction to the end of the report period
+(\f[V]--forecast\f[R])
+.IP \[bu] 2
+or, during a specified period (\f[V]--forecast=PERIODEXPR\f[R])
+.IP \[bu] 2
+possibly further restricted by a period specified in the periodic
+transaction rule
+.IP \[bu] 2
+and always restricted within the bounds of the report period
+.RE
+.IP \[bu] 2
+--budget generates budget goal transactions
+.RS 2
+.IP \[bu] 2
+throughout the report period
+.IP \[bu] 2
+possibly restricted by a period specified in the periodic transaction
+rule.
+.RE
 .SS Data layout
 .PP
 The \f[V]--layout\f[R] option affects how balance reports show
@@ -9641,10 +9662,8 @@ Show monthly change in market value of investment assets.
 Show top gainers [or losers] last week
 .SS balancesheet
 .PP
-balancesheet, bs
-.PD 0
-.P
-.PD
+(bs)
+.PP
 This command displays a balance sheet, showing historical ending
 balances of asset and liability accounts.
 (To see equity as well, use the balancesheetequity command.)
@@ -9694,10 +9713,8 @@ options The output formats supported are \f[V]txt\f[R], \f[V]csv\f[R],
 \f[V]html\f[R], and (experimental) \f[V]json\f[R].
 .SS balancesheetequity
 .PP
-balancesheetequity, bse
-.PD 0
-.P
-.PD
+(bse)
+.PP
 This command displays a balance sheet, showing historical ending
 balances of asset, liability and equity accounts.
 Amounts are shown with normal positive sign, as in conventional
@@ -9752,10 +9769,8 @@ options The output formats supported are \f[V]txt\f[R], \f[V]csv\f[R],
 \f[V]html\f[R], and (experimental) \f[V]json\f[R].
 .SS cashflow
 .PP
-cashflow, cf
-.PD 0
-.P
-.PD
+(cf)
+.PP
 This command displays a cashflow statement, showing the inflows and
 outflows affecting \[dq]cash\[dq] (ie, liquid, easily convertible)
 assets.
@@ -9811,10 +9826,6 @@ options The output formats supported are \f[V]txt\f[R], \f[V]csv\f[R],
 \f[V]html\f[R], and (experimental) \f[V]json\f[R].
 .SS check
 .PP
-check
-.PD 0
-.P
-.PD
 Check for various kinds of errors in your data.
 .PP
 hledger provides a number of built-in error checks to help prevent
@@ -9883,6 +9894,8 @@ file
 \f[B]recentassertions\f[R] - all accounts with balance assertions have a
 balance assertion no more than 7 days before their latest posting
 .IP \[bu] 2
+\f[B]tags\f[R] - all tags used by transactions have been declared
+.IP \[bu] 2
 \f[B]uniqueleafnames\f[R] - all account leaf names are unique
 .SS Custom checks
 .PP
@@ -9913,301 +9926,230 @@ use the manual-review-and-mark-cleared phase as a reminder to check the
 latest assertions against real-world balances.
 .SS close
 .PP
-close, equity
-.PD 0
-.P
-.PD
-Prints a sample \[dq]closing\[dq] transaction bringing specified account
-balances to zero, and an inverse \[dq]opening\[dq] transaction restoring
-the same account balances.
+\f[V]close [--retain | --migrate | --open] [QUERY]\f[R]
 .PP
-If like most people you split your journal files by time, eg by year: at
-the end of the year you can use this command to \[dq]close out\[dq] your
-asset and liability (and perhaps equity) balances in the old file, and
-reinitialise them in the new file.
-This helps ensure that report balances remain correct whether you are
-including old files or not.
-(Because all closing/opening transactions except the very first will
-cancel out - see example below.)
+By default: prints a transaction that zeroes out (\[dq]closes\[dq]) all
+accounts, transferring their balances to an equity account.
+Query arguments can be added to override the accounts selection.
+Three other modes are supported:
 .PP
-Some people also use this command to close out revenue and expense
-balances at the end of an accounting period.
-This properly records the period\[aq]s profit/loss as \[dq]retained
-earnings\[dq] (part of equity), and allows the accounting equation
-(A-L=E) to balance, which you could then check by the bse report\[aq]s
-zero total.
+\f[V]--retain\f[R]: prints a transaction closing revenue and expense
+balances.
+This is traditionally done by businesses at the end of each accounting
+period; it is less necessary in personal and computer-based accounting,
+but it can help balance the accounting equation A=L+E.
 .PP
-You can print just the closing transaction by using the
-\f[V]--close\f[R] flag, or just the opening transaction with the
-\f[V]--open\f[R] flag.
+\f[V]--migrate\f[R]: prints a transaction to close asset, liability and
+most equity balances, and another transaction to re-open them.
+This can be useful when starting a new file (for performance or data
+protection).
+Adding the closing transaction to the old file allows old and new files
+to be combined.
 .PP
-Their descriptions are \f[V]closing balances\f[R] and
-\f[V]opening balances\f[R] by default; you can customise these with the
-\f[V]--close-desc\f[R] and \f[V]--open-desc\f[R] options.
+\f[V]--open\f[R]: as above, but prints just the opening transaction.
+This can be useful for starting a new file, leaving the old file
+unchanged.
+Similar to Ledger\[aq]s equity command.
 .PP
-Just one balancing equity posting is used by default, with the amount
-left implicit.
-The default account name is \f[V]equity:opening/closing balances\f[R].
-You can customise the account name(s) with \f[V]--close-acct\f[R] and
-\f[V]--open-acct\f[R].
-(If you specify only one of these, it will be used for both.)
+You can change the equity account name with \f[V]--close-acct ACCT\f[R].
+It defaults to \f[V]equity:retained earnings\f[R] with
+\f[V]--retain\f[R], or \f[V]equity:opening/closing balances\f[R]
+otherwise.
 .PP
-With \f[V]--x/--explicit\f[R], the equity posting\[aq]s amount will be
-shown explicitly, and if it involves multiple commodities, there will be
-a separate equity posting for each commodity (as in the print command).
+You can change the transaction description(s) with
+\f[V]--close-desc \[aq]DESC\[aq]\f[R] and
+\f[V]--open-desc \[aq]DESC\[aq]\f[R].
+It defaults to \f[V]retain earnings\f[R] with \f[V]--retain\f[R], or
+\f[V]closing balances\f[R] and \f[V]opening balances\f[R] otherwise.
+.PP
+Just one posting to the equity account will be used by default, with an
+implicit amount.
+.PP
+With \f[V]--x/--explicit\f[R] the amount will be shown explicitly, and
+if it involves multiple commodities, a separate posting will be
+generated for each commodity.
 .PP
 With \f[V]--interleaved\f[R], each equity posting is shown next to the
-posting it balances (good for troubleshooting).
-.SS close and costs
+corresponding source/destination posting.
 .PP
-Costs are ignored (and discarded) by closing/opening transactions, by
-default.
-With \f[V]--show-costs\f[R], they are preserved; there will be a
-separate equity posting for each cost in each commodity.
-This means \f[V]balance -B\f[R] reports will look the same after the
-transition.
-Note if you have many foreign currency or investment transactions, this
-will generate very large journal entries.
-.SS close date
+The default closing date is yesterday or the journal\[aq]s end date,
+whichever is later.
+You can change this by specifying a report end date; the last day of the
+report period will be the closing date.
+Eg \f[V]-e 2022\f[R] means \[dq]close on 2022-12-31\[dq].
 .PP
 The default closing date is yesterday, or the journal\[aq]s end date,
 whichever is later.
+You can change this by specifying a report end date; (The report start
+date does not matter.)
+The last day of the report period will be the closing date; eg
+\f[V]-e 2022\f[R] means \[dq]close on 2022-12-31\[dq].
+The opening date is always the day after the closing date.
+.SS close and costs
 .PP
-Unless you are running \f[V]close\f[R] on exactly the first day of the
-new period, you\[aq]ll want to override the closing date.
-This is done by specifying a report end date, where \[dq]last day of the
-report period\[dq] will be the closing date.
-The opening date is always the following day.
-So to close on (end of) 2020-12-31 and open on (start of) 2021-01-01,
-any of these will work:
+With \f[V]--show-costs\f[R], any amount costs are shown, with separate
+postings for each cost.
+(This currently the best way to view investment assets, showing lots and
+cost bases.)
+If you have many currency conversion or investment transactions, it can
+generate very large journal entries.
+.SS close and balance assertions
 .PP
-.TS
-tab(@);
-lw(14.9n) lw(55.1n).
-T{
-end date argument
-T}@T{
-explanation
-T}
-_
-T{
-\f[V]-e 2021-01-01\f[R]
-T}@T{
-end dates are exclusive
-T}
-T{
-\f[V]-e 2021\f[R]
-T}@T{
-equivalent, per smart dates
-T}
-T{
-\f[V]-p 2020\f[R]
-T}@T{
-equivalent, the period\[aq]s begin date is ignored
-T}
-T{
-\f[V]date:2020\f[R]
-T}@T{
-equivalent query
-T}
-.TE
-.SS Example: close asset/liability accounts for file transition
+Balance assertions will be generated, verifying that the accounts have
+been reset to zero (and then restored to their previous balances, if
+there is an opening transaction).
 .PP
-Carrying asset/liability balances from 2020.journal into a new file for
-2021:
+These provide useful error checking, but you can ignore them temporarily
+with \f[V]-I\f[R], or remove them if you prefer.
+.PP
+You probably should avoid filtering transactions by status or realness
+(\f[V]-C\f[R], \f[V]-R\f[R], \f[V]status:\f[R]), or generating postings
+(\f[V]--auto\f[R]), with this command, since the balance assertions
+would depend on these.
+.PP
+Note custom posting dates spanning the file boundary will disrupt the
+balance assertions:
 .IP
 .nf
 \f[C]
-$ hledger close -f 2020.journal -p 2020 assets liabilities
-# copy/paste the closing transaction to the end of 2020.journal
-# copy/paste the opening transaction to the start of 2021.journal
+2023-12-30 a purchase made in december, cleared in january
+    expenses:food          5
+    assets:bank:checking  -5  ; date: 2023-01-02
 \f[R]
 .fi
 .PP
-Or:
+To solve that you can transfer the money to and from a temporary
+account, in effect splitting the multi-day transaction into two
+single-day transactions:
 .IP
 .nf
 \f[C]
-$ hledger close -f 2020.journal -p 2020 assets liabilities --open  >> 2021.journal  # add 2021\[aq]s first transaction
-$ hledger close -f 2020.journal -p 2020 assets liabilities --close >> 2020.journal  # add 2020\[aq]s last transaction
+; in 2022.journal:
+2022-12-30 a purchase made in december, cleared in january
+    expenses:food          5
+    equity:pending        -5
+
+; in 2023.journal:
+2023-01-02 last year\[aq]s transaction cleared
+    equity:pending         5 = 0
+    assets:bank:checking  -5
+\f[R]
+.fi
+.SS Example: retain earnings
+.PP
+Record 2022\[aq]s revenues/expenses as retained earnings on 2022-12-31,
+appending the generated transaction to the journal:
+.IP
+.nf
+\f[C]
+$ hledger close --retain -f 2022.journal -p 2022 >> 2022.journal
 \f[R]
 .fi
 .PP
-Now,
+Now 2022\[aq]s income statement will show only zeroes.
+To see it again, exclude the retain transaction.
+Eg:
 .IP
 .nf
 \f[C]
-$ hledger bs -f 2021.journal                   # just new file - balances correct
-$ hledger bs -f 2020.journal -f 2021.journal   # old and new files - balances correct
-$ hledger bs -f 2020.journal                   # just old files - balances are zero ?
-                                               # (exclude final closing txn, see below)
+$ hledger -f 2022.journal is not:desc:\[aq]retain earnings\[aq]
 \f[R]
 .fi
-.SS Hiding opening/closing transactions
+.SS Example: migrate balances to a new file
 .PP
-Although the closing/opening transactions cancel out, they will be
-visible in reports like \f[V]print\f[R] and \f[V]register\f[R], creating
-some visual clutter.
-You can exclude them all with a query, like:
+Close assets/liabilities/equity on 2022-12-31 and re-open them on
+2023-01-01:
 .IP
 .nf
 \f[C]
-$ hledger print not:desc:\[aq]opening|closing\[aq]             # less typing
-$ hledger print not:\[aq]equity:opening/closing balances\[aq]  # more precise
+$ hledger close --migrate -f 2022.journal -p 2022
+# copy/paste the closing transaction to the end of 2022.journal
+# copy/paste the opening transaction to the start of 2023.journal
 \f[R]
 .fi
 .PP
-But when reporting on multiple files, this can get a bit tricky; you may
-need to keep the earliest opening balances, for a historical register
-report; or you may need to suppress a closing transaction, to see
-year-end balances.
-If you find yourself needing more precise queries, here\[aq]s one
-solution: add more easily-matched tags to opening/closing transactions,
-like this:
+Now 2022\[aq]s balance sheet will show only zeroes, indicating a
+balanced accounting equation.
+(Unless you are using \[at]/\[at]\[at] notation - in that case, try
+adding --infer-equity.)
+To see it again, exclude the closing transaction.
+Eg:
 .IP
 .nf
 \f[C]
-; 2019.journal
-2019-01-01 opening balances  ; earliest opening txn, no tag here
-\&...
-2019-12-31 closing balances  ; clopen:2020
-\&...
+$ hledger -f 2022.journal bs not:desc:\[aq]closing balances\[aq]
 \f[R]
 .fi
-.IP
-.nf
-\f[C]
-; 2020.journal
-2020-01-01 opening balances  ; clopen:2020
-\&...
-2020-12-31 closing balances  ; clopen:2021
-\&...
-\f[R]
-.fi
+.SS Example: excluding closing/opening transactions
+.PP
+When combining many files for multi-year reports, the closing/opening
+transactions cause some noise in reports like \f[V]print\f[R] and
+\f[V]register\f[R].
+You can exclude them as shown above, but \f[V]not:desc:...\f[R] could be
+fragile, and also you will need to avoid excluding the very first
+opening transaction, which can be awkward.
+Here is a way to do it, using tags: add \f[V]clopen:\f[R] tags to all
+opening/closing balances transactions except the first, like this:
 .IP
 .nf
 \f[C]
 ; 2021.journal
-2021-01-01 opening balances  ; clopen:2021
+2021-06-01 first opening balances
+\&...
+2021-12-31 closing balances  ; clopen:2022
+\&...
+\f[R]
+.fi
+.IP
+.nf
+\f[C]
+; 2022.journal
+2022-01-01 opening balances  ; clopen:2022
+\&...
+2022-12-31 closing balances  ; clopen:2023
+\&...
+\f[R]
+.fi
+.IP
+.nf
+\f[C]
+; 2023.journal
+2023-01-01 opening balances  ; clopen:2023
 \&...
 \f[R]
 .fi
 .PP
-Now with
+Now, assuming a combined journal like:
 .IP
 .nf
 \f[C]
 ; all.journal
-include 2019.journal
-include 2020.journal
 include 2021.journal
+include 2022.journal
+include 2023.journal
 \f[R]
 .fi
 .PP
-you could do eg:
+The \f[V]clopen:\f[R] tag can exclude all but the first opening
+transaction.
+To show a clean multi-year checking register:
 .IP
 .nf
 \f[C]
-$ hledger -f all.journal reg -H checking not:tag:clopen
-    # all years checking register, hiding non-essential opening/closing txns
-
-$ hledger -f all.journal bs -p 2020 not:tag:clopen=2020
-    # 2020 year end balances, suppressing 2020 closing txn
-\f[R]
-.fi
-.SS close and balance assertions
-.PP
-The closing and opening transactions will include balance assertions,
-verifying that the accounts have first been reset to zero and then
-restored to their previous balance.
-These provide valuable error checking, alerting you when things get out
-of line, but you can ignore them temporarily with \f[V]-I\f[R] or just
-remove them if you prefer.
-.PP
-You probably shouldn\[aq]t use status or realness filters (like -C or -R
-or \f[V]status:\f[R]) with \f[V]close\f[R], or the generated balance
-assertions will depend on these flags.
-Likewise, if you run this command with \f[V]--auto\f[R], the balance
-assertions would probably always require \f[V]--auto\f[R].
-.PP
-Multi-day transactions (where some postings have a different date) break
-the balance assertions, because the money is temporarily
-\[dq]invisible\[dq] while in transit:
-.IP
-.nf
-\f[C]
-2020/12/30 a purchase made in december, cleared in the next year
-    expenses:food          5
-    assets:bank:checking  -5  ; date: 2021/1/2
+$ hledger -f all.journal areg checking not:tag:clopen
 \f[R]
 .fi
 .PP
-To fix the assertions, you can add a temporary account to track such
-in-transit money (splitting the multi-day transaction into two
-single-day transactions):
+And the year values allow more precision.
+To show 2022\[aq]s year-end balance sheet:
 .IP
 .nf
 \f[C]
-; in 2020.journal:
-2020/12/30 a purchase made in december, cleared in the next year
-    expenses:food          5
-    liabilities:pending
-
-; in 2021.journal:
-2021/1/2 clearance of last year\[aq]s pending transactions
-    liabilities:pending    5 = 0
-    assets:bank:checking
-\f[R]
-.fi
-.SS Example: close revenue/expense accounts to retained earnings
-.PP
-For this, use \f[V]--close\f[R] to suppress the opening transaction, as
-it\[aq]s not needed.
-Also you\[aq]ll want to change the equity account name to your
-equivalent of \[dq]equity:retained earnings\[dq].
-.PP
-Closing 2021\[aq]s first quarter revenues/expenses:
-.IP
-.nf
-\f[C]
-$ hledger close -f 2021.journal --close revenues expenses -p 2021Q1 \[rs]
-    --close-acct=\[aq]equity:retained earnings\[aq] >> 2021.journal
-\f[R]
-.fi
-.PP
-The same, using the default journal and current year:
-.IP
-.nf
-\f[C]
-$ hledger close --close revenues expenses -p Q1 \[rs]
-    --close-acct=\[aq]equity:retained earnings\[aq] >> $LEDGER_FILE
-\f[R]
-.fi
-.PP
-Now, the first quarter\[aq]s balance sheet should show a zero (unless
-you are using \[at]/\[at]\[at] notation without equity postings):
-.IP
-.nf
-\f[C]
-$ hledger bse -p Q1
-\f[R]
-.fi
-.PP
-And we must suppress the closing transaction to see the first
-quarter\[aq]s income statement (using the description;
-\f[V]not:\[aq]retained earnings\[aq]\f[R] won\[aq]t work here):
-.IP
-.nf
-\f[C]
-$ hledger is -p Q1 not:desc:\[aq]closing balances\[aq]
+$ hledger -f all.journal bs -e2023 not:tag:clopen=2023
 \f[R]
 .fi
 .SS codes
 .PP
-codes
-.PD 0
-.P
-.PD
 List the codes seen in transactions, in the order parsed.
 .PP
 This command prints the value of each transaction\[aq]s code field, in
@@ -10265,17 +10207,9 @@ $ hledger codes -E
 .fi
 .SS commodities
 .PP
-commodities
-.PD 0
-.P
-.PD
 List all commodity/currency symbols used or declared in the journal.
 .SS descriptions
 .PP
-descriptions
-.PD 0
-.P
-.PD
 List the unique descriptions that appear in transactions.
 .PP
 This command lists the unique descriptions that appear in transactions,
@@ -10294,10 +10228,6 @@ Person A
 .fi
 .SS diff
 .PP
-diff
-.PD 0
-.P
-.PD
 Compares a particular account\[aq]s transactions in two input files.
 It shows any transactions to this account which are in one file but not
 in the other.
@@ -10331,19 +10261,11 @@ These transactions are in the second file only:
 .fi
 .SS files
 .PP
-files
-.PD 0
-.P
-.PD
 List all files included in the journal.
 With a REGEX argument, only file names matching the regular expression
 (case sensitive) are shown.
 .SS help
 .PP
-help
-.PD 0
-.P
-.PD
 Show the hledger user manual in the terminal, with \f[V]info\f[R],
 \f[V]man\f[R], or a pager.
 With a TOPIC argument, open it at that topic if possible.
@@ -10373,10 +10295,6 @@ $ hledger help journal   # show the journal topic in the hledger manual
 .fi
 .SS import
 .PP
-import
-.PD 0
-.P
-.PD
 Read new transactions added to each FILE since last run, and add them to
 the journal.
 Or with --dry-run, just print the transactions that would be added.
@@ -10465,6 +10383,13 @@ or (live updating):
 $ ls bank.csv* | entr bash -c \[aq]echo ====; hledger import --dry bank.csv | hledger -f- -I print unknown\[aq]
 \f[R]
 .fi
+.PP
+Note: when importing from multiple files at once, it\[aq]s currently
+possible for some .latest files to be updated successfully, while the
+actual import fails because of a problem in one of the files, leaving
+them out of sync (and causing some transactions to be missed).
+To prevent this, do a --dry-run first and fix any problems before the
+real import.
 .SS Importing balance assignments
 .PP
 Entries added by import will have their posting amounts made explicit
@@ -10491,10 +10416,8 @@ Imported amounts will be formatted according to the canonical commodity
 styles (declared or inferred) in the main journal file.
 .SS incomestatement
 .PP
-incomestatement, is
-.PD 0
-.P
-.PD
+(is)
+.PP
 This command displays an income statement, showing revenues and expenses
 during one or more periods.
 Amounts are shown with normal positive sign, as in conventional
@@ -10546,10 +10469,6 @@ options The output formats supported are \f[V]txt\f[R], \f[V]csv\f[R],
 \f[V]html\f[R], and (experimental) \f[V]json\f[R].
 .SS notes
 .PP
-notes
-.PD 0
-.P
-.PD
 List the unique notes that appear in transactions.
 .PP
 This command lists the unique notes that appear in transactions, in
@@ -10569,10 +10488,6 @@ Snacks
 .fi
 .SS payees
 .PP
-payees
-.PD 0
-.P
-.PD
 List the unique payee/payer names that appear in transactions.
 .PP
 This command lists unique payee/payer names which have been declared
@@ -10597,10 +10512,6 @@ Person A
 .fi
 .SS prices
 .PP
-prices
-.PD 0
-.P
-.PD
 Print market price directives from the journal.
 With --infer-market-prices, generate additional market prices from
 costs.
@@ -10610,10 +10521,6 @@ Prices can be filtered by a query.
 Price amounts are displayed with their full precision.
 .SS print
 .PP
-print
-.PD 0
-.P
-.PD
 Show transaction journal entries, sorted by date.
 .PP
 The print command displays full journal entries (transactions) from the
@@ -10757,10 +10664,8 @@ The numeric amount is repeated in either the \[dq]credit\[dq] or
 negative amounts under credit and zero or greater amounts under debit.)
 .SS register
 .PP
-register, reg
-.PD 0
-.P
-.PD
+(reg)
+.PP
 Show postings and their running total.
 .PP
 The register command displays matched postings, across all accounts, in
@@ -10928,10 +10833,6 @@ options The output formats supported are \f[V]txt\f[R], \f[V]csv\f[R],
 and (experimental) \f[V]json\f[R].
 .SS rewrite
 .PP
-rewrite
-.PD 0
-.P
-.PD
 Print all transactions, rewriting the postings of matched transactions.
 For now the only rewrite available is adding new postings, like print
 --auto.
@@ -11100,10 +11001,6 @@ rewrite applies rules specified on command line or in the journal.
 print --auto applies rules specified in the journal.
 .SS roi
 .PP
-roi
-.PD 0
-.P
-.PD
 Shows the time-weighted (TWR) and money-weighted (IRR) rate of return on
 your investments.
 .PP
@@ -11305,10 +11202,6 @@ Examples of computing IRR and TWR and discussion of the limitations of
 both metrics
 .SS stats
 .PP
-stats
-.PD 0
-.P
-.PD
 Show journal and performance statistics.
 .PP
 The stats command displays summary information for the whole journal, or
@@ -11349,10 +11242,6 @@ This command supports the -o/--output-file option (but not
 -O/--output-format selection).
 .SS tags
 .PP
-tags
-.PD 0
-.P
-.PD
 List the tags used in the journal, or their values.
 .PP
 This command lists the tag names used in the journal, whether on
@@ -11379,10 +11268,6 @@ also acquire tags from their account and transaction, transactions also
 acquire tags from their postings.
 .SS test
 .PP
-test
-.PD 0
-.P
-.PD
 Run built-in unit tests.
 .PP
 This command runs the unit tests built in to hledger and hledger-lib,
