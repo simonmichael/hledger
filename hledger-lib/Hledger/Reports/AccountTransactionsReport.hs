@@ -179,20 +179,20 @@ accountTransactionsReportItems reportq thisacctq bal signfn accttypefn =
 accountTransactionsReportItem :: Query -> Query -> (MixedAmount -> MixedAmount)
                               -> (AccountName -> Maybe AccountType) -> MixedAmount -> (Day, Transaction)
                               -> (MixedAmount, Maybe AccountTransactionsReportItem)
-accountTransactionsReportItem reportq thisacctq signfn accttypefn bal (d, torig)
+accountTransactionsReportItem reportq thisacctq signfn accttypefn bal (d, t)
     -- 201407: I've lost my grip on this, let's just hope for the best
     -- 201606: we now calculate change and balance from filtered postings, check this still works well for all callers XXX
     | null reportps = (bal, Nothing)  -- no matched postings in this transaction, skip it
-    | otherwise     = (b, Just (torig, tacct{tdate=d}, numotheraccts > 1, otheracctstr, a, b))
+    | otherwise     = (bal', Just (t, tacct{tdate=d}, numotheraccts > 1, otheracctstr, amt, bal'))
     where
-      tacct@Transaction{tpostings=reportps} = filterTransactionPostingsExtra accttypefn reportq torig  -- TODO needs to consider --date2, #1731
+      tacct@Transaction{tpostings=reportps} = filterTransactionPostingsExtra accttypefn reportq t  -- TODO needs to consider --date2, #1731
       (thisacctps, otheracctps) = partition (matchesPosting thisacctq) reportps
       numotheraccts = length $ nub $ map paccount otheracctps
       otheracctstr | thisacctq == None  = summarisePostingAccounts reportps     -- no current account ? summarise all matched postings
                    | numotheraccts == 0 = summarisePostingAccounts thisacctps   -- only postings to current account ? summarise those
                    | otherwise          = summarisePostingAccounts otheracctps  -- summarise matched postings to other account(s)
-      a = signfn . maNegate $ sumPostings thisacctps
-      b = bal `maPlus` a
+      amt = signfn . maNegate $ sumPostings thisacctps
+      bal' = bal `maPlus` amt
 
 -- TODO needs checking, cf #1731
 -- | What date should be shown for a transaction in an account register report ?
