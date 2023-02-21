@@ -11,7 +11,7 @@ A git repo in the main file's directory will be autocreated if needed.
 Subcommands:
 
 hledger git [-h|--help]  - show this help
-hledger git record [MSG] - record (commit) the journal's files (as listed by 'files')
+hledger git record [MSG] - record changes to journal's files (as listed by 'files')
 hledger git status       - show unrecorded changes in journal's files (after first record)
 hledger git log          - list recorded changes in journal's files (after first record)
 hledger git GITARGS      - run another git command in this repo, on all files
@@ -27,9 +27,10 @@ hledger-record, hledger-status, hledger-log scripts like:
 
 Examples:
 
-$ hledger git s            # briefly show status of journal's files
-$ hledger git l -10        # briefly list last 10 recorded changes to journal's files
-$ hledger git l -- --stat  # list recorded changes to journal's files with summaries
+$ hledger git s               # briefly show status of journal's files
+$ hledger git l -10           # briefly list last 10 commits to journal's files
+$ hledger git l -- --stat     # list commits to journal's files, with summaries
+$ hledger git r 'txns' -- -n  # commit changes, ignoring any pre-commit hooks
 
 EOF
 }
