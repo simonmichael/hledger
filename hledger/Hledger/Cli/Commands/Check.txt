@@ -62,6 +62,8 @@ therefore optional:
 -   recentassertions - all accounts with balance assertions have a
     balance assertion no more than 7 days before their latest posting
 
+-   tags - all tags used by transactions have been declared
+
 -   uniqueleafnames - all account leaf names are unique
 
 Custom checks
