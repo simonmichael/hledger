@@ -8,26 +8,26 @@
 This document is the README in the hledger repo's [bin] directory, 
 and is also published as [Scripts] on hledger.org.
 
-[Add-on commands](hledger.html#add-on-commands) are script files or programs named `hledger-*` and installed in $PATH,
-which show up in hledger's [commands list](hledger.html#commands).
-Some larger or separately-maintained add-on commands are listed
+[Add-on commands](hledger.html#add-on-commands) are executable script files or compiled programs
+named `hledger-*` and installed in $PATH, which show up in hledger's [commands list](hledger.html#commands).
+
+Some larger / separately-maintained add-on commands are listed
 at [hledger manual > PART 4. COMMANDS > ADD-ONS](https://hledger.org/dev/hledger.html#add-ons).
 
-The rest of this page lists the smaller scripts and add-on commands collected in [bin].
-Most of these are ready to use; some are just examples/inspiration for making your own.
-Following the list is more about [installing the bin scripts](#installing-the-bin-scripts) and creating your own scripts.
-Contributions welcome!
+The rest of this page lists smaller scripts and add-on commands which are collected in bin/.
+These are mostly ready to use, but some are just examples/inspiration for making your own.
+<!-- Below is more about [installing the bin scripts](#installing-the-bin-scripts) and creating your own scripts. Contributions welcome! -->
+
+Scripts vary in how closely they work with hledger; they can be classed as hledger-related, hledger-running and hledger-integrated.
 
 <!-- This page can be viewed on github or hledger.org, so use absolute urls. -->
 [bin]:                https://github.com/simonmichael/hledger/tree/master/bin
 [Scripts]:            https://hledger.org/scripts.html
 [Scripting hledger]:  https://hledger.org/scripting.html
 
-Scripts fall into three common types: hledger-related, hledger-running and hledger-integrated:
-
 ## HLEDGER-RELATED
 
-These scripts don't use hledger, but are complementary and might be useful to hledger users.
+These scripts don't use hledger directly, but are complementary and might be useful to hledger users.
 [plaintextaccounting.org](https://plaintextaccounting.org) has a longer list of non-hledger-specific PTA tools.
 
 ### paypaljson
