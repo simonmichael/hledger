@@ -9,6 +9,45 @@
 General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
+# 1.29 2023-03-11
+
+Scripts/addons
+
+- hledger-script-example.hs: rename/cleanup
+- sortandmergepostings: new, sorts postings and merges duplicates (Caleb Maclennan, Murukesh Mohanan)
+- hledger-register-max: new, prints the posting with largest historical balance
+- hledger-git: record shows better error output, no longer force-adds ignored files
+- hledger-git: status is fixed, also shows diffs
+- hledger-git: add short command aliases r, s, l
+- hledger-git: -h is fixed
+- hledger-git: pass unrecognised commands to git
+- hledger-install: also install hledger-edit, hledger-plot
+- hledger-install: add support for installing python packages
+- hledger-install: show quieter stack/cabal output
+- hledger-install: align install status list
+- hledger-install: don't list hledger-install.sh in PATH
+- hledger-install: drop hledger-iadd for now  https://github.com/hpdeifel/hledger-iadd/issues/71
+
+Docs
+
+- move most dev docs to doc/
+- Scripting hledger: move plugin types table here
+- Scripts: add hledger-plot, hledger-edit, hledger-fifo (Yann Büchau, Simon Michael)
+- update lots mockups, move to Mockups page
+- split Contributor Guide into Contributor Quick Start, LINKS, ISSUES
+- add REPOS, FILES, DECISIONS
+- CREDITS: updates, link to github contributors list
+
+Infrastructure
+
+- pr template: mention COMMITS page and prefix convention (#1997)
+- make ghc 9.4 and current stackage nightly the default for dev builds
+- require megaparsec 9.3+ in dev builds, for its useful dbg tool
+- make site-watch: fix runaway recursion, be more verbose
+- new make rules: man-watch
+- new tools: ciwatch, push, pushdocs, gtree
+- misc process updates
+
 # 1.28 2022-12-01
 
 Docs

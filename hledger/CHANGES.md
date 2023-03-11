@@ -9,6 +9,215 @@
 User-visible changes in the hledger command line tool and library.
 
 
+# 1.29 2023-03-11
+
+Breaking changes
+
+- Weekly reports are no longer automatically adjusted to start on a
+  monday; in some cases you might need to adjust their start date to
+  preserve simple week headings (see below).
+
+Features
+
+- In journal format there is now a `tag` directive for declaring tag names,
+  and the check command now has a `tags` check to enforce use of declared tag names.
+
+- Periodic transactions and multi-period reports can now start on any date.
+  To enable this while still maintaining pretty good backward compatibility,
+  hledger now treats inferred dates, and dates where the day is unspecified,
+  as "flexible" (which can be automatically adjusted to interval boundaries),
+  and dates specified to the day as "exact" (which can not).
+  Eg:
+  
+  - A periodic rule like `~ monthly from 2023-01-15` now works as
+    you'd expect instead of raising an error. This also improves
+    our ability to read Ledger files.
+
+  - Period options like `-p 'monthly from 2023/1/15'` or `-M -b 2023/1/15`
+    now start the report on exactly 1/15 instead of being adjusted to 1/1.
+  
+  Note: periods using `in` may look partial but are considered to specify exact dates.
+  So weekly reports such as `-p 'weekly in 2023-01'`, which previously
+  were adjusted to start on a monday, will now start exactly on 2023-01-01.
+  This can also cause more verbose column headings.
+	To guarantee simple week headings, you must now start such reports
+  exactly on a monday, eg `-p 'weekly from 2022-12-26 to 2023-02'`.
+  (#1982)
+
+- You can now freely combine @/@@ costs and conversion postings
+  in a single transaction. This can help readability, and also allows
+  more flexibility when recording cost.  hledger will check that the
+  two notations are in agreement, and ignore the redundancy if they are.
+  (Conversion postings are postings to accounts with type `V`/`Conversion`
+  or name `equity:conversion`/`equity:trade`/`equity:trading`,
+  or subaccounts of these. See also COST.)
+
+Improvements
+
+- hledger's commands list has been reorganised for clarity.
+  More add-on commands are now recognised and categorised,
+  and unrecognised add-on commands are listed in a more compact
+  multi-column layout.
+  (Simon Michael, Michael Grünewald)
+
+- hledger's commands list and command line help now use ANSI (bold
+  headings) when supported.
+  
+- hledger's commands list and command line help now use a pager
+  (respecting $PAGER) for long output except on MS Windows.
+
+- hledger's `--version` output no longer shows `+` for dev builds made
+  in dirty repos (it was buggy).
+
+- The add command's Description completions now also include payee names
+  (declared with `payee` or recorded in transactions with `|`),
+  not just full descriptions.
+
+- aregister now supports HTML output.
+  (#1996) (Jonathan Dowland)
+
+- aregister now shows a " (matching query)" hint in report title 
+  when extra query args (other than date: or depth:) are used,
+  to reduce confusion.
+
+- close now has three modes, `--retain`/`--migrate`/`--open`,
+  clarifying its uses and providing more useful defaults.
+
+- register-match is now the `--match` mode of the register command.
+  (This command was used by ledger-autosync at one point; if you still
+  need it, hopefully `register --match` works similarly.)
+
+- print-unique has been dropped, because it doesn't
+  support print's options, it disorders same-day transactions, I don't
+  know of any users or use cases, and it could easily be recreated as
+  an addon script.
+
+- print's JSON output now also includes source positions for `--forecast` transactions.
+  (Chris Lemaire)
+
+- Journal format now allows the empty commodity symbol to be written
+  as `""`, so it's now possible to declare market prices for it:
+  `P 2022-01-01 "" $100`.  This can be useful for timedot data.
+
+- Inferring costs from equity now happens after transaction balancing,
+  not before.  As a result, `--infer-costs` now works in transactions
+  where an amount is left blank.
+
+- `account` declarations now reject parenthesised account names,
+  reducing confusion.
+  (Chris Lemaire)
+
+- Our journal reader now accepts more Ledger syntax, improving Ledger
+  file compatibility (#1962).  We now test our ability to at least
+  read the sample journals from Ledger's baseline functional tests,
+  and our success rate has improved from 80% to 90% since 1.28.
+  
+  - `since` is accepted as synonym of `from` in period expressions
+  - `apply year` and `year` are accepted as synonyms of `Y`
+  - `(lot notes)` in amounts and `((valuation expressions))` after amounts are now ignored
+  - directives 
+    `A`, `assert`, `bucket`, `capture`, `check`, `define`,
+    `expr`, `eval`, `python`, `value`,
+    `apply fixed`, `apply tag`,
+    `end apply fixed`, `end apply tag`, `end apply year`
+	are now ignored
+  - subdirectives of `payee`, `tag`, and `commodity` (other than `format`) are now ignored
+  - `pop` directive is no longer supported
+
+- When reading CSV, we now check that assigned account names are valid (parseable).
+  (#1978)
+
+Fixes
+
+- aregister now handles an extra account query correctly. (#2007)
+
+- balance's `--help` now mentions `--layout=tidy`
+
+- Balance commands with `--layout=bare` now generate proper table
+  layout in HTML output.
+
+- register's `-w`/`--width` option no longer gives ugly parse error messages.
+
+- stats's `--help` no longer wrongly claims to support -O/--output-format.
+
+- Balance assignments with a cost now generate a correct balance assertion. (#1965)
+
+- The CSV reader now properly skips header lines before attempting to parse records. (#1967)
+
+Scripts/addons
+
+- Scripts can now use Hledger.Cli.Script, a convenient new prelude which
+  helps reduce import boilerplate. It currently re-exports:
+
+	  Control.Monad
+	  Data.Either
+	  Data.List
+	  Data.Maybe
+	  Data.Ord
+	  Data.Time
+	  Text.Printf hiding (formatString)
+	  Data.Text (Text, pack, unpack)
+	  Safe hiding (at)
+	  System.Directory
+	  System.Environment
+	  System.Exit
+	  System.FilePath
+	  System.Process
+	  Hledger
+	  Hledger.Cli
+	  Hledger.Cli.Main (argsToCliOpts)
+
+  (Not much of Data.Text/Data.Text.IO because those need to be qualified.)
+
+Docs
+
+- chunk the hledger manual into parts, rename and rearrange sections for better structure/flow
+- add a cheatsheet demonstrating all the main journal features that I recommend
+- move a number of my not-so-recommended journal features into a less visible "Other syntax" section
+- add: payees/descriptions completion
+- areg: more advice on account-matching
+- bal: --budget: clarify use of print --forecast
+- bal: budget: compare with forecasting; add some tips
+- balance cleanups/reorder
+- check: adjacentconversionpostings was dropped
+- cli: balance: fix link to Budgeting page
+- cli: fix all links to Journal > Tags / Commands > tags
+- codes: improve example suggested by Rob Nielsen
+- csv, timeclock, timedot: clarify comment lines (#1953)
+- csv: add new coinbase example
+- csv: clarify amount-in/amount-out docs (#1970)
+- csv: clarify skip/valid csv semantics (#1967)
+- csv: clarify valid CSV requirements and issues (fix #1966)
+- csv: cleanup, reorder, CSV rules tips -> Working with CSV
+- csv: fix wrong if tables doc; rewrite several sections (#1977)
+- csv: flatten, clean up CSV sections
+- csv: improve Amount field / Setting amounts
+- csv: note -in and -out are used together for one posting (#1970)
+- csv: rules factoring tips
+- csv: try to clarify how CSV fields and hledger fields work
+- document --infer-market-prices with signed costs (#1870)
+- fix duplicate market prices heading breaking info navigation
+- import: note a pitfall with multifile import
+- improve Directives summaries
+- introduction/input/output improvements
+- journal: cheatsheet: clarify date tag
+- journal: rewrite Account names, mention brackets/parentheses (#1915)
+- mention pivoting on a tag with multiple values (#1950)
+- more cost notation docs; describe Ledger and Beancount cost notation
+- more mention of posting order effect on inferring cost (#1959)
+- period expressions doc updates
+- Removed redundant paragraph in documentation. (J. B. Rainsberger)
+- rename directive sections, fix many links
+- reorganise commands list, like the CLI
+- reorganise bin/README & the Scripts page, add entries for recent scripts
+- replace "transaction prices" terminology with "costs"
+- tags: discuss multi-values/overriding (#1950)
+- update market price inference docs per sol
+- Updated section on pivoting. Used synonyms for "member" in cases where there could be confusion with the tag named "member." (Robert Nielsen)
+- use more standard and consistent boilerplate in hledger, ui, web man pages
+- virtual postings: improve wording per Robert Nielsen
+
+
 # 1.28 2022-12-01
 
 Features

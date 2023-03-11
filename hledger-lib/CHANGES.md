@@ -9,6 +9,43 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
+# 1.29 2023-03-11
+
+- added terminal colour detection helpers:
+  terminalIsLight
+  terminalLightness
+  terminalFgColor
+  terminalBgColor
+
+- Hledger.Data.RawOptions: add unsetboolopt
+
+- add journalMarkRedundantCosts to help with balancing
+
+- journalInferCosts -> journalInferCostsFromEquity
+
+- `BalancingOpts{infer_transaction_prices_ -> infer_balancing_costs_}`
+
+- Hledger.Data.Balancing: inferBalancingPrices -> transactionInferBalancingCosts
+
+- Hledger.Data.Balancing: inferBalancingAmount -> transactionInferBalancingAmount
+
+- Hledger.Data.Journal: transactionAddPricesFromEquity -> transactionInferCostsFromEquity
+
+- Hledger.Data.Journal: journalAddPricesFromEquity -> journalInferCosts
+
+- Hledger.Data.Dates: intervalStartBefore -> intervalBoundaryBefore
+
+- Hledger.Read.Common: cleaned up some amount parsers; describe Ledger lot notation
+  ```
+  amountpwithmultiplier -> amountp'
+  amountpnolotpricesp   -> amountnobasisp
+  amountwithoutpricep   -> simpleamountp
+  priceamountp          -> costp
+  ```
+
+- depend on text-ansi
+
+
 # 1.28 2022-12-01
 
 - Hledger.Utils.Debug's debug logging helpers have been unified.

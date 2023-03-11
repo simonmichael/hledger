@@ -9,6 +9,13 @@ __      _____| |__
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
+# 1.29 2023-03-11
+
+- The add form's typeahead now shows non-ascii text correctly.
+  (#1961) (Arsen Arsenović)
+
+- In the manual, improve --base-url's description. (#1562)
+
 # 1.28 2022-12-01
 
 Improvements
