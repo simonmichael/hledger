@@ -13,7 +13,7 @@ set -o pipefail
 HLEDGER_INSTALL_TOOL=hledger-install.sh
 
 # This install script's version.
-HLEDGER_INSTALL_VERSION=20230124
+HLEDGER_INSTALL_VERSION=20230311
 
 # Tools to be installed by this install script, official tools first.
 # Keep synced with the package versions below.
@@ -22,27 +22,27 @@ HLEDGER_TOOLS="\
 hledger \
 hledger-ui \
 hledger-web \
-hledger-interest \
 hledger-stockquotes \
 hledger-edit \
 hledger-plot \
+hledger-interest \
+hledger-iadd \
 "
-#hledger-iadd   # https://github.com/hpdeifel/hledger-iadd/issues/71
 
 # Package versions to be installed by this install script.
 # Keep synced with the tools above. 
 # When changing remember to also bump HLEDGER_INSTALL_VERSION.
 # Official:
-HLEDGER_LIB_VERSION=1.28
-HLEDGER_VERSION=1.28
-HLEDGER_UI_VERSION=1.28
-HLEDGER_WEB_VERSION=1.28
+HLEDGER_LIB_VERSION=1.29
+HLEDGER_VERSION=1.29
+HLEDGER_UI_VERSION=1.29
+HLEDGER_WEB_VERSION=1.29
 # Third-party:
+HLEDGER_IADD_VERSION=1.3.17
 HLEDGER_INTEREST_VERSION=1.6.5
 HLEDGER_STOCKQUOTES_VERSION=0.1.2.1
-HLEDGER_EDIT_VERSION=1.12.0
-HLEDGER_PLOT_VERSION=1.12.0
-#HLEDGER_IADD_VERSION=1.3.17
+HLEDGER_EDIT_VERSION=1.13.2
+HLEDGER_PLOT_VERSION=1.13.2
 
 # this script's one-line description
 HLEDGER_INSTALL_DESC="$HLEDGER_INSTALL_TOOL version $HLEDGER_INSTALL_VERSION, installs hledger $HLEDGER_VERSION and related tools"
@@ -1066,11 +1066,25 @@ fi
 # We might have to build these with an older version of hledger,
 # if they have not been updated yet.
 
+# wait for bounds update
 # if [[ $(cmpver "$(cmd_version hledger-iadd 2>/dev/null)" $HLEDGER_IADD_VERSION) = 2 ]]; then
 #   echo Installing hledger-iadd
 #   try_install hledger-iadd-$HLEDGER_IADD_VERSION hledger-lib-$HLEDGER_LIB_VERSION "$STACK_EXTRA_DEPS"
 #   echo
 # fi
+
+# wait for bounds update
+# if [[ $(cmpver "$(cmd_version hledger-interest 2>/dev/null)" $HLEDGER_INTEREST_VERSION) = 2 ]]; then
+#   echo Installing hledger-interest
+#   try_install hledger-interest-$HLEDGER_INTEREST_VERSION hledger-lib-$HLEDGER_LIB_VERSION "$STACK_EXTRA_DEPS"
+#   echo
+# fi
+
+if [[ $(cmpver "$(cmd_version hledger-stockquotes 2>/dev/null)" $HLEDGER_STOCKQUOTES_VERSION) = 2 ]]; then
+  echo Installing hledger-stockquotes
+  try_install hledger-stockquotes-$HLEDGER_STOCKQUOTES_VERSION hledger-lib-$HLEDGER_LIB_VERSION "$STACK_EXTRA_DEPS"
+  echo
+fi
 
 # hledger-edit, hledger-plot packaged together as hledger-utils, just install it twice for now
 if [[ $(cmpver "$(cmd_version hledger-edit 2>/dev/null)" $HLEDGER_EDIT_VERSION) = 2 ]]; then
@@ -1082,18 +1096,6 @@ fi
 if [[ $(cmpver "$(cmd_version hledger-plot 2>/dev/null)" $HLEDGER_PLOT_VERSION) = 2 ]]; then
   echo Installing hledger-plot
   try_install_py hledger-utils
-  echo
-fi
-
-if [[ $(cmpver "$(cmd_version hledger-interest 2>/dev/null)" $HLEDGER_INTEREST_VERSION) = 2 ]]; then
-  echo Installing hledger-interest
-  try_install hledger-interest-$HLEDGER_INTEREST_VERSION hledger-lib-$HLEDGER_LIB_VERSION "$STACK_EXTRA_DEPS"
-  echo
-fi
-
-if [[ $(cmpver "$(cmd_version hledger-stockquotes 2>/dev/null)" $HLEDGER_STOCKQUOTES_VERSION) = 2 ]]; then
-  echo Installing hledger-stockquotes
-  try_install hledger-stockquotes-$HLEDGER_STOCKQUOTES_VERSION hledger-lib-$HLEDGER_LIB_VERSION "$STACK_EXTRA_DEPS"
   echo
 fi
 
