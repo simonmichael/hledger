@@ -9,7 +9,7 @@
 General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
-# 3206b0e27
+# 1.29 2023-03-11
 
 Scripts/addons
 

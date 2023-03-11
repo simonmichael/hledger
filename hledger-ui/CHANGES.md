@@ -9,7 +9,7 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 2af744292
+# 1.29 2023-03-11
 
 - In the help dialog, mention that LEFT shows other screens.
 

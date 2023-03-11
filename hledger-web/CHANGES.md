@@ -9,7 +9,7 @@ __      _____| |__
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 2af744292
+# 1.29 2023-03-11
 
 - The add form's typeahead now shows non-ascii text correctly.
   (#1961) (Arsen Arsenović)

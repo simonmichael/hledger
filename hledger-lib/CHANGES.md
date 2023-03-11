@@ -9,7 +9,7 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 6dc91588e
+# 1.29 2023-03-11
 
 - added terminal colour detection helpers:
   terminalIsLight
