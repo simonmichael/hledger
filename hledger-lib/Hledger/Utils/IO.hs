@@ -9,7 +9,7 @@ The colour scheme may be somewhat hard-coded.
 
 -}
 
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE CPP, LambdaCase #-}
 
 module Hledger.Utils.IO (
 
@@ -84,7 +84,9 @@ import           System.IO
   (Handle, IOMode (..), hGetEncoding, hSetEncoding, hSetNewlineMode,
    openFile, stdin, stdout, stderr, universalNewlineMode, utf8_bom, hIsTerminalDevice)
 import           System.IO.Unsafe (unsafePerformIO)
+#ifndef mingw32_HOST_OS
 import           System.Pager
+#endif
 import           Text.Pretty.Simple
   (CheckColorTty(CheckColorTty), OutputOptions(..), 
   defaultOutputOptionsDarkBg, defaultOutputOptionsNoColor, pShowOpt, pPrintOpt)
@@ -130,7 +132,12 @@ pprint' = pPrintOpt CheckColorTty prettyopts'
 pager :: String -> IO ()
 pager s = do
   dumbterm <- (== Just "dumb") <$> lookupEnv "TERM"
-  (if dumbterm then putStrLn else printOrPage . pack) s
+#ifdef mingw32_HOST_OS
+  putStrLn
+#else
+  (if dumbterm then putStrLn else printOrPage . pack)
+#endif
+    s
 
 -- Command line arguments
 

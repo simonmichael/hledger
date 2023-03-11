@@ -59,7 +59,6 @@ dependencies:
 - microlens >=0.4
 - microlens-th >=0.4
 - mtl >=2.2.1
-- pager >=0.1.1.0
 - parser-combinators >=0.4.0
 - pretty-simple >4 && <5
 - regex-tdfa
@@ -78,10 +77,11 @@ dependencies:
 - utf8-string >=0.3.5
 - extra >=1.6.3
 - Glob >= 0.9
-# for ledger-parse:
-#- parsers >=0.5
-#- system-filepath
-#- trifecta >=0.91
+
+when:
+- condition: (!(os(windows)))
+  dependencies:
+  - pager >=0.1.1.0
 
 ghc-options:
 - -Wall
