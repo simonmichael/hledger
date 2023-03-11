@@ -14,7 +14,6 @@ packages:
 
 extra-deps:
 # for hledger-lib:
-# - breakpoint-0.1.2.0
 - doctest-0.20.0
 - ansi-terminal-0.11.4
 - text-ansi-0.2.1

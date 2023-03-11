@@ -1,6 +1,6 @@
-# stack build plan using GHC 9.2.5
+# stack build plan using GHC 9.2.7
 
-resolver:  lts-20.8
+resolver:  lts-20.13
 
 packages:
 - hledger-lib
@@ -11,11 +11,10 @@ packages:
 extra-deps:
 - megaparsec-9.3.0
 # for hledger-lib:
-# - breakpoint-0.1.2.0
 # for hledger:
 # for hledger-ui:
-- brick-1.5
-- fsnotify-0.4.0.0
+- brick-1.6
+- fsnotify-0.4.1.0
 # for hledger-web:
 # for Shake.hs:
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack script --compile --resolver lts-20.8 --verbosity error --package hledger-lib --package hledger --package text --package safe
+-- stack script --compile --resolver lts-20.13 --verbosity error --package hledger-lib --package hledger --package text --package safe
 
 -- hledger-register-max - runs "hledger register" and prints the posting with largest running total/balance.
 -- Usage:
