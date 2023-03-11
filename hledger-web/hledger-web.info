@@ -18,8 +18,8 @@ hledger-web - robust, friendly plain text accounting (Web version)
 ‘hledger-web --serve-api [OPTIONS] # run JSON server only’
 ‘hledger web -- [OPTIONS] [QUERYARGS]’ # start from hledger
 
-   This manual is for hledger’s web interface, version 1.28.99.  See
-also the hledger manual for common concepts and file formats.
+   This manual is for hledger’s web interface, version 1.29.  See also
+the hledger manual for common concepts and file formats.
 
    hledger is a robust, user-friendly, cross-platform set of programs
 for tracking money, time, or any other commodity, using double-entry
@@ -664,26 +664,26 @@ File: hledger-web.info,  Node: BUGS,  Prev: FILES,  Up: Top
 
 Tag Table:
 Node: Top225
-Node: OPTIONS2727
-Ref: #options2832
-Node: PERMISSIONS10626
-Ref: #permissions10765
-Node: EDITING UPLOADING DOWNLOADING12023
-Ref: #editing-uploading-downloading12204
-Node: RELOADING13046
-Ref: #reloading13180
-Node: JSON API13613
-Ref: #json-api13728
-Node: DEBUG OUTPUT19260
-Ref: #debug-output19385
-Node: Debug output19412
-Ref: #debug-output-119513
-Node: ENVIRONMENT19938
-Ref: #environment20058
-Node: FILES21407
-Ref: #files21507
-Node: BUGS21767
-Ref: #bugs21845
+Node: OPTIONS2724
+Ref: #options2829
+Node: PERMISSIONS10623
+Ref: #permissions10762
+Node: EDITING UPLOADING DOWNLOADING12020
+Ref: #editing-uploading-downloading12201
+Node: RELOADING13043
+Ref: #reloading13177
+Node: JSON API13610
+Ref: #json-api13725
+Node: DEBUG OUTPUT19257
+Ref: #debug-output19382
+Node: Debug output19409
+Ref: #debug-output-119510
+Node: ENVIRONMENT19935
+Ref: #environment20055
+Node: FILES21404
+Ref: #files21504
+Node: BUGS21764
+Ref: #bugs21842
 
 End Tag Table
 
