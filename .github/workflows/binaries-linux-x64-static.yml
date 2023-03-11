@@ -33,18 +33,18 @@ jobs:
       uses: actions/cache@v3
       with:
         path: ~/.ghcup
-        key: ${{ runner.os }}-ghcup-20220829-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-ghcup-${{ hashFiles('**.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-ghcup-20220829
+             ${{ runner.os }}-ghcup
 
     - name: Cache cabal-installed libs
       id:   cabal
       uses: actions/cache@v3
       with:
         path: ~/.cabal
-        key: ${{ runner.os }}-cabal-20220829-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-cabal-${{ hashFiles('**.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-cabal-20220829
+             ${{ runner.os }}-cabal
 
     - name: Install general tools with system package manager
       run: |
