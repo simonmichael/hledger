@@ -66,7 +66,7 @@ import           Data.Colour.RGBSpace.HSL (lightness)
 import           Data.FileEmbed (makeRelativeToProject, embedStringFile)
 import           Data.List hiding (uncons)
 import           Data.Maybe (isJust)
-import           Data.Text (Text, pack)
+import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
@@ -85,7 +85,7 @@ import           System.IO
    openFile, stdin, stdout, stderr, universalNewlineMode, utf8_bom, hIsTerminalDevice)
 import           System.IO.Unsafe (unsafePerformIO)
 #ifndef mingw32_HOST_OS
-import           System.Pager
+import           System.Pager (printOrPage)
 #endif
 import           Text.Pretty.Simple
   (CheckColorTty(CheckColorTty), OutputOptions(..), 
@@ -130,14 +130,13 @@ pprint' = pPrintOpt CheckColorTty prettyopts'
 -- | Display the given text on the terminal, using the user's $PAGER if the text is taller 
 -- than the current terminal and stdout is interactive and TERM is not "dumb".
 pager :: String -> IO ()
+#ifdef mingw32_HOST_OS
+pager = putStrLn
+#else
 pager s = do
   dumbterm <- (== Just "dumb") <$> lookupEnv "TERM"
-#ifdef mingw32_HOST_OS
-  putStrLn
-#else
-  (if dumbterm then putStrLn else printOrPage . pack)
+  (if dumbterm then putStrLn else printOrPage . T.pack) s
 #endif
-    s
 
 -- Command line arguments
 
@@ -317,18 +316,18 @@ expandHomePath = \case
 -- converting any \r\n line endings to \n,,
 -- using the system locale's text encoding,
 -- ignoring any utf8 BOM prefix (as seen in paypal's 2018 CSV, eg) if that encoding is utf8.
-readFilePortably :: FilePath -> IO Text
+readFilePortably :: FilePath -> IO T.Text
 readFilePortably f =  openFile f ReadMode >>= readHandlePortably
 
 -- | Like readFilePortably, but read from standard input if the path is "-".
-readFileOrStdinPortably :: String -> IO Text
+readFileOrStdinPortably :: String -> IO T.Text
 readFileOrStdinPortably f = openFileOrStdin f ReadMode >>= readHandlePortably
   where
     openFileOrStdin :: String -> IOMode -> IO Handle
     openFileOrStdin "-" _ = return stdin
     openFileOrStdin f' m   = openFile f' m
 
-readHandlePortably :: Handle -> IO Text
+readHandlePortably :: Handle -> IO T.Text
 readHandlePortably h = do
   hSetNewlineMode h universalNewlineMode
   menc <- hGetEncoding h
