@@ -13,7 +13,7 @@ SYNOPSIS
        hledger web -- [OPTIONS] [QUERYARGS] # start from hledger
 
 DESCRIPTION
-       This  manual is for hledger's web interface, version 1.28.99.  See also
+       This  manual is for hledger's web interface, version 1.29.99.  See also
        the hledger manual for common concepts and file formats.
 
        hledger is a robust, user-friendly, cross-platform set of programs  for
@@ -608,4 +608,4 @@ SEE ALSO
 
 
 
-hledger-web-1.28.99              February 2023                  HLEDGER-WEB(1)
+hledger-web-1.29.99               March 2023                    HLEDGER-WEB(1)

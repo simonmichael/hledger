@@ -18,7 +18,7 @@ INTRODUCTION
        and largely compatible with  ledger(1),  and  largely  interconvertible
        with beancount(1).
 
-       This  manual  is for hledger's command line interface, version 1.28.99.
+       This  manual  is for hledger's command line interface, version 1.29.99.
        It also describes the common options, file formats and concepts used by
        all  hledger  programs.  It might accidentally teach you some bookkeep-
        ing/accounting as well!  You don't need to know everything in  here  to
@@ -8659,4 +8659,4 @@ SEE ALSO
 
 
 
-hledger-1.28.99                  February 2023                      HLEDGER(1)
+hledger-1.29.99                   March 2023                        HLEDGER(1)

@@ -11,7 +11,7 @@ SYNOPSIS
        hledger ui -- [OPTIONS] [QUERYARGS]
 
 DESCRIPTION
-       This  manual is for hledger's terminal interface, version 1.28.99.  See
+       This  manual is for hledger's terminal interface, version 1.29.99.  See
        also the hledger manual for common concepts and file formats.
 
        hledger is a robust, user-friendly, cross-platform set of programs  for
@@ -598,4 +598,4 @@ SEE ALSO
 
 
 
-hledger-ui-1.28.99               February 2023                   HLEDGER-UI(1)
+hledger-ui-1.29.99                March 2023                     HLEDGER-UI(1)

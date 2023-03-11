@@ -16,7 +16,7 @@ hledger-ui - robust, friendly plain text accounting (TUI version)
    ‘hledger-ui [OPTIONS] [QUERYARGS]’
 ‘hledger ui -- [OPTIONS] [QUERYARGS]’
 
-   This manual is for hledger’s terminal interface, version 1.28.99.
+   This manual is for hledger’s terminal interface, version 1.29.99.
 See also the hledger manual for common concepts and file formats.
 
    hledger is a robust, user-friendly, cross-platform set of programs
