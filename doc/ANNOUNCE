@@ -1,18 +1,22 @@
-I'm pleased to announce hledger 1.28 !
+I'm pleased to announce hledger 1.29 !
 
-https://github.com/simonmichael/hledger/releases/1.28
+https://github.com/simonmichael/hledger/releases/1.29
 https://hledger.org/install
-https://hledger.org/release-notes.html#hledger-1-28
+https://hledger.org/release-notes.html#hledger-1-29
 
-Nothing earth-shaking for users in this release, but internal changes
-and the usual incremental improvements.
 Highlights:
-new hledger-ui screens and default screen;
-new hledger-move, watchaccounts scripts.
 
-Thank you to release contributors
-Felix Yan,
-Patrick Fiaux.
+Tag checking, 
+flexible multi-period start dates, 
+flexible cost/conversion posting combining,
+new commands list,
+hledger manual reorg,
+easier close command,
+10% more Ledger file compatible.
+
+Thank you to release contributors Chris Lemaire, Caleb Maclennan,
+Jonathan Dowland, J. B. Rainsberger, Michael Grünewald, Robert Nielsen,
+and Yann Büchau.
 
 What is hledger ?
 
