@@ -91,7 +91,7 @@ STACK_RESOLVER="--resolver=lts-20.13"
 # Dependencies we require that aren't in the above stackage snapshot.
 # (Also requested when using cabal, but that's harmless.)
 # Be careful not to break interpolation in commands below, check with bash -
-STACK_EXTRA_DEPS"brick-1.6 fsnotify-0.4.1.0"
+STACK_EXTRA_DEPS="brick-1.6 fsnotify-0.4.1.0"
 
 #TODO? https://github.com/commercialhaskell/stack/issues/3055 https://github.com/haskell/hackage-security/issues/187
 #Updating package index Hackage (mirrored at https://s3.amazonaws.com/hackage.fpcomplete.com/) ...
