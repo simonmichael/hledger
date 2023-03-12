@@ -9,10 +9,13 @@ Notes for hledger release managers and maintainers.
 
 ## Goals
 
+### 2023
+- [ ] Make releasing easy
+
 ### 2022
-- Update/consolidate release process docs
-- Establish routine monthly release cadence
-- Make releasing easy
+- [x] Update/consolidate release process docs
+- [x] Establish routine <s>monthly</s> release cadence
+- [ ] Make releasing easy
 
 ## Release types
 |                       | Major&nbsp;release<br>A.B      | Bugfix&nbsp;release<br>A.B.C | Fixup&nbsp;release<br>A.B.C.D                | Preview&nbsp;release<br>A.B.99.D         |
@@ -193,7 +196,7 @@ In release branch:
 #### Do release build testing
   - touch/change Version.hs to encourage recompilation
   - `stack build`
-  - `stack exec -- hledger --version`, check version string: version, release date, no +
+  - `stack exec -- hledger --version`, check version, hash, release date, no '+'
   - `stack exec -- hledger help | tail`, check version, month matches release
 
 #### Prepare release binaries
@@ -208,10 +211,10 @@ In release branch:
 
 In site repo:
 
-- js/site.js: add NEW, three places
-- Makefile: add NEW, three places
-- make snapshot-NEW (after ensuring main repo has been release-tagged)
+- js/site.js: add NEW, 3 places
+- Makefile: add NEW, 2 places
 - commit: `manuals: add NEW`
+- make snapshot-NEW (after ensuring main repo has been release-tagged)
 - push
 
 #### Prepare hledger-install script
@@ -244,7 +247,7 @@ In site repo:
     update --version outputs (search: hledger --version)
   - final output line from `hledger test` (run in terminal for normal speed)
   - Total count from `make functest`
-  - commit: `download: NEW`
+  - commit: `install: NEW`
 
 #### Draft github release
 - copy text from previous similar release, https://github.com/simonmichael/hledger/releases
@@ -311,7 +314,7 @@ in main repo, release branch:
 #### Bump master to next version
 (major release)
 - `./Shake setversion MA.JOR.99 -c`
-- `./Shake cmdhelp -c`
+- `./Shake cmdhelp [-c]`  (might be empty)
 - `./Shake mandates`
 - `./Shake manuals -c`
 
