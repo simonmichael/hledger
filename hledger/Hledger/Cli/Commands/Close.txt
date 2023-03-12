@@ -42,11 +42,6 @@ each commodity.
 With --interleaved, each equity posting is shown next to the
 corresponding source/destination posting.
 
-The default closing date is yesterday or the journal's end date,
-whichever is later. You can change this by specifying a report end date;
-the last day of the report period will be the closing date. Eg -e 2022
-means "close on 2022-12-31".
-
 The default closing date is yesterday, or the journal's end date,
 whichever is later. You can change this by specifying a report end date;
 (The report start date does not matter.) The last day of the report
