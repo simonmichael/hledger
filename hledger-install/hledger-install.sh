@@ -86,7 +86,7 @@ STACK_MIN_VERSION=2.5.1
 # You can try specifying a different stackage version here, or 
 # commenting out this line to use your current global resolver,
 # to avoid unnecessary building.
-STACK_RESOLVER="--resolver=lts-20.8"
+STACK_RESOLVER="--resolver=lts-20.13"
 
 # Dependencies we require that aren't in the above stackage snapshot.
 # (Also requested when using cabal, but that's harmless.)
