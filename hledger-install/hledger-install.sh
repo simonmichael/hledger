@@ -90,10 +90,8 @@ STACK_RESOLVER="--resolver=lts-20.13"
 
 # Dependencies we require that aren't in the above stackage snapshot.
 # (Also requested when using cabal, but that's harmless.)
-STACK_EXTRA_DEPS="\
-brick-1.5 \
-fsnotify-0.4.0.0 \
-"
+# Be careful not to break interpolation in commands below, check with bash -
+STACK_EXTRA_DEPS"brick-1.6 fsnotify-0.4.1.0"
 
 #TODO? https://github.com/commercialhaskell/stack/issues/3055 https://github.com/haskell/hackage-security/issues/187
 #Updating package index Hackage (mirrored at https://s3.amazonaws.com/hackage.fpcomplete.com/) ...
@@ -1045,20 +1043,20 @@ echo Installing hledger packages:
 
 if [[ $(cmpver "$(cmd_version hledger 2>/dev/null)" $HLEDGER_VERSION) = 2 ]]; then
   echo Installing hledger
-  try_install hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_LIB_VERSION "$STACK_EXTRA_DEPS"
+  try_install hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_LIB_VERSION $STACK_EXTRA_DEPS
   echo
 fi
 
 if [[ $(cmpver "$(cmd_version hledger-ui 2>/dev/null)" $HLEDGER_UI_VERSION) = 2 ]]; then
   echo Installing hledger-ui
-  try_install hledger-ui-$HLEDGER_UI_VERSION hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_LIB_VERSION "$STACK_EXTRA_DEPS" \
+  try_install hledger-ui-$HLEDGER_UI_VERSION hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_LIB_VERSION $STACK_EXTRA_DEPS \
     # brick-X.Y   # when hledger-iadd requires a special brick, use the same here to reduce rebuilding
   echo
 fi
 
 if [[ $(cmpver "$(cmd_version hledger-web 2>/dev/null)" $HLEDGER_WEB_VERSION) = 2 ]]; then
   echo Installing hledger-web
-  try_install hledger-web-$HLEDGER_WEB_VERSION hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_LIB_VERSION "$STACK_EXTRA_DEPS"
+  try_install hledger-web-$HLEDGER_WEB_VERSION hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_LIB_VERSION $STACK_EXTRA_DEPS
   echo
 fi
 
@@ -1069,20 +1067,20 @@ fi
 # wait for bounds update
 # if [[ $(cmpver "$(cmd_version hledger-iadd 2>/dev/null)" $HLEDGER_IADD_VERSION) = 2 ]]; then
 #   echo Installing hledger-iadd
-#   try_install hledger-iadd-$HLEDGER_IADD_VERSION hledger-lib-$HLEDGER_LIB_VERSION "$STACK_EXTRA_DEPS"
+#   try_install hledger-iadd-$HLEDGER_IADD_VERSION hledger-lib-$HLEDGER_LIB_VERSION $STACK_EXTRA_DEPS
 #   echo
 # fi
 
 # wait for bounds update
 # if [[ $(cmpver "$(cmd_version hledger-interest 2>/dev/null)" $HLEDGER_INTEREST_VERSION) = 2 ]]; then
 #   echo Installing hledger-interest
-#   try_install hledger-interest-$HLEDGER_INTEREST_VERSION hledger-lib-$HLEDGER_LIB_VERSION "$STACK_EXTRA_DEPS"
+#   try_install hledger-interest-$HLEDGER_INTEREST_VERSION hledger-lib-$HLEDGER_LIB_VERSION $STACK_EXTRA_DEPS
 #   echo
 # fi
 
 if [[ $(cmpver "$(cmd_version hledger-stockquotes 2>/dev/null)" $HLEDGER_STOCKQUOTES_VERSION) = 2 ]]; then
   echo Installing hledger-stockquotes
-  try_install hledger-stockquotes-$HLEDGER_STOCKQUOTES_VERSION hledger-lib-$HLEDGER_LIB_VERSION "$STACK_EXTRA_DEPS"
+  try_install hledger-stockquotes-$HLEDGER_STOCKQUOTES_VERSION hledger-lib-$HLEDGER_LIB_VERSION $STACK_EXTRA_DEPS
   echo
 fi
 
