@@ -26,13 +26,16 @@ module Hledger.Data.Balancing
 )
 where
 
+import Control.Monad (forM, forM_, when, unless)
 import Control.Monad.Except (ExceptT(..), runExceptT, throwError)
 import "extra" Control.Monad.Extra (whenM)
-import Control.Monad.Reader as R
+import Control.Monad.Reader as R (ReaderT, reader, runReaderT, ask, asks)
 import Control.Monad.ST (ST, runST)
+import Control.Monad.Trans.Class (lift)
 import Data.Array.ST (STArray, getElems, newListArray, writeArray)
 import Data.Foldable (asum)
 import Data.Function ((&))
+import Data.Functor.Compat (void)
 import qualified Data.HashTable.Class as H (toList)
 import qualified Data.HashTable.ST.Cuckoo as H
 import Data.List (partition, sortOn)

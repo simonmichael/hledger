@@ -144,7 +144,8 @@ module Hledger.Data.Amount (
   tests_Amount
 ) where
 
-import Control.Applicative (liftA2)
+import Prelude hiding (Applicative(..))
+import Control.Applicative (Applicative(..))
 import Control.Monad (foldM)
 import Data.Char (isDigit)
 import Data.Decimal (DecimalRaw(..), decimalPlaces, normalizeDecimal, roundTo)

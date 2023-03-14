@@ -82,10 +82,11 @@ module Hledger.Data.Dates (
 , intervalBoundaryBefore)
 where
 
-import qualified Control.Monad.Fail as Fail (MonadFail, fail)
-import Control.Applicative (liftA2)
+import Prelude hiding (Applicative(..))
+import Control.Applicative (Applicative(..))
 import Control.Applicative.Permutations
 import Control.Monad (guard, unless)
+import qualified Control.Monad.Fail as Fail (MonadFail, fail)
 import Data.Char (digitToInt, isDigit, ord)
 import Data.Default (def)
 import Data.Foldable (asum)

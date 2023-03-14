@@ -50,8 +50,9 @@ module Text.Megaparsec.Custom (
 )
 where
 
-import Control.Monad.Except
+import Control.Monad.Except (ExceptT, MonadError, catchError, throwError)
 import Control.Monad.State.Strict (StateT, evalStateT)
+import Control.Monad.Trans.Class (lift)
 import qualified Data.List.NonEmpty as NE
 import Data.Monoid (Alt(..))
 import qualified Data.Set as S
