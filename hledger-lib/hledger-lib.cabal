@@ -27,7 +27,7 @@ license:        GPL-3
 license-file:   LICENSE
 build-type:     Simple
 tested-with:
-    GHC==8.10.7, GHC==9.0.2, GHC==9.2.4
+    GHC==8.10.7, GHC==9.0.2, GHC==9.2.7, GHC==9.4.4
 extra-source-files:
     CHANGES.md
     README.md
@@ -104,7 +104,8 @@ library
     , aeson-pretty
     , ansi-terminal >=0.9
     , array
-    , base >=4.14 && <4.18
+    , base >=4.14 && <4.19
+    , base-compat
     , blaze-markup >=0.5.1
     , bytestring
     , call-stack
@@ -160,7 +161,8 @@ test-suite doctest
     , aeson-pretty
     , ansi-terminal >=0.9
     , array
-    , base >=4.14 && <4.18
+    , base >=4.14 && <4.19
+    , base-compat
     , blaze-markup >=0.5.1
     , bytestring
     , call-stack
@@ -219,7 +221,8 @@ test-suite unittest
     , aeson-pretty
     , ansi-terminal >=0.9
     , array
-    , base >=4.14 && <4.18
+    , base >=4.14 && <4.19
+    , base-compat
     , blaze-markup >=0.5.1
     , bytestring
     , call-stack
