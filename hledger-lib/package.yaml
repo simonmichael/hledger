@@ -21,7 +21,7 @@ github: simonmichael/hledger
 homepage: http://hledger.org
 bug-reports: http://bugs.hledger.org
 stability: stable
-tested-with: GHC==8.10.7, GHC==9.0.2, GHC==9.2.4
+tested-with: GHC==8.10.7, GHC==9.0.2, GHC==9.2.7, GHC==9.4.4
 
 extra-source-files:
 - CHANGES.md
@@ -32,7 +32,8 @@ extra-source-files:
 #data-files:
 
 dependencies:
-- base >=4.14 && <4.18
+- base >=4.14 && <4.19
+- base-compat
 - aeson >=1
 - aeson-pretty
 - ansi-terminal >=0.9

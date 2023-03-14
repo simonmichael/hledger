@@ -20,7 +20,8 @@ module Hledger.Utils.Test (
 )
 where
 
-import Control.Monad.Except (ExceptT(..), liftEither, runExceptT, withExceptT, unless)
+import Control.Monad (unless)
+import Control.Monad.Except (ExceptT(..), liftEither, runExceptT, withExceptT)
 import Control.Monad.State.Strict (StateT, evalStateT, execStateT)
 import Data.Default (Default(..))
 import Data.List (isInfixOf)

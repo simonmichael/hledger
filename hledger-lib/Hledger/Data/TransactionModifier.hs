@@ -12,7 +12,8 @@ module Hledger.Data.TransactionModifier (
 )
 where
 
-import Control.Applicative ((<|>), liftA2)
+import Prelude hiding (Applicative(..))
+import Control.Applicative (Applicative(..), (<|>))
 import qualified Data.Map as M
 import Data.Maybe (catMaybes)
 import qualified Data.Text as T

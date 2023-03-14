@@ -64,7 +64,8 @@ module Hledger.Reports.ReportOptions (
 )
 where
 
-import Control.Applicative (Const(..), (<|>), liftA2)
+import Prelude hiding (Applicative(..))
+import Control.Applicative (Applicative(..), Const(..), (<|>))
 import Control.Monad ((<=<), guard, join)
 import Data.Char (toLower)
 import Data.Either (fromRight)

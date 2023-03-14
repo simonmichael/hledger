@@ -35,7 +35,8 @@ module Hledger.Read.CsvReader (
 where
 
 --- ** imports
-import Control.Applicative        (liftA2)
+import Prelude hiding (Applicative(..))
+import Control.Applicative (Applicative(..))
 import Control.Monad              (unless, when, void)
 import Control.Monad.Except       (ExceptT(..), liftEither, throwError)
 import qualified Control.Monad.Fail as Fail

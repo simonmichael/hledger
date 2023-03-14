@@ -53,7 +53,8 @@ module Hledger.Read (
 --- ** imports
 import qualified Control.Exception as C
 import Control.Monad (unless, when)
-import "mtl" Control.Monad.Except (ExceptT(..), runExceptT, liftIO, MonadIO)
+import "mtl" Control.Monad.Except (ExceptT(..), runExceptT)
+import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.Default (def)
 import Data.Foldable (asum)
 import Data.List (group, sort, sortBy)
