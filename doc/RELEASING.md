@@ -108,6 +108,10 @@ These have complex interdependencies and sequencing constraints. Chunk, separate
 - Before tagging: make binaries for all platforms, from the same commit.
 - Before making binaries: do all possible pre-tagging steps and try to get everything finalised. (Binaries' --version shows their git hash, and this should match the release tag.)
 
+## Value map
+
+![value/artifacts map and dependencies in a hledger major release](HledgerReleaseValueMap.png)
+
 ## Procedures
 
 ### Release
