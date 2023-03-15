@@ -110,7 +110,10 @@ These have complex interdependencies and sequencing constraints. Chunk, separate
 
 ## Value map
 
-![value/artifacts map and dependencies in a hledger major release](HledgerReleaseValueMap.png)
+Here is a map of the value chain and artifacts involved in a hledger major release.
+From this we derive the procedures below, and ideally more automated tools over time.
+
+[![value/artifacts map and dependencies in a hledger major release](HledgerReleaseValueMap-fs8.png)](HledgerReleaseValueMap-fs8.png)
 
 ## Procedures
 
