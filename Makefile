@@ -791,6 +791,10 @@ HADDOCKFLAGS= \
 	--haddock-options='--no-warnings' \
 	--ghc-options='-optP-P' \
 
+releasediag: \
+	$(call def-help,releasediag, optimise and commit RELEASING value map diagram )
+	pngquant doc/HledgerReleaseValueMap.png -f -o doc/HledgerReleaseValueMap.png && git add doc/HledgerReleaseValueMap.png && git commit -m ';doc: RELEASING: update value map' -- doc/HledgerReleaseValueMap.png
+
 haddock: \
 	$(call def-help,haddock, generate haddock docs for the hledger packages )
 	$(STACK) haddock --no-haddock-deps --fast --no-keep-going
