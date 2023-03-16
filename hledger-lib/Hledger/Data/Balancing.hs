@@ -35,7 +35,7 @@ import Control.Monad.Trans.Class (lift)
 import Data.Array.ST (STArray, getElems, newListArray, writeArray)
 import Data.Foldable (asum)
 import Data.Function ((&))
-import Data.Functor.Compat (void)
+import "base-compat" Data.Functor.Compat (void)
 import qualified Data.HashTable.Class as H (toList)
 import qualified Data.HashTable.ST.Cuckoo as H
 import Data.List (partition, sortOn)
