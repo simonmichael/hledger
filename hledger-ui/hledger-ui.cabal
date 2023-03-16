@@ -71,7 +71,7 @@ executable hledger-ui
   build-depends:
       ansi-terminal >=0.9
     , async
-    , base >=4.14 && <4.18
+    , base >=4.14 && <4.19
     , brick >=1.5
     , cmdargs >=0.8
     , containers >=0.5.9
