@@ -19,7 +19,7 @@ where
 import Brick
 -- import Brick.Widgets.Border ("border")
 import Control.Monad
-import Control.Monad.Except (liftIO)
+import Control.Monad.IO.Class (liftIO)
 import Data.Time.Calendar (Day)
 import Data.Void (Void)
 import Graphics.Vty (Event(..),Key(..),Modifier(..))

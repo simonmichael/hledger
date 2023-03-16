@@ -13,7 +13,7 @@ module Hledger.UI.TransactionScreen
 ) where
 
 import Control.Monad
-import Control.Monad.Except (liftIO)
+import Control.Monad.IO.Class (liftIO)
 import Data.List
 import Data.Maybe
 import qualified Data.Text as T
