@@ -49,12 +49,11 @@ ghc-options:
 - -Wno-unused-do-bind
 
 dependencies:
-- base >=4.14 && <4.18
+- base >=4.14 && <4.19
 - hledger-lib >=1.29.99 && <1.30
 - hledger >=1.29.99 && <1.30
 - ansi-terminal >=0.9
 - async
-# - breakpoint >=0.1.2.0
 - cmdargs >=0.8
 - containers >=0.5.9
 - data-default

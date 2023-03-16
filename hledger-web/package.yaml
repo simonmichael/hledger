@@ -78,8 +78,7 @@ when:
   ghc-options: -O0
 
 dependencies:
-- base >=4.14 && <4.18
-# - breakpoint >=0.1.2.0
+- base >=4.14 && <4.19
 
 library:
   source-dirs: .

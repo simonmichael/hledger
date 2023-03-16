@@ -24,7 +24,6 @@ extra-deps:
 - text-builder-0.6.7
 - text-builder-dev-0.3.3.2
 - isomorphism-class-0.1.0.7
-# - breakpoint-0.1.2.0
 # for hledger:
 # for hledger-ui:
 - brick-1.5
