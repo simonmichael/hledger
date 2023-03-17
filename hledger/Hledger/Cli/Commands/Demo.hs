@@ -35,9 +35,10 @@ data Demo = Demo {
 
 demos :: [Demo]
 demos = map readDemo [
-   $(embedFileRelative "embeddedfiles/install.cast"   )
-  ,$(embedFileRelative "embeddedfiles/add.cast"       )
-  ,$(embedFileRelative "embeddedfiles/reports.cast"   )
+   $(embedFileRelative "embeddedfiles/install.cast")
+  ,$(embedFileRelative "embeddedfiles/add.cast")
+  ,$(embedFileRelative "embeddedfiles/print.cast")
+  ,$(embedFileRelative "embeddedfiles/balance.cast")
   ]
 
 -- | Command line options for this command.
@@ -91,9 +92,9 @@ findDemo ds s =
     sl = lowercase s
 
 printDemos :: IO ()
-printDemos = putStrLn $ unlines $
+printDemos = putStr $ unlines $
   "Demos:" :
-  "" :
+  -- "" :
   [show i <> ") " <> t | (i, Demo t _) <- zip [(1::Int)..] demos]
 
 -- | Run asciinema play, passing content to its stdin.
