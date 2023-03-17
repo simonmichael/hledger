@@ -1,0 +1,17 @@
+demo
+
+Play small demos of hledger usage in the terminal.
+
+_FLAGS
+
+This command plays a number of short built-in demos, using asciinema.
+
+Usage: hledger demo [NUM|NAME|SUBSTR] [-- ASCIINEMAOPTS]
+
+Examples:
+
+$ hledger demo                   # list available demos
+$ hledger demo 1                 # play the first demo
+$ hledger demo install -s5 -i.5  # play the demo named or containing "install",
+                                 # at 5x speed, limiting idle time to 0.5s.
+$ asciinema -h                   # list other ASCIINEMAOPTS

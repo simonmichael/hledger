@@ -27,6 +27,7 @@ module Hledger.Cli.Commands (
   ,module Hledger.Cli.Commands.Close
   ,module Hledger.Cli.Commands.Codes
   ,module Hledger.Cli.Commands.Commodities
+  ,module Hledger.Cli.Commands.Demo
   ,module Hledger.Cli.Commands.Descriptions
   ,module Hledger.Cli.Commands.Diff
   ,module Hledger.Cli.Commands.Help
@@ -68,6 +69,7 @@ import Hledger.Cli.Commands.Check
 import Hledger.Cli.Commands.Close
 import Hledger.Cli.Commands.Codes
 import Hledger.Cli.Commands.Commodities
+import Hledger.Cli.Commands.Demo
 import Hledger.Cli.Commands.Descriptions
 import Hledger.Cli.Commands.Diff
 import Hledger.Cli.Commands.Files
@@ -103,6 +105,7 @@ builtinCommands = [
   ,(closemode              , close)
   ,(codesmode              , codes)
   ,(commoditiesmode        , commodities)
+  ,(demomode               , demo)
   ,(descriptionsmode       , descriptions)
   ,(diffmode               , diff)
   ,(filesmode              , files)
@@ -271,6 +274,7 @@ commandsList progversion othercmds highlight0 =
   ," hledger -h                       show hledger's general help"
   ," hledger COMMAND -h               show COMMAND's help"
   ," hledger help [-i|-m|-p] [TOPIC]  show the hledger manual with info/man/pager"
+  ," hledger demo [NUM|NAME|STR] [ASOPTS]  show small demos of hledger"
   ," https://hledger.org              html manuals, tutorials, support.."
   ,""
   ]

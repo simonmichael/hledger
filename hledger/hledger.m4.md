@@ -5739,6 +5739,7 @@ These data entry commands are the only ones which can modify your journal file.
 ### HELP
 
 - [help](#help)                                    - show the hledger manual with info/man/pager
+- [demo](#demo)                                    - show small hledger demos in the terminal
 
 <a name="addons"></a>
 <!-- #addons: the short explanation and list of common add-on commands. See also #add-on-commands. -->
