@@ -17,10 +17,9 @@ Scripts/addons
 
 Docs
 
-- RELEASING: new release process diagram
-
 Infrastructure
 
+- RELEASING: new release process diagram
 - update hie.yaml so HLS uses GHC 9.4
 
 # 1.29 2023-03-11
