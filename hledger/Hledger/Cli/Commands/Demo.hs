@@ -35,10 +35,11 @@ data Demo = Demo {
 
 demos :: [Demo]
 demos = map readDemo [
-   $(embedFileRelative "embeddedfiles/install.cast")
-  ,$(embedFileRelative "embeddedfiles/add.cast")
-  ,$(embedFileRelative "embeddedfiles/print.cast")
-  ,$(embedFileRelative "embeddedfiles/balance.cast")
+   $(embedFileRelative "embeddedfiles/install.cast")  -- https://asciinema.org/a/567934
+  ,$(embedFileRelative "embeddedfiles/demo.cast")     -- https://asciinema.org/a/567944
+  ,$(embedFileRelative "embeddedfiles/add.cast")      -- https://asciinema.org/a/567935
+  ,$(embedFileRelative "embeddedfiles/print.cast")    -- https://asciinema.org/a/567936
+  ,$(embedFileRelative "embeddedfiles/balance.cast")  -- https://asciinema.org/a/567937
   ]
 
 -- | Command line options for this command.
@@ -92,7 +93,7 @@ findDemo ds s =
     sl = lowercase s
 
 printDemos :: IO ()
-printDemos = putStr $ unlines $
+printDemos = putStrLn $ unlines $
   "Demos:" :
   -- "" :
   [show i <> ") " <> t | (i, Demo t _) <- zip [(1::Int)..] demos]
