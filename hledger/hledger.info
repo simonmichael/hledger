@@ -6881,6 +6881,7 @@ File: hledger.info,  Node: PART 4 COMMANDS,  Next: PART 5 COMMON TASKS,  Prev: V
 * close::
 * codes::
 * commodities::
+* demo::
 * descriptions::
 * diff::
 * files::
@@ -6998,6 +6999,7 @@ File: hledger.info,  Node: HELP,  Next: ADD-ONS,  Prev: REPORTS BASIC,  Up: Comm
 -----------
 
    • help - show the hledger manual with info/man/pager
+   • demo - show small hledger demos in the terminal
 
 
 File: hledger.info,  Node: ADD-ONS,  Prev: HELP,  Up: Commands overview
@@ -8894,7 +8896,7 @@ $ hledger codes -E
 126
 
 
-File: hledger.info,  Node: commodities,  Next: descriptions,  Prev: codes,  Up: PART 4 COMMANDS
+File: hledger.info,  Node: commodities,  Next: demo,  Prev: codes,  Up: PART 4 COMMANDS
 
 24.13 commodities
 =================
@@ -8902,9 +8904,34 @@ File: hledger.info,  Node: commodities,  Next: descriptions,  Prev: codes,  Up: 
 List all commodity/currency symbols used or declared in the journal.
 
 
-File: hledger.info,  Node: descriptions,  Next: diff,  Prev: commodities,  Up: PART 4 COMMANDS
+File: hledger.info,  Node: demo,  Next: descriptions,  Prev: commodities,  Up: PART 4 COMMANDS
 
-24.14 descriptions
+24.14 demo
+==========
+
+Play small demos of hledger usage in the terminal.
+
+   Run this command with no argument to list the demos.  To play a demo,
+write its number or name or a substring.  asciinema must be installed.
+
+   During playback, several keys are available: - SPACE pause/unpause -
+.  step forward (while paused) - CTRL-c quit early
+
+   asciinema options can be added following a double-dash; list them
+with ‘asciinema -h’.  ‘-s’ (speed) and ‘-i’ (max idle time) are
+particularly useful.
+
+   Examples:
+
+$ hledger demo                   # list available demos
+$ hledger demo 1                 # play the first demo
+$ hledger demo install -s5 -i.5  # play the demo named or containing "install",
+                                 # at 5x speed, limiting idle time to 0.5s.
+
+
+File: hledger.info,  Node: descriptions,  Next: diff,  Prev: demo,  Up: PART 4 COMMANDS
+
+24.15 descriptions
 ==================
 
 List the unique descriptions that appear in transactions.
@@ -8923,7 +8950,7 @@ Person A
 
 File: hledger.info,  Node: diff,  Next: files,  Prev: descriptions,  Up: PART 4 COMMANDS
 
-24.15 diff
+24.16 diff
 ==========
 
 Compares a particular account’s transactions in two input files.  It
@@ -8957,7 +8984,7 @@ These transactions are in the second file only:
 
 File: hledger.info,  Node: files,  Next: help,  Prev: diff,  Up: PART 4 COMMANDS
 
-24.16 files
+24.17 files
 ===========
 
 List all files included in the journal.  With a REGEX argument, only
@@ -8966,7 +8993,7 @@ file names matching the regular expression (case sensitive) are shown.
 
 File: hledger.info,  Node: help,  Next: import,  Prev: files,  Up: PART 4 COMMANDS
 
-24.17 help
+24.18 help
 ==========
 
 Show the hledger user manual in the terminal, with ‘info’, ‘man’, or a
@@ -8993,7 +9020,7 @@ $ hledger help journal   # show the journal topic in the hledger manual
 
 File: hledger.info,  Node: import,  Next: incomestatement,  Prev: help,  Up: PART 4 COMMANDS
 
-24.18 import
+24.19 import
 ============
 
 Read new transactions added to each FILE since last run, and add them to
@@ -9025,7 +9052,7 @@ most common import source, and these docs focus on that case.
 
 File: hledger.info,  Node: Deduplication,  Next: Import testing,  Up: import
 
-24.18.1 Deduplication
+24.19.1 Deduplication
 ---------------------
 
 As a convenience ‘import’ does _deduplication_ while reading
@@ -9069,7 +9096,7 @@ certain date.
 
 File: hledger.info,  Node: Import testing,  Next: Importing balance assignments,  Prev: Deduplication,  Up: import
 
-24.18.2 Import testing
+24.19.2 Import testing
 ----------------------
 
 With ‘--dry-run’, the transactions that will be imported are printed to
@@ -9094,7 +9121,7 @@ import.
 
 File: hledger.info,  Node: Importing balance assignments,  Next: Commodity display styles,  Prev: Import testing,  Up: import
 
-24.18.3 Importing balance assignments
+24.19.3 Importing balance assignments
 -------------------------------------
 
 Entries added by import will have their posting amounts made explicit
@@ -9113,7 +9140,7 @@ please test it and send a pull request.)
 
 File: hledger.info,  Node: Commodity display styles,  Prev: Importing balance assignments,  Up: import
 
-24.18.4 Commodity display styles
+24.19.4 Commodity display styles
 --------------------------------
 
 Imported amounts will be formatted according to the canonical commodity
@@ -9122,7 +9149,7 @@ styles (declared or inferred) in the main journal file.
 
 File: hledger.info,  Node: incomestatement,  Next: notes,  Prev: import,  Up: PART 4 COMMANDS
 
-24.19 incomestatement
+24.20 incomestatement
 =====================
 
 (is)
@@ -9172,7 +9199,7 @@ options The output formats supported are ‘txt’, ‘csv’, ‘html’, and
 
 File: hledger.info,  Node: notes,  Next: payees,  Prev: incomestatement,  Up: PART 4 COMMANDS
 
-24.20 notes
+24.21 notes
 ===========
 
 List the unique notes that appear in transactions.
@@ -9191,7 +9218,7 @@ Snacks
 
 File: hledger.info,  Node: payees,  Next: prices,  Prev: notes,  Up: PART 4 COMMANDS
 
-24.21 payees
+24.22 payees
 ============
 
 List the unique payee/payer names that appear in transactions.
@@ -9216,7 +9243,7 @@ Person A
 
 File: hledger.info,  Node: prices,  Next: print,  Prev: payees,  Up: PART 4 COMMANDS
 
-24.22 prices
+24.23 prices
 ============
 
 Print market price directives from the journal.  With
@@ -9228,7 +9255,7 @@ displayed with their full precision.
 
 File: hledger.info,  Node: print,  Next: register,  Prev: prices,  Up: PART 4 COMMANDS
 
-24.23 print
+24.24 print
 ===========
 
 Show transaction journal entries, sorted by date.
@@ -9352,7 +9379,7 @@ $ hledger print -Ocsv
 
 File: hledger.info,  Node: register,  Next: rewrite,  Prev: print,  Up: PART 4 COMMANDS
 
-24.24 register
+24.25 register
 ==============
 
 (reg)
@@ -9462,7 +9489,7 @@ no posting will be shown and the program exit code will be non-zero.
 
 File: hledger.info,  Node: Custom register output,  Up: register
 
-24.24.1 Custom register output
+24.25.1 Custom register output
 ------------------------------
 
 register uses the full terminal width by default, except on windows.
@@ -9494,7 +9521,7 @@ options The output formats supported are ‘txt’, ‘csv’, and
 
 File: hledger.info,  Node: rewrite,  Next: roi,  Prev: register,  Up: PART 4 COMMANDS
 
-24.25 rewrite
+24.26 rewrite
 =============
 
 Print all transactions, rewriting the postings of matched transactions.
@@ -9547,7 +9574,7 @@ commodity.
 
 File: hledger.info,  Node: Re-write rules in a file,  Next: Diff output format,  Up: rewrite
 
-24.25.1 Re-write rules in a file
+24.26.1 Re-write rules in a file
 --------------------------------
 
 During the run this tool will execute so called "Automated Transactions"
@@ -9585,7 +9612,7 @@ postings.
 
 File: hledger.info,  Node: Diff output format,  Next: rewrite vs print --auto,  Prev: Re-write rules in a file,  Up: rewrite
 
-24.25.2 Diff output format
+24.26.2 Diff output format
 --------------------------
 
 To use this tool for batch modification of your journal files you may
@@ -9626,7 +9653,7 @@ output from ‘hledger print’.
 
 File: hledger.info,  Node: rewrite vs print --auto,  Prev: Diff output format,  Up: rewrite
 
-24.25.3 rewrite vs. print –auto
+24.26.3 rewrite vs. print –auto
 -------------------------------
 
 This command predates print –auto, and currently does much the same
@@ -9646,7 +9673,7 @@ thing, but with these differences:
 
 File: hledger.info,  Node: roi,  Next: stats,  Prev: rewrite,  Up: PART 4 COMMANDS
 
-24.26 roi
+24.27 roi
 =========
 
 Shows the time-weighted (TWR) and money-weighted (IRR) rate of return on
@@ -9694,7 +9721,7 @@ display, regardless of the length of reporting interval.
 
 File: hledger.info,  Node: Spaces and special characters in --inv and --pnl,  Next: Semantics of --inv and --pnl,  Up: roi
 
-24.26.1 Spaces and special characters in ‘--inv’ and
+24.27.1 Spaces and special characters in ‘--inv’ and
 ----------------------------------------------------
 
 ‘--pnl’ Note that ‘--inv’ and ‘--pnl’’s argument is a query, and queries
@@ -9713,7 +9740,7 @@ $ hledger roi --inv="'Assets:Test 1'" --pnl="'Equity:Unrealized Profit and Loss'
 
 File: hledger.info,  Node: Semantics of --inv and --pnl,  Next: IRR and TWR explained,  Prev: Spaces and special characters in --inv and --pnl,  Up: roi
 
-24.26.2 Semantics of ‘--inv’ and ‘--pnl’
+24.27.2 Semantics of ‘--inv’ and ‘--pnl’
 ----------------------------------------
 
 Query supplied to ‘--inv’ has to match all transactions that are related
@@ -9767,7 +9794,7 @@ postings in the example below would be classifed as:
 
 File: hledger.info,  Node: IRR and TWR explained,  Prev: Semantics of --inv and --pnl,  Up: roi
 
-24.26.3 IRR and TWR explained
+24.27.3 IRR and TWR explained
 -----------------------------
 
 "ROI" stands for "return on investment".  Traditionally this was
@@ -9834,7 +9861,7 @@ your investment.
 
 File: hledger.info,  Node: stats,  Next: tags,  Prev: roi,  Up: PART 4 COMMANDS
 
-24.27 stats
+24.28 stats
 ===========
 
 Show journal and performance statistics.
@@ -9874,7 +9901,7 @@ Throughput               : 8342 txns/s
 
 File: hledger.info,  Node: tags,  Next: test,  Prev: stats,  Up: PART 4 COMMANDS
 
-24.28 tags
+24.29 tags
 ==========
 
 List the tags used in the journal, or their values.
@@ -9904,7 +9931,7 @@ transactions also acquire tags from their postings.
 
 File: hledger.info,  Node: test,  Prev: tags,  Up: PART 4 COMMANDS
 
-24.29 test
+24.30 test
 ==========
 
 Run built-in unit tests.
@@ -10776,190 +10803,192 @@ Node: Effect of valuation on reports239415
 Ref: #effect-of-valuation-on-reports239612
 Node: PART 4 COMMANDS247371
 Ref: #part-4-commands247514
-Node: Commands overview247884
-Ref: #commands-overview248018
-Node: DATA ENTRY248197
-Ref: #data-entry248321
-Node: DATA CREATION248524
-Ref: #data-creation248678
-Node: DATA MANAGEMENT248802
-Ref: #data-management248967
-Node: REPORTS FINANCIAL249092
-Ref: #reports-financial249267
-Node: REPORTS VERSATILE249582
-Ref: #reports-versatile249755
-Node: REPORTS BASIC250016
-Ref: #reports-basic250168
-Node: HELP250701
-Ref: #help250823
-Node: ADD-ONS250882
-Ref: #add-ons250988
-Node: accounts251585
-Ref: #accounts251718
-Node: activity253693
-Ref: #activity253812
-Node: add254186
-Ref: #add254296
-Node: aregister257157
-Ref: #aregister257278
-Node: aregister and custom posting dates260254
-Ref: #aregister-and-custom-posting-dates260420
-Node: balance260988
-Ref: #balance261114
-Node: balance features262119
-Ref: #balance-features262259
-Node: Simple balance report264389
-Ref: #simple-balance-report264574
-Node: Balance report line format266219
-Ref: #balance-report-line-format266421
-Node: Filtered balance report268671
-Ref: #filtered-balance-report268863
-Node: List or tree mode269190
-Ref: #list-or-tree-mode269358
-Node: Depth limiting270733
-Ref: #depth-limiting270899
-Node: Dropping top-level accounts271516
-Ref: #dropping-top-level-accounts271716
-Node: Showing declared accounts272030
-Ref: #showing-declared-accounts272229
-Node: Sorting by amount272770
-Ref: #sorting-by-amount272937
-Node: Percentages273627
-Ref: #percentages273786
-Node: Multi-period balance report274356
-Ref: #multi-period-balance-report274556
-Node: Balance change end balance276949
-Ref: #balance-change-end-balance277158
-Node: Balance report types278606
-Ref: #balance-report-types278787
-Node: Calculation type279303
-Ref: #calculation-type279458
-Node: Accumulation type279989
-Ref: #accumulation-type280169
-Node: Valuation type281097
-Ref: #valuation-type281285
-Node: Combining balance report types282352
-Ref: #combining-balance-report-types282546
-Node: Budget report284450
-Ref: #budget-report284602
-Node: Budget report start date290336
-Ref: #budget-report-start-date290514
-Node: Budgets and subaccounts291876
-Ref: #budgets-and-subaccounts292083
-Node: Selecting budget goals295569
-Ref: #selecting-budget-goals295768
-Node: Budget vs forecast296815
-Ref: #budget-vs-forecast296974
-Node: Data layout298674
-Ref: #data-layout298824
-Node: Useful balance reports306765
-Ref: #useful-balance-reports306915
-Node: balancesheet308068
-Ref: #balancesheet308213
-Node: balancesheetequity309579
-Ref: #balancesheetequity309737
-Node: cashflow311180
-Ref: #cashflow311311
-Node: check312797
-Ref: #check312911
-Node: Basic checks313717
-Ref: #basic-checks313837
-Node: Strict checks314375
-Ref: #strict-checks314518
-Node: Other checks314959
-Ref: #other-checks315101
-Node: Custom checks315678
-Ref: #custom-checks315835
-Node: More about specific checks316256
-Ref: #more-about-specific-checks316418
-Node: close317150
-Ref: #close317261
-Node: close and costs319647
-Ref: #close-and-costs319791
-Node: close and balance assertions320080
-Ref: #close-and-balance-assertions320282
-Node: Example retain earnings321453
-Ref: #example-retain-earnings321670
-Node: Example migrate balances to a new file322028
-Ref: #example-migrate-balances-to-a-new-file322293
-Node: Example excluding closing/opening transactions322846
-Ref: #example-excluding-closingopening-transactions323095
-Node: codes324273
-Ref: #codes324390
-Node: commodities325266
-Ref: #commodities325402
-Node: descriptions325472
-Ref: #descriptions325609
-Node: diff325900
-Ref: #diff326015
-Node: files327061
-Ref: #files327170
-Node: help327311
-Ref: #help-1327420
-Node: import328410
-Ref: #import328533
-Node: Deduplication329641
-Ref: #deduplication329766
-Node: Import testing331688
-Ref: #import-testing331853
-Node: Importing balance assignments332704
-Ref: #importing-balance-assignments332910
-Node: Commodity display styles333567
-Ref: #commodity-display-styles333740
-Node: incomestatement333869
-Ref: #incomestatement334011
-Node: notes335378
-Ref: #notes335500
-Node: payees335862
-Ref: #payees335977
-Node: prices336502
-Ref: #prices336617
-Node: print336919
-Ref: #print337034
-Node: register342480
-Ref: #register342602
-Node: Custom register output347711
-Ref: #custom-register-output347842
-Node: rewrite349217
-Ref: #rewrite349335
-Node: Re-write rules in a file351247
-Ref: #re-write-rules-in-a-file351410
-Node: Diff output format352563
-Ref: #diff-output-format352746
-Node: rewrite vs print --auto353858
-Ref: #rewrite-vs.-print---auto354020
-Node: roi354594
-Ref: #roi354701
-Node: Spaces and special characters in --inv and --pnl356462
-Ref: #spaces-and-special-characters-in---inv-and---pnl356710
-Node: Semantics of --inv and --pnl357208
-Ref: #semantics-of---inv-and---pnl357455
-Node: IRR and TWR explained359333
-Ref: #irr-and-twr-explained359493
-Node: stats362605
-Ref: #stats362713
-Node: tags364110
-Ref: #tags-1364217
-Node: test365234
-Ref: #test365327
-Node: PART 5 COMMON TASKS366077
-Ref: #part-5-common-tasks366210
-Node: Getting help366484
-Ref: #getting-help366625
-Node: Constructing command lines367389
-Ref: #constructing-command-lines367590
-Node: Starting a journal file368271
-Ref: #starting-a-journal-file368478
-Node: Setting opening balances369676
-Ref: #setting-opening-balances369881
-Node: Recording transactions373034
-Ref: #recording-transactions373223
-Node: Reconciling373779
-Ref: #reconciling373931
-Node: Reporting376244
-Ref: #reporting376393
-Node: Migrating to a new file380382
-Ref: #migrating-to-a-new-file380539
+Node: Commands overview247893
+Ref: #commands-overview248027
+Node: DATA ENTRY248206
+Ref: #data-entry248330
+Node: DATA CREATION248533
+Ref: #data-creation248687
+Node: DATA MANAGEMENT248811
+Ref: #data-management248976
+Node: REPORTS FINANCIAL249101
+Ref: #reports-financial249276
+Node: REPORTS VERSATILE249591
+Ref: #reports-versatile249764
+Node: REPORTS BASIC250025
+Ref: #reports-basic250177
+Node: HELP250710
+Ref: #help250832
+Node: ADD-ONS250946
+Ref: #add-ons251052
+Node: accounts251649
+Ref: #accounts251782
+Node: activity253757
+Ref: #activity253876
+Node: add254250
+Ref: #add254360
+Node: aregister257221
+Ref: #aregister257342
+Node: aregister and custom posting dates260318
+Ref: #aregister-and-custom-posting-dates260484
+Node: balance261052
+Ref: #balance261178
+Node: balance features262183
+Ref: #balance-features262323
+Node: Simple balance report264453
+Ref: #simple-balance-report264638
+Node: Balance report line format266283
+Ref: #balance-report-line-format266485
+Node: Filtered balance report268735
+Ref: #filtered-balance-report268927
+Node: List or tree mode269254
+Ref: #list-or-tree-mode269422
+Node: Depth limiting270797
+Ref: #depth-limiting270963
+Node: Dropping top-level accounts271580
+Ref: #dropping-top-level-accounts271780
+Node: Showing declared accounts272094
+Ref: #showing-declared-accounts272293
+Node: Sorting by amount272834
+Ref: #sorting-by-amount273001
+Node: Percentages273691
+Ref: #percentages273850
+Node: Multi-period balance report274420
+Ref: #multi-period-balance-report274620
+Node: Balance change end balance277013
+Ref: #balance-change-end-balance277222
+Node: Balance report types278670
+Ref: #balance-report-types278851
+Node: Calculation type279367
+Ref: #calculation-type279522
+Node: Accumulation type280053
+Ref: #accumulation-type280233
+Node: Valuation type281161
+Ref: #valuation-type281349
+Node: Combining balance report types282416
+Ref: #combining-balance-report-types282610
+Node: Budget report284514
+Ref: #budget-report284666
+Node: Budget report start date290400
+Ref: #budget-report-start-date290578
+Node: Budgets and subaccounts291940
+Ref: #budgets-and-subaccounts292147
+Node: Selecting budget goals295633
+Ref: #selecting-budget-goals295832
+Node: Budget vs forecast296879
+Ref: #budget-vs-forecast297038
+Node: Data layout298738
+Ref: #data-layout298888
+Node: Useful balance reports306829
+Ref: #useful-balance-reports306979
+Node: balancesheet308132
+Ref: #balancesheet308277
+Node: balancesheetequity309643
+Ref: #balancesheetequity309801
+Node: cashflow311244
+Ref: #cashflow311375
+Node: check312861
+Ref: #check312975
+Node: Basic checks313781
+Ref: #basic-checks313901
+Node: Strict checks314439
+Ref: #strict-checks314582
+Node: Other checks315023
+Ref: #other-checks315165
+Node: Custom checks315742
+Ref: #custom-checks315899
+Node: More about specific checks316320
+Ref: #more-about-specific-checks316482
+Node: close317214
+Ref: #close317325
+Node: close and costs319711
+Ref: #close-and-costs319855
+Node: close and balance assertions320144
+Ref: #close-and-balance-assertions320346
+Node: Example retain earnings321517
+Ref: #example-retain-earnings321734
+Node: Example migrate balances to a new file322092
+Ref: #example-migrate-balances-to-a-new-file322357
+Node: Example excluding closing/opening transactions322910
+Ref: #example-excluding-closingopening-transactions323159
+Node: codes324337
+Ref: #codes324454
+Node: commodities325330
+Ref: #commodities325458
+Node: demo325528
+Ref: #demo325649
+Node: descriptions326419
+Ref: #descriptions326549
+Node: diff326840
+Ref: #diff326955
+Node: files328001
+Ref: #files328110
+Node: help328251
+Ref: #help-1328360
+Node: import329350
+Ref: #import329473
+Node: Deduplication330581
+Ref: #deduplication330706
+Node: Import testing332628
+Ref: #import-testing332793
+Node: Importing balance assignments333644
+Ref: #importing-balance-assignments333850
+Node: Commodity display styles334507
+Ref: #commodity-display-styles334680
+Node: incomestatement334809
+Ref: #incomestatement334951
+Node: notes336318
+Ref: #notes336440
+Node: payees336802
+Ref: #payees336917
+Node: prices337442
+Ref: #prices337557
+Node: print337859
+Ref: #print337974
+Node: register343420
+Ref: #register343542
+Node: Custom register output348651
+Ref: #custom-register-output348782
+Node: rewrite350157
+Ref: #rewrite350275
+Node: Re-write rules in a file352187
+Ref: #re-write-rules-in-a-file352350
+Node: Diff output format353503
+Ref: #diff-output-format353686
+Node: rewrite vs print --auto354798
+Ref: #rewrite-vs.-print---auto354960
+Node: roi355534
+Ref: #roi355641
+Node: Spaces and special characters in --inv and --pnl357402
+Ref: #spaces-and-special-characters-in---inv-and---pnl357650
+Node: Semantics of --inv and --pnl358148
+Ref: #semantics-of---inv-and---pnl358395
+Node: IRR and TWR explained360273
+Ref: #irr-and-twr-explained360433
+Node: stats363545
+Ref: #stats363653
+Node: tags365050
+Ref: #tags-1365157
+Node: test366174
+Ref: #test366267
+Node: PART 5 COMMON TASKS367017
+Ref: #part-5-common-tasks367150
+Node: Getting help367424
+Ref: #getting-help367565
+Node: Constructing command lines368329
+Ref: #constructing-command-lines368530
+Node: Starting a journal file369211
+Ref: #starting-a-journal-file369418
+Node: Setting opening balances370616
+Ref: #setting-opening-balances370821
+Node: Recording transactions373974
+Ref: #recording-transactions374163
+Node: Reconciling374719
+Ref: #reconciling374871
+Node: Reporting377184
+Ref: #reporting377333
+Node: Migrating to a new file381322
+Ref: #migrating-to-a-new-file381479
 
 End Tag Table
 

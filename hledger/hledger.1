@@ -8062,6 +8062,8 @@ test - run self tests
 .SS HELP
 .IP \[bu] 2
 help - show the hledger manual with info/man/pager
+.IP \[bu] 2
+demo - show small hledger demos in the terminal
 .PP
 .SS ADD-ONS
 .PP
@@ -10201,6 +10203,32 @@ $ hledger codes -E
 .SS commodities
 .PP
 List all commodity/currency symbols used or declared in the journal.
+.SS demo
+.PP
+Play small demos of hledger usage in the terminal.
+.PP
+Run this command with no argument to list the demos.
+To play a demo, write its number or name or a substring.
+asciinema must be installed.
+.PP
+During playback, several keys are available: - SPACE pause/unpause - .
+step forward (while paused) - CTRL-c quit early
+.PP
+asciinema options can be added following a double-dash; list them with
+\f[V]asciinema -h\f[R].
+\f[V]-s\f[R] (speed) and \f[V]-i\f[R] (max idle time) are particularly
+useful.
+.PP
+Examples:
+.IP
+.nf
+\f[C]
+$ hledger demo                   # list available demos
+$ hledger demo 1                 # play the first demo
+$ hledger demo install -s5 -i.5  # play the demo named or containing \[dq]install\[dq],
+                                 # at 5x speed, limiting idle time to 0.5s.
+\f[R]
+.fi
 .SS descriptions
 .PP
 List the unique descriptions that appear in transactions.
