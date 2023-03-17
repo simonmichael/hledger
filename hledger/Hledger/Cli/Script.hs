@@ -10,8 +10,12 @@ module Hledger.Cli.Script
 ) 
 where
 
+import Control.Applicative as Script
+import Control.Concurrent as Script
 import Control.Monad as Script
+import Data.Char as Script
 import Data.Either as Script
+import Data.Functor as Script
 import Data.List as Script
 import Data.Maybe as Script
 import Data.Ord as Script
@@ -26,6 +30,8 @@ import System.Directory as Script
 import System.Environment as Script
 import System.Exit as Script
 import System.FilePath as Script
+import System.IO as Script
+import System.IO.Error as Script
 import System.Process as Script
 
 import Hledger as Script
