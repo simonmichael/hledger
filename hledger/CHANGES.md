@@ -10,12 +10,36 @@ User-visible changes in the hledger command line tool and library.
 
 
 # 1.29.1 2023-03-16
-- ;doc: update manuals
 
-- ;cabal: update cabal files
+Improvements
 
-- ;pkg: bump version to 1.29.1
+- Hledger.Cli.Script now also exports
+
+       Control.Applicative
+       Control.Concurrent
+       Data.Char
+       Data.Functor
+       System.IO
+       System.IO.Error
+
+   and new string helpers
+
+       strip1Char
+       stripBy
+       strip1By
+
+- Allow building with GHC 9.6.1 (#2011)
+
+Fixes
+
+- The stats report no longer displays "Exact" in front of dates. (#2012)
+
+Docs
+
+- remove duplicate in `hledger close` docs (Yehoshua Pesach Wallach)
+
 # 1.29 2023-03-11
+
 Breaking changes
 
 - Weekly reports are no longer automatically adjusted to start on a

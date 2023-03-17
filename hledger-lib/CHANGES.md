@@ -10,10 +10,18 @@ Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
 # 1.29.1 2023-03-16
-- ;cabal: update cabal files
 
-- ;pkg: bump version to 1.29.1
+- Hledger.Utils.String:
+
+       added:
+       strip1Char
+       stripBy
+       strip1By
+
+- Allow building with GHC 9.6.1; add base-compat (#2011)
+
 # 1.29 2023-03-11
+
 - added terminal colour detection helpers:
   terminalIsLight
   terminalLightness

@@ -10,12 +10,11 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 # 1.29.1 2023-03-16
-- ;doc: update manuals
 
-- ;cabal: update cabal files
+- Allow building with GHC 9.6.1 (#2011)
 
-- ;pkg: bump version to 1.29.1
 # 1.29 2023-03-11
+
 - In the help dialog, mention that LEFT shows other screens.
 
 - In the manual, mention shift-up/down config needed for Terminal.app.

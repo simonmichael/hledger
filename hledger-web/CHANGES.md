@@ -10,12 +10,11 @@ User-visible changes in hledger-web.
 See also the hledger changelog.
 
 # 1.29.1 2023-03-16
-- ;doc: update manuals
 
-- ;cabal: update cabal files
+- Allow building with GHC 9.6.1 (#2011)
 
-- ;pkg: bump version to 1.29.1
 # 1.29 2023-03-11
+
 - The add form's typeahead now shows non-ascii text correctly.
   (#1961) (Arsen Arsenović)
 
