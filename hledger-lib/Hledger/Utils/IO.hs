@@ -336,7 +336,6 @@ readHandlePortably h = do
   T.hGetContents h
 
 -- | Like embedFile, but takes a path relative to the package directory.
--- Similar to embedFileRelative ?
 embedFileRelative :: FilePath -> Q Exp
 embedFileRelative f = makeRelativeToProject f >>= embedStringFile
 
