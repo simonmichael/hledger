@@ -13,8 +13,7 @@ module Hledger.Cli.Commands.Demo (
 
 import Hledger
 import Hledger.Cli.CliOptions
-import Control.Monad (forM_)
-import System.Exit (exitSuccess, exitFailure)
+import System.Exit (exitFailure)
 import Text.Printf
 import Control.Concurrent (threadDelay)
 import System.Process (callProcess)
@@ -47,7 +46,10 @@ demomode = hledgerCommandMode
   []
   [generalflagsgroup3]
   []
-  ([], Just $ argsFlag "[NUM|NAME|STR] [-- ASCIINEMAOPTS]")
+  ([], Just $ argsFlag optsstr)
+
+optsstr = "[NUM|PREFIX|SUBSTR] [-- ASCIINEMAOPTS]"
+usagestr = "Usage: hledger demo " <> optsstr
 
 -- | The demo command.
 demo :: CliOpts -> Journal -> IO ()
@@ -55,15 +57,13 @@ demo CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=_query}} _j = do
   -- demos <- getCurrentDirectory >>= readDemos
   let args = listofstringopt "args" rawopts
   case args of
-    [] -> do
-      forM_ (zip [(1::Int)..] demos) $ \(i, Demo t _) -> printf "%d) %s\n" i t
-      exitSuccess
-
+    [] -> putStrLn usagestr >> printDemos
     (a:as) ->
       case findDemo demos a of
         Nothing -> do
-          putStrLn $ a <> " not recognized"
-          putStrLn "Usage: hledger-demo [NUM|NAME|STR], run with no arguments to see a list"
+          putStrLn $ "No demo \"" <> a <> "\" was found."
+          putStrLn usagestr
+          printDemos
           exitFailure
 
         Just (Demo t c) -> do
@@ -89,6 +89,12 @@ findDemo ds s =
   <|> find ((sl `isInfixOf`) .lowercase.dtitle) ds   -- or by title substring (ignoring case)
   where
     sl = lowercase s
+
+printDemos :: IO ()
+printDemos = putStrLn $ unlines $
+  "Demos:" :
+  "" :
+  [show i <> ") " <> t | (i, Demo t _) <- zip [(1::Int)..] demos]
 
 -- | Run asciinema play, passing content to its stdin.
 runAsciinemaPlay :: ByteString -> [String] -> IO ()
