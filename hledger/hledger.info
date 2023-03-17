@@ -8699,11 +8699,6 @@ each commodity.
    With ‘--interleaved’, each equity posting is shown next to the
 corresponding source/destination posting.
 
-   The default closing date is yesterday or the journal’s end date,
-whichever is later.  You can change this by specifying a report end
-date; the last day of the report period will be the closing date.  Eg
-‘-e 2022’ means "close on 2022-12-31".
-
    The default closing date is yesterday, or the journal’s end date,
 whichever is later.  You can change this by specifying a report end
 date; (The report start date does not matter.)  The last day of the
@@ -10879,92 +10874,92 @@ Node: More about specific checks316256
 Ref: #more-about-specific-checks316418
 Node: close317150
 Ref: #close317261
-Node: close and costs319899
-Ref: #close-and-costs320043
-Node: close and balance assertions320332
-Ref: #close-and-balance-assertions320534
-Node: Example retain earnings321705
-Ref: #example-retain-earnings321922
-Node: Example migrate balances to a new file322280
-Ref: #example-migrate-balances-to-a-new-file322545
-Node: Example excluding closing/opening transactions323098
-Ref: #example-excluding-closingopening-transactions323347
-Node: codes324525
-Ref: #codes324642
-Node: commodities325518
-Ref: #commodities325654
-Node: descriptions325724
-Ref: #descriptions325861
-Node: diff326152
-Ref: #diff326267
-Node: files327313
-Ref: #files327422
-Node: help327563
-Ref: #help-1327672
-Node: import328662
-Ref: #import328785
-Node: Deduplication329893
-Ref: #deduplication330018
-Node: Import testing331940
-Ref: #import-testing332105
-Node: Importing balance assignments332956
-Ref: #importing-balance-assignments333162
-Node: Commodity display styles333819
-Ref: #commodity-display-styles333992
-Node: incomestatement334121
-Ref: #incomestatement334263
-Node: notes335630
-Ref: #notes335752
-Node: payees336114
-Ref: #payees336229
-Node: prices336754
-Ref: #prices336869
-Node: print337171
-Ref: #print337286
-Node: register342732
-Ref: #register342854
-Node: Custom register output347963
-Ref: #custom-register-output348094
-Node: rewrite349469
-Ref: #rewrite349587
-Node: Re-write rules in a file351499
-Ref: #re-write-rules-in-a-file351662
-Node: Diff output format352815
-Ref: #diff-output-format352998
-Node: rewrite vs print --auto354110
-Ref: #rewrite-vs.-print---auto354272
-Node: roi354846
-Ref: #roi354953
-Node: Spaces and special characters in --inv and --pnl356714
-Ref: #spaces-and-special-characters-in---inv-and---pnl356962
-Node: Semantics of --inv and --pnl357460
-Ref: #semantics-of---inv-and---pnl357707
-Node: IRR and TWR explained359585
-Ref: #irr-and-twr-explained359745
-Node: stats362857
-Ref: #stats362965
-Node: tags364362
-Ref: #tags-1364469
-Node: test365486
-Ref: #test365579
-Node: PART 5 COMMON TASKS366329
-Ref: #part-5-common-tasks366462
-Node: Getting help366736
-Ref: #getting-help366877
-Node: Constructing command lines367641
-Ref: #constructing-command-lines367842
-Node: Starting a journal file368523
-Ref: #starting-a-journal-file368730
-Node: Setting opening balances369928
-Ref: #setting-opening-balances370133
-Node: Recording transactions373286
-Ref: #recording-transactions373475
-Node: Reconciling374031
-Ref: #reconciling374183
-Node: Reporting376496
-Ref: #reporting376645
-Node: Migrating to a new file380634
-Ref: #migrating-to-a-new-file380791
+Node: close and costs319647
+Ref: #close-and-costs319791
+Node: close and balance assertions320080
+Ref: #close-and-balance-assertions320282
+Node: Example retain earnings321453
+Ref: #example-retain-earnings321670
+Node: Example migrate balances to a new file322028
+Ref: #example-migrate-balances-to-a-new-file322293
+Node: Example excluding closing/opening transactions322846
+Ref: #example-excluding-closingopening-transactions323095
+Node: codes324273
+Ref: #codes324390
+Node: commodities325266
+Ref: #commodities325402
+Node: descriptions325472
+Ref: #descriptions325609
+Node: diff325900
+Ref: #diff326015
+Node: files327061
+Ref: #files327170
+Node: help327311
+Ref: #help-1327420
+Node: import328410
+Ref: #import328533
+Node: Deduplication329641
+Ref: #deduplication329766
+Node: Import testing331688
+Ref: #import-testing331853
+Node: Importing balance assignments332704
+Ref: #importing-balance-assignments332910
+Node: Commodity display styles333567
+Ref: #commodity-display-styles333740
+Node: incomestatement333869
+Ref: #incomestatement334011
+Node: notes335378
+Ref: #notes335500
+Node: payees335862
+Ref: #payees335977
+Node: prices336502
+Ref: #prices336617
+Node: print336919
+Ref: #print337034
+Node: register342480
+Ref: #register342602
+Node: Custom register output347711
+Ref: #custom-register-output347842
+Node: rewrite349217
+Ref: #rewrite349335
+Node: Re-write rules in a file351247
+Ref: #re-write-rules-in-a-file351410
+Node: Diff output format352563
+Ref: #diff-output-format352746
+Node: rewrite vs print --auto353858
+Ref: #rewrite-vs.-print---auto354020
+Node: roi354594
+Ref: #roi354701
+Node: Spaces and special characters in --inv and --pnl356462
+Ref: #spaces-and-special-characters-in---inv-and---pnl356710
+Node: Semantics of --inv and --pnl357208
+Ref: #semantics-of---inv-and---pnl357455
+Node: IRR and TWR explained359333
+Ref: #irr-and-twr-explained359493
+Node: stats362605
+Ref: #stats362713
+Node: tags364110
+Ref: #tags-1364217
+Node: test365234
+Ref: #test365327
+Node: PART 5 COMMON TASKS366077
+Ref: #part-5-common-tasks366210
+Node: Getting help366484
+Ref: #getting-help366625
+Node: Constructing command lines367389
+Ref: #constructing-command-lines367590
+Node: Starting a journal file368271
+Ref: #starting-a-journal-file368478
+Node: Setting opening balances369676
+Ref: #setting-opening-balances369881
+Node: Recording transactions373034
+Ref: #recording-transactions373223
+Node: Reconciling373779
+Ref: #reconciling373931
+Node: Reporting376244
+Ref: #reporting376393
+Node: Migrating to a new file380382
+Ref: #migrating-to-a-new-file380539
 
 End Tag Table
 
