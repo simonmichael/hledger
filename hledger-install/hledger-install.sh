@@ -13,7 +13,7 @@ set -o pipefail
 HLEDGER_INSTALL_TOOL=hledger-install.sh
 
 # This install script's version.
-HLEDGER_INSTALL_VERSION=20230311
+HLEDGER_INSTALL_VERSION=20230316
 
 # Tools to be installed by this install script, official tools first.
 # Keep synced with the package versions below.
@@ -33,10 +33,10 @@ hledger-iadd \
 # Keep synced with the tools above. 
 # When changing remember to also bump HLEDGER_INSTALL_VERSION.
 # Official:
-HLEDGER_LIB_VERSION=1.29
-HLEDGER_VERSION=1.29
-HLEDGER_UI_VERSION=1.29
-HLEDGER_WEB_VERSION=1.29
+HLEDGER_LIB_VERSION=1.29.1
+HLEDGER_VERSION=1.29.1
+HLEDGER_UI_VERSION=1.29.1
+HLEDGER_WEB_VERSION=1.29.1
 # Third-party:
 HLEDGER_IADD_VERSION=1.3.17
 HLEDGER_INTEREST_VERSION=1.6.5
@@ -86,7 +86,7 @@ STACK_MIN_VERSION=2.5.1
 # You can try specifying a different stackage version here, or 
 # commenting out this line to use your current global resolver,
 # to avoid unnecessary building.
-STACK_RESOLVER="--resolver=lts-20.13"
+STACK_RESOLVER="--resolver=lts-20.14"
 
 # Dependencies we require that aren't in the above stackage snapshot.
 # (Also requested when using cabal, but that's harmless.)
@@ -1071,11 +1071,11 @@ fi
 # fi
 
 # wait for bounds update
-# if [[ $(cmpver "$(cmd_version hledger-interest 2>/dev/null)" $HLEDGER_INTEREST_VERSION) = 2 ]]; then
-#   echo Installing hledger-interest
-#   try_install hledger-interest-$HLEDGER_INTEREST_VERSION hledger-lib-$HLEDGER_LIB_VERSION $STACK_EXTRA_DEPS
-#   echo
-# fi
+if [[ $(cmpver "$(cmd_version hledger-interest 2>/dev/null)" $HLEDGER_INTEREST_VERSION) = 2 ]]; then
+  echo Installing hledger-interest
+  try_install hledger-interest-$HLEDGER_INTEREST_VERSION hledger-lib-$HLEDGER_LIB_VERSION $STACK_EXTRA_DEPS
+  echo
+fi
 
 if [[ $(cmpver "$(cmd_version hledger-stockquotes 2>/dev/null)" $HLEDGER_STOCKQUOTES_VERSION) = 2 ]]; then
   echo Installing hledger-stockquotes
