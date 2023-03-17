@@ -38,7 +38,7 @@ module Hledger.Utils.String (
 
 
 import Data.Char (isSpace, toLower, toUpper)
-import Data.List (intercalate)
+import Data.List (intercalate, dropWhileEnd)
 import qualified Data.Text as T
 import Text.Megaparsec ((<|>), between, many, noneOf, sepBy)
 import Text.Megaparsec.Char (char)
