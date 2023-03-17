@@ -16,7 +16,7 @@ hledger-ui - robust, friendly plain text accounting (TUI version)
    ‘hledger-ui [OPTIONS] [QUERYARGS]’
 ‘hledger ui -- [OPTIONS] [QUERYARGS]’
 
-   This manual is for hledger’s terminal interface, version 1.29.  See
+   This manual is for hledger’s terminal interface, version 1.29.1.  See
 also the hledger manual for common concepts and file formats.
 
    hledger is a robust, user-friendly, cross-platform set of programs
@@ -706,40 +706,40 @@ program is restarted.
 
 Tag Table:
 Node: Top223
-Node: OPTIONS1869
-Ref: #options1967
-Node: MOUSE7334
-Ref: #mouse7429
-Node: KEYS7672
-Ref: #keys7765
-Node: SCREENS12524
-Ref: #screens12622
-Node: Menu13330
-Ref: #menu13422
-Node: All accounts13499
-Ref: #all-accounts13638
-Node: Balance sheet accounts13897
-Ref: #balance-sheet-accounts14077
-Node: Income statement accounts14269
-Ref: #income-statement-accounts14451
-Node: Register16945
-Ref: #register17082
-Node: Transaction19110
-Ref: #transaction19233
-Node: Error20117
-Ref: #error20211
-Node: TIPS20455
-Ref: #tips20554
-Node: Watch mode20596
-Ref: #watch-mode20703
-Node: Debug output22191
-Ref: #debug-output22302
-Node: ENVIRONMENT22522
-Ref: #environment22633
-Node: FILES24056
-Ref: #files24155
-Node: BUGS24415
-Ref: #bugs24492
+Node: OPTIONS1871
+Ref: #options1969
+Node: MOUSE7336
+Ref: #mouse7431
+Node: KEYS7674
+Ref: #keys7767
+Node: SCREENS12526
+Ref: #screens12624
+Node: Menu13332
+Ref: #menu13424
+Node: All accounts13501
+Ref: #all-accounts13640
+Node: Balance sheet accounts13899
+Ref: #balance-sheet-accounts14079
+Node: Income statement accounts14271
+Ref: #income-statement-accounts14453
+Node: Register16947
+Ref: #register17084
+Node: Transaction19112
+Ref: #transaction19235
+Node: Error20119
+Ref: #error20213
+Node: TIPS20457
+Ref: #tips20556
+Node: Watch mode20598
+Ref: #watch-mode20705
+Node: Debug output22193
+Ref: #debug-output22304
+Node: ENVIRONMENT22524
+Ref: #environment22635
+Node: FILES24058
+Ref: #files24157
+Node: BUGS24417
+Ref: #bugs24494
 
 End Tag Table
 
