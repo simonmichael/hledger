@@ -9,7 +9,7 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 62bb93af9
+# 70ef3e816
 
 Improvements
 
@@ -31,6 +31,8 @@ Improvements
 - Allow building with GHC 9.6.1 (#2011)
 
 Fixes
+
+- The stats report no longer displays "Exact" in front of dates. (#2012)
 
 Docs
 

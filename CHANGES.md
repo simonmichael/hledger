@@ -9,7 +9,7 @@
 General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
-# 83a810805
+# cc41704c9
 
 Scripts/addons
 

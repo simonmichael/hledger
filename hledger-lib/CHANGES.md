@@ -9,7 +9,7 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# d3e4f8547
+# ee2989304
 
 - Hledger.Utils.String:
 
