@@ -45,7 +45,7 @@ HLEDGER_EDIT_VERSION=1.13.2
 HLEDGER_PLOT_VERSION=1.13.2
 
 # this script's one-line description
-HLEDGER_INSTALL_DESC="$HLEDGER_INSTALL_TOOL version $HLEDGER_INSTALL_VERSION, installs hledger $HLEDGER_VERSION and related tools"
+HLEDGER_INSTALL_DESC="$HLEDGER_INSTALL_TOOL version $HLEDGER_INSTALL_VERSION to install hledger $HLEDGER_VERSION and related tools"
 
 usage() {
   cat <<HERE
@@ -972,7 +972,7 @@ else
 fi
 
 date
-echo "$HLEDGER_INSTALL_DESC"
+echo "Running $HLEDGER_INSTALL_DESC"
 
 # ensure ~/.local/bin/ in PATH
 # TODO should check ~/.cabal/bin if using cabal
@@ -986,8 +986,7 @@ if ! on_path "$HOME_LOCAL_BIN" ; then
 fi
 
 # show system info
-echo
-echo "System info:"
+printf "on "
 quietly_run uname -rsv
 quietly_run lsb_release -a
 
@@ -1039,7 +1038,7 @@ fi
 
 # try installing each package that needs installing, in turn
 echo
-echo Installing hledger packages:
+echo "Installing hledger tools:"
 
 if [[ $(cmpver "$(cmd_version hledger 2>/dev/null)" $HLEDGER_VERSION) = 2 ]]; then
   echo Installing hledger
