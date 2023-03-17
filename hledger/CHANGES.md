@@ -9,8 +9,13 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 1.29 2023-03-11
+# 1.29.1 2023-03-16
+- ;doc: update manuals
 
+- ;cabal: update cabal files
+
+- ;pkg: bump version to 1.29.1
+# 1.29 2023-03-11
 Breaking changes
 
 - Weekly reports are no longer automatically adjusted to start on a

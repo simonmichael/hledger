@@ -9,8 +9,11 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 1.29 2023-03-11
+# 1.29.1 2023-03-16
+- ;cabal: update cabal files
 
+- ;pkg: bump version to 1.29.1
+# 1.29 2023-03-11
 - added terminal colour detection helpers:
   terminalIsLight
   terminalLightness

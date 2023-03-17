@@ -9,8 +9,15 @@
 General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
-# 1.29 2023-03-11
+# 1.29.1 2023-03-16
+- ;pkg: bump version to 1.29.1
 
+- ;install: fix more brokenness
+
+- ;install: fix a brokenness with STACK_EXTRA_DEPS
+
+- ;install: bump resolver
+# 1.29 2023-03-11
 Scripts/addons
 
 - hledger-script-example.hs: rename/cleanup
