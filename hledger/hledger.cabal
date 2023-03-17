@@ -112,6 +112,7 @@ library
       Hledger.Cli.Commands.Close
       Hledger.Cli.Commands.Codes
       Hledger.Cli.Commands.Commodities
+      Hledger.Cli.Commands.Demo
       Hledger.Cli.Commands.Descriptions
       Hledger.Cli.Commands.Diff
       Hledger.Cli.Commands.Help
