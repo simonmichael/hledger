@@ -21,24 +21,24 @@ import System.Process (callProcess)
 import System.IO.Error (catchIOError)
 import Safe (readMay, atMay, headMay)
 import Data.List (isPrefixOf, find, isInfixOf)
-import Data.Char (isDigit)
 import Control.Applicative ((<|>))
 import Data.ByteString as B (ByteString)
 import qualified Data.ByteString.Char8 as B
 import System.IO.Temp (withSystemTempFile)
 import System.IO (hClose)
 
+-- | An embedded asciinema cast, with some of the metadata separated out.
+-- The original file name is not preserved.
 data Demo = Demo {
-  dfilename :: FilePath,    -- file name
-  dtitle    :: String,      -- asciinema title field, effectively a description
+  dtitle    :: String,      -- asciinema title field
   _dcontent :: ByteString   -- asciinema v2 content
 }
 
 demos :: [Demo]
 demos = map readDemo [
-   ("install.cast", $(embedFileRelative "embeddedfiles/install.cast"   ))
-  ,("add.cast",     $(embedFileRelative "embeddedfiles/add.cast"       )) 
-  ,("reports.cast", $(embedFileRelative "embeddedfiles/reports.cast"   )) 
+   $(embedFileRelative "embeddedfiles/install.cast"   )
+  ,$(embedFileRelative "embeddedfiles/add.cast"       )
+  ,$(embedFileRelative "embeddedfiles/reports.cast"   )
   ]
 
 -- | Command line options for this command.
@@ -56,7 +56,7 @@ demo CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=_query}} _j = do
   let args = listofstringopt "args" rawopts
   case args of
     [] -> do
-      forM_ (zip [(1::Int)..] demos) $ \(i, Demo f t _) -> printf "%d) %-15s  %s\n" i f t
+      forM_ (zip [(1::Int)..] demos) $ \(i, Demo t _) -> printf "%d) %s\n" i t
       exitSuccess
 
     (a:as) ->
@@ -66,14 +66,14 @@ demo CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=_query}} _j = do
           putStrLn "Usage: hledger-demo [NUM|NAME|STR], run with no arguments to see a list"
           exitFailure
 
-        Just (Demo f t c) -> do
-          printf "playing (space to pause, . to step, ctrl-c to quit):\n %-15s  %s\n" f t
+        Just (Demo t c) -> do
+          printf "playing (space to pause, . to step, ctrl-c to quit):\n %s\n" t
           threadDelay 1000000
           putStr "\n"
           runAsciinemaPlay c as
 
-readDemo :: (FilePath, ByteString) -> Demo
-readDemo (name, content) = Demo name title content
+readDemo :: ByteString -> Demo
+readDemo content = Demo title content
   where
     title = maybe "" (readTitle . B.unpack) $ headMay $ B.lines content
       where
@@ -83,14 +83,12 @@ readDemo (name, content) = Demo name title content
           | otherwise = readTitle $ tail s
 
 findDemo :: [Demo] -> String -> Maybe Demo
-findDemo ds s
-  | all isDigit s = readMay s >>= atMay ds . subtract 1  -- find by number
-  | otherwise =
-         find ((==sl).lowercase.dfilename)            ds  -- or by name, ignoring case
-     <|> find ((sl `isInfixOf`).lowercase.dfilename)  ds  -- or by name substring
-     <|> find ((sl `isInfixOf`).lowercase.dtitle)     ds  -- or by title substring
-    where
-      sl = lowercase s
+findDemo ds s =
+      (readMay s >>= atMay ds . subtract 1)         -- try to find by number
+  <|> find ((sl `isPrefixOf`).lowercase.dtitle) ds  -- or by title prefix (ignoring case)
+  <|> find ((sl `isInfixOf`) .lowercase.dtitle) ds   -- or by title substring (ignoring case)
+  where
+    sl = lowercase s
 
 -- | Run asciinema play, passing content to its stdin.
 runAsciinemaPlay :: ByteString -> [String] -> IO ()
