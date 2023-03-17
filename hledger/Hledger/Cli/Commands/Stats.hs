@@ -70,7 +70,7 @@ showLedgerStats l today spn =
     (stts, tnum) = ([
        ("Main file", path) -- ++ " (from " ++ source ++ ")")
       ,("Included files", unlines $ drop 1 $ journalFilePaths j)
-      ,("Transactions span", printf "%s to %s (%d days)" (start spn) (end spn) days)
+      ,("Transactions span", printf "%s to %s (%d days)" (showstart spn) (showend spn) days)
       ,("Last transaction", maybe "none" show lastdate ++ showelapsed lastelapsed)
       ,("Transactions", printf "%d (%0.1f per day)" tnum txnrate)
       ,("Transactions last 30 days", printf "%d (%0.1f per day)" tnum30 txnrate30)
@@ -100,10 +100,10 @@ showLedgerStats l today spn =
                                          direction | dys >= 0 = "days ago" :: String
                                                    | otherwise = "days from now"
          tnum1 = length ts  -- Integer would be better
-         start (DateSpan (Just d) _) = show d
-         start _ = ""
-         end (DateSpan _ (Just d)) = show d
-         end _ = ""
+         showstart (DateSpan (Just efd) _) = show $ fromEFDay efd
+         showstart _ = ""
+         showend (DateSpan _ (Just efd)) = show $ fromEFDay efd
+         showend _ = ""
          days = fromMaybe 0 $ daysInSpan spn
          txnrate | days==0 = 0
                  | otherwise = fromIntegral tnum1 / fromIntegral days :: Double
