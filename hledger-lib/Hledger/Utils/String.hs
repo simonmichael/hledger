@@ -20,6 +20,9 @@ module Hledger.Utils.String (
  strip,
  lstrip,
  rstrip,
+ strip1Char,
+ stripBy,
+ strip1By,
  chomp,
  chomp1,
  singleline,
@@ -68,6 +71,25 @@ lstrip = dropWhile isSpace
 -- | Remove trailing whitespace.
 rstrip :: String -> String
 rstrip = reverse . lstrip . reverse
+
+-- | Strip the given starting and ending character
+-- from the start and end of a string if both are present.
+strip1Char :: Char -> Char -> String -> String
+strip1Char b e s = case s of
+  (c:cs) | c==b, not $ null cs, last cs==e -> init cs
+  _ -> s
+
+-- | Strip a run of zero or more characters matching the predicate
+-- from the start and end of a string.
+stripBy :: (Char -> Bool) -> String -> String
+stripBy f = dropWhileEnd f . dropWhile f
+
+-- | Strip a single balanced enclosing pair of a character matching the predicate
+-- from the start and end of a string.
+strip1By :: (Char -> Bool) -> String -> String
+strip1By f s = case s of
+  (c:cs) | f c, not $ null cs, last cs==c -> init cs
+  _ -> s
 
 -- | Remove all trailing newlines/carriage returns.
 chomp :: String -> String
