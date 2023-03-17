@@ -263,11 +263,6 @@ commandsList progversion othercmds highlight0 =
   ,"+ui                       run terminal UI"
   ,"+web                      run web UI"
   ,""
-  ,bold' "OTHER: other hledger-* addon commands found in PATH"
-  ] ++
-  multicol 80 (map (highlightAddon . (' ':) . drop 1) othercmds)
-  ++
-  [""
     -----------------------------------------80-------------------------------------
   ,bold' "HELP: command-line help and more docs"
   ," hledger                          show this commands list"
@@ -277,7 +272,12 @@ commandsList progversion othercmds highlight0 =
   ," hledger demo [NUM|NAME|STR] [ASOPTS]  show small demos of hledger"
   ," https://hledger.org              html manuals, tutorials, support.."
   ,""
+    -----------------------------------------80-------------------------------------
+  ,bold' "OTHER: other hledger-* addon commands found in PATH"
   ]
+  ++ multicol 80 (map (highlightAddon . (' ':) . drop 1) othercmds)
+  ++ [""]
+
 -- edit                     open a text editor on some part of the journal
 
 -- | Convert a single-column list of items to a multicolumn list
