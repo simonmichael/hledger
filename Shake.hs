@@ -602,7 +602,7 @@ main = do
       phony "cmdhelp" $ do
         need commandtxts
         when commit $ do
-          let msg = ";doc: update CLI help text files"
+          let msg = ";doc: update command help"
           cmd Shell gitcommit ("-m '"++msg++"' --") commandtxts
 
       commandtxts |%> \out -> do
