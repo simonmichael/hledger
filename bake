@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
-# * release
+# * bake
 # ** Usage
 
 set -e
 
+################################################################################
 usage() {
     cat <<EOF
-release - Help prepare a hledger release.
+bake - misc project bash scripts, mainly releasing related. Cf Shake.hs, make
 Commands:
-tools/release              - show this help
-tools/release relfiles     - symlink important files temporarily in .relfiles/
-tools/release prep VERSION - prepare this release on today's date
-tools/release bin          - push the current branch to CI to generate binaries
+./bake              - show this help
+./bake relfiles     - symlink important files temporarily in .relfiles/
+./bake prep VERSION - prepare this release on today's date
+./bake bin          - push the current branch to CI to generate binaries
 
 prep does the following:
 - autocreates and switches to the appropriate release branch
