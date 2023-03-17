@@ -9,6 +9,33 @@
 User-visible changes in the hledger command line tool and library.
 
 
+# 62bb93af9
+
+Improvements
+
+- Hledger.Cli.Script now also exports
+
+       Control.Applicative
+       Control.Concurrent
+       Data.Char
+       Data.Functor
+       System.IO
+       System.IO.Error
+
+   and new string helpers
+
+       strip1Char
+       stripBy
+       strip1By
+
+- Allow building with GHC 9.6.1 (#2011)
+
+Fixes
+
+Docs
+
+- remove duplicate in `hledger close` docs (Yehoshua Pesach Wallach)
+
 # 1.29 2023-03-11
 
 Breaking changes

@@ -9,6 +9,10 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
+# cb011c0c7
+
+- Allow building with GHC 9.6.1 (#2011)
+
 # 1.29 2023-03-11
 
 - In the help dialog, mention that LEFT shows other screens.

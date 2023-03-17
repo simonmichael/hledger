@@ -9,6 +9,20 @@
 General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
+# 83a810805
+
+Scripts/addons
+
+- hledger-install: slight output cleanups
+
+Docs
+
+- RELEASING: new release process diagram
+
+Infrastructure
+
+- update hie.yaml so HLS uses GHC 9.4
+
 # 1.29 2023-03-11
 
 Scripts/addons
