@@ -9,7 +9,7 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# cc41704c9
+# fe3477797
 
 - Allow building with GHC 9.6.1 (#2011)
 
