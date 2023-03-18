@@ -26,21 +26,21 @@ import qualified Data.ByteString.Char8 as B
 import System.IO.Temp (withSystemTempFile)
 import System.IO (hClose)
 
+demos :: [Demo]
+demos = map readDemo [
+  $(embedFileRelative "embeddedfiles/install.cast"),  -- https://asciinema.org/a/567934 Installing hledger from source with hledger-install
+  $(embedFileRelative "embeddedfiles/demo.cast"),     -- https://asciinema.org/a/567944 Watching the built-in demos
+  $(embedFileRelative "embeddedfiles/add.cast"),      -- https://asciinema.org/a/567935 The easiest way to start a journal (add)
+  $(embedFileRelative "embeddedfiles/print.cast"),    -- https://asciinema.org/a/567936 Show full transactions (print)
+  $(embedFileRelative "embeddedfiles/balance.cast")   -- https://asciinema.org/a/567937 Show account balances and changes (balance)
+  ]
+
 -- | An embedded asciinema cast, with some of the metadata separated out.
 -- The original file name is not preserved.
 data Demo = Demo {
   dtitle    :: String,      -- asciinema title field
   _dcontent :: ByteString   -- asciinema v2 content
 }
-
-demos :: [Demo]
-demos = map readDemo [
-   $(embedFileRelative "embeddedfiles/install.cast")  -- https://asciinema.org/a/567934
-  ,$(embedFileRelative "embeddedfiles/demo.cast")     -- https://asciinema.org/a/567944
-  ,$(embedFileRelative "embeddedfiles/add.cast")      -- https://asciinema.org/a/567935
-  ,$(embedFileRelative "embeddedfiles/print.cast")    -- https://asciinema.org/a/567936
-  ,$(embedFileRelative "embeddedfiles/balance.cast")  -- https://asciinema.org/a/567937
-  ]
 
 -- | Command line options for this command.
 demomode = hledgerCommandMode

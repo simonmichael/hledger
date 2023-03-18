@@ -1,4 +1,4 @@
-{"version": 2, "width": 80, "height": 25, "timestamp": 1678904454, "idle_time_limit": 0.5, "env": {"SHELL": "/opt/homebrew/bin/bash", "TERM": "xterm-256color"}, "title": "Showing account balances (balance)"}
+{"version": 2, "width": 80, "height": 25, "timestamp": 1678904454, "idle_time_limit": 0.5, "env": {"SHELL": "/opt/homebrew/bin/bash", "TERM": "xterm-256color"}, "title": "Show account balances and changes (balance)"}
 [97.851861, "o", "\u001b[?2004h~$ "]
 [108.4427, "o", "h"]
 [108.511571, "o", "l"]

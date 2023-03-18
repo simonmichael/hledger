@@ -1,4 +1,4 @@
-{"version": 2, "width": 80, "height": 25, "timestamp": 1678904454, "idle_time_limit": 0.5, "env": {"SHELL": "/opt/homebrew/bin/bash", "TERM": "xterm-256color"}, "title": "Showing journal entries (print)"}
+{"version": 2, "width": 80, "height": 25, "timestamp": 1678904454, "idle_time_limit": 0.5, "env": {"SHELL": "/opt/homebrew/bin/bash", "TERM": "xterm-256color"}, "title": "Show full transactions (print)"}
 [97.851861, "o", "\u001b[?2004h~$ "]
 [99.846929, "o", "h"]
 [99.937799, "o", "l"]

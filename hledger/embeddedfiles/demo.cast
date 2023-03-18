@@ -1,4 +1,4 @@
-{"version": 2, "width": 80, "height": 25, "timestamp": 1679047443, "env": {"SHELL": "/opt/homebrew/bin/bash", "TERM": "xterm-256color"}, "title": "Watching the built-in demos (demo)"}
+{"version": 2, "width": 80, "height": 25, "timestamp": 1679047443, "env": {"SHELL": "/opt/homebrew/bin/bash", "TERM": "xterm-256color"}, "title": "Watching the built-in demos"}
 [0.176603, "o", "\u001b[?2004h$ "]
 [1.310863, "o", "h"]
 [1.353474, "o", "l"]

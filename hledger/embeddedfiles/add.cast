@@ -1,4 +1,4 @@
-{"version": 2, "width": 80, "height": 25, "timestamp": 1678904454, "env": {"SHELL": "/opt/homebrew/bin/bash", "TERM": "xterm-256color"}, "title": "The simplest way to start (add)"}
+{"version": 2, "width": 80, "height": 25, "timestamp": 1678904454, "env": {"SHELL": "/opt/homebrew/bin/bash", "TERM": "xterm-256color"}, "title": "The easiest way to start a journal (add)"}
 [0.255203, "o", "\u001b[?2004h~$ "]
 [1.234397, "o", "h"]
 [1.327242, "o", "l"]
