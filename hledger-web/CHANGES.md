@@ -9,7 +9,7 @@ __      _____| |__
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# d124d40e6
+# 5655c533f
 
 # 1.29.1 2023-03-16
 

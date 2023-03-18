@@ -9,7 +9,7 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# d124d40e6
+# 5ddb6028e
 
 # 1.29.1 2023-03-16
 
