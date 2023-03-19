@@ -2,12 +2,31 @@
 The @demo@ command lists and plays small hledger demos in the terminal, using asciinema.
 -}
 {-
-TODO
-mirror common asciinema flags - -s, -i at least
-support other asciinema operations - cat
-hledger.org hosting
-embedded links to hledger.org player
-windows/PowerSession support
+PROJECTS
+improve cast output
+ install
+  command line editing glitches
+  shrink / compress ?
+ help
+  screen corrupted by pager
+ demo
+  update (or drop till stable)
+ add
+ print
+ balance
+document cast production tips
+ always clear screen after running pager/curses apps ?
+ record with tall window to avoid showing pager in playback ?
+improve functionality
+ show "done" in final red line ?
+ mirror common asciinema flags like -s, -i and/or set speed/max idle with optional arguments
+ support other asciinema operations (cat)
+ show hledger.org player urls
+ windows/PowerSession support
+ attract/continuous play mode
+more casts
+ clarify goals/target user(s)/scenarios
+ identify and prioritise some casts needed
 -}
 
 {-# LANGUAGE OverloadedStrings   #-}
