@@ -1,6 +1,14 @@
 {-|
 The @demo@ command lists and plays small hledger demos in the terminal, using asciinema.
 -}
+{-
+TODO
+mirror common asciinema flags - -s, -i at least
+support other asciinema operations - cat
+hledger.org hosting
+embedded links to hledger.org player
+windows/PowerSession support
+-}
 
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -19,9 +27,10 @@ import Control.Concurrent (threadDelay)
 import System.Process (callProcess)
 import System.IO.Error (catchIOError)
 import Safe (readMay, atMay, headMay)
-import Data.List (isPrefixOf, find, isInfixOf)
+import Data.List (isPrefixOf, find, findIndex, isInfixOf)
 import Control.Applicative ((<|>))
 import Data.ByteString as B (ByteString)
+import Data.Maybe
 import qualified Data.ByteString.Char8 as B
 import System.IO.Temp (withSystemTempFile)
 import System.IO (hClose)
@@ -68,12 +77,17 @@ demo CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=_query}} _j = do
           putStrLn usagestr
           printDemos
           exitFailure
-
         Just (Demo t c) -> do
-          printf "playing (space to pause, . to step, ctrl-c to quit):\n %s\n" t
+          let i = maybe 0 (1+) $ findIndex (\(Demo t2 _) -> t2 == t) demos  -- should succeed
+          mw <- getTerminalWidth
+          let line = red' $ replicate w '.' where w = fromMaybe (length t) mw
+          printf "playing: %d) %s\nspace to pause, . to step, ctrl-c to quit\n" i (bold' t)
+          putStrLn line
+          putStrLn ""
           threadDelay 1000000
-          putStr "\n"
           runAsciinemaPlay c as
+          putStrLn ""
+          putStrLn line
 
 readDemo :: ByteString -> Demo
 readDemo content = Demo title content
@@ -89,7 +103,7 @@ findDemo :: [Demo] -> String -> Maybe Demo
 findDemo ds s =
       (readMay s >>= atMay ds . subtract 1)         -- try to find by number
   <|> find ((sl `isPrefixOf`).lowercase.dtitle) ds  -- or by title prefix (ignoring case)
-  <|> find ((sl `isInfixOf`) .lowercase.dtitle) ds   -- or by title substring (ignoring case)
+  <|> find ((sl `isInfixOf`) .lowercase.dtitle) ds  -- or by title substring (ignoring case)
   where
     sl = lowercase s
 
@@ -97,7 +111,7 @@ printDemos :: IO ()
 printDemos = putStrLn $ unlines $
   "Demos:" :
   -- "" :
-  [show i <> ") " <> t | (i, Demo t _) <- zip [(1::Int)..] demos]
+  [show i <> ") " <> bold' t | (i, Demo t _) <- zip [(1::Int)..] demos]
 
 -- | Run asciinema play, passing content to its stdin.
 runAsciinemaPlay :: ByteString -> [String] -> IO ()
