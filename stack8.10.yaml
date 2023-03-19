@@ -16,6 +16,7 @@ extra-deps:
 # for hledger-lib:
 - doctest-0.20.0
 - ansi-terminal-0.11.4
+- terminal-size-0.3.4
 - text-ansi-0.2.1
 - text-builder-0.6.7
 - text-builder-dev-0.3.3.2

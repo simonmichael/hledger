@@ -22,6 +22,11 @@ module Hledger.Utils.IO (
   -- * Viewing with pager
   pager,
 
+  -- * Terminal size
+  getTerminalHeightWidth,
+  getTerminalHeight,
+  getTerminalWidth,
+
   -- * Command line arguments
   progArgs,
   outputFileOption,
@@ -31,10 +36,31 @@ module Hledger.Utils.IO (
   colorOption,
   useColorOnStdout,
   useColorOnStderr,
+  Color(..),
+  ColorIntensity(..),
   color,
   bgColor,
   colorB,
   bgColorB,
+  bold',
+  faint',
+  black',
+  red',
+  green',
+  yellow',
+  blue',
+  magenta',
+  cyan',
+  white',
+  brightBlack',
+  brightRed',
+  brightGreen',
+  brightYellow',
+  brightBlue',
+  brightMagenta',
+  brightCyan',
+  brightWhite',
+  rgb',
   terminalIsLight,
   terminalLightness,
   terminalFgColor,
@@ -73,10 +99,12 @@ import qualified Data.Text.Lazy.Builder as TB
 import           Data.Time.Clock (getCurrentTime)
 import           Data.Time.LocalTime
   (LocalTime, ZonedTime, getCurrentTimeZone, utcToLocalTime, utcToZonedTime)
-import           Data.Word (Word16)
+import           Data.Word (Word8, Word16)
 import           Language.Haskell.TH.Syntax (Q, Exp)
-import           System.Console.ANSI
-  (Color,ColorIntensity,ConsoleLayer(..), SGR(..), hSupportsANSIColor, setSGRCode, getLayerColor)
+import           String.ANSI
+import           System.Console.ANSI (Color(..),ColorIntensity(..),
+  ConsoleLayer(..), SGR(..), hSupportsANSIColor, setSGRCode, getLayerColor)
+import           System.Console.Terminal.Size (Window (Window), size)
 import           System.Directory (getHomeDirectory)
 import           System.Environment (getArgs, lookupEnv)
 import           System.FilePath (isRelative, (</>))
@@ -138,6 +166,19 @@ pager s = do
   (if dumbterm then putStrLn else printOrPage . T.pack) s
 #endif
 
+-- | An alternative to ansi-terminal's getTerminalSize, based on
+-- the more robust-looking terminal-size package.
+-- Tries to get stdout's terminal's current height and width.
+getTerminalHeightWidth :: IO (Maybe (Int,Int))
+getTerminalHeightWidth = fmap (fmap unwindow) size
+  where unwindow (Window h w) = (h,w)
+
+getTerminalHeight :: IO (Maybe Int)
+getTerminalHeight = fmap fst <$> getTerminalHeightWidth
+
+getTerminalWidth :: IO (Maybe Int)
+getTerminalWidth  = fmap snd <$> getTerminalHeightWidth
+
 -- Command line arguments
 
 -- | The command line arguments that were used at program startup.
@@ -174,6 +215,67 @@ hasOutputFile = outputFileOption `notElem` [Nothing, Just "-"]
 -- XXX shouldn't we check that stdout is interactive. instead ?
 
 -- ANSI colour
+
+ifAnsi f = if useColorOnStdout then f else id
+
+-- | Versions of some of text-ansi's string colors/styles which are more careful
+-- to not print junk onscreen. These use our useColorOnStdout.
+bold' :: String -> String
+bold'  = ifAnsi bold
+
+faint' :: String -> String
+faint'  = ifAnsi faint
+
+black' :: String -> String
+black'  = ifAnsi black
+
+red' :: String -> String
+red'  = ifAnsi red
+
+green' :: String -> String
+green'  = ifAnsi green
+
+yellow' :: String -> String
+yellow'  = ifAnsi yellow
+
+blue' :: String -> String
+blue'  = ifAnsi blue
+
+magenta' :: String -> String
+magenta'  = ifAnsi magenta
+
+cyan' :: String -> String
+cyan'  = ifAnsi cyan
+
+white' :: String -> String
+white'  = ifAnsi white
+
+brightBlack' :: String -> String
+brightBlack'  = ifAnsi brightBlack
+
+brightRed' :: String -> String
+brightRed'  = ifAnsi brightRed
+
+brightGreen' :: String -> String
+brightGreen'  = ifAnsi brightGreen
+
+brightYellow' :: String -> String
+brightYellow'  = ifAnsi brightYellow
+
+brightBlue' :: String -> String
+brightBlue'  = ifAnsi brightBlue
+
+brightMagenta' :: String -> String
+brightMagenta'  = ifAnsi brightMagenta
+
+brightCyan' :: String -> String
+brightCyan'  = ifAnsi brightCyan
+
+brightWhite' :: String -> String
+brightWhite'  = ifAnsi brightWhite
+
+rgb' :: Word8 -> Word8 -> Word8 -> String -> String
+rgb' r g b  = ifAnsi (rgb r g b)
 
 -- | Read the value of the --color or --colour command line option provided at program startup
 -- using unsafePerformIO. If this option was not provided, returns the empty string.
@@ -227,6 +329,9 @@ useColorOnHandle h = unsafePerformIO $ do
        || (coloroption `notElem` ["never","no"] && not no_color && supports_color)
 
 -- | Wrap a string in ANSI codes to set and reset foreground colour.
+-- ColorIntensity is @Dull@ or @Vivid@ (ie normal and bold).
+-- Color is one of @Black@, @Red@, @Green@, @Yellow@, @Blue@, @Magenta@, @Cyan@, @White@.
+-- Eg: @color Dull Red "text"@.
 color :: ColorIntensity -> Color -> String -> String
 color int col s = setSGRCode [SetColor Foreground int col] ++ s ++ setSGRCode []
 

@@ -163,9 +163,6 @@ accent
 
 highlightAddon = id
 
--- More careful version of bold
-bold' = if useColorOnStdout then bold else id
-
 -- | The commands list, showing command names, standard aliases,
 -- and short descriptions. This is modified at runtime, as follows:
 --
