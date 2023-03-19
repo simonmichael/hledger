@@ -134,6 +134,7 @@ library
     , tasty >=1.2.3
     , tasty-hunit >=0.10.0.2
     , template-haskell
+    , terminal-size >=0.3.3
     , text >=1.2
     , text-ansi >=0.2.1
     , time >=1.5
@@ -192,6 +193,7 @@ test-suite doctest
     , tasty >=1.2.3
     , tasty-hunit >=0.10.0.2
     , template-haskell
+    , terminal-size >=0.3.3
     , text >=1.2
     , text-ansi >=0.2.1
     , time >=1.5
@@ -252,6 +254,7 @@ test-suite unittest
     , tasty >=1.2.3
     , tasty-hunit >=0.10.0.2
     , template-haskell
+    , terminal-size >=0.3.3
     , text >=1.2
     , text-ansi >=0.2.1
     , time >=1.5
