@@ -9,7 +9,35 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 5ddb6028e
+# 4d7d982f8
+
+- added more terminal size, ANSI style/color helpers in Hledger.Utils.IO
+  (and therefore Hledger and Hledger.Cli.Script):
+
+      getTerminalHeightWidth
+      getTerminalHeight
+      getTerminalWidth
+      Color(..)
+      ColorIntensity(..)
+      bold'
+      faint'
+      black'
+      red'
+      green'
+      yellow'
+      blue'
+      magenta'
+      cyan'
+      white'
+      brightBlack'
+      brightRed'
+      brightGreen'
+      brightYellow'
+      brightBlue'
+      brightMagenta'
+      brightCyan'
+      brightWhite'
+      rgb'
 
 # 1.29.1 2023-03-16
 

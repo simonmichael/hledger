@@ -9,7 +9,7 @@
 General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
-# 12247c876
+# be8e64e49
 
 # 1.29.1 2023-03-16
 

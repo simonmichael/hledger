@@ -9,14 +9,14 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 8ec59eafa
+# 13531b5b8
 
 Breaking changes
 
 Features
 
-- The new `demo` command plays brief asciinema "screencasts"
-  explaining various features and use cases.
+- The new `demo` command plays brief asciinema screencasts explaining
+  various features and use cases.
 
 Improvements
 
