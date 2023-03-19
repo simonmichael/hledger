@@ -8909,24 +8909,26 @@ File: hledger.info,  Node: demo,  Next: descriptions,  Prev: commodities,  Up: P
 24.14 demo
 ==========
 
-Play small demos of hledger usage in the terminal.
+Play demos of hledger usage in the terminal, if asciinema is installed.
 
    Run this command with no argument to list the demos.  To play a demo,
-write its number or name or a substring.  asciinema must be installed.
+write its number or a prefix or substring of its title.  Tips:
 
-   During playback, several keys are available: - SPACE pause/unpause -
-.  step forward (while paused) - CTRL-c quit early
+   Make your terminal window large enough to see the demo clearly.
 
-   asciinema options can be added following a double-dash; list them
-with ‘asciinema -h’.  ‘-s’ (speed) and ‘-i’ (max idle time) are
-particularly useful.
+   During playback, several keys are available: SPACE to pause/unpause,
+.  to step forward (while paused), CTRL-c quit.
+
+   asciinema options can be added following a double dash, such as ‘-s
+N’ to adjust speed and ‘-i SECS’ to limit pauses.  Run ‘asciinema -h’ to
+list these options.
 
    Examples:
 
-$ hledger demo                   # list available demos
-$ hledger demo 1                 # play the first demo
-$ hledger demo install -s5 -i.5  # play the demo named or containing "install",
-                                 # at 5x speed, limiting idle time to 0.5s.
+$ hledger demo                      # list available demos
+$ hledger demo 1                    # play the first demo
+$ hledger demo install -- -s5 -i.5  # play the install demo at 5x speed,
+                                    # with pauses limited to half a second
 
 
 File: hledger.info,  Node: descriptions,  Next: diff,  Prev: demo,  Up: PART 4 COMMANDS
@@ -10917,78 +10919,78 @@ Node: commodities325330
 Ref: #commodities325458
 Node: demo325528
 Ref: #demo325649
-Node: descriptions326419
-Ref: #descriptions326549
-Node: diff326840
-Ref: #diff326955
-Node: files328001
-Ref: #files328110
-Node: help328251
-Ref: #help-1328360
-Node: import329350
-Ref: #import329473
-Node: Deduplication330581
-Ref: #deduplication330706
-Node: Import testing332628
-Ref: #import-testing332793
-Node: Importing balance assignments333644
-Ref: #importing-balance-assignments333850
-Node: Commodity display styles334507
-Ref: #commodity-display-styles334680
-Node: incomestatement334809
-Ref: #incomestatement334951
-Node: notes336318
-Ref: #notes336440
-Node: payees336802
-Ref: #payees336917
-Node: prices337442
-Ref: #prices337557
-Node: print337859
-Ref: #print337974
-Node: register343420
-Ref: #register343542
-Node: Custom register output348651
-Ref: #custom-register-output348782
-Node: rewrite350157
-Ref: #rewrite350275
-Node: Re-write rules in a file352187
-Ref: #re-write-rules-in-a-file352350
-Node: Diff output format353503
-Ref: #diff-output-format353686
-Node: rewrite vs print --auto354798
-Ref: #rewrite-vs.-print---auto354960
-Node: roi355534
-Ref: #roi355641
-Node: Spaces and special characters in --inv and --pnl357402
-Ref: #spaces-and-special-characters-in---inv-and---pnl357650
-Node: Semantics of --inv and --pnl358148
-Ref: #semantics-of---inv-and---pnl358395
-Node: IRR and TWR explained360273
-Ref: #irr-and-twr-explained360433
-Node: stats363545
-Ref: #stats363653
-Node: tags365050
-Ref: #tags-1365157
-Node: test366174
-Ref: #test366267
-Node: PART 5 COMMON TASKS367017
-Ref: #part-5-common-tasks367150
-Node: Getting help367424
-Ref: #getting-help367565
-Node: Constructing command lines368329
-Ref: #constructing-command-lines368530
-Node: Starting a journal file369211
-Ref: #starting-a-journal-file369418
-Node: Setting opening balances370616
-Ref: #setting-opening-balances370821
-Node: Recording transactions373974
-Ref: #recording-transactions374163
-Node: Reconciling374719
-Ref: #reconciling374871
-Node: Reporting377184
-Ref: #reporting377333
-Node: Migrating to a new file381322
-Ref: #migrating-to-a-new-file381479
+Node: descriptions326505
+Ref: #descriptions326635
+Node: diff326926
+Ref: #diff327041
+Node: files328087
+Ref: #files328196
+Node: help328337
+Ref: #help-1328446
+Node: import329436
+Ref: #import329559
+Node: Deduplication330667
+Ref: #deduplication330792
+Node: Import testing332714
+Ref: #import-testing332879
+Node: Importing balance assignments333730
+Ref: #importing-balance-assignments333936
+Node: Commodity display styles334593
+Ref: #commodity-display-styles334766
+Node: incomestatement334895
+Ref: #incomestatement335037
+Node: notes336404
+Ref: #notes336526
+Node: payees336888
+Ref: #payees337003
+Node: prices337528
+Ref: #prices337643
+Node: print337945
+Ref: #print338060
+Node: register343506
+Ref: #register343628
+Node: Custom register output348737
+Ref: #custom-register-output348868
+Node: rewrite350243
+Ref: #rewrite350361
+Node: Re-write rules in a file352273
+Ref: #re-write-rules-in-a-file352436
+Node: Diff output format353589
+Ref: #diff-output-format353772
+Node: rewrite vs print --auto354884
+Ref: #rewrite-vs.-print---auto355046
+Node: roi355620
+Ref: #roi355727
+Node: Spaces and special characters in --inv and --pnl357488
+Ref: #spaces-and-special-characters-in---inv-and---pnl357736
+Node: Semantics of --inv and --pnl358234
+Ref: #semantics-of---inv-and---pnl358481
+Node: IRR and TWR explained360359
+Ref: #irr-and-twr-explained360519
+Node: stats363631
+Ref: #stats363739
+Node: tags365136
+Ref: #tags-1365243
+Node: test366260
+Ref: #test366353
+Node: PART 5 COMMON TASKS367103
+Ref: #part-5-common-tasks367236
+Node: Getting help367510
+Ref: #getting-help367651
+Node: Constructing command lines368415
+Ref: #constructing-command-lines368616
+Node: Starting a journal file369297
+Ref: #starting-a-journal-file369504
+Node: Setting opening balances370702
+Ref: #setting-opening-balances370907
+Node: Recording transactions374060
+Ref: #recording-transactions374249
+Node: Reconciling374805
+Ref: #reconciling374957
+Node: Reporting377270
+Ref: #reporting377419
+Node: Migrating to a new file381408
+Ref: #migrating-to-a-new-file381565
 
 End Tag Table
 
