@@ -36,12 +36,14 @@ module Hledger.Utils.IO (
   colorOption,
   useColorOnStdout,
   useColorOnStderr,
-  Color(..),
-  ColorIntensity(..),
+  -- XXX needed for using color/bgColor/colorB/bgColorB, but clashing with UIUtils:
+  -- Color(..),
+  -- ColorIntensity(..),
   color,
   bgColor,
   colorB,
   bgColorB,
+  --
   bold',
   faint',
   black',

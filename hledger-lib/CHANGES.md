@@ -17,8 +17,6 @@ For user-visible changes, see the hledger package changelog.
       getTerminalHeightWidth
       getTerminalHeight
       getTerminalWidth
-      Color(..)
-      ColorIntensity(..)
       bold'
       faint'
       black'
