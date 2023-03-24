@@ -84,14 +84,16 @@ msNew =
   MS MSS {
      _mssList            = list MenuList (V.fromList [
       -- keep initial screen stack setup in UI.Main synced with these
-       MenuScreenItem "All accounts" Accounts
-      ,MenuScreenItem "Cash accounts" CashScreen
+       MenuScreenItem "Cash accounts" CashScreen
       ,MenuScreenItem "Balance sheet accounts" Balancesheet
       ,MenuScreenItem "Income statement accounts" Incomestatement
+      ,MenuScreenItem "All accounts" Accounts
       ]) 1
       & listMoveTo defaultscreenitem
     ,_mssUnused = ()
-    } where defaultscreenitem = 2  -- select this one at startup (currently this screen is constructed only then)
+    } where
+      -- select balance sheet accounts at startup (currently this screen is constructed only then)
+      defaultscreenitem = 1
 
 -- | Update a menu screen. Currently a no-op since menu screen
 -- has unchanging content.

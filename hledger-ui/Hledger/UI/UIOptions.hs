@@ -37,10 +37,10 @@ uiflags = [
    flagNone ["watch","w"] (setboolopt "watch") "watch for data and date changes and reload automatically"
   ,flagReq  ["theme"] (\s opts -> Right $ setopt "theme" s opts) "THEME" ("use this custom display theme ("++intercalate ", " themeNames++")")
   ,flagNone ["menu"] (setboolopt "menu") "start in the menu screen"
-  ,flagNone ["all"] (setboolopt "all") "start in the all accounts screen"
   ,flagNone ["cash"] (setboolopt "cash") "start in the cash accounts screen"
   ,flagNone ["bs"] (setboolopt "bs") "start in the balance sheet accounts screen"
   ,flagNone ["is"] (setboolopt "is") "start in the income statement accounts screen"
+  ,flagNone ["all"] (setboolopt "all") "start in the all accounts screen"
   ,flagReq  ["register"] (\s opts -> Right $ setopt "register" s opts) "ACCTREGEX" "start in the (first matched) account's register"
   ,flagNone ["change"] (setboolopt "change")
     "show period balances (changes) at startup instead of historical balances"
@@ -58,7 +58,7 @@ uiflags = [
 --uimode :: Mode RawOpts
 uimode =  (mode "hledger-ui" (setopt "command" "ui" def)
             "browse accounts, postings and entries in a full-window TUI"
-            (argsFlag "[--menu|--all|--cash|--bs|--is|--register=ACCT] [QUERY]") []){
+            (argsFlag "[--menu|--cash|--bs|--is|--all|--register=ACCT] [QUERY]") []){
               modeGroupFlags = Group {
                                 groupUnnamed = uiflags
                                ,groupHidden = hiddenflags
