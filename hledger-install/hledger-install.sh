@@ -13,7 +13,7 @@ set -o pipefail
 HLEDGER_INSTALL_TOOL=hledger-install.sh
 
 # This install script's version.
-HLEDGER_INSTALL_VERSION=20230316
+HLEDGER_INSTALL_VERSION=20230324
 
 # Tools to be installed by this install script, official tools first.
 # Keep synced with the package versions below.
@@ -1070,14 +1070,13 @@ fi
 # We might have to build these with an older version of hledger,
 # if they have not been updated yet.
 
-# wait for bounds update
+# XXX waiting for bounds update
 # if [[ $(cmpver "$(cmd_version hledger-iadd 2>/dev/null)" $HLEDGER_IADD_VERSION) = 2 ]]; then
 #   echo Installing hledger-iadd
 #   try_install hledger-iadd-$HLEDGER_IADD_VERSION hledger-lib-$HLEDGER_LIB_VERSION $STACK_EXTRA_DEPS
 #   echo
 # fi
 
-# wait for bounds update
 if [[ $(cmpver "$(cmd_version hledger-interest 2>/dev/null)" $HLEDGER_INTEREST_VERSION) = 2 ]]; then
   echo Installing hledger-interest
   try_install hledger-interest-$HLEDGER_INTEREST_VERSION hledger-lib-$HLEDGER_LIB_VERSION $STACK_EXTRA_DEPS
