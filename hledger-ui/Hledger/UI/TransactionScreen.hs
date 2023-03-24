@@ -85,14 +85,14 @@ tsDraw UIState{aopts=UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec
                         -- _             -> quickhelp
           where
             quickhelp = borderKeysStr [
-               ("?", "help")
-              ,("LEFT", "back")
-              ,("UP/DOWN", "prev/next")
+               ("LEFT", "back")
+              ,("UP/DOWN", "prev/next txn")
               --,("ESC", "cancel/top")
               -- ,("a", "add")
-              ,("E", "editor")
+              ,("E", "edit")
               ,("g", "reload")
-              ,("q", "quit")
+              ,("?", "help")
+              -- ,("q", "quit")
               ]
 
 tsDraw _ = errorWrongScreenType "draw function"  -- PARTIAL:

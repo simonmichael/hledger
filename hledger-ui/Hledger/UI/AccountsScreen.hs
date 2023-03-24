@@ -138,8 +138,8 @@ asDrawHelper UIState{aScreen=scr, aopts=uopts, ajournal=j, aMode=mode} ropts scr
                             _                   -> quickhelp
               where
                 quickhelp = borderKeysStr' [
-                  ("?", str "help")
-    --              ,("RIGHT", str "register")
+                   ("LEFT", str "back")
+                  -- ,("RIGHT", str "register")
                   ,("t", renderToggle (tree_ ropts) "list" "tree")
                   -- ,("t", str "tree")
                   -- ,("l", str "list")
@@ -152,9 +152,10 @@ asDrawHelper UIState{aScreen=scr, aopts=uopts, ajournal=j, aMode=mode} ropts scr
                   --,("/", "filter")
                   --,("DEL", "unfilter")
                   --,("ESC", "cancel/top")
-                  ,("a", str "add")
-    --               ,("g", "reload")
-                  ,("q", str "quit")
+                  -- ,("a", str "add")
+                  -- ,("g", "reload")
+                  ,("?", str "help")
+                  -- ,("q", str "quit")
                   ]
 
 asDrawItem :: (Int,Int) -> Bool -> AccountsScreenItem -> Widget Name

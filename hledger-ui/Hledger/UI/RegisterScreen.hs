@@ -136,9 +136,8 @@ rsDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
                         _                   -> quickhelp
           where
             quickhelp = borderKeysStr' [
-               ("?", str "help")
-              ,("LEFT", str "back")
---              ,("RIGHT", str "transaction")
+               ("LEFT", str "back")
+              -- ,("RIGHT", str "transaction")
 
               -- tree/list mode - rsForceInclusive may override, but use tree_ to ensure a visible toggle effect
               ,("t", renderToggle (tree_ ropts) "list(-subs)" "tree(+subs)")
@@ -147,9 +146,10 @@ rsDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
 
               ,("H", renderToggle (not ishistorical) "historical" "period")
               ,("F", renderToggle1 (isJust . forecast_ . inputopts_ $ copts) "forecast")
---               ,("a", "add")
---               ,("g", "reload")
---               ,("q", "quit")
+              -- ,("a", "add")
+              -- ,("g", "reload")
+              ,("?", str "help")
+              -- ,("q", "quit")
               ]
 
 rsDraw _ = dbgui "rsDraw 2" $ errorWrongScreenType "draw function"  -- PARTIAL:

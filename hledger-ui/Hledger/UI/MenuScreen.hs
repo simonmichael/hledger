@@ -68,8 +68,8 @@ msDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=_rspec}}
                         _                   -> quickhelp
           where
             quickhelp = borderKeysStr' [
-               ("?", str "help")
---              ,("RIGHT", str "register")
+               ("DOWN/UP", str "select")
+              ,("RIGHT", str "enter screen")
               -- ,("t", renderToggle (tree_ ropts) "list" "tree")
               -- ,("t", str "tree")
               -- ,("l", str "list")
@@ -79,8 +79,9 @@ msDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=_rspec}}
               --,("/", "filter")
               --,("DEL", "unfilter")
               --,("ESC", "cancel/top")
-              ,("a", str "add")
+              ,("a", str "add txn")
 --               ,("g", "reload")
+              ,("?", str "help")
               ,("q", str "quit")
               ]
 
