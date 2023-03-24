@@ -64,9 +64,6 @@ Any QUERYARGS are interpreted as a hledger search query which filters the data.
 `--menu`
 : start in the menu screen
 
-`--all`
-: start in the all accounts screen
-
 `--cash`
 : start in the cash accounts screen
 
@@ -75,6 +72,9 @@ Any QUERYARGS are interpreted as a hledger search query which filters the data.
 
 `--is`
 : start in the income statement accounts screen
+
+`--all`
+: start in the all accounts screen
 
 `--register=ACCTREGEX`
 : start in the (first) matched account's register screen
@@ -216,92 +216,44 @@ Additional screen-specific keys are described below.
 
 # SCREENS
 
-hledger-ui shows several different screens, described below.
-It shows the "Balance sheet accounts" screen to start with, except in the following situations:
+At startup, hledger-ui shows a menu screen by default.
+From here you can navigate to other screens using the cursor keys:
+`UP`/`DOWN` to select, `RIGHT` to move to the selected screen, `LEFT` to return to the previous screen.
+Or you can use `ESC` to return directly to the top menu screen.
 
-- If no asset/liability/equity accounts can be detected,
-  or if an account query has been given on the command line,
-  it starts in the "All accounts" screen.
-
-- If a starting screen is specified with --menu/--all/--bs/--is/--register
-  on the command line, it starts in that screen.
-
-From any screen you can press `LEFT` or `ESC` to navigate back to the top level "Menu" screen.
+You can also use a command line flag to specific a different startup screen
+(`--cs`, `--bs`, `--is`, `--all`, or `--register=ACCT`).
 
 ## Menu
 
-The top-most screen.
-From here you can navigate to three accounts screens:
-
-## All accounts
-
-This screen shows all accounts (possibly filtered by a query),
-and their end balances on the date shown in the title bar
-(or their balance changes in the period shown in the title bar, toggleable with `H`).
-It is like the `hledger balance` command. 
+This is the top-most screen.
+From here you can navigate to several screens listing accounts of various types.
+Note some of these may not show anything until you have configured [account types](/hledger.html#account-types).
 
 ## Cash accounts
 
-This screen shows "cash" (ie, liquid asset) accounts (like `hledger balancesheet type:c`), 
-if these can be detected (see [account types](/hledger.html#account-types)).
-It always shows end balances.
+This screen shows "cash" (ie, liquid asset) accounts (like `hledger balancesheet type:c`).
+It always shows balances (historical ending balances on the date shown in the title line).
 
 ## Balance sheet accounts
 
 This screen shows asset, liability and equity accounts (like `hledger balancesheetequity`).
-It always shows end balances.
+It always shows balances.
 
 ## Income statement accounts
 
 This screen shows revenue and expense accounts (like `hledger incomestatement`).
-It always shows balance changes.
+It always shows changes (balance changes in the period shown in the title line).
 
-All of these accounts screens work in much the same way:
+## All accounts
 
-They show accounts which have been posted to by transactions,
-as well as accounts which have been declared with an [account directive](#account)
-(except for empty parent accounts).
-
-If you specify a query on the command line or with `/` in the app,
-they show just the matched accounts, and the balances from matched transactions.
-
-hledger-ui shows accounts with zero balances by default (unlike command-line hledger).
-To hide these, press `z` to toggle nonzero mode.
-
-Account names are shown as a flat list by default; press `t` to toggle tree mode.
-In list mode, account balances are exclusive of subaccounts, except where subaccounts are hidden by a depth limit (see below).
-In tree mode, all account balances are inclusive of subaccounts.
-
-To see less detail, press a number key, `1` to `9`, to set a depth limit.
-Or use `-` to decrease and `+`/`=` to increase the depth limit.
-`0` shows even less detail, collapsing all accounts to a single total.
-To remove the depth limit, set it higher than the maximum account depth, or press `ESCAPE`.
-
-`H` toggles between showing historical balances or period balances (on the "All accounts" screen).
-Historical balances (the default) are ending balances at the end of the report period,
-taking into account all transactions before that date (filtered by the filter query if any),
-including transactions before the start of the report period. In other words, historical
-balances are what you would see on a bank statement for that account (unless disturbed by
-a filter query). Period balances ignore transactions before the report start date, so they
-show the change in balance during the report period. They are more useful eg when viewing a time log.
-
-`U` toggles filtering by [unmarked status](hledger.html#status),
-including or excluding unmarked postings in the balances.
-Similarly, `P` toggles pending postings,
-and `C` toggles cleared postings.
-(By default, balances include all postings;
-if you activate one or two status filters, only those postings are included;
-and if you activate all three, the filter is removed.)
-
-`R` toggles real mode, in which [virtual postings](hledger.html#virtual-postings) are ignored.
-
-Press `RIGHT` to view an account's register screen,
-Or, `LEFT` to see the menu screen.
+This screen shows all accounts in your journal (unless filtered by a query; like `hledger balance`).
+It shows balances by default; you can toggle showing changes with the `H` key.
 
 ## Register
 
-This screen shows the transactions affecting a particular account, like a check register.
-Each line represents one transaction and shows:
+This screen shows the transactions affecting a particular account.
+Each line represents one transaction, and shows:
 
 - the other account(s) involved, in abbreviated form.
   (If there are both real and virtual postings, it
@@ -310,12 +262,11 @@ Each line represents one transaction and shows:
 - the overall change to the current account's balance;
   positive for an inflow to this account, negative for an outflow.
 
-- the running historical total or period total for the current account, after the transaction.
-This can be toggled with `H`.
-Similar to the accounts screen, the historical total is affected by transactions
-(filtered by the filter query) before the report start date, while the period total is not.
-If the historical total is not disturbed by a filter query, it will be the
-running historical balance you would see on a bank register for the current account.
+- the running total after the transaction.
+  With the `H` key you can toggle between
+  - the period total, which is from just the transactions displayed
+  - or the historical total, which includes any undisplayed transactions before the start of the report period (and matching the filter query if any).
+    This will be the running historical balance (what you would see on a bank's website, eg) if not disturbed by a query.
 
 Transactions affecting this account's subaccounts will be included in the register
 if the accounts screen is in tree mode,

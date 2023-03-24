@@ -18,7 +18,6 @@ import Data.Bifunctor (first)
 import Data.Function ((&))
 import Data.List (find)
 import Data.List.Extra (nubSort)
-import qualified Data.Map as M (elems)
 import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import Graphics.Vty (mkVty, Mode (Mouse), Vty (outputIface), Output (setMode))
@@ -45,6 +44,7 @@ import Hledger.UI.IncomestatementScreen
 import Hledger.UI.RegisterScreen
 import Hledger.UI.TransactionScreen
 import Hledger.UI.ErrorScreen
+import Hledger.UI.UIScreens
 
 
 ----------------------------------------------------------------------
@@ -141,26 +141,25 @@ runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=r
           where filtered = filterQuery (\x -> not $ queryIsDepth x || queryIsDate x)
 
     -- Choose the initial screen to display.
-    -- We like to show the balance sheet accounts screen by default,
-    -- but that can change eg if we can't detect any accounts for it,
-    -- or if an account query has been provided at startup,
-    -- or if a specific screen has been requested by command line flag.
-    -- Whichever is the initial screen, we also set up a stack of previous screens,
-    -- as if you had navigated down to it from the top.
-    -- (remember, the previous screens list is ordered nearest/lowest first)
+    -- We also set up a stack of previous screens, as if you had navigated down to it from the top.
+    -- Note the previous screens list is ordered nearest-first, with the top-most (menu) screen last.
+    -- Keep all of this synced with msNew.
     rawopts = rawopts_ $ uoCliOpts $ uopts
     (prevscrs, currscr) =
       dbg1With (showScreenStack "initial" showScreenSelection . uncurry2 (uiState defuiopts nulljournal)) $
       if
-        | boolopt "menu" rawopts -> ([], menuscr)
-        | boolopt "all"  rawopts -> ([msSetSelectedScreen 0 menuscr], allacctsscr)
-        | boolopt "bs"   rawopts -> ([menuscr], bsacctsscr)
-        | boolopt "is"   rawopts -> ([msSetSelectedScreen 2 menuscr], isacctsscr)
+        -- An accounts screen is specified. Its previous screen will be the menu screen with it selected.
+        | boolopt "cash" rawopts -> ([msSetSelectedScreen csItemIndex menuscr], csacctsscr)
+        | boolopt "bs"   rawopts -> ([msSetSelectedScreen bsItemIndex menuscr], bsacctsscr)
+        | boolopt "is"   rawopts -> ([msSetSelectedScreen isItemIndex menuscr], isacctsscr)
+        | boolopt "all"  rawopts -> ([msSetSelectedScreen asItemIndex menuscr], allacctsscr)
 
-        -- With --register=ACCT, the initial screen stack is:
-        -- menu screen, with ACCTSSCR selected
-        --  ACCTSSCR (the accounts screen containing ACCT), with ACCT selected
-        --   register screen for ACCT
+        -- A register screen is specified with --register=ACCT. The initial screen stack will be:
+        --
+        --   menu screen, with ACCTSSCR selected
+        --    ACCTSSCR (the accounts screen containing ACCT), with ACCT selected
+        --     register screen for ACCT
+        --
         | Just apat <- uoRegister uopts ->
           let
             -- the account being requested
@@ -193,17 +192,13 @@ runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=r
             menuscr' = msSetSelectedScreen selidx menuscr
           in ([acctsscr, menuscr'], regscr)
 
-        -- No balance sheet accounts detected, or an initial account query specified:
-        | not hasbsaccts || hasacctquery -> ([msSetSelectedScreen 0 menuscr], allacctsscr)
-
-        | otherwise -> ([menuscr], bsacctsscr)
+        -- Otherwise, start on the menu screen.
+        | otherwise -> ([], menuscr)
 
         where
-          hasbsaccts  = any (`elem` accttypes) [Asset, Liability, Equity]
-            where accttypes = M.elems $ jaccounttypes j
-          hasacctquery = matchesQuery queryIsAcct $ _rsQuery rspec
           menuscr     = msNew
           allacctsscr = asNew uopts today j Nothing
+          csacctsscr  = csNew uopts today j Nothing
           bsacctsscr  = bsNew uopts today j Nothing
           isacctsscr  = isNew uopts today j Nothing
 

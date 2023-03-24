@@ -36,7 +36,6 @@ uiflags = [
   -- flagNone ["debug-ui"] (setboolopt "rules-file") "run with no terminal output, showing console"
    flagNone ["watch","w"] (setboolopt "watch") "watch for data and date changes and reload automatically"
   ,flagReq  ["theme"] (\s opts -> Right $ setopt "theme" s opts) "THEME" ("use this custom display theme ("++intercalate ", " themeNames++")")
-  ,flagNone ["menu"] (setboolopt "menu") "start in the menu screen"
   ,flagNone ["cash"] (setboolopt "cash") "start in the cash accounts screen"
   ,flagNone ["bs"] (setboolopt "bs") "start in the balance sheet accounts screen"
   ,flagNone ["is"] (setboolopt "is") "start in the income statement accounts screen"
@@ -58,7 +57,7 @@ uiflags = [
 --uimode :: Mode RawOpts
 uimode =  (mode "hledger-ui" (setopt "command" "ui" def)
             "browse accounts, postings and entries in a full-window TUI"
-            (argsFlag "[--menu|--cash|--bs|--is|--all|--register=ACCT] [QUERY]") []){
+            (argsFlag "[--cash|--bs|--is|--all|--register=ACCT] [QUERY]") []){
               modeGroupFlags = Group {
                                 groupUnnamed = uiflags
                                ,groupHidden = hiddenflags

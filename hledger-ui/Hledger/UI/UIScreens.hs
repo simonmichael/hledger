@@ -22,12 +22,16 @@ module Hledger.UI.UIScreens
 ,msUpdate
 ,asNew
 ,asUpdate
-,bsNew
-,bsUpdate
+,asItemIndex
 ,csNew
 ,csUpdate
+,csItemIndex
+,bsNew
+,bsUpdate
+,bsItemIndex
 ,isNew
 ,isUpdate
+,isItemIndex
 ,rsNew
 ,rsUpdate
 ,tsNew
@@ -76,24 +80,29 @@ esNew msg =
 esUpdate :: ErrorScreenState -> ErrorScreenState
 esUpdate = dbgui "esUpdate`"
 
--- | Construct a menu screen.
+-- | Construct a menu screen, with the first item selected.
 -- Screen-specific arguments: none.
 msNew :: Screen
 msNew =
   dbgui "msNew" $
-  MS MSS {
-     _mssList            = list MenuList (V.fromList [
-      -- keep initial screen stack setup in UI.Main synced with these
+  MS MSS { _mssList = list MenuList (V.fromList items ) 1, _mssUnused = () }
+  where
+    -- keep synced with: indexes below, initial screen stack setup in UI.Main
+    items = [
        MenuScreenItem "Cash accounts" CashScreen
       ,MenuScreenItem "Balance sheet accounts" Balancesheet
       ,MenuScreenItem "Income statement accounts" Incomestatement
       ,MenuScreenItem "All accounts" Accounts
-      ]) 1
-      & listMoveTo defaultscreenitem
-    ,_mssUnused = ()
-    } where
-      -- select balance sheet accounts at startup (currently this screen is constructed only then)
-      defaultscreenitem = 1
+      ]
+
+-- keep synced with items above.
+-- | Positions of menu screen items, so we can move selection to them.
+[
+  csItemIndex,
+  bsItemIndex,
+  isItemIndex,
+  asItemIndex
+  ] = [0..3] :: [Int]
 
 -- | Update a menu screen. Currently a no-op since menu screen
 -- has unchanging content.
