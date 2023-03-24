@@ -4,19 +4,31 @@ Manual tests for hledger-ui.
 If you don't want to run them all, spot-checking just a few of them
 is still much better than nothing.
 
-Each test is a heading and a literal block containing
+(Another source of hledger-ui tests is the https://hledger.org/ui.html tutorial,
+which has nice screenshots but might be less up to date.)
+
+Each test below is a heading and a literal block containing
 a command, keypress sequence, or other tester action on the first line,
 followed by the expected output, or a recognisable excerpt of it.
-Generally tests assume an 80x25 terminal. 
+Generally tests assume an 80x25 terminal.
+These should be run in hledger-ui/test/.
 
-Another source of hledger-ui tests is the https://hledger.org/ui.html tutorial,
-which has nice screenshots but might be less up to date.
-
-## Shows balance sheet accounts by default, in list mode
+## Shows menu screen by default
 ```
 $ hledger-ui -f sample.journal
+──────────────────────────────── sample.journal ────────────────────────────────
+ Cash accounts  # <- selected
+ Balance sheet accounts
+ Income statement accounts
+ All accounts
+```
+
+## The balance sheet accounts screen shows ALE accounts, as a flat list
+```
+DOWN
+RIGHT
 ────────────────── sample.journal balance sheet balances (1/4) ─────────────────
- assets:bank:checking    0                                                      
+ assets:bank:checking    0  # <- selected                                       
  assets:bank:saving     $1                                                      
  assets:cash           $-2                                                      
  liabilities:debts      $1                                                      
@@ -28,18 +40,18 @@ t
 ────────────────── sample.journal balance sheet balances (3/7) ─────────────────
  assets       $-1                                                               
   bank         $1                                                               
-   checking     0                                                               
+   checking     0  # <- selected                                                
    saving      $1                                                               
   cash        $-2                                                               
  liabilities   $1                                                               
   debts        $1                                                               
-                                                                                ```
+```
 
 ## `1` clips accounts to depth 1
 ```
 1
 ──────────── sample.journal balance sheet balances to depth 1 (1/2) ────────────
- assets       $-1                                                               
+ assets       $-1  # <- selected                                                
  liabilities   $1                                                               
 ```
 
@@ -54,16 +66,17 @@ RIGHT
  2008-12-31 * pay off                    li:debts                     $-1   $-1  # <- selected
 ```
 
-## `ESC` resets UI state to top menu screen
+## `ESC` resets UI state to top menu screen (currently does not reset the selection)
 ```
 ESC
 ──────────────────────────────── sample.journal ────────────────────────────────
+ Cash accounts
+ Balance sheet accounts  # <- selected
+ Income statement accounts
  All accounts
- Balance sheet accounts (assets, liabilities, equity)  # <- selected
- Income statement accounts (revenues, expenses)
 ```
 
-## `/` sets a filter query app-wide, affecting all screens
+## `/` sets a filter query, app-wide
 ```
 / expenses ENTER
 ```
@@ -72,7 +85,7 @@ ESC
 ```
 DOWN RIGHT
 ──────── sample.journal income statement changes matching expenses (1/2) ───────
- expenses:food      $1                                                          
+ expenses:food      $1  # <- selected                                           
  expenses:supplies  $1                                                          
 ```
 
@@ -97,12 +110,12 @@ RIGHT RIGHT
 │ LEFT/h/C-b  go back                    z    show nonzero/all amounts        │
 │ ESC  cancel, or reset app state        U/P/C  show unmarked/pending/cleared │
 │                                        S-DOWN /S-UP   shrink/grow period    │
-│ Accounts screen                        S-RIGHT/S-LEFT next/previous period  │
+│ Accounts screens                       S-RIGHT/S-LEFT next/previous period  │
 │ 1234567890-+  set/adjust depth limit   T              set period to today   │
 │ t  toggle accounts tree/list mode      DEL  reset filters                   │
 │ H  toggle historical balance/change                                         │
 │                                        Other                                │
-│ Register screen                        a    add transaction (hledger add)   │
+│ Register screensq                       a    add transaction (hledger add)   │
 │ t  toggle subaccount txns              A    add transaction (hledger-iadd)  │
 │    (and accounts tree/list mode)       B    show amounts/costs              │
 │ H  toggle historical/period total      E    open editor                     │
@@ -151,17 +164,19 @@ hledger-ui -f sample.journal --register checking date:200812 --change
 ```
 hledger-ui -f bcexample.journal --tree --register assets
 ───────────────────────── Assets transactions (518/518) ────────────────────────
- 2014-07-26 * ..  ..      16.00 GLD, -1515.83 USD   ..GLD, 17.00 ITOT, 6 more..
- 2014-07-31 * ..  ..      2550.60 USD, 4.62 VACHR   ..GLD, 17.00 ITOT, 6 more..
- 2014-08-03 * ..  ..                 -2400.00 USD   ..GLD, 17.00 ITOT, 6 more..
- ...  # <- last item selected
+...
+ 2014-09-25 * ..  ..        2550.60 USD, 1 more..           70.00 GLD, 7 more..
+ 2014-10-04 * ..  ..                    -4.00 USD           70.00 GLD, 7 more..
+ 2014-10-09 * ..  ..        2550.60 USD, 1 more..           70.00 GLD, 7 more..
+ 2014-10-10 * ..  ..                            0           70.00 GLD, 7 more..  # <- last item selected
+─── ?:help LEFT:back t:list(-subs)/tree(+subs) H:historical/period F:forecast ──
 ```
 
 ## future and forecasted txns are hidden by default
 ```
 hledger-ui --today 2021-09-01 -f forecast.journal --register a
 ───────────────────────────── a transactions (1/1) ─────────────────────────────
- 0000-01-01   past transaction             a                              1   1
+ 0000-01-01   past transaction             a                              1   1  # <- selected
 ```
 
 ## with --forecast, future ordinary txns, and forecasted txns within the default forecast period, are shown
@@ -236,7 +251,7 @@ with the above still running, touch forecast.journal, press F again
 
 ## in list mode, register of account above depth limit shows only its transactions
 ```
-hledger-ui -f 1468.j, 2, RIGHT
+hledger-ui -f 1468.j --all, 2, RIGHT
 ───────────────────────────── a transactions (1/1) ─────────────────────────────
  2021-01-01                                a                              1   1  # <- selected 
 ```
@@ -251,7 +266,9 @@ LEFT, DOWN, RIGHT
 
 ## current screen shows new data after reload
 ```
-hledger-ui -f sample.journal saving, edit and change the "save" txn description and amount to "NEW" and $22, g
+hledger-ui -f sample.journal saving --all
+edit and change the "save" txn description and amount to "NEW" and $22
+g
 ───────────── sample.journal account balances matching saving (1/1) ────────────
  assets:bank:saving  $22
 ```
