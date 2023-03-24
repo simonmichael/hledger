@@ -74,15 +74,18 @@ the data.
 ‘--menu’
 
      start in the menu screen
-‘--all’
+‘--cash’
 
-     start in the all accounts screen
+     start in the cash accounts screen
 ‘--bs’
 
      start in the balance sheet accounts screen
 ‘--is’
 
      start in the income statement accounts screen
+‘--all’
+
+     start in the all accounts screen
 ‘--register=ACCTREGEX’
 
      start in the (first) matched account’s register screen
@@ -374,125 +377,83 @@ File: hledger-ui.info,  Node: SCREENS,  Next: TIPS,  Prev: KEYS,  Up: Top
 4 SCREENS
 *********
 
-hledger-ui shows several different screens, described below.  It shows
-the "Balance sheet accounts" screen to start with, except in the
-following situations:
+At startup, hledger-ui shows a menu screen by default.  From here you
+can navigate to other screens using the cursor keys: ‘UP’/‘DOWN’ to
+select, ‘RIGHT’ to move to the selected screen, ‘LEFT’ to return to the
+previous screen.  Or you can use ‘ESC’ to return directly to the top
+menu screen.
 
-   • If no asset/liability/equity accounts can be detected, or if an
-     account query has been given on the command line, it starts in the
-     "All accounts" screen.
-
-   • If a starting screen is specified with –menu/–all/–bs/–is/–register
-     on the command line, it starts in that screen.
-
-   From any screen you can press ‘LEFT’ or ‘ESC’ to navigate back to the
-top level "Menu" screen.
+   You can also use a command line flag to specific a different startup
+screen (‘--cs’, ‘--bs’, ‘--is’, ‘--all’, or ‘--register=ACCT’).
 
 * Menu:
 
 * Menu::
-* All accounts::
+* Cash accounts::
 * Balance sheet accounts::
 * Income statement accounts::
+* All accounts::
 * Register::
 * Transaction::
 * Error::
 
 
-File: hledger-ui.info,  Node: Menu,  Next: All accounts,  Up: SCREENS
+File: hledger-ui.info,  Node: Menu,  Next: Cash accounts,  Up: SCREENS
 
 4.1 Menu
 ========
 
-The top-most screen.  From here you can navigate to three accounts
-screens:
+This is the top-most screen.  From here you can navigate to several
+screens listing accounts of various types.  Note some of these may not
+show anything until you have configured account types.
 
 
-File: hledger-ui.info,  Node: All accounts,  Next: Balance sheet accounts,  Prev: Menu,  Up: SCREENS
+File: hledger-ui.info,  Node: Cash accounts,  Next: Balance sheet accounts,  Prev: Menu,  Up: SCREENS
 
-4.2 All accounts
-================
+4.2 Cash accounts
+=================
 
-This screen shows all accounts (possibly filtered by a query), and their
-end balances on the date shown in the title bar (or their balance
-changes in the period shown in the title bar, toggleable with ‘H’).  It
-is like the ‘hledger balance’ command.
+This screen shows "cash" (ie, liquid asset) accounts (like ‘hledger
+balancesheet type:c’).  It always shows balances (historical ending
+balances on the date shown in the title line).
 
 
-File: hledger-ui.info,  Node: Balance sheet accounts,  Next: Income statement accounts,  Prev: All accounts,  Up: SCREENS
+File: hledger-ui.info,  Node: Balance sheet accounts,  Next: Income statement accounts,  Prev: Cash accounts,  Up: SCREENS
 
 4.3 Balance sheet accounts
 ==========================
 
-This screen shows asset, liability and equity accounts, if these can be
-detected (see account types).  It always shows end balances.  It is like
-the ‘hledger balancesheetequity’ command.
+This screen shows asset, liability and equity accounts (like ‘hledger
+balancesheetequity’).  It always shows balances.
 
 
-File: hledger-ui.info,  Node: Income statement accounts,  Next: Register,  Prev: Balance sheet accounts,  Up: SCREENS
+File: hledger-ui.info,  Node: Income statement accounts,  Next: All accounts,  Prev: Balance sheet accounts,  Up: SCREENS
 
 4.4 Income statement accounts
 =============================
 
-This screen shows revenue and expense accounts.  It always shows balance
-changes.  It is like the ‘hledger incomestatement’ command.
-
-   All of these accounts screens work in much the same way:
-
-   They show accounts which have been posted to by transactions, as well
-as accounts which have been declared with an account directive (except
-for empty parent accounts).
-
-   If you specify a query on the command line or with ‘/’ in the app,
-they show just the matched accounts, and the balances from matched
-transactions.
-
-   hledger-ui shows accounts with zero balances by default (unlike
-command-line hledger).  To hide these, press ‘z’ to toggle nonzero mode.
-
-   Account names are shown as a flat list by default; press ‘t’ to
-toggle tree mode.  In list mode, account balances are exclusive of
-subaccounts, except where subaccounts are hidden by a depth limit (see
-below).  In tree mode, all account balances are inclusive of
-subaccounts.
-
-   To see less detail, press a number key, ‘1’ to ‘9’, to set a depth
-limit.  Or use ‘-’ to decrease and ‘+’/‘=’ to increase the depth limit.
-‘0’ shows even less detail, collapsing all accounts to a single total.
-To remove the depth limit, set it higher than the maximum account depth,
-or press ‘ESCAPE’.
-
-   ‘H’ toggles between showing historical balances or period balances
-(on the "All accounts" screen).  Historical balances (the default) are
-ending balances at the end of the report period, taking into account all
-transactions before that date (filtered by the filter query if any),
-including transactions before the start of the report period.  In other
-words, historical balances are what you would see on a bank statement
-for that account (unless disturbed by a filter query).  Period balances
-ignore transactions before the report start date, so they show the
-change in balance during the report period.  They are more useful eg
-when viewing a time log.
-
-   ‘U’ toggles filtering by unmarked status, including or excluding
-unmarked postings in the balances.  Similarly, ‘P’ toggles pending
-postings, and ‘C’ toggles cleared postings.  (By default, balances
-include all postings; if you activate one or two status filters, only
-those postings are included; and if you activate all three, the filter
-is removed.)
-
-   ‘R’ toggles real mode, in which virtual postings are ignored.
-
-   Press ‘RIGHT’ to view an account’s register screen, Or, ‘LEFT’ to see
-the menu screen.
+This screen shows revenue and expense accounts (like ‘hledger
+incomestatement’).  It always shows changes (balance changes in the
+period shown in the title line).
 
 
-File: hledger-ui.info,  Node: Register,  Next: Transaction,  Prev: Income statement accounts,  Up: SCREENS
+File: hledger-ui.info,  Node: All accounts,  Next: Register,  Prev: Income statement accounts,  Up: SCREENS
 
-4.5 Register
+4.5 All accounts
+================
+
+This screen shows all accounts in your journal (unless filtered by a
+query; like ‘hledger balance’).  It shows balances by default; you can
+toggle showing changes with the ‘H’ key.
+
+
+File: hledger-ui.info,  Node: Register,  Next: Transaction,  Prev: All accounts,  Up: SCREENS
+
+4.6 Register
 ============
 
-This screen shows the transactions affecting a particular account, like
-a check register.  Each line represents one transaction and shows:
+This screen shows the transactions affecting a particular account.  Each
+line represents one transaction, and shows:
 
    • the other account(s) involved, in abbreviated form.  (If there are
      both real and virtual postings, it shows only the accounts affected
@@ -501,13 +462,16 @@ a check register.  Each line represents one transaction and shows:
    • the overall change to the current account’s balance; positive for
      an inflow to this account, negative for an outflow.
 
-   • the running historical total or period total for the current
-     account, after the transaction.  This can be toggled with ‘H’.
-     Similar to the accounts screen, the historical total is affected by
-     transactions (filtered by the filter query) before the report start
-     date, while the period total is not.  If the historical total is
-     not disturbed by a filter query, it will be the running historical
-     balance you would see on a bank register for the current account.
+   • the running total after the transaction.  With the ‘H’ key you can
+     toggle between
+
+        • the period total, which is from just the transactions
+          displayed
+        • or the historical total, which includes any undisplayed
+          transactions before the start of the report period (and
+          matching the filter query if any).  This will be the running
+          historical balance (what you would see on a bank’s website,
+          eg) if not disturbed by a query.
 
    Transactions affecting this account’s subaccounts will be included in
 the register if the accounts screen is in tree mode, or if it’s in list
@@ -534,7 +498,7 @@ command-line hledger).
 
 File: hledger-ui.info,  Node: Transaction,  Next: Error,  Prev: Register,  Up: SCREENS
 
-4.6 Transaction
+4.7 Transaction
 ===============
 
 This screen shows a single transaction, as a general journal entry,
@@ -558,7 +522,7 @@ reload).
 
 File: hledger-ui.info,  Node: Error,  Prev: Transaction,  Up: SCREENS
 
-4.7 Error
+4.8 Error
 =========
 
 This screen will appear if there is a problem, such as a parse error,
@@ -708,38 +672,40 @@ Tag Table:
 Node: Top223
 Node: OPTIONS1871
 Ref: #options1969
-Node: MOUSE7336
-Ref: #mouse7431
-Node: KEYS7674
-Ref: #keys7767
-Node: SCREENS12526
-Ref: #screens12624
-Node: Menu13332
-Ref: #menu13424
-Node: All accounts13501
-Ref: #all-accounts13640
-Node: Balance sheet accounts13899
-Ref: #balance-sheet-accounts14079
-Node: Income statement accounts14271
-Ref: #income-statement-accounts14453
-Node: Register16947
-Ref: #register17084
-Node: Transaction19112
-Ref: #transaction19235
-Node: Error20119
-Ref: #error20213
-Node: TIPS20457
-Ref: #tips20556
-Node: Watch mode20598
-Ref: #watch-mode20705
-Node: Debug output22193
-Ref: #debug-output22304
-Node: ENVIRONMENT22524
-Ref: #environment22635
-Node: FILES24058
-Ref: #files24157
-Node: BUGS24417
-Ref: #bugs24494
+Node: MOUSE7389
+Ref: #mouse7484
+Node: KEYS7727
+Ref: #keys7820
+Node: SCREENS12579
+Ref: #screens12677
+Node: Menu13297
+Ref: #menu13390
+Node: Cash accounts13585
+Ref: #cash-accounts13727
+Node: Balance sheet accounts13915
+Ref: #balance-sheet-accounts14096
+Node: Income statement accounts14220
+Ref: #income-statement-accounts14406
+Node: All accounts14574
+Ref: #all-accounts14720
+Node: Register14910
+Ref: #register15034
+Node: Transaction17046
+Ref: #transaction17169
+Node: Error18053
+Ref: #error18147
+Node: TIPS18391
+Ref: #tips18490
+Node: Watch mode18532
+Ref: #watch-mode18639
+Node: Debug output20127
+Ref: #debug-output20238
+Node: ENVIRONMENT20458
+Ref: #environment20569
+Node: FILES21992
+Ref: #files22091
+Node: BUGS22351
+Ref: #bugs22428
 
 End Tag Table
 

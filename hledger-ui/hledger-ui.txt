@@ -52,11 +52,13 @@ OPTIONS
 
        --menu start in the menu screen
 
-       --all  start in the all accounts screen
+       --cash start in the cash accounts screen
 
        --bs   start in the balance sheet accounts screen
 
        --is   start in the income statement accounts screen
+
+       --all  start in the all accounts screen
 
        --register=ACCTREGEX
               start in the (first) matched account's register screen
@@ -327,89 +329,41 @@ KEYS
        Additional screen-specific keys are described below.
 
 SCREENS
-       hledger-ui  shows several different screens, described below.  It shows
-       the "Balance sheet accounts" screen to start with, except in  the  fol-
-       lowing situations:
+       At  startup,  hledger-ui shows a menu screen by default.  From here you
+       can navigate to other screens using the cursor keys: UP/DOWN to select,
+       RIGHT  to  move  to the selected screen, LEFT to return to the previous
+       screen.  Or you can use ESC to return directly to the top menu  screen.
 
-       o If  no  asset/liability/equity  accounts  can  be  detected, or if an
-         account query has been given on the command line, it  starts  in  the
-         "All accounts" screen.
-
-       o If  a starting screen is specified with --menu/--all/--bs/--is/--reg-
-         ister on the command line, it starts in that screen.
-
-       From any screen you can press LEFT or ESC to navigate back to  the  top
-       level "Menu" screen.
+       You  can  also  use a command line flag to specific a different startup
+       screen (--cs, --bs, --is, --all, or --register=ACCT).
 
    Menu
-       The  top-most  screen.   From  here  you can navigate to three accounts
-       screens:
+       This is the top-most screen.  From here you  can  navigate  to  several
+       screens  listing accounts of various types.  Note some of these may not
+       show anything until you have configured account types.
 
-   All accounts
-       This screen shows all accounts (possibly  filtered  by  a  query),  and
-       their end balances on the date shown in the title bar (or their balance
-       changes in the period shown in the title bar, toggleable with  H).   It
-       is like the hledger balance command.
+   Cash accounts
+       This screen shows "cash" (ie, liquid asset) accounts (like hledger bal-
+       ancesheet  type:c).   It  always shows balances (historical ending bal-
+       ances on the date shown in the title line).
 
    Balance sheet accounts
-       This screen shows asset, liability and equity accounts, if these can be
-       detected (see account types).  It always shows  end  balances.   It  is
-       like the hledger balancesheetequity command.
+       This screen shows asset, liability and equity  accounts  (like  hledger
+       balancesheetequity).  It always shows balances.
 
    Income statement accounts
-       This  screen  shows revenue and expense accounts.  It always shows bal-
-       ance changes.  It is like the hledger incomestatement command.
+       This  screen  shows revenue and expense accounts (like hledger incomes-
+       tatement).  It always shows changes  (balance  changes  in  the  period
+       shown in the title line).
 
-       All of these accounts screens work in much the same way:
-
-       They show accounts which have been posted to by transactions,  as  well
-       as  accounts which have been declared with an account directive (except
-       for empty parent accounts).
-
-       If you specify a query on the command line or with / in the  app,  they
-       show  just the matched accounts, and the balances from matched transac-
-       tions.
-
-       hledger-ui shows accounts with zero balances by  default  (unlike  com-
-       mand-line hledger).  To hide these, press z to toggle nonzero mode.
-
-       Account  names  are  shown as a flat list by default; press t to toggle
-       tree mode.  In list mode, account  balances  are  exclusive  of  subac-
-       counts,  except  where  subaccounts  are  hidden  by a depth limit (see
-       below).  In tree mode, all account balances  are  inclusive  of  subac-
-       counts.
-
-       To  see  less detail, press a number key, 1 to 9, to set a depth limit.
-       Or use - to decrease and +/= to increase the depth limit.  0 shows even
-       less  detail, collapsing all accounts to a single total.  To remove the
-       depth limit, set it higher than the maximum  account  depth,  or  press
-       ESCAPE.
-
-       H  toggles  between  showing historical balances or period balances (on
-       the "All accounts" screen).  Historical balances (the default) are end-
-       ing  balances  at the end of the report period, taking into account all
-       transactions before that date (filtered by the filter  query  if  any),
-       including transactions before the start of the report period.  In other
-       words, historical balances are what you would see on a  bank  statement
-       for that account (unless disturbed by a filter query).  Period balances
-       ignore transactions before the report start  date,  so  they  show  the
-       change  in  balance  during the report period.  They are more useful eg
-       when viewing a time log.
-
-       U toggles filtering by unmarked status, including or excluding unmarked
-       postings in the balances.  Similarly, P toggles pending postings, and C
-       toggles cleared postings.  (By default, balances include all  postings;
-       if  you  activate  one  or  two status filters, only those postings are
-       included; and if you activate all three, the filter is removed.)
-
-       R toggles real mode, in which virtual postings are ignored.
-
-       Press RIGHT to view an account's register screen, Or, LEFT to  see  the
-       menu screen.
+   All accounts
+       This  screen  shows  all accounts in your journal (unless filtered by a
+       query; like hledger balance).  It shows balances by  default;  you  can
+       toggle showing changes with the H key.
 
    Register
-       This screen shows the transactions affecting a particular account, like
-       a check register.  Each line represents one transaction and shows:
+       This  screen  shows  the  transactions  affecting a particular account.
+       Each line represents one transaction, and shows:
 
        o the other account(s) involved, in abbreviated form.   (If  there  are
          both  real  and virtual postings, it shows only the accounts affected
@@ -418,95 +372,98 @@ SCREENS
        o the overall change to the current account's balance; positive for  an
          inflow to this account, negative for an outflow.
 
-       o the running historical total or period total for the current account,
-         after the transaction.  This can be toggled with H.  Similar  to  the
-         accounts  screen,  the  historical  total is affected by transactions
-         (filtered by the filter query) before the report  start  date,  while
-         the period total is not.  If the historical total is not disturbed by
-         a filter query, it will be the running historical balance  you  would
-         see on a bank register for the current account.
+       o the running total after the transaction.  With the H key you can tog-
+         gle between
 
-       Transactions  affecting  this account's subaccounts will be included in
+         o the period total, which is from just the transactions displayed
+
+         o or the historical total, which includes  any  undisplayed  transac-
+           tions  before the start of the report period (and matching the fil-
+           ter query if any).  This will be  the  running  historical  balance
+           (what  you would see on a bank's website, eg) if not disturbed by a
+           query.
+
+       Transactions affecting this account's subaccounts will be  included  in
        the register if the accounts screen is in tree mode, or if it's in list
-       mode  but  this  account  has  subaccounts which are not shown due to a
-       depth limit.  In other words, the register always  shows  the  transac-
-       tions  contributing  to the balance shown on the accounts screen.  Tree
+       mode but this account has subaccounts which are  not  shown  due  to  a
+       depth  limit.   In  other words, the register always shows the transac-
+       tions contributing to the balance shown on the accounts  screen.   Tree
        mode/list mode can be toggled with t here also.
 
-       U toggles filtering by unmarked  status,  showing  or  hiding  unmarked
+       U  toggles  filtering  by  unmarked  status, showing or hiding unmarked
        transactions.  Similarly, P toggles pending transactions, and C toggles
-       cleared transactions.  (By default, transactions with all statuses  are
-       shown;  if  you activate one or two status filters, only those transac-
+       cleared  transactions.  (By default, transactions with all statuses are
+       shown; if you activate one or two status filters, only  those  transac-
        tions are shown; and if you activate all three, the filter is removed.)
 
        R toggles real mode, in which virtual postings are ignored.
 
-       z  toggles  nonzero  mode, in which only transactions posting a nonzero
-       change are shown (hledger-ui shows zero items by default,  unlike  com-
+       z toggles nonzero mode, in which only transactions  posting  a  nonzero
+       change  are  shown (hledger-ui shows zero items by default, unlike com-
        mand-line hledger).
 
        Press RIGHT to view the selected transaction in detail.
 
    Transaction
-       This  screen  shows  a  single transaction, as a general journal entry,
-       similar to hledger's print command and  journal  format  (hledger_jour-
+       This screen shows a single transaction, as  a  general  journal  entry,
+       similar  to  hledger's  print command and journal format (hledger_jour-
        nal(5)).
 
-       The  transaction's  date(s)  and  any  cleared  flag, transaction code,
-       description, comments, along with  all  of  its  account  postings  are
-       shown.   Simple  transactions  have two postings, but there can be more
+       The transaction's date(s)  and  any  cleared  flag,  transaction  code,
+       description,  comments,  along  with  all  of  its account postings are
+       shown.  Simple transactions have two postings, but there  can  be  more
        (or in certain cases, fewer).
 
-       UP and DOWN will step through all transactions listed in  the  previous
-       account  register screen.  In the title bar, the numbers in parentheses
-       show your position  within  that  account  register.   They  will  vary
+       UP  and  DOWN will step through all transactions listed in the previous
+       account register screen.  In the title bar, the numbers in  parentheses
+       show  your  position  within  that  account  register.   They will vary
        depending on which account register you came from (remember most trans-
        actions appear in multiple account registers).  The #N number preceding
        them is the transaction's position within the complete unfiltered jour-
        nal, which is a more stable id (at least until the next reload).
 
    Error
-       This screen will appear if there is a problem, such as a  parse  error,
-       when  you  press g to reload.  Once you have fixed the problem, press g
+       This  screen  will appear if there is a problem, such as a parse error,
+       when you press g to reload.  Once you have fixed the problem,  press  g
        again to reload and resume normal operation.  (Or, you can press escape
        to cancel the reload attempt.)
 
 TIPS
    Watch mode
-       One  of  hledger-ui's  best  features  is the auto-reloading -w/--watch
-       mode.  With this flag, it will update the display  automatically  when-
+       One of hledger-ui's best  features  is  the  auto-reloading  -w/--watch
+       mode.   With  this flag, it will update the display automatically when-
        ever changes are saved to the data files.
 
-       This  is very useful when reconciling.  A good workflow is to have your
-       bank's online register open in a browser  window,  for  reference;  the
-       journal  file open in an editor window; and hledger-ui in watch mode in
+       This is very useful when reconciling.  A good workflow is to have  your
+       bank's  online  register  open  in a browser window, for reference; the
+       journal file open in an editor window; and hledger-ui in watch mode  in
        a terminal window, eg:
 
               $ hledger-ui --watch --register checking -C
 
-       As you mark things cleared in the editor, you can see the effect  imme-
-       diately  without  having  to  context  switch.  This leaves more mental
-       bandwidth for your accounting.  Of course you can still  interact  with
-       hledger-ui  when  needed,  eg to toggle cleared mode, or to explore the
+       As  you mark things cleared in the editor, you can see the effect imme-
+       diately without having to context  switch.   This  leaves  more  mental
+       bandwidth  for  your accounting.  Of course you can still interact with
+       hledger-ui when needed, eg to toggle cleared mode, or  to  explore  the
        history.
 
        Here are some current limitations to be aware of:
 
-       Changes might not be detected with certain editors, possibly  including
-       Jetbrains  IDEs, gedit, other Gnome applications; or on certain unusual
+       Changes  might not be detected with certain editors, possibly including
+       Jetbrains IDEs, gedit, other Gnome applications; or on certain  unusual
        filesystems.  (#1617, #911).  To work around, reload manually by press-
-       ing  g in the hledger-ui window.  (Or see #1617 for another workaround,
+       ing g in the hledger-ui window.  (Or see #1617 for another  workaround,
        and let us know if it works for you.)
 
-       CPU and memory usage can sometimes gradually  increase,  if  hledger-ui
-       --watch  is  left  running for days.  (Possibly correlated with certain
-       platforms, many transactions,  and/or  large  numbers  of  other  files
-       present).   To  work  around, quit and restart it, or (where supported)
+       CPU  and  memory  usage can sometimes gradually increase, if hledger-ui
+       --watch is left running for days.  (Possibly  correlated  with  certain
+       platforms,  many  transactions,  and/or  large  numbers  of other files
+       present).  To work around, quit and restart it,  or  (where  supported)
        suspend (CTRL-z) and restart it (fg).
 
    Debug output
-       You can add --debug[=N] to the command line to log debug output.   This
-       will  be logged to the file hledger-ui.log in the current directory.  N
+       You  can add --debug[=N] to the command line to log debug output.  This
+       will be logged to the file hledger-ui.log in the current directory.   N
        ranges from 1 (least output, the default) to 9 (maximum output).
 
 ENVIRONMENT
@@ -516,17 +473,17 @@ ENVIRONMENT
 
        On unix computers, the default value is: ~/.hledger.journal.
 
-       A more typical value is something  like  ~/finance/YYYY.journal,  where
-       ~/finance  is  a  version-controlled  finance directory and YYYY is the
-       current year.  Or, ~/finance/current.journal, where current.journal  is
+       A  more  typical  value is something like ~/finance/YYYY.journal, where
+       ~/finance is a version-controlled finance directory  and  YYYY  is  the
+       current  year.  Or, ~/finance/current.journal, where current.journal is
        a symbolic link to YYYY.journal.
 
-       The  usual  way  to  set this permanently is to add a command to one of
+       The usual way to set this permanently is to add a  command  to  one  of
        your shell's startup files (eg ~/.profile):
 
               export LEDGER_FILE=~/finance/current.journal`
 
-       On some Mac computers, there is a more thorough way to set  environment
+       On  some Mac computers, there is a more thorough way to set environment
        variables, that will also affect applications started from the GUI (eg,
        Emacs started from a dock icon): In ~/.MacOSX/environment.plist, add an
        entry like:
@@ -537,20 +494,20 @@ ENVIRONMENT
 
        For this to take effect you might need to killall Dock, or reboot.
 
-       On  Windows  computers,  the  default  value is probably C:\Users\YOUR-
-       NAME\.hledger.journal.  You can change this by running a  command  like
-       this  in a powershell window (let us know if you need to be an Adminis-
+       On Windows computers, the  default  value  is  probably  C:\Users\YOUR-
+       NAME\.hledger.journal.   You  can change this by running a command like
+       this in a powershell window (let us know if you need to be an  Adminis-
        trator, and if this persists across a reboot):
 
               > setx LEDGER_FILE "C:\Users\MyUserName\finance\2021.journal"
 
-       Or,  change   it   in   settings:   see   https://www.java.com/en/down-
+       Or,   change   it   in   settings:   see  https://www.java.com/en/down-
        load/help/path.html.
 
 FILES
-       Reads  data  from  one or more files in journal, timeclock, timedot, or
-       CSV format.  The default file is .hledger.journal in your  home  direc-
-       tory;  this  can be overridden with one or more -f FILE options, or the
+       Reads data from one or more files in journal,  timeclock,  timedot,  or
+       CSV  format.   The default file is .hledger.journal in your home direc-
+       tory; this can be overridden with one or more -f FILE options,  or  the
        LEDGER_FILE environment variable.
 
 BUGS
@@ -559,13 +516,13 @@ BUGS
        -V affects only the accounts screen.
 
        When you press g, the current and all previous screens are regenerated,
-       which  may cause a noticeable pause with large files.  Also there is no
+       which may cause a noticeable pause with large files.  Also there is  no
        visual indication that this is in progress.
 
-       --watch is not yet fully robust.  It works well for normal  usage,  but
-       many  file  changes  in  a  short time (eg saving the file thousands of
-       times with an editor macro) can cause problems at least on OSX.   Symp-
-       toms  include:  unresponsive UI, periodic resetting of the cursor posi-
+       --watch  is  not yet fully robust.  It works well for normal usage, but
+       many file changes in a short time (eg  saving  the  file  thousands  of
+       times  with an editor macro) can cause problems at least on OSX.  Symp-
+       toms include: unresponsive UI, periodic resetting of the  cursor  posi-
        tion, momentary display of parse errors, high CPU usage eventually sub-
        siding, and possibly a small but persistent build-up of CPU usage until
        the program is restarted.
@@ -576,7 +533,7 @@ BUGS
 
 
 REPORTING BUGS
-       Report  bugs  at  http://bugs.hledger.org  (or  on the #hledger chat or
+       Report bugs at http://bugs.hledger.org (or  on  the  #hledger  chat  or
        hledger mail list)
 
 
