@@ -30,7 +30,7 @@ import Hledger.UI.UIUtils
 import Hledger.UI.UIScreens
 import Hledger.UI.Editor
 import Brick.Widgets.Edit (editorText, renderEditor)
-import Hledger.UI.ErrorScreen (uiReloadJournalIfChanged, uiCheckBalanceAssertions)
+import Hledger.UI.ErrorScreen (uiReloadJournalIfChanged, uiCheckBalanceAssertions, uiReloadJournal)
 
 tsDraw :: UIState -> [Widget Name]
 tsDraw UIState{aopts=UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}
@@ -145,12 +145,15 @@ tsHandle ev = do
               put' $ regenerateScreens j d $ setReportPeriod (DayPeriod d) ui
               where
                 p = reportPeriod ui
-            e | e `elem` [VtyEvent (EvKey (KChar 'g') []), AppEvent FileChange] -> do
-              -- plog (if e == AppEvent FileChange then "file change" else "manual reload") "" `seq` return ()
-              ej <- liftIO . runExceptT $ journalReload copts
-              case ej of
-                Left err -> put' $ pushScreen (esNew err) ui
-                Right j' -> put' $ regenerateScreens j' d ui
+
+            -- Reload. Warning, this updates parent screens but not the transaction screen itself (see tsUpdate).
+            -- To see the updated transaction, one must exit and re-enter the transaction screen.
+            e | e `elem` [VtyEvent (EvKey (KChar 'g') []), AppEvent FileChange] ->
+              liftIO (uiReloadJournal copts d ui) >>= put'
+                -- debugging.. leaving these here because they were hard to find
+                -- \u -> dbguiEv (pshow u) >> put' u  -- doesn't log
+                -- \UIState{aScreen=TS tss} -> error $ pshow $ _tssTransaction tss
+
             VtyEvent (EvKey (KChar 'I') []) -> put' $ uiCheckBalanceAssertions d (toggleIgnoreBalanceAssertions ui)
 
             -- for toggles that may change the current/prev/next transactions,

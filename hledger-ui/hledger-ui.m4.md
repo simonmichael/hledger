@@ -307,6 +307,16 @@ preceding them is the transaction's position within the complete
 unfiltered journal, which is a more stable id (at least until the next
 reload).
 
+On this screen (and the register screen), the `E` key will open your text editor
+with the cursor positioned at the current transaction if possible.
+
+This screen has a limitation with showing file updates:
+it will not show them until you exit and re-enter it.
+So eg to see the effect of using the `E` key, currently you must:
+- press `E`, edit and save the file, then exit the editor, returning to hledger-ui
+- press `g` to reload the file (or use `-w/--watch` mode)
+- press `LEFT` then `RIGHT` to exit and re-enter the transaction screen.
+
 ## Error
 
 This screen will appear if there is a problem, such as a parse error,

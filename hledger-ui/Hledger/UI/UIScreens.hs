@@ -352,8 +352,10 @@ tsNew acct nts nt =
     ,_tssTransaction  = nt
     }
 
--- | Update a transaction screen. Currently a no-op since transaction screen
--- depends only on its screen-specific state.
+-- | Update a transaction screen. 
+-- This currently does nothing because the initialisation in rsHandle is not so easy to extract.
+-- To see the updated transaction, one must exit and re-enter the transaction screen.
+-- See also tsHandle.
 tsUpdate :: TransactionScreenState -> TransactionScreenState
 tsUpdate = dbgui "tsUpdate"
 
