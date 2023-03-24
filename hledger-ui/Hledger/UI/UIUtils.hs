@@ -497,6 +497,7 @@ showScreenId :: Screen -> String
 showScreenId = \case
   MS _ -> "M"  -- menu
   AS _ -> "A"  -- all accounts
+  CS _ -> "C"  -- cash accounts
   BS _ -> "B"  -- bs accounts
   IS _ -> "I"  -- is accounts
   RS _ -> "R"  -- menu
@@ -516,6 +517,7 @@ showScreenSelection :: Screen -> String
 showScreenSelection = \case
   MS MSS{_mssList} -> "M" ++ (maybe "" show $ listSelected _mssList)  -- menu
   AS ASS{_assList} -> "A" ++ (maybe "" show $ listSelected _assList)  -- all accounts
+  CS ASS{_assList} -> "C" ++ (maybe "" show $ listSelected _assList)  -- cash accounts
   BS ASS{_assList} -> "B" ++ (maybe "" show $ listSelected _assList)  -- bs accounts
   IS ASS{_assList} -> "I" ++ (maybe "" show $ listSelected _assList)  -- is accounts
   RS RSS{_rssList} -> "R" ++ (maybe "" show $ listSelected _rssList)  -- menu

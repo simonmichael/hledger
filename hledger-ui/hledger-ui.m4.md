@@ -67,6 +67,9 @@ Any QUERYARGS are interpreted as a hledger search query which filters the data.
 `--all`
 : start in the all accounts screen
 
+`--cash`
+: start in the cash accounts screen
+
 `--bs`
 : start in the balance sheet accounts screen
 
@@ -237,17 +240,21 @@ and their end balances on the date shown in the title bar
 (or their balance changes in the period shown in the title bar, toggleable with `H`).
 It is like the `hledger balance` command. 
 
+## Cash accounts
+
+This screen shows "cash" (ie, liquid asset) accounts (like `hledger balancesheet type:c`), 
+if these can be detected (see [account types](/hledger.html#account-types)).
+It always shows end balances.
+
 ## Balance sheet accounts
 
-This screen shows asset, liability and equity accounts, if these can be detected (see [account types](/hledger.html#account-types)).
+This screen shows asset, liability and equity accounts (like `hledger balancesheetequity`).
 It always shows end balances.
-It is like the `hledger balancesheetequity` command.
 
 ## Income statement accounts
 
-This screen shows revenue and expense accounts.
+This screen shows revenue and expense accounts (like `hledger incomestatement`).
 It always shows balance changes.
-It is like the `hledger incomestatement` command.
 
 All of these accounts screens work in much the same way:
 

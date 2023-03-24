@@ -24,6 +24,8 @@ module Hledger.UI.UIScreens
 ,asUpdate
 ,bsNew
 ,bsUpdate
+,csNew
+,csUpdate
 ,isNew
 ,isUpdate
 ,rsNew
@@ -52,6 +54,7 @@ screenUpdate :: UIOpts -> Day -> Journal -> Screen -> Screen
 screenUpdate opts d j = \case
   MS sst -> MS $ msUpdate sst  -- opts d j ass
   AS sst -> AS $ asUpdate opts d j sst
+  CS sst -> CS $ csUpdate opts d j sst
   BS sst -> BS $ bsUpdate opts d j sst
   IS sst -> IS $ isUpdate opts d j sst
   RS sst -> RS $ rsUpdate opts d j sst
@@ -82,12 +85,13 @@ msNew =
      _mssList            = list MenuList (V.fromList [
       -- keep initial screen stack setup in UI.Main synced with these
        MenuScreenItem "All accounts" Accounts
+      ,MenuScreenItem "Cash accounts" CashScreen
       ,MenuScreenItem "Balance sheet accounts" Balancesheet
       ,MenuScreenItem "Income statement accounts" Incomestatement
       ]) 1
-      & listMoveTo 1  -- select balance sheet accounts screen at startup (currently this screen is constructed only then)
+      & listMoveTo defaultscreenitem
     ,_mssUnused = ()
-    }
+    } where defaultscreenitem = 2  -- select this one at startup (currently this screen is constructed only then)
 
 -- | Update a menu screen. Currently a no-op since menu screen
 -- has unchanging content.
@@ -176,6 +180,21 @@ bsUpdate uopts d = dbgui "bsUpdate" .
     UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}} = uopts
     roptsmod ropts = ropts{balanceaccum_=Historical}  -- always show historical end balances
     extraquery     = Type [Asset,Liability,Equity]    -- restrict to balance sheet accounts
+
+-- | Construct a cash accounts screen listing the appropriate set of accounts,
+-- with the appropriate one selected.
+-- Screen-specific arguments: the account to select if any.
+csNew :: UIOpts -> Day -> Journal -> Maybe AccountName -> Screen
+csNew uopts d j macct = dbgui "csNew" $ CS $ csUpdate uopts d j $ nullass macct
+
+-- | Update a balance sheet screen's state from these options, reporting date, and journal.
+csUpdate :: UIOpts -> Day -> Journal -> AccountsScreenState -> AccountsScreenState
+csUpdate uopts d = dbgui "csUpdate" .
+  asUpdateHelper rspec d copts roptsmod extraquery
+  where
+    UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}} = uopts
+    roptsmod ropts = ropts{balanceaccum_=Historical}  -- always show historical end balances
+    extraquery     = Type [Cash]    -- restrict to cash accounts
 
 -- | Construct an income statement screen listing the appropriate set of accounts,
 -- with the appropriate one selected.

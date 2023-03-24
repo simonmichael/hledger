@@ -258,6 +258,7 @@ msEnterScreen d scrname ui@UIState{ajournal=j, aopts=uopts} = do
   let
     scr = case scrname of
       Accounts        -> asNew uopts d j Nothing
+      CashScreen      -> csNew uopts d j Nothing
       Balancesheet    -> bsNew uopts d j Nothing
       Incomestatement -> isNew uopts d j Nothing
   put' $ pushScreen scr ui

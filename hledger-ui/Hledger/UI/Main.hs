@@ -39,6 +39,7 @@ import Hledger.UI.UIState (uiState, getDepth)
 import Hledger.UI.UIUtils (dbguiEv, showScreenStack, showScreenSelection)
 import Hledger.UI.MenuScreen
 import Hledger.UI.AccountsScreen
+import Hledger.UI.CashScreen
 import Hledger.UI.BalancesheetScreen
 import Hledger.UI.IncomestatementScreen
 import Hledger.UI.RegisterScreen
@@ -298,6 +299,7 @@ uiHandle ev = do
   case aScreen ui of
     MS _ -> msHandle ev
     AS _ -> asHandle ev
+    CS _ -> csHandle ev
     BS _ -> bsHandle ev
     IS _ -> isHandle ev
     RS _ -> rsHandle ev
@@ -309,6 +311,7 @@ uiDraw ui =
   case aScreen ui of
     MS _ -> msDraw ui
     AS _ -> asDraw ui
+    CS _ -> csDraw ui
     BS _ -> bsDraw ui
     IS _ -> isDraw ui
     RS _ -> rsDraw ui

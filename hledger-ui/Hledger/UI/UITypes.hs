@@ -101,6 +101,7 @@ data Name =
 -- Unique names for screens the user can navigate to from the menu.
 data ScreenName =
     Accounts
+  | CashScreen
   | Balancesheet
   | Incomestatement
   deriving (Ord, Show, Eq)
@@ -176,6 +177,7 @@ data ScreenName =
 data Screen =
     MS MenuScreenState
   | AS AccountsScreenState
+  | CS AccountsScreenState
   | BS AccountsScreenState
   | IS AccountsScreenState
   | RS RegisterScreenState
@@ -192,6 +194,7 @@ data AccountsLikeScreen = ALS (AccountsScreenState -> Screen) AccountsScreenStat
 toAccountsLikeScreen :: Screen -> Maybe AccountsLikeScreen
 toAccountsLikeScreen scr = case scr of
   AS ass -> Just $ ALS AS ass
+  CS ass -> Just $ ALS CS ass
   BS ass -> Just $ ALS BS ass
   IS ass -> Just $ ALS IS ass
   _      -> Nothing
