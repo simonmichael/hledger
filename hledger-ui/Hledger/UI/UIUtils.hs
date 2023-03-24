@@ -163,12 +163,12 @@ helpDialog =
                   ,renderKey ("ESC ", "cancel, or reset app state")
 
                   ,str " "
-                  ,withAttr (attrName "help" <> attrName "heading") $ str "Accounts screen"
+                  ,withAttr (attrName "help" <> attrName "heading") $ str "Accounts screens"
                   ,renderKey ("1234567890-+ ", "set/adjust depth limit")
                   ,renderKey ("t ", "toggle accounts tree/list mode")
                   ,renderKey ("H ", "toggle historical balance/change")
                   ,str " "
-                  ,withAttr (attrName "help" <> attrName "heading") $ str "Register screen"
+                  ,withAttr (attrName "help" <> attrName "heading") $ str "Register screens"
                   ,renderKey ("t ", "toggle subaccount txns\n(and accounts tree/list mode)")
                   ,renderKey ("H ", "toggle historical/period total")
                   ,str " "
