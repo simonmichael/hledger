@@ -1,0 +1,134 @@
+#!/usr/bin/env bash
+# hledger-bar - show quick bar charts in the terminal.
+
+usage() {
+    cat <<'EOS'
+Usage:
+hledger-bar    [-h|--help]
+hledger-bar    [-v|-vv] [SCALE] BALARGS
+hledger bar -- [-v|-vv] [SCALE] BALARGS  # might need extra quoting
+
+Requires bash (or osh) and hledger >= ~1.25.
+
+With no arguments, shows this help.
+Otherwise, runs hledger's 'balance' command, reporting monthly
+balance changes by default, and shows the period totals as a bar chart
+in the terminal, with positive amounts shown as '+' and negatives as '-'
+(in green and red respectively, unless NO_COLOR is set.)
+
+Bars are not auto-sized; they will be (amount divided by SCALE) long, where
+SCALE is 100 by default. This is overrideable by a numeric first argument.
+Eg if bars are too long, try 200; if they are too short, try 50.
+
+Most other options/arguments understood by the balance command can be
+used, such as one or more account names, or different report intervals
+like -W (weekly) or -Q (quarterly).  There are two restrictions:
+
+- You must ensure the report is for a single commodity. So use eg
+  'cur:€' or 'cur:\\$' or 'cur:\\\\$' or '-B' or '-X$ --infer-market-prices'
+  as needed.
+
+- You can't use spaces in arguments (even quoted). If needed,
+  you could write '.' instead of space.
+
+If you don't see the results you expect:
+
+- Note that revenues appear negative and expenses positive,
+  as with the balance command; to flip signs, use --invert.
+
+- Run as 'hledger-bar' to minimise command line quoting issues.
+
+- Use -v as first argument to also show the (unscaled, rounded) amounts.
+
+- Use -vv as first argument to show the amounts and the balance command
+  being run (approximately; you might need to add one level of quoting).
+  Tip: remove some of this command's first options to see a more
+  human-readable balance report.
+
+- If reporting changes in asset/liability/equity accounts, you will probably
+  want to exclude closing/opening balances, eg with
+  not:desc:'(opening|closing)' or not:tag:clopen if you use that.
+
+Examples:
+
+$ hledger-bar food                              # monthly food expenses
+$ hledger-bar -v 1 -f $TIMELOG -D               # daily hours, with numbers
+$ hledger-bar type:c not:tag:clopen cur:\\$ -W  # weekly cashflow, $ only
+$ hledger-bar type:al not:tag:clopen cur:\\$    # monthly net worth change ($)
+$ hledger-bar type:rx cur:\\$ --invert          # monthly profit/loss ($)
+$ hledger-bar type:rx --invert cur:\\$ --infer-market-prices --value=then,$
+   # monthly profit/loss ($, plus anything that can be converted to $,
+   # using conversion rates on transaction dates)
+$ hledger-bar . cur:\\$                         # all accounts change ($)
+$ hledger bar -- . cur:\\\\$                    # as hledger subcommand
+
+EOS
+}
+###############################################################################
+
+set -e
+
+defscale=100
+negchar="-"
+poschar="+"
+
+# utils
+
+# https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit and 24-bit colors:
+if [[ -v $NO_COLOR ]]; then
+    red=''
+    green=''
+    nocol=''
+else
+    red='\e[38;5;1m'
+    green="\e[38;5;2m"
+    nocol="\e[0m"
+fi
+
+unquote() { s="${1%\"}"; echo "${s#\"}"; }
+
+# process command line
+shownum=0
+verbose=0
+scale=$defscale
+if [[ $# -eq 0 || $1 == --help || $1 == -h ]]; then usage; exit; fi
+if [[ $1 == -v ]]; then shownum=1; shift; elif [[ $1 == -vv ]]; then shownum=1; verbose=1; shift; fi
+if [[ $1 =~ ^[0-9]+$ ]]; then scale=$1; shift; fi
+
+# helpers
+
+# The hledger reporting command. It should produce a single-currency,
+# two-column CSV balance report with one line per period.
+# It must have a report interval for --transpose to work.
+# shellcheck disable=SC2124
+cmd="hledger balance -Ocsv --transpose -N -0 --layout=bare -M $@"
+
+printcmd() {
+    echo "From command (might need added quotes):"  # don't know how to print all the slashes
+    echo "$cmd"
+}
+
+printamterr() {
+    cat <<EOS
+Error: could not parse as a single-commodity amount: $1
+The report must be restricted or converted to a single commodity.
+Eg to report $, try: cur:\\\\$ or cur:\\\\\\\\$ or -B or -X$ --infer-market-prices
+EOS
+    printcmd
+}
+
+# main
+
+$cmd | while IFS=, read -r period amount; do
+    if [[ ! $amount =~ [0-9] ]]; then continue; fi  # ignore lines where amount has no digits
+    if [[ $amount =~ , ]]; then printamterr "$amount"; exit 1; fi  # check there is a single amount column
+    int=$(printf '%.f' "$(unquote "$amount")")
+    if [[ $shownum -gt 0 ]]; then num=$(printf "%10d " "$int"); else num=""; fi
+    if [[ $int -lt 0 ]]; then c="$negchar"; col=$red; else c="$poschar"; col=$green; fi
+    n=$((int / scale))
+    absn=${n#-}
+    bar=$(while [[ $absn -gt 0 ]]; do printf "%s" "$c"; absn=$((absn - 1)); done)
+    printf '%s\t%b%s%s%b\n' "$(unquote "$period")" "$col" "$num" "$bar" "$nocol"
+done
+
+if [[ $verbose -gt 0 ]]; then printcmd; fi

@@ -94,6 +94,15 @@ This and the other "hledger-" scripts are add-on commands.
 $ hledger simplebal
 ```
 
+### hledger-bar
+
+[`hledger-bar`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-bar)
+prints quick and dirty bar charts in the terminal.
+
+```cli
+$ hledger bar   # show help, examples
+```
+
 ### hledger-git
 
 [`hledger-git`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-git)
