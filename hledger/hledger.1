@@ -6576,8 +6576,8 @@ A special query term used automatically in hledger-web only: tells
 hledger-web to show the transaction register for an account.)
 .SS Combining query terms
 .PP
-When given multiple query terms, most commands select things which
-match:
+When given multiple space-separated query terms, most commands select
+things which match:
 .IP \[bu] 2
 any of the description terms AND
 .IP \[bu] 2
@@ -6597,32 +6597,35 @@ have no postings matching any of the negative account terms AND
 .IP \[bu] 2
 match all the other terms.
 .PP
-Although these fixed rules are enough for many needs, we do not support
-full boolean expressions (#203), (and you should not write AND or OR in
-your queries).
-This makes certain queries hard to express, but here are some tricks
-that can help:
-.IP "1." 3
-Use a doubled \f[V]not:\f[R] prefix.
-Eg, to print only the food expenses paid with cash:
-.RS 4
-.IP
-.nf
-\f[C]
-$ hledger print food not:not:cash
-\f[R]
-.fi
+We also support more complex boolean queries with the \[aq]expr:\[aq]
+prefix.
+This allows one to combine queries using one of three operators: AND,
+OR, and NOT, where NOT is different syntax for \[aq]not:\[aq].
+.PP
+Examples of such queries are:
+.IP \[bu] 2
+Match transactions with \[aq]cool\[aq] in the description AND with the
+\[aq]A\[aq] tag
+.RS 2
+.PP
+\f[V]expr:\[dq]desc:cool AND tag:A\[dq]\f[R]
 .RE
-.IP "2." 3
-Or pre-filter the transactions with \f[V]print\f[R], piping the result
-into a second hledger command (with balance assertions disabled):
-.RS 4
-.IP
-.nf
-\f[C]
-$ hledger print cash | hledger -f- -I balance food
-\f[R]
-.fi
+.IP \[bu] 2
+Match transactions NOT to the \[aq]expenses:food\[aq] account OR with
+the \[aq]A\[aq] tag
+.RS 2
+.PP
+\f[V]expr:\[dq]NOT expenses:food OR tag:A\[dq]\f[R]
+.RE
+.IP \[bu] 2
+Match transactions NOT involving the \[aq]expenses:food\[aq] account OR
+with the \[aq]A\[aq] tag AND involving the \[aq]expenses:drink\[aq]
+account.
+(the AND is implicitly added by space-separation, following the rules
+above)
+.RS 2
+.PP
+\f[V]expr:\[dq]expenses:food OR (tag:A expenses:drink)\[dq]\f[R]
 .RE
 .SS Queries and command options
 .PP

@@ -422,48 +422,59 @@ SCREENS
        them is the transaction's position within the complete unfiltered jour-
        nal, which is a more stable id (at least until the next reload).
 
+       On this screen (and the register screen), the E key will open your text
+       editor with the cursor positioned at the current transaction if  possi-
+       ble.
+
+       This  screen  has  a  limitation with showing file updates: it will not
+       show them until you exit and re-enter it.  So eg to see the  effect  of
+       using the E key, currently you must: - press E, edit and save the file,
+       then exit the editor, returning to hledger-ui - press g to  reload  the
+       file  (or  use -w/--watch mode) - press LEFT then RIGHT to exit and re-
+       enter the transaction screen.
+
    Error
-       This  screen  will appear if there is a problem, such as a parse error,
-       when you press g to reload.  Once you have fixed the problem,  press  g
+       This screen will appear if there is a problem, such as a  parse  error,
+       when  you  press g to reload.  Once you have fixed the problem, press g
        again to reload and resume normal operation.  (Or, you can press escape
        to cancel the reload attempt.)
 
 TIPS
    Watch mode
-       One of hledger-ui's best  features  is  the  auto-reloading  -w/--watch
-       mode.   With  this flag, it will update the display automatically when-
+       One  of  hledger-ui's  best  features  is the auto-reloading -w/--watch
+       mode.  With this flag, it will update the display  automatically  when-
        ever changes are saved to the data files.
 
-       This is very useful when reconciling.  A good workflow is to have  your
-       bank's  online  register  open  in a browser window, for reference; the
-       journal file open in an editor window; and hledger-ui in watch mode  in
+       This  is very useful when reconciling.  A good workflow is to have your
+       bank's online register open in a browser  window,  for  reference;  the
+       journal  file open in an editor window; and hledger-ui in watch mode in
        a terminal window, eg:
 
               $ hledger-ui --watch --register checking -C
 
-       As  you mark things cleared in the editor, you can see the effect imme-
-       diately without having to context  switch.   This  leaves  more  mental
-       bandwidth  for  your accounting.  Of course you can still interact with
-       hledger-ui when needed, eg to toggle cleared mode, or  to  explore  the
+       As you mark things cleared in the editor, you can see the effect  imme-
+       diately  without  having  to  context  switch.  This leaves more mental
+       bandwidth for your accounting.  Of course you can still  interact  with
+       hledger-ui  when  needed,  eg to toggle cleared mode, or to explore the
        history.
 
        Here are some current limitations to be aware of:
 
-       Changes  might not be detected with certain editors, possibly including
-       Jetbrains IDEs, gedit, other Gnome applications; or on certain  unusual
+       Changes might not be detected with certain editors, possibly  including
+       Jetbrains  IDEs, gedit, other Gnome applications; or on certain unusual
        filesystems.  (#1617, #911).  To work around, reload manually by press-
-       ing g in the hledger-ui window.  (Or see #1617 for another  workaround,
+       ing  g in the hledger-ui window.  (Or see #1617 for another workaround,
        and let us know if it works for you.)
 
-       CPU  and  memory  usage can sometimes gradually increase, if hledger-ui
-       --watch is left running for days.  (Possibly  correlated  with  certain
-       platforms,  many  transactions,  and/or  large  numbers  of other files
-       present).  To work around, quit and restart it,  or  (where  supported)
+       CPU and memory usage can sometimes gradually  increase,  if  hledger-ui
+       --watch  is  left  running for days.  (Possibly correlated with certain
+       platforms, many transactions,  and/or  large  numbers  of  other  files
+       present).   To  work  around, quit and restart it, or (where supported)
        suspend (CTRL-z) and restart it (fg).
 
    Debug output
-       You  can add --debug[=N] to the command line to log debug output.  This
-       will be logged to the file hledger-ui.log in the current directory.   N
+       You can add --debug[=N] to the command line to log debug output.   This
+       will  be logged to the file hledger-ui.log in the current directory.  N
        ranges from 1 (least output, the default) to 9 (maximum output).
 
 ENVIRONMENT
@@ -473,17 +484,17 @@ ENVIRONMENT
 
        On unix computers, the default value is: ~/.hledger.journal.
 
-       A  more  typical  value is something like ~/finance/YYYY.journal, where
-       ~/finance is a version-controlled finance directory  and  YYYY  is  the
-       current  year.  Or, ~/finance/current.journal, where current.journal is
+       A more typical value is something  like  ~/finance/YYYY.journal,  where
+       ~/finance  is  a  version-controlled  finance directory and YYYY is the
+       current year.  Or, ~/finance/current.journal, where current.journal  is
        a symbolic link to YYYY.journal.
 
-       The usual way to set this permanently is to add a  command  to  one  of
+       The  usual  way  to  set this permanently is to add a command to one of
        your shell's startup files (eg ~/.profile):
 
               export LEDGER_FILE=~/finance/current.journal`
 
-       On  some Mac computers, there is a more thorough way to set environment
+       On some Mac computers, there is a more thorough way to set  environment
        variables, that will also affect applications started from the GUI (eg,
        Emacs started from a dock icon): In ~/.MacOSX/environment.plist, add an
        entry like:
@@ -494,20 +505,20 @@ ENVIRONMENT
 
        For this to take effect you might need to killall Dock, or reboot.
 
-       On Windows computers, the  default  value  is  probably  C:\Users\YOUR-
-       NAME\.hledger.journal.   You  can change this by running a command like
-       this in a powershell window (let us know if you need to be an  Adminis-
+       On  Windows  computers,  the  default  value is probably C:\Users\YOUR-
+       NAME\.hledger.journal.  You can change this by running a  command  like
+       this  in a powershell window (let us know if you need to be an Adminis-
        trator, and if this persists across a reboot):
 
               > setx LEDGER_FILE "C:\Users\MyUserName\finance\2021.journal"
 
-       Or,   change   it   in   settings:   see  https://www.java.com/en/down-
+       Or,  change   it   in   settings:   see   https://www.java.com/en/down-
        load/help/path.html.
 
 FILES
-       Reads data from one or more files in journal,  timeclock,  timedot,  or
-       CSV  format.   The default file is .hledger.journal in your home direc-
-       tory; this can be overridden with one or more -f FILE options,  or  the
+       Reads  data  from  one or more files in journal, timeclock, timedot, or
+       CSV format.  The default file is .hledger.journal in your  home  direc-
+       tory;  this  can be overridden with one or more -f FILE options, or the
        LEDGER_FILE environment variable.
 
 BUGS
@@ -516,13 +527,13 @@ BUGS
        -V affects only the accounts screen.
 
        When you press g, the current and all previous screens are regenerated,
-       which may cause a noticeable pause with large files.  Also there is  no
+       which  may cause a noticeable pause with large files.  Also there is no
        visual indication that this is in progress.
 
-       --watch  is  not yet fully robust.  It works well for normal usage, but
-       many file changes in a short time (eg  saving  the  file  thousands  of
-       times  with an editor macro) can cause problems at least on OSX.  Symp-
-       toms include: unresponsive UI, periodic resetting of the  cursor  posi-
+       --watch is not yet fully robust.  It works well for normal  usage,  but
+       many  file  changes  in  a  short time (eg saving the file thousands of
+       times with an editor macro) can cause problems at least on OSX.   Symp-
+       toms  include:  unresponsive UI, periodic resetting of the cursor posi-
        tion, momentary display of parse errors, high CPU usage eventually sub-
        siding, and possibly a small but persistent build-up of CPU usage until
        the program is restarted.
@@ -533,7 +544,7 @@ BUGS
 
 
 REPORTING BUGS
-       Report bugs at http://bugs.hledger.org (or  on  the  #hledger  chat  or
+       Report  bugs  at  http://bugs.hledger.org  (or  on the #hledger chat or
        hledger mail list)
 
 

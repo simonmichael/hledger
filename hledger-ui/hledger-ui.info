@@ -519,6 +519,17 @@ preceding them is the transaction’s position within the complete
 unfiltered journal, which is a more stable id (at least until the next
 reload).
 
+   On this screen (and the register screen), the ‘E’ key will open your
+text editor with the cursor positioned at the current transaction if
+possible.
+
+   This screen has a limitation with showing file updates: it will not
+show them until you exit and re-enter it.  So eg to see the effect of
+using the ‘E’ key, currently you must: - press ‘E’, edit and save the
+file, then exit the editor, returning to hledger-ui - press ‘g’ to
+reload the file (or use ‘-w/--watch’ mode) - press ‘LEFT’ then ‘RIGHT’
+to exit and re-enter the transaction screen.
+
 
 File: hledger-ui.info,  Node: Error,  Prev: Transaction,  Up: SCREENS
 
@@ -692,20 +703,20 @@ Node: Register14910
 Ref: #register15034
 Node: Transaction17046
 Ref: #transaction17169
-Node: Error18053
-Ref: #error18147
-Node: TIPS18391
-Ref: #tips18490
-Node: Watch mode18532
-Ref: #watch-mode18639
-Node: Debug output20127
-Ref: #debug-output20238
-Node: ENVIRONMENT20458
-Ref: #environment20569
-Node: FILES21992
-Ref: #files22091
-Node: BUGS22351
-Ref: #bugs22428
+Node: Error18628
+Ref: #error18722
+Node: TIPS18966
+Ref: #tips19065
+Node: Watch mode19107
+Ref: #watch-mode19214
+Node: Debug output20702
+Ref: #debug-output20813
+Node: ENVIRONMENT21033
+Ref: #environment21144
+Node: FILES22567
+Ref: #files22666
+Node: BUGS22926
+Ref: #bugs23003
 
 End Tag Table
 

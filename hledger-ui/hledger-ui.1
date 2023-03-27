@@ -471,6 +471,18 @@ They will vary depending on which account register you came from
 The #N number preceding them is the transaction\[aq]s position within
 the complete unfiltered journal, which is a more stable id (at least
 until the next reload).
+.PP
+On this screen (and the register screen), the \f[V]E\f[R] key will open
+your text editor with the cursor positioned at the current transaction
+if possible.
+.PP
+This screen has a limitation with showing file updates: it will not show
+them until you exit and re-enter it.
+So eg to see the effect of using the \f[V]E\f[R] key, currently you
+must: - press \f[V]E\f[R], edit and save the file, then exit the editor,
+returning to hledger-ui - press \f[V]g\f[R] to reload the file (or use
+\f[V]-w/--watch\f[R] mode) - press \f[V]LEFT\f[R] then \f[V]RIGHT\f[R]
+to exit and re-enter the transaction screen.
 .SS Error
 .PP
 This screen will appear if there is a problem, such as a parse error,
