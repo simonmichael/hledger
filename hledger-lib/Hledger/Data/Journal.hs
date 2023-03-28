@@ -3,6 +3,7 @@
 {-# LANGUAGE Rank2Types          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
+{-# LANGUAGE RecordWildCards #-}
 
 {-|
 
@@ -122,8 +123,8 @@ import Data.Maybe (catMaybes, fromMaybe, mapMaybe, maybeToList)
 import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
-import Safe (headMay, headDef, maximumMay, minimumMay)
-import Data.Time.Calendar (Day, addDays, fromGregorian)
+import Safe (headMay, headDef, maximumMay, minimumMay, lastDef)
+import Data.Time.Calendar (Day, addDays, fromGregorian, diffDays)
 import Data.Time.Clock.POSIX (POSIXTime)
 import Data.Tree (Tree(..), flatten)
 import Text.Printf (printf)
@@ -140,6 +141,9 @@ import Hledger.Data.TransactionModifier
 import Hledger.Data.Valuation
 import Hledger.Query
 import System.FilePath (takeFileName)
+import Data.Ord (comparing)
+import Hledger.Data.Dates (nulldate)
+import Data.List (sort)
 
 
 -- | A parser of text that runs in some monad, keeping a Journal as state.
@@ -429,20 +433,38 @@ journalInheritedAccountTags j a =
     as = a : parentAccountNames a
 -- PERF: cache in journal ?
 
+type DateWeightedSimilarityScore = Double
+type SimilarityScore = Double
+type Age = Integer
+
 -- | Find up to N most similar and most recent transactions matching
--- the given transaction description and query. Transactions are
--- listed with their description's similarity score (see
--- compareDescriptions), sorted by highest score and then by date.
--- Only transactions with a similarity score greater than a minimum
--- threshold (currently 0) are returned.
-journalTransactionsSimilarTo :: Journal -> Query -> Text -> Int -> [(Double,Transaction)]
-journalTransactionsSimilarTo Journal{jtxns} q desc n =
+-- the given transaction description and query and exceeding the given
+-- description similarity score (0 to 1, see compareDescriptions).
+-- Returns transactions along with
+-- their age in days compared to the latest transaction date,
+-- their description similarity score,
+-- and a heuristically date-weighted variant of this that favours more recent transactions.
+journalTransactionsSimilarTo :: Journal -> Text -> Query -> SimilarityScore -> Int
+  -> [(DateWeightedSimilarityScore, Age, SimilarityScore, Transaction)]
+journalTransactionsSimilarTo Journal{jtxns} desc q similaritythreshold n =
   take n $
-  sortBy (\(s1,t1) (s2,t2) -> compare (s2,tdate t2) (s1,tdate t1)) $
-  filter ((> threshold).fst)
+  dbg1With (
+    unlines . 
+    ("up to 30 transactions above description similarity threshold "<>show similaritythreshold<>" ordered by recency-weighted similarity:":) .
+    take 30 .
+    map ( \(w,a,s,Transaction{..}) -> printf "weighted:%8.3f  age:%4d similarity:%5.3f  %s %s" w a s (show tdate) tdescription )) $
+  sortBy (comparing (negate.first4)) $
+  map (\(s,t) -> (weightedScore (s,t), age t, s, t)) $
+  filter ((> similaritythreshold).fst)
   [(compareDescriptions desc $ tdescription t, t) | t <- jtxns, q `matchesTransaction` t]
   where
-    threshold = 0
+    latest = lastDef nulldate $ sort $ map tdate jtxns
+    age = diffDays latest . tdate
+    -- Combine similarity and recency heuristically. This gave decent results
+    -- in my "find most recent invoice" use case in 2023-03,
+    -- but will probably need more attention.
+    weightedScore :: (Double, Transaction) -> Double
+    weightedScore (s, t) = 100 * s - fromIntegral (age t) / 4
 
 -- | Return a similarity score from 0 to 1.5 for two transaction descriptions. 
 -- This is based on compareStrings, with the following modifications:

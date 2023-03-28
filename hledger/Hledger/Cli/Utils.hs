@@ -251,12 +251,9 @@ backupNumber f g = case g =~ ("^" ++ f ++ "\\.([0-9]+)$") of
 -- Identify the closest recent match for this description in past transactions.
 -- If the options specify a query, only matched transactions are considered.
 journalSimilarTransaction :: CliOpts -> Journal -> T.Text -> Maybe Transaction
-journalSimilarTransaction cliopts j desc = mbestmatch
+journalSimilarTransaction cliopts j desc =
+  fmap fourth4 $ headMay $ journalTransactionsSimilarTo j desc q 0 1
   where
-    mbestmatch = snd <$> headMay bestmatches
-    bestmatches =
-      dbg1With (unlines . ("similar transactions:":) . map (\(score,Transaction{..}) -> printf "%0.3f %s %s" score (show tdate) tdescription)) $
-      journalTransactionsSimilarTo j q desc 10
     q = queryFromFlags $ _rsReportOpts $ reportspec_ cliopts
 
 -- | Render a 'PostingsReport' or 'AccountTransactionsReport' as Text,
