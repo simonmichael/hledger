@@ -35,17 +35,19 @@ import Safe (headDef)
 -- | Command line options for this command.
 accountsmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Accounts.txt")
-  (flattreeflags False ++
-  [flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
-  ,flagNone ["used","u"] (setboolopt "used") "show accounts used by transactions"
-  ,flagNone ["declared","d"] (setboolopt "declared") "show accounts declared by account directive"
-  ,flagNone ["unused"] (setboolopt "unused") "show only accounts declared but not used"
-  ,flagNone ["undeclared"] (setboolopt "undeclared") "show only accounts used but not declared"
-  ,flagNone ["find"] (setboolopt "find") "find the first account matched by the first command argument (a case-insensitive infix regexp or account name)"
-  ,flagNone ["types"] (setboolopt "types") "also show account types when known"
-  ,flagNone ["positions"] (setboolopt "positions") "also show where accounts were declared"
-  ,flagNone ["directives"] (setboolopt "directives") "show as account directives, for use in journals"
-  ])
+  (
+  [flagNone ["used","u"]     (setboolopt "used")       "show only accounts used by transactions"
+  ,flagNone ["declared","d"] (setboolopt "declared")   "show only accounts declared by account directive"  -- no s to avoid line wrap
+  ,flagNone ["unused"]       (setboolopt "unused")     "show only accounts declared but not used"
+  ,flagNone ["undeclared"]   (setboolopt "undeclared") "show only accounts used but not declared"
+  ,flagNone ["types"]        (setboolopt "types")      "also show account types when known"
+  ,flagNone ["positions"]    (setboolopt "positions")  "also show where accounts were declared"
+  ,flagNone ["directives"]   (setboolopt "directives") "show as account directives, for use in journals"
+  ,flagNone ["find"]         (setboolopt "find")       "find the first account matched by the first argument (a case-insensitive infix regexp or account name)"
+  ]
+  ++ flattreeflags False ++
+  [flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"]
+  )
   [generalflagsgroup1]
   hiddenflags
   ([], Just $ argsFlag "[QUERY]")
