@@ -120,7 +120,7 @@ Problems:
 
 ## Next steps
 
-- [Getting Started](https://hledger.org/start.html)
+- [Get Started](https://hledger.org/start.html)
 
 
 <!--
