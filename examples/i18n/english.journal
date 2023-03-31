@@ -1,9 +1,8 @@
 account assets                   ; type:A
+account assets:bank:checking     ; type:C
+account assets:bank:savings      ; type:C
+account assets:wallet            ; type:C
 account liabilities              ; type:L
 account equity                   ; type:E
 account revenues                 ; type:R
 account expenses                 ; type:X
-
-account assets:bank:checking     ; type:C
-account assets:bank:savings      ; type:C
-account assets:wallet            ; type:C

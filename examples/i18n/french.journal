@@ -1,9 +1,8 @@
 account actifs                           ; type:A
+account actifs:banque:compte courant     ; type:C
+account actifs:banque:compte d'épargne   ; type:C
+account actifs:espèces                   ; type:C
 account passifs                          ; type:L
 account capitaux propres                 ; type:E
 account revenus                          ; type:R
 account dépenses                         ; type:X
-
-account actifs:banque:compte courant     ; type:C
-account actifs:banque:compte d'épargne   ; type:C
-account actifs:espèces                   ; type:C
