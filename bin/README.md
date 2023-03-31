@@ -15,6 +15,10 @@ Some notable add-ons are listed [in the hledger manual](https://hledger.org/dev/
 The rest of this page lists smaller scripts and add-ons which are collected in bin/,
 grouped by how closely they work with hledger:
 
+To be clear: you don't need any of these when starting out with hledger.
+hledger comes with many built-in commands, and you may want to get familiar with those first.
+
+
 <!-- This page can be viewed on github or hledger.org, so use absolute urls. -->
 [bin]:                https://github.com/simonmichael/hledger/tree/master/bin
 [Scripts]:            https://hledger.org/scripts.html
