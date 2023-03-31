@@ -1,0 +1,9 @@
+account ativo                                ; type:A
+account passivo                              ; type:L
+account patrimônio líquido                   ; type:E
+account receita                              ; type:R
+account despesa                              ; type:X
+
+account ativo:banco:conta corrente           ; type:C
+account ativo:banco:aplicação financeira     ; type:C
+account ativo:disponibilidade                ; type:C
