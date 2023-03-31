@@ -515,7 +515,6 @@ src/hledger/site/src/
   currency-conversion.md
   dev-README.md
   dev.md
-  devfaq.md
   dsq.md
   editors.md
   export.md
@@ -564,7 +563,6 @@ src/hledger/site/src/
   track-changes-with-version-control.md
   track-investments.md
   ui.md
-  userfaq.md
   videos.md
   web.md
   1.0/
