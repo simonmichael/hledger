@@ -1383,6 +1383,10 @@ implicitly:
 Amounts can be converted to cost at report time using the [`-B/--cost`](#reporting-options) flag;
 this is discussed more in the ˜[COST REPORTING](#cost-reporting) section.
 
+Note that the cost normally should be a positive amount, though it's not required to be.
+This can be a little confusing, see discussion at 
+[--infer-market-prices: market prices from transactions](#--infer-market-prices-market-prices-from-transactions).
+
 ### Other cost/lot notations
 
 A slight digression for Ledger and Beancount users. Ledger has a number of cost/lot-related notations:
