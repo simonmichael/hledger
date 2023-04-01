@@ -1411,6 +1411,10 @@ Journal
        Amounts can be converted to cost at report  time  using  the  -B/--cost
        flag; this is discussed more in the COST REPORTING section.
 
+       Note  that  the  cost normally should be a positive amount, though it's
+       not required to be.  This can be a little confusing, see discussion  at
+       --infer-market-prices: market prices from transactions.
+
    Other cost/lot notations
        A  slight digression for Ledger and Beancount users.  Ledger has a num-
        ber of cost/lot-related notations:
@@ -1742,8 +1746,6 @@ Journal
    Directive effects
        And here is what each directive  does,  and  which  files  and  journal
        entries (transactions) it affects:
-
-
 
 
        direc-     what it does                                                       ends
