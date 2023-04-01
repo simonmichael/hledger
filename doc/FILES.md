@@ -536,7 +536,7 @@ src/hledger/site/src/
   ledger.md
   loans.md
   manuals.md
-  mobile-apps.md
+  mobile.md
   mockups.md
   multicurrency-tutorial.md
   project-accounting.md
