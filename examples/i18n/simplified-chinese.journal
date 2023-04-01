@@ -1,7 +1,8 @@
 ; chatgpt draft, corrections welcome
 account 资产                 ; type:A
-account 资产:银行:支票账户   ; type:C
-account 资产:银行:储蓄账户   ; type:C
+account 资产:银行            ; type:C
+account 资产:银行:支票账户
+account 资产:银行:储蓄账户
 account 资产:钱包            ; type:C
 account 负债                 ; type:L
 account 所有者权益           ; type:E

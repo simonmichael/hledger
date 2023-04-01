@@ -1,6 +1,7 @@
 account ativo                                ; type:A
-account ativo:banco:conta corrente           ; type:C
-account ativo:banco:aplicação financeira     ; type:C
+account ativo:banco                          ; type:C
+account ativo:banco:conta corrente
+account ativo:banco:aplicação financeira
 account ativo:disponibilidade                ; type:C
 account passivo                              ; type:L
 account patrimônio líquido                   ; type:E
