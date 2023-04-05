@@ -4450,18 +4450,24 @@ More complex intervals can be specified using `-p/--period`, described below.
 
 ## Date adjustment
 
-With a report interval (other than daily), report start / end dates which
-have not been specified explicitly and in full (eg not `-b 2023-01-01`, 
-but `-b 2023-01` or `-b 2023` or unspecified) are considered flexible:
+When there is a report interval (other than daily), report start/end dates
+which have been inferred, eg from the journal, are automatically adjusted to
+natural period boundaries. This is convenient for producing simple periodic reports.
+More precisely:
 
-- A flexible start date will be automatically adjusted earlier if needed to
-  fall on a natural interval boundary.
-- Similarly, a flexible end date will be adjusted later if needed
-  to make the last period a whole interval (the same length as the others).
+- an inferred start date will be adjusted earlier if needed to fall on a
+  natural period boundary
 
-This is convenient for producing clean periodic reports (this is traditional hledger behaviour).
-By contrast, fully-specified exact dates will not be adjusted (this is new in hledger 1.29).
+- an inferred end date will be adjusted later if needed to make the last period
+  the same length as the others.
 
+By contrast, start/end dates which have been specified explicitly,
+with `-b`, `-e`, `-p` or `date:`, will not be adjusted (since hledger 1.29).
+This makes it possible to specify non-standard report periods, but it also means
+that if you are specifying a start date, you should pick one that's on a period boundary
+if you want to see simple report period headings.
+
+<!--
 An example: with a journal whose first date is 2023-01-10 and last date is 2023-03-20:
 
 - `hledger bal -M -b 2023/1/15 -e 2023/3/10`\
@@ -4473,6 +4479,7 @@ An example: with a journal whose first date is 2023-01-10 and last date is 2023-
   The report periods will begin on the 1st of each month, starting from 2023-01-01,
   and the last period's last day will be 2023-03-31.
   (Flexible start and end dates, both are adjusted.)
+-->
 
 ## Period expressions
 
