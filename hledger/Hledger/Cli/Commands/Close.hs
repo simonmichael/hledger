@@ -46,7 +46,7 @@ closemode = hledgerCommandMode
     -- any old command flags for compatibility, hidden
     -- ++ []
   )
-  ([], Just $ argsFlag "[QUERY]")
+  ([], Just $ argsFlag "[--close | --open | --migrate | --retain] [ACCTQUERY]")
 
 -- Debugger, beware: close is incredibly devious; simple rules combine to make a horrid maze.
 -- Tests are in hledger/test/close.test.
