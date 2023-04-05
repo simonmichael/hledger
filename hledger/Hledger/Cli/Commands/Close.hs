@@ -29,12 +29,12 @@ defcloseacct  = "equity:opening/closing balances"
 
 closemode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Close.txt")
-  [flagNone ["retain"]       (setboolopt "retain")  "show RX retain earnings transaction"
-  ,flagNone ["migrate"]      (setboolopt "migrate") "show ALE closing/opening transactions"
-  ,flagNone ["open"]         (setboolopt "open")    "show ALE opening transaction"
-  ,flagReq  ["close-desc"]   (\s opts -> Right $ setopt "close-desc" s opts) "DESC" ("description for closing transaction (default: "++defclosedesc++")")
-  ,flagReq  ["open-desc"]    (\s opts -> Right $ setopt "open-desc"  s opts) "DESC" ("description for opening transaction (default: "++defopendesc++")")
-  ,flagReq  ["close-acct"]   (\s opts -> Right $ setopt "close-acct" s opts) "ACCT" ("account to transfer closing balances to (default: "++defcloseacct++")")
+  [flagNone ["open"]         (setboolopt "open")    "show opening transaction instead of closing (ALE by default)"
+  ,flagNone ["migrate"]      (setboolopt "migrate") "show closing and opening transactions (ALE by default)"
+  ,flagNone ["retain"]       (setboolopt "retain")  "show retain earnings transaction (RX by default)"
+  ,flagReq  ["close-desc"]   (\s opts -> Right $ setopt "close-desc" s opts) "DESC" "change closing transaction's description"
+  ,flagReq  ["open-desc"]    (\s opts -> Right $ setopt "open-desc"  s opts) "DESC" "change opening transaction's description"
+  ,flagReq  ["close-acct"]   (\s opts -> Right $ setopt "close-acct" s opts) "ACCT" "change account to transfer to/from"
   ,flagNone ["explicit","x"] (setboolopt "explicit") "show all amounts explicitly"
   ,flagNone ["interleaved"]  (setboolopt "interleaved") "keep source and destination postings adjacent"
   ,flagNone ["show-costs"]   (setboolopt "show-costs") "keep balances with different costs separate"
