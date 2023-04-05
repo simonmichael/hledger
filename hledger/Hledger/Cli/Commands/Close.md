@@ -1,54 +1,62 @@
 ## close
 
-(equity)
+`close [--close | --open | --migrate | --retain] [ACCTQUERY]`
 
-`close [--open | --migrate | --retain] [QUERY]`
-
-Transfer balances to and/or from another account (usually equity).
-Useful for migrating balances to a new journal file, 
+Generate transactions which transfer account balances to and/or from
+another account (typically equity).
+This can be useful for migrating balances to a new journal file, 
 or for merging earnings into equity at end of accounting period.
 
-By default, it prints a "closing balances" transaction that zeroes out
-all accounts, transferring their balances to `equity:opening/closing balances`.
+By default, it prints a transaction that zeroes out ALE accounts
+(asset, liability, equity accounts; this requires account types to be configured);
+or if ACCTQUERY is provided, the accounts matched by that.
+
+*(experimental)*
 
 _FLAGS
 
-This command is useful in several situations.
-It has four main modes, corresponding to the most common use cases:
+This command has four main modes, corresponding to the most common use cases:
 
-By default, it prints a "closing balances" transaction that zeroes out all accounts.
+1. With `--close` (default), it prints a "closing balances" transaction
+that zeroes out ALE (asset, liability, equity) accounts by default
+(this requires [account types](hledger.md#account-types) to be inferred or declared);
+or, the accounts matched by the provided ACCTQUERY arguments.
 
-With `--open`, it instead prints an "opening balances" transaction that restores the balances
-of asset, liability and most equity accounts. This is similar to Ledger's equity command,
-and could be useful for propagating balances to a new file.
+2. With `--open`, it prints an opposite "opening balances" transaction that restores
+those balances from zero. This is similar to Ledger's equity command.
 
-With `--migrate`, it prints both the closing and opening transactions,
-for asset, liability and most equity accounts.
+3. With `--migrate`, it prints both the closing and opening transactions.
 This is the preferred way to migrate balances to a new file:
-the opening transaction should be inserted at the start of the new file,
-and the closing transaction should be added at the end of the old file.
-Now, the files can be combined for multi-file reporting, without disturbing balances
-(because the redundant closing/opening transactions cancel each other out).
+run `hledger close --migrate`, 
+add the closing transaction at the end of the old file, and
+add the opening transaction at the start of the new file.
+The matching closing/opening transactions cancel each other out,
+preserving correct balances during multi-file reporting.1
 
-With `--retain`, it prints a "retain earnings" transaction that transfers
-revenue and expense balances to `equity:retained earnings`.
+4. With `--retain`, it prints a "retain earnings" transaction that transfers
+RX (revenue and expense) balances to `equity:retained earnings`.
 Businesses traditionally do this at the end of each accounting period;
 it is less necessary with computer-based accounting, but it could still be useful
-if you want to see the accounting equation A=L+E satisfied.
+if you want to see the accounting equation (A=L+E) satisfied.
 
-In all modes, those defaults can be overridden:
+In all modes, the defaults can be overridden:
 
 - the transaction descriptions can be changed with `--close-desc=DESC` and `--open-desc=DESC`
-- the account to transfer to/from can be changed with `--close-acct=ACCT`
-- the accounts to be closed/opened can be changed with `QUERY` (an account query).
+- the account to transfer to/from can be changed with `--close-acct=ACCT` and `--open-acct=ACCT`
+- the accounts to be closed/opened can be changed with `ACCTQUERY` (account query arguments).
 
-By default just one equity posting, with an implicit amount, will be used.
-With `--x/--explicit` the amount will be shown explicitly,
-and if it involves multiple commodities, a separate posting
-will be generated for each commodity.
+By default just one destination/source posting will be used, with its amount left implicit.
+With `--x/--explicit`, the amount will be shown explicitly,
+and if it involves multiple commodities, a separate posting will be generated for each of them
+(similar to `print -x`).
 
-With `--interleaved`, each equity posting is shown next to the 
-corresponding source/destination posting.
+With `--show-costs`, any amount costs are shown, with separate postings for each cost.
+This is currently the best way to view investment lots.
+If you have many currency conversion or investment transactions, it can generate very large journal entries.
+
+With `--interleaved`, each individual transfer is shown with source
+and destination postings next to each other.
+This could be useful for troubleshooting.
 
 The default closing date is yesterday, or the journal's end date, whichever is later.
 You can change this by specifying a [report end date](#report-start--end-date);
@@ -56,12 +64,6 @@ You can change this by specifying a [report end date](#report-start--end-date);
 The last day of the report period will be the closing date;
 eg `-e 2022` means "close on 2022-12-31".
 The opening date is always the day after the closing date.
-
-### close and costs
-
-With `--show-costs`, any amount costs are shown, with separate postings for each cost.
-(This currently the best way to view investment assets, showing lots and cost bases.)
-If you have many currency conversion or investment transactions, it can generate very large journal entries.
 
 ### close and balance assertions
 
