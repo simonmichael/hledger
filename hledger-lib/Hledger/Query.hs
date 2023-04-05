@@ -828,7 +828,16 @@ matchesPostingExtra :: (AccountName -> Maybe AccountType) -> Query -> Posting ->
 matchesPostingExtra atype (Not q )  p = not $ matchesPostingExtra atype q p
 matchesPostingExtra atype (Or  qs)  p = any (\q -> matchesPostingExtra atype q p) qs
 matchesPostingExtra atype (And qs)  p = all (\q -> matchesPostingExtra atype q p) qs
-matchesPostingExtra atype (Type ts) p = maybe False (\t -> any (t `isAccountSubtypeOf`) ts) . atype $ paccount p
+matchesPostingExtra atype (Type ts) p =
+  -- does posting's account's type, if we can detect it, match any of the given types ?
+  (maybe False (\t -> any (t `isAccountSubtypeOf`) ts) . atype $ paccount p)
+  -- or, try the same test with the original (pre-aliasing/pivoting) posting's account
+  || (fromMaybe False $ do
+      porig <- poriginal p
+      let a = paccount porig
+      t <- atype a
+      Just $ any (t `isAccountSubtypeOf`) ts
+  )
 matchesPostingExtra _ q p             = matchesPosting q p
 
 -- | Does the match expression match this transaction ?
