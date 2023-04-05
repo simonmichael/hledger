@@ -32,9 +32,10 @@ closemode = hledgerCommandMode
   [flagNone ["open"]         (setboolopt "open")    "show opening transaction instead of closing (ALE by default)"
   ,flagNone ["migrate"]      (setboolopt "migrate") "show closing and opening transactions (ALE by default)"
   ,flagNone ["retain"]       (setboolopt "retain")  "show retain earnings transaction (RX by default)"
-  ,flagReq  ["close-desc"]   (\s opts -> Right $ setopt "close-desc" s opts) "DESC" "change closing transaction's description"
-  ,flagReq  ["open-desc"]    (\s opts -> Right $ setopt "open-desc"  s opts) "DESC" "change opening transaction's description"
-  ,flagReq  ["close-acct"]   (\s opts -> Right $ setopt "close-acct" s opts) "ACCT" "change account to transfer to/from"
+  ,flagReq  ["close-desc"]   (\s opts -> Right $ setopt "close-desc" s opts) "DESC" "closing transaction's description"
+  ,flagReq  ["open-desc"]    (\s opts -> Right $ setopt "open-desc"  s opts) "DESC" "opening transaction's description"
+  ,flagReq  ["close-acct"]   (\s opts -> Right $ setopt "close-acct" s opts) "ACCT" "account to close to"
+  ,flagReq  ["open-acct"]    (\s opts -> Right $ setopt "open-acct"  s opts) "ACCT" "account to open from"
   ,flagNone ["explicit","x"] (setboolopt "explicit") "show all amounts explicitly"
   ,flagNone ["interleaved"]  (setboolopt "interleaved") "keep source and destination postings adjacent"
   ,flagNone ["show-costs"]   (setboolopt "show-costs") "keep balances with different costs separate"
@@ -60,8 +61,10 @@ close copts@CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
     -- descriptions to use for the closing/opening transactions
     closedesc = T.pack $ fromMaybe defclosedesc_ $ maybestringopt "close-desc" rawopts
     opendesc  = T.pack $ fromMaybe defopendesc_  $ maybestringopt "open-desc"  rawopts
+
+    -- equity/balancing accounts to use
     closeacct = T.pack $ fromMaybe defcloseacct_ $ maybestringopt "close-acct" rawopts
-    openacct  = closeacct
+    openacct  = maybe closeacct T.pack $ maybestringopt "open-acct" rawopts
 
     ropts = (_rsReportOpts rspec0){balanceaccum_=Historical, accountlistmode_=ALFlat}
     rspec1 = setDefaultConversionOp NoConversionOp rspec0{_rsReportOpts=ropts}
