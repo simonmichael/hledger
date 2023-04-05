@@ -1,6 +1,6 @@
 ## close
 
-`close [--close | --open | --migrate | --retain] [ACCTQUERY]`
+(equity)
 
 Generate transactions which transfer account balances to and/or from
 another account (typically equity).
@@ -111,8 +111,9 @@ appending the generated transaction to the journal:
 $ hledger close --retain -f 2022.journal -p 2022 >> 2022.journal
 ```
 
-Now 2022's income statement will show only zeroes.
-To see it again, exclude the retain transaction. Eg:
+Note 2022's income statement will now show only zeroes,
+because revenues and expenses have been moved entirely to equity.
+To see them again, you could exclude the retain transaction:
 ```shell
 $ hledger -f 2022.journal is not:desc:'retain earnings'
 ```
@@ -138,7 +139,7 @@ $ hledger close --open  -f 2022.journal -p 2022 >> 2022.journal
 
 Now 2022's balance sheet will show only zeroes, indicating a balanced accounting equation.
 ([Unless](/investments.html#a-more-correct-entry) you are using @/@@ notation - in that case, try adding --infer-equity.)
-To see it again, exclude the closing transaction. Eg:
+To see the end-of-year balances again, you could exclude the closing transaction:
 ```shell
 $ hledger -f 2022.journal bs not:desc:'closing balances'
 ```
@@ -146,11 +147,13 @@ $ hledger -f 2022.journal bs not:desc:'closing balances'
 ### Example: excluding closing/opening transactions
 
 When combining many files for multi-year reports, 
-the closing/opening transactions cause some noise in reports like `print` and `register`.
-You can exclude them as shown above, but `not:desc:...` could be fragile,
-and also you will need to avoid excluding the very first opening transaction,
-which can be awkward. Here is a way to do it, using tags:
-add `clopen:` tags to all opening/closing balances transactions except the first,
+the closing/opening transactions cause some noise in transaction-oriented reports like `print` and `register`.
+You can exclude them as shown above, but `not:desc:...` is not ideal
+as it depends on consistent descriptions; also you will want to avoid excluding
+the very first opening transaction, which could be awkward. 
+Here is one alternative, using tags:
+
+Add `clopen:` tags to all opening/closing balances transactions except the first,
 like this:
 
 ```journal
