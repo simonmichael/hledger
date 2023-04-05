@@ -377,11 +377,11 @@ $ hledger -f- --today=2021-05-01 reg --period=2020-2022 --forecast=2020-2022
 
 # 22. Printed JSON with forecast transactions reference periodic transactions source position
 <
-~ next quarter   Forecasted
+~ 2023-01-01   Forecasted
     A      -1
     B       1
 
-$ hledger -f- print --forecast -O json
+$ hledger -f- print --forecast=2023 -O json
 > /.*
         "sourceColumn": 1,
         "sourceLine": 1,
