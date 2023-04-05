@@ -29,16 +29,17 @@ defcloseacct  = "equity:opening/closing balances"
 
 closemode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Close.txt")
-  [flagNone ["open"]         (setboolopt "open")    "show an opening transaction (for ALE accounts by default)"
-  ,flagNone ["migrate"]      (setboolopt "migrate") "show both closing and opening transactions (for ALE accounts by default)"
-  ,flagNone ["retain"]       (setboolopt "retain")  "show a retain earnings transaction (for RX accounts by default)"
-  ,flagNone ["show-costs"]   (setboolopt "show-costs") "show balances with different costs separately"
-  ,flagNone ["interleaved"]  (setboolopt "interleaved") "show source and destination postings together"
+  [flagNone ["close"]        (setboolopt "close")   "show a closing transaction (default)"
+  ,flagNone ["open"]         (setboolopt "open")    "show an opening transaction"
+  ,flagNone ["migrate"]      (setboolopt "migrate") "show both closing and opening transactions"
+  ,flagNone ["retain"]       (setboolopt "retain")  "show a retain earnings transaction (for RX accounts)"
   ,flagNone ["explicit","x"] (setboolopt "explicit") "show all amounts explicitly"
+  ,flagNone ["show-costs"]   (setboolopt "show-costs") "show amounts with different costs separately"
+  ,flagNone ["interleaved"]  (setboolopt "interleaved") "show source and destination postings together"
   ,flagReq  ["close-desc"]   (\s opts -> Right $ setopt "close-desc" s opts) "DESC" "set closing transaction's description"
+  ,flagReq  ["close-acct"]   (\s opts -> Right $ setopt "close-acct" s opts) "ACCT" "set closing transaction's destination account"
   ,flagReq  ["open-desc"]    (\s opts -> Right $ setopt "open-desc"  s opts) "DESC" "set opening transaction's description"
-  ,flagReq  ["close-acct"]   (\s opts -> Right $ setopt "close-acct" s opts) "ACCT" "set account to close to"
-  ,flagReq  ["open-acct"]    (\s opts -> Right $ setopt "open-acct"  s opts) "ACCT" "set account to open from"
+  ,flagReq  ["open-acct"]    (\s opts -> Right $ setopt "open-acct"  s opts) "ACCT" "set opening transaction's source account"
   ]
   [generalflagsgroup1]
   (hiddenflags
@@ -56,7 +57,7 @@ close copts@CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
       | boolopt "retain"  rawopts -> (True,  False, defretaindesc, undefined,   defretainacct, Type [Revenue, Expense])
       | boolopt "migrate" rawopts -> (True,  True,  defclosedesc,  defopendesc, defcloseacct,  Type [Asset, Liability, Equity])
       | boolopt "open"    rawopts -> (False, True,  undefined,     defopendesc, defcloseacct,  Type [Asset, Liability, Equity])
-      | otherwise                 -> (True,  False, defclosedesc,  undefined,   defcloseacct,  Any)
+      | otherwise                 -> (True,  False, defclosedesc,  undefined,   defcloseacct,  Type [Asset, Liability, Equity])
 
     -- descriptions to use for the closing/opening transactions
     closedesc = T.pack $ fromMaybe defclosedesc_ $ maybestringopt "close-desc" rawopts
