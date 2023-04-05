@@ -1,44 +1,44 @@
 ## close
 
-`close [--retain | --migrate | --open] [QUERY]`
+(equity)
 
-By default:
-prints a transaction that zeroes out ("closes") all accounts,
-transferring their balances to an equity account.
-Query arguments can be added to override the accounts selection.
-Three other modes are supported:
+`close [--open | --migrate | --retain] [QUERY]`
 
-`--retain`:
-prints a transaction closing revenue and expense balances.
-This is traditionally done by businesses at the end of each accounting period;
-it is less necessary in personal and computer-based accounting,
-but it can help balance the accounting equation A=L+E.
-
-`--migrate`:
-prints a transaction to close asset, liability and most equity balances,
-and another transaction to re-open them.
-This can be useful when starting a new file (for performance or data protection).
-Adding the closing transaction to the old file allows old and new files to be combined.
-
-`--open`:
-as above, but prints just the opening transaction.
-This can be useful for starting a new file, leaving the old file unchanged.
-Similar to Ledger's equity command.
+Transfer account balances to and/or from an equity account.
 
 _FLAGS
 
-You can change the equity account name with `--close-acct ACCT`.
-It defaults to `equity:retained earnings` with `--retain`,
-or `equity:opening/closing balances` otherwise.
+This command is useful in several situations.
+It has four main modes, corresponding to the most common use cases:
 
-You can change the transaction description(s) 
-with `--close-desc 'DESC'` and `--open-desc 'DESC'`.
-It defaults to `retain earnings` with `--retain`,
-or `closing balances` and `opening balances` otherwise.
+By default, it prints a "closing balances" transaction that zeroes out
+all accounts, transferring their balances to `equity:opening/closing balances`.
 
-Just one posting to the equity account will be used by default,
-with an implicit amount.
+With `--open`, it instead prints an "opening balances" transaction that restores the balances
+of asset, liability and most equity accounts. This is similar to Ledger's equity command,
+and could be useful for propagating balances to a new file.
 
+With `--migrate`, it prints both the closing and opening transactions,
+for asset, liability and most equity accounts.
+This is the preferred way to migrate balances to a new file:
+the opening transaction should be inserted at the start of the new file,
+and the closing transaction should be added at the end of the old file.
+Now, the files can be combined for multi-file reporting, without disturbing balances
+(because the redundant closing/opening transactions cancel each other out).
+
+With `--retain`, it prints a "retain earnings" transaction that transfers
+revenue and expense balances to `equity:retained earnings`.
+Businesses traditionally do this at the end of each accounting period;
+it is less necessary with computer-based accounting, but it could still be useful
+if you want to see the accounting equation A=L+E satisfied.
+
+In all modes, those defaults can be overridden:
+
+- the transaction descriptions can be changed with `--close-desc=DESC` and `--open-desc=DESC`
+- the account to transfer to/from can be changed with `--close-acct=ACCT`
+- the accounts to be closed/opened can be changed with `QUERY` (an account query).
+
+By default just one equity posting, with an implicit amount, will be used.
 With `--x/--explicit` the amount will be shown explicitly,
 and if it involves multiple commodities, a separate posting
 will be generated for each commodity.
