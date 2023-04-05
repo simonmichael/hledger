@@ -607,7 +607,13 @@ Some notes about the various output formats:
 
 - This is not yet much used; real-world feedback is welcome.
 
-- SQL output is expected to work with sqlite, MySQL and PostgreSQL
+- SQL output is expected to work at least with SQLite, MySQL and Postgres.
+
+- For SQLite, it will be more useful if you modify the generated `id` field
+  to be a PRIMARY KEY. Eg:
+  ```
+  $ hledger print -O sql | sed 's/id serial/id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL/g' | ...
+  ```
 
 - SQL output is structured with the expectations that statements will
   be executed in the empty database. If you already have tables created
