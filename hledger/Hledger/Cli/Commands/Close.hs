@@ -29,16 +29,16 @@ defcloseacct  = "equity:opening/closing balances"
 
 closemode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Close.txt")
-  [flagNone ["open"]         (setboolopt "open")    "show opening transaction instead of closing (ALE by default)"
-  ,flagNone ["migrate"]      (setboolopt "migrate") "show closing and opening transactions (ALE by default)"
-  ,flagNone ["retain"]       (setboolopt "retain")  "show retain earnings transaction (RX by default)"
-  ,flagReq  ["close-desc"]   (\s opts -> Right $ setopt "close-desc" s opts) "DESC" "closing transaction's description"
-  ,flagReq  ["open-desc"]    (\s opts -> Right $ setopt "open-desc"  s opts) "DESC" "opening transaction's description"
-  ,flagReq  ["close-acct"]   (\s opts -> Right $ setopt "close-acct" s opts) "ACCT" "account to close to"
-  ,flagReq  ["open-acct"]    (\s opts -> Right $ setopt "open-acct"  s opts) "ACCT" "account to open from"
+  [flagNone ["open"]         (setboolopt "open")    "show an opening transaction (for ALE accounts by default)"
+  ,flagNone ["migrate"]      (setboolopt "migrate") "show both closing and opening transactions (for ALE accounts by default)"
+  ,flagNone ["retain"]       (setboolopt "retain")  "show a retain earnings transaction (for RX accounts by default)"
+  ,flagNone ["show-costs"]   (setboolopt "show-costs") "show balances with different costs separately"
+  ,flagNone ["interleaved"]  (setboolopt "interleaved") "show source and destination postings together"
   ,flagNone ["explicit","x"] (setboolopt "explicit") "show all amounts explicitly"
-  ,flagNone ["interleaved"]  (setboolopt "interleaved") "keep source and destination postings adjacent"
-  ,flagNone ["show-costs"]   (setboolopt "show-costs") "keep balances with different costs separate"
+  ,flagReq  ["close-desc"]   (\s opts -> Right $ setopt "close-desc" s opts) "DESC" "set closing transaction's description"
+  ,flagReq  ["open-desc"]    (\s opts -> Right $ setopt "open-desc"  s opts) "DESC" "set opening transaction's description"
+  ,flagReq  ["close-acct"]   (\s opts -> Right $ setopt "close-acct" s opts) "ACCT" "set account to close to"
+  ,flagReq  ["open-acct"]    (\s opts -> Right $ setopt "open-acct"  s opts) "ACCT" "set account to open from"
   ]
   [generalflagsgroup1]
   (hiddenflags
