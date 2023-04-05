@@ -4,15 +4,19 @@
 
 `close [--open | --migrate | --retain] [QUERY]`
 
-Transfer account balances to and/or from an equity account.
+Transfer balances to and/or from another account (usually equity).
+Useful for migrating balances to a new journal file, 
+or for merging earnings into equity at end of accounting period.
+
+By default, it prints a "closing balances" transaction that zeroes out
+all accounts, transferring their balances to `equity:opening/closing balances`.
 
 _FLAGS
 
 This command is useful in several situations.
 It has four main modes, corresponding to the most common use cases:
 
-By default, it prints a "closing balances" transaction that zeroes out
-all accounts, transferring their balances to `equity:opening/closing balances`.
+By default, it prints a "closing balances" transaction that zeroes out all accounts.
 
 With `--open`, it instead prints an "opening balances" transaction that restores the balances
 of asset, liability and most equity accounts. This is similar to Ledger's equity command,
