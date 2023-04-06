@@ -61,35 +61,30 @@ Docs
 
 Breaking changes
 
-- Weekly reports are no longer automatically adjusted to start on a
-  monday; in some cases you might need to adjust their start date to
-  preserve simple week headings (see below).
+- Periodic reports will now start exactly at the start date you have specified,
+  rather than being adjusted to a natural period boundary; see below.
 
 Features
 
-- In journal format there is now a `tag` directive for declaring tag names,
-  and the check command now has a `tags` check to enforce use of declared tag names.
+- Periodic transactions and periodic reports can now start on any date.
+  Eg, `hledger reg -M -b 1/15` now starts exactly on jan 15th, and a periodic rule
+  like `~ monthly from 2023-01-15` now works as you'd expect instead of raising an error.
+  This also improves our ability to read Ledger files.
+  Inferred start/end dates, eg obtained from the journal instead of the command line,
+  are still automatically adjusted to period boundaries, as before.
 
-- Periodic transactions and multi-period reports can now start on any date.
-  To enable this while still maintaining pretty good backward compatibility,
-  hledger now treats inferred dates, and dates where the day is unspecified,
-  as "flexible" (which can be automatically adjusted to interval boundaries),
-  and dates specified to the day as "exact" (which can not).
-  Eg:
+  Upgrade notes: in report commands which specify a start date, you might need to
+  adjust that date to see the same periods as before. Eg:
   
-  - A periodic rule like `~ monthly from 2023-01-15` now works as
-    you'd expect instead of raising an error. This also improves
-    our ability to read Ledger files.
+  - `-p 'weekly from 202304'` (equivalent to `-p 'weekly from 20230401'`)
+    now gives periods like `2023-04-01..2023-04-07`.
+    Change it to start on a monday (eg `-p 'weekly from 20230403`) to restore
+    simple week periods like `2023-04-03W14`.
 
-  - Period options like `-p 'monthly from 2023/1/15'` or `-M -b 2023/1/15`
-    now start the report on exactly 1/15 instead of being adjusted to 1/1.
-  
-  Note: periods using `in` may look partial but are considered to specify exact dates.
-  So weekly reports such as `-p 'weekly in 2023-01'`, which previously
-  were adjusted to start on a monday, will now start exactly on 2023-01-01.
-  This can also cause more verbose column headings.
-	To guarantee simple week headings, you must now start such reports
-  exactly on a monday, eg `-p 'weekly from 2022-12-26 to 2023-02'`.
+  - `-M -b 2023/1/15` now gives periods like `2023-01-15..2023-02-14  2023-02-15..2023-03-14`.
+    Change it to start on a first of month (eg `-M -b 2023/1`) to restore
+    simple month periods like `Jan  Feb  Mar`.
+
   (#1982)
 
 - You can now freely combine @/@@ costs and conversion postings
@@ -99,6 +94,9 @@ Features
   (Conversion postings are postings to accounts with type `V`/`Conversion`
   or name `equity:conversion`/`equity:trade`/`equity:trading`,
   or subaccounts of these. See also COST.)
+
+- In journal format there is now a `tag` directive for declaring tag names,
+  and the check command now has a `tags` check to enforce use of declared tag names.
 
 Improvements
 
