@@ -9,6 +9,52 @@
 User-visible changes in the hledger command line tool and library.
 
 
+# 1.29.2 pending
+
+Breaking changes
+
+- 1.29's cleanup of the `close` command has been continued.
+  Here are all the changes to `close` since hledger 1.28:
+
+  - The default behaviour is now to print only one transaction: a closing transaction.
+
+  - To print both closing and opening transactions as before,
+    use the new `--migrate` flag.
+
+  - The accounts closed by default are now just the ALE accounts
+    (accounts declared or inferred as type `Asset`, `Liability`, or `Equity`).
+    If you don't have account types configured, or
+	  to close some other set of accounts, provide query arguments that match them.
+    To close all accounts as before, use a `.` argument to match them all.
+
+  - To print a retain earnings transaction for RX accounts (accounts
+    of type `Revenue` or `Expense`), use the new `--retain` flag.
+
+  - The `equity` command alias, removed in 1.29, has been restored.
+
+  - The `--open-acct` option, removed in 1.29, has been restored.
+
+  - The `--closing` and `--opening` flags have been renamed to `--close` and `--open`.
+    (`--close` had been removed in 1.29 and is now restored.)
+
+  - The docs have been rewritten. Also the 1.29 release notes now mention
+    the breaking change.
+
+  - The command is marked experimental again.
+
+  (#2020)
+
+Fixes
+
+- The 1.29 release notes for periodic reports'/periodic transactions' start dates
+  have been improved. Also the hledger manual's "Date adjustment" section
+  has been corrected and clarified.
+
+- `type:` queries now "see through" account aliases and pivots,
+  as they did in hledger <1.27, and as `acct:` queries do.
+  (#2018)
+
+
 # 1.29.1 2023-03-16
 
 Improvements
