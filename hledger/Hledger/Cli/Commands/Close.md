@@ -31,7 +31,7 @@ run `hledger close --migrate`,
 add the closing transaction at the end of the old file, and
 add the opening transaction at the start of the new file.
 The matching closing/opening transactions cancel each other out,
-preserving correct balances during multi-file reporting.1
+preserving correct balances during multi-file reporting.
 
 4. With `--retain`, it prints a "retain earnings" transaction that transfers
 RX (revenue and expense) balances to `equity:retained earnings`.
