@@ -43,8 +43,12 @@ closemode = hledgerCommandMode
   ]
   [generalflagsgroup1]
   (hiddenflags
-    -- any old command flags for compatibility, hidden
-    -- ++ []
+    ++  -- keep supporting old flag names for compatibility
+    [flagNone ["closing"]   (setboolopt "close")                                   "old spelling of --close"
+    ,flagNone ["opening"]   (setboolopt "open")                                    "old spelling of --open"
+    ,flagReq  ["close-to"]  (\s opts -> Right $ setopt "close-acct" s opts) "ACCT" "old spelling of --close-acct"
+    ,flagReq  ["open-from"] (\s opts -> Right $ setopt "open-acct"  s opts) "ACCT" "old spelling of --open-acct"
+    ]
   )
   ([], Just $ argsFlag "[--close | --open | --migrate | --retain] [ACCTQUERY]")
 
