@@ -158,14 +158,16 @@ pprint' = pPrintOpt CheckColorTty prettyopts'
 -- "Avoid using pshow, pprint, dbg* in the code below to prevent infinite loops." (?)
 
 -- | Display the given text on the terminal, using the user's $PAGER if the text is taller 
--- than the current terminal and stdout is interactive and TERM is not "dumb".
+-- than the current terminal and stdout is interactive and TERM is not "dumb"
+-- (except on Windows, where a pager will not be used).
 pager :: String -> IO ()
 #ifdef mingw32_HOST_OS
 pager = putStrLn
 #else
-pager s = do
+printOrPage' s = do  -- an extra check for Emacs users:
   dumbterm <- (== Just "dumb") <$> lookupEnv "TERM"
-  (if dumbterm then putStrLn else printOrPage . T.pack) s
+  if dumbterm then putStrLn s else printOrPage (T.pack s)
+pager = printOrPage'
 #endif
 
 -- | An alternative to ansi-terminal's getTerminalSize, based on
@@ -180,6 +182,14 @@ getTerminalHeight = fmap fst <$> getTerminalHeightWidth
 
 getTerminalWidth :: IO (Maybe Int)
 getTerminalWidth  = fmap snd <$> getTerminalHeightWidth
+
+-- | Make sure our $LESS environment variable contains R, to help pager
+-- call less (if it does) in a way that it will show any ANSI output properly.
+setLessR :: IO ()
+setLessR = do
+  less <- getEnvDefault "LESS" ""
+  let less' = if 'R' `elem` less then less else 'R':less
+  setEnv "LESS" less'
 
 -- Command line arguments
 
