@@ -40,6 +40,7 @@ etc.
 
 module Hledger.Cli.Main where
 
+import Control.Monad (when)
 import Data.List
 import Safe
 import qualified System.Console.CmdArgs.Explicit as C
@@ -97,6 +98,8 @@ mainmode addons = defMode {
 main :: IO ()
 main = do
   starttime <- getPOSIXTime
+  -- if we will be showing ANSI, try to ensure user's $PAGER will display it properly
+  when useColorOnStdout setupPager
 
   -- Choose and run the appropriate internal or external command based
   -- on the raw command-line arguments, cmdarg's interpretation of

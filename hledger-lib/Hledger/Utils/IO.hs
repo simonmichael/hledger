@@ -21,6 +21,7 @@ module Hledger.Utils.IO (
 
   -- * Viewing with pager
   pager,
+  setupPager,
 
   -- * Terminal size
   getTerminalHeightWidth,
@@ -108,7 +109,7 @@ import           System.Console.ANSI (Color(..),ColorIntensity(..),
   ConsoleLayer(..), SGR(..), hSupportsANSIColor, setSGRCode, getLayerColor)
 import           System.Console.Terminal.Size (Window (Window), size)
 import           System.Directory (getHomeDirectory)
-import           System.Environment (getArgs, lookupEnv)
+import           System.Environment (getArgs, lookupEnv, setEnv)
 import           System.FilePath (isRelative, (</>))
 import           System.IO
   (Handle, IOMode (..), hGetEncoding, hSetEncoding, hSetNewlineMode,
@@ -160,6 +161,10 @@ pprint' = pPrintOpt CheckColorTty prettyopts'
 -- | Display the given text on the terminal, using the user's $PAGER if the text is taller 
 -- than the current terminal and stdout is interactive and TERM is not "dumb"
 -- (except on Windows, where a pager will not be used).
+-- If the text contains ANSI codes, because hledger thinks the current terminal
+-- supports those, the pager should be configured to display those, otherwise
+-- users will see junk on screen (#2015).
+-- We call "setLessR" at hledger startup to make that less likely.
 pager :: String -> IO ()
 #ifdef mingw32_HOST_OS
 pager = putStrLn
@@ -183,13 +188,21 @@ getTerminalHeight = fmap fst <$> getTerminalHeightWidth
 getTerminalWidth :: IO (Maybe Int)
 getTerminalWidth  = fmap snd <$> getTerminalHeightWidth
 
--- | Make sure our $LESS environment variable contains R, to help pager
--- call less (if it does) in a way that it will show any ANSI output properly.
-setLessR :: IO ()
-setLessR = do
-  less <- getEnvDefault "LESS" ""
-  let less' = if 'R' `elem` less then less else 'R':less
-  setEnv "LESS" less'
+-- | Make sure our $LESS and $MORE environment variables contain R,
+-- to help ensure the common pager `less` will show our ANSI output properly.
+-- less uses $LESS by default, and $MORE when it is invoked as `more`.
+-- What the original `more` program does, I'm not sure.
+-- If $PAGER is configured to something else, this probably will have no effect.
+setupPager :: IO ()
+setupPager = do
+  let
+    addR var = do
+      mv <- lookupEnv var
+      setEnv var $ case mv of
+        Nothing -> "R"
+        Just v  -> ('R':v)
+  addR "LESS"
+  addR "MORE"
 
 -- Command line arguments
 
