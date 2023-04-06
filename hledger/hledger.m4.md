@@ -659,6 +659,25 @@ render prettier tables:
   (or `no` or `never`), unicode characters will (or will not) be used;
 - otherwise, unicode characters will not be used.
 
+## Paging
+
+When showing long output in the terminal, hledger will try to use
+the pager specified by the `$PAGER` environment variable, otherwise `less`, otherwise `more`.
+(A pager is a helper program that shows one page at a time rather than scrolling everything off screen).
+Currently it does this only for help output, not for reports; specifically,
+
+- when listing commands, with `hledger`
+- when showing help with `hledger [CMD] --help`,
+- when viewing manuals with `hledger help` or `hledger* --man`.
+
+Note the pager is expected to handle ANSI codes, which hledger uses eg for bold emphasis. 
+For the common pager `less` (and its `more` compatibility mode),
+we add `R` to `$LESS` and `$MORE` environment variables to make this work.
+If you use a different pager, you might need to configure it yourself to avoid seeing junk on screen 
+(let us know so we can improve this).
+Otherwise, you can set the `$NO_COLOR` environment variable to 1 to disable all ANSI output
+(see [Colour](#colour)).
+
 ## Debug output
 
 We intend hledger to be relatively easy to troubleshoot, introspect and develop.
