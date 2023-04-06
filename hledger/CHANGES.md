@@ -64,6 +64,9 @@ Breaking changes
 - Periodic reports will now start exactly at the start date you have specified,
   rather than being adjusted to a natural period boundary; see below.
 
+- The `close` command's CLI and default behaviour was changed; see below
+  (and fixes in hledger 1.29.2+).
+
 Features
 
 - Periodic transactions and periodic reports can now start on any date.
@@ -126,8 +129,11 @@ Improvements
   when extra query args (other than date: or depth:) are used,
   to reduce confusion.
 
-- close now has three modes, `--retain`/`--migrate`/`--open`,
-  clarifying its uses and providing more useful defaults.
+- The `close` command's CLI and default behaviour were changed,
+  attempting to make it easier to understand and use.  Some of its
+  legacy flags and aliases were also dropped, without sufficient
+  warning. For the full details, including subsequent cleanups,
+  see hledger 1.29.2's change notes.
 
 - register-match is now the `--match` mode of the register command.
   (This command was used by ledger-autosync at one point; if you still
