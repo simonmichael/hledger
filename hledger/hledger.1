@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "March 2023" "hledger-1.29.99 " "hledger User Manuals"
+.TH "HLEDGER" "1" "April 2023" "hledger-1.29.99 " "hledger User Manuals"
 
 
 
@@ -1038,7 +1038,19 @@ otherwise, please let us know.
 .IP \[bu] 2
 This is not yet much used; real-world feedback is welcome.
 .IP \[bu] 2
-SQL output is expected to work with sqlite, MySQL and PostgreSQL
+SQL output is expected to work at least with SQLite, MySQL and Postgres.
+.IP \[bu] 2
+For SQLite, it will be more useful if you modify the generated
+\f[V]id\f[R] field to be a PRIMARY KEY.
+Eg:
+.RS 2
+.IP
+.nf
+\f[C]
+$ hledger print -O sql | sed \[aq]s/id serial/id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL/g\[aq] | ...
+\f[R]
+.fi
+.RE
 .IP \[bu] 2
 SQL output is structured with the expectations that statements will be
 executed in the empty database.
@@ -1091,6 +1103,32 @@ if the \f[V]--pretty\f[R] option is given a value of \f[V]yes\f[R] or
 characters will (or will not) be used;
 .IP \[bu] 2
 otherwise, unicode characters will not be used.
+.SS Paging
+.PP
+When showing long output in the terminal, hledger will try to use the
+pager specified by the \f[V]PAGER\f[R] environment variable, or
+\f[V]less\f[R], or \f[V]more\f[R].
+(A pager is a helper program that shows one page at a time rather than
+scrolling everything off screen).
+Currently it does this only for help output, not for reports;
+specifically,
+.IP \[bu] 2
+when listing commands, with \f[V]hledger\f[R]
+.IP \[bu] 2
+when showing help with \f[V]hledger [CMD] --help\f[R],
+.IP \[bu] 2
+when viewing manuals with \f[V]hledger help\f[R] or
+\f[V]hledger --man\f[R].
+.PP
+Note the pager is expected to handle ANSI codes, which hledger uses eg
+for bold emphasis.
+For the common pager \f[V]less\f[R] (and its \f[V]more\f[R]
+compatibility mode), we add \f[V]R\f[R] to the \f[V]LESS\f[R] and
+\f[V]MORE\f[R] environment variables to make this work.
+If you use a different pager, you might need to configure it similarly,
+to avoid seeing junk on screen (let us know).
+Otherwise, you can set the \f[V]NO_COLOR\f[R] environment variable to 1
+to disable all ANSI output (see Colour).
 .SS Debug output
 .PP
 We intend hledger to be relatively easy to troubleshoot, introspect and
@@ -6067,41 +6105,25 @@ More complex intervals can be specified using \f[V]-p/--period\f[R],
 described below.
 .SS Date adjustment
 .PP
-With a report interval (other than daily), report start / end dates
-which have not been specified explicitly and in full (eg not
-\f[V]-b 2023-01-01\f[R], but \f[V]-b 2023-01\f[R] or \f[V]-b 2023\f[R]
-or unspecified) are considered flexible:
+When there is a report interval (other than daily), report start/end
+dates which have been inferred, eg from the journal, are automatically
+adjusted to natural period boundaries.
+This is convenient for producing simple periodic reports.
+More precisely:
 .IP \[bu] 2
-A flexible start date will be automatically adjusted earlier if needed
-to fall on a natural interval boundary.
+an inferred start date will be adjusted earlier if needed to fall on a
+natural period boundary
 .IP \[bu] 2
-Similarly, a flexible end date will be adjusted later if needed to make
-the last period a whole interval (the same length as the others).
+an inferred end date will be adjusted later if needed to make the last
+period the same length as the others.
 .PP
-This is convenient for producing clean periodic reports (this is
-traditional hledger behaviour).
-By contrast, fully-specified exact dates will not be adjusted (this is
-new in hledger 1.29).
-.PP
-An example: with a journal whose first date is 2023-01-10 and last date
-is 2023-03-20:
-.IP \[bu] 2
-\f[V]hledger bal -M -b 2023/1/15 -e 2023/3/10\f[R]
-.PD 0
-.P
-.PD
-The report periods will begin on the 15th day of each month, starting
-from 2023-01-15, and the last period\[aq]s last day will be 2023-03-09.
-(Exact start and end dates, neither is adjusted.)
-.IP \[bu] 2
-\f[V]hledger bal -M -b 2023-01 -e 2023-04\f[R] or
-\f[V]hledger bal -M\f[R]
-.PD 0
-.P
-.PD
-The report periods will begin on the 1st of each month, starting from
-2023-01-01, and the last period\[aq]s last day will be 2023-03-31.
-(Flexible start and end dates, both are adjusted.)
+By contrast, start/end dates which have been specified explicitly, with
+\f[V]-b\f[R], \f[V]-e\f[R], \f[V]-p\f[R] or \f[V]date:\f[R], will not be
+adjusted (since hledger 1.29).
+This makes it possible to specify non-standard report periods, but it
+also means that if you are specifying a start date, you should pick one
+that\[aq]s on a period boundary if you want to see simple report period
+headings.
 .SS Period expressions
 .PP
 The \f[V]-p/--period\f[R] option specifies a period expression, which is
@@ -9935,51 +9957,73 @@ use the manual-review-and-mark-cleared phase as a reminder to check the
 latest assertions against real-world balances.
 .SS close
 .PP
-\f[V]close [--retain | --migrate | --open] [QUERY]\f[R]
+(equity)
 .PP
-By default: prints a transaction that zeroes out (\[dq]closes\[dq]) all
-accounts, transferring their balances to an equity account.
-Query arguments can be added to override the accounts selection.
-Three other modes are supported:
+Generate transactions which transfer account balances to and/or from
+another account (typically equity).
+This can be useful for migrating balances to a new journal file, or for
+merging earnings into equity at end of accounting period.
 .PP
-\f[V]--retain\f[R]: prints a transaction closing revenue and expense
-balances.
-This is traditionally done by businesses at the end of each accounting
-period; it is less necessary in personal and computer-based accounting,
-but it can help balance the accounting equation A=L+E.
+By default, it prints a transaction that zeroes out ALE accounts (asset,
+liability, equity accounts; this requires account types to be
+configured); or if ACCTQUERY is provided, the accounts matched by that.
 .PP
-\f[V]--migrate\f[R]: prints a transaction to close asset, liability and
-most equity balances, and another transaction to re-open them.
-This can be useful when starting a new file (for performance or data
-protection).
-Adding the closing transaction to the old file allows old and new files
-to be combined.
+\f[I](experimental)\f[R]
 .PP
-\f[V]--open\f[R]: as above, but prints just the opening transaction.
-This can be useful for starting a new file, leaving the old file
-unchanged.
-Similar to Ledger\[aq]s equity command.
+This command has four main modes, corresponding to the most common use
+cases:
+.IP "1." 3
+With \f[V]--close\f[R] (default), it prints a \[dq]closing balances\[dq]
+transaction that zeroes out ALE (asset, liability, equity) accounts by
+default (this requires account types to be inferred or declared); or,
+the accounts matched by the provided ACCTQUERY arguments.
+.IP "2." 3
+With \f[V]--open\f[R], it prints an opposite \[dq]opening balances\[dq]
+transaction that restores those balances from zero.
+This is similar to Ledger\[aq]s equity command.
+.IP "3." 3
+With \f[V]--migrate\f[R], it prints both the closing and opening
+transactions.
+This is the preferred way to migrate balances to a new file: run
+\f[V]hledger close --migrate\f[R], add the closing transaction at the
+end of the old file, and add the opening transaction at the start of the
+new file.
+The matching closing/opening transactions cancel each other out,
+preserving correct balances during multi-file reporting.
+.IP "4." 3
+With \f[V]--retain\f[R], it prints a \[dq]retain earnings\[dq]
+transaction that transfers RX (revenue and expense) balances to
+\f[V]equity:retained earnings\f[R].
+Businesses traditionally do this at the end of each accounting period;
+it is less necessary with computer-based accounting, but it could still
+be useful if you want to see the accounting equation (A=L+E) satisfied.
 .PP
-You can change the equity account name with \f[V]--close-acct ACCT\f[R].
-It defaults to \f[V]equity:retained earnings\f[R] with
-\f[V]--retain\f[R], or \f[V]equity:opening/closing balances\f[R]
-otherwise.
+In all modes, the defaults can be overridden:
+.IP \[bu] 2
+the transaction descriptions can be changed with
+\f[V]--close-desc=DESC\f[R] and \f[V]--open-desc=DESC\f[R]
+.IP \[bu] 2
+the account to transfer to/from can be changed with
+\f[V]--close-acct=ACCT\f[R] and \f[V]--open-acct=ACCT\f[R]
+.IP \[bu] 2
+the accounts to be closed/opened can be changed with \f[V]ACCTQUERY\f[R]
+(account query arguments).
 .PP
-You can change the transaction description(s) with
-\f[V]--close-desc \[aq]DESC\[aq]\f[R] and
-\f[V]--open-desc \[aq]DESC\[aq]\f[R].
-It defaults to \f[V]retain earnings\f[R] with \f[V]--retain\f[R], or
-\f[V]closing balances\f[R] and \f[V]opening balances\f[R] otherwise.
-.PP
-Just one posting to the equity account will be used by default, with an
-implicit amount.
-.PP
-With \f[V]--x/--explicit\f[R] the amount will be shown explicitly, and
+By default just one destination/source posting will be used, with its
+amount left implicit.
+With \f[V]--x/--explicit\f[R], the amount will be shown explicitly, and
 if it involves multiple commodities, a separate posting will be
-generated for each commodity.
+generated for each of them (similar to \f[V]print -x\f[R]).
 .PP
-With \f[V]--interleaved\f[R], each equity posting is shown next to the
-corresponding source/destination posting.
+With \f[V]--show-costs\f[R], any amount costs are shown, with separate
+postings for each cost.
+This is currently the best way to view investment lots.
+If you have many currency conversion or investment transactions, it can
+generate very large journal entries.
+.PP
+With \f[V]--interleaved\f[R], each individual transfer is shown with
+source and destination postings next to each other.
+This could be useful for troubleshooting.
 .PP
 The default closing date is yesterday, or the journal\[aq]s end date,
 whichever is later.
@@ -9988,14 +10032,6 @@ date does not matter.)
 The last day of the report period will be the closing date; eg
 \f[V]-e 2022\f[R] means \[dq]close on 2022-12-31\[dq].
 The opening date is always the day after the closing date.
-.SS close and costs
-.PP
-With \f[V]--show-costs\f[R], any amount costs are shown, with separate
-postings for each cost.
-(This currently the best way to view investment assets, showing lots and
-cost bases.)
-If you have many currency conversion or investment transactions, it can
-generate very large journal entries.
 .SS close and balance assertions
 .PP
 Balance assertions will be generated, verifying that the accounts have
@@ -10049,9 +10085,9 @@ $ hledger close --retain -f 2022.journal -p 2022 >> 2022.journal
 \f[R]
 .fi
 .PP
-Now 2022\[aq]s income statement will show only zeroes.
-To see it again, exclude the retain transaction.
-Eg:
+Note 2022\[aq]s income statement will now show only zeroes, because
+revenues and expenses have been moved entirely to equity.
+To see them again, you could exclude the retain transaction:
 .IP
 .nf
 \f[C]
@@ -10075,8 +10111,8 @@ Now 2022\[aq]s balance sheet will show only zeroes, indicating a
 balanced accounting equation.
 (Unless you are using \[at]/\[at]\[at] notation - in that case, try
 adding --infer-equity.)
-To see it again, exclude the closing transaction.
-Eg:
+To see the end-of-year balances again, you could exclude the closing
+transaction:
 .IP
 .nf
 \f[C]
@@ -10086,13 +10122,16 @@ $ hledger -f 2022.journal bs not:desc:\[aq]closing balances\[aq]
 .SS Example: excluding closing/opening transactions
 .PP
 When combining many files for multi-year reports, the closing/opening
-transactions cause some noise in reports like \f[V]print\f[R] and
-\f[V]register\f[R].
-You can exclude them as shown above, but \f[V]not:desc:...\f[R] could be
-fragile, and also you will need to avoid excluding the very first
-opening transaction, which can be awkward.
-Here is a way to do it, using tags: add \f[V]clopen:\f[R] tags to all
-opening/closing balances transactions except the first, like this:
+transactions cause some noise in transaction-oriented reports like
+\f[V]print\f[R] and \f[V]register\f[R].
+You can exclude them as shown above, but \f[V]not:desc:...\f[R] is not
+ideal as it depends on consistent descriptions; also you will want to
+avoid excluding the very first opening transaction, which could be
+awkward.
+Here is one alternative, using tags:
+.PP
+Add \f[V]clopen:\f[R] tags to all opening/closing balances transactions
+except the first, like this:
 .IP
 .nf
 \f[C]
