@@ -1,6 +1,6 @@
 # stack build plan using GHC 9.4.4
 
-resolver: nightly-2023-03-10
+resolver: nightly-2023-04-05
 
 packages:
 - hledger-lib
@@ -12,11 +12,7 @@ extra-deps:
 # for hledger-lib:
 # for hledger:
 # for hledger-ui:
-- brick-1.6
-- fsnotify-0.4.1.0
 # for hledger-web:
-#- hjsmin-0.2.0.4
-#- yesod-static-1.6.1.0
 # for Shake.hs:
 
 #allow-newer: true
