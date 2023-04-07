@@ -99,9 +99,9 @@ These have complex interdependencies and sequencing constraints. Chunk, separate
 
 ### Map
 
-Here's a map of the value flows/artifacts/dependencies in a hledger release.
-To do a release, start at the bottom of the diagram and work upward
-(and work downward through the procedures described below).
+Here's a map of the value flows/artifacts/dependencies in a hledger release (arrows mean "depends on").
+To do a release, start at the bottom of the diagram and work up
+(and work down through the procedures described below).
 
 [![release diagram](RELEASING.png)](RELEASING.png)
 <!-- source: RELEASING.canvas (Obsidian) -->
@@ -121,21 +121,45 @@ To do a release, start at the bottom of the diagram and work upward
 ### LEVEL 1 - DEV
 
 #### Check dev readiness
-- open issues
-- open PRs
-- personal notes & backlogs
+- open issues (bugs), https://bugs.hledger.org
+- open PRs, https://prs.hledger.org
 - project boards, https://github.com/simonmichael/hledger/projects?query=is%3Aopen
 - https://hledger.org/ROADMAP.html, https://hledger.org/BACKLOG.html
+- personal notes & backlogs
 
-### LEVEL 2 - DOCUMENTED
+### LEVEL 2 - TEST
 
-#### Update changelogs
+#### Up-to-date cabal files
+- `./Shake cabalfiles`
+- if there are changes, `./Shake cabalfiles -c`
+
+#### Up-to-date help
+- `./Shake cmdhelp`
+- if there are changes, `./Shake cmdhelp -c`
+
+#### Up-to-date manuals
+- `./Shake mandates`
+- `./Shake manuals`
+- if there are changes, `./Shake manuals -c`
+
+#### Up-to-date changelogs
 in main repo, master branch:
-- `./Shake changelogs`, clean up CHANGES.md's, `./Shake changelogs -c`
+- `./Shake changelogs`
+- clean up the five `CHANGES.md`s
+- `./Shake changelogs -c`
+See also [CHANGELOGS](CHANGELOGS.md).
 
-See also CHANGELOGS.md.
+#### Passing tests and CI
+- `make functest`
+- `make test`
+- `make bench` ?
+- `make haddocktest` ?
+- CI tests in github main repo
+  - push to a PR, wait for green
+  - or push to `simon` branch, wait for green at http://ci.hledger.org
+  - or `tools/push` (pushes to `simon`, then to `master`)
 
-#### Check up to date
+#### Check documented
 - master's changelogs are up to date (see [CHANGELOGS](CHANGELOGS.html))
 - master or release branch is ready for release
   - clean and synced working copy
@@ -150,7 +174,7 @@ See also CHANGELOGS.md.
 ### LEVEL 3 - RELEASE DOCS
 
 #### Copy RELEASING.md
-- copy of RELEASING.md to RELEASING2.md; make updates in the copy
+- copy of RELEASING.md to RELEASING_.md; make updates in the copy
 
 #### Prepare release branch
 Preview/major release:
