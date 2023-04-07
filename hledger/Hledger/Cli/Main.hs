@@ -98,7 +98,7 @@ mainmode addons = defMode {
 main :: IO ()
 main = do
   starttime <- getPOSIXTime
-  -- if we will be showing ANSI, try to ensure user's $PAGER will display it properly
+  -- try to encourage user's $PAGER to properly display ANSI
   when useColorOnStdout setupPager
 
   -- Choose and run the appropriate internal or external command based

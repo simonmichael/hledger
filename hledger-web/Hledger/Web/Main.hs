@@ -48,10 +48,13 @@ hledgerWebDev =
 -- Run normally.
 hledgerWebMain :: IO ()
 hledgerWebMain = do
+  -- try to encourage user's $PAGER to properly display ANSI (in command line help)
+  when useColorOnStdout setupPager
+
   wopts@WebOpts{cliopts_=copts@CliOpts{debug_, rawopts_}} <- getHledgerWebOpts
   when (debug_ > 0) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show wopts)
   if
-    | "help"            `inRawOpts` rawopts_ -> putStr (showModeUsage webmode) >> exitSuccess
+    | "help"            `inRawOpts` rawopts_ -> pager (showModeUsage webmode) >> exitSuccess
     | "info"            `inRawOpts` rawopts_ -> runInfoForTopic "hledger-web" Nothing
     | "man"             `inRawOpts` rawopts_ -> runManForTopic  "hledger-web" Nothing
     | "version"         `inRawOpts` rawopts_ -> putStrLn prognameandversion >> exitSuccess
