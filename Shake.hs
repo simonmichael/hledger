@@ -103,7 +103,7 @@ usage =
 
 -- groff    = "groff -c" ++ " -Wall"  -- see "groff" below
 m4 = "m4 -P"
-makeinfo = "makeinfo --no-split --force --no-warn --no-validate"  -- silence makeinfo warnings, comment these to see them
+makeinfo = "makeinfo -cASCII_PUNCTUATION=1 --no-split --force --no-warn --no-validate"  -- silence makeinfo warnings, comment these to see them
 pandoc   = "pandoc --strip-comments"
 gitcommit = "git commit --allow-empty"
 
