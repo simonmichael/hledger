@@ -279,7 +279,8 @@ webdirs: config messages static templates \
 	)
 
 config:
-	ln -sf hledger-web/$@
+	echo "Creation of 'config' symlink disabled, it causes makeinfo warnings"
+#	ln -sf hledger-web/$@
 
 messages:
 	ln -sf hledger-web/$@
