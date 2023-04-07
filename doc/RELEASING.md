@@ -4,7 +4,6 @@
 
 <!-- toc -->
 </div>
-
 Notes for hledger release managers and maintainers.
 
 ## Goals
@@ -96,34 +95,47 @@ Release manager activities/responsibilities include:
 
 These have complex interdependencies and sequencing constraints. Chunk, separate, routinise, document and automate them as far as possible.
 
-## General tips
+## Procedures
+
+### Map
+
+Here's a map of the value flows/artifacts/dependencies in a hledger release.
+To do a release, start at the bottom of the diagram and work upward
+(and work downward through the procedures described below).
+
+[![release diagram](RELEASING.png)](RELEASING.png)
+<!-- source: RELEASING.canvas (Obsidian) -->
+
+### General tips
 - Update changelogs early and often, eg during/after a PR, to spread the work. 
   See also [CHANGELOGS](CHANGELOGS.html).
 - Release (or practice releasing) often.
-- Follow RELEASING.md's procedures if helpful. Update a copy (RELEASING2.md) while releasing.
-- The release process continually evolves. Don't document procedures in too much detail / prematurely. 
+- Use and continually update the process notes in RELEASING.md.
+- Copy it to RELEASING2.md when starting and update the copy until done, to reduce git hassle.
+- Don't document procedures in too much detail / prematurely. 
 - Make things a little better each time through: simpler, more reliable, better documented, more automated, easier, faster, cheaper, higher quality.
-- Make releases from a release branch, not from master. Use the tools/release script.
-- Before publishing a github release: prepare binaries, release notes, announcements, and tag.
-- Before tagging: make binaries for all platforms, from the same commit.
-- Before making binaries: do all possible pre-tagging steps and try to get everything finalised. (Binaries' --version shows their git hash, and this should match the release tag.)
+- Make releases from a release branch, not from master.
+- Use the tools/release script.
+- Binaries' --version shows their git hash and build date; these should match the release tag and release date.
 
-## Releasing diagram
+### LEVEL 1 - DEV
 
-Here is a map of the value chain, artifacts, tasks and levels of release readiness involved in a hledger release. Arrows indicate dependencies. When making a release, activity moves from the bottom up towards the top. From this we derive the procedure docs below, and gradually automate those more over time.
+#### Check dev readiness
+- open issues
+- open PRs
+- personal notes & backlogs
+- project boards, https://github.com/simonmichael/hledger/projects?query=is%3Aopen
+- https://hledger.org/ROADMAP.html, https://hledger.org/BACKLOG.html
 
-[![value/artifacts map and dependencies in a hledger major release](HledgerReleaseValueMap.png)](HledgerReleaseValueMap.png)
+### LEVEL 2 - DOCUMENTED
 
-## Procedures
-These docs need update.
+#### Update changelogs
+in main repo, master branch:
+- `./Shake changelogs`, clean up CHANGES.md's, `./Shake changelogs -c`
 
-### Release
+See also CHANGELOGS.md.
 
-#### Copy RELEASING.md
-- save a copy of RELEASING.md, make updates in the copy
-
-#### Check release readiness
-- appropriate timing, release manager availability
+#### Check up to date
 - master's changelogs are up to date (see [CHANGELOGS](CHANGELOGS.html))
 - master or release branch is ready for release
   - clean and synced working copy
@@ -135,15 +147,10 @@ These docs need update.
   - binary is up to date (`./Shake.hs`)
   - commit any changes (msg: `tools: shake`)
 
-#### Start making cross-platform binaries
-- do a preliminary push to `origin/binaries`
-- resolve failures
+### LEVEL 3 - RELEASE DOCS
 
-#### Update changelogs
-in main repo, master branch:
-- `./Shake changelogs`, clean up CHANGES.md's, `./Shake changelogs -c`
-
-See also CHANGELOGS.md.
+#### Copy RELEASING.md
+- copy of RELEASING.md to RELEASING2.md; make updates in the copy
 
 #### Prepare release branch
 Preview/major release:
@@ -166,13 +173,13 @@ Preview/major release:
 Bugfix/fixup release:
 - cherry pick changes from master
 
-#### Choose new version
-- AKA NEW: MA.JOR, MA.JOR.MINOR, or MA.JOR.MINOR.FIXUP
-
-#### Set new version
+#### Release version number
+- choose new version (NEW): MA.JOR, MA.JOR.MINOR, or MA.JOR.MINOR.FIXUP
 - on release branch do `./Shake setversion -c NEW`
 
-#### Prepare release notes
+#### Release changelogs
+
+#### Release notes
 In site repo:
 
 - update `src/release-notes.md`
@@ -186,34 +193,59 @@ In site repo:
   - check preview in vs code
   - site repo commit: `relnotes: NEW`
 
-#### Prepare announcement
-(major/notable bugfix release)
+### LEVEL 4 - RELEASE READY
 
-In release branch:
-
-- update `doc/ANNOUNCE` (major release)
-  - summary, contributors from release notes
-  - any other edits
-  - commit: `;doc: announce`
-
-#### Tag the release
-- ensure new version has been set with Shake setversion !
-- `make tag`
-
-#### Do release build testing
-  - touch/change Version.hs to encourage recompilation
-  - `stack build`
-  - `stack exec -- hledger --version`, check version, hash, release date, no '+'
-  - `stack exec -- hledger help | tail`, check version, month matches release
-
-#### Prepare release binaries
+#### Release binaries
+- do a preliminary push to `origin/binaries`
+- resolve failures
 - wait for any pending successful builds to complete and update cache
 - `tools/release bin`
 - get all platforms built on the same commit
 - delete any local downloaded binaries from last release
 - download binary artifact zip files (on each successful run: right click, download linked file)
 
-#### Prepare new site manuals
+#### Release build testing
+  - touch/change Version.hs to encourage recompilation
+  - `stack build`
+  - `stack exec -- hledger --version`, check version, hash, release date, no '+'
+  - `stack exec -- hledger help | tail`, check version, month matches release
+
+#### Release tag
+- ensure new version has been set with Shake setversion !
+- `make tag`
+
+#### Pre-release tests
+- appropriate dates in: changelogs, release notes, --version output, man pages, hledger-install script
+
+#### Check release ready / pre-release pause
+- stop, go afk, take a break
+- review time, energy, availability, decide go/no-go
+
+### LEVEL 5 - RELEASED
+
+#### Github release
+- in main repo, release branch:
+  - `git push github MA.JOR-branch` or magit `P p`
+  - wait for CI success (?)
+  - `git push --tags` or magit `P t`
+
+- copy text from previous similar release, https://github.com/simonmichael/hledger/releases
+- create new release, https://github.com/simonmichael/hledger/releases/new
+- leave release tag unselected for now
+- set title (MA.JOR[...])
+- paste & replace with new release notes
+- upload CI binaries
+- save as draft
+- check preview, resolve issues
+- edit release
+- select release tag (MA.JOR[...])
+- click publish button
+
+#### Hackage packages
+in main repo, release branch:
+- `make hackageupload` (major/bugfix/fixup release)
+
+#### Release manuals
 (major release)
 
 In site repo:
@@ -224,7 +256,9 @@ In site repo:
 - make snapshot-NEW (after ensuring main repo has been release-tagged)
 - push
 
-#### Prepare hledger-install script
+### LEVEL 6 - PUBLISHED
+
+#### hledger-install script
 (major/bugfix/fixup release)
  
 - update `hledger-install/hledger-install.sh`
@@ -237,7 +271,7 @@ In site repo:
   `cd; bash ~/src/hledger/hledger-install/hledger-install.sh`
 - commit: `install: NEW`
 
-#### Prepare install page
+#### Install page
 (major/bugfix/fixup release)
 
 In site repo:
@@ -255,41 +289,6 @@ In site repo:
   - final output line from `hledger test` (run in terminal for normal speed)
   - Total count from `make functest`
   - commit: `install: NEW`
-
-#### Draft github release
-- copy text from previous similar release, https://github.com/simonmichael/hledger/releases
-- create new release, https://github.com/simonmichael/hledger/releases/new
-- leave release tag unselected for now
-- set title (MA.JOR[...])
-- paste & replace with new release notes
-- upload CI binaries
-- save as draft
-- check preview, resolve issues
-
-#### Pre-release pause
-- stop, go afk, take a break
-- review time, energy, availability, decide go/no-go
-
-#### Pre-release tests
-- appropriate dates in: changelogs, release notes, --version output, man pages, hledger-install script
-
-#### Push release branch
-in main repo, release branch:
-- `git push github MA.JOR-branch` or magit `P p`
-- wait for CI success (?)
-
-#### Upload to hackage
-in main repo, release branch:
-- `make hackageupload` (major/bugfix/fixup release)
-
-#### Push release branch and tags
-in main repo, release branch:
-- `git push --tags` or magit `P t`
-
-#### Publish github release
-- edit release
-- select release tag (MA.JOR[...])
-- click publish button
 
 #### Update website
 - push to github: in site repo, `git push github` or magit `P u`
@@ -311,6 +310,32 @@ in main repo, release branch:
   - redirects
     - hledger.org/hledger.html redirects to https://hledger.org/NEW/hledger.html
 
+### LEVEL 7 - ANNOUNCED
+
+#### Prepare announcements
+(major/notable bugfix release)
+
+In release branch:
+
+- update `doc/ANNOUNCE` (major release)
+  - summary, contributors from release notes
+  - any other edits
+  - commit: `;doc: announce`
+
+#### Announce
+(major/bugfix release)
+
+- update last release date on plaintextaccounting.org
+- share github release link and release notes markdown in #hledger chat
+- send ANNOUNCE as email announcement
+  - (major release): `ANN: hledger NEW` to hledger@googlegroups.com, haskell-cafe@googlegroups.com
+  - (bugfix release): brief announcement to hledger@googlegroups.com 
+- condense to 500 & post at https://fosstodon.org/@simonmic
+- maybe condense to 140 & post at https://twitter.com/simonkwmichael
+
+
+### POST RELEASE
+
 #### Merge release branch changes to master
 - switch back to master
 - check out release branch in another working copy (hledger2)
@@ -325,6 +350,9 @@ in main repo, release branch:
 - `./Shake mandates`
 - `./Shake manuals -c`
 
+#### Commit RELEASING.md
+- move copy back to RELEASING.md, commit
+
 #### Push master
 in main repo, master branch:
 - pass CI checks in dev branch:
@@ -333,21 +361,7 @@ in main repo, master branch:
   - wait for CI success at http://ci.hledger.org
 - `git push github master` or magit `P u`
 
-#### Announce release
-(major/bugfix release)
-
-- update last release date on plaintextaccounting.org
-- share github release link and release notes markdown in #hledger chat
-- send ANNOUNCE as email announcement
-  - (major release): `ANN: hledger NEW` to hledger@googlegroups.com, haskell-cafe@googlegroups.com
-  - (bugfix release): brief announcement to hledger@googlegroups.com 
-- condense to 500 & post at https://fosstodon.org/@simonmic
-- maybe condense to 140 & post at https://twitter.com/simonkwmichael
-
-#### Commit RELEASING.md
-- move copy back to RELEASING.md, commit
-
-### Post-release followup
+#### Post-release followup
 - monitor packaging status, update install page
   - docker - expect/merge PR
   - homebrew - expect badge to update soon
@@ -357,10 +371,49 @@ in main repo, master branch:
 - prepare followup releases if needed
 - update process docs and tools
 
+#### Update stackage
 
-### Update packaging
+1.  update
+    <https://github.com/fpco/stackage/blob/master/build-constraints.yaml>
+    if needed
 
-#### Update homebrew formula
+2.  monitor for new package versions in nightly: check
+    <https://www.stackage.org/package/hledger>
+    
+#### Update nix install command
+
+1.  Wait for the new hledger version to land in nixpkgs
+
+    1.  make nix-hledger-version
+
+2.  Find the nixpkgs haskell-packages commit post-dating the hledger
+    release:
+
+    1.  make nix-view-commits \#
+        <https://github.com/NixOS/nixpkgs/commits/master/pkgs/development/haskell-modules/hackage-packages.nix>
+
+3.  Test the nix-env install command with that commit hash
+
+    1.  if it fails with \"SSL peer certificate or SSH remote key was
+        not OK\"
+
+        1.  . *Users/simon*.nix-profile/etc/profile.d/nix.sh
+
+        2.  or re-install:
+
+            1.  curl -sO <https://nixos.org/nix/install>
+
+            2.  less install
+
+            3.  sh install
+
+            4.  . *Users/simon*.nix-profile/etc/profile.d/nix.sh
+
+    2.  on linux
+
+    3.  on mac
+
+#### Update homebrew formula (old)
 
 1.  ref
 
@@ -440,45 +493,3 @@ in main repo, master branch:
     4.  ping brew contributors/maintainers if necessary: @chenrui,
         @carlocab, @SMillerDev
 
-#### Update nix install command
-
-1.  Wait for the new hledger version to land in nixpkgs
-
-    1.  make nix-hledger-version
-
-2.  Find the nixpkgs haskell-packages commit post-dating the hledger
-    release:
-
-    1.  make nix-view-commits \#
-        <https://github.com/NixOS/nixpkgs/commits/master/pkgs/development/haskell-modules/hackage-packages.nix>
-
-3.  Test the nix-env install command with that commit hash
-
-    1.  if it fails with \"SSL peer certificate or SSH remote key was
-        not OK\"
-
-        1.  . *Users/simon*.nix-profile/etc/profile.d/nix.sh
-
-        2.  or re-install:
-
-            1.  curl -sO <https://nixos.org/nix/install>
-
-            2.  less install
-
-            3.  sh install
-
-            4.  . *Users/simon*.nix-profile/etc/profile.d/nix.sh
-
-    2.  on linux
-
-    3.  on mac
-
-#### Update stackage
-
-1.  update
-    <https://github.com/fpco/stackage/blob/master/build-constraints.yaml>
-    if needed
-
-2.  monitor for new package versions in nightly: check
-    <https://www.stackage.org/package/hledger>
-    
