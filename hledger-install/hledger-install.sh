@@ -13,7 +13,7 @@ set -o pipefail
 HLEDGER_INSTALL_TOOL=hledger-install.sh
 
 # This install script's version.
-HLEDGER_INSTALL_VERSION=20230324
+HLEDGER_INSTALL_VERSION=20230407
 
 # Tools to be installed by this install script, official tools first.
 # Keep synced with the package versions below.
@@ -40,16 +40,17 @@ pip \
 # Keep synced with the tools above. 
 # When changing remember to also bump HLEDGER_INSTALL_VERSION.
 # Official:
-HLEDGER_LIB_VERSION=1.29.1
-HLEDGER_VERSION=1.29.1
-HLEDGER_UI_VERSION=1.29.1
-HLEDGER_WEB_VERSION=1.29.1
+HLEDGER_LIB_VERSION=1.29.2
+HLEDGER_VERSION=1.29.2
+HLEDGER_UI_VERSION=1.29.2
+HLEDGER_WEB_VERSION=1.29.2
 # Third-party:
-HLEDGER_IADD_VERSION=1.3.17
+HLEDGER_IADD_VERSION=1.3.18
 HLEDGER_INTEREST_VERSION=1.6.5
 HLEDGER_STOCKQUOTES_VERSION=0.1.2.1
 HLEDGER_EDIT_VERSION=1.13.2
 HLEDGER_PLOT_VERSION=1.13.2
+HLEDGER_LOTS_VERSION=0.1.3
 
 # this script's one-line description
 HLEDGER_INSTALL_DESC="$HLEDGER_INSTALL_TOOL version $HLEDGER_INSTALL_VERSION to install hledger $HLEDGER_VERSION and related tools"
@@ -93,12 +94,12 @@ STACK_MIN_VERSION=2.5.1
 # You can try specifying a different stackage version here, or 
 # commenting out this line to use your current global resolver,
 # to avoid unnecessary building.
-STACK_RESOLVER="--resolver=lts-20.14"
+STACK_RESOLVER="--resolver=nightly-2023-04-05"
 
 # Dependencies we require that aren't in the above stackage snapshot.
 # (Also requested when using cabal, but that's harmless.)
-# Be careful not to break interpolation in commands below, check with bash -
-STACK_EXTRA_DEPS="brick-1.6 fsnotify-0.4.1.0"
+# Quotes needed, be careful not to break interpolation in commands below, check with bash:
+STACK_EXTRA_DEPS=""
 
 #TODO? https://github.com/commercialhaskell/stack/issues/3055 https://github.com/haskell/hackage-security/issues/187
 #Updating package index Hackage (mirrored at https://s3.amazonaws.com/hackage.fpcomplete.com/) ...
@@ -1070,12 +1071,11 @@ fi
 # We might have to build these with an older version of hledger,
 # if they have not been updated yet.
 
-# XXX waiting for bounds update
-# if [[ $(cmpver "$(cmd_version hledger-iadd 2>/dev/null)" $HLEDGER_IADD_VERSION) = 2 ]]; then
-#   echo Installing hledger-iadd
-#   try_install hledger-iadd-$HLEDGER_IADD_VERSION hledger-lib-$HLEDGER_LIB_VERSION $STACK_EXTRA_DEPS
-#   echo
-# fi
+if [[ $(cmpver "$(cmd_version hledger-iadd 2>/dev/null)" $HLEDGER_IADD_VERSION) = 2 ]]; then
+  echo Installing hledger-iadd
+  try_install hledger-iadd-$HLEDGER_IADD_VERSION hledger-lib-$HLEDGER_LIB_VERSION $STACK_EXTRA_DEPS
+  echo
+fi
 
 if [[ $(cmpver "$(cmd_version hledger-interest 2>/dev/null)" $HLEDGER_INTEREST_VERSION) = 2 ]]; then
   echo Installing hledger-interest
@@ -1099,6 +1099,12 @@ fi
 if [[ $(cmpver "$(cmd_version hledger-plot 2>/dev/null)" $HLEDGER_PLOT_VERSION) = 2 ]]; then
   echo Installing hledger-plot
   try_install_py hledger-utils
+  echo
+fi
+
+if [[ $(cmpver "$(cmd_version hledger-lots 2>/dev/null)" $HLEDGER_LOTS_VERSION) = 2 ]]; then
+  echo Installing hledger-lots
+  try_install_py hledger-lots
   echo
 fi
 
