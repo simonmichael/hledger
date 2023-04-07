@@ -9,7 +9,7 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 1.29.2 pending
+# 847e443e6
 
 Breaking changes
 

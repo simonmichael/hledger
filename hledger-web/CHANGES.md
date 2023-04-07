@@ -9,6 +9,16 @@ __      _____| |__
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
+# 847e443e6
+
+Improvements
+
+- A pager is used to show --help output when needed, as in `hledger`.
+
+Fixes
+
+- The corruption in 1.29's info manual is fixed. (#2023)
+
 # 1.29.1 2023-03-16
 
 - Allow building with GHC 9.6.1 (#2011)

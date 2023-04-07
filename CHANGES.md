@@ -9,6 +9,12 @@
 General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
+# 17670d595
+
+Scripts/addons
+
+- hledger-install: re-enable hledger-interest, hledger-iadd
+
 # 1.29.1 2023-03-16
 
 Scripts/addons
