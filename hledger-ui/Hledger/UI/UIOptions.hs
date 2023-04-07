@@ -61,7 +61,10 @@ uimode =  (mode "hledger-ui" (setopt "command" "ui" def)
               modeGroupFlags = Group {
                                 groupUnnamed = uiflags
                                ,groupHidden = hiddenflags
-                                 ++ [flagNone ["future"] (setboolopt "forecast") "compatibility alias, use --forecast instead"]
+                                 ++
+                                 [flagNone ["future"] (setboolopt "forecast") "old flag, use --forecast instead"
+                                 ,flagNone ["menu"] (setboolopt "menu") "old flag, menu screen is now the default"
+                                 ]
                                ,groupNamed = [(generalflagsgroup1)]
                                }
              ,modeHelpSuffix=[
