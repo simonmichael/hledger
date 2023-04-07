@@ -5,28 +5,96 @@
 | (__| | |
  \___|_|_|
 
+Breaking changes
+
+Features
+
+Improvements
+
+Fixes
+
+Docs
+
+API
+
 -->
 User-visible changes in the hledger command line tool and library.
 
 
-# 13531b5b8
+# c2288f814
 
 Breaking changes
 
 Features
 
-- The new `demo` command plays brief asciinema screencasts explaining
-  various features and use cases.
+- Powerful boolean queries, allowing arbitrary use of AND, OR, NOT
+  (case insensitive) and parentheses for grouping, are now supported.
+  For backward compatibility, these require an `expr:` prefix.
+  Existing queries work as before, and you can mix and match the
+  old and new styles if you like.
+  (Chris Lemaire)
+ 
+- demo: This new command plays brief asciinema screencasts explaining
+  various features and use cases. We will add more of these over time.
 
 Improvements
+
+- imp: "type:" queries now see through aliases/pivots, like acct: (fix #2018)
+  When doing a type: match we now also check the original unaliased,
+  unpivoted posting, as when doing an acct: match. This is effectively
+  how things worked with the older account type detection in hledger <1.27.
+
+- The help command's documentation now mentions an issue caused by
+  a too-old `info` program, as on mac.
+  (#1770)
+
+- We now try harder to ensure `less` (and its `more` mode) show our
+  ANSI formatting properly in help output.
+  If you use some other $PAGER, you may have to configure it yourself
+  to show ANSI (or disable ANSI entirely, eg by setting NO_COLOR=1).
+  This is now documented in hledger manual > Paging.
+  (#2015)
+
+- The print command's `--match` mode has been refined.
+  Previously, similarity completely outweighed recency, so a
+  slightly-more-similar transaction would always be selected no matter
+  how old it was. Now similarity and recency are more balanced,
+  and it should produce the desired transaction more often.
+  There is also new debug output (at debug level 1) for troubleshooting.
 
 - Commands list cleanups
 
 Fixes
 
-Scripts/addons
+- The corruption in 1.29's info manual is fixed. (#2023)
 
 Docs
+
+- fix: rewrite/correct Date adjustment section
+
+- update command help
+
+- update manuals
+
+- cli: paging: cleanup
+
+- close: fix typo
+
+- cli: add Paging section (#2015)
+
+- cli: improve 1.29 changelog for the close command (#2020)
+
+- cli: improve 1.29 changelog for periodic reports/transactions change
+
+- cli: mention SQLite primary key workaround (fix #2017)
+
+- update command help
+
+- update manuals
+
+- journal: costs: mention sign
+
+API
 
 # 1.29.1 2023-03-16
 

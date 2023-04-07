@@ -5,11 +5,19 @@
 | | | |_) |
 |_|_|_.__/ 
            
+Breaking changes
+
+Misc. changes
+
 -->
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 4d7d982f8
+# 1c5dee233
+
+Breaking changes
+
+Misc. changes
 
 - added more terminal size, ANSI style/color helpers in Hledger.Utils.IO
   (and therefore Hledger and Hledger.Cli.Script):

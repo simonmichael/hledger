@@ -5,11 +5,51 @@
 | |_| | |
  \__,_|_|
          
+Breaking changes
+
+Features
+
+Improvements
+
+Fixes
+
+Docs
+
+API
+
 -->
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 207cad0df
+# ad4198b5e
+- fix: ui: restore the --menu flag for compatibility
+
+Features
+
+- A "Cash accounts" screen has been added, showing
+  accounts of the `Cash` type.
+
+Improvements
+
+- A pager is used to show --help output when needed, as in `hledger`.
+
+- The top-level menu screen is now the default screen.
+  Power users can use the `--cash`/`--bs`/`--is`/`--all`
+  flags to start up in another screen.
+
+- "All accounts" screen has been moved to the bottom of the list.
+
+- Screens' help footers have been improved.
+
+Fixes
+
+- The corruption in 1.29's info manual is fixed. (#2023)
+
+Docs
+
+- The transaction screen's inability to update is now noted.
+
+API
 
 # 1.29.1 2023-03-16
 

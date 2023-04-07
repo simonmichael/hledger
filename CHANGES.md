@@ -5,11 +5,36 @@
 | |_) | | | (_) | |  __/ (__| |_ 
 | .__/|_|  \___// |\___|\___|\__|
 |_|           |__/               
+
+Scripts/addons
+
+Examples
+
+Docs
+
+Infrastructure
+
 -->
 General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
-# be8e64e49
+# e24de8bdc
+
+Scripts/addons
+
+- hledger-install: also list installed cabal, stack, pip versions
+
+Examples
+
+- examples/i18: Added sample top level account and type declarations in several languages
+
+Docs
+
+- A shorter, more example-heavy home page on the website.
+
+- Simplified website and FAQ structure.
+
+Infrastructure
 
 # 1.29.1 2023-03-16
 

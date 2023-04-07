@@ -5,11 +5,39 @@ __      _____| |__
  \ V  V /  __/ |_) |
   \_/\_/ \___|_.__/ 
                     
+Breaking changes
+
+Features
+
+Improvements
+
+Fixes
+
+Docs
+
+API
+
 -->
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 207cad0df
+# 2bdba319b
+
+Breaking changes
+
+Features
+
+Improvements
+
+- A pager is used to show --help output when needed, as in `hledger`.
+
+Fixes
+
+- The corruption in 1.29's info manual is fixed. (#2023)
+
+Docs
+
+API
 
 # 1.29.1 2023-03-16
 
