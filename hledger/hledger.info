@@ -1,4 +1,4 @@
-This is hledger.info, produced by makeinfo version 7.0.1 from stdin.
+This is hledger.info, produced by makeinfo version 7.0.3 from stdin.
 
 INFO-DIR-SECTION User Applications
 START-INFO-DIR-ENTRY
@@ -9017,15 +9017,23 @@ version.  It can be useful when offline, or when you prefer the terminal
 to a web browser, or when the appropriate hledger manual or viewing
 tools are not installed on your system.
 
-   By default it chooses the best viewer found in $PATH (preferring info
-since the hledger manual is large).  You can select a particular viewer
-with the '-i', '-m', or '-p' flags.
+   By default it chooses the best viewer found in $PATH, trying (in this
+order): 'info', 'man', '$PAGER', 'less', 'more'.  You can force the use
+of info, man, or a pager with the '-i', '-m', or '-p' flags, If no
+viewer can be found, or the command is run non-interactively, it just
+prints the manual to stdout.
+
+   If using 'info', note that version 6 or greater is needed for TOPIC
+lookup.  If you are on mac you will likely have info 4.8, and should
+consider installing a newer version, eg with 'brew install texinfo'
+(#1770).
 
    Examples
 
-$ hledger help --help    # show how the help command works
-$ hledger help           # show the hledger manual with info, man or $PAGER
-$ hledger help journal   # show the journal topic in the hledger manual
+$ hledger help --help      # show how the help command works
+$ hledger help             # show the hledger manual with info, man or $PAGER
+$ hledger help journal     # show the journal topic in the hledger manual
+$ hledger help -m journal  # show it with man, even if info is installed
 
 
 File: hledger.info,  Node: import,  Next: incomestatement,  Prev: help,  Up: PART 4 COMMANDS
@@ -10933,70 +10941,70 @@ Node: files321695
 Ref: #files321804
 Node: help321945
 Ref: #help-1322054
-Node: import323000
-Ref: #import323123
-Node: Deduplication324209
-Ref: #deduplication324334
-Node: Import testing326228
-Ref: #import-testing326393
-Node: Importing balance assignments327236
-Ref: #importing-balance-assignments327442
-Node: Commodity display styles328091
-Ref: #commodity-display-styles328264
-Node: incomestatement328393
-Ref: #incomestatement328535
-Node: notes329856
-Ref: #notes329978
-Node: payees330340
-Ref: #payees330455
-Node: prices330974
-Ref: #prices331089
-Node: print331387
-Ref: #print331502
-Node: register336840
-Ref: #register336962
-Node: Custom register output341993
-Ref: #custom-register-output342124
-Node: rewrite343461
-Ref: #rewrite343579
-Node: Re-write rules in a file345477
-Ref: #re-write-rules-in-a-file345640
-Node: Diff output format346789
-Ref: #diff-output-format346972
-Node: rewrite vs print --auto348064
-Ref: #rewrite-vs.-print---auto348224
-Node: roi348780
-Ref: #roi348887
-Node: Spaces and special characters in --inv and --pnl350608
-Ref: #spaces-and-special-characters-in---inv-and---pnl350848
-Node: Semantics of --inv and --pnl351336
-Ref: #semantics-of---inv-and---pnl351575
-Node: IRR and TWR explained353425
-Ref: #irr-and-twr-explained353585
-Node: stats356671
-Ref: #stats356779
-Node: tags358166
-Ref: #tags-1358273
-Node: test359282
-Ref: #test359375
-Node: PART 5 COMMON TASKS360117
-Ref: #part-5-common-tasks360250
-Node: Getting help360524
-Ref: #getting-help360665
-Node: Constructing command lines361425
-Ref: #constructing-command-lines361626
-Node: Starting a journal file362283
-Ref: #starting-a-journal-file362490
-Node: Setting opening balances363678
-Ref: #setting-opening-balances363883
-Node: Recording transactions367024
-Ref: #recording-transactions367213
-Node: Reconciling367769
-Ref: #reconciling367921
-Node: Reporting370178
-Ref: #reporting370327
-Node: Migrating to a new file374312
-Ref: #migrating-to-a-new-file374469
+Node: import323427
+Ref: #import323550
+Node: Deduplication324636
+Ref: #deduplication324761
+Node: Import testing326655
+Ref: #import-testing326820
+Node: Importing balance assignments327663
+Ref: #importing-balance-assignments327869
+Node: Commodity display styles328518
+Ref: #commodity-display-styles328691
+Node: incomestatement328820
+Ref: #incomestatement328962
+Node: notes330283
+Ref: #notes330405
+Node: payees330767
+Ref: #payees330882
+Node: prices331401
+Ref: #prices331516
+Node: print331814
+Ref: #print331929
+Node: register337267
+Ref: #register337389
+Node: Custom register output342420
+Ref: #custom-register-output342551
+Node: rewrite343888
+Ref: #rewrite344006
+Node: Re-write rules in a file345904
+Ref: #re-write-rules-in-a-file346067
+Node: Diff output format347216
+Ref: #diff-output-format347399
+Node: rewrite vs print --auto348491
+Ref: #rewrite-vs.-print---auto348651
+Node: roi349207
+Ref: #roi349314
+Node: Spaces and special characters in --inv and --pnl351035
+Ref: #spaces-and-special-characters-in---inv-and---pnl351275
+Node: Semantics of --inv and --pnl351763
+Ref: #semantics-of---inv-and---pnl352002
+Node: IRR and TWR explained353852
+Ref: #irr-and-twr-explained354012
+Node: stats357098
+Ref: #stats357206
+Node: tags358593
+Ref: #tags-1358700
+Node: test359709
+Ref: #test359802
+Node: PART 5 COMMON TASKS360544
+Ref: #part-5-common-tasks360677
+Node: Getting help360951
+Ref: #getting-help361092
+Node: Constructing command lines361852
+Ref: #constructing-command-lines362053
+Node: Starting a journal file362710
+Ref: #starting-a-journal-file362917
+Node: Setting opening balances364105
+Ref: #setting-opening-balances364310
+Node: Recording transactions367451
+Ref: #recording-transactions367640
+Node: Reconciling368196
+Ref: #reconciling368348
+Node: Reporting370605
+Ref: #reporting370754
+Node: Migrating to a new file374739
+Ref: #migrating-to-a-new-file374896
 
 End Tag Table
 
