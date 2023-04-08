@@ -107,16 +107,17 @@ To do a release, start at the bottom of the diagram and work up
 <!-- source: RELEASING.canvas (Obsidian) -->
 
 ### General tips
-- Update changelogs early and often, eg during/after a PR, to spread the work. 
-  See also [CHANGELOGS](CHANGELOGS.html).
-- Release (or practice releasing) often.
-- Use and continually update the process notes in RELEASING.md.
-- Copy it to RELEASING2.md when starting and update the copy until done, to reduce git hassle.
+- Release (or practice releasing) often to improve the process.
+- Use and continually update RELEASING.md and RELEASING.canvas.
+- At the start of any release work, copy these (eg Obsidian > CMD-p > Make a copy of this file). Edit in the copies until done, to avoid blocking git branch switching. (Likewise if editing other docs, like CHANGELOGS.md.)
 - Don't document procedures in too much detail / prematurely. 
 - Make things a little better each time through: simpler, more reliable, better documented, more automated, easier, faster, cheaper, higher quality.
-- Make releases from a release branch, not from master.
-- Use the tools/release script.
-- Binaries' --version shows their git hash and build date; these should match the release tag and release date.
+- `make`, `./Shake` and `./bake`.
+- Update changelogs early and often, eg during/after a PR, to spread the work. 
+  See also [CHANGELOGS](CHANGELOGS.html).
+- Do releases from a release branch, not from master.
+- All platform binaries should be built from the same commit, the one with the release tags.
+- Binaries' --version shows their git hash and build date; these should match the release tag and release date.                                                   
 
 ### LEVEL 1 - DEV
 
@@ -128,6 +129,14 @@ To do a release, start at the bottom of the diagram and work up
 - personal notes & backlogs
 
 ### LEVEL 2 - TEST
+
+Give it a few shakes.
+
+#### Up-to-date tools
+- ./Shake is up to date
+  - Shake.hs uses same resolver, extra deps etc. as stack.yaml
+  - Shake binary is up to date (`./Shake.hs`)
+  - commit any changes (message: "tools: shake")
 
 #### Up-to-date cabal files
 - `./Shake cabalfiles`
@@ -143,43 +152,34 @@ To do a release, start at the bottom of the diagram and work up
 - if there are changes, `./Shake manuals -c`
 
 #### Up-to-date changelogs
-in main repo, master branch:
+In main repo, master branch:
 - `./Shake changelogs`
 - clean up the five `CHANGES.md`s
 - `./Shake changelogs -c`
-See also [CHANGELOGS](CHANGELOGS.md).
+See [CHANGELOGS](CHANGELOGS.md).
 
 #### Passing tests and CI
-- `make functest`
-- `make test`
-- `make bench` ?
-- `make haddocktest` ?
-- CI tests in github main repo
+- local tests, mimicking CI
+  - `make test`
+  - `make doctest`
+  - `make haddocktest`
+- single-platform CI tests in github main repo master
+  (if needed; not easy for a release branch, multi-platform CI tests will come later)
   - push to a PR, wait for green
   - or push to `simon` branch, wait for green at http://ci.hledger.org
   - or `tools/push` (pushes to `simon`, then to `master`)
 
-#### Check documented
-- master's changelogs are up to date (see [CHANGELOGS](CHANGELOGS.html))
-- master or release branch is ready for release
-  - clean and synced working copy
-  - no pending release-blocking issues/prs
-  - tests pass
-- Shake is up to date
-  - uses same resolver as stack.yaml
-  - uses any required workarounds in stack.yaml
-  - binary is up to date (`./Shake.hs`)
-  - commit any changes (msg: `tools: shake`)
-
 ### LEVEL 3 - RELEASE DOCS
 
-#### Copy RELEASING.md
-- copy of RELEASING.md to RELEASING_.md; make updates in the copy
+Bake it ? Try `bash -x ./bake prep VERSION` next time. Warning, avoid possible bug with being in master instead. Does a bunch of stuff including partly finalising changelogs.
 
-#### Prepare release branch
+#### Release branch
+
+Bugfix/fixup release:
+- switch to release branch, cherry pick changes from master
+
 Preview/major release:
-
-- `PAUSE=1 ECHO=1 tools/release prep MA.JOR[.99.PREVIEWNUM]` (eg 1.24.99.1 for 1.25 preview 1)
+- `PAUSE=1 ECHO=1 ./bake prep MA.JOR[.99.PREVIEWNUM]` (eg 1.24.99.1 for 1.25 preview 1)
   (XXX seems to go wrong without PAUSE`)
 - clean up changelogs, amend changelogs commit (see also [CHANGELOGS](CHANGELOGS.html))
 - cherry pick changes from master (if needed)
@@ -194,76 +194,100 @@ Preview/major release:
   - `stack build --test`
   - `make functest`
 
-Bugfix/fixup release:
-- cherry pick changes from master
-
 #### Release version number
-- choose new version (NEW): MA.JOR, MA.JOR.MINOR, or MA.JOR.MINOR.FIXUP
-- on release branch do `./Shake setversion -c NEW`
+- Choose new version (NEW): MA.JOR, MA.JOR.MINOR, or MA.JOR.MINOR.FIXUP
+- In release branch do `./Shake setversion -c NEW`
 
 #### Release changelogs
+- add release version/date headings manually (or fix `bake prep`, then clean up manually)
 
 #### Release notes
-In site repo:
+In site repo, update `src/release-notes.md`:
+- copy template, uncomment
+- replace date
+- replace XX with NEW
+- add new content from changelogs, excluding hledger-lib
+- remove any empty sections
+- add contributors, `git shortlog -sn OLD..NEW`
+- add summary (major release) or remove it (bugfix release)
+- site repo commit: `relnotes: NEW`
 
-- update `src/release-notes.md`
-  - copy template, uncomment
-  - replace date
-  - replace XX with NEW
-  - add new content from changelogs, excluding hledger-lib
-  - remove any empty sections
-  - add contributors, `git shortlog -sn OLD..NEW`
-  - add summary (major release) or remove it (bugfix release)
-  - check preview in vs code
-  - site repo commit: `relnotes: NEW`
+### LEVEL 4 - RELEASE BINARIES
 
-### LEVEL 4 - RELEASE READY
-
-#### Release binaries
-- do a preliminary push to `origin/binaries`
-- resolve failures
-- wait for any pending successful builds to complete and update cache
-- `tools/release bin`
-- get all platforms built on the same commit
-- delete any local downloaded binaries from last release
-- download binary artifact zip files (on each successful run: right click, download linked file)
-
-#### Release build testing
+#### Release build tests
   - touch/change Version.hs to encourage recompilation
   - `stack build`
   - `stack exec -- hledger --version`, check version, hash, release date, no '+'
   - `stack exec -- hledger help | tail`, check version, month matches release
 
-#### Release tag
-- ensure new version has been set with Shake setversion !
-- `make tag`
+#### Platform CI tests
+Multi-platform CI tests:
+- push to `github/binaries` (or `./bake bin`)
+- resolve failures
+- wait for green on all platforms
 
-#### Pre-release tests
-- appropriate dates in: changelogs, release notes, --version output, man pages, hledger-install script
+#### Release binaries
+Once all platform CI tests are green:
+- in local downloads dir, delete any zip files from last release
+- in each successful platform job: right click, Download linked file
+- unpack the zip file for local platform
+- on that same commit, build native local binaries:
+  - `make install-as-VERSION`
 
-#### Check release ready / pre-release pause
+#### hledger-install script
+(major/bugfix/fixup release)
+- update `hledger-install/hledger-install.sh`
+  - HLEDGER_INSTALL_VERSION (release date)
+  - hledger official packages (NEW)
+  - hledger third-party packages (latest versions on hackage/pypi)
+  - RESOLVER and EXTRA_DEPS (same as stack.yaml, or one of them)
+- test ? (won't work until new hledger packages are on hackage)
+  `cd; bash ~/src/hledger/hledger-install/hledger-install.sh`
+- commit: `install: NEW`
+
+### LEVEL 5 - RELEASED
+
+#### Pre-release pause
 - stop, go afk, take a break
 - review time, energy, availability, decide go/no-go
 
-### LEVEL 5 - RELEASED
+#### Pre-release tests
+Sanity checks:
+- appropriate dates/versions in changelogs and release notes (if late in day, watch for time zone issues)
+- hledger-install script
+  - `rg '^HLEDGER(_\w+)?_VERSION' hledger-install/hledger-install.sh`
+- binaries' --version output
+  - `cd ~/Downloads`
+  - `./hledger --version`
+  - `./hledger-ui --version`
+  - `./hledger-web --version`
+- binaries' man pages
+  - `./hledger --man | tail -1`
+  - `./hledger-ui --man | tail -1`
+  - `./hledger-web --man | tail -1`
+
+#### Release tag
+- ensure new version has been set first with Shake or bake
+- ensure no new commits have been made since push to `github/binaries`
+- don't run this in an attempt to make editor tags files
+- in the release branch (?): `make tag`
 
 #### Github release
 - in main repo, release branch:
   - `git push github MA.JOR-branch` or magit `P p`
-  - wait for CI success (?)
-  - `git push --tags` or magit `P t`
-
-- copy text from previous similar release, https://github.com/simonmichael/hledger/releases
+  - `git push --tags` or magit `P t github`
 - create new release, https://github.com/simonmichael/hledger/releases/new
-- leave release tag unselected for now
-- set title (MA.JOR[...])
-- paste & replace with new release notes
-- upload CI binaries
-- save as draft
-- check preview, resolve issues
-- edit release
-- select release tag (MA.JOR[...])
-- click publish button
+- choose release tag
+- title: VERSION
+- description:
+  - copy doc/github-release-doc.tmpl.md to editor
+  - insert latest release notes (minus topmost heading) from site/src/release-notes.md
+  - replace A-BB, A.BB versions
+  - copy & paste
+  - preview, sanity check
+- upload platform binary zip files
+- Save draft
+- (and after successful hackage upload: Publish release)
 
 #### Hackage packages
 in main repo, release branch:
@@ -282,24 +306,10 @@ In site repo:
 
 ### LEVEL 6 - PUBLISHED
 
-#### hledger-install script
-(major/bugfix/fixup release)
- 
-- update `hledger-install/hledger-install.sh`
-  - HLEDGER_INSTALL_VERSION (release date)
-  - RESOLVER (same as stack.yaml)
-  - EXTRA_DEPS (same as stack.yaml)
-  - hledger official packages (NEW)
-  - hledger third-party packages (latest version on hackage)
-- test ? (won't work until new hledger packages are on hackage)
-  `cd; bash ~/src/hledger/hledger-install/hledger-install.sh`
-- commit: `install: NEW`
-
 #### Install page
 (major/bugfix/fixup release)
 
 In site repo:
-
 - update `install.md`
   - query-replace OLD -> NEW in 
     - "current hledger release"
@@ -309,9 +319,10 @@ In site repo:
     - cabal install command
   - query-replace OLD-brightgreen -> OLD-red
   - only after release binaries are built (preferably after release is published):
-    update --version outputs (search: hledger --version)
-  - final output line from `hledger test` (run in terminal for normal speed)
+    update --version outputs (version, hash, date, but not platform)
+  - final output line from `hledger test` (run local build and in terminal for normal speed)
   - Total count from `make functest`
+  - preview
   - commit: `install: NEW`
 
 #### Update website
@@ -375,7 +386,9 @@ In release branch:
 - `./Shake manuals -c`
 
 #### Commit RELEASING.md
-- move copy back to RELEASING.md, commit
+- move copies back to RELEASING.md, RELEASING.canvas
+- re-export RELEASING.png: obsidian > CMD-p > Export as image, don't show logo
+- commit
 
 #### Push master
 in main repo, master branch:

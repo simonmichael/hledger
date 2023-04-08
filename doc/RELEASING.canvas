@@ -1,7 +1,5 @@
 {
 	"nodes":[
-		{"type":"text","text":"Release binaries\n","id":"07112d859abf3940","x":-159,"y":370,"width":191,"height":50,"color":"#f58f00"},
-		{"type":"text","text":"Passing platform CIs","id":"4af91a6bc27a1008","x":-187,"y":450,"width":250,"height":60,"color":"#f58f00"},
 		{"type":"text","text":"Up-to-date help","id":"92dda98079ab4d1e","x":80,"y":1080,"width":191,"height":55,"color":"5"},
 		{"type":"text","text":"Up-to-date changelogs","id":"e8e90d5c5cc42241","x":-404,"y":1127,"width":224,"height":60,"color":"5"},
 		{"type":"text","text":"Features, improvements, fixes","id":"1b38487f9fac1e2c","x":-206,"y":1270,"width":309,"height":60,"color":"6"},
@@ -14,7 +12,6 @@
 		{"type":"text","text":"LEVEL 1 - DEV","id":"1e09c093e184f1ff","x":-940,"y":1270,"width":280,"height":60,"color":"6"},
 		{"type":"text","text":"LEVEL 2 - TEST","id":"80cb496c45b89756","x":-940,"y":940,"width":280,"height":60,"color":"5"},
 		{"type":"text","text":"LEVEL 3 - RELEASE DOCS","id":"0a51f5cec92dcd0a","x":-940,"y":540,"width":280,"height":60,"color":"#ffdd00"},
-		{"type":"text","text":"LEVEL 4 - RELEASE READY","id":"62ae958cd2ff139c","x":-940,"y":280,"width":280,"height":60,"color":"#f58f00"},
 		{"type":"text","text":"LEVEL 6 - PUBLISHED","id":"6b0c017479931f0a","x":-940,"y":-390,"width":280,"height":60,"color":"4"},
 		{"type":"text","text":"LEVEL 7  - ANNOUNCED","id":"0813225d75c39151","x":-940,"y":-550,"width":280,"height":60,"color":"#007508"},
 		{"type":"text","text":"Website","id":"187d7edfa7e9f024","x":0,"y":-390,"width":155,"height":60,"color":"4"},
@@ -27,16 +24,20 @@
 		{"type":"text","text":"Hackage packages\n(Major, bugfix, fixup)","id":"52c90a00d0b573af","x":-512,"y":120,"width":248,"height":80,"color":"1"},
 		{"type":"text","text":"Good urls, redirects, structure","id":"b4b160df1e279f6d","x":165,"y":-280,"width":315,"height":32,"color":"4"},
 		{"type":"text","text":"Install page\n(Major, bugfix, fixup)","id":"42f027c1822c2021","x":-206,"y":-280,"width":233,"height":70,"color":"4"},
-		{"type":"text","text":"hledger-install.sh\n(Major, bugfix, fixup)","id":"05062529ce2b5d9a","x":-747,"y":-280,"width":268,"height":70,"color":"4"},
+		{"type":"text","text":"Continually updated\nhledger-install.sh in master\n","id":"05062529ce2b5d9a","x":-747,"y":-280,"width":268,"height":70,"color":"4"},
 		{"type":"text","text":"Release changelogs","id":"82f800fbaf1fff31","x":-190,"y":641,"width":250,"height":60,"color":"#ffdd00"},
 		{"type":"text","text":"Release version number","id":"3dede0e33cab04ab","x":-193,"y":741,"width":258,"height":60,"color":"#ffdd00"},
 		{"type":"text","text":"Release branch","id":"2f72dd0306686404","x":-166,"y":841,"width":205,"height":60,"color":"#ffdd00"},
 		{"type":"text","text":"Release notes\n(Major, bugfix)","id":"4626d11550a5dd82","x":-200,"y":541,"width":270,"height":60,"color":"#ffdd00"},
-		{"type":"text","text":"Release tag","id":"ee51d1acdb16f4ed","x":-151,"y":280,"width":172,"height":60,"color":"#f58f00"},
-		{"type":"text","text":"Github release","id":"48113316f596b226","x":-190,"y":140,"width":250,"height":60,"color":"1"},
 		{"type":"text","text":"Passing tests and  CI","id":"cd072c3e5f37fc77","x":-204,"y":940,"width":284,"height":60,"color":"5"},
 		{"type":"text","text":"Up-to-date manuals","id":"c11b65fbcab6d67a","x":-172,"y":1108,"width":220,"height":50,"color":"5"},
-		{"type":"text","text":"LEVEL 5 - RELEASED","id":"4c7d316dc60a406d","x":-940,"y":100,"width":280,"height":60,"color":"1"}
+		{"type":"text","text":"LEVEL 5 - RELEASED","id":"4c7d316dc60a406d","x":-940,"y":100,"width":280,"height":60,"color":"1"},
+		{"type":"text","text":"LEVEL 4 - RELEASE BINARIES","id":"62ae958cd2ff139c","x":-940,"y":370,"width":280,"height":60,"color":"#f58f00"},
+		{"type":"text","text":"Passing platform CI tests","id":"4af91a6bc27a1008","x":-190,"y":450,"width":250,"height":60,"color":"#f58f00"},
+		{"type":"text","text":"Release binaries\n","id":"07112d859abf3940","x":-160,"y":370,"width":191,"height":50,"color":"#f58f00"},
+		{"type":"text","text":"Release tag","id":"ee51d1acdb16f4ed","x":-151,"y":260,"width":172,"height":60,"color":"1"},
+		{"type":"text","text":"Github release","id":"48113316f596b226","x":-190,"y":140,"width":250,"height":60,"color":"1"},
+		{"type":"text","text":"hledger-install.sh","id":"5d888a29bcefdde3","x":-603,"y":370,"width":250,"height":60,"color":"#f58f00"}
 	],
 	"edges":[
 		{"id":"1cbe2796fa62185f","fromNode":"52d90724c458c2d2","fromSide":"bottom","toNode":"2d971da3a664c356","toSide":"top"},
@@ -80,6 +81,7 @@
 		{"id":"c15e04d54adbe3b7","fromNode":"cd072c3e5f37fc77","fromSide":"bottom","toNode":"887e2b1b907d0ac9","toSide":"top"},
 		{"id":"70b80ea2ea092fd0","fromNode":"5fa590b519f60b9b","fromSide":"bottom","toNode":"187d7edfa7e9f024","toSide":"top"},
 		{"id":"83ace9eece04a0c9","fromNode":"42f027c1822c2021","fromSide":"bottom","toNode":"05062529ce2b5d9a","toSide":"top"},
-		{"id":"c32288130f1142dc","fromNode":"42f027c1822c2021","fromSide":"bottom","toNode":"07112d859abf3940","toSide":"right"}
+		{"id":"c32288130f1142dc","fromNode":"42f027c1822c2021","fromSide":"bottom","toNode":"07112d859abf3940","toSide":"right"},
+		{"id":"08d117f41a7cd9db","fromNode":"05062529ce2b5d9a","fromSide":"left","toNode":"5d888a29bcefdde3","toSide":"top"}
 	]
 }
