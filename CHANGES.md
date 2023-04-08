@@ -13,7 +13,7 @@ For package-specific changes, see the hledger package changelogs.
 
 Scripts/addons
 
-- hledger-install: re-enable hledger-interest, hledger-iadd
+- hledger-install: re-enable hledger-interest, hledger-iadd; add hledger-lots
 
 # 1.29.1 2023-03-16
 
