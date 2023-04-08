@@ -24,8 +24,6 @@ Scripts/addons
 
 - hledger-install: also list installed cabal, stack, pip versions
 
-- hledger-install: re-enable hledger-interest, hledger-iadd; add hledger-lots
-
 Examples
 
 - examples/i18: Added sample top level account and type declarations in several languages
@@ -37,6 +35,12 @@ Docs
 - Simplified website and FAQ structure.
 
 Infrastructure
+
+# 1.29.2 2023-04-07
+
+Scripts/addons
+
+- hledger-install: re-enable hledger-interest, hledger-iadd; add hledger-lots
 
 # 1.29.1 2023-03-16
 

@@ -27,7 +27,7 @@ Breaking changes
 
 Features
 
-- Powerful boolean queries, allowing arbitrary use of AND, OR, NOT
+- Full boolean queries, allowing arbitrary use of AND, OR, NOT
   (case insensitive) and parentheses for grouping, are now supported.
   For backward compatibility, these require an `expr:` prefix.
   Existing queries work as before, and you can mix and match the
@@ -38,15 +38,6 @@ Features
   various features and use cases. We will add more of these over time.
 
 Improvements
-
-- imp: "type:" queries now see through aliases/pivots, like acct: (fix #2018)
-  When doing a type: match we now also check the original unaliased,
-  unpivoted posting, as when doing an acct: match. This is effectively
-  how things worked with the older account type detection in hledger <1.27.
-
-- The help command's documentation now mentions an issue caused by
-  a too-old `info` program, as on mac.
-  (#1770)
 
 - We now try harder to ensure `less` (and its `more` mode) show our
   ANSI formatting properly in help output.
@@ -62,11 +53,13 @@ Improvements
   and it should produce the desired transaction more often.
   There is also new debug output (at debug level 1) for troubleshooting.
 
-- Commands list cleanups
+- The help command's documentation now mentions an issue caused by
+  a too-old `info` program, as on mac.
+  (#1770)
+
+- The commands list has been updated.
 
 Fixes
-
-- The corruption in 1.29's info manual is fixed. (#2023)
 
 Docs
 
@@ -95,6 +88,54 @@ Docs
 - journal: costs: mention sign
 
 API
+
+# 1.29.2 2023-04-07
+
+Breaking changes
+
+- 1.29's cleanup of the `close` command has been continued.
+  Here are all the changes to `close` since hledger 1.28:
+
+  - The default behaviour is now to print only one transaction: a closing transaction.
+
+  - To print both closing and opening transactions as before,
+    use the new `--migrate` flag.
+
+  - The accounts closed by default are now just the ALE accounts
+    (accounts declared or inferred as type `Asset`, `Liability`, or `Equity`).
+    If you don't have account types configured, or
+	  to close some other set of accounts, provide query arguments that match them.
+    To close all accounts as before, use a `.` argument to match them all.
+
+  - To print a retain earnings transaction for RX accounts (accounts
+    of type `Revenue` or `Expense`), use the new `--retain` flag.
+
+  - The `equity` command alias, removed in 1.29, has been restored.
+
+  - The `--open-acct` option, removed in 1.29, has been restored.
+
+  - The `--closing` and `--opening` flags have been renamed to `--close` and `--open`.
+    (`--close` had been removed in 1.29 and is now restored.)
+
+  - The docs have been rewritten. Also the 1.29 release notes now mention
+    the breaking change.
+
+  - The command is marked experimental again.
+
+  (#2020)
+
+Fixes
+
+- `type:` queries now "see through" account aliases and pivots,
+  as they did in hledger <1.27, and as `acct:` queries do.
+  (#2018)
+
+- The corruption in 1.29's info manual is fixed. (#2023)
+
+- The 1.29 release notes for periodic reports'/periodic transactions' start dates
+  have been improved. Also the hledger manual's "Date adjustment" section
+  has been corrected and clarified.
+
 
 # 1.29.1 2023-03-16
 

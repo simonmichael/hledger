@@ -31,8 +31,6 @@ Features
 
 Improvements
 
-- A pager is used to show --help output when needed, as in `hledger`.
-
 - The top-level menu screen is now the default screen.
   Power users can use the `--cash`/`--bs`/`--is`/`--all`
   flags to start up in another screen.
@@ -43,13 +41,21 @@ Improvements
 
 Fixes
 
-- The corruption in 1.29's info manual is fixed. (#2023)
-
 Docs
 
 - The transaction screen's inability to update is now noted.
 
 API
+
+# 1.29.2 2023-04-07
+
+Improvements
+
+- A pager is used to show --help output when needed, as in `hledger`.
+
+Fixes
+
+- The corruption in 1.29's info manual is fixed. (#2023)
 
 # 1.29.1 2023-03-16
 
