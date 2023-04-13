@@ -1,4 +1,4 @@
-# Releasing
+# RELEASING
 
 <div class=pagetoc>
 

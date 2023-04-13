@@ -4,7 +4,8 @@ An efficient public store of tasks/changes/design notes, mostly from SM's privat
 Things that I/we feel would be nice to have, or investigate further.
 All help is welcome.
 Some items are out of date and just need to be re-tested and discarded.
-See also: [TODO](TODO.md).
+See also:
+[TODO](TODO.md).
 
 ## cli
 
