@@ -3240,37 +3240,39 @@ a default account name will be chosen (like "expenses:unknown" or "income:unknow
 
 ### amount field
 
-Amount setting can get a bit complex, because of the many possibilities; in addition to this section, please also see the tips beginning at ["Working with CSV > Setting amounts"](#setting-amounts) , below.
+Amount setting can get a bit complex. Assigning to `amount` is sufficient for simple transactions, but there are four field name variants you can use for different situations:
 
-Assigning to `amount` is sufficient for simple transactions, but there are four field name variants you can use depending on the situation. Note, it's usually best to use only one of these variants, rather than mixing them (and remember that naming a CSV field "amount" in a `fields` list counts as an assignment to `amount`; if you don't want that, call it something else, like "amount_").
-
-Here are the hledger field names for setting amounts:
-
-- **"`amountN`" sets a specific posting amount from one CSV field or value.**\
-  Assigning to `amountN` sets the amount of the Nth posting, and causes that posting to be generated.
+- **`amountN` sets a specific posting's amount from one CSV field or arbitrary value.**\
+  Assigning to `amountN` sets the amount of the Nth posting - and also causes that posting to be generated.
   N is most often 1 or 2 but can go up to 99, potentially generating a 99-posting transaction.
-  Posting numbers don't have to be consecutive; with conditional rules, higher posting numbers
-  can sometimes be helpful to ensure a certain ordering of postings.
+  Posting numbers don't have to be consecutive; higher posting numbers
+  can sometimes be useful with conditional rules, to ensure a certain ordering of postings.
   
-- **"`amountN-in/-out`" sets a specific posting amount from two CSV fields.**\
-  When the amount must be obtained from two CSV fields (eg, fields named "Debit"/"Credit", "Deposit"/"Withdrawal", "Money In"/"Money Out", etc.), `amountN-in` and `amountN-out` can be used instead. Note:
+- **`amountN-in/-out` sets a specific posting's amount from two CSV fields.**\
+  When the amount must be obtained from two CSV fields ("Debit"/"Credit", "Deposit"/"Withdrawal", "Money In"/"Money Out" or similar), assign those to `amountN-in` and `amountN-out` respectively. Or possibly the other way round, depending on signs. Note:
   
-  - `amountN-in` and `amountN-out` must be used together, as a pair.
-  - They transform two CSV fields in the current CSV record into a single amount for the Nth posting. 
-  - (They do *not* generate two separate postings.)
+  - Use either (1) `amountN`, or (2) `amountN-in`/`-out`. Don't mix 1 and 2 in the same rules file.
+  - `amountN-in` and `amountN-out` are always used together, as a pair.
+  - They transform two CSV fields from the current CSV record into a single amount for the Nth posting. (They do not generate two separate postings.)
   - hledger requires that in each record, at least one of the two CSV fields contains a zero amount or is empty.
   - hledger assumes both CSV fields contain unsigned numbers, and will automatically negate the -out value.
   - This won't work for every two-amount-field situation; if you need more flexibility, use an `if` rule (see "Setting amounts" below).
-  
-- **"`amount`" sets posting 1 and 2 amounts from one CSV field or value.**\
-  `amount`, with no posting number specified, is an older legacy syntax, but it can still be convenient sometimes:
-  
-  - It sets both posting 1's amount and posting 2's amount at the same time.
-  - Posting 2's amount will be negated, and also will be converted to cost if it has a [cost price](#costs).
-  - If the more precise `amount1` and/or `amount2` rules are also used, they will take precedence, overriding what `amount` does. (This allows incrementally migrating old rules files.)
 
-- **"`amount-in/-out`" sets posting 1 and 2 amounts from two CSV fields.**\
-  `amount-in` and `amount-out`, with no posting numbers, are another legacy syntax, analogous to `amount`. They are to `amount` as `amountN-in`/`amountN-out` are to `amountN`.
+The other variants are older legacy syntax, but still convenient sometimes, for simple transactions:
+
+- **`amount` sets posting 1 and 2's amounts from one CSV field or value.**\
+  Assigning to `amount`, with no posting number,
+  
+  - sets posting 1's amount (like `amount1`)
+  - sets posting 2's amount to the same amount but with opposite sign, and also converted to cost if it has a [cost price](#costs)
+  - can be overridden by `amount1` and/or `amount2` assignments. (This helps with incremental migration of old rules files to the newer syntax.)
+
+- **`amount-in/-out` sets posting 1 and 2's amounts from two CSV fields.**\
+  `amount-in` and `amount-out`, with no posting numbers, do the same when there are two CSV fields. (They are to `amount` as `amountN-in`/`amountN-out` are to `amountN`.)
+
+It's usually best to use only one of these variants, rather than mixing them. (And remember that naming a CSV field "amount" in a `fields` list counts as an assignment to `amount`; if you don't want that, call it something else, like "amount_".)
+
+In addition to this section, please also see the tips beginning at ["Working with CSV > Setting amounts"](#setting-amounts)  below.
 
 ### currency field
 
@@ -3652,7 +3654,7 @@ various amount-setting situations:
 
 ### Amount signs
 
-There is some special handling for amount signs, to simplify parsing and sign-flipping:
+There is some special handling making it easier to parse and to reverse amount signs. (This only works for whole amounts, not for cost amounts such as COST in `amount1  AMT @ COST`):
 
 - **If an amount value begins with a plus sign:**\
   that will be removed: `+AMT` becomes `AMT`
@@ -3666,9 +3668,7 @@ There is some special handling for amount signs, to simplify parsing and sign-fl
 - **If an amount value contains just a sign (or just a set of parentheses):**\
   that is removed, making it an empty value. `"+"` or `"-"` or `"()"` becomes `""`.
 
-Note, the above special handling works only for sign at the beginning of the whole value, or parentheses enclosing the whole value; when setting an amount a cost attached, you can't flip the cost's sign in this way.
-
-Also it's not possible (without preprocessing the CSV) to set an amount to its absolute value, ie discard its sign. 
+It's not possible (without preprocessing the CSV) to set an amount to its absolute value, ie discard its sign. 
 
 ### Setting currency/commodity
 
