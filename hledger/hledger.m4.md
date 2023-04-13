@@ -3240,35 +3240,37 @@ a default account name will be chosen (like "expenses:unknown" or "income:unknow
 
 ### amount field
 
-There are several "amount" field name variants, useful for different situations:
+Warning, amount setting is complex and can be confusing at first. In addition to this section, please also see the tips at ["Setting amounts"](#setting-amounts) below.
 
+Assigning to `amount` is sufficient for simple transactions, but there are four field name variants you can use depending on the situation. Note, it's usually best to use only one of these variants, rather than mixing them (and remember that naming a CSV field "amount" in a `fields` list counts as an assignment to `amount`; if you don't want that, call it something else, like "amount_").
 
-- `amountN` sets the amount of the Nth posting, and causes that posting to be generated.
-  By assigning to `amount1`, `amount2`, ... etc. you can generate up to 99 postings.
-  Posting numbers don't have to be consecutive; in certain situations using a high number
-  might be helpful to influence the layout of postings.
-  
-- `amountN-in` and `amountN-out` should be used instead, as a pair, when and only when
-  the amount must be obtained from two CSV fields.
-  Eg when the CSV has separate Debit and Credit fields instead of a single Amount field.
-  Note:
-  
-  - Don't think "-in is for the first posting and -out is for the second posting" - that's not correct.
-    Think: "`amountN-in` and `amountN-out` together detect the amount for posting N, by inspecting two CSV fields at once."
-  - hledger assumes both CSV fields are unsigned, and will automatically negate the -out value.
-  - It also expects that at least one of the values is empty or zero, so it knows which one to ignore.
-    If that's not the case you'll need an if rule (see Setting amounts below).
-  
-- `amount`, with no posting number (and similarly, `amount-in` and `amount-out` with no number)
-  are an older syntax. We keep them for backwards compatibility, and because they have special behaviour
-  that is sometimes convenient:
-  
-  - They set the amount of posting 1 and (negated) the amount of posting 2.
-  - Posting 2's amount will be converted to cost if it has a [cost price](#costs).
-  - Any of the newer rules for posting 1 or 2 (like `amount1`, or `amount2-in` and `amount2-out`)
-    will take precedence. This allows incrementally migrating old rules files to the new syntax.
+Here are the hledger field names for setting amounts:
 
-There's more to say about amount-setting that doesn't fit here; please see also ["Setting amounts"](#setting-amounts) below.
+- **"`amountN`" sets a specific posting amount from one CSV field or value.**\
+  Assigning to `amountN` sets the amount of the Nth posting, and causes that posting to be generated.
+  N is most often 1 or 2 but can go up to 99, potentially generating a 99-posting transaction.
+  Posting numbers don't have to be consecutive; with conditional rules, higher posting numbers
+  can sometimes be helpful to ensure a certain ordering of postings.
+  
+- **"`amountN-in/-out`" sets a specific posting amount from two CSV fields.**\
+  When the amount must be obtained from two CSV fields (eg, fields named "Debit"/"Credit", "Deposit"/"Withdrawal", "Money In"/"Money Out", etc.), `amountN-in` and `amountN-out` can be used instead. Note:
+  
+  - `amountN-in` and `amountN-out` must be used together, as a pair.
+  - They transform two CSV fields in the current CSV record into a single amount for the Nth posting. 
+  - (They do *not* generate two separate postings.)
+  - hledger requires that in each record, at least one of the two CSV fields contains a zero amount or is empty.
+  - hledger assumes both CSV fields contain unsigned numbers, and will automatically negate the -out value.
+  - This won't work for every two-amount-field situation; if you need more flexibility, use an `if` rule (see "Setting amounts" below).
+  
+- **"`amount`" sets posting 1 and 2 amounts from one CSV field or value.**\
+  `amount`, with no posting number specified, is an older legacy syntax, but it can still be convenient sometimes:
+  
+  - It sets both posting 1's amount and posting 2's amount at the same time.
+  - Posting 2's amount will be negated, and also will be converted to cost if it has a [cost price](#costs).
+  - If the more precise `amount1` and/or `amount2` rules are also used, they will take precedence, overriding what `amount` does. (This allows incrementally migrating old rules files.)
+
+- **"`amount-in/-out`" sets posting 1 and 2 amounts from two CSV fields.**\
+  `amount-in` and `amount-out`, with no posting numbers, are another legacy syntax, analogous to `amount`. They are to `amount` as `amountN-in`/`amountN-out` are to `amountN`.
 
 ### currency field
 
@@ -3663,6 +3665,10 @@ There is some special handling for amount signs, to simplify parsing and sign-fl
 
 - **If an amount value contains just a sign (or just a set of parentheses):**\
   that is removed, making it an empty value. `"+"` or `"-"` or `"()"` becomes `""`.
+
+Note, the above special handling works only for sign at the beginning of the whole value, or parentheses enclosing the whole value; when setting an amount a cost attached, you can't flip the cost's sign in this way.
+
+Also it's not possible (without preprocessing the CSV) to set an amount to its absolute value, ie discard its sign. 
 
 ### Setting currency/commodity
 
