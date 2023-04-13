@@ -762,11 +762,11 @@ main = do
 
       phony "orgfiles" $
         need [
-           "doc/BACKLOG.md"
+           -- "doc/BACKLOG.md"
           ]
 
       -- These org files are converted to markdown for the website.
-      [ "doc/BACKLOG.md"
+      [ -- "doc/BACKLOG.md"
        ] |%> \out -> do
         let src = out -<.> "org"
         need [src]
