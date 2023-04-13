@@ -53,18 +53,18 @@ Related:
 
 - hledger 1.19, september
   - account transactions register, stricter/more correct handling of
-    - unbalanced multicommodity transactions (#1177), Track & show
-    - deposited lots (#1022), Report unrealized capital gains/losses
-    - (#1029)
+    unbalanced multicommodity transactions (#1177), Track & show
+    deposited lots (#1022), Report unrealized capital gains/losses
+    (#1029)
 
 - hledger 1.18, june
   - more effective CI setup, updated home page, quickstart, tutorials
-    - etc., negative matching in CSV rules,
+    etc., negative matching in CSV rules,
 
 - hledger 1.17, march
   - field matching in CSV rules, reduce install hassles with terminfo C
-    - lib (?), more import/export options, simple console charts,
-    - refreshed home page, faq, tutorials, manuals,
+    lib (?), more import/export options, simple console charts,
+    refreshed home page, faq, tutorials, manuals,
 
 **Priorities:**
 - Documentation: Improve the docs.
