@@ -41,10 +41,11 @@ Related:
 - features: charts, investment
 
 **Mission:**
-- Make plain text accounting more usable and useful for all
-- Bring relief to people experiencing financial and technological stress
-- Help people and communities in all countries increase their financial mastery and freedom
-- Help grow a shared global culture of accountability and sustainability
+1. Make plain text accounting more usable and useful for all
+2. Bring relief to people experiencing financial and financial technology stress
+3. Help people and communities in all countries increase their financial mastery and freedom
+4. Help grow a shared global culture of accountability and sustainability
+5. Starting with this project and ourselves.
 <!-- see also: sponsor.md, faq.md -->
 
 ## 2020
