@@ -1,19 +1,19 @@
 * BACKLOG.org
 #+OPTIONS: -:nil \n:t H:9
 
-An efficient public store of tasks/changes/design notes, mostly from
-SM's private backlog; things that I/we feel would be nice to have, or
-investigate further. 
-Here, they all compost nicely in the sun.
+doc/BACKLOG.org: An efficient public store of tasks/changes/design notes,
+mostly from SM's private backlog.
+Things that I/we feel would be nice to have, or investigate further. All help is welcome. 
 Some items are out of date and just need to be re-tested and discarded.
-All help is welcome. 
+
+This gets converted to markdown for <https://hledger.org/BACKLOG.html> by `Shake doc/BACKLOG.md`.
+Some items may render best when viewed in Emacs org mode. 
 
 See also:
 - http://wishes.hledger.org and http://bugs.hledger.org
 - https://hledger.org/mockups.html
 - https://hledger.org/ROADMAP.html
-
-Some items may render best when viewed in Emacs org mode. 
+- https://hledger.org/TODO.html
 
 # Dummy second level heading to ensure only the topics appear in site's page TOC:
 ** Topics:
