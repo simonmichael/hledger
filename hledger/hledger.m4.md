@@ -3240,7 +3240,7 @@ a default account name will be chosen (like "expenses:unknown" or "income:unknow
 
 ### amount field
 
-Warning, amount setting is complex and can be confusing at first. In addition to this section, please also see the tips at ["Setting amounts"](#setting-amounts) below.
+Amount setting can get a bit complex, because of the many possibilities; in addition to this section, please also see the tips beginning at ["Working with CSV > Setting amounts"](#setting-amounts) , below.
 
 Assigning to `amount` is sufficient for simple transactions, but there are four field name variants you can use depending on the situation. Note, it's usually best to use only one of these variants, rather than mixing them (and remember that naming a CSV field "amount" in a `fields` list counts as an assignment to `amount`; if you don't want that, call it something else, like "amount_").
 
