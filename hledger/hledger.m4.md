@@ -394,16 +394,12 @@ $ echo 'i 2009/13/1 08:00:00' | hledger print -ftimeclock:-
 
 ## Multiple files
 
-You can specify multiple `-f` options, to read multiple files as one big journal.
-There are some limitations with this:
+You can specify multiple `-f` options, to read multiple files as one big journal. When doing this, note that certain features (described below) will be affected:
 
-- most [directives do not affect sibling files](#directives-and-multiple-files)
-- [balance assertions](#balance-assertions) will not see any account balances from previous files
+- [Balance assertions](#balance-assertions) will not see the effect of transactions in previous files. (Usually this doesn't matter as each file will set the corresponding opening balances.)
+- Some [directives](#directives) will not affect previous or subsequent files.
 
-If you need either of those things, you can 
-
-- use a single parent file which [includes](#including-files) the others
-- or concatenate the files into one before reading, eg: `cat a.journal b.journal | hledger -f- CMD`.
+If needed, you can work around these by using a single parent file which [includes](#including-files) the others, or concatenating the files into one, eg: `cat a.journal b.journal | hledger -f- CMD`.
 
 ## Strict mode
 
@@ -1704,51 +1700,42 @@ or match by tag value with a `tag:NAMEREGEX=VALUEREGEX` query.
 
 ## Directives
 
-A directive is a line in the journal beginning with a special keyword,
-that influences how the journal is processed, how things are displayed, and so on.
-hledger's directives are based on (a subset of) Ledger's, but there are many differences,
-and also some differences between hledger versions.
-Here are some more definitions:
+Besides transactions, there is something else you can put in a `journal` file: directives.
+These are declarations, beginning with a keyword, that modify hledger's behaviour.
+Some directives can have more specific subdirectives, indented below them.
+hledger's directives are similar to Ledger's in many cases, but there are also many [differences](ledger.md).
+Directives are not required, but can be useful. Here are the main directives:
 
-- *subdirective* - Some directives support subdirectives, written
-  indented below the parent directive.
+| purpose                                                       | directive                                      |
+|---------------------------------------------------------------|------------------------------------------------|
+| **READING DATA:**                                             |                                                |
+| Rewrite account names                                         | [`alias`]                                      |
+| Comment out sections of the file                              | [`comment`]                                    |
+| Declare file's decimal mark, to help parse amounts accurately | [`decimal-mark`]                               |
+| Include other data files                                      | [`include`]                                    |
+| **GENERATING DATA:**                                          |                                                |
+| Generate recurring transactions or budget goals               | [`~`]                                          |
+| Generate extra postings on existing transactions              | [`=`]                                          |
+| **CHECKING FOR ERRORS:**                                      |                                                |
+| Define valid entities to provide more error checking          | [`account`], [`commodity`], [`payee`], [`tag`] |
+| **REPORTING:**                                                |                                                |
+| Declare accounts' type and display order                      | [`account`]                                    |
+| Declare commodity display styles                              | [`commodity`]                                  |
+| Declare market prices                                         | [`P`]                                          |
 
-- *decimal mark* - The character to interpret as a decimal mark
-  (period or comma) when parsing amounts of a commodity.
+### Directives and multiple files
 
-- *display style* - How to display amounts of a commodity in output:
-  symbol side and spacing, digit groups, decimal mark, and number of
-  decimal places.
+Directives vary in their scope, ie which journal entries and which input files they affect.
+Most often, a directive will affect the following entries and included files if any, until the end of the current file - and no further.
+You might find this inconvenient! 
+For example, `alias` directives [do not affect parent or sibling files](#aliases-and-multiple-files).
+But there are usually workarounds; for example, put `alias` directives in your top-most file, before including other files.
 
-Directives are not required when starting out with hledger,
-but you will probably want to add some as your needs grow. 
-Here some key directives for particular needs:
-
-| purpose                                                      | directives                            |
-|--------------------------------------------------------------|---------------------------------------|
-| **READING DATA:**                                            |                                       |
-| Declare file's decimal mark to help parse amounts accurately | [`decimal-mark`]                      |
-| Rewrite account names                                        | [`alias`]                             |
-| Comment out sections of the data                             | [`comment`]                           |
-| Include extra data files                                     | [`include`]                           |
-| **GENERATING DATA:**                                         |                                       |
-| Generate recurring transactions or budget goals              | [`~`]                                 |
-| Generate extra postings on transactions                      | [`=`]                                 |
-| **CHECKING FOR ERRORS:**                                     |                                       |
-| Define valid entities to provide more error checking         | [`account`], [`commodity`], [`payee`] |
-| **REPORTING:**                                               |                                       |
-| Declare accounts' type and display order                     | [`account`]                           |
-| Declare commodity display styles                             | [`commodity`]                         |
-| Declare market prices                                        | [`P`]                                 |
+The restriction, though it may be annoying at first, is in a good cause; it allows reports to be stable and deterministic, independent of the order of input. Without it, reports could show different numbers depending on the order of -f options, or the positions of include directives in your files.
 
 ### Directive effects
 
-And here is what each directive does, and which files and journal entries (transactions) it affects:
-
-<!-- <style> -->
-<!-- table a code { white-space:nowrap; } -->
-<!-- h1,h2,h3,h4,h5,h6 { color:red; } -->
-<!-- </style> -->
+Here are all hledger's directives, with their effects and scope summarised - nine main directives, plus four others which we consider non-essential:
 
 | directive                     | what it does                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ends at file end?   |
 |-------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------|
@@ -1768,38 +1755,25 @@ And here is what each directive does, and which files and journal entries (trans
 | **[`=`]** (equals)            | Declares an auto posting rule that generates extra postings on matched transactions with `--auto`, in current, parent, and child files (but not sibling files, see [#1212](https://github.com/simonmichael/hledger/issues/1212)).                                                                                                                                                                                                                                                                                                                                                  | partly              |
 | **[Other Ledger directives]** | Other directives from Ledger's file format are accepted but ignored.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |                     |
 
-[`=`]:                 #auto-postings
-[`D`]:                 #default-commodity
-[`P`]:                 #market-prices
-[`Y`]:                 #default-year
-[`account`]:           #accounts
-[`alias`]:             #account-aliases
-[`--alias`]:           #account-aliases
-[`apply account`]:     #default-parent-account
-[`comment`]:           #file-comment
-[`commodity`]:         #commodities
-[`end aliases`]:       #end-aliases
-[`include`]:           #including-files
-[`payee`]:             #payees
-[`~`]:                 #periodic-transactions
-[Other Ledger directives]: #other-ledger-directives
+[`=`]:                       #auto-postings
+[`D`]:                       #d-directive
+[`P`]:                       #p-directive
+[`Y`]:                       #y-directive
+[`account`]:                 #account-directive
+[`alias`]:                   #alias-directive
+[`--alias`]:                 #alias-directive
+[`apply account`]:           #apply-account-directive
+[`comment`]:                 #comments
+[`commodity`]:               #commodity-directive
+[`decimal-mark`]:              #decimal-mark-directive
+[`end aliases`]:             #end-aliases-directive
+[`include`]:                 #include-directive
+[`payee`]:                   #payee-directive
+[`tag`]:                     #tag-directive
+[`~`]:                       #periodic-transactions
+[Other Ledger directives]:   #other-ledger-directives
 
-### Directives and multiple files
 
-If you use multiple `-f`/`--file` options, or the `include` directive,
-hledger will process multiple input files. But directives which affect
-input typically have effect only until the end of the file in which
-they occur (and on any included files in that region).
-
-This may seem inconvenient, but it's intentional; it makes reports
-stable and deterministic, independent of the order of input. Otherwise
-you could see different numbers if you happened to write -f options in
-a different order, or if you moved includes around while cleaning up
-your files.
-
-It can be surprising though; for example, it means that 
-[`alias` directives do not affect parent or sibling files](#aliases-and-multiple-files)
-(see below).
 
 ## `account` directive
 
