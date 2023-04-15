@@ -15,6 +15,12 @@ Related:
 - [ ] debug/fix csv `skip` <https://github.com/simonmichael/hledger/issues/2024>
 - [ ] inputs command: list input formats hledger can read
 - [ ] outputs command: list output formats each command can write
+- [ ] (L) rewrite cost docs -
+      <https://hledger.org/dev/hledger.html#cost>,
+	  <https://hledger.org/dev/hledger.html#transaction-prices>,
+      condense, clarify,
+      mention posting order sensitivity when inferring cost (cost is inferred on the last posting),
+      (related: <https://github.com/simonmichael/hledger/issues/1959>)
 
 ## Done
 Completed items from above, annotated with initials and date.
