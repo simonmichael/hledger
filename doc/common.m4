@@ -254,10 +254,10 @@ On Windows computers, the default value is probably `C:\Users\YOURNAME\.hledger.
 You can change this by running a command like this in a powershell window
 (let us know if you need to be an Administrator, and if this persists across a reboot):
 ```
-> setx LEDGER_FILE "C:\Users\MyUserName\finance\2021.journal"
+> setx LEDGER_FILE "C:\Users\MyUserName\finance\2023.journal"
 ```
 
-Or, change it in settings: see https://www.java.com/en/download/help/path.html.
+Or, change it in settings: see <https://www.java.com/en/download/help/path.html>.
 
 }} )m4_dnl
 m4_dnl

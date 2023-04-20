@@ -342,10 +342,10 @@ hledger reads transactions from one or more data files.
 The default data file is `$HOME/.hledger.journal`
 (or on Windows, something like `C:\Users\YOURNAME\.hledger.journal`).
 
-You can override this with the `$LEDGER_FILE` environment variable:
+You can override this with the `LEDGER_FILE` environment variable:
 
 ```shell
-$ setenv LEDGER_FILE ~/finance/2016.journal
+$ export LEDGER_FILE=~/finance/2023.journal
 $ hledger stats
 ```
 
