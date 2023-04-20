@@ -231,8 +231,9 @@ commandsList progversion othercmds highlight0 =
   ,""
     -----------------------------------------80-------------------------------------
   ,bold' "VERSATILE REPORTS (more complex/versatile reporting commands)"
-  ," activity                 show bar charts of posting counts per period"
+  ," activity                 show a simple bar chart of posting counts per period"
   ," balance (bal)            show balance changes, end balances, budgets, gains.."
+  ," bar                      show a balance report as a simple bar chart"
   ,"+fifo lots                show a commodity's remaining lots, using FIFO"
   ,"+plot                     create charts from balance reports, in terminal or GUI"
   ," print                    show transactions or export journal data"
