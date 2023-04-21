@@ -14,7 +14,7 @@ With no arguments, shows this help.
 Otherwise, runs hledger's 'balance' command, reporting monthly
 balance changes by default, and shows the period totals as a bar chart
 in the terminal, with positive amounts shown as '+' and negatives as '-'
-(in green and red respectively, unless NO_COLOR is set.)
+(in green and red respectively, unless NO_COLOR is set).
 
 Bars are not auto-sized; they will be (amount divided by SCALE) long, where
 SCALE is 100 by default. This is overrideable by a numeric first argument.
@@ -41,25 +41,26 @@ If you don't see the results you expect:
 - Use -v as first argument to also show the (unscaled, rounded) amounts.
 
 - Use -vv as first argument to show the amounts and the balance command
-  being run (approximately; you might need to add one level of quoting).
+  (approximately; you might need to add one level of quoting).
   Tip: remove some of this command's first options to see a more
   human-readable balance report.
 
-- If reporting changes in asset/liability/equity accounts, you will probably
-  want to exclude closing/opening balances, eg with
-  not:desc:'(opening|closing)' or not:tag:clopen if you use that.
+- When you are reporting changes in asset/liability/equity accounts,
+  you will probably want to exclude opening/closing balance transactions,
+  eg with not:desc:'(opening|closing)' or not:tag:clopen if you use those.
 
 Examples:
 
 $ hledger-bar food                              # monthly food expenses
+$ hledger-bar 1 --count food                    # monthly food posting counts
 $ hledger-bar -v 1 -f $TIMELOG -D               # daily hours, with numbers
 $ hledger-bar type:c not:tag:clopen cur:\\$ -W  # weekly cashflow, $ only
 $ hledger-bar type:al not:tag:clopen cur:\\$    # monthly net worth change ($)
-$ hledger-bar type:rx cur:\\$ --invert          # monthly profit/loss ($)
+$ hledger-bar type:rx --invert cur:\\$          # monthly profit/loss ($)
 $ hledger-bar type:rx --invert cur:\\$ --infer-market-prices --value=then,$
    # monthly profit/loss ($, plus anything that can be converted to $,
    # using conversion rates on transaction dates)
-$ hledger-bar . cur:\\$                         # all accounts change ($)
+$ hledger-bar . cur:\\$                         # all accounts' change ($)
 $ hledger bar -- . cur:\\\\$                    # as hledger subcommand
 
 EOS
