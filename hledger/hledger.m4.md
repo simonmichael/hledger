@@ -4974,10 +4974,11 @@ Forecast transactions are visible, but starting or ending too soon/too late ?
 - Next try setting explicit report start and/or end dates with `-b`, `-e`, `-p` or `date:`.
 - And/or override the forecast start and/or end date with `--forecast=STARTDATE..ENDDATE`
 
+<!--
 A future-dated transaction is making it harder to generate forecast transactions ?
 
-- If you have recorded some important future event as an ordinary transaction, and it is interfering with easy --forecast-ing, you could consider making it a (non-recurring) forecast transaction instead. Just insert a `~` before the date and make sure there 2+ spaces after the date: `~ YYYY-MM-DD  ...`. Then it won't suppress other forecast transactions (and you'll have to use `--forecast` to see it).
-
+- If you have recorded some important future event as an ordinary transaction, and it is interfering with easy --forecast-ing, you could consider making it a (non-recurring) forecast transaction instead. Just insert a `~` before the date and make sure there 2+ spaces after the date. Then it won't suppress other forecast transactions (and you'll have to use `--forecast` to see it).
+-->
 
 ## Forecast period, in detail
 
@@ -4989,8 +4990,8 @@ The forecast period starts on:
   - the start date in the periodic transaction rule
   - the start date in `--forecast`'s argument
 - or if neither of the above are available, the later of
-  - the day after the latest ordinary transaction in the journal
   - the report start date specified with `-b`/`-p`/`date:`
+  - the day after the latest ordinary transaction in the journal
 - or if none of the above are available: today.
 
 The forecast period ends on:
