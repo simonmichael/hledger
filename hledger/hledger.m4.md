@@ -4867,62 +4867,140 @@ are built in to hledger's journal format:
 
 # Forecasting
 
-The `--forecast` flag activates any [periodic transaction rules](#periodic-transactions) 
-in the journal. These will generate temporary additional transactions, 
-usually recurring and in the future, which will appear in all reports.
-`hledger print --forecast` is a good way to see them.
+Forecasting, or speculative future reporting, can be useful for estimating future balances, or for exploring different future scenarios.
 
-This can be useful for estimating balances into the future,
-perhaps experimenting with different scenarios.
+The simplest and most flexible way to do it with hledger is to manually record a bunch of future-dated transactions. You could keep these in a separate `future.journal` and include that with `-f` only when you want to see them.
 
-It could also be useful for scripted data entry: you could describe recurring
-transactions, and every so often copy the output of `print --forecast`
-into the journal.
+## --forecast
+There is another way: with the `--forecast` option, hledger can generate temporary "forecast transactions" for reporting purposes, according to [periodic transaction rules](#periodic-transactions) defined in the journal. Each rule can generate multiple recurring transactions, so by changing one rule you can change many forecasted transactions. (These same rules can also generate budget goals, described in [Budgeting](#budgeting).)
 
-The generated transactions will have an extra [tag](#tags), like
-`generated-transaction:~ PERIODICEXPR`, 
-indicating which periodic rule generated them.
-There is also a similar, hidden tag, named `_generated-transaction:`, 
-which you can use to reliably match transactions generated "just now"
-(rather than `print`ed in the past).
+Forecast transactions usually start after ordinary transactions end. By default, they begin after your latest-dated ordinary transaction, or today, whichever is later, and they end six months from today. (The exact rules are a little more complicated, and are given below.)
 
-The forecast transactions are generated within a *forecast period*,
-which is independent of the [report period](#report-start--end-date).
-(Forecast period sets the bounds for generated transactions,
-report period controls which transactions are reported.)
-The forecast period begins on:
+This is the "forecast period", which need not be the same as the [report period](#report-period). 
+You can override it - eg to forecast farther into the future, or to force forecast transactions to overlap your ordinary transactions - by giving the --forecast option a [period expression](#period-expressions) argument, like `--forecast=..2099` or `--forecast=2023-02-15..`. Note that the `=` is required.
 
-- the start date provided within `--forecast`'s argument, if any
-- otherwise, the later of
-  - the report start date, if specified (with `-b`/`-p`/`date:`)
-  - the day after the latest ordinary transaction in the journal, if any
-- otherwise today.
+## Inspecting forecast transactions
 
-It ends on:
+`print` is the best command for inspecting and troubleshooting forecast transactions. Eg:
+```journal
+~ monthly from 2022-12-20    rent
+    assets:bank:checking
+    expenses:rent           $1000
+```
+```terminal
+$ hledger print --forecast --today=2023/4/21
+2023-05-20 rent
+    ; generated-transaction: ~ monthly from 2022-12-20
+    assets:bank:checking
+    expenses:rent                  $1000
 
-- the end date provided within `--forecast`'s argument, if any
-- otherwise, the report end date, if specified (with `-e`/`-p`/`date:`)
-- otherwise 180 days (6 months) from today.
+2023-06-20 rent
+    ; generated-transaction: ~ monthly from 2022-12-20
+    assets:bank:checking
+    expenses:rent                  $1000
 
-Note, this means that ordinary transactions will suppress periodic transactions,
-by default; the periodic transactions will not start until after the last ordinary transaction.
-This is usually convenient, but you can get around it in two ways:
+2023-07-20 rent
+    ; generated-transaction: ~ monthly from 2022-12-20
+    assets:bank:checking
+    expenses:rent                  $1000
 
-- If you need to record some transactions in the future, make them 
-  periodic transactions (with a single occurrence, eg: `~ YYYY-MM-DD`) rather than ordinary transactions.
-  That way they won't suppress other periodic transactions.
+2023-08-20 rent
+    ; generated-transaction: ~ monthly from 2022-12-20
+    assets:bank:checking
+    expenses:rent                  $1000
 
-- Or give `--forecast` a [period expression](#period-expressions) argument.
-  A forecast period specified this way can overlap ordinary transactions, 
-  and need not be in the future. Some things to note:
+2023-09-20 rent
+    ; generated-transaction: ~ monthly from 2022-12-20
+    assets:bank:checking
+    expenses:rent                  $1000
+```
 
-  - You must use `=` between flag and argument; a space won't work.
-  - The period expression can specify the forecast period's start date, end date, or both.
-    See also [Report start & end date](#report-start--end-date).
-  - The period expression should not specify a [report interval](#report-intervals).
-    (Each periodic transaction rule specifies its own interval.)
+Here there are no ordinary transactions, so the forecasted transactions begin on the first occurence after today's date.
+(You won't normally use `--today`; it's just to make these examples reproducible.)
 
-Some examples: `--forecast=202001-202004`, `--forecast=jan-`, `--forecast=2021`.
+## Forecast transaction tags
+
+Note the `generated-transaction` tags added by hledger. They remind that these are temporary forecasted transactions, visible in reports only; and they show which rule was responsible. You can use these if you ever need to match forecast transactions in a query: `tag:generated-transaction`.
+
+(The same tag is also present, hidden, with the name `_generated-transaction`. You could use this to match transactions generated "just now", in a situation where you have others previously generated and saved in the journal.)
+
+## Forecast reports
+
+Forecast transactions affect all reports, as you would expect. Eg:
+
+```terminal
+$ hledger areg rent --forecast --today=2023/4/21
+Transactions in expenses:rent and subaccounts:
+2023-05-20 rent                 as:ba:checking               $1000         $1000
+2023-06-20 rent                 as:ba:checking               $1000         $2000
+2023-07-20 rent                 as:ba:checking               $1000         $3000
+2023-08-20 rent                 as:ba:checking               $1000         $4000
+2023-09-20 rent                 as:ba:checking               $1000         $5000
+```
+
+```terminal
+$ hledger bal -M expenses --forecast --today=2023/4/21
+Balance changes in 2023-05-01..2023-09-30:
+
+               ||   May    Jun    Jul    Aug    Sep 
+===============++===================================
+ expenses:rent || $1000  $1000  $1000  $1000  $1000 
+---------------++-----------------------------------
+               || $1000  $1000  $1000  $1000  $1000 
+```
+
+## Forecast troubleshooting
+When --forecast is not doing what you expect, here are some tips.
+
+Can't see what it's doing ?
+
+- Use `print --forecast`, as above.
+
+No forecast transactions are visible ?
+
+- Remember to use the `--forecast` option.
+- Remember to create at least one periodic transaction rule in your journal. 
+- Check for typos or restrictive start/end dates in your periodic transaction rule.
+- If your rule contains a transaction description, be sure to separate it from the period expression by at least 2 spaces.
+- Check for a future dated ordinary transaction suppressing forecasted transactions.
+- Set an explicit report end date with `-e`, `-p` or `date:`.
+- Add the `-E` flag to encourage display of empty periods/zero transactions.
+- Consult [Forecast period, in detail](#forecast-period-in-detail), below.
+- Check the engine: add the `--debug=N` option, increasing N from 1 to 9 as needed.
+
+Forecast transactions are visible, but starting or ending too soon/too late ?
+
+- First, adjust (or remove) any start/end dates within your periodic transaction rule.
+- Next try setting explicit report start and/or end dates with `-b`, `-e`, `-p` or `date:`.
+- And/or override the forecast start and/or end date with `--forecast=STARTDATE..ENDDATE`
+
+A future-dated transaction is making it harder to generate forecast transactions ?
+
+- If you have recorded some important future event as an ordinary transaction, and it is interfering with easy --forecast-ing, you could consider making it a (non-recurring) forecast transaction instead. Just insert a `~` before the date and make sure there 2+ spaces after the date: `~ YYYY-MM-DD  ...`. Then it won't suppress other forecast transactions (and you'll have to use `--forecast` to see it).
+
+
+## Forecast period, in detail
+
+Forecast start/end dates are chosen so as to do something useful by default in almost all situations, while also being flexible. Here are (with luck) the exact rules, to help with troubleshooting:
+
+The forecast period starts on:
+
+- the later of
+  - the start date in the periodic transaction rule
+  - the start date in `--forecast`'s argument
+- or if neither of the above are available, the later of
+  - the day after the latest ordinary transaction in the journal
+  - the report start date specified with `-b`/`-p`/`date:`
+- or if none of the above are available: today.
+
+The forecast period ends on:
+
+- the earlier of
+  - the end date in the periodic transaction rule
+  - the end date in `--forecast`'s argument
+- or if neither of the above are available
+  - the report end date specified with `-e`/`-p`/`date:`
+- or if none of the above are available: 180 days (~6 months) from today.
 
 # Budgeting
 
@@ -4930,7 +5008,9 @@ With the balance command's [`--budget` report](#budget-report),
 each periodic transaction rule generates recurring budget goals in specified accounts,
 and goals and actual performance can be compared.
 See the balance command's doc below.
- 
+
+You can generate budget goals and forecast transactions at the same time, from the same or different periodic transaction rules: `hledger bal -M --budget --forecast ...`
+
 See also: [Budgeting and Forecasting](/budgeting-and-forecasting.html).
 
 
