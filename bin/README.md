@@ -97,10 +97,16 @@ $ hledger simplebal
 ### hledger-bar
 
 [`hledger-bar`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-bar)
-prints quick and dirty bar charts in the terminal.
+prints quick bar charts in the terminal.
 
 ```cli
-$ hledger bar   # show help, examples
+$ hledger bar                                        # show help
+$ hledger bar food                                   # monthly food expenses
+$ hledger bar -- 1 --count food                      # monthly food posting counts
+$ hledger bar -- type:c not:tag:clopen cur:\\\\$ -W  # weekly cashflow, $ only
+$ hledger bar -- type:al not:tag:clopen cur:\\\\$    # monthly net worth change ($)
+$ hledger bar -- type:rx --invert cur:\\\\$          # monthly profit/loss ($)
+$ hledger bar -- -v 1 -f $TIMELOG -D                 # daily hours, with numbers
 ```
 
 ### hledger-git
