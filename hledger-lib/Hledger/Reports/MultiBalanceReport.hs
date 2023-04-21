@@ -322,10 +322,11 @@ calculateReportMatrix rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle startb
         -- changes to report on: usually just the valued changes themselves, but use the
         -- differences in the valued historical amount for CalcValueChange and CalcGain.
         changes = case balancecalc_ ropts of
-            CalcChange      -> M.mapWithKey avalue unvaluedChanges
-            CalcBudget      -> M.mapWithKey avalue unvaluedChanges
-            CalcValueChange -> periodChanges valuedStart historical
-            CalcGain        -> periodChanges valuedStart historical
+            CalcChange        -> M.mapWithKey avalue unvaluedChanges
+            CalcBudget        -> M.mapWithKey avalue unvaluedChanges
+            CalcValueChange   -> periodChanges valuedStart historical
+            CalcGain          -> periodChanges valuedStart historical
+            CalcPostingsCount -> M.mapWithKey avalue unvaluedChanges
         -- the historical balance is the valued cumulative sum of all unvalued changes
         historical = M.mapWithKey avalue $ cumulativeSum startingBalance unvaluedChanges
         -- since this is a cumulative sum of valued amounts, it should not be valued again
@@ -353,9 +354,15 @@ calculateReportMatrix rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle startb
 generateMultiBalanceReport :: ReportSpec -> Journal -> PriceOracle -> Set AccountName
                            -> [(DateSpan, [Posting])] -> HashMap AccountName Account
                            -> MultiBalanceReport
-generateMultiBalanceReport rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle unelidableaccts colps startbals =
+generateMultiBalanceReport rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle unelidableaccts colps0 startbals =
     report
   where
+    -- If doing --count, set all posting amounts to "1".
+    colps =
+      if balancecalc_ ropts == CalcPostingsCount
+      then map (second (map (postingTransformAmount (const $ mixed [num 1])))) colps0
+      else colps0
+
     -- Process changes into normal, cumulative, or historical amounts, plus value them
     matrix = calculateReportMatrix rspec j priceoracle startbals colps
 

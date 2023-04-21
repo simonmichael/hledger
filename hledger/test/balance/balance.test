@@ -205,3 +205,14 @@ $ hledger -f- bal -M -O html
 $ hledger -f- bal -MT -O html
 > //
 
+# 15. --count counts postings.
+<
+2023-01-01
+  a      10
+  a:aa   20
+  b
+$ hledger -f- bal --count -1
+                   2  a
+                   1  b
+--------------------
+                   3  

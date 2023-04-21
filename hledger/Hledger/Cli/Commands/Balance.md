@@ -39,6 +39,7 @@ Many of these work with the higher-level commands as well.
 - or value of balance changes ([`-V`](#valuation-type))
 - or change of balance values ([`--valuechange`](#balance-report-types))
 - or unrealised capital gain/loss ([`--gain`](#balance-report-types))
+- or postings count ([`--count`](#balance-report-types))
 
 ..in..
 
@@ -418,7 +419,7 @@ To see accurate historical end balances:
 
 The balance command is quite flexible; here is the full detail on how to control what it reports.
 If the following seems complicated, don't worry - this is for advanced reporting,
-and it does typically take some time and experimentation to get clear on all these report modes.
+and it does take time and experimentation to get familiar with all the report modes.
 
 There are three important option groups:
 
@@ -435,6 +436,7 @@ It is one of:
   (caused by deposits, withdrawals, and/or market price fluctuations)
 - `--gain` : show the unrealised capital gain/loss, (the current valued balance
   minus each amount's original cost)
+- `--count` : show the count of postings
 
 #### Accumulation type
 

@@ -284,6 +284,7 @@ import Hledger.Read.CsvReader (CSV, printCSV)
 balancemode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Balance.txt")
   (
+    -- https://hledger.org/dev/hledger.html#calculation-type :
     [flagNone ["sum"] (setboolopt "sum")
       "show sum of posting amounts (default)"
     -- XXX --budget[=DESCPAT], --forecast[=PERIODEXP], could be more consistent
@@ -298,6 +299,8 @@ balancemode = hledgerCommandMode
       "show total change of value of period-end historical balances (caused by deposits, withdrawals, market price fluctuations)"
     ,flagNone ["gain"] (setboolopt "gain")
       "show unrealised capital gain/loss (historical balance value minus cost basis)"
+    ,flagNone ["count"] (setboolopt "count") "show the count of postings"
+    -- https://hledger.org/dev/hledger.html#accumulation-type :
     ,flagNone ["change"] (setboolopt "change")
       "accumulate amounts from column start to column end (in multicolumn reports, default)"
     ,flagNone ["cumulative"] (setboolopt "cumulative")
@@ -305,6 +308,7 @@ balancemode = hledgerCommandMode
     ,flagNone ["historical","H"] (setboolopt "historical")
       "accumulate amounts from journal start to column end (includes postings before report start date)\n "
     ]
+    -- other options specific to this command:
     ++ flattreeflags True ++
     [flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "omit N leading account name parts (in flat mode)"
     ,flagNone ["declared"] (setboolopt "declared") "include non-parent declared accounts (best used with -E)"
@@ -326,6 +330,7 @@ balancemode = hledgerCommandMode
         ,"'bare'        : commodity symbols in one column"
         ,"'tidy'        : every attribute in its own column"
         ])
+    -- output:
     ,outputFormatFlag ["txt","html","csv","json"]
     ,outputFileFlag
     ]

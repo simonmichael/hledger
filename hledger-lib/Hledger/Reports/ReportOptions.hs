@@ -88,10 +88,11 @@ import Hledger.Utils
 -- | What to calculate for each cell in a balance report.
 -- "Balance report types -> Calculation type" in the hledger manual.
 data BalanceCalculation =
-    CalcChange      -- ^ Sum of posting amounts in the period.
-  | CalcBudget      -- ^ Sum of posting amounts and the goal for the period.
-  | CalcValueChange -- ^ Change from previous period's historical end value to this period's historical end value.
-  | CalcGain        -- ^ Change from previous period's gain, i.e. valuation minus cost basis.
+    CalcChange        -- ^ Sum of posting amounts in the period.
+  | CalcBudget        -- ^ Sum of posting amounts and the goal for the period.
+  | CalcValueChange   -- ^ Change from previous period's historical end value to this period's historical end value.
+  | CalcGain          -- ^ Change from previous period's gain, i.e. valuation minus cost basis.
+  | CalcPostingsCount -- ^ Number of postings in the period.
   deriving (Eq, Show)
 
 instance Default BalanceCalculation where def = CalcChange
@@ -318,6 +319,7 @@ balancecalcopt =
       "valuechange" -> Just CalcValueChange
       "gain"        -> Just CalcGain
       "budget"      -> Just CalcBudget
+      "count"       -> Just CalcPostingsCount
       _             -> Nothing
 
 balanceaccumopt :: RawOpts -> BalanceAccumulation

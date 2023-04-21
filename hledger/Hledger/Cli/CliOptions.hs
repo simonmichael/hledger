@@ -162,7 +162,7 @@ reportflags = [
  ,flagReq  ["depth"]         (\s opts -> Right $ setopt "depth" s opts) "NUM" "(or -NUM): hide accounts/postings deeper than this"
  ,flagNone ["empty","E"]     (setboolopt "empty") "show items with zero amount, normally hidden (and vice-versa in hledger-ui/hledger-web)"
 
-  -- valuation
+  -- valuation, including https://hledger.org/dev/hledger.html#valuation-type :
  ,flagNone ["B","cost"]      (setboolopt "B")
    "show amounts converted to their cost/selling amount, using the transaction price."
  ,flagNone ["V","market"]    (setboolopt "V")
