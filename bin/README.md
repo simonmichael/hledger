@@ -100,6 +100,14 @@ $ hledger simplebal
 prints quick bar charts in the terminal.
 
 ```cli
+$ hledger bar reimbursement
+2023-01	++++++
+2023-02	++
+2023-03	++
+2023-04	-------
+```
+
+```cli
 $ hledger bar                                        # show help
 $ hledger bar food                                   # monthly food expenses
 $ hledger bar -- 1 --count food                      # monthly food posting counts
