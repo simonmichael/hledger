@@ -548,18 +548,14 @@ Budget performance in 2017/11/01-2017/12/31:
                       ||      0 [              0]       0 [              0] 
 ```
 
-This is different from a normal balance report in several ways:
+This is different from a normal balance report in several ways. Currently:
 
-- Only accounts with budget goals during the report period are shown, by default.
-
-- In each column, in square brackets after the actual amount, 
-  budget goal amounts are shown, and the actual/goal percentage.
-  (Note: budget goals should be in the same commodity as the actual amount.)
-
-- All parent accounts are always shown, even in list mode. 
-  Eg assets, assets:bank, and expenses above.
-
-- Amounts always include all subaccounts, budgeted or unbudgeted, even in list mode.
+- Accounts with budget goals during the report period, and their parents, are shown.
+- Their subaccounts are not shown (regardless of the depth setting).
+- Accounts without budget goals, if any, are aggregated and shown as "\<unbudgeted>".
+- Amounts are always inclusive (subaccount-including), even in list mode.
+- After each actual amount, the corresponding goal amount and percentage
+  of goal reached are also shown, in square brackets.
 
 This means that the numbers displayed will not always add up!
 Eg above, the `expenses`  actual amount includes the gifts and supplies transactions,
