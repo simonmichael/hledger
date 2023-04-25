@@ -853,7 +853,6 @@ P 2022-01-01 AAAA $1.40
     expenses:tax:us:2021      $500  ; plus  means added to this account (debit)
                                     ; revenue/expense categories are also "accounts"
 
-Kv
 2022-01-01                          ; The description is optional.
     ; Any currency/commodity symbols are allowed, on either side.
     assets:cash:wallet     GBP -10
