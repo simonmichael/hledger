@@ -125,9 +125,9 @@ makePostingErrorExcerpt p findpostingerrorcolumns =
             commentExtraLines (tcomment t) + 
             sum (map postingLines $ take pindex $ tpostings t)
             where
+              -- How many lines are used to render this posting ?
               postingLines p' = 1 + commentExtraLines (pcomment p')
-              -- How many extra lines does this possibly multi-line
-              -- transaction/posting comment add when rendered ?
+              -- How many extra lines does this comment add to a transaction or posting rendering ?
               commentExtraLines c = max 0 (length (T.lines c) - 1)
         errabsline = unPos tl + errrelline
         txntxt = showTransaction t & textChomp & (<>"\n")
