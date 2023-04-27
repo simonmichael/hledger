@@ -1,14 +1,9 @@
---exclude=.build
---exclude=.idea
---exclude=.shake
---exclude=.stack-work
---exclude=.vagrant
---exclude=.vscode
+--exclude=.*
 --exclude=_*
 --exclude=bin
 --exclude=doc/irc
 --exclude=doc/profs
---exclude=dist
+--exclude=dist*
 --exclude=examples
 --exclude=bootstrap*
 --exclude=excanvas*
@@ -16,6 +11,6 @@
 --exclude=jquery*
 --exclude=typeahead*
 --exclude=old
---exclude=site/doc
---exclude=site/files
+--exclude=site/out*
+--exclude=site/src/1*
 --exclude=hledger/test/addons/hledger-*

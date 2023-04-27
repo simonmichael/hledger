@@ -1102,22 +1102,13 @@ cabalusage: \
 	$(call def-help,cabalusage, show size of cabal working dirs if any )
 	-du -shc */dist* 2>/dev/null
 
-# Tag haskell files with hasktags and just list the other main source files
-# so they will be traversed by tags-search/tags-query-replace.
-# etags:
-# 	rm -f TAGS
-# 	hasktags -e $(SOURCEFILES)
-# 	for f in Makefile $(WEBCODEFILES) $(HPACKFILES) $(CABALFILES) $(DOCSOURCEFILES); do \
-# 		printf "\n$$f,1\n" >> TAGS; \
-# 	done
-
-# Tag:
-# - haskell files, with hasktags
-# - everything else not excluded by .ctags, with (exuberant) ctags
-# - files currently missed by the above, just their names (docs, hpack, cabal..)
-etags:$(call def-help,etags, generate emacs tag files for source code navigation )
+# Generate an emacs TAGS file. Tag:
+# 1. haskell source files with hasktags
+# 2. other source files recognised by (exuberant) ctags and not excluded by .ctags. Keep .ctags up to date.
+# 3. some extra files missed by the above, as just their file names (for tags-search, tags-query-replace etc.)
+etags:$(call def-help,etags, generate emacs TAGS file for haskell source and other project files )
 	hasktags -e $(SOURCEFILES)
-	ctags -a -e -R  
+	ctags -a -e -R
 	for f in \
 		$(WEBTEMPLATEFILES) \
 		$(DOCSOURCEFILES) \
@@ -1125,6 +1116,7 @@ etags:$(call def-help,etags, generate emacs tag files for source code navigation
 		$(CABALFILES) \
 		Shake.hs \
 	; do printf "\n$$f,1\n" >> TAGS; done
+	-etagsls >TAGS.files
 
 cleantags: \
 	$(call def-help-hide,cleantags, remove tag files )
