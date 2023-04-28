@@ -785,13 +785,16 @@ journalUntieTransactions t@Transaction{tpostings=ps} = t{tpostings=map (\p -> p{
 -- postings to transactions, eg). Or if a modifier rule fails to parse,
 -- return the error message. A reference date is provided to help interpret
 -- relative dates in transaction modifier queries.
-journalModifyTransactions :: Day -> Journal -> Either String Journal
-journalModifyTransactions d j =
-    case modifyTransactions (journalAccountType j) (journalInheritedAccountTags j) (journalCommodityStyles j) d (jtxnmodifiers j) (jtxns j) of
-      Right ts -> Right j{jtxns=ts}
-      Left err -> Left err
-
---
+-- The first argument selects whether to modify only generated (--forecast) transactions (False),
+-- or all transactions (True).
+journalModifyTransactions :: Bool -> Day -> Journal -> Either String Journal
+journalModifyTransactions alltxns d j =
+  case modifyTransactions predfn (journalAccountType j) (journalInheritedAccountTags j) (journalCommodityStyles j) d (jtxnmodifiers j) (jtxns j) of
+    Right ts -> Right j{jtxns=ts}
+    Left err -> Left err
+  where
+    predfn = if alltxns then const True else isgenerated
+    isgenerated = matchesTransaction (Tag (toRegex' "_generated-transaction") Nothing)
 
 -- | Choose and apply a consistent display style to the posting
 -- amounts in each commodity (see journalCommodityStyles).

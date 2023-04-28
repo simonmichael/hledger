@@ -25,7 +25,8 @@ import Hledger.Data.Transaction (txnTieKnot)
 import Hledger.Query (Query, filterQuery, matchesAmount, matchesPostingExtra,
                       parseQuery, queryIsAmt, queryIsSym, simplifyQuery)
 import Hledger.Data.Posting (commentJoin, commentAddTag, postingAddTags, postingApplyCommodityStyles)
-import Hledger.Utils (dbg6, wrap)
+import Hledger.Utils (wrap)
+import Hledger.Utils.Debug
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -33,25 +34,27 @@ import Hledger.Utils (dbg6, wrap)
 -- >>> import Hledger.Data.Transaction
 -- >>> import Hledger.Data.Journal
 
--- | Apply all the given transaction modifiers, in turn, to each transaction.
+-- | Apply all the given transaction modifiers, in turn, to each transaction
+-- for which the given predicate is true.
 -- Or if any of them fails to be parsed, return the first error. A reference
 -- date is provided to help interpret relative dates in transaction modifier
 -- queries.
-modifyTransactions :: (AccountName -> Maybe AccountType)
+modifyTransactions :: (Transaction -> Bool)
+                   -> (AccountName -> Maybe AccountType)
                    -> (AccountName -> [Tag])
                    -> M.Map CommoditySymbol AmountStyle
                    -> Day -> [TransactionModifier] -> [Transaction]
                    -> Either String [Transaction]
-modifyTransactions atypes atags styles d tmods ts = do
+modifyTransactions predfn atypes atags styles d tmods ts = do
   fs <- mapM (transactionModifierToFunction atypes atags styles d) tmods  -- convert modifiers to functions, or return a parse error
   let
-    modifytxn t = t''
+    maybemodifytxn t = if predfn t then t'' else t
       where
         t' = foldr (flip (.)) id fs t  -- apply each function in turn
         t'' = if t' == t  -- and add some tags if it was changed
               then t'
               else t'{tcomment=tcomment t' `commentAddTag` ("modified",""), ttags=("modified","") : ttags t'}
-  Right $ map modifytxn ts
+  Right $ map maybemodifytxn ts
 
 -- | Converts a 'TransactionModifier' to a 'Transaction'-transforming function
 -- which applies the modification(s) specified by the TransactionModifier.
