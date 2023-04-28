@@ -2436,27 +2436,26 @@ So,
 - Do write two spaces between your period expression and your transaction description, if any.
 - Don't accidentally write two spaces in the middle of your period expression.
 
-## Other syntax
+## Auto postings
 
-hledger journal format supports quite a few other features,
-mainly to make interoperating with or converting from Ledger easier.
-Note some of the features below are powerful and can be useful in special cases,
-but in general, features in this section are considered less important
-or even not recommended for most users.
-Downsides are mentioned to help you decide if you want to use them.
+The `=` directive declares a rule for generating temporary extra postings 
+on transactions. Wherever the rule matches an existing posting, it can
+add one or more companion postings below that one, optionally influenced
+by the matched posting's amount. This can be useful for generating
+tax postings with a standard percentage, for example.
 
-### Auto postings
+By default, these auto posting rules are applied to transactions generated
+with --forecast (since 1.30), but not to transactions recorded in the journal.
+This means you can use `~` (periodic transaction) and `=` (auto posting) rules
+together to generate forecast transactions, and when such a transaction actually occurs,
+you can save the generated entry to the journal, finalising it.
 
-The `=` directive declares a rule for automatically adding
-temporary extra postings (visible in reports, not in the journal file)
-to all transactions matched by a certain query,
-when you use the `--auto` flag.
-
-Downsides: depending on generated data for your reports makes
-your financial data less portable, less future-proof,
-and less trustworthy in an audit. Also, because the feature
-is optional, other features like balance assertions can break
-depending on whether it is on or off.
+If instead you want to apply auto posting rules to recorded transactions
+as well, then use the `--auto` flag.
+This is not the default behaviour because depending on generated data
+is not ideal for financial records (it's less portable, less future-proof,
+less auditable, and less robust, since other features like balance assertions
+will be affected by the use or non-use of `--auto`.)
 
 An auto posting rule looks a bit like a transaction:
 ```journal
@@ -2562,6 +2561,14 @@ Also, any transaction that has been changed by auto posting rules will have thes
 - `modified:` - this transaction was modified
 - `_modified:` - a hidden tag not appearing in the comment; this transaction was modified "just now".
 
+## Other syntax
+
+hledger journal format supports quite a few other features,
+mainly to make interoperating with or converting from Ledger easier.
+Note some of the features below are powerful and can be useful in special cases,
+but in general, features in this section are considered less important
+or even not recommended for most users.
+Downsides are mentioned to help you decide if you want to use them.
 
 ### Balance assignments
 
@@ -4984,6 +4991,12 @@ When --forecast is not doing what you expect, one of these tips should help:
 - Try setting explicit forecast start and/or end dates with `--forecast=START..END`
 - Consult [Forecast period, in detail](#forecast-period-in-detail), above.
 - Check inside the engine: add `--debug=2` (eg).
+
+## Forecast and auto postings
+
+Forecast transactions have one more feature: when they are generated,
+any applicable [auto posting rules](#auto-postings) will also be applied to them,
+generating additional postings. These are described below.
 
 # Budgeting
 
