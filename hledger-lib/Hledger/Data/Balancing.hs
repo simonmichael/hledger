@@ -33,8 +33,10 @@ import Control.Monad.Reader as R (ReaderT, reader, runReaderT, ask, asks)
 import Control.Monad.ST (ST, runST)
 import Control.Monad.Trans.Class (lift)
 import Data.Array.ST (STArray, getElems, newListArray, writeArray)
+import Data.Bifunctor (second)
 import Data.Foldable (asum)
 import Data.Function ((&))
+import Data.Functor ((<&>))
 import "base-compat" Data.Functor.Compat (void)
 import qualified Data.HashTable.Class as H (toList)
 import qualified Data.HashTable.ST.Cuckoo as H
@@ -504,9 +506,17 @@ balanceTransactionAndCheckAssertionsB (Left p@Posting{}) =
 balanceTransactionAndCheckAssertionsB (Right t@Transaction{tpostings=ps}) = do
   -- make sure we can handle the balance assignments
   mapM_ checkIllegalBalanceAssignmentB ps
-  -- for each posting, infer its amount from the balance assignment if applicable,
-  -- update the account's running balance and check the balance assertion if any
-  ps' <- mapM (addOrAssignAmountAndCheckAssertionB . postingStripPrices) ps
+  -- for each posting, in date order (though without disturbing their display order),
+  -- 1. infer its amount from the balance assignment if applicable,
+  -- 2. update the account's running balance, and
+  -- 3. check the balance assertion if any.
+  ps' <- ps
+    & zip [1..]                 -- attach original positions
+    & sortOn (postingDate.snd)  -- sort by date
+    & mapM (addOrAssignAmountAndCheckAssertionB . second postingStripPrices)  -- infer amount, check assertion on each one
+    <&> sortOn fst              -- restore original order
+    <&> map snd                 -- discard positions
+
   -- infer any remaining missing amounts, and make sure the transaction is now fully balanced
   styles <- R.reader bsStyles
   case balanceTransactionHelper defbalancingopts{commodity_styles_=styles} t{tpostings=ps'} of
@@ -517,18 +527,20 @@ balanceTransactionAndCheckAssertionsB (Right t@Transaction{tpostings=ps}) = do
       -- and save the balanced transaction.
       updateTransactionB t'
 
+type NumberedPosting = (Integer, Posting)
+
 -- | If this posting has an explicit amount, add it to the account's running balance.
 -- If it has a missing amount and a balance assignment, infer the amount from, and
 -- reset the running balance to, the assigned balance.
 -- If it has a missing amount and no balance assignment, leave it for later.
 -- Then test the balance assertion if any.
-addOrAssignAmountAndCheckAssertionB :: Posting -> Balancing s Posting
-addOrAssignAmountAndCheckAssertionB p@Posting{paccount=acc, pamount=amt, pbalanceassertion=mba}
+addOrAssignAmountAndCheckAssertionB :: NumberedPosting -> Balancing s NumberedPosting
+addOrAssignAmountAndCheckAssertionB (i,p@Posting{paccount=acc, pamount=amt, pbalanceassertion=mba})
   -- an explicit posting amount
   | hasAmount p = do
       newbal <- addToRunningBalanceB acc amt
       whenM (R.reader bsAssrt) $ checkBalanceAssertionB p newbal
-      return p
+      return (i,p)
 
   -- no explicit posting amount, but there is a balance assignment
   | Just BalanceAssertion{baamount,batotal,bainclusive} <- mba = do
@@ -542,10 +554,10 @@ addOrAssignAmountAndCheckAssertionB p@Posting{paccount=acc, pamount=amt, pbalanc
       diff <- (if bainclusive then setInclusiveRunningBalanceB else setRunningBalanceB) acc newbal
       let p' = p{pamount=filterMixedAmount (not . amountIsZero) diff, poriginal=Just $ originalPosting p}
       whenM (R.reader bsAssrt) $ checkBalanceAssertionB p' newbal
-      return p'
+      return (i,p')
 
   -- no explicit posting amount, no balance assignment
-  | otherwise = return p
+  | otherwise = return (i,p)
 
 -- | Add the posting's amount to its account's running balance, and
 -- optionally check the posting's balance assertion if any.

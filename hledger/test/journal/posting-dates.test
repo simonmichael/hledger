@@ -50,3 +50,21 @@ end comment
 $ hledger -f- register
 >2 /-:9:21/
 >= 1
+
+# 5. In this example, the second posting's later date causes the third posting to be processed
+# before it, inferring a -1 amount, causing this transaction to be considered unbalanced. (#2025)
+<
+2023-01-01
+    Expenses    1
+    Assets     -1      ; date: 2023-01-02
+    Assets        = -1
+$ hledger -f- print
+>2 /
+1 \| 2023-01-01
+  \|     Expenses               1
+  \|     Assets                -1  ; date: 2023-01-02
+  \|     Assets                -1 = -1
+
+This transaction is unbalanced.
+/
+>= 1
