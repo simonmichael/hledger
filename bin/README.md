@@ -137,23 +137,6 @@ $ hledger pijul status
 $ hledger pijul record [MSG]
 ```
 
-### hledger-lots
-
-[`hledger-lots`](https://github.com/edkedk99/hledger-lots)
-shows a lots report, or generates a lot sale transaction, using FIFO strategy
-(and without needing subaccounts for lots).
-
-Install or upgrade:
-```
-$ pip install -U hledger-lots
-```
-Examples:
-```cli
-$ hledger lots
-$ hledger lots view
-$ hledger lots list
-```
-
 ### hledger-edit
 
 The [hledger-utils python package](https://pypi.org/project/hledger-utils/) provides
@@ -191,6 +174,23 @@ Examples:
 ```
 $ hledger-plot -h
 $ hledger plot -- bal -DH ^Assets -2
+```
+
+### hledger-lots
+
+[`hledger-lots`](https://github.com/edkedk99/hledger-lots)
+shows a lots report, or generates a lot sale transaction, using FIFO strategy
+(and without needing subaccounts for lots).
+
+Install or upgrade:
+```
+$ pip install -U hledger-lots
+```
+Examples:
+```cli
+$ hledger lots
+$ hledger lots view
+$ hledger lots list
 ```
 
 ## HLEDGER-INTEGRATED
