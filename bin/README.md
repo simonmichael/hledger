@@ -137,24 +137,21 @@ $ hledger pijul status
 $ hledger pijul record [MSG]
 ```
 
-### hledger-fifo
+### hledger-lots
 
-[`hledger-fifo`](https://github.com/edkedk99/hledger-fifo)
+[`hledger-lots`](https://github.com/edkedk99/hledger-lots)
 shows a lots report, or generates a lot sale transaction, using FIFO strategy
 (and without needing subaccounts for lots).
 
 Install or upgrade:
 ```
-$ pip install -U git+https://github.com/edkedk99/hledger-fifo
+$ pip install -U hledger-lots
 ```
 Examples:
 ```cli
-$ hledger fifo
-$ hledger fifo lots -h
-$ hledger fifo lots
-$ hledger-fifo lots -c ADA -n 'closing balances'
-$ hledger fifo sell
-$ hledger fifo -- sell -c ADA -n 'closing balances' -b '$' -a assets:bank:checking -r 'revenues:capital gains' -d 2023-02-20 -q 100.23 -p 0.40
+$ hledger lots
+$ hledger lots view
+$ hledger lots list
 ```
 
 ### hledger-edit
@@ -321,7 +318,7 @@ $ cd hledger; bin/compile.sh
 
 # Optionally, install the python scripts:
 $ pip install -U hledger-utils
-$ pip install -U git+https://github.com/edkedk99/hledger-fifo
+$ pip install -U hledger-lots
 
 # Check that hledger's command list now includes the bin scripts.
 # Eg "check-fancyassertions" and "swap-dates" should be listed:
