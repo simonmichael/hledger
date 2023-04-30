@@ -242,7 +242,7 @@ $ hledger -f- print --auto
 #
 
 
-## Transaction modifiers affect only forecast transactions by default:
+## Transaction modifiers affect forecast transactions (#959)
 <
 = ^income
   (liabilities:tax)  *.33  ; income tax
@@ -252,15 +252,15 @@ $ hledger -f- print --auto
     income:donations         $-15
     assets:bank
 
-2016/1/3
-    assets:cash             $100
-    income:gifts
+2016/1/3 withdraw
+    assets:cash             $20
+    assets:bank
 
 # 13.
-$ hledger print -f- --forecast -b 2016-01 -e 2016-03
-2016-01-03
-    assets:cash             $100
-    income:gifts
+$ hledger print -f- --auto --forecast -b 2016-01 -e 2016-03
+2016-01-03 withdraw
+    assets:cash             $20
+    assets:bank
 
 2016-02-01 paycheck
     income:remuneration           $-100
@@ -271,18 +271,15 @@ $ hledger print -f- --forecast -b 2016-01 -e 2016-03
 
 >=
 
-# 14. With --auto, they affect all transactions:
-$ hledger print -f- --auto --forecast -b 2016-01 -e 2016-03
-2016-01-03
-    assets:cash                  $100
-    income:gifts
-    (liabilities:tax)            $-33  ; income tax
+# 14. and they don't force --auto on
+$ hledger print -f- --forecast -b 2016-01 -e 2016-03
+2016-01-03 withdraw
+    assets:cash             $20
+    assets:bank
 
 2016-02-01 paycheck
     income:remuneration           $-100
-    (liabilities:tax)              $-33  ; income tax
     income:donations               $-15
-    (liabilities:tax)            $-4.95  ; income tax
     assets:bank
 
 >=

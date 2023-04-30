@@ -26,8 +26,7 @@ import Hledger.Data.Transaction (txnTieKnot)
 import Hledger.Query (Query, filterQuery, matchesAmount, matchesPostingExtra,
                       parseQuery, queryIsAmt, queryIsSym, simplifyQuery)
 import Hledger.Data.Posting (commentJoin, commentAddTag, postingAddTags, postingApplyCommodityStyles)
-import Hledger.Utils (wrap)
-import Hledger.Utils.Debug
+import Hledger.Utils (dbg6, wrap)
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -35,21 +34,19 @@ import Hledger.Utils.Debug
 -- >>> import Hledger.Data.Transaction
 -- >>> import Hledger.Data.Journal
 
--- | Apply all the given transaction modifiers, in turn, to each transaction
--- for which the given predicate is true.
+-- | Apply all the given transaction modifiers, in turn, to each transaction.
 -- Or if any of them fails to be parsed, return the first error. A reference
 -- date is provided to help interpret relative dates in transaction modifier
 -- queries.
-modifyTransactions :: (Transaction -> Bool)
-                   -> (AccountName -> Maybe AccountType)
+modifyTransactions :: (AccountName -> Maybe AccountType)
                    -> (AccountName -> [Tag])
                    -> M.Map CommoditySymbol AmountStyle
                    -> Day -> Bool -> [TransactionModifier] -> [Transaction]
                    -> Either String [Transaction]
-modifyTransactions predfn atypes atags styles d verbosetags tmods ts = do
+modifyTransactions atypes atags styles d verbosetags tmods ts = do
   fs <- mapM (transactionModifierToFunction atypes atags styles d verbosetags) tmods  -- convert modifiers to functions, or return a parse error
   let
-    maybemodifytxn t = if predfn t then t'' else t
+    modifytxn t = t''
       where
         t' = foldr (flip (.)) id fs t  -- apply each function in turn
         t'' = if t' == t
@@ -58,7 +55,7 @@ modifyTransactions predfn atypes atags styles d verbosetags tmods ts = do
                      ,ttags=ttags t' & (("_modified","") :) & (if verbosetags then (("modified","") :) else id)
                      }
 
-  Right $ map maybemodifytxn ts
+  Right $ map modifytxn ts
 
 -- | Converts a 'TransactionModifier' to a 'Transaction'-transforming function
 -- which applies the modification(s) specified by the TransactionModifier.

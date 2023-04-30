@@ -2444,18 +2444,10 @@ add one or more companion postings below that one, optionally influenced
 by the matched posting's amount. This can be useful for generating
 tax postings with a standard percentage, for example.
 
-By default, these auto posting rules are applied to transactions generated
-with --forecast (since 1.30), but not to transactions recorded in the journal.
-This means you can use `~` (periodic transaction) and `=` (auto posting) rules
-together to generate forecast transactions, and when such a transaction actually occurs,
-you can save the generated entry to the journal, finalising it.
-
-If instead you want to apply auto posting rules to recorded transactions
-as well, then use the `--auto` flag.
-This is not the default behaviour because depending on generated data
-is not ideal for financial records (it's less portable, less future-proof,
-less auditable, and less robust, since other features like balance assertions
-will be affected by the use or non-use of `--auto`.)
+Note that depending on generated data is not ideal for financial records
+(it's less portable, less future-proof, less auditable by others, 
+and less robust, since other features like balance assertions will depend
+on using or not using `--auto`).
 
 An auto posting rule looks a bit like a transaction:
 ```journal
@@ -5013,12 +5005,6 @@ When --forecast is not doing what you expect, one of these tips should help:
 - Try setting explicit forecast start and/or end dates with `--forecast=START..END`
 - Consult [Forecast period, in detail](#forecast-period-in-detail), above.
 - Check inside the engine: add `--debug=2` (eg).
-
-## Forecast and auto postings
-
-Forecast transactions have one more feature: when they are generated,
-any applicable [auto posting rules](#auto-postings) will also be applied to them,
-generating additional postings. These are described below.
 
 # Budgeting
 

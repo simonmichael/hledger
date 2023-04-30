@@ -325,8 +325,8 @@ journalFinalise iopts@InputOpts{..} f txt pj = do
       &   journalApplyCommodityStyles                    -- Infer and apply commodity styles - should be done early
       <&> journalAddForecast (verbose_tags_) (forecastPeriod iopts pj)   -- Add forecast transactions if enabled
       <&> journalPostingsAddAccountTags                  -- Add account tags to postings, so they can be matched by auto postings.
-      >>= (if not (null $ jtxnmodifiers pj)
-            then journalAddAutoPostings auto_ verbose_tags_ _ioDay balancingopts_  -- Add auto postings if enabled, and account tags if needed
+      >>= (if auto_ && not (null $ jtxnmodifiers pj)
+            then journalAddAutoPostings verbose_tags_ _ioDay balancingopts_  -- Add auto postings if enabled, and account tags if needed
             else pure)
       -- >>= Right . dbg0With (concatMap (T.unpack.showTransaction).jtxns)  -- debug
       >>= journalMarkRedundantCosts                      -- Mark redundant costs, to help journalBalanceTransactions ignore them
@@ -347,16 +347,15 @@ journalFinalise iopts@InputOpts{..} f txt pj = do
     return j
 
 -- | Apply any auto posting rules to generate extra postings on this journal's transactions.
--- With a true first argument, applies them to all transactions, otherwise only to generated transactions.
--- With a true second argument, adds visible tags to generated postings and modified transactions.
-journalAddAutoPostings :: Bool -> Bool -> Day -> BalancingOpts -> Journal -> Either String Journal
-journalAddAutoPostings alltxns verbosetags d bopts =
+-- With a true first argument, adds visible tags to generated postings and modified transactions.
+journalAddAutoPostings :: Bool -> Day -> BalancingOpts -> Journal -> Either String Journal
+journalAddAutoPostings verbosetags d bopts =
     -- Balance all transactions without checking balance assertions,
     journalBalanceTransactions bopts{ignore_assertions_=True}
     -- then add the auto postings
     -- (Note adding auto postings after balancing means #893b fails;
     -- adding them before balancing probably means #893a, #928, #938 fail.)
-    >=> journalModifyTransactions alltxns verbosetags d
+    >=> journalModifyTransactions verbosetags d
 
 -- | Generate periodic transactions from all periodic transaction rules in the journal.
 -- These transactions are added to the in-memory Journal (but not the on-disk file).
