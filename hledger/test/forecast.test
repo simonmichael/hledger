@@ -49,7 +49,6 @@ $ hledger print -b 2016-11 -e 2017-02 -f - --forecast
     assets:cash
 
 2017-01-01 * marked cleared, and with a description
-    ; generated-transaction: ~ monthly from 2016/1
     income                    $-1000
     expenses:food                $20
     expenses:leisure             $15
@@ -109,7 +108,8 @@ Y 2000
 
 # 5. Y affects M/D partial dates in periodic transactions.
 # The recur tag shows the original period expression and is not modified.
-$ hledger -f - print --forecast desc:forecast
+# Also the --verbose-tags flag adds a visible tag.
+$ hledger -f - print --forecast desc:forecast --verbose-tag
 2000-02-01 forecast
     ; generated-transaction: ~ 2/1
 
@@ -126,7 +126,6 @@ Y 2000
 # 6. Y also sets the month to 1, affecting D dates:
 $ hledger -f - print --forecast desc:forecast
 2000-01-15 forecast
-    ; generated-transaction: ~ 15
 
 >=0
 
@@ -141,7 +140,6 @@ Y 2000
 # 7. Y also sets the day to 1, affecting relative dates:
 $ hledger -f - print --forecast desc:forecast
 2000-02-01 forecast
-    ; generated-transaction: ~ next month
 
 >=0
 
@@ -210,7 +208,7 @@ $ hledger -f - reg --forecast date:202001
     Costs
 
 # 11. Forecast transactions work with balance assignments
-$ hledger -f - print -x --forecast -e 2021-11
+$ hledger -f - print -x --forecast -e 2021-11 --verbose-tags
 2021-09-01 Normal Balance Assertion Works
     Checking             -60 = -60
     Costs                 60

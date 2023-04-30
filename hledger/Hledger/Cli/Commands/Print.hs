@@ -105,7 +105,7 @@ originalPostingPreservingAccount p = orig
     , pamount = pamount $ if isGenerated then p else orig }
   where
     orig = originalPosting p
-    isGenerated = "generated-posting" `elem` map fst (ptags p)
+    isGenerated = "_generated-posting" `elem` map fst (ptags p)
 
 -- XXX
 -- tests_showTransactions = [

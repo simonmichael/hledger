@@ -81,9 +81,9 @@ D $1000.
   (a)  €1
 
 $ hledger -f- print --auto
-2018-01-01  ; modified:
+2018-01-01
     (a)              €1
-    (b)              €2  ; generated-posting: = a
+    (b)              €2
 
 >=0
 

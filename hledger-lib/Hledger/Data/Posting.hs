@@ -74,6 +74,7 @@ where
 
 import Data.Default (def)
 import Data.Foldable (asum)
+import Data.Function ((&))
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, mapMaybe)
 import Data.List (foldl', sort, union)
@@ -439,8 +440,8 @@ postingToCost styles ToCost         p
 -- | Generate inferred equity postings from a 'Posting' using transaction prices.
 -- Make sure not to generate equity postings when there are already matched
 -- conversion postings.
-postingAddInferredEquityPostings :: Text -> Posting -> [Posting]
-postingAddInferredEquityPostings equityAcct p
+postingAddInferredEquityPostings :: Bool -> Text -> Posting -> [Posting]
+postingAddInferredEquityPostings verbosetags equityAcct p
     | "_price-matched" `elem` map fst (ptags p) = [p]
     | otherwise = taggedPosting : concatMap conversionPostings priceAmounts
   where
@@ -460,8 +461,11 @@ postingAddInferredEquityPostings equityAcct p
         cost = amountCost amt
         amtCommodity  = commodity amt
         costCommodity = commodity cost
-        cp = p{ pcomment = pcomment p `commentAddTag` ("generated-posting","")
-              , ptags = [("_conversion-matched", ""), ("generated-posting", ""), ("_generated-posting", "")]
+        cp = p{ pcomment = pcomment p & (if verbosetags then (`commentAddTag` ("generated-posting","conversion")) else id)
+              , ptags    =
+                   ("_conversion-matched","") : -- implementation-specific internal tag, not for users
+                   ("_generated-posting","conversion") :
+                   (if verbosetags then [("generated-posting", "conversion")] else [])
               , pbalanceassertion = Nothing
               , poriginal = Nothing
               }

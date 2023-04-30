@@ -11,6 +11,7 @@ module Hledger.Data.PeriodicTransaction (
 )
 where
 
+import Data.Function ((&))
 import Data.Maybe (isNothing)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
@@ -34,7 +35,7 @@ _ptgen str = do
     t = T.pack str
     (i,s) = parsePeriodExpr' nulldate t
   mapM_ (T.putStr . showTransaction) $
-    runPeriodicTransaction
+    runPeriodicTransaction True
       nullperiodictransaction{ ptperiodexpr=t , ptspan=s, ptinterval=i, ptpostings=["a" `post` usd 1] }
       nulldatespan
 
@@ -43,7 +44,7 @@ _ptgenspan str spn = do
     t = T.pack str
     (i,s) = parsePeriodExpr' nulldate t
   mapM_ (T.putStr . showTransaction) $
-    runPeriodicTransaction
+    runPeriodicTransaction True
       nullperiodictransaction{ ptperiodexpr=t , ptspan=s, ptinterval=i, ptpostings=["a" `post` usd 1] }
       spn
 
@@ -186,7 +187,7 @@ instance Show PeriodicTransaction where
 --     a           $1.00
 -- <BLANKLINE>
 --
--- >>> let reportperiod="daily from 2018/01/03" in let (i,s) = parsePeriodExpr' nulldate reportperiod in runPeriodicTransaction (nullperiodictransaction{ptperiodexpr=reportperiod, ptspan=s, ptinterval=i, ptpostings=["a" `post` usd 1]}) (DateSpan (Just $ Flex $ fromGregorian 2018 01 01) (Just $ Flex $ fromGregorian 2018 01 03))
+-- >>> let reportperiod="daily from 2018/01/03" in let (i,s) = parsePeriodExpr' nulldate reportperiod in runPeriodicTransaction True (nullperiodictransaction{ptperiodexpr=reportperiod, ptspan=s, ptinterval=i, ptpostings=["a" `post` usd 1]}) (DateSpan (Just $ Flex $ fromGregorian 2018 01 01) (Just $ Flex $ fromGregorian 2018 01 03))
 -- []
 --
 -- >>> _ptgenspan "every 3 months from 2019-05" (DateSpan (Just $ Flex $ fromGregorian 2020 01 01) (Just $ Flex $ fromGregorian 2020 02 01))
@@ -211,8 +212,8 @@ instance Show PeriodicTransaction where
 --     a           $1.00
 -- <BLANKLINE>
 
-runPeriodicTransaction :: PeriodicTransaction -> DateSpan -> [Transaction]
-runPeriodicTransaction PeriodicTransaction{..} requestedspan =
+runPeriodicTransaction :: Bool -> PeriodicTransaction -> DateSpan -> [Transaction]
+runPeriodicTransaction verbosetags PeriodicTransaction{..} requestedspan =
     [ t{tdate=d} | (DateSpan (Just efd) _) <- alltxnspans, let d = fromEFDay efd, spanContainsDate requestedspan d ]
   where
     t = nulltransaction{
@@ -220,11 +221,11 @@ runPeriodicTransaction PeriodicTransaction{..} requestedspan =
           ,tstatus      = ptstatus
           ,tcode        = ptcode
           ,tdescription = ptdescription
-          ,tcomment     = ptcomment
-                          `commentAddTagNextLine` ("generated-transaction",period)
-          ,ttags        = ("_generated-transaction",period) :
-                          ("generated-transaction" ,period) :
-                          pttags
+          ,tcomment     = ptcomment &
+            (if verbosetags then (`commentAddTagNextLine` ("generated-transaction",period)) else id)
+          ,ttags        = pttags &
+            (("_generated-transaction",period) :) &
+            (if verbosetags then (("generated-transaction" ,period) :) else id)
           ,tpostings    = ptpostings
           }
     period = "~ " <> ptperiodexpr

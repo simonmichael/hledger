@@ -14,6 +14,7 @@ where
 
 import Prelude hiding (Applicative(..))
 import Control.Applicative (Applicative(..), (<|>))
+import Data.Function ((&))
 import qualified Data.Map as M
 import Data.Maybe (catMaybes)
 import qualified Data.Text as T
@@ -43,17 +44,20 @@ modifyTransactions :: (Transaction -> Bool)
                    -> (AccountName -> Maybe AccountType)
                    -> (AccountName -> [Tag])
                    -> M.Map CommoditySymbol AmountStyle
-                   -> Day -> [TransactionModifier] -> [Transaction]
+                   -> Day -> Bool -> [TransactionModifier] -> [Transaction]
                    -> Either String [Transaction]
-modifyTransactions predfn atypes atags styles d tmods ts = do
-  fs <- mapM (transactionModifierToFunction atypes atags styles d) tmods  -- convert modifiers to functions, or return a parse error
+modifyTransactions predfn atypes atags styles d verbosetags tmods ts = do
+  fs <- mapM (transactionModifierToFunction atypes atags styles d verbosetags) tmods  -- convert modifiers to functions, or return a parse error
   let
     maybemodifytxn t = if predfn t then t'' else t
       where
         t' = foldr (flip (.)) id fs t  -- apply each function in turn
-        t'' = if t' == t  -- and add some tags if it was changed
+        t'' = if t' == t
               then t'
-              else t'{tcomment=tcomment t' `commentAddTag` ("modified",""), ttags=("modified","") : ttags t'}
+              else t'{tcomment=tcomment t' & (if verbosetags then (`commentAddTag` ("modified","")) else id)
+                     ,ttags=ttags t' & (("_modified","") :) & (if verbosetags then (("modified","") :) else id)
+                     }
+
   Right $ map maybemodifytxn ts
 
 -- | Converts a 'TransactionModifier' to a 'Transaction'-transforming function
@@ -70,7 +74,7 @@ modifyTransactions predfn atypes atags styles d tmods ts = do
 -- >>> import qualified Data.Text.IO as T
 -- >>> t = nulltransaction{tpostings=["ping" `post` usd 1]}
 -- >>> tmpost acc amt = TMPostingRule (acc `post` amt) False
--- >>> test = either putStr (T.putStr.showTransaction) . fmap ($ t) . transactionModifierToFunction (const Nothing) (const []) mempty nulldate
+-- >>> test = either putStr (T.putStr.showTransaction) . fmap ($ t) . transactionModifierToFunction (const Nothing) (const []) mempty nulldate True
 -- >>> test $ TransactionModifier "" ["pong" `tmpost` usd 2]
 -- 0000-01-01
 --     ping           $1.00
@@ -89,12 +93,12 @@ modifyTransactions predfn atypes atags styles d tmods ts = do
 transactionModifierToFunction :: (AccountName -> Maybe AccountType)
                               -> (AccountName -> [Tag])
                               -> M.Map CommoditySymbol AmountStyle
-                              -> Day -> TransactionModifier
+                              -> Day -> Bool -> TransactionModifier
                               -> Either String (Transaction -> Transaction)
-transactionModifierToFunction atypes atags styles refdate TransactionModifier{tmquerytxt, tmpostingrules} = do
+transactionModifierToFunction atypes atags styles refdate verbosetags TransactionModifier{tmquerytxt, tmpostingrules} = do
   q <- simplifyQuery . fst <$> parseQuery refdate tmquerytxt
   let
-    fs = map (\tmpr -> addAccountTags . tmPostingRuleToFunction styles q tmquerytxt tmpr) tmpostingrules
+    fs = map (\tmpr -> addAccountTags . tmPostingRuleToFunction verbosetags styles q tmquerytxt tmpr) tmpostingrules
     addAccountTags p = p `postingAddTags` atags (paccount p)
     generatePostings p = p : map ($ p) (if matchesPostingExtra atypes q p then fs else [])
   Right $ \t@(tpostings -> ps) -> txnTieKnot t{tpostings=concatMap generatePostings ps}
@@ -103,20 +107,19 @@ transactionModifierToFunction atypes atags styles refdate TransactionModifier{tm
 -- which will be used to make a new posting based on the old one (an "automated posting").
 -- The new posting's amount can optionally be the old posting's amount multiplied by a constant.
 -- If the old posting had a total-priced amount, the new posting's multiplied amount will be unit-priced.
--- The new posting will have two tags added: a normal generated-posting: tag which also appears in the comment,
--- and a hidden _generated-posting: tag which does not.
--- The TransactionModifier's query text is also provided, and saved
--- as the tags' value.
-tmPostingRuleToFunction :: M.Map CommoditySymbol AmountStyle -> Query -> T.Text -> TMPostingRule -> (Posting -> Posting)
-tmPostingRuleToFunction styles query querytxt tmpr =
+-- The new posting will have a hidden _generated-posting: tag added,
+-- and with a true first argument, also a visible generated-posting: tag.
+-- The provided TransactionModifier's query text is saved as the tags' value.
+tmPostingRuleToFunction :: Bool -> M.Map CommoditySymbol AmountStyle -> Query -> T.Text -> TMPostingRule -> (Posting -> Posting)
+tmPostingRuleToFunction verbosetags styles query querytxt tmpr =
   \p -> postingApplyCommodityStyles styles . renderPostingCommentDates $ pr
       { pdate    = pdate  pr <|> pdate  p
       , pdate2   = pdate2 pr <|> pdate2 p
       , pamount  = amount' p
-      , pcomment = pcomment pr `commentAddTag` ("generated-posting",qry)
-      , ptags    = ("generated-posting", qry) :
-                   ("_generated-posting",qry) :
-                   ptags pr
+      , pcomment = pcomment pr & (if verbosetags then (`commentAddTag` ("generated-posting",qry)) else id)
+      , ptags    = ptags pr
+                   & (("_generated-posting",qry) :)
+                   & (if verbosetags then (("generated-posting", qry) :) else id)
       }
   where
     pr = tmprPosting tmpr

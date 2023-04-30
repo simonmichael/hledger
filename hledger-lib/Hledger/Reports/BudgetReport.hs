@@ -81,7 +81,7 @@ budgetReport rspec bopts reportspan j = dbg4 "sortedbudgetreport" budgetreport
       expandAccountNames $
       accountNamesFromPostings $
       concatMap tpostings $
-      concatMap (`runPeriodicTransaction` reportspan) $
+      concatMap (\pt -> runPeriodicTransaction False pt reportspan) $
       jperiodictxns j
     actualj = journalWithBudgetAccountNames budgetedaccts showunbudgeted j
     budgetj = journalAddBudgetGoalTransactions bopts ropts reportspan j
@@ -156,7 +156,7 @@ journalAddBudgetGoalTransactions bopts ropts reportspan j =
       dbg5 "budget goal txns" $
       [makeBudgetTxn t
       | pt <- budgetpts
-      , t <- runPeriodicTransaction pt budgetspan
+      , t <- runPeriodicTransaction False pt budgetspan
       ]
     makeBudgetTxn t = txnTieKnot $ t { tdescription = T.pack "Budget transaction" }
 

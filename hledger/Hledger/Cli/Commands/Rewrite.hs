@@ -39,9 +39,11 @@ rewritemode = hledgerCommandMode
 
 rewrite opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j@Journal{jtxns=ts} = do
   -- rewrite matched transactions
-  let today = _rsDay rspec
-  let modifiers = transactionModifierFromOpts opts : jtxnmodifiers j
-  let j' = j{jtxns=either error' id $ modifyTransactions (const True) (journalAccountType j) (journalInheritedAccountTags j) mempty today modifiers ts}  -- PARTIAL:
+  let
+    today = _rsDay rspec
+    verbosetags = boolopt "verbose-tags" rawopts
+    modifiers = transactionModifierFromOpts opts : jtxnmodifiers j
+  let j' = j{jtxns=either error' id $ modifyTransactions (const True) (journalAccountType j) (journalInheritedAccountTags j) mempty today verbosetags modifiers ts}  -- PARTIAL:
   -- run the print command, showing all transactions, or show diffs
   printOrDiff rawopts opts{reportspec_=rspec{_rsQuery=Any}} j j'
 

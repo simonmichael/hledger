@@ -184,6 +184,8 @@ m4_define({{_reportingoptions_}}, {{
 `--auto`
 : generate extra postings by applying [auto posting rules](hledger.html#auto-postings) to all txns (not just forecast txns)
 
+`--verbose-tags`
+: add visible tags indicating transactions or postings which have been generated/modified
 
 `--commodity-style`
 : Override the commodity style in the output for the specified commodity. For example 'EUR1.000,00'.

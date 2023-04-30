@@ -222,9 +222,9 @@ transactionToCost :: M.Map CommoditySymbol AmountStyle -> ConversionOp -> Transa
 transactionToCost styles cost t = t{tpostings = mapMaybe (postingToCost styles cost) $ tpostings t}
 
 -- | Add inferred equity postings to a 'Transaction' using transaction prices.
-transactionAddInferredEquityPostings :: AccountName -> Transaction -> Transaction
-transactionAddInferredEquityPostings equityAcct t =
-    t{tpostings=concatMap (postingAddInferredEquityPostings equityAcct) $ tpostings t}
+transactionAddInferredEquityPostings :: Bool -> AccountName -> Transaction -> Transaction
+transactionAddInferredEquityPostings verbosetags equityAcct t =
+    t{tpostings=concatMap (postingAddInferredEquityPostings verbosetags equityAcct) $ tpostings t}
 
 type IdxPosting = (Int, Posting)
 

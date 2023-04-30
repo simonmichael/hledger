@@ -786,10 +786,10 @@ journalUntieTransactions t@Transaction{tpostings=ps} = t{tpostings=map (\p -> p{
 -- return the error message. A reference date is provided to help interpret
 -- relative dates in transaction modifier queries.
 -- The first argument selects whether to modify only generated (--forecast) transactions (False),
--- or all transactions (True).
-journalModifyTransactions :: Bool -> Day -> Journal -> Either String Journal
-journalModifyTransactions alltxns d j =
-  case modifyTransactions predfn (journalAccountType j) (journalInheritedAccountTags j) (journalCommodityStyles j) d (jtxnmodifiers j) (jtxns j) of
+-- or all transactions (True). The second adds visible tags if true.
+journalModifyTransactions :: Bool -> Bool -> Day -> Journal -> Either String Journal
+journalModifyTransactions alltxns verbosetags d j =
+  case modifyTransactions predfn (journalAccountType j) (journalInheritedAccountTags j) (journalCommodityStyles j) d verbosetags (jtxnmodifiers j) (jtxns j) of
     Right ts -> Right j{jtxns=ts}
     Left err -> Left err
   where
@@ -920,8 +920,8 @@ journalToCost cost j@Journal{jtxns=ts} = j{jtxns=map (transactionToCost styles c
     styles = journalCommodityStyles j
 
 -- | Add inferred equity postings to a 'Journal' using transaction prices.
-journalAddInferredEquityPostings :: Journal -> Journal
-journalAddInferredEquityPostings j = journalMapTransactions (transactionAddInferredEquityPostings equityAcct) j
+journalAddInferredEquityPostings :: Bool -> Journal -> Journal
+journalAddInferredEquityPostings verbosetags j = journalMapTransactions (transactionAddInferredEquityPostings verbosetags equityAcct) j
   where
     equityAcct = journalConversionAccount j
 

@@ -97,7 +97,7 @@ $ hledger -f - print --explicit
 
 >= 0
 
-# 9. Auto postings are always explicit
+# 9. Auto postings are always given explicit amounts.
 <
 = a
     c  *-0.453
@@ -107,10 +107,10 @@ $ hledger -f - print --explicit
     a    1000 EUR
     b
 $ hledger -f - print --auto
-2021-09-01  ; modified:
+2021-09-01
     a        1000 EUR
-    c        -453 EUR  ; generated-posting: = a
-    d         453 EUR  ; generated-posting: = a
+    c        -453 EUR
+    d         453 EUR
     b
 
 >= 0

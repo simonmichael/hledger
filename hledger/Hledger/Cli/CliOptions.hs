@@ -211,6 +211,7 @@ reportflags = [
    , "Also, in hledger-ui make future-dated transactions visible."
    ])
  ,flagNone ["auto"]          (setboolopt "auto") "Generate extra postings by applying auto posting rules to all txns (not just forecast txns)."
+ ,flagNone ["verbose-tags"]  (setboolopt "verbose-tags") "Add visible tags indicating transactions or postings which have been generated/modified."
 
   -- general output-related
  ,flagReq ["commodity-style", "c"] (\s opts -> Right $ setopt "commodity-style" s opts) "COMM"

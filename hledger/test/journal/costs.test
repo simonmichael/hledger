@@ -25,12 +25,13 @@ $ hledger -f- print --explicit --cost
     expenses:foreign currency       €100 @ $1.35
     assets                              $-135.00
 
-# 3. --infer-equity generates conversion postings
-$ hledger -f- print --infer-equity
+# 3. --infer-equity generates conversion postings,
+# and with --verbose-tags, they will be visibly tagged.
+$ hledger -f- print --infer-equity --verbose-tags
 2011-01-01
     expenses:foreign currency    €100 @ $1.35
-    equity:conversion:$-€:€             €-100  ; generated-posting:
-    equity:conversion:$-€:$           $135.00  ; generated-posting:
+    equity:conversion:$-€:€             €-100  ; generated-posting: conversion
+    equity:conversion:$-€:$           $135.00  ; generated-posting: conversion
     assets                           $-135.00
 
 >=0
@@ -365,8 +366,8 @@ account  equity:trades   ; type:V
 $ hledger -f- print --infer-equity
 2011-01-01
     expenses:foreign currency    €100 @ $1.35
-    equity:trades:$-€:€                 €-100  ; generated-posting:
-    equity:trades:$-€:$               $135.00  ; generated-posting:
+    equity:trades:$-€:€                 €-100
+    equity:trades:$-€:$               $135.00
     assets
 
 >=0
