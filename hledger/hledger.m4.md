@@ -4861,15 +4861,37 @@ $ hledger balance --pivot member acct:.
 
 # Generating data
 
-Two features for generating transient data (visible only at report time)
-are built in to hledger's journal format:
+hledger has several features for generating data, such as:
 
-- [Auto posting](#auto-postings) rules can generate extra postings on certain transactions.
-  They are activated by the `--auto` flag.
+- [Periodic transaction](#periodic-transactions) rules can generate
+  single or repeating transactions following a template. These are
+  usually dated in the future, eg to help with forecasting. They are
+  activated by the `--forecast` option.
+  
+- The balance command's `--budget` option uses these same periodic
+  rules to generate goals for the budget report.
 
-- [Periodic transaction](#periodic-transactions) rules can generate repeating transactions, 
-  usually dated in the future, to help with forecasting or budgeting.
-  They are activated by the `--forecast` or `balance --budget` options, described next.
+- [Auto posting](#auto-postings) rules can generate extra postings on
+  certain matched transactions.  They are always applied to forecast
+  transactions; with the `--auto` flag they are applied to
+  transactions recorded in the journal as well.
+
+- The `--infer-equity` flag infers missing conversion equity postings
+  from @/@@ costs. And the inverse `--infer-costs` flag infers missing
+  @/@@ costs from conversion equity postings.
+
+Generated data of this kind is temporary, existing only at report
+time.  But you can see it in the output of `hledger print`, and you
+can save that to your journal, in effect converting it from temporary
+generated data to permanent recorded data. This could be useful as a
+data entry aid.
+
+If you are wondering what data is being generated and why, add the
+`--verbose-tags` flag. In `hledger print` output you will see extra
+tags like `generated-transaction`, `generated-posting`, and
+`modified` on generated/modified data. Also, even without `--verbose-tags`,
+generated data always has equivalen hidden tags (with an underscore prefix),
+so eg you could match generated transactions with `tag:_generated-transaction`.
 
 # Forecasting
 
