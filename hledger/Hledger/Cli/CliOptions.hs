@@ -109,14 +109,15 @@ import Data.List (isPrefixOf, isSuffixOf)
 
 
 -- common cmdargs flags
+-- keep synced with flag docs in doc/common.m4
 
 -- | Common help flags: --help, --debug, --version...
 helpflags :: [Flag RawOpts]
 helpflags = [
   -- XXX why are these duplicated in defCommandMode below ?
   flagNone ["help","h"] (setboolopt "help") "show general help (or after CMD, command help)"
- ,flagNone ["man"] (setboolopt "man") "Show user manual with man"
- ,flagNone ["info"] (setboolopt "info") "Show info manual with info"
+ ,flagNone ["man"] (setboolopt "man") "show user manual with man"
+ ,flagNone ["info"] (setboolopt "info") "show info manual with info"
  -- ,flagNone ["browse-args"] (setboolopt "browse-args") "use a web UI to select options and build up a command line"
  ,flagReq  ["debug"] (\s opts -> Right $ setopt "debug" s opts) "[N]" "show debug output (levels 1-9, default: 1)"
  ,flagNone ["version"] (setboolopt "version") "show version information"
@@ -185,10 +186,9 @@ reportflags = [
      ,"YYYY-MM-DD: convert to market value on the given date, in default valuation commodity or COMM"
      ])
   ,flagNone ["infer-equity"] (setboolopt "infer-equity")
-    "in conversion transactions, replace costs (transaction prices) with equity postings, to keep the transactions balanced"
+    "infer conversion equity postings from costs"
   ,flagNone ["infer-costs"] (setboolopt "infer-costs")
-    "infer costs (transaction prices) from manual conversion postings"
-  
+    "infer costs from conversion equity postings"
   -- history of this flag so far, lest we be confused:
   --  originally --infer-value
   --  2021-02 --infer-market-price added, --infer-value deprecated 
@@ -200,16 +200,17 @@ reportflags = [
   --    --costs deprecated and hidden, uses --infer-market-prices instead
   --    --inverted-costs renamed to --infer-reverse-prices
  ,flagNone ["infer-market-prices"] (setboolopt "infer-market-prices") 
-    "use transaction prices (recorded with @ or @@) as additional market prices, as if they were P directives"
+    "use costs as additional market prices, as if they were P directives"
 
-  -- generated postings/transactions
- ,flagNone ["auto"]          (setboolopt "auto") "apply automated posting rules to modify transactions"
- ,flagOpt "" ["forecast"]    (\s opts -> Right $ setopt "forecast" s opts) "PERIODEXP" 
-  (unlines
-   [ "Generate periodic transactions (from periodic transaction rules). By default these begin after the latest recorded transaction, and end 6 months from today, or at the report end date."
-   , "Also, in hledger-ui, make future transactions visible."
-   , "Note that = (and not a space) is required before PERIODEXP if you wish to supply it."
+  -- generating transactions/postings
+ ,flagOpt "" ["forecast"]    (\s opts -> Right $ setopt "forecast" s opts) "PERIOD" (unwords
+   [ "Generate transactions from periodic rules,"
+   , "between the latest recorded txn and 6 months from today,"
+   , "or during the specified PERIOD (= is required)."
+   , "Auto posting rules will be applied to these transactions as well."
+   , "Also, in hledger-ui make future-dated transactions visible."
    ])
+ ,flagNone ["auto"]          (setboolopt "auto") "Generate extra postings by applying auto posting rules to all txns (not just forecast txns)."
 
   -- general output-related
  ,flagReq ["commodity-style", "c"] (\s opts -> Right $ setopt "commodity-style" s opts) "COMM"
@@ -225,7 +226,7 @@ reportflags = [
      ,"A NO_COLOR environment variable overrides this."
      ])
  ,flagOpt "yes" ["pretty"] (\s opts -> Right $ setopt "pretty" s opts) "WHEN"
-   (unlines
+   (unwords
      ["Show prettier output, e.g. using unicode box-drawing characters."
      ,"Accepts 'yes' (the default) or 'no'."
      ,"If you provide an argument you must use '=', e.g. '--pretty=yes'."

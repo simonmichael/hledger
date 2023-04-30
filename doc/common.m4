@@ -165,15 +165,25 @@ m4_define({{_reportingoptions_}}, {{
 `--value`
 : convert amounts to cost or market value, more flexibly than -B/-V/-X
 
-`--infer-market-prices`
-: use transaction prices (recorded with @ or @@) as additional market prices, as if they were P directives
+`--infer-equity`
+: infer conversion equity postings from costs
 
-`--auto`
-: apply [automated posting rules](hledger.html#auto-postings) to modify transactions.
+`--infer-costs`
+: infer costs from conversion equity postings
+
+`--infer-market-prices`
+: use costs as additional market prices, as if they were P directives
 
 `--forecast`
-: generate future transactions from [periodic transaction](hledger.html#periodic-transactions) rules, for the next 6 months or till report end date.
-In hledger-ui, also make ordinary future transactions visible.
+: generate transactions from [periodic rules](hledger.html#periodic-transactions),
+: between the latest recorded txn and 6 months from today,
+: or during the specified PERIOD (= is required).
+: Auto posting rules will be applied to these transactions as well.
+: Also, in hledger-ui make future-dated transactions visible.
+
+`--auto`
+: generate extra postings by applying [auto posting rules](hledger.html#auto-postings) to all txns (not just forecast txns)
+
 
 `--commodity-style`
 : Override the commodity style in the output for the specified commodity. For example 'EUR1.000,00'.
