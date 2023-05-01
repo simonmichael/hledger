@@ -26,26 +26,26 @@ import Hledger.Web.Widget.Common
 getRegisterR :: Handler Html
 getRegisterR = do
   checkServerSideUiEnabled
-  VD{caps, j, m, opts, q, qopts, today} <- getViewData
+  VD{caps, j, q, opts, qparam, qopts, today} <- getViewData
   when (CapView `notElem` caps) (permissionDenied "Missing the 'view' capability")
 
   let (a,inclsubs) = fromMaybe ("all accounts",True) $ inAccount qopts
       s1 = if inclsubs then "" else " (excluding subaccounts)"
-      s2 = if m /= Any then ", filtered" else ""
+      s2 = if q /= Any then ", filtered" else ""
       header = a <> s1 <> s2
 
   let rspec = reportspec_ (cliopts_ opts)
       acctQuery = fromMaybe Any (inAccountQuery qopts)
-      acctlink acc = (RegisterR, [("q", replaceInacct q $ accountQuery acc)])
+      acctlink acc = (RegisterR, [("q", replaceInacct qparam $ accountQuery acc)])
       otherTransAccounts =
           map (\(acct,(name,comma)) -> (acct, (T.pack name, T.pack comma))) .
           undecorateLinks . elideRightDecorated 40 . decorateLinks .
-          addCommas . preferReal . otherTransactionAccounts m acctQuery
+          addCommas . preferReal . otherTransactionAccounts q acctQuery
       addCommas xs =
           zip xs $
           zip (map (T.unpack . accountSummarisedName . paccount) xs) $
           tail $ (", "<$xs) ++ [""]
-      items = accountTransactionsReport rspec{_rsQuery=m} j acctQuery
+      items = accountTransactionsReport rspec{_rsQuery=q} j acctQuery
       balancelabel
         | isJust (inAccount qopts), balanceaccum_ (_rsReportOpts rspec) == Historical = "Historical Total"
         | isJust (inAccount qopts) = "Period Total"

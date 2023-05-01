@@ -114,7 +114,7 @@ instance Yesod App where
 
     master <- getYesod
     here <- fromMaybe RootR <$> getCurrentRoute
-    VD {caps, j, m, opts, q, qopts} <- getViewData
+    VD{opts, j, qparam, q, qopts, caps} <- getViewData
     msg <- getMessage
     showSidebar <- shouldShowSidebar
 
@@ -124,14 +124,14 @@ instance Yesod App where
           {accountlistmode_ = ALTree  -- force tree mode for sidebar
           ,empty_           = True    -- show zero items by default
           }
-        rspec' = rspec{_rsQuery=m,_rsReportOpts=ropts'}
+        rspec' = rspec{_rsQuery=q,_rsReportOpts=ropts'}
 
     hideEmptyAccts <- if empty_ ropts
                          then return True
                          else (== Just "1") . lookup "hideemptyaccts" . reqCookies <$> getRequest
 
     let accounts =
-          balanceReportAsHtml (JournalR, RegisterR) here hideEmptyAccts j q qopts $
+          balanceReportAsHtml (JournalR, RegisterR) here hideEmptyAccts j qparam qopts $
           balanceReport rspec' j
 
         topShowmd = if showSidebar then "col-md-4" else "col-any-0" :: Text
@@ -195,8 +195,8 @@ data ViewData = VD
   { opts  :: WebOpts    -- ^ the command-line options at startup
   , today :: Day        -- ^ today's date (for queries containing relative dates)
   , j     :: Journal    -- ^ the up-to-date parsed unfiltered journal
-  , q     :: Text       -- ^ the current q parameter, the main query expression
-  , m     :: Query      -- ^ a query parsed from the q parameter
+  , qparam :: Text       -- ^ the current "q" request parameter
+  , q     :: Query      -- ^ a query parsed from the q parameter
   , qopts :: [QueryOpt] -- ^ query options parsed from the q parameter
   , caps  :: [Capability] -- ^ capabilities enabled for this request
   } deriving (Show)
@@ -242,7 +242,7 @@ getViewData = do
         Left e -> [] <$ addMessage "" ("Unknown permission: " <> toHtml (BC.unpack e))
         Right c -> pure [c]
 
-  return VD{opts, today, j, q=qparam, m=q, qopts, caps}  -- adapt to old q, m field names for now
+  return VD{opts, today, j, qparam, q, qopts, caps}
 
 checkServerSideUiEnabled :: Handler ()
 checkServerSideUiEnabled = do

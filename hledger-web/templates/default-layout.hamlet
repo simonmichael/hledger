@@ -17,10 +17,10 @@ $if elem CapView caps
     <div #message .alert.alert-info>#{m}
   $if elem CapView caps
     <form#searchform.input-group method=GET>
-      <input .form-control name=q value=#{q} placeholder="Search"
+      <input .form-control name=q value=#{qparam} placeholder="Search"
         title="Enter hledger search patterns to filter the data below">
       <div .input-group-btn>
-        $if not (T.null q)
+        $if not (T.null qparam)
           <a href=@{here} .btn .btn-default title="Clear search terms">
             <span .glyphicon .glyphicon-remove-circle>
         <button .btn .btn-default type=submit title="Apply search terms">

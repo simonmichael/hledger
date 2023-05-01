@@ -2,7 +2,7 @@
   #{header}
 
 <div .hidden-xs>
-  ^{registerChartHtml q balancelabel $ accountTransactionsReportByCommodity items}
+  ^{registerChartHtml qparam balancelabel $ accountTransactionsReportByCommodity items}
 
 <div.table-responsive>
   <table .table.table-striped.table-condensed>
@@ -21,7 +21,7 @@
       $forall (torig, tacct, split, _acct, amt, bal) <- items
         <tr ##{tindex torig} title="#{showTransaction torig}" style="vertical-align:top;">
           <td .date>
-            <a href="@?{(JournalR, [("q", T.unwords $ removeInacct q)])}##{transactionFrag torig}">
+            <a href="@?{(JournalR, [("q", T.unwords $ removeInacct qparam)])}##{transactionFrag torig}">
               #{show (tdate tacct)}
           <td>
             #{textElideRight 30 (tdescription tacct)}

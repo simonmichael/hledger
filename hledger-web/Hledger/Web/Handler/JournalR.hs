@@ -20,14 +20,14 @@ import Hledger.Web.Widget.Common
 getJournalR :: Handler Html
 getJournalR = do
   checkServerSideUiEnabled
-  VD{caps, j, m, opts, q, qopts, today} <- getViewData
+  VD{caps, j, q, opts, qparam, qopts, today} <- getViewData
   when (CapView `notElem` caps) (permissionDenied "Missing the 'view' capability")
   let title = case inAccount qopts of
         Nothing -> "General Journal"
         Just (a, inclsubs) -> "Transactions in " <> a <> if inclsubs then "" else " (excluding subaccounts)"
-      title' = title <> if m /= Any then ", filtered" else ""
-      acctlink a = (RegisterR, [("q", replaceInacct q $ accountQuery a)])
-      rspec = (reportspec_ $ cliopts_ opts){_rsQuery = filterQuery (not . queryIsDepth) m}
+      title' = title <> if q /= Any then ", filtered" else ""
+      acctlink a = (RegisterR, [("q", replaceInacct qparam $ accountQuery a)])
+      rspec = (reportspec_ $ cliopts_ opts){_rsQuery = filterQuery (not . queryIsDepth) q}
       items = reverse $ entriesReport rspec j
       transactionFrag = transactionFragment j
 

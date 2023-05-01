@@ -77,7 +77,7 @@ helplink topic label _ = H.a ! A.href u ! A.target "hledgerhelp" $ toHtml label
 
 -- | Render a "BalanceReport" as html.
 balanceReportAsHtml :: Eq r => (r, r) -> r -> Bool -> Journal -> Text -> [QueryOpt] -> BalanceReport -> HtmlUrl r
-balanceReportAsHtml (journalR, registerR) here hideEmpty j q qopts (items, total) =
+balanceReportAsHtml (journalR, registerR) here hideEmpty j qparam qopts (items, total) =
   $(hamletFile "templates/balance-report.hamlet")
   where
     l = ledgerFromJournal Any j
