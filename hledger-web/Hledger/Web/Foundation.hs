@@ -61,6 +61,8 @@ data App = App
       --
     , appOpts    :: WebOpts
     , appJournal :: IORef Journal
+        -- ^ the current journal, filtered by the initial command line query
+        --   but ignoring any depth limit.
     }
 
 
@@ -204,7 +206,10 @@ instance Show Text.Blaze.Markup where show _ = "<blaze markup>"
 -- | Gather data used by handlers and templates in the current request.
 getViewData :: Handler ViewData
 getViewData = do
-  App{appOpts=opts@WebOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts}}}, appJournal} <- getYesod
+  App{
+    appOpts=opts@WebOpts{ cliopts_=copts@CliOpts{ reportspec_=rspec@ReportSpec{_rsReportOpts, _rsQuery} } },
+    appJournal
+  } <- getYesod
   let today = _rsDay rspec
 
   -- try to read the latest journal content, keeping the old content
@@ -214,12 +219,16 @@ getViewData = do
                 copts{reportspec_=rspec{_rsReportOpts=_rsReportOpts{no_elide_=True}}}
                 today
 
-  -- try to parse the query param, assuming no query if there's an error
-  q <- fromMaybe "" <$> lookupGetParam "q"
-  (m, qopts, mqerr) <- do
-    case parseQuery today q of
-      Right (m, qopts) -> return (m, qopts, Nothing)
+  -- Get the query specified by the q request parameter, or no query if this fails.
+  qparam <- fromMaybe "" <$> lookupGetParam "q"
+  (q1, qopts, mqerr) <- do
+    case parseQuery today qparam of
+      Right (q0, qopts) -> return (q0, qopts, Nothing)
       Left err         -> return (Any, [], Just err)
+  -- To this, add any depth limit from the initial startup query, preserving that.
+  let
+    initialdepthq = filterQuery queryIsDepth _rsQuery
+    q = simplifyQuery $ And [q1, initialdepthq]
 
   -- if either of the above gave an error, display it
   maybe (pure ()) (setMessage . toHtml) $ mjerr <|> mqerr
@@ -233,7 +242,7 @@ getViewData = do
         Left e -> [] <$ addMessage "" ("Unknown permission: " <> toHtml (BC.unpack e))
         Right c -> pure [c]
 
-  return VD{opts, today, j, q, m, qopts, caps}
+  return VD{opts, today, j, q=qparam, m=q, qopts, caps}  -- adapt to old q, m field names for now
 
 checkServerSideUiEnabled :: Handler ()
 checkServerSideUiEnabled = do
@@ -259,7 +268,7 @@ shouldShowSidebar = do
 getCurrentJournal :: IORef Journal -> CliOpts -> Day -> Handler (Journal, Maybe String)
 getCurrentJournal jref opts d = do
   -- re-apply any initial filter specified at startup
-  let initq = _rsQuery $ reportspec_ opts
+  let depthlessinitialq = filterQuery (not . queryIsDepth) $ _rsQuery $ reportspec_ opts
   -- XXX put this inside atomicModifyIORef' for thread safety
   j <- liftIO (readIORef jref)
   ej <- liftIO . runExceptT $ journalReloadIfChanged opts d j
@@ -268,6 +277,6 @@ getCurrentJournal jref opts d = do
       setMessage "error while reading journal"
       return (j, Just e)
     Right (j', True) -> do
-      liftIO . writeIORef jref $ filterJournalTransactions initq j'
+      liftIO . writeIORef jref $ filterJournalTransactions depthlessinitialq j'
       return (j',Nothing)
     Right (_, False) -> return (j, Nothing)
