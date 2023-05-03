@@ -195,7 +195,9 @@ entryp = do
   lift $ traceparse' "entryp"
   return t
 
-durationp :: TextParser m Quantity
+type Hours = Quantity
+
+durationp :: TextParser m Hours
 durationp = do
   traceparse "durationp"
   try numericquantityp <|> dotquantityp
@@ -210,7 +212,7 @@ durationp = do
 -- 1.5h
 -- 90m
 -- @
-numericquantityp :: TextParser m Quantity
+numericquantityp :: TextParser m Hours
 numericquantityp = do
   -- lift $ traceparse "numericquantityp"
   (q, _, _, _) <- numberp Nothing

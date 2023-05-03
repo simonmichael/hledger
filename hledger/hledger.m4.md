@@ -4189,7 +4189,7 @@ $ hledger -f a.timedot print   # .timedot file extension activates the timedot r
     (hom:errands)            2.00
 
 2021-08-04 *
-    (fos:hledger:timedot)    0.50
+    (fos:hledger:timedot)    0.50  ; docs
 
 2021-08-04 *
     (per:admin:finance)      0
