@@ -45,7 +45,6 @@ i, o or O.  The meanings of the codes are:
 
 --- ** language
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE PackageImports #-}
 
 --- ** exports
 module Hledger.Read.TimeclockReader (
@@ -62,13 +61,13 @@ import           Control.Monad.Except (ExceptT, liftEither)
 import           Control.Monad.State.Strict
 import           Data.Maybe (fromMaybe)
 import           Data.Text (Text)
-import qualified Data.Text as T
 import           Text.Megaparsec hiding (parse)
 
 import           Hledger.Data
 -- XXX too much reuse ?
 import           Hledger.Read.Common
 import           Hledger.Utils
+import Data.Text as T (strip)
 
 --- ** doctest setup
 -- $setup
@@ -119,10 +118,11 @@ timeclockfilep = do many timeclockitemp
 -- | Parse a timeclock entry.
 timeclockentryp :: JournalParser m TimeclockEntry
 timeclockentryp = do
-  sourcepos <- getSourcePos
+  pos <- getSourcePos
   code <- oneOf ("bhioO" :: [Char])
   lift skipNonNewlineSpaces1
   datetime <- datetimep
-  account <- fromMaybe "" <$> optional (lift skipNonNewlineSpaces1 >> modifiedaccountnamep)
-  description <- T.pack . fromMaybe "" <$> lift (optional (skipNonNewlineSpaces1 >> restofline))
-  return $ TimeclockEntry sourcepos (read [code]) datetime account description
+  account     <- fmap (fromMaybe "") $ optional $ lift skipNonNewlineSpaces1 >> modifiedaccountnamep
+  description <- fmap (maybe "" T.strip) $ optional $ lift $ skipNonNewlineSpaces1 >> descriptionp
+  (comment, tags) <- lift transactioncommentp
+  return $ TimeclockEntry pos (read [code]) datetime account description comment tags

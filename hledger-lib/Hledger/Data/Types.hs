@@ -504,7 +504,9 @@ data TimeclockEntry = TimeclockEntry {
       tlcode        :: TimeclockCode,
       tldatetime    :: LocalTime,
       tlaccount     :: AccountName,
-      tldescription :: Text
+      tldescription :: Text,
+      tlcomment     :: Text,
+      tltags        :: [Tag]
     } deriving (Eq,Ord,Generic)
 
 -- | A market price declaration made by the journal format's P directive.

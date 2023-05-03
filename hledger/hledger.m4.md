@@ -4111,9 +4111,9 @@ The timezone, if present, must be four digits and is ignored
 Lines beginning with `#` or `;` or `*`, and blank lines, are ignored.
 
 ```timeclock
-i 2015/03/30 09:00:00 some:account name  optional description after two spaces
+i 2015/03/30 09:00:00 some account  optional description after 2 spaces ; optional comment, tags:
 o 2015/03/30 09:20:00
-i 2015/03/31 22:21:45 another account
+i 2015/03/31 22:21:45 another:account
 o 2015/04/01 02:00:34
 ```
 
@@ -4124,14 +4124,14 @@ the above time log, `hledger print` generates these journal entries:
 
 ``` shell
 $ hledger -f t.timeclock print
-2015-03-30 * optional description after two spaces
-    (some:account name)         0.33h
+2015-03-30 * optional description after 2 spaces   ; optional comment, tags:
+    (some account)           0.33h
 
 2015-03-31 * 22:21-23:59
-    (another account)         1.64h
+    (another:account)           1.64h
 
 2015-04-01 * 00:00-02:00
-    (another account)         2.01h
+    (another:account)           2.01h
 
 ```
 

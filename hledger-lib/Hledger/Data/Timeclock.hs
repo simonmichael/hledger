@@ -57,7 +57,7 @@ timeclockEntriesToTransactions now [i]
     | odate > idate = entryFromTimeclockInOut i o' : timeclockEntriesToTransactions now [i',o]
     | otherwise = [entryFromTimeclockInOut i o]
     where
-      o = TimeclockEntry (tlsourcepos i) Out end "" ""
+      o = TimeclockEntry (tlsourcepos i) Out end "" "" "" []
       end = if itime > now then itime else now
       (itime,otime) = (tldatetime i,tldatetime o)
       (idate,odate) = (localDay itime,localDay otime)
@@ -120,8 +120,8 @@ entryFromTimeclockInOut i o
             tstatus      = Cleared,
             tcode        = "",
             tdescription = desc,
-            tcomment     = "",
-            ttags        = [],
+            tcomment     = tlcomment i,
+            ttags        = tltags i,
             tpostings    = ps,
             tprecedingcomment=""
           }
@@ -162,11 +162,11 @@ tests_Timeclock = testGroup "Timeclock" [
           future = utcToLocalTime tz $ addUTCTime 100 now'
           futurestr = showtime future
       step "started yesterday, split session at midnight"
-      txndescs [clockin (mktime yesterday "23:00:00") "" ""] @?= ["23:00-23:59","00:00-"++nowstr]
+      txndescs [clockin (mktime yesterday "23:00:00") "" "" "" []] @?= ["23:00-23:59","00:00-"++nowstr]
       step "split multi-day sessions at each midnight"
-      txndescs [clockin (mktime (addDays (-2) today) "23:00:00") "" ""] @?= ["23:00-23:59","00:00-23:59","00:00-"++nowstr]
+      txndescs [clockin (mktime (addDays (-2) today) "23:00:00") "" "" "" []] @?= ["23:00-23:59","00:00-23:59","00:00-"++nowstr]
       step "auto-clock-out if needed"
-      txndescs [clockin (mktime today "00:00:00") "" ""] @?= ["00:00-"++nowstr]
+      txndescs [clockin (mktime today "00:00:00") "" "" "" []] @?= ["00:00-"++nowstr]
       step "use the clockin time for auto-clockout if it's in the future"
-      txndescs [clockin future "" ""] @?= [printf "%s-%s" futurestr futurestr]
+      txndescs [clockin future "" "" "" []] @?= [printf "%s-%s" futurestr futurestr]
  ]
