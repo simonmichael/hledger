@@ -4174,63 +4174,55 @@ Compared to [`timeclock` format](#timeclock), it is
 A timedot file contains a series of day entries, which might look like this:
 
 ```timedot
-2021-08-04
-hom:errands          .... ....
-fos:hledger:timedot  ..         ; docs
-per:admin:finance    
+2023-05-01
+hom:errands          .... ....  ; two hours
+fos:hledger:timedot  ..         ; half an hour
+per:admin:finance
 ```
 
-hledger reads this as three time transactions on this day,
-with each dot representing a quarter-hour spent:
+hledger reads this as a transaction on this day with three (unbalanced) postings,
+where each dot represents "0.25". No commodity is assumed, but normally we interpret
+it as hours, with each dot representing a quarter-hour. It's convenient, though
+not required, to group the dots in fours for easy reading.
 
 ```shell
-$ hledger -f a.timedot print   # .timedot file extension activates the timedot reader
-2021-08-04 *
-    (hom:errands)            2.00
-
-2021-08-04 *
-    (fos:hledger:timedot)    0.50  ; docs
-
-2021-08-04 *
-    (per:admin:finance)      0
+$ hledger -f a.timedot print   # .timedot file extension (or timedot: prefix) is required
+2023-05-01 *
+    (hom:errands)                    2.00  ; two hours
+    (fos:hledger:timedot)            0.50  ; half an hour
+    (per:admin:finance)                 0
 ```
 
-A day entry begins with a date line:
+A transaction begins with a non-indented **[simple date](#simple-dates)** (Y-M-D, Y/M/D, or Y.M.D).
+It can optionally be preceded by one or more stars and a space, for Emacs org mode compatibility.
+It can optionally be followed on the same line by a transaction description,
+and/or a transaction comment following a semicolon.
 
-- a non-indented **[simple date](#simple-dates)** (Y-M-D, Y/M/D, or Y.M.D).
+After the date line are zero or more time postings, consisting of:
 
-Optionally this can be followed on the same line by
-
-- a **common description** for this day's transactions.
-- a **common comment** for this day's transactions, following a semicolon (`;`).
-
-After the date line are zero or more optionally-indented time transactions, consisting of:
-
-- an **account name** - any word or phrase, usually a hledger-style [account name](#account-names).
+- an **account name** - any hledger-style [account name](#account-names), optionally hierarchical, optionally indented.
 - **two or more spaces** - a field separator, required if there is an amount (as in journal format).
-- a **timedot amount** - dots representing quarter hours, or a number representing hours, optionally with a unit suffix.
-- an **posting comment** for this transaction, following with semicolon.
+- an optional **timedot amount** - dots representing quarter hours, or a number representing hours, optionally with a unit suffix.
+- an optional **posting comment** following a semicolon.
 
-In more detail, timedot amounts can be:
+Timedot amounts can be:
 
-- **dots**: zero or more period characters, each representing one quarter-hour.
+- **dots**: zero or more period characters (`.`), each representing 0.25.
   Spaces are ignored and can be used for grouping.
   Eg: `.... ..`
 
-- a **number**, representing hours. Eg: `1.5`
+- or a **number**. Eg: `1.5`
 
-- a **number immediately followed by a unit symbol**
-  `s`, `m`, `h`, `d`, `w`, `mo`, or `y`, 
-  representing seconds, minutes, hours, days weeks, months or years.
-  Eg `1.5h` or `90m`.
-  The following equivalencies are assumed:\
-  `60s` = `1m`,
-  `60m` = `1h`,
-  `24h` = `1d`,
-  `7d` = `1w`,
-  `30d` = `1mo`,
+- or a **number immediately followed by a unit symbol**
+  `s`, `m`, `h`, `d`, `w`, `mo`, or `y`.
+  These are interpreted as seconds, minutes, hours, days weeks, months or years, and converted to hours, assuming:\
+  `60s`  = `1m`,
+  `60m`  = `1h`,
+  `24h`  = `1d`,
+  `7d`   = `1w`,
+  `30d`  = `1mo`,
   `365d` = `1y`.
-  (This unit will not be visible in the generated transaction amount, which is always in hours.)
+  Eg `90m` is parsed as `1.5`.
 
 There is some added flexibility to help with keeping time log data
 in the same file as your notes, todo lists, etc.:
@@ -4238,14 +4230,14 @@ in the same file as your notes, todo lists, etc.:
 - Blank lines and lines beginning with `#` or `;` are ignored.
 
 - Before the first date line, lines beginning with `*` are ignored.
-  From the first date line onward, a sequence of `*`'s followed by a space
+
+- From the first date line onward, one or more `*`'s followed by a space
   at beginning of lines (ie, the headline prefix used by Emacs Org mode) is ignored.
   This means the time log can be kept under an Org headline,
   and date lines or time transaction lines can be Org headlines.
 
-- Lines not ending with a double-space and amount are 
-  parsed as transactions with zero amount.
-  (Most hledger reports hide these by default; add -E to see them.)
+- Lines not ending with a double-space and amount are parsed as postings with zero amount.
+  Note hledger's register reports hide these by default (add -E to see them).
 
 More examples:
 

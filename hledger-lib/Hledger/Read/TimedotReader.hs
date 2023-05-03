@@ -43,7 +43,6 @@ import Control.Monad
 import Control.Monad.Except (ExceptT, liftEither)
 import Control.Monad.State.Strict
 import Data.Char (isSpace)
-import Data.List (foldl')
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time (Day)
@@ -113,7 +112,7 @@ preamblep = do
   many $ notFollowedBy datelinep >> (lift $ emptyorcommentlinep "#;*")
   lift $ traceparse' "preamblep"
 
--- | Parse timedot day entries to zero or more time transactions for that day.
+-- | Parse timedot day entries to multi-posting time transactions for that day.
 -- @
 -- 2020/2/1 optional day description
 -- fos.haskell  .... ..
@@ -123,14 +122,22 @@ preamblep = do
 dayp :: JournalParser m ()
 dayp = label "timedot day entry" $ do
   lift $ traceparse "dayp"
+  pos <- getSourcePos
   (date,desc,comment,tags) <- datelinep
   commentlinesp
-  ts <- many $ entryp <* commentlinesp
-  modify' $ addTransactions $ map (\t -> t{tdate=date, tdescription=desc, tcomment=comment, ttags=tags}) ts
-  lift $ traceparse' "dayp"
-  where
-    addTransactions :: [Transaction] -> Journal -> Journal
-    addTransactions ts j = foldl' (flip ($)) j (map addTransaction ts)
+  ps <- many $ timedotentryp <* commentlinesp
+  endpos <- getSourcePos
+  -- lift $ traceparse' "dayp end"
+  let t = txnTieKnot $ nulltransaction{
+    tsourcepos   = (pos, endpos),
+    tdate        = date,
+    tstatus      = Cleared,
+    tdescription = desc,
+    tcomment     = comment,
+    ttags        = tags,
+    tpostings    = ps
+    }
+  modify' $ addTransaction t
 
 datelinep :: JournalParser m (Day,Text,Text,[Tag])
 datelinep = do
@@ -139,7 +146,7 @@ datelinep = do
   date <- datep
   desc <- T.strip <$> lift descriptionp
   (comment, tags) <- lift transactioncommentp
-  lift $ traceparse' "datelinep"
+  -- lift $ traceparse' "datelinep end"
   return (date, desc, comment, tags)
 
 -- | Zero or more empty lines or hash/semicolon comment lines
@@ -165,10 +172,9 @@ orgheadingprefixp = do
 -- @
 -- fos.haskell  .... ..
 -- @
-entryp :: JournalParser m Transaction
-entryp = do
-  lift $ traceparse "entryp"
-  pos <- getSourcePos
+timedotentryp :: JournalParser m Posting
+timedotentryp = do
+  lift $ traceparse "timedotentryp"
   notFollowedBy datelinep
   lift $ optional $ choice [orgheadingprefixp, skipNonNewlineSpaces1]
   a <- modifiedaccountnamep
@@ -188,21 +194,13 @@ entryp = do
     (c,s) = case mcs of
       Just (defc,defs) -> (defc, defs{asprecision=max (asprecision defs) (Precision 2)})
       _ -> ("", amountstyle{asprecision=Precision 2})
-    t = nulltransaction{
-          tsourcepos = (pos, pos),
-          tstatus    = Cleared,
-          tpostings  = [
-            nullposting{paccount=a
+  -- lift $ traceparse' "timedotentryp end"
+  return $ nullposting{paccount=a
                       ,pamount=mixedAmount $ nullamt{acommodity=c, aquantity=hours, astyle=s}
                       ,ptype=VirtualPosting
                       ,pcomment=comment
                       ,ptags=tags
-                      ,ptransaction=Just t
                       }
-            ]
-          }
-  lift $ traceparse' "entryp"
-  return t
 
 type Hours = Quantity
 
