@@ -123,23 +123,24 @@ preamblep = do
 dayp :: JournalParser m ()
 dayp = label "timedot day entry" $ do
   lift $ traceparse "dayp"
-  (d,desc) <- datelinep
+  (date,desc,comment,tags) <- datelinep
   commentlinesp
   ts <- many $ entryp <* commentlinesp
-  modify' $ addTransactions $ map (\t -> t{tdate=d, tdescription=desc}) ts
+  modify' $ addTransactions $ map (\t -> t{tdate=date, tdescription=desc, tcomment=comment, ttags=tags}) ts
   lift $ traceparse' "dayp"
   where
     addTransactions :: [Transaction] -> Journal -> Journal
     addTransactions ts j = foldl' (flip ($)) j (map addTransaction ts)
 
-datelinep :: JournalParser m (Day,Text)
+datelinep :: JournalParser m (Day,Text,Text,[Tag])
 datelinep = do
   lift $ traceparse "datelinep"
   lift $ optional orgheadingprefixp
-  d <- datep
-  desc <- strip <$> lift restofline
+  date <- datep
+  desc <- T.strip <$> lift descriptionp
+  (comment, tags) <- lift transactioncommentp
   lift $ traceparse' "datelinep"
-  return (d, T.pack desc)
+  return (date, desc, comment, tags)
 
 -- | Zero or more empty lines or hash/semicolon comment lines
 -- or org headlines which do not start a new day.
@@ -172,10 +173,16 @@ entryp = do
   lift $ optional $ choice [orgheadingprefixp, skipNonNewlineSpaces1]
   a <- modifiedaccountnamep
   lift skipNonNewlineSpaces
-  hours <-
-    try (lift followingcommentp >> return 0)
-    <|> (lift durationp <*
-         (try (lift followingcommentp) <|> (newline >> return "")))
+  (hours, comment, tags) <-
+    try (do
+      (c,ts) <- lift transactioncommentp  -- or postingp, but let's not bother supporting date:/date2:
+      return (0, c, ts)
+    )
+    <|> (do
+      h <- lift durationp
+      (c,ts) <- try (lift transactioncommentp) <|> (newline >> return ("",[]))
+      return (h,c,ts)
+    )
   mcs <- getDefaultCommodityAndStyle
   let 
     (c,s) = case mcs of
@@ -188,6 +195,8 @@ entryp = do
             nullposting{paccount=a
                       ,pamount=mixedAmount $ nullamt{acommodity=c, aquantity=hours, astyle=s}
                       ,ptype=VirtualPosting
+                      ,pcomment=comment
+                      ,ptags=tags
                       ,ptransaction=Just t
                       }
             ]

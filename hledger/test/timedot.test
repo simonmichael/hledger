@@ -1,13 +1,11 @@
-# Note since 1.17 we need to specify stdin's format explicitly.
-
 # 1. basic timedot entry
 <
-# comment
+# file comment
+; another file comment
 
-; another comment
 2020-01-01
- a:aa  1
- b:bb  2
+a:aa  1
+b:bb  2
 
 $ hledger -ftimedot:- print
 2020-01-01 *
@@ -35,3 +33,26 @@ $ hledger -ftimedot:- print --alias a=b
     (b:aa)            1.00
 
 >=0
+
+# 4. A common day description and comment, and posting comments are supported.
+<
+2023-01-01 day description ; day comment, day-tag:
+a   ....
+b   .... ; posting comment, posting-tag:
+
+$ hledger -ftimedot:- print
+2023-01-01 * day description  ; day comment, day-tag:
+    (a)            1.00
+
+2023-01-01 * day description  ; day comment, day-tag:
+    (b)            1.00  ; posting comment, posting-tag:
+
+>=
+
+# 5. Transaction descriptions, comments and tags are parsed properly.
+$ hledger -ftimedot:- descriptions tag:day-tag
+day description
+
+# 6. Posting comments and tags are parsed properly.
+$ hledger -ftimedot:- reg tag:posting-tag
+2023-01-01 day description      (b)                           1.00          1.00

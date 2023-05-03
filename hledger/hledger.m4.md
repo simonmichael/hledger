@@ -4201,19 +4201,15 @@ A day entry begins with a date line:
 
 Optionally this can be followed on the same line by
 
-- a common **transaction description** for this day
-- a common **transaction comment** for this day, after a semicolon (`;`).
+- a **common description** for this day's transactions.
+- a **common comment** for this day's transactions, following a semicolon (`;`).
 
-After the date line are zero or more optionally-indented 
-time transaction lines, consisting of:
+After the date line are zero or more optionally-indented time transactions, consisting of:
 
-- an **account name** - any word or phrase, usually a 
-  hledger-style [account name](#account-names).
-- **two or more spaces** - a field separator, 
-  required if there is an amount (as in journal format).
-- a **timedot amount** - dots representing quarter hours, 
-  or a number representing hours.
-- an optional **comment** beginning with semicolon. This is ignored.
+- an **account name** - any word or phrase, usually a hledger-style [account name](#account-names).
+- **two or more spaces** - a field separator, required if there is an amount (as in journal format).
+- a **timedot amount** - dots representing quarter hours, or a number representing hours, optionally with a unit suffix.
+- an **posting comment** for this transaction, following with semicolon.
 
 In more detail, timedot amounts can be:
 
