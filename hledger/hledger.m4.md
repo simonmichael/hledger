@@ -2553,6 +2553,12 @@ Also, any transaction that has been changed by auto posting rules will have thes
 - `modified:` - this transaction was modified
 - `_modified:` - a hidden tag not appearing in the comment; this transaction was modified "just now".
 
+#### Auto postings on forecast transactions only
+
+Tip: you can can make auto postings that will apply to forecast transactions
+but not recorded transactions, by adding `tag:_generated-transaction` to their QUERY.
+This can be useful when generating new journal entries to be saved in the journal.
+
 ## Other syntax
 
 hledger journal format supports quite a few other features,
