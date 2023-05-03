@@ -1,58 +1,44 @@
-# 1. basic timedot entry
+# timedot format
+
 <
-# file comment
-; another file comment
+# sample.timedot
+# This is a comment line
+; Also a comment line
+* Org headings before the first date are also comment lines
 
-2020-01-01
-a:aa  1
-b:bb  2
+2023-01-01 transaction description
+biz:research  ....
+inc:client1   .... ..
 
+2023-01-01 different transaction, same day ; with a comment and transaction-tag:
+; more transaction comment lines ? currently ignored
+fos:haskell  .... ; a posting comment and posting-tag:
+; more posting comment lines ? currently ignored
+per:admin    ....
+
+** 2023-01-02  ; dates are allowed to be org headings
+
+# 1. The above timedot is converted to these transactions.
 $ hledger -ftimedot:- print
-2020-01-01 *
-    (a:aa)            1.00
+2023-01-01 * transaction description
+    (biz:research)            1.00
+    (inc:client1)             1.50
 
-2020-01-01 *
-    (b:bb)            2.00
+2023-01-01 * different transaction, same day  ; with a comment and transaction-tag:
+    (fos:haskell)            1.00  ; a posting comment and posting-tag:
+    (per:admin)              1.00
 
->=0
-
-# 2. Org mode headline prefixes are ignored.
-<
-* 2020-01-01
-** a:aa  1
-
-$ hledger -ftimedot:- print
-2020-01-01 *
-    (a:aa)            1.00
-
->=0
-
-# 3. Command-line account aliases are applied.
-$ hledger -ftimedot:- print --alias a=b
-2020-01-01 *
-    (b:aa)            1.00
-
->=0
-
-# 4. A common day description and comment, and posting comments are supported.
-<
-2023-01-01 day description ; day comment, day-tag:
-a   ....
-b   .... ; posting comment, posting-tag:
-
-$ hledger -ftimedot:- print
-2023-01-01 * day description  ; day comment, day-tag:
-    (a)            1.00
-
-2023-01-01 * day description  ; day comment, day-tag:
-    (b)            1.00  ; posting comment, posting-tag:
+2023-01-02 *  ; dates are allowed to be org headings
 
 >=
 
-# 5. Transaction descriptions, comments and tags are parsed properly.
-$ hledger -ftimedot:- descriptions tag:day-tag
-day description
+# 2. And this register.
+$ hledger -ftimedot:- reg
+2023-01-01 transaction descr..  (biz:research)                1.00          1.00
+                                (inc:client1)                 1.50          2.50
+2023-01-01 different transac..  (fos:haskell)                 1.00          3.50
+                                (per:admin)                   1.00          4.50
 
-# 6. Posting comments and tags are parsed properly.
-$ hledger -ftimedot:- reg tag:posting-tag
-2023-01-01 day description      (b)                           1.00          1.00
+# 3. Tags are recognised. Account aliases are applied.
+$ hledger -ftimedot:- reg tag:posting-tag --alias fos:haskell=λ
+2023-01-01 different transac..  (λ)                           1.00          1.00

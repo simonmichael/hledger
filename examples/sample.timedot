@@ -1,22 +1,16 @@
-2016/2/1
-fos:haskell   ....
-biz:research  .
-inc:client1   .... .... .... .... .... ....
+# sample.timedot
+# This is a comment line
+; Also a comment line
+* Org headings before the first date are also comment lines
 
-2016/2/2
-biz:research  .
-inc:client1   .... .... ..
+2023-01-01 transaction description
+biz:research  ....
+inc:client1   .... ..
 
-2016/2/3
-biz:research  .
-fos:hledger   .... .... ...
-biz:it        .... ..
-inc:client1   .... .... .... .... ....
+2023-01-01 different transaction, same day ; with a comment and transaction-tag:
+; more transaction comment lines ? currently ignored
+fos:haskell  .... ; a posting comment and posting-tag:
+; more posting comment lines ? currently ignored
+per:admin    ....
 
-2016/2/4
-biz:research  .... ..
-fos:hledger   .... .... ....
-fos:ledger    0.25
-fos:haskell   .5
-inc:client1   2
-
+** 2023-01-02  ; dates are allowed to be org headings
