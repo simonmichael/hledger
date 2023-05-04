@@ -390,3 +390,18 @@ $ hledger -f- print --forecast=2023 -O json
         "sourceLine": 4,
         "sourceName": "-"
 .*/
+
+# 23. Every nth day of month dates near end of month are calculated correctly
+# regardless of forecast start date. (#2032)
+<
+~ every 31st day of month
+    (a)  1
+
+$ hledger -f- reg --forecast=2023-03-30..
+2023-03-31                      (a)                              1             1
+2023-04-30                      (a)                              1             2
+2023-05-31                      (a)                              1             3
+2023-06-30                      (a)                              1             4
+2023-07-31                      (a)                              1             5
+2023-08-31                      (a)                              1             6
+2023-09-30                      (a)                              1             7

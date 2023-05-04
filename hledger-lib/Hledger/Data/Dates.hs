@@ -235,8 +235,8 @@ splitSpan adjust (Weeks n)    ds = splitspan (if adjust then startofweek    else
 splitSpan adjust (Months n)   ds = splitspan (if adjust then startofmonth   else id) addGregorianMonthsClip n     ds
 splitSpan adjust (Quarters n) ds = splitspan (if adjust then startofquarter else id) addGregorianMonthsClip (3*n) ds
 splitSpan adjust (Years n)    ds = splitspan (if adjust then startofyear    else id) addGregorianYearsClip n      ds
-splitSpan _ (DayOfMonth n)  ds = splitspan (nthdayofmonthcontaining n)  addGregorianMonthsClip 1 ds
-splitSpan _ (DayOfYear m n) ds = splitspan (nthdayofyearcontaining m n) addGregorianYearsClip 1 ds
+splitSpan _ (DayOfMonth dom)  ds = splitspan (nthdayofmonthcontaining dom) (addGregorianMonthsToMonthday dom) 1 ds
+splitSpan _ (DayOfYear m n)   ds = splitspan (nthdayofyearcontaining m n) (addGregorianYearsClip) 1 ds
 splitSpan _ (WeekdayOfMonth n wd) ds = splitspan (nthweekdayofmonthcontaining n wd) advancemonths 1 ds
   where
     advancemonths 0 = id
@@ -249,9 +249,21 @@ splitSpan _ (DaysOfWeek days@(n:_)) ds = spansFromBoundaries e bdrys
     -- The first representative of each weekday
     starts = map (\d -> addDays (toInteger $ d - n) $ nthdayofweekcontaining n s) days
 
+-- Like addGregorianMonthsClip, add one month to the given date, clipping when needed
+-- to fit it within the next month's length. But also, keep a target day of month in mind,
+-- and revert to that or as close to it as possible in subsequent longer months.
+-- Eg, using it to step through 31sts gives 1/31, 2/28, 3/31, 4/30, 5/31..
+addGregorianMonthsToMonthday :: MonthDay -> Integer -> Day -> Day
+addGregorianMonthsToMonthday dom n d =
+  let (y,m,_) = toGregorian $ addGregorianMonthsClip n d
+  in fromGregorian y m dom
+
 -- Split the given span into exact spans using the provided helper functions:
--- the start function is applied to the span's start date to get the first sub-span's start date
--- the addInterval function is applied to an integer n (multiplying it by mult) and the span's start date to get the nth sub-span's start date
+-- 1. The start function is applied to the span's start date to get the first sub-span's start date.
+-- 2. The addInterval function is used to calculate the subsequent spans' start dates,
+-- possibly with stride increased by the mult multiplier.
+-- It should adapt to spans of varying length, eg if splitting on "every 31st of month"
+-- addInterval should adjust to 28/29/30 in short months but return to 31 in the long months.
 splitspan :: (Day -> Day) -> (Integer -> Day -> Day) -> Int -> DateSpan -> [DateSpan]
 splitspan start addInterval mult ds = spansFromBoundaries e bdrys
   where
@@ -610,9 +622,9 @@ nthdayofyearcontaining m mdy date
         mmddOfPrevYear = addDays (toInteger mdy-1) $ applyN (m-1) nextmonth $ prevyear s
         s = startofyear date
 
--- | For given date d find month-long interval that starts on nth day of month
--- and covers it.
--- The given day of month should be basically valid (1-31), or an error is raised.
+-- | For a given date d find the month-long period that starts on day n of a month
+-- that includes d. (It will begin on day n or either d's month or the previous month.)
+-- The given day of month should be in the range 1-31, or an error will be raised.
 --
 -- Examples: lets take 2017-11-22. Month-long intervals covering it that
 -- start on 1st-22nd of month will start in Nov. However
