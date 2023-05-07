@@ -76,7 +76,7 @@ poschar="+"
 # utils
 
 # https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit and 24-bit colors:
-if [[ -v $NO_COLOR ]]; then
+if [[ $- != *i* || -v $NO_COLOR ]]; then
     red=''
     green=''
     nocol=''
