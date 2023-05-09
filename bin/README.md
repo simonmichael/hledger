@@ -21,7 +21,7 @@ hledger comes with many built-in commands, and you may want to get familiar with
 
 <!-- This page can be viewed on github or hledger.org, so use absolute urls. -->
 [bin]:                https://github.com/simonmichael/hledger/tree/master/bin
-[Scripts]:            https://hledger.org/scripts.html
+[Scripts and add-ons]: https://hledger.org/scripts.html
 [Scripting hledger]:  https://hledger.org/scripting.html
 
 ## HLEDGER-RELATED
