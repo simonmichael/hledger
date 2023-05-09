@@ -114,6 +114,20 @@ General reporting options:
 
 _reportingoptions_
 
+## Option repetition
+
+If options are repeated in a command line, hledger will generally use the last (right-most) occurence.
+Some of the boolean flags will toggle if repeated; these include:
+`--invert`,
+`--transpose`,
+`-r/--related`,
+`-%/--percent`,
+`-E/--empty`,
+`-N/--no-total`,
+`-T/--row-total`,
+`-A/--average`, and
+`-S/--sort-amount`.
+
 ## Command options
 
 To see options for a particular command, including command-specific options, run: `hledger COMMAND -h`.
