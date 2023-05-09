@@ -13,7 +13,6 @@ module Hledger.Data.RawOptions (
   setboolopt,
   unsetboolopt,
   appendopts,
-  inRawOpts,
   boolopt,
   choiceopt,
   collectopts,
@@ -56,12 +55,9 @@ unsetboolopt name = overRawOpts (filter ((/=name).fst))
 appendopts :: [(String,String)] -> RawOpts -> RawOpts
 appendopts new = overRawOpts (++new)
 
--- | Is the named option present ?
-inRawOpts :: String -> RawOpts -> Bool
-inRawOpts name = isJust . lookup name . unRawOpts
-
+-- | Is the named flag present ?
 boolopt :: String -> RawOpts -> Bool
-boolopt = inRawOpts
+boolopt name = isJust . lookup name . unRawOpts
 
 -- | From a list of RawOpts, get the last one (ie the right-most on the command line)
 -- for which the given predicate returns a Just value.

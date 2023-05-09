@@ -72,11 +72,11 @@ main = withProgName "hledger-ui.log" $ do  -- force Hledger.Utils.Debug.* to log
   let copts' = copts{inputopts_=iopts{forecast_=forecast_ iopts <|> Just nulldatespan}}
 
   case True of
-    _ | "help"            `inRawOpts` rawopts -> pager (showModeUsage uimode)
-    _ | "info"            `inRawOpts` rawopts -> runInfoForTopic "hledger-ui" Nothing
-    _ | "man"             `inRawOpts` rawopts -> runManForTopic  "hledger-ui" Nothing
-    _ | "version"         `inRawOpts` rawopts -> putStrLn prognameandversion
-    -- _ | "binary-filename" `inRawOpts` rawopts -> putStrLn (binaryfilename progname)
+    _ | boolopt "help"    rawopts -> pager (showModeUsage uimode)
+    _ | boolopt "info"    rawopts -> runInfoForTopic "hledger-ui" Nothing
+    _ | boolopt "man"     rawopts -> runManForTopic  "hledger-ui" Nothing
+    _ | boolopt "version" rawopts -> putStrLn prognameandversion
+    -- _ | boolopt "binary-filename" rawopts -> putStrLn (binaryfilename progname)
     _                                         -> withJournalDo copts' (runBrickUi opts)
 
 runBrickUi :: UIOpts -> Journal -> IO ()

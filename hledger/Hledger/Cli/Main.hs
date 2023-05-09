@@ -174,7 +174,7 @@ main = do
       | not (isExternalCommand || hasHelpFlag args || hasInfoFlag args || hasManFlag args)
         && (hasVersion args) --  || (hasVersion argsaftercmd && isInternalCommand))
                                  = putStrLn prognameandversion
-      -- \| (null externalcmd) && "binary-filename" `inRawOpts` rawopts = putStrLn $ binaryfilename progname
+      -- \| (null externalcmd) && boolopt "binary-filename" rawopts = putStrLn $ binaryfilename progname
       -- \| "--browse-args" `elem` args     = System.Console.CmdArgs.Helper.execute "cmdargs-browser" mainmode' args >>= (putStr . show)
       | isNullCommand            = dbgIO "" "no command, showing commands list" >> printCommandsList prognameandversion addons
       | isBadCommand             = badCommandError

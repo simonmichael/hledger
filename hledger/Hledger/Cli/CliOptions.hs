@@ -575,8 +575,8 @@ getHledgerCliOpts' mode' args0 = do
   let rawopts = either usageError id $ process mode' args0
   opts <- rawOptsToCliOpts rawopts
   debugArgs args0 opts
-  when ("help" `inRawOpts` rawopts_ opts) $ putStr shorthelp >> exitSuccess
-  -- when ("help" `inRawOpts` rawopts_ opts) $ putStr longhelp  >> exitSuccess
+  when (boolopt "help" $ rawopts_ opts) $ putStr shorthelp >> exitSuccess
+  -- when (boolopt "help" $ rawopts_ opts) $ putStr longhelp  >> exitSuccess
   return opts
   where
     longhelp = showModeUsage mode'
