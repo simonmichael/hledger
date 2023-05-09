@@ -6,7 +6,7 @@
 </div>
 
 This document is the README in the hledger repo's [bin] directory, 
-and is also published as [Scripts] on hledger.org.
+and is also published as [Scripts and add-ons] on hledger.org.
 
 [Add-on commands](hledger.html#add-on-commands) are executable script files or compiled programs
 named `hledger-*`, which show up in hledger's commands list.
