@@ -397,7 +397,7 @@ $ hledger -f- print --forecast=2023 -O json
 ~ every 31st day of month
     (a)  1
 
-$ hledger -f- reg --forecast=2023-03-30..
+$ hledger -f- reg --forecast=2023-03-30..2023-10
 2023-03-31                      (a)                              1             1
 2023-04-30                      (a)                              1             2
 2023-05-31                      (a)                              1             3
