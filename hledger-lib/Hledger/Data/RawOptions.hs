@@ -14,6 +14,7 @@ module Hledger.Data.RawOptions (
   unsetboolopt,
   appendopts,
   boolopt,
+  toggleopt,
   choiceopt,
   collectopts,
   stringopt,
@@ -58,6 +59,11 @@ appendopts new = overRawOpts (++new)
 -- | Is the named flag present ?
 boolopt :: String -> RawOpts -> Bool
 boolopt name = isJust . lookup name . unRawOpts
+
+-- | Like boolopt, except if the flag is repeated on the command line it toggles the value.
+-- An even number of repetitions is equivalent to none.
+toggleopt :: String -> RawOpts -> Bool
+toggleopt name rawopts = odd $ length [ n | (n,_) <- unRawOpts rawopts, n==name]
 
 -- | From a list of RawOpts, get the last one (ie the right-most on the command line)
 -- for which the given predicate returns a Just value.
