@@ -904,12 +904,12 @@ The journal file contains a number of transaction entries,
 each describing a transfer of money (or any commodity) between two or more named accounts,
 in a simple format readable by both hledger and humans.
 
-hledger's journal format is a compatible subset, mostly, of [ledger's
-journal format](http://ledger-cli.org/3.0/doc/ledger3.html#Journal-Format),
-so hledger can work with [compatible](/ledger.html#journal-format)
-ledger journal files as well.  It's safe, and encouraged, to run both
-hledger and ledger on the same journal file, eg to validate the results
-you're getting.
+hledger's journal format is compatible with most of 
+[Ledger's journal format](http://ledger-cli.org/3.0/doc/ledger3.html#Journal-Format), but not all of it.
+The differences and interoperation tips are described at [hledger and Ledger](ledger.html).
+With some care, and by avoiding incompatible features, you can keep your hledger journal
+readable by Ledger and vice versa. This can useful eg for comparing the behaviour of one app
+against the other.
 
 You can use hledger without learning any more about this file; just
 use the [add](#add) or [web](#web) or [import](#import) commands to
