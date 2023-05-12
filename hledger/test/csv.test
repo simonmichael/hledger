@@ -1059,7 +1059,28 @@ fields date, b, c
 $  ./csvtest.sh
 >=
 
-# 54. Some validation is done on account name assignments; trying to
+# 54. Empty (zero length) or blank (containing only spaces, tabs, etc.) lines
+# are skipped automatically, including inner ones; skip's argument
+# counts only the non-empty/blank lines.
+<
+
+ 	
+title
+
+	 
+date, amount
+2023-01-01, 1
+RULES
+skip 2
+fields date, amount
+$  ./csvtest.sh
+2023-01-01
+    expenses:unknown               1
+    income:unknown                -1
+
+>=
+
+# 55. Some validation is done on account name assignments; trying to
 # also set an amount there (with 2+ spaces) will be rejected. (#1978)
 <
 2022-01-01,1

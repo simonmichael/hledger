@@ -86,6 +86,13 @@ type CSV       = [CsvRecord]
 type CsvRecord = [CsvValue]
 type CsvValue  = Text
 
+-- ** utils
+
+printCSV :: [CsvRecord] -> TL.Text
+printCSV = TB.toLazyText . unlinesB . map printRecord
+    where printRecord = foldMap TB.fromText . intersperse "," . map printField
+          printField = wrap "\"" "\"" . T.replace "\"" "\"\""
+
 --- ** reader
 
 reader :: MonadIO m => Reader m
@@ -687,8 +694,10 @@ regexp end = do
 --
 readJournalFromCsv :: Maybe FilePath -> FilePath -> Text -> ExceptT String IO Journal
 readJournalFromCsv Nothing "-" _ = throwError "please use --rules-file when reading CSV from stdin"
-readJournalFromCsv mrulesfile csvfile csvdata = do
-    -- parse the csv rules
+readJournalFromCsv mrulesfile csvfile csvtext = do
+    -- for now, correctness is the priority here, efficiency not so much
+
+    -- get the csv rules as text
     let rulesfile = fromMaybe (rulesFileFor csvfile) mrulesfile
     rulesfileexists <- liftIO $ doesFileExist rulesfile
     rulestext <- liftIO $ if rulesfileexists
@@ -697,27 +706,24 @@ readJournalFromCsv mrulesfile csvfile csvdata = do
         readFilePortably rulesfile >>= expandIncludes (takeDirectory rulesfile)
       else
         return $ defaultRulesText rulesfile
+
+    -- parse the csv rules
     rules <- liftEither $ parseAndValidateCsvRules rulesfile rulestext
     dbg6IO "csv rules" rules
 
-    mtzin <- case getDirective "timezone" rules of
-              Nothing -> return Nothing
-              Just s  ->
-                maybe (throwError $ "could not parse time zone: " ++ T.unpack s) (return.Just) $
-                parseTimeM False defaultTimeLocale "%Z" $ T.unpack s
-    tzout <- liftIO getCurrentTimeZone
+    -- convert the csv data to lines and remove all empty/blank lines
+    let csvlines1 = dbg9 "csvlines1" $ filter (not . T.null . T.strip) $ dbg9 "csvlines0" $ T.lines csvtext
 
-    -- skip header lines, if there is a top-level skip rule
+    -- if there is a top-level skip rule, skip the specified number of non-empty lines
     skiplines <- case getDirective "skip" rules of
                       Nothing -> return 0
                       Just "" -> return 1
                       Just s  -> maybe (throwError $ "could not parse skip value: " ++ show s) return . readMay $ T.unpack s
-    let csvdata' = T.unlines $ drop skiplines $ T.lines csvdata
+    let csvlines2 = dbg9 "csvlines2" $ drop skiplines csvlines1
 
-    -- parse csv
+    -- convert back to text and parse as csv records
     let
-      -- parsec seems to fail if you pass it "-" here TODO: try again with megaparsec
-      parsecfilename = if csvfile == "-" then "(stdin)" else csvfile
+      csvtext1 = T.unlines csvlines2
       separator =
         case getDirective "separator" rules >>= parseSeparator of
           Just c           -> c
@@ -726,15 +732,27 @@ readJournalFromCsv mrulesfile csvfile csvdata = do
           _                -> ','
           where
             ext = map toLower $ drop 1 $ takeExtension csvfile
+      -- parsec seemed to fail if you pass it "-" here   -- TODO: try again with megaparsec
+      parsecfilename = if csvfile == "-" then "(stdin)" else csvfile
     dbg6IO "using separator" separator
-    csv <- dbg7 "parseCsv" <$> parseCsv separator parsecfilename csvdata'
-    records <- liftEither $ dbg7 "validateCsv" <$> validateCsv rules csv
-    dbg6IO "first 3 csv records" $ take 3 records
+    -- parse csv records
+    csvrecords0 <- dbg7 "parseCsv" <$> parseCsv separator parsecfilename csvtext1
+    -- remove any records skipped by conditional skip or end rules
+    let csvrecords1 = applyConditionalSkips rules csvrecords0
+    -- and check the remaining records for any obvious problems
+    csvrecords <- liftEither $ dbg7 "validateCsv" <$> validateCsv csvrecords1
+    dbg6IO "first 3 csv records" $ take 3 csvrecords
 
-    -- identify header lines
-    -- let (headerlines, datalines) = identifyHeaderLines records
+    -- XXX identify header lines some day ?
+    -- let (headerlines, datalines) = identifyHeaderLines csvrecords'
     --     mfieldnames = lastMay headerlines
 
+    tzout <- liftIO getCurrentTimeZone
+    mtzin <- case getDirective "timezone" rules of
+              Nothing -> return Nothing
+              Just s  ->
+                maybe (throwError $ "could not parse time zone: " ++ T.unpack s) (return.Just) $
+                parseTimeM False defaultTimeLocale "%Z" $ T.unpack s
     let
       -- convert CSV records to transactions, saving the CSV line numbers for error positions
       txns = dbg7 "csv txns" $ snd $ mapAccumL
@@ -746,7 +764,7 @@ readJournalFromCsv mrulesfile csvfile csvdata = do
                         in
                           (pos', transactionFromCsvRecord timesarezoned mtzin tzout pos rules r)
                      )
-                     (initialPos parsecfilename) records
+                     (initialPos parsecfilename) csvrecords
         where
           timesarezoned =
             case csvRule rules "date-format" of
@@ -793,62 +811,55 @@ parseSeparator = specials . T.toLower
 
 -- Call parseCassava on a file or stdin, converting the result to ExceptT.
 parseCsv :: Char -> FilePath -> Text -> ExceptT String IO [CsvRecord]
-parseCsv separator filePath csvdata = ExceptT $
+parseCsv separator filePath csvtext = ExceptT $
   case filePath of
     "-" -> parseCassava separator "(stdin)" <$> T.getContents
-    _   -> return $ if T.null csvdata then Right mempty else parseCassava separator filePath csvdata
+    _   -> return $ if T.null csvtext then Right mempty else parseCassava separator filePath csvtext
 
 -- Parse text into CSV records, using Cassava and the given field separator.
 parseCassava :: Char -> FilePath -> Text -> Either String [CsvRecord]
 parseCassava separator path content =
+  -- XXX we now remove all blank lines before parsing; will Cassava will still produce [""] records ?
+  -- filter (/=[""])
   either (Left . errorBundlePretty) (Right . parseResultToCsv) <$>
-  CassavaMegaparsec.decodeWith (decodeOptions separator) Cassava.NoHeader path $
+  CassavaMegaparsec.decodeWith decodeOptions Cassava.NoHeader path $
   BL.fromStrict $ T.encodeUtf8 content
-
-decodeOptions :: Char -> Cassava.DecodeOptions
-decodeOptions separator = Cassava.defaultDecodeOptions {
+  where
+    decodeOptions = Cassava.defaultDecodeOptions {
                       Cassava.decDelimiter = fromIntegral (ord separator)
                     }
-
-parseResultToCsv :: (Foldable t, Functor t) => t (t B.ByteString) -> [CsvRecord]
-parseResultToCsv = toListList . unpackFields
-    where
+    parseResultToCsv :: (Foldable t, Functor t) => t (t B.ByteString) -> [CsvRecord]
+    parseResultToCsv = toListList . unpackFields
+      where
         toListList = toList . fmap toList
         unpackFields  = (fmap . fmap) T.decodeUtf8
 
-printCSV :: [CsvRecord] -> TL.Text
-printCSV = TB.toLazyText . unlinesB . map printRecord
-    where printRecord = foldMap TB.fromText . intersperse "," . map printField
-          printField = wrap "\"" "\"" . T.replace "\"" "\"\""
-
--- | Do some cleanup and validation on the parsed CSV records.
--- Cleanups: filter out empty ([""]) records
--- 
--- * 
---
--- Return the cleaned up and validated CSV data (can be empty), or an error.
-validateCsv :: CsvRules -> [CsvRecord] -> Either String [CsvRecord]
-validateCsv rules = validate . applyConditionalSkips . filternulls
+-- | Scan for csv records where a conditional `skip` or `end` rule applies,
+-- and apply that rule, removing one or more following records.
+applyConditionalSkips :: CsvRules -> [CsvRecord] -> [CsvRecord]
+applyConditionalSkips _ [] = []
+applyConditionalSkips rules (r:rest) =
+  case skipnum r of
+    Nothing -> r : applyConditionalSkips rules rest
+    Just cnt -> applyConditionalSkips rules $ drop (cnt-1) rest
   where
-    filternulls = filter (/=[""])
-    applyConditionalSkips [] = []
-    applyConditionalSkips (r:rest) =
-      case skipnum r of
-        Nothing -> r:(applyConditionalSkips rest)
-        Just cnt -> applyConditionalSkips (drop (cnt-1) rest)
-      where
-        skipnum r1 =
-          case (getEffectiveAssignment rules r1 "end", getEffectiveAssignment rules r1 "skip") of
-            (Nothing, Nothing) -> Nothing
-            (Just _, _) -> Just maxBound
-            (Nothing, Just "") -> Just 1
-            (Nothing, Just x) -> Just (read $ T.unpack x)
-    validate [] = Right []
-    validate rs@(_first:_) = case lessthan2 of
-        Just r  -> Left $ printf "CSV record %s has less than two fields" (show r)
-        Nothing -> Right rs
-      where
-        lessthan2 = headMay $ filter ((<2).length) rs
+    skipnum r1 =
+      case (getEffectiveAssignment rules r1 "end", getEffectiveAssignment rules r1 "skip") of
+        (Nothing, Nothing) -> Nothing
+        (Just _, _) -> Just maxBound
+        (Nothing, Just "") -> Just 1
+        (Nothing, Just x) -> Just (read $ T.unpack x)
+
+-- | Do some validation on the parsed CSV records:
+-- check that they all have at least two fields.
+validateCsv :: [CsvRecord] -> Either String [CsvRecord]
+validateCsv [] = Right []
+validateCsv rs@(_first:_) =
+  case lessthan2 of
+    Just r  -> Left $ printf "CSV record %s has less than two fields" (show r)
+    Nothing -> Right rs
+  where
+    lessthan2 = headMay $ filter ((<2).length) rs
 
 -- -- | The highest (0-based) field index referenced in the field
 -- -- definitions, or -1 if no fields are defined.
