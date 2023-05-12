@@ -791,13 +791,14 @@ parseSeparator = specials . T.toLower
         specials "tab"   = Just '\t'
         specials xs      = fst <$> T.uncons xs
 
-parseCsv :: Char -> FilePath -> Text -> ExceptT String IO CSV
+-- Parse text into CSV records, using Cassava and the configured field separator.
+parseCsv :: Char -> FilePath -> Text -> ExceptT String IO [CsvRecord]
 parseCsv separator filePath csvdata = ExceptT $
   case filePath of
     "-" -> parseCassava separator "(stdin)" <$> T.getContents
     _   -> return $ if T.null csvdata then Right mempty else parseCassava separator filePath csvdata
 
-parseCassava :: Char -> FilePath -> Text -> Either String CSV
+parseCassava :: Char -> FilePath -> Text -> Either String [CsvRecord]
 parseCassava separator path content =
   either (Left . errorBundlePretty) (Right . parseResultToCsv) <$>
   CassavaMegaparsec.decodeWith (decodeOptions separator) Cassava.NoHeader path $
@@ -808,19 +809,19 @@ decodeOptions separator = Cassava.defaultDecodeOptions {
                       Cassava.decDelimiter = fromIntegral (ord separator)
                     }
 
-parseResultToCsv :: (Foldable t, Functor t) => t (t B.ByteString) -> CSV
+parseResultToCsv :: (Foldable t, Functor t) => t (t B.ByteString) -> [CsvRecord]
 parseResultToCsv = toListList . unpackFields
     where
         toListList = toList . fmap toList
         unpackFields  = (fmap . fmap) T.decodeUtf8
 
-printCSV :: CSV -> TL.Text
+printCSV :: [CsvRecord] -> TL.Text
 printCSV = TB.toLazyText . unlinesB . map printRecord
     where printRecord = foldMap TB.fromText . intersperse "," . map printField
           printField = wrap "\"" "\"" . T.replace "\"" "\"\""
 
 -- | Return the cleaned up and validated CSV data (can be empty), or an error.
-validateCsv :: CsvRules -> CSV -> Either String [CsvRecord]
+validateCsv :: CsvRules -> [CsvRecord] -> Either String [CsvRecord]
 validateCsv rules = validate . applyConditionalSkips . filternulls
   where
     filternulls = filter (/=[""])
