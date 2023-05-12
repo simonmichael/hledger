@@ -128,3 +128,7 @@ Problems:
 2022-06-05: linux-x64 binaries updated to run at normal speed. [#1867](https://github.com/simonmichael/hledger/issues/1867)
 2022-06-08: windows-x64 binaries fixed. [#1869](https://github.com/simonmichael/hledger/issues/1869)
 -->
+
+![Downloads, linux-x64](https://img.shields.io/github/downloads/simonmichael/hledger/1.29.2/hledger-linux-x64.zip)\
+![Downloads, mac-x64](https://img.shields.io/github/downloads/simonmichael/hledger/1.29.2/hledger-mac-x64.zip)\
+![Downloads, windows-x64](https://img.shields.io/github/downloads/simonmichael/hledger/1.29.2/hledger-windows-x64.zip)
