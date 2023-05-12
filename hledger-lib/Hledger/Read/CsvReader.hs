@@ -63,7 +63,7 @@ import Safe (atMay, headMay, lastMay, readMay)
 import System.Directory (doesFileExist)
 import System.FilePath ((</>), takeDirectory, takeExtension, takeFileName)
 import qualified Data.Csv as Cassava
-import qualified Data.Csv.Parser.Megaparsec as CassavaMP
+import qualified Data.Csv.Parser.Megaparsec as CassavaMegaparsec
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import Data.Foldable (asum, toList)
@@ -800,7 +800,7 @@ parseCsv separator filePath csvdata = ExceptT $
 parseCassava :: Char -> FilePath -> Text -> Either String CSV
 parseCassava separator path content =
   either (Left . errorBundlePretty) (Right . parseResultToCsv) <$>
-  CassavaMP.decodeWith (decodeOptions separator) Cassava.NoHeader path $
+  CassavaMegaparsec.decodeWith (decodeOptions separator) Cassava.NoHeader path $
   BL.fromStrict $ T.encodeUtf8 content
 
 decodeOptions :: Char -> Cassava.DecodeOptions
