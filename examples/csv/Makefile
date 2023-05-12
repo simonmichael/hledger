@@ -17,7 +17,7 @@
 
 YEAR:=$(shell date +%Y)
 JOURNAL=$(YEAR).journal
-HLEDGER=hledger
+
 RG=rg -IN --sort=path
 
 help: # list make targets
@@ -51,13 +51,14 @@ CSVS=\
 #	stripe.csv \
 #	stripeexpress.csv \
 
-# 2. How to make these CSV files (what download file to copy them from).
-wf-checking.csv:      $(DOWNLOADDIR)/Checking1.csv                                     ; mv $< $@
-wf-savings.csv:       $(DOWNLOADDIR)/Savings2.csv                                      ; mv $< $@
-paypal.csv:           $(DOWNLOADDIR)/Download.csv                                      ; mv $< $@
-vanguard.csv:         $(DOWNLOADDIR)/ofxdownload.csv                                   ; mv $< $@
-#stripe.csv:           $(DOWNLOADDIR)/Itemized_balance_change_from_activity_USD_*.csv   ; mv $< $@
-#stripeexpress.csv:    $(DOWNLOADDIR)/StripeExpressActivity_*.csv                       ; mv $< $@
+# 2. How to make these CSV files / where to move them from.
+wf-checking.csv:      $(DOWNLOADDIR)/Checking1.csv; mv $< $@
+wf-savings.csv:       $(DOWNLOADDIR)/Savings2.csv ; mv $< $@
+paypal.csv:           $(DOWNLOADDIR)/Download.csv ; mv $< $@
+# paypal.csv:         PHONY; paypaljson | paypaljson2csv > $@
+vanguard.csv:         $(DOWNLOADDIR)/ofxdownload.csv; mv $< $@
+#stripe.csv:           $(DOWNLOADDIR)/Itemized_balance_change_from_activity_USD_*.csv; mv $< $@
+#stripeexpress.csv:    $(DOWNLOADDIR)/StripeExpressActivity_*.csv; mv $< $@
 
 # 3. Marking them as intermediate files (https://www.gnu.org/software/make/manual/html_node/Chained-Rules.html).
 .INTERMEDIATE: \
@@ -69,9 +70,6 @@ vanguard.csv:         $(DOWNLOADDIR)/ofxdownload.csv                            
 #	$(DOWNLOADDIR)/StripeExpressActivity_*.csv \
 
 csv: $(CSVS)  # move any downloaded CSVs to the standard filenames above
-
-# paypal.csv: PHONY  # download paypal CSV from API
-# 	paypaljson | paypaljson2csv > $@
 
 ###############################################################################
 # ** IMPORT
@@ -123,4 +121,4 @@ prices-dry: PHONY  # download and show today's prices, without saving
 # ** REPORTS
 
 bs:  # simplified balance sheet
-	$(HLEDGER) bs -2 -V --infer-market-prices --layout=bare
+	hledger bs -2 -V --infer-market-prices --layout=bare
