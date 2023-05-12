@@ -80,6 +80,7 @@ import Hledger.Read.Common
 import Hledger.Read.InputOptions
 import Hledger.Read.JournalReader as JournalReader
 import Hledger.Read.CsvReader (tests_CsvReader)
+import Hledger.Read.RulesReader (tests_RulesReader)
 -- import Hledger.Read.TimedotReader (tests_TimedotReader)
 -- import Hledger.Read.TimeclockReader (tests_TimeclockReader)
 import Hledger.Utils
@@ -308,4 +309,5 @@ tests_Read = testGroup "Read" [
    tests_Common
   ,tests_CsvReader
   ,tests_JournalReader
+  ,tests_RulesReader
   ]

@@ -385,15 +385,14 @@ any of the supported file formats, which currently are:
 | `journal`   | hledger journal files and some Ledger journals, for transactions | `.journal` `.j` `.hledger` `.ledger` |
 | `timeclock` | timeclock files, for precise time logging                        | `.timeclock`                         |
 | `timedot`   | timedot files, for approximate time logging                      | `.timedot`                           |
-| `csv`       | comma/semicolon/tab/other-separated values, for data import      | `.csv` `.ssv` `.tsv`                 |
+| `csv`       | CSV/SSV/TSV/character-separated values, for data import          | `.csv` `.ssv` `.tsv` `.csv.rules` `.ssv.rules` `.tsv.rules` |
 
 These formats are described in more detail below.
 
-hledger detects the format automatically based on the file extensions
-shown above. If it can't recognise the file extension, it assumes
-`journal` format. So for non-journal files, it's important to use a
-recognised file extension, so as to either read successfully or to
-show relevant error messages.
+hledger detects the format automatically based on the file extensions shown above.
+If it can't recognise the file extension, it assumes `journal` format.
+So for non-journal files, it's important to use a recognised file extension,
+so as to either read successfully or to show relevant error messages.
 
 You can also force a specific reader/format by prefixing the file path
 with the format and a colon. Eg, to read a .dat file as csv format:
@@ -2914,6 +2913,7 @@ The following kinds of rule can appear in the rules file, in any order.
 
 |                                                 |                                                                                                |
 |-------------------------------------------------|------------------------------------------------------------------------------------------------|
+| [**`source`**](#source)                         | optionally declare which file to read data from                                                |
 | [**`separator`**](#separator)                   | declare the field separator, instead of relying on file extension                              |
 | [**`skip`**](#skip)                             | skip one or more header lines at start of file                                                 |
 | [**`date-format`**](#date-format)               | declare how to parse CSV dates/date-times                                                      |
@@ -2931,6 +2931,35 @@ The following kinds of rule can appear in the rules file, in any order.
 [Working with CSV](#working-with-csv) tips can be found below,
 including [How CSV rules are evaluated](#how-csv-rules-are-evaluated).
 
+## `source`
+
+If you tell hledger to read a csv file with `-f foo.csv`, it will look for rules in `foo.csv.rules`.
+Or, you can tell it to read the rules file, with `-f foo.csv.rules`, and it will look for data in `foo.csv` (since 1.30).
+
+These are mostly equivalent, but the second method provides some extra features.
+For one, the data file can be missing, without causing an error; it is just considered empty.
+And, you can specify a different data file by adding a "source" rule:
+
+```rules
+source ./Checking1.csv
+```
+
+If you specify just a file name with no path, hledger will look for it
+in your system's downloads directory (`~/Downloads`, currently):
+
+```rules
+source Checking1.csv
+```
+
+And if you specify a glob pattern, hledger will read the most recent of the matched files
+(useful with repeated downloads):
+
+```rules
+source Checking1*.csv
+```
+
+See also ["Working with CSV > Reading files specified by rule"](#reading-files-specified-by-rule).
+
 ## `separator`
 
 You can use the `separator` rule to read other kinds of
@@ -2938,17 +2967,17 @@ character-separated data. The argument is any single separator
 character, or the words `tab` or `space` (case insensitive). Eg, for
 comma-separated values (CSV):
 
-```
+```rules
 separator ,
 ```
 
 or for semicolon-separated values (SSV):
-```
+```rules
 separator ;
 ```
 
 or for tab-separated values (TSV):
-```
+```rules
 separator TAB
 ```
 
@@ -3537,6 +3566,30 @@ If you use multiple `-f` options to read multiple CSV files at once,
 hledger will look for a correspondingly-named rules file for each CSV
 file. But if you use the `--rules-file` option, that rules file will
 be used for all the CSV files.
+
+### Reading files specified by rule
+
+Instead of specifying a CSV file in the command line, you can specify
+a rules file, as in `hledger -f foo.csv.rules CMD`. 
+By default this will read data from foo.csv in the same directory,
+but you can add a [source](#source) rule to specify a different data file,
+perhaps located in your web browser's download directory.
+
+This feature was added in hledger 1.30, so you won't see it in most CSV rules examples.
+But it helps remove some of the busywork of managing CSV downloads.
+Most of your financial institutions's default CSV filenames are
+different and can be recognised by a glob pattern.  So you can put a
+rule like `source Checking1*.csv` in foo-checking.csv.rules, and then
+periodically follow a workflow like:
+
+1. Download CSV from Foo's website, using your browser's defaults
+2. Run `hledger import foo-checking.csv.rules` to import any new transactions
+
+After import, you can: discard the CSV, or leave it where it is for a
+while, or move it into your archives, as you prefer. If you do nothing,
+next time your browser will save something like Checking1-2.csv, 
+and hledger will use that because of the `*` wild card and because
+it is the most recent.
 
 ### Valid transactions
 

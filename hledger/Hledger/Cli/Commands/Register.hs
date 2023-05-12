@@ -27,7 +27,7 @@ import qualified Data.Text.Lazy.Builder as TB
 import System.Console.CmdArgs.Explicit (flagNone, flagReq)
 
 import Hledger hiding (per)
-import Hledger.Read.CsvReader (CSV, CsvRecord, printCSV)
+import Hledger.Read.CsvUtils (CSV, CsvRecord, printCSV)
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
 import Text.Tabular.AsciiWide hiding (render)

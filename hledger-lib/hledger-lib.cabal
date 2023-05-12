@@ -68,8 +68,10 @@ library
       Hledger.Read
       Hledger.Read.Common
       Hledger.Read.CsvReader
+      Hledger.Read.CsvUtils
       Hledger.Read.InputOptions
       Hledger.Read.JournalReader
+      Hledger.Read.RulesReader
       Hledger.Read.TimedotReader
       Hledger.Read.TimeclockReader
       Hledger.Reports
