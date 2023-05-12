@@ -791,13 +791,14 @@ parseSeparator = specials . T.toLower
         specials "tab"   = Just '\t'
         specials xs      = fst <$> T.uncons xs
 
--- Parse text into CSV records, using Cassava and the configured field separator.
+-- Call parseCassava on a file or stdin, converting the result to ExceptT.
 parseCsv :: Char -> FilePath -> Text -> ExceptT String IO [CsvRecord]
 parseCsv separator filePath csvdata = ExceptT $
   case filePath of
     "-" -> parseCassava separator "(stdin)" <$> T.getContents
     _   -> return $ if T.null csvdata then Right mempty else parseCassava separator filePath csvdata
 
+-- Parse text into CSV records, using Cassava and the given field separator.
 parseCassava :: Char -> FilePath -> Text -> Either String [CsvRecord]
 parseCassava separator path content =
   either (Left . errorBundlePretty) (Right . parseResultToCsv) <$>
@@ -820,22 +821,28 @@ printCSV = TB.toLazyText . unlinesB . map printRecord
     where printRecord = foldMap TB.fromText . intersperse "," . map printField
           printField = wrap "\"" "\"" . T.replace "\"" "\"\""
 
--- | Return the cleaned up and validated CSV data (can be empty), or an error.
+-- | Do some cleanup and validation on the parsed CSV records.
+-- Cleanups: filter out empty ([""]) records
+-- 
+-- * 
+--
+-- Return the cleaned up and validated CSV data (can be empty), or an error.
 validateCsv :: CsvRules -> [CsvRecord] -> Either String [CsvRecord]
 validateCsv rules = validate . applyConditionalSkips . filternulls
   where
     filternulls = filter (/=[""])
-    skipnum r =
-      case (getEffectiveAssignment rules r "end", getEffectiveAssignment rules r "skip") of
-        (Nothing, Nothing) -> Nothing
-        (Just _, _) -> Just maxBound
-        (Nothing, Just "") -> Just 1
-        (Nothing, Just x) -> Just (read $ T.unpack x)
     applyConditionalSkips [] = []
     applyConditionalSkips (r:rest) =
       case skipnum r of
         Nothing -> r:(applyConditionalSkips rest)
         Just cnt -> applyConditionalSkips (drop (cnt-1) rest)
+      where
+        skipnum r1 =
+          case (getEffectiveAssignment rules r1 "end", getEffectiveAssignment rules r1 "skip") of
+            (Nothing, Nothing) -> Nothing
+            (Just _, _) -> Just maxBound
+            (Nothing, Just "") -> Just 1
+            (Nothing, Just x) -> Just (read $ T.unpack x)
     validate [] = Right []
     validate rs@(_first:_) = case lessthan2 of
         Just r  -> Left $ printf "CSV record %s has less than two fields" (show r)
