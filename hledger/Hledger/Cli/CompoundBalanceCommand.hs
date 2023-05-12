@@ -20,7 +20,7 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import Data.Time.Calendar (Day, addDays)
 import System.Console.CmdArgs.Explicit as C
-import Hledger.Read.CsvReader (CSV, printCSV)
+import Hledger.Read.CsvUtils (CSV, printCSV)
 import Lucid as L hiding (value_)
 import Text.Tabular.AsciiWide as Tab hiding (render)
 

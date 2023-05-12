@@ -277,7 +277,7 @@ import qualified Text.Tabular.AsciiWide as Tab
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
-import Hledger.Read.CsvReader (CSV, printCSV)
+import Hledger.Read.CsvUtils (CSV, printCSV)
 
 
 -- | Command line options for this command.

@@ -100,9 +100,10 @@ import Hledger.Data
 import Hledger.Read.Common
 import Hledger.Utils
 
-import qualified Hledger.Read.TimedotReader as TimedotReader (reader)
-import qualified Hledger.Read.TimeclockReader as TimeclockReader (reader)
 import qualified Hledger.Read.CsvReader as CsvReader (reader)
+import qualified Hledger.Read.RulesReader as RulesReader (reader)
+import qualified Hledger.Read.TimeclockReader as TimeclockReader (reader)
+import qualified Hledger.Read.TimedotReader as TimedotReader (reader)
 
 --- ** doctest setup
 -- $setup
@@ -137,6 +138,7 @@ readers' = [
   reader
  ,TimeclockReader.reader
  ,TimedotReader.reader
+ ,RulesReader.reader
  ,CsvReader.reader
 --  ,LedgerReader.reader
  ]
@@ -168,7 +170,7 @@ type PrefixedFilePath = FilePath
 -- split that off. Eg "csv:-" -> (Just "csv", "-").
 splitReaderPrefix :: PrefixedFilePath -> (Maybe String, FilePath)
 splitReaderPrefix f =
-  headDef (Nothing, f)
+  headDef (Nothing, f) $
   [(Just r, drop (length r + 1) f) | r <- readerNames, (r++":") `isPrefixOf` f]
 
 --- ** reader

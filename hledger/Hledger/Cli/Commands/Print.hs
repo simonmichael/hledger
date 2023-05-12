@@ -23,7 +23,7 @@ import Lens.Micro ((^.), _Just, has)
 import System.Console.CmdArgs.Explicit
 
 import Hledger
-import Hledger.Read.CsvReader (CSV, printCSV)
+import Hledger.Read.CsvUtils (CSV, printCSV)
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
 import System.Exit (exitFailure)
