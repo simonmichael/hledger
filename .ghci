@@ -1,7 +1,12 @@
 :set prompt "ghci> "
+import System.Environment
+setEnv "NO_COLOR" "1"
+-- TEMP
+-- :m +*Hledger.Cli.Commands
+
 -- https://github.com/cdepillabout/pretty-simple
 :set -package pretty-simple
-:set -interactive-print=Text.Pretty.Simple.pPrint
+:set -interactive-print=Text.Pretty.Simple.pPrintNoColor
 
 -- ghci commands to be run once at ghci startup
 -- http://www.haskell.org/ghc/docs/7.6.3/html/users_guide/ghci-commands.html
