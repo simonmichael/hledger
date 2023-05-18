@@ -126,18 +126,20 @@ import Hledger.Utils.Text (WideBuilder(WideBuilder))
 
 -- Pretty showing/printing with pretty-simple
 
+-- https://hackage.haskell.org/package/pretty-simple/docs/Text-Pretty-Simple.html#t:OutputOptions
+
 -- | pretty-simple options with colour enabled if allowed.
 prettyopts = 
   (if useColorOnStderr then defaultOutputOptionsDarkBg else defaultOutputOptionsNoColor)
-    { outputOptionsIndentAmount=2
-    , outputOptionsCompact=True
+    { outputOptionsIndentAmount = 2
+    -- , outputOptionsCompact      = True  -- fills lines, but does not respect page width (https://github.com/cdepillabout/pretty-simple/issues/126)
+    -- , outputOptionsPageWidth    = fromMaybe 80 $ unsafePerformIO getTerminalWidth
     }
 
 -- | pretty-simple options with colour disabled.
 prettyopts' =
   defaultOutputOptionsNoColor
     { outputOptionsIndentAmount=2
-    , outputOptionsCompact=True
     }
 
 -- | Pretty show. Easier alias for pretty-simple's pShow.
