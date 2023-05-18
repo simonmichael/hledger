@@ -10,10 +10,10 @@ the export list, the import list, builtinCommands, commandsList.
 {-# LANGUAGE TemplateHaskell #-}
 
 module Hledger.Cli.Commands (
-   findCommand
   ,testcmd
   ,builtinCommands
   ,builtinCommandNames
+  ,findBuiltinCommand
   ,printCommandsList
   ,tests_Hledger_Cli
   ,module Hledger.Cli.Commands.Accounts
@@ -294,9 +294,6 @@ multicol width strs =
 builtinCommandNames :: [String]
 builtinCommandNames = concatMap (modeNames . fst) builtinCommands
 
--- | Look up a builtin command's mode and action by exact command name or alias. 
-findCommand :: String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ()) 
-findCommand cmdname = find (elem cmdname . modeNames . fst) builtinCommands 
 
 -- | Extract the command names from commandsList: the first word
 -- of lines beginning with a space or + sign.
@@ -309,6 +306,9 @@ knownCommands = sort . commandsFromCommandsList $ commandsList progname [] False
 -- | Print the commands list, modifying the template above based on
 -- the currently available addons. Missing addons will be removed, and
 -- extra addons will be added under Misc.
+-- | Look up a builtin command's mode and action by exact command name or alias. 
+findBuiltinCommand :: String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ()) 
+findBuiltinCommand cmdname = find (elem cmdname . modeNames . fst) builtinCommands 
 printCommandsList :: String -> [String] -> IO ()
 printCommandsList progversion addonsFound =
     pager . unlines . concatMap adjustline $

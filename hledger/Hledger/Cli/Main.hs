@@ -180,7 +180,7 @@ main = do
       | isBadCommand             = badCommandError
 
       -- builtin commands
-      | Just (cmdmode, cmdaction) <- findCommand cmd =
+      | Just (cmdmode, cmdaction) <- findBuiltinCommand cmd =
         (case True of
            -- these commands should not require or read the journal
           _ | cmd `elem` ["test","help"] -> cmdaction opts journallesserror
