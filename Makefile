@@ -1118,6 +1118,9 @@ etags:$(call def-help,etags, generate emacs TAGS file for haskell source and oth
 	; do printf "\n$$f,1\n" >> TAGS; done
 	-etagsls >TAGS.files
 
+etags-ls:  # list files indexed in TAGS
+	@rg -v '[ ]' TAGS | rg -r '$$1' '^(.*?)([0-9]+)?,[0-9,]+*'
+
 cleantags: \
 	$(call def-help-hide,cleantags, remove tag files )
 	rm -f TAGS tags
