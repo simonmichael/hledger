@@ -119,7 +119,7 @@ import           System.IO.Unsafe (unsafePerformIO)
 import           System.Pager (printOrPage)
 #endif
 import           Text.Pretty.Simple
-  (CheckColorTty(CheckColorTty), OutputOptions(..), 
+  (CheckColorTty(..), OutputOptions(..),
   defaultOutputOptionsDarkBg, defaultOutputOptionsNoColor, pShowOpt, pPrintOpt)
 
 import Hledger.Utils.Text (WideBuilder(WideBuilder))
@@ -137,26 +137,28 @@ prettyopts =
     }
 
 -- | pretty-simple options with colour disabled.
-prettyopts' =
+prettyoptsNoColor =
   defaultOutputOptionsNoColor
     { outputOptionsIndentAmount=2
     }
 
--- | Pretty show. Easier alias for pretty-simple's pShow.
+-- | Pretty show. An easier alias for pretty-simple's pShow.
+-- This will probably show in colour if useColorOnStderr is true.
 pshow :: Show a => a -> String
 pshow = TL.unpack . pShowOpt prettyopts
 
--- | Monochrome version of pshow.
+-- | Monochrome version of pshow. This will never show in colour.
 pshow' :: Show a => a -> String
-pshow' = TL.unpack . pShowOpt prettyopts'
+pshow' = TL.unpack . pShowOpt prettyoptsNoColor
 
--- | Pretty print. Easier alias for pretty-simple's pPrint.
+-- | Pretty print a showable value. An easier alias for pretty-simple's pPrint.
+-- This will print in colour if useColorOnStderr is true.
 pprint :: Show a => a -> IO ()
-pprint = pPrintOpt CheckColorTty prettyopts
+pprint = pPrintOpt (if useColorOnStderr then CheckColorTty else NoCheckColorTty) prettyopts
 
--- | Monochrome version of pprint.
+-- | Monochrome version of pprint. This will never print in colour.
 pprint' :: Show a => a -> IO ()
-pprint' = pPrintOpt CheckColorTty prettyopts'
+pprint' = pPrintOpt NoCheckColorTty prettyoptsNoColor
 
 -- "Avoid using pshow, pprint, dbg* in the code below to prevent infinite loops." (?)
 
