@@ -47,6 +47,7 @@ module Hledger.Utils (
   sixth6,
 
   -- * Misc
+  multicol,
   numDigitsInt,
   makeHledgerClassyLenses,
 
@@ -66,8 +67,10 @@ module Hledger.Utils (
 where
 
 import Data.Char (toLower)
-import Data.List.Extra (foldl', foldl1', uncons, unsnoc)
+import Data.List (intersperse)
+import Data.List.Extra (chunksOf, foldl', foldl1', uncons, unsnoc)
 import qualified Data.Set as Set
+import qualified Data.Text as T (pack, unpack)
 import Data.Tree (foldTree, Tree (Node, subForest))
 import Language.Haskell.TH (DecsQ, Name, mkName, nameBase)
 import Lens.Micro ((&), (.~))
@@ -198,6 +201,21 @@ fifth6  (_,_,_,_,x,_) = x
 sixth6  (_,_,_,_,_,x) = x
 
 -- Misc
+
+-- | Convert a list of strings to a multi-line multi-column list
+-- fitting within the given width. Not wide character aware.
+multicol :: Int -> [String] -> String
+multicol _ [] = []
+multicol width strs =
+  let
+    maxwidth = maximum' $ map length strs
+    numcols = min (length strs) (width `div` (maxwidth+2))
+    itemspercol = length strs `div` numcols
+    colitems = chunksOf itemspercol strs
+    cols = map unlines colitems
+    sep = " "
+  in
+    T.unpack $ textConcatBottomPadded $ map T.pack $ intersperse sep cols
 
 -- | Find the number of digits of an 'Int'.
 {-# INLINE numDigitsInt #-}
