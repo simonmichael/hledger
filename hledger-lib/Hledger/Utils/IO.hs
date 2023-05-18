@@ -77,6 +77,8 @@ module Hledger.Utils.IO (
   embedFileRelative,
   expandHomePath,
   expandPath,
+  expandGlob,
+  sortByModTime,
   readFileOrStdinPortably,
   readFilePortably,
   readHandlePortably,
@@ -89,7 +91,7 @@ module Hledger.Utils.IO (
   )
 where
 
-import           Control.Monad (when)
+import           Control.Monad (when, forM)
 import           Data.Colour.RGBSpace (RGB(RGB))
 import           Data.Colour.RGBSpace.HSL (lightness)
 import           Data.FileEmbed (makeRelativeToProject, embedStringFile)
@@ -108,7 +110,7 @@ import           String.ANSI
 import           System.Console.ANSI (Color(..),ColorIntensity(..),
   ConsoleLayer(..), SGR(..), hSupportsANSIColor, setSGRCode, getLayerColor)
 import           System.Console.Terminal.Size (Window (Window), size)
-import           System.Directory (getHomeDirectory)
+import           System.Directory (getHomeDirectory, getModificationTime)
 import           System.Environment (getArgs, lookupEnv, setEnv)
 import           System.FilePath (isRelative, (</>))
 import           System.IO
@@ -123,6 +125,8 @@ import           Text.Pretty.Simple
   defaultOutputOptionsDarkBg, defaultOutputOptionsNoColor, pShowOpt, pPrintOpt)
 
 import Hledger.Utils.Text (WideBuilder(WideBuilder))
+import System.FilePath.Glob (glob)
+import Data.Functor ((<&>))
 
 -- Pretty showing/printing with pretty-simple
 
@@ -430,21 +434,32 @@ usageError = error' . (++ " (use -h to see usage)")
 
 -- Files
 
--- | Convert a possibly relative, possibly tilde-containing file path to an absolute one,
--- given the current directory. ~username is not supported. Leave "-" unchanged.
--- Can raise an error.
-expandPath :: FilePath -> FilePath -> IO FilePath -- general type sig for use in reader parsers
-expandPath _ "-" = return "-"
-expandPath curdir p = (if isRelative p then (curdir </>) else id) <$> expandHomePath p
--- PARTIAL:
-
--- | Expand user home path indicated by tilde prefix
+-- | Expand a tilde (representing home directory) at the start of a file path.
+-- ~username is not supported. Can raise an error.
 expandHomePath :: FilePath -> IO FilePath
 expandHomePath = \case
     ('~':'/':p)  -> (</> p) <$> getHomeDirectory
     ('~':'\\':p) -> (</> p) <$> getHomeDirectory
     ('~':_)      -> ioError $ userError "~USERNAME in paths is not supported"
     p            -> return p
+
+-- | Given a current directory, convert a possibly relative, possibly tilde-containing
+-- file path to an absolute one.
+-- ~username is not supported. Leaves "-" unchanged. Can raise an error.
+expandPath :: FilePath -> FilePath -> IO FilePath -- general type sig for use in reader parsers
+expandPath _ "-" = return "-"
+expandPath curdir p = (if isRelative p then (curdir </>) else id) <$> expandHomePath p
+
+-- | Like expandPath, but treats the expanded path as a glob, and returns
+-- zero or more matched absolute file paths, alphabetically sorted.
+expandGlob :: FilePath -> FilePath -> IO [FilePath]
+expandGlob curdir p = expandPath curdir p >>= glob <&> sort
+
+-- | Given a list of existing file paths, sort them by modification time, most recent first.
+sortByModTime :: [FilePath] -> IO [FilePath]
+sortByModTime fs = do
+  ftimes <- forM fs $ \f -> do {t <- getModificationTime f; return (t,f)}
+  return $ map snd $ reverse $ sort ftimes
 
 -- | Read text from a file,
 -- converting any \r\n line endings to \n,,
