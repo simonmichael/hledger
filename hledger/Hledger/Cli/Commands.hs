@@ -3,17 +3,24 @@ hledger's built-in commands, and helpers for printing the commands list.
 
 New built-in commands should be added in four places below:
 the export list, the import list, builtinCommands, commandsList.
+
 -}
 
+-- Note: commands list rendering is intensely sensitive to change,
+-- very easy to break in ways that tests currently do not catch.
+
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Hledger.Cli.Commands (
-  ,testcmd
+   testcmd
   ,builtinCommands
   ,builtinCommandNames
   ,findBuiltinCommand
+  ,knownAddonCommands
+  ,knownCommands
   ,printCommandsList
   ,tests_Hledger_Cli
   ,module Hledger.Cli.Commands.Accounts
@@ -44,8 +51,9 @@ module Hledger.Cli.Commands (
 ) 
 where
 
-import Data.Char (isSpace)
+import Data.Char (isAlphaNum, isSpace)
 import Data.List
+import Data.List.Extra (nubSort)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar
@@ -86,7 +94,6 @@ import Hledger.Cli.Commands.Roi
 import Hledger.Cli.Commands.Stats
 import Hledger.Cli.Commands.Tags
 import Hledger.Cli.Utils (tests_Cli_Utils)
-import Data.List.Extra (chunksOf)
 
 -- | The cmdargs subcommand mode (for command-line parsing)
 -- and IO action (for doing the command's work) for each builtin command.
@@ -161,8 +168,6 @@ accent
   | terminalIsLight == Just True  = brightBlack
   | otherwise                     = id
 
-highlightAddon = id
-
 -- | The commands list, showing command names, standard aliases,
 -- and short descriptions. This is modified at runtime, as follows:
 --
@@ -181,10 +186,8 @@ highlightAddon = id
 --
 -- TODO: generate more of this automatically.
 -- 
-commandsList :: String -> [String] -> Bool -> [String]
-commandsList progversion othercmds highlight0 =
-  let highlight = highlight0 && useColorOnStdout in
-  (if highlight then (map (\s -> if "+" `isPrefixOf` s then highlightAddon (' ' : drop 1 s) else s)) else id) $
+commandsList :: String -> [String] -> [String]
+commandsList progversion othercmds =
   map (bold'.accent) _banner_smslant ++ 
   [
   -- Keep the following synced with:
@@ -270,59 +273,65 @@ commandsList progversion othercmds highlight0 =
     -----------------------------------------80-------------------------------------
   ,bold' "OTHER (more hledger-* addon commands found in PATH)"
   ]
-  ++ multicol 80 (map (highlightAddon . (' ':) . drop 1) othercmds)
+  ++ map (' ':) (lines $ multicol 79 othercmds)
   ++ [""]
 
--- edit                     open a text editor on some part of the journal
+-- | Extract just the command names from the default commands list above,
+-- (the first word of lines between "Usage:" and "HELP" beginning with a space or plus sign),
+-- in the order they occur. With a true first argument, extracts only the addon command names.
+-- Needs to be kept synced with commandsList.
+commandsListExtractCommands :: Bool -> [String] -> [String]
+commandsListExtractCommands addonsonly l =
+  [ w | c:ws@(d:_) <- takeWhile (not . isInfixOf "HELP") $ dropWhile (not . isInfixOf "Usage:") l
+  , c `elem` '+':[' '|not addonsonly]
+  , isAlphaNum d
+  , not $ "://" `isInfixOf` ws
+  , let w:_ = words ws
+  ]
 
--- | Convert a single-column list of items to a multicolumn list
--- fitting within the given width. Wide character-aware.
-multicol :: Int -> [String] -> [String]
-multicol _ [] = []
-multicol width strs =
-  let
-    maxwidth = maximum' $ map length strs
-    numcols = min (length strs) (width `div` (maxwidth+2))
-    itemspercol = length strs `div` numcols
-    colitems = chunksOf itemspercol strs
-    cols = map unlines colitems
-    sep = " "
-  in
-    lines $ T.unpack $ textConcatBottomPadded $ map T.pack $ intersperse sep cols
+-- | Canonical names of all commands which have a slot in the commands list, in alphabetical order.
+-- These include the builtin commands and the known addon commands.
+knownCommands :: [String]
+knownCommands = nubSort . commandsListExtractCommands False $ commandsList progname []
 
--- | All names and aliases of builtin commands.
+-- | Canonical names of the known addon commands which have a slot in the commands list,
+-- in alphabetical order.
+knownAddonCommands :: [String]
+knownAddonCommands = nubSort . commandsListExtractCommands True $ commandsList progname []
+
+-- | All names and aliases of the builtin commands.
 builtinCommandNames :: [String]
 builtinCommandNames = concatMap (modeNames . fst) builtinCommands
 
-
--- | Extract the command names from commandsList: the first word
--- of lines beginning with a space or + sign.
-commandsFromCommandsList :: [String] -> [String]
-commandsFromCommandsList s = [w | c:l <- s, c `elem` [' ','+'], let w:_ = words l]
-
-knownCommands :: [String]
-knownCommands = sort . commandsFromCommandsList $ commandsList progname [] False -- progname will not be seen
-
--- | Print the commands list, modifying the template above based on
--- the currently available addons. Missing addons will be removed, and
--- extra addons will be added under Misc.
 -- | Look up a builtin command's mode and action by exact command name or alias. 
 findBuiltinCommand :: String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ()) 
 findBuiltinCommand cmdname = find (elem cmdname . modeNames . fst) builtinCommands 
+
+-- | Print the commands list, with a pager if appropriate, customising the
+-- commandsList template above with the given version string and the installed addons.
+-- Uninstalled known addons will be removed from the list,
+-- installed known addons will have the + prefix removed,
+-- and installed unknown addons will be added under Misc.
 printCommandsList :: String -> [String] -> IO ()
-printCommandsList progversion addonsFound =
-    pager . unlines . concatMap adjustline $
-    commandsList progversion (map ('+':) unknownCommandsFound) True
+printCommandsList progversion installedaddons =
+  seq (length $ dbg8 "uninstalledknownaddons" uninstalledknownaddons) $  -- for debug output
+  seq (length $ dbg8 "installedknownaddons"   installedknownaddons)   $
+  seq (length $ dbg8 "installedunknownaddons" installedunknownaddons) $
+  pager $ unlines $ map unplus $ filter (not.isuninstalledaddon) $
+  commandsList progversion installedunknownaddons
   where
-    commandsFound = map (' ':) builtinCommandNames ++ map ('+':) addonsFound
-    unknownCommandsFound = addonsFound \\ knownCommands
-
-    adjustline l         | " hledger " `isPrefixOf` l     = [l]
-    adjustline l@('+':_) | cmd `notElem` commandsFound = []
-      where
-        cmd = takeWhile (not . isSpace) l
-    adjustline l = [l]
-
+    knownaddons = knownAddonCommands
+    uninstalledknownaddons  = knownaddons \\ installedaddons
+    installedknownaddons    = knownaddons `intersect` installedaddons
+    installedunknownaddons  = installedaddons \\ knownaddons
+    unplus ('+':cs) = ' ':cs
+    unplus s = s
+    isuninstalledaddon =
+      \case
+        ('+':l) | cmd `notElem` installedaddons ->
+                  dbg9With (const $ "hiding uninstalled addon: "<>cmd) $
+                  True where cmd = takeWhile (not . isSpace) l
+        _ -> False
 
 -- The test command is defined here for easy access to other modules' tests.
 
