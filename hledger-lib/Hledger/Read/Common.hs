@@ -328,7 +328,9 @@ journalFinalise iopts@InputOpts{..} f txt pj = do
       >>= (if auto_ && not (null $ jtxnmodifiers pj)
             then journalAddAutoPostings verbose_tags_ _ioDay balancingopts_  -- Add auto postings if enabled, and account tags if needed
             else pure)
-      -- >>= Right . dbg0With (concatMap (T.unpack.showTransaction).jtxns)  -- debug
+      -- XXX how to force debug output here ?
+       -- >>= Right . dbg0With (concatMap (T.unpack.showTransaction).jtxns)
+       -- >>= \j -> deepseq (concatMap (T.unpack.showTransaction).jtxns $ j) (return j)
       >>= journalMarkRedundantCosts                      -- Mark redundant costs, to help journalBalanceTransactions ignore them
       >>= journalBalanceTransactions balancingopts_                         -- Balance all transactions and maybe check balance assertions.
       >>= (if infer_costs_  then journalInferCostsFromEquity else pure)     -- Maybe infer costs from equity postings where possible
