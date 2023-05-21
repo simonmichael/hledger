@@ -32,18 +32,16 @@ $ hledger -f- print
 2010/1/1 x
   [a]    10
   [b]
-$ hledger -f- print
+$ hledger -f- print -x
 > //
 
-# 5. real and balanced virtual postings are balanced separately, and multiple blank virtuals are ok
+# 5. real and balanced virtual postings are balanced separately, and multiple amountless virtuals are ok
 <
 2010/1/1 x
   a  1
   b
   [e]  10
   [f]
-  (c)
-  (d)
 $ hledger -f- balance --tree
                    1  a
                   -1  b
@@ -51,3 +49,17 @@ $ hledger -f- balance --tree
                  -10  f
 --------------------
                    0  
+
+# 6. Amountless unbalanced postings are always inferred as zero.
+<
+2023-01-01
+  (a)
+  (b)
+  (c)
+$ hledger -f- print -x
+2023-01-01
+    (a)               0
+    (b)               0
+    (c)               0
+
+>=

@@ -241,6 +241,7 @@ transactionInferBalancingAmount styles t@Transaction{tpostings=ps}
         minferredamt = case ptype p of
           RegularPosting         | not (hasAmount p) -> Just realsum
           BalancedVirtualPosting | not (hasAmount p) -> Just bvsum
+          VirtualPosting         | not (hasAmount p) -> Just 0
           _                                          -> Nothing
       in
         case minferredamt of
