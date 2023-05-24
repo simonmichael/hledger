@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# hledger-bar - show quick bar charts in the terminal.
+# hledger-bar - see below
 
 usage() {
     cat <<'EOS'
+hledger-bar - show quick bar charts in the terminal
 Usage:
 hledger-bar    [-h|--help]
 hledger-bar    [-v|-vv] [SCALE] BALARGS
