@@ -437,10 +437,10 @@ copy-exe-%: $(call def-help,copy-exe.FOO, copy ~/.local/bin/hledger to hledger-F
 copy-exes-%: $(call def-help,copy-exes.FOO, copy ~/.local/bin/hledger* to hledger*-FOO)
 	for EXE in $(BINARIES); do cp ~/.local/bin/$$EXE{,-$*}; done
 
-install-as-%: $(call def-help,install-as-FOO, like stack install but save executables as bin/hledger*-FOO)
-	@$(STACK) install --local-bin-path bin
+install-as-%: $(call def-help,install-as-FOO, like stack install but save executables as bin/old/hledger*-FOO)
+	@$(STACK) install --local-bin-path bin/old
 	@printf "\nMoved executables to:\n"
-	@for EXE in $(BINARIES); do mv bin/$$EXE bin/$$EXE-$*; echo "- bin/$$EXE-$*"; done
+	@for EXE in $(BINARIES); do mv bin/old/$$EXE bin/old/$$EXE-$*; echo "- bin/$$EXE-$*"; done
 
 # make must be GNU Make 4.3+
 .PHONY: shellcompletions
