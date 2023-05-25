@@ -56,10 +56,9 @@ and print a useful report on the terminal (or save it as HTML, CSV, JSON or SQL)
 Many reports are available, as subcommands.
 hledger will also detect other `hledger-*` executables as extra subcommands.
 
-hledger reads _inputfiles_
-hledger CLI can also read from stdin with `-f-`; more on that below.
+hledger usually _inputfiles_
 
-Here is a small but valid hledger journal file describing one transaction:
+Here is a small journal file describing one transaction:
 
 _journal_({{
 2015-10-16 bought food

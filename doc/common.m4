@@ -230,11 +230,16 @@ and largely interconvertible with beancount(1). }} )m4_dnl
 m4_dnl
 m4_dnl A standard description of where hledger reads data from.
 m4_define({{_inputfiles_}},
-{{data from one or more files in journal, timeclock, timedot, or CSV format.
-The default file is `.hledger.journal` in your home directory;
-this can be overridden with one or more `-f FILE` options,
-or the `LEDGER_FILE` environment variable.}})m4_dnl
+{{reads from (and appends to) a journal file specified by the `LEDGER_FILE` environment variable
+(defaulting to `$HOME/.hledger.journal`); or you can specify files with `-f` options.
+It can also read timeclock files, timedot files, or any CSV/SSV/TSV file with a date field.}} )m4_dnl
 m4_dnl
+m4_dnl Like the above, with an added pointer to the hledger manual.
+m4_define({{_inputfileswithptr_}},
+{{_inputfiles_
+(See hledger(1) -> Input for details.)}} )m4_dnl
+m4_dnl
+
 m4_dnl A standard description of the LEDGER_FILE environment variable.
 m4_define({{_LEDGER_FILE_}}, {{
 **LEDGER_FILE**
