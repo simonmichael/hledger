@@ -541,8 +541,8 @@ src/hledger/site/src/
   multicurrency-tutorial.md
   project-accounting.md
   quicken.md
-  quickintro.md
-  quickstart.md
+  2-minute-quick-start.md
+  5-minute-quick-start.md
   release-notes.md
   report-examples.md
   rewrite-account-names.md
