@@ -419,10 +419,6 @@ To capture debug output in a log file instead, you can usually redirect stderr, 
 
 _LEDGER_FILE_
 
-# FILES
-
-It _inputfileswithptr_
-
 # BUGS
 
 _reportbugs_

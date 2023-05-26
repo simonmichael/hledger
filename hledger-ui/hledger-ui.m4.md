@@ -377,10 +377,6 @@ Default: the full terminal width.
 
 _LEDGER_FILE_
 
-# FILES
-
-It _inputfileswithptr_
-
 # BUGS
 
 _reportbugs_
