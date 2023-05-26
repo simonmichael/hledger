@@ -236,6 +236,9 @@ unless overridden by an explicit `--color/--colour` option.
 
 # Options
 
+Here is a list of flags and options common to most hledger commands, and some useful details about hledger command line parsing.
+But if you are new to hledger, feel free  to skim/skip ahead to the [Commands](#commands).
+
 ## General options
 
 To see general usage help, including general options
