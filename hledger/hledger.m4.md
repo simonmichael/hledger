@@ -94,6 +94,146 @@ in [PART 5: COMMON TASKS](#part-5-common-tasks).
 
 # PART 1: USER INTERFACE
 
+# Input
+
+hledger reads one or more data files, each time you run it. 
+You can specify a file with `-f`, like so
+```shell
+$ hledger -f FILE print
+```
+
+Files are most often in hledger's journal format, with the `.journal` file extension (`.hledger` or `.j` also work);
+these files describe transactions, like an accounting general journal.
+Some other supported file formats are discussed below.
+
+When no `-f` option is given, hledger looks for the file specified by the `LEDGER_FILE` environment variable; 
+if this is not set, it uses `.hledger.journal` in your home directory.
+
+Most people prefer to keep financial files in a dedicated folder, perhaps with version control.
+Also, starting a new journal file per year is common (it's not required, but helps keep things fast and organised).
+So we usually set `LEDGER_FILE`, to something like `~/finance/2023.journal`.
+
+## Setting LEDGER_FILE
+
+How to set `LEDGER_FILE` permanently depends on your platform:
+
+On unix and mac, running these commands in the terminal will work for many people; adapt as needed:
+```
+$ mkdir -p ~/finance
+$ echo 'export LEDGER_FILE=~/finance/2023.journal` >> ~/.profile
+$ source ~/.profile
+```
+
+When correctly configured, in a new terminal window `env | grep LEDGER_FILE` will show your file,
+and so will `hledger files`.
+
+On mac, this additional step might be helpful for GUI applications (like Emacs started from the dock):
+add an entry to `~/.MacOSX/environment.plist` like
+
+```
+{
+  "LEDGER_FILE" : "~/finance/2023.journal"
+}
+```
+and then run `killall Dock` in a terminal window (or restart the machine).
+
+On Windows, see <https://www.java.com/en/download/help/path.html>,
+or try running these commands in a powershell window
+(let us know if it persists across a reboot, and if you need to be an Administrator):
+```
+> CD
+> MKDIR finance
+> SETX LEDGER_FILE "C:\Users\USERNAME\finance\2023.journal"
+```
+
+## Data formats
+
+Usually the data file is in hledger's journal format, but it can be in
+any of the supported file formats, which currently are:
+
+| Reader:     | Reads:                                                           | Used for file extensions:            |
+|-------------|------------------------------------------------------------------|--------------------------------------|
+| `journal`   | hledger journal files and some Ledger journals, for transactions | `.journal` `.j` `.hledger` `.ledger` |
+| `timeclock` | timeclock files, for precise time logging                        | `.timeclock`                         |
+| `timedot`   | timedot files, for approximate time logging                      | `.timedot`                           |
+| `csv`       | CSV/SSV/TSV/character-separated values, for data import          | `.csv` `.ssv` `.tsv` `.csv.rules` `.ssv.rules` `.tsv.rules` |
+
+These formats are described in more detail below.
+
+hledger detects the format automatically based on the file extensions shown above.
+If it can't recognise the file extension, it assumes `journal` format.
+So for non-journal files, it's important to use a recognised file extension,
+so as to either read successfully or to show relevant error messages.
+
+You can also force a specific reader/format by prefixing the file path with the format and a colon.
+Eg, to read a .dat file as csv format:
+
+```shell
+$ hledger -f csv:/some/csv-file.dat stats
+```
+
+## Standard input
+
+The file name `-` means standard input:
+
+```shell
+$ cat FILE | hledger -f- print
+```
+
+If reading non-journal data in this way, you'll need to add a file format prefix, like:
+
+```shell
+$ echo 'i 2009/13/1 08:00:00' | hledger print -f timeclock:-
+```
+
+## Multiple files
+
+You can specify multiple `-f` options, to read multiple files as one big journal. When doing this, note that certain features (described below) will be affected:
+
+- [Balance assertions](#balance-assertions) will not see the effect of transactions in previous files. (Usually this doesn't matter as each file will set the corresponding opening balances.)
+- Some [directives](#directives) will not affect previous or subsequent files.
+
+If needed, you can work around these by using a single parent file which [includes](#including-files) the others, or concatenating the files into one, eg: `cat a.journal b.journal | hledger -f- CMD`.
+
+## Strict mode
+
+hledger checks input files for valid data.
+By default, the most important errors are detected, while still accepting
+easy journal files without a lot of declarations:
+
+- Are the input files parseable, with valid syntax ?
+- Are all transactions balanced ?
+- Do all balance assertions pass ?
+
+With the `-s`/`--strict` flag, additional checks are performed:
+
+- Are all accounts posted to, declared with an `account` directive ?
+  ([Account error checking](#account-error-checking))
+- Are all commodities declared with a `commodity` directive ?
+  ([Commodity error checking](#commodity-error-checking))
+- Are all commodity conversions declared explicitly ?
+
+You can use the [check](#check) command to run individual checks -- the
+ones listed above and some more.
+
+# Environment
+
+Environment variables which affect hledger:
+
+**COLUMNS**
+This is normally set by your terminal;
+some hledger commands (`register`) will format their output to this width.
+If not set, they will try to use the available terminal width.
+
+**LEDGER_FILE**
+The main journal file to use when not specified with `-f/--file`.
+Default: `$HOME/.hledger.journal`.
+
+**NO_COLOR**
+If this environment variable is set (with any value),
+hledger will not use ANSI color codes in terminal output,
+unless overridden by an explicit `--color/--colour` option.
+
 # Options
 
 ## General options
@@ -335,104 +475,6 @@ dollar sign in hledger-web, write `cur:\$`.
 - On the command line, some metacharacters like `$` have a special
 meaning to the shell and so must be escaped at least once more.
 See [Special characters](#special-characters).
-
-# Environment
-
-_LEDGER_FILE_
-
-**COLUMNS**
-The screen width used by the register command.
-Default: the full terminal width.
-
-**NO_COLOR**
-If this variable exists with any value, 
-hledger will not use ANSI color codes in terminal output.
-This is overriden by the --color/--colour option.
-
-# Input
-
-hledger reads transactions from one or more data files.
-The default data file is `$HOME/.hledger.journal`
-(or on Windows, something like `C:\Users\YOURNAME\.hledger.journal`).
-
-You can override this with the `LEDGER_FILE` environment variable:
-
-```shell
-$ export LEDGER_FILE=~/finance/2023.journal
-$ hledger stats
-```
-
-or with one or more `-f/--file` options:
-
-```shell
-$ hledger -f /some/file -f another_file stats
-```
-
-The file name `-` means standard input:
-
-```shell
-$ cat some.journal | hledger -f-
-```
-
-## Data formats
-
-Usually the data file is in hledger's journal format, but it can be in
-any of the supported file formats, which currently are:
-
-| Reader:     | Reads:                                                           | Used for file extensions:            |
-|-------------|------------------------------------------------------------------|--------------------------------------|
-| `journal`   | hledger journal files and some Ledger journals, for transactions | `.journal` `.j` `.hledger` `.ledger` |
-| `timeclock` | timeclock files, for precise time logging                        | `.timeclock`                         |
-| `timedot`   | timedot files, for approximate time logging                      | `.timedot`                           |
-| `csv`       | CSV/SSV/TSV/character-separated values, for data import          | `.csv` `.ssv` `.tsv` `.csv.rules` `.ssv.rules` `.tsv.rules` |
-
-These formats are described in more detail below.
-
-hledger detects the format automatically based on the file extensions shown above.
-If it can't recognise the file extension, it assumes `journal` format.
-So for non-journal files, it's important to use a recognised file extension,
-so as to either read successfully or to show relevant error messages.
-
-You can also force a specific reader/format by prefixing the file path
-with the format and a colon. Eg, to read a .dat file as csv format:
-
-```shell
-$ hledger -f csv:/some/csv-file.dat stats
-```
-Or to read stdin (`-`) as timeclock format:
-```shell
-$ echo 'i 2009/13/1 08:00:00' | hledger print -ftimeclock:-
-```
-
-## Multiple files
-
-You can specify multiple `-f` options, to read multiple files as one big journal. When doing this, note that certain features (described below) will be affected:
-
-- [Balance assertions](#balance-assertions) will not see the effect of transactions in previous files. (Usually this doesn't matter as each file will set the corresponding opening balances.)
-- Some [directives](#directives) will not affect previous or subsequent files.
-
-If needed, you can work around these by using a single parent file which [includes](#including-files) the others, or concatenating the files into one, eg: `cat a.journal b.journal | hledger -f- CMD`.
-
-## Strict mode
-
-hledger checks input files for valid data.
-By default, the most important errors are detected, while still accepting
-easy journal files without a lot of declarations:
-
-- Are the input files parseable, with valid syntax ?
-- Are all transactions balanced ?
-- Do all balance assertions pass ?
-
-With the `-s`/`--strict` flag, additional checks are performed:
-
-- Are all accounts posted to, declared with an `account` directive ?
-  ([Account error checking](#account-error-checking))
-- Are all commodities declared with a `commodity` directive ?
-  ([Commodity error checking](#commodity-error-checking))
-- Are all commodity conversions declared explicitly ?
-
-You can use the [check](#check) command to run individual checks -- the
-ones listed above and some more.
 
 # Commands
 

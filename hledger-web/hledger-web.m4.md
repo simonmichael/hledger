@@ -417,7 +417,9 @@ To capture debug output in a log file instead, you can usually redirect stderr, 
 
 # ENVIRONMENT
 
-_LEDGER_FILE_
+**LEDGER_FILE**
+The main journal file to use when not specified with `-f/--file`.
+Default: `$HOME/.hledger.journal`.
 
 # BUGS
 

@@ -375,7 +375,9 @@ N ranges from 1 (least output, the default) to 9 (maximum output).
 The screen width to use.
 Default: the full terminal width.
 
-_LEDGER_FILE_
+**LEDGER_FILE**
+The main journal file to use when not specified with `-f/--file`.
+Default: `$HOME/.hledger.journal`.
 
 # BUGS
 
