@@ -39,11 +39,11 @@ you should put it behind a suitable web proxy.  As a small protection
 against data loss when running an unprotected instance, it writes a
 numbered backup of the main journal file (only) on every edit.
 
-   Like hledger, it reads data from one or more files in journal,
-timeclock, timedot, or CSV format.  The default file is
-'.hledger.journal' in your home directory; this can be overridden with
-one or more '-f FILE' options, or the 'LEDGER_FILE' environment
-variable.  For more about this see hledger(1).
+   Like hledger, it reads from (and appends to) a journal file specified
+by the 'LEDGER_FILE' environment variable (defaulting to
+'$HOME/.hledger.journal'); or you can specify files with '-f' options.
+It can also read timeclock files, timedot files, or any CSV/SSV/TSV file
+with a date field.  (See hledger(1) -> Input for details.)
 
    hledger-web can be run in three modes:
 
@@ -69,7 +69,6 @@ requests to stdout.
 * JSON API::
 * DEBUG OUTPUT::
 * ENVIRONMENT::
-* FILES::
 * BUGS::
 
 
@@ -227,18 +226,30 @@ before options, as shown in the synopsis above.
 
      convert amounts to cost or market value, more flexibly than
      -B/-V/-X
+'--infer-equity'
+
+     infer conversion equity postings from costs
+'--infer-costs'
+
+     infer costs from conversion equity postings
 '--infer-market-prices'
 
-     use transaction prices (recorded with @ or @@) as additional market
-     prices, as if they were P directives
-'--auto'
-
-     apply automated posting rules to modify transactions.
+     use costs as additional market prices, as if they were P directives
 '--forecast'
 
-     generate future transactions from periodic transaction rules, for
-     the next 6 months or till report end date.  In hledger-ui, also
-     make ordinary future transactions visible.
+     generate transactions from periodic rules, between the latest
+     recorded txn and 6 months from today, or during the specified
+     PERIOD (= is required).  Auto posting rules will be applied to
+     these transactions as well.  Also, in hledger-ui make future-dated
+     transactions visible.
+'--auto'
+
+     generate extra postings by applying auto posting rules to all txns
+     (not just forecast txns)
+'--verbose-tags'
+
+     add visible tags indicating transactions or postings which have
+     been generated/modified
 '--commodity-style'
 
      Override the commodity style in the output for the specified
@@ -596,94 +607,49 @@ can usually redirect stderr, eg:
 'hledger-web --debug=3 2>hledger-web.log'.
 
 
-File: hledger-web.info,  Node: ENVIRONMENT,  Next: FILES,  Prev: DEBUG OUTPUT,  Up: Top
+File: hledger-web.info,  Node: ENVIRONMENT,  Next: BUGS,  Prev: DEBUG OUTPUT,  Up: Top
 
 7 ENVIRONMENT
 *************
 
-*LEDGER_FILE* The journal file path when not specified with '-f'.
-
-   On unix computers, the default value is: '~/.hledger.journal'.
-
-   A more typical value is something like '~/finance/YYYY.journal',
-where '~/finance' is a version-controlled finance directory and YYYY is
-the current year.  Or, '~/finance/current.journal', where
-current.journal is a symbolic link to YYYY.journal.
-
-   The usual way to set this permanently is to add a command to one of
-your shell's startup files (eg '~/.profile'):
-
-export LEDGER_FILE=~/finance/current.journal`
-
-   On some Mac computers, there is a more thorough way to set
-environment variables, that will also affect applications started from
-the GUI (eg, Emacs started from a dock icon): In
-'~/.MacOSX/environment.plist', add an entry like:
-
-{
-  "LEDGER_FILE" : "~/finance/current.journal"
-}
-
-   For this to take effect you might need to 'killall Dock', or reboot.
-
-   On Windows computers, the default value is probably
-'C:\Users\YOURNAME\.hledger.journal'.  You can change this by running a
-command like this in a powershell window (let us know if you need to be
-an Administrator, and if this persists across a reboot):
-
-> setx LEDGER_FILE "C:\Users\MyUserName\finance\2021.journal"
-
-   Or, change it in settings: see
-https://www.java.com/en/download/help/path.html.
+*LEDGER_FILE* The main journal file to use when not specified with
+'-f/--file'.  Default: '$HOME/.hledger.journal'.
 
 
-File: hledger-web.info,  Node: FILES,  Next: BUGS,  Prev: ENVIRONMENT,  Up: Top
+File: hledger-web.info,  Node: BUGS,  Prev: ENVIRONMENT,  Up: Top
 
-8 FILES
-*******
-
-Reads data from one or more files in journal, timeclock, timedot, or CSV
-format.  The default file is '.hledger.journal' in your home directory;
-this can be overridden with one or more '-f FILE' options, or the
-'LEDGER_FILE' environment variable.
-
-
-File: hledger-web.info,  Node: BUGS,  Prev: FILES,  Up: Top
-
-9 BUGS
+8 BUGS
 ******
 
-'-f-' doesn't work (hledger-web can't read from stdin).
+We welcome bug reports in the hledger issue tracker (shortcut:
+http://bugs.hledger.org), or on the #hledger chat or hledger mail list
+(https://hledger.org/support).
 
-   Query arguments and some hledger options are ignored.
+   Some known issues:
 
-   Does not work in text-mode browsers.
-
-   Does not work well on small screens.
+   Does not work well on small screens, or in text-mode browsers.
 
 
 Tag Table:
 Node: Top225
-Node: OPTIONS2683
-Ref: #options2788
-Node: PERMISSIONS10225
-Ref: #permissions10364
-Node: EDITING UPLOADING DOWNLOADING11576
-Ref: #editing-uploading-downloading11757
-Node: RELOADING12591
-Ref: #reloading12725
-Node: JSON API13158
-Ref: #json-api13273
-Node: DEBUG OUTPUT18761
-Ref: #debug-output18886
-Node: Debug output18913
-Ref: #debug-output-119014
-Node: ENVIRONMENT19431
-Ref: #environment19551
-Node: FILES20862
-Ref: #files20962
-Node: BUGS21210
-Ref: #bugs21288
+Node: OPTIONS2702
+Ref: #options2807
+Node: PERMISSIONS10607
+Ref: #permissions10746
+Node: EDITING UPLOADING DOWNLOADING11958
+Ref: #editing-uploading-downloading12139
+Node: RELOADING12973
+Ref: #reloading13107
+Node: JSON API13540
+Ref: #json-api13655
+Node: DEBUG OUTPUT19143
+Ref: #debug-output19268
+Node: Debug output19295
+Ref: #debug-output-119396
+Node: ENVIRONMENT19813
+Ref: #environment19932
+Node: BUGS20049
+Ref: #bugs20133
 
 End Tag Table
 

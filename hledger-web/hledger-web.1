@@ -1,5 +1,5 @@
 
-.TH "HLEDGER-WEB" "1" "April 2023" "hledger-web-1.29.99 " "hledger User Manuals"
+.TH "HLEDGER-WEB" "1" "May 2023" "hledger-web-1.29.99 " "hledger User Manuals"
 
 
 
@@ -47,12 +47,13 @@ As a small protection against data loss when running an unprotected
 instance, it writes a numbered backup of the main journal file (only) on
 every edit.
 .PP
-Like hledger, it reads data from one or more files in journal,
-timeclock, timedot, or CSV format.
-The default file is \f[V].hledger.journal\f[R] in your home directory;
-this can be overridden with one or more \f[V]-f FILE\f[R] options, or
-the \f[V]LEDGER_FILE\f[R] environment variable.
-For more about this see hledger(1).
+Like hledger, it reads from (and appends to) a journal file specified by
+the \f[V]LEDGER_FILE\f[R] environment variable (defaulting to
+\f[V]$HOME/.hledger.journal\f[R]); or you can specify files with
+\f[V]-f\f[R] options.
+It can also read timeclock files, timedot files, or any CSV/SSV/TSV file
+with a date field.
+(See hledger(1) -> Input for details.)
 .PP
 hledger-web can be run in three modes:
 .IP \[bu] 2
@@ -217,17 +218,29 @@ convert amounts to their market value in commodity COMM
 \f[V]--value\f[R]
 convert amounts to cost or market value, more flexibly than -B/-V/-X
 .TP
-\f[V]--infer-market-prices\f[R]
-use transaction prices (recorded with \[at] or \[at]\[at]) as additional
-market prices, as if they were P directives
+\f[V]--infer-equity\f[R]
+infer conversion equity postings from costs
 .TP
-\f[V]--auto\f[R]
-apply automated posting rules to modify transactions.
+\f[V]--infer-costs\f[R]
+infer costs from conversion equity postings
+.TP
+\f[V]--infer-market-prices\f[R]
+use costs as additional market prices, as if they were P directives
 .TP
 \f[V]--forecast\f[R]
-generate future transactions from periodic transaction rules, for the
-next 6 months or till report end date.
-In hledger-ui, also make ordinary future transactions visible.
+generate transactions from periodic rules,
+between the latest recorded txn and 6 months from today,
+or during the specified PERIOD (= is required).
+Auto posting rules will be applied to these transactions as well.
+Also, in hledger-ui make future-dated transactions visible.
+.TP
+\f[V]--auto\f[R]
+generate extra postings by applying auto posting rules to all txns (not
+just forecast txns)
+.TP
+\f[V]--verbose-tags\f[R]
+add visible tags indicating transactions or postings which have been
+generated/modified
 .TP
 \f[V]--commodity-style\f[R]
 Override the commodity style in the output for the specified commodity.
@@ -611,78 +624,19 @@ stderr, eg:
 \f[V]hledger-web --debug=3 2>hledger-web.log\f[R].
 .SH ENVIRONMENT
 .PP
-\f[B]LEDGER_FILE\f[R] The journal file path when not specified with
-\f[V]-f\f[R].
-.PP
-On unix computers, the default value is:
-\f[V]\[ti]/.hledger.journal\f[R].
-.PP
-A more typical value is something like
-\f[V]\[ti]/finance/YYYY.journal\f[R], where \f[V]\[ti]/finance\f[R] is a
-version-controlled finance directory and YYYY is the current year.
-Or, \f[V]\[ti]/finance/current.journal\f[R], where current.journal is a
-symbolic link to YYYY.journal.
-.PP
-The usual way to set this permanently is to add a command to one of your
-shell\[aq]s startup files (eg \f[V]\[ti]/.profile\f[R]):
-.IP
-.nf
-\f[C]
-export LEDGER_FILE=\[ti]/finance/current.journal\[ga]
-\f[R]
-.fi
-.PP
-On some Mac computers, there is a more thorough way to set environment
-variables, that will also affect applications started from the GUI (eg,
-Emacs started from a dock icon): In
-\f[V]\[ti]/.MacOSX/environment.plist\f[R], add an entry like:
-.IP
-.nf
-\f[C]
-{
-  \[dq]LEDGER_FILE\[dq] : \[dq]\[ti]/finance/current.journal\[dq]
-}
-\f[R]
-.fi
-.PP
-For this to take effect you might need to \f[V]killall Dock\f[R], or
-reboot.
-.PP
-On Windows computers, the default value is probably
-\f[V]C:\[rs]Users\[rs]YOURNAME\[rs].hledger.journal\f[R].
-You can change this by running a command like this in a powershell
-window (let us know if you need to be an Administrator, and if this
-persists across a reboot):
-.IP
-.nf
-\f[C]
-> setx LEDGER_FILE \[dq]C:\[rs]Users\[rs]MyUserName\[rs]finance\[rs]2021.journal\[dq]
-\f[R]
-.fi
-.PP
-Or, change it in settings: see
-https://www.java.com/en/download/help/path.html.
-.SH FILES
-.PP
-Reads data from one or more files in journal, timeclock, timedot, or CSV
-format.
-The default file is \f[V].hledger.journal\f[R] in your home directory;
-this can be overridden with one or more \f[V]-f FILE\f[R] options, or
-the \f[V]LEDGER_FILE\f[R] environment variable.
+\f[B]LEDGER_FILE\f[R] The main journal file to use when not specified
+with \f[V]-f/--file\f[R].
+Default: \f[V]$HOME/.hledger.journal\f[R].
 .SH BUGS
 .PP
-\f[V]-f-\f[R] doesn\[aq]t work (hledger-web can\[aq]t read from stdin).
+We welcome bug reports in the hledger issue tracker (shortcut:
+http://bugs.hledger.org), or on the #hledger chat or hledger mail list
+(https://hledger.org/support).
 .PP
-Query arguments and some hledger options are ignored.
+Some known issues:
 .PP
-Does not work in text-mode browsers.
-.PP
-Does not work well on small screens.
+Does not work well on small screens, or in text-mode browsers.
 
-
-.SH "REPORTING BUGS"
-Report bugs at http://bugs.hledger.org
-(or on the #hledger chat or hledger mail list)
 
 .SH AUTHORS
 Simon Michael <simon@joyful.com> and contributors.
