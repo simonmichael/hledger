@@ -345,19 +345,23 @@ This leaves more mental bandwidth for your accounting.
 Of course you can still interact with hledger-ui when needed,
 eg to toggle cleared mode, or to explore the history.
 
-Here are some current limitations to be aware of:
+There are currently some limitations with `--watch`:
 
-Changes might not be detected with certain editors, possibly including 
-Jetbrains IDEs, `gedit`, other Gnome applications; or on certain unusual filesystems.
-([#1617](https://github.com/simonmichael/hledger/issues/1617),
-[#911](https://github.com/simonmichael/hledger/issues/911)).
-To work around, reload manually by pressing `g` in the hledger-ui window.
-(Or see #1617 for another workaround, and let us know if it works for you.)
+It may not work correctly for you, depending on platform or system configuration.
+(Eg [#836](https://github.com/simonmichael/hledger/issues/836).)
 
-CPU and memory usage can sometimes gradually increase, if `hledger-ui --watch` is left running for days.
-(Possibly correlated with certain platforms, many transactions, and/or large numbers of other files present).
-To work around, `q`uit and restart it,
-or (where supported) suspend (`CTRL-z`) and restart it (`fg`).
+At least on mac, there can be a slow build-up of CPU usage over time,
+until the program is restarted (or, suspending and restarting with
+`CTRL-z` `fg` may be enough).
+
+It will not detect file changes made
+by certain editors, such as Jetbrains IDEs or `gedit`,
+or on certain less common filesystems.
+(To work around, press `g` to reload manually,
+or try [#1617](https://github.com/simonmichael/hledger/issues/1617)'s `fs.inotify.max_user_watches` workaround and let us know.)
+
+If you are viewing files mounted from another machine, the system
+clocks on both machines should be roughly in agreement.
 
 ## Debug output
 
@@ -379,21 +383,15 @@ It _inputfileswithptr_
 
 # BUGS
 
+_reportbugs_
+
+Some known issues:
+
 `-f-` doesn't work (hledger-ui can't read from stdin).
 
-`-V` affects only the accounts screen.
+If you press `g` with large files, there could be a noticeable pause.
 
-When you press `g`, the current and all previous screens are
-regenerated, which may cause a noticeable pause with large files.
-Also there is no visual indication that this is in progress.
+The Transaction screen does not update from file changes
+until you exit and re-endter it (see SCREENS > Transaction above).
 
-`--watch` is not yet fully robust. It works well for normal usage, but
-many file changes in a short time (eg saving the file thousands of
-times with an editor macro) can cause problems at least on OSX.
-Symptoms include: unresponsive UI, periodic resetting of the cursor
-position, momentary display of parse errors, high CPU usage eventually
-subsiding, and possibly a small but persistent build-up of CPU usage
-until the program is restarted.
-
-Also, if you are viewing files mounted from another machine, `-w/--watch`
-requires that both machine clocks are roughly in step.
+`--watch` is not yet fully robust on all platforms (see Watch mode above).

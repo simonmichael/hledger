@@ -239,7 +239,6 @@ m4_define({{_inputfileswithptr_}},
 {{_inputfiles_
 (See hledger(1) -> Input for details.)}} )m4_dnl
 m4_dnl
-
 m4_dnl A standard description of the LEDGER_FILE environment variable.
 m4_define({{_LEDGER_FILE_}}, {{
 **LEDGER_FILE**
@@ -277,6 +276,11 @@ You can change this by running a command like this in a powershell window
 Or, change it in settings: see <https://www.java.com/en/download/help/path.html>.
 
 }} )m4_dnl
+m4_dnl
+m4_dnl BUGS boilerplate
+m4_define({{_reportbugs_}},
+{{We welcome bug reports in the hledger issue tracker (shortcut: <http://bugs.hledger.org>),
+or on the #hledger chat or hledger mail list (<https://hledger.org/support>).}} )m4_dnl
 m4_dnl
 m4_dnl The _FLAGS marker is used in generating command help (see
 m4_dnl CliOptions.parseCommandDoc), but should be removed when generating manuals.

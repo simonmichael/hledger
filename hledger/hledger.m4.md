@@ -697,99 +697,6 @@ To capture debug output in a log file instead, you can usually redirect stderr, 
 hledger bal --debug=3 2>hledger.log
 ```
 
-# Limitations
-
-The need to precede add-on command options with `--` when invoked from hledger is awkward.
-
-When input data contains non-ascii characters, a suitable system locale must be configured (or there will be an unhelpful error).
-Eg on POSIX, set LANG to something other than C.
-
-In a Microsoft Windows CMD window, non-ascii characters and colours are not supported.
-
-On Windows, non-ascii characters may not display correctly when running a hledger built
-in CMD in MSYS/CYGWIN, or vice-versa.
-
-In a Cygwin/MSYS/Mintty window, the tab key is not supported in hledger add.
-
-Not all of Ledger's journal file syntax is supported.
-See [hledger and Ledger > Differences > journal format](/ledger.html#journal-format).
-
-On large data files, hledger is slower and uses more memory than Ledger.
-
-# Troubleshooting
-
-Here are some issues you might encounter when you run hledger
-(and remember you can also seek help from the
-[IRC channel](http://irc.hledger.org),
-[mail list](http://list.hledger.org) or
-[bug tracker](http://bugs.hledger.org)):
-
-**Successfully installed, but "No command 'hledger' found"**\
-stack and cabal install binaries into a special directory, which
-should be added to your PATH environment variable.  Eg on unix-like
-systems, that is ~/.local/bin and ~/.cabal/bin respectively.
-
-**I set a custom LEDGER_FILE, but hledger is still using the default file**\
-`LEDGER_FILE` should be a real environment variable, not just a shell variable.
-The command `env | grep LEDGER_FILE` should show it.
-You may need to use `export`. Here's an [explanation](http://stackoverflow.com/a/7411509).
-
-**Getting errors like "Illegal byte sequence" or "Invalid or incomplete multibyte or wide character" or "commitAndReleaseBuffer: invalid argument (invalid character)"**\
-Programs compiled with GHC (hledger, haskell build tools, etc.) 
-need to have a UTF-8-aware locale configured in the environment, 
-otherwise they will fail with these kinds of errors when they encounter non-ascii characters.
-
-To fix it, set the LANG environment variable to some locale which supports UTF-8.
-The locale you choose must be installed on your system.
-
-Here's an example of setting LANG temporarily, on Ubuntu GNU/Linux:
-
-```shell
-$ file my.journal
-my.journal: UTF-8 Unicode text         # the file is UTF8-encoded
-$ echo $LANG
-C                                      # LANG is set to the default locale, which does not support UTF8
-$ locale -a                            # which locales are installed ?
-C
-en_US.utf8                             # here's a UTF8-aware one we can use
-POSIX
-$ LANG=en_US.utf8 hledger -f my.journal print   # ensure it is used for this command
-```
-
-If available, `C.UTF-8` will also work.
-If your preferred locale isn't listed by `locale -a`, you might need to install it. Eg on Ubuntu/Debian:
-
-```shell
-$ apt-get install language-pack-fr
-$ locale -a
-C
-en_US.utf8
-fr_BE.utf8
-fr_CA.utf8
-fr_CH.utf8
-fr_FR.utf8
-fr_LU.utf8
-POSIX
-$ LANG=fr_FR.utf8 hledger -f my.journal print
-```
-
-Here's how you could set it permanently, if you use a bash shell:
-
-```shell
-$ echo "export LANG=en_US.utf8" >>~/.bash_profile
-$ bash --login
-```
-
-Exact spelling and capitalisation may be important. Note the difference on MacOS (`UTF-8`, not `utf8`).
-Some platforms (eg ubuntu) allow variant spellings, but others (eg macos) require it to be exact:
-
-```shell
-$ locale -a | grep -iE en_us.*utf
-en_US.UTF-8
-$ LANG=en_US.UTF-8 hledger -f my.journal print
-```
-
-
 # PART 2: DATA FORMATS
 
 <a name="journal-format"></a>
@@ -6312,6 +6219,71 @@ and to help ensure the integrity of your accounting history.
 See the [close command](#close).
 
 If using version control, don't forget to `git add` the new file.
+
+
+# BUGS
+
+_reportbugs_
+
+Some known issues and limitations:
+
+The need to precede add-on command options with `--` when invoked from hledger is awkward.
+(See Command options, Constructing command lines.)
+
+A UTF-8-aware system locale must be configured to work with non-ascii data.
+(See Unicode characters, Troubleshooting.)
+
+On Microsoft Windows, depending whether you are running in a CMD window or a Cygwin/MSYS/Mintty window
+and how you installed hledger,
+non-ascii characters and colours may not be supported,
+and the tab key may not be supported by `hledger add`.
+(Running in a WSL window should resolve these.)
+
+When processing large data files, hledger uses more memory than Ledger.
+
+## Troubleshooting
+
+Here are some common issues you might encounter when you run hledger,
+and how to resolve them
+(and remember also you can usually get quick [Support](support.md)):
+
+**PATH issues: I get an error like "No command 'hledger' found"**\
+Depending how you installed hledger, the executables may not be in your shell's PATH. 
+Eg on unix systems, stack installs hledger in `~/.local/bin`
+and cabal installs it in `~/.cabal/bin`.
+You may need to add one of these directories to your shell's PATH,
+and/or open a new terminal window.
+
+**LEDGER_FILE issues: I configured LEDGER_FILE but hledger is not using it**\
+
+- `LEDGER_FILE` should be a real environment variable, not just a shell variable.
+  Eg on unix, the command `env | grep LEDGER_FILE` should show it.
+  You may need to use `export` (see <https://stackoverflow.com/a/7411509>).
+- You may need to force your shell to see the new configuration.
+  A simple way is to close your terminal window and open a new one.
+
+**LANG issues: I get errors like "Illegal byte sequence" or "Invalid or incomplete multibyte or wide character" or "commitAndReleaseBuffer: invalid argument (invalid character)"**\
+Programs compiled with GHC (hledger, haskell build tools, etc.) need the system locale to be UTF-8-aware,
+or they will fail when they encounter non-ascii characters.
+To fix it, set the LANG environment variable to a locale which supports UTF-8
+and which is installed on your system.
+
+On unix, `locale -a` lists the installed locales.
+Look for one which mentions `utf8`, `UTF-8` or similar.
+Some examples: `C.UTF-8`, `en_US.utf-8`, `fr_FR.utf8`.
+If necessary, use your system package manager to install one.
+Then select it by setting the `LANG` environment variable.
+Note, exact spelling and capitalisation of the locale name may be important:
+Here's one common way to configure this permanently for your shell:
+
+```shell
+$ echo "export LANG=en_US.utf8" >>~/.profile
+# close and re-open terminal window
+```
+
+**COMPATIBILITY ISSUES: hledger gives an error with my Ledger file**\
+Not all of Ledger's journal file syntax or feature set is supported.
+See [hledger and Ledger](ledger.md) for full details.
 
 
 m4_dnl Some common markdown links.

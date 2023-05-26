@@ -425,10 +425,8 @@ It _inputfileswithptr_
 
 # BUGS
 
-`-f-` doesn't work (hledger-web can't read from stdin).
+_reportbugs_
 
-Query arguments and some hledger options are ignored.
+Some known issues:
 
-Does not work in text-mode browsers.
-
-Does not work well on small screens.
+Does not work well on small screens, or in text-mode browsers.

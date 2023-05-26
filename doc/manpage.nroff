@@ -18,10 +18,6 @@ $for(include-after)$
 $include-after$
 $endfor$
 
-.SH "REPORTING BUGS"
-Report bugs at http://bugs.hledger.org
-(or on the #hledger chat or hledger mail list)
-
 .SH AUTHORS
 $if(author)$
 $for(author)$$author$$sep$; $endfor$.
