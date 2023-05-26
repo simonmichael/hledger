@@ -35,6 +35,7 @@ balance can show..
 -   or value of balance changes (-V)
 -   or change of balance values (--valuechange)
 -   or unrealised capital gain/loss (--gain)
+-   or postings count (--count)
 
 ..in..
 
@@ -391,8 +392,8 @@ Balance report types
 
 The balance command is quite flexible; here is the full detail on how to
 control what it reports. If the following seems complicated, don't
-worry - this is for advanced reporting, and it does typically take some
-time and experimentation to get clear on all these report modes.
+worry - this is for advanced reporting, and it does take time and
+experimentation to get familiar with all the report modes.
 
 There are three important option groups:
 
@@ -410,6 +411,7 @@ The basic calculation to perform for each table cell. It is one of:
     fluctuations)
 -   --gain : show the unrealised capital gain/loss, (the current valued
     balance minus each amount's original cost)
+-   --count : show the count of postings
 
 Accumulation type
 
@@ -546,20 +548,18 @@ Budget performance in 2017/11/01-2017/12/31:
 ----------------------++----------------------------------------------------
                       ||      0 [              0]       0 [              0] 
 
-This is different from a normal balance report in several ways:
+This is different from a normal balance report in several ways.
+Currently:
 
--   Only accounts with budget goals during the report period are shown,
-    by default.
-
--   In each column, in square brackets after the actual amount, budget
-    goal amounts are shown, and the actual/goal percentage. (Note:
-    budget goals should be in the same commodity as the actual amount.)
-
--   All parent accounts are always shown, even in list mode. Eg assets,
-    assets:bank, and expenses above.
-
--   Amounts always include all subaccounts, budgeted or unbudgeted, even
-    in list mode.
+-   Accounts with budget goals during the report period, and their
+    parents, are shown.
+-   Their subaccounts are not shown (regardless of the depth setting).
+-   Accounts without budget goals, if any, are aggregated and shown as
+    "<unbudgeted>".
+-   Amounts are always inclusive (subaccount-including), even in list
+    mode.
+-   After each actual amount, the corresponding goal amount and
+    percentage of goal reached are also shown, in square brackets.
 
 This means that the numbers displayed will not always add up! Eg above,
 the expenses actual amount includes the gifts and supplies transactions,
