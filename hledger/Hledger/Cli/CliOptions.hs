@@ -80,7 +80,7 @@ import Data.Char
 import Data.Default
 import Data.Either (fromRight, isRight)
 import Data.List.Extra (groupSortOn, intercalate, isInfixOf, nubSort)
-import Data.List.Split (splitOneOf)
+import Data.List.Split (splitOn)
 import Data.Maybe
 --import Data.String.Here
 -- import Data.Text (Text)
@@ -98,6 +98,7 @@ import System.Directory
 import System.Environment
 import System.Exit (exitSuccess)
 import System.FilePath
+import System.Info (os)
 import Text.Megaparsec
 import Text.Megaparsec.Char
 
@@ -740,21 +741,6 @@ dropRedundantSourceVersion fs = fs
 
 compiledExts = ["",".com",".exe"]
 
-
--- | Get all sorted unique filenames in the current user's PATH.
--- We do not currently filter out non-file objects or files without execute permission.
-likelyExecutablesInPath :: IO [String]
-likelyExecutablesInPath = do
-  pathdirs <- splitOneOf ":;" `fmap` getEnvSafe "PATH"
-  pathfiles <- concat `fmap` mapM getDirectoryContentsSafe pathdirs
-  return $ nubSort pathfiles
-  -- exclude directories and files without execute permission.
-  -- These will do a stat for each hledger-*, probably ok.
-  -- But they need paths, not just filenames
-  -- exes'  <- filterM doesFileExist exe'
-  -- exes'' <- filterM isExecutable exes'
-  -- return exes''
-
 -- | Get the sorted unique filenames of all hledger-* executables in
 -- the current user's PATH. These are files in any of the PATH directories,
 -- named hledger-*, with either no extension (and no periods in the name)
@@ -763,7 +749,25 @@ likelyExecutablesInPath = do
 hledgerExecutablesInPath :: IO [String]
 hledgerExecutablesInPath = filter isHledgerExeName <$> likelyExecutablesInPath
 
--- isExecutable f = getPermissions f >>= (return . executable)
+-- None of https://hackage.haskell.org/package/directory-1.3.8.1/docs/System-Directory.html#g:5
+-- do quite what we need (find all the executables in PATH with a filename prefix).
+-- | Get all sorted unique filenames in the current user's PATH.
+-- We do not currently filter out non-file objects or files without execute permission.
+likelyExecutablesInPath :: IO [String]
+likelyExecutablesInPath = do
+  pathdirs <- splitOn pathsep `fmap` getEnvSafe "PATH"
+  pathfiles <- concat `fmap` mapM getDirectoryContentsSafe pathdirs
+  return $ nubSort pathfiles
+  where pathsep = if os == "mingw32" then ";" else ":"
+--
+-- Exclude directories and files without execute permission:
+-- this would do a stat for each hledger-* file found, which is probably ok.
+-- But it needs file paths, not just file names.
+--
+-- exes'  <- filterM doesFileExist exe'
+-- exes'' <- filterM isExecutable exes'
+-- return exes''
+-- where isExecutable f = getPermissions f >>= (return . executable)
 
 isHledgerExeName :: String -> Bool
 isHledgerExeName = isRight . parsewith hledgerexenamep . T.pack
