@@ -33,7 +33,6 @@ import Control.Monad.Reader as R (ReaderT, reader, runReaderT, ask, asks)
 import Control.Monad.ST (ST, runST)
 import Control.Monad.Trans.Class (lift)
 import Data.Array.ST (STArray, getElems, newListArray, writeArray)
-import Data.Bifunctor (second)
 import Data.Foldable (asum)
 import Data.Function ((&))
 import Data.Functor ((<&>))
@@ -514,7 +513,7 @@ balanceTransactionAndCheckAssertionsB (Right t@Transaction{tpostings=ps}) = do
   ps' <- ps
     & zip [1..]                 -- attach original positions
     & sortOn (postingDate.snd)  -- sort by date
-    & mapM (addOrAssignAmountAndCheckAssertionB . second postingStripPrices)  -- infer amount, check assertion on each one
+    & mapM (addOrAssignAmountAndCheckAssertionB)  -- infer amount, check assertion on each one
     <&> sortOn fst              -- restore original order
     <&> map snd                 -- discard positions
 
