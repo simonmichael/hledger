@@ -745,7 +745,7 @@ compiledExts = ["",".com",".exe"]
 -- We do not currently filter out non-file objects or files without execute permission.
 likelyExecutablesInPath :: IO [String]
 likelyExecutablesInPath = do
-  pathdirs <- splitOneOf "[:;]" `fmap` getEnvSafe "PATH"
+  pathdirs <- splitOneOf ":;" `fmap` getEnvSafe "PATH"
   pathfiles <- concat `fmap` mapM getDirectoryContentsSafe pathdirs
   return $ nubSort pathfiles
   -- exclude directories and files without execute permission.
