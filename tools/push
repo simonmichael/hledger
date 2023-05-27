@@ -36,6 +36,9 @@ ciwait() {
     sleep $MAINPUSHDELAY
 }
 
+# ensure git's use of pager doesn't stop progress
+export PAGER=cat
+
 echo "latest local commits are:"
 gitlog
 echo "force-pushing $LOCALBRANCH to $REMOTE/$REMOTECIBRANCH"
