@@ -984,17 +984,17 @@ journalStyleInfluencingAmounts j =
 
 -- overcomplicated/unused amount traversal stuff
 --
--- | Get an ordered list of 'AmountStyle's from the amounts in this
+--  Get an ordered list of 'AmountStyle's from the amounts in this
 -- journal which influence canonical amount display styles. See
 -- traverseJournalAmounts.
 -- journalAmounts :: Journal -> [Amount]
 -- journalAmounts = getConst . traverseJournalAmounts (Const . (:[]))
 --
--- | Apply a transformation to the journal amounts traversed by traverseJournalAmounts.
+--  Apply a transformation to the journal amounts traversed by traverseJournalAmounts.
 -- overJournalAmounts :: (Amount -> Amount) -> Journal -> Journal
 -- overJournalAmounts f = runIdentity . traverseJournalAmounts (Identity . f)
 --
--- | A helper that traverses over most amounts in the journal,
+--  A helper that traverses over most amounts in the journal,
 -- in particular the ones which influence canonical amount display styles,
 -- processing them with the given applicative function.
 --
