@@ -240,6 +240,17 @@ install: \
 	$(call def-help,install, download dependencies and install hledger executables to ~/.local/bin or equivalent (with stack))
 	$(STACK) install
 
+install-as-%: $(call def-help,install-as-FOO, like make install but install to bin/old/hledger*-FOO)
+	@$(STACK) install --local-bin-path bin/old
+	@printf "\nMoved executables to:\n"
+	@for EXE in $(BINARIES); do mv bin/old/$$EXE bin/old/$$EXE-$*; echo "- bin/$$EXE-$*"; done
+
+copy-exe-%: $(call def-help,copy-exe.FOO, copy ~/.local/bin/hledger to bin/old/hledger-FOO)
+	cp ~/.local/bin/hledger bin/old/hledger-$*
+
+copy-exes-%: $(call def-help,copy-exes.FOO, copy ~/.local/bin/hledger* to bin/old/hledger*-FOO)
+	for EXE in $(BINARIES); do cp ~/.local/bin/$$EXE bin/old/$$EXE-$*; done
+
 ###############################################################################
 $(call def-help-subheading,BUILDING:)
 
@@ -430,17 +441,6 @@ ghci-doctest: $(call def-help,ghci-doctest, start ghci REPL on hledger-lib docte
 
 ghci-shake: $(call def-help,ghci-shake, start ghci REPL on Shake.hs)
 	$(STACK) exec $(SHAKEDEPS) -- ghci Shake.hs
-
-copy-exe-%: $(call def-help,copy-exe.FOO, copy ~/.local/bin/hledger to hledger-FOO)
-	cp ~/.local/bin/hledger{,-$*}
-
-copy-exes-%: $(call def-help,copy-exes.FOO, copy ~/.local/bin/hledger* to hledger*-FOO)
-	for EXE in $(BINARIES); do cp ~/.local/bin/$$EXE{,-$*}; done
-
-install-as-%: $(call def-help,install-as-FOO, like stack install but save executables as bin/old/hledger*-FOO)
-	@$(STACK) install --local-bin-path bin/old
-	@printf "\nMoved executables to:\n"
-	@for EXE in $(BINARIES); do mv bin/old/$$EXE bin/old/$$EXE-$*; echo "- bin/$$EXE-$*"; done
 
 # make must be GNU Make 4.3+
 .PHONY: shellcompletions
