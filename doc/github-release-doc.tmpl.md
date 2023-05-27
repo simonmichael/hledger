@@ -63,18 +63,19 @@ touch $HOME/.hledger.journal   # ensure a default journal file exists
 <details>
 <summary>
 
-### Windows on 64-bit Intel
+### Windows 64-bit Intel (or Windows 11 Arm, using emulation)
 </summary>
 
 In a powershell window (press Windows-r, type powershell, press enter),
 
-Make a place to keep hledger binaries, and add it to your PATH; this makes running hledger easier. You only need to do this once, not for every release:
+1. Make a place to keep hledger binaries, and add it to your PATH; this makes running hledger easier. You only need to do this once, not for every release:
 ```
 mkdir -force $HOME\bin >$null
 $ENV:PATH += ";"+$HOME+"\bin"
 [Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path", [EnvironmentVariableTarget]::User)+";"+$HOME+"\bin", [EnvironmentVariableTarget]::User)
 ```
-Download and install the release binaries:
+
+2. Download and install the release binaries:
 ```
 cd $HOME\bin
 curl https://github.com/simonmichael/hledger/releases/download/A.BB/hledger-windows-x64.zip -OutFile hledger-windows-x64.zip
@@ -83,13 +84,16 @@ rm hledger-windows-x64.zip
 cd $HOME
 hledger --version           # should show the new version
 ```
-And ensure a default journal file exists:
+
+3. Ensure a default journal file exists, and without a problematic encoding. 
+(Not sure why "ascii" is needed here - hledger likes utf8 and understands utf8 BOM headers..
+but the state of [our unicode support on Windows](https://github.com/simonmichael/hledger/issues?q=is%3Aissue+label%3A%22platform%3A+windows%22+label%3Ai18n)
+is really unknown, your input welcome.)
 ```
 out-file -append -encoding ascii $HOME/.hledger.journal
 ```
 
-Problems:
-- Starting hledger/hledger-web by double-clicking their icon won't work; run them from a cmd or powershell window instead.
+Once that journal file exists, you can start hledger-web by double-clicking on the icon if you wish.
 </details>
 
 <details>
