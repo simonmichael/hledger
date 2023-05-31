@@ -130,63 +130,19 @@ Files are most often in hledger\[aq]s journal format, with the
 \f[V].journal\f[R] file extension (\f[V].hledger\f[R] or \f[V].j\f[R]
 also work); these files describe transactions, like an accounting
 general journal.
-Some other supported file formats are discussed below.
 .PP
-When no \f[V]-f\f[R] option is given, hledger looks for the file
-specified by the \f[V]LEDGER_FILE\f[R] environment variable; if this is
-not set, it uses \f[V].hledger.journal\f[R] in your home directory.
+When no file is specified, hledger looks for \f[V].hledger.journal\f[R]
+in your home directory.
 .PP
-Most people prefer to keep financial files in a dedicated folder,
+But most people prefer to keep financial files in a dedicated folder,
 perhaps with version control.
-Also, starting a new journal file per year is common (it\[aq]s not
+Also, starting a new journal file each year is common (it\[aq]s not
 required, but helps keep things fast and organised).
-So we usually set \f[V]LEDGER_FILE\f[R], to something like
+So we usually configure a different journal file, by setting the
+\f[V]LEDGER_FILE\f[R] environment variable, to something like
 \f[V]\[ti]/finance/2023.journal\f[R].
-.SS Setting LEDGER_FILE
-.PP
-How to set \f[V]LEDGER_FILE\f[R] permanently depends on your platform:
-.PP
-On unix and mac, running these commands in the terminal will work for
-many people; adapt as needed:
-.IP
-.nf
-\f[C]
-$ mkdir -p \[ti]/finance
-$ echo \[aq]export LEDGER_FILE=\[ti]/finance/2023.journal\[ga] >> \[ti]/.profile
-$ source \[ti]/.profile
-\f[R]
-.fi
-.PP
-When correctly configured, in a new terminal window
-\f[V]env | grep LEDGER_FILE\f[R] will show your file, and so will
-\f[V]hledger files\f[R].
-.PP
-On mac, this additional step might be helpful for GUI applications (like
-Emacs started from the dock): add an entry to
-\f[V]\[ti]/.MacOSX/environment.plist\f[R] like
-.IP
-.nf
-\f[C]
-{
-  \[dq]LEDGER_FILE\[dq] : \[dq]\[ti]/finance/2023.journal\[dq]
-}
-\f[R]
-.fi
-.PP
-and then run \f[V]killall Dock\f[R] in a terminal window (or restart the
-machine).
-.PP
-On Windows, see https://www.java.com/en/download/help/path.html, or try
-running these commands in a powershell window (let us know if it
-persists across a reboot, and if you need to be an Administrator):
-.IP
-.nf
-\f[C]
-> CD
-> MKDIR finance
-> SETX LEDGER_FILE \[dq]C:\[rs]Users\[rs]USERNAME\[rs]finance\[rs]2023.journal\[dq]
-\f[R]
-.fi
+For more about how to do that on your system, see Common tasks > Setting
+LEDGER_FILE.
 .SS Data formats
 .PP
 Usually the data file is in hledger\[aq]s journal format, but it can be
@@ -314,33 +270,67 @@ Are all commodity conversions declared explicitly ?
 .PP
 You can use the check command to run individual checks -- the ones
 listed above and some more.
-.SH Environment
+.SH Commands
 .PP
-Environment variables which affect hledger:
+hledger provides various subcommands for getting things done.
+Most of these commands do not change the journal file; they just read it
+and output a report.
+A few commands assist with adding data and file management.
 .PP
-\f[B]COLUMNS\f[R] This is normally set by your terminal; some hledger
-commands (\f[V]register\f[R]) will format their output to this width.
-If not set, they will try to use the available terminal width.
+To show the commands list, run \f[V]hledger\f[R] with no arguments.
+The commands are described in detail in PART 4: COMMANDS, below.
 .PP
-\f[B]LEDGER_FILE\f[R] The main journal file to use when not specified
-with \f[V]-f/--file\f[R].
-Default: \f[V]$HOME/.hledger.journal\f[R].
+To use a particular command, run
+\f[V]hledger CMD [CMDOPTS] [CMDARGS]\f[R],
+.IP \[bu] 2
+CMD is the full command name, or its standard abbreviation shown in the
+commands list, or any unambiguous prefix of the name.
+.IP \[bu] 2
+CMDOPTS are command-specific options, if any.
+Command-specific options must be written after the command name.
+Eg: \f[V]hledger print -x\f[R].
+.IP \[bu] 2
+CMDARGS are additional arguments to the command, if any.
+Most hledger commands accept arguments representing a query, to limit
+the data in some way.
+Eg: \f[V]hledger reg assets:checking\f[R].
 .PP
-\f[B]NO_COLOR\f[R] If this environment variable is set (with any value),
-hledger will not use ANSI color codes in terminal output, unless
-overridden by an explicit \f[V]--color/--colour\f[R] option.
+To list a command\[aq]s options, arguments, and documentation in the
+terminal, run \f[V]hledger CMD -h\f[R].
+Eg: \f[V]hledger bal -h\f[R].
+.SS Add-on commands
+.PP
+In addition to the built-in commands, you can install \f[I]add-on
+commands\f[R]: programs or scripts named \[dq]hledger-SOMETHING\[dq],
+which will also appear in hledger\[aq]s commands list.
+If you used the hledger-install script, you will have several add-ons
+installed already.
+Some more can be found in hledger\[aq]s bin/ directory, documented at
+https://hledger.org/scripts.html.
+.PP
+More precisely, add-on commands are programs or scripts in your
+shell\[aq]s PATH, whose name starts with \[dq]hledger-\[dq] and ends
+with no extension or a recognised extension (\[dq].bat\[dq],
+\[dq].com\[dq], \[dq].exe\[dq], \[dq].hs\[dq], \[dq].js\[dq],
+\[dq].lhs\[dq], \[dq].lua\[dq], \[dq].php\[dq], \[dq].pl\[dq],
+\[dq].py\[dq], \[dq].rb\[dq], \[dq].rkt\[dq], or \[dq].sh\[dq]), and (on
+unix and mac) which has executable permission for the current user.
+.PP
+You can run add-on commands using hledger, much like built-in commands:
+\f[V]hledger ADDONCMD [-- ADDONCMDOPTS] [ADDONCMDARGS]\f[R].
+But note the double hyphen argument, required before add-on-specific
+options.
+Eg: \f[V]hledger ui -- --watch\f[R] or \f[V]hledger web -- --serve\f[R].
+If this causes difficulty, you can always run the add-on directly,
+without using \f[V]hledger\f[R]: \f[V]hledger-ui --watch\f[R] or
+\f[V]hledger-web --serve\f[R].
 .SH Options
 .PP
-Here is a list of flags and options common to most hledger commands, and
-some useful details about hledger command line parsing.
-But if you are new to hledger, feel free to skim/skip ahead to the
-Commands.
-.SS General options
-.PP
-To see general usage help, including general options which are supported
-by most hledger commands, run \f[V]hledger -h\f[R].
-.PP
-General help options:
+Run \f[V]hledger -h\f[R] to see general command line help, and general
+options which are common to most hledger commands.
+These options can be written anywhere on the command line.
+They can be grouped into help, input, and reporting options:
+.SS General help options
 .TP
 \f[V]-h --help\f[R]
 show general or COMMAND help
@@ -356,8 +346,7 @@ show general or ADDONCMD version
 .TP
 \f[V]--debug[=N]\f[R]
 show debug output (levels 1-9, default: 1)
-.PP
-General input options:
+.SS General input options
 .TP
 \f[V]-f FILE --file=FILE\f[R]
 use a different input file.
@@ -385,8 +374,7 @@ assignments)
 .TP
 \f[V]-s --strict\f[R]
 do extra error checking (check that all posted accounts are declared)
-.PP
-General reporting options:
+.SS General reporting options
 .TP
 \f[V]-b --begin=DATE\f[R]
 include postings/txns on or after this date (will be adjusted to
@@ -502,6 +490,11 @@ When a reporting option appears more than once in the command line, the
 last one takes precedence.
 .PP
 Some reporting options can also be written as query arguments.
+.SH Command line tips
+.PP
+Here are some details useful to know about for hledger command lines
+(and elsewhere).
+Feel free to skip this section until you need it.
 .SS Option repetition
 .PP
 If options are repeated in a command line, hledger will generally use
@@ -511,74 +504,6 @@ Some of the boolean flags will toggle if repeated; these include:
 \f[V]-%/--percent\f[R], \f[V]-E/--empty\f[R], \f[V]-N/--no-total\f[R],
 \f[V]-T/--row-total\f[R], \f[V]-A/--average\f[R], and
 \f[V]-S/--sort-amount\f[R].
-.SS Command options
-.PP
-To see options for a particular command, including command-specific
-options, run: \f[V]hledger COMMAND -h\f[R].
-.PP
-Command-specific options must be written after the command name, eg:
-\f[V]hledger print -x\f[R].
-.PP
-Additionally, if the command is an add-on, you may need to put its
-options after a double-hyphen, eg: \f[V]hledger ui -- --watch\f[R].
-Or, you can run the add-on executable directly:
-\f[V]hledger-ui --watch\f[R].
-.SS Command arguments
-.PP
-Most hledger commands accept arguments after the command name, which are
-often a query, filtering the data in some way.
-.PP
-You can save a set of command line options/arguments in a file, and then
-reuse them by writing \f[V]\[at]FILENAME\f[R] as a command line
-argument.
-Eg: \f[V]hledger bal \[at]foo.args\f[R].
-(To prevent this, eg if you have an argument that begins with a literal
-\f[V]\[at]\f[R], precede it with \f[V]--\f[R], eg:
-\f[V]hledger bal -- \[at]ARG\f[R]).
-.PP
-Inside the argument file, each line should contain just one option or
-argument.
-Avoid the use of spaces, except inside quotes (or you\[aq]ll see a
-confusing error).
-Between a flag and its argument, use = (or nothing).
-Bad:
-.IP
-.nf
-\f[C]
-assets depth:2
--X USD
-\f[R]
-.fi
-.PP
-Good:
-.IP
-.nf
-\f[C]
-assets
-depth:2
--X=USD
-\f[R]
-.fi
-.PP
-For special characters (see below), use one less level of quoting than
-you would at the command prompt.
-Bad:
-.IP
-.nf
-\f[C]
--X\[dq]$\[dq]
-\f[R]
-.fi
-.PP
-Good:
-.IP
-.nf
-\f[C]
--X$
-\f[R]
-.fi
-.PP
-See also: Save frequently used options.
 .SS Special characters
 .SS Single escaping (shell metacharacters)
 .PP
@@ -794,70 +719,54 @@ Eg to search for amounts with the dollar sign in hledger-web, write
 On the command line, some metacharacters like \f[V]$\f[R] have a special
 meaning to the shell and so must be escaped at least once more.
 See Special characters.
-.SH Commands
+.SS Argument files
 .PP
-hledger provides a number of built-in subcommands (described below).
-Most of these read your data without changing it, and display a report.
-A few assist with data entry and management.
+You can save a set of command line options and arguments in a file, and
+then reuse them by writing \f[V]\[at]FILENAME\f[R] as a command line
+argument.
+Eg: \f[V]hledger bal \[at]foo.args\f[R].
 .PP
-Run \f[V]hledger\f[R] with no arguments to list the commands available,
-and \f[V]hledger CMD\f[R] to run a command.
-CMD can be the full command name, or its standard abbreviation shown in
-the commands list, or any unambiguous prefix of the name.
-Eg: \f[V]hledger bal\f[R].
-.SS Add-on commands
-.PP
-Add-on commands are extra subcommands provided by programs or scripts in
-your PATH
-.IP \[bu] 2
-whose name starts with \f[V]hledger-\f[R]
-.IP \[bu] 2
-whose name ends with a recognised file extension:
-\f[V].bat\f[R],\f[V].com\f[R],\f[V].exe\f[R],
-\f[V].hs\f[R],\f[V].lhs\f[R],\f[V].pl\f[R],\f[V].py\f[R],\f[V].rb\f[R],\f[V].rkt\f[R],\f[V].sh\f[R]
-or none
-.IP \[bu] 2
-and (on unix, mac) which are executable by the current user.
-.PP
-Addons can be written in any language, but haskell scripts or programs
-have a big advantage: they can use hledger\[aq]s library code, for
-command-line options, parsing and reporting.
-.PP
-Several add-on commands are installed by the hledger-install script.
-See https://hledger.org/scripts.html for more details.
-.PP
-Note in a hledger command line, add-on command flags must have a double
-dash (\f[V]--\f[R]) preceding them.
-Eg you must write:
+Inside the argument file, each line should contain just one option or
+argument.
+Also, don\[aq]t use spaces except inside quotes (or you\[aq]ll see a
+confusing error).
+Ie, write = (or nothing) between a flag and its argument.
+Eg, bad:
 .IP
 .nf
 \f[C]
-$ hledger web -- --serve
+assets -X USD
 \f[R]
 .fi
 .PP
-and not:
+Good:
 .IP
 .nf
 \f[C]
-$ hledger web --serve
+assets
+-X=USD
 \f[R]
 .fi
 .PP
-(because the \f[V]--serve\f[R] flag belongs to \f[V]hledger-web\f[R],
-not \f[V]hledger\f[R]).
-.PP
-The \f[V]-h/--help\f[R] and \f[V]--version\f[R] flags don\[aq]t require
-\f[V]--\f[R].
-.PP
-If you have any trouble with this, remember you can always run the
-add-on program directly, eg:
+For the special characters mentioned above, use one less level of
+quoting than you would at the command prompt.
+Eg, bad:
 .IP
 .nf
 \f[C]
-$ hledger-web --serve
+-X\[dq]$\[dq]
 \f[R]
 .fi
+.PP
+Good:
+.IP
+.nf
+\f[C]
+-X$
+\f[R]
+.fi
+.PP
+See also: Save frequently used options.
 .SH Output
 .SS Output destination
 .PP
@@ -1182,6 +1091,21 @@ stderr, eg:
 hledger bal --debug=3 2>hledger.log
 \f[R]
 .fi
+.SH Environment
+.PP
+These environment variables affect hledger:
+.PP
+\f[B]COLUMNS\f[R] This is normally set by your terminal; some hledger
+commands (\f[V]register\f[R]) will format their output to this width.
+If not set, they will try to use the available terminal width.
+.PP
+\f[B]LEDGER_FILE\f[R] The main journal file to use when not specified
+with \f[V]-f/--file\f[R].
+Default: \f[V]$HOME/.hledger.journal\f[R].
+.PP
+\f[B]NO_COLOR\f[R] If this environment variable is set (with any value),
+hledger will not use ANSI color codes in terminal output, unless
+overridden by an explicit \f[V]--color/--colour\f[R] option.
 .SH PART 2: DATA FORMATS
 .PP
 .SH Journal
@@ -2965,7 +2889,7 @@ Including the aliases doesn\[aq]t work either:
 \f[C]
 include a.aliases
 
-2020-01-01  ; not affected by a.aliases
+2023-01-01  ; not affected by a.aliases
   foo  1
   bar
 \f[R]
@@ -2979,7 +2903,7 @@ of your top-most file, like this:
 alias foo=Foo
 alias bar=Bar
 
-2020-01-01  ; affected by aliases above
+2023-01-01  ; affected by aliases above
   foo  1
   bar
 
@@ -3214,7 +3138,7 @@ including directories, but this can be done, eg:
 .PP
 The path may also be prefixed to force a specific file format,
 overriding the file extension (as described in hledger.1 -> Input
-files): \f[V]include timedot:\[ti]/notes/2020*.md\f[R].
+files): \f[V]include timedot:\[ti]/notes/2023*.md\f[R].
 .SS \f[V]P\f[R] directive
 .PP
 The \f[V]P\f[R] directive declares a market price, which is a conversion
@@ -3326,8 +3250,8 @@ cover a whole number of that interval.
 (This is done to improve reports, but it also affects periodic
 transactions.
 Yes, it\[aq]s a bit inconsistent with the above.)
-Eg: \f[V]\[ti] every 10th day of month from 2020/01\f[R], which is
-equivalent to \f[V]\[ti] every 10th day of month from 2020/01/01\f[R],
+Eg: \f[V]\[ti] every 10th day of month from 2023/01\f[R], which is
+equivalent to \f[V]\[ti] every 10th day of month from 2023/01/01\f[R],
 will be adjusted to start on 2019/12/10.
 .SS Periodic rule syntax
 .PP
@@ -3381,10 +3305,10 @@ example:
 .IP
 .nf
 \f[C]
-; 2 or more spaces needed here, so the period is not understood as \[dq]every 2 months in 2020\[dq]
+; 2 or more spaces needed here, so the period is not understood as \[dq]every 2 months in 2023\[dq]
 ;               ||
 ;               vv
-\[ti] every 2 months  in 2020, we will review
+\[ti] every 2 months  in 2023, we will review
     assets:bank:checking   $1500
     income:acme inc
 \f[R]
@@ -4679,7 +4603,7 @@ So for example, when reading an SSV file, if the original record was:
 .IP
 .nf
 \f[C]
-2020-01-01; \[dq]Acme, Inc.\[dq];  1,000
+2023-01-01; \[dq]Acme, Inc.\[dq];  1,000
 \f[R]
 .fi
 .PP
@@ -4687,7 +4611,7 @@ the regex would see, and try to match, this modified record text:
 .IP
 .nf
 \f[C]
-2020-01-01,Acme, Inc.,  1,000
+2023-01-01,Acme, Inc.,  1,000
 \f[R]
 .fi
 .PP
@@ -4757,7 +4681,7 @@ Example:
 if,account2,comment
 atm transaction fee,expenses:business:banking,deductible? check it
 %description groceries,expenses:groceries,
-2020/01/12.*Plumbing LLC,expenses:house:upkeep,emergency plumbing call-out
+2023/01/12.*Plumbing LLC,expenses:house:upkeep,emergency plumbing call-out
 \f[R]
 .fi
 .SS \f[V]balance-type\f[R]
@@ -5129,7 +5053,7 @@ field(s):
 .IP
 .nf
 \f[C]
-2020-01-01,foo,$123.00
+2023-01-01,foo,$123.00
 \f[R]
 .fi
 .PP
@@ -5145,7 +5069,7 @@ fields date,description,amount
 .IP
 .nf
 \f[C]
-2020-01-01 foo
+2023-01-01 foo
     expenses:unknown         $123.00
     income:unknown          $-123.00
 \f[R]
@@ -5155,7 +5079,7 @@ If the currency is provided as a separate CSV field:
 .IP
 .nf
 \f[C]
-2020-01-01,foo,USD,123.00
+2023-01-01,foo,USD,123.00
 \f[R]
 .fi
 .PP
@@ -5171,7 +5095,7 @@ fields date,description,currency,amount
 .IP
 .nf
 \f[C]
-2020-01-01 foo
+2023-01-01 foo
     expenses:unknown       USD123.00
     income:unknown        USD-123.00
 \f[R]
@@ -5190,7 +5114,7 @@ amount %amt %cur
 .IP
 .nf
 \f[C]
-2020-01-01 foo
+2023-01-01 foo
     expenses:unknown        123.00 USD
     income:unknown         -123.00 USD
 \f[R]
@@ -5835,7 +5759,7 @@ biz:research  1
 .nf
 \f[C]
 * Time log
-** 2020-01-01
+** 2023-01-01
 *** adm:time  .
 *** adm:finance  .
 \f[R]
@@ -5843,9 +5767,9 @@ biz:research  1
 .IP
 .nf
 \f[C]
-* 2020 Work Diary
+* 2023 Work Diary
 ** Q1
-*** 2020-02-29
+*** 2023-02-29
 **** DONE
 0700 yoga
 **** UNPLANNED
@@ -6474,7 +6398,7 @@ Regular expressions are also supported:
 Add a query type prefix to match other parts of the data:
 .RS 2
 .PP
-\f[V]date:202012- desc:amazon cur:USD amt:\[dq]>100\[dq] status:\f[R]
+\f[V]date:202312- desc:amazon cur:USD amt:\[dq]>100\[dq] status:\f[R]
 .RE
 .IP \[bu] 2
 Add a \f[V]not:\f[R] prefix to negate a term:
@@ -6683,7 +6607,7 @@ above)
 .PP
 Some queries can also be expressed as command-line options:
 \f[V]depth:2\f[R] is equivalent to \f[V]--depth 2\f[R],
-\f[V]date:2020\f[R] is equivalent to \f[V]-p 2020\f[R], etc.
+\f[V]date:2023\f[R] is equivalent to \f[V]-p 2023\f[R], etc.
 When you mix command options and query arguments, generally the
 resulting query is their intersection.
 .SS Queries and valuation
@@ -11608,7 +11532,7 @@ Or, specify an existing journal file with -f or LEDGER_FILE.
 .fi
 .PP
 You can override this by setting the \f[V]LEDGER_FILE\f[R] environment
-variable.
+variable (see below).
 It\[aq]s a good practice to keep this important file under version
 control, and to start a new file each year.
 So you could do something like this:
@@ -11619,11 +11543,11 @@ $ mkdir \[ti]/finance
 $ cd \[ti]/finance
 $ git init
 Initialized empty Git repository in /Users/simon/finance/.git/
-$ touch 2020.journal
-$ echo \[dq]export LEDGER_FILE=$HOME/finance/2020.journal\[dq] >> \[ti]/.bashrc
-$ source \[ti]/.bashrc
+$ touch 2023.journal
+$ echo \[dq]export LEDGER_FILE=$HOME/finance/2023.journal\[dq] >> \[ti]/.profile
+$ source \[ti]/.profile
 $ hledger stats
-Main file                : /Users/simon/finance/2020.journal
+Main file                : /Users/simon/finance/2023.journal
 Included files           : 
 Transactions span        :  to  (0 days)
 Last transaction         : none
@@ -11634,6 +11558,50 @@ Payees/descriptions      : 0
 Accounts                 : 0 (depth 0)
 Commodities              : 0 ()
 Market prices            : 0 ()
+\f[R]
+.fi
+.SS Setting LEDGER_FILE
+.PP
+How to set \f[V]LEDGER_FILE\f[R] permanently depends on your setup:
+.PP
+On unix and mac, running these commands in the terminal will work for
+many people; adapt as needed:
+.IP
+.nf
+\f[C]
+$ echo \[aq]export LEDGER_FILE=\[ti]/finance/2023.journal\[ga] >> \[ti]/.profile
+$ source \[ti]/.profile
+\f[R]
+.fi
+.PP
+When correctly configured, in a new terminal window
+\f[V]env | grep LEDGER_FILE\f[R] will show your file, and so will
+\f[V]hledger files\f[R].
+.PP
+On mac, this additional step might be helpful for GUI applications (like
+Emacs started from the dock): add an entry to
+\f[V]\[ti]/.MacOSX/environment.plist\f[R] like
+.IP
+.nf
+\f[C]
+{
+  \[dq]LEDGER_FILE\[dq] : \[dq]\[ti]/finance/2023.journal\[dq]
+}
+\f[R]
+.fi
+.PP
+and then run \f[V]killall Dock\f[R] in a terminal window (or restart the
+machine).
+.PP
+On Windows, see https://www.java.com/en/download/help/path.html, or try
+running these commands in a powershell window (let us know if it
+persists across a reboot, and if you need to be an Administrator):
+.IP
+.nf
+\f[C]
+> CD
+> MKDIR finance
+> SETX LEDGER_FILE \[dq]C:\[rs]Users\[rs]USERNAME\[rs]finance\[rs]2023.journal\[dq]
 \f[R]
 .fi
 .SS Setting opening balances
@@ -11658,7 +11626,7 @@ like this:
 .IP
 .nf
 \f[C]
-2020-01-01 * opening balances
+2023-01-01 * opening balances
     assets:bank:checking                $1000   = $1000
     assets:bank:savings                 $2000   = $2000
     assets:cash                          $100   = $100
@@ -11687,7 +11655,7 @@ record a similar transaction:
 .nf
 \f[C]
 $ hledger add
-Adding transactions to journal file /Users/simon/finance/2020.journal
+Adding transactions to journal file /Users/simon/finance/2023.journal
 Any command line arguments will be used as defaults.
 Use tab key to complete, readline keys to edit, enter to accept defaults.
 An optional (CODE) may follow transaction dates.
@@ -11695,7 +11663,7 @@ An optional ; COMMENT may follow descriptions or amounts.
 If you make a mistake, enter < at any prompt to go one step backward.
 To end a transaction, enter . when prompted.
 To quit, enter . at a date prompt or press control-d or control-c.
-Date [2020-02-07]: 2020-01-01
+Date [2023-02-07]: 2023-01-01
 Description: * opening balances
 Account 1: assets:bank:checking
 Amount  1: $1000
@@ -11708,7 +11676,7 @@ Amount  4 [$-3100]: $-50
 Account 5: equity:opening/closing balances
 Amount  5 [$-3050]: 
 Account 6 (or . or enter to finish this transaction): .
-2020-01-01 * opening balances
+2023-01-01 * opening balances
     assets:bank:checking                      $1000
     assets:bank:savings                       $2000
     assets:cash                                $100
@@ -11718,7 +11686,7 @@ Account 6 (or . or enter to finish this transaction): .
 Save this transaction to the journal ? [y]: 
 Saved.
 Starting the next transaction (. or ctrl-D/ctrl-C to quit)
-Date [2020-01-01]: .
+Date [2023-01-01]: .
 \f[R]
 .fi
 .RE
@@ -11729,7 +11697,7 @@ Eg:
 .IP
 .nf
 \f[C]
-$ git commit -m \[aq]initial balances\[aq] 2020.journal
+$ git commit -m \[aq]initial balances\[aq] 2023.journal
 \f[R]
 .fi
 .SS Recording transactions
@@ -11744,15 +11712,15 @@ hledger.org for more ideas:
 .IP
 .nf
 \f[C]
-2020/1/10 * gift received
+2023/1/10 * gift received
   assets:cash   $20
   income:gifts
 
-2020.1.12 * farmers market
+2023.1.12 * farmers market
   expenses:food    $13
   assets:cash
 
-2020-01-15 paycheck
+2023-01-15 paycheck
   income:salary
   assets:bank:checking    $1000
 \f[R]
@@ -11784,7 +11752,7 @@ $2, it could be:
 .IP
 .nf
 \f[C]
-2020-01-16 * adjust cash
+2023-01-16 * adjust cash
     assets:cash    $-2 = $105
     expenses:misc
 \f[R]
@@ -11813,14 +11781,14 @@ After reconciling, it could be a good time to mark the reconciled
 transactions\[aq] status as \[dq]cleared and confirmed\[dq], if you want
 to track that, by adding the \f[V]*\f[R] marker.
 Eg in the paycheck transaction above, insert \f[V]*\f[R] between
-\f[V]2020-01-15\f[R] and \f[V]paycheck\f[R]
+\f[V]2023-01-15\f[R] and \f[V]paycheck\f[R]
 .PP
 If you\[aq]re using version control, this can be another good time to
 commit:
 .IP
 .nf
 \f[C]
-$ git commit -m \[aq]txns\[aq] 2020.journal
+$ git commit -m \[aq]txns\[aq] 2023.journal
 \f[R]
 .fi
 .SS Reporting
@@ -11832,26 +11800,26 @@ Show all transactions:
 .nf
 \f[C]
 $ hledger print
-2020-01-01 * opening balances
+2023-01-01 * opening balances
     assets:bank:checking                      $1000
     assets:bank:savings                       $2000
     assets:cash                                $100
     liabilities:creditcard                     $-50
     equity:opening/closing balances          $-3050
 
-2020-01-10 * gift received
+2023-01-10 * gift received
     assets:cash              $20
     income:gifts
 
-2020-01-12 * farmers market
+2023-01-12 * farmers market
     expenses:food             $13
     assets:cash
 
-2020-01-15 * paycheck
+2023-01-15 * paycheck
     income:salary
     assets:bank:checking           $1000
 
-2020-01-16 * adjust cash
+2023-01-16 * adjust cash
     assets:cash               $-2 = $105
     expenses:misc
 \f[R]
@@ -11923,9 +11891,9 @@ balance sheet:
 .nf
 \f[C]
 $ hledger bs -2
-Balance Sheet 2020-01-16
+Balance Sheet 2023-01-16
 
-                        || 2020-01-16 
+                        || 2023-01-16 
 ========================++============
  Assets                 ||            
 ------------------------++------------
@@ -11952,9 +11920,9 @@ Show income and expense totals, formatted as an income statement:
 .nf
 \f[C]
 hledger is 
-Income Statement 2020-01-01-2020-01-16
+Income Statement 2023-01-01-2023-01-16
 
-               || 2020-01-01-2020-01-16 
+               || 2023-01-01-2023-01-16 
 ===============++=======================
  Revenues      ||                       
 ---------------++-----------------------
@@ -11981,10 +11949,10 @@ Show transactions affecting your wallet, with running total:
 .nf
 \f[C]
 $ hledger register cash
-2020-01-01 opening balances     assets:cash                   $100          $100
-2020-01-10 gift received        assets:cash                    $20          $120
-2020-01-12 farmers market       assets:cash                   $-13          $107
-2020-01-16 adjust cash          assets:cash                    $-2          $105
+2023-01-01 opening balances     assets:cash                   $100          $100
+2023-01-10 gift received        assets:cash                    $20          $120
+2023-01-12 farmers market       assets:cash                   $-13          $107
+2023-01-16 adjust cash          assets:cash                    $-2          $105
 \f[R]
 .fi
 .PP
@@ -11994,8 +11962,8 @@ Show weekly posting counts as a bar chart:
 \f[C]
 $ hledger activity -W
 2019-12-30 *****
-2020-01-06 ****
-2020-01-13 ****
+2023-01-06 ****
+2023-01-13 ****
 \f[R]
 .fi
 .SS Migrating to a new file

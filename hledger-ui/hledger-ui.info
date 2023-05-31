@@ -58,11 +58,10 @@ File: hledger-ui.info,  Node: OPTIONS,  Next: MOUSE,  Prev: Top,  Up: Top
 1 OPTIONS
 *********
 
-Note: if invoking hledger-ui as a hledger subcommand, write '--' before
-options as shown above.
-
-   Any QUERYARGS are interpreted as a hledger search query which filters
+Any QUERYARGS are interpreted as a hledger search query which filters
 the data.
+
+   hledger-ui provides the following options:
 
 '-w --watch'
 
@@ -99,7 +98,42 @@ the data.
 
      show accounts as a tree
 
-   hledger input options:
+   hledger-ui also supports many of hledger's general options (and the
+hledger manual's command line tips also apply here):
+
+* Menu:
+
+* General help options::
+* General input options::
+* General reporting options::
+
+
+File: hledger-ui.info,  Node: General help options,  Next: General input options,  Up: OPTIONS
+
+1.1 General help options
+========================
+
+'-h --help'
+
+     show general or COMMAND help
+'--man'
+
+     show general or COMMAND user manual with man
+'--info'
+
+     show general or COMMAND user manual with info
+'--version'
+
+     show general or ADDONCMD version
+'--debug[=N]'
+
+     show debug output (levels 1-9, default: 1)
+
+
+File: hledger-ui.info,  Node: General input options,  Next: General reporting options,  Prev: General help options,  Up: OPTIONS
+
+1.2 General input options
+=========================
 
 '-f FILE --file=FILE'
 
@@ -129,7 +163,11 @@ the data.
      do extra error checking (check that all posted accounts are
      declared)
 
-   hledger reporting options:
+
+File: hledger-ui.info,  Node: General reporting options,  Prev: General input options,  Up: OPTIONS
+
+1.3 General reporting options
+=============================
 
 '-b --begin=DATE'
 
@@ -245,28 +283,6 @@ the data.
 the last one takes precedence.
 
    Some reporting options can also be written as query arguments.
-
-   hledger help options:
-
-'-h --help'
-
-     show general or COMMAND help
-'--man'
-
-     show general or COMMAND user manual with man
-'--info'
-
-     show general or COMMAND user manual with info
-'--version'
-
-     show general or ADDONCMD version
-'--debug[=N]'
-
-     show debug output (levels 1-9, default: 1)
-
-   A @FILE argument will be expanded to the contents of FILE, which
-should contain one command line option/argument per line.  (To prevent
-this, insert a '--' argument before.)
 
 
 File: hledger-ui.info,  Node: MOUSE,  Next: KEYS,  Prev: OPTIONS,  Up: Top
@@ -651,38 +667,44 @@ Tag Table:
 Node: Top223
 Node: OPTIONS1838
 Ref: #options1936
-Node: MOUSE7432
-Ref: #mouse7527
-Node: KEYS7764
-Ref: #keys7857
-Node: SCREENS12370
-Ref: #screens12468
-Node: Menu13048
-Ref: #menu13141
-Node: Cash accounts13336
-Ref: #cash-accounts13478
-Node: Balance sheet accounts13662
-Ref: #balance-sheet-accounts13843
-Node: Income statement accounts13963
-Ref: #income-statement-accounts14149
-Node: All accounts14313
-Ref: #all-accounts14459
-Node: Register14641
-Ref: #register14765
-Node: Transaction16727
-Ref: #transaction16850
-Node: Error18267
-Ref: #error18361
-Node: TIPS18605
-Ref: #tips18704
-Node: Watch mode18746
-Ref: #watch-mode18853
-Node: Debug output20312
-Ref: #debug-output20423
-Node: ENVIRONMENT20635
-Ref: #environment20745
-Node: BUGS20936
-Ref: #bugs21019
+Node: General help options2959
+Ref: #general-help-options3108
+Node: General input options3390
+Ref: #general-input-options3575
+Node: General reporting options4277
+Ref: #general-reporting-options4441
+Node: MOUSE7831
+Ref: #mouse7926
+Node: KEYS8163
+Ref: #keys8256
+Node: SCREENS12769
+Ref: #screens12867
+Node: Menu13447
+Ref: #menu13540
+Node: Cash accounts13735
+Ref: #cash-accounts13877
+Node: Balance sheet accounts14061
+Ref: #balance-sheet-accounts14242
+Node: Income statement accounts14362
+Ref: #income-statement-accounts14548
+Node: All accounts14712
+Ref: #all-accounts14858
+Node: Register15040
+Ref: #register15164
+Node: Transaction17126
+Ref: #transaction17249
+Node: Error18666
+Ref: #error18760
+Node: TIPS19004
+Ref: #tips19103
+Node: Watch mode19145
+Ref: #watch-mode19252
+Node: Debug output20711
+Ref: #debug-output20822
+Node: ENVIRONMENT21034
+Ref: #environment21144
+Node: BUGS21335
+Ref: #bugs21418
 
 End Tag Table
 

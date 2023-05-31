@@ -45,11 +45,10 @@ transactions, by pressing the F key (or starting with --forecast) to
 enable \[dq]forecast mode\[dq].
 .SH OPTIONS
 .PP
-Note: if invoking hledger-ui as a hledger subcommand, write \f[V]--\f[R]
-before options as shown above.
-.PP
 Any QUERYARGS are interpreted as a hledger search query which filters
 the data.
+.PP
+hledger-ui provides the following options:
 .TP
 \f[V]-w --watch\f[R]
 watch for data and date changes and reload automatically
@@ -84,7 +83,25 @@ show accounts as a flat list (default)
 \f[V]-t --tree\f[R]
 show accounts as a tree
 .PP
-hledger input options:
+hledger-ui also supports many of hledger\[aq]s general options (and the
+hledger manual\[aq]s command line tips also apply here):
+.SS General help options
+.TP
+\f[V]-h --help\f[R]
+show general or COMMAND help
+.TP
+\f[V]--man\f[R]
+show general or COMMAND user manual with man
+.TP
+\f[V]--info\f[R]
+show general or COMMAND user manual with info
+.TP
+\f[V]--version\f[R]
+show general or ADDONCMD version
+.TP
+\f[V]--debug[=N]\f[R]
+show debug output (levels 1-9, default: 1)
+.SS General input options
 .TP
 \f[V]-f FILE --file=FILE\f[R]
 use a different input file.
@@ -112,8 +129,7 @@ assignments)
 .TP
 \f[V]-s --strict\f[R]
 do extra error checking (check that all posted accounts are declared)
-.PP
-hledger reporting options:
+.SS General reporting options
 .TP
 \f[V]-b --begin=DATE\f[R]
 include postings/txns on or after this date (will be adjusted to
@@ -229,27 +245,6 @@ When a reporting option appears more than once in the command line, the
 last one takes precedence.
 .PP
 Some reporting options can also be written as query arguments.
-.PP
-hledger help options:
-.TP
-\f[V]-h --help\f[R]
-show general or COMMAND help
-.TP
-\f[V]--man\f[R]
-show general or COMMAND user manual with man
-.TP
-\f[V]--info\f[R]
-show general or COMMAND user manual with info
-.TP
-\f[V]--version\f[R]
-show general or ADDONCMD version
-.TP
-\f[V]--debug[=N]\f[R]
-show debug output (levels 1-9, default: 1)
-.PP
-A \[at]FILE argument will be expanded to the contents of FILE, which
-should contain one command line option/argument per line.
-(To prevent this, insert a \f[V]--\f[R] argument before.)
 .SH MOUSE
 .PP
 In most modern terminals, you can navigate through the screens with a

@@ -38,11 +38,10 @@ DESCRIPTION
        enable "forecast mode".
 
 OPTIONS
-       Note:  if  invoking hledger-ui as a hledger subcommand, write -- before
-       options as shown above.
-
-       Any QUERYARGS are interpreted as a hledger search query  which  filters
+       Any  QUERYARGS  are interpreted as a hledger search query which filters
        the data.
+
+       hledger-ui provides the following options:
 
        -w --watch
               watch for data and date changes and reload automatically
@@ -64,7 +63,7 @@ OPTIONS
               start in the (first) matched account's register screen
 
        --change
-              show  period balances (changes) at startup instead of historical
+              show period balances (changes) at startup instead of  historical
               balances
 
        -l --flat
@@ -73,8 +72,24 @@ OPTIONS
        -t --tree
               show accounts as a tree
 
-       hledger input options:
+       hledger-ui  also  supports  many  of hledger's general options (and the
+       hledger manual's command line tips also apply here):
 
+   General help options
+       -h --help
+              show general or COMMAND help
+
+       --man  show general or COMMAND user manual with man
+
+       --info show general or COMMAND user manual with info
+
+       --version
+              show general or ADDONCMD version
+
+       --debug[=N]
+              show debug output (levels 1-9, default: 1)
+
+   General input options
        -f FILE --file=FILE
               use  a  different  input  file.   For  stdin,  use  -  (default:
               $LEDGER_FILE or $HOME/.hledger.journal)
@@ -102,8 +117,7 @@ OPTIONS
               do  extra error checking (check that all posted accounts are de-
               clared)
 
-       hledger reporting options:
-
+   General reporting options
        -b --begin=DATE
               include postings/txns on or after this date (will be adjusted to
               preceding subperiod start when using a report interval)
@@ -217,25 +231,6 @@ OPTIONS
        last one takes precedence.
 
        Some reporting options can also be written as query arguments.
-
-       hledger help options:
-
-       -h --help
-              show general or COMMAND help
-
-       --man  show general or COMMAND user manual with man
-
-       --info show general or COMMAND user manual with info
-
-       --version
-              show general or ADDONCMD version
-
-       --debug[=N]
-              show debug output (levels 1-9, default: 1)
-
-       A @FILE argument will be expanded to the contents of FILE, which should
-       contain  one  command line option/argument per line.  (To prevent this,
-       insert a -- argument before.)
 
 MOUSE
        In most modern terminals, you can navigate through the screens  with  a
