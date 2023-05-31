@@ -214,56 +214,6 @@ With the `-s`/`--strict` flag, additional checks are performed:
 You can use the [check](#check) command to run individual checks -- the
 ones listed above and some more.
 
-# Options
-
-Run `hledger -h` to see general command line help, and general options which are common
-to most hledger commands. These options can be written anywhere on the command line.
-They can be grouped into help, input, and reporting options:
-
-## General help options
-
-_helpoptions_
-
-## General input options
-
-_inputoptions_
-
-## General reporting options
-
-_reportingoptions_
-
-## Option repetition
-
-If options are repeated in a command line, hledger will generally use the last (right-most) occurence.
-Some of the boolean flags will toggle if repeated; these include:
-`--invert`,
-`--transpose`,
-`-r/--related`,
-`-%/--percent`,
-`-E/--empty`,
-`-N/--no-total`,
-`-T/--row-total`,
-`-A/--average`, and
-`-S/--sort-amount`.
-
-# Environment
-
-These environment variables affect hledger:
-
-**COLUMNS**
-This is normally set by your terminal;
-some hledger commands (`register`) will format their output to this width.
-If not set, they will try to use the available terminal width.
-
-**LEDGER_FILE**
-The main journal file to use when not specified with `-f/--file`.
-Default: `$HOME/.hledger.journal`.
-
-**NO_COLOR**
-If this environment variable is set (with any value),
-hledger will not use ANSI color codes in terminal output,
-unless overridden by an explicit `--color/--colour` option.
-
 # Commands
 
 hledger provides various subcommands for getting things done.
@@ -280,7 +230,7 @@ or its standard abbreviation shown in the commands list,
 or any unambiguous prefix of the name.
 
 - CMDOPTS are command-specific options, if any.
-Unlike general options, command-specific options must be written after the command name.
+Command-specific options must be written after the command name.
 Eg: `hledger print -x`.
 
 - CMDARGS are additional arguments to the command, if any.
@@ -316,10 +266,42 @@ Eg: `hledger ui -- --watch` or `hledger web -- --serve`.
 If this causes difficulty, you can always run the add-on directly, without using `hledger`:
 `hledger-ui --watch` or `hledger-web --serve`.
 
+# Options
+
+Run `hledger -h` to see general command line help, and general options which are common
+to most hledger commands. These options can be written anywhere on the command line.
+They can be grouped into help, input, and reporting options:
+
+## General help options
+
+_helpoptions_
+
+## General input options
+
+_inputoptions_
+
+## General reporting options
+
+_reportingoptions_
+
 # Command line tips
 
 Here are some details useful to know about for hledger command lines (and elsewhere).
 Feel free to skip this section until you need it.
+
+## Option repetition
+
+If options are repeated in a command line, hledger will generally use the last (right-most) occurence.
+Some of the boolean flags will toggle if repeated; these include:
+`--invert`,
+`--transpose`,
+`-r/--related`,
+`-%/--percent`,
+`-E/--empty`,
+`-N/--no-total`,
+`-T/--row-total`,
+`-A/--average`, and
+`-S/--sort-amount`.
 
 ## Special characters
 
@@ -718,6 +700,24 @@ To capture debug output in a log file instead, you can usually redirect stderr, 
 ```shell
 hledger bal --debug=3 2>hledger.log
 ```
+
+# Environment
+
+These environment variables affect hledger:
+
+**COLUMNS**
+This is normally set by your terminal;
+some hledger commands (`register`) will format their output to this width.
+If not set, they will try to use the available terminal width.
+
+**LEDGER_FILE**
+The main journal file to use when not specified with `-f/--file`.
+Default: `$HOME/.hledger.journal`.
+
+**NO_COLOR**
+If this environment variable is set (with any value),
+hledger will not use ANSI color codes in terminal output,
+unless overridden by an explicit `--color/--colour` option.
 
 # PART 2: DATA FORMATS
 
