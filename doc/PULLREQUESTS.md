@@ -70,7 +70,7 @@ Rebase your commits against latest master for easiest review. Especially if they
 
 We like to use some conventions in commit messages when it makes sense. These aren't mandatory, but appreciated:
 
-- prepend a [label](ISSUES.html#labels) prefix, eg `cli: ` or `journal: `, for clarity and to help with changelog production
+- prepend a [label](ISSUES.md#labels) prefix, eg `cli: ` or `journal: `, for clarity and to help with changelog production
 - prepend a semicolon (`;`) to indicate commits that 
   - need not trigger a CI workflows, reducing wasteful carbon emissions
   - and probably need not be mentioned in changelogs/release notes

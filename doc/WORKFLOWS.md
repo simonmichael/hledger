@@ -37,7 +37,7 @@ Eg:
 - review and discuss new [pull requests](http://prs.hledger.org) and commits on github
 - build hledger and test the latest changes in your own repo
 - read the existing [code docs and source](#quick-links)
-- send feedback or discuss via [IRC or mail list](support.html)
+- send feedback or discuss via [IRC or mail list](support.md)
 
 ## Build in place
 
@@ -179,7 +179,7 @@ If you're new to this process, [help.github.com](https://help.github.com) may be
 
 ## Add yourself to the contributor list
 
-- after getting something into the master branch, read and sign the [contributor list & agreement](https://hledger.org/contributors.html). Or, [ask](support.html) to be added.
+- after getting something into the master branch, read and sign the [contributor list & agreement](https://hledger.org/contributors.html). Or, [ask](support.md) to be added.
 - give yourself a high five!
 
 ## Work on docs

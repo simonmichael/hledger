@@ -10,8 +10,8 @@ Browse the ideas below, or say hello in the chat and we'll help find you a job.
 
 ## First steps
 
-- Join the [#hledger chat](support.html), best place for quick help and feedback
-- Skim the [FAQs](faq.html)
+- Join the [#hledger chat](support.md), best place for quick help and feedback
+- Skim the [FAQs](faq.md)
 
 ## Ideas for contributing as a ...
 
@@ -25,8 +25,8 @@ Browse the ideas below, or say hello in the chat and we'll help find you a job.
 
 ### Developer
 
-- See the [Developer workflows](WORKFLOWS.html) 
-- and other [Developer docs](dev.html)
+- See the [Developer workflows](WORKFLOWS.md) 
+- and other [Developer docs](dev.md)
 
 ### Developer using the hledger libraries
 
@@ -76,7 +76,7 @@ When reporting bugs, don't forget to search the tracker for a similar bug report
 Otherwise, open a new bug by clicking "New issue", or <http://bugs.hledger.org/new>.
 
 Enhancement requests are sometimes added to the tracker,but for these consider using
-the IRC channel and mail list (see [Getting help](index.html#getting-help)).
+the IRC channel and mail list (see [Getting help](index.md#getting-help)).
 Both are archived and linkable, so the idea won't be lost.
 There is also a collection of wishes at the old [trello board](http://trello.hledger.org).
 

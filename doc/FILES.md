@@ -11,7 +11,7 @@ Some views and explanations of files in the hledger project, as of 2022-12.
 
 ## hledger working copy
 
-A full working copy of the official hledger [repos](REPOS.html)
+A full working copy of the official hledger [repos](REPOS.md)
 is best laid out like this (manually; we currently don't use git submodules):
 <pre>
 src/hledger/ - git clone https://github.com/simonmichael/hledger; cd hledger
@@ -188,7 +188,7 @@ src/hledger/finance/
 
 ## hledger user scripts
 
-[Scripts](scripts.html) for users are in bin/:
+[Scripts](scripts.md) for users are in bin/:
 
 <!-- $ gtree ^bin -->
 <pre>
@@ -498,8 +498,8 @@ src/hledger/site/src/
   VERSIONNUMBERS.md
   WORKFLOWS.md
   accounting.md
-  add.md
   balancing-the-accounting-equation.md
+  basics.md
   beancount.md
   budgeting-and-forecasting.md
   budgeting.md

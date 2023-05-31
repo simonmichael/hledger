@@ -20,7 +20,7 @@ Here's the typical format: <!-- keep synced with tools/commitlint -->
 More precisely:
 
 - Commit messages must begin with one or more prefixes (colon-terminated words),
-  indicating the type and/or [topic](ISSUES.html#topics).
+  indicating the type and/or [topic](ISSUES.md#topics).
 - Commits causing user-visible changes must begin with `feat:`, `imp:` or `fix:` 
   (feature, improvement, or bugfix). These will be used in release notes.
   If they are breaking/incompatible changes, use `feat!:`, `imp!:` or `fix!:`.
@@ -51,7 +51,7 @@ Some possible prefixes:
 - `doc` - documentation-related
 - `test` - tests-related
 - `ci`  - continuous integration-related
-- Any of the standard [labels](ISSUES.html#labels) used in the issue tracker.
+- Any of the standard [labels](ISSUES.md#labels) used in the issue tracker.
 
 ## How to check commits
 
