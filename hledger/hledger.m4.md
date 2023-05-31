@@ -1981,7 +1981,7 @@ Including the aliases doesn't work either:
 ```journal
 include a.aliases
 
-2020-01-01  ; not affected by a.aliases
+2023-01-01  ; not affected by a.aliases
   foo  1
   bar
 ```
@@ -1991,7 +1991,7 @@ start of your top-most file, like this:
 alias foo=Foo
 alias bar=Bar
 
-2020-01-01  ; affected by aliases above
+2023-01-01  ; affected by aliases above
   foo  1
   bar
 
@@ -2200,7 +2200,7 @@ avoid include cycles and including directories, but this can be done, eg:
 The path may also be prefixed to force a specific file format,
 overriding the file extension (as described in
 [hledger.1 -> Input files](#input-files)):
-`include timedot:~/notes/2020*.md`.
+`include timedot:~/notes/2023*.md`.
 
 [glob patterns]: https://hackage.haskell.org/package/Glob-0.9.2/docs/System-FilePath-Glob.html#v:compile
 
@@ -2287,8 +2287,8 @@ read this whole section, or at least these tips:
 7. Other period expressions with an interval are automatically expanded to cover a whole number of that interval.
    (This is done to improve reports, but it also affects periodic transactions. Yes, it's a bit inconsistent with the above.)
    Eg: <br>
-   `~ every 10th day of month from 2020/01`, which is equivalent to <br>
-   `~ every 10th day of month from 2020/01/01`, will be adjusted to start on 2019/12/10.
+   `~ every 10th day of month from 2023/01`, which is equivalent to <br>
+   `~ every 10th day of month from 2023/01/01`, will be adjusted to start on 2019/12/10.
 
 
 ### Periodic rule syntax
@@ -2333,10 +2333,10 @@ This helps hledger know where the period expression ends, so that descriptions
 can not accidentally alter their meaning, as in this example:
 
 ```
-; 2 or more spaces needed here, so the period is not understood as "every 2 months in 2020"
+; 2 or more spaces needed here, so the period is not understood as "every 2 months in 2023"
 ;               ||
 ;               vv
-~ every 2 months  in 2020, we will review
+~ every 2 months  in 2023, we will review
     assets:bank:checking   $1500
     income:acme inc
 ```
@@ -3295,11 +3295,11 @@ With record matchers, it's important to know that the record matched is not the 
 separators will be converted to commas, and enclosing double quotes (but not enclosing whitespace) are removed.
 So for example, when reading an SSV file, if the original record was:
 ```ssv
-2020-01-01; "Acme, Inc.";  1,000
+2023-01-01; "Acme, Inc.";  1,000
 ```
 the regex would see, and try to match, this modified record text:
 ```
-2020-01-01,Acme, Inc.,  1,000
+2023-01-01,Acme, Inc.,  1,000
 ```
 
 When an if block has multiple matchers, they are combined as follows:
@@ -3356,7 +3356,7 @@ Example:
 if,account2,comment
 atm transaction fee,expenses:business:banking,deductible? check it
 %description groceries,expenses:groceries,
-2020/01/12.*Plumbing LLC,expenses:house:upkeep,emergency plumbing call-out
+2023/01/12.*Plumbing LLC,expenses:house:upkeep,emergency plumbing call-out
 ```
 
 ## `balance-type`
@@ -3616,7 +3616,7 @@ It's not possible (without preprocessing the CSV) to set an amount to its absolu
 If the currency/commodity symbol is included in the  CSV's amount field(s):
 
 ```csv
-2020-01-01,foo,$123.00
+2023-01-01,foo,$123.00
 ```
 
 you don't have to do anything special for the commodity symbol, it will be assigned as part of the amount. Eg:
@@ -3625,7 +3625,7 @@ you don't have to do anything special for the commodity symbol, it will be assig
 fields date,description,amount
 ```
 ```journal
-2020-01-01 foo
+2023-01-01 foo
     expenses:unknown         $123.00
     income:unknown          $-123.00
 ```
@@ -3633,7 +3633,7 @@ fields date,description,amount
 If the currency is provided as a separate CSV field:
 
 ```csv
-2020-01-01,foo,USD,123.00
+2023-01-01,foo,USD,123.00
 ```
 
 You can assign that to the `currency` pseudo-field, which has the
@@ -3644,7 +3644,7 @@ transaction (on the left, with no separating space):
 fields date,description,currency,amount
 ```
 ```journal
-2020-01-01 foo
+2023-01-01 foo
     expenses:unknown       USD123.00
     income:unknown        USD-123.00
 ```
@@ -3661,7 +3661,7 @@ fields date,description,cur,amt
 amount %amt %cur
 ```
 ```journal
-2020-01-01 foo
+2023-01-01 foo
     expenses:unknown        123.00 USD
     income:unknown         -123.00 USD
 ```
@@ -4225,15 +4225,15 @@ biz:research  1
 
 ```timedot
 * Time log
-** 2020-01-01
+** 2023-01-01
 *** adm:time  .
 *** adm:finance  .
 ```
 
 ```timedot
-* 2020 Work Diary
+* 2023 Work Diary
 ** Q1
-*** 2020-02-29
+*** 2023-02-29
 **** DONE
 0700 yoga
 **** UNPLANNED
@@ -4608,7 +4608,7 @@ These are most often [account name](#account-names) substrings:
 
 - Add a query type prefix to match other parts of the data:
 
-  `date:202012- desc:amazon cur:USD amt:">100" status:`
+  `date:202312- desc:amazon cur:USD amt:">100" status:`
 
 - Add a `not:` prefix to negate a term:
 
@@ -4737,7 +4737,7 @@ Examples of such queries are:
 
 Some queries can also be expressed as command-line options:
 `depth:2` is equivalent to `--depth 2`, 
-`date:2020` is equivalent to `-p 2020`, etc.
+`date:2023` is equivalent to `-p 2023`, etc.
 When you mix command options and query arguments, 
 generally the resulting query is their intersection.
 
@@ -5885,11 +5885,11 @@ $ mkdir ~/finance
 $ cd ~/finance
 $ git init
 Initialized empty Git repository in /Users/simon/finance/.git/
-$ touch 2020.journal
-$ echo "export LEDGER_FILE=$HOME/finance/2020.journal" >> ~/.bashrc
-$ source ~/.bashrc
+$ touch 2023.journal
+$ echo "export LEDGER_FILE=$HOME/finance/2023.journal" >> ~/.profile
+$ source ~/.profile
 $ hledger stats
-Main file                : /Users/simon/finance/2020.journal
+Main file                : /Users/simon/finance/2023.journal
 Included files           : 
 Transactions span        :  to  (0 days)
 Last transaction         : none
@@ -5950,7 +5950,7 @@ balances on this date. Here are two ways to do it:
 
 - The first way: open the journal in any text editor and save an entry like this:
   ```journal
-  2020-01-01 * opening balances
+  2023-01-01 * opening balances
       assets:bank:checking                $1000   = $1000
       assets:bank:savings                 $2000   = $2000
       assets:cash                          $100   = $100
@@ -5971,7 +5971,7 @@ balances on this date. Here are two ways to do it:
 - The second way: run `hledger add` and follow the prompts to record a similar transaction:
   ```shell
   $ hledger add
-  Adding transactions to journal file /Users/simon/finance/2020.journal
+  Adding transactions to journal file /Users/simon/finance/2023.journal
   Any command line arguments will be used as defaults.
   Use tab key to complete, readline keys to edit, enter to accept defaults.
   An optional (CODE) may follow transaction dates.
@@ -5979,7 +5979,7 @@ balances on this date. Here are two ways to do it:
   If you make a mistake, enter < at any prompt to go one step backward.
   To end a transaction, enter . when prompted.
   To quit, enter . at a date prompt or press control-d or control-c.
-  Date [2020-02-07]: 2020-01-01
+  Date [2023-02-07]: 2023-01-01
   Description: * opening balances
   Account 1: assets:bank:checking
   Amount  1: $1000
@@ -5992,7 +5992,7 @@ balances on this date. Here are two ways to do it:
   Account 5: equity:opening/closing balances
   Amount  5 [$-3050]: 
   Account 6 (or . or enter to finish this transaction): .
-  2020-01-01 * opening balances
+  2023-01-01 * opening balances
       assets:bank:checking                      $1000
       assets:bank:savings                       $2000
       assets:cash                                $100
@@ -6002,12 +6002,12 @@ balances on this date. Here are two ways to do it:
   Save this transaction to the journal ? [y]: 
   Saved.
   Starting the next transaction (. or ctrl-D/ctrl-C to quit)
-  Date [2020-01-01]: .
+  Date [2023-01-01]: .
   ```
 
 If you're using version control, this could be a good time to commit the journal. Eg:
 ```shell
-$ git commit -m 'initial balances' 2020.journal
+$ git commit -m 'initial balances' 2023.journal
 ```
 
 ## Recording transactions
@@ -6021,15 +6021,15 @@ Here are some simple transactions, see the hledger_journal(5) manual
 and hledger.org for more ideas:
 
 ```journal
-2020/1/10 * gift received
+2023/1/10 * gift received
   assets:cash   $20
   income:gifts
 
-2020.1.12 * farmers market
+2023.1.12 * farmers market
   expenses:food    $13
   assets:cash
 
-2020-01-15 paycheck
+2023-01-15 paycheck
   income:salary
   assets:bank:checking    $1000
 ```
@@ -6055,7 +6055,7 @@ A typical workflow:
    If you can't find the error, add an adjustment transaction.
    Eg if you have $105 after the above, and can't explain the missing $2, it could be:
    ```journal
-   2020-01-16 * adjust cash
+   2023-01-16 * adjust cash
        assets:cash    $-2 = $105
        expenses:misc
    ```
@@ -6079,11 +6079,11 @@ live-updating register while you edit the journal:
 After reconciling, it could be a good time to mark the reconciled
 transactions' status as "cleared and confirmed", if you want to track
 that, by adding the `*` marker.
-Eg in the paycheck transaction above, insert `*` between `2020-01-15` and `paycheck`
+Eg in the paycheck transaction above, insert `*` between `2023-01-15` and `paycheck`
 
 If you're using version control, this can be another good time to commit:
 ```shell
-$ git commit -m 'txns' 2020.journal
+$ git commit -m 'txns' 2023.journal
 ```
 
 ## Reporting
@@ -6093,26 +6093,26 @@ Here are some basic reports.
 Show all transactions:
 ```shell
 $ hledger print
-2020-01-01 * opening balances
+2023-01-01 * opening balances
     assets:bank:checking                      $1000
     assets:bank:savings                       $2000
     assets:cash                                $100
     liabilities:creditcard                     $-50
     equity:opening/closing balances          $-3050
 
-2020-01-10 * gift received
+2023-01-10 * gift received
     assets:cash              $20
     income:gifts
 
-2020-01-12 * farmers market
+2023-01-12 * farmers market
     expenses:food             $13
     assets:cash
 
-2020-01-15 * paycheck
+2023-01-15 * paycheck
     income:salary
     assets:bank:checking           $1000
 
-2020-01-16 * adjust cash
+2023-01-16 * adjust cash
     assets:cash               $-2 = $105
     expenses:misc
 
@@ -6171,9 +6171,9 @@ $ hledger bal assets liabilities -2
 Show the same thing without negative numbers, formatted as a simple balance sheet:
 ```shell
 $ hledger bs -2
-Balance Sheet 2020-01-16
+Balance Sheet 2023-01-16
 
-                        || 2020-01-16 
+                        || 2023-01-16 
 ========================++============
  Assets                 ||            
 ------------------------++------------
@@ -6196,9 +6196,9 @@ The final total is your "net worth" on the end date.
 Show income and expense totals, formatted as an income statement:
 ```shell
 hledger is 
-Income Statement 2020-01-01-2020-01-16
+Income Statement 2023-01-01-2023-01-16
 
-               || 2020-01-01-2020-01-16 
+               || 2023-01-01-2023-01-16 
 ===============++=======================
  Revenues      ||                       
 ---------------++-----------------------
@@ -6221,18 +6221,18 @@ The final total is your net income during this period.
 Show transactions affecting your wallet, with running total:
 ```shell
 $ hledger register cash
-2020-01-01 opening balances     assets:cash                   $100          $100
-2020-01-10 gift received        assets:cash                    $20          $120
-2020-01-12 farmers market       assets:cash                   $-13          $107
-2020-01-16 adjust cash          assets:cash                    $-2          $105
+2023-01-01 opening balances     assets:cash                   $100          $100
+2023-01-10 gift received        assets:cash                    $20          $120
+2023-01-12 farmers market       assets:cash                   $-13          $107
+2023-01-16 adjust cash          assets:cash                    $-2          $105
 ```
 
 Show weekly posting counts as a bar chart:
 ```shell
 $ hledger activity -W
 2019-12-30 *****
-2020-01-06 ****
-2020-01-13 ****
+2023-01-06 ****
+2023-01-13 ****
 ```
 ## Migrating to a new file
 
