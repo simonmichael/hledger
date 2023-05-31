@@ -105,44 +105,13 @@ $ hledger -f FILE print
 Files are most often in hledger's journal format, with the `.journal` file extension (`.hledger` or `.j` also work);
 these files describe transactions, like an accounting general journal.
 
-When no `-f` option is given, hledger looks for the file specified by the `LEDGER_FILE` environment variable; 
-if this is not set, it uses `.hledger.journal` in your home directory.
+When no file is specified, hledger looks for `.hledger.journal` in your home directory.
 
-Most people prefer to keep financial files in a dedicated folder, perhaps with version control.
-Also, starting a new journal file per year is common (it's not required, but helps keep things fast and organised).
-So we usually set `LEDGER_FILE`, to something like `~/finance/2023.journal`.
-
-## Setting LEDGER_FILE
-
-How to set `LEDGER_FILE` permanently depends on your setup:
-
-On unix and mac, running these commands in the terminal will work for many people; adapt as needed:
-```shell
-$ echo 'export LEDGER_FILE=~/finance/2023.journal` >> ~/.profile
-$ source ~/.profile
-```
-
-When correctly configured, in a new terminal window `env | grep LEDGER_FILE` will show your file,
-and so will `hledger files`.
-
-On mac, this additional step might be helpful for GUI applications (like Emacs started from the dock):
-add an entry to `~/.MacOSX/environment.plist` like
-
-```json
-{
-  "LEDGER_FILE" : "~/finance/2023.journal"
-}
-```
-and then run `killall Dock` in a terminal window (or restart the machine).
-
-On Windows, see <https://www.java.com/en/download/help/path.html>,
-or try running these commands in a powershell window
-(let us know if it persists across a reboot, and if you need to be an Administrator):
-```shell
-> CD
-> MKDIR finance
-> SETX LEDGER_FILE "C:\Users\USERNAME\finance\2023.journal"
-```
+But most people prefer to keep financial files in a dedicated folder, perhaps with version control.
+Also, starting a new journal file each year is common (it's not required, but helps keep things fast and organised).
+So we usually configure a different journal file, by setting the `LEDGER_FILE` environment variable,
+to something like `~/finance/2023.journal`.
+For more about how to do that on your system, see [Common tasks > Setting LEDGER_FILE](#setting-ledger_file).
 
 ## Data formats
 
@@ -5908,7 +5877,7 @@ Please create it first, eg with "hledger add" or a text editor.
 Or, specify an existing journal file with -f or LEDGER_FILE.
 ```
 
-You can override this by setting the `LEDGER_FILE` environment variable.
+You can override this by setting the `LEDGER_FILE` environment variable (see below).
 It's a good practice to keep this important file under version control,
 and to start a new file each year. So you could do something like this:
 ```shell
@@ -5931,6 +5900,38 @@ Payees/descriptions      : 0
 Accounts                 : 0 (depth 0)
 Commodities              : 0 ()
 Market prices            : 0 ()
+```
+
+## Setting LEDGER_FILE
+
+How to set `LEDGER_FILE` permanently depends on your setup:
+
+On unix and mac, running these commands in the terminal will work for many people; adapt as needed:
+```shell
+$ echo 'export LEDGER_FILE=~/finance/2023.journal` >> ~/.profile
+$ source ~/.profile
+```
+
+When correctly configured, in a new terminal window `env | grep LEDGER_FILE` will show your file,
+and so will `hledger files`.
+
+On mac, this additional step might be helpful for GUI applications (like Emacs started from the dock):
+add an entry to `~/.MacOSX/environment.plist` like
+
+```json
+{
+  "LEDGER_FILE" : "~/finance/2023.journal"
+}
+```
+and then run `killall Dock` in a terminal window (or restart the machine).
+
+On Windows, see <https://www.java.com/en/download/help/path.html>,
+or try running these commands in a powershell window
+(let us know if it persists across a reboot, and if you need to be an Administrator):
+```shell
+> CD
+> MKDIR finance
+> SETX LEDGER_FILE "C:\Users\USERNAME\finance\2023.journal"
 ```
 
 ## Setting opening balances
