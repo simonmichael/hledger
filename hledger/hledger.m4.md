@@ -104,7 +104,6 @@ $ hledger -f FILE print
 
 Files are most often in hledger's journal format, with the `.journal` file extension (`.hledger` or `.j` also work);
 these files describe transactions, like an accounting general journal.
-Some other supported file formats are discussed below.
 
 When no `-f` option is given, hledger looks for the file specified by the `LEDGER_FILE` environment variable; 
 if this is not set, it uses `.hledger.journal` in your home directory.
@@ -115,11 +114,10 @@ So we usually set `LEDGER_FILE`, to something like `~/finance/2023.journal`.
 
 ## Setting LEDGER_FILE
 
-How to set `LEDGER_FILE` permanently depends on your platform:
+How to set `LEDGER_FILE` permanently depends on your setup:
 
 On unix and mac, running these commands in the terminal will work for many people; adapt as needed:
-```
-$ mkdir -p ~/finance
+```shell
 $ echo 'export LEDGER_FILE=~/finance/2023.journal` >> ~/.profile
 $ source ~/.profile
 ```
@@ -130,7 +128,7 @@ and so will `hledger files`.
 On mac, this additional step might be helpful for GUI applications (like Emacs started from the dock):
 add an entry to `~/.MacOSX/environment.plist` like
 
-```
+```json
 {
   "LEDGER_FILE" : "~/finance/2023.journal"
 }
@@ -140,7 +138,7 @@ and then run `killall Dock` in a terminal window (or restart the machine).
 On Windows, see <https://www.java.com/en/download/help/path.html>,
 or try running these commands in a powershell window
 (let us know if it persists across a reboot, and if you need to be an Administrator):
-```
+```shell
 > CD
 > MKDIR finance
 > SETX LEDGER_FILE "C:\Users\USERNAME\finance\2023.journal"
@@ -216,43 +214,21 @@ With the `-s`/`--strict` flag, additional checks are performed:
 You can use the [check](#check) command to run individual checks -- the
 ones listed above and some more.
 
-# Environment
-
-Environment variables which affect hledger:
-
-**COLUMNS**
-This is normally set by your terminal;
-some hledger commands (`register`) will format their output to this width.
-If not set, they will try to use the available terminal width.
-
-**LEDGER_FILE**
-The main journal file to use when not specified with `-f/--file`.
-Default: `$HOME/.hledger.journal`.
-
-**NO_COLOR**
-If this environment variable is set (with any value),
-hledger will not use ANSI color codes in terminal output,
-unless overridden by an explicit `--color/--colour` option.
-
 # Options
 
-Here is a list of flags and options common to most hledger commands, and some useful details about hledger command line parsing.
-But if you are new to hledger, feel free  to skim/skip ahead to the [Commands](#commands).
+Run `hledger -h` to see general command line help, and general options which are common
+to most hledger commands. These options can be written anywhere on the command line.
+They can be grouped into help, input, and reporting options:
 
-## General options
-
-To see general usage help, including general options
-which are supported by most hledger commands, run `hledger -h`.
-
-General help options:
+## General help options
 
 _helpoptions_
 
-General input options:
+## General input options
 
 _inputoptions_
 
-General reporting options:
+## General reporting options
 
 _reportingoptions_
 
@@ -270,52 +246,80 @@ Some of the boolean flags will toggle if repeated; these include:
 `-A/--average`, and
 `-S/--sort-amount`.
 
-## Command options
+# Environment
 
-To see options for a particular command, including command-specific options, run: `hledger COMMAND -h`.
+These environment variables affect hledger:
 
-Command-specific options must be written after the command name, eg: `hledger print -x`.
+**COLUMNS**
+This is normally set by your terminal;
+some hledger commands (`register`) will format their output to this width.
+If not set, they will try to use the available terminal width.
 
-Additionally, if the command is an [add-on](#addons),
-you may need to put its options after a double-hyphen, eg: `hledger ui -- --watch`.
-Or, you can run the add-on executable directly: `hledger-ui --watch`.
+**LEDGER_FILE**
+The main journal file to use when not specified with `-f/--file`.
+Default: `$HOME/.hledger.journal`.
 
-## Command arguments
+**NO_COLOR**
+If this environment variable is set (with any value),
+hledger will not use ANSI color codes in terminal output,
+unless overridden by an explicit `--color/--colour` option.
 
-Most hledger commands accept arguments after the command name,
-which are often a [query](#queries), filtering the data in some way.
+# Commands
 
-You can save a set of command line options/arguments in a file,
-and then reuse them by writing `@FILENAME` as a command line argument.
-Eg: `hledger bal @foo.args`.
-(To prevent this, eg if you have an argument that begins with a literal `@`,
-precede it with `--`, eg: `hledger bal -- @ARG`).
+hledger provides various subcommands for getting things done.
+Most of these commands do not change the journal file; they just read it and output a report.
+A few commands assist with adding data and file management.
 
-Inside the argument file, each line should contain just one option or argument.
-Avoid the use of spaces, except inside quotes (or you'll see a confusing error).
-Between a flag and its argument, use = (or nothing).
-Bad:
+To show the commands list, run `hledger` with no arguments.
+The commands are described in detail in [PART 4: COMMANDS](#part-4-commands), below.
 
-    assets depth:2
-    -X USD
+To use a particular command, run `hledger CMD [CMDOPTS] [CMDARGS]`,
 
-Good:
+- CMD is the full command name,
+or its standard abbreviation shown in the commands list,
+or any unambiguous prefix of the name.
 
-    assets
-    depth:2
-    -X=USD
+- CMDOPTS are command-specific options, if any.
+Unlike general options, command-specific options must be written after the command name.
+Eg: `hledger print -x`.
 
-For special characters (see below), use one less level of quoting than
-you would at the command prompt.
-Bad:
+- CMDARGS are additional arguments to the command, if any.
+Most hledger commands accept arguments representing a [query](#queries), to limit the data in some way.
+Eg: `hledger reg assets:checking`.
 
-    -X"$"
+To list a command's options, arguments, and documentation in the terminal, run `hledger CMD -h`.
+Eg: `hledger bal -h`.
 
-Good:
+## Add-on commands
 
-    -X$
+In addition to the built-in commands, you can install *add-on commands*:
+programs or scripts named "hledger-SOMETHING", which will also appear in hledger's commands list.
+If you used the [hledger-install script](https://hledger.org/install.html#build-methods),
+you will have several add-ons installed already.
+Some more can be found in hledger's bin/ directory, documented at <https://hledger.org/scripts.html>.
 
-See also: [Save frequently used options](/save-frequently-used-options.html).
+More precisely, add-on commands are programs or scripts in your shell's PATH,
+whose name starts with "hledger-"
+and ends with no extension or a recognised extension
+(".bat", ".com", ".exe", ".hs", ".js", ".lhs", ".lua", ".php", ".pl", ".py", ".rb", ".rkt", or ".sh"),
+and (on unix and mac) which has executable permission for the current user.
+
+m4_dnl Addons can be written in any language, but Haskell scripts or programs can 
+m4_dnl call hledger's code directly, which means they can do anything built-in commands can.
+m4_dnl Scripts/programs in other languages can't do this, but they can use hledger's
+m4_dnl command-line interface, or output formats like CSV or JSON.
+
+You can run add-on commands using hledger, much like built-in commands:
+`hledger ADDONCMD [-- ADDONCMDOPTS] [ADDONCMDARGS]`.
+But note the double hyphen argument, required before add-on-specific options.
+Eg: `hledger ui -- --watch` or `hledger web -- --serve`. 
+If this causes difficulty, you can always run the add-on directly, without using `hledger`:
+`hledger-ui --watch` or `hledger-web --serve`.
+
+# Command line tips
+
+Here are some details useful to know about for hledger command lines (and elsewhere).
+Feel free to skip this section until you need it.
 
 ## Special characters
 
@@ -479,62 +483,35 @@ dollar sign in hledger-web, write `cur:\$`.
 meaning to the shell and so must be escaped at least once more.
 See [Special characters](#special-characters).
 
-# Commands
+## Argument files
 
-hledger provides a number of built-in subcommands (described [below](#part-4-commands)).
-Most of these read your data without changing it, and display a report.
-A few assist with data entry and management.
+You can save a set of command line options and arguments in a file,
+and then reuse them by writing `@FILENAME` as a command line argument.
+Eg: `hledger bal @foo.args`.
 
-Run `hledger` with no arguments to list the commands available,
-and `hledger CMD` to run a command. CMD can be the full command name,
-or its standard abbreviation shown in the commands list,
-or any unambiguous prefix of the name.
-Eg: `hledger bal`.
+Inside the argument file, each line should contain just one option or argument.
+Also, don't use spaces except inside quotes (or you'll see a confusing error).
+Ie, write = (or nothing) between a flag and its argument.
+Eg, bad:
 
-m4_dnl XXX maybe later
-m4_dnl Each command's detailed docs are available :
-m4_dnl 
-m4_dnl - command line help, eg: `hledger balance --help`
-m4_dnl - 
-m4_dnl - info manuals, eg: `hledger help --info hledger` (or possibly `info hledger`) <!-- -> m4_dnl Commands -> balance -->
-m4_dnl - web manuals, eg: <https://hledger.org/hledger.html#balance>
-m4_dnl <!-- - man pages, eg: `man hledger-balance` -->
+    assets -X USD
 
-## Add-on commands
-<!-- #add-on-commands: the long explanation of add-on commands. See also #addons. -->
+Good:
 
-Add-on commands are extra subcommands provided by programs or scripts in your PATH 
+    assets
+    -X=USD
 
-- whose name starts with `hledger-`
-- whose name ends with a recognised file extension:
-  `.bat`,`.com`,`.exe`, `.hs`,`.lhs`,`.pl`,`.py`,`.rb`,`.rkt`,`.sh` or none
-- and (on unix, mac) which are executable by the current user.
+For the special characters mentioned above, use one less level of quoting than
+you would at the command prompt.
+Eg, bad:
 
-Addons can be written in any language, but haskell scripts or programs have a big advantage:
-they can use hledger's library code, for command-line options, parsing and reporting.
+    -X"$"
 
-Several add-on commands are installed by the 
-[hledger-install script](https://hledger.org/install.html#build-methods).
-See <https://hledger.org/scripts.html> for more details.
+Good:
 
+    -X$
 
-Note in a hledger command line, add-on command flags must have a double dash (`--`) preceding them.
-Eg you must write:
-```shell
-$ hledger web -- --serve
-```
-and not:
-```shell
-$ hledger web --serve
-```
-(because the `--serve` flag belongs to `hledger-web`, not `hledger`).
-
-The `-h/--help` and `--version` flags don't require `--`.
-
-If you have any trouble with this, remember you can always run the add-on program directly, eg:
-```shell
-$ hledger-web --serve
-```
+See also: [Save frequently used options](/save-frequently-used-options.html).
 
 # Output
 
