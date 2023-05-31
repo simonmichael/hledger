@@ -68,8 +68,7 @@ Command-line options and arguments may be used to set an initial
 filter on the data. These filter options are not shown in the web UI,
 but it will be applied in addition to any search query entered there.
 
-Note: if invoking hledger-web as a hledger subcommand, write `--` before options,
-as shown in the synopsis above.
+hledger-web provides the following options:
 
 `--serve`
 : serve and log requests, don't browse or auto-exit after timeout
@@ -106,22 +105,6 @@ serve them from another server for efficiency, you would set the url with this.
 `--test`
 : run hledger-web's tests and exit. hspec test runner args may follow a --, eg: hledger-web --test -- --help
 
-hledger input options:
-
-_inputoptions_
-
-hledger reporting options:
-
-_reportingoptions_
-
-hledger help options:
-
-_helpoptions_
-
-A @FILE argument will be expanded to the contents of FILE,
-which should contain one command line option/argument per line.
-(To prevent this, insert a `--` argument before.)
-
 By default the server listens on IP address 127.0.0.1, accessible only to local requests.
 You can use `--host` to change this, eg `--host 0.0.0.0` to listen on all configured addresses.
 
@@ -149,6 +132,21 @@ The default is `http://HOST:PORT/` using the server's configured host address an
 
 With `--file-url` you can set a different base url for static files,
 eg for better caching or cookie-less serving on high performance websites.
+
+hledger-web also supports many of hledger's general options
+(and the hledger manual's command line tips also apply here):
+
+## General help options
+
+_helpoptions_
+
+## General input options
+
+_inputoptions_
+
+## General reporting options
+
+_reportingoptions_
 
 # PERMISSIONS
 

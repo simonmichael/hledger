@@ -50,9 +50,9 @@ by pressing the F key (or starting with --forecast) to enable "forecast mode".
 
 # OPTIONS
 
-Note: if invoking hledger-ui as a hledger subcommand, write `--` before options as shown above.
-
 Any QUERYARGS are interpreted as a hledger search query which filters the data.
+
+hledger-ui provides the following options:
 
 `-w --watch`
 : watch for data and date changes and reload automatically
@@ -87,21 +87,20 @@ Any QUERYARGS are interpreted as a hledger search query which filters the data.
 `-t --tree`
 : show accounts as a tree
 
- hledger input options:
+hledger-ui also supports many of hledger's general options
+(and the hledger manual's command line tips also apply here):
 
-_inputoptions_
-
-hledger reporting options:
-
-_reportingoptions_
-
-hledger help options:
+## General help options
 
 _helpoptions_
 
-A @FILE argument will be expanded to the contents of FILE,
-which should contain one command line option/argument per line.
-(To prevent this, insert a `--` argument before.)
+## General input options
+
+_inputoptions_
+
+## General reporting options
+
+_reportingoptions_
 
 # MOUSE
 
