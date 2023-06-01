@@ -56,10 +56,9 @@ and print a useful report on the terminal (or save it as HTML, CSV, JSON or SQL)
 Many reports are available, as subcommands.
 hledger will also detect other `hledger-*` executables as extra subcommands.
 
-hledger reads _inputfiles_
-hledger CLI can also read from stdin with `-f-`; more on that below.
+hledger usually _inputfiles_
 
-Here is a small but valid hledger journal file describing one transaction:
+Here is a small journal file describing one transaction:
 
 _journal_({{
 2015-10-16 bought food
@@ -95,24 +94,169 @@ in [PART 5: COMMON TASKS](#part-5-common-tasks).
 
 # PART 1: USER INTERFACE
 
+# Input
+
+hledger reads one or more data files, each time you run it. 
+You can specify a file with `-f`, like so
+```shell
+$ hledger -f FILE print
+```
+
+Files are most often in hledger's journal format, with the `.journal` file extension (`.hledger` or `.j` also work);
+these files describe transactions, like an accounting general journal.
+
+When no file is specified, hledger looks for `.hledger.journal` in your home directory.
+
+But most people prefer to keep financial files in a dedicated folder, perhaps with version control.
+Also, starting a new journal file each year is common (it's not required, but helps keep things fast and organised).
+So we usually configure a different journal file, by setting the `LEDGER_FILE` environment variable,
+to something like `~/finance/2023.journal`.
+For more about how to do that on your system, see [Common tasks > Setting LEDGER_FILE](#setting-ledger_file).
+
+## Data formats
+
+Usually the data file is in hledger's journal format, but it can be in
+any of the supported file formats, which currently are:
+
+| Reader:     | Reads:                                                           | Used for file extensions:            |
+|-------------|------------------------------------------------------------------|--------------------------------------|
+| `journal`   | hledger journal files and some Ledger journals, for transactions | `.journal` `.j` `.hledger` `.ledger` |
+| `timeclock` | timeclock files, for precise time logging                        | `.timeclock`                         |
+| `timedot`   | timedot files, for approximate time logging                      | `.timedot`                           |
+| `csv`       | CSV/SSV/TSV/character-separated values, for data import          | `.csv` `.ssv` `.tsv` `.csv.rules` `.ssv.rules` `.tsv.rules` |
+
+These formats are described in more detail below.
+
+hledger detects the format automatically based on the file extensions shown above.
+If it can't recognise the file extension, it assumes `journal` format.
+So for non-journal files, it's important to use a recognised file extension,
+so as to either read successfully or to show relevant error messages.
+
+You can also force a specific reader/format by prefixing the file path with the format and a colon.
+Eg, to read a .dat file as csv format:
+
+```shell
+$ hledger -f csv:/some/csv-file.dat stats
+```
+
+## Standard input
+
+The file name `-` means standard input:
+
+```shell
+$ cat FILE | hledger -f- print
+```
+
+If reading non-journal data in this way, you'll need to add a file format prefix, like:
+
+```shell
+$ echo 'i 2009/13/1 08:00:00' | hledger print -f timeclock:-
+```
+
+## Multiple files
+
+You can specify multiple `-f` options, to read multiple files as one big journal. When doing this, note that certain features (described below) will be affected:
+
+- [Balance assertions](#balance-assertions) will not see the effect of transactions in previous files. (Usually this doesn't matter as each file will set the corresponding opening balances.)
+- Some [directives](#directives) will not affect previous or subsequent files.
+
+If needed, you can work around these by using a single parent file which [includes](#including-files) the others, or concatenating the files into one, eg: `cat a.journal b.journal | hledger -f- CMD`.
+
+## Strict mode
+
+hledger checks input files for valid data.
+By default, the most important errors are detected, while still accepting
+easy journal files without a lot of declarations:
+
+- Are the input files parseable, with valid syntax ?
+- Are all transactions balanced ?
+- Do all balance assertions pass ?
+
+With the `-s`/`--strict` flag, additional checks are performed:
+
+- Are all accounts posted to, declared with an `account` directive ?
+  ([Account error checking](#account-error-checking))
+- Are all commodities declared with a `commodity` directive ?
+  ([Commodity error checking](#commodity-error-checking))
+- Are all commodity conversions declared explicitly ?
+
+You can use the [check](#check) command to run individual checks -- the
+ones listed above and some more.
+
+# Commands
+
+hledger provides various subcommands for getting things done.
+Most of these commands do not change the journal file; they just read it and output a report.
+A few commands assist with adding data and file management.
+
+To show the commands list, run `hledger` with no arguments.
+The commands are described in detail in [PART 4: COMMANDS](#part-4-commands), below.
+
+To use a particular command, run `hledger CMD [CMDOPTS] [CMDARGS]`,
+
+- CMD is the full command name,
+or its standard abbreviation shown in the commands list,
+or any unambiguous prefix of the name.
+
+- CMDOPTS are command-specific options, if any.
+Command-specific options must be written after the command name.
+Eg: `hledger print -x`.
+
+- CMDARGS are additional arguments to the command, if any.
+Most hledger commands accept arguments representing a [query](#queries), to limit the data in some way.
+Eg: `hledger reg assets:checking`.
+
+To list a command's options, arguments, and documentation in the terminal, run `hledger CMD -h`.
+Eg: `hledger bal -h`.
+
+## Add-on commands
+
+In addition to the built-in commands, you can install *add-on commands*:
+programs or scripts named "hledger-SOMETHING", which will also appear in hledger's commands list.
+If you used the [hledger-install script](https://hledger.org/install.html#build-methods),
+you will have several add-ons installed already.
+Some more can be found in hledger's bin/ directory, documented at <https://hledger.org/scripts.html>.
+
+More precisely, add-on commands are programs or scripts in your shell's PATH,
+whose name starts with "hledger-"
+and ends with no extension or a recognised extension
+(".bat", ".com", ".exe", ".hs", ".js", ".lhs", ".lua", ".php", ".pl", ".py", ".rb", ".rkt", or ".sh"),
+and (on unix and mac) which has executable permission for the current user.
+
+m4_dnl Addons can be written in any language, but Haskell scripts or programs can 
+m4_dnl call hledger's code directly, which means they can do anything built-in commands can.
+m4_dnl Scripts/programs in other languages can't do this, but they can use hledger's
+m4_dnl command-line interface, or output formats like CSV or JSON.
+
+You can run add-on commands using hledger, much like built-in commands:
+`hledger ADDONCMD [-- ADDONCMDOPTS] [ADDONCMDARGS]`.
+But note the double hyphen argument, required before add-on-specific options.
+Eg: `hledger ui -- --watch` or `hledger web -- --serve`. 
+If this causes difficulty, you can always run the add-on directly, without using `hledger`:
+`hledger-ui --watch` or `hledger-web --serve`.
+
 # Options
 
-## General options
+Run `hledger -h` to see general command line help, and general options which are common
+to most hledger commands. These options can be written anywhere on the command line.
+They can be grouped into help, input, and reporting options:
 
-To see general usage help, including general options
-which are supported by most hledger commands, run `hledger -h`.
-
-General help options:
+## General help options
 
 _helpoptions_
 
-General input options:
+## General input options
 
 _inputoptions_
 
-General reporting options:
+## General reporting options
 
 _reportingoptions_
+
+# Command line tips
+
+Here are some details useful to know about for hledger command lines (and elsewhere).
+Feel free to skip this section until you need it.
 
 ## Option repetition
 
@@ -127,53 +271,6 @@ Some of the boolean flags will toggle if repeated; these include:
 `-T/--row-total`,
 `-A/--average`, and
 `-S/--sort-amount`.
-
-## Command options
-
-To see options for a particular command, including command-specific options, run: `hledger COMMAND -h`.
-
-Command-specific options must be written after the command name, eg: `hledger print -x`.
-
-Additionally, if the command is an [add-on](#addons),
-you may need to put its options after a double-hyphen, eg: `hledger ui -- --watch`.
-Or, you can run the add-on executable directly: `hledger-ui --watch`.
-
-## Command arguments
-
-Most hledger commands accept arguments after the command name,
-which are often a [query](#queries), filtering the data in some way.
-
-You can save a set of command line options/arguments in a file,
-and then reuse them by writing `@FILENAME` as a command line argument.
-Eg: `hledger bal @foo.args`.
-(To prevent this, eg if you have an argument that begins with a literal `@`,
-precede it with `--`, eg: `hledger bal -- @ARG`).
-
-Inside the argument file, each line should contain just one option or argument.
-Avoid the use of spaces, except inside quotes (or you'll see a confusing error).
-Between a flag and its argument, use = (or nothing).
-Bad:
-
-    assets depth:2
-    -X USD
-
-Good:
-
-    assets
-    depth:2
-    -X=USD
-
-For special characters (see below), use one less level of quoting than
-you would at the command prompt.
-Bad:
-
-    -X"$"
-
-Good:
-
-    -X$
-
-See also: [Save frequently used options](/save-frequently-used-options.html).
 
 ## Special characters
 
@@ -337,160 +434,35 @@ dollar sign in hledger-web, write `cur:\$`.
 meaning to the shell and so must be escaped at least once more.
 See [Special characters](#special-characters).
 
-# Environment
+## Argument files
 
-_LEDGER_FILE_
+You can save a set of command line options and arguments in a file,
+and then reuse them by writing `@FILENAME` as a command line argument.
+Eg: `hledger bal @foo.args`.
 
-**COLUMNS**
-The screen width used by the register command.
-Default: the full terminal width.
+Inside the argument file, each line should contain just one option or argument.
+Also, don't use spaces except inside quotes (or you'll see a confusing error).
+Ie, write = (or nothing) between a flag and its argument.
+Eg, bad:
 
-**NO_COLOR**
-If this variable exists with any value, 
-hledger will not use ANSI color codes in terminal output.
-This is overriden by the --color/--colour option.
+    assets -X USD
 
-# Input
+Good:
 
-hledger reads transactions from one or more data files.
-The default data file is `$HOME/.hledger.journal`
-(or on Windows, something like `C:\Users\YOURNAME\.hledger.journal`).
+    assets
+    -X=USD
 
-You can override this with the `LEDGER_FILE` environment variable:
+For the special characters mentioned above, use one less level of quoting than
+you would at the command prompt.
+Eg, bad:
 
-```shell
-$ export LEDGER_FILE=~/finance/2023.journal
-$ hledger stats
-```
+    -X"$"
 
-or with one or more `-f/--file` options:
+Good:
 
-```shell
-$ hledger -f /some/file -f another_file stats
-```
+    -X$
 
-The file name `-` means standard input:
-
-```shell
-$ cat some.journal | hledger -f-
-```
-
-## Data formats
-
-Usually the data file is in hledger's journal format, but it can be in
-any of the supported file formats, which currently are:
-
-| Reader:     | Reads:                                                           | Used for file extensions:            |
-|-------------|------------------------------------------------------------------|--------------------------------------|
-| `journal`   | hledger journal files and some Ledger journals, for transactions | `.journal` `.j` `.hledger` `.ledger` |
-| `timeclock` | timeclock files, for precise time logging                        | `.timeclock`                         |
-| `timedot`   | timedot files, for approximate time logging                      | `.timedot`                           |
-| `csv`       | CSV/SSV/TSV/character-separated values, for data import          | `.csv` `.ssv` `.tsv` `.csv.rules` `.ssv.rules` `.tsv.rules` |
-
-These formats are described in more detail below.
-
-hledger detects the format automatically based on the file extensions shown above.
-If it can't recognise the file extension, it assumes `journal` format.
-So for non-journal files, it's important to use a recognised file extension,
-so as to either read successfully or to show relevant error messages.
-
-You can also force a specific reader/format by prefixing the file path
-with the format and a colon. Eg, to read a .dat file as csv format:
-
-```shell
-$ hledger -f csv:/some/csv-file.dat stats
-```
-Or to read stdin (`-`) as timeclock format:
-```shell
-$ echo 'i 2009/13/1 08:00:00' | hledger print -ftimeclock:-
-```
-
-## Multiple files
-
-You can specify multiple `-f` options, to read multiple files as one big journal. When doing this, note that certain features (described below) will be affected:
-
-- [Balance assertions](#balance-assertions) will not see the effect of transactions in previous files. (Usually this doesn't matter as each file will set the corresponding opening balances.)
-- Some [directives](#directives) will not affect previous or subsequent files.
-
-If needed, you can work around these by using a single parent file which [includes](#including-files) the others, or concatenating the files into one, eg: `cat a.journal b.journal | hledger -f- CMD`.
-
-## Strict mode
-
-hledger checks input files for valid data.
-By default, the most important errors are detected, while still accepting
-easy journal files without a lot of declarations:
-
-- Are the input files parseable, with valid syntax ?
-- Are all transactions balanced ?
-- Do all balance assertions pass ?
-
-With the `-s`/`--strict` flag, additional checks are performed:
-
-- Are all accounts posted to, declared with an `account` directive ?
-  ([Account error checking](#account-error-checking))
-- Are all commodities declared with a `commodity` directive ?
-  ([Commodity error checking](#commodity-error-checking))
-- Are all commodity conversions declared explicitly ?
-
-You can use the [check](#check) command to run individual checks -- the
-ones listed above and some more.
-
-# Commands
-
-hledger provides a number of built-in subcommands (described [below](#part-4-commands)).
-Most of these read your data without changing it, and display a report.
-A few assist with data entry and management.
-
-Run `hledger` with no arguments to list the commands available,
-and `hledger CMD` to run a command. CMD can be the full command name,
-or its standard abbreviation shown in the commands list,
-or any unambiguous prefix of the name.
-Eg: `hledger bal`.
-
-m4_dnl XXX maybe later
-m4_dnl Each command's detailed docs are available :
-m4_dnl 
-m4_dnl - command line help, eg: `hledger balance --help`
-m4_dnl - 
-m4_dnl - info manuals, eg: `hledger help --info hledger` (or possibly `info hledger`) <!-- -> m4_dnl Commands -> balance -->
-m4_dnl - web manuals, eg: <https://hledger.org/hledger.html#balance>
-m4_dnl <!-- - man pages, eg: `man hledger-balance` -->
-
-## Add-on commands
-<!-- #add-on-commands: the long explanation of add-on commands. See also #addons. -->
-
-Add-on commands are extra subcommands provided by programs or scripts in your PATH 
-
-- whose name starts with `hledger-`
-- whose name ends with a recognised file extension:
-  `.bat`,`.com`,`.exe`, `.hs`,`.lhs`,`.pl`,`.py`,`.rb`,`.rkt`,`.sh` or none
-- and (on unix, mac) which are executable by the current user.
-
-Addons can be written in any language, but haskell scripts or programs have a big advantage:
-they can use hledger's library code, for command-line options, parsing and reporting.
-
-Several add-on commands are installed by the 
-[hledger-install script](https://hledger.org/install.html#build-methods).
-See <https://hledger.org/scripts.html> for more details.
-
-
-Note in a hledger command line, add-on command flags must have a double dash (`--`) preceding them.
-Eg you must write:
-```shell
-$ hledger web -- --serve
-```
-and not:
-```shell
-$ hledger web --serve
-```
-(because the `--serve` flag belongs to `hledger-web`, not `hledger`).
-
-The `-h/--help` and `--version` flags don't require `--`.
-
-If you have any trouble with this, remember you can always run the add-on program directly, eg:
-```shell
-$ hledger-web --serve
-```
+See also: [Save frequently used options](/save-frequently-used-options.html).
 
 # Output
 
@@ -698,98 +670,23 @@ To capture debug output in a log file instead, you can usually redirect stderr, 
 hledger bal --debug=3 2>hledger.log
 ```
 
-# Limitations
+# Environment
 
-The need to precede add-on command options with `--` when invoked from hledger is awkward.
+These environment variables affect hledger:
 
-When input data contains non-ascii characters, a suitable system locale must be configured (or there will be an unhelpful error).
-Eg on POSIX, set LANG to something other than C.
+**COLUMNS**
+This is normally set by your terminal;
+some hledger commands (`register`) will format their output to this width.
+If not set, they will try to use the available terminal width.
 
-In a Microsoft Windows CMD window, non-ascii characters and colours are not supported.
+**LEDGER_FILE**
+The main journal file to use when not specified with `-f/--file`.
+Default: `$HOME/.hledger.journal`.
 
-On Windows, non-ascii characters may not display correctly when running a hledger built
-in CMD in MSYS/CYGWIN, or vice-versa.
-
-In a Cygwin/MSYS/Mintty window, the tab key is not supported in hledger add.
-
-Not all of Ledger's journal file syntax is supported.
-See [hledger and Ledger > Differences > journal format](/ledger.html#journal-format).
-
-On large data files, hledger is slower and uses more memory than Ledger.
-
-# Troubleshooting
-
-Here are some issues you might encounter when you run hledger
-(and remember you can also seek help from the
-[IRC channel](http://irc.hledger.org),
-[mail list](http://list.hledger.org) or
-[bug tracker](http://bugs.hledger.org)):
-
-**Successfully installed, but "No command 'hledger' found"**\
-stack and cabal install binaries into a special directory, which
-should be added to your PATH environment variable.  Eg on unix-like
-systems, that is ~/.local/bin and ~/.cabal/bin respectively.
-
-**I set a custom LEDGER_FILE, but hledger is still using the default file**\
-`LEDGER_FILE` should be a real environment variable, not just a shell variable.
-The command `env | grep LEDGER_FILE` should show it.
-You may need to use `export`. Here's an [explanation](http://stackoverflow.com/a/7411509).
-
-**Getting errors like "Illegal byte sequence" or "Invalid or incomplete multibyte or wide character" or "commitAndReleaseBuffer: invalid argument (invalid character)"**\
-Programs compiled with GHC (hledger, haskell build tools, etc.) 
-need to have a UTF-8-aware locale configured in the environment, 
-otherwise they will fail with these kinds of errors when they encounter non-ascii characters.
-
-To fix it, set the LANG environment variable to some locale which supports UTF-8.
-The locale you choose must be installed on your system.
-
-Here's an example of setting LANG temporarily, on Ubuntu GNU/Linux:
-
-```shell
-$ file my.journal
-my.journal: UTF-8 Unicode text         # the file is UTF8-encoded
-$ echo $LANG
-C                                      # LANG is set to the default locale, which does not support UTF8
-$ locale -a                            # which locales are installed ?
-C
-en_US.utf8                             # here's a UTF8-aware one we can use
-POSIX
-$ LANG=en_US.utf8 hledger -f my.journal print   # ensure it is used for this command
-```
-
-If available, `C.UTF-8` will also work.
-If your preferred locale isn't listed by `locale -a`, you might need to install it. Eg on Ubuntu/Debian:
-
-```shell
-$ apt-get install language-pack-fr
-$ locale -a
-C
-en_US.utf8
-fr_BE.utf8
-fr_CA.utf8
-fr_CH.utf8
-fr_FR.utf8
-fr_LU.utf8
-POSIX
-$ LANG=fr_FR.utf8 hledger -f my.journal print
-```
-
-Here's how you could set it permanently, if you use a bash shell:
-
-```shell
-$ echo "export LANG=en_US.utf8" >>~/.bash_profile
-$ bash --login
-```
-
-Exact spelling and capitalisation may be important. Note the difference on MacOS (`UTF-8`, not `utf8`).
-Some platforms (eg ubuntu) allow variant spellings, but others (eg macos) require it to be exact:
-
-```shell
-$ locale -a | grep -iE en_us.*utf
-en_US.UTF-8
-$ LANG=en_US.UTF-8 hledger -f my.journal print
-```
-
+**NO_COLOR**
+If this environment variable is set (with any value),
+hledger will not use ANSI color codes in terminal output,
+unless overridden by an explicit `--color/--colour` option.
 
 # PART 2: DATA FORMATS
 
@@ -2084,7 +1981,7 @@ Including the aliases doesn't work either:
 ```journal
 include a.aliases
 
-2020-01-01  ; not affected by a.aliases
+2023-01-01  ; not affected by a.aliases
   foo  1
   bar
 ```
@@ -2094,7 +1991,7 @@ start of your top-most file, like this:
 alias foo=Foo
 alias bar=Bar
 
-2020-01-01  ; affected by aliases above
+2023-01-01  ; affected by aliases above
   foo  1
   bar
 
@@ -2303,7 +2200,7 @@ avoid include cycles and including directories, but this can be done, eg:
 The path may also be prefixed to force a specific file format,
 overriding the file extension (as described in
 [hledger.1 -> Input files](#input-files)):
-`include timedot:~/notes/2020*.md`.
+`include timedot:~/notes/2023*.md`.
 
 [glob patterns]: https://hackage.haskell.org/package/Glob-0.9.2/docs/System-FilePath-Glob.html#v:compile
 
@@ -2390,8 +2287,8 @@ read this whole section, or at least these tips:
 7. Other period expressions with an interval are automatically expanded to cover a whole number of that interval.
    (This is done to improve reports, but it also affects periodic transactions. Yes, it's a bit inconsistent with the above.)
    Eg: <br>
-   `~ every 10th day of month from 2020/01`, which is equivalent to <br>
-   `~ every 10th day of month from 2020/01/01`, will be adjusted to start on 2019/12/10.
+   `~ every 10th day of month from 2023/01`, which is equivalent to <br>
+   `~ every 10th day of month from 2023/01/01`, will be adjusted to start on 2019/12/10.
 
 
 ### Periodic rule syntax
@@ -2436,10 +2333,10 @@ This helps hledger know where the period expression ends, so that descriptions
 can not accidentally alter their meaning, as in this example:
 
 ```
-; 2 or more spaces needed here, so the period is not understood as "every 2 months in 2020"
+; 2 or more spaces needed here, so the period is not understood as "every 2 months in 2023"
 ;               ||
 ;               vv
-~ every 2 months  in 2020, we will review
+~ every 2 months  in 2023, we will review
     assets:bank:checking   $1500
     income:acme inc
 ```
@@ -3398,11 +3295,11 @@ With record matchers, it's important to know that the record matched is not the 
 separators will be converted to commas, and enclosing double quotes (but not enclosing whitespace) are removed.
 So for example, when reading an SSV file, if the original record was:
 ```ssv
-2020-01-01; "Acme, Inc.";  1,000
+2023-01-01; "Acme, Inc.";  1,000
 ```
 the regex would see, and try to match, this modified record text:
 ```
-2020-01-01,Acme, Inc.,  1,000
+2023-01-01,Acme, Inc.,  1,000
 ```
 
 When an if block has multiple matchers, they are combined as follows:
@@ -3459,7 +3356,7 @@ Example:
 if,account2,comment
 atm transaction fee,expenses:business:banking,deductible? check it
 %description groceries,expenses:groceries,
-2020/01/12.*Plumbing LLC,expenses:house:upkeep,emergency plumbing call-out
+2023/01/12.*Plumbing LLC,expenses:house:upkeep,emergency plumbing call-out
 ```
 
 ## `balance-type`
@@ -3719,7 +3616,7 @@ It's not possible (without preprocessing the CSV) to set an amount to its absolu
 If the currency/commodity symbol is included in the  CSV's amount field(s):
 
 ```csv
-2020-01-01,foo,$123.00
+2023-01-01,foo,$123.00
 ```
 
 you don't have to do anything special for the commodity symbol, it will be assigned as part of the amount. Eg:
@@ -3728,7 +3625,7 @@ you don't have to do anything special for the commodity symbol, it will be assig
 fields date,description,amount
 ```
 ```journal
-2020-01-01 foo
+2023-01-01 foo
     expenses:unknown         $123.00
     income:unknown          $-123.00
 ```
@@ -3736,7 +3633,7 @@ fields date,description,amount
 If the currency is provided as a separate CSV field:
 
 ```csv
-2020-01-01,foo,USD,123.00
+2023-01-01,foo,USD,123.00
 ```
 
 You can assign that to the `currency` pseudo-field, which has the
@@ -3747,7 +3644,7 @@ transaction (on the left, with no separating space):
 fields date,description,currency,amount
 ```
 ```journal
-2020-01-01 foo
+2023-01-01 foo
     expenses:unknown       USD123.00
     income:unknown        USD-123.00
 ```
@@ -3764,7 +3661,7 @@ fields date,description,cur,amt
 amount %amt %cur
 ```
 ```journal
-2020-01-01 foo
+2023-01-01 foo
     expenses:unknown        123.00 USD
     income:unknown         -123.00 USD
 ```
@@ -4328,15 +4225,15 @@ biz:research  1
 
 ```timedot
 * Time log
-** 2020-01-01
+** 2023-01-01
 *** adm:time  .
 *** adm:finance  .
 ```
 
 ```timedot
-* 2020 Work Diary
+* 2023 Work Diary
 ** Q1
-*** 2020-02-29
+*** 2023-02-29
 **** DONE
 0700 yoga
 **** UNPLANNED
@@ -4711,7 +4608,7 @@ These are most often [account name](#account-names) substrings:
 
 - Add a query type prefix to match other parts of the data:
 
-  `date:202012- desc:amazon cur:USD amt:">100" status:`
+  `date:202312- desc:amazon cur:USD amt:">100" status:`
 
 - Add a `not:` prefix to negate a term:
 
@@ -4840,7 +4737,7 @@ Examples of such queries are:
 
 Some queries can also be expressed as command-line options:
 `depth:2` is equivalent to `--depth 2`, 
-`date:2020` is equivalent to `-p 2020`, etc.
+`date:2023` is equivalent to `-p 2023`, etc.
 When you mix command options and query arguments, 
 generally the resulting query is their intersection.
 
@@ -5025,9 +4922,11 @@ Balance changes in 2023-05-01..2023-09-30:
 
 ## Forecast tags
 
-The `generated-transaction` tags are added by hledger; they indicate transactions generated by --forecast, and show which rule was responsible. If you ever need to match forecast transactions, you could use `tag:generated-transaction` in a query.
+Forecast transactions generated by --forecast have a hidden tag, `_generated-transaction`. 
+So if you ever need to match forecast transactions, you could use `tag:_generated-transaction` (or just `tag:generated`) in a query.
 
-(The same tag is also present, hidden, with the name `_generated-transaction`. In some automation scenarios you might have previously saved forecasted transactions in the journal, and this hidden tag could be used to match the transactions generated "just now".)
+For troubleshooting, you can add the `--verbose-tags` flag. Then, visible `generated-transaction` tags will be added also,
+so you can view them with the `print` command. Their value indicates which periodic rule was responsible.
 
 ## Forecast period, in detail
 
@@ -5978,7 +5877,7 @@ Please create it first, eg with "hledger add" or a text editor.
 Or, specify an existing journal file with -f or LEDGER_FILE.
 ```
 
-You can override this by setting the `LEDGER_FILE` environment variable.
+You can override this by setting the `LEDGER_FILE` environment variable (see below).
 It's a good practice to keep this important file under version control,
 and to start a new file each year. So you could do something like this:
 ```shell
@@ -5986,11 +5885,11 @@ $ mkdir ~/finance
 $ cd ~/finance
 $ git init
 Initialized empty Git repository in /Users/simon/finance/.git/
-$ touch 2020.journal
-$ echo "export LEDGER_FILE=$HOME/finance/2020.journal" >> ~/.bashrc
-$ source ~/.bashrc
+$ touch 2023.journal
+$ echo "export LEDGER_FILE=$HOME/finance/2023.journal" >> ~/.profile
+$ source ~/.profile
 $ hledger stats
-Main file                : /Users/simon/finance/2020.journal
+Main file                : /Users/simon/finance/2023.journal
 Included files           : 
 Transactions span        :  to  (0 days)
 Last transaction         : none
@@ -6001,6 +5900,38 @@ Payees/descriptions      : 0
 Accounts                 : 0 (depth 0)
 Commodities              : 0 ()
 Market prices            : 0 ()
+```
+
+## Setting LEDGER_FILE
+
+How to set `LEDGER_FILE` permanently depends on your setup:
+
+On unix and mac, running these commands in the terminal will work for many people; adapt as needed:
+```shell
+$ echo 'export LEDGER_FILE=~/finance/2023.journal` >> ~/.profile
+$ source ~/.profile
+```
+
+When correctly configured, in a new terminal window `env | grep LEDGER_FILE` will show your file,
+and so will `hledger files`.
+
+On mac, this additional step might be helpful for GUI applications (like Emacs started from the dock):
+add an entry to `~/.MacOSX/environment.plist` like
+
+```json
+{
+  "LEDGER_FILE" : "~/finance/2023.journal"
+}
+```
+and then run `killall Dock` in a terminal window (or restart the machine).
+
+On Windows, see <https://www.java.com/en/download/help/path.html>,
+or try running these commands in a powershell window
+(let us know if it persists across a reboot, and if you need to be an Administrator):
+```shell
+> CD
+> MKDIR finance
+> SETX LEDGER_FILE "C:\Users\USERNAME\finance\2023.journal"
 ```
 
 ## Setting opening balances
@@ -6019,7 +5950,7 @@ balances on this date. Here are two ways to do it:
 
 - The first way: open the journal in any text editor and save an entry like this:
   ```journal
-  2020-01-01 * opening balances
+  2023-01-01 * opening balances
       assets:bank:checking                $1000   = $1000
       assets:bank:savings                 $2000   = $2000
       assets:cash                          $100   = $100
@@ -6040,7 +5971,7 @@ balances on this date. Here are two ways to do it:
 - The second way: run `hledger add` and follow the prompts to record a similar transaction:
   ```shell
   $ hledger add
-  Adding transactions to journal file /Users/simon/finance/2020.journal
+  Adding transactions to journal file /Users/simon/finance/2023.journal
   Any command line arguments will be used as defaults.
   Use tab key to complete, readline keys to edit, enter to accept defaults.
   An optional (CODE) may follow transaction dates.
@@ -6048,7 +5979,7 @@ balances on this date. Here are two ways to do it:
   If you make a mistake, enter < at any prompt to go one step backward.
   To end a transaction, enter . when prompted.
   To quit, enter . at a date prompt or press control-d or control-c.
-  Date [2020-02-07]: 2020-01-01
+  Date [2023-02-07]: 2023-01-01
   Description: * opening balances
   Account 1: assets:bank:checking
   Amount  1: $1000
@@ -6061,7 +5992,7 @@ balances on this date. Here are two ways to do it:
   Account 5: equity:opening/closing balances
   Amount  5 [$-3050]: 
   Account 6 (or . or enter to finish this transaction): .
-  2020-01-01 * opening balances
+  2023-01-01 * opening balances
       assets:bank:checking                      $1000
       assets:bank:savings                       $2000
       assets:cash                                $100
@@ -6071,12 +6002,12 @@ balances on this date. Here are two ways to do it:
   Save this transaction to the journal ? [y]: 
   Saved.
   Starting the next transaction (. or ctrl-D/ctrl-C to quit)
-  Date [2020-01-01]: .
+  Date [2023-01-01]: .
   ```
 
 If you're using version control, this could be a good time to commit the journal. Eg:
 ```shell
-$ git commit -m 'initial balances' 2020.journal
+$ git commit -m 'initial balances' 2023.journal
 ```
 
 ## Recording transactions
@@ -6090,15 +6021,15 @@ Here are some simple transactions, see the hledger_journal(5) manual
 and hledger.org for more ideas:
 
 ```journal
-2020/1/10 * gift received
+2023/1/10 * gift received
   assets:cash   $20
   income:gifts
 
-2020.1.12 * farmers market
+2023.1.12 * farmers market
   expenses:food    $13
   assets:cash
 
-2020-01-15 paycheck
+2023-01-15 paycheck
   income:salary
   assets:bank:checking    $1000
 ```
@@ -6124,7 +6055,7 @@ A typical workflow:
    If you can't find the error, add an adjustment transaction.
    Eg if you have $105 after the above, and can't explain the missing $2, it could be:
    ```journal
-   2020-01-16 * adjust cash
+   2023-01-16 * adjust cash
        assets:cash    $-2 = $105
        expenses:misc
    ```
@@ -6148,11 +6079,11 @@ live-updating register while you edit the journal:
 After reconciling, it could be a good time to mark the reconciled
 transactions' status as "cleared and confirmed", if you want to track
 that, by adding the `*` marker.
-Eg in the paycheck transaction above, insert `*` between `2020-01-15` and `paycheck`
+Eg in the paycheck transaction above, insert `*` between `2023-01-15` and `paycheck`
 
 If you're using version control, this can be another good time to commit:
 ```shell
-$ git commit -m 'txns' 2020.journal
+$ git commit -m 'txns' 2023.journal
 ```
 
 ## Reporting
@@ -6162,26 +6093,26 @@ Here are some basic reports.
 Show all transactions:
 ```shell
 $ hledger print
-2020-01-01 * opening balances
+2023-01-01 * opening balances
     assets:bank:checking                      $1000
     assets:bank:savings                       $2000
     assets:cash                                $100
     liabilities:creditcard                     $-50
     equity:opening/closing balances          $-3050
 
-2020-01-10 * gift received
+2023-01-10 * gift received
     assets:cash              $20
     income:gifts
 
-2020-01-12 * farmers market
+2023-01-12 * farmers market
     expenses:food             $13
     assets:cash
 
-2020-01-15 * paycheck
+2023-01-15 * paycheck
     income:salary
     assets:bank:checking           $1000
 
-2020-01-16 * adjust cash
+2023-01-16 * adjust cash
     assets:cash               $-2 = $105
     expenses:misc
 
@@ -6240,9 +6171,9 @@ $ hledger bal assets liabilities -2
 Show the same thing without negative numbers, formatted as a simple balance sheet:
 ```shell
 $ hledger bs -2
-Balance Sheet 2020-01-16
+Balance Sheet 2023-01-16
 
-                        || 2020-01-16 
+                        || 2023-01-16 
 ========================++============
  Assets                 ||            
 ------------------------++------------
@@ -6265,9 +6196,9 @@ The final total is your "net worth" on the end date.
 Show income and expense totals, formatted as an income statement:
 ```shell
 hledger is 
-Income Statement 2020-01-01-2020-01-16
+Income Statement 2023-01-01-2023-01-16
 
-               || 2020-01-01-2020-01-16 
+               || 2023-01-01-2023-01-16 
 ===============++=======================
  Revenues      ||                       
 ---------------++-----------------------
@@ -6290,18 +6221,18 @@ The final total is your net income during this period.
 Show transactions affecting your wallet, with running total:
 ```shell
 $ hledger register cash
-2020-01-01 opening balances     assets:cash                   $100          $100
-2020-01-10 gift received        assets:cash                    $20          $120
-2020-01-12 farmers market       assets:cash                   $-13          $107
-2020-01-16 adjust cash          assets:cash                    $-2          $105
+2023-01-01 opening balances     assets:cash                   $100          $100
+2023-01-10 gift received        assets:cash                    $20          $120
+2023-01-12 farmers market       assets:cash                   $-13          $107
+2023-01-16 adjust cash          assets:cash                    $-2          $105
 ```
 
 Show weekly posting counts as a bar chart:
 ```shell
 $ hledger activity -W
 2019-12-30 *****
-2020-01-06 ****
-2020-01-13 ****
+2023-01-06 ****
+2023-01-13 ****
 ```
 ## Migrating to a new file
 
@@ -6311,6 +6242,71 @@ and to help ensure the integrity of your accounting history.
 See the [close command](#close).
 
 If using version control, don't forget to `git add` the new file.
+
+
+# BUGS
+
+_reportbugs_
+
+Some known issues and limitations:
+
+The need to precede add-on command options with `--` when invoked from hledger is awkward.
+(See Command options, Constructing command lines.)
+
+A UTF-8-aware system locale must be configured to work with non-ascii data.
+(See Unicode characters, Troubleshooting.)
+
+On Microsoft Windows, depending whether you are running in a CMD window or a Cygwin/MSYS/Mintty window
+and how you installed hledger,
+non-ascii characters and colours may not be supported,
+and the tab key may not be supported by `hledger add`.
+(Running in a WSL window should resolve these.)
+
+When processing large data files, hledger uses more memory than Ledger.
+
+## Troubleshooting
+
+Here are some common issues you might encounter when you run hledger,
+and how to resolve them
+(and remember also you can usually get quick [Support](support.md)):
+
+**PATH issues: I get an error like "No command 'hledger' found"**\
+Depending how you installed hledger, the executables may not be in your shell's PATH. 
+Eg on unix systems, stack installs hledger in `~/.local/bin`
+and cabal installs it in `~/.cabal/bin`.
+You may need to add one of these directories to your shell's PATH,
+and/or open a new terminal window.
+
+**LEDGER_FILE issues: I configured LEDGER_FILE but hledger is not using it**\
+
+- `LEDGER_FILE` should be a real environment variable, not just a shell variable.
+  Eg on unix, the command `env | grep LEDGER_FILE` should show it.
+  You may need to use `export` (see <https://stackoverflow.com/a/7411509>).
+- You may need to force your shell to see the new configuration.
+  A simple way is to close your terminal window and open a new one.
+
+**LANG issues: I get errors like "Illegal byte sequence" or "Invalid or incomplete multibyte or wide character" or "commitAndReleaseBuffer: invalid argument (invalid character)"**\
+Programs compiled with GHC (hledger, haskell build tools, etc.) need the system locale to be UTF-8-aware,
+or they will fail when they encounter non-ascii characters.
+To fix it, set the LANG environment variable to a locale which supports UTF-8
+and which is installed on your system.
+
+On unix, `locale -a` lists the installed locales.
+Look for one which mentions `utf8`, `UTF-8` or similar.
+Some examples: `C.UTF-8`, `en_US.utf-8`, `fr_FR.utf8`.
+If necessary, use your system package manager to install one.
+Then select it by setting the `LANG` environment variable.
+Note, exact spelling and capitalisation of the locale name may be important:
+Here's one common way to configure this permanently for your shell:
+
+```shell
+$ echo "export LANG=en_US.utf8" >>~/.profile
+# close and re-open terminal window
+```
+
+**COMPATIBILITY ISSUES: hledger gives an error with my Ledger file**\
+Not all of Ledger's journal file syntax or feature set is supported.
+See [hledger and Ledger](ledger.md) for full details.
 
 
 m4_dnl Some common markdown links.

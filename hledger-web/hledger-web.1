@@ -1,5 +1,5 @@
 
-.TH "HLEDGER-WEB" "1" "April 2023" "hledger-web-1.29.99 " "hledger User Manuals"
+.TH "HLEDGER-WEB" "1" "May 2023" "hledger-web-1.29.99 " "hledger User Manuals"
 
 
 
@@ -47,12 +47,13 @@ As a small protection against data loss when running an unprotected
 instance, it writes a numbered backup of the main journal file (only) on
 every edit.
 .PP
-Like hledger, it reads data from one or more files in journal,
-timeclock, timedot, or CSV format.
-The default file is \f[V].hledger.journal\f[R] in your home directory;
-this can be overridden with one or more \f[V]-f FILE\f[R] options, or
-the \f[V]LEDGER_FILE\f[R] environment variable.
-For more about this see hledger(1).
+Like hledger, it reads from (and appends to) a journal file specified by
+the \f[V]LEDGER_FILE\f[R] environment variable (defaulting to
+\f[V]$HOME/.hledger.journal\f[R]); or you can specify files with
+\f[V]-f\f[R] options.
+It can also read timeclock files, timedot files, or any CSV/SSV/TSV file
+with a date field.
+(See hledger(1) -> Input for details.)
 .PP
 hledger-web can be run in three modes:
 .IP \[bu] 2
@@ -75,8 +76,7 @@ on the data.
 These filter options are not shown in the web UI, but it will be applied
 in addition to any search query entered there.
 .PP
-Note: if invoking hledger-web as a hledger subcommand, write
-\f[V]--\f[R] before options, as shown in the synopsis above.
+hledger-web provides the following options:
 .TP
 \f[V]--serve\f[R]
 serve and log requests, don\[aq]t browse or auto-exit after timeout
@@ -121,7 +121,64 @@ X-Sandstorm-Permissions (default: disabled)
 run hledger-web\[aq]s tests and exit.
 hspec test runner args may follow a --, eg: hledger-web --test -- --help
 .PP
-hledger input options:
+By default the server listens on IP address 127.0.0.1, accessible only
+to local requests.
+You can use \f[V]--host\f[R] to change this, eg \f[V]--host 0.0.0.0\f[R]
+to listen on all configured addresses.
+.PP
+Similarly, use \f[V]--port\f[R] to set a TCP port other than 5000, eg if
+you are running multiple hledger-web instances.
+.PP
+Both of these options are ignored when \f[V]--socket\f[R] is used.
+In this case, it creates an \f[V]AF_UNIX\f[R] socket file at the
+supplied path and uses that for communication.
+This is an alternative way of running multiple hledger-web instances
+behind a reverse proxy that handles authentication for different users.
+The path can be derived in a predictable way, eg by using the username
+within the path.
+As an example, \f[V]nginx\f[R] as reverse proxy can use the variable
+\f[V]$remote_user\f[R] to derive a path from the username used in a HTTP
+basic authentication.
+The following \f[V]proxy_pass\f[R] directive allows access to all
+\f[V]hledger-web\f[R] instances that created a socket in
+\f[V]/tmp/hledger/\f[R]:
+.IP
+.nf
+\f[C]
+  proxy_pass http://unix:/tmp/hledger/${remote_user}.socket;
+\f[R]
+.fi
+.PP
+You can use \f[V]--base-url\f[R] to change the protocol, hostname, port
+and path that appear in hyperlinks, useful eg for integrating
+hledger-web within a larger website.
+The default is \f[V]http://HOST:PORT/\f[R] using the server\[aq]s
+configured host address and TCP port (or \f[V]http://HOST\f[R] if PORT
+is 80).
+.PP
+With \f[V]--file-url\f[R] you can set a different base url for static
+files, eg for better caching or cookie-less serving on high performance
+websites.
+.PP
+hledger-web also supports many of hledger\[aq]s general options (and the
+hledger manual\[aq]s command line tips also apply here):
+.SS General help options
+.TP
+\f[V]-h --help\f[R]
+show general or COMMAND help
+.TP
+\f[V]--man\f[R]
+show general or COMMAND user manual with man
+.TP
+\f[V]--info\f[R]
+show general or COMMAND user manual with info
+.TP
+\f[V]--version\f[R]
+show general or ADDONCMD version
+.TP
+\f[V]--debug[=N]\f[R]
+show debug output (levels 1-9, default: 1)
+.SS General input options
 .TP
 \f[V]-f FILE --file=FILE\f[R]
 use a different input file.
@@ -149,8 +206,7 @@ assignments)
 .TP
 \f[V]-s --strict\f[R]
 do extra error checking (check that all posted accounts are declared)
-.PP
-hledger reporting options:
+.SS General reporting options
 .TP
 \f[V]-b --begin=DATE\f[R]
 include postings/txns on or after this date (will be adjusted to
@@ -217,17 +273,29 @@ convert amounts to their market value in commodity COMM
 \f[V]--value\f[R]
 convert amounts to cost or market value, more flexibly than -B/-V/-X
 .TP
-\f[V]--infer-market-prices\f[R]
-use transaction prices (recorded with \[at] or \[at]\[at]) as additional
-market prices, as if they were P directives
+\f[V]--infer-equity\f[R]
+infer conversion equity postings from costs
 .TP
-\f[V]--auto\f[R]
-apply automated posting rules to modify transactions.
+\f[V]--infer-costs\f[R]
+infer costs from conversion equity postings
+.TP
+\f[V]--infer-market-prices\f[R]
+use costs as additional market prices, as if they were P directives
 .TP
 \f[V]--forecast\f[R]
-generate future transactions from periodic transaction rules, for the
-next 6 months or till report end date.
-In hledger-ui, also make ordinary future transactions visible.
+generate transactions from periodic rules,
+between the latest recorded txn and 6 months from today,
+or during the specified PERIOD (= is required).
+Auto posting rules will be applied to these transactions as well.
+Also, in hledger-ui make future-dated transactions visible.
+.TP
+\f[V]--auto\f[R]
+generate extra postings by applying auto posting rules to all txns (not
+just forecast txns)
+.TP
+\f[V]--verbose-tags\f[R]
+add visible tags indicating transactions or postings which have been
+generated/modified
 .TP
 \f[V]--commodity-style\f[R]
 Override the commodity style in the output for the specified commodity.
@@ -254,66 +322,6 @@ When a reporting option appears more than once in the command line, the
 last one takes precedence.
 .PP
 Some reporting options can also be written as query arguments.
-.PP
-hledger help options:
-.TP
-\f[V]-h --help\f[R]
-show general or COMMAND help
-.TP
-\f[V]--man\f[R]
-show general or COMMAND user manual with man
-.TP
-\f[V]--info\f[R]
-show general or COMMAND user manual with info
-.TP
-\f[V]--version\f[R]
-show general or ADDONCMD version
-.TP
-\f[V]--debug[=N]\f[R]
-show debug output (levels 1-9, default: 1)
-.PP
-A \[at]FILE argument will be expanded to the contents of FILE, which
-should contain one command line option/argument per line.
-(To prevent this, insert a \f[V]--\f[R] argument before.)
-.PP
-By default the server listens on IP address 127.0.0.1, accessible only
-to local requests.
-You can use \f[V]--host\f[R] to change this, eg \f[V]--host 0.0.0.0\f[R]
-to listen on all configured addresses.
-.PP
-Similarly, use \f[V]--port\f[R] to set a TCP port other than 5000, eg if
-you are running multiple hledger-web instances.
-.PP
-Both of these options are ignored when \f[V]--socket\f[R] is used.
-In this case, it creates an \f[V]AF_UNIX\f[R] socket file at the
-supplied path and uses that for communication.
-This is an alternative way of running multiple hledger-web instances
-behind a reverse proxy that handles authentication for different users.
-The path can be derived in a predictable way, eg by using the username
-within the path.
-As an example, \f[V]nginx\f[R] as reverse proxy can use the variable
-\f[V]$remote_user\f[R] to derive a path from the username used in a HTTP
-basic authentication.
-The following \f[V]proxy_pass\f[R] directive allows access to all
-\f[V]hledger-web\f[R] instances that created a socket in
-\f[V]/tmp/hledger/\f[R]:
-.IP
-.nf
-\f[C]
-  proxy_pass http://unix:/tmp/hledger/${remote_user}.socket;
-\f[R]
-.fi
-.PP
-You can use \f[V]--base-url\f[R] to change the protocol, hostname, port
-and path that appear in hyperlinks, useful eg for integrating
-hledger-web within a larger website.
-The default is \f[V]http://HOST:PORT/\f[R] using the server\[aq]s
-configured host address and TCP port (or \f[V]http://HOST\f[R] if PORT
-is 80).
-.PP
-With \f[V]--file-url\f[R] you can set a different base url for static
-files, eg for better caching or cookie-less serving on high performance
-websites.
 .SH PERMISSIONS
 .PP
 By default, hledger-web allows anyone who can reach it to view the
@@ -611,78 +619,19 @@ stderr, eg:
 \f[V]hledger-web --debug=3 2>hledger-web.log\f[R].
 .SH ENVIRONMENT
 .PP
-\f[B]LEDGER_FILE\f[R] The journal file path when not specified with
-\f[V]-f\f[R].
-.PP
-On unix computers, the default value is:
-\f[V]\[ti]/.hledger.journal\f[R].
-.PP
-A more typical value is something like
-\f[V]\[ti]/finance/YYYY.journal\f[R], where \f[V]\[ti]/finance\f[R] is a
-version-controlled finance directory and YYYY is the current year.
-Or, \f[V]\[ti]/finance/current.journal\f[R], where current.journal is a
-symbolic link to YYYY.journal.
-.PP
-The usual way to set this permanently is to add a command to one of your
-shell\[aq]s startup files (eg \f[V]\[ti]/.profile\f[R]):
-.IP
-.nf
-\f[C]
-export LEDGER_FILE=\[ti]/finance/current.journal\[ga]
-\f[R]
-.fi
-.PP
-On some Mac computers, there is a more thorough way to set environment
-variables, that will also affect applications started from the GUI (eg,
-Emacs started from a dock icon): In
-\f[V]\[ti]/.MacOSX/environment.plist\f[R], add an entry like:
-.IP
-.nf
-\f[C]
-{
-  \[dq]LEDGER_FILE\[dq] : \[dq]\[ti]/finance/current.journal\[dq]
-}
-\f[R]
-.fi
-.PP
-For this to take effect you might need to \f[V]killall Dock\f[R], or
-reboot.
-.PP
-On Windows computers, the default value is probably
-\f[V]C:\[rs]Users\[rs]YOURNAME\[rs].hledger.journal\f[R].
-You can change this by running a command like this in a powershell
-window (let us know if you need to be an Administrator, and if this
-persists across a reboot):
-.IP
-.nf
-\f[C]
-> setx LEDGER_FILE \[dq]C:\[rs]Users\[rs]MyUserName\[rs]finance\[rs]2021.journal\[dq]
-\f[R]
-.fi
-.PP
-Or, change it in settings: see
-https://www.java.com/en/download/help/path.html.
-.SH FILES
-.PP
-Reads data from one or more files in journal, timeclock, timedot, or CSV
-format.
-The default file is \f[V].hledger.journal\f[R] in your home directory;
-this can be overridden with one or more \f[V]-f FILE\f[R] options, or
-the \f[V]LEDGER_FILE\f[R] environment variable.
+\f[B]LEDGER_FILE\f[R] The main journal file to use when not specified
+with \f[V]-f/--file\f[R].
+Default: \f[V]$HOME/.hledger.journal\f[R].
 .SH BUGS
 .PP
-\f[V]-f-\f[R] doesn\[aq]t work (hledger-web can\[aq]t read from stdin).
+We welcome bug reports in the hledger issue tracker (shortcut:
+http://bugs.hledger.org), or on the #hledger chat or hledger mail list
+(https://hledger.org/support).
 .PP
-Query arguments and some hledger options are ignored.
+Some known issues:
 .PP
-Does not work in text-mode browsers.
-.PP
-Does not work well on small screens.
+Does not work well on small screens, or in text-mode browsers.
 
-
-.SH "REPORTING BUGS"
-Report bugs at http://bugs.hledger.org
-(or on the #hledger chat or hledger mail list)
 
 .SH AUTHORS
 Simon Michael <simon@joyful.com> and contributors.

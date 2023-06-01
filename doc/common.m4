@@ -230,48 +230,19 @@ and largely interconvertible with beancount(1). }} )m4_dnl
 m4_dnl
 m4_dnl A standard description of where hledger reads data from.
 m4_define({{_inputfiles_}},
-{{data from one or more files in journal, timeclock, timedot, or CSV format.
-The default file is `.hledger.journal` in your home directory;
-this can be overridden with one or more `-f FILE` options,
-or the `LEDGER_FILE` environment variable.}})m4_dnl
+{{reads from (and appends to) a journal file specified by the `LEDGER_FILE` environment variable
+(defaulting to `$HOME/.hledger.journal`); or you can specify files with `-f` options.
+It can also read timeclock files, timedot files, or any CSV/SSV/TSV file with a date field.}} )m4_dnl
 m4_dnl
-m4_dnl A standard description of the LEDGER_FILE environment variable.
-m4_define({{_LEDGER_FILE_}}, {{
-**LEDGER_FILE**
-The journal file path when not specified with `-f`.
-
-On unix computers, the default value is: `~/.hledger.journal`.
-
-A more typical value is something like `~/finance/YYYY.journal`, 
-where `~/finance` is a version-controlled finance directory and YYYY is the current year. 
-Or, `~/finance/current.journal`, where current.journal is a symbolic link to YYYY.journal.
-
-The usual way to set this permanently is to add a command to one of your shell's startup files
-(eg `~/.profile`):
-```
-export LEDGER_FILE=~/finance/current.journal`
-```
-
-On some Mac computers, there is a more thorough way to set environment variables, 
-that will also affect applications started from the GUI (eg, Emacs started from a dock icon):
-In `~/.MacOSX/environment.plist`, add an entry like:
-```
-{
-  "LEDGER_FILE" : "~/finance/current.journal"
-}
-```
-For this to take effect you might need to `killall Dock`, or reboot.
-
-On Windows computers, the default value is probably `C:\Users\YOURNAME\.hledger.journal`.
-You can change this by running a command like this in a powershell window
-(let us know if you need to be an Administrator, and if this persists across a reboot):
-```
-> setx LEDGER_FILE "C:\Users\MyUserName\finance\2023.journal"
-```
-
-Or, change it in settings: see <https://www.java.com/en/download/help/path.html>.
-
-}} )m4_dnl
+m4_dnl Like the above, with an added pointer to the hledger manual.
+m4_define({{_inputfileswithptr_}},
+{{_inputfiles_
+(See hledger(1) -> Input for details.)}} )m4_dnl
+m4_dnl
+m4_dnl BUGS boilerplate
+m4_define({{_reportbugs_}},
+{{We welcome bug reports in the hledger issue tracker (shortcut: <http://bugs.hledger.org>),
+or on the #hledger chat or hledger mail list (<https://hledger.org/support>).}} )m4_dnl
 m4_dnl
 m4_dnl The _FLAGS marker is used in generating command help (see
 m4_dnl CliOptions.parseCommandDoc), but should be removed when generating manuals.

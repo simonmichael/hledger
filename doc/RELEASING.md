@@ -114,7 +114,7 @@ To do a release, start at the bottom of the diagram and work up
 - Make things a little better each time through: simpler, more reliable, better documented, more automated, easier, faster, cheaper, higher quality.
 - `make`, `./Shake` and `./bake`.
 - Update changelogs early and often, eg during/after a PR, to spread the work. 
-  See also [CHANGELOGS](CHANGELOGS.html).
+  See also [CHANGELOGS](CHANGELOGS.md).
 - Do releases from a release branch, not from master.
 - All platform binaries should be built from the same commit, the one with the release tags.
 - Binaries' --version shows their git hash and build date; these should match the release tag and release date.                                                   
@@ -181,7 +181,7 @@ Bugfix/fixup release:
 Preview/major release:
 - `PAUSE=1 ECHO=1 ./bake prep MA.JOR[.99.PREVIEWNUM]` (eg 1.24.99.1 for 1.25 preview 1)
   (XXX seems to go wrong without PAUSE`)
-- clean up changelogs, amend changelogs commit (see also [CHANGELOGS](CHANGELOGS.html))
+- clean up changelogs, amend changelogs commit (see also [CHANGELOGS](CHANGELOGS.md))
 - cherry pick changes from master (if needed)
   - list changes in three side-by-side magit windows
     - 1. NEW IN MASTER: `l o MAJORVER-branch..master`, `M-x magit-toggle-buffer-lock`, `M-x toggle-window-dedicated` (`C-c D`)
@@ -374,7 +374,7 @@ In release branch:
 #### Merge release branch changes to master
 - switch back to master
 - check out release branch in another working copy (hledger2)
-- manually merge release changelogs into master changelogs (see also [CHANGELOGS](CHANGELOGS.html))
+- manually merge release changelogs into master changelogs (see also [CHANGELOGS](CHANGELOGS.md))
 - list commits only in release branch: magit `l o master..MA.JOR-branch`
 - cherry-pick any other useful commits
 
