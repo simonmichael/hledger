@@ -18,7 +18,7 @@ Infrastructure
 General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
-# 5048c8960
+# 1.30 2023-06-01
 
 Scripts/addons
 
