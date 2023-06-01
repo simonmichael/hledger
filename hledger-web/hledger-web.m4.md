@@ -12,10 +12,8 @@ _notinfo_({{
 # SYNOPSIS
 }})
 
-`hledger-web             [OPTS] [ARGS]    # run temporarily & open browser`\
-`hledger-web --serve     [OPTS] [ARGS]    # run without stopping`\
-`hledger-web --serve-api [OPTS] [ARGS]    # run HTTP JSON server only`\
-`hledger web --          [OPTS] [ARGS]    # run from hledger`\
+`hledger-web    [--serve|--serve-api] [OPTS] [ARGS]`\
+`hledger web -- [--serve|--serve-api] [OPTS] [ARGS]`
 
 _notinfo_({{
 # DESCRIPTION
