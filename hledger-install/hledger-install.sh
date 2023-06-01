@@ -13,7 +13,7 @@ set -o pipefail
 HLEDGER_INSTALL_TOOL=hledger-install.sh
 
 # This install script's version.
-HLEDGER_INSTALL_VERSION=20230503
+HLEDGER_INSTALL_VERSION=20230601
 
 # Tools to be installed by this install script, official tools first.
 # Keep synced with the package versions below.
@@ -24,6 +24,7 @@ hledger-ui \
 hledger-web \
 hledger-stockquotes \
 hledger-edit \
+hledger-lots \
 hledger-plot \
 hledger-interest \
 hledger-iadd \
@@ -40,17 +41,17 @@ pip \
 # Keep synced with the tools above. 
 # When changing remember to also bump HLEDGER_INSTALL_VERSION.
 # Official:
-HLEDGER_LIB_VERSION=1.29.2
-HLEDGER_VERSION=1.29.2
-HLEDGER_UI_VERSION=1.29.2
-HLEDGER_WEB_VERSION=1.29.2
+HLEDGER_LIB_VERSION=1.30
+HLEDGER_VERSION=1.30
+HLEDGER_UI_VERSION=1.30
+HLEDGER_WEB_VERSION=1.30
 # Third-party:
 HLEDGER_IADD_VERSION=1.3.18
 HLEDGER_INTEREST_VERSION=1.6.5
 HLEDGER_STOCKQUOTES_VERSION=0.1.2.1
 HLEDGER_EDIT_VERSION=1.13.2
 HLEDGER_PLOT_VERSION=1.13.2
-HLEDGER_LOTS_VERSION=0.3.0
+HLEDGER_LOTS_VERSION=0.4.2
 
 # this script's one-line description
 HLEDGER_INSTALL_DESC="$HLEDGER_INSTALL_TOOL version $HLEDGER_INSTALL_VERSION to install hledger $HLEDGER_VERSION and related tools"
@@ -896,9 +897,9 @@ quietly_run() {
 try_install() {
   cd  # ensure we install at user level, not in some project's stack/cabal setup
   if has_cmd stack ; then
-    try_info stack install --install-ghc $STACK_RESOLVER "$@" --verbosity="$STACK_VERBOSITY"
+    try_info stack install --install-ghc $STACK_RESOLVER "$@" --verbosity="$STACK_VERBOSITY" || echo "Failed to install $@"
   elif has_cmd cabal ; then
-    try_info cabal install "$@" --verbose="$CABAL_VERBOSITY"
+    try_info cabal install "$@" --verbose="$CABAL_VERBOSITY" || echo "Failed to install $@"
   else
     echo "Failed to install $@"
   fi
@@ -1075,18 +1076,24 @@ if [[ $(cmpver "$(cmd_version hledger-iadd 2>/dev/null)" $HLEDGER_IADD_VERSION) 
   echo Installing hledger-iadd
   try_install hledger-iadd-$HLEDGER_IADD_VERSION hledger-lib-$HLEDGER_LIB_VERSION $STACK_EXTRA_DEPS
   echo
+else
+  echo hledger-iadd is up to date
 fi
 
 if [[ $(cmpver "$(cmd_version hledger-interest 2>/dev/null)" $HLEDGER_INTEREST_VERSION) = 2 ]]; then
   echo Installing hledger-interest
   try_install hledger-interest-$HLEDGER_INTEREST_VERSION hledger-lib-$HLEDGER_LIB_VERSION $STACK_EXTRA_DEPS
   echo
+else
+  echo hledger-interest is up to date
 fi
 
 if [[ $(cmpver "$(cmd_version hledger-stockquotes 2>/dev/null)" $HLEDGER_STOCKQUOTES_VERSION) = 2 ]]; then
   echo Installing hledger-stockquotes
   try_install hledger-stockquotes-$HLEDGER_STOCKQUOTES_VERSION hledger-lib-$HLEDGER_LIB_VERSION $STACK_EXTRA_DEPS
   echo
+else
+  echo hledger-stockquotes is up to date
 fi
 
 # hledger-edit, hledger-plot packaged together as hledger-utils, just install it twice for now
@@ -1094,18 +1101,24 @@ if [[ $(cmpver "$(cmd_version hledger-edit 2>/dev/null)" $HLEDGER_EDIT_VERSION) 
   echo Installing hledger-edit
   try_install_py hledger-utils
   echo
+else
+  echo hledger-edit is up to date
 fi
 
 if [[ $(cmpver "$(cmd_version hledger-plot 2>/dev/null)" $HLEDGER_PLOT_VERSION) = 2 ]]; then
   echo Installing hledger-plot
   try_install_py hledger-utils
   echo
+else
+  echo hledger-plot is up to date
 fi
 
 if [[ $(cmpver "$(cmd_version hledger-lots 2>/dev/null)" $HLEDGER_LOTS_VERSION) = 2 ]]; then
   echo Installing hledger-lots
   try_install_py hledger-lots
   echo
+else
+  echo hledger-lots is up to date
 fi
 
 # show new installation status
