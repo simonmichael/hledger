@@ -441,28 +441,10 @@ and then reuse them by writing `@FILENAME` as a command line argument.
 Eg: `hledger bal @foo.args`.
 
 Inside the argument file, each line should contain just one option or argument.
-Also, don't use spaces except inside quotes (or you'll see a confusing error).
-Ie, write = (or nothing) between a flag and its argument.
-Eg, bad:
-
-    assets -X USD
-
-Good:
-
-    assets
-    -X=USD
-
+Don't use spaces except inside quotes (or you'll see a confusing error);
+write `=` (or nothing) between a flag and its argument.
 For the special characters mentioned above, use one less level of quoting than
 you would at the command prompt.
-Eg, bad:
-
-    -X"$"
-
-Good:
-
-    -X$
-
-See also: [Save frequently used options](/save-frequently-used-options.html).
 
 # Output
 
