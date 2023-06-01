@@ -531,4 +531,4 @@ SEE ALSO
 
 
 
-hledger-ui-1.30                    May 2023                      HLEDGER-UI(1)
+hledger-ui-1.30                    June 2023                     HLEDGER-UI(1)
