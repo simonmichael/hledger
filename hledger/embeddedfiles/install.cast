@@ -1,4 +1,4 @@
-{"version": 2, "width": 80, "height": 25, "timestamp": 1679022326, "env": {"SHELL": "/opt/homebrew/bin/bash", "TERM": "xterm-256color"}, "title": "Installing hledger from source with hledger-install"}
+{"version": 2, "width": 80, "height": 25, "timestamp": 1679022326, "env": {"SHELL": "/opt/homebrew/bin/bash", "TERM": "xterm-256color"}, "title": "Upgrading hledger tools to latest source release with hledger-install"}
 [0.176734, "o", "\u001b[?2004h$ "]
 [1.370668, "o", "#"]
 [1.638932, "o", " "]
