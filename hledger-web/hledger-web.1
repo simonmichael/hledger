@@ -8,19 +8,22 @@
 hledger-web - robust, friendly plain text accounting (Web version)
 .SH SYNOPSIS
 .PP
-\f[V]hledger-web [OPTIONS]                  # run temporarily & browse\f[R]
+\f[V]hledger-web             [OPTS] [ARGS]    # run temporarily & open browser\f[R]
 .PD 0
 .P
 .PD
-\f[V]hledger-web --serve [OPTIONS]          # run without stopping\f[R]
+\f[V]hledger-web --serve     [OPTS] [ARGS]    # run without stopping\f[R]
 .PD 0
 .P
 .PD
-\f[V]hledger-web --serve-api [OPTIONS]      # run JSON server only\f[R]
+\f[V]hledger-web --serve-api [OPTS] [ARGS]    # run HTTP JSON server only\f[R]
 .PD 0
 .P
 .PD
-\f[V]hledger web -- [OPTIONS] [QUERYARGS]\f[R] # start from hledger
+\f[V]hledger web --          [OPTS] [ARGS]    # run from hledger\f[R]
+.PD 0
+.P
+.PD
 .SH DESCRIPTION
 .PP
 This manual is for hledger\[aq]s web interface, version 1.29.99.

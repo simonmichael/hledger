@@ -13,10 +13,10 @@ hledger-web(1)
 
 hledger-web - robust, friendly plain text accounting (Web version)
 
-   'hledger-web [OPTIONS] # run temporarily & browse'
-'hledger-web --serve [OPTIONS] # run without stopping'
-'hledger-web --serve-api [OPTIONS] # run JSON server only'
-'hledger web -- [OPTIONS] [QUERYARGS]' # start from hledger
+   'hledger-web [OPTS] [ARGS] # run temporarily & open browser'
+'hledger-web --serve [OPTS] [ARGS] # run without stopping'
+'hledger-web --serve-api [OPTS] [ARGS] # run HTTP JSON server only'
+'hledger web -- [OPTS] [ARGS] # run from hledger'
 
    This manual is for hledger's web interface, version 1.29.99.  See
 also the hledger manual for common concepts and file formats.
@@ -648,30 +648,30 @@ http://bugs.hledger.org), or on the #hledger chat or hledger mail list
 
 Tag Table:
 Node: Top225
-Node: OPTIONS2702
-Ref: #options2807
-Node: General help options6118
-Ref: #general-help-options6268
-Node: General input options6550
-Ref: #general-input-options6736
-Node: General reporting options7438
-Ref: #general-reporting-options7603
-Node: PERMISSIONS10993
-Ref: #permissions11132
-Node: EDITING UPLOADING DOWNLOADING12344
-Ref: #editing-uploading-downloading12525
-Node: RELOADING13359
-Ref: #reloading13493
-Node: JSON API13926
-Ref: #json-api14041
-Node: DEBUG OUTPUT19529
-Ref: #debug-output19654
-Node: Debug output19681
-Ref: #debug-output-119782
-Node: ENVIRONMENT20199
-Ref: #environment20318
-Node: BUGS20435
-Ref: #bugs20519
+Node: OPTIONS2715
+Ref: #options2820
+Node: General help options6131
+Ref: #general-help-options6281
+Node: General input options6563
+Ref: #general-input-options6749
+Node: General reporting options7451
+Ref: #general-reporting-options7616
+Node: PERMISSIONS11006
+Ref: #permissions11145
+Node: EDITING UPLOADING DOWNLOADING12357
+Ref: #editing-uploading-downloading12538
+Node: RELOADING13372
+Ref: #reloading13506
+Node: JSON API13939
+Ref: #json-api14054
+Node: DEBUG OUTPUT19542
+Ref: #debug-output19667
+Node: Debug output19694
+Ref: #debug-output-119795
+Node: ENVIRONMENT20212
+Ref: #environment20331
+Node: BUGS20448
+Ref: #bugs20532
 
 End Tag Table
 

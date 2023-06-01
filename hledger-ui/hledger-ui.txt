@@ -7,9 +7,8 @@ NAME
        hledger-ui - robust, friendly plain text accounting (TUI version)
 
 SYNOPSIS
-       hledger-ui [OPTIONS] [QUERYARGS]
-       hledger ui -- [OPTIONS] [QUERYARGS]
-
+       hledger-ui    [OPTS] [QUERYARGS]    # run directly
+       hledger ui -- [OPTS] [QUERYARGS]    # run from hledger
 DESCRIPTION
        This  manual is for hledger's terminal interface, version 1.29.99.  See
        also the hledger manual for common concepts and file formats.

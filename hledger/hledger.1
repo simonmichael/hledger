@@ -9,16 +9,19 @@
 hledger - robust, friendly plain text accounting (CLI version)
 .SH SYNOPSIS
 .PP
-\f[V]hledger\f[R]
+\f[V]hledger                              # show commmands list\f[R]
 .PD 0
 .P
 .PD
-\f[V]hledger [-f FILE] COMMAND [OPTS] [ARGS]\f[R]
+\f[V]hledger COMMAND     [OPTS] [ARGS]    # run built-in command\f[R]
 .PD 0
 .P
 .PD
-\f[V]hledger [-f FILE] ADDONCMD -- [OPTS] [ARGS]\f[R]
-.SH INTRODUCTION
+\f[V]hledger ADDONCMD -- [OPTS] [ARGS]    # run add-on command from PATH\f[R]
+.PD 0
+.P
+.PD
+.SH DESCRIPTION
 .PP
 hledger is a robust, user-friendly, cross-platform set of programs for
 tracking money, time, or any other commodity, using double-entry
@@ -728,45 +731,10 @@ Eg: \f[V]hledger bal \[at]foo.args\f[R].
 .PP
 Inside the argument file, each line should contain just one option or
 argument.
-Also, don\[aq]t use spaces except inside quotes (or you\[aq]ll see a
-confusing error).
-Ie, write = (or nothing) between a flag and its argument.
-Eg, bad:
-.IP
-.nf
-\f[C]
-assets -X USD
-\f[R]
-.fi
-.PP
-Good:
-.IP
-.nf
-\f[C]
-assets
--X=USD
-\f[R]
-.fi
-.PP
+Don\[aq]t use spaces except inside quotes (or you\[aq]ll see a confusing
+error); write \f[V]=\f[R] (or nothing) between a flag and its argument.
 For the special characters mentioned above, use one less level of
 quoting than you would at the command prompt.
-Eg, bad:
-.IP
-.nf
-\f[C]
--X\[dq]$\[dq]
-\f[R]
-.fi
-.PP
-Good:
-.IP
-.nf
-\f[C]
--X$
-\f[R]
-.fi
-.PP
-See also: Save frequently used options.
 .SH Output
 .SS Output destination
 .PP
@@ -3719,31 +3687,24 @@ parentheses after an amount.
 hledger ignores these.
 .SS Virtual postings
 .PP
-A posting with parentheses around the account name is called a
-\f[I]virtual posting\f[R] or \f[I]unbalanced posting\f[R], which means
-it is exempt from the usual rule that a transaction\[aq]s postings must
-balance add up to zero.
+A posting with parentheses around the account name
+(\f[V](some:account)\f[R]) is called a \f[I]unbalanced virtual
+posting\f[R].
+Such postings do not participate in transaction balancing.
+(And if you write them without an amount, a zero amount is always
+inferred.)
+These can occasionally be convenient for special circumstances, but they
+violate double entry bookkeeping and make your data less portable across
+applications, so many people avoid using them at all.
 .PP
-This is not part of double entry bookkeeping, so you might choose to
-avoid this feature.
-Or you can use it sparingly for certain special cases where it can be
-convenient.
-Eg, you could set opening balances without using a balancing equity
-account:
-.IP
-.nf
-\f[C]
-2022-01-01 opening balances
-  (assets:checking)   $1000
-  (assets:savings)    $2000
-\f[R]
-.fi
-.PP
-A posting with brackets around the account name is called a
-\f[I]balanced virtual posting\f[R].
-The balanced virtual postings in a transaction must add up to zero
-(separately from other postings).
-Eg:
+A posting with brackets around the account name
+(\f[V][some:account]\f[R]) is called a \f[I]balanced virtual
+posting\f[R].
+The balanced virtual postings in a transaction must add up to zero, just
+like ordinary postings, but separately from them.
+These are not part of double entry bookkeeping either, but they are at
+least balanced.
+An example:
 .IP
 .nf
 \f[C]
@@ -3757,14 +3718,10 @@ Eg:
 \f[R]
 .fi
 .PP
-Postings whose account names are neither parenthesised nor bracketed are
-called \f[I]real postings\f[R].
+Ordinary postings, whose account names are neither parenthesised nor
+bracketed, are called \f[I]real postings\f[R].
 You can exclude virtual postings from reports with the
 \f[V]-R/--real\f[R] flag or a \f[V]real:1\f[R] query.
-.PP
-Downsides: violates double entry bookkeeping, can be used to avoid
-figuring out correct entries, makes your financial data less portable
-and less trustworthy in an audit.
 .SS Other Ledger directives
 .PP
 These other Ledger directives are currently accepted but ignored.
