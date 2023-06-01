@@ -5,9 +5,12 @@
 <!-- toc -->
 </div>
 
+See also RELEASING.md.
+
 ## Update master changelogs often
 Before release, and preferably daily/weekly as well:
-- always first update changelogs in master branch, not in release branches
+- during normal development, do this only in master branch
+- during release preparation.. unclear; keep the other branch's changelog in mind, they need to be synced at some point. Prioritise \[minor] release branch's changelog ?
 - `./Shake changelogs`
 - edit the new changelog items
     - open the five changelogs
