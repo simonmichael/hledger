@@ -4,21 +4,6 @@
 
 m4_dnl  Lines beginning with m4_dnl are comments. See help at end of file.
 m4_dnl  The macro below includes the content only in the web format:
-_web_({{
-*Quick links:
-[Commands][commands-list],
-[Queries],
-[Regular expressions],
-[Period expressions],
-[Journal],
-[Directive effects],
-[CSV],
-[Timeclock],
-[Timedot],
-[Valuation],
-[Common tasks]*
-}})
-
 _notinfo_({{
 # NAME
 }})
@@ -35,6 +20,21 @@ _notinfo_({{
 
 _notinfo_({{
 # DESCRIPTION
+}})
+
+_web_({{
+*[Quick reference links:
+[Options][options],
+[Commands][commands-list],
+[Queries],
+[Regular expressions],
+[Period expressions],
+[Journal],
+[Directives],
+[CSV],
+[Timeclock],
+[Timedot],
+[Common tasks]]*
 }})
 
 _hledgerdescription_
@@ -6296,7 +6296,6 @@ m4_dnl Be wary of pandoc/mdbook handling [shortcut] link syntax differently ?
 [common tasks]:        #common-tasks
 [csv]:                 #csv
 [directives]:          #directives
-[directive effects]:   #directive-effects
 [incomestatement]:     #incomestatement
 [journal]:             #journal
 [period expressions]:  #period-expressions
