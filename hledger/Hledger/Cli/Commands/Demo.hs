@@ -46,13 +46,14 @@ import Control.Concurrent (threadDelay)
 import System.Process (callProcess)
 import System.IO.Error (catchIOError)
 import Safe (readMay, atMay, headMay)
-import Data.List (isPrefixOf, find, findIndex, isInfixOf)
+import Data.List (isPrefixOf, find, findIndex, isInfixOf, dropWhileEnd)
 import Control.Applicative ((<|>))
 import Data.ByteString as B (ByteString)
 import Data.Maybe
 import qualified Data.ByteString.Char8 as B
 import System.IO.Temp (withSystemTempFile)
 import System.IO (hClose)
+import System.Console.CmdArgs.Explicit (flagReq)
 
 demos :: [Demo]
 demos = map readDemo [
@@ -75,7 +76,10 @@ data Demo = Demo {
 -- | Command line options for this command.
 demomode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Demo.txt")
-  []
+  [
+   flagReq  ["speed","s"] (\s opts -> Right $ setopt "speed" s opts) "SPEED"
+    ("playback speed (1 is original speed, .5 is half, 2 is double, etc (default: 2))")
+  ]
   [generalflagsgroup3]
   []
   ([], Just $ argsFlag optsstr)
@@ -87,8 +91,7 @@ usagestr = "Usage: hledger demo " <> optsstr
 demo :: CliOpts -> Journal -> IO ()
 demo CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=_query}} _j = do
   -- demos <- getCurrentDirectory >>= readDemos
-  let args = listofstringopt "args" rawopts
-  case args of
+  case listofstringopt "args" rawopts of
     [] -> putStrLn usagestr >> printDemos
     (a:as) ->
       case findDemo demos a of
@@ -98,14 +101,23 @@ demo CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=_query}} _j = do
           printDemos
           exitFailure
         Just (Demo t c) -> do
-          let i = maybe 0 (1+) $ findIndex (\(Demo t2 _) -> t2 == t) demos  -- should succeed
+          let
+            -- try to preserve the original pauses a bit while also moving things along
+            defidlelimit = 10
+            defspeed     = 2
+            speed =
+              case maybestringopt "speed" rawopts of
+                Nothing -> defspeed
+                Just s -> fromMaybe err $ readMay s
+                  where err = error' $ "could not parse --speed " <> s <> ", numeric argument expected"
+            idx = maybe 0 (1+) $ findIndex (\(Demo t2 _) -> t2 == t) demos  -- should succeed
           mw <- getTerminalWidth
           let line = red' $ replicate w '.' where w = fromMaybe (length t) mw
-          printf "playing: %d) %s\nspace to pause, . to step, ctrl-c to quit\n" i (bold' t)
+          printf "playing: %d) %s\nspace to pause, . to step, ctrl-c to quit\n" idx (bold' t)
           putStrLn line
           putStrLn ""
           threadDelay 1000000
-          runAsciinemaPlay c as
+          runAsciinemaPlay speed defidlelimit c as
           putStrLn ""
           putStrLn line
 
@@ -133,13 +145,21 @@ printDemos = putStrLn $ unlines $
   -- "" :
   [show i <> ") " <> bold' t | (i, Demo t _) <- zip [(1::Int)..] demos]
 
--- | Run asciinema play, passing content to its stdin.
-runAsciinemaPlay :: ByteString -> [String] -> IO ()
-runAsciinemaPlay content args =
+-- | Run asciinema play with the given speed and idle limit, passing the given content to its stdin.
+runAsciinemaPlay :: Float -> Float -> ByteString -> [String] -> IO ()
+runAsciinemaPlay speed idlelimit content args =
   withSystemTempFile "hledger-cast" $ \f h -> do  -- try piping to stdin also
     B.hPutStrLn h content >> hClose h
-    callProcess "asciinema" ("play" : f : args)
+    callProcess "asciinema" (dbg8With (("asciinema: "++).unwords) $ concat [
+       ["play"]
+      ,["-s"<> showwithouttrailingzero speed]
+      ,if idlelimit == 0 then [] else ["-i"<>showwithouttrailingzero idlelimit]
+      ,[f]
+      ,args
+      ])
       `catchIOError` \err -> do
         putStrLn $ "There was a problem. Is asciinema installed ?\n" <> show err  --  (or PowerSession on Windows)
         exitFailure
+  where
+    showwithouttrailingzero = dropWhileEnd (=='.') . dropWhileEnd (=='0') . show
 
