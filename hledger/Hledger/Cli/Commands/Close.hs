@@ -74,12 +74,10 @@ close copts@CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
     ropts = (_rsReportOpts rspec0){balanceaccum_=Historical, accountlistmode_=ALFlat}
     rspec1 = setDefaultConversionOp NoConversionOp rspec0{_rsReportOpts=ropts}
 
-    -- dates of the closing and opening transactions
-    -- Close.md:
+    -- Dates of the closing and opening transactions.
     -- "The default closing date is yesterday, or the journal's end date, whichever is later.
-    -- You can change this by specifying a [report end date](#report-start--end-date),
-    -- where "last day of the report period" will be the closing date.
-    -- (Only the end date matters; a report start date will be ignored.)
+    -- You can change this by specifying a [report end date](#report-start--end-date) with `-e`.
+    -- The last day of the report period will be the closing date, eg `-e 2024` means "close on 2023-12-31".
     -- The opening date is always the day after the closing date."
     argsq = _rsQuery rspec1
     yesterday = addDays (-1) $ _rsDay rspec1
