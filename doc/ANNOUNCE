@@ -1,43 +1,29 @@
-I'm pleased to announce hledger 1.29 !
+I'm pleased to announce hledger 1.30 ! Highlights:
 
-https://github.com/simonmichael/hledger/releases/1.29
-https://hledger.org/install
-https://hledger.org/release-notes.html#hledger-1-29
+Boolean queries, easier CSV file management, built-in demos,
+hledger-ui cash accounts screen, fixes.
 
-Highlights:
+Thank you release contributors Chris Lemaire and Yehoshua Pesach Wallach.
 
-Tag checking, 
-flexible multi-period start dates, 
-flexible cost/conversion posting combining,
-new commands list,
-hledger manual reorg,
-easier close command,
-10% more Ledger file compatible.
-
-Thank you to release contributors Chris Lemaire, Caleb Maclennan,
-Jonathan Dowland, J. B. Rainsberger, Michael Grünewald, Robert Nielsen,
-and Yann Büchau.
+- https://github.com/simonmichael/hledger/releases/1.30
+- https://hledger.org/release-notes.html#hledger-1-30
+- https://hledger.org/install
 
 What is hledger ?
 
-- Fast, reliable, free, multicurrency, double-entry, plain text
-  accounting[1] software that runs on unix, mac, windows, and the web
+- Fast, reliable, free, multicurrency, double-entry, plain text accounting software for unix, mac, windows, and the web
 
 - Built around human-readable, version-controllable plain text files
 
-- Inspired by and largely compatible with Ledger CLI[2];
-  convertible to and from Beancount[3]
+- Inspired by and largely compatible with Ledger CLI,
+  convertible to and from Beancount
 
-- Written in Haskell for correctness and longevity.
+- Written in Haskell for reliability and longevity.
 
-For help getting started, or more info, see https://hledger.org
-and join our chat via Matrix or IRC: https://hledger.org/support .
+For help getting started or more info, see https://hledger.org
+and join our Matrix/IRC chat or mail list: https://hledger.org/support .
 Newcomers, experts, contributors, sponsors, feedback are welcome!
+For more about plain text accounting, see https://plaintextaccounting.org .
 
-Aloha,
+Live well and prosper,
 -Simon
-
-
-[1] https://plaintextaccounting.org
-[2] https://ledger-cli.org
-[3] https://beancount.github.io

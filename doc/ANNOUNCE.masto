@@ -1,18 +1,16 @@
-Aloha! I'm pleased to announce hledger 1.29 ! 
+I'm pleased to announce hledger 1.30 ! Highlights:
 
-Highlights:
-Tag checking, 
-flexible multi-period start dates, 
-flexible cost/conversion posting combining,
-new commands list,
-hledger manual reorg,
-easier close command,
-10% more Ledger file compatible.
+Boolean queries, easier CSV file management, built-in demos,
+hledger-ui cash accounts screen, fixes.
 
-- https://github.com/simonmichael/hledger/releases/1.29
+Thank you release contributors Chris Lemaire and Yehoshua Pesach Wallach.
+
+- https://github.com/simonmichael/hledger/releases/1.30
+- https://hledger.org/release-notes.html#hledger-1-30
 - https://hledger.org/install
 
-#hledger is fast, reliable, free, multicurrency, double-entry, #plaintextaccounting software for unix, mac, windows, and the web. For help, join our chat:
-https://hledger.org/support
+#hledger is fast, reliable, free, multicurrency, double-entry, #plaintextaccounting software for unix, mac, windows, and the web.
+
+For help, join our chat or mail list: https://hledger.org/support
 
 #haskell
