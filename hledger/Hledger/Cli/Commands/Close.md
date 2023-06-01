@@ -44,6 +44,7 @@ In all modes, the defaults can be overridden:
 - the transaction descriptions can be changed with `--close-desc=DESC` and `--open-desc=DESC`
 - the account to transfer to/from can be changed with `--close-acct=ACCT` and `--open-acct=ACCT`
 - the accounts to be closed/opened can be changed with `ACCTQUERY` (account query arguments).
+- the closing/opening dates can be changed with `-e DATE` (a report end date)
 
 By default just one destination/source posting will be used, with its amount left implicit.
 With `--x/--explicit`, the amount will be shown explicitly,
@@ -59,10 +60,8 @@ and destination postings next to each other.
 This could be useful for troubleshooting.
 
 The default closing date is yesterday, or the journal's end date, whichever is later.
-You can change this by specifying a [report end date](#report-start--end-date);
-(The report start date does not matter.)
-The last day of the report period will be the closing date;
-eg `-e 2022` means "close on 2022-12-31".
+You can change this by specifying a [report end date](#report-start--end-date) with `-e`.
+The last day of the report period will be the closing date, eg `-e 2024` means "close on 2023-12-31".
 The opening date is always the day after the closing date.
 
 ### close and balance assertions
