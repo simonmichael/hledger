@@ -6,6 +6,9 @@
 # It handles the tedious file management and importing. Hopefully more of this
 # will be done by hledger some day.
 #
+# 2023-05: More of this is done by hledger now (see 1.30's CSV `source` rule),
+# making this makefile pretty much obsolete.
+#
 # To list available targets: make or make help-PAT
 # To debug a target: make SHELL='sh -x' [-n] TARGET
 # When logic or quoting or syntax gets hard: use shell scripts in bin/ instead.
