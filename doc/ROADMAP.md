@@ -18,10 +18,10 @@ Related:
 - hledger 1.32, december
 - hledger 1.31, september
 - hledger 1.30, june
-  - demos: built in asciinema demos and maintenance process
-  - ghc 9.6 support
-  - process/tools improvement
-  - docs improvement
+  - demos: built in asciinema demos and maintenance process *done, 4 simple demos*
+  - ghc 9.6 support *partly done, hledger-web is blocked on deps*
+  - process/tools improvement *done*
+  - docs improvement *done: 115 doc commits + 112 site commits, manual cleanups & rewrites*
 - hledger 1.29, march
 
 **Goals:**
