@@ -29,12 +29,12 @@ _notinfo_({{
 # SYNOPSIS
 }})
 
-`hledger`\
-`hledger [-f FILE] COMMAND [OPTS] [ARGS]`\
-`hledger [-f FILE] ADDONCMD -- [OPTS] [ARGS]`
+`hledger                              # show commmands list`\
+`hledger COMMAND     [OPTS] [ARGS]    # run built-in command`\
+`hledger ADDONCMD -- [OPTS] [ARGS]    # run add-on command from PATH`\
 
 _notinfo_({{
-# INTRODUCTION
+# DESCRIPTION
 }})
 
 _hledgerdescription_

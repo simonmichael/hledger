@@ -12,8 +12,8 @@ _notinfo_({{
 # SYNOPSIS
 }})
 
-`hledger-ui [OPTIONS] [QUERYARGS]`\
-`hledger ui -- [OPTIONS] [QUERYARGS]`
+`hledger-ui    [OPTS] [QUERYARGS]    # run directly`\
+`hledger ui -- [OPTS] [QUERYARGS]    # run from hledger`\
 
 _notinfo_({{
 # DESCRIPTION
