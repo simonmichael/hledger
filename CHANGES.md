@@ -18,13 +18,17 @@ Infrastructure
 General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
-# e24de8bdc
+# 5048c8960
 
 Scripts/addons
 
-- hledger-install: also list installed cabal, stack, pip versions
+- hledger-bar: new script for making simple bar charts in the terminal
+
+- hledger-install: also list cabal, stack, pip tool versions
 
 Examples
+
+- examples/csv: added a more up-to-date CSV makefile
 
 - examples/i18: Added sample top level account and type declarations in several languages
 
@@ -33,8 +37,6 @@ Docs
 - A shorter, more example-heavy home page on the website.
 
 - Simplified website and FAQ structure.
-
-Infrastructure
 
 # 1.29.2 2023-04-07
 

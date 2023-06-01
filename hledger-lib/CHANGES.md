@@ -8,14 +8,16 @@
 Breaking changes
 
 Misc. changes
-
+nn
 -->
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 1c5dee233
+# d7f039854
 
 Breaking changes
+
+- dropped: Hledger.Data.RawOptions.inRawOpts
 
 Misc. changes
 
@@ -44,7 +46,9 @@ Misc. changes
       brightCyan'
       brightWhite'
       rgb'
-
+      multicol
+      expandGlob
+      sortByModTime
 # 1.29.2 2023-04-07
 
 # 1.29.1 2023-03-16

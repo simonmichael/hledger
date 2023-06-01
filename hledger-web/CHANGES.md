@@ -21,19 +21,16 @@ API
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 2bdba319b
-
-Breaking changes
-
-Features
-
-Improvements
+# d146b8350
 
 Fixes
 
+- A command line depth limit now works properly.
+  (#1763)
+
 Docs
 
-API
+- Miscellaneous manual cleanups.
 
 # 1.29.2 2023-04-07
 

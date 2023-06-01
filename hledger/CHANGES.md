@@ -21,11 +21,72 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
-# c2288f814
+# 1382fbc75
 
 Breaking changes
 
+- The CSV reader now properly skips all empty lines, as specified by docs.
+  Previously, inner empty lines were not being skipped automatically.
+  You might need to adjust the `skip` count in some CSV rules files.
+  (#2024)
+
+- Certain reporting flags now toggle on/off if repeated. (Experimental)
+  This can be useful for overriding defaults in command line scripts,
+  since you can now turn a flag off as well as on. The flags which
+  can be toggled are:
+
+      --invert
+      --transpose
+      -r/--related
+      -%/--percent
+      -E/--empty
+      -N/--no-total
+      -T/--row-total
+      -A/--average
+      -S/--sort-amount
+
+- Timedot format now generates a single multi-posting transaction per
+  date line, and supports comments and tags on all lines.
+  (#1754)
+
+- Timeclock format now supports comments and tags.
+  Descriptions can no longer contain semicolons.
+  (#1220)
+
 Features
+
+- CSV rules files can now be read directly, as in
+  `hledger -f foo.csv.rules CMD`. By default this will read data
+  from foo.csv in the same directory.
+  
+- CSV rules files can use a new `source FILE` rule to specify the data file,
+  with some convenience features:
+
+  - If the data file does not exist, it is treated as empty, not an
+    error.
+
+  - If FILE is a relative path, it is relative to the rules file's
+    directory. If it is just a file name with no path, it is relative
+    to `~/Downloads/`.
+
+  - If FILE is a glob pattern, the most recently modified matched file
+    is used.
+
+  This helps remove some of the busywork of managing CSV downloads.
+  Most of your financial institutions's default CSV filenames are
+  different and can be recognised by a glob pattern.  So you can put a
+  rule like `source Checking1*.csv` in foo-checking.csv.rules,
+  periodically download CSV from Foo's website accepting your browser's
+  defaults, and then run `hledger import checking.csv.rules` to import
+  any new transactions. The next time, if you have done no cleanup, your
+  browser will probably save it as something like Checking1-2.csv, and
+  hledger will still see that because of the * wild card. You can choose
+  whether to delete CSVs after import, or keep them for a while as
+  temporary backups, or archive them somewhere.
+  (Experimental)
+
+- The balance command has a new --count report type
+  which reports posting counts instead of amounts.
 
 - Full boolean queries, allowing arbitrary use of AND, OR, NOT
   (case insensitive) and parentheses for grouping, are now supported.
@@ -36,8 +97,15 @@ Features
  
 - demo: This new command plays brief asciinema screencasts explaining
   various features and use cases. We will add more of these over time.
+  (Experimental)
 
 Improvements
+
+- Add-on commands can now have `.js`, `.lua`, or `.php` file extensions.
+
+- Generated and modified transactions and postings have the same hidden
+  tags (beginning with underscore) as before, but no longer have visible
+  tags added by default. Use `--verbose-tags` if you want them added.
 
 - We now try harder to ensure `less` (and its `more` mode) show our
   ANSI formatting properly in help output.
@@ -53,41 +121,61 @@ Improvements
   and it should produce the desired transaction more often.
   There is also new debug output (at debug level 1) for troubleshooting.
 
+- Miscellaneous commands list updates.
+  Help has been added for all published add-on commands (like hledger-lots).
+
 - The help command's documentation now mentions an issue caused by
   a too-old `info` program, as on mac.
   (#1770)
 
-- The commands list has been updated.
-
 Fixes
+
+- Unbalanced virtual postings with no amount always infer a zero amount.
+  This is fixing and clarifying the status quo; they always did this,
+  but print always showed them with no amount, even with -x, and
+  the behaviour was undocumented.
+
+- On windows systems with multiple drive letters, the commands list
+  could fail to show all installed add-ons.
+  (#2040)
+
+- Balancing a transaction with a balance assignment now properly respects costs.
+  (#2039)
+
+- The commands list no longer lists non-installed addons.
+  (#2034)
+
+- Since hledger 1.25, "every Nth day of month" period rules with N > 28 could
+  be calculated wrongly by a couple of days when given certain forecast start dates.
+  Eg `~ every 31st day of month` with `--forecast='2023-03-30..'`.
+  This is now fixed.
+  (#2032)
+
+- Postings are now processed in correct date order when inferring balance assignments.
+  (#2025)
+
+- Posting comment lines no longer disrupt the underline position in error messages.
+  (#1927)
+
+- Debug output is now formatted to fit the terminal width.
 
 Docs
 
-- fix: rewrite/correct Date adjustment section
+- Miscellaneous manual cleanups.
 
-- update command help
+- Rewrite introductory sections,
+  Date adjustment,
+  Directives,
+  Forecasting,
+  etc.
 
-- update manuals
+- Add Paging section.
 
-- cli: paging: cleanup
-
-- close: fix typo
-
-- cli: add Paging section (#2015)
-
-- cli: improve 1.29 changelog for the close command (#2020)
-
-- cli: improve 1.29 changelog for periodic reports/transactions change
-
-- cli: mention SQLite primary key workaround (fix #2017)
-
-- update command help
-
-- update manuals
-
-- journal: costs: mention sign
+- Remove archaic mentions of `setenv`.
 
 API
+
+- Renamed: Hledger.Cli.Commands: findCommand -> findBuiltinCommand
 
 # 1.29.2 2023-04-07
 

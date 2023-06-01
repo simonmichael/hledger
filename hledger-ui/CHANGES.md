@@ -21,8 +21,7 @@ API
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# ad4198b5e
-- fix: ui: restore the --menu flag for compatibility
+# d146b8350
 
 Features
 
@@ -39,13 +38,11 @@ Improvements
 
 - Screens' help footers have been improved.
 
-Fixes
-
 Docs
 
 - The transaction screen's inability to update is now noted.
 
-API
+- Miscellaneous manual cleanups.
 
 # 1.29.2 2023-04-07
 
