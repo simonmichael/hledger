@@ -10,17 +10,11 @@ Before release, and preferably daily/weekly as well:
 - always first update changelogs in master branch, not in release branches
 - `./Shake changelogs`
 - edit the new changelog items
-    - open changelogs
-      - as VSC panes: 
-        - explorer
-        - unfold hledger, hledger-lib, hledger-ui, hledger-web directories (?)
-        - CMD-f, changesmd, click filter icon
-        - click project CHANGES (last one in list)
-        - click editor pane, split it, click rightmost editor pane
-        - click hledger CHANGES
-        - click rightmost editor pane, split it, ... etc.
-    - in each changelog (first ui & web; then project, cli, lib)
-      - process new items (starting above top-most section heading, working upward)
+    - open the five changelogs
+      - in emacs: `M-x dired-find`, `-name CHANGES.md`, `(`, split into 5 columns, open each one, narrow from last release heading to top
+    - in each changelog
+      - paste section headings from top comment if needed
+      - process new items, from top-most section heading upward
         - drop boring items (changes not visible to end/API users, followups to other new items, minor doc updates..)
         - drop duplicated items/content (mostly between cli and lib)
         - move to top of appropriate changelog & section (create section when needed; consider a second pane to reduce scrolling)
