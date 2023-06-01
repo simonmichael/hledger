@@ -7,9 +7,10 @@ NAME
        hledger - robust, friendly plain text accounting (CLI version)
 
 SYNOPSIS
-       hledger                              # show commmands list
-       hledger COMMAND     [OPTS] [ARGS]    # run built-in command
-       hledger ADDONCMD -- [OPTS] [ARGS]    # run add-on command from PATH
+       hledger
+       hledger COMMAND     [OPTS] [ARGS]
+       hledger ADDONCMD -- [OPTS] [ARGS]
+
 DESCRIPTION
        hledger  is a robust, user-friendly, cross-platform set of programs for
        tracking money, time, or any other commodity,  using  double-entry  ac-

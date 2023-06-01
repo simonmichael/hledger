@@ -13,10 +13,8 @@ hledger-web(1)
 
 hledger-web - robust, friendly plain text accounting (Web version)
 
-   'hledger-web [OPTS] [ARGS] # run temporarily & open browser'
-'hledger-web --serve [OPTS] [ARGS] # run without stopping'
-'hledger-web --serve-api [OPTS] [ARGS] # run HTTP JSON server only'
-'hledger web -- [OPTS] [ARGS] # run from hledger'
+   'hledger-web [--serve|--serve-api] [OPTS] [ARGS]'
+'hledger web -- [--serve|--serve-api] [OPTS] [ARGS]'
 
    This manual is for hledger's web interface, version 1.29.99.  See
 also the hledger manual for common concepts and file formats.
@@ -648,30 +646,30 @@ http://bugs.hledger.org), or on the #hledger chat or hledger mail list
 
 Tag Table:
 Node: Top225
-Node: OPTIONS2715
-Ref: #options2820
-Node: General help options6131
-Ref: #general-help-options6281
-Node: General input options6563
-Ref: #general-input-options6749
-Node: General reporting options7451
-Ref: #general-reporting-options7616
-Node: PERMISSIONS11006
-Ref: #permissions11145
-Node: EDITING UPLOADING DOWNLOADING12357
-Ref: #editing-uploading-downloading12538
-Node: RELOADING13372
-Ref: #reloading13506
-Node: JSON API13939
-Ref: #json-api14054
-Node: DEBUG OUTPUT19542
-Ref: #debug-output19667
-Node: Debug output19694
-Ref: #debug-output-119795
-Node: ENVIRONMENT20212
-Ref: #environment20331
-Node: BUGS20448
-Ref: #bugs20532
+Node: OPTIONS2580
+Ref: #options2685
+Node: General help options5996
+Ref: #general-help-options6146
+Node: General input options6428
+Ref: #general-input-options6614
+Node: General reporting options7316
+Ref: #general-reporting-options7481
+Node: PERMISSIONS10871
+Ref: #permissions11010
+Node: EDITING UPLOADING DOWNLOADING12222
+Ref: #editing-uploading-downloading12403
+Node: RELOADING13237
+Ref: #reloading13371
+Node: JSON API13804
+Ref: #json-api13919
+Node: DEBUG OUTPUT19407
+Ref: #debug-output19532
+Node: Debug output19559
+Ref: #debug-output-119660
+Node: ENVIRONMENT20077
+Ref: #environment20196
+Node: BUGS20313
+Ref: #bugs20397
 
 End Tag Table
 

@@ -13,8 +13,8 @@ hledger-ui(1)
 
 hledger-ui - robust, friendly plain text accounting (TUI version)
 
-   'hledger-ui [OPTS] [QUERYARGS] # run directly'
-'hledger ui -- [OPTS] [QUERYARGS] # run from hledger'
+   'hledger-ui [OPTS] [QUERYARGS]'
+'hledger ui -- [OPTS] [QUERYARGS]'
 
    This manual is for hledger's terminal interface, version 1.29.99.
 See also the hledger manual for common concepts and file formats.
@@ -665,46 +665,46 @@ above).
 
 Tag Table:
 Node: Top223
-Node: OPTIONS1866
-Ref: #options1964
-Node: General help options2987
-Ref: #general-help-options3136
-Node: General input options3418
-Ref: #general-input-options3603
-Node: General reporting options4305
-Ref: #general-reporting-options4469
-Node: MOUSE7859
-Ref: #mouse7954
-Node: KEYS8191
-Ref: #keys8284
-Node: SCREENS12797
-Ref: #screens12895
-Node: Menu13475
-Ref: #menu13568
-Node: Cash accounts13763
-Ref: #cash-accounts13905
-Node: Balance sheet accounts14089
-Ref: #balance-sheet-accounts14270
-Node: Income statement accounts14390
-Ref: #income-statement-accounts14576
-Node: All accounts14740
-Ref: #all-accounts14886
-Node: Register15068
-Ref: #register15192
-Node: Transaction17154
-Ref: #transaction17277
-Node: Error18694
-Ref: #error18788
-Node: TIPS19032
-Ref: #tips19131
-Node: Watch mode19173
-Ref: #watch-mode19280
-Node: Debug output20739
-Ref: #debug-output20850
-Node: ENVIRONMENT21062
-Ref: #environment21172
-Node: BUGS21363
-Ref: #bugs21446
+Node: OPTIONS1832
+Ref: #options1930
+Node: General help options2953
+Ref: #general-help-options3102
+Node: General input options3384
+Ref: #general-input-options3569
+Node: General reporting options4271
+Ref: #general-reporting-options4435
+Node: MOUSE7825
+Ref: #mouse7920
+Node: KEYS8157
+Ref: #keys8250
+Node: SCREENS12763
+Ref: #screens12861
+Node: Menu13441
+Ref: #menu13534
+Node: Cash accounts13729
+Ref: #cash-accounts13871
+Node: Balance sheet accounts14055
+Ref: #balance-sheet-accounts14236
+Node: Income statement accounts14356
+Ref: #income-statement-accounts14542
+Node: All accounts14706
+Ref: #all-accounts14852
+Node: Register15034
+Ref: #register15158
+Node: Transaction17120
+Ref: #transaction17243
+Node: Error18660
+Ref: #error18754
+Node: TIPS18998
+Ref: #tips19097
+Node: Watch mode19139
+Ref: #watch-mode19246
+Node: Debug output20705
+Ref: #debug-output20816
+Node: ENVIRONMENT21028
+Ref: #environment21138
+Node: BUGS21329
+Ref: #bugs21412
 
 End Tag Table
 
