@@ -181,7 +181,7 @@ helpDialog =
                 vBox [
                    withAttr (attrName "help" <> attrName "heading") $ str "Filtering"
                   ,renderKey ("/   ", "set a filter query")
-                  ,renderKey ("F   ", "show future & periodic txns")
+                  ,renderKey ("F   ", "show future & forecast txns")
                   ,renderKey ("R   ", "show real/all postings")
                   ,renderKey ("z   ", "show nonzero/all amounts")
                   ,renderKey ("U/P/C ", "show unmarked/pending/cleared")
