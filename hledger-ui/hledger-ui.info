@@ -16,8 +16,8 @@ hledger-ui - robust, friendly plain text accounting (TUI version)
    'hledger-ui [OPTS] [QUERYARGS]'
 'hledger ui -- [OPTS] [QUERYARGS]'
 
-   This manual is for hledger's terminal interface, version 1.29.99.
-See also the hledger manual for common concepts and file formats.
+   This manual is for hledger's terminal interface, version 1.30.  See
+also the hledger manual for common concepts and file formats.
 
    hledger is a robust, user-friendly, cross-platform set of programs
 for tracking money, time, or any other commodity, using double-entry
@@ -665,46 +665,46 @@ above).
 
 Tag Table:
 Node: Top223
-Node: OPTIONS1832
-Ref: #options1930
-Node: General help options2953
-Ref: #general-help-options3102
-Node: General input options3384
-Ref: #general-input-options3569
-Node: General reporting options4271
-Ref: #general-reporting-options4435
-Node: MOUSE7825
-Ref: #mouse7920
-Node: KEYS8157
-Ref: #keys8250
-Node: SCREENS12763
-Ref: #screens12861
-Node: Menu13441
-Ref: #menu13534
-Node: Cash accounts13729
-Ref: #cash-accounts13871
-Node: Balance sheet accounts14055
-Ref: #balance-sheet-accounts14236
-Node: Income statement accounts14356
-Ref: #income-statement-accounts14542
-Node: All accounts14706
-Ref: #all-accounts14852
-Node: Register15034
-Ref: #register15158
-Node: Transaction17120
-Ref: #transaction17243
-Node: Error18660
-Ref: #error18754
-Node: TIPS18998
-Ref: #tips19097
-Node: Watch mode19139
-Ref: #watch-mode19246
-Node: Debug output20705
-Ref: #debug-output20816
-Node: ENVIRONMENT21028
-Ref: #environment21138
-Node: BUGS21329
-Ref: #bugs21412
+Node: OPTIONS1830
+Ref: #options1928
+Node: General help options2951
+Ref: #general-help-options3100
+Node: General input options3382
+Ref: #general-input-options3567
+Node: General reporting options4269
+Ref: #general-reporting-options4433
+Node: MOUSE7823
+Ref: #mouse7918
+Node: KEYS8155
+Ref: #keys8248
+Node: SCREENS12761
+Ref: #screens12859
+Node: Menu13439
+Ref: #menu13532
+Node: Cash accounts13727
+Ref: #cash-accounts13869
+Node: Balance sheet accounts14053
+Ref: #balance-sheet-accounts14234
+Node: Income statement accounts14354
+Ref: #income-statement-accounts14540
+Node: All accounts14704
+Ref: #all-accounts14850
+Node: Register15032
+Ref: #register15156
+Node: Transaction17118
+Ref: #transaction17241
+Node: Error18658
+Ref: #error18752
+Node: TIPS18996
+Ref: #tips19095
+Node: Watch mode19137
+Ref: #watch-mode19244
+Node: Debug output20703
+Ref: #debug-output20814
+Node: ENVIRONMENT21026
+Ref: #environment21136
+Node: BUGS21327
+Ref: #bugs21410
 
 End Tag Table
 
