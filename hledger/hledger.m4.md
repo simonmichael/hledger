@@ -258,6 +258,10 @@ _reportingoptions_
 Here are some details useful to know about for hledger command lines (and elsewhere).
 Feel free to skip this section until you need it.
 
+## Option repetition
+
+If options are repeated in a command line, hledger will generally use the last (right-most) occurence.
+
 ## Special characters
 
 ### Single escaping (shell metacharacters)
