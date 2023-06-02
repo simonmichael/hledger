@@ -1,7 +1,17 @@
 I'm pleased to announce hledger 1.30 ! Highlights:
 
-Boolean queries, easier CSV file management, built-in demos,
-hledger-ui cash accounts screen, fixes.
+- Boolean queries - with the new `expr:` query type you can freely
+  combine other queries with AND, OR, NOT and parentheses.
+
+- Easier CSV file management - you can now read a CSV .rules file, and let it
+  fetch the data file from a downloads directory, simplifying CSV file management.
+
+- Built-in demos - a new `demo` command plays several asciinema casts
+  to demonstrate features. We'll add more of these in future.
+
+- hledger-ui has a new Cash accounts screen, and now starts on the Menu screen.
+
+- The usual miscellaneous fixes.
 
 Thank you release contributors Chris Lemaire and Yehoshua Pesach Wallach.
 
@@ -11,7 +21,8 @@ Thank you release contributors Chris Lemaire and Yehoshua Pesach Wallach.
 
 What is hledger ?
 
-- Fast, reliable, free, multicurrency, double-entry, plain text accounting software for unix, mac, windows, and the web
+- Fast, reliable, free, multicurrency, double-entry, plain text accounting software
+  for unix, mac, windows, and the web
 
 - Built around human-readable, version-controllable plain text files
 
