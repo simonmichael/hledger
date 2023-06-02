@@ -121,6 +121,11 @@ jobs:
           && (grep -qE '^ *;' $$.gitlog || echo "CONTINUE=true" >> $GITHUB_ENV)) \
           || ( echo "could not identify commit range, continuing CI steps"; echo "CONTINUE=true" >> $GITHUB_ENV )
 
+    - name: Check embedded files
+      run: |
+        tools/checkembeddedfiles
+      if: env.CONTINUE
+
     # things to be cached/restored:
 
     - name: Cache stack global package db
@@ -238,11 +243,6 @@ jobs:
         $stack install --fast --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror  --test --bench hledger-ui
         $stack install --fast --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror  --test --bench hledger-web
         #  --ghc-options=-split-sections --no-terminal
-      if: env.CONTINUE
-
-    - name: Check embedded files
-      run: |
-        tools/checkembeddedfiles
       if: env.CONTINUE
 
     - name: Install shelltestrunner
