@@ -18,7 +18,7 @@ Infrastructure
 General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
-# 40bb5a2c5
+# fc9908890
 
 Scripts/addons
 
@@ -28,7 +28,7 @@ Docs
 
 Infrastructure
 
-- tools: checkembeddedfiles
+- tools, CI: checkembeddedfiles, checkversions
 
 # 1.30 2023-06-01
 
