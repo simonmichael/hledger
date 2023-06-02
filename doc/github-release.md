@@ -1,4 +1,4 @@
-;<details>
+<details>
 <summary>
 
 ## Release notes (https://hledger.org/release-notes.html#hledger-1-30)
@@ -15,21 +15,6 @@ Breaking changes
   Previously, inner empty lines were not being skipped automatically.
   You might need to adjust the `skip` count in some CSV rules files.
   (#2024)
-
-- Certain reporting flags now toggle on/off if repeated. (Experimental)
-  This can be useful for overriding defaults in command line scripts,
-  since you can now turn a flag off as well as on. The flags which
-  can be toggled are:
-
-      --invert
-      --transpose
-      -r/--related
-      -%/--percent
-      -E/--empty
-      -N/--no-total
-      -T/--row-total
-      -A/--average
-      -S/--sort-amount
 
 - Timedot format now generates a single multi-posting transaction per
   date line, and supports comments and tags on all lines.
@@ -225,12 +210,7 @@ Yehoshua Pesach Wallach.
 
 </details>
 
-<details>
-<summary>
-
 ## Install
-
-</summary>
 
 At <https://hledger.org/install>, binary packages should be available for this release within a few days (look for green badges). 
 
@@ -353,18 +333,9 @@ Problems:
 
 </details>
 
-</details>
-
-<details>
-<summary>
-
 ## Next steps
 
-</summary>
-
-- [Get Started](https://hledger.org/start.html)
+- https://hledger.org -> Quick start
 
 <!-- ## Updates -->
 <!-- 2022-06-08: windows-x64 binaries fixed. [#1869](https://github.com/simonmichael/hledger/issues/1869) -->
-
-</details>
