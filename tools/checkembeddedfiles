@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Check that all files embedded with file-embed are declared in extra-source-files
+
+set -e
+echo "Checking embedded file declarations:"
+mapfile -t embeddedfiles < <(rg --sort=path '^ +\$\(embedFileRelative "([^"]+)"' -or '$1' -I)
+status=0
+for f in "${embeddedfiles[@]}"; do
+    if output=$(rg --sort=path -l "$f" -- */package.yaml); then
+        printf '%-40s\tdeclared in %s\n' "$f" "$output"
+    else
+        printf '%-40s\tUNDECLARED\n' "$f"
+        status=1
+    fi;
+done
+if [[ $status != 0 ]]; then echo FAIL; else echo ok; fi
+exit $status
