@@ -37,6 +37,7 @@ jobs:
 
     - name: Check embedded files
       run: |
+        brew install ripgrep
         tools/checkembeddedfiles
       if: env.CONTINUE
 

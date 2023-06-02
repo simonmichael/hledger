@@ -123,6 +123,7 @@ jobs:
 
     - name: Check embedded files
       run: |
+        sudo apt install -y ripgrep
         tools/checkembeddedfiles
       if: env.CONTINUE
 
