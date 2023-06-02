@@ -1,16 +1,16 @@
 I'm pleased to announce hledger 1.30 ! Highlights:
 
-Boolean queries, easier CSV file management, built-in demos,
-hledger-ui cash accounts screen, fixes.
-
-Thank you release contributors Chris Lemaire and Yehoshua Pesach Wallach.
+- Boolean queries
+- Easier CSV file management
+- Built-in demos
+- hledger-ui cash accounts screen
+- Miscellaneous fixes.
 
 - https://github.com/simonmichael/hledger/releases/1.30
 - https://hledger.org/release-notes.html#hledger-1-30
 - https://hledger.org/install
 
 #hledger is fast, reliable, free, multicurrency, double-entry, #plaintextaccounting software for unix, mac, windows, and the web.
-
 For help, join our chat or mail list: https://hledger.org/support
 
 #haskell
