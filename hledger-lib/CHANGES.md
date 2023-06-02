@@ -8,10 +8,16 @@
 Breaking changes
 
 Misc. changes
-nn
+
 -->
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
+
+# 21d6b0059
+
+Breaking changes
+
+Misc. changes
 
 # 1.30 2023-06-01
 

@@ -18,6 +18,18 @@ Infrastructure
 General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
+# 40bb5a2c5
+
+Scripts/addons
+
+Examples
+
+Docs
+
+Infrastructure
+
+- tools: checkembeddedfiles
+
 # 1.30 2023-06-01
 
 Scripts/addons
