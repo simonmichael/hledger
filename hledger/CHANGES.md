@@ -21,6 +21,16 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
+# 1.30.1 2023-06-02
+
+Fixes
+
+- Add missing files to Hackage release, making it buildable.
+
+Docs
+
+- Replace note about repeated options.
+
 # 1.30 2023-06-01
 
 Breaking changes
