@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "June 2023" "hledger-1.30 " "hledger User Manuals"
+.TH "HLEDGER" "1" "June 2023" "hledger-1.30.1 " "hledger User Manuals"
 
 
 
@@ -26,7 +26,7 @@ accounting and a simple, editable file format.
 hledger is inspired by and largely compatible with ledger(1), and
 largely interconvertible with beancount(1).
 .PP
-This manual is for hledger\[aq]s command line interface, version 1.30.
+This manual is for hledger\[aq]s command line interface, version 1.30.1.
 It also describes the common options, file formats and concepts used by
 all hledger programs.
 It might accidentally teach you some bookkeeping/accounting as well!
@@ -494,6 +494,10 @@ Some reporting options can also be written as query arguments.
 Here are some details useful to know about for hledger command lines
 (and elsewhere).
 Feel free to skip this section until you need it.
+.SS Option repetition
+.PP
+If options are repeated in a command line, hledger will generally use
+the last (right-most) occurence.
 .SS Special characters
 .SS Single escaping (shell metacharacters)
 .PP
