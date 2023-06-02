@@ -58,8 +58,8 @@ import System.Console.CmdArgs.Explicit (flagReq)
 demos :: [Demo]
 demos = map readDemo [
   -- XXX these are confusing, redo
-  -- $(embedFileRelative "embeddedfiles/help.cast"),     -- https://asciinema.org/a/568112 Getting help
-  -- $(embedFileRelative "embeddedfiles/demo.cast"),     -- https://asciinema.org/a/567944 Watching the built-in demos
+  -- (embedFileRelative "embeddedfiles/help.cast"),     -- https://asciinema.org/a/568112 Getting help
+  -- (embedFileRelative "embeddedfiles/demo.cast"),     -- https://asciinema.org/a/567944 Watching the built-in demos
   $(embedFileRelative "embeddedfiles/add.cast"),      -- https://asciinema.org/a/567935 The easiest way to start a journal (add)
   $(embedFileRelative "embeddedfiles/print.cast"),    -- https://asciinema.org/a/567936 Show full transactions (print)
   $(embedFileRelative "embeddedfiles/balance.cast"),   -- https://asciinema.org/a/567937 Show account balances and changes (balance)
