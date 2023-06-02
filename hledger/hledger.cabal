@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           hledger
-version:        1.29.99
+version:        1.30.99
 synopsis:       Command-line interface for the hledger accounting system
 description:    The command-line interface for the hledger accounting system.
                 Its basic function is to read a plain text file describing
@@ -132,7 +132,7 @@ library
   other-modules:
       Paths_hledger
   ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind -optP-Wno-nonportable-include-path
-  cpp-options: -DVERSION="1.29.99"
+  cpp-options: -DVERSION="1.30.99"
   build-depends:
       Decimal >=0.5.1
     , Diff >=0.2
@@ -149,7 +149,7 @@ library
     , githash >=0.1.6.2
     , hashable >=1.2.4
     , haskeline >=0.6
-    , hledger-lib >=1.29.99 && <1.30
+    , hledger-lib >=1.30.99 && <1.31
     , lucid
     , math-functions >=0.3.3.0
     , megaparsec >=7.0.0 && <9.4
@@ -184,7 +184,7 @@ executable hledger
   hs-source-dirs:
       app
   ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind -optP-Wno-nonportable-include-path
-  cpp-options: -DVERSION="1.29.99"
+  cpp-options: -DVERSION="1.30.99"
   build-depends:
       Decimal >=0.5.1
     , aeson >=1
@@ -200,7 +200,7 @@ executable hledger
     , githash >=0.1.6.2
     , haskeline >=0.6
     , hledger
-    , hledger-lib >=1.29.99 && <1.30
+    , hledger-lib >=1.30.99 && <1.31
     , math-functions >=0.3.3.0
     , megaparsec >=7.0.0 && <9.4
     , microlens >=0.4
@@ -235,7 +235,7 @@ test-suite unittest
   hs-source-dirs:
       test
   ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind -optP-Wno-nonportable-include-path
-  cpp-options: -DVERSION="1.29.99"
+  cpp-options: -DVERSION="1.30.99"
   build-depends:
       Decimal >=0.5.1
     , aeson >=1
@@ -251,7 +251,7 @@ test-suite unittest
     , githash >=0.1.6.2
     , haskeline >=0.6
     , hledger
-    , hledger-lib >=1.29.99 && <1.30
+    , hledger-lib >=1.30.99 && <1.31
     , math-functions >=0.3.3.0
     , megaparsec >=7.0.0 && <9.4
     , microlens >=0.4
@@ -300,7 +300,7 @@ benchmark bench
     , githash >=0.1.6.2
     , haskeline >=0.6
     , hledger
-    , hledger-lib >=1.29.99 && <1.30
+    , hledger-lib >=1.30.99 && <1.31
     , html
     , math-functions >=0.3.3.0
     , megaparsec >=7.0.0 && <9.4
