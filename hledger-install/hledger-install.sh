@@ -13,7 +13,7 @@ set -o pipefail
 HLEDGER_INSTALL_TOOL=hledger-install.sh
 
 # This install script's version.
-HLEDGER_INSTALL_VERSION=20230601
+HLEDGER_INSTALL_VERSION=20230602
 
 # Tools to be installed by this install script, official tools first.
 # Keep synced with the package versions below.
@@ -42,7 +42,7 @@ pip \
 # When changing remember to also bump HLEDGER_INSTALL_VERSION.
 # Official:
 HLEDGER_LIB_VERSION=1.30
-HLEDGER_VERSION=1.30
+HLEDGER_VERSION=1.30.1
 HLEDGER_UI_VERSION=1.30
 HLEDGER_WEB_VERSION=1.30
 # Third-party:
