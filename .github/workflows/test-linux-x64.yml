@@ -240,6 +240,11 @@ jobs:
         #  --ghc-options=-split-sections --no-terminal
       if: env.CONTINUE
 
+    - name: Check embedded files
+      run: |
+        tools/checkembeddedfiles
+      if: env.CONTINUE
+
     - name: Install shelltestrunner
       env:
         stack: ${{ matrix.plan.stack }}
