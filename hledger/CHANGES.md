@@ -21,7 +21,7 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
-# 1382fbc75
+# 1.30 2023-06-01
 
 Breaking changes
 
@@ -29,21 +29,6 @@ Breaking changes
   Previously, inner empty lines were not being skipped automatically.
   You might need to adjust the `skip` count in some CSV rules files.
   (#2024)
-
-- Certain reporting flags now toggle on/off if repeated. (Experimental)
-  This can be useful for overriding defaults in command line scripts,
-  since you can now turn a flag off as well as on. The flags which
-  can be toggled are:
-
-      --invert
-      --transpose
-      -r/--related
-      -%/--percent
-      -E/--empty
-      -N/--no-total
-      -T/--row-total
-      -A/--average
-      -S/--sort-amount
 
 - Timedot format now generates a single multi-posting transaction per
   date line, and supports comments and tags on all lines.

@@ -21,7 +21,7 @@ API
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# d146b8350
+# 1.30 2023-06-01
 
 Features
 
