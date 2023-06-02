@@ -451,7 +451,7 @@ shellcompletions: $(call def-help,shellcompletions, update shell completions in 
 ###############################################################################
 $(call def-help-subheading,TESTING:)
 
-test: functest bench \
+test: embeddedfilestest functest bench \
 	$(call def-help,test, run default tests: functional tests (including unit tests) and benchmarks )
 
 # For quieter tests add --silent. It may hide troubleshooting info.
@@ -460,6 +460,9 @@ STACKTEST=$(STACK) test --fast
 # When doing build testing, save a little time and output noise by not
 # running tests & benchmarks. Comment this out if you want to run them.
 SKIPTESTSBENCHS=--no-run-tests --no-run-benchmarks
+
+embeddedfilestest: $(call def-help,embeddedfilestest, check all files embedded with file-embed are declared in extra-source-files)
+	tools/checkembeddedfiles
 
 buildplantest: $(call def-help,buildplantest, stack build --dry-run all hledger packages ensuring an install plan with default snapshot) \
 	buildplantest-stack.yaml
