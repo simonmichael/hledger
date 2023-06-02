@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# Print current version strings for visual checking.
+
+rg="rg --sort=path --no-heading -HN"
+
+echo
+echo ".versions:"
+$rg '[0-9]+(\.[0-9]+)+' -- ./.version
+$rg '[0-9]+(\.[0-9]+)+' -- hledger-lib/.version
+$rg '[0-9]+(\.[0-9]+)+' -- hledger/.version
+$rg '[0-9]+(\.[0-9]+)+' -- hledger-ui/.version
+$rg '[0-9]+(\.[0-9]+)+' -- hledger-web/.version
+$rg '[0-9]+(\.[0-9]+)+' -- hledger-lib/.version.m4
+$rg '[0-9]+(\.[0-9]+)+' -- hledger/.version.m4
+$rg '[0-9]+(\.[0-9]+)+' -- hledger-ui/.version.m4
+$rg '[0-9]+(\.[0-9]+)+' -- hledger-web/.version.m4
+
+echo
+echo "package-yamls:"
+$rg -i 'version[=: "]+[0-9.]+' -- hledger-lib/package.yaml
+echo
+$rg -i 'version[=: "]+[0-9.]+' -- hledger/package.yaml
+echo
+$rg -i 'version[=: "]+[0-9.]+' -- hledger-ui/package.yaml
+echo
+$rg -i 'version[=: "]+[0-9.]+' -- hledger-web/package.yaml
+
+echo
+echo "cabal-files:"
+$rg -i '(^|-D)version[=: "]+[0-9.]+' -- hledger-lib/hledger-lib.cabal
+echo
+$rg -i '(^|-D)version[=: "]+[0-9.]+' -- hledger/hledger.cabal
+echo
+$rg -i '(^|-D)version[=: "]+[0-9.]+' -- hledger-ui/hledger-ui.cabal
+echo
+$rg -i '(^|-D)version[=: "]+[0-9.]+' -- hledger-web/hledger-web.cabal
+
+echo
+echo "manuals:"
+$rg -o '\.TH.*"hledger-[0-9.]+ *"' -- hledger/hledger.1
+$rg -io 'This manual is for.*version ([0-9.]+)' -- hledger/hledger.info
+$rg -io 'This +manual +is +for.*version ([0-9.]+)' -- hledger/hledger.txt
+$rg -io 'This manual is for.*version ([0-9.]+)' -- hledger/hledger.md
+echo
+$rg -o '\.TH.*"hledger-ui-[0-9.]+ *"' -- hledger-ui/hledger-ui.1
+$rg -io 'This manual is for.*version ([0-9.]+)' -- hledger-ui/hledger-ui.info
+$rg -io 'This +manual +is +for.*version ([0-9.]+)' -- hledger-ui/hledger-ui.txt
+$rg -io 'This manual is for.*version ([0-9.]+)' -- hledger-ui/hledger-ui.md
+echo
+$rg -o '\.TH.*"hledger-web-[0-9.]+ *"' -- hledger-web/hledger-web.1
+$rg -io 'This manual is for.*version ([0-9.]+)' -- hledger-web/hledger-web.info
+$rg -io 'This +manual +is +for.*version ([0-9.]+)' -- hledger-web/hledger-web.txt
+$rg -io 'This manual is for.*version ([0-9.]+)' -- hledger-web/hledger-web.md
+
+echo
+echo "site:"
+$rg -o 'CURRENT_RELEASE=.*' site/Makefile
+$rg --color=always 'build3-[0-9]+' site/Makefile | tail -1
+$rg '@make -s build3-[0-9]+' site/Makefile
+echo
+$rg 'currentrelease *=.*' site/js/site.js
+$rg -o --color=always '<a href="/[0-9.]+/' site/js/site.js | head -1
+echo
+$rg -o 'The current hledger release is \*\*[0-9.]+\*\*' site/src/install.md
+
+echo
+echo "hledger-install:"
+$rg '^HLEDGER(_\w+)?_VERSION=[0-9.]+' hledger-install/hledger-install.sh
