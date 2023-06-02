@@ -66,3 +66,9 @@ $rg -o 'The current hledger release is \*\*[0-9.]+\*\*' site/src/install.md
 echo
 echo "hledger-install:"
 $rg '^HLEDGER(_\w+)?_VERSION=[0-9.]+' hledger-install/hledger-install.sh
+
+echo
+echo "downloaded-binaries:"
+~/Downloads/hledger --version
+~/Downloads/hledger-ui --version
+~/Downloads/hledger-web --version
