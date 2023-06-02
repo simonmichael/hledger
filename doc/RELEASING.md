@@ -350,12 +350,13 @@ In site repo:
 #### Prepare announcements
 (major/notable bugfix release)
 
-In release branch:
+In release branch, update
 
-- update `doc/ANNOUNCE` (major release)
+- `doc/ANNOUNCE` (major release)
   - summary, contributors from release notes
   - any other edits
-  - commit: `;doc: announce`
+- `doc/ANNOUNCE.masto`
+- commit: `;doc: announce NEW`
 
 #### Announce
 (major/bugfix release)
@@ -391,13 +392,7 @@ In release branch:
 - commit
 
 #### Push master
-in main repo, master branch:
-- pass CI checks in dev branch:
-  - ensure latest commit will trigger CI (does not begin with semicolon) (?)
-  - `git push github master:simon` or magit `P e github/simon`, with `-f` if needed
-  - wait for CI success at http://ci.hledger.org
-- `git push github master` or magit `P u`
-
+in main repo, master branch: `push`
 #### Post-release followup
 - monitor packaging status, update install page
   - docker - expect/merge PR
@@ -405,7 +400,7 @@ in main repo, master branch:
   - nix - expect `make nix-hledger-version` to update after a few days, find and update to that commit hash
   - linux distros - once in a while, follow the links & search for newer versions, update
 - provide support, monitor issues
-- prepare followup releases if needed
+- prepare followup release(s) as needed
 - update process docs and tools
 
 #### Update stackage
