@@ -31,6 +31,11 @@ jobs:
     - name: Confirm all remaining steps should run
       run: echo "CONTINUE=true" >> $GITHUB_ENV
 
+    - name: Check embedded files
+      run: |
+        tools/checkembeddedfiles
+      if: env.CONTINUE
+
     # things to be cached/restored:
 
     - name: Cache stack global package db
