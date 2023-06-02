@@ -130,7 +130,7 @@ To do a release, start at the bottom of the diagram and work up
 
 ### LEVEL 2 - TEST
 
-Give it a few shakes.
+Shake it.
 
 #### Up-to-date tools
 - ./Shake is up to date
@@ -300,7 +300,7 @@ In site repo:
 
 - js/site.js: add NEW, 3 places
 - Makefile: add NEW, 2 places
-- commit: `manuals: add NEW`
+- commit: `manuals: NEW`
 - make snapshot-NEW (after ensuring main repo has been release-tagged)
 - push
 
