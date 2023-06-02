@@ -36,6 +36,10 @@ extra-source-files:
     hledger.1
     hledger.txt
     hledger.info
+    embeddedfiles/add.cast
+    embeddedfiles/balance.cast
+    embeddedfiles/install.cast
+    embeddedfiles/print.cast
     embeddedfiles/hledger.1
     embeddedfiles/hledger.txt
     embeddedfiles/hledger.info
@@ -58,6 +62,7 @@ extra-source-files:
     Hledger/Cli/Commands/Close.txt
     Hledger/Cli/Commands/Codes.txt
     Hledger/Cli/Commands/Commodities.txt
+    Hledger/Cli/Commands/Demo.txt
     Hledger/Cli/Commands/Descriptions.txt
     Hledger/Cli/Commands/Diff.txt
     Hledger/Cli/Commands/Files.txt
