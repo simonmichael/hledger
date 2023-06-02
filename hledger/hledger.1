@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "May 2023" "hledger-1.29.99 " "hledger User Manuals"
+.TH "HLEDGER" "1" "June 2023" "hledger-1.30.99 " "hledger User Manuals"
 
 
 
@@ -27,7 +27,7 @@ hledger is inspired by and largely compatible with ledger(1), and
 largely interconvertible with beancount(1).
 .PP
 This manual is for hledger\[aq]s command line interface, version
-1.29.99.
+1.30.99.
 It also describes the common options, file formats and concepts used by
 all hledger programs.
 It might accidentally teach you some bookkeeping/accounting as well!
@@ -499,11 +499,6 @@ Feel free to skip this section until you need it.
 .PP
 If options are repeated in a command line, hledger will generally use
 the last (right-most) occurence.
-Some of the boolean flags will toggle if repeated; these include:
-\f[V]--invert\f[R], \f[V]--transpose\f[R], \f[V]-r/--related\f[R],
-\f[V]-%/--percent\f[R], \f[V]-E/--empty\f[R], \f[V]-N/--no-total\f[R],
-\f[V]-T/--row-total\f[R], \f[V]-A/--average\f[R], and
-\f[V]-S/--sort-amount\f[R].
 .SS Special characters
 .SS Single escaping (shell metacharacters)
 .PP
@@ -10057,6 +10052,9 @@ the account to transfer to/from can be changed with
 .IP \[bu] 2
 the accounts to be closed/opened can be changed with \f[V]ACCTQUERY\f[R]
 (account query arguments).
+.IP \[bu] 2
+the closing/opening dates can be changed with \f[V]-e DATE\f[R] (a
+report end date)
 .PP
 By default just one destination/source posting will be used, with its
 amount left implicit.
@@ -10076,10 +10074,9 @@ This could be useful for troubleshooting.
 .PP
 The default closing date is yesterday, or the journal\[aq]s end date,
 whichever is later.
-You can change this by specifying a report end date; (The report start
-date does not matter.)
-The last day of the report period will be the closing date; eg
-\f[V]-e 2022\f[R] means \[dq]close on 2022-12-31\[dq].
+You can change this by specifying a report end date with \f[V]-e\f[R].
+The last day of the report period will be the closing date, eg
+\f[V]-e 2024\f[R] means \[dq]close on 2023-12-31\[dq].
 The opening date is always the day after the closing date.
 .SS close and balance assertions
 .PP
@@ -10309,21 +10306,25 @@ Tips:
 .PP
 Make your terminal window large enough to see the demo clearly.
 .PP
+Use the -s/--speed SPEED option to set your preferred playback speed, eg
+\f[V]-s4\f[R] to play at 4x original speed or \f[V]-s.5\f[R] to play at
+half speed.
+The default speed is 2x.
+.PP
+Other asciinema options can be added following a double dash, eg
+\f[V]-- -i.1\f[R] to limit pauses or \f[V]-- -h\f[R] to list
+asciinema\[aq]s other options.
+.PP
 During playback, several keys are available: SPACE to pause/unpause, .
 to step forward (while paused), CTRL-c quit.
-.PP
-asciinema options can be added following a double dash, such as
-\f[V]-s N\f[R] to adjust speed and \f[V]-i SECS\f[R] to limit pauses.
-Run \f[V]asciinema -h\f[R] to list these options.
 .PP
 Examples:
 .IP
 .nf
 \f[C]
-$ hledger demo                      # list available demos
-$ hledger demo 1                    # play the first demo
-$ hledger demo install -- -s5 -i.5  # play the install demo at 5x speed,
-                                    # with pauses limited to half a second
+$ hledger demo               # list available demos
+$ hledger demo 1             # play the first demo at default speed (2x)
+$ hledger demo install -s4   # play the \[dq]install\[dq] demo at 4x speed
 \f[R]
 .fi
 .SS descriptions

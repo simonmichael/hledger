@@ -11,7 +11,7 @@ SYNOPSIS
        hledger web -- [--serve|--serve-api] [OPTS] [ARGS]
 
 DESCRIPTION
-       This  manual is for hledger's web interface, version 1.29.99.  See also
+       This  manual is for hledger's web interface, version 1.30.99.  See also
        the hledger manual for common concepts and file formats.
 
        hledger is a robust, user-friendly, cross-platform set of programs  for
@@ -571,4 +571,4 @@ SEE ALSO
 
 
 
-hledger-web-1.29.99                May 2023                     HLEDGER-WEB(1)
+hledger-web-1.30.99                June 2023                    HLEDGER-WEB(1)

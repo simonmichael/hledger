@@ -16,7 +16,7 @@ hledger-web - robust, friendly plain text accounting (Web version)
    'hledger-web [--serve|--serve-api] [OPTS] [ARGS]'
 'hledger web -- [--serve|--serve-api] [OPTS] [ARGS]'
 
-   This manual is for hledger's web interface, version 1.29.99.  See
+   This manual is for hledger's web interface, version 1.30.99.  See
 also the hledger manual for common concepts and file formats.
 
    hledger is a robust, user-friendly, cross-platform set of programs
