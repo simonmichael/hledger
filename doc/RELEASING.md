@@ -65,7 +65,10 @@ Here are some definitions, useful eg when executing or automating release proced
 | *package*                           | A releasable unit of Haskell software. hledger has several core packages usually released together: hledger-lib, hledger, hledger-ui, hledger-web.                                                                                                                                                                                                                                                                         |
 | *hledger version number*            | A 2-4 part dotted number naming a hledger release or hledger package version: `MA.JOR[.MINOR[.FIXUP]]` or `MA.JOR.99[.PREVIEW]` where 99 means "unreleased (MAJOR+1)". See examples below.                                                                                                                                                                                                                                 |
 | *hledger version string*            | A line of text describing a hledger binary, shown by `--version`. It contains program name, version number, commit hash and date, machine architecture etc. Eg: `hledger 1.24.1-g7799d526b-20211210, mac-x86_64`                                                                                                                                                                                                           |
-| *Complete, partial, mixed releases* | A release of all the core hledger packages (hledger-lib, hledger, hledger-ui, hledger-web) is called *complete*. A release of only some of the core packages is called *partial*. A release where some packages have different versions (because of a previous partial release) is called *mixed*. Major and preview releases are always complete, bugfix and fixup releases can be partial and/or mixed.                  |
+| *Complete release*                  | A release of all four core hledger packages (hledger-lib, hledger, hledger-ui, hledger-web). Major and preview releases are always complete.
+| *Partial release*                   | A release of just some of the hledger packages. Bugfix and fixup releases are sometimes partial.
+| *Single-version release*            | A release where all packages have the same version. Major and preview releases are always single-version.
+| *Mixed-version release*             | A release where the packages have different versions, because of a previous partial release. Bugfix and fixup releases are sometimes mixed-version.
 | *changelog*                         | A CHANGES.md file listing the release history and the changes in each release. There is one for each hledger package and one for the hledger project as a whole.                                                                                                                                                                                                                                                           |
 | *release notes*                     | The Release Notes page on the hledger website: the combined release history of the core hledger packages, showing user visible changes only.                                                                                                                                                                                                                                                                               |
 |                                     | **hledger release/build types**                                                                                                                                                                                                                                                                                                                                                                                            |
@@ -171,67 +174,66 @@ See [CHANGELOGS](CHANGELOGS.md).
 
 ### LEVEL 3 - RELEASE DOCS
 
-Bake it ? Try `bash -x ./bake prep VERSION` next time. Warning, avoid possible bug with being in master instead. Does a bunch of stuff including partly finalising changelogs.
+#### Release branch and version number
+- Bake it: `./bake prep NEW 
+  - NEW is `MA.JOR[.MINOR|.99.PREVIEWNUM]` (eg 1.24.99.1 for 1.25 preview 1)
+  - creates release branch if needed
+  - sets version numbers (Shake setversion)
+  - partly finalises changelogs (Shake changelogs)
+  - for troubleshooting can use bash -x PAUSE=1 ECHO=1  ...
+  - "avoid possible bug with being in master instead" (?)
+  - "seems to go wrong without PAUSE" (?)
 
-#### Release branch
-
-Bugfix/fixup release:
-- switch to release branch, cherry pick changes from master
-
-Preview/major release:
-- `PAUSE=1 ECHO=1 ./bake prep MA.JOR[.99.PREVIEWNUM]` (eg 1.24.99.1 for 1.25 preview 1)
-  (XXX seems to go wrong without PAUSE`)
-- clean up changelogs, amend changelogs commit (see also [CHANGELOGS](CHANGELOGS.md))
-- cherry pick changes from master (if needed)
-  - list changes in three side-by-side magit windows
-    - 1. NEW IN MASTER: `l o MAJORVER-branch..master`, `M-x magit-toggle-buffer-lock`, `M-x toggle-window-dedicated` (`C-c D`)
-    - 2. HEAD: regular magit status view
-    - 3. RELEASE BRANCH: `l o MAJORVER-branch`, `M-x magit-toggle-buffer-lock`, `M-x toggle-window-dedicated`
-  - in master window, working from bottom upward, cherry-pick all non-conflicting changes
-    - skip changes already in release branch
-    - skip changelog, command help, and manuals updates
-- release branch testing
+### Select commits for release
+- cherry pick desirable commits from master (if needed)
+  - eg fancy workflow:
+    - list changes in three side-by-side magit windows
+      - 1. NEW IN MASTER: `l o MAJORVER-branch..master`, `M-x magit-toggle-buffer-lock`, `M-x toggle-window-dedicated` (`C-c D`)
+      - 2. HEAD: regular magit status view
+      - 3. RELEASE BRANCH: `l o MAJORVER-branch`, `M-x magit-toggle-buffer-lock`, `M-x toggle-window-dedicated`
+    - in master window, working from bottom upward, cherry-pick all non-conflicting changes
+      - skip changes already in release branch
+      - skip changelog, command help, and manuals updates
+- do release branch testing ?
   - `stack build --test`
   - `make functest`
 
-#### Release version number
-- Choose new version (NEW): MA.JOR, MA.JOR.MINOR, or MA.JOR.MINOR.FIXUP
-- In release branch do `./Shake setversion -c NEW`
-
 #### Release changelogs
-- add release version/date headings manually (or fix `bake prep`, then clean up manually)
+- see also [CHANGELOGS](CHANGELOGS.md)
+- open all changelogs and release notes in emacs 
+- maybe run ./Shake changelogs again
+- manually clean up changelogs
+- manually add release version/date headings (or fix `bake prep`)
 
 #### Release notes
 In site repo, update `src/release-notes.md`:
-- copy template, uncomment
-- replace date
-- replace XX with NEW
+- copy template from top comment
+- replace date and XX
 - add new content from changelogs, excluding hledger-lib
-- remove any empty sections
 - add contributors, `git shortlog -sn OLD..NEW`
-- add summary (major release) or remove it (bugfix release)
-- site repo commit: `relnotes: NEW`
+- for a major release, add highlights
+- clean up
+- commit: `relnotes: NEW`
 
 ### LEVEL 4 - RELEASE BINARIES
 
 #### Release build tests
-  - touch/change Version.hs to encourage recompilation
+  - touch/change Version.hs to encourage recompilation (?)
   - `stack build`
   - `stack exec -- hledger --version`, check version, hash, release date, no '+'
   - `stack exec -- hledger help | tail`, check version, month matches release
 
 #### Platform CI tests
 Multi-platform CI tests:
-- push to `github/binaries` (or `./bake bin`)
-- resolve failures
-- wait for green on all platforms
+- `./bake bin` (push to `github/binaries`)
+- wait for green on all platforms, resolve failures
 
 #### Release binaries
 Once all platform CI tests are green:
 - in local downloads dir, delete any zip files from last release
 - in each successful platform job: right click, Download linked file
-- unpack the zip file for local platform
-- on that same commit, build native local binaries:
+- unpack the github binaries for the local platform
+- build native binaries for the local platform (on that same commit):
   - `make install-as-VERSION`
 
 #### hledger-install script
