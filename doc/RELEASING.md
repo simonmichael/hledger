@@ -48,7 +48,7 @@ Here's the ideal release schedule:
 
 
 ## Glossary
-Here are some definitions, useful eg when executing or automating release procedures.
+Here is some terminology used in this doc. These form a domain language that we use for precision and shared understanding when working with the hledger release process.
 
 |                                     |                                                                                                                                                                                                                                                                                                                                                                                                                            |
 |-------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -137,7 +137,7 @@ Shake it.
 
 #### Up-to-date tools
 - ./Shake is up to date
-  - Shake.hs uses same resolver, extra deps etc. as stack.yaml
+  - Shake.hs uses same resolver/extra deps as stack.yaml, hledger-install.sh
   - Shake binary is up to date (`./Shake.hs`)
   - commit any changes (message: "tools: shake")
 
