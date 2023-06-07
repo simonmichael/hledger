@@ -228,7 +228,7 @@ transactionAddInferredEquityPostings verbosetags equityAcct t =
 
 type IdxPosting = (Int, Posting)
 
--- WARNING: twisty code ahead
+-- XXX WARNING, the following code is twisty and hard to follow
 
 -- | Add costs inferred from equity postings in this transaction.
 -- For every adjacent pair of conversion postings, it will first search the postings
@@ -240,62 +240,88 @@ type IdxPosting = (Int, Posting)
 -- the costful and conversion postings, but don't add costs.
 transactionInferCostsFromEquity :: Bool -> M.Map AccountName AccountType -> Transaction -> Either String Transaction
 transactionInferCostsFromEquity dryrun acctTypes t = first (annotateErrorWithTransaction t . T.unpack) $ do
-    (conversionPairs, stateps) <- partitionAndCheckConversionPostings False acctTypes npostings
-    f <- transformIndexedPostingsF (addCostsToPostings dryrun) conversionPairs stateps
-    return t{tpostings = map (snd . f) npostings}
+
+  -- number the postings
+  let npostings = zip [0..] $ tpostings t
+
+  -- Identify all pairs of conversion postings and all other postings (with and without costs) in the transaction.
+  (conversionPairs, otherps) <- partitionAndCheckConversionPostings False acctTypes npostings
+
+  -- Generate a pure function that can be applied to each of this transaction's postings,
+  -- possibly modifying it, to produce the following end result:
+  -- 1. each pair of conversion postings, and the corresponding postings which balance them, are tagged for easy identification
+  -- 2. each pair of balancing postings which did't have an explicit cost, have had a cost calculated and added to one of them
+  -- 3. if any ambiguous situation was detected, an informative error is raised
+  updateposting <- transformIndexedPostingsF (addCostsToPostings dryrun) conversionPairs otherps
+
+  -- And if there was no error, use it to modify the transaction's postings
+  return t{tpostings = map (snd . updateposting) npostings}
+
   where
-    -- Include indices for postings
-    npostings = zip [0..] $ tpostings t
+
+    -- A helper to apply addCostsToPostings to each pair of conversion postings,
+    -- while statefully consuming the other postings.
     transformIndexedPostingsF f = evalStateT . fmap (appEndo . foldMap Endo) . traverse f
 
-    -- Given a pair of indexed conversion postings, and a state consisting of lists of
-    -- costful and costless non-conversion postings, create a function which adds a conversion cost
-    -- to the posting which matches the conversion postings if necessary,
-    -- and tags the conversion and matched postings. Then update the state by removing the
-    -- matched postings. If there are no matching postings or too much ambiguity,
-    -- return an error string annotated with the conversion postings.
-    -- If the first argument is true, do a dry run instead: identify and tag
-    -- the costful and conversion postings, but don't add costs.
+    -- Generate a state-updating function to be used by the above. Approximately:
+    -- given a pair of conversion postings, and two stateful lists representing the remaining 
+    -- costful and costless other postings,
+    -- 1. consume two other postings which match the conversion postings
+    -- 2. add tags to the two conversion postings and the matched other postings
+    -- 3. add an explicit cost, if there is none, to one of matched other postings
+    -- or raise an informative error if ambiguity is found, or do nothing, as appropriate.
+    --
+    -- Or, if the first argument is true, do a dry run instead:
+    -- identify and tag
+    -- the costful and conversion postings, but don't add costs (and if there are no
+    -- costful postings at all, do nothing).
+    --
     addCostsToPostings :: Bool -> (IdxPosting, IdxPosting)
                         -> StateT ([IdxPosting], [IdxPosting]) (Either Text) (IdxPosting -> IdxPosting)
     addCostsToPostings dryrun' ((n1, cp1), (n2, cp2)) = StateT $ \(costps, otherps) -> do
-        -- Get the two conversion posting amounts, if possible
-        ca1 <- conversionPostingAmountNoCost cp1
-        ca2 <- conversionPostingAmountNoCost cp2
-        let -- The function to add costs and tag postings in the indexed list of postings
-            transformPostingF np costp (n,p) =
-              (n, if | n == np            -> costp `postingAddTags` [("_price-matched","")]
-                     | n == n1 || n == n2 -> p     `postingAddTags` [("_conversion-matched","")]
-                     | otherwise          -> p)
-            -- All costful postings which match the conversion posting pair
-            matchingCostPs = mapMaybe (mapM $ costfulPostingIfMatchesBothAmounts ca1 ca2) costps
-            -- All other postings which match at least one of the conversion posting pair.
-            -- Add a corresponding cost to these postings, unless in dry run mode.
-            matchingOtherPs
-              | dryrun'   = [(n,(p, a)) | (n,p) <- otherps, let Just a = postingSingleAmount p]
-              | otherwise = mapMaybe (mapM $ addCostIfMatchesOneAmount ca1 ca2) otherps
+      -- Get the two conversion posting amounts, if possible
+      ca1 <- conversionPostingAmountNoCost cp1
+      ca2 <- conversionPostingAmountNoCost cp2
+      let 
+        -- Approximately: add a cost and/or tag to this posting if appropriate.
+        transformPostingF np costp (n,p) =
+          (n, if | n == np            -> costp `postingAddTags` [("_price-matched","")]
+                  | n == n1 || n == n2 -> p     `postingAddTags` [("_conversion-matched","")]
+                  | otherwise          -> p)
 
-        -- Annotate any errors with the conversion posting pair
-        first (annotateWithPostings [cp1, cp2]) $
-            if -- If a single costful posting matches the conversion postings,
-               -- delete it from the list of costful postings in the state, delete the
-               -- first matching costless posting from the list of costless postings
-               -- in the state, and return the transformation function with the new state.
-               | [(np, (costp, _))] <- matchingCostPs
-               , Just newcostps <- deleteIdx np costps
-                   -> Right (transformPostingF np costp, (if dryrun' then costps else newcostps, otherps))
-               -- If no costful postings match the conversion postings, but some
-               -- of the costless postings match, check that the first such posting has a
-               -- different amount from all the others, and if so add a cost to it,
-               -- then delete it from the list of costless postings in the state,
-               -- and return the transformation function with the new state.
-               | [] <- matchingCostPs
-               , (np, (costp, amt)):nps <- matchingOtherPs
-               , not $ any (amountMatches amt . snd . snd) nps
-               , Just newotherps <- deleteIdx np otherps
-                   -> Right (transformPostingF np costp, (costps, if dryrun' then otherps else newotherps))
-               -- Otherwise it's too ambiguous to make a guess, so return an error.
-               | otherwise -> Left "There is not a unique posting which matches the conversion posting pair:"
+        -- All costful postings which match the conversion posting pair
+        matchingCostPs = mapMaybe (mapM $ costfulPostingIfMatchesBothAmounts ca1 ca2) costps
+
+        -- All other single-commodity postings whose amount matches at least one of the conversion postings,
+        -- with an explicit cost added. Or in dry run mode, all other single-commodity postings.
+        matchingOtherPs
+          | dryrun'   = [(n,(p, a)) | (n,p) <- otherps, let Just a = postingSingleAmount p]
+          | otherwise = mapMaybe (mapM $ addCostIfMatchesOneAmount ca1 ca2) otherps
+
+      -- Annotate any errors with the conversion posting pair
+      first (annotateWithPostings [cp1, cp2]) $
+        if
+          -- If a single costful posting matches the conversion postings,
+          -- delete it from the list of costful postings in the state, delete the
+          -- first matching costless posting from the list of costless postings
+          -- in the state, and return the transformation function with the new state.
+          | [(np, (costp, _))] <- matchingCostPs
+          , Just newcostps <- deleteIdx np costps
+              -> Right (transformPostingF np costp, (if dryrun' then costps else newcostps, otherps))
+
+          -- If no costful postings match the conversion postings, but some
+          -- of the costless postings match, check that the first such posting has a
+          -- different amount from all the others, and if so add a cost to it,
+          -- then delete it from the list of costless postings in the state,
+          -- and return the transformation function with the new state.
+          | [] <- matchingCostPs
+          , (np, (costp, amt)):nps <- matchingOtherPs
+          , not $ any (amountMatches amt . snd . snd) nps
+          , Just newotherps <- deleteIdx np otherps
+              -> Right (transformPostingF np costp, (costps, if dryrun' then otherps else newotherps))
+
+          -- Otherwise it's too ambiguous to make a guess, so return an error.
+          | otherwise -> Left "There is not a unique posting which matches the conversion posting pair:"
 
     -- If a posting with cost matches both the conversion amounts, return it along
     -- with the matching amount which must be present in another non-conversion posting.
