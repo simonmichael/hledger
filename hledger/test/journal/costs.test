@@ -507,51 +507,74 @@ $ hledger -f- print --infer-costs
 
 >=0
 
-# 39. If a conversion pair matches several postings it should throw an error
+# We now tend to just skip cost inference if it doesn't succeed. (#2045)
+
+# # 39. If a conversion pair matches several postings it should throw an error
+# <
+# 2011/01/01
+#     expenses:foreign currency    €100 @@ $135
+#     expenses:foreign trades      €100 @@ $135
+#     equity:conversion                   €-100
+#     equity:conversion                    $135
+#     assets                              €-100
+#     assets                              $-135
+
+# $ hledger -f- print --infer-costs
+# >2 /There is not a unique posting which matches the conversion posting pair/
+# >=1
+
+# # 40. If a conversion pair does not match it should throw an error
+# <
+# 2011/01/01
+#     expenses:foreign currency            €120
+#     equity:conversion                   €-100
+#     equity:conversion                    $135
+#     assets:extra                          $20
+#     assets                               €-20
+#     assets                              $-155
+
+# $ hledger -f- print --infer-costs
+# >2 /There is not a unique posting which matches the conversion posting pair/
+# >=1
+
+# # 41. Multiple conversion pairs which match a single posting should cause an
+# # error, and should not match both ‘sides’ of the conversion
+# <
+# 2011/01/01
+#     expenses:foreign currency            €100
+#     equity:conversion                   €-100
+#     equity:conversion                    $135
+#     equity:conversion                   €-100
+#     equity:conversion                    $135
+#     assets                              $-270
+#     assets                               €100
+
+# $ hledger -f- print --infer-costs
+# >2 /There is not a unique posting which matches the conversion posting pair/
+# >=1
+
+# 39. A multicommodity transaction with conversion postings that we can't
+# automatically match up with the corresponding other postings should be ignored,
+# not an error. (#2045)
 <
-2011/01/01
-    expenses:foreign currency    €100 @@ $135
-    expenses:foreign trades      €100 @@ $135
-    equity:conversion                   €-100
-    equity:conversion                    $135
-    assets                              €-100
-    assets                              $-135
+2023-01-01
+    Expenses:Gift                            HKD 118.00
+    Expenses:Personal                        HKD 118.00
+    Equity:Trading:Currency:INR-HKD:HKD     HKD -236.00
+    Equity:Trading:Currency:INR-HKD:INR       ₹2,150.77
+    Liabilities:Credit-Card                  ₹-2,150.77
 
-$ hledger -f- print --infer-costs
->2 /There is not a unique posting which matches the conversion posting pair/
->=1
+$ hledger -f- print
+2023-01-01
+    Expenses:Gift                            HKD 118.00
+    Expenses:Personal                        HKD 118.00
+    Equity:Trading:Currency:INR-HKD:HKD     HKD -236.00
+    Equity:Trading:Currency:INR-HKD:INR       ₹2,150.77
+    Liabilities:Credit-Card                  ₹-2,150.77
 
-# 42. If a conversion pair does not match it should throw an error
-<
-2011/01/01
-    expenses:foreign currency            €120
-    equity:conversion                   €-100
-    equity:conversion                    $135
-    assets:extra                          $20
-    assets                               €-20
-    assets                              $-155
+>=
 
-$ hledger -f- print --infer-costs
->2 /There is not a unique posting which matches the conversion posting pair/
->=1
-
-# 43. Multiple conversion pairs which match a single posting should cause an
-# error, and should not match both ‘sides’ of the conversion
-<
-2011/01/01
-    expenses:foreign currency            €100
-    equity:conversion                   €-100
-    equity:conversion                    $135
-    equity:conversion                   €-100
-    equity:conversion                    $135
-    assets                              $-270
-    assets                               €100
-
-$ hledger -f- print --infer-costs
->2 /There is not a unique posting which matches the conversion posting pair/
->=1
-
-# 44. We can combine ‘other’ amounts into one posting, if they still match up.
+# 40. We can combine ‘other’ amounts into one posting, if they still match up.
 <
 2011-01-01
     expenses:foreign currency    €100 @ $1.35

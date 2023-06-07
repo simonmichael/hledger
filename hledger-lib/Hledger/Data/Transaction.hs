@@ -320,8 +320,11 @@ transactionInferCostsFromEquity dryrun acctTypes t = first (annotateErrorWithTra
           , Just newotherps <- deleteIdx np otherps
               -> Right (transformPostingF np costp, (costps, if dryrun' then otherps else newotherps))
 
-          -- Otherwise it's too ambiguous to make a guess, so return an error.
-          | otherwise -> Left "There is not a unique posting which matches the conversion posting pair:"
+          -- Otherwise, do nothing, leaving the transaction unchanged.
+          -- We don't want to be over-zealous reporting problems here
+          -- since this is always called at least in dry run mode by
+          -- journalFinalise > journalMarkRedundantCosts. (#2045)
+          | otherwise -> Right (id, (costps, otherps))
 
     -- If a posting with cost matches both the conversion amounts, return it along
     -- with the matching amount which must be present in another non-conversion posting.
