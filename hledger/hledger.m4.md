@@ -4566,15 +4566,25 @@ These are most often [account name](#account-names) substrings:
 
 - [Regular expressions](#regular-expressions) are also supported:
 
-  `"^expenses\b" "accounts (payable|receivable)"`
+  `"^expenses\b"`\
+  `"accounts (payable|receivable)"`
 
 - Add a query type prefix to match other parts of the data:
 
-  `date:202312- desc:amazon cur:USD amt:">100" status:`
+  `date:202312-`\
+  `status:`\
+  `desc:amazon`\
+  `cur:USD`\
+  `"amt:>0"`
 
-- Add a `not:` prefix to negate a term:
+- Add a `not:` prefix to negate:
 
   `not:cur:USD`
+
+- Multiple unlike terms are AND-ed, multiple like terms are OR-ed
+
+  `date:2022 desc:amazon desc:amzn`\
+  (all transactions with "amazon" or "amzn" in description during 2022)
 
 ## Query types
 
@@ -4622,6 +4632,10 @@ Match secondary dates within the specified period (independent of the `--date2` 
 
 **`depth:N`**\
 Match (or display, depending on command) accounts at or above this depth.
+
+**`expr:"TERM AND NOT (TERM OR TERM)"`** (eg)\
+Match with a boolean combination of queries (which must be enclosed in quotes).
+See [Combining query terms](#combining-query-terms) below.
 
 **`note:REGEX`**\
 Match transaction [notes](#payee-and-note)
