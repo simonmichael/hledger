@@ -5,7 +5,8 @@ setEnv "NO_COLOR" "1"
 -- :m +*Hledger.Cli.Commands
 
 -- https://github.com/cdepillabout/pretty-simple
-:set -package pretty-simple
+-- If not using a cabal environment file with pretty-simple added, this adds itK here:
+-- :set -package pretty-simple
 :set -interactive-print=Text.Pretty.Simple.pPrintNoColor
 
 -- ghci commands to be run once at ghci startup
