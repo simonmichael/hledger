@@ -125,7 +125,7 @@ accountTransactionsReport rspec@ReportSpec{_rsReportOpts=ropts} j thisacctq = it
         -- maybe convert these transactions to cost or value
         . journalApplyValuationFromOpts rspec
         . traceOrLogAtWith 5 (("ts2:\n"++).pshowTransactions.jtxns)
-        -- apply any cur:SYM filters in reportq
+        -- apply any cur: or amt: filters in reportq
         . (if queryIsNull amtq then id else filterJournalAmounts amtq)
         -- only consider transactions which match thisacctq (possibly excluding postings
         -- which are not real or have the wrong status)
