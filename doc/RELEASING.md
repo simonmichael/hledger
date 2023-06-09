@@ -121,8 +121,10 @@ To do a release, start at the bottom of the diagram and work up
 - Do releases from a release branch, not from master.
 - All platform binaries should be built from the same commit, the one with the release tags.
 - Binaries' --version shows their git hash and build date; these should match the release tag and release date.                                                   
+### Procedures to achieve...
 
-### LEVEL 1 - DEV
+
+### STATE 1 - STABLE
 
 #### Check dev readiness
 - open issues (bugs), https://bugs.hledger.org
@@ -131,7 +133,7 @@ To do a release, start at the bottom of the diagram and work up
 - https://hledger.org/ROADMAP.html, https://hledger.org/BACKLOG.html
 - personal notes & backlogs
 
-### LEVEL 2 - TEST
+### STATE 2 - DOCUMENTED AND TESTED
 
 Shake it.
 
@@ -172,7 +174,7 @@ See [CHANGELOGS](CHANGELOGS.md).
   - or push to `simon` branch, wait for green at http://ci.hledger.org
   - or `tools/push` (pushes to `simon`, then to `master`)
 
-### LEVEL 3 - RELEASE DOCS
+### STATE 3 - RELEASE DOCUMENTED
 
 #### Release branch and version number
 - Bake it: `./bake prep NEW 
@@ -215,7 +217,7 @@ In site repo, update `src/release-notes.md`:
 - clean up
 - commit: `relnotes: NEW`
 
-### LEVEL 4 - RELEASE BINARIES
+### STATE 4 - RELEASE READY
 
 #### Release build tests
   - touch/change Version.hs to encourage recompilation (?)
@@ -247,7 +249,7 @@ Once all platform CI tests are green:
   `cd; bash ~/src/hledger/hledger-install/hledger-install.sh`
 - commit: `install: NEW`
 
-### LEVEL 5 - RELEASED
+### STATE 5 - RELEASED
 
 #### Pre-release pause
 - stop, go afk, take a break
@@ -306,7 +308,7 @@ In site repo:
 - make snapshot-NEW (after ensuring main repo has been release-tagged)
 - push
 
-### LEVEL 6 - PUBLISHED
+### STATE 6 - PUBLISHED
 
 #### Install page
 (major/bugfix/fixup release)
@@ -347,7 +349,7 @@ In site repo:
   - redirects
     - hledger.org/hledger.html redirects to https://hledger.org/NEW/hledger.html
 
-### LEVEL 7 - ANNOUNCED
+### STATE 7 - DELIVERED
 
 #### Prepare announcements
 (major/notable bugfix release)
