@@ -64,7 +64,7 @@ $ hledger -f- --pivot expenses reg not:liabilities
 2016/02/16 Freifunk
     assets:bank account                                   2 EUR  ; date:03/01
     income:donations                                  -2 EUR
-$ hledger -f- --pivot description reg -M
+$ hledger -f- --pivot desc reg -M
 2016-02   Freifunk                                          -2 EUR        -2 EUR
 2016-03   Freifunk                                           2 EUR             0
 
@@ -85,7 +85,7 @@ $ hledger -f- --pivot code reg -M
 $ hledger -f- --pivot code reg ^income
 2016-02-16 Donation Freifunk    Freifunk                    -2 EUR        -2 EUR
 
-# 9. get expenses balance by description/payee
+# 9. get expenses balance by payee
 <
 2016/02/16 (1138) Auchan | buy a food for tomorrow morning
     assets:bank account
@@ -99,7 +99,7 @@ $ hledger -f- --pivot payee bal --no-total --flat ^expense
               22 EUR  Auchan
                5 EUR  StarBars
 
-# 10. get daily expenses by description/payee
+# 10. get daily expenses by payee
 <
 2016/02/16 (1138) Auchan
     assets:bank account

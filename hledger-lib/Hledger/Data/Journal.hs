@@ -1094,7 +1094,8 @@ pivotComponent :: Text -> Posting -> Text
 pivotComponent fieldortagname p
   |                           fieldortagname == "acct"        = paccount p
   | Just t <- ptransaction p, fieldortagname == "code"        = tcode t
-  | Just t <- ptransaction p, fieldortagname == "description" = tdescription t
+  | Just t <- ptransaction p, fieldortagname == "desc"        = tdescription t
+  | Just t <- ptransaction p, fieldortagname == "description" = tdescription t  -- backward compatible with 1.30 and older
   | Just t <- ptransaction p, fieldortagname == "payee"       = transactionPayee t
   | Just t <- ptransaction p, fieldortagname == "note"        = transactionNote t
   | Just t <- ptransaction p, fieldortagname == "status"      = T.pack . show . tstatus $ t
