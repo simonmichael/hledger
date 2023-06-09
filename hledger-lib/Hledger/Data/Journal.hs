@@ -1092,7 +1092,7 @@ pivotAccount fieldortagname p =
 
 pivotComponent :: Text -> Posting -> Text
 pivotComponent fieldortagname p
-  |                           fieldortagname == "account"     = paccount p
+  |                           fieldortagname == "acct"        = paccount p
   | Just t <- ptransaction p, fieldortagname == "code"        = tcode t
   | Just t <- ptransaction p, fieldortagname == "description" = tdescription t
   | Just t <- ptransaction p, fieldortagname == "payee"       = transactionPayee t
