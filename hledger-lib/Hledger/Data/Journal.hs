@@ -1083,16 +1083,23 @@ transactionPivot fieldortagname t = t{tpostings = map (postingPivot fieldortagna
 -- | Replace this posting's account name with the value
 -- of the given field or tag, if any, otherwise the empty string.
 postingPivot :: Text -> Posting -> Posting
-postingPivot fieldortagname p = p{paccount = pivotedacct, poriginal = Just $ originalPosting p}
-  where
-    pivotedacct
-      | Just t <- ptransaction p, fieldortagname == "code"        = tcode t
-      | Just t <- ptransaction p, fieldortagname == "description" = tdescription t
-      | Just t <- ptransaction p, fieldortagname == "payee"       = transactionPayee t
-      | Just t <- ptransaction p, fieldortagname == "note"        = transactionNote t
-      | Just t <- ptransaction p, fieldortagname == "status"      = T.pack . show . tstatus $ t
-      | Just (_, value) <- postingFindTag fieldortagname p        = value
-      | otherwise                                                 = ""
+postingPivot fieldortagname p =
+  p{paccount = pivotAccount fieldortagname p, poriginal = Just $ originalPosting p}
+
+pivotAccount :: Text -> Posting -> Text
+pivotAccount fieldortagname p =
+  T.intercalate ":" [pivotComponent x p | x <- T.splitOn ":" fieldortagname]
+
+pivotComponent :: Text -> Posting -> Text
+pivotComponent fieldortagname p
+  |                           fieldortagname == "acct"        = paccount p
+  | Just t <- ptransaction p, fieldortagname == "code"        = tcode t
+  | Just t <- ptransaction p, fieldortagname == "description" = tdescription t
+  | Just t <- ptransaction p, fieldortagname == "payee"       = transactionPayee t
+  | Just t <- ptransaction p, fieldortagname == "note"        = transactionNote t
+  | Just t <- ptransaction p, fieldortagname == "status"      = T.pack . show . tstatus $ t
+  | Just (_, value) <- postingFindTag fieldortagname p        = value
+  | otherwise                                                 = ""
 
 postingFindTag :: TagName -> Posting -> Maybe (TagName, TagValue)
 postingFindTag tagname p = find ((tagname==) . fst) $ postingAllTags p

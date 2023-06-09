@@ -117,3 +117,14 @@ $ hledger -f- --pivot payee reg -D ^expense
 2016-02-16   Auchan                                         22 EUR        22 EUR
              StarBars                                        5 EUR        27 EUR
 2016-02-17   Auchan                                         30 EUR        57 EUR
+# 11. pivot on multiple tags
+<
+2023-01-01 compound purchase
+        expenses  10 ; project: job1, kind: equipment
+        expenses  20 ; project: job2, kind: equipment
+        expenses  25 ; project: job2, kind: fee
+        assets
+$ hledger -f- --pivot acct:kind:project bal ^expense -N
+                  10  expenses:equipment:job1
+                  20  expenses:equipment:job2
+                  25  expenses:fee:job2
