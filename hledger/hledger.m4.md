@@ -4742,16 +4742,17 @@ see the discussion at [#1625](https://github.com/simonmichael/hledger/issues/162
 Normally, hledger groups and sums amounts within each account.
 The `--pivot FIELD` option substitutes some other transaction field for account names,
 causing amounts to be grouped and summed by that field's value instead.
-FIELD can be any of the transaction fields `status`, `code`, `description`, `payee`, `note`, or a tag name.
+FIELD can be any of the transaction fields `acct`, `status`, `code`, `description`, `payee`, `note`, or a tag name.
 When pivoting on a tag and a posting has multiple values of that tag, only the first value is displayed.
 Values containing `colon:separated:parts` will be displayed hierarchically, like account names.
+Multiple, colon-delimited fields can be pivoted simultaneously, generating a hierarchical account name.
 
 Some examples:
 
 ```journal
 2016/02/16 Yearly Dues Payment
     assets:bank account                 2 EUR
-    income:dues                        -2 EUR  ; member: John Doe
+    income:dues                        -2 EUR  ; member: John Doe, kind: Lifetime
 ```
 Normal balance report showing account names:
 ```shell
@@ -4780,6 +4781,13 @@ Another way (the acct: query matches against the pivoted "account name"):
 ```shell
 $ hledger balance --pivot member acct:.
               -2 EUR  John Doe
+--------------------
+              -2 EUR
+```
+Hierarchical reports can be generated with multiple pivots:
+```shell
+$ hledger balance Income:Dues --pivot kind:member
+              -2 EUR  Lifetime:John Doe
 --------------------
               -2 EUR
 ```
