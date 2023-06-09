@@ -124,7 +124,7 @@ $ hledger -f- --pivot payee reg -D ^expense
         expenses  20 ; project: job2, kind: equipment
         expenses  25 ; project: job2, kind: fee
         assets
-$ hledger -f- --pivot account:kind:project bal ^expense -N
+$ hledger -f- --pivot acct:kind:project bal ^expense -N
                   10  expenses:equipment:job1
                   20  expenses:equipment:job2
                   25  expenses:fee:job2
