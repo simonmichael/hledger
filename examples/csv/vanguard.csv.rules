@@ -1,0 +1,63 @@
+# Vanguard account csv rules
+
+# No need for a wildcard here - repeated downloads keep the same name,
+# for me with safari at least, unlike with wells fargo csvs.
+source OfxDownload.csv
+
+# Vanguard transactions csv is two csvs concatenated:
+
+# 1. current holdings (and market price and value)
+# Account Number,Investment Name,Symbol,Shares,Share Price,Total Value,
+# Skip this part, which has six fields.
+# (We could generate balance assertions/assignments from it..)
+if ^([^,]*,){6}$
+ skip
+
+# 2. transactions
+# Account Number,Trade Date,Settlement Date,Transaction Type,Transaction Description,Investment Name,Symbol,Shares,Share Price,Principal Amount,Commission Fees,Net Amount,Accrued Interest,Account Type,
+fields Account_Number,Trade_Date,Settlement_Date,Transaction_Type,Transaction_Description,Investment_Name,Symbol,Shares,Share_Price,Principal_Amount,Commission_Fees,Net_Amount,Accrued_Interest,Account_Type,
+# Skip the headings
+if ^Account Number
+ skip
+
+newest-first
+intra-day-reversed
+date %Settlement_Date
+#date-format %m/%d/%Y
+
+account1 JS:assets:brokerage:vg:cash
+currency $
+description vanguard | %Transaction_Description
+
+if
+%Transaction_Type Sweep
+%Transaction_Type Dividend
+ skip
+
+if %Transaction_Type Funds Received
+ account2 JS:assets:bank:wf:bchecking
+ amount %Net_Amount
+
+if %Transaction_Type ^Buy$
+ account2 JS:assets:brokerage:vg:bonds:%Symbol
+ description vanguard | %Transaction_Description %Shares shares of %Investment_Name at $%Share_Price
+ amount1 %Principal_Amount
+ currency2 %Symbol
+ amount2 %Shares
+
+# VANGUARD FEDERAL MONEY MARKET FUND dividend, end of each month
+if %Transaction_Type Reinvestment
+&  %Symbol ^$
+ description vanguard | %Transaction_Description
+ amount %Net_Amount
+ account1 JS:revenues:dividends:VMFXX
+ account2 JS:assets:brokerage:vg:cash
+
+# VANGUARD ESG U S CORP BD ETF dividend, first week of each month, or other times
+if %Transaction_Type Reinvestment
+&  %Symbol VCEB
+ description vanguard | %Transaction_Description
+ account1 JS:revenues:dividends:VCEB
+ account2 JS:assets:brokerage:vg:bonds:VCEB
+ currency2
+ amount2 %Symbol %Shares @ $%Share_Price
