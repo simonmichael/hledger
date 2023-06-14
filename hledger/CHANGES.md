@@ -21,13 +21,29 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
-# 98d53b42e
+# 068cec31e
 
 Breaking changes
 
+- More relaxed multicommodity transaction checking: 
+  hledger 1.29 and 1.30 were over-strict, raiding an error for
+  transactions with equity conversion postings whose matching
+  non-equity postings couldn't be auto-detected, even though otherwise valid.
+  This is no longer considered an error; such transactions are accepted,
+  and --infer-cost has no effect on them. This is similar to the behaviour
+  of --cost, --infer-equity, and --infer-market-prices.
+  (#2045)
+
 Features
 
+- Multipivot: --pivot now accepts multiple colon-delimited arguments,
+  to construct account names from multiple fields.
+  (#2050, Eric Mertens)
+
 Improvements
+
+- With --pivot, `desc` is now the preferred spelling for
+  pivoting on description.
 
 Fixes
 

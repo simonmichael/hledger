@@ -21,7 +21,7 @@ API
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 5410f8795
+# 57cc76ae2
 
 Breaking changes
 

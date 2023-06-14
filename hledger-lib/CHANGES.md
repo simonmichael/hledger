@@ -13,7 +13,7 @@ Misc. changes
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 5410f8795
+# 068cec31e
 
 Breaking changes
 

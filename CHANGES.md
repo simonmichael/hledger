@@ -18,11 +18,13 @@ Infrastructure
 General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
-# fc9908890
+# 0bb4abca2
 
 Scripts/addons
 
 Examples
+
+- RPG ledger (Eric Mertens)
 
 Docs
 
