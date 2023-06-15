@@ -18,7 +18,7 @@ Infrastructure
 General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
-# 0bb4abca2
+# 79a1f1dd9
 
 Scripts/addons
 

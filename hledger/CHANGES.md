@@ -21,7 +21,7 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
-# 068cec31e
+# f660e0327
 
 Breaking changes
 
