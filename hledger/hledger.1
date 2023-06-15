@@ -6341,19 +6341,50 @@ quotes:
 Regular expressions are also supported:
 .RS 2
 .PP
-\f[V]\[dq]\[ha]expenses\[rs]b\[dq] \[dq]accounts (payable|receivable)\[dq]\f[R]
+\f[V]\[dq]\[ha]expenses\[rs]b\[dq]\f[R]
+.PD 0
+.P
+.PD
+\f[V]\[dq]accounts (payable|receivable)\[dq]\f[R]
 .RE
 .IP \[bu] 2
 Add a query type prefix to match other parts of the data:
 .RS 2
 .PP
-\f[V]date:202312- desc:amazon cur:USD amt:\[dq]>100\[dq] status:\f[R]
+\f[V]date:202312-\f[R]
+.PD 0
+.P
+.PD
+\f[V]status:\f[R]
+.PD 0
+.P
+.PD
+\f[V]desc:amazon\f[R]
+.PD 0
+.P
+.PD
+\f[V]cur:USD\f[R]
+.PD 0
+.P
+.PD
+\f[V]\[dq]amt:>0\[dq]\f[R]
 .RE
 .IP \[bu] 2
-Add a \f[V]not:\f[R] prefix to negate a term:
+Add a \f[V]not:\f[R] prefix to negate:
 .RS 2
 .PP
 \f[V]not:cur:USD\f[R]
+.RE
+.IP \[bu] 2
+Multiple unlike terms are AND-ed, multiple like terms are OR-ed
+.RS 2
+.PP
+\f[V]date:2022 desc:amazon desc:amzn\f[R]
+.PD 0
+.P
+.PD
+(all transactions with \[dq]amazon\[dq] or \[dq]amzn\[dq] in description
+during 2022)
 .RE
 .SS Query types
 .PP
@@ -6439,6 +6470,14 @@ Match secondary dates within the specified period (independent of the
 .PD
 Match (or display, depending on command) accounts at or above this
 depth.
+.PP
+\f[B]\f[VB]expr:\[dq]TERM AND NOT (TERM OR TERM)\[dq]\f[B]\f[R] (eg)
+.PD 0
+.P
+.PD
+Match with a boolean combination of queries (which must be enclosed in
+quotes).
+See Combining query terms below.
 .PP
 \f[B]\f[VB]note:REGEX\f[B]\f[R]
 .PD 0
@@ -6584,13 +6623,15 @@ Normally, hledger groups and sums amounts within each account.
 The \f[V]--pivot FIELD\f[R] option substitutes some other transaction
 field for account names, causing amounts to be grouped and summed by
 that field\[aq]s value instead.
-FIELD can be any of the transaction fields \f[V]status\f[R],
-\f[V]code\f[R], \f[V]description\f[R], \f[V]payee\f[R], \f[V]note\f[R],
-or a tag name.
+FIELD can be any of the transaction fields \f[V]acct\f[R],
+\f[V]status\f[R], \f[V]code\f[R], \f[V]desc\f[R], \f[V]payee\f[R],
+\f[V]note\f[R], or a tag name.
 When pivoting on a tag and a posting has multiple values of that tag,
 only the first value is displayed.
 Values containing \f[V]colon:separated:parts\f[R] will be displayed
 hierarchically, like account names.
+Multiple, colon-delimited fields can be pivoted simultaneously,
+generating a hierarchical account name.
 .PP
 Some examples:
 .IP
@@ -6598,7 +6639,7 @@ Some examples:
 \f[C]
 2016/02/16 Yearly Dues Payment
     assets:bank account                 2 EUR
-    income:dues                        -2 EUR  ; member: John Doe
+    income:dues                        -2 EUR  ; member: John Doe, kind: Lifetime
 \f[R]
 .fi
 .PP
@@ -6644,6 +6685,17 @@ name\[dq]):
 \f[C]
 $ hledger balance --pivot member acct:.
               -2 EUR  John Doe
+--------------------
+              -2 EUR
+\f[R]
+.fi
+.PP
+Hierarchical reports can be generated with multiple pivots:
+.IP
+.nf
+\f[C]
+$ hledger balance Income:Dues --pivot kind:member
+              -2 EUR  Lifetime:John Doe
 --------------------
               -2 EUR
 \f[R]

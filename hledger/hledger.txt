@@ -4485,15 +4485,25 @@ Queries
 
        o Regular expressions are also supported:
 
-         "^expenses\b" "accounts (payable|receivable)"
+         "^expenses\b"
+         "accounts (payable|receivable)"
 
        o Add a query type prefix to match other parts of the data:
 
-         date:202312- desc:amazon cur:USD amt:">100" status:
+         date:202312-
+         status:
+         desc:amazon
+         cur:USD
+         "amt:>0"
 
-       o Add a not: prefix to negate a term:
+       o Add a not: prefix to negate:
 
          not:cur:USD
+
+       o Multiple unlike terms are AND-ed, multiple like terms are OR-ed
+
+         date:2022 desc:amazon desc:amzn
+         (all transactions with "amazon" or "amzn" in description during 2022)
 
    Query types
        Here are the types of query term available.  Remember these can also be
@@ -4541,12 +4551,16 @@ Queries
        Match (or display, depending on command)  accounts  at  or  above  this
        depth.
 
+       expr:"TERM AND NOT (TERM OR TERM)" (eg)
+       Match  with a boolean combination of queries (which must be enclosed in
+       quotes).  See Combining query terms below.
+
        note:REGEX
        Match transaction notes (the part of the description right of |, or the
        whole description if there's no |).
 
        payee:REGEX
-       Match transaction payee/payer names (the part of the  description  left
+       Match  transaction  payee/payer names (the part of the description left
        of |, or the whole description if there's no |).
 
        real:, real:0
@@ -4556,11 +4570,11 @@ Queries
        Match unmarked, pending, or cleared transactions respectively.
 
        type:TYPECODES
-       Match  by account type (see Declaring accounts > Account types).  TYPE-
-       CODES is one or more of the single-letter account type  codes  ALERXCV,
+       Match by account type (see Declaring accounts > Account types).   TYPE-
+       CODES  is  one or more of the single-letter account type codes ALERXCV,
        case insensitive.  Note type:A and type:E will also match their respec-
-       tive subtypes C (Cash) and V (Conversion).  Certain  kinds  of  account
-       alias  can  disrupt account types, see Rewriting accounts > Aliases and
+       tive  subtypes  C  (Cash) and V (Conversion).  Certain kinds of account
+       alias can disrupt account types, see Rewriting accounts >  Aliases  and
        account types.
 
        tag:REGEX[=REGEX]
@@ -4576,11 +4590,11 @@ Queries
        o Transactions also acquire the tags of their postings.
 
        (inacct:ACCTNAME
-       A  special  query  term  used  automatically in hledger-web only: tells
+       A special query term used  automatically  in  hledger-web  only:  tells
        hledger-web to show the transaction register for an account.)
 
    Combining query terms
-       When given multiple space-separated query terms, most  commands  select
+       When  given  multiple space-separated query terms, most commands select
        things which match:
 
        o any of the description terms AND
@@ -4601,13 +4615,13 @@ Queries
 
        o match all the other terms.
 
-       We  also  support more complex boolean queries with the 'expr:' prefix.
-       This allows one to combine queries using one of three  operators:  AND,
+       We also support more complex boolean queries with the  'expr:'  prefix.
+       This  allows  one to combine queries using one of three operators: AND,
        OR, and NOT, where NOT is different syntax for 'not:'.
 
        Examples of such queries are:
 
-       o Match  transactions  with  'cool' in the description AND with the 'A'
+       o Match transactions with 'cool' in the description AND  with  the  'A'
          tag
 
          expr:"desc:cool AND tag:A"
@@ -4617,22 +4631,22 @@ Queries
 
          expr:"NOT expenses:food OR tag:A"
 
-       o Match  transactions NOT involving the 'expenses:food' account OR with
-         the 'A' tag AND involving the 'expenses:drink' account.  (the AND  is
+       o Match transactions NOT involving the 'expenses:food' account OR  with
+         the  'A' tag AND involving the 'expenses:drink' account.  (the AND is
          implicitly added by space-separation, following the rules above)
 
          expr:"expenses:food OR (tag:A expenses:drink)"
 
    Queries and command options
-       Some  queries can also be expressed as command-line options: depth:2 is
+       Some queries can also be expressed as command-line options: depth:2  is
        equivalent to --depth 2, date:2023 is equivalent to -p 2023, etc.  When
-       you  mix  command  options and query arguments, generally the resulting
+       you mix command options and query arguments,  generally  the  resulting
        query is their intersection.
 
    Queries and valuation
-       When amounts are converted to other commodities in cost  or  value  re-
-       ports,  cur: and amt: match the old commodity symbol and the old amount
-       quantity, not the new ones (except in hledger  1.22.0  where  it's  re-
+       When  amounts  are  converted to other commodities in cost or value re-
+       ports, cur: and amt: match the old commodity symbol and the old  amount
+       quantity,  not  the  new  ones (except in hledger 1.22.0 where it's re-
        versed, see #1625).
 
    Querying with account aliases
@@ -4640,27 +4654,28 @@ Queries
        will match either the old or the new account name.
 
    Querying with cost or value
-       When amounts are converted to other commodities in cost  or  value  re-
+       When  amounts  are  converted to other commodities in cost or value re-
        ports, note that cur: matches the new commodity symbol, and not the old
-       one, and amt: matches the new quantity, and not  the  old  one.   Note:
-       this  changed  in  hledger 1.22, previously it was the reverse, see the
+       one,  and  amt:  matches  the new quantity, and not the old one.  Note:
+       this changed in hledger 1.22, previously it was the  reverse,  see  the
        discussion at #1625.
 
 Pivoting
-       Normally, hledger groups and sums amounts  within  each  account.   The
-       --pivot  FIELD  option substitutes some other transaction field for ac-
-       count names, causing amounts to be grouped and summed by  that  field's
-       value  instead.   FIELD  can  be  any of the transaction fields status,
-       code, description, payee, note, or a tag name.  When pivoting on a  tag
-       and  a posting has multiple values of that tag, only the first value is
-       displayed.  Values containing colon:separated:parts will  be  displayed
-       hierarchically, like account names.
+       Normally,  hledger  groups  and  sums amounts within each account.  The
+       --pivot FIELD option substitutes some other transaction field  for  ac-
+       count  names,  causing amounts to be grouped and summed by that field's
+       value instead.  FIELD can be any of the transaction fields  acct,  sta-
+       tus,  code,  desc,  payee, note, or a tag name.  When pivoting on a tag
+       and a posting has multiple values of that tag, only the first value  is
+       displayed.   Values  containing colon:separated:parts will be displayed
+       hierarchically, like account names.  Multiple,  colon-delimited  fields
+       can be pivoted simultaneously, generating a hierarchical account name.
 
        Some examples:
 
               2016/02/16 Yearly Dues Payment
                   assets:bank account                 2 EUR
-                  income:dues                        -2 EUR  ; member: John Doe
+                  income:dues                        -2 EUR  ; member: John Doe, kind: Lifetime
 
        Normal balance report showing account names:
 
@@ -4690,6 +4705,13 @@ Pivoting
 
               $ hledger balance --pivot member acct:.
                             -2 EUR  John Doe
+              --------------------
+                            -2 EUR
+
+       Hierarchical reports can be generated with multiple pivots:
+
+              $ hledger balance Income:Dues --pivot kind:member
+                            -2 EUR  Lifetime:John Doe
               --------------------
                             -2 EUR
 
@@ -5604,6 +5626,12 @@ Valuation
        posting     cost           value at re-   value  at posting    value at re-   value      at
        amounts                    port      or   date                 port      or   DATE/today
                                   journal end                         journal end
+
+
+
+
+
+
        summary     summarised     value at pe-   sum  of  postings    value at pe-   value      at
        posting     cost           riod ends      in interval, val-    riod ends      DATE/today
        amounts                                   ued  at  interval
@@ -5617,10 +5645,6 @@ Valuation
        balance
        (bs, bse,
        cf, is)
-
-
-
-
        balance     sums      of   value at re-   value at  posting    value at re-   value      at
        changes     costs          port  end or   date                 port      or   DATE/today of
                                   today     of                        journal  end   sums of post-
@@ -6534,9 +6558,6 @@ PART 4: COMMANDS
                   period end         ues  from  report   from     report   report   start
                                      start  to  period   start to period   to period end
                                      end                 end
-
-
-
        --his-     change      from   sum  of  posting-   period-end        DATE-value  of
        torical    journal start to   date  market val-   value of change   change    from
        /-H        period end (his-   ues from  journal   from    journal   journal  start
