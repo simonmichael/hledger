@@ -105,7 +105,6 @@ usage =
 m4 = "m4 -P"
 makeinfo = "makeinfo -cASCII_PUNCTUATION=1 --no-split --force --no-warn --no-validate"  -- silence makeinfo warnings, comment these to see them
 pandoc   = "pandoc --strip-comments"
-gitcommit = "git commit --allow-empty"
 
 -- We should work with both BSD and GNU sed. Tips:
 -- use [a-z] [0-9] instead of \w \d etc.
@@ -289,9 +288,7 @@ main = do
             -- It should be the same hpack version that's in current stack, to avoid commit conflicts.
             forM_ pkgdirs $ \d -> cmd_ (Cwd d) Shell "hpack --no-hash"
 
-            when commit $ do
-              let msg = ";cabal: update cabal files"
-              cmd Shell gitcommit ("-m '"++msg++"' --") cabalfiles
+            when commit $ commitIfChanged ";cabal: update cabal files" cabalfiles
 
       -- Update version strings in most "source" files to match what's in PKG/.version.
       -- If a version number is provided as first argument, save that in PKG/.version files first.
@@ -327,7 +324,7 @@ main = do
                    Nothing -> ""
                    Just v  -> "to " ++ v
                 ]
-          cmd Shell gitcommit ("-m '"++msg++"' --") specifiedversionfiles dependents
+          commitIfChanged msg $ specifiedversionfiles ++ dependents
 
         gencabalfiles
 
@@ -418,9 +415,9 @@ main = do
               ,txtmanuals
               ,webmanuals
               ]
-        when commit $ do
-          let msg = ";doc: update manuals"
-          cmd Shell gitcommit ("-m '"++msg++"' --") packagemandatem4s nroffmanuals infomanuals infodirentries txtmanuals  -- infodir
+        when commit $
+          commitIfChanged ";doc: update manuals" $
+            concat [packagemandatem4s, nroffmanuals, infomanuals, infodirentries, txtmanuals]  -- infodir
 
       -- Update the dates to show in man pages, to the current month and year.
       -- Currently must be run manually when needed.
@@ -601,9 +598,7 @@ main = do
       -- regenerate Hledger/Cli/Commands/*.txt from the .md source files for CLI help
       phony "cmdhelp" $ do
         need commandtxts
-        when commit $ do
-          let msg = ";doc: update command help"
-          cmd Shell gitcommit ("-m '"++msg++"' --") commandtxts
+        when commit $ commitIfChanged ";doc: update command help" commandtxts
 
       commandtxts |%> \out -> do
         let src = out -<.> "md"
@@ -647,9 +642,7 @@ main = do
       -- update all changelogs with latest commits
       phony "changelogs" $ do
         need changelogs
-        when commit $ do
-          let msg = ";doc: update changelogs"
-          cmd Shell gitcommit ("-m '"++msg++"' --") changelogs
+        when commit $ commitIfChanged ";doc: update changelogs" changelogs
 
       -- [PKG/]CHANGES.md
       -- Add any new non-boring commits to the specified changelog, in
@@ -833,7 +826,13 @@ main>ol>li {
         putNormal "Cleaning shake build cache"
         removeFilesAfter ".shake" ["//*"]
 
-  
+-- Git commit the given files with the given message if they have changes,
+-- otherwise print a no change message and continue.
+commitIfChanged msg files = do
+  diffs <- (/=ExitSuccess) . fromExit <$> cmd Shell "git diff --no-ext-diff --quiet --exit-code --" files
+  if diffs
+  then cmd Shell ("git commit -m '"++msg++"' --") files
+  else liftIO $ putStrLn $ "nothing to commit (\"" ++ msg ++ "\")"
 
 -- Convert numbered man page names to manual names.
 -- hledger.1 -> hledger, hledger_journal.5 -> hledger_journal
