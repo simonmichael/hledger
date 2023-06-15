@@ -17,22 +17,22 @@ Notes for hledger release managers and maintainers.
 - [ ] Make releasing easy
 
 ## Release types
-|                       | Major&nbsp;release<br>A.B      | Bugfix&nbsp;release<br>A.B.C | Fixup&nbsp;release<br>A.B.C.D                | Preview&nbsp;release<br>A.B.99.D         |
-|-----------------------|--------------------------------|------------------------------|----------------------------------------------|------------------------------------------|
-| **Contains:**         | New features, breaking changes | Only bug fixes               | Trivial packaging fixes, no software changes | Early snapshot of the next major release |
-| **When:**             | Third month of quarter: March, June, September, December | When needed                  | Never                                        | First & second months of quarter |
-|                       |                                |                              |                                              |                                          |
-| **Deliverables:**     |                                |                              |                                              |                                          |
-| Changelogs            | ✓                              | ✓                            | ✓                                            | ✓                                        |
-| Github release        | ✓                              | ✓                            | ✓                                            | ✓                                        |
-| Binaries              | ✓                              | ✓                            | ✓                                            | ✓                                        |
-| Hackage release       | ✓                              | ✓                            | ✓                                            |                                          |
-| Install page          | ✓                              | ✓                            | ✓                                            |                                          |
-| hledger-install       | ✓                              | ✓                            | ✓                                            |                                          |
-| [Regression bounty]   | ✓                              | ✓                            | ✓                                            |                                          |
-| Release notes         | ✓                              | ✓                            |                                              |                                          |
-| Web manuals           | ✓                              |                              |                                              |                                          |
-| Announcements         | ✓                              |                              |                                              |                                          |
+|                     | Major&nbsp;release<br>A.B                                | Bugfix&nbsp;release<br>A.B.C | Fixup&nbsp;release<br>A.B.C.D                | Preview&nbsp;release<br>A.B.99.D         |
+|---------------------|----------------------------------------------------------|------------------------------|----------------------------------------------|------------------------------------------|
+| **Contains:**       | New features, breaking changes                           | Only bug fixes               | Trivial packaging fixes, no software changes | Early snapshot of the next major release |
+| **When:**           | Third month of quarter: March, June, September, December | When needed                  | Never                                        | First & second months of quarter         |
+|                     |                                                          |                              |                                              |                                          |
+| **Deliverables:**   |                                                          |                              |                                              |                                          |
+| Changelogs          | ✓                                                        | ✓                            | ✓                                            | ✓                                        |
+| Github release      | ✓                                                        | ✓                            | ✓                                            | ✓                                        |
+| Binaries            | ✓                                                        | ✓                            | ✓                                            | ✓                                        |
+| Hackage release     | ✓                                                        | ✓                            | ✓                                            |                                          |
+| Install page        | ✓                                                        | ✓                            | ✓                                            |                                          |
+| hledger-install     | ✓                                                        | ✓                            | ✓                                            |                                          |
+| [Regression bounty] | ✓                                                        | ✓                            | ✓                                            |                                          |
+| Release notes       | ✓                                                        | ✓                            |                                              |                                          |
+| Web manuals         | ✓                                                        |                              |                                              |                                          |
+| Announcements       | ✓                                                        |                              |                                              |                                          |
 
 [Regression bounty]: http://hledger.org/regressionbounty
 
@@ -103,8 +103,7 @@ These have complex interdependencies and sequencing constraints. Chunk, separate
 ### Map
 
 Here's a map of the value flows/artifacts/dependencies in a hledger release (arrows mean "depends on").
-To do a release, start at the bottom of the diagram and work up
-(and work down through the procedures described below).
+To do a release, start at the bottom of the diagram and work up / start at the top of the procedures described below and work down.
 
 [![release diagram](RELEASING.png)](RELEASING.png)
 <!-- source: RELEASING.canvas (Obsidian) -->
@@ -121,27 +120,22 @@ To do a release, start at the bottom of the diagram and work up
 - Do releases from a release branch, not from master.
 - All platform binaries should be built from the same commit, the one with the release tags.
 - Binaries' --version shows their git hash and build date; these should match the release tag and release date.                                                   
-### Procedures to achieve...
-
 
 ### STATE 1 - STABLE
 
 #### Check dev readiness
-- open issues (bugs), https://bugs.hledger.org
-- open PRs, https://prs.hledger.org
-- project boards, https://github.com/simonmichael/hledger/projects?query=is%3Aopen
-- https://hledger.org/ROADMAP.html, https://hledger.org/BACKLOG.html
-- personal notes & backlogs
+- Any blocking open issues ? https://bugs.hledger.org
+- Any blocking open PRs ? https://prs.hledger.org
+- Any blocking tasks on project boards ? https://github.com/simonmichael/hledger/projects?query=is%3Aopen
+- Any blocking items on https://hledger.org/ROADMAP.html, https://hledger.org/BACKLOG.html ?
+- Any blocking items in personal notes & backlogs ?
 
 ### STATE 2 - DOCUMENTED AND TESTED
 
-Shake it.
-
 #### Up-to-date tools
-- ./Shake is up to date
-  - Shake.hs uses same resolver/extra deps as stack.yaml, hledger-install.sh
-  - Shake binary is up to date (`./Shake.hs`)
-  - commit any changes (message: "tools: shake")
+- Shake.hs uses same resolver, extra deps as stack.yaml, hledger-install.sh
+- Shake binary is up to date (`./Shake.hs`)
+- commit any changes (message: "tools: shake")
 
 #### Up-to-date cabal files
 - `./Shake cabalfiles`
@@ -163,48 +157,42 @@ In main repo, master branch:
 - `./Shake changelogs -c`
 See [CHANGELOGS](CHANGELOGS.md).
 
-#### Passing tests and CI
-- local tests, mimicking CI
-  - `make test`
-  - `make doctest`
-  - `make haddocktest`
-- single-platform CI tests in github main repo master
-  (if needed; not easy for a release branch, multi-platform CI tests will come later)
-  - push to a PR, wait for green
-  - or push to `simon` branch, wait for green at http://ci.hledger.org
-  - or `tools/push` (pushes to `simon`, then to `master`)
+#### Local tests passing
+- `make test`
+- `make doctest`
+- `make haddocktest`
+#### Regular CI tests passing:
+- push to a PR, wait for green
+- or push to `simon` branch, wait for green at http://ci.hledger.org
+- or `tools/push` (pushes to `simon`, then to `master`)
 
 ### STATE 3 - RELEASE DOCUMENTED
 
 #### Release branch and version number
-- Bake it: `./bake prep NEW 
+Create release branch if needed, update all package versions, help, manuals, changelogs (preferred):
+- `./bake prep NEW`
   - NEW is `MA.JOR[.MINOR|.99.PREVIEWNUM]` (eg 1.24.99.1 for 1.25 preview 1)
-  - creates release branch if needed
-  - sets version numbers (Shake setversion)
-  - partly finalises changelogs (Shake changelogs)
-  - for troubleshooting can use bash -x PAUSE=1 ECHO=1  ...
-  - "avoid possible bug with being in master instead" (?)
-  - "seems to go wrong without PAUSE" (?)
+  - for troubleshooting: bash -x PAUSE=1 ECHO=1 bake ...
+  <!-- - "avoid possible bug with being in master instead" (?) -->
+  <!-- - "seems to go wrong without PAUSE" (?) -->
 
-### Select commits for release
+Or, bump version of a subset of packages in an existing release branch (not ideal):
+- `git switch MA.JOR-branch` (magit: `b b MA.JOR-branch`)
+- `./Shake setversion NEW PKGS -c`
+
+#### Select commits for release
 - cherry pick desirable commits from master (if needed)
-  - eg fancy workflow:
-    - list changes in three side-by-side magit windows
-      - 1. NEW IN MASTER: `l o MAJORVER-branch..master`, `M-x magit-toggle-buffer-lock`, `M-x toggle-window-dedicated` (`C-c D`)
-      - 2. HEAD: regular magit status view
-      - 3. RELEASE BRANCH: `l o MAJORVER-branch`, `M-x magit-toggle-buffer-lock`, `M-x toggle-window-dedicated`
-    - in master window, working from bottom upward, cherry-pick all non-conflicting changes
-      - skip changes already in release branch
-      - skip changelog, command help, and manuals updates
-- do release branch testing ?
-  - `stack build --test`
-  - `make functest`
+  - eg fancy workflow: three magit windows:
+    - NEW IN MASTER:  `l o MAJOR-branch..master`, `M-x magit-toggle-buffer-lock`, `M-x toggle-window-dedicated` (`C-c D`)
+    - HEAD:           regular magit status view
+    - RELEASE BRANCH: `l o MAJOR-branch`, `M-x magit-toggle-buffer-lock`, `M-x toggle-window-dedicated`
+    - in master window, working from bottom upward, cherry-pick all non-conflicting changes, skipping already-picked/help/manuals/changelog changes
 
 #### Release changelogs
 - see also [CHANGELOGS](CHANGELOGS.md)
 - open all changelogs and release notes in emacs 
 - maybe run ./Shake changelogs again
-- manually clean up changelogs
+- manually clean up/finalise changelogs
 - manually add release version/date headings (or fix `bake prep`)
 
 #### Release notes
@@ -217,26 +205,24 @@ In site repo, update `src/release-notes.md`:
 - clean up
 - commit: `relnotes: NEW`
 
+#### Release branch tests passing
+- `make test`
+- `stack exec -- hledger --version`, check version, hash, release date, no '+'
+- `stack exec -- hledger help | tail`, check version, month matches release
+
 ### STATE 4 - RELEASE READY
 
-#### Release build tests
-  - touch/change Version.hs to encourage recompilation (?)
-  - `stack build`
-  - `stack exec -- hledger --version`, check version, hash, release date, no '+'
-  - `stack exec -- hledger help | tail`, check version, month matches release
+#### Multi-platform CI tests passing
 
-#### Platform CI tests
-Multi-platform CI tests:
 - `./bake bin` (push to `github/binaries`)
 - wait for green on all platforms, resolve failures
 
 #### Release binaries
-Once all platform CI tests are green:
-- in local downloads dir, delete any zip files from last release
-- in each successful platform job: right click, Download linked file
+With all platform CI tests green on same commit:
+- save native local binaries from that same commit: `make install-as-NEW`
+- clear out any old zip files/binaries from local Downloads dir
+- in each successful platform job: right click the artifact, Download linked file
 - unpack the github binaries for the local platform
-- build native binaries for the local platform (on that same commit):
-  - `make install-as-VERSION`
 
 #### hledger-install script
 (major/bugfix/fixup release)
@@ -252,10 +238,10 @@ Once all platform CI tests are green:
 ### STATE 5 - RELEASED
 
 #### Pre-release pause
-- stop, go afk, take a break
+- stop, afk, take a break
 - review time, energy, availability, decide go/no-go
 
-#### Pre-release tests
+#### Pre-release tests passing
 Sanity checks:
 - appropriate dates/versions in changelogs and release notes (if late in day, watch for time zone issues)
 - hledger-install script
@@ -273,7 +259,6 @@ Sanity checks:
 #### Release tag
 - ensure new version has been set first with Shake or bake
 - ensure no new commits have been made since push to `github/binaries`
-- don't run this in an attempt to make editor tags files
 - in the release branch (?): `make tag`
 
 #### Github release
