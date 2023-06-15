@@ -668,9 +668,10 @@ main = do
       --
       -- The old changelog heading is removed if it was a dev heading;
       -- new commits in PKG not prefixed with semicolon are added;
-      -- and a suitable new heading is added: a release heading if
-      -- the package version looks like a release version, otherwise 
-      -- a dev heading with the current HEAD revision.
+      -- and a dev heading with the current HEAD revision is added.
+      -- -- XXX simplify
+      -- -- and a suitable new heading is added: a release heading if
+      -- -- the package version looks like a release version, otherwise 
       -- 
       -- With -n/--dry-run, print new content to stdout instead of
       -- updating the changelog.
@@ -727,7 +728,8 @@ main = do
             -- the new changelog heading will be a final (dated, versioned) heading if
             -- the configured package version is a new release version (non-dev & non-tagged)
             (newrev, newheading)
-              | isNewRelease packageversion = (toTag packageversion, unwords [packageversion, show date])
+              -- XXX simplify
+              -- | isNewRelease packageversion = (toTag packageversion, unwords [packageversion, show date])
               | otherwise                   = (headrev, headrev)
             newcontent = "# "++newheading++"\n" ++ newitems
             newchangelog =
