@@ -6,10 +6,8 @@ rg="rg --sort=path"
 $rg --version >/dev/null
 
 echo "Checking embedded file declarations:"
-# shellcheck disable=SC2016
-mapfile -t embeddedfiles < <($rg -I '^ +\$\(embedFileRelative "([^"]+)"' -or '$1')
 status=0
-for f in "${embeddedfiles[@]}"; do
+for f in $($rg -I '^ +\$\(embedFileRelative "([^"]+)"' -or '$1'); do
     if output=$($rg -l "$f" -- */package.yaml); then
         printf '%-40s\tdeclared in %s\n' "$f" "$output"
     else
