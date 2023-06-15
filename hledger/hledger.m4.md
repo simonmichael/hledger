@@ -2983,7 +2983,7 @@ It does two things:
    This can be convenient if you are referencing them in other rules,
    so you can say `%SomeField` instead of remembering `%13`.
 
-2. Whenever you use one of the special [hledger field names](#field names) (described below),
+2. Whenever you use one of the special [hledger field names](#field-names) (described below),
    it assigns the CSV value in this position to that hledger field.
    This is the quickest way to populate hledger's fields and build a transaction.
 
