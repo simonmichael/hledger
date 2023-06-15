@@ -67,7 +67,7 @@ printOrDiff opts
 
 diffOutput :: Journal -> Journal -> IO ()
 diffOutput j j' = do
-    let changed = [(originalTransaction t, originalTransaction t') | (t, t') <- zip (jtxns j) (jtxns j'), t /= t']
+    let changed = [(transactionWithMostlyOriginalPostings t, transactionWithMostlyOriginalPostings t') | (t, t') <- zip (jtxns j) (jtxns j'), t /= t']
     T.putStr $ renderPatch $ map (uncurry $ diffTxn j) changed
 
 type Chunk = (SourcePos, [DiffLine Text])

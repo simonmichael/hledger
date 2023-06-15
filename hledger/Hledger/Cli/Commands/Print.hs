@@ -11,9 +11,10 @@ module Hledger.Cli.Commands.Print (
   printmode
  ,print'
  -- ,entriesReportAsText
- ,originalTransaction
+ ,transactionWithMostlyOriginalPostings
 )
 where
+
 
 import Data.List (intersperse)
 import qualified Data.Text as T
@@ -79,28 +80,28 @@ printEntries opts@CliOpts{reportspec_=rspec} j =
 
 entriesReportAsText :: CliOpts -> EntriesReport -> TL.Text
 entriesReportAsText opts =
-    TB.toLazyText . foldMap (TB.fromText . showTransaction . whichtxn)
+    TB.toLazyText . foldMap (TB.fromText . showTransaction . txntransform)
   where
-    whichtxn
-      -- With -x, use the fully-inferred txn with all amounts & txn prices explicit.
+    txntransform
+      -- Use the fully inferred and amount-styled/rounded transaction in the following situations:
+      -- with -x/--explicit:
       | boolopt "explicit" (rawopts_ opts) = id
-      -- With --show-costs, make txn prices explicit.
+      -- with --show-costs:
       | opts ^. infer_costs = id
-      -- Or also, if any of -B/-V/-X/--value are active.
-      -- Because of #551, and because of print -V valuing only one
-      -- posting when there's an implicit txn price.
-      -- So -B/-V/-X/--value implies -x. Is this ok ?
+      -- with -B/-V/-X/--value ("because of #551, and because of print -V valuing only one posting when there's an implicit txn price.")
       | has (value . _Just) opts = id
-      -- By default, use the original as-written-in-the-journal txn.
-      | otherwise = originalTransaction
+      -- Otherwise, keep the transaction's amounts close to how they were written in the journal.
+      | otherwise = transactionWithMostlyOriginalPostings
 
--- Replace this transaction's postings with the original postings if any, but keep the
--- current possibly rewritten account names, and the inferred values of any auto postings
-originalTransaction t = t { tpostings = map originalPostingPreservingAccount $ tpostings t }
+-- | Replace this transaction's postings with the original postings if any, but keep the
+-- current possibly rewritten account names, and the inferred values of any auto postings.
+-- This is mainly for showing transactions with the amounts in their original journal format.
+transactionWithMostlyOriginalPostings :: Transaction -> Transaction
+transactionWithMostlyOriginalPostings = transactionMapPostings postingMostlyOriginal
 
--- Get the original posting if any, but keep the current possibly rewritten account name, and
--- the inferred values of any auto postings
-originalPostingPreservingAccount p = orig
+-- Get the original posting if any, but keep the current (possibly rewritten) account name,
+-- and the amounts of any auto postings.
+postingMostlyOriginal p = orig
     { paccount = paccount p
     , pamount = pamount $ if isGenerated then p else orig }
   where
