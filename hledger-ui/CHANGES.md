@@ -21,8 +21,11 @@ API
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 1.30 2023-06-01
+# de9fc26cd
 
+- Use hledger 1.30.2
+
+# 1.30 2023-06-01
 Features
 
 - A "Cash accounts" screen has been added, showing

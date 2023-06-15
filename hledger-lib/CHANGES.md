@@ -13,6 +13,8 @@ nn
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
+# 3e5163fd3
+
 # 1.30 2023-06-01
 
 Breaking changes

@@ -21,6 +21,20 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
+# de9fc26cd
+
+Fixes
+
+- Accept entries with unmatched equity conversion postings.
+  Since 1.29, we unconditionally run part of the --infer-cost logic to
+  identify redundant costs/equity postings. This was too strict, raising
+  an error whenever it could not find postings matching the equity
+  postings.  Now we do this (and also the explicit --infer-costs
+  operation) as a best effort, leaving transactions unchanged if we
+  can't detect matching postings. This is consistent with
+  --infer-equity, --infer-market-prices, -B and -V.
+  (#2045)
+
 # 1.30.1 2023-06-02
 
 Fixes
