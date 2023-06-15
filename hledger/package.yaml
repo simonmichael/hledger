@@ -113,7 +113,7 @@ dependencies:
 - filepath
 - githash >=0.1.6.2
 - haskeline >=0.6
-- megaparsec >=7.0.0 && <9.4
+- megaparsec >=7.0.0 && <9.5
 #- megaparsec >=9.3 && <9.4
 - microlens >=0.4
 - mtl >=2.2.1
