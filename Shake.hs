@@ -66,7 +66,7 @@ usage =
   let scriptname = "Shake" in replaceRe [re|/Shake|] ('/':scriptname) $
   unlines
     ---------------------------------------79--------------------------------------
-  ["hledger developer scripts. See also: make help"
+  ["Shake: heavy project scripting. See also: make, ./bake"
   ,"Usage:"
   ,"./Shake.hs [CMD [ARGS]]  run CMD, compiling this script first if needed"
   ,"./Shake    [CMD [ARGS]]  run CMD, using the compiled version of this script"

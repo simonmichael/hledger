@@ -7,7 +7,8 @@ set -e
 ################################################################################
 usage() {
     cat <<EOF
-bake - misc project bash scripts, mainly releasing related. Cf Shake.hs, make
+bake - light-medium project scripting (new). See also: make, ./Shake.hs
+
 Commands:
 ./bake              - show this help
 ./bake relfiles     - symlink important files temporarily in .relfiles/

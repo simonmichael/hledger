@@ -43,7 +43,7 @@
 
 # Some calls and dummy targets to augment the default help output.
 # Also, help-SUBSTR and SUBSTR-help targets to show only matching help.
-$(call def-help-heading,Main rules in the hledger project Makefile:)
+$(call def-help-heading,make: light project scripting (old). See also: ./bake; ./Shake.hs)
 $(call def-help-subheading,HELP:)
 dummy1: $(call def-help,[help], list documented rules in this makefile )
 help-%: $(call def-help,help-SECTION, list documented rules containing some string )
