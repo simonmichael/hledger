@@ -528,10 +528,13 @@ functest: hledger/test/addons/hledger-addon \
 		-x ledger-compat/baseline -x ledger-compat/regress -x ledger-compat/collected \
 		&& echo $@ PASSED) || (echo $@ FAILED; false)
 
+# keep shelltest command synced with above
 functest-%: hledger/test/addons/hledger-addon \
 	$(call def-help,functest-PAT, build hledger quickly and run just the functional tests matching PAT )
 	@$(STACK) build --fast hledger
-	@($(SHELLTESTSTK) -w $(FUNCTESTEXE) hledger/test/ -i "$*" \
+	@($(SHELLTESTSTK) -i "$*" -w $(FUNCTESTEXE) \
+		hledger/test/ bin/ \
+		-x ledger-compat/baseline -x ledger-compat/regress -x ledger-compat/collected \
 		&& echo $@ PASSED) || (echo $@ FAILED; false)
 
 ADDONEXTS=pl py rb sh hs lhs rkt exe com bat
