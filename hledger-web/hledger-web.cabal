@@ -177,7 +177,7 @@ library
     , http-client
     , http-conduit
     , http-types
-    , megaparsec >=7.0.0 && <9.4
+    , megaparsec >=7.0.0 && <9.5
     , mtl >=2.2.1
     , network
     , shakespeare >=2.0.2.2

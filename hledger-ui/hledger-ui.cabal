@@ -84,7 +84,7 @@ executable hledger-ui
     , fsnotify ==0.4.*
     , hledger >=1.30.99 && <1.31
     , hledger-lib >=1.30.99 && <1.31
-    , megaparsec >=7.0.0 && <9.4
+    , megaparsec >=7.0.0 && <9.5
     , microlens >=0.4
     , microlens-platform >=0.2.3.1
     , mtl >=2.2.1

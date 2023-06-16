@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.35.1.
+-- This file has been generated from package.yaml by hpack version 0.35.2.
 --
 -- see: https://github.com/sol/hpack
 
@@ -124,7 +124,7 @@ library
     , file-embed >=0.0.10
     , filepath
     , hashtables >=1.2.3.1
-    , megaparsec >=7.0.0 && <9.4
+    , megaparsec >=7.0.0 && <9.5
     , microlens >=0.4
     , microlens-th >=0.4
     , mtl >=2.2.1
@@ -183,7 +183,7 @@ test-suite doctest
     , file-embed >=0.0.10
     , filepath
     , hashtables >=1.2.3.1
-    , megaparsec >=7.0.0 && <9.4
+    , megaparsec >=7.0.0 && <9.5
     , microlens >=0.4
     , microlens-th >=0.4
     , mtl >=2.2.1
@@ -244,7 +244,7 @@ test-suite unittest
     , filepath
     , hashtables >=1.2.3.1
     , hledger-lib
-    , megaparsec >=7.0.0 && <9.4
+    , megaparsec >=7.0.0 && <9.5
     , microlens >=0.4
     , microlens-th >=0.4
     , mtl >=2.2.1
