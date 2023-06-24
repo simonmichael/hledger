@@ -2498,6 +2498,12 @@ $ hledger print --explicit
     (a)         $1 @ €2 = $1 @ €2
 ```
 
+#### Balance assignments and multiple files
+
+Balance assignments handle multiple files [like balance assertions](#assertions-and-multiple--f-files).
+They see balance from other files previously included from the current file,
+but not from previous sibling or parent files.
+
 ### Bracketed posting dates
 
 For setting [posting dates](#posting-dates) and [secondary posting dates](#secondary-dates),
