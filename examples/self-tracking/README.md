@@ -40,6 +40,7 @@ Or by tag, if you added tags like so:
 2020-05-29 09:00 Slept with the window open  ; body:, sleep:
 2020-05-29 09:00 Headaches  ; body:
 ```
+
 ```
 $ hledger -f timedot:b.dat print tag:sleep
 2020-05-29 * 09:00 Slept with the window open  ; body:, sleep:
@@ -58,6 +59,7 @@ $ cat c.tsv
 ```
 
 and use hledger CSV conversion rules to customise and enrich it:
+
 ```
 $ cat c.tsv.rules
 fields date, time, description
@@ -76,6 +78,7 @@ if pizza
 ```
 
 Now you have a (single entry) accounting journal:
+
 ```
 $ hledger -f c.tsv print
 
@@ -91,6 +94,7 @@ $ hledger -f c.tsv print
 ```
 
 Allowing quantity reports:
+
 ```
 $ hledger -f c.tsv balance -MATS cur:cal
 
@@ -102,15 +106,124 @@ Balance changes in 2020-05:
 ------++---------------------------
       || 200 cal  200 cal  200 cal 
 ```
+
 ```
 $ hledger -f c.tsv activity -D desc:headache
 2020-05-28 
 2020-05-29 *
 ```
+
 ```
 $ hledger-bar -v -f c.tsv cur:cal
 2020-05	       200 ++
 ```
+
 ```
 $ hledger-ui --all -f c.tsv   # explore with a TUI
+```
+
+Or, with d.dat:
+
+```
+2023-06-27 06:40 Wakeup
+2023-06-27 06:40 Last_night_sleep_time: 07h21
+2023-06-27 06:40 Last_night_sleep_interruptions: 1
+2023-06-27 06:40 Yesterdays_Steps: 11898
+2023-06-27 08:49 Temperature: 24.8
+2023-06-27 08:49 Humidity: 40%
+2023-06-27 09:21 Take_Iron? No
+2023-06-27 09:21 Take_VitaminD3? No
+```
+
+Convert to character-separated values again (using pipe this time):
+
+```
+$ cat d.dat | perl -pe '$c=0; $c++ while $c < 2 && s/ /|/' | perl -pe 's/: /|/; s/\? /?|/' > d.csv
+$ cat d.csv
+2023-06-27|06:40|Wakeup
+2023-06-27|06:40|Last_night_sleep_time|07h21
+2023-06-27|06:40|Last_night_sleep_interruptions|1
+2023-06-27|06:40|Yesterdays_Steps|11898
+2023-06-27|08:49|Temperature|24.8
+2023-06-27|08:49|Humidity|40%
+2023-06-27|09:21|Take_Iron?|No
+2023-06-27|09:21|Take_VitaminD3?|No
+```
+
+Again, use rules to convert/enrich (or, add more structure in the source data,
+requiring less enrichment):
+
+```
+$ cat d.csv.rules
+separator |
+fields date, time, description, value
+
+comment time:%time
+
+account1 (events)
+comment1 value:%value
+
+amount1  1
+if %value ^[0-9]+$
+ amount1 %value
+if steps
+ amount1 %value steps
+if %value no
+ amount1 0
+if %value yes
+ amount1 1
+
+if
+wake
+sleep
+ account1 (body:sleep)
+
+if
+steps
+ account1 (body:exercise)
+
+if
+iron
+vitamin
+ account1 (body:supplements)
+
+if
+pizza
+ account1 (food)
+ amount1  200 cal
+```
+
+```
+$ hledger -f d.csv print
+2023-06-27 Wakeup  ; time:06:40
+    (body:sleep)               1  ; value:
+
+2023-06-27 Last_night_sleep_time  ; time:06:40
+    (body:sleep)               1  ; value:07h21
+
+2023-06-27 Last_night_sleep_interruptions  ; time:06:40
+    (body:sleep)               1  ; value:1
+
+2023-06-27 Yesterdays_Steps  ; time:06:40
+    (body:exercise)     11898 steps  ; value:11898
+
+2023-06-27 Temperature  ; time:08:49
+    (events)               1  ; value:24.8
+
+2023-06-27 Humidity  ; time:08:49
+    (events)               1  ; value:40%
+
+2023-06-27 Take_Iron?  ; time:09:21
+    (body:supplements)               0  ; value:No
+
+2023-06-27 Take_VitaminD3?  ; time:09:21
+    (body:supplements)               0  ; value:No
+
+```
+
+```
+$ hledger -f d.csv register sleep
+2023-06-27 Wakeup             (body:sleep)                  1             1
+2023-06-27 Last_night_slee..  (body:sleep)                  1             2
+2023-06-27 Last_night_slee..  (body:sleep)                  1             3
 ```
