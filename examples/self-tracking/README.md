@@ -237,7 +237,7 @@ value
 ```
 
 hledger's data model doesn't include time, but we can pivot on the time tag
-and summarise activities by hour each day (eg):
+and take advantage of the colon to summarise activities by hour each day (eg):
 
 ```
 $ hledger -f d.csv print | hledger -f- bal --pivot=time --depth 1 -DAE
