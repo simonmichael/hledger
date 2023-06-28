@@ -5269,8 +5269,8 @@ Con:
 ## Cost tips
 
 - Recording the cost/conversion rate explicitly is good because it makes that clear and helps detect errors.
-- Recording equity postings is good because it is correct bookkeeping and preserves the accounting equation.
-- Combining these is possible.
+- Recording equity postings is good because it is correct bookkeeping and preserves the accounting equation. In practice, most people don't need this and it's a matter of taste.
+- You can do both if you want maximum correctness and utility. Write the @/@@ cost on one of the non-equity postings.
 - When you want to see the cost (or sale proceeds) of things, use `-B` (short form of `--cost`).
 - If you use conversion postings without cost notation, add `--infer-costs` also.
 - If you use cost notation without conversion postings, and you want to see a balanced balance sheet or print correct journal entries, use `--infer-equity`.
