@@ -158,10 +158,9 @@ $ cat d.csv.rules
 separator |
 fields date, time, description, value
 
-comment time:%time
+comment time:%time, value:%value
 
 account1 (events)
-comment1 value:%value
 
 amount1  1
 if %value ^[0-9]+$
@@ -195,35 +194,61 @@ pizza
 
 ```
 $ hledger -f d.csv print
-2023-06-27 Wakeup  ; time:06:40
-    (body:sleep)               1  ; value:
+2023-06-27 Wakeup  ; time:06:40, value:
+    (body:sleep)               1
 
-2023-06-27 Last_night_sleep_time  ; time:06:40
-    (body:sleep)               1  ; value:07h21
+2023-06-27 Last_night_sleep_time  ; time:06:40, value:07h21
+    (body:sleep)               1
 
-2023-06-27 Last_night_sleep_interruptions  ; time:06:40
-    (body:sleep)               1  ; value:1
+2023-06-27 Last_night_sleep_interruptions  ; time:06:40, value:1
+    (body:sleep)               1
 
-2023-06-27 Yesterdays_Steps  ; time:06:40
-    (body:exercise)     11898 steps  ; value:11898
+2023-06-27 Yesterdays_Steps  ; time:06:40, value:11898
+    (body:exercise)     11898 steps
 
-2023-06-27 Temperature  ; time:08:49
-    (events)               1  ; value:24.8
+2023-06-27 Temperature  ; time:08:49, value:24.8
+    (events)               1
 
-2023-06-27 Humidity  ; time:08:49
-    (events)               1  ; value:40%
+2023-06-27 Humidity  ; time:08:49, value:40%
+    (events)               1
 
-2023-06-27 Take_Iron?  ; time:09:21
-    (body:supplements)               0  ; value:No
+2023-06-27 Take_Iron?  ; time:09:21, value:No
+    (body:supplements)               0
 
-2023-06-27 Take_VitaminD3?  ; time:09:21
-    (body:supplements)               0  ; value:No
+2023-06-27 Take_VitaminD3?  ; time:09:21, value:No
+    (body:supplements)               0
 
 ```
 
 ```
 $ hledger -f d.csv register sleep
-2023-06-27 Wakeup             (body:sleep)                  1             1
-2023-06-27 Last_night_slee..  (body:sleep)                  1             2
-2023-06-27 Last_night_slee..  (body:sleep)                  1             3
+2023-06-27 Wakeup               (body:sleep)                     1             1
+2023-06-27 Last_night_sleep_..  (body:sleep)                     1             2
+2023-06-27 Last_night_sleep_..  (body:sleep)                     1             3
+```
+
+Current hledger has a csv tags parsing bug; reparse the conversion to work around:
+```
+$ hledger -f d.csv tags
+
+$ hledger -f d.csv print | hledger -f- tags
+time
+value
+```
+
+hledger's data model doesn't include time, but we can pivot on the time tag
+and summarise activities by hour each day (eg):
+
+```
+$ hledger -f d.csv print | hledger -f- bal --pivot=time --depth 1 -DAE
+
+Balance changes in 2023-06-27:
+
+    ||            2023-06-27                Average 
+====++==============================================
+ 06 || 3 events, 11898 steps  3 events, 11898 steps 
+ 08 ||              2 events               2 events 
+ 09 ||                     0                      0 
+----++----------------------------------------------
+    || 5 events, 11898 steps  5 events, 11898 steps 
 ```
