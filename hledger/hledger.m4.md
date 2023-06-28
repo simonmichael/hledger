@@ -5076,8 +5076,8 @@ $ hledger bal -N -B
 ```
 
 The @/@@ cost notation is specific to plain text accounting.
-While convenient, it does not truly balance the transaction,
-so it disrupts the accounting equation, causing a non-zero total in the `balancesheetequity` report.
+While convenient, it does not truly balance the transaction, so it disrupts the accounting equation, 
+often causing a non-zero total in balance reports when you are not using `-B`.
 If this doesn't bother you, you can ignore it.
 
 ## Equity conversion postings
@@ -5089,30 +5089,24 @@ In this style, the above entry might be written:
 ```journal
 2022-01-01 one hundred euros purchased at $1.35 each
     assets:dollars      $-135
+    assets:euros         €100
     equity:conversion    $135
     equity:conversion   €-100
-    assets:euros         €100
 ```
 
 hledger can do cost reporting with this kind of entry too, but you must add the `--infer-costs` flag:
 
-```journal
-2022-01-01
-    assets:dollars            $-135
-    equity:conversion          $135
-    equity:conversion         €-100
-    assets:euros               €100
-```
 ```shell
 $ hledger print --infer-costs
-2022-01-01
+2022-01-01 one hundred euros purchased at $1.35 each
     assets:dollars       $-135 @@ €100
+    assets:euros                  €100
     equity:conversion             $135
     equity:conversion            €-100
-    assets:euros                  €100
+
 ```
 ```shell
-$ hledger bal -N -B --infer-costs
+$ hledger bal -N --infer-costs -B
                €-100  assets:dollars
                 €100  assets:euros
 ```
@@ -5137,7 +5131,7 @@ $ hledger print --infer-equity
 
 You can customise the generated "equity:conversion" account names by declaring an account with the [V/Conversion account type](#account-types).
 
-Finally, you can record both the cost and the equity postings, explicitly and redundantly so no inference is needed.
+Finally, you can record both the cost and the equity postings explicitly, so no inference is needed.
 This gives correctness, clarity, and more flexibility in how you write the entry, at the cost of being more verbose:
 
 ```journal
@@ -5158,13 +5152,14 @@ $ hledger print -x --infer-costs --infer-equity
 `--infer-costs` will have an effect only when:
 
 - There are two non-equity postings, in different commodities
-- And two equity postings, next to one another, which exactly balance the above, using equity accounts.
+- And two postings to equity accounts, next to one another, which exactly balance the above.
   Equity accounts are accounts declared with account type `V`/`Conversion`,
   or named `equity:conversion`, `equity:trade`, `equity:trading`,
   or subaccounts of these.
-- The order of postings is significant: the cost will be added to the
-  first of the non-equity postings, in the commodity of the last
-  non-equity posting.
+
+The order of postings is significant: the cost will be added to the
+first of the non-equity postings, in the commodity of the second
+non-equity posting.
 
 Multiple such conversions can coexist within a single transaction.
 
@@ -5184,8 +5179,7 @@ and let us know what problems you find.
 ## Conversion entries in detail
 
 Once more, in still more detail.
-Essentially there are four ways to record a conversion transaction in hledger.
-Here they are, with pros and cons:
+Essentially there are four ways to record a conversion transaction in hledger:
 
 ### Conversion with implicit cost
 
