@@ -1,0 +1,35 @@
+separator |
+fields date, time, description, value
+
+comment time:%time, value:%value
+
+account1 (events)
+
+amount1  1 events
+if %value ^[0-9]+$
+ amount1 %value events
+if steps
+ amount1 %value steps
+if %value no
+ amount1 0 events
+if %value yes
+ amount1 1 events
+
+if
+wake
+sleep
+ account1 (body:sleep)
+
+if
+steps
+ account1 (body:exercise)
+
+if
+iron
+vitamin
+ account1 (body:supplements)
+
+if
+pizza
+ account1 (food)
+ amount1  200 cal
