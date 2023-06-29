@@ -5046,7 +5046,7 @@ In practice, most PTA users don't need to balance the accounting equation, so me
 Conversion to cost is performed before valuation (described below).
 
 The rest of this section provides more detail,
-as does [hledger Cookbook > Cost notation](cost-notation.md).
+as does [hledger Cookbook > Cost notation](/cost-notation.md).
 
 ## Equity conversion postings
 
