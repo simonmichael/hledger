@@ -34,7 +34,7 @@ extra-source-files:
 dependencies:
 - base >=4.14 && <4.19
 - base-compat
-- aeson >=1
+- aeson >=1 && <2.3
 - aeson-pretty
 - ansi-terminal >=0.9
 - array

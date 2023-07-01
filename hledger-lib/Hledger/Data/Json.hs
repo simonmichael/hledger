@@ -2,6 +2,7 @@
 JSON instances. Should they be in Types.hs ?
 -}
 
+{-# LANGUAGE CPP               #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -67,7 +68,13 @@ instance (Integral a, ToJSON a) => ToJSON (DecimalRaw a) where
   toJSON = object . decimalKV
   toEncoding = pairs . mconcat . decimalKV
 
-decimalKV :: (KeyValue kv, Integral a, ToJSON a) => DecimalRaw a -> [kv]
+decimalKV :: (
+#if MIN_VERSION_aeson(2,2,0)
+  KeyValue e kv,
+#else
+  KeyValue kv,
+#endif
+  Integral a, ToJSON a) => DecimalRaw a -> [kv]
 decimalKV d = let d' = if decimalPlaces d <= 10 then d else roundTo 10 d in
     [ "decimalPlaces"   .= decimalPlaces d'
     , "decimalMantissa" .= decimalMantissa d'
@@ -102,7 +109,13 @@ instance ToJSON Posting where
   toJSON = object . postingKV
   toEncoding = pairs . mconcat . postingKV
 
-postingKV :: KeyValue kv => Posting -> [kv]
+postingKV ::
+#if MIN_VERSION_aeson(2,2,0)
+  KeyValue e kv
+#else
+  KeyValue kv
+#endif
+  => Posting -> [kv]
 postingKV Posting{..} =
     [ "pdate"             .= pdate
     , "pdate2"            .= pdate2
@@ -144,7 +157,13 @@ instance ToJSON Account where
   toJSON = object . accountKV
   toEncoding = pairs . mconcat . accountKV
 
-accountKV :: KeyValue kv => Account -> [kv]
+accountKV ::
+#if MIN_VERSION_aeson(2,2,0)
+  KeyValue e kv
+#else
+  KeyValue kv
+#endif
+  => Account -> [kv]
 accountKV a =
     [ "aname"        .= aname a
     , "aebalance"    .= aebalance a
