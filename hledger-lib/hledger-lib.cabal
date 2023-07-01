@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.35.2.
+-- This file has been generated from package.yaml by hpack version 0.35.1.
 --
 -- see: https://github.com/sol/hpack
 
@@ -27,7 +27,7 @@ license:        GPL-3
 license-file:   LICENSE
 build-type:     Simple
 tested-with:
-    GHC==8.10.7, GHC==9.0.2, GHC==9.2.7, GHC==9.4.4
+    GHC==8.10.7, GHC==9.0.2, GHC==9.2.8, GHC==9.4.5, GHC==9.6.2
 extra-source-files:
     CHANGES.md
     README.md
@@ -102,7 +102,7 @@ library
   build-depends:
       Decimal >=0.5.1
     , Glob >=0.9
-    , aeson >=1
+    , aeson >=1 && <2.3
     , aeson-pretty
     , ansi-terminal >=0.9
     , array
@@ -160,7 +160,7 @@ test-suite doctest
   build-depends:
       Decimal >=0.5.1
     , Glob >=0.7
-    , aeson >=1
+    , aeson >=1 && <2.3
     , aeson-pretty
     , ansi-terminal >=0.9
     , array
@@ -221,7 +221,7 @@ test-suite unittest
   build-depends:
       Decimal >=0.5.1
     , Glob >=0.9
-    , aeson >=1
+    , aeson >=1 && <2.3
     , aeson-pretty
     , ansi-terminal >=0.9
     , array

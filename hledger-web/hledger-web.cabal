@@ -28,7 +28,7 @@ license:        GPL-3
 license-file:   LICENSE
 build-type:     Simple
 tested-with:
-    GHC==8.10.7, GHC==9.0.2, GHC==9.2.4
+    GHC==8.10.7, GHC==9.0.2, GHC==9.2.8, GHC==9.4.5
 extra-source-files:
     CHANGES.md
     README.md
@@ -154,7 +154,7 @@ library
   cpp-options: -DVERSION="1.30.99"
   build-depends:
       Decimal >=0.5.1
-    , aeson >=1
+    , aeson >=1 && <2.3
     , base >=4.14 && <4.19
     , base64
     , blaze-html
