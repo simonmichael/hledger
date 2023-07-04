@@ -4991,7 +4991,7 @@ There are four ways to record conversion transactions
 	In entries like this, the order of postings is significant: the
 	first posting is given a cost in the commodity of the second.
 
-2. You can record the cost on one of the amounts with @ or @@ as described in [JOURNAL > Costs](#costs).
+2. You can record the cost on one of the amounts with @ or @@ as described in [Journal > Costs](#costs).
     This improves readability and adds redundancy which helps hledger detect errors.
 
     a. You can write the per-unit cost with @, which requires more attention to decimal places to make the transaction balance,
