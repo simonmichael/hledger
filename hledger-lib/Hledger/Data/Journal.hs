@@ -26,7 +26,7 @@ module Hledger.Data.Journal (
   commodityStylesFromAmounts,
   journalCommodityStyles,
   journalToCost,
-  journalAddInferredEquityPostings,
+  journalInferEquityFromCosts,
   journalInferCostsFromEquity,
   journalMarkRedundantCosts,
   journalReverse,
@@ -915,14 +915,15 @@ journalToCost cost j@Journal{jtxns=ts} = j{jtxns=map (transactionToCost styles c
   where
     styles = journalCommodityStyles j
 
--- | Add inferred equity postings to a 'Journal' using transaction prices.
-journalAddInferredEquityPostings :: Bool -> Journal -> Journal
-journalAddInferredEquityPostings verbosetags j = journalMapTransactions (transactionAddInferredEquityPostings verbosetags equityAcct) j
+-- | Add equity postings inferred from costs, where needed and possible.
+-- See hledger manual > Cost reporting.
+journalInferEquityFromCosts :: Bool -> Journal -> Journal
+journalInferEquityFromCosts verbosetags j = journalMapTransactions (transactionAddInferredEquityPostings verbosetags equityAcct) j
   where
     equityAcct = journalConversionAccount j
 
 -- | Add costs inferred from equity conversion postings, where needed and possible.
--- See hledger manual > Inferring cost from equity postings.
+-- See hledger manual > Cost reporting.
 journalInferCostsFromEquity :: Journal -> Either String Journal
 journalInferCostsFromEquity j = do
     ts <- mapM (transactionInferCostsFromEquity False $ jaccounttypes j) $ jtxns j
