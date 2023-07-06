@@ -1,0 +1,180 @@
+#!/usr/bin/env bash
+# * tt - time scripts, see below
+# ** PREAMBLE
+# Customise as needed; consider keeping as a git checkout for merging updates.
+# Uses hledger, bash, python, a few other unix tools.
+# wakelog is a script grepping system logs for sleep/wake events; provide it or comment it.
+
+## #!/usr/bin/env -S osh  # -*- sh -*-  # or osh - more powerful, less tool support
+## shopt -s -errexit strict:all 2>/dev/null || set -e
+
+# shellcheck shell=bash disable=SC2096 disable=SC2317
+
+set -e
+
+rg="rg -IN --sort=path"
+date=$(if [ "$(builtin type -p gdate)" ]; then echo gdate; else echo date; fi)
+sed=$(if  [ "$(builtin type -p gsed)"  ]; then echo gsed;  else echo sed;  fi)
+stat=$(if [ "$(builtin type -p gstat)" ]; then echo gstat; else echo stat; fi)
+
+help() { # show this help
+    line
+    cat <<EOF
+--------------------------------------------------------------------------------
+tt - time tool: run time reports and time-related scripts
+Usage: tt [COMMAND [ARGS]]
+Commands:
+$($rg '^\w.*\(\) *\{ *#' "$0" | $sed -e 's/() *{//' | column -t -s'#')
+OTHERCMD     [ARGS] run other hledger commands on \$TIMELOG
+EOF
+}
+
+#DIR=${FINDIR:-~/finance}
+DIR=$(dirname "$TIMELOG")
+cd "$DIR"
+
+# The file where actual time data is logged, for dashboard's stats.
+# This might or might not be the top-level $TIMELOG file.
+#TIMELOGDATA=$TIMELOG
+YEAR=$($date +%Y)
+TIMELOGDATA="$DIR"/time-"$YEAR".timedot
+
+
+# ** REPORTS ------------------------------------------------------------
+
+# This redisplays only when a file listed by `hledger -f $TIMELOG files` is modified.
+# To force a per minute display as well, have $TIMELOG include a dummy file (.update)
+# and configure a cron job to touch that every minute.
+# (This is better than touching the timelog file itself, which confuses editors.)
+#
+dash() { # show time dashboard, redisplaying when timelog files change
+    dir=$(dirname "$TIMELOG")
+    cd "$dir"
+    opts= #--poll=10  # <- uncomment to fix symlinked files being ignored
+    # shellcheck disable=SC2086
+    watchexec $opts --no-vcs-ignore --filter-file=<(hledger -f "$TIMELOG" files | sed -E "s|$dir/||g") -c -r tt status
+}
+
+# dash-1m() { # show time dashboard, redisplaying every minute with watch
+#     watch -n60 -c tt status
+# }
+
+status() { # show current time status
+    curtime=$($date +'%H:%M %Z, %a %b %-e %Y')
+    modtime=$($date +'%H:%M %Z' -r "$TIMELOGDATA")
+    modsecs=$($stat -c %Y "$TIMELOGDATA")
+    nowsecs=$($date +%s)
+    agesecs=$((nowsecs - modsecs))
+    agemins=$(python3 -c "print($agesecs/60)")
+    agehrs=$(python3 -c "print($agesecs/3600.0)")
+    ageqtrhrs=$(python3 -c "print(round($agesecs/900.0))")
+    agedots=$(dots "$ageqtrhrs")
+    printf "Current time:  %s\n" "$curtime"
+    # for osh, whose printf doesn't support floating point yet: env runs the system printf
+    env printf "Timelog saved: %s, %.0fm / %.1fh / %s ago\n" "$modtime" "$agemins" "$agehrs" "$agedots"
+
+    # Show the current day/week/month budget status.
+    printf "Time plans:\n"
+    # cf budgets()
+    # calculate each period's budget from daily budget
+    hledger -f "$TIMELOG" bal -1 -p 'daily today'        --budget=Daily | tail +2
+    hledger -f "$TIMELOG" bal -1 -p 'weekly this week'   --budget=Daily | tail +2
+    hledger -f "$TIMELOG" bal -1 -p 'monthly this month' --budget=Daily | tail +2
+    # or use each period's specific budget
+    # hledger -f "$TIMELOG" bal -p 'daily today'        --budget=Daily   -1 | tail +2
+    # hledger -f "$TIMELOG" bal -p 'weekly this week'   --budget=Weekly  -1 | tail +2
+    # hledger -f "$TIMELOG" bal -p 'monthly this month' --budget=Monthly -1 | tail +2
+
+    echo
+    hledger -f "$TIMELOG" check -s tags ordereddates || true
+
+    # this comes last because it's slow and variable length
+    echo
+    printf "Display activity:\n"
+    wakelog today | tail -n 6
+}
+
+what() { # what happened ? Show largest balances first, today and depth 1 by default
+    hledger -f "$TIMELOG" bal -S -1 -p today "$@"
+}
+
+dots() { # print line of N dots, grouped in 4s (suitable for timedot)
+    n="$1"
+    ndiv4=$((n/4))
+    nmod4=$((n-n/4*4))
+    sep=''
+    while [[ $ndiv4 -gt 0 ]]; do ndiv4=$((ndiv4-1)); echo -n "$sep...."; sep=' '; done
+    while [[ $nmod4 -gt 0 ]]; do nmod4=$((nmod4-1)); echo -n "$sep."; sep=''; done
+    echo
+}
+
+#RFLAGS=-tMTA
+RFLAGS=-tM
+
+x() { # horizontal time summary this year, monthly by default
+    hledger -f "$TIMELOG" bal -1 "$RFLAGS" "$@"
+}
+
+y() { # vertical time summary this year, monthly by default
+    hledger -f "$TIMELOG" bal -1 "$RFLAGS" --transpose "$@"
+}
+
+rweeks() { # recent weeks' time budgets
+    printf "\nPast weeks:\n"
+    timeweekly past
+}
+
+weeks() { # this and last week's time budgets
+    printf "\nLast week, this week:\n"
+    timeweekly run
+}
+
+unused() { # unused & undeclared account names
+    echo "Unused: (but declared)"
+    hledger -f "$TIMELOG" acc --unused "$@" --directives | gsed -E 's/:(.)/.\1/g'
+    echo
+    echo "Undeclared: (but used)"
+    hledger -f "$TIMELOG" acc --undeclared "$@" --directives | gsed -E 's/:(.)/.\1/g'
+}
+
+unusedcat() { # unused & undeclared account names by category
+    for a in $(tt acc -1); do line; echo "$a":; tt unused "^$a"; echo; done; line
+}
+
+# Budget reports. cf status()
+
+budgets() { # show monthly time budget performance this year
+    x --budget=daily -M -p jan..tomorrow "$@"
+}
+
+budgetsy() { # show monthly time budget performance this year, vertically
+    # cf status()
+    y --budget=daily -M -p jan..tomorrow "$@"
+}
+
+# dedicated commands needed to set proper week start date for simple headings:
+budgetsw() { # show weekly time budget performance this year
+    # cf status()
+    y --budget=daily -W -p 3/27..tomorrow "$@"
+}
+
+budgetswx() { # show weekly time budget performance this year, horizontally
+    # cf status()
+    x --budget=daily -W -p 3/27..tomorrow "$@"
+}
+
+addacc() { # add declarations for all undeclared accounts
+    # shellcheck disable=SC2094
+    hledger -f "$TIMELOG" accounts --undeclared --directives | sed 's/:/./g' >>"$TIMELOG"
+}
+
+hours() { # show a bar chart of daily hours
+    hledger-bar -v 1 -f "$TIMELOG" -D "$@"
+}
+
+# ** END
+
+if [[ $# -eq 0 ]]; then help                  # no args shows help
+elif declare -f "$1" > /dev/null; then "$@";  # arg 1 selects a function above
+else hledger -f "$TIMELOG" "$@"; fi           # or fall through to hledger
+exit

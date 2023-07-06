@@ -1,0 +1,161 @@
+#!/usr/bin/env bash
+# * ft - financial scripts, see below
+# ** PREAMBLE
+# shellcheck shell=bash disable=SC2317
+# Customise as needed; consider keeping as a git checkout for merging updates.
+
+set -e
+
+rg="rg -IN --sort=path"
+date=$(if [ "$(builtin type -p gdate)" ]; then echo gdate; else echo date; fi)
+sed=$(if [ "$(builtin type -p gsed)" ]; then echo gsed; else echo sed; fi)
+
+help() { # show this help
+    cat <<EOF
+--------------------------------------------------------------------------------"; }
+ft - finance tool: run financial reports and finance-related scripts
+Usage: ft [COMMAND [ARGS]]
+Commands:
+$($rg '^\w.*\(\) *\{ *#' "$0" | $sed -e 's/() *{//' | column -t -s'#')
+OTHERCMD               [ARGS] run other hledger commands on the default journal
+
+Add hledger options to customise reports.
+EOF
+}
+# '(...|# \*\* [^#].*)' -or '$3 $1|$2'
+
+# The main hledger file to import to and report on. It should exist.
+JOURNAL="$LEDGER_FILE"
+
+#DIR=${FINDIR:-~/finance}
+DIR=$(dirname "$JOURNAL")
+cd "$DIR"
+
+PERIOD="1/1..tomorrow"
+TODAY=$($date +%Y-%m-%d)
+#TODAY=$(TZ=UTC $date +%Y-%m-%d)
+#YEAR=$($date +%Y)
+
+# ** IMPORT TXNS ------------------------------------------------------------
+
+# where to import most hledger transactions from
+IMPORTFILES=(\
+    bank1-checking.csv.rules \
+    bank1-savings.csv.rules  \
+    paypal.csv \
+    )
+
+# hledger .rules files(/globs) used for IMPORTFILES
+IMPORTRULESFILES=$($sed -Ee 's/.csv /.csv.rules /g' <<< "${IMPORTFILES[*]}")
+IMPORTRULESFILES+=(common.rules unify.rules wf.rules wf*checking.rules wf*savings.rules)
+
+get-csv() { # download auto-downloadable CSVs (paypal)
+    paypaljson | paypaljson2csv > paypal.csv
+}
+
+import-dry() {  # import new downloaded transactions to the journal, dry run
+    hledger -f "$JOURNAL" import "${IMPORTFILES[@]}" --dry-run
+}
+
+import() {  # import new downloaded transactions to the journal, logging and not printing errors
+    date >>import.log
+    hledger -f "$JOURNAL" import "${IMPORTFILES[@]}" 2>>import.log || echo "Failed, check import.log"
+    echo "Use ledger-mode's M-q to align entries."
+}
+
+# ** IMPORT PRICES ------------------------------------------------------------
+
+get-prices() {  # [PRICEHISTFETCHOPTS] - download prices for main commodities (default: today's)
+    (pricehist fetch -o ledger -s "$TODAY" alphavantage EUR/USD "$@" | $sed -E 's/EUR/€/') &
+    (pricehist fetch -o ledger -s "$TODAY" alphavantage GBP/USD "$@" | $sed -E 's/GBP/£/') &
+    (pricehist fetch -o ledger -s "$TODAY" alphavantage JPY/USD "$@" | $sed -E 's/JPY/¥/')
+    # Parallelised for speed; do slowest last.
+    # Output order varies, can be sorted with LC_COLLATE=C.UTF-8 sort or hledger -f- prices.
+}
+
+# ** REPORTS ------------------------------------------------------------
+# **** general ------------------------------------------------------------
+
+bs() { # show balance sheet
+    hledger -f "$JOURNAL" bs --layout bare --pretty --drop 1 -p "$PERIOD" -E -5 "$@"
+}
+
+is() { # show income statement
+    hledger -f "$JOURNAL" is --layout bare --pretty --drop 1 -p "$PERIOD" -S "$@"
+}
+
+a() { # show assets
+    hledger -f "$JOURNAL" bal type:al -H --layout bare --pretty --drop 1 -p "$PERIOD" -E "$@"
+}
+
+r() { # show revenues
+    hledger -f "$JOURNAL" bal type:r --layout bare --pretty --drop 1 -p "$PERIOD" -S --invert "$@"
+}
+
+x() { # show expenses
+    hledger -f "$JOURNAL" bal type:x --layout bare --pretty --drop 1 -p "$PERIOD" -S --invert "$@"
+}
+
+ab() { # show assets bar chart
+    echo "Quarterly net worth:"
+    hledger-bar -v 200 -f "$JOURNAL" -Q type:al -H "$@"
+}
+
+rb() { # show revenues bar chart
+    echo "Quarterly revenues:"
+    hledger-bar -v 40 -f "$JOURNAL" -Q type:r --invert "$@"
+}
+
+xb() { # show expenses bar chart
+    echo "Quarterly expenses:"
+    hledger-bar -v 40 -f "$JOURNAL" -Q type:x --invert "$@"
+}
+
+# XXX with partial workaround for https://github.com/gooofy/drawilleplot/issues/4
+al() { # show assets line chart
+    hledger -f "$JOURNAL" plot -- bal --depth=1 ^assets   --historical  --terminal --rcParams '{"figure.figsize":[8,3]}' --no-today -q --title "hledger assets" "$@" | $sed 's/⠀/ /g'
+}
+
+rl() { # show revenues line chart
+    hledger -f "$JOURNAL" plot -- bal --depth=1 ^revenues --monthly --invert  --terminal --rcParams '{"figure.figsize":[8,3]}' --drawstyle 'steps-mid' --no-today -q --title "hledger monthly revenues" "$@" | $sed 's/⠀/ /g'
+}
+
+xl() { # show expenses line chart
+    hledger -f "$JOURNAL" plot -- bal --depth=1 ^expenses --monthly --terminal --rcParams '{"figure.figsize":[8,3]}' --drawstyle 'steps-mid' --no-today -q --title "hledger monthly expenses" "$@" | $sed 's/⠀/ /g'
+}
+
+forecast() { # print transactions predicted by forecast rules from last week on
+    hledger print --auto --forecast=lastweek.. -I tag:_generated "$@"
+}
+
+household() {  # show a draft month-end household adjustment transaction for last month
+	env household "$($date -v-1m +%b)"
+}
+
+# **** tax ------------------------------------------------------------
+
+# estimated-tax:
+# 	@echo "Federal estimated tax due for this year"
+# 	$(HLEDGER) register liabilities:personal:tax:federal:$(YEAR) --width=130
+# 	@echo State estimated tax due for this year:
+# 	@$(HLEDGER) register liabilities:personal:tax:state:$(YEAR) --width=130
+# 	@echo
+
+# **** business ------------------------------------------------------------
+
+consulting() { # show consulting revenue
+    hledger -f "$JOURNAL" reg --invert 'revenues:(client1|client2)' -p "$PERIOD" "$@"
+}
+
+# **** other ------------------------------------------------------------
+
+bin() { # [PAT]  show all scripts in $DIR/bin/[bashrc] (default: ~/finance/)
+    env bin "$@"
+}
+
+# ** END
+
+if [[ $# -eq 0 ]]; then help                  # no args shows help
+elif declare -f "$1" > /dev/null; then "$@";  # arg 1 selects a function above
+else hledger -f "$JOURNAL" "$@"; fi           # or fall through to hledger
+exit
