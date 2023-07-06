@@ -72,30 +72,26 @@ $ f
 ft - finance tool: run financial reports and finance-related scripts
 Usage: ft [COMMAND [ARGS]]
 Commands:
-help                   show this help
-get-csv                download auto-downloadable CSVs (paypal)
-import-dry             import new downloaded transactions to the journal, dry run
-import                 import new downloaded transactions to the journal, logging and not printing errors
-get-rewards            show ada staking rewards pages at pooltool for manual download
-import-rewards-dry     import new ada rewards transactions, dry run
-import-rewards         import new ada rewards transactions
-rewards                show ada staking rewards pages, wait for download, then import
-get-prices             [PRICEHISTFETCHOPTS] - download prices for main commodities (default: today's)
-bs                     show balance sheet
-is                     show income statement
-a                      show assets
-r                      show revenues
-x                      show expenses
-ab                     show assets bar chart
-rb                     show revenues bar chart
-xb                     show expenses bar chart
-al                     show assets line chart
-rl                     show revenues line chart
-xl                     show expenses line chart
-forecast               print transactions predicted by forecast rules from last week on
-household              show a draft month-end household adjustment transaction for last month
-consulting             show consulting revenue
-bin                    [PAT]  show all scripts in $DIR/bin/[bashrc] (default: ~/finance/)
+help           show this help
+get-csv        download auto-downloadable CSVs (paypal)
+import-dry     import new downloaded transactions to the journal, dry run
+import         import new downloaded transactions to the journal, logging and not printing errors
+get-prices     [PRICEHISTFETCHOPTS] - download prices for main commodities (default: today's)
+bs             show balance sheet
+is             show income statement
+a              show assets
+r              show revenues
+x              show expenses
+ab             show assets bar chart
+rb             show revenues bar chart
+xb             show expenses bar chart
+al             show assets line chart
+rl             show revenues line chart
+xl             show expenses line chart
+forecast       print transactions predicted by forecast rules from last week on
+household      show a draft month-end household adjustment transaction for last month
+consulting     show consulting revenue
+bin            [PAT]  show all scripts in $DIR/bin/[bashrc] (default: ~/finance/)
 OTHERCMD               [ARGS] run other hledger commands on the default journal
 
 Add hledger options to customise reports.
