@@ -60,6 +60,18 @@ $ . bin/bashrc
 $ fin        # list the scripts available
 ```
 
+### ft
+
+[`ft`](https://github.com/simonmichael/hledger/blob/master/bin/ft)
+is a way to organise small finance-related reports and scripts using standard bash.
+(I alias this to `f`.)
+
+### tt
+
+[`tt`](https://github.com/simonmichael/hledger/blob/master/bin/ft)
+is a similar bash multi-script for time reports.
+(I alias this to `t`.)
+
 ### watchaccounts
 
 [`watchaccounts`](https://github.com/simonmichael/hledger/blob/master/bin/watchaccounts)
