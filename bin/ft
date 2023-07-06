@@ -74,7 +74,7 @@ get-prices() {  # [PRICEHISTFETCHOPTS] - download prices for main commodities (d
 }
 
 # ** REPORTS ------------------------------------------------------------
-# **** general ------------------------------------------------------------
+# *** general ------------------------------------------------------------
 
 bs() { # show balance sheet
     hledger -f "$JOURNAL" bs --layout bare --pretty --drop 1 -p "$PERIOD" -E -5 "$@"
@@ -132,7 +132,7 @@ household() {  # show a draft month-end household adjustment transaction for las
 	env household "$($date -v-1m +%b)"
 }
 
-# **** tax ------------------------------------------------------------
+# *** tax ------------------------------------------------------------
 
 # estimated-tax:
 # 	@echo "Federal estimated tax due for this year"
@@ -141,13 +141,13 @@ household() {  # show a draft month-end household adjustment transaction for las
 # 	@$(HLEDGER) register liabilities:personal:tax:state:$(YEAR) --width=130
 # 	@echo
 
-# **** business ------------------------------------------------------------
+# *** business ------------------------------------------------------------
 
 consulting() { # show consulting revenue
     hledger -f "$JOURNAL" reg --invert 'revenues:(client1|client2)' -p "$PERIOD" "$@"
 }
 
-# **** other ------------------------------------------------------------
+# *** other ------------------------------------------------------------
 
 bin() { # [PAT]  show all scripts in $DIR/bin/[bashrc] (default: ~/finance/)
     env bin "$@"
