@@ -109,24 +109,26 @@ $ t
 tt - time tool: run time reports and time-related scripts
 Usage: tt [COMMAND [ARGS]]
 Commands:
-help         show this help
-dash         show time dashboard, redisplaying when timelog files change
-status       show current time status
-what         what happened ? Show largest balances first, today and depth 1 by default
-dots         print line of N dots, grouped in 4s (suitable for timedot)
-x            horizontal time summary this year, monthly by default
-y            vertical time summary this year, monthly by default
-rweeks       recent weeks' time budgets
-weeks        this and last week's time budgets
-unused       unused & undeclared account names
-unusedcat    unused & undeclared account names by category
-budgets      show monthly time budget performance this year
-budgetsy     show monthly time budget performance this year, vertically
-budgetsw     show weekly time budget performance this year
-budgetswx    show weekly time budget performance this year, horizontally
-addacc       add declarations for all undeclared accounts
-hours        show a bar chart of daily hours
-OTHERCMD     [ARGS] run other hledger commands on $TIMELOG
+help            show this help
+dash            show time dashboard, redisplaying when timelog files change
+status          show current time status
+what            what happened ? Show largest balances first, today and depth 1 by default
+dots            print line of N dots, grouped in 4s (suitable for timedot)
+x               horizontal time summary this year, monthly by default
+y               vertical time summary this year, monthly by default
+rweeks          recent weeks' time budgets
+weeks           this and last week's time budgets
+hours           show a bar chart of daily hours
+accunused       show unused / undeclared accounts
+accunusedcat    show unused / undeclared accounts by category
+accadd          add declarations for all undeclared accounts
+budgets         show monthly time budget performance this year
+budgetsy        show monthly time budget performance this year, vertically
+budgetsw        show weekly time budget performance this year
+budgetswx       show weekly time budget performance this year, horizontally
+OTHERCMD        [ARGS] run other hledger commands on $TIMELOG
+
+Add hledger options to customise reports.
 ```
 
 ### watchaccounts

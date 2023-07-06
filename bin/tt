@@ -24,7 +24,9 @@ tt - time tool: run time reports and time-related scripts
 Usage: tt [COMMAND [ARGS]]
 Commands:
 $($rg '^\w.*\(\) *\{ *#' "$0" | $sed -e 's/() *{//' | column -t -s'#')
-OTHERCMD     [ARGS] run other hledger commands on \$TIMELOG
+OTHERCMD        [ARGS] run other hledger commands on \$TIMELOG
+
+Add hledger options to customise reports.
 EOF
 }
 
@@ -128,7 +130,11 @@ weeks() { # this and last week's time budgets
     timeweekly run
 }
 
-unused() { # unused & undeclared account names
+hours() { # show a bar chart of daily hours
+    hledger-bar -v 1 -f "$TIMELOG" -D "$@"
+}
+
+accunused() { # show unused / undeclared accounts
     echo "Unused: (but declared)"
     hledger -f "$TIMELOG" acc --unused "$@" --directives | gsed -E 's/:(.)/.\1/g'
     echo
@@ -136,8 +142,13 @@ unused() { # unused & undeclared account names
     hledger -f "$TIMELOG" acc --undeclared "$@" --directives | gsed -E 's/:(.)/.\1/g'
 }
 
-unusedcat() { # unused & undeclared account names by category
+accunusedcat() { # show unused / undeclared accounts by category
     for a in $(tt acc -1); do line; echo "$a":; tt unused "^$a"; echo; done; line
+}
+
+accadd() { # add declarations for all undeclared accounts
+    # shellcheck disable=SC2094
+    hledger -f "$TIMELOG" accounts --undeclared --directives | sed 's/:/./g' >>"$TIMELOG"
 }
 
 # Budget reports. cf status()
@@ -160,15 +171,6 @@ budgetsw() { # show weekly time budget performance this year
 budgetswx() { # show weekly time budget performance this year, horizontally
     # cf status()
     x --budget=daily -W -p 3/27..tomorrow "$@"
-}
-
-addacc() { # add declarations for all undeclared accounts
-    # shellcheck disable=SC2094
-    hledger -f "$TIMELOG" accounts --undeclared --directives | sed 's/:/./g' >>"$TIMELOG"
-}
-
-hours() { # show a bar chart of daily hours
-    hledger-bar -v 1 -f "$TIMELOG" -D "$@"
 }
 
 # ** END
