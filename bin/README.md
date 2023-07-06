@@ -99,7 +99,7 @@ Add hledger options to customise reports.
 
 ### tt
 
-[`tt`](https://github.com/simonmichael/hledger/blob/master/bin/ft)
+[`tt`](https://github.com/simonmichael/hledger/blob/master/bin/tt)
 is a similar bash multi-script for time reports.
 
 ```shell
