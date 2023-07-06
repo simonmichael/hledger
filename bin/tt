@@ -18,7 +18,6 @@ sed=$(if  [ "$(builtin type -p gsed)"  ]; then echo gsed;  else echo sed;  fi)
 stat=$(if [ "$(builtin type -p gstat)" ]; then echo gstat; else echo stat; fi)
 
 help() { # show this help
-    line
     cat <<EOF
 --------------------------------------------------------------------------------
 tt - time tool: run time reports and time-related scripts
