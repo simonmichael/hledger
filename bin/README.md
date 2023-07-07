@@ -136,6 +136,7 @@ Add hledger options to customise reports.
 
 <https://github.com/casey/just> is like [make](https://en.wikipedia.org/wiki/Make_(software)), but easier and more suitable for running commands.
 It is a nice tool for organising financial reports and scripts!
+More on [hledger and just](just.md).
 
 Here is a [justfile](https://github.com/simonmichael/hledger/blob/master/bin/justfile)
 reimplementing the `ft` and `tt` scripts more simply:

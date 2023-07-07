@@ -2,21 +2,32 @@
 # * financial reports/scripts, runnable with https://github.com/casey/just
 # (like make but simpler and more suitable for running commands.)
 # ** PREAMBLE ------------------------------------------------------------
-
-PERIOD := "1/1..tomorrow"
-TODAY  := `date +%Y-%m-%d`
+# XXX we don't quote HLEDGERARGS properly, so each one must be free of spaces
 
 just := "just -f " + justfile()
-@_help:
-    {{just}} -lu --list-heading=$'{{ file_name(justfile()) }} commands:\n'
+
+# list the commands available
+@help:
+    {{just}} -lu --list-heading=$'{{ file_name(justfile()) }} commands:\n\
+    HLEDGERARGS can be added to customise reports.\n\
+    NOTCHOOSABLE is a required dummy argument, write - for it. Eg: just browse -\n\
+    '
+
+# interactively pick a command with the default chooser. Eg: just pick -
+pick NOTCHOOSABLE:
+	{{just}} --choose
+
+# interactively view command outputs with fzf and bkt. Eg: just view - --black
+view NOTCHOOSABLE *FZFARGS:
+	{{just}} --choose --chooser="fzf --reverse --preview='bkt --ttl=15m --stale=15s -- just {}' {{FZFARGS}}"
 
 # rerun the given command with watchexec whenever local files change
 watch CMD:
-	watchexec -- {{just}} {{CMD}}
-
-# XXX HLEDGERARGS are not quoted properly; each one should be free of spaces
+    watchexec -- {{just}} {{CMD}}
 
 # ** IMPORT ------------------------------------------------------------
+
+TODAY := `date +%Y-%m-%d`
 
 # where to import most hledger transactions from
 IMPORTFILES := '\
@@ -29,7 +40,7 @@ IMPORTFILES := '\
   '
 
 # download auto-downloadable CSVs (paypal)
-@get-csv:
+@get-csv NOTCHOOSABLE:
     paypaljson | paypaljson2csv > paypal.csv
 
 # import new downloaded transactions to the main journal, dry run
@@ -37,13 +48,13 @@ IMPORTFILES := '\
     hledger import --dry-run {{IMPORTFILES}}
 
 # import new downloaded transactions to the journal, logging and not printing errors
-@import:
+@import NOTCHOOSABLE:
     date >>import.log
     @hledger import {{IMPORTFILES}} 2>>import.log || echo "Failed, check import.log"
     echo "Now use ledger-mode's M-q to align entries."
 
 # show prices for main commodities (default: today's)
-@get-prices *PRICEHISTFETCHOPTS :
+@get-prices NOTCHOOSABLE *PRICEHISTFETCHOPTS :
     (pricehist fetch -o ledger -s {{TODAY}} alphavantage EUR/USD {{PRICEHISTFETCHOPTS}} | sed -E 's/EUR/€/') &
     (pricehist fetch -o ledger -s {{TODAY}} alphavantage GBP/USD {{PRICEHISTFETCHOPTS}} | sed -E 's/GBP/£/') &
     (pricehist fetch -o ledger -s {{TODAY}} alphavantage JPY/USD {{PRICEHISTFETCHOPTS}} | sed -E 's/JPY/¥/')
@@ -51,6 +62,8 @@ IMPORTFILES := '\
     # Output order varies, can be sorted with LC_COLLATE=C.UTF-8 sort or hledger -f- prices.
 
 # ** REPORTS ------------------------------------------------------------
+
+PERIOD := "1/1..tomorrow"
 
 # show balance sheet
 bs *HLEDGERARGS :
@@ -106,18 +119,18 @@ forecast *HLEDGERARGS :
 
 # show a draft month-end household adjustment transaction for last month
 household *HLEDGERARGS :
-	env household "$($date -v-1m +%b)"
+    env household "$($date -v-1m +%b)"
 
 # show consulting revenue
 consulting *HLEDGERARGS :
     hledger reg --invert 'revenues:(cw|ah)' -p {{PERIOD}} {{HLEDGERARGS}}
 
 # estimated-tax *HLEDGERARGS :
-# 	@echo "Federal estimated tax due for this year"
-# 	$(HLEDGER) register liabilities:personal:tax:federal:$(YEAR) --width=130
-# 	@echo State estimated tax due for this year:
-# 	@$(HLEDGER) register liabilities:personal:tax:state:$(YEAR) --width=130
-# 	@echo
+#   @echo "Federal estimated tax due for this year"
+#   $(HLEDGER) register liabilities:personal:tax:federal:$(YEAR) --width=130
+#   @echo State estimated tax due for this year:
+#   @$(HLEDGER) register liabilities:personal:tax:state:$(YEAR) --width=130
+#   @echo
 
 # ** TIME REPORTS ------------------------------------------------------------
 
@@ -135,13 +148,15 @@ TIMELOGDATA := 'time-' + YEAR + '.timedot'
 # (This is better than touching the timelog file itself, which confuses editors.)
 #
 # show time dashboard, redisplaying when timelog files change
-tdash *HLEDGERARGS:
+tdash NOTCHOOSABLE *HLEDGERARGS:
     #!/usr/bin/env bash
     set -euo pipefail
     dir=$(dirname "$TIMELOG")
     cd "$dir"
-    opts= #--poll=10  # <- uncomment to fix symlinked files being ignored
-    watchexec $opts --no-vcs-ignore --filter-file=<(hledger -f "$TIMELOG" files | sed -E "s|$dir/||g") -c -r {{just}} tstatus
+    opts=  #--poll=10  # <- uncomment to fix symlinked files being ignored
+    watchexec $opts --no-vcs-ignore \
+      --filter-file=<(hledger -f "$TIMELOG" files | sed -E "s|$dir/||g") \
+      -c -r {{just}} tstatus {{HLEDGERARGS}}
 
 # show time dashboard, redisplaying every minute with watch
 # dash-1m *HLEDGERARGS:
@@ -169,9 +184,9 @@ tstatus *HLEDGERARGS:
     # Show the current day/week/month budget status.
     printf "Time plans:\n"
     # calculate each period's budget from daily budget
-    hledger -f "$TIMELOG" bal -1 -p 'daily today'        --budget=Daily | tail +2
-    hledger -f "$TIMELOG" bal -1 -p 'weekly this week'   --budget=Daily | tail +2
-    hledger -f "$TIMELOG" bal -1 -p 'monthly this month' --budget=Daily | tail +2
+    hledger -f "$TIMELOG" bal -1 -p 'daily today'        --budget=Daily {{HLEDGERARGS}} | tail +2
+    hledger -f "$TIMELOG" bal -1 -p 'weekly this week'   --budget=Daily {{HLEDGERARGS}} | tail +2
+    hledger -f "$TIMELOG" bal -1 -p 'monthly this month' --budget=Daily {{HLEDGERARGS}} | tail +2
     # or use each period's specific budget
     # hledger -f "$TIMELOG" bal -p 'daily today'        --budget=Daily   -1 | tail +2
     # hledger -f "$TIMELOG" bal -p 'weekly this week'   --budget=Weekly  -1 | tail +2
