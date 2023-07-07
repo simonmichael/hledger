@@ -64,6 +64,7 @@ $ fin        # list the scripts available
 
 [`ft`](https://github.com/simonmichael/hledger/blob/master/bin/ft)
 is a way to organise your finance-related reports and scripts using standard bash.
+(See also [justfile](#justfile) below.)
 
 ```shell
 $ alias f=~/src/hledger/bin/ft
@@ -129,6 +130,58 @@ budgetswx       show weekly time budget performance this year, horizontally
 OTHERCMD        [ARGS] run other hledger commands on $TIMELOG
 
 Add hledger options to customise reports.
+```
+
+### justfile
+
+<https://github.com/casey/just> is like [make](https://en.wikipedia.org/wiki/Make_(software)), but easier and more suitable for running commands.
+It is a nice tool for organising financial reports and scripts!
+
+Here is a [justfile](https://github.com/simonmichael/hledger/blob/master/bin/justfile)
+reimplementing the `ft` and `tt` scripts more simply:
+
+```shell
+$ brew install just  # eg
+$ alias j=just
+$ cd ~/finance
+$ cp ~/src/hledger/bin/justfile .  # or start from scratch: just --init
+$ j
+justfile commands:
+    watch CMD                      # rerun the given command with watchexec whenever local files change
+    get-csv                        # download auto-downloadable CSVs (paypal)
+    import-dry                     # import new downloaded transactions to the main journal, dry run
+    import                         # import new downloaded transactions to the journal, logging and not printing errors
+    get-prices *PRICEHISTFETCHOPTS # show prices for main commodities (default: today's)
+    bs *HLEDGERARGS                # show balance sheet
+    is *HLEDGERARGS                # show income statement
+    a *HLEDGERARGS                 # show assets
+    r *HLEDGERARGS                 # show revenues
+    x *HLEDGERARGS                 # show expenses
+    ab *HLEDGERARGS                # show assets bar chart
+    rb *HLEDGERARGS                # show revenues bar chart
+    xb *HLEDGERARGS                # show expenses bar chart
+    al *HLEDGERARGS                # show assets line chart
+    rl *HLEDGERARGS                # show revenues line chart
+    xl *HLEDGERARGS                # show expenses line chart
+    forecast *HLEDGERARGS          # print transactions predicted by forecast rules from last week on
+    household *HLEDGERARGS         # show a draft month-end household adjustment transaction for last month
+    consulting *HLEDGERARGS        # show consulting revenue
+    tdash *HLEDGERARGS             # show time dashboard, redisplaying when timelog files change
+    tstatus *HLEDGERARGS           # show current time status
+    twhat *HLEDGERARGS             # what happened ? Show largest time balances first, today and depth 1 by default
+    tdots N                        # print line of N dots, grouped in 4s (suitable for timedot)
+    tx *HLEDGERARGS                # horizontal time summary this year, monthly by default
+    ty *HLEDGERARGS                # vertical time summary this year, monthly by default
+    tweeks *HLEDGERARGS            # this and last week's time budgets
+    tweekspast *HLEDGERARGS        # recent past weeks' time budgets
+    thours *HLEDGERARGS            # show a bar chart of daily hours
+    taccunused *HLEDGERARGS        # show unused / undeclared time accounts
+    taccunusedcat *HLEDGERARGS     # show unused / undeclared time accounts by category
+    taccadd *HLEDGERARGS           # add declarations for all undeclared time accounts
+    tbudgets *HLEDGERARGS          # show monthly time budget performance this year
+    tbudgetsy *HLEDGERARGS         # show monthly time budget performance this year, vertically
+    tbudgetsw *HLEDGERARGS         # show weekly time budget performance this year
+    tbudgetswx *HLEDGERARGS        # show weekly time budget performance this year, horizontally
 ```
 
 ### watchaccounts
