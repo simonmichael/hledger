@@ -6,13 +6,13 @@
 PERIOD := "1/1..tomorrow"
 TODAY  := `date +%Y-%m-%d`
 
-justthis := "just -f " + justfile()
+just := "just -f " + justfile()
 @_help:
-    {{justthis}} -lu --list-heading=$'{{ file_name(justfile()) }} commands:\n'
+    {{just}} -lu --list-heading=$'{{ file_name(justfile()) }} commands:\n'
 
 # rerun the given command with watchexec whenever local files change
 watch CMD:
-	watchexec -- {{justthis}} {{CMD}}
+	watchexec -- {{just}} {{CMD}}
 
 # XXX HLEDGERARGS are not quoted properly; each one should be free of spaces
 
@@ -137,12 +137,11 @@ TIMELOGDATA := 'time-' + YEAR + '.timedot'
 # show time dashboard, redisplaying when timelog files change
 tdash *HLEDGERARGS:
     #!/usr/bin/env bash
+    set -euo pipefail
     dir=$(dirname "$TIMELOG")
     cd "$dir"
-    opts="" #--poll=10  # <- uncomment to fix symlinked files being ignored
-    # files=`hledger -f "$TIMELOG" files | sed -E "s|$dir/||g"`
-    # watchexec $opts --no-vcs-ignore --filter-file="$files" -c -r justthis status
-    watchexec $opts --no-vcs-ignore --filter-file=<(hledger -f "$TIMELOG" files | sed -E "s|$dir/||g") -c -r {{justthis}} tstatus
+    opts= #--poll=10  # <- uncomment to fix symlinked files being ignored
+    watchexec $opts --no-vcs-ignore --filter-file=<(hledger -f "$TIMELOG" files | sed -E "s|$dir/||g") -c -r {{just}} tstatus
 
 # show time dashboard, redisplaying every minute with watch
 # dash-1m *HLEDGERARGS:
@@ -152,6 +151,7 @@ tdash *HLEDGERARGS:
 # show current time status
 tstatus *HLEDGERARGS:
     #!/usr/bin/env bash
+    set -euo pipefail
     date=$(if [ "$(builtin type -p gdate)" ]; then echo gdate; else echo date; fi)
     stat=$(if [ "$(builtin type -p gstat)" ]; then echo gstat; else echo stat; fi)
     curtime=$($date +'%H:%M %Z, %a %b %-e %Y')
@@ -162,7 +162,7 @@ tstatus *HLEDGERARGS:
     agemins=$(python3 -c "print($agesecs/60)")
     agehrs=$(python3 -c "print($agesecs/3600.0)")
     ageqtrhrs=$(python3 -c "print(round($agesecs/900.0))")
-    agedots=$({{justthis}} dots "$ageqtrhrs")
+    agedots=$({{just}} tdots "$ageqtrhrs")
     printf "Current time:  %s\n" "$curtime"
     # old, for osh: use env here to run the system printf, which supports floating point
     env printf "Timelog saved: %s, %.0fm / %.1fh / %s ago\n" "$modtime" "$agemins" "$agehrs" "$agedots"
@@ -190,6 +190,7 @@ tstatus *HLEDGERARGS:
 # print line of N dots, grouped in 4s (suitable for timedot)
 tdots N:
     #!/usr/bin/env bash
+    set -euo pipefail
     n={{N}}
     ndiv4=$((n/4))
     nmod4=$((n-n/4*4))
@@ -240,19 +241,19 @@ RFLAGS:='-tM' #TA
 
 # show monthly time budget performance this year
 @tbudgets *HLEDGERARGS:
-    {{justthis}} tx --budget=daily -M -p jan..tomorrow {{HLEDGERARGS}}
+    {{just}} tx --budget=daily -M -p jan..tomorrow {{HLEDGERARGS}}
 
 # show monthly time budget performance this year, vertically
 @tbudgetsy *HLEDGERARGS:
-    {{justthis}} ty --budget=daily -M -p jan..tomorrow {{HLEDGERARGS}}
+    {{just}} ty --budget=daily -M -p jan..tomorrow {{HLEDGERARGS}}
 
 # dedicated weekly reports, needed to set proper week start date, to ensure simple headings:
 
 # show weekly time budget performance this year
 @tbudgetsw *HLEDGERARGS:
-    {{justthis}} ty --budget=daily -W -p 3/27..tomorrow {{HLEDGERARGS}}
+    {{just}} ty --budget=daily -W -p 3/27..tomorrow {{HLEDGERARGS}}
 
 # show weekly time budget performance this year, horizontally
 @tbudgetswx *HLEDGERARGS:
-    {{justthis}} tx --budget=daily -W -p 3/27..tomorrow {{HLEDGERARGS}}
+    {{just}} tx --budget=daily -W -p 3/27..tomorrow {{HLEDGERARGS}}
 
