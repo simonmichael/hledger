@@ -69,7 +69,7 @@ Many of these work with the higher-level commands as well.
 - rows and columns swapped ([`--transpose`](#multi-period-balance-report))
 - another field used as account name ([`--pivot`](#multi-period-balance-report))
 - custom-formatted line items (single-period reports only) ([`--format`](#balance-report-line-format))
-- commodities displayed on the same line or multiple lines ([`--layout`](#commodity-layout))
+- commodities displayed on the same line or multiple lines ([`--layout`](#balance-report-layout))
 
 This command supports the
 [output destination](#output-destination) and
@@ -801,7 +801,7 @@ Period of generated transactions:
   - possibly restricted by a period specified in the periodic transaction rule.
 
 
-### Data layout
+### Balance report layout
 
 The `--layout` option affects how balance reports show
 multi-commodity amounts and commodity symbols, which can improve readability. 

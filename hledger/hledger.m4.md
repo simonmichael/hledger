@@ -470,7 +470,7 @@ Here are those commands and the formats currently supported:
 | print              | Y     | Y     |         | Y    | Y   |
 | register           | Y     | Y     |         | Y    |     |
 
-- *<sup>1</sup> Also affected by the balance commands' [`--layout` option](#commodity-layout).*
+- *<sup>1</sup> Also affected by the balance commands' [`--layout` option](#balance-report-layout).*
 - *<sup>2</sup> `balance` does not support html output without a report interval or with `--budget`.*
 
 <!--
