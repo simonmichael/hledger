@@ -5115,6 +5115,15 @@ You can rewrite most conversion transactions to (a variant of) this form with:
 $ hledger print -x --infer-costs --infer-equity
 ```
 
+This (detecting and allowing redundant equity postings and cost) was added in hledger 1.29 and
+is still somewhat experimental. Here are some current limitations:
+
+- If the entry is not written in a form that hledger can recognise (see below),
+  it fails to detect the redundancy and gives a transaction balancing error instead.
+  Amounts with repeating decimals are one of the things that can trigger this ([#2051](https://github.com/simonmichael/hledger/issues/2051)).
+
+- The [add](#add) command does not accept this kind of entry ([#2056](https://github.com/simonmichael/hledger/issues/2056)).
+
 ## --infer-costs
 
 As mentioned above, `--infer-costs` can infer and add the @/@@ cost notation 
