@@ -459,16 +459,16 @@ $ hledger print -o -        # write to stdout (the default)
 Some commands offer other kinds of output, not just text on the terminal.
 Here are those commands and the formats currently supported:
 
-| -                  | txt   | csv   | html    | json | sql |
-|--------------------|-------|-------|---------|------|-----|
-| aregister          | Y     | Y     | Y       | Y    |     |
+| -                  | txt              | csv              | html               | json | sql |
+|--------------------|------------------|------------------|--------------------|------|-----|
+| aregister          | Y                | Y                | Y                  | Y    |     |
 | balance            | Y *<sup>1</sup>* | Y *<sup>1</sup>* | Y *<sup>1,2</sup>* | Y    |     |
 | balancesheet       | Y *<sup>1</sup>* | Y *<sup>1</sup>* | Y *<sup>1</sup>*   | Y    |     |
 | balancesheetequity | Y *<sup>1</sup>* | Y *<sup>1</sup>* | Y *<sup>1</sup>*   | Y    |     |
 | cashflow           | Y *<sup>1</sup>* | Y *<sup>1</sup>* | Y *<sup>1</sup>*   | Y    |     |
 | incomestatement    | Y *<sup>1</sup>* | Y *<sup>1</sup>* | Y *<sup>1</sup>*   | Y    |     |
-| print              | Y     | Y     |         | Y    | Y   |
-| register           | Y     | Y     |         | Y    |     |
+| print              | Y                | Y                |                    | Y    | Y   |
+| register           | Y                | Y                |                    | Y    |     |
 
 - *<sup>1</sup> Also affected by the balance commands' [`--layout` option](#balance-report-layout).*
 - *<sup>2</sup> `balance` does not support html output without a report interval or with `--budget`.*
