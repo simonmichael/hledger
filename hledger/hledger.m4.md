@@ -4969,100 +4969,104 @@ See also: [Budgeting and Forecasting](/budgeting-and-forecasting.html).
 
 # Cost reporting
 
-In transactions where one commodity is exchanged for another, such as a currency conversion, or a stock purchase/sale,
-the conversion rate / cost / selling price (we call them all "cost" for convenience) can be recorded, or inferred.
-Then hledger can convert amounts to cost at report time, with the `-B`/`--cost` flag ("B" is from Ledger's --basis/--cost flag).
+In some transactions - for example a currency conversion, or a purchase or sale of stock - one commodity is exchanged for another.
+In these transactions there is a conversion rate, also called the cost (when buying) or selling price (when selling).
+In hledger docs we just say "cost", for convenience; feel free to mentally translate to "conversion rate" or "selling price" if helpful.
 
-There are four ways to record conversion transactions
-(if you are unsure which to choose, pick #2):
+## Recording costs
 
-1. You can record amounts of different commodities, leaving the cost implicit:
+We'll explore several ways of recording transactions involving costs.
+These are also summarised at [hledger Cookbook > Cost notation](/cost-notation.md).
 
-    ```journal
-    2022-01-01
-      assets:dollars  $-135
-      assets:euros     €100
-    ```
+Costs can be recorded explicitly in the journal, using the `@ UNITCOST` or `@@ TOTALCOST` notation described in [Journal > Costs](#costs).
 
-    This is easy, but if you write a wrong amount hledger won't detect it.
-    And in fact it's easy to create entries like this through a typo.
-    You can prevent this by using `-s` ([strict mode](#strict-mode)).
+**Variant 1**:
 
-	In entries like this, the order of postings is significant: the
-	first posting is given a cost in the commodity of the second.
+```journal
+2022-01-01
+  assets:dollars    $-135
+  assets:euros       €100 @ $1.35   ; $1.35 per euro (unit cost)
+```
 
-2. You can record the cost on one of the amounts with @ or @@ as described in [Journal > Costs](#costs).
-    This improves readability and adds redundancy which helps hledger detect errors.
+**Variant 2**:
 
-    a. You can write the per-unit cost with @, which requires more attention to decimal places to make the transaction balance,
-	but reveals the cost basis and makes partial stock sales easy later:
+```journal
+2022-01-01
+  assets:dollars    $-135
+  assets:euros       €100 @@ $135   ; $135 total cost
+```
 
-    ```journal
-    2022-01-01
-      assets:dollars  $-135
-      assets:euros     €100 @ $1.35
-    ```
+Typically, writing the unit cost (variant 1) is preferable;
+it can be more effort, requiring more attention to decimal digits;
+but it reveals the per-unit cost basis, and makes stock sales easier.
 
-    b. or you can write the total cost with @@, which is easier,
-	but obscures the cost basis and makes partial stock sales difficult later:
+Costs can also be left implicit, and hledger will infer the cost
+that is consistent with a balanced transaction.
 
-    ```journal
-    2022-01-01
-      assets:dollars  $-135
-      assets:euros     €100 @@ $135
-    ```
+**Variant 3**:
 
-    This kind of entry unbalances the accounting equation, causing a non-zero total in the `bse` report.
-    You can fix that (if needed) by adding the `--infer-equity` flag.
+```journal
+2022-01-01
+  assets:dollars    $-135
+  assets:euros       €100
+```
 
-3. You can record a pair of equity postings to balance the converted amounts.
-    This is the most correct and standard bookkeeping entry, which preserves the accounting equation, but is more verbose:
+Here, hledger will attach a `@@ €100` cost to the first amount (you can see it with `hledger print -x`).
+This form looks convenient, but there are downsides:
 
-    ```journal
-    2022-01-01
-      assets:dollars      $-135
-      equity:conversion    $135
-      equity:conversion   €-100
-      assets:euros         €100
-    ```
+- It sacrifices some error checking. For example, if you accidentally wrote €10
+  instead of €100, hledger would not be able to detect the mistake.
 
-    With this kind of entry, you'll need to add `--infer-costs` when doing cost reporting with `-B`.
+- It is sensitive to the order of postings - if they were reversed, 
+  a different entry would be inferred and reports would be different.
 
-4. You can record both the cost and the equity postings explicitly. Eg:
+- The per-unit cost basis is not easy to read.
 
-    ```journal
-    2022-01-01
-      assets:dollars      $-135
-      equity:conversion    $135
-      equity:conversion   €-100
-      assets:euros         €100 @ $1.35
-    ```
+So generally this kind of entry is not recommended.
+You can make sure you have none of these by using `-s` ([strict mode](#strict-mode)),
+or by running `hledger check balancednoautoconversion`.
 
-    This gives the benefits of both 2 and 3.
-    You can convert the other forms to this one with `hledger print -x --infer-costs --infer-equity`.
+## Reporting at cost
 
-In practice, most PTA users don't need to balance the accounting equation, so method 2 is a good choice.
+Now when you add the `-B`/`--cost` flag to reports ("B" is from Ledger's --basis/--cost flag),
+any amounts which have been annotated with costs will be converted to their cost's commodity (in the report output).
+Ie they will be displayed "at cost" or "at sale price".
 
-Conversion to cost is performed before valuation (described below).
+Some things to note:
 
-The rest of this section provides more detail,
-as does [hledger Cookbook > Cost notation](/cost-notation.md).
+- Costs are attached to specific posting amounts in specific transactions, and once recorded they do not change.
+  This contrasts with [market prices](#market-prices), which are ambient and fluctuating.
+
+- Conversion to cost is performed before conversion to market value (described below).
 
 ## Equity conversion postings
 
-Conventional double entry bookkeeping (DEB) uses
-an extra pair of equity postings to balance the transaction instead.
-In this style, the above entry might be written:
+There is a problem with the entries above - they are not conventional Double Entry Bookkeeping (DEB) notation,
+and because of the "magical" transformation of one commodity into another,
+they cause an imbalance in the Accounting Equation.
+This shows up as a non-zero grand total in balance reports like `hledger bse`.
+
+For most hledger users, this doesn't matter in practice and can safely be ignored !
+But if you'd like to learn more, keep reading.
+
+Conventional DEB uses an extra pair of equity postings to balance the transaction.
+Of course you can do this in hledger as well.
+
+**Variant 4**:
 
 ```journal
-2022-01-01 one hundred euros purchased at $1.35 each
+2022-01-01
     assets:dollars      $-135
     assets:euros         €100
     equity:conversion    $135
     equity:conversion   €-100
 ```
 
-hledger can do cost reporting with this kind of entry too, but you must add the `--infer-costs` flag:
+Now the transaction is perfectly balanced according to standard DEB,
+and `hledger bse`'s total will not be disrupted.
+
+And, hledger can still infer the cost for cost reporting,
+but it's not done by default - you must add the `--infer-costs` flag like so:
 
 ```shell
 $ hledger print --infer-costs
@@ -5074,20 +5078,35 @@ $ hledger print --infer-costs
 
 ```
 ```shell
-$ hledger bal -N --infer-costs -B
-               €-100  assets:dollars
-                €100  assets:euros
+$ hledger bal --infer-costs -B
+               €-100  assets:dollars                                                                                                                                              
+                €100  assets:euros                                                                                                                                                
+--------------------                                                                                                                                                              
+                   0                                                                                                                                                              
 ```
 
-Conversely, if you have transactions written with @/@@ cost notation, you can use the `--infer-equity` flag
-to add the missing equity postings,
-eg to preserve the accounting equation or to produce standard entries for non-PTA-users:
+Here are some downsides of this kind of entry:
+
+- The per-unit cost basis is not easy to read.
+
+- Instead of `-B` you must remember to type `-B --infer-costs`.
+
+- `--infer-costs` works only where hledger can identify the two equity:conversion postings
+  and match them up with the two non-equity postings.
+  So writing the journal entry in a particular format becomes more important. More on this below.
+
+## Inferring equity conversion postings
+
+Can we go in the other direction ? Yes, if you have transactions written with the @/@@ cost notation,
+hledger can infer the missing equity postings, if you add the `--infer-equity` flag.
+Eg:
 
 ```journal
 2022-01-01
   assets:dollars  -$135
   assets:euros     €100 @ $1.35
 ```
+
 ```shell
 $ hledger print --infer-equity
 2022-01-01
@@ -5097,10 +5116,17 @@ $ hledger print --infer-equity
     equity:conversion:$-€:$         $135.00
 ```
 
-You can customise the generated "equity:conversion" account names by declaring an account with the [V/Conversion account type](#account-types).
+The equity account names will be "equity:conversion:A-B:A" and "equity:conversion:A-B:B"
+where A is the alphabetically first commodity symbol.
+You can customise the "equity:conversion" part by declaring an account with the `V`/`Conversion` [account type](#account-types).
 
-Finally, you can record both the cost and the equity postings explicitly, so no inference is needed.
-This gives correctness, clarity, and more flexibility in how you write the entry, at the cost of being more verbose:
+## Combining costs and equity conversion postings
+
+Finally, you can use both the @/@@ cost notation and equity postings at the same time.
+This in theory gives the best of all worlds - preserving the accounting equation, 
+revealing the per-unit cost basis, and providing more flexibility in how you write the entry.
+
+**Variant 5**:
 
 ```journal
 2022-01-01 one hundred euros purchased at $1.35 each
@@ -5110,48 +5136,50 @@ This gives correctness, clarity, and more flexibility in how you write the entry
     assets:euros         €100 @ $1.35
 ```
 
-You can rewrite most conversion transactions to (a variant of) this form with:
+All the other variants above can (usually) be rewritten to this final form with:
 ```shell
 $ hledger print -x --infer-costs --infer-equity
 ```
 
-This (detecting and allowing redundant equity postings and cost) was added in hledger 1.29 and
-is still somewhat experimental. Here are some current limitations:
+Downsides:
 
-- If the entry is not written in a form that hledger can recognise (see below),
-  it fails to detect the redundancy and gives a transaction balancing error instead.
-  Amounts with repeating decimals are one of the things that can trigger this ([#2051](https://github.com/simonmichael/hledger/issues/2051)).
+- This was added in hledger-1.29 and is still somewhat experimental.
 
-- The [add](#add) command does not accept this kind of entry ([#2056](https://github.com/simonmichael/hledger/issues/2056)).
+- The precise format of the journal entry becomes more important.
+  If hledger can't detect and match up the cost and equity postings, it will give a transaction balancing error.
+  Amounts with repeating decimals are one of the things that can cause this ([#2051](https://github.com/simonmichael/hledger/issues/2051)).
 
-## --infer-costs
+- The [add](#add) command does not yet accept this kind of entry ([#2056](https://github.com/simonmichael/hledger/issues/2056)).
 
-As mentioned above, `--infer-costs` can infer and add the @/@@ cost notation 
-to transactions which have equity conversion postings.
+- This is the most verbose form.
 
-This flag will have an effect only on transactions where:
+## Requirements for detecting equity conversion postings
 
-- There are two non-equity postings, in different commodities
-- And two postings to equity accounts, next to one another, which exactly balance the above.
-  Equity accounts are accounts declared with account type `V`/`Conversion`,
-  or named `equity:conversion`, `equity:trade`, `equity:trading`,
-  or subaccounts of these.
+`--infer-costs` has certain requirements (unlike `--infer-equity`, which always works).
+It will infer costs only in transactions with:
 
-The order of postings is significant: the cost will be added to the
-first of the non-equity postings, in the commodity of the second non-equity posting.
+- Two non-equity postings, in different commodities.
+  Their order is significant: the cost will be added to the first of them.
 
-Multiple such four-posting groups can coexist within a single transaction.
+- Two postings to equity conversion accounts, next to one another, which balance the two non-equity postings exactly.
+  (Perhaps over-exactly, as this is currently not limited by display precision - see #2051.)
+  Equity conversion accounts are:
 
-If you want to arrange a conversion transaction in some other way,
-or you can't easily see why `--infer-posting` isn't working for a particular transaction,
-just write the equity postings and costs explicitly.
+  - any accounts declared with account type `V`/`Conversion`, or their subaccounts
+  - otherwise, accounts named `equity:conversion`, `equity:trade`, or `equity:trading`, or their subaccounts.
 
-## Always infer cost and equity ?
+And multiple such four-posting groups can coexist within a single transaction.
+When `--infer-costs` fails, it does not infer a cost in that transaction, and does not raise an error (ie, it infers costs where it can).
+
+Reading variant 5 journal entries, combining cost notation and equity postings, has all the same requirements.
+When reading such an entry fails, hledger raises an "unbalanced transaction" error.
+
+## Infer cost and equity by default ?
 
 Should `--infer-costs` and `--infer-equity` be enabled by default ?
 Try using them always, eg with a shell alias:
 ```
-alias hl="hledger --infer-equity --infer-costs"
+alias h="hledger --infer-equity --infer-costs"
 ```
 and let us know what problems you find.
 
