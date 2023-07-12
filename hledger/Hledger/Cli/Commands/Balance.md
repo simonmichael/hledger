@@ -476,7 +476,7 @@ or one of the equivalent simpler flags:
 - `-V/--market`             : like --value=end
 - `-X COMM/--exchange COMM` : like --value=end,COMM
 
-See [Cost reporting](#cost-reporting) and [Valuation](#valuation) for more about these.
+See [Cost reporting](#cost-reporting) and [Value reporting](#value-reporting) for more about these.
 
 #### Combining balance report types
 

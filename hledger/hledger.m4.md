@@ -1627,7 +1627,7 @@ Here are all hledger's directives, with their effects and scope summarised - nin
 | **[`decimal-mark`]**          | Declares the decimal mark, for parsing amounts of all commodities in following entries until next `decimal-mark` or end of current file. Included files can override. Takes precedence over `commodity` and `D`.                                                                                                                                                                                                                                                                                                                                                                   | Y                   |
 | **[`include`]**               | Includes entries and directives from another file, as if they were written inline. <br>Command line alternative: multiple [`-f/--file`](#multiple-files)                                                                                                                                                                                                                                                                                                                                                                                                                           | N                   |
 | **[`payee`]**                 | Declares a payee name, for checking all entries in all files.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | N                   |
-| **[`P`]**                     | Declares the market price of a commodity on some date, for [value reports](#valuation).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | N                   |
+| **[`P`]**                     | Declares the market price of a commodity on some date, for [value reports](#value-reporting).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | N                   |
 | **[`~`]** (tilde)             | Declares a periodic transaction rule that generates future transactions with `--forecast` and budget goals with `balance --budget`.                                                                                                                                                                                                                                                                                                                                                                                                                                                | N                   |
 | Other syntax:                 |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |                     |
 | **[`apply account`]**         | Prepends a common parent account to all account names, in following entries until end of current file or `end apply account`.                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Y                   |
@@ -2180,7 +2180,7 @@ overriding the file extension (as described in
 
 The `P` directive declares a market price, which is
 a conversion rate between two commodities on a certain date.
-This allows [value reports](#valuation) to convert amounts of one commodity
+This allows [value reports](#value-reporting) to convert amounts of one commodity
 to their value in another, on or after that date.
 These prices are often obtained from
 a [stock exchange](https://en.wikipedia.org/wiki/Stock_exchange),
@@ -2206,7 +2206,7 @@ P 2010-01-01 € $1.40
 ```
 
 The `-V`, `-X` and `--value` flags use these market prices to show amount values
-in another commodity. See [Valuation](#valuation).
+in another commodity. See [Value reporting](#value-reporting).
 
 <a name="automated-postings"></a>
 
@@ -4725,7 +4725,7 @@ generally the resulting query is their intersection.
 
 ## Queries and valuation
 
-When amounts are converted to other commodities in [cost](#cost-reporting) or [value](#valuation) reports,
+When amounts are converted to other commodities in [cost](#cost-reporting) or [value](#value-reporting) reports,
 `cur:` and `amt:` match the old commodity symbol and the old amount quantity, 
 not the new ones
 (except in hledger 1.22.0 where it's reversed, see [#1625](https://github.com/simonmichael/hledger/issues/1625)).
@@ -4737,7 +4737,7 @@ note that `acct:` will match either the old or the new account name.
 
 ## Querying with cost or value
 
-When amounts are converted to other commodities in [cost](#cost-reporting) or [value](#valuation) reports,
+When amounts are converted to other commodities in [cost](#cost-reporting) or [value](#value-reporting) reports,
 note that `cur:` matches the new commodity symbol, and not the old one,
 and `amt:` matches the new quantity, and not the old one.
 Note: this changed in hledger 1.22, previously it was the reverse, 
@@ -5184,8 +5184,9 @@ alias h="hledger --infer-equity --infer-costs"
 and let us know what problems you find.
 
 
+<a name="valuation"></a>
 
-# Valuation
+# Value reporting
 
 Instead of reporting amounts in their original commodity, hledger can convert them to
 cost/sale amount (using the conversion rate recorded in the transaction),
@@ -5269,7 +5270,7 @@ If both occur on the same day, the P directive takes precedence.
 
 There is a downside: value reports can sometimes  be affected in
 confusing/undesired ways by your journal entries. If this happens to
-you, read all of this [Valuation](#valuation) section carefully,
+you, read all of this [Value reporting](#value-reporting) section carefully,
 and try adding `--debug` or `--debug=2` to troubleshoot.
 
 `--infer-market-prices` can infer market prices from:

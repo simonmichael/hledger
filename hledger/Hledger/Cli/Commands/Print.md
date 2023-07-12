@@ -57,7 +57,7 @@ $ hledger print assets:cash | hledger -f- -I reg expenses:food
 
 There are some situations where print's output can become unparseable:
 
-- [Valuation](#valuation) affects posting amounts but not [balance assertion](#balance-assertions) or [balance assignment](#balance-assignments) amounts, potentially causing those to [fail](https://github.com/simonmichael/hledger/issues/1429).
+- [Value reporting](#value-reporting) affects posting amounts but not [balance assertion](#balance-assertions) or [balance assignment](#balance-assignments) amounts, potentially causing those to [fail](https://github.com/simonmichael/hledger/issues/1429).
 - [Auto postings](#auto-postings) can generate postings with [too many missing amounts](https://github.com/simonmichael/hledger/issues/1276).
 - [Account aliases can generate bad account names](#aliases-can-generate-bad-account-names).
 
