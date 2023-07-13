@@ -4978,9 +4978,9 @@ In hledger docs we just say "cost", for convenience; feel free to mentally trans
 We'll explore several ways of recording transactions involving costs.
 These are also summarised at [hledger Cookbook > Cost notation](/cost-notation.md).
 
-Costs can be recorded explicitly in the journal, using the `@ UNITCOST` or `@@ TOTALCOST` notation described in [Journal > Costs](#costs).
+Costs can be recorded explicitly in the journal, using the `@ UNITCOST` or `@@ TOTALCOST` notation described in [Journal > Costs](#costs):
 
-**Variant 1**:
+**Variant 1**
 
 ```journal
 2022-01-01
@@ -4988,7 +4988,7 @@ Costs can be recorded explicitly in the journal, using the `@ UNITCOST` or `@@ T
   assets:euros       €100 @ $1.35   ; $1.35 per euro (unit cost)
 ```
 
-**Variant 2**:
+**Variant 2**
 
 ```journal
 2022-01-01
@@ -5001,9 +5001,9 @@ it can be more effort, requiring more attention to decimal digits;
 but it reveals the per-unit cost basis, and makes stock sales easier.
 
 Costs can also be left implicit, and hledger will infer the cost
-that is consistent with a balanced transaction.
+that is consistent with a balanced transaction:
 
-**Variant 3**:
+**Variant 3**
 
 ```journal
 2022-01-01
@@ -5028,7 +5028,7 @@ or by running `hledger check balancednoautoconversion`.
 
 ## Reporting at cost
 
-Now when you add the `-B`/`--cost` flag to reports ("B" is from Ledger's --basis/--cost flag),
+Now when you add the `-B`/`--cost` flag to reports ("B" is from Ledger's -B/--basis/--cost flag),
 any amounts which have been annotated with costs will be converted to their cost's commodity (in the report output).
 Ie they will be displayed "at cost" or "at sale price".
 
@@ -5050,9 +5050,9 @@ For most hledger users, this doesn't matter in practice and can safely be ignore
 But if you'd like to learn more, keep reading.
 
 Conventional DEB uses an extra pair of equity postings to balance the transaction.
-Of course you can do this in hledger as well.
+Of course you can do this in hledger as well:
 
-**Variant 4**:
+**Variant 4**
 
 ```journal
 2022-01-01
@@ -5124,9 +5124,9 @@ You can customise the "equity:conversion" part by declaring an account with the 
 
 Finally, you can use both the @/@@ cost notation and equity postings at the same time.
 This in theory gives the best of all worlds - preserving the accounting equation, 
-revealing the per-unit cost basis, and providing more flexibility in how you write the entry.
+revealing the per-unit cost basis, and providing more flexibility in how you write the entry:
 
-**Variant 5**:
+**Variant 5**
 
 ```journal
 2022-01-01 one hundred euros purchased at $1.35 each
