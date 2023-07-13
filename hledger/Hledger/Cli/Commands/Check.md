@@ -63,7 +63,7 @@ They are more specialised and not desirable for everyone, therefore optional:
 - **payees** - all payees used by transactions [have been declared](#payee-directive)
 
 - **recentassertions** - all accounts with balance assertions have a
-  balance assertion no more than 7 days before their latest posting
+  balance assertion within 7 days of their latest posting
 
 - **tags** - all tags used by transactions [have been declared](#tag-directive)
 
@@ -84,15 +84,14 @@ See: Cookbook -> [Scripting](scripting.html).
 ### More about specific checks
 
 `hledger check recentassertions` will complain if any balance-asserted account
-does not have a balance assertion within 7 days before its latest posting.
+has postings more than 7 days after its latest balance assertion.
 This aims to prevent the situation where you are regularly updating your journal,
 but forgetting to check your balances against the real world,
 then one day must dig back through months of data to find an error.
 It assumes that adding a balance assertion requires/reminds you to check the real-world balance.
-That may not be true if you auto-generate balance assertions from bank data;
+(That may not be true if you auto-generate balance assertions from bank data;
 in that case, I recommend to import transactions uncleared, 
-then use the manual-review-and-mark-cleared phase as a reminder
-to check the latest assertions against real-world balances.
+and when you manually review and clear them, also check the latest assertion against the real-world balance.)
 
 [add-on commands]:    #add-on-commands
 [balance assertions]: #balance-assertions
