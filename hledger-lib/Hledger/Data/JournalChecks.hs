@@ -33,7 +33,7 @@ import Hledger.Data.JournalChecks.Ordereddates
 import Hledger.Data.JournalChecks.Uniqueleafnames
 import Hledger.Data.Posting (isVirtual, postingDate, transactionAllTags)
 import Hledger.Data.Types
-import Hledger.Data.Amount (amountIsZero, amountsRaw, missingamt)
+import Hledger.Data.Amount (amountIsZero, amountsRaw, missingamt, amounts)
 import Hledger.Data.Transaction (transactionPayee, showTransactionLineFirstPart, partitionAndCheckConversionPostings)
 import Data.Time (Day, diffDays)
 import Hledger.Utils
@@ -239,6 +239,11 @@ findRecentAssertionError today ps = do
   let lag = diffDays (postingDate firsterrorp) latestassertdate
   let acct = paccount firsterrorp
   let (f,l,_mcols,ex) = makePostingAccountErrorExcerpt firsterrorp
+  let comm =
+        case map acommodity $ amounts $ pamount firsterrorp of
+          [] -> ""
+          (t:_) | T.length t == 1 -> t
+          (t:_) -> t <> " "
   Just $ chomp $ printf
     (unlines [
       "%s:%d:",
@@ -250,7 +255,7 @@ findRecentAssertionError today ps = do
       "",
       "Consider adding a more recent balance assertion for this account. Eg:",
       "",
-      "%s *\n    %s    $0 = $0  ; (adjust asserted amount)"
+      "%s\n    %s    %s0 = %s0  ; (adjust asserted amount)"
       ])
     f
     l
@@ -261,6 +266,8 @@ findRecentAssertionError today ps = do
     (showDate latestassertdate)
     (show today)
     acct
+    comm
+    comm
 
 -- -- | Print the last balance assertion date & status of all accounts with balance assertions.
 -- printAccountLastAssertions :: Day -> [BalanceAssertionInfo] -> IO ()

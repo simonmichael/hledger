@@ -1,3 +1,4 @@
+# 1. The first posting more than 7 days after latest balance assertion causes this check to fail.
 $ hledger check recentassertions -f recentassertions.j
 >2 /Error: .*recentassertions.j:11:
    | 2022-01-09 bad1
