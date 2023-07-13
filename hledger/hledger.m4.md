@@ -3501,8 +3501,7 @@ data. See:
 
 ### Setting amounts
 
-Continuing from [amount field](#amount-field) above, here are more tips on handling
-various amount-setting situations:
+Continuing from [amount field](#amount-field) above, here are more tips for amount-setting:
 
 1. **If the amount is in a single CSV field:**\
 
@@ -3519,20 +3518,18 @@ various amount-setting situations:
      amount1  %Amount
    ```
 
-2. **If the amount is in one of two CSV fields (eg Debit and Credit):**\
+2. **If the amount is in two CSV fields (such as Debit and Credit, or In and Out):**\
 
    a. **If both fields are unsigned:**\
-     Assign the fields to `amountN-in` and `amountN-out`.
-     This sets posting N's amount to whichever of these has a non-zero value.
-     If it's the -out value, the amount will be negated.
+     Assign one field to `amountN-in` and the other to `amountN-out`.
+     hledger will automatically negate the "out" field,
+     and will use whichever field value is non-zero as posting N's amount.
 
    b. **If either field is signed:**\
-     Use a [conditional rule](#if-block) to flip the sign when needed.
-     Eg below, the -out value already has a minus sign so we undo hledger's automatic
-	 negating by [negating once more](#amount-signs) 
-	 (but only if the field is non-empty, so that we don't leave a minus sign by itself):
-
+     You will probably need to override hledger's sign for one or the other field,
+     as in the following example:
      ```rules
+     # Negate the -out value, but only if it is not empty:
      fields date, description, amount1-in, amount1-out
      if %amount1-out [1-9]
       amount1-out -%amount1-out
