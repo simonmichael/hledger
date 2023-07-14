@@ -1,6 +1,6 @@
 #!/usr/bin/env -S hledger check recentassertions -f
 
-2022-01-01 *
+2022-01-01 last balance assertion
   a  0 = 0
 
 2022-01-08 good
