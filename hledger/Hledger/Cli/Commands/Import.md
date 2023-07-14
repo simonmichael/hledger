@@ -60,6 +60,9 @@ certain date.
 Note deduplication (and updating of state files) can also be done by
 [`print --new`](#print), but this is less often used.
 
+Related: [CSV > Working with CSV > Deduplicating, importing](#deduplicating-importing).
+
+
 ### Import testing
 
 With `--dry-run`, the transactions that will be imported are printed
