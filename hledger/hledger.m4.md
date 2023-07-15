@@ -1281,7 +1281,7 @@ implicitly:
     ```
 
 Amounts can be converted to cost at report time using the [`-B/--cost`](#reporting-options) flag;
-this is discussed more in the ˜[COST REPORTING](#cost-reporting) section.
+this is discussed more in the [Cost reporting](#cost-reporting) section.
 
 Note that the cost normally should be a positive amount, though it's not required to be.
 This can be a little confusing, see discussion at 
@@ -1779,7 +1779,7 @@ The tag's value should be one of the [five main account types]:
 or, it can be (these are used less often):
 
 - `C` or `Cash`			(a subtype of Asset, indicating [liquid assets][CCE] for the [cashflow] report)
-- `V` or `Conversion`	(a subtype of Equity, for conversions (see [COST REPORTING](#cost-reporting)).)
+- `V` or `Conversion`	(a subtype of Equity, for conversions (see [Cost reporting](#cost-reporting)).)
 
 Here is a typical set of account type declarations:
 
