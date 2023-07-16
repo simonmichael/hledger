@@ -54,7 +54,7 @@ module Hledger.Data.Transaction
 
 import Control.Monad.Trans.State (StateT(..), evalStateT)
 import Data.Bifunctor (first)
-import Data.Foldable (foldrM)
+import Data.Foldable (foldlM)
 import Data.Maybe (fromMaybe, isJust, mapMaybe)
 import Data.Semigroup (Endo(..))
 import Data.Text (Text)
@@ -70,6 +70,7 @@ import Hledger.Data.Dates
 import Hledger.Data.Posting
 import Hledger.Data.Amount
 import Hledger.Data.Valuation
+import Data.Functor ((<&>))
 
 
 nulltransaction :: Transaction
@@ -369,17 +370,22 @@ transactionInferCostsFromEquity dryrun acctTypes t = first (annotateErrorWithTra
 
 -- Using the provided account types map, sort the given indexed postings
 -- into three lists of posting numbers (stored in two pairs), like so:
--- (conversion postings, (costful postings, other postings)).
+-- (conversion postings, (costful other postings, costless other postings)).
 -- A true first argument activates its secondary function: check that all
 -- conversion postings occur in adjacent pairs, otherwise return an error.
 partitionAndCheckConversionPostings :: Bool -> M.Map AccountName AccountType -> [IdxPosting] -> Either Text ( [(IdxPosting, IdxPosting)], ([IdxPosting], [IdxPosting]) )
-partitionAndCheckConversionPostings check acctTypes = fmap fst . foldrM select (([], ([], [])), Nothing)
+partitionAndCheckConversionPostings check acctTypes =
+  -- Left fold processes postings in parse order, so that eg inferred costs
+  -- will be added to the first (top-most) posting, not the last one.
+  foldlM select (([], ([], [])), Nothing)
+    -- The costless other postings are somehow reversed still; "second (second reverse" fixes that.
+    <&> fmap (second (second reverse) . fst)
   where
-    select np@(_, p) ((cs, others@(ps, os)), Nothing)
+    select ((cs, others@(ps, os)), Nothing) np@(_, p)
       | isConversion p = Right ((cs, others),      Just np)
       | hasCost p      = Right ((cs, (np:ps, os)), Nothing)
       | otherwise      = Right ((cs, (ps, np:os)), Nothing)
-    select np@(_, p) ((cs, others@(ps,os)), Just lst)
+    select ((cs, others@(ps,os)), Just lst) np@(_, p)
       | isConversion p = Right (((lst, np):cs, others), Nothing)
       | check          = Left "Conversion postings must occur in adjacent pairs"
       | otherwise      = Right ((cs, (ps, np:os)), Nothing)
