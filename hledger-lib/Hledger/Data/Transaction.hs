@@ -375,7 +375,8 @@ transactionInferCostsFromEquity dryrun acctTypes t = first (annotateErrorWithTra
         Just Amount{aprice=Just _} -> Left $ annotateWithPostings [p] "Conversion postings must not have a cost:"
         Nothing                    -> Left $ annotateWithPostings [p] "Conversion postings must have a single-commodity amount:"
 
-    amountMatches a b = acommodity a == acommodity b && aquantity a == aquantity b
+    -- Do these amounts look the same when compared at the first's display precision ?
+    amountsMatch a b = amountLooksZero $ amountSetPrecision (asprecision $ astyle a) $ a - b
 
     -- Delete a posting from the indexed list of postings based on either its
     -- index or its posting amount.

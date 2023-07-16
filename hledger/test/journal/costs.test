@@ -605,23 +605,22 @@ $ hledger -f- print --infer-costs
 
 >=0
 
-# # when the *cost-basis* balance has exactly two commodities, both cost-less,
-# # infer a balancing cost for the first one in terms of the second.
-# hledger -f - print
-# <<<
-# 2011/01/01
-#     expenses:foreign currency       €100
-#     assets                         $-135.00
-#     misc                              $3.1 @ 2 bob
-#     misc                             $-3.1 @ 2 bob
-#     misc                              £1 @@ 2 shekels
-#     misc                             £-1 @@ 2 shekels
-# >>>
-# 2011/01/01
-#     expenses:foreign currency   €100 @ $1.35
-#     assets                     €-100 @ $1.35
-#     misc                        $3.1 @ 2 bob
-#     misc                       $-3.1 @ 2 bob
-#     misc                          £1 @@ 2 shekels
-#     misc                         £-1 @@ 2 shekels
-#
+# 41. Matching costful postings and conversion postings is done at the precision
+# of the conversion posting, tolerating smaller decimal differences (#2041).
+# Here 84.01 * 2.495 GEL is 209.60495 GEL, which is considered to match 209.60 GEL
+# because we use the latter's 2 digit precision.
+<
+2023/05/17 * Transfer
+    Assets:BOG:Personal                          -84.01 USD @ 2.495 GEL
+    Equity:Conversion                             84.01 USD
+    Equity:Conversion                           -209.60 GEL
+    Assets:BOG:Personal                          209.60 GEL
+
+$ hledger -f- print
+2023-05-17 * Transfer
+    Assets:BOG:Personal    -84.01 USD @ 2.495 GEL
+    Equity:Conversion                   84.01 USD
+    Equity:Conversion                 -209.60 GEL
+    Assets:BOG:Personal                209.60 GEL
+
+>=

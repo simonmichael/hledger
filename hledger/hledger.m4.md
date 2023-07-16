@@ -4938,6 +4938,7 @@ The forecast period ends on:
 - otherwise: 180 days (~6 months) from today.
 
 ## Forecast troubleshooting
+
 When --forecast is not doing what you expect, one of these tips should help:
 
 - Remember to use the `--forecast` option.
@@ -4962,7 +4963,6 @@ See the balance command's doc below.
 You can generate budget goals and forecast transactions at the same time, from the same or different periodic transaction rules: `hledger bal -M --budget --forecast ...`
 
 See also: [Budgeting and Forecasting](/budgeting-and-forecasting.html).
-
 
 # Cost reporting
 
@@ -5144,7 +5144,6 @@ Downsides:
 
 - The precise format of the journal entry becomes more important.
   If hledger can't detect and match up the cost and equity postings, it will give a transaction balancing error.
-  Amounts with repeating decimals are one of the things that can cause this ([#2051](https://github.com/simonmichael/hledger/issues/2051)).
 
 - The [add](#add) command does not yet accept this kind of entry ([#2056](https://github.com/simonmichael/hledger/issues/2056)).
 
@@ -5158,8 +5157,8 @@ It will infer costs only in transactions with:
 - Two non-equity postings, in different commodities.
   Their order is significant: the cost will be added to the first of them.
 
-- Two postings to equity conversion accounts, next to one another, which balance the two non-equity postings exactly.
-  (Perhaps over-exactly, as this is currently not limited by display precision - see #2051.)
+- Two postings to equity conversion accounts, next to one another, which balance the two non-equity postings.
+  This balancing is checked to the same precision (number of decimal places) used in the conversion posting's amount.
   Equity conversion accounts are:
 
   - any accounts declared with account type `V`/`Conversion`, or their subaccounts
