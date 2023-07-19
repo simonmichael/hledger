@@ -13,8 +13,7 @@ packages:
 #allow-newer: true
 
 nix:
-  pure: false
-  packages: [perl gmp ncurses zlib]
+  shell-file: "./nix/stack-shell.nix"
 
 # ghc-options:
 #   "$locals": -fplugin Debug.Breakpoint
