@@ -236,7 +236,7 @@ commandsList progversion othercmds =
   ,bold' "VERSATILE REPORTS (more complex/versatile reporting commands)"
   ," activity                 show a simple bar chart of posting counts per period"
   ," balance (bal)            show balance changes, end balances, budgets, gains.."
-  ," bar                      show a balance report as a simple bar chart"
+  ,"+bar                      show a balance report as a simple bar chart"
   ,"+lots                     show a commodity's lots"
   ,"+plot                     create charts from balance reports, in terminal or GUI"
   ," print                    show transactions or export journal data"
