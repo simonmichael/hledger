@@ -89,65 +89,78 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportO
     putStrLn "No relevant transactions found. Check your investments query"
     exitFailure
 
-  let spans = snd $ reportSpan filteredj rspec
+  let (fullPeriod, spans) = reportSpan filteredj rspec
 
   let priceDirectiveDates = dbg3 "priceDirectiveDates" $ map pddate $ jpricedirectives j
 
-  tableBody <- forM spans $ \spn@(DateSpan (Just begin) (Just end)) -> do
-    -- Spans are [begin,end), and end is 1 day after the actual end date we are interested in
-    let
-      b = fromEFDay begin
-      e = fromEFDay end
-      cashFlowApplyCostValue = map (\(d,amt) -> (d,mixedAmountValue e d amt))
+  let processSpan (DateSpan Nothing _) = error "Undefined start of the period - will be unable to compute the rates of return"
+      processSpan (DateSpan _ Nothing) = error "Undefined end of the period - will be unable to compute the rates of return"
+      processSpan spn@(DateSpan (Just begin) (Just end)) = do
+        -- Spans are [begin,end), and end is 1 day after the actual end date we are interested in
+        let
+          b = fromEFDay begin
+          e = fromEFDay end
+          cashFlowApplyCostValue = map (\(d,amt) -> (d,mixedAmountValue e d amt))
 
-      valueBefore =
-        mixedAmountValue e b $ 
-        total trans (And [ investmentsQuery
-                         , Date (DateSpan Nothing (Just begin))])
+          valueBefore =
+            mixedAmountValue e b $
+            total trans (And [ investmentsQuery
+                             , Date (DateSpan Nothing (Just begin))])
 
-      valueAfter  =
-        mixedAmountValue e e $ 
-        total trans (And [investmentsQuery
-                         , Date (DateSpan Nothing (Just end))])
+          valueAfter  =
+            mixedAmountValue e e $
+            total trans (And [investmentsQuery
+                             , Date (DateSpan Nothing (Just end))])
 
-      priceDates = dbg3 "priceDates" $ nub $ filter (spanContainsDate spn) priceDirectiveDates
-      cashFlow =
-        ((map (,nullmixedamt) priceDates)++) $
-        cashFlowApplyCostValue $
-        calculateCashFlow wd trans (And [ Not investmentsQuery
-                                        , Not pnlQuery
-                                        , Date spn ] )
+          priceDates = dbg3 "priceDates" $ nub $ filter (spanContainsDate spn) priceDirectiveDates
+          cashFlow =
+            ((map (,nullmixedamt) priceDates)++) $
+            cashFlowApplyCostValue $
+            calculateCashFlow wd trans (And [ Not investmentsQuery
+                                            , Not pnlQuery
+                                            , Date spn ] )
 
+          pnl =
+            cashFlowApplyCostValue $
+            calculateCashFlow wd trans (And [ Not investmentsQuery
+                                            , pnlQuery
+                                            , Date spn ] )
 
-      pnl =
-        cashFlowApplyCostValue $
-        calculateCashFlow wd trans (And [ Not investmentsQuery
-                                        , pnlQuery
-                                        , Date spn ] )
+          thisSpan = dbg3 "processing span" $
+                     OneSpan b e valueBefore valueAfter cashFlow pnl
 
-      thisSpan = dbg3 "processing span" $
-                 OneSpan b e valueBefore valueAfter cashFlow pnl
+        irr <- internalRateOfReturn showCashFlow prettyTables thisSpan
+        (periodTwr, annualizedTwr) <- timeWeightedReturn showCashFlow prettyTables investmentsQuery trans mixedAmountValue thisSpan
+        let cashFlowAmt = maNegate . maSum $ map snd cashFlow
+        let smallIsZero x = if abs x < 0.01 then 0.0 else x
+        return [ showDate b
+               , showDate (addDays (-1) e)
+               , T.pack $ showMixedAmount valueBefore
+               , T.pack $ showMixedAmount cashFlowAmt
+               , T.pack $ showMixedAmount valueAfter
+               , T.pack $ showMixedAmount (valueAfter `maMinus` (valueBefore `maPlus` cashFlowAmt))
+               , T.pack $ printf "%0.2f%%" $ smallIsZero irr
+               , T.pack $ printf "%0.2f%%" $ smallIsZero periodTwr
+               , T.pack $ printf "%0.2f%%" $ smallIsZero annualizedTwr ]
 
-    irr <- internalRateOfReturn showCashFlow prettyTables thisSpan
-    twr <- timeWeightedReturn showCashFlow prettyTables investmentsQuery trans mixedAmountValue thisSpan
-    let cashFlowAmt = maNegate . maSum $ map snd cashFlow
-    let smallIsZero x = if abs x < 0.01 then 0.0 else x
-    return [ showDate b
-           , showDate (addDays (-1) e)
-           , T.pack $ showMixedAmount valueBefore
-           , T.pack $ showMixedAmount cashFlowAmt
-           , T.pack $ showMixedAmount valueAfter
-           , T.pack $ showMixedAmount (valueAfter `maMinus` (valueBefore `maPlus` cashFlowAmt))
-           , T.pack $ printf "%0.2f%%" $ smallIsZero irr
-           , T.pack $ printf "%0.2f%%" $ smallIsZero twr ]
+  periodRows <- forM spans processSpan
+  totalRow <- processSpan fullPeriod
+
+  let rowTitles = Tab.Group Tab.NoLine (map (Header . T.pack . show) (take (length periodRows) [1..]))
+
+  let isSingleSpan = length spans == 1
 
   let table = Table
-              (Tab.Group Tab.NoLine (map (Header . T.pack . show) (take (length tableBody) [1..])))
+              (if isSingleSpan
+                then rowTitles
+                else Tab.Group Tab.SingleLine  [ rowTitles, Tab.Group Tab.NoLine [ Header "Total" ]]
+              )
               (Tab.Group Tab.DoubleLine
                [ Tab.Group Tab.SingleLine [Header "Begin", Header "End"]
                , Tab.Group Tab.SingleLine [Header "Value (begin)", Header "Cashflow", Header "Value (end)", Header "PnL"]
-               , Tab.Group Tab.SingleLine [Header "IRR", Header "TWR"]])
-              tableBody
+               , Tab.Group Tab.SingleLine [Header "IRR"]
+               , Tab.Group Tab.SingleLine [Header "TWR/period", Header "TWR/year"]])
+              (if isSingleSpan then periodRows else periodRows ++ [totalRow])
 
   TL.putStrLn $ Tab.render prettyTables id id id table
 
@@ -174,7 +187,7 @@ timeWeightedReturn showCashFlow prettyTables investmentsQuery trans mixedAmountV
         where
           zeroUnitsNeedsCashflowAtTheFront changes1 =
             if initialUnits > 0 then changes1
-            else 
+            else
               let (leadingEmptyCashFlows, rest) = span isEmptyCashflow changes1
                   (leadingPnls, rest') = span (isLeft . snd) rest
                   (firstCashflow, rest'') = splitAt 1 rest'
@@ -185,10 +198,10 @@ timeWeightedReturn showCashFlow prettyTables investmentsQuery trans mixedAmountV
             Left _     -> False
 
           datedPnls = map (second Left) $ aggregateByDate pnl
- 
+
           datedCashflows = map (second Right) $ aggregateByDate cashFlow
 
-          aggregateByDate datedAmounts = 
+          aggregateByDate datedAmounts =
             -- Aggregate all entries for a single day, assuming that intraday interest is negligible
             sort
             $ map (\date_cash -> let (dates, cash) = unzip date_cash in (head dates, maSum cash))
@@ -223,7 +236,8 @@ timeWeightedReturn showCashFlow prettyTables investmentsQuery trans mixedAmountV
                        else (unMix valueAfter) / finalUnitBalance
       -- Technically, totalTWR should be (100*(finalUnitPrice - initialUnitPrice) / initialUnitPrice), but initalUnitPrice is 100, so 100/100 == 1
       totalTWR = roundTo 2 $ (finalUnitPrice - initialUnitPrice)
-      years = fromIntegral (diffDays end begin) / 365 :: Double
+      (startYear, _, _) = toGregorian begin
+      years = fromIntegral (diffDays end begin) / (if isLeapYear startYear then 366 else 365) :: Double
       annualizedTWR = 100*((1+(realToFrac totalTWR/100))**(1/years)-1) :: Double
 
   when showCashFlow $ do
@@ -257,7 +271,7 @@ timeWeightedReturn showCashFlow prettyTables investmentsQuery trans mixedAmountV
     printf "Final unit price: %s/%s units = %s\nTotal TWR: %s%%.\nPeriod: %.2f years.\nAnnualized TWR: %.2f%%\n\n"
       (showMixedAmount valueAfter) (showDecimal finalUnitBalance) (showDecimal finalUnitPrice) (showDecimal totalTWR) years annualizedTWR
 
-  return annualizedTWR
+  return ((realToFrac totalTWR) :: Double, annualizedTWR)
 
 internalRateOfReturn showCashFlow prettyTables (OneSpan begin end valueBefore valueAfter cashFlow _pnl) = do
   let prefix = (begin, maNegate valueBefore)
@@ -314,5 +328,3 @@ showDecimal :: Decimal -> String
 showDecimal d = if d == rounded then show d else show rounded
   where
     rounded = roundTo 2 d
-
-
