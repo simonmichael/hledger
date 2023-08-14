@@ -2925,7 +2925,7 @@ For others, use numeric format: +HHMM or -HHMM.
 ## `newest-first`
 
 hledger tries to ensure that the generated transactions will be ordered chronologically,
-including intra-day transactions.
+including same-day transactions.
 Usually it can auto-detect how the CSV records are ordered.
 But if it encounters CSV where all records are on the same date,
 it assumes that the records are oldest first.
@@ -2945,16 +2945,15 @@ newest-first
 
 ## `intra-day-reversed`
 
-CSV records for each day are sometimes ordered in reverse compared to the overall date order.
-Eg, here dates are newest first, but the transactions on each date are oldest first:
+If CSV records within a single day are ordered opposite to the overall record order,
+you can add the `intra-day-reversed` rule to improve the order of journal entries.
+Eg, here the overall record order is newest first, but same-day records are oldest first:
 ```csv
 2022-10-02, txn 3...
 2022-10-02, txn 4...
 2022-10-01, txn 1...
 2022-10-01, txn 2...
 ```
-In this situation, add the `intra-day-reversed` rule, and hledger will compensate,
-improving the order of transactions.
 ```rules
 # transactions within each day are reversed with respect to the overall date order
 intra-day-reversed
