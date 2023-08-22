@@ -457,7 +457,7 @@ or one of the equivalent simpler flags:
 -   -V/--market : like --value=end
 -   -X COMM/--exchange COMM : like --value=end,COMM
 
-See Cost reporting and Valuation for more about these.
+See Cost reporting and Value reporting for more about these.
 
 Combining balance report types
 
@@ -808,7 +808,7 @@ Period of generated transactions:
     -   possibly restricted by a period specified in the periodic
         transaction rule.
 
-Data layout
+Balance report layout
 
 The --layout option affects how balance reports show multi-commodity
 amounts and commodity symbols, which can improve readability. It can
@@ -913,6 +913,11 @@ Examples:
     "total","USD","5120.50"
     "total","VEA","36.00"
     "total","VHT","294.00"
+
+-   Note: bare layout will sometimes display an extra row for the
+    no-symbol commodity, because of zero amounts (hledger treats zeroes
+    as commodity-less, usually). This can break hledger-bar confusingly
+    (workaround: add a cur: query to exclude the no-symbol row).
 
 -   Tidy layout produces normalised "tidy data", where every variable
     has its own column and each row represents a single data point. See

@@ -29,9 +29,9 @@ commands, including check:
 -   parseable - data files are well-formed and can be successfully
     parsed
 
--   balancedwithautoconversion - all transactions are balanced,
-    inferring missing amounts where necessary, and possibly converting
-    commodities using costs or automatically-inferred costs
+-   autobalanced - all transactions are balanced, after converting to
+    cost. Missing amounts and missing costs are inferred automatically
+    where possible.
 
 -   assertions - all balance assertions in the journal are passing.
     (This check can be disabled with -I/--ignore-assertions.)
@@ -46,8 +46,9 @@ check:
 
 -   commodities - all commodity symbols used have been declared
 
--   balancednoautoconversion - transactions are balanced, possibly using
-    explicit costs but not inferred ones
+-   balanced - all transactions are balanced after converting to cost,
+    without inferring missing costs. If conversion costs are required,
+    they must be explicit.
 
 Other checks
 
@@ -60,7 +61,7 @@ therefore optional:
 -   payees - all payees used by transactions have been declared
 
 -   recentassertions - all accounts with balance assertions have a
-    balance assertion no more than 7 days before their latest posting
+    balance assertion within 7 days of their latest posting
 
 -   tags - all tags used by transactions have been declared
 
@@ -83,13 +84,13 @@ Cookbook -> Scripting.
 More about specific checks
 
 hledger check recentassertions will complain if any balance-asserted
-account does not have a balance assertion within 7 days before its
-latest posting. This aims to prevent the situation where you are
-regularly updating your journal, but forgetting to check your balances
-against the real world, then one day must dig back through months of
-data to find an error. It assumes that adding a balance assertion
-requires/reminds you to check the real-world balance. That may not be
-true if you auto-generate balance assertions from bank data; in that
-case, I recommend to import transactions uncleared, then use the
-manual-review-and-mark-cleared phase as a reminder to check the latest
-assertions against real-world balances.
+account has postings more than 7 days after its latest balance
+assertion. This aims to prevent the situation where you are regularly
+updating your journal, but forgetting to check your balances against the
+real world, then one day must dig back through months of data to find an
+error. It assumes that adding a balance assertion requires/reminds you
+to check the real-world balance. (That may not be true if you
+auto-generate balance assertions from bank data; in that case, I
+recommend to import transactions uncleared, and when you manually review
+and clear them, also check the latest assertion against the real-world
+balance.)

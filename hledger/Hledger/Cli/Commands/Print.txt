@@ -54,7 +54,7 @@ $ hledger print assets:cash | hledger -f- -I reg expenses:food
 
 There are some situations where print's output can become unparseable:
 
--   Valuation affects posting amounts but not balance assertion or
+-   Value reporting affects posting amounts but not balance assertion or
     balance assignment amounts, potentially causing those to fail.
 -   Auto postings can generate postings with too many missing amounts.
 -   Account aliases can generate bad account names.
