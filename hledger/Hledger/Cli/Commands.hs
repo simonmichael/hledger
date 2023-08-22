@@ -254,7 +254,6 @@ commandsList progversion othercmds =
   ," prices                   show historical market prices"
   ," stats                    show journal statistics"
   ," tags                     show tag names"
-  ," test                     run self tests"
   ,""
     -----------------------------------------80-------------------------------------
   ,bold' "UIS (other user interfaces)"
@@ -267,7 +266,8 @@ commandsList progversion othercmds =
   ," hledger -h                       show hledger's command-line help"
   ," hledger CMD -h                   show CMD's command-line help and manual"
   ," hledger help [-i|-m|-p] [TOPIC]  show hledger's manual with info, man, or pager"
-  ," hledger demo [DEMO] -- [ASCOPTS] show brief demos on various topics"
+  ," hledger demo [DEMO] [-- ASCOPTS] show brief demos on various topics"
+  ," hledger test      [-- TASTYOPTS] run self tests"
   ," https://hledger.org              html manuals, tutorials, support.."
   ,""
     -----------------------------------------80-------------------------------------
