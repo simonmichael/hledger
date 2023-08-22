@@ -2171,7 +2171,7 @@ avoid include cycles and including directories, but this can be done, eg:
 
 The path may also be prefixed to force a specific file format,
 overriding the file extension (as described in
-[hledger.1 -> Input files](#input-files)):
+[Data formats](#data-formats)):
 `include timedot:~/notes/2023*.md`.
 
 [glob patterns]: https://hackage.haskell.org/package/Glob-0.9.2/docs/System-FilePath-Glob.html#v:compile
