@@ -183,7 +183,7 @@ main = do
       | Just (cmdmode, cmdaction) <- findBuiltinCommand cmd =
         (case True of
            -- these commands should not require or read the journal
-          _ | cmd `elem` ["test","help"] -> cmdaction opts journallesserror
+          _ | cmd `elem` ["demo","help","test"] -> cmdaction opts journallesserror
           -- these commands should create the journal if missing
           _ | cmd `elem` ["add","import"] -> do
             ensureJournalFileExists . head =<< journalFilePathFromOpts opts
