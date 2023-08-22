@@ -5023,7 +5023,7 @@ This form looks convenient, but there are downsides:
 
 So generally this kind of entry is not recommended.
 You can make sure you have none of these by using `-s` ([strict mode](#strict-mode)),
-or by running `hledger check balancednoautoconversion`.
+or by running `hledger check balanced`.
 
 ## Reporting at cost
 

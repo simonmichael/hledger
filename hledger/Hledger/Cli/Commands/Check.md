@@ -32,9 +32,8 @@ including `check`:
 - **parseable** - data files are well-formed and can be 
   [successfully parsed](hledger.html#input-files)
 
-- **balancedwithautoconversion** - all transactions are [balanced](hledger.html#postings),
-  inferring missing amounts where necessary, and possibly converting commodities 
-  using [costs] or automatically-inferred costs
+- **autobalanced** - all transactions are [balanced](hledger.html#postings), after converting to cost.
+  Missing amounts and missing [costs] are inferred automatically where possible.
 
 - **assertions** - all [balance assertions] in the journal are passing. 
   (This check can be disabled with `-I`/`--ignore-assertions`.)
@@ -50,8 +49,9 @@ Or, they can be run by giving their names as arguments to `check`:
 - **commodities** - all commodity symbols used 
   [have been declared](hledger.html#commodity-error-checking)
 
-- **balancednoautoconversion** - transactions are balanced, possibly using
-  explicit costs but not [inferred ones](#costs)
+- **balanced** - all transactions are balanced after converting to cost,
+  without inferring missing costs.
+  If conversion costs are required, they must be explicit.
 
 ### Other checks
 

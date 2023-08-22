@@ -123,8 +123,8 @@ Click error names to see an example. The table headings mean:
 |-------------------------------------------------------|------------|------|--------|---------|----------|
 | [accounts](#accounts)                                 | ✓          | ✓    | ✓      | ✓✓      | ✓        |
 | [assertions](#assertions)                             | ✓          | ✓    | ✓      | ✓✓      | ✓        |
+| [autobalanced](#autobalanced)                         | ✓          | ✓    | -      | ✓       | ✓        |
 | [balanced](#balanced)                                 | ✓          | ✓    | -      | ✓       | ✓        |
-| [balancednoautoconversion](#balancednoautoconversion) | ✓          | ✓    | -      | ✓       | ✓        |
 | [commodities](#commodities)                           | ✓          | ✓    | ✓      | ✓✓      | ✓        |
 | [ordereddates](#ordereddates)                         | ✓          | ✓    | ✓      | ✓✓      | ✓        |
 | [parseable](#parseable)                               | ✓          | ✓    | ✓      | ✓✓      | ✓        |
@@ -194,9 +194,9 @@ hledger reg 'a$' cur: -I  # -f FILE
 ```
 
 
-### balanced
+### autobalanced
 ```
-hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./balanced.j:3-4:
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./autobalanced.j:3-4:
 3 | 2022-01-01
   |     a               1
 
@@ -206,9 +206,9 @@ Consider adjusting this entry's amounts, or adding missing postings.
 ```
 
 
-### balancednoautoconversion
+### balanced
 ```
-hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./balancednoautoconversion.j:6-8:
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./balanced.j:6-8:
 6 | 2022-01-01
   |     a             1 A
   |     b            -1 B

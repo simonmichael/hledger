@@ -50,18 +50,18 @@ cliOptsUpdateReportSpecWith roptsupdate copts@CliOpts{reportspec_} =
 
 -- | A type of error check that we can perform on the data.
 -- Some of these imply other checks that are done first,
--- eg currently Parseable and Balancedwithautoconversion are always done,
+-- eg currently Parseable and Autobalanced are always done,
 -- and Assertions are always done unless -I is in effect.
 data Check =
   -- done always
     Parseable
-  | Balancedwithautoconversion
+  | Autobalanced
   -- done always unless -I is used
   | Assertions
   -- done when -s is used, or on demand by check
   | Accounts
   | Commodities
-  | Balancednoautoconversion
+  | Balanced
   -- done on demand by check
   | Ordereddates
   | Payees
