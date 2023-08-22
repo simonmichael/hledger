@@ -1,8 +1,6 @@
 
 HLEDGER-WEB(1)               hledger User Manuals               HLEDGER-WEB(1)
 
-
-
 NAME
        hledger-web - robust, friendly plain text accounting (Web version)
 
@@ -26,16 +24,16 @@ DESCRIPTION
        register, balance charts) and allowing history-aware data entry, inter-
        active searching, and bookmarking.
 
-       hledger-web also lets you share a journal with multiple users, or  even
-       the  public  web.   There is no access control, so if you need that you
-       should put it behind a suitable  web  proxy.   As  a  small  protection
-       against  data  loss  when  running an unprotected instance, it writes a
+       hledger-web  also lets you share a journal with multiple users, or even
+       the public web.  There is no access control, so if you  need  that  you
+       should  put  it  behind  a  suitable  web proxy.  As a small protection
+       against data loss when running an unprotected  instance,  it  writes  a
        numbered backup of the main journal file (only) on every edit.
 
-       Like hledger, it reads from (and appends to) a journal  file  specified
-       by    the    LEDGER_FILE    environment    variable    (defaulting   to
-       $HOME/.hledger.journal); or you can specify files with -f options.   It
-       can  also  read timeclock files, timedot files, or any CSV/SSV/TSV file
+       Like  hledger,  it reads from (and appends to) a journal file specified
+       by   the    LEDGER_FILE    environment    variable    (defaulting    to
+       $HOME/.hledger.journal);  or you can specify files with -f options.  It
+       can also read timeclock files, timedot files, or any  CSV/SSV/TSV  file
        with a date field.  (See hledger(1) -> Input for details.)
 
        hledger-web can be run in three modes:
@@ -85,26 +83,26 @@ OPTIONS
 
        --file-url=URL
               set the static files url (default: BASEURL/static).  hledger-web
-              normally  serves static files itself, but if you wanted to serve
-              them from another server for efficiency, you would set  the  url
+              normally serves static files itself, but if you wanted to  serve
+              them  from  another server for efficiency, you would set the url
               with this.
 
        --capabilities=CAP[,CAP..]
-              enable  the  view,  add,  and/or  manage  capabilities (default:
+              enable the  view,  add,  and/or  manage  capabilities  (default:
               view,add)
 
        --capabilities-header=HTTPHEADER
-              read capabilities to enable from a  HTTP  header,  like  X-Sand-
+              read  capabilities  to  enable  from a HTTP header, like X-Sand-
               storm-Permissions (default: disabled)
 
-       --test run  hledger-web's  tests  and exit.  hspec test runner args may
+       --test run hledger-web's tests and exit.  hspec test  runner  args  may
               follow a --, eg: hledger-web --test -- --help
 
-       By default the server listens on IP address 127.0.0.1, accessible  only
-       to  local  requests.   You  can  use  --host  to change this, eg --host
+       By  default the server listens on IP address 127.0.0.1, accessible only
+       to local requests.  You can  use  --host  to  change  this,  eg  --host
        0.0.0.0 to listen on all configured addresses.
 
-       Similarly, use --port to set a TCP port other than 5000, eg if you  are
+       Similarly,  use --port to set a TCP port other than 5000, eg if you are
        running multiple hledger-web instances.
 
        Both of these options are ignored when --socket is used.  In this case,
@@ -113,14 +111,14 @@ OPTIONS
        hledger-web instances behind a reverse proxy that  handles  authentica-
        tion  for  different  users.   The path can be derived in a predictable
        way, eg by using the username within the path.  As an example, nginx as
-       reverse  proxy  can use the variable $remote_user to derive a path from
-       the username used  in  a  HTTP  basic  authentication.   The  following
-       proxy_pass  directive  allows  access to all hledger-web instances that
+       reverse proxy can use the variable $remote_user to derive a  path  from
+       the  username  used  in  a  HTTP  basic  authentication.  The following
+       proxy_pass directive allows access to all  hledger-web  instances  that
        created a socket in /tmp/hledger/:
 
                 proxy_pass http://unix:/tmp/hledger/${remote_user}.socket;
 
-       You can use --base-url to change the protocol, hostname, port and  path
+       You  can use --base-url to change the protocol, hostname, port and path
        that appear in hyperlinks, useful eg for integrating hledger-web within
        a larger website.  The default is http://HOST:PORT/ using the  server's
        configured host address and TCP port (or http://HOST if PORT is 80).
@@ -170,7 +168,7 @@ OPTIONS
               assignments)
 
        -s --strict
-              do extra error checking (check that all posted accounts are  de-
+              do  extra error checking (check that all posted accounts are de-
               clared)
 
    General reporting options
@@ -198,7 +196,7 @@ OPTIONS
               multiperiod/multicolumn report by year
 
        -p --period=PERIODEXP
-              set  start date, end date, and/or reporting interval all at once
+              set start date, end date, and/or reporting interval all at  once
               using period expressions syntax
 
        --date2
@@ -289,13 +287,13 @@ OPTIONS
        Some reporting options can also be written as query arguments.
 
 PERMISSIONS
-       By  default,  hledger-web  allows  anyone  who can reach it to view the
+       By default, hledger-web allows anyone who can  reach  it  to  view  the
        journal and to add new transactions, but not to change existing data.
 
        You can restrict who can reach it by
 
-       o setting the IP address it listens on (see --host above).  By  default
-         it  listens  on  127.0.0.1,  accessible to all users on the local ma-
+       o setting  the IP address it listens on (see --host above).  By default
+         it listens on 127.0.0.1, accessible to all users  on  the  local  ma-
          chine.
 
        o putting it behind an authenticating proxy, using eg apache or nginx
@@ -341,8 +339,8 @@ EDITING, UPLOADING, DOWNLOADING
 
 RELOADING
        hledger-web detects changes made to the files by other means (eg if you
-       edit  it  directly,  outside  of hledger-web), and it will show the new
-       data when you reload the page or navigate to a new page.  If  a  change
+       edit it directly, outside of hledger-web), and it  will  show  the  new
+       data  when  you reload the page or navigate to a new page.  If a change
        makes a file unparseable, hledger-web will display an error message un-
        til the file has been fixed.
 
@@ -350,8 +348,8 @@ RELOADING
        that both machine clocks are roughly in step.)
 
 JSON API
-       In  addition to the web UI, hledger-web also serves a JSON API that can
-       be used to get data or add new transactions.  If you want the JSON  API
+       In addition to the web UI, hledger-web also serves a JSON API that  can
+       be  used to get data or add new transactions.  If you want the JSON API
        only, you can use the --serve-api flag.  Eg:
 
               $ hledger-web -f examples/sample.journal --serve-api
@@ -415,8 +413,8 @@ JSON API
        derstanding, see the journal docs.
 
        In some cases there is outer JSON corresponding to a "Report" type.  To
-       understand  that,  go to the Hledger.Web.Handler.MiscR haddock and look
-       at the source for the appropriate handler to see what it  returns.   Eg
+       understand that, go to the Hledger.Web.Handler.MiscR haddock  and  look
+       at  the  source for the appropriate handler to see what it returns.  Eg
        for /accounttransactions it's getAccounttransactionsR, returning a "ac-
        countTransactionsReport ...".  Looking up the haddock for that  we  can
        see  that  /accounttransactions  returns  an AccountTransactionsReport,
@@ -426,8 +424,8 @@ JSON API
        You  can  add  a  new  transaction to the journal with a PUT request to
        /add, if hledger-web was started with the add  capability  (enabled  by
        default).  The payload must be the full, exact JSON representation of a
-       hledger transaction (partial data won't do).  You can get  sample  JSON
-       from  hledger-web's  /transactions  or /accounttransactions, or you can
+       hledger  transaction  (partial data won't do).  You can get sample JSON
+       from hledger-web's /transactions or /accounttransactions,  or  you  can
        export it with hledger-lib, eg like so:
 
               .../hledger$ stack ghci hledger-lib
@@ -532,8 +530,8 @@ DEBUG OUTPUT
    Debug output
        You can add --debug[=N] to the command line to  log  debug  output.   N
        ranges from 1 (least output, the default) to 9 (maximum output).  Typi-
-       cally you would start with 1 and increase until you are seeing  enough.
-       Debug  output  goes  to stderr, interleaved with the requests logged on
+       cally  you would start with 1 and increase until you are seeing enough.
+       Debug output goes to stderr, interleaved with the  requests  logged  on
        stdout.  To capture debug output in a log file instead, you can usually
        redirect stderr, eg:
        hledger-web --debug=3 2>hledger-web.log.
@@ -569,6 +567,4 @@ LICENSE
 SEE ALSO
        hledger(1), hledger-ui(1), hledger-web(1), ledger(1)
 
-
-
-hledger-web-1.30.99                June 2023                    HLEDGER-WEB(1)
+hledger-web-1.30.99               August 2023                   HLEDGER-WEB(1)

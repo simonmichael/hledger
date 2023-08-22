@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "June 2023" "hledger-1.30.99 " "hledger User Manuals"
+.TH "HLEDGER" "1" "August 2023" "hledger-1.30.99 " "hledger User Manuals"
 
 
 
@@ -759,7 +759,7 @@ Here are those commands and the formats currently supported:
 .PP
 .TS
 tab(@);
-lw(25.9n) lw(9.1n) lw(9.1n) lw(11.7n) lw(7.8n) lw(6.5n).
+lw(16.1n) lw(14.5n) lw(14.5n) lw(16.1n) lw(4.8n) lw(4.0n).
 T{
 -
 T}@T{
@@ -1814,7 +1814,7 @@ making it \f[V]€100 \[at]\[at] $135\f[R], as in example 2:
 .RE
 .PP
 Amounts can be converted to cost at report time using the
-\f[V]-B/--cost\f[R] flag; this is discussed more in the ˜COST REPORTING
+\f[V]-B/--cost\f[R] flag; this is discussed more in the Cost reporting
 section.
 .PP
 Note that the cost normally should be a positive amount, though it\[aq]s
@@ -2619,7 +2619,7 @@ or, it can be (these are used less often):
 assets for the cashflow report)
 .IP \[bu] 2
 \f[V]V\f[R] or \f[V]Conversion\f[R] (a subtype of Equity, for
-conversions (see COST REPORTING).)
+conversions (see Cost reporting).)
 .PP
 Here is a typical set of account type declarations:
 .IP
@@ -3133,7 +3133,7 @@ P 2010-01-01 € $1.40
 .PP
 The \f[V]-V\f[R], \f[V]-X\f[R] and \f[V]--value\f[R] flags use these
 market prices to show amount values in another commodity.
-See Valuation.
+See Value reporting.
 .PP
 .SS \f[V]payee\f[R] directive
 .PP
@@ -3499,6 +3499,11 @@ $ hledger print --explicit
     (a)         $1 \[at] €2 = $1 \[at] €2
 \f[R]
 .fi
+.SS Balance assignments and multiple files
+.PP
+Balance assignments handle multiple files like balance assertions.
+They see balance from other files previously included from the current
+file, but not from previous sibling or parent files.
 .SS Bracketed posting dates
 .PP
 For setting posting dates and secondary posting dates, Ledger\[aq]s
@@ -4073,7 +4078,7 @@ For others, use numeric format: +HHMM or -HHMM.
 .SS \f[V]newest-first\f[R]
 .PP
 hledger tries to ensure that the generated transactions will be ordered
-chronologically, including intra-day transactions.
+chronologically, including same-day transactions.
 Usually it can auto-detect how the CSV records are ordered.
 But if it encounters CSV where all records are on the same date, it
 assumes that the records are oldest first.
@@ -4098,10 +4103,11 @@ newest-first
 .fi
 .SS \f[V]intra-day-reversed\f[R]
 .PP
-CSV records for each day are sometimes ordered in reverse compared to
-the overall date order.
-Eg, here dates are newest first, but the transactions on each date are
-oldest first:
+If CSV records within a single day are ordered opposite to the overall
+record order, you can add the \f[V]intra-day-reversed\f[R] rule to
+improve the order of journal entries.
+Eg, here the overall record order is newest first, but same-day records
+are oldest first:
 .IP
 .nf
 \f[C]
@@ -4111,9 +4117,6 @@ oldest first:
 2022-10-01, txn 2...
 \f[R]
 .fi
-.PP
-In this situation, add the \f[V]intra-day-reversed\f[R] rule, and
-hledger will compensate, improving the order of transactions.
 .IP
 .nf
 \f[C]
@@ -4326,103 +4329,69 @@ below), a default account name will be chosen (like
 \[dq]expenses:unknown\[dq] or \[dq]income:unknown\[dq]).
 .SS amount field
 .PP
-Amount setting can get a bit complex.
-Assigning to \f[V]amount\f[R] is sufficient for simple transactions, but
-there are four field name variants you can use for different situations:
+There are several ways to set posting amounts from CSV, useful in
+different situations.
+.IP "1." 3
+\f[B]\f[VB]amount\f[B]\f[R] is the oldest and simplest.
+Assigning to this sets the amount of the first and second postings.
+In the second posting, the amount will be negated; also, if it has a
+cost attached, it will be converted to cost.
+.IP "2." 3
+\f[B]\f[VB]amount-in\f[B]\f[R] and \f[B]\f[VB]amount-out\f[B]\f[R] work
+exactly like the above, but should be used when the CSV has two amount
+fields (such as \[dq]Debit\[dq] and \[dq]Credit\[dq], or
+\[dq]Inflow\[dq] and \[dq]Outflow\[dq]).
+Whichever field has a non-zero value will be used as the amount of the
+first and second postings.
+Here are some tips to avoid confusion:
+.RS 4
 .IP \[bu] 2
-\f[B]\f[VB]amountN\f[B] sets a specific posting\[aq]s amount from one
-CSV field or arbitrary value.\f[R]
-.PD 0
-.P
-.PD
-Assigning to \f[V]amountN\f[R] sets the amount of the Nth posting - and
-also causes that posting to be generated.
-N is most often 1 or 2 but can go up to 99, potentially generating a
-99-posting transaction.
-(Posting numbers don\[aq]t have to be consecutive; higher posting
-numbers can sometimes be useful with conditional rules, to ensure a
-certain ordering of postings.)
+It\[aq]s not \[dq]amount-in for posting 1 and amount-out for posting
+2\[dq], it is \[dq]extract a single amount from the amount-in or
+amount-out field, and use that for posting 1 and (negated) for posting
+2\[dq].
 .IP \[bu] 2
-\f[B]\f[VB]amountN-in/-out\f[B] sets a specific posting\[aq]s amount
-from two CSV fields.\f[R]
-.PD 0
-.P
-.PD
-When the amount is provided as two CSV fields -
-\[dq]Debit\[dq]/\[dq]Credit\[dq],
-\[dq]Deposit\[dq]/\[dq]Withdrawal\[dq], \[dq]Money In\[dq]/\[dq]Money
-Out\[dq] or similar - assign those fields to \f[V]amountN-in\f[R] and
-\f[V]amountN-out\f[R] respectively (or possibly the other way round,
-depending on signs).
-This will set the Nth posting\[aq]s amount to whichever of the two CSV
-field values is non-zero.
-Some notes:
-.RS 2
+Don\[aq]t use both \f[V]amount\f[R] and
+\f[V]amount-in\f[R]/\f[V]amount-out\f[R] in the same rules file; choose
+based on whether the amount is in a single CSV field or spread across
+two fields.
 .IP \[bu] 2
-Don\[aq]t mix \f[V]amountN\f[R] and \f[V]amountN-in\f[R]/\f[V]-out\f[R].
-When you have one CSV amount field, use \f[V]amountN\f[R].
-When you have two CSV amount fields, use
-\f[V]amountN-in\f[R]/\f[V]amountN-out\f[R].
+In each record, at most one of the two CSV fields should contain a
+non-zero amount; the other field must contain a zero or nothing.
 .IP \[bu] 2
-\f[V]amountN-in\f[R] and \f[V]amountN-out\f[R] are always used together,
-as a pair.
-Assign to both of them.
+hledger assumes both CSV fields contain unsigned numbers, and it
+automatically negates the amount-out values.
 .IP \[bu] 2
-They do not generate two separate postings; rather, they generate the
-Nth posting\[aq]s single amount, from the value found in one or other of
-the two CSV fields.
-.IP \[bu] 2
-In each record, at least one of the two CSV fields must contain a zero
-amount or be empty.
-.IP \[bu] 2
-hledger assumes the two CSV fields contain unsigned numbers, and it will
-automatically negate the -out amount.
-.IP \[bu] 2
-This variant can be convenient, but it doesn\[aq]t handle every
-two-amount-field situation; if you need more flexibility, use an
-\f[V]if\f[R] rule (see \[dq]Setting amounts\[dq] below).
+If the data doesn\[aq]t fit these requirements, you\[aq]ll probably need
+an if rule (see below).
 .RE
-.PP
-The other two variants are older and considered legacy syntax, but can
-still be convenient sometimes:
-.IP \[bu] 2
-\f[B]\f[VB]amount\f[B] sets posting 1 and 2\[aq]s amounts from one CSV
-field or value.\f[R]
-.PD 0
-.P
-.PD
-Assigning to \f[V]amount\f[R], with no posting number,
-.RS 2
-.IP \[bu] 2
-sets posting 1\[aq]s amount (like \f[V]amount1\f[R])
-.IP \[bu] 2
-sets posting 2\[aq]s amount to the same amount but with opposite sign;
-and also converts it to cost if it has a cost price
-.IP \[bu] 2
-can be overridden by \f[V]amount1\f[R] and/or \f[V]amount2\f[R]
-assignments.
-(This helps with incremental migration of old rules files to the newer
-syntax.)
-.RE
-.IP \[bu] 2
-\f[B]\f[VB]amount-in/-out\f[B] sets posting 1 and 2\[aq]s amounts from
-two CSV fields.\f[R]
-.PD 0
-.P
-.PD
-Assigning \f[V]amount-in\f[R] and \f[V]amount-out\f[R], with no posting
-numbers, to two CSV fields reads whichever of the two values is non-zero
-as the amount, and then sets the first two posting amounts as above.
-.PP
-We recommend using only one of these variants within a rules file,
-rather than mixing them.
-And remember that a \f[V]fields\f[R] list can also do assignments, so eg
-naming a CSV field \[dq]amount\[dq] counts as an assignment to
-\f[V]amount\f[R]; if you don\[aq]t want that, call it something else,
-like \[dq]amount_\[dq].
-.PP
-In addition to this section, please see also the tips beginning at
-\[dq]Working with CSV > Setting amounts\[dq] below.
+.IP "3." 3
+\f[B]\f[VB]amountN\f[B]\f[R] (where N is a number from 1 to 99) sets the
+amount of only a single posting: the Nth posting in the transaction.
+You\[aq]ll usually need at least two such assignments to make a balanced
+transaction.
+You can also generate more than two postings, to represent more complex
+transactions.
+The posting numbers don\[aq]t have to be consecutive; with if rules,
+higher posting numbers can be useful to ensure a certain order of
+postings.
+.IP "4." 3
+\f[B]\f[VB]amountN-in\f[B]\f[R] and \f[B]\f[VB]amountN-out\f[B]\f[R]
+work exactly like the above, but should be used when the CSV has two
+amount fields.
+This is analogous to \f[V]amount-in\f[R] and \f[V]amount-out\f[R], and
+those tips also apply here.
+.IP "5." 3
+Remember that a \f[V]fields\f[R] list can also do assignments.
+So in a fields list if you name a CSV field \[dq]amount\[dq], that
+counts as assigning to \f[V]amount\f[R].
+(If you don\[aq]t want that, call it something else in the fields list,
+like \[dq]amount_\[dq].)
+.IP "6." 3
+The above don\[aq]t handle every situation; if you need more
+flexibility, use an \f[V]if\f[R] rule to set amounts conditionally.
+See \[dq]Working with CSV > Setting amounts\[dq] below for more on this
+and on amount-setting generally.
 .SS currency field
 .PP
 \f[V]currency\f[R] sets a currency symbol, to be prepended to all
@@ -4849,8 +4818,8 @@ https://hledger.org/cookbook.html#setups-and-workflows
 https://plaintextaccounting.org -> data import/conversion
 .SS Setting amounts
 .PP
-Continuing from amount field above, here are more tips on handling
-various amount-setting situations:
+Continuing from amount field above, here are more tips for
+amount-setting:
 .IP "1." 3
 \f[B]If the amount is in a single CSV field:\f[R]
 .PD 0
@@ -4882,8 +4851,8 @@ if %Type deposit
 .fi
 .RE
 .IP "2." 3
-\f[B]If the amount is in one of two CSV fields (eg Debit and
-Credit):\f[R]
+\f[B]If the amount is in two CSV fields (such as Debit and Credit, or In
+and Out):\f[R]
 .PD 0
 .P
 .PD
@@ -4893,22 +4862,21 @@ Credit):\f[R]
 .PD 0
 .P
 .PD
-Assign the fields to \f[V]amountN-in\f[R] and \f[V]amountN-out\f[R].
-This sets posting N\[aq]s amount to whichever of these has a non-zero
-value.
-If it\[aq]s the -out value, the amount will be negated.
+Assign one field to \f[V]amountN-in\f[R] and the other to
+\f[V]amountN-out\f[R].
+hledger will automatically negate the \[dq]out\[dq] field, and will use
+whichever field value is non-zero as posting N\[aq]s amount.
 .IP "b." 3
 \f[B]If either field is signed:\f[R]
 .PD 0
 .P
 .PD
-Use a conditional rule to flip the sign when needed.
-Eg below, the -out value already has a minus sign so we undo
-hledger\[aq]s automatic negating by negating once more (but only if the
-field is non-empty, so that we don\[aq]t leave a minus sign by itself):
+You will probably need to override hledger\[aq]s sign for one or the
+other field, as in the following example:
 .IP
 .nf
 \f[C]
+# Negate the -out value, but only if it is not empty:
 fields date, description, amount1-in, amount1-out
 if %amount1-out [1-9]
  amount1-out -%amount1-out
@@ -6945,116 +6913,169 @@ time, from the same or different periodic transaction rules:
 See also: Budgeting and Forecasting.
 .SH Cost reporting
 .PP
-This section is about recording the cost of things, in transactions
-where one commodity is exchanged for another.
-Eg an exchange of currency, or a stock purchase or sale.
-First, a quick glossary:
-.IP \[bu] 2
-Conversion - an exchange of one currency or commodity for another.
-Eg a foreign currency exchange, or a purchase or sale of stock or
-cryptocurrency.
-.IP \[bu] 2
-Conversion transaction - a transaction involving one or more
-conversions.
-.IP \[bu] 2
-Conversion rate - the cost per unit of one commodity in the other, ie
-the exchange rate.
-.IP \[bu] 2
-Cost - how much of one commodity was paid to acquire the other.
-And more generally, in hledger docs: the amount exchanged in the
-\[dq]secondary\[dq] commodity (usually your base currency), whether in a
-purchase or a sale, and whether expressed per unit or in total.
-Also, the \[dq]\[at]/\[at]\[at] PRICE\[dq] notation used to represent
-this.
-.SS -B: Convert to cost
+In some transactions - for example a currency conversion, or a purchase
+or sale of stock - one commodity is exchanged for another.
+In these transactions there is a conversion rate, also called the cost
+(when buying) or selling price (when selling).
+In hledger docs we just say \[dq]cost\[dq], for convenience; feel free
+to mentally translate to \[dq]conversion rate\[dq] or \[dq]selling
+price\[dq] if helpful.
+.SS Recording costs
 .PP
-As discussed in JOURNAL > Costs, when recording a transaction you can
-also record the amount\[aq]s cost in another commodity, by adding
-\f[V]\[at] UNITPRICE\f[R] or \f[V]\[at]\[at] TOTALPRICE\f[R].
+We\[aq]ll explore several ways of recording transactions involving
+costs.
+These are also summarised at hledger Cookbook > Cost notation.
 .PP
-Then you can see a report with amounts converted to cost, by adding the
-\f[V]-B/--cost\f[R] flag.
-(Mnemonic: \[dq]B\[dq] from \[dq]cost Basis\[dq], as in Ledger).
-Eg:
+Costs can be recorded explicitly in the journal, using the
+\f[V]\[at] UNITCOST\f[R] or \f[V]\[at]\[at] TOTALCOST\f[R] notation
+described in Journal > Costs:
+.PP
+\f[B]Variant 1\f[R]
 .IP
 .nf
 \f[C]
 2022-01-01
-  assets:dollars  $-135          ; 135 dollars is exchanged for..
-  assets:euros     €100 \[at] $1.35  ; one hundred euros purchased at $1.35 each
-\f[R]
-.fi
-.IP
-.nf
-\f[C]
-$ hledger bal -N
-               $-135  assets:dollars
-                €100  assets:euros
-$ hledger bal -N -B
-               $-135  assets:dollars
-                $135  assets:euros    # <- the euros\[aq] cost
+  assets:dollars    $-135
+  assets:euros       €100 \[at] $1.35   ; $1.35 per euro (unit cost)
 \f[R]
 .fi
 .PP
-Notes:
-.PP
--B is sensitive to the order of postings when a cost is inferred: the
-inferred price will be in the commodity of the last amount.
-So if example 3\[aq]s postings are reversed, while the transaction is
-equivalent, -B shows something different:
+\f[B]Variant 2\f[R]
 .IP
 .nf
 \f[C]
 2022-01-01
-  assets:dollars  $-135              ; 135 dollars sold
-  assets:euros     €100              ; for 100 euros
-\f[R]
-.fi
-.IP
-.nf
-\f[C]
-$ hledger bal -N -B
-               €-100  assets:dollars  # <- the dollars\[aq] selling price
-                €100  assets:euros
+  assets:dollars    $-135
+  assets:euros       €100 \[at]\[at] $135   ; $135 total cost
 \f[R]
 .fi
 .PP
-The \[at]/\[at]\[at] cost notation is convenient, but has some
-drawbacks: it does not truly balance the transaction, so it disrupts the
-accounting equation and tends to causes a non-zero total in balance
-reports.
+Typically, writing the unit cost (variant 1) is preferable; it can be
+more effort, requiring more attention to decimal digits; but it reveals
+the per-unit cost basis, and makes stock sales easier.
+.PP
+Costs can also be left implicit, and hledger will infer the cost that is
+consistent with a balanced transaction:
+.PP
+\f[B]Variant 3\f[R]
+.IP
+.nf
+\f[C]
+2022-01-01
+  assets:dollars    $-135
+  assets:euros       €100
+\f[R]
+.fi
+.PP
+Here, hledger will attach a \f[V]\[at]\[at] €100\f[R] cost to the first
+amount (you can see it with \f[V]hledger print -x\f[R]).
+This form looks convenient, but there are downsides:
+.IP \[bu] 2
+It sacrifices some error checking.
+For example, if you accidentally wrote €10 instead of €100, hledger
+would not be able to detect the mistake.
+.IP \[bu] 2
+It is sensitive to the order of postings - if they were reversed, a
+different entry would be inferred and reports would be different.
+.IP \[bu] 2
+The per-unit cost basis is not easy to read.
+.PP
+So generally this kind of entry is not recommended.
+You can make sure you have none of these by using \f[V]-s\f[R] (strict
+mode), or by running \f[V]hledger check balanced\f[R].
+.SS Reporting at cost
+.PP
+Now when you add the \f[V]-B\f[R]/\f[V]--cost\f[R] flag to reports
+(\[dq]B\[dq] is from Ledger\[aq]s -B/--basis/--cost flag), any amounts
+which have been annotated with costs will be converted to their
+cost\[aq]s commodity (in the report output).
+Ie they will be displayed \[dq]at cost\[dq] or \[dq]at sale price\[dq].
+.PP
+Some things to note:
+.IP \[bu] 2
+Costs are attached to specific posting amounts in specific transactions,
+and once recorded they do not change.
+This contrasts with market prices, which are ambient and fluctuating.
+.IP \[bu] 2
+Conversion to cost is performed before conversion to market value
+(described below).
 .SS Equity conversion postings
 .PP
-By contrast, conventional double entry bookkeeping (DEB) uses a
-different notation: an extra pair of equity postings to balance
-conversion transactions.
-In this style, the above entry might be written:
+There is a problem with the entries above - they are not conventional
+Double Entry Bookkeeping (DEB) notation, and because of the
+\[dq]magical\[dq] transformation of one commodity into another, they
+cause an imbalance in the Accounting Equation.
+This shows up as a non-zero grand total in balance reports like
+\f[V]hledger bse\f[R].
+.PP
+For most hledger users, this doesn\[aq]t matter in practice and can
+safely be ignored !
+But if you\[aq]d like to learn more, keep reading.
+.PP
+Conventional DEB uses an extra pair of equity postings to balance the
+transaction.
+Of course you can do this in hledger as well:
+.PP
+\f[B]Variant 4\f[R]
 .IP
 .nf
 \f[C]
-2022-01-01 one hundred euros purchased at $1.35 each
+2022-01-01
     assets:dollars      $-135
+    assets:euros         €100
     equity:conversion    $135
     equity:conversion   €-100
-    assets:euros         €100
 \f[R]
 .fi
 .PP
-This style is more correct, but it\[aq]s also more verbose and makes
-cost reporting more difficult for PTA tools.
+Now the transaction is perfectly balanced according to standard DEB, and
+\f[V]hledger bse\f[R]\[aq]s total will not be disrupted.
 .PP
-Happily, current hledger can read either notation, or convert one to the
-other when needed, so you can use the one you prefer.
+And, hledger can still infer the cost for cost reporting, but it\[aq]s
+not done by default - you must add the \f[V]--infer-costs\f[R] flag like
+so:
+.IP
+.nf
+\f[C]
+$ hledger print --infer-costs
+2022-01-01 one hundred euros purchased at $1.35 each
+    assets:dollars       $-135 \[at]\[at] €100
+    assets:euros                  €100
+    equity:conversion             $135
+    equity:conversion            €-100
+\f[R]
+.fi
+.IP
+.nf
+\f[C]
+$ hledger bal --infer-costs -B
+               €-100  assets:dollars                                                                                                                                              
+                €100  assets:euros                                                                                                                                                
+--------------------                                                                                                                                                              
+                   0                                                                                                                                                              
+\f[R]
+.fi
 .PP
-You can even use cost notation and equivalent conversion postings at the
-same time, for clarity.
-hledger will ignore the redundancy.
-But be sure the cost and conversion posting amounts match, or you\[aq]ll
-see a not-so-clear transaction balancing error message.
-.SS Inferring equity postings from cost
+Here are some downsides of this kind of entry:
+.IP \[bu] 2
+The per-unit cost basis is not easy to read.
+.IP \[bu] 2
+Instead of \f[V]-B\f[R] you must remember to type
+\f[V]-B --infer-costs\f[R].
+.IP \[bu] 2
+\f[V]--infer-costs\f[R] works only where hledger can identify the two
+equity:conversion postings and match them up with the two non-equity
+postings.
+So writing the journal entry in a particular format becomes more
+important.
+More on this below.
+.SS Inferring equity conversion postings
 .PP
-With \f[V]--infer-equity\f[R], hledger detects transactions written with
-PTA cost notation and adds equity conversion postings to them:
+Can we go in the other direction ?
+Yes, if you have transactions written with the \[at]/\[at]\[at] cost
+notation, hledger can infer the missing equity postings, if you add the
+\f[V]--infer-equity\f[R] flag.
+Eg:
 .IP
 .nf
 \f[C]
@@ -7070,252 +7091,105 @@ $ hledger print --infer-equity
 2022-01-01
     assets:dollars                    $-135
     assets:euros               €100 \[at] $1.35
-    equity:conversion:$-€:€           €-100  ; generated-posting:
-    equity:conversion:$-€:$         $135.00  ; generated-posting:
+    equity:conversion:$-€:€           €-100
+    equity:conversion:$-€:$         $135.00
 \f[R]
 .fi
 .PP
-The conversion account names can be changed with the conversion account
-type declaration.
+The equity account names will be \[dq]equity:conversion:A-B:A\[dq] and
+\[dq]equity:conversion:A-B:B\[dq] where A is the alphabetically first
+commodity symbol.
+You can customise the \[dq]equity:conversion\[dq] part by declaring an
+account with the \f[V]V\f[R]/\f[V]Conversion\f[R] account type.
+.SS Combining costs and equity conversion postings
 .PP
---infer-equity is useful when when transactions have been recorded using
-cost notation, to help preserve the accounting equation and balance
-reports\[aq] zero total, or to produce more conventional journal entries
-for sharing with non-PTA-users.
-.SS Inferring cost from equity postings
+Finally, you can use both the \[at]/\[at]\[at] cost notation and equity
+postings at the same time.
+This in theory gives the best of all worlds - preserving the accounting
+equation, revealing the per-unit cost basis, and providing more
+flexibility in how you write the entry:
 .PP
-The reverse operation is possible using \f[V]--infer-costs\f[R], which
-detects transactions written with equity conversion postings and adds
-cost notation to them:
+\f[B]Variant 5\f[R]
 .IP
 .nf
 \f[C]
-2022-01-01
-    assets:dollars            $-135
-    equity:conversion          $135
-    equity:conversion         €-100
-    assets:euros               €100
+2022-01-01 one hundred euros purchased at $1.35 each
+    assets:dollars      $-135
+    equity:conversion    $135
+    equity:conversion   €-100
+    assets:euros         €100 \[at] $1.35
 \f[R]
 .fi
+.PP
+All the other variants above can (usually) be rewritten to this final
+form with:
 .IP
 .nf
 \f[C]
-$ hledger print --infer-costs
-2022-01-01
-    assets:dollars       $-135 \[at]\[at] €100
-    equity:conversion             $135
-    equity:conversion            €-100
-    assets:euros                  €100
+$ hledger print -x --infer-costs --infer-equity
 \f[R]
 .fi
 .PP
---infer-costs is useful when combined with -B/--cost, allowing cost
-reporting even when transactions have been recorded using equity
-postings:
+Downsides:
+.IP \[bu] 2
+This was added in hledger-1.29 and is still somewhat experimental.
+.IP \[bu] 2
+The precise format of the journal entry becomes more important.
+If hledger can\[aq]t detect and match up the cost and equity postings,
+it will give a transaction balancing error.
+.IP \[bu] 2
+The add command does not yet accept this kind of entry (#2056).
+.IP \[bu] 2
+This is the most verbose form.
+.SS Requirements for detecting equity conversion postings
+.PP
+\f[V]--infer-costs\f[R] has certain requirements (unlike
+\f[V]--infer-equity\f[R], which always works).
+It will infer costs only in transactions with:
+.IP \[bu] 2
+Two non-equity postings, in different commodities.
+Their order is significant: the cost will be added to the first of them.
+.IP \[bu] 2
+Two postings to equity conversion accounts, next to one another, which
+balance the two non-equity postings.
+This balancing is checked to the same precision (number of decimal
+places) used in the conversion posting\[aq]s amount.
+Equity conversion accounts are:
+.RS 2
+.IP \[bu] 2
+any accounts declared with account type
+\f[V]V\f[R]/\f[V]Conversion\f[R], or their subaccounts
+.IP \[bu] 2
+otherwise, accounts named \f[V]equity:conversion\f[R],
+\f[V]equity:trade\f[R], or \f[V]equity:trading\f[R], or their
+subaccounts.
+.RE
+.PP
+And multiple such four-posting groups can coexist within a single
+transaction.
+When \f[V]--infer-costs\f[R] fails, it does not infer a cost in that
+transaction, and does not raise an error (ie, it infers costs where it
+can).
+.PP
+Reading variant 5 journal entries, combining cost notation and equity
+postings, has all the same requirements.
+When reading such an entry fails, hledger raises an \[dq]unbalanced
+transaction\[dq] error.
+.SS Infer cost and equity by default ?
+.PP
+Should \f[V]--infer-costs\f[R] and \f[V]--infer-equity\f[R] be enabled
+by default ?
+Try using them always, eg with a shell alias:
 .IP
 .nf
 \f[C]
-$ hledger print --infer-costs -B
-2009-01-01
-    assets:dollars           €-100
-    assets:euros              €100
+alias h=\[dq]hledger --infer-equity --infer-costs\[dq]
 \f[R]
 .fi
 .PP
-Notes:
+and let us know what problems you find.
 .PP
-For \f[V]--infer-costs\f[R] to work, an exchange must consist of four
-postings:
-.IP "1." 3
-two non-equity postings
-.IP "2." 3
-two equity postings, next to one another
-.IP "3." 3
-the equity accounts must be declared, with account type
-\f[V]V\f[R]/\f[V]Conversion\f[R] (or if they are not declared, they must
-be named \f[V]equity:conversion\f[R], \f[V]equity:trade\f[R],
-\f[V]equity:trading\f[R] or subaccounts of these)
-.IP "4." 3
-the equity postings\[aq] amounts must exactly match the non-equity
-postings\[aq] amounts.
-.PP
-Multiple such exchanges can coexist within a single transaction.
-.PP
-When inferring cost, the order of postings matters: the cost is added to
-the first of the non-equity postings involved in the exchange, in the
-commodity of the last non-equity posting involved in the exchange.
-If you don\[aq]t want to write your postings in the required order, you
-can use explicit cost notation instead.
-.PP
---infer-equity and --infer-costs can be used together, if you have a
-mixture of both notations in your journal.
-.SS When to infer cost/equity
-.PP
-Inferring equity postings or costs is still fairly new, so not enabled
-by default.
-We\[aq]re not sure yet if that should change.
-Here are two suggestions to try, experience reports welcome:
-.IP "1." 3
-When you use -B, always use --infer-costs as well.
-Eg: \f[V]hledger bal -B --infer-costs\f[R]
-.IP "2." 3
-Always run hledger with both flags enabled.
-Eg: \f[V]alias hl=\[dq]hledger --infer-equity --infer-costs\[dq]\f[R]
-.SS How to record conversions
-.PP
-Essentially there are four ways to record a conversion transaction in
-hledger.
-Here are all of them, with pros and cons.
-.SS Conversion with implicit cost
-.PP
-Let\[aq]s assume 100 EUR is converted to 120 USD.
-You can just record the outflow (100 EUR) and inflow (120 USD) in the
-appropriate asset account:
-.IP
-.nf
-\f[C]
-2021-01-01
-    assets:cash    -100 EUR
-    assets:cash     120 USD
-\f[R]
-.fi
-.PP
-hledger will assume this transaction is balanced, inferring that the
-conversion rate must be 1 EUR = 1.20 USD.
-You can see the inferred rate by using \f[V]hledger print -x\f[R].
-.PP
-Pro:
-.IP \[bu] 2
-Concise, easy
-.PP
-Con:
-.IP \[bu] 2
-Less error checking - typos in amounts or commodity symbols may not be
-detected
-.IP \[bu] 2
-Conversion rate is not clear
-.IP \[bu] 2
-Disturbs the accounting equation, unless you add the --infer-equity flag
-.PP
-You can prevent accidental implicit conversions due to a mistyped
-commodity symbol, by using \f[V]hledger check commodities\f[R].
-.PP
-You can prevent implicit conversions entirely, by using
-\f[V]hledger check balancednoautoconversion\f[R], or
-\f[V]-s/--strict\f[R].
-.SS Conversion with explicit cost
-.PP
-You can add the conversion rate using \[at] notation:
-.IP
-.nf
-\f[C]
-2021-01-01
-    assets:cash        -100 EUR \[at] 1.20 USD
-    assets:cash         120 USD
-\f[R]
-.fi
-.PP
-Now hledger will check that 100 * 1.20 = 120, and would report an error
-otherwise.
-.PP
-Pro:
-.IP \[bu] 2
-Still concise
-.IP \[bu] 2
-Makes the conversion rate clear
-.IP \[bu] 2
-Provides more error checking
-.PP
-Con:
-.IP \[bu] 2
-Disturbs the accounting equation, unless you add the --infer-equity flag
-.SS Conversion with equity postings
-.PP
-In strict double entry bookkeeping, the above transaction is not
-balanced in EUR or in USD, since some EUR disappears, and some USD
-appears.
-This violates the accounting equation (A+L+E=0), and prevents reports
-like \f[V]balancesheetequity\f[R] from showing a zero total.
-.PP
-The proper way to make it balance is to add a balancing posting for each
-commodity, using an equity account:
-.IP
-.nf
-\f[C]
-2021-01-01
-    assets:cash        -100 EUR
-    equity:conversion   100 EUR
-    equity:conversion  -120 USD
-    assets:cash         120 USD
-\f[R]
-.fi
-.PP
-Pro:
-.IP \[bu] 2
-Preserves the accounting equation
-.IP \[bu] 2
-Keeps track of conversions and related gains/losses in one place
-.IP \[bu] 2
-Standard, works in any double entry accounting system
-.PP
-Con:
-.IP \[bu] 2
-More verbose
-.IP \[bu] 2
-Conversion rate is not obvious
-.IP \[bu] 2
-Cost reporting requires adding the --infer-costs flag
-.SS Conversion with equity postings and explicit cost
-.PP
-Here both equity postings and \[at] notation are used together.
-.IP
-.nf
-\f[C]
-2021-01-01
-    assets:cash        -100 EUR \[at] 1.20 USD
-    equity:conversion   100 EUR
-    equity:conversion  -120 USD
-    assets:cash         120 USD
-\f[R]
-.fi
-.PP
-Pro:
-.IP \[bu] 2
-Preserves the accounting equation
-.IP \[bu] 2
-Keeps track of conversions and related gains/losses in one place
-.IP \[bu] 2
-Makes the conversion rate clear
-.IP \[bu] 2
-Provides more error checking
-.PP
-Con:
-.IP \[bu] 2
-Most verbose
-.IP \[bu] 2
-Not compatible with ledger
-.SS Cost tips
-.IP \[bu] 2
-Recording the cost/conversion rate explicitly is good because it makes
-that clear and helps detect errors.
-.IP \[bu] 2
-Recording equity postings is good because it is correct bookkeeping and
-preserves the accounting equation.
-.IP \[bu] 2
-Combining these is possible.
-.IP \[bu] 2
-When you want to see the cost (or sale proceeds) of things, use
-\f[V]-B\f[R] (short form of \f[V]--cost\f[R]).
-.IP \[bu] 2
-If you use conversion postings without cost notation, add
-\f[V]--infer-costs\f[R] also.
-.IP \[bu] 2
-If you use cost notation without conversion postings, and you want to
-see a balanced balance sheet or print correct journal entries, use
-\f[V]--infer-equity\f[R].
-.IP \[bu] 2
-Conversion to cost is performed before valuation (described next).
-.SH Valuation
+.SH Value reporting
 .PP
 Instead of reporting amounts in their original commodity, hledger can
 convert them to cost/sale amount (using the conversion rate recorded in
@@ -7394,8 +7268,9 @@ If both occur on the same day, the P directive takes precedence.
 .PP
 There is a downside: value reports can sometimes be affected in
 confusing/undesired ways by your journal entries.
-If this happens to you, read all of this Valuation section carefully,
-and try adding \f[V]--debug\f[R] or \f[V]--debug=2\f[R] to troubleshoot.
+If this happens to you, read all of this Value reporting section
+carefully, and try adding \f[V]--debug\f[R] or \f[V]--debug=2\f[R] to
+troubleshoot.
 .PP
 \f[V]--infer-market-prices\f[R] can infer market prices from:
 .IP \[bu] 2
@@ -9038,7 +8913,7 @@ are independent options which can both be used at once)
 .IP \[bu] 2
 \f[V]-X COMM/--exchange COMM\f[R] : like --value=end,COMM
 .PP
-See Cost reporting and Valuation for more about these.
+See Cost reporting and Value reporting for more about these.
 .SS Combining balance report types
 .PP
 Most combinations of these options should produce reasonable reports,
@@ -9501,7 +9376,7 @@ throughout the report period
 possibly restricted by a period specified in the periodic transaction
 rule.
 .RE
-.SS Data layout
+.SS Balance report layout
 .PP
 The \f[V]--layout\f[R] option affects how balance reports show
 multi-commodity amounts and commodity symbols, which can improve
@@ -9697,6 +9572,12 @@ $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -O csv --layout=
 \f[R]
 .fi
 .RE
+.IP \[bu] 2
+Note: bare layout will sometimes display an extra row for the no-symbol
+commodity, because of zero amounts (hledger treats zeroes as
+commodity-less, usually).
+This can break \f[V]hledger-bar\f[R] confusingly (workaround: add a
+\f[V]cur:\f[R] query to exclude the no-symbol row).
 .IP \[bu] 2
 Tidy layout produces normalised \[dq]tidy data\[dq], where every
 variable has its own column and each row represents a single data point.
@@ -9984,9 +9865,10 @@ commands, including \f[V]check\f[R]:
 \f[B]parseable\f[R] - data files are well-formed and can be successfully
 parsed
 .IP \[bu] 2
-\f[B]balancedwithautoconversion\f[R] - all transactions are balanced,
-inferring missing amounts where necessary, and possibly converting
-commodities using costs or automatically-inferred costs
+\f[B]autobalanced\f[R] - all transactions are balanced, after converting
+to cost.
+Missing amounts and missing costs are inferred automatically where
+possible.
 .IP \[bu] 2
 \f[B]assertions\f[R] - all balance assertions in the journal are
 passing.
@@ -10004,8 +9886,9 @@ declared
 .IP \[bu] 2
 \f[B]commodities\f[R] - all commodity symbols used have been declared
 .IP \[bu] 2
-\f[B]balancednoautoconversion\f[R] - transactions are balanced, possibly
-using explicit costs but not inferred ones
+\f[B]balanced\f[R] - all transactions are balanced after converting to
+cost, without inferring missing costs.
+If conversion costs are required, they must be explicit.
 .SS Other checks
 .PP
 These checks can be run only by giving their names as arguments to
@@ -10019,7 +9902,7 @@ file
 \f[B]payees\f[R] - all payees used by transactions have been declared
 .IP \[bu] 2
 \f[B]recentassertions\f[R] - all accounts with balance assertions have a
-balance assertion no more than 7 days before their latest posting
+balance assertion within 7 days of their latest posting
 .IP \[bu] 2
 \f[B]tags\f[R] - all tags used by transactions have been declared
 .IP \[bu] 2
@@ -10040,17 +9923,17 @@ See: Cookbook -> Scripting.
 .SS More about specific checks
 .PP
 \f[V]hledger check recentassertions\f[R] will complain if any
-balance-asserted account does not have a balance assertion within 7 days
-before its latest posting.
+balance-asserted account has postings more than 7 days after its latest
+balance assertion.
 This aims to prevent the situation where you are regularly updating your
 journal, but forgetting to check your balances against the real world,
 then one day must dig back through months of data to find an error.
 It assumes that adding a balance assertion requires/reminds you to check
 the real-world balance.
-That may not be true if you auto-generate balance assertions from bank
-data; in that case, I recommend to import transactions uncleared, then
-use the manual-review-and-mark-cleared phase as a reminder to check the
-latest assertions against real-world balances.
+(That may not be true if you auto-generate balance assertions from bank
+data; in that case, I recommend to import transactions uncleared, and
+when you manually review and clear them, also check the latest assertion
+against the real-world balance.)
 .SS close
 .PP
 (equity)
@@ -10541,6 +10424,8 @@ up\[dq] to a certain date.
 .PP
 Note deduplication (and updating of state files) can also be done by
 \f[V]print --new\f[R], but this is less often used.
+.PP
+Related: CSV > Working with CSV > Deduplicating, importing.
 .SS Import testing
 .PP
 With \f[V]--dry-run\f[R], the transactions that will be imported are
@@ -10763,8 +10648,8 @@ $ hledger print assets:cash | hledger -f- -I reg expenses:food
 There are some situations where print\[aq]s output can become
 unparseable:
 .IP \[bu] 2
-Valuation affects posting amounts but not balance assertion or balance
-assignment amounts, potentially causing those to fail.
+Value reporting affects posting amounts but not balance assertion or
+balance assignment amounts, potentially causing those to fail.
 .IP \[bu] 2
 Auto postings can generate postings with too many missing amounts.
 .IP \[bu] 2
