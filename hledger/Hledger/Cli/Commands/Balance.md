@@ -906,6 +906,11 @@ Examples:
   "total","VHT","294.00"
   ```
 
+- Note: bare layout will sometimes display an extra row for the no-symbol commodity,
+  because of zero amounts (hledger treats zeroes as commodity-less, usually).
+  This can break `hledger-bar` confusingly (workaround: add a `cur:` query to exclude
+  the no-symbol row).
+
 - Tidy layout produces normalised "tidy data", where every variable
   has its own column and each row represents a single data point.
   See <https://cran.r-project.org/web/packages/tidyr/vignettes/tidy-data.html> for more.
