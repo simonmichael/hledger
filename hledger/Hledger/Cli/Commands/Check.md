@@ -24,13 +24,12 @@ providing instant feedback as you edit the journal.
 
 Here are the checks currently available:
 
-### Basic checks
+### Default checks
 
-These checks are always run automatically, by (almost) all hledger commands,
-including `check`:
+These checks are run automatically by (almost) all hledger commands:
 
-- **parseable** - data files are well-formed and can be 
-  [successfully parsed](hledger.html#input-files)
+- **parseable** - data files are in a supported [format](hledger.md#data-formats),
+  with no syntax errors and no invalid include directives.
 
 - **autobalanced** - all transactions are [balanced](hledger.html#postings), after converting to cost.
   Missing amounts and missing [costs] are inferred automatically where possible.
@@ -43,20 +42,20 @@ including `check`:
 These additional checks are run when the `-s`/`--strict` ([strict mode]) flag is used.
 Or, they can be run by giving their names as arguments to `check`:
 
+- **balanced** - all transactions are balanced after converting to cost,
+  without inferring missing costs.
+  If conversion costs are required, they must be explicit.
+
 - **accounts** - all account names used by transactions 
   [have been declared](hledger.html#account-error-checking)
 
 - **commodities** - all commodity symbols used 
   [have been declared](hledger.html#commodity-error-checking)
 
-- **balanced** - all transactions are balanced after converting to cost,
-  without inferring missing costs.
-  If conversion costs are required, they must be explicit.
-
 ### Other checks
 
 These checks can be run only by giving their names as arguments to `check`.
-They are more specialised and not desirable for everyone, therefore optional:
+They are more specialised and not desirable for everyone:
 
 - **ordereddates** - transactions are ordered by date within each file
 
