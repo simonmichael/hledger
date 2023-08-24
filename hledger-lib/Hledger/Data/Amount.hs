@@ -253,11 +253,14 @@ instance Num Amount where
     (-)                          = similarAmountsOp (-)
     (*)                          = similarAmountsOp (*)
 
--- | The empty simple amount.
+-- | The empty simple amount - a zero with no commodity symbol or cost
+-- and the default amount display style.
 nullamt :: Amount
 nullamt = Amount{acommodity="", aquantity=0, aprice=Nothing, astyle=amountstyle}
 
--- | A temporary value for parsed transactions which had no amount specified.
+-- | A special amount used as a marker, meaning
+-- "no explicit amount provided here, infer it when needed".
+-- It is nullamt with commodity symbol "AUTO".
 missingamt :: Amount
 missingamt = nullamt{acommodity="AUTO"}
 
@@ -567,11 +570,15 @@ amountKey amt@Amount{acommodity=c} = case aprice amt of
 nullmixedamt :: MixedAmount
 nullmixedamt = Mixed mempty
 
--- | A temporary value for parsed transactions which had no amount specified.
+-- | A special mixed amount used as a marker, meaning
+-- "no explicit amount provided here, infer it when needed".
 missingmixedamt :: MixedAmount
 missingmixedamt = mixedAmount missingamt
 
--- | Whether a MixedAmount has a missing amount
+-- | Does this MixedAmount include the "missing amount" marker ?
+-- Note: currently does not test for equality with missingmixedamt,
+-- instead it looks for missingamt among the Amounts.
+-- missingamt should always be alone, but detect it even if not.
 isMissingMixedAmount :: MixedAmount -> Bool
 isMissingMixedAmount (Mixed ma) = amountKey missingamt `M.member` ma
 
