@@ -46,8 +46,8 @@ $ hledger -f - balance -N
   b
 $ hledger -f- print --explicit --empty
 2010-03-01 x
-    a        0 @ 3EUR
-    b               0
+    a    $0.00 @ 3EUR
+    b            0EUR
 
 >= 0
 

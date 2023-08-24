@@ -220,6 +220,9 @@ postingsAsLines onelineamounts ps = concatMap first3 linesWithWidths
 -- Or if onelineamounts is true, such amounts are shown on one line, comma-separated
 -- (and the output will not be valid journal syntax).
 --
+-- If an amount is zero, any commodity symbol attached to it is shown
+-- (and the corresponding commodity display style is used).
+--
 -- By default, 4 spaces (2 if there's a status flag) are shown between
 -- account name and start of amount area, which is typically 12 chars wide
 -- and contains a right-aligned amount (so 10-12 visible spaces between
@@ -262,7 +265,7 @@ postingAsLines elideamount onelineamounts acctwidth amtwidth p =
     -- amtwidth at all.
     shownAmounts
       | elideamount = [mempty]
-      | otherwise   = showMixedAmountLinesB noColour{displayOneLine=onelineamounts} $ pamount p
+      | otherwise   = showMixedAmountLinesB noColour{displayZeroCommodity=True, displayOneLine=onelineamounts} $ pamount p
     thisamtwidth = maximumBound 0 $ map wbWidth shownAmounts
 
     -- when there is a balance assertion, show it only on the last posting line

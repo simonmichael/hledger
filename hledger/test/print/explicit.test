@@ -92,8 +92,8 @@ $ hledger -f - print
     equity
 $ hledger -f - print --explicit
 2017-01-01
-    assets               0
-    equity               0
+    assets              $0
+    equity              $0
 
 >= 0
 

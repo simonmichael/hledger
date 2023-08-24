@@ -1006,8 +1006,8 @@ account1 assets:bank:checking
 
 $  ./csvtest.sh
 2020-01-21 Client card point of sale fee
-    assets:bank:checking               0 = $1068.94
-    expenses:unknown                   0
+    assets:bank:checking              $0 = $1068.94
+    expenses:unknown                  $0
 
 >=0
 

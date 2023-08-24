@@ -178,6 +178,7 @@ $ hledger rewrite -f- assets:bank and 'amt:<0' --add-posting 'expenses:fee  $5' 
 ; but relative order matters to refer-rewritten transactions
 = ^expenses not:housing not:grocery not:food
     (budget:misc)  *-1
+
 $ hledger rewrite -f- date:2017/1  --add-posting 'Here comes Santa  $0' --verbose-tags
 2016-12-31  ; modified:
     expenses:housing         $600.00
@@ -187,24 +188,24 @@ $ hledger rewrite -f- date:2017/1  --add-posting 'Here comes Santa  $0' --verbos
 2017-01-01  ; modified:
     expenses:food             $20.00
     (budget:food)            $-20.00  ; generated-posting: = ^expenses:grocery ^expenses:food
-    Here comes Santa               0  ; generated-posting: = date:2017/1
+    Here comes Santa              $0  ; generated-posting: = date:2017/1
     expenses:leisure          $15.00
     (budget:misc)            $-15.00  ; generated-posting: = ^expenses not:housing not:grocery not:food
-    Here comes Santa               0  ; generated-posting: = date:2017/1
+    Here comes Santa              $0  ; generated-posting: = date:2017/1
     expenses:grocery          $30.00
     (budget:food)            $-30.00  ; generated-posting: = ^expenses:grocery ^expenses:food
-    Here comes Santa               0  ; generated-posting: = date:2017/1
+    Here comes Santa              $0  ; generated-posting: = date:2017/1
     assets:cash
-    Here comes Santa               0  ; generated-posting: = date:2017/1
+    Here comes Santa              $0  ; generated-posting: = date:2017/1
 
 2017-01-02  ; modified:
     assets:cash              $200.00
-    Here comes Santa               0  ; generated-posting: = date:2017/1
+    Here comes Santa              $0  ; generated-posting: = date:2017/1
     assets:bank
     assets:bank               $-1.60  ; generated-posting: = ^assets:bank$ date:2017/1 amt:<0
     expenses:fee               $1.60  ; cash withdraw fee, generated-posting: = ^assets:bank$ date:2017/1 amt:<0
     (budget:misc)             $-1.60  ; generated-posting: = ^expenses not:housing not:grocery not:food
-    Here comes Santa               0  ; generated-posting: = date:2017/1
+    Here comes Santa              $0  ; generated-posting: = date:2017/1
 
 2017-02-01
     assets:cash         $100.00
