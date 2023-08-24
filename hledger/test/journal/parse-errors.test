@@ -96,8 +96,8 @@ $ hledger -f- print
   b  B 0
 $ hledger -f- print
 2020-01-01
-    a               0
-    b               0
+    a             A 0
+    b             B 0
 
 >=0
 

@@ -102,6 +102,7 @@ module Hledger.Data.Amount (
   maAddAmounts,
   amounts,
   amountsRaw,
+  amountsPreservingZeros,
   maCommodities,
   filterMixedAmount,
   filterMixedAmountByCommodity,
@@ -170,6 +171,7 @@ import Hledger.Data.Types
 import Hledger.Utils (colorB, numDigitsInt)
 import Hledger.Utils.Text (textQuoteIfNeeded)
 import Text.WideString (WideBuilder(..), wbFromText, wbToText, wbUnpack)
+import Data.Functor ((<&>))
 
 
 -- A 'Commodity' is a symbol representing a currency or some other kind of
@@ -208,10 +210,10 @@ data AmountDisplayOpts = AmountDisplayOpts
   , displayOrder         :: Maybe [CommoditySymbol]
   } deriving (Show)
 
--- | Display Amount and MixedAmount with no colour.
+-- | By default, display Amount and MixedAmount using @noColour@ amount display options.
 instance Default AmountDisplayOpts where def = noColour
 
--- | Display Amount and MixedAmount with no colour.
+-- | Display amounts without colour, and with various other defaults.
 noColour :: AmountDisplayOpts
 noColour = AmountDisplayOpts { displayPrice         = True
                              , displayColour        = False
@@ -406,8 +408,8 @@ amountStripPrices a = a{aprice=Nothing}
 showAmountPrice :: Amount -> WideBuilder
 showAmountPrice amt = case aprice amt of
     Nothing              -> mempty
-    Just (UnitPrice  pa) -> WideBuilder (TB.fromString " @ ")  3 <> showAmountB noColour pa
-    Just (TotalPrice pa) -> WideBuilder (TB.fromString " @@ ") 4 <> showAmountB noColour (sign pa)
+    Just (UnitPrice  pa) -> WideBuilder (TB.fromString " @ ")  3 <> showAmountB noColour{displayZeroCommodity=True} pa
+    Just (TotalPrice pa) -> WideBuilder (TB.fromString " @@ ") 4 <> showAmountB noColour{displayZeroCommodity=True} (sign pa)
   where sign = if aquantity amt < 0 then negate else id
 
 showAmountPriceDebug :: Maybe AmountPrice -> String
@@ -460,14 +462,16 @@ showAmountB :: AmountDisplayOpts -> Amount -> WideBuilder
 showAmountB _ Amount{acommodity="AUTO"} = mempty
 showAmountB opts a@Amount{astyle=style} =
     color $ case ascommodityside style of
-      L -> showC (wbFromText c) space <> quantity' <> price
-      R -> quantity' <> showC space (wbFromText c) <> price
+      L -> showC (wbFromText comm) space <> quantity' <> price
+      R -> quantity' <> showC space (wbFromText comm) <> price
   where
     color = if displayColour opts && isNegativeAmount a then colorB Dull Red else id
-    quantity = showamountquantity $ if displayThousandsSep opts then a else a{astyle=(astyle a){asdigitgroups=Nothing}}
-    (quantity',c) | amountLooksZero a && not (displayZeroCommodity opts) = (WideBuilder (TB.singleton '0') 1,"")
-                  | otherwise = (quantity, quoteCommoditySymbolIfNeeded $ acommodity a)
-    space = if not (T.null c) && ascommodityspaced style then WideBuilder (TB.singleton ' ') 1 else mempty
+    quantity = showamountquantity $
+      if displayThousandsSep opts then a else a{astyle=(astyle a){asdigitgroups=Nothing}}
+    (quantity', comm)
+      | amountLooksZero a && not (displayZeroCommodity opts) = (WideBuilder (TB.singleton '0') 1, "")
+      | otherwise = (quantity, quoteCommoditySymbolIfNeeded $ acommodity a)
+    space = if not (T.null comm) && ascommodityspaced style then WideBuilder (TB.singleton ' ') 1 else mempty
     -- concatenate these texts,
     -- or return the empty text if there's a commodity display order. XXX why ?
     showC l r = if isJust (displayOrder opts) then mempty else l <> r
@@ -672,7 +676,8 @@ maIsZero = mixedAmountIsZero
 maIsNonZero :: MixedAmount -> Bool
 maIsNonZero = not . mixedAmountIsZero
 
--- | Get a mixed amount's component amounts.
+-- | Get a mixed amount's component amounts, with some cleanups.
+-- The following descriptions are old and possibly wrong:
 --
 -- * amounts in the same commodity are combined unless they have different prices or total prices
 --
@@ -686,11 +691,35 @@ maIsNonZero = not . mixedAmountIsZero
 --
 amounts :: MixedAmount -> [Amount]
 amounts (Mixed ma)
-  | isMissingMixedAmount (Mixed ma) = [missingamt]  -- missingamt should always be alone, but detect it even if not
+  | isMissingMixedAmount (Mixed ma) = [missingamt]
   | M.null nonzeros                 = [newzero]
   | otherwise                       = toList nonzeros
   where
     newzero = fromMaybe nullamt $ find (not . T.null . acommodity) zeros
+    (zeros, nonzeros) = M.partition amountIsZero ma
+
+-- | Get a mixed amount's component amounts, with some cleanups.
+-- This is a new version of @amounts@, with updated descriptions
+-- and optimised for @print@ to show commodityful zeros.
+--
+-- * If it contains the "missing amount" marker, only that is returned
+--   (discarding any additional amounts).
+--
+-- * Or if it contains any non-zero amounts, only those are returned
+--   (discarding any zeroes).
+--
+-- * Or if it contains any zero amounts (possibly more than one,
+--   possibly in different commodities), all of those are returned.
+--
+-- * Otherwise the null amount is returned.
+--
+amountsPreservingZeros :: MixedAmount -> [Amount]
+amountsPreservingZeros (Mixed ma)
+  | isMissingMixedAmount (Mixed ma) = [missingamt]
+  | not $ M.null nonzeros           = toList nonzeros
+  | not $ M.null zeros              = toList zeros
+  | otherwise                       = [nullamt]
+  where
     (zeros, nonzeros) = M.partition amountIsZero ma
 
 -- | Get a mixed amount's component amounts without normalising zero and missing
@@ -913,11 +942,12 @@ showMixedAmountOneLineB opts@AmountDisplayOpts{displayMaxWidth=mmax,displayMinWi
     -- Add the elision strings (if any) to each amount
     withElided = zipWith (\n2 amt -> (amt, elisionDisplay Nothing (wbWidth sep) n2 amt)) [n-1,n-2..0]
 
--- Get a mixed amount's component amounts with a bit of cleanup (like @amounts@),
--- and if a commodity display order is provided, sort them according to that.
+-- Get a mixed amount's component amounts with a bit of cleanup,
+-- optionally preserving multiple zeros in different commodities,
+-- optionally sorting them according to a commodity display order.
 orderedAmounts :: AmountDisplayOpts -> MixedAmount -> [Amount]
-orderedAmounts AmountDisplayOpts{displayOrder=mcommodityorder} =
-  amounts
+orderedAmounts AmountDisplayOpts{displayZeroCommodity=preservezeros, displayOrder=mcommodityorder} =
+  if preservezeros then amountsPreservingZeros else amounts
   <&> maybe id (mapM findfirst) mcommodityorder  -- maybe sort them (somehow..)
   where
     -- Find the first amount with the given commodity, otherwise a null amount in that commodity.

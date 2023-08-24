@@ -1,13 +1,27 @@
-# test -B and #551
-#hledger -f- print -B
-#<<<
-#2009/1/1
-#  assets:foreign currency   €100
-#  assets:cash              $-135
-#>>>
-#2009/01/01
-#    assets:foreign currency          $135
-#    assets:cash                     $-135
-#
-#>>>2
-#>>>= 0
+# 1. print preserves the commodity symbol of zero amounts.
+<
+2023-01-01
+  (a)    0 A @ 0 B == 0 A @ 0 B
+
+$ hledger -f- print
+2023-01-01
+    (a)       0 A @ 0 B == 0 A @ 0 B
+
+>=
+
+# 2. The inferred balancing amount for zeros in multiple commodities
+# is preserved and shown accurately, with a posting for each commodity.
+<
+2023-01-01
+  a   0 A
+  b   0 B
+  z
+
+$ hledger -f- print -x
+2023-01-01
+    a             0 A
+    b             0 B
+    z             0 A
+    z             0 B
+
+>=

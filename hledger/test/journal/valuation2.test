@@ -62,8 +62,8 @@ $ hledger -f- print -x --value=now,Z
 # and sign are not shown either.
 $ hledger -f- print -x --value=now,C
 2019-06-01
-    a               0
-    b               0
+    a              C0
+    b              C0
 
 >=
 # # There's nothing setting C display style, so the default style is used,
