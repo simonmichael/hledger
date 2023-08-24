@@ -463,13 +463,15 @@ showAmountB opts a@Amount{astyle=style} =
       L -> showC (wbFromText c) space <> quantity' <> price
       R -> quantity' <> showC space (wbFromText c) <> price
   where
+    color = if displayColour opts && isNegativeAmount a then colorB Dull Red else id
     quantity = showamountquantity $ if displayThousandsSep opts then a else a{astyle=(astyle a){asdigitgroups=Nothing}}
     (quantity',c) | amountLooksZero a && not (displayZeroCommodity opts) = (WideBuilder (TB.singleton '0') 1,"")
                   | otherwise = (quantity, quoteCommoditySymbolIfNeeded $ acommodity a)
     space = if not (T.null c) && ascommodityspaced style then WideBuilder (TB.singleton ' ') 1 else mempty
+    -- concatenate these texts,
+    -- or return the empty text if there's a commodity display order. XXX why ?
     showC l r = if isJust (displayOrder opts) then mempty else l <> r
     price = if displayPrice opts then showAmountPrice a else mempty
-    color = if displayColour opts && isNegativeAmount a then colorB Dull Red else id
 
 -- | Colour version. For a negative amount, adds ANSI codes to change the colour,
 -- currently to hard-coded red.
