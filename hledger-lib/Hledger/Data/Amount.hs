@@ -911,11 +911,18 @@ showMixedAmountOneLineB opts@AmountDisplayOpts{displayMaxWidth=mmax,displayMinWi
     -- Add the elision strings (if any) to each amount
     withElided = zipWith (\n2 amt -> (amt, elisionDisplay Nothing (wbWidth sep) n2 amt)) [n-1,n-2..0]
 
+-- Get a mixed amount's component amounts with a bit of cleanup (like @amounts@),
+-- and if a commodity display order is provided, sort them according to that.
 orderedAmounts :: AmountDisplayOpts -> MixedAmount -> [Amount]
-orderedAmounts dopts = maybe id (mapM pad) (displayOrder dopts) . amounts
+orderedAmounts AmountDisplayOpts{displayOrder=mcommodityorder} =
+  amounts
+  <&> maybe id (mapM findfirst) mcommodityorder  -- maybe sort them (somehow..)
   where
-    pad c = fromMaybe (amountWithCommodity c nullamt) . find ((c==) . acommodity)
-
+    -- Find the first amount with the given commodity, otherwise a null amount in that commodity.
+    findfirst :: CommoditySymbol -> [Amount] -> Amount
+    findfirst c = fromMaybe nullamtc . find ((c==) . acommodity)
+      where
+        nullamtc = amountWithCommodity c nullamt
 
 data AmountDisplay = AmountDisplay
   { adBuilder :: !WideBuilder  -- ^ String representation of the Amount
