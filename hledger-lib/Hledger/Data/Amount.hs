@@ -855,10 +855,9 @@ showMixedAmountB opts ma
     width = headDef 0 $ map wbWidth ls
     sep = WideBuilder (TB.singleton '\n') 0
 
--- | Helper for showMixedAmountB to show a list of Amounts on multiple lines. This returns
--- the list of WideBuilders: one for each Amount, and padded/elided to the appropriate
--- width. This does not honour displayOneLine: all amounts will be displayed as if
--- displayOneLine were False.
+-- | Helper for showMixedAmountB (and postingAsLines, ...) to show a list of Amounts on multiple lines.
+-- This returns the list of WideBuilders: one for each Amount, and padded/elided to the appropriate width.
+-- This does not honour displayOneLine; all amounts will be displayed as if displayOneLine were False.
 showMixedAmountLinesB :: AmountDisplayOpts -> MixedAmount -> [WideBuilder]
 showMixedAmountLinesB opts@AmountDisplayOpts{displayMaxWidth=mmax,displayMinWidth=mmin} ma =
     map (adBuilder . pad) elided
