@@ -317,7 +317,7 @@ groupByDateSpan showempty date colspans =
     groupByCols (c:cs) ps = (c, map snd matches) : groupByCols cs later
       where (matches, later) = span ((spanEnd c >) . Just . fst) ps
 
-    beforeStart = maybe (const True) (>) $ spanStart =<< headMay colspans
+    beforeStart = maybe (const False) (>) $ spanStart =<< headMay colspans
 
 -- | Calculate the intersection of a number of datespans.
 spansIntersect [] = nulldatespan
