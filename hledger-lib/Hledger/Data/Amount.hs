@@ -510,10 +510,13 @@ showAmount :: Amount -> String
 showAmount = wbUnpack . showAmountB noColour
 
 -- | General function to generate a WideBuilder for an Amount, according the
--- supplied AmountDisplayOpts. The special "missing" amount is displayed as
--- the empty string. This is the main function to use for showing
+-- supplied AmountDisplayOpts. This is the main function to use for showing
 -- Amounts, constructing a builder; it can then be converted to a Text with
 -- wbToText, or to a String with wbUnpack.
+-- Some special cases:
+--
+-- * The special "missing" amount is displayed as the empty string. 
+--
 showAmountB :: AmountDisplayOpts -> Amount -> WideBuilder
 showAmountB _ Amount{acommodity="AUTO"} = mempty
 showAmountB opts a@Amount{astyle=style} =
@@ -561,27 +564,27 @@ showAmountDebug Amount{..} =
    ++ ", aprice=" ++ showAmountPriceDebug aprice ++ ", astyle=" ++ show astyle ++ "}"
 
 -- | Get a Text Builder for the string representation of the number part of of an amount,
--- using the display settings from its commodity. Also returns the width of the
--- number.
+-- using the display settings from its commodity. Also returns the width of the number.
 showamountquantity :: Amount -> WideBuilder
 showamountquantity amt@Amount{astyle=AmountStyle{asdecimalmark=mdec, asdigitgroups=mgrps}} =
     signB <> intB <> fracB
   where
-    Decimal e n = amountRoundedQuantity amt
-
-    strN = T.pack . show $ abs n
-    len = T.length strN
-    intLen = max 1 $ len - fromIntegral e
+    Decimal decplaces mantissa = amountRoundedQuantity amt
+    numtxt = T.pack . show $ abs mantissa
+    numlen = T.length numtxt
+    intLen = max 1 $ numlen - fromIntegral decplaces
     dec = fromMaybe '.' mdec
-    padded = T.replicate (fromIntegral e + 1 - len) "0" <> strN
-    (intPart, fracPart) = T.splitAt intLen padded
+    numtxtwithzero = T.replicate (fromIntegral decplaces + 1 - numlen) "0" <> numtxt
+    (intPart, fracPart) = T.splitAt intLen numtxtwithzero
+    intB = applyDigitGroupStyle mgrps intLen $ if decplaces == 0 then numtxt else intPart
+    signB = if mantissa < 0 then WideBuilder (TB.singleton '-') 1 else mempty
+    fracB = if decplaces > 0
+      then WideBuilder (TB.singleton dec <> TB.fromText fracPart) (1 + fromIntegral decplaces)
+      else mempty
 
-    intB = applyDigitGroupStyle mgrps intLen $ if e == 0 then strN else intPart
-    signB = if n < 0 then WideBuilder (TB.singleton '-') 1 else mempty
-    fracB = if e > 0 then WideBuilder (TB.singleton dec <> TB.fromText fracPart) (fromIntegral e + 1) else mempty
-
--- | Split a string representation into chunks according to DigitGroupStyle,
--- returning a Text builder and the number of separators used.
+-- | Given an integer as text, and its length, apply the given DigitGroupStyle,
+-- inserting digit group separators between digit groups where appropriate.
+-- Returns a Text builder and the number of digit group separators used.
 applyDigitGroupStyle :: Maybe DigitGroupStyle -> Int -> T.Text -> WideBuilder
 applyDigitGroupStyle Nothing                       l s = WideBuilder (TB.fromText s) l
 applyDigitGroupStyle (Just (DigitGroups _ []))     l s = WideBuilder (TB.fromText s) l
