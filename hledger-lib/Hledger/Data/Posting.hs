@@ -447,14 +447,13 @@ postingApplyValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day
 postingApplyValuation priceoracle styles periodlast today v p =
     postingTransformAmount (mixedAmountApplyValuation priceoracle styles periodlast today (postingDate p) v) p
 
--- | Maybe convert this 'Posting's amount to cost, and apply apply appropriate
--- amount styles.
-postingToCost :: M.Map CommoditySymbol AmountStyle -> ConversionOp -> Posting -> Maybe Posting
-postingToCost _      NoConversionOp p = Just p
-postingToCost styles ToCost         p
+-- | Maybe convert this 'Posting's amount to cost.
+postingToCost :: ConversionOp -> Posting -> Maybe Posting
+postingToCost NoConversionOp p = Just p
+postingToCost ToCost         p
     -- If this is a conversion posting with a matched transaction price posting, ignore it
     | "_conversion-matched" `elem` map fst (ptags p) && noCost = Nothing
-    | otherwise = Just $ postingTransformAmount (mixedAmountSetStyles styles . mixedAmountCost) p
+    | otherwise = Just $ postingTransformAmount mixedAmountCost p
   where
     noCost = (not . any (isJust . aprice) . amountsRaw) $ pamount p
 

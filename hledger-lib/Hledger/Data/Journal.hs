@@ -909,12 +909,9 @@ journalInferMarketPricesFromTransactions j =
        journalPostings j
    }
 
--- | Convert all this journal's amounts to cost using the transaction prices, if any.
--- The journal's commodity styles are applied to the resulting amounts.
+-- | Convert all this journal's amounts to cost using their attached prices, if any.
 journalToCost :: ConversionOp -> Journal -> Journal
-journalToCost cost j@Journal{jtxns=ts} = j{jtxns=map (transactionToCost styles cost) ts}
-  where
-    styles = journalCommodityStyles j
+journalToCost cost j@Journal{jtxns=ts} = j{jtxns=map (transactionToCost cost) ts}
 
 -- | Add equity postings inferred from costs, where needed and possible.
 -- See hledger manual > Cost reporting.
