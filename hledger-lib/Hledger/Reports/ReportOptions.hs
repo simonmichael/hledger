@@ -623,7 +623,7 @@ mixedAmountApplyValuationAfterSumFromOptsWith ropts j priceoracle =
     gain mc spn = mixedAmountGainAtDate priceoracle styles mc (maybe err (addDays (-1)) $ spanEnd spn)
     costing = case fromMaybe NoConversionOp $ conversionop_ ropts of
         NoConversionOp -> id
-        ToCost         -> styleMixedAmount styles . mixedAmountCost
+        ToCost         -> mixedAmountSetStyles styles . mixedAmountCost
     styles = journalCommodityStyles j
     err = error "mixedAmountApplyValuationAfterSumFromOptsWith: expected all spans to have an end date"
 

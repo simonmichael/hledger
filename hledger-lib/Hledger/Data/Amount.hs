@@ -73,8 +73,12 @@ module Hledger.Data.Amount (
   oneLine,
   csvDisplay,
   amountstyle,
+  canonicaliseAmount,
   styleAmount,
   styleAmountExceptPrecision,
+  amountSetStyles,
+  amountSetMainStyle,
+  amountSetCostStyle,
   amountUnstyled,
   showAmountB,
   showAmount,
@@ -91,7 +95,6 @@ module Hledger.Data.Amount (
   setAmountDecimalPoint,
   withDecimalPoint,
   amountStripPrices,
-  canonicaliseAmount,
   -- * MixedAmount
   nullmixedamt,
   missingmixedamt,
@@ -125,7 +128,9 @@ module Hledger.Data.Amount (
   maIsNonZero,
   mixedAmountLooksZero,
   -- ** rendering
+  canonicaliseMixedAmount,
   styleMixedAmount,
+  mixedAmountSetStyles,
   mixedAmountUnstyled,
   showMixedAmount,
   showMixedAmountOneLine,
@@ -140,7 +145,6 @@ module Hledger.Data.Amount (
   wbUnpack,
   mixedAmountSetPrecision,
   mixedAmountSetFullPrecision,
-  canonicaliseMixedAmount,
   -- * misc.
   tests_Amount
 ) where
@@ -418,32 +422,66 @@ showAmountPriceDebug Nothing                = ""
 showAmountPriceDebug (Just (UnitPrice pa))  = " @ "  ++ showAmountDebug pa
 showAmountPriceDebug (Just (TotalPrice pa)) = " @@ " ++ showAmountDebug pa
 
+-- Amount styling
+-- v1
+
+-- like journalCanonicaliseAmounts
+-- | Canonicalise an amount's display style using the provided commodity style map.
+-- Its cost amount, if any, is not affected.
+canonicaliseAmount :: M.Map CommoditySymbol AmountStyle -> Amount -> Amount
+canonicaliseAmount = amountSetMainStyle
+{-# DEPRECATED canonicaliseAmount "please use amountSetMainStyle (or amountSetStyles) instead" #-}
+
+-- v2
+
 -- | Given a map of standard commodity display styles, apply the
 -- appropriate one to this amount. If there's no standard style for
 -- this amount's commodity, return the amount unchanged.
--- Also apply the style, except for precision, to the cost.
+-- Also do the same for the cost amount if any, but leave its precision unchanged.
 styleAmount :: M.Map CommoditySymbol AmountStyle -> Amount -> Amount
-styleAmount styles a = styledAmount{aprice = stylePrice styles (aprice styledAmount)}
-  where
-    styledAmount = case M.lookup (acommodity a) styles of
-      Just s -> a{astyle=s}
-      Nothing -> a
+styleAmount = amountSetStyles
+{-# DEPRECATED styleAmount "please use amountSetStyles instead" #-}
 
-stylePrice :: M.Map CommoditySymbol AmountStyle -> Maybe AmountPrice -> Maybe AmountPrice
-stylePrice styles (Just (UnitPrice a)) = Just (UnitPrice $ styleAmountExceptPrecision styles a)
-stylePrice styles (Just (TotalPrice a)) = Just (TotalPrice $ styleAmountExceptPrecision styles a)
-stylePrice _ _  = Nothing
-
--- | Like styleAmount, but keep the number of decimal places unchanged.
+-- | Like styleAmount, but leave the display precision unchanged.
 styleAmountExceptPrecision :: M.Map CommoditySymbol AmountStyle -> Amount -> Amount
 styleAmountExceptPrecision styles a@Amount{astyle=AmountStyle{asprecision=origp}} =
   case M.lookup (acommodity a) styles of
     Just s  -> a{astyle=s{asprecision=origp}}
     Nothing -> a
 
+-- v2.9
+
+-- | Given some commodity display styles, find and apply the appropriate
+-- display style to this amount, and do the same for its cost amount if any
+-- (and then stop; we assume costs don't have costs).
+-- The main amount's display precision is set according to its style;
+-- the cost amount's display precision is left unchanged, regardless of its style.
+-- If no style is found for an amount, it is left unchanged.
+amountSetStyles :: M.Map CommoditySymbol AmountStyle -> Amount -> Amount
+amountSetStyles styles = amountSetMainStyle styles <&> amountSetCostStyle styles
+
+-- | Find and apply the appropriate display style, if any, to this amount.
+-- The display precision is also set.
+amountSetMainStyle :: M.Map CommoditySymbol AmountStyle -> Amount -> Amount
+amountSetMainStyle styles a@Amount{acommodity=comm} =
+  case M.lookup comm styles of
+    Nothing -> a
+    Just s  -> a{astyle=s}
+
+-- | Find and apply the appropriate display style, if any, to this amount's cost, if any.
+-- The display precision is left unchanged.
+amountSetCostStyle :: M.Map CommoditySymbol AmountStyle -> Amount -> Amount
+amountSetCostStyle styles a@Amount{aprice=mcost} =
+  case mcost of
+    Nothing              -> a
+    Just (UnitPrice  a2) -> a{aprice=Just $ UnitPrice  $ styleAmountExceptPrecision styles a2}
+    Just (TotalPrice a2) -> a{aprice=Just $ TotalPrice $ styleAmountExceptPrecision styles a2}
+
+
 -- | Reset this amount's display style to the default.
 amountUnstyled :: Amount -> Amount
 amountUnstyled a = a{astyle=amountstyle}
+
 
 -- | Get the string representation of an amount, based on its
 -- commodity's display settings. String representations equivalent to
@@ -539,12 +577,6 @@ applyDigitGroupStyle (Just (DigitGroups c (g0:gs0))) l0 s0 = addseps (g0:|gs0) (
         (rest, part) = T.splitAt (fromInteger l2) s1
         gs2 = fromMaybe (g1:|[]) $ nonEmpty gs1
         l2 = l1 - toInteger g1
-
--- like journalCanonicaliseAmounts
--- | Canonicalise an amount's display style using the provided commodity style map.
-canonicaliseAmount :: M.Map CommoditySymbol AmountStyle -> Amount -> Amount
-canonicaliseAmount styles a@Amount{acommodity=c, astyle=s} = a{astyle=s'}
-  where s' = M.findWithDefault s c styles
 
 -------------------------------------------------------------------------------
 -- MixedAmount
@@ -807,14 +839,32 @@ mixedAmountCost (Mixed ma) =
 --     where a' = mixedAmountStripPrices a
 --           b' = mixedAmountStripPrices b
 
+-- Mixed amount styling
+-- v1
+
+-- | Canonicalise a mixed amount's display styles using the provided commodity style map.
+-- Cost amounts, if any, are not affected.
+canonicaliseMixedAmount :: M.Map CommoditySymbol AmountStyle -> MixedAmount -> MixedAmount
+canonicaliseMixedAmount styles = mapMixedAmountUnsafe (canonicaliseAmount styles)
+{-# DEPRECATED canonicaliseMixedAmount "please use mixedAmountSetMainStyle (or mixedAmountSetStyles) instead" #-}
+
+-- v2
+
 -- | Given a map of standard commodity display styles, find and apply
 -- the appropriate style to each individual amount.
 styleMixedAmount :: M.Map CommoditySymbol AmountStyle -> MixedAmount -> MixedAmount
-styleMixedAmount styles = mapMixedAmountUnsafe (styleAmount styles)
+styleMixedAmount = mixedAmountSetStyles
+{-# DEPRECATED styleMixedAmount "please use mixedAmountSetStyles instead" #-}
+
+-- v2.9
+
+mixedAmountSetStyles :: M.Map CommoditySymbol AmountStyle -> MixedAmount -> MixedAmount
+mixedAmountSetStyles styles = mapMixedAmountUnsafe (amountSetStyles styles)
 
 -- | Reset each individual amount's display style to the default.
 mixedAmountUnstyled :: MixedAmount -> MixedAmount
 mixedAmountUnstyled = mapMixedAmountUnsafe amountUnstyled
+
 
 -- | Get the string representation of a mixed amount, after
 -- normalising it to one amount per commodity. Assumes amounts have
@@ -1007,10 +1057,6 @@ mixedAmountStripPrices :: MixedAmount -> MixedAmount
 mixedAmountStripPrices (Mixed ma) =
     foldl' (\m a -> maAddAmount m a{aprice=Nothing}) (Mixed noPrices) withPrices
   where (noPrices, withPrices) = M.partition (isNothing . aprice) ma
-
--- | Canonicalise a mixed amount's display styles using the provided commodity style map.
-canonicaliseMixedAmount :: M.Map CommoditySymbol AmountStyle -> MixedAmount -> MixedAmount
-canonicaliseMixedAmount styles = mapMixedAmountUnsafe (canonicaliseAmount styles)
 
 
 -------------------------------------------------------------------------------
