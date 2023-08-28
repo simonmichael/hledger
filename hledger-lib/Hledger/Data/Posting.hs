@@ -413,7 +413,7 @@ postingApplyAliases aliases p@Posting{paccount} =
 -- | Choose and apply a consistent display style to the posting
 -- amounts in each commodity (see journalCommodityStyles).
 postingApplyCommodityStyles :: M.Map CommoditySymbol AmountStyle -> Posting -> Posting
-postingApplyCommodityStyles styles p = p{pamount=styleMixedAmount styles $ pamount p
+postingApplyCommodityStyles styles p = p{pamount=mixedAmountSetStyles styles $ pamount p
                                         ,pbalanceassertion=fixbalanceassertion <$> pbalanceassertion p}
   where
     fixbalanceassertion ba = ba{baamount=styleAmountExceptPrecision styles $ baamount ba}
@@ -436,7 +436,7 @@ postingToCost _      NoConversionOp p = Just p
 postingToCost styles ToCost         p
     -- If this is a conversion posting with a matched transaction price posting, ignore it
     | "_conversion-matched" `elem` map fst (ptags p) && noCost = Nothing
-    | otherwise = Just $ postingTransformAmount (styleMixedAmount styles . mixedAmountCost) p
+    | otherwise = Just $ postingTransformAmount (mixedAmountSetStyles styles . mixedAmountCost) p
   where
     noCost = (not . any (isJust . aprice) . amountsRaw) $ pamount p
 

@@ -101,12 +101,12 @@ transactionCheckBalanced BalancingOpts{commodity_styles_} t = errs
             VirtualPosting         -> (l, r)
 
     -- check for mixed signs, detecting nonzeros at display precision
-    canonicalise = maybe id canonicaliseMixedAmount commodity_styles_
+    setstyles = maybe id mixedAmountSetStyles commodity_styles_
     postingBalancingAmount p
       | "_price-matched" `elem` map fst (ptags p) = mixedAmountStripPrices $ pamount p
       | otherwise                                 = mixedAmountCost $ pamount p
     signsOk ps =
-      case filter (not.mixedAmountLooksZero) $ map (canonicalise.postingBalancingAmount) ps of
+      case filter (not.mixedAmountLooksZero) $ map (setstyles.postingBalancingAmount) ps of
         nonzeros | length nonzeros >= 2
                    -> length (nubSort $ mapMaybe isNegativeMixedAmount nonzeros) > 1
         _          -> True
@@ -114,7 +114,7 @@ transactionCheckBalanced BalancingOpts{commodity_styles_} t = errs
 
     -- check for zero sum, at display precision
     (rsumcost, bvsumcost)       = (foldMap postingBalancingAmount rps, foldMap postingBalancingAmount bvps)
-    (rsumdisplay, bvsumdisplay) = (canonicalise rsumcost, canonicalise bvsumcost)
+    (rsumdisplay, bvsumdisplay) = (setstyles rsumcost, setstyles bvsumcost)
     (rsumok, bvsumok)           = (mixedAmountLooksZero rsumdisplay, mixedAmountLooksZero bvsumdisplay)
 
     -- generate error messages, showing amounts with their original precision
@@ -250,7 +250,7 @@ transactionInferBalancingAmount styles t@Transaction{tpostings=ps}
               -- Inferred amounts are converted to cost.
               -- Also ensure the new amount has the standard style for its commodity
               -- (since the main amount styling pass happened before this balancing pass);
-              a' = styleMixedAmount styles . mixedAmountCost $ maNegate a
+              a' = mixedAmountSetStyles styles . mixedAmountCost $ maNegate a
 
 -- | Infer costs for this transaction's posting amounts, if needed to make
 -- the postings balance, and if permitted. This is done once for the real
