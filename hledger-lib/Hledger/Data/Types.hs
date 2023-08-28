@@ -250,6 +250,7 @@ data AmountPrice = UnitPrice !Amount | TotalPrice !Amount
   deriving (Eq,Ord,Generic,Show)
 
 -- | Display style for an amount.
+-- (See also Amount.AmountDisplayOpts)
 data AmountStyle = AmountStyle {
       ascommodityside   :: !Side,                   -- ^ does the symbol appear on the left or the right ?
       ascommodityspaced :: !Bool,                   -- ^ space between symbol and quantity ?
@@ -270,9 +271,10 @@ instance Show AmountStyle where
 
 -- | The "display precision" for a hledger amount, by which we mean
 -- the number of decimal digits to display to the right of the decimal mark.
--- This can be from 0 to 255 digits (the maximum supported by the Decimal library),
--- or NaturalPrecision meaning "show all significant decimal digits".
-data AmountPrecision = Precision !Word8 | NaturalPrecision deriving (Eq,Ord,Read,Show,Generic)
+data AmountPrecision =
+    Precision !Word8    -- ^ show this many decimal digits (0..255)
+  | NaturalPrecision    -- ^ show all significant decimal digits stored internally
+  deriving (Eq,Ord,Read,Show,Generic)
 
 -- | A style for displaying digit groups in the integer part of a
 -- floating point number. It consists of the character used to

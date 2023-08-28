@@ -197,6 +197,7 @@ quoteCommoditySymbolIfNeeded s
 
 
 -- | Options for the display of Amount and MixedAmount.
+-- (See also Types.AmountStyle)
 data AmountDisplayOpts = AmountDisplayOpts
   { displayPrice         :: Bool       -- ^ Whether to display the Price of an Amount.
   , displayZeroCommodity :: Bool       -- ^ If the Amount rounds to 0, whether to display its commodity string.
@@ -420,7 +421,7 @@ showAmountPriceDebug (Just (TotalPrice pa)) = " @@ " ++ showAmountDebug pa
 -- | Given a map of standard commodity display styles, apply the
 -- appropriate one to this amount. If there's no standard style for
 -- this amount's commodity, return the amount unchanged.
--- Also apply the style to the price (except for precision)
+-- Also apply the style, except for precision, to the cost.
 styleAmount :: M.Map CommoditySymbol AmountStyle -> Amount -> Amount
 styleAmount styles a = styledAmount{aprice = stylePrice styles (aprice styledAmount)}
   where
@@ -806,8 +807,8 @@ mixedAmountCost (Mixed ma) =
 --     where a' = mixedAmountStripPrices a
 --           b' = mixedAmountStripPrices b
 
--- | Given a map of standard commodity display styles, apply the
--- appropriate one to each individual amount.
+-- | Given a map of standard commodity display styles, find and apply
+-- the appropriate style to each individual amount.
 styleMixedAmount :: M.Map CommoditySymbol AmountStyle -> MixedAmount -> MixedAmount
 styleMixedAmount styles = mapMixedAmountUnsafe (styleAmount styles)
 
