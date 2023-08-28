@@ -221,10 +221,9 @@ transactionApplyValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle ->
 transactionApplyValuation priceoracle styles periodlast today v =
   transactionTransformPostings (postingApplyValuation priceoracle styles periodlast today v)
 
--- | Maybe convert this 'Transaction's amounts to cost and apply the
--- appropriate amount styles.
-transactionToCost :: M.Map CommoditySymbol AmountStyle -> ConversionOp -> Transaction -> Transaction
-transactionToCost styles cost t = t{tpostings = mapMaybe (postingToCost styles cost) $ tpostings t}
+-- | Maybe convert this 'Transaction's amounts to cost.
+transactionToCost :: ConversionOp -> Transaction -> Transaction
+transactionToCost cost t = t{tpostings = mapMaybe (postingToCost cost) $ tpostings t}
 
 -- | Add inferred equity postings to a 'Transaction' using transaction prices.
 transactionAddInferredEquityPostings :: Bool -> AccountName -> Transaction -> Transaction

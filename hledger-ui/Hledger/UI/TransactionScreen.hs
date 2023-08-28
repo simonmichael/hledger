@@ -102,7 +102,7 @@ showTxn :: ReportOpts -> ReportSpec -> Journal -> Transaction -> T.Text
 showTxn ropts rspec j t =
       showTransactionOneLineAmounts
     $ maybe id (transactionApplyValuation prices styles periodlast (_rsDay rspec)) (value_ ropts)
-    $ maybe id (transactionToCost styles) (conversionop_ ropts) t
+    $ maybe id transactionToCost (conversionop_ ropts) t
     -- (if real_ ropts then filterTransactionPostings (Real True) else id) -- filter postings by --real
   where
     prices = journalPriceOracle (infer_prices_ ropts) j
