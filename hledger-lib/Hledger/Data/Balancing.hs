@@ -454,6 +454,9 @@ journalBalanceTransactions bopts' j' =
     -- display precisions used in balanced checking
     styles = Just $ journalCommodityStyles j
     bopts = bopts'{commodity_styles_=styles}
+      -- XXX ^ The commodity directive styles and default style and inferred styles
+      -- are merged into the command line styles in commodity_styles_ - why ?
+      -- Mainly for the precisions, used during amount and cost inference and balanced checking ?
     -- balance assignments are not allowed on accounts affected by auto postings
     autopostingaccts = S.fromList . map (paccount . tmprPosting) . concatMap tmpostingrules $ jtxnmodifiers j
   in
