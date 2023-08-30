@@ -23,7 +23,7 @@ include a.timeclock
 include b.timedot
 $ hledger -f - print
 2016-01-01
-    (x)            1.00
+    (x)               1
 
 2016-01-01 * 12:00-16:00
     (a:aa)           4.00h

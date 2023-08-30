@@ -240,7 +240,7 @@ $ hledger -f- print cur:A1 amt:2
 
 $ hledger -f- print cur:A amt:12
 2021-01-01
-    (a)            A1 2
+    (a)           A1 2.
 
 >=
 
@@ -252,7 +252,7 @@ $ hledger -f- print cur:A amt:12
 
 $ hledger -f- print cur:A amt:12
 2021-01-01
-    (a)            1 2A
+    (a)           1 2.A
 
 >=
 
@@ -293,7 +293,7 @@ $ hledger -f- print cur:e amt:100
 
 $ hledger -f- print cur: amt:1112
 2021-01-01
-    (a)           111 2
+    (a)          111 2.
 
 >=
 
