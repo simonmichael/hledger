@@ -1005,26 +1005,26 @@ tests_Balancing =
       --
       testCase "1091a" $ do
         commodityStylesFromAmounts [
-           nullamt{aquantity=1000, astyle=AmountStyle L False (Precision 3) (Just ',') Nothing}
-          ,nullamt{aquantity=1000, astyle=AmountStyle L False (Precision 2) (Just '.') (Just (DigitGroups ',' [3]))}
+           nullamt{aquantity=1000, astyle=AmountStyle L False Nothing (Just ',') (Precision 3)}
+          ,nullamt{aquantity=1000, astyle=AmountStyle L False (Just (DigitGroups ',' [3])) (Just '.') (Precision 2)}
           ]
          @?=
           -- The commodity style should have period as decimal mark
           -- and comma as digit group mark.
           Right (M.fromList [
-            ("", AmountStyle L False (Precision 3) (Just '.') (Just (DigitGroups ',' [3])))
+            ("", AmountStyle L False (Just (DigitGroups ',' [3])) (Just '.') (Precision 3))
           ])
         -- same journal, entries in reverse order
       ,testCase "1091b" $ do
         commodityStylesFromAmounts [
-           nullamt{aquantity=1000, astyle=AmountStyle L False (Precision 2) (Just '.') (Just (DigitGroups ',' [3]))}
-          ,nullamt{aquantity=1000, astyle=AmountStyle L False (Precision 3) (Just ',') Nothing}
+           nullamt{aquantity=1000, astyle=AmountStyle L False (Just (DigitGroups ',' [3])) (Just '.') (Precision 2)}
+          ,nullamt{aquantity=1000, astyle=AmountStyle L False Nothing (Just ',') (Precision 3)}
           ]
          @?=
           -- The commodity style should have period as decimal mark
           -- and comma as digit group mark.
           Right (M.fromList [
-            ("", AmountStyle L False (Precision 3) (Just '.') (Just (DigitGroups ',' [3])))
+            ("", AmountStyle L False (Just (DigitGroups ',' [3])) (Just '.') (Precision 3))
           ])
 
      ]

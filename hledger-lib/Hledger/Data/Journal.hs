@@ -858,7 +858,7 @@ canonicalStyleFrom = foldl' canonicalStyle amountstyle
 -- with the first digit group style seen,
 -- with the maximum precision of all.
 canonicalStyle :: AmountStyle -> AmountStyle -> AmountStyle
-canonicalStyle a b = a{asprecision=prec, asdecimalpoint=decmark, asdigitgroups=mgrps}
+canonicalStyle a b = a{asprecision=prec, asdecimalmark=decmark, asdigitgroups=mgrps}
   where
     -- precision is maximum of all precisions
     prec = max (asprecision a) (asprecision b)
@@ -874,7 +874,7 @@ canonicalStyle a b = a{asprecision=prec, asdecimalpoint=decmark, asdigitgroups=m
     -- urgh.. refactor..
     decmark = case mgrps of
         Just _  -> Just defdecmark
-        Nothing -> asdecimalpoint a <|> asdecimalpoint b <|> Just defdecmark
+        Nothing -> asdecimalmark a <|> asdecimalmark b <|> Just defdecmark
 
 -- -- | Apply this journal's historical price records to unpriced amounts where possible.
 -- journalApplyPriceDirectives :: Journal -> Journal

@@ -246,7 +246,7 @@ csvDisplay = oneLine{displayThousandsSep=False}
 -- Amount styles
 
 -- | Default amount style
-amountstyle = AmountStyle L False (Precision 0) (Just '.') Nothing
+amountstyle = AmountStyle L False Nothing (Just '.') (Precision 0)
 
 -------------------------------------------------------------------------------
 -- Amount
@@ -400,7 +400,7 @@ withInternalPrecision = flip setAmountInternalPrecision
 
 -- | Set (or clear) an amount's display decimal point.
 setAmountDecimalPoint :: Maybe Char -> Amount -> Amount
-setAmountDecimalPoint mc a@Amount{ astyle=s } = a{ astyle=s{asdecimalpoint=mc} }
+setAmountDecimalPoint mc a@Amount{ astyle=s } = a{ astyle=s{asdecimalmark=mc} }
 
 -- | Set (or clear) an amount's display decimal point, flipped.
 withDecimalPoint :: Amount -> Maybe Char -> Amount
@@ -547,7 +547,7 @@ showAmountDebug Amount{..} =
 -- using the display settings from its commodity. Also returns the width of the
 -- number.
 showamountquantity :: Amount -> WideBuilder
-showamountquantity amt@Amount{astyle=AmountStyle{asdecimalpoint=mdec, asdigitgroups=mgrps}} =
+showamountquantity amt@Amount{astyle=AmountStyle{asdecimalmark=mdec, asdigitgroups=mgrps}} =
     signB <> intB <> fracB
   where
     Decimal e n = amountRoundedQuantity amt

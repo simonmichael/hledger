@@ -249,14 +249,14 @@ deriving instance Generic (DecimalRaw a)
 data AmountPrice = UnitPrice !Amount | TotalPrice !Amount
   deriving (Eq,Ord,Generic,Show)
 
--- | Display style for an amount.
--- (See also Amount.AmountDisplayOpts)
+-- | The display style for an amount.
+-- (See also Amount.AmountDisplayOpts).
 data AmountStyle = AmountStyle {
-      ascommodityside   :: !Side,                   -- ^ does the symbol appear on the left or the right ?
-      ascommodityspaced :: !Bool,                   -- ^ space between symbol and quantity ?
-      asprecision       :: !AmountPrecision,        -- ^ number of digits displayed after the decimal point
-      asdecimalpoint    :: !(Maybe Char),           -- ^ character used as decimal point: period or comma. Nothing means "unspecified, use default"
-      asdigitgroups     :: !(Maybe DigitGroupStyle) -- ^ style for displaying digit groups, if any
+  ascommodityside   :: !Side,                     -- ^ show the symbol on the left or the right ?
+  ascommodityspaced :: !Bool,                     -- ^ show a space between symbol and quantity ?
+  asdigitgroups     :: !(Maybe DigitGroupStyle),  -- ^ show the integer part with these digit group marks, or not
+  asdecimalmark     :: !(Maybe Char),             -- ^ show this character (should be . or ,) as decimal mark, or use the default (.)
+  asprecision       :: !AmountPrecision           -- ^ show this number of digits after the decimal point
 } deriving (Eq,Ord,Read,Generic)
 
 instance Show AmountStyle where
@@ -264,9 +264,9 @@ instance Show AmountStyle where
     [ "AmountStylePP"
     , show ascommodityside
     , show ascommodityspaced
-    , show asprecision
-    , show asdecimalpoint
     , show asdigitgroups
+    , show asdecimalmark
+    , show asprecision
     ]
 
 -- | The "display precision" for a hledger amount, by which we mean
