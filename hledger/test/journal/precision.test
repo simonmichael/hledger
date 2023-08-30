@@ -131,7 +131,7 @@ $ hledger -f- print --explicit
 $ hledger -f- print --explicit
 2015-01-01
     e    E 10.0000 @ F 15.2380952
-    e    E 11.0000 @ F 15.2380952
+    e         E 11 @ F 15.2380952
     f                  F -320.000
 
 >= 0

@@ -71,11 +71,11 @@ $ hledger -f - print --explicit
 $ hledger -f - print --explicit
 2011-01-01
     expenses:foreign currency    €100 @ $1.35
-    misc                                $2.10
+    misc                                 $2.1
     assets                           $-135.00
     misc                           €1 @ $1.35
     misc                          €-1 @ $1.35
-    misc                               $-2.10
+    misc                                $-2.1
 
 >=0
 
@@ -591,17 +591,17 @@ $ hledger -f- print
 
 $ hledger -f- print --infer-costs
 2011-01-01
-    expenses:foreign currency    €100.00 @ $1.35
-    expenses:foreign currency       £100 @ $1.36
-    expenses:foreign currency     ¥1000 @@ €8.00
-    equity:conversion                   €-100.00
-    equity:conversion                       $135
-    equity:conversion                      £-100
-    equity:conversion                       $136
-    equity:conversion                     ¥-1000
-    equity:conversion                      €8.00
-    assets                                 $-271
-    assets                                €-8.00
+    expenses:foreign currency      €100 @ $1.35
+    expenses:foreign currency      £100 @ $1.36
+    expenses:foreign currency    ¥1000 @@ €8.00
+    equity:conversion                     €-100
+    equity:conversion                      $135
+    equity:conversion                     £-100
+    equity:conversion                      $136
+    equity:conversion                    ¥-1000
+    equity:conversion                     €8.00
+    assets                                $-271
+    assets                               €-8.00
 
 >=0
 

@@ -219,8 +219,8 @@ account4 the:remainder
 
 $  ./csvtest.sh
 2009-09-10 Flubber Co
-    assets:myacct          $50.000 = $321
-    income:unknown        $-50.000 = $123
+    assets:myacct              $50 = $321
+    income:unknown            $-50 = $123
     expenses:tax            $0.234  ; VAT
     the:remainder
 
@@ -903,7 +903,8 @@ $  ./csvtest.sh
 
 >=0
 
-# 45. decimal-mark helps parse ambiguous decimals correctly
+# 45. decimal-mark helps parse ambiguous decimals correctly.
+# Here it's one thousand, one.
 <
 2020-01-01,"1,000"
 2020-01-02,"1.000"
@@ -914,8 +915,8 @@ decimal-mark .
 
 $  ./csvtest.sh
 2020-01-01
-    expenses:unknown       1,000.000
-    income:unknown        -1,000.000
+    expenses:unknown          1,000.
+    income:unknown           -1,000.
 
 2020-01-02
     expenses:unknown           1.000
@@ -923,7 +924,8 @@ $  ./csvtest.sh
 
 >=
 
-# 46. decimal-mark again
+# 46. Again, this time with comma as decimal mark.
+# Here it's one, one thousand.
 <
 2020-01-01,"1,000"
 2020-01-02,"1.000"
@@ -938,8 +940,8 @@ $  ./csvtest.sh
     income:unknown            -1,000
 
 2020-01-02
-    expenses:unknown       1.000,000
-    income:unknown        -1.000,000
+    expenses:unknown          1.000,
+    income:unknown           -1.000,
 
 >=
 
