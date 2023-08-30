@@ -256,7 +256,9 @@ data AmountStyle = AmountStyle {
   ascommodityspaced :: !Bool,                     -- ^ show a space between symbol and quantity ?
   asdigitgroups     :: !(Maybe DigitGroupStyle),  -- ^ show the integer part with these digit group marks, or not
   asdecimalmark     :: !(Maybe Char),             -- ^ show this character (should be . or ,) as decimal mark, or use the default (.)
-  asprecision       :: !AmountPrecision           -- ^ show this number of digits after the decimal point
+  asprecision       :: !(Maybe AmountPrecision)   -- ^ show this number of digits after the decimal point, or show as-is (leave precision unchanged)
+    -- XXX Making asprecision a maybe simplifies code for styling with or without precision,
+    -- but complicates the semantics (Nothing is useful only when setting style).
 } deriving (Eq,Ord,Read,Generic)
 
 instance Show AmountStyle where

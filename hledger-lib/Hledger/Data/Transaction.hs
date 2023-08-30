@@ -355,8 +355,8 @@ transactionInferCostsFromEquity dryrun acctTypes t = first (annotateErrorWithTra
            | dbgamtmatch 2 a2 a (amountsMatch (-a2) a)  &&  dbgcostmatch 1 a1 a (amountsMatch a1 (amountCost a)) -> Just costfulp
            | otherwise -> Nothing
            where
-            dbgamtmatch  n a b = dbg7 ("conversion posting "     <>show n<>" "<>showAmount a<>" balances amount "<>showAmountWithoutPrice b <>" of costful posting "<>showAmount b<>" at precision "<>amountShowPrecision a<>" ?")
-            dbgcostmatch n a b = dbg7 ("and\nconversion posting "<>show n<>" "<>showAmount a<>" matches cost "   <>showAmount (amountCost b)<>" of costful posting "<>showAmount b<>" at precision "<>amountShowPrecision a<>" ?") 
+            dbgamtmatch  n a b = dbg7 ("conversion posting "     <>show n<>" "<>showAmount a<>" balances amount "<>showAmountWithoutPrice b <>" of costful posting "<>showAmount b<>" at precision "<>dbgShowAmountPrecision a<>" ?")
+            dbgcostmatch n a b = dbg7 ("and\nconversion posting "<>show n<>" "<>showAmount a<>" matches cost "   <>showAmount (amountCost b)<>" of costful posting "<>showAmount b<>" at precision "<>dbgShowAmountPrecision a<>" ?") 
 
     -- Add a cost to a posting if it matches (negative) one of the
     -- supplied conversion amounts, adding the other amount as the cost.
@@ -376,7 +376,11 @@ transactionInferCostsFromEquity dryrun acctTypes t = first (annotateErrorWithTra
         Nothing                    -> Left $ annotateWithPostings [p] "Conversion postings must have a single-commodity amount:"
 
     -- Do these amounts look the same when compared at the first's display precision ?
-    amountsMatch a b = amountLooksZero $ amountSetPrecision (asprecision $ astyle a) $ a - b
+    -- (Or if that's unset, compare as-is)
+    amountsMatch a b =
+      case asprecision $ astyle a of
+        Just p  -> amountLooksZero $ amountSetPrecision p $ a - b
+        Nothing -> amountLooksZero $ a - b
 
     -- Delete a posting from the indexed list of postings based on either its
     -- index or its posting amount.
@@ -392,10 +396,11 @@ transactionInferCostsFromEquity dryrun acctTypes t = first (annotateErrorWithTra
     deleteUniqueMatch _ []                 = Nothing
     annotateWithPostings xs str = T.unlines $ str : postingsAsLines False xs
 
-amountShowPrecision a =
+dbgShowAmountPrecision a =
   case asprecision $ astyle a of
-    Precision n      -> show n
-    NaturalPrecision -> show $ decimalPlaces $ normalizeDecimal $ aquantity a
+    Just (Precision n)    -> show n
+    Just NaturalPrecision -> show $ decimalPlaces $ normalizeDecimal $ aquantity a
+    Nothing               -> "unset"
 
 -- Using the provided account types map, sort the given indexed postings
 -- into three lists of posting numbers (stored in two pairs), like so:
