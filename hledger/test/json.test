@@ -23,7 +23,7 @@ $ hledger -f- reg --output-format=json
           "astyle": {
             "ascommodityside": "R",
             "ascommodityspaced": true,
-            "asdecimalpoint": ".",
+            "asdecimalmark": ".",
             "asdigitgroups": null,
             "asprecision": 1
           }
@@ -51,7 +51,7 @@ $ hledger -f- reg --output-format=json
         "astyle": {
           "ascommodityside": "R",
           "ascommodityspaced": true,
-          "asdecimalpoint": ".",
+          "asdecimalmark": ".",
           "asdigitgroups": null,
           "asprecision": 1
         }
@@ -80,7 +80,7 @@ $ hledger -f- bal --output-format=json
           "astyle": {
             "ascommodityside": "R",
             "ascommodityspaced": true,
-            "asdecimalpoint": ".",
+            "asdecimalmark": ".",
             "asdigitgroups": null,
             "asprecision": 1
           }
@@ -100,7 +100,7 @@ $ hledger -f- bal --output-format=json
       "astyle": {
         "ascommodityside": "R",
         "ascommodityspaced": true,
-        "asdecimalpoint": ".",
+        "asdecimalmark": ".",
         "asdigitgroups": null,
         "asprecision": 1
       }

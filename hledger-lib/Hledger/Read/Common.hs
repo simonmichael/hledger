@@ -386,7 +386,7 @@ getYear = fmap jparsedefaultyear get
 getDecimalMarkStyle :: JournalParser m (Maybe AmountStyle)
 getDecimalMarkStyle = do
   Journal{jparsedecimalmark} <- get
-  let mdecmarkStyle = (\c -> Just $ amountstyle{asdecimalpoint=Just c}) =<< jparsedecimalmark
+  let mdecmarkStyle = (\c -> Just $ amountstyle{asdecimalmark=Just c}) =<< jparsedecimalmark
   return mdecmarkStyle
 
 setDefaultCommodityAndStyle :: (CommoditySymbol,AmountStyle) -> JournalParser m ()
@@ -802,7 +802,7 @@ simpleamountp mult =
     offAfterNum <- getOffset
     let numRegion = (offBeforeNum, offAfterNum)
     (q,prec,mdec,mgrps) <- lift $ interpretNumber numRegion suggestedStyle ambiguousRawNum mExponent
-    let s = amountstyle{ascommodityside=L, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
+    let s = amountstyle{ascommodityside=L, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalmark=mdec, asdigitgroups=mgrps}
     return nullamt{acommodity=c, aquantity=sign (sign2 q), astyle=s, aprice=Nothing}
 
   -- An amount with commodity symbol on the right or no commodity symbol.
@@ -824,7 +824,7 @@ simpleamountp mult =
         -- XXX amounts of this commodity in periodic transaction rules and auto posting rules ? #1461
         let msuggestedStyle = mdecmarkStyle <|> mcommodityStyle
         (q,prec,mdec,mgrps) <- lift $ interpretNumber numRegion msuggestedStyle ambiguousRawNum mExponent
-        let s = amountstyle{ascommodityside=R, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
+        let s = amountstyle{ascommodityside=R, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalmark=mdec, asdigitgroups=mgrps}
         return nullamt{acommodity=c, aquantity=sign q, astyle=s, aprice=Nothing}
       -- no symbol amount
       Nothing -> do
@@ -841,7 +841,7 @@ simpleamountp mult =
         defcs <- getDefaultCommodityAndStyle
         let (c,s) = case (mult, defcs) of
               (False, Just (defc,defs)) -> (defc, defs{asprecision=max (asprecision defs) prec})
-              _ -> ("", amountstyle{asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps})
+              _ -> ("", amountstyle{asprecision=prec, asdecimalmark=mdec, asdigitgroups=mgrps})
         return nullamt{acommodity=c, aquantity=sign q, astyle=s, aprice=Nothing}
 
   -- For reducing code duplication. Doesn't parse anything. Has the type
@@ -1066,7 +1066,7 @@ disambiguateNumber msuggestedStyle (AmbiguousNumber grp1 sep grp2) =
   where
     isValidDecimalBy :: Char -> AmountStyle -> Bool
     isValidDecimalBy c = \case
-      AmountStyle{asdecimalpoint = Just d} -> d == c
+      AmountStyle{asdecimalmark = Just d} -> d == c
       AmountStyle{asdigitgroups = Just (DigitGroups g _)} -> g /= c
       AmountStyle{asprecision = Precision 0} -> False
       _ -> True
@@ -1568,28 +1568,28 @@ tests_Common = testGroup "Common" [
    ,testCase "ends with decimal mark" $ assertParseEq amountp "$1."        (usd 1  `withPrecision` Precision 0)
    ,testCase "unit price"             $ assertParseEq amountp "$10 @ €0.5"
       -- not precise enough:
-      -- (usd 10 `withPrecision` 0 `at` (eur 0.5 `withPrecision` 1)) -- `withStyle` asdecimalpoint=Just '.'
+      -- (usd 10 `withPrecision` 0 `at` (eur 0.5 `withPrecision` 1)) -- `withStyle` asdecimalmark=Just '.'
       nullamt{
          acommodity="$"
         ,aquantity=10 -- need to test internal precision with roundTo ? I think not
-        ,astyle=amountstyle{asprecision=Precision 0, asdecimalpoint=Nothing}
+        ,astyle=amountstyle{asprecision=Precision 0, asdecimalmark=Nothing}
         ,aprice=Just $ UnitPrice $
           nullamt{
              acommodity="€"
             ,aquantity=0.5
-            ,astyle=amountstyle{asprecision=Precision 1, asdecimalpoint=Just '.'}
+            ,astyle=amountstyle{asprecision=Precision 1, asdecimalmark=Just '.'}
             }
         }
    ,testCase "total price"            $ assertParseEq amountp "$10 @@ €5"
       nullamt{
          acommodity="$"
         ,aquantity=10
-        ,astyle=amountstyle{asprecision=Precision 0, asdecimalpoint=Nothing}
+        ,astyle=amountstyle{asprecision=Precision 0, asdecimalmark=Nothing}
         ,aprice=Just $ TotalPrice $
           nullamt{
              acommodity="€"
             ,aquantity=5
-            ,astyle=amountstyle{asprecision=Precision 0, asdecimalpoint=Nothing}
+            ,astyle=amountstyle{asprecision=Precision 0, asdecimalmark=Nothing}
             }
         }
    ,testCase "unit price, parenthesised" $ assertParse amountp "$10 (@) €0.5"

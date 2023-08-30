@@ -162,7 +162,7 @@ entriesReportAsSql txns = TB.toLazyText $ mconcat
     toSql s  = TB.fromText "'" <> TB.fromText (T.replace "'" "''" s) <> TB.fromText "'"
     csv = concatMap (transactionToCSV . transactionMapPostingAmounts (mapMixedAmount setDecimalPoint)) txns
       where
-        setDecimalPoint a = a{astyle=(astyle a){asdecimalpoint=Just '.'}}
+        setDecimalPoint a = a{astyle=(astyle a){asdecimalmark=Just '.'}}
 
 entriesReportAsCsv :: EntriesReport -> CSV
 entriesReportAsCsv txns =
