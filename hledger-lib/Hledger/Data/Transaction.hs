@@ -74,6 +74,9 @@ import Data.Decimal (normalizeDecimal, decimalPlaces)
 import Data.Functor ((<&>))
 
 
+instance HasAmounts Transaction where
+  styleAmounts styles t = t{tpostings=styleAmounts styles $ tpostings t}
+
 nulltransaction :: Transaction
 nulltransaction = Transaction {
                     tindex=0,

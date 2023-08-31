@@ -49,6 +49,9 @@ import Hledger.Reports.ReportTypes
 type BalanceReport = ([BalanceReportItem], MixedAmount)
 type BalanceReportItem = (AccountName, AccountName, Int, MixedAmount)
 
+instance HasAmounts BalanceReportItem where
+  styleAmounts styles (a,b,c,d) = (a,b,c,styleAmounts styles d)
+
 -- | When true (the default), this makes balance --flat reports and their implementation clearer.
 -- Single/multi-col balance reports currently aren't all correct if this is false.
 flatShowsExclusiveBalance    = True

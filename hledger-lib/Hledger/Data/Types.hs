@@ -301,6 +301,24 @@ data Amount = Amount {
       aprice      :: !(Maybe AmountPrice)  -- ^ the (fixed, transaction-specific) price for this amount, if any
     } deriving (Eq,Ord,Generic,Show)
 
+-- | Types with this class have one or more amounts,
+-- which can have display styles applied to them.
+class HasAmounts a where
+  styleAmounts :: M.Map CommoditySymbol AmountStyle -> a -> a
+
+instance HasAmounts a =>
+  HasAmounts [a]
+  where styleAmounts styles = map (styleAmounts styles)
+
+instance (HasAmounts a, HasAmounts b) =>
+  HasAmounts (a,b)
+  where styleAmounts styles (aa,bb) = (styleAmounts styles aa, styleAmounts styles bb)
+
+instance HasAmounts a =>
+  HasAmounts (Maybe a)
+  where styleAmounts styles = fmap (styleAmounts styles)
+
+
 newtype MixedAmount = Mixed (M.Map MixedAmountKey Amount) deriving (Generic,Show)
 
 instance Eq  MixedAmount where a == b  = maCompare a b == EQ
