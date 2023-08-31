@@ -55,6 +55,7 @@ module Hledger.Utils.Regex (
    -- * total regex operations
   ,regexMatch
   ,regexMatchText
+  ,regexMatchTextGroups
   ,regexReplace
   ,regexReplaceUnmemo
   ,regexReplaceAllBy
@@ -72,7 +73,8 @@ import qualified Data.Text as T
 import Text.Regex.TDFA (
   Regex, CompOption(..), defaultCompOpt, defaultExecOpt,
   makeRegexOptsM, AllMatches(getAllMatches), match, MatchText,
-  RegexLike(..), RegexMaker(..), RegexOptions(..), RegexContext(..)
+  RegexLike(..), RegexMaker(..), RegexOptions(..), RegexContext(..),
+  (=~)
   )
 
 
@@ -165,6 +167,14 @@ regexMatch = matchTest
 -- a performance bug in regex-tdfa (#9), which may or may not be relevant here.
 regexMatchText :: Regexp -> Text -> Bool
 regexMatchText r = matchTest r . T.unpack
+
+-- | Return a (possibly empty) list of match groups derived by applying the
+-- Regex to a Text.
+regexMatchTextGroups :: Regexp -> Text -> [Text]
+regexMatchTextGroups r txt = let
+    pat = reString r
+    (_,_,_,matches) = txt =~ pat :: (Text,Text,Text,[Text])
+    in matches
 
 --------------------------------------------------------------------------------
 -- new total functions
