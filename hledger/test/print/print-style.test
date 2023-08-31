@@ -1,0 +1,75 @@
+# print amount styling tests
+#
+# The amounts are:
+#  amt     - the posting amount
+#  cost    - the posting amount's cost
+#  bal     - the balance assertion amount
+#  balcost - the balance assertion amount's cost
+#
+# Styling includes:
+#  basic - everything except precision
+#  prec  - precision (number of decimal places)
+#
+# Historical behaviour:
+# | hledger | amt basic | cost basic | bal basic | balcost basic | amt prec | cost prec | bal prec | balcost prec |
+# | 1.14    | Y         | N          | N         | N             | Y        | N         | N        | N            |
+# | 1.22    | Y         | N          | Y         | N             | N        | N         | N        | N            |
+# | 1.30    | Y         | Y          | Y         | N             | N        | N         | N        | N            |
+# | 1.31    | Y         | Y          | Y         | Y             | N        | N         | N        | N            |
+#
+# In the following,
+#  basic styling will move the commodity symbol to the left
+#  precision styling will hide the decimal place
+
+# 1. print styles all amounts, but leaves all precisions unchanged, even with -c.
+<
+commodity A 1000.
+commodity B 1000.
+
+2023-01-01
+    (a)    1.2 A @ 3.4 B = 1.2 A @ 3.4 B
+	
+$ hledger -f- print -c A1000.00 -c B1000.00
+2023-01-01
+    (a)     A1.2 @ B3.4 = A1.2 @ B3.4
+
+>=
+
+# 2. Precisions are also preserved when there's an implicit conversion (#2079).
+<
+commodity A 1000.
+
+2023-01-01
+    f       A 1.5
+    g       A 1.5
+    c      B -3
+
+$ hledger -f- print
+2023-01-01
+    f           A 1.5
+    g           A 1.5
+    c            B -3
+
+>=
+
+
+# Maybe later:
+
+# # 0. With print, -c has extra power: it can increase all amount precisions.
+# $ hledger -f- print -c A1000.00 -c B1000.00
+# 2023-01-01
+#     (a)    A1.20 @ B3.40 = A1.20 @ B3.40
+# 
+# >=
+# 
+# # 0. And -c can decrease trailing decimal zeros. But not significant decimal digits
+# (because that would change transactions).
+# <
+# 2023-01-01
+#     (a)    1.2340 A @ 3.4560 B = 1.234 A @ 3.456 B
+#
+# $ hledger -f- print -c A1000. -c B1000.
+# 2023-01-01
+#     (a)    A1.234 @ B3.456 = A1.234 @ B3.456
+# 
+# >=

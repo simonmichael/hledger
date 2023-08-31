@@ -793,13 +793,14 @@ journalModifyTransactions verbosetags d j =
     Left err -> Left err
 
 -- | Choose and apply a consistent display style to the posting
--- amounts in each commodity (see journalCommodityStyles).
+-- amounts in each commodity (see journalCommodityStyles),
+-- keeping all display precisions unchanged.
 -- Can return an error message eg if inconsistent number formats are found.
 journalApplyCommodityStyles :: Journal -> Either String Journal
 journalApplyCommodityStyles = fmap fixjournal . journalInferCommodityStyles
   where
     fixjournal j@Journal{jpricedirectives=pds} =
-        journalMapPostings (postingApplyCommodityStyles styles) j{jpricedirectives=map fixpricedirective pds}
+        journalMapPostings (postingApplyCommodityStylesExceptPrecision styles) j{jpricedirectives=map fixpricedirective pds}
       where
         styles = journalCommodityStyles j
         fixpricedirective pd@PriceDirective{pdamount=a} = pd{pdamount=amountSetStylesExceptPrecision styles a}
