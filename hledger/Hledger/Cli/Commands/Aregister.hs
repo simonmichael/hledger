@@ -99,8 +99,10 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
     -- run the report
     -- TODO: need to also pass the queries so we can choose which date to render - move them into the report ?
     items = accountTransactionsReport rspec' j thisacctq
-    items' = (if empty_ ropts' then id else filter (not . mixedAmountLooksZero . fifth6)) $
-             reverse items
+    items' =
+      styleAmounts (journalCommodityStyles j) $
+      (if empty_ ropts' then id else filter (not . mixedAmountLooksZero . fifth6)) $
+      reverse items
     -- select renderer
     render | fmt=="txt"  = accountTransactionsReportAsText opts (_rsQuery rspec') thisacctq
            | fmt=="html" = accountTransactionsReportAsHTML opts (_rsQuery rspec') thisacctq

@@ -129,16 +129,16 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportO
           thisSpan = dbg3 "processing span" $
                      OneSpan b e valueBefore valueAfter cashFlow pnl
 
-        irr <- internalRateOfReturn showCashFlow prettyTables thisSpan
-        (periodTwr, annualizedTwr) <- timeWeightedReturn showCashFlow prettyTables investmentsQuery trans mixedAmountValue thisSpan
+        irr <- internalRateOfReturn styles showCashFlow prettyTables thisSpan
+        (periodTwr, annualizedTwr) <- timeWeightedReturn styles showCashFlow prettyTables investmentsQuery trans mixedAmountValue thisSpan
         let cashFlowAmt = maNegate . maSum $ map snd cashFlow
         let smallIsZero x = if abs x < 0.01 then 0.0 else x
         return [ showDate b
                , showDate (addDays (-1) e)
-               , T.pack $ showMixedAmount valueBefore
-               , T.pack $ showMixedAmount cashFlowAmt
-               , T.pack $ showMixedAmount valueAfter
-               , T.pack $ showMixedAmount (valueAfter `maMinus` (valueBefore `maPlus` cashFlowAmt))
+               , T.pack $ showMixedAmount $ styleAmounts styles $ valueBefore
+               , T.pack $ showMixedAmount $ styleAmounts styles $ cashFlowAmt
+               , T.pack $ showMixedAmount $ styleAmounts styles $ valueAfter
+               , T.pack $ showMixedAmount $ styleAmounts styles $ (valueAfter `maMinus` (valueBefore `maPlus` cashFlowAmt))
                , T.pack $ printf "%0.2f%%" $ smallIsZero irr
                , T.pack $ printf "%0.2f%%" $ smallIsZero periodTwr
                , T.pack $ printf "%0.2f%%" $ smallIsZero annualizedTwr ]
@@ -164,7 +164,7 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportO
 
   TL.putStrLn $ Tab.render prettyTables id id id table
 
-timeWeightedReturn showCashFlow prettyTables investmentsQuery trans mixedAmountValue (OneSpan begin end valueBeforeAmt valueAfter cashFlow pnl) = do
+timeWeightedReturn styles showCashFlow prettyTables investmentsQuery trans mixedAmountValue (OneSpan begin end valueBeforeAmt valueAfter cashFlow pnl) = do
   let valueBefore = unMix valueBeforeAmt
   let initialUnitPrice = 100 :: Decimal
   let initialUnits = valueBefore / initialUnitPrice
@@ -263,17 +263,17 @@ timeWeightedReturn showCashFlow prettyTables investmentsQuery trans mixedAmountV
        | val <- map showDecimal valuesOnDate
        | oldBalance <- map showDecimal (0:unitBalances)
        | balance <- map showDecimal unitBalances
-       | pnl' <- map showMixedAmount pnls
-       | cashflow <- map showMixedAmount cashflows
+       | pnl' <- map (showMixedAmount . styleAmounts styles) pnls
+       | cashflow <- map (showMixedAmount . styleAmounts styles) cashflows
        | prc <- map showDecimal unitPrices
        | udelta <- map showDecimal unitsBoughtOrSold ])
 
     printf "Final unit price: %s/%s units = %s\nTotal TWR: %s%%.\nPeriod: %.2f years.\nAnnualized TWR: %.2f%%\n\n"
-      (showMixedAmount valueAfter) (showDecimal finalUnitBalance) (showDecimal finalUnitPrice) (showDecimal totalTWR) years annualizedTWR
+      (showMixedAmount $ styleAmounts styles valueAfter) (showDecimal finalUnitBalance) (showDecimal finalUnitPrice) (showDecimal totalTWR) years annualizedTWR
 
   return ((realToFrac totalTWR) :: Double, annualizedTWR)
 
-internalRateOfReturn showCashFlow prettyTables (OneSpan begin end valueBefore valueAfter cashFlow _pnl) = do
+internalRateOfReturn styles showCashFlow prettyTables (OneSpan begin end valueBefore valueAfter cashFlow _pnl) = do
   let prefix = (begin, maNegate valueBefore)
 
       postfix = (end, valueAfter)
@@ -287,7 +287,7 @@ internalRateOfReturn showCashFlow prettyTables (OneSpan begin end valueBefore va
       (Table
        (Tab.Group Tab.NoLine (map (Header . showDate) dates))
        (Tab.Group Tab.SingleLine [Header "Amount"])
-       (map ((:[]) . T.pack . showMixedAmount) amts))
+       (map ((:[]) . T.pack . showMixedAmount . styleAmounts styles) amts))
 
   -- 0% is always a solution, so require at least something here
   case totalCF of
