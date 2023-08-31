@@ -78,7 +78,7 @@ invertPrice a =
 -- But keep the number of decimal places unchanged.
 stylePriceDirectiveExceptPrecision :: M.Map CommoditySymbol AmountStyle -> PriceDirective -> PriceDirective
 stylePriceDirectiveExceptPrecision styles pd@PriceDirective{pdamount=a} =
-  pd{pdamount = styleAmountExceptPrecision styles a}
+  pd{pdamount = amountSetStylesExceptPrecision styles a}
 
 allPostings :: Journal -> [Posting]
 allPostings = concatMap tpostings . jtxns

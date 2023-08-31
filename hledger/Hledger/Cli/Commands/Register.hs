@@ -79,11 +79,12 @@ register opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j
                   where pri = (Just (postingDate p)
                               ,Nothing
                               ,tdescription <$> ptransaction p
-                              ,p
-                              ,nullmixedamt)
+                              ,styleAmounts styles p
+                              ,styleAmounts styles nullmixedamt)
   -- normal register report, list postings
-  | otherwise = writeOutputLazyText opts $ render rpt
+  | otherwise = writeOutputLazyText opts $ render $ styleAmounts styles rpt
   where
+    styles = journalCommodityStyles j
     rpt = postingsReport rspec j
     render | fmt=="txt"  = postingsReportAsText opts
            | fmt=="csv"  = printCSV . postingsReportAsCsv

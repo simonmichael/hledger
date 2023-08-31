@@ -28,6 +28,7 @@ import Hledger.Read.CsvUtils (CSV, printCSV)
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
 import System.Exit (exitFailure)
+import qualified Data.Map as M (map)
 
 
 printmode = hledgerCommandMode
@@ -69,8 +70,11 @@ print' opts j = do
 
 printEntries :: CliOpts -> Journal -> IO ()
 printEntries opts@CliOpts{reportspec_=rspec} j =
-  writeOutputLazyText opts . render $ entriesReport rspec j
+  writeOutputLazyText opts . render $
+  styleAmounts styles $
+  entriesReport rspec j
   where
+    styles = journalCommodityStyles j
     fmt = outputFormatFromOpts opts
     render | fmt=="txt"  = entriesReportAsText opts
            | fmt=="csv"  = printCSV . entriesReportAsCsv

@@ -347,7 +347,7 @@ balance :: CliOpts -> Journal -> IO ()
 balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ of
     CalcBudget -> do  -- single or multi period budget report
       let rspan = fst $ reportSpan j rspec
-          budgetreport = budgetReport rspec (balancingopts_ $ inputopts_ opts) rspan j
+          budgetreport = styleAmounts styles $ budgetReport rspec (balancingopts_ $ inputopts_ opts) rspan j
           render = case fmt of
             "txt"  -> budgetReportAsText ropts
             "json" -> (<>"\n") . toJsonText
@@ -356,7 +356,7 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ of
       writeOutputLazyText opts $ render budgetreport
 
     _ | multiperiod -> do  -- multi period balance report
-        let report = multiBalanceReport rspec j
+        let report = styleAmounts styles $ multiBalanceReport rspec j
             render = case fmt of
               "txt"  -> multiBalanceReportAsText ropts
               "csv"  -> printCSV . multiBalanceReportAsCsv ropts
@@ -366,7 +366,7 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ of
         writeOutputLazyText opts $ render report
 
     _ -> do  -- single period simple balance report
-        let report = balanceReport rspec j -- simple Ledger-style balance report
+        let report = styleAmounts styles $ balanceReport rspec j -- simple Ledger-style balance report
             render = case fmt of
               "txt"  -> \ropts1 -> TB.toLazyText . balanceReportAsText ropts1
               "csv"  -> \ropts1 -> printCSV . balanceReportAsCsv ropts1
@@ -375,6 +375,7 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ of
               _      -> error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
         writeOutputLazyText opts $ render ropts report
   where
+    styles = journalCommodityStyles j
     ropts@ReportOpts{..} = _rsReportOpts rspec
     -- Tidy csv should be consistent between single period and multiperiod reports.
     multiperiod = interval_ /= NoInterval || (layout_ == LayoutTidy && fmt == "csv")
