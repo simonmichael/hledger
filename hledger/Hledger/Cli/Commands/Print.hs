@@ -74,7 +74,7 @@ printEntries opts@CliOpts{reportspec_=rspec} j =
   styleAmounts styles $
   entriesReport rspec j
   where
-    styles = journalCommodityStyles j
+    styles = M.map amountStyleUnsetPrecision $ journalCommodityStyles j  -- keep all precisions unchanged
     fmt = outputFormatFromOpts opts
     render | fmt=="txt"  = entriesReportAsText opts
            | fmt=="csv"  = printCSV . entriesReportAsCsv
