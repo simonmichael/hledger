@@ -85,6 +85,10 @@ type AccountTransactionsReportItem =
   ,MixedAmount -- the register's running total or the current account(s)'s historical balance, after this transaction
   )
 
+instance HasAmounts AccountTransactionsReportItem where
+  styleAmounts styles (torig,tacct,b,c,a1,a2) =
+    (styleAmounts styles torig,styleAmounts styles tacct,b,c,styleAmounts styles a1,styleAmounts styles a2)
+
 triOrigTransaction (torig,_,_,_,_,_) = torig
 triDate (_,tacct,_,_,_,_) = tdate tacct
 triAmount (_,_,_,_,a,_) = a

@@ -52,6 +52,9 @@ type PostingsReportItem = (Maybe Day     -- The posting date, if this is the fir
                                          -- the running total/average.
                           )
 
+instance HasAmounts PostingsReportItem where
+  styleAmounts styles (a,b,c,d,e) = (a,b,c,styleAmounts styles d,styleAmounts styles e)
+
 -- | A summary posting summarises the activity in one account within a report
 -- interval. It is by a regular Posting with no description, the interval's
 -- start date stored as the posting date, and the interval's Period attached

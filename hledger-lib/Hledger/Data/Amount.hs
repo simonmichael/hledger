@@ -75,10 +75,11 @@ module Hledger.Data.Amount (
   amountstyle,
   canonicaliseAmount,
   styleAmount,
-  styleAmountExceptPrecision,
   amountSetStyles,
+  amountSetStylesExceptPrecision,
   amountSetMainStyle,
   amountSetCostStyle,
+  amountStyleUnsetPrecision,
   amountUnstyled,
   showAmountB,
   showAmount,
@@ -131,6 +132,7 @@ module Hledger.Data.Amount (
   canonicaliseMixedAmount,
   styleMixedAmount,
   mixedAmountSetStyles,
+  mixedAmountSetStylesExceptPrecision,
   mixedAmountUnstyled,
   showMixedAmount,
   showMixedAmountOneLine,
@@ -250,6 +252,8 @@ amountstyle = AmountStyle L False Nothing (Just '.') (Just $ Precision 0)
 
 -------------------------------------------------------------------------------
 -- Amount
+
+instance HasAmounts Amount where styleAmounts = amountSetStyles
 
 instance Num Amount where
     abs a@Amount{aquantity=q}    = a{aquantity=abs q}
@@ -446,26 +450,31 @@ styleAmount :: M.Map CommoditySymbol AmountStyle -> Amount -> Amount
 styleAmount = amountSetStyles
 {-# DEPRECATED styleAmount "please use amountSetStyles instead" #-}
 
--- | Like styleAmount, but leave the display precision unchanged.
-styleAmountExceptPrecision :: M.Map CommoditySymbol AmountStyle -> Amount -> Amount
-styleAmountExceptPrecision styles a@Amount{astyle=AmountStyle{asprecision=origp}} =
-  case M.lookup (acommodity a) styles of
-    Just s  -> a{astyle=s{asprecision=origp}}
-    Nothing -> a
-
 -- v3
 
 -- | Given some commodity display styles, find and apply the appropriate
 -- display style to this amount, and do the same for its cost amount if any
 -- (and then stop; we assume costs don't have costs).
--- The main amount's display precision may or may not be changed, as specified by the style.                                                                                                                                                    
--- the cost amount's display precision is left unchanged, ignoring what the style says.
- -- If no style is found for an amount, it is left unchanged.
+-- The main amount's display precision is set or not, according to its style;
+-- the cost amount's display precision is left unchanged, regardless of its style.
+-- If no style is found for an amount, it is left unchanged.
 amountSetStyles :: M.Map CommoditySymbol AmountStyle -> Amount -> Amount
 amountSetStyles styles = amountSetMainStyle styles <&> amountSetCostStyle styles
 
+-- | Like amountSetStyles, but leave the display precision unchanged
+-- in both main and cost amounts.
+amountSetStylesExceptPrecision :: M.Map CommoditySymbol AmountStyle -> Amount -> Amount
+amountSetStylesExceptPrecision styles a@Amount{astyle=AmountStyle{asprecision=origp}} =
+  case M.lookup (acommodity a) styles' of
+    Just s  -> a{astyle=s{asprecision=origp}}
+    Nothing -> a
+  where styles' = M.map amountStyleUnsetPrecision styles
+
+amountStyleUnsetPrecision :: AmountStyle -> AmountStyle
+amountStyleUnsetPrecision as = as{asprecision=Nothing}
+
 -- | Find and apply the appropriate display style, if any, to this amount.
--- The display precision may or may not be changed, as specified by the style.                                                                                                                                                    
+-- The display precision is set or not, according to the style.
 amountSetMainStyle :: M.Map CommoditySymbol AmountStyle -> Amount -> Amount
 amountSetMainStyle styles a@Amount{acommodity=comm, astyle=AmountStyle{asprecision=morigp}} =
   case M.lookup comm styles of
@@ -477,13 +486,13 @@ amountSetMainStyle styles a@Amount{acommodity=comm, astyle=AmountStyle{asprecisi
           _       -> s
 
 -- | Find and apply the appropriate display style, if any, to this amount's cost, if any.
--- The display precision is left unchanged, ignoring what the style says.
+-- The display precision is left unchanged, regardless of the style.
 amountSetCostStyle :: M.Map CommoditySymbol AmountStyle -> Amount -> Amount
 amountSetCostStyle styles a@Amount{aprice=mcost} =
   case mcost of
     Nothing              -> a
-    Just (UnitPrice  a2) -> a{aprice=Just $ UnitPrice  $ styleAmountExceptPrecision styles a2}
-    Just (TotalPrice a2) -> a{aprice=Just $ TotalPrice $ styleAmountExceptPrecision styles a2}
+    Just (UnitPrice  a2) -> a{aprice=Just $ UnitPrice  $ amountSetStylesExceptPrecision styles a2}
+    Just (TotalPrice a2) -> a{aprice=Just $ TotalPrice $ amountSetStylesExceptPrecision styles a2}
 
 
 -- | Reset this amount's display style to the default.
@@ -588,6 +597,8 @@ applyDigitGroupStyle (Just (DigitGroups c (g0:gs0))) l0 s0 = addseps (g0:|gs0) (
 
 -------------------------------------------------------------------------------
 -- MixedAmount
+
+instance HasAmounts MixedAmount where styleAmounts = mixedAmountSetStyles
 
 instance Semigroup MixedAmount where
   (<>) = maPlus
@@ -868,6 +879,9 @@ styleMixedAmount = mixedAmountSetStyles
 
 mixedAmountSetStyles :: M.Map CommoditySymbol AmountStyle -> MixedAmount -> MixedAmount
 mixedAmountSetStyles styles = mapMixedAmountUnsafe (amountSetStyles styles)
+
+mixedAmountSetStylesExceptPrecision :: M.Map CommoditySymbol AmountStyle -> MixedAmount -> MixedAmount
+mixedAmountSetStylesExceptPrecision styles = mapMixedAmountUnsafe (amountSetStylesExceptPrecision styles)
 
 -- | Reset each individual amount's display style to the default.
 mixedAmountUnstyled :: MixedAmount -> MixedAmount

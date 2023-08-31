@@ -802,7 +802,7 @@ journalApplyCommodityStyles = fmap fixjournal . journalInferCommodityStyles
         journalMapPostings (postingApplyCommodityStyles styles) j{jpricedirectives=map fixpricedirective pds}
       where
         styles = journalCommodityStyles j
-        fixpricedirective pd@PriceDirective{pdamount=a} = pd{pdamount=styleAmountExceptPrecision styles a}
+        fixpricedirective pd@PriceDirective{pdamount=a} = pd{pdamount=amountSetStylesExceptPrecision styles a}
 
 -- | Get the canonical amount styles for this journal, whether (in order of precedence):
 -- set globally in InputOpts,

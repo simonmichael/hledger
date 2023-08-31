@@ -4,6 +4,8 @@ New common report types, used by the BudgetReport for now, perhaps all reports l
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveFunctor  #-}
 {-# LANGUAGE DeriveGeneric  #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE NamedFieldPuns #-}
 
 module Hledger.Reports.ReportTypes
 ( PeriodicReport(..)
@@ -91,6 +93,10 @@ data PeriodicReport a b =
 instance Bifunctor PeriodicReport where
   bimap f g pr = pr{prRows = map (bimap f g) $ prRows pr, prTotals = g <$> prTotals pr}
 
+instance HasAmounts b => HasAmounts (PeriodicReport a b) where
+  styleAmounts styles r@PeriodicReport{prRows,prTotals} =
+    r{prRows=styleAmounts styles prRows, prTotals=styleAmounts styles prTotals}
+
 data PeriodicReportRow a b =
   PeriodicReportRow
   { prrName    :: a    -- An account name.
@@ -105,6 +111,13 @@ instance Bifunctor PeriodicReportRow where
 
 instance Semigroup b => Semigroup (PeriodicReportRow a b) where
   (<>) = prrAdd
+
+instance HasAmounts b => HasAmounts (PeriodicReportRow a b) where
+  styleAmounts styles r =
+    r{prrAmounts=styleAmounts styles $ prrAmounts r
+     ,prrTotal  =styleAmounts styles $ prrTotal r
+     ,prrAverage=styleAmounts styles $ prrAverage r
+     }
 
 -- | Add two 'PeriodicReportRows', preserving the name of the first.
 prrAdd :: Semigroup b => PeriodicReportRow a b -> PeriodicReportRow a b -> PeriodicReportRow a b
@@ -161,6 +174,16 @@ data CompoundPeriodicReport a b = CompoundPeriodicReport
   , cbrSubreports :: [(Text, PeriodicReport a b, Bool)]
   , cbrTotals     :: PeriodicReportRow () b
   } deriving (Show, Functor, Generic, ToJSON)
+
+instance HasAmounts b => HasAmounts (CompoundPeriodicReport a b) where
+  styleAmounts styles cpr@CompoundPeriodicReport{cbrSubreports, cbrTotals} =
+    cpr{
+        cbrSubreports = styleAmounts styles cbrSubreports
+      , cbrTotals     = styleAmounts styles cbrTotals
+      }
+
+instance HasAmounts b => HasAmounts (Text, PeriodicReport a b, Bool) where
+  styleAmounts styles (a,b,c) = (a,styleAmounts styles b,c)
 
 -- | Description of one subreport within a compound balance report.
 -- Part of a "CompoundBalanceCommandSpec", but also used in hledger-lib.
