@@ -517,6 +517,10 @@ showAmount = wbUnpack . showAmountB noColour
 --
 -- * The special "missing" amount is displayed as the empty string. 
 --
+-- * If an amount is showing digit group separators but no decimal places,
+--   we force showing a decimal mark (with nothing after it) to make
+--   it easier to parse correctly.
+--
 showAmountB :: AmountDisplayOpts -> Amount -> WideBuilder
 showAmountB _ Amount{acommodity="AUTO"} = mempty
 showAmountB opts a@Amount{astyle=style} =
@@ -565,6 +569,8 @@ showAmountDebug Amount{..} =
 
 -- | Get a Text Builder for the string representation of the number part of of an amount,
 -- using the display settings from its commodity. Also returns the width of the number.
+-- A special case: if it is showing digit group separators but no decimal places,
+-- show a decimal mark (with nothing after it) to make it easier to parse correctly.
 showamountquantity :: Amount -> WideBuilder
 showamountquantity amt@Amount{astyle=AmountStyle{asdecimalmark=mdec, asdigitgroups=mgrps}} =
     signB <> intB <> fracB
@@ -578,9 +584,13 @@ showamountquantity amt@Amount{astyle=AmountStyle{asdecimalmark=mdec, asdigitgrou
     (intPart, fracPart) = T.splitAt intLen numtxtwithzero
     intB = applyDigitGroupStyle mgrps intLen $ if decplaces == 0 then numtxt else intPart
     signB = if mantissa < 0 then WideBuilder (TB.singleton '-') 1 else mempty
-    fracB = if decplaces > 0
+    fracB = if decplaces > 0 || isshowingdigitgroupseparator
       then WideBuilder (TB.singleton dec <> TB.fromText fracPart) (1 + fromIntegral decplaces)
       else mempty
+
+    isshowingdigitgroupseparator = case mgrps of
+      Just (DigitGroups _ (rightmostgrplen:_)) -> intLen > fromIntegral rightmostgrplen
+      _ -> False
 
 -- | Given an integer as text, and its length, apply the given DigitGroupStyle,
 -- inserting digit group separators between digit groups where appropriate.
