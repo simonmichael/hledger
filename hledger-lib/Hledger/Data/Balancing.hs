@@ -631,7 +631,7 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedamt 
         "but the calculated balance is: %s", -- (at display precision: %s)",
         "a difference of:               %s",
         "",
-        "Consider viewing this account's calculated balances to troubleshoot. Eg:",
+        "To troubleshoot, you can view this account's running balance. Eg:",
         "",
         "hledger reg '%s'%s -I  # -f FILE"
       ])

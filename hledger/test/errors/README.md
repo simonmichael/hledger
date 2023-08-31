@@ -188,7 +188,7 @@ this balance was asserted:     1
 but the calculated balance is: 0
 a difference of:               1
 
-Consider viewing this account's calculated balances to troubleshoot. Eg:
+To troubleshoot, you can view this account's running balance. Eg:
 
 hledger reg 'a$' cur: -I  # -f FILE
 ```
