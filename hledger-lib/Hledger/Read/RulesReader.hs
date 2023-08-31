@@ -258,7 +258,7 @@ data CsvRules' a = CsvRules' {
 type CsvRulesParsed = CsvRules' ()
 
 -- | Type used after parsing is done. Directives, assignments and conditional blocks
--- are in the same order as they were in the unput file and rblocksassigning is functional.
+-- are in the same order as they were in the input file and rblocksassigning is functional.
 -- Ready to be used for CSV record processing
 type CsvRules = CsvRules' (Text -> [ConditionalBlock])  -- XXX simplify
 
