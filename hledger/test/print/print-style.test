@@ -73,3 +73,17 @@ $ hledger -f- print
 #     (a)    A1.234 @ B3.456 = A1.234 @ B3.456
 # 
 # >=
+
+# 3. When showing digit group marks, print always shows a decimal mark as well,
+# even when no decimal digits are shown.
+<
+decimal-mark .
+2023-01-01
+    (a)    1,000
+
+$ hledger -f- print
+2023-01-01
+    (a)          1,000.
+
+>=
+
