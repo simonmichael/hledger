@@ -18,13 +18,33 @@ Infrastructure
 General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
-# 54e627ade
-- pkg: stack: ghc9.6: bump resolver, enable hledger-web (close #2011)
+# 1.31 2023-09-03
 
-- pkg: stack: bump default build to lts-21.9, ghc 9.4.6
+Scripts/addons
 
-- ;dev: Add a ghc-tags.yaml file (Jonathan Dowland)
-  Provide a ghc-tags.yaml file to make use of ghc-tags with Hledger easy.
+- ft, tt shell scripts for collecting financial and time reports
+
+- A justfile implementation of ft and tt
+
+Examples
+
+- self-tracking
+
+- RPG ledger (Eric Mertens)
+
+Docs
+
+Infrastructure
+
+  (Jonathan Dowland)
+
+- tools, CI: checkembeddedfiles, checkversions
+
+- Shake: avoid making empty commits
+
+- make functest-PAT: runs a subset of functional tests
+
+- Provide a ghc-tags.yaml file to make use of ghc-tags with Hledger easy.
 
   ghc-tags is a standalone tool to replace the formerly-built-in
   ":ctags" feature (and I presume ":etags") in GHCi. These walked over
@@ -39,69 +59,7 @@ For package-specific changes, see the hledger package changelogs.
 
   See <https://github.com/arybczak/ghc-tags/issues/6> for more
   information.
-
-  Signed-off-by: Jonathan Dowland <jon@dow.land>
-- ;bin:justfile: make more chooser friendly, add help/pick/view
-
-- ;bin:justfile: fix/cleanups
-
-- ;bin: add a justfile (conversion of ft and tt)
-
-- ;doc:bin: fix tt link
-
-- ;doc:bin:ft: updates
-
-- ;doc:bin:tt: updates
-
-- ;doc:bin: ft/tt updates
-
-- ;doc:bin: ft/tt updates
-
-- ;doc:bin: link ft and tt
-
-- ;bin: ft, tt reporting scripts (examples)
-
-- ;pkg:stack: bump stackage snapshots
-
-- ;examples: the hledger manual > Cost reporting examples, and shelltests
-
-- ;examples:self-tracking: add missing files
-
-- ;examples:self-tracking: updates
-
-- ;examples:self-tracking: updates
-
-- ;examples:self-tracking: updates
-
-- ;examples: self-tracking
-
-- ;dev: bump to latest stackage nightly
-
-- ;install: bump to stackage lts-21
-
-- ;cln: make functest-PAT now filters the same tests run by make functest
-
-- ;doc:RELEASING: updates
-
-- ;dev: make/shake/bake help titles
-
-- ;dev:Shake: avoid making empty commits
-
-- ;dev:checkembeddedfiles: fix mac binaries workflow
-
-- ;doc: update changelogs
-
-Scripts/addons
-
-Examples
-
-- RPG ledger (Eric Mertens)
-
-Docs
-
-Infrastructure
-
-- tools, CI: checkembeddedfiles, checkversions
+  (Jonathan Dowland)
 
 # 1.30 2023-06-01
 
