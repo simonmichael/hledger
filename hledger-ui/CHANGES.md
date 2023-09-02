@@ -21,13 +21,15 @@ API
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 79a1f1dd9
+# 14af7d32b
 
 Breaking changes
 
 Features
 
 Improvements
+
+- Allow megaparsec 9.5
 
 Fixes
 
