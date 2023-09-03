@@ -22,12 +22,12 @@ HLEDGER_TOOLS="\
 hledger \
 hledger-ui \
 hledger-web \
-hledger-stockquotes \
 hledger-edit \
 hledger-lots \
 hledger-plot \
 hledger-interest \
 hledger-iadd \
+pricehist \
 "
 
 # Additional install-related tools to be listed
@@ -48,10 +48,10 @@ HLEDGER_WEB_VERSION=1.30
 # Third-party:
 HLEDGER_IADD_VERSION=1.3.18
 HLEDGER_INTEREST_VERSION=1.6.5
-HLEDGER_STOCKQUOTES_VERSION=0.1.2.1
 HLEDGER_EDIT_VERSION=1.13.2
 HLEDGER_PLOT_VERSION=1.13.2
 HLEDGER_LOTS_VERSION=0.4.2
+PRICEHIST_VERSION=1.4.6
 
 # this script's one-line description
 HLEDGER_INSTALL_DESC="$HLEDGER_INSTALL_TOOL version $HLEDGER_INSTALL_VERSION to install hledger $HLEDGER_VERSION and related tools"
@@ -1088,12 +1088,12 @@ else
   echo hledger-interest is up to date
 fi
 
-if [[ $(cmpver "$(cmd_version hledger-stockquotes 2>/dev/null)" $HLEDGER_STOCKQUOTES_VERSION) = 2 ]]; then
-  echo Installing hledger-stockquotes
-  try_install hledger-stockquotes-$HLEDGER_STOCKQUOTES_VERSION hledger-lib-$HLEDGER_LIB_VERSION $STACK_EXTRA_DEPS
+if [[ $(cmpver "$(cmd_version pricehist 2>/dev/null)" $PRICEHIST_VERSION) = 2 ]]; then
+  echo Installing pricehist
+  try_install_py pricehist
   echo
 else
-  echo hledger-stockquotes is up to date
+  echo pricehist is up to date
 fi
 
 # hledger-edit, hledger-plot packaged together as hledger-utils, just install it twice for now
