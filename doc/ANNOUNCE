@@ -1,22 +1,20 @@
-I'm pleased to announce hledger 1.30 ! Highlights:
+I'm pleased to announce hledger 1.31 ! Highlights:
 
-- Boolean queries - with the new `expr:` query type you can freely
-  combine other queries with AND, OR, NOT and parentheses.
+- In conversion transactions, costs and equity postings are matched
+  more tolerantly.
 
-- Easier CSV file management - you can now read a CSV .rules file, and let it
-  fetch the data file from a downloads directory, simplifying CSV file management.
+- The `print` command now more closely replicates the original journal
+   amount styles, which is helpful when round-tripping / cleaning up
+   journal files.
 
-- Built-in demos - a new `demo` command plays several asciinema casts
-  to demonstrate features. We'll add more of these in future.
+- Multi-pivot - the --pivot option can now construct account names
+  from multiple fields.
 
-- hledger-ui has a new Cash accounts screen, and now starts on the Menu screen.
+Thank you release contributors Dmitry Astapov, Eric Mertens,
+Jay Neubrand, and Jonathan Dowland.
 
-- The usual miscellaneous fixes.
-
-Thank you release contributors Chris Lemaire and Yehoshua Pesach Wallach.
-
-- https://github.com/simonmichael/hledger/releases/1.30
-- https://hledger.org/release-notes.html#hledger-1-30
+- https://github.com/simonmichael/hledger/releases/1.31
+- https://hledger.org/release-notes.html#hledger-1-31
 - https://hledger.org/install
 
 What is hledger ?
