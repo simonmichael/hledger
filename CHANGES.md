@@ -36,8 +36,6 @@ Docs
 
 Infrastructure
 
-  (Jonathan Dowland)
-
 - tools, CI: checkembeddedfiles, checkversions
 
 - Shake: avoid making empty commits
