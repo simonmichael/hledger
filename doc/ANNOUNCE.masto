@@ -1,16 +1,14 @@
-I'm pleased to announce hledger 1.30 ! Highlights:
+I'm pleased to announce hledger 1.31 ! Highlights:
 
-- Boolean queries
-- Easier CSV file management
-- Built-in demos
-- hledger-ui cash accounts screen
-- Miscellaneous fixes.
+- Equity/cost matching in conversion transactions is more tolerant
+- Print preserves amounts' original style
+- Multi-pivot, generate accounts from multiple other fields.
 
-- https://github.com/simonmichael/hledger/releases/1.30
-- https://hledger.org/release-notes.html#hledger-1-30
+- https://github.com/simonmichael/hledger/releases/1.31
+- https://hledger.org/release-notes.html#hledger-1-31
 - https://hledger.org/install
 
 #hledger is fast, reliable, free, multicurrency, double-entry, #plaintextaccounting software for unix, mac, windows, and the web.
 For help, join our chat or mail list: https://hledger.org/support
 
-#haskell
+#haskell #functionalprogramming #personalfinance
