@@ -5207,16 +5207,20 @@ currency you want to convert to, and it tries to convert everything to that.
 
 ## Valuation date
 
-Since market prices can change from day to day, market value reports
-have a valuation date (or more than one), which determines which
-market prices will be used.
+Market prices can change from day to day. 
+hledger will use the prices on a particular valuation date (or on more than one date).
+By default hledger uses "end" dates for valuation. More specifically:
 
-For single period reports, if an explicit
-[report end date](#report-start-end-date) is specified, that will be
-used as the valuation date; otherwise the valuation date is the journal's end date.
+- For single period reports (including normal print and register reports):
+  - If an explicit [report end date](#report-start-end-date) is specified, that is used
+  - Otherwise the latest transaction date or P directive date is used (even if it's in the future)
 
-For [multiperiod reports](#report-intervals), each column/period is
-valued on the last day of the period, by default.
+- For [multiperiod reports](#report-intervals), each period is valued on its last day.
+
+This can be customised with the --value option described below,
+which can select either "then", "end", "now", or "custom" dates.
+(Note, this has a bug in hledger-ui <=1.31: turning on valuation with
+the `V` key always resets it to "end".)
 
 ## Finding market price
 
