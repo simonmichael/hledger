@@ -4,6 +4,7 @@
 # Customise as needed; consider keeping as a git checkout for merging updates.
 # Uses hledger, bash, python, a few other unix tools.
 # wakelog is a script grepping system logs for sleep/wake events; provide it or comment it.
+# See also: justfile, an alternative.
 
 ## #!/usr/bin/env -S osh  # -*- sh -*-  # or osh - more powerful, less tool support
 ## shopt -s -errexit strict:all 2>/dev/null || set -e

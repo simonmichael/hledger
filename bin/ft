@@ -3,6 +3,7 @@
 # ** PREAMBLE
 # shellcheck shell=bash disable=SC2317
 # Customise as needed; consider keeping as a git checkout for merging updates.
+# See also: justfile, an alternative.
 
 set -e
 
