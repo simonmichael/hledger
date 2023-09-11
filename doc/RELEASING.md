@@ -245,7 +245,7 @@ With all platform CI tests green on same commit:
 Sanity checks:
 - appropriate dates/versions in changelogs and release notes (if late in day, watch for time zone issues)
 - hledger-install script
-  - `rg '^HLEDGER(_\w+)?_VERSION' hledger-install/hledger-install.sh`
+  - `rg '^(HLEDGER(_\w+)?_VERSION|PRICEHIST)' hledger-install/hledger-install.sh`
 - binaries' --version output
   - `cd ~/Downloads`
   - `./hledger --version`
@@ -265,14 +265,14 @@ Sanity checks:
 - in main repo, release branch:
   - `git push github MA.JOR-branch` or magit `P p`
   - `git push --tags` or magit `P t github`
-- create new release, https://github.com/simonmichael/hledger/releases/new
+- create new release, <https://github.com/simonmichael/hledger/releases/new>
 - choose release tag
 - title: VERSION
 - description:
-  - copy doc/github-release-doc.tmpl.md to editor
+  - copy doc/github-release-doc.tmpl.md to emacs
   - insert latest release notes (minus topmost heading) from site/src/release-notes.md
-  - replace A-BB, A.BB versions
-  - copy & paste
+  - replace all OLD version strings with NEW
+  - copy to github release
   - preview, sanity check
 - upload platform binary zip files
 - Save draft
@@ -288,7 +288,7 @@ in main repo, release branch:
 In site repo:
 
 - js/site.js: add NEW, 3 places
-- Makefile: add NEW, 2 places
+- Makefile: add NEW, 3 places
 - commit: `manuals: NEW`
 - make snapshot-NEW (after ensuring main repo has been release-tagged)
 - push
@@ -315,12 +315,13 @@ In site repo:
   - commit: `install: NEW`
 
 #### Update website
-- push to github: in site repo, `git push github` or magit `P u`
-- on hledger.org server:
-  - in main repo (both main and site repos on master):
+- push to github: in site repo, `git push github` or magit `P p`
+- wait a few seconds for hledger.org repo to update automatically. Or if needed:
+  - on hledger.org, with both main and site repos on master branch:
     - `git -C site pull && git pull && make site`
     - (or to rebuild all pages, also run `make -C site all`)
-  - in /opt/hledger/site/hledger.org.caddy:
+  - in /ssh:simon@hledger.org:/opt/hledger/site/hledger.org.caddy (hangs ?), or
+    hledgerorg emacs, open /opt/hledger/site/hledger.org.caddy:
     - @oldmanpath: add `path` for NEW
     - @unversionedmanpath: update to NEW
   - `systemctl reload caddy`
