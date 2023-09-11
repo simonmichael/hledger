@@ -383,11 +383,12 @@ In release branch, update
 
 #### Push master
 in main repo, master branch: `push`
+
 #### Post-release followup
 - monitor packaging status, update install page
-  - docker - expect/merge PR
   - homebrew - expect badge to update soon
-  - nix - expect `make nix-hledger-version` to update after a few days, find and update to that commit hash
+  - docker - expect/merge PR
+  - nix - expect badge to update after a few days; can check with `make nix-hledger-version`
   - linux distros - once in a while, follow the links & search for newer versions, update
 - provide support, monitor issues
 - prepare followup release(s) as needed
@@ -402,39 +403,6 @@ in main repo, master branch: `push`
 2.  monitor for new package versions in nightly: check
     <https://www.stackage.org/package/hledger>
     
-#### Update nix install command
-
-1.  Wait for the new hledger version to land in nixpkgs
-
-    1.  make nix-hledger-version
-
-2.  Find the nixpkgs haskell-packages commit post-dating the hledger
-    release:
-
-    1.  make nix-view-commits \#
-        <https://github.com/NixOS/nixpkgs/commits/master/pkgs/development/haskell-modules/hackage-packages.nix>
-
-3.  Test the nix-env install command with that commit hash
-
-    1.  if it fails with \"SSL peer certificate or SSH remote key was
-        not OK\"
-
-        1.  . *Users/simon*.nix-profile/etc/profile.d/nix.sh
-
-        2.  or re-install:
-
-            1.  curl -sO <https://nixos.org/nix/install>
-
-            2.  less install
-
-            3.  sh install
-
-            4.  . *Users/simon*.nix-profile/etc/profile.d/nix.sh
-
-    2.  on linux
-
-    3.  on mac
-
 #### Update homebrew formula (old)
 
 1.  ref
