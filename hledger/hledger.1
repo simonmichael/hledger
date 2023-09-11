@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "August 2023" "hledger-1.30.99 " "hledger User Manuals"
+.TH "HLEDGER" "1" "September 2023" "hledger-1.31.99 " "hledger User Manuals"
 
 
 
@@ -27,7 +27,7 @@ hledger is inspired by and largely compatible with ledger(1), and
 largely interconvertible with beancount(1).
 .PP
 This manual is for hledger\[aq]s command line interface, version
-1.30.99.
+1.31.99.
 It also describes the common options, file formats and concepts used by
 all hledger programs.
 It might accidentally teach you some bookkeeping/accounting as well!
@@ -3097,8 +3097,8 @@ including directories, but this can be done, eg:
 \f[V]include */**/*.journal\f[R].
 .PP
 The path may also be prefixed to force a specific file format,
-overriding the file extension (as described in hledger.1 -> Input
-files): \f[V]include timedot:\[ti]/notes/2023*.md\f[R].
+overriding the file extension (as described in Data formats):
+\f[V]include timedot:\[ti]/notes/2023*.md\f[R].
 .SS \f[V]P\f[R] directive
 .PP
 The \f[V]P\f[R] directive declares a market price, which is a conversion
@@ -9857,13 +9857,12 @@ If you are an Emacs user, you can also configure flycheck-hledger to run
 these checks, providing instant feedback as you edit the journal.
 .PP
 Here are the checks currently available:
-.SS Basic checks
+.SS Default checks
 .PP
-These checks are always run automatically, by (almost) all hledger
-commands, including \f[V]check\f[R]:
+These checks are run automatically by (almost) all hledger commands:
 .IP \[bu] 2
-\f[B]parseable\f[R] - data files are well-formed and can be successfully
-parsed
+\f[B]parseable\f[R] - data files are in a supported format, with no
+syntax errors and no invalid include directives.
 .IP \[bu] 2
 \f[B]autobalanced\f[R] - all transactions are balanced, after converting
 to cost.
@@ -9881,20 +9880,19 @@ These additional checks are run when the \f[V]-s\f[R]/\f[V]--strict\f[R]
 Or, they can be run by giving their names as arguments to
 \f[V]check\f[R]:
 .IP \[bu] 2
+\f[B]balanced\f[R] - all transactions are balanced after converting to
+cost, without inferring missing costs.
+If conversion costs are required, they must be explicit.
+.IP \[bu] 2
 \f[B]accounts\f[R] - all account names used by transactions have been
 declared
 .IP \[bu] 2
 \f[B]commodities\f[R] - all commodity symbols used have been declared
-.IP \[bu] 2
-\f[B]balanced\f[R] - all transactions are balanced after converting to
-cost, without inferring missing costs.
-If conversion costs are required, they must be explicit.
 .SS Other checks
 .PP
 These checks can be run only by giving their names as arguments to
 \f[V]check\f[R].
-They are more specialised and not desirable for everyone, therefore
-optional:
+They are more specialised and not desirable for everyone:
 .IP \[bu] 2
 \f[B]ordereddates\f[R] - transactions are ordered by date within each
 file
@@ -11081,10 +11079,11 @@ or do not require computation of time-weighted return (TWR),
 accounts).
 .PP
 This command will compute and display the internalized rate of return
-(IRR) and time-weighted rate of return (TWR) for your investments for
-the time period requested.
-Both rates of return are annualized before display, regardless of the
-length of reporting interval.
+(IRR, also known as money-weighted rate of return) and time-weighted
+rate of return (TWR) for your investments for the time period requested.
+IRR is always annualized due to the way it is computed, but TWR is
+reported both as a rate over the chosen reporting period and as an
+annual rate.
 .PP
 Price directives will be taken into account if you supply appropriate
 \f[V]--cost\f[R] or \f[V]--value\f[R] flags (see VALUATION).
@@ -11210,15 +11209,16 @@ return, and this command implements two of them: IRR and TWR.
 .PP
 Internal rate of return, or \[dq]IRR\[dq] (also called
 \[dq]money-weighted rate of return\[dq]) takes into account effects of
-in-flows and out-flows.
-Naively, if you are withdrawing from your investment, your future gains
-would be smaller (in absolute numbers), and will be a smaller percentage
-of your initial investment, and if you are adding to your investment,
-you will receive bigger absolute gains (but probably at the same rate of
-return).
-IRR is a way to compute rate of return for each period between in-flow
-or out-flow of money, and then combine them in a way that gives you a
-compound annual rate of return that investment is expected to generate.
+in-flows and out-flows, and the time between them.
+Investment at a particular fixed interest rate is going to give you more
+interest than the same amount invested at the same interest rate, but
+made later in time.
+If you are withdrawing from your investment, your future gains would be
+smaller (in absolute numbers), and will be a smaller percentage of your
+initial investment, so your IRR will be smaller.
+And if you are adding to your investment, you will receive bigger
+absolute gains, which will be a bigger percentage of your initial
+investment, so your IRR will be larger.
 .PP
 As mentioned before, in-flows and out-flows would be any cash that you
 personally put in or withdraw, and for the \[dq]roi\[dq] command, these
@@ -11238,22 +11238,23 @@ value of all the cash flows of your investment to add up to zero.
 This could be hard to wrap your head around, especially if you
 haven\[aq]t done discounted cash flow analysis before.
 Implementation of IRR in hledger should produce results that match the
-\f[V]XIRR\f[R] formula in Excel.
+\f[V]=XIRR\f[R] formula in Excel.
 .PP
 Second way to compute rate of return that \f[V]roi\f[R] command
 implements is called \[dq]time-weighted rate of return\[dq] or
 \[dq]TWR\[dq].
-Like IRR, it will also break the history of your investment into periods
-between in-flows, out-flows and value changes, to compute rate of return
-per each period and then a compound rate of return.
-However, internal workings of TWR are quite different.
+Like IRR, it will account for the effect of your in-flows and out-flows,
+but unlike IRR it will try to compute the true rate of return of the
+underlying asset, compensating for the effect that deposits and
+withdrawas have on the apparent rate of growth of your investment.
 .PP
 TWR represents your investment as an imaginary \[dq]unit fund\[dq] where
 in-flows/ out-flows lead to buying or selling \[dq]units\[dq] of your
 investment and changes in its value change the value of \[dq]investment
 unit\[dq].
 Change in \[dq]unit price\[dq] over the reporting period gives you rate
-of return of your investment.
+of return of your investment, and make TWR less sensitive than IRR to
+the effects of cash in-flows and out-flows.
 .PP
 References:
 .IP \[bu] 2
@@ -11262,6 +11263,8 @@ Explanation of rate of return
 Explanation of IRR
 .IP \[bu] 2
 Explanation of TWR
+.IP \[bu] 2
+IRR vs TWR
 .IP \[bu] 2
 Examples of computing IRR and TWR and discussion of the limitations of
 both metrics

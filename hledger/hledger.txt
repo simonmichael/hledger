@@ -16,7 +16,7 @@ DESCRIPTION
        and largely compatible with  ledger(1),  and  largely  interconvertible
        with beancount(1).
 
-       This  manual  is for hledger's command line interface, version 1.30.99.
+       This  manual  is for hledger's command line interface, version 1.31.99.
        It also describes the common options, file formats and concepts used by
        all hledger programs.  It might accidentally teach you  some  bookkeep-
        ing/accounting  as  well!  You don't need to know everything in here to
@@ -2201,8 +2201,8 @@ Journal
        this can be done, eg: include */**/*.journal.
 
        The path may also be prefixed to force a specific file format, overrid-
-       ing the file extension (as described in hledger.1 -> Input files):  in-
-       clude timedot:~/notes/2023*.md.
+       ing the file extension (as described in Data  formats):  include  time-
+       dot:~/notes/2023*.md.
 
    P directive
        The P directive declares a market price, which is a conversion rate be-
@@ -7089,36 +7089,35 @@ PART 4: COMMANDS
 
        Here are the checks currently available:
 
-   Basic checks
-       These checks are always run automatically, by (almost) all hledger com-
-       mands, including check:
+   Default checks
+       These checks are run automatically by (almost) all hledger commands:
 
-       o parseable - data files are well-formed and can be successfully parsed
+       o parseable  - data files are in a supported format, with no syntax er-
+         rors and no invalid include directives.
 
-       o autobalanced  -  all  transactions  are balanced, after converting to
-         cost.  Missing amounts and missing costs are  inferred  automatically
+       o autobalanced - all transactions are  balanced,  after  converting  to
+         cost.   Missing  amounts and missing costs are inferred automatically
          where possible.
 
-       o assertions  -  all  balance  assertions  in  the journal are passing.
+       o assertions - all balance  assertions  in  the  journal  are  passing.
          (This check can be disabled with -I/--ignore-assertions.)
 
    Strict checks
        These additional checks are run when the -s/--strict (strict mode) flag
-       is used.  Or, they can be run by giving their  names  as  arguments  to
+       is  used.   Or,  they  can be run by giving their names as arguments to
        check:
+
+       o balanced - all transactions are balanced after  converting  to  cost,
+         without  inferring  missing costs.  If conversion costs are required,
+         they must be explicit.
 
        o accounts - all account names used by transactions have been declared
 
        o commodities - all commodity symbols used have been declared
 
-       o balanced  -  all  transactions are balanced after converting to cost,
-         without inferring missing costs.  If conversion costs  are  required,
-         they must be explicit.
-
    Other checks
-       These  checks  can  be  run  only by giving their names as arguments to
-       check.  They are more  specialised  and  not  desirable  for  everyone,
-       therefore optional:
+       These checks can be run only by giving  their  names  as  arguments  to
+       check.  They are more specialised and not desirable for everyone:
 
        o ordereddates - transactions are ordered by date within each file
 
@@ -8054,9 +8053,11 @@ PART 4: COMMANDS
        any of your accounts).
 
        This  command  will compute and display the internalized rate of return
-       (IRR) and time-weighted rate of return (TWR) for your  investments  for
-       the  time period requested.  Both rates of return are annualized before
-       display, regardless of the length of reporting interval.
+       (IRR, also known as money-weighted rate of  return)  and  time-weighted
+       rate  of  return  (TWR)  for  your  investments for the time period re-
+       quested.  IRR is always annualized due to the way it is  computed,  but
+       TWR  is reported both as a rate over the chosen reporting period and as
+       an annual rate.
 
        Price directives will be taken into account if you  supply  appropriate
        --cost or --value flags (see VALUATION).
@@ -8154,47 +8155,48 @@ PART 4: COMMANDS
        them: IRR and TWR.
 
        Internal rate of return, or "IRR" (also called "money-weighted rate  of
-       return")   takes  into  account  effects  of  in-flows  and  out-flows.
-       Naively, if you are withdrawing from your investment, your future gains
-       would be smaller (in absolute numbers), and will be a smaller  percent-
-       age  of  your initial investment, and if you are adding to your invest-
-       ment, you will receive bigger absolute gains (but probably at the  same
-       rate  of  return).  IRR is a way to compute rate of return for each pe-
-       riod between in-flow or out-flow of money, and then combine them  in  a
-       way  that gives you a compound annual rate of return that investment is
-       expected to generate.
+       return")  takes into account effects of in-flows and out-flows, and the
+       time between them.  Investment at a particular fixed interest  rate  is
+       going  to  give  you more interest than the same amount invested at the
+       same interest rate, but made later in time.   If  you  are  withdrawing
+       from  your  investment, your future gains would be smaller (in absolute
+       numbers), and will be a smaller percentage of your initial  investment,
+       so your IRR will be smaller.  And if you are adding to your investment,
+       you will receive bigger absolute gains, which will be a bigger percent-
+       age of your initial investment, so your IRR will be larger.
 
-       As mentioned before, in-flows and out-flows would be any cash that  you
+       As  mentioned before, in-flows and out-flows would be any cash that you
        personally put in or withdraw, and for the "roi" command, these are the
-       postings  that  match  the query in the--inv argument and NOT match the
+       postings that match the query in the--inv argument and  NOT  match  the
        query in the--pnl argument.
 
-       If you manually record changes in  the  value  of  your  investment  as
-       transactions  that  balance them against "profit and loss" (or "unreal-
-       ized gains") account or use price directives, then in order for IRR  to
-       compute  the  precise effect of your in-flows and out-flows on the rate
-       of return, you will need to record the value of your investement on  or
+       If  you  manually  record  changes  in  the value of your investment as
+       transactions that balance them against "profit and loss"  (or  "unreal-
+       ized  gains") account or use price directives, then in order for IRR to
+       compute the precise effect of your in-flows and out-flows on  the  rate
+       of  return, you will need to record the value of your investement on or
        close to the days when in- or out-flows occur.
 
-       In  technical  terms,  IRR uses the same approach as computation of net
+       In technical terms, IRR uses the same approach as  computation  of  net
        present value, and tries to find a discount rate that makes net present
        value of all the cash flows of your investment to add up to zero.  This
-       could be hard to wrap your head around, especially if you haven't  done
+       could  be hard to wrap your head around, especially if you haven't done
        discounted cash flow analysis before.  Implementation of IRR in hledger
-       should produce results that match the XIRR formula in Excel.
+       should produce results that match the =XIRR formula in Excel.
 
-       Second  way  to  compute  rate of return that roi command implements is
-       called "time-weighted rate of return" or "TWR".  Like IRR, it will also
-       break the history of your investment  into  periods  between  in-flows,
-       out-flows  and value changes, to compute rate of return per each period
-       and then a compound rate of return.  However, internal workings of  TWR
-       are quite different.
+       Second way to compute rate of return that  roi  command  implements  is
+       called  "time-weighted rate of return" or "TWR".  Like IRR, it will ac-
+       count for the effect of your in-flows and out-flows, but unlike IRR  it
+       will  try  to  compute the true rate of return of the underlying asset,
+       compensating for the effect that deposits and withdrawas  have  on  the
+       apparent rate of growth of your investment.
 
        TWR  represents  your  investment as an imaginary "unit fund" where in-
        flows/ out-flows lead to buying or selling "units" of  your  investment
        and changes in its value change the value of "investment unit".  Change
        in  "unit  price" over the reporting period gives you rate of return of
-       your investment.
+       your investment, and make TWR less sensitive than IRR to the effects of
+       cash in-flows and out-flows.
 
        References:
 
@@ -8203,6 +8205,8 @@ PART 4: COMMANDS
        o Explanation of IRR
 
        o Explanation of TWR
+
+       o IRR vs TWR
 
        o Examples of computing IRR and TWR and discussion of  the  limitations
          of both metrics
@@ -8777,4 +8781,4 @@ LICENSE
 SEE ALSO
        hledger(1), hledger-ui(1), hledger-web(1), ledger(1)
 
-hledger-1.30.99                   August 2023                       HLEDGER(1)
+hledger-1.31.99                 September 2023                      HLEDGER(1)
