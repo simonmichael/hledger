@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           hledger-lib
-version:        1.30.99
+version:        1.31.99
 synopsis:       A reusable library providing the core functionality of hledger
 description:    A reusable library containing hledger's core functionality.
                 This is used by most hledger* packages so that they support the same
@@ -124,7 +124,7 @@ library
     , file-embed >=0.0.10
     , filepath
     , hashtables >=1.2.3.1
-    , megaparsec >=7.0.0 && <9.5
+    , megaparsec >=7.0.0 && <9.6
     , microlens >=0.4
     , microlens-th >=0.4
     , mtl >=2.2.1
@@ -183,7 +183,7 @@ test-suite doctest
     , file-embed >=0.0.10
     , filepath
     , hashtables >=1.2.3.1
-    , megaparsec >=7.0.0 && <9.5
+    , megaparsec >=7.0.0 && <9.6
     , microlens >=0.4
     , microlens-th >=0.4
     , mtl >=2.2.1
@@ -244,7 +244,7 @@ test-suite unittest
     , filepath
     , hashtables >=1.2.3.1
     , hledger-lib
-    , megaparsec >=7.0.0 && <9.5
+    , megaparsec >=7.0.0 && <9.6
     , microlens >=0.4
     , microlens-th >=0.4
     , mtl >=2.2.1
