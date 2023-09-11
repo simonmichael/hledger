@@ -13,11 +13,32 @@ Misc. changes
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 79a1f1dd9
+# 1.31 2023-09-03
 
 Breaking changes
 
+- There is a new consolidated API for styling amounts, and a
+  convenient HasAmounts typeclass.  AmountStyle's fields have been
+  renamed/reordered more mnemonically, and setting the precision is
+  now optional.  (This simplifies the amount-stylingn code, but
+  complicates the semantics a little. When reading, an unset precision
+  generally behaves like NaturalPrecision.)
+
+- (Possible breaking change):
+  showMixedAmountLinesB, showAmountB, showAmountPrice now preserve
+  commodityful zeroes when rendering. This is intended to affect print output,
+  but it seems possible it might also affect balance and register reports,
+  though our tests show no change in those.
+
+- Renamed: journalAddInferredEquityPostings -> journalInferEquityFromCosts
+
 Misc. changes
+
+- Reports now do a final amount styling pass before rendering.
+
+- groupByDateSpan code cleanup (Jay Neubrand)
+
+- Allow aeson 2.2, megaparsec 9.5
 
 # 1.30 2023-06-01
 

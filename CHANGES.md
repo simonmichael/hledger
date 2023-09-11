@@ -18,11 +18,17 @@ Infrastructure
 General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
-# 79a1f1dd9
+# 1.31 2023-09-03
 
 Scripts/addons
 
+- ft, tt shell scripts for collecting financial and time reports
+
+- A justfile implementation of ft and tt
+
 Examples
+
+- self-tracking
 
 - RPG ledger (Eric Mertens)
 
@@ -31,6 +37,27 @@ Docs
 Infrastructure
 
 - tools, CI: checkembeddedfiles, checkversions
+
+- Shake: avoid making empty commits
+
+- make functest-PAT: runs a subset of functional tests
+
+- Provide a ghc-tags.yaml file to make use of ghc-tags with Hledger easy.
+
+  ghc-tags is a standalone tool to replace the formerly-built-in
+  ":ctags" feature (and I presume ":etags") in GHCi. These walked over
+  the source and produced a TAGS file (in vim-compatible ctags or
+  Emacs-compatible etags format) that allows the relevant editors to
+  quickly navigate around function definitions.
+
+  ghc-tags trips over some of the CPP used in Hledger. The solution
+  is to provide ghc-tags with explicit CPP defines via a YAML file.
+  However, if a YAML file is provided, one also must specify the source
+  paths, as the tool XORs config file | paths-on-command-line.
+
+  See <https://github.com/arybczak/ghc-tags/issues/6> for more
+  information.
+  (Jonathan Dowland)
 
 # 1.30 2023-06-01
 

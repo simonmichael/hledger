@@ -21,19 +21,11 @@ API
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 79a1f1dd9
-
-Breaking changes
-
-Features
+# 1.31 2023-09-03
 
 Improvements
 
-Fixes
-
-Docs
-
-API
+- Allow megaparsec 9.5
 
 # 1.30 2023-06-01
 

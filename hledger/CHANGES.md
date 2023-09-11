@@ -21,35 +21,98 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
-# f660e0327
-
-Breaking changes
-
-- More relaxed multicommodity transaction checking: 
-  hledger 1.29 and 1.30 were over-strict, raiding an error for
-  transactions with equity conversion postings whose matching
-  non-equity postings couldn't be auto-detected, even though otherwise valid.
-  This is no longer considered an error; such transactions are accepted,
-  and --infer-cost has no effect on them. This is similar to the behaviour
-  of --cost, --infer-equity, and --infer-market-prices.
-  (#2045)
+# 1.31 2023-09-03
 
 Features
 
-- Multipivot: --pivot now accepts multiple colon-delimited arguments,
-  to construct account names from multiple fields.
+- Multi-pivot: the --pivot option now accepts multiple arguments,
+  colon-delimited, to construct account names from multiple fields.
   (#2050, Eric Mertens)
 
 Improvements
 
-- With --pivot, `desc` is now the preferred spelling for
-  pivoting on description.
+- The `print` command now more closely replicates the original journal
+   amount styles, which is helpful when round-tripping / cleaning up
+   journal files:
+
+  - Amounts in conversion transactions could be displayed rounded to a
+    lower precision; this no longer happens.
+    (#2079)
+
+  - Amounts could be displayed with extra zeros after the decimal mark;
+    this no longer happens.
+
+  - Amounts could display with a different precision if the journal
+    included a timedot file; this no longer happens.
+
+  - Costs in balance assertions were not displayed with standard
+    styles like other amounts; now they are.
+
+  - Zero amounts were always shown as just "0"; now they are shown
+    with their original commodity symbol and style.  (And if an
+    inferred amount has multiple zeros in different commodities, a
+    posting is displayed for each of these.)
+  
+- `print` no longer displays numbers with a single digit group mark
+  and no decimal mark, which are ambiguous and hard to re-parse.  Now
+  if a number has digit group marks the decimal mark will always be
+  shown also.  Eg `1,000` (where the comma is a thousands separator)
+  is now shown as `1,000.`.
+
+- The check command's 
+  `balancedwithautoconversion` and `balancednoautoconversion` checks
+  have been renamed to `autobalanced` and `balanced`.
+
+- `hledger check recentassertions` now reports failures at the first
+  posting that's more than 7 days later than the latest balance
+  assertion (rather than at the balance assertion).  This is the thing
+  actually triggering the error, and it is more likely to be visible
+  or at least closer when you are working at the end of a journal
+  file.
+
+  Also, the suggested sample balance assertion now uses the same
+  commodity symbol as in the failing posting (the first, if there are
+  more than one); and, no longer includes a cleared mark.
+
+- The import command now shows the file path being imported to.
+
+- With --pivot, `desc` is now the preferred spelling for pivoting on
+  description.
+
+- The demo command now ignores an invalid journal file, like the other
+  HELP commands.
+
+- Debug output for equity conversion postings has been improved,
+  making troubleshooting easier.
+
+- Allow aeson 2.2, megaparsec 9.5.
 
 Fixes
 
-Docs
+- In journal files, valid multicommodity transactions where the
+  matching non-equity postings can't be auto-detected are no longer
+  considered an error (as they were in hledger 1.29 and 1.30).  Now,
+  such transactions are accepted, and --infer-cost has no effect on
+  them. This is similar to the behaviour of --cost, --infer-equity,
+  and --infer-market-prices.  (#2045)
 
-API
+- In journal files, equity conversion postings are now detected more
+  tolerantly, using the same precision as the conversion posting's
+  amount (#2041). Eg, the following transaction is now accepted:
+
+      2023-01-01
+          Assets               -84.01 USD @ 2.495 GEL
+		    ; ^ 209.60495 GEL, recognised as a match for the 209.60 below
+          Equity:Conversion     84.01 USD
+          Equity:Conversion   -209.60 GEL
+          Assets               209.60 GEL
+
+- The roi command now reports TWR per period and overall TWR for
+  multi-period reports.
+  (#2068, Dmitry Astapov)
+
+- The commands list no longer shows bar when hledger-bar is not installed (#2065),
+  and had a few other cleanups.
 
 # 1.30.1 2023-06-02
 
