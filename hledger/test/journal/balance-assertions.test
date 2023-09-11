@@ -336,19 +336,33 @@ $ hledger -f - stats
 > /Transactions/
 >=0
 
-# 19. Balance assertions may have a price, but it's ignored
+# 19. Cost is ignored when checking balance assertions.
 <
-2019/01/01
+2023-01-01
+    (a)         1A @ 1B = 1A
+
+$ hledger -f- check
+
+# 20. The asserted balance may have a cost, also ignored
+<
+2023-01-01
     (a)         1A @ 1B = 1A @ 2B
 
-$ hledger -f- print
->
-2019-01-01
-    (a)         1A @ 1B = 1A @ 2B
+$ hledger -f- check
 
->=0
+# 21. A cost does not disrupt highlighting in the balance assertion error message.
+<
+2023-01-01
+    (a)         1A @ 1B = 5A
 
-# 20. Balance assignments may have a price, and it's used for the posting amount.
+$ hledger -f- check
+>2 /
+2 \|     \(a\)         1A @ 1B = 5A
+  \|     \^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^
+/
+>=1
+
+# 22. Balance assignments may have a cost, and it's used for the posting amount.
 <
 2019/01/01
     (a)                 = 1A @ 2B
@@ -360,7 +374,7 @@ $ hledger -f- print --explicit
 
 >=0
 
-# 21. The exact amounts are compared; display precision does not affect assertions.
+# 23. The exact amounts are compared; display precision does not affect assertions.
 <
 commodity $1000.00
 
@@ -374,7 +388,7 @@ $ hledger -f- print
 > /2019/
 >=0
 
-# 22. This fails
+# 24. This fails
 <
 commodity $1000.00
 
@@ -388,7 +402,7 @@ $ hledger -f- print
 >2 /a difference of.*0\.004/
 >=1
 
-# 23. This fails
+# 25. This fails
 <
 commodity $1000.00
 
@@ -402,7 +416,7 @@ $ hledger -f- print
 >2 /a difference of.*0\.0001/
 >=1
 
-# 24. Inclusive assertions include balances from subaccounts.
+# 26. Inclusive assertions include balances from subaccounts.
 <
 2019/1/1
   (a)    X1
@@ -426,7 +440,7 @@ $ hledger -f- print
 
 >=0
 
-# 25. Inclusive balance assignments also work (#1207).
+# 27. Inclusive balance assignments also work (#1207).
 <
 2020-01-25
     (a:aa)   1
@@ -456,7 +470,7 @@ $ hledger -f- print -x
 
 >=0
 
-# 26. When balance assignment with a cost generates two postings in one commodity,
+# 28. When balance assignment with a cost generates two postings in one commodity,
 # the balance assertion appears only on the last, not both. (#1965)
 <
 2022-01-01

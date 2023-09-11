@@ -504,7 +504,8 @@ journalBalanceTransactions bopts' j' =
 -- This stores the balanced transactions in case 2 but not in case 1.
 balanceTransactionAndCheckAssertionsB :: Either Posting Transaction -> Balancing s ()
 balanceTransactionAndCheckAssertionsB (Left p@Posting{}) =
-  -- update the account's running balance and check the balance assertion if any
+  -- Update the account's running balance and check the balance assertion if any.
+  -- Note, cost is ignored when checking balance assertions, currently.
   void . addAmountAndCheckAssertionB $ postingStripPrices p
 balanceTransactionAndCheckAssertionsB (Right t@Transaction{tpostings=ps}) = do
   -- make sure we can handle the balance assignments

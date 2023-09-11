@@ -21,6 +21,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 
 import Hledger.Data.Transaction (showTransaction)
+import Hledger.Data.Posting (postingStripPrices)
 import Hledger.Data.Types
 import Hledger.Utils
 import Data.Maybe
@@ -118,7 +119,9 @@ makePostingErrorExcerpt p findpostingerrorcolumns =
     Just t  -> (f, errabsline, merrcols, ex)
       where
         (SourcePos f tl _) = fst $ tsourcepos t
-        mpindex = transactionFindPostingIndex (==p) t
+        -- p had cost removed in balanceTransactionAndCheckAssertionsB,
+        -- must remove them from t's postings too (#2083)
+        mpindex = transactionFindPostingIndex ((==p).postingStripPrices) t
         errrelline = case mpindex of
           Nothing -> 0
           Just pindex ->
