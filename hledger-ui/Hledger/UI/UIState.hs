@@ -58,7 +58,7 @@ import Safe
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.UI.UITypes
-import Hledger.UI.UIOptions (UIOpts)
+import Hledger.UI.UIOptions (UIOpts(uoCliOpts))
 import Hledger.UI.UIScreens (screenUpdate)
 
 -- | Make an initial UI state with the given options, journal,
@@ -155,13 +155,17 @@ toggleConversionOp = over conversionop toggleCostMode
     toggleCostMode (Just NoConversionOp) = Just ToCost
     toggleCostMode (Just ToCost)         = Just NoConversionOp
 
--- | Toggle between showing primary amounts or default valuation.
+-- | Toggle between showing primary amounts or values (using valuation specified at startup, or a default).
 toggleValue :: UIState -> UIState
-toggleValue = over value valuationToggleValue
+toggleValue ui = over value (valuationToggleValue mstartupvaluation0) ui
   where
-    -- | Basic toggling of -V, for hledger-ui.
-    valuationToggleValue (Just (AtEnd _)) = Nothing
-    valuationToggleValue _                = Just $ AtEnd Nothing
+    mstartupvaluation0 = value_ $ _rsReportOpts $ reportspec_ $ uoCliOpts $ astartupopts ui
+    mdefvaluation = Just (AtEnd Nothing)
+    -- valuationToggleValue (maybe startupvaluation) (maybe currentvaluation) = ...
+    valuationToggleValue Nothing           Nothing  = mdefvaluation
+    valuationToggleValue Nothing           (Just _) = Nothing
+    valuationToggleValue mstartupvaluation Nothing  = mstartupvaluation
+    valuationToggleValue _                 (Just _) = Nothing
 
 -- | Set hierarchic account tree mode.
 setTree :: UIState -> UIState

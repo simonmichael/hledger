@@ -190,23 +190,23 @@ With some editors (emacs, vi), the cursor will be positioned at the current tran
 when invoked from the register and transaction screens, and at the error location (if possible)
 when invoked from the error screen.
 
-`B` toggles cost mode, showing amounts in their cost's commodity
-(like toggling the [`-B/--cost`](https://hledger.org/hledger.html#b-cost) flag).
+`B` toggles cost mode, showing amounts converted to their cost's commodity
+(see [hledger manual > Cost reporting](hledger.md#cost-reporting).
 
-`V` toggles value mode, showing amounts' current market value in their
-default valuation commodity (like toggling the
-[`-V/--market`](https://hledger.org/hledger.html#v-market-value) flag).
-Note, "current market value" means the value on the report end date if specified, otherwise today.
-To see the value on another date, you can temporarily set that as the report end date.
-Eg: to see a transaction as it was valued on july 30,
-go to the accounts or register screen,
-press `/`,
-and add ` date:-7/30` to the query.
+`V` toggles value mode, showing amounts converted to their market value
+(see [hledger manual > Valuation](hledger.md#valuation) flag).
+More specifically, 
 
-At most one of cost or value mode can be active at once.
+1. By default, the `V` key toggles showing end value (`--value=end`) on or off.
+  The valuation date will be the report end date if specified, otherwise today.
 
-There's not yet any visual reminder when cost or value mode is active;
-for now pressing `b` `b` `v` should reliably reset to normal mode.
+2. If you started hledger-ui with some other valuation (such as `--value=then,EUR`),
+  the `V` key toggles that off or on.
+
+Cost/value tips:
+- When showing end value, you can change the report end date without restarting, by pressing `/` and adding a query like ` date:..YYYY-MM-DD`.
+- Either cost mode, or value mode, can be active, but not both at once. Cost mode takes precedence.
+- There's not yet any visual indicator that cost or value mode is active, other than the amount values.
 
 `q` quits the application.
 
