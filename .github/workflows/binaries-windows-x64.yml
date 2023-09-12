@@ -2,7 +2,8 @@
 # Produces optimised windows binaries,
 # using the default stack.yaml's GHC version.
 # Currently runs no tests.
-# Temporarily using nightly-2023-04-24 (ghc-9.4.4) to avoid https://gitlab.haskell.org/ghc/ghc/-/issues/23309
+# Currently using nightly-2023-04-24 (ghc-9.4) to avoid ghc 9.4.5/9.6 windows bugs
+# ( https://gitlab.haskell.org/ghc/ghc/-/issues/23309 , https://gitlab.haskell.org/ghc/ghc/-/issues/23378 )
 
 name: binaries-windows-x64
 

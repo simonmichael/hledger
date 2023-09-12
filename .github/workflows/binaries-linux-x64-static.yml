@@ -2,7 +2,8 @@
 # Produces optimised static x64 linux  binaries,
 # using the GHC version below (9.0.2) and cabal.
 # Currently runs no tests.
-# ghc 9.0 is used to avoid segfaults with the ghc 9.2 binaries on alpine, possibly https://gitlab.haskell.org/ghc/ghc/-/issues/20266
+# Currently using ghc 9.0 to avoid segfaults with the ghc 9.2 binaries on alpine,
+# possibly https://gitlab.haskell.org/ghc/ghc/-/issues/20266
 
 name: binaries-linux-x64-static
 
