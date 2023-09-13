@@ -324,7 +324,7 @@ journalFinalise iopts@InputOpts{..} f txt pj = do
       &   journalAddFile (f, txt)                        -- save the main file's info
       &   journalReverse                                 -- convert all lists to the order they were parsed
       &   journalAddAccountTypes                         -- build a map of all known account types
-      &   journalStyleAmounts                            -- Infer and apply commodity styles - should be done early
+      &   journalStyleAmounts                            -- Infer and apply commodity styles (but don't round) - should be done early
       <&> journalAddForecast (verbose_tags_) (forecastPeriod iopts pj)   -- Add forecast transactions if enabled
       <&> journalPostingsAddAccountTags                  -- Add account tags to postings, so they can be matched by auto postings.
       >>= (if auto_ && not (null $ jtxnmodifiers pj)
