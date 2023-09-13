@@ -4,31 +4,19 @@ Show transaction journal entries, sorted by date.
 
 _FLAGS
 
-The print command displays full journal entries (transactions) from
-the journal file, sorted by date
+The print command displays full journal entries (transactions) 
+from the journal file, sorted by date
 (or with `--date2`, by [secondary date](#secondary-dates)).
-
-Amounts are shown mostly normalised to 
-[commodity display style](#commodity-display-styles), 
-eg the placement of commodity symbols will be consistent.
-All of their decimal places are shown, as in the original journal entry
-(with one alteration: in some cases trailing zeroes are added.)
-
-Amounts are shown right-aligned within each transaction (but not across all transactions). 
 
 Directives and inter-transaction comments are not shown, currently.
 This means the print command is somewhat lossy, and if you are using it to
-reformat your journal you should take care to also copy over the directives
-and file-level comments.
+reformat/regenerate your journal you should take care to also copy over 
+the directives and inter-transaction comments.
 
 Eg:
 
 ```shell
-$ hledger print
-2008/01/01 income
-    assets:bank:checking            $1
-    income:salary                  $-1
-
+$ hledger print -f examples/sample.journal date:200806
 2008/06/01 gift
     assets:bank:checking            $1
     income:gifts                   $-1
@@ -42,12 +30,55 @@ $ hledger print
     expenses:supplies            $1
     assets:cash                 $-2
 
-2008/12/31 * pay off
-    liabilities:debts               $1
-    assets:bank:checking           $-1
 ```
 
-print's output is usually a valid [hledger journal](https://hledger.org/hledger.html), and you can process it again with a second hledger command. This can be useful for certain kinds of search, eg:
+### print explicitness
+
+Normally, whether posting amounts are implicit or explicit is preserved.
+For example, when an amount is omitted in the journal, it will not appear in the output.
+Similarly, if a conversion cost is implied but not written, it will not appear in the output.
+
+You can use the `-x`/`--explicit` flag to force explicit display of all amounts and costs.
+This can be useful for troubleshooting or for making your journal more readable and
+robust against data entry errors.
+`-x` is also implied by using any of `-B`,`-V`,`-X`,`--value`.
+
+The `-x`/`--explicit` flag will cause any postings with a multi-commodity amount
+(which can arise when a multi-commodity transaction has an implicit amount)
+to be split into multiple single-commodity postings, 
+keeping the output parseable.
+
+
+### print amount style
+
+Amounts are shown right-aligned within each transaction
+(but not aligned across all transactions; you can do that with ledger-mode in Emacs). 
+
+Amounts will be (mostly) normalised to their [commodity display style](#commodity-display-styles):
+their symbol placement, decimal mark, and digit group marks will be made consistent.
+By default, decimal digits are shown as they are written in the journal.
+
+With the `--round` option, `print` will try increasingly hard to
+display decimal digits according to the [commodity display styles](#commodity-display-style):
+
+- `--round=none` show amounts with original precisions (default)
+- `--round=soft` add/remove decimal zeros in amounts (except costs)
+- `--round=hard` round amounts (except costs), possibly hiding significant digits
+- `--round=all`  round all amounts and costs
+
+`soft` is good for non-lossy cleanup, formatting amounts more
+consistently where it's safe to do so.
+
+`hard` and `all` can cause `print` to show invalid unbalanced journal entries;
+they may be useful eg for journal cleanup, with manual fixups where needed.
+
+
+### print parseability
+
+print's output is usually a valid [hledger journal](#journal), 
+and you can process it again with a second hledger command. 
+This can be useful for certain kinds of search
+(though the same can be achieved with `expr:` queries now):
 
 ```shell
 # Show running total of food expenses paid from cash.
@@ -61,31 +92,24 @@ There are some situations where print's output can become unparseable:
 - [Auto postings](#auto-postings) can generate postings with [too many missing amounts](https://github.com/simonmichael/hledger/issues/1276).
 - [Account aliases can generate bad account names](#aliases-can-generate-bad-account-names).
 
-Normally, the journal entry's explicit or implicit amount style is preserved.
-For example, when an amount is omitted in the journal, it will not appear in the output.
-Similarly, when a cost is implied but not written, it will not appear in the output.
-You can use the `-x`/`--explicit` flag to make all amounts and costs explicit, 
-which can be useful for troubleshooting or for making your journal more readable and
-robust against data entry errors.
-`-x` is also implied by using any of `-B`,`-V`,`-X`,`--value`.
 
-Note, `-x`/`--explicit` will cause postings with a multi-commodity amount
-(these can arise when a multi-commodity transaction has an implicit amount)
-to be split into multiple single-commodity postings, 
-keeping the output parseable.
+### print, other features
 
 With `-B`/`--cost`, amounts with [costs](https://hledger.org/hledger.html#costs)
-are converted to cost using that price. This can be used for troubleshooting.
+are shown converted to cost.
 
-With `-m DESC`/`--match=DESC`, print does a fuzzy search for one recent transaction
+With `--new`, print shows only transactions it has not seen on a previous run.
+This uses the same deduplication system as the [`import`](#import) command.
+(See import's docs for details.)
+
+With `-m DESC`/`--match=DESC`, print shows one recent transaction
 whose description is most similar to DESC.
 DESC should contain at least two characters.
 If there is no similar-enough match, 
 no transaction will be shown and the program exit code will be non-zero.
 
-With `--new`, hledger prints only transactions it has not seen on a previous run.
-This uses the same deduplication system as the [`import`](#import) command.
-(See import's docs for details.)
+
+### print output format
 
 This command also supports the
 [output destination](hledger.html#output-destination) and

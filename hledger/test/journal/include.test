@@ -14,7 +14,7 @@ $  mkdir -p b/c/d ; printf '2010/1/1\n (D)  1\n' >b/c/d/d.journal ; printf '2010
 
 >= 0
 
-# 2. including other formats
+# 2. Including other formats.
 <
 2016/1/1
    (x)  1

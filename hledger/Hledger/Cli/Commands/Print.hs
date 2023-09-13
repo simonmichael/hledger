@@ -16,7 +16,7 @@ module Hledger.Cli.Commands.Print (
 where
 
 
-import Data.List (intersperse)
+import Data.List (intersperse, intercalate)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
@@ -28,26 +28,50 @@ import Hledger.Read.CsvUtils (CSV, printCSV)
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
 import System.Exit (exitFailure)
-import qualified Data.Map as M (map)
+import Safe (lastMay)
 
 
 printmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Print.txt")
-  ([let arg = "DESC" in
-   flagReq  ["match","m"] (\s opts -> Right $ setopt "match" s opts) arg
-    ("fuzzy search for one recent transaction with description closest to "++arg)
-  ,flagNone ["explicit","x"] (setboolopt "explicit")
+  ([flagNone ["explicit","x"] (setboolopt "explicit")
     "show all amounts explicitly"
   ,flagNone ["show-costs"] (setboolopt "show-costs")
     "show transaction prices even with conversion postings"
+  ,flagReq  ["round"] (\s opts -> Right $ setopt "round" s opts) "TYPE" $
+    intercalate "\n"
+    ["how much rounding or padding should be done when displaying amounts ?"
+    ,"none - show original decimal digits,"
+    ,"       as in journal"
+    ,"soft - just add or remove decimal zeros"
+    ,"       to match precision (default)"
+    ,"hard - round posting amounts to precision"
+    ,"       (can unbalance transactions)"
+    ,"all  - also round cost amounts to precision"
+    ,"       (can unbalance transactions)"
+    ]
   ,flagNone ["new"] (setboolopt "new")
     "show only newer-dated transactions added in each file since last run"
+  ,let arg = "DESC" in
+   flagReq  ["match","m"] (\s opts -> Right $ setopt "match" s opts) arg
+    ("fuzzy search for one recent transaction with description closest to "++arg)
   ,outputFormatFlag ["txt","csv","json","sql"]
   ,outputFileFlag
   ])
   [generalflagsgroup1]
   hiddenflags
   ([], Just $ argsFlag "[QUERY]")
+
+-- | Get the --round option's value, if any. Can fail with a parse error.
+roundFromRawOpts :: RawOpts -> Maybe Rounding
+roundFromRawOpts = lastMay . collectopts roundfromrawopt
+  where
+    roundfromrawopt (n,v)
+      | n=="round", v=="none" = Just NoRounding
+      | n=="round", v=="soft" = Just SoftRounding
+      | n=="round", v=="hard" = Just HardRounding
+      | n=="round", v=="all"  = Just AllRounding
+      | n=="round"            = error' $ "--round's value should be none, soft, hard or all; got: "++v
+      | otherwise             = Nothing
 
 -- | Print journal transactions in standard format.
 print' :: CliOpts -> Journal -> IO ()
@@ -69,16 +93,22 @@ print' opts j = do
         Nothing -> putStrLn "no matches found." >> exitFailure
 
 printEntries :: CliOpts -> Journal -> IO ()
-printEntries opts@CliOpts{reportspec_=rspec} j =
+printEntries opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j =
   writeOutputLazyText opts $ render $ entriesReport rspec j
   where
-    stylesnorounding   = M.map (amountStyleSetRounding NoRounding)   $ journalCommodityStyles j
-    stylessoftrounding = M.map (amountStyleSetRounding SoftRounding) $ journalCommodityStyles j
+    -- print does user-specified rounding or (by default) no rounding, in all output formats
+    styles =
+      case roundFromRawOpts rawopts of
+        Nothing         -> styles0
+        Just NoRounding -> styles0
+        Just r          -> amountStylesSetRounding r styles0
+      where styles0 = journalCommodityStyles j
+
     fmt = outputFormatFromOpts opts
-    render | fmt=="txt"  = entriesReportAsText opts . styleAmounts stylesnorounding
-           | fmt=="csv"  = printCSV . entriesReportAsCsv . styleAmounts stylessoftrounding
-           | fmt=="json" = toJsonText . styleAmounts stylessoftrounding
-           | fmt=="sql"  = entriesReportAsSql . styleAmounts stylessoftrounding
+    render | fmt=="txt"  = entriesReportAsText opts      . styleAmounts styles
+           | fmt=="csv"  = printCSV . entriesReportAsCsv . styleAmounts styles
+           | fmt=="json" = toJsonText                    . styleAmounts styles
+           | fmt=="sql"  = entriesReportAsSql            . styleAmounts styles
            | otherwise   = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
 
 entriesReportAsText :: CliOpts -> EntriesReport -> TL.Text
