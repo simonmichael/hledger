@@ -95,7 +95,59 @@ Balance changes in 2012-01-01..2014-12-31:
  Assets:US:ETrade || VHT        106.00   18.00   170.00    98.00 
 >=0
 
-# 8. Multicolumn budget report csv output with --layout=bare.
+# 8. Multicolumn balance report with --row-total, --average, and --summary-only
+$ hledger -f bcexample.hledger bal -Y assets.*etrade -3 --layout=bare --row-total --average --summary-only
+>
+Balance changes in 2012-01-01..2014-12-31:
+
+                  || Commodity    Total  Average 
+==================++=============================
+ Assets:US:ETrade || GLD          70.00    23.33 
+ Assets:US:ETrade || ITOT         17.00     5.67 
+ Assets:US:ETrade || USD        5120.50  1706.83 
+ Assets:US:ETrade || VEA          36.00    12.00 
+ Assets:US:ETrade || VHT         294.00    98.00 
+------------------++-----------------------------
+                  || GLD          70.00    23.33 
+                  || ITOT         17.00     5.67 
+                  || USD        5120.50  1706.83 
+                  || VEA          36.00    12.00 
+                  || VHT         294.00    98.00 
+>=0
+
+# 9. Multicolumn income statement with --row-total, --average, and --summary-only
+$ hledger -f bcexample.hledger is -Y income expenses:food -3 --layout=bare --row-total --average --summary-only
+>
+Income Statement 2012-01-01..2014-12-31
+
+                          || Commodity      Total    Average 
+==========================++=================================
+ Revenues                 ||                                 
+--------------------------++---------------------------------
+ Income:US:ETrade         || USD           373.34     124.45 
+ Income:US:Federal        || IRAUSD      52000.00   17333.33 
+ Income:US:Hoogle         || USD        364698.10  121566.03 
+ Income:US:Hoogle         || VACHR         337.26     112.42 
+--------------------------++---------------------------------
+                          || IRAUSD      52000.00   17333.33 
+                          || USD        365071.44  121690.48 
+                          || VACHR         337.26     112.42 
+==========================++=================================
+ Expenses                 ||                                 
+--------------------------++---------------------------------
+ Expenses:Food:Alcohol    || USD            22.35       7.45 
+ Expenses:Food:Coffee     || USD            83.72      27.91 
+ Expenses:Food:Groceries  || USD          6014.38    2004.79 
+ Expenses:Food:Restaurant || USD         12968.53    4322.84 
+--------------------------++---------------------------------
+                          || USD         19088.98    6362.99 
+==========================++=================================
+ Net:                     || IRAUSD      52000.00   17333.33 
+                          || USD        345982.46  115327.49 
+                          || VACHR         337.26     112.42 
+>=0
+
+# 10. Multicolumn budget report csv output with --layout=bare.
 $ hledger -f bcexample.hledger bal -Y assets.*etrade -3 -O csv --layout=bare --budget
 >
 "Account","Commodity","2012","budget","2013","budget","2014","budget"
@@ -111,7 +163,7 @@ $ hledger -f bcexample.hledger bal -Y assets.*etrade -3 -O csv --layout=bare --b
 "Total:","VHT","106.00","0","18.00","0","170.00","0"
 >=0
 
-# 9. Multicolumn balance report with --layout=bare and null commodity
+# 11. Multicolumn balance report with --layout=bare and null commodity
 <
 2018/1/1
   (a)          1
@@ -133,7 +185,7 @@ Balance changes in 2018:
        || EUR           1 
 
 
-# 10. Multicolumn balance report with --layout=bare --transpose.
+# 12. Multicolumn balance report with --layout=bare --transpose.
 $ hledger -f bcexample.hledger bal -Y assets.*etrade -1 --average --layout=bare --transpose
 >
 Balance changes in 2012-01-01..2014-12-31:
@@ -147,7 +199,7 @@ Balance changes in 2012-01-01..2014-12-31:
  Average   ||  23.33    5.67  1706.83   12.00   98.00 | 23.33    5.67  1706.83  12.00   98.00 
 >=0
 
-# 11. Multicolumn budget report with --layout=bare --transpose.
+# 13. Multicolumn budget report with --layout=bare --transpose.
 <
 ~ daily from 2016/1/1
     expenses:food     $10
@@ -191,7 +243,7 @@ Budget performance in 2016-12-01..2016-12-03:
    Total    || -75 [100% of -75]  75 [100% of 75]  30 [100% of 30]     5 [11% of 45] 
 >=0
 
-# 12. Compound balance report output with --layout=bare.
+# 14. Compound balance report output with --layout=bare.
 $ hledger -f bcexample.hledger bs -3 --layout=bare
 >
 Balance Sheet 2014-10-11
@@ -236,7 +288,7 @@ Balance Sheet 2014-10-11
                       || VHT                  294.00 
 >=0
 
-# 13. Multicolumn balance report csv output with --layout=tidy
+# 15. Multicolumn balance report csv output with --layout=tidy
 $ hledger -f bcexample.hledger bal -T -Y assets.*etrade -3 -O csv --layout=tidy
 >
 "account","period","start_date","end_date","commodity","value"
@@ -257,7 +309,7 @@ $ hledger -f bcexample.hledger bal -T -Y assets.*etrade -3 -O csv --layout=tidy
 "Assets:US:ETrade","2014","2014-01-01","2014-12-31","VHT","170.00"
 >=0
 
-# 14. Single column balance report csv output with --layout=tidy
+# 16. Single column balance report csv output with --layout=tidy
 $ hledger -f bcexample.hledger bal -T assets.*etrade -3 -O csv --layout=tidy
 >
 "account","period","start_date","end_date","commodity","value"
@@ -273,7 +325,7 @@ $ hledger -f bcexample.hledger bal -T assets.*etrade -3 -O csv --layout=tidy
     Assets:Bank           INR 1.00
     Equity:Opening       INR -1.00
 
-# 15. Should omit commodity from totals row when the sum is zero with --layout=bare. (#1789)
+# 17. Should omit commodity from totals row when the sum is zero with --layout=bare. (#1789)
 $ hledger -f - bal --layout=bare
   1.00  INR  Assets:Bank    
  -1.00  INR  Equity:Opening 
@@ -281,7 +333,7 @@ $ hledger -f - bal --layout=bare
      0                      
 >=0
 
-# 16. The same with -M. (#1789)
+# 18. The same with -M. (#1789)
 $ hledger -f - bal --layout=bare -M
 Balance changes in 2021-01:
 

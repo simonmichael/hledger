@@ -315,6 +315,7 @@ balancemode = hledgerCommandMode
     ,flagNone ["average","A"] (setboolopt "average") "show a row average column (in multicolumn reports)"
     ,flagNone ["related","r"] (setboolopt "related") "show postings' siblings instead"
     ,flagNone ["row-total","T"] (setboolopt "row-total") "show a row total column (in multicolumn reports)"
+    ,flagNone ["summary-only"] (setboolopt "summary-only") "display only row summaries (e.g. row total, average) (in multicolumn reports)"
     ,flagNone ["no-total","N"] (setboolopt "no-total") "omit the final total row"
     ,flagNone ["no-elide"] (setboolopt "no-elide") "don't squash boring parent accounts (in tree mode)"
     ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format (in simple reports)"
@@ -693,7 +694,7 @@ multiBalanceReportAsText ropts@ReportOpts{..} r = TB.toLazyText $
 
 -- | Build a 'Table' from a multi-column balance report.
 balanceReportAsTable :: ReportOpts -> MultiBalanceReport -> Table T.Text T.Text WideBuilder
-balanceReportAsTable opts@ReportOpts{average_, row_total_, balanceaccum_}
+balanceReportAsTable opts@ReportOpts{summary_only_, average_, row_total_, balanceaccum_}
     (PeriodicReport spans items tr) =
    maybetranspose $
    addtotalrow $
@@ -704,7 +705,7 @@ balanceReportAsTable opts@ReportOpts{average_, row_total_, balanceaccum_}
   where
     totalscolumn = row_total_ && balanceaccum_ `notElem` [Cumulative, Historical]
     colheadings = ["Commodity" | layout_ opts == LayoutBare]
-                  ++ map (reportPeriodName balanceaccum_ spans) spans
+                  ++ (if not summary_only_ then map (reportPeriodName balanceaccum_ spans) spans else [])
                   ++ ["  Total" | totalscolumn]
                   ++ ["Average" | average_]
     fullRowAsTexts row =
@@ -743,7 +744,9 @@ multiBalanceRowAsWbs bopts ReportOpts{..} colspans (PeriodicReportRow _ as rowto
   where
     totalscolumn = row_total_ && balanceaccum_ `notElem` [Cumulative, Historical]
     cs = if all mixedAmountLooksZero allamts then [""] else S.toList $ foldMap maCommodities allamts
-    allamts = as ++ [rowtot | totalscolumn && not (null as)] ++ [rowavg | average_ && not (null as)]
+    allamts = (if not summary_only_ then as else []) ++
+                [rowtot | totalscolumn && not (null as)] ++
+                [rowavg | average_ && not (null as)]
     addDateColumns spn@(DateSpan s e) = (wbFromText (showDateSpan spn) :)
                                        . (wbFromText (maybe "" showEFDate s) :)
                                        . (wbFromText (maybe "" (showEFDate . modifyEFDay (addDays (-1))) e) :)
