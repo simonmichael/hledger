@@ -156,6 +156,7 @@ data ReportOpts = ReportOpts {
     ,declared_         :: Bool  -- ^ Include accounts declared but not yet posted to ?
     ,row_total_        :: Bool
     ,no_total_         :: Bool
+    ,summary_only_     :: Bool
     ,show_costs_       :: Bool  -- ^ Show costs for reports which normally don't show them ?
     ,sort_amount_      :: Bool
     ,percent_          :: Bool
@@ -206,6 +207,7 @@ defreportopts = ReportOpts
     , declared_         = False
     , row_total_        = False
     , no_total_         = False
+    , summary_only_     = False
     , show_costs_       = False
     , sort_amount_      = False
     , percent_          = False
@@ -259,6 +261,7 @@ rawOptsToReportOpts d rawopts =
           ,declared_         = boolopt "declared" rawopts
           ,row_total_        = boolopt "row-total" rawopts
           ,no_total_         = boolopt "no-total" rawopts
+          ,summary_only_     = boolopt "summary-only" rawopts
           ,show_costs_       = boolopt "show-costs" rawopts
           ,sort_amount_      = boolopt "sort-amount" rawopts
           ,percent_          = boolopt "percent" rawopts
