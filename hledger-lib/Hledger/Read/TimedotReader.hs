@@ -193,8 +193,8 @@ timedotentryp = do
   mcs <- getDefaultCommodityAndStyle
   let 
     (c,s) = case mcs of
-      Just (defc,defs) -> (defc, defs{asprecision=max (asprecision defs) (Just $ Precision 2)})
-      _ -> ("", amountstyle{asprecision=Just $ Precision 2})
+      Just (defc,defs) -> (defc, defs{asprecision=max (asprecision defs) (Precision 2)})
+      _ -> ("", amountstyle{asprecision=Precision 2})
   -- lift $ traceparse' "timedotentryp end"
   return $ nullposting{paccount=a
                       ,pamount=mixedAmount $ nullamt{acommodity=c, aquantity=hours, astyle=s}

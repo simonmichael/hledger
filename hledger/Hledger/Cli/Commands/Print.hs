@@ -70,16 +70,15 @@ print' opts j = do
 
 printEntries :: CliOpts -> Journal -> IO ()
 printEntries opts@CliOpts{reportspec_=rspec} j =
-  writeOutputLazyText opts . render $
-  styleAmounts styles $
-  entriesReport rspec j
+  writeOutputLazyText opts $ render $ entriesReport rspec j
   where
-    styles = M.map amountStyleUnsetPrecision $ journalCommodityStyles j  -- keep all precisions unchanged
+    stylesnorounding   = M.map (amountStyleSetRounding NoRounding)   $ journalCommodityStyles j
+    stylessoftrounding = M.map (amountStyleSetRounding SoftRounding) $ journalCommodityStyles j
     fmt = outputFormatFromOpts opts
-    render | fmt=="txt"  = entriesReportAsText opts
-           | fmt=="csv"  = printCSV . entriesReportAsCsv
-           | fmt=="json" = toJsonText
-           | fmt=="sql"  = entriesReportAsSql
+    render | fmt=="txt"  = entriesReportAsText opts . styleAmounts stylesnorounding
+           | fmt=="csv"  = printCSV . entriesReportAsCsv . styleAmounts stylessoftrounding
+           | fmt=="json" = toJsonText . styleAmounts stylessoftrounding
+           | fmt=="sql"  = entriesReportAsSql . styleAmounts stylessoftrounding
            | otherwise   = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
 
 entriesReportAsText :: CliOpts -> EntriesReport -> TL.Text

@@ -378,11 +378,7 @@ transactionInferCostsFromEquity dryrun acctTypes t = first (annotateErrorWithTra
         Nothing                    -> Left $ annotateWithPostings [p] "Conversion postings must have a single-commodity amount:"
 
     -- Do these amounts look the same when compared at the first's display precision ?
-    -- (Or if that's unset, compare as-is)
-    amountsMatch a b =
-      case asprecision $ astyle a of
-        Just p  -> amountLooksZero $ amountSetPrecision p $ a - b
-        Nothing -> amountLooksZero $ a - b
+    amountsMatch a b = amountLooksZero $ amountSetPrecision (asprecision $ astyle a) $ a - b
 
     -- Delete a posting from the indexed list of postings based on either its
     -- index or its posting amount.
@@ -400,9 +396,8 @@ transactionInferCostsFromEquity dryrun acctTypes t = first (annotateErrorWithTra
 
 dbgShowAmountPrecision a =
   case asprecision $ astyle a of
-    Just (Precision n)    -> show n
-    Just NaturalPrecision -> show $ decimalPlaces $ normalizeDecimal $ aquantity a
-    Nothing               -> "unset"
+    Precision n      -> show n
+    NaturalPrecision -> show $ decimalPlaces $ normalizeDecimal $ aquantity a
 
 -- Using the provided account types map, sort the given indexed postings
 -- into three lists of posting numbers (stored in two pairs), like so:
