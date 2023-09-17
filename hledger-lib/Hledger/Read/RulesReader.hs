@@ -300,7 +300,7 @@ type FieldTemplate    = Text
 type DateFormat       = Text
 
 -- | A prefix for a matcher test, either & or none (implicit or).
-data MatcherPrefix = And | None
+data MatcherPrefix = And | Not | None
   deriving (Show, Eq)
 
 -- | A single test for matching a CSV record, in one way or another.
@@ -660,7 +660,7 @@ fieldmatcherp end = do
 matcherprefixp :: CsvRulesParser MatcherPrefix
 matcherprefixp = do
   lift $ dbgparse 8 "trying matcherprefixp"
-  (char '&' >> lift skipNonNewlineSpaces >> return And) <|> return None
+  (char '&' >> lift skipNonNewlineSpaces >> return And) <|> (char '!' >> lift skipNonNewlineSpaces >> return Not) <|> return None
 
 csvfieldreferencep :: CsvRulesParser CsvFieldReference
 csvfieldreferencep = do
@@ -709,6 +709,10 @@ hledgerField = getEffectiveAssignment
 hledgerFieldValue :: CsvRules -> CsvRecord -> HledgerFieldName -> Maybe Text
 hledgerFieldValue rules record = fmap (renderTemplate rules record) . hledgerField rules record
 
+maybeNegate :: MatcherPrefix -> Bool -> Bool
+maybeNegate Not origbool = not origbool
+maybeNegate _ origbool = origbool
+
 -- | Given the conversion rules, a CSV record and a hledger field name, find
 -- the value template ultimately assigned to this field, if any, by a field
 -- assignment at top level or in a conditional block matching this record.
@@ -733,7 +737,7 @@ getEffectiveAssignment rules record f = lastMay $ map snd $ assignments
               where
                 -- does this individual matcher match the current csv record ?
                 matcherMatches :: Matcher -> Bool
-                matcherMatches (RecordMatcher _ pat) = regexMatchText pat' wholecsvline
+                matcherMatches (RecordMatcher prefix pat) = maybeNegate prefix origbool
                   where
                     pat' = dbg7 "regex" pat
                     -- A synthetic whole CSV record to match against. Note, this can be
@@ -743,10 +747,12 @@ getEffectiveAssignment rules record f = lastMay $ map snd $ assignments
                     -- - and the field separator is always comma
                     -- which means that a field containing a comma will look like two fields.
                     wholecsvline = dbg7 "wholecsvline" $ T.intercalate "," record
-                matcherMatches (FieldMatcher _ csvfieldref pat) = regexMatchText pat csvfieldvalue
+                    origbool = regexMatchText pat' wholecsvline
+                matcherMatches (FieldMatcher prefix csvfieldref pat) = maybeNegate prefix origbool
                   where
                     -- the value of the referenced CSV field to match against.
                     csvfieldvalue = dbg7 "csvfieldvalue" $ replaceCsvFieldReference rules record csvfieldref
+                    origbool = regexMatchText pat csvfieldvalue
 
                 -- | Group matchers into associative pairs based on prefix, e.g.:
                 --   A
@@ -2976,6 +2982,12 @@ tests_RulesReader = testGroup "RulesReader" [
 
    ,let rules = mkrules $ defrules{rcsvfieldindexes=[("csvdate",1)], rconditionalblocks=[CB [FieldMatcher None "%csvdate" $ toRegex' "a"] [("date","%csvdate")]]}
     in testCase "conditional" $ getEffectiveAssignment rules ["a","b"] "date" @?= (Just "%csvdate")
+
+   ,let rules = mkrules $ defrules{rcsvfieldindexes=[("csvdate",1)], rconditionalblocks=[CB [FieldMatcher Not "%csvdate" $ toRegex' "a"] [("date","%csvdate")]]}
+    in testCase "negated-conditional-false" $ getEffectiveAssignment rules ["a","b"] "date" @?= (Nothing)
+  
+   ,let rules = mkrules $ defrules{rcsvfieldindexes=[("csvdate",1)], rconditionalblocks=[CB [FieldMatcher Not "%csvdate" $ toRegex' "b"] [("date","%csvdate")]]}
+    in testCase "negated-conditional-true" $ getEffectiveAssignment rules ["a","b"] "date" @?= (Just "%csvdate")
 
    ,let rules = mkrules $ defrules{rcsvfieldindexes=[("csvdate",1),("description",2)], rconditionalblocks=[CB [FieldMatcher None "%csvdate" $ toRegex' "a", FieldMatcher None "%description" $ toRegex' "b"] [("date","%csvdate")]]}
     in testCase "conditional-with-or-a" $ getEffectiveAssignment rules ["a"] "date" @?= (Just "%csvdate")
