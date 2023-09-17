@@ -79,7 +79,7 @@ module Hledger.Data.Amount (
   amountSetStylesExceptPrecision,
   amountSetMainStyle,
   amountSetCostStyle,
-  amountStyleUnsetPrecision,
+  amountStyleSetRounding,
   amountUnstyled,
   showAmountB,
   showAmount,
@@ -91,6 +91,7 @@ module Hledger.Data.Amount (
   amountSetPrecision,
   withPrecision,
   amountSetFullPrecision,
+  -- amountInternalPrecision,
   setAmountInternalPrecision,
   withInternalPrecision,
   setAmountDecimalPoint,
@@ -203,7 +204,7 @@ quoteCommoditySymbolIfNeeded s
 
 
 -- | Options for the display of Amount and MixedAmount.
--- (See also Types.AmountStyle)
+-- (ee also Types.AmountStyle.
 data AmountDisplayOpts = AmountDisplayOpts
   { displayPrice         :: Bool       -- ^ Whether to display the Price of an Amount.
   , displayZeroCommodity :: Bool       -- ^ If the Amount rounds to 0, whether to display its commodity string.
@@ -248,7 +249,7 @@ csvDisplay = oneLine{displayThousandsSep=False}
 -- Amount styles
 
 -- | Default amount style
-amountstyle = AmountStyle L False Nothing (Just '.') (Just $ Precision 0)
+amountstyle = AmountStyle L False Nothing (Just '.') (Precision 0) NoRounding
 
 -------------------------------------------------------------------------------
 -- Amount
@@ -279,11 +280,11 @@ missingamt = nullamt{acommodity="AUTO"}
 -- usd/eur/gbp round their argument to a whole number of pennies/cents.
 -- XXX these are a bit clashy
 num n = nullamt{acommodity="",  aquantity=n}
-hrs n = nullamt{acommodity="h", aquantity=n,           astyle=amountstyle{asprecision=Just $ Precision 2, ascommodityside=R}}
-usd n = nullamt{acommodity="$", aquantity=roundTo 2 n, astyle=amountstyle{asprecision=Just $ Precision 2}}
-eur n = nullamt{acommodity="€", aquantity=roundTo 2 n, astyle=amountstyle{asprecision=Just $ Precision 2}}
-gbp n = nullamt{acommodity="£", aquantity=roundTo 2 n, astyle=amountstyle{asprecision=Just $ Precision 2}}
-per n = nullamt{acommodity="%", aquantity=n,           astyle=amountstyle{asprecision=Just $ Precision 1, ascommodityside=R, ascommodityspaced=True}}
+hrs n = nullamt{acommodity="h", aquantity=n,           astyle=amountstyle{asprecision=Precision 2, ascommodityside=R}}
+usd n = nullamt{acommodity="$", aquantity=roundTo 2 n, astyle=amountstyle{asprecision=Precision 2}}
+eur n = nullamt{acommodity="€", aquantity=roundTo 2 n, astyle=amountstyle{asprecision=Precision 2}}
+gbp n = nullamt{acommodity="£", aquantity=roundTo 2 n, astyle=amountstyle{asprecision=Precision 2}}
+per n = nullamt{acommodity="%", aquantity=n,           astyle=amountstyle{asprecision=Precision 1, ascommodityside=R, ascommodityspaced=True}}
 amt `at` priceamt = amt{aprice=Just $ UnitPrice priceamt}
 amt @@ priceamt = amt{aprice=Just $ TotalPrice priceamt}
 
@@ -345,9 +346,8 @@ isNegativeAmount Amount{aquantity=q} = q < 0
 -- If that is unset or NaturalPrecision, this does nothing.
 amountRoundedQuantity :: Amount -> Quantity
 amountRoundedQuantity Amount{aquantity=q, astyle=AmountStyle{asprecision=mp}} = case mp of
-    Nothing               -> q
-    Just NaturalPrecision -> q
-    Just (Precision p)    -> roundTo p q
+    NaturalPrecision -> q
+    Precision p      -> roundTo p q
 
 -- | Apply a test to both an Amount and its total price, if it has one.
 testAmountAndTotalPrice :: (Amount -> Bool) -> Amount -> Bool
@@ -363,9 +363,8 @@ amountLooksZero :: Amount -> Bool
 amountLooksZero = testAmountAndTotalPrice looksZero
   where
     looksZero Amount{aquantity=Decimal e q, astyle=AmountStyle{asprecision=p}} = case p of
-        Just (Precision d)    -> if e > d then abs q <= 5*10^(e-d-1) else q == 0
-        Just NaturalPrecision -> q == 0
-        Nothing               -> q == 0
+        Precision d      -> if e > d then abs q <= 5*10^(e-d-1) else q == 0
+        NaturalPrecision -> q == 0
 
 -- | Is this Amount (and its total price, if it has one) exactly zero, ignoring its display precision ?
 amountIsZero :: Amount -> Bool
@@ -377,7 +376,7 @@ withPrecision = flip amountSetPrecision
 
 -- | Set an amount's display precision.
 amountSetPrecision :: AmountPrecision -> Amount -> Amount
-amountSetPrecision p a@Amount{astyle=s} = a{astyle=s{asprecision=Just p}}
+amountSetPrecision p a@Amount{astyle=s} = a{astyle=s{asprecision=p}}
 
 -- | Increase an amount's display precision, if needed, to enough decimal places
 -- to show it exactly (showing all significant decimal digits, without trailing zeros).
@@ -386,8 +385,12 @@ amountSetFullPrecision :: Amount -> Amount
 amountSetFullPrecision a = amountSetPrecision p a
   where
     p                = max displayprecision naturalprecision
-    displayprecision = fromMaybe (Precision 0) $ asprecision $ astyle a
+    displayprecision = asprecision $ astyle a
     naturalprecision = Precision . decimalPlaces . normalizeDecimal $ aquantity a
+
+-- -- | Get an amount's internal Decimal precision (not display precision).
+-- amountInternalPrecision :: Amount -> Word8
+-- amountInternalPrecision = decimalPlaces . normalizeDecimal . aquantity
 
 -- | Set an amount's internal precision, ie rounds the Decimal representing
 -- the amount's quantity to some number of decimal places.
@@ -397,7 +400,7 @@ amountSetFullPrecision a = amountSetPrecision p a
 -- Intended mainly for internal use, eg when comparing amounts in tests.
 setAmountInternalPrecision :: Word8 -> Amount -> Amount
 setAmountInternalPrecision p a@Amount{ aquantity=q, astyle=s } = a{
-   astyle=s{asprecision=Just $ Precision p}
+   astyle=s{asprecision=Precision p}
   ,aquantity=roundTo p q
   }
 
@@ -468,22 +471,49 @@ amountSetStylesExceptPrecision styles a@Amount{astyle=AmountStyle{asprecision=or
   case M.lookup (acommodity a) styles' of
     Just s  -> a{astyle=s{asprecision=origp}}
     Nothing -> a
-  where styles' = M.map amountStyleUnsetPrecision styles
+  where styles' = M.map (amountStyleSetRounding NoRounding) styles
 
-amountStyleUnsetPrecision :: AmountStyle -> AmountStyle
-amountStyleUnsetPrecision as = as{asprecision=Nothing}
+amountStyleSetRounding :: Rounding -> AmountStyle -> AmountStyle
+amountStyleSetRounding r as = as{asrounding=r}
 
 -- | Find and apply the appropriate display style, if any, to this amount.
--- The display precision is set or not, according to the style.
+-- The display precision is adjusted or not, as determnined by the style's rounding strategy.
 amountSetMainStyle :: M.Map CommoditySymbol AmountStyle -> Amount -> Amount
-amountSetMainStyle styles a@Amount{acommodity=comm, astyle=AmountStyle{asprecision=morigp}} =
+amountSetMainStyle styles a@Amount{aquantity=q, acommodity=comm, astyle=s0} =
   case M.lookup comm styles of
-    Nothing                            -> a
-    Just s@AmountStyle{asprecision=mp} -> a{astyle=s'}
+    Nothing -> a
+    Just s  -> a{astyle=amountStyleApplyPrecision q s s0}
+
+-- | A helper for updating an Amount's display precision, more carefully than amountSetPrecision.
+-- Given an Amount's decimal quantity (for inspecting its internal representation), 
+-- its current display style, and a new display style,
+-- apply the new style's display precision to the old style,
+-- using the new style's rounding strategy, as follows:
+--
+-- NoRounding - the precision is left unchanged
+--
+-- SoftRounding -
+--
+--  if either precision is NaturalPrecision, use NaturalPrecision;
+--
+--  if the new precision is greater than the old, use the new (adds decimal zeros);
+--
+--  if the new precision is less than the old, use as close to the new as we can get
+--    without dropping (more) non-zero digits (drops decimal zeros).
+--
+amountStyleApplyPrecision :: Quantity -> AmountStyle -> AmountStyle -> AmountStyle
+amountStyleApplyPrecision q AmountStyle{asprecision=newp, asrounding=r} s@AmountStyle{asprecision=oldp} =
+  case r of
+    NoRounding   -> s
+    SoftRounding -> s{asprecision=p}
       where
-        s' = case mp of
-          Nothing -> s{asprecision=morigp}
-          _       -> s
+        p = case (newp, oldp) of
+          (Precision new, Precision old) ->
+            if new >= old
+            then Precision new
+            else Precision $ max (min old internal) new
+              where internal = decimalPlaces $ normalizeDecimal q
+          _ -> NaturalPrecision
 
 -- | Find and apply the appropriate display style, if any, to this amount's cost, if any.
 -- The display precision is left unchanged, regardless of the style.
@@ -1120,8 +1150,8 @@ tests_Amount = testGroup "Amount" [
        (usd (-1.23) + usd (-1.23)) @?= usd (-2.46)
        sum [usd 1.23,usd (-1.23),usd (-1.23),-(usd (-1.23))] @?= usd 0
        -- highest precision is preserved
-       asprecision (astyle $ sum [usd 1 `withPrecision` Precision 1, usd 1 `withPrecision` Precision 3]) @?= Just (Precision 3)
-       asprecision (astyle $ sum [usd 1 `withPrecision` Precision 3, usd 1 `withPrecision` Precision 1]) @?= Just (Precision 3)
+       asprecision (astyle $ sum [usd 1 `withPrecision` Precision 1, usd 1 `withPrecision` Precision 3]) @?= Precision 3
+       asprecision (astyle $ sum [usd 1 `withPrecision` Precision 3, usd 1 `withPrecision` Precision 1]) @?= Precision 3
        -- adding different commodities assumes conversion rate 1
        assertBool "" $ amountLooksZero (usd 1.23 - eur 1.23)
 

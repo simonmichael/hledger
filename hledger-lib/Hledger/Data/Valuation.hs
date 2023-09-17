@@ -110,8 +110,8 @@ amountPriceDirectiveFromCost d amt@Amount{acommodity=fromcomm, aquantity=fromq} 
       where
         style' = (astyle a) { asprecision = precision' }
         precision' = case asprecision (astyle a) of
-                          Just (Precision p) -> Just $ Precision $ (numDigitsInt $ truncate n) + p
-                          mp -> mp
+                          NaturalPrecision -> NaturalPrecision
+                          Precision p      -> Precision $ (numDigitsInt $ truncate n) + p
 
 ------------------------------------------------------------------------------
 -- Converting things to value

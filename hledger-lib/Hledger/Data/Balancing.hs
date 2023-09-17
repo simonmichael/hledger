@@ -337,8 +337,8 @@ costInferrerFor t pt = maybe id infercost inferFromAndTo
 
         unitprice     = aquantity fromamount `divideAmount` toamount
         unitprecision = case (asprecision $ astyle fromamount, asprecision $ astyle toamount) of
-            (Just (Precision a), Just (Precision b)) -> Precision . max 2 $ saturatedAdd a b
-            _                                        -> NaturalPrecision
+            (Precision a, Precision b) -> Precision . max 2 $ saturatedAdd a b
+            _                          -> NaturalPrecision
         saturatedAdd a b = if maxBound - a < b then maxBound else a + b
 
 
@@ -1009,26 +1009,26 @@ tests_Balancing =
       --
       testCase "1091a" $ do
         commodityStylesFromAmounts [
-           nullamt{aquantity=1000, astyle=AmountStyle L False Nothing (Just ',') (Just $ Precision 3)}
-          ,nullamt{aquantity=1000, astyle=AmountStyle L False (Just (DigitGroups ',' [3])) (Just '.') (Just $ Precision 2)}
+           nullamt{aquantity=1000, astyle=AmountStyle L False Nothing (Just ',') (Precision 3) NoRounding}
+          ,nullamt{aquantity=1000, astyle=AmountStyle L False (Just (DigitGroups ',' [3])) (Just '.') (Precision 2) NoRounding}
           ]
          @?=
           -- The commodity style should have period as decimal mark
           -- and comma as digit group mark.
           Right (M.fromList [
-            ("", AmountStyle L False (Just (DigitGroups ',' [3])) (Just '.') (Just $ Precision 3))
+            ("", AmountStyle L False (Just (DigitGroups ',' [3])) (Just '.') (Precision 3) NoRounding)
           ])
         -- same journal, entries in reverse order
       ,testCase "1091b" $ do
         commodityStylesFromAmounts [
-           nullamt{aquantity=1000, astyle=AmountStyle L False (Just (DigitGroups ',' [3])) (Just '.') (Just $ Precision 2)}
-          ,nullamt{aquantity=1000, astyle=AmountStyle L False Nothing (Just ',') (Just $ Precision 3)}
+           nullamt{aquantity=1000, astyle=AmountStyle L False (Just (DigitGroups ',' [3])) (Just '.') (Precision 2) NoRounding}
+          ,nullamt{aquantity=1000, astyle=AmountStyle L False Nothing (Just ',') (Precision 3) NoRounding}
           ]
          @?=
           -- The commodity style should have period as decimal mark
           -- and comma as digit group mark.
           Right (M.fromList [
-            ("", AmountStyle L False (Just (DigitGroups ',' [3])) (Just '.') (Just $ Precision 3))
+            ("", AmountStyle L False (Just (DigitGroups ',' [3])) (Just '.') (Precision 3) NoRounding)
           ])
 
      ]
