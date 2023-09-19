@@ -23,7 +23,7 @@ module Hledger.Data.Journal (
   addTransaction,
   journalInferMarketPricesFromTransactions,
   journalInferCommodityStyles,
-  journalApplyCommodityStyles,
+  journalStyleAmounts,
   commodityStylesFromAmounts,
   journalCommodityStyles,
   journalToCost,
@@ -793,18 +793,19 @@ journalModifyTransactions verbosetags d j =
     Right ts -> Right j{jtxns=ts}
     Left err -> Left err
 
--- | Choose and apply a consistent display style to the posting
--- amounts in each commodity (see journalCommodityStyles),
--- keeping all display precisions unchanged.
--- Can return an error message eg if inconsistent number formats are found.
-journalApplyCommodityStyles :: Journal -> Either String Journal
-journalApplyCommodityStyles = fmap fixjournal . journalInferCommodityStyles
+-- | Apply this journal's commodity display styles to all of its amounts.
+-- This does soft rounding (adding/removing decimal zeros, but not losing significant decimal digits);
+-- it is suitable for an early cleanup pass before calculations.
+-- Reports may want to do additional rounding/styling at render time.
+-- This can return an error message eg if inconsistent number formats are found.
+journalStyleAmounts :: Journal -> Either String Journal
+journalStyleAmounts = fmap journalapplystyles . journalInferCommodityStyles
   where
-    fixjournal j@Journal{jpricedirectives=pds} =
-        journalMapPostings (postingApplyCommodityStylesExceptPrecision styles) j{jpricedirectives=map fixpricedirective pds}
+    journalapplystyles j@Journal{jpricedirectives=pds} =
+      journalMapPostings (postingStyleAmounts styles) j{jpricedirectives=map fixpricedirective pds}
       where
-        styles = journalCommodityStyles j
-        fixpricedirective pd@PriceDirective{pdamount=a} = pd{pdamount=amountSetStylesExceptPrecision styles a}
+        styles = journalCommodityStylesWith NoRounding j  -- defer rounding, in case of print --round=none
+        fixpricedirective pd@PriceDirective{pdamount=a} = pd{pdamount=styleAmounts styles a}
 
 -- | Get the canonical amount styles for this journal, whether (in order of precedence):
 -- set globally in InputOpts,
