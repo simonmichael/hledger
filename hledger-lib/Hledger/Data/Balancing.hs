@@ -441,11 +441,12 @@ updateTransactionB t = withRunningBalance $ \BalancingState{bsTransactions}  ->
 -- and (optional) check that all balance assertions pass.
 -- Or, return an error message (just the first error encountered).
 --
--- Assumes journalInferCommodityStyles has been called, since those
+-- Assumes journalStyleAmounts has been called, since amount styles
 -- affect transaction balancing.
 --
 -- This does multiple things at once because amount inferring, balance
 -- assignments, balance assertions and posting dates are interdependent.
+--
 journalBalanceTransactions :: BalancingOpts -> Journal -> Either String Journal
 journalBalanceTransactions bopts' j' =
   let

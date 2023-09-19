@@ -110,7 +110,7 @@ budgetReport rspec bopts reportspan j = dbg4 "sortedbudgetreport" budgetreport
 journalAddBudgetGoalTransactions :: BalancingOpts -> ReportOpts -> DateSpan -> Journal -> Journal
 journalAddBudgetGoalTransactions bopts ropts reportspan j =
   either error' id $  -- PARTIAL:
-    (journalApplyCommodityStyles >=> journalBalanceTransactions bopts) j{ jtxns = budgetts }
+    (journalStyleAmounts >=> journalBalanceTransactions bopts) j{ jtxns = budgetts }
   where
     budgetspan = dbg3 "budget span" $ DateSpan (Exact <$> mbudgetgoalsstartdate) (Exact <$> spanEnd reportspan)
       where

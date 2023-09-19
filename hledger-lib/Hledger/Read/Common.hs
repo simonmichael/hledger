@@ -24,6 +24,7 @@ Some of these might belong in Hledger.Read.JournalReader or Hledger.Read.
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE TypeFamilies        #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
 --- ** exports
 module Hledger.Read.Common (
@@ -317,12 +318,13 @@ journalFinalise :: InputOpts -> FilePath -> Text -> ParsedJournal -> ExceptT Str
 journalFinalise iopts@InputOpts{..} f txt pj = do
   t <- liftIO getPOSIXTime
   liftEither $ do
+    {-# HLINT ignore "Functor law" #-}
     j <- pj{jglobalcommoditystyles=fromMaybe mempty $ commodity_styles_ balancingopts_}
       &   journalSetLastReadTime t                       -- save the last read time
       &   journalAddFile (f, txt)                        -- save the main file's info
       &   journalReverse                                 -- convert all lists to the order they were parsed
       &   journalAddAccountTypes                         -- build a map of all known account types
-      &   journalApplyCommodityStyles                    -- Infer and apply commodity styles - should be done early
+      &   journalStyleAmounts                            -- Infer and apply commodity styles - should be done early
       <&> journalAddForecast (verbose_tags_) (forecastPeriod iopts pj)   -- Add forecast transactions if enabled
       <&> journalPostingsAddAccountTags                  -- Add account tags to postings, so they can be matched by auto postings.
       >>= (if auto_ && not (null $ jtxnmodifiers pj)
@@ -370,6 +372,7 @@ journalAddForecast :: Bool -> Maybe DateSpan -> Journal -> Journal
 journalAddForecast _ Nothing j = j
 journalAddForecast verbosetags (Just forecastspan) j = j{jtxns = jtxns j ++ forecasttxns}
   where
+    {-# HLINT ignore "Move concatMap out" #-}
     forecasttxns =
         map (txnTieKnot . transactionTransformPostings (postingApplyCommodityStyles $ journalCommodityStyles j))
       . filter (spanContainsDate forecastspan . tdate)
