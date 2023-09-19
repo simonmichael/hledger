@@ -84,7 +84,7 @@ register opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j
   -- normal register report, list postings
   | otherwise = writeOutputLazyText opts $ render $ styleAmounts styles rpt
   where
-    styles = journalCommodityStyles j
+    styles = journalCommodityStylesWith HardRounding j
     rpt = postingsReport rspec j
     render | fmt=="txt"  = postingsReportAsText opts
            | fmt=="csv"  = printCSV . postingsReportAsCsv

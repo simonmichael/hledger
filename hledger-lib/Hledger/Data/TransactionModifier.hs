@@ -25,7 +25,7 @@ import Hledger.Data.Dates
 import Hledger.Data.Transaction (txnTieKnot)
 import Hledger.Query (Query, filterQuery, matchesAmount, matchesPostingExtra,
                       parseQuery, queryIsAmt, queryIsSym, simplifyQuery)
-import Hledger.Data.Posting (commentJoin, commentAddTag, postingAddTags, postingApplyCommodityStyles)
+import Hledger.Data.Posting (commentJoin, commentAddTag, postingAddTags)
 import Hledger.Utils (dbg6, wrap)
 
 -- $setup
@@ -109,7 +109,7 @@ transactionModifierToFunction atypes atags styles refdate verbosetags Transactio
 -- The provided TransactionModifier's query text is saved as the tags' value.
 tmPostingRuleToFunction :: Bool -> M.Map CommoditySymbol AmountStyle -> Query -> T.Text -> TMPostingRule -> (Posting -> Posting)
 tmPostingRuleToFunction verbosetags styles query querytxt tmpr =
-  \p -> postingApplyCommodityStyles styles . renderPostingCommentDates $ pr
+  \p -> styleAmounts styles . renderPostingCommentDates $ pr
       { pdate    = pdate  pr <|> pdate  p
       , pdate2   = pdate2 pr <|> pdate2 p
       , pamount  = amount' p

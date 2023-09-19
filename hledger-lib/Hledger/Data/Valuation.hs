@@ -129,7 +129,7 @@ mixedAmountApplyValuation priceoracle styles periodlast today postingdate v =
 
 -- | Convert an Amount to its cost if requested, and style it appropriately.
 amountToCost :: M.Map CommoditySymbol AmountStyle -> ConversionOp -> Amount -> Amount
-amountToCost styles ToCost         = amountSetStyles styles . amountCost
+amountToCost styles ToCost         = styleAmounts styles . amountCost
 amountToCost _      NoConversionOp = id
 
 -- | Apply a specified valuation to this amount, using the provided
@@ -192,7 +192,7 @@ amountValueAtDate priceoracle styles mto d a =
       -- setNaturalPrecisionUpTo 8 $  -- XXX force higher precision in case amount appears to be zero ?
                                       -- Make default display style use precision 2 instead of 0 ?
                                       -- Leave as is for now; mentioned in manual.
-      amountSetStyles styles
+      styleAmounts styles
       nullamt{acommodity=comm, aquantity=rate * aquantity a}
 
 -- | Calculate the gain of each component amount, that is the difference
