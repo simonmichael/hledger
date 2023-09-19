@@ -374,7 +374,7 @@ journalAddForecast verbosetags (Just forecastspan) j = j{jtxns = jtxns j ++ fore
   where
     {-# HLINT ignore "Move concatMap out" #-}
     forecasttxns =
-        map (txnTieKnot . transactionTransformPostings (postingApplyCommodityStyles $ journalCommodityStyles j))
+        map (txnTieKnot . transactionTransformPostings (styleAmounts $ journalCommodityStyles j))
       . filter (spanContainsDate forecastspan . tdate)
       . concatMap (\pt -> runPeriodicTransaction verbosetags pt forecastspan)
       $ jperiodictxns j

@@ -110,8 +110,9 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
 -- | Generate a runnable command from a compound balance command specification.
 compoundBalanceCommand :: CompoundBalanceCommandSpec -> (CliOpts -> Journal -> IO ())
 compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=rspec, rawopts_=rawopts} j = do
-    writeOutputLazyText opts $ render $ styleAmounts (journalCommodityStyles j) cbr
+    writeOutputLazyText opts $ render $ styleAmounts styles cbr
   where
+    styles = journalCommodityStylesWith HardRounding j
     ropts@ReportOpts{..} = _rsReportOpts rspec
     -- use the default balance type for this report, unless the user overrides
     mbalanceAccumulationOverride = balanceAccumulationOverride rawopts

@@ -101,7 +101,7 @@ transactionCheckBalanced BalancingOpts{commodity_styles_} t = errs
             VirtualPosting         -> (l, r)
 
     -- check for mixed signs, detecting nonzeros at display precision
-    setstyles = maybe id mixedAmountSetStyles commodity_styles_
+    setstyles = maybe id styleAmounts commodity_styles_
     postingBalancingAmount p
       | "_price-matched" `elem` map fst (ptags p) = mixedAmountStripPrices $ pamount p
       | otherwise                                 = mixedAmountCost $ pamount p
@@ -250,7 +250,7 @@ transactionInferBalancingAmount styles t@Transaction{tpostings=ps}
               -- Inferred amounts are converted to cost.
               -- Also ensure the new amount has the standard style for its commodity
               -- (since the main amount styling pass happened before this balancing pass);
-              a' = mixedAmountSetStyles styles . mixedAmountCost $ maNegate a
+              a' = styleAmounts styles . mixedAmountCost $ maNegate a
 
 -- | Infer costs for this transaction's posting amounts, if needed to make
 -- the postings balance, and if permitted. This is done once for the real
@@ -453,7 +453,9 @@ journalBalanceTransactions bopts' j' =
     -- ensure transactions are numbered, so we can store them by number
     j@Journal{jtxns=ts} = journalNumberTransactions j'
     -- display precisions used in balanced checking
-    styles = Just $ journalCommodityStyles j
+    styles = Just $
+      journalCommodityStylesWith HardRounding  -- txn balancedness will be checked using commodity display precisions
+      j
     bopts = bopts'{commodity_styles_=styles}
       -- XXX ^ The commodity directive styles and default style and inferred styles
       -- are merged into the command line styles in commodity_styles_ - why ?

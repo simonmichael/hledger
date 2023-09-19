@@ -26,6 +26,7 @@ module Hledger.Data.Journal (
   journalStyleAmounts,
   commodityStylesFromAmounts,
   journalCommodityStyles,
+  journalCommodityStylesWith,
   journalToCost,
   journalInferEquityFromCosts,
   journalInferCostsFromEquity,
@@ -802,7 +803,7 @@ journalStyleAmounts :: Journal -> Either String Journal
 journalStyleAmounts = fmap journalapplystyles . journalInferCommodityStyles
   where
     journalapplystyles j@Journal{jpricedirectives=pds} =
-      journalMapPostings (postingStyleAmounts styles) j{jpricedirectives=map fixpricedirective pds}
+      journalMapPostings (styleAmounts styles) j{jpricedirectives=map fixpricedirective pds}
       where
         styles = journalCommodityStylesWith NoRounding j  -- defer rounding, in case of print --round=none
         fixpricedirective pd@PriceDirective{pdamount=a} = pd{pdamount=styleAmounts styles a}
@@ -823,6 +824,11 @@ journalCommodityStyles j =
     declaredstyles        = M.mapMaybe cformat $ jcommodities j
     defaultcommoditystyle = M.fromList $ catMaybes [jparsedefaultcommodity j]
     inferredstyles        = jinferredcommodities j
+
+-- | Like journalCommodityStyles, but attach a particular rounding strategy to the styles,
+-- affecting how they will affect display precisions when applied.
+journalCommodityStylesWith :: Rounding -> Journal -> M.Map CommoditySymbol AmountStyle
+journalCommodityStylesWith r = amountStylesSetRounding r . journalCommodityStyles
 
 -- | Collect and save inferred amount styles for each commodity based on
 -- the posting amounts in that commodity (excluding price amounts), ie:
