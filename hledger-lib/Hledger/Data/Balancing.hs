@@ -93,6 +93,7 @@ defbalancingopts = BalancingOpts
 transactionCheckBalanced :: BalancingOpts -> Transaction -> [String]
 transactionCheckBalanced BalancingOpts{commodity_styles_} t = errs
   where
+    -- get real and balanced virtual postings, to be checked separately
     (rps, bvps) = foldr partitionPosting ([], []) $ tpostings t
       where
         partitionPosting p ~(l, r) = case ptype p of
@@ -100,24 +101,30 @@ transactionCheckBalanced BalancingOpts{commodity_styles_} t = errs
             BalancedVirtualPosting -> (l, p:r)
             VirtualPosting         -> (l, r)
 
-    -- check for mixed signs, detecting nonzeros at display precision
-    setstyles = maybe id styleAmounts commodity_styles_
+    -- convert this posting's amount to cost,
+    -- without getting confused by redundant costs/equity postings
     postingBalancingAmount p
       | "_price-matched" `elem` map fst (ptags p) = mixedAmountStripPrices $ pamount p
       | otherwise                                 = mixedAmountCost $ pamount p
-    signsOk ps =
-      case filter (not.mixedAmountLooksZero) $ map (setstyles.postingBalancingAmount) ps of
-        nonzeros | length nonzeros >= 2
-                   -> length (nubSort $ mapMaybe isNegativeMixedAmount nonzeros) > 1
-        _          -> True
-    (rsignsok, bvsignsok)       = (signsOk rps, signsOk bvps)
 
-    -- check for zero sum, at display precision
-    (rsumcost, bvsumcost)       = (foldMap postingBalancingAmount rps, foldMap postingBalancingAmount bvps)
-    (rsumdisplay, bvsumdisplay) = (setstyles rsumcost, setstyles bvsumcost)
-    (rsumok, bvsumok)           = (mixedAmountLooksZero rsumdisplay, mixedAmountLooksZero bvsumdisplay)
+    -- transaction balancedness is checked at each commodity's display precision
+    lookszero = mixedAmountLooksZero . atdisplayprecision
+      where
+        atdisplayprecision = maybe id styleAmounts $ commodity_styles_
 
-    -- generate error messages, showing amounts with their original precision
+    -- when there's multiple non-zeros, check they do not all have the same sign
+    (rsignsok, bvsignsok) = (signsOk rps, signsOk bvps)
+      where
+        signsOk ps = length nonzeros < 2 || length nonzerosigns > 1
+          where
+            nonzeros = filter (not.lookszero) $ map postingBalancingAmount ps
+            nonzerosigns = nubSort $ mapMaybe isNegativeMixedAmount nonzeros
+
+    -- check that the sum looks like zero
+    (rsumcost, bvsumcost) = (foldMap postingBalancingAmount rps, foldMap postingBalancingAmount bvps)
+    (rsumok, bvsumok) = (lookszero rsumcost, lookszero bvsumcost)
+
+    -- Generate error messages if any. Show amounts with their original precisions.
     errs = filter (not.null) [rmsg, bvmsg]
       where
         rmsg
