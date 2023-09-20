@@ -792,30 +792,35 @@ quickheap-%: hledgerprof samplejournals \
 ###############################################################################
 $(call def-help-subheading,DOCUMENTATION: (see also Shake.hs))
 
-# cf http://www.haskell.org/haddock/doc/html/invoking.html
-# --ghc-options=-optP-P is a workaround for http://trac.haskell.org/haddock/ticket/284
-HADDOCKFLAGS= \
-	--haddock-options='--no-warnings' \
-	--ghc-options='-optP-P' \
+# http://www.haskell.org/haddock/doc/html/invoking.html
+STACKHADDOCK=time $(STACK) --verbosity=error haddock --fast --no-keep-going \
+	--only-locals --no-haddock-deps --no-haddock-hyperlink-source \
+	--haddock-arguments="--no-warnings"
+# -ghc-options='-optP-P'  # workaround for http://trac.haskell.org/haddock/ticket/284
+
+# uncomment to run haddock on fewer packages, saving time
+#HADDOCKPKGS=hledger-lib
 
 releasediag: \
 	$(call def-help,releasediag, optimise and commit RELEASING value map diagram )
 	pngquant doc/HledgerReleaseValueMap.png -f -o doc/HledgerReleaseValueMap.png && git add doc/HledgerReleaseValueMap.png && git commit -m ';doc: RELEASING: update value map' -- doc/HledgerReleaseValueMap.png
 
 haddock: \
-	$(call def-help,haddock, generate haddock docs for the hledger packages )
-	$(STACK) haddock --no-haddock-deps --fast --no-keep-going
-#	$(STACK) -v
+	$(call def-help,haddock, regenerate haddock docs for the hledger packages and open them )
+	$(STACKHADDOCK) $(HADDOCKPKGS) && make -s haddock-open   # --open shows all deps and packages
 
 haddock-watch: \
-	$(call def-help,haddock-watch, regenerate haddock docs )
-	$(STACK) haddock --no-haddock-deps --fast --file-watch
+	$(call def-help,haddock-watch, regenerate haddock docs when files change )
+	$(STACKHADDOCK) $(HADDOCK_PKGS) --file-watch --exec='echo done'
+
+haddock-watch2: \
+	$(call def-help,haddock-watch2, regenerate haddock docs when files change )
+	watchexec -r -e yaml,cabal,hs --print-events -- \
+	$(STACKHADDOCK) $(HADDOCK_PKGS) --exec="'echo done'"0
 
 haddock-open: \
-	$(call def-help,haddock-open,\
-	browse the haddock generated for hledger-lib\
-	)
-	$(VIEWHTML) hledger/dist/doc/html/hledger-lib/index.html
+	$(call def-help,haddock-open, open the haddock root (hledger-lib:Hledger) in a browser )
+	$(BROWSE) `stack path --local-install-root`/doc/hledger-lib-`cat .version`/index.html
 
 hoogle-setup: $(call def-help,hoogle-setup, install hoogle then build haddocks and a hoogle db for the project and all deps )
 	stack hoogle --rebuild
