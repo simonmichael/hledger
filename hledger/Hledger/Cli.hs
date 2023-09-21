@@ -17,10 +17,7 @@ and cmdargs:System.Concole.CmdArgs.Explicit
 
 See also:
 
-- [hledger-lib:Hledger]("Hledger")
-- [hledger:Hledger.Cli]("Hledger.Cli")
-- [hledger-ui:Hledger.UI]("Hledger.UI")
-- [hledger-web:Hledger.Web]("Hledger.Web")
+- hledger-lib:Hledger
 - [The README files](https://github.com/search?q=repo%3Asimonmichael%2Fhledger+path%3A**%2FREADME*&type=code&ref=advsearch)
 - [The high-level developer docs](https://hledger.org/dev.html)
 

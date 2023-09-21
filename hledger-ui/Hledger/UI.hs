@@ -1,5 +1,16 @@
 {-|
-Re-export the modules of the hledger-ui program.
+
+This is the root module of the @hledger-ui@ package,
+providing hledger's terminal user interface.
+The main function, command-line options, and terminal themes are exported.
+
+== See also:
+
+- hledger-lib:Hledger
+- hledger:Hledger.Cli
+- [The README files](https://github.com/search?q=repo%3Asimonmichael%2Fhledger+path%3A**%2FREADME*&type=code&ref=advsearch)
+- [The high-level developer docs](https://hledger.org/dev.html)
+
 -}
 
 module Hledger.UI (
