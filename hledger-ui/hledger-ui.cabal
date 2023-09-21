@@ -1,13 +1,13 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.35.1.
+-- This file has been generated from package.yaml by hpack version 0.35.2.
 --
 -- see: https://github.com/sol/hpack
 
 name:           hledger-ui
 version:        1.31.99
-synopsis:       Curses-style terminal interface for the hledger accounting system
-description:    A simple curses-style terminal user interface for the hledger accounting system.
+synopsis:       Terminal interface for the hledger accounting system
+description:    A simple terminal user interface for the hledger accounting system.
                 It can be a more convenient way to browse your accounts than the CLI.
                 This package currently does not support Microsoft Windows, except in WSL.
                 .
@@ -43,6 +43,66 @@ flag threaded
   description: Build with support for multithreaded execution
   manual: False
   default: True
+
+library
+  exposed-modules:
+      Hledger.UI
+      Hledger.UI.Main
+      Hledger.UI.Theme
+      Hledger.UI.UIOptions
+  other-modules:
+      Hledger.UI.AccountsScreen
+      Hledger.UI.BalancesheetScreen
+      Hledger.UI.CashScreen
+      Hledger.UI.Editor
+      Hledger.UI.ErrorScreen
+      Hledger.UI.IncomestatementScreen
+      Hledger.UI.MenuScreen
+      Hledger.UI.RegisterScreen
+      Hledger.UI.TransactionScreen
+      Hledger.UI.UIScreens
+      Hledger.UI.UIState
+      Hledger.UI.UITypes
+      Hledger.UI.UIUtils
+      Paths_hledger_ui
+  hs-source-dirs:
+      ./
+  ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind
+  cpp-options: -DVERSION="1.31.99" -DVERSION="1.31.99"
+  build-depends:
+      ansi-terminal >=0.9
+    , async
+    , base >=4.14 && <4.19
+    , brick >=1.5
+    , cmdargs >=0.8
+    , containers >=0.5.9
+    , data-default
+    , directory
+    , doclayout >=0.3 && <0.5
+    , extra >=1.6.3
+    , filepath
+    , fsnotify ==0.4.*
+    , hledger >=1.31.99 && <1.32
+    , hledger-lib >=1.31.99 && <1.32
+    , megaparsec >=7.0.0 && <9.6
+    , microlens >=0.4
+    , microlens-platform >=0.2.3.1
+    , mtl >=2.2.1
+    , process >=1.2
+    , safe >=0.3.19
+    , split >=0.1
+    , text >=1.2
+    , text-zipper >=0.4
+    , time >=1.5
+    , transformers
+    , unix
+    , vector
+    , vty >=5.15
+  default-language: Haskell2010
+  if os(windows)
+    buildable: False
+  else
+    buildable: True
 
 executable hledger-ui
   main-is: hledger-ui.hs

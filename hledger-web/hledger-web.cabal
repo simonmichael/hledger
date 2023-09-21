@@ -1,13 +1,13 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.35.1.
+-- This file has been generated from package.yaml by hpack version 0.35.2.
 --
 -- see: https://github.com/sol/hpack
 
 name:           hledger-web
 version:        1.31.99
-synopsis:       Web-based user interface for the hledger accounting system
-description:    A simple web-based user interface for the hledger accounting system,
+synopsis:       Web user interface for the hledger accounting system
+description:    A simple web user interface for the hledger accounting system,
                 providing a more modern UI than the command-line or terminal interfaces.
                 It can be used as a local single-user UI, or as a multi-user UI for
                 viewing\/adding\/editing on the web.
@@ -130,7 +130,12 @@ flag threaded
 library
   exposed-modules:
       Hledger.Web
+      Hledger.Web.Main
+      Hledger.Web.WebOptions
       Hledger.Web.Application
+      Hledger.Web.Import
+      Hledger.Web.Test
+  other-modules:
       Hledger.Web.Foundation
       Hledger.Web.Handler.AddR
       Hledger.Web.Handler.EditR
@@ -138,16 +143,10 @@ library
       Hledger.Web.Handler.MiscR
       Hledger.Web.Handler.RegisterR
       Hledger.Web.Handler.UploadR
-      Hledger.Web.Import
-      Hledger.Web.Main
       Hledger.Web.Settings
       Hledger.Web.Settings.StaticFiles
-      Hledger.Web.Test
-      Hledger.Web.WebOptions
       Hledger.Web.Widget.AddForm
       Hledger.Web.Widget.Common
-  other-modules:
-      Paths_hledger_web
   hs-source-dirs:
       ./
   ghc-options: -Wall -Wredundant-constraints -Wincomplete-record-updates -Wincomplete-uni-patterns

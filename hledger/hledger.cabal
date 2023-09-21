@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.35.1.
+-- This file has been generated from package.yaml by hpack version 0.35.2.
 --
 -- see: https://github.com/sol/hpack
 
@@ -97,13 +97,7 @@ flag threaded
 library
   exposed-modules:
       Hledger.Cli
-      Hledger.Cli.Main
       Hledger.Cli.CliOptions
-      Hledger.Cli.DocFiles
-      Hledger.Cli.Utils
-      Hledger.Cli.Anon
-      Hledger.Cli.Script
-      Hledger.Cli.Version
       Hledger.Cli.Commands
       Hledger.Cli.Commands.Accounts
       Hledger.Cli.Commands.Activity
@@ -134,6 +128,11 @@ library
       Hledger.Cli.Commands.Stats
       Hledger.Cli.Commands.Tags
       Hledger.Cli.CompoundBalanceCommand
+      Hledger.Cli.Anon
+      Hledger.Cli.DocFiles
+      Hledger.Cli.Script
+      Hledger.Cli.Utils
+      Hledger.Cli.Version
   other-modules:
       Paths_hledger
   ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind -optP-Wno-nonportable-include-path
