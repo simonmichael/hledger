@@ -1,8 +1,8 @@
 name: hledger-web
 version: 1.31.99
-synopsis: Web-based user interface for the hledger accounting system
+synopsis: Web user interface for the hledger accounting system
 description: |
-  A simple web-based user interface for the hledger accounting system,
+  A simple web user interface for the hledger accounting system,
   providing a more modern UI than the command-line or terminal interfaces.
   It can be used as a local single-user UI, or as a multi-user UI for
   viewing\/adding\/editing on the web.

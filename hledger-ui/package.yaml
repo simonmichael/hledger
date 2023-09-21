@@ -1,8 +1,8 @@
 name        : hledger-ui
 version     : 1.31.99
-synopsis    : Curses-style terminal interface for the hledger accounting system
+synopsis    : Terminal interface for the hledger accounting system
 description : |
-  A simple curses-style terminal user interface for the hledger accounting system.
+  A simple terminal user interface for the hledger accounting system.
   It can be a more convenient way to browse your accounts than the CLI.
   This package currently does not support Microsoft Windows, except in WSL.
 
