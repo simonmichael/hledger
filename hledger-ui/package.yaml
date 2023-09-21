@@ -96,6 +96,15 @@ when:
    else:
      buildable: true
 
+library:
+  source-dirs: .
+  cpp-options: -DVERSION="1.31.99"
+  exposed-modules:
+  - Hledger.UI
+  - Hledger.UI.Main
+  - Hledger.UI.Theme
+  - Hledger.UI.UIOptions
+
 executables:
   hledger-ui:
     source-dirs: .

@@ -85,7 +85,12 @@ library:
   cpp-options: -DVERSION="1.31.99"
   exposed-modules:
   - Hledger.Web
+  - Hledger.Web.Main
+  - Hledger.Web.WebOptions
   - Hledger.Web.Application
+  - Hledger.Web.Import
+  - Hledger.Web.Test
+  other-modules:
   - Hledger.Web.Foundation
   - Hledger.Web.Handler.AddR
   - Hledger.Web.Handler.EditR
@@ -93,12 +98,8 @@ library:
   - Hledger.Web.Handler.MiscR
   - Hledger.Web.Handler.RegisterR
   - Hledger.Web.Handler.UploadR
-  - Hledger.Web.Import
-  - Hledger.Web.Main
   - Hledger.Web.Settings
   - Hledger.Web.Settings.StaticFiles
-  - Hledger.Web.Test
-  - Hledger.Web.WebOptions
   - Hledger.Web.Widget.AddForm
   - Hledger.Web.Widget.Common
   dependencies:

@@ -145,11 +145,6 @@ library:
   exposed-modules:
   - Hledger.Cli
   - Hledger.Cli.CliOptions
-  - Hledger.Cli.DocFiles
-  - Hledger.Cli.Utils
-  - Hledger.Cli.Anon
-  - Hledger.Cli.Script
-  - Hledger.Cli.Version
   - Hledger.Cli.Commands
   - Hledger.Cli.Commands.Accounts
   - Hledger.Cli.Commands.Activity
@@ -180,6 +175,11 @@ library:
   - Hledger.Cli.Commands.Stats
   - Hledger.Cli.Commands.Tags
   - Hledger.Cli.CompoundBalanceCommand
+  - Hledger.Cli.Anon
+  - Hledger.Cli.DocFiles
+  - Hledger.Cli.Script
+  - Hledger.Cli.Utils
+  - Hledger.Cli.Version
   dependencies:
   - Diff >=0.2
   - hashable >=1.2.4
