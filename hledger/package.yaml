@@ -144,7 +144,6 @@ library:
   cpp-options: -DVERSION="1.31.99"
   exposed-modules:
   - Hledger.Cli
-  - Hledger.Cli.Main
   - Hledger.Cli.CliOptions
   - Hledger.Cli.DocFiles
   - Hledger.Cli.Utils

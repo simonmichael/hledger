@@ -27,7 +27,7 @@ import Safe
 import System.Environment
 import Hledger
 import Hledger.Cli
-import Hledger.Cli.Main (argsToCliOpts)
+import Hledger.Cli (argsToCliOpts)
 
 -- XXX needs --help, see hledger-addon-example.hs
 

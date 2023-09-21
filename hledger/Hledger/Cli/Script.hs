@@ -36,4 +36,4 @@ import System.Process as M
 
 import Hledger as M
 import Hledger.Cli as M
-import Hledger.Cli.Main as M (argsToCliOpts)
+-- import Hledger.Cli as M (argsToCliOpts)

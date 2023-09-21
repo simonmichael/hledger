@@ -408,11 +408,11 @@ ghcid-shake: $(call def-help,ghcid-shake, start ghcid autobuilder on Shake.hs)
 
 # multi-package GHCI prompts
 ghci: $(call def-help,ghci, start ghci REPL on hledger-lib + hledger)
-	$(STACKGHCI) exec -- $(GHCI) $(BUILDFLAGS) hledger/Hledger/Cli/Main.hs
+	$(STACKGHCI) exec -- $(GHCI) $(BUILDFLAGS) hledger/Hledger/Cli.hs
 
 ghci-prof: $(call def-help,ghci-prof, start ghci REPL on hledger-lib + hledger with profiling/call stack information)
 	stack build --profile hledger --only-dependencies
-	$(STACKGHCI) exec -- $(GHCI) $(BUILDFLAGS) -fexternal-interpreter -prof -fprof-auto hledger/Hledger/Cli/Main.hs
+	$(STACKGHCI) exec -- $(GHCI) $(BUILDFLAGS) -fexternal-interpreter -prof -fprof-auto hledger/Hledger/Cli.hs
 
 ghci-dev: $(call def-help,ghci-dev, start ghci REPL on hledger-lib + hledger + dev.hs script)
 	$(STACKGHCI) exec -- $(GHCI) $(BUILDFLAGS) -fno-warn-unused-imports -fno-warn-unused-binds dev.hs
