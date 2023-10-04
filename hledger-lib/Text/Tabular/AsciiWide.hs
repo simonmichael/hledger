@@ -75,12 +75,13 @@ cellWidth (Cell _ xs) = fromMaybe 0 . maximumMay $ map wbWidth xs
 
 
 -- | Render a table according to common options, for backwards compatibility
-render :: Bool -> (rh -> Text) -> (ch -> Text) -> (a -> Text) -> Table rh ch a -> TL.Text
+render :: Show a => Bool -> (rh -> Text) -> (ch -> Text) -> (a -> Text) -> Table rh ch a -> TL.Text
 render pretty fr fc f = renderTable def{prettyTable=pretty} (cell . fr) (cell . fc) (cell . f)
   where cell = textCell TopRight
 
 -- | Render a table according to various cell specifications>
-renderTable :: TableOpts       -- ^ Options controlling Table rendering
+renderTable :: Show a =>
+               TableOpts       -- ^ Options controlling Table rendering
             -> (rh -> Cell)  -- ^ Rendering function for row headers
             -> (ch -> Cell)  -- ^ Rendering function for column headers
             -> (a -> Cell)   -- ^ Function determining the string and width of a cell
@@ -89,7 +90,8 @@ renderTable :: TableOpts       -- ^ Options controlling Table rendering
 renderTable topts fr fc f = toLazyText . renderTableB topts fr fc f
 
 -- | A version of renderTable which returns the underlying Builder.
-renderTableB :: TableOpts       -- ^ Options controlling Table rendering
+renderTableB :: Show a =>
+                TableOpts       -- ^ Options controlling Table rendering
              -> (rh -> Cell)  -- ^ Rendering function for row headers
              -> (ch -> Cell)  -- ^ Rendering function for column headers
              -> (a -> Cell)   -- ^ Function determining the string and width of a cell
@@ -99,7 +101,8 @@ renderTableB topts fr fc f = renderTableByRowsB topts (fmap fc) $ bimap fr (fmap
 
 -- | A version of renderTable that operates on rows (including the 'row' of
 -- column headers) and returns the underlying Builder.
-renderTableByRowsB :: TableOpts      -- ^ Options controlling Table rendering
+renderTableByRowsB :: Show a =>
+                TableOpts      -- ^ Options controlling Table rendering
              -> ([ch] -> [Cell])     -- ^ Rendering function for column headers
              -> ((rh, [a]) -> (Cell, [Cell])) -- ^ Rendering function for row and row header
              -> Table rh ch a
