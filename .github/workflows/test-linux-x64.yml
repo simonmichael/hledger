@@ -3,7 +3,7 @@
 # using the GHC version(s) enabled below.
 # It also uploads the binaries as a downloadable artifact for testers,
 # and because why not having done all the work.
-# Merging to master requires that this workflow's jobs ("86" at least) have passed.
+# Merging to master requires that this workflow's jobs ("810" at least) have passed.
 
 name: test-linux-x64
 
@@ -93,8 +93,8 @@ jobs:
       run: |
         RANGE=${BEFORE:-origin/master}..${GITHUB_HEAD_REF:-}
 
-        echo "debug: last 10 commits:"
-        echo "$(git log --format='%h -%d %s (%an, %ci)' -10)"
+        echo "debug: last 0 commits (temporarily reduced from 10):"
+        echo "$(git log --format='%h -%d %s (%an, %ci)' -0)"
         echo "debug: origin/master:"
         echo "$(git log --format='%h -%d %s (%an, %ci)' -1 origin/master)"
         echo "debug: BEFORE=$BEFORE"
