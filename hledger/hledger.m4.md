@@ -3277,7 +3277,8 @@ When an if block has multiple matchers, they are combined as follows:
 - By default they are OR'd (any one of them can match)
 - When a matcher is preceded by ampersand (`&`) it will be AND'ed with the previous matcher (both of them must match).
 
-There's not yet an easy syntax to negate a matcher.
+When a matcher is preceded by an exclamation mark (!), the matcher will be negated, ie it will exclude CSV records that match.
+
 
 ## `if` table
 
