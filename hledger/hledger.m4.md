@@ -6207,6 +6207,12 @@ $ echo "export LANG=en_US.utf8" >>~/.profile
 # close and re-open terminal window
 ```
 
+If you are using Nix (not NixOS) for GHC and Hledger, you might need to set the `LOCALE_ARCHIVE` variable:
+```shell
+$ echo "export LOCALE_ARCHIVE=${glibcLocales}/lib/locale/locale-archive" >>~/.profile
+# close and re-open terminal window
+```
+
 **COMPATIBILITY ISSUES: hledger gives an error with my Ledger file**\
 Not all of Ledger's journal file syntax or feature set is supported.
 See [hledger and Ledger](ledger.md) for full details.
