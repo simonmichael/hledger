@@ -165,20 +165,21 @@ accountKV ::
 #endif
   => Account -> [kv]
 accountKV a =
-    [ "aname"        .= aname a
-    , "aebalance"    .= aebalance a
-    , "aibalance"    .= aibalance a
-    , "anumpostings" .= anumpostings a
-    , "aboring"      .= aboring a
+    [ "aname"            .= aname a
+    , "adeclarationinfo" .= adeclarationinfo a
+    , "aebalance"        .= aebalance a
+    , "aibalance"        .= aibalance a
+    , "anumpostings"     .= anumpostings a
+    , "aboring"          .= aboring a
     -- To avoid a cycle, show just the parent account's name
     -- in a dummy field. When re-parsed, there will be no parent.
-    , "aparent_"     .= maybe "" aname (aparent a)
+    , "aparent_"         .= maybe "" aname (aparent a)
     -- Just the names of subaccounts, as a dummy field, ignored when parsed.
-    , "asubs_"       .= map aname (asubs a)
+    , "asubs_"           .= map aname (asubs a)
     -- The actual subaccounts (and their subs..), making a (probably highly redundant) tree
     -- ,"asubs"        .= asubs a
     -- Omit the actual subaccounts
-    , "asubs"        .= ([]::[Account])
+    , "asubs"            .= ([]::[Account])
     ]
 
 instance ToJSON Ledger
