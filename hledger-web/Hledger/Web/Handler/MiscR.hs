@@ -95,7 +95,7 @@ getAccountsR = do
   VD{caps, j} <- getViewData
   when (CapView `notElem` caps) (permissionDenied "Missing the 'view' capability")
   selectRep $ do
-    provideJson $ laccounts $ ledgerFromJournal Any j
+    provideJson $ flattenAccounts $ mapAccounts (accountSetDeclarationInfo j) $ ledgerRootAccount $ ledgerFromJournal Any j
 
 getAccounttransactionsR :: Text -> Handler TypedContent
 getAccounttransactionsR a = do
