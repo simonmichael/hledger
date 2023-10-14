@@ -22,6 +22,7 @@ module Hledger.Data.Journal (
   addPeriodicTransaction,
   addTransaction,
   journalInferMarketPricesFromTransactions,
+  journalInferCommodityStyles,
   journalApplyCommodityStyles,
   commodityStylesFromAmounts,
   journalCommodityStyles,

@@ -121,7 +121,7 @@ $ hledger -f- print --explicit
 >= 0
 
 
-## 8. Here the price should be displayed with precision 7
+# 8. Here the price should be displayed with precision 7
 # (E's precision 4 + F's precision 3).
 <
 2015/1/1
@@ -135,3 +135,13 @@ $ hledger -f- print --explicit
     f                  F -320.000
 
 >= 0
+
+# 9. Posting amounts inferred from balance assignments also affect commodity styles. (#2091)
+<
+2023-01-01
+  (a)        1 A
+2023-01-02
+  (a)              = 2.2 A
+$ hledger -f- reg
+2023-01-01                      (a)                          1.0 A         1.0 A
+2023-01-02                      (a)                          1.2 A         2.2 A

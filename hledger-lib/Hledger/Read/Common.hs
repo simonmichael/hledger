@@ -332,7 +332,9 @@ journalFinalise iopts@InputOpts{..} f txt pj = do
        -- >>= Right . dbg0With (concatMap (T.unpack.showTransaction).jtxns)
        -- >>= \j -> deepseq (concatMap (T.unpack.showTransaction).jtxns $ j) (return j)
       >>= journalMarkRedundantCosts                      -- Mark redundant costs, to help journalBalanceTransactions ignore them
-      >>= journalBalanceTransactions balancingopts_                         -- Balance all transactions and maybe check balance assertions.
+      >>= journalBalanceTransactions balancingopts_      -- infer balance assignments and missing amounts and maybe check balance assertions.
+      >>= journalInferCommodityStyles                    -- infer commodity styles once more now that all posting amounts are present (XXX or journalApplyCommodityStyles ?)
+      -- >>= Right . dbg0With (pshow.journalCommodityStyles)
       >>= (if infer_costs_  then journalInferCostsFromEquity else pure)     -- Maybe infer costs from equity postings where possible
       <&> (if infer_equity_ then journalInferEquityFromCosts verbose_tags_ else id)  -- Maybe infer equity postings from costs where possible
       <&> journalInferMarketPricesFromTransactions       -- infer market prices from commodity-exchanging transactions
