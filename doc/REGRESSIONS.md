@@ -35,9 +35,12 @@ To claim the regression bounty:
 7. Wait for issue manager to approve it. This should not take more than a day or two.
 8. After approval, wait for Open Collective to pay it. Payouts happen twice a week.
 
-Here are the regression bounties that have been awarded:
+Here are the [regressions reported](https://bugs.hledger.org/regressions)
 
-[hledger opencollective bounty payment transactions](https://opencollective.com/hledger/transactions?kind=EXPENSE&amount=50-500) :
+the [regression bounty payments](https://opencollective.com/hledger/transactions?kind=EXPENSE&amount=50-500) :
+
+and an overview:
+
 
 | To                                                                    | For                                                          | Paid on    |
 |-----------------------------------------------------------------------|--------------------------------------------------------------|------------|
