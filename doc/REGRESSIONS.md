@@ -5,9 +5,13 @@
 <!-- toc -->
 </div>
 
-## Regression bounty
+Shortcut urls:
 
-(Shortcut url: <https://hledger.org/regressions>)
+- <https://hledger.org/regressions> - this page
+- <https://bugs.hledger.org/regressions> - regressions reported
+
+
+## Regression bounty
 
 We offer a standard bounty ($100 USD) for each new regression reported in hledger releases.
 ([discussion](https://github.com/simonmichael/hledger/issues/1570)).
