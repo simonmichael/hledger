@@ -22,6 +22,7 @@ The hledger project\'s issue tracker is on github. It contains:
 - <http://readyprs.hledger.org>  - open pull requests ready for review
 - <http://draftprs.hledger.org>  - open draft pull requests
 - <http://bugs.hledger.org/new>  - report a new issue
+- <https://hledger.org/regressions  - how to claim the regression finder's bounty
 
 ## Open issues
 
