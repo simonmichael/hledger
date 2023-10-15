@@ -56,8 +56,8 @@ To claim the bounty:
 | [Simon Michael](https://opencollective.com/hledger/expenses/132635)   | [#2023](https://github.com/simonmichael/hledger/issues/2023) | 2023-04-06  |
 | [Simon Michael](https://opencollective.com/hledger/expenses/137410)   | [#2032](https://github.com/simonmichael/hledger/issues/2032) | 2023-05-03  |
 | [Pranesh Prakash](https://opencollective.com/hledger/expenses/150171) | [#2045](https://github.com/simonmichael/hledger/issues/2045) |             |
-| [Petr Slansky](https://opencollective.com/hledger/expenses/166632)    | [#2091](https://github.com/simonmichael/hledger/issues/2091) | 2023-10-15  |
-|                                                                       |                                                              |             |
+| [Petr Slansky](https://opencollective.com/hledger/expenses/166632)    | [#2091](https://github.com/simonmichael/hledger/issues/2091) |             |
+
 
 All regression issues: [bugs.hledger.org/regressions](https://bugs.hledger.org/regressions)
 
