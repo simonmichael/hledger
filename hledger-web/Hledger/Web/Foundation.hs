@@ -96,7 +96,7 @@ type Form a = Html -> MForm Handler (FormResult a, Widget)
 -- Please see the documentation for the Yesod typeclass. There are a number
 -- of settings which can be configured by overriding methods here.
 instance Yesod App where
-  approot = ApprootMaster $ appRoot . settings
+  approot = guessApprootOr (ApprootMaster $ appRoot . settings)
 
   makeSessionBackend _ = do
     hledgerdata <- getXdgDirectory XdgCache "hledger"
