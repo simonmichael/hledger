@@ -14,7 +14,7 @@ We offer a standard bounty ($100 USD) for each new regression reported in hledge
 
 A regression is "something that used to work, that broke", or "an
 unintended not-good change" in a released version of hledger.
-Here are the [past regressions](https://github.com/simonmichael/hledger/issues?q=label%3Aregression%21+label%3Arelease-needed).
+Here are the [past regressions](https://github.com/simonmichael/hledger/issues?q=label%3Aregression%21).
 
 To claim the regression bounty:
 
