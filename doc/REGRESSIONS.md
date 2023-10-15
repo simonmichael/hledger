@@ -55,6 +55,7 @@ To claim the bounty:
 | [Pablo Mora](https://opencollective.com/hledger/expenses/131350)      | [#2020](https://github.com/simonmichael/hledger/issues/2020) | 2023-03-31  |
 | [Simon Michael](https://opencollective.com/hledger/expenses/132635)   | [#2023](https://github.com/simonmichael/hledger/issues/2023) | 2023-04-06  |
 | [Simon Michael](https://opencollective.com/hledger/expenses/137410)   | [#2032](https://github.com/simonmichael/hledger/issues/2032) | 2023-05-03  |
+| Simon Michael                                                         | [#2034](https://github.com/simonmichael/hledger/issues/2034) | -           |
 | [Pranesh Prakash](https://opencollective.com/hledger/expenses/150171) | [#2045](https://github.com/simonmichael/hledger/issues/2045) |             |
 | [Petr Slansky](https://opencollective.com/hledger/expenses/166632)    | [#2091](https://github.com/simonmichael/hledger/issues/2091) |             |
 
