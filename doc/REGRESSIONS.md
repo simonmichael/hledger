@@ -1,9 +1,9 @@
 # REGRESSIONS
 
-<div class=pagetoc>
+<!-- <div class=pagetoc> -->
 
-<!-- toc -->
-</div>
+<!-- <\!-- toc -\-> -->
+<!-- </div> -->
 
 Shortcut urls:
 
@@ -35,9 +35,9 @@ To claim the regression bounty:
 7. Wait for issue manager to approve it. This should not take more than a day or two.
 8. After approval, wait for Open Collective to pay it. Payouts happen twice a week.
 
-## Regression bounties awarded
+Here are the regression bounties that have been awarded:
 
-From <https://opencollective.com/hledger/transactions?kind=EXPENSE&amount=50-500> :
+[hledger opencollective bounty payment transactions](https://opencollective.com/hledger/transactions?kind=EXPENSE&amount=50-500) :
 
 | To                                                                    | For                                                          | Paid on    |
 |-----------------------------------------------------------------------|--------------------------------------------------------------|------------|
