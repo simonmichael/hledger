@@ -1175,54 +1175,34 @@ commodity 1 000 000.9455
 
 ### Commodity display style
 
-For the amounts in each commodity, hledger chooses a consistent display style to use in most reports.
-(Exceptions: [price amounts](#costs), 
-and all amounts displayed by the [`print`](#print) command,
-are displayed with all of their decimal digits visible.)
+For the amounts in each commodity, hledger chooses a consistent display style 
+(symbol placement, decimal mark and digit group marks, number of decimal digits)
+to use in most reports. This is inferred as follows:
 
-A commodity's display style is inferred as follows. 
+First, if there's a [`D` directive](#d-directive) declaring a default commodity,
+that commodity symbol and amount format is applied to all no-symbol amounts in the journal.
 
-First, if a [default commodity](#default-commodity) is declared with
-`D`, this commodity and its style is applied to any no-symbol amounts
-in the journal.
+Then each commodity's display style is determined from its
+[`commodity` directive](#commodity-directive). We recommend always
+declaring commodities with `commodity` directives, since they help
+ensure consistent display styles and precisions, and bring other
+benefits such as error checking for commodity symbols.
 
-Then each commodity's style is inferred from one of the following, in order of preference:
+But if a `commodity` directive is not present, hledger infers a
+commodity's display styles from its amounts as they are written in the
+journal (excluding cost amounts and amounts in periodic transaction
+rules or auto posting rules). It uses
 
-- The [commodity directive](#commodity-directive) for that commodity
-  (including the no-symbol commodity), if any.
-- The amounts in that commodity seen in the journal's transactions.
-  (Posting amounts only; prices and periodic or auto rules are ignored, currently.)
-- The built-in fallback style, which looks like this: `$1000.00`.
-  (Symbol on the left, period decimal mark, two decimal places.)
+- the symbol placement and decimal mark of the first amount seen
+- the digit group marks of the first amount with digit group marks
+- and the maximum number of decimal digits seen across all amounts.
 
-A style is inferred from journal amounts as follows:
+And as fallback if no applicable amounts are found, it would use a
+default style, like `$1000.00` (symbol on the left with no space,
+period as decimal mark, and two decimal digits).
 
-- Use the general style (decimal mark, symbol placement) of the first amount
-- Use the first-seen digit group style (digit group mark, digit group sizes), if any
-- Use the maximum number of decimal places of all.
-
-Cost amounts don't affect the commodity display style directly,
-but occasionally they can do so indirectly (eg when a posting's amount is
-inferred using a cost). If you find this causing
-problems, use a commodity directive to fix the display style.
-
-To summarise: each commodity's amounts will be normalised to (a) 
-the style declared by a `commodity` directive, or (b)
-the style of the first posting amount in the journal,
-with the first-seen digit group style and the maximum-seen number of decimal places.
-So if your reports are showing amounts in a way you don't like, eg 
-with too many decimal places, use a commodity directive. Some examples:
-
-```journal
-# declare euro, dollar, bitcoin and no-symbol commodities and set their 
-# input number formats and output display styles:
-commodity EUR 1.000,
-commodity $1000.00
-commodity 1000.00000000 BTC
-commodity 1 000.
-```
-
-The inferred commodity style can be [overridden](#commodity-styles) by supplying a command line option.
+Finally, commodity styles can be [overridden](#commodity-styles) by
+the `-c/--commodity-style` command line option.
 
 ### Rounding
 
