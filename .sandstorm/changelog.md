@@ -1,3 +1,8 @@
+# V1.31 (2023-10-20)
+
+ * Upgrade to HLedger 1.31
+ * Add support for sharing permissions
+
 # V1.9.2 (2018-06-05)
 
  * Upgrade to HLedger 1.9.2
