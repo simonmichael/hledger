@@ -1,6 +1,8 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+# CAUTION: DO NOT MAKE CHANGES TO THIS FILE. The vagrant-spk upgradevm process will overwrite it.
+
 # Guess at a reasonable name for the VM based on the folder vagrant-spk is
 # run from.  The timestamp is there to avoid conflicts if you have multiple
 # folders with the same name.
@@ -17,9 +19,10 @@ unless Vagrant::DEFAULT_SERVER_URL.frozen?
 end
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-  # Base on the Sandstorm snapshots of the official Debian 9 (stretch) box with vboxsf support.
-  config.vm.box = "debian/contrib-stretch64"
-  config.vm.box_version = "9.3.0"
+  # Base on a 64-bit Debian box with vboxsf support (ex. contrib-buster64, bullseye64)
+  config.vm.box = "debian/bookworm64"
+  config.vm.post_up_message = "Your virtual server is running at: http://local.sandstorm.io:6090"
+
 
   if Vagrant.has_plugin?("vagrant-vbguest") then
     # vagrant-vbguest is a Vagrant plugin that upgrades
@@ -28,12 +31,13 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # needs to know how to compile kernel modules, etc., and so
     # we give it this hint about operating system type.
     config.vm.guest = "debian"
+    config.vbguest.auto_update = false
   end
 
-  # We forward port 6080, the Sandstorm web port, so that developers can
-  # visit their sandstorm app from their browser as local.sandstorm.io:6080
-  # (aka 127.0.0.1:6080).
-  config.vm.network :forwarded_port, guest: 6080, host: 6080, host_ip: "127.0.0.1"
+  # We forward port 6090, the vagrant-spk web port, so that developers can
+  # visit their Sandstorm app from their browser as local.sandstorm.io:6090
+  # (aka 127.0.0.1:6090).
+  config.vm.network :forwarded_port, guest: 6090, host: 6090, host_ip: "127.0.0.1"
 
   # Use a shell script to "provision" the box. This installs Sandstorm using
   # the bundled installer.
@@ -58,12 +62,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     cpus = `nproc`.to_i
     total_kB_ram = `grep MemTotal /proc/meminfo | awk '{print $2}'`.to_i
   elsif host =~ /mingw/
-    # powershell may not be available on Windows XP and Vista, so wrap this in a rescue block
-    begin
-      cpus = `powershell -Command "(Get-WmiObject Win32_Processor -Property NumberOfLogicalProcessors | Select-Object -Property NumberOfLogicalProcessors | Measure-Object NumberOfLogicalProcessors -Sum).Sum"`.to_i
-      total_kB_ram = `powershell -Command "Get-CimInstance -class cim_physicalmemory | % $_.Capacity}"`.to_i / 1024
-    rescue
-    end
+    cpus = `powershell -Command "(Get-WmiObject Win32_Processor -Property NumberOfLogicalProcessors | Select-Object -Property NumberOfLogicalProcessors | Measure-Object NumberOfLogicalProcessors -Sum).Sum"`.to_i
+    total_kB_ram = `powershell -Command "[math]::Round((Get-WmiObject -Class Win32_ComputerSystem).TotalPhysicalMemory)"`.to_i / 1024
   end
   # Use the same number of CPUs within Vagrant as the system, with 1
   # as a default.
@@ -80,7 +80,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   if total_kB_ram.nil? or total_kB_ram < 2048000
     assign_ram_mb = 512
   else
-    assign_ram_mb = (total_kB_ram / 1024 / 2)
+    assign_ram_mb = (total_kB_ram / 1024 / 4)
   end
   # Actually apply these CPU/memory values to the providers.
   config.vm.provider :virtualbox do |vb, override|
@@ -91,7 +91,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     # /opt/app and /host-dot-sandstorm are used by vagrant-spk
     override.vm.synced_folder "..", "/opt/app"
-    override.vm.synced_folder ENV["HOME"] + "/.sandstorm", "/host-dot-sandstorm"
+    override.vm.synced_folder ENV["HOME"] + "/.sandstorm", "/host-dot-sandstorm", mount_options: ["x-systemd.automount"]
     # /vagrant is not used by vagrant-spk; we need this line so it gets disabled; if we removed the
     # line, vagrant would automatically insert a synced folder in /vagrant, which is not what we want.
     override.vm.synced_folder "..", "/vagrant", disabled: true

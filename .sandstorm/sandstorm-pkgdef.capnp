@@ -19,9 +19,9 @@ const pkgdef :Spk.PackageDefinition = (
 
     appTitle = (defaultText = "HLedger Web"),
 
-    appVersion = 3,  # Increment this for every release.
+    appVersion = 4,  # Increment this for every release.
 
-    appMarketingVersion = (defaultText = "1.9.2"),
+    appMarketingVersion = (defaultText = "1.31"),
     # Human-readable representation of appVersion. Should match the way you
     # identify versions of your app in documentation and marketing.
 
@@ -256,6 +256,7 @@ const myCommand :Spk.Manifest.Command = (
   environ = [
     # Note that this defines the *entire* environment seen by your app.
     (key = "PATH", value = "/usr/local/bin:/usr/bin:/bin"),
+    (key = "HOME", value = "/var/lib/hledger"),
     (key = "SANDSTORM", value = "1"),
     # Export SANDSTORM=1 into the environment, so that apps running within Sandstorm
     # can detect if $SANDSTORM="1" at runtime, switching UI and/or backend to use
