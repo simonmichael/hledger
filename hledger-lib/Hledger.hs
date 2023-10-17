@@ -47,8 +47,9 @@ Amounts have several precisions we can talk about:
   When display precision is greater than the internal precision, additional decimal zeros are displayed ("padding").
 
 We use the term "display rounding" for applying a target display precision to an existing amount, 
-This can be done more or less forcefully, according to a "display rounding strategy", represented by the "Rounding" type.
-This is stored within each AmountStyle for convenience, though semantically speaking it is not part of the amount.
+This can be done more or less forcefully, according to a "display rounding strategy" (the "Rounding" type).
+That rounding strategy is stored within each AmountStyle for convenience
+(though, semantically speaking it is not part of the amount).
 The rounding strategies are:
 
 - none - leave the amount's display precision unchanged
@@ -56,17 +57,17 @@ The rounding strategies are:
 - hard - use the exact target precision, possibly rounding and hiding significant digits
 - all  - do hard rounding of both the main amount and its cost amount (costs are normally not display-rounded).
 
-Here is when display rounding happens:
+Here is when amount styling and display rounding happens:
 
 1. After reading a journal,
-  all amounts have the standard commodity styles applied, but no display rounding is done.
+  the standard commodity styles are applied to all amounts, except for precision (no display rounding at this stage).
   (still needed ? seems so)
 
 2. After reading a journal, when checking each transaction for balancedness,
   the transaction amounts are hard-rounded, temporarily, before calculating their sum.
-  (We'd like to update this to use local transaction precisions only.)
+  (We'd like to update this to use transaction-local precisions only.)
 
-3. Just before rendering report (since 1.31 or so).
+3. Just before rendering a report (since 1.31).
   Most reports do hard rounding; @print@ (and maybe other print-like commands ?)
   can do any of the rounding strategies.
 

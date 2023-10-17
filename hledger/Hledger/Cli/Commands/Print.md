@@ -70,7 +70,7 @@ display decimal digits according to the [commodity display styles](#commodity-di
 consistently where it's safe to do so.
 
 `hard` and `all` can cause `print` to show invalid unbalanced journal entries;
-they may be useful eg for journal cleanup, with manual fixups where needed.
+they may be useful eg for stronger cleanup, with manual fixups when needed.
 
 
 ### print parseability
