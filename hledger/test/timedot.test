@@ -42,3 +42,18 @@ $ hledger -ftimedot:- reg
 # 3. Tags are recognised. Account aliases are applied.
 $ hledger -ftimedot:- reg tag:posting-tag --alias fos:haskell=λ
 2023-01-01 different transac..  (λ)                           1.00          1.00
+
+# 4. Each of these formats is printed as exactly a quarter hour.
+<
+2023-01-01
+a  .
+b  0.25
+c  15m
+
+$ hledger -ftimedot:- print
+2023-01-01 *
+    (a)            0.25
+    (b)            0.25
+    (c)            0.25
+
+>=

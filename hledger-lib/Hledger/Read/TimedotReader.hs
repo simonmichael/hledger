@@ -52,6 +52,7 @@ import Text.Megaparsec.Char
 import Hledger.Data
 import Hledger.Read.Common hiding (emptyorcommentlinep)
 import Hledger.Utils
+import Data.Decimal (roundTo)
 
 --- ** doctest setup
 -- $setup
@@ -228,7 +229,7 @@ numericquantityp = do
   let q' =
         case msymbol of
           Nothing  -> q
-          Just sym ->
+          Just sym -> roundTo 2 $
             case lookup sym timeUnits of
               Just mult -> q * mult
               Nothing   -> q  -- shouldn't happen.. ignore
