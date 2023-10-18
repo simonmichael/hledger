@@ -21,16 +21,21 @@ To claim the bounty:
 
 1. Discover a new regression yourself (and don't be the one who caused it, generally)
 2. Report it in the [hledger bug tracker](http://bugs.hledger.org)
-3. Wait for the issues manager (currently [SM](https://joyful.com)) to confirm by applying the REGRESSION label
-4. Submit an expense to <https://opencollective.com/hledger>
-   - "Submit Expense" (if you are logged in, it moves under the ACTIONS menu) 
-   - Type: Invoice
+3. Wait for the issue manager ([SM](https://joyful.com)) to apply the REGRESSION label
+4. Submit an expense to our Open Collective:
+   - [Submit Expense](https://opencollective.com/hledger/expenses/new)
+     (if you are logged in, it will be under the ACTIONS menu) 
+   - Choose Invoice
+   - Choose a Payout method, click Next
    - Expense title: Regression bounty for #NNNN
-   - Description:   Regression bounty for #NNNN
-   - Amount: $100
-5. Also announce that you've done this, on the issue page or in chat (to help ensure it is not overlooked)
+   - Description: "QA", and the WORK DATE or WORK PERIOD
+   - Amount: USD 100
+     - Or if you choose another currency, 
+       convert with that day's conversion rate,
+       and mention the rate in Description
+5. Announce on the issue page or in chat that you've submitted (to help ensure it is not overlooked)
 6. Wait for the issue manager to approve it. This should not take more than a day or two.
-7. After approval, wait for Open Collective to pay it. Payouts happen twice a week.
+7. Then wait for Open Collective to pay it. Payouts happen twice a week.
 
 ## Regressions reported
 
@@ -56,8 +61,9 @@ To claim the bounty:
 | [Simon Michael](https://opencollective.com/hledger/expenses/132635)   | [#2023](https://github.com/simonmichael/hledger/issues/2023) | 2023-04-06  |
 | [Simon Michael](https://opencollective.com/hledger/expenses/137410)   | [#2032](https://github.com/simonmichael/hledger/issues/2032) | 2023-05-03  |
 | Simon Michael                                                         | [#2034](https://github.com/simonmichael/hledger/issues/2034) | -           |
-| [Pranesh Prakash](https://opencollective.com/hledger/expenses/150171) | [#2045](https://github.com/simonmichael/hledger/issues/2045) |             |
-| [Petr Slansky](https://opencollective.com/hledger/expenses/166632)    | [#2091](https://github.com/simonmichael/hledger/issues/2091) |             |
+| [Pranesh Prakash](https://opencollective.com/hledger/expenses/150171) | [#2045](https://github.com/simonmichael/hledger/issues/2045) | 2023-10-17  |
+| [Petr Slansky](https://opencollective.com/hledger/expenses/166632)    | [#2091](https://github.com/simonmichael/hledger/issues/2091) | 2023-10-16  |
+|                                                                       |                                                              |             |
 
 
 All regression issues: [bugs.hledger.org/regressions](https://bugs.hledger.org/regressions)
