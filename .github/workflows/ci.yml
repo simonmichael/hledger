@@ -13,12 +13,12 @@ on:
   # schedule:
   # - cron: "0 07 * * 0"  # sunday midnight pacific
 
-  # When there's a push to any of these dev branches, it runs in the dev branch.
+  # When there's a push to the ci branch, it runs there.
   # After passing there it can be merged/pushed to master.
-  # (Don't use these branches for pull requests, or it will run twice:
+  # (Don't use these branches for pull requests, or it will run twice,
   # https://github.community/t/how-to-trigger-an-action-on-push-or-pull-request-but-not-both/16662/2)
   push:
-    branches: [ simon, simon2 ]
+    branches: [ ci ]
 
   # When there's a pull request against master, it runs in the PR branch.
   # After passing there it can be merged/pushed to master.
