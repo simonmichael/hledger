@@ -1,28 +1,27 @@
-# The main hledger integration test workflow.
-# Builds warning free and runs unit/doc/functional/haddock/bench tests,
-# using the GHC version(s) enabled below.
-# It also uploads the binaries as a downloadable artifact for testers,
-# and because why not having done all the work.
-# Merging to master requires that this workflow's jobs ("810" at least) have passed.
+# The main hledger continuous integration test workflow.
+# Passing this is required for merging/pushing to master, per
+# https://github.com/simonmichael/hledger/settings/branch_protection_rules/17386787
 
-name: test-linux-x64
+name: ci
 
-# This workflow runs...
+# When and where does this workflow run ?
 on:
-  # On master, when manually triggered.
+  # When manually triggered in github ui, it runs in master.
   workflow_dispatch:
 
-  # On master, on this schedule:
+  # On this schedule, it runs in master.
   # schedule:
   # - cron: "0 07 * * 0"  # sunday midnight pacific
 
-  # On these dev branches, when pushed.
-  # To avoid double workflow execution, don't use these branches for pull requests.
-  # (https://github.community/t/how-to-trigger-an-action-on-push-or-pull-request-but-not-both/16662/2)
+  # When there's a push to any of these dev branches, it runs in the dev branch.
+  # After passing there it can be merged/pushed to master.
+  # (Don't use these branches for pull requests, or it will run twice:
+  # https://github.community/t/how-to-trigger-an-action-on-push-or-pull-request-but-not-both/16662/2)
   push:
     branches: [ simon, simon2 ]
 
-  # On pull request branches against these branches, when pushed.
+  # When there's a pull request against master, it runs in the PR branch.
+  # After passing there it can be merged/pushed to master.
   pull_request:
     branches: [ master ]
     # Uncomment to run it only for changes to these paths: (but that could prevent merging)
@@ -49,21 +48,27 @@ on:
     #   - '!**.info'
     #   - '!**.txt'
 
+# What does it do ?
 jobs:
-  build:
+
+  # Build all expecting no warnings and run unit/doc/functional/haddock/bench tests,
+  # with the platform(s) and GHC version(s) enabled below.
+  # On success, upload the binaries as a downloadable artifact.
+  ci:
+
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        plan:  # at least the check(s) required by master should be enabled
-        - { ghc: "810", stack: "stack --stack-yaml=stack8.10.yaml" }  # oldest supported ghc
-        # - { ghc: "96" , stack: "stack --stack-yaml=stack.yaml" }
-
+        # keep synced with branch protection rules, see link above
+        plan:  
+        # the oldest supported ghc, to check backward compatibility
+        - { ghc: "810", stack: "stack --stack-yaml=stack8.10.yaml" }
     steps:
 
     - name: Check out
       uses: actions/checkout@v3
-      # have to fetch everything for git describe for --version
+      # have to fetch everything for git describe for hledger's --version
       with: 
         fetch-depth: 0
 
@@ -72,19 +77,19 @@ jobs:
         GITHUB_CONTEXT: ${{ toJson(github) }}
       run: |
         echo $GITHUB_CONTEXT
-    #     echo "$GITHUB_SHA"
-    #     echo "$GITHUB_REF"
-    #     echo "$GITHUB_HEAD_REF"
-    #     echo "$GITHUB_BASE_REF"
-    #     git log "$GITHUB_BASE_REF"..
-    #     tools/commitlint "$GITHUB_BASE_REF"..
+        # echo "$GITHUB_SHA"
+        # echo "$GITHUB_REF"
+        # echo "$GITHUB_HEAD_REF"
+        # echo "$GITHUB_BASE_REF"
+        # git log "$GITHUB_BASE_REF"..
+        # tools/commitlint "$GITHUB_BASE_REF"..
 
-    # keep synced in all workflows which do this
     - name: Check commit messages
+      # keep this step synced in all workflows which do it
       # For a PR, the range will be: master..origin/$GITHUB_HEAD_REF
       # For a push it will be: $BEFORE..
       # For a force push, BEFORE is the previous HEAD, and on github (though not locally) this is an "invalid revision range".
-      # In this and any case where the range is invalid, we'll just skip the check, to avoid false positives
+      # XXX we skip this check when we can't detect the commits, which happens in certain cases
       # related: https://stackoverflow.com/questions/64708371/how-to-run-github-workflow-on-every-commit-of-a-push
       env:
         BEFORE: ${{ github.event.before }}
@@ -107,12 +112,12 @@ jobs:
 
         if git rev-list --quiet $RANGE
         then tools/commitlint $RANGE
-        else echo "could not identify commits, not checking them"
+        else echo "could not identify commits, not checking them"  # XXX
           # echo "could not identify commits, checking last $NUM instead:"
           # tools/commitlint -$NUM
         fi
 
-    - name: Skip remaining steps if last commit message begins with ;
+    - name: Skip remaining steps if the last commit message begins with ;
       shell: bash
       run: |
         echo "git log -1 --pretty='%s' ${GITHUB_HEAD_REF:+origin/$GITHUB_HEAD_REF} >> $$.gitlog"
