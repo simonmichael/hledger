@@ -249,16 +249,19 @@ deriving instance Generic (DecimalRaw a)
 data AmountPrice = UnitPrice !Amount | TotalPrice !Amount
   deriving (Eq,Ord,Generic,Show)
 
--- | The display style for an amount.
--- (See also Amount.AmountDisplayOpts).
+-- | Every Amount has one of these, influencing how the amount is displayed.
+-- Also, each Commodity can have one, which can be applied to its amounts for consistent display.
+-- See also Amount.AmountDisplayOpts.
 data AmountStyle = AmountStyle {
   ascommodityside   :: !Side,                     -- ^ show the symbol on the left or the right ?
   ascommodityspaced :: !Bool,                     -- ^ show a space between symbol and quantity ?
   asdigitgroups     :: !(Maybe DigitGroupStyle),  -- ^ show the integer part with these digit group marks, or not
   asdecimalmark     :: !(Maybe Char),             -- ^ show this character (should be . or ,) as decimal mark, or use the default (.)
-  asprecision       :: !(Maybe AmountPrecision)   -- ^ show this number of digits after the decimal point, or show as-is (leave precision unchanged)
-    -- XXX Making asprecision a maybe simplifies code for styling with or without precision,
-    -- but complicates the semantics (Nothing is useful only when setting style).
+  asprecision       :: !AmountPrecision,          -- ^ "display precision" - show this number of digits after the decimal point
+  asrounding        :: !Rounding                  -- ^ "rounding strategy" - kept here for convenience, for now:
+                                                  --   when displaying an amount, it is ignored,
+                                                  --   but when applying this style to another amount, it determines 
+                                                  --   how hard we should try to adjust the amount's display precision.
 } deriving (Eq,Ord,Read,Generic)
 
 instance Show AmountStyle where
@@ -269,6 +272,7 @@ instance Show AmountStyle where
     , show asdigitgroups
     , show asdecimalmark
     , show asprecision
+    , show asrounding
     ]
 
 -- | The "display precision" for a hledger amount, by which we mean
@@ -276,6 +280,16 @@ instance Show AmountStyle where
 data AmountPrecision =
     Precision !Word8    -- ^ show this many decimal digits (0..255)
   | NaturalPrecision    -- ^ show all significant decimal digits stored internally
+  deriving (Eq,Ord,Read,Show,Generic)
+
+-- | "Rounding strategy" - how to apply an AmountStyle's display precision
+-- to a posting amount (and its cost, if any). 
+-- Mainly used to customise print's output, with --round=none|soft|hard|all.
+data Rounding =
+    NoRounding    -- ^ keep display precisions unchanged in amt and cost
+  | SoftRounding  -- ^ do soft rounding of amt and cost amounts (show more or fewer decimal zeros to approximate the target precision, but don't hide significant digits)
+  | HardRounding  -- ^ do hard rounding of amt (use the exact target precision, possibly hiding significant digits), and soft rounding of cost
+  | AllRounding   -- ^ do hard rounding of amt and cost
   deriving (Eq,Ord,Read,Show,Generic)
 
 -- | A style for displaying digit groups in the integer part of a

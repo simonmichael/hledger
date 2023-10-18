@@ -23,9 +23,10 @@ module Hledger.Data.Journal (
   addTransaction,
   journalInferMarketPricesFromTransactions,
   journalInferCommodityStyles,
-  journalApplyCommodityStyles,
+  journalStyleAmounts,
   commodityStylesFromAmounts,
   journalCommodityStyles,
+  journalCommodityStylesWith,
   journalToCost,
   journalInferEquityFromCosts,
   journalInferCostsFromEquity,
@@ -793,18 +794,19 @@ journalModifyTransactions verbosetags d j =
     Right ts -> Right j{jtxns=ts}
     Left err -> Left err
 
--- | Choose and apply a consistent display style to the posting
--- amounts in each commodity (see journalCommodityStyles),
--- keeping all display precisions unchanged.
--- Can return an error message eg if inconsistent number formats are found.
-journalApplyCommodityStyles :: Journal -> Either String Journal
-journalApplyCommodityStyles = fmap fixjournal . journalInferCommodityStyles
+-- | Apply this journal's commodity display styles to all of its amounts.
+-- This does soft rounding (adding/removing decimal zeros, but not losing significant decimal digits);
+-- it is suitable for an early cleanup pass before calculations.
+-- Reports may want to do additional rounding/styling at render time.
+-- This can return an error message eg if inconsistent number formats are found.
+journalStyleAmounts :: Journal -> Either String Journal
+journalStyleAmounts = fmap journalapplystyles . journalInferCommodityStyles
   where
-    fixjournal j@Journal{jpricedirectives=pds} =
-        journalMapPostings (postingApplyCommodityStylesExceptPrecision styles) j{jpricedirectives=map fixpricedirective pds}
+    journalapplystyles j@Journal{jpricedirectives=pds} =
+      journalMapPostings (styleAmounts styles) j{jpricedirectives=map fixpricedirective pds}
       where
-        styles = journalCommodityStyles j
-        fixpricedirective pd@PriceDirective{pdamount=a} = pd{pdamount=amountSetStylesExceptPrecision styles a}
+        styles = journalCommodityStylesWith NoRounding j  -- defer rounding, in case of print --round=none
+        fixpricedirective pd@PriceDirective{pdamount=a} = pd{pdamount=styleAmounts styles a}
 
 -- | Get the canonical amount styles for this journal, whether (in order of precedence):
 -- set globally in InputOpts,
@@ -822,6 +824,11 @@ journalCommodityStyles j =
     declaredstyles        = M.mapMaybe cformat $ jcommodities j
     defaultcommoditystyle = M.fromList $ catMaybes [jparsedefaultcommodity j]
     inferredstyles        = jinferredcommodities j
+
+-- | Like journalCommodityStyles, but attach a particular rounding strategy to the styles,
+-- affecting how they will affect display precisions when applied.
+journalCommodityStylesWith :: Rounding -> Journal -> M.Map CommoditySymbol AmountStyle
+journalCommodityStylesWith r = amountStylesSetRounding r . journalCommodityStyles
 
 -- | Collect and save inferred amount styles for each commodity based on
 -- the posting amounts in that commodity (excluding price amounts), ie:

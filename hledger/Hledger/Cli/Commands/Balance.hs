@@ -376,7 +376,7 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ of
               _      -> error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
         writeOutputLazyText opts $ render ropts report
   where
-    styles = journalCommodityStyles j
+    styles = journalCommodityStylesWith HardRounding j
     ropts@ReportOpts{..} = _rsReportOpts rspec
     -- Tidy csv should be consistent between single period and multiperiod reports.
     multiperiod = interval_ /= NoInterval || (layout_ == LayoutTidy && fmt == "csv")

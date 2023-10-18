@@ -25,7 +25,8 @@ $ hledger -f- reg --output-format=json
             "ascommodityspaced": true,
             "asdecimalmark": ".",
             "asdigitgroups": null,
-            "asprecision": 1
+            "asprecision": 1,
+            "asrounding": "HardRounding"
           }
         }
       ],
@@ -53,7 +54,8 @@ $ hledger -f- reg --output-format=json
           "ascommodityspaced": true,
           "asdecimalmark": ".",
           "asdigitgroups": null,
-          "asprecision": 1
+          "asprecision": 1,
+          "asrounding": "HardRounding"
         }
       }
     ]
@@ -82,7 +84,8 @@ $ hledger -f- bal --output-format=json
             "ascommodityspaced": true,
             "asdecimalmark": ".",
             "asdigitgroups": null,
-            "asprecision": 1
+            "asprecision": 1,
+            "asrounding": "HardRounding"
           }
         }
       ]
@@ -102,7 +105,8 @@ $ hledger -f- bal --output-format=json
         "ascommodityspaced": true,
         "asdecimalmark": ".",
         "asdigitgroups": null,
-        "asprecision": 1
+        "asprecision": 1,
+        "asrounding": "HardRounding"
       }
     }
   ]

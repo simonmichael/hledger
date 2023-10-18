@@ -39,7 +39,7 @@ module Hledger.Data.Posting (
   postingStripPrices,
   postingApplyAliases,
   postingApplyCommodityStyles,
-  postingApplyCommodityStylesExceptPrecision,
+  postingStyleAmounts,
   postingAddTags,
   -- * date operations
   postingDate,
@@ -106,6 +106,19 @@ instance HasAmounts Posting where
     p{ pamount=styleAmounts styles pamount
       ,pbalanceassertion=styleAmounts styles pbalanceassertion 
       }
+
+{-# DEPRECATED postingApplyCommodityStyles "please use styleAmounts instead" #-}
+-- | Find and apply the appropriate display style to the posting amounts
+-- in each commodity (see journalCommodityStyles).
+-- Main amount precisions may be set or not according to the styles, but cost precisions are not set.
+postingApplyCommodityStyles :: M.Map CommoditySymbol AmountStyle -> Posting -> Posting
+postingApplyCommodityStyles = styleAmounts
+
+{-# DEPRECATED postingStyleAmounts "please use styleAmounts instead" #-}
+-- | Like postingApplyCommodityStyles, but neither
+-- main amount precisions or cost precisions are set.
+postingStyleAmounts :: M.Map CommoditySymbol AmountStyle -> Posting -> Posting
+postingStyleAmounts = styleAmounts
 
 nullposting, posting :: Posting
 nullposting = Posting
@@ -418,23 +431,6 @@ postingApplyAliases aliases p@Posting{paccount} =
       where
         err = "problem while applying account aliases:\n" ++ pshow aliases
           ++ "\n to account name: "++T.unpack paccount++"\n "++e
-
--- | Find and apply the appropriate display style to the posting amounts
--- in each commodity (see journalCommodityStyles).
--- Main amount precisions may be set or not according to the styles, but cost precisions are not set.
-postingApplyCommodityStyles :: M.Map CommoditySymbol AmountStyle -> Posting -> Posting
-postingApplyCommodityStyles styles p = p{pamount=mixedAmountSetStyles styles $ pamount p
-                                        ,pbalanceassertion=balanceassertionsetstyles <$> pbalanceassertion p}
-  where
-    balanceassertionsetstyles ba = ba{baamount=amountSetStyles styles $ baamount ba}
-
--- | Like postingApplyCommodityStyles, but neither
--- main amount precisions or cost precisions are set.
-postingApplyCommodityStylesExceptPrecision :: M.Map CommoditySymbol AmountStyle -> Posting -> Posting
-postingApplyCommodityStylesExceptPrecision styles p = p{pamount=mixedAmountSetStylesExceptPrecision styles $ pamount p
-                                        ,pbalanceassertion=balanceassertionsetstyles <$> pbalanceassertion p}
-  where
-    balanceassertionsetstyles ba = ba{baamount=amountSetStylesExceptPrecision styles $ baamount ba}
 
 -- | Add tags to a posting, discarding any for which the posting already has a value.
 postingAddTags :: Posting -> [Tag] -> Posting

@@ -21,6 +21,60 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
+Breaking changes
+
+Features
+
+Improvements
+
+Fixes
+
+- `print` now shows zeros with a commodity symbol and decimal digits when possible, preserving more information.
+
+- `print` now formats balance assertion costs with standard commodity styles, like other amounts.
+
+- `print` has a new option for rounding amounts to commodity display precisions:
+  
+  - `--round=none` - show amounts with original precisions (default; like 1.31; avoids implying less or more precision than was recorded)
+  - `--round=soft` - add/remove decimal zeros in non-cost amounts (like 1.30 but also affects balance assertion amounts)
+  - `--round=hard` - round non-cost amounts (can hide significant digits)
+  - `--round=all`  - round all amounts and costs
+
+  **Past behaviour**
+
+  Comparing amount styling behaviour across hledger versions can be confusing;
+  here's a summary (for my own sanity).
+  
+  print shows four kinds of amount: posting amounts, balance assertion amounts, and costs for each of those.
+
+  Which amounts does print do basic styling (eg symbol placement) on ?
+  
+  | hledger   | amt | cost | bal | balcost |
+  |-----------|-----|------|-----|---------|
+  | 1.1-1.14  | Y   | N    | N   | N       |
+  | 1.15-1.22 | Y   | N    | Y   | N       |
+  | 1.23-1.30 | Y   | Y    | Y   | N       |
+  |           |     |      |     |         |
+  | 1.31-     | Y   | Y    | Y   | Y       |
+  
+  Which kind of rounding does print do on each amount ?
+  
+  | hledger             | amt  | cost | bal  | balcost |
+  |---------------------|------|------|------|---------|
+  | 1.0-1.20            | hard | none | none | none    |
+  | 1.21-1.30           | soft | none | none | none    |
+  | 1.31                | none | none | none | none    |
+  |                     |      |      |      |         |
+  | 1.31.1              | none | none | none | none    |
+  | 1.31.1 --round=soft | soft | none | soft | none    |
+  | 1.31.1 --round=hard | hard | none | hard | none    |
+  | 1.31.1 --round=all  | hard | hard | hard | hard    |
+
+Docs
+
+API
+
+
 # 1.31 2023-09-03
 
 Features

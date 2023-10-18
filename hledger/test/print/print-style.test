@@ -1,41 +1,95 @@
 # print amount styling tests
 #
-# The amounts are:
-#  amt     - the posting amount
-#  cost    - the posting amount's cost
-#  bal     - the balance assertion amount
-#  balcost - the balance assertion amount's cost
+# Here's an overview of historical behaviour.
+# See the tests below for examples.
 #
-# Styling includes:
-#  basic - everything except precision
-#  prec  - precision (number of decimal places)
+# print shows four kinds of amount:
+#  amt     - posting amount
+#  cost    - posting amount's cost
+#  bal     - balance assertion/assignment amount
+#  balcost - balance assertion/assignment amount's cost
 #
-# Historical behaviour:
-# | hledger | amt basic | cost basic | bal basic | balcost basic | amt prec | cost prec | bal prec | balcost prec |
-# | 1.14    | Y         | N          | N         | N             | Y        | N         | N        | N            |
-# | 1.22    | Y         | N          | Y         | N             | N        | N         | N        | N            |
-# | 1.30    | Y         | Y          | Y         | N             | N        | N         | N        | N            |
-# | 1.31    | Y         | Y          | Y         | Y             | N        | N         | N        | N            |
-#
-# In the following,
-#  basic styling will move the commodity symbol to the left
-#  precision styling will hide the decimal place
+#  Which amounts does print do basic styling (eg symbol placement) on ?
+#  
+#  | hledger   | amt | cost | bal | balcost |
+#  |-----------|-----|------|-----|---------|
+#  | 1.1-1.14  | Y   | N    | N   | N       |
+#  | 1.15-1.22 | Y   | N    | Y   | N       |
+#  | 1.23-1.30 | Y   | Y    | Y   | N       |
+#  |           |     |      |     |         |
+#  | 1.31-     | Y   | Y    | Y   | Y       |
+#  
+#  Which kind of rounding does print do on each amount ?
+#  
+#  | hledger             | amt  | cost | bal  | balcost |
+#  |---------------------|------|------|------|---------|
+#  | 1.0-1.20            | hard | none | none | none    |
+#  | 1.21-1.30           | soft | none | none | none    |
+#  | 1.31                | none | none | none | none    |
+#  |                     |      |      |      |         |
+#  | 1.31.1              | none | none | none | none    |
+#  | 1.31.1 --round=soft | soft | none | soft | none    |
+#  | 1.31.1 --round=hard | hard | none | hard | none    |
+#  | 1.31.1 --round=all  | hard | hard | hard | hard    |
 
-# 1. print styles all amounts, but leaves all precisions unchanged, even with -c.
+
+# Four print style tests. In these, basic styling is applied
+# to all amounts (the commodity symbol moves to the left),
+# and precision styling is applied as described below.
 <
-commodity A 1000.
-commodity B 1000.
+; A and B styles
+commodity A1000.00
+commodity B1000.00
 
+; a amounts have 1 significant digit
+; b amounts have 1 significant digit and 2 zeros
+; c amounts have 3 significant digits
 2023-01-01
-    (a)    1.2 A @ 3.4 B = 1.2 A @ 3.4 B
-	
-$ hledger -f- print -c A1000.00 -c B1000.00
+    (a)    0.1   A @ 0.1   B = 0.1   A @ 0.1   B
+    (b)    0.100 A @ 0.100 B = 0.100 A @ 0.100 B
+    (c)    0.123 A @ 0.123 B = 0.123 A @ 0.123 B
+
+# 1. By default, print shows all amounts with original precisions
+# (like 1.31)
+$ hledger -f- print
 2023-01-01
-    (a)     A1.2 @ B3.4 = A1.2 @ B3.4
+    (a)        A0.1 @ B0.1 = A0.1 @ B0.1
+    (b)    A0.100 @ B0.100 = A0.100 @ B0.100
+    (c)    A0.123 @ B0.123 = A0.123 @ B0.123
 
 >=
 
-# 2. Precisions are also preserved when there's an implicit conversion (#2079).
+# 2. With --round=soft, print adds/removes zeros in non-cost amounts
+# (like 1.30 but more thorough, also affects balance assertion amounts,
+# also does basic styling of balance assertion costs)
+$ hledger -f- print --round=soft
+2023-01-01
+    (a)       A0.10 @ B0.1 = A0.10 @ B0.1
+    (b)     A0.10 @ B0.100 = A0.10 @ B0.100
+    (c)    A0.123 @ B0.123 = A0.123 @ B0.123
+
+>=
+
+# 3. With --round=hard, print rounds non-cost amounts.
+$ hledger -f- print --round=hard
+2023-01-01
+    (a)      A0.10 @ B0.1 = A0.10 @ B0.1
+    (b)    A0.10 @ B0.100 = A0.10 @ B0.100
+    (c)    A0.12 @ B0.123 = A0.12 @ B0.123
+
+>=
+
+# 4. with --round=all, print rounds all amounts.
+$ hledger -f- print --round=all
+2023-01-01
+    (a)    A0.10 @ B0.10 = A0.10 @ B0.10
+    (b)    A0.10 @ B0.10 = A0.10 @ B0.10
+    (c)    A0.12 @ B0.12 = A0.12 @ B0.12
+
+>=
+
+# 5. print also preserves precisions when there's an implicit conversion
+# (unlike 1.30, #2079).
 <
 commodity A 1000.
 
@@ -52,29 +106,7 @@ $ hledger -f- print
 
 >=
 
-
-# Maybe later:
-
-# # 0. With print, -c has extra power: it can increase all amount precisions.
-# $ hledger -f- print -c A1000.00 -c B1000.00
-# 2023-01-01
-#     (a)    A1.20 @ B3.40 = A1.20 @ B3.40
-# 
-# >=
-# 
-# # 0. And -c can decrease trailing decimal zeros. But not significant decimal digits
-# (because that would change transactions).
-# <
-# 2023-01-01
-#     (a)    1.2340 A @ 3.4560 B = 1.234 A @ 3.456 B
-#
-# $ hledger -f- print -c A1000. -c B1000.
-# 2023-01-01
-#     (a)    A1.234 @ B3.456 = A1.234 @ B3.456
-# 
-# >=
-
-# 3. When showing digit group marks, print always shows a decimal mark as well,
+# 6. When showing digit group marks, print always shows a decimal mark as well,
 # even when no decimal digits are shown.
 <
 decimal-mark .
@@ -87,3 +119,25 @@ $ hledger -f- print
 
 >=
 
+# 7. print shows zeros with a commodity symbol and decimal digits when possible.
+# This also means that "multi-commodity zeros" are shown more verbosely.
+<
+2023-01-01
+    a   A 0.00
+    b   B 0.00
+    c
+
+2023-01-02
+    d
+
+$ hledger -f- print -x
+2023-01-01
+    a          A 0.00
+    b          B 0.00
+    c          A 0.00
+    c          B 0.00
+
+2023-01-02
+    d               0
+
+>=

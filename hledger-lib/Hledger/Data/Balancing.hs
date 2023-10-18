@@ -93,6 +93,7 @@ defbalancingopts = BalancingOpts
 transactionCheckBalanced :: BalancingOpts -> Transaction -> [String]
 transactionCheckBalanced BalancingOpts{commodity_styles_} t = errs
   where
+    -- get real and balanced virtual postings, to be checked separately
     (rps, bvps) = foldr partitionPosting ([], []) $ tpostings t
       where
         partitionPosting p ~(l, r) = case ptype p of
@@ -100,24 +101,30 @@ transactionCheckBalanced BalancingOpts{commodity_styles_} t = errs
             BalancedVirtualPosting -> (l, p:r)
             VirtualPosting         -> (l, r)
 
-    -- check for mixed signs, detecting nonzeros at display precision
-    setstyles = maybe id mixedAmountSetStyles commodity_styles_
+    -- convert this posting's amount to cost,
+    -- without getting confused by redundant costs/equity postings
     postingBalancingAmount p
       | "_price-matched" `elem` map fst (ptags p) = mixedAmountStripPrices $ pamount p
       | otherwise                                 = mixedAmountCost $ pamount p
-    signsOk ps =
-      case filter (not.mixedAmountLooksZero) $ map (setstyles.postingBalancingAmount) ps of
-        nonzeros | length nonzeros >= 2
-                   -> length (nubSort $ mapMaybe isNegativeMixedAmount nonzeros) > 1
-        _          -> True
-    (rsignsok, bvsignsok)       = (signsOk rps, signsOk bvps)
 
-    -- check for zero sum, at display precision
-    (rsumcost, bvsumcost)       = (foldMap postingBalancingAmount rps, foldMap postingBalancingAmount bvps)
-    (rsumdisplay, bvsumdisplay) = (setstyles rsumcost, setstyles bvsumcost)
-    (rsumok, bvsumok)           = (mixedAmountLooksZero rsumdisplay, mixedAmountLooksZero bvsumdisplay)
+    -- transaction balancedness is checked at each commodity's display precision
+    lookszero = mixedAmountLooksZero . atdisplayprecision
+      where
+        atdisplayprecision = maybe id styleAmounts $ commodity_styles_
 
-    -- generate error messages, showing amounts with their original precision
+    -- when there's multiple non-zeros, check they do not all have the same sign
+    (rsignsok, bvsignsok) = (signsOk rps, signsOk bvps)
+      where
+        signsOk ps = length nonzeros < 2 || length nonzerosigns > 1
+          where
+            nonzeros = filter (not.lookszero) $ map postingBalancingAmount ps
+            nonzerosigns = nubSort $ mapMaybe isNegativeMixedAmount nonzeros
+
+    -- check that the sum looks like zero
+    (rsumcost, bvsumcost) = (foldMap postingBalancingAmount rps, foldMap postingBalancingAmount bvps)
+    (rsumok, bvsumok) = (lookszero rsumcost, lookszero bvsumcost)
+
+    -- Generate error messages if any. Show amounts with their original precisions.
     errs = filter (not.null) [rmsg, bvmsg]
       where
         rmsg
@@ -250,7 +257,7 @@ transactionInferBalancingAmount styles t@Transaction{tpostings=ps}
               -- Inferred amounts are converted to cost.
               -- Also ensure the new amount has the standard style for its commodity
               -- (since the main amount styling pass happened before this balancing pass);
-              a' = mixedAmountSetStyles styles . mixedAmountCost $ maNegate a
+              a' = styleAmounts styles . mixedAmountCost $ maNegate a
 
 -- | Infer costs for this transaction's posting amounts, if needed to make
 -- the postings balance, and if permitted. This is done once for the real
@@ -337,8 +344,8 @@ costInferrerFor t pt = maybe id infercost inferFromAndTo
 
         unitprice     = aquantity fromamount `divideAmount` toamount
         unitprecision = case (asprecision $ astyle fromamount, asprecision $ astyle toamount) of
-            (Just (Precision a), Just (Precision b)) -> Precision . max 2 $ saturatedAdd a b
-            _                                        -> NaturalPrecision
+            (Precision a, Precision b) -> Precision . max 2 $ saturatedAdd a b
+            _                          -> NaturalPrecision
         saturatedAdd a b = if maxBound - a < b then maxBound else a + b
 
 
@@ -441,18 +448,21 @@ updateTransactionB t = withRunningBalance $ \BalancingState{bsTransactions}  ->
 -- and (optional) check that all balance assertions pass.
 -- Or, return an error message (just the first error encountered).
 --
--- Assumes journalInferCommodityStyles has been called, since those
+-- Assumes journalStyleAmounts has been called, since amount styles
 -- affect transaction balancing.
 --
 -- This does multiple things at once because amount inferring, balance
 -- assignments, balance assertions and posting dates are interdependent.
+--
 journalBalanceTransactions :: BalancingOpts -> Journal -> Either String Journal
 journalBalanceTransactions bopts' j' =
   let
     -- ensure transactions are numbered, so we can store them by number
     j@Journal{jtxns=ts} = journalNumberTransactions j'
     -- display precisions used in balanced checking
-    styles = Just $ journalCommodityStyles j
+    styles = Just $
+      journalCommodityStylesWith HardRounding  -- txn balancedness will be checked using commodity display precisions
+      j
     bopts = bopts'{commodity_styles_=styles}
       -- XXX ^ The commodity directive styles and default style and inferred styles
       -- are merged into the command line styles in commodity_styles_ - why ?
@@ -1009,26 +1019,26 @@ tests_Balancing =
       --
       testCase "1091a" $ do
         commodityStylesFromAmounts [
-           nullamt{aquantity=1000, astyle=AmountStyle L False Nothing (Just ',') (Just $ Precision 3)}
-          ,nullamt{aquantity=1000, astyle=AmountStyle L False (Just (DigitGroups ',' [3])) (Just '.') (Just $ Precision 2)}
+           nullamt{aquantity=1000, astyle=AmountStyle L False Nothing (Just ',') (Precision 3) NoRounding}
+          ,nullamt{aquantity=1000, astyle=AmountStyle L False (Just (DigitGroups ',' [3])) (Just '.') (Precision 2) NoRounding}
           ]
          @?=
           -- The commodity style should have period as decimal mark
           -- and comma as digit group mark.
           Right (M.fromList [
-            ("", AmountStyle L False (Just (DigitGroups ',' [3])) (Just '.') (Just $ Precision 3))
+            ("", AmountStyle L False (Just (DigitGroups ',' [3])) (Just '.') (Precision 3) NoRounding)
           ])
         -- same journal, entries in reverse order
       ,testCase "1091b" $ do
         commodityStylesFromAmounts [
-           nullamt{aquantity=1000, astyle=AmountStyle L False (Just (DigitGroups ',' [3])) (Just '.') (Just $ Precision 2)}
-          ,nullamt{aquantity=1000, astyle=AmountStyle L False Nothing (Just ',') (Just $ Precision 3)}
+           nullamt{aquantity=1000, astyle=AmountStyle L False (Just (DigitGroups ',' [3])) (Just '.') (Precision 2) NoRounding}
+          ,nullamt{aquantity=1000, astyle=AmountStyle L False Nothing (Just ',') (Precision 3) NoRounding}
           ]
          @?=
           -- The commodity style should have period as decimal mark
           -- and comma as digit group mark.
           Right (M.fromList [
-            ("", AmountStyle L False (Just (DigitGroups ',' [3])) (Just '.') (Just $ Precision 3))
+            ("", AmountStyle L False (Just (DigitGroups ',' [3])) (Just '.') (Precision 3) NoRounding)
           ])
 
      ]

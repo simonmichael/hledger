@@ -82,6 +82,7 @@ decimalKV d = let d' = if decimalPlaces d <= 10 then d else roundTo 10 d in
     ]
 
 instance ToJSON Amount
+instance ToJSON Rounding
 instance ToJSON AmountStyle
 
 -- Use the same JSON serialisation as Maybe Word8
@@ -193,6 +194,7 @@ instance FromJSON Pos where
   parseJSON = fmap mkPos . parseJSON
 
 instance FromJSON Amount
+instance FromJSON Rounding
 instance FromJSON AmountStyle
 
 -- Use the same JSON serialisation as Maybe Word8

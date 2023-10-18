@@ -52,6 +52,7 @@ import Text.Megaparsec.Char
 import Hledger.Data
 import Hledger.Read.Common hiding (emptyorcommentlinep)
 import Hledger.Utils
+import Data.Decimal (roundTo)
 
 --- ** doctest setup
 -- $setup
@@ -192,8 +193,8 @@ timedotentryp = do
   mcs <- getDefaultCommodityAndStyle
   let 
     (c,s) = case mcs of
-      Just (defc,defs) -> (defc, defs{asprecision=max (asprecision defs) (Just $ Precision 2)})
-      _ -> ("", amountstyle{asprecision=Just $ Precision 2})
+      Just (defc,defs) -> (defc, defs{asprecision=max (asprecision defs) (Precision 2)})
+      _ -> ("", amountstyle{asprecision=Precision 2})
   -- lift $ traceparse' "timedotentryp end"
   return $ nullposting{paccount=a
                       ,pamount=mixedAmount $ nullamt{acommodity=c, aquantity=hours, astyle=s}
@@ -228,7 +229,7 @@ numericquantityp = do
   let q' =
         case msymbol of
           Nothing  -> q
-          Just sym ->
+          Just sym -> roundTo 2 $
             case lookup sym timeUnits of
               Just mult -> q * mult
               Nothing   -> q  -- shouldn't happen.. ignore

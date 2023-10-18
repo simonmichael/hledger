@@ -618,7 +618,8 @@ tests_MultiBalanceReport = testGroup "MultiBalanceReport" [
 
   let
     amt0 = Amount {acommodity="$", aquantity=0, aprice=Nothing, 
-      astyle=AmountStyle {ascommodityside = L, ascommodityspaced = False, asdigitgroups = Nothing, asdecimalmark = Just '.', asprecision = Just $ Precision 2}}
+      astyle=AmountStyle {ascommodityside = L, ascommodityspaced = False, asdigitgroups = Nothing, 
+      asdecimalmark = Just '.', asprecision = Precision 2, asrounding = NoRounding}}
     (rspec,journal) `gives` r = do
       let rspec' = rspec{_rsQuery=And [queryFromFlags $ _rsReportOpts rspec, _rsQuery rspec]}
           (eitems, etotal) = r
