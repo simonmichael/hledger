@@ -25,14 +25,17 @@ To claim the bounty:
 4. Submit an expense to our Open Collective:
    - [Submit Expense](https://opencollective.com/hledger/expenses/new)
      (if you are logged in, it will be under the ACTIONS menu) 
-   - Choose Invoice
-   - Choose a Payout method, click Next
+   - Invoice
+   - choose a Payout method
+   - Next
    - Expense title: Regression bounty for #NNNN
    - Description: "QA", and the WORK DATE or WORK PERIOD
+   - Date: today's date
    - Amount: USD 100
-     - Or if you choose another currency, 
-       convert with that day's conversion rate,
-       and mention the rate in Description
+     (or if you choose another currency, convert with that day's conversion rate
+      and mention the rate in Description)
+   - Next
+   - Submit Expense
 5. Announce on the issue page or in chat that you've submitted (to help ensure it is not overlooked)
 6. Wait for the issue manager to approve it. This should not take more than a day or two.
 7. Then wait for Open Collective to pay it. Payouts happen twice a week.
