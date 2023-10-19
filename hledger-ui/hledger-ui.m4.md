@@ -266,6 +266,12 @@ Each line represents one transaction, and shows:
   - or the historical total, which includes any undisplayed transactions before the start of the report period (and matching the filter query if any).
     This will be the running historical balance (what you would see on a bank's website, eg) if not disturbed by a query.
 
+Note, this screen combines each transaction's in-period postings to a
+single line item, dated with the earliest in-period transaction or
+posting date (like hledger's `aregister`). So custom posting dates can
+cause the running balance to be temporarily inaccurate.
+(See [hledger manual > aregister and posting dates](hledger.md#aregister-and-posting-dates).)
+
 Transactions affecting this account's subaccounts will be included in the register
 if the accounts screen is in tree mode,
 or if it's in list mode but this account has subaccounts which are not shown due to a depth limit.

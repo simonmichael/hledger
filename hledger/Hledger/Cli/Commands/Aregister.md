@@ -64,16 +64,19 @@ This command also supports the
 [output format](hledger.html#output-format) options.
 The output formats supported are `txt`, `csv`, and `json`.
 
-### aregister and custom posting dates
+### aregister and posting dates
 
-Transactions whose date is outside the report period can still be
-shown, if they have a posting to this account dated inside the report
-period. (And in this case it's the posting date that is shown.) 
-This ensures that `aregister` can show an accurate historical running
-balance, matching the one shown by `register -H` with the same
-arguments.
+aregister always shows one line (and date and amount) per transaction.
+But sometimes transactions have postings with different dates.  Also,
+not all of a transaction's postings may be within the report period.
+To resolve this, aregister shows the earliest of the transaction's
+date and posting dates that is in-period, and the sum of the in-period
+postings.  In other words it will show a combined line item with just
+the earliest date, and the running balance will (temporarily, until
+the transaction's last posting) be inaccurate. Use `register -H` if
+you need to see the individual postings.
 
-To filter strictly by transaction date instead, add the `--txn-dates`
-flag. If you use this flag and some of your postings have custom
-dates, it's probably best to assume the running balance is wrong.
+There is also a `--txn-dates` flag, which filters strictly by
+transaction date, ignoring posting dates. This too can cause an
+inaccurate running balance.
 
