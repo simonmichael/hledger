@@ -94,9 +94,14 @@ household:
 
 # import any new forecast transactions; add --dry to preview
 @forecast-import *ARGS:
-    echo "forecasting transactions"
-    hledger import future.journal --forecast=15daysago..15days --auto -I {{ ARGS }} 2>>import.log || echo "Failed, check import.log"
-
+    #!/usr/bin/env bash
+    echo "importing transactions from forecast rules"
+    hledger import forecast.journal --forecast=15daysago..15days --auto -I {{ ARGS }} 2>>import.log || echo "Failed, check import.log"
+    if [[ "$ARGS" != *"--dry"* ]]; then
+      echo "(remove any near-future transactions included for preview)"
+      echo "resetting .latest.forecast.journal to today's date"
+      date +%Y-%m-%d >.latest.forecast.journal
+    fi
 
 # get and import all the above; add --dry to preview
 @import *ARGS:
