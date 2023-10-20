@@ -1,4 +1,5 @@
 # Fidelity account csv rules
+# Fidelity's CSV might be found at: All accounts > Activity & Orders > Download icon at top right
 
 # This CSV needs the leading spaces removed before parsing,
 # eg with sed 's/^ //'. Here's an example script automating that:

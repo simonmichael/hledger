@@ -1,4 +1,5 @@
 # Vanguard account csv rules
+# Vanguard's CSV might be found at: Balances -> Download center
 
 # No need for a wildcard here - repeated downloads keep the same name,
 # for me with safari at least, unlike with wells fargo csvs.
