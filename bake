@@ -14,6 +14,7 @@ Commands:
 ./bake relfiles     - symlink important files temporarily in .relfiles/
 ./bake prep VERSION - prepare this release on today's date
 ./bake bin          - push the current branch to CI to generate binaries
+./bake lastweek     - show last week info useful for TWIH
 
 prep does the following:
 - autocreates and switches to the appropriate release branch
@@ -150,6 +151,15 @@ prep() {
 # Assumes the github remote is named "github".
 bin() {
   run git push -f github HEAD:binaries
+}
+
+# Show last week info, useful for TWIH (sm's at least).
+lastweek() {
+  tt bal hledger -DTS -b '7 days ago'
+  echo
+  tt print hledger -b '7 days ago' | grep -E '^[^ ]|hledger'
+  echo
+  git log --format='%C(yellow)%cd %ad %Cred%h%Creset %s %Cgreen(%an)%Creset%C(bold blue)%d%Creset' --date=short --since="7 days ago" --reverse
 }
 
 if declare -f "$1" > /dev/null; then "$@"; else usage; fi
