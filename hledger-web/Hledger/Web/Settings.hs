@@ -12,12 +12,15 @@ module Hledger.Web.Settings where
 import Data.Default (def)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Yaml
 import Language.Haskell.TH.Syntax (Q, Exp)
 import Text.Hamlet
 import Text.Shakespeare.Text (st)
 import Yesod.Default.Config
 import Yesod.Default.Util
+
+import Hledger.Cli.Version (packagemajorversion)
 
 development :: Bool
 development =
@@ -31,10 +34,10 @@ production :: Bool
 production = not development
 
 hledgerorgurl :: Text
-hledgerorgurl = "http://hledger.org"
+hledgerorgurl = "https://hledger.org"
 
 manualurl :: Text
-manualurl = hledgerorgurl <> "hledger.html"
+manualurl = hledgerorgurl <> "/" <> T.pack packagemajorversion <> "/hledger.html"
 
 -- | The default IP address to listen on. May be overridden with --host.
 defhost :: String
