@@ -245,10 +245,10 @@ install-as-%: $(call def-help,install-as-FOO, like make install but install to b
 	@printf "\nMoved executables to:\n"
 	@for EXE in $(BINARIES); do mv bin/old/$$EXE bin/old/$$EXE-$*; echo "- bin/$$EXE-$*"; done
 
-copy-exe-%: $(call def-help,copy-exe.FOO, copy ~/.local/bin/hledger to bin/old/hledger-FOO)
+copy-exe-%: $(call def-help,copy-exe-FOO, copy ~/.local/bin/hledger to bin/old/hledger-FOO)
 	cp ~/.local/bin/hledger bin/old/hledger-$*
 
-copy-exes-%: $(call def-help,copy-exes.FOO, copy ~/.local/bin/hledger* to bin/old/hledger*-FOO)
+copy-exes-%: $(call def-help,copy-exes-FOO, copy ~/.local/bin/hledger* to bin/old/hledger*-FOO)
 	for EXE in $(BINARIES); do cp ~/.local/bin/$$EXE bin/old/$$EXE-$*; done
 
 ###############################################################################
