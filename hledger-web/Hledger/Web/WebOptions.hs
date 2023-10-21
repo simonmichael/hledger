@@ -117,17 +117,17 @@ webmode =
 
 -- hledger-web options, used in hledger-web and above
 data WebOpts = WebOpts
-  { serve_ :: Bool
-  , serve_api_ :: Bool
-  , cors_ :: Maybe String
-  , host_ :: String
-  , port_ :: Int
-  , base_url_ :: String
-  , file_url_ :: Maybe String
-  , capabilities_ :: [Capability]
-  , capabilitiesHeader_ :: Maybe (CI ByteString)
-  , cliopts_ :: CliOpts
-  , socket_ :: Maybe String
+  { serve_              :: !Bool
+  , serve_api_          :: !Bool
+  , cors_               :: !(Maybe String)
+  , host_               :: !String
+  , port_               :: !Int
+  , base_url_           :: !String
+  , file_url_           :: !(Maybe String)
+  , capabilities_       :: ![Capability]
+  , capabilitiesHeader_ :: !(Maybe (CI ByteString))
+  , cliopts_            :: !CliOpts
+  , socket_             :: !(Maybe String)
   } deriving (Show)
 
 defwebopts :: WebOpts
