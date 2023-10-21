@@ -91,7 +91,9 @@ module Hledger.Data.Amount (
   amountSetPrecision,
   withPrecision,
   amountSetFullPrecision,
-  -- amountInternalPrecision,
+  amountSetFullPrecisionUpTo,
+  amountInternalPrecision,
+  amountDisplayPrecision,
   setAmountInternalPrecision,
   withInternalPrecision,
   setAmountDecimalPoint,
@@ -375,17 +377,36 @@ amountSetPrecision p a@Amount{astyle=s} = a{astyle=s{asprecision=p}}
 
 -- | Increase an amount's display precision, if needed, to enough decimal places
 -- to show it exactly (showing all significant decimal digits, without trailing zeros).
--- If the amount's display precision is unset, it is will be treated as precision 0.
+-- If the amount's display precision is unset, it will be treated as precision 0.
 amountSetFullPrecision :: Amount -> Amount
 amountSetFullPrecision a = amountSetPrecision p a
   where
     p                = max displayprecision naturalprecision
     displayprecision = asprecision $ astyle a
-    naturalprecision = Precision . decimalPlaces . normalizeDecimal $ aquantity a
+    naturalprecision = Precision $ amountInternalPrecision a
+-- XXX Is that last sentence correct ?
+-- max (Precision n) NaturalPrecision is NaturalPrecision.
+-- Would this work instead ?
+-- amountSetFullPrecision a = amountSetPrecision (Precision p) a
+--   where p = max (amountDisplayPrecision a) (amountInternalPrecision a)
 
--- -- | Get an amount's internal Decimal precision (not display precision).
--- amountInternalPrecision :: Amount -> Word8
--- amountInternalPrecision = decimalPlaces . normalizeDecimal . aquantity
+-- | Similar to amountSetPrecision, but with an upper limit (up to 255).
+-- And always sets an explicit Precision.
+-- Useful for showing a not-too-verbose approximation of amounts with infinite decimals.
+amountSetFullPrecisionUpTo :: Word8 -> Amount -> Amount
+amountSetFullPrecisionUpTo n a = amountSetPrecision (Precision p) a
+  where p = min n $ max (amountDisplayPrecision a) (amountInternalPrecision a)
+
+-- | How many internal decimal digits are stored for this amount ?
+amountInternalPrecision :: Amount -> Word8
+amountInternalPrecision = decimalPlaces . normalizeDecimal . aquantity
+
+-- | How many decimal digits will be displayed for this amount ?
+amountDisplayPrecision :: Amount -> Word8
+amountDisplayPrecision a =
+  case asprecision $ astyle a of
+    Precision n      -> n
+    NaturalPrecision -> amountInternalPrecision a
 
 -- | Set an amount's internal precision, ie rounds the Decimal representing
 -- the amount's quantity to some number of decimal places.

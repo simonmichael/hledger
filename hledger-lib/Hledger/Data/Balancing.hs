@@ -461,7 +461,10 @@ journalBalanceTransactions bopts' j' =
     j@Journal{jtxns=ts} = journalNumberTransactions j'
     -- display precisions used in balanced checking
     styles = Just $
-      journalCommodityStylesWith HardRounding  -- txn balancedness will be checked using commodity display precisions
+      -- Use all the specified commodity display precisions, with hard rounding, when checking txn balancedness.
+      -- XXX Problem, those precisions will also be used when inferring balancing amounts;
+      -- it would be better to give those the precision of the amount they are balancing.
+      journalCommodityStylesWith HardRounding
       j
     bopts = bopts'{commodity_styles_=styles}
       -- XXX ^ The commodity directive styles and default style and inferred styles

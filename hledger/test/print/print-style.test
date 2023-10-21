@@ -1,4 +1,4 @@
-# * print amount style tests
+# * print command's amount styling
 #
 # Here's an overview of historical behaviour.
 # See the tests below for examples.
@@ -33,7 +33,7 @@
 #  | 1.31.1 --round=all  | hard | hard | hard | hard    |
 
 
-# Four print style tests. In these, basic styling is applied
+# ** Four print style tests. In these, basic styling is applied
 # to all amounts (the commodity symbol moves to the left),
 # and precision styling is applied as described below.
 <
@@ -141,3 +141,140 @@ $ hledger -f- print -x
     d               0
 
 >=
+
+# ** Some style/precision behaviours with cost and value, with explanations as of 2023-10.
+
+# ** 8. Costs normally don't affect display precisions,
+# so why is it showing the B amounts with 4 decimal digits instead of the default 0 ?
+# Summary: a's calculated cost has 4 digits, and so also must the inferred b amount.
+#
+# Some implementation-level explanation, for the record:
+#
+# In journalFinalise,
+#
+# journalStyleAmounts infers A and B display styles and A precision 0,
+# and applies the style but not the precision to the A amount.
+# 
+# journalBalanceTransactions infers b's amount from a's cost,
+# which it calculates as 0.1234 B.
+# 
+# journalInferCommodityStyles infers commodity styles again,
+# now inferring B precision 4 from b's amount.
+# 
+# entriesReport converts a's amount to cost, calculating 0.1234 B
+# with journalToCost, which does not re-apply styles or precisions.
+#
+# print does no rounding and shows a's cost 0.1234 B and b's amount 0.1234 B.
+
+<
+2023-01-01
+  a    1 A @ 0.1234 B
+  b
+
+$ hledger -f- print -x -B
+2023-01-01
+    a        0.1234 B
+    b       -0.1234 B
+
+>=
+
+# ** 9. Why is it showing the B amounts with 4 decimal digits here ?
+# Summary: the a value is calculated from a nullamt with 0 decimal digits,
+# then re-styled again with the 4 digit B precision inferred from b's amount.
+# This works out right, in this case.
+#
+# Details:
+#
+# journalStyleAmounts infers A display style and A precision 0 from 10 A,
+# and applies the style but not the precision to all A amounts.
+#
+# journalBalanceTransactions infers b's amount from a's cost,
+# which it calculates as 0.1234 B.
+# 
+# journalInferCommodityStyles infers commodity styles again,
+# now inferring B precision 4 from b's amount.
+# 
+# journalInferMarketPricesFromTransactions infers a 0.1234 B price for A.
+# 
+# entriesReport converts 10 A to value using that price,
+# with amountValueAtDate, which calculates from nullamt (would show as B0)
+# then re-applies the inferred B style (symbol on the right)
+# and sets the price's (0.1234) numeric precision (4) as the display precision,
+# showing 0.1234 B.
+# 
+# print does no rounding, and shows a's value 0.1234 B and b's amount 0.1234 B.
+
+<
+2023-01-01
+  a    1 A @ 0.1234 B
+  b
+
+$ hledger -f - print --infer-market-prices -V
+2023-01-01
+    a        0.1234 B
+    b       -0.1234 B
+
+>=
+
+# ** 10. What if a different style/precision is specified for B, eg more digits
+# than the price ? We still expect the calculated amount to have the price's precision,
+# as above.
+# XXX
+# 2023-01-01
+#     a         0.1234B
+#     b       -0.12340B
+<
+2023-01-01
+  a    1 A @ 0.1234 B
+  b
+
+$ hledger -f - print --infer-market-prices -V -c '0.123456B'
+2023-01-01
+    a         0.1234B
+    b        -0.1234B
+
+>=
+
+# ** 11. Printing A's value in B, using an inferred reverse market price,
+# with no B amount written in the journal to infer a display precision from.
+# In this case B is displayed with the default style (symbol on the left)
+# and the numeric precision of the inferred price 0.5 (1 decimal  digit).
+# (#2105)
+<
+P 2023-01-01 B 2A
+
+2023-01-01
+  a  1A
+  b
+
+$ hledger -f- print -X B
+2023-01-01
+    a            B0.5
+    b           B-0.5
+
+>=
+
+# ** 12. What if the inferred reverse market price has infinite decimal digits ?
+<
+P 2023-01-01 B 3.00A
+
+2023-01-01
+  a  1A
+  b
+
+# current:
+# That propagates to the calculated value, causing it to be displayed with the
+# maximum 255 decimal digits.
+$ hledger -f- print -X B
+2023-01-01
+    a     B0.3333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333
+    b    B-0.3333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333
+
+# preferred:
+# The reverse price is given the same precision as in the forward price declaration
+# it was inferred from - 2 digits in this example, and that in turn affects the
+# calculated value.
+#2023-01-01
+#    a     B0.33
+#    b    B-0.33
+

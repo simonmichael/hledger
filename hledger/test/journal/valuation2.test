@@ -57,24 +57,14 @@ $ hledger -f- print -x --value=now,Z
 
 # ** 6. request commodity C - uses reverse of C->B price.
 # There's nothing setting C display style, so the default style is used,
-# which shows no decimal digits.
-# And because that makes it display as zero, the commodity symbol
-# and sign are not shown either.
+# but the precision is increased to show all significant decimal digits
+# (otherwise it would show C0).
 $ hledger -f- print -x --value=now,C
 2019-06-01
-    a              C0
-    b              C0
+    a            C0.5
+    b           C-0.5
 
 >=
-# # There's nothing setting C display style, so the default style is used,
-# # but the precision is increased to show the decimal digit
-# # (otherwise it would show C0).
-# $ hledger -f- print -x --value=now,C
-# 2019-06-01
-#     a            C0.5
-#     b           C-0.5
-#
-# >=
 
 # ** 7. request commodity D - chains B->A, A->D prices
 $ hledger -f- print -x --value=now,D
