@@ -795,7 +795,7 @@ journalModifyTransactions verbosetags d j =
     Left err -> Left err
 
 -- | Apply this journal's commodity display styles to all of its amounts.
--- This does soft rounding (adding/removing decimal zeros, but not losing significant decimal digits);
+-- This does no display rounding, keeping decimal digits as they were;
 -- it is suitable for an early cleanup pass before calculations.
 -- Reports may want to do additional rounding/styling at render time.
 -- This can return an error message eg if inconsistent number formats are found.
