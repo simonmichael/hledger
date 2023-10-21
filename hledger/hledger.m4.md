@@ -118,12 +118,12 @@ For more about how to do that on your system, see [Common tasks > Setting LEDGER
 Usually the data file is in hledger's journal format, but it can be in
 any of the supported file formats, which currently are:
 
-| Reader:     | Reads:                                                           | Used for file extensions:            |
-|-------------|------------------------------------------------------------------|--------------------------------------|
-| `journal`   | hledger journal files and some Ledger journals, for transactions | `.journal` `.j` `.hledger` `.ledger` |
-| `timeclock` | timeclock files, for precise time logging                        | `.timeclock`                         |
-| `timedot`   | timedot files, for approximate time logging                      | `.timedot`                           |
-| `csv`       | CSV/SSV/TSV/character-separated values, for data import          | `.csv` `.ssv` `.tsv` `.csv.rules` `.ssv.rules` `.tsv.rules` |
+| Reader:                   | Reads:                                                           | Used for file extensions:                                   |
+|---------------------------|------------------------------------------------------------------|-------------------------------------------------------------|
+| [`journal`](#journal)     | hledger journal files and some Ledger journals, for transactions | `.journal` `.j` `.hledger` `.ledger`                        |
+| [`timeclock`](#timeclock) | timeclock files, for precise time logging                        | `.timeclock`                                                |
+| [`timedot`](#timedot)     | timedot files, for approximate time logging                      | `.timedot`                                                  |
+| [`csv`](#csv)             | CSV/SSV/TSV/character-separated values, for data import          | `.csv` `.ssv` `.tsv` `.csv.rules` `.ssv.rules` `.tsv.rules` |
 
 These formats are described in more detail below.
 
