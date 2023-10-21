@@ -8,6 +8,7 @@ module Hledger.Cli.Version (
   PackageVersion,
   VersionString,
   packageversion,
+  packagemajorversion,
   progname,
   versionStringWith,
 )
@@ -17,6 +18,8 @@ import GitHash (GitInfo, giHash, giCommitDate)  -- giDirty
 import System.Info (os, arch)
 import Data.List (intercalate)
 import Data.Maybe (fromMaybe)
+
+import Hledger.Utils (splitAtElement)
 
 type ProgramName    = String
 type PackageVersion = String
@@ -31,6 +34,10 @@ packageversion =
 #else
   ""
 #endif
+
+-- | Just the first 1-2 components of packageversion.
+packagemajorversion :: PackageVersion
+packagemajorversion = intercalate "." $ take 2 $ splitAtElement '.' packageversion
 
 -- | The name of this package's main executable.
 progname :: ProgramName
