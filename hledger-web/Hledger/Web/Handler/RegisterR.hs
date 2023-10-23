@@ -26,8 +26,8 @@ import Hledger.Web.Widget.Common
 getRegisterR :: Handler Html
 getRegisterR = do
   checkServerSideUiEnabled
-  VD{caps, j, q, opts, qparam, qopts, today} <- getViewData
-  when (CapView `notElem` caps) (permissionDenied "Missing the 'view' capability")
+  VD{perms, j, q, opts, qparam, qopts, today} <- getViewData
+  when (ViewPermission `notElem` perms) (permissionDenied "Missing the 'view' permission")
 
   let (a,inclsubs) = fromMaybe ("all accounts",True) $ inAccount qopts
       s1 = if inclsubs then "" else " (excluding subaccounts)"

@@ -23,4 +23,4 @@ import           Text.Blaze           as Import (Markup)
 import           Hledger.Web.Foundation           as Import
 import           Hledger.Web.Settings             as Import
 import           Hledger.Web.Settings.StaticFiles as Import
-import           Hledger.Web.WebOptions           as Import (Capability(..))
+import           Hledger.Web.WebOptions           as Import (Permission(..))

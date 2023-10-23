@@ -30,8 +30,8 @@ getAddR = do
 postAddR :: Handler ()
 postAddR = do
   checkServerSideUiEnabled
-  VD{caps, j, today} <- getViewData
-  when (CapAdd `notElem` caps) (permissionDenied "Missing the 'add' capability")
+  VD{perms, j, today} <- getViewData
+  when (AddPermission `notElem` perms) (permissionDenied "Missing the 'add' permission")
 
   ((res, view), enctype) <- runFormPost $ addForm j today
   case res of
@@ -59,8 +59,8 @@ postAddR = do
 -- The web form handler above should probably use PUT as well.
 putAddR :: Handler RepJson
 putAddR = do
-  VD{caps, j, opts} <- getViewData
-  when (CapAdd `notElem` caps) (permissionDenied "Missing the 'add' capability")
+  VD{perms, j, opts} <- getViewData
+  when (AddPermission `notElem` perms) (permissionDenied "Missing the 'add' permission")
 
   (r :: Result Transaction) <- parseCheckJsonBody
   case r of

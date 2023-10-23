@@ -20,8 +20,8 @@ import Hledger.Web.Widget.Common
 getJournalR :: Handler Html
 getJournalR = do
   checkServerSideUiEnabled
-  VD{caps, j, q, opts, qparam, qopts, today} <- getViewData
-  when (CapView `notElem` caps) (permissionDenied "Missing the 'view' capability")
+  VD{perms, j, q, opts, qparam, qopts, today} <- getViewData
+  when (ViewPermission `notElem` perms) (permissionDenied "Missing the 'view' permission")
   let title = case inAccount qopts of
         Nothing -> "General Journal"
         Just (a, inclsubs) -> "Transactions in " <> a <> if inclsubs then "" else " (excluding subaccounts)"

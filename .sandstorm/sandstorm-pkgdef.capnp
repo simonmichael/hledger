@@ -54,7 +54,7 @@ const pkgdef :Spk.PackageDefinition = (
         #marketBig = (svg = embed "path/to/market-big-300x300.svg"),
       ),
 
-      website = "http://hledger.org",
+      website = "https://hledger.org",
       # This should be the app's main website url.
 
       codeUrl = "https://github.com/simonmichael/hledger",
@@ -204,41 +204,38 @@ const pkgdef :Spk.PackageDefinition = (
           description = (defaultText = "grants ability to append transactions to the ledger"),
         ),
         (
-          name = "manage",
-          title = (defaultText = "manage"),
-          description = (defaultText = "grants ability to modify or replace the entire ledger"),
+          name = "edit",
+          title = (defaultText = "edit"),
+          description = (defaultText = "grants ability to modify transactions and directives or erase the entire ledger"),
         ),
       ],
       roles = [
         # Roles are logical collections of permissions.  For instance, your app may have
         # a "viewer" role and an "editor" role
         (
-          title = (defaultText = "manager"),
           # Name of the role.  Shown in the Sandstorm UI to indicate which users have which roles.
-
-          permissions  = [true, true, true],
+          title = (defaultText = "viewer"),
           # An array indicating which permissions this role carries.
           # It should be the same length as the permissions array in
           # viewInfo, and the order of the lists must match.
-
-          verbPhrase = (defaultText = "has full access to the ledger"),
+          permissions  = [true, false, false],
           # Brief explanatory text to show in the sharing UI indicating
           # what a user assigned this role will be able to do with the grain.
-
-          description = (defaultText = "managers can modify the ledger in any way."),
+          verbPhrase = (defaultText = "can view the ledger"),
           # Prose describing what this role means, suitable for a tool tip or similar help text.
+          description = (defaultText = "viewers can only view the ledger."),
+        ),
+        (
+          title = (defaultText = "adder"),
+          permissions  = [true, true, false],
+          verbPhrase = (defaultText = "can append new transactions"),
+          description = (defaultText = "adders can view the ledger and add new transactions to it."),
         ),
         (
           title = (defaultText = "editor"),
-          permissions  = [true, true, false],
-          verbPhrase = (defaultText = "can append new transactions"),
-          description = (defaultText = "editors can view the ledger or append new transactions to it."),
-        ),
-        (
-          title = (defaultText = "viewer"),
-          permissions  = [true, false, false],
-          verbPhrase = (defaultText = "can view the ledger"),
-          description = (defaultText = "viewers can only view the ledger."),
+          permissions  = [true, true, true],
+          verbPhrase = (defaultText = "has full access to the ledger"),
+          description = (defaultText = "editors can change or erase transactions and directives."),
         ),
       ],
     ),

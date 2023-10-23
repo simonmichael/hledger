@@ -38,17 +38,17 @@ getRootR = do
 getManageR :: Handler Html
 getManageR = do
   checkServerSideUiEnabled
-  VD{caps, j} <- getViewData
-  when (CapManage `notElem` caps) (permissionDenied "Missing the 'manage' capability")
+  VD{perms, j} <- getViewData
+  when (EditPermission `notElem` perms) (permissionDenied "Missing the 'edit' permission")
   defaultLayout $ do
-    setTitle "Manage journal"
+    setTitle "Edit journal"
     $(widgetFile "manage")
 
 getDownloadR :: FilePath -> Handler TypedContent
 getDownloadR f = do
   checkServerSideUiEnabled
-  VD{caps, j} <- getViewData
-  when (CapManage `notElem` caps) (permissionDenied "Missing the 'manage' capability")
+  VD{perms, j} <- getViewData
+  when (EditPermission `notElem` perms) (permissionDenied "Missing the 'edit' permission")
   (f', txt) <- journalFile404 f j
   addHeader "Content-Disposition" ("attachment; filename=\"" <> T.pack f' <> "\"")
   sendResponse ("text/plain" :: ByteString, toContent txt)
@@ -57,50 +57,50 @@ getDownloadR f = do
 
 getVersionR :: Handler TypedContent
 getVersionR = do
-  VD{caps} <- getViewData
-  when (CapView `notElem` caps) (permissionDenied "Missing the 'view' capability")
+  VD{perms} <- getViewData
+  when (ViewPermission `notElem` perms) (permissionDenied "Missing the 'view' permission")
   selectRep $ do
     provideJson $ packageversion
 
 getAccountnamesR :: Handler TypedContent
 getAccountnamesR = do
-  VD{caps, j} <- getViewData
-  when (CapView `notElem` caps) (permissionDenied "Missing the 'view' capability")
+  VD{perms, j} <- getViewData
+  when (ViewPermission `notElem` perms) (permissionDenied "Missing the 'view' permission")
   selectRep $ do
     provideJson $ journalAccountNames j
 
 getTransactionsR :: Handler TypedContent
 getTransactionsR = do
-  VD{caps, j} <- getViewData
-  when (CapView `notElem` caps) (permissionDenied "Missing the 'view' capability")
+  VD{perms, j} <- getViewData
+  when (ViewPermission `notElem` perms) (permissionDenied "Missing the 'view' permission")
   selectRep $ do
     provideJson $ jtxns j
 
 getPricesR :: Handler TypedContent
 getPricesR = do
-  VD{caps, j} <- getViewData
-  when (CapView `notElem` caps) (permissionDenied "Missing the 'view' capability")
+  VD{perms, j} <- getViewData
+  when (ViewPermission `notElem` perms) (permissionDenied "Missing the 'view' permission")
   selectRep $ do
     provideJson $ map priceDirectiveToMarketPrice $ jpricedirectives j
 
 getCommoditiesR :: Handler TypedContent
 getCommoditiesR = do
-  VD{caps, j} <- getViewData
-  when (CapView `notElem` caps) (permissionDenied "Missing the 'view' capability")
+  VD{perms, j} <- getViewData
+  when (ViewPermission `notElem` perms) (permissionDenied "Missing the 'view' permission")
   selectRep $ do
     provideJson $ (M.keys . jinferredcommodities) j
 
 getAccountsR :: Handler TypedContent
 getAccountsR = do
-  VD{caps, j} <- getViewData
-  when (CapView `notElem` caps) (permissionDenied "Missing the 'view' capability")
+  VD{perms, j} <- getViewData
+  when (ViewPermission `notElem` perms) (permissionDenied "Missing the 'view' permission")
   selectRep $ do
     provideJson $ flattenAccounts $ mapAccounts (accountSetDeclarationInfo j) $ ledgerRootAccount $ ledgerFromJournal Any j
 
 getAccounttransactionsR :: Text -> Handler TypedContent
 getAccounttransactionsR a = do
-  VD{caps, j} <- getViewData
-  when (CapView `notElem` caps) (permissionDenied "Missing the 'view' capability")
+  VD{perms, j} <- getViewData
+  when (ViewPermission `notElem` perms) (permissionDenied "Missing the 'view' permission")
   let
     rspec = defreportspec
     thisacctq = Acct $ accountNameToAccountRegex a -- includes subs

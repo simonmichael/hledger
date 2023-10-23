@@ -35,5 +35,5 @@
           <td style="text-align:right;">
             ^{mixedAmountAsHtml bal}
 
-$if elem CapAdd caps
+$if elem AddPermission perms
   ^{addModal AddR j today}
