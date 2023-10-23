@@ -161,7 +161,10 @@ runAsciinemaPlay speed idlelimit content args =
       ,args
       ])
       `catchIOError` \err -> do
-        putStrLn $ "There was a problem. Is asciinema installed ?\n" <> show err  --  (or PowerSession on Windows)
+        putStrLn $ "\n" <> show err
+        putStrLn "Error: running asciinema failed. Trying 'asciinema --version':"
+        callProcess "asciinema" ["--version"] `catchIOError` \_ ->
+          putStrLn "This also failed. Check that asciinema is installed in your PATH."
         exitFailure
   where
     showwithouttrailingzero = dropWhileEnd (=='.') . dropWhileEnd (=='0') . show
