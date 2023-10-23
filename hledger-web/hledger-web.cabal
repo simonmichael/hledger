@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.35.2.
+-- This file has been generated from package.yaml by hpack version 0.36.0.
 --
 -- see: https://github.com/sol/hpack
 
@@ -179,6 +179,7 @@ library
     , megaparsec >=7.0.0 && <9.6
     , mtl >=2.2.1
     , network
+    , safe >=0.3.19
     , shakespeare >=2.0.2.2
     , template-haskell
     , text >=1.2
