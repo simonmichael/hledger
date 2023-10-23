@@ -5,8 +5,8 @@
 -- -- (use a released hledger from stackage)
 
 -- A custom compound report - like incomestatement but with different,
--- customisable subheadings/subreports. More verbose and haskelly but
--- also more robust and powerful than hledger-report1.sh.
+-- customisable subheadings/subreports. More verbose and haskelly than
+-- hledger-report1.sh but also more robust and powerful.
 
 {-# LANGUAGE OverloadedStrings, PackageImports #-}
 
@@ -24,6 +24,7 @@ cmdmode = hledgerCommandMode (unlines
 main = do
   opts@CliOpts{reportspec_=rspec} <- getHledgerCliOpts cmdmode
   withJournalDo opts $ flip compoundBalanceCommand opts $
+
     -- see https://hackage.haskell.org/package/hledger/docs/Hledger-Cli-CompoundBalanceCommand.html
     -- and https://hackage.haskell.org/package/hledger-lib-1.31/docs/Hledger-Query.html
     CompoundBalanceCommandSpec {
@@ -31,6 +32,7 @@ main = do
       cbctitle   = "Report1 Statement",
       cbcaccum   = PerPeriod,
       cbcqueries = [
+
          CBCSubreportSpec{
             cbcsubreporttitle="Revenues"
           ,cbcsubreportquery=Type [Revenue]
@@ -38,6 +40,7 @@ main = do
           ,cbcsubreporttransform=fmap maNegate
           ,cbcsubreportincreasestotal=True
           }
+
         ,CBCSubreportSpec{
             cbcsubreporttitle="Operating Expenses"
           ,cbcsubreportquery=And [Type [Expense], Acct $ toRegex' "Operating"]
@@ -45,6 +48,7 @@ main = do
           ,cbcsubreporttransform=id
           ,cbcsubreportincreasestotal=False
           }
+
         ,CBCSubreportSpec{
             cbcsubreporttitle="Other Expenses"
           ,cbcsubreportquery=And [Type [Expense], Not $ Acct $ toRegex' "Operating"]
@@ -53,4 +57,5 @@ main = do
           ,cbcsubreportincreasestotal=False
           }
         ]
+
     }
