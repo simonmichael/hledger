@@ -29,4 +29,4 @@ set -euo pipefail
 mkdir -p /var/lib/hledger
 touch /var/lib/hledger/Ledger
 cd /var
-hledger-web --capabilities-header=X-Sandstorm-Permissions --serve --base-url='' -f /var/lib/hledger/Ledger --port 8000
+hledger-web --allow=sandstorm --serve --base-url='' -f /var/lib/hledger/Ledger --port 8000
