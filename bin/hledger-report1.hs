@@ -1,12 +1,12 @@
 #!/usr/bin/env stack
 -- stack runghc --verbosity error --package hledger --package hledger-lib --package text --package safe 
---  ^ use a local source hledger (in case you need the latest)
+-- (use the local hledger source)
 -- -- stack script --compile --resolver nightly-2023-10-13 --verbosity info --package hledger --package text
--- --  ^ or use a released hledger from stackage
+-- -- (use a released hledger from stackage)
 
--- A custom compound report - like incomestatement but with different
--- subheadings/subreports. More verbose and haskelly than
--- hledger-report1.sh but also more robust and powerful.
+-- A custom compound report - like incomestatement but with different,
+-- customisable subheadings/subreports. More verbose and haskelly but
+-- also more robust and powerful than hledger-report1.sh.
 
 {-# LANGUAGE OverloadedStrings, PackageImports #-}
 
@@ -15,7 +15,6 @@ import qualified "text" Data.Text as T
 import qualified "text" Data.Text.IO as T
 
 cmdmode = hledgerCommandMode (unlines
-    -- Command name, then --help text, then _FLAGS; empty help lines get stripped:
   ["report1"
   ,"A custom compound report - like the incomestatement command but easier to  customise."
   ,"Usage: hledger-report1 [OPTS] [ARGS]"
@@ -25,34 +24,33 @@ cmdmode = hledgerCommandMode (unlines
 main = do
   opts@CliOpts{reportspec_=rspec} <- getHledgerCliOpts cmdmode
   withJournalDo opts $ flip compoundBalanceCommand opts $
-    -- define the custom report
     -- see https://hackage.haskell.org/package/hledger/docs/Hledger-Cli-CompoundBalanceCommand.html
     -- and https://hackage.haskell.org/package/hledger-lib-1.31/docs/Hledger-Query.html
     CompoundBalanceCommandSpec {
-      cbcdoc      = "report1 help text",
-      cbctitle    = "Report1 Statement",
-      cbcqueries  = [
+      cbcdoc     = "report1 help text",
+      cbctitle   = "Report1 Statement",
+      cbcaccum   = PerPeriod,
+      cbcqueries = [
          CBCSubreportSpec{
-          cbcsubreporttitle="Revenues"
-         ,cbcsubreportquery=Type [Revenue]
-         ,cbcsubreportoptions=(\ropts -> ropts{normalbalance_=Just NormallyNegative})
-         ,cbcsubreporttransform=fmap maNegate
-         ,cbcsubreportincreasestotal=True
-         }
+            cbcsubreporttitle="Revenues"
+          ,cbcsubreportquery=Type [Revenue]
+          ,cbcsubreportoptions=(\ropts -> ropts{normalbalance_=Just NormallyNegative})
+          ,cbcsubreporttransform=fmap maNegate
+          ,cbcsubreportincreasestotal=True
+          }
         ,CBCSubreportSpec{
-          cbcsubreporttitle="Operating Expenses"
-         ,cbcsubreportquery=And [Type [Expense], Acct $ toRegex' "Operating"]
-         ,cbcsubreportoptions=(\ropts -> ropts{normalbalance_=Just NormallyPositive})
-         ,cbcsubreporttransform=id
-         ,cbcsubreportincreasestotal=False
-         }
+            cbcsubreporttitle="Operating Expenses"
+          ,cbcsubreportquery=And [Type [Expense], Acct $ toRegex' "Operating"]
+          ,cbcsubreportoptions=(\ropts -> ropts{normalbalance_=Just NormallyPositive})
+          ,cbcsubreporttransform=id
+          ,cbcsubreportincreasestotal=False
+          }
         ,CBCSubreportSpec{
-          cbcsubreporttitle="Other Expenses"
-         ,cbcsubreportquery=And [Type [Expense], Not $ Acct $ toRegex' "Operating"]
-         ,cbcsubreportoptions=(\ropts -> ropts{normalbalance_=Just NormallyPositive})
-         ,cbcsubreporttransform=id
-         ,cbcsubreportincreasestotal=False
-         }
-        ],
-      cbcaccum     = PerPeriod
+            cbcsubreporttitle="Other Expenses"
+          ,cbcsubreportquery=And [Type [Expense], Not $ Acct $ toRegex' "Operating"]
+          ,cbcsubreportoptions=(\ropts -> ropts{normalbalance_=Just NormallyPositive})
+          ,cbcsubreporttransform=id
+          ,cbcsubreportincreasestotal=False
+          }
+        ]
     }

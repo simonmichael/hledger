@@ -3,7 +3,7 @@
 # subheadings/subreports. A bit hacky but quick and short.
 # See also hledger-report1.hs.
 
-echo "Report1 Statement `date +%Y-%m-%d`"
+echo "Report1 Statement $(date +%Y-%m-%d)"
 printf "\nRevenues\n"
 hledger bal expr:"type:r and $@" | tail +2
 printf "\nOperating Expenses\n"
