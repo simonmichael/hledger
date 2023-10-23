@@ -148,8 +148,11 @@ printDemos = putStrLn $ unlines $
 -- | Run asciinema play with the given speed and idle limit, passing the given content to its stdin.
 runAsciinemaPlay :: Float -> Float -> ByteString -> [String] -> IO ()
 runAsciinemaPlay speed idlelimit content args =
-  withSystemTempFile "hledger-cast" $ \f h -> do  -- try piping to stdin also
-    B.hPutStrLn h content >> hClose h
+    -- XXX try piping to stdin also
+  withSystemTempFile "hledger-cast" $ \f h -> do
+    -- don't add an extra newline here, it breaks asciinema 2.3.0 (#2094).
+    -- XXX we could try harder and strip excess newlines/carriage returns+linefeeds here
+    B.hPutStr h content >> hClose h
     callProcess "asciinema" (dbg8With (("asciinema: "++).unwords) $ concat [
        ["play"]
       ,["-s"<> showwithouttrailingzero speed]
