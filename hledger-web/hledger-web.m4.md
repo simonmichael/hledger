@@ -94,11 +94,9 @@ Can be useful if running behind a reverse web proxy that does path rewriting.
 hledger-web normally serves static files itself, but if you wanted to
 serve them from another server for efficiency, you would set the url with this.
 
-`--capabilities=CAP[,CAP..]`
-: enable the view, add, and/or manage capabilities (default: view,add)
-
-`--capabilities-header=HTTPHEADER`
-: read capabilities to enable from a HTTP header, like X-Sandstorm-Permissions (default: disabled)
+`--allow=view|add|edit`
+: set the user's access level for changing data (default: `add`).
+(There is also `sandstorm`, used when running on the Sandstorm app platform.)
 
 `--test`
 : run hledger-web's tests and exit. hspec test runner args may follow a --, eg: hledger-web --test -- --help

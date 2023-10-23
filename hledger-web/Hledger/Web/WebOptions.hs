@@ -6,17 +6,17 @@ module Hledger.Web.WebOptions where
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as BC
 import Data.ByteString.UTF8 (fromString)
-import Data.CaseInsensitive (CI, mk)
 import Data.Default (Default(def))
 import Data.Maybe (fromMaybe)
-import qualified Data.Text as T
 import Data.Text (Text)
 import System.Environment (getArgs)
 import Network.Wai as WAI
 import Network.Wai.Middleware.Cors
+import Safe (lastMay)
 
 import Hledger.Cli hiding (packageversion, progname, prognameandversion)
 import Hledger.Web.Settings (defhost, defport, defbaseurl)
+import qualified Data.Text as T
 
 -- cf Hledger.Cli.Version
 
@@ -76,15 +76,10 @@ webflags =
       "FILEURL"
       "set the static files url (default: BASEURL/static)"
   , flagReq
-      ["capabilities"]
-      (\s opts -> Right $ setopt "capabilities" s opts)
-      "CAP[,CAP..]"
-      "enable the view, add, and/or manage capabilities (default: view,add)"
-  , flagReq
-      ["capabilities-header"]
-      (\s opts -> Right $ setopt "capabilities-header" s opts)
-      "HTTPHEADER"
-      "read capabilities to enable from a HTTP header, like X-Sandstorm-Permissions (default: disabled)"
+      ["allow"]
+      (\s opts -> Right $ setopt "allow" s opts)
+      "view|add|edit"
+      "set the user's access level for changing data (default: `add`). (There is also `sandstorm`, used when running on Sandstorm.)"
   , flagNone
       ["test"]
       (setboolopt "test")
@@ -124,8 +119,7 @@ data WebOpts = WebOpts
   , port_               :: !Int
   , base_url_           :: !String
   , file_url_           :: !(Maybe String)
-  , capabilities_       :: ![Capability]
-  , capabilitiesHeader_ :: !(Maybe (CI ByteString))
+  , allow_              :: !AccessLevel
   , cliopts_            :: !CliOpts
   , socket_             :: !(Maybe String)
   } deriving (Show)
@@ -139,8 +133,7 @@ defwebopts = WebOpts
   , port_               = def
   , base_url_           = ""
   , file_url_           = Nothing
-  , capabilities_       = [CapView, CapAdd]
-  , capabilitiesHeader_ = Nothing
+  , allow_              = AddAccess
   , cliopts_            = def
   , socket_             = Nothing
   }
@@ -153,15 +146,15 @@ rawOptsToWebOpts rawopts =
     cliopts <- rawOptsToCliOpts rawopts
     let h = fromMaybe defhost $ maybestringopt "host" rawopts
         p = fromMaybe defport $ maybeposintopt "port" rawopts
-        b =
-          maybe (defbaseurl h p) stripTrailingSlash $
-          maybestringopt "base-url" rawopts
-        caps' = T.splitOn "," . T.pack =<< listofstringopt "capabilities" rawopts
-        caps = case traverse capabilityFromText caps' of
-          Left e -> error' ("Unknown capability: " ++ T.unpack e)  -- PARTIAL:
-          Right [] -> [CapView, CapAdd]
-          Right xs -> xs
+        b = maybe (defbaseurl h p) stripTrailingSlash $ maybestringopt "base-url" rawopts
         sock = stripTrailingSlash <$> maybestringopt "socket" rawopts
+        access =
+          case lastMay $ listofstringopt "allow" rawopts of
+            Nothing -> AddAccess
+            Just t ->
+              case parseAccessLevel t of
+                Right al -> al
+                Left err -> error' ("Unknown access level: " ++ err)  -- PARTIAL:
     return
       defwebopts
       { serve_ = case sock of
@@ -173,8 +166,7 @@ rawOptsToWebOpts rawopts =
       , port_ = p
       , base_url_ = b
       , file_url_ = stripTrailingSlash <$> maybestringopt "file-url" rawopts
-      , capabilities_ = caps
-      , capabilitiesHeader_ = mk . BC.pack <$> maybestringopt "capabilities-header" rawopts
+      , allow_ = access
       , cliopts_ = cliopts
       , socket_ = sock
       }
@@ -189,28 +181,44 @@ getHledgerWebOpts = do
   args <- fmap (replaceNumericFlags . ensureDebugHasArg) . expandArgsAt =<< getArgs
   rawOptsToWebOpts . either usageError id $ process webmode args
 
-data Capability
-  = CapView
-  | CapAdd
-  | CapManage
+data Permission
+  = ViewPermission  -- ^ allow viewing things (read only)
+  | AddPermission   -- ^ allow adding transactions, or more generally allow appending text to input files 
+  | EditPermission  -- ^ allow editing input files
   deriving (Eq, Ord, Bounded, Enum, Show)
 
-capabilityFromText :: Text -> Either Text Capability
-capabilityFromText "view" = Right CapView
-capabilityFromText "add" = Right CapAdd
-capabilityFromText "manage" = Right CapManage
-capabilityFromText x = Left x
+parsePermission :: ByteString -> Either Text Permission
+parsePermission "view" = Right ViewPermission
+parsePermission "add"  = Right AddPermission
+parsePermission "edit" = Right EditPermission
+parsePermission x = Left $ T.pack $ BC.unpack x
 
-capabilityFromBS :: ByteString -> Either ByteString Capability
-capabilityFromBS "view" = Right CapView
-capabilityFromBS "add" = Right CapAdd
-capabilityFromBS "manage" = Right CapManage
-capabilityFromBS x = Left x
+-- | For the --allow option: how much access to allow to hledger-web users ?
+data AccessLevel =
+    ViewAccess       -- ^ view permission only
+  | AddAccess        -- ^ view and add permissions
+  | EditAccess       -- ^ view, add and edit permissions
+  | SandstormAccess  -- ^ the permissions specified by the X-Sandstorm-Permissions HTTP request header
+  deriving (Eq, Ord, Bounded, Enum, Show)
+
+parseAccessLevel :: String -> Either String AccessLevel
+parseAccessLevel "view"      = Right ViewAccess
+parseAccessLevel "add"       = Right AddAccess
+parseAccessLevel "edit"      = Right EditAccess
+parseAccessLevel "sandstorm" = Right SandstormAccess
+parseAccessLevel s = Left $ s <> ", should be one of: view, add, edit, sandstorm"
+
+-- | Convert an --allow access level to the permissions used internally.
+-- SandstormAccess generates an empty list, to be filled in later.
+accessLevelToPermissions :: AccessLevel -> [Permission]
+accessLevelToPermissions ViewAccess      = [ViewPermission]
+accessLevelToPermissions AddAccess       = [ViewPermission, AddPermission]
+accessLevelToPermissions EditAccess      = [ViewPermission, AddPermission, EditPermission]
+accessLevelToPermissions SandstormAccess = []  -- detected from request header
 
 simplePolicyWithOrigin :: Origin -> CorsResourcePolicy
 simplePolicyWithOrigin origin =
     simpleCorsResourcePolicy { corsOrigins = Just ([origin], False) }
-
 
 corsPolicyFromString :: String -> WAI.Middleware
 corsPolicyFromString origin =

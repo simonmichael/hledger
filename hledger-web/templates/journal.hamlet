@@ -1,7 +1,7 @@
 <h2>
   #{title'}
 
-$if elem CapAdd caps
+$if elem AddPermission perms
   <a #addformlink href="#" role="button" style="cursor:pointer; margin-top:1em;"
      data-toggle="modal" data-target="#addmodal" title="Add a new transaction to the journal">
     Add a transaction
@@ -33,5 +33,5 @@ $if elem CapAdd caps
           <td .amount style="text-align:right;">
             ^{mixedAmountAsHtml amt}
 
-$if elem CapAdd caps
+$if elem AddPermission perms
   ^{addModal AddR j today}

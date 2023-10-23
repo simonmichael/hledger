@@ -114,7 +114,7 @@ instance Yesod App where
 
     master <- getYesod
     here <- fromMaybe RootR <$> getCurrentRoute
-    VD{opts, j, qparam, q, qopts, caps} <- getViewData
+    VD{opts, j, qparam, q, qopts, perms} <- getViewData
     msg <- getMessage
     showSidebar <- shouldShowSidebar
 
@@ -198,7 +198,7 @@ data ViewData = VD
   , qparam :: Text       -- ^ the current "q" request parameter
   , q     :: Query      -- ^ a query parsed from the q parameter
   , qopts :: [QueryOpt] -- ^ query options parsed from the q parameter
-  , caps  :: [Capability] -- ^ capabilities enabled for this request
+  , perms :: [Permission]  -- ^ permissions enabled for this request (by --allow and/or X-Sandstorm-Permissions)
   } deriving (Show)
 
 instance Show Text.Blaze.Markup where show _ = "<blaze markup>"
@@ -233,16 +233,19 @@ getViewData = do
   -- if either of the above gave an error, display it
   maybe (pure ()) (setMessage . toHtml) $ mjerr <|> mqerr
 
-  -- do some permissions checking
-  caps <- case capabilitiesHeader_ opts of
-    Nothing -> return (capabilities_ opts)
-    Just h -> do
+  -- find out which permissions are enabled
+  perms <- case allow_ opts of
+    -- if started with --allow=sandstorm, take permissions from X-Sandstorm-Permissions header
+    SandstormAccess -> do
+      let h = "X-Sandstorm-Permissions"
       hs <- fmap (BC.split ',' . snd) . filter ((== h) . fst) . requestHeaders <$> waiRequest
-      fmap join . for (join hs) $ \x -> case capabilityFromBS x of
-        Left e -> [] <$ addMessage "" ("Unknown permission: " <> toHtml (BC.unpack e))
-        Right c -> pure [c]
+      fmap join . for (join hs) $ \x -> case parsePermission x of
+        Left  e -> [] <$ addMessage "" ("Unknown permission: " <> toHtml e)
+        Right p -> pure [p]
+    -- otherwise take them from the access level specified by --allow's access level
+    cliaccess -> pure $ accessLevelToPermissions cliaccess
 
-  return VD{opts, today, j, qparam, q, qopts, caps}
+  return VD{opts, today, j, qparam, q, qopts, perms}
 
 checkServerSideUiEnabled :: Handler ()
 checkServerSideUiEnabled = do

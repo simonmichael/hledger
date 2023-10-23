@@ -35,8 +35,8 @@ getUploadR f = do
 postUploadR :: FilePath -> Handler ()
 postUploadR f = do
   checkServerSideUiEnabled
-  VD {caps, j} <- getViewData
-  when (CapManage `notElem` caps) (permissionDenied "Missing the 'manage' capability")
+  VD {perms, j} <- getViewData
+  when (EditPermission `notElem` perms) (permissionDenied "Missing the 'edit' permission")
 
   (f', _) <- journalFile404 f j
   ((res, view), enctype) <- runFormPost (uploadForm f')
