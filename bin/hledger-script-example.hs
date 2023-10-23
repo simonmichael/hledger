@@ -104,12 +104,12 @@ execute permission, and start tweaking the code.
 
 Requirements:
 
-This is a stack script, requiring stack to run. hledger addons do not
-have to be stack scripts, but this one is, as they work well for this.
-If you prefer you can adapt it to be a cabal script, or you can
-install the required haskell libraries (see above) and then
-run/compile it with a suitable runghc/ghc command.
-The script may require specific versions of the libraries.
+This is a stack script, best run or compiled with stack.
+Once compiled it doesn't require stack.
+If you prefer you can adapt it to be a cabal script,
+or you can manually install the required haskell libraries
+(see above) and then run/compile it just with ghc or runghc.
+
 If run/compiled from inside the hledger source tree, it will use that hledger
 version and the libs of the stackage resolver in stack.yaml.
 If run/compiled from outside the hledger source tree, it will use the hledger
