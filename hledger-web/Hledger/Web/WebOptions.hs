@@ -46,6 +46,11 @@ webflags =
       (setboolopt "serve-api")
       "like --serve, but serve only the JSON web API, without the server-side web UI"
   , flagReq
+      ["allow"]
+      (\s opts -> Right $ setopt "allow" s opts)
+      "view|add|edit"
+      "set the user's access level for changing data (default: `add`). It also accepts `sandstorm` for use on that platform (reads permissions from the `X-Sandstorm-Permissions` request header)."
+  , flagReq
       ["cors"]
       (\s opts -> Right $ setopt "cors" s opts)
       "ORIGIN"
@@ -75,11 +80,6 @@ webflags =
       (\s opts -> Right $ setopt "file-url" s opts)
       "FILEURL"
       "set the static files url (default: BASEURL/static)"
-  , flagReq
-      ["allow"]
-      (\s opts -> Right $ setopt "allow" s opts)
-      "view|add|edit"
-      "set the user's access level for changing data (default: `add`). (There is also `sandstorm`, used when running on Sandstorm.)"
   , flagNone
       ["test"]
       (setboolopt "test")

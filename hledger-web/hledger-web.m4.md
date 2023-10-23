@@ -96,7 +96,8 @@ serve them from another server for efficiency, you would set the url with this.
 
 `--allow=view|add|edit`
 : set the user's access level for changing data (default: `add`).
-(There is also `sandstorm`, used when running on the Sandstorm app platform.)
+It also accepts `sandstorm` for use on that platform (reads
+permissions from the `X-Sandstorm-Permissions` request header).
 
 `--test`
 : run hledger-web's tests and exit. hspec test runner args may follow a --, eg: hledger-web --test -- --help
