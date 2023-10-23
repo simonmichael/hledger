@@ -318,6 +318,12 @@ $ hledger lots view
 $ hledger lots list
 ```
 
+### hledger-report1.sh
+
+[hledger-report1.sh](https://github.com/simonmichael/hledger/blob/master/bin/hledger-report1.sh)
+is a custom compound report done in shell. See also hledger-report1.hs.
+
+
 ## HLEDGER-INTEGRATED
 
 These Haskell scripts use the hledger-lib API for maximum power and robustness;
@@ -406,6 +412,13 @@ is an incomplete attempt at automatically splitting infrequent/irregular transac
 
 [`hledger-move.hs`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-move.hs)
 helps make subaccount/cost-preserving transfers.
+
+
+
+### hledger-report1.hs
+
+[hledger-report1.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-report1.hs)
+is a custom compound report done in haskell. See also hledger-report1.sh.
 
 
 ## HOW TO
