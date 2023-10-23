@@ -5,7 +5,7 @@ aiming to provide the most useful imports and reduce boilerplate.
 
 {-# LANGUAGE PackageImports #-}
 
-module Hledger.Cli.Script
+module Hledger.Cli.Script 
 ( module M
 ) 
 where
@@ -34,6 +34,16 @@ import System.IO as M
 import System.IO.Error as M
 import System.Process as M
 
+-- import Hledger.Cli as M hiding (main)
+import Hledger.Cli as M (argsToCliOpts)
+import Hledger.Cli.CliOptions as M
+import Hledger.Cli.Commands as M
+import Hledger.Cli.DocFiles as M
+import Hledger.Cli.Utils as M
+import Hledger.Cli.Version as M
+import Hledger.Cli.CompoundBalanceCommand as M
+
 import Hledger as M
-import Hledger.Cli as M
+import System.Console.CmdArgs.Explicit as M
+
 -- import Hledger.Cli as M (argsToCliOpts)
