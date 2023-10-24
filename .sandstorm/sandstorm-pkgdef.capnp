@@ -17,9 +17,9 @@ const pkgdef :Spk.PackageDefinition = (
     # This manifest is included in your app package to tell Sandstorm
     # about your app.
 
-    appTitle = (defaultText = "HLedger Web"),
+    appTitle = (defaultText = "Hledger Web"),
 
-    appVersion = 4,  # Increment this for every release.
+    appVersion = 5,  # Increment this for every release.
 
     appMarketingVersion = (defaultText = "1.31"),
     # Human-readable representation of appVersion. Should match the way you
