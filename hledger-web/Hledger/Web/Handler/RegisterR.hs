@@ -27,7 +27,7 @@ getRegisterR :: Handler Html
 getRegisterR = do
   checkServerSideUiEnabled
   VD{perms, j, q, opts, qparam, qopts, today} <- getViewData
-  when (ViewPermission `notElem` perms) (permissionDenied "Missing the 'view' permission")
+  require ViewPermission
 
   let (a,inclsubs) = fromMaybe ("all accounts",True) $ inAccount qopts
       s1 = if inclsubs then "" else " (excluding subaccounts)"

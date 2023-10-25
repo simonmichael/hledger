@@ -38,8 +38,8 @@ getRootR = do
 getManageR :: Handler Html
 getManageR = do
   checkServerSideUiEnabled
-  VD{perms, j} <- getViewData
-  when (EditPermission `notElem` perms) (permissionDenied "Missing the 'edit' permission")
+  VD{j} <- getViewData
+  require EditPermission
   defaultLayout $ do
     setTitle "Edit journal"
     $(widgetFile "manage")
@@ -47,8 +47,8 @@ getManageR = do
 getDownloadR :: FilePath -> Handler TypedContent
 getDownloadR f = do
   checkServerSideUiEnabled
-  VD{perms, j} <- getViewData
-  when (EditPermission `notElem` perms) (permissionDenied "Missing the 'edit' permission")
+  VD{j} <- getViewData
+  require EditPermission
   (f', txt) <- journalFile404 f j
   addHeader "Content-Disposition" ("attachment; filename=\"" <> T.pack f' <> "\"")
   sendResponse ("text/plain" :: ByteString, toContent txt)
@@ -57,50 +57,46 @@ getDownloadR f = do
 
 getVersionR :: Handler TypedContent
 getVersionR = do
-  VD{perms} <- getViewData
-  when (ViewPermission `notElem` perms) (permissionDenied "Missing the 'view' permission")
-  selectRep $ do
-    provideJson $ packageversion
+  require ViewPermission
+  selectRep $ provideJson $ packageversion
 
 getAccountnamesR :: Handler TypedContent
 getAccountnamesR = do
-  VD{perms, j} <- getViewData
-  when (ViewPermission `notElem` perms) (permissionDenied "Missing the 'view' permission")
-  selectRep $ do
-    provideJson $ journalAccountNames j
+  VD{j} <- getViewData
+  require ViewPermission
+  selectRep $ provideJson $ journalAccountNames j
 
 getTransactionsR :: Handler TypedContent
 getTransactionsR = do
-  VD{perms, j} <- getViewData
-  when (ViewPermission `notElem` perms) (permissionDenied "Missing the 'view' permission")
-  selectRep $ do
-    provideJson $ jtxns j
+  VD{j} <- getViewData
+  require ViewPermission
+  selectRep $ provideJson $ jtxns j
 
 getPricesR :: Handler TypedContent
 getPricesR = do
-  VD{perms, j} <- getViewData
-  when (ViewPermission `notElem` perms) (permissionDenied "Missing the 'view' permission")
-  selectRep $ do
+  VD{j} <- getViewData
+  require ViewPermission
+  selectRep $
     provideJson $ map priceDirectiveToMarketPrice $ jpricedirectives j
 
 getCommoditiesR :: Handler TypedContent
 getCommoditiesR = do
-  VD{perms, j} <- getViewData
-  when (ViewPermission `notElem` perms) (permissionDenied "Missing the 'view' permission")
+  VD{j} <- getViewData
+  require ViewPermission
   selectRep $ do
     provideJson $ (M.keys . jinferredcommodities) j
 
 getAccountsR :: Handler TypedContent
 getAccountsR = do
-  VD{perms, j} <- getViewData
-  when (ViewPermission `notElem` perms) (permissionDenied "Missing the 'view' permission")
+  VD{j} <- getViewData
+  require ViewPermission
   selectRep $ do
     provideJson $ flattenAccounts $ mapAccounts (accountSetDeclarationInfo j) $ ledgerRootAccount $ ledgerFromJournal Any j
 
 getAccounttransactionsR :: Text -> Handler TypedContent
 getAccounttransactionsR a = do
-  VD{perms, j} <- getViewData
-  when (ViewPermission `notElem` perms) (permissionDenied "Missing the 'view' permission")
+  VD{j} <- getViewData
+  require ViewPermission
   let
     rspec = defreportspec
     thisacctq = Acct $ accountNameToAccountRegex a -- includes subs

@@ -16,7 +16,7 @@
 module Hledger.Web.Foundation where
 
 import Control.Applicative ((<|>))
-import Control.Monad (join, when)
+import Control.Monad (join, when, unless)
 -- import Control.Monad.Except (runExceptT)  -- now re-exported by Hledger
 import qualified Data.ByteString.Char8 as BC
 import Data.Traversable (for)
@@ -283,3 +283,11 @@ getCurrentJournal jref opts d = do
       liftIO . writeIORef jref $ filterJournalTransactions depthlessinitialq j'
       return (j',Nothing)
     Right (_, False) -> return (j, Nothing)
+
+-- | In a request handler, check for the given permission
+-- and fail with a message if it's not present.
+require :: Permission -> Handler ()
+require p = do
+  VD{perms} <- getViewData
+  unless (p `elem` perms) $ permissionDenied $
+    "Missing the '" <> T.pack (showPermission p) <> "' permission"

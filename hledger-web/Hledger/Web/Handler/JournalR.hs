@@ -21,7 +21,7 @@ getJournalR :: Handler Html
 getJournalR = do
   checkServerSideUiEnabled
   VD{perms, j, q, opts, qparam, qopts, today} <- getViewData
-  when (ViewPermission `notElem` perms) (permissionDenied "Missing the 'view' permission")
+  require ViewPermission
   let title = case inAccount qopts of
         Nothing -> "General Journal"
         Just (a, inclsubs) -> "Transactions in " <> a <> if inclsubs then "" else " (excluding subaccounts)"

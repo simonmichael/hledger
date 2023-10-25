@@ -31,8 +31,8 @@ getEditR f = do
 postEditR :: FilePath -> Handler ()
 postEditR f = do
   checkServerSideUiEnabled
-  VD {perms, j} <- getViewData
-  when (EditPermission `notElem` perms) (permissionDenied "Missing the 'edit' permission")
+  VD {j} <- getViewData
+  require EditPermission
 
   (f', txt) <- journalFile404 f j
   ((res, view), enctype) <- runFormPost (editForm f' txt)

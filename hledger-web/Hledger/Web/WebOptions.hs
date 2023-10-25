@@ -17,6 +17,7 @@ import Safe (lastMay)
 import Hledger.Cli hiding (packageversion, progname, prognameandversion)
 import Hledger.Web.Settings (defhost, defport, defbaseurl)
 import qualified Data.Text as T
+import Data.Char (toLower)
 
 -- cf Hledger.Cli.Version
 
@@ -192,6 +193,10 @@ parsePermission "view" = Right ViewPermission
 parsePermission "add"  = Right AddPermission
 parsePermission "edit" = Right EditPermission
 parsePermission x = Left $ T.pack $ BC.unpack x
+
+-- | Convert to the lower case permission name.
+showPermission :: Permission -> String
+showPermission p = map toLower $ reverse $ drop 10 $ reverse $ show p
 
 -- | For the --allow option: how much access to allow to hledger-web users ?
 data AccessLevel =
