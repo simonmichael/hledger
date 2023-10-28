@@ -155,11 +155,24 @@ bin() {
 
 # Show last week info, useful for TWIH (sm's at least).
 lastweek() {
-  tt bal hledger -DTS -b '7 days ago'
+  echo "hledger time last 7 days including today (this should be run on a Friday):"
+  tt bal hledger -DTS -b '6 days ago' --drop 2
   echo
-  tt print hledger -b '7 days ago' | grep -E '^[^ ]|hledger'
+  echo "By activity type:"
+  tt bal hledger -DTS -b '6 days ago' --pivot t --alias c=cleanup/fixing --alias e=enhancement --alias s=support --alias l=learning | tail +1
   echo
-  git log --format='%C(yellow)%cd %ad %Cred%h%Creset %s %Cgreen(%an)%Creset%C(bold blue)%d%Creset' --date=short --since="7 days ago" --reverse
+  echo "Time log details:"
+  tt print hledger -b '6 days ago' | grep -E '^[^ ]|hledger'
+  echo
+  echo "main repo:"
+  git log --format='%C(yellow)%cd %ad %Cred%h%Creset %s %Cgreen(%an)%Creset%C(bold blue)%d%Creset' --date=short --since="6 days ago" --reverse
+  echo
+  echo "site repo:"
+  git -C site log --format='%C(yellow)%cd %ad %Cred%h%Creset %s %Cgreen(%an)%Creset%C(bold blue)%d%Creset' --date=short --since="6 days ago" --reverse
+  echo
+  echo "finance repo:"
+  git -C finance log --format='%C(yellow)%cd %ad %Cred%h%Creset %s %Cgreen(%an)%Creset%C(bold blue)%d%Creset' --date=short --since="6 days ago" --reverse
+  echo
 }
 
 if declare -f "$1" > /dev/null; then "$@"; else usage; fi
