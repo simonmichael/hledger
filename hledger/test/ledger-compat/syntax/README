@@ -1,4 +1,0 @@
-Test all journal syntax features:
-main hledger syntax
-other/legacy hledger syntax,
-and ledger syntax not yet supported.

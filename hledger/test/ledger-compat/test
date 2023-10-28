@@ -4,7 +4,7 @@
 set -e
 mkdir -p log
 time \
-    shelltest collected baseline regress --execdir -j8 --hide-successes \
+    shelltest extra ledger-baseline ledger-regress --execdir -j8 --hide-successes \
     | tee log/latest
 
 (echo "* Tested $(date +%Y-%m-%d) with $(hledger --version)"; \

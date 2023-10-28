@@ -1,4 +1,4 @@
-# * summary of main hledger journal syntax
+# * main syntax supported in hledger journal format
 # keep synced with hledger.m4.md
 
 # Here is the main syntax of hledger's journal format

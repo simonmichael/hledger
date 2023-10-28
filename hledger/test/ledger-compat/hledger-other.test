@@ -1,7 +1,7 @@
-# hledger journal "other"/legacy syntax                         -*- ledger -*-
+# * other syntax supported in hledger journal format
 # keep synced with hledger.m4.md
 
-# `apply account` set a default parent account
+# * 1. `apply account` set a default parent account
 <
 apply account per
 
@@ -12,24 +12,24 @@ apply account per
 end apply account
 $ hledger -f- check
 
-# `D AMT` set a default commodity and its format
+# * 2. `D AMT` set a default commodity and its format
 <
 D $0.0
 $ hledger -f- check
 
-# star comment line
+# * 3. star comment line
 <
 *
 $ hledger -f- check
 
-# `=` An automated transaction
+# * 4. `=` An automated transaction
 <
 = expenses:food
     (budget:food)  *-1
 
 $ hledger -f- check
 
-# `Y`/`year` set the year for year-less dates
+# * 5. `Y`/`year` set the year for year-less dates
 <
 Y 1111
 1/1
@@ -46,7 +46,7 @@ $ hledger -f- print
 
 >=
 
-# ignored directives
+# * 6. ignored directives
 <
 apply fixed CAD $0.90
 apply tag tag1:val1
@@ -79,7 +79,7 @@ eval foo
 
 $ hledger -f- check
 
-# amount valuation, ignored
+# * 7. amount valuation, ignored
 <
 ;; Lastly, you can specify the valuation function/value for any specific
 ;; amount using the (( )) commodity annotation.
@@ -88,7 +88,7 @@ $ hledger -f- check
     Assets:Cash
 $ hledger -f- check
 
-# lot notation 
+# * 8. lot notation 
 #    ,testCase "only lot price" $ assertParse (postingp Nothing) "  a  1A {1B}\n"
 #    ,testCase "fixed lot price" $ assertParse (postingp Nothing) "  a  1A {=1B}\n"
 #    ,testCase "total lot price" $ assertParse (postingp Nothing) "  a  1A {{1B}}\n"

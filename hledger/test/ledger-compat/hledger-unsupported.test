@@ -1,7 +1,7 @@
-# Ledger syntax currently not parsed by hledger.           -*- ledger -*-
+# * Ledger syntax currently not supported in hledger journal format
 # Reading these is expected to fail.
 
-# `%` and `|` comment lines
+# ** 1. `%` and `|` comment lines
 <
 %
 |
@@ -9,7 +9,7 @@ $ hledger -f- check
 >2//
 >=1
 
-# `end` or `end apply` as shorthand for closing the most recent "apply FOO".
+# ** 2. `end` or `end apply` as shorthand for closing the most recent "apply FOO".
 <
 apply account a
 end apply
@@ -19,14 +19,14 @@ $ hledger -f- check
 >2//
 >=1
 
-# `test`, a synonym for `comment`
+# ** 3. `test`, a synonym for `comment`
 <
 test
 $ hledger -f- check
 >2//
 >=1
 
-# `I, i, O, o, b, h` embedded timeclock entries
+# ** 4. `I, i, O, o, b, h` embedded timeclock entries
 <
 i 2013/04/05 12:00:00 Personal:Lunch
 o 2013/04/05 13:30:00
@@ -34,7 +34,7 @@ $ hledger -f- check
 >2//
 >=1
 
-# amount expressions
+# ** 5. amount expressions
 <
 2022-01-01
   (a)    (1 + 1)
