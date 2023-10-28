@@ -1,4 +1,4 @@
-hledger test-related files. See also [Contributor Guide: Tests].
+hledger test-related files. See also [Developer docs > TESTS].
 
 unittest.hs - main file for a cabal test suite in the hledger package
 (run by "cabal test" or "stack test"). Runs the unit tests built in to
@@ -16,7 +16,7 @@ Older test files are in shelltestrunner's [format 1];
 newer ones use [format 3] (preferred).
 Some tests invoke unix commands so will not run in a Windows CMD shell.
 
-[Contributor Guide: Tests]: https://hledger.org/CONTRIBUTING.html#tests
+[Developer docs > TESTS]: https://hledger.org/TESTS.html
 [component]: https://hledger.org/CONTRIBUTING.html#components
 [shelltestrunner]: https://github.com/simonmichael/shelltestrunner#readme
 [format 1]: https://github.com/simonmichael/shelltestrunner#format-1

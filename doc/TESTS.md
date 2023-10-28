@@ -1,4 +1,4 @@
-# Tests
+# TESTS
 
 <div class=pagetoc>
 
