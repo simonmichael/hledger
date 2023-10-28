@@ -1,4 +1,6 @@
-# 1. Commas specified as decimal mark
+# * decimal-mark directive
+
+# ** 1. Commas specified as decimal mark
 $ hledger -f commas.journal bal
          -199,00 RUB  Assets:Yandex
           199,00 RUB  Expenses:Unknown:RUB
@@ -6,7 +8,7 @@ $ hledger -f commas.journal bal
                    0  
 >=0
 
-# 2. Include file with different decimal mark
+# ** 2. Include file with different decimal mark
 <
 commodity 1000.00 RUB
 include commas.journal

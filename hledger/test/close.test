@@ -1,3 +1,4 @@
+# * close command
 
 <
 2016/1/1 open
@@ -17,7 +18,7 @@
     liabilities         $25
     assets:cash
 
-# 1. By default, closes ALE accounts, on the last day of the report period.
+# ** 1. By default, closes ALE accounts, on the last day of the report period.
 $ hledger close -f- -e 2017
 2016-12-31 closing balances
     assets:bank                                $-80 = $0
@@ -28,7 +29,7 @@ $ hledger close -f- -e 2017
 
 >=0
 
-# 2. With --close, likewise.
+# ** 2. With --close, likewise.
 $ hledger close -f- -e 2017 --close
 2016-12-31 closing balances
     assets:bank                                $-80 = $0
@@ -39,7 +40,7 @@ $ hledger close -f- -e 2017 --close
 
 >=0
 
-# 3. With --retain, closes RX accounts.
+# ** 3. With --retain, closes RX accounts.
 $ hledger close -f- -e 2017 --retain
 2016-12-31 retain earnings
     expenses:sweets                      $-5 = $0
@@ -47,7 +48,7 @@ $ hledger close -f- -e 2017 --retain
 
 >=0
 
-# 4. With --migrate, opens and closes ALE.
+# ** 4. With --migrate, opens and closes ALE.
 $ hledger close -f- -p 2016 --migrate
 2016-12-31 closing balances
     assets:bank                                $-80 = $0
@@ -65,7 +66,7 @@ $ hledger close -f- -p 2016 --migrate
 
 >=0
 
-# 5. With --open, opens ALE.
+# ** 5. With --open, opens ALE.
 $ hledger close -f- -p 2016 --open
 2017-01-01 opening balances
     assets:bank                                 $80 = $80
@@ -76,7 +77,7 @@ $ hledger close -f- -p 2016 --open
 
 >=0
 
-# 6. -x makes all amounts explicit.
+# ** 6. -x makes all amounts explicit.
 $ hledger close -f- -p 2016 -x
 2016-12-31 closing balances
     assets:bank                                $-80 = $0
@@ -87,7 +88,7 @@ $ hledger close -f- -p 2016 -x
 
 >=0
 
-# 7. Closing a multi-priced balance. By default the transaction prices are ignored.
+# ** 7. Closing a multi-priced balance. By default the transaction prices are ignored.
 <
 2019/01/01
     assets                          1A @ 1B
@@ -101,7 +102,7 @@ $ hledger -f- close assets -p 2019 -x
 
 >=0
 
-# 8. With --show-costs, the transaction prices are preserved.
+# ** 8. With --show-costs, the transaction prices are preserved.
 # Only the last posting in each commodity gets a balance assertion (#1035).
 # Balance assertion amounts do not have a price.
 $ hledger -f- close assets -p 2019 --show-costs -x
@@ -113,7 +114,7 @@ $ hledger -f- close assets -p 2019 --show-costs -x
 
 >=0
 
-# 9. Closing a multi-priced balance, slightly more complex
+# ** 9. Closing a multi-priced balance, slightly more complex
 # (different price in each transaction).
 # XXX account parentheses should be preserved here
 <
@@ -130,7 +131,7 @@ $ hledger -f- close assets -p 2019 -x
 
 >=0
 
-# 10. The same with costs preserved.
+# ** 10. The same with costs preserved.
 $ hledger -f- close assets -p 2019 --show-costs -x
 2019-12-31 closing balances
     assets                                 -1A @ 1B
@@ -140,7 +141,7 @@ $ hledger -f- close assets -p 2019 --show-costs -x
 
 >=0
 
-# 11. Closing a multi-priced balance, a more complex example.
+# ** 11. Closing a multi-priced balance, a more complex example.
 # Decimal places specified by the amount display style should not be stripped
 # even if they are zeros (#1137).
 <
@@ -178,7 +179,7 @@ $ hledger -f- close -p 2016 assets liabilities --show-costs -x
 
 >=0
 
-# 12. With --interleaved, each transfer's postings are adjacent.
+# ** 12. With --interleaved, each transfer's postings are adjacent.
 # (And balances with the same cost are not necessarily combined into
 # a single posting. Eg the 5734 EUR above is 5733 EUR and 1 EUR below.)
 $ hledger -f- close -p 2016 assets liabilities --interleaved --show-costs -x
@@ -196,7 +197,7 @@ $ hledger -f- close -p 2016 assets liabilities --interleaved --show-costs -x
 
 >=0
 
-# 13. A tricky case where a closing posting was rounded and failed to balance (#1164)
+# ** 13. A tricky case where a closing posting was rounded and failed to balance (#1164)
 <
 commodity $0.00
 commodity AAA 0.00000000
@@ -221,7 +222,7 @@ $ hledger -f- close -p 2019 assets --show-costs -x
 
 >=0
 
-# 14. The same, without costs and with --interleaved.
+# ** 14. The same, without costs and with --interleaved.
 $ hledger -f- close -p 2019 assets --interleaved -x
 2019-12-31 closing balances
     assets:aaa                             AAA -510 = AAA 0
@@ -231,7 +232,7 @@ $ hledger -f- close -p 2019 assets --interleaved -x
 
 >=0
 
-# 15. "The default closing date is yesterday, or the journal's end date, whichever is later."
+# ** 15. "The default closing date is yesterday, or the journal's end date, whichever is later."
 <
 999999-12-31
   (a)  1
@@ -239,7 +240,7 @@ $ hledger -f- close
 > /999999-12-31 closing balances/
 >=
 
-# 15. "override the closing date ... by specifying a report period, where last day of the report period will be the closing date"
+# ** 15. "override the closing date ... by specifying a report period, where last day of the report period will be the closing date"
 $ hledger -f- close -e 100000-01-01
 > /99999-12-31 closing balances/
 >=

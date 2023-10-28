@@ -1,8 +1,9 @@
-# 1. empty file
+# * stats command
+# ** 1. empty file
 $ hledger -f- stats
 > /Accounts.* 0 \(depth 0\)/
 
-# 2. included files should be listed in parse order
+# ** 2. included files should be listed in parse order
 <
 include a.j
 include b.j

@@ -1,4 +1,4 @@
-# codes command
+# * codes command
 
 <
 1/1 (123)
@@ -19,14 +19,14 @@
 1/1
  (a)  1
 
-# 1. Show non-empty codes by default, in parse order, including duplicates.
+# ** 1. Show non-empty codes by default, in parse order, including duplicates.
 $ hledger -f - codes
 123
 124
 123
 >=
 
-# 2. With -E, also show empty/missing codes as blank lines.
+# ** 2. With -E, also show empty/missing codes as blank lines.
 $ hledger -f - codes -E
 123
 

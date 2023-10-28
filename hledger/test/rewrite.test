@@ -1,5 +1,6 @@
+# * rewrite command
 
-# 1. Add proportional income tax (from documentation)
+# ** 1. Add proportional income tax (from documentation)
 # With --verbose-tags, an informative extra tag is added.
 <
 2016/1/1 paycheck
@@ -24,7 +25,7 @@ $ hledger rewrite -f- ^income --add-posting '(liabilities:tax)  *.33  ; income t
 
 >= 0
 
-# 2. Duplicate posting for budgeting (from documentation).
+# ** 2. Duplicate posting for budgeting (from documentation).
 # It uses same date as the matched posting.
 <
 2016/1/1 withdraw
@@ -46,7 +47,7 @@ $ hledger rewrite -f- expenses:gifts --add-posting '(budget:gifts)  *-1'
 
 >= 0
 
-# 3. Add postings in another commodity
+# ** 3. Add postings in another commodity
 <
 2017/04/24 * 09:00-09:25
     (assets:unbilled:client1)           0.42h
@@ -79,7 +80,7 @@ $ hledger rewrite -f-
 >= 0
 
 
-# 4. Add postings with prices
+# ** 4. Add postings with prices
 <
 2017/04/24 * 09:00-09:25
     (assets:unbilled:client1)         0.42h
@@ -116,7 +117,7 @@ $ hledger rewrite -f- -B
 
 >= 0
 
-# 5. Add absolute bank processing fee
+# ** 5. Add absolute bank processing fee
 # XXX is "and" really processed here ?
 <
 2016/1/1 withdraw
@@ -146,7 +147,7 @@ $ hledger rewrite -f- assets:bank and 'amt:<0' --add-posting 'expenses:fee  $5' 
 
 >= 0
 
-# 6. Rewrite rule within journal
+# ** 6. Rewrite rule within journal
 <
 = ^assets:bank$ date:2017/1 amt:<0
     assets:bank  *0.008
@@ -213,7 +214,7 @@ $ hledger rewrite -f- date:2017/1  --add-posting 'Here comes Santa  $0' --verbos
 
 >= 0
 
-# 7. Rewrite using diff output
+# ** 7. Rewrite using diff output
 <
 2016/01/01 withdraw
     assets:cash              $20

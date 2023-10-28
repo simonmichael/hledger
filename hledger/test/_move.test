@@ -1,4 +1,4 @@
-# Tests for bin/hledger-move.hs
+# * bin/hledger-move.hs
 
 2022/01/01
     (f)               1
@@ -7,14 +7,12 @@
     (n)              -1
     (t)               0
 
-comment
-
-# 1. TOACCT must exist
+# ** 1. TOACCT must exist
 $ hledger-move -f- --today=2000-01-01 0 f unknown
 >2 /Error: unknown did not match any account./
 >=1
 
-# 2. Can create an entry moving zero
+# ** 2. Can create an entry moving zero
 $ hledger-move -f- --today=2000-01-01 0 f t
 2000-01-01
     f               0
@@ -22,7 +20,7 @@ $ hledger-move -f- --today=2000-01-01 0 f t
 
 >=
 
-# 3. Funds are moved from parent account first
+# ** 3. Funds are moved from parent account first
 $ hledger-move -f- --today=2000-01-01 1 f t
 2000-01-01
     f              -1
@@ -30,7 +28,7 @@ $ hledger-move -f- --today=2000-01-01 1 f t
 
 >=
 
-# 4. Then from subaccounts as needed
+# ** 4. Then from subaccounts as needed
 $ hledger-move -f- --today=2000-01-01 2 f t
 2000-01-01
     f                 -1
@@ -40,22 +38,22 @@ $ hledger-move -f- --today=2000-01-01 2 f t
 
 >=
 
-# 5. Insufficient funds to move gives an error
+# ** 5. Insufficient funds to move gives an error
 $ hledger-move -f- --today=2000-01-01 10 f t
 >2 /Error: could not move 10, only 3 is available/
 >=1
 
-# 6. And you can't move funds from a negative balance
+# ** 6. And you can't move funds from a negative balance
 $ hledger-move -f- --today=2000-01-01 1 n t
 >2 /Error: could not move 1, only -1 is available/
 >=1
 
-# 7. A negative amount is not easily entered
+# ** 7. A negative amount is not easily entered
 $ hledger-move -f- --today=2000-01-01 '-1' f t
 >2 /Error: Unknown flag: -1/
 >=1
 
-# 8. It can be done with -- (and hledger-move, not hledger move), but will be rejected.
+# ** 8. It can be done with -- (and hledger-move, not hledger move), but will be rejected.
 $ hledger-move -f- --today=2000-01-01 -- -1 f t
 >2 /please specify a positive amount/
 >=1

@@ -1,4 +1,6 @@
-# 1. by default only market prices are reported
+# * prices command
+
+# ** 1. by default only market prices are reported
 <
 P 2016/1/1 EUR $1.06
 P 2016/2/1 EUR $1.05
@@ -15,7 +17,7 @@ $ hledger prices -f-
 P 2016-01-01 EUR $1.06
 P 2016-02-01 EUR $1.05
 
-# 2. costs from postings can be included also
+# ** 2. costs from postings can be included also
 <
 P 2016/1/1 EUR $1.06
 P 2016/2/1 EUR $1.05
@@ -43,7 +45,7 @@ P 2016-01-03 EUR $1.0725
 P 2016-01-04 EUR $1.0725
 P 2016-02-01 EUR $1.05
 
-# 3. inverted prices can be calculated
+# ** 3. inverted prices can be calculated
 <
 P 2016/1/1 EUR $1.06
 P 2016/2/1 EUR $1.05
@@ -73,12 +75,12 @@ P 2019-01-02 X A1000,1
 2019-02-02
   (a)   X1 @ A1000,2
 
-# 4. Commodity styles are applied, but precision is left unchanged.
+# ** 4. Commodity styles are applied, but precision is left unchanged.
 $ hledger -f- prices
 P 2019-01-01 X 1.000,123 A
 P 2019-01-02 X 1.000,1 A
 
-# 5. Commodity styles aren't yet applied to prices inferred from transaction prices.
+# ** 5. Commodity styles aren't yet applied to prices inferred from transaction prices.
 $ hledger -f- prices --infer-market-prices
 P 2019-01-01 X 1.000,123 A
 P 2019-01-02 X 1.000,1 A
@@ -95,7 +97,7 @@ P 2019-02-02 X 1.000,2 A
     Assets:Broker           = 1000 USD
     Equity:Opening Balances
 
-# 6. Inferring prices should play well with balance assertions involving mixing
+# ** 6. Inferring prices should play well with balance assertions involving mixing
 # of prices and no prices. (#1736)
 $ hledger -f- prices --infer-market-prices
 P 2021-10-15 ABC 100.0 USD
@@ -107,10 +109,10 @@ P 2021-10-15 ABC 100.0 USD
 2021-10-16
     (b)    0 A @@ 1 B
 
-# 7. Gracefully ignore any postings which would result in an infinite price.
+# ** 7. Gracefully ignore any postings which would result in an infinite price.
 $ hledger -f- prices --infer-market-prices
 P 2021-10-15 A 0.0 B
 
-# 8. Same for reverse prices
+# ** 8. Same for reverse prices
 $ hledger -f- prices --infer-reverse-prices
 P 2021-10-16 B 0.0 A

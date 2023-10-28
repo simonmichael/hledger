@@ -1,4 +1,6 @@
-# 1. print shows both primary and secondary dates. The second's year defaults to the first's.
+# * print command with --date2 flag
+
+# ** 1. print shows both primary and secondary dates. The second's year defaults to the first's.
 <
 2000/1/1=3/3
   (a)  1
@@ -15,7 +17,7 @@ $ hledger -f - print
 
 >= 0
 
-# 2. With --date2, the secondary date is used for sorting.
+# ** 2. With --date2, the secondary date is used for sorting.
 <
 2000/1/1=3/3
   (a)  1

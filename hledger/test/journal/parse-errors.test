@@ -1,11 +1,10 @@
-# Testing parse error messages for accuracy and usefulness.
+# * parse error messages
 
-# A journal with an incomplete date.
+# ** 1. A journal with an incomplete date.
+# XXX depends on the executable being named "hledger" (prepended by GHC.Err.error)
 <
 2018
 
-# XXX depends on the executable being named "hledger" (prepended by GHC.Err.error)
-# 1.
 $ hledger -f - print
 >2
 hledger: Error: -:1:5:
@@ -22,14 +21,14 @@ expecting date separator or digit
 2009/1/1
   a   1
 
-# 2. When read from stdin with no reader prefix, the journal reader is used
+# ** 2. When read from stdin with no reader prefix, the journal reader is used
 # (before 1.17, all readers were tried and the timedot reader would succeed),
 # giving an unbalanced error in this case.
 $ hledger -f - print
 >2 /real postings' sum should be 0 but is: 1/
 >=1
 
-# 3. We expect to have reference to line number with last posting
+# ** 3. We expect to have reference to line number with last posting
 # NB: \< and \> match start and end of a word.
 $ hledger -f journal:- print
 >2 /\<2\>/
@@ -40,7 +39,7 @@ $ hledger -f journal:- print
 2018/1/1
   (a) 1
 
-# 4. hledger doesn't detect this as an error directly, it parses account name "(a) 1" and
+# ** 4. hledger doesn't detect this as an error directly, it parses account name "(a) 1" and
 # amount 0 here.
 $ hledger -f - print -x
 2018-01-01
@@ -48,7 +47,7 @@ $ hledger -f - print -x
 
 >=
 
-# 5. Two (or more) postings with implicit amount cannot be balanced.
+# ** 5. Two (or more) postings with implicit amount cannot be balanced.
 <
 2018/1/1
   a  1
@@ -59,7 +58,7 @@ $ hledger -f journal:- print
 >2 /can't be more than one real posting with no amount/
 >=1
 
-# 6. Two (or more) virtual postings with implicit amount cannot be balanced.
+# ** 6. Two (or more) virtual postings with implicit amount cannot be balanced.
 # (And the error message contains line numbers).
 <
 2018/1/1
@@ -71,7 +70,7 @@ $ hledger -f journal:- print
 >2 /:1-4/
 >=1
 
-# 7. Balancing error messages show the recorded precision, not the display precision.
+# ** 7. Balancing error messages show the recorded precision, not the display precision.
 <
 2010/1/1
    a  1C @ $1.0049
@@ -80,7 +79,7 @@ $ hledger -f- print
 >2 /real postings' sum should be 0 but is: \$0.0049/
 >=1
 
-# 8. Multiple postings all with the same sign gets a distinct error message.
+# ** 8. Multiple postings all with the same sign gets a distinct error message.
 <
 2020-01-01
   a  1A
@@ -89,7 +88,7 @@ $ hledger -f- print
 >2 /real postings all have the same sign/
 >=1
 
-# 9. Zeros don't trigger the same sign error.
+# ** 9. Zeros don't trigger the same sign error.
 <
 2020-01-01
   a  A 0
@@ -101,7 +100,7 @@ $ hledger -f- print
 
 >=0
 
-# 10. An inferred multicommodity amount doesn't trigger the same sign error.
+# ** 10. An inferred multicommodity amount doesn't trigger the same sign error.
 <
 2020-01-01
     a  A 1
@@ -115,12 +114,13 @@ $ hledger -f- print
 
 >=0
 
-# 11. For multiple postings all with the same sign but in different commodities,
+# ** 11. For multiple postings all with the same sign but in different commodities,
 # the error should show the original amounts, without inferring transaction prices.
 <
 2020-01-01
   a  1A
   b  1B
+
 $ hledger -f- print
 >2
 hledger: Error: -:1-3:
@@ -133,8 +133,9 @@ The real postings all have the same sign. Consider negating some of them.
 Consider adjusting this entry's amounts, adding missing postings,
 or recording conversion price(s) with @, @@ or equity postings.
 >=1
+#'
 
-# 12. Typical "hledger equity --close" transaction does not trigger sign error.
+# ** 12. Typical "hledger equity --close" transaction does not trigger sign error.
 <
 2019-01-01 opening balances
     assets:a1         $3
@@ -158,7 +159,7 @@ $ hledger -f- print
 
 >=0
 
-# 13. Adding a multiplier in a normal posting gives a parse error.
+# ** 13. Adding a multiplier in a normal posting gives a parse error.
 <
 2020-01-01
   (a)  *1

@@ -1,3 +1,5 @@
+# * csvdecimalmarkparse error
+# ** 1. 
 $ hledger check -f  csvdecimalmarkparse.csv
 >2 /hledger: Error: decimal-mark's argument should be "." or "," \(not "badmark"\)
 /

@@ -1,6 +1,6 @@
-# account names
+# * account directive
 
-# 1. "apply account" and "alias" affect "account" directives.
+# ** 1. "apply account" and "alias" affect "account" directives.
 <
 apply account c
 alias c:a=b
@@ -8,7 +8,7 @@ account a
 $ hledger -f - accounts
 b
 
-# 2. account directives can declare account type.
+# ** 2. account directives can declare account type.
 # Here "asset" is a liability, despite the name. So are its subaccounts.
 # "b" is a liability. "b:bb" is an asset.
 <
@@ -38,7 +38,7 @@ Balance Sheet 2018-01-01
  asset:a     ||         -1 
  b           ||         -2 
 
-# 3. Tree mode. A little weird, b appears twice.
+# ** 3. Tree mode. A little weird, b appears twice.
 # It must be shown above bb, but since not an asset, its balance is excluded there.
 # It is shown again in the liabilities section, this time with balance.
 $ hledger -f - bs -N
@@ -55,7 +55,7 @@ Balance Sheet 2018-01-01
  asset:a     ||         -1 
  b           ||         -2 
 
-# 4. It ignores subdirectives.
+# ** 4. It ignores subdirectives.
 <
 account Expenses:Food
     note This account is all about the chicken!
@@ -68,7 +68,7 @@ account Expenses:Food
 $ hledger -f- accounts
 Expenses:Food
 
-# 5. It does not allow parentheses in names.
+# ** 5. It does not allow parentheses in names.
 <
 account (a)
 
@@ -83,7 +83,7 @@ expecting account name without brackets
 
 >=1
 
-# 6. It does not allow brackets in names.
+# ** 6. It does not allow brackets in names.
 <
 account [a]
 

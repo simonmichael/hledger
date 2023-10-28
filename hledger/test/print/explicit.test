@@ -1,6 +1,6 @@
-# Tests of --explicit option effect
+# * print command's --explicit flag
 
-# 1. implicit transaction balance w/o --explict
+# ** 1. implicit transaction balance w/o --explict
 <
 2017/1/1
     expenses  $5
@@ -12,7 +12,7 @@ $ hledger -f - print
 
 >= 0
 
-# 2. implicit transaction balance w/ --explict
+# ** 2. implicit transaction balance w/ --explict
 <
 2017/1/1
     expenses  $5
@@ -24,7 +24,7 @@ $ hledger -f - print --explicit
 
 >= 0
 
-# 3. implicit commodity price w/o --explict
+# ** 3. implicit commodity price w/o --explict
 <
 2017/1/1
     expenses  4 EUR
@@ -36,7 +36,7 @@ $ hledger -f - print
 
 >= 0
 
-# 4. implicit commodity price w/ --explict
+# ** 4. implicit commodity price w/ --explict
 <
 2017/1/1
     expenses  4 EUR
@@ -48,7 +48,7 @@ $ hledger -f - print --explicit
 
 >= 0
 
-# 5. implicit account balance w/o --explict
+# ** 5. implicit account balance w/o --explict
 <
 2017/1/1
     assets  = $100
@@ -60,7 +60,7 @@ $ hledger -f - print
 
 >= 0
 
-# 6. implicit account balance w/ --explict
+# ** 6. implicit account balance w/ --explict
 <
 2017/1/1
     assets  = $100
@@ -72,7 +72,7 @@ $ hledger -f - print --explicit
 
 >= 0
 
-# 7. default commodity always applied because print do not issue appropriate directive
+# ** 7. default commodity always applied because print do not issue appropriate directive
 <
 D 1000.00 EUR
 2017/1/1
@@ -85,7 +85,7 @@ $ hledger -f - print
 
 >= 0
 
-# 8. option --explicit implies effect of --empty
+# ** 8. option --explicit implies effect of --empty
 <
 2017/1/1
     assets  $0
@@ -97,7 +97,7 @@ $ hledger -f - print --explicit
 
 >= 0
 
-# 9. Auto postings are always given explicit amounts.
+# ** 9. Auto postings are always given explicit amounts.
 <
 = a
     c  *-0.453

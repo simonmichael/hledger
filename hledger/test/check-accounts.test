@@ -1,11 +1,12 @@
-# 1. check accounts succeeds when all accounts are declared
+# * check accounts
+# ** 1. check accounts succeeds when all accounts are declared
 <
 account a
 2020-01-01
   (a)  1
 $ hledger -f- check accounts
 
-# 2. and otherwise fails:
+# ** 2. and otherwise fails:
 <
 2020-01-01
   (a)  1
@@ -13,7 +14,7 @@ $ hledger -f- check accounts
 >2 /account "a" has not been declared/
 >=1
 
-# 3. also fails for forecast accounts
+# ** 3. also fails for forecast accounts
 <
 account a
 ~ 2022-01-31
@@ -23,12 +24,12 @@ $ hledger -f- --today 2022-01-01 --forecast check accounts
 >2 /account "b" has not been declared/
 >=1
 
-# 4. also fails in --strict mode
+# ** 4. also fails in --strict mode
 $ hledger -f- --today 2022-01-01 --forecast --strict bal
 >2 /account "b" has not been declared/
 >=1
 
-# 5. also fails for auto accounts
+# ** 5. also fails for auto accounts
 <
 account a
 
@@ -43,7 +44,7 @@ $ hledger -f- --auto check accounts
 >2 /account "b" has not been declared/
 >=1
 
-# 6. also fails in --strict mode
+# ** 6. also fails in --strict mode
 $ hledger -f- --auto --strict bal
 >2 /account "b" has not been declared/
 >=1

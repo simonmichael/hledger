@@ -1,14 +1,15 @@
+# * add command
 ##############################################################################
 # data validation
 #
-# 1. should prompt again for a bad date
+# ** 1. should prompt again for a bad date
 <<<
 2009/1/32
 $$$ hledger -f $$-add.j add; rm -f $$-add.j
 >>> /A valid hledger smart date is required/
 >>>2 //
 
-# 2. should accept a blank date
+# ** 2. should accept a blank date
 <<<
 
 $$$ hledger -f $$-add.j add; rm -f $$-add.j
@@ -18,7 +19,7 @@ $$$ hledger -f $$-add.j add; rm -f $$-add.j
 ##############################################################################
 # precision and commodity handling
 #
-# 3. simple add with no existing journal, no commodity entered
+# ** 3. simple add with no existing journal, no commodity entered
 <<<
 
 
@@ -31,7 +32,7 @@ $$$ hledger -f $$-add.j add; rm -f $$-add.j
 >>> /Date.*Description.*Account 1.*Amount  1.*Account 2.*Amount  2.*Account 3.*or \. or enter to finish.*/
 >>>2 //
 
-# 4. default commodity with greater precision
+# ** 4. default commodity with greater precision
 <<<
 
 
@@ -45,7 +46,7 @@ $$$  printf 'D $1000.00\n' >t$$.j; hledger -f t$$.j add >/dev/null; cat t$$.j; r
 >>> /a  +\$1000\.0/
 >>>2 //
 
-# 5. default commodity with less precision
+# ** 5. default commodity with less precision
 <<<
 
 
@@ -59,7 +60,7 @@ $$$  printf 'D $1000.0\n' >t$$.j; hledger -f t$$.j add >/dev/null; cat t$$.j; rm
 >>> /a  +\$1000\.00/
 >>>2 //
 
-# 6. existing commodity with greater precision
+# ** 6. existing commodity with greater precision
 <<<
 
 
@@ -72,7 +73,7 @@ $$$  printf '2010/1/1\n a  $1000.00\n b\n' >t$$.j; hledger -f t$$.j add >/dev/nu
 >>> /a  +\$1000\.0/
 >>>2 //
 
-# 7. existing commodity with less precision
+# ** 7. existing commodity with less precision
 <<<
 
 
@@ -86,7 +87,7 @@ $$$  printf '2010/1/1\n a  $1000.0\n b\n' >t$$.j; hledger -f t$$.j add >/dev/nul
 >>> /a  +\$1000\.00/
 >>>2 //
 
-# 8. default amounts should not fail to balance due to precision
+# ** 8. default amounts should not fail to balance due to precision
 <<<
 2010/1/1
 x

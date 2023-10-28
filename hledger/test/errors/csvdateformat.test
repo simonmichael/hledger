@@ -1,3 +1,5 @@
+# * csvdateformat error
+# ** 1. 
 $$$ hledger print -f  csvdateformat.csv
 >>>2 /hledger: Error: error: could not parse "a" as a date using date format "YYYY\/M\/D", "YYYY-M-D" or "YYYY.M.D"
 CSV record: "a","b"

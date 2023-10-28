@@ -1,3 +1,5 @@
+# * accounts error
+# ** 1. 
 $ hledger check accounts -f accounts.j
 >2 /hledger: Error: .*accounts.j:4:
   \| 2022-01-01

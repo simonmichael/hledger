@@ -1,3 +1,5 @@
+# * commodities error
+# ** 1. 
 $ hledger check commodities -f commodities.j
 >2 /hledger: Error: .*commodities.j:6:
   \| 2022-01-01

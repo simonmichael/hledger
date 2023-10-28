@@ -1,8 +1,8 @@
-# --flat shows inclusive balances; total balance should be that of top-level accounts (issue 94)
-# # 1. 
+# * balance command --flat flag
+# ** 1. --flat shows inclusive balances; total balance should be that of top-level accounts (issue 94)
 # hledger -f - balance --flat
 # <<<
-# 1/1
+# ** 1/1
 #     (a)     1
 #     (a:aa)  1
 # >>>
@@ -13,7 +13,7 @@
 # >>>= 0
 
 # --flat shows exclusive balances
-# 1. 
+# ** 1. 
 <
 1/1
  (a:aa)       1
@@ -31,7 +31,7 @@ $ hledger -f - balance --flat
                    5  
 
 # --flat --depth shows the same accounts, but clipped and aggregated at the depth limit
-# 2. 
+# ** 2. 
 <
 1/1
  (a:aa)       1

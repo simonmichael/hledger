@@ -1,6 +1,6 @@
-# accounts report sorting.
+# * accounts report sorting.
 
-# 1. Accounts are sorted alphabetically, at each tree level.
+# ** 1. Accounts are sorted alphabetically, at each tree level.
 # Flat mode. Unused parent accounts are not added (b).
 <
 2018/1/1
@@ -23,7 +23,7 @@ c
 >=
 
 
-# 2. Tree mode. Missing parent accounts are added (b).
+# ** 2. Tree mode. Missing parent accounts are added (b).
 $ hledger -f- acc --tree
 a
   k
@@ -33,7 +33,7 @@ b
 c
 >=
 
-# 3. With account directives, flat mode.
+# ** 3. With account directives, flat mode.
 # At each tree level, declared accounts are sorted first, in
 # declaration order, followed by undeclared accounts sorted alphabetically.
 # Unused parent accounts are not added (b).
@@ -70,7 +70,7 @@ b:i
 c
 >=
 
-# 4. With account directives, tree mode. 
+# ** 4. With account directives, tree mode. 
 # Missing parent accounts are added (b).
 $ hledger -f- acc --tree
 d
@@ -83,7 +83,7 @@ b
 c
 >=
 
-# 5. With a depth limit: 
+# ** 5. With a depth limit: 
 # deeper accounts are not excluded
 # account names are clipped
 # empty clipped names are removed

@@ -1,4 +1,4 @@
-# balance --budget tests
+# * balance --budget tests
 
 2016/12/01
     expenses:food  $10
@@ -30,7 +30,7 @@
     assets:cash
 
 
-# 1. Test --budget switch
+# ** 1. Test --budget switch
 $ hledger -f- bal -D -b 2016-12-01 -e 2016-12-04 --budget
 Budget performance in 2016-12-01..2016-12-03:
 
@@ -43,7 +43,7 @@ Budget performance in 2016-12-01..2016-12-03:
 ------------------++--------------------------------------------------------------
                   ||    0 [           0]     0 [          0]     0 [           0] 
 
-# 2. -E
+# ** 2. -E
 $ hledger -f- bal -D -b 2016-12-01 -e 2016-12-04 --budget -E
 Budget performance in 2016-12-01..2016-12-03:
 
@@ -58,7 +58,7 @@ Budget performance in 2016-12-01..2016-12-03:
 ------------------++--------------------------------------------------------------
                   ||    0 [           0]     0 [          0]     0 [           0] 
 
-# 3. Test that budget works with mix of commodities
+# ** 3. Test that budget works with mix of commodities
 <
 2016/12/01
     expenses:food  £10 @@ $15
@@ -105,7 +105,7 @@ Budget performance in 2016-12-01..2016-12-03:
 ------------------++---------------------------------------------------------------------------
                   || $-15, £10 [          0]  $-21, 20 CAD [           0]     0 [           0] 
 
-# 4. --budget with no interval shows total budget for the journal period
+# ** 4. --budget with no interval shows total budget for the journal period
 # (in tabular format). 
 <
 ~ daily
@@ -138,7 +138,7 @@ Budget performance in 2018-01-01..2018-01-03:
 ---++------------------------
    ||         6 [1% of 1130] 
 
-# 5. Multiple periodic transactions with different intervals are combined. 
+# ** 5. Multiple periodic transactions with different intervals are combined. 
 # Budget goals with lower frequency than the report are posted in the 
 # appropriate intermittent periods. 
 $ hledger -f- bal --budget -D
@@ -152,7 +152,7 @@ Budget performance in 2018-01-01..2018-01-03:
 ---++----------------------------------------------
    || 3 [ 0% of 1110]  0 [0% of 10]  3 [30% of 10] 
 
-# 6. Budget goals with higher frequency than the report get added up appropriately.
+# ** 6. Budget goals with higher frequency than the report get added up appropriately.
 $ hledger -f- bal --budget -W
 Budget performance in 2018-01-01W01:
 
@@ -164,7 +164,7 @@ Budget performance in 2018-01-01W01:
 ---++----------------
    || 6 [1% of 1170] 
 
-# 7. A bounded two day budget. The end date is exclusive as usual.
+# ** 7. A bounded two day budget. The end date is exclusive as usual.
 <
 ~ daily from 2018/1/2 to 2018/1/4
   (a)  1
@@ -195,7 +195,7 @@ Budget performance in 2018-01-01..2018-01-04:
 --------------++------------------------------------------------------
               ||          2  2 [200% of 1]  2 [200% of 1]           2 
 
-# 8. Multiple bounded budgets.
+# ** 8. Multiple bounded budgets.
 <
 ~ daily from 2018/1/1 to 2018/1/3
   (a)  1
@@ -224,7 +224,7 @@ Budget performance in 2018-01-01..2018-01-04:
 ---++------------------------------------------------------------
    || 1 [100% of 1]  1 [100% of 1]  1 [10% of 10]  1 [10% of 10] 
 
-# 9. A "from A to B" budget should not be included in a report beginning on B.
+# ** 9. A "from A to B" budget should not be included in a report beginning on B.
 $ hledger -f- bal --budget -D -b 2018/1/3
 Budget performance in 2018-01-03..2018-01-04:
 
@@ -244,7 +244,7 @@ Budget performance in 2018-01-03..2018-01-04:
 2018/1/2
   (a)  -2
 
-# 10. accounts with non-zero budget should be shown by default 
+# ** 10. accounts with non-zero budget should be shown by default 
 # even if there are no actual transactions in the period,
 # or if the actual amount is zero.
 $ hledger -f- bal --budget -D date:2018/1/1-2018/1/3
@@ -256,7 +256,7 @@ Budget performance in 2018-01-01..2018-01-02:
 ---++--------------------------
    || 0 [0% of 1]  0 [0% of 1] 
 
-# 11. With -E, zeroes are shown
+# ** 11. With -E, zeroes are shown
 $ hledger -f- bal --budget -D date:2018/1/1-2018/1/3 -E
 Budget performance in 2018-01-01..2018-01-02:
 
@@ -266,7 +266,7 @@ Budget performance in 2018-01-01..2018-01-02:
 ---++--------------------------
    || 0 [0% of 1]  0 [0% of 1] 
 
-# 12. subaccounts of budgeted accounts count towards budget
+# ** 12. subaccounts of budgeted accounts count towards budget
 <
 ~ daily
   (a)      1
@@ -281,7 +281,7 @@ Budget performance in 2018-01-01:
 ===++===============
  a || 1 [100% of 1] 
 
-# 13. budget goals on both parent and subaccounts are counted
+# ** 13. budget goals on both parent and subaccounts are counted
 <
 ~ daily
   (a)        100
@@ -301,7 +301,7 @@ Budget performance in 2018-01-01:
 -------++-----------------
        || 2 [  2% of 101] 
 
-# 14. tree mode
+# ** 14. tree mode
 $ hledger -f- bal --budget --tree
 Budget performance in 2018-01-01:
 
@@ -316,7 +316,7 @@ Budget performance in 2018-01-01:
 
 # TODO: respect --sort-amount
 
-# 15. respect --value
+# ** 15. respect --value
 <
 P 2018/01/26 SHARE €10
 
@@ -344,7 +344,7 @@ Budget performance in 2018-05-01..2018-06-30, valued at period ends:
 ----------------++---------------------------------
                 ||          0     0 [           0] 
 
-# 16. With subaccounts, child accounts are properly included in the parent balance when budget is checked
+# ** 16. With subaccounts, child accounts are properly included in the parent balance when budget is checked
 <
 ~ monthly from 2019/01
     expenses:personal             $1000.00
@@ -372,7 +372,7 @@ Budget performance in 2019-01-01..2019-01-03:
 -------------------++---------------------------
                    ||       0 [              0] 
 
-# 17.
+# ** 17.
 $ hledger -f- bal --budget -E
 Budget performance in 2019-01-01..2019-01-03:
 
@@ -385,7 +385,7 @@ Budget performance in 2019-01-01..2019-01-03:
 ----------------------------------------++---------------------------
                                         ||       0 [              0] 
 
-# 18.
+# ** 18.
 $ hledger -f- bal --budget --tree
 Budget performance in 2019-01-01..2019-01-03:
 
@@ -396,7 +396,7 @@ Budget performance in 2019-01-01..2019-01-03:
 -------------------++---------------------------
                    ||       0 [              0] 
 
-# 19.
+# ** 19.
 $ hledger -f- bal --budget --tree -E
 Budget performance in 2019-01-01..2019-01-03:
 
@@ -409,7 +409,7 @@ Budget performance in 2019-01-01..2019-01-03:
 -------------------++---------------------------
                    ||       0 [              0] 
 
-# 20. Also should work when there are no postings directly in budgeted parents (#1800)
+# ** 20. Also should work when there are no postings directly in budgeted parents (#1800)
 $ hledger -f- bal -e 2019-01-02 --budget -E 
 Budget performance in 2019-01-01:
 
@@ -421,7 +421,7 @@ Budget performance in 2019-01-01:
 -------------------------------++---------------------------
                                ||       0 [              0] 
 
-# 21. Also should work when there are no postings directly in budgeted parents with --tree (#1800)
+# ** 21. Also should work when there are no postings directly in budgeted parents with --tree (#1800)
 $ hledger -f- bal -e 2019-01-02 --budget --tree -E 
 Budget performance in 2019-01-01:
 
@@ -433,7 +433,7 @@ Budget performance in 2019-01-01:
 -------------------++---------------------------
                    ||       0 [              0] 
 
-# 22. Subaccounts + nested budgets
+# ** 22. Subaccounts + nested budgets
 <
 ~ monthly from 2019/01
     expenses:personal             $1000.00
@@ -463,7 +463,7 @@ Budget performance in 2019-01-01..2019-01-03:
 -------------------------------++----------------------------
                                ||       0 [               0] 
 
-# 23.
+# ** 23.
 $ hledger -f- bal --budget -E
 Budget performance in 2019-01-01..2019-01-03:
 
@@ -476,7 +476,7 @@ Budget performance in 2019-01-01..2019-01-03:
 ----------------------------------------++----------------------------
                                         ||       0 [               0] 
 
-# 24.
+# ** 24.
 $ hledger -f- bal --budget --tree
 Budget performance in 2019-01-01..2019-01-03:
 
@@ -488,7 +488,7 @@ Budget performance in 2019-01-01..2019-01-03:
 -------------------++----------------------------
                    ||       0 [               0] 
 
-# 25.
+# ** 25.
 $ hledger -f- bal --budget --tree -E
 Budget performance in 2019-01-01..2019-01-03:
 
@@ -501,7 +501,7 @@ Budget performance in 2019-01-01..2019-01-03:
 -------------------++----------------------------
                    ||       0 [               0] 
 
-# 26. Zero budget == no budget
+# ** 26. Zero budget == no budget
 <
 ~ monthly from 2019-01
   expenses:bills     $100  ; bills has a $100 budget of its own, separate from subaccounts
@@ -539,7 +539,7 @@ Budget performance in 2019-01-01..2019-01-02:
 ------------------++------------------------
                   ||       0 [           0] 
 
-# 27. -E shows d and e
+# ** 27. -E shows d and e
 $ hledger bal -f- --budget -E
 Budget performance in 2019-01-01..2019-01-02:
 
@@ -556,7 +556,7 @@ Budget performance in 2019-01-01..2019-01-02:
 ------------------++------------------------
                   ||       0 [           0] 
 
-# 28. The totals row shows correct totals.
+# ** 28. The totals row shows correct totals.
 # -T/--total and -A/--average adds those columns.
 $ hledger bal -f- --budget -TA not:income
 Budget performance in 2019-01-01..2019-01-02:
@@ -571,7 +571,7 @@ Budget performance in 2019-01-01..2019-01-02:
 ------------------++--------------------------------------------------------------
                   ||      $80 [22% of $370]  $80 [22% of $370]  $80 [22% of $370] 
 
-# 29. CSV output works.
+# ** 29. CSV output works.
 $ hledger bal -f- --budget -TA not:income -O csv
 "Account","2019-01-01..2019-01-02","budget","Total","budget","Average","budget"
 "expenses:bills","$80","$370","$80","$370","$80","$370"
@@ -581,7 +581,7 @@ $ hledger bal -f- --budget -TA not:income -O csv
 "expenses:bills:f","$10","0","$10","0","$10","0"
 "Total:","$80","$370","$80","$370","$80","$370"
 
-# 30. You would expect this to show a budget goal in jan, feb, mar.
+# ** 30. You would expect this to show a budget goal in jan, feb, mar.
 # But by the usual report date logic, which picks the oldest and newest 
 # transaction date (1/15 and 3/15) as start and end date by default, 
 # and since "monthly" generates transactions on the 1st,
@@ -609,7 +609,7 @@ Budget performance in 2020Q1:
 ---------------++-----------------------------------------------------------
                ||     0 [ 0% of $500]  0 [0% of $500]      0 [  0% of $500] 
 
-# 31. Specifying the report period works around it.
+# ** 31. Specifying the report period works around it.
 $ hledger -f- bal --budget -M date:2020q1
 Budget performance in 2020Q1:
 
@@ -636,7 +636,7 @@ $ hledger -f- bal --budget=monthly -p 2021-01
 > !/aaa/
 >=
 
-# 34. Cumulative budget report.
+# ** 34. Cumulative budget report.
 <
 ~ monthly
   (a)  10
@@ -656,7 +656,7 @@ Budget performance in 2022-01-01..2022-02-28:
 ---++---------------------------------
    || 10 [100% of 10]  15 [75% of 20] 
 
-# 35. Historical budget report.
+# ** 35. Historical budget report.
 $ hledger -f- bal --budget -MH -b 2022-02-01
 Budget performance in 2022-02:
 
@@ -666,7 +666,7 @@ Budget performance in 2022-02:
 ---++----------------
    || 15 [75% of 20] 
 
-# 36. Historical budget report where the periodic transaction has date bounds.
+# ** 36. Historical budget report where the periodic transaction has date bounds.
 <
 ~ every february 2nd from 2020/01
     (a)  1
@@ -680,7 +680,7 @@ Budget performance in 2020Q1:
 ---++--------------------------------------
    ||      0 [0]  0 [0% of 1]  0 [0% of 1] 
 
-# 37. Budget report applies command line commodity styles to goal amounts (#1905).
+# ** 37. Budget report applies command line commodity styles to goal amounts (#1905).
 <
 ~ daily
     (a)  1

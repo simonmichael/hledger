@@ -1,7 +1,6 @@
-#!/usr/bin/env shelltest
-# balance assertion & balance assignment tests
+# * balance assertions and balance assignments
 
-# 1. test some balance assertions
+# ** 1. test some balance assertions
 <
 2013/1/1
   a    $1  =$1
@@ -20,7 +19,7 @@ $ hledger -f - stats
 > /Transactions/
 >=0
 
-# 2. same entries as 1 but different parse order, assertion should still pass based on date
+# ** 2. same entries as 1 but different parse order, assertion should still pass based on date
 <
 2013/1/1
   a    $1  =$1
@@ -39,7 +38,7 @@ $ hledger -f - stats
 > /Transactions/
 >=0
 
-# 3. like 1 but switch order of postings in last entry,
+# ** 3. like 1 but switch order of postings in last entry,
 # assertion should fail and exit code should be non zero
 <
 2013/1/1
@@ -59,7 +58,7 @@ $ hledger -f - stats
 >2 /Error: -:11:12/
 >=1
 
-# 4. should also work without commodity symbols
+# ** 4. should also work without commodity symbols
 <
 2013/1/1
   (a)    1  =1
@@ -68,7 +67,7 @@ $ hledger -f - stats
 > /Transactions/
 >=0
 
-# 5. should work for fractional amount with trailing zeros
+# ** 5. should work for fractional amount with trailing zeros
 <
 2013/1/1
   a    $1.20  =$1.20
@@ -86,7 +85,7 @@ $ hledger -f - stats
 > /Transactions/
 >=0
 
-# 6. assertions currently check only a single commodity's balance, like Ledger
+# ** 6. assertions currently check only a single commodity's balance, like Ledger
 <
 1/2
   (a)  A1
@@ -98,7 +97,7 @@ $ hledger -f - stats
 > /Transactions/
 >=0
 
-# 7. balances should accumulate (#195)
+# ** 7. balances should accumulate (#195)
 <
 1/1
     (a)   1F = 1F
@@ -111,7 +110,7 @@ $ hledger -f - stats
 > !/assertion failed/
 >=0
 
-# 8. what should happen here ? Currently,
+# ** 8. what should happen here ? Currently,
 # in a, 3.4 EUR @@ $5.6 and -3.4 EUR cancel out (wrong ?)
 # in b, 
 # 
@@ -133,7 +132,7 @@ $ hledger -f - stats
 # > /Transactions/
 # >=0
 
-# 8. Using balance assignment to set balances.
+# ** 8. Using balance assignment to set balances.
 <
 2013/1/1
   a    $1.20
@@ -152,7 +151,7 @@ $ hledger -f - stats
 >=0
 
 
-# 9. Multiple assertions for an account in the same transaction.
+# ** 9. Multiple assertions for an account in the same transaction.
 <
 2013/1/1
   a    $1  =$1
@@ -171,7 +170,7 @@ $ hledger -f - stats
 > /Transactions/
 >=0
 
-# 10. Multiple assertions and assignments for an account in the same transaction.
+# ** 10. Multiple assertions and assignments for an account in the same transaction.
 <
 2013/1/1
   a    $1  =$1
@@ -201,7 +200,7 @@ $ hledger -f - stats
 > /Transactions/
 >=0
 
-# 11. Assignments and virtual postings
+# ** 11. Assignments and virtual postings
 <
 2013/1/1
   b
@@ -218,7 +217,7 @@ $ hledger -f - stats
 $ hledger -f - stats
 > /Transactions/
 >=0
-# 12. Having both assignments and posting dates is not supported.
+# ** 12. Having both assignments and posting dates is not supported.
 <
 2013/1/1
   a    $1  =$1
@@ -228,7 +227,7 @@ $ hledger -f - stats
 >2  /Balance assignments and custom posting dates may not be combined/
 >=1
 
-# 13. Posting Date
+# ** 13. Posting Date
 <
 
 2011/5/5
@@ -252,7 +251,7 @@ $ hledger -f - stats
 > /Transactions/
 >=0
 
-# 14. Mix different commodities
+# ** 14. Mix different commodities
 <
 2016/1/1
     a      $1
@@ -266,7 +265,7 @@ $ hledger -f - stats
 > /Transactions/
 >=0
 
-# 15. Mix different commodities and assignments
+# ** 15. Mix different commodities and assignments
 <
 2016/1/1
     a      $1
@@ -287,7 +286,7 @@ $ hledger -f - stats
 > /Transactions/
 >=0
 
-# 16. Total assertions (==) parse correctly
+# ** 16. Total assertions (==) parse correctly
 <
 2016/1/1
     a      $1
@@ -300,7 +299,7 @@ $ hledger -f - stats
 > /Transactions/
 >=0
 
-# 17. Total assertions consider entire multicommodity amount
+# ** 17. Total assertions consider entire multicommodity amount
 <
 2016/1/1
     a      $1
@@ -317,7 +316,7 @@ $ hledger -f - stats
 >2 /Error: -:10:15:/
 >=1
 
-# 18. Mix different commodities and total assignments
+# ** 18. Mix different commodities and total assignments
 <
 2016/1/1
     a      $1
@@ -336,21 +335,21 @@ $ hledger -f - stats
 > /Transactions/
 >=0
 
-# 19. Cost is ignored when checking balance assertions.
+# ** 19. Cost is ignored when checking balance assertions.
 <
 2023-01-01
     (a)         1A @ 1B = 1A
 
 $ hledger -f- check
 
-# 20. The asserted balance may have a cost, also ignored
+# ** 20. The asserted balance may have a cost, also ignored
 <
 2023-01-01
     (a)         1A @ 1B = 1A @ 2B
 
 $ hledger -f- check
 
-# 21. A cost does not disrupt highlighting in the balance assertion error message.
+# ** 21. A cost does not disrupt highlighting in the balance assertion error message.
 <
 2023-01-01
     (a)         1A @ 1B = 5A
@@ -362,7 +361,7 @@ $ hledger -f- check
 /
 >=1
 
-# 22. Balance assignments may have a cost, and it's used for the posting amount.
+# ** 22. Balance assignments may have a cost, and it's used for the posting amount.
 <
 2019/01/01
     (a)                 = 1A @ 2B
@@ -374,7 +373,7 @@ $ hledger -f- print --explicit
 
 >=0
 
-# 23. The exact amounts are compared; display precision does not affect assertions.
+# ** 23. The exact amounts are compared; display precision does not affect assertions.
 <
 commodity $1000.00
 
@@ -388,7 +387,7 @@ $ hledger -f- print
 > /2019/
 >=0
 
-# 24. This fails
+# ** 24. This fails
 <
 commodity $1000.00
 
@@ -402,7 +401,7 @@ $ hledger -f- print
 >2 /a difference of.*0\.004/
 >=1
 
-# 25. This fails
+# ** 25. This fails
 <
 commodity $1000.00
 
@@ -416,7 +415,7 @@ $ hledger -f- print
 >2 /a difference of.*0\.0001/
 >=1
 
-# 26. Inclusive assertions include balances from subaccounts.
+# ** 26. Inclusive assertions include balances from subaccounts.
 <
 2019/1/1
   (a)    X1
@@ -440,7 +439,7 @@ $ hledger -f- print
 
 >=0
 
-# 27. Inclusive balance assignments also work (#1207).
+# ** 27. Inclusive balance assignments also work (#1207).
 <
 2020-01-25
     (a:aa)   1
@@ -470,7 +469,7 @@ $ hledger -f- print -x
 
 >=0
 
-# 28. When balance assignment with a cost generates two postings in one commodity,
+# ** 28. When balance assignment with a cost generates two postings in one commodity,
 # the balance assertion appears only on the last, not both. (#1965)
 <
 2022-01-01

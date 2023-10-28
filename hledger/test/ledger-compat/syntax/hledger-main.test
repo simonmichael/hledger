@@ -1,4 +1,4 @@
-# hledger journal main syntax                         -*- ledger -*-
+# * summary of main hledger journal syntax
 # keep synced with hledger.m4.md
 
 # Here is the main syntax of hledger's journal format
@@ -6,7 +6,7 @@
 # hledger journals contain comments, directives, and transactions, in any order:
 
 ###############################################################################
-# 1. Comment lines are for notes or temporarily disabling things.
+# ** 1. Comment lines are for notes or temporarily disabling things.
 # They begin with #, ;, or a line containing the word "comment".
 
 # hash comment line
@@ -20,7 +20,7 @@ end comment
 # from ; (semicolon) to end of line.
 
 ###############################################################################
-# 2. Directives modify parsing or reports in some way.
+# ** 2. Directives modify parsing or reports in some way.
 # They begin with a word or letter (or symbol).
 
 account actifs     ; type:A, declare an account that is an Asset. 2+ spaces before ;.
@@ -37,7 +37,7 @@ P 2022-01-01 AAAA $1.40
     budgeted
 
 ###############################################################################
-# 3. Transactions are what it's all about; they are dated events,
+# ** 3. Transactions are what it's all about; they are dated events,
 # usually describing movements of money.
 # They begin with a date.
 

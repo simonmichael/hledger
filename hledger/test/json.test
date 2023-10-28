@@ -1,8 +1,10 @@
+# * JSON output
+
 <
 2019-1-1
   (a)  1.0 AAA
 
-# 1. Test the json output for register reports
+# ** 1. Test the json output for register reports
 $ hledger -f- reg --output-format=json
 [
   [
@@ -62,7 +64,7 @@ $ hledger -f- reg --output-format=json
   ]
 ]
 
-# 2. Test the json output for balance reports
+# ** 2. Test the json output for balance reports
 $ hledger -f- bal --output-format=json
 [
   [

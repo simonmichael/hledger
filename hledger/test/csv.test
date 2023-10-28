@@ -1,4 +1,5 @@
-# 1. read CSV to hledger journal format
+# * CSV input
+# ** 1. read CSV to hledger journal format
 <
 10/2009/09,Flubber Co,50
 RULES
@@ -14,7 +15,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 2. reading CSV with in-field and out-field
+# ** 2. reading CSV with in-field and out-field
 <
 10/2009/09,Flubber Co🎅,50,
 11/2009/09,Flubber Co🎅,,50
@@ -38,7 +39,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 3. handle conditions assigning multiple fields
+# ** 3. handle conditions assigning multiple fields
 <
 10/2009/09,Flubber Co,50
 
@@ -57,7 +58,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 4. read CSV with balance field
+# ** 4. read CSV with balance field
 <
 10/2009/09,Flubber Co,50,123
 
@@ -74,7 +75,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 5. read CSV with empty balance field
+# ** 5. read CSV with empty balance field
 <
 10/2009/09,Flubber Co,50,123
 11/2009/09,Blubber Co,60,
@@ -96,7 +97,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 6. read CSV with only whitespace in balance field
+# ** 6. read CSV with only whitespace in balance field
 <
 10/2009/09,Flubber Co,50,123
 11/2009/09,Blubber Co,60,   
@@ -118,7 +119,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 7. read CSV with rule double-negating column
+# ** 7. read CSV with rule double-negating column
 <
 date,payee,amount
 2009/10/9,Flubber Co,50
@@ -145,7 +146,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 8. reading with custom separator: SSV (semicolon-separated)
+# ** 8. reading with custom separator: SSV (semicolon-separated)
 <
 10/2009/09;Flubber Co🎅;50;
 11/2009/09;Flubber Co🎅;;50
@@ -170,7 +171,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 9. read CSV with balance2 field
+# ** 9. read CSV with balance2 field
 <
 10/2009/09,Flubber Co,50,123
 
@@ -187,7 +188,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 10. read CSV with balance1 and balance2 fields
+# ** 10. read CSV with balance1 and balance2 fields
 <
 10/2009/09,Flubber Co,50,321,123
 
@@ -205,7 +206,7 @@ $  ./csvtest.sh
 >=0
 
 
-# 11. More than two postings
+# ** 11. More than two postings
 <
 10/2009/09,Flubber Co,50,321,123,0.234,VAT
 
@@ -226,7 +227,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 12. More than two postings and different currencies
+# ** 12. More than two postings and different currencies
 <
 10/2009/09,Flubber Co,50,321,123,£,0.234,VAT
 
@@ -247,7 +248,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 13. reading CSV with in-field and out-field, where one could be zero
+# ** 13. reading CSV with in-field and out-field, where one could be zero
 <
 10/2009/09,Flubber Co🎅,50,0
 11/2009/09,Flubber Co🎅,0.00,50
@@ -271,7 +272,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 14. multiline descriptions
+# ** 14. multiline descriptions
 <
 10/2009/09,"Flubber Co
 
@@ -297,7 +298,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 15. recursive interpolation
+# ** 15. recursive interpolation
 <
 myacct,10/2009/09,Flubber Co,50,
 
@@ -316,7 +317,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 16. Real life-ish paypal parsing example
+# ** 16. Real life-ish paypal parsing example
 <
 "12/22/2018","06:22:50","PST","Someone","Subscription Payment","Completed","USD","10.00","-0.59","9.41","someone@some.where","simon@joyful.com","123456789","Joyful Systems","","9KCXINCOME:UNKNOWNZXXAX","","57.60",""
 
@@ -341,7 +342,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 17. Show that #415 is fixed
+# ** 17. Show that #415 is fixed
 <
 "2016/01/01","$1"
 "2016/02/02","$1,000.00"
@@ -355,7 +356,7 @@ $  ./csvtest.sh | hledger balance -f - --no-total
            $1,001.00  unknown
 >=0
 
-# 18. Conditional skips
+# ** 18. Conditional skips
 <
 HEADER
 10/2009/09,Flubber Co,50
@@ -393,7 +394,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 19. Lines with just balance, no amount (#1000)
+# ** 19. Lines with just balance, no amount (#1000)
 <
 2018-10-15,100
 2018-10-16,200
@@ -421,7 +422,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 20. Test for #1001 - empty assignment to amount show not eat next line 
+# ** 20. Test for #1001 - empty assignment to amount show not eat next line 
 <
 2018-10-15,1
 
@@ -435,7 +436,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 21. Amountless postings and conditional third posting
+# ** 21. Amountless postings and conditional third posting
 <
 "12/22/2018","06:22:50","PST","Someone","Subscription Payment","Completed","USD","10.00","-0.59","9.41","someone@some.where","simon@joyful.com","123456789","Joyful Systems","","9KCXINCOME:UNKNOWNZXXAX","","57.60",""
 "12/22/2018","06:22:50","PST","Someone","Empty fee","Completed","USD","10.00","","6.66","someone@some.where","simon@joyful.com","987654321","Joyful Systems","","9KCXINCOME:UNKNOWNZXXAX","","99.60",""
@@ -476,7 +477,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 22. read CSV with balance-type directive
+# ** 22. read CSV with balance-type directive
 <
 10/2009/09,Flubber Co,50,123
 
@@ -494,7 +495,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 23. create unbalanced virtual posting
+# ** 23. create unbalanced virtual posting
 <
 10/2009/09,Flubber Co,50,123
 
@@ -510,7 +511,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 24. create balanced virtual posting
+# ** 24. create balanced virtual posting
 <
 10/2009/09,Flubber Co,50,-50
 
@@ -528,7 +529,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 25. specify reserved word whitespace separator in rules
+# ** 25. specify reserved word whitespace separator in rules
 <
 2009/10/01	Flubber Co	50	123
 
@@ -544,7 +545,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 26. manually setting hledger's default "expenses:unknown"/"income:unknown" names works (#1192)
+# ** 26. manually setting hledger's default "expenses:unknown"/"income:unknown" names works (#1192)
 <
 2020-01-01,5
 
@@ -560,7 +561,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 27. match a specific field
+# ** 27. match a specific field
 <
 2020-01-01, 1
 2020-01-01, 2
@@ -574,7 +575,7 @@ $  ./csvtest.sh desc:one
 
 >=0
 
-# 28. choose unknown account names correctly when no account name is set
+# ** 28. choose unknown account names correctly when no account name is set
 # and backwards-compatibly generating two postings.
 <
 2020-01-01, 1,
@@ -587,7 +588,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 29. choose unknown account name correctly when only account1 is set
+# ** 29. choose unknown account name correctly when only account1 is set
 # and backwards-compatibly generating second posting.
 <
 2020-01-01, 1, a
@@ -600,7 +601,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 30. leave unknown account name as-is when explicitly set by user (#1192).
+# ** 30. leave unknown account name as-is when explicitly set by user (#1192).
 <
 2020-01-01, 1, a
 RULES
@@ -613,7 +614,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 31. Can generate a transaction with amount on the first posting only.
+# ** 31. Can generate a transaction with amount on the first posting only.
 <
 2020-01-01, 1
 RULES
@@ -626,7 +627,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 32. Can generate a transaction with an amount on the second posting only.
+# ** 32. Can generate a transaction with an amount on the second posting only.
 <
 2020-01-01, 1
 RULES
@@ -639,7 +640,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 33. The unnumbered amount rule converts posting 2's amount to cost.
+# ** 33. The unnumbered amount rule converts posting 2's amount to cost.
 <
 2020-01-01, 1
 RULES
@@ -652,7 +653,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 34. For a given posting, any numbered amount rule disables all unnumbered amount rules.
+# ** 34. For a given posting, any numbered amount rule disables all unnumbered amount rules.
 # Here, amount-out is used for posting 1, but ignored for posting 2. (#1226)
 <
 2020-01-01,1,1
@@ -665,7 +666,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 35. tabular rules assigning multiple fields
+# ** 35. tabular rules assigning multiple fields
 <
 10/2009/09,Flubber Co,50
 
@@ -683,7 +684,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 36. tabular rules assigning multiple fields followed by regular rules
+# ** 36. tabular rules assigning multiple fields followed by regular rules
 <
 10/2009/09,Flubber Co,50
 10/2009/09,Blubber Co,150
@@ -711,7 +712,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 37. tabular rules with empty values
+# ** 37. tabular rules with empty values
 <
 10/2009/09,Flubber Co,50
 10/2009/09,Blubber Co,150
@@ -735,7 +736,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 38. tabular rules with field matchers and '|' separator
+# ** 38. tabular rules with field matchers and '|' separator
 <
 10/2009/09,Flubber Co,50
 10/2009/09,Blubber Co,150
@@ -759,7 +760,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 39. Insufficient number of values in tabular rules error
+# ** 39. Insufficient number of values in tabular rules error
 <
 10/2009/09,Flubber Co,50
 10/2009/09,Blubber Co,150
@@ -782,7 +783,7 @@ line of conditional table should have 2 values, but this one has only 1
 
 >=1
 
-# 40. unindented condition block error
+# ** 40. unindented condition block error
 <
 10/2009/09,Flubber Co,50
 
@@ -805,7 +806,7 @@ start of conditional block found, but no assignment rules afterward
 
 >=1
 
-# 41. Assignment to custom field (#1264) + spaces after the if (#1120)
+# ** 41. Assignment to custom field (#1264) + spaces after the if (#1120)
 <
 10/2009/09,Flubber Co,50
 
@@ -831,7 +832,7 @@ expecting conditional block
 
 >=1
 
-# 42. Rules override each other in the order listed in the file
+# ** 42. Rules override each other in the order listed in the file
 <
 10/2009/09,Flubber Co,50
 
@@ -855,7 +856,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 43. Attempt to use space as a separator in the tabular rules
+# ** 43. Attempt to use space as a separator in the tabular rules
 <
 10/2009/09,Flubber Co,50
 10/2009/09,Blubber Co,150
@@ -879,7 +880,7 @@ start of conditional block found, but no assignment rules afterward
 
 >=1
 
-# 44. handle conditions with & operator
+# ** 44. handle conditions with & operator
 <
 10/2009/09,Flubber Co,50
 10/2009/09,Blubber Co,50
@@ -903,7 +904,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 45. decimal-mark helps parse ambiguous decimals correctly.
+# ** 45. decimal-mark helps parse ambiguous decimals correctly.
 # Here it's one thousand, one.
 <
 2020-01-01,"1,000"
@@ -924,7 +925,7 @@ $  ./csvtest.sh
 
 >=
 
-# 46. Again, this time with comma as decimal mark.
+# ** 46. Again, this time with comma as decimal mark.
 # Here it's one, one thousand.
 <
 2020-01-01,"1,000"
@@ -945,7 +946,7 @@ $  ./csvtest.sh
 
 >=
 
-# 47. Account aliases work when reading from CSV.
+# ** 47. Account aliases work when reading from CSV.
 <
 2020-01-01,10
 
@@ -959,7 +960,7 @@ $  ./csvtest.sh --alias expenses=FOO
 
 >=
 
-# 48. Allow for whitespace in csv amounts
+# ** 48. Allow for whitespace in csv amounts
 <
 2009-09-10,+ $20
 2009-09-10, $ +30
@@ -995,7 +996,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 49. Handle an entry with all zeros
+# ** 49. Handle an entry with all zeros
 <
 Date;Description;Category;Debit;Credit;Balance
 "2020-01-21","Client card point of sale fee",Fees,"0","0","1068.94"
@@ -1013,7 +1014,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 50. Allow unicode field references (#1809)
+# ** 50. Allow unicode field references (#1809)
 <
 Date, Description, Id, Amount
 12/11/2019, Foo, 123, 10.23
@@ -1031,7 +1032,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 51. Throw an error when unable to substitute csv templates
+# ** 51. Throw an error when unable to substitute csv templates
 <
 "2021-12-23","caffe_siciliaexpenses:cibo:dolce","-10.5"
 
@@ -1043,7 +1044,7 @@ $  ./csvtest.sh
 >2 /transaction is unbalanced/
 >=1
 
-# 52. We can't parse double quotes inside an unquoted field, or other non-RFC4180 data. (#1966)
+# ** 52. We can't parse double quotes inside an unquoted field, or other non-RFC4180 data. (#1966)
 <
 2022-01-01,B"B",C
 RULES
@@ -1052,7 +1053,7 @@ $  ./csvtest.sh
 >2 /unexpected '"'/
 >=1
 
-# 53. A top-level skip directive is able to skip lines which would fail to parse as CSV. (#1967)
+# ** 53. A top-level skip directive is able to skip lines which would fail to parse as CSV. (#1967)
 <
 2022-01-01,B"B",C
 RULES
@@ -1061,7 +1062,7 @@ fields date, b, c
 $  ./csvtest.sh
 >=
 
-# 54. Empty (zero length) or blank (containing only spaces, tabs, etc.) lines
+# ** 54. Empty (zero length) or blank (containing only spaces, tabs, etc.) lines
 # are skipped automatically, including inner ones; skip's argument
 # counts only the non-empty/blank lines.
 <
@@ -1082,7 +1083,7 @@ $  ./csvtest.sh
 
 >=
 
-# 55. Some validation is done on account name assignments; trying to
+# ** 55. Some validation is done on account name assignments; trying to
 # also set an amount there (with 2+ spaces) will be rejected. (#1978)
 <
 2022-01-01,1

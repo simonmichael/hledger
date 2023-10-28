@@ -1,3 +1,5 @@
+# * csvbalanceparse error
+# ** 1. 
 $ hledger check -f  csvbalanceparse.csv
 >2 /hledger: Error: error: could not parse "badbalance" as balance1 amount
 CSV record: "2022-01-03","badbalance"

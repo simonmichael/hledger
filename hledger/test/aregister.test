@@ -1,3 +1,5 @@
+# * aregister command
+
 <
 2021-01-01
   (b)  1
@@ -6,7 +8,7 @@
   a   1
   b  -1
 
-# 1. aregister only shows transactions matching the account query, and displays other accounts involved
+# ** 1. aregister only shows transactions matching the account query, and displays other accounts involved
 $ hledger -f- areg a
 Transactions in a and subaccounts:
 2021-01-02                      b                                1             1
@@ -20,7 +22,7 @@ Transactions in a and subaccounts:
     assets:checking  -2
     expenses:food     2
 
-# 2. aregister ignores a depth limit, always showing transactions in subaccounts. #1448
+# ** 2. aregister ignores a depth limit, always showing transactions in subaccounts. #1448
 $ hledger -f- areg checking depth:1
 Transactions in assets:checking and subaccounts:
 2023-01-01                      in:salary                        1             1
@@ -28,19 +30,19 @@ Transactions in assets:checking and subaccounts:
 
 #1634:
 
-# 3. aregister is always in historical mode, showing balance from prior transactions.
+# ** 3. aregister is always in historical mode, showing balance from prior transactions.
 $ hledger -f- areg checking -b 2023-01-02
 Transactions in assets:checking and subaccounts:
 2023-01-02                      ex:food                         -2            -1
 
-# 4. Any additional arguments are a query filtering the transactions. #2007
+# ** 4. Any additional arguments are a query filtering the transactions. #2007
 # This can cause the running balance to diverge from the real-world running balance.
 # For non-date/date2/depth queries, a hint is shown in the title.
 $ hledger -f- areg checking expenses
 Transactions in assets:checking and subaccounts (matching query):
 2023-01-02                      ex:food                         -2            -2
 
-# 5. Sorts transactions first by transaction date (earliest date of the
+# ** 5. Sorts transactions first by transaction date (earliest date of the
 # matching postings) then by parse order. (#1642)
 # Also, make sure to use the posting date of matching transactions, if it
 # differs from the transaction date.
@@ -89,7 +91,7 @@ Transactions in a and subaccounts:
   a    1 C
   b   -1 C
 
-# 6. aregister correctly aligns amounts when there are multiple commodities (#1656).
+# ** 6. aregister correctly aligns amounts when there are multiple commodities (#1656).
 $ hledger -f- areg a
 Transactions in a and subaccounts:
 2021-01-01                      b, c                           1 A           1 A
@@ -103,7 +105,7 @@ Transactions in a and subaccounts:
 2021-01-01=2021-02-02
   (a)   1
 
-# 7. With --date2, it should show the secondary transaction date.
+# ** 7. With --date2, it should show the secondary transaction date.
 $ hledger -f- areg a --date2
 Transactions in a and subaccounts:
 2021-02-02                      a                                1             1

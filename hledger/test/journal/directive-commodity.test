@@ -1,45 +1,45 @@
-# commodity directive
+# * commodity directive
 
-# 1 requires an argument
+# ** 1. requires an argument
 <
 commodity
 $ hledger -f - commodities
 >2 /unexpected newline/
 >=1
 
-# 2 should require an amount, not just a symbol (but doesn't, TODO)
+# ** 2. should require an amount, not just a symbol (but doesn't, TODO)
 <
 commodity A
 $ hledger -f - commodities
 A
 
-# 3 when there is an amount, a decimal mark is required
+# ** 3. when there is an amount, a decimal mark is required
 <
 commodity A 1
 $ hledger -f - commodities
 >2 /Please include a decimal point or decimal comma/
 >=1
 
-# 4
+# ** 4.
 <
 commodity A 1.
 $ hledger -f - commodities
 A
 
-# 5
+# ** 5.
 <
 commodity A 1,00
 $ hledger -f - commodities
 A
 
-# 6 accepts a format subdirective
+# ** 6. accepts a format subdirective
 <
 commodity A
   format 1.0 A
 $ hledger -f - commodities
 A
 
-# 7 which also requires an amount argument
+# ** 7. which also requires an amount argument
 <
 commodity A
   format 
@@ -47,7 +47,7 @@ $ hledger -f - commodities
 >2 /expecting amount/
 >=1
 
-# 8 which must have the same commodity symbol
+# ** 8. which must have the same commodity symbol
 <
 commodity A
   format 1
@@ -55,7 +55,7 @@ $ hledger -f - commodities
 >2 /commodity directive symbol .* and format directive symbol .* should be the same/
 >=1
 
-# 9 when there's a format subdirective, the main directive should have just a symbol
+# ** 9. when there's a format subdirective, the main directive should have just a symbol
 # (and the error message should be clear, TODO)
 <
 commodity A 1.
@@ -64,7 +64,7 @@ $ hledger -f - commodities
 >2 /unexpected 'f'/
 >=1
 
-# 10 it ignores unrecognised subdirectives
+# ** 10. it ignores unrecognised subdirectives
 <
 commodity USD
    note American Dollars

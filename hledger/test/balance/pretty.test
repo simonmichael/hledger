@@ -1,4 +1,5 @@
-# 1. Uses Unicode tables when given --pretty=yes
+# * --pretty option and balance command
+# ** 1. Uses Unicode tables when given --pretty=yes
 $ hledger -f balance-multicol.journal balance --pretty=yes -M
 Balance changes in 2012-12-01..2013-03-31:
 
@@ -10,7 +11,7 @@ Balance changes in 2012-12-01..2013-03-31:
 ─────────────────╫────────────────────────────────────
                  ║      10        0        2        1 
 
-# 2. Uses Unicode tables when given --pretty
+# ** 2. Uses Unicode tables when given --pretty
 $ hledger -f balance-multicol.journal balance --pretty -M
 Balance changes in 2012-12-01..2013-03-31:
 
@@ -22,7 +23,7 @@ Balance changes in 2012-12-01..2013-03-31:
 ─────────────────╫────────────────────────────────────
                  ║      10        0        2        1 
 
-# 3. Uses ASCII tables when given --pretty=no
+# ** 3. Uses ASCII tables when given --pretty=no
 $ hledger -f balance-multicol.journal balance --pretty=no -M
 Balance changes in 2012-12-01..2013-03-31:
 
@@ -34,7 +35,7 @@ Balance changes in 2012-12-01..2013-03-31:
 -----------------++------------------------------------
                  ||      10        0        2        1 
 
-# 4. Still accepts the legacy --pretty-tables for now
+# ** 4. Still accepts the legacy --pretty-tables for now
 $ hledger -f balance-multicol.journal balance --pretty-tables -M
 Balance changes in 2012-12-01..2013-03-31:
 

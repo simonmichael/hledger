@@ -1,4 +1,5 @@
-# 1. investment that does not grow has no return
+# * roi command
+# ** 1. investment that does not grow has no return
 <
 2017-01-01 investment
    assets:cash  -$100
@@ -16,7 +17,7 @@ $ hledger -f- roi --inv investment --pnl pnl -b 2017 -e 2018 -Y
 
 >= 0
 
-# 2. Growth by 12% from single investment transaction should show 12% IRR and 12% TWR
+# ** 2. Growth by 12% from single investment transaction should show 12% IRR and 12% TWR
 <
 2017-01-01 investment
    assets:cash  -$100
@@ -34,7 +35,7 @@ $ hledger -f- roi --inv investment --pnl pnl -b 2017 -e 2018 -Y
 
 >= 0
 
-# 3. Same as (2), but grow by 1% per month
+# ** 3. Same as (2), but grow by 1% per month
 <
 2017-01-01 investment
    assets:cash  -$100
@@ -97,7 +98,7 @@ $ hledger -f- roi --inv investment --pnl pnl -b 2017 -e 2018 -Y
 
 >= 0
 
-# 4. When $100 invested over 12 month + $100 invested over 6 month yield $220, that's 10% TWR, but 12.73% IRR
+# ** 4. When $100 invested over 12 month + $100 invested over 6 month yield $220, that's 10% TWR, but 12.73% IRR
 <
 2017-01-01 investment
    assets:cash  -$100
@@ -119,7 +120,7 @@ $ hledger -f- roi --inv investment --pnl pnl -b 2017 -e 2018 -Y
 
 >= 0
 
-# 5. When $100 invested over 12 month + $100 invested over 6 month yield $20, that's -90% TWR, but -95.73% IRR
+# ** 5. When $100 invested over 12 month + $100 invested over 6 month yield $20, that's -90% TWR, but -95.73% IRR
 <
 2017-01-01 investment
    assets:cash  -$100
@@ -141,7 +142,7 @@ $ hledger -f- roi --inv investment --pnl pnl -b 2017 -e 2018 -Y
 
 >= 0
 
-# 6. Check that deposits/withdrawals and profit/loss are reflected in the right periods
+# ** 6. Check that deposits/withdrawals and profit/loss are reflected in the right periods
 <
 2017-01-01 investment
    assets:cash  -$100
@@ -176,7 +177,7 @@ $ hledger -f- roi --inv investment --pnl pnl -b 2017 -e 2018 -Q
 
 >= 0
 
-# 7. Check that reporting for the part of the total history of investment works
+# ** 7. Check that reporting for the part of the total history of investment works
 <
 2017-01-01 investment
    assets:cash  -$100
@@ -206,7 +207,7 @@ $ hledger -f- roi --inv investment --pnl pnl -b 2017-06 -e 2018
 
 >= 0
 
-# 8. Dont fail where there is no rate-of-return 
+# ** 8. Dont fail where there is no rate-of-return 
 <
 2019/11/01 Example
   Assets:Checking  1
@@ -220,7 +221,7 @@ $ hledger -f- roi -p 2019-11
 
 >= 0
 
-# 9. Fail with a nice error message when commodity can't be valued
+# ** 9. Fail with a nice error message when commodity can't be valued
 <
 2019/11/01 Example
   Assets:Checking  -100 A
@@ -237,7 +238,7 @@ Consider using --value to force all costs to be in a single commodity.
 For example, "--cost --value=end,<commodity> --infer-market-prices", where commodity is the one that was used to pay for the investment.
 >= 1
 
-# 10. Forcing valuation via --value
+# ** 10. Forcing valuation via --value
 <
 2019/11/01 Example
   Assets:Checking  -100 A
@@ -256,7 +257,7 @@ $ hledger -f- roi -p 2019-11 --inv Investment --pnl PnL --cost --value=then,A --
 
 >= 0
 
-# 11. Use "then" prices. 10000/76.20 = 131.23, 11000/73.88=148.89
+# ** 11. Use "then" prices. 10000/76.20 = 131.23, 11000/73.88=148.89
 <
 P 2020-12-01 $ 76.20
 P 2021-01-01 $ 73.88
@@ -277,7 +278,7 @@ $ hledger -f - roi --inv assets:investment --pnl income:investment --value=then,
 
 >= 0
 
-# 12. Use "end" prices. 10000/73.88=135.35
+# ** 12. Use "end" prices. 10000/73.88=135.35
 <
 P 2020-12-01 $ 76.20
 P 2021-01-01 $ 73.88
@@ -298,7 +299,7 @@ $ hledger -f - roi --inv assets:investment --pnl income:investment --value=end,'
 
 >= 0
 
-# 13. Several PnL transactions on a single date are aggregated together
+# ** 13. Several PnL transactions on a single date are aggregated together
 <
 2010-01-01   A1
     savingA                      100.00 €
@@ -336,7 +337,7 @@ $ hledger -f - roi --inv saving --pnl dividend
 
 >= 0
 
-# 14. Should support begin date before first transaction where first transaction has pnl
+# ** 14. Should support begin date before first transaction where first transaction has pnl
 <
 P 2022-07-31 A € 1
 

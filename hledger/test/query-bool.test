@@ -1,3 +1,5 @@
+# * expr: (boolean) queries
+
 <
 2022-01-01 Transaction 1       ; transactiontag:A
     assets:bank:main       -1  ; A comment
@@ -17,7 +19,7 @@
     expenses:food           2
     expenses:drink
 
-# 1. Simple queries can be directly embedded in expression queries
+# ** 1. Simple queries can be directly embedded in expression queries
 $ hledger -f - print expr:"tag:transactiontag=B"
 2022-01-01 Transaction 3  ; transactiontag:B
     assets:bank:main              -1  ; A comment
@@ -30,7 +32,7 @@ $ hledger -f - print expr:"tag:transactiontag=B"
 
 >=
 
-# 2. Simple queries can be encased in an arbitrary number of parentheses
+# ** 2. Simple queries can be encased in an arbitrary number of parentheses
 $ hledger -f - print "expr:(((tag:transactiontag=B)))"
 2022-01-01 Transaction 3  ; transactiontag:B
     assets:bank:main              -1  ; A comment
@@ -43,7 +45,7 @@ $ hledger -f - print "expr:(((tag:transactiontag=B)))"
 
 >=
 
-# 3. Simple boolean AND query works
+# ** 3. Simple boolean AND query works
 $ hledger -f - print expr:"tag:'transactiontag=B' AND desc:3"
 2022-01-01 Transaction 3  ; transactiontag:B
     assets:bank:main              -1  ; A comment
@@ -51,7 +53,7 @@ $ hledger -f - print expr:"tag:'transactiontag=B' AND desc:3"
 
 >=
 
-# 4. AND + OR works without parentheses
+# ** 4. AND + OR works without parentheses
 $ hledger -f - print expr:"tag:'transactiontag=B' AND desc:3 OR desc:1"
 2022-01-01 Transaction 1  ; transactiontag:A
     assets:bank:main              -1  ; A comment
@@ -63,7 +65,7 @@ $ hledger -f - print expr:"tag:'transactiontag=B' AND desc:3 OR desc:1"
 
 >=
 
-# 5. Unnecessary NOT + OR works without parentheses
+# ** 5. Unnecessary NOT + OR works without parentheses
 $ hledger -f - print expr:"NOT tag:'transactiontag=B' OR desc:1"
 2022-01-01 Transaction 1  ; transactiontag:A
     assets:bank:main              -1  ; A comment
@@ -76,7 +78,7 @@ $ hledger -f - print expr:"NOT tag:'transactiontag=B' OR desc:1"
 
 >=
 
-# 6. Necessary NOT + OR works without parentheses
+# ** 6. Necessary NOT + OR works without parentheses
 $ hledger -f - print expr:"NOT tag:'transactiontag=B' OR desc:4"
 2022-01-01 Transaction 1  ; transactiontag:A
     assets:bank:main              -1  ; A comment
@@ -94,7 +96,7 @@ $ hledger -f - print expr:"NOT tag:'transactiontag=B' OR desc:4"
 
 >=
 
-# 7. Boolean expression query keywords are case insensitive
+# ** 7. Boolean expression query keywords are case insensitive
 $ hledger -f - print expr:"NoT tag:'transactiontag=B' OR desc:4"
 2022-01-01 Transaction 1  ; transactiontag:A
     assets:bank:main              -1  ; A comment
@@ -112,7 +114,7 @@ $ hledger -f - print expr:"NoT tag:'transactiontag=B' OR desc:4"
 
 >=
 
-# 8. Lower case not is not confused with existing not: queries
+# ** 8. Lower case not is not confused with existing not: queries
 $ hledger -f - print expr:"not tag:transactiontag=B"
 2022-01-01 Transaction 1  ; transactiontag:A
     assets:bank:main              -1  ; A comment
@@ -125,14 +127,14 @@ $ hledger -f - print expr:"not tag:transactiontag=B"
 
 >=
 
-# 9. Having parentheses directly follow 'not' sees 'not' as part of a query.
+# ** 9. Having parentheses directly follow 'not' sees 'not' as part of a query.
 $ hledger -f - print expr:"not(tag:transactiontag=B)"
 >2
 hledger: Error: This regular expression is malformed, please correct it:
 not(tag:transactiontag=B
 >=1
 
-# 10. ... whereas parentheses with a space between 'not' and '(' is fine.
+# ** 10. ... whereas parentheses with a space between 'not' and '(' is fine.
 $ hledger -f - print expr:"not (tag:transactiontag=B)"
 2022-01-01 Transaction 1  ; transactiontag:A
     assets:bank:main              -1  ; A comment

@@ -1,4 +1,4 @@
-# hledger command line processing
+# * command line interface
 #
 # Quick guide to terms used here:
 #
@@ -59,61 +59,61 @@
 
 # version 
 
-# 1. --version shows version
+# ** 1. --version shows version
 $ hledger --version
 > /^hledger [0-9]/
 
-# 2. --version also works after a command, if it's internal
+# ** 2. --version also works after a command, if it's internal
 $ hledger balance --version
 > /^hledger [0-9]/
 
 # help
 
-# 3. with no command, show commands list
+# ** 3. with no command, show commands list
 $ hledger
 > /^Commands/
 
-# 4. no-command help still works if there are flags, at least the common ones
+# ** 4. no-command help still works if there are flags, at least the common ones
 $ hledger -fsomefile
 > /^Commands/
 
-# 5. and also with a space between flag and value
+# ** 5. and also with a space between flag and value
 $ hledger -f somefile
 > /^Commands/
 
-# 6. with -h, and possibly other common flags present, show general usage
+# ** 6. with -h, and possibly other common flags present, show general usage
 $ hledger -h --version -f /dev/null
 > /^hledger \[CMD\]/
 
-# 7. with -h before a COMMAND, show command usage
+# ** 7. with -h before a COMMAND, show command usage
 $ hledger -h balance --cost
 > /balance \[OPTIONS\]/
 
-# 8. with -h after a command, show command usage
+# ** 8. with -h after a command, show command usage
 $ hledger balance -h
 > /balance \[OPTIONS\]/
 
-# 9. with an unrecognised command, give an error and non-zero exit status
+# ** 9. with an unrecognised command, give an error and non-zero exit status
 $ hledger nosuchcommand
 >2 /not recognized.*to see a list/
 >= 1
 
 # flag positions
 
-# 10. general flags can go before command
+# ** 10. general flags can go before command
 $ hledger -f /dev/null --alias somealiases --rules-file --debug 1 --daily register
 
-# 11. or after it, and spaces in options are optional
+# ** 11. or after it, and spaces in options are optional
 $ hledger register -f/dev/null --alias=somealiases --rules-file -h --version --debug 1 --daily
 > /^register \[OPTIONS\]/
 
-# 12. general flags before command should work
+# ** 12. general flags before command should work
 $ hledger -f /dev/null --daily register
 
-# 13. command-specific flags can go after command
+# ** 13. command-specific flags can go after command
 $ hledger -f /dev/null register --daily
 
-# 14. but not before it
+# ** 14. but not before it
 $ hledger --related register
 >2 /Unknown flag: --related/
 >= 1

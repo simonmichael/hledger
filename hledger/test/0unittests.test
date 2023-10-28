@@ -1,6 +1,6 @@
-# Run unit tests.
+# * Run unit tests.
 
-# 1. all tests passed
+# ** 1. all tests passed
 $ hledger test
 > //
 >=0

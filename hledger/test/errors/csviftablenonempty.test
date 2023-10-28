@@ -1,3 +1,5 @@
+# * csviftablenonempty error
+# ** 1. 
 $ hledger check -f  csviftablenonempty.csv
 >2 /hledger: Error: .*csviftablenonempty.csv.rules:2:1:
   \|

@@ -1,4 +1,6 @@
-# 1. virtual posting shouldn't affect balance
+# * virtual (unbalanced) postings
+
+# ** 1. virtual posting shouldn't affect balance
 <
 2009/1/1 x
   (virtual)  100
@@ -7,7 +9,7 @@
 $ hledger -f- print
 > //
 
-# 2. balanced virtual postings should be required to balance (themselves)
+# ** 2. balanced virtual postings should be required to balance (themselves)
 <
 2010/1/1 x
   [balanced virtual]  10
@@ -17,7 +19,7 @@ $ hledger -f- print
 >2 //
 >= 1
 
-# 3. balanced virtual postings should be required to balance (themselves)
+# ** 3. balanced virtual postings should be required to balance (themselves)
 <
 2010/1/1 x
   [balanced virtual]  10
@@ -27,7 +29,7 @@ $ hledger -f- print
 $ hledger -f- print
 > //
 
-# 4. a virtual posting with implicit amount should be handled correctly
+# ** 4. a virtual posting with implicit amount should be handled correctly
 <
 2010/1/1 x
   [a]    10
@@ -35,7 +37,7 @@ $ hledger -f- print
 $ hledger -f- print -x
 > //
 
-# 5. real and balanced virtual postings are balanced separately, and multiple amountless virtuals are ok
+# ** 5. real and balanced virtual postings are balanced separately, and multiple amountless virtuals are ok
 <
 2010/1/1 x
   a  1
@@ -50,7 +52,7 @@ $ hledger -f- balance --tree
 --------------------
                    0  
 
-# 6. Amountless unbalanced postings are always inferred as zero.
+# ** 6. Amountless unbalanced postings are always inferred as zero.
 <
 2023-01-01
   (a)

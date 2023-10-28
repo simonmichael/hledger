@@ -1,3 +1,5 @@
+# * ordereddates error
+# ** 1. 
 $ hledger check ordereddates -f ordereddates.j
 >2 /hledger: Error: .*ordereddates.j:10:
 7 \| 2022-01-02 p

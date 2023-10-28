@@ -1,6 +1,6 @@
-# Tests for parentheses and brackets in account names
+# * account names with parentheses and brackets
 
-# 1. Parentheses in the middle of an account name are ignored.
+# ** 1. Parentheses in the middle of an account name are ignored.
 <
 2009-01-01 x
   a  2
@@ -15,7 +15,7 @@ $ hledger -f - print
 
 >= 0
 
-# 2. Nested parentheses are removed and the outer brackets are used as the type.
+# ** 2. Nested parentheses are removed and the outer brackets are used as the type.
 <
 2023-01-01
   [([(a)])]  1

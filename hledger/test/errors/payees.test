@@ -1,3 +1,5 @@
+# * payees error
+# ** 1. 
 $ hledger check payees -f payees.j
 >2 /hledger: Error: .*payees.j:6:
 6 \| 2022-01-01 p

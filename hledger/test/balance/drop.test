@@ -1,4 +1,5 @@
-# 1. Drop works in flat mode
+# * balance command --drop option
+# ** 1. Drop works in flat mode
 <
 2018/1/1
   (b:j)  1
@@ -42,7 +43,7 @@ $ hledger -f - balance --tree --no-total --drop 1
                    1  ...
 >=
 
-# 4. Drop works with csv output in tree mode
+# ** 4. Drop works with csv output in tree mode
 $ hledger -f - balance --tree --no-total --output-format=csv --drop 1
 "account","balance"
 "k","1"

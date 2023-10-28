@@ -1,3 +1,5 @@
+# * assertions error
+# ** 1. 
 $ hledger check -f assertions.j
 >2 /hledger: Error: .*assertions.j:4:8:
   \| 2022-01-01

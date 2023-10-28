@@ -1,4 +1,5 @@
-# 1.
+# * cashflow command
+# ** 1.
 <
 2016/1/1
   assets:cash  1
@@ -37,7 +38,7 @@ Cashflow Statement 2016-01-01
     assets:bank:checking        $10.00
     assets:receivables         -$10.00
 
-# 2. Period reporting works for a specific year
+# ** 2. Period reporting works for a specific year
 $ hledger -f - cashflow -b 2016 -e 2017
 Cashflow Statement 2016
 
@@ -51,7 +52,7 @@ Cashflow Statement 2016
 >2
 >= 0
 
-# 3. Period reporting works for two years
+# ** 3. Period reporting works for two years
 $ hledger -f - cashflow -b 2015 -e 2017
 Cashflow Statement 2015-01-01..2016-12-31
 
@@ -65,7 +66,7 @@ Cashflow Statement 2015-01-01..2016-12-31
 >2
 >= 0
 
-# 4. Period reporting works for one month
+# ** 4. Period reporting works for one month
 $ hledger -f - cashflow -b 2015/11 -e 2015/12
 Cashflow Statement 2015-11
 
@@ -79,7 +80,7 @@ Cashflow Statement 2015-11
 >2
 >= 0
 
-# 5. Period reporting works for one month in another year
+# ** 5. Period reporting works for one month in another year
 $ hledger -f - cashflow -b 2016/10 -e 2016/11
 Cashflow Statement 2016-10
 
@@ -92,7 +93,7 @@ Cashflow Statement 2016-10
 >2
 >= 0
 
-# 6. Multicolumn test
+# ** 6. Multicolumn test
 $ hledger -f sample.journal cashflow -p 'monthly in 2008'
 Cashflow Statement 2008
 
@@ -107,7 +108,7 @@ Cashflow Statement 2008
                       ||  $1    0    0    0    0  $-1    0    0    0    0    0  $-1 
 >= 0
 
-# 7. Multicolumn test (historical)
+# ** 7. Multicolumn test (historical)
 $ hledger -f sample.journal cashflow -p 'monthly in 2008' -A --historical
 Cashflow Statement 2008-01-31..2008-12-31 (Historical Ending Balances)
 
@@ -122,7 +123,7 @@ Cashflow Statement 2008-01-31..2008-12-31 (Historical Ending Balances)
                       ||         $1          $1          $1          $1          $1           0           0           0           0           0           0         $-1        0 
 >= 0
 
-# 8. without -N/--no-total
+# ** 8. without -N/--no-total
 $ hledger -f sample.journal cf 
 Cashflow Statement 2008
 
@@ -137,7 +138,7 @@ Cashflow Statement 2008
 >2
 >= 0
 
-# 9. with -N
+# ** 9. with -N
 $ hledger -f sample.journal cf -N
 Cashflow Statement 2008
 
@@ -150,7 +151,7 @@ Cashflow Statement 2008
 >2
 >= 0
 
-# 10. exclude fixed assets from cashflow
+# ** 10. exclude fixed assets from cashflow
 <
 2016/1/1
   assets:cash  1

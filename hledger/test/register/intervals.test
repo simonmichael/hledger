@@ -1,4 +1,6 @@
-# 1. monthly reporting interval, no end dates, shows just the intervals with data:
+# * register command with report intervals
+
+# ** 1. monthly reporting interval, no end dates, shows just the intervals with data:
 <
 2011/2/1
   (a)    1
@@ -8,7 +10,7 @@ $ hledger -f- register --period 'monthly'
 2011-02   a                                                      1             1
           a:b                                                    1             2
 
-# 2. or with a query pattern, just the intervals with matched data:
+# ** 2. or with a query pattern, just the intervals with matched data:
 <
 2011/1/1
   (a)  1
@@ -29,19 +31,19 @@ $ hledger -f- register --period 'monthly' b
 2011/3/1
   (c)  1
 
-# 3. with --empty, show all intervals spanned by the journal
+# ** 3. with --empty, show all intervals spanned by the journal
 # (unlike current ledger, but more useful)
 $ hledger -f- register --period 'monthly' b --empty
 2011-01                                                          0             0
 2011-02   b                                                      1             1
 2011-03                                                          0             1
 
-# 4. any specified begin/end dates limit the intervals reported
+# ** 4. any specified begin/end dates limit the intervals reported
 $ hledger -f- register --period 'monthly to 2011/3/1' b --empty
 2011-01                                                          0             0
 2011-02   b                                                      1             1
 
-# 5. --date2 should work with intervals
+# ** 5. --date2 should work with intervals
 <
 2014/1/1
   (a)  1
@@ -67,14 +69,14 @@ $ hledger -f- register --monthly --date2
 2014/3/12
  (after report period)  1000
 
-# 6. Here, the report interval is monthly (interval size is one month)
+# ** 6. Here, the report interval is monthly (interval size is one month)
 # but the explicitly-specified start date causes report periods to start there.
 # And the end date is expanded to make a whole month-long last period.
 $ hledger -f- register -p 'monthly 2014/1/10-2014/2/20'
 2014-01-10..2014-02-09   explicit report period                 10            10
 2014-02-10..2014-03-09   expanded report period                100           110
 
-# 7. Here no definite start date has been specifed so it is inferred from the journal
+# ** 7. Here no definite start date has been specifed so it is inferred from the journal
 # (2014/1/5), but it is specified to be a tuesday, so that is adjusted to
 # the nearest previous tuesday (2013/12/31).
 # No end date has been specified so it is inferred from the journal (2014/3/11),
@@ -93,7 +95,7 @@ $ hledger -f- register -p 'every tue' -E
 2014-03-04..2014-03-10                                           0           111
 2014-03-11..2014-03-17   after report period                  1000          1111
 
-# 8. "in 2014-02" is considered to explicitly specify a start date of 2014/2/1
+# ** 8. "in 2014-02" is considered to explicitly specify a start date of 2014/2/1
 # (a saturday), forcing the periods to start there.
 $ hledger -f- register -p 'weekly in 2014-02' -E
 2014-02-01..2014-02-07   explicit report period                 10            10
@@ -101,7 +103,7 @@ $ hledger -f- register -p 'weekly in 2014-02' -E
 2014-02-15..2014-02-21                                           0            10
 2014-02-22..2014-02-28   expanded report period                100           110
 
-# 9. So to see simple monday-based week periods here, you must specify a start date
+# ** 9. So to see simple monday-based week periods here, you must specify a start date
 # that is a monday.
 $ hledger -f- register -p 'weekly from 2014-01-27 to 2014-03' -E
 2014-01-27W05   explicit report period                          10            10

@@ -1,5 +1,6 @@
-#!/usr/bin/env shelltest
-# 1. Single column percent
+# * balance command -%/--percent flag
+
+# ** 1. Single column percent
 $ hledger -f sample.journal balance expenses -% --tree
              100.0 %  expenses
               50.0 %    food
@@ -7,7 +8,7 @@ $ hledger -f sample.journal balance expenses -% --tree
 --------------------
              100.0 %  
 
-# 2. Multi column percent
+# ** 2. Multi column percent
 $ hledger -f sample.journal balance expenses -% -p quarterly
 Balance changes in 2008:
 
@@ -18,7 +19,7 @@ Balance changes in 2008:
 -------------------++---------------------------------
                    ||      0  100.0 %       0       0 
 
-# 3. In a balanced ledger everything should sum up to zero, therefore all percentages should be zero.
+# ** 3. In a balanced ledger everything should sum up to zero, therefore all percentages should be zero.
 $ hledger -f sample.journal balance -% -p quarterly
 Balance changes in 2008:
 

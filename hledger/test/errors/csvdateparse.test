@@ -1,3 +1,5 @@
+# * csvdateparse error
+# ** 1. 
 $ hledger check -f  csvdateparse.csv
 >2 /hledger: Error: error: could not parse "baddate" as a date using date format "%Y-%m-%d"
 CSV record: "baddate","b"

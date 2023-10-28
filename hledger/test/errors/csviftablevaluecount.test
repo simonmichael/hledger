@@ -1,3 +1,5 @@
+# * csviftablevaluecount error
+# ** 1. 
 $ hledger check -f  csviftablevaluecount.csv
 >2 /hledger: Error: .*csviftablevaluecount.csv.rules:4:1:
   \|

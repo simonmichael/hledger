@@ -1,3 +1,5 @@
+# * uniqueleafnames error
+# ** 1. 
 $ hledger check uniqueleafnames -f uniqueleafnames.j
 >2 /hledger: Error: .*uniqueleafnames.j:12:
   \| 2022-01-01 p

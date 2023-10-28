@@ -1,4 +1,6 @@
-# 1. we parse metadata tags in transaction and posting comments. Currently,
+# * tag: queries
+
+# ** 1. we parse metadata tags in transaction and posting comments. Currently,
 # - they can be on the same line and/or separate lines
 # - they are always printed on separate lines
 <
@@ -21,7 +23,7 @@ $ hledger -f - print
 
 >=
 
-# 2. reports can filter by tag existence
+# ** 2. reports can filter by tag existence
 <
 2010/01/01  ; foo:bar
   a             1
@@ -45,7 +47,7 @@ $ hledger -f - print tag:foo
 
 >=
 
-# 3. or tag value
+# ** 3. or tag value
 <
 2010/01/01  ; foo:bar
   a             1
@@ -66,7 +68,7 @@ $ hledger -f - print tag:foo=bar
 
 >=
 
-# 4. postings inherit their transaction's tags
+# ** 4. postings inherit their transaction's tags
 <
 2010/01/01
   a             1  ; foo:bar
@@ -84,7 +86,7 @@ $ hledger -f - register tag:foo=bar
 2010-01-03                      e                                1             2
                                 f                               -1             1
 
-# 5. look for transactions without tags
+# ** 5. look for transactions without tags
 <
 2010/01/01 desc
   a             1
@@ -117,7 +119,7 @@ $ hledger -f - print not:tag:.
 
 >=
 
-# 6. query is not affected by implicit tags (XXX ?)
+# ** 6. query is not affected by implicit tags (XXX ?)
 $ hledger -f ../../examples/sample.journal reg tag:d
 
 # Querying accounts by tag.
@@ -135,42 +137,42 @@ account u
   (a)        1
   (l)        1
 
-# 7. We can match declared accounts by having a tag,
+# ** 7. We can match declared accounts by having a tag,
 $ hledger -f- accounts --declared tag:.
 a
 l
 r
 o
 
-# 8. not having a tag,
+# ** 8. not having a tag,
 $ hledger -f- accounts --declared not:tag:.
 u
 
-# 9. or a tag and it's value. Tag values are matched infix.
+# ** 9. or a tag and it's value. Tag values are matched infix.
 $ hledger -f- accounts --declared tag:type=a
 a
 l
 
-# 10. So we must anchor the regex to match single-letter account types.
+# ** 10. So we must anchor the regex to match single-letter account types.
 $ hledger -f- accounts --declared tag:type=^a$
 a
 
-# 11. But if account type was declared in the long form, matching just one letter fails
+# ** 11. But if account type was declared in the long form, matching just one letter fails
 $ hledger -f- accounts --declared tag:type=^l$
 
-# 12. so we need to match more loosely
+# ** 12. so we need to match more loosely
 $ hledger -f- accounts --declared tag:type=^l
 l
 
-# 13. In the same way, we can match used accounts by tag.
+# ** 13. In the same way, we can match used accounts by tag.
 $ hledger -f- accounts --used tag:type=r
 r
 
-# 14. We can match postings by their account's tags.
+# ** 14. We can match postings by their account's tags.
 $ hledger -f- register -w80 tag:type=^a
 2022-01-02                      (a)                              1             1
 
-# 15. We can match transactions by their accounts' tags.
+# ** 15. We can match transactions by their accounts' tags.
 $ hledger -f- print tag:type=^a
 2022-01-02
     (a)               1
@@ -178,20 +180,20 @@ $ hledger -f- print tag:type=^a
 
 >=
 
-# 16. And negatively match them by tag.
+# ** 16. And negatively match them by tag.
 $ hledger -f- print tag:type=^a not:tag:type=^l
 
-# 17. We can filter balance reports by account tags.
+# ** 17. We can filter balance reports by account tags.
 $ hledger -f- bal tag:type=^a
                    1  a
 --------------------
                    1  
 
-# 18. Postingless declared accounts in balance reports are also filtered.
+# ** 18. Postingless declared accounts in balance reports are also filtered.
 $ hledger -f- bal -N --declared -E o u tag:othertag
                    0  o
 
-# 19. Accounts inherit the tags of their parents.
+# ** 19. Accounts inherit the tags of their parents.
 <
 account a    ; type:A
 account a:aa
@@ -200,7 +202,7 @@ $ hledger -f- accounts tag:type=a
 a
 a:aa
 
-# 20.
+# ** 20.
 <
 account a    ; type:A
 account a:aa
@@ -211,6 +213,6 @@ account a:aa
 $ hledger -f- bal -N tag:type=a
                    1  a:aa
 
-# 21.
+# ** 21.
 $ hledger -f- reg -w80 tag:type=a
 2022-01-01                      (a:aa)                           1             1

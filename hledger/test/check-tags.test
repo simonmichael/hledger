@@ -1,10 +1,11 @@
-# 1. tags can be declared
+# * check tags
+# ** 1. tags can be declared
 <
 tag atag  ; this is atag. tags: on tags are not allowed and will be ignored.
   indented subdirectives are ignored.
 $ hledger -f - check
 
-# 2. check tags succeeds when all tags are declared
+# ** 2. check tags succeeds when all tags are declared
 <
 tag atag
 tag ttag
@@ -17,21 +18,21 @@ account a  ; atag:
 
 $ hledger -f - check tags
 
-# 3. it detects an undeclared account tag
+# ** 3. it detects an undeclared account tag
 <
 account a  ; atag:
 $ hledger -f - check tags
 >2 /tag "atag" has not been declared/
 >=1
 
-# 4. it detects an undeclared transaction tag
+# ** 4. it detects an undeclared transaction tag
 <
 2023-01-01 ; ttag:
 $ hledger -f - check tags
 >2 /tag "ttag" has not been declared/
 >=1
 
-# 5. it detects an undeclared posting tag
+# ** 5. it detects an undeclared posting tag
 <
 2023-01-01
   (a)  0   ; ptag:

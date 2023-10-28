@@ -1,3 +1,5 @@
+# * register command with --date2 flag
+
 # intended behaviour of secondary dates:
 # print     shows both dates
 # register  shows the primary or (with --date2) secondary date
@@ -5,7 +7,7 @@
 # date:D    matches the primary or (with --date2) secondary date
 # date2:D   matches the secondary date
 
-# 1. --date2 causes the secondary date to be displayed
+# ** 1. --date2 causes the secondary date to be displayed
 <
 2009/1/1=2010/1/1 x
   a  1
@@ -14,7 +16,7 @@ $ hledger -f - register --date2
 2010-01-01 x                    a                                1             1
                                 b                               -1             0
 
-# 2. --date2 causes -b/-e/-p to match the secondary date
+# ** 2. --date2 causes -b/-e/-p to match the secondary date
 <
 2014/1/1=1/2
   (a)  1
@@ -24,7 +26,7 @@ $ hledger -f - register --date2
 $ hledger -f- register -p 2014/1/2 --date2
 2014-01-02                      (a)                              1             1
 
-# 3. --date2 causes date: to match the secondary date (or the primary date, if there is no secondary)
+# ** 3. --date2 causes date: to match the secondary date (or the primary date, if there is no secondary)
 <
 2014/1/1=1/2
   (a)  1
@@ -38,7 +40,7 @@ $ hledger -f- register date:2014/1/2 --date2
 2014-01-02                      (a)                              1             1
 2014-01-02                      (b)                              1             2
 
-# 4. date2: matches the secondary date (but does not necessarily display it)
+# ** 4. date2: matches the secondary date (but does not necessarily display it)
 <
 2014/1/1=1/2
   (a)  1
@@ -48,7 +50,7 @@ $ hledger -f- register date:2014/1/2 --date2
 $ hledger -f- register date2:2014/1/2
 2014-01-01                      (a)                              1             1
 
-# 5. date2: plus --date2 both matches and displays the secondary date
+# ** 5. date2: plus --date2 both matches and displays the secondary date
 <
 2014/1/1=1/2
   (a)  1
@@ -58,7 +60,7 @@ $ hledger -f- register date2:2014/1/2
 $ hledger -f- register date2:2014/1/2 --date2
 2014-01-02                      (a)                              1             1
 
-# 6. date2: matching is not affected by --date2
+# ** 6. date2: matching is not affected by --date2
 <
 2014/1/1=1/2
   (a)  1
@@ -67,7 +69,7 @@ $ hledger -f- register date2:2014/1/2 --date2
   (b)  1
 $ hledger -f- register date2:2014/1/1 --date2
 
-# 7. with --date2, the secondary date is used for sorting
+# ** 7. with --date2, the secondary date is used for sorting
 <
 2014/1/1=2/2
   (a)  1

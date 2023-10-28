@@ -1,3 +1,5 @@
+# * csvamountparse error
+# ** 1. 
 $ hledger check -f  csvamountparse.csv
 >2 /hledger: Error: error: could not parse "badamount" as an amount
 CSV record: "2022-01-03","badamount"

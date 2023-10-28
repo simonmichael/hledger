@@ -1,3 +1,5 @@
+# * balance command with --date2 flag
+
 <
 2009/1/1 x
   a  1
@@ -7,22 +9,22 @@
   a  10
   b
 
-# 1. --date2 ignores postings with secondary dates outside the range
+# ** 1. --date2 ignores postings with secondary dates outside the range
 $ hledger -f - balance -p 'in 2009' --date2 -N
                    1  a
                   -1  b
 
-# 2. Above but with date: queries
+# ** 2. Above but with date: queries
 $ hledger -f - balance date:2009 --date2 -N
                    1  a
                   -1  b
 
-# 3. --date2 sees postings with secondary dates inside the range
+# ** 3. --date2 sees postings with secondary dates inside the range
 $ hledger -f - balance -p 'in 2010' --date2 -N
                   10  a
                  -10  b
 
-# 4. Above but with date: queries
+# ** 4. Above but with date: queries
 $ hledger -f - balance date:2010 --date2 -N
                   10  a
                  -10  b

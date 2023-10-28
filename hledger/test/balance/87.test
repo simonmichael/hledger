@@ -1,4 +1,5 @@
-# 1. issue 87, hledger should give this balance.
+# * issue #87
+# ** 1. hledger should give this balance.
 hledger -f - balance --no-total b
 <<<
 1/1
@@ -25,7 +26,7 @@ hledger -f - balance --no-total b
              -969.81  b
 >>>= 0
 
-# 2. As above, but the prices have a commodity - should work the same.
+# ** 2. As above, but the prices have a commodity - should work the same.
 hledger -f - balance --no-total b
 <<<
 1/1

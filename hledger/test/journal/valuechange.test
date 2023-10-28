@@ -1,3 +1,5 @@
+# * balance --valuechange report
+
 <
 P 1999/01/01 A  10 B
 P 2000/01/01 A  1 B
@@ -18,7 +20,7 @@ P 2000/04/01 A  4 B
 2000/03/01
   (assets)      1 A @ 8 B
 
-# 1. multicolumn balance report showing changes in period-end values
+# ** 1. multicolumn balance report showing changes in period-end values
 # Initial balance 2 A, valued at 10 B each, total 20 B
 # 1 A added in Jan, total 3 A, valued at 5 B, total 15 B, change -5 B
 # 1 A added in Feb, total 4 A, valued at 2 B, total  8 B, change -7 B
@@ -33,7 +35,7 @@ Period-end value changes in 2000-01-01..2000-04-30:
 --------++----------------------
         || -5 B  -7 B  7 B  5 B 
 
-# 2. Cumulative multicolumn balance report showing changes in period-end values
+# ** 2. Cumulative multicolumn balance report showing changes in period-end values
 $ hledger -f- bal -M --valuechange --cumulative -b 2000
 Cumulative period-end value changes in 2000-01-01..2000-04-30:
 
@@ -43,7 +45,7 @@ Cumulative period-end value changes in 2000-01-01..2000-04-30:
 --------++------------------------------------------------
         ||       -5 B       -12 B        -5 B           0 
 
-# 3. Historical multicolumn balance report showing changes in period-end values is
+# ** 3. Historical multicolumn balance report showing changes in period-end values is
 # the same as a historical report
 $ hledger -f- bal -M --valuechange --historical -b 2000
 Ending balances (historical) in 2000-01-01..2000-04-30, valued at period ends:
@@ -54,7 +56,7 @@ Ending balances (historical) in 2000-01-01..2000-04-30, valued at period ends:
 --------++------------------------------------------------
         ||       15 B         8 B        15 B        20 B 
 
-# 4. Balance sheet also reports on value change, and --valuechange overrides
+# ** 4. Balance sheet also reports on value change, and --valuechange overrides
 # the historical period
 $ hledger -f- balancesheet -MN --valuechange -b 2000
 Balance Sheet 2000-01-01..2000-04-30 (Period-End Value Changes)
@@ -68,7 +70,7 @@ Balance Sheet 2000-01-01..2000-04-30 (Period-End Value Changes)
  Liabilities ||                      
 -------------++----------------------
 
-# 5. Value change report will display a usage error when called with a valuation type
+# ** 5. Value change report will display a usage error when called with a valuation type
 # other than --value=end.
 $ hledger -f- balancesheet -MN --valuechange -b 2000 --value=now
 >2 /--valuechange .* --value=end/

@@ -1,3 +1,5 @@
+# * account types
+
 # Here some accounts with type Asset and Cash are declared and 
 # Liability, Equity, Revenue and Expense accounts are inferred.
 <
@@ -13,7 +15,7 @@ account liabilities
   expenses         1
   equity
 
-# 1. bse reports the balance sheet accounts in the proper section. 
+# ** 1. bse reports the balance sheet accounts in the proper section. 
 # A Cash account is also an Asset.
 $ hledger -f- bse
 Balance Sheet With Equity 2020-01-01
@@ -41,7 +43,7 @@ Balance Sheet With Equity 2020-01-01
 =============++============
  Net:        ||          0 
 
-# 2. cashflow reports the Cash account.
+# ** 2. cashflow reports the Cash account.
 $ hledger -f- cf
 Cashflow Statement 2020-01-01
 
@@ -53,7 +55,7 @@ Cashflow Statement 2020-01-01
 -------------++------------
              ||          1 
 
-# 3. is reports the income statement accounts in the proper section. 
+# ** 3. is reports the income statement accounts in the proper section. 
 $ hledger -f- is
 Income Statement 2020-01-01
 
@@ -73,7 +75,7 @@ Income Statement 2020-01-01
 ==========++============
  Net:     ||          0 
 
-# 4. Just declaring a Cash account should not disable the fallback
+# ** 4. Just declaring a Cash account should not disable the fallback
 # regexp for Asset accounts.
 <
 account assets        ; 
@@ -106,7 +108,7 @@ Balance Sheet 2021-01-01
 
 account other  ; type:A
 
-# 5. bal detects both
+# ** 5. bal detects both
 $ hledger -f- bal -N type:A
                    1  other
                    1  assets
@@ -121,7 +123,7 @@ account a:aa:aaa  ; type:L
     (a:aa)                                         1
     (a:aa:aaa)                                     1
 
-# 6. bs will detect proper accounts even with an intervening parent account (#1921)
+# ** 6. bs will detect proper accounts even with an intervening parent account (#1921)
 $ hledger -f- bs -N
 Balance Sheet 2021-01-01
 

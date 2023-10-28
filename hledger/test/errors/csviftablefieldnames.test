@@ -1,3 +1,5 @@
+# * csviftablefieldnames error
+# ** 1. 
 $ hledger check -f  csviftablefieldnames.csv
 >2 /hledger: Error: .*csviftablefieldnames.csv.rules:2:9:
   \|

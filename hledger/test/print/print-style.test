@@ -1,4 +1,4 @@
-# print amount styling tests
+# * print amount style tests
 #
 # Here's an overview of historical behaviour.
 # See the tests below for examples.
@@ -49,7 +49,7 @@ commodity B1000.00
     (b)    0.100 A @ 0.100 B = 0.100 A @ 0.100 B
     (c)    0.123 A @ 0.123 B = 0.123 A @ 0.123 B
 
-# 1. By default, print shows all amounts with original precisions
+# ** 1. By default, print shows all amounts with original precisions
 # (like 1.31)
 $ hledger -f- print
 2023-01-01
@@ -59,7 +59,7 @@ $ hledger -f- print
 
 >=
 
-# 2. With --round=soft, print adds/removes zeros in non-cost amounts
+# ** 2. With --round=soft, print adds/removes zeros in non-cost amounts
 # (like 1.30 but more thorough, also affects balance assertion amounts,
 # also does basic styling of balance assertion costs)
 $ hledger -f- print --round=soft
@@ -70,7 +70,7 @@ $ hledger -f- print --round=soft
 
 >=
 
-# 3. With --round=hard, print rounds non-cost amounts.
+# ** 3. With --round=hard, print rounds non-cost amounts.
 $ hledger -f- print --round=hard
 2023-01-01
     (a)      A0.10 @ B0.1 = A0.10 @ B0.1
@@ -79,7 +79,7 @@ $ hledger -f- print --round=hard
 
 >=
 
-# 4. with --round=all, print rounds all amounts.
+# ** 4. with --round=all, print rounds all amounts.
 $ hledger -f- print --round=all
 2023-01-01
     (a)    A0.10 @ B0.10 = A0.10 @ B0.10
@@ -88,7 +88,7 @@ $ hledger -f- print --round=all
 
 >=
 
-# 5. print also preserves precisions when there's an implicit conversion
+# ** 5. print also preserves precisions when there's an implicit conversion
 # (unlike 1.30, #2079).
 <
 commodity A 1000.
@@ -106,7 +106,7 @@ $ hledger -f- print
 
 >=
 
-# 6. When showing digit group marks, print always shows a decimal mark as well,
+# ** 6. When showing digit group marks, print always shows a decimal mark as well,
 # even when no decimal digits are shown.
 <
 decimal-mark .
@@ -119,7 +119,7 @@ $ hledger -f- print
 
 >=
 
-# 7. print shows zeros with a commodity symbol and decimal digits when possible.
+# ** 7. print shows zeros with a commodity symbol and decimal digits when possible.
 # This also means that "multi-commodity zeros" are shown more verbosely.
 <
 2023-01-01

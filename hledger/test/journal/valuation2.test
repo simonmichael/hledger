@@ -1,4 +1,4 @@
-# More valuation tests. See also valuation.test.
+# * valuation tests, part 2.
 
 ; some market prices
 P 2019-01-01 B   10 A
@@ -15,7 +15,7 @@ P 2019-01-01 E    3 D
 ; by hledger, as well as shelltest; useful when troubleshooting.
 comment
 
-# 1. normal unvalued output
+# ** 1. normal unvalued output
 $ hledger -f- print -x
 2019-06-01
     a             1 B
@@ -23,7 +23,7 @@ $ hledger -f- print -x
 
 >=
 
-# 2. current market value in default valuation commodity
+# ** 2. current market value in default valuation commodity
 $ hledger -f- print -x -V
 2019-06-01
     a            10 A
@@ -31,7 +31,7 @@ $ hledger -f- print -x -V
 
 >=
 
-# 3. same as above, but request commodity A explicitly
+# ** 3. same as above, but request commodity A explicitly
 $ hledger -f- print -x --value=now,A
 2019-06-01
     a            10 A
@@ -39,7 +39,7 @@ $ hledger -f- print -x --value=now,A
 
 >=
 
-# 4. request commodity B - no effect
+# ** 4. request commodity B - no effect
 $ hledger -f- print -x --value=now,B
 2019-06-01
     a             1 B
@@ -47,7 +47,7 @@ $ hledger -f- print -x --value=now,B
 
 >=
 
-# 5. request commodity we don't have prices for - no effect
+# ** 5. request commodity we don't have prices for - no effect
 $ hledger -f- print -x --value=now,Z
 2019-06-01
     a             1 B
@@ -55,7 +55,7 @@ $ hledger -f- print -x --value=now,Z
 
 >=
 
-# 6. request commodity C - uses reverse of C->B price.
+# ** 6. request commodity C - uses reverse of C->B price.
 # There's nothing setting C display style, so the default style is used,
 # which shows no decimal digits.
 # And because that makes it display as zero, the commodity symbol
@@ -76,7 +76,7 @@ $ hledger -f- print -x --value=now,C
 #
 # >=
 
-# 7. request commodity D - chains B->A, A->D prices
+# ** 7. request commodity D - chains B->A, A->D prices
 $ hledger -f- print -x --value=now,D
 2019-06-01
     a          1000 D
@@ -84,7 +84,7 @@ $ hledger -f- print -x --value=now,D
 
 >=
 
-# 8. request commodity E - chains B->A, A->D, reverse of D->E prices.
+# ** 8. request commodity E - chains B->A, A->D, reverse of D->E prices.
 # As with C above, E gets the default display style, with precision 0.
 $ hledger -f- print -x --value=now,E
 2019-06-01
@@ -110,7 +110,7 @@ $ hledger -f- print -x --value=now,E
     a         -1A @ 1B
     b          1B
 
-# 9. Normal print output.
+# ** 9. Normal print output.
 $ hledger -f- print
 2000-01-01
     a        -1A @ 1B
@@ -118,7 +118,7 @@ $ hledger -f- print
 
 >=0
 
-# 10. Valuing in a commodity with no market price has no effect.
+# ** 10. Valuing in a commodity with no market price has no effect.
 $ hledger -f- print -XZ
 2000-01-01
     a        -1A @ 1B
@@ -126,7 +126,7 @@ $ hledger -f- print -XZ
 
 >=0
 
-# 11. -B converts to the transaction price's commodity.
+# ** 11. -B converts to the transaction price's commodity.
 $ hledger -f- print -B
 2000-01-01
     a             -1B
@@ -134,7 +134,7 @@ $ hledger -f- print -B
 
 >=0
 
-# 12. Note the -XZ does not nullify the -B here.
+# ** 12. Note the -XZ does not nullify the -B here.
 # (-B -XZ is equivalent to --cost --value=end,Z).
 $ hledger -f- print -B -XZ
 2000-01-01
@@ -151,7 +151,7 @@ P 2000/1/1 A 1B
     a         -1A @ 1B
     b          1B
 
-# 13. 
+# ** 13. 
 $ hledger -f- print
 2000-01-01
     a        -1A @ 1B
@@ -159,7 +159,7 @@ $ hledger -f- print
 
 >=0
 
-# 14. 
+# ** 14. 
 $ hledger -f- print -XZ
 2000-01-01
     a        -1A @ 1B
@@ -167,7 +167,7 @@ $ hledger -f- print -XZ
 
 >=0
 
-# 15. 
+# ** 15. 
 $ hledger -f- print -B
 2000-01-01
     a             -1B
@@ -175,7 +175,7 @@ $ hledger -f- print -B
 
 >=0
 
-# 16. 
+# ** 16. 
 $ hledger -f- print -B -XA
 2000-01-01
     a             -1A
@@ -191,19 +191,19 @@ P 2002/01/01 A  3 B
 2000/01/01
   (a)      1 A
 
-# 17. -V uses today as the default valuation date, unlike --value=end.
+# ** 17. -V uses today as the default valuation date, unlike --value=end.
 $ hledger -f- reg -V
 2000-01-01                      (a)                            3 B           3 B
 
-# 18. -V uses the report end date, if specified, as valuation date.
+# ** 18. -V uses the report end date, if specified, as valuation date.
 $ hledger -f- reg -V -e 2001
 2000-01-01                      (a)                            2 B           2 B
 
-# 19. In balance reports too.
+# ** 19. In balance reports too.
 $ hledger -f- bal -N -V
                  3 B  a
 
-# 20.
+# ** 20.
 $ hledger -f- bal -N -V -e 2001
                  2 B  a
 
@@ -215,7 +215,7 @@ P 2002/01/01 A  2 B
 2000-01-01
   (a)  1 A
 
-# 21. The valuation date is the last day of the report period. In
+# ** 21. The valuation date is the last day of the report period. In
 # other words, the report end date is exclusive with respect to price
 # directives. This is a change from older hledger and Ledger, where it
 # was inclusive.
@@ -224,7 +224,7 @@ $ hledger -f- bal -N -V -e 2002-01-01
 
 # Test market prices inferred from transactions.
 
-# 22. Market price is not inferred from transactions by default.
+# ** 22. Market price is not inferred from transactions by default.
 <
 2020-01-01
   (a)   1 A @ 2 B
@@ -232,12 +232,12 @@ $ hledger -f- bal -N -V -e 2002-01-01
 $ hledger -f- bal -N -V
                  1 A  a
 
-# 23. Market price is inferred from transactions with --infer-market-prices,
+# ** 23. Market price is inferred from transactions with --infer-market-prices,
 # and -V can work with no P directives.
 $ hledger -f- bal -N -V --infer-market-prices
                   B2  a
 
-# 24. A P-declared market price on the same date as a transaction price has precedence.
+# ** 24. A P-declared market price on the same date as a transaction price has precedence.
 <
 P 2020-01-01 A  1 B
 
@@ -247,7 +247,7 @@ P 2020-01-01 A  1 B
 $ hledger -f- bal -N -V --infer-market-prices
                  1 B  a
 
-# 25. A transaction-inferred price newer than a P-declared price has precedence.
+# ** 25. A transaction-inferred price newer than a P-declared price has precedence.
 <
 P 2020-01-01 A  1 B
 
@@ -257,7 +257,7 @@ P 2020-01-01 A  1 B
 $ hledger -f- bal -N -V --infer-market-prices
                  2 B  a
 
-# 26. A later-dated P directive sets the valuation commodity even if parsed out of order.
+# ** 26. A later-dated P directive sets the valuation commodity even if parsed out of order.
 <
 P 2020-02-01 A  1 C
 P 2020-01-01 A  1 B
@@ -268,7 +268,7 @@ P 2020-01-01 A  1 B
 $ hledger -f- bal -N -V
                  1 C  a
 
-# 27. A later-dated transaction price sets the valuation commodity even if parsed out of order.
+# ** 27. A later-dated transaction price sets the valuation commodity even if parsed out of order.
 <
 2020-01-01
   (a)   1 A @ 1 C  ; date: 2020-01-02
@@ -278,7 +278,7 @@ $ hledger -f- bal -N -V
 $ hledger -f- bal -N -V --infer-market-prices
                   D3  a
 
-# 28. #1402 It should pick the direct (forward) A 3.00 price for B here,
+# ** 28. #1402 It should pick the direct (forward) A 3.00 price for B here,
 # not the reverse price.
 <
 2020-11-10 
@@ -290,7 +290,7 @@ P 2020-11-02 A B 0.40
 $ hledger -f- bal -N -e 2020-11-20 -X A
               A 3.00  a
 
-# 29. #1402 It should pick the direct B->A price here, not the indirect B->C->A price.
+# ** 29. #1402 It should pick the direct B->A price here, not the indirect B->C->A price.
 <
 2020-11-10
     (a)  B 1.00
@@ -302,7 +302,7 @@ P 2020-11-03 B A 5
 $ hledger -f- bal -N -e 2020-11-20 -X A
                  A 5  a
 
-# 30. #1439 Lots of price edges like the below should not cause any slowdown.
+# ** 30. #1439 Lots of price edges like the below should not cause any slowdown.
 <
 2020-01-01
   (a)  1A
@@ -325,7 +325,7 @@ P 2020-01-01 M 140Y
 $ hledger -f- bal -N -X Z
                   Z1  a
 
-# 31. #1443 It should always pick the shortest price path, A>P>Z here.
+# ** 31. #1443 It should always pick the shortest price path, A>P>Z here.
 <
 2020-01-01
   (a)  1A
@@ -341,7 +341,7 @@ P 2020-01-01 P 100Z
 $ hledger -f- bal -N -X Z
                 100Z  a
 
-# 32. #1851 It should use posting date 2 if requested.
+# ** 32. #1851 It should use posting date 2 if requested.
 <
 2019-12-31 FOO
     Assets:A        $1.00

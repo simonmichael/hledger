@@ -1,3 +1,5 @@
+# * auto posting rules
+
 <
 = ^income
   (liabilities:tax)  *.33  ; income tax
@@ -11,7 +13,7 @@
     assets:cash             $20
     assets:bank
 
-# 1. print. Auto-generated postings are inserted below the matched one.
+# ** 1. print. Auto-generated postings are inserted below the matched one.
 # With --verbose-tags, informative tags will also be added.
 $ hledger print -f- --auto --verbose-tags
 2016-01-01 paycheck  ; modified:
@@ -27,7 +29,7 @@ $ hledger print -f- --auto --verbose-tags
 
 >=
 
-# 2. register
+# ** 2. register
 $ hledger register -f- --auto
 2016-01-01 paycheck             income:remuneration          $-100         $-100
                                 (liabilities:tax)             $-33         $-133
@@ -38,7 +40,7 @@ $ hledger register -f- --auto
                                 assets:bank                   $-20          $-38
 >=
 
-# 3. balance
+# ** 3. balance
 $ hledger balance -f- --auto --tree
                 $115  assets
                  $95    bank
@@ -60,7 +62,7 @@ $ hledger balance -f- --auto --tree
   (trigger)   1
   (target)    1    = 11  ; this assertion would not fail, auto posting will be taken into account
 
-# 4.
+# ** 4.
 $ hledger register -f- --auto
 2018-01-01                      (trigger)                        1             1
                                 (target)                        10            11
@@ -77,7 +79,7 @@ $ hledger register -f- --auto
     expenses:groceries:food
     assets:bank:checking                         $-20
 
-# 5.
+# ** 5.
 $ hledger print -f- --auto
 2018-10-07 * MARKET
     expenses:groceries:food
@@ -96,7 +98,7 @@ $ hledger print -f- --auto
 2018/1/1
     (assets:billable:client1)         0.50h @ $90
 
-# 6.
+# ** 6.
 $ hledger -f- print --auto -x
 2018-01-01
     (assets:billable:client1)     0.50h @ $90
@@ -114,7 +116,7 @@ $ hledger -f- print --auto -x
 2018/1/1
     (assets:billable:client1)         0.50h
 
-# 7.
+# ** 7.
 $ hledger -f- print --auto -x
 2018-01-01
     (assets:billable:client1)           0.50h
@@ -132,7 +134,7 @@ $ hledger -f- print --auto -x
 2018/1/1
     (assets:billable:client1)         0.50h @ $90
 
-# 8.
+# ** 8.
 $ hledger -f- print --auto -x
 2018-01-01
     (assets:billable:client1)                       0.50h @ $90
@@ -159,7 +161,7 @@ $ hledger -f- print --auto -x
     budget:other
     budget:available                              =$0
 
-# 9.
+# ** 9.
 $ hledger print -f- --auto
 >2 /Balance assignments and auto postings may not be combined/
 >=1
@@ -177,7 +179,7 @@ $ hledger print -f- --auto
     Expenses:Joint:Widgets                                   $100.00 @ £0.50
     Assets:Joint:Bank                                        -£50.00
 
-# 10.
+# ** 10.
 $ hledger -f- print --auto --verbose-tags
 2018-01-01  ; modified:
     Expenses:Joint:Widgets     $100.00 @ £0.50
@@ -199,7 +201,7 @@ $ hledger -f- print --auto --verbose-tags
     Expenses:Joint:Widgets                                   $100.00 @@ £50
     Assets:Joint:Bank                                        -£50.00
 
-# 11.
+# ** 11.
 $ hledger -f- print --auto
 2018-01-01
     Expenses:Joint:Widgets     $100.00 @@ £50
@@ -228,7 +230,7 @@ $ hledger -f- print --auto
     Expenses:Joint:Widgets                                   $100.00
     Assets:Joint:Bank                                        -£50.00
 
-# 12.
+# ** 12.
 $ hledger -f- print --auto
 2018-01-01
     Expenses:Joint:Widgets               $100.00
@@ -256,7 +258,7 @@ $ hledger -f- print --auto
     assets:cash             $20
     assets:bank
 
-# 13.
+# ** 13.
 $ hledger print -f- --auto --forecast -b 2016-01 -e 2016-03
 2016-01-03 withdraw
     assets:cash             $20
@@ -271,7 +273,7 @@ $ hledger print -f- --auto --forecast -b 2016-01 -e 2016-03
 
 >=
 
-# 14. and they don't force --auto on
+# ** 14. and they don't force --auto on
 $ hledger print -f- --forecast -b 2016-01 -e 2016-03
 2016-01-03 withdraw
     assets:cash             $20
@@ -294,7 +296,7 @@ $ hledger print -f- --forecast -b 2016-01 -e 2016-03
     expenses:groceries:food
     assets:bank:checking                         $-20
 
-# 15.
+# ** 15.
 $ hledger -f- register --auto
 2020-10-07 MARKET               ex:groceries:food              $20           $20
                                 [budget:groceries]            $-20             0
@@ -311,7 +313,7 @@ $ hledger -f- register --auto
   a    EUR -10.00  ; :tax20:
   b    EUR 12.00
 
-# 16. Transaction balancing sees auto postings ?
+# ** 16. Transaction balancing sees auto postings ?
 # $ hledger -f- print -x --auto
 # 2018-12-18
 #     a          EUR -10.00  ; :tax20:
@@ -320,12 +322,12 @@ $ hledger -f- register --auto
 #
 # >=
 
-# 16. No, transaction must be balanced both with and without auto postings.
+# ** 16. No, transaction must be balanced both with and without auto postings.
 $ hledger -f- print -x --auto
 >2 /unbalanced/
 >=1
 
-# 17. Commodity display styles are applied to auto posting amounts.
+# ** 17. Commodity display styles are applied to auto posting amounts.
 <
 2020-01-20
   (a)    1 A
@@ -342,7 +344,7 @@ $ hledger -f- print --auto
 
 >=0
 
-# 18. Auto-generated postings with currency matching only matches amounts with that currency in an auto posting (#1582)
+# ** 18. Auto-generated postings with currency matching only matches amounts with that currency in an auto posting (#1582)
 <
 = assets cur:USD
   (b:USD)  *1
@@ -365,7 +367,7 @@ $ hledger -f- print --auto
 
 >=0
 
-# 19. Auto-generated postings match only the amounts which match amount query.
+# ** 19. Auto-generated postings match only the amounts which match amount query.
 <
 = assets amt:>50
   (b)  *1
@@ -384,7 +386,7 @@ $ hledger -f- print --auto
 
 >=0
 
-# 20. Auto-generated postings apply on auto-balanced periodic postings.
+# ** 20. Auto-generated postings apply on auto-balanced periodic postings.
 <
 2021-01-01   Fixed
     Checking            -10

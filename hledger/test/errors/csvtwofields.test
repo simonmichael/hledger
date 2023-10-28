@@ -1,3 +1,5 @@
+# * csvtwofields error
+# ** 1. 
 $ hledger check -f  csvtwofields.csv
 >2 /hledger: Error: CSV record \["b"\] has less than two fields
 /

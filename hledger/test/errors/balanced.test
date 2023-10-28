@@ -1,3 +1,5 @@
+# * balanced error
+# ** 1. 
 $ hledger check balanced -f balanced.j
 >2 /hledger: Error: .*balanced.j:6-8:
 6 \| 2022-01-01

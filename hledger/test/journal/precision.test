@@ -1,6 +1,8 @@
+# * decimal precision, balancing and display
+
 # http://code.google.com/p/hledger/issues/detail?id=23
 #
-# 1. original test case, this should balance since price precisions do
+# ** 1. original test case, this should balance since price precisions do
 # not affect the canonical display precisions used for display and balancing
 <
 2010/1/1 x
@@ -13,7 +15,7 @@ $ hledger -f - print
 
 >= 0
 
-# 2. here the price should be printed with its original precision, not
+# ** 2. here the price should be printed with its original precision, not
 # the canonical display precision. And the inferred amount should be printed
 # with the canonical precision (2 digits, inferred from the first posting).
 <
@@ -29,7 +31,7 @@ $ hledger -f - print --explicit
 
 >= 0
 
-# 3. with $'s display precision at 3 or more, this txn should not balance.
+# ** 3. with $'s display precision at 3 or more, this txn should not balance.
 # The error message shows the difference with full precision.
 <
 2010/1/1
@@ -39,7 +41,7 @@ $ hledger -f - balance --no-total --cost --empty
 >2 /should be 0 but is: \$0.0049/
 >= 1
 
-# 4. with $'s display precision at 2 or less, this txn should balance
+# ** 4. with $'s display precision at 2 or less, this txn should balance
 <
 2010/1/1
    a  1C @ $1.0049
@@ -47,7 +49,7 @@ $ hledger -f - balance --no-total --cost --empty
 $ hledger -f - balance --no-total --cost --empty
                    0  a
 
-# 5. avamk's 2011/1/19 example
+# ** 5. avamk's 2011/1/19 example
 <
 2001/01/01 * ACME fund
            assets:investment:ACME     203.890 ACME @ $16.02
@@ -102,7 +104,7 @@ $ hledger -f - balance --cost
 ###                   0
 
 # 
-# 7. when there are multiple postings in the commodity being priced,
+# ** 7. when there are multiple postings in the commodity being priced,
 # show the averaged unit price, with precision equal to the sum of
 # the max precisions of the commodities being converted (#262).
 # Here the (irrational) price should be displayed with just precision 4
@@ -121,7 +123,7 @@ $ hledger -f- print --explicit
 >= 0
 
 
-# 8. Here the price should be displayed with precision 7
+# ** 8. Here the price should be displayed with precision 7
 # (E's precision 4 + F's precision 3).
 <
 2015/1/1
@@ -136,7 +138,7 @@ $ hledger -f- print --explicit
 
 >= 0
 
-# 9. Posting amounts inferred from balance assignments also affect commodity styles. (#2091)
+# ** 9. Posting amounts inferred from balance assignments also affect commodity styles. (#2091)
 <
 2023-01-01
   (a)        1 A

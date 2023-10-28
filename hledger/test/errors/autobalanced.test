@@ -1,3 +1,5 @@
+# * autobalanced error
+# ** 1. 
 $ hledger check -f autobalanced.j
 >2 /hledger: Error: .*autobalanced.j:3-4:
 3 \| 2022-01-01

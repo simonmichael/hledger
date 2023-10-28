@@ -1,5 +1,5 @@
-# issue 219, --tree and --flat flags should override each other cleanly
-# 1. multiple flags ending with --flat, equivalent to --flat
+# * issue #219, --tree and --flat flags should override each other cleanly
+# ** 1. multiple flags ending with --flat, equivalent to --flat
 $ hledger -f balance-multicol.journal bal -MH --no-elide --no-total date:2013/1 --tree --flat
 Ending balances (historical) in 2013-01:
 
@@ -7,7 +7,7 @@ Ending balances (historical) in 2013-01:
 =================++============
  assets:checking ||         10 
 
-# 2. multiple flags ending with --tree, equivalent to --tree
+# ** 2. multiple flags ending with --tree, equivalent to --tree
 $ hledger -f balance-multicol.journal bal -MH --no-elide --no-total date:2013/1 --flat --tree
 Ending balances (historical) in 2013-01:
 

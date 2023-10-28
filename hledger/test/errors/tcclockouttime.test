@@ -1,3 +1,5 @@
+# * tcclockouttime error
+# ** 1. 
 $ hledger check -f tcclockouttime.timeclock
 >2 /hledger: Error: .*tcclockouttime.timeclock:5:1:
   \| i 2022-01-01 00:01:00   

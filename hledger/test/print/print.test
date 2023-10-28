@@ -1,4 +1,6 @@
-# 1. print preserves the commodity symbol of zero amounts.
+# * print command
+
+# ** 1. print preserves the commodity symbol of zero amounts.
 <
 2023-01-01
   (a)    0 A @ 0 B == 0 A @ 0 B
@@ -9,7 +11,7 @@ $ hledger -f- print
 
 >=
 
-# 2. The inferred balancing amount for zeros in multiple commodities
+# ** 2. The inferred balancing amount for zeros in multiple commodities
 # is preserved and shown accurately, with a posting for each commodity.
 <
 2023-01-01

@@ -1,3 +1,5 @@
+# * csvstdinrules error
+# ** 1. 
 $  sh csvstdinrules.sh
 >2 /hledger: Error: please use --rules-file when reading CSV from stdin
 /

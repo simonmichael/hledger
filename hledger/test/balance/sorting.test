@@ -1,4 +1,4 @@
-# * balance report sorting.      -*- eval:(outshine-mode 1); outline-regexp:"# \\*"; -*-
+# * balance report sorting
 
 # ** Default sort, without account declarations
 
@@ -15,7 +15,7 @@
 2018/1/1
   (a:k)  1
 
-# 1. In tree mode, rows are sorted alphabetically by account name, at each tree level. 
+# ** 1. In tree mode, rows are sorted alphabetically by account name, at each tree level. 
 # Missing parent accounts are added (b).
 $ hledger -f- bal -N --tree
                    1  a:k
@@ -24,7 +24,7 @@ $ hledger -f- bal -N --tree
                    1    j
                    1  c
 
-# 2. In flat mode, unused parent accounts are not added (b).
+# ** 2. In flat mode, unused parent accounts are not added (b).
 $ hledger -f- bal -N --flat
                    1  a:k
                    1  b:i
@@ -56,7 +56,7 @@ account d
 2018/1/1
   (d)    1
 
-# 3. With account directives, in tree mode, at each tree level
+# ** 3. With account directives, in tree mode, at each tree level
 # declared accounts are sorted first in declaration order, 
 # followed by undeclared accounts sorted alphabetically.
 # Missing parent accounts are added (b).
@@ -70,7 +70,7 @@ $ hledger -f- bal -N --tree
                    1    i
                    1  c
 
-# 4. In flat mode, unused parent accounts are not added (b).
+# ** 4. In flat mode, unused parent accounts are not added (b).
 $ hledger -f- bal -N --flat
                    1  d
                    1  a:l
@@ -81,7 +81,7 @@ $ hledger -f- bal -N --flat
 
 # ** Sort by amount
 
-# 5. In flat mode with -S, largest (most-positive) amounts are shown first:
+# ** 5. In flat mode with -S, largest (most-positive) amounts are shown first:
 <
 2018/1/1
   (b:j)  2
@@ -101,7 +101,7 @@ $ hledger -f- bal -N -S --flat
                    1  b:i
                    1  c
 
-# 6. In tree mode with -S, rows are sorted by largest amount, and then by account name, at each tree level.
+# ** 6. In tree mode with -S, rows are sorted by largest amount, and then by account name, at each tree level.
 $ hledger -f- bal -N -S --tree
                    3  b
                    2    j
@@ -109,7 +109,7 @@ $ hledger -f- bal -N -S --tree
                    1  a:k
                    1  c
 
-# 7. In hledger 1.4-1.10, when the larger amount was composed of differently-priced amounts,
+# ** 7. In hledger 1.4-1.10, when the larger amount was composed of differently-priced amounts,
 # it could get sorted as if smaller. Should work now. Test tree mode.
 <
 2018/1/1
@@ -123,12 +123,12 @@ $ hledger -f- bal -N -S --tree
                   4X  a
                   3X  b
 
-# 8. Same in flat mode.
+# ** 8. Same in flat mode.
 $ hledger -f- bal -N -S --flat
                   4X  a
                   3X  b
 
-# 9. #1279 in hledger 1.11-1.18, bal -S did not respect the hierarchy. Should work now:
+# ** 9. #1279 in hledger 1.11-1.18, bal -S did not respect the hierarchy. Should work now:
 <
 2020-01-01
     (a:aa)                                         1
@@ -141,19 +141,19 @@ $ hledger -f- bal -N -S --tree
                    1    aa
                    2  b
 
-# 10. #1287 bal -S -H did not sort by amount, should work now:
+# ** 10. #1287 bal -S -H did not sort by amount, should work now:
 $ hledger -f- bal -N -S -H --flat
                    3  a:ab
                    2  b
                    1  a:aa
 
-# 11. #1287 and bal -S --cumulative:
+# ** 11. #1287 and bal -S --cumulative:
 $ hledger -f- bal -N -S --cumulative --flat
                    3  a:ab
                    2  b
                    1  a:aa
 
-# 12. #1283 most-negative amounts are sorted last, so eg largest revenues/liabilities are last:
+# ** 12. #1283 most-negative amounts are sorted last, so eg largest revenues/liabilities are last:
 <
 2020-01-01
   (revenues:a)  -1
@@ -165,13 +165,13 @@ $ hledger -f- bal -N -S
                   -2  revenues:c
                   -3  revenues:b
 
-# 13. This can be worked around by using --invert (sorting happens after sign-flipping):
+# ** 13. This can be worked around by using --invert (sorting happens after sign-flipping):
 $ hledger -f- bal -N -S --invert
                    3  revenues:b
                    2  revenues:c
                    1  revenues:a
 
-# 14. Or a sign-flipping command like incomestatement:
+# ** 14. Or a sign-flipping command like incomestatement:
 $ hledger -f- is -N -S
 Income Statement 2020-01-01
 
@@ -206,7 +206,7 @@ Income Statement 2020-01-01
 2021-01-01 Post in X
     (a)  -1 X
 
-# 15. When sorting by amount with different commodities, missing commodities are
+# ** 15. When sorting by amount with different commodities, missing commodities are
 # treated as 0, so negative amounts go before positive amounts. (#1563)
 #
 # Explanation: We treats these amounts as

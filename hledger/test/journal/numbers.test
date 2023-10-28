@@ -1,4 +1,6 @@
-# 1. Simple case
+# * number parsing
+
+# ** 1. Simple case
 <
 2017/1/1
 	a   1,000.00 EUR
@@ -7,7 +9,7 @@ $ hledger bal -f - --no-total
         1,000.00 EUR  a
        -1,000.00 EUR  b
 
-# 2. No digits before decimal sep
+# ** 2. No digits before decimal sep
 <
 2017/1/1
 	a   .01 EUR
@@ -16,7 +18,7 @@ $ hledger bal -f - --no-total
             0.01 EUR  a
            -0.01 EUR  b
 
-# 3. No digits after decimal sep
+# ** 3. No digits after decimal sep
 <
 2017/1/1
 	a   1. EUR
@@ -25,7 +27,7 @@ $ hledger bal -f - --no-total
                1 EUR  a
               -1 EUR  b
 
-# 4. No digits at all
+# ** 4. No digits at all
 <
 2017/1/1
 	a   . EUR
@@ -34,7 +36,7 @@ $ hledger bal -f -
 >2 //
 >= 1
 
-# 5. Space between digits groups
+# ** 5. Space between digits groups
 <
 2017/1/1
 	a   1 000.00 EUR
@@ -43,7 +45,7 @@ $ hledger bal -f - --no-total
         1 000.00 EUR  a
        -1 000.00 EUR  b
 
-# 6. Space between digits groups in commodity directive
+# ** 6. Space between digits groups in commodity directive
 <
 commodity 1 000.00 EUR
 
@@ -54,7 +56,7 @@ $ hledger bal -f - --no-total
         1 000.00 EUR  a
        -1 000.00 EUR  b
 
-# 7. Default commodity
+# ** 7. Default commodity
 <
 D 1,000.00 EUR
 
@@ -67,7 +69,7 @@ $ hledger bal -f -
 --------------------
                    0  
 
-# 8. Omitted decimals
+# ** 8. Omitted decimals
 <
 2017/1/1
 	a   1,000 EUR
@@ -76,7 +78,7 @@ $ hledger bal -f -
 >2 //
 >= 1
 
-# 9. Omitted decimals with commodity hint
+# ** 9. Omitted decimals with commodity hint
 <
 commodity 1,000.00 EUR
 
@@ -89,7 +91,7 @@ $ hledger bal -f -
 --------------------
                    0  
 
-# 10. Omitted decimals with commodity hint and symbol on left
+# ** 10. Omitted decimals with commodity hint and symbol on left
 <
 commodity €1,000.00
 
@@ -102,7 +104,7 @@ $ hledger bal -f -
 --------------------
                    0  
 
-# 11. Commodity directive requires a decimal separator
+# ** 11. Commodity directive requires a decimal separator
 <
 commodity 1000 EUR
 $ hledger bal -f -
@@ -110,7 +112,7 @@ $ hledger bal -f -
 >2 /Please include a decimal point or decimal comma/
 >= 1
 
-# 12. Commodity directive with zero precision
+# ** 12. Commodity directive with zero precision
 <
 commodity 100. EUR
 
@@ -123,7 +125,7 @@ $ hledger bal -f -
 --------------------
                    0  
 
-# 13. Big prices
+# ** 13. Big prices
 <
 2017/1/1
 	a   -1 BTC @ 24,840 UAH
@@ -132,7 +134,7 @@ $ hledger bal -f -  --no-total
 >2 //
 >= 1
 
-# 14. Big prices with commodity hint
+# ** 14. Big prices with commodity hint
 <
 commodity ₴1,000.00
 
@@ -143,7 +145,7 @@ $ hledger bal -f -  --no-total
               -1 BTC  a
           ₴24,840.00  b
 
-# 15. adjacent punctuation chars
+# ** 15. adjacent punctuation chars
 <
 2017/1/1
 	a   1,,0,,0.0 EUR
@@ -152,7 +154,7 @@ $ hledger bal -f -
 >2 //
 >= 1
 
-# 16. adjacent punctuation chars of different types
+# ** 16. adjacent punctuation chars of different types
 <
 2017/1/1
 	a   1,0,.0 EUR
@@ -161,7 +163,7 @@ $ hledger bal -f -
 >2 //
 >= 1
 
-# 17. separator chars vary
+# ** 17. separator chars vary
 <
 2017/1/1
 	a   1.0,0.0,0 EUR
@@ -170,7 +172,7 @@ $ hledger bal -f -
 >2 //
 >= 1
 
-# 18. number begins with a decimal char
+# ** 18. number begins with a decimal char
 <
 2017/1/1
 	a   .1 EUR
@@ -181,7 +183,7 @@ $ hledger bal -f -
 --------------------
                    0  
 
-# 19. number begins with a separator char
+# ** 19. number begins with a separator char
 <
 2017/1/1
 	a   ,100.0 EUR
@@ -190,7 +192,7 @@ $ hledger bal -f -
 >2 //
 >= 1
 
-# 20. long numbers in multi balance reports
+# ** 20. long numbers in multi balance reports
 <
 2021-01-01
     (a)      -0.12345678901234567890123456 EUR

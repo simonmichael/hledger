@@ -1,4 +1,6 @@
-# 1. account pattern with space
+# * query arguments
+
+# ** 1. account pattern with space
 <
 2010/3/1 x
   a a  1
@@ -14,7 +16,7 @@ $ hledger -f- register 'a a'
 >=0
 
 #
-# 2. description pattern with space
+# ** 2. description pattern with space
 <
 2010/3/1 x
   a  1
@@ -31,7 +33,7 @@ $ hledger -f- register desc:'x x'
 >=0
 
 #
-# 3. multiple patterns, spaced and punctuated patterns
+# ** 3. multiple patterns, spaced and punctuated patterns
 <
 2011/9/11
   a a  1
@@ -44,7 +46,7 @@ $ hledger -f- register 'a a' "'b"
 >=0
 
 #
-# 4. patterns with quotation marks in them
+# ** 4. patterns with quotation marks in them
 <
 2020-09-19 Quoting
     assets:bank           -5

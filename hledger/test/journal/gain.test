@@ -1,3 +1,5 @@
+# balance --gain report
+
 <
 P 1999/12/01 stock  1 A
 P 2000/01/01 stock  2 A
@@ -19,7 +21,7 @@ P 2000/02/01 B      6 A
   (assets:new)      1 stock @ 3 A
   (assets:b)        1 stock @ 3 B
 
-# 1. multicolumn balance report showing changes in gain
+# ** 1. multicolumn balance report showing changes in gain
 $ hledger -f- bal -M --gain --no-total
 Incremental gain in 1999-12-01..2000-02-29, valued at period ends:
 
@@ -29,7 +31,7 @@ Incremental gain in 1999-12-01..2000-02-29, valued at period ends:
  assets:new ||       0     -1 A      1 A 
  assets:old ||    -2 A      2 A      2 A 
 
-# 2. multibalance report showing changes in gain including some historical postings
+# ** 2. multibalance report showing changes in gain including some historical postings
 $ hledger -f- bal -M --gain -b 2000 --no-total
 Incremental gain in 2000-01-01..2000-02-29, valued at period ends:
 
@@ -39,7 +41,7 @@ Incremental gain in 2000-01-01..2000-02-29, valued at period ends:
  assets:new ||  -1 A   1 A 
  assets:old ||   2 A   2 A 
 
-# 3. historical gain report
+# ** 3. historical gain report
 $ hledger -f- bal -M --gain -b 2000 --no-total --historical
 Historical gain in 2000-01-01..2000-02-29, valued at period ends:
 
@@ -49,7 +51,7 @@ Historical gain in 2000-01-01..2000-02-29, valued at period ends:
  assets:new ||       -1 A           0 
  assets:old ||          0         2 A 
 
-# 4. cumulative gain report
+# ** 4. cumulative gain report
 $ hledger -f- bal -M --gain -b 2000 --no-total --cumulative
 Cumulative gain in 2000-01-01..2000-02-29, valued at period ends:
 
@@ -59,7 +61,7 @@ Cumulative gain in 2000-01-01..2000-02-29, valued at period ends:
  assets:new ||       -1 A           0 
  assets:old ||        2 A         4 A 
 
-# 5. use a different valuation strategy
+# ** 5. use a different valuation strategy
 $ hledger -f- bal -M --gain --no-total --value=2000-02-01
 Incremental gain in 1999-12-01..2000-01-31, valued at 2000-02-01:
 
@@ -68,7 +70,7 @@ Incremental gain in 1999-12-01..2000-01-31, valued at 2000-02-01:
  assets:b   ||       0    -15 A 
  assets:old ||     2 A        0 
 
-# 6. use a different valuation strategy for historical
+# ** 6. use a different valuation strategy for historical
 $ hledger -f- bal -M --gain --no-total --value=2000-02-01 -b 2000 --historical
 Historical gain in 2000-01, valued at 2000-02-01:
 
@@ -77,7 +79,7 @@ Historical gain in 2000-01, valued at 2000-02-01:
  assets:b   ||      -15 A 
  assets:old ||        2 A 
 
-# 7. also works in balancesheet
+# ** 7. also works in balancesheet
 $ hledger -f- bs -M --gain --no-total
 Balance Sheet 1999-12-31..2000-02-29 (Historical Gain), valued at period ends
 

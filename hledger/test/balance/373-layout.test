@@ -1,4 +1,4 @@
-# Account name eliding and indenting tests, cf issue 373.
+# Account name eliding and indenting tests, cf issue #373.
 # Documenting current behaviour, some of which looks wrong.
 # This file uses https://github.com/simonmichael/shelltestrunner#format-3
 
@@ -15,21 +15,21 @@
   1:2:3:4:5                                  1
   1                                         -1
 
-# 1. simple balance report in tree mode with zero/boring parents
+# ** 1. simple balance report in tree mode with zero/boring parents
 $ hledger -f - bal --tree -N
                    0  1:2
                    1    3
                    0      4
                    1        5
 
-# 2. simple balance report in flat mode
+# ** 2. simple balance report in flat mode
 $ hledger -f - bal --flat -N
                   -1  1:2
                    1  1:2:3
                   -1  1:2:3:4
                    1  1:2:3:4:5
 
-# 3. tabular balance report in flat mode
+# ** 3. tabular balance report in flat mode
 $ hledger -f - bal -Y
 Balance changes in 2015:
 
@@ -42,7 +42,7 @@ Balance changes in 2015:
 -----------++------
            ||    0 
 
-# 4. tabular balance report in tree mode, showing boring parents
+# ** 4. tabular balance report in tree mode, showing boring parents
 $ hledger -f - bal -Y --tree --no-elide
 Balance changes in 2015:
 
@@ -56,7 +56,7 @@ Balance changes in 2015:
 -----------++------
            ||    0 
 
-# 5. tabular balance report in tree mode, hiding zero accounts
+# ** 5. tabular balance report in tree mode, hiding zero accounts
 # Undisplayed parent accounts should be mentioned in the displayed account names as necessary
 $ hledger -f - bal -Y --tree
 Balance changes in 2015:
@@ -70,6 +70,6 @@ Balance changes in 2015:
 ---------++------
          ||    0 
 
-# 6. TODO: after 5, test account code sorting
+# ** 6. TODO: after 5, test account code sorting
 # account 1:2:3      100
 # account 1:2:3:4:5  200

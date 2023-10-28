@@ -1,6 +1,6 @@
-# comment tests
+# * file, transaction and posting comments
 
-# 1. several comment characters allowed for file characters; 
+# ** 1. several comment characters allowed for file characters; 
 # print shows in-transaction & posting comments;
 # comment line is preserved, starting column is not.
 <
@@ -31,7 +31,7 @@ $ hledger -f - print
 
 >= 0
 
-# 2. transaction comments must use ;
+# ** 2. transaction comments must use ;
 <
 2017/1/1 this # and * are not ; the comment
 $ hledger -f - print
@@ -39,7 +39,7 @@ $ hledger -f - print
 
 >= 0
 
-# 3. posting comments must use ;
+# ** 3. posting comments must use ;
 <
 2017/1/1
   a  0  # hash & star not allowed for posting comments
@@ -48,7 +48,7 @@ $ hledger -f - print
 >2 //
 >= 1
 
-# 4. register does not show comments
+# ** 4. register does not show comments
 <
 2010/1/1 x
     a  1 ; comment

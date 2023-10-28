@@ -1,4 +1,5 @@
-# 1. activity report is daily by default.
+# * activity command
+# ** 1. activity report is daily by default.
 <
 2023-01-01
   (a)  1
@@ -14,7 +15,7 @@ $ hledger -f - activity
 2023-01-05 
 2023-01-06 *
 
-# 2. A weekly activity report.
+# ** 2. A weekly activity report.
 <
 2023-01-01
   (a)  1
@@ -26,7 +27,7 @@ $ hledger -f - activity -W
 2022-12-26 *
 2023-01-02 *
 
-# 2. A 7-day activity report starting on an date.
+# ** 2. A 7-day activity report starting on an date.
 <
 2023-01-01
   (a)  1

@@ -1,6 +1,6 @@
-# --pivot tests
+# * --pivot option
 
-# 1. check pivot with print
+# ** 1. check pivot with print
 <
 2016/02/16 Test Transaction
     Account1                                   2 EUR
@@ -14,7 +14,7 @@ $ hledger -f- --pivot TAG print
 
 >= 0
 
-# 2. check pivot with bal
+# ** 2. check pivot with bal
 <
 2016/02/16 Member Fee Payment John Doe
     assets:bank account                                   2 EUR
@@ -24,7 +24,7 @@ $ hledger -f- --pivot member bal --no-total
                2 EUR  
               -2 EUR  John Doe
 
-# 3. check with another example
+# ** 3. check with another example
 <
 2016/02/16 Donation Freifunk
     assets:bank account                                   2 EUR
@@ -34,7 +34,7 @@ $ hledger -f- --pivot budget bal --no-total
                2 EUR  
               -2 EUR  Freifunk
 
-# 4. query on account will find either effective name or original one
+# ** 4. query on account will find either effective name or original one
 <
 2016/02/16 Test Transaction
     Account1                                   2 EUR
@@ -47,7 +47,7 @@ $ hledger -f- --pivot TAG reg '^Account2$' '^fun$' not:hidden
 2016-02-16 Test Transaction     fun                          2 EUR         2 EUR
                                 value                       -1 EUR         1 EUR
 
-# 5. We should be able to query on original account names
+# ** 5. We should be able to query on original account names
 <
 2017/1/1 prepay
     assets           $1500  ; expenses:a
@@ -59,7 +59,7 @@ $ hledger -f- --pivot expenses reg not:liabilities
                                 b                             $100         $1600
                                 c                               $5         $1605
 
-# 6. pivot for implicit tag desc (technical sample)
+# ** 6. pivot for implicit tag desc (technical sample)
 <
 2016/02/16 Freifunk
     assets:bank account                                   2 EUR  ; date:03/01
@@ -68,7 +68,7 @@ $ hledger -f- --pivot desc reg -M
 2016-02   Freifunk                                          -2 EUR        -2 EUR
 2016-03   Freifunk                                           2 EUR             0
 
-# 7. pivot for implicit tag code (technical sample)
+# ** 7. pivot for implicit tag code (technical sample)
 <
 2016/02/16 (Freifunk) Donation Freifunk
     assets:bank account                                   2 EUR  ; date:03/01
@@ -77,7 +77,7 @@ $ hledger -f- --pivot code reg -M
 2016-02   Freifunk                                          -2 EUR        -2 EUR
 2016-03   Freifunk                                           2 EUR             0
 
-# 8. use of pivot with code-based budgeting
+# ** 8. use of pivot with code-based budgeting
 <
 2016/02/16 (Freifunk) Donation Freifunk
     assets:bank account                                   2 EUR
@@ -85,7 +85,7 @@ $ hledger -f- --pivot code reg -M
 $ hledger -f- --pivot code reg ^income
 2016-02-16 Donation Freifunk    Freifunk                    -2 EUR        -2 EUR
 
-# 9. get expenses balance by payee
+# ** 9. get expenses balance by payee
 <
 2016/02/16 (1138) Auchan | buy a food for tomorrow morning
     assets:bank account
@@ -99,7 +99,7 @@ $ hledger -f- --pivot payee bal --no-total --flat ^expense
               22 EUR  Auchan
                5 EUR  StarBars
 
-# 10. get daily expenses by payee
+# ** 10. get daily expenses by payee
 <
 2016/02/16 (1138) Auchan
     assets:bank account
@@ -117,7 +117,7 @@ $ hledger -f- --pivot payee reg -D ^expense
 2016-02-16   Auchan                                         22 EUR        22 EUR
              StarBars                                        5 EUR        27 EUR
 2016-02-17   Auchan                                         30 EUR        57 EUR
-# 11. pivot on multiple tags
+# ** 11. pivot on multiple tags
 <
 2023-01-01 compound purchase
         expenses  10 ; project: job1, kind: equipment

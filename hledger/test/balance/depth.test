@@ -1,15 +1,17 @@
-# 1.
+# * balance command depth limiting
+
+# ** 1.
 $ hledger -f sample.journal balance --no-total --depth 1
                  $-1  assets
                   $2  expenses
                  $-2  income
                   $1  liabilities
 
-# 2. Depth 0 aggregates everything into one line
+# ** 2. Depth 0 aggregates everything into one line
 $ hledger -f sample.journal balance --no-total --depth 0 assets
                  $-1  ...
 
-# 3. Ditto in a multi-column balance report.
+# ** 3. Ditto in a multi-column balance report.
 $ hledger -f sample.journal balance -M -e 2008/2 --depth 0 assets
 Balance changes in 2008-01:
 

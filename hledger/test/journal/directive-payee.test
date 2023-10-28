@@ -1,4 +1,6 @@
-# 1. payee ignores subdirectives
+# * payee directive
+
+# ** 1. payee ignores subdirectives
 <
 payee KFC
     alias KENTUCKY FRIED CHICKEN

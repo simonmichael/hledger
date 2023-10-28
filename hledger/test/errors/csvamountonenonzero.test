@@ -1,3 +1,5 @@
+# * csvamountonenonzero error
+# ** 1. 
 $ hledger check -f  csvamountonenonzero.csv
 >2 /hledger: Error: in CSV rules:
 While processing CSV record: "2022-01-03","1","2"

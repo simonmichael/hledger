@@ -1,8 +1,8 @@
-# alias-related tests
+# * account alias tests
 
 # simple aliases
 
-# 1. simple alias directive
+# ** 1. simple alias directive
 <
 alias checking = assets:bank:checking
 1/1
@@ -10,7 +10,7 @@ alias checking = assets:bank:checking
 $ hledger -f- accounts
 assets:bank:checking:a
 
-# 2. simple alias matches whole account name components only
+# ** 2. simple alias matches whole account name components only
 <
 alias a:b = A:B
 1/1
@@ -21,7 +21,7 @@ $ hledger -f- accounts
 A:B:c
 a:bb:d
 
-# 3. a simple alias matching the whole account name works
+# ** 3. a simple alias matching the whole account name works
 <
 alias a:b = A:B
 1/1
@@ -31,7 +31,7 @@ A:B
 
 # regular expression aliases
 
-# 4. regex alias directive
+# ** 4. regex alias directive
 <
 alias /^(.+):bank:([^:]+):?(.*)/ = \1:\2 \3
 1/1
@@ -39,7 +39,7 @@ alias /^(.+):bank:([^:]+):?(.*)/ = \1:\2 \3
 $ hledger -f- accounts
 assets:B checking:a
 
-# 5. regex alias pattern is a case-insensitive regular expression
+# ** 5. regex alias pattern is a case-insensitive regular expression
 # matching anywhere in the account name. All matching aliases are
 # applied to an account name in turn, most recently seen first. The
 # replacement can replace multiple matches within the account name.
@@ -75,7 +75,7 @@ $ hledger -f- print
 
 # CLI
 
-# 6. --alias command-line options are applied in the order written.
+# ** 6. --alias command-line options are applied in the order written.
 # Spaces are allowed if quoted.
 # 
 <
@@ -92,7 +92,7 @@ $ hledger -f- print --alias '/A (.)/=a' --alias /a/=b
 
 >=0
 
-# 7. alias options are applied after alias directives.
+# ** 7. alias options are applied after alias directives.
 #
 <
 alias /^a/=B
@@ -110,7 +110,7 @@ $ hledger -f- print --alias /a/=A --alias /B/=C --alias /B/=D --alias /C/=D
 
 >=0
 
-# 8. alias options 
+# ** 8. alias options 
 <
 01/01 Opening balances
 	(bank)         100
@@ -137,7 +137,7 @@ $ hledger -f- balance --alias=cc=credit-card --alias=b=bank
 --------------------
                   90  
 
-# 9. query will search both origin and substitution in alias
+# ** 9. query will search both origin and substitution in alias
 <
 alias a = b
 2017/1/1
@@ -149,7 +149,7 @@ $ hledger -f- reg '^a$' '^b$'
 
 # recursive aliases https://github.com/simonmichael/hledger/issues/1055
 
-# 10. Recursive command line simple aliases.
+# ** 10. Recursive command line simple aliases.
 <
 2000/01/01
   (one)  1
@@ -160,7 +160,7 @@ $ hledger -f- --alias "one=two" --alias "two=three" print
 
 >=0
 
-# 11. Recursive simple alias directives. Note the reverse order,
+# ** 11. Recursive simple alias directives. Note the reverse order,
 # alias directives are applied most recent first (bottom up).
 <
 alias two = three
@@ -174,7 +174,7 @@ $ hledger -f- print
 
 >=0
 
-# 12. Only one of these is applied.
+# ** 12. Only one of these is applied.
 <
 alias one = three
 alias one = two
@@ -187,7 +187,7 @@ $ hledger -f- print
 
 >=0
 
-# 13. Recursive command line regexp aliases.
+# ** 13. Recursive command line regexp aliases.
 <
 2000/01/01
   (one)  1
@@ -198,7 +198,7 @@ $ hledger -f- --alias "/one/=two" --alias "/two/=three" print
 
 >=0
 
-# 14. Recursive regexp alias directives.
+# ** 14. Recursive regexp alias directives.
 # Alias directives are applied most recent first (bottom up).
 <
 alias /two/ = three
@@ -212,7 +212,7 @@ $ hledger -f- print
 
 >=0
 
-# 15. Only one of these is applied.
+# ** 15. Only one of these is applied.
 <
 alias /one/ = three
 alias /one/ = two
@@ -226,7 +226,7 @@ $ hledger -f- print
 >=0
 
 # Aliases can produce malformed account names and invalid print output (#1788).
-# 16. For example, you can erase an account name:
+# ** 16. For example, you can erase an account name:
 <
 alias /a:.*/=
 2021-01-01
@@ -239,7 +239,7 @@ $ hledger -f- print
 
 >=0
 
-# 17. Another example: you can insert an illegal double space, 
+# ** 17. Another example: you can insert an illegal double space, 
 # with the second part considered part of the amount if reparsed:
 <
 2021-01-01
@@ -253,7 +253,7 @@ $ hledger -f- --alias old="new  USD" print | hledger -f- print
 
 >=0
 
-# 18. Make sure you can match forward slashes in regexps by escaping them. (#982)
+# ** 18. Make sure you can match forward slashes in regexps by escaping them. (#982)
 <
 alias /\// = :
 
@@ -268,7 +268,7 @@ $ hledger -f- print
 
 >=0
 
-# 19. Make sure you can escape special regexp characters.
+# ** 19. Make sure you can escape special regexp characters.
 <
 alias /\./ = :
 
@@ -283,7 +283,7 @@ $ hledger -f- print
 
 >=0
 
-# 20. Including backslashes
+# ** 20. Including backslashes
 <
 alias /\\/ = :
 

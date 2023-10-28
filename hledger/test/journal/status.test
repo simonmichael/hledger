@@ -1,6 +1,6 @@
-## parsing
+# * status mark parsing
 
-# 1. transactions and postings have status marks which are nothing, ! or *
+# ** 1. transactions and postings have status marks which are nothing, ! or *
 $ hledger -fstatus.journal print
 2017-01-01 unmarked
     (a)               1
@@ -16,7 +16,7 @@ $ hledger -fstatus.journal print
 
 >= 0
 
-# 2. other characters will be considered part of the description
+# ** 2. other characters will be considered part of the description
 <
 2017/01/01 % 
 $ hledger -f- print desc:%
@@ -26,7 +26,7 @@ $ hledger -f- print desc:%
 
 ## matching with flags
 
-# 3. --cleared matches * only
+# ** 3. --cleared matches * only
 $ hledger -fstatus.journal print --cleared
 2017-01-03 * cleared
     (a)               1
@@ -34,7 +34,7 @@ $ hledger -fstatus.journal print --cleared
 
 >= 0
 
-# 4. --pending matches ! only
+# ** 4. --pending matches ! only
 $ hledger -fstatus.journal print --pending
 2017-01-02 ! pending
     (a)               1
@@ -42,7 +42,7 @@ $ hledger -fstatus.journal print --pending
 
 >= 0
 
-# 5. --unmarked matches no status mark only
+# ** 5. --unmarked matches no status mark only
 $ hledger -fstatus.journal print --unmarked
 2017-01-01 unmarked
     (a)               1
@@ -50,21 +50,21 @@ $ hledger -fstatus.journal print --unmarked
 
 >= 0
 
-# 6. these flags can be combined
+# ** 6. these flags can be combined
 $ hledger -fstatus.journal register --unmarked --pending
 2017-01-01 unmarked             (a)                              1             1
                                 (b)                              1             2
 2017-01-02 pending              (a)                              1             3
                                 (b)                              1             4
 
-# 7. these flags work with other commands
+# ** 7. these flags work with other commands
 $ hledger -fstatus.journal balance -N --unmarked
                    1  a
                    1  b
 
 ## matching with status: query
 
-# 8. status:* matches * only
+# ** 8. status:* matches * only
 $ hledger -fstatus.journal print status:*
 2017-01-03 * cleared
     (a)               1
@@ -72,7 +72,7 @@ $ hledger -fstatus.journal print status:*
 
 >= 0
 
-# 9. status:! matches ! only
+# ** 9. status:! matches ! only
 $ hledger -fstatus.journal print status:!
 2017-01-02 ! pending
     (a)               1
@@ -80,7 +80,7 @@ $ hledger -fstatus.journal print status:!
 
 >= 0
 
-# 10. status: matches unmarked only
+# ** 10. status: matches unmarked only
 $ hledger -fstatus.journal print status:
 2017-01-01 unmarked
     (a)               1
@@ -88,7 +88,7 @@ $ hledger -fstatus.journal print status:
 
 >= 0
 
-# 11. multiple status: queries are OR'd
+# ** 11. multiple status: queries are OR'd
 $ hledger -fstatus.journal print status: status:!
 2017-01-01 unmarked
     (a)               1

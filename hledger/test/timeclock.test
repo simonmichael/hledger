@@ -1,4 +1,6 @@
-# 1. a timeclock session is parsed as a similarly-named transaction with one virtual posting.
+# * timeclock input
+
+# ** 1. a timeclock session is parsed as a similarly-named transaction with one virtual posting.
 <
 i 2009/1/1 08:00:00
 o 2009/1/1 09:00:00 stuff on checkout record  is ignored
@@ -21,7 +23,7 @@ $ hledger -f timeclock:- print
 
 >=
 
-# 2. Command-line account aliases are applied.
+# ** 2. Command-line account aliases are applied.
 $ hledger -ftimeclock:- print --alias '/account/=FOO'
 2009-01-01 * 08:00-09:00
     ()           1.00h
@@ -34,21 +36,21 @@ $ hledger -ftimeclock:- print --alias '/account/=FOO'
 
 >=
 
-# 3. For a missing clock-out, now is implied
+# ** 3. For a missing clock-out, now is implied
 <
 i 2020/1/1 08:00
 $ hledger -f timeclock:- balance
 > /./
 >=
 
-# 4. For a log not starting with clock-out, print error
+# ** 4. For a log not starting with clock-out, print error
 <
 o 2020/1/1 08:00
 $ hledger -f timeclock:- balance
 >2 /Expected a timeclock i entry/
 >= !0
 
-# 5. For two consecutive clock-ins, print error
+# ** 5. For two consecutive clock-ins, print error
 <
 i 2020/1/1 08:00
 i 2020/1/1 09:00
@@ -56,7 +58,7 @@ $ hledger -f timeclock:- balance
 >2 /Expected a timeclock o entry/
 >= !0
 
-# 6. Timeclock amounts are always rounded to two decimal places, 
+# ** 6. Timeclock amounts are always rounded to two decimal places, 
 # even when displayed by print (#1527).
 <
 i 2020-01-30 08:38:35 acct
@@ -67,7 +69,7 @@ $ hledger -f timeclock:- print
 
 >=
 
-# 7. Comments and tags are supported. Double space is required between account name
+# ** 7. Comments and tags are supported. Double space is required between account name
 # and description or comment. It is not required between description and comment.
 <
 i 2023-05-01 08:00:00 acct 1  description ; a comment with tag:
@@ -80,7 +82,7 @@ $ hledger -f timeclock:- print tag:tag
 
 >=
 
-# 8.
+# ** 8.
 $ hledger -f timeclock:- accounts
 acct 1
 acct 2

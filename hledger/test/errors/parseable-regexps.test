@@ -1,3 +1,5 @@
+# * parseable error
+# ** 1. 
 $ hledger check -f parseable-regexps.j
 >2 /hledger: Error: .*parseable-regexps.j:3:8:
   \|

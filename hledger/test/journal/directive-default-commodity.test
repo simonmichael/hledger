@@ -1,9 +1,11 @@
+# * D directive
+
 # a default commodity defined with the D directive will be used for any
 # subsequent commodity-less posting amounts. The sample amount's display style
 # is also applied, and the resulting amount may end up setting the canonical
 # display style for the commodity.
 
-# 1. no default commodity
+# ** 1. no default commodity
 <
 2010/1/1
   a  1000
@@ -16,7 +18,7 @@ $ hledger -f- print
 
 >=0
 
-# 2. pound, two decimal places, no digit group separator
+# ** 2. pound, two decimal places, no digit group separator
 <
 D £1000.00
 2010/1/1
@@ -30,7 +32,7 @@ $ hledger -f- print
 
 >=0
 
-# 3. dollar, comma decimal point, three decimal places, no digit group separator
+# ** 3. dollar, comma decimal point, three decimal places, no digit group separator
 <
 D $1,000
 2010/1/1
@@ -44,7 +46,7 @@ $ hledger -f- print
 
 >=0
 
-# 4. dollar, three digit group separator, one decimal place
+# ** 4. dollar, three digit group separator, one decimal place
 <
 D $1,000.0
 2010/1/1
@@ -56,7 +58,7 @@ $ hledger -f- print
 
 >=0
 
-# 5. A D directive affects all aspects of display style, 
+# ** 5. A D directive affects all aspects of display style, 
 # including limiting the display precision, like a commodity directive (#1187).
 <
 D 1,000.0 A
@@ -69,7 +71,7 @@ $ hledger -f- print
 
 >=0
 
-# 6. A default commodity should not affect parsing of 
+# ** 6. A default commodity should not affect parsing of 
 # automated posting multiplier amounts.
 <
 D $1000.

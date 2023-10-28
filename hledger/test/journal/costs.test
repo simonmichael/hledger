@@ -1,11 +1,11 @@
-# Cost-related tests
+# * Costs
 
 <
 2011/01/01
     expenses:foreign currency       €100 @ $1.35
     assets
 
-# 1. print a transaction with an explicit unit cost
+# ** 1. print a transaction with an explicit unit cost
 $ hledger -f- print --explicit
 2011-01-01
     expenses:foreign currency    €100 @ $1.35
@@ -13,7 +13,7 @@ $ hledger -f- print --explicit
 
 >=0
 
-# 2. -B/--cost converts to the cost price's commodity
+# ** 2. -B/--cost converts to the cost price's commodity
 $ hledger -f- print --explicit --cost
 2011-01-01
     expenses:foreign currency         $135.00
@@ -25,7 +25,7 @@ $ hledger -f- print --explicit --cost
     expenses:foreign currency       €100 @ $1.35
     assets                              $-135.00
 
-# 3. --infer-equity generates conversion postings,
+# ** 3. --infer-equity generates conversion postings,
 # and with --verbose-tags, they will be visibly tagged.
 $ hledger -f- print --infer-equity --verbose-tags
 2011-01-01
@@ -36,7 +36,7 @@ $ hledger -f- print --infer-equity --verbose-tags
 
 >=0
 
-# 4. With --cost, --infer-equity is ignored
+# ** 4. With --cost, --infer-equity is ignored
 $ hledger -f- print --cost --infer-equity
 2011-01-01
     expenses:foreign currency         $135.00
@@ -49,7 +49,7 @@ $ hledger -f- print --cost --infer-equity
     expenses:foreign currency    €100 @@ $135
     assets
 
-# 5. print a transaction with a total cost
+# ** 5. print a transaction with a total cost
 $ hledger -f - print --explicit
 2011-01-01
     expenses:foreign currency    €100 @@ $135
@@ -57,7 +57,7 @@ $ hledger -f - print --explicit
 
 >=0
 
-# 6. when the balance has exactly two commodities, both without cost,
+# ** 6. when the balance has exactly two commodities, both without cost,
 # infer an implicit balancing cost (conversion rate) for the first one in terms of the second.
 <
 2011/01/01
@@ -79,7 +79,7 @@ $ hledger -f - print --explicit
 
 >=0
 
-# 7. another, from ledger tests. Just one posting to price so uses @@.
+# ** 7. another, from ledger tests. Just one posting to price so uses @@.
 <
 2002/09/30 * 1a1a6305d06ce4b284dba0d267c23f69d70c20be
     c56a21d23a6535184e7152ee138c28974f14280c  866.231000 GGGGG
@@ -92,7 +92,7 @@ $ hledger -f - print --explicit
 
 >=0
 
-# 8. when the balance has more than two commodities, don't bother
+# ** 8. when the balance has more than two commodities, don't bother
 <
 2011/01/01
     expenses:foreign currency         €100
@@ -102,7 +102,7 @@ $ hledger -f - print
 >2 /transaction is unbalanced/
 >= !0
 
-# 9. another
+# ** 9. another
 <
 2011/01/01
     expenses:foreign currency        €99
@@ -117,7 +117,7 @@ $ hledger -f - balance -B
                    0  
 >=0
 
-# 10. transaction in two commodities should balance out properly
+# ** 10. transaction in two commodities should balance out properly
 <
 2011/01/01 x
   a  10£ @@ 16$
@@ -130,7 +130,7 @@ $ hledger -f - balance --cost
                    0  
 >=0
 
-# 11. --value=cost,XXX is deprecated, but should still work (for now)
+# ** 11. --value=cost,XXX is deprecated, but should still work (for now)
 $ hledger -f - balance --value=cost,XXX
                  16$  a
                 -16$  b
@@ -138,7 +138,7 @@ $ hledger -f - balance --value=cost,XXX
                    0  
 >=0
 
-# 12. conversion postings should be generated when called --infer-equity
+# ** 12. conversion postings should be generated when called --infer-equity
 $ hledger -f - balance --infer-equity
                  10£  a
                 -16$  b
@@ -148,7 +148,7 @@ $ hledger -f - balance --infer-equity
                    0  
 >=0
 
-# 13. transaction should be left unbalanced when called without --cost or --infer-equity
+# ** 13. transaction should be left unbalanced when called without --cost or --infer-equity
 $ hledger -f - balance
                  10£  a
                 -16$  b
@@ -157,7 +157,7 @@ $ hledger -f - balance
                  10£  
 >=0
 
-# 14. The balancing cost should still be inferred properly, with proper sign,
+# ** 14. The balancing cost should still be inferred properly, with proper sign,
 #     if the first amount is negative
 <
 2011/01/01 x
@@ -169,7 +169,7 @@ $ hledger -f - balance -N
                  16$  b
 >=0
 
-# 15. Should not infer balancing costs when --strict is specified
+# ** 15. Should not infer balancing costs when --strict is specified
 $ hledger -f - balance --strict
 >2 /transaction is unbalanced/
 >=1
@@ -179,12 +179,12 @@ $ hledger -f - balance --strict
   a  -10£
   b  -16$
 
-# 16. A balancing cost can not be inferred when BOTH amounts are negative
+# ** 16. A balancing cost can not be inferred when BOTH amounts are negative
 $ hledger -f - balance
 >2 /transaction is unbalanced/
 >=1
 
-# 17. Differently-priced lots of a commodity should be merged in balance report
+# ** 17. Differently-priced lots of a commodity should be merged in balance report
 <
 2011/1/1
   (a)   £1 @ $2
@@ -198,7 +198,7 @@ $ hledger -f - balance
                   £2  
 >=0
 
-# 18. this should balance
+# ** 18. this should balance
 <
 2011/1/1
     a  1h @ $10
@@ -211,7 +211,7 @@ $ hledger -f - balance --no-total
                 $-30  c
 >= 0
 
-# 19. these balance because of the unit costs, and should parse successfully
+# ** 19. these balance because of the unit costs, and should parse successfully
 <
 1/1
     a   1X @ 2Y
@@ -221,11 +221,11 @@ $ hledger -f - balance --no-total
                  -1X  a
 >= 0
 
-# 20.
+# ** 20.
 $ hledger -f - balance --no-total -B
 >= 0
 
-# 21. likewise with total costs. Note how the primary amount's sign is used.
+# ** 21. likewise with total costs. Note how the primary amount's sign is used.
 <
 1/1
     a   1X @@ 1Y
@@ -235,7 +235,7 @@ $ hledger -f - balance --no-total
                  -1X  a
 >= 0
 
-# 22.
+# ** 22.
 $ hledger -f - balance --no-total -B
 >= 0
 
@@ -266,7 +266,7 @@ $ hledger -f - balance --no-total -B
     a        A -1
     b        B -1 @@ A -1
 
-# 23. All these transactions are considered balanced
+# ** 23. All these transactions are considered balanced
 $ hledger -f- print -x
 2022-01-01 Positive Unit cost
     a             A 1
@@ -294,7 +294,7 @@ $ hledger -f- print -x
 
 >=
 
-# 24. Here they are converted to cost
+# ** 24. Here they are converted to cost
 $ hledger -f- print -xB
 2022-01-01 Positive Unit cost
     a             A 1
@@ -322,7 +322,7 @@ $ hledger -f- print -xB
 
 >=
 
-# 25. Here are the market prices inferred, since 1.26:
+# ** 25. Here are the market prices inferred, since 1.26:
 $ hledger -f- --infer-market-prices prices
 P 2022-01-01 B A 1
 P 2022-01-01 B A 1.0
@@ -331,7 +331,7 @@ P 2022-01-02 B A -1.0
 P 2022-01-03 B A -1
 P 2022-01-03 B A -1.0
 
-# 26. here, a's primary amount is 0, and its cost is 1Y; b is the assigned auto-balancing amount of -1Y (per issue 69)
+# ** 26. here, a's primary amount is 0, and its cost is 1Y; b is the assigned auto-balancing amount of -1Y (per issue 69)
 <
 1/1
     a   1X @@ 1Y
@@ -344,18 +344,18 @@ $ hledger -f - balance --no-total -E
                  -1Y  b
 >= 0
 
-# 27. Without -E, a should be hidden because its balance is zero, even though it has a non-zero cost.
+# ** 27. Without -E, a should be hidden because its balance is zero, even though it has a non-zero cost.
 $ hledger -f - balance --no-total
                  -1Y  b
 >= 0
 
-# 28. the above with -B
+# ** 28. the above with -B
 $ hledger -f - balance --no-total -E -B
                   1Y  a
                  -1Y  b
 >= 0
 
-# 29. The equity account used by --infer-equity can be customised
+# ** 29. The equity account used by --infer-equity can be customised
 <
 account  equity:trades   ; type:V
 
@@ -372,7 +372,7 @@ $ hledger -f- print --infer-equity
 
 >=0
 
-# 30. Inferred equity postings are generated early enough to match filters
+# ** 30. Inferred equity postings are generated early enough to match filters
 <
 2011/01/01
     expenses:foreign currency       €100 @ $1.35
@@ -384,7 +384,7 @@ Transactions in equity:conversion and subaccounts:
                                                              €-100         €-100
 >=0
 
-# 31. Infer cost with first matching posting when equity postings are present
+# ** 31. Infer cost with first matching posting when equity postings are present
 <
 2011/01/01
     expenses:foreign currency       €100
@@ -401,7 +401,7 @@ $ hledger -f- print --infer-costs
 
 >=0
 
-# 32. Infer cost and convert to cost when equity postings are present
+# ** 32. Infer cost and convert to cost when equity postings are present
 $ hledger -f- print --infer-costs --cost
 2011-01-01
     expenses:foreign currency            $135
@@ -409,7 +409,7 @@ $ hledger -f- print --infer-costs --cost
 
 >=0
 
-# 33. Do not infer equity postings when they are specified manually
+# ** 33. Do not infer equity postings when they are specified manually
 $ hledger -f- print --infer-equity --infer-costs
 2011-01-01
     expenses:foreign currency    €100 @@ $135
@@ -419,7 +419,7 @@ $ hledger -f- print --infer-equity --infer-costs
 
 >=0
 
-# 34. Inferred equity postings with non-standard conversion account
+# ** 34. Inferred equity postings with non-standard conversion account
 <
 account  whoopwhoop   ; type:V
 
@@ -438,7 +438,7 @@ $ hledger -f- print --infer-costs
 
 >=0
 
-# 35. Can manually make another posting match
+# ** 35. Can manually make another posting match
 <
 2011/01/01
     assets                              $-135
@@ -455,7 +455,7 @@ $ hledger -f- print --infer-costs
 
 >=0
 
-# 36. Can manually match lots of different posting groups so long as there is no conflict
+# ** 36. Can manually match lots of different posting groups so long as there is no conflict
 <
 2011/01/01
     expenses:food                 €110 @@ £80
@@ -480,7 +480,7 @@ $ hledger -f- print --show-costs --infer-costs
 
 >=0
 
-# 37. And convert to cost
+# ** 37. And convert to cost
 $ hledger -f- print --infer-costs --cost
 2011-01-01
     expenses:food                         £80
@@ -490,7 +490,7 @@ $ hledger -f- print --infer-costs --cost
 
 >=0
 
-# 38. Transaction posts and equity conversion postings are fine
+# ** 38. Transaction posts and equity conversion postings are fine
 <
 2011/01/01
     expenses:foreign currency    €100 @ $1.35
@@ -553,7 +553,7 @@ $ hledger -f- print --infer-costs
 # >2 /There is not a unique posting which matches the conversion posting pair/
 # >=1
 
-# 39. A multicommodity transaction with conversion postings that we can't
+# ** 39. A multicommodity transaction with conversion postings that we can't
 # automatically match up with the corresponding other postings should be ignored,
 # not an error. (#2045)
 <
@@ -574,7 +574,7 @@ $ hledger -f- print
 
 >=
 
-# 40. We can combine ‘other’ amounts into one posting, if they still match up.
+# ** 40. We can combine ‘other’ amounts into one posting, if they still match up.
 <
 2011-01-01
     expenses:foreign currency    €100 @ $1.35
@@ -605,7 +605,7 @@ $ hledger -f- print --infer-costs
 
 >=0
 
-# 41. Matching costful postings and conversion postings is done at the precision
+# ** 41. Matching costful postings and conversion postings is done at the precision
 # of the conversion posting, tolerating smaller decimal differences (#2041).
 # Here 84.01 * 2.495 GEL is 209.60495 GEL, which is considered to match 209.60 GEL
 # because we use the latter's 2 digit precision.
