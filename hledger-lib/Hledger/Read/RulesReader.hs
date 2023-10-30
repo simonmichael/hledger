@@ -372,9 +372,11 @@ JOURNAL-PSEUDO-FIELD: amount-in | amount-out | currency
 
 ASSIGNMENT-SEPARATOR: SPACE | ( : SPACE? )
 
-FIELD-VALUE: VALUE (possibly containing CSV-FIELD-REFERENCEs)
+FIELD-VALUE: VALUE (possibly containing CSV-FIELD-REFERENCEs and REGEX-MATCHGROUP-REFERENCEs)
 
 CSV-FIELD-REFERENCE: % CSV-FIELD
+
+REGEX-MATCHGROUP-REFERENCE: \ DIGIT+
 
 CSV-FIELD: ( FIELD-NAME | FIELD-NUMBER ) (corresponding to a CSV field)
 
@@ -707,7 +709,7 @@ hledgerField = getEffectiveAssignment
 -- | Look up the final value assigned to a hledger field, with csv field
 -- references interpolated.
 hledgerFieldValue :: CsvRules -> CsvRecord -> HledgerFieldName -> Maybe Text
-hledgerFieldValue rules record = fmap (renderTemplate rules record) . hledgerField rules record
+hledgerFieldValue rules record f = (fmap (renderTemplate rules record f) . hledgerField rules record) f
 
 maybeNegate :: MatcherPrefix -> Bool -> Bool
 maybeNegate Not origbool = not origbool
@@ -725,61 +727,88 @@ getEffectiveAssignment rules record f = lastMay $ map snd $ assignments
   where
     -- all active assignments to field f, in order
     assignments = dbg9 "csv assignments" $ filter ((==f).fst) $ toplevelassignments ++ conditionalassignments
-      where
-        -- all top level field assignments
-        toplevelassignments    = rassignments rules
-        -- all field assignments in conditional blocks assigning to field f and active for the current csv record
-        conditionalassignments = concatMap cbAssignments $ filter isBlockActive $ (rblocksassigning rules) f
-          where
-            -- does this conditional block match the current csv record ?
-            isBlockActive :: ConditionalBlock -> Bool
-            isBlockActive CB{..} = any (all matcherMatches) $ groupedMatchers cbMatchers
-              where
-                -- does this individual matcher match the current csv record ?
-                matcherMatches :: Matcher -> Bool
-                matcherMatches (RecordMatcher prefix pat) = maybeNegate prefix origbool
-                  where
-                    pat' = dbg7 "regex" pat
-                    -- A synthetic whole CSV record to match against. Note, this can be
-                    -- different from the original CSV data:
-                    -- - any whitespace surrounding field values is preserved
-                    -- - any quotes enclosing field values are removed
-                    -- - and the field separator is always comma
-                    -- which means that a field containing a comma will look like two fields.
-                    wholecsvline = dbg7 "wholecsvline" $ T.intercalate "," record
-                    origbool = regexMatchText pat' wholecsvline
-                matcherMatches (FieldMatcher prefix csvfieldref pat) = maybeNegate prefix origbool
-                  where
-                    -- the value of the referenced CSV field to match against.
-                    csvfieldvalue = dbg7 "csvfieldvalue" $ replaceCsvFieldReference rules record csvfieldref
-                    origbool = regexMatchText pat csvfieldvalue
+    -- all top level field assignments
+    toplevelassignments    = rassignments rules 
+    -- all field assignments in conditional blocks assigning to field f and active for the current csv record
+    conditionalassignments = concatMap cbAssignments $ filter (isBlockActive rules record) $ (rblocksassigning rules) f
 
-                -- | Group matchers into associative pairs based on prefix, e.g.:
-                --   A
-                --   & B
-                --   C
-                --   D
-                --   & E
-                --   => [[A, B], [C], [D, E]]
-                groupedMatchers :: [Matcher] -> [[Matcher]]
-                groupedMatchers [] = []
-                groupedMatchers (x:xs) = (x:ys) : groupedMatchers zs
-                  where
-                    (ys, zs) = span (\y -> matcherPrefix y == And) xs
-                    matcherPrefix :: Matcher -> MatcherPrefix
-                    matcherPrefix (RecordMatcher prefix _) = prefix
-                    matcherPrefix (FieldMatcher prefix _ _) = prefix
+-- does this conditional block match the current csv record ?
+isBlockActive :: CsvRules -> CsvRecord -> ConditionalBlock -> Bool
+isBlockActive rules record CB{..} = any (all matcherMatches) $ groupedMatchers cbMatchers
+  where
+    -- does this individual matcher match the current csv record ?
+    matcherMatches :: Matcher -> Bool
+    matcherMatches (RecordMatcher prefix pat) = maybeNegate prefix origbool
+      where
+        pat' = dbg7 "regex" pat
+        -- A synthetic whole CSV record to match against. Note, this can be
+        -- different from the original CSV data:
+        -- - any whitespace surrounding field values is preserved
+        -- - any quotes enclosing field values are removed
+        -- - and the field separator is always comma
+        -- which means that a field containing a comma will look like two fields.
+        wholecsvline = dbg7 "wholecsvline" $ T.intercalate "," record
+        origbool = regexMatchText pat' wholecsvline
+    matcherMatches (FieldMatcher prefix csvfieldref pat) = maybeNegate prefix origbool
+      where
+        -- the value of the referenced CSV field to match against.
+        csvfieldvalue = dbg7 "csvfieldvalue" $ replaceCsvFieldReference rules record csvfieldref
+        origbool = regexMatchText pat csvfieldvalue
+
+    -- | Group matchers into associative pairs based on prefix, e.g.:
+    --   A
+    --   & B
+    --   C
+    --   D
+    --   & E
+    --   => [[A, B], [C], [D, E]]
+    groupedMatchers :: [Matcher] -> [[Matcher]]
+    groupedMatchers [] = []
+    groupedMatchers (x:xs) = (x:ys) : groupedMatchers zs
+      where
+        (ys, zs) = span (\y -> matcherPrefix y == And) xs
+        matcherPrefix :: Matcher -> MatcherPrefix
+        matcherPrefix (RecordMatcher prefix _) = prefix
+        matcherPrefix (FieldMatcher prefix _ _) = prefix
 
 -- | Render a field assignment's template, possibly interpolating referenced
 -- CSV field values. Outer whitespace is removed from interpolated values.
-renderTemplate ::  CsvRules -> CsvRecord -> FieldTemplate -> Text
-renderTemplate rules record t = maybe t mconcat $ parseMaybe
-    (many $ takeWhile1P Nothing (/='%')
+renderTemplate ::  CsvRules -> CsvRecord -> HledgerFieldName -> FieldTemplate -> Text
+renderTemplate rules record f t = maybe t mconcat $ parseMaybe
+    (many $ takeWhile1P Nothing isNotEscapeChar
+        <|> replaceRegexGroupReference rules record f <$> matchp
         <|> replaceCsvFieldReference rules record <$> referencep)
     t
   where
+    -- XXX: can we return a parsed Int here?
+    matchp = liftA2 T.cons (char '\\') (takeWhile1P (Just "matchref") isDigit) :: Parsec HledgerParseErrorData Text Text
     referencep = liftA2 T.cons (char '%') (takeWhile1P (Just "reference") isFieldNameChar) :: Parsec HledgerParseErrorData Text Text
     isFieldNameChar c = isAlphaNum c || c == '_' || c == '-'
+    isNotEscapeChar c = c /='%' && c /= '\\'
+
+-- | Replace something that looks like a Regex match group reference with the
+-- resulting match group value after applying the Regex.
+replaceRegexGroupReference :: CsvRules -> CsvRecord -> HledgerFieldName -> FieldTemplate -> Text
+replaceRegexGroupReference rules record f s = case T.uncons s of
+    Just ('\\', group) -> fromMaybe "" $ regexMatchValue rules record f group
+    _                  -> s
+
+regexMatchValue :: CsvRules -> CsvRecord -> HledgerFieldName -> Text -> Maybe Text
+regexMatchValue rules record f sgroup = let
+  matchgroups  = concatMap (getMatchGroups rules record)
+               $ concatMap cbMatchers
+               $ filter (isBlockActive rules record)
+               $ rblocksassigning rules f
+  group = (read (T.unpack sgroup) :: Int) - 1 -- adjust to 0-indexing
+  in atMay matchgroups group
+
+getMatchGroups :: CsvRules -> CsvRecord -> Matcher -> [Text]
+getMatchGroups _ record (RecordMatcher _ regex)  = let
+  txt = T.intercalate "," record -- see caveats of wholecsvline, in `isBlockActive`
+  in regexMatchTextGroups regex txt
+getMatchGroups rules record (FieldMatcher _ fieldref regex) = let
+  txt = replaceCsvFieldReference rules record fieldref
+  in regexMatchTextGroups regex txt
 
 -- | Replace something that looks like a reference to a csv field ("%date" or "%1)
 -- with that field's value. If it doesn't look like a field reference, or if we
@@ -1159,7 +1188,7 @@ getAmount rules record currency p1IsVirtual n =
 
     -- assignments to any of these field names with non-empty values
     assignments = [(f,a') | f <- fieldnames
-                          , Just v <- [T.strip . renderTemplate rules record <$> hledgerField rules record f]
+                          , Just v <- [T.strip . renderTemplate rules record f <$> hledgerField rules record f]
                           , not $ T.null v
                           -- XXX maybe ignore rule-generated values like "", "-", "$", "-$", "$-" ? cf CSV FORMAT -> "amount", "Setting amounts",
                           , let a = parseAmount rules record currency v
