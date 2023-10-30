@@ -399,9 +399,10 @@ If they're not doing what you expect, it's important to know exactly what they s
 2. they are infix matching (they do not need to match the entire thing being matched)
 3. they are [POSIX ERE] (extended regular expressions)
 4. they also support [GNU word boundaries] (`\b`, `\B`, `\<`, `\>`)
-5. they do not support [backreferences]; if you write `\1`, it will match the digit `1`.
-   Except when doing text replacement, eg in [account aliases](#regex-aliases),
-   where [backreferences] can be used in the replacement string to reference [capturing groups] in the search regexp.
+5. [backreferences] are supported when doing text replacement in [account
+   aliases](#regex-aliases) or [CSV rules](#csv-rules), where [backreferences]
+   can be used in the replacement string to reference [capturing groups] in the
+   search regexp. Otherwise, if you write `\1`, it will match the digit `1`.
 6. they do not support [mode modifiers] (`(?s)`), character classes (`\w`, `\d`), or anything else not mentioned above.
 
 [POSIX ERE]: http://www.regular-expressions.info/posix.html#ere
@@ -3006,8 +3007,9 @@ To assign a value to a hledger field, write the [field name](#field-names)
 (any of the standard hledger field/pseudo-field names, defined below),
 a space, followed by a text value on the same line.
 This text value may interpolate CSV fields,
-referenced by their 1-based position in the CSV record (`%N`),
-or by the name they were given in the fields list (`%CSVFIELD`).
+referenced either by their 1-based position in the CSV record (`%N`)
+or by the name they were given in the fields list (`%CSVFIELD`),
+and regular expression [match groups](#match-groups) (`\N`).
 
 Some examples:
 
@@ -3259,6 +3261,28 @@ When an if block has multiple matchers, they are combined as follows:
 
 When a matcher is preceded by an exclamation mark (!), the matcher will be negated, ie it will exclude CSV records that match.
 
+### Match groups
+
+Matchers can define match groups: parenthesised portions of the regular expression
+which are available for reference in field assignments. Groups are enclosed
+in regular parentheses (`(` and `)`) and can be nested. Each group is available
+in field assignments using the token `\N`, where N is an index into the match groups
+for this conditional block (e.g. `\1`, `\2`, etc.).
+
+Example: Warp credit card payment postings to the beginning of the billing period (Month
+start), to match how they are presented in statements, using [posting dates](#posting-dates):
+
+```rules
+if %date (....-..)-..
+  comment2 date:\1-01
+```
+
+Another example: Read the expense account from the CSV field, but throw away a prefix:
+
+```rules
+if %account1 liabilities:family:(expenses:.*)
+    account1 \1
+```
 
 ## `if` table
 
