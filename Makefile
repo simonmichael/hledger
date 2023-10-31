@@ -190,6 +190,11 @@ DOCSOURCEFILES:= \
 	$(MANUALSOURCEFILES) \
 	$(COMMANDHELPFILES) \
 
+TESTFILES:= \
+	hledger/test/*.test \
+	hledger/test/*/*.test \
+	hledger/test/*/*/*.test \
+
 # # file(s) which require recompilation for a build to have an up-to-date version string
 # VERSIONSOURCEFILE=hledger/Hledger/Cli/Version.hs
 
@@ -1123,6 +1128,7 @@ etags:$(call def-help,etags, generate emacs TAGS file for haskell source and oth
 	for f in \
 		$(WEBTEMPLATEFILES) \
 		$(DOCSOURCEFILES) \
+		$(TESTFILES) \
 		$(HPACKFILES) \
 		$(CABALFILES) \
 		Shake.hs \
