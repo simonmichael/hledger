@@ -12,9 +12,19 @@ The rest of the files here are functional tests, run with [shelltestrunner].
 These test the hledger CLI and (indirectly) the hledger-lib package.
 They are organised roughly by [component].
 
-Older test files are in shelltestrunner's [format 1]; 
-newer ones use [format 3] (preferred).
-Some tests invoke unix commands so will not run in a Windows CMD shell.
+shelltestrunner's latest [format 3] is preferred,
+though some tests may still be using the older [format 1].
+Each command line (beginning with `$`) is a single test,
+which usually reads input from a preceding `<` section,
+and is followed by expected output,
+and any non-standard error output (`>2`) or exit code (`>=`).
+
+Additionally, each test is preceded by a descriptive comment (`#`).
+This should begin with an Emacs outshine heading marker (` ** `),
+useful for folding and browsing tests in Emacs,
+and a test number (`1. `), useful for running individual tests.
+
+A few tests invoke unix commands; these won't run in a Windows CMD shell.
 
 [Developer docs > TESTS]: https://hledger.org/TESTS.html
 [component]: https://hledger.org/CONTRIBUTING.html#components
@@ -41,9 +51,9 @@ These are the most important:
 - ``-w `stack exec -- which hledger` `` ensures you are testing the hledger executable that was just built.
 - `-j16` runs tests in parallel which is much faster.
 
-Run only the tests matching a regular expression:
+Run only the tests matching a regular expression (`balance-assertions:.*19` in this case):)
 
-    $ COLUMNS=80 shelltest --execdir -w `stack exec -- which hledger` tests -i balance-assertions.*19
+    $ make functest-balance-assertions.*19
     :hledger/test/journal/balance-assertions.test:19: [OK]
 
              Test Cases  Total      
