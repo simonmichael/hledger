@@ -203,8 +203,12 @@ amountValueAtDate priceoracle styles mto d a =
       --  The display precision will be that of nullamt (0).
       -- Now apply the standard display style for comm
       & styleAmounts styles
-      -- and set the display precision to rate's (internal) precision
+      -- and set the display precision to rate's internal precision
+      -- XXX (unnormalised - don't strip trailing zeros) ?
+      -- XXX valuation.test:8 why is it showing precision 1 ?
       & amountSetPrecision (Precision $ decimalPlaces $ normalizeDecimal rate)
+      -- or at least 1, ensuring we show at least one decimal place.
+      -- & amountSetPrecision (Precision $ max 1 (decimalPlaces $ normalizeDecimal rate))
       -- see also print-styles.test, valuation2.test
 
 -- | Calculate the gain of each component amount, that is the difference
@@ -447,6 +451,8 @@ makePriceGraph alldeclaredprices allinferredprices d =
     ,pgDefaultValuationCommodities=defaultdests
     }
   where
+    -- XXX logic duplicated in Hledger.Cli.Commands.Prices.prices, keep synced
+
     -- prices in effect on date d, either declared or inferred
     visibledeclaredprices = dbg9 "visibledeclaredprices" $ filter ((<=d).mpdate) alldeclaredprices
     visibleinferredprices = dbg9 "visibleinferredprices" $ filter ((<=d).mpdate) allinferredprices

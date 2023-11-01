@@ -67,6 +67,7 @@ module Hledger.Data.Amount (
   amountLooksZero,
   divideAmount,
   multiplyAmount,
+  invertAmount,
   -- ** styles
   amountstyle,
   canonicaliseAmount,
@@ -89,6 +90,7 @@ module Hledger.Data.Amount (
   showAmountDebug,
   showAmountWithoutPrice,
   amountSetPrecision,
+  amountSetPrecisionMin,
   withPrecision,
   amountSetFullPrecision,
   amountSetFullPrecisionUpTo,
@@ -335,6 +337,10 @@ divideAmount n = transformAmount (/n)
 multiplyAmount :: Quantity -> Amount -> Amount
 multiplyAmount n = transformAmount (*n)
 
+-- | Invert an amount (replace its quantity q with 1/q).
+invertAmount :: Amount -> Amount
+invertAmount a@Amount{aquantity=q} = a{aquantity=1/q}
+
 -- | Is this amount negative ? The price is ignored.
 isNegativeAmount :: Amount -> Bool
 isNegativeAmount Amount{aquantity=q} = q < 0
@@ -374,6 +380,12 @@ withPrecision = flip amountSetPrecision
 -- | Set an amount's display precision.
 amountSetPrecision :: AmountPrecision -> Amount -> Amount
 amountSetPrecision p a@Amount{astyle=s} = a{astyle=s{asprecision=p}}
+
+-- | Ensure an amount's display precision is at least the given minimum precision.
+-- Always sets an explicit Precision.
+amountSetPrecisionMin :: Word8 -> Amount -> Amount
+amountSetPrecisionMin minp a = amountSetPrecision p a
+  where p = Precision $ max minp (amountDisplayPrecision a)
 
 -- | Increase an amount's display precision, if needed, to enough decimal places
 -- to show it exactly (showing all significant decimal digits, without trailing zeros).
@@ -784,14 +796,12 @@ isNegativeMixedAmount m =
     _ -> Nothing  -- multiple amounts with different signs
 
 -- | Does this mixed amount appear to be zero when rendered with its display precision?
--- i.e. does it have zero quantity with no price, zero quantity with a total price (which is also zero),
--- and zero quantity for each unit price?
+-- See amountLooksZero.
 mixedAmountLooksZero :: MixedAmount -> Bool
 mixedAmountLooksZero (Mixed ma) = all amountLooksZero ma
 
 -- | Is this mixed amount exactly zero, ignoring its display precision?
--- i.e. does it have zero quantity with no price, zero quantity with a total price (which is also zero),
--- and zero quantity for each unit price?
+-- See amountIsZero.
 mixedAmountIsZero :: MixedAmount -> Bool
 mixedAmountIsZero (Mixed ma) = all amountIsZero ma
 

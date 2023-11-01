@@ -1,92 +1,119 @@
 # * prices command
 
-# ** 1. by default only market prices are reported
+# ** 1. By default it lists market prices declared with P directives.
+# It shows them with their original precisions, ignoring commodity display styles.
+# Redundant P directives on the same date are shown (though only the last is used in value reports).
 <
-P 2016/1/1 EUR $1.06
-P 2016/2/1 EUR $1.05
+P 2023-01-01 B A10
+P 2023-01-01 B A100
+P 2023-01-01 A B100
 
-2016/1/1 paycheck
-    income:remuneration     $-100
-    income:donations         $-15
-    assets:bank
+2023-01-02
+    (a)     A2 @ B1
 
-2016/1/2 spend
-    expenses             20 EUR @ $1.07
-    assets:bank
-$ hledger prices -f-
-P 2016-01-01 EUR $1.06
-P 2016-02-01 EUR $1.05
+2023-01-02
+    (a)     B1 @ A200
 
-# ** 2. costs from postings can be included also
-<
-P 2016/1/1 EUR $1.06
-P 2016/2/1 EUR $1.05
+2023-01-03
+    a       B1
+    b      A-3
 
-2016/1/1 paycheck
-    income:remuneration     $-100
-    income:donations         $-15
-    assets:bank
+2023-01-04
+    (a)     B1 @@ A4
 
-2016/1/2 spend
-    expenses             20 EUR @ $1.07
-    assets:bank
+2023-01-05
+    (a)    B-1 @@ A5
 
-2016/1/3 spend
-    expenses             20 EUR @@ $21.45
-    assets:bank
+2023-01-06
+    a       B1
+    b
+    
+2023-01-07
+    (a)     B1 @ A7
 
-2016/1/4 spend
-    expenses            -20 EUR @@ $21.45
-    assets:bank
+P 2023-01-07 B A70
+
+$ hledger prices -f- -c A1.00
+P 2023-01-01 B A10
+P 2023-01-01 B A100
+P 2023-01-01 A B100
+P 2023-01-07 B A70
+
+# ** 2. With --show-reverse it also lists any new prices inferred by inverting known prices.
+# Reverse prices are shown with all of their decimal digits up to a maximum of 8.
+# Redundant reverse prices are discarded.
+$ hledger prices -f- --show-reverse
+P 2023-01-01 B A10
+P 2023-01-01 B A100
+P 2023-01-01 A B100
+P 2023-01-07 B A70
+P 2023-01-07 A B0.01428571
+
+# ** 3. With --infer-market-prices it also lists prices inferred from costs
+# (explicit or inferred, unit or total, positive or negative amounts).
+# Redundant prices inferred from costs are discarded.
+# ** XXX why precision 1 for  3/4/5 ?
 $ hledger prices -f- --infer-market-prices
-P 2016-01-01 EUR $1.06
-P 2016-01-02 EUR $1.07
-P 2016-01-03 EUR $1.0725
-P 2016-01-04 EUR $1.0725
-P 2016-02-01 EUR $1.05
+P 2023-01-01 B A10
+P 2023-01-01 B A100
+P 2023-01-01 A B100
+P 2023-01-02 A B1
+P 2023-01-02 B A200
+P 2023-01-03 B A3.0
+P 2023-01-04 B A4.0
+P 2023-01-05 B A5.0
+P 2023-01-07 B A70
 
-# ** 3. inverted prices can be calculated
+# ** 4. --infer-market-prices and --show-reverse combine.
+$ hledger prices -f- --infer-market-prices --show-reverse
+P 2023-01-01 B A10
+P 2023-01-01 B A100
+P 2023-01-01 A B100
+P 2023-01-02 A B1
+P 2023-01-02 B A200
+P 2023-01-03 B A3.0
+P 2023-01-03 A B0.33333333
+P 2023-01-04 B A4.0
+P 2023-01-04 A B0.25
+P 2023-01-05 B A5.0
+P 2023-01-05 A B0.2
+P 2023-01-07 B A70
+P 2023-01-07 A B0.01428571
+
+# ** 5. Prices can be filtered by a date: query.
+$ hledger prices -f- --infer-market-prices --show-reverse date:2023-01-01
+P 2023-01-01 B A10
+P 2023-01-01 B A100
+P 2023-01-01 A B100
+
+# ** 6. Prices can be filtered by a cur: query.
+$ hledger prices -f- --infer-market-prices --show-reverse cur:A
+P 2023-01-01 A B100
+P 2023-01-02 A B1
+P 2023-01-03 A B0.33333333
+P 2023-01-04 A B0.25
+P 2023-01-05 A B0.2
+P 2023-01-07 A B0.01428571
+
+# ** 7. Prices can be filtered by a amt: query.
+$ hledger prices -f- --infer-market-prices --show-reverse amt:100
+P 2023-01-01 B A100
+P 2023-01-01 A B100
+
+# ** 8. Zero prices, which can't be reversed, are not reversed.
 <
-P 2016/1/1 EUR $1.06
-P 2016/2/1 EUR $1.05
+P 2021-10-16 B 0.0 A
+$ hledger -f- prices --show-reverse
+P 2021-10-16 B 0.0 A
 
-2016/1/1 paycheck
-    income:remuneration     $-100
-    income:donations         $-15
-    assets:bank
-
-2016/1/3 spend
-    expenses             $21.45 @@ 20.00 EUR
-    assets:bank
-$ hledger prices -f- --infer-reverse-prices
-P 2016-01-01 EUR $1.06
-P 2016-01-03 EUR $1.0725
-P 2016-02-01 EUR $1.05
-
-#
+# ** 9. Zero postings, which can't determine a price, are ignored.
 <
-commodity 1.000,00 A
+2021-10-16
+    (b)    0 A @@ 1 B
 
-P 2019-01-01 X A1000,123
-P 2019-01-02 X A1000,1
-
-2019-02-01
-  (a)   X1 @ A1000,2345
-2019-02-02
-  (a)   X1 @ A1000,2
-
-# ** 4. Commodity styles are applied, but precision is left unchanged.
-$ hledger -f- prices
-P 2019-01-01 X 1.000,123 A
-P 2019-01-02 X 1.000,1 A
-
-# ** 5. Commodity styles aren't yet applied to prices inferred from transaction prices.
 $ hledger -f- prices --infer-market-prices
-P 2019-01-01 X 1.000,123 A
-P 2019-01-02 X 1.000,1 A
-P 2019-02-01 X 1.000,2345 A
-P 2019-02-02 X 1.000,2 A
 
+# ** 10. Inferring prices should play well with balance assertions mixing prices and no prices. (#1736)
 <
 ;; Total asset value should be 400 USD + 1000 USD = 1400 USD
 2021-10-15 Broker initial balance (equity ABC)
@@ -97,22 +124,47 @@ P 2019-02-02 X 1.000,2 A
     Assets:Broker           = 1000 USD
     Equity:Opening Balances
 
-# ** 6. Inferring prices should play well with balance assertions involving mixing
-# of prices and no prices. (#1736)
 $ hledger -f- prices --infer-market-prices
 P 2021-10-15 ABC 100.0 USD
 
+# ** 11. Commodity styles are applied to all price amounts, but their precision is left unchanged.
 <
-2021-10-15
-    (a)    1 A @@ 0 B
+commodity 1.000,00 A
 
-2021-10-16
-    (b)    0 A @@ 1 B
+P 2019-01-01 X A1000,123
+P 2019-01-02 X A1000,1
 
-# ** 7. Gracefully ignore any postings which would result in an infinite price.
-$ hledger -f- prices --infer-market-prices
-P 2021-10-15 A 0.0 B
+2019-02-01
+  (a)   X1 @ A1000,2345
 
-# ** 8. Same for reverse prices
-$ hledger -f- prices --infer-reverse-prices
-P 2021-10-16 B 0.0 A
+2019-02-02
+  (a)   X1 @ A1000,2
+
+2019-03-01
+  (a)   20 EUR @ $1.07
+
+$ hledger -f- prices --infer-market-prices --show-reverse
+P 2019-01-01 X 1.000,123 A
+P 2019-01-01 A X0.00099988
+P 2019-01-02 X 1.000,1 A
+P 2019-01-02 A X0.00099990
+P 2019-02-01 X 1.000,2345 A
+P 2019-02-01 A X0.00099977
+P 2019-02-02 X 1.000,2 A
+P 2019-02-02 A X0.00099980
+P 2019-03-01 EUR $1.07
+P 2019-03-01 $ 0.93457944 EUR
+
+# ** 12. Reverse market prices are shown with all decimal digits, up to a maximum of 8.
+# ** XXX does this prevent displaying more precise prices ?
+<
+P 2023-01-01 B 3A
+
+2023-01-01
+  a  1A
+  b
+
+$ hledger -f - prices --show-reverse
+P 2023-01-01 B 3A
+P 2023-01-01 A 0.33333333B
+

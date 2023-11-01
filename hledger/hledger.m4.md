@@ -5231,9 +5231,7 @@ the `V` key always resets it to "end".)
 
 To convert a commodity A to its market value in another commodity B,
 hledger looks for a suitable market price (exchange rate) as follows,
-in this order of preference
-<!-- (-X tries all of these; -V tries only 1) (really ?) -->
-:
+in this order of preference:
 
 1. A *declared market price* or *inferred market price*:
    A's latest market price in B on or before the valuation date
