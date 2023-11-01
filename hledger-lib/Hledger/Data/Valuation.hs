@@ -97,21 +97,25 @@ priceDirectiveToMarketPrice PriceDirective{..} =
              , mprate = aquantity pdamount
              }
 
--- | Make one or more `MarketPrice` from an 'Amount' and its price directives.
+-- | Infer a market price from the given amount and its cost (if any),
+-- and make a corresponding price directive on the given date.
 amountPriceDirectiveFromCost :: Day -> Amount -> Maybe PriceDirective
-amountPriceDirectiveFromCost d amt@Amount{acommodity=fromcomm, aquantity=fromq} = case aprice amt of
-    Just (UnitPrice pa)               -> Just $ pd{pdamount=pa}
-    Just (TotalPrice pa) | fromq /= 0 -> Just $ pd{pdamount=fromq `divideAmountExtraPrecision` pa}
-    _                                 -> Nothing
+amountPriceDirectiveFromCost d amt@Amount{acommodity=fromcomm, aquantity=n} = case aprice amt of
+    Just (UnitPrice u)           -> Just $ pd{pdamount=u}
+    Just (TotalPrice t) | n /= 0 -> Just $ pd{pdamount=u} where u = divideAmountExtraPrecision n t}
+    _                            -> Nothing
   where
     pd = PriceDirective{pddate = d, pdcommodity = fromcomm, pdamount = nullamt}
 
-    divideAmountExtraPrecision n a = (n `divideAmount` a) { astyle = style' }
+    -- | Divide an amount's quantity (and total cost, if any) by some number n,
+    -- and also increase its display precision by the number of digits in n's integer part,
+    -- to avoid showing a misleadingly rounded result.
+    divideAmountExtraPrecision n a = (divideAmount n a) { astyle = style' }
       where
         style' = (astyle a) { asprecision = precision' }
         precision' = case asprecision (astyle a) of
                           NaturalPrecision -> NaturalPrecision
-                          Precision p      -> Precision $ (numDigitsInt $ truncate n) + p
+                          Precision p      -> Precision $ p + numDigitsInt (truncate n)
 
 ------------------------------------------------------------------------------
 -- Converting things to value

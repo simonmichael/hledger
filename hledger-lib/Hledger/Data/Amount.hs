@@ -325,7 +325,7 @@ transformAmount f a@Amount{aquantity=q,aprice=p} = a{aquantity=f q, aprice=f' <$
     f' (TotalPrice a1@Amount{aquantity=pq}) = TotalPrice a1{aquantity = f pq}
     f' p' = p'
 
--- | Divide an amount's quantity (and its total price, if it has one) by a constant.
+-- | Divide an amount's quantity (and total cost, if any) by some number.
 divideAmount :: Quantity -> Amount -> Amount
 divideAmount n = transformAmount (/n)
 
