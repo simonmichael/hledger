@@ -117,7 +117,7 @@ $ hledger -f- print -V
 
 >=0
 
-# --value tests
+# ** --value tests
 
 <
 P 2000/01/01 A  1 B
@@ -135,7 +135,7 @@ P 2000/04/01 A  4 B
 2000/03/01
   (a)      1 A @ 8 B
 
-# print
+# ** print
 
 # ** 9. print costs using transaction prices
 $ hledger -f- print --value=cost
@@ -214,7 +214,7 @@ $ hledger -f- print --value=now
 
 >=0
 
-# register
+# ** register
 
 # ** 15. register report valued at cost.
 $ hledger -f- reg --value=cost
@@ -252,7 +252,7 @@ $ hledger -f- reg -V
 2000-02-01                      (a)                            4 B           8 B
 2000-03-01                      (a)                            4 B          12 B
 
-# register with -H (starting balance)
+# ** register with -H (starting balance)
 
 # ** 21. register with starting balance, unvalued (See issue #1522).
 $ hledger -f- reg -b 200002 -H
@@ -278,7 +278,7 @@ $ hledger -f- reg --value=2000-01-15 -b 200002 -H
 2000-02-01                      (a)                            5 B          10 B
 2000-03-01                      (a)                            5 B          15 B
 
-# register, periodic
+# ** register, periodic
 
 # ** 25. periodic register report valued at cost.
 # The total for january is 6 B (1 A valued at 1/1, price 1 B, and 1 A
@@ -350,7 +350,7 @@ $ hledger -f- reg -V -M -b 2000
 2000-02   a                                                    2 B           7 B
 2000-03   a                                                    3 B          10 B
 
-# balance
+# ** balance
 
 # ** 30. single column balance report valued at cost
 $ hledger -f- bal -N --value=cost -b 2000
@@ -373,7 +373,7 @@ $ hledger -f- bal -N --value=now -b 2000
 $ hledger -f- bal -N --cost --value=end -b 2000
                 21 C  a
 
-# balance, periodic
+# ** balance, periodic
 
 # ** 35. multicolumn balance report valued at cost
 $ hledger -f- bal -MTA --value=cost -b 2000
@@ -435,7 +435,7 @@ Balance changes in 2000-01-01..2000-04-30, valued at period ends:
 ---++--------------------
    || 5 B  2 B  3 B    0 
 
-# balance, periodic, with -H (starting balance and accumulating across periods)
+# ** balance, periodic, with -H (starting balance and accumulating across periods)
 
 # ** 41. multicolumn balance report with -H, valued at cost.
 # The starting balance on 2000/01/01 is 6 C (cost of the first 1 A).
@@ -516,7 +516,7 @@ Ending balances (historical) in 2000Q1, valued at 2000-01-15:
 ---++------------------------------------
    ||        5 B         5 B         5 B 
 
-# balance --budget. The periodic transactions setting budget amounts
+# ** balance --budget. The periodic transactions setting budget amounts
 # are valued in the same way as ordinary transactions.
 
 <
