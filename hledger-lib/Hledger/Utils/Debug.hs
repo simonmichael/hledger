@@ -64,10 +64,27 @@ Debug level:  What to show:
 9             any other rarely needed / more in-depth info
 @
 
+We don't yet have the ability to select debug output by topic. For now, here
+are some standardish topic strings to search for in hledger debug messages:
+
+acct
+arg
+budget
+calc
+csv
+journalFinalise
+multiBalanceReport
+opts
+precision
+price
+q
+style
+val
+
 -}
 
--- Disabled until 0.1.2.0 is released with windows support
--- This module also exports Debug.Trace and the breakpoint package's Debug.Breakpoint.
+-- Disabled until 0.1.2.0 is released with windows support:
+--  This module also exports Debug.Trace and the breakpoint package's Debug.Breakpoint.
 
 -- more:
 -- http://hackage.haskell.org/packages/archive/TraceUtils/0.1.0.2/doc/html/Debug-TraceUtils.html
@@ -75,9 +92,10 @@ Debug level:  What to show:
 -- http://hackage.haskell.org/packages/archive/htrace/0.1/doc/html/Debug-HTrace.html
 -- http://hackage.haskell.org/packages/archive/traced/2009.7.20/doc/html/Debug-Traced.html
 -- https://hackage.haskell.org/package/debug
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
 module Hledger.Utils.Debug (
- 
+
    debugLevel
 
   -- * Tracing to stderr
@@ -141,6 +159,9 @@ module Hledger.Utils.Debug (
   ,dbg7With
   ,dbg8With
   ,dbg9With
+
+  -- * Utilities
+  ,lbl_
 
   -- * Re-exports
   -- ,module Debug.Breakpoint
@@ -221,7 +242,7 @@ ptraceAt :: Show a => Int -> String -> a -> a
 ptraceAt level
     | level > 0 && debugLevel < level = const id
     | otherwise = \lbl a -> trace (labelledPretty True lbl a) a
-    
+
 -- Pretty-print a showable value with a label, with or without allowing ANSI color.
 labelledPretty :: Show a => Bool -> String -> a -> String
 labelledPretty allowcolour lbl a = lbl ++ ":" ++ nlorspace ++ intercalate "\n" ls'
@@ -290,7 +311,7 @@ traceLogWith f a = traceLog (f a) a
 -- if the global debug level is at or above the specified level.
 -- At level 0, always logs. Otherwise, uses unsafePerformIO.
 traceLogAtWith :: Int -> (a -> String) -> a -> a
-traceLogAtWith level f a = traceLogAt level (f a) a 
+traceLogAtWith level f a = traceLogAt level (f a) a
 
 -- | Pretty-log a label and showable value to the debug log,
 -- if the global debug level is at or above the specified level. 
@@ -433,3 +454,25 @@ dbg8With = traceOrLogAtWith 8
 dbg9With :: Show a => (a -> String) -> a -> a
 dbg9With = traceOrLogAtWith 9
 
+-- | Helper for producing debug messages:
+-- concatenates a name (eg a function name),
+-- short description of the value being logged,
+-- and string representation of the value.
+lbl_ :: String -> String -> String -> String
+lbl_ name desc val = name <> ": " <> desc <> ":" <> " " <> val
+
+-- XXX the resulting function is constrained to only one value type
+-- -- | A new helper for defining a local "dbg" function.
+-- -- Given a debug level and a topic string (eg, a function name),
+-- -- it generates a function which takes
+-- -- - a description string,
+-- -- - a value-to-string show function,
+-- -- - and a value to be inspected,
+-- -- debug-logs the topic, description and result of calling the show function on the value,
+-- -- formatted nicely, at the specified debug level or above,
+-- -- then returns the value.
+-- dbg_ :: forall a. Show a => Int -> String -> (String -> (a -> String) -> a -> a)
+-- dbg_ level topic =
+--   \desc showfn val ->
+--     traceOrLogAtWith level (lbl_ topic desc . showfn) val
+-- {-# HLINT ignore "Redundant lambda" #-}
