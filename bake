@@ -175,6 +175,11 @@ lastweek() {
   echo
 }
 
+# Show a bunch of debug message strings.
+dbgstrs() {
+  rg --sort path -t hs 'dbg.*?(".*")' -r '$1' -o
+}
+
 if declare -f "$1" > /dev/null; then "$@"; else usage; fi
 
 # ** notes
