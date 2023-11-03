@@ -20,6 +20,9 @@ setEnv "NO_COLOR" "1"
 -- -- :reload and run commands in .ghci2
 -- :def R \_ -> return ":reload\n:script .ghci2"
 
+-- Reload (to flush cached unsafe IO values) and run main with the given args
+:def rmain \args -> return $ ":reload\n:main "<>args
+
 -- -- run commands from a file, .ghci2 by default
 -- :def s \f -> readFile $ if null f then ".ghci2" else f
 
