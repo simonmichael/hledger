@@ -180,6 +180,11 @@ dbgstrs() {
   rg --sort path -t hs 'dbg.*?(".*")' -r '$1' -o
 }
 
+# Extract Hledger.hs examples to jargon.j.
+jargon() {
+  rg '^ *> (.*)' -or '$1' hledger-lib/Hledger.hs > jargon.j
+}
+
 if declare -f "$1" > /dev/null; then "$@"; else usage; fi
 
 # ** notes
