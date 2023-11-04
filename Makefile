@@ -810,22 +810,30 @@ releasediag: \
 	$(call def-help,releasediag, optimise and commit RELEASING value map diagram )
 	pngquant doc/HledgerReleaseValueMap.png -f -o doc/HledgerReleaseValueMap.png && git add doc/HledgerReleaseValueMap.png && git commit -m ';doc: RELEASING: update value map' -- doc/HledgerReleaseValueMap.png
 
+# Renders all hledger packages. Run make haddock-open to open contents page.
 haddock: \
 	$(call def-help,haddock, regenerate haddock docs for the hledger packages and open them )
 	$(STACKHADDOCK) $(HADDOCKPKGS) && make -s haddock-open   # --open shows all deps and packages
 
-haddock-watch: \
+# Rerenders all hledger packages. Run make haddock-open to open contents page.
+haddock-watch1: \
 	$(call def-help,haddock-watch, regenerate haddock docs when files change )
 	$(STACKHADDOCK) $(HADDOCK_PKGS) --file-watch --exec='echo done'
 
+# Rerenders hledger-lib modules, opens hledger-lib contents page.
 haddock-watch2: \
-	$(call def-help,haddock-watch2, regenerate haddock docs when files change )
+	$(call def-help,haddock-watch2, regenerate hledger-lib haddock docs when files change )
 	watchexec -r -e yaml,cabal,hs --print-events -- \
-	$(STACKHADDOCK) $(HADDOCK_PKGS) --exec="'echo done'"0
+	$(STACKHADDOCK) --verbosity=info $(HADDOCK_PKGS) --exec="'echo done'" hledger-lib --open
+
+# Rerenders/reopens the Hledger module, without submodules. (Fastest)
+haddock-watch: \
+	$(call def-help,haddock-watch3, quickly regenerate & reload Hledger.hs haddock when files change )
+	watchexec -r -e yaml,cabal,hs --print-events --shell=none -- bash -c 'mkdir -p tmp && rm -f tmp/Hledger.html && haddock -h -o tmp hledger-lib/Hledger.hs --no-warnings --no-print-missing-docs 2>&1 | grep -v "Could not find documentation" && open tmp/Hledger.html'
 
 haddock-open: \
-	$(call def-help,haddock-open, open the haddock root (hledger-lib:Hledger) in a browser )
-	$(BROWSE) `stack path --local-install-root`/doc/hledger-lib-`cat .version`/index.html
+	$(call def-help,haddock-open, open the haddock packages contents page in a browser )
+	$(BROWSE) `stack path --local-install-root`/doc/index.html
 
 hoogle-setup: $(call def-help,hoogle-setup, install hoogle then build haddocks and a hoogle db for the project and all deps )
 	stack hoogle --rebuild
