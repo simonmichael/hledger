@@ -1,11 +1,35 @@
 {-|
-
 This is the root of the @hledger-lib@ package and the @Hledger.*@ module hierarchy.
 hledger-lib is the core engine used by various hledger UIs and tools,
 providing the main data types, file format parsers, reporting logic, and utilities.
+-}
+
+module Hledger (
+  -- $DOCS
+  module X
+ ,tests_Hledger
+)
+where
+
+import           Hledger.Data    as X
+import           Hledger.Read    as X
+import           Hledger.Reports as X
+import           Hledger.Query   as X
+import           Hledger.Utils   as X
+
+tests_Hledger = testGroup "Hledger" [
+   tests_Data
+  ,tests_Query
+  ,tests_Read
+  ,tests_Reports
+  ,tests_Utils
+  ]
+
+
+{- $DOCS
 
 This is also the starting point for hledger's haddock docs,
-which describe Hledger's implementation for developers.
+describing Hledger's implementation for developers.
 These can be viewed
 in your code editor,
 or in a web browser (eg with @make haddock@),
@@ -72,23 +96,3 @@ Here is when amount styling and display rounding happens:
   can do any of the rounding strategies.
 
 -}
-
-module Hledger (
-  module X
- ,tests_Hledger
-)
-where
-
-import           Hledger.Data    as X
-import           Hledger.Read    as X
-import           Hledger.Reports as X
-import           Hledger.Query   as X
-import           Hledger.Utils   as X
-
-tests_Hledger = testGroup "Hledger" [
-   tests_Data
-  ,tests_Query
-  ,tests_Read
-  ,tests_Reports
-  ,tests_Utils
-  ]
