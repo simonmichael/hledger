@@ -161,7 +161,7 @@ jobs:
 
     # run hledger-lib/hledger functional tests, skipping the ones for addons
     ## - export PATH=~/.local/bin:$PATH
-    #- COLUMNS=80 stack exec -- shelltest --execdir -j16 hledger/test -x /_ -x /addons -x ledger-compat/baseline -x ledger-compat/regress -x ledger-compat/collected
+    #- COLUMNS=80 stack exec -- shelltest --execdir -j16 hledger/test -x /_ -x /addons -x ledger-compat/ledger-baseline -x ledger-compat/ledger-regress -x ledger-compat/ledger-collected
 
     # artifacts:
 
