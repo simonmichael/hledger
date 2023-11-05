@@ -459,7 +459,7 @@ $ hledger print -o -        # write to stdout (the default)
 Some commands offer other kinds of output, not just text on the terminal.
 Here are those commands and the formats currently supported:
 
-| -                  | txt              | csv              | html               | json | sql |
+| -                  | txt              | csv/tsv          | html               | json | sql |
 |--------------------|------------------|------------------|--------------------|------|-----|
 | aregister          | Y                | Y                | Y                  | Y    |     |
 | balance            | Y *<sup>1</sup>* | Y *<sup>1</sup>* | Y *<sup>1,2</sup>* | Y    |     |

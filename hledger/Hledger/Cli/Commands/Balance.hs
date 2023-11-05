@@ -277,7 +277,7 @@ import qualified Text.Tabular.AsciiWide as Tab
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
-import Hledger.Read.CsvUtils (CSV, printCSV)
+import Hledger.Read.CsvUtils (CSV, printCSV, printTSV)
 
 
 -- | Command line options for this command.
@@ -332,7 +332,7 @@ balancemode = hledgerCommandMode
         ,"'tidy'        : every attribute in its own column"
         ])
     -- output:
-    ,outputFormatFlag ["txt","html","csv","json"]
+    ,outputFormatFlag ["txt","html","csv","tsv","json"]
     ,outputFileFlag
     ]
   )
@@ -353,6 +353,7 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ of
             "txt"  -> budgetReportAsText ropts
             "json" -> (<>"\n") . toJsonText
             "csv"  -> printCSV . budgetReportAsCsv ropts
+            "tsv"  -> printTSV . budgetReportAsCsv ropts
             _      -> error' $ unsupportedOutputFormatError fmt
       writeOutputLazyText opts $ render budgetreport
 
@@ -361,6 +362,7 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ of
             render = case fmt of
               "txt"  -> multiBalanceReportAsText ropts
               "csv"  -> printCSV . multiBalanceReportAsCsv ropts
+              "tsv"  -> printTSV . multiBalanceReportAsCsv ropts
               "html" -> (<>"\n") . L.renderText . multiBalanceReportAsHtml ropts
               "json" -> (<>"\n") . toJsonText
               _      -> const $ error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
@@ -371,6 +373,7 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ of
             render = case fmt of
               "txt"  -> \ropts1 -> TB.toLazyText . balanceReportAsText ropts1
               "csv"  -> \ropts1 -> printCSV . balanceReportAsCsv ropts1
+              "tsv"  -> \ropts1 -> printTSV . balanceReportAsCsv ropts1
               -- "html" -> \ropts -> (<>"\n") . L.renderText . multiBalanceReportAsHtml ropts . balanceReportAsMultiBalanceReport ropts
               "json" -> const $ (<>"\n") . toJsonText
               _      -> error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
@@ -378,8 +381,9 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ of
   where
     styles = journalCommodityStylesWith HardRounding j
     ropts@ReportOpts{..} = _rsReportOpts rspec
-    -- Tidy csv should be consistent between single period and multiperiod reports.
-    multiperiod = interval_ /= NoInterval || (layout_ == LayoutTidy && fmt == "csv")
+    -- Tidy csv/tsv should be consistent between single period and multiperiod reports.
+    multiperiod = interval_ /= NoInterval || (layout_ == LayoutTidy && delimited)
+    delimited   = fmt == "csv" || fmt == "tsv"
     fmt         = outputFormatFromOpts opts
 
 -- XXX this allows rough HTML rendering of a flat BalanceReport, but it can't handle tree mode etc.
