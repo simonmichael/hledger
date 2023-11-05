@@ -640,7 +640,7 @@ defaultOutputFormat :: String
 defaultOutputFormat = "txt"
 
 outputFormats :: [String]
-outputFormats = [defaultOutputFormat, "csv", "html"]
+outputFormats = [defaultOutputFormat, "csv", "tsv", "html"]
 
 -- | Get the output format from the --output-format option,
 -- otherwise from a recognised file extension in the --output-file option,

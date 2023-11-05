@@ -29,7 +29,7 @@ import Lucid as L hiding (value_)
 import System.Console.CmdArgs.Explicit (flagNone, flagReq)
 
 import Hledger
-import Hledger.Read.CsvUtils (CSV, CsvRecord, printCSV)
+import Hledger.Read.CsvUtils (CSV, CsvRecord, printCSV, printTSV)
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
 import Text.Tabular.AsciiWide hiding (render)
@@ -58,7 +58,7 @@ aregistermode = hledgerCommandMode
       ++ " or $COLUMNS). -wN,M sets description width as well."
      )
   ,flagNone ["align-all"] (setboolopt "align-all") "guarantee alignment across all lines (slower)"
-  ,outputFormatFlag ["txt","html","csv","json"]
+  ,outputFormatFlag ["txt","html","csv","tsv","json"]
   ,outputFileFlag
   ])
   [generalflagsgroup1]
@@ -107,6 +107,7 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
     render | fmt=="txt"  = accountTransactionsReportAsText opts (_rsQuery rspec') thisacctq
            | fmt=="html" = accountTransactionsReportAsHTML opts (_rsQuery rspec') thisacctq
            | fmt=="csv"  = printCSV . accountTransactionsReportAsCsv wd (_rsQuery rspec') thisacctq
+           | fmt=="tsv"  = printTSV . accountTransactionsReportAsCsv wd (_rsQuery rspec') thisacctq
            | fmt=="json" = toJsonText
            | otherwise   = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
       where

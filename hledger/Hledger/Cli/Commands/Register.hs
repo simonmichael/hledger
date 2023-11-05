@@ -27,7 +27,7 @@ import qualified Data.Text.Lazy.Builder as TB
 import System.Console.CmdArgs.Explicit (flagNone, flagReq)
 
 import Hledger hiding (per)
-import Hledger.Read.CsvUtils (CSV, CsvRecord, printCSV)
+import Hledger.Read.CsvUtils (CSV, CsvRecord, printCSV, printTSV)
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
 import Text.Tabular.AsciiWide hiding (render)
@@ -59,7 +59,7 @@ registermode = hledgerCommandMode
       ++ " or $COLUMNS). -wN,M sets description width as well."
      )
   ,flagNone ["align-all"] (setboolopt "align-all") "guarantee alignment across all lines (slower)"
-  ,outputFormatFlag ["txt","csv","json"]
+  ,outputFormatFlag ["txt","csv","tsv","json"]
   ,outputFileFlag
   ])
   [generalflagsgroup1]
@@ -88,6 +88,7 @@ register opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j
     rpt = postingsReport rspec j
     render | fmt=="txt"  = postingsReportAsText opts
            | fmt=="csv"  = printCSV . postingsReportAsCsv
+           | fmt=="tsv"  = printTSV . postingsReportAsCsv
            | fmt=="json" = toJsonText
            | otherwise   = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
       where fmt = outputFormatFromOpts opts

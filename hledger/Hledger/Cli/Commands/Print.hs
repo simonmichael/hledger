@@ -24,7 +24,7 @@ import Lens.Micro ((^.), _Just, has)
 import System.Console.CmdArgs.Explicit
 
 import Hledger
-import Hledger.Read.CsvUtils (CSV, printCSV)
+import Hledger.Read.CsvUtils (CSV, printCSV, printTSV)
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
 import System.Exit (exitFailure)
@@ -54,7 +54,7 @@ printmode = hledgerCommandMode
   ,let arg = "DESC" in
    flagReq  ["match","m"] (\s opts -> Right $ setopt "match" s opts) arg
     ("fuzzy search for one recent transaction with description closest to "++arg)
-  ,outputFormatFlag ["txt","csv","json","sql"]
+  ,outputFormatFlag ["txt","csv","tsv","json","sql"]
   ,outputFileFlag
   ])
   [generalflagsgroup1]
@@ -107,6 +107,7 @@ printEntries opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j =
     fmt = outputFormatFromOpts opts
     render | fmt=="txt"  = entriesReportAsText opts      . styleAmounts styles
            | fmt=="csv"  = printCSV . entriesReportAsCsv . styleAmounts styles
+           | fmt=="tsv"  = printTSV . entriesReportAsCsv . styleAmounts styles
            | fmt=="json" = toJsonText                    . styleAmounts styles
            | fmt=="sql"  = entriesReportAsSql            . styleAmounts styles
            | otherwise   = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:

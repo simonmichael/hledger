@@ -13,6 +13,7 @@ CSV utilities.
 module Hledger.Read.CsvUtils (
   CSV, CsvRecord, CsvValue,
   printCSV,
+  printTSV,
   -- * Tests
   tests_CsvUtils,
 )
@@ -41,9 +42,15 @@ printCSV = TB.toLazyText . unlinesB . map printRecord
     where printRecord = foldMap TB.fromText . intersperse "," . map printField
           printField = wrap "\"" "\"" . T.replace "\"" "\"\""
 
+printTSV :: [CsvRecord] -> TL.Text
+printTSV = TB.toLazyText . unlinesB . map printRecord
+    where printRecord = foldMap TB.fromText . intersperse "\t" . map printField
+          printField = T.map replaceWhitespace
+          replaceWhitespace c | c `elem` ['\t', '\n', '\r'] = ' '
+          replaceWhitespace c = c
+
 --- ** tests
 
 tests_CsvUtils :: TestTree
 tests_CsvUtils = testGroup "CsvUtils" [
   ]
-

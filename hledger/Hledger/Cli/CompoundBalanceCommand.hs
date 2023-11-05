@@ -20,7 +20,7 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import Data.Time.Calendar (Day, addDays)
 import System.Console.CmdArgs.Explicit as C
-import Hledger.Read.CsvUtils (CSV, printCSV)
+import Hledger.Read.CsvUtils (CSV, printCSV, printTSV)
 import Lucid as L hiding (value_)
 import Text.Tabular.AsciiWide as Tab hiding (render)
 
@@ -93,7 +93,7 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
         ,"'tall'        : each commodity on a new line"
         ,"'bare'        : bare numbers, symbols in a column"
         ])
-    ,outputFormatFlag ["txt","html","csv","json"]
+    ,outputFormatFlag ["txt","html","csv","tsv","json"]
     ,outputFileFlag
     ])
     [generalflagsgroup1]
@@ -178,6 +178,7 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
     render = case outputFormatFromOpts opts of
       "txt"  -> compoundBalanceReportAsText ropts'
       "csv"  -> printCSV . compoundBalanceReportAsCsv ropts'
+      "tsv"  -> printTSV . compoundBalanceReportAsCsv ropts'
       "html" -> L.renderText . compoundBalanceReportAsHtml ropts'
       "json" -> toJsonText
       x      -> error' $ unsupportedOutputFormatError x

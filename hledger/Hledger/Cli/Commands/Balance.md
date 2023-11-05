@@ -74,7 +74,7 @@ Many of these work with the higher-level commands as well.
 This command supports the
 [output destination](#output-destination) and
 [output format](#output-format) options,
-with output formats `txt`, `csv`, `json`, and (multi-period reports only:) `html`. 
+with output formats `txt`, `csv`, `tsv`, `json`, and (multi-period reports only:) `html`.
 In `txt` output in a colour-supporting terminal, negative amounts are shown in red.
 
 The `--related`/`-r` flag shows the balance of the *other* postings in the

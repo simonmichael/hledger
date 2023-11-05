@@ -581,6 +581,16 @@ $ hledger bal -f- --budget -TA not:income -O csv
 "expenses:bills:f","$10","0","$10","0","$10","0"
 "Total:","$80","$370","$80","$370","$80","$370"
 
+# TSV output works.
+$ hledger bal -f- --budget -TA not:income -O tsv
+Account	2019-01-01..2019-01-02	budget	Total	budget	Average	budget
+expenses:bills	$80	$370	$80	$370	$80	$370
+expenses:bills:a	$10	$20	$10	$20	$10	$20
+expenses:bills:b	$40	$200	$40	$200	$40	$200
+expenses:bills:c		$50		$50		$50
+expenses:bills:f	$10	0	$10	0	$10	0
+Total:	$80	$370	$80	$370	$80	$370
+
 # ** 30. You would expect this to show a budget goal in jan, feb, mar.
 # But by the usual report date logic, which picks the oldest and newest 
 # transaction date (1/15 and 3/15) as start and end date by default, 
