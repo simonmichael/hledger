@@ -343,6 +343,7 @@ multiplyAmount :: Quantity -> Amount -> Amount
 multiplyAmount n = transformAmount (*n)
 
 -- | Invert an amount (replace its quantity q with 1/q).
+-- (Its cost if any is not changed, currently.)
 invertAmount :: Amount -> Amount
 invertAmount a@Amount{aquantity=q} = a{aquantity=1/q}
 
@@ -383,6 +384,13 @@ amountIsZero = testAmountAndTotalPrice (\Amount{aquantity=Decimal _ q} -> q == 0
 -- representing an infinite decimal ?
 amountHasMaxDigits :: Amount -> Bool
 amountHasMaxDigits = (>= 255) . numDigitsInteger . decimalMantissa . aquantity
+-- XXX this seems not always right. Eg:
+-- ghci> let n = 100 / (3.0 :: Decimal)
+-- decimalPlaces n
+-- 255
+-- numDigitsInteger $ decimalMantissa n
+-- 257
+
 
 -- | Set an amount's display precision, flipped.
 withPrecision :: Amount -> AmountPrecision -> Amount
@@ -456,20 +464,17 @@ amountDisplayPrecision a =
     Precision n      -> n
     NaturalPrecision -> amountInternalPrecision a
 
--- | Set an amount's internal precision, ie rounds the Decimal representing
--- the amount's quantity to some number of decimal places.
+-- | Set an amount's internal decimal precision as well as its display precision.
+-- This rounds or pads its Decimal quantity to the specified number of decimal places.
 -- Rounding is done with Data.Decimal's default roundTo function:
 -- "If the value ends in 5 then it is rounded to the nearest even value (Banker's Rounding)".
--- Does not change the amount's display precision.
--- Intended mainly for internal use, eg when comparing amounts in tests.
 setAmountInternalPrecision :: Word8 -> Amount -> Amount
 setAmountInternalPrecision p a@Amount{ aquantity=q, astyle=s } = a{
-   astyle=s{asprecision=Precision p}
-  ,aquantity=roundTo p q
+   aquantity=roundTo p q
+  ,astyle=s{asprecision=Precision p}
   }
 
--- | Set an amount's internal precision, flipped.
--- Intended mainly for internal use, eg when comparing amounts in tests.
+-- | setAmountInternalPrecision with arguments flipped.
 withInternalPrecision :: Amount -> Word8 -> Amount
 withInternalPrecision = flip setAmountInternalPrecision
 
