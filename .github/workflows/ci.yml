@@ -12,6 +12,12 @@ on:
   # On this schedule, it runs in master.
   # schedule:
   # - cron: "0 07 * * 0"  # sunday midnight pacific
+  # Avoid, because these run in all forks also.
+  # Possible workaround; does it prevent wasteful startups ?
+  # https://github.com/orgs/community/discussions/26409#discussioncomment-3251818
+  # jobs:
+  #   job_id:
+  #     if: github.event.pull_request.head.repo.full_name == github.repository
 
   # When there's a push to the ci branch, it runs there.
   # After passing there it can be merged/pushed to master.

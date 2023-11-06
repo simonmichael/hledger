@@ -1,12 +1,17 @@
-# Runs on any push to ci-mac, and weekly on master.
+# Runs on any push to ci-mac.
 # Produces optimised mac binaries and runs unit/doc/functional tests,
 # using the default stack.yaml's GHC version.
 
 name: binaries-mac-x64
 
 on:
-  schedule:
-  - cron: "0 07 * * 0"  # sunday midnight pacific
+  # Avoid, because these run in all forks also.
+  # jobs:
+  #   job_id:
+  #     if: github.event.pull_request.head.repo.full_name == github.repository
+  # schedule:
+  # - cron: "0 07 * * 0"  # sunday midnight pacific
+
   push:
     branches: [ binaries-mac-x64, binaries ]
   workflow_dispatch:
