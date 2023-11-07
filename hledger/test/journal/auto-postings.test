@@ -411,3 +411,16 @@ $ hledger -f- print --forecast --auto --explicit
     (Auto)                10
 
 >=0
+
+# ** 21. Redundant costs are still detected properly with --auto. (#2110)
+<
+2023-01-01
+    assets:shares        1 TEST @ 50.00€
+    equity:conversion   -1 TEST
+    equity:conversion   50.00€
+    equity:opening     -50.00€
+
+= foo
+    a   1
+
+$ hledger -f- --auto check

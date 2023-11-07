@@ -327,13 +327,13 @@ journalFinalise iopts@InputOpts{..} f txt pj = do
       &   journalStyleAmounts                            -- Infer and apply commodity styles (but don't round) - should be done early
       <&> journalAddForecast (verbose_tags_) (forecastPeriod iopts pj)   -- Add forecast transactions if enabled
       <&> journalPostingsAddAccountTags                  -- Add account tags to postings, so they can be matched by auto postings.
+      >>= journalMarkRedundantCosts                      -- Mark redundant costs, to help journalBalanceTransactions ignore them
       >>= (if auto_ && not (null $ jtxnmodifiers pj)
-            then journalAddAutoPostings verbose_tags_ _ioDay balancingopts_  -- Add auto postings if enabled, and account tags if needed
+            then journalAddAutoPostings verbose_tags_ _ioDay balancingopts_  -- Add auto postings if enabled, and account tags if needed. Does preliminary transaction balancing.
             else pure)
       -- XXX how to force debug output here ?
        -- >>= Right . dbg0With (concatMap (T.unpack.showTransaction).jtxns)
        -- >>= \j -> deepseq (concatMap (T.unpack.showTransaction).jtxns $ j) (return j)
-      >>= journalMarkRedundantCosts                      -- Mark redundant costs, to help journalBalanceTransactions ignore them
       >>= journalBalanceTransactions balancingopts_      -- infer balance assignments and missing amounts and maybe check balance assertions.
       >>= journalInferCommodityStyles                    -- infer commodity styles once more now that all posting amounts are present (XXX or journalStyleAmounts ?)
       -- >>= Right . dbg0With (pshow.journalCommodityStyles)
