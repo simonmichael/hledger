@@ -147,6 +147,7 @@ library
       Hledger.Web.Settings.StaticFiles
       Hledger.Web.Widget.AddForm
       Hledger.Web.Widget.Common
+      Paths_hledger_web
   hs-source-dirs:
       ./
   ghc-options: -Wall -Wredundant-constraints -Wincomplete-record-updates -Wincomplete-uni-patterns
@@ -235,13 +236,7 @@ test-suite test
   cpp-options: -DVERSION="1.31.99"
   build-depends:
       base >=4.14 && <4.19
-    , hledger
-    , hledger-lib
     , hledger-web
-    , hspec
-    , text
-    , yesod
-    , yesod-test
   default-language: Haskell2010
   if (flag(dev)) || (flag(library-only))
     cpp-options: -DDEVELOPMENT

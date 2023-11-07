@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.35.2.
+-- This file has been generated from package.yaml by hpack version 0.36.0.
 --
 -- see: https://github.com/sol/hpack
 
@@ -107,57 +107,14 @@ library
 executable hledger-ui
   main-is: hledger-ui.hs
   other-modules:
-      Hledger.UI
-      Hledger.UI.AccountsScreen
-      Hledger.UI.BalancesheetScreen
-      Hledger.UI.CashScreen
-      Hledger.UI.Editor
-      Hledger.UI.ErrorScreen
-      Hledger.UI.IncomestatementScreen
-      Hledger.UI.Main
-      Hledger.UI.MenuScreen
-      Hledger.UI.RegisterScreen
-      Hledger.UI.Theme
-      Hledger.UI.TransactionScreen
-      Hledger.UI.UIOptions
-      Hledger.UI.UIScreens
-      Hledger.UI.UIState
-      Hledger.UI.UITypes
-      Hledger.UI.UIUtils
       Paths_hledger_ui
   hs-source-dirs:
-      ./
+      app
   ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind
   cpp-options: -DVERSION="1.31.99"
   build-depends:
-      ansi-terminal >=0.9
-    , async
-    , base >=4.14 && <4.19
-    , brick >=1.5
-    , cmdargs >=0.8
-    , containers >=0.5.9
-    , data-default
-    , directory
-    , doclayout >=0.3 && <0.5
-    , extra >=1.6.3
-    , filepath
-    , fsnotify ==0.4.*
-    , hledger >=1.31.99 && <1.32
-    , hledger-lib >=1.31.99 && <1.32
-    , megaparsec >=7.0.0 && <9.6
-    , microlens >=0.4
-    , microlens-platform >=0.2.3.1
-    , mtl >=2.2.1
-    , process >=1.2
-    , safe >=0.3.19
-    , split >=0.1
-    , text >=1.2
-    , text-zipper >=0.4
-    , time >=1.5
-    , transformers
-    , unix
-    , vector
-    , vty >=5.15
+      base >=4.14 && <4.19
+    , hledger-ui
   default-language: Haskell2010
   if os(windows)
     buildable: False
