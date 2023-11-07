@@ -90,18 +90,6 @@ library:
   - Hledger.Web.Application
   - Hledger.Web.Import
   - Hledger.Web.Test
-  other-modules:
-  - Hledger.Web.Foundation
-  - Hledger.Web.Handler.AddR
-  - Hledger.Web.Handler.EditR
-  - Hledger.Web.Handler.JournalR
-  - Hledger.Web.Handler.MiscR
-  - Hledger.Web.Handler.RegisterR
-  - Hledger.Web.Handler.UploadR
-  - Hledger.Web.Settings
-  - Hledger.Web.Settings.StaticFiles
-  - Hledger.Web.Widget.AddForm
-  - Hledger.Web.Widget.Common
   dependencies:
   - hledger-lib >=1.31.99 && <1.32
   - hledger >=1.31.99 && <1.32
@@ -170,10 +158,8 @@ tests:
     other-modules: []  # prevent double compilation, https://github.com/sol/hpack/issues/188
     cpp-options: -DVERSION="1.31.99"
     dependencies:
-    - hledger-lib
-    - hledger
     - hledger-web
-    - hspec
-    - text
-    - yesod
-    - yesod-test
+    # - hspec
+    # - text
+    # - yesod
+    # - yesod-test
