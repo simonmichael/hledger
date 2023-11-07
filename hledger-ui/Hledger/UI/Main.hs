@@ -56,8 +56,8 @@ writeChan :: BC.BChan a -> a -> IO ()
 writeChan = BC.writeBChan
 
 
-main :: IO ()
-main = withProgName "hledger-ui.log" $ do  -- force Hledger.Utils.Debug.* to log to hledger-ui.log
+hledgerUiMain :: IO ()
+hledgerUiMain = withProgName "hledger-ui.log" $ do  -- force Hledger.Utils.Debug.* to log to hledger-ui.log
   traceLogAtIO 1 "\n\n\n\n==== hledger-ui start"
   dbg1IO "args" progArgs
   dbg1IO "debugLevel" debugLevel

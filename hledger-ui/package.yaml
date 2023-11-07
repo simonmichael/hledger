@@ -50,34 +50,6 @@ ghc-options:
 
 dependencies:
 - base >=4.14 && <4.19
-- hledger-lib >=1.31.99 && <1.32
-- hledger >=1.31.99 && <1.32
-- ansi-terminal >=0.9
-- async
-- cmdargs >=0.8
-- containers >=0.5.9
-- data-default
-- directory
-- doclayout >=0.3 && <0.5
-- extra >=1.6.3
-- filepath
-- fsnotify >=0.4 && <0.5
-- microlens >=0.4
-- microlens-platform >=0.2.3.1
-- megaparsec >=7.0.0 && <9.6
-- mtl >=2.2.1
-- process >=1.2
-- safe >=0.3.19
-- split >=0.1
-- text >=1.2
-- text-zipper >=0.4
-- time >=1.5
-- transformers
-- vector
-# not installable on windows, cf buildable flag below
-- brick >=1.5
-- vty >=5.15
-- unix
 
 when:
  # curses is required to build terminfo for vty for hledger-ui.
@@ -104,11 +76,43 @@ library:
   - Hledger.UI.Main
   - Hledger.UI.Theme
   - Hledger.UI.UIOptions
+  dependencies:
+  - hledger-lib >=1.31.99 && <1.32
+  - hledger >=1.31.99 && <1.32
+  - ansi-terminal >=0.9
+  - async
+  - cmdargs >=0.8
+  - containers >=0.5.9
+  - data-default
+  - directory
+  - doclayout >=0.3 && <0.5
+  - extra >=1.6.3
+  - filepath
+  - fsnotify >=0.4 && <0.5
+  - microlens >=0.4
+  - microlens-platform >=0.2.3.1
+  - megaparsec >=7.0.0 && <9.6
+  - mtl >=2.2.1
+  - process >=1.2
+  - safe >=0.3.19
+  - split >=0.1
+  - text >=1.2
+  - text-zipper >=0.4
+  - time >=1.5
+  - transformers
+  - vector
+  # not installable on windows, cf buildable flag below
+  - brick >=1.5
+  - vty >=5.15
+  - unix
 
 executables:
   hledger-ui:
-    source-dirs: .
+    source-dirs: app
     main: hledger-ui.hs
+    dependencies:
+    - base >=4.14 && <4.19
+    - hledger-ui
     when:
     - condition: flag(threaded)
       ghc-options: -threaded
