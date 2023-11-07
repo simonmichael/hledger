@@ -249,11 +249,12 @@ jobs:
       env:
         stack: ${{ matrix.plan.stack }}
       run: |
-        # These previously used --force-dirty for some reason.. but that caused four hledger-lib builds and three hledger builds.
-        $stack install --fast --ghc-options=-fforce-recomp --ghc-options=-Werror  --test --bench hledger-lib
-        $stack install --fast --ghc-options=-fforce-recomp --ghc-options=-Werror  --test --bench hledger
-        $stack install --fast --ghc-options=-fforce-recomp --ghc-options=-Werror  --test --bench hledger-ui
-        $stack install --fast --ghc-options=-fforce-recomp --ghc-options=-Werror  --test --bench hledger-web
+        # These previously used --force-dirty --ghc-options--fforce-recomp for some reason ?
+        # But that built hledger-lib four times and hledger three times. Try without.
+        $stack install --fast --ghc-options=-Werror  --test --bench hledger-lib
+        $stack install --fast --ghc-options=-Werror  --test --bench hledger
+        $stack install --fast --ghc-options=-Werror  --test --bench hledger-ui
+        $stack install --fast --ghc-options=-Werror  --test --bench hledger-web
         #  --ghc-options=-split-sections --no-terminal
       if: env.CONTINUE
 
