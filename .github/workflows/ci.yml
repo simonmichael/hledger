@@ -245,6 +245,7 @@ jobs:
 
     # Packages are built one at a time to fail faster on error.
     # Note: doctests won't run if using GHC 9.0, see hledger-lib/package.yaml
+    # Takes ~2m on a 2023 github worker.
     - name: Build all hledger modules fast, warning free, run unit/doc/bench tests
       env:
         stack: ${{ matrix.plan.stack }}
@@ -267,6 +268,7 @@ jobs:
         shelltest --version
       if: env.CONTINUE
 
+    # Takes ~30s on a 2023 github worker.
     - name: Test functional tests (excluding addons)
       env:
         stack: ${{ matrix.plan.stack }}
@@ -276,15 +278,18 @@ jobs:
         # XXX run the bin/ func tests corresponding to the GHC version enabled above, only
       if: env.CONTINUE
 
-    - name: Test haddock generation
-      env:
-        stack: ${{ matrix.plan.stack }}
-      run: |
-        printf "haddock version: "; haddock --version
-        time $stack build --fast --haddock --no-haddock-deps --no-haddock-hyperlink-source --haddock-arguments="--no-print-missing-docs" || echo "HADDOCK FAILED, IGNORING"
-        # --no-haddock-hyperlink-source is 25% faster
-        # --no-print-missing-docs is 600% quieter
-      if: env.CONTINUE
+    # Takes 1m+ on a 2023 github worker.
+    # Moved to (one of) the binaries-* workflows instead;
+    # haddock breakage might not be found until release time but it's easy to fix.
+    # - name: Test haddock generation
+    #   env:
+    #     stack: ${{ matrix.plan.stack }}
+    #   run: |
+    #     printf "haddock version: "; haddock --version
+    #     time $stack build --fast --haddock --no-haddock-deps --no-haddock-hyperlink-source --haddock-arguments="--no-print-missing-docs" || echo "HADDOCK FAILED, IGNORING"
+    #     # --no-haddock-hyperlink-source is 25% faster
+    #     # --no-print-missing-docs is 600% quieter
+    #   if: env.CONTINUE
 
     - name: Gather binaries
       id: exes
