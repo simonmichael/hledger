@@ -5791,7 +5791,7 @@ How to set `LEDGER_FILE` permanently depends on your setup:
 
 On unix and mac, running these commands in the terminal will work for many people; adapt as needed:
 ```shell
-$ echo 'export LEDGER_FILE=~/finance/2023.journal` >> ~/.profile
+$ echo 'export LEDGER_FILE=~/finance/2023.journal' >> ~/.profile
 $ source ~/.profile
 ```
 
