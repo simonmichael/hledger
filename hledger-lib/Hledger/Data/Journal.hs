@@ -86,6 +86,8 @@ module Hledger.Data.Journal (
   journalNextTransaction,
   journalPrevTransaction,
   journalPostings,
+  journalPostingAmounts,
+  showJournalAmountsDebug,
   journalTransactionsSimilarTo,
   -- * Account types
   journalAccountType,
@@ -146,6 +148,7 @@ import System.FilePath (takeFileName)
 import Data.Ord (comparing)
 import Hledger.Data.Dates (nulldate)
 import Data.List (sort)
+-- import Data.Function ((&))
 
 
 -- | A parser of text that runs in some monad, keeping a Journal as state.
@@ -341,6 +344,14 @@ journalPrevTransaction j t = journalTransactionAt j (tindex t - 1)
 -- | All postings from this journal's transactions, in order.
 journalPostings :: Journal -> [Posting]
 journalPostings = concatMap tpostings . jtxns
+
+-- | All posting amounts from this journal, in order.
+journalPostingAmounts :: Journal -> [MixedAmount]
+journalPostingAmounts = map pamount . journalPostings
+
+-- | Show the journal amounts rendered, suitable for debug logging.
+showJournalAmountsDebug :: Journal -> String
+showJournalAmountsDebug = show.map showMixedAmountOneLine.journalPostingAmounts
 
 -- | Sorted unique commodity symbols declared by commodity directives in this journal.
 journalCommoditiesDeclared :: Journal -> [CommoditySymbol]

@@ -29,6 +29,7 @@ import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
 import System.Exit (exitFailure)
 import Safe (lastMay)
+import Data.Function ((&))
 
 
 printmode = hledgerCommandMode
@@ -82,7 +83,13 @@ print' opts j = do
   -- that. For now we try to reverse it by increasing all amounts' decimal places 
   -- sufficiently to show the amount exactly. The displayed amounts may have minor
   -- differences from the originals, such as trailing zeroes added.
-  let j' = journalMapPostingAmounts mixedAmountSetFullPrecision j
+  let
+    -- lbl = lbl_ "print'"
+    j' = j
+      -- & dbg9With (lbl "amounts before setting full precision".showJournalAmountsDebug)
+      & journalMapPostingAmounts mixedAmountSetFullPrecision
+      -- & dbg9With (lbl "amounts after  setting full precision: ".showJournalAmountsDebug)
+
   case maybestringopt "match" $ rawopts_ opts of
     Nothing   -> printEntries opts j'
     Just desc -> 

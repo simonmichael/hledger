@@ -1,5 +1,6 @@
 # * valuation tests, part 2.
 
+<
 ; some market prices
 P 2019-01-01 B   10 A
 P 2019-01-01 C    2 B
@@ -75,32 +76,24 @@ $ hledger -f- print -x --value=now,D
 >=
 
 # ** 8. request commodity E - chains B->A, A->D, reverse of D->E prices.
-# As with C above, E gets the default display style, with precision 0.
+# As with C above, E gets the default display style, but with the precision
+# increased to show the decimal digits, but no more than 8.
 $ hledger -f- print -x --value=now,E
 2019-06-01
-    a            E333
-    b           E-333
+    a     E333.33333333
+    b    E-333.33333333
 
 >=
-# # As with C above, E gets the default display style, but with the precision
-# # increased to show the decimal digits, but no more than 8.
-# $ hledger -f- print -x --value=now,E
-# 2019-06-01
-#     a     E333.33333333
-#     b    E-333.33333333
-#
-# >=
-
 
 # Document some print behaviour. 
 # I think I've forgotten some other weird cases meant for here.
 # First an example with no market price, just a transaction price.
+# ** 9. Normal print output.
 <
 2000/01/01
     a         -1A @ 1B
     b          1B
 
-# ** 9. Normal print output.
 $ hledger -f- print
 2000-01-01
     a        -1A @ 1B

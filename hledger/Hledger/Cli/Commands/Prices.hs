@@ -15,6 +15,7 @@ import Hledger
 import Hledger.Cli.CliOptions
 import System.Console.CmdArgs.Explicit
 import Data.Maybe (mapMaybe)
+import Data.Function ((&))
 
 pricesmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Prices.txt")
@@ -92,13 +93,21 @@ showPriceDirective mp = T.unwords [
   ]
 
 -- | Convert a market price directive to a corresponding one in the
--- opposite direction, if possible. (A price directive specifying zero
--- as the price can't be reversed.)
--- The display precision is set to show all significant decimal digits,
--- up to a maximum of 8 (this is visible eg in the prices command's output).
+-- opposite direction, if possible. (A price directive with a zero
+-- price can't be reversed.)
+--
+-- The price's display precision will be set to show all significant
+-- decimal digits (or if they appear infinite, a smaller default precision (8).
+-- This is visible eg in the prices command's output.
+--
 reversePriceDirective :: PriceDirective -> Maybe PriceDirective
 reversePriceDirective pd@PriceDirective{pdcommodity=c, pdamount=a}
   | amountIsZero a = Nothing
-  | otherwise =
-    Just pd{pdcommodity=acommodity a, pdamount=setprec $ invertAmount a{acommodity=c}}
-    where setprec = amountSetFullPrecisionUpTo 8
+  | otherwise      = Just pd{pdcommodity=acommodity a, pdamount=a'}
+    where
+      lbl = lbl_ "reversePriceDirective"
+      a' =
+        amountSetFullPrecisionOr (Just defaultMaxPrecision) $
+        invertAmount a{acommodity=c}
+        & dbg9With (lbl "calculated reverse price".showAmount)
+        -- & dbg9With (lbl "precision of reverse price".show.amountDisplayPrecision)

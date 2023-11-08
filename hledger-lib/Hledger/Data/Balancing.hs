@@ -57,6 +57,7 @@ import Hledger.Data.Journal
 import Hledger.Data.Posting
 import Hledger.Data.Transaction
 import Hledger.Data.Errors
+import Data.Bifunctor (second)
 
 
 data BalancingOpts = BalancingOpts
@@ -167,10 +168,12 @@ balanceTransactionHelper ::
   -> Transaction
   -> Either String (Transaction, [(AccountName, MixedAmount)])
 balanceTransactionHelper bopts t = do
-  (t', inferredamtsandaccts) <-
-    transactionInferBalancingAmount (fromMaybe M.empty $ commodity_styles_ bopts) $
-    (if infer_balancing_costs_ bopts then transactionInferBalancingCosts else id)
-    t
+  let lbl = lbl_ "balanceTransactionHelper"
+  (t', inferredamtsandaccts) <- t
+    & (if infer_balancing_costs_ bopts then transactionInferBalancingCosts else id)
+    & dbg9With (lbl "amounts after balancing-cost-inferring".show.map showMixedAmountOneLine.transactionAmounts)
+    & transactionInferBalancingAmount (fromMaybe M.empty $ commodity_styles_ bopts)
+    <&> dbg9With (lbl "balancing amounts inferred".show.map (second showMixedAmountOneLine).snd)
   case transactionCheckBalanced bopts t' of
     []   -> Right (txnTieKnot t', inferredamtsandaccts)
     errs -> Left $ transactionBalanceError t' errs'
@@ -234,10 +237,16 @@ transactionInferBalancingAmount styles t@Transaction{tpostings=ps}
   | otherwise
       = let psandinferredamts = map inferamount ps
             inferredacctsandamts = [(paccount p, amt) | (p, Just amt) <- psandinferredamts]
-        in Right (t{tpostings=map fst psandinferredamts}, inferredacctsandamts)
+        in Right (
+           t{tpostings=map fst psandinferredamts}
+          ,inferredacctsandamts
+           -- & dbg9With (lbl "inferred".show.map (showMixedAmountOneLine.snd))
+          )
   where
+    lbl = lbl_ "transactionInferBalancingAmount"
     (amountfulrealps, amountlessrealps) = partition hasAmount (realPostings t)
     realsum = sumPostings amountfulrealps
+      -- & dbg9With (lbl "real balancing amount".showMixedAmountOneLine)
     (amountfulbvps, amountlessbvps) = partition hasAmount (balancedVirtualPostings t)
     bvsum = sumPostings amountfulbvps
 
@@ -257,7 +266,17 @@ transactionInferBalancingAmount styles t@Transaction{tpostings=ps}
               -- Inferred amounts are converted to cost.
               -- Also ensure the new amount has the standard style for its commodity
               -- (since the main amount styling pass happened before this balancing pass);
-              a' = styleAmounts styles . mixedAmountCost $ maNegate a
+              a' = maNegate a
+                -- & dbg9With (lbl "balancing amount".showMixedAmountOneLine)
+                & mixedAmountCost
+                -- & dbg9With (lbl "balancing amount converted to cost".showMixedAmountOneLine)
+                & styleAmounts (styles
+                                -- Needed until we switch to locally-inferred balancing precisions:
+                                -- these had hard rounding set to help with balanced-checking;
+                                -- set no rounding now to avoid excessive display precision in output
+                                & amountStylesSetRounding NoRounding
+                                & dbg9With (lbl "balancing amount styles".show))
+                & dbg9With (lbl "balancing amount styled".showMixedAmountOneLine)
 
 -- | Infer costs for this transaction's posting amounts, if needed to make
 -- the postings balance, and if permitted. This is done once for the real
@@ -309,6 +328,7 @@ transactionInferBalancingCosts t@Transaction{tpostings=ps} = t{tpostings=ps'}
 costInferrerFor :: Transaction -> PostingType -> (Posting -> Posting)
 costInferrerFor t pt = maybe id infercost inferFromAndTo
   where
+    lbl = lbl_ "costInferrerFor"
     postings     = filter ((==pt).ptype) $ tpostings t
     pcommodities = map acommodity $ concatMap (amounts . pamount) postings
     sumamounts   = amounts $ sumPostings postings  -- amounts normalises to one amount per commodity & price
@@ -333,7 +353,8 @@ costInferrerFor t pt = maybe id infercost inferFromAndTo
     infercost (fromamount, toamount) p
         | [a] <- amounts (pamount p), ptype p == pt, acommodity a == acommodity fromamount
             = p{ pamount   = mixedAmount a{aprice=Just conversionprice}
-                     , poriginal = Just $ originalPosting p }
+                  & dbg9With (lbl "inferred cost".showMixedAmountOneLine)
+               , poriginal = Just $ originalPosting p }
         | otherwise = p
       where
         -- If only one Amount in the posting list matches fromamount we can use TotalPrice.

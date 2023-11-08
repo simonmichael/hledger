@@ -62,6 +62,7 @@ roi ::  CliOpts -> Journal -> IO ()
 roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportOpts{..}}} j = do
   -- We may be converting posting amounts to value, per hledger_options.m4.md "Effect of --value on reports".
   let
+    -- lbl = lbl_ "roi"
     today = _rsDay rspec
     priceOracle = journalPriceOracle infer_prices_ j
     styles = journalCommodityStyles j
@@ -137,6 +138,13 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportO
                , showDate (addDays (-1) e)
                , T.pack $ showMixedAmount $ styleAmounts styles $ valueBefore
                , T.pack $ showMixedAmount $ styleAmounts styles $ cashFlowAmt
+               -- , T.pack $ showMixedAmount $
+               --   -- dbg0With (lbl "cashflow after styling".showMixedAmountOneLine) $
+               --   mapMixedAmount (amountSetFullPrecisionOr (Just defaultMaxPrecision)) $
+               --   styleAmounts (styles
+               --                 -- & dbg0With (lbl "styles".show))
+               --   cashFlowAmt
+               --   -- & dbg0With (lbl "cashflow before styling".showMixedAmountOneLine)
                , T.pack $ showMixedAmount $ styleAmounts styles $ valueAfter
                , T.pack $ showMixedAmount $ styleAmounts styles $ (valueAfter `maMinus` (valueBefore `maPlus` cashFlowAmt))
                , T.pack $ printf "%0.2f%%" $ smallIsZero irr

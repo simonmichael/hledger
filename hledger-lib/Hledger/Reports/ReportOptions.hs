@@ -83,6 +83,7 @@ import Text.Megaparsec.Custom
 import Hledger.Data
 import Hledger.Query
 import Hledger.Utils
+import Data.Function ((&))
 
 
 -- | What to calculate for each cell in a balance report.
@@ -587,19 +588,28 @@ journalValueAndFilterPostingsWith rspec@ReportSpec{_rsQuery=q, _rsReportOpts=rop
 -- condition.
 journalApplyValuationFromOpts :: ReportSpec -> Journal -> Journal
 journalApplyValuationFromOpts rspec j =
-    journalApplyValuationFromOptsWith rspec j priceoracle
+  journalApplyValuationFromOptsWith rspec j priceoracle
   where priceoracle = journalPriceOracle (infer_prices_ $ _rsReportOpts rspec) j
 
 -- | Like journalApplyValuationFromOpts, but takes PriceOracle as an argument.
 journalApplyValuationFromOptsWith :: ReportSpec -> Journal -> PriceOracle -> Journal
 journalApplyValuationFromOptsWith rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle =
-    case balancecalc_ ropts of
-      CalcGain -> journalMapPostings (\p -> postingTransformAmount (gain p) p) j
-      _        -> journalMapPostings (\p -> postingTransformAmount (valuation p) p) $ costing j
+  costfn j
+  & journalMapPostings (\p -> p
+    & dbg9With (lbl "before calc".showMixedAmountOneLine.pamount)
+    & postingTransformAmount (calcfn p)
+    & dbg9With (lbl (show calc).showMixedAmountOneLine.pamount)
+    )
   where
-    valuation p = maybe id (mixedAmountApplyValuation priceoracle styles (postingperiodend p) (_rsDay rspec) (postingDate p)) (value_ ropts)
-    gain      p = maybe id (mixedAmountApplyGain      priceoracle styles (postingperiodend p) (_rsDay rspec) (postingDate p)) (value_ ropts)
-    costing     = journalToCost (fromMaybe NoConversionOp $ conversionop_ ropts)
+    lbl = lbl_ "journalApplyValuationFromOptsWith"
+    -- Which custom calculation to do for balance reports. For all other reports, it will be CalcChange.
+    calc = balancecalc_ ropts
+    calcfn = case calc of
+      CalcGain -> \p -> maybe id (mixedAmountApplyGain      priceoracle styles (postingperiodend p) (_rsDay rspec) (postingDate p)) (value_ ropts)
+      _        -> \p -> maybe id (mixedAmountApplyValuation priceoracle styles (postingperiodend p) (_rsDay rspec) (postingDate p)) (value_ ropts)
+    costfn = case calc of
+      CalcGain -> id
+      _        -> journalToCost costop where costop = fromMaybe NoConversionOp $ conversionop_ ropts
 
     -- Find the end of the period containing this posting
     postingperiodend  = addDays (-1) . fromMaybe err . mPeriodEnd . postingDateOrDate2 (whichDate ropts)

@@ -317,6 +317,9 @@ initialiseAndParseJournal parser iopts f txt =
 journalFinalise :: InputOpts -> FilePath -> Text -> ParsedJournal -> ExceptT String IO Journal
 journalFinalise iopts@InputOpts{..} f txt pj = do
   t <- liftIO getPOSIXTime
+  let
+    fname = "journalFinalise " <> takeFileName f
+    lbl = lbl_ fname
   liftEither $ do
     {-# HLINT ignore "Functor law" #-}
     j <- pj{jglobalcommoditystyles=fromMaybe mempty $ commodity_styles_ balancingopts_}
@@ -334,16 +337,20 @@ journalFinalise iopts@InputOpts{..} f txt pj = do
       -- XXX how to force debug output here ?
        -- >>= Right . dbg0With (concatMap (T.unpack.showTransaction).jtxns)
        -- >>= \j -> deepseq (concatMap (T.unpack.showTransaction).jtxns $ j) (return j)
+      <&> dbg9With (lbl "amounts after styling, forecasting, auto-posting".showJournalAmountsDebug)
       >>= journalBalanceTransactions balancingopts_      -- infer balance assignments and missing amounts and maybe check balance assertions.
-      >>= journalInferCommodityStyles                    -- infer commodity styles once more now that all posting amounts are present (XXX or journalStyleAmounts ?)
+      <&> dbg9With (lbl "amounts after transaction-balancing".showJournalAmountsDebug)
+      -- <&> dbg9With (("journalFinalise amounts after styling, forecasting, auto postings, transaction balancing"<>).showJournalAmountsDebug)
+      >>= journalInferCommodityStyles                    -- infer commodity styles once more now that all posting amounts are present
       -- >>= Right . dbg0With (pshow.journalCommodityStyles)
       >>= (if infer_costs_  then journalInferCostsFromEquity else pure)     -- Maybe infer costs from equity postings where possible
       <&> (if infer_equity_ then journalInferEquityFromCosts verbose_tags_ else id)  -- Maybe infer equity postings from costs where possible
+      <&> dbg9With (lbl "amounts after equity-inferring".showJournalAmountsDebug)
       <&> journalInferMarketPricesFromTransactions       -- infer market prices from commodity-exchanging transactions
-      <&> traceOrLogAt 6 ("journalFinalise: " <> takeFileName f)  -- debug logging
-      <&> dbgJournalAcctDeclOrder ("journalFinalise: " <> takeFileName f <> "   acct decls           : ")
+      -- <&> traceOrLogAt 6 fname  -- debug logging
+      <&> dbgJournalAcctDeclOrder (fname <> ": acct decls           : ")
       <&> journalRenumberAccountDeclarations
-      <&> dbgJournalAcctDeclOrder ("journalFinalise: " <> takeFileName f <> "   acct decls renumbered: ")
+      <&> dbgJournalAcctDeclOrder (fname <> ": acct decls renumbered: ")
     when strict_ $ do
       journalCheckAccounts j                     -- If in strict mode, check all postings are to declared accounts
       journalCheckCommodities j                  -- and using declared commodities

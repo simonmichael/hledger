@@ -49,6 +49,7 @@ module Hledger.Utils (
   -- * Misc
   multicol,
   numDigitsInt,
+  numDigitsInteger,
   makeHledgerClassyLenses,
 
   -- * Other
@@ -232,6 +233,12 @@ numDigitsInt n
          | a >= 10000000000000000 = 16 + go (a `quot` 10000000000000000)
          | a >= 100000000         = 8  + go (a `quot` 100000000)
          | otherwise              = 4  + go (a `quot` 10000)
+
+-- | Find the number of digits of an Integer.
+-- The integer should not have more digits than an Int can count.
+-- This is probably inefficient.
+numDigitsInteger :: Integer -> Int
+numDigitsInteger = length . dropWhile (=='-') . show
 
 -- | Make classy lenses for Hledger options fields.
 -- This is intended to be used with BalancingOpts, InputOpt, ReportOpts,

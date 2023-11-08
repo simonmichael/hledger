@@ -52,16 +52,15 @@ P 2023-01-07 A B0.01428571
 # ** 3. With --infer-market-prices it also lists prices inferred from costs
 # (explicit or inferred, unit or total, positive or negative amounts).
 # Redundant prices inferred from costs are discarded.
-# ** XXX why precision 1 for  3/4/5 ?
 $ hledger prices -f- --infer-market-prices
 P 2023-01-01 B A10
 P 2023-01-01 B A100
 P 2023-01-01 A B100
 P 2023-01-02 A B1
 P 2023-01-02 B A200
-P 2023-01-03 B A3.0
-P 2023-01-04 B A4.0
-P 2023-01-05 B A5.0
+P 2023-01-03 B A3
+P 2023-01-04 B A4
+P 2023-01-05 B A5
 P 2023-01-07 B A70
 
 # ** 4. --infer-market-prices and --show-reverse combine.
@@ -71,11 +70,11 @@ P 2023-01-01 B A100
 P 2023-01-01 A B100
 P 2023-01-02 A B1
 P 2023-01-02 B A200
-P 2023-01-03 B A3.0
+P 2023-01-03 B A3
 P 2023-01-03 A B0.33333333
-P 2023-01-04 B A4.0
+P 2023-01-04 B A4
 P 2023-01-04 A B0.25
-P 2023-01-05 B A5.0
+P 2023-01-05 B A5
 P 2023-01-05 A B0.2
 P 2023-01-07 B A70
 P 2023-01-07 A B0.01428571
@@ -125,7 +124,7 @@ $ hledger -f- prices --infer-market-prices
     Equity:Opening Balances
 
 $ hledger -f- prices --infer-market-prices
-P 2021-10-15 ABC 100.0 USD
+P 2021-10-15 ABC 100 USD
 
 # ** 11. Commodity styles are applied to all price amounts, but their precision is left unchanged.
 <
@@ -156,7 +155,6 @@ P 2019-03-01 EUR $1.07
 P 2019-03-01 $ 0.93457944 EUR
 
 # ** 12. Reverse market prices are shown with all decimal digits, up to a maximum of 8.
-# ** XXX does this prevent displaying more precise prices ?
 <
 P 2023-01-01 B 3A
 

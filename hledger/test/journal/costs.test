@@ -325,11 +325,11 @@ $ hledger -f- print -xB
 # ** 25. Here are the market prices inferred, since 1.26:
 $ hledger -f- --infer-market-prices prices
 P 2022-01-01 B A 1
-P 2022-01-01 B A 1.0
+P 2022-01-01 B A 1
 P 2022-01-02 B A -1
-P 2022-01-02 B A -1.0
+P 2022-01-02 B A -1
 P 2022-01-03 B A -1
-P 2022-01-03 B A -1.0
+P 2022-01-03 B A -1
 
 # ** 26. here, a's primary amount is 0, and its cost is 1Y; b is the assigned auto-balancing amount of -1Y (per issue 69)
 <

@@ -148,7 +148,7 @@ $ hledger -f- print -x
 # so why is it showing the B amounts with 4 decimal digits instead of the default 0 ?
 # Summary: a's calculated cost has 4 digits, and so also must the inferred b amount.
 #
-# Some implementation-level explanation, for the record:
+# Some implementation-level details (pre-precisiongeddon, could be out of date):
 #
 # In journalFinalise,
 #
@@ -183,7 +183,7 @@ $ hledger -f- print -x -B
 # then re-styled again with the 4 digit B precision inferred from b's amount.
 # This works out right, in this case.
 #
-# Details:
+# Details (pre-precisiongeddon, could be out of date):
 #
 # journalStyleAmounts infers A display style and A precision 0 from 10 A,
 # and applies the style but not the precision to all A amounts.
@@ -217,12 +217,7 @@ $ hledger -f - print --infer-market-prices -V
 >=
 
 # ** 10. What if a different style/precision is specified for B, eg more digits
-# than the price ? We still expect the calculated amount to have the price's precision,
-# as above.
-# XXX
-# 2023-01-01
-#     a         0.1234B
-#     b       -0.12340B
+# than the price ? We expect the calculated amount to have the price's precision, as above.
 <
 2023-01-01
   a    1 A @ 0.1234 B
@@ -262,19 +257,34 @@ P 2023-01-01 B 3.00A
   a  1A
   b
 
-# current:
 # That propagates to the calculated value, causing it to be displayed with the
-# maximum 255 decimal digits.
+# default fallback precision for "infinite" decimals (8).
 $ hledger -f- print -X B
 2023-01-01
-    a     B0.3333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333
-    b    B-0.3333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333
+    a     B0.33333333
+    b    B-0.33333333
 
-# preferred:
+>=
+# preferred ?
 # The reverse price is given the same precision as in the forward price declaration
 # it was inferred from - 2 digits in this example, and that in turn affects the
 # calculated value.
 #2023-01-01
 #    a     B0.33
 #    b    B-0.33
+#
+#>=
 
+# ** 13. Value amounts with very large but not infinite precision are still shown correctly,
+# eg 100 decimal digits here.
+<
+P 2023-01-01 A 0.0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789B
+
+2023-01-01
+  (a)  1A
+
+$ hledger -f- print -X B
+2023-01-01
+    (a)    0.0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789B
+
+>=

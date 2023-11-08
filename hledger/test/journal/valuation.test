@@ -105,8 +105,8 @@ $ hledger -f- reg -V
 2000-01-01                      (a)                        €120.00       €120.00
 
 
-# ** 8. print -V affects posting amounts, but not balance assertions
-# (causing it to show a failing balance assertion).
+# ** 8. print -V affects posting amounts, but not balance assertions,
+# which can cause it to show a failing balance assertion as here.
 <
 P 2000/1/1 $ €1.20
 2000/1/1
@@ -114,7 +114,7 @@ P 2000/1/1 $ €1.20
 
 $ hledger -f- print -V
 2000-01-01
-    (a)         €120.00 = $100
+    (a)            €120 = $100
 
 >=0
 

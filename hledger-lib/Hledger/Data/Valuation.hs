@@ -47,7 +47,7 @@ import Hledger.Data.Types
 import Hledger.Data.Amount
 import Hledger.Data.Dates (nulldate)
 import Text.Printf (printf)
-import Data.Decimal (normalizeDecimal, DecimalRaw (decimalPlaces))
+import Data.Decimal (decimalPlaces, roundTo)
 
 
 ------------------------------------------------------------------------------
@@ -100,23 +100,16 @@ priceDirectiveToMarketPrice PriceDirective{..} =
 
 -- | Infer a market price from the given amount and its cost (if any),
 -- and make a corresponding price directive on the given date.
+-- The price's display precision will be set to show all significant
+-- decimal digits; or if they seem to be infinite, defaultPrecisionLimit.
 amountPriceDirectiveFromCost :: Day -> Amount -> Maybe PriceDirective
 amountPriceDirectiveFromCost d amt@Amount{acommodity=fromcomm, aquantity=n} = case aprice amt of
     Just (UnitPrice u)           -> Just $ pd{pdamount=u}
-    Just (TotalPrice t) | n /= 0 -> Just $ pd{pdamount=u} where u = divideAmountExtraPrecision n t}
+    Just (TotalPrice t) | n /= 0 -> Just $ pd{pdamount=u}
+      where u = amountSetFullPrecisionOr Nothing $ divideAmount n t
     _                            -> Nothing
   where
     pd = PriceDirective{pddate = d, pdcommodity = fromcomm, pdamount = nullamt}
-
-    -- | Divide an amount's quantity (and total cost, if any) by some number n,
-    -- and also increase its display precision by the number of digits in n's integer part,
-    -- to avoid showing a misleadingly rounded result.
-    divideAmountExtraPrecision n a = (divideAmount n a) { astyle = style' }
-      where
-        style' = (astyle a) { asprecision = precision' }
-        precision' = case asprecision (astyle a) of
-                          NaturalPrecision -> NaturalPrecision
-                          Precision p      -> Precision $ p + numDigitsInt (truncate n)
 
 ------------------------------------------------------------------------------
 -- Converting things to value
@@ -191,6 +184,7 @@ mixedAmountValueAtDate priceoracle styles mc d = mapMixedAmount (amountValueAtDa
 --
 amountValueAtDate :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Maybe CommoditySymbol -> Day -> Amount -> Amount
 amountValueAtDate priceoracle styles mto d a =
+  let lbl = lbl_ "amountValueAtDate" in
   case priceoracle (d, acommodity a, mto) of
     Nothing           -> a
     Just (comm, rate) ->
@@ -204,11 +198,11 @@ amountValueAtDate priceoracle styles mto d a =
       -- Now apply the standard display style for comm
       & styleAmounts styles
       -- and set the display precision to rate's internal precision
-      -- XXX (unnormalised - don't strip trailing zeros) ?
-      -- XXX valuation.test:8 why is it showing precision 1 ?
-      & amountSetPrecision (Precision $ decimalPlaces $ normalizeDecimal rate)
-      -- or at least 1, ensuring we show at least one decimal place.
-      -- & amountSetPrecision (Precision $ max 1 (decimalPlaces $ normalizeDecimal rate))
+      -- (unnormalised - don't strip trailing zeros)
+      -- & amountSetPrecision (Precision $ decimalPlaces rate)
+      & amountSetFullPrecisionOr Nothing -- (Just defaultMaxPrecision)
+      & dbg9With (lbl "calculated value".showAmount)
+      -- & dbg9With (lbl "precision of value".show.amountDisplayPrecision)
       -- see also print-styles.test, valuation2.test
 
 -- | Calculate the gain of each component amount, that is the difference
@@ -282,7 +276,19 @@ priceLookup makepricegraph d from mto =
         of
           Nothing -> Nothing
           Just [] -> Nothing
-          Just ps -> Just (mpto $ last ps, product $ map mprate ps)
+          Just ps -> Just (mpto $ last ps, rate)
+            where
+              rates = map mprate ps
+              rate =
+                -- aggregate all the prices into one
+                product rates
+                -- product (Decimal's Num instance) normalises, stripping trailing zeros.
+                -- Here we undo that (by restoring the old max precision with roundTo), 
+                -- so that amountValueAtDate can see the original internal precision,
+                -- to use as the display precision of calculated value amounts.
+                -- (This can add more than the original number of trailing zeros to some prices,
+                -- making them seem more precise than they were, but it seems harmless here.)
+                & roundTo (maximum $ map decimalPlaces rates)
 
 tests_priceLookup =
   let

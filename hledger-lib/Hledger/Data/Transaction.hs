@@ -32,6 +32,7 @@ module Hledger.Data.Transaction
 , transactionApplyAliases
 , transactionMapPostings
 , transactionMapPostingAmounts
+, transactionAmounts
 , partitionAndCheckConversionPostings
   -- nonzerobalanceerror
   -- * date operations
@@ -444,6 +445,10 @@ transactionMapPostings f t@Transaction{tpostings=ps} = t{tpostings=map f ps}
 -- | Apply a transformation to a transaction's posting amounts.
 transactionMapPostingAmounts :: (MixedAmount -> MixedAmount) -> Transaction -> Transaction
 transactionMapPostingAmounts f  = transactionMapPostings (postingTransformAmount f)
+
+-- | All posting amounts from this transactin, in order.
+transactionAmounts :: Transaction -> [MixedAmount]
+transactionAmounts = map pamount . tpostings
 
 -- | The file path from which this transaction was parsed.
 transactionFile :: Transaction -> FilePath

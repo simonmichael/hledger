@@ -93,9 +93,10 @@ module Hledger.Data.Amount (
   amountSetPrecisionMin,
   withPrecision,
   amountSetFullPrecision,
-  amountSetFullPrecisionUpTo,
+  amountSetFullPrecisionOr,
   amountInternalPrecision,
   amountDisplayPrecision,
+  defaultMaxPrecision,
   setAmountInternalPrecision,
   withInternalPrecision,
   setAmountDecimalPoint,
@@ -181,10 +182,11 @@ import Test.Tasty (testGroup)
 import Test.Tasty.HUnit ((@?=), assertBool, testCase)
 
 import Hledger.Data.Types
-import Hledger.Utils (colorB, numDigitsInt)
+import Hledger.Utils (colorB, numDigitsInt, numDigitsInteger)
 import Hledger.Utils.Text (textQuoteIfNeeded)
 import Text.WideString (WideBuilder(..), wbFromText, wbToText, wbUnpack)
 import Data.Functor ((<&>))
+-- import Data.Function ((&))
 -- import Hledger.Utils.Debug (dbg0)
 
 
@@ -373,6 +375,12 @@ amountLooksZero = testAmountAndTotalPrice looksZero
 amountIsZero :: Amount -> Bool
 amountIsZero = testAmountAndTotalPrice (\Amount{aquantity=Decimal _ q} -> q == 0)
 
+-- | Does this amount's internal Decimal representation have the
+-- maximum number of digits, suggesting that it probably is
+-- representing an infinite decimal ?
+amountHasMaxDigits :: Amount -> Bool
+amountHasMaxDigits = (>= 255) . numDigitsInteger . decimalMantissa . aquantity
+
 -- | Set an amount's display precision, flipped.
 withPrecision :: Amount -> AmountPrecision -> Amount
 withPrecision = flip amountSetPrecision
@@ -402,12 +410,31 @@ amountSetFullPrecision a = amountSetPrecision p a
 -- amountSetFullPrecision a = amountSetPrecision (Precision p) a
 --   where p = max (amountDisplayPrecision a) (amountInternalPrecision a)
 
--- | Similar to amountSetPrecision, but with an upper limit (up to 255).
--- And always sets an explicit Precision.
--- Useful for showing a not-too-verbose approximation of amounts with infinite decimals.
-amountSetFullPrecisionUpTo :: Word8 -> Amount -> Amount
-amountSetFullPrecisionUpTo n a = amountSetPrecision (Precision p) a
-  where p = min n $ max (amountDisplayPrecision a) (amountInternalPrecision a)
+
+-- | We often want to display "infinite decimal" amounts rounded to some readable
+-- number of digits, while still displaying amounts with a large "non infinite" number
+-- of decimal digits (eg, 100 or 200 digits) in full.
+-- This helper is like amountSetFullPrecision, but with some refinements:
+-- 1. If the internal precision is the maximum (255), indicating an infinite decimal, 
+-- the display precision is set to a smaller hard-coded default (8).
+-- 2. A maximum display precision can be specified, setting a hard upper limit.
+-- This function always sets an explicit display precision (ie, Precision n).
+amountSetFullPrecisionOr :: Maybe Word8 -> Amount -> Amount
+amountSetFullPrecisionOr mmaxp a = amountSetPrecision (Precision p2) a
+  where
+    p1 = if -- dbg0 "maxdigits" $
+            amountHasMaxDigits a then defaultMaxPrecision else max disp intp
+      -- & dbg0 "p1"
+      where
+        intp = amountInternalPrecision a
+        disp = amountDisplayPrecision a
+    p2 = maybe p1 (min p1) mmaxp
+      -- & dbg0 "p2"
+
+-- | The fallback display precision used when showing amounts
+-- representing an infinite decimal.
+defaultMaxPrecision :: Word8
+defaultMaxPrecision = 8
 
 -- | How many internal decimal digits are stored for this amount ?
 amountInternalPrecision :: Amount -> Word8
