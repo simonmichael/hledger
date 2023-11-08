@@ -25,6 +25,7 @@ module Hledger.Data.Valuation (
   ,marketPriceReverse
   ,priceDirectiveToMarketPrice
   ,amountPriceDirectiveFromCost
+  ,valuationTypeValuationCommodity
   -- ,priceLookup
   ,tests_Valuation
 )
@@ -67,6 +68,14 @@ data ValuationType =
   | AtNow      (Maybe CommoditySymbol)  -- ^ convert to default or given valuation commodity, using current market prices
   | AtDate Day (Maybe CommoditySymbol)  -- ^ convert to default or given valuation commodity, using market prices on some date
   deriving (Show,Eq)
+
+valuationTypeValuationCommodity :: ValuationType -> Maybe CommoditySymbol
+valuationTypeValuationCommodity = \case
+    AtThen   (Just c) -> Just c
+    AtEnd    (Just c) -> Just c
+    AtNow    (Just c) -> Just c
+    AtDate _ (Just c) -> Just c
+    _                 -> Nothing
 
 -- | A price oracle is a magic memoising function that efficiently
 -- looks up market prices (exchange rates) from one commodity to
@@ -193,17 +202,15 @@ amountValueAtDate priceoracle styles mto d a =
       -- Manage style and precision of the new amount. Initially:
       --  rate is a Decimal with the internal precision of the original market price declaration.
       --  aquantity is a Decimal with a's internal precision.
-      --  The resulting internal precision will be larger than both (their sum ?).
-      --  The display precision will be that of nullamt (0).
-      -- Now apply the standard display style for comm
+      --  The calculated value's internal precision may be different from these.
+      --  Its display precision will be that of nullamt (0).
+      -- Now apply the standard display style for comm (if there is one)
       & styleAmounts styles
-      -- and set the display precision to rate's internal precision
-      -- (unnormalised - don't strip trailing zeros)
-      -- & amountSetPrecision (Precision $ decimalPlaces rate)
-      & amountSetFullPrecisionOr Nothing -- (Just defaultMaxPrecision)
+      -- set the display precision to match the internal precision (showing all digits),
+      -- unnormalised (don't strip trailing zeros);
+      -- but if it looks like an infinite decimal, limit the precision to 8.
+      & amountSetFullPrecisionOr Nothing
       & dbg9With (lbl "calculated value".showAmount)
-      -- & dbg9With (lbl "precision of value".show.amountDisplayPrecision)
-      -- see also print-styles.test, valuation2.test
 
 -- | Calculate the gain of each component amount, that is the difference
 -- between the valued amount and the value of the cost basis (see

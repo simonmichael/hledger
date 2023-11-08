@@ -65,9 +65,15 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportO
     -- lbl = lbl_ "roi"
     today = _rsDay rspec
     priceOracle = journalPriceOracle infer_prices_ j
-    styles = journalCommodityStyles j
+    styles = journalCommodityStylesWith HardRounding j
     mixedAmountValue periodlast date =
-        maybe id (mixedAmountApplyValuation priceOracle styles periodlast today date) value_
+        -- These calculations can generate very precise decimals. To avoid showing too many digits:
+        -- If we have no style for the valuation commodity, generate one that will limit the precision ?
+        -- But it's not easy to find out the valuation commodity (or commodities) here if it's implicit,
+        -- as that information is buried in the price graph.
+        -- Instead, do what we don't like to do: hard code a max precision, overriding commodity styles.
+        mixedAmountSetPrecisionMax defaultMaxPrecision
+      . maybe id (mixedAmountApplyValuation priceOracle styles periodlast today date) value_
       . maybe id (mixedAmountToCost styles) conversionop_
 
   let

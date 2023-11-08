@@ -91,6 +91,7 @@ module Hledger.Data.Amount (
   showAmountWithoutPrice,
   amountSetPrecision,
   amountSetPrecisionMin,
+  amountSetPrecisionMax,
   withPrecision,
   amountSetFullPrecision,
   amountSetFullPrecisionOr,
@@ -154,6 +155,8 @@ module Hledger.Data.Amount (
   wbUnpack,
   mixedAmountSetPrecision,
   mixedAmountSetFullPrecision,
+  mixedAmountSetPrecisionMin,
+  mixedAmountSetPrecisionMax,
 
   -- * misc.
   tests_Amount
@@ -394,6 +397,12 @@ amountSetPrecision p a@Amount{astyle=s} = a{astyle=s{asprecision=p}}
 amountSetPrecisionMin :: Word8 -> Amount -> Amount
 amountSetPrecisionMin minp a = amountSetPrecision p a
   where p = Precision $ max minp (amountDisplayPrecision a)
+
+-- | Ensure an amount's display precision is at most the given maximum precision.
+-- Always sets an explicit Precision.
+amountSetPrecisionMax :: Word8 -> Amount -> Amount
+amountSetPrecisionMax maxp a = amountSetPrecision p a
+  where p = Precision $ min maxp (amountDisplayPrecision a)
 
 -- | Increase an amount's display precision, if needed, to enough decimal places
 -- to show it exactly (showing all significant decimal digits, without trailing zeros).
@@ -1188,6 +1197,16 @@ mixedAmountSetPrecision p = mapMixedAmountUnsafe (amountSetPrecision p)
 -- to render it exactly (showing all significant decimal digits).
 mixedAmountSetFullPrecision :: MixedAmount -> MixedAmount
 mixedAmountSetFullPrecision = mapMixedAmountUnsafe amountSetFullPrecision
+
+-- | In each component amount, ensure the display precision is at least the given value.
+-- Makes all amounts have an explicit Precision.
+mixedAmountSetPrecisionMin :: Word8 -> MixedAmount -> MixedAmount
+mixedAmountSetPrecisionMin p = mapMixedAmountUnsafe (amountSetPrecisionMin p)
+
+-- | In each component amount, ensure the display precision is at most the given value.
+-- Makes all amounts have an explicit Precision.
+mixedAmountSetPrecisionMax :: Word8 -> MixedAmount -> MixedAmount
+mixedAmountSetPrecisionMax p = mapMixedAmountUnsafe (amountSetPrecisionMax p)
 
 -- | Remove all prices from a MixedAmount.
 mixedAmountStripPrices :: MixedAmount -> MixedAmount
