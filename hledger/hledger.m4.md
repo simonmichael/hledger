@@ -384,11 +384,82 @@ This requires a well-configured environment. Here are some tips:
 
 ## Regular expressions
 
-hledger uses [regular expressions](http://www.regular-expressions.info) in a number of places:
+A [regular expression](https://en.wikipedia.org/wiki/regular_expression) (regexp)
+is a small piece of text where certain characters
+(like `.`, `^`, `$`, `+`, `*`, `()`, `|`, `[]`, `\`) have special meanings,
+forming a tiny language for matching text precisely - very useful in hledger and elsewhere. 
+To learn all about them, visit [regular-expressions.info](https://www.regular-expressions.info).
 
-- [query terms](#queries), on the command line and in the hledger-web search form: `REGEX`, `desc:REGEX`, `cur:REGEX`, `tag:...=REGEX`
-- [CSV rules](#csv-rules) conditional blocks: `if REGEX ...`
-- [account alias directive](#alias-directive) and `--alias` option: `alias /REGEX/ = REPLACEMENT`, `--alias /REGEX/=REPLACEMENT`
+hledger supports regexps whenever you are entering a pattern to match something, eg in
+[query arguments](#queries), 
+[account aliases](#alias-directive),
+[CSV if rules](#if-block),
+hledger-web's search form,
+hledger-ui's `/` search,
+etc.
+You may need to wrap them in quotes, especially at the command line (see [Special characters](#special-characters) above).
+Here are some examples:
+
+Account name queries (quoted for command line use):
+```
+Regular expression:  Matches:
+-------------------  ------------------------------------------------------------
+bank                 assets:bank, assets:bank:savings, expenses:art:banksy, ...
+:bank                assets:bank:savings, expenses:art:banksy
+:bank:               assets:bank:savings
+'^bank'              none of those ( ^ matches beginning of text )
+'bank$'              assets:bank   ( $ matches end of text )
+'big \$ bank'        big $ bank    ( \ disables following character's special meaning )
+'\bbank\b'           assets:bank, assets:bank:savings  ( \b matches word boundaries )
+'(sav|check)ing'     saving or checking  ( (|) matches either alternative )
+'saving|checking'    saving or checking  ( outer parentheses are not needed )
+'savings?'           saving or savings   ( ? matches 0 or 1 of the preceding thing )
+'my +bank'           my bank, my  bank, ... ( + matches 1 or more of the preceding thing )
+'my *bank'           mybank, my bank, my  bank, ... ( * matches 0 or more of the preceding thing )
+'b.nk'               bank, bonk, b nk, ... ( . matches any character )
+```
+
+Some other queries:
+```
+desc:'amazon|amzn|audible'  Amazon transactions
+cur:EUR              amounts with commodity symbol containing EUR
+cur:'\$'             amounts with commodity symbol containing $
+cur:'^\$$'           only $ amounts, not eg AU$ or CA$
+cur:....?            amounts with 4-or-more-character symbols
+tag:.=202[1-3]       things with any tag whose value contains 2021, 2022 or 2023
+```
+
+Account name aliases: accept `.` instead of `:` as account separator:
+```
+alias /\./=:         replaces all periods in account names with colons
+```
+
+Show multiple top-level accounts combined as one:
+```
+--alias='/^[^:]+/=combined'  ( [^:] matches any character other than : )
+```
+
+Show accounts with the second-level part removed:
+```
+--alias '/^([^:]+):[^:]+/ = \1'
+                     match a top-level account and a second-level account
+                     and replace those with just the top-level account
+                     ( \1 in the replacement text means "whatever was matched
+                     by the first parenthesised part of the regexp"
+```
+
+CSV rules: match CSV records containing dining-related MCC codes:
+```
+if \?MCC581[124]
+```
+
+Match CSV records with a specific amount around the end/start of month:
+```
+if %amount \b3\.99
+&  %date   (29|30|31|01|02|03)$
+```
+
+### hledger's regular expressions
 
 hledger's regular expressions come from the
 [regex-tdfa](http://hackage.haskell.org/package/regex-tdfa/docs/Text-Regex-TDFA.html)
