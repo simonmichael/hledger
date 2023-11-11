@@ -160,6 +160,10 @@ lastweek() {
   echo
   echo "By activity type:"
   tt bal hledger -DTS -b '6 days ago' --pivot t --alias c=cleanup/fixing --alias e=enhancement --alias s=support --alias l=learning | tail +1
+   # XXX aliasing pivoted account names doesn't work
+  echo
+  echo "By activity type, percentage:"
+  tt bal hledger -DTS -b '6 days ago' --pivot t -% -c 1% | tail +1
   echo
   echo "Time log details:"
   tt print hledger -b '6 days ago' | grep -E '^[^ ]|hledger'
