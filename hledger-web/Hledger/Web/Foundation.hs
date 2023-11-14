@@ -132,6 +132,7 @@ instance Yesod App where
 
     let accounts =
           balanceReportAsHtml (JournalR, RegisterR) here hideEmptyAccts j qparam qopts $
+          styleAmounts (journalCommodityStylesWith HardRounding j) $
           balanceReport rspec' j
 
         topShowmd = if showSidebar then "col-md-4" else "col-any-0" :: Text

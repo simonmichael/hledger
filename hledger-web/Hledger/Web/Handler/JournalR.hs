@@ -28,7 +28,9 @@ getJournalR = do
       title' = title <> if q /= Any then ", filtered" else ""
       acctlink a = (RegisterR, [("q", replaceInacct qparam $ accountQuery a)])
       rspec = (reportspec_ $ cliopts_ opts){_rsQuery = filterQuery (not . queryIsDepth) q}
-      items = reverse $ entriesReport rspec j
+      items = reverse $
+        styleAmounts (journalCommodityStylesWith HardRounding j) $
+        entriesReport rspec j
       transactionFrag = transactionFragment j
 
   defaultLayout $ do

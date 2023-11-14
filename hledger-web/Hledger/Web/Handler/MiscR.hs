@@ -91,7 +91,9 @@ getAccountsR = do
   VD{j} <- getViewData
   require ViewPermission
   selectRep $ do
-    provideJson $ flattenAccounts $ mapAccounts (accountSetDeclarationInfo j) $ ledgerRootAccount $ ledgerFromJournal Any j
+    provideJson $
+      styleAmounts (journalCommodityStylesWith HardRounding j) $
+      flattenAccounts $ mapAccounts (accountSetDeclarationInfo j) $ ledgerRootAccount $ ledgerFromJournal Any j
 
 getAccounttransactionsR :: Text -> Handler TypedContent
 getAccounttransactionsR a = do
@@ -101,5 +103,7 @@ getAccounttransactionsR a = do
     rspec = defreportspec
     thisacctq = Acct $ accountNameToAccountRegex a -- includes subs
   selectRep $ do
-    provideJson $ accountTransactionsReport rspec{_rsQuery=Any} j thisacctq
+    provideJson $
+      styleAmounts (journalCommodityStylesWith HardRounding j) $
+      accountTransactionsReport rspec{_rsQuery=Any} j thisacctq
 

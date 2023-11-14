@@ -42,6 +42,7 @@ exchange rates.
 
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE RecordWildCards    #-}
+{-# LANGUAGE NamedFieldPuns #-}
 
 module Hledger.Data.Amount (
   -- * Commodity
@@ -1010,6 +1011,10 @@ mixedAmountSetStyles = styleAmounts
 -- v4
 instance HasAmounts MixedAmount where
   styleAmounts styles = mapMixedAmountUnsafe (styleAmounts styles)
+
+instance HasAmounts Account where
+  styleAmounts styles acct@Account{aebalance,aibalance} =
+    acct{aebalance=styleAmounts styles aebalance, aibalance=styleAmounts styles aibalance}
 
 -- | Reset each individual amount's display style to the default.
 mixedAmountUnstyled :: MixedAmount -> MixedAmount
