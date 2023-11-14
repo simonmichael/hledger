@@ -159,7 +159,9 @@ asUpdateHelper rspec0 d copts roptsModify extraquery j ass = dbgui "asUpdateHelp
         displayitems = map displayitem items
           where
             -- run the report
-            (items, _) = balanceReport rspec j
+            (items, _) = styleAmounts styles $ balanceReport rspec j
+              where
+                styles = journalCommodityStylesWith HardRounding j
 
             -- pre-render a list item
             displayitem (fullacct, shortacct, indent, bal) =
@@ -267,7 +269,9 @@ rsUpdate uopts d j rss@RSS{_rssAccount, _rssForceInclusive, _rssList=oldlist} =
       & reportSpecSetFutureAndForecast (forecast_ $ inputopts_ copts)
 
     -- gather transactions to display
-    items = accountTransactionsReport rspec' j thisacctq
+    items = styleAmounts styles $ accountTransactionsReport rspec' j thisacctq
+              where
+                styles = journalCommodityStylesWith HardRounding j
     items' =
       (if empty_ ropts then id else filter (not . mixedAmountLooksZero . fifth6)) $  -- without --empty, exclude no-change txns
       reverse  -- most recent last
