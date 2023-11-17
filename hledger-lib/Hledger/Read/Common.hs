@@ -25,6 +25,7 @@ Some of these might belong in Hledger.Read.JournalReader or Hledger.Read.
 {-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Functor law" #-}
 
 --- ** exports
 module Hledger.Read.Common (
@@ -320,9 +321,8 @@ journalFinalise iopts@InputOpts{..} f txt pj = do
   let
     fname = "journalFinalise " <> takeFileName f
     lbl = lbl_ fname
-  liftEither $ do
-    {-# HLINT ignore "Functor law" #-}
-    j <- pj{jglobalcommoditystyles=fromMaybe mempty $ commodity_styles_ balancingopts_}
+  liftEither $
+    pj{jglobalcommoditystyles=fromMaybe mempty $ commodity_styles_ balancingopts_}
       &   journalSetLastReadTime t                       -- save the last read time
       &   journalAddFile (f, txt)                        -- save the main file's info
       &   journalReverse                                 -- convert all lists to the order they were parsed
@@ -351,13 +351,6 @@ journalFinalise iopts@InputOpts{..} f txt pj = do
       <&> dbgJournalAcctDeclOrder (fname <> ": acct decls           : ")
       <&> journalRenumberAccountDeclarations
       <&> dbgJournalAcctDeclOrder (fname <> ": acct decls renumbered: ")
-    when strict_ $ do
-      journalCheckAccounts j                     -- If in strict mode, check all postings are to declared accounts
-      journalCheckCommodities j                  -- and using declared commodities
-      -- journalCheckPairedConversionPostings j     -- check conversion postings are in adjacent pairs
-                                                    -- disabled for now, single conversion postings are sometimes needed eg with paypal
-
-    return j
 
 -- | Apply any auto posting rules to generate extra postings on this journal's transactions.
 -- With a true first argument, adds visible tags to generated postings and modified transactions.

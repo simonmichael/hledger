@@ -8,12 +8,62 @@ Journals from various data formats. Use this module if you want to parse
 journal data or read journal files. Generally it should not be necessary
 to import modules below this one.
 
+== Journal reading
+
+There are three main Journal-reading functions:
+
+- readJournal to read from a Text value.
+  Identifies and calls an appropriate reader (parser + journalFinalise).
+  The parser may call other parsers as needed to handle include directives,
+  merging the resulting sub-Journals with the parent Journal as it goes.
+  This overall Journal is finalised at the end.
+  Then additional strict checking is done, if the inputopts specify it.
+
+- readJournalFile to read one file, or stdin if the file path is @-@.
+  Uses the file path/file name to help select the reader,
+  and calls readJournal.
+
+- readJournalFiles to read multiple files.
+  Calls readJournalFile for each file,
+  then merges all the Journals into one,
+  then does strict checking if inputopts specify it.
+  TODO: strict checking should be disabled until the end.
+
+Each of these also has an easier variant with ' suffix,
+which uses default options and has a simpler type signature.
+
+One more variant, @readJournalFilesAndLatestDates@, is used by
+the import command; it exposes the latest transaction date
+(and how many on the same day) seen for each file,
+after a successful import.
+
+== Journal merging
+
+Journal implements the Semigroup class, so two Journals can be merged
+into one Journal with @j1 <> j2@. This is implemented by the
+@journalConcat@ function, whose documentation explains what merging
+Journals means exactly.
+
+== Journal finalising
+
+This is post-processing done after parsing an input file, such as
+inferring missing information, normalising amount styles, doing extra
+error checks, and so on - a delicate and influential stage of data
+processing.
+
+In hledger it is done by @journalFinalise@, which converts a
+preliminary ParsedJournal to a validated, ready-to-use Journal.
+This is called immediately after the parsing of each input file.
+Notably, it is not called when Journals are merged.
+
 -}
 
 --- ** language
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE PackageImports      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
 --- ** exports
 module Hledger.Read (
@@ -26,16 +76,21 @@ module Hledger.Read (
   ensureJournalFileExists,
 
   -- * Journal parsing
+  runExceptT,
   readJournal,
   readJournalFile,
   readJournalFiles,
-  runExceptT,
+  readJournalFilesAndLatestDates,
 
   -- * Easy journal parsing
   readJournal',
   readJournalFile',
   readJournalFiles',
   orDieTrying,
+
+  -- * Misc
+  journalStrictChecks,
+  saveLatestDates,
 
   -- * Re-exported
   JournalReader.tmpostingrulep,
@@ -53,7 +108,7 @@ module Hledger.Read (
 --- ** imports
 import qualified Control.Exception as C
 import Control.Monad (unless, when)
-import "mtl" Control.Monad.Except (ExceptT(..), runExceptT)
+import "mtl" Control.Monad.Except (ExceptT(..), runExceptT, liftEither)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.Default (def)
 import Data.Foldable (asum)
@@ -85,6 +140,7 @@ import Hledger.Read.RulesReader (tests_RulesReader)
 -- import Hledger.Read.TimeclockReader (tests_TimeclockReader)
 import Hledger.Utils
 import Prelude hiding (getContents, writeFile)
+import Hledger.Data.JournalChecks (journalCheckAccounts, journalCheckCommodities)
 
 --- ** doctest setup
 -- $setup
@@ -126,7 +182,8 @@ type PrefixedFilePath = FilePath
 
 -- | @readJournal iopts mfile txt@
 --
--- Read a Journal from some text, or return an error message.
+-- Read a Journal from some text, with strict checks if enabled,
+-- or return an error message.
 --
 -- The reader (data format) is chosen based on, in this order:
 --
@@ -137,16 +194,19 @@ type PrefixedFilePath = FilePath
 -- - a file extension in @mfile@
 --
 -- If none of these is available, or if the reader name is unrecognised,
--- we use the journal reader. (We used to try all readers in this case;
--- since hledger 1.17, we prefer predictability.)
+-- we use the journal reader (for predictability).
+--
 readJournal :: InputOpts -> Maybe FilePath -> Text -> ExceptT String IO Journal
-readJournal iopts mpath txt = do
+readJournal iopts@InputOpts{strict_} mpath txt = do
   let r :: Reader IO = fromMaybe JournalReader.reader $ findReader (mformat_ iopts) mpath
   dbg6IO "readJournal: trying reader" (rFormat r)
-  rReadFn r iopts (fromMaybe "(string)" mpath) txt
+  j <- rReadFn r iopts (fromMaybe "(string)" mpath) txt
+  when strict_ $ liftEither $ journalStrictChecks j
+  return j
 
 -- | Read a Journal from this file, or from stdin if the file path is -,
--- or return an error message. The file path can have a READER: prefix.
+-- with strict checks if enabled, or return an error message.
+-- The file path can have a READER: prefix.
 --
 -- The reader (data format) to use is determined from (in priority order):
 -- the @mformat_@ specified in the input options, if any;
@@ -156,8 +216,25 @@ readJournal iopts mpath txt = do
 --
 -- The input options can also configure balance assertion checking, automated posting
 -- generation, a rules file for converting CSV data, etc.
+--
+-- If using --new, and if latest-file writing is enabled in input options,
+-- and after passing strict checks if enabled, a .latest.FILE file will be created/updated
+-- (for the main file only, not for included files),
+-- to remember the latest transaction date (and how many transactions on this date)
+-- successfully read.
+--
 readJournalFile :: InputOpts -> PrefixedFilePath -> ExceptT String IO Journal
-readJournalFile iopts prefixedfile = do
+readJournalFile iopts@InputOpts{new_, new_save_} prefixedfile = do
+  (j,latestdates) <- readJournalFileAndLatestDates iopts prefixedfile
+  when (new_ && new_save_) $ liftIO $
+    saveLatestDates latestdates (snd $ splitReaderPrefix prefixedfile)
+  return j
+
+-- The implementation of readJournalFile, but with --new, 
+-- also returns the latest transaction date(s) read.
+-- Used by readJournalFiles, to save those at the end.
+readJournalFileAndLatestDates :: InputOpts -> PrefixedFilePath -> ExceptT String IO (Journal,LatestDates)
+readJournalFileAndLatestDates iopts prefixedfile = do
   let
     (mfmt, f) = splitReaderPrefix prefixedfile
     iopts' = iopts{mformat_=asum [mfmt, mformat_ iopts]}
@@ -168,24 +245,49 @@ readJournalFile iopts prefixedfile = do
     -- <- T.readFile f  -- or without line ending translation, for testing
   j <- readJournal iopts' (Just f) t
   if new_ iopts
-     then do
-       ds <- liftIO $ previousLatestDates f
-       let (newj, newds) = journalFilterSinceLatestDates ds j
-       when (new_save_ iopts && not (null newds)) . liftIO $ saveLatestDates newds f
-       return newj
-     else return j
+    then do
+      ds <- liftIO $ previousLatestDates f
+      let (newj, newds) = journalFilterSinceLatestDates ds j
+      return (newj, newds)
+    else
+      return (j, [])
 
--- | Read a Journal from each specified file path and combine them into one.
--- Or, return the first error message.
+-- | Read a Journal from each specified file path (using @readJournalFile@) 
+-- and combine them into one; or return the first error message.
+-- Strict checks, if enabled, are deferred till the end.
+-- Writing .latest files, if enabled, is also deferred till the end,
+-- and happens only if strict checks pass.
 --
 -- Combining Journals means concatenating them, basically.
 -- The parse state resets at the start of each file, which means that
 -- directives & aliases do not affect subsequent sibling or parent files.
 -- They do affect included child files though.
 -- Also the final parse state saved in the Journal does span all files.
+--
 readJournalFiles :: InputOpts -> [PrefixedFilePath] -> ExceptT String IO Journal
-readJournalFiles iopts =
-  fmap (maybe def sconcat . nonEmpty) . mapM (readJournalFile iopts)
+readJournalFiles iopts@InputOpts{strict_,new_,new_save_} prefixedfiles = do
+  let iopts' = iopts{strict_=False, new_save_=False}
+  (j,latestdates) <-
+    traceOrLogAt 6 ("readJournalFiles: "++show prefixedfiles) $
+    readJournalFilesAndLatestDates iopts' prefixedfiles
+  when strict_ $ liftEither $ journalStrictChecks j
+  when (new_ && new_save_) $ liftIO $
+    mapM_ (saveLatestDates latestdates . snd . splitReaderPrefix) prefixedfiles
+  return j
+
+-- The implementation of readJournalFiles, but with --new, 
+-- also returns the latest transaction date(s) read in each file.
+-- Used by the import command, to save those at the end.
+readJournalFilesAndLatestDates :: InputOpts -> [PrefixedFilePath] -> ExceptT String IO (Journal,LatestDates)
+readJournalFilesAndLatestDates iopts =
+  fmap (maybe def sconcat . nonEmpty) . mapM (readJournalFileAndLatestDates iopts)
+
+-- | Run the extra -s/--strict checks on a journal,
+-- returning the first error message if any of them fail.
+journalStrictChecks :: Journal -> Either String ()
+journalStrictChecks j = do
+  journalCheckAccounts j
+  journalCheckCommodities j
 
 -- | An easy version of 'readJournal' which assumes default options, and fails
 -- in the IO monad.
@@ -255,10 +357,11 @@ type LatestDates = [Day]
 -- Ie, if the latest date appears once, return it in a one-element list,
 -- if it appears three times (anywhere), return three of it.
 latestDates :: [Day] -> LatestDates
-latestDates = headDef [] . take 1 . group . reverse . sort
+latestDates = {-# HLINT ignore "Avoid reverse" #-}
+  headDef [] . take 1 . group . reverse . sort
 
--- | Remember that these transaction dates were the latest seen when
--- reading this journal file.
+-- | Save the given latest date(s) seen in the given data FILE,
+-- in a hidden file named .latest.FILE, creating it if needed.
 saveLatestDates :: LatestDates -> FilePath -> IO ()
 saveLatestDates dates f = T.writeFile (latestDatesFileFor f) $ T.unlines $ map showDate dates
 
