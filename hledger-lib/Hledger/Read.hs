@@ -27,9 +27,8 @@ involves these steps:
 
 - if using -s/--strict: run additional strict checks
 
-- if running import: do the import, updating the journal file
-
-- if running import or print --new: save .latest files for each input file 
+- if running print --new: save .latest files for each input file.
+  (import also does this, as its final step.)
 
 == Journal merging
 
@@ -72,8 +71,8 @@ which uses default options and has a simpler type signature.
 
 One more variant, @readJournalFilesAndLatestDates@, is like
 readJournalFiles but exposing the latest transaction date
-(and how many on the same day) seen for each file,
-after a successful import. This is used by the import command.
+(and how many on the same day) seen for each file.
+This is used by the import command.
 
 -}
 
