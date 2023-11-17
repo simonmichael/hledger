@@ -1,5 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE NamedFieldPuns #-}
 
 module Hledger.Cli.Commands.Import (
   importmode
@@ -42,30 +44,52 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
           Nothing -> Just inferredStyles
           Just inputStyles -> Just $ inputStyles <> inferredStyles
 
-    iopts' = iopts{new_=True, new_save_=not dryrun, balancingopts_=defbalancingopts{commodity_styles_= combinedStyles}}
+    iopts' = iopts{
+      new_=True,  -- read only new transactions since last time
+      new_save_=False,  -- defer saving .latest files until the end
+      strict_=False,  -- defer strict checks until the end
+      balancingopts_=defbalancingopts{commodity_styles_= combinedStyles}  -- use amount styles from both when balancing txns
+      }
+
   case inputfiles of
     [] -> error' "please provide one or more input files as arguments"  -- PARTIAL:
     fs -> do
-      enewj <- runExceptT $ readJournalFiles iopts' fs
-      case enewj of
-        Left e     -> error' e
-        Right newj ->
+      enewjandlatestdates <- runExceptT $ readJournalFilesAndLatestDates iopts' fs
+      case enewjandlatestdates of
+        Left err -> error' err
+        Right (newj, latestdates) ->
           case sortOn tdate $ jtxns newj of
             -- with --dry-run the output should be valid journal format, so messages have ; prepended
             [] -> do
               -- in this case, we vary the output depending on --dry-run, which is a bit awkward
               let semicolon = if dryrun then "; " else "" :: String
               printf "%sno new transactions found in %s\n\n" semicolon inputstr
-            newts | dryrun -> do
-              printf "; would import %d new transactions from %s:\n\n" (length newts) inputstr
-              -- TODO how to force output here ?
-              -- length (jtxns newj) `seq` print' opts{rawopts_=("explicit",""):rawopts} newj
-              mapM_ (T.putStr . showTransaction) newts
+
             newts | catchup -> do
               printf "marked %s as caught up, skipping %d unimported transactions\n\n" inputstr (length newts)
+
             newts -> do
-              -- XXX This writes unix line endings (\n), some at least,
-              -- even if the file uses dos line endings (\r\n), which could leave
-              -- mixed line endings in the file. See also writeFileWithBackupIfChanged.
-              foldM_ (`journalAddTransaction` opts) j newts  -- gets forced somehow.. (how ?)
-              printf "imported %d new transactions from %s to %s\n" (length newts) inputstr (journalFilePath j)
+              if dryrun
+              then do
+                -- first show imported txns
+                printf "; would import %d new transactions from %s:\n\n" (length newts) inputstr
+                mapM_ (T.putStr . showTransaction) newts
+                -- then check the whole journal with them added, if in strict mode
+                when (strict_ iopts) $ strictChecks
+
+              else do
+                -- first check the whole journal with them added, if in strict mode
+                when (strict_ iopts) $ strictChecks
+                -- then add (append) the transactions to the main journal file
+                -- XXX This writes unix line endings (\n), some at least,
+                -- even if the file uses dos line endings (\r\n), which could leave
+                -- mixed line endings in the file. See also writeFileWithBackupIfChanged.
+                foldM_ (`journalAddTransaction` opts) j newts  -- gets forced somehow.. (how ?)
+                printf "imported %d new transactions from %s to %s\n" (length newts) inputstr (journalFilePath j)
+                -- and finally update the .latest files
+                mapM_ (saveLatestDates latestdates . snd . splitReaderPrefix) fs
+
+              where
+                -- add the new transactions to the journal in memory and check the whole thing
+                strictChecks = either fail pure $ journalStrictChecks j'
+                  where j' = foldl' (flip addTransaction) j newts

@@ -1,9 +1,10 @@
 ## import
 
-Read new transactions added to each FILE since last run, and add them to
-the journal. Or with --dry-run, just print the transactions 
-that would be added. Or with --catchup, just mark all of the FILEs'
-transactions as imported, without actually importing any.
+Read new transactions added to each FILE provided as arguments since
+last run, and add them to the journal.
+Or with --dry-run, just print the transactions that would be added.
+Or with --catchup, just mark all of the FILEs' current transactions 
+as imported, without importing them.
 
 _FLAGS
 
@@ -22,14 +23,14 @@ most common import source, and these docs focus on that case.
 
 ### Deduplication
 
-As a convenience `import` does *deduplication* while reading transactions.
-This does not mean "ignore transactions that look the same",
-but rather "ignore transactions that have been seen before".
-This is intended for when you are periodically importing foreign data
-which may contain already-imported transactions.
-So eg, if every day you download bank CSV files containing redundant data,
-you can safely run `hledger import bank.csv` and only new transactions will be imported.
-(`import` is idempotent.)
+`import` does *time-based deduplication*, to detect only the new
+transactions since the last successful import.
+(This does not mean "ignore transactions that look the same",
+but rather "ignore transactions that have been seen before".)
+This is intended for when you are periodically importing downloaded data,
+which may overlap with previous downloads.
+Eg if every week (or every day) you download a bank's last three months of CSV data,
+you can safely run `hledger import thebank.csv` each time and only new transactions will be imported.
 
 Since the items being read (CSV records, eg) often do not come with
 unique identifiers, hledger detects new transactions by date, assuming
@@ -46,9 +47,11 @@ if you import often, the new transactions will be few, so less likely
 to be the ones affected).
 
 hledger remembers the latest date processed in each input file by
-saving a hidden ".latest" state file in the same directory. Eg when
-reading `finance/bank.csv`, it will look for and update the
-`finance/.latest.bank.csv` state file. 
+saving a hidden ".latest.FILE" file in FILE's directory
+(after a succesful import).
+
+Eg when reading `finance/bank.csv`, it will look for and update the
+`finance/.latest.bank.csv` state file.
 The format is simple: one or more lines containing the
 same ISO-format date (YYYY-MM-DD), meaning "I have processed
 transactions up to this date, and this many of them on that date."
