@@ -10,32 +10,26 @@ to import modules below this one.
 
 == Journal reading
 
-There are three main Journal-reading functions:
+Reading an input file (in journal, csv, timedot, or timeclock format..)
+involves these steps:
 
-- readJournal to read from a Text value.
-  Identifies and calls an appropriate reader (parser + journalFinalise).
-  The parser may call other parsers as needed to handle include directives,
-  merging the resulting sub-Journals with the parent Journal as it goes.
-  This overall Journal is finalised at the end.
-  Then additional strict checking is done, if the inputopts specify it.
+- select an appropriate file format "reader"
+  based on filename extension/file path prefix/function parameter.
+  A reader contains a parser and a finaliser (usually @journalFinalise@).
 
-- readJournalFile to read one file, or stdin if the file path is @-@.
-  Uses the file path/file name to help select the reader,
-  and calls readJournal.
+- run the parser to get a ParsedJournal
+  (this may run additional sub-parsers to parse included files)
 
-- readJournalFiles to read multiple files.
-  Calls readJournalFile for each file,
-  then merges all the Journals into one,
-  then does strict checking if inputopts specify it.
-  TODO: strict checking should be disabled until the end.
+- run the finaliser to get a complete Journal, which passes standard checks
 
-Each of these also has an easier variant with ' suffix,
-which uses default options and has a simpler type signature.
+- if reading multiple files: merge the per-file Journals into one
+  overall Journal
 
-One more variant, @readJournalFilesAndLatestDates@, is used by
-the import command; it exposes the latest transaction date
-(and how many on the same day) seen for each file,
-after a successful import.
+- if using -s/--strict: run additional strict checks
+
+- if running import: do the import, updating the journal file
+
+- if running import or print --new: save .latest files for each input file 
 
 == Journal merging
 
@@ -47,14 +41,39 @@ Journals means exactly.
 == Journal finalising
 
 This is post-processing done after parsing an input file, such as
-inferring missing information, normalising amount styles, doing extra
-error checks, and so on - a delicate and influential stage of data
-processing.
-
+inferring missing information, normalising amount styles,
+checking for errors and so on - a delicate and influential stage
+of data processing. 
 In hledger it is done by @journalFinalise@, which converts a
 preliminary ParsedJournal to a validated, ready-to-use Journal.
 This is called immediately after the parsing of each input file.
-Notably, it is not called when Journals are merged.
+It is not called when Journals are merged.
+
+== Journal reading API
+
+There are three main Journal-reading functions:
+
+- readJournal to read from a Text value.
+  Selects a reader and calls its parser and finaliser,
+  then does strict checking if needed.
+
+- readJournalFile to read one file, or stdin if the file path is @-@.
+  Uses the file path/file name to help select the reader,
+  calls readJournal,
+  then writes .latest files if needed.
+
+- readJournalFiles to read multiple files.
+  Calls readJournalFile for each file (without strict checking or .latest file writing)
+  then merges the Journals into one,
+  then does strict checking and .latest file writing at the end if needed.
+
+Each of these also has an easier variant with ' suffix,
+which uses default options and has a simpler type signature.
+
+One more variant, @readJournalFilesAndLatestDates@, is like
+readJournalFiles but exposing the latest transaction date
+(and how many on the same day) seen for each file,
+after a successful import. This is used by the import command.
 
 -}
 
