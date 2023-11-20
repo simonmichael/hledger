@@ -1175,7 +1175,7 @@ Scientific E notation is allowed:
 A *decimal mark* can be written as a period or a comma:
 
     1.23
-    1,23456780000009
+    1,23
 
 In the integer part of the quantity (left of the decimal mark), groups
 of digits can optionally be separated by a *digit group mark* - a
@@ -1186,22 +1186,17 @@ space, comma, or period (different from the decimal mark):
     INR 9,99,99,999.00
           1 000 000.9455
 
-Note, a number containing a single digit group mark and no decimal mark is ambiguous.
-Are these digit group marks or decimal marks ?
+hledger is not biased towards [period or comma decimal marks][international number formats],
+so a number containing just one period or comma, like `1,000` or `1.000`, is ambiguous.
+In such cases hledger assumes it is a decimal mark, parsing both of these as 1.
 
-    1,000
-    1.000
+[international number formats]: https://en.wikipedia.org/wiki/Decimal_separator#Conventions_worldwide
 
-If you don't tell it otherwise, hledger will assume both of the above are decimal marks,
-parsing both numbers as 1.
-
-To prevent confusing parsing mistakes and undetected typos, 
-especially if your data contains digit group marks (eg, thousands separators),
-we recommend explicitly declaring the decimal mark character in each journal file,
-using a directive at the top of the file.
-The [`decimal-mark`](#decimal-mark) directive is best,
-otherwise [`commodity`](#commodity-directive) directives will also work.
-These are described below.
+To disambiguate these and ensure accurate number parsing, especially
+if you use digit group marks, we recommend declaring the decimal mark.
+You can declare it for each file with [`decimal-mark`](#decimal-mark-directive) directives,
+or for each commodity with [`commodity`](#commodity-directive) directives
+(described below).
 
 ### Commodity
 
@@ -1278,11 +1273,13 @@ the `-c/--commodity-style` command line option.
 
 ### Rounding
 
-Amounts are stored internally as decimal numbers with up to 255 decimal places,
-and displayed with the number of decimal places specified by the commodity display style.
-Note, hledger uses [banker's rounding](https://en.wikipedia.org/wiki/Bankers_rounding): 
-it rounds to the nearest even number, eg 0.5 displayed with zero decimal places is "0").
-
+Amounts are stored internally as decimal numbers with up to 255 decimal places.
+They are displayed 
+with their original journal precisions by print and print-like reports,
+and rounded to their display precision (the number of decimal digits specified by the commodity display style)
+by other reports.
+When rounding, hledger uses [banker's rounding](https://en.wikipedia.org/wiki/Bankers_rounding)
+(it rounds to the nearest even digit). So eg 0.5 displayed with zero decimal digits appears as "0".
 
 <a name="transaction-prices"></a>
 
@@ -2096,92 +2093,82 @@ $ hledger accounts --alias assets=bassetts type:a
 
 ## `commodity` directive
 
-You can use `commodity` directives to declare your commodities.
-In fact the `commodity` directive performs several functions at once:
+The `commodity` directive performs several functions:
 
-1. It declares commodities which may be used in the journal.
-   This can optionally be enforced, providing useful error checking.
-   (Cf [Commodity error checking](#commodity-error-checking))
+1. It declares which commodity symbols may be used in the journal,
+   enabling useful error checking with [strict mode] or the check command.
+   (See [Commodity error checking](#commodity-error-checking) below.)
 
-2. It declares which decimal mark character (period or comma), to
-   expect when parsing input - useful to disambiguate international
-   number formats in your data. Without this, hledger will parse both
-   `1,000` and `1.000` as 1. 
-   (Cf [Amounts](#amounts))
+2. It declares the precision with which this commodity's amounts
+   should be compared when checking for balanced transactions.
 
-3. It declares how to render the commodity's amounts when displaying
-   output - the decimal mark, any digit group marks, the number of
-   decimal places, symbol placement and so on.
-   (Cf [Commodity display style](#commodity-display-style))
+3. It declares how this commodity's amounts should be displayed,
+   eg their symbol placement, digit group mark if any, digit group sizes,
+   decimal mark (period or comma), and the number of decimal places.
+   (See [Commodity display style](#commodity-display-style) above.)
 
-You will run into one of the problems solved by commodity directives
-sooner or later, so we recommend using them, for robust and
-predictable parsing and display.
+4. It sets which decimal mark (period or comma) to expect when parsing subsequent amounts in this commodity
+   (if there is no `decimal-mark` directive in effect.
+   See [Decimal marks, digit group marks](hledger.md#decimal-marks-digit-group-marks) above.
+   For related dev discussion, see [#793](https://github.com/simonmichael/hledger/issues/793).)
 
-Generally you should put them at the top of your journal file
-(since for function 2, they affect only following amounts,
-cf [#793](https://github.com/simonmichael/hledger/issues/793)).
+Declaring commodities solves several common parsing/display problems, so we recommend it.
+Generally you should put `commodity` directives at the top of your journal file (because function 4 is position-sensitive).
 
-A commodity directive is just the word `commodity` followed by a
-sample [amount](#amounts), like this:
+### Commodity directive syntax
+
+A commodity directive is normally the word `commodity` followed by a sample [amount](#amounts) (and optionally a comment).
+Only the amount's symbol and format is significant.
+Eg:
 
 ```journal
-;commodity SAMPLEAMOUNT
-
 commodity $1000.00
-commodity 1,000.0000 AAAA  ; optional same-line comment
+commodity 1.000,00 EUR
+commodity 1 000 000.0000   ; the no-symbol commodity
 ```
 
-It may also be written on multiple lines, and use the `format`
-subdirective, as in Ledger. Note in this case the commodity symbol
-appears twice; it must be the same in both places:
+The sample amount must always include a decimal mark (a period or comma).
+To specify no decimal digits, write it at the end:
 
 ```journal
-;commodity SYMBOL
-;  format SAMPLEAMOUNT
+commodity 1000. AAAA       ; show with no decimal digits
+```
 
+Commodity symbols containing spaces, numbers, or punctuation must be enclosed in double quotes, [as usual](#commodity):
+
+```journal
+commodity 1.0000 "AAAA 2023"
+```
+
+Commodity directives normally include a sample amount, but can declare only a symbol (ie, just function 1 above):
+
+```journal
+commodity $
+commodity INR
+commodity "AAAA 2023"
+commodity ""               ; the no-symbol commodity
+```
+
+Commodity directives may also be written with an indented `format` subdirective, as in Ledger.
+The symbol is repeated and must be the same in both places.
+Other subdirectives are currently ignored:
+
+```journal
 ; display indian rupees with currency name on the left,
 ; thousands, lakhs and crores comma-separated,
 ; period as decimal point, and two decimal places.
 commodity INR
   format INR 1,00,00,000.00
+  an unsupported subdirective  ; ignored by hledger
 ```
-
-Other indented subdirectives are currently ignored.
-
-Remember that if the commodity symbol contains spaces, numbers, or
-punctuation, it must be enclosed in double quotes (cf [Commodity](#commodity)).
-
-The amount's quantity does not matter; only the format is significant.
-It must include a decimal mark - either a period or a comma - followed
-by 0 or more decimal digits.
-
-A few more examples:
-```journal
-# number formats for $, EUR, INR and the no-symbol commodity:
-commodity $1,000.00
-commodity EUR 1.000,00
-commodity INR 9,99,99,999.0
-commodity 1 000 000.
-```
-
-Note hledger normally uses 
-[banker's rounding](https://en.wikipedia.org/wiki/Bankers_rounding), 
-so 0.5 displayed with zero decimal digits is "0". 
-(More at [Commodity display style](#commodity-display-style).)
-
-Even in the presence of commodity directives, the commodity display style 
-can still be [overridden](#commodity-styles) by supplying a command line option.
 
 ### Commodity error checking
 
-In [strict mode], enabled with the `-s`/`--strict` flag, hledger will report an error if a
-commodity symbol is used that has not been declared by a [`commodity` directive](#commodity-directive).
-This works similarly to [account error checking](#account-error-checking), see the notes there for more details.
+In [strict mode] (`-s`/`--strict`) (or when you run `hledger check commodities`),
+hledger will report an error if an undeclared commodity symbol is used.
+(With one exception: zero amounts are always allowed to have no commodity symbol.)
+It works like [account error checking](#account-error-checking) (described above).
 
-Note, this disallows amounts without a commodity symbol,
-because currently it's not possible (?) to declare the "no-symbol" commodity with a directive.
-This is one exception for convenience: zero amounts are always allowed to have no commodity symbol.
 
 ## `decimal-mark` directive
 
