@@ -100,10 +100,9 @@ if [[ $1 =~ ^[0-9]+$ ]]; then scale=$1; shift; fi
 
 # helpers
 
-# The hledger reporting command. It should produce a single-currency,
-# two-column CSV balance report with one line per period.
-# It must have a report interval for --transpose to work.
-# shellcheck disable=SC2124
+# The hledger reporting command. It should produce a two-column CSV
+# report with one line per period and one currency.  It must have a
+# report interval for --transpose to work.  shellcheck disable=SC2124
 cmd="hledger balance -Ocsv --transpose -N -0 --layout=bare -M $@"
 
 printcmd() {
