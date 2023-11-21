@@ -3355,15 +3355,18 @@ MATCHERC,VALUE1,VALUE2,...
 <empty line>
 ```
 
-The first character after `if` is taken to be the separator for the rest of the table.
-It should be a non-alphanumeric character like `,` or `|` that does not appear anywhere else in the table.
-(Note: it is unrelated to the CSV file's separator.)
-Whitespace can be used in the matcher lines for readability, but not in the if line currently.
-The table must be terminated by an empty line (or end of file).
-Each line must contain the same number of separators; empty values are allowed.
+The first character after `if` is taken to be this if table's field separator.
+It is unrelated to the separator used in the CSV file.
+It should be a non-alphanumeric character like `,` or `|` that does not appear anywhere else in the table
+(it should not be used in field names or matchers or values, and it cannot be escaped with a backslash).
 
-The above means: try all of the matchers; whenever a matcher succeeds, 
-assign all of the values on that line to the corresponding hledger fields;
+Each line must contain the same number of separators; empty values are allowed.
+Whitespace can be used in the matcher lines for readability (but not in the if line, currently).
+The table must be terminated by an empty line (or end of file).
+
+An if table like the above is interpreted as follows:
+try all of the matchers; 
+whenever a matcher succeeds, assign all of the values on that line to the corresponding hledger fields;
 later lines can overrider earlier ones.
 It is equivalent to this sequence of if blocks:
 
