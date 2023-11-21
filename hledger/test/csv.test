@@ -561,7 +561,7 @@ $  ./csvtest.sh
 
 >=0
 
-# ** 27. match a specific field
+# ** 27. query by description
 <
 2020-01-01, 1
 2020-01-01, 2
@@ -1094,7 +1094,30 @@ $  ./csvtest.sh
 >2 /unexpected space/
 >=1
 
-## . 
+# ** 56. match transaction by posting tag (#2114)
+<
+2020-01-01, 1
+RULES
+fields date, desc
+if %desc 1
+ comment  ttag:tval
+ comment1 ptag:pval
+ account1 a
+
+$  ./csvtest.sh tag:ptag
+2020-01-01  ; ttag:tval
+    a                  ; ptag:pval
+
+>=
+
+# ** 57. match transaction by transaction tag (#2114)
+$  ./csvtest.sh tag:ttag
+2020-01-01  ; ttag:tval
+    a                  ; ptag:pval
+
+>=
+
+# ** .
 #<
 #$  ./csvtest.sh
 #>=0

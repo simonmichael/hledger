@@ -98,6 +98,7 @@ module Hledger.Read.Common (
   emptyorcommentlinep,
   followingcommentp,
   transactioncommentp,
+  commenttagsp,
   postingcommentp,
 
   -- ** bracketed dates

@@ -75,9 +75,10 @@ import Text.Printf (printf)
 
 import Hledger.Data
 import Hledger.Utils
-import Hledger.Read.Common (aliasesFromOpts, Reader(..), InputOpts(..), amountp, statusp, journalFinalise, accountnamep )
+import Hledger.Read.Common (aliasesFromOpts, Reader(..), InputOpts(..), amountp, statusp, journalFinalise, accountnamep, commenttagsp )
 import Hledger.Read.CsvUtils
 import System.Directory (doesFileExist, getHomeDirectory)
+import Data.Either (fromRight)
 
 --- ** doctest setup
 -- $setup
@@ -1067,6 +1068,7 @@ transactionFromCsvRecord timesarezoned mtzin tzout sourcepos rules record = t
     code        = maybe "" singleline' $ fieldval "code"
     description = maybe "" singleline' $ fieldval "description"
     comment     = maybe "" unescapeNewlines $ fieldval "comment"
+    ttags       = fromRight [] $ rtp commenttagsp comment
     precomment  = maybe "" unescapeNewlines $ fieldval "precomment"
 
     singleline' = T.unwords . filter (not . T.null) . map T.strip . T.lines
@@ -1079,6 +1081,7 @@ transactionFromCsvRecord timesarezoned mtzin tzout sourcepos rules record = t
     p1IsVirtual = (accountNamePostingType <$> fieldval "account1") == Just VirtualPosting
     ps = [p | n <- [1..maxpostings]
          ,let cmt  = maybe "" unescapeNewlines $ fieldval ("comment"<> T.pack (show n))
+         ,let ptags = fromRight [] $ rtp commenttagsp cmt
          ,let currency = fromMaybe "" (fieldval ("currency"<> T.pack (show n)) <|> fieldval "currency")
          ,let mamount  = getAmount rules record currency p1IsVirtual n
          ,let mbalance = getBalance rules record currency n
@@ -1091,6 +1094,7 @@ transactionFromCsvRecord timesarezoned mtzin tzout sourcepos rules record = t
                              ,ptransaction      = Just t
                              ,pbalanceassertion = mkBalanceAssertion rules record <$> mbalance
                              ,pcomment          = cmt
+                             ,ptags             = ptags
                              ,ptype             = accountNamePostingType acct
                              }
          ]
@@ -1106,6 +1110,7 @@ transactionFromCsvRecord timesarezoned mtzin tzout sourcepos rules record = t
           ,tcode             = code
           ,tdescription      = description
           ,tcomment          = comment
+          ,ttags             = ttags
           ,tprecedingcomment = precomment
           ,tpostings         = ps
           }
