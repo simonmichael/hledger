@@ -183,7 +183,7 @@ library
     , safe >=0.3.19
     , shakespeare >=2.0.2.2
     , template-haskell
-    , text >=1.2
+    , text >=1.2.4.1
     , time >=1.5
     , transformers
     , unix-compat

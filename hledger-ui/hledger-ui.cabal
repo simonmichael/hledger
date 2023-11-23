@@ -91,7 +91,7 @@ library
     , process >=1.2
     , safe >=0.3.19
     , split >=0.1
-    , text >=1.2
+    , text >=1.2.4.1
     , text-zipper >=0.4
     , time >=1.5
     , transformers

@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.35.2.
+-- This file has been generated from package.yaml by hpack version 0.36.0.
 --
 -- see: https://github.com/sol/hpack
 
@@ -167,7 +167,7 @@ library
     , tabular >=0.2
     , tasty >=1.2.3
     , temporary
-    , text >=0.11
+    , text >=1.2.4.1
     , text-ansi >=0.2.1
     , time >=1.5
     , timeit
@@ -217,7 +217,7 @@ executable hledger
     , tabular >=0.2
     , tasty >=1.2.3
     , temporary
-    , text >=0.11
+    , text >=1.2.4.1
     , text-ansi >=0.2.1
     , time >=1.5
     , timeit
@@ -268,7 +268,7 @@ test-suite unittest
     , tabular >=0.2
     , tasty >=1.2.3
     , temporary
-    , text >=0.11
+    , text >=1.2.4.1
     , text-ansi >=0.2.1
     , time >=1.5
     , timeit
@@ -318,7 +318,7 @@ benchmark bench
     , tabular >=0.2
     , tasty >=1.2.3
     , temporary
-    , text >=0.11
+    , text >=1.2.4.1
     , text-ansi >=0.2.1
     , time >=1.5
     , timeit

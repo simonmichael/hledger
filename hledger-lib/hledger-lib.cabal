@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.35.2.
+-- This file has been generated from package.yaml by hpack version 0.36.0.
 --
 -- see: https://github.com/sol/hpack
 
@@ -144,7 +144,7 @@ library
     , tasty-hunit >=0.10.0.2
     , template-haskell
     , terminal-size >=0.3.3
-    , text >=1.2
+    , text >=1.2.4.1
     , text-ansi >=0.2.1
     , time >=1.5
     , timeit
@@ -203,7 +203,7 @@ test-suite doctest
     , tasty-hunit >=0.10.0.2
     , template-haskell
     , terminal-size >=0.3.3
-    , text >=1.2
+    , text >=1.2.4.1
     , text-ansi >=0.2.1
     , time >=1.5
     , timeit
@@ -264,7 +264,7 @@ test-suite unittest
     , tasty-hunit >=0.10.0.2
     , template-haskell
     , terminal-size >=0.3.3
-    , text >=1.2
+    , text >=1.2.4.1
     , text-ansi >=0.2.1
     , time >=1.5
     , timeit
