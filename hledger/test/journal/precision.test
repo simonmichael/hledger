@@ -147,3 +147,44 @@ $ hledger -f- print --explicit
 $ hledger -f- reg
 2023-01-01                      (a)                          1.0 A         1.0 A
 2023-01-02                      (a)                          1.2 A         2.2 A
+
+# ** 10. print-like reports add a trailing decimal mark, when amounts have digit group marks but no decimal digits.
+<
+commodity 1.000, JPY
+
+2023-01-01
+  (a)                 1 JPY
+
+2023-01-02
+  (b)                 1,2 JPY
+
+2023-01-03
+  (c)             1.000 JPY
+
+$ hledger -f - print
+2023-01-01
+    (a)           1 JPY
+
+2023-01-02
+    (b)         1,2 JPY
+
+2023-01-03
+    (c)      1.000, JPY
+
+>=
+
+# ** 11. Non-print-like reports show all amounts with consistent display precision
+$ hledger -f - bal
+               1 JPY  a
+               1 JPY  b
+           1.000 JPY  c
+--------------------
+           1.002 JPY  
+
+# ** 12. csv, json and other machine-readable formats show all amounts without digit groups and with period decimal marks.
+$ hledger -f - bal -O csv
+"account","balance"
+"a","1 JPY"
+"b","1 JPY"
+"c","1000 JPY"
+"total","1002 JPY"

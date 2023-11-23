@@ -221,7 +221,9 @@ quoteCommoditySymbolIfNeeded s
 data AmountDisplayOpts = AmountDisplayOpts
   { displayPrice         :: Bool       -- ^ Whether to display the Price of an Amount.
   , displayZeroCommodity :: Bool       -- ^ If the Amount rounds to 0, whether to display its commodity string.
-  , displayThousandsSep  :: Bool       -- ^ Whether to display thousands separators.
+  , displayThousandsSep  :: Bool       -- ^ Whether to display digit group marks (eg thousands separators)
+  , displayAddDecimalMark  :: Bool     -- ^ Whether to add a trailing decimal mark when there are no decimal digits 
+                                       --   and there are digit group marks, to disambiguate
   , displayColour        :: Bool       -- ^ Whether to colourise negative Amounts.
   , displayOneLine       :: Bool       -- ^ Whether to display on one line.
   , displayMinWidth      :: Maybe Int  -- ^ Minimum width to pad to
@@ -240,6 +242,7 @@ noColour = AmountDisplayOpts { displayPrice         = True
                              , displayColour        = False
                              , displayZeroCommodity = False
                              , displayThousandsSep  = True
+                             , displayAddDecimalMark = False
                              , displayOneLine       = False
                              , displayMinWidth      = Just 0
                              , displayMaxWidth      = Nothing
@@ -645,22 +648,25 @@ showAmount = wbUnpack . showAmountB noColour
 --
 showAmountB :: AmountDisplayOpts -> Amount -> WideBuilder
 showAmountB _ Amount{acommodity="AUTO"} = mempty
-showAmountB opts a@Amount{astyle=style} =
+showAmountB
+  AmountDisplayOpts{displayPrice, displayColour, displayZeroCommodity, 
+    displayThousandsSep, displayAddDecimalMark, displayOrder}
+  a@Amount{astyle=style} =
     color $ case ascommodityside style of
       L -> showC (wbFromText comm) space <> quantity' <> price
       R -> quantity' <> showC space (wbFromText comm) <> price
   where
-    color = if displayColour opts && isNegativeAmount a then colorB Dull Red else id
-    quantity = showamountquantity $
-      if displayThousandsSep opts then a else a{astyle=(astyle a){asdigitgroups=Nothing}}
+    color = if displayColour && isNegativeAmount a then colorB Dull Red else id
+    quantity = showAmountQuantity displayAddDecimalMark $
+      if displayThousandsSep then a else a{astyle=(astyle a){asdigitgroups=Nothing}}
     (quantity', comm)
-      | amountLooksZero a && not (displayZeroCommodity opts) = (WideBuilder (TB.singleton '0') 1, "")
+      | amountLooksZero a && not displayZeroCommodity = (WideBuilder (TB.singleton '0') 1, "")
       | otherwise = (quantity, quoteCommoditySymbolIfNeeded $ acommodity a)
     space = if not (T.null comm) && ascommodityspaced style then WideBuilder (TB.singleton ' ') 1 else mempty
     -- concatenate these texts,
     -- or return the empty text if there's a commodity display order. XXX why ?
-    showC l r = if isJust (displayOrder opts) then mempty else l <> r
-    price = if displayPrice opts then showAmountPrice a else mempty
+    showC l r = if isJust displayOrder then mempty else l <> r
+    price = if displayPrice then showAmountPrice a else mempty
 
 -- | Colour version. For a negative amount, adds ANSI codes to change the colour,
 -- currently to hard-coded red.
@@ -691,10 +697,10 @@ showAmountDebug Amount{..} =
 
 -- | Get a Text Builder for the string representation of the number part of of an amount,
 -- using the display settings from its commodity. Also returns the width of the number.
--- A special case: if it is showing digit group separators but no decimal places,
--- show a decimal mark (with nothing after it) to make it easier to parse correctly.
-showamountquantity :: Amount -> WideBuilder
-showamountquantity amt@Amount{astyle=AmountStyle{asdecimalmark=mdec, asdigitgroups=mgrps}} =
+-- With a true first argument, if there are no decimal digits but there are digit group separators,
+-- it shows the amount with a trailing decimal mark to help disambiguate it for parsing.
+showAmountQuantity :: Bool -> Amount -> WideBuilder
+showAmountQuantity disambiguate amt@Amount{astyle=AmountStyle{asdecimalmark=mdec, asdigitgroups=mgrps}} =
     signB <> intB <> fracB
   where
     Decimal decplaces mantissa = amountRoundedQuantity amt
@@ -706,13 +712,13 @@ showamountquantity amt@Amount{astyle=AmountStyle{asdecimalmark=mdec, asdigitgrou
     (intPart, fracPart) = T.splitAt intLen numtxtwithzero
     intB = applyDigitGroupStyle mgrps intLen $ if decplaces == 0 then numtxt else intPart
     signB = if mantissa < 0 then WideBuilder (TB.singleton '-') 1 else mempty
-    fracB = if decplaces > 0 || isshowingdigitgroupseparator
+    fracB = if decplaces > 0 || (isshowingdigitgroupseparator && disambiguate)
       then WideBuilder (TB.singleton dec <> TB.fromText fracPart) (1 + fromIntegral decplaces)
       else mempty
-
-    isshowingdigitgroupseparator = case mgrps of
-      Just (DigitGroups _ (rightmostgrplen:_)) -> intLen > fromIntegral rightmostgrplen
-      _ -> False
+      where
+        isshowingdigitgroupseparator = case mgrps of
+          Just (DigitGroups _ (rightmostgrplen:_)) -> intLen > fromIntegral rightmostgrplen
+          _ -> False
 
 -- | Given an integer as text, and its length, apply the given DigitGroupStyle,
 -- inserting digit group separators between digit groups where appropriate.

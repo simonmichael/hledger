@@ -287,7 +287,10 @@ postingAsLines elideamount onelineamounts acctwidth amtwidth p =
     -- amtwidth at all.
     shownAmounts
       | elideamount = [mempty]
-      | otherwise   = showMixedAmountLinesB noColour{displayZeroCommodity=True, displayOneLine=onelineamounts} $ pamount p
+      | otherwise   = showMixedAmountLinesB displayopts $ pamount p
+        where displayopts = noColour{
+          displayZeroCommodity=True, displayAddDecimalMark=True, displayOneLine=onelineamounts
+          }
     thisamtwidth = maximumBound 0 $ map wbWidth shownAmounts
 
     -- when there is a balance assertion, show it only on the last posting line
