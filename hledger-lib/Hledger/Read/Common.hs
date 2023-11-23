@@ -959,6 +959,7 @@ lotcostp =
   label "ledger-style lot cost" $ do
   char '{'
   doublebrace <- option False $ char '{' >> pure True
+  lift skipNonNewlineSpaces
   _fixed <- fmap isJust $ optional $ lift skipNonNewlineSpaces >> char '='
   lift skipNonNewlineSpaces
   _a <- simpleamountp False
