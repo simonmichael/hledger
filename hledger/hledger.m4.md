@@ -4165,23 +4165,21 @@ To generate time logs, ie to clock in and clock out, you could:
 
 `timedot` format is hledger's human-friendly time logging format.
 Compared to [`timeclock` format](#timeclock), it is
-
-- convenient for quick, approximate, and retroactive time logging
-- readable: you can see at a glance where time was spent.
-
-A timedot file contains a series of day entries, which might look like this:
+more convenient for quick, approximate, and retroactive time logging,
+and more human-readable (you can see at a glance where time was spent).
+A quick example:
 
 ```timedot
 2023-05-01
-hom:errands          .... ....  ; two hours
+hom:errands          .... ....  ; two hours; the space is ignored
 fos:hledger:timedot  ..         ; half an hour
-per:admin:finance
+per:admin:finance               ; no time spent yet
 ```
 
-hledger reads this as a transaction on this day with three (unbalanced) postings,
-where each dot represents "0.25". No commodity is assumed, but normally we interpret
-it as hours, with each dot representing a quarter-hour. It's convenient, though
-not required, to group the dots in fours for easy reading.
+hledger reads this as a transaction on this day with three
+(unbalanced) postings, where each dot represents "0.25".
+No commodity symbol is assumed, but we typically interpret it as hours.
+
 
 ```shell
 $ hledger -f a.timedot print   # .timedot file extension (or timedot: prefix) is required
@@ -4191,53 +4189,62 @@ $ hledger -f a.timedot print   # .timedot file extension (or timedot: prefix) is
     (per:admin:finance)                 0
 ```
 
-A transaction begins with a non-indented **[simple date](#simple-dates)** (Y-M-D, Y/M/D, or Y.M.D).
-It can optionally be preceded by one or more stars and a space, for Emacs org mode compatibility.
-It can optionally be followed on the same line by a transaction description,
+A timedot file contains a series of transactions (usually one per day).
+Each begins with a **[simple date](#simple-dates)** (Y-M-D, Y/M/D, or Y.M.D),
+optionally be followed on the same line by a transaction description,
 and/or a transaction comment following a semicolon.
 
 After the date line are zero or more time postings, consisting of:
 
-- an **account name** - any hledger-style [account name](#account-names), optionally hierarchical, optionally indented.
-- **two or more spaces** - a field separator, required if there is an amount (as in journal format).
-- an optional **timedot amount** - dots representing quarter hours, or a number representing hours, optionally with a unit suffix.
-- an optional **posting comment** following a semicolon.
+- **An account name** - any hledger-style [account name](#account-names), optionally indented.
 
-Timedot amounts can be:
+- **Two or more spaces** - required if there is an amount (as in journal format).
 
-- **dots**: zero or more period characters (`.`), each representing 0.25.
-  Spaces are ignored and can be used for grouping.
-  Eg: `.... ..`
+- **A timedot amount**, which can be
 
-- or a **number**. Eg: `1.5`
+  - empty (representing zero)
 
-- or a **number immediately followed by a unit symbol**
-  `s`, `m`, `h`, `d`, `w`, `mo`, or `y`.
-  These are interpreted as seconds, minutes, hours, days weeks, months or years, and converted to hours, assuming:\
-  `60s`  = `1m`,
-  `60m`  = `1h`,
-  `24h`  = `1d`,
-  `7d`   = `1w`,
-  `30d`  = `1mo`,
-  `365d` = `1y`.
-  Eg `90m` is parsed as `1.5`.
+  - a number, optionally followed by a unit `s`, `m`, `h`, `d`, `w`, `mo`, or `y`,
+    representing a precise number of seconds, minutes, hours, days weeks, months or years
+    (hours is assumed by default), which will be converted to hours according to
+    60s  = 1m,
+    60m  = 1h,
+    24h  = 1d,
+    7d   = 1w,
+    30d  = 1mo,
+    365d = 1y.
+  
+  - one or more dots (period characters), each representing 0.25.
+    These are the dots in "timedot".
+    Spaces are ignored and can be used for grouping/alignment.
+  
+- **An optional comment** following a semicolon (a hledger-style [posting comment](#posting-comments)).
 
-There is some added flexibility to help with keeping time log data
-in the same file as your notes, todo lists, etc.:
+There is some flexibility to help with keeping time log data and notes in the same file:
 
 - Blank lines and lines beginning with `#` or `;` are ignored.
 
-- Before the first date line, lines beginning with `*` are ignored.
+- After the first date line, lines which do not contain a double space 
+  are parsed as postings with zero amount.
+  (hledger's register reports will show these if you add -E).
 
-- From the first date line onward, one or more `*`'s followed by a space
-  at beginning of lines (ie, the headline prefix used by Emacs Org mode) is ignored.
-  This means the time log can be kept under an Org headline,
-  and date lines or time transaction lines can be Org headlines.
+- Before the first date line, lines beginning with `*` (eg org headings) are ignored.
+  And from the first date line onward, Emacs org mode heading prefixes at the start of lines
+  (one or more `*`'s followed by a space) will be ignored.
+  This means the time log can also be a org outline.
 
-- Lines not ending with a double-space and amount are parsed as postings with zero amount.
-  Note hledger's register reports hide these by default (add -E to see them).
+## Timedot examples
 
-More examples:
+Numbers:
+
+```timedot
+2016/2/3
+inc:client1   4
+fos:hledger   3h
+biz:research  60m
+```
+
+Dots:
 
 ```timedot
 # on this day, 6h was spent on client work, 1.5h on haskell FOSS work, etc.
@@ -4250,42 +4257,6 @@ biz:research  .
 inc:client1   .... ....
 biz:research  .
 ```
-
-```timedot
-2016/2/3
-inc:client1   4
-fos:hledger   3
-biz:research  1
-```
-
-```timedot
-* Time log
-** 2023-01-01
-*** adm:time  .
-*** adm:finance  .
-```
-
-```timedot
-* 2023 Work Diary
-** Q1
-*** 2023-02-29
-**** DONE
-0700 yoga
-**** UNPLANNED
-**** BEGUN
-hom:chores
- cleaning  ...
- water plants
-  outdoor - one full watering can
-  indoor - light watering
-**** TODO
-adm:planning: trip
-*** LATER
-
-```
-
-Reporting:
-
 ```shell
 $ hledger -f a.timedot print date:2016/2/2
 2016-02-02 *
@@ -4311,16 +4282,36 @@ Balance changes in 2016-02-01-2016-02-03:
             ||         7.75         2.25         8.00 
 ```
 
+Org:
 
-Using period instead of colon as account name separator:
+```timedot
+* 2023 Work Diary
+** Q1
+*** 2023-02-29
+**** DONE
+0700 yoga
+**** UNPLANNED
+**** BEGUN
+hom:chores
+ cleaning  ...
+ water plants
+  outdoor - one full watering can
+  indoor - light watering
+**** TODO
+adm:planning: trip
+*** LATER
+
+```
+
+Using `.` as account name separator:
 
 ```timedot
 2016/2/4
-fos.hledger.timedot  4
+fos.hledger.timedot  4h
 fos.ledger           ..
 ```
 ```shell
-$ hledger -f a.timedot --alias /\\./=: bal --tree
+$ hledger -f a.timedot --alias '/\./=:' bal -t
                 4.50  fos
                 4.00    hledger:timedot
                 0.50    ledger
@@ -4328,16 +4319,33 @@ $ hledger -f a.timedot --alias /\\./=: bal --tree
                 4.50
 ```
 
-A
-[sample.timedot](https://raw.github.com/simonmichael/hledger/master/examples/sample.timedot)
-file.
-<!-- to download and some queries to try: -->
+<!--
+Another sample, download from 
+https://raw.github.com/simonmichael/hledger/master/examples/sample.timedot and try:
+```shell
+$ hledger -f sample.timedot balance                               # current time balances
+$ hledger -f sample.timedot register -p 2009/3                    # sessions in march 2009
+$ hledger -f sample.timedot register -p weekly --depth 1 --empty  # time summary by week
+```
+```timedot
+# sample.timedot
+# This is a comment line
+; Also a comment line
+* Org headings before the first date are also comment lines
 
-<!-- ```shell -->
-<!-- $ hledger -f sample.timedot balance                               # current time balances -->
-<!-- $ hledger -f sample.timedot register -p 2009/3                    # sessions in march 2009 -->
-<!-- $ hledger -f sample.timedot register -p weekly --depth 1 --empty  # time summary by week -->
-<!-- ``` -->
+2023-01-01 transaction description
+biz:research  ....
+inc:client1   .... ..
+
+2023-01-01 different transaction, same day ; with a comment and transaction-tag:
+; more transaction comment lines ? currently ignored
+fos:haskell  .... ; a posting comment and posting-tag:
+; more posting comment lines ? currently ignored
+per:admin    ....
+
+** 2023-01-02  ; dates are allowed to be org headings
+```
+-->
 
 
 # PART 3: REPORTING CONCEPTS
