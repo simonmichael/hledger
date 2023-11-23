@@ -66,9 +66,9 @@ balance can show..
 -   commodities displayed on the same line or multiple lines (--layout)
 
 This command supports the output destination and output format options,
-with output formats txt, csv, json, and (multi-period reports only:)
-html. In txt output in a colour-supporting terminal, negative amounts
-are shown in red.
+with output formats txt, csv, tsv, json, and (multi-period reports
+only:) html. In txt output in a colour-supporting terminal, negative
+amounts are shown in red.
 
 The --related/-r flag shows the balance of the other postings in the
 transactions of the postings which would normally be shown.
