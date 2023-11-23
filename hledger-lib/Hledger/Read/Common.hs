@@ -960,7 +960,7 @@ lotcostp =
   char '{'
   doublebrace <- option False $ char '{' >> pure True
   lift skipNonNewlineSpaces
-  _fixed <- fmap isJust $ optional $ lift skipNonNewlineSpaces >> char '='
+  _fixed <- fmap isJust $ optional $ char '='
   lift skipNonNewlineSpaces
   _a <- simpleamountp False
   lift skipNonNewlineSpaces

@@ -76,6 +76,7 @@ type TextParser m a = ParsecT HledgerParseErrorData Text m a
 -- and current parser state (position and next input).
 -- See also: Hledger.Utils.Debug, megaparsec's dbg.
 -- Uses unsafePerformIO.
+-- XXX Can be hard to make this evaluate.
 traceOrLogParse :: String -> TextParser m ()
 traceOrLogParse msg = do
   pos <- getSourcePos
