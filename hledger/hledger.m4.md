@@ -4341,7 +4341,7 @@ file.
 # PART 3: REPORTING CONCEPTS
 
 
-# Amount formatting, ambiguous amounts
+# Amount formatting, parseability
 
 If you're wondering why your `print` report sometimes shows trailing
 decimal marks, even when there are no decimal digits; it does this to
@@ -4349,7 +4349,7 @@ disambiguate [ambiguous amounts](decimal-marks-digit-group-marks)
 (amounts which have one digit group mark and no decimal digits),
 allowing them to be re-parsed reliably.
 
-Background: hledger output falls into three rough categories, which
+More generally: hledger output falls into three rough categories, which
 format amounts a little bit differently to suit different consumers:
 
 **1. "hledger-readable output" - should be readable by hledger and by humans**
