@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "September 2023" "hledger-1.31.99 " "hledger User Manuals"
+.TH "HLEDGER" "1" "November 2023" "hledger-1.31.99 " "hledger User Manuals"
 
 
 
@@ -150,7 +150,7 @@ in any of the supported file formats, which currently are:
 .PP
 .TS
 tab(@);
-lw(7.8n) lw(39.5n) lw(22.7n).
+lw(12.3n) lw(30.0n) lw(27.7n).
 T{
 Reader:
 T}@T{
@@ -664,17 +664,101 @@ or msys terminal, and vice versa.
 (See eg #961).
 .SS Regular expressions
 .PP
-hledger uses regular expressions in a number of places:
-.IP \[bu] 2
-query terms, on the command line and in the hledger-web search form:
-\f[V]REGEX\f[R], \f[V]desc:REGEX\f[R], \f[V]cur:REGEX\f[R],
-\f[V]tag:...=REGEX\f[R]
-.IP \[bu] 2
-CSV rules conditional blocks: \f[V]if REGEX ...\f[R]
-.IP \[bu] 2
-account alias directive and \f[V]--alias\f[R] option:
-\f[V]alias /REGEX/ = REPLACEMENT\f[R],
-\f[V]--alias /REGEX/=REPLACEMENT\f[R]
+A regular expression (regexp) is a small piece of text where certain
+characters (like \f[V].\f[R], \f[V]\[ha]\f[R], \f[V]$\f[R], \f[V]+\f[R],
+\f[V]*\f[R], \f[V]()\f[R], \f[V]|\f[R], \f[V][]\f[R], \f[V]\[rs]\f[R])
+have special meanings, forming a tiny language for matching text
+precisely - very useful in hledger and elsewhere.
+To learn all about them, visit regular-expressions.info.
+.PP
+hledger supports regexps whenever you are entering a pattern to match
+something, eg in query arguments, account aliases, CSV if rules,
+hledger-web\[aq]s search form, hledger-ui\[aq]s \f[V]/\f[R] search, etc.
+You may need to wrap them in quotes, especially at the command line (see
+Special characters above).
+Here are some examples:
+.PP
+Account name queries (quoted for command line use):
+.IP
+.nf
+\f[C]
+Regular expression:  Matches:
+-------------------  ------------------------------------------------------------
+bank                 assets:bank, assets:bank:savings, expenses:art:banksy, ...
+:bank                assets:bank:savings, expenses:art:banksy
+:bank:               assets:bank:savings
+\[aq]\[ha]bank\[aq]              none of those ( \[ha] matches beginning of text )
+\[aq]bank$\[aq]              assets:bank   ( $ matches end of text )
+\[aq]big \[rs]$ bank\[aq]        big $ bank    ( \[rs] disables following character\[aq]s special meaning )
+\[aq]\[rs]bbank\[rs]b\[aq]           assets:bank, assets:bank:savings  ( \[rs]b matches word boundaries )
+\[aq](sav|check)ing\[aq]     saving or checking  ( (|) matches either alternative )
+\[aq]saving|checking\[aq]    saving or checking  ( outer parentheses are not needed )
+\[aq]savings?\[aq]           saving or savings   ( ? matches 0 or 1 of the preceding thing )
+\[aq]my +bank\[aq]           my bank, my  bank, ... ( + matches 1 or more of the preceding thing )
+\[aq]my *bank\[aq]           mybank, my bank, my  bank, ... ( * matches 0 or more of the preceding thing )
+\[aq]b.nk\[aq]               bank, bonk, b nk, ... ( . matches any character )
+\f[R]
+.fi
+.PP
+Some other queries:
+.IP
+.nf
+\f[C]
+desc:\[aq]amazon|amzn|audible\[aq]  Amazon transactions
+cur:EUR              amounts with commodity symbol containing EUR
+cur:\[aq]\[rs]$\[aq]             amounts with commodity symbol containing $
+cur:\[aq]\[ha]\[rs]$$\[aq]           only $ amounts, not eg AU$ or CA$
+cur:....?            amounts with 4-or-more-character symbols
+tag:.=202[1-3]       things with any tag whose value contains 2021, 2022 or 2023
+\f[R]
+.fi
+.PP
+Account name aliases: accept \f[V].\f[R] instead of \f[V]:\f[R] as
+account separator:
+.IP
+.nf
+\f[C]
+alias /\[rs]./=:         replaces all periods in account names with colons
+\f[R]
+.fi
+.PP
+Show multiple top-level accounts combined as one:
+.IP
+.nf
+\f[C]
+--alias=\[aq]/\[ha][\[ha]:]+/=combined\[aq]  ( [\[ha]:] matches any character other than : )
+\f[R]
+.fi
+.PP
+Show accounts with the second-level part removed:
+.IP
+.nf
+\f[C]
+--alias \[aq]/\[ha]([\[ha]:]+):[\[ha]:]+/ = \[rs]1\[aq]
+                     match a top-level account and a second-level account
+                     and replace those with just the top-level account
+                     ( \[rs]1 in the replacement text means \[dq]whatever was matched
+                     by the first parenthesised part of the regexp\[dq]
+\f[R]
+.fi
+.PP
+CSV rules: match CSV records containing dining-related MCC codes:
+.IP
+.nf
+\f[C]
+if \[rs]?MCC581[124]
+\f[R]
+.fi
+.PP
+Match CSV records with a specific amount around the end/start of month:
+.IP
+.nf
+\f[C]
+if %amount \[rs]b3\[rs].99
+&  %date   (29|30|31|01|02|03)$
+\f[R]
+.fi
+.SS hledger\[aq]s regular expressions
 .PP
 hledger\[aq]s regular expressions come from the regex-tdfa library.
 If they\[aq]re not doing what you expect, it\[aq]s important to know
@@ -690,11 +774,11 @@ they are POSIX ERE (extended regular expressions)
 they also support GNU word boundaries (\f[V]\[rs]b\f[R],
 \f[V]\[rs]B\f[R], \f[V]\[rs]<\f[R], \f[V]\[rs]>\f[R])
 .IP "5." 3
-they do not support backreferences; if you write \f[V]\[rs]1\f[R], it
-will match the digit \f[V]1\f[R].
-Except when doing text replacement, eg in account aliases, where
-backreferences can be used in the replacement string to reference
-capturing groups in the search regexp.
+backreferences are supported when doing text replacement in account
+aliases or CSV rules, where backreferences can be used in the
+replacement string to reference capturing groups in the search regexp.
+Otherwise, if you write \f[V]\[rs]1\f[R], it will match the digit
+\f[V]1\f[R].
 .IP "6." 3
 they do not support mode modifiers (\f[V](?s)\f[R]), character classes
 (\f[V]\[rs]w\f[R], \f[V]\[rs]d\f[R]), or anything else not mentioned
@@ -765,7 +849,7 @@ T{
 T}@T{
 txt
 T}@T{
-csv
+csv/tsv
 T}@T{
 html
 T}@T{
@@ -1594,7 +1678,7 @@ A \f[I]decimal mark\f[R] can be written as a period or a comma:
 .nf
 \f[C]
 1.23
-1,23456780000009
+1,23
 \f[R]
 .fi
 .PP
@@ -1611,27 +1695,17 @@ INR 9,99,99,999.00
 \f[R]
 .fi
 .PP
-Note, a number containing a single digit group mark and no decimal mark
-is ambiguous.
-Are these digit group marks or decimal marks ?
-.IP
-.nf
-\f[C]
-1,000
-1.000
-\f[R]
-.fi
+hledger is not biased towards period or comma decimal marks, so a number
+containing just one period or comma, like \f[V]1,000\f[R] or
+\f[V]1.000\f[R], is ambiguous.
+In such cases hledger assumes it is a decimal mark, parsing both of
+these as 1.
 .PP
-If you don\[aq]t tell it otherwise, hledger will assume both of the
-above are decimal marks, parsing both numbers as 1.
-.PP
-To prevent confusing parsing mistakes and undetected typos, especially
-if your data contains digit group marks (eg, thousands separators), we
-recommend explicitly declaring the decimal mark character in each
-journal file, using a directive at the top of the file.
-The \f[V]decimal-mark\f[R] directive is best, otherwise
-\f[V]commodity\f[R] directives will also work.
-These are described below.
+To disambiguate these and ensure accurate number parsing, especially if
+you use digit group marks, we recommend declaring the decimal mark.
+You can declare it for each file with \f[V]decimal-mark\f[R] directives,
+or for each commodity with \f[V]commodity\f[R] directives (described
+below).
 .SS Commodity
 .PP
 Amounts in hledger have both a \[dq]quantity\[dq], which is a signed
@@ -1680,74 +1754,50 @@ commodity 1 000 000.9455
 .SS Commodity display style
 .PP
 For the amounts in each commodity, hledger chooses a consistent display
-style to use in most reports.
-(Exceptions: price amounts, and all amounts displayed by the
-\f[V]print\f[R] command, are displayed with all of their decimal digits
-visible.)
+style (symbol placement, decimal mark and digit group marks, number of
+decimal digits) to use in most reports.
+This is inferred as follows:
 .PP
-A commodity\[aq]s display style is inferred as follows.
+First, if there\[aq]s a \f[V]D\f[R] directive declaring a default
+commodity, that commodity symbol and amount format is applied to all
+no-symbol amounts in the journal.
 .PP
-First, if a default commodity is declared with \f[V]D\f[R], this
-commodity and its style is applied to any no-symbol amounts in the
-journal.
+Then each commodity\[aq]s display style is determined from its
+\f[V]commodity\f[R] directive.
+We recommend always declaring commodities with \f[V]commodity\f[R]
+directives, since they help ensure consistent display styles and
+precisions, and bring other benefits such as error checking for
+commodity symbols.
 .PP
-Then each commodity\[aq]s style is inferred from one of the following,
-in order of preference:
+But if a \f[V]commodity\f[R] directive is not present, hledger infers a
+commodity\[aq]s display styles from its amounts as they are written in
+the journal (excluding cost amounts and amounts in periodic transaction
+rules or auto posting rules).
+It uses
 .IP \[bu] 2
-The commodity directive for that commodity (including the no-symbol
-commodity), if any.
+the symbol placement and decimal mark of the first amount seen
 .IP \[bu] 2
-The amounts in that commodity seen in the journal\[aq]s transactions.
-(Posting amounts only; prices and periodic or auto rules are ignored,
-currently.)
+the digit group marks of the first amount with digit group marks
 .IP \[bu] 2
-The built-in fallback style, which looks like this: \f[V]$1000.00\f[R].
-(Symbol on the left, period decimal mark, two decimal places.)
+and the maximum number of decimal digits seen across all amounts.
 .PP
-A style is inferred from journal amounts as follows:
-.IP \[bu] 2
-Use the general style (decimal mark, symbol placement) of the first
-amount
-.IP \[bu] 2
-Use the first-seen digit group style (digit group mark, digit group
-sizes), if any
-.IP \[bu] 2
-Use the maximum number of decimal places of all.
+And as fallback if no applicable amounts are found, it would use a
+default style, like \f[V]$1000.00\f[R] (symbol on the left with no
+space, period as decimal mark, and two decimal digits).
 .PP
-Cost amounts don\[aq]t affect the commodity display style directly, but
-occasionally they can do so indirectly (eg when a posting\[aq]s amount
-is inferred using a cost).
-If you find this causing problems, use a commodity directive to fix the
-display style.
-.PP
-To summarise: each commodity\[aq]s amounts will be normalised to (a) the
-style declared by a \f[V]commodity\f[R] directive, or (b) the style of
-the first posting amount in the journal, with the first-seen digit group
-style and the maximum-seen number of decimal places.
-So if your reports are showing amounts in a way you don\[aq]t like, eg
-with too many decimal places, use a commodity directive.
-Some examples:
-.IP
-.nf
-\f[C]
-# declare euro, dollar, bitcoin and no-symbol commodities and set their 
-# input number formats and output display styles:
-commodity EUR 1.000,
-commodity $1000.00
-commodity 1000.00000000 BTC
-commodity 1 000.
-\f[R]
-.fi
-.PP
-The inferred commodity style can be overridden by supplying a command
-line option.
+Finally, commodity styles can be overridden by the
+\f[V]-c/--commodity-style\f[R] command line option.
 .SS Rounding
 .PP
 Amounts are stored internally as decimal numbers with up to 255 decimal
-places, and displayed with the number of decimal places specified by the
-commodity display style.
-Note, hledger uses banker\[aq]s rounding: it rounds to the nearest even
-number, eg 0.5 displayed with zero decimal places is \[dq]0\[dq]).
+places.
+They are displayed with their original journal precisions by print and
+print-like reports, and rounded to their display precision (the number
+of decimal digits specified by the commodity display style) by other
+reports.
+When rounding, hledger uses banker\[aq]s rounding (it rounds to the
+nearest even digit).
+So eg 0.5 displayed with zero decimal digits appears as \[dq]0\[dq].
 .PP
 .SS Costs
 .PP
@@ -2946,104 +2996,101 @@ $ hledger accounts --alias assets=bassetts type:a
 .fi
 .SS \f[V]commodity\f[R] directive
 .PP
-You can use \f[V]commodity\f[R] directives to declare your commodities.
-In fact the \f[V]commodity\f[R] directive performs several functions at
-once:
+The \f[V]commodity\f[R] directive performs several functions:
 .IP "1." 3
-It declares commodities which may be used in the journal.
-This can optionally be enforced, providing useful error checking.
-(Cf Commodity error checking)
+It declares which commodity symbols may be used in the journal, enabling
+useful error checking with strict mode or the check command.
+(See Commodity error checking below.)
 .IP "2." 3
-It declares which decimal mark character (period or comma), to expect
-when parsing input - useful to disambiguate international number formats
-in your data.
-Without this, hledger will parse both \f[V]1,000\f[R] and
-\f[V]1.000\f[R] as 1.
-(Cf Amounts)
+It declares the precision with which this commodity\[aq]s amounts should
+be compared when checking for balanced transactions.
 .IP "3." 3
-It declares how to render the commodity\[aq]s amounts when displaying
-output - the decimal mark, any digit group marks, the number of decimal
-places, symbol placement and so on.
-(Cf Commodity display style)
+It declares how this commodity\[aq]s amounts should be displayed, eg
+their symbol placement, digit group mark if any, digit group sizes,
+decimal mark (period or comma), and the number of decimal places.
+(See Commodity display style above.)
+.IP "4." 3
+It sets which decimal mark (period or comma) to expect when parsing
+subsequent amounts in this commodity (if there is no
+\f[V]decimal-mark\f[R] directive in effect.
+See Decimal marks, digit group marks above.
+For related dev discussion, see #793.)
 .PP
-You will run into one of the problems solved by commodity directives
-sooner or later, so we recommend using them, for robust and predictable
-parsing and display.
+Declaring commodities solves several common parsing/display problems, so
+we recommend it.
+Generally you should put \f[V]commodity\f[R] directives at the top of
+your journal file (because function 4 is position-sensitive).
+.SS Commodity directive syntax
 .PP
-Generally you should put them at the top of your journal file (since for
-function 2, they affect only following amounts, cf #793).
-.PP
-A commodity directive is just the word \f[V]commodity\f[R] followed by a
-sample amount, like this:
+A commodity directive is normally the word \f[V]commodity\f[R] followed
+by a sample amount (and optionally a comment).
+Only the amount\[aq]s symbol and format is significant.
+Eg:
 .IP
 .nf
 \f[C]
-;commodity SAMPLEAMOUNT
-
 commodity $1000.00
-commodity 1,000.0000 AAAA  ; optional same-line comment
+commodity 1.000,00 EUR
+commodity 1 000 000.0000   ; the no-symbol commodity
 \f[R]
 .fi
 .PP
-It may also be written on multiple lines, and use the \f[V]format\f[R]
-subdirective, as in Ledger.
-Note in this case the commodity symbol appears twice; it must be the
-same in both places:
+A commodity directive\[aq]s sample amount must always include a period
+or comma decimal mark (this rule helps disambiguate decimal marks and
+digit group marks).
+If you don\[aq]t want to show any decimal digits, write the decimal mark
+at the end:
 .IP
 .nf
 \f[C]
-;commodity SYMBOL
-;  format SAMPLEAMOUNT
-
+commodity 1000. AAAA       ; show AAAA with no decimals
+\f[R]
+.fi
+.PP
+Commodity symbols containing spaces, numbers, or punctuation must be
+enclosed in double quotes, as usual:
+.IP
+.nf
+\f[C]
+commodity 1.0000 \[dq]AAAA 2023\[dq]
+\f[R]
+.fi
+.PP
+Commodity directives normally include a sample amount, but can declare
+only a symbol (ie, just function 1 above):
+.IP
+.nf
+\f[C]
+commodity $
+commodity INR
+commodity \[dq]AAAA 2023\[dq]
+commodity \[dq]\[dq]               ; the no-symbol commodity
+\f[R]
+.fi
+.PP
+Commodity directives may also be written with an indented
+\f[V]format\f[R] subdirective, as in Ledger.
+The symbol is repeated and must be the same in both places.
+Other subdirectives are currently ignored:
+.IP
+.nf
+\f[C]
 ; display indian rupees with currency name on the left,
 ; thousands, lakhs and crores comma-separated,
 ; period as decimal point, and two decimal places.
 commodity INR
   format INR 1,00,00,000.00
+  an unsupported subdirective  ; ignored by hledger
 \f[R]
 .fi
-.PP
-Other indented subdirectives are currently ignored.
-.PP
-Remember that if the commodity symbol contains spaces, numbers, or
-punctuation, it must be enclosed in double quotes (cf Commodity).
-.PP
-The amount\[aq]s quantity does not matter; only the format is
-significant.
-It must include a decimal mark - either a period or a comma - followed
-by 0 or more decimal digits.
-.PP
-A few more examples:
-.IP
-.nf
-\f[C]
-# number formats for $, EUR, INR and the no-symbol commodity:
-commodity $1,000.00
-commodity EUR 1.000,00
-commodity INR 9,99,99,999.0
-commodity 1 000 000.
-\f[R]
-.fi
-.PP
-Note hledger normally uses banker\[aq]s rounding, so 0.5 displayed with
-zero decimal digits is \[dq]0\[dq].
-(More at Commodity display style.)
-.PP
-Even in the presence of commodity directives, the commodity display
-style can still be overridden by supplying a command line option.
 .SS Commodity error checking
 .PP
-In strict mode, enabled with the \f[V]-s\f[R]/\f[V]--strict\f[R] flag,
-hledger will report an error if a commodity symbol is used that has not
-been declared by a \f[V]commodity\f[R] directive.
-This works similarly to account error checking, see the notes there for
-more details.
-.PP
-Note, this disallows amounts without a commodity symbol, because
-currently it\[aq]s not possible (?)
-to declare the \[dq]no-symbol\[dq] commodity with a directive.
-This is one exception for convenience: zero amounts are always allowed
-to have no commodity symbol.
+In strict mode (\f[V]-s\f[R]/\f[V]--strict\f[R]) (or when you run
+\f[V]hledger check commodities\f[R]), hledger will report an error if an
+undeclared commodity symbol is used.
+(With one exception: zero amounts are always allowed to have no
+commodity symbol.)
+It works like account error checking (described above).
 .SS \f[V]decimal-mark\f[R] directive
 .PP
 You can use a \f[V]decimal-mark\f[R] directive - usually one per file,
@@ -4215,9 +4262,10 @@ They can be used instead of or in addition to a fields list (see above).
 To assign a value to a hledger field, write the field name (any of the
 standard hledger field/pseudo-field names, defined below), a space,
 followed by a text value on the same line.
-This text value may interpolate CSV fields, referenced by their 1-based
-position in the CSV record (\f[V]%N\f[R]), or by the name they were
-given in the fields list (\f[V]%CSVFIELD\f[R]).
+This text value may interpolate CSV fields, referenced either by their
+1-based position in the CSV record (\f[V]%N\f[R]) or by the name they
+were given in the fields list (\f[V]%CSVFIELD\f[R]), and regular
+expression match groups (\f[V]\[rs]N\f[R]).
 .PP
 Some examples:
 .IP
@@ -4540,7 +4588,39 @@ By default they are OR\[aq]d (any one of them can match)
 When a matcher is preceded by ampersand (\f[V]&\f[R]) it will be
 AND\[aq]ed with the previous matcher (both of them must match).
 .PP
-There\[aq]s not yet an easy syntax to negate a matcher.
+When a matcher is preceded by an exclamation mark (!), the matcher will
+be negated, ie it will exclude CSV records that match.
+.SS Match groups
+.PP
+Matchers can define match groups: parenthesised portions of the regular
+expression which are available for reference in field assignments.
+Groups are enclosed in regular parentheses (\f[V](\f[R] and \f[V])\f[R])
+and can be nested.
+Each group is available in field assignments using the token
+\f[V]\[rs]N\f[R], where N is an index into the match groups for this
+conditional block (e.g.
+\f[V]\[rs]1\f[R], \f[V]\[rs]2\f[R], etc.).
+.PP
+Example: Warp credit card payment postings to the beginning of the
+billing period (Month start), to match how they are presented in
+statements, using posting dates:
+.IP
+.nf
+\f[C]
+if %date (....-..)-..
+  comment2 date:\[rs]1-01
+\f[R]
+.fi
+.PP
+Another example: Read the expense account from the CSV field, but throw
+away a prefix:
+.IP
+.nf
+\f[C]
+if %account1 liabilities:family:(expenses:.*)
+    account1 \[rs]1
+\f[R]
+.fi
 .SS \f[V]if\f[R] table
 .PP
 \[dq]if tables\[dq] are an alternative to if blocks; they can express
@@ -4557,20 +4637,24 @@ MATCHERC,VALUE1,VALUE2,...
 \f[R]
 .fi
 .PP
-The first character after \f[V]if\f[R] is taken to be the separator for
-the rest of the table.
+The first character after \f[V]if\f[R] is taken to be this if
+table\[aq]s field separator.
+It is unrelated to the separator used in the CSV file.
 It should be a non-alphanumeric character like \f[V],\f[R] or
-\f[V]|\f[R] that does not appear anywhere else in the table.
-(Note: it is unrelated to the CSV file\[aq]s separator.)
-Whitespace can be used in the matcher lines for readability, but not in
-the if line currently.
-The table must be terminated by an empty line (or end of file).
+\f[V]|\f[R] that does not appear anywhere else in the table (it should
+not be used in field names or matchers or values, and it cannot be
+escaped with a backslash).
+.PP
 Each line must contain the same number of separators; empty values are
 allowed.
+Whitespace can be used in the matcher lines for readability (but not in
+the if line, currently).
+The table must be terminated by an empty line (or end of file).
 .PP
-The above means: try all of the matchers; whenever a matcher succeeds,
-assign all of the values on that line to the corresponding hledger
-fields; later lines can overrider earlier ones.
+An if table like the above is interpreted as follows: try all of the
+matchers; whenever a matcher succeeds, assign all of the values on that
+line to the corresponding hledger fields; later lines can overrider
+earlier ones.
 It is equivalent to this sequence of if blocks:
 .IP
 .nf
@@ -5757,6 +5841,59 @@ $ hledger -f a.timedot --alias /\[rs]\[rs]./=: bal --tree
 .PP
 A sample.timedot file.
 .SH PART 3: REPORTING CONCEPTS
+.SH Amount formatting, parseability
+.PP
+If you\[aq]re wondering why your \f[V]print\f[R] report sometimes shows
+trailing decimal marks, even when there are no decimal digits; it does
+this to disambiguate ambiguous amounts (amounts which have one digit
+group mark and no decimal digits), allowing them to be re-parsed
+reliably.
+.PP
+More generally: hledger output falls into three rough categories, which
+format amounts a little bit differently to suit different consumers:
+.PP
+\f[B]1.
+\[dq]hledger-readable output\[dq] - should be readable by hledger (and
+by humans)\f[R]
+.IP \[bu] 2
+This is produced by reports that show full journal entries:
+\f[V]print\f[R], \f[V]import\f[R], \f[V]close\f[R], \f[V]rewrite\f[R]
+etc.
+.IP \[bu] 2
+It shows amounts with their original journal precisions, which may not
+be consistent.
+.IP \[bu] 2
+It adds a trailing decimal mark when needed to avoid showing ambiguous
+amounts.
+.IP \[bu] 2
+It can be parsed reliably (by hledger and ledger2beancount at least, but
+perhaps not by Ledger..)
+.PP
+\f[B]2.
+\[dq]human-readable output\[dq] - usually for humans\f[R]
+.IP \[bu] 2
+This is produced by all other reports.
+.IP \[bu] 2
+It shows amounts with standard display precisions, which will be
+consistent within each commodity.
+.IP \[bu] 2
+It shows ambiguous amounts unmodified.
+.IP \[bu] 2
+It can be parsed reliably in the context of a known report (when you
+know decimals are consistently not being shown, you can assume a single
+mark is a digit group mark).
+.PP
+\f[B]3.
+\[dq]machine-readable output\[dq] - usually for other software\f[R]
+.IP \[bu] 2
+This is produced by all reports when an output format like
+\f[V]csv\f[R], \f[V]tsv\f[R], \f[V]json\f[R], or \f[V]sql\f[R] is
+selected.
+.IP \[bu] 2
+It shows amounts as 1 or 2 do, but without digit group marks.
+.IP \[bu] 2
+It can be parsed reliably (if needed, the decimal mark can be changed
+with -c/--commodity-style).
 .SH Time periods
 .PP
 .SS Report start & end date
@@ -7212,21 +7349,33 @@ tell it which currency you want to convert to, and it tries to convert
 everything to that.
 .SS Valuation date
 .PP
-Since market prices can change from day to day, market value reports
-have a valuation date (or more than one), which determines which market
-prices will be used.
+Market prices can change from day to day.
+hledger will use the prices on a particular valuation date (or on more
+than one date).
+By default hledger uses \[dq]end\[dq] dates for valuation.
+More specifically:
+.IP \[bu] 2
+For single period reports (including normal print and register reports):
+.RS 2
+.IP \[bu] 2
+If an explicit report end date is specified, that is used
+.IP \[bu] 2
+Otherwise the latest transaction date or P directive date is used (even
+if it\[aq]s in the future)
+.RE
+.IP \[bu] 2
+For multiperiod reports, each period is valued on its last day.
 .PP
-For single period reports, if an explicit report end date is specified,
-that will be used as the valuation date; otherwise the valuation date is
-the journal\[aq]s end date.
-.PP
-For multiperiod reports, each column/period is valued on the last day of
-the period, by default.
+This can be customised with the --value option described below, which
+can select either \[dq]then\[dq], \[dq]end\[dq], \[dq]now\[dq], or
+\[dq]custom\[dq] dates.
+(Note, this has a bug in hledger-ui <=1.31: turning on valuation with
+the \f[V]V\f[R] key always resets it to \[dq]end\[dq].)
 .SS Finding market price
 .PP
 To convert a commodity A to its market value in another commodity B,
 hledger looks for a suitable market price (exchange rate) as follows, in
-this order of preference :
+this order of preference:
 .IP "1." 3
 A \f[I]declared market price\f[R] or \f[I]inferred market price\f[R]:
 A\[aq]s latest market price in B on or before the valuation date as
@@ -7572,56 +7721,6 @@ $ hledger -f- print --value=2000-01-15
 
 2000-03-01
     (a)             1 B
-\f[R]
-.fi
-.PP
-You may need to explicitly set a commodity\[aq]s display style, when
-reverse prices are used.
-Eg this output might be surprising:
-.IP
-.nf
-\f[C]
-P 2000-01-01 A 2B
-
-2000-01-01
-  a  1B
-  b
-\f[R]
-.fi
-.IP
-.nf
-\f[C]
-$ hledger print -x -X A
-2000-01-01
-    a               0
-    b               0
-\f[R]
-.fi
-.PP
-Explanation: because there\[aq]s no amount or commodity directive
-specifying a display style for A, 0.5A gets the default style, which
-shows no decimal digits.
-Because the displayed amount looks like zero, the commodity symbol and
-minus sign are not displayed either.
-Adding a commodity directive sets a more useful display style for A:
-.IP
-.nf
-\f[C]
-P 2000-01-01 A 2B
-commodity 0.00A
-
-2000-01-01
-  a  1B
-  b
-\f[R]
-.fi
-.IP
-.nf
-\f[C]
-$ hledger print -X A
-2000-01-01
-    a           0.50A
-    b          -0.50A
 \f[R]
 .fi
 .SS Interaction of valuation and queries
@@ -8324,21 +8423,25 @@ memory, use the \f[V]--align-all\f[R] flag.
 .PP
 This command also supports the output destination and output format
 options.
-The output formats supported are \f[V]txt\f[R], \f[V]csv\f[R], and
-\f[V]json\f[R].
-.SS aregister and custom posting dates
+The output formats supported are \f[V]txt\f[R], \f[V]csv\f[R],
+\f[V]tsv\f[R], and \f[V]json\f[R].
+.SS aregister and posting dates
 .PP
-Transactions whose date is outside the report period can still be shown,
-if they have a posting to this account dated inside the report period.
-(And in this case it\[aq]s the posting date that is shown.)
-This ensures that \f[V]aregister\f[R] can show an accurate historical
-running balance, matching the one shown by \f[V]register -H\f[R] with
-the same arguments.
+aregister always shows one line (and date and amount) per transaction.
+But sometimes transactions have postings with different dates.
+Also, not all of a transaction\[aq]s postings may be within the report
+period.
+To resolve this, aregister shows the earliest of the transaction\[aq]s
+date and posting dates that is in-period, and the sum of the in-period
+postings.
+In other words it will show a combined line item with just the earliest
+date, and the running balance will (temporarily, until the
+transaction\[aq]s last posting) be inaccurate.
+Use \f[V]register -H\f[R] if you need to see the individual postings.
 .PP
-To filter strictly by transaction date instead, add the
-\f[V]--txn-dates\f[R] flag.
-If you use this flag and some of your postings have custom dates,
-it\[aq]s probably best to assume the running balance is wrong.
+There is also a \f[V]--txn-dates\f[R] flag, which filters strictly by
+transaction date, ignoring posting dates.
+This too can cause an inaccurate running balance.
 .SS balance
 .PP
 (bal)
@@ -8427,8 +8530,8 @@ commodities displayed on the same line or multiple lines
 (\f[V]--layout\f[R])
 .PP
 This command supports the output destination and output format options,
-with output formats \f[V]txt\f[R], \f[V]csv\f[R], \f[V]json\f[R], and
-(multi-period reports only:) \f[V]html\f[R].
+with output formats \f[V]txt\f[R], \f[V]csv\f[R], \f[V]tsv\f[R],
+\f[V]json\f[R], and (multi-period reports only:) \f[V]html\f[R].
 In \f[V]txt\f[R] output in a colour-supporting terminal, negative
 amounts are shown in red.
 .PP
@@ -9718,7 +9821,7 @@ sign flipped.
 .PP
 This command also supports the output destination and output format
 options The output formats supported are \f[V]txt\f[R], \f[V]csv\f[R],
-\f[V]html\f[R], and (experimental) \f[V]json\f[R].
+\f[V]tsv\f[R], \f[V]html\f[R], and (experimental) \f[V]json\f[R].
 .SS balancesheetequity
 .PP
 (bse)
@@ -9774,7 +9877,7 @@ with their sign flipped.
 .PP
 This command also supports the output destination and output format
 options The output formats supported are \f[V]txt\f[R], \f[V]csv\f[R],
-\f[V]html\f[R], and (experimental) \f[V]json\f[R].
+\f[V]tsv\f[R], \f[V]html\f[R], and (experimental) \f[V]json\f[R].
 .SS cashflow
 .PP
 (cf)
@@ -9831,7 +9934,7 @@ but with smarter account detection.
 .PP
 This command also supports the output destination and output format
 options The output formats supported are \f[V]txt\f[R], \f[V]csv\f[R],
-\f[V]html\f[R], and (experimental) \f[V]json\f[R].
+\f[V]tsv\f[R], \f[V]html\f[R], and (experimental) \f[V]json\f[R].
 .SS check
 .PP
 Check for various kinds of errors in your data.
@@ -10356,11 +10459,11 @@ $ hledger help -m journal  # show it with man, even if info is installed
 .fi
 .SS import
 .PP
-Read new transactions added to each FILE since last run, and add them to
-the journal.
+Read new transactions added to each FILE provided as arguments since
+last run, and add them to the journal.
 Or with --dry-run, just print the transactions that would be added.
-Or with --catchup, just mark all of the FILEs\[aq] transactions as
-imported, without actually importing any.
+Or with --catchup, just mark all of the FILEs\[aq] current transactions
+as imported, without importing them.
 .PP
 This command may append new transactions to the main journal file (which
 should be in journal format).
@@ -10380,16 +10483,16 @@ Note you can import from any file format, though CSV files are the most
 common import source, and these docs focus on that case.
 .SS Deduplication
 .PP
-As a convenience \f[V]import\f[R] does \f[I]deduplication\f[R] while
-reading transactions.
-This does not mean \[dq]ignore transactions that look the same\[dq], but
-rather \[dq]ignore transactions that have been seen before\[dq].
-This is intended for when you are periodically importing foreign data
-which may contain already-imported transactions.
-So eg, if every day you download bank CSV files containing redundant
-data, you can safely run \f[V]hledger import bank.csv\f[R] and only new
-transactions will be imported.
-(\f[V]import\f[R] is idempotent.)
+\f[V]import\f[R] does \f[I]time-based deduplication\f[R], to detect only
+the new transactions since the last successful import.
+(This does not mean \[dq]ignore transactions that look the same\[dq],
+but rather \[dq]ignore transactions that have been seen before\[dq].)
+This is intended for when you are periodically importing downloaded
+data, which may overlap with previous downloads.
+Eg if every week (or every day) you download a bank\[aq]s last three
+months of CSV data, you can safely run
+\f[V]hledger import thebank.csv\f[R] each time and only new transactions
+will be imported.
 .PP
 Since the items being read (CSV records, eg) often do not come with
 unique identifiers, hledger detects new transactions by date, assuming
@@ -10409,7 +10512,9 @@ won\[aq]t matter (and if you import often, the new transactions will be
 few, so less likely to be the ones affected).
 .PP
 hledger remembers the latest date processed in each input file by saving
-a hidden \[dq].latest\[dq] state file in the same directory.
+a hidden \[dq].latest.FILE\[dq] file in FILE\[aq]s directory (after a
+succesful import).
+.PP
 Eg when reading \f[V]finance/bank.csv\f[R], it will look for and update
 the \f[V]finance/.latest.bank.csv\f[R] state file.
 The format is simple: one or more lines containing the same ISO-format
@@ -10529,7 +10634,7 @@ flipped.
 .PP
 This command also supports the output destination and output format
 options The output formats supported are \f[V]txt\f[R], \f[V]csv\f[R],
-\f[V]html\f[R], and (experimental) \f[V]json\f[R].
+\f[V]tsv\f[R], \f[V]html\f[R], and (experimental) \f[V]json\f[R].
 .SS notes
 .PP
 List the unique notes that appear in transactions.
@@ -10575,13 +10680,22 @@ Person A
 .fi
 .SS prices
 .PP
-Print market price directives from the journal.
-With --infer-market-prices, generate additional market prices from
-costs.
-With --infer-reverse-prices, also generate market prices by inverting
+Print the market prices declared with P directives.
+With --infer-market-prices, also show any additional prices inferred
+from costs.
+With --show-reverse, also show additional prices inferred by reversing
 known prices.
-Prices can be filtered by a query.
-Price amounts are displayed with their full precision.
+.PP
+Price amounts are always displayed with their full precision, except for
+reverse prices which are limited to 8 decimal digits.
+.PP
+Prices can be filtered by a date:, cur: or amt: query.
+.PP
+Generally if you run this command with --infer-market-prices
+--show-reverse, it will show the same prices used internally to
+calculate value reports.
+But if in doubt, you can inspect those directly by running the value
+report with --debug=2.
 .SS print
 .PP
 Show transaction journal entries, sorted by date.
@@ -10590,28 +10704,16 @@ The print command displays full journal entries (transactions) from the
 journal file, sorted by date (or with \f[V]--date2\f[R], by secondary
 date).
 .PP
-Amounts are shown mostly normalised to commodity display style, eg the
-placement of commodity symbols will be consistent.
-All of their decimal places are shown, as in the original journal entry
-(with one alteration: in some cases trailing zeroes are added.)
-.PP
-Amounts are shown right-aligned within each transaction (but not across
-all transactions).
-.PP
 Directives and inter-transaction comments are not shown, currently.
 This means the print command is somewhat lossy, and if you are using it
-to reformat your journal you should take care to also copy over the
-directives and file-level comments.
+to reformat/regenerate your journal you should take care to also copy
+over the directives and inter-transaction comments.
 .PP
 Eg:
 .IP
 .nf
 \f[C]
-$ hledger print
-2008/01/01 income
-    assets:bank:checking            $1
-    income:salary                  $-1
-
+$ hledger print -f examples/sample.journal date:200806
 2008/06/01 gift
     assets:bank:checking            $1
     income:gifts                   $-1
@@ -10624,16 +10726,63 @@ $ hledger print
     expenses:food                $1
     expenses:supplies            $1
     assets:cash                 $-2
-
-2008/12/31 * pay off
-    liabilities:debts               $1
-    assets:bank:checking           $-1
 \f[R]
 .fi
+.SS print explicitness
+.PP
+Normally, whether posting amounts are implicit or explicit is preserved.
+For example, when an amount is omitted in the journal, it will not
+appear in the output.
+Similarly, if a conversion cost is implied but not written, it will not
+appear in the output.
+.PP
+You can use the \f[V]-x\f[R]/\f[V]--explicit\f[R] flag to force explicit
+display of all amounts and costs.
+This can be useful for troubleshooting or for making your journal more
+readable and robust against data entry errors.
+\f[V]-x\f[R] is also implied by using any of
+\f[V]-B\f[R],\f[V]-V\f[R],\f[V]-X\f[R],\f[V]--value\f[R].
+.PP
+The \f[V]-x\f[R]/\f[V]--explicit\f[R] flag will cause any postings with
+a multi-commodity amount (which can arise when a multi-commodity
+transaction has an implicit amount) to be split into multiple
+single-commodity postings, keeping the output parseable.
+.SS print amount style
+.PP
+Amounts are shown right-aligned within each transaction (but not aligned
+across all transactions; you can do that with ledger-mode in Emacs).
+.PP
+Amounts will be (mostly) normalised to their commodity display style:
+their symbol placement, decimal mark, and digit group marks will be made
+consistent.
+By default, decimal digits are shown as they are written in the journal.
+.PP
+With the \f[V]--round\f[R] option, \f[V]print\f[R] will try increasingly
+hard to display decimal digits according to the commodity display
+styles:
+.IP \[bu] 2
+\f[V]--round=none\f[R] show amounts with original precisions (default)
+.IP \[bu] 2
+\f[V]--round=soft\f[R] add/remove decimal zeros in amounts (except
+costs)
+.IP \[bu] 2
+\f[V]--round=hard\f[R] round amounts (except costs), possibly hiding
+significant digits
+.IP \[bu] 2
+\f[V]--round=all\f[R] round all amounts and costs
+.PP
+\f[V]soft\f[R] is good for non-lossy cleanup, formatting amounts more
+consistently where it\[aq]s safe to do so.
+.PP
+\f[V]hard\f[R] and \f[V]all\f[R] can cause \f[V]print\f[R] to show
+invalid unbalanced journal entries; they may be useful eg for stronger
+cleanup, with manual fixups when needed.
+.SS print parseability
 .PP
 print\[aq]s output is usually a valid hledger journal, and you can
 process it again with a second hledger command.
-This can be useful for certain kinds of search, eg:
+This can be useful for certain kinds of search (though the same can be
+achieved with \f[V]expr:\f[R] queries now):
 .IP
 .nf
 \f[C]
@@ -10652,43 +10801,47 @@ balance assignment amounts, potentially causing those to fail.
 Auto postings can generate postings with too many missing amounts.
 .IP \[bu] 2
 Account aliases can generate bad account names.
+.SS print, other features
 .PP
-Normally, the journal entry\[aq]s explicit or implicit amount style is
-preserved.
-For example, when an amount is omitted in the journal, it will not
-appear in the output.
-Similarly, when a cost is implied but not written, it will not appear in
-the output.
-You can use the \f[V]-x\f[R]/\f[V]--explicit\f[R] flag to make all
-amounts and costs explicit, which can be useful for troubleshooting or
-for making your journal more readable and robust against data entry
-errors.
-\f[V]-x\f[R] is also implied by using any of
-\f[V]-B\f[R],\f[V]-V\f[R],\f[V]-X\f[R],\f[V]--value\f[R].
+With \f[V]-B\f[R]/\f[V]--cost\f[R], amounts with costs are shown
+converted to cost.
 .PP
-Note, \f[V]-x\f[R]/\f[V]--explicit\f[R] will cause postings with a
-multi-commodity amount (these can arise when a multi-commodity
-transaction has an implicit amount) to be split into multiple
-single-commodity postings, keeping the output parseable.
-.PP
-With \f[V]-B\f[R]/\f[V]--cost\f[R], amounts with costs are converted to
-cost using that price.
-This can be used for troubleshooting.
-.PP
-With \f[V]-m DESC\f[R]/\f[V]--match=DESC\f[R], print does a fuzzy search
-for one recent transaction whose description is most similar to DESC.
-DESC should contain at least two characters.
-If there is no similar-enough match, no transaction will be shown and
-the program exit code will be non-zero.
-.PP
-With \f[V]--new\f[R], hledger prints only transactions it has not seen
-on a previous run.
+With \f[V]--new\f[R], print shows only transactions it has not seen on a
+previous run.
 This uses the same deduplication system as the \f[V]import\f[R] command.
 (See import\[aq]s docs for details.)
 .PP
+With \f[V]-m DESC\f[R]/\f[V]--match=DESC\f[R], print shows one recent
+transaction whose description is most similar to DESC.
+DESC should contain at least two characters.
+If there is no similar-enough match, no transaction will be shown and
+the program exit code will be non-zero.
+.SS print output format
+.PP
 This command also supports the output destination and output format
-options The output formats supported are \f[V]txt\f[R], \f[V]csv\f[R],
-and (experimental) \f[V]json\f[R] and \f[V]sql\f[R].
+options The output formats supported are \f[V]txt\f[R],
+\f[V]beancount\f[R], \f[V]csv\f[R], \f[V]tsv\f[R], \f[V]json\f[R] and
+\f[V]sql\f[R].
+.PP
+\f[I]Experimental:\f[R] The \f[V]beancount\f[R] format tries to produce
+Beancount-compatible output.
+It is very basic and may require additional manual fixups:
+.IP \[bu] 2
+Transaction and postings with unmarked status are converted to cleared
+(\[ga]*\[ga]\[ga]) status.
+.IP \[bu] 2
+Transactions\[aq] payee and or note are wrapped in double quotes.
+.IP \[bu] 2
+Transaction tags are copied to Beancount #tag format.
+.IP \[bu] 2
+Account name parts are capitalised, and if the first account name part
+is not one of Assets, Liabilities, Equity, Income, or Expenses,
+\[dq]Equity:\[dq] is prepended.
+.IP \[bu] 2
+The \f[V]$\f[R] commodity symbol is converted to \f[V]USD\f[R].
+.IP \[bu] 2
+An \f[V]open\f[R] directive is generated for each account used, on the
+earliest transaction date.
 .PP
 Here\[aq]s an example of print\[aq]s CSV output:
 .IP
@@ -10893,7 +11046,7 @@ $ hledger reg -w $COLUMNS,40      # use terminal width, & description width 40
 .PP
 This command also supports the output destination and output format
 options The output formats supported are \f[V]txt\f[R], \f[V]csv\f[R],
-and (experimental) \f[V]json\f[R].
+\f[V]tsv\f[R], and (experimental) \f[V]json\f[R].
 .SS rewrite
 .PP
 Print all transactions, rewriting the postings of matched transactions.
@@ -11464,7 +11617,7 @@ many people; adapt as needed:
 .IP
 .nf
 \f[C]
-$ echo \[aq]export LEDGER_FILE=\[ti]/finance/2023.journal\[ga] >> \[ti]/.profile
+$ echo \[aq]export LEDGER_FILE=\[ti]/finance/2023.journal\[aq] >> \[ti]/.profile
 $ source \[ti]/.profile
 \f[R]
 .fi
@@ -11952,6 +12105,16 @@ your shell:
 .nf
 \f[C]
 $ echo \[dq]export LANG=en_US.utf8\[dq] >>\[ti]/.profile
+# close and re-open terminal window
+\f[R]
+.fi
+.PP
+If you are using Nix (not NixOS) for GHC and Hledger, you might need to
+set the \f[V]LOCALE_ARCHIVE\f[R] variable:
+.IP
+.nf
+\f[C]
+$ echo \[dq]export LOCALE_ARCHIVE=${glibcLocales}/lib/locale/locale-archive\[dq] >>\[ti]/.profile
 # close and re-open terminal window
 \f[R]
 .fi

@@ -377,22 +377,25 @@ cursor will be positioned at the current transaction when invoked from
 the register and transaction screens, and at the error location (if
 possible) when invoked from the error screen.
 
-   'B' toggles cost mode, showing amounts in their cost's commodity
-(like toggling the '-B/--cost' flag).
+   'B' toggles cost mode, showing amounts converted to their cost's
+commodity (see hledger manual > Cost reporting.
 
-   'V' toggles value mode, showing amounts' current market value in
-their default valuation commodity (like toggling the '-V/--market'
-flag).  Note, "current market value" means the value on the report end
-date if specified, otherwise today.  To see the value on another date,
-you can temporarily set that as the report end date.  Eg: to see a
-transaction as it was valued on july 30, go to the accounts or register
-screen, press '/', and add 'date:-7/30' to the query.
+   'V' toggles value mode, showing amounts converted to their market
+value (see hledger manual > Valuation flag).  More specifically,
 
-   At most one of cost or value mode can be active at once.
+  1. By default, the 'V' key toggles showing end value ('--value=end')
+     on or off.  The valuation date will be the report end date if
+     specified, otherwise today.
 
-   There's not yet any visual reminder when cost or value mode is
-active; for now pressing 'b' 'b' 'v' should reliably reset to normal
-mode.
+  2. If you started hledger-ui with some other valuation (such as
+     '--value=then,EUR'), the 'V' key toggles that off or on.
+
+   Cost/value tips: - When showing end value, you can change the report
+end date without restarting, by pressing '/' and adding a query like
+'date:..YYYY-MM-DD'.  - Either cost mode, or value mode, can be active,
+but not both at once.  Cost mode takes precedence.  - There's not yet
+any visual indicator that cost or value mode is active, other than the
+amount values.
 
    'q' quits the application.
 
@@ -499,6 +502,12 @@ line represents one transaction, and shows:
           matching the filter query if any).  This will be the running
           historical balance (what you would see on a bank's website,
           eg) if not disturbed by a query.
+
+   Note, this screen combines each transaction's in-period postings to a
+single line item, dated with the earliest in-period transaction or
+posting date (like hledger's 'aregister').  So custom posting dates can
+cause the running balance to be temporarily inaccurate.  (See hledger
+manual > aregister and posting dates.)
 
    Transactions affecting this account's subaccounts will be included in
 the register if the accounts screen is in tree mode, or if it's in list
@@ -677,34 +686,34 @@ Node: MOUSE7825
 Ref: #mouse7920
 Node: KEYS8157
 Ref: #keys8250
-Node: SCREENS12763
-Ref: #screens12861
-Node: Menu13441
-Ref: #menu13534
-Node: Cash accounts13729
-Ref: #cash-accounts13871
-Node: Balance sheet accounts14055
-Ref: #balance-sheet-accounts14236
-Node: Income statement accounts14356
-Ref: #income-statement-accounts14542
-Node: All accounts14706
-Ref: #all-accounts14852
-Node: Register15034
-Ref: #register15158
-Node: Transaction17120
-Ref: #transaction17243
-Node: Error18660
-Ref: #error18754
-Node: TIPS18998
-Ref: #tips19097
-Node: Watch mode19139
-Ref: #watch-mode19246
-Node: Debug output20705
-Ref: #debug-output20816
-Node: ENVIRONMENT21028
-Ref: #environment21138
-Node: BUGS21329
-Ref: #bugs21412
+Node: SCREENS12905
+Ref: #screens13003
+Node: Menu13583
+Ref: #menu13676
+Node: Cash accounts13871
+Ref: #cash-accounts14013
+Node: Balance sheet accounts14197
+Ref: #balance-sheet-accounts14378
+Node: Income statement accounts14498
+Ref: #income-statement-accounts14684
+Node: All accounts14848
+Ref: #all-accounts14994
+Node: Register15176
+Ref: #register15300
+Node: Transaction17584
+Ref: #transaction17707
+Node: Error19124
+Ref: #error19218
+Node: TIPS19462
+Ref: #tips19561
+Node: Watch mode19603
+Ref: #watch-mode19710
+Node: Debug output21169
+Ref: #debug-output21280
+Node: ENVIRONMENT21492
+Ref: #environment21602
+Node: BUGS21793
+Ref: #bugs21876
 
 End Tag Table
 

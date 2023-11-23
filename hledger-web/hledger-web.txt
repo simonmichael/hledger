@@ -87,13 +87,10 @@ OPTIONS
               them  from  another server for efficiency, you would set the url
               with this.
 
-       --capabilities=CAP[,CAP..]
-              enable the  view,  add,  and/or  manage  capabilities  (default:
-              view,add)
-
-       --capabilities-header=HTTPHEADER
-              read  capabilities  to  enable  from a HTTP header, like X-Sand-
-              storm-Permissions (default: disabled)
+       --allow=view|add|edit
+              set the user's access level for changing  data  (default:  add).
+              It  also  accepts sandstorm for use on that platform (reads per-
+              missions from the X-Sandstorm-Permissions request header).
 
        --test run hledger-web's tests and exit.  hspec test  runner  args  may
               follow a --, eg: hledger-web --test -- --help
@@ -567,4 +564,4 @@ LICENSE
 SEE ALSO
        hledger(1), hledger-ui(1), hledger-web(1), ledger(1)
 
-hledger-web-1.31.99             September 2023                  HLEDGER-WEB(1)
+hledger-web-1.31.99              November 2023                  HLEDGER-WEB(1)

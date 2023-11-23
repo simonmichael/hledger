@@ -110,14 +110,11 @@ will be applied in addition to any search query entered there.
      normally serves static files itself, but if you wanted to serve
      them from another server for efficiency, you would set the url with
      this.
-'--capabilities=CAP[,CAP..]'
+'--allow=view|add|edit'
 
-     enable the view, add, and/or manage capabilities (default:
-     view,add)
-'--capabilities-header=HTTPHEADER'
-
-     read capabilities to enable from a HTTP header, like
-     X-Sandstorm-Permissions (default: disabled)
+     set the user's access level for changing data (default: 'add').  It
+     also accepts 'sandstorm' for use on that platform (reads
+     permissions from the 'X-Sandstorm-Permissions' request header).
 '--test'
 
      run hledger-web's tests and exit.  hspec test runner args may
@@ -648,28 +645,28 @@ Tag Table:
 Node: Top225
 Node: OPTIONS2580
 Ref: #options2685
-Node: General help options5996
-Ref: #general-help-options6146
-Node: General input options6428
-Ref: #general-input-options6614
-Node: General reporting options7316
-Ref: #general-reporting-options7481
-Node: PERMISSIONS10871
-Ref: #permissions11010
-Node: EDITING UPLOADING DOWNLOADING12222
-Ref: #editing-uploading-downloading12403
-Node: RELOADING13237
-Ref: #reloading13371
-Node: JSON API13804
-Ref: #json-api13919
-Node: DEBUG OUTPUT19407
-Ref: #debug-output19532
-Node: Debug output19559
-Ref: #debug-output-119660
-Node: ENVIRONMENT20077
-Ref: #environment20196
-Node: BUGS20313
-Ref: #bugs20397
+Node: General help options5973
+Ref: #general-help-options6123
+Node: General input options6405
+Ref: #general-input-options6591
+Node: General reporting options7293
+Ref: #general-reporting-options7458
+Node: PERMISSIONS10848
+Ref: #permissions10987
+Node: EDITING UPLOADING DOWNLOADING12199
+Ref: #editing-uploading-downloading12380
+Node: RELOADING13214
+Ref: #reloading13348
+Node: JSON API13781
+Ref: #json-api13896
+Node: DEBUG OUTPUT19384
+Ref: #debug-output19509
+Node: Debug output19536
+Ref: #debug-output-119637
+Node: ENVIRONMENT20054
+Ref: #environment20173
+Node: BUGS20290
+Ref: #bugs20374
 
 End Tag Table
 

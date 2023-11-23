@@ -1,5 +1,5 @@
 
-.TH "HLEDGER-UI" "1" "September 2023" "hledger-ui-1.31.99 " "hledger User Manuals"
+.TH "HLEDGER-UI" "1" "November 2023" "hledger-ui-1.31.99 " "hledger User Manuals"
 
 
 
@@ -347,25 +347,28 @@ current transaction when invoked from the register and transaction
 screens, and at the error location (if possible) when invoked from the
 error screen.
 .PP
-\f[V]B\f[R] toggles cost mode, showing amounts in their cost\[aq]s
-commodity (like toggling the \f[V]-B/--cost\f[R] flag).
+\f[V]B\f[R] toggles cost mode, showing amounts converted to their
+cost\[aq]s commodity (see hledger manual > Cost reporting.
 .PP
-\f[V]V\f[R] toggles value mode, showing amounts\[aq] current market
-value in their default valuation commodity (like toggling the
-\f[V]-V/--market\f[R] flag).
-Note, \[dq]current market value\[dq] means the value on the report end
-date if specified, otherwise today.
-To see the value on another date, you can temporarily set that as the
-report end date.
-Eg: to see a transaction as it was valued on july 30, go to the accounts
-or register screen, press \f[V]/\f[R], and add \f[V]date:-7/30\f[R] to
-the query.
+\f[V]V\f[R] toggles value mode, showing amounts converted to their
+market value (see hledger manual > Valuation flag).
+More specifically,
+.IP "1." 3
+By default, the \f[V]V\f[R] key toggles showing end value
+(\f[V]--value=end\f[R]) on or off.
+The valuation date will be the report end date if specified, otherwise
+today.
+.IP "2." 3
+If you started hledger-ui with some other valuation (such as
+\f[V]--value=then,EUR\f[R]), the \f[V]V\f[R] key toggles that off or on.
 .PP
-At most one of cost or value mode can be active at once.
-.PP
-There\[aq]s not yet any visual reminder when cost or value mode is
-active; for now pressing \f[V]b\f[R] \f[V]b\f[R] \f[V]v\f[R] should
-reliably reset to normal mode.
+Cost/value tips: - When showing end value, you can change the report end
+date without restarting, by pressing \f[V]/\f[R] and adding a query like
+\f[V]date:..YYYY-MM-DD\f[R].
+- Either cost mode, or value mode, can be active, but not both at once.
+Cost mode takes precedence.
+- There\[aq]s not yet any visual indicator that cost or value mode is
+active, other than the amount values.
 .PP
 \f[V]q\f[R] quits the application.
 .PP
@@ -435,6 +438,13 @@ any).
 This will be the running historical balance (what you would see on a
 bank\[aq]s website, eg) if not disturbed by a query.
 .RE
+.PP
+Note, this screen combines each transaction\[aq]s in-period postings to
+a single line item, dated with the earliest in-period transaction or
+posting date (like hledger\[aq]s \f[V]aregister\f[R]).
+So custom posting dates can cause the running balance to be temporarily
+inaccurate.
+(See hledger manual > aregister and posting dates.)
 .PP
 Transactions affecting this account\[aq]s subaccounts will be included
 in the register if the accounts screen is in tree mode, or if it\[aq]s

@@ -1,5 +1,5 @@
 
-.TH "HLEDGER-WEB" "1" "September 2023" "hledger-web-1.31.99 " "hledger User Manuals"
+.TH "HLEDGER-WEB" "1" "November 2023" "hledger-web-1.31.99 " "hledger User Manuals"
 
 
 
@@ -102,12 +102,11 @@ hledger-web normally serves static files itself, but if you wanted to
 serve them from another server for efficiency, you would set the url
 with this.
 .TP
-\f[V]--capabilities=CAP[,CAP..]\f[R]
-enable the view, add, and/or manage capabilities (default: view,add)
-.TP
-\f[V]--capabilities-header=HTTPHEADER\f[R]
-read capabilities to enable from a HTTP header, like
-X-Sandstorm-Permissions (default: disabled)
+\f[V]--allow=view|add|edit\f[R]
+set the user\[aq]s access level for changing data (default:
+\f[V]add\f[R]).
+It also accepts \f[V]sandstorm\f[R] for use on that platform (reads
+permissions from the \f[V]X-Sandstorm-Permissions\f[R] request header).
 .TP
 \f[V]--test\f[R]
 run hledger-web\[aq]s tests and exit.
