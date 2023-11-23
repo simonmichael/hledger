@@ -4217,7 +4217,13 @@ After the date line are zero or more time postings, consisting of:
   - one or more dots (period characters), each representing 0.25.
     These are the dots in "timedot".
     Spaces are ignored and can be used for grouping/alignment.
-  
+
+  - one or more letters. These are like dots but they also generate
+    a tag `t:` (short for "type") with the letter as its value,
+    and a separate posting for each of the values.
+    This provides a second dimension of categorisation,
+    viewable in reports with `--pivot t`.
+
 - **An optional comment** following a semicolon (a hledger-style [posting comment](#posting-comments)).
 
 There is some flexibility to help with keeping time log data and notes in the same file:
@@ -4280,6 +4286,37 @@ Balance changes in 2016-02-01-2016-02-03:
    client1  ||         6.00         2.00         4.00 
 ------------++----------------------------------------
             ||         7.75         2.25         8.00 
+```
+
+Letters:
+
+```timedot
+# Activity types: cleanup, enhancement, learning, support
+
+2023-11-01
+work:adm  ccecces
+```
+```journal
+$ hledger -f a.timedot print
+2023-11-01
+    (work:adm)  1     ; t:c
+    (work:adm)  0.5   ; t:e
+    (work:adm)  0.25  ; t:s
+
+```
+```shell
+$ hledger -f a.timedot bal
+                1.75  work:adm
+--------------------
+                1.75  
+```
+```shell
+$ hledger -f a.timedot bal --pivot t
+                1.00  c
+                0.50  e
+                0.25  s
+--------------------
+                1.75  
 ```
 
 Org:

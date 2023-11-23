@@ -53,6 +53,10 @@ import Hledger.Data
 import Hledger.Read.Common hiding (emptyorcommentlinep)
 import Hledger.Utils
 import Data.Decimal (roundTo)
+import Data.Functor ((<&>))
+import Data.List (sort)
+import Data.List (group)
+-- import Text.Megaparsec.Debug (dbg)
 
 --- ** doctest setup
 -- $setup
@@ -126,9 +130,8 @@ dayp = label "timedot day entry" $ do
   pos <- getSourcePos
   (date,desc,comment,tags) <- datelinep
   commentlinesp
-  ps <- many $ timedotentryp <* commentlinesp
+  ps <- (many $ timedotentryp <* commentlinesp) <&> concat
   endpos <- getSourcePos
-  -- lift $ traceparse' "dayp end"
   let t = txnTieKnot $ nulltransaction{
     tsourcepos   = (pos, endpos),
     tdate        = date,
@@ -147,7 +150,6 @@ datelinep = do
   date <- datep
   desc <- T.strip <$> lift descriptionp
   (comment, tags) <- lift transactioncommentp
-  -- lift $ traceparse' "datelinep end"
   return (date, desc, comment, tags)
 
 -- | Zero or more empty lines or hash/semicolon comment lines
@@ -165,51 +167,52 @@ commentlinesp = do
 --   void $ lift restofline
 --   lift $ traceparse' "orgnondatelinep"
 
-orgheadingprefixp = do
-  -- traceparse "orgheadingprefixp"
-  skipSome (char '*') >> skipNonNewlineSpaces1
+orgheadingprefixp = skipSome (char '*') >> skipNonNewlineSpaces1
 
 -- | Parse a single timedot entry to one (dateless) transaction.
 -- @
 -- fos.haskell  .... ..
 -- @
-timedotentryp :: JournalParser m Posting
+timedotentryp :: JournalParser m [Posting]
 timedotentryp = do
   lift $ traceparse "timedotentryp"
   notFollowedBy datelinep
   lift $ optional $ choice [orgheadingprefixp, skipNonNewlineSpaces1]
   a <- modifiedaccountnamep
   lift skipNonNewlineSpaces
-  (hours, comment, tags) <-
-    try (do
-      (c,ts) <- lift transactioncommentp  -- or postingp, but let's not bother supporting date:/date2:
-      return (0, c, ts)
-    )
-    <|> (do
-      h <- lift durationp
-      (c,ts) <- try (lift transactioncommentp) <|> (newline >> return ("",[]))
-      return (h,c,ts)
-    )
+  taggedhours <- lift durationsp
+  (comment0, tags0) <-
+         lift transactioncommentp    -- not postingp, don't bother with date: tags here
+     <|> (newline >> return ("",[]))
   mcs <- getDefaultCommodityAndStyle
   let 
     (c,s) = case mcs of
       Just (defc,defs) -> (defc, defs{asprecision=max (asprecision defs) (Precision 2)})
       _ -> ("", amountstyle{asprecision=Precision 2})
-  -- lift $ traceparse' "timedotentryp end"
-  return $ nullposting{paccount=a
-                      ,pamount=mixedAmount $ nullamt{acommodity=c, aquantity=hours, astyle=s}
-                      ,ptype=VirtualPosting
-                      ,pcomment=comment
-                      ,ptags=tags
-                      }
+    ps = [
+      nullposting{paccount=a
+                ,pamount=mixedAmount $ nullamt{acommodity=c, aquantity=hours, astyle=s}
+                ,ptype=VirtualPosting
+                ,pcomment=comment
+                ,ptags=tags
+                }
+      | (hours,tagval) <- taggedhours
+      , let tag = ("t",tagval)
+      , let tags    = if T.null tagval then tags0    else tags0 ++ [tag]
+      , let comment = if T.null tagval then comment0 else comment0 `commentAddTagUnspaced` tag
+      ]
+  return ps
 
 type Hours = Quantity
 
-durationp :: TextParser m Hours
-durationp = do
-  traceparse "durationp"
-  try numericquantityp <|> dotquantityp
-    -- <* traceparse' "durationp"
+-- | Parse one or more durations in hours, each with an optional tag value
+-- (or empty string for none).
+durationsp :: TextParser m [(Hours,TagValue)]
+durationsp =
+      (dotquantityp     <&> \h -> [(h,"")])
+  <|> (numericquantityp <&> \h -> [(h,"")])
+  <|> letterquantitiesp
+  <|> pure [(0,"")]
 
 -- | Parse a duration of seconds, minutes, hours, days, weeks, months or years,
 -- written as a decimal number followed by s, m, h, d, w, mo or y, assuming h
@@ -246,15 +249,33 @@ timeUnits =
   ,("y",61320)
   ]
 
--- | Parse a quantity written as a line of dots, each representing 0.25.
+-- | Parse a quantity written as a line of one or more dots,
+-- each representing 0.25, ignoring any interspersed spaces
+-- after the first dot.
 -- @
 -- .... ..
 -- @
-dotquantityp :: TextParser m Quantity
+dotquantityp :: TextParser m Hours
 dotquantityp = do
   -- lift $ traceparse "dotquantityp"
-  dots <- filter (not.isSpace) <$> many (oneOf (". " :: [Char]))
-  return $ fromIntegral (length dots) / 4
+  char '.'
+  dots <- many (oneOf ['.', ' ']) <&> filter (not.isSpace)
+  return $ fromIntegral (1 + length dots) / 4
+
+-- | Parse a quantity written as a line of one or more letters,
+-- each representing 0.25 with a tag "t" whose value is the letter,
+-- ignoring any interspersed spaces after the first letter.
+letterquantitiesp :: TextParser m [(Hours, TagValue)]
+letterquantitiesp =
+  -- dbg "letterquantitiesp" $ 
+  do
+    letter1 <- letterChar
+    letters <- many (letterChar <|> spacenonewline) <&> filter (not.isSpace)
+    let groups =
+          [ (fromIntegral (length t) / 4, T.singleton c)
+          | t@(c:_) <- group $ sort $ letter1:letters
+          ]
+    return groups
 
 -- | XXX new comment line parser, move to Hledger.Read.Common.emptyorcommentlinep
 -- Parse empty lines, all-blank lines, and lines beginning with any of the provided

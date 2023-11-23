@@ -52,6 +52,7 @@ module Hledger.Data.Posting (
   -- * comment/tag operations
   commentJoin,
   commentAddTag,
+  commentAddTagUnspaced,
   commentAddTagNextLine,
   -- * arithmetic
   sumPostings,
@@ -610,6 +611,15 @@ commentAddTag c (t,v)
   where
     c'  = T.stripEnd c
     tag = t <> ": " <> v
+
+-- | Like commentAddTag, but omits the space after the colon.
+commentAddTagUnspaced :: Text -> Tag -> Text
+commentAddTagUnspaced c (t,v)
+  | T.null c' = tag
+  | otherwise = c' `commentJoin` tag
+  where
+    c'  = T.stripEnd c
+    tag = t <> ":" <> v
 
 -- | Add a tag on its own line to a comment, preserving any prior content.
 -- A space is inserted following the colon, before the value.
