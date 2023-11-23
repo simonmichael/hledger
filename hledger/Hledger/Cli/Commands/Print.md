@@ -118,16 +118,25 @@ The output formats supported are
 `txt`, `beancount`, `csv`, `tsv`, `json` and `sql`.
 
 *Experimental:*
-The `beancount` format tries to produce Beancount-compatible output.
-It is very basic and may require additional manual fixups:
+The `beancount` format tries to produce Beancount-compatible output, as follows:
 
 - Transaction and postings with unmarked status are converted to cleared (`*`) status.
-- Transactions' payee and note are wrapped in double quotes.
+- Transactions' payee and note are backslash-escaped and double-quote-escaped and wrapped in double quotes.
 - Transaction tags are copied to Beancount #tag format.
-- Account name parts are capitalised, and if the first account name part 
-  is not one of Assets, Liabilities, Equity, Income, or Expenses, "Equity:" is prepended.
-- The `$` commodity symbol is converted to `USD`.
+- Commodity symbols are converted to upper case, and a small number of currency symbols
+  like `$` are converted to the corresponding currency names.
+- Account name parts are capitalised and unsupported characters are replaced with `-`.
+  If an account name part does not begin with a letter, or if the first part
+  is not Assets, Liabilities, Equity, Income, or Expenses, an error is raised.
+  (Use `--alias` options to bring your accounts into compliance.)
 - An `open` directive is generated for each account used, on the earliest transaction date.
+
+Some limitations:
+
+- Balance assertions are removed.
+- Balance assignments become missing amounts.
+- Virtual and balanced virtual postings become regular postings.
+- Directives are not converted.
 
 Here's an example of print's CSV output:
 

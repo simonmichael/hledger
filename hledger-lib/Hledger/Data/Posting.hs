@@ -342,10 +342,9 @@ postingAsLinesBeancount elideamount acctwidth amtwidth p =
                        render [ textCell BottomLeft statusandaccount
                               , textCell BottomLeft "  "
                               , Cell BottomLeft [pad amt]
-                              , Cell BottomLeft [assertion]
                               , textCell BottomLeft samelinecomment
                               ]
-                    | (amt,assertion) <- shownAmountsAssertions]
+                    | (amt,_assertion) <- shownAmountsAssertions]
     render = renderRow def{tableBorders=False, borderSpaces=False} . Group NoLine . map Header
     pad amt = WideBuilder (TB.fromText $ T.replicate w " ") w <> amt
       where w = max 12 amtwidth - wbWidth amt  -- min. 12 for backwards compatibility
@@ -384,13 +383,17 @@ type BeancountAmount = Amount
 
 -- | Do some best effort adjustments to make an amount that renders
 -- in a way that Beancount can read: forces the commodity symbol to the right,
--- converts $ to USD.
+-- converts a few currency symbols to names, capitalises all letters.
 amountToBeancount :: Amount -> BeancountAmount
 amountToBeancount a@Amount{acommodity=c,astyle=s,aprice=mp} = a{acommodity=c', astyle=s', aprice=mp'}
   -- https://beancount.github.io/docs/beancount_language_syntax.html#commodities-currencies
   where
-    c' | c=="$"    = "USD"
-       | otherwise = c
+    c' = T.toUpper $
+      T.replace "$" "USD" $
+      T.replace "€" "EUR" $
+      T.replace "¥" "JPY" $
+      T.replace "£" "GBP" $
+      c
     s' = s{ascommodityside=R, ascommodityspaced=True}
     mp' = costToBeancount <$> mp
       where

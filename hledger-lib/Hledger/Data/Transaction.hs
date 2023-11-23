@@ -193,11 +193,11 @@ showTransactionBeancount t =
     (payee,note) =
       case payeeAndNoteFromDescription' $ tdescription t of
         ("","") -> ("",      ""      )
-        (p ,"") -> (wrapq p, wrapq "")
         ("",n ) -> (""     , wrapq n )
+        (p ,"") -> (wrapq p, wrapq "")
         (p ,n ) -> (wrapq p, wrapq n )
       where
-        wrapq = wrap " \"" "\""
+        wrapq = wrap " \"" "\"" . escapeDoubleQuotes . escapeBackslash
     tags = T.concat $ map ((" #"<>).fst) $ ttags t
     (samelinecomment, newlinecomments) =
       case renderCommentLines (tcomment t) of []   -> ("",[])

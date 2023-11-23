@@ -19,6 +19,7 @@ module Hledger.Utils.Text
   -- quotechars,
   -- whitespacechars,
   escapeDoubleQuotes,
+  escapeBackslash,
   -- escapeSingleQuotes,
   -- escapeQuotes,
   -- words',
@@ -138,6 +139,9 @@ whitespacechars = " \t\n\r"
 
 escapeDoubleQuotes :: T.Text -> T.Text
 escapeDoubleQuotes = T.replace "\"" "\\\""
+
+escapeBackslash :: T.Text -> T.Text
+escapeBackslash = T.replace "\\" "\\\\"
 
 -- escapeSingleQuotes :: T.Text -> T.Text
 -- escapeSingleQuotes = T.replace "'" "\'"
