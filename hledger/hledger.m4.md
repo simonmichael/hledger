@@ -4370,9 +4370,8 @@ format amounts a little bit differently to suit different consumers:
 **3. "machine-readable output" - usually for other software**
 
   - This is produced by all reports when an output format like `csv`, `tsv`, `json`, or `sql` is selected.
-  - It shows no digit group marks.
-  - It shows a period decimal mark (.) when there are decimal digits.
-  - It can be parsed reliably.
+  - It shows amounts as 1 or 2 do, but without digit group marks.
+  - It can be parsed reliably (if needed, the decimal mark can be changed with -c/--commodity-style).
 
 # Time periods
 
