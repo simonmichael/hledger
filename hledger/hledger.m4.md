@@ -2117,7 +2117,8 @@ Generally you should put `commodity` directives at the top of your journal file 
 
 ### Commodity directive syntax
 
-A commodity directive is normally the word `commodity` followed by a sample [amount](#amounts) (and optionally a comment).
+A commodity directive is normally the word `commodity`
+followed by a sample [amount](#amounts) (and optionally a comment).
 Only the amount's symbol and format is significant.
 Eg:
 
@@ -2127,11 +2128,13 @@ commodity 1.000,00 EUR
 commodity 1 000 000.0000   ; the no-symbol commodity
 ```
 
-The sample amount must always include a decimal mark (a period or comma).
-To specify no decimal digits, write it at the end:
+A commodity directive's sample amount must always include a decimal mark
+(to help distinguish decimal marks and digit group marks).
+It can be a period or a comma.
+If you want to show no decimals in reports, write the decimal mark at the end:
 
 ```journal
-commodity 1000. AAAA       ; show with no decimal digits
+commodity 1000. AAAA       ; show AAAA with no decimals
 ```
 
 Commodity symbols containing spaces, numbers, or punctuation must be enclosed in double quotes, [as usual](#commodity):
