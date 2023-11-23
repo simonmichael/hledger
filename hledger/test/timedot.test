@@ -16,6 +16,10 @@ fos:haskell  .... ; a posting comment and posting-tag:
 ; more posting comment lines ? currently ignored
 per:admin    ....
 
+2023-01-02
+a            ; no quantity means zero
+b  aabbaca   ; letter "dots" are tagged with t:LETTER
+
 ** 2023-01-02  ; dates are allowed to be org headings
 
 # ** 1. The above timedot is converted to these transactions.
@@ -28,19 +32,29 @@ $ hledger -ftimedot:- print
     (fos:haskell)            1.00  ; a posting comment and posting-tag:
     (per:admin)              1.00
 
+2023-01-02 *
+    (a)            0.00  ; no quantity means zero
+    (b)            1.00  ; letter "dots" are tagged with t:LETTER, t:a
+    (b)            0.50  ; letter "dots" are tagged with t:LETTER, t:b
+    (b)            0.25  ; letter "dots" are tagged with t:LETTER, t:c
+
 2023-01-02 *  ; dates are allowed to be org headings
 
 >=
 
 # ** 2. And this register.
-$ hledger -ftimedot:- reg
+$ hledger -ftimedot:- reg -w80
 2023-01-01 transaction descr..  (biz:research)                1.00          1.00
                                 (inc:client1)                 1.50          2.50
 2023-01-01 different transac..  (fos:haskell)                 1.00          3.50
                                 (per:admin)                   1.00          4.50
+2023-01-02                      (a)                              0          4.50
+                                (b)                           1.00          5.50
+                                (b)                           0.50          6.00
+                                (b)                           0.25          6.25
 
 # ** 3. Tags are recognised. Account aliases are applied.
-$ hledger -ftimedot:- reg tag:posting-tag --alias fos:haskell=λ
+$ hledger -ftimedot:- reg -w80 tag:posting-tag --alias fos:haskell=λ
 2023-01-01 different transac..  (λ)                           1.00          1.00
 
 # ** 4. Each of these formats is printed as exactly a quarter hour.
