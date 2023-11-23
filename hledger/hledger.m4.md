@@ -2128,10 +2128,9 @@ commodity 1.000,00 EUR
 commodity 1 000 000.0000   ; the no-symbol commodity
 ```
 
-A commodity directive's sample amount must always include a decimal mark
-(to help distinguish decimal marks and digit group marks).
-It can be a period or a comma.
-If you want to show no decimals in reports, write the decimal mark at the end:
+A commodity directive's sample amount must always include a period or comma decimal mark
+(this rule helps disambiguate decimal marks and digit group marks).
+If you don't want to show any decimal digits, write the decimal mark at the end:
 
 ```journal
 commodity 1000. AAAA       ; show AAAA with no decimals
