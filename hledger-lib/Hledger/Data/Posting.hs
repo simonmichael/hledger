@@ -386,12 +386,16 @@ type BeancountAmount = Amount
 -- in a way that Beancount can read: forces the commodity symbol to the right,
 -- converts $ to USD.
 amountToBeancount :: Amount -> BeancountAmount
-amountToBeancount a@Amount{acommodity=c,astyle=s} = a{acommodity=c', astyle=s'}
+amountToBeancount a@Amount{acommodity=c,astyle=s,aprice=mp} = a{acommodity=c', astyle=s', aprice=mp'}
   -- https://beancount.github.io/docs/beancount_language_syntax.html#commodities-currencies
   where
-    s' = s{ascommodityside=R, ascommodityspaced=True}
     c' | c=="$"    = "USD"
        | otherwise = c
+    s' = s{ascommodityside=R, ascommodityspaced=True}
+    mp' = costToBeancount <$> mp
+      where
+        costToBeancount (TotalPrice amt) = TotalPrice $ amountToBeancount amt
+        costToBeancount (UnitPrice  amt) = UnitPrice  $ amountToBeancount amt
 
 -- | Like showAccountName for Beancount journal format.
 -- Calls accountNameToBeancount first.

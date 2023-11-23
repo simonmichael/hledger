@@ -121,8 +121,8 @@ The output formats supported are
 The `beancount` format tries to produce Beancount-compatible output.
 It is very basic and may require additional manual fixups:
 
-- Transaction and postings with unmarked status are converted to cleared (`*``) status.
-- Transactions' payee and or note are wrapped in double quotes.
+- Transaction and postings with unmarked status are converted to cleared (`*`) status.
+- Transactions' payee and note are wrapped in double quotes.
 - Transaction tags are copied to Beancount #tag format.
 - Account name parts are capitalised, and if the first account name part 
   is not one of Assets, Liabilities, Equity, Income, or Expenses, "Equity:" is prepended.
