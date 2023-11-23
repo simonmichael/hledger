@@ -639,8 +639,10 @@ outputFileFromOpts opts = do
 defaultOutputFormat :: String
 defaultOutputFormat = "txt"
 
+-- | All the output formats known by any command, for outputFormatFromOpts.
+-- To automatically infer it from -o/--output-file, it needs to be listed here.
 outputFormats :: [String]
-outputFormats = [defaultOutputFormat, "csv", "tsv", "html"]
+outputFormats = [defaultOutputFormat, "csv", "json", "html", "sql", "tsv"]
 
 -- | Get the output format from the --output-format option,
 -- otherwise from a recognised file extension in the --output-file option,
