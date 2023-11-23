@@ -52,6 +52,8 @@ module Hledger.Data.AccountName (
   ,concatAccountNames
   ,accountNameApplyAliases
   ,accountNameApplyAliasesMemo
+  ,accountNameToBeancount
+  ,beancountTopLevelAccounts
   ,tests_AccountName
 )
 where
@@ -345,6 +347,22 @@ accountNameToAccountOnlyRegexCI a = toRegexCI' $ "^" <> escapeName a <> "$" -- P
 -- -- | Does this string look like an exact account-matching regular expression ?
 --isAccountRegex  :: String -> Bool
 --isAccountRegex s = take 1 s == "^" && take 5 (reverse s) == ")$|:("
+
+type BeancountAccountName = AccountName
+
+-- Convert a hledger account name to a valid Beancount account name.
+-- It capitalises each part, and if the first part is not one of
+-- Assets, Liabilities, Equity, Income, Expenses, it prepends Equity:.
+accountNameToBeancount :: AccountName -> BeancountAccountName
+accountNameToBeancount a =
+  -- https://beancount.github.io/docs/beancount_language_syntax.html#accounts
+  accountNameFromComponents $
+  case map textCapitalise $ accountNameComponents a of
+    [] -> []
+    c:cs | c `elem` beancountTopLevelAccounts -> c:cs
+    cs -> "Equity" : cs
+
+beancountTopLevelAccounts = ["Assets", "Liabilities", "Equity", "Income", "Expenses"]
 
 tests_AccountName = testGroup "AccountName" [
    testCase "accountNameTreeFrom" $ do

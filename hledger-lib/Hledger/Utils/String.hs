@@ -3,6 +3,7 @@
 module Hledger.Utils.String (
  takeEnd,
  -- * misc
+ capitalise,
  lowercase,
  uppercase,
  underline,
@@ -55,6 +56,10 @@ takeEnd n l = go (drop n l) l
     go (_:xs) (_:ys) = go xs ys
     go []     r      = r
     go _      []     = []
+
+capitalise :: String -> String
+capitalise (c:cs) = toUpper c : cs
+capitalise s = s
 
 lowercase, uppercase :: String -> String
 lowercase = map toLower

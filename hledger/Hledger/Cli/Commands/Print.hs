@@ -28,8 +28,9 @@ import Hledger.Read.CsvUtils (CSV, printCSV, printTSV)
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
 import System.Exit (exitFailure)
-import Safe (lastMay)
+import Safe (lastMay, minimumDef)
 import Data.Function ((&))
+import Data.List.Extra (nubSort)
 
 
 printmode = hledgerCommandMode
@@ -55,7 +56,7 @@ printmode = hledgerCommandMode
   ,let arg = "DESC" in
    flagReq  ["match","m"] (\s opts -> Right $ setopt "match" s opts) arg
     ("fuzzy search for one recent transaction with description closest to "++arg)
-  ,outputFormatFlag ["txt","csv","tsv","json","sql"]
+  ,outputFormatFlag ["txt","beancount","csv","tsv","json","sql"]
   ,outputFileFlag
   ])
   [generalflagsgroup1]
@@ -113,6 +114,7 @@ printEntries opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j =
 
     fmt = outputFormatFromOpts opts
     render | fmt=="txt"  = entriesReportAsText opts      . styleAmounts styles
+           | fmt=="beancount" = entriesReportAsBeancount opts . styleAmounts styles
            | fmt=="csv"  = printCSV . entriesReportAsCsv . styleAmounts styles
            | fmt=="tsv"  = printTSV . entriesReportAsCsv . styleAmounts styles
            | fmt=="json" = toJsonText                    . styleAmounts styles
@@ -120,8 +122,11 @@ printEntries opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j =
            | otherwise   = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
 
 entriesReportAsText :: CliOpts -> EntriesReport -> TL.Text
-entriesReportAsText opts =
-    TB.toLazyText . foldMap (TB.fromText . showTransaction . txntransform)
+entriesReportAsText = entriesReportAsTextHelper showTransaction
+
+entriesReportAsTextHelper :: (Transaction -> T.Text) -> CliOpts -> EntriesReport -> TL.Text
+entriesReportAsTextHelper showtxn opts =
+    TB.toLazyText . foldMap (TB.fromText . showtxn . txntransform)
   where
     txntransform
       -- Use the fully inferred and amount-styled/rounded transaction in the following situations:
@@ -149,46 +154,24 @@ postingMostlyOriginal p = orig
     orig = originalPosting p
     isGenerated = "_generated-posting" `elem` map fst (ptags p)
 
--- XXX
--- tests_showTransactions = [
---   "showTransactions" ~: do
-
---    -- "print expenses" ~:
---    do
---     let opts = defreportopts{query_="expenses"}
---     d <- getCurrentDay
---     showTransactions opts (queryFromOpts d opts) samplejournal `is` unlines
---      ["2008/06/03 * eat & shop"
---      ,"    expenses:food                $1"
---      ,"    expenses:supplies            $1"
---      ,"    assets:cash                 $-2"
---      ,""
---      ]
-
---   -- , "print report with depth arg" ~:
---    do
---     let opts = defreportopts{depth_=Just 2}
---     d <- getCurrentDay
---     showTransactions opts (queryFromOpts d opts) samplejournal `is` unlines
---       ["2008/01/01 income"
---       ,"    assets:bank:checking            $1"
---       ,"    income:salary                  $-1"
---       ,""
---       ,"2008/06/01 gift"
---       ,"    assets:bank:checking            $1"
---       ,"    income:gifts                   $-1"
---       ,""
---       ,"2008/06/03 * eat & shop"
---       ,"    expenses:food                $1"
---       ,"    expenses:supplies            $1"
---       ,"    assets:cash                 $-2"
---       ,""
---       ,"2008/12/31 * pay off"
---       ,"    liabilities:debts               $1"
---       ,"    assets:bank:checking           $-1"
---       ,""
---       ]
---  ]
+-- In addition to rendering the transactions in (best effort) Beancount format,
+-- this generates an account open directive for each account name used
+-- (using the earliest transaction date).
+entriesReportAsBeancount :: CliOpts -> EntriesReport -> TL.Text
+entriesReportAsBeancount opts ts =
+  -- PERF: gathers and converts all account names, then repeats that work when showing each transaction
+  opendirectives <> "\n" <>
+  entriesReportAsTextHelper showTransactionBeancount opts ts
+  where
+    opendirectives
+      | null ts = ""
+      | otherwise = TL.fromStrict $ T.unlines [
+          firstdate <> " open " <> accountNameToBeancount a
+          | a <- nubSort $ concatMap (map paccount.tpostings) ts
+          ]
+        where
+          firstdate = showDate $ minimumDef err $ map tdate ts
+            where err = error' "entriesReportAsBeancount: should not happen"
 
 entriesReportAsSql :: EntriesReport -> TL.Text
 entriesReportAsSql txns = TB.toLazyText $ mconcat

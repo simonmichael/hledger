@@ -115,7 +115,19 @@ This command also supports the
 [output destination](hledger.html#output-destination) and
 [output format](hledger.html#output-format) options
 The output formats supported are
-`txt`, `csv`, `tsv`, and (experimental) `json` and `sql`.
+`txt`, `beancount`, `csv`, `tsv`, `json` and `sql`.
+
+*Experimental:*
+The `beancount` format tries to produce Beancount-compatible output.
+It is very basic and may require additional manual fixups:
+
+- Transaction and postings with unmarked status are converted to cleared (`*``) status.
+- Transactions' payee and or note are wrapped in double quotes.
+- Transaction tags are copied to Beancount #tag format.
+- Account name parts are capitalised, and if the first account name part 
+  is not one of Assets, Liabilities, Equity, Income, or Expenses, "Equity:" is prepended.
+- The `$` commodity symbol is converted to `USD`.
+- An `open` directive is generated for each account used, on the earliest transaction date.
 
 Here's an example of print's CSV output:
 

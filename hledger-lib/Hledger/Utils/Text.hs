@@ -6,8 +6,7 @@
 module Hledger.Utils.Text
   (
   -- * misc
-  -- lowercase,
-  -- uppercase,
+  textCapitalise,
   -- underline,
   -- stripbrackets,
   textUnbracket,
@@ -67,9 +66,8 @@ import Text.Tabular.AsciiWide
 import Text.WideString (WideBuilder(..), wbToText, wbFromText, wbUnpack)
 
 
--- lowercase, uppercase :: String -> String
--- lowercase = map toLower
--- uppercase = map toUpper
+textCapitalise :: Text -> Text
+textCapitalise t = T.toTitle c <> cs where (c,cs) = T.splitAt 1 t
 
 -- stripbrackets :: String -> String
 -- stripbrackets = dropWhile (`elem` "([") . reverse . dropWhile (`elem` "])") . reverse :: String -> String

@@ -9,7 +9,7 @@ module Hledger.Cli.Commands.Check (
  ,check
 ) where
 
-import Data.Char (toLower,toUpper)
+import Data.Char (toLower)
 import Data.Either (partitionEithers)
 import Data.List (isPrefixOf, find)
 import Control.Monad (forM_)
@@ -79,10 +79,6 @@ parseCheck s =
   where
     s' = capitalise $ map toLower s
     checknames = map show [minBound..maxBound::Check]
-
-capitalise :: String -> String
-capitalise (c:cs) = toUpper c : cs
-capitalise s = s
 
 -- | Parse a check argument: a string which is the lower-case name of an error check,
 -- or a prefix thereof, followed by zero or more space-separated arguments for that check.
