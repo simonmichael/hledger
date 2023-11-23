@@ -4341,30 +4341,37 @@ file.
 # PART 3: REPORTING CONCEPTS
 
 
-# Amount formatting
+# Amount formatting, ambiguous amounts
 
-When displaying amounts, digit group marks and decimal marks are
-handled a little differently depending on the report and output format
-and intended consumer.  hledger output falls into three rough categories:
+If you're wondering why your `print` report sometimes shows trailing
+decimal marks, even when there are no decimal digits; it does this to
+disambiguate [ambiguous amounts](decimal-marks-digit-group-marks)
+(amounts which have one digit group mark and no decimal digits),
+allowing them to be re-parsed reliably.
 
-**1. "hledger-readable output" should be readable by hledger and by humans**
-  - produced by reports that show full journal entries: `print`, `import`, `close`, `rewrite`..
-  - shows amounts with their original journal precisions, which may not be consistent
-  - adds a trailing decimal mark when needed to disambiguate [ambiguous amounts](decimal-marks-digit-group-marks)
-    (amounts with one digit group mark and no decimal digits)
-  - can be parsed reliably
+Background: hledger output falls into three rough categories, which
+format amounts a little bit differently to suit different consumers:
+
+**1. "hledger-readable output" - should be readable by hledger and by humans**
+
+  - It is produced by reports that show full journal entries: `print`, `import`, `close`, `rewrite` etc.
+  - It shows amounts with their original journal precisions, which may not be consistent.
+  - It adds a trailing decimal mark when needed to avoid showing ambiguous amounts.
+  - It can be parsed reliably.
 
 **2. "human-readable output" - usually for humans**
-  - produced by all other reports
-  - shows amounts with standard display precisions, which will be consistent within each commodity
-  - can show ambiguous amounts
-  - can be parsed reliably in the context of a known report (because of consistent style)
+
+  - It is produced by all other reports.
+  - It shows amounts with standard display precisions, which will be consistent within each commodity.
+  - It can show ambiguous amounts.
+  - It can be parsed reliably in the context of a known report (because of consistent style).
 
 **3. "machine-readable output" - usually for other software**
-  - produced by all reports when an output format like `csv`/`tsv`/`json`/`sql` is selected
-  - shows no digit group marks
-  - shows a period decimal mark (.) when there are decimal digits
-  - can be parsed reliably
+
+  - It is produced by all reports when an output format like `csv`/`tsv`/`json`/`sql` is selected.
+  - It shows no digit group marks.
+  - It shows a period decimal mark (.) when there are decimal digits.
+  - It can be parsed reliably.
 
 # Time periods
 
