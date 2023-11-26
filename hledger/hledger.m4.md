@@ -4411,7 +4411,7 @@ $ hledger print
 
 ```
 
-If this is a problem (eg when exporting to [Ledger](/ledger.md#ledger-to-ledger)),
+If this is a problem (eg when [exporting to Ledger](/ledger.md#hledger-to-ledger)),
 you can avoid it by disabling digit group marks, eg with
 [-c/--commodity](#commodity-styles):
 ```cli
